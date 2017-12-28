@@ -19239,6 +19239,23 @@ exports[`Storyshots Common Icon 1`] = `
           className={undefined}
           draggable="false"
           onClick={[Function]}
+          srcSet="icons/icon-followers-new-32.png 1x, icons/icon-followers-new-32@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
           srcSet="icons/icon-following-32.png 1x, icons/icon-following-32@2x.png 2x"
           style={
             Object {
@@ -19478,6 +19495,176 @@ exports[`Storyshots Common Icon 1`] = `
           draggable="false"
           onClick={[Function]}
           srcSet="icons/icon-nav-settings-selected-32.png 1x, icons/icon-nav-settings-selected-32@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-onboarding-chat-32.png 1x, icons/icon-onboarding-chat-32@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-onboarding-folder-32.png 1x, icons/icon-onboarding-folder-32@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-onboarding-follow-32.png 1x, icons/icon-onboarding-follow-32@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-onboarding-git-32.png 1x, icons/icon-onboarding-git-32@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-onboarding-paper-key-32.png 1x, icons/icon-onboarding-paper-key-32@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-onboarding-phone-32.png 1x, icons/icon-onboarding-phone-32@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-onboarding-proofs-32.png 1x, icons/icon-onboarding-proofs-32@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-onboarding-team-32.png 1x, icons/icon-onboarding-team-32@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-onboarding-team-publicity-32.png 1x, icons/icon-onboarding-team-publicity-32@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-onboarding-user-info-32.png 1x, icons/icon-onboarding-user-info-32@2x.png 2x"
           style={
             Object {
               "borderColor": "rgba(0, 0, 0, 0.05)",
@@ -20641,6 +20828,23 @@ exports[`Storyshots Common Icon 1`] = `
           className={undefined}
           draggable="false"
           onClick={[Function]}
+          srcSet="icons/icon-followers-new-48.png 1x, icons/icon-followers-new-48@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
           srcSet="icons/icon-github-logo-48.png 1x, icons/icon-github-logo-48@2x.png 2x"
           style={
             Object {
@@ -20727,6 +20931,176 @@ exports[`Storyshots Common Icon 1`] = `
           draggable="false"
           onClick={[Function]}
           srcSet="icons/icon-invite-link-negative-48.png 1x, icons/icon-invite-link-negative-48@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-onboarding-chat-48.png 1x, icons/icon-onboarding-chat-48@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-onboarding-computer-48.png 1x, icons/icon-onboarding-computer-48@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-onboarding-folder-48.png 1x, icons/icon-onboarding-folder-48@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-onboarding-follow-48.png 1x, icons/icon-onboarding-follow-48@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-onboarding-git-48.png 1x, icons/icon-onboarding-git-48@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-onboarding-paper-key-48.png 1x, icons/icon-onboarding-paper-key-48@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-onboarding-proofs-48.png 1x, icons/icon-onboarding-proofs-48@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-onboarding-team-48.png 1x, icons/icon-onboarding-team-48@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-onboarding-team-publicity-48.png 1x, icons/icon-onboarding-team-publicity-48@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-onboarding-user-info-48.png 1x, icons/icon-onboarding-user-info-48@2x.png 2x"
           style={
             Object {
               "borderColor": "rgba(0, 0, 0, 0.05)",
@@ -26787,6 +27161,6024 @@ exports[`Storyshots Git Root 1`] = `
         }
       }
     />
+  </div>
+</div>
+`;
+
+exports[`Storyshots People/Follow Suggestions One 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  bottom: 1px;
+  left: 1px;
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  background-color: #f0f0f0;
+  border-radius: 50%;
+}
+
+.glamor-2,
+[data-glamor-2] {
+  background-size: cover;
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  background-image: -webkit-image-set(url('icons/icon-placeholder-avatar-64.png') 1x, url('icons/icon-placeholder-avatar-64@2x.png') 2x);
+  border-radius: 50%;
+  height: 64px;
+  max-width: 64px;
+  min-width: 64px;
+  opacity: 1;
+}
+
+.glamor-5,
+[data-glamor-5] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  text-decoration: inherit;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: row;
+  -webkit-box-lines: multiple;
+  -webkit-flex-wrap: wrap;
+}
+
+.glamor-4,
+[data-glamor-4] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+}
+
+.glamor-3,
+[data-glamor-3] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #33a0ff;
+  cursor: pointer;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  margin-top: 4px;
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  text-decoration: inherit;
+}
+
+.glamor-6,
+[data-glamor-6] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  overflow: hidden;
+  display: -webkit-box;
+  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  padding-left: 2px;
+  padding-right: 2px;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={undefined}
+  >
+    <div
+      style={
+        Object {
+          "display": "flex",
+          "flexDirection": "column",
+          "paddingBottom": 106,
+          "paddingLeft": 12,
+          "paddingRight": 12,
+          "paddingTop": 8,
+          "position": "relative",
+        }
+      }
+    >
+      <span
+        className="glamor-0"
+        onClick={undefined}
+        title={undefined}
+      >
+        Consider following...
+      </span>
+      <div
+        style={
+          Object {
+            "bottom": 0,
+            "display": "flex",
+            "flexDirection": "row",
+            "left": 0,
+            "overflow": "scroll",
+            "position": "absolute",
+            "right": 0,
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "display": "flex",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "borderRadius": 0,
+                "cursor": "pointer",
+                "display": "flex",
+                "flexDirection": "column",
+                "flexShrink": 0,
+                "height": 106,
+                "lineHeight": 0,
+                "minWidth": undefined,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+                "width": 112,
+              }
+            }
+          >
+            <div
+              onClick={undefined}
+              style={
+                Object {
+                  "height": 64,
+                  "maxWidth": 64,
+                  "minHeight": 64,
+                  "minWidth": 64,
+                  "position": "relative",
+                  "userSelect": "none",
+                }
+              }
+            >
+              <div
+                className="glamor-1"
+              />
+              <div
+                className="glamor-2"
+              />
+              <img
+                className={undefined}
+                draggable="false"
+                onClick={null}
+                srcSet="icons/icon-follow-me-21.png 1x, icons/icon-follow-me-21@2x.png 2x"
+                style={
+                  Object {
+                    "bottom": 0,
+                    "left": 45,
+                    "position": "absolute",
+                    "userSelect": "none",
+                  }
+                }
+                title={undefined}
+              />
+            </div>
+            <span
+              className="glamor-5"
+              onClick={undefined}
+              title={undefined}
+            >
+              <span
+                className="glamor-4"
+                onClick={undefined}
+                title={undefined}
+              >
+                <span
+                  className="glamor-3"
+                  onClick={[Function]}
+                  title={undefined}
+                >
+                  ayoubd
+                </span>
+              </span>
+            </span>
+            <span
+              className="glamor-6"
+              onClick={undefined}
+              title={undefined}
+            >
+              Danny Ayoub
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  bottom: 1px;
+  left: 1px;
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  background-color: #f0f0f0;
+  border-radius: 50%;
+}
+
+.glamor-2,
+[data-glamor-2] {
+  background-size: cover;
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  background-image: -webkit-image-set(url('icons/icon-placeholder-avatar-64.png') 1x, url('icons/icon-placeholder-avatar-64@2x.png') 2x);
+  border-radius: 50%;
+  height: 64px;
+  max-width: 64px;
+  min-width: 64px;
+  opacity: 1;
+}
+
+.glamor-5,
+[data-glamor-5] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  text-decoration: inherit;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: row;
+  -webkit-box-lines: multiple;
+  -webkit-flex-wrap: wrap;
+}
+
+.glamor-4,
+[data-glamor-4] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+}
+
+.glamor-3,
+[data-glamor-3] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #33a0ff;
+  cursor: pointer;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  margin-top: 4px;
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  text-decoration: inherit;
+}
+
+.glamor-6,
+[data-glamor-6] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  overflow: hidden;
+  display: -webkit-box;
+  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  padding-left: 2px;
+  padding-right: 2px;
+}
+
+.glamor-9,
+[data-glamor-9] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #36b37c;
+  cursor: pointer;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  margin-top: 4px;
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  text-decoration: inherit;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={undefined}
+  >
+    <div
+      style={
+        Object {
+          "display": "flex",
+          "flexDirection": "column",
+          "paddingBottom": 106,
+          "paddingLeft": 12,
+          "paddingRight": 12,
+          "paddingTop": 8,
+          "position": "relative",
+        }
+      }
+    >
+      <span
+        className="glamor-0"
+        onClick={undefined}
+        title={undefined}
+      >
+        Consider following...
+      </span>
+      <div
+        style={
+          Object {
+            "bottom": 0,
+            "display": "flex",
+            "flexDirection": "row",
+            "left": 0,
+            "overflow": "scroll",
+            "position": "absolute",
+            "right": 0,
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "display": "flex",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "borderRadius": 0,
+                "cursor": "pointer",
+                "display": "flex",
+                "flexDirection": "column",
+                "flexShrink": 0,
+                "height": 106,
+                "lineHeight": 0,
+                "minWidth": undefined,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+                "width": 112,
+              }
+            }
+          >
+            <div
+              onClick={undefined}
+              style={
+                Object {
+                  "height": 64,
+                  "maxWidth": 64,
+                  "minHeight": 64,
+                  "minWidth": 64,
+                  "position": "relative",
+                  "userSelect": "none",
+                }
+              }
+            >
+              <div
+                className="glamor-1"
+              />
+              <div
+                className="glamor-2"
+              />
+              <img
+                className={undefined}
+                draggable="false"
+                onClick={null}
+                srcSet="icons/icon-follow-me-21.png 1x, icons/icon-follow-me-21@2x.png 2x"
+                style={
+                  Object {
+                    "bottom": 0,
+                    "left": 45,
+                    "position": "absolute",
+                    "userSelect": "none",
+                  }
+                }
+                title={undefined}
+              />
+            </div>
+            <span
+              className="glamor-5"
+              onClick={undefined}
+              title={undefined}
+            >
+              <span
+                className="glamor-4"
+                onClick={undefined}
+                title={undefined}
+              >
+                <span
+                  className="glamor-3"
+                  onClick={[Function]}
+                  title={undefined}
+                >
+                  ayoubd
+                </span>
+              </span>
+            </span>
+            <span
+              className="glamor-6"
+              onClick={undefined}
+              title={undefined}
+            >
+              Danny Ayoub
+            </span>
+          </div>
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "borderRadius": 0,
+                "cursor": "pointer",
+                "display": "flex",
+                "flexDirection": "column",
+                "flexShrink": 0,
+                "height": 106,
+                "lineHeight": 0,
+                "minWidth": undefined,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+                "width": 112,
+              }
+            }
+          >
+            <div
+              onClick={undefined}
+              style={
+                Object {
+                  "height": 64,
+                  "maxWidth": 64,
+                  "minHeight": 64,
+                  "minWidth": 64,
+                  "position": "relative",
+                  "userSelect": "none",
+                }
+              }
+            >
+              <div
+                className="glamor-1"
+              />
+              <div
+                className="glamor-2"
+              />
+              <img
+                className={undefined}
+                draggable="false"
+                onClick={null}
+                srcSet="icons/icon-follow-me-21.png 1x, icons/icon-follow-me-21@2x.png 2x"
+                style={
+                  Object {
+                    "bottom": 0,
+                    "left": 45,
+                    "position": "absolute",
+                    "userSelect": "none",
+                  }
+                }
+                title={undefined}
+              />
+            </div>
+            <span
+              className="glamor-5"
+              onClick={undefined}
+              title={undefined}
+            >
+              <span
+                className="glamor-4"
+                onClick={undefined}
+                title={undefined}
+              >
+                <span
+                  className="glamor-9"
+                  onClick={[Function]}
+                  title={undefined}
+                >
+                  max
+                </span>
+              </span>
+            </span>
+            <span
+              className="glamor-6"
+              onClick={undefined}
+              title={undefined}
+            >
+              Max Krohn
+            </span>
+          </div>
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "borderRadius": 0,
+                "cursor": "pointer",
+                "display": "flex",
+                "flexDirection": "column",
+                "flexShrink": 0,
+                "height": 106,
+                "lineHeight": 0,
+                "minWidth": undefined,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+                "width": 112,
+              }
+            }
+          >
+            <div
+              onClick={undefined}
+              style={
+                Object {
+                  "height": 64,
+                  "maxWidth": 64,
+                  "minHeight": 64,
+                  "minWidth": 64,
+                  "position": "relative",
+                  "userSelect": "none",
+                }
+              }
+            >
+              <div
+                className="glamor-1"
+              />
+              <div
+                className="glamor-2"
+              />
+            </div>
+            <span
+              className="glamor-5"
+              onClick={undefined}
+              title={undefined}
+            >
+              <span
+                className="glamor-4"
+                onClick={undefined}
+                title={undefined}
+              >
+                <span
+                  className="glamor-3"
+                  onClick={[Function]}
+                  title={undefined}
+                >
+                  chrisnojima
+                </span>
+              </span>
+            </span>
+            <span
+              className="glamor-6"
+              onClick={undefined}
+              title={undefined}
+            >
+              Chris Nojima
+            </span>
+          </div>
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "borderRadius": 0,
+                "cursor": "pointer",
+                "display": "flex",
+                "flexDirection": "column",
+                "flexShrink": 0,
+                "height": 106,
+                "lineHeight": 0,
+                "minWidth": undefined,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+                "width": 112,
+              }
+            }
+          >
+            <div
+              onClick={undefined}
+              style={
+                Object {
+                  "height": 64,
+                  "maxWidth": 64,
+                  "minHeight": 64,
+                  "minWidth": 64,
+                  "position": "relative",
+                  "userSelect": "none",
+                }
+              }
+            >
+              <div
+                className="glamor-1"
+              />
+              <div
+                className="glamor-2"
+              />
+              <img
+                className={undefined}
+                draggable="false"
+                onClick={null}
+                srcSet="icons/icon-follow-me-21.png 1x, icons/icon-follow-me-21@2x.png 2x"
+                style={
+                  Object {
+                    "bottom": 0,
+                    "left": 45,
+                    "position": "absolute",
+                    "userSelect": "none",
+                  }
+                }
+                title={undefined}
+              />
+            </div>
+            <span
+              className="glamor-5"
+              onClick={undefined}
+              title={undefined}
+            >
+              <span
+                className="glamor-4"
+                onClick={undefined}
+                title={undefined}
+              >
+                <span
+                  className="glamor-3"
+                  onClick={[Function]}
+                  title={undefined}
+                >
+                  oconnor663
+                </span>
+              </span>
+            </span>
+            <span
+              className="glamor-6"
+              onClick={undefined}
+              title={undefined}
+            >
+              Jack O'Connor
+            </span>
+          </div>
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "borderRadius": 0,
+                "cursor": "pointer",
+                "display": "flex",
+                "flexDirection": "column",
+                "flexShrink": 0,
+                "height": 106,
+                "lineHeight": 0,
+                "minWidth": undefined,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+                "width": 112,
+              }
+            }
+          >
+            <div
+              onClick={undefined}
+              style={
+                Object {
+                  "height": 64,
+                  "maxWidth": 64,
+                  "minHeight": 64,
+                  "minWidth": 64,
+                  "position": "relative",
+                  "userSelect": "none",
+                }
+              }
+            >
+              <div
+                className="glamor-1"
+              />
+              <div
+                className="glamor-2"
+              />
+              <img
+                className={undefined}
+                draggable="false"
+                onClick={null}
+                srcSet="icons/icon-follow-me-21.png 1x, icons/icon-follow-me-21@2x.png 2x"
+                style={
+                  Object {
+                    "bottom": 0,
+                    "left": 45,
+                    "position": "absolute",
+                    "userSelect": "none",
+                  }
+                }
+                title={undefined}
+              />
+            </div>
+            <span
+              className="glamor-5"
+              onClick={undefined}
+              title={undefined}
+            >
+              <span
+                className="glamor-4"
+                onClick={undefined}
+                title={undefined}
+              >
+                <span
+                  className="glamor-3"
+                  onClick={[Function]}
+                  title={undefined}
+                >
+                  mlsteele
+                </span>
+              </span>
+            </span>
+            <span
+              className="glamor-6"
+              onClick={undefined}
+              title={undefined}
+            >
+              Miles Steele
+            </span>
+          </div>
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "borderRadius": 0,
+                "cursor": "pointer",
+                "display": "flex",
+                "flexDirection": "column",
+                "flexShrink": 0,
+                "height": 106,
+                "lineHeight": 0,
+                "minWidth": undefined,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+                "width": 112,
+              }
+            }
+          >
+            <div
+              onClick={undefined}
+              style={
+                Object {
+                  "height": 64,
+                  "maxWidth": 64,
+                  "minHeight": 64,
+                  "minWidth": 64,
+                  "position": "relative",
+                  "userSelect": "none",
+                }
+              }
+            >
+              <div
+                className="glamor-1"
+              />
+              <div
+                className="glamor-2"
+              />
+              <img
+                className={undefined}
+                draggable="false"
+                onClick={null}
+                srcSet="icons/icon-follow-me-21.png 1x, icons/icon-follow-me-21@2x.png 2x"
+                style={
+                  Object {
+                    "bottom": 0,
+                    "left": 45,
+                    "position": "absolute",
+                    "userSelect": "none",
+                  }
+                }
+                title={undefined}
+              />
+            </div>
+            <span
+              className="glamor-5"
+              onClick={undefined}
+              title={undefined}
+            >
+              <span
+                className="glamor-4"
+                onClick={undefined}
+                title={undefined}
+              >
+                <span
+                  className="glamor-3"
+                  onClick={[Function]}
+                  title={undefined}
+                >
+                  zanderz
+                </span>
+              </span>
+            </span>
+            <span
+              className="glamor-6"
+              onClick={undefined}
+              title={undefined}
+            >
+              Steve Sanders
+            </span>
+          </div>
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "borderRadius": 0,
+                "cursor": "pointer",
+                "display": "flex",
+                "flexDirection": "column",
+                "flexShrink": 0,
+                "height": 106,
+                "lineHeight": 0,
+                "minWidth": undefined,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+                "width": 112,
+              }
+            }
+          >
+            <div
+              onClick={undefined}
+              style={
+                Object {
+                  "height": 64,
+                  "maxWidth": 64,
+                  "minHeight": 64,
+                  "minWidth": 64,
+                  "position": "relative",
+                  "userSelect": "none",
+                }
+              }
+            >
+              <div
+                className="glamor-1"
+              />
+              <div
+                className="glamor-2"
+              />
+              <img
+                className={undefined}
+                draggable="false"
+                onClick={null}
+                srcSet="icons/icon-follow-me-21.png 1x, icons/icon-follow-me-21@2x.png 2x"
+                style={
+                  Object {
+                    "bottom": 0,
+                    "left": 45,
+                    "position": "absolute",
+                    "userSelect": "none",
+                  }
+                }
+                title={undefined}
+              />
+            </div>
+            <span
+              className="glamor-5"
+              onClick={undefined}
+              title={undefined}
+            >
+              <span
+                className="glamor-4"
+                onClick={undefined}
+                title={undefined}
+              >
+                <span
+                  className="glamor-3"
+                  onClick={[Function]}
+                  title={undefined}
+                >
+                  chris
+                </span>
+              </span>
+            </span>
+            <span
+              className="glamor-6"
+              onClick={undefined}
+              title={undefined}
+            >
+              Chris Coyne
+            </span>
+          </div>
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "borderRadius": 0,
+                "cursor": "pointer",
+                "display": "flex",
+                "flexDirection": "column",
+                "flexShrink": 0,
+                "height": 106,
+                "lineHeight": 0,
+                "minWidth": undefined,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+                "width": 112,
+              }
+            }
+          >
+            <div
+              onClick={undefined}
+              style={
+                Object {
+                  "height": 64,
+                  "maxWidth": 64,
+                  "minHeight": 64,
+                  "minWidth": 64,
+                  "position": "relative",
+                  "userSelect": "none",
+                }
+              }
+            >
+              <div
+                className="glamor-1"
+              />
+              <div
+                className="glamor-2"
+              />
+              <img
+                className={undefined}
+                draggable="false"
+                onClick={null}
+                srcSet="icons/icon-follow-me-21.png 1x, icons/icon-follow-me-21@2x.png 2x"
+                style={
+                  Object {
+                    "bottom": 0,
+                    "left": 45,
+                    "position": "absolute",
+                    "userSelect": "none",
+                  }
+                }
+                title={undefined}
+              />
+            </div>
+            <span
+              className="glamor-5"
+              onClick={undefined}
+              title={undefined}
+            >
+              <span
+                className="glamor-4"
+                onClick={undefined}
+                title={undefined}
+              >
+                <span
+                  className="glamor-3"
+                  onClick={[Function]}
+                  title={undefined}
+                >
+                  ayoubd1
+                </span>
+              </span>
+            </span>
+            <span
+              className="glamor-6"
+              onClick={undefined}
+              title={undefined}
+            >
+              Danny Ayoub
+            </span>
+          </div>
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "borderRadius": 0,
+                "cursor": "pointer",
+                "display": "flex",
+                "flexDirection": "column",
+                "flexShrink": 0,
+                "height": 106,
+                "lineHeight": 0,
+                "minWidth": undefined,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+                "width": 112,
+              }
+            }
+          >
+            <div
+              onClick={undefined}
+              style={
+                Object {
+                  "height": 64,
+                  "maxWidth": 64,
+                  "minHeight": 64,
+                  "minWidth": 64,
+                  "position": "relative",
+                  "userSelect": "none",
+                }
+              }
+            >
+              <div
+                className="glamor-1"
+              />
+              <div
+                className="glamor-2"
+              />
+              <img
+                className={undefined}
+                draggable="false"
+                onClick={null}
+                srcSet="icons/icon-follow-me-21.png 1x, icons/icon-follow-me-21@2x.png 2x"
+                style={
+                  Object {
+                    "bottom": 0,
+                    "left": 45,
+                    "position": "absolute",
+                    "userSelect": "none",
+                  }
+                }
+                title={undefined}
+              />
+            </div>
+            <span
+              className="glamor-5"
+              onClick={undefined}
+              title={undefined}
+            >
+              <span
+                className="glamor-4"
+                onClick={undefined}
+                title={undefined}
+              >
+                <span
+                  className="glamor-3"
+                  onClick={[Function]}
+                  title={undefined}
+                >
+                  max1
+                </span>
+              </span>
+            </span>
+            <span
+              className="glamor-6"
+              onClick={undefined}
+              title={undefined}
+            >
+              Max Krohn
+            </span>
+          </div>
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "borderRadius": 0,
+                "cursor": "pointer",
+                "display": "flex",
+                "flexDirection": "column",
+                "flexShrink": 0,
+                "height": 106,
+                "lineHeight": 0,
+                "minWidth": undefined,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+                "width": 112,
+              }
+            }
+          >
+            <div
+              onClick={undefined}
+              style={
+                Object {
+                  "height": 64,
+                  "maxWidth": 64,
+                  "minHeight": 64,
+                  "minWidth": 64,
+                  "position": "relative",
+                  "userSelect": "none",
+                }
+              }
+            >
+              <div
+                className="glamor-1"
+              />
+              <div
+                className="glamor-2"
+              />
+            </div>
+            <span
+              className="glamor-5"
+              onClick={undefined}
+              title={undefined}
+            >
+              <span
+                className="glamor-4"
+                onClick={undefined}
+                title={undefined}
+              >
+                <span
+                  className="glamor-3"
+                  onClick={[Function]}
+                  title={undefined}
+                >
+                  chrisnojima1
+                </span>
+              </span>
+            </span>
+            <span
+              className="glamor-6"
+              onClick={undefined}
+              title={undefined}
+            >
+              Chris Nojima
+            </span>
+          </div>
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "borderRadius": 0,
+                "cursor": "pointer",
+                "display": "flex",
+                "flexDirection": "column",
+                "flexShrink": 0,
+                "height": 106,
+                "lineHeight": 0,
+                "minWidth": undefined,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+                "width": 112,
+              }
+            }
+          >
+            <div
+              onClick={undefined}
+              style={
+                Object {
+                  "height": 64,
+                  "maxWidth": 64,
+                  "minHeight": 64,
+                  "minWidth": 64,
+                  "position": "relative",
+                  "userSelect": "none",
+                }
+              }
+            >
+              <div
+                className="glamor-1"
+              />
+              <div
+                className="glamor-2"
+              />
+              <img
+                className={undefined}
+                draggable="false"
+                onClick={null}
+                srcSet="icons/icon-follow-me-21.png 1x, icons/icon-follow-me-21@2x.png 2x"
+                style={
+                  Object {
+                    "bottom": 0,
+                    "left": 45,
+                    "position": "absolute",
+                    "userSelect": "none",
+                  }
+                }
+                title={undefined}
+              />
+            </div>
+            <span
+              className="glamor-5"
+              onClick={undefined}
+              title={undefined}
+            >
+              <span
+                className="glamor-4"
+                onClick={undefined}
+                title={undefined}
+              >
+                <span
+                  className="glamor-3"
+                  onClick={[Function]}
+                  title={undefined}
+                >
+                  oconnor6631
+                </span>
+              </span>
+            </span>
+            <span
+              className="glamor-6"
+              onClick={undefined}
+              title={undefined}
+            >
+              Jack O'Connor
+            </span>
+          </div>
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "borderRadius": 0,
+                "cursor": "pointer",
+                "display": "flex",
+                "flexDirection": "column",
+                "flexShrink": 0,
+                "height": 106,
+                "lineHeight": 0,
+                "minWidth": undefined,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+                "width": 112,
+              }
+            }
+          >
+            <div
+              onClick={undefined}
+              style={
+                Object {
+                  "height": 64,
+                  "maxWidth": 64,
+                  "minHeight": 64,
+                  "minWidth": 64,
+                  "position": "relative",
+                  "userSelect": "none",
+                }
+              }
+            >
+              <div
+                className="glamor-1"
+              />
+              <div
+                className="glamor-2"
+              />
+              <img
+                className={undefined}
+                draggable="false"
+                onClick={null}
+                srcSet="icons/icon-follow-me-21.png 1x, icons/icon-follow-me-21@2x.png 2x"
+                style={
+                  Object {
+                    "bottom": 0,
+                    "left": 45,
+                    "position": "absolute",
+                    "userSelect": "none",
+                  }
+                }
+                title={undefined}
+              />
+            </div>
+            <span
+              className="glamor-5"
+              onClick={undefined}
+              title={undefined}
+            >
+              <span
+                className="glamor-4"
+                onClick={undefined}
+                title={undefined}
+              >
+                <span
+                  className="glamor-3"
+                  onClick={[Function]}
+                  title={undefined}
+                >
+                  mlsteele1
+                </span>
+              </span>
+            </span>
+            <span
+              className="glamor-6"
+              onClick={undefined}
+              title={undefined}
+            >
+              Miles Steele
+            </span>
+          </div>
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "borderRadius": 0,
+                "cursor": "pointer",
+                "display": "flex",
+                "flexDirection": "column",
+                "flexShrink": 0,
+                "height": 106,
+                "lineHeight": 0,
+                "minWidth": undefined,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+                "width": 112,
+              }
+            }
+          >
+            <div
+              onClick={undefined}
+              style={
+                Object {
+                  "height": 64,
+                  "maxWidth": 64,
+                  "minHeight": 64,
+                  "minWidth": 64,
+                  "position": "relative",
+                  "userSelect": "none",
+                }
+              }
+            >
+              <div
+                className="glamor-1"
+              />
+              <div
+                className="glamor-2"
+              />
+              <img
+                className={undefined}
+                draggable="false"
+                onClick={null}
+                srcSet="icons/icon-follow-me-21.png 1x, icons/icon-follow-me-21@2x.png 2x"
+                style={
+                  Object {
+                    "bottom": 0,
+                    "left": 45,
+                    "position": "absolute",
+                    "userSelect": "none",
+                  }
+                }
+                title={undefined}
+              />
+            </div>
+            <span
+              className="glamor-5"
+              onClick={undefined}
+              title={undefined}
+            >
+              <span
+                className="glamor-4"
+                onClick={undefined}
+                title={undefined}
+              >
+                <span
+                  className="glamor-3"
+                  onClick={[Function]}
+                  title={undefined}
+                >
+                  zanderz1
+                </span>
+              </span>
+            </span>
+            <span
+              className="glamor-6"
+              onClick={undefined}
+              title={undefined}
+            >
+              Steve Sanders
+            </span>
+          </div>
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "borderRadius": 0,
+                "cursor": "pointer",
+                "display": "flex",
+                "flexDirection": "column",
+                "flexShrink": 0,
+                "height": 106,
+                "lineHeight": 0,
+                "minWidth": undefined,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+                "width": 112,
+              }
+            }
+          >
+            <div
+              onClick={undefined}
+              style={
+                Object {
+                  "height": 64,
+                  "maxWidth": 64,
+                  "minHeight": 64,
+                  "minWidth": 64,
+                  "position": "relative",
+                  "userSelect": "none",
+                }
+              }
+            >
+              <div
+                className="glamor-1"
+              />
+              <div
+                className="glamor-2"
+              />
+              <img
+                className={undefined}
+                draggable="false"
+                onClick={null}
+                srcSet="icons/icon-follow-me-21.png 1x, icons/icon-follow-me-21@2x.png 2x"
+                style={
+                  Object {
+                    "bottom": 0,
+                    "left": 45,
+                    "position": "absolute",
+                    "userSelect": "none",
+                  }
+                }
+                title={undefined}
+              />
+            </div>
+            <span
+              className="glamor-5"
+              onClick={undefined}
+              title={undefined}
+            >
+              <span
+                className="glamor-4"
+                onClick={undefined}
+                title={undefined}
+              >
+                <span
+                  className="glamor-3"
+                  onClick={[Function]}
+                  title={undefined}
+                >
+                  chris1
+                </span>
+              </span>
+            </span>
+            <span
+              className="glamor-6"
+              onClick={undefined}
+              title={undefined}
+            >
+              Chris Coyne
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots People/Follow Suggestions Several 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  bottom: 1px;
+  left: 1px;
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  background-color: #f0f0f0;
+  border-radius: 50%;
+}
+
+.glamor-2,
+[data-glamor-2] {
+  background-size: cover;
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  background-image: -webkit-image-set(url('icons/icon-placeholder-avatar-64.png') 1x, url('icons/icon-placeholder-avatar-64@2x.png') 2x);
+  border-radius: 50%;
+  height: 64px;
+  max-width: 64px;
+  min-width: 64px;
+  opacity: 1;
+}
+
+.glamor-5,
+[data-glamor-5] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  text-decoration: inherit;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: row;
+  -webkit-box-lines: multiple;
+  -webkit-flex-wrap: wrap;
+}
+
+.glamor-4,
+[data-glamor-4] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+}
+
+.glamor-3,
+[data-glamor-3] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #33a0ff;
+  cursor: pointer;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  margin-top: 4px;
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  text-decoration: inherit;
+}
+
+.glamor-6,
+[data-glamor-6] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  overflow: hidden;
+  display: -webkit-box;
+  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  padding-left: 2px;
+  padding-right: 2px;
+}
+
+.glamor-9,
+[data-glamor-9] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #36b37c;
+  cursor: pointer;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  margin-top: 4px;
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  text-decoration: inherit;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={undefined}
+  >
+    <div
+      style={
+        Object {
+          "display": "flex",
+          "flexDirection": "column",
+          "paddingBottom": 106,
+          "paddingLeft": 12,
+          "paddingRight": 12,
+          "paddingTop": 8,
+          "position": "relative",
+        }
+      }
+    >
+      <span
+        className="glamor-0"
+        onClick={undefined}
+        title={undefined}
+      >
+        Consider following...
+      </span>
+      <div
+        style={
+          Object {
+            "bottom": 0,
+            "display": "flex",
+            "flexDirection": "row",
+            "left": 0,
+            "overflow": "scroll",
+            "position": "absolute",
+            "right": 0,
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "display": "flex",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "borderRadius": 0,
+                "cursor": "pointer",
+                "display": "flex",
+                "flexDirection": "column",
+                "flexShrink": 0,
+                "height": 106,
+                "lineHeight": 0,
+                "minWidth": undefined,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+                "width": 112,
+              }
+            }
+          >
+            <div
+              onClick={undefined}
+              style={
+                Object {
+                  "height": 64,
+                  "maxWidth": 64,
+                  "minHeight": 64,
+                  "minWidth": 64,
+                  "position": "relative",
+                  "userSelect": "none",
+                }
+              }
+            >
+              <div
+                className="glamor-1"
+              />
+              <div
+                className="glamor-2"
+              />
+              <img
+                className={undefined}
+                draggable="false"
+                onClick={null}
+                srcSet="icons/icon-follow-me-21.png 1x, icons/icon-follow-me-21@2x.png 2x"
+                style={
+                  Object {
+                    "bottom": 0,
+                    "left": 45,
+                    "position": "absolute",
+                    "userSelect": "none",
+                  }
+                }
+                title={undefined}
+              />
+            </div>
+            <span
+              className="glamor-5"
+              onClick={undefined}
+              title={undefined}
+            >
+              <span
+                className="glamor-4"
+                onClick={undefined}
+                title={undefined}
+              >
+                <span
+                  className="glamor-3"
+                  onClick={[Function]}
+                  title={undefined}
+                >
+                  ayoubd
+                </span>
+              </span>
+            </span>
+            <span
+              className="glamor-6"
+              onClick={undefined}
+              title={undefined}
+            >
+              Danny Ayoub
+            </span>
+          </div>
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "borderRadius": 0,
+                "cursor": "pointer",
+                "display": "flex",
+                "flexDirection": "column",
+                "flexShrink": 0,
+                "height": 106,
+                "lineHeight": 0,
+                "minWidth": undefined,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+                "width": 112,
+              }
+            }
+          >
+            <div
+              onClick={undefined}
+              style={
+                Object {
+                  "height": 64,
+                  "maxWidth": 64,
+                  "minHeight": 64,
+                  "minWidth": 64,
+                  "position": "relative",
+                  "userSelect": "none",
+                }
+              }
+            >
+              <div
+                className="glamor-1"
+              />
+              <div
+                className="glamor-2"
+              />
+              <img
+                className={undefined}
+                draggable="false"
+                onClick={null}
+                srcSet="icons/icon-follow-me-21.png 1x, icons/icon-follow-me-21@2x.png 2x"
+                style={
+                  Object {
+                    "bottom": 0,
+                    "left": 45,
+                    "position": "absolute",
+                    "userSelect": "none",
+                  }
+                }
+                title={undefined}
+              />
+            </div>
+            <span
+              className="glamor-5"
+              onClick={undefined}
+              title={undefined}
+            >
+              <span
+                className="glamor-4"
+                onClick={undefined}
+                title={undefined}
+              >
+                <span
+                  className="glamor-9"
+                  onClick={[Function]}
+                  title={undefined}
+                >
+                  max
+                </span>
+              </span>
+            </span>
+            <span
+              className="glamor-6"
+              onClick={undefined}
+              title={undefined}
+            >
+              Max Krohn
+            </span>
+          </div>
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "borderRadius": 0,
+                "cursor": "pointer",
+                "display": "flex",
+                "flexDirection": "column",
+                "flexShrink": 0,
+                "height": 106,
+                "lineHeight": 0,
+                "minWidth": undefined,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+                "width": 112,
+              }
+            }
+          >
+            <div
+              onClick={undefined}
+              style={
+                Object {
+                  "height": 64,
+                  "maxWidth": 64,
+                  "minHeight": 64,
+                  "minWidth": 64,
+                  "position": "relative",
+                  "userSelect": "none",
+                }
+              }
+            >
+              <div
+                className="glamor-1"
+              />
+              <div
+                className="glamor-2"
+              />
+            </div>
+            <span
+              className="glamor-5"
+              onClick={undefined}
+              title={undefined}
+            >
+              <span
+                className="glamor-4"
+                onClick={undefined}
+                title={undefined}
+              >
+                <span
+                  className="glamor-3"
+                  onClick={[Function]}
+                  title={undefined}
+                >
+                  chrisnojima
+                </span>
+              </span>
+            </span>
+            <span
+              className="glamor-6"
+              onClick={undefined}
+              title={undefined}
+            >
+              Chris Nojima
+            </span>
+          </div>
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "borderRadius": 0,
+                "cursor": "pointer",
+                "display": "flex",
+                "flexDirection": "column",
+                "flexShrink": 0,
+                "height": 106,
+                "lineHeight": 0,
+                "minWidth": undefined,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+                "width": 112,
+              }
+            }
+          >
+            <div
+              onClick={undefined}
+              style={
+                Object {
+                  "height": 64,
+                  "maxWidth": 64,
+                  "minHeight": 64,
+                  "minWidth": 64,
+                  "position": "relative",
+                  "userSelect": "none",
+                }
+              }
+            >
+              <div
+                className="glamor-1"
+              />
+              <div
+                className="glamor-2"
+              />
+              <img
+                className={undefined}
+                draggable="false"
+                onClick={null}
+                srcSet="icons/icon-follow-me-21.png 1x, icons/icon-follow-me-21@2x.png 2x"
+                style={
+                  Object {
+                    "bottom": 0,
+                    "left": 45,
+                    "position": "absolute",
+                    "userSelect": "none",
+                  }
+                }
+                title={undefined}
+              />
+            </div>
+            <span
+              className="glamor-5"
+              onClick={undefined}
+              title={undefined}
+            >
+              <span
+                className="glamor-4"
+                onClick={undefined}
+                title={undefined}
+              >
+                <span
+                  className="glamor-3"
+                  onClick={[Function]}
+                  title={undefined}
+                >
+                  oconnor663
+                </span>
+              </span>
+            </span>
+            <span
+              className="glamor-6"
+              onClick={undefined}
+              title={undefined}
+            >
+              Jack O'Connor
+            </span>
+          </div>
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "borderRadius": 0,
+                "cursor": "pointer",
+                "display": "flex",
+                "flexDirection": "column",
+                "flexShrink": 0,
+                "height": 106,
+                "lineHeight": 0,
+                "minWidth": undefined,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+                "width": 112,
+              }
+            }
+          >
+            <div
+              onClick={undefined}
+              style={
+                Object {
+                  "height": 64,
+                  "maxWidth": 64,
+                  "minHeight": 64,
+                  "minWidth": 64,
+                  "position": "relative",
+                  "userSelect": "none",
+                }
+              }
+            >
+              <div
+                className="glamor-1"
+              />
+              <div
+                className="glamor-2"
+              />
+              <img
+                className={undefined}
+                draggable="false"
+                onClick={null}
+                srcSet="icons/icon-follow-me-21.png 1x, icons/icon-follow-me-21@2x.png 2x"
+                style={
+                  Object {
+                    "bottom": 0,
+                    "left": 45,
+                    "position": "absolute",
+                    "userSelect": "none",
+                  }
+                }
+                title={undefined}
+              />
+            </div>
+            <span
+              className="glamor-5"
+              onClick={undefined}
+              title={undefined}
+            >
+              <span
+                className="glamor-4"
+                onClick={undefined}
+                title={undefined}
+              >
+                <span
+                  className="glamor-3"
+                  onClick={[Function]}
+                  title={undefined}
+                >
+                  mlsteele
+                </span>
+              </span>
+            </span>
+            <span
+              className="glamor-6"
+              onClick={undefined}
+              title={undefined}
+            >
+              Miles Steele
+            </span>
+          </div>
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "borderRadius": 0,
+                "cursor": "pointer",
+                "display": "flex",
+                "flexDirection": "column",
+                "flexShrink": 0,
+                "height": 106,
+                "lineHeight": 0,
+                "minWidth": undefined,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+                "width": 112,
+              }
+            }
+          >
+            <div
+              onClick={undefined}
+              style={
+                Object {
+                  "height": 64,
+                  "maxWidth": 64,
+                  "minHeight": 64,
+                  "minWidth": 64,
+                  "position": "relative",
+                  "userSelect": "none",
+                }
+              }
+            >
+              <div
+                className="glamor-1"
+              />
+              <div
+                className="glamor-2"
+              />
+              <img
+                className={undefined}
+                draggable="false"
+                onClick={null}
+                srcSet="icons/icon-follow-me-21.png 1x, icons/icon-follow-me-21@2x.png 2x"
+                style={
+                  Object {
+                    "bottom": 0,
+                    "left": 45,
+                    "position": "absolute",
+                    "userSelect": "none",
+                  }
+                }
+                title={undefined}
+              />
+            </div>
+            <span
+              className="glamor-5"
+              onClick={undefined}
+              title={undefined}
+            >
+              <span
+                className="glamor-4"
+                onClick={undefined}
+                title={undefined}
+              >
+                <span
+                  className="glamor-3"
+                  onClick={[Function]}
+                  title={undefined}
+                >
+                  zanderz
+                </span>
+              </span>
+            </span>
+            <span
+              className="glamor-6"
+              onClick={undefined}
+              title={undefined}
+            >
+              Steve Sanders
+            </span>
+          </div>
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "borderRadius": 0,
+                "cursor": "pointer",
+                "display": "flex",
+                "flexDirection": "column",
+                "flexShrink": 0,
+                "height": 106,
+                "lineHeight": 0,
+                "minWidth": undefined,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+                "width": 112,
+              }
+            }
+          >
+            <div
+              onClick={undefined}
+              style={
+                Object {
+                  "height": 64,
+                  "maxWidth": 64,
+                  "minHeight": 64,
+                  "minWidth": 64,
+                  "position": "relative",
+                  "userSelect": "none",
+                }
+              }
+            >
+              <div
+                className="glamor-1"
+              />
+              <div
+                className="glamor-2"
+              />
+              <img
+                className={undefined}
+                draggable="false"
+                onClick={null}
+                srcSet="icons/icon-follow-me-21.png 1x, icons/icon-follow-me-21@2x.png 2x"
+                style={
+                  Object {
+                    "bottom": 0,
+                    "left": 45,
+                    "position": "absolute",
+                    "userSelect": "none",
+                  }
+                }
+                title={undefined}
+              />
+            </div>
+            <span
+              className="glamor-5"
+              onClick={undefined}
+              title={undefined}
+            >
+              <span
+                className="glamor-4"
+                onClick={undefined}
+                title={undefined}
+              >
+                <span
+                  className="glamor-3"
+                  onClick={[Function]}
+                  title={undefined}
+                >
+                  chris
+                </span>
+              </span>
+            </span>
+            <span
+              className="glamor-6"
+              onClick={undefined}
+              title={undefined}
+            >
+              Chris Coyne
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots People/Follow notification A few people followed you 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  font-size: 10px;
+  line-height: 11px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  border-radius: 1px;
+  height: 11px;
+  padding-left: 2px;
+  padding-right: 2px;
+  align-self: center;
+  text-transform: uppercase;
+  background-color: rgba(51, 160, 255, 0.6);
+  -webkit-align-self: center;
+}
+
+.glamor-10,
+[data-glamor-10] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  margin-top: 2px;
+  margin-bottom: 4px;
+}
+
+.glamor-9,
+[data-glamor-9] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  display: inline;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: wrap;
+  width: 100%;
+}
+
+.glamor-3,
+[data-glamor-3] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #36b37c;
+  cursor: pointer;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  text-decoration: inherit;
+  display: inline;
+}
+
+.glamor-2,
+[data-glamor-2] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  margin-right: 1px;
+  text-decoration: none;
+}
+
+.glamor-4,
+[data-glamor-4] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #33a0ff;
+  cursor: pointer;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  text-decoration: inherit;
+  display: inline;
+}
+
+.glamor-11,
+[data-glamor-11] {
+  bottom: 1px;
+  left: 1px;
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  background-color: #f0f0f0;
+  border-radius: 50%;
+}
+
+.glamor-12,
+[data-glamor-12] {
+  background-size: cover;
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  background-image: -webkit-image-set(url('icons/icon-placeholder-avatar-32.png') 1x, url('icons/icon-placeholder-avatar-32@2x.png') 2x);
+  border-radius: 50%;
+  height: 32px;
+  max-width: 32px;
+  min-width: 32px;
+  opacity: 1;
+}
+
+.glamor-17,
+[data-glamor-17] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+}
+
+.glamor-18,
+[data-glamor-18] {
+  font-size: 9px;
+  line-height: 8px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 700;
+  flex: 0;
+  -webkit-flex: 0;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={undefined}
+  >
+    <div
+      style={
+        Object {
+          "backgroundColor": "#ebf5fc",
+          "display": "flex",
+          "flexDirection": "row",
+          "paddingBottom": 8,
+          "paddingLeft": 12,
+          "paddingTop": 8,
+          "position": "relative",
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "marginRight": 20,
+            "width": 32,
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "display": "flex",
+              "flexDirection": "column",
+              "height": 32,
+              "position": "relative",
+              "width": 32,
+            }
+          }
+        >
+          <img
+            className={undefined}
+            draggable="false"
+            onClick={null}
+            srcSet="icons/icon-followers-new-32.png 1x, icons/icon-followers-new-32@2x.png 2x"
+            style={
+              Object {
+                "userSelect": "none",
+              }
+            }
+            title={undefined}
+          />
+          <div
+            style={
+              Object {
+                "display": "flex",
+                "flexDirection": "column",
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "top": 20,
+              }
+            }
+          >
+            <span
+              className="glamor-0"
+              onClick={undefined}
+              title={undefined}
+            >
+              +3
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "column",
+            "overflow": "hidden",
+            "paddingBottom": 32,
+            "paddingRight": 80,
+            "position": "relative",
+            "width": "auto",
+          }
+        }
+      >
+        <span
+          className="glamor-10"
+          onClick={undefined}
+          title={undefined}
+        >
+          <span
+            className="glamor-9"
+            onClick={undefined}
+            title={undefined}
+          >
+            <span
+              className="glamor-3"
+              onClick={undefined}
+              title={undefined}
+            >
+              <span
+                className="glamor-1"
+                onClick={[Function]}
+                title={undefined}
+              >
+                max
+              </span>
+              <span
+                className="glamor-2"
+                onClick={undefined}
+                title={undefined}
+              >
+                ,
+                 
+              </span>
+            </span>
+            <span
+              className="glamor-3"
+              onClick={undefined}
+              title={undefined}
+            >
+              <span
+                className="glamor-4"
+                onClick={[Function]}
+                title={undefined}
+              >
+                mmaxim
+              </span>
+              <span
+                className="glamor-2"
+                onClick={undefined}
+                title={undefined}
+              >
+                ,
+                 
+              </span>
+            </span>
+            <span
+              className="glamor-3"
+              onClick={undefined}
+              title={undefined}
+            >
+              and 
+              <span
+                className="glamor-4"
+                onClick={[Function]}
+                title={undefined}
+              >
+                chrisnojima
+              </span>
+            </span>
+          </span>
+           started following you.
+        </span>
+        <div
+          style={
+            Object {
+              "bottom": 0,
+              "display": "flex",
+              "flexDirection": "row",
+              "left": 0,
+              "overflow": "scroll",
+              "position": "absolute",
+              "width": "100%",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "display": "flex",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <div
+              onClick={undefined}
+              style={
+                Object {
+                  "height": 32,
+                  "marginRight": 4,
+                  "maxWidth": 32,
+                  "minHeight": 32,
+                  "minWidth": 32,
+                  "position": "relative",
+                  "userSelect": "none",
+                }
+              }
+            >
+              <div
+                className="glamor-11"
+              />
+              <div
+                className="glamor-12"
+              />
+            </div>
+            <div
+              onClick={undefined}
+              style={
+                Object {
+                  "height": 32,
+                  "marginRight": 4,
+                  "maxWidth": 32,
+                  "minHeight": 32,
+                  "minWidth": 32,
+                  "position": "relative",
+                  "userSelect": "none",
+                }
+              }
+            >
+              <div
+                className="glamor-11"
+              />
+              <div
+                className="glamor-12"
+              />
+            </div>
+            <div
+              onClick={undefined}
+              style={
+                Object {
+                  "height": 32,
+                  "marginRight": 4,
+                  "maxWidth": 32,
+                  "minHeight": 32,
+                  "minWidth": 32,
+                  "position": "relative",
+                  "userSelect": "none",
+                }
+              }
+            >
+              <div
+                className="glamor-11"
+              />
+              <div
+                className="glamor-12"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "position": "absolute",
+            "right": 8,
+            "top": 12,
+          }
+        }
+      >
+        <span
+          className="glamor-17"
+          onClick={undefined}
+          title={undefined}
+        >
+          now
+        </span>
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "backgroundColor": "#ff6f21",
+              "border": "none",
+              "borderRadius": 10,
+              "display": "flex",
+              "flexDirection": "row",
+              "height": 14,
+              "justifyContent": "center",
+              "marginLeft": 8,
+              "marginRight": 8,
+              "minWidth": 14,
+              "paddingLeft": 4,
+              "paddingRight": 5,
+            }
+          }
+        >
+          <span
+            className="glamor-18"
+            onClick={undefined}
+            title={undefined}
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots People/Follow notification Many people followed you 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  font-size: 10px;
+  line-height: 11px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  border-radius: 1px;
+  height: 11px;
+  padding-left: 2px;
+  padding-right: 2px;
+  align-self: center;
+  text-transform: uppercase;
+  background-color: rgba(51, 160, 255, 0.6);
+  -webkit-align-self: center;
+}
+
+.glamor-13,
+[data-glamor-13] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  margin-top: 2px;
+  margin-bottom: 4px;
+}
+
+.glamor-12,
+[data-glamor-12] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  display: inline;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: wrap;
+  width: 100%;
+}
+
+.glamor-3,
+[data-glamor-3] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #36b37c;
+  cursor: pointer;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  text-decoration: inherit;
+  display: inline;
+}
+
+.glamor-2,
+[data-glamor-2] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  margin-right: 1px;
+  text-decoration: none;
+}
+
+.glamor-4,
+[data-glamor-4] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #33a0ff;
+  cursor: pointer;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  text-decoration: inherit;
+  display: inline;
+}
+
+.glamor-14,
+[data-glamor-14] {
+  bottom: 1px;
+  left: 1px;
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  background-color: #f0f0f0;
+  border-radius: 50%;
+}
+
+.glamor-15,
+[data-glamor-15] {
+  background-size: cover;
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  background-image: -webkit-image-set(url('icons/icon-placeholder-avatar-32.png') 1x, url('icons/icon-placeholder-avatar-32@2x.png') 2x);
+  border-radius: 50%;
+  height: 32px;
+  max-width: 32px;
+  min-width: 32px;
+  opacity: 1;
+}
+
+.glamor-22,
+[data-glamor-22] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={undefined}
+  >
+    <div
+      style={
+        Object {
+          "backgroundColor": "#ffffff",
+          "display": "flex",
+          "flexDirection": "row",
+          "paddingBottom": 8,
+          "paddingLeft": 12,
+          "paddingTop": 8,
+          "position": "relative",
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "marginRight": 20,
+            "width": 32,
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "display": "flex",
+              "flexDirection": "column",
+              "height": 32,
+              "position": "relative",
+              "width": 32,
+            }
+          }
+        >
+          <img
+            className={undefined}
+            draggable="false"
+            onClick={null}
+            srcSet="icons/icon-followers-new-32.png 1x, icons/icon-followers-new-32@2x.png 2x"
+            style={
+              Object {
+                "userSelect": "none",
+              }
+            }
+            title={undefined}
+          />
+          <div
+            style={
+              Object {
+                "display": "flex",
+                "flexDirection": "column",
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "top": 20,
+              }
+            }
+          >
+            <span
+              className="glamor-0"
+              onClick={undefined}
+              title={undefined}
+            >
+              +9
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "column",
+            "overflow": "hidden",
+            "paddingBottom": 32,
+            "paddingRight": 80,
+            "position": "relative",
+            "width": "auto",
+          }
+        }
+      >
+        <span
+          className="glamor-13"
+          onClick={undefined}
+          title={undefined}
+        >
+          <span
+            className="glamor-12"
+            onClick={undefined}
+            title={undefined}
+          >
+            <span
+              className="glamor-3"
+              onClick={undefined}
+              title={undefined}
+            >
+              <span
+                className="glamor-1"
+                onClick={[Function]}
+                title={undefined}
+              >
+                max
+              </span>
+              <span
+                className="glamor-2"
+                onClick={undefined}
+                title={undefined}
+              >
+                ,
+                 
+              </span>
+            </span>
+            <span
+              className="glamor-3"
+              onClick={undefined}
+              title={undefined}
+            >
+              <span
+                className="glamor-4"
+                onClick={[Function]}
+                title={undefined}
+              >
+                mmaxim
+              </span>
+              <span
+                className="glamor-2"
+                onClick={undefined}
+                title={undefined}
+              >
+                ,
+                 
+              </span>
+            </span>
+            <span
+              className="glamor-3"
+              onClick={undefined}
+              title={undefined}
+            >
+              <span
+                className="glamor-4"
+                onClick={[Function]}
+                title={undefined}
+              >
+                chrisnojima
+              </span>
+              <span
+                className="glamor-2"
+                onClick={undefined}
+                title={undefined}
+              >
+                ,
+                 
+              </span>
+            </span>
+            <span
+              className="glamor-3"
+              onClick={undefined}
+              title={undefined}
+            >
+              <span
+                className="glamor-4"
+                onClick={[Function]}
+                title={undefined}
+              >
+                chris
+              </span>
+            </span>
+          </span>
+           and 5 others 
+           started following you.
+        </span>
+        <div
+          style={
+            Object {
+              "bottom": 0,
+              "display": "flex",
+              "flexDirection": "row",
+              "left": 0,
+              "overflow": "scroll",
+              "position": "absolute",
+              "width": "100%",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "display": "flex",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <div
+              onClick={undefined}
+              style={
+                Object {
+                  "height": 32,
+                  "marginRight": 4,
+                  "maxWidth": 32,
+                  "minHeight": 32,
+                  "minWidth": 32,
+                  "position": "relative",
+                  "userSelect": "none",
+                }
+              }
+            >
+              <div
+                className="glamor-14"
+              />
+              <div
+                className="glamor-15"
+              />
+            </div>
+            <div
+              onClick={undefined}
+              style={
+                Object {
+                  "height": 32,
+                  "marginRight": 4,
+                  "maxWidth": 32,
+                  "minHeight": 32,
+                  "minWidth": 32,
+                  "position": "relative",
+                  "userSelect": "none",
+                }
+              }
+            >
+              <div
+                className="glamor-14"
+              />
+              <div
+                className="glamor-15"
+              />
+            </div>
+            <div
+              onClick={undefined}
+              style={
+                Object {
+                  "height": 32,
+                  "marginRight": 4,
+                  "maxWidth": 32,
+                  "minHeight": 32,
+                  "minWidth": 32,
+                  "position": "relative",
+                  "userSelect": "none",
+                }
+              }
+            >
+              <div
+                className="glamor-14"
+              />
+              <div
+                className="glamor-15"
+              />
+            </div>
+            <div
+              onClick={undefined}
+              style={
+                Object {
+                  "height": 32,
+                  "marginRight": 4,
+                  "maxWidth": 32,
+                  "minHeight": 32,
+                  "minWidth": 32,
+                  "position": "relative",
+                  "userSelect": "none",
+                }
+              }
+            >
+              <div
+                className="glamor-14"
+              />
+              <div
+                className="glamor-15"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "position": "absolute",
+            "right": 8,
+            "top": 12,
+          }
+        }
+      >
+        <span
+          className="glamor-22"
+          onClick={undefined}
+          title={undefined}
+        >
+          2mo
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots People/Follow notification Someone followed you 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  bottom: 1px;
+  left: 1px;
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  background-color: #f0f0f0;
+  border-radius: 50%;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  background-size: cover;
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  background-image: -webkit-image-set(url('icons/icon-placeholder-avatar-32.png') 1x, url('icons/icon-placeholder-avatar-32@2x.png') 2x);
+  border-radius: 50%;
+  height: 32px;
+  max-width: 32px;
+  min-width: 32px;
+  opacity: 1;
+}
+
+.glamor-5,
+[data-glamor-5] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  margin-top: 2px;
+}
+
+.glamor-4,
+[data-glamor-4] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  display: inline;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.glamor-3,
+[data-glamor-3] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+}
+
+.glamor-2,
+[data-glamor-2] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #33a0ff;
+  cursor: pointer;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  text-decoration: inherit;
+  display: inline;
+}
+
+.glamor-6,
+[data-glamor-6] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+}
+
+.glamor-7,
+[data-glamor-7] {
+  font-size: 9px;
+  line-height: 8px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 700;
+  flex: 0;
+  -webkit-flex: 0;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={undefined}
+  >
+    <div
+      style={
+        Object {
+          "backgroundColor": "#ebf5fc",
+          "display": "flex",
+          "flexDirection": "row",
+          "paddingBottom": 8,
+          "paddingLeft": 12,
+          "paddingTop": 8,
+          "position": "relative",
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "marginRight": 20,
+            "width": 32,
+          }
+        }
+      >
+        <div
+          onClick={undefined}
+          style={
+            Object {
+              "height": 32,
+              "maxWidth": 32,
+              "minHeight": 32,
+              "minWidth": 32,
+              "position": "relative",
+              "userSelect": "none",
+            }
+          }
+        >
+          <div
+            className="glamor-0"
+          />
+          <div
+            className="glamor-1"
+          />
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "column",
+            "overflow": "hidden",
+            "paddingRight": 80,
+            "position": "relative",
+            "width": "auto",
+          }
+        }
+      >
+        <span
+          className="glamor-5"
+          onClick={undefined}
+          title={undefined}
+        >
+          <span
+            className="glamor-4"
+            onClick={undefined}
+            title={undefined}
+          >
+            <span
+              className="glamor-3"
+              onClick={undefined}
+              title={undefined}
+            >
+              <span
+                className="glamor-2"
+                onClick={[Function]}
+                title={undefined}
+              >
+                mmaxim
+              </span>
+            </span>
+          </span>
+           followed you.
+        </span>
+      </div>
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "position": "absolute",
+            "right": 8,
+            "top": 12,
+          }
+        }
+      >
+        <span
+          className="glamor-6"
+          onClick={undefined}
+          title={undefined}
+        >
+          now
+        </span>
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "backgroundColor": "#ff6f21",
+              "border": "none",
+              "borderRadius": 10,
+              "display": "flex",
+              "flexDirection": "row",
+              "height": 14,
+              "justifyContent": "center",
+              "marginLeft": 8,
+              "marginRight": 8,
+              "minWidth": 14,
+              "paddingLeft": 4,
+              "paddingRight": 5,
+            }
+          }
+        >
+          <span
+            className="glamor-7"
+            onClick={undefined}
+            title={undefined}
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots People/Follow notification Someone you follow followed you 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  bottom: 1px;
+  left: 1px;
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  background-color: #f0f0f0;
+  border-radius: 50%;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  background-size: cover;
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  background-image: -webkit-image-set(url('icons/icon-placeholder-avatar-32.png') 1x, url('icons/icon-placeholder-avatar-32@2x.png') 2x);
+  border-radius: 50%;
+  height: 32px;
+  max-width: 32px;
+  min-width: 32px;
+  opacity: 1;
+}
+
+.glamor-5,
+[data-glamor-5] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  margin-top: 2px;
+}
+
+.glamor-4,
+[data-glamor-4] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  display: inline;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.glamor-3,
+[data-glamor-3] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+}
+
+.glamor-2,
+[data-glamor-2] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #36b37c;
+  cursor: pointer;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  text-decoration: inherit;
+  display: inline;
+}
+
+.glamor-6,
+[data-glamor-6] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={undefined}
+  >
+    <div
+      style={
+        Object {
+          "backgroundColor": "#ffffff",
+          "display": "flex",
+          "flexDirection": "row",
+          "paddingBottom": 8,
+          "paddingLeft": 12,
+          "paddingTop": 8,
+          "position": "relative",
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "marginRight": 20,
+            "width": 32,
+          }
+        }
+      >
+        <div
+          onClick={undefined}
+          style={
+            Object {
+              "height": 32,
+              "maxWidth": 32,
+              "minHeight": 32,
+              "minWidth": 32,
+              "position": "relative",
+              "userSelect": "none",
+            }
+          }
+        >
+          <div
+            className="glamor-0"
+          />
+          <div
+            className="glamor-1"
+          />
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "column",
+            "overflow": "hidden",
+            "paddingRight": 80,
+            "position": "relative",
+            "width": "auto",
+          }
+        }
+      >
+        <span
+          className="glamor-5"
+          onClick={undefined}
+          title={undefined}
+        >
+          <span
+            className="glamor-4"
+            onClick={undefined}
+            title={undefined}
+          >
+            <span
+              className="glamor-3"
+              onClick={undefined}
+              title={undefined}
+            >
+              <span
+                className="glamor-2"
+                onClick={[Function]}
+                title={undefined}
+              >
+                max
+              </span>
+            </span>
+          </span>
+           followed you.
+        </span>
+      </div>
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "position": "absolute",
+            "right": 8,
+            "top": 12,
+          }
+        }
+      >
+        <span
+          className="glamor-6"
+          onClick={undefined}
+          title={undefined}
+        >
+          15d
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots People/Todos Chat 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  margin-top: 2px;
+  margin-bottom: 4px;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+}
+
+.glamor-2,
+[data-glamor-2] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #33a0ff;
+  cursor: pointer;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+}
+
+.glamor-3,
+[data-glamor-3] {
+  font-size: 9px;
+  line-height: 8px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 700;
+  flex: 0;
+  -webkit-flex: 0;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={undefined}
+  >
+    <div
+      style={
+        Object {
+          "backgroundColor": "#ebf5fc",
+          "display": "flex",
+          "flexDirection": "row",
+          "paddingBottom": 8,
+          "paddingLeft": 12,
+          "paddingTop": 8,
+          "position": "relative",
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "marginRight": 20,
+            "width": 32,
+          }
+        }
+      >
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={null}
+          srcSet="icons/icon-onboarding-chat-32.png 1x, icons/icon-onboarding-chat-32@2x.png 2x"
+          style={
+            Object {
+              "userSelect": "none",
+            }
+          }
+          title={undefined}
+        />
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "column",
+            "overflow": "hidden",
+            "paddingRight": 80,
+            "position": "relative",
+            "width": "auto",
+          }
+        }
+      >
+        <span
+          className="glamor-0"
+          onClick={undefined}
+          title={undefined}
+        >
+          Start a chat! All conversations on Keybase are end-to-end encrypted.
+        </span>
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "flexWrap": "wrap",
+              "justifyContent": "flex-start",
+            }
+          }
+        >
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": "center",
+                "backgroundColor": "#33a0ff",
+                "borderRadius": 28,
+                "cursor": "pointer",
+                "display": "inline-block",
+                "flexDirection": "column",
+                "height": 28,
+                "justifyContent": "center",
+                "lineHeight": "inherit",
+                "marginRight": 16,
+                "minWidth": undefined,
+                "paddingLeft": 16,
+                "paddingRight": 16,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "height": "100%",
+                  "justifyContent": "center",
+                  "position": "relative",
+                }
+              }
+            >
+              <span
+                className="glamor-1"
+                onClick={undefined}
+                title={undefined}
+              >
+                Start a chat
+              </span>
+            </div>
+          </div>
+          <span
+            className="glamor-2"
+            onClick={[Function]}
+            title={undefined}
+          >
+            Later
+          </span>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "position": "absolute",
+            "right": 8,
+            "top": 12,
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "backgroundColor": "#ff6f21",
+              "border": "none",
+              "borderRadius": 10,
+              "display": "flex",
+              "flexDirection": "row",
+              "height": 14,
+              "justifyContent": "center",
+              "marginLeft": 8,
+              "marginRight": 8,
+              "minWidth": 14,
+              "paddingLeft": 4,
+              "paddingRight": 5,
+            }
+          }
+        >
+          <span
+            className="glamor-3"
+            onClick={undefined}
+            title={undefined}
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots People/Todos Fill out bio 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  margin-top: 2px;
+  margin-bottom: 4px;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+}
+
+.glamor-2,
+[data-glamor-2] {
+  font-size: 9px;
+  line-height: 8px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 700;
+  flex: 0;
+  -webkit-flex: 0;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={undefined}
+  >
+    <div
+      style={
+        Object {
+          "backgroundColor": "#ebf5fc",
+          "display": "flex",
+          "flexDirection": "row",
+          "paddingBottom": 8,
+          "paddingLeft": 12,
+          "paddingTop": 8,
+          "position": "relative",
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "marginRight": 20,
+            "width": 32,
+          }
+        }
+      >
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={null}
+          srcSet="icons/icon-onboarding-user-info-32.png 1x, icons/icon-onboarding-user-info-32@2x.png 2x"
+          style={
+            Object {
+              "userSelect": "none",
+            }
+          }
+          title={undefined}
+        />
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "column",
+            "overflow": "hidden",
+            "paddingRight": 80,
+            "position": "relative",
+            "width": "auto",
+          }
+        }
+      >
+        <span
+          className="glamor-0"
+          onClick={undefined}
+          title={undefined}
+        >
+          Add your name, bio, and location to complete your profile.
+        </span>
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "flexWrap": "wrap",
+              "justifyContent": "flex-start",
+            }
+          }
+        >
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": "center",
+                "backgroundColor": "#33a0ff",
+                "borderRadius": 28,
+                "cursor": "pointer",
+                "display": "inline-block",
+                "flexDirection": "column",
+                "height": 28,
+                "justifyContent": "center",
+                "lineHeight": "inherit",
+                "marginRight": 16,
+                "minWidth": undefined,
+                "paddingLeft": 16,
+                "paddingRight": 16,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "height": "100%",
+                  "justifyContent": "center",
+                  "position": "relative",
+                }
+              }
+            >
+              <span
+                className="glamor-1"
+                onClick={undefined}
+                title={undefined}
+              >
+                Edit profile
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "position": "absolute",
+            "right": 8,
+            "top": 12,
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "backgroundColor": "#ff6f21",
+              "border": "none",
+              "borderRadius": 10,
+              "display": "flex",
+              "flexDirection": "row",
+              "height": 14,
+              "justifyContent": "center",
+              "marginLeft": 8,
+              "marginRight": 8,
+              "minWidth": 14,
+              "paddingLeft": 4,
+              "paddingRight": 5,
+            }
+          }
+        >
+          <span
+            className="glamor-2"
+            onClick={undefined}
+            title={undefined}
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots People/Todos Follow someone 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  margin-top: 2px;
+  margin-bottom: 4px;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+}
+
+.glamor-2,
+[data-glamor-2] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #33a0ff;
+  cursor: pointer;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+}
+
+.glamor-3,
+[data-glamor-3] {
+  font-size: 9px;
+  line-height: 8px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 700;
+  flex: 0;
+  -webkit-flex: 0;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={undefined}
+  >
+    <div
+      style={
+        Object {
+          "backgroundColor": "#ebf5fc",
+          "display": "flex",
+          "flexDirection": "row",
+          "paddingBottom": 8,
+          "paddingLeft": 12,
+          "paddingTop": 8,
+          "position": "relative",
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "marginRight": 20,
+            "width": 32,
+          }
+        }
+      >
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={null}
+          srcSet="icons/icon-onboarding-follow-32.png 1x, icons/icon-onboarding-follow-32@2x.png 2x"
+          style={
+            Object {
+              "userSelect": "none",
+            }
+          }
+          title={undefined}
+        />
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "column",
+            "overflow": "hidden",
+            "paddingRight": 80,
+            "position": "relative",
+            "width": "auto",
+          }
+        }
+      >
+        <span
+          className="glamor-0"
+          onClick={undefined}
+          title={undefined}
+        >
+          Follow at least one person on Keybase. A "follow" is a signed snaphot of someone. It strengthens Keybase and your own security.
+        </span>
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "flexWrap": "wrap",
+              "justifyContent": "flex-start",
+            }
+          }
+        >
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": "center",
+                "backgroundColor": "#33a0ff",
+                "borderRadius": 28,
+                "cursor": "pointer",
+                "display": "inline-block",
+                "flexDirection": "column",
+                "height": 28,
+                "justifyContent": "center",
+                "lineHeight": "inherit",
+                "marginRight": 16,
+                "minWidth": undefined,
+                "paddingLeft": 16,
+                "paddingRight": 16,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "height": "100%",
+                  "justifyContent": "center",
+                  "position": "relative",
+                }
+              }
+            >
+              <span
+                className="glamor-1"
+                onClick={undefined}
+                title={undefined}
+              >
+                Browse people
+              </span>
+            </div>
+          </div>
+          <span
+            className="glamor-2"
+            onClick={[Function]}
+            title={undefined}
+          >
+            Later
+          </span>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "position": "absolute",
+            "right": 8,
+            "top": 12,
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "backgroundColor": "#ff6f21",
+              "border": "none",
+              "borderRadius": 10,
+              "display": "flex",
+              "flexDirection": "row",
+              "height": 14,
+              "justifyContent": "center",
+              "marginLeft": 8,
+              "marginRight": 8,
+              "minWidth": 14,
+              "paddingLeft": 4,
+              "paddingRight": 5,
+            }
+          }
+        >
+          <span
+            className="glamor-3"
+            onClick={undefined}
+            title={undefined}
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots People/Todos Install on phone 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  margin-top: 2px;
+  margin-bottom: 4px;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+}
+
+.glamor-2,
+[data-glamor-2] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #33a0ff;
+  cursor: pointer;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+}
+
+.glamor-3,
+[data-glamor-3] {
+  font-size: 9px;
+  line-height: 8px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 700;
+  flex: 0;
+  -webkit-flex: 0;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={undefined}
+  >
+    <div
+      style={
+        Object {
+          "backgroundColor": "#ebf5fc",
+          "display": "flex",
+          "flexDirection": "row",
+          "paddingBottom": 8,
+          "paddingLeft": 12,
+          "paddingTop": 8,
+          "position": "relative",
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "marginRight": 20,
+            "width": 32,
+          }
+        }
+      >
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={null}
+          srcSet="icons/icon-onboarding-phone-32.png 1x, icons/icon-onboarding-phone-32@2x.png 2x"
+          style={
+            Object {
+              "userSelect": "none",
+            }
+          }
+          title={undefined}
+        />
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "column",
+            "overflow": "hidden",
+            "paddingRight": 80,
+            "position": "relative",
+            "width": "auto",
+          }
+        }
+      >
+        <span
+          className="glamor-0"
+          onClick={undefined}
+          title={undefined}
+        >
+          Install Keybase on your phone. Until you have at least 2 devices, you risk losing data.
+        </span>
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "flexWrap": "wrap",
+              "justifyContent": "flex-start",
+            }
+          }
+        >
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": "center",
+                "backgroundColor": "#33a0ff",
+                "borderRadius": 28,
+                "cursor": "pointer",
+                "display": "inline-block",
+                "flexDirection": "column",
+                "height": 28,
+                "justifyContent": "center",
+                "lineHeight": "inherit",
+                "marginRight": 16,
+                "minWidth": undefined,
+                "paddingLeft": 16,
+                "paddingRight": 16,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "height": "100%",
+                  "justifyContent": "center",
+                  "position": "relative",
+                }
+              }
+            >
+              <span
+                className="glamor-1"
+                onClick={undefined}
+                title={undefined}
+              >
+                Get the download link
+              </span>
+            </div>
+          </div>
+          <span
+            className="glamor-2"
+            onClick={[Function]}
+            title={undefined}
+          >
+            Later
+          </span>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "position": "absolute",
+            "right": 8,
+            "top": 12,
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "backgroundColor": "#ff6f21",
+              "border": "none",
+              "borderRadius": 10,
+              "display": "flex",
+              "flexDirection": "row",
+              "height": 14,
+              "justifyContent": "center",
+              "marginLeft": 8,
+              "marginRight": 8,
+              "minWidth": 14,
+              "paddingLeft": 4,
+              "paddingRight": 5,
+            }
+          }
+        >
+          <span
+            className="glamor-3"
+            onClick={undefined}
+            title={undefined}
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots People/Todos Make a folder 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  margin-top: 2px;
+  margin-bottom: 4px;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+}
+
+.glamor-2,
+[data-glamor-2] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #33a0ff;
+  cursor: pointer;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+}
+
+.glamor-3,
+[data-glamor-3] {
+  font-size: 9px;
+  line-height: 8px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 700;
+  flex: 0;
+  -webkit-flex: 0;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={undefined}
+  >
+    <div
+      style={
+        Object {
+          "backgroundColor": "#ebf5fc",
+          "display": "flex",
+          "flexDirection": "row",
+          "paddingBottom": 8,
+          "paddingLeft": 12,
+          "paddingTop": 8,
+          "position": "relative",
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "marginRight": 20,
+            "width": 32,
+          }
+        }
+      >
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={null}
+          srcSet="icons/icon-onboarding-folder-32.png 1x, icons/icon-onboarding-folder-32@2x.png 2x"
+          style={
+            Object {
+              "userSelect": "none",
+            }
+          }
+          title={undefined}
+        />
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "column",
+            "overflow": "hidden",
+            "paddingRight": 80,
+            "position": "relative",
+            "width": "auto",
+          }
+        }
+      >
+        <span
+          className="glamor-0"
+          onClick={undefined}
+          title={undefined}
+        >
+          Open an encrypted private folder with someone! They’ll only get notified once you drop files in it.
+        </span>
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "flexWrap": "wrap",
+              "justifyContent": "flex-start",
+            }
+          }
+        >
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": "center",
+                "backgroundColor": "#33a0ff",
+                "borderRadius": 28,
+                "cursor": "pointer",
+                "display": "inline-block",
+                "flexDirection": "column",
+                "height": 28,
+                "justifyContent": "center",
+                "lineHeight": "inherit",
+                "marginRight": 16,
+                "minWidth": undefined,
+                "paddingLeft": 16,
+                "paddingRight": 16,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "height": "100%",
+                  "justifyContent": "center",
+                  "position": "relative",
+                }
+              }
+            >
+              <span
+                className="glamor-1"
+                onClick={undefined}
+                title={undefined}
+              >
+                Open a private folder
+              </span>
+            </div>
+          </div>
+          <span
+            className="glamor-2"
+            onClick={[Function]}
+            title={undefined}
+          >
+            Later
+          </span>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "position": "absolute",
+            "right": 8,
+            "top": 12,
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "backgroundColor": "#ff6f21",
+              "border": "none",
+              "borderRadius": 10,
+              "display": "flex",
+              "flexDirection": "row",
+              "height": 14,
+              "justifyContent": "center",
+              "marginLeft": 8,
+              "marginRight": 8,
+              "minWidth": 14,
+              "paddingLeft": 4,
+              "paddingRight": 5,
+            }
+          }
+        >
+          <span
+            className="glamor-3"
+            onClick={undefined}
+            title={undefined}
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots People/Todos Make a git 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  margin-top: 2px;
+  margin-bottom: 4px;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+}
+
+.glamor-2,
+[data-glamor-2] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #33a0ff;
+  cursor: pointer;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+}
+
+.glamor-3,
+[data-glamor-3] {
+  font-size: 9px;
+  line-height: 8px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 700;
+  flex: 0;
+  -webkit-flex: 0;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={undefined}
+  >
+    <div
+      style={
+        Object {
+          "backgroundColor": "#ebf5fc",
+          "display": "flex",
+          "flexDirection": "row",
+          "paddingBottom": 8,
+          "paddingLeft": 12,
+          "paddingTop": 8,
+          "position": "relative",
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "marginRight": 20,
+            "width": 32,
+          }
+        }
+      >
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={null}
+          srcSet="icons/icon-onboarding-git-32.png 1x, icons/icon-onboarding-git-32@2x.png 2x"
+          style={
+            Object {
+              "userSelect": "none",
+            }
+          }
+          title={undefined}
+        />
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "column",
+            "overflow": "hidden",
+            "paddingRight": 80,
+            "position": "relative",
+            "width": "auto",
+          }
+        }
+      >
+        <span
+          className="glamor-0"
+          onClick={undefined}
+          title={undefined}
+        >
+          Create an encrypted Git repository! Only you will be able to decrypt any of it. And it’s so easy!
+        </span>
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "flexWrap": "wrap",
+              "justifyContent": "flex-start",
+            }
+          }
+        >
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": "center",
+                "backgroundColor": "#33a0ff",
+                "borderRadius": 28,
+                "cursor": "pointer",
+                "display": "inline-block",
+                "flexDirection": "column",
+                "height": 28,
+                "justifyContent": "center",
+                "lineHeight": "inherit",
+                "marginRight": 16,
+                "minWidth": undefined,
+                "paddingLeft": 16,
+                "paddingRight": 16,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "height": "100%",
+                  "justifyContent": "center",
+                  "position": "relative",
+                }
+              }
+            >
+              <span
+                className="glamor-1"
+                onClick={undefined}
+                title={undefined}
+              >
+                Create a personal git repo
+              </span>
+            </div>
+          </div>
+          <span
+            className="glamor-2"
+            onClick={[Function]}
+            title={undefined}
+          >
+            Later
+          </span>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "position": "absolute",
+            "right": 8,
+            "top": 12,
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "backgroundColor": "#ff6f21",
+              "border": "none",
+              "borderRadius": 10,
+              "display": "flex",
+              "flexDirection": "row",
+              "height": 14,
+              "justifyContent": "center",
+              "marginLeft": 8,
+              "marginRight": 8,
+              "minWidth": 14,
+              "paddingLeft": 4,
+              "paddingRight": 5,
+            }
+          }
+        >
+          <span
+            className="glamor-3"
+            onClick={undefined}
+            title={undefined}
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots People/Todos Make a paper key 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  margin-top: 2px;
+  margin-bottom: 4px;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+}
+
+.glamor-2,
+[data-glamor-2] {
+  font-size: 9px;
+  line-height: 8px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 700;
+  flex: 0;
+  -webkit-flex: 0;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={undefined}
+  >
+    <div
+      style={
+        Object {
+          "backgroundColor": "#ebf5fc",
+          "display": "flex",
+          "flexDirection": "row",
+          "paddingBottom": 8,
+          "paddingLeft": 12,
+          "paddingTop": 8,
+          "position": "relative",
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "marginRight": 20,
+            "width": 32,
+          }
+        }
+      >
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={null}
+          srcSet="icons/icon-onboarding-paper-key-32.png 1x, icons/icon-onboarding-paper-key-32@2x.png 2x"
+          style={
+            Object {
+              "userSelect": "none",
+            }
+          }
+          title={undefined}
+        />
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "column",
+            "overflow": "hidden",
+            "paddingRight": 80,
+            "position": "relative",
+            "width": "auto",
+          }
+        }
+      >
+        <span
+          className="glamor-0"
+          onClick={undefined}
+          title={undefined}
+        >
+          Please make a paper key. Unlike your account password, paper keys can provision new devices and recover data, for ultimate safety.
+        </span>
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "flexWrap": "wrap",
+              "justifyContent": "flex-start",
+            }
+          }
+        >
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": "center",
+                "backgroundColor": "#33a0ff",
+                "borderRadius": 28,
+                "cursor": "pointer",
+                "display": "inline-block",
+                "flexDirection": "column",
+                "height": 28,
+                "justifyContent": "center",
+                "lineHeight": "inherit",
+                "marginRight": 16,
+                "minWidth": undefined,
+                "paddingLeft": 16,
+                "paddingRight": 16,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "height": "100%",
+                  "justifyContent": "center",
+                  "position": "relative",
+                }
+              }
+            >
+              <span
+                className="glamor-1"
+                onClick={undefined}
+                title={undefined}
+              >
+                Create a paper key
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "position": "absolute",
+            "right": 8,
+            "top": 12,
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "backgroundColor": "#ff6f21",
+              "border": "none",
+              "borderRadius": 10,
+              "display": "flex",
+              "flexDirection": "row",
+              "height": 14,
+              "justifyContent": "center",
+              "marginLeft": 8,
+              "marginRight": 8,
+              "minWidth": 14,
+              "paddingLeft": 4,
+              "paddingRight": 5,
+            }
+          }
+        >
+          <span
+            className="glamor-2"
+            onClick={undefined}
+            title={undefined}
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots People/Todos Make a team 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  margin-top: 2px;
+  margin-bottom: 4px;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+}
+
+.glamor-2,
+[data-glamor-2] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #33a0ff;
+  cursor: pointer;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+}
+
+.glamor-3,
+[data-glamor-3] {
+  font-size: 9px;
+  line-height: 8px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 700;
+  flex: 0;
+  -webkit-flex: 0;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={undefined}
+  >
+    <div
+      style={
+        Object {
+          "backgroundColor": "#ebf5fc",
+          "display": "flex",
+          "flexDirection": "row",
+          "paddingBottom": 8,
+          "paddingLeft": 12,
+          "paddingTop": 8,
+          "position": "relative",
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "marginRight": 20,
+            "width": 32,
+          }
+        }
+      >
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={null}
+          srcSet="icons/icon-onboarding-team-32.png 1x, icons/icon-onboarding-team-32@2x.png 2x"
+          style={
+            Object {
+              "userSelect": "none",
+            }
+          }
+          title={undefined}
+        />
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "column",
+            "overflow": "hidden",
+            "paddingRight": 80,
+            "position": "relative",
+            "width": "auto",
+          }
+        }
+      >
+        <span
+          className="glamor-0"
+          onClick={undefined}
+          title={undefined}
+        >
+          Create a team! Keybase team chats are end-to-end encrypted - unlike Slack - and work for any kind of group, from casual friends to large communities.
+        </span>
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "flexWrap": "wrap",
+              "justifyContent": "flex-start",
+            }
+          }
+        >
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": "center",
+                "backgroundColor": "#33a0ff",
+                "borderRadius": 28,
+                "cursor": "pointer",
+                "display": "inline-block",
+                "flexDirection": "column",
+                "height": 28,
+                "justifyContent": "center",
+                "lineHeight": "inherit",
+                "marginRight": 16,
+                "minWidth": undefined,
+                "paddingLeft": 16,
+                "paddingRight": 16,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "height": "100%",
+                  "justifyContent": "center",
+                  "position": "relative",
+                }
+              }
+            >
+              <span
+                className="glamor-1"
+                onClick={undefined}
+                title={undefined}
+              >
+                Create a team
+              </span>
+            </div>
+          </div>
+          <span
+            className="glamor-2"
+            onClick={[Function]}
+            title={undefined}
+          >
+            Later
+          </span>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "position": "absolute",
+            "right": 8,
+            "top": 12,
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "backgroundColor": "#ff6f21",
+              "border": "none",
+              "borderRadius": 10,
+              "display": "flex",
+              "flexDirection": "row",
+              "height": 14,
+              "justifyContent": "center",
+              "marginLeft": 8,
+              "marginRight": 8,
+              "minWidth": 14,
+              "paddingLeft": 4,
+              "paddingRight": 5,
+            }
+          }
+        >
+          <span
+            className="glamor-3"
+            onClick={undefined}
+            title={undefined}
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots People/Todos Prove something 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  margin-top: 2px;
+  margin-bottom: 4px;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+}
+
+.glamor-2,
+[data-glamor-2] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #33a0ff;
+  cursor: pointer;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+}
+
+.glamor-3,
+[data-glamor-3] {
+  font-size: 9px;
+  line-height: 8px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 700;
+  flex: 0;
+  -webkit-flex: 0;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={undefined}
+  >
+    <div
+      style={
+        Object {
+          "backgroundColor": "#ebf5fc",
+          "display": "flex",
+          "flexDirection": "row",
+          "paddingBottom": 8,
+          "paddingLeft": 12,
+          "paddingTop": 8,
+          "position": "relative",
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "marginRight": 20,
+            "width": 32,
+          }
+        }
+      >
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={null}
+          srcSet="icons/icon-onboarding-proofs-32.png 1x, icons/icon-onboarding-proofs-32@2x.png 2x"
+          style={
+            Object {
+              "userSelect": "none",
+            }
+          }
+          title={undefined}
+        />
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "column",
+            "overflow": "hidden",
+            "paddingRight": 80,
+            "position": "relative",
+            "width": "auto",
+          }
+        }
+      >
+        <span
+          className="glamor-0"
+          onClick={undefined}
+          title={undefined}
+        >
+          Add some proofs to your profile. The more you have, the stronger your cryptographic identity.
+        </span>
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "flexWrap": "wrap",
+              "justifyContent": "flex-start",
+            }
+          }
+        >
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": "center",
+                "backgroundColor": "#33a0ff",
+                "borderRadius": 28,
+                "cursor": "pointer",
+                "display": "inline-block",
+                "flexDirection": "column",
+                "height": 28,
+                "justifyContent": "center",
+                "lineHeight": "inherit",
+                "marginRight": 16,
+                "minWidth": undefined,
+                "paddingLeft": 16,
+                "paddingRight": 16,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "height": "100%",
+                  "justifyContent": "center",
+                  "position": "relative",
+                }
+              }
+            >
+              <span
+                className="glamor-1"
+                onClick={undefined}
+                title={undefined}
+              >
+                Prove your identities
+              </span>
+            </div>
+          </div>
+          <span
+            className="glamor-2"
+            onClick={[Function]}
+            title={undefined}
+          >
+            Later
+          </span>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "position": "absolute",
+            "right": 8,
+            "top": 12,
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "backgroundColor": "#ff6f21",
+              "border": "none",
+              "borderRadius": 10,
+              "display": "flex",
+              "flexDirection": "row",
+              "height": 14,
+              "justifyContent": "center",
+              "marginLeft": 8,
+              "marginRight": 8,
+              "minWidth": 14,
+              "paddingLeft": 4,
+              "paddingRight": 5,
+            }
+          }
+        >
+          <span
+            className="glamor-3"
+            onClick={undefined}
+            title={undefined}
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots People/Todos Set publicity 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  margin-top: 2px;
+  margin-bottom: 4px;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+}
+
+.glamor-2,
+[data-glamor-2] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #33a0ff;
+  cursor: pointer;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+}
+
+.glamor-3,
+[data-glamor-3] {
+  font-size: 9px;
+  line-height: 8px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 700;
+  flex: 0;
+  -webkit-flex: 0;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={undefined}
+  >
+    <div
+      style={
+        Object {
+          "backgroundColor": "#ebf5fc",
+          "display": "flex",
+          "flexDirection": "row",
+          "paddingBottom": 8,
+          "paddingLeft": 12,
+          "paddingTop": 8,
+          "position": "relative",
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "marginRight": 20,
+            "width": 32,
+          }
+        }
+      >
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={null}
+          srcSet="icons/icon-onboarding-team-publicity-32.png 1x, icons/icon-onboarding-team-publicity-32@2x.png 2x"
+          style={
+            Object {
+              "userSelect": "none",
+            }
+          }
+          title={undefined}
+        />
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "column",
+            "overflow": "hidden",
+            "paddingRight": 80,
+            "position": "relative",
+            "width": "auto",
+          }
+        }
+      >
+        <span
+          className="glamor-0"
+          onClick={undefined}
+          title={undefined}
+        >
+          Tip: Keybase team chats are private, but you can choose to publish that you're an admin. Check out “Publicity settings" on any team you manage.
+        </span>
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "flexWrap": "wrap",
+              "justifyContent": "flex-start",
+            }
+          }
+        >
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": "center",
+                "backgroundColor": "#33a0ff",
+                "borderRadius": 28,
+                "cursor": "pointer",
+                "display": "inline-block",
+                "flexDirection": "column",
+                "height": 28,
+                "justifyContent": "center",
+                "lineHeight": "inherit",
+                "marginRight": 16,
+                "minWidth": undefined,
+                "paddingLeft": 16,
+                "paddingRight": 16,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "height": "100%",
+                  "justifyContent": "center",
+                  "position": "relative",
+                }
+              }
+            >
+              <span
+                className="glamor-1"
+                onClick={undefined}
+                title={undefined}
+              >
+                Set publicity settings
+              </span>
+            </div>
+          </div>
+          <span
+            className="glamor-2"
+            onClick={[Function]}
+            title={undefined}
+          >
+            Later
+          </span>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "position": "absolute",
+            "right": 8,
+            "top": 12,
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "backgroundColor": "#ff6f21",
+              "border": "none",
+              "borderRadius": 10,
+              "display": "flex",
+              "flexDirection": "row",
+              "height": 14,
+              "justifyContent": "center",
+              "marginLeft": 8,
+              "marginRight": 8,
+              "minWidth": 14,
+              "paddingLeft": 4,
+              "paddingRight": 5,
+            }
+          }
+        >
+          <span
+            className="glamor-3"
+            onClick={undefined}
+            title={undefined}
+          />
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 `;
