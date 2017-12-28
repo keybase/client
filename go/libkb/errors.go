@@ -511,6 +511,10 @@ func (e LoginRequiredError) Error() string {
 	return msg
 }
 
+func NewLoginRequiredError(s string) error {
+	return LoginRequiredError{s}
+}
+
 type ReloginRequiredError struct{}
 
 func (e ReloginRequiredError) Error() string {

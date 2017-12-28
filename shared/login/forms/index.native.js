@@ -42,8 +42,10 @@ const Splash = HOCTimers(
         <Scroller>
           <Box style={{...stylesLoginForm, justifyContent: 'center'}}>
             <Icon type="icon-keybase-logo-80" />
-            <Text style={stylesHeader} type="HeaderBig">Keybase</Text>
-            {this.state.showFeedback &&
+            <Text style={stylesHeader} type="HeaderBig">
+              Keybase
+            </Text>
+            {this.state.showFeedback && (
               <Box style={globalStyles.flexBoxColumn}>
                 <Text style={{marginTop: globalMargins.large}} type="BodySmall">
                   Keybase not starting up?
@@ -54,7 +56,8 @@ const Splash = HOCTimers(
                   style={{marginTop: globalMargins.small}}
                   type="Primary"
                 />
-              </Box>}
+              </Box>
+            )}
           </Box>
         </Scroller>
       )
@@ -102,28 +105,34 @@ const Intro = (props: Props) => (
         justifyContent: 'center',
       }}
     >
-      {!!props.justRevokedSelf &&
+      {!!props.justRevokedSelf && (
         <Box style={stylesBannerGreen}>
           <Text type="BodySemibold" style={stylesTextBanner}>
-            <Text type="BodySemiboldItalic" style={stylesTextBanner}>{props.justRevokedSelf}</Text>
+            <Text type="BodySemiboldItalic" style={stylesTextBanner}>
+              {props.justRevokedSelf}
+            </Text>
             &nbsp;was revoked successfully.
           </Text>
-        </Box>}
-      {!!props.justDeletedSelf &&
+        </Box>
+      )}
+      {!!props.justDeletedSelf && (
         <Box style={stylesBannerBlue}>
           <Text type="BodySemibold" style={stylesTextBanner}>
-            Your Keybase account
-            {' '}
-            <Text type="BodySemiboldItalic" style={stylesTextBanner}>{props.justDeletedSelf}</Text>
+            Your Keybase account{' '}
+            <Text type="BodySemiboldItalic" style={stylesTextBanner}>
+              {props.justDeletedSelf}
+            </Text>
             &nbsp;has been deleted.
           </Text>
-        </Box>}
-      {!!props.justLoginFromRevokedDevice &&
+        </Box>
+      )}
+      {!!props.justLoginFromRevokedDevice && (
         <Box style={stylesBannerBlue}>
           <Text type="BodySemibold" style={stylesTextBanner}>
             Your device has been revoked, please log in again.
           </Text>
-        </Box>}
+        </Box>
+      )}
       <Box
         style={{
           ...globalStyles.flexBoxColumn,
@@ -135,8 +144,12 @@ const Intro = (props: Props) => (
         }}
       >
         <Icon type="icon-keybase-logo-80" />
-        <Text style={stylesHeader} type="HeaderBig">Join Keybase</Text>
-        <Text style={stylesHeaderSub} type="Body">Folders for anyone in the world.</Text>
+        <Text style={stylesHeader} type="HeaderBig">
+          Join Keybase
+        </Text>
+        <Text style={stylesHeaderSub} type="Body">
+          Folders for anyone in the world.
+        </Text>
         <Button
           style={stylesSignupButton}
           type="Primary"
@@ -144,7 +157,9 @@ const Intro = (props: Props) => (
           label="Create an account"
         />
         <Box style={{minHeight: 100, width: 1}} />
-        <Text style={stylesLoginHeader} type="Body" onClick={props.onLogin}>Already on Keybase?</Text>
+        <Text style={stylesLoginHeader} type="Body" onClick={props.onLogin}>
+          Already on Keybase?
+        </Text>
         <ButtonBar>
           <Button type="Secondary" onClick={props.onLogin} label="Log in" />
         </ButtonBar>

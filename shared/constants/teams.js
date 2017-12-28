@@ -3,7 +3,7 @@ import * as I from 'immutable'
 import * as ChatTypes from './types/chat'
 import * as Types from './types/teams'
 import {userIsInTeam} from './selectors'
-import * as RPCTypes from './types/flow-types'
+import * as RPCTypes from './types/rpc-gen'
 import invert from 'lodash/invert'
 
 import type {Service} from './types/search'
@@ -77,6 +77,7 @@ export const initialCanUserPerform: RPCTypes.TeamOperation = {
   setTeamShowcase: false,
   setMemberShowcase: false,
   changeOpenTeam: false,
+  leaveTeam: false,
 }
 
 const userIsInTeamHelper = (state: TypedState, username: string, service: Service, teamname: string) =>

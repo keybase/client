@@ -22,7 +22,9 @@ const commands = {
     env: {BABEL_ENV: 'yarn', NO_SERVER: 'true', TREESHAKE: 'true'},
     help: 'Make a treeshake version of the build',
     nodeEnv: 'development',
-    shell: `${webpackCmd} --progress --profile --colors ${webpackLog ? `--json > ${webpackLog}` : ''} && echo '\n\n\nSearch desktop/dist/_.bundle.js for unused harmoney comments. Note it doesnt understand mobile so use flow and lint to double check everything!'`, // eslint-disable-line no-useless-escape
+    shell: `${webpackCmd} --progress --profile --colors ${
+      webpackLog ? `--json > ${webpackLog}` : ''
+    } && echo '\n\n\nSearch desktop/dist/_.bundle.js for unused harmoney comments. Note it doesnt understand mobile so use flow and lint to double check everything!'`, // eslint-disable-line no-useless-escape
   },
   'hot-server': {
     code: hotServer,
@@ -41,7 +43,9 @@ const commands = {
 function hotServer(info: any, exec: Function) {
   exec('yarn run _helper build-dev', {...info.env, BEFORE_HOT: 'true'})
   exec(
-    `${process.env['NO_DASHBOARD'] ? '' : 'webpack-dashboard --'} webpack-dev-server --config=./desktop/webpack.config.babel.js`,
+    `${
+      process.env['NO_DASHBOARD'] ? '' : 'webpack-dashboard --'
+    } webpack-dev-server --config=./desktop/webpack.config.babel.js`,
     {...info.env, BEFORE_HOT: 'false'}
   )
 }

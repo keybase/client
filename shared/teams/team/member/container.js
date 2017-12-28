@@ -12,7 +12,7 @@ import {isMobile} from '../../../constants/platform'
 import {TeamMember} from '.'
 import {type TypedState} from '../../../constants/reducer'
 import {getCanPerform} from '../../../constants/teams'
-import * as RPCTypes from '../../../constants/types/flow-types'
+import * as RPCTypes from '../../../constants/types/rpc-gen'
 
 type StateProps = {
   teamname: string,

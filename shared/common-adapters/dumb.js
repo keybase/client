@@ -34,16 +34,18 @@ const display = type => (isMobile ? {} : {display: type})
 
 const colorMocks = {}
 
-Object.keys(globalColors).sort().forEach(c => {
-  colorMocks[`${c}: ${globalColors[c]}`] = {
-    parentProps: {
-      height: 60,
-      width: 230,
-    },
-    style: {width: 60, height: 60, backgroundColor: globalColors[c]},
-    children: <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', marginLeft: 5}} />,
-  }
-})
+Object.keys(globalColors)
+  .sort()
+  .forEach(c => {
+    colorMocks[`${c}: ${globalColors[c]}`] = {
+      parentProps: {
+        height: 60,
+        width: 230,
+      },
+      style: {width: 60, height: 60, backgroundColor: globalColors[c]},
+      children: <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', marginLeft: 5}} />,
+    }
+  })
 
 const colorsMap: DumbComponentMap<Box> = {
   component: Box,
@@ -196,27 +198,6 @@ const buttonsMap: DumbComponentMap<Button> = {
       type: 'Danger',
       waiting: true,
     },
-    Follow: {
-      ...commonButton,
-      label: 'Follow',
-      type: 'Follow',
-    },
-    'Follow Disabled': {
-      ...commonButton,
-      label: 'Follow',
-      type: 'Follow',
-      disabled: true,
-    },
-    Following: {
-      ...commonButton,
-      label: 'Following',
-      type: 'Following',
-    },
-    Unfollow: {
-      ...commonButton,
-      label: 'Unfollow',
-      type: 'Unfollow',
-    },
     'Primary fullWidth': {
       ...commonButton,
       label: 'Primary',
@@ -256,19 +237,6 @@ const buttonsMap: DumbComponentMap<Button> = {
       fullWidth: true,
       waiting: true,
     },
-    'Follow fullWidth': {
-      ...commonButton,
-      label: 'Follow',
-      type: 'Follow',
-      fullWidth: true,
-    },
-    'Follow fullWidth waiting': {
-      ...commonButton,
-      label: 'Follow',
-      type: 'Follow',
-      fullWidth: true,
-      waiting: true,
-    },
     'Primary small': {
       ...commonButton,
       label: 'Primary small',
@@ -285,12 +253,6 @@ const buttonsMap: DumbComponentMap<Button> = {
       ...commonButton,
       label: 'Danger small',
       type: 'Danger',
-      small: true,
-    },
-    'Follow small': {
-      ...commonButton,
-      label: 'Follow small',
-      type: 'Follow',
       small: true,
     },
     'Primary small waiting': {
@@ -311,13 +273,6 @@ const buttonsMap: DumbComponentMap<Button> = {
       ...commonButton,
       label: 'Danger small',
       type: 'Danger',
-      small: true,
-      waiting: true,
-    },
-    'Follow small waiting': {
-      ...commonButton,
-      label: 'Follow small',
-      type: 'Follow',
       small: true,
       waiting: true,
     },
@@ -557,21 +512,25 @@ const inputMap: DumbComponentMap<Input> = {
       multiline: true,
     },
     'Long Multiline': {
-      value: 'This is a very long text that will hopefully wrap to two lines or more more more! or more or more or more or more or more or more or more or more or more or more or more or more or more or more!',
+      value:
+        'This is a very long text that will hopefully wrap to two lines or more more more! or more or more or more or more or more or more or more or more or more or more or more or more or more or more!',
       multiline: true,
     },
     'Long Multiline rowsMax1': {
-      value: 'This is a very long text that will hopefully wrap to two lines or more more more! or more or more or more or more or more or more or more or more or more or more or more or more or more or more!',
+      value:
+        'This is a very long text that will hopefully wrap to two lines or more more more! or more or more or more or more or more or more or more or more or more or more or more or more or more or more!',
       multiline: true,
       rowsMax: 1,
     },
     'Long Multiline rowsMax2': {
-      value: 'This is a very long text that will hopefully wrap to two lines or more more more! or more or more or more or more or more or more or more or more or more or more or more or more or more or more!',
+      value:
+        'This is a very long text that will hopefully wrap to two lines or more more more! or more or more or more or more or more or more or more or more or more or more or more or more or more or more!',
       multiline: true,
       rowsMax: 2,
     },
     'Long Multiline rowsMax4': {
-      value: 'This is a very long text that will hopefully wrap to two laxes or more more more! or more or more or more or more or more or more or more or more or more or more or more or more or more or more!',
+      value:
+        'This is a very long text that will hopefully wrap to two laxes or more more more! or more or more or more or more or more or more or more or more or more or more or more or more or more or more!',
       multiline: true,
       rowsMax: 4,
     },
@@ -582,7 +541,8 @@ const inputMap: DumbComponentMap<Input> = {
       rowsMax: 4,
     },
     'Long Multiline rowsMin2Max4 long': {
-      value: 'This is a very long text that will hopefully wrap to two lines or more more more! or more or more or more or more or more or more or more or more or more or more or more or more or more or more!',
+      value:
+        'This is a very long text that will hopefully wrap to two lines or more more more! or more or more or more or more or more or more or more or more or more or more or more or more or more or more!',
       multiline: true,
       rowsMin: 2,
       rowsMax: 4,
@@ -700,18 +660,20 @@ const tabBarCustomButtons = selectedIndex => {
       {icon: 'iconfont-nav-devices', label: 'DEVICES', badgeNumber: 12},
       {icon: 'iconfont-nav-settings', label: 'SETTINGS'},
     ].map((buttonInfo: any, i) => {
-      const button = buttonInfo.avatar
-        ? <AvatarButton
-            badgeNumber={buttonInfo.badgeNumber}
-            selected={selectedIndex === i}
-            avatar={buttonInfo.avatar}
-          />
-        : <IconButton
-            icon={buttonInfo.icon}
-            label={buttonInfo.label}
-            badgeNumber={buttonInfo.badgeNumber}
-            selected={selectedIndex === i}
-          />
+      const button = buttonInfo.avatar ? (
+        <AvatarButton
+          badgeNumber={buttonInfo.badgeNumber}
+          selected={selectedIndex === i}
+          avatar={buttonInfo.avatar}
+        />
+      ) : (
+        <IconButton
+          icon={buttonInfo.icon}
+          label={buttonInfo.label}
+          badgeNumber={buttonInfo.badgeNumber}
+          selected={selectedIndex === i}
+        />
+      )
       return (
         <TabBarItem
           key={i}
@@ -720,7 +682,9 @@ const tabBarCustomButtons = selectedIndex => {
           selected={selectedIndex === i}
           onClick={() => console.log('TabBaritem:onClick')}
         >
-          <Text type="Header" style={{flex: 1}}>Content here at: {i}</Text>
+          <Text type="Header" style={{flex: 1}}>
+            Content here at: {i}
+          </Text>
         </TabBarItem>
       )
     }),
@@ -763,7 +727,9 @@ const listItemMap: DumbComponentMap<ListItem> = {
       icon: <Box style={{height: 32, width: 32, backgroundColor: globalColors.black_20}} />,
       body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
       action: (
-        <Text style={{color: globalColors.red}} type={'BodySmall'} onClick={() => {}}>Action Jack</Text>
+        <Text style={{color: globalColors.red}} type={'BodySmall'} onClick={() => {}}>
+          Action Jack
+        </Text>
       ),
       swipeToAction: true,
       extraRightMarginAction: true,
@@ -780,7 +746,9 @@ const listItemMap: DumbComponentMap<ListItem> = {
       icon: <Box style={{height: 48, width: 48, backgroundColor: globalColors.black_20}} />,
       body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
       action: (
-        <Text style={{color: globalColors.red}} type={'BodySmall'} onClick={() => {}}>Action Jack</Text>
+        <Text style={{color: globalColors.red}} type={'BodySmall'} onClick={() => {}}>
+          Action Jack
+        </Text>
       ),
       extraRightMarginAction: true,
     },
@@ -882,7 +850,11 @@ const choiceListMap: DumbComponentMap<ChoiceList> = {
 
 const standardScreenProps = {
   onClose: () => console.log('StandardScreen: onClose'),
-  children: <Text type="Header" style={{textAlign: 'center'}}>Whoa, look at this centered thing</Text>,
+  children: (
+    <Text type="Header" style={{textAlign: 'center'}}>
+      Whoa, look at this centered thing
+    </Text>
+  ),
   parentProps: {style: {...display('flex'), height: 578}},
 }
 
@@ -904,10 +876,10 @@ const standardScreenMap: DumbComponentMap<StandardScreen> = {
       notification: {
         message: (
           <Text type="BodySemibold" style={{color: globalColors.white}}>
-            You won a unicorn!
-            {' '}
-            <Text type="BodySemibold" style={{color: globalColors.white}}>Make sure to feed it</Text>
-            {' '}
+            You won a unicorn!{' '}
+            <Text type="BodySemibold" style={{color: globalColors.white}}>
+              Make sure to feed it
+            </Text>{' '}
             :-)
           </Text>
         ),
@@ -953,7 +925,8 @@ else echo "bar";
   // this should be *asterisk* \`\`\``,
     },
     'Messed up': {
-      children: 'I think we should try to use `if else` statements ```if (var == "foo")\n  echo "foo";\nelse echo "bar";`` I think I *missed something**',
+      children:
+        'I think we should try to use `if else` statements ```if (var == "foo")\n  echo "foo";\nelse echo "bar";`` I think I *missed something**',
     },
     'Escaped chars': {
       children: '\\*foo\\* I should see asterisks',

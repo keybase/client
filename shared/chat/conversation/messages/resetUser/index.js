@@ -16,9 +16,12 @@ const ResetUser = ({username, viewProfile, letThemIn, allowChatWithoutThem, chat
     <Icon type="icon-skull-64" style={{margin: globalMargins.medium}} />
     <Box style={textContainerStyle}>
       <Text type="BodySemibold" backgroundMode="Terminal" style={{textAlign: 'center'}}>
-        <Text type="BodySemiboldLink" backgroundMode="Terminal" onClick={viewProfile}>{username} </Text>
+        <Text type="BodySemiboldLink" backgroundMode="Terminal" onClick={viewProfile}>
+          {username}{' '}
+        </Text>
         <Text type="BodySemibold" backgroundMode="Terminal">
-          lost all their devices and this account has new keys. If you want to let them into this chat and folder's history, you should either:
+          lost all their devices and this account has new keys. If you want to let them into this chat and
+          folder's history, you should either:
         </Text>
       </Text>
       <Box style={bulletStyle}>
@@ -55,13 +58,14 @@ const ResetUser = ({username, viewProfile, letThemIn, allowChatWithoutThem, chat
           style={{backgroundColor: globalColors.white}}
         />
       </Box>
-      {allowChatWithoutThem &&
+      {allowChatWithoutThem && (
         <Text type="BodySemibold" backgroundMode="Terminal">
           Or until you’re sure,{' '}
           <Text type="BodySemiboldLink" backgroundMode="Terminal" onClick={chatWithoutThem}>
             chat without them
           </Text>
-        </Text>}
+        </Text>
+      )}
     </Box>
   </Box>
 )

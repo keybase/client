@@ -56,7 +56,11 @@ const InviteByEmail = (props: Props) => (
           margin: globalMargins.medium,
         }}
       >
-        {!isMobile && <Text style={styleInside} type="Header">Invite by email</Text>}
+        {!isMobile && (
+          <Text style={styleInside} type="Header">
+            Invite by email
+          </Text>
+        )}
         <Box
           style={{
             ...(isMobile ? globalStyles.flexBoxColumn : globalStyles.flexBoxRow),
@@ -71,7 +75,8 @@ const InviteByEmail = (props: Props) => (
             onClick={() =>
               props.onOpenRolePicker(props.role, (selectedRole: TeamRoleType) =>
                 props.onRoleChange(selectedRole)
-              )}
+              )
+            }
           >
             <Dropdown
               items={_makeDropdownItems()}

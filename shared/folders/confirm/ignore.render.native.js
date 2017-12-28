@@ -16,9 +16,13 @@ const Render = ({isPrivate, users, avatar, onSubmit, onCancel}: Props) => {
   const body = (
     <Box>
       <Text type="Header" style={{textAlign: 'center', marginBottom: 16}}>
-        <Text type="Header" style={textColorThemed[theme]}>Ignore {isPrivate ? 'private/' : 'public/'}</Text>
+        <Text type="Header" style={textColorThemed[theme]}>
+          Ignore {isPrivate ? 'private/' : 'public/'}
+        </Text>
         {usernameText({type: 'Header', style: textColorThemed[theme], users})}
-        <Text type="Header" style={textColorThemed[theme]}>?</Text>
+        <Text type="Header" style={textColorThemed[theme]}>
+          ?
+        </Text>
       </Text>
       <Text type="Body" style={{...textColorThemed[theme], textAlign: 'center'}}>
         This folder will no longer show up on your computer and you won't receive alerts about it.

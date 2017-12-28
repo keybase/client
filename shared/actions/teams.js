@@ -9,8 +9,8 @@ import * as Constants from '../constants/teams'
 import * as ChatConstants from '../constants/chat'
 import * as ChatTypes from '../constants/types/chat'
 import * as SearchConstants from '../constants/search'
-import * as RPCChatTypes from '../constants/types/flow-types-chat'
-import * as RPCTypes from '../constants/types/flow-types'
+import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as RouteTypes from '../constants/types/route-tree'
 import * as RouteConstants from '../constants/route-tree'
@@ -306,11 +306,10 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
       details.settings.joinAs = RPCTypes.teamsTeamRole.reader
     }
 
-    const implicitAdminDetails: Array<
-      RPCTypes.TeamMemberDetails
-    > = (yield Saga.call(RPCTypes.teamsTeamImplicitAdminsRpcPromise, {
-      teamName: teamname,
-    })) || []
+    const implicitAdminDetails: Array<RPCTypes.TeamMemberDetails> =
+      (yield Saga.call(RPCTypes.teamsTeamImplicitAdminsRpcPromise, {
+        teamName: teamname,
+      })) || []
     const implicitAdminUsernames = I.Set(implicitAdminDetails.map(x => x.username))
 
     // Get requests to join
@@ -353,9 +352,8 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
         email: invite.type.c === RPCTypes.teamsTeamInviteCategory.email ? invite.name : '',
         name: invite.type.c === RPCTypes.teamsTeamInviteCategory.seitan ? invite.name : '',
         role: Constants.teamRoleByEnum[invite.role],
-        username: invite.type.c === RPCTypes.teamsTeamInviteCategory.sbs
-          ? `${invite.name}@${invite.type.sbs}`
-          : '',
+        username:
+          invite.type.c === RPCTypes.teamsTeamInviteCategory.sbs ? `${invite.name}@${invite.type.sbs}` : '',
         id: invite.id,
       })
     )
@@ -431,9 +429,11 @@ function _getChannels(action: TeamsGen.GetChannelsPayload) {
   ])
 }
 
-function _afterGetChannels(
-  [results, teamname, waitingKey]: [RPCChatTypes.GetTLFConversationsLocalRes, string, {|key: string|}]
-) {
+function _afterGetChannels([results, teamname, waitingKey]: [
+  RPCChatTypes.GetTLFConversationsLocalRes,
+  string,
+  {|key: string|},
+]) {
   const convIDs = []
   const convIDToChannelInfo = {}
 

@@ -9,7 +9,9 @@ export type Props = {
 
 const Timestamp = ({timestamp}: Props) => (
   <Box style={styleBox}>
-    <Text style={styleText} type="BodySmallSemibold">{timestamp}</Text>
+    <Text style={styleText} type="BodySmallSemibold">
+      {timestamp}
+    </Text>
   </Box>
 )
 

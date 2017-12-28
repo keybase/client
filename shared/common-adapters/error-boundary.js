@@ -53,7 +53,7 @@ const Fallback = ({closeOnClick, info: {name, message, stack, componentStack}}: 
           Please submit a bug report by
           {isMobile ? ' going into Settings / Feedback' : ' running this command in your terminal:'}
         </Text>
-        {!isMobile &&
+        {!isMobile && (
           <Box
             style={{
               ...globalStyles.flexBoxColumn,
@@ -66,25 +66,37 @@ const Fallback = ({closeOnClick, info: {name, message, stack, componentStack}}: 
             <Text type="Terminal" backgroundMode="Terminal" style={globalStyles.selectable}>
               keybase log send
             </Text>
-          </Box>}
-        <Text type="BodySmall" style={detailHeaderStyle}>Error details</Text>
+          </Box>
+        )}
+        <Text type="BodySmall" style={detailHeaderStyle}>
+          Error details
+        </Text>
         <Text type="BodySmall" style={{...globalStyles.selectable, margin: 10}}>{`${name}: ${message}`}</Text>
-        <Text type="BodySmall" style={{marginTop: 20}}>Stack trace</Text>
+        <Text type="BodySmall" style={{marginTop: 20}}>
+          Stack trace
+        </Text>
         <ScrollView style={detailContainerStyle}>
-          <Text type="BodySmall" style={detailStyle}>{stack}</Text>
+          <Text type="BodySmall" style={detailStyle}>
+            {stack}
+          </Text>
         </ScrollView>
 
-        <Text type="BodySmall" style={detailHeaderStyle}>Component stack trace</Text>
+        <Text type="BodySmall" style={detailHeaderStyle}>
+          Component stack trace
+        </Text>
         <ScrollView style={detailContainerStyle}>
-          <Text type="BodySmall" style={detailStyle}>{componentStack}</Text>
+          <Text type="BodySmall" style={detailStyle}>
+            {componentStack}
+          </Text>
         </ScrollView>
       </Box>
-      {closeOnClick &&
+      {closeOnClick && (
         <Icon
           type="iconfont-close"
           style={{position: 'absolute', top: globalMargins.tiny, right: globalMargins.tiny}}
           onClick={closeOnClick}
-        />}
+        />
+      )}
     </ScrollView>
   )
 }

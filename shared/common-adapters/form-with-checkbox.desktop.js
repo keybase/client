@@ -25,10 +25,11 @@ class FormWithCheckbox extends Component<Props> {
             return <Checkbox key={p.label} {...checkProps} />
           })}
         </Box>
-        {!!errorText &&
+        {!!errorText && (
           <Text type="BodyError" style={{textAlign: 'center', marginTop: globalMargins.tiny}}>
             {errorText}
-          </Text>}
+          </Text>
+        )}
       </Box>
     )
   }

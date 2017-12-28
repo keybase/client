@@ -90,7 +90,7 @@ class Login extends Component<Props, State> {
             />
             <Icon type="iconfont-caret-down" inheritColor={true} style={{fontSize: 11}} />
           </ButtonBox>
-          {this.state.open &&
+          {this.state.open && (
             <PopupDialog
               onClose={this._toggleOpen}
               styleCover={{backgroundColor: globalColors.transparent, zIndex: 999}}
@@ -124,7 +124,8 @@ class Login extends Component<Props, State> {
                   ))}
                 </Box>
               </Box>
-            </PopupDialog>}
+            </PopupDialog>
+          )}
           <FormWithCheckbox
             style={{alignSelf: 'stretch'}}
             inputProps={inputProps}

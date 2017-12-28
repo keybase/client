@@ -19,9 +19,7 @@ const commonBannerStyle = {
 }
 
 const BannerBox = props => (
-  <Box style={{...commonBannerStyle, backgroundColor: props.color}}>
-    {props.children}
-  </Box>
+  <Box style={{...commonBannerStyle, backgroundColor: props.color}}>{props.children}</Box>
 )
 
 const BannerText = props => (
@@ -39,25 +37,31 @@ function brokenSeparator(idx, item, arr) {
 }
 
 const BrokenTrackerBanner = ({users, onClick}: BrokenTrackerProps) =>
-  users.length === 1
-    ? <BannerBox color={globalColors.red}>
-        <BannerText>
-          <BannerText>Some of&nbsp;</BannerText>
-          <BannerText type="BodySemiboldLink" onClick={() => onClick(users[0])}>{users[0]}</BannerText>
-          <BannerText>'s proofs have changed since you last followed them.</BannerText>
+  users.length === 1 ? (
+    <BannerBox color={globalColors.red}>
+      <BannerText>
+        <BannerText>Some of&nbsp;</BannerText>
+        <BannerText type="BodySemiboldLink" onClick={() => onClick(users[0])}>
+          {users[0]}
         </BannerText>
-      </BannerBox>
-    : <BannerBox color={globalColors.red}>
-        <BannerText>
-          {intersperseFn(
-            brokenSeparator,
-            users.map((user, idx) => (
-              <BannerText type="BodySemiboldLink" key={user} onClick={() => onClick(user)}>{user}</BannerText>
-            ))
-          )}
-          <BannerText>&nbsp;have changed their proofs since you last followed them.</BannerText>
-        </BannerText>
-      </BannerBox>
+        <BannerText>'s proofs have changed since you last followed them.</BannerText>
+      </BannerText>
+    </BannerBox>
+  ) : (
+    <BannerBox color={globalColors.red}>
+      <BannerText>
+        {intersperseFn(
+          brokenSeparator,
+          users.map((user, idx) => (
+            <BannerText type="BodySemiboldLink" key={user} onClick={() => onClick(user)}>
+              {user}
+            </BannerText>
+          ))
+        )}
+        <BannerText>&nbsp;have changed their proofs since you last followed them.</BannerText>
+      </BannerText>
+    </BannerBox>
+  )
 
 const ErrorBanner = ({text, textLink, textLinkOnClick}: ErrorProps) => (
   <BannerBox color={globalColors.red}>

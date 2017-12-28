@@ -30,16 +30,16 @@ class InviteGeneratedRender extends Component<Props> {
           onClick={this.props.onClose}
         />
         <Icon type="icon-invite-link-48" />
-        {this.props.email
-          ? <Text type="Body" style={textStyle}>
-              Yay! We emailed
-              {' '}
-              <Text type="BodySemibold">{this.props.email}</Text>
-              , but you can also give them the below link:
-            </Text>
-          : <Text type="Body" style={textStyle}>
-              Yay! Please share the below link with your friend. It contains signup &amp; install instructions.
-            </Text>}
+        {this.props.email ? (
+          <Text type="Body" style={textStyle}>
+            Yay! We emailed <Text type="BodySemibold">{this.props.email}</Text>
+            , but you can also give them the below link:
+          </Text>
+        ) : (
+          <Text type="Body" style={textStyle}>
+            Yay! Please share the below link with your friend. It contains signup &amp; install instructions.
+          </Text>
+        )}
         <Box style={linkContainerStyle}>
           <Icon
             type="iconfont-link"

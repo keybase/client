@@ -65,11 +65,17 @@ const MessagePopupHeader = ({
         </Text>
       </Box>
       <Box style={globalStyles.flexBoxRow}>
-        <Text type="BodySmall" style={{color: globalColors.black_40}}>by</Text>
-        <Text type="BodySmallItalic" style={{color: globalColors.black_60}}>&nbsp;{deviceName}</Text>
+        <Text type="BodySmall" style={{color: globalColors.black_40}}>
+          by
+        </Text>
+        <Text type="BodySmallItalic" style={{color: globalColors.black_60}}>
+          &nbsp;{deviceName}
+        </Text>
       </Box>
-      <Text type="BodySmall" style={{color: globalColors.black_40}}>{formatTimeForPopup(timestamp)}</Text>
-      {senderDeviceRevokedAt &&
+      <Text type="BodySmall" style={{color: globalColors.black_40}}>
+        {formatTimeForPopup(timestamp)}
+      </Text>
+      {senderDeviceRevokedAt && (
         <PopupHeaderText
           color={globalColors.white}
           backgroundColor={globalColors.blue}
@@ -82,7 +88,8 @@ const MessagePopupHeader = ({
           }}
         >
           {whoRevoked} revoked this device on {formatTimeForRevoked(senderDeviceRevokedAt)}.
-        </PopupHeaderText>}
+        </PopupHeaderText>
+      )}
     </Box>
   )
 }

@@ -115,7 +115,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
           loadingColor={globalColors.blue3_40}
           backgroundColor={this.props.selected ? globalColors.white : globalColors.blue3_40}
         />
-        {badgeNumber > 0 &&
+        {badgeNumber > 0 && (
           <Box style={{width: 0, display: 'flex'}}>
             <Box style={styleBadgeAvatar}>
               <Badge
@@ -124,8 +124,9 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
                 outlineColor={globalColors.darkBlue2}
               />
             </Box>
-          </Box>}
-        {!!this.props.label &&
+          </Box>
+        )}
+        {!!this.props.label && (
           <Text
             className="title"
             type="BodySmallSemiboldItalic"
@@ -139,7 +140,8 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
             }}
           >
             {this.props.label}
-          </Text>}
+          </Text>
+        )}
       </Box>
     )
   }
@@ -155,22 +157,24 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
         >
           {this.props.selected && <HighlightLine />}
           <Icon type={this.props.source.icon} style={this.props.styleIcon} className="img" />
-          {badgeNumber > 0 &&
+          {badgeNumber > 0 && (
             <Box style={styleBadgeNav}>
               <Badge
                 badgeNumber={badgeNumber}
                 badgeStyle={{marginLeft: 0, marginRight: globalMargins.tiny}}
                 outlineColor={globalColors.darkBlue2}
               />
-            </Box>}
-          {!!this.props.label &&
+            </Box>
+          )}
+          {!!this.props.label && (
             <Text
               type="BodySmallSemibold"
               style={{color: undefined, ...stylesNavText, ...this.props.styleLabel}}
               className="title"
             >
               {this.props.label}
-            </Text>}
+            </Text>
+          )}
         </Box>
       </Box>
     )
@@ -185,21 +189,23 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
         onClick={this.props.onClick}
       >
         <Icon type={this.props.source.icon} style={{...stylesIcon, color, ...this.props.styleIcon}} />
-        {!!this.props.label &&
+        {!!this.props.label && (
           <Text
             type="BodySemibold"
             style={{color, textAlign: 'center', ...globalStyles.clickable, ...this.props.styleLabel}}
           >
             {this.props.label}
-          </Text>}
-        {badgeNumber > 0 &&
+          </Text>
+        )}
+        {badgeNumber > 0 && (
           <Box style={{...styleBadgeIcon, ...this.props.styleBadgeContainer}}>
             <Badge
               badgeNumber={badgeNumber}
               badgeStyle={this.props.styleBadge}
               badgeNumberStyle={this.props.styleBadgeNumber}
             />
-          </Box>}
+          </Box>
+        )}
       </Box>
     )
   }
@@ -310,7 +316,9 @@ const navRealCSS = `
   .nav-item-avatar .title { color: ${globalColors.blue3_60}; }
   .nav-item.selected .title, .nav-item-avatar.selected .title { color: ${globalColors.white}; }
   .nav-item:hover .title, .nav-item-avatar:hover .title { color: ${globalColors.white}; opacity: 1.0; }
-  .nav-item:hover.selected .title, .nav-item-avatar:hover.selected .title { color: ${globalColors.white}; opacity: 1.0;}
+  .nav-item:hover.selected .title, .nav-item-avatar:hover.selected .title { color: ${
+    globalColors.white
+  }; opacity: 1.0;}
 `
 
 const stylesNavText = {

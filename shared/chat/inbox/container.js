@@ -84,22 +84,26 @@ const getBigRowItems = createSelector([getTeamToChannel], (teamToChannels): Arra
   Inbox.RowItemBigHeader | Inbox.RowItemBig
 > => {
   const rows = []
-  Object.keys(teamToChannels).sort().forEach(teamname => {
-    rows.push({
-      teamname,
-      type: 'bigHeader',
-    })
-
-    const channels = teamToChannels[teamname]
-    Object.keys(channels).sort().forEach(channelname => {
+  Object.keys(teamToChannels)
+    .sort()
+    .forEach(teamname => {
       rows.push({
-        channelname,
-        conversationIDKey: channels[channelname],
         teamname,
-        type: 'big',
+        type: 'bigHeader',
       })
+
+      const channels = teamToChannels[teamname]
+      Object.keys(channels)
+        .sort()
+        .forEach(channelname => {
+          rows.push({
+            channelname,
+            conversationIDKey: channels[channelname],
+            teamname,
+            type: 'big',
+          })
+        })
     })
-  })
 
   return rows
 })
@@ -158,21 +162,25 @@ const getFilteredBigRows = createSelector([getTeamToChannel, getFilter], (teamTo
   Inbox.RowItemBig
 > => {
   const rows = []
-  Object.keys(teamToChannels).sort().forEach(teamname => {
-    const teamPassed = passesStringFilter(lcFilter, teamname.toLowerCase())
-    const channels = teamToChannels[teamname]
-    Object.keys(channels).sort().forEach(channelname => {
-      const channelPassed = teamPassed || passesStringFilter(lcFilter, channelname.toLowerCase())
-      if (channelPassed) {
-        rows.push({
-          channelname,
-          conversationIDKey: channels[channelname],
-          teamname,
-          type: 'big',
+  Object.keys(teamToChannels)
+    .sort()
+    .forEach(teamname => {
+      const teamPassed = passesStringFilter(lcFilter, teamname.toLowerCase())
+      const channels = teamToChannels[teamname]
+      Object.keys(channels)
+        .sort()
+        .forEach(channelname => {
+          const channelPassed = teamPassed || passesStringFilter(lcFilter, channelname.toLowerCase())
+          if (channelPassed) {
+            rows.push({
+              channelname,
+              conversationIDKey: channels[channelname],
+              teamname,
+              type: 'big',
+            })
+          }
         })
-      }
     })
-  })
 
   return rows
 })
@@ -215,6 +223,7 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}: OwnProp
   }
 
   const inboxGlobalUntrustedState = state.chat.get('inboxGlobalUntrustedState')
+  const selectedConversationIDKey = Constants.getSelectedConversation(state)
 
   return {
     ...rowMetadata,
@@ -223,7 +232,9 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}: OwnProp
     isLoading: inboxGlobalUntrustedState === 'loading' || state.chat.get('inboxSyncingState') === 'syncing',
     neverLoaded: inboxGlobalUntrustedState === 'unloaded',
     _user: Constants.getYou(state),
-    inSearch: state.chat.get('inSearch'),
+    showNewConversation:
+      state.chat.get('inSearch') ||
+      (selectedConversationIDKey && Constants.isPendingConversationIDKey(selectedConversationIDKey)),
   }
 }
 
@@ -279,7 +290,7 @@ const mergeProps = (
     smallTeamsExpanded: stateProps.smallTeamsExpanded,
     toggleSmallTeamsExpanded: dispatchProps.toggleSmallTeamsExpanded,
     filterFocusCount: ownProps.filterFocusCount,
-    inSearch: stateProps.inSearch,
+    showNewConversation: stateProps.showNewConversation,
   }
 }
 

@@ -21,7 +21,8 @@
         "CHAT_GUI_STRICT_3",
         "KBFS_REKEY_4",
         "KBFS_QR_5",
-        "CHAT_SKIP_6"
+        "CHAT_SKIP_6",
+        "SALTPACK_7"
       ]
     },
     {

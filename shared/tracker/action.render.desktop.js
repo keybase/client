@@ -68,21 +68,23 @@ export default class ActionRender extends PureComponent<ActionProps> {
     return (
       <div style={styleContainer}>
         {!this.props.currentlyFollowing &&
-          this.props.myUsername !== this.props.username &&
-          <Button
-            waiting={this.props.waiting}
-            style={{...styleActionButton, marginRight: globalMargins.tiny}}
-            type="Follow"
-            label="Follow"
-            onClick={() => this.props.onFollow()}
-          />}
-        {(this.props.currentlyFollowing || this.props.myUsername === this.props.username) &&
+          this.props.myUsername !== this.props.username && (
+            <Button
+              waiting={this.props.waiting}
+              style={{...styleActionButton, marginRight: globalMargins.tiny}}
+              type="PrimaryGreen"
+              label="Follow"
+              onClick={() => this.props.onFollow()}
+            />
+          )}
+        {(this.props.currentlyFollowing || this.props.myUsername === this.props.username) && (
           <Button
             style={{...styleActionButton, marginRight: globalMargins.tiny}}
             type="Secondary"
             label="Close"
             onClick={() => this.props.onClose()}
-          />}
+          />
+        )}
         <Button
           style={styleChatButton}
           type="Primary"
@@ -98,14 +100,14 @@ export default class ActionRender extends PureComponent<ActionProps> {
       <div style={styleContainer}>
         <Button
           waiting={this.props.waiting}
-          type="Unfollow"
+          type="Secondary"
           label="Ignore for 24 hrs"
           onClick={() => this.props.onIgnore()}
         />
         <Button
           waiting={this.props.waiting}
           style={{...styleActionButton, marginLeft: globalMargins.tiny}}
-          type="Follow"
+          type="PrimaryGreen"
           label="Accept"
           onClick={() => this.props.onRefollow()}
         />

@@ -6,6 +6,13 @@ if NOT DEFINED ReleaseRevision set ReleaseRevision=master
 set OUTPUT=echo
 if DEFINED SlackBot set OUTPUT=go run %GOPATH%/src/github.com/keybase/slackbot/send/main.go -i=1
 
+:: sanity check that the passphrase is set right
+go run %GOPATH%\src\github.com\keybase\client\go\tools\ssss\main.go $0
+IF %ERRORLEVEL% NEQ 0 (
+  echo Saltpack key not set right, can't build
+  EXIT /B 1
+)
+
 if NOT DEFINED DOKAN_PATH set DOKAN_PATH=%GOPATH%\bin\dokan-dev\build84
 echo DOKAN_PATH %DOKAN_PATH%
 

@@ -55,21 +55,35 @@ const PostProof = (props: Props) => {
       >
         {platformUserName}
       </Text>
-      {!!platformSubtitle && <Text style={stylePlatformSubtitle} type="Body">{platformSubtitle}</Text>}
+      {!!platformSubtitle && (
+        <Text style={stylePlatformSubtitle} type="Body">
+          {platformSubtitle}
+        </Text>
+      )}
       {descriptionView ||
-        (descriptionText && <Text style={styleDescriptionText} type="Body">{descriptionText}</Text>)}
-      {!!proofText &&
-        <CopyableText style={styleProofContainer} value={proofText} textStyle={styleProofText} />}
-      {!!noteText && <Text style={styleNoteText} type="BodySmall">{noteText}</Text>}
+        (descriptionText && (
+          <Text style={styleDescriptionText} type="Body">
+            {descriptionText}
+          </Text>
+        ))}
+      {!!proofText && (
+        <CopyableText style={styleProofContainer} value={proofText} textStyle={styleProofText} />
+      )}
+      {!!noteText && (
+        <Text style={styleNoteText} type="BodySmall">
+          {noteText}
+        </Text>
+      )}
       {!!proofAction &&
-        !!proofActionIcon &&
-        <LinkWithIcon
-          style={styleProofAction}
-          label={proofActionText || ''}
-          icon={proofActionIcon}
-          color={globalColors.blue}
-          onClick={() => proofAction()}
-        />}
+        !!proofActionIcon && (
+          <LinkWithIcon
+            style={styleProofAction}
+            label={proofActionText || ''}
+            icon={proofActionIcon}
+            color={globalColors.blue}
+            onClick={() => proofAction()}
+          />
+        )}
       <Button
         style={styleContinueButton}
         fullWidth={true}

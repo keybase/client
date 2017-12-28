@@ -76,7 +76,7 @@ export default class TrackerRender extends PureComponent<RenderProps> {
             onClickFollowers={this.props.onClickFollowers}
             onClickFollowing={this.props.onClickFollowing}
           />
-          {this.props.userInfo.showcasedTeams.length > 0 &&
+          {this.props.userInfo.showcasedTeams.length > 0 && (
             <Box
               style={{
                 ...globalStyles.flexBoxColumn,
@@ -110,20 +110,21 @@ export default class TrackerRender extends PureComponent<RenderProps> {
                 >
                   {this.props.showTeam &&
                     this.props.showTeam.fqName === team.fqName &&
-                    this.props.selectedTeamRect &&
-                    <Box key={team.fqName + 'popup'} style={{zIndex: 50}}>
-                      <ModalPopupComponent
-                        {...this.props}
-                        targetRect={this.props.selectedTeamRect}
-                        position="top left"
-                        style={{zIndex: 50}}
-                        popupNode={<Box />}
-                        onClosePopup={() => {
-                          this.props.onUpdateSelectedTeam('')
-                          this.props.onSetSelectedTeamRect(null)
-                        }}
-                      />
-                    </Box>}
+                    this.props.selectedTeamRect && (
+                      <Box key={team.fqName + 'popup'} style={{zIndex: 50}}>
+                        <ModalPopupComponent
+                          {...this.props}
+                          targetRect={this.props.selectedTeamRect}
+                          position="top left"
+                          style={{zIndex: 50}}
+                          popupNode={<Box />}
+                          onClosePopup={() => {
+                            this.props.onUpdateSelectedTeam('')
+                            this.props.onSetSelectedTeamRect(null)
+                          }}
+                        />
+                      </Box>
+                    )}
                   <Box
                     style={{
                       ...globalStyles.flexBoxRow,
@@ -152,7 +153,8 @@ export default class TrackerRender extends PureComponent<RenderProps> {
                   </Box>
                 </Box>
               ))}
-            </Box>}
+            </Box>
+          )}
 
           <UserProofs
             type="proofs"
@@ -175,22 +177,23 @@ export default class TrackerRender extends PureComponent<RenderProps> {
         </div>
         <div style={styles.footer}>
           {!this.props.loading &&
-            this.props.actionBarReady &&
-            <Action
-              loggedIn={this.props.loggedIn}
-              waiting={this.props.waiting}
-              state={this.props.trackerState}
-              currentlyFollowing={this.props.currentlyFollowing}
-              username={this.props.username}
-              myUsername={this.props.myUsername}
-              lastAction={this.props.lastAction}
-              onChat={this.props.onChat}
-              onClose={this.props.onClose}
-              onIgnore={this.props.onIgnore}
-              onFollow={this.props.onFollow}
-              onRefollow={this.props.onRefollow}
-              onUnfollow={this.props.onUnfollow}
-            />}
+            this.props.actionBarReady && (
+              <Action
+                loggedIn={this.props.loggedIn}
+                waiting={this.props.waiting}
+                state={this.props.trackerState}
+                currentlyFollowing={this.props.currentlyFollowing}
+                username={this.props.username}
+                myUsername={this.props.myUsername}
+                lastAction={this.props.lastAction}
+                onChat={this.props.onChat}
+                onClose={this.props.onClose}
+                onIgnore={this.props.onIgnore}
+                onFollow={this.props.onFollow}
+                onRefollow={this.props.onRefollow}
+                onUnfollow={this.props.onUnfollow}
+              />
+            )}
         </div>
       </div>
     )

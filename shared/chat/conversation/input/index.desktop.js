@@ -295,9 +295,10 @@ class ConversationInput extends Component<InputProps, State> {
   render() {
     return (
       <Box style={{...globalStyles.flexBoxColumn, borderTop: `solid 1px ${globalColors.black_05}`}}>
-        {this.props.mentionPopupOpen &&
-          <MentionCatcher onClick={() => this.props.setMentionPopupOpen(false)} />}
-        {this.props.mentionPopupOpen &&
+        {this.props.mentionPopupOpen && (
+          <MentionCatcher onClick={() => this.props.setMentionPopupOpen(false)} />
+        )}
+        {this.props.mentionPopupOpen && (
           <MentionHud
             selectDownCounter={this.state.downArrowCounter}
             selectUpCounter={this.state.upArrowCounter}
@@ -305,7 +306,8 @@ class ConversationInput extends Component<InputProps, State> {
             onPickUser={this._insertMention}
             onSelectUser={this._switchMention}
             filter={this.props.mentionFilter}
-          />}
+          />
+        )}
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
           <input
             type="file"
@@ -331,8 +333,9 @@ class ConversationInput extends Component<InputProps, State> {
             onKeyUp={this._onKeyUp}
             onEnterKeyDown={this._onEnterKeyDown}
           />
-          {this.props.emojiPickerOpen &&
-            <EmojiPicker emojiPickerToggle={this.props.emojiPickerToggle} onClick={this._pickerOnClick} />}
+          {this.props.emojiPickerOpen && (
+            <EmojiPicker emojiPickerToggle={this.props.emojiPickerToggle} onClick={this._pickerOnClick} />
+          )}
           <Icon onClick={this.props.emojiPickerToggle} style={styleIcon} type="iconfont-emoji" />
           <Icon onClick={this.props.filePickerOpen} style={styleIcon} type="iconfont-attachment" />
         </Box>
@@ -363,16 +366,30 @@ const isTyping = typing => {
   }
   switch (typing.length) {
     case 1:
-      return [<Text key={0} type="BodySmallSemibold">{typing[0]}</Text>, ` is typing`]
+      return [
+        <Text key={0} type="BodySmallSemibold">
+          {typing[0]}
+        </Text>,
+        ` is typing`,
+      ]
     case 2:
       return [
-        <Text key={0} type="BodySmallSemibold">{typing[0]}</Text>,
+        <Text key={0} type="BodySmallSemibold">
+          {typing[0]}
+        </Text>,
         ` and `,
-        <Text key={1} type="BodySmallSemibold">{typing[1]}</Text>,
+        <Text key={1} type="BodySmallSemibold">
+          {typing[1]}
+        </Text>,
         ` are typing`,
       ]
     default:
-      return [<Text key={0} type="BodySmallSemibold">{typing.join(', ')}</Text>, ` are typing`]
+      return [
+        <Text key={0} type="BodySmallSemibold">
+          {typing.join(', ')}
+        </Text>,
+        ` are typing`,
+      ]
   }
 }
 

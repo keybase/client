@@ -1,11 +1,11 @@
 // @flow
 import logger from '../logger'
-import * as ChatTypes from '../constants/types/flow-types-chat'
+import * as ChatTypes from '../constants/types/rpc-chat-gen'
 import * as Types from '../constants/types/settings'
 import * as Constants from '../constants/settings'
 import * as LoginGen from '../actions/login-gen'
 import * as SettingsGen from '../actions/settings-gen'
-import * as RPCTypes from '../constants/types/flow-types'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import mapValues from 'lodash/mapValues'
 import trim from 'lodash/trim'
@@ -261,16 +261,15 @@ function* _refreshNotificationsSaga(): Saga.SagaGenerator<any, any> {
     )
   })
 
-  const [
-    json: ?{body: string},
-    chatGlobalSettings: ChatTypes.GlobalAppNotificationSettings,
-  ] = yield Saga.all([
-    Saga.call(RPCTypes.apiserverGetWithSessionRpcPromise, {
-      endpoint: 'account/subscriptions',
-      args: [],
-    }),
-    Saga.call(ChatTypes.localGetGlobalAppNotificationSettingsLocalRpcPromise),
-  ])
+  const [json: ?{body: string}, chatGlobalSettings: ChatTypes.GlobalAppNotificationSettings] = yield Saga.all(
+    [
+      Saga.call(RPCTypes.apiserverGetWithSessionRpcPromise, {
+        endpoint: 'account/subscriptions',
+        args: [],
+      }),
+      Saga.call(ChatTypes.localGetGlobalAppNotificationSettingsLocalRpcPromise),
+    ]
+  )
   yield Saga.cancel(delayThenEmptyTask)
 
   const results: {
@@ -299,9 +298,8 @@ function* _refreshNotificationsSaga(): Saga.SagaGenerator<any, any> {
       {
         name: 'plaintextmobile',
         description: 'Display mobile plaintext notifications',
-        subscribed: chatGlobalSettings.settings[
-          `${ChatTypes.commonGlobalAppNotificationSetting.plaintextmobile}`
-        ],
+        subscribed:
+          chatGlobalSettings.settings[`${ChatTypes.commonGlobalAppNotificationSetting.plaintextmobile}`],
       },
     ],
     unsub: false,

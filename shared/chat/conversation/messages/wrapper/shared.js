@@ -22,7 +22,9 @@ const Username = ({author, isYou, isFollowing, isBroken, includeHeader, onClick}
     alignSelf: 'flex-start',
   }
   return (
-    <Text type="BodySmallSemibold" onClick={onClick} className="hover-underline" style={style}>{author}</Text>
+    <Text type="BodySmallSemibold" onClick={onClick} className="hover-underline" style={style}>
+      {author}
+    </Text>
   )
 }
 
@@ -33,7 +35,11 @@ const ActionButton = ({onAction}) => (
 )
 
 const EditedMark = ({isEdited}) =>
-  isEdited ? <Text type="BodySmall" style={_editedStyle}>EDITED</Text> : null
+  isEdited ? (
+    <Text type="BodySmall" style={_editedStyle}>
+      EDITED
+    </Text>
+  ) : null
 
 const Failure = ({failureDescription, onShowEditor, onRetry}) => {
   if (!failureDescription) return null
@@ -41,10 +47,23 @@ const Failure = ({failureDescription, onShowEditor, onRetry}) => {
   const resolveByEdit = failureDescription === 'message is too long'
   return (
     <Text type="BodySmall">
-      <Text type="BodySmall" style={_failStyleFace}>{'┏(>_<)┓'}</Text>
-      <Text type="BodySmall" style={_failStyle}> {error}</Text>
-      {resolveByEdit && <Text type="BodySmall" style={_failStyleUnderline} onClick={onShowEditor}>Edit</Text>}
-      {!resolveByEdit && <Text type="BodySmall" style={_failStyleUnderline} onClick={onRetry}>Retry</Text>}
+      <Text type="BodySmall" style={_failStyleFace}>
+        {'┏(>_<)┓'}
+      </Text>
+      <Text type="BodySmall" style={_failStyle}>
+        {' '}
+        {error}
+      </Text>
+      {resolveByEdit && (
+        <Text type="BodySmall" style={_failStyleUnderline} onClick={onShowEditor}>
+          Edit
+        </Text>
+      )}
+      {!resolveByEdit && (
+        <Text type="BodySmall" style={_failStyleUnderline} onClick={onRetry}>
+          Retry
+        </Text>
+      )}
     </Text>
   )
 }

@@ -32,11 +32,8 @@ const ReallyRemoveMember = (props: Props) => (
         Are you sure you want to remove {props.member} from {props.name}?
       </Text>
       <Text type="Body" style={{maxWidth: 450, textAlign: 'center'}}>
-        {props.member} will lose access to all the
-        {' '}
-        {props.name}
-        {' '}
-        chats and folders, and they won't be able to get back unless an admin invites them.
+        {props.member} will lose access to all the {props.name} chats and folders, and they won't be able to
+        get back unless an admin invites them.
       </Text>
       <ButtonBar direction={isMobile ? 'column' : 'row'} fullWidth={isMobile}>
         <Button type="Secondary" onClick={props.onClose} label="Cancel" />

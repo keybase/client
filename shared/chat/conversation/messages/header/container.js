@@ -2,7 +2,7 @@
 import * as Constants from '../../../../constants/chat'
 import Header from '.'
 import {connect, compose, type TypedState} from '../../../../util/container'
-import {commonConversationMembersType} from '../../../../constants/types/flow-types-chat'
+import {commonConversationMembersType} from '../../../../constants/types/rpc-chat-gen'
 import flags from '../../../../util/feature-flags'
 import {type OwnProps} from './container'
 

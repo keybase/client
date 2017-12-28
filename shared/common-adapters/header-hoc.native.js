@@ -21,17 +21,19 @@ function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
           }}
         >
           {customComponent}
-          {!!title &&
+          {!!title && (
             <Box style={_titleStyle}>
               <Text type="BodyBig">{title}</Text>
-            </Box>}
-          {onCancel && <Text type="BodyBigLink" style={_buttonStyle} onClick={onCancel}>Cancel</Text>}
-          {onBack &&
-            <BackButton
-              iconStyle={_backButtonIconStyleThemed[theme]}
-              style={_buttonStyle}
-              onClick={onBack}
-            />}
+            </Box>
+          )}
+          {onCancel && (
+            <Text type="BodyBigLink" style={_buttonStyle} onClick={onCancel}>
+              Cancel
+            </Text>
+          )}
+          {onBack && (
+            <BackButton iconStyle={_backButtonIconStyleThemed[theme]} style={_buttonStyle} onClick={onBack} />
+          )}
         </Box>
         <Box style={_wrapperStyle}>
           <Box style={_wrapper2Style}>
