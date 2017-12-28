@@ -378,8 +378,7 @@ def testGo(prefix) {
             slash = '\\'
             goversion = bat(returnStdout: true, script: "@go version").trim()
             /* TODO: Turn off unsafeptr because it triggers in GetDataDir
-	       in util_windows.go, and there's no easy way to filter it out.
-            */
+	       in util_windows.go, and there's no easy way to filter it out. */
 	    bat "go vet -unsafeptr=false ./..."
         }
         println "Running tests on commit ${env.COMMIT_HASH} with ${goversion}."
