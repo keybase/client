@@ -6,6 +6,8 @@ import * as ChatTypes from '../constants/types/rpc-chat-gen'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import {isMobile} from '../constants/platform'
+import {chatTab} from '../constants/tabs'
+import {switchTo} from './route-tree'
 import {createShowUserProfile} from './profile-gen'
 import {
   requestPushPermissions,
@@ -89,6 +91,7 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
           return
         }
         yield Saga.put(ChatGen.createSelectConversation({conversationIDKey: convID, fromUser: true}))
+        yield Saga.put(switchTo([chatTab]))
       } else if (payload.type === 'follow') {
         const {username} = payload
         if (!username) {
