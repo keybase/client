@@ -164,7 +164,7 @@ func TestAutogitManager(t *testing.T) {
 		ctx, config, h, "", "", keybase1.MDPriorityNormal)
 	require.NoError(t, err)
 
-	// Init a new repo directly into git.
+	t.Log("Init a new repo directly into git.")
 	dotgitFS, _, err := GetOrCreateRepoAndID(ctx, config, h, "test", "")
 	require.NoError(t, err)
 	err = rootFS.MkdirAll("worktree", 0600)
@@ -198,7 +198,7 @@ func TestAutogitManager(t *testing.T) {
 
 	checkFileInRootFS(t, ctx, config, h, rootFS, "checkout/test/foo", "hello")
 
-	// Add a new file and try a pull.
+	t.Log("Add a new file and try a pull.")
 	addFileToWorktreeAndCommit(
 		t, ctx, config, h, repo, worktreeFS, "foo2", "hello2")
 	doneCh, err = am.Pull(ctx, h, "test", "master", h, "checkout")

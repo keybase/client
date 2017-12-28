@@ -12,6 +12,7 @@ import (
 	"path"
 	"sync"
 
+	"github.com/eapache/channels"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/libfs"
@@ -31,7 +32,7 @@ type resetReq struct {
 
 func (r resetReq) dstPath() string {
 	return path.Clean(path.Join(
-		r.dstTLF.GetCanonicalPath(), r.dstDir, r.branchName))
+		r.dstTLF.GetCanonicalPath(), r.dstDir, r.srcRepo, r.branchName))
 }
 
 const (
@@ -65,7 +66,7 @@ type AutogitManager struct {
 	kbfsInitParams *libkbfs.InitParams
 	log            logger.Logger
 	deferLog       logger.Logger
-	resetQueue     chan resetReq
+	resetQueue     channels.Channel
 	queueDoneCh    chan struct{}
 	getNewConfig   getNewConfigFn
 
@@ -86,7 +87,7 @@ func NewAutogitManager(
 		kbfsInitParams:   kbfsInitParams,
 		log:              log,
 		deferLog:         log.CloneWithAddedDepth(1),
-		resetQueue:       make(chan resetReq, 1000),
+		resetQueue:       libkbfs.NewInfiniteChannelWrapper(),
 		queueDoneCh:      make(chan struct{}),
 		resetsInQueue:    make(map[string]resetReq),
 		resetsInProgress: make(map[string]resetReq),
@@ -98,7 +99,7 @@ func NewAutogitManager(
 
 // Shutdown shuts down this manager.
 func (am *AutogitManager) Shutdown() {
-	close(am.resetQueue)
+	am.resetQueue.Close()
 	<-am.queueDoneCh
 }
 
@@ -127,7 +128,7 @@ func (am *AutogitManager) doReset(ctx context.Context, req resetReq) (
 		gitConfig.Shutdown(ctx)
 		rmErr := os.RemoveAll(tempDir)
 		if rmErr != nil {
-			am.log.CDebugf(
+			am.log.CWarningf(
 				ctx, "Error cleaning storage dir %s: %+v\n", tempDir, rmErr)
 		}
 	}()
@@ -182,7 +183,7 @@ func (am *AutogitManager) doReset(ctx context.Context, req resetReq) (
 	return Reset(ctx, srcRepoFS, dstRepoFS, branch)
 }
 
-func (am *AutogitManager) clearFromQueue(req resetReq) (
+func (am *AutogitManager) markResetReqInProgress(req resetReq) (
 	waitCh <-chan struct{}) {
 	am.lock.Lock()
 	defer am.lock.Unlock()
@@ -203,12 +204,13 @@ func (am *AutogitManager) clearFromInProgress(req resetReq) {
 
 func (am *AutogitManager) resetWorker(wg *sync.WaitGroup) {
 	defer wg.Done()
-	for req := range am.resetQueue {
+	for reqInt := range am.resetQueue.Out() {
+		req := reqInt.(resetReq)
 		ctx := libkbfs.BackgroundContextWithCancellationDelayer()
 		ctx = libkbfs.CtxWithRandomIDReplayable(
 			ctx, ctxIDKey, ctxOpID, am.log)
 		for {
-			waitCh := am.clearFromQueue(req)
+			waitCh := am.markResetReqInProgress(req)
 			if waitCh == nil {
 				break
 			}
@@ -223,6 +225,11 @@ func (am *AutogitManager) resetWorker(wg *sync.WaitGroup) {
 		}
 
 		_ = am.doReset(ctx, req)
+
+		// We can clear from in-progress or close in any order.  If
+		// there's a race in between, the only thinga affected in the
+		// `for` loop above, perhaps resulting in one needless
+		// iteration before the in-progress channel is closed.
 		am.clearFromInProgress(req)
 		close(req.doneCh)
 	}
@@ -254,12 +261,12 @@ func (am *AutogitManager) queueReset(ctx context.Context, req resetReq) (
 		return doneCh, nil
 	}
 	select {
-	case am.resetQueue <- req:
+	case am.resetQueue.In() <- req:
 		am.log.CDebugf(ctx, "Queued new reset request for %s", dp)
 	case <-ctx.Done():
 		// We've already promised to queue this, and may have turned
 		// away other requests for it already, so we better queue it.
-		go func() { am.resetQueue <- req }()
+		go func() { am.resetQueue.In() <- req }()
 		return nil, ctx.Err()
 	}
 	return req.doneCh, nil
