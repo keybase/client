@@ -6,7 +6,7 @@ import profileRoutes from '../profile/routes'
 const peopleRoute = makeRouteDefNode({
   ...profileRoutes.toObject(),
   component: People,
-  tags: makeLeafTags({underStatusBar: true, title: 'People'}),
+  tags: makeLeafTags({title: 'People'}),
 })
 
 export default peopleRoute

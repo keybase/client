@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Types from '../constants/types/people'
 import * as I from 'immutable'
-import {Box, ClickableBox, Icon, ScrollView, Text} from '../common-adapters'
+import {Avatar, Box, ClickableBox, Icon, ScrollView, Text} from '../common-adapters'
 import Todo from './task'
 import FollowNotification from './follow-notification'
 import FollowSuggestions from './follow-suggestions'
@@ -56,9 +56,10 @@ export const PeoplePageContent = (props: Props) => (
         alignItems: 'center',
         justifyContent: 'center',
         height: 48,
-        width: '100%',
         position: 'absolute',
         top: 0,
+        left: isMobile ? 0 : 80,
+        right: 0,
         backgroundColor: globalColors.white_90,
         zIndex: 1,
       }}
@@ -70,6 +71,14 @@ export const PeoplePageContent = (props: Props) => (
         </Text>
       </ClickableBox>
     </Box>
+    {isMobile && (
+      <Avatar
+        username={props.myUsername}
+        onClick={() => props.onClickUser(props.myUsername)}
+        size={32}
+        style={{position: 'absolute', top: 8, right: 16, zIndex: 2}}
+      />
+    )}
     <Box style={{...globalStyles.flexBoxColumn, width: '100%', position: 'relative', marginTop: 48}}>
       {intersperse(props.newItems.map(item => itemToComponent(item, props.todoDispatch)), true)}
       <FollowSuggestions suggestions={props.followSuggestions} onClickUser={props.onClickUser} />

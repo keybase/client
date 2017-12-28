@@ -48,7 +48,7 @@ export default (props: Props) => (
     <Box
       style={{
         ...globalStyles.flexBoxColumn,
-        paddingRight: 70,
+        paddingRight: isMobile ? 100 : 80,
         width: 'auto',
         overflow: 'hidden',
         position: 'relative',
