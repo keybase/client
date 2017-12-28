@@ -7,8 +7,8 @@ import type {DeviceType} from '../devices'
 
 // TODO put back
 // export opaque type MessageID: string = string
-export type ID = number
-export const numberToMessageID = (n: number): ID => n
+export type MessageID = number
+export const numberToMessageID = (n: number): MessageID => n
 
 // TODO opaque
 export type Ordinal = number
@@ -21,11 +21,17 @@ type _MessageCommon = {
   deviceName: string,
   deviceRevokedAt: ?number,
   deviceType: DeviceType,
-  id: ID,
+  id: MessageID,
   hasBeenEdited: boolean,
   ordinal: Ordinal,
   timestamp: number,
 }
+
+// We keep deleted messages around so the bookkeeping is simpler
+export type _MessageDeleted = _MessageCommon & {
+  type: 'deleted',
+}
+export type MessageDeleted = I.RecordOf<_MessageDeleted>
 
 export type _MessageText = _MessageCommon & {
   type: 'text',

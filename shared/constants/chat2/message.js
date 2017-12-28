@@ -2,12 +2,12 @@
 // @flow
 import * as DeviceTypes from '../types/devices'
 import * as I from 'immutable'
+import * as MessageTypes from '../types/chat2/message'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as Types from '../types/chat2'
 import HiddenString from '../../util/hidden-string'
 import clamp from 'lodash/clamp'
 import type {TypedState} from '../reducer'
-import type {_MessageText, _MessageAttachment} from '../types/chat2/message'
 
 // flow is geting confused
 const makeMessageCommon = {
@@ -22,7 +22,12 @@ const makeMessageCommon = {
   timestamp: 0,
 }
 
-export const makeMessageText: I.RecordFactory<_MessageText> = I.Record({
+export const makeMessageDeleted: I.RecordFactory<MessageTypes._MessageDeleted> = I.Record({
+  ...makeMessageCommon,
+  type: 'deleted',
+})
+
+export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Record({
   ...makeMessageCommon,
   mentionsAt: I.Set(),
   mentionsChannel: 'none',
@@ -30,7 +35,7 @@ export const makeMessageText: I.RecordFactory<_MessageText> = I.Record({
   type: 'text',
 })
 
-export const makeMessageAttachment: I.RecordFactory<_MessageAttachment> = I.Record({
+export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachment> = I.Record({
   ...makeMessageCommon,
   attachmentType: 'other',
   durationMs: 0,
@@ -120,8 +125,11 @@ export const uiMessageToMessage = (
         })
       }
 
+      // TODO
+      // case RPCChatTypes.commonMessageType.join:
+      // case RPCChatTypes.commonMessageType.leave:
+      // case RPCChatTypes.commonMessageType.system:
       default:
-        // TODO other types attachment, etc
         return null
     }
   }
@@ -157,6 +165,15 @@ export const getSnippet = (state: TypedState, conversationIDKey: Types.Conversat
     }
   })
   if (!messageID) {
+    // Have a deleted one?
+    const messageID = messageIDs.last()
+    if (messageID) {
+      const message = messageMap.get(messageID)
+      if (message && message.type === 'deleted') {
+        return '[deleted]'
+      }
+    }
+
     return ''
   }
   const message: ?Types.Message = messageMap.get(messageID)

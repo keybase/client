@@ -34,6 +34,15 @@
     },
     "messagesAdd": {
       "messages": "Array<Types.Message>"
+    },
+    "messageEdit": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal",
+      "text": "HiddenString"
+    },
+    "messagesDelete": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinals": "Array<Types.Ordinal>"
     }
   }
 }

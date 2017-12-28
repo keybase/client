@@ -7,6 +7,7 @@ import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
 import * as Types from '../../constants/types/chat2'
+import HiddenString from '../../util/hidden-string'
 import engine from '../../engine'
 import logger from '../../logger'
 import type {TypedState} from '../../constants/reducer'
@@ -54,7 +55,7 @@ function* rpcInboxRefresh(action: Chat2Gen.InboxRefreshPayload): Generator<any, 
     )
     const items = result.items || []
     // We get meta
-    const metas = items.map(Constants.unverifiedInboxUIItemToConversationMeta)
+    const metas = items.map(Constants.unverifiedInboxUIItemToConversationMeta).filter(Boolean)
     yield Saga.put(Chat2Gen.createMetasReceived({metas}))
 
     // We also get some cached messages which are trusted
@@ -118,9 +119,10 @@ const rpcMetaRequest = (action: Chat2Gen.MetaRequestTrustedPayload) => {
         conv,
       }: RPCChatTypes.ChatUiChatInboxConversationRpcParam) {
         const inboxUIItem: RPCChatTypes.InboxUIItem = JSON.parse(conv)
-        yield Saga.put(
-          Chat2Gen.createMetasReceived({metas: [Constants.inboxUIItemToConversationMeta(inboxUIItem)]})
-        )
+        const meta = Constants.inboxUIItemToConversationMeta(inboxUIItem)
+        if (meta) {
+          yield Saga.put(Chat2Gen.createMetasReceived({metas: [meta]}))
+        }
         if (inboxUIItem.snippetMessage) {
           const message = Constants.uiMessageToMessage(inboxUIItem.convID, inboxUIItem.snippetMessage)
           if (message) {
@@ -202,18 +204,45 @@ const changeMetaTrustedState = (
 }
 
 const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage) => {
-  const actions = []
   const {conv, message: cMsg, convID} = incoming
-  // Ignore public chats
-  if (conv && conv.visibility === RPCTypes.commonTLFVisibility.private) {
-    actions.push(Chat2Gen.createMetasReceived({metas: [Constants.inboxUIItemToConversationMeta(conv)]}))
+  const actions = []
+
+  if (convID && cMsg) {
+    const conversationIDKey = Constants.conversationIDToKey(convID)
+    const message = Constants.uiMessageToMessage(conversationIDKey, cMsg)
+    if (message) {
+      // visible type
+      actions.push(Chat2Gen.createMessagesAdd({messages: [message]}))
+    } else if (cMsg.state === RPCChatTypes.chatUiMessageUnboxedState.valid && cMsg.valid) {
+      const body = cMsg.valid.messageBody
+      // Types that are mutations
+      switch (body.messageType) {
+        case RPCChatTypes.commonMessageType.edit:
+          if (body.edit) {
+            const text = new HiddenString(body.edit.body || '')
+            const ordinal = body.edit.messageID
+            actions.push(Chat2Gen.createMessageEdit({conversationIDKey, ordinal, text}))
+          }
+          break
+        case RPCChatTypes.commonMessageType.delete:
+          if (body.delete && body.delete.messageIDs) {
+            const ordinals = body.delete.messageIDs
+            actions.push(Chat2Gen.createMessagesDelete({conversationIDKey, ordinals}))
+          }
+          break
+        case RPCChatTypes.commonMessageType.attachmentuploaded:
+          break // TODO
+      }
+    }
   }
 
-  const message = Constants.uiMessageToMessage(Constants.conversationIDToKey(convID), cMsg)
-  if (message) {
-    actions.push(Chat2Gen.createMessagesAdd({messages: [message]}))
-  }
+  actions.push(chatActivityToMetasAction(conv))
   return actions
+}
+
+const chatActivityToMetasAction = payload => {
+  const meta = payload && payload.conv && Constants.inboxUIItemToConversationMeta(payload.conv)
+  return meta ? Chat2Gen.createMetasReceived({metas: [meta]}) : null
 }
 
 const setupChatHandlers = () => {
@@ -223,15 +252,22 @@ const setupChatHandlers = () => {
       switch (activity.activityType) {
         case RPCChatTypes.notifyChatChatActivityType.incomingMessage:
           return activity.incomingMessage ? onIncomingMessage(activity.incomingMessage) : null
-        case RPCChatTypes.notifyChatChatActivityType.readMessage:
-        case RPCChatTypes.notifyChatChatActivityType.newConversation:
         case RPCChatTypes.notifyChatChatActivityType.setStatus:
+          return chatActivityToMetasAction(activity.setStatus)
+        case RPCChatTypes.notifyChatChatActivityType.readMessage:
+          return chatActivityToMetasAction(activity.readMessage)
+        case RPCChatTypes.notifyChatChatActivityType.newConversation:
+          return chatActivityToMetasAction(activity.newConversation)
         case RPCChatTypes.notifyChatChatActivityType.failedMessage:
+          return null // TODO?
         case RPCChatTypes.notifyChatChatActivityType.membersUpdate:
+          return null // TODO?
         case RPCChatTypes.notifyChatChatActivityType.setAppNotificationSettings:
+          return null // TODO?
         case RPCChatTypes.notifyChatChatActivityType.teamtype:
+          return null // TODO?
         default:
-          return null
+          break
       }
     }
   )

@@ -46,6 +46,38 @@ const metaMapReducer = (metaMap, action) => {
 
 const messageMapReducer = (messageMap, action) => {
   switch (action.type) {
+    case Chat2Gen.messageEdit: {
+      const {conversationIDKey, ordinal, text} = action.payload
+      return messageMap.updateIn(
+        [conversationIDKey, ordinal],
+        message =>
+          !message || message.type !== 'text' ? message : message.set('text', text).set('hasBeenEdited', true)
+      )
+    }
+    case Chat2Gen.messagesDelete: {
+      const {conversationIDKey, ordinals} = action.payload
+      return messageMap.update(
+        conversationIDKey,
+        I.Map(),
+        (map: I.Map<Types.Ordinal, Types.Message>) =>
+          map.withMutations(m => {
+            ordinals.forEach(ordinal => {
+              m.update(ordinal, message => {
+                if (!message) {
+                  return message
+                }
+                return Constants.makeMessageDeleted({
+                  conversationIDKey: message.conversationIDKey,
+                  id: message.id,
+                  ordinal: message.ordinal,
+                  timestamp: message.timestamp,
+                })
+              })
+            })
+          })
+        // map.deleteAll(ordinals)
+      )
+    }
     case Chat2Gen.messagesAdd: {
       const {messages} = action.payload
       return messageMap.withMutations(
@@ -59,16 +91,30 @@ const messageMapReducer = (messageMap, action) => {
 }
 
 const messageOrdinalsReducer = (messageOrdinalsList, action) => {
+  // Note: on a delete we leave the ordinals in the list
   switch (action.type) {
+    // TODO this is me deleting but thats maybe worse
+    // case Chat2Gen.messagesDelete: {
+    // const {conversationIDKey, ordinals} = action.payload
+    // return messageOrdinalsList.update(conversationIDKey, I.List(), (list: I.List<Types.Ordinal>) =>
+    // list.withMutations(l =>
+    // ordinals.forEach(ordinal => {
+    // const idx = l.indexOf(ordinal)
+    // if (idx !== -1) {
+    // l.delete(idx)
+    // }
+    // })
+    // )
+    // )
+    // }
     case Chat2Gen.messagesAdd: {
       const {messages} = action.payload
       // TODO this just pushes to the end
       return messageOrdinalsList.withMutations(map =>
         messages.forEach(message =>
-          map.update(message.conversationIDKey, (list: ?I.List<Types.Ordinal>) => {
-            // const ordinals: Array<Types.Ordinal> = messages.map(message => message.ordinal)
-            return list ? list.push(message.ordinal) : I.List([message.ordinal])
-          })
+          map.update(message.conversationIDKey, I.List(), (list: I.List<Types.Ordinal>) =>
+            list.push(message.ordinal)
+          )
         )
       )
     }
@@ -111,6 +157,8 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       return state.set('metaMap', metaMapReducer(state.metaMap, action))
     // MessageMap/messageOrdinalsList actions
     case Chat2Gen.messagesAdd:
+    case Chat2Gen.messagesDelete:
+    case Chat2Gen.messageEdit:
       return state
         .set('messageMap', messageMapReducer(state.messageMap, action))
         .set('messageOrdinals', messageOrdinalsReducer(state.messageOrdinals, action))

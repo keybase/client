@@ -1,6 +1,7 @@
 // Meta manages the metadata about a conversation. Participants, isMuted, reset people, etc. Things that drive the inbox
 // @flow
 import * as I from 'immutable'
+import * as RPCTypes from '../types/rpc-gen'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as Types from '../types/chat2'
 import {toByteArray} from 'base64-js'
@@ -22,6 +23,10 @@ const supersededConversationIDToKey = (id: string | Buffer): string =>
   typeof id === 'string' ? Buffer.from(toByteArray(id)).toString('hex') : id.toString('hex')
 
 export const unverifiedInboxUIItemToConversationMeta = (i: RPCChatTypes.UnverifiedInboxUIItem) => {
+  // Public chats only
+  if (i.visibility !== RPCTypes.commonTLFVisibility.private) {
+    return null
+  }
   return makeConversationMeta({
     channelname: i.localMetadata ? i.localMetadata.channelName : '',
     conversationIDKey: i.convID,
@@ -61,6 +66,11 @@ const getTeamType = ({teamType, membersType}) => {
 }
 
 export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
+  // Public chats only
+  if (i.visibility !== RPCTypes.commonTLFVisibility.private) {
+    return null
+  }
+
   // We only treat implied adhoc teams as having resetParticipants
   const resetParticipants = I.Set(
     i.membersType === RPCChatTypes.commonConversationMembersType.impteam && i.resetParticipants

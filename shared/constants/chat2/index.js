@@ -25,4 +25,4 @@ export {
   makeConversationMeta,
 } from './meta'
 
-export {uiMessageToMessage, getSnippet} from './message'
+export {uiMessageToMessage, getSnippet, makeMessageDeleted} from './message'

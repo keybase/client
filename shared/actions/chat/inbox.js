@@ -11,7 +11,6 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
 import * as Selectors from '../../constants/selectors'
 import * as Shared from './shared'
-import HiddenString from '../../util/hidden-string'
 import {toByteArray} from 'base64-js'
 import {NotifyPopup} from '../../native/notifications'
 import {chatTab} from '../../constants/tabs'
@@ -108,14 +107,6 @@ function* onInboxStale(action: ChatGen.InboxStalePayload): SagaGenerator<any, an
     const jsonInbox: string = incoming['chat.1.chatUi.chatInboxUnverified'].params.inbox
     const inbox: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(jsonInbox)
     yield Saga.call(_updateFinalized, inbox)
-
-    const snippets = (inbox.items || []).reduce((map, c) => {
-      // If we don't have metaData ignore it
-      if (c.localMetadata) {
-        map[c.convID] = new HiddenString(Constants.makeSnippet(c.localMetadata.snippet) || '')
-      }
-      return map
-    }, {})
 
     const oldInbox = state.chat.get('inbox')
     const toDelete = oldInbox
