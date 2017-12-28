@@ -91,8 +91,7 @@ func GetDataDir(id GUID, envname string) (string, error) {
 	for i := uintptr(0); ; i++ {
 		// This triggers a "possible misuse of unsafe.Pointer"
 		// warning in go vet, but it is safe to ignore it: see
-		// https://groups.google.com/forum/#!msg/golang-nuts/0JYB0-ZcFpk/Zt5q1rPbBQAJ
-		// .
+		// https://groups.google.com/forum/#!msg/golang-nuts/0JYB0-ZcFpk/Zt5q1rPbBQAJ .
 		u16 := *(*uint16)(unsafe.Pointer(pszPath + 2*i))
 		if u16 == 0 {
 			break
