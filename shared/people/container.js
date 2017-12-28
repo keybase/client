@@ -3,12 +3,14 @@ import People from './'
 import * as PeopleGen from '../actions/people-gen'
 import * as Types from '../constants/types/people'
 import * as Tabs from '../constants/tabs'
+import * as SettingsTabs from '../constants/settings'
 import {connect} from 'react-redux'
 import {type TypedState} from '../util/container'
 import {createSearchSuggestions} from '../actions/search-gen'
 import {navigateAppend, switchTo, navigateTo} from '../actions/route-tree'
 import {createShowUserProfile} from '../actions/profile-gen'
 import openURL from '../util/open-url'
+import {isMobile} from '../constants/platform'
 // import flags from '../util/feature-flags'
 
 const INSTALL_LINK_URL = 'https://keybase.io/download'
@@ -47,7 +49,14 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       onDismiss: () => onSkipTodo('chat', dispatch),
     },
     paperkey: {
-      onConfirm: () => dispatch(switchTo([Tabs.devicesTab])),
+      onConfirm: () => {
+        if (!isMobile) {
+          dispatch(switchTo([Tabs.devicesTab]))
+        } else {
+          dispatch(navigateTo([SettingsTabs.devicesTab], [Tabs.settingsTab]))
+          dispatch(switchTo([Tabs.settingsTab]))
+        }
+      },
       onDismiss: () => {},
     },
     team: {
@@ -59,8 +68,13 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     },
     folder: {
       onConfirm: () => {
-        dispatch(navigateTo(['private'], [Tabs.folderTab]))
-        dispatch(switchTo([Tabs.folderTab]))
+        if (!isMobile) {
+          dispatch(navigateTo(['private'], [Tabs.folderTab]))
+          dispatch(switchTo([Tabs.folderTab]))
+        } else {
+          dispatch(navigateTo([SettingsTabs.foldersTab, 'private'], [Tabs.settingsTab]))
+          dispatch(switchTo([Tabs.settingsTab]))
+        }
       },
       onDismiss: onSkipTodo('folder', dispatch),
     },
