@@ -894,6 +894,50 @@ func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase
 		invites.Owners = &invList
 	}
 
+	// Inviting keybase PUKless member has to remove old invites for that
+	// uid first, or it will bounce off the server with an error. There is
+	// no hard limit in team player to disallow multiple keybase invites
+	// for the same UID, but there is a soft serverside check when
+	// signature is posted.
+	if invite.Type == "keybase" {
+		// TODO: Meh going back and forth between TeamInviteName and UserVersion.
+		uv, err := keybase1.ParseUserVersion(keybase1.UserVersionPercentForm(invite.Name))
+		if err != nil {
+			return err
+		}
+
+		cancelList := []SCTeamInviteID{}
+
+		for inviteID, existingInvite := range t.chain().inner.ActiveInvites {
+			// KeybaseUserVersion checks if invite is KEYBASE and errors
+			// if not, we can blindly call it for all invites, and continue
+			// to next one if we get an error.
+			existingUV, err := existingInvite.KeybaseUserVersion()
+			if err != nil {
+				continue
+			}
+
+			if existingUV.Uid != uv.Uid {
+				continue
+			}
+
+			if uv.EldestSeqno != 0 && existingUV.EldestSeqno > uv.EldestSeqno {
+				// We probably know invitee by their outdated EldestSeqno. There
+				// is also a server check for this case.
+				return libkb.ExistsError{
+					// TODO: Mention Eldests in the error
+					Msg: "An invite for this user already exists.",
+				}
+			}
+
+			cancelList = append(cancelList, SCTeamInviteID(inviteID))
+		}
+
+		if len(cancelList) != 0 {
+			invites.Cancel = &cancelList
+		}
+	}
+
 	return t.postTeamInvites(ctx, invites)
 }
 

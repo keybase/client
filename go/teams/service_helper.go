@@ -355,7 +355,7 @@ func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username s
 			// `t.IsMember` check above. This only checks if there is a reset
 			// member in the team to automatically remove them (so AddMember
 			// can function as a Re-Add).
-			// Case where uv.EldetsSeqno=0 is covered by errInviteRequired above.
+			// Case where uv.EldestSeqno=0 is covered by errInviteRequired above.
 			if existingUV.EldestSeqno > uv.EldestSeqno {
 				return fmt.Errorf("newer version of user %q already exists in team %q (%v > %v)", resolvedUsername, teamname, existingUV.EldestSeqno, uv.EldestSeqno)
 			}
