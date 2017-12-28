@@ -154,18 +154,11 @@ function* onInboxStale(action: ChatGen.InboxStalePayload): SagaGenerator<any, an
     yield Saga.sequentially([
       Saga.put(
         ChatGen.createReplaceEntity({
-          keyPath: ['inboxVersion'],
-          entities: idToVersion,
-        })
-      ),
-      Saga.put(
-        ChatGen.createReplaceEntity({
           keyPath: ['inboxIsEmpty'],
           entities: inboxIsEmpty,
         })
       ),
       Saga.put(ChatGen.createReplaceEntity({keyPath: ['inbox'], entities: inboxMap})),
-      Saga.put(ChatGen.createDeleteEntity({keyPath: ['inboxVersion'], ids: toDelete})),
       Saga.put(ChatGen.createDeleteEntity({keyPath: ['inboxIsEmpty'], ids: toDelete})),
       Saga.put(ChatGen.createDeleteEntity({keyPath: ['inbox'], ids: toDelete})),
       Saga.put(ChatGen.createInboxStoreLoaded()),
@@ -284,12 +277,6 @@ function* _processConversation(c: RPCChatTypes.InboxUIItem): Generator<any, void
       })
     )
 
-    yield Saga.put(
-      ChatGen.createReplaceEntity({
-        keyPath: ['inboxVersion'],
-        entities: I.Map({[conversationIDKey]: c.version}),
-      })
-    )
     if (inboxState) {
       // We blocked it
       if (['ignored', 'blocked', 'reported'].includes(inboxState.status)) {

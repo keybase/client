@@ -394,7 +394,6 @@ export type _State = {
   inboxUntrustedState: I.Map<ConversationIDKey, InboxUntrustedState>,
   inboxGlobalUntrustedState: UntrustedState,
   inboxSyncingState: SyncingState,
-  inboxVersion: I.Map<ConversationIDKey, number>,
   initialConversation: ?ConversationIDKey,
   localMessageStates: I.Map<MessageKey, LocalMessageState>,
   messageMap: I.Map<MessageKey, Message>,
