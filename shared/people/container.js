@@ -4,10 +4,9 @@ import * as PeopleGen from '../actions/people-gen'
 import * as Types from '../constants/types/people'
 import * as Tabs from '../constants/tabs'
 import {connect} from 'react-redux'
-import {compose} from 'recompose'
 import {type TypedState} from '../util/container'
 import {createSearchSuggestions} from '../actions/search-gen'
-import {navigateAppend, switchTo} from '../actions/route-tree'
+import {navigateAppend, switchTo, navigateTo} from '../actions/route-tree'
 import {createShowUserProfile} from '../actions/profile-gen'
 import openURL from '../util/open-url'
 // import flags from '../util/feature-flags'
@@ -18,6 +17,7 @@ const mapStateToProps = (state: TypedState) => ({
   newItems: state.people.newItems,
   oldItems: state.people.oldItems,
   followSuggestions: state.people.followSuggestions,
+  myUsername: state.config.username,
 })
 
 const onSkipTodo = (type: Types.TodoType, dispatch: Dispatch) => () =>
@@ -27,11 +27,11 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   getData: () => dispatch(PeopleGen.createGetPeopleData({markViewed: true, numFollowSuggestionsWanted: 10})),
   todoDispatch: {
     bio: {
-      onConfirm: (username: string) => dispatch(createShowUserProfile({username})),
+      _onConfirm: (username: string) => dispatch(createShowUserProfile({username})),
       onDismiss: () => {},
     },
     proof: {
-      onConfirm: (username: string) => dispatch(createShowUserProfile({username})),
+      _onConfirm: (username: string) => dispatch(createShowUserProfile({username})),
       onDismiss: onSkipTodo('proof', dispatch),
     },
     device: {
@@ -39,12 +39,45 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       onDismiss: onSkipTodo('device', dispatch),
     },
     follow: {
-      onConfirm: () => dispatch(navigateAppend(['search', Tabs.peopleTab])),
+      onConfirm: () => dispatch(navigateAppend(['search'], [Tabs.peopleTab])),
       onDismiss: onSkipTodo('follow', dispatch),
     },
     chat: {
       onConfirm: () => dispatch(switchTo([Tabs.chatTab])),
       onDismiss: () => onSkipTodo('chat', dispatch),
+    },
+    paperkey: {
+      onConfirm: () => dispatch(switchTo([Tabs.devicesTab])),
+      onDismiss: () => {},
+    },
+    team: {
+      onConfirm: () => {
+        dispatch(navigateAppend(['showNewTeamDialog'], [Tabs.teamsTab]))
+        dispatch(switchTo([Tabs.teamsTab]))
+      },
+      onDismiss: () => onSkipTodo('team', dispatch),
+    },
+    folder: {
+      onConfirm: () => {
+        dispatch(navigateTo(['private'], [Tabs.folderTab]))
+        dispatch(switchTo([Tabs.folderTab]))
+      },
+      onDismiss: onSkipTodo('folder', dispatch),
+    },
+    gitRepo: {
+      onConfirm: () => {
+        dispatch(navigateTo([{selected: 'newRepo', props: {isTeam: false}}], [Tabs.gitTab]))
+        dispatch(switchTo([Tabs.gitTab]))
+      },
+      onDismiss: onSkipTodo('gitRepo', dispatch),
+    },
+    teamShowcase: {
+      onConfirm: () => {
+        // TODO find a team that the current user is an admin of and nav there?
+        dispatch(navigateTo([], [Tabs.teamsTab]))
+        dispatch(switchTo([Tabs.teamsTab]))
+      },
+      onDismiss: onSkipTodo('teamShowcase', dispatch),
     },
   },
   onSearch: () => {
@@ -54,4 +87,24 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onClickUser: (username: string) => dispatch(createShowUserProfile({username})),
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps))(People)
+const mergeProps = (stateProps, dispatchProps) => {
+  let todos = dispatchProps.todoDispatch
+  todos = {
+    ...todos,
+    bio: {
+      ...todos.bio,
+      onConfirm: () => todos.bio._onConfirm(stateProps.myUsername),
+    },
+    proof: {
+      ...todos.proof,
+      onConfirm: () => todos.proof._onConfirm(stateProps.myUsername),
+    },
+  }
+  return {
+    ...stateProps,
+    ...dispatchProps,
+    todoDispatch: todos,
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(People)

@@ -10,12 +10,20 @@ import {type Props} from '.'
 import {globalStyles, globalColors} from '../styles'
 import {isMobile} from '../constants/platform'
 
-const onConfirm = () => {}
-const onDismiss = () => {}
-export const itemToComponent: Types.PeopleScreenItem => React.Node = item => {
+export const itemToComponent: (
+  Types.PeopleScreenItem,
+  {[key: Types.TodoType]: {onConfirm: () => void, onDismiss: () => void}}
+) => React.Node = (item, actions) => {
   switch (item.type) {
     case 'todo':
-      return <Todo {...item} onConfirm={onConfirm} onDismiss={onDismiss} key={item.todoType} />
+      return (
+        <Todo
+          {...item}
+          onConfirm={actions[item.todoType].onConfirm}
+          onDismiss={actions[item.todoType].onDismiss}
+          key={item.todoType}
+        />
+      )
     case 'notification':
       return <FollowNotification {...item} key={item.notificationTime} />
   }
@@ -41,7 +49,7 @@ const intersperse = (list: I.List<any>, light: boolean) => {
 }
 
 export const PeoplePageContent = (props: Props) => (
-  <Box style={{...globalStyles.fullHeight}}>
+  <ScrollView style={{...globalStyles.fullHeight}}>
     <Box
       style={{
         ...globalStyles.flexBoxRow,
@@ -49,6 +57,10 @@ export const PeoplePageContent = (props: Props) => (
         justifyContent: 'center',
         height: 48,
         width: '100%',
+        position: 'absolute',
+        top: 0,
+        backgroundColor: globalColors.white_90,
+        zIndex: 1,
       }}
     >
       <ClickableBox onClick={props.onSearch} style={{...styleSearchContainer}}>
@@ -58,12 +70,12 @@ export const PeoplePageContent = (props: Props) => (
         </Text>
       </ClickableBox>
     </Box>
-    <ScrollView contentContainerStyle={{...globalStyles.flexBoxColumn, width: '100%'}}>
-      {intersperse(props.newItems.map(itemToComponent), true)}
+    <Box style={{...globalStyles.flexBoxColumn, width: '100%', position: 'relative', marginTop: 48}}>
+      {intersperse(props.newItems.map(item => itemToComponent(item, props.todoDispatch)), true)}
       <FollowSuggestions suggestions={props.followSuggestions} onClickUser={props.onClickUser} />
-      {intersperse(props.oldItems.map(itemToComponent), false)}
-    </ScrollView>
-  </Box>
+      {intersperse(props.oldItems.map(item => itemToComponent(item, props.todoDispatch)), false)}
+    </Box>
+  </ScrollView>
 )
 
 const styleSearchContainer = {

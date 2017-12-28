@@ -9,6 +9,13 @@ export type Props = {
   followSuggestions: I.List<Types.FollowSuggestion>,
   onSearch: () => void,
   onClickUser: (username: string) => void,
+  myUsername: string,
+  todoDispatch: {
+    [key: Types.TodoType]: {
+      onConfirm: () => void,
+      onDismiss: () => void,
+    },
+  },
 }
 
 export default class People extends React.Component<Props> {}

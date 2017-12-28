@@ -49,6 +49,18 @@ const _processPeopleData = function([
       },
     ]
   }
+
+  for (let i = 1; i <= 10; i++) {
+    data.items.push({
+      badged: true,
+      data: {
+        t: 1,
+        todo: {
+          t: i,
+        },
+      },
+    })
+  }
   if (data.items) {
     // $FlowIssue I'm not filling this in
     data.items.push({
