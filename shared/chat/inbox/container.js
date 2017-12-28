@@ -256,15 +256,34 @@ const getFilteredRowsAndMetadata = createSelector(
           ),
         }
       })
-      .sort((a, b) => b.score - a.score)
       .filter(r => r.score > 0)
+      .sort((a, b) => b.score - a.score)
       .map(({conversationIDKey}) => ({conversationIDKey, type: 'small'}))
       .valueSeq()
       .toArray()
 
-    // const bigRows = [] // TODO
-    // const rows: Array<Inbox.RowItem> = [...smallRows, ...bigRows]
-    const rows: Array<Inbox.RowItem> = smallRows
+    const bigRows = metaMap
+      .filter(meta => meta.teamType === 'big')
+      .map(meta => {
+        return {
+          channelname: meta.channelname,
+          conversationIDKey: meta.conversationIDKey,
+          score: score(lcFilter, '', [meta.teamname, meta.channelname].filter(Boolean)),
+          teamname: meta.teamname,
+        }
+      })
+      .filter(r => r.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .map(({conversationIDKey, channelname, teamname}) => ({
+        channelname,
+        conversationIDKey,
+        teamname,
+        type: 'big',
+      }))
+      .valueSeq()
+      .toArray()
+
+    const rows: Array<Inbox.RowItem> = [...smallRows, ...bigRows]
 
     return {
       rows,
