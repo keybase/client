@@ -986,7 +986,12 @@ function _joinConversation(action: ChatGen.JoinConversationPayload) {
 
 function _previewChannel(action: ChatGen.PreviewChannelPayload) {
   const convID = Constants.keyToConversationID(action.payload.conversationIDKey)
-  return Saga.call(RPCChatTypes.localPreviewConversationByIDLocalRpcPromise, {convID})
+  return Saga.sequentially([
+    Saga.call(RPCChatTypes.localPreviewConversationByIDLocalRpcPromise, {convID}),
+    Saga.put(
+      ChatGen.createSelectConversation({conversationIDKey: action.payload.conversationIDKey, fromUser: true})
+    ),
+  ])
 }
 
 function _resetChatWithoutThem(action: ChatGen.ResetChatWithoutThemPayload, state: TypedState) {
