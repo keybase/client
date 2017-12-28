@@ -14,19 +14,21 @@ const (
 	defaultInfiniteBufferSize int = 0
 )
 
-// infiniteChannelWrapper is a wrapper to allow us to select on sending to an
+// InfiniteChannelWrapper is a wrapper to allow us to select on sending to an
 // infinite channel without fearing a panic when we Close() it.
-type infiniteChannelWrapper struct {
+type InfiniteChannelWrapper struct {
 	*channels.InfiniteChannel
 	input        chan interface{}
 	shutdownOnce sync.Once
 	shutdownCh   chan struct{}
 }
 
-var _ channels.Channel = (*infiniteChannelWrapper)(nil)
+var _ channels.Channel = (*InfiniteChannelWrapper)(nil)
 
-func newInfiniteChannelWrapper() *infiniteChannelWrapper {
-	ch := &infiniteChannelWrapper{
+// NewInfiniteChannelWrapper returns a wrapper around a new infinite
+// channel.
+func NewInfiniteChannelWrapper() *InfiniteChannelWrapper {
+	ch := &InfiniteChannelWrapper{
 		InfiniteChannel: channels.NewInfiniteChannel(),
 		input:           make(chan interface{}, defaultInfiniteBufferSize),
 		shutdownCh:      make(chan struct{}),
@@ -35,7 +37,7 @@ func newInfiniteChannelWrapper() *infiniteChannelWrapper {
 	return ch
 }
 
-func (ch *infiniteChannelWrapper) run() {
+func (ch *InfiniteChannelWrapper) run() {
 	for {
 		select {
 		case next := <-ch.input:
@@ -47,11 +49,13 @@ func (ch *infiniteChannelWrapper) run() {
 	}
 }
 
-func (ch *infiniteChannelWrapper) In() chan<- interface{} {
+// In returns the input channel for this infinite channel.
+func (ch *InfiniteChannelWrapper) In() chan<- interface{} {
 	return ch.input
 }
 
-func (ch *infiniteChannelWrapper) Close() {
+// Close shuts down this infinite channel.
+func (ch *InfiniteChannelWrapper) Close() {
 	ch.shutdownOnce.Do(func() {
 		close(ch.shutdownCh)
 	})
