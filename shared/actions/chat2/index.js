@@ -7,6 +7,7 @@ import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
 import * as Types from '../../constants/types/chat2'
+import engine from '../../engine'
 import logger from '../../logger'
 import type {TypedState} from '../../constants/reducer'
 import {RPCTimeoutError} from '../../util/errors'
@@ -200,10 +201,40 @@ const changeMetaTrustedState = (
   )
 }
 
+const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage) => {
+  const actions = []
+  const {conv, message: cMsg, convID} = incoming
+  // Ignore public chats
+  if (conv && conv.visibility === RPCTypes.commonTLFVisibility.private) {
+    actions.push(Chat2Gen.createMetasReceived({metas: [Constants.inboxUIItemToConversationMeta(conv)]}))
+  }
+
+  const message = Constants.uiMessageToMessage(Constants.conversationIDToKey(convID), cMsg)
+  if (message) {
+    actions.push(Chat2Gen.createMessagesAdd({messages: [message]}))
+  }
+  return actions
+}
+
 const setupChatHandlers = () => {
-  // engine().setIncomingActionCreators('chat.1.NotifyChat.NewChatActivity', ({activity}) => [
-  // ChatGen.createIncomingMessage({activity}),
-  // ])
+  engine().setIncomingActionCreators(
+    'chat.1.NotifyChat.NewChatActivity',
+    ({activity}: {activity: RPCChatTypes.ChatActivity}) => {
+      switch (activity.activityType) {
+        case RPCChatTypes.notifyChatChatActivityType.incomingMessage:
+          return activity.incomingMessage ? onIncomingMessage(activity.incomingMessage) : null
+        case RPCChatTypes.notifyChatChatActivityType.readMessage:
+        case RPCChatTypes.notifyChatChatActivityType.newConversation:
+        case RPCChatTypes.notifyChatChatActivityType.setStatus:
+        case RPCChatTypes.notifyChatChatActivityType.failedMessage:
+        case RPCChatTypes.notifyChatChatActivityType.membersUpdate:
+        case RPCChatTypes.notifyChatChatActivityType.setAppNotificationSettings:
+        case RPCChatTypes.notifyChatChatActivityType.teamtype:
+        default:
+          return null
+      }
+    }
+  )
 }
 
 // const addMessagesToConversation = (action: Chat2Gen.MessagesAddPayload) => {
