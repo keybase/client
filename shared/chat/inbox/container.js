@@ -109,13 +109,15 @@ const getRowsAndMetadata = createSelector(
   }
 )
 
-const score = (lcFilter, lcYou, names) => {
+const score = (lcFilter: string, lcYou: string, names: Array<string>): number => {
   // special case, looking for yourself
   if (lcYou === lcFilter) {
     return names.length === 1 && names[0] === lcYou ? 1 : 0
   }
+
+  const namesMinusYou = names.filter(n => n !== lcYou)
   return (
-    names.reduce((total, p) => {
+    namesMinusYou.reduce((total, p) => {
       if (p === lcFilter) {
         return total + 1 // exact match
       } else {
@@ -128,7 +130,7 @@ const score = (lcFilter, lcYou, names) => {
           return total
         }
       }
-    }, 0) / names.length
+    }, 0) / namesMinusYou.length
   )
 }
 
@@ -317,3 +319,7 @@ export default compose(
     },
   })
 )(Inbox.default)
+
+export const _testing = {
+  score,
+}
