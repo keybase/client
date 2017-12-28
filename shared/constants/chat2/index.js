@@ -11,10 +11,12 @@ export const keyToConversationID = (key: Types.ConversationIDKey): RPCChatTypes.
   Buffer.from(key, 'hex')
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
+  badgeMap: I.Map(),
   inboxFilter: '',
   messageMap: I.Map(),
   messageOrdinals: I.Map(),
   metaMap: I.Map(),
+  unreadMap: I.Map(),
 })
 
 export {

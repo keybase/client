@@ -11,6 +11,7 @@ import HiddenString from '../util/hidden-string'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of chat2 but is handled by every reducer
+export const badgesUpdated = 'chat2:badgesUpdated'
 export const inboxRefresh = 'chat2:inboxRefresh'
 export const messagesAdd = 'chat2:messagesAdd'
 export const metaHandleQueue = 'chat2:metaHandleQueue'
@@ -20,8 +21,10 @@ export const metaRequestTrusted = 'chat2:metaRequestTrusted'
 export const metaUpdateTrustedState = 'chat2:metaUpdateTrustedState'
 export const metasReceived = 'chat2:metasReceived'
 export const setInboxFilter = 'chat2:setInboxFilter'
+export const setupChatHandlers = 'chat2:setupChatHandlers'
 
 // Action Creators
+export const createBadgesUpdated = (payload: {|+conversations: Array<RPCTypes.BadgeConversationInfo>|}) => ({error: false, payload, type: badgesUpdated})
 export const createInboxRefresh = () => ({error: false, payload: undefined, type: inboxRefresh})
 export const createMessagesAdd = (payload: {|+messages: Array<Types.Message>|}) => ({error: false, payload, type: messagesAdd})
 export const createMetaHandleQueue = () => ({error: false, payload: undefined, type: metaHandleQueue})
@@ -31,8 +34,10 @@ export const createMetaRequestTrusted = (payload: {|+conversationIDKeys: Array<T
 export const createMetaUpdateTrustedState = (payload: {|+newState: Types.MetaTrustedState, +conversationIDKeys: Array<Types.ConversationIDKey>|}) => ({error: false, payload, type: metaUpdateTrustedState})
 export const createMetasReceived = (payload: {|+metas: Array<Types.ConversationMeta>|}) => ({error: false, payload, type: metasReceived})
 export const createSetInboxFilter = (payload: {|+filter: string|}) => ({error: false, payload, type: setInboxFilter})
+export const createSetupChatHandlers = () => ({error: false, payload: undefined, type: setupChatHandlers})
 
 // Action Payloads
+export type BadgesUpdatedPayload = More.ReturnType<typeof createBadgesUpdated>
 export type InboxRefreshPayload = More.ReturnType<typeof createInboxRefresh>
 export type MessagesAddPayload = More.ReturnType<typeof createMessagesAdd>
 export type MetaHandleQueuePayload = More.ReturnType<typeof createMetaHandleQueue>
@@ -42,10 +47,12 @@ export type MetaRequestTrustedPayload = More.ReturnType<typeof createMetaRequest
 export type MetaUpdateTrustedStatePayload = More.ReturnType<typeof createMetaUpdateTrustedState>
 export type MetasReceivedPayload = More.ReturnType<typeof createMetasReceived>
 export type SetInboxFilterPayload = More.ReturnType<typeof createSetInboxFilter>
+export type SetupChatHandlersPayload = More.ReturnType<typeof createSetupChatHandlers>
 
 // All Actions
 // prettier-ignore
 export type Actions =
+  | More.ReturnType<typeof createBadgesUpdated>
   | More.ReturnType<typeof createInboxRefresh>
   | More.ReturnType<typeof createMessagesAdd>
   | More.ReturnType<typeof createMetaHandleQueue>
@@ -55,4 +62,5 @@ export type Actions =
   | More.ReturnType<typeof createMetaUpdateTrustedState>
   | More.ReturnType<typeof createMetasReceived>
   | More.ReturnType<typeof createSetInboxFilter>
+  | More.ReturnType<typeof createSetupChatHandlers>
   | {type: 'common:resetStore', payload: void}

@@ -265,9 +265,6 @@
       "temporary?": "boolean",
       "forSearch?": "boolean"
     },
-    "badgeAppForChat": {
-      "conversations": "Array<RPCTypes.BadgeConversationInfo>"
-    },
     "postMessage": {
       "conversationIDKey": "Types.ConversationIDKey",
       "text": "HiddenString"

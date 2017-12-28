@@ -1,8 +1,10 @@
 // @flow
-import * as I from 'immutable'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as Constants from '../constants/chat2'
+import * as I from 'immutable'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/chat2'
+import {isMobile} from '../constants/platform'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -75,12 +77,29 @@ const messageOrdinalsReducer = (messageOrdinalsList, action) => {
   }
 }
 
+const badgeKey = String(isMobile ? RPCTypes.commonDeviceType.mobile : RPCTypes.commonDeviceType.desktop)
+
 const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions): Types.State => {
   switch (action.type) {
     case Chat2Gen.resetStore:
       return initialState
     case Chat2Gen.setInboxFilter:
       return state.set('inboxFilter', action.payload.filter)
+    case Chat2Gen.badgesUpdated: {
+      const badgeMap = I.Map(
+        action.payload.conversations.map(({convID, badgeCounts}) => [
+          Constants.conversationIDToKey(convID),
+          badgeCounts[badgeKey] || 0,
+        ])
+      )
+      const unreadMap = I.Map(
+        action.payload.conversations.map(({convID, unreadMessages}) => [
+          Constants.conversationIDToKey(convID),
+          unreadMessages,
+        ])
+      )
+      return state.set('badgeMap', badgeMap).set('unreadMap', unreadMap)
+    }
     // MetaMap actions
     case Chat2Gen.metasReceived:
     case Chat2Gen.metaUpdateTrustedState:
@@ -96,7 +115,8 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         .set('messageMap', messageMapReducer(state.messageMap, action))
         .set('messageOrdinals', messageOrdinalsReducer(state.messageOrdinals, action))
     // Saga only actions
-    // return state
+    case Chat2Gen.setupChatHandlers:
+      return state
     default:
       // eslint-disable-next-line no-unused-expressions
       ;(action: empty) // if you get a flow error here it means there's an action you claim to handle but didn't

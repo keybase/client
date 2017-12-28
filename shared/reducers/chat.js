@@ -322,7 +322,6 @@ function reducer(
     case ChatGen.attachmentSaveFailed:
     case ChatGen.attachmentSaveStart:
     case ChatGen.attachmentSaved:
-    case ChatGen.badgeAppForChat:
     case ChatGen.blockConversation:
     case ChatGen.deleteMessage:
     case ChatGen.downloadProgress:

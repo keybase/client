@@ -2,22 +2,15 @@
 import {FloatingDivider} from '.'
 import {createSelector, connect, type TypedState} from '../../../../util/container'
 
-// const getInboxBigChannels = (state: TypedState) => state.chat.get('inboxBigChannels')
-const getBadges = (state: TypedState) => state.chat.get('inboxUnreadCountBadge')
+const getMetaMap = (state: TypedState) => state.chat2.metaMap
+const getBadges = (state: TypedState) => state.chat2.badgeMap
 
-const floatinDividerSelector = createSelector(
-  [getBadges],
-  _ => {
-    return {badgeCount: -1} // TODO
-  }
-  // [getBadges, getInboxBigChannels],
-  // (badges, inboxBigChannels) => {
-  // const badgeCount = inboxBigChannels.reduce((total, _, id) => {
-  // return total + badges.get(id, 0)
-  // }, 0)
+const floatinDividerSelector = createSelector([getBadges, getMetaMap], (badgeMap, metaMap) => {
+  const badgeCount = metaMap
+    .filter(meta => meta.teamType === 'big')
+    .reduce((total, map, id) => total + badgeMap.get(id, 0), 0)
 
-  // return {badgeCount}
-  // }
-)
+  return {badgeCount}
+})
 
 export default connect(floatinDividerSelector)(FloatingDivider)

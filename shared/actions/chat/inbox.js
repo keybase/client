@@ -6,8 +6,6 @@ import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as Constants from '../../constants/chat'
 import * as Types from '../../constants/types/chat'
 import * as ChatGen from '../chat-gen'
-// import * as ConfigGen from '../config-gen'
-// import * as EngineRpc from '../../constants/engine'
 import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
@@ -16,9 +14,7 @@ import * as Shared from './shared'
 import HiddenString from '../../util/hidden-string'
 import {toByteArray} from 'base64-js'
 import {NotifyPopup} from '../../native/notifications'
-// import {RPCTimeoutError} from '../../util/errors'
 import {chatTab} from '../../constants/tabs'
-import {isMobile} from '../../constants/platform'
 import {showMainWindow} from '../platform-specific'
 import {switchTo} from '../route-tree'
 import {parseFolderNameToUsers} from '../../util/kbfs'
@@ -112,8 +108,6 @@ function* onInboxStale(action: ChatGen.InboxStalePayload): SagaGenerator<any, an
     const jsonInbox: string = incoming['chat.1.chatUi.chatInboxUnverified'].params.inbox
     const inbox: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(jsonInbox)
     yield Saga.call(_updateFinalized, inbox)
-
-    const idToVersion = I.Map((inbox.items || []).map(c => [c.convID, c.version]))
 
     const snippets = (inbox.items || []).reduce((map, c) => {
       // If we don't have metaData ignore it
@@ -604,52 +598,6 @@ function* _inboxSynced(action: ChatGen.InboxSyncedPayload): Saga.SagaGenerator<a
     )
   }
 }
-function* _badgeAppForChat(action: ChatGen.BadgeAppForChatPayload): Saga.SagaGenerator<any, any> {
-  const {conversations} = action.payload
-  let totals: {[key: string]: number} = {}
-  let badges: {[key: string]: number} = {}
-
-  conversations.map(c => Constants.ConversationBadgeStateRecord(c)).forEach(conv => {
-    const total = conv.get('unreadMessages')
-    if (total) {
-      const badged = conv.get('badgeCounts')[
-        `${isMobile ? RPCTypes.commonDeviceType.mobile : RPCTypes.commonDeviceType.desktop}`
-      ]
-      const convID = conv.get('convID')
-      if (convID) {
-        const conversationIDKey = Constants.conversationIDToKey(convID)
-        totals[conversationIDKey] = total
-        if (badged) {
-          badges[conversationIDKey] = badged
-        }
-      }
-    }
-  })
-
-  badges = I.Map(badges)
-  totals = I.Map(totals)
-
-  const state: TypedState = yield Saga.select()
-
-  const oldBadge = state.chat.inboxUnreadCountBadge
-  const oldTotal = state.chat.inboxUnreadCountTotal
-  if (!I.is(oldBadge, badges)) {
-    yield Saga.put(
-      ChatGen.createReplaceEntity({
-        keyPath: [],
-        entities: I.Map({inboxUnreadCountBadge: badges}),
-      })
-    )
-  }
-  if (!I.is(oldTotal, totals)) {
-    yield Saga.put(
-      ChatGen.createReplaceEntity({
-        keyPath: [],
-        entities: I.Map({inboxUnreadCountTotal: totals}),
-      })
-    )
-  }
-}
 
 function _updateSnippet({payload: {snippet, conversationIDKey}}: ChatGen.UpdateSnippetPayload) {
   return Saga.put(
@@ -803,7 +751,6 @@ function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(ChatGen.appendMessages, _sendNotifications)
   yield Saga.safeTakeEveryPure(ChatGen.markThreadsStale, _markThreadsStale)
   yield Saga.safeTakeEvery(ChatGen.inboxSynced, _inboxSynced)
-  yield Saga.safeTakeLatest(ChatGen.badgeAppForChat, _badgeAppForChat)
   yield Saga.safeTakeEvery(ChatGen.incomingMessage, _incomingMessage)
   yield Saga.safeTakeEveryPure(ChatGen.joinConversation, _joinConversation)
   yield Saga.safeTakeEveryPure(ChatGen.previewChannel, _previewChannel)

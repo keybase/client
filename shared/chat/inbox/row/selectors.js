@@ -16,9 +16,9 @@ const getFinalizedInfo = (state: TypedState, conversationIDKey: Types.Conversati
 const getRekeyInfo = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
   state.chat.getIn(['rekeyInfos', conversationIDKey])
 const getUnreadTotals = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
-  state.chat.getIn(['inboxUnreadCountTotal', conversationIDKey], 0)
+  state.chat2.getIn(['unreadMap', conversationIDKey], 0)
 const getUnreadBadges = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
-  state.chat.getIn(['inboxUnreadCountBadge', conversationIDKey], 0)
+  state.chat2.getIn(['badgeMap', conversationIDKey], 0)
 const getYou = (state: TypedState) => state.config.username || ''
 const getNowOverride = (state: TypedState) => state.chat.nowOverride
 const getUntrustedState = (state: TypedState) => state.chat.inboxUntrustedState

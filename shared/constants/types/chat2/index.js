@@ -5,10 +5,12 @@ import * as Meta from './meta'
 import * as Message from './message'
 
 export type _State = {
+  badgeMap: I.Map<Common.ConversationIDKey, number>,
   inboxFilter: string,
-  metaMap: I.Map<Common.ConversationIDKey, Meta.ConversationMeta>,
   messageMap: I.Map<Common.ConversationIDKey, I.Map<Message.Ordinal, Message.Message>>,
   messageOrdinals: I.Map<Common.ConversationIDKey, I.List<Message.Ordinal>>,
+  metaMap: I.Map<Common.ConversationIDKey, Meta.ConversationMeta>,
+  unreadMap: I.Map<Common.ConversationIDKey, number>,
 }
 
 export type State = I.RecordOf<_State>

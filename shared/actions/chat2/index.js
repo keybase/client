@@ -200,6 +200,12 @@ const changeMetaTrustedState = (
   )
 }
 
+const setupChatHandlers = () => {
+  // engine().setIncomingActionCreators('chat.1.NotifyChat.NewChatActivity', ({activity}) => [
+  // ChatGen.createIncomingMessage({activity}),
+  // ])
+}
+
 // const addMessagesToConversation = (action: Chat2Gen.MessagesAddPayload) => {
 // const {messages} = action.payload
 
@@ -224,6 +230,8 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.metaRequestTrusted, rpcMetaRequest, () => {}, rpcMetaRequestError)
   // Incoming messages, inbox updates, etc give us new messages
   // yield Saga.safeTakeEveryPure([Chat2Gen.messagesAdd], addMessagesToConversation)
+
+  yield Saga.safeTakeEveryPure(Chat2Gen.setupChatHandlers, setupChatHandlers)
 }
 
 export default chat2Saga

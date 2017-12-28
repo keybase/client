@@ -20,7 +20,6 @@ export const attachmentLoaded = 'chat:attachmentLoaded'
 export const attachmentSaveFailed = 'chat:attachmentSaveFailed'
 export const attachmentSaveStart = 'chat:attachmentSaveStart'
 export const attachmentSaved = 'chat:attachmentSaved'
-export const badgeAppForChat = 'chat:badgeAppForChat'
 export const blockConversation = 'chat:blockConversation'
 export const clearMessages = 'chat:clearMessages'
 export const clearRekey = 'chat:clearRekey'
@@ -110,7 +109,6 @@ export const createAttachmentLoaded = (payload: {|+messageKey: Types.MessageKey,
 export const createAttachmentSaveFailed = (payload: {|+messageKey: Types.MessageKey|}) => ({error: false, payload, type: attachmentSaveFailed})
 export const createAttachmentSaveStart = (payload: {|+messageKey: Types.MessageKey|}) => ({error: false, payload, type: attachmentSaveStart})
 export const createAttachmentSaved = (payload: {|+messageKey: Types.MessageKey, +path: ?string|}) => ({error: false, payload, type: attachmentSaved})
-export const createBadgeAppForChat = (payload: {|+conversations: Array<RPCTypes.BadgeConversationInfo>|}) => ({error: false, payload, type: badgeAppForChat})
 export const createBlockConversation = (payload: {|+blocked: boolean, +conversationIDKey: Types.ConversationIDKey, +reportUser: boolean|}) => ({error: false, payload, type: blockConversation})
 export const createClearMessages = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: clearMessages})
 export const createClearRekey = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: clearRekey})
@@ -200,7 +198,6 @@ export type AttachmentLoadedPayload = More.ReturnType<typeof createAttachmentLoa
 export type AttachmentSaveFailedPayload = More.ReturnType<typeof createAttachmentSaveFailed>
 export type AttachmentSaveStartPayload = More.ReturnType<typeof createAttachmentSaveStart>
 export type AttachmentSavedPayload = More.ReturnType<typeof createAttachmentSaved>
-export type BadgeAppForChatPayload = More.ReturnType<typeof createBadgeAppForChat>
 export type BlockConversationPayload = More.ReturnType<typeof createBlockConversation>
 export type ClearMessagesPayload = More.ReturnType<typeof createClearMessages>
 export type ClearRekeyPayload = More.ReturnType<typeof createClearRekey>
@@ -292,7 +289,6 @@ export type Actions =
   | More.ReturnType<typeof createAttachmentSaveFailed>
   | More.ReturnType<typeof createAttachmentSaveStart>
   | More.ReturnType<typeof createAttachmentSaved>
-  | More.ReturnType<typeof createBadgeAppForChat>
   | More.ReturnType<typeof createBlockConversation>
   | More.ReturnType<typeof createClearMessages>
   | More.ReturnType<typeof createClearRekey>
