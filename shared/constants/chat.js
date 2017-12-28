@@ -84,9 +84,6 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   inboxBigChannelsToTeam: I.Map(),
   inboxFilter: '',
   inboxIsEmpty: I.Map(),
-  inboxSearch: I.List(),
-  // inboxSmallTimestamps: I.Map(),
-  // inboxSnippet: I.Map(),
   inboxSupersededBy: I.Map(),
   inboxUnreadCountBadge: I.Map(),
   inboxUnreadCountTotal: I.Map(),
@@ -716,18 +713,6 @@ const getLocalMessageStateFromMessageKey = createSelector(
   })
 )
 
-// function getSnippet(state: TypedState, conversationIDKey: Types.ConversationIDKey): string {
-// const messages = state.chat2.messageIDsList.get(conversationIDKey, I.List())
-// const snippetTypes = ['Attachment', 'Text', 'System']
-// // TODO map id to type and pull out msg
-// return 'TODO'
-// // const message = messages.findLast(m => snippetTypes.includes(m.type))
-
-// // return message ? message.message.stringValue() : ''
-// // const snippet = state.chat.inboxSnippet.get(conversationIDKey, null)
-// // return snippet ? snippet.stringValue() : ''
-// }
-
 const makeConversationMessages = I.Record({
   high: 0,
   low: 0,
@@ -750,7 +735,6 @@ export {
   getSupersedes,
   getAttachmentDownloadedPath,
   getAttachmentSavedPath,
-  // getSnippet,
   getTeamName,
   getTeamType,
   conversationIDToKey,

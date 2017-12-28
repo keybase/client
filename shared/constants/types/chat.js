@@ -386,7 +386,6 @@ export type _State = {
   inbox: I.Map<ConversationIDKey, InboxState>,
   inboxAlwaysShow: I.Map<ConversationIDKey, boolean>,
   inboxIsEmpty: I.Map<ConversationIDKey, boolean>,
-  inboxSearch: I.List<string>,
   inboxSupersededBy: I.Map<ConversationIDKey, boolean>,
   inboxUnreadCountBadge: I.Map<ConversationIDKey, number>,
   inboxUnreadCountTotal: I.Map<ConversationIDKey, number>,
