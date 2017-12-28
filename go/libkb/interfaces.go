@@ -682,6 +682,13 @@ type UIDMapper interface {
 	// ClearUID is called to clear the given UID out of the cache, if the given eldest
 	// seqno doesn't match what's currently cached.
 	ClearUIDAtEldestSeqno(context.Context, UIDMapperContext, keybase1.UID, keybase1.Seqno) error
+
+	// InformOfEldestSeqno informs the mapper of an up-to-date (uid,eldestSeqno) pair.
+	// If the cache has a different value, it will clear the cache and then plumb
+	// the pair all the way through to the server, whose cache may also be in need
+	// of busting. Will return true if the cached value was up-to-date, and false
+	// otherwise.
+	InformOfEldestSeqno(context.Context, UIDMapperContext, keybase1.UserVersion) (bool, error)
 }
 
 type ChatHelper interface {

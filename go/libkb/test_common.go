@@ -488,6 +488,10 @@ func (t TestUIDMapper) CheckUIDAgainstUsername(uid keybase1.UID, un NormalizedUs
 	return true
 }
 
+func (t TestUIDMapper) InformOfEldestSeqno(ctx context.Context, g UIDMapperContext, uv keybase1.UserVersion) (bool, error) {
+	return true, nil
+}
+
 func (t TestUIDMapper) MapUIDsToUsernamePackages(ctx context.Context, g UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration, networkTimeBudget time.Duration, forceNetworkForFullNames bool) ([]UsernamePackage, error) {
 	var res []UsernamePackage
 	for _, uid := range uids {

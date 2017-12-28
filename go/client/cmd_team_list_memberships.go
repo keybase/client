@@ -162,12 +162,12 @@ func (c *CmdTeamListMemberships) runUser(cli keybase1.TeamsClient) error {
 	})
 
 	if c.json {
-		b, err := json.MarshalIndent(list, "", "    ")
+		b, err := json.Marshal(list)
 		if err != nil {
 			return err
 		}
-		dui := c.G().UI.GetDumbOutputUI()
-		_, err = dui.Printf(string(b) + "\n")
+		tui := c.G().UI.GetTerminalUI()
+		err = tui.OutputDesc(OutputDescriptorTeamList, string(b)+"\n")
 		return err
 	}
 

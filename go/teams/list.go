@@ -76,10 +76,11 @@ func verifyMemberRoleInTeam(ctx context.Context, userID keybase1.UID, expectedRo
 // trigger a reload with ForceRepoll if cached state does not match.
 func getTeamForMember(ctx context.Context, g *libkb.GlobalContext, member keybase1.MemberInfo, needAdmin bool) (team *Team, uv keybase1.UserVersion, err error) {
 	team, err = Load(ctx, g, keybase1.LoadTeamArg{
-		ID:          member.TeamID,
-		NeedAdmin:   needAdmin,
-		Public:      member.TeamID.IsPublic(),
-		ForceRepoll: false,
+		ID:               member.TeamID,
+		NeedAdmin:        needAdmin,
+		Public:           member.TeamID.IsPublic(),
+		ForceRepoll:      false,
+		RefreshUIDMapper: true,
 	})
 	if err != nil {
 		return nil, uv, err

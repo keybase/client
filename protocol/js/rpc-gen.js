@@ -2540,7 +2540,7 @@ export type ListResult = {|files?: ?Array<File>|}
 
 export type LoadDeviceErr = {|where: String, desc: String|}
 
-export type LoadTeamArg = {|ID: TeamID, name: String, public: Boolean, needAdmin: Boolean, refreshers: TeamRefreshers, forceFullReload: Boolean, forceRepoll: Boolean, staleOK: Boolean|}
+export type LoadTeamArg = {|ID: TeamID, name: String, public: Boolean, needAdmin: Boolean, refreshUIDMapper: Boolean, refreshers: TeamRefreshers, forceFullReload: Boolean, forceRepoll: Boolean, staleOK: Boolean|}
 
 export type LockContext = {|requireLockID: LockID, releaseAfterSuccess: Boolean|}
 
