@@ -104,9 +104,6 @@
       "rows": "Array<{conversationIDKey: Types.ConversationIDKey}>",
       "direction": "-1 | 1"
     },
-    "setInboxFilter": {
-      "filter": "string"
-    },
     "setInboxSyncingState": {
       "inboxSyncingState": "Types.SyncingState"
     },

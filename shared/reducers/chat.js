@@ -285,9 +285,6 @@ function reducer(
     case ChatGen.setInboxSyncingState: {
       return state.set('inboxSyncingState', action.payload.inboxSyncingState)
     }
-    case ChatGen.setInboxFilter: {
-      return state.set('inboxFilter', action.payload.filter)
-    }
     case ChatGen.newChat: {
       return state.set('inSearch', true)
     }

@@ -4,6 +4,7 @@ import pickBy from 'lodash/pickBy'
 import isEqual from 'lodash/isEqual'
 import * as I from 'immutable'
 import * as Types from '../../constants/types/teams'
+import * as Chat2Gen from '../../actions/chat2-gen'
 import * as ChatGen from '../../actions/chat-gen'
 import * as TeamsGen from '../../actions/teams-gen'
 import ManageChannels from '.'
@@ -76,7 +77,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
       )
     },
     _onView: (conversationIDKey: string) => {
-      dispatch(ChatGen.createSetInboxFilter({filter: ''}))
+      // TODO handle in saga
+      dispatch(Chat2Gen.createSetInboxFilter({filter: ''}))
       dispatch(ChatGen.createSelectConversation({conversationIDKey, fromUser: true}))
       dispatch(switchTo([chatTab]))
     },

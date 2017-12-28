@@ -95,7 +95,8 @@ const mapStateToProps = (state: TypedState, {routePath, routeProps}): StateProps
     }
   }
 
-  const {inSearch, inboxFilter} = state.chat
+  const {inSearch} = state.chat
+  const {inboxFilter} = state.chat2
   const searchResults = SearchConstants.getSearchResultIdsArray(state, {searchKey: 'chatSearch'})
   const userInputItemIds = SearchConstants.getUserInputItemIds(state, {searchKey: 'chatSearch'})
 

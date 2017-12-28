@@ -1,4 +1,5 @@
 // @flow
+import * as Chat2Gen from '../chat2-gen'
 import * as ChatGen from '../chat-gen'
 import * as Constants from '../../constants/chat'
 import * as Selectors from '../../constants/selectors'
@@ -10,7 +11,7 @@ import type {TypedState} from '../../constants/reducer'
 
 function _newChat(action: ChatGen.NewChatPayload, state: TypedState) {
   const actions = []
-  actions.push(Saga.put(ChatGen.createSetInboxFilter({filter: ''})))
+  actions.push(Saga.put(Chat2Gen.createSetInboxFilter({filter: ''})))
   const ids = SearchConstants.getUserInputItemIds(state, {searchKey: 'chatSearch'})
   // Ignore 'New Chat' attempts when we're already building a chat
   if (!ids || !ids.length) {

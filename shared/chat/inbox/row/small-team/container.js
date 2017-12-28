@@ -4,6 +4,7 @@ import * as Selectors from '../selectors'
 import * as Constants2 from '../../../../constants/chat2'
 import * as Constants from '../../../../constants/chat'
 import * as Types from '../../../../constants/types/chat'
+import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as ChatGen from '../../../../actions/chat-gen'
 import {SmallTeam} from '.'
 import {pausableConnect, type TypedState} from '../../../../util/container'
@@ -43,7 +44,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey, isActiveRoute}) 
 
 const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}) => ({
   onSelectConversation: () => {
-    dispatch(ChatGen.createSetInboxFilter({filter: ''}))
+    dispatch(Chat2Gen.createSetInboxFilter({filter: ''}))
     dispatch(ChatGen.createSelectConversation({conversationIDKey, fromUser: true}))
   },
 })

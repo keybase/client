@@ -1,5 +1,6 @@
 // @flow
 import {FilterBigTeamChannel} from '.'
+import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as ChatGen from '../../../../actions/chat-gen'
 import {pausableConnect} from '../../../../util/container'
 
@@ -11,7 +12,8 @@ const mapStateToProps = (_, {teamname, channelname, isActiveRoute}) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}) => ({
   onSelectConversation: () => {
-    dispatch(ChatGen.createSetInboxFilter({filter: ''}))
+    // TODO move to saga
+    dispatch(Chat2Gen.createSetInboxFilter({filter: ''}))
     dispatch(ChatGen.createSelectConversation({conversationIDKey, fromUser: true}))
   },
 })

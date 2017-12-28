@@ -6,6 +6,9 @@
   ],
   "actions": {
     "inboxRefresh": {},
+    "setInboxFilter": {
+      "filter": "string"
+    },
     "metaNeedsUpdating": {
       "conversationIDKeys": "Array<Types.ConversationIDKey>",
       "reason": "string"

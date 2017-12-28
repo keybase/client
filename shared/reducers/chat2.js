@@ -79,6 +79,8 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
   switch (action.type) {
     case Chat2Gen.resetStore:
       return initialState
+    case Chat2Gen.setInboxFilter:
+      return state.set('inboxFilter', action.payload.filter)
     // MetaMap actions
     case Chat2Gen.metasReceived:
     case Chat2Gen.metaUpdateTrustedState:

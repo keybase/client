@@ -19,6 +19,7 @@ export const metaReceivedError = 'chat2:metaReceivedError'
 export const metaRequestTrusted = 'chat2:metaRequestTrusted'
 export const metaUpdateTrustedState = 'chat2:metaUpdateTrustedState'
 export const metasReceived = 'chat2:metasReceived'
+export const setInboxFilter = 'chat2:setInboxFilter'
 
 // Action Creators
 export const createInboxRefresh = () => ({error: false, payload: undefined, type: inboxRefresh})
@@ -29,6 +30,7 @@ export const createMetaReceivedError = (payload: {|+conversationIDKey: Types.Con
 export const createMetaRequestTrusted = (payload: {|+conversationIDKeys: Array<Types.ConversationIDKey>|}) => ({error: false, payload, type: metaRequestTrusted})
 export const createMetaUpdateTrustedState = (payload: {|+newState: Types.MetaTrustedState, +conversationIDKeys: Array<Types.ConversationIDKey>|}) => ({error: false, payload, type: metaUpdateTrustedState})
 export const createMetasReceived = (payload: {|+metas: Array<Types.ConversationMeta>|}) => ({error: false, payload, type: metasReceived})
+export const createSetInboxFilter = (payload: {|+filter: string|}) => ({error: false, payload, type: setInboxFilter})
 
 // Action Payloads
 export type InboxRefreshPayload = More.ReturnType<typeof createInboxRefresh>
@@ -39,6 +41,7 @@ export type MetaReceivedErrorPayload = More.ReturnType<typeof createMetaReceived
 export type MetaRequestTrustedPayload = More.ReturnType<typeof createMetaRequestTrusted>
 export type MetaUpdateTrustedStatePayload = More.ReturnType<typeof createMetaUpdateTrustedState>
 export type MetasReceivedPayload = More.ReturnType<typeof createMetasReceived>
+export type SetInboxFilterPayload = More.ReturnType<typeof createSetInboxFilter>
 
 // All Actions
 // prettier-ignore
@@ -51,4 +54,5 @@ export type Actions =
   | More.ReturnType<typeof createMetaRequestTrusted>
   | More.ReturnType<typeof createMetaUpdateTrustedState>
   | More.ReturnType<typeof createMetasReceived>
+  | More.ReturnType<typeof createSetInboxFilter>
   | {type: 'common:resetStore', payload: void}

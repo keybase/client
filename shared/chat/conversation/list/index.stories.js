@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as I from 'immutable'
 import * as Constants from '../../../constants/chat'
+import * as Constants2 from '../../../constants/chat2'
 import * as Types from '../../../constants/types/chat'
 import {Box} from '../../../common-adapters'
 import {dataToRouteState} from '../../../route-tree'
@@ -118,10 +119,10 @@ const storeFn = (messageMap: {[key: string]: Types.Message}) => ({
     following: {},
     username: 'tester',
   },
+  chat2: Constants2.makeState({}),
   chat: Constants.makeState({
     messageMap: I.Map(messageMap),
     localMessageStates: I.Map(),
-    inboxFilter: '',
     conversationStates: I.Map(),
     metaData: I.Map(),
     finalizedState: I.Map(),
