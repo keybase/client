@@ -93,7 +93,7 @@ func GetDataDir(id GUID, name, envname string) (string, error) {
 
 	var rawUnicode []uint16
 	for i := uintptr(0); ; i++ {
-		u16 := *(*uint16)(unsafe.Pointer(uintptr(pszPath) + 2*i))
+		u16 := *(*uint16)(unsafe.Pointer(uintptr(pszPath) + i))
 		if u16 == 0 {
 			break
 		}
