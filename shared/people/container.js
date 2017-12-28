@@ -4,13 +4,11 @@ import * as PeopleGen from '../actions/people-gen'
 import * as Types from '../constants/types/people'
 import * as Tabs from '../constants/tabs'
 import {connect} from 'react-redux'
-import {compose, lifecycle} from 'recompose'
+import {compose} from 'recompose'
 import {type TypedState} from '../util/container'
 import {createSearchSuggestions} from '../actions/search-gen'
 import {navigateAppend, switchTo} from '../actions/route-tree'
-import {isMobile} from '../constants/platform'
 import {createShowUserProfile} from '../actions/profile-gen'
-import {createGetProfile} from '../actions/tracker-gen'
 import openURL from '../util/open-url'
 // import flags from '../util/feature-flags'
 
@@ -53,17 +51,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(createSearchSuggestions({searchKey: 'profileSearch'}))
     dispatch(navigateAppend([{props: {}, selected: 'search'}]))
   },
-  onClickUser: (username: string) =>
-    isMobile
-      ? dispatch(createShowUserProfile({username}))
-      : dispatch(createGetProfile({username, ignoreCache: true, forceDisplay: true})),
+  onClickUser: (username: string) => dispatch(createShowUserProfile({username})),
 })
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
-  lifecycle({
-    componentWillMount() {
-      this.props.getData()
-    },
-  })
-)(People)
+export default compose(connect(mapStateToProps, mapDispatchToProps))(People)

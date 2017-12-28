@@ -4,7 +4,10 @@ import * as Saga from '../util/saga'
 import * as I from 'immutable'
 import * as Constants from '../constants/people'
 import * as Types from '../constants/types/people'
+import * as RouteTypes from '../constants/types/route-tree'
+import * as RouteConstants from '../constants/route-tree'
 import * as RPCTypes from '../constants/types/rpc-gen'
+import {peopleTab} from '../constants/tabs'
 import {type TypedState} from '../constants/reducer'
 
 const _getPeopleData = function(action: PeopleGen.GetPeopleDataPayload, state: TypedState) {
@@ -186,9 +189,29 @@ const _skipTodo = (action: PeopleGen.SkipTodoPayload) => {
   })
 }
 
+let _wasOnPeopleTab = false
+const _onTabChange = (action: RouteTypes.SwitchTo) => {
+  // TODO replace this with notification based refreshing
+  const list = I.List(action.payload.path)
+  const root = list.first()
+
+  if (root !== peopleTab) {
+    _wasOnPeopleTab = false
+  } else if (root === peopleTab && !_wasOnPeopleTab) {
+    _wasOnPeopleTab = true
+    return Saga.put(
+      PeopleGen.createGetPeopleData({
+        markViewed: true,
+        numFollowSuggestionsWanted: Constants.DEFAULT_FOLLOW_SUGGESTIONS_QUANT,
+      })
+    )
+  }
+}
+
 const peopleSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeLatestPure(PeopleGen.getPeopleData, _getPeopleData, _processPeopleData)
   yield Saga.safeTakeEveryPure(PeopleGen.skipTodo, _skipTodo)
+  yield Saga.safeTakeEveryPure(RouteConstants.switchTo, _onTabChange)
 }
 
 export default peopleSaga
