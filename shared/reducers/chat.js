@@ -366,7 +366,6 @@ function reducer(
     case ChatGen.updateBadging:
     case ChatGen.updateInboxComplete:
     case ChatGen.updateMetadata:
-    case ChatGen.updateSnippet:
     case ChatGen.updateTempMessage:
     case ChatGen.updateThread:
     case ChatGen.updateTyping:

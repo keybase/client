@@ -124,12 +124,6 @@ function* onInboxStale(action: ChatGen.InboxStalePayload): SagaGenerator<any, an
       .subtract((inbox.items || []).map(c => c.convID))
     const conversations = _makeInboxStateRecords(author, inbox.items || [], oldInbox)
     yield Saga.put(
-      ChatGen.createReplaceEntity({
-        keyPath: ['inboxSnippet'],
-        entities: I.Map(snippets),
-      })
-    )
-    yield Saga.put(
       ChatGen.createSetInboxGlobalUntrustedState({
         inboxGlobalUntrustedState: 'loaded',
       })
@@ -599,15 +593,6 @@ function* _inboxSynced(action: ChatGen.InboxSyncedPayload): Saga.SagaGenerator<a
   }
 }
 
-function _updateSnippet({payload: {snippet, conversationIDKey}}: ChatGen.UpdateSnippetPayload) {
-  return Saga.put(
-    ChatGen.createReplaceEntity({
-      keyPath: ['inboxSnippet'],
-      entities: I.Map({[conversationIDKey]: snippet}),
-    })
-  )
-}
-
 function* _incomingMessage(action: ChatGen.IncomingMessagePayload): Saga.SagaGenerator<any, any> {
   switch (action.payload.activity.activityType) {
     case RPCChatTypes.notifyChatChatActivityType.setStatus:
@@ -743,7 +728,6 @@ const _resetLetThemIn = (action: ChatGen.ResetLetThemInPayload) =>
   })
 
 function* registerSagas(): SagaGenerator<any, any> {
-  yield Saga.safeTakeEveryPure(ChatGen.updateSnippet, _updateSnippet)
   yield Saga.safeTakeEveryPure(ChatGen.getInboxAndUnbox, onGetInboxAndUnbox)
   yield Saga.safeTakeEveryPure(ChatGen.selectNext, filterSelectNext)
   yield Saga.safeTakeLatest(ChatGen.inboxStale, onInboxStale)

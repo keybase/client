@@ -122,10 +122,6 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "notifications": "Types.NotificationsState"
     },
-    "updateSnippet": {
-      "conversationIDKey": "Types.ConversationIDKey",
-      "snippet": "HiddenString"
-    },
     "outboxMessageBecameReal": {
       "oldMessageKey": "Types.MessageKey",
       "newMessageKey": "Types.MessageKey"

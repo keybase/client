@@ -387,8 +387,6 @@ export type _State = {
   inboxAlwaysShow: I.Map<ConversationIDKey, boolean>,
   inboxIsEmpty: I.Map<ConversationIDKey, boolean>,
   inboxSupersededBy: I.Map<ConversationIDKey, boolean>,
-  // inboxUnreadCountBadge: I.Map<ConversationIDKey, number>,
-  // inboxUnreadCountTotal: I.Map<ConversationIDKey, number>,
   inboxResetParticipants: I.Map<ConversationIDKey, I.Set<string>>,
   inboxUntrustedState: I.Map<ConversationIDKey, InboxUntrustedState>,
   inboxGlobalUntrustedState: UntrustedState,
