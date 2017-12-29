@@ -62,6 +62,11 @@ func ListTeamsFast(ctx context.Context, g *libkb.GlobalContext, arg keybase1.Tea
 	}
 
 	for _, memberInfo := range teams {
+		if memberInfo.IsImplicitTeam && !arg.IncludeImplicitTeams {
+			g.Log.CDebugf(ctx, "| ListTeamsFast skipping implicit team: server-team:%v server-uid:%v", memberInfo.TeamID, memberInfo.UserID)
+			continue
+		}
+
 		anMemberInfo := keybase1.AnnotatedMemberInfo{
 			TeamID:         memberInfo.TeamID,
 			FqName:         memberInfo.FqName,
@@ -78,5 +83,5 @@ func ListTeamsFast(ctx context.Context, g *libkb.GlobalContext, arg keybase1.Tea
 		res.Teams = append(res.Teams, anMemberInfo)
 	}
 
-	return nil, nil
+	return res, nil
 }
