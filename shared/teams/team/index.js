@@ -66,7 +66,6 @@ export type Props = {
   yourRole: ?Types.TeamRoleType,
   youAdmin: boolean,
   youImplicitAdmin: boolean,
-  youCanLeaveTeam: boolean,
   yourOperations: RPCTypes.TeamOperation,
 }
 
@@ -265,7 +264,6 @@ class Team extends React.PureComponent<Props> {
       yourRole,
       youAdmin,
       youImplicitAdmin,
-      youCanLeaveTeam,
       yourOperations,
     } = this.props
 
@@ -470,7 +468,7 @@ class Team extends React.PureComponent<Props> {
       popupMenuItems.push({onClick: onManageChat, title: 'Manage chat channels'})
     }
 
-    if (youCanLeaveTeam) {
+    if (yourOperations.leaveTeam) {
       popupMenuItems.push({onClick: onLeaveTeam, title: 'Leave team', danger: true})
     }
 
