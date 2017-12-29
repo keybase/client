@@ -10,9 +10,10 @@ import {navigateAppend} from '../../../actions/route-tree'
 import type {TypedState} from '../../../constants/reducer'
 
 type OwnProps = {
+  active: boolean,
+  fullName: string,
   username: string,
   teamname: string,
-  active: boolean,
 }
 
 type StateProps = {
@@ -22,11 +23,12 @@ type StateProps = {
   _members: I.Set<Types.MemberInfo>,
 }
 
-const mapStateToProps = (state: TypedState, {teamname, username, active}: OwnProps): StateProps => ({
-  following: amIFollowing(state, username),
-  you: state.config.username,
-  active,
+const mapStateToProps = (state: TypedState, {active, fullName, teamname, username}: OwnProps): StateProps => ({
   _members: state.entities.getIn(['teams', 'teamNameToMembers', teamname], I.Set()),
+  active,
+  following: amIFollowing(state, username),
+  fullName: state.config.username === username ? "You" : fullName,
+  you: state.config.username,
 })
 
 type DispatchProps = {
