@@ -5,6 +5,7 @@ package libkb
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -104,4 +105,30 @@ func TestMakeByte32(t *testing.T) {
 	require.Panics(t, func() {
 		MakeByte32(x3[:])
 	})
+}
+
+func TestAppDataDir(t *testing.T) {
+	dir, err := AppDataDir()
+	if err != nil {
+		require.True(t, strings.HasPrefix(err.Error(), "unsupported"))
+		return
+	}
+
+	require.NoError(t, err)
+	exists, err := FileExists(dir)
+	require.NoError(t, err)
+	require.True(t, exists)
+}
+
+func TestLocalDataDir(t *testing.T) {
+	dir, err := LocalDataDir()
+	if err != nil {
+		require.True(t, strings.HasPrefix(err.Error(), "unsupported"))
+		return
+	}
+
+	require.NoError(t, err)
+	exists, err := FileExists(dir)
+	require.NoError(t, err)
+	require.True(t, exists)
 }
