@@ -2,6 +2,7 @@
 // Look at this doc: https://goo.gl/7B6p4H
 import logger from '../logger'
 import * as AppGen from './app-gen'
+import * as Chat2Gen from './chat2-gen'
 import * as ConfigGen from './config-gen'
 import * as DevicesTypes from '../constants/types/devices'
 import * as DevicesConstants from '../constants/devices'
@@ -20,7 +21,6 @@ import HiddenString from '../util/hidden-string'
 import openURL from '../util/open-url'
 import {RPCError} from '../util/errors'
 import {chatTab, loginTab, peopleTab, isValidInitialTab} from '../constants/tabs'
-import {createSelectConversation} from './chat-gen'
 import {deletePushTokenSaga} from './push'
 import {getExtendedStatus} from './config'
 import {isMobile} from '../constants/platform'
@@ -112,7 +112,7 @@ function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
         yield Saga.put(AppGen.createLink({link: url}))
       } else if (tab && isValidInitialTab(tab)) {
         if (tab === chatTab && conversation) {
-          yield Saga.put(createSelectConversation({conversationIDKey: conversation}))
+          yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey: conversation}))
           yield Saga.put(navigateTo([chatTab], null, 'initial-restore'))
         } else {
           yield Saga.put(navigateTo([tab], null, 'initial-restore'))

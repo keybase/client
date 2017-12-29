@@ -335,17 +335,7 @@ function convSupersededByInfo(
   return chat.getIn(['supersededByState', conversationID])
 }
 
-const getSelectedConversation = (state: TypedState) => {
-  const chatPath = getPath(state.routeTree.routeState, [chatTab])
-  if (chatPath.get(0) !== chatTab) {
-    return null
-  }
-  const selected = chatPath.get(1)
-  if (selected === nothingSelected) {
-    return null
-  }
-  return selected
-}
+const getSelectedConversation = (state: TypedState) => state.chat2.selectedConversation
 
 const getSelectedRouteState = (state: TypedState) => {
   const selected = getSelectedConversation(state)

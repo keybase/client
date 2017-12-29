@@ -1,6 +1,5 @@
 // @flow
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as ChatGen from '../../../../actions/chat-gen'
 import * as Constants from '../../../../constants/chat'
 import * as Constants2 from '../../../../constants/chat2'
 import * as I from 'immutable'
@@ -48,7 +47,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}: OwnProps) => ({
   onSelectConversation: () => {
     dispatch(Chat2Gen.createSetInboxFilter({filter: ''}))
-    dispatch(ChatGen.createSelectConversation({conversationIDKey, fromUser: true}))
+    dispatch(Chat2Gen.createSelectConversation({conversationIDKey, fromUser: true}))
   },
 })
 

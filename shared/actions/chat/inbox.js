@@ -5,6 +5,7 @@ import logger from '../../logger'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as Constants from '../../constants/chat'
 import * as Types from '../../constants/types/chat'
+import * as Chat2Gen from '../chat2-gen'
 import * as ChatGen from '../chat-gen'
 import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -389,7 +390,7 @@ function* _sendNotifications(action: ChatGen.AppendMessagesPayload): Saga.SagaGe
         yield Saga.put(dispatch => {
           NotifyPopup(message.author, {body: snippet}, -1, message.author, () => {
             dispatch(
-              ChatGen.createSelectConversation({
+              Chat2Gen.createSelectConversation({
                 conversationIDKey: action.payload.conversationIDKey,
                 fromUser: false,
               })
@@ -672,7 +673,7 @@ function _previewChannel(action: ChatGen.PreviewChannelPayload) {
   return Saga.sequentially([
     Saga.call(RPCChatTypes.localPreviewConversationByIDLocalRpcPromise, {convID}),
     Saga.put(
-      ChatGen.createSelectConversation({conversationIDKey: action.payload.conversationIDKey, fromUser: true})
+      Chat2Gen.createSelectConversation({conversationIDKey: action.payload.conversationIDKey, fromUser: true})
     ),
   ])
 }

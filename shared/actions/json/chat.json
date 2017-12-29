@@ -158,10 +158,6 @@
       "messageKey": "Types.MessageKey",
       "progress": "?number"
     },
-    "selectConversation": {
-      "conversationIDKey": "?Types.ConversationIDKey",
-      "fromUser?": "boolean"
-    },
     "attachmentSaved": {
       "messageKey": "Types.MessageKey",
       "path": "?string"

@@ -1,5 +1,6 @@
 // @flow
 import logger from '../../logger'
+import * as Chat2Gen from '../chat2-gen'
 import * as ChatGen from '../chat-gen'
 import * as Constants from '../../constants/chat'
 import * as Types from '../../constants/types/chat'
@@ -71,7 +72,7 @@ function* startNewConversation(
   // Select the new version if the old one was selected
   const selectedConversation = Constants.getSelectedConversation(state)
   if (selectedConversation === oldKey) {
-    yield put(ChatGen.createSelectConversation({conversationIDKey: newKey}))
+    yield put(Chat2Gen.createSelectConversation({conversationIDKey: newKey}))
   }
   // Load the inbox so we can post, we wait till this is done
   yield put(ChatGen.createUnboxConversations({conversationIDKeys: [newKey], reason: 'new convo'}))

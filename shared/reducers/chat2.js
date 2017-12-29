@@ -93,20 +93,6 @@ const messageMapReducer = (messageMap, action) => {
 const messageOrdinalsReducer = (messageOrdinalsList, action) => {
   // Note: on a delete we leave the ordinals in the list
   switch (action.type) {
-    // TODO this is me deleting but thats maybe worse
-    // case Chat2Gen.messagesDelete: {
-    // const {conversationIDKey, ordinals} = action.payload
-    // return messageOrdinalsList.update(conversationIDKey, I.List(), (list: I.List<Types.Ordinal>) =>
-    // list.withMutations(l =>
-    // ordinals.forEach(ordinal => {
-    // const idx = l.indexOf(ordinal)
-    // if (idx !== -1) {
-    // l.delete(idx)
-    // }
-    // })
-    // )
-    // )
-    // }
     case Chat2Gen.messagesAdd: {
       const {messages} = action.payload
       // TODO this just pushes to the end
@@ -129,6 +115,8 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
   switch (action.type) {
     case Chat2Gen.resetStore:
       return initialState
+    case Chat2Gen.selectConversation:
+      return state.set('selectedConversation', action.payload.conversationIDKey)
     case Chat2Gen.setInboxFilter:
       return state.set('inboxFilter', action.payload.filter)
     case Chat2Gen.badgesUpdated: {

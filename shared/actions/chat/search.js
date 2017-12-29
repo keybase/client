@@ -22,7 +22,7 @@ function _newChat(action: ChatGen.NewChatPayload, state: TypedState) {
         })
       )
     )
-    actions.push(Saga.put(ChatGen.createSelectConversation({conversationIDKey: null})))
+    actions.push(Saga.put(Chat2Gen.createSelectConversation({conversationIDKey: null})))
     actions.push(Saga.put(SearchGen.createSearchSuggestions({searchKey: 'chatSearch'})))
   }
 
@@ -43,7 +43,7 @@ function _exitSearch({payload: {skipSelectPreviousConversation}}: ChatGen.ExitSe
       Saga.put(SearchGen.createSetUserInputItems({searchKey: 'chatSearch', searchResults: []})),
       Saga.put(ChatGen.createRemoveTempPendingConversations()),
       userInputItemIds.length === 0 && !skipSelectPreviousConversation
-        ? Saga.put(ChatGen.createSelectConversation({conversationIDKey: previousConversation}))
+        ? Saga.put(Chat2Gen.createSelectConversation({conversationIDKey: previousConversation}))
         : null,
     ].filter(Boolean)
   )
@@ -72,7 +72,7 @@ function* _updateTempSearchConversation(action: SearchGen.UserInputItemsUpdatedP
       )
     )
   } else {
-    actionsToPut.push(Saga.put(ChatGen.createSelectConversation({conversationIDKey: null, fromUser: false})))
+    actionsToPut.push(Saga.put(Chat2Gen.createSelectConversation({conversationIDKey: null, fromUser: false})))
     actionsToPut.push(Saga.put(SearchGen.createSearchSuggestions({searchKey: 'chatSearch'})))
   }
 

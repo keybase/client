@@ -22,6 +22,7 @@ export const metaReceivedError = 'chat2:metaReceivedError'
 export const metaRequestTrusted = 'chat2:metaRequestTrusted'
 export const metaUpdateTrustedState = 'chat2:metaUpdateTrustedState'
 export const metasReceived = 'chat2:metasReceived'
+export const selectConversation = 'chat2:selectConversation'
 export const setInboxFilter = 'chat2:setInboxFilter'
 export const setupChatHandlers = 'chat2:setupChatHandlers'
 
@@ -37,6 +38,7 @@ export const createMetaReceivedError = (payload: {|+conversationIDKey: Types.Con
 export const createMetaRequestTrusted = (payload: {|+conversationIDKeys: Array<Types.ConversationIDKey>|}) => ({error: false, payload, type: metaRequestTrusted})
 export const createMetaUpdateTrustedState = (payload: {|+newState: Types.MetaTrustedState, +conversationIDKeys: Array<Types.ConversationIDKey>|}) => ({error: false, payload, type: metaUpdateTrustedState})
 export const createMetasReceived = (payload: {|+metas: Array<Types.ConversationMeta>|}) => ({error: false, payload, type: metasReceived})
+export const createSelectConversation = (payload: {|+conversationIDKey: ?Types.ConversationIDKey, +fromUser?: boolean|}) => ({error: false, payload, type: selectConversation})
 export const createSetInboxFilter = (payload: {|+filter: string|}) => ({error: false, payload, type: setInboxFilter})
 export const createSetupChatHandlers = () => ({error: false, payload: undefined, type: setupChatHandlers})
 
@@ -52,6 +54,7 @@ export type MetaReceivedErrorPayload = More.ReturnType<typeof createMetaReceived
 export type MetaRequestTrustedPayload = More.ReturnType<typeof createMetaRequestTrusted>
 export type MetaUpdateTrustedStatePayload = More.ReturnType<typeof createMetaUpdateTrustedState>
 export type MetasReceivedPayload = More.ReturnType<typeof createMetasReceived>
+export type SelectConversationPayload = More.ReturnType<typeof createSelectConversation>
 export type SetInboxFilterPayload = More.ReturnType<typeof createSetInboxFilter>
 export type SetupChatHandlersPayload = More.ReturnType<typeof createSetupChatHandlers>
 
@@ -69,6 +72,7 @@ export type Actions =
   | More.ReturnType<typeof createMetaRequestTrusted>
   | More.ReturnType<typeof createMetaUpdateTrustedState>
   | More.ReturnType<typeof createMetasReceived>
+  | More.ReturnType<typeof createSelectConversation>
   | More.ReturnType<typeof createSetInboxFilter>
   | More.ReturnType<typeof createSetupChatHandlers>
   | {type: 'common:resetStore', payload: void}

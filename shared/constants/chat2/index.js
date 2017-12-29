@@ -16,6 +16,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   messageMap: I.Map(),
   messageOrdinals: I.Map(),
   metaMap: I.Map(),
+  selectedConversation: null,
   unreadMap: I.Map(),
 })
 

@@ -5,6 +5,7 @@ import * as EngineRpc from '../../constants/engine'
 import * as I from 'immutable'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as Route from '../route-tree'
 import * as Saga from '../../util/saga'
 import * as Types from '../../constants/types/chat2'
 import HiddenString from '../../util/hidden-string'
@@ -12,6 +13,7 @@ import engine from '../../engine'
 import logger from '../../logger'
 import type {TypedState} from '../../constants/reducer'
 import {RPCTimeoutError} from '../../util/errors'
+import {chatTab} from '../../constants/tabs'
 
 /*
  * TODO:
@@ -117,7 +119,22 @@ const requestMeta = (action: Chat2Gen.MetaHandleQueuePayload, state: TypedState)
   }
 }
 
-const rpcMetaRequest = (action: Chat2Gen.MetaRequestTrustedPayload) => {
+const rpcMetaRequest = (action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload) => {
+  let conversationIDKeys
+  switch (action.type) {
+    case Chat2Gen.metaRequestTrusted:
+      conversationIDKeys = action.payload.conversationIDKeys
+      break
+    case Chat2Gen.selectConversation:
+      conversationIDKeys = [action.payload.conversationIDKey].filter(Boolean)
+      if (!conversationIDKeys.length) return
+      break
+    default:
+      // eslint-disable-next-line no-unused-expressions
+      ;(action: empty) // errors if we don't handle any new actions
+      throw new Error('Invalid action passed to rpcMetaRequest ')
+  }
+
   const loadInboxRpc = new EngineRpc.EngineRpcCall(
     {
       'chat.1.chatUi.chatInboxConversation': function*({
@@ -153,7 +170,7 @@ const rpcMetaRequest = (action: Chat2Gen.MetaRequestTrustedPayload) => {
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
       query: {
         ...inboxQuery,
-        convIDs: action.payload.conversationIDKeys.map(Constants.keyToConversationID),
+        convIDs: conversationIDKeys.map(Constants.keyToConversationID),
       },
       skipUnverified: false,
     }
@@ -278,10 +295,11 @@ const setupChatHandlers = () => {
   )
 }
 
-// const addMessagesToConversation = (action: Chat2Gen.MessagesAddPayload) => {
-// const {messages} = action.payload
-
-// }
+const navigateToThread = (action: Chat2Gen.SelectConversationPayload) => {
+  const {conversationIDKey} = action.payload
+  logger.info(`selectConversation: selecting: ${conversationIDKey || ''}`)
+  return Saga.put(Route.navigateTo([conversationIDKey].filter(Boolean), [chatTab]))
+}
 
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Refresh the inbox
@@ -299,11 +317,18 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     changeMetaTrustedState
   )
   // Actually try and unbox conversations
-  yield Saga.safeTakeEveryPure(Chat2Gen.metaRequestTrusted, rpcMetaRequest, () => {}, rpcMetaRequestError)
+  yield Saga.safeTakeEveryPure(
+    [Chat2Gen.metaRequestTrusted, Chat2Gen.selectConversation],
+    rpcMetaRequest,
+    () => {},
+    rpcMetaRequestError
+  )
   // Incoming messages, inbox updates, etc give us new messages
   // yield Saga.safeTakeEveryPure([Chat2Gen.messagesAdd], addMessagesToConversation)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.setupChatHandlers, setupChatHandlers)
+
+  yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, navigateToThread)
 }
 
 export default chat2Saga

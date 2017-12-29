@@ -5,6 +5,7 @@ import * as Types from '../../constants/types/chat'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as Constants from '../../constants/chat'
 import * as DeviceTypes from '../../constants/types/devices'
+import * as Chat2Gen from '../chat2-gen'
 import * as ChatGen from '../chat-gen'
 import * as EngineRpc from '../../constants/engine'
 import * as EntityCreators from '../entities'
@@ -901,7 +902,7 @@ function _updateMessageEntity(action: ChatGen.UpdateTempMessagePayload) {
 }
 
 function _openConversation({payload: {conversationIDKey}}: ChatGen.OpenConversationPayload) {
-  return Saga.put(ChatGen.createSelectConversation({conversationIDKey}))
+  return Saga.put(Chat2Gen.createSelectConversation({conversationIDKey}))
 }
 
 function _removeOutboxMessage(

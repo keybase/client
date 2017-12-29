@@ -5,6 +5,10 @@
     "import HiddenString from '../util/hidden-string'"
   ],
   "actions": {
+    "selectConversation": {
+      "conversationIDKey": "?Types.ConversationIDKey",
+      "fromUser?": "boolean"
+    },
     "badgesUpdated": {
       "conversations": "Array<RPCTypes.BadgeConversationInfo>"
     },

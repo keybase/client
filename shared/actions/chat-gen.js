@@ -66,8 +66,6 @@ export const retryMessage = 'chat:retryMessage'
 export const saveAttachment = 'chat:saveAttachment'
 export const saveAttachmentNative = 'chat:saveAttachmentNative'
 export const selectAttachment = 'chat:selectAttachment'
-export const selectConversation = 'chat:selectConversation'
-export const selectNext = 'chat:selectNext'
 export const setInboxGlobalUntrustedState = 'chat:setInboxGlobalUntrustedState'
 export const setInboxSyncingState = 'chat:setInboxSyncingState'
 export const setLoaded = 'chat:setLoaded'
@@ -154,8 +152,6 @@ export const createRetryMessage = (payload: {|+conversationIDKey: Types.Conversa
 export const createSaveAttachment = (payload: {|+messageKey: Types.MessageKey|}) => ({error: false, payload, type: saveAttachment})
 export const createSaveAttachmentNative = (payload: {|+messageKey: Types.MessageKey|}) => ({error: false, payload, type: saveAttachmentNative})
 export const createSelectAttachment = (payload: {|+input: Types.AttachmentInput|}) => ({error: false, payload, type: selectAttachment})
-export const createSelectConversation = (payload: {|+conversationIDKey: ?Types.ConversationIDKey, +fromUser?: boolean|}) => ({error: false, payload, type: selectConversation})
-export const createSelectNext = (payload: {|+rows: Array<{conversationIDKey: Types.ConversationIDKey}>, +direction: -1 | 1|}) => ({error: false, payload, type: selectNext})
 export const createSetInboxGlobalUntrustedState = (payload: {|+inboxGlobalUntrustedState: Types.UntrustedState|}) => ({error: false, payload, type: setInboxGlobalUntrustedState})
 export const createSetInboxSyncingState = (payload: {|+inboxSyncingState: Types.SyncingState|}) => ({error: false, payload, type: setInboxSyncingState})
 export const createSetLoaded = (payload: {|+conversationIDKey: Types.ConversationIDKey, +isLoaded: boolean|}) => ({error: false, payload, type: setLoaded})
@@ -242,8 +238,6 @@ export type RetryMessagePayload = More.ReturnType<typeof createRetryMessage>
 export type SaveAttachmentNativePayload = More.ReturnType<typeof createSaveAttachmentNative>
 export type SaveAttachmentPayload = More.ReturnType<typeof createSaveAttachment>
 export type SelectAttachmentPayload = More.ReturnType<typeof createSelectAttachment>
-export type SelectConversationPayload = More.ReturnType<typeof createSelectConversation>
-export type SelectNextPayload = More.ReturnType<typeof createSelectNext>
 export type SetInboxGlobalUntrustedStatePayload = More.ReturnType<typeof createSetInboxGlobalUntrustedState>
 export type SetInboxSyncingStatePayload = More.ReturnType<typeof createSetInboxSyncingState>
 export type SetLoadedPayload = More.ReturnType<typeof createSetLoaded>
@@ -332,8 +326,6 @@ export type Actions =
   | More.ReturnType<typeof createSaveAttachment>
   | More.ReturnType<typeof createSaveAttachmentNative>
   | More.ReturnType<typeof createSelectAttachment>
-  | More.ReturnType<typeof createSelectConversation>
-  | More.ReturnType<typeof createSelectNext>
   | More.ReturnType<typeof createSetInboxGlobalUntrustedState>
   | More.ReturnType<typeof createSetInboxSyncingState>
   | More.ReturnType<typeof createSetLoaded>

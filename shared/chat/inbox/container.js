@@ -239,7 +239,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRou
     const idx = goodRows.findIndex(row => row.conversationIDKey === selectedConversationIDKey)
     if (goodRows.length) {
       const {conversationIDKey} = goodRows[(idx + direction + goodRows.length) % goodRows.length]
-      dispatch(ChatGen.createSelectConversation({conversationIDKey, fromUser: true}))
+      dispatch(Chat2Gen.createSelectConversation({conversationIDKey, fromUser: true}))
     }
   },
   getTeams: () => dispatch(TeamsGen.createGetTeams()),
@@ -253,7 +253,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRou
   },
   onNewChat: () => dispatch(ChatGen.createNewChat()),
   onSelect: (conversationIDKey: ?Types.ConversationIDKey) =>
-    dispatch(ChatGen.createSelectConversation({conversationIDKey, fromUser: true})),
+    dispatch(Chat2Gen.createSelectConversation({conversationIDKey, fromUser: true})),
   onSetFilter: (filter: string) => dispatch(Chat2Gen.createSetInboxFilter({filter})),
   onUntrustedInboxVisible: (conversationIDKeys: Array<Types.ConversationIDKey>) =>
     dispatch(

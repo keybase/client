@@ -5,10 +5,11 @@ import logger from '../../logger'
 import * as ChatTypes from '../../constants/types/rpc-chat-gen'
 import * as Constants from '../../constants/chat'
 import * as ChatGen from '../../actions/chat-gen'
-import * as I from 'immutable'
+import * as Chat2Gen from '../../actions/chat2-gen'
+// import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
-import * as SearchGen from '../search-gen'
+// import * as SearchGen from '../search-gen'
 import * as Selectors from '../../constants/selectors'
 import * as Shared from './shared'
 import uniq from 'lodash/uniq'
@@ -58,11 +59,11 @@ function* _startConversation(action: ChatGen.StartConversationPayload): Saga.Sag
     if (!newID[0]) {
       throw new Error('Unable to get new conversation ID')
     }
-    yield Saga.put(ChatGen.createSelectConversation({conversationIDKey: newID[0]}))
+    yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey: newID[0]}))
   } else if (existing) {
     // Select existing conversations
     yield Saga.put(
-      ChatGen.createSelectConversation({
+      Chat2Gen.createSelectConversation({
         conversationIDKey: existing.get('conversationIDKey'),
       })
     )
@@ -71,73 +72,73 @@ function* _startConversation(action: ChatGen.StartConversationPayload): Saga.Sag
     // Make a pending conversation so it appears in the inbox
     const conversationIDKey = Constants.pendingConversationIDKey(tlfName)
     yield Saga.put(ChatGen.createAddPending({participants: users, temporary}))
-    yield Saga.put(ChatGen.createSelectConversation({conversationIDKey}))
+    yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey}))
     yield Saga.put(switchTo([chatTab]))
   }
 }
 
-function* _selectConversation(action: ChatGen.SelectConversationPayload): Saga.SagaGenerator<any, any> {
-  const {conversationIDKey, fromUser} = action.payload
+// function* _selectConversation(action: ChatGen.SelectConversationPayload): Saga.SagaGenerator<any, any> {
+// const {conversationIDKey, fromUser} = action.payload
 
-  logger.info(`selectConversation: selecting: ${conversationIDKey || ''}`)
-  // Always show this in the inbox
-  if (conversationIDKey) {
-    yield Saga.put(
-      ChatGen.createMergeEntity({keyPath: ['inboxAlwaysShow'], entities: I.Map({[conversationIDKey]: true})})
-    )
-  }
+// logger.info(`selectConversation: selecting: ${conversationIDKey || ''}`)
+// // Always show this in the inbox
+// if (conversationIDKey) {
+// yield Saga.put(
+// ChatGen.createMergeEntity({keyPath: ['inboxAlwaysShow'], entities: I.Map({[conversationIDKey]: true})})
+// )
+// }
 
-  if (fromUser) {
-    yield Saga.put(ChatGen.createExitSearch({skipSelectPreviousConversation: true}))
-  }
+// if (fromUser) {
+// yield Saga.put(ChatGen.createExitSearch({skipSelectPreviousConversation: true}))
+// }
 
-  // Load the inbox item always
-  if (conversationIDKey) {
-    yield Saga.put(ChatGen.createGetInboxAndUnbox({conversationIDKeys: [conversationIDKey]}))
-  }
+// // Load the inbox item always
+// if (conversationIDKey) {
+// yield Saga.put(ChatGen.createGetInboxAndUnbox({conversationIDKeys: [conversationIDKey]}))
+// }
 
-  const state: TypedState = yield Saga.select()
-  let oldConversationState
-  if (conversationIDKey) {
-    oldConversationState = Shared.conversationStateSelector(state, conversationIDKey)
-  }
-  if (oldConversationState && oldConversationState.get('isStale') && conversationIDKey) {
-    logger.info(`selectConversation: clearing because stale: ${conversationIDKey || ''}`)
-    yield Saga.put(ChatGen.createClearMessages({conversationIDKey}))
-  }
+// const state: TypedState = yield Saga.select()
+// let oldConversationState
+// if (conversationIDKey) {
+// oldConversationState = Shared.conversationStateSelector(state, conversationIDKey)
+// }
+// if (oldConversationState && oldConversationState.get('isStale') && conversationIDKey) {
+// logger.info(`selectConversation: clearing because stale: ${conversationIDKey || ''}`)
+// yield Saga.put(ChatGen.createClearMessages({conversationIDKey}))
+// }
 
-  const inbox = Constants.getInbox(state, conversationIDKey)
-  const inSearch = state.chat.get('inSearch')
-  if (inbox && !inbox.teamname) {
-    const participants = inbox.get('participants').toArray()
-    yield Saga.put(ChatGen.createUpdateMetadata({users: participants}))
-    // Update search but don't update the filter
-    if (inSearch) {
-      const me = Selectors.usernameSelector(state)
-      yield Saga.put(
-        SearchGen.createSetUserInputItems({
-          searchKey: 'chatSearch',
-          searchResults: participants.filter(u => u !== me),
-        })
-      )
-    }
-  }
+// const inbox = Constants.getInbox(state, conversationIDKey)
+// const inSearch = state.chat.get('inSearch')
+// if (inbox && !inbox.teamname) {
+// const participants = inbox.get('participants').toArray()
+// yield Saga.put(ChatGen.createUpdateMetadata({users: participants}))
+// // Update search but don't update the filter
+// if (inSearch) {
+// const me = Selectors.usernameSelector(state)
+// yield Saga.put(
+// SearchGen.createSetUserInputItems({
+// searchKey: 'chatSearch',
+// searchResults: participants.filter(u => u !== me),
+// })
+// )
+// }
+// }
 
-  if (conversationIDKey) {
-    logger.info(`selectConversation: starting load more messages: ${conversationIDKey || ''}`)
-    yield Saga.put(ChatGen.createLoadMoreMessages({conversationIDKey, onlyIfUnloaded: true, fromUser}))
-    yield Saga.put(navigateTo([conversationIDKey], [chatTab]))
-  } else {
-    yield Saga.put(navigateTo([chatTab]))
-  }
+// if (conversationIDKey) {
+// logger.info(`selectConversation: starting load more messages: ${conversationIDKey || ''}`)
+// yield Saga.put(ChatGen.createLoadMoreMessages({conversationIDKey, onlyIfUnloaded: true, fromUser}))
+// yield Saga.put(navigateTo([conversationIDKey], [chatTab]))
+// } else {
+// yield Saga.put(navigateTo([chatTab]))
+// }
 
-  // Do this here because it's possible loadMoreMessages bails early
-  // but there are still unread messages that need to be marked as read
-  if (fromUser && conversationIDKey) {
-    yield Saga.put(ChatGen.createUpdateBadging({conversationIDKey}))
-    yield Saga.put(ChatGen.createUpdateLatestMessage({conversationIDKey}))
-  }
-}
+// // Do this here because it's possible loadMoreMessages bails early
+// // but there are still unread messages that need to be marked as read
+// if (fromUser && conversationIDKey) {
+// yield Saga.put(ChatGen.createUpdateBadging({conversationIDKey}))
+// yield Saga.put(ChatGen.createUpdateLatestMessage({conversationIDKey}))
+// }
+// }
 
 const _openTeamConversation = function*(action: ChatGen.OpenTeamConversationPayload) {
   // TODO handle channels you're not a member of, or small teams you've never opened the chat for.
@@ -288,7 +289,6 @@ function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ChatGen.leaveConversation, _leaveConversation)
   yield Saga.safeTakeEveryPure(ChatGen.muteConversation, _muteConversation)
   yield Saga.safeTakeEvery(ChatGen.startConversation, _startConversation)
-  yield Saga.safeTakeLatest(ChatGen.selectConversation, _selectConversation)
   yield Saga.safeTakeEvery(
     [ChatGen.setNotifications, ChatGen.updatedNotifications, ChatGen.toggleChannelWideNotifications],
     _setNotifications

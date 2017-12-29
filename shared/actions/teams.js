@@ -14,7 +14,7 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as RouteTypes from '../constants/types/route-tree'
 import * as RouteConstants from '../constants/route-tree'
-import * as ChatGen from './chat-gen'
+import * as Chat2Gen from './chat2-gen'
 import engine from '../engine'
 import {replaceEntity} from './entities'
 import {usernameSelector} from '../constants/selectors'
@@ -279,7 +279,7 @@ const _createNewTeamFromConversation = function*(
           })
         }
       }
-      yield Saga.put(ChatGen.createSelectConversation({conversationIDKey: null}))
+      yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey: null}))
     } catch (error) {
       yield Saga.put(TeamsGen.createSetTeamCreationError({error: error.desc}))
     } finally {
@@ -595,7 +595,7 @@ function* _createChannel(action: TeamsGen.CreateChannelPayload) {
     )
 
     // Select the new channel, and switch to the chat tab.
-    yield Saga.put(ChatGen.createSelectConversation({conversationIDKey: newConversationIDKey}))
+    yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey: newConversationIDKey}))
     yield Saga.put(navigateTo([chatTab]))
   } catch (error) {
     yield Saga.put(TeamsGen.createSetTeamCreationError({error: error.desc}))
