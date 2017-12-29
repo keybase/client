@@ -1001,6 +1001,8 @@ func (t *TeamSigChainPlayer) addInnerLink(
 					removal.satisfied = true
 					removals[uv.Uid] = removal
 					if invitees[uv.Uid] && uv.EldestSeqno > removal.uv.EldestSeqno {
+						// If we are removing someone that is also a completed invite, then it must
+						// be replacing a reset user with a new version. Expect an invite in this case.
 						nCompletedExpected++
 					}
 				} else {

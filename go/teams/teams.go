@@ -1382,8 +1382,6 @@ func (t *Team) sigPayload(sigMultiItem libkb.SigMultiItem, args sigPayloadArgs) 
 }
 
 func (t *Team) postMulti(payload libkb.JSONPayload) error {
-	out, _ := json.MarshalIndent(payload, "", "\t")
-	t.G().Log.Debug("SIG: %s", string(out))
 	_, err := t.G().API.PostJSON(libkb.APIArg{
 		Endpoint:    "sig/multi",
 		SessionType: libkb.APISessionTypeREQUIRED,
