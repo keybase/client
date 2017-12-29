@@ -243,6 +243,7 @@ func (o TeamMembers) DeepCopy() TeamMembers {
 type TeamMemberDetails struct {
 	Uv       UserVersion `codec:"uv" json:"uv"`
 	Username string      `codec:"username" json:"username"`
+	FullName FullName    `codec:"fullName" json:"fullName"`
 	Active   bool        `codec:"active" json:"active"`
 	NeedsPUK bool        `codec:"needsPUK" json:"needsPUK"`
 }
@@ -251,6 +252,7 @@ func (o TeamMemberDetails) DeepCopy() TeamMemberDetails {
 	return TeamMemberDetails{
 		Uv:       o.Uv.DeepCopy(),
 		Username: o.Username,
+		FullName: o.FullName.DeepCopy(),
 		Active:   o.Active,
 		NeedsPUK: o.NeedsPUK,
 	}
@@ -1334,26 +1336,28 @@ func (o TeamRefreshers) DeepCopy() TeamRefreshers {
 }
 
 type LoadTeamArg struct {
-	ID              TeamID         `codec:"ID" json:"ID"`
-	Name            string         `codec:"name" json:"name"`
-	Public          bool           `codec:"public" json:"public"`
-	NeedAdmin       bool           `codec:"needAdmin" json:"needAdmin"`
-	Refreshers      TeamRefreshers `codec:"refreshers" json:"refreshers"`
-	ForceFullReload bool           `codec:"forceFullReload" json:"forceFullReload"`
-	ForceRepoll     bool           `codec:"forceRepoll" json:"forceRepoll"`
-	StaleOK         bool           `codec:"staleOK" json:"staleOK"`
+	ID               TeamID         `codec:"ID" json:"ID"`
+	Name             string         `codec:"name" json:"name"`
+	Public           bool           `codec:"public" json:"public"`
+	NeedAdmin        bool           `codec:"needAdmin" json:"needAdmin"`
+	RefreshUIDMapper bool           `codec:"refreshUIDMapper" json:"refreshUIDMapper"`
+	Refreshers       TeamRefreshers `codec:"refreshers" json:"refreshers"`
+	ForceFullReload  bool           `codec:"forceFullReload" json:"forceFullReload"`
+	ForceRepoll      bool           `codec:"forceRepoll" json:"forceRepoll"`
+	StaleOK          bool           `codec:"staleOK" json:"staleOK"`
 }
 
 func (o LoadTeamArg) DeepCopy() LoadTeamArg {
 	return LoadTeamArg{
-		ID:              o.ID.DeepCopy(),
-		Name:            o.Name,
-		Public:          o.Public,
-		NeedAdmin:       o.NeedAdmin,
-		Refreshers:      o.Refreshers.DeepCopy(),
-		ForceFullReload: o.ForceFullReload,
-		ForceRepoll:     o.ForceRepoll,
-		StaleOK:         o.StaleOK,
+		ID:               o.ID.DeepCopy(),
+		Name:             o.Name,
+		Public:           o.Public,
+		NeedAdmin:        o.NeedAdmin,
+		RefreshUIDMapper: o.RefreshUIDMapper,
+		Refreshers:       o.Refreshers.DeepCopy(),
+		ForceFullReload:  o.ForceFullReload,
+		ForceRepoll:      o.ForceRepoll,
+		StaleOK:          o.StaleOK,
 	}
 }
 

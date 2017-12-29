@@ -231,7 +231,8 @@ func TestTeamReInviteAfterReset(t *testing.T) {
 	bob.reset()
 	bob.loginAfterResetNoPUK(10)
 
-	// Try to add again (bob still doesn't have a PUK).
+	// Try to add again (bob still doesn't have a PUK). Adding this
+	// invitation should automatically cancel first invitation.
 	ann.addTeamMember(teamName.String(), bob.username, keybase1.TeamRole_ADMIN) // Invitation 2
 
 	t.Logf("Trying to get a PUK")

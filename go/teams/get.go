@@ -86,9 +86,10 @@ func GetTeamByNameForTest(ctx context.Context, g *libkb.GlobalContext, name stri
 func GetMaybeAdminByStringName(ctx context.Context, g *libkb.GlobalContext, name string, public bool) (*Team, error) {
 	// Find out our up-to-date role.
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
-		Name:        name,
-		Public:      public,
-		ForceRepoll: true,
+		Name:             name,
+		Public:           public,
+		ForceRepoll:      true,
+		RefreshUIDMapper: true,
 	})
 	if err != nil {
 		return nil, fixupTeamGetError(ctx, g, err, name, public)

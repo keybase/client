@@ -76,10 +76,11 @@ func verifyMemberRoleInTeam(ctx context.Context, userID keybase1.UID, expectedRo
 // trigger a reload with ForceRepoll if cached state does not match.
 func getTeamForMember(ctx context.Context, g *libkb.GlobalContext, member keybase1.MemberInfo, needAdmin bool) (team *Team, uv keybase1.UserVersion, err error) {
 	team, err = Load(ctx, g, keybase1.LoadTeamArg{
-		ID:          member.TeamID,
-		NeedAdmin:   needAdmin,
-		Public:      member.TeamID.IsPublic(),
-		ForceRepoll: false,
+		ID:               member.TeamID,
+		NeedAdmin:        needAdmin,
+		Public:           member.TeamID.IsPublic(),
+		ForceRepoll:      false,
+		RefreshUIDMapper: true,
 	})
 	if err != nil {
 		return nil, uv, err
@@ -490,7 +491,9 @@ func AnnotateSeitanInvite(ctx context.Context, team *Team, invite keybase1.TeamI
 	return "", nil
 }
 
-func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext, team *Team) (map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite, error) {
+type AnnotatedInviteMap map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite
+
+func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext, team *Team) (AnnotatedInviteMap, error) {
 	invites := team.chain().inner.ActiveInvites
 	teamName := team.Name().String()
 
@@ -546,6 +549,121 @@ func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext, team *Team) (m
 			UserActive:      active,
 		}
 	}
+	return annotatedInvites, nil
+}
+
+// AnnotateInvitesUIDMapper does what AnnotateInvites does but using
+// UIDMapper, so it's fast but may be wrong. It also puts any keybase
+// invites to members set which reference should be passed as argument.
+// PUKless members also will not be present in returned AnnotatedInviteMap.
+func AnnotateInvitesUIDMapper(ctx context.Context, g *libkb.GlobalContext, team *Team, members *keybase1.TeamMembersDetails) (AnnotatedInviteMap, error) {
+	invites := team.chain().inner.ActiveInvites
+	annotatedInvites := make(map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite, len(invites))
+	if len(invites) == 0 {
+		return annotatedInvites, nil
+	}
+
+	// UID list to pass to UIDMapper to get full names. Duplicate UIDs
+	// are fine, MapUIDsReturnMap will filter them out.
+	var uids []keybase1.UID
+	for _, invite := range invites {
+		uids = append(uids, invite.Inviter.Uid)
+
+		category, err := invite.Type.C()
+		if err != nil {
+			return nil, err
+		}
+		if category == keybase1.TeamInviteCategory_KEYBASE {
+			uv, err := invite.KeybaseUserVersion()
+			if err != nil {
+				return nil, err
+			}
+			uids = append(uids, uv.Uid)
+		}
+	}
+
+	namePkgs, err := uidmap.MapUIDsReturnMap(ctx, g.UIDMapper, g, uids, 0, 0, true)
+	if err != nil {
+		// UIDMap returned an error, but there may be useful data in the result.
+		g.Log.CDebugf(ctx, "AnnotateInvitesUIDMapper: MapUIDsReturnMap returned: %v", err)
+	}
+
+	teamName := team.Name().String()
+	for id, invite := range invites {
+		username := namePkgs[invite.Inviter.Uid].NormalizedUsername
+
+		name := invite.Name
+		category, err := invite.Type.C()
+		if err != nil {
+			return nil, err
+		}
+		var uv keybase1.UserVersion
+		if category == keybase1.TeamInviteCategory_KEYBASE {
+			// "keybase" invites (i.e. pukless users) have user version for name
+			uv, err := invite.KeybaseUserVersion()
+			if err != nil {
+				return nil, err
+			}
+			var active = true
+			var fullName keybase1.FullName
+			pkg := namePkgs[uv.Uid]
+			if pkg.FullName != nil {
+				if pkg.FullName.EldestSeqno != uv.EldestSeqno {
+					active = false
+				}
+				fullName = pkg.FullName.FullName
+			}
+
+			if !active {
+				// Skip inactive puk-less members for now. Causes
+				// duplicate usernames in team list which we don't
+				// want.
+				continue
+			}
+
+			details := keybase1.TeamMemberDetails{
+				Uv:       uv,
+				Username: pkg.NormalizedUsername.String(),
+				Active:   active,
+				NeedsPUK: true,
+				FullName: fullName,
+			}
+
+			switch invite.Role {
+			case keybase1.TeamRole_OWNER:
+				members.Owners = append(members.Owners, details)
+			case keybase1.TeamRole_ADMIN:
+				members.Admins = append(members.Admins, details)
+			case keybase1.TeamRole_WRITER:
+				members.Writers = append(members.Writers, details)
+			case keybase1.TeamRole_READER:
+				members.Readers = append(members.Readers, details)
+			}
+
+			// Continue to skip adding this invite to annotatedInvites
+			continue
+		} else if category == keybase1.TeamInviteCategory_SEITAN {
+			name, err = AnnotateSeitanInvite(ctx, team, invite)
+			if err != nil {
+				// There are seitan invites in the wild from before https://github.com/keybase/client/pull/9816
+				// These can no longer be decrypted, we hide them.
+				g.Log.CDebugf(ctx, "error annotating seitan invite (%v): %v", id, err)
+				continue
+			}
+		}
+
+		annotatedInvites[id] = keybase1.AnnotatedTeamInvite{
+			Role:            invite.Role,
+			Id:              invite.Id,
+			Type:            invite.Type,
+			Name:            name,
+			Uv:              uv,
+			Inviter:         invite.Inviter,
+			InviterUsername: username.String(),
+			TeamName:        teamName,
+		}
+	}
+
 	return annotatedInvites, nil
 }
 

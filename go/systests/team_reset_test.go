@@ -695,3 +695,46 @@ func TestTeamOpenReset(t *testing.T) {
 	ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(3), nil)
 	ann.assertMemberActive(team, bob)
 }
+
+func TestTeamListAfterReset(t *testing.T) {
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	ann := ctx.installKeybaseForUser("ann", 10)
+	ann.signup()
+	divDebug(ctx, "Signed up ann (%s, %s)", ann.username, ann.uid())
+	bob := ctx.installKeybaseForUser("bob", 10)
+	bob.signup()
+	divDebug(ctx, "Signed up bob (%s, %s)", bob.username, bob.uid())
+	cam := ctx.installKeybaseForUser("cam", 10)
+	cam.signup()
+	divDebug(ctx, "Signed up cam (%s, %s)", cam.username, cam.uid())
+
+	team := ann.createTeam([]*smuUser{bob, cam})
+	divDebug(ctx, "team created (%s)", team.name)
+
+	// ensure bob is active according to other users
+	ann.assertMemberActive(team, bob)
+
+	bob.reset()
+	divDebug(ctx, "Reset bob (%s)", bob.username)
+
+	bob.loginAfterReset(10)
+	divDebug(ctx, "Bob logged in after reset")
+
+	ann.addWriter(team, bob)
+	divDebug(ctx, "Added bob back as a writer")
+
+	list, err := cam.teamGet(team)
+	require.NoError(t, err)
+	found := false
+	for _, w := range list.Members.Writers {
+		if w.Username == bob.username {
+			require.False(t, found, "wasn't found twice")
+			require.True(t, w.Uv.EldestSeqno > 1, "reset eldset seqno")
+			require.True(t, w.Active, "is active")
+			found = true
+		}
+	}
+	require.True(t, found, "we found bob (before he found us)")
+}
