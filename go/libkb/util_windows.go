@@ -6,7 +6,6 @@
 package libkb
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -66,38 +65,35 @@ func PosixLineEndings(arg string) string {
 	return strings.Replace(arg, "\r", "", -1)
 }
 
-func coTaskMemFree(pv uintptr) {
+func coTaskMemFree(pv unsafe.Pointer) {
 	syscall.Syscall(procCoTaskMemFree.Addr(), 1, uintptr(pv), 0, 0)
 	return
 }
 
-func GetDataDir(id GUID, envname string) (string, error) {
-
-	var pszPath uintptr
+func GetDataDir(id GUID, name, envname string) (string, error) {
+	var pszPath unsafe.Pointer
 	// https://msdn.microsoft.com/en-us/library/windows/desktop/bb762188(v=vs.85).aspx
 	// When this method returns, contains the address of a pointer to a null-terminated
 	// Unicode string that specifies the path of the known folder. The calling process
 	// is responsible for freeing this resource once it is no longer needed by calling
-	// CoTaskMemFree.
+	// coTaskMemFree.
 	r0, _, _ := procSHGetKnownFolderPath.Call(uintptr(unsafe.Pointer(&id)), uintptr(0), uintptr(0), uintptr(unsafe.Pointer(&pszPath)))
-	// Sometimes r0 == 0 and there still isn't a valid string returned
-	if r0 != 0 || pszPath == 0 {
-		return "", fmt.Errorf("can't get %s", envname)
+	if pszPath != (unsafe.Pointer{}) {
+		defer coTaskMemFree(pszPath)
 	}
-
-	defer coTaskMemFree(pszPath)
+	// Sometimes r0 == 0 and there still isn't a valid string returned
+	if r0 != 0 || pszPath == (unsafe.Pointer{}) {
+		return "", fmt.Errorf("can't get %s; HRESULT=%d, pszPath=%x", name, r0, pszPath)
+	}
 
 	var rawUnicode []uint16
 	for i := uintptr(0); ; i++ {
-		// This triggers a "possible misuse of unsafe.Pointer"
-		// warning in go vet, but it is safe to ignore it: see
-		// https://groups.google.com/forum/#!msg/golang-nuts/0JYB0-ZcFpk/Zt5q1rPbBQAJ .
-		u16 := *(*uint16)(unsafe.Pointer(pszPath + 2*i))
+		u16 := *(*uint16)(unsafe.Pointer(uintptr(pszPath) + 2*i))
 		if u16 == 0 {
 			break
 		}
 		if i == 1<<16 {
-			return "", fmt.Errorf("%s path has more than 65535 characters", envname)
+			return "", fmt.Errorf("%s path has more than 65535 characters", name)
 		}
 
 		rawUnicode = append(rawUnicode, u16)
@@ -109,7 +105,7 @@ func GetDataDir(id GUID, envname string) (string, error) {
 		// Try the environment as a backup
 		folder = os.Getenv(envname)
 		if len(folder) == 0 {
-			return "", errors.New("can't get AppData directory")
+			return "", fmt.Errorf("can't get %s directory", envname)
 		}
 	}
 
@@ -117,11 +113,11 @@ func GetDataDir(id GUID, envname string) (string, error) {
 }
 
 func AppDataDir() (string, error) {
-	return GetDataDir(FOLDERIDRoamingAppData, "APPDATA")
+	return GetDataDir(FOLDERIDRoamingAppData, "FOLDERIDRoamingAppData", "APPDATA")
 }
 
 func LocalDataDir() (string, error) {
-	return GetDataDir(FOLDERIDLocalAppData, "LOCALAPPDATA")
+	return GetDataDir(FOLDERIDLocalAppData, "FOLDERIDLocalAppData", "LOCALAPPDATA")
 }
 
 // SafeWriteToFile retries safeWriteToFileOnce a few times on Windows,
