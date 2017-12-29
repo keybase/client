@@ -8,32 +8,32 @@ import * as util from '../util'
 import {SmallTeam} from '.'
 import {pausableConnect, type TypedState, type Dispatch} from '../../../../util/container'
 
+type OwnProps = {conversationIDKey: ?Types.ConversationIDKey, isActiveRoute: boolean}
 const emptyMeta = Constants2.makeConversationMeta()
 
-type OwnProps = {conversationIDKey: ?Types.ConversationIDKey, isActiveRoute: boolean}
-
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
-  const conversationIDKey = ownProps.conversationIDKey || ''
+  const _conversationIDKey = ownProps.conversationIDKey || ''
   const {isActiveRoute} = ownProps
-  const isPending = Constants.isPendingConversationIDKey(conversationIDKey)
-  const youAreReset = Constants.isResetConversationIDKey(state, conversationIDKey)
+  const isPending = Constants.isPendingConversationIDKey(_conversationIDKey)
+  const youAreReset = Constants.isResetConversationIDKey(state, _conversationIDKey)
 
   // TODO remove
   const p = isPending
-    ? util.pendingSnippetRowSelector(state, conversationIDKey)
-    : util.snippetRowSelector(state, conversationIDKey)
+    ? util.pendingSnippetRowSelector(state, _conversationIDKey)
+    : util.snippetRowSelector(state, _conversationIDKey)
 
   return {
-    _meta: (conversationIDKey && Constants2.getMeta(state, conversationIDKey)) || emptyMeta,
+    _conversationIDKey,
+    _messageIDs: (_conversationIDKey && state.chat2.messageOrdinals.get(_conversationIDKey)) || I.List(),
+    _messageMap: (_conversationIDKey && state.chat2.messageMap.get(_conversationIDKey)) || I.Map(),
+    _meta: (_conversationIDKey && Constants2.getMeta(state, _conversationIDKey)) || emptyMeta,
     _username: state.config.username || '',
-    hasBadge: Constants2.getHasBadge(state, conversationIDKey),
-    hasResetUsers: state.chat.inboxResetParticipants.get(conversationIDKey || '', I.Set()).size > 0,
-    hasUnread: Constants2.getHasUnread(state, conversationIDKey),
+    hasBadge: Constants2.getHasBadge(state, _conversationIDKey),
+    hasResetUsers: state.chat.inboxResetParticipants.get(_conversationIDKey || '', I.Set()).size > 0,
+    hasUnread: Constants2.getHasUnread(state, _conversationIDKey),
     isActiveRoute,
-    isSelected: Constants2.getIsSelected(state, conversationIDKey),
+    isSelected: Constants2.getIsSelected(state, _conversationIDKey),
     participantNeedToRekey: p.participantNeedToRekey,
-    snippet: Constants2.getSnippet(state, conversationIDKey),
-    timestamp: p.timestamp,
     youAreReset,
     youNeedToRekey: p.youNeedToRekey,
   }
@@ -50,7 +50,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const isSelected = stateProps.isSelected
   const hasUnread = stateProps.hasUnread
   const derivedProps = Constants2.getRowColors(stateProps._meta, isSelected, hasUnread)
-
+  const snippetMessage = Constants2.getSnippetMessage(
+    stateProps._messageMap,
+    stateProps._messageIDs,
+    stateProps._conversationIDKey
+  )
   return {
     backgroundColor: derivedProps.backgroundColor,
     hasBadge: stateProps.hasBadge,
@@ -63,10 +67,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     participantNeedToRekey: stateProps.participantNeedToRekey,
     participants: Constants2.getRowParticipants(stateProps._meta, stateProps._username),
     showBold: derivedProps.showBold,
-    snippet: stateProps.snippet,
+    snippet: Constants2.getSnippetText(snippetMessage),
     subColor: derivedProps.subColor,
     teamname: stateProps._meta.teamname,
-    timestamp: stateProps.timestamp,
+    timestamp: Constants2.getSnippetTimestamp(snippetMessage),
     usernameColor: derivedProps.usernameColor,
     youAreReset: stateProps.youAreReset,
     youNeedToRekey: stateProps.youNeedToRekey,

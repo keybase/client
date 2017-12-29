@@ -72,6 +72,6 @@ export type MessageAttachment = I.RecordOf<_MessageAttachment>
 // |}
 // export type MessageSystem = I.RecordOf<_MessageSystem>
 
-export type Message = MessageText | MessageAttachment
+export type Message = MessageText | MessageAttachment | MessageDeleted
 // export type Message = I.RecordOf<_Message>
 // | MessageError | MessageSystem

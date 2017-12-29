@@ -7,7 +7,7 @@ import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as Types from '../types/chat2'
 import HiddenString from '../../util/hidden-string'
 import clamp from 'lodash/clamp'
-import type {TypedState} from '../reducer'
+import {formatTimeForConversationList} from '../../util/timestamp'
 
 // flow is geting confused
 const makeMessageCommon = {
@@ -143,45 +143,16 @@ const textSnippet = (message: ?string = '', max: number) =>
   // $FlowIssue flow doesn't understand spread + strings
   [...message.substring(0, max * 4).replace(/\s+/g, ' ')].slice(0, max).join('')
 
-export const getSnippet = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
-  // const snippetTypes = ['attachment', 'text', 'system']
-  const messageMap: I.Map<Types.Ordinal, Types.Message> = state.chat2.messageMap.get(
-    conversationIDKey,
-    I.Map()
-  )
-  const messageIDs: I.List<Types.Ordinal> = state.chat2.messageOrdinals.get(conversationIDKey, I.List())
-  const messageID: ?Types.Ordinal = messageIDs.findLast(id => {
-    const message: ?Types.Message = messageMap.get(id)
-    if (!message) {
-      return false
-    }
-    switch (message.type) {
-      case 'text':
-      case 'attachment':
-      case 'system':
-        return true
-      default:
-        return false
-    }
-  })
-  if (!messageID) {
-    // Have a deleted one?
-    const messageID = messageIDs.last()
-    if (messageID) {
-      const message = messageMap.get(messageID)
-      if (message && message.type === 'deleted') {
-        return '[deleted]'
-      }
-    }
+export const getSnippetTimestamp = (message: ?Types.Message) =>
+  message ? formatTimeForConversationList(message.timestamp) : ''
 
-    return ''
-  }
-  const message: ?Types.Message = messageMap.get(messageID)
+export const getSnippetText = (message: ?Types.Message) => {
   if (!message) {
     return ''
   }
-
   switch (message.type) {
+    case 'deleted':
+      return '[deleted]'
     case 'attachment': {
       const m: Types.MessageAttachment = message
       return textSnippet(m.title, 100)
@@ -194,4 +165,37 @@ export const getSnippet = (state: TypedState, conversationIDKey: Types.Conversat
     default:
       return ''
   }
+}
+
+export const getSnippetMessage = (
+  messageMap: I.Map<Types.Ordinal, Types.Message>,
+  messageOrdinals: I.List<Types.Ordinal>,
+  conversationIDKey: Types.ConversationIDKey
+) => {
+  const messageOrdinal: ?Types.Ordinal = messageOrdinals.findLast(id => {
+    const message: ?Types.Message = messageMap.get(id)
+    if (!message) {
+      return false
+    }
+    switch (message.type) {
+      case 'text':
+      case 'attachment':
+        // case 'system':
+        return true
+      default:
+        return false
+    }
+  })
+
+  if (!messageOrdinal) {
+    // Have a deleted one?
+    const messageOrdinal = messageOrdinals.last()
+    if (messageOrdinal) {
+      const message = messageMap.get(messageOrdinal)
+      return message
+    }
+
+    return null
+  }
+  return messageMap.get(messageOrdinal)
 }
