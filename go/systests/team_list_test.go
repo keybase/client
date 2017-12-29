@@ -172,15 +172,30 @@ func TestTeamDuplicateUIDList(t *testing.T) {
 	require.True(t, member.Active)
 	require.False(t, member.NeedsPUK)
 
+	// Check both functions: slow TeamListVerified, and fast (server
+	// trust) TeamList.
+
 	// TeamList reports memberCount of two: ann and bob. Second bob is
 	// ignored, because memberCount is set to number of unique UIDs.
-	list, err := teamCli.TeamList(context.TODO(), keybase1.TeamListArg{})
+
+	check := func(list *keybase1.AnnotatedTeamList) {
+		require.Equal(t, 1, len(list.Teams))
+		require.Equal(t, 0, len(list.AnnotatedActiveInvites))
+
+		teamInfo := list.Teams[0]
+		require.Equal(t, team, teamInfo.FqName)
+		require.Equal(t, 2, teamInfo.MemberCount)
+	}
+
+	t.Logf("Calling TeamListVerified")
+	list, err := teamCli.TeamListVerified(context.TODO(), keybase1.TeamListVerifiedArg{})
 	require.NoError(t, err)
 
-	require.Equal(t, 1, len(list.Teams))
-	require.Equal(t, 0, len(list.AnnotatedActiveInvites))
+	check(&list)
 
-	teamInfo := list.Teams[0]
-	require.Equal(t, team, teamInfo.FqName)
-	require.Equal(t, 2, teamInfo.MemberCount)
+	t.Logf("Calling TeamList")
+	list, err = teamCli.TeamList(context.TODO(), keybase1.TeamListArg{})
+	require.NoError(t, err)
+
+	check(&list)
 }
