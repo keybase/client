@@ -15,6 +15,8 @@ import type {TypedState} from '../../constants/reducer'
 import {RPCTimeoutError} from '../../util/errors'
 import {chatTab} from '../../constants/tabs'
 
+const ERROR_EVERYTHING = true
+ERROR_EVERYTHING && console.log('aaaa ERROR EVERYTNIG')
 /*
  * TODO:
  * untrused inbox view
@@ -143,37 +145,40 @@ const rpcMetaRequest = (action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.Se
         conv,
       }: RPCChatTypes.ChatUiChatInboxConversationRpcParam) {
         // TEMP to force errors
-        // const inboxUIItem: RPCChatTypes.InboxUIItem = JSON.parse(conv)
-        // const meta = Constants.inboxUIItemToConversationMeta(inboxUIItem)
-        // if (meta) {
-        // const state: TypedState = yield Saga.select()
-        // yield Saga.put(
-        // Chat2Gen.createMetaReceivedError({
-        // conversationIDKey: meta.conversationIDKey,
-        // error: {
-        // message: 'An error message',
-        // rekeyInfo: {
-        // // TODO set empty
-        // readerNames: ['foo', 'bar'],
-        // writerNames: meta.participants.toArray(),
-        // },
-        // typ: RPCChatTypes.localConversationErrorType.selfrekeyneeded, // TODO others
-        // unverifiedTLFName: meta.participants.toArray().join(','),
-        // },
-        // username: state.config.username || '',
-        // })
-        // )
-        // }
-        // TEMP put back
-        const inboxUIItem: RPCChatTypes.InboxUIItem = JSON.parse(conv)
-        const meta = Constants.inboxUIItemToConversationMeta(inboxUIItem)
-        if (meta) {
-          yield Saga.put(Chat2Gen.createMetasReceived({metas: [meta]}))
-        }
-        if (inboxUIItem.snippetMessage) {
-          const message = Constants.uiMessageToMessage(inboxUIItem.convID, inboxUIItem.snippetMessage)
-          if (message) {
-            yield Saga.put(Chat2Gen.createMessagesAdd({messages: [message]}))
+        if (ERROR_EVERYTHING) {
+          const inboxUIItem: RPCChatTypes.InboxUIItem = JSON.parse(conv)
+          const meta = Constants.inboxUIItemToConversationMeta(inboxUIItem)
+          if (meta) {
+            const state: TypedState = yield Saga.select()
+            yield Saga.put(
+              // $FlowIssue TEMP
+              Chat2Gen.createMetaReceivedError({
+                conversationIDKey: meta.conversationIDKey,
+                error: {
+                  message: 'An error message',
+                  rekeyInfo: {
+                    // TODO set empty
+                    readerNames: ['foo', 'bar'],
+                    writerNames: meta.participants.toArray(),
+                  },
+                  typ: RPCChatTypes.localConversationErrorType.selfrekeyneeded, // TODO others
+                  unverifiedTLFName: meta.participants.toArray().join(','),
+                },
+                username: state.config.username || '',
+              })
+            )
+          }
+        } else {
+          const inboxUIItem: RPCChatTypes.InboxUIItem = JSON.parse(conv)
+          const meta = Constants.inboxUIItemToConversationMeta(inboxUIItem)
+          if (meta) {
+            yield Saga.put(Chat2Gen.createMetasReceived({metas: [meta]}))
+          }
+          if (inboxUIItem.snippetMessage) {
+            const message = Constants.uiMessageToMessage(inboxUIItem.convID, inboxUIItem.snippetMessage)
+            if (message) {
+              yield Saga.put(Chat2Gen.createMessagesAdd({messages: [message]}))
+            }
           }
         }
         return EngineRpc.rpcResult()

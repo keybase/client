@@ -31,15 +31,18 @@ const metaMapReducer = (metaMap, action) => {
           const participants = error.rekeyInfo
             ? I.Set([].concat(error.rekeyInfo.writerNames, error.rekeyInfo.readerNames).filter(Boolean))
             : I.Set(error.unverifiedTLFName.split(','))
+          const old = metaMap.get(conversationIDKey)
           return metaMap.set(
             conversationIDKey,
             Constants.makeConversationMeta({
               conversationIDKey,
               participants,
               rekeyers: I.Set([username]),
+              teamType: old ? old.teamType : 'adhoc',
+              teamname: old ? old.teamname : '',
               trustedState: 'error',
               untrustedMessage: error.message,
-              untrustedTimestamp: metaMap.getIn([conversationIDKey, 'untrustedTimestamp'], 0),
+              untrustedTimestamp: old ? old.untrustedTimestamp : 0,
             })
           )
         }

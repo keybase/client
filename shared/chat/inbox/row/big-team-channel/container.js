@@ -6,6 +6,7 @@ import {pausableConnect, type TypedState} from '../../../../util/container'
 
 const mapStateToProps = (state: TypedState, {conversationIDKey, channelname, isActiveRoute}) => {
   const p = util.snippetRowSelector(state, conversationIDKey)
+  // TODO error
   return {
     channelname,
     hasBadge: p.hasBadge,

@@ -28,6 +28,10 @@ export const unverifiedInboxUIItemToConversationMeta = (
   i: RPCChatTypes.UnverifiedInboxUIItem,
   username: string
 ) => {
+  // TEMP ignore local cached chats
+  // i.localMetadata = null
+  // console.log('aaaa TEMP')
+
   // Public chats only
   if (i.visibility !== RPCTypes.commonTLFVisibility.private) {
     return null
