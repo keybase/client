@@ -257,7 +257,7 @@ func (c *CmdTeamListMemberships) outputRole(role string, members []keybase1.Team
 		if !member.Active {
 			reset = " (inactive due to account reset)"
 		}
-		fmt.Fprintf(c.tabw, "%s\t%s\t%s%s\n", c.team, role, member.Username, reset)
+		fmt.Fprintf(c.tabw, "%s\t%s\t%s\t%s%s\n", c.team, role, member.Username, member.FullName, reset)
 	}
 }
 

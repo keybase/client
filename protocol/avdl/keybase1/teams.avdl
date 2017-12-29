@@ -79,6 +79,7 @@ protocol teams {
   record TeamMemberDetails {
     UserVersion uv;
     string username;
+    FullName fullName;
     boolean active;
     @lint("ignore")
     boolean needsPUK;

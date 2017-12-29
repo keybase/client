@@ -243,6 +243,7 @@ func (o TeamMembers) DeepCopy() TeamMembers {
 type TeamMemberDetails struct {
 	Uv       UserVersion `codec:"uv" json:"uv"`
 	Username string      `codec:"username" json:"username"`
+	FullName FullName    `codec:"fullName" json:"fullName"`
 	Active   bool        `codec:"active" json:"active"`
 	NeedsPUK bool        `codec:"needsPUK" json:"needsPUK"`
 }
@@ -251,6 +252,7 @@ func (o TeamMemberDetails) DeepCopy() TeamMemberDetails {
 	return TeamMemberDetails{
 		Uv:       o.Uv.DeepCopy(),
 		Username: o.Username,
+		FullName: o.FullName.DeepCopy(),
 		Active:   o.Active,
 		NeedsPUK: o.NeedsPUK,
 	}
