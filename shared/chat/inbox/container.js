@@ -1,7 +1,7 @@
 // @flow
 import * as Constants from '../../constants/chat'
 import * as More from '../../constants/types/more'
-import * as Types from '../../constants/types/chat'
+import * as Types from '../../constants/types/chat2'
 import * as Inbox from '.'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as ChatGen from '../../actions/chat-gen'
@@ -18,6 +18,18 @@ import {
   type Dispatch,
 } from '../../util/container'
 
+type OwnProps = {
+  isActiveRoute: boolean,
+  filterFocusCount: number,
+  routeState: I.RecordOf<{
+    smallTeamsExpanded: boolean,
+  }>,
+  focusFilter: () => void,
+  setRouteState: ({
+    smallTeamsExpanded?: boolean,
+  }) => void,
+}
+
 const smallTeamsCollapsedMaxShown = 5
 const getMessageMap = (state: TypedState) => state.chat2.messageMap
 const getMessageOrdinals = (state: TypedState) => state.chat2.messageOrdinals
@@ -27,11 +39,9 @@ const getLastMessage = (messageOrdinals, messageMap, conversationIDKey) => {
   return ordinal ? messageMap.getIn([conversationIDKey, ordinal]) : null
 }
 
-// TODO see if this is too slow for large inboxes, could split out the last extraction into its own rereselect selector
 const getSmallIDs = createSelector(
   [getMetaMap, getMessageOrdinals, getMessageMap],
   (metaMap, messageOrdinals, messageMap) => {
-    // TODO empty? supersedes? always show?
     // Get small/adhoc teams
     const smallMap = metaMap.filter(meta => meta.teamType !== 'big')
     const recentMessages = smallMap.map((_, conversationIDKey) =>
@@ -50,7 +60,7 @@ const getSmallIDs = createSelector(
 const getBigRowItems = createSelector(
   [getMetaMap, getMessageOrdinals, getMessageMap],
   (metaMap, messageOrdinals, messageMap) => {
-    let lastTeam
+    let lastTeam: ?string
     return (
       metaMap
         // only big teams
@@ -66,10 +76,7 @@ const getBigRowItems = createSelector(
           // headers for new teams
           if (meta.teamname !== lastTeam) {
             lastTeam = meta.teamname
-            arr.push({
-              teamname: lastTeam,
-              type: 'bigHeader',
-            })
+            arr.push({teamname: lastTeam, type: 'bigHeader'})
           }
           // channels
           arr.push({
@@ -195,18 +202,6 @@ const getFilteredRowsAndMetadata = createSelector(
   }
 )
 
-type OwnProps = {
-  isActiveRoute: boolean,
-  filterFocusCount: number,
-  routeState: I.RecordOf<{
-    smallTeamsExpanded: boolean,
-  }>,
-  focusFilter: () => void,
-  setRouteState: ({
-    smallTeamsExpanded?: boolean,
-  }) => void,
-}
-
 const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}: OwnProps) => {
   const filter = state.chat2.inboxFilter
   const smallTeamsExpanded = routeState.get('smallTeamsExpanded')
@@ -257,18 +252,16 @@ const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRou
     }
   },
   onNewChat: () => dispatch(ChatGen.createNewChat()),
-  onSelect: (conversationIDKey: ?Types.ConversationIDKey) => {
-    dispatch(ChatGen.createSelectConversation({conversationIDKey, fromUser: true}))
-  },
+  onSelect: (conversationIDKey: ?Types.ConversationIDKey) =>
+    dispatch(ChatGen.createSelectConversation({conversationIDKey, fromUser: true})),
   onSetFilter: (filter: string) => dispatch(Chat2Gen.createSetInboxFilter({filter})),
-  onUntrustedInboxVisible: (conversationIDKeys: Array<Types.ConversationIDKey>) => {
+  onUntrustedInboxVisible: (conversationIDKeys: Array<Types.ConversationIDKey>) =>
     dispatch(
       Chat2Gen.createMetaNeedsUpdating({
         conversationIDKeys,
         reason: 'untrusted inbox visible',
       })
-    )
-  },
+    ),
   refreshInbox: (force: boolean) => dispatch(Chat2Gen.createInboxRefresh()),
   toggleSmallTeamsExpanded: () =>
     setRouteState({
