@@ -487,6 +487,8 @@ protocol teams {
     boolean isImplicitTeam;
     TeamRole role;
     union{null, ImplicitRole} implicit;
+    @jsonkey("member_count")
+    int memberCount;
   }
 
   record TeamList {
@@ -592,7 +594,14 @@ protocol teams {
   // Includes admins of the specified team only if they are also admins of ancestor teams.
   array<TeamMemberDetails> teamImplicitAdmins(int sessionID, string teamName);
 
+  // List either known team memberships for given userAssertion, or
+  // all team collegaues if `all` is true.
   AnnotatedTeamList teamList(int sessionID, string userAssertion, boolean all, boolean includeImplicitTeams);
+
+  // List verified known team memberships for given userAssertion.
+  // This function is slower than teamList because it has to load
+  // every team.
+  AnnotatedTeamList teamListVerified(int sessionID, string userAssertion, boolean includeImplicitTeams);
 
   // admin only
   array<TeamIDAndName> teamListSubteamsRecursive(int sessionID, string parentTeamName, boolean forceRepoll);

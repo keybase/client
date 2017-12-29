@@ -76,7 +76,7 @@ func ListTeamsFast(ctx context.Context, g *libkb.GlobalContext, arg keybase1.Tea
 			Implicit:       memberInfo.Implicit,
 			Username:       queryUsername.String(),
 			FullName:       queryFullName,
-			MemberCount:    0,
+			MemberCount:    memberInfo.MemberCount,
 			Active:         true,
 		}
 

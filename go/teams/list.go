@@ -235,6 +235,10 @@ func ListTeams(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamLis
 
 		anMemberInfo.MemberCount = len(memberUIDs)
 		res.Teams = append(res.Teams, *anMemberInfo)
+
+		if anMemberInfo.MemberCount != memberInfo.MemberCount {
+			g.Log.CDebugf(ctx, "| Disagreed with the server about member count for %q. Server says %d, we think %d", team.ID, memberInfo.memberCount, anMemberInfo.MemberCount)
+		}
 	}
 
 	if len(res.Teams) == 0 && !expectEmptyList {
@@ -362,7 +366,8 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 	if arg.All {
 		return ListAll(ctx, g, arg)
 	}
-	return ListTeams(ctx, g, arg)
+
+	return ListTeamsFast(ctx, g, arg)
 }
 
 func ListSubteamsRecursive(ctx context.Context, g *libkb.GlobalContext, parentTeamName string, forceRepoll bool) (res []keybase1.TeamIDAndName, err error) {

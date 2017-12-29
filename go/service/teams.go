@@ -125,6 +125,20 @@ func (h *TeamsHandler) TeamList(ctx context.Context, arg keybase1.TeamListArg) (
 	return *x, nil
 }
 
+func (h *TeamsHandler) TeamListVerified(ctx context.Context, arg keybase1.TeamListVerifiedArg) (res keybase1.AnnotatedTeamList, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamListVerified(%s)", arg.UserAssertion), func() error { return err })()
+	x, err := teams.ListTeams(ctx, h.G().ExternalG(), keybase1.TeamListArg{
+		SessionID:            arg.SessionID,
+		UserAssertion:        arg.UserAssertion,
+		IncludeImplicitTeams: arg.IncludeImplicitTeams,
+	})
+	if err != nil {
+		return keybase1.AnnotatedTeamList{}, err
+	}
+	return *x, nil
+}
+
 func (h *TeamsHandler) TeamListSubteamsRecursive(ctx context.Context, arg keybase1.TeamListSubteamsRecursiveArg) (res []keybase1.TeamIDAndName, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamListSubteamsRecursive(%s)", arg.ParentTeamName), func() error { return err })()

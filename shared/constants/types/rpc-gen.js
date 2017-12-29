@@ -1620,6 +1620,10 @@ export const teamsTeamListSubteamsRecursiveRpcChannelMap = (configKeys: Array<st
 
 export const teamsTeamListSubteamsRecursiveRpcPromise = (request: TeamsTeamListSubteamsRecursiveRpcParam): Promise<TeamsTeamListSubteamsRecursiveResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamListSubteamsRecursive', request, (error: RPCError, result: TeamsTeamListSubteamsRecursiveResult) => (error ? reject(error) : resolve(result))))
 
+export const teamsTeamListVerifiedRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamListVerifiedRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamListVerified', request)
+
+export const teamsTeamListVerifiedRpcPromise = (request: TeamsTeamListVerifiedRpcParam): Promise<TeamsTeamListVerifiedResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamListVerified', request, (error: RPCError, result: TeamsTeamListVerifiedResult) => (error ? reject(error) : resolve(result))))
+
 export const teamsTeamReAddMemberAfterResetRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamReAddMemberAfterResetRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamReAddMemberAfterReset', request)
 
 export const teamsTeamReAddMemberAfterResetRpcPromise = (request: TeamsTeamReAddMemberAfterResetRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamReAddMemberAfterReset', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
@@ -2606,7 +2610,7 @@ export type MDPriority = Int
 
 export type MaskB64 = Bytes
 
-export type MemberInfo = {|userID: UID, teamID: TeamID, fqName: String, isImplicitTeam: Boolean, role: TeamRole, implicit?: ?ImplicitRole|}
+export type MemberInfo = {|userID: UID, teamID: TeamID, fqName: String, isImplicitTeam: Boolean, role: TeamRole, implicit?: ?ImplicitRole, memberCount: Int|}
 
 export type MerkleGetCurrentMerkleRootRpcParam = {|freshnessMsec: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
@@ -3626,6 +3630,8 @@ export type TeamsTeamListRpcParam = {|userAssertion: String, all: Boolean, inclu
 
 export type TeamsTeamListSubteamsRecursiveRpcParam = {|parentTeamName: String, forceRepoll: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
+export type TeamsTeamListVerifiedRpcParam = {|userAssertion: String, includeImplicitTeams: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+
 export type TeamsTeamReAddMemberAfterResetRpcParam = {|id: TeamID, username: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
 export type TeamsTeamRemoveMemberRpcParam = {|name: String, username: String, email: String, inviteID: TeamInviteID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
@@ -3971,6 +3977,7 @@ type TeamsTeamListMyAccessRequestsResult = ?Array<TeamName>
 type TeamsTeamListRequestsResult = ?Array<TeamJoinRequest>
 type TeamsTeamListResult = AnnotatedTeamList
 type TeamsTeamListSubteamsRecursiveResult = ?Array<TeamIDAndName>
+type TeamsTeamListVerifiedResult = AnnotatedTeamList
 type TeamsTeamRequestAccessResult = TeamRequestAccessResult
 type TeamsTeamTreeResult = TeamTreeResult
 type TeamsUiConfirmRootTeamDeleteResult = Boolean

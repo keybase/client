@@ -1179,6 +1179,11 @@
             "ImplicitRole"
           ],
           "name": "implicit"
+        },
+        {
+          "type": "int",
+          "name": "memberCount",
+          "jsonkey": "member_count"
         }
       ]
     },
@@ -1713,6 +1718,23 @@
         {
           "name": "all",
           "type": "boolean"
+        },
+        {
+          "name": "includeImplicitTeams",
+          "type": "boolean"
+        }
+      ],
+      "response": "AnnotatedTeamList"
+    },
+    "teamListVerified": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "userAssertion",
+          "type": "string"
         },
         {
           "name": "includeImplicitTeams",
