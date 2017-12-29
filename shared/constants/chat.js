@@ -9,7 +9,7 @@ import invert from 'lodash/invert'
 import {Buffer} from 'buffer'
 import {chatTab} from './tabs'
 import {createSelector} from 'reselect'
-import {getPath, getPathState} from '../route-tree'
+import {getPathState} from '../route-tree'
 import type {TypedState} from './reducer'
 import type {UserListItem} from '../common-adapters/usernames'
 

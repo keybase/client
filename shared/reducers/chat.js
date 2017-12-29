@@ -285,12 +285,6 @@ function reducer(
     case ChatGen.setInboxSyncingState: {
       return state.set('inboxSyncingState', action.payload.inboxSyncingState)
     }
-    case ChatGen.newChat: {
-      return state.set('inSearch', true)
-    }
-    case ChatGen.exitSearch: {
-      return state.set('inSearch', false)
-    }
     case ChatGen.updateResetParticipants: {
       return state.mergeIn(
         ['inboxResetParticipants'],

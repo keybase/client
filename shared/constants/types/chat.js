@@ -382,7 +382,6 @@ export type _State = {
   conversationUnreadCounts: I.Map<ConversationIDKey, UnreadCounts>,
   editingMessage: ?Message,
   finalizedState: FinalizedState,
-  inSearch: boolean,
   inbox: I.Map<ConversationIDKey, InboxState>,
   inboxAlwaysShow: I.Map<ConversationIDKey, boolean>,
   inboxIsEmpty: I.Map<ConversationIDKey, boolean>,

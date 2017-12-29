@@ -1,10 +1,9 @@
 // @flow
-import * as Constants from '../../constants/chat'
+import * as Constants from '../../constants/chat' // TODO remove
 import * as More from '../../constants/types/more'
 import * as Types from '../../constants/types/chat2'
 import * as Inbox from '.'
 import * as Chat2Gen from '../../actions/chat2-gen'
-import * as ChatGen from '../../actions/chat-gen'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as I from 'immutable'
 import {
@@ -209,7 +208,7 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}: OwnProp
     ? getFilteredRowsAndMetadata(state)
     : getRowsAndMetadata(state, smallTeamsExpanded)
   const inboxGlobalUntrustedState = state.chat.get('inboxGlobalUntrustedState')
-  const _selectedConversationIDKey = Constants.getSelectedConversation(state)
+  const _selectedConversationIDKey = state.chat2.selectedConversation
 
   return {
     ...rowMetadata,
@@ -219,7 +218,7 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}: OwnProp
     isLoading: inboxGlobalUntrustedState === 'loading' || state.chat.get('inboxSyncingState') === 'syncing',
     neverLoaded: inboxGlobalUntrustedState === 'unloaded',
     showNewConversation:
-      state.chat.get('inSearch') ||
+      state.chat2.isSearching ||
       (_selectedConversationIDKey && Constants.isPendingConversationIDKey(_selectedConversationIDKey)),
   }
 }
@@ -245,12 +244,12 @@ const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRou
   getTeams: () => dispatch(TeamsGen.createGetTeams()),
   onHotkey: (cmd: string) => {
     if (cmd.endsWith('+n')) {
-      dispatch(ChatGen.createNewChat())
+      dispatch(Chat2Gen.createSetSearching({searching: true}))
     } else {
       focusFilter()
     }
   },
-  onNewChat: () => dispatch(ChatGen.createNewChat()),
+  onNewChat: () => dispatch(Chat2Gen.createSetSearching({searching: true})),
   onSelect: (conversationIDKey: ?Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createSelectConversation({conversationIDKey, fromUser: true})),
   onSetFilter: (filter: string) => dispatch(Chat2Gen.createSetInboxFilter({filter})),

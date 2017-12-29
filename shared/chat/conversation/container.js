@@ -4,7 +4,7 @@ import * as Types from '../../constants/types/chat'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as SearchConstants from '../../constants/search'
 import * as Creators from '../../actions/chat/creators'
-import * as ChatGen from '../../actions/chat-gen'
+import * as Chat2Gen from '../../actions/chat2-gen'
 import {type List} from 'immutable'
 import HiddenString from '../../util/hidden-string'
 import Conversation from './index'
@@ -95,8 +95,7 @@ const mapStateToProps = (state: TypedState, {routePath, routeProps}): StateProps
     }
   }
 
-  const {inSearch} = state.chat
-  const {inboxFilter} = state.chat2
+  const {inboxFilter, isSearching: inSearch} = state.chat2
   const searchResults = SearchConstants.getSearchResultIdsArray(state, {searchKey: 'chatSearch'})
   const userInputItemIds = SearchConstants.getUserInputItemIds(state, {searchKey: 'chatSearch'})
 
@@ -127,7 +126,7 @@ const mapDispatchToProps = (
   dispatch: Dispatch,
   {setRouteState, navigateUp, navigateAppend}
 ): DispatchProps => ({
-  onExitSearch: () => dispatch(ChatGen.createExitSearch({skipSelectPreviousConversation: false})),
+  onExitSearch: () => dispatch(Chat2Gen.createSetSearching({searching: false})),
   _onAttach: (selectedConversation, inputs: Array<Types.AttachmentInput>) => {
     dispatch(
       navigateAppend([

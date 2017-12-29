@@ -119,6 +119,8 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       return state.set('selectedConversation', action.payload.conversationIDKey)
     case Chat2Gen.setInboxFilter:
       return state.set('inboxFilter', action.payload.filter)
+    case Chat2Gen.setSearching:
+      return state.set('isSearching', action.payload.searching)
     case Chat2Gen.badgesUpdated: {
       const badgeMap = I.Map(
         action.payload.conversations.map(({convID, badgeCounts}) => [

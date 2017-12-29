@@ -28,9 +28,6 @@
       "entities": "I.List<any>"
     },
     "unboxMore": {},
-    "exitSearch": {
-      "skipSelectPreviousConversation": "boolean"
-    },
     "pendingToRealConversation": {
       "oldKey": "Types.ConversationIDKey",
       "newKey": "Types.ConversationIDKey"
@@ -43,7 +40,6 @@
       "tlf": "string",
       "isTeam?": "boolean"
     },
-    "newChat": {},
     "setupChatHandlers": {},
     "loadMoreMessages": {
       "conversationIDKey": "Types.ConversationIDKey",

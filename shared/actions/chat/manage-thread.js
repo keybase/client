@@ -21,9 +21,9 @@ import {type TypedState} from '../../constants/reducer'
 function* _startConversation(action: ChatGen.StartConversationPayload): Saga.SagaGenerator<any, any> {
   const state: TypedState = yield Saga.select()
   if (!action.payload.forSearch) {
-    const inSearch = state.chat.get('inSearch')
+    const inSearch = state.chat2.isSearching
     if (inSearch) {
-      yield Saga.put(ChatGen.createExitSearch({skipSelectPreviousConversation: true}))
+      yield Saga.put(Chat2Gen.createSetSearching({searching: false}))
     }
   }
 

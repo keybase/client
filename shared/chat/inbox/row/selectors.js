@@ -24,7 +24,7 @@ const getNowOverride = (state: TypedState) => state.chat.nowOverride
 const getUntrustedState = (state: TypedState) => state.chat.inboxUntrustedState
 const getPendingParticipants = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
   state.chat.get('pendingConversations').get(conversationIDKey) || I.List()
-const getInSearch = (state: TypedState) => state.chat.get('inSearch')
+const getInSearch = (state: TypedState) => state.chat2.isSearching
 
 function _commonDerivedProps(
   rekeyInfo,

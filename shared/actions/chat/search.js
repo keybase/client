@@ -9,7 +9,10 @@ import * as Saga from '../../util/saga'
 import type {ReturnValue} from '../../constants/types/more'
 import type {TypedState} from '../../constants/reducer'
 
-function _newChat(action: ChatGen.NewChatPayload, state: TypedState) {
+function _newChat(action: Chat2Gen.SetSearchingPayload, state: TypedState) {
+  if (!action.payload.searching) {
+    return
+  }
   const actions = []
   actions.push(Saga.put(Chat2Gen.createSetInboxFilter({filter: ''})))
   const ids = SearchConstants.getUserInputItemIds(state, {searchKey: 'chatSearch'})
@@ -29,7 +32,11 @@ function _newChat(action: ChatGen.NewChatPayload, state: TypedState) {
   return Saga.sequentially(actions)
 }
 
-function _exitSearch({payload: {skipSelectPreviousConversation}}: ChatGen.ExitSearchPayload, s: TypedState) {
+function _exitSearch(action: Chat2Gen.SetSearchingPayload, s: TypedState) {
+  if (action.payload.searching) {
+    return
+  }
+  const skipSelectPreviousConversation = true // TODO
   const userInputItemIds: ReturnValue<
     typeof SearchConstants.getUserInputItemIds
   > = SearchConstants.getUserInputItemIds(s, {searchKey: 'chatSearch'})
@@ -54,7 +61,7 @@ function* _updateTempSearchConversation(action: SearchGen.UserInputItemsUpdatedP
   const {payload: {userInputItemIds}} = action
   const state: TypedState = yield Saga.select()
   const me = Selectors.usernameSelector(state)
-  const inSearch = state.chat.get('inSearch')
+  const inSearch = state.chat2.isSearching
 
   if (!inSearch || !me) {
     return
@@ -86,8 +93,8 @@ function* registerSagas(): Saga.SagaGenerator<any, any> {
     SearchConstants.isUserInputItemsUpdated('chatSearch'),
     _updateTempSearchConversation
   )
-  yield Saga.safeTakeEveryPure(ChatGen.exitSearch, _exitSearch)
-  yield Saga.safeTakeEveryPure(ChatGen.newChat, _newChat)
+  yield Saga.safeTakeEveryPure(Chat2Gen.setSearching, _exitSearch)
+  yield Saga.safeTakeEveryPure(Chat2Gen.setSearching, _newChat)
 }
 
 export {registerSagas}

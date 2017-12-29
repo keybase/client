@@ -27,7 +27,6 @@ export const deleteEntity = 'chat:deleteEntity'
 export const deleteMessage = 'chat:deleteMessage'
 export const downloadProgress = 'chat:downloadProgress'
 export const editMessage = 'chat:editMessage'
-export const exitSearch = 'chat:exitSearch'
 export const getInboxAndUnbox = 'chat:getInboxAndUnbox'
 export const inboxStale = 'chat:inboxStale'
 export const inboxStoreLoaded = 'chat:inboxStoreLoaded'
@@ -44,7 +43,6 @@ export const markSeenMessage = 'chat:markSeenMessage'
 export const markThreadsStale = 'chat:markThreadsStale'
 export const mergeEntity = 'chat:mergeEntity'
 export const muteConversation = 'chat:muteConversation'
-export const newChat = 'chat:newChat'
 export const openAttachmentPopup = 'chat:openAttachmentPopup'
 export const openConversation = 'chat:openConversation'
 export const openFolder = 'chat:openFolder'
@@ -112,7 +110,6 @@ export const createDeleteEntity = (payload: {|+keyPath: Array<string>, +ids: Ite
 export const createDeleteMessage = (payload: {|+message: Types.Message|}) => ({error: false, payload, type: deleteMessage})
 export const createDownloadProgress = (payload: {|+messageKey: Types.MessageKey, +isPreview: boolean, +progress: ?number|}) => ({error: false, payload, type: downloadProgress})
 export const createEditMessage = (payload: {|+message: Types.Message, +text: HiddenString|}) => ({error: false, payload, type: editMessage})
-export const createExitSearch = (payload: {|+skipSelectPreviousConversation: boolean|}) => ({error: false, payload, type: exitSearch})
 export const createGetInboxAndUnbox = (payload: {|+conversationIDKeys: Array<Types.ConversationIDKey>|}) => ({error: false, payload, type: getInboxAndUnbox})
 export const createInboxStale = (payload: {|+reason: string|}) => ({error: false, payload, type: inboxStale})
 export const createInboxStoreLoaded = () => ({error: false, payload: undefined, type: inboxStoreLoaded})
@@ -129,7 +126,6 @@ export const createMarkSeenMessage = (payload: {|+conversationIDKey: Types.Conve
 export const createMarkThreadsStale = (payload: {|+updates: Array<RPCChatTypes.ConversationStaleUpdate>|}) => ({error: false, payload, type: markThreadsStale})
 export const createMergeEntity = (payload: {|+keyPath: Array<string>, +entities: I.Map<any, any> | I.List<any>|}) => ({error: false, payload, type: mergeEntity})
 export const createMuteConversation = (payload: {|+conversationIDKey: Types.ConversationIDKey, +muted: boolean|}) => ({error: false, payload, type: muteConversation})
-export const createNewChat = () => ({error: false, payload: undefined, type: newChat})
 export const createOpenAttachmentPopup = (payload: {|+message: Types.AttachmentMessage, +currentPath: Path|}) => ({error: false, payload, type: openAttachmentPopup})
 export const createOpenConversation = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: openConversation})
 export const createOpenFolder = () => ({error: false, payload: undefined, type: openFolder})
@@ -197,7 +193,6 @@ export type DeleteEntityPayload = More.ReturnType<typeof createDeleteEntity>
 export type DeleteMessagePayload = More.ReturnType<typeof createDeleteMessage>
 export type DownloadProgressPayload = More.ReturnType<typeof createDownloadProgress>
 export type EditMessagePayload = More.ReturnType<typeof createEditMessage>
-export type ExitSearchPayload = More.ReturnType<typeof createExitSearch>
 export type GetInboxAndUnboxPayload = More.ReturnType<typeof createGetInboxAndUnbox>
 export type InboxStalePayload = More.ReturnType<typeof createInboxStale>
 export type InboxStoreLoadedPayload = More.ReturnType<typeof createInboxStoreLoaded>
@@ -214,7 +209,6 @@ export type MarkSeenMessagePayload = More.ReturnType<typeof createMarkSeenMessag
 export type MarkThreadsStalePayload = More.ReturnType<typeof createMarkThreadsStale>
 export type MergeEntityPayload = More.ReturnType<typeof createMergeEntity>
 export type MuteConversationPayload = More.ReturnType<typeof createMuteConversation>
-export type NewChatPayload = More.ReturnType<typeof createNewChat>
 export type OpenAttachmentPopupPayload = More.ReturnType<typeof createOpenAttachmentPopup>
 export type OpenConversationPayload = More.ReturnType<typeof createOpenConversation>
 export type OpenFolderPayload = More.ReturnType<typeof createOpenFolder>
@@ -284,7 +278,6 @@ export type Actions =
   | More.ReturnType<typeof createDeleteMessage>
   | More.ReturnType<typeof createDownloadProgress>
   | More.ReturnType<typeof createEditMessage>
-  | More.ReturnType<typeof createExitSearch>
   | More.ReturnType<typeof createGetInboxAndUnbox>
   | More.ReturnType<typeof createInboxStale>
   | More.ReturnType<typeof createInboxStoreLoaded>
@@ -301,7 +294,6 @@ export type Actions =
   | More.ReturnType<typeof createMarkThreadsStale>
   | More.ReturnType<typeof createMergeEntity>
   | More.ReturnType<typeof createMuteConversation>
-  | More.ReturnType<typeof createNewChat>
   | More.ReturnType<typeof createOpenAttachmentPopup>
   | More.ReturnType<typeof createOpenConversation>
   | More.ReturnType<typeof createOpenFolder>

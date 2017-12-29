@@ -6,6 +6,7 @@ import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/chat'
 import * as Types from '../../constants/types/chat'
+import * as Chat2Gen from '../chat2-gen'
 import * as ChatGen from '../chat-gen'
 import * as Shared from './shared'
 import * as Saga from '../../util/saga'
@@ -97,9 +98,9 @@ function* postMessage(action: ChatGen.PostMessagePayload): SagaGenerator<any, an
   // that is deleted by exitSearch().
   const state: TypedState = yield Saga.select()
 
-  const inSearch = state.chat.get('inSearch')
+  const inSearch = state.chat2.isSearching
   if (inSearch) {
-    yield Saga.put(ChatGen.createExitSearch({skipSelectPreviousConversation: false}))
+    yield Saga.put(Chat2Gen.createSetSearching({searching: false}))
   }
 
   const inboxConvo = Constants.getInbox(state, conversationIDKey)

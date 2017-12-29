@@ -47,6 +47,9 @@
     "messagesDelete": {
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinals": "Array<Types.Ordinal>"
+    },
+    "setSearching": {
+      "searching": "boolean"
     }
   }
 }
