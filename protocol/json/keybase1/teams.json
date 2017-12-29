@@ -1110,6 +1110,10 @@
           "name": "needAdmin"
         },
         {
+          "type": "boolean",
+          "name": "refreshUIDMapper"
+        },
+        {
           "type": "TeamRefreshers",
           "name": "refreshers"
         },

@@ -108,7 +108,6 @@ protocol teams {
   @typedef("string")
   record UserVersionPercentForm {}
 
-
   record TeamChangeReq {
     array<UserVersion> owners;
     array<UserVersion> admins;
@@ -459,6 +458,12 @@ protocol teams {
     // may not work even if the loading user is an admin.
     boolean needAdmin;
 
+    // Whether we should refresh the UIDMapper with UID/Eldest pairs
+    // needed for display of the user's reset status. This flag is expensive,
+    // since it can incur a disk read per team member (via LevelDB cache).
+    // So only use it when you need to display all the team's members.
+    boolean refreshUIDMapper;
+
     TeamRefreshers refreshers;
 
     boolean forceFullReload;      // Ignore local data and fetch from the server.
@@ -689,7 +694,7 @@ protocol teams {
   TeamAndMemberShowcase getTeamAndMemberShowcase(string name);
   void setTeamShowcase(string name, union { null, boolean } isShowcased, union { null, string } description, union { null, boolean } anyMemberShowcase);
   void setTeamMemberShowcase(string name, boolean isShowcased);
-  
+
   record TeamOperation {
     boolean manageMembers;
     boolean manageSubteams;

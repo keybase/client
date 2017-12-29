@@ -1697,3 +1697,23 @@ func AddMembersBestEffort(ctx context.Context, g *libkb.GlobalContext, teamID ke
 
 	return nil
 }
+
+func (t *Team) refreshUIDMapper(ctx context.Context, g *libkb.GlobalContext) {
+	for uv := range t.chain().inner.UserLog {
+		g.UIDMapper.InformOfEldestSeqno(ctx, g, uv)
+	}
+	for id, invite := range t.chain().inner.ActiveInvites {
+		invtype, err := invite.Type.C()
+		if err != nil {
+			g.Log.CDebugf(ctx, "Error in invite %s: %s", id, err.Error())
+			continue
+		}
+		if invtype == keybase1.TeamInviteCategory_KEYBASE {
+			uv, err := invite.KeybaseUserVersion()
+			if err != nil {
+				g.Log.CDebugf(ctx, "Error in parsing invite %s: %s", id, err.Error())
+			}
+			g.UIDMapper.InformOfEldestSeqno(ctx, g, uv)
+		}
+	}
+}
