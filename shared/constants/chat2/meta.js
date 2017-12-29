@@ -7,6 +7,7 @@ import * as Types from '../types/chat2'
 import type {_ConversationMeta} from '../types/chat2/meta'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {toByteArray} from 'base64-js'
+import {globalColors, isMobile} from '../../styles'
 
 const conversationMemberStatusToMembershipType = (m: RPCChatTypes.ConversationMemberStatus) => {
   switch (m) {
@@ -156,3 +157,27 @@ export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record
   teamname: '',
   trustedState: 'untrusted',
 })
+
+const bgPlatform = isMobile ? globalColors.white : globalColors.blue5
+export const getRowColors = (meta: Types.ConversationMeta, isSelected: boolean, hasUnread: boolean) => {
+  const isError = meta.trustedState === 'error'
+  const backgroundColor = isSelected ? globalColors.blue : bgPlatform
+  const showBold = !isSelected && hasUnread
+  const subColor = isError
+    ? globalColors.red
+    : isSelected ? globalColors.white : hasUnread ? globalColors.black_75 : globalColors.black_40
+  const usernameColor = isSelected ? globalColors.white : globalColors.darkBlue
+
+  return {
+    backgroundColor,
+    showBold,
+    subColor,
+    usernameColor,
+  }
+}
+
+export const getRowParticipants = (meta: Types.ConversationMeta, username: string) =>
+  meta.participants
+    .toList()
+    // Filter out ourselves unless its our 1:1 conversation
+    .filter((participant, idx, list) => (list.size === 1 ? true : participant !== username))

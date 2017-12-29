@@ -25,15 +25,6 @@ class Inbox extends PureComponent<Props, State> {
 
   _list: ?ReactList
 
-  componentDidUpdate(prevProps: Props) {
-    if (
-      (this.props.rows !== prevProps.rows && prevProps.rows.length) ||
-      this.props.smallTeamsHiddenRowCount > 0 !== prevProps.smallTeamsHiddenRowCount > 0
-    ) {
-      this._updateShowFloating()
-    }
-  }
-
   _itemSizeGetter = index => {
     const row = this.props.rows[index]
     switch (row.type) {

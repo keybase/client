@@ -86,9 +86,6 @@ class Inbox extends React.PureComponent<Props, State> {
   }
 
   componentWillReceiveProps(nextProps: Props) {
-    if (this.props.smallTeamsHiddenRowCount === 0 && nextProps.smallTeamsHiddenRowCount > 0) {
-      this._list && this._list.scrollToOffset({animated: false, offset: 0})
-    }
     if (this.props.rows !== nextProps.rows) {
       this._dividerIndex = nextProps.rows.findIndex(r => r.type === 'divider')
     }

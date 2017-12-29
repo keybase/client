@@ -31,29 +31,23 @@ export type RouteState = {
 }
 
 export type Props = {
-  bigTeamsBadgeCount: number,
   children?: React$Element<*>,
   filter: string,
   filterFocusCount: number,
   isActiveRoute: boolean,
   isLoading: boolean,
-  loadInbox: () => void,
   nowOverride?: number, // just for dumb rendering
   onNewChat: () => void,
   onSelectUp: () => void,
   onSelectDown: () => void,
-  onHotkey: () => void,
+  onHotkey: (cmd: string) => void,
   onSetFilter: (filter: string) => void,
   onUntrustedInboxVisible: (conversationIDKeys: Array<ConversationIDKey>) => void,
   rows: Array<RowItem>,
-  routeState: RouteState,
-  setRouteState: RouteState => void,
   showBuildATeam: boolean,
   showNewConversation: boolean,
   showSmallTeamsExpandDivider: boolean,
   smallIDsHidden: Array<ConversationIDKey>,
-  smallTeamsHiddenBadgeCount: number,
-  smallTeamsHiddenRowCount: number,
   toggleSmallTeamsExpanded: () => void,
 }
 

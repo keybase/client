@@ -3,10 +3,9 @@ import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Constants from '../../../../constants/chat'
 import * as Constants2 from '../../../../constants/chat2'
 import * as I from 'immutable'
-import * as Selectors from '../selectors'
 import * as Types from '../../../../constants/types/chat2'
+import * as util from '../util'
 import {SmallTeam} from '.'
-import {globalColors, isMobile} from '../../../../styles'
 import {pausableConnect, type TypedState, type Dispatch} from '../../../../util/container'
 
 const emptyMeta = Constants2.makeConversationMeta()
@@ -21,21 +20,17 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 
   // TODO remove
   const p = isPending
-    ? Selectors.pendingSnippetRowSelector(state, conversationIDKey)
-    : Selectors.snippetRowSelector(state, conversationIDKey)
-
-  const meta = state.chat2.metaMap.get(conversationIDKey, emptyMeta)
-  const hasBadge = state.chat2.badgeMap.get(conversationIDKey, 0) > 0
-  const hasUnread = state.chat2.unreadMap.get(conversationIDKey, 0) > 0
+    ? util.pendingSnippetRowSelector(state, conversationIDKey)
+    : util.snippetRowSelector(state, conversationIDKey)
 
   return {
-    _meta: meta,
-    _username: state.config.username,
-    hasBadge,
+    _meta: (conversationIDKey && Constants2.getMeta(state, conversationIDKey)) || emptyMeta,
+    _username: state.config.username || '',
+    hasBadge: Constants2.getHasBadge(state, conversationIDKey),
     hasResetUsers: state.chat.inboxResetParticipants.get(conversationIDKey || '', I.Set()).size > 0,
-    hasUnread,
+    hasUnread: Constants2.getHasUnread(state, conversationIDKey),
     isActiveRoute,
-    isSelected: p.isSelected,
+    isSelected: Constants2.getIsSelected(state, conversationIDKey),
     participantNeedToRekey: p.participantNeedToRekey,
     snippet: Constants2.getSnippet(state, conversationIDKey),
     timestamp: p.timestamp,
@@ -51,26 +46,13 @@ const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}: OwnProps) =
   },
 })
 
-const bgPlatform = isMobile ? globalColors.white : globalColors.blue5
-
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const isSelected = stateProps.isSelected
-  const isError = stateProps._meta.trustedState === 'error'
   const hasUnread = stateProps.hasUnread
-  const backgroundColor = isSelected ? globalColors.blue : bgPlatform
-  const showBold = !isSelected && hasUnread
-  const subColor = isError
-    ? globalColors.red
-    : isSelected ? globalColors.white : hasUnread ? globalColors.black_75 : globalColors.black_40
-  const usernameColor = isSelected ? globalColors.white : globalColors.darkBlue
-  const username = stateProps._username
-  const participants = stateProps._meta.participants
-    .toList()
-    // Filter out ourselves unless its our 1:1 conversation
-    .filter((participant, idx, list) => (list.size === 1 ? true : participant !== username))
+  const derivedProps = Constants2.getRowColors(stateProps._meta, isSelected, hasUnread)
 
   return {
-    backgroundColor,
+    backgroundColor: derivedProps.backgroundColor,
     hasBadge: stateProps.hasBadge,
     hasResetUsers: stateProps.hasResetUsers,
     hasUnread,
@@ -79,13 +61,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     isSelected,
     onSelectConversation: dispatchProps.onSelectConversation,
     participantNeedToRekey: stateProps.participantNeedToRekey,
-    participants,
-    showBold,
+    participants: Constants2.getRowParticipants(stateProps._meta, stateProps._username),
+    showBold: derivedProps.showBold,
     snippet: stateProps.snippet,
-    subColor,
+    subColor: derivedProps.subColor,
     teamname: stateProps._meta.teamname,
     timestamp: stateProps.timestamp,
-    usernameColor,
+    usernameColor: derivedProps.usernameColor,
     youAreReset: stateProps.youAreReset,
     youNeedToRekey: stateProps.youNeedToRekey,
   }

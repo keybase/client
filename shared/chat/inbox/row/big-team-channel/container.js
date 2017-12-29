@@ -1,11 +1,11 @@
 // @flow
-import * as Selectors from '../selectors'
+import * as util from '../util'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import {BigTeamChannel} from '.'
 import {pausableConnect, type TypedState} from '../../../../util/container'
 
 const mapStateToProps = (state: TypedState, {conversationIDKey, channelname, isActiveRoute}) => {
-  const p = Selectors.snippetRowSelector(state, conversationIDKey)
+  const p = util.snippetRowSelector(state, conversationIDKey)
   return {
     channelname,
     hasBadge: p.hasBadge,
