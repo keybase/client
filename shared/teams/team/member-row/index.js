@@ -53,9 +53,12 @@ export const TeamMemberRow = (props: Props) => {
           )}
         </Box>
         <Box style={globalStyles.flexBoxRow}>
-          {!!fullName && active &&
-            <Text style={{marginRight: globalMargins.xtiny}} type="BodySmall">{fullName} •</Text>
-          }
+          {!!fullName &&
+            active && (
+              <Text style={{marginRight: globalMargins.xtiny}} type="BodySmall">
+                {fullName} •
+              </Text>
+            )}
           {type &&
             !!showCrown[type] && (
               <Icon

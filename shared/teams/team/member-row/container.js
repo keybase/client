@@ -23,11 +23,14 @@ type StateProps = {
   _members: I.Set<Types.MemberInfo>,
 }
 
-const mapStateToProps = (state: TypedState, {active, fullName, teamname, username}: OwnProps): StateProps => ({
+const mapStateToProps = (
+  state: TypedState,
+  {active, fullName, teamname, username}: OwnProps
+): StateProps => ({
   _members: state.entities.getIn(['teams', 'teamNameToMembers', teamname], I.Set()),
   active,
   following: amIFollowing(state, username),
-  fullName: state.config.username === username ? "You" : fullName,
+  fullName: state.config.username === username ? 'You' : fullName,
   you: state.config.username,
 })
 
