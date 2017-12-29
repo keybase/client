@@ -362,7 +362,7 @@ class Team extends React.PureComponent<Props> {
               <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
                 <Checkbox
                   checked={publicityMember}
-                  disabled={!yourOperations.setTeamShowcase}
+                  disabled={!yourOperations.setMemberShowcase}
                   label=""
                   onCheck={setPublicityMember}
                   style={{paddingRight: globalMargins.xtiny}}
@@ -370,13 +370,15 @@ class Team extends React.PureComponent<Props> {
               </Box>
               <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
                 <Text
-                  style={{color: yourOperations.setTeamShowcase ? globalColors.black_75 : globalColors.grey}}
+                  style={{
+                    color: yourOperations.setMemberShowcase ? globalColors.black_75 : globalColors.grey,
+                  }}
                   type="Body"
                 >
                   Publish team on your own profile
                 </Text>
                 <Text type="BodySmall">
-                  {yourOperations.setTeamShowcase
+                  {yourOperations.setMemberShowcase
                     ? 'Your profile on the Keybase website will mention this team. Description + number of members will be public.'
                     : "Admins aren't allowing members to publish this team on their profile."}
                 </Text>
