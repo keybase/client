@@ -83,11 +83,11 @@ func GetDataDir(id GUID, name, envname string) (string, error) {
 	// https://groups.google.com/d/msg/golang-nuts/ls7Eg7Ye9pU/ye1GLs8dBwAJ
 	// for details.
 	r0, _, _ := procSHGetKnownFolderPath.Call(uintptr(unsafe.Pointer(&id)), uintptr(0), uintptr(0), uintptr(unsafe.Pointer(&pszPath)))
-	if pszPath != (unsafe.Pointer{}) {
+	if uintptr(pszPath) != 0 {
 		defer coTaskMemFree(pszPath)
 	}
 	// Sometimes r0 == 0 and there still isn't a valid string returned
-	if r0 != 0 || pszPath == (unsafe.Pointer{}) {
+	if r0 != 0 || uintptr(pszPath) == 0 {
 		return "", fmt.Errorf("can't get %s; HRESULT=%d, pszPath=%x", name, r0, pszPath)
 	}
 
