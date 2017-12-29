@@ -243,7 +243,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRou
     }
   },
   getTeams: () => dispatch(TeamsGen.createGetTeams()),
-  loadInbox: () => dispatch(ChatGen.createLoadInbox()),
   onHotkey: (cmd: string) => {
     if (cmd.endsWith('+n')) {
       dispatch(ChatGen.createNewChat())
@@ -281,7 +280,6 @@ const mergeProps = (
   inSearch: stateProps.inSearch,
   isActiveRoute: stateProps.isActiveRoute,
   isLoading: stateProps.isLoading,
-  loadInbox: dispatchProps.loadInbox,
   neverLoaded: stateProps.neverLoaded,
   onHotkey: dispatchProps.onHotkey,
   onNewChat: dispatchProps.onNewChat,
@@ -310,7 +308,6 @@ export default compose(
     componentDidMount() {
       if (this.props.neverLoaded) {
         this.props.refreshInbox()
-        this.props.loadInbox() // TODO remove
         // Get team counts for team headers in the inbox
         this.props.getTeams()
       }

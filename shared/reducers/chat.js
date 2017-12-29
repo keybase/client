@@ -334,7 +334,6 @@ function reducer(
     case ChatGen.leaveConversation:
     case ChatGen.loadAttachment:
     case ChatGen.loadAttachmentPreview:
-    case ChatGen.loadInbox:
     case ChatGen.loadMoreMessages:
     case ChatGen.markSeenMessage:
     case ChatGen.muteConversation:

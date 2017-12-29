@@ -53,10 +53,6 @@ function* _updateFinalized(inbox: RPCChatTypes.UnverifiedInboxUIItems): Generato
   }
 }
 
-function* onInboxLoad(): SagaGenerator<any, any> {
-  yield Saga.put(ChatGen.createInboxStale({reason: 'random inbox load from view layer'}))
-}
-
 // Loads the untrusted inbox only
 function* onInboxStale(action: ChatGen.InboxStalePayload): SagaGenerator<any, any> {
   const state: TypedState = yield Saga.select()
@@ -699,7 +695,6 @@ const _resetLetThemIn = (action: ChatGen.ResetLetThemInPayload) =>
 function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ChatGen.getInboxAndUnbox, onGetInboxAndUnbox)
   yield Saga.safeTakeLatest(ChatGen.inboxStale, onInboxStale)
-  yield Saga.safeTakeLatest(ChatGen.loadInbox, onInboxLoad)
   yield Saga.safeTakeEvery(ChatGen.appendMessages, _sendNotifications)
   yield Saga.safeTakeEveryPure(ChatGen.markThreadsStale, _markThreadsStale)
   yield Saga.safeTakeEvery(ChatGen.inboxSynced, _inboxSynced)

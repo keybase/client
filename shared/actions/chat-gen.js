@@ -38,7 +38,6 @@ export const joinConversation = 'chat:joinConversation'
 export const leaveConversation = 'chat:leaveConversation'
 export const loadAttachment = 'chat:loadAttachment'
 export const loadAttachmentPreview = 'chat:loadAttachmentPreview'
-export const loadInbox = 'chat:loadInbox'
 export const loadMoreMessages = 'chat:loadMoreMessages'
 export const loadingMessages = 'chat:loadingMessages'
 export const markSeenMessage = 'chat:markSeenMessage'
@@ -124,7 +123,6 @@ export const createJoinConversation = (payload: {|+conversationIDKey: Types.Conv
 export const createLeaveConversation = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: leaveConversation})
 export const createLoadAttachment = (payload: {|+messageKey: Types.MessageKey, +loadPreview: boolean|}) => ({error: false, payload, type: loadAttachment})
 export const createLoadAttachmentPreview = (payload: {|+messageKey: Types.MessageKey|}) => ({error: false, payload, type: loadAttachmentPreview})
-export const createLoadInbox = () => ({error: false, payload: undefined, type: loadInbox})
 export const createLoadMoreMessages = (payload: {|+conversationIDKey: Types.ConversationIDKey, +onlyIfUnloaded: boolean, +fromUser?: boolean, +wantNewer?: boolean, +numberOverride?: ?number|}) => ({error: false, payload, type: loadMoreMessages})
 export const createLoadingMessages = (payload: {|+conversationIDKey: Types.ConversationIDKey, +isRequesting: boolean|}) => ({error: false, payload, type: loadingMessages})
 export const createMarkSeenMessage = (payload: {|+conversationIDKey: Types.ConversationIDKey, +messageKey: Types.MessageKey|}) => ({error: false, payload, type: markSeenMessage})
@@ -210,7 +208,6 @@ export type JoinConversationPayload = More.ReturnType<typeof createJoinConversat
 export type LeaveConversationPayload = More.ReturnType<typeof createLeaveConversation>
 export type LoadAttachmentPayload = More.ReturnType<typeof createLoadAttachment>
 export type LoadAttachmentPreviewPayload = More.ReturnType<typeof createLoadAttachmentPreview>
-export type LoadInboxPayload = More.ReturnType<typeof createLoadInbox>
 export type LoadMoreMessagesPayload = More.ReturnType<typeof createLoadMoreMessages>
 export type LoadingMessagesPayload = More.ReturnType<typeof createLoadingMessages>
 export type MarkSeenMessagePayload = More.ReturnType<typeof createMarkSeenMessage>
@@ -298,7 +295,6 @@ export type Actions =
   | More.ReturnType<typeof createLeaveConversation>
   | More.ReturnType<typeof createLoadAttachment>
   | More.ReturnType<typeof createLoadAttachmentPreview>
-  | More.ReturnType<typeof createLoadInbox>
   | More.ReturnType<typeof createLoadMoreMessages>
   | More.ReturnType<typeof createLoadingMessages>
   | More.ReturnType<typeof createMarkSeenMessage>

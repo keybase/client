@@ -301,6 +301,13 @@ const navigateToThread = (action: Chat2Gen.SelectConversationPayload) => {
   return Saga.put(Route.navigateTo([conversationIDKey].filter(Boolean), [chatTab]))
 }
 
+const loadThread = (action: Chat2Gen.SelectConversationPayload) => {
+  // TODO
+  // const {conversationIDKey} = action.payload
+  // logger.info(`selectConversation: selecting: ${conversationIDKey || ''}`)
+  // return Saga.put(Route.navigateTo([conversationIDKey].filter(Boolean), [chatTab]))
+}
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Refresh the inbox
   yield Saga.safeTakeLatest(Chat2Gen.inboxRefresh, rpcInboxRefresh)
@@ -327,8 +334,8 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // yield Saga.safeTakeEveryPure([Chat2Gen.messagesAdd], addMessagesToConversation)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.setupChatHandlers, setupChatHandlers)
-
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, navigateToThread)
+  yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, loadThread)
 }
 
 export default chat2Saga

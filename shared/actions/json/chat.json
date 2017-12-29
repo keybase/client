@@ -45,7 +45,6 @@
     },
     "newChat": {},
     "setupChatHandlers": {},
-    "loadInbox": {},
     "loadMoreMessages": {
       "conversationIDKey": "Types.ConversationIDKey",
       "onlyIfUnloaded": "boolean",
