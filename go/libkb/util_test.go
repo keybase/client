@@ -110,10 +110,13 @@ func TestMakeByte32(t *testing.T) {
 func TestAppDataDir(t *testing.T) {
 	dir, err := AppDataDir()
 	if err != nil {
+		// Non-Windows case.
 		require.True(t, strings.HasPrefix(err.Error(), "unsupported"))
 		return
 	}
 
+	// Windows case. AppDataDir should exist, at least on our test
+	// machines.
 	require.NoError(t, err)
 	exists, err := FileExists(dir)
 	require.NoError(t, err)
@@ -123,10 +126,13 @@ func TestAppDataDir(t *testing.T) {
 func TestLocalDataDir(t *testing.T) {
 	dir, err := LocalDataDir()
 	if err != nil {
+		// Non-Windows case.
 		require.True(t, strings.HasPrefix(err.Error(), "unsupported"))
 		return
 	}
 
+	// Windows case. LocalDataDir should exist, at least on our
+	// test machines.
 	require.NoError(t, err)
 	exists, err := FileExists(dir)
 	require.NoError(t, err)
