@@ -3355,6 +3355,19 @@ func TestChatSrvDeleteConversationUnconfirmed(t *testing.T) {
 	require.True(t, ri.deleteConversationCalled)
 }
 
+func kickTeamRekeyd(g *libkb.GlobalContext, t libkb.TestingTB) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "test/accelerate_team_rekeyd",
+		Args:        libkb.HTTPArgs{},
+		SessionType: libkb.APISessionTypeREQUIRED,
+	}
+
+	_, err := g.API.Post(apiArg)
+	if err != nil {
+		t.Fatalf("Failed to accelerate team rekeyd: %s", err)
+	}
+}
+
 func TestChatSrvUserReset(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		ctc := makeChatTestContext(t, "TestChatSrvUserReset", 3)
@@ -3526,7 +3539,8 @@ func TestChatSrvUserReset(t *testing.T) {
 
 		t.Logf("user 2 gets PUK and tries to do stuff")
 		require.NoError(t, users[2].Login(g2))
-		for i := 0; i < 15; i++ {
+		kickTeamRekeyd(g2, t)
+		for i := 0; i < 200; i++ {
 			_, err = ctc.as(t, users[2]).chatLocalHandler().PostLocal(ctx2, chat1.PostLocalArg{
 				ConversationID: conv.Id,
 				Msg: chat1.MessagePlaintext{
@@ -3543,7 +3557,7 @@ func TestChatSrvUserReset(t *testing.T) {
 			if err == nil {
 				break
 			}
-			time.Sleep(2 * time.Second)
+			time.Sleep(50 * time.Millisecond)
 		}
 		require.NoError(t, err)
 	})
