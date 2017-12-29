@@ -367,7 +367,6 @@ def testGo(prefix) {
             dirs = getTestDirsNix()
             slash = '/'
             goversion = sh(returnStdout: true, script: "go version").trim()
-            sh "go vet ./..."
             sh "make lint"
 	    // Ideally, we'd do this on Windows also, but it might be harder
 	    // to do with batch syntax.
@@ -377,10 +376,8 @@ def testGo(prefix) {
             dirs = getTestDirsWindows()
             slash = '\\'
             goversion = bat(returnStdout: true, script: "@go version").trim()
-            /* TODO: Turn off unsafeptr because it triggers in GetDataDir
-	       in util_windows.go, and there's no easy way to filter it out. */
-	    bat "go vet -unsafeptr=false ./..."
         }
+	shell "go vet ./..."
         println "Running tests on commit ${env.COMMIT_HASH} with ${goversion}."
         def parallelTests = []
         def tests = [:]
