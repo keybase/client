@@ -214,33 +214,39 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}: OwnProp
     ? getFilteredRowsAndMetadata(state)
     : getRowsAndMetadata(state, smallTeamsExpanded)
   const inboxGlobalUntrustedState = state.chat.get('inboxGlobalUntrustedState')
-  const selectedConversationIDKey = Constants.getSelectedConversation(state)
+  const _selectedConversationIDKey = Constants.getSelectedConversation(state)
 
   return {
     ...rowMetadata,
+    _selectedConversationIDKey,
     filter,
     isActiveRoute,
     isLoading: inboxGlobalUntrustedState === 'loading' || state.chat.get('inboxSyncingState') === 'syncing',
     neverLoaded: inboxGlobalUntrustedState === 'unloaded',
     showNewConversation:
       state.chat.get('inSearch') ||
-      (selectedConversationIDKey && Constants.isPendingConversationIDKey(selectedConversationIDKey)),
+      (_selectedConversationIDKey && Constants.isPendingConversationIDKey(_selectedConversationIDKey)),
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRouteState}: OwnProps) => ({
-  _onSelectNext: (rows: Array<Inbox.RowItem>, direction: -1 | 1) =>
-    dispatch(
-      ChatGen.createSelectNext({
-        direction,
-        rows: rows.reduce((arr, row) => {
-          if (row.type === 'small' || row.type === 'big') {
-            arr.push({conversationIDKey: row.conversationIDKey})
-          }
-          return arr
-        }, []),
-      })
-    ),
+  _onSelectNext: (
+    rows: Array<Inbox.RowItem>,
+    selectedConversationIDKey: ?Types.ConversationIDKey,
+    direction: -1 | 1
+  ) => {
+    const goodRows: Array<Inbox.RowItemSmall | Inbox.RowItemBig> = rows.reduce((arr, row) => {
+      if (row.type === 'small' || row.type === 'big') {
+        arr.push(row)
+      }
+      return arr
+    }, [])
+    const idx = goodRows.findIndex(row => row.conversationIDKey === selectedConversationIDKey)
+    if (goodRows.length) {
+      const {conversationIDKey} = goodRows[(idx + direction + goodRows.length) % goodRows.length]
+      dispatch(ChatGen.createSelectConversation({conversationIDKey, fromUser: true}))
+    }
+  },
   getTeams: () => dispatch(TeamsGen.createGetTeams()),
   loadInbox: () => dispatch(ChatGen.createLoadInbox()),
   onHotkey: (cmd: string) => {
@@ -256,7 +262,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRou
   },
   onSetFilter: (filter: string) => dispatch(Chat2Gen.createSetInboxFilter({filter})),
   onUntrustedInboxVisible: (conversationIDKeys: Array<Types.ConversationIDKey>) => {
-    // dispatch(ChatGen.createUnboxConversations({conversationIDKeys, reason: 'untrusted inbox visible'}))
     dispatch(
       Chat2Gen.createMetaNeedsUpdating({
         conversationIDKeys,
@@ -288,8 +293,8 @@ const mergeProps = (
   onHotkey: dispatchProps.onHotkey,
   onNewChat: dispatchProps.onNewChat,
   onSelect: dispatchProps.onSelect,
-  onSelectDown: () => dispatchProps._onSelectNext(stateProps.rows, 1),
-  onSelectUp: () => dispatchProps._onSelectNext(stateProps.rows, -1),
+  onSelectDown: () => dispatchProps._onSelectNext(stateProps.rows, stateProps._selectedConversationIDKey, 1),
+  onSelectUp: () => dispatchProps._onSelectNext(stateProps.rows, stateProps._selectedConversationIDKey, -1),
   onSetFilter: dispatchProps.onSetFilter,
   onUntrustedInboxVisible: dispatchProps.onUntrustedInboxVisible,
   refreshInbox: dispatchProps.refreshInbox,

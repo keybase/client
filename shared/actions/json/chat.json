@@ -100,10 +100,6 @@
       "forInboxSync?": "boolean",
       "dismissSyncing?": "boolean"
     },
-    "selectNext": {
-      "rows": "Array<{conversationIDKey: Types.ConversationIDKey}>",
-      "direction": "-1 | 1"
-    },
     "setInboxSyncingState": {
       "inboxSyncingState": "Types.SyncingState"
     },

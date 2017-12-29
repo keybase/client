@@ -362,29 +362,6 @@ function _conversationLocalToInboxState(c: ?RPCChatTypes.InboxUIItem): ?Types.In
   })
 }
 
-function filterSelectNext(action: ChatGen.SelectNextPayload, state: TypedState) {
-  const rows = action.payload.rows
-  const direction = action.payload.direction
-  const selected = Constants.getSelectedConversation(state)
-
-  const idx = rows.findIndex(r => r.conversationIDKey === selected)
-  let nextIdx
-  if (idx === -1) {
-    nextIdx = 0
-  } else {
-    nextIdx = Math.min(rows.length - 1, Math.max(0, idx + direction))
-  }
-  const r = rows[nextIdx]
-  if (r && r.conversationIDKey) {
-    return Saga.put(
-      ChatGen.createSelectConversation({
-        conversationIDKey: r.conversationIDKey,
-        fromUser: false,
-      })
-    )
-  }
-}
-
 function* _sendNotifications(action: ChatGen.AppendMessagesPayload): Saga.SagaGenerator<any, any> {
   const state: TypedState = yield Saga.select()
   const appFocused = Shared.focusedSelector(state)
@@ -720,7 +697,6 @@ const _resetLetThemIn = (action: ChatGen.ResetLetThemInPayload) =>
 
 function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ChatGen.getInboxAndUnbox, onGetInboxAndUnbox)
-  yield Saga.safeTakeEveryPure(ChatGen.selectNext, filterSelectNext)
   yield Saga.safeTakeLatest(ChatGen.inboxStale, onInboxStale)
   yield Saga.safeTakeLatest(ChatGen.loadInbox, onInboxLoad)
   yield Saga.safeTakeEvery(ChatGen.appendMessages, _sendNotifications)
