@@ -120,15 +120,11 @@ func getUsernameAndFullName(ctx context.Context, g *libkb.GlobalContext, uid key
 	return username, fullName, err
 }
 
-type pendingTeamMember struct {
-	team keybase1.TeamID
-	uv   keybase1.UserVersion
-}
-
 func ListTeams(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg) (*keybase1.AnnotatedTeamList, error) {
 	tracer := g.CTimeTracer(ctx, "TeamList.ListTeams")
 	defer tracer.Finish()
 
+	tracer.Stage("Resolve QueryUID")
 	var queryUID keybase1.UID
 	if arg.UserAssertion != "" {
 		res := g.Resolver.ResolveFullExpression(ctx, arg.UserAssertion)
@@ -158,9 +154,6 @@ func ListTeams(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamLis
 	if err != nil {
 		return nil, err
 	}
-
-	var membersForTeams []pendingTeamMember
-	teamPositionInList := make(map[keybase1.TeamID]int)
 
 	res := &keybase1.AnnotatedTeamList{
 		Teams: nil,
@@ -241,16 +234,7 @@ func ListTeams(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamLis
 		}
 
 		anMemberInfo.MemberCount = len(memberUIDs)
-
-		teamPositionInList[team.ID] = len(res.Teams)
 		res.Teams = append(res.Teams, *anMemberInfo)
-	}
-
-	tracer.Stage("MemberCounts")
-
-	var uids []keybase1.UID
-	for _, member := range membersForTeams {
-		uids = append(uids, member.uv.Uid)
 	}
 
 	if len(res.Teams) == 0 && !expectEmptyList {
@@ -374,9 +358,6 @@ func ListAll(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListA
 	return res, nil
 }
 
-// List info about teams
-// If an error is encountered while loading some teams, the team is skipped and no error is returned.
-// If an error occurs loading all the info, an error is returned.
 func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg) (*keybase1.AnnotatedTeamList, error) {
 	if arg.All {
 		return ListAll(ctx, g, arg)
