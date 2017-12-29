@@ -339,6 +339,48 @@ func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username s
 	return AddMemberByID(ctx, g, teamID, username, role)
 }
 
+func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,
+	username string) error {
+	arg := libkb.NewLoadUserArg(g).
+		WithNetContext(ctx).
+		WithName(username).
+		WithPublicKeyOptional().
+		WithForcePoll(true)
+	upak, _, err := g.GetUPAKLoader().LoadV2(arg)
+	if err != nil {
+		return err
+	}
+	uv := NewUserVersion(upak.Current.Uid, upak.Current.EldestSeqno)
+	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+		t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true)
+		if err != nil {
+			return err
+		}
+		existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
+		if err != nil {
+			return libkb.NotFoundError{Msg: fmt.Sprintf("uid %s has never been a member of this team.",
+				username)}
+		}
+
+		if existingUV.EldestSeqno == uv.EldestSeqno {
+			return libkb.ExistsError{
+				Msg: fmt.Sprintf("user %s has not reset, no need to re-add, existing: %v new: %v",
+					username, existingUV.EldestSeqno, uv.EldestSeqno),
+			}
+		}
+		existingRole, err := t.MemberRole(ctx, existingUV)
+		if err != nil {
+			return err
+		}
+
+		_, err = AddMemberByID(ctx, g, teamID, username, existingRole)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
 func InviteEmailMember(ctx context.Context, g *libkb.GlobalContext, teamname, email string, role keybase1.TeamRole) error {
 	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
 		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)

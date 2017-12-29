@@ -961,12 +961,18 @@ func (t *TeamSigChainPlayer) addInnerLink(
 
 			// Check that the invites being completed are all active.
 			// For non-implicit teams we are more lenient, but here we need the counts to match up.
-			for inviteID := range team.CompletedInvites {
+			invitees := make(map[keybase1.UID]bool)
+			for inviteID, invitee := range team.CompletedInvites {
 				_, ok := prevState.inner.ActiveInvites[inviteID]
 				if !ok {
 					return res, NewImplicitTeamOperationError("completed invite %v but was not active",
 						inviteID)
 				}
+				uv, err := keybase1.ParseUserVersion(invitee)
+				if err != nil {
+					return res, err
+				}
+				invitees[uv.Uid] = true
 			}
 			nCompleted := len(team.CompletedInvites)
 
@@ -994,6 +1000,9 @@ func (t *TeamSigChainPlayer) addInnerLink(
 					}
 					removal.satisfied = true
 					removals[uv.Uid] = removal
+					if invitees[uv.Uid] && uv.EldestSeqno > removal.uv.EldestSeqno {
+						nCompletedExpected++
+					}
 				} else {
 					// This is a new user, so must be a completed invite.
 					nCompletedExpected++
@@ -1007,7 +1016,8 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			}
 			// The number of completed invites must match.
 			if nCompletedExpected != nCompleted {
-				return res, NewImplicitTeamOperationError("illegal membership change")
+				return res, NewImplicitTeamOperationError("illegal membership change: %d != %d",
+					nCompletedExpected, nCompleted)
 			}
 		}
 
@@ -1420,10 +1430,6 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, err
 		}
 
-		if prevState.IsImplicit() {
-			return res, NewImplicitTeamOperationError(payload.Body.Type)
-		}
-
 		// Check that the signer is at least an ADMIN or is an IMPLICIT ADMIN to have permission to make this link.
 		if !signer.implicitAdmin {
 			signerRole, err := prevState.GetUserRole(signer.signer)
@@ -1443,6 +1449,35 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		})
 		if err != nil {
 			return res, err
+		}
+
+		if prevState.IsImplicit() {
+			// Check to see if the additions were previously members of the team
+			checkImpteamInvites := func() error {
+				for _, invites := range additions {
+					for _, invite := range invites {
+						cat, err := invite.Type.C()
+						if err != nil {
+							return err
+						}
+						if cat == keybase1.TeamInviteCategory_KEYBASE {
+							uv, err := invite.KeybaseUserVersion()
+							if err != nil {
+								return err
+							}
+							if _, err := prevState.GetLatestUVWithUID(uv.Uid); err != nil {
+								return err
+							}
+						} else {
+							return fmt.Errorf("invalid invite type in implicit team: %v", cat)
+						}
+					}
+				}
+				return nil
+			}
+			if err := checkImpteamInvites(); err != nil {
+				return res, NewImplicitTeamOperationError(payload.Body.Type)
+			}
 		}
 
 		res.newState = prevState.DeepCopy()

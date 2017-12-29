@@ -180,6 +180,7 @@ func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (res keybase1.Implic
 		ConflictInfo: nil, // TODO should we know this here?
 	}
 
+	seenKBUsers := make(map[string]bool)
 	members, err := t.Members()
 	if err != nil {
 		return res, err
@@ -199,6 +200,10 @@ func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (res keybase1.Implic
 			return res, err
 		}
 		impName.Readers.KeybaseUsers = append(impName.Readers.KeybaseUsers, name.String())
+	}
+	// Mark all the usernames we know about
+	for _, name := range append(impName.Writers.KeybaseUsers, impName.Readers.KeybaseUsers...) {
+		seenKBUsers[name] = true
 	}
 
 	// Add the invites
@@ -238,14 +243,21 @@ func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (res keybase1.Implic
 			}
 			isFullyResolved = false
 		case keybase1.TeamInviteCategory_KEYBASE:
+			// Check to make sure we don't already have the user in the name
+			iname := string(invite.Name)
+			if seenKBUsers[iname] {
+				continue
+			}
+			seenKBUsers[iname] = true
 			// invite.Name is the username of the invited user, which AnnotateInvites has resolved.
 			switch invite.Role {
 			case keybase1.TeamRole_OWNER:
-				impName.Writers.KeybaseUsers = append(impName.Writers.KeybaseUsers, string(invite.Name))
+				impName.Writers.KeybaseUsers = append(impName.Writers.KeybaseUsers, iname)
 			case keybase1.TeamRole_READER:
-				impName.Readers.KeybaseUsers = append(impName.Readers.KeybaseUsers, string(invite.Name))
+				impName.Readers.KeybaseUsers = append(impName.Readers.KeybaseUsers, iname)
 			default:
-				return res, fmt.Errorf("implicit team contains invite to role: %v (%v)", invite.Role, invite.Id)
+				return res, fmt.Errorf("implicit team contains invite to role: %v (%v)", invite.Role,
+					invite.Id)
 			}
 		default:
 			return res, fmt.Errorf("unrecognized invite type in implicit team: %v", invtyp)
@@ -1370,6 +1382,8 @@ func (t *Team) sigPayload(sigMultiItem libkb.SigMultiItem, args sigPayloadArgs) 
 }
 
 func (t *Team) postMulti(payload libkb.JSONPayload) error {
+	out, _ := json.MarshalIndent(payload, "", "\t")
+	t.G().Log.Debug("SIG: %s", string(out))
 	_, err := t.G().API.PostJSON(libkb.APIArg{
 		Endpoint:    "sig/multi",
 		SessionType: libkb.APISessionTypeREQUIRED,

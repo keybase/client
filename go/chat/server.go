@@ -2540,6 +2540,5 @@ func (h *Server) AddTeamMemberAfterReset(ctx context.Context,
 	}
 
 	teamID := keybase1.TeamID(conv.Info.Triple.Tlfid.String())
-	_, err = teams.AddMemberByID(ctx, h.G().ExternalG(), teamID, arg.Username, keybase1.TeamRole_OWNER)
-	return err
+	return teams.ReAddMemberAfterReset(ctx, h.G().ExternalG(), teamID, arg.Username)
 }
