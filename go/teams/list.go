@@ -237,7 +237,7 @@ func ListTeams(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamLis
 		res.Teams = append(res.Teams, *anMemberInfo)
 
 		if anMemberInfo.MemberCount != memberInfo.MemberCount {
-			g.Log.CDebugf(ctx, "| Disagreed with the server about member count for %q. Server says %d, we think %d", team.ID, memberInfo.memberCount, anMemberInfo.MemberCount)
+			g.Log.CDebugf(ctx, "| Disagreed with the server about member count for %q. Server says %d, we think %d", team.ID, memberInfo.MemberCount, anMemberInfo.MemberCount)
 		}
 	}
 
