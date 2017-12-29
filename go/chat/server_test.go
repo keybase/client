@@ -3526,20 +3526,25 @@ func TestChatSrvUserReset(t *testing.T) {
 
 		t.Logf("user 2 gets PUK and tries to do stuff")
 		require.NoError(t, users[2].Login(g2))
-		time.Sleep(15 * time.Second)
-		_, err = ctc.as(t, users[2]).chatLocalHandler().PostLocal(ctx2, chat1.PostLocalArg{
-			ConversationID: conv.Id,
-			Msg: chat1.MessagePlaintext{
-				ClientHeader: chat1.MessageClientHeader{
-					Conv:        conv.Triple,
-					MessageType: chat1.MessageType_TEXT,
-					TlfName:     conv.TlfName,
+		for i := 0; i < 15; i++ {
+			_, err = ctc.as(t, users[2]).chatLocalHandler().PostLocal(ctx2, chat1.PostLocalArg{
+				ConversationID: conv.Id,
+				Msg: chat1.MessagePlaintext{
+					ClientHeader: chat1.MessageClientHeader{
+						Conv:        conv.Triple,
+						MessageType: chat1.MessageType_TEXT,
+						TlfName:     conv.TlfName,
+					},
+					MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+						Body: "Hello",
+					}),
 				},
-				MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
-					Body: "Hello",
-				}),
-			},
-		})
+			})
+			if err == nil {
+				break
+			}
+			time.Sleep(2 * time.Second)
+		}
 		require.NoError(t, err)
 	})
 }

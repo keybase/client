@@ -1968,6 +1968,12 @@ type LookupOrCreateImplicitTeamArg struct {
 	Public bool   `codec:"public" json:"public"`
 }
 
+type TeamReAddMemberAfterResetArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Id        TeamID `codec:"id" json:"id"`
+	Username  string `codec:"username" json:"username"`
+}
+
 type LoadTeamPlusApplicationKeysArg struct {
 	SessionID   int             `codec:"sessionID" json:"sessionID"`
 	Id          TeamID          `codec:"id" json:"id"`
@@ -2037,6 +2043,7 @@ type TeamsInterface interface {
 	TeamAddEmailsBulk(context.Context, TeamAddEmailsBulkArg) (BulkRes, error)
 	LookupImplicitTeam(context.Context, LookupImplicitTeamArg) (LookupImplicitTeamRes, error)
 	LookupOrCreateImplicitTeam(context.Context, LookupOrCreateImplicitTeamArg) (LookupImplicitTeamRes, error)
+	TeamReAddMemberAfterReset(context.Context, TeamReAddMemberAfterResetArg) error
 	// * loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.
 	// * If refreshers are non-empty, then force a refresh of the cache if the requirements
 	// * of the refreshers aren't met.
@@ -2455,6 +2462,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"teamReAddMemberAfterReset": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamReAddMemberAfterResetArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamReAddMemberAfterResetArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamReAddMemberAfterResetArg)(nil), args)
+						return
+					}
+					err = i.TeamReAddMemberAfterReset(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"loadTeamPlusApplicationKeys": {
 				MakeArg: func() interface{} {
 					ret := make([]LoadTeamPlusApplicationKeysArg, 1)
@@ -2730,6 +2753,11 @@ func (c TeamsClient) LookupImplicitTeam(ctx context.Context, __arg LookupImplici
 
 func (c TeamsClient) LookupOrCreateImplicitTeam(ctx context.Context, __arg LookupOrCreateImplicitTeamArg) (res LookupImplicitTeamRes, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.lookupOrCreateImplicitTeam", []interface{}{__arg}, &res)
+	return
+}
+
+func (c TeamsClient) TeamReAddMemberAfterReset(ctx context.Context, __arg TeamReAddMemberAfterResetArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamReAddMemberAfterReset", []interface{}{__arg}, nil)
 	return
 }
 
