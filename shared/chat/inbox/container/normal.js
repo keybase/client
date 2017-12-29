@@ -19,8 +19,11 @@ const getSmallIDs = createSelector(
   (metaMap, messageOrdinals, messageMap) => {
     // Get small/adhoc teams
     const smallMap = metaMap.filter(meta => meta.teamType !== 'big')
-    const recentMessages = smallMap.map((_, conversationIDKey) =>
-      getLastMessage(messageOrdinals, messageMap, conversationIDKey)
+    const recentMessages = smallMap.map(
+      (_, conversationIDKey) =>
+        getLastMessage(messageOrdinals, messageMap, conversationIDKey) || {
+          timestamp: metaMap.getIn([conversationIDKey, 'untrustedTimestamp'], 0),
+        }
     )
     // Sort timestamps of the last messages
     return recentMessages

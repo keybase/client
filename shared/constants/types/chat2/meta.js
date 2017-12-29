@@ -19,6 +19,7 @@ export type _ConversationMeta = {
   notificationSettings: ?RPCChatTypes.ConversationNotificationInfo,
   participants: I.Set<string>,
   resetParticipants: I.Set<string>,
+  rekeyers: I.Set<string>,
   supersededBy: ?Common.ConversationIDKey,
   supersededByCausedBy: ?Username,
   supersedes: ?Common.ConversationIDKey,
@@ -26,6 +27,8 @@ export type _ConversationMeta = {
   teamType: TeamType,
   teamname: string,
   trustedState: MetaTrustedState,
+  untrustedMessage: string, // ONLY used bhile not unboxed
+  untrustedTimestamp: number, // ONLY used while not unboxed
 }
 
 export type ConversationMeta = I.RecordOf<_ConversationMeta>

@@ -32,7 +32,7 @@ const makeRow = (options: MakeRowOptions) => {
       case 'big':
         return (
           <FilterBigTeamChannel
-            key={`${options.teamname}:${options.channelname}`}
+            key={options.conversationIDKey}
             conversationIDKey={options.conversationIDKey}
             channelname={options.channelname}
             isActiveRoute={options.isActiveRoute}
@@ -63,7 +63,7 @@ const makeRow = (options: MakeRowOptions) => {
       case 'big':
         return (
           <BigTeamChannel
-            key={`${options.teamname}:${options.channelname}`}
+            key={options.conversationIDKey}
             conversationIDKey={options.conversationIDKey}
             channelname={options.channelname}
             isActiveRoute={options.isActiveRoute}

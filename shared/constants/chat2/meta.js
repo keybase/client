@@ -69,6 +69,7 @@ export const unverifiedInboxUIItemToConversationMeta = (
     teamType: getTeamType(i),
     teamname,
     trustedState: i.localMetadata ? 'trusted' : 'untrusted', // if we have localMetadata attached to an unverifiedInboxUIItem it's been loaded previously
+    untrustedTimestamp: i.localMetadata ? 0 : i.time,
   })
 }
 
@@ -148,6 +149,7 @@ export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record
   membershipType: 'active',
   notificationSettings: null,
   participants: I.Set(),
+  rekeyers: I.Set(),
   resetParticipants: I.Set(),
   supersededBy: null,
   supersededByCausedBy: null,
@@ -156,6 +158,8 @@ export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record
   teamType: 'adhoc',
   teamname: '',
   trustedState: 'untrusted',
+  untrustedMessage: '',
+  untrustedTimestamp: 0,
 })
 
 const bgPlatform = isMobile ? globalColors.white : globalColors.blue5

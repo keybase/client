@@ -18,6 +18,8 @@ import {chatTab} from '../../constants/tabs'
 /*
  * TODO:
  * untrused inbox view
+ * reset
+ * empty
  * .>>>> loading state
  * >>>> Send tlfname and convid to send so daemon can verify its been unboxed
  */
@@ -140,6 +142,29 @@ const rpcMetaRequest = (action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.Se
       'chat.1.chatUi.chatInboxConversation': function*({
         conv,
       }: RPCChatTypes.ChatUiChatInboxConversationRpcParam) {
+        // TEMP to force errors
+        // const inboxUIItem: RPCChatTypes.InboxUIItem = JSON.parse(conv)
+        // const meta = Constants.inboxUIItemToConversationMeta(inboxUIItem)
+        // if (meta) {
+        // const state: TypedState = yield Saga.select()
+        // yield Saga.put(
+        // Chat2Gen.createMetaReceivedError({
+        // conversationIDKey: meta.conversationIDKey,
+        // error: {
+        // message: 'An error message',
+        // rekeyInfo: {
+        // // TODO set empty
+        // readerNames: ['foo', 'bar'],
+        // writerNames: meta.participants.toArray(),
+        // },
+        // typ: RPCChatTypes.localConversationErrorType.selfrekeyneeded, // TODO others
+        // unverifiedTLFName: meta.participants.toArray().join(','),
+        // },
+        // username: state.config.username || '',
+        // })
+        // )
+        // }
+        // TEMP put back
         const inboxUIItem: RPCChatTypes.InboxUIItem = JSON.parse(conv)
         const meta = Constants.inboxUIItemToConversationMeta(inboxUIItem)
         if (meta) {
@@ -157,8 +182,13 @@ const rpcMetaRequest = (action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.Se
         convID,
         error,
       }: RPCChatTypes.ChatUiChatInboxFailedRpcParam) {
+        const state: TypedState = yield Saga.select()
         yield Saga.put(
-          Chat2Gen.createMetaReceivedError({conversationIDKey: Constants.conversationIDToKey(convID), error})
+          Chat2Gen.createMetaReceivedError({
+            conversationIDKey: Constants.conversationIDToKey(convID),
+            error,
+            username: state.config.username || '',
+          })
         )
         return EngineRpc.rpcResult()
       },

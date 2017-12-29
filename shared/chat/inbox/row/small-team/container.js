@@ -14,13 +14,10 @@ const emptyMeta = Constants2.makeConversationMeta()
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const _conversationIDKey = ownProps.conversationIDKey || ''
   const {isActiveRoute} = ownProps
-  const isPending = Constants.isPendingConversationIDKey(_conversationIDKey)
   const youAreReset = Constants.isResetConversationIDKey(state, _conversationIDKey)
 
   // TODO remove
-  const p = isPending
-    ? util.pendingSnippetRowSelector(state, _conversationIDKey)
-    : util.snippetRowSelector(state, _conversationIDKey)
+  const p = util.snippetRowSelector(state, _conversationIDKey)
 
   return {
     _conversationIDKey,
@@ -29,7 +26,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
     _meta: (_conversationIDKey && Constants2.getMeta(state, _conversationIDKey)) || emptyMeta,
     _username: state.config.username || '',
     hasBadge: Constants2.getHasBadge(state, _conversationIDKey),
-    hasResetUsers: state.chat.inboxResetParticipants.get(_conversationIDKey || '', I.Set()).size > 0,
+    hasResetUsers: state.chat.inboxResetParticipants.get(_conversationIDKey || '', I.Set()).size > 0, // TODO remove
     hasUnread: Constants2.getHasUnread(state, _conversationIDKey),
     isActiveRoute,
     isSelected: Constants2.getIsSelected(state, _conversationIDKey),
@@ -55,6 +52,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     stateProps._messageIDs,
     stateProps._conversationIDKey
   )
+
   return {
     backgroundColor: derivedProps.backgroundColor,
     hasBadge: stateProps.hasBadge,
@@ -67,7 +65,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     participantNeedToRekey: stateProps.participantNeedToRekey,
     participants: Constants2.getRowParticipants(stateProps._meta, stateProps._username),
     showBold: derivedProps.showBold,
-    snippet: Constants2.getSnippetText(snippetMessage),
+    snippet: Constants2.getSnippetText(snippetMessage) || stateProps._meta.untrustedMessage,
     subColor: derivedProps.subColor,
     teamname: stateProps._meta.teamname,
     timestamp: Constants2.getSnippetTimestamp(snippetMessage),

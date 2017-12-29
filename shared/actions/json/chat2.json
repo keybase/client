@@ -34,7 +34,8 @@
     },
     "metaReceivedError": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "error": "RPCChatTypes.ConversationErrorLocal"
+      "error": "RPCChatTypes.ConversationErrorLocal",
+      "username": "string"
     },
     "messagesAdd": {
       "messages": "Array<Types.Message>"

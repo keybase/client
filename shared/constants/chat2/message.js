@@ -155,7 +155,7 @@ export const getSnippetText = (message: ?Types.Message) => {
       return '[deleted]'
     case 'attachment': {
       const m: Types.MessageAttachment = message
-      return textSnippet(m.title, 100)
+      return textSnippet(m.title || '[attachment]', 100)
     }
     // case 'System':
     case 'text': {
