@@ -73,10 +73,15 @@ func coTaskMemFree(pv unsafe.Pointer) {
 func GetDataDir(id GUID, name, envname string) (string, error) {
 	var pszPath unsafe.Pointer
 	// https://msdn.microsoft.com/en-us/library/windows/desktop/bb762188(v=vs.85).aspx
-	// When this method returns, contains the address of a pointer to a null-terminated
+	// When this method returns, pszPath contains the address of a pointer to a null-terminated
 	// Unicode string that specifies the path of the known folder. The calling process
 	// is responsible for freeing this resource once it is no longer needed by calling
 	// coTaskMemFree.
+	//
+	// It's safe for pszPath to point to memory not managed by Go:
+	// see
+	// https://groups.google.com/d/msg/golang-nuts/ls7Eg7Ye9pU/ye1GLs8dBwAJ
+	// for details.
 	r0, _, _ := procSHGetKnownFolderPath.Call(uintptr(unsafe.Pointer(&id)), uintptr(0), uintptr(0), uintptr(unsafe.Pointer(&pszPath)))
 	if pszPath != (unsafe.Pointer{}) {
 		defer coTaskMemFree(pszPath)
