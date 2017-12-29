@@ -7,13 +7,13 @@ import {typeToLabel} from '../../../constants/teams'
 import {type TypeMap} from '../../../constants/types/teams'
 
 export type Props = {
-  username: string,
-  following: boolean,
-  teamname: string,
-  you: ?string,
-  type: ?string,
   active: boolean,
+  following: boolean,
+  fullName: string,
   onClick: () => void,
+  type: ?string,
+  username: string,
+  you: ?string,
 }
 
 const showCrown: TypeMap = {
@@ -24,7 +24,7 @@ const showCrown: TypeMap = {
 }
 
 export const TeamMemberRow = (props: Props) => {
-  const {username, onClick, you, following, type, active} = props
+  const {active, following, fullName, onClick, type, username, you} = props
   return (
     <ClickableBox
       style={{
@@ -53,6 +53,9 @@ export const TeamMemberRow = (props: Props) => {
           )}
         </Box>
         <Box style={globalStyles.flexBoxRow}>
+          {!!fullName && active &&
+            <Text style={{marginRight: globalMargins.xtiny}} type="BodySmall">{fullName} •</Text>
+          }
           {type &&
             !!showCrown[type] && (
               <Icon
