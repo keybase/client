@@ -32,6 +32,8 @@ import (
 	gogit "gopkg.in/src-d/go-git.v4"
 	gogitcfg "gopkg.in/src-d/go-git.v4/config"
 	"gopkg.in/src-d/go-git.v4/plumbing"
+	gogitobj "gopkg.in/src-d/go-git.v4/plumbing/object"
+	gogitstor "gopkg.in/src-d/go-git.v4/plumbing/storer"
 	"gopkg.in/src-d/go-git.v4/storage"
 	"gopkg.in/src-d/go-git.v4/storage/filesystem"
 )
@@ -1425,7 +1427,7 @@ func (r *runner) pushAll(ctx context.Context, fs *libfs.FS) (err error) {
 
 func (r *runner) pushSome(
 	ctx context.Context, repo *gogit.Repository, fs *libfs.FS, args [][]string,
-	kbfsRepoEmpty bool) (map[string]error, error) {
+	kbfsRepoEmpty bool) (map[string]error, []*plumbing.Reference, error) {
 	r.log.CDebugf(ctx, "Pushing %d refs into %s", len(args), r.gitDir)
 
 	remote, err := repo.CreateRemote(&gogitcfg.RemoteConfig{
@@ -1501,15 +1503,47 @@ func (r *runner) pushSome(
 			err = nil
 		}
 
+		// TODO (KBFS-2682): also load parent refs.
+		refs := make([]*plumbing.Reference, 0, len(refspecs))
+
 		// All non-delete refspecs in the batch get the same error.
 		for _, refspec := range refspecs {
 			refStr := refspec.String()
 			start := strings.Index(refStr, ":") + 1
 			dst := refStr[start:]
 			results[dst] = err
+			ref, refErr := repo.Storer.Reference(plumbing.ReferenceName(dst))
+			if refErr != nil {
+				r.log.CDebugf(ctx, "Error loading ref for refspec %s: %+v",
+					refspec, refErr)
+				continue
+			}
+			refs = append(refs, ref)
 		}
 	}
 	return results, nil
+}
+
+func (r *runner) refsToCommits(ctx context.Context,
+	storer gogitstor.EncodedObjectStorer,
+	refs []*plumbing.Reference) ([]*gogitobj.Commit, error) {
+	erroredRefs := make(map[string]error, 0, len(refs))
+	commits := make([]*gogitobj.Commit, 0, len(refs))
+	for _, ref := range refs {
+		commit, err := gogitobj.GetCommit(storer, ref.Hash())
+		if err != nil {
+			r.log.CDebugf(ctx, "Error loading commit for ref %s: %+v",
+				ref.Name(), err)
+			erroredRefs = append(erroredRefs, ref.Name())
+			continue
+		}
+		commits = append(commits, commit)
+	}
+	if len(erroredRefs) > 0 {
+		return commits, errors.Errorf(
+			"Error getting commit for at least one ref: %+v", erroredRefs)
+	}
+	return commits, nil
 }
 
 // handlePushBatch: From https://git-scm.com/docs/git-remote-helpers
@@ -1552,18 +1586,27 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 	}
 
 	var results map[string]error
+	var refs []*plumbing.Reference
 	if canPushAll {
 		err = r.pushAll(ctx, fs)
 		// All refs in the batch get the same error.
 		results = make(map[string]error, len(args))
+		refs = make([]*plumbing.Reference, 0, len(args))
 		for _, push := range args {
 			// `canPushAll` already validates the push reference.
 			start := strings.Index(push[0], ":") + 1
 			dst := push[0][start:]
 			results[dst] = err
+			ref, refErr := repo.Storer.Reference(plumbing.ReferenceName(dst))
+			if refErr != nil {
+				r.log.CDebugf(ctx, "Error loading ref for refspec %s: %+v",
+					refspec, refErr)
+				continue
+			}
+			refs = append(refs, ref)
 		}
 	} else {
-		results, err = r.pushSome(ctx, repo, fs, args, kbfsRepoEmpty)
+		results, refs, err = r.pushSome(ctx, repo, fs, args, kbfsRepoEmpty)
 	}
 	if err != nil {
 		return err
@@ -1584,6 +1627,12 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 		}
 		_, err = r.output.Write([]byte(result + "\n"))
 	}
+
+	commits, err := r.refsToCommits(ctx, repo.Storer, refs)
+	if err != nil {
+	}
+	// TODO (KBFS-2682): send commit names, emails, dates, and messages to
+	// `UpdateRepoMD`, once the protocol supports it..
 
 	err = libgit.UpdateRepoMD(ctx, r.config, r.h, fs)
 	if err != nil {
