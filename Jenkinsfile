@@ -367,10 +367,10 @@ def testGo(prefix) {
             dirs = getTestDirsNix()
             slash = '/'
             goversion = sh(returnStdout: true, script: "go version").trim()
+            // Ideally, we'd do this on Windows, too, but we'd have to figure
+            // out how to do it with batch files or PowerShell.
             sh "make lint"
-	    // Ideally, we'd do this on Windows also, but it might be harder
-	    // to do with batch syntax.
-	    sh 'test -z $(gofmt -l $(go list ./... | sed -e s/github.com.keybase.client.go.// ))'
+            sh 'test -z $(gofmt -l $(go list ./... | sed -e s/github.com.keybase.client.go.// ))'
         } else {
             shell = { params -> bat params }
             dirs = getTestDirsWindows()
