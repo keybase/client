@@ -1620,13 +1620,6 @@ export const teamsTeamListSubteamsRecursiveRpcChannelMap = (configKeys: Array<st
 
 export const teamsTeamListSubteamsRecursiveRpcPromise = (request: TeamsTeamListSubteamsRecursiveRpcParam): Promise<TeamsTeamListSubteamsRecursiveResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamListSubteamsRecursive', request, (error: RPCError, result: TeamsTeamListSubteamsRecursiveResult) => (error ? reject(error) : resolve(result))))
 
-<<<<<<< HEAD:shared/constants/types/rpc-gen.js
-export const teamsTeamReAddMemberAfterResetRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamReAddMemberAfterResetRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamReAddMemberAfterReset', request)
-
-export const teamsTeamReAddMemberAfterResetRpcPromise = (request: TeamsTeamReAddMemberAfterResetRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamReAddMemberAfterReset', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
-=======
->>>>>>> peace out ReAddMember in its current form:protocol/js/flow-types.js
 export const teamsTeamRemoveMemberRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamRemoveMemberRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamRemoveMember', request)
 
 export const teamsTeamRemoveMemberRpcPromise = (request: TeamsTeamRemoveMemberRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamRemoveMember', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
@@ -3629,17 +3622,11 @@ export type TeamsTeamListRpcParam = {|userAssertion: String, all: Boolean, inclu
 
 export type TeamsTeamListSubteamsRecursiveRpcParam = {|parentTeamName: String, forceRepoll: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TeamsTeamReAddMemberAfterResetRpcParam = {|id: TeamID, username: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
-
 export type TeamsTeamRemoveMemberRpcParam = {|name: String, username: String, email: String, inviteID: TeamInviteID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-<<<<<<< HEAD:shared/constants/types/rpc-gen.js
 export type TeamsTeamRenameRpcParam = {|prevName: TeamName, newName: TeamName, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
 export type TeamsTeamRequestAccessRpcParam = {|name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
-=======
-export type TeamsTeamRemoveMemberRpcParam = {|name: String,username: String,email: String,inviteID: TeamInviteID,incomingCallMap?: IncomingCallMapType,waitingHandler?: WaitingHandlerType|}
->>>>>>> peace out ReAddMember in its current form:protocol/js/flow-types.js
 
 export type TeamsTeamRotateKeyRpcParam = {|teamID: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
