@@ -3514,7 +3514,7 @@ export type TeamList = {|teams?: ?Array<MemberInfo>|}
 
 export type TeamMember = {|uid: UID, role: TeamRole, eldestSeqno: Seqno, userEldestSeqno: Seqno|}
 
-export type TeamMemberDetails = {|uv: UserVersion, username: String, active: Boolean, needsPUK: Boolean|}
+export type TeamMemberDetails = {|uv: UserVersion, username: String, fullName: FullName, active: Boolean, needsPUK: Boolean|}
 
 export type TeamMemberOutFromReset = {|teamName: String, resetUser: TeamResetUser|}
 
