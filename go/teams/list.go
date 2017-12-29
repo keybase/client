@@ -21,7 +21,7 @@ func (r *statusList) GetAppStatus() *libkb.AppStatus {
 	return &r.Status
 }
 
-func getTeamsListFromServer(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, all bool) ([]keybase1.MemberInfo, error) {
+func getTeamsListFromServer(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, all bool, countMembers bool) ([]keybase1.MemberInfo, error) {
 	var endpoint string
 	if all {
 		endpoint = "team/teammates_for_user"
@@ -29,10 +29,12 @@ func getTeamsListFromServer(ctx context.Context, g *libkb.GlobalContext, uid key
 		endpoint = "team/for_user"
 	}
 	a := libkb.NewAPIArg(endpoint)
+	a.Args = libkb.HTTPArgs{}
 	if uid.Exists() {
-		a.Args = libkb.HTTPArgs{
-			"uid": libkb.S{Val: uid.String()},
-		}
+		a.Args["uid"] = libkb.S{Val: uid.String()}
+	}
+	if countMembers {
+		a.Args["count_members"] = libkb.B{Val: true}
 	}
 	a.NetContext = ctx
 	a.SessionType = libkb.APISessionTypeREQUIRED
@@ -140,7 +142,7 @@ func ListTeams(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamLis
 	}
 
 	tracer.Stage("Server")
-	teams, err := getTeamsListFromServer(ctx, g, queryUID, false)
+	teams, err := getTeamsListFromServer(ctx, g, queryUID, false /* all */, false /* countMembers */)
 	if err != nil {
 		return nil, err
 	}
@@ -235,10 +237,6 @@ func ListTeams(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamLis
 
 		anMemberInfo.MemberCount = len(memberUIDs)
 		res.Teams = append(res.Teams, *anMemberInfo)
-
-		if anMemberInfo.MemberCount != memberInfo.MemberCount {
-			g.Log.CDebugf(ctx, "| Disagreed with the server about member count for %q. Server says %d, we think %d", team.ID, memberInfo.MemberCount, anMemberInfo.MemberCount)
-		}
 	}
 
 	if len(res.Teams) == 0 && !expectEmptyList {
@@ -258,7 +256,7 @@ func ListAll(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListA
 	}
 
 	tracer.Stage("Server")
-	teams, err := getTeamsListFromServer(ctx, g, "" /*uid*/, true /*all*/)
+	teams, err := getTeamsListFromServer(ctx, g, "" /*uid*/, true /*all*/, false /* countMembers */)
 	if err != nil {
 		return nil, err
 	}
@@ -670,7 +668,7 @@ func TeamTree(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamTree
 		return res, fmt.Errorf("cannot get tree of non-root team")
 	}
 
-	serverList, err := getTeamsListFromServer(ctx, g, "", false)
+	serverList, err := getTeamsListFromServer(ctx, g, "", false /* all */, false /* countMembers */)
 	if err != nil {
 		return res, err
 	}

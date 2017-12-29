@@ -37,7 +37,7 @@ func ListTeamsFast(ctx context.Context, g *libkb.GlobalContext, arg keybase1.Tea
 	}
 
 	tracer.Stage("Server")
-	teams, err := getTeamsListFromServer(ctx, g, queryUID, false)
+	teams, err := getTeamsListFromServer(ctx, g, queryUID, false /* all */, true /* countMembers */)
 	if err != nil {
 		return nil, err
 	}
