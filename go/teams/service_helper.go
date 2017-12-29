@@ -328,15 +328,13 @@ func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 }
 
 func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole) (res keybase1.TeamAddMemberResult, err error) {
-	tn, err := keybase1.TeamNameFromString(teamname)
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+		Name: teamname,
+	})
 	if err != nil {
 		return res, err
 	}
-	teamID, err := ResolveNameToID(ctx, g, tn)
-	if err != nil {
-		return res, err
-	}
-	return AddMemberByID(ctx, g, teamID, username, role)
+	return AddMemberByID(ctx, g, team.ID, username, role)
 }
 
 func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,
