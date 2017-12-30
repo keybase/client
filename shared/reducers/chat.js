@@ -144,14 +144,6 @@ function reducer(
         })
       )
     }
-    case ChatGen.inboxStale: {
-      return state.update('conversationStates', conversationStates =>
-        conversationStates.map((conversationState, conversationIDKey) => {
-          logger.info(`reducer: setting thread stale from inbox stale: ${conversationIDKey}`)
-          return conversationState.set('isStale', true)
-        })
-      )
-    }
     case ChatGen.updateLatestMessage:
       // Clear new messages id of conversation
       const newConversationStates = state
@@ -320,9 +312,7 @@ function reducer(
     case ChatGen.deleteMessage:
     case ChatGen.downloadProgress:
     case ChatGen.editMessage:
-    case ChatGen.getInboxAndUnbox:
     case ChatGen.inboxStoreLoaded:
-    case ChatGen.incomingMessage:
     case ChatGen.incomingTyping:
     case ChatGen.joinConversation:
     case ChatGen.leaveConversation:
@@ -353,7 +343,6 @@ function reducer(
     case ChatGen.startConversation:
     case ChatGen.toggleChannelWideNotifications:
     case ChatGen.unboxConversations:
-    case ChatGen.unboxMore:
     case ChatGen.updateBadging:
     case ChatGen.updateInboxComplete:
     case ChatGen.updateMetadata:

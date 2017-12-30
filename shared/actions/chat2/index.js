@@ -274,6 +274,9 @@ const changeMetaTrustedState = (
 }
 
 const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage) => {
+  // TODO from thread-content:
+  // convert outbox to regular?
+  // mark as read
   const {conv, message: cMsg, convID} = incoming
   const actions = []
 
@@ -329,17 +332,76 @@ const setupChatHandlers = () => {
         case RPCChatTypes.notifyChatChatActivityType.newConversation:
           return chatActivityToMetasAction(activity.newConversation)
         case RPCChatTypes.notifyChatChatActivityType.failedMessage:
-          return null // TODO?
+          return null
+        // TODO old code for ref
+        // const failedMessage: ?RPCChatTypes.FailedMessageInfo = action.payload.activity.failedMessage
+        // if (failedMessage && failedMessage.outboxRecords) {
+        // for (const outboxRecord of failedMessage.outboxRecords) {
+        // const conversationIDKey = Constants.conversationIDToKey(outboxRecord.convID)
+        // const outboxID = outboxRecord.outboxID && Constants.outboxIDToKey(outboxRecord.outboxID)
+        // const errTyp = outboxRecord.state.error.typ
+        // const failureDescription = _decodeFailureDescription(errTyp)
+        // const isConversationLoaded = yield Saga.select(Shared.conversationStateSelector, conversationIDKey)
+        // if (!isConversationLoaded) return
+
+        // const pendingMessage = yield Saga.select(_messageOutboxIDSelector, conversationIDKey, outboxID)
+        // if (pendingMessage) {
+        // yield Saga.put(
+        // ChatGen.createUpdateTempMessage({
+        // conversationIDKey,
+        // message: {
+        // ...pendingMessage,
+        // failureDescription,
+        // messageState: 'failed',
+        // },
+        // outboxIDKey: outboxID,
+        // })
+        // )
+        // } else {
+        // throw new Error("Pending message wasn't found!")
+        // }
+        // }
+        // }
         case RPCChatTypes.notifyChatChatActivityType.membersUpdate:
-          return null // TODO?
+          const convID = activity.membersUpdate && activity.membersUpdate.convID
+          return convID
+            ? [
+                Chat2Gen.createMetaRequestTrusted({
+                  conversationIDKeys: [Constants.conversationIDToKey(convID)],
+                }),
+              ]
+            : null
         case RPCChatTypes.notifyChatChatActivityType.setAppNotificationSettings:
+          // OLD code for refernc
+          // if (action.payload.activity && action.payload.activity.setAppNotificationSettings) {
+          // const {convID, settings} = action.payload.activity.setAppNotificationSettings
+          // if (convID && settings) {
+          // const conversationIDKey = Constants.conversationIDToKey(convID)
+          // const notifications = parseNotifications(settings)
+          // if (notifications) {
+          // yield Saga.put(
+          // ChatGen.createUpdatedNotifications({
+          // conversationIDKey,
+          // notifications,
+          // })
+          // )
+          // }
+          // }
+          // }
           return null // TODO?
         case RPCChatTypes.notifyChatChatActivityType.teamtype:
-          return null // TODO?
+          return [Chat2Gen.createInboxRefresh()]
         default:
           break
       }
     }
+  )
+
+  engine().setIncomingActionCreators(
+    'chat.1.NotifyChat.ChatTLFFinalize',
+    ({convID}: {convID: RPCChatTypes.ConversationID}) => [
+      Chat2Gen.createMetaRequestTrusted({conversationIDKeys: [Constants.conversationIDToKey(convID)]}),
+    ]
   )
 }
 

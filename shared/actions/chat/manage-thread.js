@@ -2,11 +2,11 @@
 // Actions that have to do with managing a thread.
 // Mute, block, starting a new one, selecting one
 import logger from '../../logger'
-import * as ChatTypes from '../../constants/types/rpc-chat-gen'
 import * as Constants from '../../constants/chat'
 import * as ChatGen from '../../actions/chat-gen'
 import * as Chat2Gen from '../../actions/chat2-gen'
-// import * as I from 'immutable'
+import * as I from 'immutable'
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
 // import * as SearchGen from '../search-gen'
@@ -47,7 +47,7 @@ function* _startConversation(action: ChatGen.StartConversationPayload): Saga.Sag
   const inbox = state.chat.get('inbox')
   const existing = inbox.find(
     state =>
-      state.get('membersType') === ChatTypes.commonConversationMembersType.kbfs &&
+      state.get('membersType') === RPCChatTypes.commonConversationMembersType.kbfs &&
       state
         .get('participants')
         .sort()
@@ -143,15 +143,18 @@ function* _startConversation(action: ChatGen.StartConversationPayload): Saga.Sag
 const _openTeamConversation = function*(action: ChatGen.OpenTeamConversationPayload) {
   // TODO handle channels you're not a member of, or small teams you've never opened the chat for.
   const {payload: {teamname, channelname}} = action
+  const findMeta = meta => meta.teamname === teamname && meta.channelname === channelname
   let state = yield Saga.select()
-  if (state.chat.inboxGlobalUntrustedState === 'unloaded') {
-    yield Saga.put(ChatGen.createInboxStale({reason: 'Navigating to team channel'}))
-    yield Saga.take(ChatGen.inboxStoreLoaded)
+  let conversation = state.chat2.metaMap.find(findMeta)
+
+  // Load inbox if we can't find it
+  if (!conversation) {
+    yield Saga.put(Chat2Gen.createInboxRefresh())
+    yield Saga.take(Chat2Gen.metasReceived)
     state = yield Saga.select()
   }
-  const conversation = state.chat.inbox.find(
-    value => value.teamname === teamname && value.channelname === channelname
-  )
+
+  conversation = state.chat2.metaMap.find(findMeta)
   if (conversation) {
     const {conversationIDKey} = conversation
     yield Saga.put(navigateTo([chatTab, conversationIDKey]))
@@ -224,27 +227,27 @@ const _setNotifications = function*(
         settings: [
           {
             deviceType: RPCTypes.commonDeviceType.desktop,
-            kind: ChatTypes.commonNotificationKind.atmention,
+            kind: RPCChatTypes.commonNotificationKind.atmention,
             enabled: notifications.desktop.atmention,
           },
           {
             deviceType: RPCTypes.commonDeviceType.desktop,
-            kind: ChatTypes.commonNotificationKind.generic,
+            kind: RPCChatTypes.commonNotificationKind.generic,
             enabled: notifications.desktop.generic,
           },
           {
             deviceType: RPCTypes.commonDeviceType.mobile,
-            kind: ChatTypes.commonNotificationKind.atmention,
+            kind: RPCChatTypes.commonNotificationKind.atmention,
             enabled: notifications.mobile.atmention,
           },
           {
             deviceType: RPCTypes.commonDeviceType.mobile,
-            kind: ChatTypes.commonNotificationKind.generic,
+            kind: RPCChatTypes.commonNotificationKind.generic,
             enabled: notifications.mobile.generic,
           },
         ],
       }
-      yield Saga.call(ChatTypes.localSetAppNotificationSettingsLocalRpcPromise, param)
+      yield Saga.call(RPCChatTypes.localSetAppNotificationSettingsLocalRpcPromise, param)
     }
   }
 }
@@ -254,10 +257,10 @@ function _blockConversation(action: ChatGen.BlockConversationPayload) {
   const conversationID = Constants.keyToConversationID(conversationIDKey)
   if (blocked) {
     const status = reportUser
-      ? ChatTypes.commonConversationStatus.reported
-      : ChatTypes.commonConversationStatus.blocked
+      ? RPCChatTypes.commonConversationStatus.reported
+      : RPCChatTypes.commonConversationStatus.blocked
     const identifyBehavior: RPCTypes.TLFIdentifyBehavior = RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui
-    return Saga.call(ChatTypes.localSetConversationStatusLocalRpcPromise, {
+    return Saga.call(RPCChatTypes.localSetConversationStatusLocalRpcPromise, {
       conversationID,
       identifyBehavior,
       status,
@@ -268,7 +271,7 @@ function _blockConversation(action: ChatGen.BlockConversationPayload) {
 function _leaveConversation(action: ChatGen.LeaveConversationPayload) {
   const {conversationIDKey} = action.payload
   const conversationID = Constants.keyToConversationID(conversationIDKey)
-  return Saga.call(ChatTypes.localLeaveConversationLocalRpcPromise, {
+  return Saga.call(RPCChatTypes.localLeaveConversationLocalRpcPromise, {
     convID: conversationID,
   })
 }
@@ -276,14 +279,52 @@ function _leaveConversation(action: ChatGen.LeaveConversationPayload) {
 function _muteConversation(action: ChatGen.MuteConversationPayload) {
   const {conversationIDKey, muted} = action.payload
   const conversationID = Constants.keyToConversationID(conversationIDKey)
-  const status = muted ? ChatTypes.commonConversationStatus.muted : ChatTypes.commonConversationStatus.unfiled
+  const status = muted
+    ? RPCChatTypes.commonConversationStatus.muted
+    : RPCChatTypes.commonConversationStatus.unfiled
   const identifyBehavior: RPCTypes.TLFIdentifyBehavior = RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui
-  return Saga.call(ChatTypes.localSetConversationStatusLocalRpcPromise, {
+  return Saga.call(RPCChatTypes.localSetConversationStatusLocalRpcPromise, {
     conversationID,
     identifyBehavior,
     status,
   })
 }
+
+// from inbox, doesn't really belong there
+function _joinConversation(action: ChatGen.JoinConversationPayload) {
+  const convID = Constants.keyToConversationID(action.payload.conversationIDKey)
+  return Saga.call(RPCChatTypes.localJoinConversationByIDLocalRpcPromise, {
+    convID,
+  })
+}
+
+function _previewChannel(action: ChatGen.PreviewChannelPayload) {
+  const convID = Constants.keyToConversationID(action.payload.conversationIDKey)
+  return Saga.sequentially([
+    Saga.call(RPCChatTypes.localPreviewConversationByIDLocalRpcPromise, {convID}),
+    Saga.put(
+      Chat2Gen.createSelectConversation({conversationIDKey: action.payload.conversationIDKey, fromUser: true})
+    ),
+  ])
+}
+
+function _resetChatWithoutThem(action: ChatGen.ResetChatWithoutThemPayload, state: TypedState) {
+  const participants = state.chat.getIn(['inbox', action.payload.conversationIDKey, 'participants'], I.List())
+  const withoutReset = participants.filter(u => u !== action.payload.username).toArray()
+  if (withoutReset.length) {
+    return Saga.put(
+      ChatGen.createStartConversation({
+        users: withoutReset,
+      })
+    )
+  }
+}
+
+const _resetLetThemIn = (action: ChatGen.ResetLetThemInPayload) =>
+  Saga.call(RPCChatTypes.localAddTeamMemberAfterResetRpcPromise, {
+    convID: Constants.keyToConversationID(action.payload.conversationIDKey),
+    username: action.payload.username,
+  })
 
 function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ChatGen.leaveConversation, _leaveConversation)
@@ -295,6 +336,10 @@ function* registerSagas(): SagaGenerator<any, any> {
   )
   yield Saga.safeTakeEveryPure(ChatGen.blockConversation, _blockConversation)
   yield Saga.safeTakeLatest(ChatGen.openTeamConversation, _openTeamConversation)
+  yield Saga.safeTakeEveryPure(ChatGen.joinConversation, _joinConversation)
+  yield Saga.safeTakeEveryPure(ChatGen.previewChannel, _previewChannel)
+  yield Saga.safeTakeEveryPure(ChatGen.resetChatWithoutThem, _resetChatWithoutThem)
+  yield Saga.safeTakeEveryPure(ChatGen.resetLetThemIn, _resetLetThemIn)
 }
 
 export {registerSagas}

@@ -27,11 +27,8 @@ export const deleteEntity = 'chat:deleteEntity'
 export const deleteMessage = 'chat:deleteMessage'
 export const downloadProgress = 'chat:downloadProgress'
 export const editMessage = 'chat:editMessage'
-export const getInboxAndUnbox = 'chat:getInboxAndUnbox'
-export const inboxStale = 'chat:inboxStale'
 export const inboxStoreLoaded = 'chat:inboxStoreLoaded'
 export const inboxSynced = 'chat:inboxSynced'
-export const incomingMessage = 'chat:incomingMessage'
 export const incomingTyping = 'chat:incomingTyping'
 export const joinConversation = 'chat:joinConversation'
 export const leaveConversation = 'chat:leaveConversation'
@@ -77,7 +74,6 @@ export const subtractEntity = 'chat:subtractEntity'
 export const threadLoadedOffline = 'chat:threadLoadedOffline'
 export const toggleChannelWideNotifications = 'chat:toggleChannelWideNotifications'
 export const unboxConversations = 'chat:unboxConversations'
-export const unboxMore = 'chat:unboxMore'
 export const updateBadging = 'chat:updateBadging'
 export const updateBrokenTracker = 'chat:updateBrokenTracker'
 export const updateFinalizedState = 'chat:updateFinalizedState'
@@ -110,11 +106,8 @@ export const createDeleteEntity = (payload: {|+keyPath: Array<string>, +ids: Ite
 export const createDeleteMessage = (payload: {|+message: Types.Message|}) => ({error: false, payload, type: deleteMessage})
 export const createDownloadProgress = (payload: {|+messageKey: Types.MessageKey, +isPreview: boolean, +progress: ?number|}) => ({error: false, payload, type: downloadProgress})
 export const createEditMessage = (payload: {|+message: Types.Message, +text: HiddenString|}) => ({error: false, payload, type: editMessage})
-export const createGetInboxAndUnbox = (payload: {|+conversationIDKeys: Array<Types.ConversationIDKey>|}) => ({error: false, payload, type: getInboxAndUnbox})
-export const createInboxStale = (payload: {|+reason: string|}) => ({error: false, payload, type: inboxStale})
 export const createInboxStoreLoaded = () => ({error: false, payload: undefined, type: inboxStoreLoaded})
 export const createInboxSynced = (payload: {|+convs: Array<RPCChatTypes.UnverifiedInboxUIItem>|}) => ({error: false, payload, type: inboxSynced})
-export const createIncomingMessage = (payload: {|+activity: RPCChatTypes.ChatActivity|}) => ({error: false, payload, type: incomingMessage})
 export const createIncomingTyping = (payload: {|+activity: RPCChatTypes.TyperInfo|}) => ({error: false, payload, type: incomingTyping})
 export const createJoinConversation = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: joinConversation})
 export const createLeaveConversation = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: leaveConversation})
@@ -160,7 +153,6 @@ export const createSubtractEntity = (payload: {|+keyPath: Array<string>, +entiti
 export const createThreadLoadedOffline = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: threadLoadedOffline})
 export const createToggleChannelWideNotifications = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: toggleChannelWideNotifications})
 export const createUnboxConversations = (payload: {|+conversationIDKeys: Array<Types.ConversationIDKey>, +reason: string, +force?: boolean, +forInboxSync?: boolean, +dismissSyncing?: boolean|}) => ({error: false, payload, type: unboxConversations})
-export const createUnboxMore = () => ({error: false, payload: undefined, type: unboxMore})
 export const createUpdateBadging = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: updateBadging})
 export const createUpdateBrokenTracker = (payload: {|+userToBroken: {[username: string]: boolean}|}) => ({error: false, payload, type: updateBrokenTracker})
 export const createUpdateFinalizedState = (payload: {|+finalizedState: Types.FinalizedState|}) => ({error: false, payload, type: updateFinalizedState})
@@ -193,11 +185,8 @@ export type DeleteEntityPayload = More.ReturnType<typeof createDeleteEntity>
 export type DeleteMessagePayload = More.ReturnType<typeof createDeleteMessage>
 export type DownloadProgressPayload = More.ReturnType<typeof createDownloadProgress>
 export type EditMessagePayload = More.ReturnType<typeof createEditMessage>
-export type GetInboxAndUnboxPayload = More.ReturnType<typeof createGetInboxAndUnbox>
-export type InboxStalePayload = More.ReturnType<typeof createInboxStale>
 export type InboxStoreLoadedPayload = More.ReturnType<typeof createInboxStoreLoaded>
 export type InboxSyncedPayload = More.ReturnType<typeof createInboxSynced>
-export type IncomingMessagePayload = More.ReturnType<typeof createIncomingMessage>
 export type IncomingTypingPayload = More.ReturnType<typeof createIncomingTyping>
 export type JoinConversationPayload = More.ReturnType<typeof createJoinConversation>
 export type LeaveConversationPayload = More.ReturnType<typeof createLeaveConversation>
@@ -243,7 +232,6 @@ export type SubtractEntityPayload = More.ReturnType<typeof createSubtractEntity>
 export type ThreadLoadedOfflinePayload = More.ReturnType<typeof createThreadLoadedOffline>
 export type ToggleChannelWideNotificationsPayload = More.ReturnType<typeof createToggleChannelWideNotifications>
 export type UnboxConversationsPayload = More.ReturnType<typeof createUnboxConversations>
-export type UnboxMorePayload = More.ReturnType<typeof createUnboxMore>
 export type UpdateBadgingPayload = More.ReturnType<typeof createUpdateBadging>
 export type UpdateBrokenTrackerPayload = More.ReturnType<typeof createUpdateBrokenTracker>
 export type UpdateFinalizedStatePayload = More.ReturnType<typeof createUpdateFinalizedState>
@@ -278,11 +266,8 @@ export type Actions =
   | More.ReturnType<typeof createDeleteMessage>
   | More.ReturnType<typeof createDownloadProgress>
   | More.ReturnType<typeof createEditMessage>
-  | More.ReturnType<typeof createGetInboxAndUnbox>
-  | More.ReturnType<typeof createInboxStale>
   | More.ReturnType<typeof createInboxStoreLoaded>
   | More.ReturnType<typeof createInboxSynced>
-  | More.ReturnType<typeof createIncomingMessage>
   | More.ReturnType<typeof createIncomingTyping>
   | More.ReturnType<typeof createJoinConversation>
   | More.ReturnType<typeof createLeaveConversation>
@@ -328,7 +313,6 @@ export type Actions =
   | More.ReturnType<typeof createThreadLoadedOffline>
   | More.ReturnType<typeof createToggleChannelWideNotifications>
   | More.ReturnType<typeof createUnboxConversations>
-  | More.ReturnType<typeof createUnboxMore>
   | More.ReturnType<typeof createUpdateBadging>
   | More.ReturnType<typeof createUpdateBrokenTracker>
   | More.ReturnType<typeof createUpdateFinalizedState>

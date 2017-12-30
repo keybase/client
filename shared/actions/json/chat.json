@@ -27,7 +27,6 @@
       "keyPath": "Array<string>",
       "entities": "I.List<any>"
     },
-    "unboxMore": {},
     "pendingToRealConversation": {
       "oldKey": "Types.ConversationIDKey",
       "newKey": "Types.ConversationIDKey"
@@ -177,9 +176,6 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "isRequesting": "boolean"
     },
-    "incomingMessage": {
-      "activity": "RPCChatTypes.ChatActivity"
-    },
     "incomingTyping": {
       "activity": "RPCChatTypes.TyperInfo"
     },
@@ -194,17 +190,11 @@
     "updateBrokenTracker": {
       "userToBroken": "{[username: string]: boolean}"
     },
-    "inboxStale": {
-      "reason": "string"
-    },
     "markThreadsStale": {
       "updates": "Array<RPCChatTypes.ConversationStaleUpdate>"
     },
     "inboxSynced": {
       "convs": "Array<RPCChatTypes.UnverifiedInboxUIItem>"
-    },
-    "getInboxAndUnbox": {
-      "conversationIDKeys": "Array<Types.ConversationIDKey>"
     },
     "clearMessages": {
       "conversationIDKey": "Types.ConversationIDKey"

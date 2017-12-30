@@ -5,7 +5,6 @@ import * as ChatTypes from '../../constants/types/rpc-chat-gen'
 import * as Constants from '../../constants/chat'
 import * as ChatGen from '../chat-gen'
 import * as KBFSGen from '../kbfs-gen'
-import * as Inbox from './inbox'
 import * as ManageThread from './manage-thread'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
@@ -32,10 +31,6 @@ function _incomingTyping(action: ChatGen.IncomingTypingPayload) {
 }
 
 function _setupChatHandlers() {
-  engine().setIncomingActionCreators('chat.1.NotifyChat.NewChatActivity', ({activity}) => [
-    ChatGen.createIncomingMessage({activity}),
-  ])
-
   engine().setIncomingActionCreators('chat.1.NotifyChat.ChatTypingUpdate', ({typingUpdates}) => [
     ChatGen.createIncomingTyping({activity: typingUpdates}),
   ])
@@ -50,17 +45,16 @@ function _setupChatHandlers() {
     return [ChatGen.createUpdateBrokenTracker({userToBroken})]
   })
 
-  engine().setIncomingActionCreators('chat.1.NotifyChat.ChatTLFFinalize', ({convID}) => [
-    ChatGen.createGetInboxAndUnbox({conversationIDKeys: [Constants.conversationIDToKey(convID)]}),
-  ])
-
   engine().setIncomingActionCreators('chat.1.NotifyChat.ChatInboxStale', () => [
-    ChatGen.createInboxStale({reason: 'service invoked'}),
+    // TODO
+    // ChatGen.createInboxStale({reason: 'service invoked'}),
   ])
 
   engine().setIncomingActionCreators(
     'chat.1.NotifyChat.ChatTLFResolve',
-    ({convID, resolveInfo: {newTLFName}}) => [ChatGen.createInboxStale({reason: 'TLF resolve notification'})]
+    ({convID, resolveInfo: {newTLFName}}) => [
+      /* TODO ChatGen.createInboxStale({reason: 'TLF resolve notification'}) */
+    ]
   )
 
   engine().setIncomingActionCreators('chat.1.NotifyChat.ChatThreadsStale', ({updates}) => {
@@ -73,25 +67,28 @@ function _setupChatHandlers() {
   engine().setIncomingActionCreators('chat.1.NotifyChat.ChatInboxSynced', ({syncRes}) => {
     switch (syncRes.syncType) {
       case ChatTypes.commonSyncInboxResType.clear:
-        return [ChatGen.createInboxStale({reason: 'sync with clear result'})]
+        return null // TODO [ChatGen.createInboxStale({reason: 'sync with clear result'})]
       case ChatTypes.commonSyncInboxResType.current:
-        return [ChatGen.createSetInboxSyncingState({inboxSyncingState: 'notSyncing'})]
+        return null // TODO [ChatGen.createSetInboxSyncingState({inboxSyncingState: 'notSyncing'})]
       case ChatTypes.commonSyncInboxResType.incremental:
-        return [ChatGen.createInboxSynced({convs: syncRes.incremental.items})]
+        return null // TODO[ChatGen.createInboxSynced({convs: syncRes.incremental.items})]
     }
-    return [ChatGen.createInboxStale({reason: 'sync with unknown result'})]
+    return null // TODO [ChatGen.createInboxStale({reason: 'sync with unknown result'})]
   })
 
   engine().setIncomingActionCreators('chat.1.NotifyChat.ChatInboxSyncStarted', () => [
     ChatGen.createSetInboxSyncingState({inboxSyncingState: 'syncing'}),
   ])
 
-  engine().setIncomingActionCreators('chat.1.NotifyChat.ChatJoinedConversation', () => [
-    ChatGen.createInboxStale({reason: 'joined a conversation'}),
-  ])
-  engine().setIncomingActionCreators('chat.1.NotifyChat.ChatLeftConversation', () => [
-    ChatGen.createInboxStale({reason: 'left a conversation'}),
-  ])
+  engine().setIncomingActionCreators(
+    'chat.1.NotifyChat.ChatJoinedConversation',
+    () => null // TODO [
+    // ChatGen.createInboxStale({reason: 'joined a conversation'}),
+    // ])
+  )
+  engine().setIncomingActionCreators('chat.1.NotifyChat.ChatLeftConversation', () => null) // TODO[
+  // ChatGen.createInboxStale({reason: 'left a conversation'}),
+  // ])
 }
 
 function _openTlfInChat(action: ChatGen.OpenTlfInChatPayload, state: TypedState) {
@@ -133,7 +130,6 @@ function _openFolder(_: ChatGen.OpenFolderPayload, state: TypedState) {
 }
 
 function* chatSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.fork(Inbox.registerSagas)
   yield Saga.fork(SendMessages.registerSagas)
   yield Saga.fork(Attachment.registerSagas)
   yield Saga.fork(ThreadContent.registerSagas)
