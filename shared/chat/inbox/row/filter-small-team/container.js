@@ -28,8 +28,6 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 
 const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}) => ({
   onSelectConversation: () => {
-    // TODO move to saga
-    dispatch(Chat2Gen.createSetInboxFilter({filter: ''}))
     dispatch(Chat2Gen.createSelectConversation({conversationIDKey, fromUser: true}))
   },
 })

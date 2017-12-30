@@ -77,8 +77,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
       )
     },
     _onView: (conversationIDKey: string) => {
-      // TODO handle in saga
-      dispatch(Chat2Gen.createSetInboxFilter({filter: ''}))
       dispatch(Chat2Gen.createSelectConversation({conversationIDKey, fromUser: true}))
       dispatch(switchTo([chatTab]))
     },

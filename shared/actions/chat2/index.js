@@ -19,7 +19,6 @@ const ERROR_EVERYTHING = false
 ERROR_EVERYTHING && console.log('aaaa ERROR EVERYTNIG')
 /*
  * TODO:
- * untrused inbox view
  * reset
  * empty
  * .>>>> loading state
@@ -357,6 +356,9 @@ const loadThread = (action: Chat2Gen.SelectConversationPayload) => {
   // return Saga.put(Route.navigateTo([conversationIDKey].filter(Boolean), [chatTab]))
 }
 
+const clearInboxFilter = (action: Chat2Gen.SelectConversationPayload) =>
+  Saga.put(Chat2Gen.createSetInboxFilter({filter: ''}))
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Refresh the inbox
   yield Saga.safeTakeLatest(Chat2Gen.inboxRefresh, rpcInboxRefresh)
@@ -384,6 +386,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.setupChatHandlers, setupChatHandlers)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, navigateToThread)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, loadThread)
+  yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, clearInboxFilter)
 }
 
 export default chat2Saga

@@ -10,11 +10,8 @@ const mapStateToProps = (_, {teamname, channelname, isActiveRoute}) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}) => ({
-  onSelectConversation: () => {
-    // TODO move to saga
-    dispatch(Chat2Gen.createSetInboxFilter({filter: ''}))
-    dispatch(Chat2Gen.createSelectConversation({conversationIDKey, fromUser: true}))
-  },
+  onSelectConversation: () => dispatch(Chat2Gen.createSelectConversation({conversationIDKey, fromUser: true}))
+  ,
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({

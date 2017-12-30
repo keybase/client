@@ -30,10 +30,8 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}: OwnProps) => ({
-  onSelectConversation: () => {
-    dispatch(Chat2Gen.createSetInboxFilter({filter: ''}))
-    dispatch(Chat2Gen.createSelectConversation({conversationIDKey, fromUser: true}))
-  },
+  onSelectConversation: () =>
+    dispatch(Chat2Gen.createSelectConversation({conversationIDKey, fromUser: true})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
