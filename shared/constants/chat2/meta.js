@@ -9,6 +9,9 @@ import {parseFolderNameToUsers} from '../../util/kbfs'
 import {toByteArray} from 'base64-js'
 import {globalColors, isMobile} from '../../styles'
 
+const IGNORE_UNTRUSTED_CACHE = true
+IGNORE_UNTRUSTED_CACHE && console.log('aaa NOJIMA skipping locametadata')
+
 const conversationMemberStatusToMembershipType = (m: RPCChatTypes.ConversationMemberStatus) => {
   switch (m) {
     case RPCChatTypes.commonConversationMemberStatus.active:
@@ -28,9 +31,9 @@ export const unverifiedInboxUIItemToConversationMeta = (
   i: RPCChatTypes.UnverifiedInboxUIItem,
   username: string
 ) => {
-  // TEMP ignore local cached chats
-  i.localMetadata = null
-  console.log('aaaa TEMP')
+  if (IGNORE_UNTRUSTED_CACHE) {
+    i.localMetadata = null
+  }
 
   // Public chats only
   if (i.visibility !== RPCTypes.commonTLFVisibility.private) {
