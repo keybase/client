@@ -96,6 +96,8 @@ const (
 )
 
 type ctxCommandTagKey int
+type refLookupByName map[plumbing.ReferenceName]*plumbing.Reference
+type commitsByRefName map[plumbing.ReferenceName][]*gogitobj.Commit
 
 const (
 	ctxCommandIDKey ctxCommandTagKey = iota
@@ -1432,21 +1434,29 @@ func (r *runner) pushAll(ctx context.Context, fs *libfs.FS) (err error) {
 // ref, newest first. It only includes commits that exist in `localStorer` but
 // not in `remoteStorer`.
 func (r *runner) parentCommitsForRef(ctx context.Context,
-	localStorer gogitstor.Storer,
-	remoteStorer gogitstor.Storer,
-	refs map[plumbing.ReferenceName]*plumbing.Reference) (
-	map[*plumbing.Reference][]*gogitobj.Commit, error) {
-	commitsByRef := make(map[*plumbing.Reference][]*gogitobj.Commit,
-		len(refs))
+	localStorer gogitstor.Storer, remoteStorer gogitstor.Storer,
+	refs refLookupByName) (commitsByRefName, error) {
+
+	commitsByRef := make(commitsByRefName, len(refs))
 	haves := make(map[plumbing.Hash]bool)
+
 	for _, ref := range refs {
 		hash := ref.Hash()
+		refName := ref.Name()
+
+		// Get the HEAD commit for the ref from the local repository.
 		commit, err := gogitobj.GetCommit(localStorer, hash)
 		if err != nil {
 			r.log.CDebugf(ctx, "Error getting commit for hash %s: %+v",
 				string(hash[:]), err)
 			continue
 		}
+
+		// Iterate through the commits backward, until we experience any of the
+		// following:
+		// 1. Find a commit that the remote knows about,
+		// 2. Reach our maximum number of commits to check,
+		// 3. Run out of commits.
 		walker := gogitobj.NewCommitPreorderIter(commit, haves, nil)
 		toVisit := maxCommitsToVisitPerRef
 		err = walker.ForEach(func(c *gogitobj.Commit) error {
@@ -1459,7 +1469,7 @@ func (r *runner) parentCommitsForRef(ctx context.Context,
 			if toVisit == 0 || hasEncodedObjectErr == nil {
 				return gogitstor.ErrStop
 			}
-			commitsByRef[ref] = append(commitsByRef[ref], c)
+			commitsByRef[refName] = append(commitsByRef[refName], c)
 			return nil
 		})
 		if err != nil {
@@ -1471,8 +1481,7 @@ func (r *runner) parentCommitsForRef(ctx context.Context,
 
 func (r *runner) pushSome(
 	ctx context.Context, repo *gogit.Repository, fs *libfs.FS, args [][]string,
-	kbfsRepoEmpty bool) (map[string]error,
-	map[*plumbing.Reference][]*gogitobj.Commit, error) {
+	kbfsRepoEmpty bool) (map[string]error, commitsByRefName, error) {
 	r.log.CDebugf(ctx, "Pushing %d refs into %s", len(args), r.gitDir)
 
 	remote, err := repo.CreateRemote(&gogitcfg.RemoteConfig{
@@ -1487,7 +1496,7 @@ func (r *runner) pushSome(
 
 	results := make(map[string]error, len(args))
 	var refspecs []gogitcfg.RefSpec
-	refs := make(map[plumbing.ReferenceName]*plumbing.Reference, len(args))
+	refs := make(refLookupByName, len(args))
 	for _, push := range args {
 		if len(push) != 1 {
 			return nil, nil, errors.Errorf("Bad push request: %v", push)
@@ -1534,7 +1543,7 @@ func (r *runner) pushSome(
 		}
 	}
 
-	var commitsByRef map[*plumbing.Reference][]*gogitobj.Commit
+	var commitsByRef commitsByRefName
 	if len(refspecs) > 0 {
 		var statusChan plumbing.StatusChan
 		if r.verbosity >= 1 {
@@ -1625,7 +1634,7 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 	}
 
 	var results map[string]error
-	var commitsByRef map[*plumbing.Reference][]*gogitobj.Commit
+	var commitsByRef commitsByRefName
 
 	// Ignore pushAll for commit collection, for now.
 	if canPushAll {
