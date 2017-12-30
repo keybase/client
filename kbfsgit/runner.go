@@ -1515,17 +1515,19 @@ func (r *runner) pushSome(
 			}
 			results[dst] = err
 		} else {
+			refspecs = append(refspecs, refspec)
 			start := strings.Index(push[0], ":") + 1
 			dst := push[0][start:]
 			refName := plumbing.ReferenceName(dst)
 			ref, err := localStorer.Reference(refName)
 			if err != nil {
+				// TODO: determine why refs/heads/test don't load properly in
+				// tests.
 				r.log.CDebugf(ctx, "Error loading local ref %s: %+v",
 					dst, err)
 				continue
 			}
 			refs[refName] = ref
-			refspecs = append(refspecs, refspec)
 		}
 		if err != nil {
 			r.log.CDebugf(ctx, "Error fetching %s: %+v", refspec, err)
