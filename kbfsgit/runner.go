@@ -91,6 +91,8 @@ const (
 
 	unlockPrintBytesStatusThreshold = time.Second / 2
 	gcPrintStatusThreshold          = time.Second
+
+	maxCommitsToVisitPerRef = 100
 )
 
 type ctxCommandTagKey int
@@ -1279,6 +1281,7 @@ func (r *runner) canPushAll(
 	}
 	defer refs.Close()
 
+	// Iterate through the remote references.
 	for {
 		ref, err := refs.Next()
 		if errors.Cause(err) == io.EOF {
@@ -1425,26 +1428,74 @@ func (r *runner) pushAll(ctx context.Context, fs *libfs.FS) (err error) {
 		fmt.Sprintf("Preparing and %s packed refs", verb), "pushprefs")
 }
 
+// parentCommitsForRef returns a map of refs with a list of commits for each
+// ref, newest first. It only includes commits that exist in `localStorer` but
+// not in `remoteStorer`.
+func (r *runner) parentCommitsForRef(ctx context.Context,
+	localStorer gogitstor.Storer,
+	remoteStorer gogitstor.Storer,
+	refs map[plumbing.ReferenceName]*plumbing.Reference) (
+	map[*plumbing.Reference][]*gogitobj.Commit, error) {
+	commitsByRef := make(map[*plumbing.Reference][]*gogitobj.Commit,
+		len(refs))
+	haves := make(map[plumbing.Hash]bool)
+	for _, ref := range refs {
+		hash := ref.Hash()
+		commit, err := gogitobj.GetCommit(localStorer, hash)
+		if err != nil {
+			r.log.CDebugf(ctx, "Error getting commit for hash %s: %+v",
+				string(hash[:]), err)
+			continue
+		}
+		walker := gogitobj.NewCommitPreorderIter(commit, haves, nil)
+		toVisit := maxCommitsToVisitPerRef
+		err = walker.ForEach(func(c *gogitobj.Commit) error {
+			haves[c.Hash] = true
+			toVisit--
+			// If toVisit starts out at 0 (indicating there is no
+			// max), then it will be negative here and we won't stop
+			// early.
+			hasEncodedObjectErr := remoteStorer.HasEncodedObject(c.Hash)
+			if toVisit == 0 || hasEncodedObjectErr == nil {
+				return gogitstor.ErrStop
+			}
+			commitsByRef[ref] = append(commitsByRef[ref], c)
+			return nil
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+	return commitsByRef, nil
+}
+
 func (r *runner) pushSome(
 	ctx context.Context, repo *gogit.Repository, fs *libfs.FS, args [][]string,
-	kbfsRepoEmpty bool) (map[string]error, []*plumbing.Reference, error) {
+	kbfsRepoEmpty bool) (map[string]error,
+	map[*plumbing.Reference][]*gogitobj.Commit, error) {
 	r.log.CDebugf(ctx, "Pushing %d refs into %s", len(args), r.gitDir)
 
 	remote, err := repo.CreateRemote(&gogitcfg.RemoteConfig{
 		Name: localRepoRemoteName,
 		URLs: []string{r.gitDir},
 	})
+	localGit := osfs.New(r.gitDir)
+	localStorer, err := filesystem.NewStorage(localGit)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	results := make(map[string]error, len(args))
 	var refspecs []gogitcfg.RefSpec
+	refs := make(map[plumbing.ReferenceName]*plumbing.Reference, len(args))
 	for _, push := range args {
 		if len(push) != 1 {
-			return nil, errors.Errorf("Bad push request: %v", push)
+			return nil, nil, errors.Errorf("Bad push request: %v", push)
 		}
 		refspec := gogitcfg.RefSpec(push[0])
 		err := refspec.Validate()
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		// Delete the reference in the repo if needed; otherwise,
@@ -1464,6 +1515,16 @@ func (r *runner) pushSome(
 			}
 			results[dst] = err
 		} else {
+			start := strings.Index(push[0], ":") + 1
+			dst := push[0][start:]
+			refName := plumbing.ReferenceName(dst)
+			ref, err := localStorer.Reference(refName)
+			if err != nil {
+				r.log.CDebugf(ctx, "Error loading local ref %s: %+v",
+					dst, err)
+				continue
+			}
+			refs[refName] = ref
 			refspecs = append(refspecs, refspec)
 		}
 		if err != nil {
@@ -1471,6 +1532,7 @@ func (r *runner) pushSome(
 		}
 	}
 
+	var commitsByRef map[*plumbing.Reference][]*gogitobj.Commit
 	if len(refspecs) > 0 {
 		var statusChan plumbing.StatusChan
 		if r.verbosity >= 1 {
@@ -1493,6 +1555,13 @@ func (r *runner) pushSome(
 				ctx, "Requesting a pack-refs file for %d refs", len(refspecs))
 		}
 
+		// Get all commits associated with the refs.
+		commitsByRef, err = r.parentCommitsForRef(ctx, localStorer,
+			repo.Storer, refs)
+		if err != nil {
+			return nil, nil, err
+		}
+
 		err = remote.FetchContext(ctx, &gogit.FetchOptions{
 			RemoteName: localRepoRemoteName,
 			RefSpecs:   refspecs,
@@ -1503,47 +1572,15 @@ func (r *runner) pushSome(
 			err = nil
 		}
 
-		// TODO (KBFS-2682): also load parent refs.
-		refs := make([]*plumbing.Reference, 0, len(refspecs))
-
-		// All non-delete refspecs in the batch get the same error.
+		// All non-deleted refspecs in the batch get the same error.
 		for _, refspec := range refspecs {
 			refStr := refspec.String()
 			start := strings.Index(refStr, ":") + 1
 			dst := refStr[start:]
 			results[dst] = err
-			ref, refErr := repo.Storer.Reference(plumbing.ReferenceName(dst))
-			if refErr != nil {
-				r.log.CDebugf(ctx, "Error loading ref for refspec %s: %+v",
-					refspec, refErr)
-				continue
-			}
-			refs = append(refs, ref)
 		}
 	}
-	return results, nil
-}
-
-func (r *runner) refsToCommits(ctx context.Context,
-	storer gogitstor.EncodedObjectStorer,
-	refs []*plumbing.Reference) ([]*gogitobj.Commit, error) {
-	erroredRefs := make(map[string]error, 0, len(refs))
-	commits := make([]*gogitobj.Commit, 0, len(refs))
-	for _, ref := range refs {
-		commit, err := gogitobj.GetCommit(storer, ref.Hash())
-		if err != nil {
-			r.log.CDebugf(ctx, "Error loading commit for ref %s: %+v",
-				ref.Name(), err)
-			erroredRefs = append(erroredRefs, ref.Name())
-			continue
-		}
-		commits = append(commits, commit)
-	}
-	if len(erroredRefs) > 0 {
-		return commits, errors.Errorf(
-			"Error getting commit for at least one ref: %+v", erroredRefs)
-	}
-	return commits, nil
+	return results, commitsByRef, nil
 }
 
 // handlePushBatch: From https://git-scm.com/docs/git-remote-helpers
@@ -1586,27 +1623,23 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 	}
 
 	var results map[string]error
-	var refs []*plumbing.Reference
+	var commitsByRef map[*plumbing.Reference][]*gogitobj.Commit
+
+	// Ignore pushAll for commit collection, for now.
 	if canPushAll {
 		err = r.pushAll(ctx, fs)
 		// All refs in the batch get the same error.
 		results = make(map[string]error, len(args))
-		refs = make([]*plumbing.Reference, 0, len(args))
 		for _, push := range args {
 			// `canPushAll` already validates the push reference.
 			start := strings.Index(push[0], ":") + 1
 			dst := push[0][start:]
 			results[dst] = err
-			ref, refErr := repo.Storer.Reference(plumbing.ReferenceName(dst))
-			if refErr != nil {
-				r.log.CDebugf(ctx, "Error loading ref for refspec %s: %+v",
-					refspec, refErr)
-				continue
-			}
-			refs = append(refs, ref)
 		}
 	} else {
-		results, refs, err = r.pushSome(ctx, repo, fs, args, kbfsRepoEmpty)
+		results, commitsByRef, err = r.pushSome(ctx, repo, fs, args, kbfsRepoEmpty)
+		// TODO: remove this once we integrate the commits.
+		r.log.CDebugf(ctx, "Commits: %+v", commitsByRef)
 	}
 	if err != nil {
 		return err
@@ -1628,12 +1661,8 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 		_, err = r.output.Write([]byte(result + "\n"))
 	}
 
-	commits, err := r.refsToCommits(ctx, repo.Storer, refs)
-	if err != nil {
-	}
 	// TODO (KBFS-2682): send commit names, emails, dates, and messages to
 	// `UpdateRepoMD`, once the protocol supports it..
-
 	err = libgit.UpdateRepoMD(ctx, r.config, r.h, fs)
 	if err != nil {
 		return err
