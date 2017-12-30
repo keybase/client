@@ -178,6 +178,12 @@ class Inbox extends React.PureComponent<Props, State> {
   }
 
   render() {
+    const noChats = !this.props.isLoading && !this.props.rows.length && !this.props.filter && <NoChats />
+    const owl = !this.props.rows.length && !!this.props.filter && <Owl />
+    const floatingDivider = this.state.showFloating &&
+      this.props.showSmallTeamsExpandDivider && (
+        <FloatingDivider toggle={this.props.toggleSmallTeamsExpanded} />
+      )
     return (
       <ErrorBoundary>
         <Box style={boxStyle}>
@@ -201,17 +207,9 @@ class Inbox extends React.PureComponent<Props, State> {
             windowSize={this._maxVisible}
             getItemLayout={this._getItemLayout}
           />
-          {!this.props.isLoading && !this.props.rows.length && !this.props.filter && <NoChats />}
-          {!this.props.rows.length && !!this.props.filter && <Owl />}
-          {this.state.showFloating &&
-            this.props.showSmallTeamsExpandDivider && (
-              <FloatingDivider toggle={this.props.toggleSmallTeamsExpanded} />
-            )}
-          {/*
-            // TODO when the teams tab exists
-            this.props.showBuildATeam &&
-              <BuildATeam />
-              */}
+          {noChats}
+          {owl}
+          {floatingDivider}
         </Box>
       </ErrorBoundary>
     )

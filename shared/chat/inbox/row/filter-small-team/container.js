@@ -7,20 +7,14 @@ import {FilterSmallTeam} from '.'
 import {pausableConnect, type TypedState} from '../../../../util/container'
 
 type OwnProps = {conversationIDKey: ?Types.ConversationIDKey, isActiveRoute: boolean}
-const emptyMeta = Constants2.makeConversationMeta()
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const conversationIDKey = ownProps.conversationIDKey || ''
   const {isActiveRoute} = ownProps
   const p = util.snippetRowSelector(state, conversationIDKey)
 
-  // const meta = state.chat2.metaMap.get(conversationIDKey, emptyMeta)
-  // const hasBadge = state.chat2.badgeMap.get(conversationIDKey, 0) > 0
-  // const hasUnread = state.chat2.unreadMap.get(conversationIDKey, 0) > 0
-  // const isSelected = state.chat2.selectedConversation === conversationIDKey
-
   return {
-    _meta: (conversationIDKey && Constants2.getMeta(state, conversationIDKey)) || emptyMeta,
+    _meta: Constants2.getMeta(state, conversationIDKey),
     _username: state.config.username || '',
     hasBadge: Constants2.getHasBadge(state, conversationIDKey),
     hasUnread: Constants2.getHasUnread(state, conversationIDKey),
@@ -43,10 +37,10 @@ const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}) => ({
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const isSelected = stateProps.isSelected
   const hasUnread = stateProps.hasUnread
-  const derivedProps = Constants2.getRowColors(stateProps._meta, isSelected, hasUnread)
+  const styles = Constants2.getRowStyles(stateProps._meta, isSelected, hasUnread)
 
   return {
-    backgroundColor: derivedProps.backgroundColor,
+    backgroundColor: styles.backgroundColor,
     hasBadge: stateProps.hasBadge,
     hasUnread,
     isActiveRoute: ownProps.isActiveRoute,
@@ -55,10 +49,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onSelectConversation: dispatchProps.onSelectConversation,
     participantNeedToRekey: stateProps.participantNeedToRekey,
     participants: Constants2.getRowParticipants(stateProps._meta, stateProps._username),
-    showBold: derivedProps.showBold,
-    subColor: derivedProps.subColor,
+    showBold: styles.showBold,
+    subColor: styles.subColor,
     teamname: stateProps._meta.teamname,
-    usernameColor: derivedProps.usernameColor,
+    usernameColor: styles.usernameColor,
     youNeedToRekey: stateProps.youNeedToRekey,
   }
 }

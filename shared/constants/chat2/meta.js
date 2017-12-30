@@ -29,8 +29,8 @@ export const unverifiedInboxUIItemToConversationMeta = (
   username: string
 ) => {
   // TEMP ignore local cached chats
-  // i.localMetadata = null
-  // console.log('aaaa TEMP')
+  i.localMetadata = null
+  console.log('aaaa TEMP')
 
   // Public chats only
   if (i.visibility !== RPCTypes.commonTLFVisibility.private) {
@@ -167,7 +167,7 @@ export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record
 })
 
 const bgPlatform = isMobile ? globalColors.white : globalColors.blue5
-export const getRowColors = (meta: Types.ConversationMeta, isSelected: boolean, hasUnread: boolean) => {
+export const getRowStyles = (meta: Types.ConversationMeta, isSelected: boolean, hasUnread: boolean) => {
   const isError = meta.trustedState === 'error'
   const backgroundColor = isSelected ? globalColors.blue : bgPlatform
   const showBold = !isSelected && hasUnread

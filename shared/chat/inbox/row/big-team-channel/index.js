@@ -7,6 +7,7 @@ type Props = {
   isSelected?: boolean,
   channelname: string,
   isMuted?: boolean,
+  isError: boolean,
   showBold?: boolean,
   hasUnread?: boolean,
   hasBadge?: boolean,
@@ -15,22 +16,19 @@ type Props = {
 
 class BigTeamChannel extends PureComponent<Props> {
   render() {
-    const boldOverride = this.props.hasUnread ? globalStyles.fontBold : null
     return (
       <ClickableBox onClick={this.props.onSelectConversation}>
         <Box style={channelRowContainerStyle}>
-          <Box
-            style={{
-              ...channelBackgroundStyle,
-              ...(this.props.isSelected ? {backgroundColor: globalColors.blue} : undefined),
-            }}
-          >
+          <Box style={this.props.isSelected ? selectedChannelBackgroundStyle : channelBackgroundStyle}>
             <Text
               type={this.props.isSelected ? 'BodySemibold' : 'Body'}
-              style={{
-                ...boldOverride,
-                color: this.props.isSelected ? globalColors.white : globalColors.black_75,
-              }}
+              style={
+                this.props.isError
+                  ? textStyleError
+                  : this.props.isSelected
+                    ? this.props.hasUnread ? textStyleSelectedBold : textStyleSelected
+                    : this.props.hasUnread ? textStylePlainBold : textStylePlain
+              }
             >
               #{this.props.channelname}
             </Text>
@@ -41,6 +39,24 @@ class BigTeamChannel extends PureComponent<Props> {
       </ClickableBox>
     )
   }
+}
+
+const textStyleError = {
+  color: globalColors.red,
+}
+const textStylePlain = {
+  color: globalColors.black_75,
+}
+const textStylePlainBold = {
+  ...textStylePlain,
+  ...globalStyles.fontBold,
+}
+const textStyleSelected = {
+  color: globalColors.white,
+}
+const textStyleSelectedBold = {
+  ...textStyleSelected,
+  ...globalStyles.fontBold,
 }
 
 const MutedIcon = ({isSelected}) => (
@@ -105,6 +121,11 @@ const channelBackgroundStyle = {
   marginLeft: globalMargins.medium,
   paddingLeft: globalMargins.tiny,
   paddingRight: globalMargins.tiny,
+}
+
+const selectedChannelBackgroundStyle = {
+  ...channelBackgroundStyle,
+  backgroundColor: globalColors.blue,
 }
 
 export {BigTeamChannel}

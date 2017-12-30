@@ -15,7 +15,7 @@ import type {TypedState} from '../../constants/reducer'
 import {RPCTimeoutError} from '../../util/errors'
 import {chatTab} from '../../constants/tabs'
 
-const ERROR_EVERYTHING = true
+const ERROR_EVERYTHING = false
 ERROR_EVERYTHING && console.log('aaaa ERROR EVERYTNIG')
 /*
  * TODO:
@@ -157,11 +157,11 @@ const rpcMetaRequest = (action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.Se
                 error: {
                   message: 'An error message',
                   rekeyInfo: {
-                    // TODO set empty
                     readerNames: ['foo', 'bar'],
                     writerNames: meta.participants.toArray(),
+                    rekeyers: meta.participants.toArray(),
                   },
-                  typ: RPCChatTypes.localConversationErrorType.selfrekeyneeded, // TODO others
+                  typ: RPCChatTypes.localConversationErrorType.otherrekeyneeded, // TODO others
                   unverifiedTLFName: meta.participants.toArray().join(','),
                 },
                 username: state.config.username || '',

@@ -1,20 +1,19 @@
 // @flow
-import * as util from '../util'
+import * as Constants2 from '../../../../constants/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import {BigTeamChannel} from '.'
 import {pausableConnect, type TypedState} from '../../../../util/container'
 
-const mapStateToProps = (state: TypedState, {conversationIDKey, channelname, isActiveRoute}) => {
-  const p = util.snippetRowSelector(state, conversationIDKey)
-  // TODO error
+const mapStateToProps = (state: TypedState, ownProps) => {
+  const _conversationIDKey = ownProps.conversationIDKey || ''
+  const {isActiveRoute} = ownProps
+
   return {
-    channelname,
-    hasBadge: p.hasBadge,
-    hasUnread: p.hasUnread,
+    _meta: Constants2.getMeta(state, _conversationIDKey),
+    hasBadge: Constants2.getHasBadge(state, _conversationIDKey),
+    hasUnread: Constants2.getHasUnread(state, _conversationIDKey),
     isActiveRoute,
-    isMuted: p.isMuted,
-    isSelected: p.isSelected,
-    showBold: p.showBold,
+    isSelected: Constants2.getIsSelected(state, _conversationIDKey),
   }
 }
 
@@ -27,14 +26,15 @@ const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  channelname: stateProps.channelname,
+  channelname: ownProps.channelname || stateProps._meta.untrustedMessage,
   hasBadge: stateProps.hasBadge,
   hasUnread: stateProps.hasUnread,
   isActiveRoute: stateProps.isActiveRoute,
-  isMuted: stateProps.isMuted,
+  isError: !ownProps.channelname && !!stateProps._meta.untrustedMessage,
+  isMuted: stateProps._meta.isMuted,
   isSelected: stateProps.isSelected,
   onSelectConversation: dispatchProps.onSelectConversation,
-  showBold: stateProps.showBold,
+  showBold: Constants2.getRowStyles(stateProps._meta, false, false).showBold,
 })
 
 export default pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps)(BigTeamChannel)

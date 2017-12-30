@@ -3,6 +3,7 @@ import * as I from 'immutable'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as Types from '../types/chat2'
 import type {TypedState} from '../reducer'
+import {makeConversationMeta} from './meta'
 
 export const conversationIDToKey = (conversationID: RPCChatTypes.ConversationID): Types.ConversationIDKey =>
   conversationID.toString('hex')
@@ -21,7 +22,13 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   unreadMap: I.Map(),
 })
 
-export const getMeta = (state: TypedState, id: Types.ConversationIDKey) => state.chat2.metaMap.get(id)
+const emptyMeta = makeConversationMeta()
+export const getMeta = (state: TypedState, id: ?Types.ConversationIDKey) =>
+  id ? state.chat2.metaMap.get(id, emptyMeta) : emptyMeta
+export const getMessageOrdinals = (state: TypedState, id: ?Types.ConversationIDKey) =>
+  (id && state.chat2.messageOrdinals.get(id)) || I.List()
+export const getMessageMap = (state: TypedState, id: ?Types.ConversationIDKey) =>
+  (id && state.chat2.messageMap.get(id)) || I.Map()
 export const getHasBadge = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.badgeMap.get(id, 0) > 0
 export const getHasUnread = (state: TypedState, id: Types.ConversationIDKey) =>
@@ -30,7 +37,7 @@ export const getIsSelected = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.selectedConversation === id
 
 export {
-  getRowColors,
+  getRowStyles,
   getRowParticipants,
   inboxUIItemToConversationMeta,
   makeConversationMeta,

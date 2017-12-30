@@ -108,6 +108,12 @@ class Inbox extends PureComponent<Props, State> {
   }
 
   render() {
+    const newConversation = this.props.showNewConversation && <NewConversation />
+    const owl = !this.props.rows.length && !!this.props.filter && <Owl />
+    const floatingDivider = this.state.showFloating &&
+      this.props.showSmallTeamsExpandDivider && (
+        <FloatingDivider toggle={this.props.toggleSmallTeamsExpanded} />
+      )
     return (
       <ErrorBoundary>
         <div style={_containerStyle}>
@@ -122,7 +128,7 @@ class Inbox extends PureComponent<Props, State> {
             onSelectUp={this.props.onSelectUp}
             onSelectDown={this.props.onSelectDown}
           />
-          {this.props.showNewConversation && <NewConversation />}
+          {newConversation}
           <div style={_scrollableStyle} onScroll={this._onScroll}>
             <ReactList
               ref={this._setRef}
@@ -133,16 +139,8 @@ class Inbox extends PureComponent<Props, State> {
               itemSizeGetter={this._itemSizeGetter}
             />
           </div>
-          {!this.props.rows.length && !!this.props.filter && <Owl />}
-          {this.state.showFloating &&
-            this.props.showSmallTeamsExpandDivider && (
-              <FloatingDivider toggle={this.props.toggleSmallTeamsExpanded} />
-            )}
-          {/*
-            // TODO when the teams tab exists
-            this.props.showBuildATeam &&
-              <BuildATeam />
-              */}
+          {owl}
+          {floatingDivider}
         </div>
       </ErrorBoundary>
     )

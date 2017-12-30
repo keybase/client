@@ -26,18 +26,24 @@ const metaMapReducer = (metaMap, action) => {
   switch (action.type) {
     case Chat2Gen.metaReceivedError: {
       switch (action.payload.error.typ) {
+        case RPCChatTypes.localConversationErrorType.otherrekeyneeded: // fallthrough
         case RPCChatTypes.localConversationErrorType.selfrekeyneeded: {
           const {error, username, conversationIDKey} = action.payload
           const participants = error.rekeyInfo
             ? I.Set([].concat(error.rekeyInfo.writerNames, error.rekeyInfo.readerNames).filter(Boolean))
             : I.Set(error.unverifiedTLFName.split(','))
           const old = metaMap.get(conversationIDKey)
+          const rekeyers = I.Set(
+            action.payload.error.typ === RPCChatTypes.localConversationErrorType.selfrekeyneeded
+              ? [username]
+              : (error.rekeyInfo && error.rekeyInfo.rekeyers) || []
+          )
           return metaMap.set(
             conversationIDKey,
             Constants.makeConversationMeta({
               conversationIDKey,
               participants,
-              rekeyers: I.Set([username]),
+              rekeyers,
               teamType: old ? old.teamType : 'adhoc',
               teamname: old ? old.teamname : '',
               trustedState: 'error',
@@ -45,10 +51,6 @@ const metaMapReducer = (metaMap, action) => {
               untrustedTimestamp: old ? old.untrustedTimestamp : 0,
             })
           )
-        }
-        case RPCChatTypes.localConversationErrorType.otherrekeyneeded: {
-          // const rekeyers = (error.rekeyInfo && error.rekeyInfo.rekeyers) || []
-          return metaMap
         }
         case RPCChatTypes.localConversationErrorType.permanent:
           return metaMap
