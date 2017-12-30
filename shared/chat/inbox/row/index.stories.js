@@ -67,6 +67,7 @@ const mocks = [
 
 const commonChannel = {
   onSelectConversation: action('onSelectConversation'),
+  isError: false,
 }
 
 const load = () => {

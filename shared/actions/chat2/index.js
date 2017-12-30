@@ -85,6 +85,20 @@ function* rpcInboxRefresh(action: Chat2Gen.InboxRefreshPayload): Generator<any, 
   }
 }
 
+const requestTeamsUnboxing = (action: Chat2Gen.MetasReceivedPayload) => {
+  const conversationIDKeys = action.payload.metas
+    .filter(meta => meta.trustedState === 'untrusted' && meta.teamType === 'big' && !meta.channelname)
+    .map(meta => meta.conversationIDKey)
+  if (conversationIDKeys.length) {
+    // TODO doens't work
+    return Saga.put(
+      Chat2Gen.createMetaRequestTrusted({
+        conversationIDKeys,
+      })
+    )
+  }
+}
+
 // const addMessageToConversation = (action: Chat2Gen.CreateUnboxingSuccessPayload) => {}
 
 // Only get the untrusted conversations out
@@ -346,9 +360,8 @@ const loadThread = (action: Chat2Gen.SelectConversationPayload) => {
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Refresh the inbox
   yield Saga.safeTakeLatest(Chat2Gen.inboxRefresh, rpcInboxRefresh)
-
-  // TODO  handle initla load. jst go through untrusted meta and go by last time and pull 20
-  //
+  // Load teams
+  yield Saga.safeTakeEveryPure(Chat2Gen.metasReceived, requestTeamsUnboxing)
   // We've scrolled some new inbox rows into view, queue them up
   yield Saga.safeTakeEveryPure(Chat2Gen.metaNeedsUpdating, queueMetaToRequest)
   // We have some items in the queue to process

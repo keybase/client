@@ -62,8 +62,8 @@ const metaMapReducer = (metaMap, action) => {
       return metaMap.withMutations(map => {
         action.payload.metas.forEach(meta => {
           const old = map.get(meta.conversationIDKey)
-          // Only update if this is newer
-          if (!old || meta.inboxVersion > old.inboxVersion) {
+          // Only update if this is has a newer version or our state is changing
+          if (!old || meta.inboxVersion > old.inboxVersion || meta.trustedState !== old.trustedState) {
             map.set(meta.conversationIDKey, meta)
           }
         })
