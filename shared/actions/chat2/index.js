@@ -32,9 +32,39 @@ const inboxQuery = {
   unreadOnly: false,
 }
 
-function* rpcInboxRefresh(action: Chat2Gen.InboxRefreshPayload): Generator<any, void, any> {
-  const loadInboxChanMap = RPCChatTypes.localGetInboxNonblockLocalRpcChannelMap(
-    ['chat.1.chatUi.chatInboxUnverified', 'finished'],
+const rpcInboxRefresh = (action: Chat2Gen.InboxRefreshPayload, state: TypedState) => {
+  const username = state.config.username || ''
+  const untrustedInboxRpc = new EngineRpc.EngineRpcCall(
+    {
+      'chat.1.chatUi.chatInboxUnverified': function*({
+        inbox,
+      }: RPCChatTypes.ChatUiChatInboxUnverifiedRpcParam) {
+        const result: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(inbox)
+        const items = result.items || []
+        // We get meta
+        const metas = items
+          .map(item => Constants.unverifiedInboxUIItemToConversationMeta(item, username))
+          .filter(Boolean)
+        yield Saga.put(Chat2Gen.createMetasReceived({metas}))
+
+        // We also get some cached messages which are trusted
+        const messages = items.reduce((arr, i) => {
+          if (i.localMetadata && i.localMetadata.snippetMsg) {
+            const message = Constants.uiMessageToMessage(i.convID, i.localMetadata.snippetMsg)
+            if (message) {
+              arr.push(message)
+            }
+          }
+          return arr
+        }, [])
+        if (messages.length) {
+          yield Saga.put(Chat2Gen.createMessagesAdd({messages}))
+        }
+        return EngineRpc.rpcResult()
+      },
+    },
+    RPCChatTypes.localGetInboxNonblockLocalRpcChannelMap,
+    'inboxRefresh',
     {
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
       maxUnbox: 0,
@@ -43,54 +73,21 @@ function* rpcInboxRefresh(action: Chat2Gen.InboxRefreshPayload): Generator<any, 
     }
   )
 
-  const state: TypedState = yield Saga.select()
-  const username = state.config.username || ''
-
-  yield Saga.put(Chat2Gen.createSetLoading({key: 'inboxRefresh', loading: true}))
-  while (true) {
-    const incoming = yield loadInboxChanMap.race()
-
-    if (incoming.finished) {
-      yield Saga.put(Chat2Gen.createSetLoading({key: 'inboxRefresh', loading: false}))
-      if (incoming.finished.error) {
-        throw new Error(`Can't load inbox ${incoming.finished.error}`)
-      }
-      return
-    } else if (incoming['chat.1.chatUi.chatInboxUnverified']) {
-      incoming['chat.1.chatUi.chatInboxUnverified'].response.result()
-      const result: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(
-        incoming['chat.1.chatUi.chatInboxUnverified'].params.inbox
-      )
-      const items = result.items || []
-      // We get meta
-      const metas = items
-        .map(item => Constants.unverifiedInboxUIItemToConversationMeta(item, username))
-        .filter(Boolean)
-      yield Saga.put(Chat2Gen.createMetasReceived({metas}))
-
-      // We also get some cached messages which are trusted
-      const messages = items.reduce((arr, i) => {
-        if (i.localMetadata && i.localMetadata.snippetMsg) {
-          const message = Constants.uiMessageToMessage(i.convID, i.localMetadata.snippetMsg)
-          if (message) {
-            arr.push(message)
-          }
-        }
-        return arr
-      }, [])
-      if (messages.length) {
-        yield Saga.put(Chat2Gen.createMessagesAdd({messages}))
-      }
-    }
-  }
+  return Saga.sequentially([
+    Saga.put(Chat2Gen.createSetLoading({key: 'inboxRefresh', loading: true})),
+    Saga.call(untrustedInboxRpc.run),
+  ])
 }
+
+const rpcInboxRefreshSuccess = () =>
+  Saga.put(Chat2Gen.createSetLoading({key: 'inboxRefresh', loading: false}))
+const rpcInboxRefreshError = () => Saga.put(Chat2Gen.createSetLoading({key: 'inboxRefresh', loading: false}))
 
 const requestTeamsUnboxing = (action: Chat2Gen.MetasReceivedPayload) => {
   const conversationIDKeys = action.payload.metas
     .filter(meta => meta.trustedState === 'untrusted' && meta.teamType === 'big' && !meta.channelname)
     .map(meta => meta.conversationIDKey)
   if (conversationIDKeys.length) {
-    // TODO doens't work
     return Saga.put(
       Chat2Gen.createMetaRequestTrusted({
         conversationIDKeys,
@@ -98,8 +95,6 @@ const requestTeamsUnboxing = (action: Chat2Gen.MetasReceivedPayload) => {
     )
   }
 }
-
-// const addMessageToConversation = (action: Chat2Gen.CreateUnboxingSuccessPayload) => {}
 
 // Only get the untrusted conversations out
 const untrustedConversationIDKeys = (state: TypedState, ids: Array<Types.ConversationIDKey>) =>
@@ -419,7 +414,12 @@ const clearInboxFilter = (action: Chat2Gen.SelectConversationPayload) =>
 
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Refresh the inbox
-  yield Saga.safeTakeLatest(Chat2Gen.inboxRefresh, rpcInboxRefresh)
+  yield Saga.safeTakeEveryPure(
+    Chat2Gen.inboxRefresh,
+    rpcInboxRefresh,
+    rpcInboxRefreshSuccess,
+    rpcInboxRefreshError
+  )
   // Load teams
   yield Saga.safeTakeEveryPure(Chat2Gen.metasReceived, requestTeamsUnboxing)
   // We've scrolled some new inbox rows into view, queue them up
@@ -438,8 +438,6 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     rpcMetaRequestSuccess,
     rpcMetaRequestError
   )
-  // Incoming messages, inbox updates, etc give us new messages
-  // yield Saga.safeTakeEveryPure([Chat2Gen.messagesAdd], addMessagesToConversation)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.setupChatHandlers, setupChatHandlers)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, navigateToThread)
