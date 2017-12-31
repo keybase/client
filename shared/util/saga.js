@@ -129,8 +129,8 @@ function* sequentially(effects: Array<any>): Generator<any, Array<any>, any> {
 function safeTakeEveryPure<A, R, FinalAction, FinalActionError>(
   pattern: string | Array<any> | Function,
   pureWorker: ((action: A, state: TypedState) => any) | ((action: A) => any),
-  actionCreatorsWithResult?: (result: R, action: A) => FinalAction,
-  actionCreatorsWithError?: (result: R, action: A) => FinalActionError
+  actionCreatorsWithResult?: ?(result: R, action: A) => FinalAction,
+  actionCreatorsWithError?: ?(result: R, action: A) => FinalActionError
 ) {
   return safeTakeEvery(pattern, function* safeTakeEveryPureWorker(action: A) {
     // If the pureWorker fn takes two arguments, let's pass the state

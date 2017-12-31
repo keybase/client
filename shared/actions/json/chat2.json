@@ -5,6 +5,10 @@
     "import HiddenString from '../util/hidden-string'"
   ],
   "actions": {
+    "setLoading": {
+      "key": "string",
+      "loading": "boolean"
+    },
     "selectConversation": {
       "conversationIDKey": "?Types.ConversationIDKey",
       "fromUser?": "boolean"
@@ -34,8 +38,8 @@
     },
     "metaReceivedError": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "error": "RPCChatTypes.ConversationErrorLocal",
-      "username": "string"
+      "error": "?RPCChatTypes.ConversationErrorLocal",
+      "username": "?string"
     },
     "messagesAdd": {
       "messages": "Array<Types.Message>"

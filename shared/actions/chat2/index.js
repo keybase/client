@@ -15,13 +15,9 @@ import type {TypedState} from '../../constants/reducer'
 import {RPCTimeoutError} from '../../util/errors'
 import {chatTab} from '../../constants/tabs'
 
-const ERROR_EVERYTHING = false
-ERROR_EVERYTHING && console.log('aaaa ERROR EVERYTNIG')
 /*
  * TODO:
  * reset
- * empty
- * .>>>> loading state
  * >>>> Send tlfname and convid to send so daemon can verify its been unboxed
  */
 
@@ -50,36 +46,41 @@ function* rpcInboxRefresh(action: Chat2Gen.InboxRefreshPayload): Generator<any, 
   const state: TypedState = yield Saga.select()
   const username = state.config.username || ''
 
-  const incoming = yield loadInboxChanMap.race()
+  yield Saga.put(Chat2Gen.createSetLoading({key: 'inboxRefresh', loading: true}))
+  while (true) {
+    const incoming = yield loadInboxChanMap.race()
 
-  if (incoming.finished) {
-    if (incoming.finished.error) {
-      throw new Error(`Can't load inbox ${incoming.finished.error}`)
-    }
-  } else if (incoming['chat.1.chatUi.chatInboxUnverified']) {
-    incoming['chat.1.chatUi.chatInboxUnverified'].response.result()
-    const result: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(
-      incoming['chat.1.chatUi.chatInboxUnverified'].params.inbox
-    )
-    const items = result.items || []
-    // We get meta
-    const metas = items
-      .map(item => Constants.unverifiedInboxUIItemToConversationMeta(item, username))
-      .filter(Boolean)
-    yield Saga.put(Chat2Gen.createMetasReceived({metas}))
-
-    // We also get some cached messages which are trusted
-    const messages = items.reduce((arr, i) => {
-      if (i.localMetadata && i.localMetadata.snippetMsg) {
-        const message = Constants.uiMessageToMessage(i.convID, i.localMetadata.snippetMsg)
-        if (message) {
-          arr.push(message)
-        }
+    if (incoming.finished) {
+      yield Saga.put(Chat2Gen.createSetLoading({key: 'inboxRefresh', loading: false}))
+      if (incoming.finished.error) {
+        throw new Error(`Can't load inbox ${incoming.finished.error}`)
       }
-      return arr
-    }, [])
-    if (messages.length) {
-      yield Saga.put(Chat2Gen.createMessagesAdd({messages}))
+      return
+    } else if (incoming['chat.1.chatUi.chatInboxUnverified']) {
+      incoming['chat.1.chatUi.chatInboxUnverified'].response.result()
+      const result: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(
+        incoming['chat.1.chatUi.chatInboxUnverified'].params.inbox
+      )
+      const items = result.items || []
+      // We get meta
+      const metas = items
+        .map(item => Constants.unverifiedInboxUIItemToConversationMeta(item, username))
+        .filter(Boolean)
+      yield Saga.put(Chat2Gen.createMetasReceived({metas}))
+
+      // We also get some cached messages which are trusted
+      const messages = items.reduce((arr, i) => {
+        if (i.localMetadata && i.localMetadata.snippetMsg) {
+          const message = Constants.uiMessageToMessage(i.convID, i.localMetadata.snippetMsg)
+          if (message) {
+            arr.push(message)
+          }
+        }
+        return arr
+      }, [])
+      if (messages.length) {
+        yield Saga.put(Chat2Gen.createMessagesAdd({messages}))
+      }
     }
   }
 }
@@ -136,20 +137,24 @@ const requestMeta = (action: Chat2Gen.MetaHandleQueuePayload, state: TypedState)
   }
 }
 
-const rpcMetaRequest = (action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload) => {
-  let conversationIDKeys
+const rpcMetaRequestConversationIDKeys = (
+  action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload
+) => {
   switch (action.type) {
     case Chat2Gen.metaRequestTrusted:
-      conversationIDKeys = action.payload.conversationIDKeys
-      break
+      return action.payload.conversationIDKeys
     case Chat2Gen.selectConversation:
-      conversationIDKeys = [action.payload.conversationIDKey].filter(Boolean)
-      if (!conversationIDKeys.length) return
-      break
+      return [action.payload.conversationIDKey].filter(Boolean)
     default:
       // eslint-disable-next-line no-unused-expressions
       ;(action: empty) // errors if we don't handle any new actions
       throw new Error('Invalid action passed to rpcMetaRequest ')
+  }
+}
+const rpcMetaRequest = (action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload) => {
+  const conversationIDKeys = rpcMetaRequestConversationIDKeys(action)
+  if (!conversationIDKeys.length) {
+    return
   }
 
   const loadInboxRpc = new EngineRpc.EngineRpcCall(
@@ -157,42 +162,24 @@ const rpcMetaRequest = (action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.Se
       'chat.1.chatUi.chatInboxConversation': function*({
         conv,
       }: RPCChatTypes.ChatUiChatInboxConversationRpcParam) {
-        // TEMP to force errors
-        if (ERROR_EVERYTHING) {
-          const inboxUIItem: RPCChatTypes.InboxUIItem = JSON.parse(conv)
-          const meta = Constants.inboxUIItemToConversationMeta(inboxUIItem)
-          if (meta) {
-            const state: TypedState = yield Saga.select()
-            yield Saga.put(
-              // $FlowIssue TEMP
-              Chat2Gen.createMetaReceivedError({
-                conversationIDKey: meta.conversationIDKey,
-                error: {
-                  message: 'An error message',
-                  rekeyInfo: {
-                    readerNames: ['foo', 'bar'],
-                    writerNames: meta.participants.toArray(),
-                    rekeyers: meta.participants.toArray(),
-                  },
-                  typ: RPCChatTypes.localConversationErrorType.otherrekeyneeded, // TODO others
-                  unverifiedTLFName: meta.participants.toArray().join(','),
-                },
-                username: state.config.username || '',
-              })
-            )
-          }
-        } else {
-          const inboxUIItem: RPCChatTypes.InboxUIItem = JSON.parse(conv)
-          const meta = Constants.inboxUIItemToConversationMeta(inboxUIItem)
-          if (meta) {
-            yield Saga.put(Chat2Gen.createMetasReceived({metas: [meta]}))
-          }
+        const inboxUIItem: RPCChatTypes.InboxUIItem = JSON.parse(conv)
+        const meta = Constants.inboxUIItemToConversationMeta(inboxUIItem)
+        if (meta) {
+          yield Saga.put(Chat2Gen.createMetasReceived({metas: [meta]}))
           if (inboxUIItem.snippetMessage) {
             const message = Constants.uiMessageToMessage(inboxUIItem.convID, inboxUIItem.snippetMessage)
             if (message) {
               yield Saga.put(Chat2Gen.createMessagesAdd({messages: [message]}))
             }
           }
+        } else {
+          yield Saga.put(
+            Chat2Gen.createMetaReceivedError({
+              conversationIDKey: inboxUIItem.convID,
+              error: null, // just remove this item, not a real server error
+              username: null,
+            })
+          )
         }
         return EngineRpc.rpcResult()
       },
@@ -224,25 +211,34 @@ const rpcMetaRequest = (action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.Se
     }
   )
 
-  return Saga.call(loadInboxRpc.run, 30e3)
-  // if (dismissSyncing) {
-  // yield Saga.put(ChatGen.createSetInboxSyncingState({inboxSyncingState: 'notSyncing'}))
-  // }
+  return Saga.sequentially([
+    Saga.put(Chat2Gen.createSetLoading({key: `unboxing:${conversationIDKeys[0]}`, loading: true})),
+    Saga.call(loadInboxRpc.run, 30e3),
+  ])
 }
+
+const rpcMetaRequestSuccess = (_: any, action: Chat2Gen.MetaRequestTrustedPayload) =>
+  Saga.put(
+    Chat2Gen.createSetLoading({
+      key: `unboxing:${rpcMetaRequestConversationIDKeys(action)[0]}`,
+      loading: false,
+    })
+  )
 
 const rpcMetaRequestError = (error: Error, action: Chat2Gen.MetaRequestTrustedPayload) => {
   if (error instanceof RPCTimeoutError) {
     logger.warn('unboxConversations: timed out request for unboxConversations, bailing')
-    // yield Saga.put.resolve(
-    // ChatGen.createReplaceEntity({
-    // keyPath: ['inboxUntrustedState'],
-    // entities: I.Map(conversationIDKeys.map(c => [c, 'untrusted'])),
-    // })
-    // )
   } else {
     logger.warn('unboxConversations: error in loadInboxRpc')
     logger.debug('unboxConversations: error in loadInboxRpc', error)
   }
+
+  Saga.put(
+    Chat2Gen.createSetLoading({
+      key: `unboxing:${rpcMetaRequestConversationIDKeys(action)[0]}`,
+      loading: false,
+    })
+  )
 }
 
 const changeMetaTrustedState = (
@@ -439,7 +435,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(
     [Chat2Gen.metaRequestTrusted, Chat2Gen.selectConversation],
     rpcMetaRequest,
-    () => {},
+    rpcMetaRequestSuccess,
     rpcMetaRequestError
   )
   // Incoming messages, inbox updates, etc give us new messages

@@ -29,8 +29,8 @@ type StateProps = {|
   rekeyInfo: ?Types.RekeyInfo,
   selectedConversationIDKey: ?Types.ConversationIDKey,
   showLoader: boolean,
-  supersededBy: ?Types.SupersedeInfo,
-  supersedes: ?Types.SupersedeInfo,
+  supersededBy: any, // ?Types.SupersedeInfo,
+  supersedes: any, // ?Types.SupersedeInfo,
   threadLoadedOffline: boolean,
   inSearch: boolean,
   conversationIsError: boolean,
@@ -69,10 +69,10 @@ const mapStateToProps = (state: TypedState, {routePath, routeProps}): StateProps
     (routeState && routeState.get('inputText', new HiddenString('')).stringValue()) || ''
 
   if (selectedConversationIDKey !== Constants.nothingSelected && !!selectedConversationIDKey) {
-    rekeyInfo = state.chat.get('rekeyInfos').get(selectedConversationIDKey)
-    finalizeInfo = state.chat.get('finalizedState').get(selectedConversationIDKey)
-    supersedes = Constants.convSupersedesInfo(selectedConversationIDKey, state.chat)
-    supersededBy = Constants.convSupersededByInfo(selectedConversationIDKey, state.chat)
+    rekeyInfo = null // state.chat.get('rekeyInfos').get(selectedConversationIDKey)
+    finalizeInfo = null // state.chat.get('finalizedState').get(selectedConversationIDKey)
+    supersedes = null // TODO Constants.convSupersedesInfo(selectedConversationIDKey, state.chat)
+    supersededBy = null // TODO Constants.convSupersededByInfo(selectedConversationIDKey, state.chat)
     youAreReset =
       state.chat.getIn(
         ['inbox', selectedConversationIDKey, 'memberStatus'],
@@ -80,7 +80,7 @@ const mapStateToProps = (state: TypedState, {routePath, routeProps}): StateProps
       ) === RPCChatTypes.commonConversationMemberStatus.reset
 
     const conversationState = state.chat.get('conversationStates').get(selectedConversationIDKey)
-    const untrustedState = state.chat.inboxUntrustedState.get(selectedConversationIDKey)
+    const untrustedState = null // TODO state.chat.inboxUntrustedState.get(selectedConversationIDKey)
     if (conversationState) {
       const selected = Constants.getInbox(state, selectedConversationIDKey)
       if (selected && untrustedState === 'error') {

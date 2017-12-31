@@ -118,32 +118,6 @@ function reducer(
         )
       )
     }
-    case ChatGen.markThreadsStale: {
-      const {updates} = action.payload
-      const convIDs = updates.map(u => Constants.conversationIDToKey(u.convID))
-      return state.update('conversationStates', conversationStates =>
-        conversationStates.map((conversationState, conversationIDKey) => {
-          if (convIDs.length === 0 || convIDs.includes(conversationIDKey)) {
-            logger.info(`reducer: setting thread stale from mark as stale: ${conversationIDKey}`)
-            return conversationState.set('isStale', true)
-          }
-          return conversationState
-        })
-      )
-    }
-    case ChatGen.inboxSynced: {
-      const {convs} = action.payload
-      const convIDs = convs.map(u => u.convID)
-      return state.update('conversationStates', conversationStates =>
-        conversationStates.map((conversationState, conversationIDKey) => {
-          if (convIDs.length === 0 || convIDs.includes(conversationIDKey)) {
-            logger.info(`reducer: setting thread stale from inbox synced: ${conversationIDKey}`)
-            return conversationState.set('isStale', true)
-          }
-          return conversationState
-        })
-      )
-    }
     case ChatGen.updateLatestMessage:
       // Clear new messages id of conversation
       const newConversationStates = state
@@ -174,26 +148,6 @@ function reducer(
       })
 
       return state.set('metaData', metaData)
-    case ChatGen.clearRekey: {
-      const {conversationIDKey} = action.payload
-      return state.set('rekeyInfos', state.get('rekeyInfos').delete(conversationIDKey))
-    }
-    case ChatGen.updateInboxRekeyOthers: {
-      const {conversationIDKey, rekeyers} = action.payload
-      return state.set(
-        'rekeyInfos',
-        state
-          .get('rekeyInfos')
-          .set(conversationIDKey, Constants.makeRekeyInfo({rekeyParticipants: I.List(rekeyers)}))
-      )
-    }
-    case ChatGen.updateInboxRekeySelf: {
-      const {conversationIDKey} = action.payload
-      return state.set(
-        'rekeyInfos',
-        state.get('rekeyInfos').set(conversationIDKey, Constants.makeRekeyInfo({youCanRekey: true}))
-      )
-    }
     case ChatGen.addPending: {
       const {participants, temporary} = action.payload
       const sorted = participants.sort()
@@ -234,18 +188,6 @@ function reducer(
       }
       return state
     }
-    case ChatGen.updateFinalizedState: {
-      const fs = action.payload.finalizedState
-      return state.update('finalizedState', finalizedState => finalizedState.merge(fs))
-    }
-    case ChatGen.updateSupersedesState: {
-      const ss = action.payload.supersedesState
-      return state.update('supersedesState', supersedesState => supersedesState.merge(ss))
-    }
-    case ChatGen.updateSupersededByState: {
-      const sbs = action.payload.supersededByState
-      return state.update('supersededByState', supersededByState => supersededByState.merge(sbs))
-    }
     case ChatGen.showEditor: {
       return state.set('editingMessage', action.payload.message)
     }
@@ -270,12 +212,6 @@ function reducer(
         return state.set('conversationStates', newConversationStates)
       }
       return state
-    }
-    case ChatGen.setInboxGlobalUntrustedState: {
-      return state.set('inboxGlobalUntrustedState', action.payload.inboxGlobalUntrustedState)
-    }
-    case ChatGen.setInboxSyncingState: {
-      return state.set('inboxSyncingState', action.payload.inboxSyncingState)
     }
     case ChatGen.updateResetParticipants: {
       return state.mergeIn(
@@ -312,7 +248,6 @@ function reducer(
     case ChatGen.deleteMessage:
     case ChatGen.downloadProgress:
     case ChatGen.editMessage:
-    case ChatGen.inboxStoreLoaded:
     case ChatGen.incomingTyping:
     case ChatGen.joinConversation:
     case ChatGen.leaveConversation:
@@ -342,9 +277,7 @@ function reducer(
     case ChatGen.shareAttachment:
     case ChatGen.startConversation:
     case ChatGen.toggleChannelWideNotifications:
-    case ChatGen.unboxConversations:
     case ChatGen.updateBadging:
-    case ChatGen.updateInboxComplete:
     case ChatGen.updateMetadata:
     case ChatGen.updateTempMessage:
     case ChatGen.updateThread:

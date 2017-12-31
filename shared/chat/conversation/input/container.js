@@ -32,10 +32,10 @@ const conversationStateSelector = (state: TypedState) => {
 }
 
 const resetUsersSelector = (state: TypedState) => {
-  const selectedConversationIDKey = Constants.getSelectedConversation(state)
-  return selectedConversationIDKey
+  // const selectedConversationIDKey = Constants.getSelectedConversation(state)
+  return I.Set() /* selectedConversationIDKey
     ? state.chat.getIn(['inboxResetParticipants', selectedConversationIDKey], I.Set())
-    : I.Set()
+    : I.Set() */ // TODO
 }
 
 const editingMessageSelector = (state: TypedState) => state.chat.get('editingMessage')

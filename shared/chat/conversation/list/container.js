@@ -17,7 +17,7 @@ const getValidatedState = (state: TypedState) => {
   if (!selectedConversationIDKey) {
     return false
   }
-  const untrustedState = state.chat.inboxUntrustedState.get(selectedConversationIDKey)
+  const untrustedState = 'unboxed' // TODO state.chat.inboxUntrustedState.get(selectedConversationIDKey)
   if (selectedConversationIDKey && Constants.isPendingConversationIDKey(selectedConversationIDKey)) {
     if (Constants.pendingConversationIDKeyToTlfName(selectedConversationIDKey)) {
       // If it's as pending conversation with a tlfname, let's call it valid
@@ -27,11 +27,13 @@ const getValidatedState = (state: TypedState) => {
   return ['reUnboxing', 'unboxed'].includes(untrustedState)
 }
 
-const supersedesIfNoMoreToLoadSelector = createSelector(
-  [Constants.getSelectedConversationStates, Constants.getSupersedes],
-  (conversationState, _supersedes) =>
-    conversationState && !conversationState.moreToLoad ? _supersedes : null
-)
+// TODO
+const supersedesIfNoMoreToLoadSelector = () => false
+// createSelector(
+// [Constants.getSelectedConversationStates, Constants.getSupersedes],
+// (conversationState, _supersedes) =>
+// conversationState && !conversationState.moreToLoad ? _supersedes : null
+// )
 
 const ownPropsSelector = (_, {editLastMessageCounter, listScrollDownCounter, onFocusInput}: OwnProps) => ({
   editLastMessageCounter,

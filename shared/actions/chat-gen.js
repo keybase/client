@@ -22,13 +22,10 @@ export const attachmentSaveStart = 'chat:attachmentSaveStart'
 export const attachmentSaved = 'chat:attachmentSaved'
 export const blockConversation = 'chat:blockConversation'
 export const clearMessages = 'chat:clearMessages'
-export const clearRekey = 'chat:clearRekey'
 export const deleteEntity = 'chat:deleteEntity'
 export const deleteMessage = 'chat:deleteMessage'
 export const downloadProgress = 'chat:downloadProgress'
 export const editMessage = 'chat:editMessage'
-export const inboxStoreLoaded = 'chat:inboxStoreLoaded'
-export const inboxSynced = 'chat:inboxSynced'
 export const incomingTyping = 'chat:incomingTyping'
 export const joinConversation = 'chat:joinConversation'
 export const leaveConversation = 'chat:leaveConversation'
@@ -37,7 +34,6 @@ export const loadAttachmentPreview = 'chat:loadAttachmentPreview'
 export const loadMoreMessages = 'chat:loadMoreMessages'
 export const loadingMessages = 'chat:loadingMessages'
 export const markSeenMessage = 'chat:markSeenMessage'
-export const markThreadsStale = 'chat:markThreadsStale'
 export const mergeEntity = 'chat:mergeEntity'
 export const muteConversation = 'chat:muteConversation'
 export const openAttachmentPopup = 'chat:openAttachmentPopup'
@@ -60,8 +56,6 @@ export const retryMessage = 'chat:retryMessage'
 export const saveAttachment = 'chat:saveAttachment'
 export const saveAttachmentNative = 'chat:saveAttachmentNative'
 export const selectAttachment = 'chat:selectAttachment'
-export const setInboxGlobalUntrustedState = 'chat:setInboxGlobalUntrustedState'
-export const setInboxSyncingState = 'chat:setInboxSyncingState'
 export const setLoaded = 'chat:setLoaded'
 export const setNotifications = 'chat:setNotifications'
 export const setPreviousConversation = 'chat:setPreviousConversation'
@@ -73,18 +67,11 @@ export const startConversation = 'chat:startConversation'
 export const subtractEntity = 'chat:subtractEntity'
 export const threadLoadedOffline = 'chat:threadLoadedOffline'
 export const toggleChannelWideNotifications = 'chat:toggleChannelWideNotifications'
-export const unboxConversations = 'chat:unboxConversations'
 export const updateBadging = 'chat:updateBadging'
 export const updateBrokenTracker = 'chat:updateBrokenTracker'
-export const updateFinalizedState = 'chat:updateFinalizedState'
-export const updateInboxComplete = 'chat:updateInboxComplete'
-export const updateInboxRekeyOthers = 'chat:updateInboxRekeyOthers'
-export const updateInboxRekeySelf = 'chat:updateInboxRekeySelf'
 export const updateLatestMessage = 'chat:updateLatestMessage'
 export const updateMetadata = 'chat:updateMetadata'
 export const updateResetParticipants = 'chat:updateResetParticipants'
-export const updateSupersededByState = 'chat:updateSupersededByState'
-export const updateSupersedesState = 'chat:updateSupersedesState'
 export const updateTempMessage = 'chat:updateTempMessage'
 export const updateThread = 'chat:updateThread'
 export const updateTyping = 'chat:updateTyping'
@@ -101,13 +88,10 @@ export const createAttachmentSaveStart = (payload: {|+messageKey: Types.MessageK
 export const createAttachmentSaved = (payload: {|+messageKey: Types.MessageKey, +path: ?string|}) => ({error: false, payload, type: attachmentSaved})
 export const createBlockConversation = (payload: {|+blocked: boolean, +conversationIDKey: Types.ConversationIDKey, +reportUser: boolean|}) => ({error: false, payload, type: blockConversation})
 export const createClearMessages = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: clearMessages})
-export const createClearRekey = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: clearRekey})
 export const createDeleteEntity = (payload: {|+keyPath: Array<string>, +ids: Iterable<string>|}) => ({error: false, payload, type: deleteEntity})
 export const createDeleteMessage = (payload: {|+message: Types.Message|}) => ({error: false, payload, type: deleteMessage})
 export const createDownloadProgress = (payload: {|+messageKey: Types.MessageKey, +isPreview: boolean, +progress: ?number|}) => ({error: false, payload, type: downloadProgress})
 export const createEditMessage = (payload: {|+message: Types.Message, +text: HiddenString|}) => ({error: false, payload, type: editMessage})
-export const createInboxStoreLoaded = () => ({error: false, payload: undefined, type: inboxStoreLoaded})
-export const createInboxSynced = (payload: {|+convs: Array<RPCChatTypes.UnverifiedInboxUIItem>|}) => ({error: false, payload, type: inboxSynced})
 export const createIncomingTyping = (payload: {|+activity: RPCChatTypes.TyperInfo|}) => ({error: false, payload, type: incomingTyping})
 export const createJoinConversation = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: joinConversation})
 export const createLeaveConversation = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: leaveConversation})
@@ -116,7 +100,6 @@ export const createLoadAttachmentPreview = (payload: {|+messageKey: Types.Messag
 export const createLoadMoreMessages = (payload: {|+conversationIDKey: Types.ConversationIDKey, +onlyIfUnloaded: boolean, +fromUser?: boolean, +wantNewer?: boolean, +numberOverride?: ?number|}) => ({error: false, payload, type: loadMoreMessages})
 export const createLoadingMessages = (payload: {|+conversationIDKey: Types.ConversationIDKey, +isRequesting: boolean|}) => ({error: false, payload, type: loadingMessages})
 export const createMarkSeenMessage = (payload: {|+conversationIDKey: Types.ConversationIDKey, +messageKey: Types.MessageKey|}) => ({error: false, payload, type: markSeenMessage})
-export const createMarkThreadsStale = (payload: {|+updates: Array<RPCChatTypes.ConversationStaleUpdate>|}) => ({error: false, payload, type: markThreadsStale})
 export const createMergeEntity = (payload: {|+keyPath: Array<string>, +entities: I.Map<any, any> | I.List<any>|}) => ({error: false, payload, type: mergeEntity})
 export const createMuteConversation = (payload: {|+conversationIDKey: Types.ConversationIDKey, +muted: boolean|}) => ({error: false, payload, type: muteConversation})
 export const createOpenAttachmentPopup = (payload: {|+message: Types.AttachmentMessage, +currentPath: Path|}) => ({error: false, payload, type: openAttachmentPopup})
@@ -139,8 +122,6 @@ export const createRetryMessage = (payload: {|+conversationIDKey: Types.Conversa
 export const createSaveAttachment = (payload: {|+messageKey: Types.MessageKey|}) => ({error: false, payload, type: saveAttachment})
 export const createSaveAttachmentNative = (payload: {|+messageKey: Types.MessageKey|}) => ({error: false, payload, type: saveAttachmentNative})
 export const createSelectAttachment = (payload: {|+input: Types.AttachmentInput|}) => ({error: false, payload, type: selectAttachment})
-export const createSetInboxGlobalUntrustedState = (payload: {|+inboxGlobalUntrustedState: Types.UntrustedState|}) => ({error: false, payload, type: setInboxGlobalUntrustedState})
-export const createSetInboxSyncingState = (payload: {|+inboxSyncingState: Types.SyncingState|}) => ({error: false, payload, type: setInboxSyncingState})
 export const createSetLoaded = (payload: {|+conversationIDKey: Types.ConversationIDKey, +isLoaded: boolean|}) => ({error: false, payload, type: setLoaded})
 export const createSetNotifications = (payload: {|+conversationIDKey: Types.ConversationIDKey, +deviceType: DeviceType, +notifyType: Types.NotifyType|}) => ({error: false, payload, type: setNotifications})
 export const createSetPreviousConversation = (payload: {|+conversationIDKey: ?Types.ConversationIDKey|}) => ({error: false, payload, type: setPreviousConversation})
@@ -152,18 +133,11 @@ export const createStartConversation = (payload: {|+users: Array<string>, +force
 export const createSubtractEntity = (payload: {|+keyPath: Array<string>, +entities: I.List<any>|}) => ({error: false, payload, type: subtractEntity})
 export const createThreadLoadedOffline = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: threadLoadedOffline})
 export const createToggleChannelWideNotifications = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: toggleChannelWideNotifications})
-export const createUnboxConversations = (payload: {|+conversationIDKeys: Array<Types.ConversationIDKey>, +reason: string, +force?: boolean, +forInboxSync?: boolean, +dismissSyncing?: boolean|}) => ({error: false, payload, type: unboxConversations})
 export const createUpdateBadging = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: updateBadging})
 export const createUpdateBrokenTracker = (payload: {|+userToBroken: {[username: string]: boolean}|}) => ({error: false, payload, type: updateBrokenTracker})
-export const createUpdateFinalizedState = (payload: {|+finalizedState: Types.FinalizedState|}) => ({error: false, payload, type: updateFinalizedState})
-export const createUpdateInboxComplete = () => ({error: false, payload: undefined, type: updateInboxComplete})
-export const createUpdateInboxRekeyOthers = (payload: {|+conversationIDKey: Types.ConversationIDKey, +rekeyers: Array<string>|}) => ({error: false, payload, type: updateInboxRekeyOthers})
-export const createUpdateInboxRekeySelf = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: updateInboxRekeySelf})
 export const createUpdateLatestMessage = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: updateLatestMessage})
 export const createUpdateMetadata = (payload: {|+users: Array<string>|}) => ({error: false, payload, type: updateMetadata})
 export const createUpdateResetParticipants = (payload: {|+conversationIDKey: Types.ConversationIDKey, +participants: Array<string>|}) => ({error: false, payload, type: updateResetParticipants})
-export const createUpdateSupersededByState = (payload: {|+supersededByState: Types.SupersededByState|}) => ({error: false, payload, type: updateSupersededByState})
-export const createUpdateSupersedesState = (payload: {|+supersedesState: Types.SupersedesState|}) => ({error: false, payload, type: updateSupersedesState})
 export const createUpdateTempMessage = (payload: {|+conversationIDKey: Types.ConversationIDKey, +message: $Shape<Types.AttachmentMessage> | $Shape<Types.TextMessage>, +outboxIDKey: Types.OutboxIDKey|}) => ({error: false, payload, type: updateTempMessage})
 export const createUpdateThread = (payload: {|+thread: RPCChatTypes.UIMessages, +yourName: string, +yourDeviceName: string, +conversationIDKey: string, +append: boolean|}) => ({error: false, payload, type: updateThread})
 export const createUpdateTyping = (payload: {|+conversationIDKey: Types.ConversationIDKey, +typing: boolean|}) => ({error: false, payload, type: updateTyping})
@@ -180,13 +154,10 @@ export type AttachmentSaveStartPayload = More.ReturnType<typeof createAttachment
 export type AttachmentSavedPayload = More.ReturnType<typeof createAttachmentSaved>
 export type BlockConversationPayload = More.ReturnType<typeof createBlockConversation>
 export type ClearMessagesPayload = More.ReturnType<typeof createClearMessages>
-export type ClearRekeyPayload = More.ReturnType<typeof createClearRekey>
 export type DeleteEntityPayload = More.ReturnType<typeof createDeleteEntity>
 export type DeleteMessagePayload = More.ReturnType<typeof createDeleteMessage>
 export type DownloadProgressPayload = More.ReturnType<typeof createDownloadProgress>
 export type EditMessagePayload = More.ReturnType<typeof createEditMessage>
-export type InboxStoreLoadedPayload = More.ReturnType<typeof createInboxStoreLoaded>
-export type InboxSyncedPayload = More.ReturnType<typeof createInboxSynced>
 export type IncomingTypingPayload = More.ReturnType<typeof createIncomingTyping>
 export type JoinConversationPayload = More.ReturnType<typeof createJoinConversation>
 export type LeaveConversationPayload = More.ReturnType<typeof createLeaveConversation>
@@ -195,7 +166,6 @@ export type LoadAttachmentPreviewPayload = More.ReturnType<typeof createLoadAtta
 export type LoadMoreMessagesPayload = More.ReturnType<typeof createLoadMoreMessages>
 export type LoadingMessagesPayload = More.ReturnType<typeof createLoadingMessages>
 export type MarkSeenMessagePayload = More.ReturnType<typeof createMarkSeenMessage>
-export type MarkThreadsStalePayload = More.ReturnType<typeof createMarkThreadsStale>
 export type MergeEntityPayload = More.ReturnType<typeof createMergeEntity>
 export type MuteConversationPayload = More.ReturnType<typeof createMuteConversation>
 export type OpenAttachmentPopupPayload = More.ReturnType<typeof createOpenAttachmentPopup>
@@ -218,8 +188,6 @@ export type RetryMessagePayload = More.ReturnType<typeof createRetryMessage>
 export type SaveAttachmentNativePayload = More.ReturnType<typeof createSaveAttachmentNative>
 export type SaveAttachmentPayload = More.ReturnType<typeof createSaveAttachment>
 export type SelectAttachmentPayload = More.ReturnType<typeof createSelectAttachment>
-export type SetInboxGlobalUntrustedStatePayload = More.ReturnType<typeof createSetInboxGlobalUntrustedState>
-export type SetInboxSyncingStatePayload = More.ReturnType<typeof createSetInboxSyncingState>
 export type SetLoadedPayload = More.ReturnType<typeof createSetLoaded>
 export type SetNotificationsPayload = More.ReturnType<typeof createSetNotifications>
 export type SetPreviousConversationPayload = More.ReturnType<typeof createSetPreviousConversation>
@@ -231,18 +199,11 @@ export type StartConversationPayload = More.ReturnType<typeof createStartConvers
 export type SubtractEntityPayload = More.ReturnType<typeof createSubtractEntity>
 export type ThreadLoadedOfflinePayload = More.ReturnType<typeof createThreadLoadedOffline>
 export type ToggleChannelWideNotificationsPayload = More.ReturnType<typeof createToggleChannelWideNotifications>
-export type UnboxConversationsPayload = More.ReturnType<typeof createUnboxConversations>
 export type UpdateBadgingPayload = More.ReturnType<typeof createUpdateBadging>
 export type UpdateBrokenTrackerPayload = More.ReturnType<typeof createUpdateBrokenTracker>
-export type UpdateFinalizedStatePayload = More.ReturnType<typeof createUpdateFinalizedState>
-export type UpdateInboxCompletePayload = More.ReturnType<typeof createUpdateInboxComplete>
-export type UpdateInboxRekeyOthersPayload = More.ReturnType<typeof createUpdateInboxRekeyOthers>
-export type UpdateInboxRekeySelfPayload = More.ReturnType<typeof createUpdateInboxRekeySelf>
 export type UpdateLatestMessagePayload = More.ReturnType<typeof createUpdateLatestMessage>
 export type UpdateMetadataPayload = More.ReturnType<typeof createUpdateMetadata>
 export type UpdateResetParticipantsPayload = More.ReturnType<typeof createUpdateResetParticipants>
-export type UpdateSupersededByStatePayload = More.ReturnType<typeof createUpdateSupersededByState>
-export type UpdateSupersedesStatePayload = More.ReturnType<typeof createUpdateSupersedesState>
 export type UpdateTempMessagePayload = More.ReturnType<typeof createUpdateTempMessage>
 export type UpdateThreadPayload = More.ReturnType<typeof createUpdateThread>
 export type UpdateTypingPayload = More.ReturnType<typeof createUpdateTyping>
@@ -261,13 +222,10 @@ export type Actions =
   | More.ReturnType<typeof createAttachmentSaved>
   | More.ReturnType<typeof createBlockConversation>
   | More.ReturnType<typeof createClearMessages>
-  | More.ReturnType<typeof createClearRekey>
   | More.ReturnType<typeof createDeleteEntity>
   | More.ReturnType<typeof createDeleteMessage>
   | More.ReturnType<typeof createDownloadProgress>
   | More.ReturnType<typeof createEditMessage>
-  | More.ReturnType<typeof createInboxStoreLoaded>
-  | More.ReturnType<typeof createInboxSynced>
   | More.ReturnType<typeof createIncomingTyping>
   | More.ReturnType<typeof createJoinConversation>
   | More.ReturnType<typeof createLeaveConversation>
@@ -276,7 +234,6 @@ export type Actions =
   | More.ReturnType<typeof createLoadMoreMessages>
   | More.ReturnType<typeof createLoadingMessages>
   | More.ReturnType<typeof createMarkSeenMessage>
-  | More.ReturnType<typeof createMarkThreadsStale>
   | More.ReturnType<typeof createMergeEntity>
   | More.ReturnType<typeof createMuteConversation>
   | More.ReturnType<typeof createOpenAttachmentPopup>
@@ -299,8 +256,6 @@ export type Actions =
   | More.ReturnType<typeof createSaveAttachment>
   | More.ReturnType<typeof createSaveAttachmentNative>
   | More.ReturnType<typeof createSelectAttachment>
-  | More.ReturnType<typeof createSetInboxGlobalUntrustedState>
-  | More.ReturnType<typeof createSetInboxSyncingState>
   | More.ReturnType<typeof createSetLoaded>
   | More.ReturnType<typeof createSetNotifications>
   | More.ReturnType<typeof createSetPreviousConversation>
@@ -312,18 +267,11 @@ export type Actions =
   | More.ReturnType<typeof createSubtractEntity>
   | More.ReturnType<typeof createThreadLoadedOffline>
   | More.ReturnType<typeof createToggleChannelWideNotifications>
-  | More.ReturnType<typeof createUnboxConversations>
   | More.ReturnType<typeof createUpdateBadging>
   | More.ReturnType<typeof createUpdateBrokenTracker>
-  | More.ReturnType<typeof createUpdateFinalizedState>
-  | More.ReturnType<typeof createUpdateInboxComplete>
-  | More.ReturnType<typeof createUpdateInboxRekeyOthers>
-  | More.ReturnType<typeof createUpdateInboxRekeySelf>
   | More.ReturnType<typeof createUpdateLatestMessage>
   | More.ReturnType<typeof createUpdateMetadata>
   | More.ReturnType<typeof createUpdateResetParticipants>
-  | More.ReturnType<typeof createUpdateSupersededByState>
-  | More.ReturnType<typeof createUpdateSupersedesState>
   | More.ReturnType<typeof createUpdateTempMessage>
   | More.ReturnType<typeof createUpdateThread>
   | More.ReturnType<typeof createUpdateTyping>

@@ -25,37 +25,42 @@ const initialState: Types.State = Constants.makeState()
 const metaMapReducer = (metaMap, action) => {
   switch (action.type) {
     case Chat2Gen.metaReceivedError: {
-      switch (action.payload.error.typ) {
-        case RPCChatTypes.localConversationErrorType.otherrekeyneeded: // fallthrough
-        case RPCChatTypes.localConversationErrorType.selfrekeyneeded: {
-          const {error, username, conversationIDKey} = action.payload
-          const participants = error.rekeyInfo
-            ? I.Set([].concat(error.rekeyInfo.writerNames, error.rekeyInfo.readerNames).filter(Boolean))
-            : I.Set(error.unverifiedTLFName.split(','))
-          const old = metaMap.get(conversationIDKey)
-          const rekeyers = I.Set(
-            action.payload.error.typ === RPCChatTypes.localConversationErrorType.selfrekeyneeded
-              ? [username]
-              : (error.rekeyInfo && error.rekeyInfo.rekeyers) || []
-          )
-          return metaMap.set(
-            conversationIDKey,
-            Constants.makeConversationMeta({
+      const {error} = action.payload
+      if (error) {
+        switch (error.typ) {
+          case RPCChatTypes.localConversationErrorType.otherrekeyneeded: // fallthrough
+          case RPCChatTypes.localConversationErrorType.selfrekeyneeded: {
+            const {username, conversationIDKey} = action.payload
+            const participants = error.rekeyInfo
+              ? I.Set([].concat(error.rekeyInfo.writerNames, error.rekeyInfo.readerNames).filter(Boolean))
+              : I.Set(error.unverifiedTLFName.split(','))
+            const old = metaMap.get(conversationIDKey)
+            const rekeyers = I.Set(
+              error.typ === RPCChatTypes.localConversationErrorType.selfrekeyneeded
+                ? [username || '']
+                : (error.rekeyInfo && error.rekeyInfo.rekeyers) || []
+            )
+            return metaMap.set(
               conversationIDKey,
-              participants,
-              rekeyers,
-              teamType: old ? old.teamType : 'adhoc',
-              teamname: old ? old.teamname : '',
-              trustedState: 'error',
-              untrustedMessage: error.message,
-              untrustedTimestamp: old ? old.untrustedTimestamp : 0,
-            })
-          )
+              Constants.makeConversationMeta({
+                conversationIDKey,
+                participants,
+                rekeyers,
+                teamType: old ? old.teamType : 'adhoc',
+                teamname: old ? old.teamname : '',
+                trustedState: 'error',
+                untrustedMessage: error.message,
+                untrustedTimestamp: old ? old.untrustedTimestamp : 0,
+              })
+            )
+          }
+          case RPCChatTypes.localConversationErrorType.permanent:
+            return metaMap
+          default:
+            return metaMap
         }
-        case RPCChatTypes.localConversationErrorType.permanent:
-          return metaMap
-        default:
-          return metaMap
+      } else {
+        return metaMap.delete(action.payload.conversationIDKey)
       }
     }
     case Chat2Gen.metasReceived:
@@ -150,6 +155,12 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
   switch (action.type) {
     case Chat2Gen.resetStore:
       return initialState
+    case Chat2Gen.setLoading:
+      return state.update(
+        'loadingSet',
+        loading =>
+          action.payload.loading ? loading.add(action.payload.key) : loading.delete(action.payload.key)
+      )
     case Chat2Gen.selectConversation:
       return state.set('selectedConversation', action.payload.conversationIDKey)
     case Chat2Gen.setInboxFilter:

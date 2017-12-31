@@ -75,7 +75,7 @@ function* startNewConversation(
     yield put(Chat2Gen.createSelectConversation({conversationIDKey: newKey}))
   }
   // Load the inbox so we can post, we wait till this is done
-  yield put(ChatGen.createUnboxConversations({conversationIDKeys: [newKey], reason: 'new convo'}))
+  // yield put(ChatGen.createUnboxConversations({conversationIDKeys: [newKey], reason: 'new convo'}))
   return [newKey, tlfName]
 }
 

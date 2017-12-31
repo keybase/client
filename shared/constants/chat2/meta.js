@@ -106,6 +106,10 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
   if (i.visibility !== RPCTypes.commonTLFVisibility.private) {
     return null
   }
+  // Ignore empty
+  if (i.isEmpty) {
+    return null
+  }
   // We don't support mixed reader/writers
   if (i.name.includes('#')) {
     return null

@@ -24,6 +24,7 @@ export const metaUpdateTrustedState = 'chat2:metaUpdateTrustedState'
 export const metasReceived = 'chat2:metasReceived'
 export const selectConversation = 'chat2:selectConversation'
 export const setInboxFilter = 'chat2:setInboxFilter'
+export const setLoading = 'chat2:setLoading'
 export const setSearching = 'chat2:setSearching'
 export const setupChatHandlers = 'chat2:setupChatHandlers'
 
@@ -35,12 +36,13 @@ export const createMessagesAdd = (payload: {|+messages: Array<Types.Message>|}) 
 export const createMessagesDelete = (payload: {|+conversationIDKey: Types.ConversationIDKey, +ordinals: Array<Types.Ordinal>|}) => ({error: false, payload, type: messagesDelete})
 export const createMetaHandleQueue = () => ({error: false, payload: undefined, type: metaHandleQueue})
 export const createMetaNeedsUpdating = (payload: {|+conversationIDKeys: Array<Types.ConversationIDKey>, +reason: string|}) => ({error: false, payload, type: metaNeedsUpdating})
-export const createMetaReceivedError = (payload: {|+conversationIDKey: Types.ConversationIDKey, +error: RPCChatTypes.ConversationErrorLocal, +username: string|}) => ({error: false, payload, type: metaReceivedError})
+export const createMetaReceivedError = (payload: {|+conversationIDKey: Types.ConversationIDKey, +error: ?RPCChatTypes.ConversationErrorLocal, +username: ?string|}) => ({error: false, payload, type: metaReceivedError})
 export const createMetaRequestTrusted = (payload: {|+conversationIDKeys: Array<Types.ConversationIDKey>|}) => ({error: false, payload, type: metaRequestTrusted})
 export const createMetaUpdateTrustedState = (payload: {|+newState: Types.MetaTrustedState, +conversationIDKeys: Array<Types.ConversationIDKey>|}) => ({error: false, payload, type: metaUpdateTrustedState})
 export const createMetasReceived = (payload: {|+metas: Array<Types.ConversationMeta>|}) => ({error: false, payload, type: metasReceived})
 export const createSelectConversation = (payload: {|+conversationIDKey: ?Types.ConversationIDKey, +fromUser?: boolean|}) => ({error: false, payload, type: selectConversation})
 export const createSetInboxFilter = (payload: {|+filter: string|}) => ({error: false, payload, type: setInboxFilter})
+export const createSetLoading = (payload: {|+key: string, +loading: boolean|}) => ({error: false, payload, type: setLoading})
 export const createSetSearching = (payload: {|+searching: boolean|}) => ({error: false, payload, type: setSearching})
 export const createSetupChatHandlers = () => ({error: false, payload: undefined, type: setupChatHandlers})
 
@@ -58,6 +60,7 @@ export type MetaUpdateTrustedStatePayload = More.ReturnType<typeof createMetaUpd
 export type MetasReceivedPayload = More.ReturnType<typeof createMetasReceived>
 export type SelectConversationPayload = More.ReturnType<typeof createSelectConversation>
 export type SetInboxFilterPayload = More.ReturnType<typeof createSetInboxFilter>
+export type SetLoadingPayload = More.ReturnType<typeof createSetLoading>
 export type SetSearchingPayload = More.ReturnType<typeof createSetSearching>
 export type SetupChatHandlersPayload = More.ReturnType<typeof createSetupChatHandlers>
 
@@ -77,6 +80,7 @@ export type Actions =
   | More.ReturnType<typeof createMetasReceived>
   | More.ReturnType<typeof createSelectConversation>
   | More.ReturnType<typeof createSetInboxFilter>
+  | More.ReturnType<typeof createSetLoading>
   | More.ReturnType<typeof createSetSearching>
   | More.ReturnType<typeof createSetupChatHandlers>
   | {type: 'common:resetStore', payload: void}

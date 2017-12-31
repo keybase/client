@@ -338,11 +338,6 @@ export type SupersedeInfo = {
 
 export type FinalizeInfo = RPCChatTypes.ConversationFinalizeInfo
 
-export type FinalizedState = I.Map<ConversationIDKey, RPCChatTypes.ConversationFinalizeInfo>
-
-export type SupersedesState = I.Map<ConversationIDKey, SupersedeInfo>
-export type SupersededByState = I.Map<ConversationIDKey, SupersedeInfo>
-
 export type _MetaData = {
   fullname: string,
   brokenTracker: boolean,
@@ -376,35 +371,22 @@ export type UnreadCounts = {
 }
 
 export type _State = {
-  alwaysShow: I.Set<ConversationIDKey>,
   channelCreationError: string,
   conversationStates: I.Map<ConversationIDKey, ConversationState>,
   conversationUnreadCounts: I.Map<ConversationIDKey, UnreadCounts>,
   editingMessage: ?Message,
-  finalizedState: FinalizedState,
   inbox: I.Map<ConversationIDKey, InboxState>,
-  inboxAlwaysShow: I.Map<ConversationIDKey, boolean>,
-  inboxIsEmpty: I.Map<ConversationIDKey, boolean>,
-  inboxSupersededBy: I.Map<ConversationIDKey, boolean>,
-  inboxResetParticipants: I.Map<ConversationIDKey, I.Set<string>>,
-  inboxUntrustedState: I.Map<ConversationIDKey, InboxUntrustedState>,
-  inboxGlobalUntrustedState: UntrustedState,
-  inboxSyncingState: SyncingState,
   initialConversation: ?ConversationIDKey,
   localMessageStates: I.Map<MessageKey, LocalMessageState>,
   messageMap: I.Map<MessageKey, Message>,
   metaData: MetaDataMap,
-  nowOverride: ?Date,
   pendingConversations: I.Map<ConversationIDKey, Participants>,
   previousConversation: ?ConversationIDKey,
-  rekeyInfos: I.Map<ConversationIDKey, RekeyInfo>,
   searchPending: boolean,
   searchResultTerm: string,
   searchResults: ?I.List<SearchTypes.SearchResultId>,
   searchShowingSuggestions: boolean,
   selectedUsersInSearch: I.List<SearchTypes.SearchResultId>,
-  supersededByState: SupersededByState,
-  supersedesState: SupersedesState,
   teamCreationError: string,
   teamCreationPending: boolean,
   teamJoinError: string,

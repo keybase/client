@@ -1,5 +1,4 @@
 // @flow
-import * as Constants from '../../../constants/chat'
 import * as Types from '../../../constants/types/chat'
 import ParticipantRekey, {type Props as ParticipantRekeyProps} from './participant-rekey'
 import YouRekey, {type Props as YouRekeyProps} from './you-rekey'
@@ -36,9 +35,10 @@ type DispatchProps = {
 const mapStateToProps = (state: TypedState, {selectedConversationIDKey}: OwnProps): StateProps => {
   let rekeyInfo = null
 
-  if (selectedConversationIDKey !== Constants.nothingSelected && selectedConversationIDKey) {
-    rekeyInfo = state.chat.rekeyInfos.get(selectedConversationIDKey)
-  }
+  // TODO
+  // if (selectedConversationIDKey !== Constants.nothingSelected && selectedConversationIDKey) {
+  // rekeyInfo = state.chat.rekeyInfos.get(selectedConversationIDKey)
+  // }
 
   return {
     rekeyInfo,

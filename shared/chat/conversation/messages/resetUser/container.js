@@ -9,7 +9,7 @@ import * as TrackerGen from '../../../../actions/profile-gen'
 
 const mapStateToProps = (state: TypedState, {messageKey}): * => {
   const selectedConversationIDKey = Constants.getSelectedConversation(state) || ''
-  const username = state.chat.inboxResetParticipants.get(selectedConversationIDKey, I.Set()).first() || ''
+  const username = '' // TODO state.chat.inboxResetParticipants.get(selectedConversationIDKey, I.Set()).first() || ''
   const allowChatWithoutThem =
     state.chat.inbox.getIn([selectedConversationIDKey, 'participants'], I.List()).size > 2
   return {_conversationIDKey: selectedConversationIDKey, allowChatWithoutThem, username}

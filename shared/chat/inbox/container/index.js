@@ -27,7 +27,6 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}: OwnProp
   const filter = state.chat2.inboxFilter
   const smallTeamsExpanded = routeState.get('smallTeamsExpanded')
   const rowMetadata = filter ? filteredRowData(state) : normalRowData(state, smallTeamsExpanded)
-  const inboxGlobalUntrustedState = state.chat.get('inboxGlobalUntrustedState')
   const _selectedConversationIDKey = state.chat2.selectedConversation
 
   return {
@@ -35,8 +34,8 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}: OwnProp
     _selectedConversationIDKey,
     filter,
     isActiveRoute,
-    isLoading: inboxGlobalUntrustedState === 'loading' || state.chat.get('inboxSyncingState') === 'syncing',
-    neverLoaded: inboxGlobalUntrustedState === 'unloaded',
+    isLoading: !state.chat2.loadingSet.isEmpty(),
+    neverLoaded: state.chat2.metaMap.isEmpty(),
     showNewConversation: state.chat2.isSearching,
   }
 }

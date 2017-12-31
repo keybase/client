@@ -104,12 +104,13 @@ function* _loadMoreMessages(action: ChatGen.LoadMoreMessagesPayload): Saga.SagaG
       return
     }
 
-    const rekeyInfo = state.chat.get('rekeyInfos').get(conversationIDKey)
+    // TODO
+    // const rekeyInfo = state.chat.get('rekeyInfos').get(conversationIDKey)
 
-    if (rekeyInfo) {
-      logger.info('loadMoreMessages: bailing on chat due to rekey info')
-      return
-    }
+    // if (rekeyInfo) {
+    // logger.info('loadMoreMessages: bailing on chat due to rekey info')
+    // return
+    // }
 
     const oldConversationState = yield Shared.conversationStateSelector(state, conversationIDKey)
     if (oldConversationState && !recent) {

@@ -2,7 +2,6 @@
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Constants from '../../../../constants/chat'
 import * as Constants2 from '../../../../constants/chat2'
-import * as I from 'immutable'
 import * as Types from '../../../../constants/types/chat2'
 import {SmallTeam} from '.'
 import {pausableConnect, type TypedState, type Dispatch} from '../../../../util/container'
@@ -21,7 +20,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
     _meta: Constants2.getMeta(state, _conversationIDKey),
     _username: state.config.username || '',
     hasBadge: Constants2.getHasBadge(state, _conversationIDKey),
-    hasResetUsers: state.chat.inboxResetParticipants.get(_conversationIDKey || '', I.Set()).size > 0, // TODO remove
+    hasResetUsers: true, // TODO state.chat.inboxResetParticipants.get(_conversationIDKey || '', I.Set()).size > 0, // TODO remove
     hasUnread: Constants2.getHasUnread(state, _conversationIDKey),
     isActiveRoute,
     isSelected: Constants2.getIsSelected(state, _conversationIDKey),

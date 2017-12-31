@@ -74,33 +74,10 @@
       "temporary": "boolean"
     },
     "removeTempPendingConversations": {},
-    "updateFinalizedState": {
-      "finalizedState": "Types.FinalizedState"
-    },
-    "updateSupersedesState": {
-      "supersedesState": "Types.SupersedesState"
-    },
-    "updateSupersededByState": {
-      "supersededByState": "Types.SupersededByState"
-    },
     "markSeenMessage": {
       "conversationIDKey": "Types.ConversationIDKey",
       "messageKey": "Types.MessageKey"
     },
-    "unboxConversations": {
-      "conversationIDKeys": "Array<Types.ConversationIDKey>",
-      "reason": "string",
-      "force?": "boolean",
-      "forInboxSync?": "boolean",
-      "dismissSyncing?": "boolean"
-    },
-    "setInboxSyncingState": {
-      "inboxSyncingState": "Types.SyncingState"
-    },
-    "setInboxGlobalUntrustedState": {
-      "inboxGlobalUntrustedState": "Types.UntrustedState"
-    },
-    "inboxStoreLoaded": {},
     "updateThread": {
       "thread": "RPCChatTypes.UIMessages",
       "yourName": "string",
@@ -116,17 +93,6 @@
       "oldMessageKey": "Types.MessageKey",
       "newMessageKey": "Types.MessageKey"
     },
-    "clearRekey": {
-      "conversationIDKey": "Types.ConversationIDKey"
-    },
-    "updateInboxRekeySelf": {
-      "conversationIDKey": "Types.ConversationIDKey"
-    },
-    "updateInboxRekeyOthers": {
-      "conversationIDKey": "Types.ConversationIDKey",
-      "rekeyers": "Array<string>"
-    },
-    "updateInboxComplete": {},
     "removeOutboxMessage": {
       "conversationIDKey": "Types.ConversationIDKey",
       "outboxID": "Types.OutboxIDKey"
@@ -189,12 +155,6 @@
     },
     "updateBrokenTracker": {
       "userToBroken": "{[username: string]: boolean}"
-    },
-    "markThreadsStale": {
-      "updates": "Array<RPCChatTypes.ConversationStaleUpdate>"
-    },
-    "inboxSynced": {
-      "convs": "Array<RPCChatTypes.UnverifiedInboxUIItem>"
     },
     "clearMessages": {
       "conversationIDKey": "Types.ConversationIDKey"

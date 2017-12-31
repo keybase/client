@@ -15,6 +15,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   badgeMap: I.Map(),
   inboxFilter: '',
   isSearching: false,
+  loadingSet: I.Set(),
   messageMap: I.Map(),
   messageOrdinals: I.Map(),
   metaMap: I.Map(),

@@ -71,42 +71,22 @@ export const makeRekeyInfo: I.RecordFactory<Types._RekeyInfo> = I.Record({
 })
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
-  alwaysShow: I.Set(),
   channelCreationError: '',
   conversationStates: I.Map(),
   conversationUnreadCounts: I.Map(),
   editingMessage: null,
-  finalizedState: I.Map(),
-  inSearch: false,
   inbox: I.Map(),
-  inboxAlwaysShow: I.Map(),
-  inboxBigChannels: I.Map(),
-  inboxBigChannelsToTeam: I.Map(),
-  inboxFilter: '',
-  inboxIsEmpty: I.Map(),
-  inboxSupersededBy: I.Map(),
-  inboxUnreadCountBadge: I.Map(),
-  inboxUnreadCountTotal: I.Map(),
-  inboxGlobalUntrustedState: 'unloaded',
-  inboxSyncingState: 'notSyncing',
-  inboxUntrustedState: I.Map(),
-  inboxResetParticipants: I.Map(),
-  inboxVersion: I.Map(),
   initialConversation: null,
   localMessageStates: I.Map(),
   messageMap: I.Map(),
   metaData: I.Map(),
-  nowOverride: null,
   pendingConversations: I.Map(),
   previousConversation: null,
-  rekeyInfos: I.Map(),
   searchPending: false,
   searchResultTerm: '',
   searchResults: null,
   searchShowingSuggestions: false,
   selectedUsersInSearch: I.List(),
-  supersededByState: I.Map(),
-  supersedesState: I.Map(),
   teamCreationError: '',
   teamCreationPending: false,
   teamJoinError: '',
@@ -321,19 +301,19 @@ function pendingConversationIDKeyToTlfName(conversationIDKey: string): ?string {
   return null
 }
 
-function convSupersedesInfo(
-  conversationID: Types.ConversationIDKey,
-  chat: Types.State
-): ?Types.SupersedeInfo {
-  return chat.getIn(['supersedesState', conversationID])
-}
+// function convSupersedesInfo(
+// conversationID: Types.ConversationIDKey,
+// chat: Types.State
+// ): ?Types.SupersedeInfo {
+// return chat.getIn(['supersedesState', conversationID])
+// }
 
-function convSupersededByInfo(
-  conversationID: Types.ConversationIDKey,
-  chat: Types.State
-): ?Types.SupersedeInfo {
-  return chat.getIn(['supersededByState', conversationID])
-}
+// function convSupersededByInfo(
+// conversationID: Types.ConversationIDKey,
+// chat: Types.State
+// ): ?Types.SupersedeInfo {
+// return chat.getIn(['supersededByState', conversationID])
+// }
 
 const getSelectedConversation = (state: TypedState) => state.chat2.selectedConversation
 
@@ -494,10 +474,10 @@ const getSelectedConversationStates = (state: TypedState): ?Types.ConversationSt
     : null
 }
 
-const getSupersedes = (state: TypedState): ?Types.SupersedeInfo => {
-  const selectedConversationIDKey = getSelectedConversation(state)
-  return selectedConversationIDKey ? convSupersedesInfo(selectedConversationIDKey, state.chat) : null
-}
+// const getSupersedes = (state: TypedState): ?Types.SupersedeInfo => {
+// const selectedConversationIDKey = getSelectedConversation(state)
+// return selectedConversationIDKey ? convSupersedesInfo(selectedConversationIDKey, state.chat) : null
+// }
 
 const imageFileNameRegex = /[^/]+\.(jpg|png|gif|jpeg|bmp)$/
 function isImageFileName(filename: string): boolean {
@@ -722,14 +702,11 @@ export {
   getMessageUpdateCount,
   getSelectedConversation,
   getSelectedConversationStates,
-  getSupersedes,
   getAttachmentDownloadedPath,
   getAttachmentSavedPath,
   getTeamName,
   getTeamType,
   conversationIDToKey,
-  convSupersedesInfo,
-  convSupersededByInfo,
   keyToConversationID,
   keyToOutboxID,
   makeConversationMessages,

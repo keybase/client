@@ -45,40 +45,42 @@ function _setupChatHandlers() {
     return [ChatGen.createUpdateBrokenTracker({userToBroken})]
   })
 
-  engine().setIncomingActionCreators('chat.1.NotifyChat.ChatInboxStale', () => [
-    // TODO
-    // ChatGen.createInboxStale({reason: 'service invoked'}),
-  ])
+  // TODO
+  // engine().setIncomingActionCreators('chat.1.NotifyChat.ChatInboxStale', () => [
+  // // ChatGen.createInboxStale({reason: 'service invoked'}),
+  // ])
 
-  engine().setIncomingActionCreators(
-    'chat.1.NotifyChat.ChatTLFResolve',
-    ({convID, resolveInfo: {newTLFName}}) => [
-      /* TODO ChatGen.createInboxStale({reason: 'TLF resolve notification'}) */
-    ]
-  )
+  // engine().setIncomingActionCreators(
+  // 'chat.1.NotifyChat.ChatTLFResolve',
+  // ({convID, resolveInfo: {newTLFName}}) => [
+  // [> TODO ChatGen.createInboxStale({reason: 'TLF resolve notification'}) <]
+  // ]
+  // )
 
-  engine().setIncomingActionCreators('chat.1.NotifyChat.ChatThreadsStale', ({updates}) => {
-    if (updates) {
-      return [ChatGen.createMarkThreadsStale({updates})]
-    }
-    return null
-  })
+  // TODO
+  // engine().setIncomingActionCreators('chat.1.NotifyChat.ChatThreadsStale', ({updates}) => {
+  // if (updates) {
+  // return [ChatGen.createMarkThreadsStale({updates})]
+  // }
+  // return null
+  // })
 
-  engine().setIncomingActionCreators('chat.1.NotifyChat.ChatInboxSynced', ({syncRes}) => {
-    switch (syncRes.syncType) {
-      case ChatTypes.commonSyncInboxResType.clear:
-        return null // TODO [ChatGen.createInboxStale({reason: 'sync with clear result'})]
-      case ChatTypes.commonSyncInboxResType.current:
-        return null // TODO [ChatGen.createSetInboxSyncingState({inboxSyncingState: 'notSyncing'})]
-      case ChatTypes.commonSyncInboxResType.incremental:
-        return null // TODO[ChatGen.createInboxSynced({convs: syncRes.incremental.items})]
-    }
-    return null // TODO [ChatGen.createInboxStale({reason: 'sync with unknown result'})]
-  })
+  // TODO
+  // engine().setIncomingActionCreators('chat.1.NotifyChat.ChatInboxSynced', ({syncRes}) => {
+  // switch (syncRes.syncType) {
+  // case ChatTypes.commonSyncInboxResType.clear:
+  // return null // TODO [ChatGen.createInboxStale({reason: 'sync with clear result'})]
+  // case ChatTypes.commonSyncInboxResType.current:
+  // return null // TODO [ChatGen.createSetInboxSyncingState({inboxSyncingState: 'notSyncing'})]
+  // case ChatTypes.commonSyncInboxResType.incremental:
+  // return null // TODO[ChatGen.createInboxSynced({convs: syncRes.incremental.items})]
+  // }
+  // return null // TODO [ChatGen.createInboxStale({reason: 'sync with unknown result'})]
+  // })
 
-  engine().setIncomingActionCreators('chat.1.NotifyChat.ChatInboxSyncStarted', () => [
-    ChatGen.createSetInboxSyncingState({inboxSyncingState: 'syncing'}),
-  ])
+  // engine().setIncomingActionCreators('chat.1.NotifyChat.ChatInboxSyncStarted', () => [
+  // ChatGen.createSetInboxSyncingState({inboxSyncingState: 'syncing'}),
+  // ])
 
   engine().setIncomingActionCreators(
     'chat.1.NotifyChat.ChatJoinedConversation',
