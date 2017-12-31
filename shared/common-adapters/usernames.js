@@ -162,12 +162,16 @@ class PlaintextUsernames extends Component<PlaintextProps> {
 // instead of username objects supply array of username strings & this will fill in the rest
 const mapStateToProps = (state: TypedState, ownProps: ConnectedProps) => {
   const following = state.config.following
+  const broken = state.tracker.userTrackers
   const you = state.config.username
-  const userData = ownProps.usernames.map(username => ({
-    following: following.has(username),
-    username,
-    you: you === username,
-  }))
+  const userData = ownProps.usernames
+    .map(username => ({
+      broken: broken.trackerState === 'error',
+      following: following.has(username),
+      username,
+      you: you === username,
+    }))
+    .filter(u => !ownProps.skipSelf || !u.you)
   return {
     users: userData,
   }

@@ -447,26 +447,6 @@ const getGeneralChannelOfSelectedInbox = createSelector(
   }
 )
 
-const getMuted = createSelector(
-  [getSelectedInbox],
-  selectedInbox => selectedInbox && selectedInbox.get('status') === 'muted'
-)
-
-const getChannelName = createSelector(
-  [getSelectedInbox],
-  selectedInbox => selectedInbox && selectedInbox.get('channelname')
-)
-
-const getTeamName = createSelector(
-  [getSelectedInbox],
-  selectedInbox => selectedInbox && selectedInbox.get('teamname')
-)
-
-const getTeamType = createSelector(
-  [getSelectedInbox],
-  selectedInbox => selectedInbox && selectedInbox.get('teamType')
-)
-
 const getSelectedConversationStates = (state: TypedState): ?Types.ConversationState => {
   const selectedConversationIDKey = getSelectedConversation(state)
   return selectedConversationIDKey
@@ -695,7 +675,6 @@ export {
   getBrokenUsers,
   getConversationMessages,
   getDeletedMessageIDs,
-  getChannelName,
   getEditingMessage,
   getInbox,
   getMessageFromMessageKey,
@@ -704,8 +683,6 @@ export {
   getSelectedConversationStates,
   getAttachmentDownloadedPath,
   getAttachmentSavedPath,
-  getTeamName,
-  getTeamType,
   conversationIDToKey,
   keyToConversationID,
   keyToOutboxID,
@@ -734,7 +711,6 @@ export {
   getParticipants,
   getParticipantsWithFullNames,
   getSelectedInbox,
-  getMuted,
   getLocalMessageStateFromMessageKey,
   getMessageFromConvKeyMessageID,
   isImageFileName,

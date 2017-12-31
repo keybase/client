@@ -28,30 +28,38 @@ type DispatchProps = {
   onUsernameClicked: (username: string) => void,
 }
 
-const getDetails = createCachedSelector(
-  [
-    Constants.getMessageFromMessageKey,
-    Constants.getYou,
-    Constants.getChannelName,
-    Constants.getTeamName,
-    Constants.getFollowing,
-  ],
-  (
-    message: Types.JoinedLeftMessage,
-    you: string,
-    channelname: string,
-    teamname: string,
-    following: I.Set<Types.Username>
-  ) => ({
-    channelname,
-    following: following.has(message.author),
-    message,
-    teamname,
-    you,
-  })
-)((state, messageKey) => messageKey)
+// const getDetails = createCachedSelector(
+// [
+// Constants.getMessageFromMessageKey,
+// Constants.getYou,
+// Constants.getChannelName,
+// Constants.getTeamName,
+// Constants.getFollowing,
+// ],
+// (
+// message: Types.JoinedLeftMessage,
+// you: string,
+// channelname: string,
+// teamname: string,
+// following: I.Set<Types.Username>
+// ) => ({
+// channelname,
+// following: following.has(message.author),
+// message,
+// teamname,
+// you,
+// })
+// )((state, messageKey) => messageKey)
 
-const mapStateToProps = (state: TypedState, {messageKey}: OwnProps): * => getDetails(state, messageKey)
+// const mapStateToProps = (state: TypedState, {messageKey}: OwnProps): * => getDetails(state, messageKey)
+// //TODO
+const mapStateToProps = (state: TypedState, {messageKey}: OwnProps) => ({
+  channelname: 'foo',
+  following: false,
+  message: 'bar',
+  teamname: 'baz',
+  you: 'nojima',
+})
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onManageChannels: (teamname: string) =>
@@ -71,4 +79,5 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => ({
   onUsernameClicked: dispatchProps.onUsernameClicked,
 })
 
+// $FlowIssue totally borken until i fix it
 export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps))(JoinedLeftNotice)

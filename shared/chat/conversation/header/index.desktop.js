@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box, Icon, Text, Usernames} from '../../../common-adapters'
+import {Box, Icon, Text, ConnectedUsernames} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
 
 import type {Props} from '.'
@@ -59,17 +59,17 @@ const UsernameHeader = ({
   onOpenFolder,
   onShowProfile,
   onToggleInfoPanel,
-  users,
+  participants,
 }: Props) => (
   <Box style={containerStyle}>
     <Box style={{...globalStyles.flexBoxRow, flex: 1, justifyContent: 'center', marginLeft: 48}}>
-      <Usernames
+      <ConnectedUsernames
         colorFollowing={true}
         underline={true}
         inline={false}
         commaColor={globalColors.black_40}
         type="BodyBig"
-        users={users}
+        usernames={participants}
         containerStyle={styleCenter}
         onUsernameClicked={onShowProfile}
       />

@@ -1,36 +1,22 @@
 // @flow
-import * as Constants from '../../../constants/chat'
+import * as Constants2 from '../../../constants/chat2'
 import * as ChatGen from '../../../actions/chat-gen'
-import {List} from 'immutable'
 import {ChannelHeader, UsernameHeader} from '.'
 import {branch, compose, renderComponent, connect, type TypedState} from '../../../util/container'
-import {createSelector} from 'reselect'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import {chatTab} from '../../../constants/tabs'
 import {type OwnProps} from './container'
-import * as ChatTypes from '../../../constants/types/rpc-chat-gen'
 
-const getUsers = createSelector(
-  [Constants.getYou, Constants.getParticipants, Constants.getFollowing, Constants.getMetaDataMap],
-  (you, participants, followingMap, metaDataMap) =>
-    Constants.usernamesToUserListItem(
-      Constants.participantFilter(List(participants), you).toArray(),
-      you,
-      metaDataMap,
-      followingMap
-    )
-)
-
-const mapStateToProps = (state: TypedState, {infoPanelOpen}: OwnProps) => ({
-  badgeNumber: state.notifications.get('navBadges').get(chatTab),
-  canOpenInfoPanel: !Constants.isPendingConversationIDKey(Constants.getSelectedConversation(state) || ''),
-  channelName: Constants.getChannelName(state),
-  muted: Constants.getMuted(state),
-  infoPanelOpen,
-  teamName: Constants.getTeamName(state),
-  users: getUsers(state),
-  smallTeam: Constants.getTeamType(state) === ChatTypes.commonTeamType.simple,
-})
+const mapStateToProps = (state: TypedState, {infoPanelOpen}: OwnProps) => {
+  const conversationIDKey = Constants2.getSelectedConversation(state)
+  const _meta = Constants2.getMeta(state, conversationIDKey)
+  return {
+    _meta,
+    badgeNumber: state.notifications.getIn(['navBadges', chatTab]),
+    canOpenInfoPanel: true, //! Constants.isPendingConversationIDKey(Constants.getSelectedConversation(state) || ''),
+    infoPanelOpen,
+  }
+}
 
 const mapDispatchToProps = (dispatch: Dispatch, {onBack, onToggleInfoPanel}: OwnProps) => ({
   onBack,
@@ -39,7 +25,22 @@ const mapDispatchToProps = (dispatch: Dispatch, {onBack, onToggleInfoPanel}: Own
   onToggleInfoPanel,
 })
 
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  badgeNumber: stateProps.badgeNumber,
+  canOpenInfoPanel: stateProps.canOpenInfoPanel,
+  channelName: stateProps._meta.channelname,
+  infoPanelOpen: stateProps.infoPanelOpen,
+  muted: stateProps._meta.isMuted,
+  onBack: dispatchProps.onBack,
+  onOpenFolder: dispatchProps.onOpenFolder,
+  onShowProfile: dispatchProps.onShowProfile,
+  onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
+  smallTeam: stateProps._meta.teamType !== 'big',
+  teamName: stateProps._meta.teamname,
+  participants: stateProps._meta.teamname ? [] : stateProps._meta.participants.toArray(),
+})
+
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
-  branch(props => !!props.channelName && !!props.teamName, renderComponent(ChannelHeader))
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  branch(props => !!props.teamName, renderComponent(ChannelHeader))
 )(UsernameHeader)

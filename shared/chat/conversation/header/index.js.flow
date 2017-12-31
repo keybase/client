@@ -1,6 +1,5 @@
 // @flow
 import {Component} from 'react'
-import type {UserList} from '../../../common-adapters/usernames'
 
 export type Props = {|
   badgeNumber?: number,
@@ -13,7 +12,7 @@ export type Props = {|
   onToggleInfoPanel: () => void,
   infoPanelOpen: boolean,
   teamName: ?string,
-  users: UserList,
+  participants: Array<string>,
   smallTeam: boolean,
 |}
 
