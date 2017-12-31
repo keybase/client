@@ -1,9 +1,9 @@
 // @flow
-import * as Constants from '../../../../constants/chat'
+// import * as Constants from '../../../../constants/chat'
 import * as Types from '../../../../constants/types/chat'
-import * as I from 'immutable'
+// import * as I from 'immutable'
 import JoinedLeftNotice from '.'
-import createCachedSelector from 're-reselect'
+// import createCachedSelector from 're-reselect'
 import {compose} from 'recompose'
 import {connect} from 'react-redux'
 import {navigateAppend, navigateTo} from '../../../../actions/route-tree'

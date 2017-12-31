@@ -14,6 +14,9 @@ import logger from '../../logger'
 import type {TypedState} from '../../constants/reducer'
 import {RPCTimeoutError} from '../../util/errors'
 import {chatTab} from '../../constants/tabs'
+import {isMobile} from '../../constants/platform'
+import {NotifyPopup} from '../../native/notifications'
+import {showMainWindow} from '../platform-specific'
 
 /*
  * TODO:
@@ -268,15 +271,18 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage) => {
   // TODO from thread-content:
   // convert outbox to regular?
   // mark as read
-  const {conv, message: cMsg, convID} = incoming
+  const {conv, message: cMsg, convID, displayDesktopNotification} = incoming
   const actions = []
 
+  // TODO figure out notify plumbing
   if (convID && cMsg) {
     const conversationIDKey = Constants.conversationIDToKey(convID)
     const message = Constants.uiMessageToMessage(conversationIDKey, cMsg)
     if (message) {
       // visible type
-      actions.push(Chat2Gen.createMessagesAdd({messages: [message]}))
+      actions.push(
+        Chat2Gen.createMessagesAdd({notify: !isMobile && displayDesktopNotification, messages: [message]})
+      )
     } else if (cMsg.state === RPCChatTypes.chatUiMessageUnboxedState.valid && cMsg.valid) {
       const body = cMsg.valid.messageBody
       // Types that are mutations
@@ -412,6 +418,51 @@ const loadThread = (action: Chat2Gen.SelectConversationPayload) => {
 const clearInboxFilter = (action: Chat2Gen.SelectConversationPayload) =>
   Saga.put(Chat2Gen.createSetInboxFilter({filter: ''}))
 
+const desktopNotify = (action: Chat2Gen.MessagesAddPayload, state: TypedState) => {
+  if (!action.payload.notify) {
+    return
+  }
+  const conversationIDKey = Constants.getSelectedConversation(state)
+  const appFocused = state.config.appFocused
+  const chatTabSelected = state.routeTree.getIn(['routeState', 'selected']) === chatTab
+  const metaMap = state.chat2.metaMap
+
+  const notifys = action.payload.messages
+    .filter(
+      m =>
+        (!appFocused || // app not foxued?
+        !chatTabSelected || // not looking at the chat tab?
+          m.conversationIDKey !== conversationIDKey) && // not looking at it currently?
+        !metaMap.getIn([m.conversationIDKey, 'isMuted']) // ignore muted convos
+    )
+    .map(m => ({
+      author: m.author,
+      body: Constants.getSnippetText(m),
+      conversationIDKey: m.conversationIDKey,
+    }))
+    .filter(n => n.body)
+
+  if (notifys.length) {
+    logger.info('Sending Chat notification')
+    return Saga.sequentially(
+      notifys.map(notify =>
+        Saga.put(dispatch => {
+          NotifyPopup(notify.author, {body: notify.body}, -1, notify.author, () => {
+            dispatch(
+              Chat2Gen.createSelectConversation({
+                conversationIDKey: notify.conversationIDKey,
+                fromUser: false,
+              })
+            )
+            dispatch(Route.switchTo([chatTab]))
+            showMainWindow()
+          })
+        })
+      )
+    )
+  }
+}
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Refresh the inbox
   yield Saga.safeTakeEveryPure(
@@ -443,6 +494,10 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, navigateToThread)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, loadThread)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, clearInboxFilter)
+
+  if (!isMobile) {
+    yield Saga.safeTakeEveryPure(Chat2Gen.messagesAdd, desktopNotify)
+  }
 }
 
 export default chat2Saga

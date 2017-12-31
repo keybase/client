@@ -32,7 +32,7 @@ export const setupChatHandlers = 'chat2:setupChatHandlers'
 export const createBadgesUpdated = (payload: {|+conversations: Array<RPCTypes.BadgeConversationInfo>|}) => ({error: false, payload, type: badgesUpdated})
 export const createInboxRefresh = () => ({error: false, payload: undefined, type: inboxRefresh})
 export const createMessageEdit = (payload: {|+conversationIDKey: Types.ConversationIDKey, +ordinal: Types.Ordinal, +text: HiddenString|}) => ({error: false, payload, type: messageEdit})
-export const createMessagesAdd = (payload: {|+messages: Array<Types.Message>|}) => ({error: false, payload, type: messagesAdd})
+export const createMessagesAdd = (payload: {|+notify?: boolean, +messages: Array<Types.Message>|}) => ({error: false, payload, type: messagesAdd})
 export const createMessagesDelete = (payload: {|+conversationIDKey: Types.ConversationIDKey, +ordinals: Array<Types.Ordinal>|}) => ({error: false, payload, type: messagesDelete})
 export const createMetaHandleQueue = () => ({error: false, payload: undefined, type: metaHandleQueue})
 export const createMetaNeedsUpdating = (payload: {|+conversationIDKeys: Array<Types.ConversationIDKey>, +reason: string|}) => ({error: false, payload, type: metaNeedsUpdating})

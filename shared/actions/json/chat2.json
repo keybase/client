@@ -42,6 +42,7 @@
       "username": "?string"
     },
     "messagesAdd": {
+      "notify?": "boolean",
       "messages": "Array<Types.Message>"
     },
     "messageEdit": {
