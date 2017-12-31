@@ -30,9 +30,8 @@ type resetReq struct {
 	doneCh     chan struct{}
 }
 
-func (r resetReq) dstPath() string {
-	return path.Clean(path.Join(
-		r.dstTLF.GetCanonicalPath(), r.dstDir, r.srcRepo, r.branchName))
+func (r resetReq) id() string {
+	return path.Join(r.dstTLF.GetCanonicalPath(), r.dstDir, r.srcRepo)
 }
 
 const (
@@ -57,8 +56,8 @@ type getNewConfigFn func(context.Context) (
 
 // AutogitManager can clone and pull source git repos into a
 // destination folder, potentially across different TLFs.  New
-// requests for an operation in a destination folder are blocked by
-// any ongoing requests for the same folder, and multiple outstanding
+// requests for an operation in a destination repo are blocked by any
+// ongoing requests for the same folder, and multiple outstanding
 // requests for the same destination folder get rolled up into one.
 type AutogitManager struct {
 	config         libkbfs.Config
@@ -71,8 +70,8 @@ type AutogitManager struct {
 	getNewConfig   getNewConfigFn
 
 	lock             sync.Mutex
-	resetsInQueue    map[string]resetReq // key: resetReq.dstPath()
-	resetsInProgress map[string]resetReq // key: resetReq.dstPath()
+	resetsInQueue    map[string]resetReq // key: resetReq.id()
+	resetsInProgress map[string]resetReq // key: resetReq.id()
 }
 
 // NewAutogitManager constructs a new AutogitManager instance, and
@@ -187,19 +186,19 @@ func (am *AutogitManager) markResetReqInProgress(req resetReq) (
 	waitCh <-chan struct{}) {
 	am.lock.Lock()
 	defer am.lock.Unlock()
-	inProgress, ok := am.resetsInProgress[req.dstPath()]
+	inProgress, ok := am.resetsInProgress[req.id()]
 	if ok {
 		return inProgress.doneCh
 	}
-	delete(am.resetsInQueue, req.dstPath())
-	am.resetsInProgress[req.dstPath()] = req
+	delete(am.resetsInQueue, req.id())
+	am.resetsInProgress[req.id()] = req
 	return nil
 }
 
 func (am *AutogitManager) clearFromInProgress(req resetReq) {
 	am.lock.Lock()
 	defer am.lock.Unlock()
-	delete(am.resetsInProgress, req.dstPath())
+	delete(am.resetsInProgress, req.id())
 }
 
 func (am *AutogitManager) resetWorker(wg *sync.WaitGroup) {
@@ -247,14 +246,14 @@ func (am *AutogitManager) resetLoop(numWorkers int) {
 
 func (am *AutogitManager) queueReset(ctx context.Context, req resetReq) (
 	doneCh chan struct{}, err error) {
-	dp := req.dstPath()
+	id := req.id()
 	doneCh = func() chan struct{} {
 		am.lock.Lock()
 		defer am.lock.Unlock()
-		if req, ok := am.resetsInQueue[dp]; ok {
+		if req, ok := am.resetsInQueue[id]; ok {
 			return req.doneCh
 		}
-		am.resetsInQueue[dp] = req
+		am.resetsInQueue[id] = req
 		return nil
 	}()
 	if doneCh != nil {
@@ -262,7 +261,7 @@ func (am *AutogitManager) queueReset(ctx context.Context, req resetReq) (
 	}
 	select {
 	case am.resetQueue.In() <- req:
-		am.log.CDebugf(ctx, "Queued new reset request for %s", dp)
+		am.log.CDebugf(ctx, "Queued new reset request for %s", id)
 	case <-ctx.Done():
 		// We've already promised to queue this, and may have turned
 		// away other requests for it already, so we better queue it.
@@ -307,6 +306,10 @@ func (am *AutogitManager) makeCloningFile(
 // tramples it, so the caller must ensure that they are requesting a
 // clone from the same repo/branch as the existing repo that might
 // have already been there.
+//
+// If the caller specifies a non-master `branchName`, they should make
+// sure `dstDir` is unique for that branch; i.e., the branch name
+// should appear in the path somewhere.
 func (am *AutogitManager) Clone(
 	ctx context.Context, srcTLF *libkbfs.TlfHandle, srcRepo, branchName string,
 	dstTLF *libkbfs.TlfHandle, dstDir string) (
@@ -386,6 +389,10 @@ func (am *AutogitManager) Clone(
 // `dstDir/srcRepo`, so the caller must ensure that they are
 // requesting a pull from the correct repo/branch as the existing repo
 // that was already there.
+//
+// If the caller specifies a non-master `branchName`, they should make
+// sure `dstDir` is unique for that branch; i.e., the branch name
+// should appear in the path somewhere.
 func (am *AutogitManager) Pull(
 	ctx context.Context, srcTLF *libkbfs.TlfHandle, srcRepo, branchName string,
 	dstTLF *libkbfs.TlfHandle, dstDir string) (
