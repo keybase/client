@@ -20,7 +20,6 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
     _meta: Constants2.getMeta(state, _conversationIDKey),
     _username: state.config.username || '',
     hasBadge: Constants2.getHasBadge(state, _conversationIDKey),
-    hasResetUsers: true, // TODO state.chat.inboxResetParticipants.get(_conversationIDKey || '', I.Set()).size > 0, // TODO remove
     hasUnread: Constants2.getHasUnread(state, _conversationIDKey),
     isActiveRoute,
     isSelected: Constants2.getIsSelected(state, _conversationIDKey),
@@ -48,7 +47,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   return {
     backgroundColor: styles.backgroundColor,
     hasBadge: stateProps.hasBadge,
-    hasResetUsers: stateProps.hasResetUsers,
+    hasResetUsers: !stateProps._meta.resetParticipants.isEmpty(),
     hasUnread,
     isActiveRoute: ownProps.isActiveRoute,
     isMuted: stateProps._meta.isMuted,

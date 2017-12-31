@@ -1,18 +1,18 @@
 // @flow
-import * as I from 'immutable'
-import * as Constants from '../../../../constants/chat'
+import * as ChatGen from '../../../../actions/chat-gen'
+import * as Constants from '../../../../constants/chat2'
+import * as TrackerGen from '../../../../actions/profile-gen'
 import * as Types from '../../../../constants/types/chat'
 import ResetUser from '.'
 import {compose, connect, type TypedState, type Dispatch} from '../../../../util/container'
-import * as ChatGen from '../../../../actions/chat-gen'
-import * as TrackerGen from '../../../../actions/profile-gen'
 
 const mapStateToProps = (state: TypedState, {messageKey}): * => {
-  const selectedConversationIDKey = Constants.getSelectedConversation(state) || ''
-  const username = '' // TODO state.chat.inboxResetParticipants.get(selectedConversationIDKey, I.Set()).first() || ''
-  const allowChatWithoutThem =
-    state.chat.inbox.getIn([selectedConversationIDKey, 'participants'], I.List()).size > 2
-  return {_conversationIDKey: selectedConversationIDKey, allowChatWithoutThem, username}
+  const conversationIDKey = Constants.getSelectedConversation(state) || ''
+  const meta = Constants.getMeta(state, conversationIDKey)
+  const username = meta.resetParticipants.first() || ''
+  const nonResetUsers = meta.participants.subtract(meta.resetParticipants)
+  const allowChatWithoutThem = nonResetUsers.size > 1
+  return {_conversationIDKey: conversationIDKey, allowChatWithoutThem, username}
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

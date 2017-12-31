@@ -1,13 +1,12 @@
 // @flow
-import * as I from 'immutable'
-import * as Constants from '../../../constants/chat'
-import * as Types from '../../../constants/types/chat'
+import * as Constants from '../../../constants/chat2'
+import * as Types from '../../../constants/types/chat2'
 import * as Creators from '../../../actions/chat/creators'
 import * as ChatGen from '../../../actions/chat-gen'
-import {commonConversationMemberStatus} from '../../../constants/types/rpc-chat-gen'
 import HiddenString from '../../../util/hidden-string'
 import Input from '.'
 import ChannelPreview from './channel-preview'
+import {getPathState} from '../../../route-tree'
 import {
   branch,
   compose,
@@ -17,89 +16,34 @@ import {
   withState,
   lifecycle,
   connect,
-  type TypedState,
 } from '../../../util/container'
-import {navigateAppend, navigateUp, navigateTo} from '../../../actions/route-tree'
 import throttle from 'lodash/throttle'
-import {createSelector} from 'reselect'
+import type {TypedState} from '../../../util/container'
+import {chatTab} from '../../../constants/tabs'
+import {navigateAppend, navigateUp, navigateTo} from '../../../actions/route-tree'
 import {type OwnProps} from './container'
 
-const conversationStateSelector = (state: TypedState) => {
+const mapStateToProps = (state: TypedState, ownProps: any) => {
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
-  return selectedConversationIDKey
-    ? state.chat.getIn(['conversationStates', selectedConversationIDKey])
-    : null
-}
+  const routeState = getPathState(state.routeTree.routeState, [chatTab, selectedConversationIDKey || ''])
 
-const resetUsersSelector = (state: TypedState) => {
-  // const selectedConversationIDKey = Constants.getSelectedConversation(state)
-  return I.Set() /* selectedConversationIDKey
-    ? state.chat.getIn(['inboxResetParticipants', selectedConversationIDKey], I.Set())
-    : I.Set() */ // TODO
-}
-
-const editingMessageSelector = (state: TypedState) => state.chat.get('editingMessage')
-
-const ownPropsSelector = (_, {focusInputCounter}: OwnProps) => ({focusInputCounter})
-
-const stateDependentProps = createSelector(
-  [
-    Constants.getSelectedConversation,
-    conversationStateSelector,
-    Constants.getSelectedRouteState,
-    editingMessageSelector,
-    Constants.getSelectedInbox,
-    resetUsersSelector,
-  ],
-  (selectedConversationIDKey, conversationState, routeState, editingMessage, inbox, resetUsers) => {
-    let isLoading = true
-    let typing = []
-
-    if (selectedConversationIDKey !== Constants.nothingSelected) {
-      if (!Constants.isPendingConversationIDKey(selectedConversationIDKey || '')) {
-        if (conversationState) {
-          isLoading = !conversationState.isLoaded
-          typing = conversationState.typing.toArray()
-        }
-      } else {
-        // A conversation can't be loading if it's pending -- it doesn't exist
-        // yet and we need to allow creating it.
-        isLoading = false
-      }
-    }
-
-    const isPreview = (inbox && inbox.memberStatus) === commonConversationMemberStatus.preview
-    const hasResetUsers = resetUsers.size > 0
-
-    return {
-      channelName: inbox && inbox.channelname,
-      editingMessage,
-      isLoading,
-      isPreview,
-      hasResetUsers,
-      defaultText: (routeState && routeState.get('inputText', new HiddenString('')).stringValue()) || '',
-      selectedConversationIDKey,
-      typing,
-      teamname: inbox && inbox.teamname,
-    }
+  return {
+    _meta: Constants.getMeta(state),
+    defaultText: (routeState && routeState.get('inputText', new HiddenString('')).stringValue()) || '',
+    selectedConversationIDKey,
   }
-)
-
-const mapStateToProps = createSelector([stateDependentProps, ownPropsSelector], (stateProps, ownProps) => ({
-  ...stateProps,
-  ...ownProps,
-}))
+}
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
-  onAttach: (selectedConversation, inputs: Array<Types.AttachmentInput>) => {
+  onAttach: (selectedConversation, inputs: Array<any /* Types.AttachmentInput */>) =>
     dispatch(
       navigateAppend([
         {props: {conversationIDKey: selectedConversation, inputs}, selected: 'attachmentInput'},
       ])
-    )
-  },
+    ),
   onEditMessage: (message: Types.Message, body: string) => {
-    dispatch(ChatGen.createEditMessage({message, text: new HiddenString(body)}))
+    // TODO
+    // dispatch(ChatGen.createEditMessage({message, text: new HiddenString(body)}))
   },
   onPostMessage: (selectedConversation, text) =>
     selectedConversation &&
@@ -107,16 +51,15 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
       ChatGen.createPostMessage({conversationIDKey: selectedConversation, text: new HiddenString(text)})
     ),
   onShowEditor: (message: Types.Message) => {
-    dispatch(ChatGen.createShowEditor({message}))
+    // TODO
+    // dispatch(ChatGen.createShowEditor({message}))
   },
   onStoreInputText: (selectedConversation: Types.ConversationIDKey, inputText: string) =>
     dispatch(Creators.setSelectedRouteState(selectedConversation, {inputText: new HiddenString(inputText)})),
-  onUpdateTyping: (selectedConversation: Types.ConversationIDKey, typing: boolean) => {
-    dispatch(ChatGen.createUpdateTyping({conversationIDKey: selectedConversation, typing}))
-  },
-  onJoinChannel: (selectedConversation: Types.ConversationIDKey) => {
-    dispatch(ChatGen.createJoinConversation({conversationIDKey: selectedConversation}))
-  },
+  onUpdateTyping: (selectedConversation: Types.ConversationIDKey, typing: boolean) =>
+    dispatch(ChatGen.createUpdateTyping({conversationIDKey: selectedConversation, typing})),
+  onJoinChannel: (selectedConversation: Types.ConversationIDKey) =>
+    dispatch(ChatGen.createJoinConversation({conversationIDKey: selectedConversation})),
   onLeaveChannel: (selectedConversation: Types.ConversationIDKey, teamname: string) => {
     dispatch(ChatGen.createLeaveConversation({conversationIDKey: selectedConversation}))
     dispatch(navigateUp())
@@ -127,7 +70,7 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
 })
 
 // TODO type-recompose: fix when recompose types properly
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const updateTyping = (typing: boolean) => {
     if (stateProps.selectedConversationIDKey) {
       dispatchProps.onUpdateTyping(stateProps.selectedConversationIDKey, typing)
@@ -139,7 +82,14 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     ...stateProps,
     ...dispatchProps,
     ...ownProps,
-    onAttach: (inputs: Array<Types.AttachmentInput>) =>
+    channelName: stateProps._meta.channelname,
+    focusInputCounter: ownProps.focusInputCounter,
+    hasResetUsers: !stateProps._meta.resetParticipants.isEmpty(),
+    isLoading: false,
+    isPreview: false, // TODO
+    teamname: stateProps._meta.teamname,
+    typing: [], // TODO
+    onAttach: (inputs: Array<any /* Types.AttachmentInput */>) =>
       dispatchProps.onAttach(stateProps.selectedConversationIDKey, inputs),
     onEditLastMessage: ownProps.onEditLastMessage,
     onPostMessage: text => {
@@ -162,8 +112,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
       }
     },
     onJoinChannel: () => dispatchProps.onJoinChannel(stateProps.selectedConversationIDKey),
-    onLeaveChannel: () =>
-      dispatchProps.onLeaveChannel(stateProps.selectedConversationIDKey, stateProps.teamname),
+    onLeaveChannel: () => {
+      dispatchProps.onLeaveChannel(stateProps.selectedConversationIDKey, stateProps._meta.teamname)
+    },
   }
 }
 

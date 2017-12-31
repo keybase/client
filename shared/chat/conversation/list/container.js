@@ -1,4 +1,5 @@
 // @flow
+import * as Constants2 from '../../../constants/chat2'
 import * as Constants from '../../../constants/chat'
 import * as Types from '../../../constants/types/chat'
 import * as ChatGen from '../../../actions/chat-gen'
@@ -90,6 +91,7 @@ const mapStateToProps = createSelector(
   [state => state, ownPropsSelector, Selectors.usernameSelector, convStateProps, messageKeysSelector],
   (state, ownProps, username, convStateProps, messageKeys) => {
     _stateHack = state
+    const meta = Constants2.getMeta(state, convStateProps.selectedConversation)
     return {
       editLastMessageCounter: ownProps.editLastMessageCounter,
       listScrollDownCounter: ownProps.listScrollDownCounter,
@@ -98,8 +100,7 @@ const mapStateToProps = createSelector(
       selectedConversation: convStateProps.selectedConversation,
       validated: convStateProps.validated,
       you: username,
-      hasResetUsers:
-        state.chat.inboxResetParticipants.get(convStateProps.selectedConversation, I.Set()).size > 0,
+      hasResetUsers: !meta.resetParticipants.isEmpty(),
       _supersedes: convStateProps._supersedes,
     }
   }

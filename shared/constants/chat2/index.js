@@ -36,6 +36,7 @@ export const getHasUnread = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.unreadMap.get(id, 0) > 0
 export const getIsSelected = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.selectedConversation === id
+export const getSelectedConversation = (state: TypedState) => state.chat2.selectedConversation
 
 export {
   getRowStyles,
