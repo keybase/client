@@ -700,6 +700,10 @@ protocol teams {
     boolean setMemberShowcase;
     boolean changeOpenTeam;
     boolean leaveTeam;
+    boolean joinTeam;
+    boolean setPublicityAny;
+    boolean listFirst;
+    boolean showcaseSettings;
   }
 
   TeamOperation canUserPerform(string name);

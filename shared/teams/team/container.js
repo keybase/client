@@ -22,7 +22,6 @@ const order = {owner: 0, admin: 1, writer: 2, reader: 3}
 type StateProps = {
   _invites: I.Set<Types.InviteInfo>,
   _memberInfo: I.Set<Types.MemberInfo>,
-  _implicitAdminUsernames: I.Set<string>,
   _requests: I.Set<Types.RequestInfo>,
   _newTeamRequests: I.List<string>,
   loading: boolean,
@@ -45,13 +44,9 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
     throw new Error('There was a problem loading the team page, please report this error.')
   }
   const memberInfo = state.entities.getIn(['teams', 'teamNameToMembers', teamname], I.Set())
-  const implicitAdminUsernames = state.entities.getIn(
-    ['teams', 'teamNameToImplicitAdminUsernames', teamname],
-    I.Set()
-  )
+
   return {
     _memberInfo: memberInfo,
-    _implicitAdminUsernames: implicitAdminUsernames,
     _requests: state.entities.getIn(['teams', 'teamNameToRequests', teamname], I.Set()),
     _invites: state.entities.getIn(['teams', 'teamNameToInvites', teamname], I.Set()),
     description: state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname, 'description'], ''),
@@ -150,11 +145,11 @@ const mapDispatchToProps = (
 const getOrderedMemberArray = (
   memberInfo: I.Set<Types.MemberInfo>,
   you: ?string,
-  youImplicitAdmin: boolean
+  listYouFirst: boolean
 ): Array<Types.MemberInfo> => {
   let youInfo
   let info = memberInfo
-  if (you && !youImplicitAdmin) {
+  if (you && !listYouFirst) {
     youInfo = memberInfo.find(member => member.username === you)
     if (youInfo) {
       info = memberInfo.delete(youInfo)
@@ -185,18 +180,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const onCreateSubteam = () => dispatchProps._onCreateSubteam(stateProps.name)
 
   const you = stateProps.you
-  let youExplicitAdmin = false
-  let youImplicitAdmin = stateProps.yourOperations.manageMembers
-  let youAreMember = false
-  if (you) {
-    // TODO: can we just test stateProps.yourOperations.RenameChannel ?
-    youExplicitAdmin = Constants.isOwner(stateProps.yourRole) || Constants.isAdmin(stateProps.yourRole)
-    youImplicitAdmin = stateProps._implicitAdminUsernames.has(you)
-    youAreMember = stateProps.yourRole && stateProps.yourRole !== 'none'
-  }
-  const youAdmin = youExplicitAdmin || youImplicitAdmin
-
-  const showAddYourselfBanner = !youAreMember && !youExplicitAdmin && youImplicitAdmin
   const yourOperations = stateProps.yourOperations
 
   const onAddSelf = () => dispatchProps._onAddSelf(stateProps.name, you)
@@ -226,7 +209,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     customComponent,
     headerStyle: {borderBottomWidth: 0},
     invites: stateProps._invites.toJS(),
-    members: getOrderedMemberArray(stateProps._memberInfo, you, youImplicitAdmin),
+    members: getOrderedMemberArray(stateProps._memberInfo, you, yourOperations.listFirst),
     requests: stateProps._requests.toJS(),
     newTeamRequests: stateProps._newTeamRequests.toArray(),
     onAddPeople,
@@ -240,9 +223,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onSetOpenTeamRole,
     publicitySettingsChanged,
     savePublicity,
-    showAddYourselfBanner,
-    youAdmin,
-    youImplicitAdmin,
     yourOperations,
   }
 }

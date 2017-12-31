@@ -1788,6 +1788,10 @@ type TeamOperation struct {
 	SetMemberShowcase      bool `codec:"setMemberShowcase" json:"setMemberShowcase"`
 	ChangeOpenTeam         bool `codec:"changeOpenTeam" json:"changeOpenTeam"`
 	LeaveTeam              bool `codec:"leaveTeam" json:"leaveTeam"`
+	JoinTeam               bool `codec:"joinTeam" json:"joinTeam"`
+	SetPublicityAny        bool `codec:"setPublicityAny" json:"setPublicityAny"`
+	ListFirst              bool `codec:"listFirst" json:"listFirst"`
+	ShowcaseSettings       bool `codec:"showcaseSettings" json:"showcaseSettings"`
 }
 
 func (o TeamOperation) DeepCopy() TeamOperation {
@@ -1802,6 +1806,10 @@ func (o TeamOperation) DeepCopy() TeamOperation {
 		SetMemberShowcase:      o.SetMemberShowcase,
 		ChangeOpenTeam:         o.ChangeOpenTeam,
 		LeaveTeam:              o.LeaveTeam,
+		JoinTeam:               o.JoinTeam,
+		SetPublicityAny:        o.SetPublicityAny,
+		ListFirst:              o.ListFirst,
+		ShowcaseSettings:       o.ShowcaseSettings,
 	}
 }
 

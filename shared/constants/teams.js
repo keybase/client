@@ -54,7 +54,6 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   teamNameToLoadingInvites: I.Map(),
   teamNameToLoading: I.Map(),
   teamNameToMemberUsernames: I.Map(),
-  teamNameToImplicitAdminUsernames: I.Map(),
   teamNameToMembers: I.Map(),
   teamNameToRequests: I.Map(),
   teamNameToRole: I.Map(),
@@ -78,6 +77,10 @@ export const initialCanUserPerform: RPCTypes.TeamOperation = {
   setMemberShowcase: false,
   changeOpenTeam: false,
   leaveTeam: false,
+  joinTeam: false,
+  setPublicityAny: false,
+  listFirst: false,
+  showcaseSettings: false,
 }
 
 const userIsInTeamHelper = (state: TypedState, username: string, service: Service, teamname: string) =>

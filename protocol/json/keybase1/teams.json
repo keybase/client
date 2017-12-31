@@ -1606,6 +1606,22 @@
         {
           "type": "boolean",
           "name": "leaveTeam"
+        },
+        {
+          "type": "boolean",
+          "name": "joinTeam"
+        },
+        {
+          "type": "boolean",
+          "name": "setPublicityAny"
+        },
+        {
+          "type": "boolean",
+          "name": "listFirst"
+        },
+        {
+          "type": "boolean",
+          "name": "showcaseSettings"
         }
       ]
     },
