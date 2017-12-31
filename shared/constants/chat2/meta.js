@@ -102,6 +102,15 @@ const getTeamType = ({teamType, membersType}) => {
 }
 
 export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
+  // TEMP
+  if (i.supersededBy && is.supersededBy.length) {
+    throw new Error('NOJIMA')
+  }
+
+  if (i.supersedes && is.supersedes.length) {
+    throw new Error('NOJIMA')
+  }
+
   // Public chats only
   if (i.visibility !== RPCTypes.commonTLFVisibility.private) {
     return null
