@@ -13,7 +13,7 @@ type Props = {
 
 const ResetUser = ({username, viewProfile, letThemIn, allowChatWithoutThem, chatWithoutThem}: Props) => (
   <Box style={containerStyle}>
-    <Icon type="icon-skull-64" style={{margin: globalMargins.medium}} />
+    <Icon type="icon-skull-64" style={{margin: globalMargins.medium, height: 64}} />
     <Box style={textContainerStyle}>
       <Text type="BodySemibold" backgroundMode="Terminal" style={{textAlign: 'center'}}>
         <Text type="BodySemiboldLink" backgroundMode="Terminal" onClick={viewProfile}>
