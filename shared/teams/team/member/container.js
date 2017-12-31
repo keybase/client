@@ -94,10 +94,8 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
   }
   // If they're an owner, you need to be an owner to edit them
   // otherwise you just need to be an admin
-  let admin = user.type === 'owner' ? you.type === 'owner' : you.type === 'owner' || you.type === 'admin'
-  if (stateProps.teamname.includes('.')) {
-    admin = admin || stateProps.yourOperations.manageMembers
-  }
+  let admin = user.type === 'owner' ? you.type === 'owner' : stateProps.yourOperations.manageMembers
+
   return {
     ...stateProps,
     ...dispatchProps,
