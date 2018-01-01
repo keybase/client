@@ -397,7 +397,6 @@ class Team extends React.PureComponent<Props> {
                   </Box>
                 </Box>
               )}
-              // setTeamShowcase
               {yourOperations.setTeamShowcase && (
                 <Box style={stylesSettingsTabRow}>
                   <Box style={stylesPublicitySettingsBox}>
@@ -414,7 +413,6 @@ class Team extends React.PureComponent<Props> {
                   </Box>
                 </Box>
               )}
-              // changeOpenTeam
               {yourOperations.changeOpenTeam && (
                 <Box style={stylesSettingsTabRow}>
                   <Box style={stylesPublicitySettingsBox}>
