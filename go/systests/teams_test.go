@@ -945,7 +945,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.True(t, annPerms.SetMemberShowcase)
 	require.True(t, annPerms.ChangeOpenTeam)
 	require.False(t, annPerms.LeaveTeam) // sole owner can't leave
-	require.True(t, annPerms.ListFirst)
+	require.False(t, annPerms.ListFirst) // only true for implicit admins
 	require.False(t, annPerms.JoinTeam)
 	require.True(t, annPerms.SetPublicityAny)
 	require.True(t, annPerms.ShowcaseSettings)
