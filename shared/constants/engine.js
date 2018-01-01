@@ -27,11 +27,17 @@ const _isCancel = ({type} = {}) => type === '@@engineRPCCall:respondCancel'
 const finished = ({error, params}) => ({type: '@@engineRPCCall:finished', payload: {error, params}})
 const isFinished = (a: any) => a.type === '@@engineRPCCall:finished'
 
-function _sagaWaitingDecorator(rpcNameKey, saga) {
+function _sagaWaitingDecorator(rpcNameKey, saga, waitingAction) {
   return function* _sagaWaitingDecoratorHelper(...args: any) {
+    if (waitingAction) {
+      yield Saga.put(waitingAction(false))
+    }
     yield Saga.put(EngineGen.createWaitingForRpc({name: rpcNameKey, waiting: false}))
     // $FlowIssue has no way to type this
     yield Saga.call(saga, ...args)
+    if (waitingAction) {
+      yield Saga.put(waitingAction(true))
+    }
     yield Saga.put(EngineGen.createWaitingForRpc({name: rpcNameKey, waiting: true}))
   }
 }
@@ -77,13 +83,15 @@ class EngineRpcCall {
   _engineChannel: EngineChannel
   _cleanedUp: boolean
   _finishedErrorShouldCancel: boolean
+  _waitingActionCreator: ?(waiting: boolean) => any
 
   constructor(
     sagaMap: SagaTypes.SagaMap,
     rpc: any,
     rpcNameKey: string,
     request: any,
-    finishedErrorShouldCancel?: boolean
+    finishedErrorShouldCancel?: boolean,
+    waitingActionCreator?: (waiting: boolean) => any
   ) {
     this._chanConfig = Saga.singleFixedChannelConfig(Object.keys(sagaMap))
     this._rpcNameKey = rpcNameKey
@@ -91,6 +99,7 @@ class EngineRpcCall {
     this._cleanedUp = false
     this._request = request
     this._subSagaChannel = Saga.channel(Saga.buffers.expanding(10))
+    this._waitingActionCreator = waitingActionCreator
     // $FlowIssue with this
     this.run = this.run.bind(this) // In case we mess up and forget to do call([ctx, ctx.run])
     const {finished: finishedSaga, ...subSagas} = sagaMap
@@ -120,6 +129,9 @@ class EngineRpcCall {
       this._engineChannel.close()
       this._subSagaChannel.close()
       yield Saga.put(EngineGen.createWaitingForRpc({name: this._rpcNameKey, waiting: false}))
+      if (this._waitingActionCreator) {
+        yield Saga.put(this._waitingActionCreator(false))
+      }
     } else {
       logger.error('Already cleaned up')
     }
@@ -131,6 +143,10 @@ class EngineRpcCall {
       [...Object.keys(this._subSagas), 'finished'],
       this._request
     )
+
+    if (this._waitingActionCreator) {
+      yield Saga.put(this._waitingActionCreator(true))
+    }
 
     const subSagaTasks: Array<any> = []
     while (true) {

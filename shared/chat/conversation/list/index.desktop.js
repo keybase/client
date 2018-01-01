@@ -1,16 +1,16 @@
 // @flow
 // An infinite scrolling chat list. Using react-virtualized which doesn't really handle this case out of the box.
-import * as Constants from '../../../constants/chat'
+// import * as Constants from '../../../constants/chat'
 import * as Types from '../../../constants/types/chat'
 import * as Virtualized from 'react-virtualized'
-import EditPopup from '../edit-popup.desktop'
+// import EditPopup from '../edit-popup.desktop'
 import * as React from 'react'
-import ReactDOM from 'react-dom'
-import messageFactory from '../messages'
-import {Icon, ErrorBoundary} from '../../../common-adapters'
+// import ReactDOM from 'react-dom'
+import Message from '../messages'
+import {/* Icon, */ ErrorBoundary} from '../../../common-adapters'
 import clipboard from '../../../desktop/clipboard'
-import debounce from 'lodash/debounce'
-import {findDOMNode} from '../../../util/dom'
+// import debounce from 'lodash/debounce'
+// import {findDOMNode} from '../../../util/dom'
 import {globalColors, globalStyles, glamorous} from '../../../styles'
 
 import type {Props} from '.'
@@ -24,16 +24,16 @@ type State = {
 const lockedToBottomSlop = 20
 const listBottomMargin = 10
 
-const DivRow = glamorous.div({
-  ':last-child': {
-    paddingBottom: listBottomMargin,
-  },
-})
+// const DivRow = glamorous.div({
+// ':last-child': {
+// paddingBottom: listBottomMargin,
+// },
+// })
 
 class BaseList extends React.Component<Props, State> {
   _cellCache = new Virtualized.CellMeasurerCache({
     fixedWidth: true,
-    keyMapper: (rowIndex: number) => this.props.messageKeys.get(rowIndex),
+    keyMapper: (rowIndex: number) => this.props.messageOrdinals.get(rowIndex),
   })
 
   _list: any
@@ -64,24 +64,24 @@ class BaseList extends React.Component<Props, State> {
     }
     this._lastRowIdx = -1 // always reset this to be safe
 
-    if (this.props.editLastMessageCounter !== prevProps.editLastMessageCounter) {
-      this._onEditLastMessage()
-    }
+    // if (this.props.editLastMessageCounter !== prevProps.editLastMessageCounter) {
+    // this._onEditLastMessage()
+    // }
   }
 
   componentWillReceiveProps(nextProps: Props) {
     if (
-      this.props.selectedConversation !== nextProps.selectedConversation ||
-      this.props.listScrollDownCounter !== nextProps.listScrollDownCounter
+      this.props.selectedConversation !== nextProps.selectedConversation // ||
+      // this.props.listScrollDownCounter !== nextProps.listScrollDownCounter
     ) {
       this._cellCache.clearAll()
       this.setState({isLockedToBottom: true})
     }
 
-    if (this.props.messageKeys.count() !== nextProps.messageKeys.count()) {
-      if (this.props.messageKeys.count() > 1 && this._lastRowIdx !== -1) {
-        const toFind = this.props.messageKeys.get(this._lastRowIdx)
-        this._keepIdxVisible = toFind ? nextProps.messageKeys.indexOf(toFind) : -1
+    if (this.props.messageOrdinals.size !== nextProps.messageOrdinals.size) {
+      if (this.props.messageOrdinals.size > 1 && this._lastRowIdx !== -1) {
+        const toFind = this.props.messageOrdinals.get(this._lastRowIdx)
+        this._keepIdxVisible = toFind ? nextProps.messageOrdinals.indexOf(toFind) : -1
       }
       // Force the grid to throw away its local index based cache. There might be a lighterway to do this but
       // this seems to fix the overlap problem. The cellCache has correct values inside it but the list itself has
@@ -101,15 +101,15 @@ class BaseList extends React.Component<Props, State> {
     }
   }
 
-  _maybeLoadMoreMessages = debounce((clientHeight: number, scrollTop: number) => {
-    if (clientHeight && scrollTop === 0) {
-      this.props.onLoadMoreMessages()
-    }
-  }, 500)
+  // _maybeLoadMoreMessages = debounce((clientHeight: number, scrollTop: number) => {
+  // if (clientHeight && scrollTop === 0) {
+  // this.props.onLoadMoreMessages()
+  // }
+  // }, 500)
 
   _onScroll = ({clientHeight, scrollHeight, scrollTop}) => {
     this._updateBottomLock(clientHeight, scrollHeight, scrollTop)
-    this._maybeLoadMoreMessages(clientHeight, scrollTop)
+    // this._maybeLoadMoreMessages(clientHeight, scrollTop)
   }
 
   _onResize = ({width}) => {
@@ -119,9 +119,9 @@ class BaseList extends React.Component<Props, State> {
   }
 
   _rowRenderer = ({index, isScrolling, isVisible, key, parent, style}) => {
-    const messageKey = this.props.messageKeys.get(index)
-    const prevMessageKey = this.props.messageKeys.get(index - 1)
-    const isSelected = messageKey === this.state.selectedMessageKey
+    const ordinal = this.props.messageOrdinals.get(index)
+    const prevOrdinal = this.props.messageOrdinals.get(index - 1)
+    const isSelected = false // messageKey === this.state.selectedMessageKey
     return (
       <Virtualized.CellMeasurer
         cache={this._cellCache}
@@ -130,17 +130,19 @@ class BaseList extends React.Component<Props, State> {
         parent={parent}
         rowIndex={index}
       >
-        {({measure}) => {
-          const message = messageFactory(
-            messageKey,
-            prevMessageKey,
-            this._onAction,
-            this._onShowEditor,
-            isSelected,
-            measure
-          )
-          return <DivRow style={style}>{message}</DivRow>
-        }}
+        {({measure}) => (
+          // const message = messageFactory(
+          // ordinal,
+          // prevOrdinal,
+          // this._onAction,
+          // this._onShowEditor,
+          // isSelected,
+          // measure
+          // )
+          <div style={style}>
+            <Message ordinal={ordinal} previous={prevOrdinal} measure={measure} />
+          </div>
+        )}
       </Virtualized.CellMeasurer>
     )
   }
@@ -166,18 +168,20 @@ class BaseList extends React.Component<Props, State> {
   }
 
   render() {
-    if (!this.props.validated) {
-      return (
-        <div style={{alignItems: 'center', display: 'flex', flex: 1, justifyContent: 'center'}}>
-          <Icon type="icon-securing-266" style={{alignSelf: 'flex-start'}} />
-        </div>
-      )
-    }
+    // if (!this.props.validated) {
+    // return (
+    // <div style={{alignItems: 'center', display: 'flex', flex: 1, justifyContent: 'center'}}>
+    // <Icon type="icon-securing-266" style={{alignSelf: 'flex-start'}} />
+    // </div>
+    // )
+    // }
 
-    const rowCount = this.props.messageKeys.count()
+    const rowCount = this.props.messageOrdinals.size
     const scrollToIndex = this.state.isLockedToBottom ? rowCount - 1 : this._keepIdxVisible
 
     // We pass additional props (listRerender, selectedMessageKey) to Virtualized.List so we can force re-rendering automatically
+    // messageKeys={this.props.messageKeys}
+    // selectedMessageKey={this.state.selectedMessageKey}
     return (
       <ErrorBoundary>
         <div style={containerStyle} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>
@@ -185,9 +189,7 @@ class BaseList extends React.Component<Props, State> {
           <Virtualized.AutoSizer onResize={this._onResize}>
             {({height, width}) => (
               <Virtualized.List
-                messageKeys={this.props.messageKeys}
                 listRerender={this.state.listRerender}
-                selectedMessageKey={this.state.selectedMessageKey}
                 columnWidth={width}
                 deferredMeasurementCache={this._cellCache}
                 height={height}
@@ -239,135 +241,132 @@ class PopupEnabledList extends BaseList {
   _keepIdxVisible: number = -1
   _list: any
 
-  _hidePopup = () => {
-    ReactDOM.unmountComponentAtNode(document.getElementById('popupContainer'))
-    this.setState({selectedMessageKey: null})
-  }
-  _domNodeToRect(element) {
-    if (!document.body) {
-      throw new Error('Body not ready')
-    }
-    const bodyRect = document.body.getBoundingClientRect()
-    const elemRect = element.getBoundingClientRect()
+  // _hidePopup = () => {
+  // ReactDOM.unmountComponentAtNode(document.getElementById('popupContainer'))
+  // this.setState({selectedMessageKey: null})
+  // }
+  // _domNodeToRect(element) {
+  // if (!document.body) {
+  // throw new Error('Body not ready')
+  // }
+  // const bodyRect = document.body.getBoundingClientRect()
+  // const elemRect = element.getBoundingClientRect()
 
-    return {
-      height: elemRect.height,
-      left: elemRect.left - bodyRect.left,
-      top: elemRect.top - bodyRect.top,
-      width: elemRect.width,
-    }
-  }
+  // return {
+  // height: elemRect.height,
+  // left: elemRect.left - bodyRect.left,
+  // top: elemRect.top - bodyRect.top,
+  // width: elemRect.width,
+  // }
+  // }
 
   // How this works is kinda crappy. We have to plumb through this key => message helper and all this DOM stuff just to support this
   _onEditLastMessage = () => {
-    let tuple: ?[number, Types.MessageKey, Types.TextMessage]
-    this.props.messageKeys.findLastEntry((v, k) => {
-      const m = this.props.getMessageFromMessageKey(v)
-      if (m && m.type === 'Text' && m.author === this.props.you) {
-        tuple = [k, v, m]
-        return true
-      }
-      return false
-    })
-
-    if (!tuple) {
-      return
-    }
-
-    const [idx, messageKey, message] = tuple
-    if (!Constants.textMessageEditable(message)) {
-      return
-    }
-
-    this._keepIdxVisible = idx
-    this.setState(prevState => ({listRerender: prevState.listRerender + 1}))
-
-    const listNode = ReactDOM.findDOMNode(this._list)
-    if (!(listNode instanceof window.Element)) {
-      return
-    }
-
-    const messageNodes = listNode.querySelectorAll(`[data-message-key="${messageKey}"]`)
-    if (!messageNodes) {
-      return
-    }
-
-    const messageNode = messageNodes[0]
-    if (!messageNode) {
-      return
-    }
-
-    this._showEditor(message, this._domNodeToRect(messageNode))
+    // let tuple: ?[number, Types.MessageKey, Types.TextMessage]
+    // this.props.messageKeys.findLastEntry((v, k) => {
+    // const m = this.props.getMessageFromMessageKey(v)
+    // if (m && m.type === 'Text' && m.author === this.props.you) {
+    // tuple = [k, v, m]
+    // return true
+    // }
+    // return false
+    // })
+    // if (!tuple) {
+    // return
+    // }
+    // const [idx, messageKey, message] = tuple
+    // if (!Constants.textMessageEditable(message)) {
+    // return
+    // }
+    // this._keepIdxVisible = idx
+    // this.setState(prevState => ({listRerender: prevState.listRerender + 1}))
+    // const listNode = ReactDOM.findDOMNode(this._list)
+    // if (!(listNode instanceof window.Element)) {
+    // return
+    // }
+    // const messageNodes = listNode.querySelectorAll(`[data-message-key="${messageKey}"]`)
+    // if (!messageNodes) {
+    // return
+    // }
+    // const messageNode = messageNodes[0]
+    // if (!messageNode) {
+    // return
+    // }
+    // this._showEditor(message, this._domNodeToRect(messageNode))
   }
 
-  _showEditor = (message: Types.TextMessage, messageRect: any) => {
-    const popupComponent = (
-      <EditPopup
-        messageRect={messageRect}
-        onClose={this._hidePopup}
-        message={message.message.stringValue()}
-        onSubmit={text => {
-          this.props.onEditMessage(message, text)
-        }}
-      />
-    )
-    // Have to do this cause it's triggered from a popup that we're reusing else we'll get unmounted
-    setImmediate(() => {
-      const container = document.getElementById('popupContainer')
-      // FIXME: this is the right way to render portals retaining context for now, though it will change in the future.
-      ReactDOM.unstable_renderSubtreeIntoContainer(this, popupComponent, container)
-    })
-  }
-
-  _findMessageFromDOMNode(start: any): any {
-    const node = findDOMNode(start, '.message')
-    if (node) return node
-
-    // If not found, try to find it in the message-wrapper
-    const wrapper = findDOMNode(start, '.message-wrapper')
-    if (wrapper) {
-      const messageNodes = wrapper.getElementsByClassName('message')
-      if (messageNodes.length > 0) return messageNodes[0]
+  _showEditor = () =>
+    // message: Types.TextMessage, messageRect: any
+    {
+      // const popupComponent = (
+      // <EditPopup
+      // messageRect={messageRect}
+      // onClose={this._hidePopup}
+      // message={message.message.stringValue()}
+      // onSubmit={text => {
+      // this.props.onEditMessage(message, text)
+      // }}
+      // />
+      // )
+      // // Have to do this cause it's triggered from a popup that we're reusing else we'll get unmounted
+      // setImmediate(() => {
+      // const container = document.getElementById('popupContainer')
+      // // FIXME: this is the right way to render portals retaining context for now, though it will change in the future.
+      // ReactDOM.unstable_renderSubtreeIntoContainer(this, popupComponent, container)
+      // })
     }
 
-    return null
-  }
+  // _findMessageFromDOMNode(start: any): any {
+  // const node = findDOMNode(start, '.message')
+  // if (node) return node
 
-  _onAction = (
-    message: Types.ServerMessage,
-    localMessageState: Types.LocalMessageState,
-    event: SyntheticEvent<>
-  ) => {
-    if (message.type === 'Text' || message.type === 'Attachment') {
-      this.setState({selectedMessageKey: message.key})
-      const node = event.target instanceof window.HTMLElement ? event.target : null
-      const messageNode = this._findMessageFromDOMNode(event.target)
-      const messageRect = messageNode && this._domNodeToRect(messageNode)
-      this.props.onMessageAction(
-        message,
-        localMessageState,
-        () => {
-          if (message.type === 'Text') {
-            this._showEditor(message, messageRect)
-          }
-        },
-        () => {
-          this.setState({selectedMessageKey: null})
-        },
-        node && node.getBoundingClientRect()
-      )
-    }
-  }
+  // // If not found, try to find it in the message-wrapper
+  // const wrapper = findDOMNode(start, '.message-wrapper')
+  // if (wrapper) {
+  // const messageNodes = wrapper.getElementsByClassName('message')
+  // if (messageNodes.length > 0) return messageNodes[0]
+  // }
 
-  _onShowEditor = (message: Types.Message, event: SyntheticEvent<>) => {
-    if (message.type === 'Text') {
-      const messageNode = this._findMessageFromDOMNode(event.target)
-      const messageRect = messageNode && this._domNodeToRect(messageNode)
-      if (messageRect) {
-        this._showEditor(message, messageRect)
-      }
+  // return null
+  // }
+
+  _onAction = () =>
+    // message: Types.ServerMessage,
+    // localMessageState: Types.LocalMessageState,
+    // event: SyntheticEvent<>
+    {
+      // if (message.type === 'Text' || message.type === 'Attachment') {
+      // this.setState({selectedMessageKey: message.key})
+      // const node = event.target instanceof window.HTMLElement ? event.target : null
+      // const messageNode = this._findMessageFromDOMNode(event.target)
+      // const messageRect = messageNode && this._domNodeToRect(messageNode)
+      // this.props.onMessageAction(
+      // message,
+      // localMessageState,
+      // () => {
+      // if (message.type === 'Text') {
+      // this._showEditor(message, messageRect)
+      // }
+      // },
+      // () => {
+      // this.setState({selectedMessageKey: null})
+      // },
+      // node && node.getBoundingClientRect()
+      // )
+      // }
     }
-  }
+
+  _onShowEditor = () =>
+    // message: Types.Message, event: SyntheticEvent<>
+    {
+      // if (message.type === 'Text') {
+      // const messageNode = this._findMessageFromDOMNode(event.target)
+      // const messageRect = messageNode && this._domNodeToRect(messageNode)
+      // if (messageRect) {
+      // this._showEditor(message, messageRect)
+      // }
+      // }
+    }
 }
 
 const containerStyle = {

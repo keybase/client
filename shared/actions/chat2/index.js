@@ -135,22 +135,39 @@ const requestMeta = (action: Chat2Gen.MetaHandleQueuePayload, state: TypedState)
   }
 }
 
+// Get valid keys that we aren't already loading or have loaded
 const rpcMetaRequestConversationIDKeys = (
-  action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload
+  action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload,
+  state: TypedState
 ) => {
+  let keys
   switch (action.type) {
     case Chat2Gen.metaRequestTrusted:
-      return action.payload.conversationIDKeys
+      keys = action.payload.conversationIDKeys
+      break
     case Chat2Gen.selectConversation:
-      return [action.payload.conversationIDKey].filter(Boolean)
+      keys = [action.payload.conversationIDKey]
+      break
     default:
       // eslint-disable-next-line no-unused-expressions
       ;(action: empty) // errors if we don't handle any new actions
       throw new Error('Invalid action passed to rpcMetaRequest ')
   }
+  return keys.filter(key => {
+    if (!key) {
+      return false
+    }
+
+    const trustedState = state.chat2.metaMap.getIn([key, 'trustedState'])
+    return trustedState !== 'requesting' && trustedState !== 'trusted'
+  })
 }
-const rpcMetaRequest = (action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload) => {
-  const conversationIDKeys = rpcMetaRequestConversationIDKeys(action)
+
+const rpcMetaRequest = (
+  action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload,
+  state: TypedState
+) => {
+  const conversationIDKeys = rpcMetaRequestConversationIDKeys(action, state)
   if (!conversationIDKeys.length) {
     return
   }
@@ -206,37 +223,12 @@ const rpcMetaRequest = (action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.Se
         convIDs: conversationIDKeys.map(Constants.keyToConversationID),
       },
       skipUnverified: false,
-    }
+    },
+    false,
+    loading => Chat2Gen.createSetLoading({key: `unboxing:${conversationIDKeys[0]}`, loading})
   )
 
-  return Saga.sequentially([
-    Saga.put(Chat2Gen.createSetLoading({key: `unboxing:${conversationIDKeys[0]}`, loading: true})),
-    Saga.call(loadInboxRpc.run, 30e3),
-  ])
-}
-
-const rpcMetaRequestSuccess = (_: any, action: Chat2Gen.MetaRequestTrustedPayload) =>
-  Saga.put(
-    Chat2Gen.createSetLoading({
-      key: `unboxing:${rpcMetaRequestConversationIDKeys(action)[0]}`,
-      loading: false,
-    })
-  )
-
-const rpcMetaRequestError = (error: Error, action: Chat2Gen.MetaRequestTrustedPayload) => {
-  if (error instanceof RPCTimeoutError) {
-    logger.warn('unboxConversations: timed out request for unboxConversations, bailing')
-  } else {
-    logger.warn('unboxConversations: error in loadInboxRpc')
-    logger.debug('unboxConversations: error in loadInboxRpc', error)
-  }
-
-  Saga.put(
-    Chat2Gen.createSetLoading({
-      key: `unboxing:${rpcMetaRequestConversationIDKeys(action)[0]}`,
-      loading: false,
-    })
-  )
+  return Saga.call(loadInboxRpc.run, 30e3)
 }
 
 const changeMetaTrustedState = (
@@ -483,12 +475,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     changeMetaTrustedState
   )
   // Actually try and unbox conversations
-  yield Saga.safeTakeEveryPure(
-    [Chat2Gen.metaRequestTrusted, Chat2Gen.selectConversation],
-    rpcMetaRequest,
-    rpcMetaRequestSuccess,
-    rpcMetaRequestError
-  )
+  yield Saga.safeTakeEveryPure([Chat2Gen.metaRequestTrusted, Chat2Gen.selectConversation], rpcMetaRequest)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.setupChatHandlers, setupChatHandlers)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, navigateToThread)

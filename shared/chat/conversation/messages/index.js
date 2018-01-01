@@ -1,80 +1,155 @@
+// Figured out a message and type re-measures cells
 // @flow
-import * as Constants from '../../../constants/chat'
-import * as Types from '../../../constants/types/chat'
-import Attachment from './attachment/container'
-import ErrorMessage from './error/container'
-import Header from './header/container'
-import ResetUser from './resetUser/container'
-import JoinedLeft from './joinedleft/container'
-import System from './system/container'
-import ProfileResetNotice from '../notices/profile-reset-notice/container'
 import * as React from 'react'
+import * as Constants2 from '../../../constants/chat2'
+// import * as Constants from '../../../constants/chat'
+import * as Types2 from '../../../constants/types/chat2'
+// import * as Types from '../../../constants/types/chat'
+// import Attachment from './attachment/container'
+// import ErrorMessage from './error/container'
+// import Header from './header/container'
+// import ResetUser from './resetUser/container'
+// import JoinedLeft from './joinedleft/container'
+// import System from './system/container'
+// import ProfileResetNotice from '../notices/profile-reset-notice/container'
+// import * as React from 'react'
 import TextMessage from './text/container'
-import Timestamp from './timestamp/container'
+// import Timestamp from './timestamp/container'
 import Wrapper from './wrapper/container'
 import {Box} from '../../../common-adapters'
+import {connect, compose, lifecycle, type TypedState} from '../../../util/container'
 
-const factory = (
-  messageKey: Types.MessageKey,
-  prevMessageKey: ?Types.MessageKey,
-  onAction: (
-    message: Types.ServerMessage,
-    localMessageState: Types.LocalMessageState,
-    event: SyntheticEvent<>
-  ) => void,
-  onShowEditor: (message: Types.ServerMessage, event: SyntheticEvent<>) => void,
-  isSelected: boolean,
-  measure: () => void
-) => {
-  const kind = Constants.messageKeyKind(messageKey)
-  switch (kind) {
-    case 'joinedleft':
-      return <JoinedLeft messageKey={messageKey} />
-    case 'system':
-      return <System messageKey={messageKey} />
-    case 'resetUser':
-      return <ResetUser messageKey={messageKey} />
-    case 'header':
-      return <Header messageKey={messageKey} />
-    case 'outboxIDAttachment': // fallthrough
-    case 'messageIDAttachment':
-      return (
-        <Wrapper
-          innerClass={Attachment}
-          isSelected={isSelected}
-          measure={measure}
-          messageKey={messageKey}
-          onAction={onAction}
-          onShowEditor={onShowEditor}
-          prevMessageKey={prevMessageKey}
-        />
-      )
-    case 'error': // fallthrough
-    case 'errorInvisible': // fallthrough
-    case 'messageIDError':
-      return <ErrorMessage messageKey={messageKey} />
-    case 'outboxIDText': // fallthrough
-    case 'messageIDText':
-      return (
-        <Wrapper
-          innerClass={TextMessage}
-          isSelected={isSelected}
-          measure={measure}
-          messageKey={messageKey}
-          onAction={onAction}
-          onShowEditor={onShowEditor}
-          prevMessageKey={prevMessageKey}
-        />
-      )
-    case 'supersedes':
-      return <ProfileResetNotice />
-    case 'timestamp':
-      return <Timestamp messageKey={messageKey} />
-    case 'messageIDUnhandled':
-      return null
+// const factory = (message: Types2.Message, previous: ?Types2.Message, measure: () => void) => {
+// // TEMP
+// const onAction = () => {}
+// const onShowEditor = () => {}
+
+// switch (message.type) {
+// case 'text':
+// return (
+// <Wrapper
+// innerClass={TextMessage}
+// isSelected={false}
+// measure={measure}
+// message={message}
+// onAction={onAction}
+// onShowEditor={onShowEditor}
+// previous={previous}
+// />
+// )
+// default:
+// return <Box data-message-key={message.ordinal} />
+// }
+// }
+
+// const factory = (
+// messageKey: Types2.Ordinal,
+// prevMessageKey: ?Types2.Ordinal,
+// onAction: () => [> message: Types.ServerMessage,
+// localMessageState: Types.LocalMessageState,
+// event: SyntheticEvent<> */
+// void,
+// onShowEditor: () => [> message: Types.ServerMessage, event: SyntheticEvent<> <] void,
+// isSelected: boolean,
+// measure: () => void
+// ) => {
+// const kind = Constants.messageKeyKind(messageKey)
+// switch (kind) {
+// case 'joinedleft':
+// return <JoinedLeft messageKey={messageKey} />
+// case 'system':
+// return <System messageKey={messageKey} />
+// case 'resetUser':
+// return <ResetUser messageKey={messageKey} />
+// case 'header':
+// return <Header messageKey={messageKey} />
+// case 'outboxIDAttachment': // fallthrough
+// case 'messageIDAttachment':
+// return (
+// <Wrapper
+// innerClass={Attachment}
+// isSelected={isSelected}
+// measure={measure}
+// messageKey={messageKey}
+// onAction={onAction}
+// onShowEditor={onShowEditor}
+// prevMessageKey={prevMessageKey}
+// />
+// )
+// case 'error': // fallthrough
+// case 'errorInvisible': // fallthrough
+// case 'messageIDError':
+// return <ErrorMessage messageKey={messageKey} />
+// case 'outboxIDText': // fallthrough
+// case 'messageIDText':
+// return (
+// <Wrapper
+// innerClass={TextMessage}
+// isSelected={isSelected}
+// measure={measure}
+// messageKey={messageKey}
+// onAction={onAction}
+// onShowEditor={onShowEditor}
+// prevMessageKey={prevMessageKey}
+// />
+// )
+// case 'supersedes':
+// return <ProfileResetNotice />
+// case 'timestamp':
+// return <Timestamp messageKey={messageKey} />
+// case 'messageIDUnhandled':
+// return null
+// }
+
+// return <Box data-message-key={messageKey} />
+// }
+
+// export default factory
+
+// // TEMP
+const onAction = () => {}
+const onShowEditor = () => {}
+type Props = {
+  measure: () => void,
+  message: Types2.Message,
+  previous: ?Types2.Message,
+}
+class MessageFactory extends React.PureComponent<Props> {
+  render() {
+    switch (this.props.message.type) {
+      case 'text':
+        return (
+          <Wrapper
+            innerClass={TextMessage}
+            isSelected={false}
+            measure={this.props.measure}
+            message={this.props.message}
+            onAction={onAction}
+            onShowEditor={onShowEditor}
+            previous={this.props.previous}
+          />
+        )
+    }
+    return <Box data-message-key={this.props.message.ordinal} />
   }
-
-  return <Box data-message-key={messageKey} />
 }
 
-export default factory
+const mapStateToProps = (state: TypedState, {ordinal, previous, measure}) => {
+  const conversationIDKey = Constants2.getSelectedConversation(state)
+  const messageMap = Constants2.getMessageMap(state, conversationIDKey)
+
+  return {
+    measure,
+    message: messageMap.get(ordinal),
+    previous: messageMap.get(previous),
+  }
+}
+
+export default compose(
+  connect(mapStateToProps, () => ({})),
+  lifecycle({
+    componentDidUpdate(prevProps) {
+      this.props.measure && this.props.message !== prevProps.message && this.props.measure()
+    },
+  })
+)(MessageFactory)

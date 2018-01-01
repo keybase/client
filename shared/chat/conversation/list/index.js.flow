@@ -1,29 +1,29 @@
 // @flow
 import * as React from 'react'
-import {List} from 'immutable'
-import * as Types from '../../../constants/types/chat'
+import * as I from 'immutable'
+import * as Types from '../../../constants/types/chat2'
 
 export type Props = {|
-  messageKeys: List<string>,
-  editLastMessageCounter: number,
-  listScrollDownCounter: number,
-  onDeleteMessage: (message: Types.Message) => void,
-  onEditMessage: (message: Types.Message, body: string) => void,
-  onFocusInput: () => void,
-  onDownloadAttachment: (messageKey: Types.MessageKey) => void,
-  onLoadMoreMessages: () => void,
-  onMessageAction: (
-    message: Types.Message,
-    localMessageState?: Types.LocalMessageState,
-    onShowEditor?: () => void,
-    onPopupWillClose?: () => void,
-    targetRect?: ?ClientRect
-  ) => void,
-  onOpenInFileUI: (filename: string) => void,
-  getMessageFromMessageKey: (messageKey: Types.MessageKey) => ?Types.Message,
-  selectedConversation: ?Types.ConversationIDKey,
-  validated: boolean,
-  you: string,
+  messageOrdinals: I.List<Types.Ordinal>,
+  // editLastMessageCounter: number,
+  // listScrollDownCounter: number,
+  // onDeleteMessage: (message: Types.Message) => void,
+  // onEditMessage: (message: Types.Message, body: string) => void,
+  // onFocusInput: () => void,
+  // onDownloadAttachment: (messageKey: Types.MessageKey) => void,
+  // onLoadMoreMessages: () => void,
+  // onMessageAction: (
+  // message: Types.Message,
+  // localMessageState?: Types.LocalMessageState,
+  // onShowEditor?: () => void,
+  // onPopupWillClose?: () => void,
+  // targetRect?: ?ClientRect
+  // ) => void,
+  // onOpenInFileUI: (filename: string) => void,
+  // getMessageFromMessageKey: (messageKey: Types.MessageKey) => ?Types.Message,
+  selectedConversation: Types.ConversationIDKey,
+  // validated: boolean,
+  // you: string,
 |}
 
 export default class ConversationList extends React.Component<Props> {
