@@ -960,7 +960,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.True(t, bobPerms.SetMemberShowcase)
 	require.True(t, bobPerms.ChangeOpenTeam)
 	require.True(t, bobPerms.LeaveTeam)
-	require.True(t, bobPerms.ListFirst)
+	require.False(t, bobPerms.ListFirst)
 	require.False(t, bobPerms.JoinTeam)
 	require.True(t, bobPerms.SetPublicityAny)
 	require.True(t, bobPerms.ShowcaseSettings)
