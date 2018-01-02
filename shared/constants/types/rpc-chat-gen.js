@@ -819,7 +819,7 @@ export type LocalNewConversationLocalRpcParam = {|tlfName: String, topicType: To
 
 export type LocalPostAttachmentLocalRpcParam = {|conversationID: ConversationID, tlfName: String, visibility: Keybase1.TLFVisibility, attachment: LocalSource, preview?: ?MakePreviewRes, title: String, metadata: Bytes, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type LocalPostDeleteHistoryRpcParam = {|conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior, age: Gregor1.Seconds, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type LocalPostDeleteHistoryRpcParam = {|conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior, age: Gregor1.DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
 export type LocalPostDeleteNonblockRpcParam = {|conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, supersedes: MessageID, clientPrev: MessageID, outboxID?: ?OutboxID, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
@@ -1048,7 +1048,7 @@ export type RemoteGetInboxRemoteRpcParam = {|vers: InboxVers, query?: ?GetInboxQ
 
 export type RemoteGetInboxVersionRpcParam = {|uid: Gregor1.UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type RemoteGetMessageBeforeRpcParam = {|convID: ConversationID, age: Gregor1.Seconds, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type RemoteGetMessageBeforeRpcParam = {|convID: ConversationID, age: Gregor1.DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
 export type RemoteGetMessagesRemoteRpcParam = {|conversationID: ConversationID, messageIDs?: ?Array<MessageID>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 

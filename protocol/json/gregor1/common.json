@@ -288,6 +288,13 @@
     },
     {
       "type": "record",
+      "name": "DurationSec",
+      "fields": [],
+      "typedef": "int64",
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
       "name": "Category",
       "fields": [],
       "typedef": "string"
@@ -325,12 +332,6 @@
     {
       "type": "record",
       "name": "Time",
-      "fields": [],
-      "typedef": "long"
-    },
-    {
-      "type": "record",
-      "name": "Seconds",
       "fields": [],
       "typedef": "long"
     },

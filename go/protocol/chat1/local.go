@@ -3714,7 +3714,7 @@ type PostDeleteHistoryArg struct {
 	TlfName          string                       `codec:"tlfName" json:"tlfName"`
 	TlfPublic        bool                         `codec:"tlfPublic" json:"tlfPublic"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
-	Age              gregor1.Seconds              `codec:"age" json:"age"`
+	Age              gregor1.DurationSec          `codec:"age" json:"age"`
 }
 
 type SetConversationStatusLocalArg struct {

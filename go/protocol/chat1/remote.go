@@ -867,8 +867,8 @@ type DeleteConversationArg struct {
 }
 
 type GetMessageBeforeArg struct {
-	ConvID ConversationID  `codec:"convID" json:"convID"`
-	Age    gregor1.Seconds `codec:"age" json:"age"`
+	ConvID ConversationID      `codec:"convID" json:"convID"`
+	Age    gregor1.DurationSec `codec:"age" json:"age"`
 }
 
 type GetTLFConversationsArg struct {

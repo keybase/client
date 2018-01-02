@@ -22,7 +22,7 @@ import (
 type CmdChatDeleteHistory struct {
 	libkb.Contextified
 	resolvingRequest chatConversationResolvingRequest
-	age              gregor1.Seconds
+	age              gregor1.DurationSec
 	hasTTY           bool
 }
 
@@ -104,7 +104,7 @@ func (c *CmdChatDeleteHistory) GetUsage() libkb.Usage {
 	}
 }
 
-func (c *CmdChatDeleteHistory) parseAge(s string) (gregor1.Seconds, error) {
+func (c *CmdChatDeleteHistory) parseAge(s string) (gregor1.DurationSec, error) {
 	generalErr := fmt.Errorf("duration must be an integer and suffix [s,h,d,w,m] like: 10d")
 	if len(s) < 2 {
 		return 0, generalErr
@@ -132,7 +132,7 @@ func (c *CmdChatDeleteHistory) parseAge(s string) (gregor1.Seconds, error) {
 		return 0, fmt.Errorf("age cannot be negative")
 	}
 	d := time.Duration(base) * factor
-	return gregor1.Seconds(d.Seconds()), nil
+	return gregor1.DurationSec(d.Seconds()), nil
 }
 
 // Like chatSend but uses PostDeleteHistory.

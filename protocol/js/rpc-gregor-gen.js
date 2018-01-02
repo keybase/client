@@ -92,6 +92,8 @@ export type Dismissal = {|msgIDs?: ?Array<MsgID>, ranges?: ?Array<MsgRange>|}
 
 export type DurationMsec = Int64
 
+export type DurationSec = Int64
+
 export type InBandMessage = {|stateUpdate?: ?StateUpdateMessage, stateSync?: ?StateSyncMessage|}
 
 export type IncomingConsumeMessageMultiRpcParam = {|msg: Message, uids?: ?Array<UID>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
@@ -139,8 +141,6 @@ export type Reminder = {|item: ItemAndMetadata, seqno: Int, remindTime: Time|}
 export type ReminderID = {|uid: UID, msgID: MsgID, seqno: Int|}
 
 export type ReminderSet = {|reminders?: ?Array<Reminder>, moreRemindersReady: Boolean|}
-
-export type Seconds = Long
 
 export type SessionID = String
 

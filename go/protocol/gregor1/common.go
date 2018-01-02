@@ -305,6 +305,12 @@ func (o DurationMsec) DeepCopy() DurationMsec {
 	return o
 }
 
+type DurationSec int64
+
+func (o DurationSec) DeepCopy() DurationSec {
+	return o
+}
+
 type Category string
 
 func (o Category) DeepCopy() Category {
@@ -364,12 +370,6 @@ func (o Body) DeepCopy() Body {
 type Time int64
 
 func (o Time) DeepCopy() Time {
-	return o
-}
-
-type Seconds int64
-
-func (o Seconds) DeepCopy() Seconds {
 	return o
 }
 

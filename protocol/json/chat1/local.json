@@ -2599,7 +2599,7 @@
         },
         {
           "name": "age",
-          "type": "gregor1.Seconds"
+          "type": "gregor1.DurationSec"
         }
       ],
       "response": "PostLocalRes"

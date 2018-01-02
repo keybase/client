@@ -245,7 +245,7 @@ protocol remote {
     MessageID msgID;
     union { null, RateLimit } rateLimit;
   }
-  GetMessageBeforeRes getMessageBefore(ConversationID convID, gregor1.Seconds age);
+  GetMessageBeforeRes getMessageBefore(ConversationID convID, gregor1.DurationSec age);
 
   record GetTLFConversationsRes {
     array<Conversation> conversations;
