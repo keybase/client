@@ -3,13 +3,14 @@ package home
 import (
 	"encoding/json"
 	"fmt"
+	"sync"
+	"time"
+
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
-	"sync"
-	"time"
 )
 
 type cache struct {
@@ -94,7 +95,11 @@ func (h *Home) get(ctx context.Context, markedViewed bool, numPeopleWanted int) 
 		ret.LastViewed = raw.VisitRecord.Atime
 		ret.Version = raw.VisitRecord.Version
 	}
-	ret.FollowSuggestions = raw.People
+	// Normalize the usernames received from API for follow suggestions
+	for _, fs := range raw.People {
+		fs.Username = libkb.NewNormalizedUsername(fs.Username).String()
+		ret.FollowSuggestions = append(ret.FollowSuggestions, fs)
+	}
 	h.G().Log.CDebugf(ctx, "| %d follow suggestions returned", len(raw.People))
 	return ret, err
 }
