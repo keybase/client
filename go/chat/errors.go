@@ -166,8 +166,7 @@ type VersionError struct {
 }
 
 func (e VersionError) Error() string {
-	return fmt.Sprintf("chat version error: unhandled %s version %d critical: %v", e.Kind, e.Version,
-		e.Critical)
+	return fmt.Sprintf("Unable to decrypt because current client is out of date. Please update your version of Keybase! Chat version error: [ unhandled: %s version: %d critical: %v ]", e.Kind, e.Version, e.Critical)
 }
 
 func (e VersionError) ExportType() chat1.MessageUnboxedErrorType {
