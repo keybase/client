@@ -120,16 +120,7 @@ func (l *LoaderContextG) getMe(ctx context.Context) (res keybase1.UserVersion, e
 	if uid.IsNil() {
 		return res, nil
 	}
-	loadMeArg := libkb.NewLoadUserArg(l.G()).
-		WithNetContext(ctx).
-		WithUID(uid).
-		WithSelf(true).
-		WithPublicKeyOptional()
-	upak, _, err := l.G().GetUPAKLoader().LoadV2(loadMeArg)
-	if err != nil {
-		return keybase1.UserVersion{}, err
-	}
-	return upak.Current.ToUserVersion(), nil
+	return getCurrentUserUV(ctx, l.G())
 }
 
 func (l *LoaderContextG) lookupEldestSeqno(ctx context.Context, uid keybase1.UID) (keybase1.Seqno, error) {
