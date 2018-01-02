@@ -31,6 +31,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   todoDispatch: {
     bio: {
       _onConfirm: (username: string) => {
+        // make sure we have tracker state & profile is up to date
         dispatch(createGetMyProfile({}))
         dispatch(navigateAppend([{props: {username}, selected: 'profile'}, 'editProfile'], [Tabs.peopleTab]))
       },
@@ -50,7 +51,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     },
     chat: {
       onConfirm: () => dispatch(switchTo([Tabs.chatTab])),
-      onDismiss: () => onSkipTodo('chat', dispatch),
+      onDismiss: onSkipTodo('chat', dispatch),
     },
     paperkey: {
       onConfirm: () => {
@@ -68,7 +69,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
         dispatch(navigateAppend(['showNewTeamDialog'], [Tabs.teamsTab]))
         dispatch(switchTo([Tabs.teamsTab]))
       },
-      onDismiss: () => onSkipTodo('team', dispatch),
+      onDismiss: onSkipTodo('team', dispatch),
     },
     folder: {
       onConfirm: () => {

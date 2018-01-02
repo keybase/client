@@ -19,6 +19,7 @@ export default function(state: Types.State = initialState, action: PeopleGen.Act
       })
     case PeopleGen.getPeopleData:
     case PeopleGen.skipTodo:
+    case PeopleGen.setupPeopleHandlers:
       return state
     default:
       // eslint-disable-next-line no-unused-expressions

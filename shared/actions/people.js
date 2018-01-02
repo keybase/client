@@ -7,6 +7,7 @@ import * as Types from '../constants/types/people'
 import * as RouteTypes from '../constants/types/route-tree'
 import * as RouteConstants from '../constants/route-tree'
 import * as RPCTypes from '../constants/types/rpc-gen'
+import engine from '../engine'
 import {peopleTab} from '../constants/tabs'
 import {type TypedState} from '../constants/reducer'
 
@@ -123,6 +124,7 @@ const _skipTodo = (action: PeopleGen.SkipTodoPayload) => {
     Saga.call(RPCTypes.homeHomeSkipTodoTypeRpcPromise, {
       t: RPCTypes.homeHomeScreenTodoType[action.payload.type],
     }),
+    // TODO get rid of this load and have core send us a homeUIRefresh
     Saga.put(
       PeopleGen.createGetPeopleData({
         markViewed: true,
@@ -130,6 +132,19 @@ const _skipTodo = (action: PeopleGen.SkipTodoPayload) => {
       })
     ),
   ])
+}
+
+const _setupPeopleHandlers = () => {
+  return Saga.put((dispatch: Dispatch) => {
+    engine().setIncomingHandler('keybase.1.homeUi.homeUIRefresh', (args: {||}) => {
+      dispatch(
+        PeopleGen.createGetPeopleData({
+          markViewed: false,
+          numFollowSuggestionsWanted: Constants.DEFAULT_FOLLOW_SUGGESTIONS_QUANT,
+        })
+      )
+    })
+  })
 }
 
 let _wasOnPeopleTab = false
@@ -154,6 +169,7 @@ const _onTabChange = (action: RouteTypes.SwitchTo) => {
 const peopleSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeLatestPure(PeopleGen.getPeopleData, _getPeopleData, _processPeopleData)
   yield Saga.safeTakeEveryPure(PeopleGen.skipTodo, _skipTodo)
+  yield Saga.safeTakeEveryPure(PeopleGen.setupPeopleHandlers, _setupPeopleHandlers)
   yield Saga.safeTakeEveryPure(RouteConstants.switchTo, _onTabChange)
 }
 
