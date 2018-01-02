@@ -731,4 +731,7 @@ protocol teams {
   record TeamDebugRes {
     TeamSigChainState chain;
   }
+
+  boolean getTarsEnabled(string name);
+  void setTarsEnabled(string name, boolean enabled);
 }

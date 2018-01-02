@@ -1350,3 +1350,41 @@ func MapImplicitTeamIDToDisplayName(ctx context.Context, g *libkb.GlobalContext,
 	}
 	return folder, nil
 }
+
+type enableTARsRes struct {
+	Status  libkb.AppStatus `json:"status"`
+	Enabled bool            `json:"enabled"`
+}
+
+func (c *enableTARsRes) GetAppStatus() *libkb.AppStatus {
+	return &c.Status
+}
+
+func GetTarsEnabled(ctx context.Context, g *libkb.GlobalContext, teamname string) (bool, error) {
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+	if err != nil {
+		return false, err
+	}
+
+	arg := apiArg(ctx, "team/enable_tars")
+	arg.Args.Add("tid", libkb.S{Val: t.ID.String()})
+	var ret enableTARsRes
+	if err := g.API.GetDecode(arg, &ret); err != nil {
+		return false, err
+	}
+
+	return ret.Enabled, nil
+}
+
+func SetTarsEnabled(ctx context.Context, g *libkb.GlobalContext, teamname string, enabled bool) error {
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+	if err != nil {
+		return err
+	}
+
+	arg := apiArg(ctx, "team/enable_tars")
+	arg.Args.Add("tid", libkb.S{Val: t.ID.String()})
+	arg.Args.Add("enabled", libkb.B{Val: enabled})
+	_, err = g.API.Post(arg)
+	return err
+}

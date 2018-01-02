@@ -1495,6 +1495,10 @@ export const teamsCanUserPerformRpcChannelMap = (configKeys: Array<string>, requ
 
 export const teamsCanUserPerformRpcPromise = (request: TeamsCanUserPerformRpcParam): Promise<TeamsCanUserPerformResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.canUserPerform', request, (error: RPCError, result: TeamsCanUserPerformResult) => (error ? reject(error) : resolve(result))))
 
+export const teamsGetTarsEnabledRpcChannelMap = (configKeys: Array<string>, request: TeamsGetTarsEnabledRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.getTarsEnabled', request)
+
+export const teamsGetTarsEnabledRpcPromise = (request: TeamsGetTarsEnabledRpcParam): Promise<TeamsGetTarsEnabledResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.getTarsEnabled', request, (error: RPCError, result: TeamsGetTarsEnabledResult) => (error ? reject(error) : resolve(result))))
+
 export const teamsGetTeamAndMemberShowcaseRpcChannelMap = (configKeys: Array<string>, request: TeamsGetTeamAndMemberShowcaseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.getTeamAndMemberShowcase', request)
 
 export const teamsGetTeamAndMemberShowcaseRpcPromise = (request: TeamsGetTeamAndMemberShowcaseRpcParam): Promise<TeamsGetTeamAndMemberShowcaseResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.getTeamAndMemberShowcase', request, (error: RPCError, result: TeamsGetTeamAndMemberShowcaseResult) => (error ? reject(error) : resolve(result))))
@@ -1526,6 +1530,10 @@ export const teamsSeitanIKeyAndLabelVersion = {
 export const teamsSeitanIKeyLabelType = {
   sms: 1,
 }
+
+export const teamsSetTarsEnabledRpcChannelMap = (configKeys: Array<string>, request: TeamsSetTarsEnabledRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.setTarsEnabled', request)
+
+export const teamsSetTarsEnabledRpcPromise = (request: TeamsSetTarsEnabledRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.setTarsEnabled', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const teamsSetTeamMemberShowcaseRpcChannelMap = (configKeys: Array<string>, request: TeamsSetTeamMemberShowcaseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.setTeamMemberShowcase', request)
 
@@ -3598,6 +3606,8 @@ export type TeamType =
 
 export type TeamsCanUserPerformRpcParam = $ReadOnly<{name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
+export type TeamsGetTarsEnabledRpcParam = $ReadOnly<{name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
 export type TeamsGetTeamAndMemberShowcaseRpcParam = $ReadOnly<{name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type TeamsGetTeamRootIDRpcParam = $ReadOnly<{id: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
@@ -3609,6 +3619,8 @@ export type TeamsLoadTeamPlusApplicationKeysRpcParam = $ReadOnly<{id: TeamID, ap
 export type TeamsLookupImplicitTeamRpcParam = $ReadOnly<{name: String, public: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type TeamsLookupOrCreateImplicitTeamRpcParam = $ReadOnly<{name: String, public: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
+export type TeamsSetTarsEnabledRpcParam = $ReadOnly<{name: String, enabled: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type TeamsSetTeamMemberShowcaseRpcParam = $ReadOnly<{name: String, isShowcased: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -3983,6 +3995,7 @@ type SimpleFSSimpleFSStatResult = Dirent
 type StreamUiReadResult = Bytes
 type StreamUiWriteResult = Int
 type TeamsCanUserPerformResult = TeamOperation
+type TeamsGetTarsEnabledResult = Boolean
 type TeamsGetTeamAndMemberShowcaseResult = TeamAndMemberShowcase
 type TeamsGetTeamRootIDResult = TeamID
 type TeamsGetTeamShowcaseResult = TeamShowcase

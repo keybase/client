@@ -2231,6 +2231,28 @@
         }
       ],
       "response": "TeamDebugRes"
+    },
+    "getTarsEnabled": {
+      "request": [
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": "boolean"
+    },
+    "setTarsEnabled": {
+      "request": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "enabled",
+          "type": "boolean"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"
