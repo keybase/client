@@ -99,7 +99,7 @@ const styleSearchContainer = {
     : {border: `1px solid ${globalColors.black_05}`}),
   justifyContent: 'center',
   minHeight: isMobile ? 33 : 28,
-  width: 273,
+  width: isMobile ? 233 : 273,
   zIndex: 20,
 }
 
