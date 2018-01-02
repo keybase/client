@@ -165,6 +165,7 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 	var newMsgs []chat1.MessageUnboxed
 	for _, msg := range originalMsgs {
 		if msg.IsValid() {
+			// Hide messages which are or should have been deleted by a DeleteHistory.
 			if msg.GetMessageID() < deleteHistoryUpto && chat1.IsDeletableByDeleteHistory(msg.GetMessageType()) {
 				continue
 			}

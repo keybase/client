@@ -1037,7 +1037,6 @@ func (b *Boxer) attachMerkleRoot(ctx context.Context, msg *chat1.MessagePlaintex
 }
 
 func (b *Boxer) preBoxCheck(ctx context.Context, messagePlaintext chat1.MessagePlaintext) error {
-
 	typ, err := messagePlaintext.MessageBody.MessageType()
 	if err != nil {
 		return err
@@ -1066,7 +1065,6 @@ func (b *Boxer) preBoxCheck(ctx context.Context, messagePlaintext chat1.MessageP
 
 func (b *Boxer) box(ctx context.Context, messagePlaintext chat1.MessagePlaintext, encryptionKey types.CryptKey,
 	signingKeyPair libkb.NaclSigningKeyPair, version chat1.MessageBoxedVersion) (*chat1.MessageBoxed, error) {
-
 	err := b.preBoxCheck(ctx, messagePlaintext)
 	if err != nil {
 		return nil, err
