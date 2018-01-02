@@ -777,6 +777,18 @@ func (mr *MockNodeMockRecorder) GetBasename() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBasename", reflect.TypeOf((*MockNode)(nil).GetBasename))
 }
 
+// WrapChild mocks base method
+func (m *MockNode) WrapChild(child Node) Node {
+	ret := m.ctrl.Call(m, "WrapChild", child)
+	ret0, _ := ret[0].(Node)
+	return ret0
+}
+
+// WrapChild indicates an expected call of WrapChild
+func (mr *MockNodeMockRecorder) WrapChild(child interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WrapChild", reflect.TypeOf((*MockNode)(nil).WrapChild), child)
+}
+
 // MockKBFSOps is a mock of KBFSOps interface
 type MockKBFSOps struct {
 	ctrl     *gomock.Controller

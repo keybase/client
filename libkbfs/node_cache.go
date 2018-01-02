@@ -75,9 +75,13 @@ func (ncs *nodeCacheStandard) newChildForParentLocked(parent Node) (*nodeStandar
 	return nodeStandard, nil
 }
 
-func makeNodeStandardForEntry(entry *nodeCacheEntry) *nodeStandard {
+func makeNodeStandardForEntry(entry *nodeCacheEntry) Node {
 	entry.refCount++
-	return makeNodeStandard(entry.core)
+	n := makeNodeStandard(entry.core)
+	if entry.core.parent != nil {
+		return entry.core.parent.WrapChild(n)
+	}
+	return n
 }
 
 // GetOrCreate implements the NodeCache interface for nodeCacheStandard.

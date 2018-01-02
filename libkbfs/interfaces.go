@@ -124,6 +124,9 @@ type Node interface {
 	// GetBasename returns the current basename of the node, or ""
 	// if the node has been unlinked.
 	GetBasename() string
+	// WrapChild returns a wrapped version of `child`, if desired, to
+	// add custom behavior to the child node.
+	WrapChild(child Node) Node
 }
 
 // KBFSOps handles all file system operations.  Expands all indirect

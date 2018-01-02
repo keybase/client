@@ -76,3 +76,7 @@ func (n *nodeStandard) GetBasename() string {
 	}
 	return n.core.pathNode.Name
 }
+
+func (n *nodeStandard) WrapChild(child Node) Node {
+	return child
+}
