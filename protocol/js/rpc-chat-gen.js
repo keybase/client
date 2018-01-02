@@ -263,9 +263,13 @@ export const localPostAttachmentLocalRpcChannelMap = (configKeys: Array<string>,
 
 export const localPostAttachmentLocalRpcPromise = (request: LocalPostAttachmentLocalRpcParam): Promise<LocalPostAttachmentLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postAttachmentLocal', request, (error: RPCError, result: LocalPostAttachmentLocalResult) => (error ? reject(error) : resolve(result))))
 
-export const localPostDeleteHistoryRpcChannelMap = (configKeys: Array<string>, request: LocalPostDeleteHistoryRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postDeleteHistory', request)
+export const localPostDeleteHistoryByAgeRpcChannelMap = (configKeys: Array<string>, request: LocalPostDeleteHistoryByAgeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postDeleteHistoryByAge', request)
 
-export const localPostDeleteHistoryRpcPromise = (request: LocalPostDeleteHistoryRpcParam): Promise<LocalPostDeleteHistoryResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postDeleteHistory', request, (error: RPCError, result: LocalPostDeleteHistoryResult) => (error ? reject(error) : resolve(result))))
+export const localPostDeleteHistoryByAgeRpcPromise = (request: LocalPostDeleteHistoryByAgeRpcParam): Promise<LocalPostDeleteHistoryByAgeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postDeleteHistoryByAge', request, (error: RPCError, result: LocalPostDeleteHistoryByAgeResult) => (error ? reject(error) : resolve(result))))
+
+export const localPostDeleteHistoryByIDRpcChannelMap = (configKeys: Array<string>, request: LocalPostDeleteHistoryByIDRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postDeleteHistoryByID', request)
+
+export const localPostDeleteHistoryByIDRpcPromise = (request: LocalPostDeleteHistoryByIDRpcParam): Promise<LocalPostDeleteHistoryByIDResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postDeleteHistoryByID', request, (error: RPCError, result: LocalPostDeleteHistoryByIDResult) => (error ? reject(error) : resolve(result))))
 
 export const localPostDeleteNonblockRpcChannelMap = (configKeys: Array<string>, request: LocalPostDeleteNonblockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postDeleteNonblock', request)
 
@@ -819,7 +823,9 @@ export type LocalNewConversationLocalRpcParam = {|tlfName: String, topicType: To
 
 export type LocalPostAttachmentLocalRpcParam = {|conversationID: ConversationID, tlfName: String, visibility: Keybase1.TLFVisibility, attachment: LocalSource, preview?: ?MakePreviewRes, title: String, metadata: Bytes, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type LocalPostDeleteHistoryRpcParam = {|conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior, age: Gregor1.DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type LocalPostDeleteHistoryByAgeRpcParam = {|conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior, age: Gregor1.DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+
+export type LocalPostDeleteHistoryByIDRpcParam = {|conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior, upto: MessageID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
 export type LocalPostDeleteNonblockRpcParam = {|conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, supersedes: MessageID, clientPrev: MessageID, outboxID?: ?OutboxID, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
@@ -1239,7 +1245,8 @@ type LocalMakePreviewResult = MakePreviewRes
 type LocalMarkAsReadLocalResult = MarkAsReadLocalRes
 type LocalNewConversationLocalResult = NewConversationLocalRes
 type LocalPostAttachmentLocalResult = PostLocalRes
-type LocalPostDeleteHistoryResult = PostLocalRes
+type LocalPostDeleteHistoryByAgeResult = PostLocalRes
+type LocalPostDeleteHistoryByIDResult = PostLocalRes
 type LocalPostDeleteNonblockResult = PostLocalNonblockRes
 type LocalPostEditNonblockResult = PostLocalNonblockRes
 type LocalPostFileAttachmentLocalResult = PostLocalRes

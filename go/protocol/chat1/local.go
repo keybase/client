@@ -5,6 +5,7 @@ package chat1
 
 import (
 	"errors"
+
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -3709,7 +3710,15 @@ type PostMetadataArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
-type PostDeleteHistoryArg struct {
+type PostDeleteHistoryByIDArg struct {
+	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
+	TlfName          string                       `codec:"tlfName" json:"tlfName"`
+	TlfPublic        bool                         `codec:"tlfPublic" json:"tlfPublic"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+	Upto             MessageID                    `codec:"upto" json:"upto"`
+}
+
+type PostDeleteHistoryByAgeArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	TlfName          string                       `codec:"tlfName" json:"tlfName"`
 	TlfPublic        bool                         `codec:"tlfPublic" json:"tlfPublic"`
@@ -3897,7 +3906,8 @@ type LocalInterface interface {
 	PostHeadline(context.Context, PostHeadlineArg) (PostLocalRes, error)
 	PostMetadataNonblock(context.Context, PostMetadataNonblockArg) (PostLocalNonblockRes, error)
 	PostMetadata(context.Context, PostMetadataArg) (PostLocalRes, error)
-	PostDeleteHistory(context.Context, PostDeleteHistoryArg) (PostLocalRes, error)
+	PostDeleteHistoryByID(context.Context, PostDeleteHistoryByIDArg) (PostLocalRes, error)
+	PostDeleteHistoryByAge(context.Context, PostDeleteHistoryByAgeArg) (PostLocalRes, error)
 	SetConversationStatusLocal(context.Context, SetConversationStatusLocalArg) (SetConversationStatusLocalRes, error)
 	NewConversationLocal(context.Context, NewConversationLocalArg) (NewConversationLocalRes, error)
 	GetInboxSummaryForCLILocal(context.Context, GetInboxSummaryForCLILocalQuery) (GetInboxSummaryForCLILocalRes, error)
@@ -4165,18 +4175,34 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"postDeleteHistory": {
+			"postDeleteHistoryByID": {
 				MakeArg: func() interface{} {
-					ret := make([]PostDeleteHistoryArg, 1)
+					ret := make([]PostDeleteHistoryByIDArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]PostDeleteHistoryArg)
+					typedArgs, ok := args.(*[]PostDeleteHistoryByIDArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]PostDeleteHistoryArg)(nil), args)
+						err = rpc.NewTypeError((*[]PostDeleteHistoryByIDArg)(nil), args)
 						return
 					}
-					ret, err = i.PostDeleteHistory(ctx, (*typedArgs)[0])
+					ret, err = i.PostDeleteHistoryByID(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"postDeleteHistoryByAge": {
+				MakeArg: func() interface{} {
+					ret := make([]PostDeleteHistoryByAgeArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PostDeleteHistoryByAgeArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PostDeleteHistoryByAgeArg)(nil), args)
+						return
+					}
+					ret, err = i.PostDeleteHistoryByAge(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4675,8 +4701,13 @@ func (c LocalClient) PostMetadata(ctx context.Context, __arg PostMetadataArg) (r
 	return
 }
 
-func (c LocalClient) PostDeleteHistory(ctx context.Context, __arg PostDeleteHistoryArg) (res PostLocalRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.postDeleteHistory", []interface{}{__arg}, &res)
+func (c LocalClient) PostDeleteHistoryByID(ctx context.Context, __arg PostDeleteHistoryByIDArg) (res PostLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.postDeleteHistoryByID", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) PostDeleteHistoryByAge(ctx context.Context, __arg PostDeleteHistoryByAgeArg) (res PostLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.postDeleteHistoryByAge", []interface{}{__arg}, &res)
 	return
 }
 

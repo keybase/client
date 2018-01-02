@@ -1045,7 +1045,8 @@ func (b *Boxer) preBoxCheck(ctx context.Context, messagePlaintext chat1.MessageP
 	e := func(format string, args ...interface{}) error {
 		return errors.New(fmt.Sprintf("malformed %v message: ", typ) + fmt.Sprintf(format, args...))
 	}
-	if typ == chat1.MessageType_DELETEHISTORY {
+	switch typ {
+	case chat1.MessageType_DELETEHISTORY:
 		body := messagePlaintext.MessageBody.Deletehistory()
 		dhHeader := messagePlaintext.ClientHeader.DeleteHistory
 		if dhHeader == nil {
@@ -1054,8 +1055,7 @@ func (b *Boxer) preBoxCheck(ctx context.Context, messagePlaintext chat1.MessageP
 		if *dhHeader != body {
 			return e("header-body mismatch")
 		}
-
-	} else {
+	default:
 		if messagePlaintext.ClientHeader.DeleteHistory != nil {
 			return e("cannot have delete-history header")
 		}

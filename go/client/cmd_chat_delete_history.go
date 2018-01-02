@@ -135,7 +135,7 @@ func (c *CmdChatDeleteHistory) parseAge(s string) (gregor1.DurationSec, error) {
 	return gregor1.DurationSec(d.Seconds()), nil
 }
 
-// Like chatSend but uses PostDeleteHistory.
+// Like chatSend but uses PostDeleteHistoryByAge.
 func (c *CmdChatDeleteHistory) chatSendDeleteHistory(ctx context.Context) error {
 	resolver, err := newChatConversationResolver(c.G())
 	if err != nil {
@@ -153,7 +153,7 @@ func (c *CmdChatDeleteHistory) chatSendDeleteHistory(ctx context.Context) error 
 	}
 	conversationInfo := conversation.Info
 
-	arg := chat1.PostDeleteHistoryArg{
+	arg := chat1.PostDeleteHistoryByAgeArg{
 		ConversationID:   conversationInfo.Id,
 		TlfName:          conversationInfo.TlfName,
 		TlfPublic:        (conversationInfo.Visibility == keybase1.TLFVisibility_PUBLIC),
@@ -168,6 +168,6 @@ func (c *CmdChatDeleteHistory) chatSendDeleteHistory(ctx context.Context) error 
 		return err
 	}
 
-	_, err = resolver.ChatClient.PostDeleteHistory(ctx, arg)
+	_, err = resolver.ChatClient.PostDeleteHistoryByAge(ctx, arg)
 	return err
 }

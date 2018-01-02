@@ -951,7 +951,7 @@ func TestChatSrvPostLocal(t *testing.T) {
 		require.Equal(t, chat1.MessageType_HEADLINE, msg.GetMessageType())
 
 		t.Logf("try delete-history RPC interface")
-		_, err = ctc.as(t, users[0]).chatLocalHandler().PostDeleteHistory(ctx, chat1.PostDeleteHistoryArg{
+		_, err = ctc.as(t, users[0]).chatLocalHandler().PostDeleteHistoryByAge(ctx, chat1.PostDeleteHistoryByAgeArg{
 			ConversationID:   created.Id,
 			TlfName:          created.TlfName,
 			TlfPublic:        false,
@@ -963,7 +963,7 @@ func TestChatSrvPostLocal(t *testing.T) {
 			nil)
 		require.NoError(t, err)
 		t.Logf("nmsg: %v", len(tv.Messages))
-		// Teams don't use the remote mock. So PostDeleteHistory won't have gotten a good answer from GetMessageBefore.
+		// Teams don't use the remote mock. So PostDeleteHistoryByAge won't have gotten a good answer from GetMessageBefore.
 		if useRemoteMock {
 			t.Logf("check that the deletable messages are gone")
 			for _, m := range tv.Messages {
