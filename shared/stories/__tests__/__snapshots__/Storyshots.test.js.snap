@@ -30000,7 +30000,7 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
           onClick={undefined}
           title={undefined}
         >
-          now
+          21d
         </span>
         <div
           style={
@@ -30477,7 +30477,7 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
           onClick={undefined}
           title={undefined}
         >
-          2mo
+          3mo
         </span>
       </div>
     </div>
@@ -30933,7 +30933,7 @@ exports[`Storyshots People/Follow notification Someone you follow followed you 1
           onClick={undefined}
           title={undefined}
         >
-          15d
+          3d
         </span>
       </div>
     </div>

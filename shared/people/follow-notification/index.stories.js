@@ -5,6 +5,7 @@ import {createStore} from 'redux'
 import {Set} from 'immutable'
 import {storiesOf} from '../../stories/storybook'
 import FollowNotification, {type Props} from '.'
+import moment from 'moment'
 
 const store = {
   config: {
@@ -22,20 +23,26 @@ const singleFollowProps1: Props = {
 const singleFollowProps2: Props = {
   newFollows: [{username: 'max'}],
   badged: false,
-  notificationTime: new Date(2017, 11, 14),
+  notificationTime: moment()
+    .subtract(3, 'days')
+    .toDate(),
 }
 
 const multiFollowProps1: Props = {
   newFollows: [{username: 'max'}, {username: 'mmaxim'}, {username: 'chrisnojima'}],
   badged: true,
-  notificationTime: new Date(),
+  notificationTime: moment()
+    .subtract(3, 'weeks')
+    .toDate(),
   numAdditional: 0,
 }
 
 const multiFollowProps2: Props = {
   newFollows: [{username: 'max'}, {username: 'mmaxim'}, {username: 'chrisnojima'}, {username: 'chris'}],
   badged: false,
-  notificationTime: new Date(2017, 10, 1),
+  notificationTime: moment()
+    .subtract(3, 'months')
+    .toDate(),
   numAdditional: 5,
 }
 
