@@ -152,6 +152,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
     isYou: false, // stateProps.isYou,
     measure: stateProps.measure,
     message,
+    timestamp,
   }
 }
 

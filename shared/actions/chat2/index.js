@@ -415,14 +415,22 @@ const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType).reduc
 const rpcLoadThread = (action: Chat2Gen.SelectConversationPayload, state: TypedState) => {
   const {conversationIDKey} = action.payload
   if (!conversationIDKey) {
+    logger.info('Load thread bail: no conversationIDKey')
     return
   }
   const conversationID = Constants.keyToConversationID(conversationIDKey)
   if (!conversationID) {
+    logger.info('Load thread bail: invalid conversationIDKey')
     return
   }
 
   const pivot = Constants.getMessageOrdinals(state, conversationIDKey).first()
+
+  if (pivot === 2) {
+    logger.info('Load thread bail: pivot is 2')
+    return
+  }
+
   const recent = false //  TODO newer
   const num = 50 // TODO dynamic maybe, deal w/ stale
 
@@ -471,6 +479,9 @@ const rpcLoadThreadSuccess = () => {}
 
 const clearInboxFilter = (action: Chat2Gen.SelectConversationPayload) =>
   Saga.put(Chat2Gen.createSetInboxFilter({filter: ''}))
+
+const exitSearch = (action: Chat2Gen.SelectConversationPayload) =>
+  action.payload.conversationIDKey && Saga.put(Chat2Gen.createSetSearching({searching: false}))
 
 const desktopNotify = (action: Chat2Gen.MessagesAddPayload, state: TypedState) => {
   if (!action.payload.notify) {
@@ -545,6 +556,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.setupChatHandlers, setupChatHandlers)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, navigateToThread)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, clearInboxFilter)
+  yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, exitSearch)
 
   if (!isMobile) {
     yield Saga.safeTakeEveryPure(Chat2Gen.messagesAdd, desktopNotify)
