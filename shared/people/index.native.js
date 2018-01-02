@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {SafeAreaView, StyleSheet} from 'react-native'
+import {RefreshControl, SafeAreaView, StyleSheet} from 'react-native'
 import {Avatar, ScrollView} from '../common-adapters'
 import {PeoplePageSearchBar, PeoplePageList} from './index.shared'
 import {type Props} from '.'
@@ -8,7 +8,10 @@ import {globalColors, globalStyles} from '../styles'
 
 const People = (props: Props) => (
   <SafeAreaView>
-    <ScrollView style={{...globalStyles.fullHeight}}>
+    <ScrollView
+      style={{...globalStyles.fullHeight}}
+      refreshControl={<RefreshControl refreshing={props.waiting} onRefresh={() => props.getData()} />}
+    >
       <PeoplePageSearchBar
         {...props}
         styleRowContainer={{left: 0}}

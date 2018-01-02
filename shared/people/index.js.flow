@@ -7,6 +7,7 @@ export type Props = {
   oldItems: I.List<Types.PeopleScreenItem>,
   newItems: I.List<Types.PeopleScreenItem>,
   followSuggestions: I.List<Types.FollowSuggestion>,
+  getData: () => void,
   onSearch: () => void,
   onClickUser: (username: string) => void,
   myUsername: string,
