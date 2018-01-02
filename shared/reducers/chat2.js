@@ -79,6 +79,11 @@ const metaMapReducer = (metaMap, action) => {
           map.setIn([id, 'trustedState'], action.payload.newState)
         })
       })
+    case Chat2Gen.loadMoreMessage:
+      return metaMap.update(
+        action.payload.conversationIDKey,
+        meta => (meta ? meta.set('hasLoadedThread', true) : meta)
+      )
     default:
       return metaMap
   }
@@ -201,6 +206,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.metaNeedsUpdating:
     case Chat2Gen.metaReceivedError:
     case Chat2Gen.metaRequestTrusted:
+    case Chat2Gen.loadMoreMessage:
       return state.set('metaMap', metaMapReducer(state.metaMap, action))
     // MessageMap/messageOrdinalsList actions
     case Chat2Gen.messagesAdd:

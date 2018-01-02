@@ -9,7 +9,7 @@ import * as React from 'react'
 import Message from '../messages'
 import {/* Icon, */ ErrorBoundary} from '../../../common-adapters'
 import clipboard from '../../../desktop/clipboard'
-// import debounce from 'lodash/debounce'
+import debounce from 'lodash/debounce'
 // import {findDOMNode} from '../../../util/dom'
 import {globalColors, globalStyles, glamorous} from '../../../styles'
 
@@ -101,15 +101,15 @@ class BaseList extends React.Component<Props, State> {
     }
   }
 
-  // _maybeLoadMoreMessages = debounce((clientHeight: number, scrollTop: number) => {
-  // if (clientHeight && scrollTop === 0) {
-  // this.props.onLoadMoreMessages()
-  // }
-  // }, 500)
+  _maybeLoadMoreMessages = debounce((clientHeight: number, scrollTop: number) => {
+    if (clientHeight && scrollTop === 0) {
+      this.props.loadMoreMessages()
+    }
+  }, 500)
 
   _onScroll = ({clientHeight, scrollHeight, scrollTop}) => {
     this._updateBottomLock(clientHeight, scrollHeight, scrollTop)
-    // this._maybeLoadMoreMessages(clientHeight, scrollTop)
+    this._maybeLoadMoreMessages(clientHeight, scrollTop)
   }
 
   _onResize = ({width}) => {

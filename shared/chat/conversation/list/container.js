@@ -2,7 +2,7 @@
 import * as Constants2 from '../../../constants/chat2'
 // import * as Constants from '../../../constants/chat'
 import * as Types from '../../../constants/types/chat2'
-import * as ChatGen from '../../../actions/chat2-gen'
+import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as KBFSGen from '../../../actions/kbfs-gen'
 // import * as Selectors from '../../../constants/selectors'
 import * as I from 'immutable'
@@ -188,15 +188,21 @@ import {compose, connect, type TypedState} from '../../../util/container'
 // // $FlowIssue
 // export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps))(ListComponent)
 const mapStateToProps = (state: TypedState) => {
-  const selectedConversation = Constants2.getSelectedConversation(state)
+  const _selectedConversation = Constants2.getSelectedConversation(state)
   return {
-    messageOrdinals: Constants2.getMessageOrdinals(state, selectedConversation),
+    _selectedConversation,
+    messageOrdinals: Constants2.getMessageOrdinals(state, _selectedConversation),
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({})
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  _loadMoreMessages: (conversationIDKey: Types.ConversationIDKey) =>
+    dispatch(Chat2Gen.createLoadMoreMessages({conversationIDKey})),
+})
 
 const mergeProps = (stateProps, dispatchProps) => ({
+  loadMoreMessages: () =>
+    stateProps._selectedConversation && dispatchProps._loadMoreMessages(stateProps._selectedConversation),
   messageOrdinals: stateProps.messageOrdinals,
 })
 

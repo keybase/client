@@ -155,6 +155,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
 export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record({
   channelname: '',
   conversationIDKey: Types.stringToConversationIDKey(''),
+  hasLoadedThread: false,
   inboxVersion: -1,
   isMuted: false,
   membershipType: 'active',

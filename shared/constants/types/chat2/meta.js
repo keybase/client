@@ -15,6 +15,7 @@ export type _ConversationMeta = {
   conversationIDKey: Common.ConversationIDKey,
   inboxVersion: number,
   isMuted: boolean,
+  hasLoadedThread: boolean,
   membershipType: MembershipType,
   notificationSettings: ?RPCChatTypes.ConversationNotificationInfo,
   participants: I.Set<string>,
@@ -27,7 +28,7 @@ export type _ConversationMeta = {
   teamType: TeamType,
   teamname: string,
   trustedState: MetaTrustedState,
-  untrustedMessage: string, // ONLY used bhile not unboxed
+  untrustedMessage: string, // ONLY used while not unboxed
   untrustedTimestamp: number, // ONLY used while not unboxed
 }
 

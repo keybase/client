@@ -412,8 +412,29 @@ const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType).reduc
   return arr
 }, [])
 
-const rpcLoadThread = (action: Chat2Gen.SelectConversationPayload, state: TypedState) => {
-  const {conversationIDKey} = action.payload
+const rpcLoadThread = (
+  action: Chat2Gen.SelectConversationPayload | Chat2Gen.LoadMoreMessagesPayload,
+  state: TypedState
+) => {
+  let conversationIDKey
+  let recent
+
+  switch (action.type) {
+    case Chat2Gen.selectConversation:
+      conversationIDKey = action.payload.conversationIDKey
+      // When a conversation is selected we want to get the newer items, if any
+      recent = !conversationIDKey || Constants.getMeta(conversationIDKey).hasLoadedThread
+      break
+    case Chat2Gen.loadMoreMessages:
+      conversationIDKey = action.payload.conversationIDKey
+      recent = false
+      break
+    default:
+      // eslint-disable-next-line no-unused-expressions
+      ;(action: empty) // errors if we don't handle any new actions
+      throw new Error('Invalid action passed to rpcLoadThread')
+  }
+
   if (!conversationIDKey) {
     logger.info('Load thread bail: no conversationIDKey')
     return
@@ -431,7 +452,6 @@ const rpcLoadThread = (action: Chat2Gen.SelectConversationPayload, state: TypedS
     return
   }
 
-  const recent = false //  TODO newer
   const num = 20 // TODO dynamic maybe, deal w/ stale // TODO more
 
   const onGotThread = function*({thread}) {
@@ -551,7 +571,11 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure([Chat2Gen.metaRequestTrusted, Chat2Gen.selectConversation], rpcMetaRequest)
 
   // Load the selected thread
-  yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, rpcLoadThread, rpcLoadThreadSuccess)
+  yield Saga.safeTakeEveryPure(
+    [Chat2Gen.selectConversation, Chat2Gen.loadMoreMessages],
+    rpcLoadThread,
+    rpcLoadThreadSuccess
+  )
 
   yield Saga.safeTakeEveryPure(Chat2Gen.setupChatHandlers, setupChatHandlers)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, navigateToThread)
