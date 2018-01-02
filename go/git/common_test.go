@@ -115,6 +115,14 @@ func (m *mockChatHelper) SendTextByNameNonblock(ctx context.Context, name string
 func (m *mockChatHelper) SendMsgByNameNonblock(ctx context.Context, name string, topicName *string,
 	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, body chat1.MessageBody,
 	msgType chat1.MessageType) error {
+	m.sentMessages = append(m.sentMessages, MockMessage{
+		name:        name,
+		topicName:   topicName,
+		membersType: membersType,
+		ident:       ident,
+		body:        body,
+		msgType:     msgType,
+	})
 	return nil
 }
 
