@@ -953,6 +953,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.True(t, annPerms.SetMemberShowcase)
 	require.True(t, annPerms.ChangeOpenTeam)
 	require.False(t, annPerms.LeaveTeam) // sole owner can't leave
+	require.True(t, annPerms.ChangeTarsEnabled)
 
 	require.True(t, bobPerms.ManageMembers)
 	require.True(t, bobPerms.ManageSubteams)
@@ -964,6 +965,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.True(t, bobPerms.SetMemberShowcase)
 	require.True(t, bobPerms.ChangeOpenTeam)
 	require.True(t, bobPerms.LeaveTeam)
+	require.True(t, bobPerms.ChangeTarsEnabled)
 
 	// Some ops are fine for writers
 	require.False(t, pamPerms.ManageMembers)
@@ -976,6 +978,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.True(t, pamPerms.SetMemberShowcase)
 	require.False(t, pamPerms.ChangeOpenTeam)
 	require.True(t, pamPerms.LeaveTeam)
+	require.False(t, pamPerms.ChangeTarsEnabled)
 
 	// Only SetMemberShowcase (by default) and LeaveTeam is available for readers
 	require.False(t, eddPerms.ManageMembers)
@@ -988,6 +991,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.True(t, eddPerms.SetMemberShowcase)
 	require.False(t, eddPerms.ChangeOpenTeam)
 	require.True(t, eddPerms.LeaveTeam)
+	require.False(t, eddPerms.ChangeTarsEnabled)
 
 	annPerms = callCanPerform(ann, subteam)
 	bobPerms = callCanPerform(bob, subteam)
@@ -1002,6 +1006,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.True(t, annPerms.SetTeamShowcase)
 	require.False(t, annPerms.SetMemberShowcase)
 	require.True(t, annPerms.ChangeOpenTeam) // not a member of the subteam
+	require.True(t, annPerms.ChangeTarsEnabled)
 
 	require.True(t, bobPerms.ManageMembers)
 	require.True(t, bobPerms.ManageSubteams)
@@ -1013,6 +1018,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, bobPerms.SetMemberShowcase)
 	require.True(t, bobPerms.ChangeOpenTeam)
 	require.False(t, bobPerms.LeaveTeam) // not a member of the subteam
+	require.True(t, annPerms.ChangeTarsEnabled)
 
 	// Invalid team for pam
 	_, err = teams.CanUserPerform(context.TODO(), pam.tc.G, subteam)
