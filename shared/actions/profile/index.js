@@ -29,7 +29,11 @@ function _editProfile(action: ProfileGen.EditProfilePayload) {
       location,
     }),
     // If the profile tab remained on the edit profile screen, navigate back to the top level.
-    Saga.put(putActionIfOnPath([peopleTab, 'editProfile'], navigateTo([], [peopleTab]), [peopleTab])),
+    Saga.put(
+      putActionIfOnPath([peopleTab, 'profile', 'editProfile'], navigateTo(['profile'], [peopleTab]), [
+        peopleTab,
+      ])
+    ),
   ])
 }
 
