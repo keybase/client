@@ -78,16 +78,18 @@ func (m *mockChatHelper) SendTextByName(ctx context.Context, name string, topicN
 	// use this to fake making channels...
 	_, ok := m.convs[m.convKey(name, topicName)]
 	if !ok {
+		v := chat1.MessageUnboxedValid{
+			ClientHeader: chat1.MessageClientHeaderVerified{
+				MessageType: chat1.MessageType_METADATA,
+			},
+			MessageBody: chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{ConversationTitle: *topicName}),
+		}
+		md := chat1.NewMessageUnboxedWithValid(v)
 		m.convs[m.convKey(name, topicName)] = chat1.ConversationLocal{
 			Info: chat1.ConversationInfoLocal{
 				Id: rb,
 			},
-			MaxMessages: []chat1.MessageUnboxed{
-				chat1.MessageUnboxed{
-					MessageType: chat1.MessageType_METADATA,
-					Body:        chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetatdata{ConversationTitle: *topicName}),
-				},
-			},
+			MaxMessages: []chat1.MessageUnboxed{md},
 		}
 	}
 

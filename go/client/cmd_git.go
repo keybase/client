@@ -15,6 +15,7 @@ func NewCmdGit(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 		newCmdGitDelete(cl, g),
 		newCmdGitList(cl, g),
 		newCmdGitGC(cl, g),
+		newCmdGitSettings(cl, g),
 	}
 
 	if develUsage {
