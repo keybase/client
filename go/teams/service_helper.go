@@ -1265,6 +1265,7 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 	ret.ManageSubteams = admin || implicitAdmin
 	ret.SetTeamShowcase = admin || implicitAdmin
 	ret.ChangeOpenTeam = admin || implicitAdmin
+	ret.ChangeTarsEnabled = admin || implicitAdmin
 
 	if teamRole != keybase1.TeamRole_NONE {
 		leaveTeam := true

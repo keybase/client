@@ -1619,6 +1619,10 @@
         {
           "type": "boolean",
           "name": "leaveTeam"
+        },
+        {
+          "type": "boolean",
+          "name": "changeTarsEnabled"
         }
       ]
     },

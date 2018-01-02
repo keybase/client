@@ -17,11 +17,12 @@ type CmdTeamSettings struct {
 	Team keybase1.TeamName
 
 	// These fields are non-zero valued when their action is requested
-	Description         *string
-	JoinAsRole          *keybase1.TeamRole
-	ProfilePromote      *bool
-	AllowProfilePromote *bool
-	Showcase            *bool
+	Description          *string
+	JoinAsRole           *keybase1.TeamRole
+	ProfilePromote       *bool
+	AllowProfilePromote  *bool
+	Showcase             *bool
+	EnableAccessRequests *bool
 }
 
 func newCmdTeamSettings(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -74,6 +75,10 @@ Clear the team description:
 			cli.StringFlag{
 				Name:  "showcase",
 				Usage: "[yes|no] Set whether to promote this team and its description on keybase.io/popular-teams",
+			},
+			cli.StringFlag{
+				Name:  "enable-access-requests",
+				Usage: "[yes|no] Set whether it should be possible to access request to this team",
 			},
 		},
 	}
@@ -143,6 +148,15 @@ func (c *CmdTeamSettings) ParseArgv(ctx *cli.Context) (err error) {
 		c.Showcase = &val
 	}
 
+	if ctx.IsSet("enable-access-requests") {
+		exclusiveActions = append(exclusiveActions, "enable-access-requests")
+		val, err := ctx.BoolStrict("enable-access-requests")
+		if err != nil {
+			return err
+		}
+		c.EnableAccessRequests = &val
+	}
+
 	if len(exclusiveActions) > 1 {
 		return fmt.Errorf("only one of these actions a time: %v", strings.Join(exclusiveActions, ", "))
 	}
@@ -190,6 +204,13 @@ func (c *CmdTeamSettings) Run() error {
 
 	if c.Showcase != nil {
 		err = c.setShowcase(ctx, cli, *c.Showcase)
+		if err != nil {
+			return err
+		}
+	}
+
+	if c.EnableAccessRequests != nil {
+		err = c.setEnableAccessRequests(ctx, cli, *c.EnableAccessRequests)
 		if err != nil {
 			return err
 		}
@@ -281,6 +302,13 @@ func (c *CmdTeamSettings) setShowcase(ctx context.Context, cli keybase1.TeamsCli
 	})
 }
 
+func (c *CmdTeamSettings) setEnableAccessRequests(ctx context.Context, cli keybase1.TeamsClient, enabled bool) error {
+	return cli.SetTarsEnabled(ctx, keybase1.SetTarsEnabledArg{
+		Name:    c.Team.String(),
+		Enabled: enabled,
+	})
+}
+
 func (c *CmdTeamSettings) printCurrentSettings(ctx context.Context, cli keybase1.TeamsClient) error {
 	details, err := cli.TeamGet(ctx, keybase1.TeamGetArg{Name: c.Team.String(), ForceRepoll: true})
 	if err != nil {
@@ -306,6 +334,23 @@ func (c *CmdTeamSettings) printCurrentSettings(ctx context.Context, cli keybase1
 		dui.Printf("  Showcased:               %v\n", c.tfToYn(showcaseInfo.TeamShowcase.IsShowcased, "on keybase.io/popular-teams"))
 		dui.Printf("  Promoted:                %v\n", c.tfToYn(showcaseInfo.IsMemberShowcased, "on your profile"))
 		dui.Printf("  Non-admins can promote:  %v\n", c.tfToYn(showcaseInfo.TeamShowcase.AnyMemberShowcase, "on their profiles"))
+	}
+
+	// TarsEnabled info is only available for owners and admins, check
+	// if we can make this call so we don't make a GetTarsEnabled call
+	// that results in an error which is sent to the console.
+	ret, err := cli.CanUserPerform(ctx, c.Team.String())
+	if err != nil {
+		c.G().Log.CDebugf(ctx, "failed to get CanUserPerform info: %v", err)
+	} else {
+		if ret.ChangeTarsEnabled {
+			ok, err := cli.GetTarsEnabled(ctx, c.Team.String())
+			if err != nil {
+				c.G().Log.CDebugf(ctx, "failed to call GetTarsEnabled: %v", err)
+			} else {
+				dui.Printf("  Access requests enabled: %v\n", c.tfToYn(ok, ""))
+			}
+		}
 	}
 
 	return nil
