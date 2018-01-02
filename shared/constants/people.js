@@ -7,6 +7,7 @@ import {type IconType} from '../common-adapters/icon.constants'
 import {isMobile} from '../constants/platform'
 
 export const DEFAULT_FOLLOW_SUGGESTIONS_QUANT = 10
+export const getPeopleDataWaitingKey = 'getPeopleData'
 
 export const todoTypeEnumToType: {[key: Types.TodoTypeEnum]: Types.TodoType} = invert(
   RPCTypes.homeHomeScreenTodoType

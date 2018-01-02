@@ -12,6 +12,7 @@ import {navigateAppend, switchTo, navigateTo} from '../actions/route-tree'
 import {createShowUserProfile} from '../actions/profile-gen'
 import openURL from '../util/open-url'
 import {isMobile} from '../constants/platform'
+import {getPeopleDataWaitingKey} from '../constants/people'
 // import flags from '../util/feature-flags'
 
 const INSTALL_LINK_URL = 'https://keybase.io/download'
@@ -21,6 +22,7 @@ const mapStateToProps = (state: TypedState) => ({
   oldItems: state.people.oldItems,
   followSuggestions: state.people.followSuggestions,
   myUsername: state.config.username,
+  waiting: !!state.waiting.get(getPeopleDataWaitingKey),
 })
 
 const onSkipTodo = (type: Types.TodoType, dispatch: Dispatch) => () =>

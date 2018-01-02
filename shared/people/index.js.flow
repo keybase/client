@@ -16,6 +16,7 @@ export type Props = {
       onDismiss: () => void,
     },
   },
+  waiting: boolean,
 }
 
 export default class People extends React.Component<Props> {}

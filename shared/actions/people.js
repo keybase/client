@@ -10,6 +10,7 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import engine from '../engine'
 import {peopleTab} from '../constants/tabs'
 import {type TypedState} from '../constants/reducer'
+import {createDecrementWaiting, createIncrementWaiting} from '../actions/waiting-gen'
 
 const _getPeopleData = function(action: PeopleGen.GetPeopleDataPayload, state: TypedState) {
   return Saga.all([
@@ -19,6 +20,7 @@ const _getPeopleData = function(action: PeopleGen.GetPeopleDataPayload, state: T
     }),
     Saga.identity(state.config.following),
     Saga.identity(state.config.followers),
+    Saga.put(createIncrementWaiting({key: Constants.getPeopleDataWaitingKey})),
   ])
 }
 
@@ -109,14 +111,17 @@ const _processPeopleData = function([
       )
     })
   }
-  return Saga.put(
-    PeopleGen.createPeopleDataProcessed({
-      oldItems,
-      newItems,
-      lastViewed: new Date(data.lastViewed),
-      followSuggestions,
-    })
-  )
+  return Saga.all([
+    Saga.put(
+      PeopleGen.createPeopleDataProcessed({
+        oldItems,
+        newItems,
+        lastViewed: new Date(data.lastViewed),
+        followSuggestions,
+      })
+    ),
+    Saga.put(createDecrementWaiting({key: Constants.getPeopleDataWaitingKey})),
+  ])
 }
 
 const _skipTodo = (action: PeopleGen.SkipTodoPayload) => {
