@@ -607,7 +607,7 @@ func TestRootMetadataUpconversionPrivateConflict(t *testing.T) {
 
 	tlfID := tlf.FakeID(1, tlf.Private)
 	h := parseTlfHandleOrBust(
-		t, config, "alice,bob (conflicted copy 2017-08-24)", tlf.Private, tlfID)
+		t, config, "alice,bob (conflicted copy 2017-08-24 #1)", tlf.Private, tlfID)
 	rmd, err := makeInitialRootMetadata(kbfsmd.InitialExtraMetadataVer, tlfID, h)
 	require.NoError(t, err)
 	require.Equal(t, kbfsmd.KeyGen(0), rmd.LatestKeyGeneration())

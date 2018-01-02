@@ -126,7 +126,7 @@ type HandleExtension struct {
 func (e HandleExtension) String() string {
 	date := time.Unix(e.Date, 0).UTC().Format(handleExtensionDateFormat)
 	var num string
-	if e.Number > 1 {
+	if e.Number > 0 {
 		num = " #"
 		num += strconv.FormatUint(uint64(e.Number), 10)
 	}
@@ -187,7 +187,7 @@ func parseHandleExtension(fields []string) (*HandleExtension, error) {
 		if err != nil {
 			return nil, err
 		}
-		if num < 2 {
+		if num < 1 {
 			return nil, errHandleExtensionInvalidNumber
 		}
 	}

@@ -102,7 +102,7 @@ func TestHandleExtensionKnownTime(t *testing.T) {
 		Type:     HandleExtensionFinalized,
 		Username: "alice",
 	}
-	expect := "(files before alice account reset 2016-05-10)"
+	expect := "(files before alice account reset 2016-05-10 #1)"
 	if e.String() != expect {
 		t.Fatalf("Expected %s, got: %s", expect, e)
 	}
@@ -132,10 +132,6 @@ func TestHandleExtensionErrors(t *testing.T) {
 		t.Fatalf("Expected errHandleExtensionInvalidNumber, got: %v", err)
 	}
 	_, err = ParseHandleExtensionSuffix("(conflicted copy 2016-05-10 #0)")
-	if err != errHandleExtensionInvalidNumber {
-		t.Fatalf("Expected errHandleExtensionInvalidNumber, got: %v", err)
-	}
-	_, err = ParseHandleExtensionSuffix("(conflicted copy 2016-05-10 #1)")
 	if err != errHandleExtensionInvalidNumber {
 		t.Fatalf("Expected errHandleExtensionInvalidNumber, got: %v", err)
 	}
@@ -191,7 +187,7 @@ func TestHandleExtensionMultiple(t *testing.T) {
 	}
 	exts := []HandleExtension{*e, *e2}
 	suffix := newHandleExtensionSuffix(exts)
-	expectSuffix := " (conflicted copy 2016-03-14) (files before charlie account reset 2016-03-14 #2)"
+	expectSuffix := " (conflicted copy 2016-03-14 #1) (files before charlie account reset 2016-03-14 #2)"
 	if suffix != expectSuffix {
 		t.Fatalf("Expected suffix '%s', got: '%s'", expectSuffix, suffix)
 	}
@@ -229,7 +225,7 @@ func TestHandleExtensionMultipleSingleUser(t *testing.T) {
 	}
 	exts := []HandleExtension{*e, *e2}
 	suffix := newHandleExtensionSuffix(exts)
-	expectSuffix := " (conflicted copy 2016-03-14 #2) (files before account reset 2016-03-14)"
+	expectSuffix := " (conflicted copy 2016-03-14 #2) (files before account reset 2016-03-14 #1)"
 	if suffix != expectSuffix {
 		t.Fatalf("Expected suffix '%s', got: '%s'", expectSuffix, suffix)
 	}
