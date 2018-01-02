@@ -22,6 +22,7 @@ export const metaHandleQueue = 'chat2:metaHandleQueue'
 export const metaNeedsUpdating = 'chat2:metaNeedsUpdating'
 export const metaReceivedError = 'chat2:metaReceivedError'
 export const metaRequestTrusted = 'chat2:metaRequestTrusted'
+export const metaRequestingTrusted = 'chat2:metaRequestingTrusted'
 export const metaUpdateTrustedState = 'chat2:metaUpdateTrustedState'
 export const metasReceived = 'chat2:metasReceived'
 export const selectConversation = 'chat2:selectConversation'
@@ -42,6 +43,7 @@ export const createMetaHandleQueue = () => ({error: false, payload: undefined, t
 export const createMetaNeedsUpdating = (payload: {|+conversationIDKeys: Array<Types.ConversationIDKey>, +reason: string|}) => ({error: false, payload, type: metaNeedsUpdating})
 export const createMetaReceivedError = (payload: {|+conversationIDKey: Types.ConversationIDKey, +error: ?RPCChatTypes.ConversationErrorLocal, +username: ?string|}) => ({error: false, payload, type: metaReceivedError})
 export const createMetaRequestTrusted = (payload: {|+conversationIDKeys: Array<Types.ConversationIDKey>|}) => ({error: false, payload, type: metaRequestTrusted})
+export const createMetaRequestingTrusted = (payload: {|+conversationIDKeys: Array<Types.ConversationIDKey>|}) => ({error: false, payload, type: metaRequestingTrusted})
 export const createMetaUpdateTrustedState = (payload: {|+newState: Types.MetaTrustedState, +conversationIDKeys: Array<Types.ConversationIDKey>|}) => ({error: false, payload, type: metaUpdateTrustedState})
 export const createMetasReceived = (payload: {|+metas: Array<Types.ConversationMeta>|}) => ({error: false, payload, type: metasReceived})
 export const createSelectConversation = (payload: {|+conversationIDKey: ?Types.ConversationIDKey, +fromUser?: boolean|}) => ({error: false, payload, type: selectConversation})
@@ -62,6 +64,7 @@ export type MetaHandleQueuePayload = More.ReturnType<typeof createMetaHandleQueu
 export type MetaNeedsUpdatingPayload = More.ReturnType<typeof createMetaNeedsUpdating>
 export type MetaReceivedErrorPayload = More.ReturnType<typeof createMetaReceivedError>
 export type MetaRequestTrustedPayload = More.ReturnType<typeof createMetaRequestTrusted>
+export type MetaRequestingTrustedPayload = More.ReturnType<typeof createMetaRequestingTrusted>
 export type MetaUpdateTrustedStatePayload = More.ReturnType<typeof createMetaUpdateTrustedState>
 export type MetasReceivedPayload = More.ReturnType<typeof createMetasReceived>
 export type SelectConversationPayload = More.ReturnType<typeof createSelectConversation>
@@ -84,6 +87,7 @@ export type Actions =
   | More.ReturnType<typeof createMetaNeedsUpdating>
   | More.ReturnType<typeof createMetaReceivedError>
   | More.ReturnType<typeof createMetaRequestTrusted>
+  | More.ReturnType<typeof createMetaRequestingTrusted>
   | More.ReturnType<typeof createMetaUpdateTrustedState>
   | More.ReturnType<typeof createMetasReceived>
   | More.ReturnType<typeof createSelectConversation>

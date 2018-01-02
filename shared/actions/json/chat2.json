@@ -32,6 +32,9 @@
     "metaRequestTrusted": {
       "conversationIDKeys": "Array<Types.ConversationIDKey>"
     },
+    "metaRequestingTrusted": {
+      "conversationIDKeys": "Array<Types.ConversationIDKey>"
+    },
     "metaUpdateTrustedState": {
       "newState": "Types.MetaTrustedState",
       "conversationIDKeys": "Array<Types.ConversationIDKey>"

@@ -24,6 +24,12 @@ const initialState: Types.State = Constants.makeState()
 // }
 const metaMapReducer = (metaMap, action) => {
   switch (action.type) {
+    case Chat2Gen.metaRequestingTrusted:
+      return metaMap.withMutations(map =>
+        action.payload.conversationIDKeys.forEach(conversationIDKey =>
+          map.update(conversationIDKey, meta => (meta ? meta.set('trustedState', 'requesting') : meta))
+        )
+      )
     case Chat2Gen.metaReceivedError: {
       const {error} = action.payload
       if (error) {
@@ -54,10 +60,11 @@ const metaMapReducer = (metaMap, action) => {
               })
             )
           }
-          case RPCChatTypes.localConversationErrorType.permanent:
-            return metaMap
           default:
-            return metaMap
+            return metaMap.update(
+              action.payload.conversationIDKey,
+              meta => (meta ? meta.set('trustedState', 'error') : meta)
+            )
         }
       } else {
         return metaMap.delete(action.payload.conversationIDKey)
@@ -218,10 +225,8 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.messageEdit:
     case Chat2Gen.messagesAdd:
     case Chat2Gen.messagesDelete:
-    case Chat2Gen.metaHandleQueue:
-    case Chat2Gen.metaNeedsUpdating:
     case Chat2Gen.metaReceivedError:
-    case Chat2Gen.metaRequestTrusted:
+    case Chat2Gen.metaRequestingTrusted:
     case Chat2Gen.metaUpdateTrustedState:
     case Chat2Gen.metasReceived:
       return state
@@ -229,6 +234,9 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         .set('messageMap', messageMapReducer(state.messageMap, action))
         .set('messageOrdinals', messageOrdinalsReducer(state.messageOrdinals, action))
     // Saga only actions
+    case Chat2Gen.metaNeedsUpdating:
+    case Chat2Gen.metaHandleQueue:
+    case Chat2Gen.metaRequestTrusted:
     case Chat2Gen.loadMoreMessages:
     case Chat2Gen.setupChatHandlers:
       return state

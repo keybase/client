@@ -225,36 +225,39 @@ const rpcMetaRequest = (
     loading => Chat2Gen.createSetLoading({key: `unboxing:${conversationIDKeys[0]}`, loading})
   )
 
-  return Saga.call(loadInboxRpc.run, 30e3)
+  return Saga.sequentially([
+    Saga.put(Chat2Gen.createMetaRequestingTrusted({conversationIDKeys})),
+    Saga.call(loadInboxRpc.run, 30e3),
+  ])
 }
 
-const changeMetaTrustedState = (
-  action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.MetaReceivedErrorPayload
-) => {
-  let newState
-  let conversationIDKeys
+// const changeMetaTrustedState = (
+// action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.MetaReceivedErrorPayload
+// ) => {
+// let newState
+// let conversationIDKeys
 
-  switch (action.type) {
-    case Chat2Gen.metaRequestTrusted:
-      newState = 'requesting'
-      conversationIDKeys = action.payload.conversationIDKeys
-      break
-    case Chat2Gen.metaReceivedError:
-      newState = 'error'
-      conversationIDKeys = [action.payload.conversationIDKey]
-      break
-    default:
-      // eslint-disable-next-line no-unused-expressions
-      ;(action: empty) // errors if we don't handle any new actions
-      throw new Error('Invalid action passed to updateMetaTrustedState')
-  }
-  return Saga.put(
-    Chat2Gen.createMetaUpdateTrustedState({
-      conversationIDKeys,
-      newState,
-    })
-  )
-}
+// switch (action.type) {
+// case Chat2Gen.metaRequestTrusted:
+// newState = 'requesting'
+// conversationIDKeys = action.payload.conversationIDKeys
+// break
+// case Chat2Gen.metaReceivedError:
+// newState = 'error'
+// conversationIDKeys = [action.payload.conversationIDKey]
+// break
+// default:
+// // eslint-disable-next-line no-unused-expressions
+// ;(action: empty) // errors if we don't handle any new actions
+// throw new Error('Invalid action passed to updateMetaTrustedState')
+// }
+// return Saga.put(
+// Chat2Gen.createMetaUpdateTrustedState({
+// conversationIDKeys,
+// newState,
+// })
+// )
+// }
 
 const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage) => {
   // TODO from thread-content:
@@ -652,13 +655,14 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.metaNeedsUpdating, queueMetaToRequest)
   // We have some items in the queue to process
   yield Saga.safeTakeEveryPure(Chat2Gen.metaHandleQueue, requestMeta)
-  // Mark rows as loading, unboxing, unboxed, etc
-  yield Saga.safeTakeEveryPure(
-    [Chat2Gen.metaRequestTrusted, Chat2Gen.metaReceivedError],
-    changeMetaTrustedState
-  )
+
   // Actually try and unbox conversations
   yield Saga.safeTakeEveryPure([Chat2Gen.metaRequestTrusted, Chat2Gen.selectConversation], rpcMetaRequest)
+  // Mark rows as loading, unboxing, unboxed, etc
+  // yield Saga.safeTakeEveryPure(
+  // [Chat2Gen.metaRequestTrusted, Chat2Gen.metaReceivedError],
+  // changeMetaTrustedState
+  // )
 
   // Load the selected thread
   yield Saga.safeTakeEveryPure(
