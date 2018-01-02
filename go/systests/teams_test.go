@@ -406,7 +406,7 @@ func (u *userPlusDevice) waitForTeamChangedGregor(teamID keybase1.TeamID, toSeqn
 		case <-time.After(1 * time.Second * libkb.CITimeMultiplier(u.tc.G)):
 		}
 	}
-	u.tc.T.Fatalf("timed out waiting for team rotate %s", teamID)
+	require.FailNow(u.tc.T, "timeout", "timed out waiting for team change %v %v", teamID, toSeqno)
 }
 
 func (u *userPlusDevice) drainGregor() {
