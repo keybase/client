@@ -3,6 +3,7 @@ package teams
 import (
 	"errors"
 	"fmt"
+	"net/mail"
 	"strconv"
 	"strings"
 	"time"
@@ -403,20 +404,22 @@ func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails
 		}
 
 		var invites []SCTeamInvite
-		for _, e := range emailList {
-			if !libkb.CheckEmail.F(e) {
-				g.Log.CDebugf(ctx, "team %s: skipping malformed email %q", teamname, e)
-				res.Malformed = append(res.Malformed, e)
+		for _, email := range emailList {
+			addr, err := mail.ParseAddress(email)
+			if err != nil {
+				g.Log.CDebugf(ctx, "team %s: skipping malformed email %q: %s", teamname, email, err)
+				res.Malformed = append(res.Malformed, email)
 				continue
 			}
-			name := keybase1.TeamInviteName(e)
+			name := keybase1.TeamInviteName(addr.Address)
 			existing, err := t.HasActiveInvite(name, "email")
 			if err != nil {
 				return err
 			}
 			if existing {
-				g.Log.CDebugf(ctx, "team %s: invite for %s already exists, omitting from invite list", teamname, e)
-				res.AlreadyInvited = append(res.AlreadyInvited, e)
+				g.Log.CDebugf(ctx, "team %s: invite for %s already exists, omitting from invite list",
+					teamname, name)
+				res.AlreadyInvited = append(res.AlreadyInvited, addr.Address)
 				continue
 			}
 			inv := SCTeamInvite{
@@ -425,7 +428,7 @@ func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails
 				ID:   NewInviteID(),
 			}
 			invites = append(invites, inv)
-			res.Invited = append(res.Invited, e)
+			res.Invited = append(res.Invited, addr.Address)
 		}
 		if len(invites) == 0 {
 			g.Log.CDebugf(ctx, "team %s: after exisitng filter, no one to invite", teamname)
