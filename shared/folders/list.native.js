@@ -69,7 +69,9 @@ class ListRender extends Component<Props, State> {
       <Box style={stylesIgnoreContainer}>
         <ClickableBox onClick={this._onIgnoredToggle}>
           <Box style={styles.topBox}>
-            <Text type="BodySmallSemibold" style={{color: headingColor}}>Ignored folders</Text>
+            <Text type="BodySmallSemibold" style={{color: headingColor}}>
+              Ignored folders
+            </Text>
             <Icon
               type={caretIcon}
               style={{
@@ -80,12 +82,13 @@ class ListRender extends Component<Props, State> {
             />
           </Box>
         </ClickableBox>
-        {row.enabled &&
+        {row.enabled && (
           <Box style={styles.bottomBox}>
             <Text type="BodySmall" style={{textAlign: 'center'}}>
               Ignored folders won't show up on your computer and you won't receive alerts about them.
             </Text>
-          </Box>}
+          </Box>
+        )}
       </Box>
     )
   }

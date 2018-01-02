@@ -1,7 +1,7 @@
 // @flow
 import * as I from 'immutable'
-import * as RPCChatTypes from './flow-types-chat'
-import * as RPCTypes from './flow-types'
+import * as RPCChatTypes from './rpc-chat-gen'
+import * as RPCTypes from './rpc-gen'
 import * as SearchTypes from './search'
 import HiddenString from '../../util/hidden-string'
 import type {DeviceType} from './devices'
@@ -30,7 +30,7 @@ export type MessageKeyKind =
 
 // TODO: Ideally, this would be 'Text' | 'Error' | etc.
 export type MessageType = string
-export type FollowingMap = {[key: string]: true}
+export type FollowingSet = I.Set<Username>
 
 export type MessageState = 'pending' | 'failed' | 'sent'
 

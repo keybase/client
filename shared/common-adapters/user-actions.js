@@ -24,8 +24,8 @@ function UserActions({
     } else {
       return (
         <ButtonBar style={style}>
-          <Button type="Unfollow" label="Unfollow" onClick={onUnfollow} />
-          <Button type="Follow" label="Accept" onClick={onAcceptProofs} style={{marginRight: 0}} />
+          <Button type="Secondary" label="Unfollow" onClick={onUnfollow} />
+          <Button type="PrimaryGreen" label="Accept" onClick={onAcceptProofs} style={{marginRight: 0}} />
         </ButtonBar>
       )
     }

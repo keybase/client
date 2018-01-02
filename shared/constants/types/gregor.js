@@ -1,6 +1,6 @@
 // @flow
-import * as RPCTypesGregor from './flow-types-gregor'
-import * as RPCTypes from './flow-types'
+import * as RPCTypesGregor from './rpc-gregor-gen'
+import * as RPCTypes from './rpc-gen'
 
 export type NonNullGregorItem = {
   md: RPCTypesGregor.Metadata,

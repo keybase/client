@@ -131,7 +131,7 @@ class Inbox extends PureComponent<Props, State> {
             onSelectUp={this.props.onSelectUp}
             onSelectDown={this.props.onSelectDown}
           />
-          {this.props.inSearch && <NewConversation />}
+          {this.props.showNewConversation && <NewConversation />}
           <div style={_scrollableStyle} onScroll={this._onScroll}>
             <ReactList
               ref={this._setRef}
@@ -144,8 +144,9 @@ class Inbox extends PureComponent<Props, State> {
           </div>
           {!this.props.rows.length && !!this.props.filter && <Owl />}
           {this.state.showFloating &&
-            this.props.showSmallTeamsExpandDivider &&
-            <FloatingDivider toggle={this.props.toggleSmallTeamsExpanded} />}
+            this.props.showSmallTeamsExpandDivider && (
+              <FloatingDivider toggle={this.props.toggleSmallTeamsExpanded} />
+            )}
           {/*
             // TODO when the teams tab exists
             this.props.showBuildATeam &&

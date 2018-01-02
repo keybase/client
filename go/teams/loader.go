@@ -21,7 +21,15 @@ func Load(ctx context.Context, g *libkb.GlobalContext, lArg keybase1.LoadTeamArg
 	if err != nil {
 		return nil, err
 	}
-	return NewTeam(ctx, g, teamData), nil
+	ret := NewTeam(ctx, g, teamData)
+
+	if lArg.RefreshUIDMapper {
+		// If we just loaded the group, then inform the UIDMapper of any UID->EldestSeqno
+		// mappings, so that we're guaranteed they aren't stale.
+		ret.refreshUIDMapper(ctx, g)
+	}
+
+	return ret, nil
 }
 
 // Loader of keybase1.TeamData objects. Handles caching.
@@ -61,6 +69,9 @@ func (l *TeamLoader) Load(ctx context.Context, lArg keybase1.LoadTeamArg) (res *
 	me, err := l.world.getMe(ctx)
 	if err != nil {
 		return nil, err
+	}
+	if me.IsNil() && !lArg.Public {
+		return nil, libkb.NewLoginRequiredError("login required to load a private team")
 	}
 	return l.load1(ctx, me, lArg)
 }
@@ -223,6 +234,8 @@ type load2ArgT struct {
 	// Load1 should never ever return a secret-less TeamData.
 	readSubteamID *keybase1.TeamID
 
+	// If the user is logged out, this will be a nil UserVersion, meaning
+	/// me.IsNil() will be true.
 	me keybase1.UserVersion
 }
 

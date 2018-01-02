@@ -3,11 +3,11 @@
 /* eslint-disable no-unused-vars,prettier/prettier */
 
 import * as I from 'immutable'
-import * as RPCTypes from '../constants/types/flow-types'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import * as More from '../constants/types/more'
 import * as TeamTypes from '../constants/types/teams'
 import * as Types from '../constants/types/chat'
-import * as RPCChatTypes from '../constants/types/flow-types-chat'
+import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import HiddenString from '../util/hidden-string'
 import {type DeviceType} from '../constants/types/devices'
 import {type Path} from '../route-tree'

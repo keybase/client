@@ -193,6 +193,10 @@
           "name": "username"
         },
         {
+          "type": "FullName",
+          "name": "fullName"
+        },
+        {
           "type": "boolean",
           "name": "active"
         },
@@ -1106,6 +1110,10 @@
           "name": "needAdmin"
         },
         {
+          "type": "boolean",
+          "name": "refreshUIDMapper"
+        },
+        {
           "type": "TeamRefreshers",
           "name": "refreshers"
         },
@@ -1602,6 +1610,10 @@
         {
           "type": "boolean",
           "name": "changeOpenTeam"
+        },
+        {
+          "type": "boolean",
+          "name": "leaveTeam"
         }
       ]
     },

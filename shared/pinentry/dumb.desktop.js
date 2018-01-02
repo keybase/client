@@ -1,6 +1,6 @@
 // @flow
 import Pinentry, {type Props} from './index.desktop'
-import {passphraseCommonPassphraseType} from '../constants/types/flow-types'
+import {passphraseCommonPassphraseType} from '../constants/types/rpc-gen'
 import type {DumbComponentMap} from '../constants/types/more'
 
 const propsNormal: Props = {

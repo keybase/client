@@ -1,9 +1,9 @@
 // @flow
 import logger from '../logger'
 import * as I from 'immutable'
-import * as RPCChatTypes from './types/flow-types-chat'
+import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as Types from './types/chat'
-import * as RPCTypes from './types/flow-types'
+import * as RPCTypes from './types/rpc-gen'
 import clamp from 'lodash/clamp'
 import invert from 'lodash/invert'
 import {Buffer} from 'buffer'
@@ -224,13 +224,13 @@ function usernamesToUserListItem(
   usernames: Array<string>,
   you: string,
   metaDataMap: Types.MetaDataMap,
-  followingMap: Types.FollowingMap
+  followingSet: Types.FollowingSet
 ): Array<UserListItem> {
   return usernames.map(username => ({
     username,
     broken: metaDataMap.getIn([username, 'brokenTracker'], false),
     you: username === you,
-    following: !!followingMap[username],
+    following: followingSet.has(username),
   }))
 }
 
@@ -430,7 +430,7 @@ function messageKeyKind(key: Types.MessageKey): Types.MessageKeyKind {
 
 // TODO(mm) type these properly - they return any
 const getYou = (state: TypedState) => state.config.username || ''
-const getFollowingMap = (state: TypedState) => state.config.following
+const getFollowing = (state: TypedState) => state.config.following
 const getMetaDataMap = (state: TypedState) => state.chat.get('metaData')
 const getInbox = (state: TypedState, conversationIDKey: ?Types.ConversationIDKey) =>
   conversationIDKey ? state.chat.getIn(['inbox', conversationIDKey]) : null
@@ -771,7 +771,7 @@ export {
   getAttachmentInfo,
   getSelectedRouteState,
   getYou,
-  getFollowingMap,
+  getFollowing,
   getMetaDataMap,
   getParticipants,
   getParticipantsWithFullNames,

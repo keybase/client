@@ -1,14 +1,14 @@
 // @flow
 
 export class RPCError extends Error {
-  code: number // Consult type StatusCode in flow-types.js for what this means
+  code: number // Consult type StatusCode in rpc-gen.js for what this means
   fields: any
   desc: string // Don't use! This is for compatibility with RPC error object.
   name: string
 
   constructor(message: string, code: number, fields: any, name: ?string, method: ?string) {
     super(paramsToErrorMsg(message, code, fields, name, method))
-    this.code = code // Consult type StatusCode in flow-types.js for what this means
+    this.code = code // Consult type StatusCode in rpc-gen.js for what this means
     this.fields = fields
     this.desc = message // Don't use! This is for compatibility with RPC error object.
     this.name = name || ''

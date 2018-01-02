@@ -16,6 +16,7 @@ declare function displayNewMessageNotification(
   badgeCount: ?number,
   myMsgID: ?number
 ): void
+declare function clearAllNotifications(): void
 
 export {
   requestPushPermissions,
@@ -25,4 +26,5 @@ export {
   showShareActionSheet,
   setNoPushPermissions,
   displayNewMessageNotification,
+  clearAllNotifications,
 }

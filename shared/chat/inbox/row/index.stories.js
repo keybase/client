@@ -72,9 +72,7 @@ const commonChannel = {
 const load = () => {
   storiesOf('Chat/Inbox', module)
     .add('Simple', () => (
-      <Box style={{width: 240}}>
-        {mocks.map(m => <SmallTeam key={m.conversationIDKey} {...m} />)}
-      </Box>
+      <Box style={{width: 240}}>{mocks.map(m => <SmallTeam key={m.conversationIDKey} {...m} />)}</Box>
     ))
     .add('Team', () => (
       <Box style={{borderColor: 'black', borderStyle: 'solid', borderWidth: 1, width: 240}}>

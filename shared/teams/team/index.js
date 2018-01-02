@@ -83,7 +83,9 @@ const TeamDividerRow = (index, {key}) => (
     }}
   >
     <Box style={{...globalStyles.flexBoxRow, flexGrow: 1}}>
-      <Text style={{color: globalColors.black_40}} type="BodySmall">{key}</Text>
+      <Text style={{color: globalColors.black_40}} type="BodySmall">
+        {key}
+      </Text>
     </Box>
   </Box>
 )
@@ -272,6 +274,7 @@ class Team extends React.PureComponent<Props> {
 
     // massage data for rowrenderers
     const memberProps = members.map(member => ({
+      fullName: member.fullName,
       username: member.username,
       teamname: name,
       active: member.active,
@@ -304,8 +307,7 @@ class Team extends React.PureComponent<Props> {
 
     let contents
     if (selectedTab === 'members') {
-      contents =
-        (members.length !== 0 || !loading) &&
+      contents = (members.length !== 0 || !loading) && (
         <List
           keyProperty="key"
           items={memberProps}
@@ -313,16 +315,18 @@ class Team extends React.PureComponent<Props> {
           renderItem={TeamMemberRow}
           style={{alignSelf: 'stretch'}}
         />
+      )
     } else if (selectedTab === 'invites') {
       // Show requests first, then invites.
-      const requestsAndInvites = requestProps.length > 0
-        ? [
-            {key: 'Requests', type: 'divider'},
-            ...requestProps,
-            {key: 'Invites', type: 'divider'},
-            ...inviteProps,
-          ]
-        : [...requestProps, ...inviteProps]
+      const requestsAndInvites =
+        requestProps.length > 0
+          ? [
+              {key: 'Requests', type: 'divider'},
+              ...requestProps,
+              {key: 'Invites', type: 'divider'},
+              ...inviteProps,
+            ]
+          : [...requestProps, ...inviteProps]
       if (requestsAndInvites.length === 0) {
         contents = (
           <Text
@@ -333,8 +337,7 @@ class Team extends React.PureComponent<Props> {
           </Text>
         )
       } else {
-        contents =
-          !loading &&
+        contents = !loading && (
           <List
             items={requestsAndInvites}
             fixedHeight={48}
@@ -342,6 +345,7 @@ class Team extends React.PureComponent<Props> {
             renderItem={TeamRequestOrDividerOrInviteRow}
             style={{alignSelf: 'stretch'}}
           />
+        )
       }
     } else if (selectedTab === 'publicity') {
       const teamsLink = 'keybase.io/popular-teams'
@@ -355,7 +359,7 @@ class Team extends React.PureComponent<Props> {
             flexGrow: 1,
           }}
         >
-          {!youImplicitAdmin &&
+          {!youImplicitAdmin && (
             <Box
               style={{
                 ...globalStyles.flexBoxRow,
@@ -380,8 +384,9 @@ class Team extends React.PureComponent<Props> {
                     : "Admins aren't allowing members to publish this team on their profile."}
                 </Text>
               </Box>
-            </Box>}
-          {youAdmin &&
+            </Box>
+          )}
+          {youAdmin && (
             <Box style={globalStyles.flexBoxColumn}>
               <Box style={stylesSettingsTabRow}>
                 <Text type="Header">Team</Text>
@@ -392,12 +397,8 @@ class Team extends React.PureComponent<Props> {
                   <Checkbox checked={publicityAnyMember} label="" onCheck={setPublicityAnyMember} />
                 </Box>
                 <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
-                  <Text type="Body">
-                    Allow non-admin members to publish the team on their profile
-                  </Text>
-                  <Text type="BodySmall">
-                    Team descriptions and number of members will be public.
-                  </Text>
+                  <Text type="Body">Allow non-admin members to publish the team on their profile</Text>
+                  <Text type="BodySmall">Team descriptions and number of members will be public.</Text>
                 </Box>
               </Box>
 
@@ -407,13 +408,12 @@ class Team extends React.PureComponent<Props> {
                 </Box>
                 <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
                   <Text type="Body">
-                    Publicize this team on
-                    {' '}
-                    <Text type="BodyPrimaryLink" onClickURL={`https://${teamsLink}`}>{teamsLink}</Text>
+                    Publicize this team on{' '}
+                    <Text type="BodyPrimaryLink" onClickURL={`https://${teamsLink}`}>
+                      {teamsLink}
+                    </Text>
                   </Text>
-                  <Text type="BodySmall">
-                    Team descriptions and number of members will be public.
-                  </Text>
+                  <Text type="BodySmall">Team descriptions and number of members will be public.</Text>
                 </Box>
               </Box>
 
@@ -429,12 +429,9 @@ class Team extends React.PureComponent<Props> {
                 <Box
                   style={{...globalStyles.flexBoxColumn, flexShrink: 1, paddingRight: globalMargins.small}}
                 >
-                  <Text type="Body">
-                    Make this an open team
-                  </Text>
+                  <Text type="Body">Make this an open team</Text>
                   <Text type="BodySmall">
-                    Anyone will be able to join immediately.  Users will join as
-                    {' '}
+                    Anyone will be able to join immediately. Users will join as{' '}
                     <Text
                       type={openTeam ? 'BodySmallPrimaryLink' : 'BodySmall'}
                       onClick={openTeam ? onSetOpenTeamRole : undefined}
@@ -445,7 +442,8 @@ class Team extends React.PureComponent<Props> {
                   </Text>
                 </Box>
               </Box>
-            </Box>}
+            </Box>
+          )}
 
           <Box
             style={{
@@ -479,7 +477,7 @@ class Team extends React.PureComponent<Props> {
 
     return (
       <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1}}>
-        {showAddYourselfBanner &&
+        {showAddYourselfBanner && (
           <Box style={stylesAddYourselfBanner}>
             <Text type="BodySemibold" style={stylesAddYourselfBannerText}>
               You are not a member of this team.
@@ -493,7 +491,8 @@ class Team extends React.PureComponent<Props> {
             >
               Add yourself
             </Text>
-          </Box>}
+          </Box>
+        )}
         <Box style={stylesTeamHeader}>
           <Avatar isTeam={true} teamname={name} size={64} />
           <Text type="Header" style={{marginTop: globalMargins.tiny}}>
@@ -501,53 +500,55 @@ class Team extends React.PureComponent<Props> {
           </Text>
           <Text type="BodySmall">TEAM</Text>
           <Text type="BodySmall">
-            {memberCount + ' member' + (memberCount !== 1 ? 's' : '')}
-            {' '}
-            •
-            {' '}
+            {memberCount + ' member' + (memberCount !== 1 ? 's' : '')} •{' '}
             {yourRole && Constants.typeToLabel[yourRole]}
           </Text>
           {!loading &&
-            (youAdmin || description) &&
-            <Text
-              style={{
-                paddingTop: globalMargins.tiny,
-                color: description ? globalColors.black_75 : globalColors.black_20,
-              }}
-              onClick={youAdmin ? onEditDescription : null}
-              type={youAdmin ? 'BodySecondaryLink' : 'Body'}
-            >
-              {description || (youAdmin && 'Write a brief description')}
-            </Text>}
+            (youAdmin || description) && (
+              <Text
+                style={{
+                  paddingTop: globalMargins.tiny,
+                  color: description ? globalColors.black_75 : globalColors.black_20,
+                }}
+                onClick={youAdmin ? onEditDescription : null}
+                type={youAdmin ? 'BodySecondaryLink' : 'Body'}
+              >
+                {description || (youAdmin && 'Write a brief description')}
+              </Text>
+            )}
 
-          {youCanAddPeople &&
+          {youCanAddPeople && (
             <ButtonBar>
               <Button type="Primary" label="Add people" onClick={onAddPeople} />
-              {!isMobile &&
+              {!isMobile && (
                 <Button
                   type="Secondary"
                   label="Invite by email"
                   onClick={onInviteByEmail}
                   style={{marginLeft: globalMargins.tiny}}
-                />}
-              {isMobile &&
+                />
+              )}
+              {isMobile && (
                 <Button
                   type="Secondary"
                   label="Invite contacts"
                   onClick={onInviteByEmail}
                   style={{marginLeft: globalMargins.tiny}}
-                />}
-            </ButtonBar>}
+                />
+              )}
+            </ButtonBar>
+          )}
           <Help name={name} />
         </Box>
         <TeamTabs {...this.props} admin={youAdmin} />
         {contents}
-        {showMenu &&
+        {showMenu && (
           <PopupMenu
             items={popupMenuItems}
             onHidden={() => setShowMenu(false)}
             style={{position: 'absolute', right: globalMargins.tiny, top: globalMargins.large}}
-          />}
+          />
+        )}
       </Box>
     )
   }
@@ -602,18 +603,20 @@ type CustomProps = {
 
 const CustomComponent = ({onOpenFolder, onManageChat, onShowMenu}: CustomProps) => (
   <Box style={{...globalStyles.flexBoxRow, position: 'absolute', right: 0}}>
-    {!isMobile &&
+    {!isMobile && (
       <Icon
         onClick={onManageChat}
         type="iconfont-chat"
         style={{fontSize: isMobile ? 20 : 16, marginRight: globalMargins.tiny}}
-      />}
-    {!isMobile &&
+      />
+    )}
+    {!isMobile && (
       <Icon
         onClick={onOpenFolder}
         type="iconfont-folder-private"
         style={{fontSize: isMobile ? 20 : 16, marginRight: globalMargins.tiny}}
-      />}
+      />
+    )}
     <Icon
       onClick={onShowMenu}
       type="iconfont-ellipsis"

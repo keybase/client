@@ -1,6 +1,7 @@
 // @flow
 import * as Constants from '../../../../constants/chat'
 import * as Types from '../../../../constants/types/chat'
+import * as I from 'immutable'
 import JoinedLeftNotice from '.'
 import createCachedSelector from 're-reselect'
 import {compose} from 'recompose'
@@ -33,17 +34,17 @@ const getDetails = createCachedSelector(
     Constants.getYou,
     Constants.getChannelName,
     Constants.getTeamName,
-    Constants.getFollowingMap,
+    Constants.getFollowing,
   ],
   (
     message: Types.JoinedLeftMessage,
     you: string,
     channelname: string,
     teamname: string,
-    following: {[key: string]: ?boolean}
+    following: I.Set<Types.Username>
   ) => ({
     channelname,
-    following: !!following[message.author],
+    following: following.has(message.author),
     message,
     teamname,
     you,

@@ -76,12 +76,13 @@ class MenubarRender extends Component<Props, State> {
             <Button type="Primary" label="Log In" onClick={this.props.logIn} />
           </ButtonBar>
         </Box>
-        {this.state.showingMenu &&
+        {this.state.showingMenu && (
           <PopupMenu
             style={styleMenu}
             items={this._menuItems()}
             onHidden={() => this.setState({showingMenu: false})}
-          />}
+          />
+        )}
       </Box>
     )
   }
@@ -176,7 +177,7 @@ class MenubarRender extends Component<Props, State> {
           />
         </Box>
         <Folders {...mergedProps} />
-        {this.props.isAsyncWriteHappening &&
+        {this.props.isAsyncWriteHappening && (
           <Box
             style={{
               ...globalStyles.flexBoxColumn,
@@ -189,13 +190,15 @@ class MenubarRender extends Component<Props, State> {
           >
             <Icon type="icon-loader-uploading-16" />
             <Text type="BodySmall">UPLOADING CHANGES...</Text>
-          </Box>}
-        {this.state.showingMenu &&
+          </Box>
+        )}
+        {this.state.showingMenu && (
           <PopupMenu
             style={styleMenu}
             items={this._menuItems()}
             onHidden={() => this.setState({showingMenu: false})}
-          />}
+          />
+        )}
       </Box>
     )
   }
@@ -207,8 +210,8 @@ body {
 }
 `
 
-const ArrowTick = () => // Css triangle!
-(
+const ArrowTick = () => (
+  // Css triangle!
   <Box
     style={{
       height: 0,
@@ -255,12 +258,13 @@ const BadgeIcon = ({
       onClick={() => openApp(tab)}
     >
       <Icon style={{color: count ? globalColors.blue : globalColors.lightGrey2}} type={iconType} />
-      {!!count &&
+      {!!count && (
         <Badge
           badgeNumber={count}
           badgeStyle={{position: 'absolute', left: 14, bottom: -3}}
           outlineColor={globalColors.white}
-        />}
+        />
+      )}
     </Box>
   )
 }

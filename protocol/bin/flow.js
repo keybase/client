@@ -8,34 +8,26 @@ const path = require('path')
 const camelcase = require('camelcase')
 const colors = require('colors')
 
-// load prettier rules from eslintrc
-const prettierOptions = json5.parse(
-  fs.readFileSync(path.join(__dirname, '../../.eslintrc'), {encoding: 'utf8'})
-).rules['prettier/prettier'][1]
-
-// Allow extra wide
-prettierOptions.printWidth = 9999
-
 var projects = {
   chat1: {
     root: './json/chat1',
-    import: "import * as Gregor1 from './flow-types-gregor'\nimport * as Keybase1 from './flow-types'",
-    out: 'js/flow-types-chat.js',
+    import: "import * as Gregor1 from './rpc-gregor-gen'\nimport * as Keybase1 from './rpc-gen'",
+    out: 'js/rpc-chat-gen.js',
     incomingMaps: {},
     seenTypes: {},
     enums: {},
   },
   keybase1: {
     root: 'json/keybase1',
-    out: 'js/flow-types.js',
-    import: "import * as Gregor1 from './flow-types-gregor'\n",
+    out: 'js/rpc-gen.js',
+    import: "import * as Gregor1 from './rpc-gregor-gen'\n",
     incomingMaps: {},
     seenTypes: {},
     enums: {},
   },
   gregor1: {
     root: './json/gregor1',
-    out: 'js/flow-types-gregor.js',
+    out: 'js/rpc-gregor-gen.js',
     incomingMaps: {},
     seenTypes: {},
     enums: {},
@@ -370,9 +362,9 @@ import type {Boolean, Bool, Bytes, Double, Int, Int64, Long, String, Uint, Uint6
     Object.keys(project.incomingMaps).map(im => `  '${im}'?: ${project.incomingMaps[im]}`).join(',') +
     '|}\n'
   const toWrite = [typePrelude, typeDefs.join('\n'), incomingMap].join('\n')
-  // const formatted = prettier.format(toWrite, prettierOptions)
-  // TODO disabling prettier short term
-  fs.writeFileSync(project.out, /*formatted*/ toWrite)
+  const destinationFile = `types/${project.out.substr(3)}` // Only used by prettier so we can set an override in .prettierrc
+  const formatted = prettier.format(toWrite, prettier.resolveConfig.sync(destinationFile))
+  fs.writeFileSync(project.out, formatted)
 }
 
 function decapitalize(s) {

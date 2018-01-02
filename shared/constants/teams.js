@@ -3,7 +3,7 @@ import * as I from 'immutable'
 import * as ChatTypes from './types/chat'
 import * as Types from './types/teams'
 import {userIsActiveInTeam} from './selectors'
-import * as RPCTypes from './types/flow-types'
+import * as RPCTypes from './types/rpc-gen'
 import invert from 'lodash/invert'
 
 import type {Service} from './types/search'
@@ -18,9 +18,10 @@ export const makeChannelInfo: I.RecordFactory<Types._ChannelInfo> = I.Record({
 })
 
 export const makeMemberInfo: I.RecordFactory<Types._MemberInfo> = I.Record({
+  active: true,
+  fullName: '',
   type: null,
   username: '',
-  active: true,
 })
 
 export const makeInviteInfo: I.RecordFactory<Types._InviteInfo> = I.Record({
@@ -77,6 +78,7 @@ export const initialCanUserPerform: RPCTypes.TeamOperation = {
   setTeamShowcase: false,
   setMemberShowcase: false,
   changeOpenTeam: false,
+  leaveTeam: false,
 }
 
 const userIsActiveInTeamHelper = (state: TypedState, username: string, service: Service, teamname: string) =>

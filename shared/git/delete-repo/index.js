@@ -45,7 +45,7 @@ class DeleteRepo extends React.Component<Props, State> {
     return (
       <ScrollView>
         <Box style={_containerStyle}>
-          {!!this.props.error &&
+          {!!this.props.error && (
             <Box
               style={{
                 alignSelf: 'stretch',
@@ -54,20 +54,24 @@ class DeleteRepo extends React.Component<Props, State> {
                 padding: globalMargins.tiny,
               }}
             >
-              <Text type="Body" backgroundMode="Terminal">{this.props.error.message}</Text>
-            </Box>}
+              <Text type="Body" backgroundMode="Terminal">
+                {this.props.error.message}
+              </Text>
+            </Box>
+          )}
           <Text type="Header" style={{marginBottom: 27}}>
             Are you sure you want to delete this {this.props.teamname ? 'team ' : ''}repository?
           </Text>
           <Icon type={this.props.teamname ? 'icon-repo-team-delete-48' : 'icon-repo-personal-delete-48'} />
           <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginBottom: 27}}>
-            {!!this.props.teamname &&
+            {!!this.props.teamname && (
               <Avatar
                 isTeam={true}
                 teamname={this.props.teamname}
                 size={12}
                 style={{marginRight: globalMargins.xtiny}}
-              />}
+              />
+            )}
             <Text
               type="BodyError"
               style={isMobile ? {textDecorationLine: 'line-through'} : {textDecoration: 'line-through'}}
@@ -88,13 +92,14 @@ class DeleteRepo extends React.Component<Props, State> {
             onEnterKeyDown={this._onSubmit}
             hintText="Name of the repository"
           />
-          {!!this.props.teamname &&
+          {!!this.props.teamname && (
             <Checkbox
               label="Notify the team"
               checked={this.state.notifyTeam}
               onCheck={notifyTeam => this.setState({notifyTeam})}
               style={{marginBottom: globalMargins.small, marginTop: globalMargins.small}}
-            />}
+            />
+          )}
           <Box style={{flex: 1}} />
           <Box style={globalStyles.flexBoxRow}>
             <Button

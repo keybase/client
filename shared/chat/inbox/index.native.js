@@ -134,7 +134,7 @@ class Inbox extends React.PureComponent<Props, State> {
     const {viewableItems} = data
     const item = viewableItems && viewableItems[0]
     if (item && item.index) {
-      this._askForUnboxing(viewableItems)
+      this._askForUnboxing(viewableItems.map(i => i.item))
     }
   }, 1000)
 
@@ -207,8 +207,9 @@ class Inbox extends React.PureComponent<Props, State> {
           {!this.props.isLoading && !this.props.rows.length && !this.props.filter && <NoChats />}
           {!this.props.rows.length && !!this.props.filter && <Owl />}
           {this.state.showFloating &&
-            this.props.showSmallTeamsExpandDivider &&
-            <FloatingDivider toggle={this.props.toggleSmallTeamsExpanded} />}
+            this.props.showSmallTeamsExpandDivider && (
+              <FloatingDivider toggle={this.props.toggleSmallTeamsExpanded} />
+            )}
           {/*
             // TODO when the teams tab exists
             this.props.showBuildATeam &&

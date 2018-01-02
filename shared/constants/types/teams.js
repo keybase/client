@@ -1,6 +1,6 @@
 // @flow
 import * as I from 'immutable'
-import * as RPCTypes from './flow-types'
+import * as RPCTypes from './rpc-gen'
 import type {ConversationIDKey} from './chat'
 
 export type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner'
@@ -33,9 +33,10 @@ export type _ChannelInfo = {
 
 export type ChannelInfo = I.RecordOf<_ChannelInfo>
 export type _MemberInfo = {
+  active: boolean,
+  fullName: string,
   type: ?TeamRoleType,
   username: string,
-  active: boolean,
 }
 
 export type MemberInfo = I.RecordOf<_MemberInfo>

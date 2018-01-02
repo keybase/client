@@ -19,13 +19,13 @@ import {navigateAppend, navigateTo} from '../../../actions/route-tree'
 import {chatTab, teamsTab} from '../../../constants/tabs'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import flags from '../../../util/feature-flags'
-import * as ChatTypes from '../../../constants/types/flow-types-chat'
+import * as ChatTypes from '../../../constants/types/rpc-chat-gen'
 
 const getParticipants = createSelector(
   [
     Constants.getYou,
     Constants.getParticipantsWithFullNames,
-    Constants.getFollowingMap,
+    Constants.getFollowing,
     Constants.getMetaDataMap,
   ],
   (you, users, followingMap, metaDataMap) => {
@@ -130,12 +130,13 @@ const mergeProps = (stateProps, dispatchProps) => ({
     }
   },
   onJoinChannel: () => dispatchProps._onJoinChannel(stateProps.selectedConversationIDKey),
-  onMuteConversation: stateProps.selectedConversationIDKey &&
+  onMuteConversation:
+    stateProps.selectedConversationIDKey &&
     !Constants.isPendingConversationIDKey(stateProps.selectedConversationIDKey)
-    ? (muted: boolean) =>
-        stateProps.selectedConversationIDKey &&
-        dispatchProps._onMuteConversation(stateProps.selectedConversationIDKey, muted)
-    : null,
+      ? (muted: boolean) =>
+          stateProps.selectedConversationIDKey &&
+          dispatchProps._onMuteConversation(stateProps.selectedConversationIDKey, muted)
+      : null,
   onShowBlockConversationDialog: () =>
     dispatchProps._onShowBlockConversationDialog(
       stateProps.selectedConversationIDKey,

@@ -16,7 +16,7 @@ type Props = {
   windowParam: string,
   windowComponent: string,
   remoteWindow: ?BrowserWindow,
-  setUsernames: I.Set<string> => void,
+  setUsernames: (I.Set<string>) => void,
   usernames: I.Set<string>,
 }
 

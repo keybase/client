@@ -58,7 +58,7 @@ func (r *teamHandler) Create(ctx context.Context, cli gregor1.IncomingInterface,
 }
 
 func (r *teamHandler) rotateTeam(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
-	r.G().Log.CDebugf(ctx, "team.clkr received")
+	r.G().Log.CDebugf(ctx, "teamHandler: team.clkr received")
 	var msg keybase1.TeamCLKRMsg
 	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
 		r.G().Log.CDebugf(ctx, "error unmarshaling team.clkr item: %s", err)
@@ -76,7 +76,7 @@ func (r *teamHandler) rotateTeam(ctx context.Context, cli gregor1.IncomingInterf
 
 func (r *teamHandler) memberOutFromReset(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
 	nm := "team.member_out_from_reset"
-	r.G().Log.CDebugf(ctx, "%s received", nm)
+	r.G().Log.CDebugf(ctx, "teamHandler: %s received", nm)
 	var msg keybase1.TeamMemberOutFromReset
 	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
 		r.G().Log.CDebugf(ctx, "error unmarshaling %s item: %s", nm, err)
@@ -94,13 +94,21 @@ func (r *teamHandler) memberOutFromReset(ctx context.Context, cli gregor1.Incomi
 
 func (r *teamHandler) changeTeam(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item, changes keybase1.TeamChangeSet) error {
 	var rows []keybase1.TeamChangeRow
+	r.G().Log.CDebugf(ctx, "teamHandler: changeTeam received")
 	if err := json.Unmarshal(item.Body().Bytes(), &rows); err != nil {
 		r.G().Log.CDebugf(ctx, "error unmarshaling team.(change|rename) item: %s", err)
 		return err
 	}
 	r.G().Log.CDebugf(ctx, "team.(change|rename) unmarshaled: %+v", rows)
+	if err := teams.HandleChangeNotification(ctx, r.G(), rows, changes); err != nil {
+		return err
+	}
 
-	return teams.HandleChangeNotification(ctx, r.G(), rows, changes)
+	// Locally dismiss this now that we have processed it so we can avoid replaying it over and over
+	if err := r.G().GregorDismisser.LocalDismissItem(ctx, item.Metadata().MsgID()); err != nil {
+		r.G().Log.CDebugf(ctx, "failed to local dismiss team change: %s", err)
+	}
+	return nil
 }
 
 func (r *teamHandler) deleteTeam(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
@@ -109,7 +117,7 @@ func (r *teamHandler) deleteTeam(ctx context.Context, cli gregor1.IncomingInterf
 		r.G().Log.CDebugf(ctx, "error unmarshaling team.(change|rename) item: %s", err)
 		return err
 	}
-	r.G().Log.CDebugf(ctx, "team.delete unmarshaled: %+v", rows)
+	r.G().Log.CDebugf(ctx, "teamHandler: team.delete unmarshaled: %+v", rows)
 
 	err := teams.HandleDeleteNotification(ctx, r.G(), rows)
 	if err != nil {
@@ -125,7 +133,7 @@ func (r *teamHandler) exitTeam(ctx context.Context, cli gregor1.IncomingInterfac
 		r.G().Log.CDebugf(ctx, "error unmarshaling team.exit item: %s", err)
 		return err
 	}
-	r.G().Log.CDebugf(ctx, "team.exit unmarshaled: %+v", rows)
+	r.G().Log.CDebugf(ctx, "teamHandler: team.exit unmarshaled: %+v", rows)
 	err := teams.HandleExitNotification(ctx, r.G(), rows)
 	if err != nil {
 		return err
@@ -136,7 +144,7 @@ func (r *teamHandler) exitTeam(ctx context.Context, cli gregor1.IncomingInterfac
 }
 
 func (r *teamHandler) sharingBeforeSignup(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
-	r.G().Log.CDebugf(ctx, "team.sbs received")
+	r.G().Log.CDebugf(ctx, "teamHandler: team.sbs received")
 	var msg keybase1.TeamSBSMsg
 	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
 		r.G().Log.CDebugf(ctx, "error unmarshaling team.sbs item: %s", err)
@@ -153,7 +161,7 @@ func (r *teamHandler) sharingBeforeSignup(ctx context.Context, cli gregor1.Incom
 }
 
 func (r *teamHandler) openTeamAccessRequest(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
-	r.G().Log.CDebugf(ctx, "team.openreq received")
+	r.G().Log.CDebugf(ctx, "teamHandler: team.openreq received")
 	var msg keybase1.TeamOpenReqMsg
 	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
 		r.G().Log.CDebugf(ctx, "error unmarshaling team.openreq item: %s", err)
@@ -170,7 +178,7 @@ func (r *teamHandler) openTeamAccessRequest(ctx context.Context, cli gregor1.Inc
 }
 
 func (r *teamHandler) seitanCompletion(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
-	r.G().Log.CDebugf(ctx, "team.seitan received")
+	r.G().Log.CDebugf(ctx, "teamHandler: team.seitan received")
 	var msg keybase1.TeamSeitanMsg
 	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
 		r.G().Log.CDebugf(ctx, "error unmarshaling team.seitan item: %s", err)

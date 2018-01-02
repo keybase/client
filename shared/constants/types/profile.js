@@ -1,5 +1,5 @@
 // @flow
-import * as RPCTypes from './flow-types'
+import * as RPCTypes from './rpc-gen'
 import type {PlatformsExpandedType} from './more'
 
 export type PgpInfo = {

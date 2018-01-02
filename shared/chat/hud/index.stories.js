@@ -1,5 +1,6 @@
 // @flow
 import React from 'react'
+import * as I from 'immutable'
 import {MentionRowRenderer, MentionHud} from '.'
 import {compose, withState} from 'recompose'
 import {Box, Button, Input, ButtonBar} from '../../common-adapters'
@@ -9,7 +10,7 @@ import {globalStyles} from '../../styles'
 const dummyStore = {
   getState: () => ({
     config: {
-      following: {},
+      following: I.Set(),
       username: 'chris',
     },
   }),
@@ -38,7 +39,7 @@ const load = () => {
     .add('Mention Row', () => (
       <Box style={{width: 240}}>
         <MentionRowRenderer
-          following={{}}
+          following={I.Set()}
           you="chris"
           username="trex"
           fullName="T. Bone Rexasaurus"
@@ -48,7 +49,7 @@ const load = () => {
           onHover={action('onHover')}
         />
         <MentionRowRenderer
-          following={{}}
+          following={I.Set()}
           you="chris"
           username="marcopolo"
           fullName="Marco Munizaga"
@@ -58,7 +59,7 @@ const load = () => {
           onHover={action('onHover')}
         />
         <MentionRowRenderer
-          following={{}}
+          following={I.Set()}
           you="chris"
           username="missingno"
           fullName="MissingNo"

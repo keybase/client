@@ -14,13 +14,15 @@ type Props = {
 }
 
 export default (props: Props) =>
-  props.inSearch
-    ? <SearchHeader
-        onExitSearch={props.onExitSearch}
-        selectedConversationIDKey={props.selectedConversationIDKey}
-      />
-    : <Header
-        infoPanelOpen={props.infoPanelOpen}
-        onToggleInfoPanel={props.onToggleInfoPanel}
-        onBack={props.onBack}
-      />
+  props.inSearch ? (
+    <SearchHeader
+      onExitSearch={props.onExitSearch}
+      selectedConversationIDKey={props.selectedConversationIDKey}
+    />
+  ) : (
+    <Header
+      infoPanelOpen={props.infoPanelOpen}
+      onToggleInfoPanel={props.onToggleInfoPanel}
+      onBack={props.onBack}
+    />
+  )

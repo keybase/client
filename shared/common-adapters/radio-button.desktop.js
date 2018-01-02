@@ -33,7 +33,9 @@ const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => (
     <StyledRadio disabled={disabled} selected={selected}>
       <div style={styleIcon} />
     </StyledRadio>
-    <Text type="Body" style={{color: globalColors.black_75}}>{label}</Text>
+    <Text type="Body" style={{color: globalColors.black_75}}>
+      {label}
+    </Text>
   </div>
 )
 

@@ -47,14 +47,16 @@ class BigTeamHeader extends React.PureComponent<Props, State> {
           }}
           style={iconStyle}
         />
-        {props.showMenu &&
+        {props.showMenu && (
           <PopupMenu
             header={{
               title: 'Header',
               view: (
                 <Box style={teamHeaderStyle}>
                   <Avatar teamname={props.teamname} size={16} />
-                  <Text type="BodySmallSemibold" style={teamStyle}>{props.teamname}</Text>
+                  <Text type="BodySmallSemibold" style={teamStyle}>
+                    {props.teamname}
+                  </Text>
                   <Text type="BodySmall">
                     {props.memberCount + ' member' + (props.memberCount !== 1 ? 's' : '')}
                   </Text>
@@ -75,7 +77,8 @@ class BigTeamHeader extends React.PureComponent<Props, State> {
             styleCatcher={{
               zIndex: 1,
             }}
-          />}
+          />
+        )}
       </HeaderBox>
     )
   }

@@ -95,7 +95,7 @@ function SpaceInfo({
 const UpgradeButton = ({onClick, type}: {onClick: () => void, type: 'upgrade' | 'change'}) => (
   <Button
     style={{marginRight: 0}}
-    type="Follow"
+    type="PrimaryGreen"
     label={{upgrade: 'Upgrade', change: 'Change'}[type]}
     onClick={e => {
       onClick()
@@ -121,9 +121,11 @@ const DowngradeLink = ({onClick}) => (
 function PlanActionVariants({variants, onClick}: {variants: PlanActionVariantsProps, onClick: () => void}) {
   switch (variants.type) {
     case 'change':
-      return variants.changeType === 'downgrade'
-        ? <DowngradeLink onClick={onClick} />
-        : <UpgradeButton onClick={onClick} type={variants.changeType} />
+      return variants.changeType === 'downgrade' ? (
+        <DowngradeLink onClick={onClick} />
+      ) : (
+        <UpgradeButton onClick={onClick} type={variants.changeType} />
+      )
     case 'spaceInfo':
       return <SpaceInfo {...variants} />
   }
@@ -187,9 +189,7 @@ function PaymentInfo({
         }}
       >
         <Box style={globalStyles.flexBoxColumn}>
-          <Text type="Body">
-            {name}
-          </Text>
+          <Text type="Body">{name}</Text>
           <Text style={{color: isBroken ? globalColors.red : globalColors.black_40}} type="BodySmall">
             **** {last4Digits} {isBroken ? ' (broken)' : ''}
           </Text>
@@ -240,10 +240,11 @@ function Plan({
         />
       ))}
       {!!paymentInfo && <PaymentInfo {...paymentInfo} onChangePaymentInfo={onChangePaymentInfo} />}
-      {!!paymentInfo &&
+      {!!paymentInfo && (
         <Text style={{marginTop: globalMargins.small}} type="BodySmall">
           * You only pay for data you write on Keybase. When you share a file, the recipient does not pay.
-        </Text>}
+        </Text>
+      )}
     </Box>
   )
 }
@@ -269,7 +270,9 @@ function AccountEmail({
       <Box style={globalStyles.flexBoxColumn}>
         <Text type="BodySemibold">{email}</Text>
       </Box>
-      <Text type="Body" style={{color: globalColors.blue}} link={true} onClick={onChangeEmail}>Edit</Text>
+      <Text type="Body" style={{color: globalColors.blue}} link={true} onClick={onChangeEmail}>
+        Edit
+      </Text>
     </Box>
   )
 }
@@ -280,7 +283,9 @@ function AccountPassphrase({onChangePassphrase}: {onChangePassphrase: () => void
       <Text type="Body" style={{marginRight: globalMargins.xtiny}}>
         Passphrase:
       </Text>
-      <Text type="Body" style={{flex: 1}}>•••••••••</Text>
+      <Text type="Body" style={{flex: 1}}>
+        •••••••••
+      </Text>
       <Text type="Body" style={{color: globalColors.blue}} link={true} onClick={onChangePassphrase}>
         Edit
       </Text>

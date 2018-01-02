@@ -24,7 +24,11 @@ const MenuRow = (props: MenuItemProps) => (
     }}
     style={{...styleRow(props), ...props.style}}
   >
-    {props.view || <Text type={'BodyBig'} style={styleRowText(props)}>{props.title}</Text>}
+    {props.view || (
+      <Text type={'BodyBig'} style={styleRowText(props)}>
+        {props.title}
+      </Text>
+    )}
   </TouchableOpacity>
 )
 

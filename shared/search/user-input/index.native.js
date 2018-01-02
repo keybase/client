@@ -86,7 +86,7 @@ class UserItem extends Component<UserItemProps, UserItemState> {
         {/* We can't listen to keyboard events in RN Android, so instead we
             create an offscreen text input with a single space character and
             observe it being removed when the value changes. */}
-        {isSelected &&
+        {isSelected && (
           <TextInput
             autoFocus={true}
             onBlur={this._onDeselect}
@@ -94,7 +94,8 @@ class UserItem extends Component<UserItemProps, UserItemState> {
             value=" "
             underlineColorAndroid="transparent"
             style={{position: 'absolute', left: -9999}}
-          />}
+          />
+        )}
       </Box>
     )
   }
@@ -155,9 +156,10 @@ class UserInput extends Component<Props, State> {
     // left end of the input via drag or arrow key interactions. Note: Android
     // RN crashes if we set the selection to 1 before the value is updated to
     // include the zero width space.
-    const clampedSelection = selectionStart === null
-      ? null
-      : {start: Math.max(1, selectionStart || 1), end: Math.max(1, selectionEnd || 1)}
+    const clampedSelection =
+      selectionStart === null
+        ? null
+        : {start: Math.max(1, selectionStart || 1), end: Math.max(1, selectionEnd || 1)}
 
     const showAddButton = !!userItems.length && !usernameText.length && onClickAddButton
     return (
@@ -204,16 +206,17 @@ class UserInput extends Component<Props, State> {
               returnKeyType="next"
             />
             {showAddButton &&
-              onClickAddButton &&
-              <Icon
-                onClick={onClickAddButton}
-                type="iconfont-add"
-                style={{
-                  fontSize: 16,
-                  height: 16,
-                  color: globalColors.blue,
-                }}
-              />}
+              onClickAddButton && (
+                <Icon
+                  onClick={onClickAddButton}
+                  type="iconfont-add"
+                  style={{
+                    fontSize: 16,
+                    height: 16,
+                    color: globalColors.blue,
+                  }}
+                />
+              )}
           </Box>
         </Box>
       </ClickableBox>

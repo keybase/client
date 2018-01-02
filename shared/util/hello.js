@@ -3,7 +3,7 @@
 
 import logger from '../logger'
 import engine from '../engine'
-import {commonClientType, configHelloIAmRpcPromise} from '../constants/types/flow-types'
+import {commonClientType, configHelloIAmRpcPromise} from '../constants/types/rpc-gen'
 
 export default function(
   pid: number,

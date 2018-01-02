@@ -41,11 +41,7 @@ const AttachmentStatusFooter = ({
     )
   }
 
-  return (
-    <Box style={styleHeaderFooter}>
-      {contents}
-    </Box>
-  )
+  return <Box style={styleHeaderFooter}>{contents}</Box>
 }
 
 const AttachmentView = ({
@@ -100,7 +96,7 @@ const AttachmentPopup = ({
 
   return (
     <PopupDialog onClose={onClose} fill={true}>
-      {detailsPopupShowing &&
+      {detailsPopupShowing && (
         <AttachmentPopupMenu
           you={you}
           message={message}
@@ -110,9 +106,12 @@ const AttachmentPopup = ({
           onOpenInFileUI={onOpenInFileUI}
           onHidden={onCloseDetailsPopup}
           style={{position: 'absolute', top: 28, right: globalMargins.xtiny}}
-        />}
+        />
+      )}
       <Box style={styleHeaderFooter}>
-        <Text type="BodySemibold" style={{color: globalColors.black_75, flex: 1}}>{message.title}</Text>
+        <Text type="BodySemibold" style={{color: globalColors.black_75, flex: 1}}>
+          {message.title}
+        </Text>
         <Icon
           type="iconfont-ellipsis"
           style={{color: globalColors.black_40, cursor: 'pointer'}}

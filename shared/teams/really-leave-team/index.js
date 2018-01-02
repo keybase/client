@@ -18,11 +18,8 @@ const ReallyLeaveTeam = (props: Props) => (
         Are you sure you want to leave {props.name}?
       </Text>
       <Text type="Body" style={{maxWidth: 430, textAlign: 'center'}}>
-        You will lose access to all the
-        {' '}
-        {props.name}
-        {' '}
-        chats and folders, and you won't be able to get back unless an admin invites you.
+        You will lose access to all the {props.name} chats and folders, and you won't be able to get back
+        unless an admin invites you.
       </Text>
       <ButtonBar direction={isMobile ? 'column' : 'row'} fullWidth={isMobile}>
         <Button type="Secondary" onClick={props.onClose} label="Cancel" />

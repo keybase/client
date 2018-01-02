@@ -57,6 +57,10 @@ function saveAttachmentDialog(filePath: string): Promise<NextURI> {
   return Promise.resolve(goodPath)
 }
 
+function clearAllNotifications() {
+  PushNotifications.cancelAllLocalNotifications()
+}
+
 function displayNewMessageNotification(text: string, convID: ?string, badgeCount: ?number, myMsgID: ?number) {
   // Dismiss any non-plaintext notifications for the same message ID
   if (isIOS) {
@@ -108,10 +112,19 @@ function configurePush() {
       },
       senderID: PushConstants.androidSenderID,
       onNotification: notification => {
+        // On iOS, some fields are in notification.data. Also, the
+        // userInfo field from the local notification spawned in
+        // displayNewMessageNotification gets renamed to
+        // data. However, on Android, all fields are in the top level,
+        // but the userInfo field is not renamed.
+        //
+        // Therefore, just pull out all fields from data and userInfo.
         const merged = {
           ...notification,
           ...(notification.data || {}),
+          ...(notification.userInfo || {}),
           data: undefined,
+          userInfo: undefined,
         }
         dispatch(
           PushGen.createNotification({
@@ -177,4 +190,5 @@ export {
   saveAttachmentDialog,
   setNoPushPermissions,
   showShareActionSheet,
+  clearAllNotifications,
 }

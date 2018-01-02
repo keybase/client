@@ -1,6 +1,6 @@
 // @flow
 import * as LoginGen from '../../../actions/login-gen'
-import * as RPCTypes from '../../../constants/types/flow-types'
+import * as RPCTypes from '../../../constants/types/rpc-gen'
 import SelectOtherDevice from '.'
 import {connect, type TypedState} from '../../../util/container'
 import {compose, withState} from 'recompose'

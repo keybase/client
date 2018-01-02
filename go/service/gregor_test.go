@@ -1,7 +1,6 @@
 package service
 
 import (
-	"bytes"
 	"crypto/rand"
 	"errors"
 	"fmt"
@@ -354,7 +353,7 @@ func (m mockGregord) newIbm2(uid gregor1.UID, category gregor1.Category, body gr
 	}
 }
 
-func (m mockGregord) newDismissal(uid gregor1.UID, msg gregor1.Message) gregor1.Message {
+func (m mockGregord) newDismissal(uid gregor1.UID, msg gregor.Message) gregor.Message {
 	m.fc.Advance(time.Minute)
 	dismissalID := msg.ToInBandMessage().Metadata().MsgID().(gregor1.MsgID)
 	return gregor1.Message{
@@ -377,7 +376,7 @@ func newGregordMock(logger logger.Logger) mockGregord {
 	var of gregor1.ObjFactory
 	fc := clockwork.NewFakeClock()
 
-	sm := storage.NewMemEngine(of, fc)
+	sm := storage.NewMemEngine(of, fc, logger)
 
 	return mockGregord{sm: sm, fc: fc, log: logger}
 }
@@ -402,22 +401,12 @@ func setupSyncTests(t *testing.T, tc libkb.TestContext) (*gregorHandler, mockGre
 
 func checkMessages(t *testing.T, source string, msgs []gregor.InBandMessage,
 	refMsgs []gregor.InBandMessage) {
-
-	if len(msgs) != len(refMsgs) {
-		for _, m := range msgs {
-			t.Logf("msgID: %s", m.Metadata().MsgID().String())
-		}
-		t.Fatalf("messages lists unequal size, %d != %d, source: %s", len(msgs), len(refMsgs), source)
-	}
-
+	require.Len(t, msgs, len(refMsgs))
 	for index, refMsg := range refMsgs {
 		msg := msgs[index]
 		msgID := msg.Metadata().MsgID()
 		refMsgID := refMsg.Metadata().MsgID()
-
-		if !bytes.Equal(msgID.Bytes(), refMsgID.Bytes()) {
-			t.Fatalf("message IDs do not match, %s != %s, source: %s", msgID, refMsgID, source)
-		}
+		require.Equal(t, refMsgID.Bytes(), msgID.Bytes())
 	}
 }
 
@@ -615,7 +604,7 @@ func TestSyncDismissal(t *testing.T) {
 
 	// Dismiss message
 	dismissal := server.newDismissal(uid, msg)
-	server.ConsumeMessage(context.TODO(), dismissal)
+	server.ConsumeMessage(context.TODO(), dismissal.(gregor1.Message))
 
 	// Sync from the server
 	replayedMessages, consumedMessages := doServerSync(t, h, server)
@@ -803,7 +792,7 @@ func TestSyncDismissalExistingState(t *testing.T) {
 
 	// Dismiss message
 	dismissal := server.newDismissal(uid, msg)
-	server.ConsumeMessage(context.TODO(), dismissal)
+	server.ConsumeMessage(context.TODO(), dismissal.(gregor1.Message))
 	refReplayMsgs = append(refReplayMsgs, dismissal.ToInBandMessage())
 	refConsumeMsgs = append(refConsumeMsgs, dismissal.ToInBandMessage())
 
@@ -840,7 +829,7 @@ func TestSyncFutureDismissals(t *testing.T) {
 
 	// Dismiss message
 	dismissal := server.newDismissal(uid, msg2)
-	server.ConsumeMessage(context.TODO(), dismissal)
+	server.ConsumeMessage(context.TODO(), dismissal.(gregor1.Message))
 
 	// Sync from the server
 	h.firstConnect = false
@@ -904,4 +893,40 @@ func badgeStateStats(bs keybase1.BadgeState) (res BadgeStateStats) {
 		}
 	}
 	return
+}
+
+func TestLocalDismissals(t *testing.T) {
+	tc := libkb.SetupTest(t, "gregor", 2)
+	defer tc.Cleanup()
+	tc.G.SetService()
+
+	// Set up client and server
+	h, server, uid := setupSyncTests(t, tc)
+
+	var refReplayMsgs []gregor.InBandMessage
+	var refConsumeMsgs []gregor.InBandMessage
+	msg := server.newIbm(uid)
+	require.NoError(t, server.ConsumeMessage(context.TODO(), msg))
+	refConsumeMsgs = append(refConsumeMsgs, msg.ToInBandMessage())
+	refReplayMsgs = append(refReplayMsgs, msg.ToInBandMessage())
+
+	lmsg := server.newIbm(uid)
+	require.NoError(t, server.ConsumeMessage(context.TODO(), lmsg))
+	refConsumeMsgs = append(refConsumeMsgs, lmsg.ToInBandMessage())
+
+	require.NoError(t, h.LocalDismissItem(context.TODO(), lmsg.ToInBandMessage().Metadata().MsgID()))
+
+	replayedMessages, consumedMessages := doServerSync(t, h, server)
+	checkMessages(t, "replayed messages", replayedMessages, refReplayMsgs)
+	checkMessages(t, "consumed messages", consumedMessages, refConsumeMsgs)
+
+	dis := server.newDismissal(uid, lmsg)
+	require.NoError(t, server.ConsumeMessage(context.TODO(), dis.(gregor1.Message)))
+	require.NoError(t, broadcastMessageTesting(t, h, dis.(gregor1.Message)))
+
+	gcli, err := h.getGregorCli()
+	require.NoError(t, err)
+	lds, err := gcli.Sm.LocalDismissals(context.TODO(), uid)
+	require.NoError(t, err)
+	require.Zero(t, len(lds))
 }

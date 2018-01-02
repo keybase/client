@@ -15,22 +15,25 @@ function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
       <Box style={_containerStyle}>
         <Box style={{..._headerStyle, ..._headerStyleThemed[theme], ...headerStyle}}>
           {customComponent}
-          {onBack &&
+          {onBack && (
             <BackButton
               key="back"
               onClick={onBack}
               style={{..._backButtonIconStyle, ..._backButtonIconStyleThemed[theme]}}
-            />}
-          {onCancel &&
+            />
+          )}
+          {onCancel && (
             <Icon
               style={{..._styleClose, ..._styleCloseThemed[theme]}}
               type="iconfont-close"
               onClick={onCancel}
-            />}
-          {title &&
+            />
+          )}
+          {title && (
             <Box style={_titleStyle}>
               <Text type="Header">{title}</Text>
-            </Box>}
+            </Box>
+          )}
         </Box>
         <WrappedComponent {...(props: P)} />
       </Box>

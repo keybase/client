@@ -35,7 +35,9 @@ const Group = (props: {
   unsubscribedFromAll: boolean,
 }) => (
   <Box style={{...globalStyles.flexBoxColumn, marginBottom: globalMargins.medium}}>
-    <Text type="BodyBig" style={{marginTop: globalMargins.medium}}>{props.title}</Text>
+    <Text type="BodyBig" style={{marginTop: globalMargins.medium}}>
+      {props.title}
+    </Text>
     <Box style={{...globalStyles.flexBoxColumn, marginBottom: globalMargins.small}}>
       {props.settings &&
         props.settings.map(s => (
@@ -50,7 +52,7 @@ const Group = (props: {
           />
         ))}
     </Box>
-    {props.unsub &&
+    {props.unsub && (
       <Box style={{...globalStyles.flexBoxColumn}}>
         <Text type="BodyBig">Or:</Text>
         <Checkbox
@@ -60,29 +62,31 @@ const Group = (props: {
           checked={!!props.unsubscribedFromAll}
           label={`Unsubscribe me from all ${props.unsub} notifications`}
         />
-      </Box>}
+      </Box>
+    )}
   </Box>
 )
 
 const Notifications = (props: Props) =>
-  !props.groups.email || !props.groups.email.settings
-    ? <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'center'}}>
-        <ProgressIndicator type="Small" style={{width: globalMargins.medium}} />
-      </Box>
-    : <Box style={{...globalStyles.scrollable, flex: 1, padding: globalMargins.small}}>
-        <Group
-          allowEdit={props.allowEdit}
-          groupName="email"
-          onToggle={props.onToggle}
-          onToggleUnsubscribeAll={() => props.onToggleUnsubscribeAll('email')}
-          title="Email me:"
-          unsub="mail"
-          settings={props.groups.email && props.groups.email.settings}
-          unsubscribedFromAll={props.groups.email && props.groups.email.unsubscribedFromAll}
-        />
+  !props.groups.email || !props.groups.email.settings ? (
+    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'center'}}>
+      <ProgressIndicator type="Small" style={{width: globalMargins.medium}} />
+    </Box>
+  ) : (
+    <Box style={{...globalStyles.scrollable, flex: 1, padding: globalMargins.small}}>
+      <Group
+        allowEdit={props.allowEdit}
+        groupName="email"
+        onToggle={props.onToggle}
+        onToggleUnsubscribeAll={() => props.onToggleUnsubscribeAll('email')}
+        title="Email me:"
+        unsub="mail"
+        settings={props.groups.email && props.groups.email.settings}
+        unsubscribedFromAll={props.groups.email && props.groups.email.unsubscribedFromAll}
+      />
 
-        {props.groups.app_push &&
-          props.groups.app_push.settings &&
+      {props.groups.app_push &&
+        props.groups.app_push.settings && (
           <Group
             allowEdit={props.allowEdit}
             groupName="app_push"
@@ -92,10 +96,11 @@ const Notifications = (props: Props) =>
             unsub="push"
             settings={props.groups.app_push.settings}
             unsubscribedFromAll={props.groups.app_push.unsubscribedFromAll}
-          />}
+          />
+        )}
 
-        {props.groups.security &&
-          props.groups.security.settings &&
+      {props.groups.security &&
+        props.groups.security.settings && (
           <Group
             allowEdit={props.allowEdit}
             groupName="security"
@@ -103,7 +108,9 @@ const Notifications = (props: Props) =>
             title="Security"
             settings={props.groups.security.settings}
             unsubscribedFromAll={false}
-          />}
-      </Box>
+          />
+        )}
+    </Box>
+  )
 
 export default Notifications

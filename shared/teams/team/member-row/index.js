@@ -17,15 +17,15 @@ import {typeToLabel} from '../../../constants/teams'
 import {type TypeMap} from '../../../constants/types/teams'
 
 export type Props = {
-  username: string,
-  following: boolean,
-  teamname: string,
-  you: ?string,
-  type: ?string,
   active: boolean,
+  following: boolean,
+  fullName: string,
   onClick: () => void,
   onReAddToTeam: () => void,
   onRemoveFromTeam: () => void,
+  type: ?string,
+  username: string,
+  you: ?string,
 }
 
 const showCrown: TypeMap = {
@@ -36,7 +36,7 @@ const showCrown: TypeMap = {
 }
 
 export const TeamMemberRow = (props: Props) => {
-  const {username, onClick, you, following, type, active, onReAddToTeam, onRemoveFromTeam} = props
+  const {active, following, fullName, onClick, type, username, you, onReAddToTeam, onRemoveFromTeam} = props
   return (
     <Box
       style={{
@@ -60,25 +60,33 @@ export const TeamMemberRow = (props: Props) => {
               colorFollowing={true}
               users={[{username, following, you: you === username}]}
             />
-            {!active &&
+            {!active && (
               <Meta
                 title="LOCKED OUT"
                 style={{background: globalColors.red, marginLeft: globalMargins.xtiny, marginTop: 4}}
-              />}
+              />
+            )}
           </Box>
           <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+            {!!fullName &&
+              active && (
+                <Text style={{marginRight: globalMargins.xtiny}} type="BodySmall">
+                  {fullName} •
+                </Text>
+              )}
             {!!active &&
               !!type &&
-              !!showCrown[type] &&
-              <Icon
-                // $FlowIssue "some string with unknown value"
-                type={'iconfont-crown-' + type}
-                style={{
-                  color: roleIconColorMap[type],
-                  fontSize: isMobile ? 16 : 12,
-                  marginRight: globalMargins.xtiny,
-                }}
-              />}
+              !!showCrown[type] && (
+                <Icon
+                  // $FlowIssue "some string with unknown value"
+                  type={'iconfont-crown-' + type}
+                  style={{
+                    color: roleIconColorMap[type],
+                    fontSize: isMobile ? 16 : 12,
+                    marginRight: globalMargins.xtiny,
+                  }}
+                />
+              )}
             <Text type="BodySmall">
               {!!active && !!type && typeToLabel[type]}
               {!active && 'Has reset their account'}
@@ -86,13 +94,14 @@ export const TeamMemberRow = (props: Props) => {
           </Box>
         </Box>
       </ClickableBox>
-      {!active &&
+      {!active && (
         <Box style={{...globalStyles.flexBoxRow, flexShrink: 1}}>
           <ButtonBar>
             <Button small={true} label="Admit" onClick={onReAddToTeam} type="Primary" />
             <Button small={true} label="Remove" onClick={onRemoveFromTeam} type="Secondary" />
           </ButtonBar>
-        </Box>}
+        </Box>
+      )}
     </Box>
   )
 }

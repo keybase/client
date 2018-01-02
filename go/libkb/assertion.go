@@ -726,7 +726,7 @@ func ParseImplicitTeamDisplayName(ctx AssertionContext, s string, isPublic bool)
 	return ret, nil
 }
 
-var implicitTeamDisplayNameConflictRxx = regexp.MustCompile(`^\(conflicted (\d{4}-\d{2}-\d{2})\ #(\d+)\)$`)
+var implicitTeamDisplayNameConflictRxx = regexp.MustCompile(`^\(conflicted (\d{4}-\d{2}-\d{2})( #(\d+))?\)$`)
 
 func ParseImplicitTeamDisplayNameSuffix(suffix string) (ret *keybase1.ImplicitTeamConflictInfo, err error) {
 	if len(suffix) == 0 {
@@ -736,9 +736,8 @@ func ParseImplicitTeamDisplayNameSuffix(suffix string) (ret *keybase1.ImplicitTe
 	if len(matches) == 0 {
 		return ret, NewImplicitTeamDisplayNameError("malformed suffix: '%s'", suffix)
 	}
-	const expectedMatches = 2
-	if len(matches) != expectedMatches+1 {
-		return ret, NewImplicitTeamDisplayNameError("malformed suffix: %v != %v", len(matches)+1, expectedMatches)
+	if len(matches) != 4 {
+		return ret, NewImplicitTeamDisplayNameError("malformed suffix; bad number of matches: %d", len(matches))
 	}
 
 	conflictTime, err := time.Parse("2006-01-02", matches[1])
@@ -746,9 +745,14 @@ func ParseImplicitTeamDisplayNameSuffix(suffix string) (ret *keybase1.ImplicitTe
 		return ret, NewImplicitTeamDisplayNameError("malformed suffix time: %v", conflictTime)
 	}
 
-	generation, err := strconv.Atoi(matches[2])
-	if err != nil || generation <= 0 {
-		return ret, NewImplicitTeamDisplayNameError("malformed suffix generation: %v", matches[2])
+	var generation int
+	if len(matches[3]) == 0 {
+		generation = 1
+	} else {
+		generation, err = strconv.Atoi(matches[3])
+		if err != nil || generation <= 0 {
+			return ret, NewImplicitTeamDisplayNameError("malformed suffix generation: %v", matches[3])
+		}
 	}
 
 	return &keybase1.ImplicitTeamConflictInfo{

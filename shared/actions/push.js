@@ -1,17 +1,19 @@
 // @flow
 import logger from '../logger'
+import * as ChatGen from './chat-gen'
 import * as PushGen from './push-gen'
-import * as ChatTypes from '../constants/types/flow-types-chat'
+import * as ChatTypes from '../constants/types/rpc-chat-gen'
 import * as Saga from '../util/saga'
-import * as RPCTypes from '../constants/types/flow-types'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import {isMobile} from '../constants/platform'
 import {chatTab} from '../constants/tabs'
-import {navigateTo} from './route-tree'
+import {switchTo} from './route-tree'
 import {createShowUserProfile} from './profile-gen'
 import {
   requestPushPermissions,
   configurePush,
   displayNewMessageNotification,
+  clearAllNotifications,
   setNoPushPermissions,
 } from './platform-specific'
 
@@ -45,16 +47,17 @@ function* permissionsRequestSaga(): Saga.SagaGenerator<any, any> {
 function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.SagaGenerator<any, any> {
   logger.info('Push notification:', notification)
   const payload = notification.payload.notification
-  if (payload && payload.userInteraction) {
+  if (payload) {
+    // Handle types that are not from user interaction
     if (payload.type === 'chat.newmessageSilent') {
       logger.info('Push notification: silent notification received')
       try {
         const unboxRes = yield Saga.call(ChatTypes.localUnboxMobilePushNotificationRpcPromise, {
           convID: payload.c || '',
           // $FlowIssue payload.t isn't ConversationMembersType
-          membersType: payload.t,
+          membersType: typeof payload.t === 'string' ? parseInt(payload.t) : payload.t,
           payload: payload.m || '',
-          pushIDs: payload.p,
+          pushIDs: typeof payload.p === 'string' ? JSON.parse(payload.p) : payload.p,
         })
         if (payload.x && payload.x > 0) {
           const num = payload.x
@@ -70,24 +73,36 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
       } catch (err) {
         logger.info('failed to unbox silent notification', err)
       }
-    } else if (payload.type === 'chat.newmessage') {
-      const {convID} = payload
-      // Check for conversation ID so we know where to navigate to
-      if (!convID) {
-        logger.error('Push chat notification payload missing conversation ID')
-        return
+    } else if (payload.type === 'chat.readmessage') {
+      logger.info('Push notification: read message notification received')
+      const b = typeof payload.b === 'string' ? parseInt(payload.b) : payload.b
+      if (b === 0) {
+        clearAllNotifications()
       }
-      yield Saga.put(navigateTo([chatTab, convID]))
-    } else if (payload.type === 'follow') {
-      const {username} = payload
-      if (!username) {
-        logger.error('Follow notification payload missing username', JSON.stringify(payload))
-        return
+    }
+
+    // Handle types from user interaction
+    if (payload.userInteraction) {
+      if (payload.type === 'chat.newmessage') {
+        const {convID} = payload
+        // Check for conversation ID so we know where to navigate to
+        if (!convID) {
+          logger.error('Push chat notification payload missing conversation ID')
+          return
+        }
+        yield Saga.put(ChatGen.createSelectConversation({conversationIDKey: convID, fromUser: true}))
+        yield Saga.put(switchTo([chatTab]))
+      } else if (payload.type === 'follow') {
+        const {username} = payload
+        if (!username) {
+          logger.error('Follow notification payload missing username', JSON.stringify(payload))
+          return
+        }
+        logger.info('Push notification: follow received, follower= ', username)
+        yield Saga.put(createShowUserProfile({username}))
+      } else {
+        logger.error('Push notification payload missing or unknown type')
       }
-      logger.info('Push notification: follow received, follower= ', username)
-      yield Saga.put(createShowUserProfile({username}))
-    } else {
-      logger.error('Push notification payload missing or unknown type')
     }
   }
 }

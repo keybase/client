@@ -367,12 +367,17 @@ def testGo(prefix) {
             dirs = getTestDirsNix()
             slash = '/'
             goversion = sh(returnStdout: true, script: "go version").trim()
+            // Ideally, we'd do this on Windows, too, but we'd have to figure
+            // out how to do it with batch files or PowerShell.
+            sh "make lint"
+            sh 'test -z $(gofmt -l $(go list ./... | sed -e s/github.com.keybase.client.go.// ))'
         } else {
             shell = { params -> bat params }
             dirs = getTestDirsWindows()
             slash = '\\'
             goversion = bat(returnStdout: true, script: "@go version").trim()
         }
+        shell "go vet ./..."
         println "Running tests on commit ${env.COMMIT_HASH} with ${goversion}."
         def parallelTests = []
         def tests = [:]

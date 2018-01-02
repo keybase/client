@@ -25,20 +25,22 @@ class FilterSmallTeam extends PureComponent<Props> {
     return (
       <ClickableBox onClick={props.onSelectConversation} style={{backgroundColor: props.backgroundColor}}>
         <Box style={{...rowContainerStyle, backgroundColor: props.backgroundColor}}>
-          {props.teamname
-            ? <TeamAvatar
-                teamname={props.teamname}
-                isMuted={this.props.isMuted}
-                isSelected={this.props.isSelected}
-              />
-            : <Avatars
-                backgroundColor={props.backgroundColor}
-                isMuted={props.isMuted}
-                isSelected={props.isSelected}
-                participantNeedToRekey={props.participantNeedToRekey}
-                participants={props.participants}
-                youNeedToRekey={props.youNeedToRekey}
-              />}
+          {props.teamname ? (
+            <TeamAvatar
+              teamname={props.teamname}
+              isMuted={this.props.isMuted}
+              isSelected={this.props.isSelected}
+            />
+          ) : (
+            <Avatars
+              backgroundColor={props.backgroundColor}
+              isMuted={props.isMuted}
+              isSelected={props.isSelected}
+              participantNeedToRekey={props.participantNeedToRekey}
+              participants={props.participants}
+              youNeedToRekey={props.youNeedToRekey}
+            />
+          )}
           <Box
             style={{
               ...conversationRowStyle,
