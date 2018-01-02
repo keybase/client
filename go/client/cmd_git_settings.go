@@ -13,8 +13,10 @@ import (
 
 type CmdGitSettings struct {
 	libkb.Contextified
-	repoName keybase1.GitRepoName
-	teamName keybase1.TeamName
+	repoName    keybase1.GitRepoName
+	teamName    keybase1.TeamName
+	disableChat bool
+	channelName string
 }
 
 func newCmdGitSettings(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -29,6 +31,14 @@ func newCmdGitSettings(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.C
 			cli.StringFlag{
 				Name:  "team",
 				Usage: "keybase team name",
+			},
+			cli.StringFlag{
+				Name:  "channel",
+				Usage: "chat channel where git push notifications will be sent",
+			},
+			cli.BoolFlag{
+				Name:  "disable-chat",
+				Usage: "disable chat notifications for git pushes",
 			},
 		},
 	}
@@ -55,6 +65,13 @@ func (c *CmdGitSettings) ParseArgv(ctx *cli.Context) error {
 	}
 	c.teamName = teamName
 
+	c.disableChat = ctx.Bool("disable-chat")
+	c.channelName = ctx.String("channel")
+
+	if c.disableChat && c.channelName != "" {
+		return fmt.Errorf("Please choose either --disable-chat or --channel=%q, not both.", c.channelName)
+	}
+
 	return nil
 }
 
@@ -65,6 +82,39 @@ func (c *CmdGitSettings) Run() error {
 		return err
 	}
 
+	if c.disableChat || c.channelName != "" {
+		return c.setSettings(ctx, repoID)
+	}
+	return c.getSettings(ctx, repoID)
+}
+
+func (c *CmdGitSettings) setSettings(ctx context.Context, repoID keybase1.RepoID) error {
+	arg := keybase1.SetTeamRepoSettingsArg{
+		Folder: c.folder(),
+		RepoID: repoID,
+	}
+	if c.channelName != "" {
+		arg.ChannelName = &c.channelName
+	} else {
+		arg.ChatDisabled = c.disableChat
+	}
+
+	cli, err := GetGitClient(c.G())
+	if err != nil {
+		return err
+	}
+
+	err = cli.SetTeamRepoSettings(ctx, arg)
+	if err != nil {
+		return err
+	}
+
+	dui := c.G().UI.GetDumbOutputUI()
+	dui.Printf("Team git repo settings changed.\n")
+	return nil
+}
+
+func (c *CmdGitSettings) getSettings(ctx context.Context, repoID keybase1.RepoID) error {
 	arg := keybase1.GetTeamRepoSettingsArg{
 		Folder: c.folder(),
 		RepoID: repoID,
@@ -73,6 +123,7 @@ func (c *CmdGitSettings) Run() error {
 	if err != nil {
 		return err
 	}
+
 	settings, err := cli.GetTeamRepoSettings(ctx, arg)
 	if err != nil {
 		return err

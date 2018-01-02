@@ -96,7 +96,7 @@ func SetTeamRepoSettings(ctx context.Context, g *libkb.GlobalContext, arg keybas
 			return errors.New("multiple channels found")
 		}
 		convID := convs[0].Info.Id
-		apiArg.Args["chat_conv_id"] = libkb.HexArg(convID)
+		apiArg.Args["chat_conv_id"] = libkb.HexArg(convID.DbShortForm())
 	}
 
 	_, err = g.GetAPI().Post(*apiArg)
