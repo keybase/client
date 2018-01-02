@@ -152,14 +152,15 @@ const rpcMetaRequestConversationIDKeys = (
       ;(action: empty) // errors if we don't handle any new actions
       throw new Error('Invalid action passed to rpcMetaRequest ')
   }
-  return keys.filter(key => {
-    if (!key) {
-      return false
+  return keys.reduce((arr, key) => {
+    if (key) {
+      const trustedState = state.chat2.metaMap.getIn([key, 'trustedState'])
+      if (trustedState !== 'requesting' && trustedState !== 'trusted') {
+        arr.push(key)
+      }
     }
-
-    const trustedState = state.chat2.metaMap.getIn([key, 'trustedState'])
-    return trustedState !== 'requesting' && trustedState !== 'trusted'
-  })
+    return arr
+  }, [])
 }
 
 const rpcMetaRequest = (
