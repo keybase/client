@@ -552,6 +552,17 @@ func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext, team *Team) (A
 	return annotatedInvites, nil
 }
 
+func addKeybaseInviteToRes(ctx context.Context, memb keybase1.TeamMemberDetails,
+	membs []keybase1.TeamMemberDetails) []keybase1.TeamMemberDetails {
+	for idx, existing := range membs {
+		if memb.Uv.Uid.Equal(existing.Uv.Uid) && !existing.Active {
+			membs[idx] = memb
+			return membs
+		}
+	}
+	return append(membs, memb)
+}
+
 // AnnotateInvitesUIDMapper does what AnnotateInvites does but using
 // UIDMapper, so it's fast but may be wrong. It also puts any keybase
 // invites to members set which reference should be passed as argument.
@@ -631,13 +642,13 @@ func AnnotateInvitesUIDMapper(ctx context.Context, g *libkb.GlobalContext, team 
 
 			switch invite.Role {
 			case keybase1.TeamRole_OWNER:
-				members.Owners = append(members.Owners, details)
+				members.Owners = addKeybaseInviteToRes(ctx, details, members.Owners)
 			case keybase1.TeamRole_ADMIN:
-				members.Admins = append(members.Admins, details)
+				members.Admins = addKeybaseInviteToRes(ctx, details, members.Admins)
 			case keybase1.TeamRole_WRITER:
-				members.Writers = append(members.Writers, details)
+				members.Writers = addKeybaseInviteToRes(ctx, details, members.Writers)
 			case keybase1.TeamRole_READER:
-				members.Readers = append(members.Readers, details)
+				members.Readers = addKeybaseInviteToRes(ctx, details, members.Readers)
 			}
 
 			// Continue to skip adding this invite to annotatedInvites
