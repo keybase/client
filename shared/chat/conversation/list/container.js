@@ -185,7 +185,6 @@ import {compose, connect, type TypedState} from '../../../util/container'
 // }
 // }
 
-// // $FlowIssue
 // export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps))(ListComponent)
 const mapStateToProps = (state: TypedState) => {
   const _selectedConversation = Constants2.getSelectedConversation(state)
@@ -206,4 +205,5 @@ const mergeProps = (stateProps, dispatchProps) => ({
   messageOrdinals: stateProps.messageOrdinals,
 })
 
+// $FlowIssue TODO remove this
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(ListComponent)

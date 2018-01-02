@@ -1,4 +1,4 @@
-// @flow
+// @noflow // TEMP
 import * as Types from '../../../constants/types/chat'
 import React, {Component} from 'react'
 import {withPropsOnChange} from 'recompose'

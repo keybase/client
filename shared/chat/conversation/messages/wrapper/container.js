@@ -1,19 +1,18 @@
 // @flow
 import * as Constants2 from '../../../../constants/chat2'
-import * as Types2 from '../../../../constants/types/chat2'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
-import Wrapper, {type Props} from '.'
-import {compose, withHandlers, lifecycle, connect, type TypedState} from '../../../../util/container'
+// import * as Types2 from '../../../../constants/types/chat2'
+// import * as Chat2Gen from '../../../../actions/chat2-gen'
+import Wrapper from '.'
+import {compose, connect, type TypedState} from '../../../../util/container'
 import {formatTimeForMessages} from '../../../../util/timestamp'
 // import {lookupMessageProps} from '../../../shared'
-import {createShowUserProfile} from '../../../../actions/profile-gen'
-import {createGetProfile} from '../../../../actions/tracker-gen'
-import {isMobile} from '../../../../constants/platform'
-import {type OwnProps, type StateProps, type DispatchProps} from './container'
+// import {createShowUserProfile} from '../../../../actions/profile-gen'
+// import {createGetProfile} from '../../../../actions/tracker-gen'
+// import {isMobile} from '../../../../constants/platform'
 
 const howLongBetweenTimestampsMs = 1000 * 60 * 15
 
-const mapStateToProps = (state: TypedState, {message, previous, measure, innerClass}) => {
+const mapStateToProps = (state: TypedState, {message, previous, /* measure, */ innerClass}) => {
   // const _conversationState = Constants.getSelectedConversationStates(state)
   // const selectedConversationIDKey = Constants.getSelectedConversation(state)
 
@@ -33,7 +32,7 @@ const mapStateToProps = (state: TypedState, {message, previous, measure, innerCl
 
   return {
     innerClass,
-    measure,
+    // measure,
     message,
     previous,
     // _conversationState,
@@ -50,7 +49,7 @@ const mapStateToProps = (state: TypedState, {message, previous, measure, innerCl
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
+const mapDispatchToProps = (dispatch: Dispatch) => ({
   // _onRetryAttachment: (message: Types.AttachmentMessage) =>
   // dispatch(ChatGen.createRetryAttachment({message})),
   // _onRetryText: (conversationIDKey: Types.ConversationIDKey, outboxIDKey: Types.OutboxIDKey) =>
@@ -62,7 +61,7 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   // },
 })
 
-const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
+const mergeProps = (stateProps, dispatchProps) => {
   // const message = stateProps._message
   // const prevMessage = stateProps._prevMessage
   // const conversationState = stateProps._conversationState
@@ -136,7 +135,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
 
   const timestamp = !previous || oldEnough ? formatTimeForMessages(message.timestamp) : null
   const includeHeader = !previous || !continuingTextBlock || !!timestamp
-  let loadMoreType
+  let loadMoreType = null
   if (!previous) {
     if (Constants2.isOldestOrdinal(message.ordinal)) {
       loadMoreType = 'noMoreToLoad'
@@ -150,7 +149,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
     failureDescription: null,
     includeHeader,
     innerClass: stateProps.innerClass,
-    isBroken: stateProps.isBroken,
+    isBroken: false, // TODO stateProps.isBroken,
     isEdited: message.isEdited,
     isEditing: false, // stateProps.isEditing,
     isFirstNewMessage: false, // ,
@@ -159,29 +158,29 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
     isSelected: false, // ownProps.isSelected,
     isYou: false, // stateProps.isYou,
     loadMoreType,
-    measure: stateProps.measure,
+    // measure: stateProps.measure,
     message,
     timestamp,
   }
 }
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps) //,
-  // withHandlers({
-  // onAction: props => event => props._onAction(props._message, props._localMessageState, event),
-  // onShowEditor: props => event => props._onShowEditor(props._message, event),
-  // onClick: props => () => props._onUsernameClick(props.author),
-  // }),
-  // lifecycle({
-  // componentDidUpdate: function(prevProps: Props & {_editedCount: number}) {
-  // if (
-  // this.props._editedCount !== prevProps._editedCount ||
-  // this.props.isFirstNewMessage !== prevProps.isFirstNewMessage ||
-  // this.props.timestamp !== prevProps.timestamp ||
-  // this.props.failureDescription !== prevProps.failureDescription
-  // ) {
-  // this.props.measure && this.props.measure()
-  // }
-  // },
-  // })
-)(Wrapper)
+// $FlowIssue TODO cleanup
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Wrapper) //,
+// withHandlers({
+// onAction: props => event => props._onAction(props._message, props._localMessageState, event),
+// onShowEditor: props => event => props._onShowEditor(props._message, event),
+// onClick: props => () => props._onUsernameClick(props.author),
+// }),
+// lifecycle({
+// componentDidUpdate: function(prevProps: Props & {_editedCount: number}) {
+// if (
+// this.props._editedCount !== prevProps._editedCount ||
+// this.props.isFirstNewMessage !== prevProps.isFirstNewMessage ||
+// this.props.timestamp !== prevProps.timestamp ||
+// this.props.failureDescription !== prevProps.failureDescription
+// ) {
+// this.props.measure && this.props.measure()
+// }
+// },
+// })
+// )(Wrapper)

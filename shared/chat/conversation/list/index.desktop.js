@@ -139,8 +139,9 @@ class BaseList extends React.Component<Props, State> {
           // isSelected,
           // measure
           // )
+          // measure={measure}
           <div style={style}>
-            <Message ordinal={ordinal} previous={prevOrdinal} measure={measure} />
+            <Message ordinal={ordinal} previous={prevOrdinal} />
           </div>
         )}
       </Virtualized.CellMeasurer>
@@ -155,6 +156,7 @@ class BaseList extends React.Component<Props, State> {
 
   _handleListClick = () => {
     if (window.getSelection().isCollapsed) {
+      // $FlowIssue TODO
       this.props.onFocusInput()
     }
   }

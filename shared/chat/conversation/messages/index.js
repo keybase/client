@@ -16,7 +16,8 @@ import TextMessage from './text/container'
 // import Timestamp from './timestamp/container'
 import Wrapper from './wrapper/container'
 import {Box} from '../../../common-adapters'
-import {connect, compose, lifecycle, type TypedState} from '../../../util/container'
+// import {connect, compose, lifecycle, type TypedState} from '../../../util/container'
+import {connect, type TypedState} from '../../../util/container'
 
 // const factory = (message: Types2.Message, previous: ?Types2.Message, measure: () => void) => {
 // // TEMP
@@ -109,7 +110,7 @@ import {connect, compose, lifecycle, type TypedState} from '../../../util/contai
 const onAction = () => {}
 const onShowEditor = () => {}
 type Props = {
-  measure: () => void,
+  // measure: () => void,
   message: Types2.Message,
   previous: ?Types2.Message,
 }
@@ -121,7 +122,6 @@ class MessageFactory extends React.PureComponent<Props> {
           <Wrapper
             innerClass={TextMessage}
             isSelected={false}
-            measure={this.props.measure}
             message={this.props.message}
             onAction={onAction}
             onShowEditor={onShowEditor}
@@ -133,22 +133,22 @@ class MessageFactory extends React.PureComponent<Props> {
   }
 }
 
-const mapStateToProps = (state: TypedState, {ordinal, previous, measure}) => {
+const mapStateToProps = (state: TypedState, {ordinal, previous}) => {
   const conversationIDKey = Constants2.getSelectedConversation(state)
   const messageMap = Constants2.getMessageMap(state, conversationIDKey)
 
   return {
-    measure,
     message: messageMap.get(ordinal),
-    previous: messageMap.get(previous),
+    previous: previous ? messageMap.get(previous) : null,
   }
 }
 
-export default compose(
-  connect(mapStateToProps, () => ({})),
-  lifecycle({
-    componentDidUpdate(prevProps) {
-      this.props.measure && this.props.message !== prevProps.message && this.props.measure()
-    },
-  })
-)(MessageFactory)
+// export default compose(
+// connect(mapStateToProps, () => ({})),
+// lifecycle({
+// componentDidUpdate(prevProps) {
+// this.props.measure && this.props.message !== prevProps.message && this.props.measure()
+// },
+// })
+// )(MessageFactory)
+export default connect(mapStateToProps, () => ({}))(MessageFactory)

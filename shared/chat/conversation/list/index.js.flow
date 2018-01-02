@@ -11,7 +11,7 @@ export type Props = {|
   // onEditMessage: (message: Types.Message, body: string) => void,
   // onFocusInput: () => void,
   // onDownloadAttachment: (messageKey: Types.MessageKey) => void,
-  // onLoadMoreMessages: () => void,
+  loadMoreMessages: () => void,
   // onMessageAction: (
   // message: Types.Message,
   // localMessageState?: Types.LocalMessageState,

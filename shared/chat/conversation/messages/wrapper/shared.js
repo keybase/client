@@ -91,10 +91,10 @@ const MessageWrapper = (props: Props) => (
             includeHeader={props.includeHeader}
             onClick={props.onClick}
           />
-          <Box style={_textContainerStyle} className="message" data-message-key={props.messageKey}>
+          <Box style={_textContainerStyle} className="message">
             <Box style={_flexOneColumn}>
               {/* $FlowIssue */}
-              <props.innerClass message={props.message} measure={props.measure} onAction={props.onAction} />
+              <props.innerClass message={props.message} onAction={props.onAction} />
               <EditedMark isEdited={props.isEdited} />
             </Box>
             <ActionButton isRevoked={props.isRevoked} onAction={props.onAction} />

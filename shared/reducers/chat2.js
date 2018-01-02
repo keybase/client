@@ -79,7 +79,7 @@ const metaMapReducer = (metaMap, action) => {
           map.setIn([id, 'trustedState'], action.payload.newState)
         })
       })
-    case Chat2Gen.loadMoreMessage:
+    case Chat2Gen.loadMoreMessages:
       return metaMap.update(
         action.payload.conversationIDKey,
         meta => (meta ? meta.set('hasLoadedThread', true) : meta)
@@ -140,25 +140,22 @@ const messageOrdinalsReducer = (messageOrdinalsList, action) => {
   switch (action.type) {
     case Chat2Gen.messagesAdd: {
       const {messages} = action.payload
-      const idToMessages = I.Map().withMutations(idToMessages =>
-        messages.reduce(
-          (map, m) => map.update(m.conversationIDKey, I.Set(), set => set.add(m.ordinal)),
-          idToMessages
-        )
-      )
+      const idToMessages = messages.reduce((map, m) => {
+        const set = (map[m.conversationIDKey] = map[m.conversationIDKey] || new Set()) // note: NOT immutable
+        set.add(m.ordinal)
+        return map
+      }, {})
 
-      const TEMP = messageOrdinalsList.withMutations(map =>
-        idToMessages.forEach((set, conversationIDKey) =>
+      return messageOrdinalsList.withMutations(map =>
+        Object.keys(idToMessages).forEach(conversationIDKey =>
           map.update(conversationIDKey, I.List(), (list: I.List<Types.Ordinal>) =>
             I.Set(list)
-              .concat(set)
+              .concat(idToMessages[conversationIDKey])
               .toList()
               .sort()
           )
         )
       )
-
-      return TEMP
     }
     default:
       return messageOrdinalsList
@@ -206,7 +203,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.metaNeedsUpdating:
     case Chat2Gen.metaReceivedError:
     case Chat2Gen.metaRequestTrusted:
-    case Chat2Gen.loadMoreMessage:
+    case Chat2Gen.loadMoreMessages:
       return state.set('metaMap', metaMapReducer(state.metaMap, action))
     // MessageMap/messageOrdinalsList actions
     case Chat2Gen.messagesAdd:

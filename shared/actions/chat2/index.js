@@ -423,7 +423,7 @@ const rpcLoadThread = (
     case Chat2Gen.selectConversation:
       conversationIDKey = action.payload.conversationIDKey
       // When a conversation is selected we want to get the newer items, if any
-      recent = !conversationIDKey || Constants.getMeta(conversationIDKey).hasLoadedThread
+      recent = !conversationIDKey || Constants.getMeta(state, conversationIDKey).hasLoadedThread
       break
     case Chat2Gen.loadMoreMessages:
       conversationIDKey = action.payload.conversationIDKey
@@ -447,7 +447,7 @@ const rpcLoadThread = (
 
   const pivot = Constants.getMessageOrdinals(state, conversationIDKey).first()
 
-  if (Constants.isOldestOrdinal(pivot)) {
+  if (pivot && Constants.isOldestOrdinal(pivot)) {
     logger.info('Load thread bail: pivot is oldest')
     return
   }
@@ -458,9 +458,13 @@ const rpcLoadThread = (
     if (thread) {
       const uiMessages: RPCChatTypes.UIMessages = JSON.parse(thread)
 
-      const messages = (uiMessages.messages || [])
-        .map(m => Constants.uiMessageToMessage(conversationIDKey, m))
-        .filter(Boolean)
+      const messages = (uiMessages.messages || []).reduce((arr, m) => {
+        const message = conversationIDKey ? Constants.uiMessageToMessage(conversationIDKey, m) : null
+        if (message) {
+          arr.push(message)
+        }
+        return arr
+      }, [])
 
       if (messages.length) {
         yield Saga.put(Chat2Gen.createMessagesAdd({messages}))

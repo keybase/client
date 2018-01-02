@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import * as Types from '../../../../constants/types/chat'
+import * as Types from '../../../../constants/types/chat2'
 
 export type Props = {|
   author: string,
@@ -15,8 +15,10 @@ export type Props = {|
   isRevoked: boolean,
   isSelected: boolean,
   isYou: boolean,
-  measure: ?() => void,
-  messageKey: Types.MessageKey,
+  loadMoreType: null | 'moreToLoad' | 'noMoreToLoad',
+  message: Types.Message,
+  // measure: ?() => void,
+  // messageKey: Types.MessageKey,
   onAction: (event: SyntheticEvent<>) => void,
   onRetry: () => void,
   onShowEditor: (event: SyntheticEvent<>) => void,
