@@ -40,7 +40,7 @@ export const todoTypeToConfirmLabel: {[key: Types.TodoType]: string} = {
   paperkey: 'Create a paper key',
   team: 'Create a team!',
   folder: 'Open a private folder',
-  gitRepo: 'Create a personal git repo',
+  gitRepo: isMobile ? 'Create a repo' : 'Create a personal git repo',
   teamShowcase: 'Set publicity settings',
 }
 export const todoTypeToDismissable: {[key: Types.TodoType]: boolean} = {
