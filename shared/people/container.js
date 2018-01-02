@@ -4,6 +4,7 @@ import * as PeopleGen from '../actions/people-gen'
 import * as Types from '../constants/types/people'
 import * as Tabs from '../constants/tabs'
 import * as SettingsTabs from '../constants/settings'
+import {createGetMyProfile} from '../actions/tracker-gen'
 import {connect} from 'react-redux'
 import {type TypedState} from '../util/container'
 import {createSearchSuggestions} from '../actions/search-gen'
@@ -29,7 +30,10 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   getData: () => dispatch(PeopleGen.createGetPeopleData({markViewed: true, numFollowSuggestionsWanted: 10})),
   todoDispatch: {
     bio: {
-      _onConfirm: (username: string) => dispatch(createShowUserProfile({username})),
+      _onConfirm: (username: string) => {
+        dispatch(createGetMyProfile({}))
+        dispatch(navigateAppend([{props: {username}, selected: 'profile'}, 'editProfile'], [Tabs.peopleTab]))
+      },
       onDismiss: () => {},
     },
     proof: {
