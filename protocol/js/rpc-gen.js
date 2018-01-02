@@ -2540,7 +2540,7 @@ export type ListResult = {|files?: ?Array<File>|}
 
 export type LoadDeviceErr = {|where: String, desc: String|}
 
-export type LoadTeamArg = {|ID: TeamID, name: String, public: Boolean, needAdmin: Boolean, refreshers: TeamRefreshers, forceFullReload: Boolean, forceRepoll: Boolean, staleOK: Boolean|}
+export type LoadTeamArg = {|ID: TeamID, name: String, public: Boolean, needAdmin: Boolean, refreshUIDMapper: Boolean, refreshers: TeamRefreshers, forceFullReload: Boolean, forceRepoll: Boolean, staleOK: Boolean|}
 
 export type LockContext = {|requireLockID: LockID, releaseAfterSuccess: Boolean|}
 
@@ -3514,7 +3514,7 @@ export type TeamList = {|teams?: ?Array<MemberInfo>|}
 
 export type TeamMember = {|uid: UID, role: TeamRole, eldestSeqno: Seqno, userEldestSeqno: Seqno|}
 
-export type TeamMemberDetails = {|uv: UserVersion, username: String, active: Boolean, needsPUK: Boolean|}
+export type TeamMemberDetails = {|uv: UserVersion, username: String, fullName: FullName, active: Boolean, needsPUK: Boolean|}
 
 export type TeamMemberOutFromReset = {|teamName: String, resetUser: TeamResetUser|}
 
