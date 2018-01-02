@@ -35,15 +35,17 @@ const _processPeopleData = function([
       if (item.data.t === RPCTypes.homeHomeScreenItemType.todo) {
         // Todo item
         const todoType = Constants.todoTypeEnumToType[(item.data.todo && item.data.todo.t) || 0]
-        newItems = newItems.push({
-          type: 'todo',
-          badged: true, // todo items are always badged
-          todoType,
-          instructions: Constants.todoTypeToInstructions[todoType],
-          confirmLabel: Constants.todoTypeToConfirmLabel[todoType],
-          dismissable: Constants.todoTypeToDismissable[todoType],
-          icon: Constants.todoTypeToIcon[todoType],
-        })
+        newItems = newItems.push(
+          Constants.makeTodo({
+            type: 'todo',
+            badged: true, // todo items are always badged
+            todoType,
+            instructions: Constants.todoTypeToInstructions[todoType],
+            confirmLabel: Constants.todoTypeToConfirmLabel[todoType],
+            dismissable: Constants.todoTypeToDismissable[todoType],
+            icon: Constants.todoTypeToIcon[todoType],
+          })
+        )
       } else if (item.data.t === RPCTypes.homeHomeScreenItemType.people) {
         // Follow notification
         const notification = item.data.people
@@ -53,12 +55,12 @@ const _processPeopleData = function([
           if (!follow) {
             return
           }
-          const item = {
+          const item = Constants.makeFollowedNotificationItem({
             type: 'notification',
-            newFollows: [{username: follow.user.username}],
+            newFollows: [Constants.makeFollowedNotification({username: follow.user.username})],
             notificationTime: new Date(follow.followTime),
             badged,
-          }
+          })
           badged ? (newItems = newItems.push(item)) : (oldItems = oldItems.push(item))
         } else if (
           notification &&
@@ -76,15 +78,17 @@ const _processPeopleData = function([
           const notificationTimes = followers.map(follow => follow.followTime)
           const maxNotificationTime = Math.max(...notificationTimes)
           const notificationTime = new Date(maxNotificationTime)
-          const item = {
+          const item = Constants.makeFollowedNotificationItem({
             type: 'notification',
-            newFollows: followers.map(follow => ({
-              username: follow.user.username,
-            })),
+            newFollows: followers.map(follow =>
+              Constants.makeFollowedNotification({
+                username: follow.user.username,
+              })
+            ),
             notificationTime,
             badged,
             numAdditional: multiFollow.numOthers,
-          }
+          })
           badged ? (newItems = newItems.push(item)) : (oldItems = oldItems.push(item))
         }
       }
@@ -95,12 +99,14 @@ const _processPeopleData = function([
     data.followSuggestions.forEach(suggestion => {
       const followsMe = followers.has(suggestion.username)
       const iFollow = following.has(suggestion.username)
-      followSuggestions = followSuggestions.push({
-        username: suggestion.username,
-        followsMe,
-        iFollow,
-        fullName: suggestion.fullName,
-      })
+      followSuggestions = followSuggestions.push(
+        Constants.makeFollowSuggestion({
+          username: suggestion.username,
+          followsMe,
+          iFollow,
+          fullName: suggestion.fullName,
+        })
+      )
     })
   }
   return Saga.put(

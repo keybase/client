@@ -68,7 +68,35 @@ export const todoTypeToIcon: {[key: Types.TodoType]: IconType} = {
   teamShowcase: isMobile ? 'icon-onboarding-team-publicity-48' : 'icon-onboarding-team-publicity-32',
 }
 
-// TODO clean this up
+export const makeTodo: I.RecordFactory<Types._Todo> = I.Record({
+  type: 'todo',
+  badged: false,
+  todoType: 'none',
+  instructions: '',
+  confirmLabel: '',
+  dismissable: false,
+  icon: 'iconfont-close',
+})
+
+export const makeFollowedNotification: I.RecordFactory<Types._FollowedNotification> = I.Record({
+  username: '',
+})
+
+export const makeFollowedNotificationItem: I.RecordFactory<Types._FollowedNotificationItem> = I.Record({
+  type: 'notification',
+  newFollows: [],
+  notificationTime: new Date(),
+  badged: false,
+  numAdditional: 0,
+})
+
+export const makeFollowSuggestion: I.RecordFactory<Types._FollowSuggestion> = I.Record({
+  username: '',
+  fullName: null,
+  followsMe: false,
+  iFollow: false,
+})
+
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   lastViewed: new Date(),
   version: -1,

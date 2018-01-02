@@ -20,7 +20,7 @@ export type Props = {
   onClickUser: (username: string) => void,
 }
 
-const Suggestion = (props: FollowSuggestion & {onClickUser: () => void}) => (
+const Suggestion = (props: Types._FollowSuggestion & {onClickUser: () => void}) => (
   <ClickableBox
     style={{...globalStyles.flexBoxColumn, flexShrink: 0, width: 112, height: 106, alignItems: 'center'}}
     onClick={props.onClickUser}
@@ -72,7 +72,7 @@ export default (props: Props) => (
       {props.suggestions.map(suggestion => (
         <Suggestion
           key={suggestion.username}
-          {...suggestion}
+          {...suggestion.toObject()}
           onClickUser={() => props.onClickUser(suggestion.username)}
         />
       ))}

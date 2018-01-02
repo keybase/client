@@ -15,7 +15,8 @@ export const stringToItemID: (id: string) => ItemID = id => id
 // 'paperkey' | 'team' | 'folder' | 'gitRepo' | 'teamShowcase'
 export type TodoTypeEnum = RPCTypes.HomeScreenTodoType
 export type TodoType = $Keys<typeof RPCTypes.homeHomeScreenTodoType>
-export type Todo = {
+
+export type _Todo = {
   type: 'todo',
   badged: boolean,
   todoType: TodoType,
@@ -24,39 +25,38 @@ export type Todo = {
   dismissable: boolean,
   icon: IconType,
 }
+export type Todo = I.RecordOf<_Todo>
 
-export type FollowedNotification = {
+export type _FollowedNotification = {
   username: string,
 }
-export type FollowedNotificationItem = {
+export type FollowedNotification = I.RecordOf<_FollowedNotification>
+
+export type _FollowedNotificationItem = {
   type: 'notification',
   newFollows: Array<FollowedNotification>,
   notificationTime: Date,
   badged: boolean,
   numAdditional?: number,
 }
+export type FollowedNotificationItem = I.RecordOf<_FollowedNotificationItem>
 
 export type PeopleScreenItem = Todo | FollowedNotificationItem
 
-export type FollowSuggestion = {
+export type _FollowSuggestion = {
   username: string,
   fullName: ?string,
   followsMe: boolean,
   iFollow: boolean,
 }
+export type FollowSuggestion = I.RecordOf<_FollowSuggestion>
 
-export type _PeopleScreen = {
+export type _State = {
   lastViewed: Date,
   version: number,
   newItems: I.List<PeopleScreenItem>,
   oldItems: I.List<PeopleScreenItem>,
   followSuggestions: I.List<FollowSuggestion>,
-}
-
-export type PeopleScreen = I.RecordOf<_PeopleScreen>
-// TODO clean this up
-export type _State = {
-  ..._PeopleScreen,
 }
 
 export type State = I.RecordOf<_State>

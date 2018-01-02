@@ -1,5 +1,6 @@
 // @flow
 import React from 'react'
+import * as C from '../../constants/people'
 import {Provider} from 'react-redux'
 import {createStore} from 'redux'
 import {Set} from 'immutable'
@@ -15,13 +16,15 @@ const store = {
 }
 
 const singleFollowProps1: Props = {
-  newFollows: [{username: 'mmaxim'}],
+  type: 'notification',
+  newFollows: [C.makeFollowedNotification({username: 'mmaxim'})],
   badged: true,
   notificationTime: new Date(),
 }
 
 const singleFollowProps2: Props = {
-  newFollows: [{username: 'max'}],
+  type: 'notification',
+  newFollows: [C.makeFollowedNotification({username: 'max'})],
   badged: false,
   notificationTime: moment()
     .subtract(3, 'days')
@@ -29,7 +32,12 @@ const singleFollowProps2: Props = {
 }
 
 const multiFollowProps1: Props = {
-  newFollows: [{username: 'max'}, {username: 'mmaxim'}, {username: 'chrisnojima'}],
+  type: 'notification',
+  newFollows: [
+    C.makeFollowedNotification({username: 'max'}),
+    C.makeFollowedNotification({username: 'mmaxim'}),
+    C.makeFollowedNotification({username: 'chrisnojima'}),
+  ],
   badged: true,
   notificationTime: moment()
     .subtract(3, 'weeks')
@@ -38,7 +46,13 @@ const multiFollowProps1: Props = {
 }
 
 const multiFollowProps2: Props = {
-  newFollows: [{username: 'max'}, {username: 'mmaxim'}, {username: 'chrisnojima'}, {username: 'chris'}],
+  type: 'notification',
+  newFollows: [
+    C.makeFollowedNotification({username: 'max'}),
+    C.makeFollowedNotification({username: 'mmaxim'}),
+    C.makeFollowedNotification({username: 'chrisnojima'}),
+    C.makeFollowedNotification({username: 'chris'}),
+  ],
   badged: false,
   notificationTime: moment()
     .subtract(3, 'months')

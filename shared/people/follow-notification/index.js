@@ -1,6 +1,7 @@
 // @flow
 import React from 'react'
 import PeopleItem from '../item'
+import * as Types from '../../constants/types/people'
 import {Avatar, Box, ConnectedUsernames, Icon, Meta, ScrollView, Text} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {isMobile} from '../../constants/platform'
@@ -12,16 +13,9 @@ const connectedUsernamesProps = {
   type: 'Body',
 }
 
-export type NewFollow = {
-  username: string,
-}
+export type NewFollow = Types.FollowedNotification
 
-export type Props = {
-  newFollows: Array<NewFollow>,
-  numAdditional?: number,
-  badged: boolean,
-  notificationTime: Date,
-}
+export type Props = Types._FollowedNotificationItem
 
 export default (props: Props) => {
   if (props.newFollows.length === 1) {

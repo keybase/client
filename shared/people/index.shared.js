@@ -18,14 +18,14 @@ export const itemToComponent: (
     case 'todo':
       return (
         <Todo
-          {...item}
+          {...item.toObject()}
           onConfirm={actions[item.todoType].onConfirm}
           onDismiss={actions[item.todoType].onDismiss}
           key={item.todoType}
         />
       )
     case 'notification':
-      return <FollowNotification {...item} key={item.notificationTime} />
+      return <FollowNotification {...item.toObject()} key={item.notificationTime} />
   }
 }
 
