@@ -12,7 +12,6 @@ import HiddenString from '../../util/hidden-string'
 import engine from '../../engine'
 import logger from '../../logger'
 import type {TypedState} from '../../constants/reducer'
-import {RPCTimeoutError} from '../../util/errors'
 import {chatTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {NotifyPopup} from '../../native/notifications'
@@ -172,46 +171,43 @@ const rpcMetaRequest = (
     return
   }
 
+  const onUnboxed = function*({conv}: RPCChatTypes.ChatUiChatInboxConversationRpcParam) {
+    const inboxUIItem: RPCChatTypes.InboxUIItem = JSON.parse(conv)
+    const meta = Constants.inboxUIItemToConversationMeta(inboxUIItem)
+    if (meta) {
+      yield Saga.put(Chat2Gen.createMetasReceived({metas: [meta]}))
+      if (inboxUIItem.snippetMessage) {
+        const message = Constants.uiMessageToMessage(inboxUIItem.convID, inboxUIItem.snippetMessage)
+        if (message) {
+          yield Saga.put(Chat2Gen.createMessagesAdd({messages: [message]}))
+        }
+      }
+    } else {
+      yield Saga.put(
+        Chat2Gen.createMetaReceivedError({
+          conversationIDKey: inboxUIItem.convID,
+          error: null, // just remove this item, not a real server error
+          username: null,
+        })
+      )
+    }
+    return EngineRpc.rpcResult()
+  }
+  const onFailed = function*({convID, error}: RPCChatTypes.ChatUiChatInboxFailedRpcParam) {
+    const state: TypedState = yield Saga.select()
+    yield Saga.put(
+      Chat2Gen.createMetaReceivedError({
+        conversationIDKey: Constants.conversationIDToKey(convID),
+        error,
+        username: state.config.username || '',
+      })
+    )
+    return EngineRpc.rpcResult()
+  }
   const loadInboxRpc = new EngineRpc.EngineRpcCall(
     {
-      'chat.1.chatUi.chatInboxConversation': function*({
-        conv,
-      }: RPCChatTypes.ChatUiChatInboxConversationRpcParam) {
-        const inboxUIItem: RPCChatTypes.InboxUIItem = JSON.parse(conv)
-        const meta = Constants.inboxUIItemToConversationMeta(inboxUIItem)
-        if (meta) {
-          yield Saga.put(Chat2Gen.createMetasReceived({metas: [meta]}))
-          if (inboxUIItem.snippetMessage) {
-            const message = Constants.uiMessageToMessage(inboxUIItem.convID, inboxUIItem.snippetMessage)
-            if (message) {
-              yield Saga.put(Chat2Gen.createMessagesAdd({messages: [message]}))
-            }
-          }
-        } else {
-          yield Saga.put(
-            Chat2Gen.createMetaReceivedError({
-              conversationIDKey: inboxUIItem.convID,
-              error: null, // just remove this item, not a real server error
-              username: null,
-            })
-          )
-        }
-        return EngineRpc.rpcResult()
-      },
-      'chat.1.chatUi.chatInboxFailed': function*({
-        convID,
-        error,
-      }: RPCChatTypes.ChatUiChatInboxFailedRpcParam) {
-        const state: TypedState = yield Saga.select()
-        yield Saga.put(
-          Chat2Gen.createMetaReceivedError({
-            conversationIDKey: Constants.conversationIDToKey(convID),
-            error,
-            username: state.config.username || '',
-          })
-        )
-        return EngineRpc.rpcResult()
-      },
+      'chat.1.chatUi.chatInboxConversation': onUnboxed,
+      'chat.1.chatUi.chatInboxFailed': onFailed,
       'chat.1.chatUi.chatInboxUnverified': EngineRpc.passthroughResponseSaga,
     },
     RPCChatTypes.localGetInboxNonblockLocalRpcChannelMap,
@@ -400,12 +396,77 @@ const navigateToThread = (action: Chat2Gen.SelectConversationPayload) => {
   return Saga.put(Route.navigateTo([conversationIDKey].filter(Boolean), [chatTab]))
 }
 
-const loadThread = (action: Chat2Gen.SelectConversationPayload) => {
-  // TODO
-  // const {conversationIDKey} = action.payload
-  // logger.info(`selectConversation: selecting: ${conversationIDKey || ''}`)
-  // return Saga.put(Route.navigateTo([conversationIDKey].filter(Boolean), [chatTab]))
+const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType).reduce((arr, key) => {
+  switch (key) {
+    case 'edit': // daemon filters this out for us so we can ignore
+    case 'delete':
+    case 'headline':
+    case 'attachmentuploaded':
+      break
+    default:
+      arr.push(RPCChatTypes.commonMessageType[key])
+      break
+  }
+
+  return arr
+}, [])
+
+const rpcLoadThread = (action: Chat2Gen.SelectConversationPayload, state: TypedState) => {
+  const {conversationIDKey} = action.payload
+  if (!conversationIDKey) {
+    return
+  }
+  const conversationID = Constants.keyToConversationID(conversationIDKey)
+  if (!conversationID) {
+    return
+  }
+
+  const pivot = Constants.getMessageOrdinals(state, conversationIDKey).first()
+  const recent = false //  TODO newer
+  const num = 50 // TODO dynamic maybe, deal w/ stale
+
+  const onGotThread = function*({thread}) {
+    if (thread) {
+      const uiMessages: RPCChatTypes.UIMessages = JSON.parse(thread)
+
+      const messages = (uiMessages.messages || [])
+        .map(m => Constants.uiMessageToMessage(conversationIDKey, m))
+        .filter(Boolean)
+
+      if (messages.length) {
+        yield Saga.put(Chat2Gen.createMessagesAdd({messages}))
+      }
+    }
+    return EngineRpc.rpcResult()
+  }
+
+  const loadThreadChanMapRpc = new EngineRpc.EngineRpcCall(
+    {
+      'chat.1.chatUi.chatThreadCached': onGotThread,
+      'chat.1.chatUi.chatThreadFull': onGotThread,
+    },
+    RPCChatTypes.localGetThreadNonblockRpcChannelMap,
+    'localGetThreadNonblock',
+    {
+      conversationID,
+      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+      query: {
+        disableResolveSupersedes: false,
+        markAsRead: true,
+        messageIDControl: {
+          num,
+          pivot,
+          recent,
+        },
+        messageTypes: loadThreadMessageTypes,
+      },
+    }
+  )
+
+  return Saga.call(loadThreadChanMapRpc.run)
 }
+
+const rpcLoadThreadSuccess = () => {}
 
 const clearInboxFilter = (action: Chat2Gen.SelectConversationPayload) =>
   Saga.put(Chat2Gen.createSetInboxFilter({filter: ''}))
@@ -477,9 +538,11 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Actually try and unbox conversations
   yield Saga.safeTakeEveryPure([Chat2Gen.metaRequestTrusted, Chat2Gen.selectConversation], rpcMetaRequest)
 
+  // Load the selected thread
+  yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, rpcLoadThread, rpcLoadThreadSuccess)
+
   yield Saga.safeTakeEveryPure(Chat2Gen.setupChatHandlers, setupChatHandlers)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, navigateToThread)
-  yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, loadThread)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, clearInboxFilter)
 
   if (!isMobile) {

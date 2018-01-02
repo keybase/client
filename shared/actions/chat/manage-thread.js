@@ -327,19 +327,20 @@ const _resetLetThemIn = (action: ChatGen.ResetLetThemInPayload) =>
   })
 
 function* registerSagas(): SagaGenerator<any, any> {
-  yield Saga.safeTakeEveryPure(ChatGen.leaveConversation, _leaveConversation)
-  yield Saga.safeTakeEveryPure(ChatGen.muteConversation, _muteConversation)
-  yield Saga.safeTakeEvery(ChatGen.startConversation, _startConversation)
-  yield Saga.safeTakeEvery(
-    [ChatGen.setNotifications, ChatGen.updatedNotifications, ChatGen.toggleChannelWideNotifications],
-    _setNotifications
-  )
-  yield Saga.safeTakeEveryPure(ChatGen.blockConversation, _blockConversation)
-  yield Saga.safeTakeLatest(ChatGen.openTeamConversation, _openTeamConversation)
-  yield Saga.safeTakeEveryPure(ChatGen.joinConversation, _joinConversation)
-  yield Saga.safeTakeEveryPure(ChatGen.previewChannel, _previewChannel)
-  yield Saga.safeTakeEveryPure(ChatGen.resetChatWithoutThem, _resetChatWithoutThem)
-  yield Saga.safeTakeEveryPure(ChatGen.resetLetThemIn, _resetLetThemIn)
+  // TODO
+  // yield Saga.safeTakeEveryPure(ChatGen.leaveConversation, _leaveConversation)
+  // yield Saga.safeTakeEveryPure(ChatGen.muteConversation, _muteConversation)
+  // yield Saga.safeTakeEvery(ChatGen.startConversation, _startConversation)
+  // yield Saga.safeTakeEvery(
+  // [ChatGen.setNotifications, ChatGen.updatedNotifications, ChatGen.toggleChannelWideNotifications],
+  // _setNotifications
+  // )
+  // yield Saga.safeTakeEveryPure(ChatGen.blockConversation, _blockConversation)
+  // yield Saga.safeTakeLatest(ChatGen.openTeamConversation, _openTeamConversation)
+  // yield Saga.safeTakeEveryPure(ChatGen.joinConversation, _joinConversation)
+  // yield Saga.safeTakeEveryPure(ChatGen.previewChannel, _previewChannel)
+  // yield Saga.safeTakeEveryPure(ChatGen.resetChatWithoutThem, _resetChatWithoutThem)
+  // yield Saga.safeTakeEveryPure(ChatGen.resetLetThemIn, _resetLetThemIn)
 }
 
 export {registerSagas}

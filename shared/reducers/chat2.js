@@ -135,14 +135,25 @@ const messageOrdinalsReducer = (messageOrdinalsList, action) => {
   switch (action.type) {
     case Chat2Gen.messagesAdd: {
       const {messages} = action.payload
-      // TODO this just pushes to the end
-      return messageOrdinalsList.withMutations(map =>
-        messages.forEach(message =>
-          map.update(message.conversationIDKey, I.List(), (list: I.List<Types.Ordinal>) =>
-            list.push(message.ordinal)
+      const idToMessages = I.Map().withMutations(idToMessages =>
+        messages.reduce(
+          (map, m) => map.update(m.conversationIDKey, I.Set(), set => set.add(m.ordinal)),
+          idToMessages
+        )
+      )
+
+      const TEMP = messageOrdinalsList.withMutations(map =>
+        idToMessages.forEach((set, conversationIDKey) =>
+          map.update(conversationIDKey, I.List(), (list: I.List<Types.Ordinal>) =>
+            I.Set(list)
+              .concat(set)
+              .toList()
+              .sort()
           )
         )
       )
+
+      return TEMP
     }
     default:
       return messageOrdinalsList

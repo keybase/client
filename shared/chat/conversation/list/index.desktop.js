@@ -120,7 +120,7 @@ class BaseList extends React.Component<Props, State> {
 
   _rowRenderer = ({index, isScrolling, isVisible, key, parent, style}) => {
     const ordinal = this.props.messageOrdinals.get(index)
-    const prevOrdinal = this.props.messageOrdinals.get(index - 1)
+    const prevOrdinal = index > 0 ? this.props.messageOrdinals.get(index - 1) : null
     const isSelected = false // messageKey === this.state.selectedMessageKey
     return (
       <Virtualized.CellMeasurer

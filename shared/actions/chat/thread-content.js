@@ -903,25 +903,26 @@ function _changedFocus(action: AppGen.ChangedFocusPayload, state: TypedState) {
 }
 
 function* registerSagas(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeEveryPure(AppGen.changedActive, _changedActive)
-  yield Saga.safeTakeEveryPure(ChatGen.clearMessages, _clearConversationMessages)
-  yield Saga.safeTakeEveryPure([ChatGen.appendMessages, ChatGen.prependMessages], _storeMessageToEntity)
-  yield Saga.safeTakeEveryPure([ChatGen.appendMessages, ChatGen.prependMessages], _findMessagesToDelete)
-  yield Saga.safeTakeEveryPure([ChatGen.appendMessages, ChatGen.prependMessages], _findMessageUpdates)
-  yield Saga.safeTakeEvery(ChatGen.loadMoreMessages, Saga.cancelWhen(_threadIsCleared, _loadMoreMessages))
-  yield Saga.safeTakeEvery(ChatGen.updateThread, _updateThread)
-  yield Saga.safeTakeEveryPure(ChatGen.updateBadging, _updateBadging)
-  yield Saga.safeTakeEveryPure(ChatGen.updateTempMessage, _updateMessageEntity)
-  yield Saga.safeTakeEveryPure(
-    [ChatGen.appendMessages, ChatGen.prependMessages],
-    _addMessagesToConversationSaga
-  )
-  yield Saga.safeTakeEveryPure(ChatGen.removeOutboxMessage, _removeOutboxMessage)
-  yield Saga.safeTakeEveryPure(ChatGen.outboxMessageBecameReal, _updateOutboxMessageToReal)
-  yield Saga.safeTakeEveryPure(ChatGen.openConversation, _openConversation)
-  yield Saga.safeTakeEvery(ChatGen.updateMetadata, _updateMetadata)
-  yield Saga.safeTakeEveryPure(ChatGen.updateTyping, _updateTyping)
-  yield Saga.safeTakeEveryPure(AppGen.changedFocus, _changedFocus)
+  // TODO
+  // yield Saga.safeTakeEveryPure(AppGen.changedActive, _changedActive)
+  // yield Saga.safeTakeEveryPure(ChatGen.clearMessages, _clearConversationMessages)
+  // yield Saga.safeTakeEveryPure([ChatGen.appendMessages, ChatGen.prependMessages], _storeMessageToEntity)
+  // yield Saga.safeTakeEveryPure([ChatGen.appendMessages, ChatGen.prependMessages], _findMessagesToDelete)
+  // yield Saga.safeTakeEveryPure([ChatGen.appendMessages, ChatGen.prependMessages], _findMessageUpdates)
+  // yield Saga.safeTakeEvery(ChatGen.loadMoreMessages, Saga.cancelWhen(_threadIsCleared, _loadMoreMessages))
+  // yield Saga.safeTakeEvery(ChatGen.updateThread, _updateThread)
+  // yield Saga.safeTakeEveryPure(ChatGen.updateBadging, _updateBadging)
+  // yield Saga.safeTakeEveryPure(ChatGen.updateTempMessage, _updateMessageEntity)
+  // yield Saga.safeTakeEveryPure(
+  // [ChatGen.appendMessages, ChatGen.prependMessages],
+  // _addMessagesToConversationSaga
+  // )
+  // yield Saga.safeTakeEveryPure(ChatGen.removeOutboxMessage, _removeOutboxMessage)
+  // yield Saga.safeTakeEveryPure(ChatGen.outboxMessageBecameReal, _updateOutboxMessageToReal)
+  // yield Saga.safeTakeEveryPure(ChatGen.openConversation, _openConversation)
+  // yield Saga.safeTakeEvery(ChatGen.updateMetadata, _updateMetadata)
+  // yield Saga.safeTakeEveryPure(ChatGen.updateTyping, _updateTyping)
+  // yield Saga.safeTakeEveryPure(AppGen.changedFocus, _changedFocus)
 }
 
 export {registerSagas, addMessagesToConversation}

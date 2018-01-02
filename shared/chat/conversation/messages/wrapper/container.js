@@ -126,7 +126,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
   //
   const {message, previous} = stateProps
 
-  const isContinuingMessage = previous && previous.type === 'text' && previous.author === message.author
+  const continuingTextBlock = previous && previous.type === 'text' && previous.author === message.author
 
   const oldEnough =
     previous &&
@@ -135,7 +135,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
     message.timestamp - previous.timestamp > howLongBetweenTimestampsMs
 
   const timestamp = !previous || oldEnough ? formatTimeForMessages(message.timestamp) : null
-  const includeHeader = !previous || isContinuingMessage || !!timestamp
+  const includeHeader = !previous || !continuingTextBlock || !!timestamp
 
   return {
     author: message.author,
