@@ -34,7 +34,7 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}: OwnProp
     _selectedConversationIDKey,
     filter,
     isActiveRoute,
-    isLoading: !state.chat2.loadingSet.isEmpty(),
+    isLoading: !state.chat2.loadingMap.isEmpty(),
     neverLoaded: state.chat2.metaMap.isEmpty(),
     showNewConversation: state.chat2.isSearching,
   }
@@ -77,7 +77,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRou
         reason: 'untrusted inbox visible',
       })
     ),
-  refreshInbox: (force: boolean) => dispatch(Chat2Gen.createInboxRefresh()),
+  refreshInbox: (force: boolean) =>
+    dispatch(Chat2Gen.createInboxRefresh({reason: 'component thinks never loaded'})),
   toggleSmallTeamsExpanded: () =>
     setRouteState({
       smallTeamsExpanded: !routeState.get('smallTeamsExpanded'),

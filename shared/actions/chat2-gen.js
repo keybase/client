@@ -12,6 +12,7 @@ import HiddenString from '../util/hidden-string'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of chat2 but is handled by every reducer
 export const badgesUpdated = 'chat2:badgesUpdated'
+export const clearOrdinals = 'chat2:clearOrdinals'
 export const inboxRefresh = 'chat2:inboxRefresh'
 export const loadMoreMessages = 'chat2:loadMoreMessages'
 export const messageEdit = 'chat2:messageEdit'
@@ -31,10 +32,11 @@ export const setupChatHandlers = 'chat2:setupChatHandlers'
 
 // Action Creators
 export const createBadgesUpdated = (payload: {|+conversations: Array<RPCTypes.BadgeConversationInfo>|}) => ({error: false, payload, type: badgesUpdated})
-export const createInboxRefresh = () => ({error: false, payload: undefined, type: inboxRefresh})
+export const createClearOrdinals = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: clearOrdinals})
+export const createInboxRefresh = (payload: {|+reason: string, +clearAllData?: boolean|}) => ({error: false, payload, type: inboxRefresh})
 export const createLoadMoreMessages = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: loadMoreMessages})
 export const createMessageEdit = (payload: {|+conversationIDKey: Types.ConversationIDKey, +ordinal: Types.Ordinal, +text: HiddenString|}) => ({error: false, payload, type: messageEdit})
-export const createMessagesAdd = (payload: {|+notify?: boolean, +messages: Array<Types.Message>|}) => ({error: false, payload, type: messagesAdd})
+export const createMessagesAdd = (payload: {|+fromThreadLoad?: Types.ConversationIDKey, +notify?: boolean, +messages: Array<Types.Message>|}) => ({error: false, payload, type: messagesAdd})
 export const createMessagesDelete = (payload: {|+conversationIDKey: Types.ConversationIDKey, +ordinals: Array<Types.Ordinal>|}) => ({error: false, payload, type: messagesDelete})
 export const createMetaHandleQueue = () => ({error: false, payload: undefined, type: metaHandleQueue})
 export const createMetaNeedsUpdating = (payload: {|+conversationIDKeys: Array<Types.ConversationIDKey>, +reason: string|}) => ({error: false, payload, type: metaNeedsUpdating})
@@ -50,6 +52,7 @@ export const createSetupChatHandlers = () => ({error: false, payload: undefined,
 
 // Action Payloads
 export type BadgesUpdatedPayload = More.ReturnType<typeof createBadgesUpdated>
+export type ClearOrdinalsPayload = More.ReturnType<typeof createClearOrdinals>
 export type InboxRefreshPayload = More.ReturnType<typeof createInboxRefresh>
 export type LoadMoreMessagesPayload = More.ReturnType<typeof createLoadMoreMessages>
 export type MessageEditPayload = More.ReturnType<typeof createMessageEdit>
@@ -71,6 +74,7 @@ export type SetupChatHandlersPayload = More.ReturnType<typeof createSetupChatHan
 // prettier-ignore
 export type Actions =
   | More.ReturnType<typeof createBadgesUpdated>
+  | More.ReturnType<typeof createClearOrdinals>
   | More.ReturnType<typeof createInboxRefresh>
   | More.ReturnType<typeof createLoadMoreMessages>
   | More.ReturnType<typeof createMessageEdit>

@@ -17,7 +17,10 @@
       "conversations": "Array<RPCTypes.BadgeConversationInfo>"
     },
     "setupChatHandlers": {},
-    "inboxRefresh": {},
+    "inboxRefresh": {
+      "reason": "string",
+      "clearAllData?": "boolean"
+    },
     "setInboxFilter": {
       "filter": "string"
     },
@@ -42,6 +45,7 @@
       "username": "?string"
     },
     "messagesAdd": {
+      "fromThreadLoad?": "Types.ConversationIDKey",
       "notify?": "boolean",
       "messages": "Array<Types.Message>"
     },
@@ -53,6 +57,9 @@
     "messagesDelete": {
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinals": "Array<Types.Ordinal>"
+    },
+    "clearOrdinals": {
+      "conversationIDKey": "Types.ConversationIDKey"
     },
     "setSearching": {
       "searching": "boolean"

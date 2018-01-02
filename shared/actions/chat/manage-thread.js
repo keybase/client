@@ -149,7 +149,7 @@ const _openTeamConversation = function*(action: ChatGen.OpenTeamConversationPayl
 
   // Load inbox if we can't find it
   if (!conversation) {
-    yield Saga.put(Chat2Gen.createInboxRefresh())
+    yield Saga.put(Chat2Gen.createInboxRefresh({reason: 'open team convo w/ no inbox load'}))
     yield Saga.take(Chat2Gen.metasReceived)
     state = yield Saga.select()
   }

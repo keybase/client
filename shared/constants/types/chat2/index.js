@@ -8,7 +8,7 @@ export type _State = {
   badgeMap: I.Map<Common.ConversationIDKey, number>,
   inboxFilter: string,
   isSearching: boolean,
-  loadingSet: I.Set<string>, // set or reasons why we're loading
+  loadingMap: I.Map<string, number>, // reasons why we're loading
   messageMap: I.Map<Common.ConversationIDKey, I.Map<Message.Ordinal, Message.Message>>,
   messageOrdinals: I.Map<Common.ConversationIDKey, I.List<Message.Ordinal>>,
   metaMap: I.Map<Common.ConversationIDKey, Meta.ConversationMeta>,

@@ -376,7 +376,7 @@ const setupChatHandlers = () => {
           // }
           return null // TODO?
         case RPCChatTypes.notifyChatChatActivityType.teamtype:
-          return [Chat2Gen.createInboxRefresh()]
+          return [Chat2Gen.createInboxRefresh({reason: 'team type changed'})]
         default:
           break
       }
@@ -389,6 +389,36 @@ const setupChatHandlers = () => {
       Chat2Gen.createMetaRequestTrusted({conversationIDKeys: [Constants.conversationIDToKey(convID)]}),
     ]
   )
+
+  engine().setIncomingActionCreators(
+    'chat.1.NotifyChat.ChatInboxSynced',
+    ({syncRes}: RPCChatTypes.NotifyChatChatInboxSyncedRpcParam) => {
+      const actions = [Chat2Gen.createSetLoading({key: 'inboxSyncStarted', loading: false})]
+      switch (syncRes.syncType) {
+        case RPCChatTypes.commonSyncInboxResType.clear:
+          actions.push(Chat2Gen.createInboxRefresh({clearAllData: true, reason: 'inbox synced clear'}))
+          break
+        case RPCChatTypes.commonSyncInboxResType.current:
+          break
+        case RPCChatTypes.commonSyncInboxResType.incremental:
+          actions.push(
+            Chat2Gen.createMetaRequestTrusted({
+              conversationIDKeys: ((syncRes.incremental && syncRes.incremental.items) || []).map(
+                i => i.convID
+              ),
+            })
+          )
+          break
+        default:
+          actions.push(Chat2Gen.createInboxRefresh({reason: 'inbox synced unknown'}))
+      }
+      return actions
+    }
+  )
+
+  engine().setIncomingActionCreators('chat.1.NotifyChat.ChatInboxSyncStarted', () => [
+    Chat2Gen.createSetLoading({key: 'inboxSyncStarted', loading: true}),
+  ])
 }
 
 const navigateToThread = (action: Chat2Gen.SelectConversationPayload) => {
@@ -416,18 +446,14 @@ const rpcLoadThread = (
   action: Chat2Gen.SelectConversationPayload | Chat2Gen.LoadMoreMessagesPayload,
   state: TypedState
 ) => {
-  let conversationIDKey
-  let recent
-
+  const actions = []
+  let idKey
   switch (action.type) {
     case Chat2Gen.selectConversation:
-      conversationIDKey = action.payload.conversationIDKey
-      // When a conversation is selected we want to get the newer items, if any
-      recent = !conversationIDKey || Constants.getMeta(state, conversationIDKey).hasLoadedThread
+      idKey = action.payload.conversationIDKey
       break
     case Chat2Gen.loadMoreMessages:
-      conversationIDKey = action.payload.conversationIDKey
-      recent = false
+      idKey = action.payload.conversationIDKey
       break
     default:
       // eslint-disable-next-line no-unused-expressions
@@ -435,21 +461,74 @@ const rpcLoadThread = (
       throw new Error('Invalid action passed to rpcLoadThread')
   }
 
-  if (!conversationIDKey) {
+  if (!idKey) {
     logger.info('Load thread bail: no conversationIDKey')
     return
   }
+
+  const conversationIDKey = idKey
   const conversationID = Constants.keyToConversationID(conversationIDKey)
   if (!conversationID) {
     logger.info('Load thread bail: invalid conversationIDKey')
     return
   }
 
-  const pivot = Constants.getMessageOrdinals(state, conversationIDKey).first()
+  let recent // if true we're loading newer content
+  let pivot // the messageid we're loading from (newer than or older than)
 
-  if (pivot && Constants.isOldestOrdinal(pivot)) {
-    logger.info('Load thread bail: pivot is oldest')
-    return
+  const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
+  switch (action.type) {
+    case Chat2Gen.selectConversation:
+      // When we just select a conversation we can be in the following states
+      // 1. We have no messages at all yet (not unboxed)
+      // 2. We have some messages but we never actually did an explicit load (unboxing and some streaming)
+      // 3. We have some messages due to a load and want to make sure we're up to date so we ask for newer (aka you clicked and away and back again)
+      // 4. We have some messages from a load and then we have a gap cause we were offline or something and got a stale. Assuming [messages...] [gap] [new item]
+      const hasLoaded = Constants.getMeta(state, conversationIDKey).hasLoadedThread
+      if (!hasLoaded) {
+        // case 1/2
+        logger.info('Load thread: case 1/2: not loaded yet')
+        recent = false
+        pivot = Constants.getMessageOrdinals(state, conversationIDKey).last() // get messages than the oldest one we know about
+      } else {
+        const last = ordinals.last()
+        const secondToLast = ordinals.get(-2)
+        // Is there a gap?
+        const gap = last && secondToLast ? last - secondToLast : 0
+        if (gap > 1) {
+          // Case 4
+          if (gap < 50) {
+            logger.info('Load thread: case 4: small gap, filling in')
+            recent = true
+            pivot = ordinals.get(-2) // newer than the top of the gap
+          } else {
+            logger.info('Load thread: case 4: big gap, acting like not loaded yet')
+            // Gap is too big, treat as Case 1/2 and clear old ordinals
+            actions.push(Chat2Gen.createClearOrdinals({conversationIDKey}))
+            recent = false
+            pivot = ordinals.last()
+          }
+        } else {
+          // Case 3
+          logger.info('Load thread: case 3: already loaded, just load newer')
+          recent = true
+          pivot = ordinals.last()
+        }
+      }
+
+      break
+    case Chat2Gen.loadMoreMessages:
+      recent = false // we're always going backwards in time
+      pivot = Constants.getMessageOrdinals(state, conversationIDKey).first() // get newer messages than the oldest one we know about
+      if (pivot && Constants.isOldestOrdinal(pivot)) {
+        logger.info('Load thread bail: pivot is oldest')
+        return
+      }
+      break
+    default:
+      // eslint-disable-next-line no-unused-expressions
+      ;(action: empty) // errors if we don't handle any new actions
+      throw new Error('Invalid action passed to rpcLoadThread')
   }
 
   const num = 20 // TODO dynamic maybe, deal w/ stale // TODO more
@@ -467,12 +546,18 @@ const rpcLoadThread = (
       }, [])
 
       if (messages.length) {
-        yield Saga.put(Chat2Gen.createMessagesAdd({messages}))
+        yield Saga.put(Chat2Gen.createMessagesAdd({fromThreadLoad: conversationIDKey, messages}))
       }
     }
+
     return EngineRpc.rpcResult()
   }
 
+  logger.info(
+    `Load thread: calling rpc convo: ${conversationIDKey} pivot: ${pivot || ''} recent: ${
+      recent ? 'true' : 'false'
+    } num: ${num}`
+  )
   const loadThreadChanMapRpc = new EngineRpc.EngineRpcCall(
     {
       'chat.1.chatUi.chatThreadCached': onGotThread,
@@ -496,7 +581,8 @@ const rpcLoadThread = (
     }
   )
 
-  return Saga.call(loadThreadChanMapRpc.run)
+  actions.push(Saga.call(loadThreadChanMapRpc.run))
+  return Saga.sequentially(actions)
 }
 
 const rpcLoadThreadSuccess = () => {}

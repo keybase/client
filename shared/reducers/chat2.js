@@ -69,7 +69,9 @@ const metaMapReducer = (metaMap, action) => {
           const old = map.get(meta.conversationIDKey)
           // Only update if this is has a newer version or our state is changing
           if (!old || meta.inboxVersion > old.inboxVersion || meta.trustedState !== old.trustedState) {
-            map.set(meta.conversationIDKey, meta)
+            // Keep some of our own props eve when loading a new one
+            const toSet = old ? meta.set('hasLoadedThread', old.hasLoadedThread) : meta
+            map.set(meta.conversationIDKey, toSet)
           }
         })
       })
@@ -79,11 +81,15 @@ const metaMapReducer = (metaMap, action) => {
           map.setIn([id, 'trustedState'], action.payload.newState)
         })
       })
-    case Chat2Gen.loadMoreMessages:
-      return metaMap.update(
-        action.payload.conversationIDKey,
-        meta => (meta ? meta.set('hasLoadedThread', true) : meta)
-      )
+    case Chat2Gen.messagesAdd:
+      return action.payload.fromThreadLoad
+        ? metaMap.update(
+            action.payload.fromThreadLoad,
+            meta => (meta ? meta.set('hasLoadedThread', true) : meta)
+          )
+        : metaMap
+    case Chat2Gen.inboxRefresh:
+      return action.payload.clearAllData ? metaMap.clear() : metaMap
     default:
       return metaMap
   }
@@ -91,6 +97,8 @@ const metaMapReducer = (metaMap, action) => {
 
 const messageMapReducer = (messageMap, action) => {
   switch (action.type) {
+    case Chat2Gen.inboxRefresh:
+      return action.payload.clearAllData ? messageMap.clear() : messageMap
     case Chat2Gen.messageEdit: {
       const {conversationIDKey, ordinal, text} = action.payload
       return messageMap.updateIn(
@@ -101,33 +109,32 @@ const messageMapReducer = (messageMap, action) => {
     }
     case Chat2Gen.messagesDelete: {
       const {conversationIDKey, ordinals} = action.payload
-      return messageMap.update(
-        conversationIDKey,
-        I.Map(),
-        (map: I.Map<Types.Ordinal, Types.Message>) =>
-          map.withMutations(m => {
-            ordinals.forEach(ordinal => {
-              m.update(ordinal, message => {
-                if (!message) {
-                  return message
-                }
-                return Constants.makeMessageDeleted({
-                  conversationIDKey: message.conversationIDKey,
-                  id: message.id,
-                  ordinal: message.ordinal,
-                  timestamp: message.timestamp,
-                })
+      return messageMap.update(conversationIDKey, I.Map(), (map: I.Map<Types.Ordinal, Types.Message>) =>
+        map.withMutations(m => {
+          ordinals.forEach(ordinal => {
+            m.update(ordinal, message => {
+              if (!message) {
+                return message
+              }
+              return Constants.makeMessageDeleted({
+                conversationIDKey: message.conversationIDKey,
+                id: message.id,
+                ordinal: message.ordinal,
+                timestamp: message.timestamp,
               })
             })
           })
-        // map.deleteAll(ordinals)
+        })
       )
     }
     case Chat2Gen.messagesAdd: {
       const {messages} = action.payload
       return messageMap.withMutations(
         (map: I.Map<Types.ConversationIDKey, I.Map<Types.Ordinal, Types.Message>>) =>
-          messages.forEach(message => map.setIn([message.conversationIDKey, message.ordinal], message))
+          messages.forEach(message =>
+            // Never replace old messages
+            map.updateIn([message.conversationIDKey, message.ordinal], old => old || message)
+          )
       )
     }
     default:
@@ -138,6 +145,10 @@ const messageMapReducer = (messageMap, action) => {
 const messageOrdinalsReducer = (messageOrdinalsList, action) => {
   // Note: on a delete we leave the ordinals in the list
   switch (action.type) {
+    case Chat2Gen.clearOrdinals:
+      return messageOrdinalsList.set(action.payload.conversationIDKey, I.List())
+    case Chat2Gen.inboxRefresh:
+      return action.payload.clearAllData ? messageOrdinalsList.clear() : messageOrdinalsList
     case Chat2Gen.messagesAdd: {
       const {messages} = action.payload
       const idToMessages = messages.reduce((map, m) => {
@@ -169,11 +180,17 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.resetStore:
       return initialState
     case Chat2Gen.setLoading:
-      return state.update(
-        'loadingSet',
-        loading =>
-          action.payload.loading ? loading.add(action.payload.key) : loading.delete(action.payload.key)
-      )
+      return state.update('loadingMap', loading => {
+        const count = loading.get(action.payload.key, 0) + (action.payload.loading ? 1 : -1)
+        if (count > 0) {
+          return loading.set(action.payload.key, count)
+        } else if (count === 0) {
+          return loading.delete(action.payload.key)
+        } else {
+          // never allow negative
+          throw new Error(`Negative loading in chat ${action.payload.key}`)
+        }
+      })
     case Chat2Gen.selectConversation:
       return state.set('selectedConversation', action.payload.conversationIDKey)
     case Chat2Gen.setInboxFilter:
@@ -195,24 +212,24 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       )
       return state.set('badgeMap', badgeMap).set('unreadMap', unreadMap)
     }
-    // MetaMap actions
-    case Chat2Gen.metasReceived:
-    case Chat2Gen.metaUpdateTrustedState:
+    // metaMap/messageMap/messageOrdinalsList actions
+    case Chat2Gen.clearOrdinals:
     case Chat2Gen.inboxRefresh:
+    case Chat2Gen.messageEdit:
+    case Chat2Gen.messagesAdd:
+    case Chat2Gen.messagesDelete:
     case Chat2Gen.metaHandleQueue:
     case Chat2Gen.metaNeedsUpdating:
     case Chat2Gen.metaReceivedError:
     case Chat2Gen.metaRequestTrusted:
-    case Chat2Gen.loadMoreMessages:
-      return state.set('metaMap', metaMapReducer(state.metaMap, action))
-    // MessageMap/messageOrdinalsList actions
-    case Chat2Gen.messagesAdd:
-    case Chat2Gen.messagesDelete:
-    case Chat2Gen.messageEdit:
+    case Chat2Gen.metaUpdateTrustedState:
+    case Chat2Gen.metasReceived:
       return state
+        .set('metaMap', metaMapReducer(state.metaMap, action))
         .set('messageMap', messageMapReducer(state.messageMap, action))
         .set('messageOrdinals', messageOrdinalsReducer(state.messageOrdinals, action))
     // Saga only actions
+    case Chat2Gen.loadMoreMessages:
     case Chat2Gen.setupChatHandlers:
       return state
     default:
