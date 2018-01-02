@@ -17,29 +17,47 @@ import (
 )
 
 var (
-	fProd          bool
-	fDiskCertCache bool
+	fProd           bool
+	fDiskCertCache  bool
+	fNoRedirectHTTP bool
 )
 
 func init() {
 	flag.BoolVar(&fProd, "prod", false, "disable development mode")
 	flag.BoolVar(&fDiskCertCache, "use-disk-cert-cache", false, "cache cert on disk")
+	flag.BoolVar(&fNoRedirectHTTP, "no-redirect-http", false, "do not redirect to HTTPS")
+}
+
+func newLogger(isCLI bool) (*zap.Logger, error) {
+	var loggerConfig zap.Config
+
+	if isCLI {
+		// The default development logger is suitable for console. Disable
+		// stacktrace here for less verbosity, and colorize loglevel for better
+		// readability.
+		loggerConfig = zap.NewDevelopmentConfig()
+		loggerConfig.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+		loggerConfig.DisableStacktrace = true
+	} else {
+		// The default production logger simply logs a json object for each
+		// line. We override the time format to ISO8601 here to make it more
+		// readable and compatible.
+		loggerConfig = zap.NewProductionConfig()
+		loggerConfig.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+		loggerConfig.EncoderConfig.TimeKey = "time"
+	}
+
+	return loggerConfig.Build()
 }
 
 func main() {
 	flag.Parse()
 
 	ctx, cancel := context.WithCancel(context.Background())
-	var logger *zap.Logger
-	var err error
-	if fProd {
-		logger, err = zap.NewProduction()
-	} else {
-		loggerConfig := zap.NewDevelopmentConfig()
-		loggerConfig.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-		loggerConfig.DisableStacktrace = true
-		logger, err = loggerConfig.Build()
-	}
+
+	// TODO: make logstash forwarding work and use isCLI=false here if logstash
+	// forwarding address is set.
+	logger, err := newLogger(true)
 	if err != nil {
 		panic(err)
 	}
@@ -62,11 +80,11 @@ func main() {
 	}
 
 	serverConfig := libpages.ServerConfig{
-		// Connect to staging Let's Encrypt server while we are testing since
-		// the rate-limit is way higher.
 		UseStaging:       !fProd,
 		Logger:           logger,
 		UseDiskCertCache: fDiskCertCache,
+		AutoDirectHTTP:   !fNoRedirectHTTP,
 	}
+
 	libpages.ListenAndServe(ctx, serverConfig, kbConfig)
 }

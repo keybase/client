@@ -175,6 +175,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	cfg, err := st.getConfig(false)
 	if err != nil {
+		// User has a .kbp_config file but it's invalid.
 		// TODO: error page to show the error message?
 		s.config.Logger.Info("getConfig", zap.String("host", r.Host), zap.Error(err))
 		s.handleError(w, err)
@@ -271,9 +272,60 @@ const (
 	gracefulShutdownTimeout = 16 * time.Second
 	httpReadHeaderTimeout   = 8 * time.Second
 	httpIdleTimeout         = 1 * time.Minute
-	stagingDiskCacheName    = "./kbp-cert-cache-dev"
+	stagingDiskCacheName    = "./kbp-cert-cache-staging"
 	prodDiskCacheName       = "./kbp-cert-cache"
 )
+
+func (s *Server) redirectHandlerFunc(w http.ResponseWriter, req *http.Request) {
+	// URL.RequestURI(), unlike the Request-URI field in HTTP header, does not
+	// include protocol and host. Instead, it's always constructed in the
+	// `http` package as `path?query` for HTTP(s) URLs (when Opaque field is
+	// empty).
+	if len(req.URL.Opaque) > 0 {
+		// This shouldn't happen for HTTP(s) URLs.
+		s.config.Logger.Warn("len(URL.Opaque)>0",
+			zap.String("url", req.URL.String()),
+			zap.String("Opaque", req.URL.Opaque))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	http.Redirect(w, req, "https://"+req.Host+req.URL.RequestURI(),
+		// Using 307 (Temporary Redirect) here, 1) instead of 302 to require
+		// same method to be used; and 2) instead of 308/301 to avoid pollute
+		// visitors' browser cache in case kbp user wants to use the domain in
+		// a way that needs HTTP not to be redirected to HTTPS.
+		http.StatusTemporaryRedirect)
+}
+
+func makeACMEManager(
+	useStaging bool, useDiskCertCacache bool, hostPolicy autocert.HostPolicy) (
+	*autocert.Manager, error) {
+	manager := &autocert.Manager{
+		Prompt:     autocert.AcceptTOS,
+		HostPolicy: hostPolicy,
+	}
+
+	if useDiskCertCacache {
+		if useStaging {
+			manager.Cache = autocert.DirCache(stagingDiskCacheName)
+		} else {
+			manager.Cache = autocert.DirCache(prodDiskCacheName)
+		}
+	}
+
+	if useStaging {
+		acmeKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+		if err != nil {
+			return nil, err
+		}
+		manager.Client = &acme.Client{
+			DirectoryURL: "https://acme-staging.api.letsencrypt.org/directory",
+			Key:          acmeKey,
+		}
+	}
+
+	return manager, nil
+}
 
 // ListenAndServe listens on 443 and 80 ports of all addresses, and serve
 // Keybase Pages based on config and kbfsConfig. HTTPs setup is handled with
@@ -293,36 +345,21 @@ func ListenAndServe(ctx context.Context,
 		siteCache:  siteCache,
 	}
 
-	if config.AutoDirectHTTP {
-		// TODO
+	manager, err := makeACMEManager(
+		config.UseStaging, config.UseDiskCertCache, server.allowConnectionTo)
+	if err != nil {
+		return err
 	}
 
-	manager := autocert.Manager{
-		Prompt:     autocert.AcceptTOS,
-		HostPolicy: server.allowConnectionTo,
-	}
-
-	if config.UseDiskCertCache {
-		if config.UseStaging {
-			manager.Cache = autocert.DirCache(stagingDiskCacheName)
-		} else {
-			manager.Cache = autocert.DirCache(prodDiskCacheName)
-		}
-	}
-
-	if config.UseStaging {
-		acmeKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-		if err != nil {
-			return err
-		}
-		manager.Client = &acme.Client{
-			DirectoryURL: "https://acme-staging.api.letsencrypt.org/directory",
-			Key:          acmeKey,
-		}
-	}
-
-	httpServer := http.Server{
+	httpsServer := http.Server{
 		Handler:           server,
+		ReadHeaderTimeout: httpReadHeaderTimeout,
+		IdleTimeout:       httpIdleTimeout,
+	}
+
+	httpRedirectServer := http.Server{
+		Addr:              ":80",
+		Handler:           http.HandlerFunc(server.redirectHandlerFunc),
 		ReadHeaderTimeout: httpReadHeaderTimeout,
 		IdleTimeout:       httpIdleTimeout,
 	}
@@ -332,8 +369,18 @@ func ListenAndServe(ctx context.Context,
 		shutdownCtx, cancel := context.WithTimeout(
 			context.Background(), gracefulShutdownTimeout)
 		defer cancel()
-		httpServer.Shutdown(shutdownCtx)
+		httpsServer.Shutdown(shutdownCtx)
+		httpRedirectServer.Shutdown(shutdownCtx)
 	}()
 
-	return httpServer.Serve(manager.Listener())
+	if config.AutoDirectHTTP {
+		go func() {
+			err := httpRedirectServer.ListenAndServe()
+			if err != nil {
+				config.Logger.Error("http.ListenAndServe:80", zap.Error(err))
+			}
+		}()
+	}
+
+	return httpsServer.Serve(manager.Listener())
 }
