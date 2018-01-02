@@ -172,7 +172,10 @@ const _onTabChange = (action: RouteTypes.SwitchTo) => {
 }
 
 const peopleSaga = function*(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeLatestPure(PeopleGen.getPeopleData, _getPeopleData, _processPeopleData)
+  yield Saga.safeTakeLatestPure(PeopleGen.getPeopleData, _getPeopleData, _processPeopleData, () =>
+    // TODO replace this with engine handling once that lands
+    Saga.put(createDecrementWaiting({key: Constants.getPeopleDataWaitingKey}))
+  )
   yield Saga.safeTakeEveryPure(PeopleGen.skipTodo, _skipTodo)
   yield Saga.safeTakeEveryPure(PeopleGen.setupPeopleHandlers, _setupPeopleHandlers)
   yield Saga.safeTakeEveryPure(RouteConstants.switchTo, _onTabChange)
