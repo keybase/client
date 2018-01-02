@@ -136,6 +136,14 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
 
   const timestamp = !previous || oldEnough ? formatTimeForMessages(message.timestamp) : null
   const includeHeader = !previous || !continuingTextBlock || !!timestamp
+  let loadMoreType
+  if (!previous) {
+    if (Constants2.isOldestOrdinal(message.ordinal)) {
+      loadMoreType = 'noMoreToLoad'
+    } else {
+      loadMoreType = 'moreToLoad'
+    }
+  }
 
   return {
     author: message.author,
@@ -150,6 +158,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
     isRevoked: false,
     isSelected: false, // ownProps.isSelected,
     isYou: false, // stateProps.isYou,
+    loadMoreType,
     measure: stateProps.measure,
     message,
     timestamp,

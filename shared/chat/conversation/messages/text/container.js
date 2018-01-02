@@ -29,7 +29,7 @@ const mapStateToProps = (state: TypedState, {message}: OwnProps) => ({
 
 const mergeProps = (stateProps, dispatchProps) => ({
   text: stateProps.message.text.stringValue(),
-  type: null,
+  type: 'sent', // TODO
   mentions: I.Set(),
   channelMention: 'None',
   isEditing: false,

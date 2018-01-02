@@ -52,4 +52,5 @@ export {
   getSnippetTimestamp,
   makeMessageDeleted,
   uiMessageToMessage,
+  isOldestOrdinal,
 } from './message'

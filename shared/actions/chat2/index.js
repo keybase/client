@@ -426,13 +426,13 @@ const rpcLoadThread = (action: Chat2Gen.SelectConversationPayload, state: TypedS
 
   const pivot = Constants.getMessageOrdinals(state, conversationIDKey).first()
 
-  if (pivot === 2) {
-    logger.info('Load thread bail: pivot is 2')
+  if (Constants.isOldestOrdinal(pivot)) {
+    logger.info('Load thread bail: pivot is oldest')
     return
   }
 
   const recent = false //  TODO newer
-  const num = 50 // TODO dynamic maybe, deal w/ stale
+  const num = 20 // TODO dynamic maybe, deal w/ stale // TODO more
 
   const onGotThread = function*({thread}) {
     if (thread) {

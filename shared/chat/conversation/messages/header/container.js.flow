@@ -1,9 +1,0 @@
-// @flow
-import {Component} from 'react'
-import * as Types from '../../../../constants/types/chat'
-
-export type OwnProps = {
-  messageKey: Types.MessageKey,
-}
-
-export default class Header extends Component<OwnProps> {}

@@ -4,6 +4,7 @@ import {Avatar, Icon, Text, Box} from '../../../../common-adapters'
 import {globalStyles, globalMargins, globalColors, isMobile} from '../../../../styles'
 import {colorForAuthor} from '../shared'
 import Timestamp from '../timestamp'
+import LoadMore from '../load-more'
 
 import type {Props} from '.'
 
@@ -70,6 +71,7 @@ const Failure = ({failureDescription, onShowEditor, onRetry}) => {
 
 const MessageWrapper = (props: Props) => (
   <Box style={props.includeHeader ? _containerWithHeaderStyle : _containerNoHeaderStyle}>
+    {props.loadMoreType && <LoadMore type={props.loadMoreType} />}
     {props.timestamp && <Timestamp timestamp={props.timestamp} />}
     <Box
       style={{

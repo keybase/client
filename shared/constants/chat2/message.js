@@ -199,3 +199,5 @@ export const getSnippetMessage = (
   }
   return messageMap.get(messageOrdinal)
 }
+
+export const isOldestOrdinal = (ordinal: Types.Ordinal) => ordinal === 2
