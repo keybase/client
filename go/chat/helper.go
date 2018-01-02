@@ -124,12 +124,22 @@ func (h *Helper) FindConversations(ctx context.Context, name string, topicName *
 		return nil, err
 	}
 	uid := gregor1.UID(kuid.ToBytes())
-	ncHelper := newNewConversationHelper(h.G(), uid, name, topicName, topicType, membersType, vis, h.ri)
-	if topicName == nil {
-		s := ""
-		topicName = &s
+	/*
+		ncHelper := newNewConversationHelper(h.G(), uid, name, topicName, topicType, membersType, vis, h.ri)
+		if topicName == nil {
+			s := ""
+			topicName = &s
+		}
+		convs, _, err := ncHelper.findConversations(ctx, membersType, *topicName)
+		return convs, err
+	*/
+
+	oneChat := true
+	var tname string
+	if topicName != nil {
+		tname = *topicName
 	}
-	convs, _, err := ncHelper.findConversations(ctx, membersType, *topicName)
+	convs, _, err := FindConversations(ctx, h.G(), h.DebugLabeler, h.ri, uid, name, topicType, membersType, vis, tname, &oneChat)
 	return convs, err
 }
 
