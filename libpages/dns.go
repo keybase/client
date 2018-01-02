@@ -34,20 +34,36 @@ func (ErrKeybasePagesRecordTooMany) Error() string {
 	return "more than 1 TXT record are found for " + keybasePagesPrefix
 }
 
-// LoadRootFromDNS loads the root path configured for domain by looking for
-// a "kbp=" DNS TXT record on the domain, parse it as Root and return it.
+const kbpRecordPrefix = "_keybase_pages."
+
+// LoadRootFromDNS loads the root path configured for domain, with following
+// steps:
+//   1. Construct a domain name by prefixing the `domain` parameter with
+//      "_keybase_pages.". So for example, "static.keybase.io" turns into
+//      "_keybase_pages.static.keybase.io".
+//   2. Load TXT record(s) from the domain constructed in step 1, and look for
+//      one starting with "kbp=". If exactly one exists, parse it into a `Root`
+//      and return it.
 //
-// There should be exactly one "kbp=" TXT record configured for domain. If more
+// There must be exactly one "kbp=" TXT record configured for domain. If more
 // than one exists, an ErrKeybasePagesRecordTooMany{} is returned. If none is
-// found, an ErrKeybasePagesRecordNotFound{} is returned.
+// found, an ErrKeybasePagesRecordNotFound{} is returned. In case user has some
+// configuration that requires other records that we can't foresee for now,
+// other records (TXT or not) can co-exist with the "kbp=" record (as long as
+// no CNAME record exists on the "_keybase_pages." prefixed domain of course).
 //
-// Examples:
+// If the given domain is invalid, it would cause the domain name constructed
+// in step will be invalid too, which causes Go's DNS resolver to return a
+// net.DNSError typed "no such host" error.
 //
-// static.keybase.io TXT "kbp=/keybase/team/keybase.bots/static.keybase.io"
-// meatball.gao.io   TXT "kbp=/keybase/public/songgao/meatball/"
-// song.gao.io       TXT "kbp=/keybase/private/songgao,kb_bot/blah"
-// blah.strib.io     TXT "kbp=/keybase/private/strib#kb_bot/blahblahb" "lah/blah/"
-// kbp.jzila.com     TXT "kbp=git-keybase://private/jzila,kb_bot/kbp.git"
+// Examples for "static.keybase.io", "meatball.gao.io", "song.gao.io",
+// "blah.strib.io", and "kbp.jzila.com" respectively:
+//
+// _keybase_pages.static.keybase.io TXT "kbp=/keybase/team/keybase.bots/static.keybase.io"
+// _keybase_pages.meatball.gao.io   TXT "kbp=/keybase/public/songgao/meatball/"
+// _keybase_pages.song.gao.io       TXT "kbp=/keybase/private/songgao,kb_bot/blah"
+// _keybase_pages.blah.strib.io     TXT "kbp=/keybase/private/strib#kb_bot/blahblahb" "lah/blah/"
+// _keybase_pages.kbp.jzila.com     TXT "kbp=git-keybase://private/jzila,kb_bot/kbp.git"
 func LoadRootFromDNS(log *zap.Logger, domain string) (root Root, err error) {
 	var rootPath string
 
@@ -63,7 +79,7 @@ func LoadRootFromDNS(log *zap.Logger, domain string) (root Root, err error) {
 		}
 	}()
 
-	txtRecords, err := net.LookupTXT(domain)
+	txtRecords, err := net.LookupTXT(kbpRecordPrefix + domain)
 	if err != nil {
 		return Root{}, err
 	}
