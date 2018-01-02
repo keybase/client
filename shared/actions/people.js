@@ -28,7 +28,6 @@ const _processPeopleData = function([
 ]) {
   let oldItems: I.List<Types.PeopleScreenItem> = I.List()
   let newItems: I.List<Types.PeopleScreenItem> = I.List()
-  console.log(data)
   if (data.items) {
     data.items.forEach(item => {
       const badged = item.badged
