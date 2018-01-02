@@ -16,6 +16,7 @@ export default function(state: Types.State = initialState, action: PeopleGen.Act
         oldItems: action.payload.oldItems,
         newItems: action.payload.newItems,
         followSuggestions: action.payload.followSuggestions,
+        version: action.payload.version,
       })
     case PeopleGen.getPeopleData:
     case PeopleGen.skipTodo:

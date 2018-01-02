@@ -118,6 +118,7 @@ const _processPeopleData = function([
         newItems,
         lastViewed: new Date(data.lastViewed),
         followSuggestions,
+        version: data.version,
       })
     ),
     Saga.put(createDecrementWaiting({key: Constants.getPeopleDataWaitingKey})),

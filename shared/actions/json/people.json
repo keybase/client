@@ -11,7 +11,8 @@
       "oldItems": "I.List<Types.PeopleScreenItem>",
       "newItems": "I.List<Types.PeopleScreenItem>",
       "followSuggestions": "I.List<Types.FollowSuggestion>",
-      "lastViewed": "Date"
+      "lastViewed": "Date",
+      "version": "number"
     },
     "skipTodo": {
       "type": "Types.TodoType"
