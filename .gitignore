@@ -9,6 +9,7 @@ kbfstool/kbfstool
 kbfsfuse/revision
 kbfsgit/git-remote-keybase/git-remote-keybase
 kbpagesd/kbpagesd
+kbpagesconfig/kbpagesconfig
 libpages/config/config.test
 *.test
 

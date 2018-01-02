@@ -213,6 +213,12 @@
 			"revisionTime": "2017-11-18T00:41:55Z"
 		},
 		{
+			"checksumSHA1": "MSUVOprNOaMz1XmrRCNMTj0m5eU=",
+			"path": "github.com/keybase/client/go/minterm",
+			"revision": "5b12b3c24d5d2f2d77c9980558b37e242a8bd70e",
+			"revisionTime": "2018-01-03T18:59:13Z"
+		},
+		{
 			"checksumSHA1": "O1Q0NBB6o1mj4A+1uk1xgf7nw+c=",
 			"path": "github.com/keybase/client/go/protocol",
 			"revision": "48d481846d575f64aa78234f99d003b03f3416c0",
@@ -353,6 +359,12 @@
 			"revisionTime": "2016-12-08T01:54:25Z"
 		},
 		{
+			"checksumSHA1": "orAH0wZ270S0Xef2B3DMnQFC+MI=",
+			"path": "github.com/keybase/go-crypto/ssh/terminal",
+			"revision": "80dd18f19f35c6b2e3b56254e397c36d07d9d285",
+			"revisionTime": "2017-11-30T13:45:51Z"
+		},
+		{
 			"checksumSHA1": "ub85JBvVGqt8k0uYhH4n0JmeOaA=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc",
 			"revision": "7aa85fb3f2e5b0c8ebfa508b2ed361cd3e6f629b",
@@ -469,6 +481,18 @@
 			"path": "github.com/shirou/gopsutil/mem",
 			"revision": "22a03b5be3f384f558742929065778aa26471033",
 			"revisionTime": "2016-06-14T09:28:26Z"
+		},
+		{
+			"checksumSHA1": "aG5wPXVGAEu90TjPFNZFRtox2Zo=",
+			"path": "github.com/spf13/cobra",
+			"revision": "ccaecb155a2177302cb56cae929251a256d0f646",
+			"revisionTime": "2017-12-07T07:49:35Z"
+		},
+		{
+			"checksumSHA1": "fKq6NiaqP3DFxnCRF5mmpJWTSUA=",
+			"path": "github.com/spf13/pflag",
+			"revision": "4c012f6dcd9546820e378d0bdda4d8fc772cdfea",
+			"revisionTime": "2017-11-06T14:28:49Z"
 		},
 		{
 			"path": "github.com/src-d/gcfg",

@@ -5,6 +5,9 @@
 package config
 
 import (
+	"encoding/json"
+	"io"
+	"strings"
 	"sync"
 
 	"golang.org/x/crypto/bcrypt"
@@ -31,8 +34,11 @@ type AccessControlV1 struct {
 }
 
 // V1 defines a V1 config. Public fields are accessible by `json`
-// encoders and decoder. On first call to GetPermission* methods, it
-// initializes an internal ACL checker. Any changes to the ACL fields
+// encoders and decoder.
+//
+// On first call to GetPermission* methods, it initializes an internal ACL
+// checker. If the object is constructed from ParseConfig, its internal ACL
+// checker is initialized automatically. Any changes to the ACL fields
 // afterwards have no effect.
 type V1 struct {
 	Common
@@ -91,23 +97,47 @@ func (c *V1) Authenticate(username, password string) bool {
 }
 
 // GetPermissionsForAnonymous implements the Config interface.
-func (c *V1) GetPermissionsForAnonymous(thePath string) (
+func (c *V1) GetPermissionsForAnonymous(path string) (
 	read, list bool, realm string, err error) {
 	if err = c.EnsureInit(); err != nil {
 		return false, false, "", err
 	}
 
-	perms, realm := c.aclChecker.getPermissions(thePath, nil)
+	perms, realm := c.aclChecker.getPermissions(path, nil)
 	return perms.read, perms.list, realm, nil
 }
 
 // GetPermissionsForUsername implements the Config interface.
-func (c *V1) GetPermissionsForUsername(thePath, username string) (
+func (c *V1) GetPermissionsForUsername(path, username string) (
 	read, list bool, realm string, err error) {
 	if err = c.EnsureInit(); err != nil {
 		return false, false, "", err
 	}
 
-	perms, realm := c.aclChecker.getPermissions(thePath, &username)
+	perms, realm := c.aclChecker.getPermissions(path, &username)
 	return perms.read, perms.list, realm, nil
+}
+
+// Encode implements the Config interface.
+func (c *V1) Encode(w io.Writer, prettify bool) error {
+	encoder := json.NewEncoder(w)
+	if prettify {
+		encoder.SetIndent("", strings.Repeat(" ", 2))
+	}
+	return encoder.Encode(c)
+}
+
+// Validate checks all public fields of c, and returns an error if any of them
+// is invalid, or a nil-error if they are all valid.
+//
+// Although changes to ACL fields have no effect to ACL checkings once the
+// internal ACL checker is intialized (see comment on V1), this method still
+// checks the updated ACL feilds. So it's OK to use Validate directly on a
+// *V1 that has been modified since it was initialized.
+//
+// As a result, unlike other methods on the type, this method is not goroutine
+// safe against changes to the public fields.
+func (c *V1) Validate() error {
+	_, err := makeACLCheckerV1(c.ACLs, c.Users)
+	return err
 }

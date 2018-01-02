@@ -60,9 +60,12 @@ type Config interface {
 	GetPermissionsForAnonymous(path string) (read, list bool, realm string, err error)
 	GetPermissionsForUsername(
 		path, username string) (read, list bool, realm string, err error)
+
+	Encode(w io.Writer, prettify bool) error
 }
 
-// ParseConfig parses a config from reader.
+// ParseConfig parses a config from reader, and initializes internal checker(s)
+// in the config.
 func ParseConfig(reader io.Reader) (config Config, err error) {
 	// TODO: make a better decoder to avoid having a buffer here and decoding
 	// twice.
