@@ -482,7 +482,7 @@ func TestMemberAddEmailBulk(t *testing.T) {
 	tc, _, name := memberSetup(t)
 	defer tc.Cleanup()
 
-	blob := "u1@keybase.io, u2@keybase.io\nu3@keybase.io,u4@keybase.io, u5@keybase.io,u6@keybase.io, u7@keybase.io\n\n\nFull Name <fullname@keybase.io>, Someone Else <someone@keybase.io>,u8@keybase.io\n\n"
+	blob := "u1@keybase.io, u2@keybase.io\nu3@keybase.io,u4@keybase.io, u5@keybase.io,u6@keybase.io, u7@keybase.io\n\n\nFull Name <fullname@keybase.io>, Someone Else <someone@keybase.io>,u8@keybase.io\n\nXXXXXXXXXXXX"
 
 	res, err := AddEmailsBulk(context.TODO(), tc.G, name, blob, keybase1.TeamRole_WRITER)
 	if err != nil {
@@ -497,7 +497,7 @@ func TestMemberAddEmailBulk(t *testing.T) {
 	if len(res.AlreadyInvited) != 0 {
 		t.Errorf("num already invited: %d, expected 0", len(res.AlreadyInvited))
 	}
-	require.Zero(t, res.Malformed)
+	require.Len(t, res.Malformed, 1)
 	for _, e := range emails {
 		assertInvite(tc, name, e, "email", keybase1.TeamRole_WRITER)
 	}
