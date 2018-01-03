@@ -1045,9 +1045,9 @@ func (h *Server) PostMetadata(ctx context.Context, arg chat1.PostMetadataArg) (c
 	return h.PostLocal(ctx, parg)
 }
 
-func (h *Server) PostDeleteHistoryByID(ctx context.Context, arg chat1.PostDeleteHistoryByIDArg) (res chat1.PostLocalRes, err error) {
+func (h *Server) PostDeleteHistoryUpto(ctx context.Context, arg chat1.PostDeleteHistoryUptoArg) (res chat1.PostLocalRes, err error) {
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, nil, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "PostDeleteHistoryByID")()
+	defer h.Trace(ctx, func() error { return err }, "PostDeleteHistoryUpto")()
 
 	delh := chat1.MessageDeleteHistory{Upto: arg.Upto}
 
@@ -1060,7 +1060,7 @@ func (h *Server) PostDeleteHistoryByID(ctx context.Context, arg chat1.PostDelete
 	parg.Msg.ClientHeader.DeleteHistory = &delh
 	parg.Msg.MessageBody = chat1.NewMessageBodyWithDeletehistory(delh)
 
-	h.Debug(ctx, "PostDeleteHistoryByID: deleting upto msgid:%v", delh.Upto)
+	h.Debug(ctx, "PostDeleteHistoryUpto: deleting upto msgid:%v", delh.Upto)
 
 	return h.PostLocal(ctx, parg)
 }
@@ -1078,7 +1078,7 @@ func (h *Server) PostDeleteHistoryByAge(ctx context.Context, arg chat1.PostDelet
 	}
 	upto := gmRes.MsgID + 1
 	h.Debug(ctx, "PostDeleteHistoryByAge: deleting upto msgid:%v (age:%v)", upto, arg.Age)
-	return h.PostDeleteHistoryByID(ctx, chat1.PostDeleteHistoryByIDArg{
+	return h.PostDeleteHistoryUpto(ctx, chat1.PostDeleteHistoryUptoArg{
 		ConversationID:   arg.ConversationID,
 		TlfName:          arg.TlfName,
 		TlfPublic:        arg.TlfPublic,

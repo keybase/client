@@ -2579,7 +2579,7 @@
       ],
       "response": "PostLocalRes"
     },
-    "postDeleteHistoryByID": {
+    "postDeleteHistoryUpto": {
       "request": [
         {
           "name": "conversationID",

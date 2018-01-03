@@ -3709,7 +3709,7 @@ type PostMetadataArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
-type PostDeleteHistoryByIDArg struct {
+type PostDeleteHistoryUptoArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	TlfName          string                       `codec:"tlfName" json:"tlfName"`
 	TlfPublic        bool                         `codec:"tlfPublic" json:"tlfPublic"`
@@ -3905,7 +3905,7 @@ type LocalInterface interface {
 	PostHeadline(context.Context, PostHeadlineArg) (PostLocalRes, error)
 	PostMetadataNonblock(context.Context, PostMetadataNonblockArg) (PostLocalNonblockRes, error)
 	PostMetadata(context.Context, PostMetadataArg) (PostLocalRes, error)
-	PostDeleteHistoryByID(context.Context, PostDeleteHistoryByIDArg) (PostLocalRes, error)
+	PostDeleteHistoryUpto(context.Context, PostDeleteHistoryUptoArg) (PostLocalRes, error)
 	PostDeleteHistoryByAge(context.Context, PostDeleteHistoryByAgeArg) (PostLocalRes, error)
 	SetConversationStatusLocal(context.Context, SetConversationStatusLocalArg) (SetConversationStatusLocalRes, error)
 	NewConversationLocal(context.Context, NewConversationLocalArg) (NewConversationLocalRes, error)
@@ -4174,18 +4174,18 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"postDeleteHistoryByID": {
+			"postDeleteHistoryUpto": {
 				MakeArg: func() interface{} {
-					ret := make([]PostDeleteHistoryByIDArg, 1)
+					ret := make([]PostDeleteHistoryUptoArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]PostDeleteHistoryByIDArg)
+					typedArgs, ok := args.(*[]PostDeleteHistoryUptoArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]PostDeleteHistoryByIDArg)(nil), args)
+						err = rpc.NewTypeError((*[]PostDeleteHistoryUptoArg)(nil), args)
 						return
 					}
-					ret, err = i.PostDeleteHistoryByID(ctx, (*typedArgs)[0])
+					ret, err = i.PostDeleteHistoryUpto(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4700,8 +4700,8 @@ func (c LocalClient) PostMetadata(ctx context.Context, __arg PostMetadataArg) (r
 	return
 }
 
-func (c LocalClient) PostDeleteHistoryByID(ctx context.Context, __arg PostDeleteHistoryByIDArg) (res PostLocalRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.postDeleteHistoryByID", []interface{}{__arg}, &res)
+func (c LocalClient) PostDeleteHistoryUpto(ctx context.Context, __arg PostDeleteHistoryUptoArg) (res PostLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.postDeleteHistoryUpto", []interface{}{__arg}, &res)
 	return
 }
 
