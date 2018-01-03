@@ -692,3 +692,63 @@ func TestLoaderCORE_6230_2(t *testing.T) {
 	})
 	require.NoError(t, err, "load team")
 }
+
+// Test that a link can be inflated even if the person who signed the (valid) link has since
+// lost permission to do so.
+func TestInflateAfterPermissionsChange(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 3)
+	defer cleanup()
+
+	// U1 is the user that signed a link and then lost permissions
+	// U2 is the user that inflates a link signed by U1
+
+	t.Logf("U0 creates fennel_network")
+	rootName, rootID := createTeam2(*tcs[0])
+
+	t.Logf("U0 adds U1 to the root")
+	_, err := AddMember(context.Background(), tcs[0].G, rootName.String(), fus[1].Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err)
+
+	t.Logf("U1 creates fennel_network.lair")
+	subteamLairID, err := CreateSubteam(context.Background(), tcs[1].G, "lair", rootName)
+	require.NoError(t, err)
+	subteamLairName, err := rootName.Append("lair")
+	require.NoError(t, err)
+
+	t.Logf("U1 creates fennel_network.chitchat")
+	subteamChitchatID, err := CreateSubteam(context.Background(), tcs[1].G, "chitchat", rootName)
+	require.NoError(t, err)
+	subteamChitchatName, err := rootName.Append("chitchat")
+	require.NoError(t, err)
+
+	t.Logf("U0 removes U1")
+	err = RemoveMember(context.Background(), tcs[0].G, rootName.String(), fus[1].Username)
+	require.NoError(t, err)
+
+	t.Logf("U0 adds U2 to chitchat")
+	_, err = AddMember(context.Background(), tcs[0].G, subteamChitchatName.String(), fus[2].Username, keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
+
+	t.Logf("U2 loads chitchat (thereby loading the root with the new_subteam:lair link stubbed out)")
+	_, err = Load(context.Background(), tcs[2].G, keybase1.LoadTeamArg{
+		ID:          *subteamChitchatID,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err, "load team chitchat")
+
+	t.Logf("check that the link is stubbed in storage")
+	rootData := tcs[2].G.GetTeamLoader().(*TeamLoader).storage.Get(context.Background(), rootID, rootID.IsPublic())
+	require.NotNil(t, rootData, "root team should be cached")
+	require.True(t, (TeamSigChainState{rootData.Chain}).HasAnyStubbedLinks(), "root team should have a stubbed link")
+
+	t.Logf("U0 adds U2 to lair")
+	_, err = AddMember(context.Background(), tcs[0].G, subteamLairName.String(), fus[2].Username, keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
+
+	t.Logf("U2 loads lair (which requires inflating the new_subteam:lair link)")
+	_, err = Load(context.Background(), tcs[2].G, keybase1.LoadTeamArg{
+		ID:          *subteamLairID,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err, "load team lair")
+}
