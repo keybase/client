@@ -36,6 +36,12 @@ func getBuildSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 	}
 }
 
+func getBuildSpecificChatCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
+	return []cli.Command{
+		newCmdChatDeleteHistoryDev(cl, g),
+	}
+}
+
 var restrictedSignupFlags = []cli.Flag{
 	cli.StringFlag{
 		Name:  "p, passphrase",

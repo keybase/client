@@ -34,6 +34,7 @@ type Storage struct {
 	engine       storageEngine
 	idtracker    *msgIDTracker
 	breakTracker *breakTracker
+	delhTracker  *delhTracker
 }
 
 type storageEngine interface {
@@ -51,6 +52,7 @@ func New(g *globals.Context) *Storage {
 		engine:       newBlockEngine(g),
 		idtracker:    newMsgIDTracker(g),
 		breakTracker: newBreakTracker(g),
+		delhTracker:  newDelhTracker(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Storage", false),
 	}
 }
@@ -132,6 +134,47 @@ func NewSimpleResultCollector(num int) *SimpleResultCollector {
 	return &SimpleResultCollector{
 		target: num,
 	}
+}
+
+type InsatiableResultCollector struct {
+	res []chat1.MessageUnboxed
+}
+
+var _ ResultCollector = (*InsatiableResultCollector)(nil)
+
+// InsatiableResultCollector aggregates all messages all the way back.
+// Its result can include holes.
+func NewInsatiableResultCollector() *InsatiableResultCollector {
+	return &InsatiableResultCollector{}
+}
+
+func (s *InsatiableResultCollector) Push(msg chat1.MessageUnboxed) {
+	s.res = append(s.res, msg)
+}
+
+func (s *InsatiableResultCollector) Done() bool {
+	return false
+}
+
+func (s *InsatiableResultCollector) Result() []chat1.MessageUnboxed {
+	return s.res
+}
+
+func (s *InsatiableResultCollector) Name() string {
+	return "inf"
+}
+
+func (s *InsatiableResultCollector) String() string {
+	return fmt.Sprintf("[ %s: c: %d ]", s.Name(), len(s.res))
+}
+
+func (s *InsatiableResultCollector) Error(err Error) Error {
+	return err
+}
+
+func (s *InsatiableResultCollector) PushPlaceholder(chat1.MessageID) bool {
+	// Missing messages are a-ok
+	return true
 }
 
 // TypedResultCollector aggregates results with a type contraints. It is not thread safe.
@@ -250,7 +293,16 @@ func (s *Storage) GetMaxMsgID(ctx context.Context, convID chat1.ConversationID, 
 	return maxMsgID, nil
 }
 
-func (s *Storage) Merge(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed) Error {
+type MergeResult struct {
+	DeletedHistory bool
+}
+
+// msgs must be sorted by descending message ID
+func (s *Storage) Merge(ctx context.Context,
+	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed) (MergeResult, Error) {
+
+	var res MergeResult
+
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functons.
 	locks.Storage.Lock()
@@ -262,32 +314,43 @@ func (s *Storage) Merge(ctx context.Context, convID chat1.ConversationID, uid gr
 	// Fetch secret key
 	key, ierr := getSecretBoxKey(ctx, s.G().ExternalG(), DefaultSecretUI)
 	if ierr != nil {
-		return MiscError{Msg: "unable to get secret key: " + ierr.Error()}
+		return res, MiscError{Msg: "unable to get secret key: " + ierr.Error()}
 	}
 
 	ctx, err = s.engine.Init(ctx, key, convID, uid)
 	if err != nil {
-		return err
+		return res, err
 	}
 
 	// Write out new data into blocks
 	if err = s.engine.WriteMessages(ctx, convID, uid, msgs); err != nil {
-		return s.MaybeNuke(false, err, convID, uid)
+		return res, s.MaybeNuke(false, err, convID, uid)
 	}
 
 	// Update supersededBy pointers
 	if err = s.updateAllSupersededBy(ctx, convID, uid, msgs); err != nil {
-		return s.MaybeNuke(false, err, convID, uid)
+		return res, s.MaybeNuke(false, err, convID, uid)
 	}
+
+	if err = s.updateMinDeletableMessage(ctx, convID, uid, msgs); err != nil {
+		return res, s.MaybeNuke(false, err, convID, uid)
+	}
+
+	// Process any DeleteHistory messages
+	deletedHistory, err := s.handleDeleteHistory(ctx, convID, uid, msgs)
+	if err != nil {
+		return res, s.MaybeNuke(false, err, convID, uid)
+	}
+	res.DeletedHistory = deletedHistory
 
 	// Update max msg ID if needed
 	if len(msgs) > 0 {
 		if err := s.idtracker.bumpMaxMessageID(ctx, convID, uid, msgs[0].GetMessageID()); err != nil {
-			return s.MaybeNuke(false, err, convID, uid)
+			return res, s.MaybeNuke(false, err, convID, uid)
 		}
 	}
 
-	return nil
+	return res, nil
 }
 
 func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.ConversationID,
@@ -303,21 +366,20 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 			continue
 		}
 
-		superIDs, ierr := utils.GetSupersedes(msg)
+		supersededIDs, ierr := utils.GetSupersedes(msg)
 		if ierr != nil {
 			continue
 		}
-		if len(superIDs) > 0 {
-			s.Debug(ctx, "updateSupersededBy: msgID: %d supersedes: %v", msgid, superIDs)
+		if len(supersededIDs) > 0 {
+			s.Debug(ctx, "updateSupersededBy: msgID: %d supersedes: %v", msgid, supersededIDs)
 		}
 
 		// Set all supersedes targets
-		for _, superID := range superIDs {
-			s.Debug(ctx, "updateSupersededBy: supersedes: id: %d supersedes: %d", msgid, superID)
-			// Read super msg
-			var superMsgs []chat1.MessageUnboxed
+		for _, supersededID := range supersededIDs {
+			s.Debug(ctx, "updateSupersededBy: supersedes: id: %d supersedes: %d", msgid, supersededID)
+			// Read superseded msg
 			rc := NewSimpleResultCollector(1)
-			err := s.engine.ReadMessages(ctx, rc, convID, uid, superID)
+			err := s.engine.ReadMessages(ctx, rc, convID, uid, supersededID)
 			if err != nil {
 				// If we don't have the message, just keep going
 				if _, ok := err.(MissError); ok {
@@ -325,7 +387,7 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 				}
 				return err
 			}
-			superMsgs = rc.Result()
+			superMsgs := rc.Result()
 			if len(superMsgs) == 0 {
 				continue
 			}
@@ -334,7 +396,7 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 			// the superseder is a deletion, delete the body as well.
 			superMsg := superMsgs[0]
 			if superMsg.IsValid() {
-				s.Debug(ctx, "updateSupersededBy: writing: id: %d superseded: %d", msgid, superID)
+				s.Debug(ctx, "updateSupersededBy: writing: id: %d superseded: %d", msgid, supersededID)
 				mvalid := superMsg.Valid()
 				mvalid.ServerHeader.SupersededBy = msgid
 				if msg.GetMessageType() == chat1.MessageType_DELETE {
@@ -353,6 +415,203 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 	}
 
 	return nil
+}
+
+func (s *Storage) updateMinDeletableMessage(ctx context.Context, convID chat1.ConversationID,
+	uid gregor1.UID, msgs []chat1.MessageUnboxed) Error {
+
+	de := func(format string, args ...interface{}) {
+		s.Debug(ctx, "updateMinDeletableMessage: "+fmt.Sprintf(format, args...))
+	}
+
+	// The min deletable message ID in this new batch of messages.
+	var minDeletableMessageBatch *chat1.MessageID
+	for _, msg := range msgs {
+		msgid := msg.GetMessageID()
+		if !msg.IsValid() {
+			de("skipping message marked as error: %d", msgid)
+			continue
+		}
+		if !chat1.IsDeletableByDeleteHistory(msg.GetMessageType()) {
+			continue
+		}
+		if msg.Valid().MessageBody.IsNil() {
+			continue
+		}
+		if minDeletableMessageBatch == nil || msgid < *minDeletableMessageBatch {
+			minDeletableMessageBatch = &msgid
+		}
+	}
+
+	// Update the tracker to min(mem, batch)
+	if minDeletableMessageBatch != nil {
+		mem, err := s.delhTracker.getEntry(ctx, convID, uid)
+		switch err.(type) {
+		case nil:
+			if mem.MinDeletableMessage > 0 && *minDeletableMessageBatch >= mem.MinDeletableMessage {
+				// no need to update
+				return nil
+			}
+		case MissError:
+			// We have no memory
+		default:
+			return err
+		}
+
+		err = s.delhTracker.setMinDeletableMessage(ctx, convID, uid, *minDeletableMessageBatch)
+		if err != nil {
+			de("failed to store delh track: %v", err)
+		}
+	}
+
+	return nil
+}
+
+// Apply any new DeleteHistory from msgs.
+// Returns whether local deletes happened.
+// Shortcircuits so it's ok to call a lot.
+func (s *Storage) handleDeleteHistory(ctx context.Context, convID chat1.ConversationID,
+	uid gregor1.UID, msgs []chat1.MessageUnboxed) (bool, Error) {
+
+	type delhTagged struct {
+		source chat1.MessageUnboxedValid
+		delh   chat1.MessageDeleteHistory
+	}
+
+	de := func(format string, args ...interface{}) {
+		s.Debug(ctx, "handleDeleteHistory: "+fmt.Sprintf(format, args...))
+	}
+
+	// Find the DeleteHistory message with the maximum upto value.
+	var delhActive *delhTagged
+	for _, msg := range msgs {
+		msgid := msg.GetMessageID()
+		if !msg.IsValid() {
+			de("skipping message marked as error: %d", msgid)
+			continue
+		}
+		if msg.GetMessageType() != chat1.MessageType_DELETEHISTORY {
+			continue
+		}
+		mvalid := msg.Valid()
+		bodyType, err := mvalid.MessageBody.MessageType()
+		if err != nil {
+			de("skipping corrupted message body: %v", err)
+			continue
+		}
+		if bodyType != chat1.MessageType_DELETEHISTORY {
+			de("skipping wrong message body type: %v", err)
+			continue
+		}
+		delh := mvalid.MessageBody.Deletehistory()
+		de("found DeleteHistory: id:%v upto:%v", msgid, delh.Upto)
+		if delh.Upto <= 0 {
+			de("skipping malformed delh")
+			continue
+		}
+
+		if delhActive == nil || (delh.Upto > delhActive.delh.Upto) {
+			delhActive = &delhTagged{
+				source: mvalid,
+				delh:   delh,
+			}
+		}
+	}
+
+	// Noop if there are no DeleteHistory messages
+	if delhActive == nil {
+		return false, nil
+	}
+
+	mem, err := s.delhTracker.getEntry(ctx, convID, uid)
+	switch err.(type) {
+	case nil:
+		if mem.MaxDeleteHistoryUpto >= delhActive.delh.Upto {
+			// No-op if the effect has already been applied locally
+			de("skipping delh with no new effect: (upto local:%v >= msg:%v)", mem.MaxDeleteHistoryUpto, delhActive.delh.Upto)
+			return false, nil
+		}
+		if delhActive.delh.Upto < mem.MinDeletableMessage {
+			// Record-only if it would delete messages earlier than the local min.
+			de("record-only delh: (%v < %v)", delhActive.delh.Upto, mem.MinDeletableMessage)
+			err := s.delhTracker.setMaxDeleteHistoryUpto(ctx, convID, uid, delhActive.delh.Upto)
+			if err != nil {
+				de("failed to store delh track: %v", err)
+			}
+			return false, nil
+		}
+		// No shortcuts, fallthrough to apply.
+	case MissError:
+		// We have no memory, assume it needs to be applied
+	default:
+		return false, err
+	}
+
+	return s.applyDeleteHistory(ctx, convID, uid, delhActive.source, delhActive.delh)
+}
+
+// Apply a delete history.
+// Returns whether local deletes happened.
+// Always runs through local messages.
+func (s *Storage) applyDeleteHistory(ctx context.Context, convID chat1.ConversationID,
+	uid gregor1.UID, source chat1.MessageUnboxedValid, delh chat1.MessageDeleteHistory) (bool, Error) {
+
+	s.Debug(ctx, "applyDeleteHistory(%v, %v, %v)", convID, uid, delh.Upto)
+
+	de := func(format string, args ...interface{}) {
+		s.Debug(ctx, "applyDeleteHistory: "+fmt.Sprintf(format, args...))
+	}
+
+	rc := NewInsatiableResultCollector() // collect all messages
+	err := s.engine.ReadMessages(ctx, rc, convID, uid, delh.Upto-1)
+	switch err.(type) {
+	case nil:
+		// ok
+	case MissError:
+		de("record-only delh: no local messages")
+		err := s.delhTracker.setMaxDeleteHistoryUpto(ctx, convID, uid, delh.Upto)
+		if err != nil {
+			de("failed to store delh track: %v", err)
+		}
+		return false, nil
+	default:
+		return false, err
+	}
+
+	var writeback []chat1.MessageUnboxed
+	for _, msg := range rc.Result() {
+		if !chat1.IsDeletableByDeleteHistory(msg.GetMessageType()) {
+			// Skip message types that cannot be deleted this way
+			continue
+		}
+		if !msg.IsValid() {
+			de("skipping invalid msg: %v", msg.GetMessageID())
+			continue
+		}
+		mvalid := msg.Valid()
+		if mvalid.MessageBody.IsNil() {
+			de("skipping already deleted msg: %v", msg.GetMessageID())
+			continue
+		}
+		mvalid.ServerHeader.SupersededBy = source.ServerHeader.MessageID
+		var emptyBody chat1.MessageBody
+		mvalid.MessageBody = emptyBody
+		writeback = append(writeback, chat1.NewMessageUnboxedWithValid(mvalid))
+	}
+	de("deleting %v messages", len(writeback))
+
+	err = s.engine.WriteMessages(ctx, convID, uid, writeback)
+	if err != nil {
+		de("write messages failed: %v", err)
+		return false, err
+	}
+
+	err = s.delhTracker.setDeletedUpto(ctx, convID, uid, delh.Upto)
+	if err != nil {
+		de("failed to store delh track: %v", err)
+	}
+
+	return true, nil
 }
 
 func (s *Storage) ResultCollectorFromQuery(ctx context.Context, query *chat1.GetThreadQuery,

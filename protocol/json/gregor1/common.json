@@ -288,6 +288,13 @@
     },
     {
       "type": "record",
+      "name": "DurationSec",
+      "fields": [],
+      "typedef": "int64",
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
       "name": "Category",
       "fields": [],
       "typedef": "string"

@@ -15,10 +15,10 @@ export const mobileAppState = 'app:mobileAppState'
 export const showMain = 'app:showMain'
 
 // Action Creators
-export const createChangedActive = (payload: {|+userActive: boolean|}) => ({error: false, payload, type: changedActive})
-export const createChangedFocus = (payload: {|+appFocused: boolean|}) => ({error: false, payload, type: changedFocus})
-export const createLink = (payload: {|+link: string|}) => ({error: false, payload, type: link})
-export const createMobileAppState = (payload: {|+nextAppState: 'active' | 'background' | 'inactive'|}) => ({error: false, payload, type: mobileAppState})
+export const createChangedActive = (payload: $ReadOnly<{userActive: boolean}>) => ({error: false, payload, type: changedActive})
+export const createChangedFocus = (payload: $ReadOnly<{appFocused: boolean}>) => ({error: false, payload, type: changedFocus})
+export const createLink = (payload: $ReadOnly<{link: string}>) => ({error: false, payload, type: link})
+export const createMobileAppState = (payload: $ReadOnly<{nextAppState: 'active' | 'background' | 'inactive'}>) => ({error: false, payload, type: mobileAppState})
 export const createShowMain = () => ({error: false, payload: undefined, type: showMain})
 
 // Action Payloads

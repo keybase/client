@@ -296,14 +296,21 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
   yield Saga.put(TeamsGen.createGetTeamOperations({teamname}))
   yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
   try {
-    const details: RPCTypes.TeamDetails = yield Saga.call(RPCTypes.teamsTeamGetRpcPromise, {
-      name: teamname,
+    const unsafeDetails: RPCTypes.TeamDetails = yield Saga.call(RPCTypes.teamsTeamGetRpcPromise, {
       forceRepoll: false,
+      name: teamname,
     })
 
     // Don't allow the none default
-    if (details.settings.joinAs === RPCTypes.teamsTeamRole.none) {
-      details.settings.joinAs = RPCTypes.teamsTeamRole.reader
+    const details: RPCTypes.TeamDetails = {
+      ...unsafeDetails,
+      settings: {
+        ...unsafeDetails.settings,
+        joinAs:
+          unsafeDetails.settings.joinAs === RPCTypes.teamsTeamRole.none
+            ? RPCTypes.teamsTeamRole.reader
+            : unsafeDetails.settings.joinAs,
+      },
     }
 
     const implicitAdminDetails: Array<RPCTypes.TeamMemberDetails> =

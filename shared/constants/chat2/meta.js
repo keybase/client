@@ -32,6 +32,7 @@ export const unverifiedInboxUIItemToConversationMeta = (
   username: string
 ) => {
   if (IGNORE_UNTRUSTED_CACHE) {
+    // $FlowIssue flow rightfully complains
     i.localMetadata = null
   }
 

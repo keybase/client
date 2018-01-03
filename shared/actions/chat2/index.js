@@ -11,7 +11,7 @@ import * as Types from '../../constants/types/chat2'
 import HiddenString from '../../util/hidden-string'
 import engine from '../../engine'
 import logger from '../../logger'
-import type {TypedState} from '../../constants/reducer'
+import type {TypedState, Dispatch} from '../../util/container'
 import {chatTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {NotifyPopup} from '../../native/notifications'
@@ -47,26 +47,12 @@ const rpcInboxRefresh = (action: Chat2Gen.InboxRefreshPayload, state: TypedState
         inbox,
       }: RPCChatTypes.ChatUiChatInboxUnverifiedRpcParam) {
         const result: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(inbox)
-        const items = result.items || []
+        const items: Array<RPCChatTypes.UnverifiedInboxUIItem> = result.items || []
         // We get meta
         const metas = items
           .map(item => Constants.unverifiedInboxUIItemToConversationMeta(item, username))
           .filter(Boolean)
         yield Saga.put(Chat2Gen.createMetasReceived({metas}))
-
-        // We also get some cached messages which are trusted
-        const messages = items.reduce((arr, i) => {
-          if (i.localMetadata && i.localMetadata.snippetMsg) {
-            const message = Constants.uiMessageToMessage(i.convID, i.localMetadata.snippetMsg)
-            if (message) {
-              arr.push(message)
-            }
-          }
-          return arr
-        }, [])
-        if (messages.length) {
-          yield Saga.put(Chat2Gen.createMessagesAdd({messages}))
-        }
         return EngineRpc.rpcResult()
       },
     },
@@ -177,12 +163,6 @@ const rpcMetaRequest = (
     const meta = Constants.inboxUIItemToConversationMeta(inboxUIItem)
     if (meta) {
       yield Saga.put(Chat2Gen.createMetasReceived({metas: [meta]}))
-      if (inboxUIItem.snippetMessage) {
-        const message = Constants.uiMessageToMessage(inboxUIItem.convID, inboxUIItem.snippetMessage)
-        if (message) {
-          yield Saga.put(Chat2Gen.createMessagesAdd({messages: [message]}))
-        }
-      }
     } else {
       yield Saga.put(
         Chat2Gen.createMetaReceivedError({
@@ -263,7 +243,7 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage) => {
   // TODO from thread-content:
   // convert outbox to regular?
   // mark as read
-  const {conv, message: cMsg, convID, displayDesktopNotification} = incoming
+  const {message: cMsg, convID, displayDesktopNotification} = incoming
   const actions = []
 
   // TODO figure out notify plumbing
@@ -298,11 +278,11 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage) => {
     }
   }
 
-  actions.push(chatActivityToMetasAction(conv))
+  actions.push(chatActivityToMetasAction(incoming))
   return actions
 }
 
-const chatActivityToMetasAction = payload => {
+const chatActivityToMetasAction = (payload: ?{+conv?: ?RPCChatTypes.InboxUIItem}) => {
   const meta = payload && payload.conv && Constants.inboxUIItemToConversationMeta(payload.conv)
   return meta ? [Chat2Gen.createMetasReceived({metas: [meta]})] : null
 }
@@ -310,7 +290,8 @@ const chatActivityToMetasAction = payload => {
 const setupChatHandlers = () => {
   engine().setIncomingActionCreators(
     'chat.1.NotifyChat.NewChatActivity',
-    ({activity}: {activity: RPCChatTypes.ChatActivity}) => {
+    (payload: {activity: RPCChatTypes.ChatActivity}) => {
+      const activity: RPCChatTypes.ChatActivity = payload.activity
       switch (activity.activityType) {
         case RPCChatTypes.notifyChatChatActivityType.incomingMessage:
           return activity.incomingMessage ? onIncomingMessage(activity.incomingMessage) : null
@@ -404,12 +385,11 @@ const setupChatHandlers = () => {
         case RPCChatTypes.commonSyncInboxResType.current:
           break
         case RPCChatTypes.commonSyncInboxResType.incremental: {
+          const state: TypedState = getState()
+          const username = state.config.username || ''
           const items = (syncRes.incremental && syncRes.incremental.items) || []
           const metas = items.reduce((arr, i) => {
-            const meta = Constants.unverifiedInboxUIItemToConversationMeta(
-              i,
-              getState().config.username || ''
-            )
+            const meta = Constants.unverifiedInboxUIItemToConversationMeta(i, username)
             if (meta) {
               arr.push(meta)
             }
@@ -462,27 +442,12 @@ const rpcLoadThread = (
   action: Chat2Gen.SelectConversationPayload | Chat2Gen.LoadMoreMessagesPayload,
   state: TypedState
 ) => {
-  const actions = []
-  let idKey
-  switch (action.type) {
-    case Chat2Gen.selectConversation:
-      idKey = action.payload.conversationIDKey
-      break
-    case Chat2Gen.loadMoreMessages:
-      idKey = action.payload.conversationIDKey
-      break
-    default:
-      // eslint-disable-next-line no-unused-expressions
-      ;(action: empty) // errors if we don't handle any new actions
-      throw new Error('Invalid action passed to rpcLoadThread')
-  }
-
-  if (!idKey) {
+  const conversationIDKey = action.payload.conversationIDKey
+  if (!conversationIDKey) {
     logger.info('Load thread bail: no conversationIDKey')
     return
   }
 
-  const conversationIDKey = idKey
   const conversationID = Constants.keyToConversationID(conversationIDKey)
   if (!conversationID) {
     logger.info('Load thread bail: invalid conversationIDKey')
@@ -494,6 +459,7 @@ const rpcLoadThread = (
   let num = numMessagesPerLoad
 
   const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
+  const actions = []
   switch (action.type) {
     case Chat2Gen.selectConversation:
       // When we just select a conversation we can be in the following states
@@ -551,7 +517,7 @@ const rpcLoadThread = (
       throw new Error('Invalid action passed to rpcLoadThread')
   }
 
-  const onGotThread = function*({thread}) {
+  const onGotThread = function*({thread}: {thread: string}) {
     if (thread) {
       const uiMessages: RPCChatTypes.UIMessages = JSON.parse(thread)
 
@@ -639,7 +605,7 @@ const desktopNotify = (action: Chat2Gen.MessagesAddPayload, state: TypedState) =
     logger.info('Sending Chat notification')
     return Saga.sequentially(
       notifys.map(notify =>
-        Saga.put(dispatch => {
+        Saga.put((dispatch: Dispatch) => {
           NotifyPopup(notify.author, {body: notify.body}, -1, notify.author, () => {
             dispatch(
               Chat2Gen.createSelectConversation({

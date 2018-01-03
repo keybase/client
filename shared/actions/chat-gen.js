@@ -80,70 +80,272 @@ export const updatedNotifications = 'chat:updatedNotifications'
 export const uploadProgress = 'chat:uploadProgress'
 
 // Action Creators
-export const createAddPending = (payload: {|+participants: Array<string>, +temporary: boolean|}) => ({error: false, payload, type: addPending})
-export const createAppendMessages = (payload: {|+conversationIDKey: Types.ConversationIDKey, +isSelected: boolean, +isAppFocused: boolean, +messages: Array<Types.ServerMessage>, +svcShouldDisplayNotification: boolean|}) => ({error: false, payload, type: appendMessages})
-export const createAttachmentLoaded = (payload: {|+messageKey: Types.MessageKey, +path: ?string, +isPreview: boolean|}) => ({error: false, payload, type: attachmentLoaded})
-export const createAttachmentSaveFailed = (payload: {|+messageKey: Types.MessageKey|}) => ({error: false, payload, type: attachmentSaveFailed})
-export const createAttachmentSaveStart = (payload: {|+messageKey: Types.MessageKey|}) => ({error: false, payload, type: attachmentSaveStart})
-export const createAttachmentSaved = (payload: {|+messageKey: Types.MessageKey, +path: ?string|}) => ({error: false, payload, type: attachmentSaved})
-export const createBlockConversation = (payload: {|+blocked: boolean, +conversationIDKey: Types.ConversationIDKey, +reportUser: boolean|}) => ({error: false, payload, type: blockConversation})
-export const createClearMessages = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: clearMessages})
-export const createDeleteEntity = (payload: {|+keyPath: Array<string>, +ids: Iterable<string>|}) => ({error: false, payload, type: deleteEntity})
-export const createDeleteMessage = (payload: {|+message: Types.Message|}) => ({error: false, payload, type: deleteMessage})
-export const createDownloadProgress = (payload: {|+messageKey: Types.MessageKey, +isPreview: boolean, +progress: ?number|}) => ({error: false, payload, type: downloadProgress})
-export const createEditMessage = (payload: {|+message: Types.Message, +text: HiddenString|}) => ({error: false, payload, type: editMessage})
-export const createIncomingTyping = (payload: {|+activity: RPCChatTypes.TyperInfo|}) => ({error: false, payload, type: incomingTyping})
-export const createJoinConversation = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: joinConversation})
-export const createLeaveConversation = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: leaveConversation})
-export const createLoadAttachment = (payload: {|+messageKey: Types.MessageKey, +loadPreview: boolean|}) => ({error: false, payload, type: loadAttachment})
-export const createLoadAttachmentPreview = (payload: {|+messageKey: Types.MessageKey|}) => ({error: false, payload, type: loadAttachmentPreview})
-export const createLoadMoreMessages = (payload: {|+conversationIDKey: Types.ConversationIDKey, +onlyIfUnloaded: boolean, +fromUser?: boolean, +wantNewer?: boolean, +numberOverride?: ?number|}) => ({error: false, payload, type: loadMoreMessages})
-export const createLoadingMessages = (payload: {|+conversationIDKey: Types.ConversationIDKey, +isRequesting: boolean|}) => ({error: false, payload, type: loadingMessages})
-export const createMarkSeenMessage = (payload: {|+conversationIDKey: Types.ConversationIDKey, +messageKey: Types.MessageKey|}) => ({error: false, payload, type: markSeenMessage})
-export const createMergeEntity = (payload: {|+keyPath: Array<string>, +entities: I.Map<any, any> | I.List<any>|}) => ({error: false, payload, type: mergeEntity})
-export const createMuteConversation = (payload: {|+conversationIDKey: Types.ConversationIDKey, +muted: boolean|}) => ({error: false, payload, type: muteConversation})
-export const createOpenAttachmentPopup = (payload: {|+message: Types.AttachmentMessage, +currentPath: Path|}) => ({error: false, payload, type: openAttachmentPopup})
-export const createOpenConversation = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: openConversation})
+export const createAddPending = (
+  payload: $ReadOnly<{
+    participants: Array<string>,
+    temporary: boolean,
+  }>
+) => ({error: false, payload, type: addPending})
+export const createAppendMessages = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    isSelected: boolean,
+    isAppFocused: boolean,
+    messages: Array<Types.ServerMessage>,
+    svcShouldDisplayNotification: boolean,
+  }>
+) => ({error: false, payload, type: appendMessages})
+export const createAttachmentLoaded = (
+  payload: $ReadOnly<{
+    messageKey: Types.MessageKey,
+    path: ?string,
+    isPreview: boolean,
+  }>
+) => ({error: false, payload, type: attachmentLoaded})
+export const createAttachmentSaveFailed = (payload: $ReadOnly<{messageKey: Types.MessageKey}>) => ({error: false, payload, type: attachmentSaveFailed})
+export const createAttachmentSaveStart = (payload: $ReadOnly<{messageKey: Types.MessageKey}>) => ({error: false, payload, type: attachmentSaveStart})
+export const createAttachmentSaved = (
+  payload: $ReadOnly<{
+    messageKey: Types.MessageKey,
+    path: ?string,
+  }>
+) => ({error: false, payload, type: attachmentSaved})
+export const createBlockConversation = (
+  payload: $ReadOnly<{
+    blocked: boolean,
+    conversationIDKey: Types.ConversationIDKey,
+    reportUser: boolean,
+  }>
+) => ({error: false, payload, type: blockConversation})
+export const createClearMessages = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: clearMessages})
+export const createDeleteEntity = (
+  payload: $ReadOnly<{
+    keyPath: Array<string>,
+    ids: Iterable<string>,
+  }>
+) => ({error: false, payload, type: deleteEntity})
+export const createDeleteMessage = (payload: $ReadOnly<{message: Types.Message}>) => ({error: false, payload, type: deleteMessage})
+export const createDownloadProgress = (
+  payload: $ReadOnly<{
+    messageKey: Types.MessageKey,
+    isPreview: boolean,
+    progress: ?number,
+  }>
+) => ({error: false, payload, type: downloadProgress})
+export const createEditMessage = (
+  payload: $ReadOnly<{
+    message: Types.Message,
+    text: HiddenString,
+  }>
+) => ({error: false, payload, type: editMessage})
+export const createIncomingTyping = (payload: $ReadOnly<{activity: RPCChatTypes.TyperInfo}>) => ({error: false, payload, type: incomingTyping})
+export const createJoinConversation = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: joinConversation})
+export const createLeaveConversation = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: leaveConversation})
+export const createLoadAttachment = (
+  payload: $ReadOnly<{
+    messageKey: Types.MessageKey,
+    loadPreview: boolean,
+  }>
+) => ({error: false, payload, type: loadAttachment})
+export const createLoadAttachmentPreview = (payload: $ReadOnly<{messageKey: Types.MessageKey}>) => ({error: false, payload, type: loadAttachmentPreview})
+export const createLoadMoreMessages = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    onlyIfUnloaded: boolean,
+    fromUser?: boolean,
+    wantNewer?: boolean,
+    numberOverride?: ?number,
+  }>
+) => ({error: false, payload, type: loadMoreMessages})
+export const createLoadingMessages = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    isRequesting: boolean,
+  }>
+) => ({error: false, payload, type: loadingMessages})
+export const createMarkSeenMessage = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    messageKey: Types.MessageKey,
+  }>
+) => ({error: false, payload, type: markSeenMessage})
+export const createMergeEntity = (
+  payload: $ReadOnly<{
+    keyPath: Array<string>,
+    entities: I.Map<any, any> | I.List<any>,
+  }>
+) => ({error: false, payload, type: mergeEntity})
+export const createMuteConversation = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    muted: boolean,
+  }>
+) => ({error: false, payload, type: muteConversation})
+export const createOpenAttachmentPopup = (
+  payload: $ReadOnly<{
+    message: Types.AttachmentMessage,
+    currentPath: Path,
+  }>
+) => ({error: false, payload, type: openAttachmentPopup})
+export const createOpenConversation = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: openConversation})
 export const createOpenFolder = () => ({error: false, payload: undefined, type: openFolder})
-export const createOpenTeamConversation = (payload: {|+teamname: TeamTypes.Teamname, +channelname: string|}) => ({error: false, payload, type: openTeamConversation})
-export const createOpenTlfInChat = (payload: {|+tlf: string, +isTeam?: boolean|}) => ({error: false, payload, type: openTlfInChat})
-export const createOutboxMessageBecameReal = (payload: {|+oldMessageKey: Types.MessageKey, +newMessageKey: Types.MessageKey|}) => ({error: false, payload, type: outboxMessageBecameReal})
-export const createPendingToRealConversation = (payload: {|+oldKey: Types.ConversationIDKey, +newKey: Types.ConversationIDKey|}) => ({error: false, payload, type: pendingToRealConversation})
-export const createPostMessage = (payload: {|+conversationIDKey: Types.ConversationIDKey, +text: HiddenString|}) => ({error: false, payload, type: postMessage})
-export const createPrependMessages = (payload: {|+conversationIDKey: Types.ConversationIDKey, +messages: Array<Types.ServerMessage>, +moreToLoad: boolean|}) => ({error: false, payload, type: prependMessages})
-export const createPreviewChannel = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: previewChannel})
-export const createRemoveOutboxMessage = (payload: {|+conversationIDKey: Types.ConversationIDKey, +outboxID: Types.OutboxIDKey|}) => ({error: false, payload, type: removeOutboxMessage})
+export const createOpenTeamConversation = (
+  payload: $ReadOnly<{
+    teamname: TeamTypes.Teamname,
+    channelname: string,
+  }>
+) => ({error: false, payload, type: openTeamConversation})
+export const createOpenTlfInChat = (
+  payload: $ReadOnly<{
+    tlf: string,
+    isTeam?: boolean,
+  }>
+) => ({error: false, payload, type: openTlfInChat})
+export const createOutboxMessageBecameReal = (
+  payload: $ReadOnly<{
+    oldMessageKey: Types.MessageKey,
+    newMessageKey: Types.MessageKey,
+  }>
+) => ({error: false, payload, type: outboxMessageBecameReal})
+export const createPendingToRealConversation = (
+  payload: $ReadOnly<{
+    oldKey: Types.ConversationIDKey,
+    newKey: Types.ConversationIDKey,
+  }>
+) => ({error: false, payload, type: pendingToRealConversation})
+export const createPostMessage = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    text: HiddenString,
+  }>
+) => ({error: false, payload, type: postMessage})
+export const createPrependMessages = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    messages: Array<Types.ServerMessage>,
+    moreToLoad: boolean,
+  }>
+) => ({error: false, payload, type: prependMessages})
+export const createPreviewChannel = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: previewChannel})
+export const createRemoveOutboxMessage = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    outboxID: Types.OutboxIDKey,
+  }>
+) => ({error: false, payload, type: removeOutboxMessage})
 export const createRemoveTempPendingConversations = () => ({error: false, payload: undefined, type: removeTempPendingConversations})
-export const createReplaceEntity = (payload: {|+keyPath: Array<string>, +entities: I.Map<any, any> | I.List<any>|}) => ({error: false, payload, type: replaceEntity})
-export const createResetChatWithoutThem = (payload: {|+conversationIDKey: Types.ConversationIDKey, +username: string|}) => ({error: false, payload, type: resetChatWithoutThem})
-export const createResetLetThemIn = (payload: {|+conversationIDKey: Types.ConversationIDKey, +username: string|}) => ({error: false, payload, type: resetLetThemIn})
-export const createRetryAttachment = (payload: {|+message: Types.AttachmentMessage|}) => ({error: false, payload, type: retryAttachment})
-export const createRetryMessage = (payload: {|+conversationIDKey: Types.ConversationIDKey, +outboxIDKey: string|}) => ({error: false, payload, type: retryMessage})
-export const createSaveAttachment = (payload: {|+messageKey: Types.MessageKey|}) => ({error: false, payload, type: saveAttachment})
-export const createSaveAttachmentNative = (payload: {|+messageKey: Types.MessageKey|}) => ({error: false, payload, type: saveAttachmentNative})
-export const createSelectAttachment = (payload: {|+input: Types.AttachmentInput|}) => ({error: false, payload, type: selectAttachment})
-export const createSetLoaded = (payload: {|+conversationIDKey: Types.ConversationIDKey, +isLoaded: boolean|}) => ({error: false, payload, type: setLoaded})
-export const createSetNotifications = (payload: {|+conversationIDKey: Types.ConversationIDKey, +deviceType: DeviceType, +notifyType: Types.NotifyType|}) => ({error: false, payload, type: setNotifications})
-export const createSetPreviousConversation = (payload: {|+conversationIDKey: ?Types.ConversationIDKey|}) => ({error: false, payload, type: setPreviousConversation})
-export const createSetTypers = (payload: {|+conversationIDKey: Types.ConversationIDKey, +typing: Array<string>|}) => ({error: false, payload, type: setTypers})
+export const createReplaceEntity = (
+  payload: $ReadOnly<{
+    keyPath: Array<string>,
+    entities: I.Map<any, any> | I.List<any>,
+  }>
+) => ({error: false, payload, type: replaceEntity})
+export const createResetChatWithoutThem = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    username: string,
+  }>
+) => ({error: false, payload, type: resetChatWithoutThem})
+export const createResetLetThemIn = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    username: string,
+  }>
+) => ({error: false, payload, type: resetLetThemIn})
+export const createRetryAttachment = (payload: $ReadOnly<{message: Types.AttachmentMessage}>) => ({error: false, payload, type: retryAttachment})
+export const createRetryMessage = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    outboxIDKey: string,
+  }>
+) => ({error: false, payload, type: retryMessage})
+export const createSaveAttachment = (payload: $ReadOnly<{messageKey: Types.MessageKey}>) => ({error: false, payload, type: saveAttachment})
+export const createSaveAttachmentNative = (payload: $ReadOnly<{messageKey: Types.MessageKey}>) => ({error: false, payload, type: saveAttachmentNative})
+export const createSelectAttachment = (payload: $ReadOnly<{input: Types.AttachmentInput}>) => ({error: false, payload, type: selectAttachment})
+export const createSetLoaded = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    isLoaded: boolean,
+  }>
+) => ({error: false, payload, type: setLoaded})
+export const createSetNotifications = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    deviceType: DeviceType,
+    notifyType: Types.NotifyType,
+  }>
+) => ({error: false, payload, type: setNotifications})
+export const createSetPreviousConversation = (payload: $ReadOnly<{conversationIDKey: ?Types.ConversationIDKey}>) => ({error: false, payload, type: setPreviousConversation})
+export const createSetTypers = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    typing: Array<string>,
+  }>
+) => ({error: false, payload, type: setTypers})
 export const createSetupChatHandlers = () => ({error: false, payload: undefined, type: setupChatHandlers})
-export const createShareAttachment = (payload: {|+messageKey: Types.MessageKey|}) => ({error: false, payload, type: shareAttachment})
-export const createShowEditor = (payload: {|+message: ?Types.Message|}) => ({error: false, payload, type: showEditor})
-export const createStartConversation = (payload: {|+users: Array<string>, +forceImmediate?: boolean, +temporary?: boolean, +forSearch?: boolean|}) => ({error: false, payload, type: startConversation})
-export const createSubtractEntity = (payload: {|+keyPath: Array<string>, +entities: I.List<any>|}) => ({error: false, payload, type: subtractEntity})
-export const createThreadLoadedOffline = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: threadLoadedOffline})
-export const createToggleChannelWideNotifications = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: toggleChannelWideNotifications})
-export const createUpdateBadging = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: updateBadging})
-export const createUpdateBrokenTracker = (payload: {|+userToBroken: {[username: string]: boolean}|}) => ({error: false, payload, type: updateBrokenTracker})
-export const createUpdateLatestMessage = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: updateLatestMessage})
-export const createUpdateMetadata = (payload: {|+users: Array<string>|}) => ({error: false, payload, type: updateMetadata})
-export const createUpdateResetParticipants = (payload: {|+conversationIDKey: Types.ConversationIDKey, +participants: Array<string>|}) => ({error: false, payload, type: updateResetParticipants})
-export const createUpdateTempMessage = (payload: {|+conversationIDKey: Types.ConversationIDKey, +message: $Shape<Types.AttachmentMessage> | $Shape<Types.TextMessage>, +outboxIDKey: Types.OutboxIDKey|}) => ({error: false, payload, type: updateTempMessage})
-export const createUpdateThread = (payload: {|+thread: RPCChatTypes.UIMessages, +yourName: string, +yourDeviceName: string, +conversationIDKey: string, +append: boolean|}) => ({error: false, payload, type: updateThread})
-export const createUpdateTyping = (payload: {|+conversationIDKey: Types.ConversationIDKey, +typing: boolean|}) => ({error: false, payload, type: updateTyping})
-export const createUpdatedMetadata = (payload: {|+updated: {[key: string]: Types.MetaData}|}) => ({error: false, payload, type: updatedMetadata})
-export const createUpdatedNotifications = (payload: {|+conversationIDKey: Types.ConversationIDKey, +notifications: Types.NotificationsState|}) => ({error: false, payload, type: updatedNotifications})
-export const createUploadProgress = (payload: {|+messageKey: Types.MessageKey, +progress: ?number|}) => ({error: false, payload, type: uploadProgress})
+export const createShareAttachment = (payload: $ReadOnly<{messageKey: Types.MessageKey}>) => ({error: false, payload, type: shareAttachment})
+export const createShowEditor = (payload: $ReadOnly<{message: ?Types.Message}>) => ({error: false, payload, type: showEditor})
+export const createStartConversation = (
+  payload: $ReadOnly<{
+    users: Array<string>,
+    forceImmediate?: boolean,
+    temporary?: boolean,
+    forSearch?: boolean,
+  }>
+) => ({error: false, payload, type: startConversation})
+export const createSubtractEntity = (
+  payload: $ReadOnly<{
+    keyPath: Array<string>,
+    entities: I.List<any>,
+  }>
+) => ({error: false, payload, type: subtractEntity})
+export const createThreadLoadedOffline = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: threadLoadedOffline})
+export const createToggleChannelWideNotifications = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: toggleChannelWideNotifications})
+export const createUpdateBadging = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: updateBadging})
+export const createUpdateBrokenTracker = (payload: $ReadOnly<{userToBroken: {[username: string]: boolean}}>) => ({error: false, payload, type: updateBrokenTracker})
+export const createUpdateLatestMessage = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: updateLatestMessage})
+export const createUpdateMetadata = (payload: $ReadOnly<{users: Array<string>}>) => ({error: false, payload, type: updateMetadata})
+export const createUpdateResetParticipants = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    participants: Array<string>,
+  }>
+) => ({error: false, payload, type: updateResetParticipants})
+export const createUpdateTempMessage = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    message: $Shape<Types.AttachmentMessage> | $Shape<Types.TextMessage>,
+    outboxIDKey: Types.OutboxIDKey,
+  }>
+) => ({error: false, payload, type: updateTempMessage})
+export const createUpdateThread = (
+  payload: $ReadOnly<{
+    thread: RPCChatTypes.UIMessages,
+    yourName: string,
+    yourDeviceName: string,
+    conversationIDKey: string,
+    append: boolean,
+  }>
+) => ({error: false, payload, type: updateThread})
+export const createUpdateTyping = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    typing: boolean,
+  }>
+) => ({error: false, payload, type: updateTyping})
+export const createUpdatedMetadata = (payload: $ReadOnly<{updated: {[key: string]: Types.MetaData}}>) => ({error: false, payload, type: updatedMetadata})
+export const createUpdatedNotifications = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    notifications: Types.NotificationsState,
+  }>
+) => ({error: false, payload, type: updatedNotifications})
+export const createUploadProgress = (
+  payload: $ReadOnly<{
+    messageKey: Types.MessageKey,
+    progress: ?number,
+  }>
+) => ({error: false, payload, type: uploadProgress})
 
 // Action Payloads
 export type AddPendingPayload = More.ReturnType<typeof createAddPending>

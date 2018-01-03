@@ -37,12 +37,11 @@ type MembershipUpdateRes struct {
 }
 
 type RemoteConversationMetadata struct {
-	TopicName         string           `codec:"t"`
-	Snippet           string           `codec:"s"`
-	Headline          string           `codec:"h"`
-	WriterNames       []string         `codec:"w"`
-	ResetParticipants []string         `codec:"r"`
-	SnippetMsg        *chat1.UIMessage `codec:"u"`
+	TopicName         string   `codec:"t"`
+	Snippet           string   `codec:"s"`
+	Headline          string   `codec:"h"`
+	WriterNames       []string `codec:"w"`
+	ResetParticipants []string `codec:"r"`
 }
 
 type RemoteConversation struct {

@@ -28,7 +28,6 @@ export default function(dispatch: Dispatch, getState: () => Object, notify: any)
     },
   }
 
-  // $FlowIssue doesnt' like spreading exact types
   const combined: IncomingCallMapType = {
     ...fromShared,
     ...handlers,

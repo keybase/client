@@ -15,10 +15,30 @@ export const replaceEntity = 'entities:replaceEntity'
 export const subtractEntity = 'entities:subtractEntity'
 
 // Action Creators
-export const createDeleteEntity = (payload: {|+keyPath: Array<string>, +ids: I.List<string>|}) => ({error: false, payload, type: deleteEntity})
-export const createMergeEntity = (payload: {|+keyPath: Array<string>, +entities: I.Map<any, any> | I.List<any>|}) => ({error: false, payload, type: mergeEntity})
-export const createReplaceEntity = (payload: {|+keyPath: Array<string>, +entities: I.Map<any, any> | I.List<any>|}) => ({error: false, payload, type: replaceEntity})
-export const createSubtractEntity = (payload: {|+keyPath: Array<string>, +entities: I.List<any>|}) => ({error: false, payload, type: subtractEntity})
+export const createDeleteEntity = (
+  payload: $ReadOnly<{
+    keyPath: Array<string>,
+    ids: I.List<string>,
+  }>
+) => ({error: false, payload, type: deleteEntity})
+export const createMergeEntity = (
+  payload: $ReadOnly<{
+    keyPath: Array<string>,
+    entities: I.Map<any, any> | I.List<any>,
+  }>
+) => ({error: false, payload, type: mergeEntity})
+export const createReplaceEntity = (
+  payload: $ReadOnly<{
+    keyPath: Array<string>,
+    entities: I.Map<any, any> | I.List<any>,
+  }>
+) => ({error: false, payload, type: replaceEntity})
+export const createSubtractEntity = (
+  payload: $ReadOnly<{
+    keyPath: Array<string>,
+    entities: I.List<any>,
+  }>
+) => ({error: false, payload, type: subtractEntity})
 
 // Action Payloads
 export type DeleteEntityPayload = More.ReturnType<typeof createDeleteEntity>

@@ -14,7 +14,13 @@ export const updateDebugConfig = 'dev:updateDebugConfig'
 
 // Action Creators
 export const createDebugCount = () => ({error: false, payload: undefined, type: debugCount})
-export const createUpdateDebugConfig = (payload: {|+dumbFilter: string, +dumbFullscreen: boolean, +dumbIndex: number|}) => ({error: false, payload, type: updateDebugConfig})
+export const createUpdateDebugConfig = (
+  payload: $ReadOnly<{
+    dumbFilter: string,
+    dumbFullscreen: boolean,
+    dumbIndex: number,
+  }>
+) => ({error: false, payload, type: updateDebugConfig})
 
 // Action Payloads
 export type DebugCountPayload = More.ReturnType<typeof createDebugCount>

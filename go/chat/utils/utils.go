@@ -652,28 +652,7 @@ func GetConvMtimeLocal(conv chat1.ConversationLocal) gregor1.Time {
 	return msg.Valid().ServerHeader.Ctime
 }
 
-type DummyTeamChannelSource struct{}
-
-func (t DummyTeamChannelSource) GetChannelsTopicName(ctx context.Context, uid gregor1.UID,
-	teamID chat1.TLFID, topicType chat1.TopicType) ([]types.ConvIDAndTopicName, []chat1.RateLimit, error) {
-	return nil, nil, nil
-}
-
-func (t DummyTeamChannelSource) GetChannelsFull(ctx context.Context, uid gregor1.UID,
-	teamID chat1.TLFID, topicType chat1.TopicType) ([]chat1.ConversationLocal, []chat1.RateLimit, error) {
-	return nil, nil, nil
-}
-
-func (t DummyTeamChannelSource) ChannelsChanged(ctx context.Context, teamID chat1.TLFID) {}
-
-func (t DummyTeamChannelSource) IsOffline(ctx context.Context) bool {
-	return false
-}
-
-func (t DummyTeamChannelSource) Connected(ctx context.Context)    {}
-func (t DummyTeamChannelSource) Disconnected(ctx context.Context) {}
-
-func GetConvSnippet(conv chat1.ConversationLocal) (string, *chat1.UIMessage) {
+func GetConvSnippet(conv chat1.ConversationLocal) string {
 	timeTyps := []chat1.MessageType{
 		chat1.MessageType_TEXT,
 		chat1.MessageType_ATTACHMENT,
@@ -681,10 +660,9 @@ func GetConvSnippet(conv chat1.ConversationLocal) (string, *chat1.UIMessage) {
 	}
 	msg, err := PickLatestMessageUnboxed(conv, timeTyps)
 	if err != nil {
-		return "", nil
+		return ""
 	}
-	uimsg := PresentMessageUnboxed(context.TODO(), msg, gregor1.UID{}, DummyTeamChannelSource{})
-	return GetMsgSnippet(msg), &uimsg
+	return GetMsgSnippet(msg)
 }
 
 func systemMessageSnippet(msg chat1.MessageSystem) string {
@@ -736,7 +714,6 @@ func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.Unverifie
 			Snippet:           rc.LocalMetadata.Snippet,
 			WriterNames:       rc.LocalMetadata.WriterNames,
 			ResetParticipants: rc.LocalMetadata.ResetParticipants,
-			SnippetMsg:        rc.LocalMetadata.SnippetMsg,
 		}
 	}
 	return res
@@ -758,11 +735,9 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal) (res chat1.InboxU
 			fullNames[p.Username] = *p.Fullname
 		}
 	}
-	snippet, snippetMsg := GetConvSnippet(rawConv)
 	res.ConvID = rawConv.GetConvID().String()
 	res.Name = rawConv.Info.TlfName
-	res.Snippet = snippet
-	res.SnippetMessage = snippetMsg
+	res.Snippet = GetConvSnippet(rawConv)
 	res.Channel = GetTopicName(rawConv)
 	res.Headline = GetHeadline(rawConv)
 	res.Participants = writerNames

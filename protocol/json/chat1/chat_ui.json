@@ -37,6 +37,265 @@
     },
     {
       "type": "record",
+      "name": "UnverifiedInboxUIItemMetadata",
+      "fields": [
+        {
+          "type": "string",
+          "name": "channelName"
+        },
+        {
+          "type": "string",
+          "name": "headline"
+        },
+        {
+          "type": "string",
+          "name": "snippet"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "writerNames"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "resetParticipants"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnverifiedInboxUIItem",
+      "fields": [
+        {
+          "type": "string",
+          "name": "convID"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "keybase1.TLFVisibility",
+          "name": "visibility"
+        },
+        {
+          "type": "ConversationStatus",
+          "name": "status"
+        },
+        {
+          "type": "ConversationMembersType",
+          "name": "membersType"
+        },
+        {
+          "type": "ConversationMemberStatus",
+          "name": "memberStatus"
+        },
+        {
+          "type": "TeamType",
+          "name": "teamType"
+        },
+        {
+          "type": [
+            null,
+            "ConversationNotificationInfo"
+          ],
+          "name": "notifications"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "time"
+        },
+        {
+          "type": "ConversationVers",
+          "name": "version"
+        },
+        {
+          "type": "MessageID",
+          "name": "maxMsgID"
+        },
+        {
+          "type": [
+            null,
+            "UnverifiedInboxUIItemMetadata"
+          ],
+          "name": "localMetadata"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnverifiedInboxUIItems",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "UnverifiedInboxUIItem"
+          },
+          "name": "items"
+        },
+        {
+          "type": [
+            null,
+            "UIPagination"
+          ],
+          "name": "pagination"
+        },
+        {
+          "type": "boolean",
+          "name": "offline"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "InboxUIItem",
+      "fields": [
+        {
+          "type": "string",
+          "name": "convID"
+        },
+        {
+          "type": "boolean",
+          "name": "isEmpty"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "snippet"
+        },
+        {
+          "type": "string",
+          "name": "channel"
+        },
+        {
+          "type": "string",
+          "name": "headline"
+        },
+        {
+          "type": "keybase1.TLFVisibility",
+          "name": "visibility"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "participants"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "string",
+            "keys": "string"
+          },
+          "name": "fullNames"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "resetParticipants"
+        },
+        {
+          "type": "ConversationStatus",
+          "name": "status"
+        },
+        {
+          "type": "ConversationMembersType",
+          "name": "membersType"
+        },
+        {
+          "type": "ConversationMemberStatus",
+          "name": "memberStatus"
+        },
+        {
+          "type": "TeamType",
+          "name": "teamType"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "time"
+        },
+        {
+          "type": [
+            null,
+            "ConversationNotificationInfo"
+          ],
+          "name": "notifications"
+        },
+        {
+          "type": [
+            null,
+            "ConversationCreatorInfoLocal"
+          ],
+          "name": "creatorInfo"
+        },
+        {
+          "type": "ConversationVers",
+          "name": "version"
+        },
+        {
+          "type": "MessageID",
+          "name": "maxMsgID"
+        },
+        {
+          "type": [
+            null,
+            "ConversationFinalizeInfo"
+          ],
+          "name": "finalizeInfo"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationMetadata"
+          },
+          "name": "supersedes"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationMetadata"
+          },
+          "name": "supersededBy"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "InboxUIItems",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "InboxUIItem"
+          },
+          "name": "items"
+        },
+        {
+          "type": [
+            null,
+            "UIPagination"
+          ],
+          "name": "pagination"
+        },
+        {
+          "type": "boolean",
+          "name": "offline"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UIMessageValid",
       "fields": [
         {
@@ -196,279 +455,6 @@
             "UIPagination"
           ],
           "name": "pagination"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "UnverifiedInboxUIItemMetadata",
-      "fields": [
-        {
-          "type": "string",
-          "name": "channelName"
-        },
-        {
-          "type": "string",
-          "name": "headline"
-        },
-        {
-          "type": "string",
-          "name": "snippet"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "string"
-          },
-          "name": "writerNames"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "string"
-          },
-          "name": "resetParticipants"
-        },
-        {
-          "type": [
-            null,
-            "UIMessage"
-          ],
-          "name": "snippetMsg"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "UnverifiedInboxUIItem",
-      "fields": [
-        {
-          "type": "string",
-          "name": "convID"
-        },
-        {
-          "type": "string",
-          "name": "name"
-        },
-        {
-          "type": "keybase1.TLFVisibility",
-          "name": "visibility"
-        },
-        {
-          "type": "ConversationStatus",
-          "name": "status"
-        },
-        {
-          "type": "ConversationMembersType",
-          "name": "membersType"
-        },
-        {
-          "type": "ConversationMemberStatus",
-          "name": "memberStatus"
-        },
-        {
-          "type": "TeamType",
-          "name": "teamType"
-        },
-        {
-          "type": [
-            null,
-            "ConversationNotificationInfo"
-          ],
-          "name": "notifications"
-        },
-        {
-          "type": "gregor1.Time",
-          "name": "time"
-        },
-        {
-          "type": "ConversationVers",
-          "name": "version"
-        },
-        {
-          "type": "MessageID",
-          "name": "maxMsgID"
-        },
-        {
-          "type": [
-            null,
-            "UnverifiedInboxUIItemMetadata"
-          ],
-          "name": "localMetadata"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "UnverifiedInboxUIItems",
-      "fields": [
-        {
-          "type": {
-            "type": "array",
-            "items": "UnverifiedInboxUIItem"
-          },
-          "name": "items"
-        },
-        {
-          "type": [
-            null,
-            "UIPagination"
-          ],
-          "name": "pagination"
-        },
-        {
-          "type": "boolean",
-          "name": "offline"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "InboxUIItem",
-      "fields": [
-        {
-          "type": "string",
-          "name": "convID"
-        },
-        {
-          "type": "boolean",
-          "name": "isEmpty"
-        },
-        {
-          "type": "string",
-          "name": "name"
-        },
-        {
-          "type": "string",
-          "name": "snippet"
-        },
-        {
-          "type": "string",
-          "name": "channel"
-        },
-        {
-          "type": "string",
-          "name": "headline"
-        },
-        {
-          "type": [
-            null,
-            "UIMessage"
-          ],
-          "name": "snippetMessage"
-        },
-        {
-          "type": "keybase1.TLFVisibility",
-          "name": "visibility"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "string"
-          },
-          "name": "participants"
-        },
-        {
-          "type": {
-            "type": "map",
-            "values": "string",
-            "keys": "string"
-          },
-          "name": "fullNames"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "string"
-          },
-          "name": "resetParticipants"
-        },
-        {
-          "type": "ConversationStatus",
-          "name": "status"
-        },
-        {
-          "type": "ConversationMembersType",
-          "name": "membersType"
-        },
-        {
-          "type": "ConversationMemberStatus",
-          "name": "memberStatus"
-        },
-        {
-          "type": "TeamType",
-          "name": "teamType"
-        },
-        {
-          "type": "gregor1.Time",
-          "name": "time"
-        },
-        {
-          "type": [
-            null,
-            "ConversationNotificationInfo"
-          ],
-          "name": "notifications"
-        },
-        {
-          "type": [
-            null,
-            "ConversationCreatorInfoLocal"
-          ],
-          "name": "creatorInfo"
-        },
-        {
-          "type": "ConversationVers",
-          "name": "version"
-        },
-        {
-          "type": "MessageID",
-          "name": "maxMsgID"
-        },
-        {
-          "type": [
-            null,
-            "ConversationFinalizeInfo"
-          ],
-          "name": "finalizeInfo"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "ConversationMetadata"
-          },
-          "name": "supersedes"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "ConversationMetadata"
-          },
-          "name": "supersededBy"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "InboxUIItems",
-      "fields": [
-        {
-          "type": {
-            "type": "array",
-            "items": "InboxUIItem"
-          },
-          "name": "items"
-        },
-        {
-          "type": [
-            null,
-            "UIPagination"
-          ],
-          "name": "pagination"
-        },
-        {
-          "type": "boolean",
-          "name": "offline"
         }
       ]
     }

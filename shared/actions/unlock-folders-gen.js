@@ -22,18 +22,24 @@ export const toPaperKeyInput = 'unlock-folders:toPaperKeyInput'
 export const waiting = 'unlock-folders:waiting'
 
 // Action Creators
-export const createCheckPaperKey = (payload: {|+paperKey: string|}) => ({error: false, payload, type: checkPaperKey})
+export const createCheckPaperKey = (payload: $ReadOnly<{paperKey: string}>) => ({error: false, payload, type: checkPaperKey})
 export const createCheckPaperKeyDone = () => ({error: false, payload: undefined, type: checkPaperKeyDone})
-export const createCheckPaperKeyDoneError = (payload: {|+error: string|}) => ({error: true, payload, type: checkPaperKeyDone})
+export const createCheckPaperKeyDoneError = (payload: $ReadOnly<{error: string}>) => ({error: true, payload, type: checkPaperKeyDone})
 export const createCloseDone = () => ({error: false, payload: undefined, type: closeDone})
 export const createClosePopup = () => ({error: false, payload: undefined, type: closePopup})
 export const createFinish = () => ({error: false, payload: undefined, type: finish})
-export const createNewRekeyPopup = (payload: {|+sessionID: number, +devices: Array<RPCTypes.Device>, +problemSet: RPCTypes.ProblemSet|}) => ({error: false, payload, type: newRekeyPopup})
+export const createNewRekeyPopup = (
+  payload: $ReadOnly<{
+    sessionID: number,
+    devices: Array<RPCTypes.Device>,
+    problemSet: RPCTypes.ProblemSet,
+  }>
+) => ({error: false, payload, type: newRekeyPopup})
 export const createOnBackFromPaperKey = () => ({error: false, payload: undefined, type: onBackFromPaperKey})
 export const createOpenPopup = () => ({error: false, payload: undefined, type: openPopup})
 export const createRegisterRekeyListener = () => ({error: false, payload: undefined, type: registerRekeyListener})
 export const createToPaperKeyInput = () => ({error: false, payload: undefined, type: toPaperKeyInput})
-export const createWaiting = (payload: {|+waiting: boolean|}) => ({error: false, payload, type: waiting})
+export const createWaiting = (payload: $ReadOnly<{waiting: boolean}>) => ({error: false, payload, type: waiting})
 
 // Action Payloads
 export type CheckPaperKeyDonePayload = More.ReturnType<typeof createCheckPaperKeyDone>

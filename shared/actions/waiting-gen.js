@@ -12,8 +12,8 @@ export const decrementWaiting = 'waiting:decrementWaiting'
 export const incrementWaiting = 'waiting:incrementWaiting'
 
 // Action Creators
-export const createDecrementWaiting = (payload: {|+key: string|}) => ({error: false, payload, type: decrementWaiting})
-export const createIncrementWaiting = (payload: {|+key: string|}) => ({error: false, payload, type: incrementWaiting})
+export const createDecrementWaiting = (payload: $ReadOnly<{key: string}>) => ({error: false, payload, type: decrementWaiting})
+export const createIncrementWaiting = (payload: $ReadOnly<{key: string}>) => ({error: false, payload, type: incrementWaiting})
 
 // Action Payloads
 export type DecrementWaitingPayload = More.ReturnType<typeof createDecrementWaiting>

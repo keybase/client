@@ -1,6 +1,6 @@
 // @flow
 import logger from '../logger'
-import * as ChatGen from './chat-gen'
+import * as Chat2Gen from './chat2-gen'
 import * as PushGen from './push-gen'
 import * as ChatTypes from '../constants/types/rpc-chat-gen'
 import * as Saga from '../util/saga'
@@ -90,7 +90,7 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
           logger.error('Push chat notification payload missing conversation ID')
           return
         }
-        yield Saga.put(ChatGen.createSelectConversation({conversationIDKey: convID, fromUser: true}))
+        yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey: convID, fromUser: true}))
         yield Saga.put(switchTo([chatTab]))
       } else if (payload.type === 'follow') {
         const {username} = payload

@@ -32,24 +32,77 @@ export const setSearching = 'chat2:setSearching'
 export const setupChatHandlers = 'chat2:setupChatHandlers'
 
 // Action Creators
-export const createBadgesUpdated = (payload: {|+conversations: Array<RPCTypes.BadgeConversationInfo>|}) => ({error: false, payload, type: badgesUpdated})
-export const createClearOrdinals = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: clearOrdinals})
-export const createInboxRefresh = (payload: {|+reason: string, +clearAllData?: boolean|}) => ({error: false, payload, type: inboxRefresh})
-export const createLoadMoreMessages = (payload: {|+conversationIDKey: Types.ConversationIDKey|}) => ({error: false, payload, type: loadMoreMessages})
-export const createMessageEdit = (payload: {|+conversationIDKey: Types.ConversationIDKey, +ordinal: Types.Ordinal, +text: HiddenString|}) => ({error: false, payload, type: messageEdit})
-export const createMessagesAdd = (payload: {|+fromThreadLoad?: Types.ConversationIDKey, +notify?: boolean, +messages: Array<Types.Message>|}) => ({error: false, payload, type: messagesAdd})
-export const createMessagesDelete = (payload: {|+conversationIDKey: Types.ConversationIDKey, +ordinals: Array<Types.Ordinal>|}) => ({error: false, payload, type: messagesDelete})
+export const createBadgesUpdated = (payload: $ReadOnly<{conversations: Array<RPCTypes.BadgeConversationInfo>}>) => ({error: false, payload, type: badgesUpdated})
+export const createClearOrdinals = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: clearOrdinals})
+export const createInboxRefresh = (
+  payload: $ReadOnly<{
+    reason: string,
+    clearAllData?: boolean,
+  }>
+) => ({error: false, payload, type: inboxRefresh})
+export const createLoadMoreMessages = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: loadMoreMessages})
+export const createMessageEdit = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    ordinal: Types.Ordinal,
+    text: HiddenString,
+  }>
+) => ({error: false, payload, type: messageEdit})
+export const createMessagesAdd = (
+  payload: $ReadOnly<{
+    fromThreadLoad?: Types.ConversationIDKey,
+    notify?: boolean,
+    messages: Array<Types.Message>,
+  }>
+) => ({error: false, payload, type: messagesAdd})
+export const createMessagesDelete = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    ordinals: Array<Types.Ordinal>,
+  }>
+) => ({error: false, payload, type: messagesDelete})
 export const createMetaHandleQueue = () => ({error: false, payload: undefined, type: metaHandleQueue})
-export const createMetaNeedsUpdating = (payload: {|+conversationIDKeys: Array<Types.ConversationIDKey>, +reason: string|}) => ({error: false, payload, type: metaNeedsUpdating})
-export const createMetaReceivedError = (payload: {|+conversationIDKey: Types.ConversationIDKey, +error: ?RPCChatTypes.ConversationErrorLocal, +username: ?string|}) => ({error: false, payload, type: metaReceivedError})
-export const createMetaRequestTrusted = (payload: {|+force?: boolean, +conversationIDKeys: Array<Types.ConversationIDKey>|}) => ({error: false, payload, type: metaRequestTrusted})
-export const createMetaRequestingTrusted = (payload: {|+conversationIDKeys: Array<Types.ConversationIDKey>|}) => ({error: false, payload, type: metaRequestingTrusted})
-export const createMetaUpdateTrustedState = (payload: {|+newState: Types.MetaTrustedState, +conversationIDKeys: Array<Types.ConversationIDKey>|}) => ({error: false, payload, type: metaUpdateTrustedState})
-export const createMetasReceived = (payload: {|+metas: Array<Types.ConversationMeta>|}) => ({error: false, payload, type: metasReceived})
-export const createSelectConversation = (payload: {|+conversationIDKey: ?Types.ConversationIDKey, +fromUser?: boolean|}) => ({error: false, payload, type: selectConversation})
-export const createSetInboxFilter = (payload: {|+filter: string|}) => ({error: false, payload, type: setInboxFilter})
-export const createSetLoading = (payload: {|+key: string, +loading: boolean|}) => ({error: false, payload, type: setLoading})
-export const createSetSearching = (payload: {|+searching: boolean|}) => ({error: false, payload, type: setSearching})
+export const createMetaNeedsUpdating = (
+  payload: $ReadOnly<{
+    conversationIDKeys: Array<Types.ConversationIDKey>,
+    reason: string,
+  }>
+) => ({error: false, payload, type: metaNeedsUpdating})
+export const createMetaReceivedError = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    error: ?RPCChatTypes.ConversationErrorLocal,
+    username: ?string,
+  }>
+) => ({error: false, payload, type: metaReceivedError})
+export const createMetaRequestTrusted = (
+  payload: $ReadOnly<{
+    force?: boolean,
+    conversationIDKeys: Array<Types.ConversationIDKey>,
+  }>
+) => ({error: false, payload, type: metaRequestTrusted})
+export const createMetaRequestingTrusted = (payload: $ReadOnly<{conversationIDKeys: Array<Types.ConversationIDKey>}>) => ({error: false, payload, type: metaRequestingTrusted})
+export const createMetaUpdateTrustedState = (
+  payload: $ReadOnly<{
+    newState: Types.MetaTrustedState,
+    conversationIDKeys: Array<Types.ConversationIDKey>,
+  }>
+) => ({error: false, payload, type: metaUpdateTrustedState})
+export const createMetasReceived = (payload: $ReadOnly<{metas: Array<Types.ConversationMeta>}>) => ({error: false, payload, type: metasReceived})
+export const createSelectConversation = (
+  payload: $ReadOnly<{
+    conversationIDKey: ?Types.ConversationIDKey,
+    fromUser?: boolean,
+  }>
+) => ({error: false, payload, type: selectConversation})
+export const createSetInboxFilter = (payload: $ReadOnly<{filter: string}>) => ({error: false, payload, type: setInboxFilter})
+export const createSetLoading = (
+  payload: $ReadOnly<{
+    key: string,
+    loading: boolean,
+  }>
+) => ({error: false, payload, type: setLoading})
+export const createSetSearching = (payload: $ReadOnly<{searching: boolean}>) => ({error: false, payload, type: setSearching})
 export const createSetupChatHandlers = () => ({error: false, payload: undefined, type: setupChatHandlers})
 
 // Action Payloads
