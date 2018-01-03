@@ -80,6 +80,7 @@ const (
 	MessageSystemType_INVITEADDEDTOTEAM MessageSystemType = 1
 	MessageSystemType_COMPLEXTEAM       MessageSystemType = 2
 	MessageSystemType_CREATETEAM        MessageSystemType = 3
+	MessageSystemType_GITPUSH           MessageSystemType = 4
 )
 
 func (o MessageSystemType) DeepCopy() MessageSystemType { return o }
@@ -89,6 +90,7 @@ var MessageSystemTypeMap = map[string]MessageSystemType{
 	"INVITEADDEDTOTEAM": 1,
 	"COMPLEXTEAM":       2,
 	"CREATETEAM":        3,
+	"GITPUSH":           4,
 }
 
 var MessageSystemTypeRevMap = map[MessageSystemType]string{
@@ -96,6 +98,7 @@ var MessageSystemTypeRevMap = map[MessageSystemType]string{
 	1: "INVITEADDEDTOTEAM",
 	2: "COMPLEXTEAM",
 	3: "CREATETEAM",
+	4: "GITPUSH",
 }
 
 func (e MessageSystemType) String() string {
@@ -207,12 +210,41 @@ func (o MessageSystemCreateTeam) DeepCopy() MessageSystemCreateTeam {
 	}
 }
 
+type MessageSystemGitPush struct {
+	Team       string   `codec:"team" json:"team"`
+	Pusher     string   `codec:"pusher" json:"pusher"`
+	RepoName   string   `codec:"repoName" json:"repoName"`
+	BranchName string   `codec:"branchName" json:"branchName"`
+	CommitMsgs []string `codec:"commitMsgs" json:"commitMsgs"`
+}
+
+func (o MessageSystemGitPush) DeepCopy() MessageSystemGitPush {
+	return MessageSystemGitPush{
+		Team:       o.Team,
+		Pusher:     o.Pusher,
+		RepoName:   o.RepoName,
+		BranchName: o.BranchName,
+		CommitMsgs: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			var ret []string
+			for _, v := range x {
+				vCopy := v
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.CommitMsgs),
+	}
+}
+
 type MessageSystem struct {
 	SystemType__        MessageSystemType               `codec:"systemType" json:"systemType"`
 	Addedtoteam__       *MessageSystemAddedToTeam       `codec:"addedtoteam,omitempty" json:"addedtoteam,omitempty"`
 	Inviteaddedtoteam__ *MessageSystemInviteAddedToTeam `codec:"inviteaddedtoteam,omitempty" json:"inviteaddedtoteam,omitempty"`
 	Complexteam__       *MessageSystemComplexTeam       `codec:"complexteam,omitempty" json:"complexteam,omitempty"`
 	Createteam__        *MessageSystemCreateTeam        `codec:"createteam,omitempty" json:"createteam,omitempty"`
+	Gitpush__           *MessageSystemGitPush           `codec:"gitpush,omitempty" json:"gitpush,omitempty"`
 }
 
 func (o *MessageSystem) SystemType() (ret MessageSystemType, err error) {
@@ -235,6 +267,11 @@ func (o *MessageSystem) SystemType() (ret MessageSystemType, err error) {
 	case MessageSystemType_CREATETEAM:
 		if o.Createteam__ == nil {
 			err = errors.New("unexpected nil value for Createteam__")
+			return ret, err
+		}
+	case MessageSystemType_GITPUSH:
+		if o.Gitpush__ == nil {
+			err = errors.New("unexpected nil value for Gitpush__")
 			return ret, err
 		}
 	}
@@ -281,6 +318,16 @@ func (o MessageSystem) Createteam() (res MessageSystemCreateTeam) {
 	return *o.Createteam__
 }
 
+func (o MessageSystem) Gitpush() (res MessageSystemGitPush) {
+	if o.SystemType__ != MessageSystemType_GITPUSH {
+		panic("wrong case accessed")
+	}
+	if o.Gitpush__ == nil {
+		return
+	}
+	return *o.Gitpush__
+}
+
 func NewMessageSystemWithAddedtoteam(v MessageSystemAddedToTeam) MessageSystem {
 	return MessageSystem{
 		SystemType__:  MessageSystemType_ADDEDTOTEAM,
@@ -306,6 +353,13 @@ func NewMessageSystemWithCreateteam(v MessageSystemCreateTeam) MessageSystem {
 	return MessageSystem{
 		SystemType__: MessageSystemType_CREATETEAM,
 		Createteam__: &v,
+	}
+}
+
+func NewMessageSystemWithGitpush(v MessageSystemGitPush) MessageSystem {
+	return MessageSystem{
+		SystemType__: MessageSystemType_GITPUSH,
+		Gitpush__:    &v,
 	}
 }
 
@@ -340,6 +394,13 @@ func (o MessageSystem) DeepCopy() MessageSystem {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Createteam__),
+		Gitpush__: (func(x *MessageSystemGitPush) *MessageSystemGitPush {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Gitpush__),
 	}
 }
 

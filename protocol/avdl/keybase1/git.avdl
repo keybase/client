@@ -37,6 +37,8 @@ protocol git {
   // the only current variant, GitLocalMetadataV1.
   record GitLocalMetadata {
     GitRepoName repoName;
+    string branchName;
+    array<string> commitMsgs;
   }
 
   // Additional metadata maintained by the server, returned with query results.
@@ -96,4 +98,11 @@ protocol git {
 
   // GC a team repo
   void gcTeamRepo(GitRepoName repoName, TeamName teamName, boolean force);
+
+  record GitTeamRepoSettings {
+    union { null, string } channelName;
+    boolean chatDisabled; 
+  }
+  GitTeamRepoSettings getTeamRepoSettings(Folder folder, RepoID repoID);
+  void setTeamRepoSettings(Folder folder, RepoID repoID, union { null, string } channelName, boolean chatDisabled);
 }
