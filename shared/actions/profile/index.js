@@ -148,13 +148,13 @@ function _openURLIfNotNull(nullableThing, url, metaText): void {
   openURL(url)
 }
 
-function* _onAppLink(action: AppGen.LinkPayload): Saga.SagaGenerator<any, any> {
-  const state = yield Saga.select()
+function _onAppLink(action: AppGen.LinkPayload, state: TypedState) {
   const {loggedIn} = state.config
   if (!loggedIn) {
     logger.info('AppLink: not logged in')
-    yield Saga.put(navigateTo(['login'], [loginTab]))
-    return
+    // TODO: Ideally, we'd then navigate to the desired link once
+    // login successfully completes.
+    return Saga.put(navigateTo(['login'], [loginTab]))
   }
 
   const link = action.payload.link
@@ -168,7 +168,7 @@ function* _onAppLink(action: AppGen.LinkPayload): Saga.SagaGenerator<any, any> {
   const username = Constants.urlToUsername(url)
   logger.info('AppLink: url', url.href, 'username', username)
   if (username) {
-    yield Saga.put(ProfileGen.createShowUserProfile({username}))
+    return Saga.put(ProfileGen.createShowUserProfile({username}))
   }
 }
 
@@ -217,7 +217,7 @@ function* _profileSaga(): Saga.SagaGenerator<any, any> {
   )
   yield Saga.safeTakeEveryPure(ProfileGen.outputInstructionsActionLink, _outputInstructionsActionLink)
   yield Saga.safeTakeEveryPure(ProfileGen.showUserProfile, _showUserProfile)
-  yield Saga.safeTakeEvery(AppGen.link, _onAppLink)
+  yield Saga.safeTakeEveryPure(AppGen.link, _onAppLink)
 }
 
 function* profileSaga(): Saga.SagaGenerator<any, any> {
