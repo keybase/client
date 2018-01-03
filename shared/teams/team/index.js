@@ -274,6 +274,7 @@ class Team extends React.PureComponent<Props> {
 
     // massage data for rowrenderers
     const memberProps = members.map(member => ({
+      fullName: member.fullName,
       username: member.username,
       teamname: name,
       active: member.active,
@@ -379,7 +380,7 @@ class Team extends React.PureComponent<Props> {
                 </Text>
                 <Text type="BodySmall">
                   {youCanShowcase
-                    ? 'Your profile on the Keybase website will mention this team. Description + number of members will be public.'
+                    ? 'Your profile will mention this team. Team description and number of members will be public.'
                     : "Admins aren't allowing members to publish this team on their profile."}
                 </Text>
               </Box>

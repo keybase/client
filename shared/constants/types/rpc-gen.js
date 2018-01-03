@@ -690,6 +690,10 @@ export const gitGetGitMetadataRpcChannelMap = (configKeys: Array<string>, reques
 
 export const gitGetGitMetadataRpcPromise = (request: GitGetGitMetadataRpcParam): Promise<GitGetGitMetadataResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.getGitMetadata', request, (error: RPCError, result: GitGetGitMetadataResult) => (error ? reject(error) : resolve(result))))
 
+export const gitGetTeamRepoSettingsRpcChannelMap = (configKeys: Array<string>, request: GitGetTeamRepoSettingsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.getTeamRepoSettings', request)
+
+export const gitGetTeamRepoSettingsRpcPromise = (request: GitGetTeamRepoSettingsRpcParam): Promise<GitGetTeamRepoSettingsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.getTeamRepoSettings', request, (error: RPCError, result: GitGetTeamRepoSettingsResult) => (error ? reject(error) : resolve(result))))
+
 export const gitGitLocalMetadataVersion = {
   v1: 1,
 }
@@ -702,6 +706,10 @@ export const gitGitRepoResultState = {
 export const gitPutGitMetadataRpcChannelMap = (configKeys: Array<string>, request: GitPutGitMetadataRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.putGitMetadata', request)
 
 export const gitPutGitMetadataRpcPromise = (request: GitPutGitMetadataRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.putGitMetadata', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+
+export const gitSetTeamRepoSettingsRpcChannelMap = (configKeys: Array<string>, request: GitSetTeamRepoSettingsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.setTeamRepoSettings', request)
+
+export const gitSetTeamRepoSettingsRpcPromise = (request: GitSetTeamRepoSettingsRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.git.setTeamRepoSettings', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const gregorDismissCategoryRpcChannelMap = (configKeys: Array<string>, request: GregorDismissCategoryRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.gregor.dismissCategory', request)
 
@@ -2265,7 +2273,9 @@ export type GitGetAllGitMetadataRpcParam = ?{|incomingCallMap?: IncomingCallMapT
 
 export type GitGetGitMetadataRpcParam = {|folder: Folder, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type GitLocalMetadata = {|repoName: GitRepoName|}
+export type GitGetTeamRepoSettingsRpcParam = {|folder: Folder, repoID: RepoID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+
+export type GitLocalMetadata = {|repoName: GitRepoName, branchName: String, commitMsgs?: ?Array<String>|}
 
 export type GitLocalMetadataV1 = {|repoName: GitRepoName|}
 
@@ -2286,6 +2296,10 @@ export type GitRepoResultState =
   | 1 // OK_1
 
 export type GitServerMetadata = {|ctime: Time, mtime: Time, lastModifyingUsername: String, lastModifyingDeviceID: DeviceID, lastModifyingDeviceName: String|}
+
+export type GitSetTeamRepoSettingsRpcParam = {|folder: Folder, repoID: RepoID, channelName?: ?String, chatDisabled: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+
+export type GitTeamRepoSettings = {|channelName?: ?String, chatDisabled: Boolean|}
 
 export type GpgUiConfirmDuplicateKeyChosenRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
@@ -2540,7 +2554,7 @@ export type ListResult = {|files?: ?Array<File>|}
 
 export type LoadDeviceErr = {|where: String, desc: String|}
 
-export type LoadTeamArg = {|ID: TeamID, name: String, public: Boolean, needAdmin: Boolean, refreshers: TeamRefreshers, forceFullReload: Boolean, forceRepoll: Boolean, staleOK: Boolean|}
+export type LoadTeamArg = {|ID: TeamID, name: String, public: Boolean, needAdmin: Boolean, refreshUIDMapper: Boolean, refreshers: TeamRefreshers, forceFullReload: Boolean, forceRepoll: Boolean, staleOK: Boolean|}
 
 export type LockContext = {|requireLockID: LockID, releaseAfterSuccess: Boolean|}
 
@@ -3514,7 +3528,7 @@ export type TeamList = {|teams?: ?Array<MemberInfo>|}
 
 export type TeamMember = {|uid: UID, role: TeamRole, eldestSeqno: Seqno, userEldestSeqno: Seqno|}
 
-export type TeamMemberDetails = {|uv: UserVersion, username: String, active: Boolean, needsPUK: Boolean|}
+export type TeamMemberDetails = {|uv: UserVersion, username: String, fullName: FullName, active: Boolean, needsPUK: Boolean|}
 
 export type TeamMemberOutFromReset = {|teamName: String, resetUser: TeamResetUser|}
 
@@ -3863,6 +3877,7 @@ type GitCreatePersonalRepoResult = RepoID
 type GitCreateTeamRepoResult = RepoID
 type GitGetAllGitMetadataResult = ?Array<GitRepoResult>
 type GitGetGitMetadataResult = ?Array<GitRepoResult>
+type GitGetTeamRepoSettingsResult = GitTeamRepoSettings
 type GpgUiConfirmDuplicateKeyChosenResult = Boolean
 type GpgUiGetTTYResult = String
 type GpgUiSelectKeyAndPushOptionResult = SelectKeyRes

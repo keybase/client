@@ -127,11 +127,11 @@ func (t *Team) MemberRole(ctx context.Context, uv keybase1.UserVersion) (keybase
 }
 
 func (t *Team) myRole(ctx context.Context) (keybase1.TeamRole, error) {
-	me, err := t.loadMe(ctx)
+	uv, err := t.currentUserUV(ctx)
 	if err != nil {
 		return keybase1.TeamRole_NONE, err
 	}
-	role, err := t.MemberRole(ctx, me.ToUserVersion())
+	role, err := t.MemberRole(ctx, uv)
 	return role, err
 }
 
@@ -180,6 +180,7 @@ func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (res keybase1.Implic
 		ConflictInfo: nil, // TODO should we know this here?
 	}
 
+	seenKBUsers := make(map[string]bool)
 	members, err := t.Members()
 	if err != nil {
 		return res, err
@@ -200,6 +201,10 @@ func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (res keybase1.Implic
 		}
 		impName.Readers.KeybaseUsers = append(impName.Readers.KeybaseUsers, name.String())
 	}
+	// Mark all the usernames we know about
+	for _, name := range append(impName.Writers.KeybaseUsers, impName.Readers.KeybaseUsers...) {
+		seenKBUsers[name] = true
+	}
 
 	// Add the invites
 	chainInvites := t.chain().inner.ActiveInvites
@@ -213,10 +218,6 @@ func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (res keybase1.Implic
 		if !ok {
 			// this should never happen
 			return res, fmt.Errorf("missing invite: %v", inviteID)
-		}
-		if !invite.UserActive {
-			// Active invite for inactive member, e.g. keybase-type invite for reset user.
-			continue
 		}
 		invtyp, err := invite.Type.C()
 		if err != nil {
@@ -238,14 +239,21 @@ func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (res keybase1.Implic
 			}
 			isFullyResolved = false
 		case keybase1.TeamInviteCategory_KEYBASE:
+			// Check to make sure we don't already have the user in the name
+			iname := string(invite.Name)
+			if seenKBUsers[iname] {
+				continue
+			}
+			seenKBUsers[iname] = true
 			// invite.Name is the username of the invited user, which AnnotateInvites has resolved.
 			switch invite.Role {
 			case keybase1.TeamRole_OWNER:
-				impName.Writers.KeybaseUsers = append(impName.Writers.KeybaseUsers, string(invite.Name))
+				impName.Writers.KeybaseUsers = append(impName.Writers.KeybaseUsers, iname)
 			case keybase1.TeamRole_READER:
-				impName.Readers.KeybaseUsers = append(impName.Readers.KeybaseUsers, string(invite.Name))
+				impName.Readers.KeybaseUsers = append(impName.Readers.KeybaseUsers, iname)
 			default:
-				return res, fmt.Errorf("implicit team contains invite to role: %v (%v)", invite.Role, invite.Id)
+				return res, fmt.Errorf("implicit team contains invite to role: %v (%v)", invite.Role,
+					invite.Id)
 			}
 		default:
 			return res, fmt.Errorf("unrecognized invite type in implicit team: %v", invtyp)
@@ -547,12 +555,11 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 func (t *Team) downgradeIfOwnerOrAdmin(ctx context.Context) (needsReload bool, err error) {
 	defer t.G().CTrace(ctx, "Team#downgradeIfOwnerOrAdmin", func() error { return err })()
 
-	me, err := t.loadMe(ctx)
+	uv, err := t.currentUserUV(ctx)
 	if err != nil {
 		return false, err
 	}
 
-	uv := me.ToUserVersion()
 	role, err := t.MemberRole(ctx, uv)
 	if err != nil {
 		return false, err
@@ -613,12 +620,11 @@ func (t *Team) Leave(ctx context.Context, permanent bool) error {
 }
 
 func (t *Team) deleteRoot(ctx context.Context, ui keybase1.TeamsUiInterface) error {
-	me, err := t.loadMe(ctx)
+	uv, err := t.currentUserUV(ctx)
 	if err != nil {
 		return err
 	}
 
-	uv := me.ToUserVersion()
 	role, err := t.MemberRole(ctx, uv)
 	if err != nil {
 		return err
@@ -779,10 +785,6 @@ func (t *Team) InviteMember(ctx context.Context, username string, role keybase1.
 func (t *Team) InviteEmailMember(ctx context.Context, email string, role keybase1.TeamRole) error {
 	t.G().Log.Debug("team %s invite email member %s", t.Name(), email)
 
-	if t.IsSubteam() && role == keybase1.TeamRole_OWNER {
-		return NewSubteamOwnersError()
-	}
-
 	if role == keybase1.TeamRole_OWNER {
 		return errors.New("You cannot invite an owner to a team over email.")
 	}
@@ -795,7 +797,7 @@ func (t *Team) InviteEmailMember(ctx context.Context, email string, role keybase
 	return t.postInvite(ctx, invite, role)
 }
 
-func (t *Team) inviteKeybaseMember(ctx context.Context, uv keybase1.UserVersion, role keybase1.TeamRole, resolvedUsername libkb.NormalizedUsername) (keybase1.TeamAddMemberResult, error) {
+func (t *Team) inviteKeybaseMember(ctx context.Context, uv keybase1.UserVersion, role keybase1.TeamRole, resolvedUsername libkb.NormalizedUsername) (res keybase1.TeamAddMemberResult, err error) {
 	t.G().Log.Debug("team %s invite keybase member %s", t.Name(), uv)
 
 	invite := SCTeamInvite{
@@ -803,9 +805,73 @@ func (t *Team) inviteKeybaseMember(ctx context.Context, uv keybase1.UserVersion,
 		Name: uv.TeamInviteName(),
 		ID:   NewInviteID(),
 	}
-	t.G().Log.CDebugf(ctx, "invite: %+v", invite)
-	if err := t.postInvite(ctx, invite, role); err != nil {
-		return keybase1.TeamAddMemberResult{}, err
+
+	existing, err := t.HasActiveInvite(invite.Name, invite.Type)
+	if err != nil {
+		return res, err
+	}
+
+	if existing {
+		return res, libkb.ExistsError{Msg: "An invite for this user already exists."}
+	}
+
+	if t.IsSubteam() && role == keybase1.TeamRole_OWNER {
+		return res, NewSubteamOwnersError()
+	}
+
+	invList := []SCTeamInvite{invite}
+	cancelList := []SCTeamInviteID{}
+
+	var invites SCTeamInvites
+	switch role {
+	case keybase1.TeamRole_ADMIN:
+		invites.Admins = &invList
+	case keybase1.TeamRole_WRITER:
+		invites.Writers = &invList
+	case keybase1.TeamRole_READER:
+		invites.Readers = &invList
+	case keybase1.TeamRole_OWNER:
+		invites.Owners = &invList
+	}
+
+	// Inviting keybase PUKless member has to remove old invites for that
+	// uid first, or it will bounce off the server with an error. There is
+	// no hard limit in team player to disallow multiple keybase invites
+	// for the same UID, but there is a soft serverside check when
+	// signature is posted.
+	for inviteID, existingInvite := range t.chain().inner.ActiveInvites {
+		// KeybaseUserVersion checks if invite is KEYBASE and errors
+		// if not, we can blindly call it for all invites, and continue
+		// to next one if we get an error.
+		existingUV, err := existingInvite.KeybaseUserVersion()
+		if err != nil {
+			continue
+		}
+
+		if existingUV.Uid != uv.Uid {
+			continue
+		}
+
+		if uv.EldestSeqno != 0 && existingUV.EldestSeqno > uv.EldestSeqno {
+			// We probably know invitee by their outdated EldestSeqno. There
+			// is also a server check for this case.
+			return res, libkb.ExistsError{
+				Msg: fmt.Sprintf("An invite for this user already exists, with higher EldestSeqno (%d > %d)", existingUV.EldestSeqno, uv.EldestSeqno),
+			}
+		}
+
+		t.G().Log.CDebugf(ctx, "Canceling old Keybase invite: %+v", existingInvite)
+		cancelList = append(cancelList, SCTeamInviteID(inviteID))
+	}
+
+	if len(cancelList) != 0 {
+		t.G().Log.CDebugf(ctx, "Total %d old invites will be canceled.", len(cancelList))
+		invites.Cancel = &cancelList
+	}
+
+	t.G().Log.CDebugf(ctx, "Adding invite: %+v", invite)
+	if err := t.postTeamInvites(ctx, invites); err != nil {
+		return res, err
 	}
 	return keybase1.TeamAddMemberResult{Invited: true, User: &keybase1.User{Uid: uv.Uid, Username: resolvedUsername.String()}}, nil
 }
@@ -973,12 +1039,11 @@ func (t *Team) traverseUpUntil(ctx context.Context, validator func(t *Team) bool
 }
 
 func (t *Team) getAdminPermission(ctx context.Context, required bool) (admin *SCTeamAdmin, err error) {
-	me, err := t.loadMe(ctx)
+	uv, err := t.currentUserUV(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	uv := me.ToUserVersion()
 	targetTeam, err := t.traverseUpUntil(ctx, func(s *Team) bool {
 		return s.chain().GetAdminUserLogPoint(uv) != nil
 	})
@@ -1072,6 +1137,10 @@ func getCurrentUserUV(ctx context.Context, g *libkb.GlobalContext) (ret keybase1
 		return nil
 	})
 	return ret, err
+}
+
+func (t *Team) currentUserUV(ctx context.Context) (keybase1.UserVersion, error) {
+	return getCurrentUserUV(ctx, t.G())
 }
 
 func (t *Team) loadMe(ctx context.Context) (*libkb.User, error) {
@@ -1447,11 +1516,11 @@ func (t *Team) parseSocial(username string) (typ string, name string, err error)
 }
 
 func (t *Team) precheckLinkToPost(ctx context.Context, sigMultiItem libkb.SigMultiItem) (err error) {
-	me, err := t.loadMe(ctx)
+	uv, err := t.currentUserUV(ctx)
 	if err != nil {
 		return err
 	}
-	return precheckLinkToPost(ctx, t.G(), sigMultiItem, t.chain(), me.ToUserVersion())
+	return precheckLinkToPost(ctx, t.G(), sigMultiItem, t.chain(), uv)
 }
 
 // Try to run `post` (expected to post new team sigchain links).
@@ -1696,4 +1765,24 @@ func AddMembersBestEffort(ctx context.Context, g *libkb.GlobalContext, teamID ke
 	}
 
 	return nil
+}
+
+func (t *Team) refreshUIDMapper(ctx context.Context, g *libkb.GlobalContext) {
+	for uv := range t.chain().inner.UserLog {
+		g.UIDMapper.InformOfEldestSeqno(ctx, g, uv)
+	}
+	for id, invite := range t.chain().inner.ActiveInvites {
+		invtype, err := invite.Type.C()
+		if err != nil {
+			g.Log.CDebugf(ctx, "Error in invite %s: %s", id, err.Error())
+			continue
+		}
+		if invtype == keybase1.TeamInviteCategory_KEYBASE {
+			uv, err := invite.KeybaseUserVersion()
+			if err != nil {
+				g.Log.CDebugf(ctx, "Error in parsing invite %s: %s", id, err.Error())
+			}
+			g.UIDMapper.InformOfEldestSeqno(ctx, g, uv)
+		}
+	}
 }

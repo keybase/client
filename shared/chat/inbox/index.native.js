@@ -131,7 +131,7 @@ class Inbox extends React.PureComponent<Props, State> {
     const {viewableItems} = data
     const item = viewableItems && viewableItems[0]
     if (item && item.index) {
-      this._askForUnboxing(viewableItems)
+      this._askForUnboxing(viewableItems.map(i => i.item))
     }
   }, 1000)
 

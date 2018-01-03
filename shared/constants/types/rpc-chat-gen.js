@@ -233,6 +233,7 @@ export const localMessageSystemType = {
   inviteaddedtoteam: 1,
   complexteam: 2,
   createteam: 3,
+  gitpush: 4,
 }
 
 export const localMessageUnboxedErrorType = {
@@ -898,13 +899,15 @@ export type MessageServerHeader = {|messageID: MessageID, supersededBy: MessageI
 
 export type MessageSummary = {|msgID: MessageID, messageType: MessageType, tlfName: String, tlfPublic: Boolean, ctime: Gregor1.Time|}
 
-export type MessageSystem = {systemType: 0, addedtoteam: ?MessageSystemAddedToTeam} | {systemType: 1, inviteaddedtoteam: ?MessageSystemInviteAddedToTeam} | {systemType: 2, complexteam: ?MessageSystemComplexTeam} | {systemType: 3, createteam: ?MessageSystemCreateTeam}
+export type MessageSystem = {systemType: 0, addedtoteam: ?MessageSystemAddedToTeam} | {systemType: 1, inviteaddedtoteam: ?MessageSystemInviteAddedToTeam} | {systemType: 2, complexteam: ?MessageSystemComplexTeam} | {systemType: 3, createteam: ?MessageSystemCreateTeam} | {systemType: 4, gitpush: ?MessageSystemGitPush}
 
 export type MessageSystemAddedToTeam = {|team: String, adder: String, addee: String, owners?: ?Array<String>, admins?: ?Array<String>, writers?: ?Array<String>, readers?: ?Array<String>|}
 
 export type MessageSystemComplexTeam = {|team: String|}
 
 export type MessageSystemCreateTeam = {|team: String, creator: String|}
+
+export type MessageSystemGitPush = {|team: String, pusher: String, repoName: String, branchName: String, commitMsgs?: ?Array<String>|}
 
 export type MessageSystemInviteAddedToTeam = {|team: String, inviter: String, invitee: String, adder: String, inviteType: Keybase1.TeamInviteCategory|}
 
@@ -913,6 +916,7 @@ export type MessageSystemType =
   | 1 // INVITEADDEDTOTEAM_1
   | 2 // COMPLEXTEAM_2
   | 3 // CREATETEAM_3
+  | 4 // GITPUSH_4
 
 export type MessageText = {|body: String|}
 

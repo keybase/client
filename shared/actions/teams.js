@@ -335,12 +335,13 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
     }
     types.forEach(type => {
       const members = details.members[type] || []
-      members.forEach(({username, active}) => {
+      members.forEach(({active, fullName, username}) => {
         infos.push(
           Constants.makeMemberInfo({
+            active,
+            fullName,
             type: typeMap[type],
             username,
-            active,
           })
         )
         memberNames = memberNames.add(username)

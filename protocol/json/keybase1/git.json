@@ -80,6 +80,17 @@
         {
           "type": "GitRepoName",
           "name": "repoName"
+        },
+        {
+          "type": "string",
+          "name": "branchName"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "commitMsgs"
         }
       ]
     },
@@ -172,6 +183,23 @@
         {
           "type": "boolean",
           "name": "canDelete"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GitTeamRepoSettings",
+      "fields": [
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "channelName"
+        },
+        {
+          "type": "boolean",
+          "name": "chatDisabled"
         }
       ]
     }
@@ -307,6 +335,43 @@
         },
         {
           "name": "force",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    },
+    "getTeamRepoSettings": {
+      "request": [
+        {
+          "name": "folder",
+          "type": "Folder"
+        },
+        {
+          "name": "repoID",
+          "type": "RepoID"
+        }
+      ],
+      "response": "GitTeamRepoSettings"
+    },
+    "setTeamRepoSettings": {
+      "request": [
+        {
+          "name": "folder",
+          "type": "Folder"
+        },
+        {
+          "name": "repoID",
+          "type": "RepoID"
+        },
+        {
+          "name": "channelName",
+          "type": [
+            null,
+            "string"
+          ]
+        },
+        {
+          "name": "chatDisabled",
           "type": "boolean"
         }
       ],
