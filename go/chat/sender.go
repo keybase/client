@@ -895,6 +895,8 @@ func (s *Deliverer) deliverLoop() {
 			} else if s.clock.Now().Sub(obr.Ctime.Time()) > 10*time.Minute {
 				// If we are re-trying a message after 10 minutes, let's just give up. These times can
 				// get very long if the app is suspended on mobile.
+				s.Debug(bgctx, "expiring pending message because it is too old: obid: %s dur: %v",
+					obr.OutboxID, s.clock.Now().Sub(obr.Ctime.Time()))
 				err = delivererExpireError{}
 			} else {
 				_, _, _, err = s.sender.Send(bctx, obr.ConvID, obr.Msg, 0, nil)

@@ -159,7 +159,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	sender := NewNonblockingSender(g, baseSender)
 	listener := chatListener{
 		incoming:       make(chan int, 100),
-		failing:        make(chan []chat1.OutboxRecord),
+		failing:        make(chan []chat1.OutboxRecord, 100),
 		identifyUpdate: make(chan keybase1.CanonicalTLFNameAndIDWithBreaks, 10),
 		inboxStale:     make(chan struct{}, 1),
 		threadsStale:   make(chan []chat1.ConversationStaleUpdate, 1),
@@ -304,6 +304,7 @@ func TestNonblockTimer(t *testing.T) {
 	}
 
 	outbox := storage.NewOutbox(tc.Context(), u.User.GetUID().ToBytes())
+	outbox.SetClock(clock)
 	var obids []chat1.OutboxID
 	msgID := *sentRef[len(sentRef)-1].msgID
 	for i := 0; i < 5; i++ {
@@ -329,6 +330,11 @@ func TestNonblockTimer(t *testing.T) {
 	select {
 	case <-listener.incoming:
 		require.Fail(t, "action event received too soon")
+	default:
+	}
+	select {
+	case <-listener.failing:
+		require.Fail(t, "failed message")
 	default:
 	}
 
@@ -364,6 +370,7 @@ func TestNonblockTimer(t *testing.T) {
 	clock.Advance(5 * time.Minute)
 
 	// Should get a blast of all 5
+
 	var olen int
 	for i := 0; i < 10; i++ {
 		select {
