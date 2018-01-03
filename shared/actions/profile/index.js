@@ -14,7 +14,7 @@ import openURL from '../../util/open-url'
 import {getPathProps} from '../../route-tree'
 import {navigateAppend, navigateTo, navigateUp, switchTo, putActionIfOnPath} from '../../actions/route-tree'
 import {parseUserId} from '../../util/platforms'
-import {peopleTab} from '../../constants/tabs'
+import {loginTab, peopleTab} from '../../constants/tabs'
 import {pgpSaga} from './pgp'
 import {proofsSaga} from './proofs'
 
@@ -148,7 +148,15 @@ function _openURLIfNotNull(nullableThing, url, metaText): void {
   openURL(url)
 }
 
-function _onAppLink(action: AppGen.LinkPayload) {
+function* _onAppLink(action: AppGen.LinkPayload): Saga.SagaGenerator<any, any> {
+  const state = yield Saga.select()
+  const {loggedIn} = state.config
+  if (!loggedIn) {
+    logger.info('AppLink: not logged in')
+    yield Saga.put(navigateTo(['login'], [loginTab]))
+    return
+  }
+
   const link = action.payload.link
   let url
   try {
@@ -160,7 +168,7 @@ function _onAppLink(action: AppGen.LinkPayload) {
   const username = Constants.urlToUsername(url)
   logger.info('AppLink: url', url.href, 'username', username)
   if (username) {
-    return Saga.put(ProfileGen.createShowUserProfile({username}))
+    yield Saga.put(ProfileGen.createShowUserProfile({username}))
   }
 }
 
@@ -209,7 +217,7 @@ function* _profileSaga(): Saga.SagaGenerator<any, any> {
   )
   yield Saga.safeTakeEveryPure(ProfileGen.outputInstructionsActionLink, _outputInstructionsActionLink)
   yield Saga.safeTakeEveryPure(ProfileGen.showUserProfile, _showUserProfile)
-  yield Saga.safeTakeEveryPure(AppGen.link, _onAppLink)
+  yield Saga.safeTakeEvery(AppGen.link, _onAppLink)
 }
 
 function* profileSaga(): Saga.SagaGenerator<any, any> {
