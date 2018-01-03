@@ -5,9 +5,9 @@ import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../types/rpc-gen'
 import * as Types from '../types/chat2'
 import type {_ConversationMeta} from '../types/chat2/meta'
+import {globalColors, isMobile} from '../../styles'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {toByteArray} from 'base64-js'
-import {globalColors, isMobile} from '../../styles'
 
 const IGNORE_UNTRUSTED_CACHE = true
 IGNORE_UNTRUSTED_CACHE && console.log('aaa NOJIMA skipping locametadata')
@@ -191,6 +191,20 @@ export const getRowStyles = (meta: Types.ConversationMeta, isSelected: boolean, 
     usernameColor,
   }
 }
+
+export const getConversationIDKeyMetasToLoad = (
+  conversationIDKeys: Array<Types.ConversationIDKey>,
+  metaMap: I.Map<Types.ConversationIDKey, Types.ConversationMeta>
+) =>
+  conversationIDKeys.reduce((arr, id) => {
+    if (id) {
+      const trustedState = metaMap.getIn([id, 'trustedState'])
+      if (trustedState !== 'requesting' && trustedState !== 'trusted') {
+        arr.push(id)
+      }
+    }
+    return arr
+  }, [])
 
 export const getRowParticipants = (meta: Types.ConversationMeta, username: string) =>
   meta.participants

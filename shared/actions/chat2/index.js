@@ -23,6 +23,11 @@ import {showMainWindow} from '../platform-specific'
  * >>>> Send tlfname and convid to send so daemon can verify its been unboxed
  */
 
+// If we're out of date we'll only try and fill a gap of this size, otherwise we throw old messages away
+const largestGapToFillOnSyncCall = 50
+const numMessagesOnInitialLoad = 20
+const numMessagesPerLoad = 50
+
 const inboxQuery = {
   computeActiveList: true,
   readOnly: false,
@@ -143,24 +148,19 @@ const rpcMetaRequestConversationIDKeys = (
   switch (action.type) {
     case Chat2Gen.metaRequestTrusted:
       keys = action.payload.conversationIDKeys
+      if (action.payload.force) {
+        return keys
+      }
       break
     case Chat2Gen.selectConversation:
-      keys = [action.payload.conversationIDKey]
+      keys = [action.payload.conversationIDKey].filter(Boolean)
       break
     default:
       // eslint-disable-next-line no-unused-expressions
       ;(action: empty) // errors if we don't handle any new actions
       throw new Error('Invalid action passed to rpcMetaRequest ')
   }
-  return keys.reduce((arr, key) => {
-    if (key) {
-      const trustedState = state.chat2.metaMap.getIn([key, 'trustedState'])
-      if (trustedState !== 'requesting' && trustedState !== 'trusted') {
-        arr.push(key)
-      }
-    }
-    return arr
-  }, [])
+  return Constants.getConversationIDKeyMetasToLoad(keys, state.chat2.metaMap)
 }
 
 const rpcMetaRequest = (
@@ -395,7 +395,7 @@ const setupChatHandlers = () => {
 
   engine().setIncomingActionCreators(
     'chat.1.NotifyChat.ChatInboxSynced',
-    ({syncRes}: RPCChatTypes.NotifyChatChatInboxSyncedRpcParam) => {
+    ({syncRes}: RPCChatTypes.NotifyChatChatInboxSyncedRpcParam, ignore1, ignore2, getState) => {
       const actions = [Chat2Gen.createSetLoading({key: 'inboxSyncStarted', loading: false})]
       switch (syncRes.syncType) {
         case RPCChatTypes.commonSyncInboxResType.clear:
@@ -403,15 +403,28 @@ const setupChatHandlers = () => {
           break
         case RPCChatTypes.commonSyncInboxResType.current:
           break
-        case RPCChatTypes.commonSyncInboxResType.incremental:
+        case RPCChatTypes.commonSyncInboxResType.incremental: {
+          const items = (syncRes.incremental && syncRes.incremental.items) || []
+          const metas = items.reduce((arr, i) => {
+            const meta = Constants.unverifiedInboxUIItemToConversationMeta(
+              i,
+              getState().config.username || ''
+            )
+            if (meta) {
+              arr.push(meta)
+            }
+            return arr
+          }, [])
+          // Update new untrusted
+          if (metas.length) {
+            actions.push(Chat2Gen.createMetasReceived({metas}))
+          }
+          // Unbox items
           actions.push(
-            Chat2Gen.createMetaRequestTrusted({
-              conversationIDKeys: ((syncRes.incremental && syncRes.incremental.items) || []).map(
-                i => i.convID
-              ),
-            })
+            Chat2Gen.createMetaRequestTrusted({conversationIDKeys: items.map(i => i.convID), force: true})
           )
           break
+        }
         default:
           actions.push(Chat2Gen.createInboxRefresh({reason: 'inbox synced unknown'}))
       }
@@ -478,6 +491,7 @@ const rpcLoadThread = (
 
   let recent // if true we're loading newer content
   let pivot // the messageid we're loading from (newer than or older than)
+  let num = numMessagesPerLoad
 
   const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
   switch (action.type) {
@@ -492,7 +506,8 @@ const rpcLoadThread = (
         // case 1/2
         logger.info('Load thread: case 1/2: not loaded yet')
         recent = false
-        pivot = Constants.getMessageOrdinals(state, conversationIDKey).last() // get messages than the oldest one we know about
+        pivot = Constants.getMessageOrdinals(state, conversationIDKey).last() // get messages older than the oldest one we know about
+        num = numMessagesOnInitialLoad
       } else {
         const last = ordinals.last()
         const secondToLast = ordinals.get(-2)
@@ -500,16 +515,18 @@ const rpcLoadThread = (
         const gap = last && secondToLast ? last - secondToLast : 0
         if (gap > 1) {
           // Case 4
-          if (gap < 50) {
+          if (gap < largestGapToFillOnSyncCall) {
+            // TEMP 50
             logger.info('Load thread: case 4: small gap, filling in')
+            num = largestGapToFillOnSyncCall
             recent = true
             pivot = ordinals.get(-2) // newer than the top of the gap
           } else {
             logger.info('Load thread: case 4: big gap, acting like not loaded yet')
             // Gap is too big, treat as Case 1/2 and clear old ordinals
-            actions.push(Chat2Gen.createClearOrdinals({conversationIDKey}))
+            actions.push(Saga.put(Chat2Gen.createClearOrdinals({conversationIDKey})))
             recent = false
-            pivot = ordinals.last()
+            pivot = null
           }
         } else {
           // Case 3
@@ -533,8 +550,6 @@ const rpcLoadThread = (
       ;(action: empty) // errors if we don't handle any new actions
       throw new Error('Invalid action passed to rpcLoadThread')
   }
-
-  const num = 20 // TODO dynamic maybe, deal w/ stale // TODO more
 
   const onGotThread = function*({thread}) {
     if (thread) {

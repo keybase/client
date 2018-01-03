@@ -1399,6 +1399,7 @@ func (g *gregorHandler) pingLoop() {
 // (something like) this code even after it's all stable in the wild, because
 // it covers newly provisioned devices too.
 func (g *gregorHandler) chatAwareReconnectIsLong(ctx context.Context) bool {
+	return false // TEMP
 	now := time.Now()
 	firstQueryTime := chat.TouchFirstChatActiveQueryTime(ctx, g.G(), g.chatLog)
 

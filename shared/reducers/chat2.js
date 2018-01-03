@@ -26,7 +26,10 @@ const metaMapReducer = (metaMap, action) => {
   switch (action.type) {
     case Chat2Gen.metaRequestingTrusted:
       return metaMap.withMutations(map =>
-        action.payload.conversationIDKeys.forEach(conversationIDKey =>
+        (action.payload.force
+          ? action.payload.conversationIDKeys
+          : Constants.getConversationIDKeyMetasToLoad(action.payload.conversationIDKeys, metaMap)
+        ).forEach(conversationIDKey =>
           map.update(conversationIDKey, meta => (meta ? meta.set('trustedState', 'requesting') : meta))
         )
       )
@@ -234,10 +237,10 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         .set('messageMap', messageMapReducer(state.messageMap, action))
         .set('messageOrdinals', messageOrdinalsReducer(state.messageOrdinals, action))
     // Saga only actions
-    case Chat2Gen.metaNeedsUpdating:
-    case Chat2Gen.metaHandleQueue:
-    case Chat2Gen.metaRequestTrusted:
     case Chat2Gen.loadMoreMessages:
+    case Chat2Gen.metaHandleQueue:
+    case Chat2Gen.metaNeedsUpdating:
+    case Chat2Gen.metaRequestTrusted:
     case Chat2Gen.setupChatHandlers:
       return state
     default:

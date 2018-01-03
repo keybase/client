@@ -29,10 +29,11 @@
       "reason": "string"
     },
     "metaHandleQueue": {},
-    "metaRequestTrusted": {
+    "metaRequestingTrusted": {
       "conversationIDKeys": "Array<Types.ConversationIDKey>"
     },
-    "metaRequestingTrusted": {
+    "metaRequestTrusted": {
+      "force?": "boolean",
       "conversationIDKeys": "Array<Types.ConversationIDKey>"
     },
     "metaUpdateTrustedState": {

@@ -247,7 +247,13 @@ class Engine {
         // General incoming
         const creator = this._incomingActionCreators[method]
         rpcLog('engineInternal', 'handling incoming')
-        const actions = creator(param, response, this._dispatch, this._getState) || []
+        const rawActions = creator(param, response, this._dispatch, this._getState)
+        const actions = (rawActions || []).reduce((arr, a) => {
+          if (a) {
+            arr.push(a)
+          }
+          return arr
+        }, [])
         actions.forEach(a => this._dispatch(a))
       } else if (this._incomingHandler[method]) {
         // General incoming
@@ -385,7 +391,12 @@ class Engine {
   // Setup a handler for a rpc w/o a session (id = 0)
   setIncomingActionCreators(
     method: MethodKey,
-    actionCreator: (param: Object, response: ?Object, dispatch: Dispatch) => ?Array<Action>
+    actionCreator: (
+      param: Object,
+      response: ?Object,
+      dispatch: Dispatch,
+      getState: () => TypedState
+    ) => ?Array<Action>
   ) {
     if (this._incomingActionCreators[method]) {
       rpcLog('engineInternal', "duplicate incoming action creator!!! this isn't allowed", {method})
