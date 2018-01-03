@@ -12,6 +12,7 @@ import chatManageChannels from '../chat/manage-channels/index.stories'
 import chatHud from '../chat/hud/index.stories'
 import checkbox from '../common-adapters/checkbox.stories'
 import dropdown from '../common-adapters/dropdown.stories'
+import formInput from '../common-adapters/form-input.stories'
 import git from '../git/index.stories'
 import icon from '../common-adapters/icon.stories'
 import radiobutton from '../common-adapters/radio-button.stories'
@@ -36,6 +37,7 @@ const stories = {
   checkbox,
   dropdown,
   editTeamDescription,
+  formInput,
   git,
   icon,
   radiobutton,
