@@ -3346,9 +3346,9 @@ emoji-datasource@3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/emoji-datasource/-/emoji-datasource-3.0.0.tgz#3c46c5aa4c39bb7a0c8e6877ae02cc94dbc1b12f"
 
-emoji-mart@2.1.2:
-  version "2.1.2"
-  resolved "https://registry.yarnpkg.com/emoji-mart/-/emoji-mart-2.1.2.tgz#e0cc258e1ad32847c736d4c901b4d15ccb7fd636"
+emoji-mart@2.2.1:
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/emoji-mart/-/emoji-mart-2.2.1.tgz#02dc2192b85eb901a6446b8f302d8669147ceea8"
 
 emojis-list@^2.0.0:
   version "2.1.0"
