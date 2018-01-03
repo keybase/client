@@ -1170,17 +1170,15 @@ func GetKBFSTeamSettings(ctx context.Context, g *libkb.GlobalContext, isPublic b
 }
 
 func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string) (ret keybase1.TeamOperation, err error) {
-
-	meUV, err := getCurrentUserUV(ctx, g)
-	if err != nil {
-		return ret, err
-	}
-
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
 		Name:    teamname,
 		StaleOK: true,
 		Public:  false, // assume private team
 	})
+	if err != nil {
+		return ret, err
+	}
+	meUV, err := team.currentUserUV(ctx)
 	if err != nil {
 		return ret, err
 	}
