@@ -11,6 +11,7 @@ import {
 import {createEditProfile} from '../../actions/profile-gen'
 import {maxProfileBioChars} from '../../constants/profile'
 import {navigateUp} from '../../actions/route-tree'
+import {HeaderHoc} from '../../common-adapters'
 
 const mapStateToProps = (state: TypedState) => {
   if (!state.config.username) {
@@ -22,7 +23,7 @@ const mapStateToProps = (state: TypedState) => {
   }
   const userInfo = trackerInfo.userInfo
   const {bio, fullname, location} = userInfo
-  return {bio, fullname, location}
+  return {bio, fullname, location, title: 'Edit Profile'}
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
@@ -38,6 +39,7 @@ export default compose(
   withPropsOnChange(['bio'], props => ({
     bioLengthLeft: props.bio ? maxProfileBioChars - props.bio.length : maxProfileBioChars,
   })),
+  HeaderHoc,
   withHandlers({
     onCancel: ({onBack}) => () => onBack(),
     onSubmit: ({bio, fullname, location, onEditProfile}) => () => onEditProfile({bio, fullname, location}),

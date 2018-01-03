@@ -1,18 +1,19 @@
 // @flow
 import * as React from 'react'
-import {Button, Input, StandardScreen, ButtonBar} from '../../common-adapters'
+import {Box, Button, Input, HeaderHoc, ButtonBar} from '../../common-adapters'
 import {globalMargins} from '../../styles'
 
 import type {Props} from './render'
 
 const EditProfileRender = (props: Props) => (
-  <StandardScreen style={styleContainer} onCancel={props.onCancel}>
+  <Box>
     <Input
       autoCorrect={true}
       autoFocus={true}
       style={styleInput}
       floatingHintTextOverride="Full name"
       hintText="Full name"
+      inForm={true}
       value={props.fullname}
       onEnterKeyDown={props.onSubmit}
       onChangeText={fullname => props.onFullnameChange(fullname)}
@@ -22,6 +23,7 @@ const EditProfileRender = (props: Props) => (
       style={styleInput}
       floatingHintTextOverride="Bio"
       hintText="Bio"
+      inForm={true}
       value={props.bio}
       multiline={true}
       rowsMin={1}
@@ -34,6 +36,7 @@ const EditProfileRender = (props: Props) => (
       style={styleInput}
       floatingHintTextOverride="Location"
       hintText="Location"
+      inForm={true}
       value={props.location}
       onEnterKeyDown={props.onSubmit}
       onChangeText={location => props.onLocationChange(location)}
@@ -41,7 +44,7 @@ const EditProfileRender = (props: Props) => (
     <ButtonBar fullWidth={true}>
       <Button style={styleButton} type="Primary" fullWidth={true} onClick={props.onSubmit} label="Save" />
     </ButtonBar>
-  </StandardScreen>
+  </Box>
 )
 
 const styleContainer = {
