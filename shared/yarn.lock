@@ -3338,17 +3338,17 @@ elliptic@^6.0.0:
     minimalistic-assert "^1.0.0"
     minimalistic-crypto-utils "^1.0.0"
 
-emoji-datasource-apple@3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/emoji-datasource-apple/-/emoji-datasource-apple-3.0.0.tgz#1e5eb0443d0a9e20ec3ed01e77114ce601b19cec"
+emoji-datasource-apple@^4.0.3:
+  version "4.0.3"
+  resolved "https://registry.yarnpkg.com/emoji-datasource-apple/-/emoji-datasource-apple-4.0.3.tgz#41898d935840336026d22a9420eb97f2dba422d6"
 
-emoji-datasource@3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/emoji-datasource/-/emoji-datasource-3.0.0.tgz#3c46c5aa4c39bb7a0c8e6877ae02cc94dbc1b12f"
+emoji-datasource@^4.0.3:
+  version "4.0.3"
+  resolved "https://registry.yarnpkg.com/emoji-datasource/-/emoji-datasource-4.0.3.tgz#d600e70f0568327cb28cfa7bf41d53f3c4867901"
 
-emoji-mart@2.2.1:
-  version "2.2.1"
-  resolved "https://registry.yarnpkg.com/emoji-mart/-/emoji-mart-2.2.1.tgz#02dc2192b85eb901a6446b8f302d8669147ceea8"
+emoji-mart@^2.4.0:
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/emoji-mart/-/emoji-mart-2.4.0.tgz#83302e8a1535ab5cd6ed21e1cd960364c617e27d"
 
 emojis-list@^2.0.0:
   version "2.1.0"
