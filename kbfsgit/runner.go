@@ -1644,8 +1644,6 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 		}
 	} else {
 		results, commits, err = r.pushSome(ctx, repo, fs, args, kbfsRepoEmpty)
-		// TODO: remove this once we integrate the commits.
-		r.log.CDebugf(ctx, "Commits: %+v", commits)
 	}
 	if err != nil {
 		return nil, err
@@ -1667,8 +1665,6 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 		_, err = r.output.Write([]byte(result + "\n"))
 	}
 
-	// TODO (KBFS-2682): send commit names, emails, dates, and messages to
-	// `UpdateRepoMD`, once the protocol supports it..
 	err = libgit.UpdateRepoMD(ctx, r.config, r.h, fs, commits)
 	if err != nil {
 		return nil, err
