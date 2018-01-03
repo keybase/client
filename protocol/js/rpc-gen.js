@@ -1841,33 +1841,33 @@ export const userSearchRpcChannelMap = (configKeys: Array<string>, request: User
 
 export const userSearchRpcPromise = (request: UserSearchRpcParam): Promise<UserSearchResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.search', request, (error: RPCError, result: UserSearchResult) => (error ? reject(error) : resolve(result))))
 
-export type APIRes = {|status: String, body: String, httpStatus: Int, appStatus: String|}
+export type APIRes = $ReadOnly<{status: String, body: String, httpStatus: Int, appStatus: String}>
 
-export type AccountEmailChangeRpcParam = {|newEmail: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type AccountEmailChangeRpcParam = $ReadOnly<{newEmail: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type AccountHasServerKeysRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type AccountHasServerKeysRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type AccountPassphraseChangeRpcParam = {|oldPassphrase: String, passphrase: String, force: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type AccountPassphraseChangeRpcParam = $ReadOnly<{oldPassphrase: String, passphrase: String, force: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type AccountPassphrasePromptRpcParam = {|guiArg: GUIEntryArg, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type AccountPassphrasePromptRpcParam = $ReadOnly<{guiArg: GUIEntryArg, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type AccountResetAccountRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type AccountResetAccountRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type AnnotatedMemberInfo = {|userID: UID, teamID: TeamID, username: String, fullName: String, fqName: String, isImplicitTeam: Boolean, role: TeamRole, implicit?: ?ImplicitRole, needsPUK: Boolean, memberCount: Int, eldestSeqno: Seqno, active: Boolean|}
+export type AnnotatedMemberInfo = $ReadOnly<{userID: UID, teamID: TeamID, username: String, fullName: String, fqName: String, isImplicitTeam: Boolean, role: TeamRole, implicit?: ?ImplicitRole, needsPUK: Boolean, memberCount: Int, eldestSeqno: Seqno, active: Boolean}>
 
-export type AnnotatedTeamInvite = {|role: TeamRole, id: TeamInviteID, type: TeamInviteType, name: TeamInviteName, uv: UserVersion, inviter: UserVersion, inviterUsername: String, teamName: String, userActive: Boolean|}
+export type AnnotatedTeamInvite = $ReadOnly<{role: TeamRole, id: TeamInviteID, type: TeamInviteType, name: TeamInviteName, uv: UserVersion, inviter: UserVersion, inviterUsername: String, teamName: String, userActive: Boolean}>
 
-export type AnnotatedTeamList = {|teams?: ?Array<AnnotatedMemberInfo>, annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite}|}
+export type AnnotatedTeamList = $ReadOnly<{teams?: ?Array<AnnotatedMemberInfo>, annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite}}>
 
-export type ApiserverDeleteRpcParam = {|endpoint: String, args?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ApiserverDeleteRpcParam = $ReadOnly<{endpoint: String, args?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ApiserverGetRpcParam = {|endpoint: String, args?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ApiserverGetRpcParam = $ReadOnly<{endpoint: String, args?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ApiserverGetWithSessionRpcParam = {|endpoint: String, args?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ApiserverGetWithSessionRpcParam = $ReadOnly<{endpoint: String, args?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ApiserverPostJSONRpcParam = {|endpoint: String, args?: ?Array<StringKVPair>, JSONPayload?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ApiserverPostJSONRpcParam = $ReadOnly<{endpoint: String, args?: ?Array<StringKVPair>, JSONPayload?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ApiserverPostRpcParam = {|endpoint: String, args?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ApiserverPostRpcParam = $ReadOnly<{endpoint: String, args?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type AppState =
   | 0 // FOREGROUND_0
@@ -1875,7 +1875,7 @@ export type AppState =
   | 2 // INACTIVE_2
   | 3 // BACKGROUNDACTIVE_3
 
-export type AppStateUpdateAppStateRpcParam = {|state: AppState, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type AppStateUpdateAppStateRpcParam = $ReadOnly<{state: AppState, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type AsyncOps =
   | 0 // LIST_0
@@ -1886,78 +1886,78 @@ export type AsyncOps =
   | 5 // MOVE_5
   | 6 // REMOVE_6
 
-export type BTCRegisterBTCRpcParam = {|address: String, force: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type BTCRegisterBTCRpcParam = $ReadOnly<{address: String, force: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type BadgeConversationInfo = {|convID: ChatConversationID, badgeCounts: {[key: string]: Int}, unreadMessages: Int|}
+export type BadgeConversationInfo = $ReadOnly<{convID: ChatConversationID, badgeCounts: {[key: string]: Int}, unreadMessages: Int}>
 
-export type BadgeState = {|newTlfs: Int, rekeysNeeded: Int, newFollowers: Int, inboxVers: Int, homeTodoItems: Int, conversations?: ?Array<BadgeConversationInfo>, newGitRepoGlobalUniqueIDs?: ?Array<String>, newTeamNames?: ?Array<String>, newTeamAccessRequests?: ?Array<String>, teamsWithResetUsers?: ?Array<TeamMemberOutReset>|}
+export type BadgeState = $ReadOnly<{newTlfs: Int, rekeysNeeded: Int, newFollowers: Int, inboxVers: Int, homeTodoItems: Int, conversations?: ?Array<BadgeConversationInfo>, newGitRepoGlobalUniqueIDs?: ?Array<String>, newTeamNames?: ?Array<String>, newTeamAccessRequests?: ?Array<String>, teamsWithResetUsers?: ?Array<TeamMemberOutReset>}>
 
-export type BadgerGetBadgeStateRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type BadgerGetBadgeStateRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type BinaryKID = Bytes
 
-export type BlockAddReferenceRpcParam = {|folder: String, ref: BlockReference, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type BlockAddReferenceRpcParam = $ReadOnly<{folder: String, ref: BlockReference, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type BlockArchiveReferenceRpcParam = {|folder: String, refs?: ?Array<BlockReference>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type BlockArchiveReferenceRpcParam = $ReadOnly<{folder: String, refs?: ?Array<BlockReference>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type BlockArchiveReferenceWithCountRpcParam = {|folder: String, refs?: ?Array<BlockReference>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type BlockArchiveReferenceWithCountRpcParam = $ReadOnly<{folder: String, refs?: ?Array<BlockReference>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type BlockAuthenticateSessionRpcParam = {|signature: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type BlockAuthenticateSessionRpcParam = $ReadOnly<{signature: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type BlockBlockPingRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type BlockBlockPingRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type BlockDelReferenceRpcParam = {|folder: String, ref: BlockReference, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type BlockDelReferenceRpcParam = $ReadOnly<{folder: String, ref: BlockReference, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type BlockDelReferenceWithCountRpcParam = {|folder: String, refs?: ?Array<BlockReference>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type BlockDelReferenceWithCountRpcParam = $ReadOnly<{folder: String, refs?: ?Array<BlockReference>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type BlockGetBlockRpcParam = {|bid: BlockIdCombo, folder: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type BlockGetBlockRpcParam = $ReadOnly<{bid: BlockIdCombo, folder: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type BlockGetSessionChallengeRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type BlockGetSessionChallengeRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type BlockGetTeamQuotaInfoRpcParam = {|tid: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type BlockGetTeamQuotaInfoRpcParam = $ReadOnly<{tid: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type BlockGetUserQuotaInfoRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type BlockGetUserQuotaInfoRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type BlockIdCombo = {|blockHash: String, chargedTo: UserOrTeamID, blockType: BlockType|}
+export type BlockIdCombo = $ReadOnly<{blockHash: String, chargedTo: UserOrTeamID, blockType: BlockType}>
 
-export type BlockPingResponse = {||}
+export type BlockPingResponse = $ReadOnly<{}>
 
-export type BlockPutBlockAgainRpcParam = {|folder: String, ref: BlockReference, blockKey: String, buf: Bytes, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type BlockPutBlockAgainRpcParam = $ReadOnly<{folder: String, ref: BlockReference, blockKey: String, buf: Bytes, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type BlockPutBlockRpcParam = {|bid: BlockIdCombo, folder: String, blockKey: String, buf: Bytes, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type BlockPutBlockRpcParam = $ReadOnly<{bid: BlockIdCombo, folder: String, blockKey: String, buf: Bytes, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type BlockRefNonce = any
 
-export type BlockReference = {|bid: BlockIdCombo, nonce: BlockRefNonce, chargedTo: UserOrTeamID|}
+export type BlockReference = $ReadOnly<{bid: BlockIdCombo, nonce: BlockRefNonce, chargedTo: UserOrTeamID}>
 
-export type BlockReferenceCount = {|ref: BlockReference, liveCount: Int|}
+export type BlockReferenceCount = $ReadOnly<{ref: BlockReference, liveCount: Int}>
 
 export type BlockType =
   | 0 // DATA_0
   | 1 // MD_1
   | 2 // GIT_2
 
-export type BootstrapStatus = {|registered: Boolean, loggedIn: Boolean, uid: UID, username: String, deviceID: DeviceID, deviceName: String, following?: ?Array<String>, followers?: ?Array<String>|}
+export type BootstrapStatus = $ReadOnly<{registered: Boolean, loggedIn: Boolean, uid: UID, username: String, deviceID: DeviceID, deviceName: String, following?: ?Array<String>, followers?: ?Array<String>}>
 
 export type BoxNonce = any
 
 export type BoxPublicKey = any
 
-export type BulkRes = {|invited?: ?Array<String>, alreadyInvited?: ?Array<String>, malformed?: ?Array<String>|}
+export type BulkRes = $ReadOnly<{invited?: ?Array<String>, alreadyInvited?: ?Array<String>, malformed?: ?Array<String>}>
 
 export type Bytes32 = any
 
-export type CanonicalTLFNameAndIDWithBreaks = {|tlfID: TLFID, CanonicalName: CanonicalTlfName, breaks: TLFBreak|}
+export type CanonicalTLFNameAndIDWithBreaks = $ReadOnly<{tlfID: TLFID, CanonicalName: CanonicalTlfName, breaks: TLFBreak}>
 
 export type CanonicalTlfName = String
 
-export type ChallengeInfo = {|now: Long, challenge: String|}
+export type ChallengeInfo = $ReadOnly<{now: Long, challenge: String}>
 
 export type ChatConversationID = Bytes
 
-export type CheckProofStatus = {|found: Boolean, status: ProofStatus, proofText: String, state: ProofState|}
+export type CheckProofStatus = $ReadOnly<{found: Boolean, status: ProofStatus, proofText: String, state: ProofState}>
 
-export type CheckResult = {|proofResult: ProofResult, time: Time, freshness: CheckResultFreshness|}
+export type CheckResult = $ReadOnly<{proofResult: ProofResult, time: Time, freshness: CheckResultFreshness}>
 
 export type CheckResultFreshness =
   | 0 // FRESH_0
@@ -1968,9 +1968,9 @@ export type ChooseType =
   | 0 // EXISTING_DEVICE_0
   | 1 // NEW_DEVICE_1
 
-export type CiphertextBundle = {|kid: KID, ciphertext: EncryptedBytes32, nonce: BoxNonce, publicKey: BoxPublicKey|}
+export type CiphertextBundle = $ReadOnly<{kid: KID, ciphertext: EncryptedBytes32, nonce: BoxNonce, publicKey: BoxPublicKey}>
 
-export type ClientDetails = {|pid: Int, clientType: ClientType, argv?: ?Array<String>, desc: String, version: String|}
+export type ClientDetails = $ReadOnly<{pid: Int, clientType: ClientType, argv?: ?Array<String>, desc: String, version: String}>
 
 export type ClientType =
   | 0 // NONE_0
@@ -1981,79 +1981,79 @@ export type ClientType =
 
 export type CompatibilityTeamID = {typ: 1, legacy: ?TLFID} | {typ: 2, modern: ?TeamID}
 
-export type ComponentResult = {|name: String, status: Status, exitCode: Int|}
+export type ComponentResult = $ReadOnly<{name: String, status: Status, exitCode: Int}>
 
-export type Config = {|serverURI: String, socketFile: String, label: String, runMode: String, gpgExists: Boolean, gpgPath: String, version: String, path: String, binaryRealpath: String, configPath: String, versionShort: String, versionFull: String, isAutoForked: Boolean, forkType: ForkType|}
+export type Config = $ReadOnly<{serverURI: String, socketFile: String, label: String, runMode: String, gpgExists: Boolean, gpgPath: String, version: String, path: String, binaryRealpath: String, configPath: String, versionShort: String, versionFull: String, isAutoForked: Boolean, forkType: ForkType}>
 
-export type ConfigCheckAPIServerOutOfDateWarningRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ConfigCheckAPIServerOutOfDateWarningRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ConfigClearValueRpcParam = {|path: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ConfigClearValueRpcParam = $ReadOnly<{path: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ConfigGetBootstrapStatusRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ConfigGetBootstrapStatusRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ConfigGetConfigRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ConfigGetConfigRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ConfigGetCurrentStatusRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ConfigGetCurrentStatusRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ConfigGetExtendedStatusRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ConfigGetExtendedStatusRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ConfigGetValueRpcParam = {|path: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ConfigGetValueRpcParam = $ReadOnly<{path: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ConfigHelloIAmRpcParam = {|details: ClientDetails, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ConfigHelloIAmRpcParam = $ReadOnly<{details: ClientDetails, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ConfigSetPathRpcParam = {|path: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ConfigSetPathRpcParam = $ReadOnly<{path: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ConfigSetUserConfigRpcParam = {|username: String, key: String, value: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ConfigSetUserConfigRpcParam = $ReadOnly<{username: String, key: String, value: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ConfigSetValueRpcParam = {|path: String, value: ConfigValue, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ConfigSetValueRpcParam = $ReadOnly<{path: String, value: ConfigValue, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ConfigValue = {|isNull: Boolean, b?: ?Boolean, i?: ?Int, s?: ?String, o?: ?String|}
+export type ConfigValue = $ReadOnly<{isNull: Boolean, b?: ?Boolean, i?: ?Int, s?: ?String, o?: ?String}>
 
-export type ConfigWaitForClientRpcParam = {|clientType: ClientType, timeout: DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ConfigWaitForClientRpcParam = $ReadOnly<{clientType: ClientType, timeout: DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ConfiguredAccount = {|username: String, hasStoredSecret: Boolean|}
+export type ConfiguredAccount = $ReadOnly<{username: String, hasStoredSecret: Boolean}>
 
-export type ConfirmResult = {|identityConfirmed: Boolean, remoteConfirmed: Boolean, expiringLocal: Boolean, autoConfirmed: Boolean|}
+export type ConfirmResult = $ReadOnly<{identityConfirmed: Boolean, remoteConfirmed: Boolean, expiringLocal: Boolean, autoConfirmed: Boolean}>
 
 export type ConflictGeneration = Int
 
-export type CopyArgs = {|opID: OpID, src: Path, dest: Path|}
+export type CopyArgs = $ReadOnly<{opID: OpID, src: Path, dest: Path}>
 
-export type CryptKey = {|KeyGeneration: Int, Key: Bytes32|}
+export type CryptKey = $ReadOnly<{KeyGeneration: Int, Key: Bytes32}>
 
-export type CryptoSignED25519ForKBFSRpcParam = {|msg: Bytes, reason: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type CryptoSignED25519ForKBFSRpcParam = $ReadOnly<{msg: Bytes, reason: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type CryptoSignED25519RpcParam = {|msg: Bytes, reason: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type CryptoSignED25519RpcParam = $ReadOnly<{msg: Bytes, reason: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type CryptoSignToStringRpcParam = {|msg: Bytes, reason: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type CryptoSignToStringRpcParam = $ReadOnly<{msg: Bytes, reason: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type CryptoUnboxBytes32AnyRpcParam = {|bundles?: ?Array<CiphertextBundle>, reason: String, promptPaper: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type CryptoUnboxBytes32AnyRpcParam = $ReadOnly<{bundles?: ?Array<CiphertextBundle>, reason: String, promptPaper: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type CryptoUnboxBytes32RpcParam = {|encryptedBytes32: EncryptedBytes32, nonce: BoxNonce, peersPublicKey: BoxPublicKey, reason: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type CryptoUnboxBytes32RpcParam = $ReadOnly<{encryptedBytes32: EncryptedBytes32, nonce: BoxNonce, peersPublicKey: BoxPublicKey, reason: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type Cryptocurrency = {|rowId: Int, pkhash: Bytes, address: String, sigID: SigID, type: String, family: String|}
+export type Cryptocurrency = $ReadOnly<{rowId: Int, pkhash: Bytes, address: String, sigID: SigID, type: String, family: String}>
 
-export type CryptocurrencyRegisterAddressRpcParam = {|address: String, force: Boolean, wantedFamily: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type CryptocurrencyRegisterAddressRpcParam = $ReadOnly<{address: String, force: Boolean, wantedFamily: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type CsrfToken = String
 
-export type CtlAppExitRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type CtlAppExitRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type CtlDbDeleteRpcParam = {|key: DbKey, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type CtlDbDeleteRpcParam = $ReadOnly<{key: DbKey, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type CtlDbGetRpcParam = {|key: DbKey, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type CtlDbGetRpcParam = $ReadOnly<{key: DbKey, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type CtlDbNukeRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type CtlDbNukeRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type CtlDbPutRpcParam = {|key: DbKey, value: DbValue, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type CtlDbPutRpcParam = $ReadOnly<{key: DbKey, value: DbValue, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type CtlLogRotateRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type CtlLogRotateRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type CtlReloadRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type CtlReloadRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type CtlStopRpcParam = {|exitCode: ExitCode, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type CtlStopRpcParam = $ReadOnly<{exitCode: ExitCode, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type DbKey = {|dbType: DbType, objType: Int, key: String|}
+export type DbKey = $ReadOnly<{dbType: DbType, objType: Int, key: String}>
 
 export type DbType =
   | 0 // MAIN_0
@@ -2061,35 +2061,35 @@ export type DbType =
 
 export type DbValue = Bytes
 
-export type DebuggingFirstStepRpcParam = {|val: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type DebuggingFirstStepRpcParam = $ReadOnly<{val: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type DebuggingIncrementRpcParam = {|val: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type DebuggingIncrementRpcParam = $ReadOnly<{val: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type DebuggingSecondStepRpcParam = {|val: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type DebuggingSecondStepRpcParam = $ReadOnly<{val: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type DelegateUiCtlRegisterGregorFirehoseRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type DelegateUiCtlRegisterGregorFirehoseRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type DelegateUiCtlRegisterIdentifyUIRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type DelegateUiCtlRegisterIdentifyUIRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type DelegateUiCtlRegisterRekeyUIRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type DelegateUiCtlRegisterRekeyUIRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type DelegateUiCtlRegisterSecretUIRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type DelegateUiCtlRegisterSecretUIRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type DelegateUiCtlRegisterUpdateUIRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type DelegateUiCtlRegisterUpdateUIRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type Device = {|type: String, name: String, deviceID: DeviceID, cTime: Time, mTime: Time, lastUsedTime: Time, encryptKey: KID, verifyKey: KID, status: Int|}
+export type Device = $ReadOnly<{type: String, name: String, deviceID: DeviceID, cTime: Time, mTime: Time, lastUsedTime: Time, encryptKey: KID, verifyKey: KID, status: Int}>
 
-export type DeviceCheckDeviceNameForUserRpcParam = {|username: String, devicename: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type DeviceCheckDeviceNameForUserRpcParam = $ReadOnly<{username: String, devicename: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type DeviceCheckDeviceNameFormatRpcParam = {|name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type DeviceCheckDeviceNameFormatRpcParam = $ReadOnly<{name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type DeviceDetail = {|device: Device, eldest: Boolean, provisioner?: ?Device, provisionedAt?: ?Time, revokedAt?: ?Time, revokedBy: KID, revokedByDevice?: ?Device, currentDevice: Boolean|}
+export type DeviceDetail = $ReadOnly<{device: Device, eldest: Boolean, provisioner?: ?Device, provisionedAt?: ?Time, revokedAt?: ?Time, revokedBy: KID, revokedByDevice?: ?Device, currentDevice: Boolean}>
 
-export type DeviceDeviceAddRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type DeviceDeviceAddRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type DeviceDeviceHistoryListRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type DeviceDeviceHistoryListRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type DeviceDeviceListRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type DeviceDeviceListRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type DeviceID = String
 
@@ -2097,7 +2097,7 @@ export type DeviceType =
   | 0 // DESKTOP_0
   | 1 // MOBILE_1
 
-export type Dirent = {|time: Time, size: Int, name: String, direntType: DirentType|}
+export type Dirent = $ReadOnly<{time: Time, size: Int, name: String, direntType: DirentType}>
 
 export type DirentType =
   | 0 // FILE_0
@@ -2105,13 +2105,13 @@ export type DirentType =
   | 2 // SYM_2
   | 3 // EXEC_3
 
-export type DismissReason = {|type: DismissReasonType, reason: String, resource: String|}
+export type DismissReason = $ReadOnly<{type: DismissReasonType, reason: String, resource: String}>
 
 export type DismissReasonType =
   | 0 // NONE_0
   | 1 // HANDLED_ELSEWHERE_1
 
-export type DowngradeReferenceRes = {|completed?: ?Array<BlockReferenceCount>, failed: BlockReference|}
+export type DowngradeReferenceRes = $ReadOnly<{completed?: ?Array<BlockReferenceCount>, failed: BlockReference}>
 
 export type DurationSec = Double
 
@@ -2119,13 +2119,13 @@ export type ED25519PublicKey = any
 
 export type ED25519Signature = any
 
-export type ED25519SignatureInfo = {|sig: ED25519Signature, publicKey: ED25519PublicKey|}
+export type ED25519SignatureInfo = $ReadOnly<{sig: ED25519Signature, publicKey: ED25519PublicKey}>
 
-export type Email = {|email: String, isVerified: Boolean|}
+export type Email = $ReadOnly<{email: String, isVerified: Boolean}>
 
 export type EncryptedBytes32 = any
 
-export type EncryptedGitMetadata = {|v: Int, e: Bytes, n: BoxNonce, gen: PerTeamKeyGeneration|}
+export type EncryptedGitMetadata = $ReadOnly<{v: Int, e: Bytes, n: BoxNonce, gen: PerTeamKeyGeneration}>
 
 export type ErrorNum = Int
 
@@ -2134,9 +2134,9 @@ export type ExitCode =
   | 2 // NOTOK_2
   | 4 // RESTART_4
 
-export type ExtendedStatus = {|standalone: Boolean, passphraseStreamCached: Boolean, tsecCached: Boolean, deviceSigKeyCached: Boolean, deviceEncKeyCached: Boolean, paperSigKeyCached: Boolean, paperEncKeyCached: Boolean, storedSecret: Boolean, secretPromptSkip: Boolean, device?: ?Device, deviceErr?: ?LoadDeviceErr, logDir: String, session?: ?SessionStatus, defaultUsername: String, provisionedUsernames?: ?Array<String>, Clients?: ?Array<ClientDetails>, platformInfo: PlatformInfo, defaultDeviceID: DeviceID|}
+export type ExtendedStatus = $ReadOnly<{standalone: Boolean, passphraseStreamCached: Boolean, tsecCached: Boolean, deviceSigKeyCached: Boolean, deviceEncKeyCached: Boolean, paperSigKeyCached: Boolean, paperEncKeyCached: Boolean, storedSecret: Boolean, secretPromptSkip: Boolean, device?: ?Device, deviceErr?: ?LoadDeviceErr, logDir: String, session?: ?SessionStatus, defaultUsername: String, provisionedUsernames?: ?Array<String>, Clients?: ?Array<ClientDetails>, platformInfo: PlatformInfo, defaultDeviceID: DeviceID}>
 
-export type FSEditListRequest = {|folder: Folder, requestID: Int|}
+export type FSEditListRequest = $ReadOnly<{folder: Folder, requestID: Int}>
 
 export type FSErrorType =
   | 0 // ACCESS_DENIED_0
@@ -2155,7 +2155,7 @@ export type FSErrorType =
   | 13 // DISK_LIMIT_REACHED_13
   | 14 // DISK_CACHE_ERROR_LOG_SEND_14
 
-export type FSNotification = {|filename: String, status: String, statusCode: FSStatusCode, notificationType: FSNotificationType, errorType: FSErrorType, params: {[key: string]: String}, writerUid: UID, localTime: Time, folderType: FolderType|}
+export type FSNotification = $ReadOnly<{filename: String, status: String, statusCode: FSStatusCode, notificationType: FSNotificationType, errorType: FSErrorType, params: {[key: string]: String}, writerUid: UID, localTime: Time, folderType: FolderType}>
 
 export type FSNotificationType =
   | 0 // ENCRYPTING_0
@@ -2171,41 +2171,41 @@ export type FSNotificationType =
   | 10 // FILE_RENAMED_10
   | 11 // INITIALIZED_11
 
-export type FSPathSyncStatus = {|folderType: FolderType, path: String, syncingBytes: Int64, syncingOps: Int64, syncedBytes: Int64|}
+export type FSPathSyncStatus = $ReadOnly<{folderType: FolderType, path: String, syncingBytes: Int64, syncingOps: Int64, syncedBytes: Int64}>
 
 export type FSStatusCode =
   | 0 // START_0
   | 1 // FINISH_1
   | 2 // ERROR_2
 
-export type FSSyncStatus = {|totalSyncingBytes: Int64, totalSyncingOps: Int64, pathStatuses?: ?Array<FSPathSyncStatus>|}
+export type FSSyncStatus = $ReadOnly<{totalSyncingBytes: Int64, totalSyncingOps: Int64, pathStatuses?: ?Array<FSPathSyncStatus>}>
 
-export type FSSyncStatusRequest = {|requestID: Int|}
+export type FSSyncStatusRequest = $ReadOnly<{requestID: Int}>
 
-export type FavoriteFavoriteAddRpcParam = {|folder: Folder, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type FavoriteFavoriteAddRpcParam = $ReadOnly<{folder: Folder, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type FavoriteFavoriteIgnoreRpcParam = {|folder: Folder, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type FavoriteFavoriteIgnoreRpcParam = $ReadOnly<{folder: Folder, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type FavoriteGetFavoritesRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type FavoriteGetFavoritesRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type FavoritesResult = {|favoriteFolders?: ?Array<Folder>, ignoredFolders?: ?Array<Folder>, newFolders?: ?Array<Folder>|}
+export type FavoritesResult = $ReadOnly<{favoriteFolders?: ?Array<Folder>, ignoredFolders?: ?Array<Folder>, newFolders?: ?Array<Folder>}>
 
-export type Feature = {|allow: Boolean, defaultValue: Boolean, readonly: Boolean, label: String|}
+export type Feature = $ReadOnly<{allow: Boolean, defaultValue: Boolean, readonly: Boolean, label: String}>
 
-export type File = {|path: String|}
+export type File = $ReadOnly<{path: String}>
 
-export type FileContent = {|data: Bytes, progress: Progress|}
+export type FileContent = $ReadOnly<{data: Bytes, progress: Progress}>
 
-export type FileDescriptor = {|name: String, type: FileType|}
+export type FileDescriptor = $ReadOnly<{name: String, type: FileType}>
 
 export type FileType =
   | 0 // UNKNOWN_0
   | 1 // DIRECTORY_1
   | 2 // FILE_2
 
-export type FirstStepResult = {|valPlusTwo: Int|}
+export type FirstStepResult = $ReadOnly<{valPlusTwo: Int}>
 
-export type Folder = {|name: String, private: Boolean, notificationsOn: Boolean, created: Boolean, folderType: FolderType|}
+export type Folder = $ReadOnly<{name: String, private: Boolean, notificationsOn: Boolean, created: Boolean, folderType: FolderType}>
 
 export type FolderType =
   | 0 // UNKNOWN_0
@@ -2220,72 +2220,72 @@ export type ForkType =
   | 3 // LAUNCHD_3
   | 4 // SYSTEMD_4
 
-export type FsListRpcParam = {|path: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type FsListRpcParam = $ReadOnly<{path: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type FullName = String
 
-export type FullNamePackage = {|version: FullNamePackageVersion, fullName: FullName, eldestSeqno: Seqno, cachedAt: Time|}
+export type FullNamePackage = $ReadOnly<{version: FullNamePackageVersion, fullName: FullName, eldestSeqno: Seqno, cachedAt: Time}>
 
 export type FullNamePackageVersion =
   | 0 // V0_0
   | 1 // V1_1
 
-export type FuseMountInfo = {|path: String, fstype: String, output: String|}
+export type FuseMountInfo = $ReadOnly<{path: String, fstype: String, output: String}>
 
-export type FuseStatus = {|version: String, bundleVersion: String, kextID: String, path: String, kextStarted: Boolean, installStatus: InstallStatus, installAction: InstallAction, mountInfos?: ?Array<FuseMountInfo>, status: Status|}
+export type FuseStatus = $ReadOnly<{version: String, bundleVersion: String, kextID: String, path: String, kextStarted: Boolean, installStatus: InstallStatus, installAction: InstallAction, mountInfos?: ?Array<FuseMountInfo>, status: Status}>
 
-export type GPGKey = {|algorithm: String, keyID: String, creation: String, expiration: String, identities?: ?Array<PGPIdentity>|}
+export type GPGKey = $ReadOnly<{algorithm: String, keyID: String, creation: String, expiration: String, identities?: ?Array<PGPIdentity>}>
 
 export type GPGMethod =
   | 0 // GPG_NONE_0
   | 1 // GPG_IMPORT_1
   | 2 // GPG_SIGN_2
 
-export type GUIEntryArg = {|windowTitle: String, prompt: String, username: String, submitLabel: String, cancelLabel: String, retryLabel: String, type: PassphraseType, features: GUIEntryFeatures|}
+export type GUIEntryArg = $ReadOnly<{windowTitle: String, prompt: String, username: String, submitLabel: String, cancelLabel: String, retryLabel: String, type: PassphraseType, features: GUIEntryFeatures}>
 
-export type GUIEntryFeatures = {|showTyping: Feature|}
+export type GUIEntryFeatures = $ReadOnly<{showTyping: Feature}>
 
-export type GcOptions = {|maxLooseRefs: Int, pruneMinLooseObjects: Int, pruneExpireTime: Time|}
+export type GcOptions = $ReadOnly<{maxLooseRefs: Int, pruneMinLooseObjects: Int, pruneExpireTime: Time}>
 
-export type GetBlockRes = {|blockKey: String, buf: Bytes|}
+export type GetBlockRes = $ReadOnly<{blockKey: String, buf: Bytes}>
 
-export type GetCurrentStatusRes = {|configured: Boolean, registered: Boolean, loggedIn: Boolean, sessionIsValid: Boolean, user?: ?User|}
+export type GetCurrentStatusRes = $ReadOnly<{configured: Boolean, registered: Boolean, loggedIn: Boolean, sessionIsValid: Boolean, user?: ?User}>
 
-export type GetPassphraseRes = {|passphrase: String, storeSecret: Boolean|}
+export type GetPassphraseRes = $ReadOnly<{passphrase: String, storeSecret: Boolean}>
 
-export type GetTLFCryptKeysRes = {|nameIDBreaks: CanonicalTLFNameAndIDWithBreaks, CryptKeys?: ?Array<CryptKey>|}
+export type GetTLFCryptKeysRes = $ReadOnly<{nameIDBreaks: CanonicalTLFNameAndIDWithBreaks, CryptKeys?: ?Array<CryptKey>}>
 
-export type GitCreatePersonalRepoRpcParam = {|repoName: GitRepoName, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type GitCreatePersonalRepoRpcParam = $ReadOnly<{repoName: GitRepoName, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type GitCreateTeamRepoRpcParam = {|repoName: GitRepoName, teamName: TeamName, notifyTeam: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type GitCreateTeamRepoRpcParam = $ReadOnly<{repoName: GitRepoName, teamName: TeamName, notifyTeam: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type GitDeleteGitMetadataRpcParam = {|folder: Folder, repoName: GitRepoName, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type GitDeleteGitMetadataRpcParam = $ReadOnly<{folder: Folder, repoName: GitRepoName, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type GitDeletePersonalRepoRpcParam = {|repoName: GitRepoName, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type GitDeletePersonalRepoRpcParam = $ReadOnly<{repoName: GitRepoName, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type GitDeleteTeamRepoRpcParam = {|repoName: GitRepoName, teamName: TeamName, notifyTeam: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type GitDeleteTeamRepoRpcParam = $ReadOnly<{repoName: GitRepoName, teamName: TeamName, notifyTeam: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type GitGcPersonalRepoRpcParam = {|repoName: GitRepoName, force: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type GitGcPersonalRepoRpcParam = $ReadOnly<{repoName: GitRepoName, force: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type GitGcTeamRepoRpcParam = {|repoName: GitRepoName, teamName: TeamName, force: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type GitGcTeamRepoRpcParam = $ReadOnly<{repoName: GitRepoName, teamName: TeamName, force: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type GitGetAllGitMetadataRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type GitGetAllGitMetadataRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type GitGetGitMetadataRpcParam = {|folder: Folder, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type GitGetGitMetadataRpcParam = $ReadOnly<{folder: Folder, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type GitGetTeamRepoSettingsRpcParam = {|folder: Folder, repoID: RepoID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type GitGetTeamRepoSettingsRpcParam = $ReadOnly<{folder: Folder, repoID: RepoID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type GitLocalMetadata = {|repoName: GitRepoName, branchName: String, commitMsgs?: ?Array<String>|}
+export type GitLocalMetadata = $ReadOnly<{repoName: GitRepoName, branchName: String, commitMsgs?: ?Array<String>}>
 
-export type GitLocalMetadataV1 = {|repoName: GitRepoName|}
+export type GitLocalMetadataV1 = $ReadOnly<{repoName: GitRepoName}>
 
 export type GitLocalMetadataVersion = 1 // V1_1
 
 export type GitLocalMetadataVersioned = {version: 1, v1: ?GitLocalMetadataV1}
 
-export type GitPutGitMetadataRpcParam = {|folder: Folder, repoID: RepoID, metadata: GitLocalMetadata, notifyTeam: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type GitPutGitMetadataRpcParam = $ReadOnly<{folder: Folder, repoID: RepoID, metadata: GitLocalMetadata, notifyTeam: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type GitRepoInfo = {|folder: Folder, repoID: RepoID, localMetadata: GitLocalMetadata, serverMetadata: GitServerMetadata, repoUrl: String, globalUniqueID: String, canDelete: Boolean|}
+export type GitRepoInfo = $ReadOnly<{folder: Folder, repoID: RepoID, localMetadata: GitLocalMetadata, serverMetadata: GitServerMetadata, repoUrl: String, globalUniqueID: String, canDelete: Boolean}>
 
 export type GitRepoName = String
 
@@ -2295,55 +2295,55 @@ export type GitRepoResultState =
   | 0 // ERR_0
   | 1 // OK_1
 
-export type GitServerMetadata = {|ctime: Time, mtime: Time, lastModifyingUsername: String, lastModifyingDeviceID: DeviceID, lastModifyingDeviceName: String|}
+export type GitServerMetadata = $ReadOnly<{ctime: Time, mtime: Time, lastModifyingUsername: String, lastModifyingDeviceID: DeviceID, lastModifyingDeviceName: String}>
 
-export type GitSetTeamRepoSettingsRpcParam = {|folder: Folder, repoID: RepoID, channelName?: ?String, chatDisabled: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type GitSetTeamRepoSettingsRpcParam = $ReadOnly<{folder: Folder, repoID: RepoID, channelName?: ?String, chatDisabled: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type GitTeamRepoSettings = {|channelName?: ?String, chatDisabled: Boolean|}
+export type GitTeamRepoSettings = $ReadOnly<{channelName?: ?String, chatDisabled: Boolean}>
 
-export type GpgUiConfirmDuplicateKeyChosenRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type GpgUiConfirmDuplicateKeyChosenRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type GpgUiGetTTYRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type GpgUiGetTTYRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type GpgUiSelectKeyAndPushOptionRpcParam = {|keys?: ?Array<GPGKey>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type GpgUiSelectKeyAndPushOptionRpcParam = $ReadOnly<{keys?: ?Array<GPGKey>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type GpgUiSelectKeyRpcParam = {|keys?: ?Array<GPGKey>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type GpgUiSelectKeyRpcParam = $ReadOnly<{keys?: ?Array<GPGKey>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type GpgUiSignRpcParam = {|msg: Bytes, fingerprint: Bytes, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type GpgUiSignRpcParam = $ReadOnly<{msg: Bytes, fingerprint: Bytes, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type GpgUiWantToAddGPGKeyRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type GpgUiWantToAddGPGKeyRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type GregorDismissCategoryRpcParam = {|category: Gregor1.Category, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type GregorDismissCategoryRpcParam = $ReadOnly<{category: Gregor1.Category, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type GregorDismissItemRpcParam = {|id: Gregor1.MsgID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type GregorDismissItemRpcParam = $ReadOnly<{id: Gregor1.MsgID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type GregorGetStateRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type GregorGetStateRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type GregorInjectItemRpcParam = {|cat: String, body: String, dtime: Gregor1.TimeOrOffset, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type GregorInjectItemRpcParam = $ReadOnly<{cat: String, body: String, dtime: Gregor1.TimeOrOffset, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type GregorUIPushOutOfBandMessagesRpcParam = {|oobm?: ?Array<Gregor1.OutOfBandMessage>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type GregorUIPushOutOfBandMessagesRpcParam = $ReadOnly<{oobm?: ?Array<Gregor1.OutOfBandMessage>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type GregorUIPushStateRpcParam = {|state: Gregor1.State, reason: PushReason, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type GregorUIPushStateRpcParam = $ReadOnly<{state: Gregor1.State, reason: PushReason, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type HasServerKeysRes = {|hasServerKeys: Boolean|}
+export type HasServerKeysRes = $ReadOnly<{hasServerKeys: Boolean}>
 
 export type HashMeta = Bytes
 
-export type Hello2Res = {|encryptionKey: KID, sigPayload: HelloRes|}
+export type Hello2Res = $ReadOnly<{encryptionKey: KID, sigPayload: HelloRes}>
 
 export type HelloRes = String
 
-export type HomeHomeActionTakenRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type HomeHomeActionTakenRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type HomeHomeGetScreenRpcParam = {|markViewed: Boolean, numFollowSuggestionsWanted: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type HomeHomeGetScreenRpcParam = $ReadOnly<{markViewed: Boolean, numFollowSuggestionsWanted: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type HomeHomeMarkViewedRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type HomeHomeMarkViewedRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type HomeHomeSkipTodoTypeRpcParam = {|t: HomeScreenTodoType, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type HomeHomeSkipTodoTypeRpcParam = $ReadOnly<{t: HomeScreenTodoType, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type HomeScreen = {|lastViewed: Time, version: Int, items?: ?Array<HomeScreenItem>, followSuggestions?: ?Array<HomeUserSummary>|}
+export type HomeScreen = $ReadOnly<{lastViewed: Time, version: Int, items?: ?Array<HomeScreenItem>, followSuggestions?: ?Array<HomeUserSummary>}>
 
-export type HomeScreenItem = {|badged: Boolean, data: HomeScreenItemData|}
+export type HomeScreenItem = $ReadOnly<{badged: Boolean, data: HomeScreenItemData}>
 
 export type HomeScreenItemData = {t: 1, todo: ?HomeScreenTodo} | {t: 2, people: ?HomeScreenPeopleNotification}
 
@@ -2355,9 +2355,9 @@ export type HomeScreenItemType =
 
 export type HomeScreenPeopleNotification = {t: 0, followed: ?HomeScreenPeopleNotificationFollowed} | {t: 1, followedMulti: ?HomeScreenPeopleNotificationFollowedMulti}
 
-export type HomeScreenPeopleNotificationFollowed = {|followTime: Time, user: UserSummary|}
+export type HomeScreenPeopleNotificationFollowed = $ReadOnly<{followTime: Time, user: UserSummary}>
 
-export type HomeScreenPeopleNotificationFollowedMulti = {|followers?: ?Array<HomeScreenPeopleNotificationFollowed>, numOthers: Int|}
+export type HomeScreenPeopleNotificationFollowedMulti = $ReadOnly<{followers?: ?Array<HomeScreenPeopleNotificationFollowed>, numOthers: Int}>
 
 export type HomeScreenPeopleNotificationType =
   | 0 // FOLLOWED_0
@@ -2378,25 +2378,25 @@ export type HomeScreenTodoType =
   | 9 // GIT_REPO_9
   | 10 // TEAM_SHOWCASE_10
 
-export type HomeUiHomeUIRefreshRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type HomeUiHomeUIRefreshRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type HomeUserSummary = {|uid: UID, username: String, bio: String, fullName: String, pics?: ?Pics|}
+export type HomeUserSummary = $ReadOnly<{uid: UID, username: String, bio: String, fullName: String, pics?: ?Pics}>
 
-export type Identify2Res = {|upk: UserPlusKeys, identifiedAt: Time, trackBreaks?: ?IdentifyTrackBreaks|}
+export type Identify2Res = $ReadOnly<{upk: UserPlusKeys, identifiedAt: Time, trackBreaks?: ?IdentifyTrackBreaks}>
 
-export type IdentifyIdentify2RpcParam = {|uid: UID, userAssertion: String, reason: IdentifyReason, useDelegateUI?: Boolean, alwaysBlock?: Boolean, noErrorOnTrackFailure?: Boolean, forceRemoteCheck?: Boolean, needProofSet?: Boolean, allowEmptySelfID?: Boolean, noSkipSelf?: Boolean, canSuppressUI?: Boolean, identifyBehavior?: TLFIdentifyBehavior, forceDisplay?: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type IdentifyIdentify2RpcParam = $ReadOnly<{uid: UID, userAssertion: String, reason: IdentifyReason, useDelegateUI?: Boolean, alwaysBlock?: Boolean, noErrorOnTrackFailure?: Boolean, forceRemoteCheck?: Boolean, needProofSet?: Boolean, allowEmptySelfID?: Boolean, noSkipSelf?: Boolean, canSuppressUI?: Boolean, identifyBehavior?: TLFIdentifyBehavior, forceDisplay?: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type IdentifyIdentifyLiteRpcParam = {|id: UserOrTeamID, assertion: String, reason: IdentifyReason, useDelegateUI?: Boolean, alwaysBlock?: Boolean, noErrorOnTrackFailure?: Boolean, forceRemoteCheck?: Boolean, needProofSet?: Boolean, allowEmptySelfID?: Boolean, noSkipSelf?: Boolean, canSuppressUI?: Boolean, identifyBehavior?: TLFIdentifyBehavior, forceDisplay?: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type IdentifyIdentifyLiteRpcParam = $ReadOnly<{id: UserOrTeamID, assertion: String, reason: IdentifyReason, useDelegateUI?: Boolean, alwaysBlock?: Boolean, noErrorOnTrackFailure?: Boolean, forceRemoteCheck?: Boolean, needProofSet?: Boolean, allowEmptySelfID?: Boolean, noSkipSelf?: Boolean, canSuppressUI?: Boolean, identifyBehavior?: TLFIdentifyBehavior, forceDisplay?: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type IdentifyKey = {|pgpFingerprint: Bytes, KID: KID, trackDiff?: ?TrackDiff, breaksTracking: Boolean|}
+export type IdentifyKey = $ReadOnly<{pgpFingerprint: Bytes, KID: KID, trackDiff?: ?TrackDiff, breaksTracking: Boolean}>
 
-export type IdentifyLiteRes = {|ul: UserOrTeamLite, trackBreaks?: ?IdentifyTrackBreaks|}
+export type IdentifyLiteRes = $ReadOnly<{ul: UserOrTeamLite, trackBreaks?: ?IdentifyTrackBreaks}>
 
-export type IdentifyOutcome = {|username: String, status?: ?Status, warnings?: ?Array<String>, trackUsed?: ?TrackSummary, trackStatus: TrackStatus, numTrackFailures: Int, numTrackChanges: Int, numProofFailures: Int, numRevoked: Int, numProofSuccesses: Int, revoked?: ?Array<TrackDiff>, trackOptions: TrackOptions, forPGPPull: Boolean, reason: IdentifyReason|}
+export type IdentifyOutcome = $ReadOnly<{username: String, status?: ?Status, warnings?: ?Array<String>, trackUsed?: ?TrackSummary, trackStatus: TrackStatus, numTrackFailures: Int, numTrackChanges: Int, numProofFailures: Int, numRevoked: Int, numProofSuccesses: Int, revoked?: ?Array<TrackDiff>, trackOptions: TrackOptions, forPGPPull: Boolean, reason: IdentifyReason}>
 
-export type IdentifyProofBreak = {|remoteProof: RemoteProof, lcr: LinkCheckResult|}
+export type IdentifyProofBreak = $ReadOnly<{remoteProof: RemoteProof, lcr: LinkCheckResult}>
 
-export type IdentifyReason = {|type: IdentifyReasonType, reason: String, resource: String|}
+export type IdentifyReason = $ReadOnly<{type: IdentifyReasonType, reason: String, resource: String}>
 
 export type IdentifyReasonType =
   | 0 // NONE_0
@@ -2408,59 +2408,59 @@ export type IdentifyReasonType =
   | 6 // RESOURCE_6
   | 7 // BACKGROUND_7
 
-export type IdentifyResolve3RpcParam = {|assertion: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type IdentifyResolve3RpcParam = $ReadOnly<{assertion: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type IdentifyResolveIdentifyImplicitTeamRpcParam = {|assertions: String, suffix: String, isPublic: Boolean, doIdentifies: Boolean, create: Boolean, reason: IdentifyReason, identifyBehavior: TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type IdentifyResolveIdentifyImplicitTeamRpcParam = $ReadOnly<{assertions: String, suffix: String, isPublic: Boolean, doIdentifies: Boolean, create: Boolean, reason: IdentifyReason, identifyBehavior: TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type IdentifyResolveImplicitTeamRpcParam = {|id: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type IdentifyResolveImplicitTeamRpcParam = $ReadOnly<{id: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type IdentifyRow = {|rowId: Int, proof: RemoteProof, trackDiff?: ?TrackDiff|}
+export type IdentifyRow = $ReadOnly<{rowId: Int, proof: RemoteProof, trackDiff?: ?TrackDiff}>
 
-export type IdentifyTrackBreaks = {|keys?: ?Array<IdentifyKey>, proofs?: ?Array<IdentifyProofBreak>|}
+export type IdentifyTrackBreaks = $ReadOnly<{keys?: ?Array<IdentifyKey>, proofs?: ?Array<IdentifyProofBreak>}>
 
-export type IdentifyUiCancelRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type IdentifyUiCancelRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type IdentifyUiConfirmRpcParam = {|outcome: IdentifyOutcome, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type IdentifyUiConfirmRpcParam = $ReadOnly<{outcome: IdentifyOutcome, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type IdentifyUiDelegateIdentifyUIRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type IdentifyUiDelegateIdentifyUIRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type IdentifyUiDismissRpcParam = {|username: String, reason: DismissReason, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type IdentifyUiDismissRpcParam = $ReadOnly<{username: String, reason: DismissReason, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type IdentifyUiDisplayCryptocurrencyRpcParam = {|c: Cryptocurrency, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type IdentifyUiDisplayCryptocurrencyRpcParam = $ReadOnly<{c: Cryptocurrency, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type IdentifyUiDisplayKeyRpcParam = {|key: IdentifyKey, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type IdentifyUiDisplayKeyRpcParam = $ReadOnly<{key: IdentifyKey, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type IdentifyUiDisplayTLFCreateWithInviteRpcParam = {|folderName: String, isPrivate: Boolean, assertion: String, socialAssertion: SocialAssertion, inviteLink: String, throttled: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type IdentifyUiDisplayTLFCreateWithInviteRpcParam = $ReadOnly<{folderName: String, isPrivate: Boolean, assertion: String, socialAssertion: SocialAssertion, inviteLink: String, throttled: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type IdentifyUiDisplayTrackStatementRpcParam = {|stmt: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type IdentifyUiDisplayTrackStatementRpcParam = $ReadOnly<{stmt: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type IdentifyUiDisplayUserCardRpcParam = {|card: UserCard, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type IdentifyUiDisplayUserCardRpcParam = $ReadOnly<{card: UserCard, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type IdentifyUiFinishRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type IdentifyUiFinishRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type IdentifyUiFinishSocialProofCheckRpcParam = {|rp: RemoteProof, lcr: LinkCheckResult, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type IdentifyUiFinishSocialProofCheckRpcParam = $ReadOnly<{rp: RemoteProof, lcr: LinkCheckResult, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type IdentifyUiFinishWebProofCheckRpcParam = {|rp: RemoteProof, lcr: LinkCheckResult, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type IdentifyUiFinishWebProofCheckRpcParam = $ReadOnly<{rp: RemoteProof, lcr: LinkCheckResult, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type IdentifyUiLaunchNetworkChecksRpcParam = {|identity: Identity, user: User, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type IdentifyUiLaunchNetworkChecksRpcParam = $ReadOnly<{identity: Identity, user: User, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type IdentifyUiReportLastTrackRpcParam = {|track?: ?TrackSummary, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type IdentifyUiReportLastTrackRpcParam = $ReadOnly<{track?: ?TrackSummary, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type IdentifyUiReportTrackTokenRpcParam = {|trackToken: TrackToken, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type IdentifyUiReportTrackTokenRpcParam = $ReadOnly<{trackToken: TrackToken, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type IdentifyUiStartRpcParam = {|username: String, reason: IdentifyReason, forceDisplay?: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type IdentifyUiStartRpcParam = $ReadOnly<{username: String, reason: IdentifyReason, forceDisplay?: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type Identity = {|status?: ?Status, whenLastTracked: Time, proofs?: ?Array<IdentifyRow>, cryptocurrency?: ?Array<Cryptocurrency>, revoked?: ?Array<TrackDiff>, revokedDetails?: ?Array<RevokedProof>, breaksTracking: Boolean|}
+export type Identity = $ReadOnly<{status?: ?Status, whenLastTracked: Time, proofs?: ?Array<IdentifyRow>, cryptocurrency?: ?Array<Cryptocurrency>, revoked?: ?Array<TrackDiff>, revokedDetails?: ?Array<RevokedProof>, breaksTracking: Boolean}>
 
-export type ImplicitRole = {|role: TeamRole, ancestor: TeamID|}
+export type ImplicitRole = $ReadOnly<{role: TeamRole, ancestor: TeamID}>
 
-export type ImplicitTeamConflictInfo = {|generation: ConflictGeneration, time: Time|}
+export type ImplicitTeamConflictInfo = $ReadOnly<{generation: ConflictGeneration, time: Time}>
 
-export type ImplicitTeamDisplayName = {|isPublic: Boolean, writers: ImplicitTeamUserSet, readers: ImplicitTeamUserSet, conflictInfo?: ?ImplicitTeamConflictInfo|}
+export type ImplicitTeamDisplayName = $ReadOnly<{isPublic: Boolean, writers: ImplicitTeamUserSet, readers: ImplicitTeamUserSet, conflictInfo?: ?ImplicitTeamConflictInfo}>
 
-export type ImplicitTeamMigrationStartMigrationRpcParam = {|folder: Folder, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ImplicitTeamMigrationStartMigrationRpcParam = $ReadOnly<{folder: Folder, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ImplicitTeamUserSet = {|keybaseUsers?: ?Array<String>, unresolvedUsers?: ?Array<SocialAssertion>|}
+export type ImplicitTeamUserSet = $ReadOnly<{keybaseUsers?: ?Array<String>, unresolvedUsers?: ?Array<SocialAssertion>}>
 
 export type InstallAction =
   | 0 // UNKNOWN_0
@@ -2469,15 +2469,15 @@ export type InstallAction =
   | 3 // REINSTALL_3
   | 4 // INSTALL_4
 
-export type InstallFuseStatusRpcParam = {|bundleVersion: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type InstallFuseStatusRpcParam = $ReadOnly<{bundleVersion: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type InstallInstallCommandLinePrivilegedRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type InstallInstallCommandLinePrivilegedRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type InstallInstallFuseRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type InstallInstallFuseRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type InstallInstallKBFSRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type InstallInstallKBFSRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type InstallResult = {|componentResults?: ?Array<ComponentResult>, status: Status, fatal: Boolean|}
+export type InstallResult = $ReadOnly<{componentResults?: ?Array<ComponentResult>, status: Status, fatal: Boolean}>
 
 export type InstallStatus =
   | 0 // UNKNOWN_0
@@ -2485,78 +2485,78 @@ export type InstallStatus =
   | 2 // NOT_INSTALLED_2
   | 4 // INSTALLED_4
 
-export type InstallUninstallKBFSRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type InstallUninstallKBFSRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type InterestingPerson = {|uid: UID, username: String|}
+export type InterestingPerson = $ReadOnly<{uid: UID, username: String}>
 
-export type KBFSGitCreateRepoRpcParam = {|folder: Folder, name: GitRepoName, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type KBFSGitCreateRepoRpcParam = $ReadOnly<{folder: Folder, name: GitRepoName, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type KBFSGitDeleteRepoRpcParam = {|folder: Folder, name: GitRepoName, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type KBFSGitDeleteRepoRpcParam = $ReadOnly<{folder: Folder, name: GitRepoName, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type KBFSGitGcRpcParam = {|folder: Folder, name: GitRepoName, options: GcOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type KBFSGitGcRpcParam = $ReadOnly<{folder: Folder, name: GitRepoName, options: GcOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type KBFSTeamSettings = {|tlfID: TLFID|}
+export type KBFSTeamSettings = $ReadOnly<{tlfID: TLFID}>
 
 export type KID = String
 
-export type KbfsCreateTLFRpcParam = {|teamID: TeamID, tlfID: TLFID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type KbfsCreateTLFRpcParam = $ReadOnly<{teamID: TeamID, tlfID: TLFID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type KbfsFSEditListRpcParam = {|edits?: ?Array<FSNotification>, requestID: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type KbfsFSEditListRpcParam = $ReadOnly<{edits?: ?Array<FSNotification>, requestID: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type KbfsFSEventRpcParam = {|event: FSNotification, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type KbfsFSEventRpcParam = $ReadOnly<{event: FSNotification, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type KbfsFSSyncEventRpcParam = {|event: FSPathSyncStatus, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type KbfsFSSyncEventRpcParam = $ReadOnly<{event: FSPathSyncStatus, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type KbfsFSSyncStatusRpcParam = {|status: FSSyncStatus, requestID: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type KbfsFSSyncStatusRpcParam = $ReadOnly<{status: FSSyncStatus, requestID: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type KbfsGetKBFSTeamSettingsRpcParam = {|teamID: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type KbfsGetKBFSTeamSettingsRpcParam = $ReadOnly<{teamID: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type KbfsMountGetAllAvailableMountDirsRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type KbfsMountGetAllAvailableMountDirsRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type KbfsMountGetCurrentMountDirRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type KbfsMountGetCurrentMountDirRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type KbfsMountSetCurrentMountDirRpcParam = {|dir: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type KbfsMountSetCurrentMountDirRpcParam = $ReadOnly<{dir: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type Kex2Provisionee2DidCounterSign2RpcParam = {|sig: Bytes, ppsEncrypted: String, pukBox?: ?PerUserKeyBox, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type Kex2Provisionee2DidCounterSign2RpcParam = $ReadOnly<{sig: Bytes, ppsEncrypted: String, pukBox?: ?PerUserKeyBox, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type Kex2Provisionee2Hello2RpcParam = {|uid: UID, token: SessionToken, csrf: CsrfToken, sigBody: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type Kex2Provisionee2Hello2RpcParam = $ReadOnly<{uid: UID, token: SessionToken, csrf: CsrfToken, sigBody: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type Kex2ProvisioneeDidCounterSignRpcParam = {|sig: Bytes, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type Kex2ProvisioneeDidCounterSignRpcParam = $ReadOnly<{sig: Bytes, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type Kex2ProvisioneeHelloRpcParam = {|uid: UID, token: SessionToken, csrf: CsrfToken, pps: PassphraseStream, sigBody: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type Kex2ProvisioneeHelloRpcParam = $ReadOnly<{uid: UID, token: SessionToken, csrf: CsrfToken, pps: PassphraseStream, sigBody: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type Kex2ProvisionerKexStartRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type Kex2ProvisionerKexStartRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type KeyBundle = {|version: Int, bundle: Bytes|}
+export type KeyBundle = $ReadOnly<{version: Int, bundle: Bytes}>
 
-export type KeyBundleResponse = {|WriterBundle: KeyBundle, ReaderBundle: KeyBundle|}
+export type KeyBundleResponse = $ReadOnly<{WriterBundle: KeyBundle, ReaderBundle: KeyBundle}>
 
-export type KeyHalf = {|user: UID, deviceKID: KID, key: Bytes|}
+export type KeyHalf = $ReadOnly<{user: UID, deviceKID: KID, key: Bytes}>
 
-export type KeyInfo = {|fingerprint: String, key: String, desc: String|}
+export type KeyInfo = $ReadOnly<{fingerprint: String, key: String, desc: String}>
 
 export type KeyType =
   | 0 // NONE_0
   | 1 // NACL_1
   | 2 // PGP_2
 
-export type KeybaseTime = {|unix: Time, chain: Seqno|}
+export type KeybaseTime = $ReadOnly<{unix: Time, chain: Seqno}>
 
 export type LeaseID = String
 
-export type LinkCheckResult = {|proofId: Int, proofResult: ProofResult, snoozedResult: ProofResult, torWarning: Boolean, tmpTrackExpireTime: Time, cached?: ?CheckResult, diff?: ?TrackDiff, remoteDiff?: ?TrackDiff, hint?: ?SigHint, breaksTracking: Boolean|}
+export type LinkCheckResult = $ReadOnly<{proofId: Int, proofResult: ProofResult, snoozedResult: ProofResult, torWarning: Boolean, tmpTrackExpireTime: Time, cached?: ?CheckResult, diff?: ?TrackDiff, remoteDiff?: ?TrackDiff, hint?: ?SigHint, breaksTracking: Boolean}>
 
 export type LinkID = String
 
-export type ListArgs = {|opID: OpID, path: Path|}
+export type ListArgs = $ReadOnly<{opID: OpID, path: Path}>
 
-export type ListResult = {|files?: ?Array<File>|}
+export type ListResult = $ReadOnly<{files?: ?Array<File>}>
 
-export type LoadDeviceErr = {|where: String, desc: String|}
+export type LoadDeviceErr = $ReadOnly<{where: String, desc: String}>
 
-export type LoadTeamArg = {|ID: TeamID, name: String, public: Boolean, needAdmin: Boolean, refreshUIDMapper: Boolean, refreshers: TeamRefreshers, forceFullReload: Boolean, forceRepoll: Boolean, staleOK: Boolean|}
+export type LoadTeamArg = $ReadOnly<{ID: TeamID, name: String, public: Boolean, needAdmin: Boolean, refreshUIDMapper: Boolean, refreshers: TeamRefreshers, forceFullReload: Boolean, forceRepoll: Boolean, staleOK: Boolean}>
 
-export type LockContext = {|requireLockID: LockID, releaseAfterSuccess: Boolean|}
+export type LockContext = $ReadOnly<{requireLockID: LockID, releaseAfterSuccess: Boolean}>
 
 export type LockID = Long
 
@@ -2570,65 +2570,65 @@ export type LogLevel =
   | 6 // CRITICAL_6
   | 7 // FATAL_7
 
-export type LogRegisterLoggerRpcParam = {|name: String, level: LogLevel, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type LogRegisterLoggerRpcParam = $ReadOnly<{name: String, level: LogLevel, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LogUiLogRpcParam = {|level: LogLevel, text: Text, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type LogUiLogRpcParam = $ReadOnly<{level: LogLevel, text: Text, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LoginAccountDeleteRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type LoginAccountDeleteRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LoginClearStoredSecretRpcParam = {|username: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type LoginClearStoredSecretRpcParam = $ReadOnly<{username: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LoginDeprovisionRpcParam = {|username: String, doRevoke: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type LoginDeprovisionRpcParam = $ReadOnly<{username: String, doRevoke: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LoginGetConfiguredAccountsRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type LoginGetConfiguredAccountsRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LoginLoginProvisionedDeviceRpcParam = {|username: String, noPassphrasePrompt: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type LoginLoginProvisionedDeviceRpcParam = $ReadOnly<{username: String, noPassphrasePrompt: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LoginLoginRpcParam = {|deviceType: String, usernameOrEmail: String, clientType: ClientType, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type LoginLoginRpcParam = $ReadOnly<{deviceType: String, usernameOrEmail: String, clientType: ClientType, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LoginLoginWithPaperKeyRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type LoginLoginWithPaperKeyRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LoginLogoutRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type LoginLogoutRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LoginPaperKeyRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type LoginPaperKeyRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LoginPaperKeySubmitRpcParam = {|paperPhrase: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type LoginPaperKeySubmitRpcParam = $ReadOnly<{paperPhrase: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LoginPgpProvisionRpcParam = {|username: String, passphrase: String, deviceName: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type LoginPgpProvisionRpcParam = $ReadOnly<{username: String, passphrase: String, deviceName: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LoginRecoverAccountFromEmailAddressRpcParam = {|email: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type LoginRecoverAccountFromEmailAddressRpcParam = $ReadOnly<{email: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LoginUiDisplayPaperKeyPhraseRpcParam = {|phrase: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type LoginUiDisplayPaperKeyPhraseRpcParam = $ReadOnly<{phrase: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LoginUiDisplayPrimaryPaperKeyRpcParam = {|phrase: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type LoginUiDisplayPrimaryPaperKeyRpcParam = $ReadOnly<{phrase: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LoginUiGetEmailOrUsernameRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type LoginUiGetEmailOrUsernameRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LoginUiPromptRevokePaperKeysRpcParam = {|device: Device, index: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type LoginUiPromptRevokePaperKeysRpcParam = $ReadOnly<{device: Device, index: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LoginUnlockRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type LoginUnlockRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LoginUnlockWithPassphraseRpcParam = {|passphrase: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type LoginUnlockWithPassphraseRpcParam = $ReadOnly<{passphrase: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LogsendPrepareLogsendRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type LogsendPrepareLogsendRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LookupImplicitTeamRes = {|teamID: TeamID, name: TeamName, displayName: ImplicitTeamDisplayName, tlfID: TLFID|}
+export type LookupImplicitTeamRes = $ReadOnly<{teamID: TeamID, name: TeamName, displayName: ImplicitTeamDisplayName, tlfID: TLFID}>
 
-export type MDBlock = {|version: Int, timestamp: Time, block: Bytes|}
+export type MDBlock = $ReadOnly<{version: Int, timestamp: Time, block: Bytes}>
 
 export type MDPriority = Int
 
 export type MaskB64 = Bytes
 
-export type MemberInfo = {|userID: UID, teamID: TeamID, fqName: String, isImplicitTeam: Boolean, role: TeamRole, implicit?: ?ImplicitRole|}
+export type MemberInfo = $ReadOnly<{userID: UID, teamID: TeamID, fqName: String, isImplicitTeam: Boolean, role: TeamRole, implicit?: ?ImplicitRole}>
 
-export type MerkleGetCurrentMerkleRootRpcParam = {|freshnessMsec: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type MerkleGetCurrentMerkleRootRpcParam = $ReadOnly<{freshnessMsec: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type MerkleRoot = {|version: Int, root: Bytes|}
+export type MerkleRoot = $ReadOnly<{version: Int, root: Bytes}>
 
-export type MerkleRootAndTime = {|root: MerkleRootV2, updateTime: Time, fetchTime: Time|}
+export type MerkleRootAndTime = $ReadOnly<{root: MerkleRootV2, updateTime: Time, fetchTime: Time}>
 
-export type MerkleRootV2 = {|seqno: Seqno, hashMeta: HashMeta|}
+export type MerkleRootV2 = $ReadOnly<{seqno: Seqno, hashMeta: HashMeta}>
 
 export type MerkleTreeID =
   | 0 // MASTER_0
@@ -2636,65 +2636,65 @@ export type MerkleTreeID =
   | 2 // KBFS_PRIVATE_2
   | 3 // KBFS_PRIVATETEAM_3
 
-export type MerkleTreeLocation = {|leaf: UserOrTeamID, loc: SigChainLocation|}
+export type MerkleTreeLocation = $ReadOnly<{leaf: UserOrTeamID, loc: SigChainLocation}>
 
-export type MetadataAuthenticateRpcParam = {|signature: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type MetadataAuthenticateRpcParam = $ReadOnly<{signature: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type MetadataDeleteKeyRpcParam = {|uid: UID, deviceKID: KID, keyHalfID: Bytes, logTags: {[key: string]: String}, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type MetadataDeleteKeyRpcParam = $ReadOnly<{uid: UID, deviceKID: KID, keyHalfID: Bytes, logTags: {[key: string]: String}, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type MetadataGetChallengeRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type MetadataGetChallengeRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type MetadataGetFolderHandleRpcParam = {|folderID: String, signature: String, challenge: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type MetadataGetFolderHandleRpcParam = $ReadOnly<{folderID: String, signature: String, challenge: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type MetadataGetFoldersForRekeyRpcParam = {|deviceKID: KID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type MetadataGetFoldersForRekeyRpcParam = $ReadOnly<{deviceKID: KID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type MetadataGetKeyBundlesRpcParam = {|folderID: String, writerBundleID: String, readerBundleID: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type MetadataGetKeyBundlesRpcParam = $ReadOnly<{folderID: String, writerBundleID: String, readerBundleID: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type MetadataGetKeyRpcParam = {|keyHalfID: Bytes, deviceKID: String, logTags: {[key: string]: String}, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type MetadataGetKeyRpcParam = $ReadOnly<{keyHalfID: Bytes, deviceKID: String, logTags: {[key: string]: String}, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type MetadataGetLatestFolderHandleRpcParam = {|folderID: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type MetadataGetLatestFolderHandleRpcParam = $ReadOnly<{folderID: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type MetadataGetMerkleNodeRpcParam = {|hash: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type MetadataGetMerkleNodeRpcParam = $ReadOnly<{hash: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type MetadataGetMerkleRootLatestRpcParam = {|treeID: MerkleTreeID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type MetadataGetMerkleRootLatestRpcParam = $ReadOnly<{treeID: MerkleTreeID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type MetadataGetMerkleRootRpcParam = {|treeID: MerkleTreeID, seqNo: Long, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type MetadataGetMerkleRootRpcParam = $ReadOnly<{treeID: MerkleTreeID, seqNo: Long, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type MetadataGetMerkleRootSinceRpcParam = {|treeID: MerkleTreeID, when: Time, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type MetadataGetMerkleRootSinceRpcParam = $ReadOnly<{treeID: MerkleTreeID, when: Time, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type MetadataGetMetadataRpcParam = {|folderID: String, folderHandle: Bytes, branchID: String, unmerged: Boolean, startRevision: Long, stopRevision: Long, logTags: {[key: string]: String}, lockBeforeGet?: ?LockID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type MetadataGetMetadataRpcParam = $ReadOnly<{folderID: String, folderHandle: Bytes, branchID: String, unmerged: Boolean, startRevision: Long, stopRevision: Long, logTags: {[key: string]: String}, lockBeforeGet?: ?LockID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type MetadataLockRpcParam = {|folderID: String, lockID: LockID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type MetadataLockRpcParam = $ReadOnly<{folderID: String, lockID: LockID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type MetadataPing2RpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type MetadataPing2RpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type MetadataPingRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type MetadataPingRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type MetadataPruneBranchRpcParam = {|folderID: String, branchID: String, logTags: {[key: string]: String}, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type MetadataPruneBranchRpcParam = $ReadOnly<{folderID: String, branchID: String, logTags: {[key: string]: String}, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type MetadataPutKeysRpcParam = {|keyHalves?: ?Array<KeyHalf>, logTags: {[key: string]: String}, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type MetadataPutKeysRpcParam = $ReadOnly<{keyHalves?: ?Array<KeyHalf>, logTags: {[key: string]: String}, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type MetadataPutMetadataRpcParam = {|mdBlock: MDBlock, readerKeyBundle: KeyBundle, writerKeyBundle: KeyBundle, logTags: {[key: string]: String}, lockContext?: ?LockContext, priority: MDPriority, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type MetadataPutMetadataRpcParam = $ReadOnly<{mdBlock: MDBlock, readerKeyBundle: KeyBundle, writerKeyBundle: KeyBundle, logTags: {[key: string]: String}, lockContext?: ?LockContext, priority: MDPriority, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type MetadataRegisterForUpdatesRpcParam = {|folderID: String, currRevision: Long, logTags: {[key: string]: String}, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type MetadataRegisterForUpdatesRpcParam = $ReadOnly<{folderID: String, currRevision: Long, logTags: {[key: string]: String}, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type MetadataReleaseLockRpcParam = {|folderID: String, lockID: LockID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type MetadataReleaseLockRpcParam = $ReadOnly<{folderID: String, lockID: LockID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type MetadataResponse = {|folderID: String, mdBlocks?: ?Array<MDBlock>|}
+export type MetadataResponse = $ReadOnly<{folderID: String, mdBlocks?: ?Array<MDBlock>}>
 
-export type MetadataStartImplicitTeamMigrationRpcParam = {|folderID: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type MetadataStartImplicitTeamMigrationRpcParam = $ReadOnly<{folderID: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type MetadataTruncateLockRpcParam = {|folderID: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type MetadataTruncateLockRpcParam = $ReadOnly<{folderID: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type MetadataTruncateUnlockRpcParam = {|folderID: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type MetadataTruncateUnlockRpcParam = $ReadOnly<{folderID: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type MetadataUpdateFolderNeedsRekeyRpcParam = {|folderID: String, revision: Long, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type MetadataUpdateFolderNeedsRekeyRpcParam = $ReadOnly<{folderID: String, revision: Long, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type MetadataUpdateFoldersNeedRekeyRpcParam = {|requests?: ?Array<RekeyRequest>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type MetadataUpdateFoldersNeedRekeyRpcParam = $ReadOnly<{requests?: ?Array<RekeyRequest>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type MetadataUpdateMetadataUpdateRpcParam = {|folderID: String, revision: Long, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type MetadataUpdateMetadataUpdateRpcParam = $ReadOnly<{folderID: String, revision: Long, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type MoveArgs = {|opID: OpID, src: Path, dest: Path|}
+export type MoveArgs = $ReadOnly<{opID: OpID, src: Path, dest: Path}>
 
 export type NaclDHKeyPrivate = any
 
@@ -2704,53 +2704,53 @@ export type NaclSigningKeyPrivate = any
 
 export type NaclSigningKeyPublic = any
 
-export type NotificationChannels = {|session: Boolean, users: Boolean, kbfs: Boolean, tracking: Boolean, favorites: Boolean, paperkeys: Boolean, keyfamily: Boolean, service: Boolean, app: Boolean, chat: Boolean, pgp: Boolean, kbfsrequest: Boolean, badges: Boolean, reachability: Boolean, team: Boolean|}
+export type NotificationChannels = $ReadOnly<{session: Boolean, users: Boolean, kbfs: Boolean, tracking: Boolean, favorites: Boolean, paperkeys: Boolean, keyfamily: Boolean, service: Boolean, app: Boolean, chat: Boolean, pgp: Boolean, kbfsrequest: Boolean, badges: Boolean, reachability: Boolean, team: Boolean}>
 
-export type NotifyAppExitRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type NotifyAppExitRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type NotifyBadgesBadgeStateRpcParam = {|badgeState: BadgeState, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type NotifyBadgesBadgeStateRpcParam = $ReadOnly<{badgeState: BadgeState, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type NotifyCtlSetNotificationsRpcParam = {|channels: NotificationChannels, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type NotifyCtlSetNotificationsRpcParam = $ReadOnly<{channels: NotificationChannels, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type NotifyFSFSActivityRpcParam = {|notification: FSNotification, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type NotifyFSFSActivityRpcParam = $ReadOnly<{notification: FSNotification, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type NotifyFSFSEditListResponseRpcParam = {|edits?: ?Array<FSNotification>, requestID: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type NotifyFSFSEditListResponseRpcParam = $ReadOnly<{edits?: ?Array<FSNotification>, requestID: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type NotifyFSFSSyncActivityRpcParam = {|status: FSPathSyncStatus, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type NotifyFSFSSyncActivityRpcParam = $ReadOnly<{status: FSPathSyncStatus, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type NotifyFSFSSyncStatusResponseRpcParam = {|status: FSSyncStatus, requestID: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type NotifyFSFSSyncStatusResponseRpcParam = $ReadOnly<{status: FSSyncStatus, requestID: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type NotifyFSRequestFSEditListRequestRpcParam = {|req: FSEditListRequest, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type NotifyFSRequestFSEditListRequestRpcParam = $ReadOnly<{req: FSEditListRequest, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type NotifyFSRequestFSSyncStatusRequestRpcParam = {|req: FSSyncStatusRequest, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type NotifyFSRequestFSSyncStatusRequestRpcParam = $ReadOnly<{req: FSSyncStatusRequest, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type NotifyFavoritesFavoritesChangedRpcParam = {|uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type NotifyFavoritesFavoritesChangedRpcParam = $ReadOnly<{uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type NotifyKeyfamilyKeyfamilyChangedRpcParam = {|uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type NotifyKeyfamilyKeyfamilyChangedRpcParam = $ReadOnly<{uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type NotifyPGPPgpKeyInSecretStoreFileRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type NotifyPGPPgpKeyInSecretStoreFileRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type NotifyPaperKeyPaperKeyCachedRpcParam = {|uid: UID, encKID: KID, sigKID: KID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type NotifyPaperKeyPaperKeyCachedRpcParam = $ReadOnly<{uid: UID, encKID: KID, sigKID: KID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type NotifyServiceShutdownRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type NotifyServiceShutdownRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type NotifySessionClientOutOfDateRpcParam = {|upgradeTo: String, upgradeURI: String, upgradeMsg: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type NotifySessionClientOutOfDateRpcParam = $ReadOnly<{upgradeTo: String, upgradeURI: String, upgradeMsg: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type NotifySessionLoggedInRpcParam = {|username: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type NotifySessionLoggedInRpcParam = $ReadOnly<{username: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type NotifySessionLoggedOutRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type NotifySessionLoggedOutRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type NotifyTeamTeamChangedByIDRpcParam = {|teamID: TeamID, latestSeqno: Seqno, implicitTeam: Boolean, changes: TeamChangeSet, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type NotifyTeamTeamChangedByIDRpcParam = $ReadOnly<{teamID: TeamID, latestSeqno: Seqno, implicitTeam: Boolean, changes: TeamChangeSet, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type NotifyTeamTeamChangedByNameRpcParam = {|teamName: String, latestSeqno: Seqno, implicitTeam: Boolean, changes: TeamChangeSet, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type NotifyTeamTeamChangedByNameRpcParam = $ReadOnly<{teamName: String, latestSeqno: Seqno, implicitTeam: Boolean, changes: TeamChangeSet, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type NotifyTeamTeamDeletedRpcParam = {|teamID: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type NotifyTeamTeamDeletedRpcParam = $ReadOnly<{teamID: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type NotifyTeamTeamExitRpcParam = {|teamID: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type NotifyTeamTeamExitRpcParam = $ReadOnly<{teamID: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type NotifyTrackingTrackingChangedRpcParam = {|uid: UID, username: String, isTracking: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type NotifyTrackingTrackingChangedRpcParam = $ReadOnly<{uid: UID, username: String, isTracking: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type NotifyUsersUserChangedRpcParam = {|uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type NotifyUsersUserChangedRpcParam = $ReadOnly<{uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type OpDescription = {asyncOp: 0, list: ?ListArgs} | {asyncOp: 1, listRecursive: ?ListArgs} | {asyncOp: 2, read: ?ReadArgs} | {asyncOp: 3, write: ?WriteArgs} | {asyncOp: 4, copy: ?CopyArgs} | {asyncOp: 5, move: ?MoveArgs} | {asyncOp: 6, remove: ?RemoveArgs}
 
@@ -2764,36 +2764,36 @@ export type OpenFlags =
   | 8 // APPEND_8
   | 16 // DIRECTORY_16
 
-export type OutOfDateInfo = {|upgradeTo: String, upgradeURI: String, customMessage: String, criticalClockSkew: Long|}
+export type OutOfDateInfo = $ReadOnly<{upgradeTo: String, upgradeURI: String, customMessage: String, criticalClockSkew: Long}>
 
 export type Outcome =
   | 0 // NONE_0
   | 1 // FIXED_1
   | 2 // IGNORED_2
 
-export type PGPCreateUids = {|useDefault: Boolean, ids?: ?Array<PGPIdentity>|}
+export type PGPCreateUids = $ReadOnly<{useDefault: Boolean, ids?: ?Array<PGPIdentity>}>
 
-export type PGPDecryptOptions = {|assertSigned: Boolean, signedBy: String|}
+export type PGPDecryptOptions = $ReadOnly<{assertSigned: Boolean, signedBy: String}>
 
-export type PGPEncryptOptions = {|recipients?: ?Array<String>, noSign: Boolean, noSelf: Boolean, binaryOut: Boolean, keyQuery: String|}
+export type PGPEncryptOptions = $ReadOnly<{recipients?: ?Array<String>, noSign: Boolean, noSelf: Boolean, binaryOut: Boolean, keyQuery: String}>
 
 export type PGPFingerprint = any
 
-export type PGPIdentity = {|username: String, comment: String, email: String|}
+export type PGPIdentity = $ReadOnly<{username: String, comment: String, email: String}>
 
-export type PGPPurgeRes = {|filenames?: ?Array<String>|}
+export type PGPPurgeRes = $ReadOnly<{filenames?: ?Array<String>}>
 
-export type PGPQuery = {|secret: Boolean, query: String, exactMatch: Boolean|}
+export type PGPQuery = $ReadOnly<{secret: Boolean, query: String, exactMatch: Boolean}>
 
-export type PGPSigVerification = {|isSigned: Boolean, verified: Boolean, signer: User, signKey: PublicKey|}
+export type PGPSigVerification = $ReadOnly<{isSigned: Boolean, verified: Boolean, signer: User, signKey: PublicKey}>
 
-export type PGPSignOptions = {|keyQuery: String, mode: SignMode, binaryIn: Boolean, binaryOut: Boolean|}
+export type PGPSignOptions = $ReadOnly<{keyQuery: String, mode: SignMode, binaryIn: Boolean, binaryOut: Boolean}>
 
-export type PGPVerifyOptions = {|signedBy: String, signature: Bytes|}
+export type PGPVerifyOptions = $ReadOnly<{signedBy: String, signature: Bytes}>
 
-export type PaperprovisionPaperProvisionRpcParam = {|username: String, deviceName: String, paperKey: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type PaperprovisionPaperProvisionRpcParam = $ReadOnly<{username: String, deviceName: String, paperKey: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type PassphraseStream = {|passphraseStream: Bytes, generation: Int|}
+export type PassphraseStream = $ReadOnly<{passphraseStream: Bytes, generation: Int}>
 
 export type PassphraseType =
   | 0 // NONE_0
@@ -2807,75 +2807,75 @@ export type PathType =
   | 0 // LOCAL_0
   | 1 // KBFS_1
 
-export type PerTeamKey = {|gen: PerTeamKeyGeneration, seqno: Seqno, sigKID: KID, encKID: KID|}
+export type PerTeamKey = $ReadOnly<{gen: PerTeamKeyGeneration, seqno: Seqno, sigKID: KID, encKID: KID}>
 
 export type PerTeamKeyGeneration = Int
 
 export type PerTeamKeySeed = any
 
-export type PerTeamKeySeedItem = {|seed: PerTeamKeySeed, generation: PerTeamKeyGeneration, seqno: Seqno|}
+export type PerTeamKeySeedItem = $ReadOnly<{seed: PerTeamKeySeed, generation: PerTeamKeyGeneration, seqno: Seqno}>
 
-export type PerUserKey = {|gen: Int, seqno: Seqno, sigKID: KID, encKID: KID, signedByKID: KID|}
+export type PerUserKey = $ReadOnly<{gen: Int, seqno: Seqno, sigKID: KID, encKID: KID, signedByKID: KID}>
 
-export type PerUserKeyBox = {|generation: PerUserKeyGeneration, box: String, receiverKID: KID|}
+export type PerUserKeyBox = $ReadOnly<{generation: PerUserKeyGeneration, box: String, receiverKID: KID}>
 
 export type PerUserKeyGeneration = Int
 
-export type PgpPgpDecryptRpcParam = {|source: Stream, sink: Stream, opts: PGPDecryptOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type PgpPgpDecryptRpcParam = $ReadOnly<{source: Stream, sink: Stream, opts: PGPDecryptOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type PgpPgpDeletePrimaryRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type PgpPgpDeletePrimaryRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type PgpPgpEncryptRpcParam = {|source: Stream, sink: Stream, opts: PGPEncryptOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type PgpPgpEncryptRpcParam = $ReadOnly<{source: Stream, sink: Stream, opts: PGPEncryptOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type PgpPgpExportByFingerprintRpcParam = {|options: PGPQuery, encrypted: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type PgpPgpExportByFingerprintRpcParam = $ReadOnly<{options: PGPQuery, encrypted: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type PgpPgpExportByKIDRpcParam = {|options: PGPQuery, encrypted: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type PgpPgpExportByKIDRpcParam = $ReadOnly<{options: PGPQuery, encrypted: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type PgpPgpExportRpcParam = {|options: PGPQuery, encrypted: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type PgpPgpExportRpcParam = $ReadOnly<{options: PGPQuery, encrypted: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type PgpPgpImportRpcParam = {|key: Bytes, pushSecret: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type PgpPgpImportRpcParam = $ReadOnly<{key: Bytes, pushSecret: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type PgpPgpKeyGenDefaultRpcParam = {|createUids: PGPCreateUids, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type PgpPgpKeyGenDefaultRpcParam = $ReadOnly<{createUids: PGPCreateUids, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type PgpPgpKeyGenRpcParam = {|primaryBits: Int, subkeyBits: Int, createUids: PGPCreateUids, allowMulti: Boolean, doExport: Boolean, exportEncrypted: Boolean, pushSecret: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type PgpPgpKeyGenRpcParam = $ReadOnly<{primaryBits: Int, subkeyBits: Int, createUids: PGPCreateUids, allowMulti: Boolean, doExport: Boolean, exportEncrypted: Boolean, pushSecret: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type PgpPgpPullRpcParam = {|userAsserts?: ?Array<String>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type PgpPgpPullRpcParam = $ReadOnly<{userAsserts?: ?Array<String>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type PgpPgpPurgeRpcParam = {|doPurge: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type PgpPgpPurgeRpcParam = $ReadOnly<{doPurge: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type PgpPgpSelectRpcParam = {|fingerprintQuery: String, allowMulti: Boolean, skipImport: Boolean, onlyImport: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type PgpPgpSelectRpcParam = $ReadOnly<{fingerprintQuery: String, allowMulti: Boolean, skipImport: Boolean, onlyImport: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type PgpPgpSignRpcParam = {|source: Stream, sink: Stream, opts: PGPSignOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type PgpPgpSignRpcParam = $ReadOnly<{source: Stream, sink: Stream, opts: PGPSignOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type PgpPgpStorageDismissRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type PgpPgpStorageDismissRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type PgpPgpUpdateRpcParam = {|all: Boolean, fingerprints?: ?Array<String>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type PgpPgpUpdateRpcParam = $ReadOnly<{all: Boolean, fingerprints?: ?Array<String>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type PgpPgpVerifyRpcParam = {|source: Stream, opts: PGPVerifyOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type PgpPgpVerifyRpcParam = $ReadOnly<{source: Stream, opts: PGPVerifyOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type PgpUiFinishedRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type PgpUiFinishedRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type PgpUiKeyGeneratedRpcParam = {|kid: KID, key: KeyInfo, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type PgpUiKeyGeneratedRpcParam = $ReadOnly<{kid: KID, key: KeyInfo, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type PgpUiOutputSignatureSuccessNonKeybaseRpcParam = {|keyID: String, signedAt: Time, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type PgpUiOutputSignatureSuccessNonKeybaseRpcParam = $ReadOnly<{keyID: String, signedAt: Time, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type PgpUiOutputSignatureSuccessRpcParam = {|fingerprint: String, username: String, signedAt: Time, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type PgpUiOutputSignatureSuccessRpcParam = $ReadOnly<{fingerprint: String, username: String, signedAt: Time, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type PgpUiShouldPushPrivateRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type PgpUiShouldPushPrivateRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type Pics = {|square40: String, square200: String, square360: String|}
+export type Pics = $ReadOnly<{square40: String, square200: String, square360: String}>
 
-export type PingResponse = {|timestamp: Time|}
+export type PingResponse = $ReadOnly<{timestamp: Time}>
 
-export type PlatformInfo = {|os: String, osVersion: String, arch: String, goVersion: String|}
+export type PlatformInfo = $ReadOnly<{os: String, osVersion: String, arch: String, goVersion: String}>
 
-export type ProblemSet = {|user: User, kid: KID, tlfs?: ?Array<ProblemTLF>|}
+export type ProblemSet = $ReadOnly<{user: User, kid: KID, tlfs?: ?Array<ProblemTLF>}>
 
-export type ProblemSetDevices = {|problemSet: ProblemSet, devices?: ?Array<Device>|}
+export type ProblemSetDevices = $ReadOnly<{problemSet: ProblemSet, devices?: ?Array<Device>}>
 
-export type ProblemTLF = {|tlf: TLF, score: Int, solution_kids?: ?Array<KID>|}
+export type ProblemTLF = $ReadOnly<{tlf: TLF, score: Int, solution_kids?: ?Array<KID>}>
 
-export type Process = {|pid: String, command: String, fileDescriptors?: ?Array<FileDescriptor>|}
+export type Process = $ReadOnly<{pid: String, command: String, fileDescriptors?: ?Array<FileDescriptor>}>
 
 export type Progress = Int
 
@@ -2888,7 +2888,7 @@ export type PromptOverwriteType =
   | 0 // SOCIAL_0
   | 1 // SITE_1
 
-export type ProofResult = {|state: ProofState, status: ProofStatus, desc: String|}
+export type ProofResult = $ReadOnly<{state: ProofState, status: ProofStatus, desc: String}>
 
 export type ProofState =
   | 0 // NONE_0
@@ -2960,25 +2960,25 @@ export type ProofType =
   | 1002 // PGP_1002
   | 100001 // ROOTER_100001
 
-export type Proofs = {|social?: ?Array<TrackProof>, web?: ?Array<WebProof>, publicKeys?: ?Array<PublicKey>|}
+export type Proofs = $ReadOnly<{social?: ?Array<TrackProof>, web?: ?Array<WebProof>, publicKeys?: ?Array<PublicKey>}>
 
-export type ProveCheckProofRpcParam = {|sigID: SigID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ProveCheckProofRpcParam = $ReadOnly<{sigID: SigID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ProveStartProofRpcParam = {|service: String, username: String, force: Boolean, promptPosted: Boolean, auto: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ProveStartProofRpcParam = $ReadOnly<{service: String, username: String, force: Boolean, promptPosted: Boolean, auto: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ProveUiDisplayRecheckWarningRpcParam = {|text: Text, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ProveUiDisplayRecheckWarningRpcParam = $ReadOnly<{text: Text, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ProveUiOkToCheckRpcParam = {|name: String, attempt: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ProveUiOkToCheckRpcParam = $ReadOnly<{name: String, attempt: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ProveUiOutputInstructionsRpcParam = {|instructions: Text, proof: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ProveUiOutputInstructionsRpcParam = $ReadOnly<{instructions: Text, proof: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ProveUiOutputPrechecksRpcParam = {|text: Text, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ProveUiOutputPrechecksRpcParam = $ReadOnly<{text: Text, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ProveUiPreProofWarningRpcParam = {|text: Text, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ProveUiPreProofWarningRpcParam = $ReadOnly<{text: Text, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ProveUiPromptOverwriteRpcParam = {|account: String, typ: PromptOverwriteType, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ProveUiPromptOverwriteRpcParam = $ReadOnly<{account: String, typ: PromptOverwriteType, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ProveUiPromptUsernameRpcParam = {|prompt: String, prevError?: ?Status, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ProveUiPromptUsernameRpcParam = $ReadOnly<{prompt: String, prevError?: ?Status, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type ProvisionMethod =
   | 0 // DEVICE_0
@@ -2987,65 +2987,65 @@ export type ProvisionMethod =
   | 3 // GPG_IMPORT_3
   | 4 // GPG_SIGN_4
 
-export type ProvisionUiChooseDeviceRpcParam = {|devices?: ?Array<Device>, canSelectNoDevice: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ProvisionUiChooseDeviceRpcParam = $ReadOnly<{devices?: ?Array<Device>, canSelectNoDevice: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ProvisionUiChooseDeviceTypeRpcParam = {|kind: ChooseType, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ProvisionUiChooseDeviceTypeRpcParam = $ReadOnly<{kind: ChooseType, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ProvisionUiChooseGPGMethodRpcParam = {|keys?: ?Array<GPGKey>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ProvisionUiChooseGPGMethodRpcParam = $ReadOnly<{keys?: ?Array<GPGKey>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ProvisionUiChooseProvisioningMethodRpcParam = {|gpgOption: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ProvisionUiChooseProvisioningMethodRpcParam = $ReadOnly<{gpgOption: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ProvisionUiDisplayAndPromptSecretRpcParam = {|secret: Bytes, phrase: String, otherDeviceType: DeviceType, previousErr: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ProvisionUiDisplayAndPromptSecretRpcParam = $ReadOnly<{secret: Bytes, phrase: String, otherDeviceType: DeviceType, previousErr: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ProvisionUiDisplaySecretExchangedRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ProvisionUiDisplaySecretExchangedRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ProvisionUiPromptNewDeviceNameRpcParam = {|existingDevices?: ?Array<String>, errorMessage: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ProvisionUiPromptNewDeviceNameRpcParam = $ReadOnly<{existingDevices?: ?Array<String>, errorMessage: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ProvisionUiProvisioneeSuccessRpcParam = {|username: String, deviceName: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ProvisionUiProvisioneeSuccessRpcParam = $ReadOnly<{username: String, deviceName: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ProvisionUiProvisionerSuccessRpcParam = {|deviceName: String, deviceType: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ProvisionUiProvisionerSuccessRpcParam = $ReadOnly<{deviceName: String, deviceType: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ProvisionUiSwitchToGPGSignOKRpcParam = {|key: GPGKey, importError: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ProvisionUiSwitchToGPGSignOKRpcParam = $ReadOnly<{key: GPGKey, importError: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type PublicKey = {|KID: KID, PGPFingerprint: String, PGPIdentities?: ?Array<PGPIdentity>, isSibkey: Boolean, isEldest: Boolean, parentID: String, deviceID: DeviceID, deviceDescription: String, deviceType: String, cTime: Time, eTime: Time, isRevoked: Boolean|}
+export type PublicKey = $ReadOnly<{KID: KID, PGPFingerprint: String, PGPIdentities?: ?Array<PGPIdentity>, isSibkey: Boolean, isEldest: Boolean, parentID: String, deviceID: DeviceID, deviceDescription: String, deviceType: String, cTime: Time, eTime: Time, isRevoked: Boolean}>
 
 export type PublicKeyV2 = {keyType: 1, nacl: ?PublicKeyV2NaCl} | {keyType: 2, pgp: ?PublicKeyV2PGPSummary} | {keyType: any}
 
-export type PublicKeyV2Base = {|kid: KID, isSibkey: Boolean, isEldest: Boolean, cTime: Time, eTime: Time, provisioning: SignatureMetadata, revocation?: ?SignatureMetadata|}
+export type PublicKeyV2Base = $ReadOnly<{kid: KID, isSibkey: Boolean, isEldest: Boolean, cTime: Time, eTime: Time, provisioning: SignatureMetadata, revocation?: ?SignatureMetadata}>
 
-export type PublicKeyV2NaCl = {|base: PublicKeyV2Base, parent?: ?KID, deviceID: DeviceID, deviceDescription: String, deviceType: String|}
+export type PublicKeyV2NaCl = $ReadOnly<{base: PublicKeyV2Base, parent?: ?KID, deviceID: DeviceID, deviceDescription: String, deviceType: String}>
 
-export type PublicKeyV2PGPSummary = {|base: PublicKeyV2Base, fingerprint: PGPFingerprint, identities?: ?Array<PGPIdentity>|}
+export type PublicKeyV2PGPSummary = $ReadOnly<{base: PublicKeyV2Base, fingerprint: PGPFingerprint, identities?: ?Array<PGPIdentity>}>
 
 export type PushReason =
   | 0 // NONE_0
   | 1 // RECONNECTED_1
   | 2 // NEW_DATA_2
 
-export type QuotaVerifySessionRpcParam = {|session: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type QuotaVerifySessionRpcParam = $ReadOnly<{session: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type Reachability = {|reachable: Reachable|}
+export type Reachability = $ReadOnly<{reachable: Reachable}>
 
-export type ReachabilityCheckReachabilityRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ReachabilityCheckReachabilityRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ReachabilityReachabilityChangedRpcParam = {|reachability: Reachability, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ReachabilityReachabilityChangedRpcParam = $ReadOnly<{reachability: Reachability, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ReachabilityStartReachabilityRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ReachabilityStartReachabilityRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type Reachable =
   | 0 // UNKNOWN_0
   | 1 // YES_1
   | 2 // NO_2
 
-export type ReadArgs = {|opID: OpID, path: Path, offset: Long, size: Int|}
+export type ReadArgs = $ReadOnly<{opID: OpID, path: Path, offset: Long, size: Int}>
 
-export type ReaderKeyMask = {|application: TeamApplication, generation: PerTeamKeyGeneration, mask: MaskB64|}
+export type ReaderKeyMask = $ReadOnly<{application: TeamApplication, generation: PerTeamKeyGeneration, mask: MaskB64}>
 
-export type RegisterAddressRes = {|type: String, family: String|}
+export type RegisterAddressRes = $ReadOnly<{type: String, family: String}>
 
-export type RekeyDebugShowRekeyStatusRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type RekeyDebugShowRekeyStatusRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type RekeyEvent = {|eventType: RekeyEventType, interruptType: Int|}
+export type RekeyEvent = $ReadOnly<{eventType: RekeyEventType, interruptType: Int}>
 
 export type RekeyEventType =
   | 0 // NONE_0
@@ -3058,61 +3058,61 @@ export type RekeyEventType =
   | 7 // HARASS_7
   | 8 // NO_GREGOR_MESSAGES_8
 
-export type RekeyGetPendingRekeyStatusRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type RekeyGetPendingRekeyStatusRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type RekeyGetRevokeWarningRpcParam = {|actingDevice: DeviceID, targetDevice: DeviceID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type RekeyGetRevokeWarningRpcParam = $ReadOnly<{actingDevice: DeviceID, targetDevice: DeviceID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type RekeyRekeyStatusFinishRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type RekeyRekeyStatusFinishRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type RekeyRekeySyncRpcParam = {|force: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type RekeyRekeySyncRpcParam = $ReadOnly<{force: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type RekeyRequest = {|folderID: String, revision: Long|}
+export type RekeyRequest = $ReadOnly<{folderID: String, revision: Long}>
 
-export type RekeyShowPendingRekeyStatusRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type RekeyShowPendingRekeyStatusRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type RekeyUIDelegateRekeyUIRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type RekeyUIDelegateRekeyUIRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type RekeyUIRefreshRpcParam = {|problemSetDevices: ProblemSetDevices, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type RekeyUIRefreshRpcParam = $ReadOnly<{problemSetDevices: ProblemSetDevices, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type RekeyUIRekeySendEventRpcParam = {|event: RekeyEvent, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type RekeyUIRekeySendEventRpcParam = $ReadOnly<{event: RekeyEvent, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type RemoteProof = {|proofType: ProofType, key: String, value: String, displayMarkup: String, sigID: SigID, mTime: Time|}
+export type RemoteProof = $ReadOnly<{proofType: ProofType, key: String, value: String, displayMarkup: String, sigID: SigID, mTime: Time}>
 
-export type RemoteTrack = {|username: String, uid: UID, linkID: LinkID|}
+export type RemoteTrack = $ReadOnly<{username: String, uid: UID, linkID: LinkID}>
 
-export type RemoveArgs = {|opID: OpID, path: Path|}
+export type RemoveArgs = $ReadOnly<{opID: OpID, path: Path}>
 
 export type RepoID = String
 
-export type ResolveIdentifyImplicitTeamRes = {|displayName: String, teamID: TeamID, writers?: ?Array<UserVersion>, trackBreaks: {[key: string]: IdentifyTrackBreaks}, folderID: TLFID|}
+export type ResolveIdentifyImplicitTeamRes = $ReadOnly<{displayName: String, teamID: TeamID, writers?: ?Array<UserVersion>, trackBreaks: {[key: string]: IdentifyTrackBreaks}, folderID: TLFID}>
 
-export type RevokeRevokeDeviceRpcParam = {|deviceID: DeviceID, forceSelf: Boolean, forceLast: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type RevokeRevokeDeviceRpcParam = $ReadOnly<{deviceID: DeviceID, forceSelf: Boolean, forceLast: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type RevokeRevokeKeyRpcParam = {|keyID: KID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type RevokeRevokeKeyRpcParam = $ReadOnly<{keyID: KID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type RevokeRevokeSigsRpcParam = {|sigIDQueries?: ?Array<String>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type RevokeRevokeSigsRpcParam = $ReadOnly<{sigIDQueries?: ?Array<String>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type RevokeWarning = {|endangeredTLFs?: ?Array<TLF>|}
+export type RevokeWarning = $ReadOnly<{endangeredTLFs?: ?Array<TLF>}>
 
-export type RevokedKey = {|key: PublicKey, time: KeybaseTime, by: KID|}
+export type RevokedKey = $ReadOnly<{key: PublicKey, time: KeybaseTime, by: KID}>
 
-export type RevokedProof = {|proof: RemoteProof, diff: TrackDiff|}
+export type RevokedProof = $ReadOnly<{proof: RemoteProof, diff: TrackDiff}>
 
-export type SaltpackDecryptOptions = {|interactive: Boolean, forceRemoteCheck: Boolean, usePaperKey: Boolean|}
+export type SaltpackDecryptOptions = $ReadOnly<{interactive: Boolean, forceRemoteCheck: Boolean, usePaperKey: Boolean}>
 
-export type SaltpackEncryptOptions = {|recipients?: ?Array<String>, anonymousSender: Boolean, encryptionOnlyMode: Boolean, noSelfEncrypt: Boolean, binary: Boolean, saltpackVersion: Int|}
+export type SaltpackEncryptOptions = $ReadOnly<{recipients?: ?Array<String>, anonymousSender: Boolean, encryptionOnlyMode: Boolean, noSelfEncrypt: Boolean, binary: Boolean, saltpackVersion: Int}>
 
-export type SaltpackEncryptedMessageInfo = {|devices?: ?Array<Device>, numAnonReceivers: Int, receiverIsAnon: Boolean, sender: SaltpackSender|}
+export type SaltpackEncryptedMessageInfo = $ReadOnly<{devices?: ?Array<Device>, numAnonReceivers: Int, receiverIsAnon: Boolean, sender: SaltpackSender}>
 
-export type SaltpackSaltpackDecryptRpcParam = {|source: Stream, sink: Stream, opts: SaltpackDecryptOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type SaltpackSaltpackDecryptRpcParam = $ReadOnly<{source: Stream, sink: Stream, opts: SaltpackDecryptOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SaltpackSaltpackEncryptRpcParam = {|source: Stream, sink: Stream, opts: SaltpackEncryptOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type SaltpackSaltpackEncryptRpcParam = $ReadOnly<{source: Stream, sink: Stream, opts: SaltpackEncryptOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SaltpackSaltpackSignRpcParam = {|source: Stream, sink: Stream, opts: SaltpackSignOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type SaltpackSaltpackSignRpcParam = $ReadOnly<{source: Stream, sink: Stream, opts: SaltpackSignOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SaltpackSaltpackVerifyRpcParam = {|source: Stream, sink: Stream, opts: SaltpackVerifyOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type SaltpackSaltpackVerifyRpcParam = $ReadOnly<{source: Stream, sink: Stream, opts: SaltpackVerifyOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SaltpackSender = {|uid: UID, username: String, senderType: SaltpackSenderType|}
+export type SaltpackSender = $ReadOnly<{uid: UID, username: String, senderType: SaltpackSenderType}>
 
 export type SaltpackSenderType =
   | 0 // NOT_TRACKED_0
@@ -3124,33 +3124,33 @@ export type SaltpackSenderType =
   | 6 // REVOKED_6
   | 7 // EXPIRED_7
 
-export type SaltpackSignOptions = {|detached: Boolean, binary: Boolean, saltpackVersion: Int|}
+export type SaltpackSignOptions = $ReadOnly<{detached: Boolean, binary: Boolean, saltpackVersion: Int}>
 
-export type SaltpackUiSaltpackPromptForDecryptRpcParam = {|sender: SaltpackSender, usedDelegateUI: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type SaltpackUiSaltpackPromptForDecryptRpcParam = $ReadOnly<{sender: SaltpackSender, usedDelegateUI: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SaltpackUiSaltpackVerifyBadSenderRpcParam = {|signingKID: KID, sender: SaltpackSender, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type SaltpackUiSaltpackVerifyBadSenderRpcParam = $ReadOnly<{signingKID: KID, sender: SaltpackSender, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SaltpackUiSaltpackVerifySuccessRpcParam = {|signingKID: KID, sender: SaltpackSender, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type SaltpackUiSaltpackVerifySuccessRpcParam = $ReadOnly<{signingKID: KID, sender: SaltpackSender, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SaltpackVerifyOptions = {|signedBy: String, signature: Bytes|}
+export type SaltpackVerifyOptions = $ReadOnly<{signedBy: String, signature: Bytes}>
 
-export type ScanProofsScanProofsRpcParam = {|infile: String, indices: String, sigid: String, ratelimit: Int, cachefile: String, ignorefile: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type ScanProofsScanProofsRpcParam = $ReadOnly<{infile: String, indices: String, sigid: String, ratelimit: Int, cachefile: String, ignorefile: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SearchComponent = {|key: String, value: String, score: Double|}
+export type SearchComponent = $ReadOnly<{key: String, value: String, score: Double}>
 
-export type SearchResult = {|uid: UID, username: String, components?: ?Array<SearchComponent>, score: Double|}
+export type SearchResult = $ReadOnly<{uid: UID, username: String, components?: ?Array<SearchComponent>, score: Double}>
 
-export type SecretEntryArg = {|desc: String, prompt: String, err: String, cancel: String, ok: String, reason: String, showTyping: Boolean|}
+export type SecretEntryArg = $ReadOnly<{desc: String, prompt: String, err: String, cancel: String, ok: String, reason: String, showTyping: Boolean}>
 
-export type SecretEntryRes = {|text: String, canceled: Boolean, storeSecret: Boolean|}
+export type SecretEntryRes = $ReadOnly<{text: String, canceled: Boolean, storeSecret: Boolean}>
 
-export type SecretKeys = {|signing: NaclSigningKeyPrivate, encryption: NaclDHKeyPrivate|}
+export type SecretKeys = $ReadOnly<{signing: NaclSigningKeyPrivate, encryption: NaclDHKeyPrivate}>
 
-export type SecretKeysGetSecretKeysRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type SecretKeysGetSecretKeysRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SecretResponse = {|secret: Bytes, phrase: String|}
+export type SecretResponse = $ReadOnly<{secret: Bytes, phrase: String}>
 
-export type SecretUiGetPassphraseRpcParam = {|pinentry: GUIEntryArg, terminal?: ?SecretEntryArg, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type SecretUiGetPassphraseRpcParam = $ReadOnly<{pinentry: GUIEntryArg, terminal?: ?SecretEntryArg, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type SeitanAKey = String
 
@@ -3160,15 +3160,15 @@ export type SeitanIKeyAndLabel = {v: 1, v1: ?SeitanIKeyAndLabelVersion1} | {v: a
 
 export type SeitanIKeyAndLabelVersion = 1 // V1_1
 
-export type SeitanIKeyAndLabelVersion1 = {|i: SeitanIKey, l: SeitanIKeyLabel|}
+export type SeitanIKeyAndLabelVersion1 = $ReadOnly<{i: SeitanIKey, l: SeitanIKeyLabel}>
 
 export type SeitanIKeyLabel = {t: 1, sms: ?SeitanIKeyLabelSms} | {t: any}
 
-export type SeitanIKeyLabelSms = {|f: String, n: String|}
+export type SeitanIKeyLabelSms = $ReadOnly<{f: String, n: String}>
 
 export type SeitanIKeyLabelType = 1 // SMS_1
 
-export type SelectKeyRes = {|keyID: String, doSecretPush: Boolean|}
+export type SelectKeyRes = $ReadOnly<{keyID: String, doSecretPush: Boolean}>
 
 export type SeqType =
   | 1 // PUBLIC_1
@@ -3177,102 +3177,102 @@ export type SeqType =
 
 export type Seqno = Int64
 
-export type ServiceStatus = {|version: String, label: String, pid: String, lastExitStatus: String, bundleVersion: String, installStatus: InstallStatus, installAction: InstallAction, status: Status|}
+export type ServiceStatus = $ReadOnly<{version: String, label: String, pid: String, lastExitStatus: String, bundleVersion: String, installStatus: InstallStatus, installAction: InstallAction, status: Status}>
 
-export type ServicesStatus = {|service?: ?Array<ServiceStatus>, kbfs?: ?Array<ServiceStatus>, updater?: ?Array<ServiceStatus>|}
+export type ServicesStatus = $ReadOnly<{service?: ?Array<ServiceStatus>, kbfs?: ?Array<ServiceStatus>, updater?: ?Array<ServiceStatus>}>
 
-export type Session = {|uid: UID, username: String, token: String, deviceSubkeyKid: KID, deviceSibkeyKid: KID|}
+export type Session = $ReadOnly<{uid: UID, username: String, token: String, deviceSubkeyKid: KID, deviceSibkeyKid: KID}>
 
-export type SessionCurrentSessionRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type SessionCurrentSessionRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SessionSessionPingRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type SessionSessionPingRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SessionStatus = {|SessionFor: String, Loaded: Boolean, Cleared: Boolean, SaltOnly: Boolean, Expired: Boolean|}
+export type SessionStatus = $ReadOnly<{SessionFor: String, Loaded: Boolean, Cleared: Boolean, SaltOnly: Boolean, Expired: Boolean}>
 
 export type SessionToken = String
 
-export type Sig = {|seqno: Seqno, sigID: SigID, sigIDDisplay: String, type: String, cTime: Time, revoked: Boolean, active: Boolean, key: String, body: String|}
+export type Sig = $ReadOnly<{seqno: Seqno, sigID: SigID, sigIDDisplay: String, type: String, cTime: Time, revoked: Boolean, active: Boolean, key: String, body: String}>
 
-export type SigChainLocation = {|seqno: Seqno, seqType: SeqType|}
+export type SigChainLocation = $ReadOnly<{seqno: Seqno, seqType: SeqType}>
 
-export type SigHint = {|remoteId: String, humanUrl: String, apiUrl: String, checkText: String|}
+export type SigHint = $ReadOnly<{remoteId: String, humanUrl: String, apiUrl: String, checkText: String}>
 
 export type SigID = String
 
-export type SigListArgs = {|sessionID: Int, username: String, allKeys: Boolean, types?: ?SigTypes, filterx: String, verbose: Boolean, revoked: Boolean|}
+export type SigListArgs = $ReadOnly<{sessionID: Int, username: String, allKeys: Boolean, types?: ?SigTypes, filterx: String, verbose: Boolean, revoked: Boolean}>
 
-export type SigTypes = {|track: Boolean, proof: Boolean, cryptocurrency: Boolean, isSelf: Boolean|}
+export type SigTypes = $ReadOnly<{track: Boolean, proof: Boolean, cryptocurrency: Boolean, isSelf: Boolean}>
 
 export type SignMode =
   | 0 // ATTACHED_0
   | 1 // DETACHED_1
   | 2 // CLEAR_2
 
-export type SignatureMetadata = {|signingKID: KID, prevMerkleRootSigned: MerkleRootV2, firstAppearedUnverified: Seqno, time: Time, sigChainLocation: SigChainLocation|}
+export type SignatureMetadata = $ReadOnly<{signingKID: KID, prevMerkleRootSigned: MerkleRootV2, firstAppearedUnverified: Seqno, time: Time, sigChainLocation: SigChainLocation}>
 
-export type SignupCheckInvitationCodeRpcParam = {|invitationCode: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type SignupCheckInvitationCodeRpcParam = $ReadOnly<{invitationCode: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SignupCheckUsernameAvailableRpcParam = {|username: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type SignupCheckUsernameAvailableRpcParam = $ReadOnly<{username: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SignupGetInvitationCodeRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type SignupGetInvitationCodeRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SignupInviteRequestRpcParam = {|email: String, fullname: String, notes: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type SignupInviteRequestRpcParam = $ReadOnly<{email: String, fullname: String, notes: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SignupRes = {|passphraseOk: Boolean, postOk: Boolean, writeOk: Boolean|}
+export type SignupRes = $ReadOnly<{passphraseOk: Boolean, postOk: Boolean, writeOk: Boolean}>
 
-export type SignupSignupRpcParam = {|email: String, inviteCode: String, passphrase: String, username: String, deviceName: String, deviceType: DeviceType, storeSecret: Boolean, skipMail: Boolean, genPGPBatch: Boolean, genPaper: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type SignupSignupRpcParam = $ReadOnly<{email: String, inviteCode: String, passphrase: String, username: String, deviceName: String, deviceType: DeviceType, storeSecret: Boolean, skipMail: Boolean, genPGPBatch: Boolean, genPaper: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SigsSigListJSONRpcParam = {|arg: SigListArgs, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type SigsSigListJSONRpcParam = $ReadOnly<{arg: SigListArgs, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SigsSigListRpcParam = {|arg: SigListArgs, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type SigsSigListRpcParam = $ReadOnly<{arg: SigListArgs, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SimpleFSListResult = {|entries?: ?Array<Dirent>, progress: Progress|}
+export type SimpleFSListResult = $ReadOnly<{entries?: ?Array<Dirent>, progress: Progress}>
 
-export type SimpleFSSimpleFSCancelRpcParam = {|opID: OpID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type SimpleFSSimpleFSCancelRpcParam = $ReadOnly<{opID: OpID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SimpleFSSimpleFSCheckRpcParam = {|opID: OpID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type SimpleFSSimpleFSCheckRpcParam = $ReadOnly<{opID: OpID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SimpleFSSimpleFSCloseRpcParam = {|opID: OpID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type SimpleFSSimpleFSCloseRpcParam = $ReadOnly<{opID: OpID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SimpleFSSimpleFSCopyRecursiveRpcParam = {|opID: OpID, src: Path, dest: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type SimpleFSSimpleFSCopyRecursiveRpcParam = $ReadOnly<{opID: OpID, src: Path, dest: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SimpleFSSimpleFSCopyRpcParam = {|opID: OpID, src: Path, dest: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type SimpleFSSimpleFSCopyRpcParam = $ReadOnly<{opID: OpID, src: Path, dest: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SimpleFSSimpleFSGetOpsRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type SimpleFSSimpleFSGetOpsRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SimpleFSSimpleFSListRecursiveRpcParam = {|opID: OpID, path: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type SimpleFSSimpleFSListRecursiveRpcParam = $ReadOnly<{opID: OpID, path: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SimpleFSSimpleFSListRpcParam = {|opID: OpID, path: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type SimpleFSSimpleFSListRpcParam = $ReadOnly<{opID: OpID, path: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SimpleFSSimpleFSMakeOpidRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type SimpleFSSimpleFSMakeOpidRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SimpleFSSimpleFSMoveRpcParam = {|opID: OpID, src: Path, dest: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type SimpleFSSimpleFSMoveRpcParam = $ReadOnly<{opID: OpID, src: Path, dest: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SimpleFSSimpleFSOpenRpcParam = {|opID: OpID, dest: Path, flags: OpenFlags, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type SimpleFSSimpleFSOpenRpcParam = $ReadOnly<{opID: OpID, dest: Path, flags: OpenFlags, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SimpleFSSimpleFSReadListRpcParam = {|opID: OpID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type SimpleFSSimpleFSReadListRpcParam = $ReadOnly<{opID: OpID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SimpleFSSimpleFSReadRpcParam = {|opID: OpID, offset: Long, size: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type SimpleFSSimpleFSReadRpcParam = $ReadOnly<{opID: OpID, offset: Long, size: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SimpleFSSimpleFSRemoveRpcParam = {|opID: OpID, path: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type SimpleFSSimpleFSRemoveRpcParam = $ReadOnly<{opID: OpID, path: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SimpleFSSimpleFSRenameRpcParam = {|src: Path, dest: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type SimpleFSSimpleFSRenameRpcParam = $ReadOnly<{src: Path, dest: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SimpleFSSimpleFSSetStatRpcParam = {|dest: Path, flag: DirentType, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type SimpleFSSimpleFSSetStatRpcParam = $ReadOnly<{dest: Path, flag: DirentType, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SimpleFSSimpleFSStatRpcParam = {|path: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type SimpleFSSimpleFSStatRpcParam = $ReadOnly<{path: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SimpleFSSimpleFSWaitRpcParam = {|opID: OpID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type SimpleFSSimpleFSWaitRpcParam = $ReadOnly<{opID: OpID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SimpleFSSimpleFSWriteRpcParam = {|opID: OpID, offset: Long, content: Bytes, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type SimpleFSSimpleFSWriteRpcParam = $ReadOnly<{opID: OpID, offset: Long, content: Bytes, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SocialAssertion = {|user: String, service: SocialAssertionService|}
+export type SocialAssertion = $ReadOnly<{user: String, service: SocialAssertionService}>
 
 export type SocialAssertionService = String
 
-export type StartProofResult = {|sigID: SigID|}
+export type StartProofResult = $ReadOnly<{sigID: SigID}>
 
-export type Status = {|code: Int, name: String, desc: String, fields?: ?Array<StringKVPair>|}
+export type Status = $ReadOnly<{code: Int, name: String, desc: String, fields?: ?Array<StringKVPair>}>
 
 export type StatusCode =
   | 0 // SCOk_0
@@ -3422,23 +3422,23 @@ export type StatusCode =
   | 2721 // SCTeamProvisionalCanKey_2721
   | 2722 // SCTeamProvisionalCannotKey_2722
 
-export type Stream = {|fd: Int|}
+export type Stream = $ReadOnly<{fd: Int}>
 
-export type StreamUiCloseRpcParam = {|s: Stream, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type StreamUiCloseRpcParam = $ReadOnly<{s: Stream, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type StreamUiReadRpcParam = {|s: Stream, sz: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type StreamUiReadRpcParam = $ReadOnly<{s: Stream, sz: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type StreamUiResetRpcParam = {|s: Stream, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type StreamUiResetRpcParam = $ReadOnly<{s: Stream, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type StreamUiWriteRpcParam = {|s: Stream, buf: Bytes, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type StreamUiWriteRpcParam = $ReadOnly<{s: Stream, buf: Bytes, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type StringKVPair = {|key: String, value: String|}
+export type StringKVPair = $ReadOnly<{key: String, value: String}>
 
-export type SubteamLogPoint = {|name: TeamName, seqno: Seqno|}
+export type SubteamLogPoint = $ReadOnly<{name: TeamName, seqno: Seqno}>
 
-export type TLF = {|id: TLFID, name: String, writers?: ?Array<String>, readers?: ?Array<String>, isPrivate: Boolean|}
+export type TLF = $ReadOnly<{id: TLFID, name: String, writers?: ?Array<String>, readers?: ?Array<String>, isPrivate: Boolean}>
 
-export type TLFBreak = {|breaks?: ?Array<TLFIdentifyFailure>|}
+export type TLFBreak = $ReadOnly<{breaks?: ?Array<TLFIdentifyFailure>}>
 
 export type TLFID = String
 
@@ -3452,22 +3452,22 @@ export type TLFIdentifyBehavior =
   | 6 // CHAT_SKIP_6
   | 7 // SALTPACK_7
 
-export type TLFIdentifyFailure = {|user: User, breaks?: ?IdentifyTrackBreaks|}
+export type TLFIdentifyFailure = $ReadOnly<{user: User, breaks?: ?IdentifyTrackBreaks}>
 
-export type TLFQuery = {|tlfName: String, identifyBehavior: TLFIdentifyBehavior|}
+export type TLFQuery = $ReadOnly<{tlfName: String, identifyBehavior: TLFIdentifyBehavior}>
 
 export type TLFVisibility =
   | 0 // ANY_0
   | 1 // PUBLIC_1
   | 2 // PRIVATE_2
 
-export type TeamAcceptOrRequestResult = {|wasToken: Boolean, wasSeitan: Boolean, wasTeamName: Boolean, wasOpenTeam: Boolean|}
+export type TeamAcceptOrRequestResult = $ReadOnly<{wasToken: Boolean, wasSeitan: Boolean, wasTeamName: Boolean, wasOpenTeam: Boolean}>
 
-export type TeamAccessRequest = {|uid: UID, eldestSeqno: Seqno|}
+export type TeamAccessRequest = $ReadOnly<{uid: UID, eldestSeqno: Seqno}>
 
-export type TeamAddMemberResult = {|invited: Boolean, user?: ?User, emailSent: Boolean, chatSent: Boolean|}
+export type TeamAddMemberResult = $ReadOnly<{invited: Boolean, user?: ?User, emailSent: Boolean, chatSent: Boolean}>
 
-export type TeamAndMemberShowcase = {|teamShowcase: TeamShowcase, isMemberShowcased: Boolean|}
+export type TeamAndMemberShowcase = $ReadOnly<{teamShowcase: TeamShowcase, isMemberShowcased: Boolean}>
 
 export type TeamApplication =
   | 1 // KBFS_1
@@ -3476,33 +3476,33 @@ export type TeamApplication =
   | 4 // GIT_METADATA_4
   | 5 // SEITAN_INVITE_TOKEN_5
 
-export type TeamApplicationKey = {|application: TeamApplication, keyGeneration: PerTeamKeyGeneration, key: Bytes32|}
+export type TeamApplicationKey = $ReadOnly<{application: TeamApplication, keyGeneration: PerTeamKeyGeneration, key: Bytes32}>
 
-export type TeamCLKRMsg = {|teamID: TeamID, generation: PerTeamKeyGeneration, score: Int|}
+export type TeamCLKRMsg = $ReadOnly<{teamID: TeamID, generation: PerTeamKeyGeneration, score: Int}>
 
-export type TeamChangeReq = {|owners?: ?Array<UserVersion>, admins?: ?Array<UserVersion>, writers?: ?Array<UserVersion>, readers?: ?Array<UserVersion>, none?: ?Array<UserVersion>, completedInvites: {[key: string]: UserVersionPercentForm}|}
+export type TeamChangeReq = $ReadOnly<{owners?: ?Array<UserVersion>, admins?: ?Array<UserVersion>, writers?: ?Array<UserVersion>, readers?: ?Array<UserVersion>, none?: ?Array<UserVersion>, completedInvites: {[key: string]: UserVersionPercentForm}}>
 
-export type TeamChangeRow = {|id: TeamID, name: String, keyRotated: Boolean, membershipChanged: Boolean, latestSeqno: Seqno, implicitTeam: Boolean|}
+export type TeamChangeRow = $ReadOnly<{id: TeamID, name: String, keyRotated: Boolean, membershipChanged: Boolean, latestSeqno: Seqno, implicitTeam: Boolean}>
 
-export type TeamChangeSet = {|membershipChanged: Boolean, keyRotated: Boolean, renamed: Boolean|}
+export type TeamChangeSet = $ReadOnly<{membershipChanged: Boolean, keyRotated: Boolean, renamed: Boolean}>
 
-export type TeamCreateResult = {|teamID: TeamID, chatSent: Boolean, creatorAdded: Boolean|}
+export type TeamCreateResult = $ReadOnly<{teamID: TeamID, chatSent: Boolean, creatorAdded: Boolean}>
 
-export type TeamData = {|secretless: Boolean, name: TeamName, chain: TeamSigChainState, perTeamKeySeeds: {[key: string]: PerTeamKeySeedItem}, readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}, latestSeqnoHint: Seqno, cachedAt: Time|}
+export type TeamData = $ReadOnly<{secretless: Boolean, name: TeamName, chain: TeamSigChainState, perTeamKeySeeds: {[key: string]: PerTeamKeySeedItem}, readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}, latestSeqnoHint: Seqno, cachedAt: Time}>
 
-export type TeamDebugRes = {|chain: TeamSigChainState|}
+export type TeamDebugRes = $ReadOnly<{chain: TeamSigChainState}>
 
-export type TeamDetails = {|members: TeamMembersDetails, keyGeneration: PerTeamKeyGeneration, annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite}, settings: TeamSettings, showcase: TeamShowcase|}
+export type TeamDetails = $ReadOnly<{members: TeamMembersDetails, keyGeneration: PerTeamKeyGeneration, annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite}, settings: TeamSettings, showcase: TeamShowcase}>
 
-export type TeamExitRow = {|id: TeamID|}
+export type TeamExitRow = $ReadOnly<{id: TeamID}>
 
 export type TeamID = String
 
-export type TeamIDAndName = {|id: TeamID, name: TeamName|}
+export type TeamIDAndName = $ReadOnly<{id: TeamID, name: TeamName}>
 
-export type TeamIDWithVisibility = {|teamID: TeamID, visibility: TLFVisibility|}
+export type TeamIDWithVisibility = $ReadOnly<{teamID: TeamID, visibility: TLFVisibility}>
 
-export type TeamInvite = {|role: TeamRole, id: TeamInviteID, type: TeamInviteType, name: TeamInviteName, inviter: UserVersion|}
+export type TeamInvite = $ReadOnly<{role: TeamRole, id: TeamInviteID, type: TeamInviteType, name: TeamInviteName, inviter: UserVersion}>
 
 export type TeamInviteCategory =
   | 0 // NONE_0
@@ -3520,41 +3520,41 @@ export type TeamInviteSocialNetwork = String
 
 export type TeamInviteType = {c: 1, unknown: ?String} | {c: 4, sbs: ?TeamInviteSocialNetwork} | {c: any}
 
-export type TeamInvitee = {|inviteID: TeamInviteID, uid: UID, eldestSeqno: Seqno, role: TeamRole|}
+export type TeamInvitee = $ReadOnly<{inviteID: TeamInviteID, uid: UID, eldestSeqno: Seqno, role: TeamRole}>
 
-export type TeamJoinRequest = {|name: String, username: String|}
+export type TeamJoinRequest = $ReadOnly<{name: String, username: String}>
 
-export type TeamList = {|teams?: ?Array<MemberInfo>|}
+export type TeamList = $ReadOnly<{teams?: ?Array<MemberInfo>}>
 
-export type TeamMember = {|uid: UID, role: TeamRole, eldestSeqno: Seqno, userEldestSeqno: Seqno|}
+export type TeamMember = $ReadOnly<{uid: UID, role: TeamRole, eldestSeqno: Seqno, userEldestSeqno: Seqno}>
 
-export type TeamMemberDetails = {|uv: UserVersion, username: String, fullName: FullName, active: Boolean, needsPUK: Boolean|}
+export type TeamMemberDetails = $ReadOnly<{uv: UserVersion, username: String, fullName: FullName, active: Boolean, needsPUK: Boolean}>
 
-export type TeamMemberOutFromReset = {|teamName: String, resetUser: TeamResetUser|}
+export type TeamMemberOutFromReset = $ReadOnly<{teamName: String, resetUser: TeamResetUser}>
 
-export type TeamMemberOutReset = {|teamname: String, username: String, id: Gregor1.MsgID|}
+export type TeamMemberOutReset = $ReadOnly<{teamname: String, username: String, id: Gregor1.MsgID}>
 
-export type TeamMembers = {|owners?: ?Array<UserVersion>, admins?: ?Array<UserVersion>, writers?: ?Array<UserVersion>, readers?: ?Array<UserVersion>|}
+export type TeamMembers = $ReadOnly<{owners?: ?Array<UserVersion>, admins?: ?Array<UserVersion>, writers?: ?Array<UserVersion>, readers?: ?Array<UserVersion>}>
 
-export type TeamMembersDetails = {|owners?: ?Array<TeamMemberDetails>, admins?: ?Array<TeamMemberDetails>, writers?: ?Array<TeamMemberDetails>, readers?: ?Array<TeamMemberDetails>|}
+export type TeamMembersDetails = $ReadOnly<{owners?: ?Array<TeamMemberDetails>, admins?: ?Array<TeamMemberDetails>, writers?: ?Array<TeamMemberDetails>, readers?: ?Array<TeamMemberDetails>}>
 
-export type TeamName = {|parts?: ?Array<TeamNamePart>|}
+export type TeamName = $ReadOnly<{parts?: ?Array<TeamNamePart>}>
 
-export type TeamNameLogPoint = {|lastPart: TeamNamePart, seqno: Seqno|}
+export type TeamNameLogPoint = $ReadOnly<{lastPart: TeamNamePart, seqno: Seqno}>
 
 export type TeamNamePart = String
 
-export type TeamOpenReqMsg = {|teamID: TeamID, tars?: ?Array<TeamAccessRequest>|}
+export type TeamOpenReqMsg = $ReadOnly<{teamID: TeamID, tars?: ?Array<TeamAccessRequest>}>
 
-export type TeamOperation = {|manageMembers: Boolean, manageSubteams: Boolean, createChannel: Boolean, deleteChannel: Boolean, renameChannel: Boolean, editChannelDescription: Boolean, setTeamShowcase: Boolean, setMemberShowcase: Boolean, changeOpenTeam: Boolean, leaveTeam: Boolean|}
+export type TeamOperation = $ReadOnly<{manageMembers: Boolean, manageSubteams: Boolean, createChannel: Boolean, deleteChannel: Boolean, renameChannel: Boolean, editChannelDescription: Boolean, setTeamShowcase: Boolean, setMemberShowcase: Boolean, changeOpenTeam: Boolean, leaveTeam: Boolean}>
 
-export type TeamPlusApplicationKeys = {|id: TeamID, name: String, implicit: Boolean, public: Boolean, application: TeamApplication, writers?: ?Array<UserVersion>, onlyReaders?: ?Array<UserVersion>, applicationKeys?: ?Array<TeamApplicationKey>|}
+export type TeamPlusApplicationKeys = $ReadOnly<{id: TeamID, name: String, implicit: Boolean, public: Boolean, application: TeamApplication, writers?: ?Array<UserVersion>, onlyReaders?: ?Array<UserVersion>, applicationKeys?: ?Array<TeamApplicationKey>}>
 
-export type TeamRefreshers = {|needKeyGeneration: PerTeamKeyGeneration, wantMembers?: ?Array<UserVersion>, wantMembersRole: TeamRole|}
+export type TeamRefreshers = $ReadOnly<{needKeyGeneration: PerTeamKeyGeneration, wantMembers?: ?Array<UserVersion>, wantMembersRole: TeamRole}>
 
-export type TeamRequestAccessResult = {|open: Boolean|}
+export type TeamRequestAccessResult = $ReadOnly<{open: Boolean}>
 
-export type TeamResetUser = {|username: String, uid: UID, eldestSeqno: Seqno|}
+export type TeamResetUser = $ReadOnly<{username: String, uid: UID, eldestSeqno: Seqno}>
 
 export type TeamRole =
   | 0 // NONE_0
@@ -3563,126 +3563,126 @@ export type TeamRole =
   | 3 // ADMIN_3
   | 4 // OWNER_4
 
-export type TeamSBSMsg = {|teamID: TeamID, score: Int, invitees?: ?Array<TeamInvitee>|}
+export type TeamSBSMsg = $ReadOnly<{teamID: TeamID, score: Int, invitees?: ?Array<TeamInvitee>}>
 
-export type TeamSeitanMsg = {|teamID: TeamID, seitans?: ?Array<TeamSeitanRequest>|}
+export type TeamSeitanMsg = $ReadOnly<{teamID: TeamID, seitans?: ?Array<TeamSeitanRequest>}>
 
-export type TeamSeitanRequest = {|inviteID: TeamInviteID, uid: UID, eldestSeqno: Seqno, akey: SeitanAKey, role: TeamRole, unixCTime: Int64|}
+export type TeamSeitanRequest = $ReadOnly<{inviteID: TeamInviteID, uid: UID, eldestSeqno: Seqno, akey: SeitanAKey, role: TeamRole, unixCTime: Int64}>
 
-export type TeamSettings = {|open: Boolean, joinAs: TeamRole|}
+export type TeamSettings = $ReadOnly<{open: Boolean, joinAs: TeamRole}>
 
-export type TeamShowcase = {|isShowcased: Boolean, description?: ?String, setByUID?: ?UID, anyMemberShowcase: Boolean|}
+export type TeamShowcase = $ReadOnly<{isShowcased: Boolean, description?: ?String, setByUID?: ?UID, anyMemberShowcase: Boolean}>
 
-export type TeamSigChainState = {|reader: UserVersion, id: TeamID, implicit: Boolean, public: Boolean, rootAncestor: TeamName, nameDepth: Int, nameLog?: ?Array<TeamNameLogPoint>, lastSeqno: Seqno, lastLinkID: LinkID, parentID?: ?TeamID, userLog: {[key: string]: ?Array<UserLogPoint>}, subteamLog: {[key: string]: ?Array<SubteamLogPoint>}, perTeamKeys: {[key: string]: PerTeamKey}, linkIDs: {[key: string]: LinkID}, stubbedLinks: {[key: string]: Boolean}, activeInvites: {[key: string]: TeamInvite}, open: Boolean, openTeamJoinAs: TeamRole, tlfID: TLFID|}
+export type TeamSigChainState = $ReadOnly<{reader: UserVersion, id: TeamID, implicit: Boolean, public: Boolean, rootAncestor: TeamName, nameDepth: Int, nameLog?: ?Array<TeamNameLogPoint>, lastSeqno: Seqno, lastLinkID: LinkID, parentID?: ?TeamID, userLog: {[key: string]: ?Array<UserLogPoint>}, subteamLog: {[key: string]: ?Array<SubteamLogPoint>}, perTeamKeys: {[key: string]: PerTeamKey}, linkIDs: {[key: string]: LinkID}, stubbedLinks: {[key: string]: Boolean}, activeInvites: {[key: string]: TeamInvite}, open: Boolean, openTeamJoinAs: TeamRole, tlfID: TLFID}>
 
-export type TeamTreeEntry = {|name: TeamName, admin: Boolean|}
+export type TeamTreeEntry = $ReadOnly<{name: TeamName, admin: Boolean}>
 
-export type TeamTreeResult = {|entries?: ?Array<TeamTreeEntry>|}
+export type TeamTreeResult = $ReadOnly<{entries?: ?Array<TeamTreeEntry>}>
 
 export type TeamType =
   | 0 // NONE_0
   | 1 // LEGACY_1
   | 2 // MODERN_2
 
-export type TeamsCanUserPerformRpcParam = {|name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TeamsCanUserPerformRpcParam = $ReadOnly<{name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsGetTeamAndMemberShowcaseRpcParam = {|name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TeamsGetTeamAndMemberShowcaseRpcParam = $ReadOnly<{name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsGetTeamRootIDRpcParam = {|id: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TeamsGetTeamRootIDRpcParam = $ReadOnly<{id: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsGetTeamShowcaseRpcParam = {|name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TeamsGetTeamShowcaseRpcParam = $ReadOnly<{name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsLoadTeamPlusApplicationKeysRpcParam = {|id: TeamID, application: TeamApplication, refreshers: TeamRefreshers, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TeamsLoadTeamPlusApplicationKeysRpcParam = $ReadOnly<{id: TeamID, application: TeamApplication, refreshers: TeamRefreshers, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsLookupImplicitTeamRpcParam = {|name: String, public: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TeamsLookupImplicitTeamRpcParam = $ReadOnly<{name: String, public: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsLookupOrCreateImplicitTeamRpcParam = {|name: String, public: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TeamsLookupOrCreateImplicitTeamRpcParam = $ReadOnly<{name: String, public: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsSetTeamMemberShowcaseRpcParam = {|name: String, isShowcased: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TeamsSetTeamMemberShowcaseRpcParam = $ReadOnly<{name: String, isShowcased: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsSetTeamShowcaseRpcParam = {|name: String, isShowcased?: ?Boolean, description?: ?String, anyMemberShowcase?: ?Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TeamsSetTeamShowcaseRpcParam = $ReadOnly<{name: String, isShowcased?: ?Boolean, description?: ?String, anyMemberShowcase?: ?Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsTeamAcceptInviteOrRequestAccessRpcParam = {|tokenOrName: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamAcceptInviteOrRequestAccessRpcParam = $ReadOnly<{tokenOrName: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsTeamAcceptInviteRpcParam = {|token: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamAcceptInviteRpcParam = $ReadOnly<{token: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsTeamAddEmailsBulkRpcParam = {|name: String, emails: String, role: TeamRole, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamAddEmailsBulkRpcParam = $ReadOnly<{name: String, emails: String, role: TeamRole, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsTeamAddMemberRpcParam = {|name: String, email: String, username: String, role: TeamRole, sendChatNotification: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamAddMemberRpcParam = $ReadOnly<{name: String, email: String, username: String, role: TeamRole, sendChatNotification: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsTeamChangeMembershipRpcParam = {|name: String, req: TeamChangeReq, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamChangeMembershipRpcParam = $ReadOnly<{name: String, req: TeamChangeReq, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsTeamCreateRpcParam = {|name: String, sendChatNotification: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamCreateRpcParam = $ReadOnly<{name: String, sendChatNotification: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsTeamCreateSeitanTokenRpcParam = {|name: String, role: TeamRole, label: SeitanIKeyLabel, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamCreateSeitanTokenRpcParam = $ReadOnly<{name: String, role: TeamRole, label: SeitanIKeyLabel, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsTeamCreateWithSettingsRpcParam = {|name: String, sendChatNotification: Boolean, settings: TeamSettings, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamCreateWithSettingsRpcParam = $ReadOnly<{name: String, sendChatNotification: Boolean, settings: TeamSettings, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsTeamDebugRpcParam = {|teamID: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamDebugRpcParam = $ReadOnly<{teamID: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsTeamDeleteRpcParam = {|name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamDeleteRpcParam = $ReadOnly<{name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsTeamEditMemberRpcParam = {|name: String, username: String, role: TeamRole, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamEditMemberRpcParam = $ReadOnly<{name: String, username: String, role: TeamRole, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsTeamGetRpcParam = {|name: String, forceRepoll: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamGetRpcParam = $ReadOnly<{name: String, forceRepoll: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsTeamIgnoreRequestRpcParam = {|name: String, username: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamIgnoreRequestRpcParam = $ReadOnly<{name: String, username: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsTeamImplicitAdminsRpcParam = {|teamName: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamImplicitAdminsRpcParam = $ReadOnly<{teamName: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsTeamLeaveRpcParam = {|name: String, permanent: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamLeaveRpcParam = $ReadOnly<{name: String, permanent: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsTeamListMyAccessRequestsRpcParam = {|teamName?: ?String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamListMyAccessRequestsRpcParam = $ReadOnly<{teamName?: ?String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsTeamListRequestsRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamListRequestsRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsTeamListRpcParam = {|userAssertion: String, all: Boolean, includeImplicitTeams: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamListRpcParam = $ReadOnly<{userAssertion: String, all: Boolean, includeImplicitTeams: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsTeamListSubteamsRecursiveRpcParam = {|parentTeamName: String, forceRepoll: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamListSubteamsRecursiveRpcParam = $ReadOnly<{parentTeamName: String, forceRepoll: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsTeamReAddMemberAfterResetRpcParam = {|id: TeamID, username: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamReAddMemberAfterResetRpcParam = $ReadOnly<{id: TeamID, username: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsTeamRemoveMemberRpcParam = {|name: String, username: String, email: String, inviteID: TeamInviteID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamRemoveMemberRpcParam = $ReadOnly<{name: String, username: String, email: String, inviteID: TeamInviteID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsTeamRenameRpcParam = {|prevName: TeamName, newName: TeamName, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamRenameRpcParam = $ReadOnly<{prevName: TeamName, newName: TeamName, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsTeamRequestAccessRpcParam = {|name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamRequestAccessRpcParam = $ReadOnly<{name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsTeamRotateKeyRpcParam = {|teamID: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamRotateKeyRpcParam = $ReadOnly<{teamID: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsTeamSetSettingsRpcParam = {|name: String, settings: TeamSettings, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamSetSettingsRpcParam = $ReadOnly<{name: String, settings: TeamSettings, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsTeamTreeRpcParam = {|name: TeamName, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamTreeRpcParam = $ReadOnly<{name: TeamName, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsUiConfirmRootTeamDeleteRpcParam = {|teamName: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TeamsUiConfirmRootTeamDeleteRpcParam = $ReadOnly<{teamName: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsUiConfirmSubteamDeleteRpcParam = {|teamName: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TeamsUiConfirmSubteamDeleteRpcParam = $ReadOnly<{teamName: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type Test = {|reply: String|}
+export type Test = $ReadOnly<{reply: String}>
 
-export type TestPanicRpcParam = {|message: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TestPanicRpcParam = $ReadOnly<{message: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TestTestCallbackRpcParam = {|name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TestTestCallbackRpcParam = $ReadOnly<{name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TestTestRpcParam = {|name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TestTestRpcParam = $ReadOnly<{name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type Text = {|data: String, markup: Boolean|}
+export type Text = $ReadOnly<{data: String, markup: Boolean}>
 
 export type Time = Long
 
-export type TlfCompleteAndCanonicalizePrivateTlfNameRpcParam = {|query: TLFQuery, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TlfCompleteAndCanonicalizePrivateTlfNameRpcParam = $ReadOnly<{query: TLFQuery, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TlfCryptKeysRpcParam = {|query: TLFQuery, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TlfCryptKeysRpcParam = $ReadOnly<{query: TLFQuery, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TlfKeysGetPublicCanonicalTLFNameAndIDRpcParam = {|query: TLFQuery, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TlfKeysGetPublicCanonicalTLFNameAndIDRpcParam = $ReadOnly<{query: TLFQuery, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TlfKeysGetTLFCryptKeysRpcParam = {|query: TLFQuery, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TlfKeysGetTLFCryptKeysRpcParam = $ReadOnly<{query: TLFQuery, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TlfPublicCanonicalTLFNameAndIDRpcParam = {|query: TLFQuery, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TlfPublicCanonicalTLFNameAndIDRpcParam = $ReadOnly<{query: TLFQuery, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TrackCheckTrackingRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TrackCheckTrackingRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TrackDiff = {|type: TrackDiffType, displayMarkup: String|}
+export type TrackDiff = $ReadOnly<{type: TrackDiffType, displayMarkup: String}>
 
 export type TrackDiffType =
   | 0 // NONE_0
@@ -3697,13 +3697,13 @@ export type TrackDiffType =
   | 9 // NEW_ELDEST_9
   | 10 // NONE_VIA_TEMPORARY_10
 
-export type TrackDismissWithTokenRpcParam = {|trackToken: TrackToken, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TrackDismissWithTokenRpcParam = $ReadOnly<{trackToken: TrackToken, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TrackFakeTrackingChangedRpcParam = {|username: String, isTracking: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TrackFakeTrackingChangedRpcParam = $ReadOnly<{username: String, isTracking: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TrackOptions = {|localOnly: Boolean, bypassConfirm: Boolean, forceRetrack: Boolean, expiringLocal: Boolean, forPGPPull: Boolean|}
+export type TrackOptions = $ReadOnly<{localOnly: Boolean, bypassConfirm: Boolean, forceRetrack: Boolean, expiringLocal: Boolean, forPGPPull: Boolean}>
 
-export type TrackProof = {|proofType: String, proofName: String, idString: String|}
+export type TrackProof = $ReadOnly<{proofType: String, proofName: String, idString: String}>
 
 export type TrackStatus =
   | 1 // NEW_OK_1
@@ -3714,17 +3714,17 @@ export type TrackStatus =
   | 6 // UPDATE_OK_6
   | 7 // UPDATE_BROKEN_REVOKED_7
 
-export type TrackSummary = {|username: String, time: Time, isRemote: Boolean|}
+export type TrackSummary = $ReadOnly<{username: String, time: Time, isRemote: Boolean}>
 
 export type TrackToken = String
 
-export type TrackTrackRpcParam = {|userAssertion: String, options: TrackOptions, forceRemoteCheck: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TrackTrackRpcParam = $ReadOnly<{userAssertion: String, options: TrackOptions, forceRemoteCheck: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TrackTrackWithTokenRpcParam = {|trackToken: TrackToken, options: TrackOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TrackTrackWithTokenRpcParam = $ReadOnly<{trackToken: TrackToken, options: TrackOptions, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TrackUntrackRpcParam = {|username: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TrackUntrackRpcParam = $ReadOnly<{username: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type Tracker = {|tracker: UID, status: Int, mTime: Time|}
+export type Tracker = $ReadOnly<{tracker: UID, status: Int, mTime: Time}>
 
 export type UID = String
 
@@ -3742,99 +3742,99 @@ export type UPK2MinorVersion =
   | 4 // V4_4
   | 5 // V5_5
 
-export type UiPromptYesNoRpcParam = {|text: Text, promptDefault: PromptDefault, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type UiPromptYesNoRpcParam = $ReadOnly<{text: Text, promptDefault: PromptDefault, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type UnboxAnyRes = {|kid: KID, plaintext: Bytes32, index: Int|}
+export type UnboxAnyRes = $ReadOnly<{kid: KID, plaintext: Bytes32, index: Int}>
 
-export type UninstallResult = {|componentResults?: ?Array<ComponentResult>, status: Status|}
+export type UninstallResult = $ReadOnly<{componentResults?: ?Array<ComponentResult>, status: Status}>
 
-export type User = {|uid: UID, username: String|}
+export type User = $ReadOnly<{uid: UID, username: String}>
 
-export type UserCard = {|following: Int, followers: Int, uid: UID, fullName: String, location: String, bio: String, website: String, twitter: String, youFollowThem: Boolean, theyFollowYou: Boolean, teamShowcase?: ?Array<UserTeamShowcase>|}
+export type UserCard = $ReadOnly<{following: Int, followers: Int, uid: UID, fullName: String, location: String, bio: String, website: String, twitter: String, youFollowThem: Boolean, theyFollowYou: Boolean, teamShowcase?: ?Array<UserTeamShowcase>}>
 
-export type UserDeleteUserRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type UserDeleteUserRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type UserGetUPAKRpcParam = {|uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type UserGetUPAKRpcParam = $ReadOnly<{uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type UserInterestingPeopleRpcParam = {|maxUsers: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type UserInterestingPeopleRpcParam = $ReadOnly<{maxUsers: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type UserListTrackers2RpcParam = {|assertion: String, reverse: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type UserListTrackers2RpcParam = $ReadOnly<{assertion: String, reverse: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type UserListTrackersByNameRpcParam = {|username: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type UserListTrackersByNameRpcParam = $ReadOnly<{username: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type UserListTrackersRpcParam = {|uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type UserListTrackersRpcParam = $ReadOnly<{uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type UserListTrackersSelfRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type UserListTrackersSelfRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type UserListTrackingJSONRpcParam = {|filter: String, verbose: Boolean, assertion: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type UserListTrackingJSONRpcParam = $ReadOnly<{filter: String, verbose: Boolean, assertion: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type UserListTrackingRpcParam = {|filter: String, assertion: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type UserListTrackingRpcParam = $ReadOnly<{filter: String, assertion: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type UserLoadAllPublicKeysUnverifiedRpcParam = {|uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type UserLoadAllPublicKeysUnverifiedRpcParam = $ReadOnly<{uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type UserLoadMyPublicKeysRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type UserLoadMyPublicKeysRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type UserLoadMySettingsRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type UserLoadMySettingsRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type UserLoadPublicKeysRpcParam = {|uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type UserLoadPublicKeysRpcParam = $ReadOnly<{uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type UserLoadUncheckedUserSummariesRpcParam = {|uids?: ?Array<UID>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type UserLoadUncheckedUserSummariesRpcParam = $ReadOnly<{uids?: ?Array<UID>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type UserLoadUserByNameRpcParam = {|username: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type UserLoadUserByNameRpcParam = $ReadOnly<{username: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type UserLoadUserPlusKeysRpcParam = {|uid: UID, pollForKID: KID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type UserLoadUserPlusKeysRpcParam = $ReadOnly<{uid: UID, pollForKID: KID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type UserLoadUserRpcParam = {|uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type UserLoadUserRpcParam = $ReadOnly<{uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type UserLogPoint = {|role: TeamRole, sigMeta: SignatureMetadata|}
+export type UserLogPoint = $ReadOnly<{role: TeamRole, sigMeta: SignatureMetadata}>
 
-export type UserMeUserVersionRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type UserMeUserVersionRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type UserOrTeamID = String
 
-export type UserOrTeamLite = {|id: UserOrTeamID, name: String|}
+export type UserOrTeamLite = $ReadOnly<{id: UserOrTeamID, name: String}>
 
 export type UserOrTeamResult =
   | 1 // USER_1
   | 2 // TEAM_2
 
-export type UserPlusAllKeys = {|base: UserPlusKeys, pgpKeys?: ?Array<PublicKey>, remoteTracks?: ?Array<RemoteTrack>|}
+export type UserPlusAllKeys = $ReadOnly<{base: UserPlusKeys, pgpKeys?: ?Array<PublicKey>, remoteTracks?: ?Array<RemoteTrack>}>
 
-export type UserPlusKeys = {|uid: UID, username: String, eldestSeqno: Seqno, status: StatusCode, deviceKeys?: ?Array<PublicKey>, revokedDeviceKeys?: ?Array<RevokedKey>, pgpKeyCount: Int, uvv: UserVersionVector, deletedDeviceKeys?: ?Array<PublicKey>, perUserKeys?: ?Array<PerUserKey>|}
+export type UserPlusKeys = $ReadOnly<{uid: UID, username: String, eldestSeqno: Seqno, status: StatusCode, deviceKeys?: ?Array<PublicKey>, revokedDeviceKeys?: ?Array<RevokedKey>, pgpKeyCount: Int, uvv: UserVersionVector, deletedDeviceKeys?: ?Array<PublicKey>, perUserKeys?: ?Array<PerUserKey>}>
 
-export type UserPlusKeysV2 = {|uid: UID, username: String, eldestSeqno: Seqno, status: StatusCode, perUserKeys?: ?Array<PerUserKey>, deviceKeys: {[key: string]: PublicKeyV2NaCl}, pgpKeys: {[key: string]: PublicKeyV2PGPSummary}, remoteTracks: {[key: string]: RemoteTrack}|}
+export type UserPlusKeysV2 = $ReadOnly<{uid: UID, username: String, eldestSeqno: Seqno, status: StatusCode, perUserKeys?: ?Array<PerUserKey>, deviceKeys: {[key: string]: PublicKeyV2NaCl}, pgpKeys: {[key: string]: PublicKeyV2PGPSummary}, remoteTracks: {[key: string]: RemoteTrack}}>
 
-export type UserPlusKeysV2AllIncarnations = {|current: UserPlusKeysV2, pastIncarnations?: ?Array<UserPlusKeysV2>, uvv: UserVersionVector, seqnoLinkIDs: {[key: string]: LinkID}, minorVersion: UPK2MinorVersion|}
+export type UserPlusKeysV2AllIncarnations = $ReadOnly<{current: UserPlusKeysV2, pastIncarnations?: ?Array<UserPlusKeysV2>, uvv: UserVersionVector, seqnoLinkIDs: {[key: string]: LinkID}, minorVersion: UPK2MinorVersion}>
 
-export type UserProfileEditRpcParam = {|fullName: String, location: String, bio: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type UserProfileEditRpcParam = $ReadOnly<{fullName: String, location: String, bio: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type UserResetUserRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type UserResetUserRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type UserResolution = {|assertion: SocialAssertion, userID: UID|}
+export type UserResolution = $ReadOnly<{assertion: SocialAssertion, userID: UID}>
 
-export type UserSearchRpcParam = {|query: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type UserSearchRpcParam = $ReadOnly<{query: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type UserSettings = {|emails?: ?Array<Email>|}
+export type UserSettings = $ReadOnly<{emails?: ?Array<Email>}>
 
-export type UserSummary = {|uid: UID, username: String, thumbnail: String, idVersion: Int, fullName: String, bio: String, proofs: Proofs, sigIDDisplay: String, trackTime: Time|}
+export type UserSummary = $ReadOnly<{uid: UID, username: String, thumbnail: String, idVersion: Int, fullName: String, bio: String, proofs: Proofs, sigIDDisplay: String, trackTime: Time}>
 
-export type UserSummary2 = {|uid: UID, username: String, thumbnail: String, fullName: String, isFollower: Boolean, isFollowee: Boolean|}
+export type UserSummary2 = $ReadOnly<{uid: UID, username: String, thumbnail: String, fullName: String, isFollower: Boolean, isFollowee: Boolean}>
 
-export type UserSummary2Set = {|users?: ?Array<UserSummary2>, time: Time, version: Int|}
+export type UserSummary2Set = $ReadOnly<{users?: ?Array<UserSummary2>, time: Time, version: Int}>
 
-export type UserTeamShowcase = {|fqName: String, open: Boolean, teamIsShowcased: Boolean, description: String, role: TeamRole, publicAdmins?: ?Array<String>, numMembers: Int|}
+export type UserTeamShowcase = $ReadOnly<{fqName: String, open: Boolean, teamIsShowcased: Boolean, description: String, role: TeamRole, publicAdmins?: ?Array<String>, numMembers: Int}>
 
-export type UserVersion = {|uid: UID, eldestSeqno: Seqno|}
+export type UserVersion = $ReadOnly<{uid: UID, eldestSeqno: Seqno}>
 
 export type UserVersionPercentForm = String
 
-export type UserVersionVector = {|id: Long, sigHints: Int, sigChain: Long, cachedAt: Time|}
+export type UserVersionVector = $ReadOnly<{id: Long, sigHints: Int, sigChain: Long, cachedAt: Time}>
 
-export type VerifySessionRes = {|uid: UID, sid: String, generated: Int, lifetime: Int|}
+export type VerifySessionRes = $ReadOnly<{uid: UID, sid: String, generated: Int, lifetime: Int}>
 
-export type WebProof = {|hostname: String, protocols?: ?Array<String>|}
+export type WebProof = $ReadOnly<{hostname: String, protocols?: ?Array<String>}>
 
-export type WriteArgs = {|opID: OpID, path: Path, offset: Long|}
+export type WriteArgs = $ReadOnly<{opID: OpID, path: Path, offset: Long}>
 type AccountHasServerKeysResult = HasServerKeysRes
 type AccountPassphrasePromptResult = GetPassphraseRes
 type ApiserverDeleteResult = APIRes
@@ -4018,92 +4018,92 @@ type UserLoadUserResult = User
 type UserMeUserVersionResult = UserVersion
 type UserSearchResult = ?Array<SearchResult>
 
-export type IncomingCallMapType = {|
-  'keybase.1.gpgUi.wantToAddGPGKey'?: (params: {|sessionID: Int|}, response: {error: RPCErrorHandler, result: (result: GpgUiWantToAddGPGKeyResult) => void}) => void,
-  'keybase.1.gpgUi.confirmDuplicateKeyChosen'?: (params: {|sessionID: Int|}, response: {error: RPCErrorHandler, result: (result: GpgUiConfirmDuplicateKeyChosenResult) => void}) => void,
-  'keybase.1.gpgUi.selectKeyAndPushOption'?: (params: {|sessionID: Int, keys?: ?Array<GPGKey>|}, response: {error: RPCErrorHandler, result: (result: GpgUiSelectKeyAndPushOptionResult) => void}) => void,
-  'keybase.1.gpgUi.selectKey'?: (params: {|sessionID: Int, keys?: ?Array<GPGKey>|}, response: {error: RPCErrorHandler, result: (result: GpgUiSelectKeyResult) => void}) => void,
-  'keybase.1.gpgUi.sign'?: (params: {|msg: Bytes, fingerprint: Bytes|}, response: {error: RPCErrorHandler, result: (result: GpgUiSignResult) => void}) => void,
-  'keybase.1.gpgUi.getTTY'?: (params: {||}, response: {error: RPCErrorHandler, result: (result: GpgUiGetTTYResult) => void}) => void,
-  'keybase.1.gregorUI.pushState'?: (params: {|state: Gregor1.State, reason: PushReason|}, response: CommonResponseHandler) => void,
-  'keybase.1.gregorUI.pushOutOfBandMessages'?: (params: {|oobm?: ?Array<Gregor1.OutOfBandMessage>|}, response: CommonResponseHandler) => void,
-  'keybase.1.homeUi.homeUIRefresh'?: (params: {||}, response: CommonResponseHandler) => void,
-  'keybase.1.identifyUi.displayTLFCreateWithInvite'?: (params: {|sessionID: Int, folderName: String, isPrivate: Boolean, assertion: String, socialAssertion: SocialAssertion, inviteLink: String, throttled: Boolean|}, response: CommonResponseHandler) => void,
-  'keybase.1.identifyUi.delegateIdentifyUI'?: (params: {||}, response: {error: RPCErrorHandler, result: (result: IdentifyUiDelegateIdentifyUIResult) => void}) => void,
-  'keybase.1.identifyUi.start'?: (params: {|sessionID: Int, username: String, reason: IdentifyReason, forceDisplay?: Boolean|}, response: CommonResponseHandler) => void,
-  'keybase.1.identifyUi.displayKey'?: (params: {|sessionID: Int, key: IdentifyKey|}, response: CommonResponseHandler) => void,
-  'keybase.1.identifyUi.reportLastTrack'?: (params: {|sessionID: Int, track?: ?TrackSummary|}, response: CommonResponseHandler) => void,
-  'keybase.1.identifyUi.launchNetworkChecks'?: (params: {|sessionID: Int, identity: Identity, user: User|}, response: CommonResponseHandler) => void,
-  'keybase.1.identifyUi.displayTrackStatement'?: (params: {|sessionID: Int, stmt: String|}, response: CommonResponseHandler) => void,
-  'keybase.1.identifyUi.finishWebProofCheck'?: (params: {|sessionID: Int, rp: RemoteProof, lcr: LinkCheckResult|}, response: CommonResponseHandler) => void,
-  'keybase.1.identifyUi.finishSocialProofCheck'?: (params: {|sessionID: Int, rp: RemoteProof, lcr: LinkCheckResult|}, response: CommonResponseHandler) => void,
-  'keybase.1.identifyUi.displayCryptocurrency'?: (params: {|sessionID: Int, c: Cryptocurrency|}, response: CommonResponseHandler) => void,
-  'keybase.1.identifyUi.reportTrackToken'?: (params: {|sessionID: Int, trackToken: TrackToken|}, response: CommonResponseHandler) => void,
-  'keybase.1.identifyUi.displayUserCard'?: (params: {|sessionID: Int, card: UserCard|}, response: CommonResponseHandler) => void,
-  'keybase.1.identifyUi.confirm'?: (params: {|sessionID: Int, outcome: IdentifyOutcome|}, response: {error: RPCErrorHandler, result: (result: IdentifyUiConfirmResult) => void}) => void,
-  'keybase.1.identifyUi.cancel'?: (params: {|sessionID: Int|}, response: CommonResponseHandler) => void,
-  'keybase.1.identifyUi.finish'?: (params: {|sessionID: Int|}, response: CommonResponseHandler) => void,
-  'keybase.1.identifyUi.dismiss'?: (params: {|sessionID: Int, username: String, reason: DismissReason|}, response: CommonResponseHandler) => void,
-  'keybase.1.logUi.log'?: (params: {|sessionID: Int, level: LogLevel, text: Text|}, response: CommonResponseHandler) => void,
-  'keybase.1.loginUi.getEmailOrUsername'?: (params: {|sessionID: Int|}, response: {error: RPCErrorHandler, result: (result: LoginUiGetEmailOrUsernameResult) => void}) => void,
-  'keybase.1.loginUi.promptRevokePaperKeys'?: (params: {|sessionID: Int, device: Device, index: Int|}, response: {error: RPCErrorHandler, result: (result: LoginUiPromptRevokePaperKeysResult) => void}) => void,
-  'keybase.1.loginUi.displayPaperKeyPhrase'?: (params: {|sessionID: Int, phrase: String|}, response: CommonResponseHandler) => void,
-  'keybase.1.loginUi.displayPrimaryPaperKey'?: (params: {|sessionID: Int, phrase: String|}, response: CommonResponseHandler) => void,
-  'keybase.1.logsend.prepareLogsend'?: (params: {||}, response: CommonResponseHandler) => void,
-  'keybase.1.NotifyApp.exit'?: (params: {||}, response: CommonResponseHandler) => void,
-  'keybase.1.NotifyBadges.badgeState'?: (params: {|badgeState: BadgeState|}) => void,
-  'keybase.1.NotifyFavorites.favoritesChanged'?: (params: {|uid: UID|}) => void,
-  'keybase.1.NotifyFS.FSActivity'?: (params: {|notification: FSNotification|}) => void,
-  'keybase.1.NotifyFS.FSSyncActivity'?: (params: {|status: FSPathSyncStatus|}, response: CommonResponseHandler) => void,
-  'keybase.1.NotifyFS.FSEditListResponse'?: (params: {|edits?: ?Array<FSNotification>, requestID: Int|}, response: CommonResponseHandler) => void,
-  'keybase.1.NotifyFS.FSSyncStatusResponse'?: (params: {|status: FSSyncStatus, requestID: Int|}, response: CommonResponseHandler) => void,
-  'keybase.1.NotifyKeyfamily.keyfamilyChanged'?: (params: {|uid: UID|}, response: CommonResponseHandler) => void,
-  'keybase.1.NotifyPaperKey.paperKeyCached'?: (params: {|uid: UID, encKID: KID, sigKID: KID|}, response: CommonResponseHandler) => void,
-  'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'?: (params: {||}, response: CommonResponseHandler) => void,
-  'keybase.1.NotifyService.shutdown'?: (params: {||}, response: CommonResponseHandler) => void,
-  'keybase.1.NotifySession.loggedOut'?: (params: {||}) => void,
-  'keybase.1.NotifySession.loggedIn'?: (params: {|username: String|}, response: CommonResponseHandler) => void,
-  'keybase.1.NotifySession.clientOutOfDate'?: (params: {|upgradeTo: String, upgradeURI: String, upgradeMsg: String|}, response: CommonResponseHandler) => void,
-  'keybase.1.NotifyTeam.teamChangedByID'?: (params: {|teamID: TeamID, latestSeqno: Seqno, implicitTeam: Boolean, changes: TeamChangeSet|}, response: CommonResponseHandler) => void,
-  'keybase.1.NotifyTeam.teamChangedByName'?: (params: {|teamName: String, latestSeqno: Seqno, implicitTeam: Boolean, changes: TeamChangeSet|}, response: CommonResponseHandler) => void,
-  'keybase.1.NotifyTeam.teamDeleted'?: (params: {|teamID: TeamID|}, response: CommonResponseHandler) => void,
-  'keybase.1.NotifyTeam.teamExit'?: (params: {|teamID: TeamID|}, response: CommonResponseHandler) => void,
-  'keybase.1.NotifyTracking.trackingChanged'?: (params: {|uid: UID, username: String, isTracking: Boolean|}) => void,
-  'keybase.1.NotifyUsers.userChanged'?: (params: {|uid: UID|}) => void,
-  'keybase.1.pgpUi.outputSignatureSuccess'?: (params: {|sessionID: Int, fingerprint: String, username: String, signedAt: Time|}, response: CommonResponseHandler) => void,
-  'keybase.1.pgpUi.outputSignatureSuccessNonKeybase'?: (params: {|sessionID: Int, keyID: String, signedAt: Time|}, response: CommonResponseHandler) => void,
-  'keybase.1.pgpUi.keyGenerated'?: (params: {|sessionID: Int, kid: KID, key: KeyInfo|}, response: CommonResponseHandler) => void,
-  'keybase.1.pgpUi.shouldPushPrivate'?: (params: {|sessionID: Int|}, response: {error: RPCErrorHandler, result: (result: PgpUiShouldPushPrivateResult) => void}) => void,
-  'keybase.1.pgpUi.finished'?: (params: {|sessionID: Int|}, response: CommonResponseHandler) => void,
-  'keybase.1.proveUi.promptOverwrite'?: (params: {|sessionID: Int, account: String, typ: PromptOverwriteType|}, response: {error: RPCErrorHandler, result: (result: ProveUiPromptOverwriteResult) => void}) => void,
-  'keybase.1.proveUi.promptUsername'?: (params: {|sessionID: Int, prompt: String, prevError?: ?Status|}, response: {error: RPCErrorHandler, result: (result: ProveUiPromptUsernameResult) => void}) => void,
-  'keybase.1.proveUi.outputPrechecks'?: (params: {|sessionID: Int, text: Text|}, response: CommonResponseHandler) => void,
-  'keybase.1.proveUi.preProofWarning'?: (params: {|sessionID: Int, text: Text|}, response: {error: RPCErrorHandler, result: (result: ProveUiPreProofWarningResult) => void}) => void,
-  'keybase.1.proveUi.outputInstructions'?: (params: {|sessionID: Int, instructions: Text, proof: String|}, response: CommonResponseHandler) => void,
-  'keybase.1.proveUi.okToCheck'?: (params: {|sessionID: Int, name: String, attempt: Int|}, response: {error: RPCErrorHandler, result: (result: ProveUiOkToCheckResult) => void}) => void,
-  'keybase.1.proveUi.displayRecheckWarning'?: (params: {|sessionID: Int, text: Text|}, response: CommonResponseHandler) => void,
-  'keybase.1.provisionUi.chooseProvisioningMethod'?: (params: {|sessionID: Int, gpgOption: Boolean|}, response: {error: RPCErrorHandler, result: (result: ProvisionUiChooseProvisioningMethodResult) => void}) => void,
-  'keybase.1.provisionUi.chooseGPGMethod'?: (params: {|sessionID: Int, keys?: ?Array<GPGKey>|}, response: {error: RPCErrorHandler, result: (result: ProvisionUiChooseGPGMethodResult) => void}) => void,
-  'keybase.1.provisionUi.switchToGPGSignOK'?: (params: {|sessionID: Int, key: GPGKey, importError: String|}, response: {error: RPCErrorHandler, result: (result: ProvisionUiSwitchToGPGSignOKResult) => void}) => void,
-  'keybase.1.provisionUi.chooseDevice'?: (params: {|sessionID: Int, devices?: ?Array<Device>, canSelectNoDevice: Boolean|}, response: {error: RPCErrorHandler, result: (result: ProvisionUiChooseDeviceResult) => void}) => void,
-  'keybase.1.provisionUi.chooseDeviceType'?: (params: {|sessionID: Int, kind: ChooseType|}, response: {error: RPCErrorHandler, result: (result: ProvisionUiChooseDeviceTypeResult) => void}) => void,
-  'keybase.1.provisionUi.DisplayAndPromptSecret'?: (params: {|sessionID: Int, secret: Bytes, phrase: String, otherDeviceType: DeviceType, previousErr: String|}, response: {error: RPCErrorHandler, result: (result: ProvisionUiDisplayAndPromptSecretResult) => void}) => void,
-  'keybase.1.provisionUi.DisplaySecretExchanged'?: (params: {|sessionID: Int|}, response: CommonResponseHandler) => void,
-  'keybase.1.provisionUi.PromptNewDeviceName'?: (params: {|sessionID: Int, existingDevices?: ?Array<String>, errorMessage: String|}, response: {error: RPCErrorHandler, result: (result: ProvisionUiPromptNewDeviceNameResult) => void}) => void,
-  'keybase.1.provisionUi.ProvisioneeSuccess'?: (params: {|sessionID: Int, username: String, deviceName: String|}, response: CommonResponseHandler) => void,
-  'keybase.1.provisionUi.ProvisionerSuccess'?: (params: {|sessionID: Int, deviceName: String, deviceType: String|}, response: CommonResponseHandler) => void,
-  'keybase.1.rekeyUI.delegateRekeyUI'?: (params: {||}, response: {error: RPCErrorHandler, result: (result: RekeyUIDelegateRekeyUIResult) => void}) => void,
-  'keybase.1.rekeyUI.refresh'?: (params: {|sessionID: Int, problemSetDevices: ProblemSetDevices|}, response: CommonResponseHandler) => void,
-  'keybase.1.rekeyUI.rekeySendEvent'?: (params: {|sessionID: Int, event: RekeyEvent|}, response: CommonResponseHandler) => void,
-  'keybase.1.saltpackUi.saltpackPromptForDecrypt'?: (params: {|sessionID: Int, sender: SaltpackSender, usedDelegateUI: Boolean|}, response: CommonResponseHandler) => void,
-  'keybase.1.saltpackUi.saltpackVerifySuccess'?: (params: {|sessionID: Int, signingKID: KID, sender: SaltpackSender|}, response: CommonResponseHandler) => void,
-  'keybase.1.saltpackUi.saltpackVerifyBadSender'?: (params: {|sessionID: Int, signingKID: KID, sender: SaltpackSender|}, response: CommonResponseHandler) => void,
-  'keybase.1.secretUi.getPassphrase'?: (params: {|sessionID: Int, pinentry: GUIEntryArg, terminal?: ?SecretEntryArg|}, response: {error: RPCErrorHandler, result: (result: SecretUiGetPassphraseResult) => void}) => void,
-  'keybase.1.streamUi.close'?: (params: {|sessionID: Int, s: Stream|}, response: CommonResponseHandler) => void,
-  'keybase.1.streamUi.read'?: (params: {|sessionID: Int, s: Stream, sz: Int|}, response: {error: RPCErrorHandler, result: (result: StreamUiReadResult) => void}) => void,
-  'keybase.1.streamUi.reset'?: (params: {|sessionID: Int, s: Stream|}, response: CommonResponseHandler) => void,
-  'keybase.1.streamUi.write'?: (params: {|sessionID: Int, s: Stream, buf: Bytes|}, response: {error: RPCErrorHandler, result: (result: StreamUiWriteResult) => void}) => void,
-  'keybase.1.teamsUi.confirmRootTeamDelete'?: (params: {|sessionID: Int, teamName: String|}, response: {error: RPCErrorHandler, result: (result: TeamsUiConfirmRootTeamDeleteResult) => void}) => void,
-  'keybase.1.teamsUi.confirmSubteamDelete'?: (params: {|sessionID: Int, teamName: String|}, response: {error: RPCErrorHandler, result: (result: TeamsUiConfirmSubteamDeleteResult) => void}) => void,
-  'keybase.1.ui.promptYesNo'?: (params: {|sessionID: Int, text: Text, promptDefault: PromptDefault|}, response: {error: RPCErrorHandler, result: (result: UiPromptYesNoResult) => void}) => void,
-|}
+export type IncomingCallMapType = {
+  'keybase.1.gpgUi.wantToAddGPGKey'?: (params: $ReadOnly<{sessionID: Int}>, response: {error: RPCErrorHandler, result: (result: GpgUiWantToAddGPGKeyResult) => void}) => void,
+  'keybase.1.gpgUi.confirmDuplicateKeyChosen'?: (params: $ReadOnly<{sessionID: Int}>, response: {error: RPCErrorHandler, result: (result: GpgUiConfirmDuplicateKeyChosenResult) => void}) => void,
+  'keybase.1.gpgUi.selectKeyAndPushOption'?: (params: $ReadOnly<{sessionID: Int, keys?: ?Array<GPGKey>}>, response: {error: RPCErrorHandler, result: (result: GpgUiSelectKeyAndPushOptionResult) => void}) => void,
+  'keybase.1.gpgUi.selectKey'?: (params: $ReadOnly<{sessionID: Int, keys?: ?Array<GPGKey>}>, response: {error: RPCErrorHandler, result: (result: GpgUiSelectKeyResult) => void}) => void,
+  'keybase.1.gpgUi.sign'?: (params: $ReadOnly<{msg: Bytes, fingerprint: Bytes}>, response: {error: RPCErrorHandler, result: (result: GpgUiSignResult) => void}) => void,
+  'keybase.1.gpgUi.getTTY'?: (params: $ReadOnly<{}>, response: {error: RPCErrorHandler, result: (result: GpgUiGetTTYResult) => void}) => void,
+  'keybase.1.gregorUI.pushState'?: (params: $ReadOnly<{state: Gregor1.State, reason: PushReason}>, response: CommonResponseHandler) => void,
+  'keybase.1.gregorUI.pushOutOfBandMessages'?: (params: $ReadOnly<{oobm?: ?Array<Gregor1.OutOfBandMessage>}>, response: CommonResponseHandler) => void,
+  'keybase.1.homeUi.homeUIRefresh'?: (params: $ReadOnly<{}>, response: CommonResponseHandler) => void,
+  'keybase.1.identifyUi.displayTLFCreateWithInvite'?: (params: $ReadOnly<{sessionID: Int, folderName: String, isPrivate: Boolean, assertion: String, socialAssertion: SocialAssertion, inviteLink: String, throttled: Boolean}>, response: CommonResponseHandler) => void,
+  'keybase.1.identifyUi.delegateIdentifyUI'?: (params: $ReadOnly<{}>, response: {error: RPCErrorHandler, result: (result: IdentifyUiDelegateIdentifyUIResult) => void}) => void,
+  'keybase.1.identifyUi.start'?: (params: $ReadOnly<{sessionID: Int, username: String, reason: IdentifyReason, forceDisplay?: Boolean}>, response: CommonResponseHandler) => void,
+  'keybase.1.identifyUi.displayKey'?: (params: $ReadOnly<{sessionID: Int, key: IdentifyKey}>, response: CommonResponseHandler) => void,
+  'keybase.1.identifyUi.reportLastTrack'?: (params: $ReadOnly<{sessionID: Int, track?: ?TrackSummary}>, response: CommonResponseHandler) => void,
+  'keybase.1.identifyUi.launchNetworkChecks'?: (params: $ReadOnly<{sessionID: Int, identity: Identity, user: User}>, response: CommonResponseHandler) => void,
+  'keybase.1.identifyUi.displayTrackStatement'?: (params: $ReadOnly<{sessionID: Int, stmt: String}>, response: CommonResponseHandler) => void,
+  'keybase.1.identifyUi.finishWebProofCheck'?: (params: $ReadOnly<{sessionID: Int, rp: RemoteProof, lcr: LinkCheckResult}>, response: CommonResponseHandler) => void,
+  'keybase.1.identifyUi.finishSocialProofCheck'?: (params: $ReadOnly<{sessionID: Int, rp: RemoteProof, lcr: LinkCheckResult}>, response: CommonResponseHandler) => void,
+  'keybase.1.identifyUi.displayCryptocurrency'?: (params: $ReadOnly<{sessionID: Int, c: Cryptocurrency}>, response: CommonResponseHandler) => void,
+  'keybase.1.identifyUi.reportTrackToken'?: (params: $ReadOnly<{sessionID: Int, trackToken: TrackToken}>, response: CommonResponseHandler) => void,
+  'keybase.1.identifyUi.displayUserCard'?: (params: $ReadOnly<{sessionID: Int, card: UserCard}>, response: CommonResponseHandler) => void,
+  'keybase.1.identifyUi.confirm'?: (params: $ReadOnly<{sessionID: Int, outcome: IdentifyOutcome}>, response: {error: RPCErrorHandler, result: (result: IdentifyUiConfirmResult) => void}) => void,
+  'keybase.1.identifyUi.cancel'?: (params: $ReadOnly<{sessionID: Int}>, response: CommonResponseHandler) => void,
+  'keybase.1.identifyUi.finish'?: (params: $ReadOnly<{sessionID: Int}>, response: CommonResponseHandler) => void,
+  'keybase.1.identifyUi.dismiss'?: (params: $ReadOnly<{sessionID: Int, username: String, reason: DismissReason}>, response: CommonResponseHandler) => void,
+  'keybase.1.logUi.log'?: (params: $ReadOnly<{sessionID: Int, level: LogLevel, text: Text}>, response: CommonResponseHandler) => void,
+  'keybase.1.loginUi.getEmailOrUsername'?: (params: $ReadOnly<{sessionID: Int}>, response: {error: RPCErrorHandler, result: (result: LoginUiGetEmailOrUsernameResult) => void}) => void,
+  'keybase.1.loginUi.promptRevokePaperKeys'?: (params: $ReadOnly<{sessionID: Int, device: Device, index: Int}>, response: {error: RPCErrorHandler, result: (result: LoginUiPromptRevokePaperKeysResult) => void}) => void,
+  'keybase.1.loginUi.displayPaperKeyPhrase'?: (params: $ReadOnly<{sessionID: Int, phrase: String}>, response: CommonResponseHandler) => void,
+  'keybase.1.loginUi.displayPrimaryPaperKey'?: (params: $ReadOnly<{sessionID: Int, phrase: String}>, response: CommonResponseHandler) => void,
+  'keybase.1.logsend.prepareLogsend'?: (params: $ReadOnly<{}>, response: CommonResponseHandler) => void,
+  'keybase.1.NotifyApp.exit'?: (params: $ReadOnly<{}>, response: CommonResponseHandler) => void,
+  'keybase.1.NotifyBadges.badgeState'?: (params: $ReadOnly<{badgeState: BadgeState}>) => void,
+  'keybase.1.NotifyFavorites.favoritesChanged'?: (params: $ReadOnly<{uid: UID}>) => void,
+  'keybase.1.NotifyFS.FSActivity'?: (params: $ReadOnly<{notification: FSNotification}>) => void,
+  'keybase.1.NotifyFS.FSSyncActivity'?: (params: $ReadOnly<{status: FSPathSyncStatus}>, response: CommonResponseHandler) => void,
+  'keybase.1.NotifyFS.FSEditListResponse'?: (params: $ReadOnly<{edits?: ?Array<FSNotification>, requestID: Int}>, response: CommonResponseHandler) => void,
+  'keybase.1.NotifyFS.FSSyncStatusResponse'?: (params: $ReadOnly<{status: FSSyncStatus, requestID: Int}>, response: CommonResponseHandler) => void,
+  'keybase.1.NotifyKeyfamily.keyfamilyChanged'?: (params: $ReadOnly<{uid: UID}>, response: CommonResponseHandler) => void,
+  'keybase.1.NotifyPaperKey.paperKeyCached'?: (params: $ReadOnly<{uid: UID, encKID: KID, sigKID: KID}>, response: CommonResponseHandler) => void,
+  'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'?: (params: $ReadOnly<{}>, response: CommonResponseHandler) => void,
+  'keybase.1.NotifyService.shutdown'?: (params: $ReadOnly<{}>, response: CommonResponseHandler) => void,
+  'keybase.1.NotifySession.loggedOut'?: (params: $ReadOnly<{}>) => void,
+  'keybase.1.NotifySession.loggedIn'?: (params: $ReadOnly<{username: String}>, response: CommonResponseHandler) => void,
+  'keybase.1.NotifySession.clientOutOfDate'?: (params: $ReadOnly<{upgradeTo: String, upgradeURI: String, upgradeMsg: String}>, response: CommonResponseHandler) => void,
+  'keybase.1.NotifyTeam.teamChangedByID'?: (params: $ReadOnly<{teamID: TeamID, latestSeqno: Seqno, implicitTeam: Boolean, changes: TeamChangeSet}>, response: CommonResponseHandler) => void,
+  'keybase.1.NotifyTeam.teamChangedByName'?: (params: $ReadOnly<{teamName: String, latestSeqno: Seqno, implicitTeam: Boolean, changes: TeamChangeSet}>, response: CommonResponseHandler) => void,
+  'keybase.1.NotifyTeam.teamDeleted'?: (params: $ReadOnly<{teamID: TeamID}>, response: CommonResponseHandler) => void,
+  'keybase.1.NotifyTeam.teamExit'?: (params: $ReadOnly<{teamID: TeamID}>, response: CommonResponseHandler) => void,
+  'keybase.1.NotifyTracking.trackingChanged'?: (params: $ReadOnly<{uid: UID, username: String, isTracking: Boolean}>) => void,
+  'keybase.1.NotifyUsers.userChanged'?: (params: $ReadOnly<{uid: UID}>) => void,
+  'keybase.1.pgpUi.outputSignatureSuccess'?: (params: $ReadOnly<{sessionID: Int, fingerprint: String, username: String, signedAt: Time}>, response: CommonResponseHandler) => void,
+  'keybase.1.pgpUi.outputSignatureSuccessNonKeybase'?: (params: $ReadOnly<{sessionID: Int, keyID: String, signedAt: Time}>, response: CommonResponseHandler) => void,
+  'keybase.1.pgpUi.keyGenerated'?: (params: $ReadOnly<{sessionID: Int, kid: KID, key: KeyInfo}>, response: CommonResponseHandler) => void,
+  'keybase.1.pgpUi.shouldPushPrivate'?: (params: $ReadOnly<{sessionID: Int}>, response: {error: RPCErrorHandler, result: (result: PgpUiShouldPushPrivateResult) => void}) => void,
+  'keybase.1.pgpUi.finished'?: (params: $ReadOnly<{sessionID: Int}>, response: CommonResponseHandler) => void,
+  'keybase.1.proveUi.promptOverwrite'?: (params: $ReadOnly<{sessionID: Int, account: String, typ: PromptOverwriteType}>, response: {error: RPCErrorHandler, result: (result: ProveUiPromptOverwriteResult) => void}) => void,
+  'keybase.1.proveUi.promptUsername'?: (params: $ReadOnly<{sessionID: Int, prompt: String, prevError?: ?Status}>, response: {error: RPCErrorHandler, result: (result: ProveUiPromptUsernameResult) => void}) => void,
+  'keybase.1.proveUi.outputPrechecks'?: (params: $ReadOnly<{sessionID: Int, text: Text}>, response: CommonResponseHandler) => void,
+  'keybase.1.proveUi.preProofWarning'?: (params: $ReadOnly<{sessionID: Int, text: Text}>, response: {error: RPCErrorHandler, result: (result: ProveUiPreProofWarningResult) => void}) => void,
+  'keybase.1.proveUi.outputInstructions'?: (params: $ReadOnly<{sessionID: Int, instructions: Text, proof: String}>, response: CommonResponseHandler) => void,
+  'keybase.1.proveUi.okToCheck'?: (params: $ReadOnly<{sessionID: Int, name: String, attempt: Int}>, response: {error: RPCErrorHandler, result: (result: ProveUiOkToCheckResult) => void}) => void,
+  'keybase.1.proveUi.displayRecheckWarning'?: (params: $ReadOnly<{sessionID: Int, text: Text}>, response: CommonResponseHandler) => void,
+  'keybase.1.provisionUi.chooseProvisioningMethod'?: (params: $ReadOnly<{sessionID: Int, gpgOption: Boolean}>, response: {error: RPCErrorHandler, result: (result: ProvisionUiChooseProvisioningMethodResult) => void}) => void,
+  'keybase.1.provisionUi.chooseGPGMethod'?: (params: $ReadOnly<{sessionID: Int, keys?: ?Array<GPGKey>}>, response: {error: RPCErrorHandler, result: (result: ProvisionUiChooseGPGMethodResult) => void}) => void,
+  'keybase.1.provisionUi.switchToGPGSignOK'?: (params: $ReadOnly<{sessionID: Int, key: GPGKey, importError: String}>, response: {error: RPCErrorHandler, result: (result: ProvisionUiSwitchToGPGSignOKResult) => void}) => void,
+  'keybase.1.provisionUi.chooseDevice'?: (params: $ReadOnly<{sessionID: Int, devices?: ?Array<Device>, canSelectNoDevice: Boolean}>, response: {error: RPCErrorHandler, result: (result: ProvisionUiChooseDeviceResult) => void}) => void,
+  'keybase.1.provisionUi.chooseDeviceType'?: (params: $ReadOnly<{sessionID: Int, kind: ChooseType}>, response: {error: RPCErrorHandler, result: (result: ProvisionUiChooseDeviceTypeResult) => void}) => void,
+  'keybase.1.provisionUi.DisplayAndPromptSecret'?: (params: $ReadOnly<{sessionID: Int, secret: Bytes, phrase: String, otherDeviceType: DeviceType, previousErr: String}>, response: {error: RPCErrorHandler, result: (result: ProvisionUiDisplayAndPromptSecretResult) => void}) => void,
+  'keybase.1.provisionUi.DisplaySecretExchanged'?: (params: $ReadOnly<{sessionID: Int}>, response: CommonResponseHandler) => void,
+  'keybase.1.provisionUi.PromptNewDeviceName'?: (params: $ReadOnly<{sessionID: Int, existingDevices?: ?Array<String>, errorMessage: String}>, response: {error: RPCErrorHandler, result: (result: ProvisionUiPromptNewDeviceNameResult) => void}) => void,
+  'keybase.1.provisionUi.ProvisioneeSuccess'?: (params: $ReadOnly<{sessionID: Int, username: String, deviceName: String}>, response: CommonResponseHandler) => void,
+  'keybase.1.provisionUi.ProvisionerSuccess'?: (params: $ReadOnly<{sessionID: Int, deviceName: String, deviceType: String}>, response: CommonResponseHandler) => void,
+  'keybase.1.rekeyUI.delegateRekeyUI'?: (params: $ReadOnly<{}>, response: {error: RPCErrorHandler, result: (result: RekeyUIDelegateRekeyUIResult) => void}) => void,
+  'keybase.1.rekeyUI.refresh'?: (params: $ReadOnly<{sessionID: Int, problemSetDevices: ProblemSetDevices}>, response: CommonResponseHandler) => void,
+  'keybase.1.rekeyUI.rekeySendEvent'?: (params: $ReadOnly<{sessionID: Int, event: RekeyEvent}>, response: CommonResponseHandler) => void,
+  'keybase.1.saltpackUi.saltpackPromptForDecrypt'?: (params: $ReadOnly<{sessionID: Int, sender: SaltpackSender, usedDelegateUI: Boolean}>, response: CommonResponseHandler) => void,
+  'keybase.1.saltpackUi.saltpackVerifySuccess'?: (params: $ReadOnly<{sessionID: Int, signingKID: KID, sender: SaltpackSender}>, response: CommonResponseHandler) => void,
+  'keybase.1.saltpackUi.saltpackVerifyBadSender'?: (params: $ReadOnly<{sessionID: Int, signingKID: KID, sender: SaltpackSender}>, response: CommonResponseHandler) => void,
+  'keybase.1.secretUi.getPassphrase'?: (params: $ReadOnly<{sessionID: Int, pinentry: GUIEntryArg, terminal?: ?SecretEntryArg}>, response: {error: RPCErrorHandler, result: (result: SecretUiGetPassphraseResult) => void}) => void,
+  'keybase.1.streamUi.close'?: (params: $ReadOnly<{sessionID: Int, s: Stream}>, response: CommonResponseHandler) => void,
+  'keybase.1.streamUi.read'?: (params: $ReadOnly<{sessionID: Int, s: Stream, sz: Int}>, response: {error: RPCErrorHandler, result: (result: StreamUiReadResult) => void}) => void,
+  'keybase.1.streamUi.reset'?: (params: $ReadOnly<{sessionID: Int, s: Stream}>, response: CommonResponseHandler) => void,
+  'keybase.1.streamUi.write'?: (params: $ReadOnly<{sessionID: Int, s: Stream, buf: Bytes}>, response: {error: RPCErrorHandler, result: (result: StreamUiWriteResult) => void}) => void,
+  'keybase.1.teamsUi.confirmRootTeamDelete'?: (params: $ReadOnly<{sessionID: Int, teamName: String}>, response: {error: RPCErrorHandler, result: (result: TeamsUiConfirmRootTeamDeleteResult) => void}) => void,
+  'keybase.1.teamsUi.confirmSubteamDelete'?: (params: $ReadOnly<{sessionID: Int, teamName: String}>, response: {error: RPCErrorHandler, result: (result: TeamsUiConfirmSubteamDeleteResult) => void}) => void,
+  'keybase.1.ui.promptYesNo'?: (params: $ReadOnly<{sessionID: Int, text: Text, promptDefault: PromptDefault}>, response: {error: RPCErrorHandler, result: (result: UiPromptYesNoResult) => void}) => void,
+}

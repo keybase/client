@@ -15,10 +15,16 @@ export const listenForNotifications = 'notifications:listenForNotifications'
 export const receivedBadgeState = 'notifications:receivedBadgeState'
 
 // Action Creators
-export const createBadgeApp = (payload: {|+key: Types.NotificationKeys, +on: boolean, +count?: number|}) => ({error: false, payload, type: badgeApp})
+export const createBadgeApp = (
+  payload: $ReadOnly<{
+    key: Types.NotificationKeys,
+    on: boolean,
+    count?: number,
+  }>
+) => ({error: false, payload, type: badgeApp})
 export const createListenForKBFSNotifications = () => ({error: false, payload: undefined, type: listenForKBFSNotifications})
 export const createListenForNotifications = () => ({error: false, payload: undefined, type: listenForNotifications})
-export const createReceivedBadgeState = (payload: {|+badgeState: RPCTypes.BadgeState|}) => ({error: false, payload, type: receivedBadgeState})
+export const createReceivedBadgeState = (payload: $ReadOnly<{badgeState: RPCTypes.BadgeState}>) => ({error: false, payload, type: receivedBadgeState})
 
 // Action Payloads
 export type BadgeAppPayload = More.ReturnType<typeof createBadgeApp>

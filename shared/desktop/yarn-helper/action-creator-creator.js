@@ -80,11 +80,11 @@ function actionReduxTypeName(ns: ActionNS, actionName: ActionName): string {
 
 function printPayload(p: Object) {
   return Object.keys(p).length
-    ? '(payload: {|' +
+    ? '(payload: $ReadOnly<{' +
         Object.keys(p)
-          .map(key => `+${key}: ${p[key]}`)
+          .map(key => `${key}: ${p[key]}`)
           .join(',\n') +
-        '|})'
+        '}>)'
     : '()'
 }
 

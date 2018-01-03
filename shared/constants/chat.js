@@ -242,7 +242,7 @@ function getBrokenUsers(
   return participants.filter(user => user !== you && metaDataMap.getIn([user, 'brokenTracker'], false))
 }
 
-function clampAttachmentPreviewSize({width, height}: Types.AttachmentSize) {
+function clampAttachmentPreviewSize({width, height}: $ReadOnly<Types.AttachmentSize>): Types.AttachmentSize {
   if (height > width) {
     return {
       height: clamp(height || 0, 0, maxAttachmentPreviewSize),
