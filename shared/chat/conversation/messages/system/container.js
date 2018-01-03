@@ -1,7 +1,7 @@
 // @flow
 import * as Constants from '../../../../constants/chat'
 import * as Types from '../../../../constants/types/chat'
-import {AddedToTeamNotice, ComplexTeamNotice, InviteAddedToTeamNotice} from '.'
+import {AddedToTeamNotice, ComplexTeamNotice, InviteAddedToTeamNotice, GitPushInfoNotice} from '.'
 import {compose, branch, renderComponent, renderNothing} from 'recompose'
 import createCachedSelector from 're-reselect'
 import {connect} from 'react-redux'
@@ -44,6 +44,7 @@ export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   branch(props => props.message.info.type === 'inviteAccepted', renderComponent(InviteAddedToTeamNotice)),
   branch(props => props.message.info.type === 'simpleToComplex', renderComponent(ComplexTeamNotice)),
-  branch(props => props.message.info.type === 'addedToTeam', renderComponent(AddedToTeamNotice))
+  branch(props => props.message.info.type === 'addedToTeam', renderComponent(AddedToTeamNotice)),
+  branch(props => props.message.info.type === 'gitPush', renderComponent(GitPushInfoNotice))
   // $FlowIssue with the renderNothing type
 )(renderNothing())

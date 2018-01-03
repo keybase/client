@@ -440,6 +440,9 @@ func formatSystemMessage(body chat1.MessageSystem) string {
 		return fmt.Sprintf("[Created a new channel in %s]", body.Complexteam().Team)
 	case chat1.MessageSystemType_CREATETEAM:
 		return fmt.Sprintf("[%s created the team %s]", body.Createteam().Creator, body.Createteam().Team)
+	case chat1.MessageSystemType_GITPUSH:
+		return fmt.Sprintf("[git (%s) %s pushed %d commits to %s]", body.Gitpush().RepoName,
+			body.Gitpush().Pusher, len(body.Gitpush().CommitMsgs), body.Gitpush().BranchName)
 	}
 	return "<unknown system message>"
 }
