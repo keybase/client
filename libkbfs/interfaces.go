@@ -125,8 +125,14 @@ type Node interface {
 	// if the node has been unlinked.
 	GetBasename() string
 	// WrapChild returns a wrapped version of `child`, if desired, to
-	// add custom behavior to the child node.
+	// add custom behavior to the child node.  If the Node instance
+	// receiving this call is itself a wrapped node, it should call
+	// `WrapChild(child)` on its internal wrapped node as well, in
+	// case there are multiple wrapping layers available.
 	WrapChild(child Node) Node
+	// Unwrap returns the initial, unwrapped Node that was used to
+	// create this Node.
+	Unwrap() Node
 }
 
 // KBFSOps handles all file system operations.  Expands all indirect
@@ -1926,6 +1932,9 @@ type NodeCache interface {
 	PathFromNode(node Node) path
 	// AllNodes returns the complete set of nodes currently in the cache.
 	AllNodes() []Node
+	// AddRootWrapper adds a new wrapper function that will be applied
+	// whenever a root Node is created.
+	AddRootWrapper(func(Node) Node)
 }
 
 // fileBlockDeepCopier fetches a file block, makes a deep copy of it

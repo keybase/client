@@ -12,14 +12,14 @@ import (
 // nodeCore holds info shared among one or more nodeStandard objects.
 type nodeCore struct {
 	pathNode *pathNode
-	parent   *nodeStandard
+	parent   Node
 	cache    *nodeCacheStandard
 	// used only when parent is nil (the object has been unlinked)
 	cachedPath path
 	cachedDe   DirEntry
 }
 
-func newNodeCore(ptr BlockPointer, name string, parent *nodeStandard,
+func newNodeCore(ptr BlockPointer, name string, parent Node,
 	cache *nodeCacheStandard) *nodeCore {
 	return &nodeCore{
 		pathNode: &pathNode{
@@ -79,4 +79,8 @@ func (n *nodeStandard) GetBasename() string {
 
 func (n *nodeStandard) WrapChild(child Node) Node {
 	return child
+}
+
+func (n *nodeStandard) Unwrap() Node {
+	return n
 }

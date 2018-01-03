@@ -19,8 +19,10 @@ type nodeCacheEntry struct {
 // fields to construct paths.
 type nodeCacheStandard struct {
 	folderBranch FolderBranch
-	nodes        map[BlockRef]*nodeCacheEntry
+
 	lock         sync.RWMutex
+	nodes        map[BlockRef]*nodeCacheEntry
+	rootWrappers []func(Node) Node
 }
 
 var _ NodeCache = (*nodeCacheStandard)(nil)
@@ -59,7 +61,7 @@ func (ncs *nodeCacheStandard) forget(core *nodeCore) {
 
 // lock must be held for writing by the caller
 func (ncs *nodeCacheStandard) newChildForParentLocked(parent Node) (*nodeStandard, error) {
-	nodeStandard, ok := parent.(*nodeStandard)
+	nodeStandard, ok := parent.Unwrap().(*nodeStandard)
 	if !ok {
 		return nil, ParentNodeNotFoundError{BlockRef{}}
 	}
@@ -75,11 +77,15 @@ func (ncs *nodeCacheStandard) newChildForParentLocked(parent Node) (*nodeStandar
 	return nodeStandard, nil
 }
 
-func makeNodeStandardForEntry(entry *nodeCacheEntry) Node {
+func (ncs *nodeCacheStandard) makeNodeStandardForEntryLocked(
+	entry *nodeCacheEntry) (n Node) {
 	entry.refCount++
-	n := makeNodeStandard(entry.core)
+	n = makeNodeStandard(entry.core)
 	if entry.core.parent != nil {
 		return entry.core.parent.WrapChild(n)
+	}
+	for _, f := range ncs.rootWrappers {
+		n = f(n)
 	}
 	return n
 }
@@ -109,24 +115,23 @@ func (ncs *nodeCacheStandard) GetOrCreate(
 		if parent != nil && entry.core.parent == nil {
 			delete(ncs.nodes, ptr.Ref())
 		} else {
-			return makeNodeStandardForEntry(entry), nil
+			return ncs.makeNodeStandardForEntryLocked(entry), nil
 		}
 	}
 
-	var parentNS *nodeStandard
 	if parent != nil {
-		var err error
-		parentNS, err = ncs.newChildForParentLocked(parent)
+		// Make sure a child can be made for this parent.
+		_, err := ncs.newChildForParentLocked(parent)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	entry = &nodeCacheEntry{
-		core: newNodeCore(ptr, name, parentNS, ncs),
+		core: newNodeCore(ptr, name, parent, ncs),
 	}
 	ncs.nodes[ptr.Ref()] = entry
-	return makeNodeStandardForEntry(entry), nil
+	return ncs.makeNodeStandardForEntryLocked(entry), nil
 }
 
 // Get implements the NodeCache interface for nodeCacheStandard.
@@ -147,7 +152,7 @@ func (ncs *nodeCacheStandard) Get(ref BlockRef) Node {
 	if !ok {
 		return nil
 	}
-	return makeNodeStandardForEntry(entry)
+	return ncs.makeNodeStandardForEntryLocked(entry)
 }
 
 // UpdatePointer implements the NodeCache interface for nodeCacheStandard.
@@ -271,7 +276,7 @@ func (ncs *nodeCacheStandard) IsUnlinked(node Node) bool {
 	ncs.lock.RLock()
 	defer ncs.lock.RUnlock()
 
-	ns, ok := node.(*nodeStandard)
+	ns, ok := node.Unwrap().(*nodeStandard)
 	if !ok {
 		return false
 	}
@@ -285,7 +290,7 @@ func (ncs *nodeCacheStandard) UnlinkedDirEntry(node Node) DirEntry {
 	ncs.lock.RLock()
 	defer ncs.lock.RUnlock()
 
-	ns, ok := node.(*nodeStandard)
+	ns, ok := node.Unwrap().(*nodeStandard)
 	if !ok {
 		return DirEntry{}
 	}
@@ -298,7 +303,7 @@ func (ncs *nodeCacheStandard) PathFromNode(node Node) (p path) {
 	ncs.lock.RLock()
 	defer ncs.lock.RUnlock()
 
-	ns, ok := node.(*nodeStandard)
+	ns, ok := node.Unwrap().(*nodeStandard)
 	if !ok {
 		p.path = nil
 		return
@@ -322,7 +327,11 @@ func (ncs *nodeCacheStandard) PathFromNode(node Node) (p path) {
 		}
 
 		p.path = append(p.path, *core.pathNode)
-		ns = core.parent
+		if core.parent != nil {
+			ns = core.parent.Unwrap().(*nodeStandard)
+		} else {
+			break
+		}
 	}
 
 	// need to reverse the path nodes
@@ -342,7 +351,13 @@ func (ncs *nodeCacheStandard) AllNodes() []Node {
 	defer ncs.lock.Unlock()
 	var nodes []Node
 	for _, entry := range ncs.nodes {
-		nodes = append(nodes, makeNodeStandardForEntry(entry))
+		nodes = append(nodes, ncs.makeNodeStandardForEntryLocked(entry))
 	}
 	return nodes
+}
+
+func (ncs *nodeCacheStandard) AddRootWrapper(f func(Node) Node) {
+	ncs.lock.Lock()
+	defer ncs.lock.Unlock()
+	ncs.rootWrappers = append(ncs.rootWrappers, f)
 }

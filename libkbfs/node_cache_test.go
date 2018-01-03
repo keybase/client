@@ -10,6 +10,7 @@ import (
 
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/stretchr/testify/require"
 )
 
 func setupNodeCache(t *testing.T, id tlf.ID, branch BranchName, flat bool) (
@@ -112,8 +113,8 @@ func simulateGC(ncs *nodeCacheStandard, liveList []Node) {
 
 		// Everything referenced as a parent is live.
 		for _, e := range ncs.nodes {
-			p := e.core.parent
-			if p != nil {
+			if e.core.parent != nil {
+				p := e.core.parent.Unwrap().(*nodeStandard)
 				liveSet[p.core] = true
 			}
 		}
@@ -471,4 +472,43 @@ func TestNodeCacheGCReal(t *testing.T) {
 
 	// Make sure childNode2 isn't GCed until after this point.
 	func(interface{}) {}(childNode2)
+}
+
+type wrappedTestNode struct {
+	Node
+	wrapCalled bool
+}
+
+func (wtn *wrappedTestNode) WrapChild(child Node) Node {
+	child = wtn.Node.WrapChild(child)
+	wtn.wrapCalled = true
+	return child
+}
+
+func TestNodeCacheWrapChild(t *testing.T) {
+	ncs := newNodeCacheStandard(
+		FolderBranch{tlf.FakeID(0, tlf.Private), MasterBranch})
+	var wtn1, wtn2 *wrappedTestNode
+	rw1 := func(root Node) Node {
+		wtn1 = &wrappedTestNode{root, false}
+		return wtn1
+	}
+	rw2 := func(root Node) Node {
+		wtn2 = &wrappedTestNode{root, false}
+		return wtn2
+	}
+	ncs.AddRootWrapper(rw1)
+	ncs.AddRootWrapper(rw2)
+
+	rootPtr := BlockPointer{ID: kbfsblock.FakeID(0)}
+	rootName := "root"
+	rootNode, err := ncs.GetOrCreate(rootPtr, rootName, nil)
+	require.NoError(t, err)
+
+	childPtr := BlockPointer{ID: kbfsblock.FakeID(1)}
+	childName := "child1"
+	_, err = ncs.GetOrCreate(childPtr, childName, rootNode)
+	require.NoError(t, err)
+	require.True(t, wtn1.wrapCalled)
+	require.True(t, wtn2.wrapCalled)
 }

@@ -789,6 +789,18 @@ func (mr *MockNodeMockRecorder) WrapChild(child interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WrapChild", reflect.TypeOf((*MockNode)(nil).WrapChild), child)
 }
 
+// Unwrap mocks base method
+func (m *MockNode) Unwrap() Node {
+	ret := m.ctrl.Call(m, "Unwrap")
+	ret0, _ := ret[0].(Node)
+	return ret0
+}
+
+// Unwrap indicates an expected call of Unwrap
+func (mr *MockNodeMockRecorder) Unwrap() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Unwrap", reflect.TypeOf((*MockNode)(nil).Unwrap))
+}
+
 // MockKBFSOps is a mock of KBFSOps interface
 type MockKBFSOps struct {
 	ctrl     *gomock.Controller
@@ -6777,6 +6789,16 @@ func (m *MockNodeCache) AllNodes() []Node {
 // AllNodes indicates an expected call of AllNodes
 func (mr *MockNodeCacheMockRecorder) AllNodes() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AllNodes", reflect.TypeOf((*MockNodeCache)(nil).AllNodes))
+}
+
+// AddRootWrapper mocks base method
+func (m *MockNodeCache) AddRootWrapper(arg0 func(Node) Node) {
+	m.ctrl.Call(m, "AddRootWrapper", arg0)
+}
+
+// AddRootWrapper indicates an expected call of AddRootWrapper
+func (mr *MockNodeCacheMockRecorder) AddRootWrapper(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddRootWrapper", reflect.TypeOf((*MockNodeCache)(nil).AddRootWrapper), arg0)
 }
 
 // MockcrAction is a mock of crAction interface
