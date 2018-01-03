@@ -476,12 +476,12 @@ func TestNodeCacheGCReal(t *testing.T) {
 
 type wrappedTestNode struct {
 	Node
-	wrapCalled bool
+	wrapChildCalled bool
 }
 
 func (wtn *wrappedTestNode) WrapChild(child Node) Node {
 	child = wtn.Node.WrapChild(child)
-	wtn.wrapCalled = true
+	wtn.wrapChildCalled = true
 	return child
 }
 
@@ -509,6 +509,6 @@ func TestNodeCacheWrapChild(t *testing.T) {
 	childName := "child1"
 	_, err = ncs.GetOrCreate(childPtr, childName, rootNode)
 	require.NoError(t, err)
-	require.True(t, wtn1.wrapCalled)
-	require.True(t, wtn2.wrapCalled)
+	require.True(t, wtn1.wrapChildCalled)
+	require.True(t, wtn2.wrapChildCalled)
 }
