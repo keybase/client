@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box, Text} from '.'
-import {type Props} from './form-input'
+import type {Props} from './form-input'
 import {NativeTextInput} from './native-wrappers.native'
 import {globalColors, globalMargins, globalStyles} from '../styles'
 import {getStyle} from './text'
