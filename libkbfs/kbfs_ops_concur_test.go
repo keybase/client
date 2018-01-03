@@ -592,6 +592,8 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 	// TODO: Use kbfsConcurTestShutdown.
 	defer kbfsConcurTestShutdownNoCheck(t, config, ctx, cancel)
 
+	<-config.BlockOps().TogglePrefetcher(false)
+
 	km := &mdRecordingKeyManager{delegate: config.KeyManager()}
 
 	config.SetKeyManager(km)
@@ -655,7 +657,7 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 
 	wg.Wait()
 
-	// Do this in the main goroutine since t isn't goroutine safe,
+	// Do this in the main goroutine since it isn't goroutine safe,
 	// and do this after wg.Wait() since we only know it's set
 	// after the goroutine exits.
 	if syncErr != nil {
@@ -679,6 +681,8 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, "test_user")
 	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
+
+	<-config.BlockOps().TogglePrefetcher(false)
 
 	km := &mdRecordingKeyManager{delegate: config.KeyManager()}
 
