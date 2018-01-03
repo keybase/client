@@ -1,23 +1,28 @@
 // @flow
 import * as React from 'react'
-import {RefreshControl, SafeAreaView, StyleSheet} from 'react-native'
-import {Avatar, ScrollView} from '../common-adapters'
+import {
+  Avatar,
+  NativeSafeAreaView,
+  NativeRefreshControl,
+  NativeStyleSheet,
+  ScrollView,
+} from '../common-adapters/index.native'
 import {PeoplePageSearchBar, PeoplePageList} from './index.shared'
 import {type Props} from '.'
 import {globalColors, globalStyles} from '../styles'
 
 const People = (props: Props) => (
-  <SafeAreaView>
+  <NativeSafeAreaView>
     <ScrollView
       style={{...globalStyles.fullHeight}}
-      refreshControl={<RefreshControl refreshing={props.waiting} onRefresh={() => props.getData()} />}
+      refreshControl={<NativeRefreshControl refreshing={props.waiting} onRefresh={() => props.getData()} />}
     >
       <PeoplePageSearchBar
         {...props}
         styleRowContainer={{left: 0}}
         styleSearchContainer={{
           borderColor: globalColors.black_05,
-          borderWidth: StyleSheet.hairlineWidth,
+          borderWidth: NativeStyleSheet.hairlineWidth,
           minHeight: 33,
           width: 233,
         }}
@@ -31,7 +36,7 @@ const People = (props: Props) => (
       />
       <PeoplePageList {...props} />
     </ScrollView>
-  </SafeAreaView>
+  </NativeSafeAreaView>
 )
 
 export default People
