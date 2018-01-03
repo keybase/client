@@ -1,0 +1,23 @@
+// @flow
+import {Component} from 'react'
+import type {TextType, Background} from './text'
+
+export type Props = {
+  backgroundMode?: Background,
+  containerStyle?: any,
+  inputStyle?: any,
+  label?: string,
+  value?: string,
+  textType?: TextType,
+  secure?: boolean,
+  maxHeight?: number,
+  multiline?: boolean,
+  hideBottomBorder?: boolean,
+  onChangeText?: (value: string) => void,
+}
+
+export default class FormInput extends Component<Props> {
+  getValue: () => string
+  setValue: string => void
+  clearValue: () => void
+}
