@@ -66,7 +66,7 @@ const metaMapReducer = (metaMap, action) => {
           default:
             return metaMap.update(
               action.payload.conversationIDKey,
-              meta => (meta ? meta.set('trustedState', 'error') : meta)
+              meta => (meta ? meta.set('trustedState', 'error').set('untrustedMessage', error.message) : meta)
             )
         }
       } else {
