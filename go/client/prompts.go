@@ -67,4 +67,5 @@ const (
 	OutputDescriptorEndageredTLFs
 	OutputDescriptorHomeDump
 	OutputDescriptorBadgeDump
+	OutputDescriptorTeamList
 )

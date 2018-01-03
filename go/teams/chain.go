@@ -98,6 +98,21 @@ func (t TeamSigChainState) GetUserRole(user keybase1.UserVersion) (keybase1.Team
 	return t.getUserRole(user), nil
 }
 
+// Get the user's role right after link at seqno was processed.
+func (t TeamSigChainState) GetUserRoleAtSeqno(user keybase1.UserVersion, seqno keybase1.Seqno) (keybase1.TeamRole, error) {
+	role := keybase1.TeamRole_NONE
+	if seqno <= 0 {
+		return role, fmt.Errorf("seqno %v is less than 1", seqno)
+	}
+	for _, point := range t.inner.UserLog[user] {
+		if point.SigMeta.SigChainLocation.Seqno > seqno {
+			return role, nil
+		}
+		role = point.Role
+	}
+	return role, nil
+}
+
 func (t TeamSigChainState) GetUserLogPoint(user keybase1.UserVersion) *keybase1.UserLogPoint {
 	points := t.inner.UserLog[user]
 	if len(points) == 0 {
@@ -657,7 +672,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		return res, NewInvalidLink(link, "empty link signer")
 	}
 
-	// TODO: this may be superfluous.
+	// This may be superfluous.
 	err = link.AssertInnerOuterMatch()
 	if err != nil {
 		return res, err
@@ -707,6 +722,13 @@ func (t *TeamSigChainPlayer) addInnerLink(
 	if team.Public && (!team.Implicit || (prevState != nil && !prevState.IsImplicit())) {
 		return res, fmt.Errorf("public non-implicit teams are not supported")
 	}
+
+	err = t.checkSeqnoToAdd(prevState, link.Seqno(), isInflate)
+	if err != nil {
+		return res, err
+	}
+	// When isInflate then it is likely prevSeqno != prevState.GetLatestSeqno()
+	prevSeqno := link.Seqno() - 1
 
 	hasPrevState := func(has bool) error {
 		if has {
@@ -767,7 +789,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 	}
 
 	checkAdmin := func(op string) (signerIsExplicitOwner bool, err error) {
-		signerRole, err := prevState.GetUserRole(signer.signer)
+		signerRole, err := prevState.GetUserRoleAtSeqno(signer.signer, prevSeqno)
 		if err != nil {
 			signerRole = keybase1.TeamRole_NONE
 		}
@@ -779,7 +801,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 	}
 
 	checkExplicitWriter := func(op string) (err error) {
-		signerRole, err := prevState.GetUserRole(signer.signer)
+		signerRole, err := prevState.GetUserRoleAtSeqno(signer.signer, prevSeqno)
 		if err != nil {
 			signerRole = keybase1.TeamRole_NONE
 		}
@@ -961,12 +983,18 @@ func (t *TeamSigChainPlayer) addInnerLink(
 
 			// Check that the invites being completed are all active.
 			// For non-implicit teams we are more lenient, but here we need the counts to match up.
-			for inviteID := range team.CompletedInvites {
+			invitees := make(map[keybase1.UID]bool)
+			for inviteID, invitee := range team.CompletedInvites {
 				_, ok := prevState.inner.ActiveInvites[inviteID]
 				if !ok {
 					return res, NewImplicitTeamOperationError("completed invite %v but was not active",
 						inviteID)
 				}
+				uv, err := keybase1.ParseUserVersion(invitee)
+				if err != nil {
+					return res, err
+				}
+				invitees[uv.Uid] = true
 			}
 			nCompleted := len(team.CompletedInvites)
 
@@ -994,6 +1022,11 @@ func (t *TeamSigChainPlayer) addInnerLink(
 					}
 					removal.satisfied = true
 					removals[uv.Uid] = removal
+					if invitees[uv.Uid] && uv.EldestSeqno > removal.uv.EldestSeqno {
+						// If we are removing someone that is also a completed invite, then it must
+						// be replacing a reset user with a new version. Expect an invite in this case.
+						nCompletedExpected++
+					}
 				} else {
 					// This is a new user, so must be a completed invite.
 					nCompletedExpected++
@@ -1007,7 +1040,8 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			}
 			// The number of completed invites must match.
 			if nCompletedExpected != nCompleted {
-				return res, NewImplicitTeamOperationError("illegal membership change")
+				return res, NewImplicitTeamOperationError("illegal membership change: %d != %d",
+					nCompletedExpected, nCompleted)
 			}
 		}
 
@@ -1051,7 +1085,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 
 		// Check that the signer is at least a writer to have permission to make this link.
 		if !signer.implicitAdmin {
-			signerRole, err := prevState.GetUserRole(signer.signer)
+			signerRole, err := prevState.GetUserRoleAtSeqno(signer.signer, prevSeqno)
 			if err != nil {
 				return res, err
 			}
@@ -1101,7 +1135,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 
 		// Check that the signer is at least a reader.
 		// Implicit admins cannot leave a subteam.
-		signerRole, err := prevState.GetUserRole(signer.signer)
+		signerRole, err := prevState.GetUserRoleAtSeqno(signer.signer, prevSeqno)
 		if err != nil {
 			return res, err
 		}
@@ -1279,6 +1313,11 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, NewImplicitTeamOperationError(payload.Body.Type)
 		}
 
+		_, err = checkAdmin("rename subteam")
+		if err != nil {
+			return res, err
+		}
+
 		// Check the subteam ID
 		subteamID, err := t.assertIsSubteamID(string(team.Subteam.ID))
 		if err != nil {
@@ -1384,6 +1423,11 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, NewImplicitTeamOperationError(payload.Body.Type)
 		}
 
+		_, err = checkAdmin("delete subteam")
+		if err != nil {
+			return res, err
+		}
+
 		// Check the subteam ID
 		subteamID, err := t.assertIsSubteamID(string(team.Subteam.ID))
 		if err != nil {
@@ -1420,22 +1464,9 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, err
 		}
 
-		if prevState.IsImplicit() {
-			return res, NewImplicitTeamOperationError(payload.Body.Type)
-		}
-
-		// Check that the signer is at least an ADMIN or is an IMPLICIT ADMIN to have permission to make this link.
-		if !signer.implicitAdmin {
-			signerRole, err := prevState.GetUserRole(signer.signer)
-			if err != nil {
-				return res, err
-			}
-			switch signerRole {
-			case keybase1.TeamRole_ADMIN, keybase1.TeamRole_OWNER:
-				// ok
-			default:
-				return res, fmt.Errorf("link signer does not have permission to invite: %v is a %v", signer, signerRole)
-			}
+		_, err = checkAdmin("invite")
+		if err != nil {
+			return res, err
 		}
 
 		additions, cancelations, err := t.sanityCheckInvites(signer.signer, *team.Invites, sanityCheckInvitesOptions{
@@ -1443,6 +1474,35 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		})
 		if err != nil {
 			return res, err
+		}
+
+		if prevState.IsImplicit() {
+			// Check to see if the additions were previously members of the team
+			checkImpteamInvites := func() error {
+				for _, invites := range additions {
+					for _, invite := range invites {
+						cat, err := invite.Type.C()
+						if err != nil {
+							return err
+						}
+						if cat == keybase1.TeamInviteCategory_KEYBASE {
+							uv, err := invite.KeybaseUserVersion()
+							if err != nil {
+								return err
+							}
+							if _, err := prevState.GetLatestUVWithUID(uv.Uid); err != nil {
+								return err
+							}
+						} else {
+							return fmt.Errorf("invalid invite type in implicit team: %v", cat)
+						}
+					}
+				}
+				return nil
+			}
+			if err := checkImpteamInvites(); err != nil {
+				return res, NewImplicitTeamOperationError(payload.Body.Type)
+			}
 		}
 
 		res.newState = prevState.DeepCopy()
@@ -1465,18 +1525,9 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, err
 		}
 
-		// Check that the signer is at least an ADMIN or is an IMPLICIT ADMIN to have permission to make this link.
-		if !signer.implicitAdmin {
-			signerRole, err := prevState.GetUserRole(signer.signer)
-			if err != nil {
-				return res, err
-			}
-			switch signerRole {
-			case keybase1.TeamRole_ADMIN, keybase1.TeamRole_OWNER:
-				// ok
-			default:
-				return res, fmt.Errorf("link signer does not have permission to invite: %v is a %v", signer, signerRole)
-			}
+		_, err = checkAdmin("change settings")
+		if err != nil {
+			return res, err
 		}
 
 		res.newState = prevState.DeepCopy()
@@ -1536,6 +1587,34 @@ func (t *TeamSigChainPlayer) InflateLink(link *chainLinkUnpacked, signer signerX
 
 	// Accept the new state
 	t.storedState = state
+	return nil
+}
+
+func (t *TeamSigChainPlayer) checkSeqnoToAdd(prevState *TeamSigChainState, linkSeqno keybase1.Seqno, isInflate bool) error {
+	if linkSeqno < 1 {
+		return fmt.Errorf("link seqno (%v) cannot be less than 1", linkSeqno)
+	}
+	if prevState == nil {
+		if isInflate {
+			return fmt.Errorf("cannot inflate link %v with no previous state", linkSeqno)
+		}
+		if linkSeqno != 1 {
+			return fmt.Errorf("first team link must have seqno 1 but got %v", linkSeqno)
+		}
+	} else {
+		if isInflate {
+			if prevState.IsLinkFilled(linkSeqno) {
+				return fmt.Errorf("link %v is already filled", linkSeqno)
+			}
+		} else {
+			if linkSeqno != prevState.GetLatestSeqno()+1 {
+				return fmt.Errorf("link had unexpected seqno %v != %v", linkSeqno, prevState.GetLatestSeqno()+1)
+			}
+		}
+		if linkSeqno > prevState.GetLatestSeqno()+1 {
+			return fmt.Errorf("link had far-future seqno %v > %v", linkSeqno, prevState.GetLatestSeqno()+1)
+		}
+	}
 	return nil
 }
 

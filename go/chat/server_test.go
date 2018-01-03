@@ -5,6 +5,7 @@ package chat
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -93,6 +94,19 @@ func (g *gregorTestConnection) BroadcastMessage(ctx context.Context, m gregor1.M
 	if obm := m.ToOutOfBandMessage(); obm != nil {
 		_, err := g.G().PushHandler.HandleOobm(ctx, obm)
 		return err
+	}
+	if ibm := m.ToInBandMessage(); ibm != nil {
+		if creation := ibm.ToStateUpdateMessage().Creation(); creation != nil {
+			switch creation.Category().String() {
+			case "team.sbs":
+				var msg keybase1.TeamSBSMsg
+				if err := json.Unmarshal(creation.Body().Bytes(), &msg); err != nil {
+					g.G().Log.CDebugf(ctx, "error unmarshaling team.sbs item: %s", err)
+					return err
+				}
+				teams.HandleSBSRequest(ctx, g.G().ExternalG(), msg)
+			}
+		}
 	}
 	return nil
 }
@@ -3341,9 +3355,22 @@ func TestChatSrvDeleteConversationUnconfirmed(t *testing.T) {
 	require.True(t, ri.deleteConversationCalled)
 }
 
+func kickTeamRekeyd(g *libkb.GlobalContext, t libkb.TestingTB) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "test/accelerate_team_rekeyd",
+		Args:        libkb.HTTPArgs{},
+		SessionType: libkb.APISessionTypeREQUIRED,
+	}
+
+	_, err := g.API.Post(apiArg)
+	if err != nil {
+		t.Fatalf("Failed to accelerate team rekeyd: %s", err)
+	}
+}
+
 func TestChatSrvUserReset(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
-		ctc := makeChatTestContext(t, "TestChatSrvUserReset", 2)
+		ctc := makeChatTestContext(t, "TestChatSrvUserReset", 3)
 		defer ctc.cleanup()
 		users := ctc.users()
 
@@ -3356,25 +3383,40 @@ func TestChatSrvUserReset(t *testing.T) {
 
 		ctx := ctc.as(t, users[0]).startCtx
 		ctx1 := ctc.as(t, users[1]).startCtx
+		ctx2 := ctc.as(t, users[2]).startCtx
 		listener0 := newServerChatListener()
 		ctc.as(t, users[0]).h.G().SetService()
 		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener0)
 		listener1 := newServerChatListener()
 		ctc.as(t, users[1]).h.G().SetService()
 		ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener1)
+		listener2 := newServerChatListener()
+		ctc.as(t, users[2]).h.G().SetService()
+		ctc.as(t, users[2]).h.G().NotifyRouter.SetListener(listener2)
+		t.Logf("u0: %s u1: %s u2: %s", users[0].GetUID(), users[1].GetUID(), users[2].GetUID())
 
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt,
-			ctc.as(t, users[1]).user())
+			ctc.as(t, users[1]).user(), ctc.as(t, users[2]).user())
 		switch mt {
 		case chat1.ConversationMembersType_TEAM:
 			consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
 			consumeNewMsg(t, listener1, chat1.MessageType_JOIN)
+			consumeNewMsg(t, listener2, chat1.MessageType_JOIN)
 		default:
 		}
 
+		t.Logf("reset user 1")
 		require.NoError(t, ctc.as(t, users[1]).h.G().LoginState().ResetAccount(users[1].Username))
 		select {
 		case act := <-listener0.membersUpdate:
+			require.Equal(t, act.ConvID, conv.Id)
+			require.Equal(t, chat1.ConversationMemberStatus_RESET, act.Status)
+			require.Equal(t, users[1].Username, act.Member)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "failed to get members update")
+		}
+		select {
+		case act := <-listener2.membersUpdate:
 			require.Equal(t, act.ConvID, conv.Id)
 			require.Equal(t, chat1.ConversationMemberStatus_RESET, act.Status)
 			require.Equal(t, users[1].Username, act.Member)
@@ -3388,15 +3430,15 @@ func TestChatSrvUserReset(t *testing.T) {
 			require.Fail(t, "failed to get members update")
 		}
 
+		t.Logf("check for correct state after user 1 reset")
 		iboxRes, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxAndUnboxLocal(ctx,
 			chat1.GetInboxAndUnboxLocalArg{})
 		require.NoError(t, err)
 		require.Equal(t, 1, len(iboxRes.Conversations))
 		require.Equal(t, conv.Id, iboxRes.Conversations[0].GetConvID())
-		require.Equal(t, 2, len(iboxRes.Conversations[0].Names()))
+		require.Equal(t, 3, len(iboxRes.Conversations[0].Names()))
 		require.Equal(t, 1, len(iboxRes.Conversations[0].Info.ResetNames))
 		require.Equal(t, users[1].Username, iboxRes.Conversations[0].Info.ResetNames[0])
-
 		iboxRes, err = ctc.as(t, users[1]).chatLocalHandler().GetInboxAndUnboxLocal(ctx1,
 			chat1.GetInboxAndUnboxLocalArg{})
 		require.NoError(t, err)
@@ -3408,7 +3450,6 @@ func TestChatSrvUserReset(t *testing.T) {
 			require.Equal(t, conv.Id, iboxRes.Conversations[0].GetConvID())
 			require.Equal(t, chat1.ConversationMemberStatus_RESET, iboxRes.Conversations[0].Info.MemberStatus)
 		}
-
 		_, err = ctc.as(t, users[1]).chatLocalHandler().PostLocal(ctx1, chat1.PostLocalArg{
 			ConversationID: conv.Id,
 			Msg: chat1.MessagePlaintext{
@@ -3424,9 +3465,29 @@ func TestChatSrvUserReset(t *testing.T) {
 		})
 		require.Error(t, err)
 
+		t.Logf("reset user 2")
+		require.NoError(t, ctc.as(t, users[2]).h.G().LoginState().ResetAccount(users[2].Username))
+		select {
+		case act := <-listener0.membersUpdate:
+			require.Equal(t, act.ConvID, conv.Id)
+			require.Equal(t, chat1.ConversationMemberStatus_RESET, act.Status)
+			require.Equal(t, users[2].Username, act.Member)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "failed to get members update")
+		}
+		select {
+		case convID := <-listener2.resetConv:
+			require.Equal(t, convID, conv.Id)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "failed to get members update")
+		}
+
+		t.Logf("get a PUK for user 1 and not for user 2")
 		g1 := ctc.as(t, users[1]).h.G().ExternalG()
 		require.NoError(t, g1.Logout())
 		require.NoError(t, users[1].Login(g1))
+		g2 := ctc.as(t, users[2]).h.G().ExternalG()
+		require.NoError(t, g2.Logout())
 
 		require.NoError(t, ctc.as(t, users[0]).chatLocalHandler().AddTeamMemberAfterReset(ctx,
 			chat1.AddTeamMemberAfterResetArg{
@@ -3435,13 +3496,20 @@ func TestChatSrvUserReset(t *testing.T) {
 			}))
 		consumeMembersUpdate(t, listener0)
 		consumeJoinConv(t, listener1)
+		require.NoError(t, ctc.as(t, users[0]).chatLocalHandler().AddTeamMemberAfterReset(ctx,
+			chat1.AddTeamMemberAfterResetArg{
+				Username: users[2].Username,
+				ConvID:   conv.Id,
+			}))
+		consumeMembersUpdate(t, listener0)
+		consumeMembersUpdate(t, listener1)
 
 		iboxRes, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxAndUnboxLocal(ctx,
 			chat1.GetInboxAndUnboxLocalArg{})
 		require.NoError(t, err)
 		require.Equal(t, 1, len(iboxRes.Conversations))
 		require.Equal(t, conv.Id, iboxRes.Conversations[0].GetConvID())
-		require.Equal(t, 2, len(iboxRes.Conversations[0].Names()))
+		require.Equal(t, 3, len(iboxRes.Conversations[0].Names()))
 		require.Zero(t, len(iboxRes.Conversations[0].Info.ResetNames))
 
 		iboxRes, err = ctc.as(t, users[1]).chatLocalHandler().GetInboxAndUnboxLocal(ctx,
@@ -3449,7 +3517,8 @@ func TestChatSrvUserReset(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 1, len(iboxRes.Conversations))
 		require.Equal(t, conv.Id, iboxRes.Conversations[0].GetConvID())
-		require.Equal(t, 2, len(iboxRes.Conversations[0].Names()))
+		require.Nil(t, iboxRes.Conversations[0].Error)
+		require.Equal(t, 3, len(iboxRes.Conversations[0].Names()))
 		require.Zero(t, len(iboxRes.Conversations[0].Info.ResetNames))
 		require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, iboxRes.Conversations[0].Info.MemberStatus)
 
@@ -3466,6 +3535,30 @@ func TestChatSrvUserReset(t *testing.T) {
 				}),
 			},
 		})
+		require.NoError(t, err)
+
+		t.Logf("user 2 gets PUK and tries to do stuff")
+		require.NoError(t, users[2].Login(g2))
+		kickTeamRekeyd(g2, t)
+		for i := 0; i < 200; i++ {
+			_, err = ctc.as(t, users[2]).chatLocalHandler().PostLocal(ctx2, chat1.PostLocalArg{
+				ConversationID: conv.Id,
+				Msg: chat1.MessagePlaintext{
+					ClientHeader: chat1.MessageClientHeader{
+						Conv:        conv.Triple,
+						MessageType: chat1.MessageType_TEXT,
+						TlfName:     conv.TlfName,
+					},
+					MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+						Body: "Hello",
+					}),
+				},
+			})
+			if err == nil {
+				break
+			}
+			time.Sleep(50 * time.Millisecond)
+		}
 		require.NoError(t, err)
 	})
 }

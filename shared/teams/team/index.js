@@ -269,6 +269,7 @@ class Team extends React.PureComponent<Props> {
 
     // massage data for rowrenderers
     const memberProps = members.map(member => ({
+      fullName: member.fullName,
       username: member.username,
       teamname: name,
       active: member.active,
