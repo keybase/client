@@ -870,7 +870,7 @@ func (k *KeybaseDaemonLocal) EstablishMountDir(ctx context.Context) (string, err
 // KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) PutGitMetadata(
 	ctx context.Context, folder keybase1.Folder, repoID keybase1.RepoID,
-	repoName keybase1.GitRepoName) error {
+	metadata keybase1.GitLocalMetadata) error {
 	return nil
 }
 

@@ -402,7 +402,7 @@ type merkleRootGetter interface {
 
 type gitMetadataPutter interface {
 	PutGitMetadata(ctx context.Context, folder keybase1.Folder,
-		repoID keybase1.RepoID, repoName keybase1.GitRepoName) error
+		repoID keybase1.RepoID, metadata keybase1.GitLocalMetadata) error
 }
 
 // KeybaseService is an interface for communicating with the keybase

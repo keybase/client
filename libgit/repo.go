@@ -25,6 +25,7 @@ import (
 	billy "gopkg.in/src-d/go-billy.v4"
 	gogit "gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
+	"gopkg.in/src-d/go-git.v4/plumbing/object"
 	"gopkg.in/src-d/go-git.v4/plumbing/storer"
 	"gopkg.in/src-d/go-git.v4/storage"
 	"gopkg.in/src-d/go-git.v4/storage/filesystem"
@@ -181,7 +182,11 @@ func CleanOldDeletedReposTimeLimited(
 // UpdateRepoMD lets the Keybase service know that a repo's MD has
 // been updated.
 func UpdateRepoMD(ctx context.Context, config libkbfs.Config,
-	tlfHandle *libkbfs.TlfHandle, fs billy.Filesystem) error {
+	tlfHandle *libkbfs.TlfHandle, fs billy.Filesystem,
+	commitsByRef map[plumbing.ReferenceName][]*object.Commit) error {
+	if len(commitsByRef) == 0 {
+		commitsByRef = map[plumbing.ReferenceName][]*object.Commit{"": nil}
+	}
 	folder := tlfHandle.ToFavorite().ToKBFolder(false)
 
 	// Get the user-formatted repo name.
@@ -200,14 +205,24 @@ func UpdateRepoMD(ctx context.Context, config libkbfs.Config,
 	}
 
 	log := config.MakeLogger("")
-	log.CDebugf(ctx, "Putting git MD update")
-	err = config.KBPKI().PutGitMetadata(
-		ctx, folder, keybase1.RepoID(c.ID.String()),
-		keybase1.GitRepoName(c.Name))
-	if err != nil {
-		// Just log the put error, it shouldn't block the success of
-		// the overall git operation.
-		log.CDebugf(ctx, "Failed to put git metadata: %+v", err)
+	for refName, commits := range commitsByRef {
+		msgs := make([]string, 0, len(commits))
+		for _, c := range commits {
+			msgs = append(msgs, c.Message)
+		}
+		log.CDebugf(ctx, "Putting git MD update for branch %s", refName)
+		err = config.KBPKI().PutGitMetadata(
+			ctx, folder, keybase1.RepoID(c.ID.String()),
+			keybase1.GitLocalMetadata{
+				RepoName:   keybase1.GitRepoName(c.Name),
+				BranchName: string(refName),
+				CommitMsgs: msgs,
+			})
+		if err != nil {
+			// Just log the put error, it shouldn't block the success of
+			// the overall git operation.
+			log.CDebugf(ctx, "Failed to put git metadata: %+v", err)
+		}
 	}
 	return nil
 }
@@ -336,7 +351,7 @@ func createNewRepoAndID(
 		return NullID, err
 	}
 
-	err = UpdateRepoMD(ctx, config, tlfHandle, fs)
+	err = UpdateRepoMD(ctx, config, tlfHandle, fs, nil)
 	if err != nil {
 		return NullID, err
 	}
@@ -696,7 +711,7 @@ func RenameRepo(
 		if err != nil {
 			return err
 		}
-		return UpdateRepoMD(ctx, config, tlfHandle, oldRepoFS)
+		return UpdateRepoMD(ctx, config, tlfHandle, oldRepoFS, nil)
 	}
 
 	// Does the new repo not exist yet?
@@ -779,7 +794,7 @@ func RenameRepo(
 	if err != nil {
 		return err
 	}
-	return UpdateRepoMD(ctx, config, tlfHandle, newRepoFS)
+	return UpdateRepoMD(ctx, config, tlfHandle, newRepoFS, nil)
 }
 
 // GCOptions describe options foe garbage collection.

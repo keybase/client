@@ -1363,15 +1363,15 @@ func (m *MockgitMetadataPutter) EXPECT() *MockgitMetadataPutterMockRecorder {
 }
 
 // PutGitMetadata mocks base method
-func (m *MockgitMetadataPutter) PutGitMetadata(ctx context.Context, folder keybase1.Folder, repoID keybase1.RepoID, repoName keybase1.GitRepoName) error {
-	ret := m.ctrl.Call(m, "PutGitMetadata", ctx, folder, repoID, repoName)
+func (m *MockgitMetadataPutter) PutGitMetadata(ctx context.Context, folder keybase1.Folder, repoID keybase1.RepoID, metadata keybase1.GitLocalMetadata) error {
+	ret := m.ctrl.Call(m, "PutGitMetadata", ctx, folder, repoID, metadata)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // PutGitMetadata indicates an expected call of PutGitMetadata
-func (mr *MockgitMetadataPutterMockRecorder) PutGitMetadata(ctx, folder, repoID, repoName interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutGitMetadata", reflect.TypeOf((*MockgitMetadataPutter)(nil).PutGitMetadata), ctx, folder, repoID, repoName)
+func (mr *MockgitMetadataPutterMockRecorder) PutGitMetadata(ctx, folder, repoID, metadata interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutGitMetadata", reflect.TypeOf((*MockgitMetadataPutter)(nil).PutGitMetadata), ctx, folder, repoID, metadata)
 }
 
 // MockKeybaseService is a mock of KeybaseService interface
@@ -1411,15 +1411,15 @@ func (mr *MockKeybaseServiceMockRecorder) GetCurrentMerkleRoot(ctx interface{}) 
 }
 
 // PutGitMetadata mocks base method
-func (m *MockKeybaseService) PutGitMetadata(ctx context.Context, folder keybase1.Folder, repoID keybase1.RepoID, repoName keybase1.GitRepoName) error {
-	ret := m.ctrl.Call(m, "PutGitMetadata", ctx, folder, repoID, repoName)
+func (m *MockKeybaseService) PutGitMetadata(ctx context.Context, folder keybase1.Folder, repoID keybase1.RepoID, metadata keybase1.GitLocalMetadata) error {
+	ret := m.ctrl.Call(m, "PutGitMetadata", ctx, folder, repoID, metadata)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // PutGitMetadata indicates an expected call of PutGitMetadata
-func (mr *MockKeybaseServiceMockRecorder) PutGitMetadata(ctx, folder, repoID, repoName interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutGitMetadata", reflect.TypeOf((*MockKeybaseService)(nil).PutGitMetadata), ctx, folder, repoID, repoName)
+func (mr *MockKeybaseServiceMockRecorder) PutGitMetadata(ctx, folder, repoID, metadata interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutGitMetadata", reflect.TypeOf((*MockKeybaseService)(nil).PutGitMetadata), ctx, folder, repoID, metadata)
 }
 
 // Resolve mocks base method
@@ -2183,15 +2183,15 @@ func (mr *MockKBPKIMockRecorder) GetTeamRootID(ctx, tid interface{}) *gomock.Cal
 }
 
 // PutGitMetadata mocks base method
-func (m *MockKBPKI) PutGitMetadata(ctx context.Context, folder keybase1.Folder, repoID keybase1.RepoID, repoName keybase1.GitRepoName) error {
-	ret := m.ctrl.Call(m, "PutGitMetadata", ctx, folder, repoID, repoName)
+func (m *MockKBPKI) PutGitMetadata(ctx context.Context, folder keybase1.Folder, repoID keybase1.RepoID, metadata keybase1.GitLocalMetadata) error {
+	ret := m.ctrl.Call(m, "PutGitMetadata", ctx, folder, repoID, metadata)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // PutGitMetadata indicates an expected call of PutGitMetadata
-func (mr *MockKBPKIMockRecorder) PutGitMetadata(ctx, folder, repoID, repoName interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutGitMetadata", reflect.TypeOf((*MockKBPKI)(nil).PutGitMetadata), ctx, folder, repoID, repoName)
+func (mr *MockKBPKIMockRecorder) PutGitMetadata(ctx, folder, repoID, metadata interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutGitMetadata", reflect.TypeOf((*MockKBPKI)(nil).PutGitMetadata), ctx, folder, repoID, metadata)
 }
 
 // HasVerifyingKey mocks base method

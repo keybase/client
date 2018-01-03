@@ -373,9 +373,9 @@ func (k *KBPKIClient) loadUnverifiedKeys(ctx context.Context, uid keybase1.UID) 
 // PutGitMetadata implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) PutGitMetadata(
 	ctx context.Context, folder keybase1.Folder, repoID keybase1.RepoID,
-	repoName keybase1.GitRepoName) error {
+	metadata keybase1.GitLocalMetadata) error {
 	return k.serviceOwner.KeybaseService().PutGitMetadata(
-		ctx, folder, repoID, repoName)
+		ctx, folder, repoID, metadata)
 }
 
 // GetCurrentSessionIfPossible returns the current username and UID

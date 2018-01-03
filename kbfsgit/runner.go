@@ -1669,7 +1669,7 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 
 	// TODO (KBFS-2682): send commit names, emails, dates, and messages to
 	// `UpdateRepoMD`, once the protocol supports it..
-	err = libgit.UpdateRepoMD(ctx, r.config, r.h, fs)
+	err = libgit.UpdateRepoMD(ctx, r.config, r.h, fs, commits)
 	if err != nil {
 		return nil, err
 	}

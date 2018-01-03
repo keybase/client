@@ -1169,12 +1169,10 @@ func (k *KeybaseServiceBase) EstablishMountDir(ctx context.Context) (
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) PutGitMetadata(
 	ctx context.Context, folder keybase1.Folder, repoID keybase1.RepoID,
-	repoName keybase1.GitRepoName) error {
+	metadata keybase1.GitLocalMetadata) error {
 	return k.gitClient.PutGitMetadata(ctx, keybase1.PutGitMetadataArg{
-		Folder: folder,
-		RepoID: repoID,
-		Metadata: keybase1.GitLocalMetadata{
-			RepoName: repoName,
-		},
+		Folder:   folder,
+		RepoID:   repoID,
+		Metadata: metadata,
 	})
 }

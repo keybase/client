@@ -245,9 +245,9 @@ func (k KeybaseServiceMeasured) EstablishMountDir(ctx context.Context) (string, 
 // KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) PutGitMetadata(
 	ctx context.Context, folder keybase1.Folder, repoID keybase1.RepoID,
-	repoName keybase1.GitRepoName) (err error) {
+	metadata keybase1.GitLocalMetadata) (err error) {
 	k.putGitMetadataTimer.Time(func() {
-		err = k.delegate.PutGitMetadata(ctx, folder, repoID, repoName)
+		err = k.delegate.PutGitMetadata(ctx, folder, repoID, metadata)
 	})
 	return err
 }
