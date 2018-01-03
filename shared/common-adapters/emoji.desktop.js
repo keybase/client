@@ -36,7 +36,7 @@ const EmojiWrapper = (props: Props) => {
     return emojiName
   }
   return (
-    <Emoji emoji={emojiName} size={size} backgroundImageFn={backgroundImageFn}>
+    <Emoji emoji={emojiName} size={size} backgroundImageFn={backgroundImageFn} tooltip={true}>
       <Emoji emoji={emojiName} size={0} native={true} />
     </Emoji>
   )
