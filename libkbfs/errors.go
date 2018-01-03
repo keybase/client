@@ -210,6 +210,17 @@ func (e WriteUnsupportedError) Error() string {
 	return fmt.Sprintf("Writing to %s is unsupported", e.Filename)
 }
 
+// WriteToReadonlyNodeError indicates an error when trying to write a
+// node that's marked as read-only.
+type WriteToReadonlyNodeError struct {
+	Filename string
+}
+
+// Error implements the error interface for WriteToReadonlyNodeError
+func (e WriteToReadonlyNodeError) Error() string {
+	return fmt.Sprintf("%s is read-only and writes are not allowed", e.Filename)
+}
+
 // UnsupportedOpInUnlinkedDirError indicates an error when trying to
 // create a file.
 type UnsupportedOpInUnlinkedDirError struct {

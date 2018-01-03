@@ -358,6 +358,9 @@ func newFolderBranchOps(ctx context.Context, config Config, fb FolderBranch,
 		// ensure that the user doesn't try any data reads or writes.
 	} else {
 		nodeCache = newNodeCacheStandard(fb)
+		for _, f := range config.RootNodeWrappers() {
+			nodeCache.AddRootWrapper(f)
+		}
 	}
 
 	// make logger
@@ -1580,6 +1583,24 @@ func (fbo *folderBranchOps) checkNode(node Node) error {
 		return WrongOpsError{fbo.folderBranch, fb}
 	}
 	return nil
+}
+
+func (fbo *folderBranchOps) checkNodeForWrite(
+	ctx context.Context, node Node) error {
+	err := fbo.checkNode(node)
+	if err != nil {
+		return err
+	}
+	if !node.Readonly(ctx) {
+		return nil
+	}
+
+	// This is a read-only node, so reject the write.
+	p, err := fbo.pathFromNodeForRead(node)
+	if err != nil {
+		return err
+	}
+	return WriteToReadonlyNodeError{p.String()}
 }
 
 // SetInitialHeadFromServer sets the head to the given
@@ -2890,7 +2911,7 @@ func (fbo *folderBranchOps) CreateDir(
 			getNodeIDStr(dir), path, getNodeIDStr(n), err)
 	}()
 
-	err = fbo.checkNode(dir)
+	err = fbo.checkNodeForWrite(ctx, dir)
 	if err != nil {
 		return nil, EntryInfo{}, err
 	}
@@ -2925,7 +2946,7 @@ func (fbo *folderBranchOps) CreateFile(
 			getNodeIDStr(n), err)
 	}()
 
-	err = fbo.checkNode(dir)
+	err = fbo.checkNodeForWrite(ctx, dir)
 	if err != nil {
 		return nil, EntryInfo{}, err
 	}
@@ -3102,7 +3123,7 @@ func (fbo *folderBranchOps) CreateLink(
 			getNodeIDStr(dir), fromName, toPath, err)
 	}()
 
-	err = fbo.checkNode(dir)
+	err = fbo.checkNodeForWrite(ctx, dir)
 	if err != nil {
 		return EntryInfo{}, err
 	}
@@ -3284,7 +3305,7 @@ func (fbo *folderBranchOps) RemoveDir(
 			getNodeIDStr(dir), dirName, err)
 	}()
 
-	err = fbo.checkNode(dir)
+	err = fbo.checkNodeForWrite(ctx, dir)
 	if err != nil {
 		return
 	}
@@ -3303,7 +3324,7 @@ func (fbo *folderBranchOps) RemoveEntry(ctx context.Context, dir Node,
 			getNodeIDStr(dir), name, err)
 	}()
 
-	err = fbo.checkNode(dir)
+	err = fbo.checkNodeForWrite(ctx, dir)
 	if err != nil {
 		return err
 	}
@@ -3449,7 +3470,11 @@ func (fbo *folderBranchOps) Rename(
 			getNodeIDStr(newParent), newName, err)
 	}()
 
-	err = fbo.checkNode(newParent)
+	err = fbo.checkNodeForWrite(ctx, oldParent)
+	if err != nil {
+		return err
+	}
+	err = fbo.checkNodeForWrite(ctx, newParent)
 	if err != nil {
 		return err
 	}
@@ -3542,7 +3567,7 @@ func (fbo *folderBranchOps) Write(
 			getNodeIDStr(file), len(data), off, err)
 	}()
 
-	err = fbo.checkNode(file)
+	err = fbo.checkNodeForWrite(ctx, file)
 	if err != nil {
 		return err
 	}
@@ -3578,7 +3603,7 @@ func (fbo *folderBranchOps) Truncate(
 			getNodeIDStr(file), size, err)
 	}()
 
-	err = fbo.checkNode(file)
+	err = fbo.checkNodeForWrite(ctx, file)
 	if err != nil {
 		return err
 	}
@@ -3681,7 +3706,7 @@ func (fbo *folderBranchOps) SetEx(
 			getNodeIDStr(file), ex, err)
 	}()
 
-	err = fbo.checkNode(file)
+	err = fbo.checkNodeForWrite(ctx, file)
 	if err != nil {
 		return
 	}
@@ -3756,7 +3781,7 @@ func (fbo *folderBranchOps) SetMtime(
 		return nil
 	}
 
-	err = fbo.checkNode(file)
+	err = fbo.checkNodeForWrite(ctx, file)
 	if err != nil {
 		return
 	}

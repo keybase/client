@@ -105,6 +105,7 @@ type ConfigLocal struct {
 	defaultBlockType keybase1.BlockType
 	kbfsService      *KBFSService
 	kbCtx            Context
+	rootNodeWrappers []func(Node) Node
 
 	maxNameBytes  uint32
 	maxDirBytes   uint64
@@ -1458,4 +1459,20 @@ func (c *ConfigLocal) SetKBFSService(k *KBFSService) {
 		c.kbfsService.Shutdown()
 	}
 	c.kbfsService = k
+}
+
+// RootNodeWrappers implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) RootNodeWrappers() []func(Node) Node {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	ret := make([]func(Node) Node, len(c.rootNodeWrappers))
+	copy(ret, c.rootNodeWrappers)
+	return ret
+}
+
+// AddRootNodeWrapper implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) AddRootNodeWrapper(f func(Node) Node) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.rootNodeWrappers = append(c.rootNodeWrappers, f)
 }

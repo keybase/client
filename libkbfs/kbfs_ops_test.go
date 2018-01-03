@@ -3610,3 +3610,39 @@ func TestKBFSOpsBasicTeamTLF(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, u1, ei.LastWriterUnverified)
 }
+
+type wrappedReadonlyTestIDType int
+
+const wrappedReadonlyTestID wrappedReadonlyTestIDType = 1
+
+type wrappedReadonlyNode struct {
+	Node
+}
+
+func (wrn wrappedReadonlyNode) Readonly(ctx context.Context) bool {
+	return ctx.Value(wrappedReadonlyTestID) != nil
+}
+
+func (wrn wrappedReadonlyNode) WrapChild(child Node) Node {
+	return wrappedReadonlyNode{wrn.Node.WrapChild(child)}
+}
+
+func TestKBFSOpsReadonlyNodes(t *testing.T) {
+	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "test_user")
+	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
+
+	config.AddRootNodeWrapper(func(root Node) Node {
+		return wrappedReadonlyNode{root}
+	})
+
+	// Not read-only, should work.
+	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
+	kbfsOps := config.KBFSOps()
+	_, _, err := kbfsOps.CreateDir(ctx, rootNode, "a")
+	require.NoError(t, err)
+
+	// Read-only, shouldn't work.
+	readonlyCtx := context.WithValue(ctx, wrappedReadonlyTestID, 1)
+	_, _, err = kbfsOps.CreateDir(readonlyCtx, rootNode, "b")
+	require.IsType(t, WriteToReadonlyNodeError{}, errors.Cause(err))
+}

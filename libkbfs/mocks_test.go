@@ -777,6 +777,18 @@ func (mr *MockNodeMockRecorder) GetBasename() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBasename", reflect.TypeOf((*MockNode)(nil).GetBasename))
 }
 
+// Readonly mocks base method
+func (m *MockNode) Readonly(ctx context.Context) bool {
+	ret := m.ctrl.Call(m, "Readonly", ctx)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// Readonly indicates an expected call of Readonly
+func (mr *MockNodeMockRecorder) Readonly(ctx interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Readonly", reflect.TypeOf((*MockNode)(nil).Readonly), ctx)
+}
+
 // WrapChild mocks base method
 func (m *MockNode) WrapChild(child Node) Node {
 	ret := m.ctrl.Call(m, "WrapChild", child)
@@ -6656,6 +6668,28 @@ func (m *MockConfig) GetRekeyFSMLimiter() *OngoingWorkLimiter {
 // GetRekeyFSMLimiter indicates an expected call of GetRekeyFSMLimiter
 func (mr *MockConfigMockRecorder) GetRekeyFSMLimiter() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRekeyFSMLimiter", reflect.TypeOf((*MockConfig)(nil).GetRekeyFSMLimiter))
+}
+
+// RootNodeWrappers mocks base method
+func (m *MockConfig) RootNodeWrappers() []func(Node) Node {
+	ret := m.ctrl.Call(m, "RootNodeWrappers")
+	ret0, _ := ret[0].([]func(Node) Node)
+	return ret0
+}
+
+// RootNodeWrappers indicates an expected call of RootNodeWrappers
+func (mr *MockConfigMockRecorder) RootNodeWrappers() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RootNodeWrappers", reflect.TypeOf((*MockConfig)(nil).RootNodeWrappers))
+}
+
+// AddRootNodeWrapper mocks base method
+func (m *MockConfig) AddRootNodeWrapper(arg0 func(Node) Node) {
+	m.ctrl.Call(m, "AddRootNodeWrapper", arg0)
+}
+
+// AddRootNodeWrapper indicates an expected call of AddRootNodeWrapper
+func (mr *MockConfigMockRecorder) AddRootNodeWrapper(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddRootNodeWrapper", reflect.TypeOf((*MockConfig)(nil).AddRootNodeWrapper), arg0)
 }
 
 // MockNodeCache is a mock of NodeCache interface

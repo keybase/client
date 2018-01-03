@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"fmt"
 	"runtime"
 )
@@ -75,6 +76,10 @@ func (n *nodeStandard) GetBasename() string {
 		return ""
 	}
 	return n.core.pathNode.Name
+}
+
+func (n *nodeStandard) Readonly(_ context.Context) bool {
+	return false
 }
 
 func (n *nodeStandard) WrapChild(child Node) Node {

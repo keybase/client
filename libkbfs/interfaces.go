@@ -124,6 +124,14 @@ type Node interface {
 	// GetBasename returns the current basename of the node, or ""
 	// if the node has been unlinked.
 	GetBasename() string
+	// Readonly returns true if KBFS should outright reject any write
+	// attempts on data or directory structures of this node.  Though
+	// note that even if it returns false, KBFS can reject writes to
+	// the node for other reasons, such as TLF permissions.  An
+	// implementation that wraps another `Node` (`inner`) must return
+	// `inner.Readonly()` if it decides not to return `true` on its
+	// own.
+	Readonly(ctx context.Context) bool
 	// WrapChild returns a wrapped version of child, if desired, to
 	// add custom behavior to the child node. An implementation that
 	// wraps another `Node` (`inner`) must first call
@@ -1884,6 +1892,15 @@ type Config interface {
 
 	// GetRekeyFSMLimiter returns the global rekey FSM limiter.
 	GetRekeyFSMLimiter() *OngoingWorkLimiter
+
+	// RootNodeWrappers returns the set of root node wrapper functions
+	// that will be applied to each newly-created root node.
+	RootNodeWrappers() []func(Node) Node
+	// AddRootNodeWrapper adds a new wrapper function that will be
+	// applied whenever a root Node is created.  This will only apply
+	// to TLFs that are first accessed after `AddRootNodeWrapper` is
+	// called.
+	AddRootNodeWrapper(func(Node) Node)
 }
 
 // NodeCache holds Nodes, and allows libkbfs to update them when

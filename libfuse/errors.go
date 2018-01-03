@@ -50,6 +50,8 @@ func filterError(err error) error {
 		return errorWithErrno{err, syscall.EACCES}
 	case libkbfs.WriteUnsupportedError:
 		return errorWithErrno{err, syscall.ENOENT}
+	case libkbfs.WriteToReadonlyNodeError:
+		return errorWithErrno{err, syscall.EACCES}
 	case libkbfs.UnsupportedOpInUnlinkedDirError:
 		return errorWithErrno{err, syscall.ENOENT}
 	case libkbfs.NeedSelfRekeyError:
