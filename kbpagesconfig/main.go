@@ -4,8 +4,27 @@
 
 package main
 
-import "github.com/keybase/kbfs/kbpagesconfig/cmd"
+import (
+	"os"
+
+	"github.com/keybase/cli"
+)
 
 func main() {
-	cmd.Execute()
+	app := cli.NewApp()
+	app.Name = "kbpagesconfig"
+	app.Usage = "edit .kbp_config files for Keybase Pages"
+	app.Flags = []cli.Flag{
+		cli.StringFlag{
+			Name:  "path, p",
+			Value: ".kbp_config",
+			Usage: "path to config file",
+		},
+	}
+	app.Commands = []cli.Command{
+		userCmd,
+		aclCmd,
+	}
+
+	app.Run(os.Args)
 }

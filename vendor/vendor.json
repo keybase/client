@@ -165,6 +165,12 @@
 			"revisionTime": "2016-05-17T06:10:00Z"
 		},
 		{
+			"checksumSHA1": "As/C2CDekxCEGyFN5sOcrEt/r0Q=",
+			"path": "github.com/keybase/cli",
+			"revision": "16910a2a70769899c9b29a34e37c9bf5760854c9",
+			"revisionTime": "2017-11-10T21:00:35Z"
+		},
+		{
 			"checksumSHA1": "I7uTxTP05oqFbpuwtaPCl0fqElE=",
 			"path": "github.com/keybase/client/go/auth",
 			"revision": "48d481846d575f64aa78234f99d003b03f3416c0",
@@ -481,12 +487,6 @@
 			"path": "github.com/shirou/gopsutil/mem",
 			"revision": "22a03b5be3f384f558742929065778aa26471033",
 			"revisionTime": "2016-06-14T09:28:26Z"
-		},
-		{
-			"checksumSHA1": "aG5wPXVGAEu90TjPFNZFRtox2Zo=",
-			"path": "github.com/spf13/cobra",
-			"revision": "ccaecb155a2177302cb56cae929251a256d0f646",
-			"revisionTime": "2017-12-07T07:49:35Z"
 		},
 		{
 			"checksumSHA1": "fKq6NiaqP3DFxnCRF5mmpJWTSUA=",

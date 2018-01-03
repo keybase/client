@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package cmd
+package main
 
 import (
 	"bytes"
@@ -29,6 +29,7 @@ func init() {
 
 // not go-routine safe!
 type kbpConfigEditor struct {
+	kbpConfigPath     string
 	kbpConfig         *config.V1
 	originalConfigStr string
 }
@@ -45,31 +46,29 @@ func readConfig(from io.ReadCloser) (cfg config.Config, str string, err error) {
 }
 
 // initConfig reads in config file and ENV variables if set.
-func initKBPConfigEditorOrBust() {
-	editor = &kbpConfigEditor{}
+func newKBPConfigEditor(kbpConfigPath string) (*kbpConfigEditor, error) {
+	editor := &kbpConfigEditor{kbpConfigPath: kbpConfigPath}
 	f, err := os.Open(kbpConfigPath)
 	switch {
 	case err == nil:
 		var cfg config.Config
 		cfg, editor.originalConfigStr, err = readConfig(f)
 		if err != nil {
-			fmt.Fprintf(os.Stderr,
+			return nil, fmt.Errorf(
 				"reading config file %s error: %v", kbpConfigPath, err)
-			os.Exit(1)
 		}
 		if cfg.Version() != config.Version1 {
-			fmt.Fprintf(os.Stderr,
+			return nil, fmt.Errorf(
 				"unsupported config version %s", cfg.Version())
-			os.Exit(1)
 		}
 		editor.kbpConfig = cfg.(*config.V1)
 	case os.IsNotExist(err):
 		editor.kbpConfig = config.DefaultV1()
 	default:
-		fmt.Fprintf(os.Stderr,
+		return nil, fmt.Errorf(
 			"open file %s error: %v", kbpConfigPath, err)
-		os.Exit(1)
 	}
+	return editor, nil
 }
 
 func (e *kbpConfigEditor) confirmAndWrite() error {
@@ -91,7 +90,7 @@ func (e *kbpConfigEditor) confirmAndWrite() error {
 
 	// ask user to confirm
 	input, err := term.Prompt(fmt.Sprintf(
-		"confirm writing above changes to %s? (y/N): ", kbpConfigPath))
+		"confirm writing above changes to %s? (y/N): ", e.kbpConfigPath))
 	if err != nil {
 		return fmt.Errorf("getting confirmation error: %v", err)
 	}
@@ -100,16 +99,18 @@ func (e *kbpConfigEditor) confirmAndWrite() error {
 	}
 
 	// write the new config to kbpConfigPath
-	f, err := os.Create(kbpConfigPath)
+	f, err := os.Create(e.kbpConfigPath)
 	if err != nil {
-		return fmt.Errorf("opening file [%s] error: %v", kbpConfigPath, err)
+		return fmt.Errorf(
+			"opening file [%s] error: %v", e.kbpConfigPath, err)
 	}
 	if _, err = f.WriteString(newConfigStr); err != nil {
 		return fmt.Errorf(
-			"writing config to file [%s] error: %v", kbpConfigPath, err)
+			"writing config to file [%s] error: %v", e.kbpConfigPath, err)
 	}
 	if err = f.Close(); err != nil {
-		return fmt.Errorf("closing file [%s] error: %v", kbpConfigPath, err)
+		return fmt.Errorf(
+			"closing file [%s] error: %v", e.kbpConfigPath, err)
 	}
 
 	return nil
