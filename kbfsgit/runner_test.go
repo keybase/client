@@ -1041,7 +1041,7 @@ func TestRunnerHandlePushBatch(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(git)
 
-	// Setup the repo
+	t.Log("Setup the repository.")
 	h, err := libkbfs.ParseTlfHandle(
 		ctx, config.KBPKI(), config.MDOps(), "user1", tlf.Private)
 	require.NoError(t, err)
@@ -1056,17 +1056,28 @@ func TestRunnerHandlePushBatch(t *testing.T) {
 		"refs/heads/master:refs/heads/master", "user1")
 	require.Empty(t, commits)
 
+	t.Log("Add a commit and push it. We expect the push batch to return " +
+		"one reference with one commit.")
 	addOneFileToRepoCustomCommitMsg(t, git, "foo2", "hello2", "two")
 	commits = testHandlePushBatch(t, ctx, config, git,
 		"refs/heads/master:refs/heads/master", "user1")
 	require.Len(t, commits, 1)
-	require.Len(t, commits["refs/heads/master"], 1)
+	master := commits["refs/heads/master"]
+	require.Len(t, master, 1)
+	require.Equal(t, "two", strings.TrimSpace(master[0].Message))
 
+	t.Log("Add three commits. We expect the push batch to return " +
+		"one reference with three commits. The commits should be ordered " +
+		"with the most recent first.")
 	addOneFileToRepoCustomCommitMsg(t, git, "foo3", "hello3", "three")
 	addOneFileToRepoCustomCommitMsg(t, git, "foo4", "hello4", "four")
 	addOneFileToRepoCustomCommitMsg(t, git, "foo5", "hello5", "five")
 	commits = testHandlePushBatch(t, ctx, config, git,
 		"refs/heads/master:refs/heads/master", "user1")
 	require.Len(t, commits, 1)
-	require.Len(t, commits["refs/heads/master"], 3)
+	master = commits["refs/heads/master"]
+	require.Len(t, master, 3)
+	require.Equal(t, "five", strings.TrimSpace(master[0].Message))
+	require.Equal(t, "four", strings.TrimSpace(master[1].Message))
+	require.Equal(t, "three", strings.TrimSpace(master[2].Message))
 }
