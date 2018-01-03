@@ -41,6 +41,7 @@ The possible commands are:
   read		Dump file to stdout
   write		Write stdin to file
   md            Operate on metadata objects
+  git           Operate on git repositories
 
 `
 
@@ -104,6 +105,8 @@ func realMain() (exitStatus int) {
 		return write(ctx, config, args)
 	case "md":
 		return mdMain(ctx, config, args)
+	case "git":
+		return gitMain(ctx, config, args)
 	default:
 		printError("kbfs", fmt.Errorf("unknown command %q", cmd))
 		return 1

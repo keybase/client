@@ -262,6 +262,10 @@ func TestRepoRename(t *testing.T) {
 	err = RenameRepo(ctx, config, h, "Repo2", "repo3")
 	require.IsType(t, libkb.RepoAlreadyExistsError{}, errors.Cause(err))
 
+	// Invalid new repo name.
+	err = RenameRepo(ctx, config, h, "Repo3", "")
+	require.IsType(t, libkb.InvalidRepoNameError{}, errors.Cause(err))
+
 	// Can create a new repo over the old symlink.
 	id6, err := CreateRepoAndID(ctx, config, h, "Repo1")
 	require.NoError(t, err)

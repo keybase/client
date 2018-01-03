@@ -27,7 +27,7 @@ type RPCHandler struct {
 
 // NewRPCHandlerWithCtx returns a new instance of a Git RPC handler.
 func NewRPCHandlerWithCtx(kbCtx libkbfs.Context, config libkbfs.Config,
-	kbfsInitParams *libkbfs.InitParams) keybase1.KBFSGitInterface {
+	kbfsInitParams *libkbfs.InitParams) *RPCHandler {
 	return &RPCHandler{
 		kbCtx:          kbCtx,
 		config:         config,
@@ -274,4 +274,41 @@ func (rh *RPCHandler) Gc(
 	}
 
 	return rh.waitForJournal(ctx, gitConfig, tlfHandle)
+}
+
+// RenameRepo renames an existing git repository.
+//
+// TODO: Hook this up to an RPC.
+func (rh *RPCHandler) RenameRepo(ctx context.Context,
+	folder keybase1.Folder, oldName, newName string) (err error) {
+	rh.log.CDebugf(ctx, "Renaming repo %s to %s", oldName, newName)
+	defer func() {
+		rh.log.CDebugf(ctx, "Done renaming repo: %+v", err)
+	}()
+
+	ctx, gitConfig, tlfHandle, tempDir, err := rh.getHandleAndConfig(
+		ctx, folder)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		rmErr := os.RemoveAll(tempDir)
+		if rmErr != nil {
+			rh.log.CDebugf(
+				ctx, "Error cleaning storage dir %s: %+v\n", tempDir, rmErr)
+		}
+	}()
+	defer gitConfig.Shutdown(ctx)
+
+	err = RenameRepo(ctx, gitConfig, tlfHandle, oldName, newName)
+	if err != nil {
+		return err
+	}
+
+	err = rh.waitForJournal(ctx, gitConfig, tlfHandle)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

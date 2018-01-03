@@ -635,6 +635,10 @@ func renameRepoInConfigFile(
 func RenameRepo(
 	ctx context.Context, config libkbfs.Config, tlfHandle *libkbfs.TlfHandle,
 	oldRepoName, newRepoName string) (err error) {
+	if !checkValidRepoName(newRepoName, config) {
+		return errors.WithStack(libkb.InvalidRepoNameError{Name: newRepoName})
+	}
+
 	kbfsOps := config.KBFSOps()
 	rootNode, _, err := kbfsOps.GetOrCreateRootNode(
 		ctx, tlfHandle, libkbfs.MasterBranch)
