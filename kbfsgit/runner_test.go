@@ -136,8 +136,8 @@ func gitExec(t *testing.T, gitDir, workTree string, command ...string) {
 	require.NoError(t, err)
 }
 
-func makeLocalRepoWithOneFile(t *testing.T,
-	gitDir, filename, contents, branch string) {
+func makeLocalRepoWithOneFileCustomCommitMsg(t *testing.T,
+	gitDir, filename, contents, branch, msg string) {
 	t.Logf("Make a new repo in %s with one file", gitDir)
 	err := ioutil.WriteFile(
 		filepath.Join(gitDir, filename), []byte(contents), 0600)
@@ -151,10 +151,17 @@ func makeLocalRepoWithOneFile(t *testing.T,
 
 	gitExec(t, dotgit, gitDir, "add", filename)
 	gitExec(t, dotgit, gitDir, "-c", "user.name=Foo",
-		"-c", "user.email=foo@foo.com", "commit", "-a", "-m", "foo")
+		"-c", "user.email=foo@foo.com", "commit", "-a", "-m", msg)
 }
 
-func addOneFileToRepo(t *testing.T, gitDir, filename, contents string) {
+func makeLocalRepoWithOneFile(t *testing.T,
+	gitDir, filename, contents, branch string) {
+	makeLocalRepoWithOneFileCustomCommitMsg(
+		t, gitDir, filename, contents, branch, "foo")
+}
+
+func addOneFileToRepoCustomCommitMsg(t *testing.T, gitDir,
+	filename, contents, msg string) {
 	t.Logf("Add a new file to %s", gitDir)
 	err := ioutil.WriteFile(
 		filepath.Join(gitDir, filename), []byte(contents), 0600)
@@ -163,7 +170,12 @@ func addOneFileToRepo(t *testing.T, gitDir, filename, contents string) {
 
 	gitExec(t, dotgit, gitDir, "add", filename)
 	gitExec(t, dotgit, gitDir, "-c", "user.name=Foo",
-		"-c", "user.email=foo@foo.com", "commit", "-a", "-m", "foo")
+		"-c", "user.email=foo@foo.com", "commit", "-a", "-m", msg)
+}
+
+func addOneFileToRepo(t *testing.T, gitDir, filename, contents string) {
+	addOneFileToRepoCustomCommitMsg(
+		t, gitDir, filename, contents, "foo")
 }
 
 func testPushWithTemplate(t *testing.T, ctx context.Context,
@@ -1003,4 +1015,58 @@ func TestRunnerWithKBFSReset(t *testing.T) {
 	err = jServer.FinishSingleOp(ctx,
 		rootNode.GetFolderBranch().Tlf, nil, keybase1.MDPriorityGit)
 	require.NoError(t, err)
+}
+
+func testHandlePushBatch(t *testing.T, ctx context.Context,
+	config libkbfs.Config, git, refspec, tlfName string) commitsByRefName {
+	var input bytes.Buffer
+	var output bytes.Buffer
+	r, err := newRunner(ctx, config, "origin",
+		fmt.Sprintf("keybase://private/%s/test", tlfName),
+		filepath.Join(git, ".git"), &input, &output, testErrput{t})
+	require.NoError(t, err)
+
+	args := [][]string{{refspec}}
+	commits, err := r.handlePushBatch(ctx, args)
+	require.NoError(t, err)
+	return commits
+}
+
+func TestRunnerHandlePushBatch(t *testing.T) {
+	ctx, config, tempdir := initConfigForRunner(t)
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
+	defer os.RemoveAll(tempdir)
+
+	git, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
+	require.NoError(t, err)
+	defer os.RemoveAll(git)
+
+	// Setup the repo
+	h, err := libkbfs.ParseTlfHandle(
+		ctx, config.KBPKI(), config.MDOps(), "user1", tlf.Private)
+	require.NoError(t, err)
+	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
+	require.NoError(t, err)
+
+	t.Log("Make a new local repo with one commit, and push it. " +
+		"We expect this to return no commits, since it should push the " +
+		"whole repository.")
+	makeLocalRepoWithOneFileCustomCommitMsg(t, git, "foo", "hello", "", "one")
+	commits := testHandlePushBatch(t, ctx, config, git,
+		"refs/heads/master:refs/heads/master", "user1")
+	require.Empty(t, commits)
+
+	addOneFileToRepoCustomCommitMsg(t, git, "foo2", "hello2", "two")
+	commits = testHandlePushBatch(t, ctx, config, git,
+		"refs/heads/master:refs/heads/master", "user1")
+	require.Len(t, commits, 1)
+	require.Len(t, commits["refs/heads/master"], 1)
+
+	addOneFileToRepoCustomCommitMsg(t, git, "foo3", "hello3", "three")
+	addOneFileToRepoCustomCommitMsg(t, git, "foo4", "hello4", "four")
+	addOneFileToRepoCustomCommitMsg(t, git, "foo5", "hello5", "five")
+	commits = testHandlePushBatch(t, ctx, config, git,
+		"refs/heads/master:refs/heads/master", "user1")
+	require.Len(t, commits, 1)
+	require.Len(t, commits["refs/heads/master"], 3)
 }

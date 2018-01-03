@@ -1618,19 +1618,18 @@ func (r *runner) pushSome(
 // option field <why> may be quoted in a C style string if it contains
 // an LF.
 func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
-	err error) {
+	commits commitsByRefName, err error) {
 	repo, fs, err := r.initRepoIfNeeded(ctx, gitCmdPush)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	canPushAll, kbfsRepoEmpty, err := r.canPushAll(ctx, repo, args)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var results map[string]error
-	var commitsByRef commitsByRefName
 
 	// Ignore pushAll for commit collection, for now.
 	if canPushAll {
@@ -1644,17 +1643,17 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 			results[dst] = err
 		}
 	} else {
-		results, commitsByRef, err = r.pushSome(ctx, repo, fs, args, kbfsRepoEmpty)
+		results, commits, err = r.pushSome(ctx, repo, fs, args, kbfsRepoEmpty)
 		// TODO: remove this once we integrate the commits.
-		r.log.CDebugf(ctx, "Commits: %+v", commitsByRef)
+		r.log.CDebugf(ctx, "Commits: %+v", commits)
 	}
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	err = r.waitForJournal(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	r.log.CDebugf(ctx, "Done waiting for journal")
 
@@ -1672,16 +1671,19 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 	// `UpdateRepoMD`, once the protocol supports it..
 	err = libgit.UpdateRepoMD(ctx, r.config, r.h, fs)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	err = r.checkGC(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	_, err = r.output.Write([]byte("\n"))
-	return err
+	if err != nil {
+		return nil, err
+	}
+	return commits, nil
 }
 
 // handleOption: https://git-scm.com/docs/git-remote-helpers#git-remote-helpers-emoptionemltnamegtltvaluegt
@@ -1787,7 +1789,7 @@ func (r *runner) processCommand(
 					continue
 				} else if len(pushBatch) > 0 {
 					r.log.CDebugf(ctx, "Processing push batch")
-					err = r.handlePushBatch(ctx, pushBatch)
+					_, err = r.handlePushBatch(ctx, pushBatch)
 					if err != nil {
 						return err
 					}
