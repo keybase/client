@@ -18,9 +18,10 @@ export const makeChannelInfo: I.RecordFactory<Types._ChannelInfo> = I.Record({
 })
 
 export const makeMemberInfo: I.RecordFactory<Types._MemberInfo> = I.Record({
+  active: true,
+  fullName: '',
   type: null,
   username: '',
-  active: true,
 })
 
 export const makeInviteInfo: I.RecordFactory<Types._InviteInfo> = I.Record({

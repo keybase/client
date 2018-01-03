@@ -5,7 +5,9 @@ import (
 	"encoding/base64"
 	"fmt"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 )
@@ -55,5 +57,55 @@ func PutMetadata(ctx context.Context, g *libkb.GlobalContext, arg keybase1.PutGi
 		},
 	}
 	_, err = g.GetAPI().Post(apiArg)
+
+	if err == nil {
+		err = sendChat(ctx, g, teamIDVis.TeamID, arg)
+	}
+
 	return err
+}
+
+func sendChat(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, arg keybase1.PutGitMetadataArg) error {
+	if arg.Folder.FolderType != keybase1.FolderType_TEAM {
+		// only send chat for team repos
+		return nil
+	}
+
+	settingsArg := keybase1.GetTeamRepoSettingsArg{
+		Folder: arg.Folder,
+		RepoID: arg.RepoID,
+	}
+	settings, err := GetTeamRepoSettings(ctx, g, settingsArg)
+	if err != nil {
+		return err
+	}
+	if settings.ChatDisabled {
+		return nil
+	}
+	if settings.ChannelName == nil {
+		// this shouldn't happen, but protect it if it does:
+		g.Log.CDebugf(ctx, "invalid team repo settings:  chat enabled, but nil ChannelName.  using default.")
+		settings.ChannelName = &globals.DefaultTeamTopic
+	}
+
+	if g.ChatHelper == nil {
+		g.Log.CDebugf(ctx, "cannot send chat on git push to team channel because no ChatHelper")
+		return nil
+	}
+
+	subBody := chat1.NewMessageSystemWithGitpush(chat1.MessageSystemGitPush{
+		Team:       arg.Folder.Name,
+		Pusher:     g.Env.GetUsername().String(),
+		RepoName:   string(arg.Metadata.RepoName),
+		BranchName: arg.Metadata.BranchName,
+		CommitMsgs: arg.Metadata.CommitMsgs,
+	})
+	body := chat1.NewMessageBodyWithSystem(subBody)
+
+	g.StartStandaloneChat()
+
+	g.Log.CDebugf(ctx, "sending git push system chat message to %s/%s", arg.Folder.Name, *settings.ChannelName)
+	return g.ChatHelper.SendMsgByNameNonblock(ctx, arg.Folder.Name, settings.ChannelName,
+		chat1.ConversationMembersType_TEAM, keybase1.TLFIdentifyBehavior_CHAT_CLI, body,
+		chat1.MessageType_SYSTEM)
 }

@@ -30,7 +30,8 @@ protocol local {
     ADDEDTOTEAM_0,
     INVITEADDEDTOTEAM_1,
     COMPLEXTEAM_2,
-    CREATETEAM_3
+    CREATETEAM_3,
+    GITPUSH_4
   }
 
   record MessageSystemAddedToTeam {
@@ -60,16 +61,23 @@ protocol local {
     string creator;
   }
 
+  record MessageSystemGitPush {
+    string team;
+    string pusher;
+    string repoName;
+    string branchName;
+    array<string> commitMsgs;
+  }
+
   variant MessageSystem switch (MessageSystemType systemType) {
     case ADDEDTOTEAM: MessageSystemAddedToTeam;
     case INVITEADDEDTOTEAM: MessageSystemInviteAddedToTeam;
     case COMPLEXTEAM: MessageSystemComplexTeam;
     case CREATETEAM: MessageSystemCreateTeam;
+    case GITPUSH: MessageSystemGitPush;
   }
 
   record MessageDeleteHistory {
-    // Delete message before this time.
-    gregor1.Time uptoTime;
     // Delete messages up to this ID (exclusive).
     MessageID upto;
   }
@@ -581,7 +589,8 @@ protocol local {
   PostLocalRes postHeadline(ConversationID conversationID, string tlfName, boolean tlfPublic, string headline, keybase1.TLFIdentifyBehavior identifyBehavior);
   PostLocalNonblockRes postMetadataNonblock(ConversationID conversationID, string tlfName, boolean tlfPublic,  string channelName, union { null, OutboxID } outboxID, MessageID clientPrev, keybase1.TLFIdentifyBehavior identifyBehavior);
   PostLocalRes postMetadata(ConversationID conversationID, string tlfName, boolean tlfPublic, string channelName, keybase1.TLFIdentifyBehavior identifyBehavior);
-
+  PostLocalRes postDeleteHistoryUpto(ConversationID conversationID, string tlfName, boolean tlfPublic, keybase1.TLFIdentifyBehavior identifyBehavior, MessageID upto);
+  PostLocalRes postDeleteHistoryByAge(ConversationID conversationID, string tlfName, boolean tlfPublic, keybase1.TLFIdentifyBehavior identifyBehavior, gregor1.DurationSec age);
 
   @lint("ignore")
   SetConversationStatusLocalRes SetConversationStatusLocal(ConversationID conversationID, ConversationStatus status, keybase1.TLFIdentifyBehavior identifyBehavior);

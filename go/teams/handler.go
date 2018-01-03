@@ -190,6 +190,20 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 		req.CompletedInvites = make(map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm)
 		req.CompletedInvites[untrustedInviteeFromGregor.InviteID] = uv.PercentForm()
 
+		// Check to see if the user is already in the team with a lower eldest seqno, if so, we need
+		// to remove that entry
+		existingUV, err := team.UserVersionByUID(ctx, untrustedInviteeFromGregor.Uid)
+		if err == nil {
+			if existingUV.EldestSeqno > untrustedInviteeFromGregor.EldestSeqno {
+				return fmt.Errorf("newer version of user %s already exists in team %q (%v > %v)",
+					untrustedInviteeFromGregor.Uid, team.Name(), existingUV.EldestSeqno,
+					untrustedInviteeFromGregor.EldestSeqno)
+			}
+			g.Log.CDebugf(ctx, "removing old version of user: %s (%v -> %v)", untrustedInviteeFromGregor.Uid,
+				existingUV.EldestSeqno, untrustedInviteeFromGregor.EldestSeqno)
+			req.None = []keybase1.UserVersion{existingUV}
+		}
+
 		g.Log.CDebugf(ctx, "checks passed, proceeding with team.ChangeMembership, req = %+v", req)
 
 		if err = team.ChangeMembership(ctx, req); err != nil {

@@ -8,22 +8,14 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbfs"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	"github.com/stretchr/testify/require"
 )
-
-// Copied from the teams tests.
-func SetupTest(tb testing.TB, name string, depth int) (tc libkb.TestContext) {
-	tc = libkb.SetupTest(tb, name, depth+1)
-	tc.G.SetServices(externals.GetServices())
-	teams.ServiceInit(tc.G)
-	return tc
-}
 
 func doPut(t *testing.T, g *libkb.GlobalContext, teamName string, repoID string, repoName string) {
 	err := PutMetadata(context.Background(), g, keybase1.PutGitMetadataArg{
@@ -99,6 +91,14 @@ func TestPutAndGet(t *testing.T) {
 	require.Equal(t, string(team1.Chain.Id+"_abc123"), oneRepo.GlobalUniqueID)
 	require.Equal(t, "keybase://team/"+teamName1+"/repoNameFirst", oneRepo.RepoUrl)
 	require.Equal(t, oneRepo.CanDelete, true)
+
+	// check that the chat system messages were sent for the two doPut calls above
+	msgs := MockSentMessages(tc)
+	require.Len(t, msgs, 2)
+	require.Equal(t, msgs[0].msgType, chat1.MessageType_SYSTEM)
+	require.Equal(t, msgs[1].msgType, chat1.MessageType_SYSTEM)
+	require.Equal(t, msgs[0].body.System().Gitpush().RepoName, "repoNameFirst")
+	require.Equal(t, msgs[1].body.System().Gitpush().RepoName, "repoNameSecond")
 }
 
 func TestDeleteRepo(t *testing.T) {

@@ -17,6 +17,8 @@ func DeleteMetadata(ctx context.Context, g *libkb.GlobalContext, folder keybase1
 	}
 
 	// The GUI doesn't give us the repo_id back, so we need to figure it out.
+	// Note:  the GUI *does* have the repo_id, so we could change this interface and avoid
+	// this step:
 	repos, err := GetMetadata(ctx, g, folder)
 	if err != nil {
 		return err
