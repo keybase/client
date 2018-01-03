@@ -726,7 +726,7 @@ func TestChatMessageDeletes(t *testing.T) {
 		}
 
 		unboxed, err := boxer.unbox(context.TODO(), *boxed, chat1.ConversationMembersType_KBFS, key)
-		require.NoError(t, err, "deleted message should still unbox")
+		require.NoError(t, err)
 		body := unboxed.MessageBody
 		typ, err := body.MessageType()
 		require.NoError(t, err)
@@ -813,6 +813,47 @@ func TestChatMessageDeletedNotSuperseded(t *testing.T) {
 		require.NoError(t, err, "suprisingly, should be able to unbox with deleted but no supersededby")
 		require.Equal(t, chat1.MessageBody{}, unboxed.MessageBody)
 	})
+}
+
+// Test a DeleteHistory message.
+func TestChatMessageDeleteHistory(t *testing.T) {
+	mbVersion := chat1.MessageBoxedVersion_V2
+	key := cryptKey(t)
+	text := "hi"
+	tc, boxer := setupChatTest(t, "unbox")
+	defer tc.Cleanup()
+
+	// need a real user
+	u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
+	if err != nil {
+		t.Fatal(err)
+	}
+	msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()), mbVersion)
+	mdh := chat1.MessageDeleteHistory{Upto: chat1.MessageID(4)}
+	msg.MessageBody = chat1.NewMessageBodyWithDeletehistory(mdh)
+	msg.ClientHeader.DeleteHistory = &mdh
+
+	signKP := getSigningKeyPairForTest(t, tc, u)
+
+	boxed, err := boxer.box(context.TODO(), msg, key, signKP, mbVersion)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// need to give it a server header...
+	boxed.ServerHeader = &chat1.MessageServerHeader{
+		Ctime:        gregor1.ToTime(time.Now()),
+		SupersededBy: 4,
+	}
+
+	unboxed, err := boxer.unbox(context.TODO(), *boxed, chat1.ConversationMembersType_KBFS, key)
+	require.NoError(t, err)
+	body := unboxed.MessageBody
+	typ, err := body.MessageType()
+	require.NoError(t, err)
+	require.Equal(t, typ, chat1.MessageType_DELETEHISTORY)
+	require.Nil(t, unboxed.SenderDeviceRevokedAt, "message should not be from revoked device")
+	require.Equal(t, mdh, unboxed.MessageBody.Deletehistory())
 }
 
 func TestV1Message1(t *testing.T) {

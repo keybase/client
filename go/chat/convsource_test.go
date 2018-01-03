@@ -17,6 +17,11 @@ import (
 )
 
 func TestGetThreadSupersedes(t *testing.T) {
+	testGetThreadSupersedes(t, false)
+	testGetThreadSupersedes(t, true)
+}
+
+func testGetThreadSupersedes(t *testing.T, deleteHistory bool) {
 	ctx, world, ri, _, sender, _ := setupTest(t, 1)
 	defer world.Cleanup()
 
@@ -93,18 +98,31 @@ func TestGetThreadSupersedes(t *testing.T) {
 	require.Equal(t, "EDITED", thread.Messages[0].Valid().MessageBody.Text().Body, "wrong body")
 
 	t.Logf("testing a delete")
+	delTyp := chat1.MessageType_DELETE
+	delBody := chat1.NewMessageBodyWithDelete(chat1.MessageDelete{
+		MessageIDs: []chat1.MessageID{msgID, editMsgID},
+	})
+	delSupersedes := msgID
+	var delHeader *chat1.MessageDeleteHistory
+	if deleteHistory {
+		delTyp = chat1.MessageType_DELETEHISTORY
+		delHeader = &chat1.MessageDeleteHistory{
+			Upto: editMsgID + 1,
+		}
+		delBody = chat1.NewMessageBodyWithDeletehistory(*delHeader)
+		delSupersedes = 0
+	}
 	_, deleteMsgBoxed, _, err := sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
-			Conv:        trip,
-			Sender:      u.User.GetUID().ToBytes(),
-			TlfName:     u.Username,
-			TlfPublic:   false,
-			MessageType: chat1.MessageType_DELETE,
-			Supersedes:  msgID,
+			Conv:          trip,
+			Sender:        u.User.GetUID().ToBytes(),
+			TlfName:       u.Username,
+			TlfPublic:     false,
+			MessageType:   delTyp,
+			Supersedes:    delSupersedes,
+			DeleteHistory: delHeader,
 		},
-		MessageBody: chat1.NewMessageBodyWithDelete(chat1.MessageDelete{
-			MessageIDs: []chat1.MessageID{msgID, editMsgID},
-		}),
+		MessageBody: delBody,
 	}, 0, nil)
 	require.NoError(t, err)
 	deleteMsgID := deleteMsgBoxed.GetMessageID()
@@ -121,7 +139,9 @@ func TestGetThreadSupersedes(t *testing.T) {
 			MessageTypes: []chat1.MessageType{
 				chat1.MessageType_TEXT,
 				chat1.MessageType_EDIT,
-				chat1.MessageType_DELETE},
+				chat1.MessageType_DELETE,
+				chat1.MessageType_DELETEHISTORY,
+			},
 			DisableResolveSupersedes: true,
 		}, nil)
 	require.NoError(t, err)
@@ -270,6 +290,11 @@ func (f failingRemote) PreviewConversation(ctx context.Context, convID chat1.Con
 func (f failingRemote) DeleteConversation(ctx context.Context, convID chat1.ConversationID) (chat1.DeleteConversationRemoteRes, error) {
 	require.Fail(f.t, "DeleteConversation")
 	return chat1.DeleteConversationRemoteRes{}, nil
+}
+
+func (f failingRemote) GetMessageBefore(ctx context.Context, arg chat1.GetMessageBeforeArg) (chat1.GetMessageBeforeRes, error) {
+	require.Fail(f.t, "GetMessageBefore")
+	return chat1.GetMessageBeforeRes{}, nil
 }
 
 func (f failingRemote) RemoteNotificationSuccessful(ctx context.Context,

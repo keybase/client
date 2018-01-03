@@ -85,6 +85,7 @@ protocol common {
   }
 
   @typedef("int64") @lint("ignore") record DurationMsec {}
+  @typedef("int64") @lint("ignore") record DurationSec {}
   @typedef("string") record Category {}
   @typedef("string") record System {}
   @typedef("bytes") record UID {}
