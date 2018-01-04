@@ -58,7 +58,7 @@ function isValidChannel(meta: ?MarkdownMeta, channel: string): boolean {
     return false
   }
 
-  return true
+  return !!meta.channelNames[channel]
 }
 
 export function parseMarkdown(
