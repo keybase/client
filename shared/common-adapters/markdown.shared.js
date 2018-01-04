@@ -52,7 +52,6 @@ function isValidMention(meta: ?MarkdownMeta, mention: string): boolean {
   return mention === 'here' || mention === 'channel' || mentions.has(mention)
 }
 
-// TODO: Pass down list of channels.
 function isValidChannel(meta: ?MarkdownMeta, channel: string): boolean {
   if (!meta) {
     return false
