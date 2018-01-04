@@ -122,8 +122,8 @@ func getUsernameAndFullName(ctx context.Context, g *libkb.GlobalContext, uid key
 	return username, fullName, err
 }
 
-func ListTeams(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg) (*keybase1.AnnotatedTeamList, error) {
-	tracer := g.CTimeTracer(ctx, "TeamList.ListTeams")
+func ListTeamsVerified(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListVerifiedArg) (*keybase1.AnnotatedTeamList, error) {
+	tracer := g.CTimeTracer(ctx, "TeamList.ListTeamsVerified")
 	defer tracer.Finish()
 
 	tracer.Stage("Resolve QueryUID")

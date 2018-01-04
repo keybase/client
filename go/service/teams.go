@@ -115,7 +115,7 @@ func (h *TeamsHandler) TeamImplicitAdmins(ctx context.Context, arg keybase1.Team
 	return teams.ImplicitAdmins(ctx, h.G().ExternalG(), teamID)
 }
 
-func (h *TeamsHandler) TeamList(ctx context.Context, arg keybase1.TeamListArg) (res keybase1.AnnotatedTeamList, err error) {
+func (h *TeamsHandler) TeamListUnverified(ctx context.Context, arg keybase1.TeamListUnverifiedArg) (res keybase1.AnnotatedTeamList, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamList(%s)", arg.UserAssertion), func() error { return err })()
 	x, err := teams.ListTeamsUnverified(ctx, h.G().ExternalG(), arg)
@@ -138,11 +138,7 @@ func (h *TeamsHandler) TeamListTeammates(ctx context.Context, arg keybase1.TeamL
 func (h *TeamsHandler) TeamListVerified(ctx context.Context, arg keybase1.TeamListVerifiedArg) (res keybase1.AnnotatedTeamList, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamListVerified(%s)", arg.UserAssertion), func() error { return err })()
-	x, err := teams.ListTeams(ctx, h.G().ExternalG(), keybase1.TeamListArg{
-		SessionID:            arg.SessionID,
-		UserAssertion:        arg.UserAssertion,
-		IncludeImplicitTeams: arg.IncludeImplicitTeams,
-	})
+	x, err := teams.ListTeamsVerified(ctx, h.G().ExternalG(), arg)
 	if err != nil {
 		return keybase1.AnnotatedTeamList{}, err
 	}

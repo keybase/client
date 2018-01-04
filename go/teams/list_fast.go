@@ -17,7 +17,7 @@ import (
 
 // See also: teams/list.go
 
-func ListTeamsUnverified(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg) (*keybase1.AnnotatedTeamList, error) {
+func ListTeamsUnverified(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListUnverifiedArg) (*keybase1.AnnotatedTeamList, error) {
 	tracer := g.CTimeTracer(ctx, "TeamList.ListTeamsUnverified")
 	defer tracer.Finish()
 

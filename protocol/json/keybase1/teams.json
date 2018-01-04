@@ -1705,7 +1705,7 @@
         "items": "TeamMemberDetails"
       }
     },
-    "teamList": {
+    "teamListUnverified": {
       "request": [
         {
           "name": "sessionID",

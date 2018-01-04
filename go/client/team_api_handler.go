@@ -358,11 +358,11 @@ func (t *teamAPIHandler) listUserMemberships(ctx context.Context, c Call, w io.W
 		return t.encodeErr(c, err, w)
 	}
 
-	arg := keybase1.TeamListArg{
+	arg := keybase1.TeamListUnverifiedArg{
 		UserAssertion:        opts.UserAssertion,
 		IncludeImplicitTeams: opts.IncludeImplicitTeams,
 	}
-	list, err := t.cli.TeamList(ctx, arg)
+	list, err := t.cli.TeamListUnverified(ctx, arg)
 	if err != nil {
 		return t.encodeErr(c, err, w)
 	}

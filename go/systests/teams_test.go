@@ -349,7 +349,7 @@ func (u *userPlusDevice) acceptInviteOrRequestAccess(tokenOrName string) keybase
 
 func (u *userPlusDevice) teamList(userAssertion string, all, includeImplicitTeams bool) keybase1.AnnotatedTeamList {
 	cli := u.teamsClient
-	res, err := cli.TeamList(context.TODO(), keybase1.TeamListArg{
+	res, err := cli.TeamListUnverified(context.TODO(), keybase1.TeamListUnverifiedArg{
 		UserAssertion:        userAssertion,
 		IncludeImplicitTeams: includeImplicitTeams,
 	})

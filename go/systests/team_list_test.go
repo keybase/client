@@ -117,15 +117,24 @@ func TestTeamList(t *testing.T) {
 
 	// Examine results from TeamList (mostly MemberCount)
 
-	list, err := teamCli.TeamList(context.TODO(), keybase1.TeamListArg{})
+	check := func(list *keybase1.AnnotatedTeamList) {
+		require.Equal(t, 1, len(list.Teams))
+		require.Equal(t, 0, len(list.AnnotatedActiveInvites))
+
+		teamInfo := list.Teams[0]
+		require.Equal(t, team.name, teamInfo.FqName)
+		require.Equal(t, 5, teamInfo.MemberCount)
+	}
+
+	list, err := teamCli.TeamListVerified(context.TODO(), keybase1.TeamListVerifiedArg{})
 	require.NoError(t, err)
 
-	require.Equal(t, 1, len(list.Teams))
-	require.Equal(t, 0, len(list.AnnotatedActiveInvites))
+	check(&list)
 
-	teamInfo := list.Teams[0]
-	require.Equal(t, team.name, teamInfo.FqName)
-	require.Equal(t, 5, teamInfo.MemberCount)
+	list, err = teamCli.TeamListUnverified(context.TODO(), keybase1.TeamListUnverifiedArg{})
+	require.NoError(t, err)
+
+	check(&list)
 }
 
 func TestTeamDuplicateUIDList(t *testing.T) {
@@ -194,7 +203,7 @@ func TestTeamDuplicateUIDList(t *testing.T) {
 	check(&list)
 
 	t.Logf("Calling TeamList")
-	list, err = teamCli.TeamList(context.TODO(), keybase1.TeamListArg{})
+	list, err = teamCli.TeamListUnverified(context.TODO(), keybase1.TeamListUnverifiedArg{})
 	require.NoError(t, err)
 
 	check(&list)

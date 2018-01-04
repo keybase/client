@@ -1845,7 +1845,7 @@ type TeamImplicitAdminsArg struct {
 	TeamName  string `codec:"teamName" json:"teamName"`
 }
 
-type TeamListArg struct {
+type TeamListUnverifiedArg struct {
 	SessionID            int    `codec:"sessionID" json:"sessionID"`
 	UserAssertion        string `codec:"userAssertion" json:"userAssertion"`
 	IncludeImplicitTeams bool   `codec:"includeImplicitTeams" json:"includeImplicitTeams"`
@@ -2034,7 +2034,7 @@ type TeamsInterface interface {
 	TeamCreateWithSettings(context.Context, TeamCreateWithSettingsArg) (TeamCreateResult, error)
 	TeamGet(context.Context, TeamGetArg) (TeamDetails, error)
 	TeamImplicitAdmins(context.Context, TeamImplicitAdminsArg) ([]TeamMemberDetails, error)
-	TeamList(context.Context, TeamListArg) (AnnotatedTeamList, error)
+	TeamListUnverified(context.Context, TeamListUnverifiedArg) (AnnotatedTeamList, error)
 	TeamListTeammates(context.Context, TeamListTeammatesArg) (AnnotatedTeamList, error)
 	TeamListVerified(context.Context, TeamListVerifiedArg) (AnnotatedTeamList, error)
 	TeamListSubteamsRecursive(context.Context, TeamListSubteamsRecursiveArg) ([]TeamIDAndName, error)
@@ -2140,18 +2140,18 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"teamList": {
+			"teamListUnverified": {
 				MakeArg: func() interface{} {
-					ret := make([]TeamListArg, 1)
+					ret := make([]TeamListUnverifiedArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]TeamListArg)
+					typedArgs, ok := args.(*[]TeamListUnverifiedArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]TeamListArg)(nil), args)
+						err = rpc.NewTypeError((*[]TeamListUnverifiedArg)(nil), args)
 						return
 					}
-					ret, err = i.TeamList(ctx, (*typedArgs)[0])
+					ret, err = i.TeamListUnverified(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2696,8 +2696,8 @@ func (c TeamsClient) TeamImplicitAdmins(ctx context.Context, __arg TeamImplicitA
 	return
 }
 
-func (c TeamsClient) TeamList(ctx context.Context, __arg TeamListArg) (res AnnotatedTeamList, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamList", []interface{}{__arg}, &res)
+func (c TeamsClient) TeamListUnverified(ctx context.Context, __arg TeamListUnverifiedArg) (res AnnotatedTeamList, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamListUnverified", []interface{}{__arg}, &res)
 	return
 }
 
