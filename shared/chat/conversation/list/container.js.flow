@@ -12,10 +12,13 @@ export type StateProps = {|
   selectedConversation: ?Types.ConversationIDKey,
   validated: boolean,
   you: string,
+  teamname: ?string,
+  channelNames: {[string]: string},
   getMessageFromMessageKey: (messageKey: Types.MessageKey) => Types.Message,
 |}
 
 export type DispatchProps = {|
+  _loadChannels: (teamname: string) => void,
   _onDownloadAttachment: (messageKey: Types.MessageKey) => void,
   _onLoadMoreMessages: (conversationIDKey: Types.ConversationIDKey) => void,
   onDeleteMessage: (message: Types.Message) => void,

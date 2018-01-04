@@ -1,13 +1,15 @@
 // @flow
 import * as Constants from '../../../constants/chat'
+import {getConvIdsFromTeamName, getChannelNameFromConvID} from '../../../constants/teams'
 import * as Types from '../../../constants/types/chat'
 import * as ChatGen from '../../../actions/chat-gen'
 import * as KBFSGen from '../../../actions/kbfs-gen'
+import * as TeamsGen from '../../../actions/teams-gen'
 import * as Selectors from '../../../constants/selectors'
 import * as I from 'immutable'
 import HiddenString from '../../../util/hidden-string'
 import ListComponent, {type Props} from '.'
-import {compose, connect, type TypedState} from '../../../util/container'
+import {compose, connect, lifecycle, type TypedState} from '../../../util/container'
 import {createSelector, createSelectorCreator, defaultMemoize} from 'reselect'
 import {navigateAppend} from '../../../actions/route-tree'
 import {type OwnProps, type StateProps, type DispatchProps} from './container'
@@ -82,12 +84,27 @@ const convStateProps = createSelector(
   })
 )
 
+const getTeamChannelNames = (state: TypedState, teamname: ?string): {[string]: string} => {
+  if (!teamname) return {}
+  const convIDs = getConvIdsFromTeamName(state, teamname)
+  return convIDs
+    .map(convID => {
+      getChannelNameFromConvID(state, convID)
+    })
+    .filter(Boolean)
+    .toObject()
+}
+
 // TODO this is temp until we can discuss a better solution to this getMessageFromMessageKey thing
 let _stateHack
 const mapStateToProps = createSelector(
   [state => state, ownPropsSelector, Selectors.usernameSelector, convStateProps, messageKeysSelector],
   (state, ownProps, username, convStateProps, messageKeys) => {
     _stateHack = state
+    const teamname = convStateProps.selectedConversation
+      ? state.chat.getIn(['inboxBigChannelsToTeam', convStateProps.selectedConversation])
+      : null
+    const channelNames = getTeamChannelNames(state, teamname)
     return {
       editLastMessageCounter: ownProps.editLastMessageCounter,
       listScrollDownCounter: ownProps.listScrollDownCounter,
@@ -96,6 +113,8 @@ const mapStateToProps = createSelector(
       selectedConversation: convStateProps.selectedConversation,
       validated: convStateProps.validated,
       you: username,
+      teamname,
+      channelNames,
       hasResetUsers:
         state.chat.inboxResetParticipants.get(convStateProps.selectedConversation, I.Set()).size > 0,
       _supersedes: convStateProps._supersedes,
@@ -104,6 +123,7 @@ const mapStateToProps = createSelector(
 )
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
+  _loadChannels: teamname => dispatch(TeamsGen.createGetChannels({teamname})),
   _onDownloadAttachment: messageKey => {
     dispatch(ChatGen.createSaveAttachment({messageKey}))
   },
@@ -161,6 +181,9 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props
     Constants.getMessageFromMessageKey(_stateHack, messageKey)
 
   return {
+    _loadChannels: () => {
+      if (stateProps.teamname) dispatchProps._loadChannels(stateProps.teamname)
+    },
     editLastMessageCounter: stateProps.editLastMessageCounter,
     getMessageFromMessageKey,
     listScrollDownCounter: stateProps.listScrollDownCounter,
@@ -179,8 +202,17 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props
     selectedConversation: stateProps.selectedConversation,
     validated: stateProps.validated,
     you: stateProps.you,
+    teamname: stateProps.teamname,
+    channelNames: stateProps.channelNames,
   }
 }
 
-// $FlowIssue
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps))(ListComponent)
+export default compose(
+  // $FlowIssue
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  lifecycle({
+    componentDidMount: function() {
+      this.props._loadChannels()
+    },
+  })
+)(ListComponent)

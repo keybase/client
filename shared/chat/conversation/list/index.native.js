@@ -40,7 +40,8 @@ class ConversationList extends Component<Props> {
           this._onAction,
           this._onShowEditor,
           isSelected,
-          this._measure
+          this._measure,
+          this.props.channelNames
         )}
       </Box>
     )

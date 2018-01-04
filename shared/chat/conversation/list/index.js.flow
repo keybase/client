@@ -4,6 +4,7 @@ import {List} from 'immutable'
 import * as Types from '../../../constants/types/chat'
 
 export type Props = {|
+  _loadChannels: () => void,
   messageKeys: List<string>,
   editLastMessageCounter: number,
   listScrollDownCounter: number,
@@ -24,6 +25,8 @@ export type Props = {|
   selectedConversation: ?Types.ConversationIDKey,
   validated: boolean,
   you: string,
+  teamname: ?string,
+  channelNames: {[string]: string},
 |}
 
 export default class ConversationList extends React.Component<Props> {
