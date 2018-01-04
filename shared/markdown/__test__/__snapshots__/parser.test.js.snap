@@ -333,14 +333,29 @@ Object {
   "children": Array [
     Object {
       "children": Array [
+        "_",
         Object {
           "children": Array [
-            Object {
-              "children": Array [
-                "validmarco",
-              ],
-              "type": "mention",
-            },
+            "validmarco_",
+          ],
+          "type": "mention",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses formatted mentions 4`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "@validmarco",
           ],
           "type": "italic",
         },

@@ -212,7 +212,11 @@ this is a code block with two newline above\`\`\`
   it('parses formatted mentions', () => {
     check('~@validmarco~', {isValidMention})
     check('*@validmarco*', {isValidMention})
+    // The trailing underscore is parsed as part of the mention.
     check('_@validmarco_', {isValidMention})
+    // Even if we disallow validmarco_ as a valid mention, prefixes
+    // won't be tried, and so the whole thing renders as regular text.
+    check('_@validmarco_', {isValidMention: (s: string) => s === 'validmarco'})
   })
   it('ignores mentions in code', () => {
     check('@validmarco `some inline code @validmarco`', {isValidMention})

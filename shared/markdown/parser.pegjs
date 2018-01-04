@@ -115,7 +115,7 @@ Strike
  = StrikeMarker !WhiteSpace children:StrikeInline StrikeMarker !(StrikeMarker / NormalChar) { return {type: 'strike', children: flatten(children)} }
 
 // children grammar adapted from username regexp in libkb/checkers.go.
-Mention = MentionMarker children:([a-zA-Z0-9][a-zA-Z0-9_]?)+ & {
+Mention = MentionMarker children:([a-zA-Z0-9]+[a-zA-Z0-9_]?)+ & {
   return options && options.isValidMention && options.isValidMention(flatten(children)[0])
 } { return {type: 'mention', children: flatten(children)} }
 
