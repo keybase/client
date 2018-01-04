@@ -24,6 +24,7 @@ export type MarkdownCreateComponent = (
 export type MarkdownMeta = {
   mentions: Mentions,
   channelMention: ChannelMention,
+  channelNames: {[string]: string},
 }
 
 export type Props = {
