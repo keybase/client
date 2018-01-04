@@ -18,6 +18,7 @@ export type Teamname = string
 export type _PublicitySettings = {
   anyMemberShowcase: boolean,
   description: string,
+  ignoreAccessRequests: boolean,
   member: boolean,
   team: boolean,
 }
