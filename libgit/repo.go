@@ -42,6 +42,10 @@ const (
 	repoGCLockFileName       = ".gc"
 )
 
+// CommitSentinelValue marks the end of a list of commits, where there are
+// still commits that haven't been read.
+var CommitSentinelValue *object.Commit = nil
+
 // This character set is what Github supports in repo names.  It's
 // probably to avoid any problems when cloning onto filesystems that
 // have different Unicode decompression schemes
@@ -184,13 +188,6 @@ func CleanOldDeletedReposTimeLimited(
 func UpdateRepoMD(ctx context.Context, config libkbfs.Config,
 	tlfHandle *libkbfs.TlfHandle, fs billy.Filesystem,
 	commitsByRef map[plumbing.ReferenceName][]*object.Commit) error {
-	if len(commitsByRef) == 0 {
-		// If an empty `commitsByRef` is passed in, ensure there is at least
-		// one entry so that `PutGitMetadata` is called once. Use an empty
-		// reference name and an empty commits array since there is no way to
-		// retrieve that metadata in those situations (e.g. repo rename).
-		commitsByRef = map[plumbing.ReferenceName][]*object.Commit{"": nil}
-	}
 	folder := tlfHandle.ToFavorite().ToKBFolder(false)
 
 	// Get the user-formatted repo name.
@@ -208,25 +205,44 @@ func UpdateRepoMD(ctx context.Context, config libkbfs.Config,
 		return err
 	}
 
-	log := config.MakeLogger("")
+	gitRefMetadata := make([]keybase1.GitRefMetadata, 0, len(commitsByRef))
 	for refName, commits := range commitsByRef {
-		msgs := make([]string, 0, len(commits))
+		hasMoreCommits := false
+		kbCommits := make([]keybase1.GitCommit, 0, len(commits))
 		for _, c := range commits {
-			msgs = append(msgs, c.Message)
-		}
-		log.CDebugf(ctx, "Putting git MD update for branch %s", refName)
-		err = config.KBPKI().PutGitMetadata(
-			ctx, folder, keybase1.RepoID(c.ID.String()),
-			keybase1.GitLocalMetadata{
-				RepoName:   keybase1.GitRepoName(c.Name),
-				BranchName: string(refName),
-				CommitMsgs: msgs,
+			if c == CommitSentinelValue {
+				// Accept a sentinel value at the end of the commit list that
+				// indicates that there would have been more commits, but we
+				// stopped due to a cap.
+				hasMoreCommits = true
+				break
+			}
+			kbCommits = append(kbCommits, keybase1.GitCommit{
+				CommitHash:  string(c.Hash[:]),
+				Message:     c.Message,
+				AuthorName:  c.Author.Name,
+				AuthorEmail: c.Author.Email,
+				Ctime:       keybase1.Time(c.Author.When.Unix()),
 			})
-		if err != nil {
-			// Just log the put error, it shouldn't block the success of
-			// the overall git operation.
-			log.CDebugf(ctx, "Failed to put git metadata: %+v", err)
 		}
+		gitRefMetadata = append(gitRefMetadata, keybase1.GitRefMetadata{
+			RefName:              string(refName),
+			Commits:              kbCommits,
+			MoreCommitsAvailable: hasMoreCommits,
+		})
+	}
+	log := config.MakeLogger("")
+	log.CDebugf(ctx, "Putting git MD update")
+	err = config.KBPKI().PutGitMetadata(
+		ctx, folder, keybase1.RepoID(c.ID.String()),
+		keybase1.GitLocalMetadata{
+			RepoName: keybase1.GitRepoName(c.Name),
+			Refs:     gitRefMetadata,
+		})
+	if err != nil {
+		// Just log the put error, it shouldn't block the success of
+		// the overall git operation.
+		log.CDebugf(ctx, "Failed to put git metadata: %+v", err)
 	}
 	return nil
 }

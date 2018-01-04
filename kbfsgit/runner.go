@@ -92,7 +92,7 @@ const (
 	unlockPrintBytesStatusThreshold = time.Second / 2
 	gcPrintStatusThreshold          = time.Second
 
-	maxCommitsToVisitPerRef = 100
+	maxCommitsToVisitPerRef = 20
 )
 
 type ctxCommandTagKey int
@@ -1464,14 +1464,22 @@ func (r *runner) parentCommitsForRef(ctx context.Context,
 		// 3. Run out of commits.
 		walker := gogitobj.NewCommitPreorderIter(commit, haves, nil)
 		toVisit := maxCommitsToVisitPerRef
+		commitsByRef[refName] = make([]*gogitobj.Commit, 0, maxCommitsToVisitPerRef)
 		err = walker.ForEach(func(c *gogitobj.Commit) error {
 			haves[c.Hash] = true
 			toVisit--
 			// If toVisit starts out at 0 (indicating there is no
 			// max), then it will be negative here and we won't stop
 			// early.
+			if toVisit == 0 {
+				// Append a sentinel value to communicate that there would be
+				// more commits.
+				commitsByRef[refName] = append(commitsByRef[refName],
+					libgit.CommitSentinelValue)
+				return gogitstor.ErrStop
+			}
 			hasEncodedObjectErr := remoteStorer.HasEncodedObject(c.Hash)
-			if toVisit == 0 || hasEncodedObjectErr == nil {
+			if hasEncodedObjectErr == nil {
 				return gogitstor.ErrStop
 			}
 			commitsByRef[refName] = append(commitsByRef[refName], c)

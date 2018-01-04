@@ -1083,4 +1083,19 @@ func TestRunnerHandlePushBatch(t *testing.T) {
 	require.Equal(t, "five", strings.TrimSpace(master[0].Message))
 	require.Equal(t, "four", strings.TrimSpace(master[1].Message))
 	require.Equal(t, "three", strings.TrimSpace(master[2].Message))
+
+	t.Log("Add more commits than the maximum to visit per ref. " +
+		"Check that a sentinel value was added.")
+	for i := 0; i < maxCommitsToVisitPerRef+1; i++ {
+		filename := fmt.Sprintf("foo%d", i+6)
+		content := fmt.Sprintf("hello%d", i+6)
+		msg := fmt.Sprintf("commit message %d", i+6)
+		addOneFileToRepoCustomCommitMsg(t, git, filename, content, msg)
+	}
+	commits = testHandlePushBatch(t, ctx, config, git,
+		"refs/heads/master:refs/heads/master", "user1")
+	require.Len(t, commits, 1)
+	master = commits["refs/heads/master"]
+	require.Len(t, master, maxCommitsToVisitPerRef)
+	require.Equal(t, libgit.CommitSentinelValue, master[maxCommitsToVisitPerRef-1])
 }
