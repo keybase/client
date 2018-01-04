@@ -91,7 +91,6 @@ class FormInput extends React.Component<Props, State> {
         style={{
           ...globalStyles.flexBoxColumn,
           alignItems: 'center',
-          // justifyContent: 'center',
           position: 'relative',
           width: '100%',
           borderTopWidth: this.props.hideTopBorder ? 0 : 1,
@@ -148,11 +147,11 @@ class FormInput extends React.Component<Props, State> {
           multiline={this.props.multiline}
           style={{
             flexBasis: 'auto',
-            // position: 'relative',
             width: '100%',
             paddingLeft: globalMargins.small,
             paddingRight: globalMargins.small,
-            paddingTop: 21,
+            paddingTop: this.state.value || this.state.focused ? 24 : 21,
+            marginBottom: 18,
             ...((this.props.textType && getStyle(this.props.textType, this.props.backgroundMode)) ||
               getStyle('BodySemibold')),
             ...this.props.inputStyle,
