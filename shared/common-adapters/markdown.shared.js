@@ -51,23 +51,6 @@ function isValidMention(meta: ?MarkdownMeta, mention: string): boolean {
   return mention === 'here' || mention === 'channel' || mentions.has(mention)
 }
 
-function preprocessMarkdown(markdown: string, meta: ?MarkdownMeta) {
-  if (!meta || !meta.mentions || !meta.channelMention) {
-    return markdown
-  }
-  const {channelMention, mentions} = meta
-  if (channelMention === 'None' && mentions.length === 0) {
-    return markdown
-  }
-
-  return markdown.replace(/\B@([a-z0-9][a-z0-9_]+)/g, (match, matchedGroup) => {
-    if (matchedGroup === 'here' || matchedGroup === 'channel' || mentions.has(matchedGroup)) {
-      return `${match}@keybase`
-    }
-    return match
-  })
-}
-
 export function parseMarkdown(
   markdown: ?string,
   markdownCreateComponent: MarkdownCreateComponent,
@@ -78,11 +61,10 @@ export function parseMarkdown(
     return plainText
   }
 
-  const localIsValidMention = (mention: string) => isValidMention(meta, mention)
   try {
     return processAST(
-      parser.parse(preprocessMarkdown(markdown || '', meta), {
-        isValidMention: localIsValidMention,
+      parser.parse(markdown || '', meta, {
+        isValidMention: (mention: string) => isValidMention(meta, mention),
       }),
       markdownCreateComponent
     )
