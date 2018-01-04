@@ -177,7 +177,18 @@ const collapseStyles = (styles: Array<Object> | Object) => {
 }
 const lineHeight = (h: number) => `${h}px`
 
+const backgroundModeToColor = {
+  Normal: globalColors.white,
+  Terminal: globalColors.darkBlue3,
+  Announcements: globalColors.blue,
+  Success: globalColors.green,
+  Information: globalColors.yellow,
+  HighRisk: globalColors.red,
+  Documentation: globalColors.darkBlue,
+}
+
 export {
+  backgroundModeToColor,
   backgroundURL,
   collapseStyles,
   glamorous,

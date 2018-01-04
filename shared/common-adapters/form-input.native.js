@@ -1,24 +1,32 @@
 // @flow
 import * as React from 'react'
-import {Box, Text} from '.'
-import type {Props} from './form-input'
+import Box from './box'
 import {NativeTextInput} from './native-wrappers.native'
-import {globalColors, globalMargins, globalStyles} from '../styles'
-import {getStyle} from './text'
+import {backgroundModeToColor, globalColors, globalMargins, globalStyles} from '../styles'
+import Text, {getStyle} from './text'
+import type {TextType, Background} from './text'
+
+export type Props = {
+  autoCorrect?: boolean,
+  autoFocus?: boolean,
+  backgroundMode?: Background,
+  containerStyle?: any,
+  inputStyle?: any,
+  label?: string,
+  onEnterKeyDown?: () => void,
+  value?: string,
+  textType?: TextType,
+  secure?: boolean,
+  maxHeight?: number,
+  multiline?: boolean,
+  hideBottomBorder?: boolean,
+  hideTopBorder?: boolean,
+  onChangeText?: (value: string) => void,
+}
 
 type State = {
   value: string,
   focused: boolean,
-}
-
-export const backgroundModeToColor = {
-  Normal: globalColors.white,
-  Terminal: globalColors.darkBlue3,
-  Announcements: globalColors.blue,
-  Success: globalColors.green,
-  Information: globalColors.yellow,
-  HighRisk: globalColors.red,
-  Documentation: globalColors.darkBlue,
 }
 
 class FormInput extends React.Component<Props, State> {
