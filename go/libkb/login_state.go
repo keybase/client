@@ -1122,10 +1122,7 @@ func (s *LoginState) LocalSession(h func(*Session), name string) error {
 }
 
 func (s *LoginState) GetUID() (ret keybase1.UID) {
-	s.Account(func(a *Account) {
-		ret = a.GetUID()
-	}, "GetUID")
-	return ret
+	return s.G().ActiveDevice.UID()
 }
 
 func (s *LoginState) LoginSession(h func(*LoginSession), name string) error {
