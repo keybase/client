@@ -790,12 +790,13 @@ func (mr *MockNodeMockRecorder) Readonly(ctx interface{}) *gomock.Call {
 }
 
 // ShouldCreateMissedLookup mocks base method
-func (m *MockNode) ShouldCreateMissedLookup(ctx context.Context, name string) (bool, EntryType, string) {
+func (m *MockNode) ShouldCreateMissedLookup(ctx context.Context, name string) (bool, context.Context, EntryType, string) {
 	ret := m.ctrl.Call(m, "ShouldCreateMissedLookup", ctx, name)
 	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(EntryType)
-	ret2, _ := ret[2].(string)
-	return ret0, ret1, ret2
+	ret1, _ := ret[1].(context.Context)
+	ret2, _ := ret[2].(EntryType)
+	ret3, _ := ret[3].(string)
+	return ret0, ret1, ret2, ret3
 }
 
 // ShouldCreateMissedLookup indicates an expected call of ShouldCreateMissedLookup

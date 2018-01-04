@@ -136,14 +136,14 @@ type Node interface {
 	// directories, whenever `name` is looked up but is not found in
 	// the directory.  If the Node decides a new entry should be
 	// created matching this lookup, it should return `true` as well
-	// as the type of the new entry and the symbolic link contents is
-	// the entry is a Sym; the caller should then create this entry.
-	// Otherwise it should return false.  An implementation that wraps
-	// another `Node` (`inner`) must return
-	// `inner.ShouldCreateMissedLookup()` if it decides not to return
-	// `true` on its own.
-	ShouldCreateMissedLookup(
-		ctx context.Context, name string) (bool, EntryType, string)
+	// as a context to use for the creation, the type of the new entry
+	// and the symbolic link contents is the entry is a Sym; the
+	// caller should then create this entry.  Otherwise it should
+	// return false.  An implementation that wraps another `Node`
+	// (`inner`) must return `inner.ShouldCreateMissedLookup()` if it
+	// decides not to return `true` on its own.
+	ShouldCreateMissedLookup(ctx context.Context, name string) (
+		bool, context.Context, EntryType, string)
 	// WrapChild returns a wrapped version of child, if desired, to
 	// add custom behavior to the child node. An implementation that
 	// wraps another `Node` (`inner`) must first call

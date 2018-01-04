@@ -1858,7 +1858,7 @@ func (fbo *folderBranchOps) processMissedLookup(
 	ctx context.Context, dir Node, name string, missErr error) (
 	node Node, ei EntryInfo, err error) {
 	// Check if the directory node wants to autocreate this.
-	autocreate, et, sympath := dir.ShouldCreateMissedLookup(ctx, name)
+	autocreate, ctx, et, sympath := dir.ShouldCreateMissedLookup(ctx, name)
 	if !autocreate {
 		return nil, EntryInfo{}, missErr
 	}

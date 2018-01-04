@@ -3654,8 +3654,8 @@ type wrappedAutocreateNode struct {
 }
 
 func (wan wrappedAutocreateNode) ShouldCreateMissedLookup(
-	_ context.Context, _ string) (bool, EntryType, string) {
-	return true, wan.et, wan.sympath
+	ctx context.Context, _ string) (bool, context.Context, EntryType, string) {
+	return true, ctx, wan.et, wan.sympath
 }
 
 func testKBFSOpsAutocreateNodes(t *testing.T, et EntryType, sympath string) {
