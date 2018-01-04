@@ -31,12 +31,10 @@ const score = (lcFilter: string, lcYou: string, names: Array<string>): number =>
 const getFilteredRowsAndMetadata = createSelector(
   [
     (state: TypedState) => state.chat2.metaMap,
-    (state: TypedState) => state.chat2.messageOrdinals,
-    (state: TypedState) => state.chat2.messageMap,
     (state: TypedState) => state.chat2.inboxFilter,
     (state: TypedState) => state.config.username || '',
   ],
-  (metaMap, messageOrdinals, messageMap, filter, username) => {
+  (metaMap, filter, username) => {
     const lcFilter = filter.toLowerCase()
     const lcYou = username.toLowerCase()
     const smallRows = metaMap

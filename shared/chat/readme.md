@@ -22,9 +22,7 @@ The normal mode is split into 2 sections.
 
 If you have a mix of small/big teams we can show a divider between them and truncate the small list.
 
-The inbox is mostly derived from the metaMap, but in order to get snippets/timestamps we pull the last message in the conversation.
-
-If you've unboxed the entire inbox you've basically retrieved a single message from each conversation.
+The inbox is entirely derived from the metaMap
 
 Edge cases:
 - Rekey: If you don't have the keys to unbox the conversation we tell you who can help you out (sometimes yourself)

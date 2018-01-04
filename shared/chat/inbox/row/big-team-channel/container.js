@@ -23,14 +23,11 @@ const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  channelname:
-    stateProps._meta.trustedState === 'error'
-      ? stateProps._meta.untrustedMessage
-      : ownProps.channelname || stateProps._meta.untrustedMessage,
+  channelname: stateProps._meta.trustedState === 'error' ? stateProps._meta.snippet : ownProps.channelname,
   hasBadge: stateProps.hasBadge,
   hasUnread: stateProps.hasUnread,
   isActiveRoute: stateProps.isActiveRoute,
-  isError: !ownProps.channelname && !!stateProps._meta.untrustedMessage,
+  isError: stateProps._meta.trustedState === 'error',
   isMuted: stateProps._meta.isMuted,
   isSelected: stateProps.isSelected,
   onSelectConversation: dispatchProps.onSelectConversation,

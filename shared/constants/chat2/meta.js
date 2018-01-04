@@ -76,8 +76,8 @@ export const unverifiedInboxUIItemToConversationMeta = (
     supersedes: null,
     teamType: getTeamType(i),
     teamname,
+    timestamp: i.localMetadata ? 0 : i.time,
     trustedState: i.localMetadata ? 'trusted' : 'untrusted', // if we have localMetadata attached to an unverifiedInboxUIItem it's been loaded previously
-    untrustedTimestamp: i.localMetadata ? 0 : i.time,
   })
 }
 
@@ -143,6 +143,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
     notificationSettings: i.notifications,
     participants: I.Set(i.participants || []),
     resetParticipants,
+    snippet: i.snippet,
     supersededBy,
     supersededByCausedBy,
     supersedes,
@@ -164,15 +165,15 @@ export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record
   participants: I.Set(),
   rekeyers: I.Set(),
   resetParticipants: I.Set(),
+  snippet: '',
   supersededBy: null,
   supersededByCausedBy: null,
   supersedes: null,
   supersedesCausedBy: null,
   teamType: 'adhoc',
   teamname: '',
+  timestamp: 0,
   trustedState: 'untrusted',
-  untrustedMessage: '',
-  untrustedTimestamp: 0,
 })
 
 const bgPlatform = isMobile ? globalColors.white : globalColors.blue5

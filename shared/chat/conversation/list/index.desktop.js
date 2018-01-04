@@ -7,11 +7,11 @@ import * as Virtualized from 'react-virtualized'
 import * as React from 'react'
 // import ReactDOM from 'react-dom'
 import Message from '../messages'
-import {/* Icon, */ ErrorBoundary} from '../../../common-adapters'
+import {ErrorBoundary} from '../../../common-adapters'
 import clipboard from '../../../desktop/clipboard'
 import debounce from 'lodash/debounce'
 // import {findDOMNode} from '../../../util/dom'
-import {globalColors, globalStyles, glamorous} from '../../../styles'
+import {globalColors, globalStyles} from '../../../styles'
 
 import type {Props} from '.'
 
@@ -22,7 +22,7 @@ type State = {
 }
 
 const lockedToBottomSlop = 20
-const listBottomMargin = 10
+// const listBottomMargin = 10
 
 // const DivRow = glamorous.div({
 // ':last-child': {
@@ -121,7 +121,7 @@ class BaseList extends React.Component<Props, State> {
   _rowRenderer = ({index, isScrolling, isVisible, key, parent, style}) => {
     const ordinal = this.props.messageOrdinals.get(index)
     const prevOrdinal = index > 0 ? this.props.messageOrdinals.get(index - 1) : null
-    const isSelected = false // messageKey === this.state.selectedMessageKey
+    // const isSelected = false // messageKey === this.state.selectedMessageKey
     return (
       <Virtualized.CellMeasurer
         cache={this._cellCache}
@@ -297,26 +297,25 @@ class PopupEnabledList extends BaseList {
     // this._showEditor(message, this._domNodeToRect(messageNode))
   }
 
-  _showEditor = () =>
-    // message: Types.TextMessage, messageRect: any
-    {
-      // const popupComponent = (
-      // <EditPopup
-      // messageRect={messageRect}
-      // onClose={this._hidePopup}
-      // message={message.message.stringValue()}
-      // onSubmit={text => {
-      // this.props.onEditMessage(message, text)
-      // }}
-      // />
-      // )
-      // // Have to do this cause it's triggered from a popup that we're reusing else we'll get unmounted
-      // setImmediate(() => {
-      // const container = document.getElementById('popupContainer')
-      // // FIXME: this is the right way to render portals retaining context for now, though it will change in the future.
-      // ReactDOM.unstable_renderSubtreeIntoContainer(this, popupComponent, container)
-      // })
-    }
+  // message: Types.TextMessage, messageRect: any
+  _showEditor = () => {
+    // const popupComponent = (
+    // <EditPopup
+    // messageRect={messageRect}
+    // onClose={this._hidePopup}
+    // message={message.message.stringValue()}
+    // onSubmit={text => {
+    // this.props.onEditMessage(message, text)
+    // }}
+    // />
+    // )
+    // // Have to do this cause it's triggered from a popup that we're reusing else we'll get unmounted
+    // setImmediate(() => {
+    // const container = document.getElementById('popupContainer')
+    // // FIXME: this is the right way to render portals retaining context for now, though it will change in the future.
+    // ReactDOM.unstable_renderSubtreeIntoContainer(this, popupComponent, container)
+    // })
+  }
 
   // _findMessageFromDOMNode(start: any): any {
   // const node = findDOMNode(start, '.message')
@@ -332,43 +331,41 @@ class PopupEnabledList extends BaseList {
   // return null
   // }
 
-  _onAction = () =>
-    // message: Types.ServerMessage,
-    // localMessageState: Types.LocalMessageState,
-    // event: SyntheticEvent<>
-    {
-      // if (message.type === 'Text' || message.type === 'Attachment') {
-      // this.setState({selectedMessageKey: message.key})
-      // const node = event.target instanceof window.HTMLElement ? event.target : null
-      // const messageNode = this._findMessageFromDOMNode(event.target)
-      // const messageRect = messageNode && this._domNodeToRect(messageNode)
-      // this.props.onMessageAction(
-      // message,
-      // localMessageState,
-      // () => {
-      // if (message.type === 'Text') {
-      // this._showEditor(message, messageRect)
-      // }
-      // },
-      // () => {
-      // this.setState({selectedMessageKey: null})
-      // },
-      // node && node.getBoundingClientRect()
-      // )
-      // }
-    }
+  // message: Types.ServerMessage,
+  // localMessageState: Types.LocalMessageState,
+  // event: SyntheticEvent<>
+  _onAction = () => {
+    // if (message.type === 'Text' || message.type === 'Attachment') {
+    // this.setState({selectedMessageKey: message.key})
+    // const node = event.target instanceof window.HTMLElement ? event.target : null
+    // const messageNode = this._findMessageFromDOMNode(event.target)
+    // const messageRect = messageNode && this._domNodeToRect(messageNode)
+    // this.props.onMessageAction(
+    // message,
+    // localMessageState,
+    // () => {
+    // if (message.type === 'Text') {
+    // this._showEditor(message, messageRect)
+    // }
+    // },
+    // () => {
+    // this.setState({selectedMessageKey: null})
+    // },
+    // node && node.getBoundingClientRect()
+    // )
+    // }
+  }
 
-  _onShowEditor = () =>
-    // message: Types.Message, event: SyntheticEvent<>
-    {
-      // if (message.type === 'Text') {
-      // const messageNode = this._findMessageFromDOMNode(event.target)
-      // const messageRect = messageNode && this._domNodeToRect(messageNode)
-      // if (messageRect) {
-      // this._showEditor(message, messageRect)
-      // }
-      // }
-    }
+  // message: Types.Message, event: SyntheticEvent<>
+  _onShowEditor = () => {
+    // if (message.type === 'Text') {
+    // const messageNode = this._findMessageFromDOMNode(event.target)
+    // const messageRect = messageNode && this._domNodeToRect(messageNode)
+    // if (messageRect) {
+    // this._showEditor(message, messageRect)
+    // }
+    // }
+  }
 }
 
 const containerStyle = {

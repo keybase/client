@@ -44,11 +44,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const participantNeedToRekey = stateProps._meta.rekeyers.size > 0
   const youNeedToRekey = !participantNeedToRekey && stateProps._meta.rekeyers.has(stateProps._username)
 
-  const snippet =
-    stateProps._meta.trustedState === 'error'
-      ? stateProps._meta.untrustedMessage
-      : Constants2.getSnippetText(snippetMessage) || stateProps._meta.untrustedMessage
-
   return {
     backgroundColor: styles.backgroundColor,
     hasBadge: stateProps.hasBadge,
@@ -61,7 +56,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     participantNeedToRekey,
     participants: Constants2.getRowParticipants(stateProps._meta, stateProps._username),
     showBold: styles.showBold,
-    snippet,
+    snippet: stateProps._meta.snippet,
     subColor: styles.subColor,
     teamname: stateProps._meta.teamname,
     timestamp: Constants2.getSnippetTimestamp(snippetMessage),

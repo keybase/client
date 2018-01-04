@@ -55,18 +55,18 @@ const metaMapReducer = (metaMap, action) => {
                 conversationIDKey,
                 participants,
                 rekeyers,
+                snippet: error.message,
                 teamType: old ? old.teamType : 'adhoc',
                 teamname: old ? old.teamname : '',
+                timestamp: old ? old.timestamp : 0,
                 trustedState: 'error',
-                untrustedMessage: error.message,
-                untrustedTimestamp: old ? old.untrustedTimestamp : 0,
               })
             )
           }
           default:
             return metaMap.update(
               action.payload.conversationIDKey,
-              meta => (meta ? meta.set('trustedState', 'error').set('untrustedMessage', error.message) : meta)
+              meta => (meta ? meta.set('trustedState', 'error').set('snippet', error.message) : meta)
             )
         }
       } else {

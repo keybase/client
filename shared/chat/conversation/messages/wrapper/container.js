@@ -3,7 +3,7 @@ import * as Constants2 from '../../../../constants/chat2'
 // import * as Types2 from '../../../../constants/types/chat2'
 // import * as Chat2Gen from '../../../../actions/chat2-gen'
 import Wrapper from '.'
-import {compose, connect, type TypedState} from '../../../../util/container'
+import {connect, type TypedState} from '../../../../util/container'
 import {formatTimeForMessages} from '../../../../util/timestamp'
 // import {lookupMessageProps} from '../../../shared'
 // import {createShowUserProfile} from '../../../../actions/profile-gen'
@@ -165,7 +165,7 @@ const mergeProps = (stateProps, dispatchProps) => {
 }
 
 // $FlowIssue TODO cleanup
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Wrapper) //,
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Wrapper)
 // withHandlers({
 // onAction: props => event => props._onAction(props._message, props._localMessageState, event),
 // onShowEditor: props => event => props._onShowEditor(props._message, event),

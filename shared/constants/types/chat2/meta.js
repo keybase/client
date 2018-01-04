@@ -21,15 +21,15 @@ export type _ConversationMeta = {
   participants: I.Set<string>,
   resetParticipants: I.Set<string>,
   rekeyers: I.Set<string>,
+  snippet: string,
   supersededBy: ?Common.ConversationIDKey,
   supersededByCausedBy: ?Username,
   supersedes: ?Common.ConversationIDKey,
   supersedesCausedBy: ?Username,
   teamType: TeamType,
   teamname: string,
+  timestamp: number,
   trustedState: MetaTrustedState,
-  untrustedMessage: string, // ONLY used while not unboxed
-  untrustedTimestamp: number, // ONLY used while not unboxed
 }
 
 export type ConversationMeta = I.RecordOf<_ConversationMeta>
