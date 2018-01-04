@@ -18,6 +18,7 @@ import {type TypeMap} from '../../../constants/types/teams'
 
 export type Props = {
   active: boolean,
+  youCanManageMembers: boolean,
   following: boolean,
   fullName: string,
   onClick: () => void,
@@ -36,8 +37,19 @@ const showCrown: TypeMap = {
 }
 
 export const TeamMemberRow = (props: Props) => {
-  const {active, following, fullName, onClick, type, username, you, onReAddToTeam, onRemoveFromTeam} = props
-  let crown, fullNameLabel
+  const {
+    active,
+    youCanManageMembers,
+    following,
+    fullName,
+    onClick,
+    type,
+    username,
+    you,
+    onReAddToTeam,
+    onRemoveFromTeam,
+  } = props
+  let crown, fullNameLabel, resetLabel
   if (active && type && showCrown[type]) {
     crown = (
       <Icon
@@ -57,6 +69,12 @@ export const TeamMemberRow = (props: Props) => {
         {fullName} •
       </Text>
     )
+  }
+  if (!active) {
+    resetLabel = 'Has reset their account'
+    if (!youCanManageMembers) {
+      resetLabel += '; admins can re-invite'
+    }
   }
   return (
     <Box
@@ -93,19 +111,20 @@ export const TeamMemberRow = (props: Props) => {
             {crown}
             <Text type="BodySmall">
               {!!active && !!type && typeToLabel[type]}
-              {!active && 'Has reset their account'}
+              {resetLabel}
             </Text>
           </Box>
         </Box>
       </ClickableBox>
-      {!active && (
-        <Box style={{...globalStyles.flexBoxRow, flexShrink: 1}}>
-          <ButtonBar>
-            <Button small={true} label="Admit" onClick={onReAddToTeam} type="Primary" />
-            <Button small={true} label="Remove" onClick={onRemoveFromTeam} type="Secondary" />
-          </ButtonBar>
-        </Box>
-      )}
+      {!active &&
+        youCanManageMembers && (
+          <Box style={{...globalStyles.flexBoxRow, flexShrink: 1}}>
+            <ButtonBar>
+              <Button small={true} label="Admit" onClick={onReAddToTeam} type="Primary" />
+              <Button small={true} label="Remove" onClick={onRemoveFromTeam} type="Secondary" />
+            </ButtonBar>
+          </Box>
+        )}
     </Box>
   )
 }

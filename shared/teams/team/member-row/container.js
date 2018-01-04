@@ -22,6 +22,7 @@ type StateProps = {
   active: boolean,
   you: ?string,
   _members: I.Set<Types.MemberInfo>,
+  youCanManageMembers: boolean,
 }
 
 const mapStateToProps = (
@@ -33,6 +34,10 @@ const mapStateToProps = (
   following: amIFollowing(state, username),
   fullName: state.config.username === username ? 'You' : fullName,
   you: state.config.username,
+  youCanManageMembers: state.entities.getIn(
+    ['teams', 'teamNameToCanPerform', teamname, 'manageMembers'],
+    false
+  ),
 })
 
 type DispatchProps = {
