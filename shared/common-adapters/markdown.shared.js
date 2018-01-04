@@ -52,6 +52,15 @@ function isValidMention(meta: ?MarkdownMeta, mention: string): boolean {
   return mention === 'here' || mention === 'channel' || mentions.has(mention)
 }
 
+// TODO: Pass down list of channels.
+function isValidChannel(meta: ?MarkdownMeta, channel: string): boolean {
+  if (!meta) {
+    return false
+  }
+
+  return true
+}
+
 export function parseMarkdown(
   markdown: ?string,
   markdownCreateComponent: MarkdownCreateComponent,
@@ -66,8 +75,7 @@ export function parseMarkdown(
     return processAST(
       parser.parse(markdown || '', {
         isValidMention: (mention: string) => isValidMention(meta, mention),
-        // TODO: Pass down list of channels.
-        isValidChannel: (s: string) => !!meta,
+        isValidChannel: (channel: string) => isValidChannel(meta, channel),
       }),
       markdownCreateComponent
     )
