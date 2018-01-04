@@ -17,12 +17,10 @@ export type Props = {|
   isYou: boolean,
   loadMoreType: null | 'moreToLoad' | 'noMoreToLoad',
   message: Types.Message,
-  // measure: ?() => void,
-  // messageKey: Types.MessageKey,
   onAction: (event: SyntheticEvent<>) => void,
   onRetry: () => void,
   onShowEditor: (event: SyntheticEvent<>) => void,
-  onClick: () => void,
+  onAuthorClick: () => void,
   timestamp: ?string,
 |}
 

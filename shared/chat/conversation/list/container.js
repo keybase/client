@@ -198,10 +198,11 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(Chat2Gen.createLoadMoreMessages({conversationIDKey})),
 })
 
-const mergeProps = (stateProps, dispatchProps) => ({
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   loadMoreMessages: () =>
     stateProps._selectedConversation && dispatchProps._loadMoreMessages(stateProps._selectedConversation),
   messageOrdinals: stateProps.messageOrdinals,
+  onFocusInput: ownProps.onFocusInput,
 })
 
 // $FlowIssue TODO remove this

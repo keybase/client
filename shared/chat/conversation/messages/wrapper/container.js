@@ -6,13 +6,13 @@ import Wrapper from '.'
 import {connect, type TypedState} from '../../../../util/container'
 import {formatTimeForMessages} from '../../../../util/timestamp'
 // import {lookupMessageProps} from '../../../shared'
-// import {createShowUserProfile} from '../../../../actions/profile-gen'
-// import {createGetProfile} from '../../../../actions/tracker-gen'
-// import {isMobile} from '../../../../constants/platform'
+import {createShowUserProfile} from '../../../../actions/profile-gen'
+import {createGetProfile} from '../../../../actions/tracker-gen'
+import {isMobile} from '../../../../constants/platform'
 
 const howLongBetweenTimestampsMs = 1000 * 60 * 15
 
-const mapStateToProps = (state: TypedState, {message, previous, /* measure, */ innerClass}) => {
+const mapStateToProps = (state: TypedState, {message, previous, innerClass}) => {
   // const _conversationState = Constants.getSelectedConversationStates(state)
   // const selectedConversationIDKey = Constants.getSelectedConversation(state)
 
@@ -32,7 +32,6 @@ const mapStateToProps = (state: TypedState, {message, previous, /* measure, */ i
 
   return {
     innerClass,
-    // measure,
     message,
     previous,
     // _conversationState,
@@ -54,11 +53,11 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   // dispatch(ChatGen.createRetryAttachment({message})),
   // _onRetryText: (conversationIDKey: Types.ConversationIDKey, outboxIDKey: Types.OutboxIDKey) =>
   // dispatch(ChatGen.createRetryMessage({conversationIDKey, outboxIDKey})),
-  // _onUsernameClick: (username: string) => {
-  // isMobile
-  // ? dispatch(createShowUserProfile({username}))
-  // : dispatch(createGetProfile({username, ignoreCache: true, forceDisplay: true}))
-  // },
+  _onAuthorClick: (username: string) => {
+    isMobile
+      ? dispatch(createShowUserProfile({username}))
+      : dispatch(createGetProfile({username, ignoreCache: true, forceDisplay: true}))
+  },
 })
 
 const mergeProps = (stateProps, dispatchProps) => {
@@ -110,7 +109,6 @@ const mergeProps = (stateProps, dispatchProps) => {
   // isRevoked,
   // isSelected: ownProps.isSelected,
   // isYou: stateProps.isYou,
-  // measure: ownProps.measure,
   // messageKey: ownProps.messageKey,
   // onRetry: () => {
   // if (stateProps._message.type === 'Attachment') {
@@ -158,8 +156,8 @@ const mergeProps = (stateProps, dispatchProps) => {
     isSelected: false, // ownProps.isSelected,
     isYou: false, // stateProps.isYou,
     loadMoreType,
-    // measure: stateProps.measure,
     message,
+    onAuthorClick: () => dispatchProps._onAuthorClick(message.author),
     timestamp,
   }
 }
@@ -171,16 +169,4 @@ export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Wrapper)
 // onShowEditor: props => event => props._onShowEditor(props._message, event),
 // onClick: props => () => props._onUsernameClick(props.author),
 // }),
-// lifecycle({
-// componentDidUpdate: function(prevProps: Props & {_editedCount: number}) {
-// if (
-// this.props._editedCount !== prevProps._editedCount ||
-// this.props.isFirstNewMessage !== prevProps.isFirstNewMessage ||
-// this.props.timestamp !== prevProps.timestamp ||
-// this.props.failureDescription !== prevProps.failureDescription
-// ) {
-// this.props.measure && this.props.measure()
-// }
-// },
-// })
 // )(Wrapper)

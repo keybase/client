@@ -8,13 +8,13 @@ import LoadMore from '../load-more'
 
 import type {Props} from '.'
 
-const UserAvatar = ({author, showImage, onClick}) => (
+const UserAvatar = ({author, showImage, onAuthorClick}) => (
   <Box style={_userAvatarStyle}>
-    {showImage && <Avatar size={24} username={author} skipBackground={true} onClick={onClick} />}
+    {showImage && <Avatar size={24} username={author} skipBackground={true} onClick={onAuthorClick} />}
   </Box>
 )
 
-const Username = ({author, isYou, isFollowing, isBroken, includeHeader, onClick}) => {
+const Username = ({author, isYou, isFollowing, isBroken, includeHeader, onAuthorClick}) => {
   if (!includeHeader) return null
   const style = {
     color: colorForAuthor(author, isYou, isFollowing, isBroken),
@@ -23,7 +23,7 @@ const Username = ({author, isYou, isFollowing, isBroken, includeHeader, onClick}
     alignSelf: 'flex-start',
   }
   return (
-    <Text type="BodySmallSemibold" onClick={onClick} className="hover-underline" style={style}>
+    <Text type="BodySmallSemibold" onClick={onAuthorClick} className="hover-underline" style={style}>
       {author}
     </Text>
   )
@@ -81,7 +81,11 @@ const MessageWrapper = (props: Props) => (
       }}
     >
       <Box style={props.includeHeader ? _rightSideWithHeaderStyle : _rightSideNoHeaderStyle}>
-        <UserAvatar author={props.author} showImage={props.includeHeader} onClick={props.onClick} />
+        <UserAvatar
+          author={props.author}
+          showImage={props.includeHeader}
+          onAuthorClick={props.onAuthorClick}
+        />
         <Box style={_flexOneColumn} className="message-wrapper">
           <Username
             author={props.author}
@@ -89,7 +93,7 @@ const MessageWrapper = (props: Props) => (
             isFollowing={props.isFollowing}
             isBroken={props.isBroken}
             includeHeader={props.includeHeader}
-            onClick={props.onClick}
+            onAuthorClick={props.onAuthorClick}
           />
           <Box style={_textContainerStyle} className="message">
             <Box style={_flexOneColumn}>

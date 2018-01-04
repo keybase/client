@@ -156,7 +156,6 @@ class BaseList extends React.Component<Props, State> {
 
   _handleListClick = () => {
     if (window.getSelection().isCollapsed) {
-      // $FlowIssue TODO
       this.props.onFocusInput()
     }
   }

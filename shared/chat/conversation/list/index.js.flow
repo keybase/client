@@ -9,7 +9,7 @@ export type Props = {|
   // listScrollDownCounter: number,
   // onDeleteMessage: (message: Types.Message) => void,
   // onEditMessage: (message: Types.Message, body: string) => void,
-  // onFocusInput: () => void,
+  onFocusInput: () => void,
   // onDownloadAttachment: (messageKey: Types.MessageKey) => void,
   loadMoreMessages: () => void,
   // onMessageAction: (
