@@ -234,4 +234,14 @@ this is a code block with two newline above\`\`\`
     check('@validmarco `@validmarco` `some inline code @validmarco`', {isValidMention})
     check('@validmarco ```@validmarco``` ```this is a code block @validmarco```', {isValidMention})
   })
+  it('parses channels correctly', () => {
+    check('hello there #some_channel')
+  })
+  it('parses formatted channels', () => {
+    check('hello there ~#some_channel~')
+    check('hello there *#some_channel*')
+    // The trailing _ gets parsed as part of the channel name, but we
+    // can't help that.
+    check('hello there _#some_channel_')
+  })
 })

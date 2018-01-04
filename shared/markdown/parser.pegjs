@@ -47,7 +47,7 @@ NonEndBlankLine
 // instantiations of __INLINE_RULE__.
 
 InlineStartCommon
-  = InlineCode / Italic / Bold / Link / Mention / Strike / Text / Emoji / NativeEmoji
+  = InlineCode / Italic / Bold / Link / Mention / Channel / Strike / Text / Emoji / NativeEmoji
 
 InlineCont
  = !CodeBlock (Text / Emoji / NativeEmoji / EscapedChar / SpecialChar)

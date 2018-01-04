@@ -716,13 +716,16 @@ function peg$parse(input, options) {
           if (s0 === peg$FAILED) {
             s0 = peg$parseMention();
             if (s0 === peg$FAILED) {
-              s0 = peg$parseStrike();
+              s0 = peg$parseChannel();
               if (s0 === peg$FAILED) {
-                s0 = peg$parseText();
+                s0 = peg$parseStrike();
                 if (s0 === peg$FAILED) {
-                  s0 = peg$parseEmoji();
+                  s0 = peg$parseText();
                   if (s0 === peg$FAILED) {
-                    s0 = peg$parseNativeEmoji();
+                    s0 = peg$parseEmoji();
+                    if (s0 === peg$FAILED) {
+                      s0 = peg$parseNativeEmoji();
+                    }
                   }
                 }
               }

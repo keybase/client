@@ -236,6 +236,26 @@ Object {
 }
 `;
 
+exports[`Markdown parser parses channels correctly 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello there ",
+        Object {
+          "children": Array [
+            "some_channel",
+          ],
+          "type": "channel",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
 exports[`Markdown parser parses chars in the middle of words correctly 1`] = `
 Object {
   "children": Array [
@@ -305,6 +325,76 @@ Object {
     Object {
       "children": Array [
         "I *should* see asterisks",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses formatted channels 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello there ",
+        Object {
+          "children": Array [
+            Object {
+              "children": Array [
+                "some_channel",
+              ],
+              "type": "channel",
+            },
+          ],
+          "type": "strike",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses formatted channels 2`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello there ",
+        Object {
+          "children": Array [
+            Object {
+              "children": Array [
+                "some_channel",
+              ],
+              "type": "channel",
+            },
+          ],
+          "type": "bold",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses formatted channels 3`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello there _",
+        Object {
+          "children": Array [
+            "some_channel_",
+          ],
+          "type": "channel",
+        },
       ],
       "type": "text-block",
     },
