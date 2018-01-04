@@ -1854,6 +1854,37 @@ func (fbo *folderBranchOps) GetDirChildren(ctx context.Context, dir Node) (
 	return children, nil
 }
 
+func (fbo *folderBranchOps) processMissedLookup(
+	ctx context.Context, dir Node, name string, missErr error) (
+	node Node, ei EntryInfo, err error) {
+	// Check if the directory node wants to autocreate this.
+	autocreate, et, sympath := dir.ShouldCreateMissedLookup(ctx, name)
+	if !autocreate {
+		return nil, EntryInfo{}, missErr
+	}
+
+	if (sympath != "" && et != Sym) || (sympath == "" && et == Sym) {
+		return nil, EntryInfo{}, errors.Errorf(
+			"Invalid sympath %s for entry type %s", sympath, et)
+	}
+
+	fbo.log.CDebugf(
+		ctx, "Auto-creating %s of type %s after a missed lookup", name, et)
+	switch et {
+	case File:
+		return fbo.CreateFile(ctx, dir, name, false, NoExcl)
+	case Exec:
+		return fbo.CreateFile(ctx, dir, name, true, NoExcl)
+	case Dir:
+		return fbo.CreateDir(ctx, dir, name)
+	case Sym:
+		ei, err := fbo.CreateLink(ctx, dir, name, sympath)
+		return nil, ei, err
+	default:
+		return nil, EntryInfo{}, errors.Errorf("Unknown entry type %s", et)
+	}
+}
+
 func (fbo *folderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 	node Node, ei EntryInfo, err error) {
 	fbo.log.CDebugf(ctx, "Lookup %s %s", getNodeIDStr(dir), name)
@@ -1885,10 +1916,10 @@ func (fbo *folderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 		}
 
 		n, de, err = fbo.blocks.Lookup(ctx, lState, md.ReadOnly(), dir, name)
-		if err != nil {
-			return err
+		if _, isMiss := errors.Cause(err).(NoSuchNameError); isMiss {
+			n, de.EntryInfo, err = fbo.processMissedLookup(ctx, dir, name, err)
 		}
-		return nil
+		return err
 	})
 	if err != nil {
 		return nil, EntryInfo{}, err

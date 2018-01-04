@@ -789,6 +789,20 @@ func (mr *MockNodeMockRecorder) Readonly(ctx interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Readonly", reflect.TypeOf((*MockNode)(nil).Readonly), ctx)
 }
 
+// ShouldCreateMissedLookup mocks base method
+func (m *MockNode) ShouldCreateMissedLookup(ctx context.Context, name string) (bool, EntryType, string) {
+	ret := m.ctrl.Call(m, "ShouldCreateMissedLookup", ctx, name)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(EntryType)
+	ret2, _ := ret[2].(string)
+	return ret0, ret1, ret2
+}
+
+// ShouldCreateMissedLookup indicates an expected call of ShouldCreateMissedLookup
+func (mr *MockNodeMockRecorder) ShouldCreateMissedLookup(ctx, name interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ShouldCreateMissedLookup", reflect.TypeOf((*MockNode)(nil).ShouldCreateMissedLookup), ctx, name)
+}
+
 // WrapChild mocks base method
 func (m *MockNode) WrapChild(child Node) Node {
 	ret := m.ctrl.Call(m, "WrapChild", child)

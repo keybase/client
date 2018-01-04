@@ -82,6 +82,11 @@ func (n *nodeStandard) Readonly(_ context.Context) bool {
 	return false
 }
 
+func (n *nodeStandard) ShouldCreateMissedLookup(_ context.Context, _ string) (
+	bool, EntryType, string) {
+	return false, File, ""
+}
+
 func (n *nodeStandard) WrapChild(child Node) Node {
 	return child
 }

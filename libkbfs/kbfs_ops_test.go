@@ -3646,3 +3646,50 @@ func TestKBFSOpsReadonlyNodes(t *testing.T) {
 	_, _, err = kbfsOps.CreateDir(readonlyCtx, rootNode, "b")
 	require.IsType(t, WriteToReadonlyNodeError{}, errors.Cause(err))
 }
+
+type wrappedAutocreateNode struct {
+	Node
+	et      EntryType
+	sympath string
+}
+
+func (wan wrappedAutocreateNode) ShouldCreateMissedLookup(
+	_ context.Context, _ string) (bool, EntryType, string) {
+	return true, wan.et, wan.sympath
+}
+
+func testKBFSOpsAutocreateNodes(t *testing.T, et EntryType, sympath string) {
+	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "test_user")
+	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
+
+	config.AddRootNodeWrapper(func(root Node) Node {
+		return wrappedAutocreateNode{root, et, sympath}
+	})
+
+	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
+	kbfsOps := config.KBFSOps()
+	n, ei, err := kbfsOps.Lookup(ctx, rootNode, "a")
+	require.NoError(t, err)
+	if et != Sym {
+		require.NotNil(t, n)
+	} else {
+		require.Equal(t, sympath, ei.SymPath)
+	}
+	require.Equal(t, et, ei.Type)
+}
+
+func TestKBFSOpsAutocreateNodesFile(t *testing.T) {
+	testKBFSOpsAutocreateNodes(t, File, "")
+}
+
+func TestKBFSOpsAutocreateNodesExec(t *testing.T) {
+	testKBFSOpsAutocreateNodes(t, Exec, "")
+}
+
+func TestKBFSOpsAutocreateNodesDir(t *testing.T) {
+	testKBFSOpsAutocreateNodes(t, Dir, "")
+}
+
+func TestKBFSOpsAutocreateNodesSym(t *testing.T) {
+	testKBFSOpsAutocreateNodes(t, Sym, "sympath")
+}
