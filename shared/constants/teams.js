@@ -119,10 +119,7 @@ const isSubteam = (maybeTeamname: string) => {
 }
 
 function getTeamChannels(state: TypedState, teamname: string): I.Set<Types.ChannelInfo> {
-  const convIDs: I.Set<ChatTypes.ConversationIDKey> = state.entities.getIn(
-    ['teams', 'teamNameToConvIDs', teamname],
-    I.Set()
-  )
+  const convIDs = getConvIdsFromTeamName(state, teamname)
 
   return convIDs
     .map(convID => {
