@@ -124,11 +124,12 @@ type Node interface {
 	// GetBasename returns the current basename of the node, or ""
 	// if the node has been unlinked.
 	GetBasename() string
-	// WrapChild returns a wrapped version of `child`, if desired, to
-	// add custom behavior to the child node.  If the Node instance
-	// receiving this call is itself a wrapped node, it should call
-	// `WrapChild(child)` on its internal wrapped node as well, in
-	// case there are multiple wrapping layers available.
+	// WrapChild returns a wrapped version of child, if desired, to
+	// add custom behavior to the child node. An implementation that
+	// wraps another `Node` (`inner`) must first call
+	// `inner.WrapChild(child)` before performing its own wrapping
+	// operation, to ensure that all wrapping is preserved and that it
+	// happens in the correct order.
 	WrapChild(child Node) Node
 	// Unwrap returns the initial, unwrapped Node that was used to
 	// create this Node.
