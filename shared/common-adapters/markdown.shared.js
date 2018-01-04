@@ -66,6 +66,8 @@ export function parseMarkdown(
     return processAST(
       parser.parse(markdown || '', {
         isValidMention: (mention: string) => isValidMention(meta, mention),
+        // TODO: Pass down list of channels.
+        isValidChannel: (s: string) => !!meta,
       }),
       markdownCreateComponent
     )
