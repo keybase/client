@@ -5,6 +5,7 @@ import * as Types from '../../../../constants/types/chat'
 export type OwnProps = {
   messageKey: Types.MessageKey,
   measure: ?() => void,
+  channelNames: {[string]: string},
 }
 
 export default class TextMessage extends Component<OwnProps> {}

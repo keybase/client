@@ -7,6 +7,7 @@ export type Props = {|
   failureDescription: ?string,
   includeHeader: boolean,
   innerClass: React.Component<*>,
+  channelNames: {[string]: string},
   isBroken: boolean,
   isEdited: boolean,
   isEditing: boolean,

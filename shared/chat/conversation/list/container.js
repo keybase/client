@@ -87,12 +87,13 @@ const convStateProps = createSelector(
 const getTeamChannelNames = (state: TypedState, teamname: ?string): {[string]: string} => {
   if (!teamname) return {}
   const convIDs = getConvIdsFromTeamName(state, teamname)
-  return convIDs
-    .map(convID => {
-      getChannelNameFromConvID(state, convID)
-    })
-    .filter(Boolean)
-    .toObject()
+  const x = convIDs.map(convID => {
+    const name = getChannelNameFromConvID(state, convID)
+    return name
+  })
+  const y = x.filter(Boolean)
+  const z = y.toObject()
+  return z
 }
 
 // TODO this is temp until we can discuss a better solution to this getMessageFromMessageKey thing

@@ -24,9 +24,10 @@ const mapStateToProps = (state: TypedState, {messageKey}: OwnProps) => {
   return getProps(state, messageKey)
 }
 
-const mergeProps = (stateProps, dispatchProps, {measure}: OwnProps) => ({
+const mergeProps = (stateProps, dispatchProps, {channelNames, measure}: OwnProps) => ({
   ...stateProps,
   ...dispatchProps,
+  channelNames,
   measure,
 })
 
