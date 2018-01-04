@@ -36,11 +36,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const isSelected = stateProps.isSelected
   const hasUnread = stateProps.hasUnread
   const styles = Constants2.getRowStyles(stateProps._meta, isSelected, hasUnread)
-  const snippetMessage = Constants2.getSnippetMessage(
-    stateProps._messageMap,
-    stateProps._messageIDs,
-    stateProps._conversationIDKey
-  )
   const participantNeedToRekey = stateProps._meta.rekeyers.size > 0
   const youNeedToRekey = !participantNeedToRekey && stateProps._meta.rekeyers.has(stateProps._username)
 
@@ -59,7 +54,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     snippet: stateProps._meta.snippet,
     subColor: styles.subColor,
     teamname: stateProps._meta.teamname,
-    timestamp: Constants2.getSnippetTimestamp(snippetMessage),
+    timestamp: Constants2.timestampToString(stateProps._meta),
     usernameColor: styles.usernameColor,
     youAreReset: stateProps.youAreReset,
     youNeedToRekey,

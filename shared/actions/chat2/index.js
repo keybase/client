@@ -243,18 +243,24 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage) => {
   // TODO from thread-content:
   // convert outbox to regular?
   // mark as read
-  const {message: cMsg, convID, displayDesktopNotification} = incoming
+  const {message: cMsg, convID, displayDesktopNotification, conv} = incoming
   const actions = []
 
-  // TODO figure out notify plumbing
   if (convID && cMsg) {
     const conversationIDKey = Constants.conversationIDToKey(convID)
     const message = Constants.uiMessageToMessage(conversationIDKey, cMsg)
     if (message) {
       // visible type
-      actions.push(
-        Chat2Gen.createMessagesAdd({notify: !isMobile && displayDesktopNotification, messages: [message]})
-      )
+      actions.push(Chat2Gen.createMessagesAdd({messages: [message]}))
+      if (!isMobile && displayDesktopNotification && conv && conv.snippet) {
+        actions.push(
+          Chat2Gen.createDesktopNotification({
+            author: message.author,
+            body: conv.snippet,
+            conversationIDKey,
+          })
+        )
+      }
     } else if (cMsg.state === RPCChatTypes.chatUiMessageUnboxedState.valid && cMsg.valid) {
       const body = cMsg.valid.messageBody
       // Types that are mutations
@@ -577,48 +583,33 @@ const clearInboxFilter = (action: Chat2Gen.SelectConversationPayload) =>
 const exitSearch = (action: Chat2Gen.SelectConversationPayload) =>
   action.payload.conversationIDKey && Saga.put(Chat2Gen.createSetSearching({searching: false}))
 
-const desktopNotify = (action: Chat2Gen.MessagesAddPayload, state: TypedState) => {
-  if (!action.payload.notify) {
-    return
-  }
-  const conversationIDKey = Constants.getSelectedConversation(state)
+const desktopNotify = (action: Chat2Gen.DesktopNotificationPayload, state: TypedState) => {
+  const {conversationIDKey, author, body} = action.payload
+  const selectedConversationIDKey = Constants.getSelectedConversation(state)
   const appFocused = state.config.appFocused
   const chatTabSelected = state.routeTree.getIn(['routeState', 'selected']) === chatTab
   const metaMap = state.chat2.metaMap
 
-  const notifys = action.payload.messages
-    .filter(
-      m =>
-        (!appFocused || // app not foxued?
-        !chatTabSelected || // not looking at the chat tab?
-          m.conversationIDKey !== conversationIDKey) && // not looking at it currently?
-        !metaMap.getIn([m.conversationIDKey, 'isMuted']) // ignore muted convos
-    )
-    .map(m => ({
-      author: m.author,
-      body: Constants.getSnippetText(m),
-      conversationIDKey: m.conversationIDKey,
-    }))
-    .filter(n => n.body)
-
-  if (notifys.length) {
+  if (
+    !appFocused || // app not foxued?
+    !chatTabSelected || // not looking at the chat tab?
+    (conversationIDKey !== selectedConversationIDKey && // not looking at it currently?
+      !metaMap.getIn([conversationIDKey, 'isMuted']))
+  ) {
+    // ignore muted convos
     logger.info('Sending Chat notification')
-    return Saga.sequentially(
-      notifys.map(notify =>
-        Saga.put((dispatch: Dispatch) => {
-          NotifyPopup(notify.author, {body: notify.body}, -1, notify.author, () => {
-            dispatch(
-              Chat2Gen.createSelectConversation({
-                conversationIDKey: notify.conversationIDKey,
-                fromUser: false,
-              })
-            )
-            dispatch(Route.switchTo([chatTab]))
-            showMainWindow()
+    return Saga.put((dispatch: Dispatch) => {
+      NotifyPopup(author, {body}, -1, author, () => {
+        dispatch(
+          Chat2Gen.createSelectConversation({
+            conversationIDKey,
+            fromUser: false,
           })
-        })
-      )
-    )
+        )
+        dispatch(Route.switchTo([chatTab]))
+        showMainWindow()
+      })
+    })
   }
 }
 
@@ -658,7 +649,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, exitSearch)
 
   if (!isMobile) {
-    yield Saga.safeTakeEveryPure(Chat2Gen.messagesAdd, desktopNotify)
+    yield Saga.safeTakeEveryPure(Chat2Gen.desktopNotification, desktopNotify)
   }
 }
 

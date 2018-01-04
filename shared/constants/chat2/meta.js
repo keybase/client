@@ -5,6 +5,7 @@ import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../types/rpc-gen'
 import * as Types from '../types/chat2'
 import type {_ConversationMeta} from '../types/chat2/meta'
+import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalColors, isMobile} from '../../styles'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {toByteArray} from 'base64-js'
@@ -213,3 +214,6 @@ export const getRowParticipants = (meta: Types.ConversationMeta, username: strin
     .toList()
     // Filter out ourselves unless its our 1:1 conversation
     .filter((participant, idx, list) => (list.size === 1 ? true : participant !== username))
+
+export const timestampToString = (meta: Types.ConversationMeta) =>
+  formatTimeForConversationList(meta.timestamp)

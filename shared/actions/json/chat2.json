@@ -5,71 +5,95 @@
     "import HiddenString from '../util/hidden-string'"
   ],
   "actions": {
+    // Set the loading state
     "setLoading": {
       "key": "string",
       "loading": "boolean"
     },
+    // Select a conversation (or leave nothing selected)
     "selectConversation": {
       "conversationIDKey": "?Types.ConversationIDKey",
-      "fromUser?": "boolean"
+      "fromUser?": "boolean" // true if this is a direct result of the user clicking
     },
+    // We got updated badges
     "badgesUpdated": {
       "conversations": "Array<RPCTypes.BadgeConversationInfo>"
     },
+    // Setup sagas
     "setupChatHandlers": {},
+    // Refresh the inbox
     "inboxRefresh": {
-      "reason": "string",
-      "clearAllData?": "boolean"
+      "reason": "string", // why this happened for logging
+      "clearAllData?": "boolean" // if we should throw out our internal data
     },
+    // Update the jump to conversation filter
     "setInboxFilter": {
       "filter": "string"
     },
+    // We want to unbox an inbox row
     "metaNeedsUpdating": {
       "conversationIDKeys": "Array<Types.ConversationIDKey>",
       "reason": "string"
     },
+    // Internal action: pull more metas from the queue to request
     "metaHandleQueue": {},
+    // About to try and unbox some inbox rows
     "metaRequestingTrusted": {
       "conversationIDKeys": "Array<Types.ConversationIDKey>"
     },
+    // Actually unboxing
     "metaRequestTrusted": {
       "force?": "boolean",
       "conversationIDKeys": "Array<Types.ConversationIDKey>"
     },
+    // Mutate the inbox row state (requesting, trusted, error, etc)
     "metaUpdateTrustedState": {
       "newState": "Types.MetaTrustedState",
       "conversationIDKeys": "Array<Types.ConversationIDKey>"
     },
+    // Got some new inbox rows
     "metasReceived": {
       "metas": "Array<Types.ConversationMeta>"
     },
+    // Got some inbox errors
     "metaReceivedError": {
       "conversationIDKey": "Types.ConversationIDKey",
       "error": "?RPCChatTypes.ConversationErrorLocal",
       "username": "?string"
     },
+    // Add a new message
     "messagesAdd": {
-      "fromThreadLoad?": "Types.ConversationIDKey",
-      "notify?": "boolean",
+      "fromThreadLoad?": "Types.ConversationIDKey", // because we clicked on a conversation for the very first time?
       "messages": "Array<Types.Message>"
     },
+    // Replace a messages text
     "messageEdit": {
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal",
       "text": "HiddenString"
     },
+    // Delete a message
     "messagesDelete": {
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinals": "Array<Types.Ordinal>"
     },
+    // Clear our knowledge of which messages are in a thread
     "clearOrdinals": {
       "conversationIDKey": "Types.ConversationIDKey"
     },
+    // Go into a search mode
     "setSearching": {
       "searching": "boolean"
     },
+    // Load some more messages for a conversation
     "loadMoreMessages": {
       "conversationIDKey": "Types.ConversationIDKey"
+    },
+    // Show a desktop notification
+    "desktopNotification": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "author": "string",
+      "body": "string"
     }
   }
 }

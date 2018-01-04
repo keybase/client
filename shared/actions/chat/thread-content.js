@@ -282,7 +282,6 @@ import * as Saga from '../../util/saga'
 // : 'pending'
 // // prettier-ignore
 // const failureDescription = messageState === 'failed'
-// // $FlowIssue
 // ? _decodeFailureDescription(payload.state.error.typ)
 // : null
 // const messageText = message.outbox.body
@@ -572,7 +571,6 @@ import * as Saga from '../../util/saga'
 // key: Constants.messageKey(
 // conversationIDKey,
 // 'error',
-// // $FlowIssue
 // message && message.messageID && typeof message.messageID === 'number'
 // ? Constants.rpcMessageIDToMessageID(message.messageID)
 // : Constants.selfInventedIDToMessageID(errorIdx--)

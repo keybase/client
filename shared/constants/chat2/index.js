@@ -39,19 +39,13 @@ export const getIsSelected = (state: TypedState, id: Types.ConversationIDKey) =>
 export const getSelectedConversation = (state: TypedState) => state.chat2.selectedConversation
 
 export {
-  getRowStyles,
+  getConversationIDKeyMetasToLoad,
   getRowParticipants,
+  getRowStyles,
   inboxUIItemToConversationMeta,
   makeConversationMeta,
+  timestampToString,
   unverifiedInboxUIItemToConversationMeta,
-  getConversationIDKeyMetasToLoad,
 } from './meta'
 
-export {
-  getSnippetMessage,
-  getSnippetText,
-  getSnippetTimestamp,
-  makeMessageDeleted,
-  uiMessageToMessage,
-  isOldestOrdinal,
-} from './message'
+export {makeMessageDeleted, uiMessageToMessage, isOldestOrdinal} from './message'

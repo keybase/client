@@ -242,6 +242,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.metaNeedsUpdating:
     case Chat2Gen.metaRequestTrusted:
     case Chat2Gen.setupChatHandlers:
+    case Chat2Gen.desktopNotification:
       return state
     default:
       // eslint-disable-next-line no-unused-expressions

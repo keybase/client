@@ -7,7 +7,6 @@ import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as Types from '../types/chat2'
 import HiddenString from '../../util/hidden-string'
 import clamp from 'lodash/clamp'
-import {formatTimeForConversationList} from '../../util/timestamp'
 
 // flow is geting confused
 const makeMessageCommon = {
@@ -136,68 +135,6 @@ export const uiMessageToMessage = (
 
   // TODO errors and unbox
   return null
-}
-
-// This is emoji aware hence all the weird ... stuff. See https://mathiasbynens.be/notes/javascript-unicode#iterating-over-symbols
-const textSnippet = (message: ?string = '', max: number) =>
-  // $FlowIssue flow doesn't understand spread + strings
-  [...message.substring(0, max * 4).replace(/\s+/g, ' ')].slice(0, max).join('')
-
-export const getSnippetTimestamp = (message: ?Types.Message) =>
-  message ? formatTimeForConversationList(message.timestamp) : ''
-
-export const getSnippetText = (message: ?Types.Message) => {
-  if (!message) {
-    return ''
-  }
-  switch (message.type) {
-    case 'deleted':
-      return '[deleted]'
-    case 'attachment': {
-      const m: Types.MessageAttachment = message
-      return textSnippet(m.title || '[attachment]', 100)
-    }
-    // case 'System':
-    case 'text': {
-      const m: Types.MessageText = message
-      return textSnippet(m.text.stringValue(), 100)
-    }
-    default:
-      return ''
-  }
-}
-
-export const getSnippetMessage = (
-  messageMap: I.Map<Types.Ordinal, Types.Message>,
-  messageOrdinals: I.List<Types.Ordinal>,
-  conversationIDKey: Types.ConversationIDKey
-) => {
-  const messageOrdinal: ?Types.Ordinal = messageOrdinals.findLast(id => {
-    const message: ?Types.Message = messageMap.get(id)
-    if (!message) {
-      return false
-    }
-    switch (message.type) {
-      case 'text':
-      case 'attachment':
-        // case 'system':
-        return true
-      default:
-        return false
-    }
-  })
-
-  if (!messageOrdinal) {
-    // Have a deleted one?
-    const messageOrdinal = messageOrdinals.last()
-    if (messageOrdinal) {
-      const message = messageMap.get(messageOrdinal)
-      return message
-    }
-
-    return null
-  }
-  return messageMap.get(messageOrdinal)
 }
 
 export const isOldestOrdinal = (ordinal: Types.Ordinal) => ordinal === 2
