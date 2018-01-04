@@ -37,6 +37,27 @@ const showCrown: TypeMap = {
 
 export const TeamMemberRow = (props: Props) => {
   const {active, following, fullName, onClick, type, username, you, onReAddToTeam, onRemoveFromTeam} = props
+  let crown, fullNameLabel
+  if (active && type && showCrown[type]) {
+    crown = (
+      <Icon
+        // $FlowIssue "some string with unknown value"
+        type={'iconfont-crown-' + type}
+        style={{
+          color: roleIconColorMap[type],
+          fontSize: isMobile ? 16 : 12,
+          marginRight: globalMargins.xtiny,
+        }}
+      />
+    )
+  }
+  if (fullName && active) {
+    fullNameLabel = (
+      <Text style={{marginRight: globalMargins.xtiny}} type="BodySmall">
+        {fullName} •
+      </Text>
+    )
+  }
   return (
     <Box
       style={{
@@ -68,25 +89,8 @@ export const TeamMemberRow = (props: Props) => {
             )}
           </Box>
           <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-            {!!fullName &&
-              active && (
-                <Text style={{marginRight: globalMargins.xtiny}} type="BodySmall">
-                  {fullName} •
-                </Text>
-              )}
-            {!!active &&
-              !!type &&
-              !!showCrown[type] && (
-                <Icon
-                  // $FlowIssue "some string with unknown value"
-                  type={'iconfont-crown-' + type}
-                  style={{
-                    color: roleIconColorMap[type],
-                    fontSize: isMobile ? 16 : 12,
-                    marginRight: globalMargins.xtiny,
-                  }}
-                />
-              )}
+            {fullNameLabel}
+            {crown}
             <Text type="BodySmall">
               {!!active && !!type && typeToLabel[type]}
               {!active && 'Has reset their account'}
