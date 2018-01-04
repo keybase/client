@@ -1848,8 +1848,12 @@ type TeamImplicitAdminsArg struct {
 type TeamListArg struct {
 	SessionID            int    `codec:"sessionID" json:"sessionID"`
 	UserAssertion        string `codec:"userAssertion" json:"userAssertion"`
-	All                  bool   `codec:"all" json:"all"`
 	IncludeImplicitTeams bool   `codec:"includeImplicitTeams" json:"includeImplicitTeams"`
+}
+
+type TeamListTeammatesArg struct {
+	SessionID            int  `codec:"sessionID" json:"sessionID"`
+	IncludeImplicitTeams bool `codec:"includeImplicitTeams" json:"includeImplicitTeams"`
 }
 
 type TeamListVerifiedArg struct {
@@ -2031,6 +2035,7 @@ type TeamsInterface interface {
 	TeamGet(context.Context, TeamGetArg) (TeamDetails, error)
 	TeamImplicitAdmins(context.Context, TeamImplicitAdminsArg) ([]TeamMemberDetails, error)
 	TeamList(context.Context, TeamListArg) (AnnotatedTeamList, error)
+	TeamListTeammates(context.Context, TeamListTeammatesArg) (AnnotatedTeamList, error)
 	TeamListVerified(context.Context, TeamListVerifiedArg) (AnnotatedTeamList, error)
 	TeamListSubteamsRecursive(context.Context, TeamListSubteamsRecursiveArg) ([]TeamIDAndName, error)
 	TeamChangeMembership(context.Context, TeamChangeMembershipArg) error
@@ -2147,6 +2152,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.TeamList(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"teamListTeammates": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamListTeammatesArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamListTeammatesArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamListTeammatesArg)(nil), args)
+						return
+					}
+					ret, err = i.TeamListTeammates(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2677,6 +2698,11 @@ func (c TeamsClient) TeamImplicitAdmins(ctx context.Context, __arg TeamImplicitA
 
 func (c TeamsClient) TeamList(ctx context.Context, __arg TeamListArg) (res AnnotatedTeamList, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamList", []interface{}{__arg}, &res)
+	return
+}
+
+func (c TeamsClient) TeamListTeammates(ctx context.Context, __arg TeamListTeammatesArg) (res AnnotatedTeamList, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamListTeammates", []interface{}{__arg}, &res)
 	return
 }
 

@@ -118,7 +118,17 @@ func (h *TeamsHandler) TeamImplicitAdmins(ctx context.Context, arg keybase1.Team
 func (h *TeamsHandler) TeamList(ctx context.Context, arg keybase1.TeamListArg) (res keybase1.AnnotatedTeamList, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamList(%s)", arg.UserAssertion), func() error { return err })()
-	x, err := teams.List(ctx, h.G().ExternalG(), arg)
+	x, err := teams.ListTeamsUnverified(ctx, h.G().ExternalG(), arg)
+	if err != nil {
+		return keybase1.AnnotatedTeamList{}, err
+	}
+	return *x, nil
+}
+
+func (h *TeamsHandler) TeamListTeammates(ctx context.Context, arg keybase1.TeamListTeammatesArg) (res keybase1.AnnotatedTeamList, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamListTeammates(%t)", arg.IncludeImplicitTeams), func() error { return err })()
+	x, err := teams.ListAll(ctx, h.G().ExternalG(), arg)
 	if err != nil {
 		return keybase1.AnnotatedTeamList{}, err
 	}

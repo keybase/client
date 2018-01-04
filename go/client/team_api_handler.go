@@ -304,10 +304,7 @@ func (t *teamAPIHandler) leaveTeam(ctx context.Context, c Call, w io.Writer) err
 }
 
 func (t *teamAPIHandler) listSelfMemberships(ctx context.Context, c Call, w io.Writer) error {
-	arg := keybase1.TeamListArg{
-		All: true,
-	}
-	list, err := t.cli.TeamList(ctx, arg)
+	list, err := t.cli.TeamListTeammates(ctx, keybase1.TeamListTeammatesArg{})
 	if err != nil {
 		return t.encodeErr(c, err, w)
 	}

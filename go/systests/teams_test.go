@@ -351,7 +351,15 @@ func (u *userPlusDevice) teamList(userAssertion string, all, includeImplicitTeam
 	cli := u.teamsClient
 	res, err := cli.TeamList(context.TODO(), keybase1.TeamListArg{
 		UserAssertion:        userAssertion,
-		All:                  all,
+		IncludeImplicitTeams: includeImplicitTeams,
+	})
+	require.NoError(u.tc.T, err)
+	return res
+}
+
+func (u *userPlusDevice) teamListTeammates(includeImplicitTeams bool) keybase1.AnnotatedTeamList {
+	cli := u.teamsClient
+	res, err := cli.TeamListTeammates(context.TODO(), keybase1.TeamListTeammatesArg{
 		IncludeImplicitTeams: includeImplicitTeams,
 	})
 	require.NoError(u.tc.T, err)

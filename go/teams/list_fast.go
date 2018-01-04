@@ -17,8 +17,8 @@ import (
 
 // See also: teams/list.go
 
-func ListTeamsFast(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg) (*keybase1.AnnotatedTeamList, error) {
-	tracer := g.CTimeTracer(ctx, "TeamList.ListTeamsFast")
+func ListTeamsUnverified(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg) (*keybase1.AnnotatedTeamList, error) {
+	tracer := g.CTimeTracer(ctx, "TeamList.ListTeamsUnverified")
 	defer tracer.Finish()
 
 	tracer.Stage("Resolve QueryUID")
@@ -63,7 +63,7 @@ func ListTeamsFast(ctx context.Context, g *libkb.GlobalContext, arg keybase1.Tea
 
 	for _, memberInfo := range teams {
 		if memberInfo.IsImplicitTeam && !arg.IncludeImplicitTeams {
-			g.Log.CDebugf(ctx, "| ListTeamsFast skipping implicit team: server-team:%v server-uid:%v", memberInfo.TeamID, memberInfo.UserID)
+			g.Log.CDebugf(ctx, "| ListTeamsUnverified skipping implicit team: server-team:%v server-uid:%v", memberInfo.TeamID, memberInfo.UserID)
 			continue
 		}
 

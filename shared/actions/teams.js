@@ -465,7 +465,6 @@ const _getTeams = function*(action: TeamsGen.GetTeamsPayload): Saga.SagaGenerato
   yield Saga.put(replaceEntity(['teams'], I.Map([['loaded', false]])))
   try {
     const results: RPCTypes.AnnotatedTeamList = yield Saga.call(RPCTypes.teamsTeamListRpcPromise, {
-      all: false,
       includeImplicitTeams: false,
       userAssertion: username,
     })

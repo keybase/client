@@ -1716,8 +1716,17 @@
           "type": "string"
         },
         {
-          "name": "all",
+          "name": "includeImplicitTeams",
           "type": "boolean"
+        }
+      ],
+      "response": "AnnotatedTeamList"
+    },
+    "teamListTeammates": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
         },
         {
           "name": "includeImplicitTeams",

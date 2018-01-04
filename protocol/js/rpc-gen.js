@@ -1620,6 +1620,10 @@ export const teamsTeamListSubteamsRecursiveRpcChannelMap = (configKeys: Array<st
 
 export const teamsTeamListSubteamsRecursiveRpcPromise = (request: TeamsTeamListSubteamsRecursiveRpcParam): Promise<TeamsTeamListSubteamsRecursiveResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamListSubteamsRecursive', request, (error: RPCError, result: TeamsTeamListSubteamsRecursiveResult) => (error ? reject(error) : resolve(result))))
 
+export const teamsTeamListTeammatesRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamListTeammatesRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamListTeammates', request)
+
+export const teamsTeamListTeammatesRpcPromise = (request: TeamsTeamListTeammatesRpcParam): Promise<TeamsTeamListTeammatesResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamListTeammates', request, (error: RPCError, result: TeamsTeamListTeammatesResult) => (error ? reject(error) : resolve(result))))
+
 export const teamsTeamListVerifiedRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamListVerifiedRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamListVerified', request)
 
 export const teamsTeamListVerifiedRpcPromise = (request: TeamsTeamListVerifiedRpcParam): Promise<TeamsTeamListVerifiedResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamListVerified', request, (error: RPCError, result: TeamsTeamListVerifiedResult) => (error ? reject(error) : resolve(result))))
@@ -3626,9 +3630,11 @@ export type TeamsTeamListMyAccessRequestsRpcParam = {|teamName?: ?String, incomi
 
 export type TeamsTeamListRequestsRpcParam = ?{|incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type TeamsTeamListRpcParam = {|userAssertion: String, all: Boolean, includeImplicitTeams: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+export type TeamsTeamListRpcParam = {|userAssertion: String, includeImplicitTeams: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
 export type TeamsTeamListSubteamsRecursiveRpcParam = {|parentTeamName: String, forceRepoll: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+
+export type TeamsTeamListTeammatesRpcParam = {|includeImplicitTeams: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
 export type TeamsTeamListVerifiedRpcParam = {|userAssertion: String, includeImplicitTeams: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
@@ -3977,6 +3983,7 @@ type TeamsTeamListMyAccessRequestsResult = ?Array<TeamName>
 type TeamsTeamListRequestsResult = ?Array<TeamJoinRequest>
 type TeamsTeamListResult = AnnotatedTeamList
 type TeamsTeamListSubteamsRecursiveResult = ?Array<TeamIDAndName>
+type TeamsTeamListTeammatesResult = AnnotatedTeamList
 type TeamsTeamListVerifiedResult = AnnotatedTeamList
 type TeamsTeamRequestAccessResult = TeamRequestAccessResult
 type TeamsTeamTreeResult = TeamTreeResult
