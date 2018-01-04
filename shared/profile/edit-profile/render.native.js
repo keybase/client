@@ -1,59 +1,42 @@
 // @flow
 import * as React from 'react'
-import {Box, Button, Input, HeaderHoc, ButtonBar} from '../../common-adapters'
-import {globalMargins} from '../../styles'
+import {Box, Button, ButtonBar} from '../../common-adapters'
+import {FormInput} from '../../common-adapters/index.native'
+import {globalMargins, globalStyles} from '../../styles'
 
 import type {Props} from './render'
 
 const EditProfileRender = (props: Props) => (
-  <Box>
-    <Input
+  <Box style={globalStyles.flexBoxColumn}>
+    <FormInput
       autoCorrect={true}
       autoFocus={true}
-      style={styleInput}
-      floatingHintTextOverride="Full name"
-      hintText="Full name"
-      inForm={true}
+      label="Full name"
       value={props.fullname}
-      onEnterKeyDown={props.onSubmit}
       onChangeText={fullname => props.onFullnameChange(fullname)}
+      hideBottomBorder={true}
     />
-    <Input
+    <FormInput
       autoCorrect={true}
-      style={styleInput}
-      floatingHintTextOverride="Bio"
-      hintText="Bio"
-      inForm={true}
+      label="Bio"
       value={props.bio}
       multiline={true}
-      rowsMin={1}
-      rowsMax={3}
-      errorText={props.bioLengthLeft <= 5 ? props.bioLengthLeft + ' characters left' : ''}
+      maxHeight={180}
       onChangeText={bio => props.onBioChange(bio)}
+      hideBottomBorder={true}
     />
-    <Input
+    <FormInput
       autoCorrect={true}
-      style={styleInput}
-      floatingHintTextOverride="Location"
-      hintText="Location"
-      inForm={true}
+      label="Location"
       value={props.location}
       onEnterKeyDown={props.onSubmit}
       onChangeText={location => props.onLocationChange(location)}
     />
     <ButtonBar fullWidth={true}>
-      <Button style={styleButton} type="Primary" fullWidth={true} onClick={props.onSubmit} label="Save" />
+      <Button style={styleButton} type="Primary" onClick={props.onSubmit} label="Save" />
     </ButtonBar>
   </Box>
 )
-
-const styleContainer = {
-  marginTop: 0,
-}
-
-const styleInput = {
-  marginTop: globalMargins.medium,
-}
 
 const styleButton = {
   marginTop: globalMargins.medium,
