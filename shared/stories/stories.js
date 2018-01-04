@@ -21,11 +21,6 @@ import teams from '../teams/index.stories'
 import text from '../common-adapters/text.stories'
 import editTeamDescription from '../teams/edit-team-description/index.stories'
 
-import {isMobile} from '../constants/platform'
-const nativeOnly = isMobile
-  ? {formInput: require('../common-adapters/form-input.stories.native.js').default}
-  : {}
-
 const stories = {
   avatar,
   box,
@@ -48,7 +43,6 @@ const stories = {
   search,
   teams,
   text,
-  ...nativeOnly,
 }
 
 export default stories
