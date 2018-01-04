@@ -241,10 +241,10 @@ Object {
   "children": Array [
     Object {
       "children": Array [
-        "hello there ",
+        "hello there #some_channel ",
         Object {
           "children": Array [
-            "some_channel",
+            "valid_channel",
           ],
           "type": "channel",
         },
@@ -275,7 +275,7 @@ Object {
   "children": Array [
     Object {
       "children": Array [
-        "hello there #123456789012345678901",
+        "hello there #valid6789012345678901",
       ],
       "type": "text-block",
     },
@@ -371,7 +371,7 @@ Object {
           "children": Array [
             Object {
               "children": Array [
-                "some_channel",
+                "valid_channel",
               ],
               "type": "channel",
             },
@@ -396,7 +396,7 @@ Object {
           "children": Array [
             Object {
               "children": Array [
-                "some_channel",
+                "valid_channel",
               ],
               "type": "channel",
             },
@@ -419,10 +419,24 @@ Object {
         "hello there _",
         Object {
           "children": Array [
-            "some_channel_",
+            "valid_channel_",
           ],
           "type": "channel",
         },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses formatted channels 4`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello there _#valid_channel_",
       ],
       "type": "text-block",
     },

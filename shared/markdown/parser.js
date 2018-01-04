@@ -192,7 +192,8 @@ function peg$parse(input, options) {
       peg$c37 = peg$otherExpectation("stripped character class"),
       peg$c38 = function(children) {
         const channel = flatten(children)[0]
-        return channel.length > 0 && channel.length <= 20
+        return channel.length > 0 && channel.length <= 20 &&
+          options && options.isValidChannel && options.isValidChannel(channel)
       },
       peg$c39 = function(children) { return {type: 'channel', children: flatten(children) } },
       peg$c40 = function(code) { return {type: 'code-block', children: [code]} },
