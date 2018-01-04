@@ -1918,6 +1918,12 @@ func (fbo *folderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 		n, de, err = fbo.blocks.Lookup(ctx, lState, md.ReadOnly(), dir, name)
 		if _, isMiss := errors.Cause(err).(NoSuchNameError); isMiss {
 			n, de.EntryInfo, err = fbo.processMissedLookup(ctx, dir, name, err)
+			if _, exists := errors.Cause(err).(NameExistsError); exists {
+				// Someone raced us to create the entry, so return the
+				// new entry.
+				n, de, err = fbo.blocks.Lookup(
+					ctx, lState, md.ReadOnly(), dir, name)
+			}
 		}
 		return err
 	})
