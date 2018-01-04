@@ -23,7 +23,7 @@ let config = {
   forceImmediateLogging: false, // Don't wait for idle to log
   immediateStateLogging: false, // Don't wait for idle to log state
   isDevApplePushToken: false, // Use a dev push token
-  isTesting: nativeBridge.test === '1', // Is running a unit test
+  isTesting: nativeBridge.test === '1' || (NativeModules.Storybook && NativeModules.Storybook.isStorybook), // Is running a unit test
   maskStrings: false, // Replace all hiddenstrings w/ fake values
   printBridgeB64: false, // Print raw b64 going over the wire
   printOutstandingRPCs: false, // Periodically print rpcs we're waiting for
