@@ -115,27 +115,67 @@ func (o GitLocalMetadataVersioned) DeepCopy() GitLocalMetadataVersioned {
 	}
 }
 
+type GitCommit struct {
+	CommitHash  string `codec:"commitHash" json:"commitHash"`
+	Message     string `codec:"message" json:"message"`
+	AuthorName  string `codec:"authorName" json:"authorName"`
+	AuthorEmail string `codec:"authorEmail" json:"authorEmail"`
+	Ctime       Time   `codec:"ctime" json:"ctime"`
+}
+
+func (o GitCommit) DeepCopy() GitCommit {
+	return GitCommit{
+		CommitHash:  o.CommitHash,
+		Message:     o.Message,
+		AuthorName:  o.AuthorName,
+		AuthorEmail: o.AuthorEmail,
+		Ctime:       o.Ctime.DeepCopy(),
+	}
+}
+
+type GitRefMetadata struct {
+	RefName              string      `codec:"refName" json:"refName"`
+	Commits              []GitCommit `codec:"commits" json:"commits"`
+	MoreCommitsAvailable bool        `codec:"moreCommitsAvailable" json:"moreCommitsAvailable"`
+}
+
+func (o GitRefMetadata) DeepCopy() GitRefMetadata {
+	return GitRefMetadata{
+		RefName: o.RefName,
+		Commits: (func(x []GitCommit) []GitCommit {
+			if x == nil {
+				return nil
+			}
+			var ret []GitCommit
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Commits),
+		MoreCommitsAvailable: o.MoreCommitsAvailable,
+	}
+}
+
 type GitLocalMetadata struct {
-	RepoName   GitRepoName `codec:"repoName" json:"repoName"`
-	BranchName string      `codec:"branchName" json:"branchName"`
-	CommitMsgs []string    `codec:"commitMsgs" json:"commitMsgs"`
+	RepoName GitRepoName      `codec:"repoName" json:"repoName"`
+	Refs     []GitRefMetadata `codec:"refs" json:"refs"`
 }
 
 func (o GitLocalMetadata) DeepCopy() GitLocalMetadata {
 	return GitLocalMetadata{
-		RepoName:   o.RepoName.DeepCopy(),
-		BranchName: o.BranchName,
-		CommitMsgs: (func(x []string) []string {
+		RepoName: o.RepoName.DeepCopy(),
+		Refs: (func(x []GitRefMetadata) []GitRefMetadata {
 			if x == nil {
 				return nil
 			}
-			var ret []string
+			var ret []GitRefMetadata
 			for _, v := range x {
-				vCopy := v
+				vCopy := v.DeepCopy()
 				ret = append(ret, vCopy)
 			}
 			return ret
-		})(o.CommitMsgs),
+		})(o.Refs),
 	}
 }
 

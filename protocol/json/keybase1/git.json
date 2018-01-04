@@ -75,6 +75,53 @@
     },
     {
       "type": "record",
+      "name": "GitCommit",
+      "fields": [
+        {
+          "type": "string",
+          "name": "commitHash"
+        },
+        {
+          "type": "string",
+          "name": "message"
+        },
+        {
+          "type": "string",
+          "name": "authorName"
+        },
+        {
+          "type": "string",
+          "name": "authorEmail"
+        },
+        {
+          "type": "Time",
+          "name": "ctime"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GitRefMetadata",
+      "fields": [
+        {
+          "type": "string",
+          "name": "refName"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "GitCommit"
+          },
+          "name": "commits"
+        },
+        {
+          "type": "boolean",
+          "name": "moreCommitsAvailable"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "GitLocalMetadata",
       "fields": [
         {
@@ -82,15 +129,11 @@
           "name": "repoName"
         },
         {
-          "type": "string",
-          "name": "branchName"
-        },
-        {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "GitRefMetadata"
           },
-          "name": "commitMsgs"
+          "name": "refs"
         }
       ]
     },

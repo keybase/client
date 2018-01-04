@@ -2255,6 +2255,8 @@ export type GetPassphraseRes = {|passphrase: String, storeSecret: Boolean|}
 
 export type GetTLFCryptKeysRes = {|nameIDBreaks: CanonicalTLFNameAndIDWithBreaks, CryptKeys?: ?Array<CryptKey>|}
 
+export type GitCommit = {|commitHash: String, message: String, authorName: String, authorEmail: String, ctime: Time|}
+
 export type GitCreatePersonalRepoRpcParam = {|repoName: GitRepoName, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
 export type GitCreateTeamRepoRpcParam = {|repoName: GitRepoName, teamName: TeamName, notifyTeam: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
@@ -2275,7 +2277,7 @@ export type GitGetGitMetadataRpcParam = {|folder: Folder, incomingCallMap?: Inco
 
 export type GitGetTeamRepoSettingsRpcParam = {|folder: Folder, repoID: RepoID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
 
-export type GitLocalMetadata = {|repoName: GitRepoName, branchName: String, commitMsgs?: ?Array<String>|}
+export type GitLocalMetadata = {|repoName: GitRepoName, refs?: ?Array<GitRefMetadata>|}
 
 export type GitLocalMetadataV1 = {|repoName: GitRepoName|}
 
@@ -2284,6 +2286,8 @@ export type GitLocalMetadataVersion = 1 // V1_1
 export type GitLocalMetadataVersioned = {version: 1, v1: ?GitLocalMetadataV1}
 
 export type GitPutGitMetadataRpcParam = {|folder: Folder, repoID: RepoID, metadata: GitLocalMetadata, notifyTeam: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType|}
+
+export type GitRefMetadata = {|refName: String, commits?: ?Array<GitCommit>, moreCommitsAvailable: Boolean|}
 
 export type GitRepoInfo = {|folder: Folder, repoID: RepoID, localMetadata: GitLocalMetadata, serverMetadata: GitServerMetadata, repoUrl: String, globalUniqueID: String, canDelete: Boolean|}
 
