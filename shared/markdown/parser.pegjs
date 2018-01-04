@@ -69,12 +69,13 @@ ItalicMarker = "_"
 EmojiMarker = ":"
 QuoteBlockMarker = ">"
 MentionMarker = "@"
+ChannelMarker = "#"
 
 // Can mark the beginning of a link
 PunctuationMarker = [()[\].,!?]
 
 SpecialChar
- = EscapeMarker / StrikeMarker / MentionMarker / BoldMarker / ItalicMarker / EmojiMarker / QuoteBlockMarker / Ticks1 / PunctuationMarker { return text() }
+ = EscapeMarker / StrikeMarker / MentionMarker / ChannelMarker / BoldMarker / ItalicMarker / EmojiMarker / QuoteBlockMarker / Ticks1 / PunctuationMarker { return text() }
 
 EscapedChar
  = EscapeMarker char:SpecialChar { return char }
@@ -109,6 +110,10 @@ Mention = MentionMarker mention:($ ([a-zA-Z0-9]+"_"?)+) & {
   return mention.length >= 2 && mention.length <= 16 &&
     options && options.isValidMention && options.isValidMention(mention)
 } { return {type: 'mention', children: [mention] } }
+
+// children grammar adapted from topic name regexp in chat/msgchecker/plaintext_checker.go.
+Channel
+ = ChannelMarker children:([0-9a-zA-Z_-]+) { return {type: 'channel', children: flatten(children) } }
 
 CodeBlock
  = Ticks3 LineTerminatorSequence? code:($ (!Ticks3 .)+) Ticks3 { return {type: 'code-block', children: [code]} }
