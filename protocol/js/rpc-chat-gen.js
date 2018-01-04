@@ -253,6 +253,7 @@ export const localOutboxErrorType = {
   identify: 2,
   toolong: 3,
   duplicate: 4,
+  expired: 5,
 }
 
 export const localOutboxStateType = {
@@ -925,7 +926,7 @@ export type MessageSystemComplexTeam = $ReadOnly<{team: String}>
 
 export type MessageSystemCreateTeam = $ReadOnly<{team: String, creator: String}>
 
-export type MessageSystemGitPush = $ReadOnly<{team: String, pusher: String, repoName: String, branchName: String, commitMsgs?: ?Array<String>}>
+export type MessageSystemGitPush = $ReadOnly<{team: String, pusher: String, repoName: String, refs?: ?Array<Keybase1.GitRefMetadata>}>
 
 export type MessageSystemInviteAddedToTeam = $ReadOnly<{team: String, inviter: String, invitee: String, adder: String, inviteType: Keybase1.TeamInviteCategory}>
 
@@ -1021,6 +1022,7 @@ export type OutboxErrorType =
   | 2 // IDENTIFY_2
   | 3 // TOOLONG_3
   | 4 // DUPLICATE_4
+  | 5 // EXPIRED_5
 
 export type OutboxID = Bytes
 

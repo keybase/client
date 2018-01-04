@@ -2255,6 +2255,8 @@ export type GetPassphraseRes = $ReadOnly<{passphrase: String, storeSecret: Boole
 
 export type GetTLFCryptKeysRes = $ReadOnly<{nameIDBreaks: CanonicalTLFNameAndIDWithBreaks, CryptKeys?: ?Array<CryptKey>}>
 
+export type GitCommit = $ReadOnly<{commitHash: String, message: String, authorName: String, authorEmail: String, ctime: Time}>
+
 export type GitCreatePersonalRepoRpcParam = $ReadOnly<{repoName: GitRepoName, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type GitCreateTeamRepoRpcParam = $ReadOnly<{repoName: GitRepoName, teamName: TeamName, notifyTeam: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
@@ -2275,7 +2277,7 @@ export type GitGetGitMetadataRpcParam = $ReadOnly<{folder: Folder, incomingCallM
 
 export type GitGetTeamRepoSettingsRpcParam = $ReadOnly<{folder: Folder, repoID: RepoID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type GitLocalMetadata = $ReadOnly<{repoName: GitRepoName, branchName: String, commitMsgs?: ?Array<String>}>
+export type GitLocalMetadata = $ReadOnly<{repoName: GitRepoName, refs?: ?Array<GitRefMetadata>}>
 
 export type GitLocalMetadataV1 = $ReadOnly<{repoName: GitRepoName}>
 
@@ -2284,6 +2286,8 @@ export type GitLocalMetadataVersion = 1 // V1_1
 export type GitLocalMetadataVersioned = {version: 1, v1: ?GitLocalMetadataV1}
 
 export type GitPutGitMetadataRpcParam = $ReadOnly<{folder: Folder, repoID: RepoID, metadata: GitLocalMetadata, notifyTeam: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
+export type GitRefMetadata = $ReadOnly<{refName: String, commits?: ?Array<GitCommit>, moreCommitsAvailable: Boolean}>
 
 export type GitRepoInfo = $ReadOnly<{folder: Folder, repoID: RepoID, localMetadata: GitLocalMetadata, serverMetadata: GitServerMetadata, repoUrl: String, globalUniqueID: String, canDelete: Boolean}>
 
