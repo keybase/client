@@ -12,7 +12,7 @@ import (
 
 var emailRE = regexp.MustCompile(`^\S+@\S+\.\S+$`)
 
-// Underscored allowed, just not first or doubled.
+// Underscores allowed, just not first or doubled.
 var usernameRE = regexp.MustCompile(`^([a-zA-Z0-9]+[a-zA-Z0-9_]?)+$`)
 
 var deviceRE = regexp.MustCompile(`^[a-zA-Z0-9][ _'a-zA-Z0-9+-]*$`)
