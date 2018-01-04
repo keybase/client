@@ -82,6 +82,32 @@ Object {
 }
 `;
 
+exports[`Markdown parser ignores mentions in code 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "validmarco",
+          ],
+          "type": "mention",
+        },
+        " ",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "this is a code block @validmarco",
+      ],
+      "type": "code-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
 exports[`Markdown parser inline code 1`] = `
 Object {
   "children": Array [

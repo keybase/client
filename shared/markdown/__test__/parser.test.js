@@ -214,4 +214,8 @@ this is a code block with two newline above\`\`\`
     check('*@validmarco*', {isValidMention})
     check('_@validmarco_', {isValidMention})
   })
+  it('ignores mentions in code', () => {
+    // check('`@validmarco`', {isValidMention})
+    check('@validmarco ```this is a code block @validmarco```', {isValidMention})
+  })
 })
