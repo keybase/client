@@ -94,6 +94,32 @@ Object {
           "type": "mention",
         },
         " ",
+        Object {
+          "children": Array [
+            "some inline code @validmarco",
+          ],
+          "type": "inline-code",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser ignores mentions in code 2`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "validmarco",
+          ],
+          "type": "mention",
+        },
+        " ",
       ],
       "type": "text-block",
     },

@@ -119,22 +119,11 @@ Mention = MentionMarker children:([a-zA-Z0-9][a-zA-Z0-9_]?)+ & {
   return options && options.isValidMention && options.isValidMention(flatten(children)[0])
 } { return {type: 'mention', children: flatten(children)} }
 
-// Same as Mention above, but is just returns text
-// Useful if you don't want a mention in certain contexts (like in a code block)
-MentionlessMention
- = MentionMarker children:([a-zA-Z0-9][a-zA-Z0-9_]*) { return prefix('@', children) }
-
-InCodeBlock
- = children:(MentionlessMention / (!Ticks3 .))+ {return children }
-
 CodeBlock
- = Ticks3 LineTerminatorSequence? children:InCodeBlock Ticks3 { return {type: 'code-block', children: flatten(children)} }
-
-InInlineCode
- = children:((MentionlessMention / !Ticks1) !LineTerminatorSequence .)+ {return children}
+ = Ticks3 LineTerminatorSequence? children:(!Ticks3 .)+ Ticks3 { return {type: 'code-block', children: flatten(children)} }
 
 InlineCode
- = Ticks1 children:InInlineCode Ticks1 { return {type: 'inline-code', children: flatten(children)} }
+ = Ticks1 children:(!Ticks1 !LineTerminatorSequence .)+ Ticks1 { return {type: 'inline-code', children: flatten(children)} }
 
 // Here we use the literal ":" because we want to not match the :foo in ::foo
 InsideEmojiMarker
