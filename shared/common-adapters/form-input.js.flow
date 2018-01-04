@@ -3,16 +3,20 @@ import {Component} from 'react'
 import type {TextType, Background} from './text'
 
 export type Props = {
+  autoCorrect?: boolean,
+  autoFocus?: boolean,
   backgroundMode?: Background,
   containerStyle?: any,
   inputStyle?: any,
   label?: string,
+  onEnterKeyDown?: () => void,
   value?: string,
   textType?: TextType,
   secure?: boolean,
   maxHeight?: number,
   multiline?: boolean,
   hideBottomBorder?: boolean,
+  hideTopBorder?: boolean,
   onChangeText?: (value: string) => void,
 }
 
