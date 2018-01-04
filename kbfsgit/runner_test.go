@@ -1054,7 +1054,10 @@ func TestRunnerHandlePushBatch(t *testing.T) {
 	makeLocalRepoWithOneFileCustomCommitMsg(t, git, "foo", "hello", "", "one")
 	commits := testHandlePushBatch(t, ctx, config, git,
 		"refs/heads/master:refs/heads/master", "user1")
-	require.Empty(t, commits)
+	require.Len(t, commits, 1)
+	master := commits["refs/heads/master"]
+	require.Len(t, master, 1)
+	require.Equal(t, "one", strings.TrimSpace(master[0].Message))
 
 	t.Log("Add a commit and push it. We expect the push batch to return " +
 		"one reference with one commit.")
@@ -1062,7 +1065,7 @@ func TestRunnerHandlePushBatch(t *testing.T) {
 	commits = testHandlePushBatch(t, ctx, config, git,
 		"refs/heads/master:refs/heads/master", "user1")
 	require.Len(t, commits, 1)
-	master := commits["refs/heads/master"]
+	master = commits["refs/heads/master"]
 	require.Len(t, master, 1)
 	require.Equal(t, "two", strings.TrimSpace(master[0].Message))
 

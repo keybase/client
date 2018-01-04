@@ -96,7 +96,6 @@ const (
 )
 
 type ctxCommandTagKey int
-type refLookupByName map[plumbing.ReferenceName]*plumbing.Reference
 type commitsByRefName map[plumbing.ReferenceName][]*gogitobj.Commit
 
 const (
@@ -1435,12 +1434,18 @@ func (r *runner) pushAll(ctx context.Context, fs *libfs.FS) (err error) {
 // not in `remoteStorer`.
 func (r *runner) parentCommitsForRef(ctx context.Context,
 	localStorer gogitstor.Storer, remoteStorer gogitstor.Storer,
-	refs refLookupByName) (commitsByRefName, error) {
+	refs map[string]bool) (commitsByRefName, error) {
 
 	commitsByRef := make(commitsByRefName, len(refs))
 	haves := make(map[plumbing.Hash]bool)
 
-	for _, ref := range refs {
+	for refName := range refs {
+		ref, err := localStorer.Reference(plumbing.ReferenceName(refName))
+		if err != nil {
+			r.log.CDebugf(ctx, "Error getting reference %s: %+v",
+				refName, err)
+			continue
+		}
 		hash := ref.Hash()
 		refName := ref.Name()
 
@@ -1481,30 +1486,25 @@ func (r *runner) parentCommitsForRef(ctx context.Context,
 
 func (r *runner) pushSome(
 	ctx context.Context, repo *gogit.Repository, fs *libfs.FS, args [][]string,
-	kbfsRepoEmpty bool) (map[string]error, commitsByRefName, error) {
+	kbfsRepoEmpty bool) (map[string]error, error) {
 	r.log.CDebugf(ctx, "Pushing %d refs into %s", len(args), r.gitDir)
 
 	remote, err := repo.CreateRemote(&gogitcfg.RemoteConfig{
 		Name: localRepoRemoteName,
 		URLs: []string{r.gitDir},
 	})
-	localGit := osfs.New(r.gitDir)
-	localStorer, err := filesystem.NewStorage(localGit)
-	if err != nil {
-		return nil, nil, err
-	}
 
 	results := make(map[string]error, len(args))
 	var refspecs []gogitcfg.RefSpec
-	refs := make(refLookupByName, len(args))
+	refs := make(map[string]bool, len(args))
 	for _, push := range args {
 		if len(push) != 1 {
-			return nil, nil, errors.Errorf("Bad push request: %v", push)
+			return nil, errors.Errorf("Bad push request: %v", push)
 		}
 		refspec := gogitcfg.RefSpec(push[0])
 		err := refspec.Validate()
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
 		// Delete the reference in the repo if needed; otherwise,
@@ -1524,14 +1524,7 @@ func (r *runner) pushSome(
 			}
 			results[dst] = err
 		} else {
-			refName := plumbing.ReferenceName(refspec.Src())
-			ref, err := localStorer.Reference(refName)
-			if err != nil {
-				r.log.CDebugf(ctx, "Error loading local ref %s: %+v",
-					refName, err)
-				continue
-			}
-			refs[refName] = ref
+			refs[refspec.Src()] = true
 			refspecs = append(refspecs, refspec)
 		}
 		if err != nil {
@@ -1539,7 +1532,6 @@ func (r *runner) pushSome(
 		}
 	}
 
-	var commitsByRef commitsByRefName
 	if len(refspecs) > 0 {
 		var statusChan plumbing.StatusChan
 		if r.verbosity >= 1 {
@@ -1562,13 +1554,6 @@ func (r *runner) pushSome(
 				ctx, "Requesting a pack-refs file for %d refs", len(refspecs))
 		}
 
-		// Get all commits associated with the refs.
-		commitsByRef, err = r.parentCommitsForRef(ctx, localStorer,
-			repo.Storer, refs)
-		if err != nil {
-			return nil, nil, err
-		}
-
 		err = remote.FetchContext(ctx, &gogit.FetchOptions{
 			RemoteName: localRepoRemoteName,
 			RefSpecs:   refspecs,
@@ -1587,7 +1572,7 @@ func (r *runner) pushSome(
 			results[dst] = err
 		}
 	}
-	return results, commitsByRef, nil
+	return results, nil
 }
 
 // handlePushBatch: From https://git-scm.com/docs/git-remote-helpers
@@ -1629,8 +1614,28 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 		return nil, err
 	}
 
-	var results map[string]error
+	localGit := osfs.New(r.gitDir)
+	localStorer, err := filesystem.NewStorage(localGit)
+	if err != nil {
+		return nil, err
+	}
 
+	sources := make(map[string]bool, len(args))
+	for _, push := range args {
+		// `canPushAll` already validates the push reference.
+		refspec := gogitcfg.RefSpec(push[0])
+		sources[refspec.Src()] = true
+	}
+
+	// Get all commits associated with the refs. This must happen before the
+	// push for us to be able to calculate the difference.
+	commits, err = r.parentCommitsForRef(ctx, localStorer,
+		repo.Storer, sources)
+	if err != nil {
+		return nil, err
+	}
+
+	var results map[string]error
 	// Ignore pushAll for commit collection, for now.
 	if canPushAll {
 		err = r.pushAll(ctx, fs)
@@ -1643,7 +1648,7 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 			results[dst] = err
 		}
 	} else {
-		results, commits, err = r.pushSome(ctx, repo, fs, args, kbfsRepoEmpty)
+		results, err = r.pushSome(ctx, repo, fs, args, kbfsRepoEmpty)
 	}
 	if err != nil {
 		return nil, err
