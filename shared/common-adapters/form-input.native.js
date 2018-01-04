@@ -76,6 +76,12 @@ class FormInput extends React.Component<Props, State> {
     })
   }
 
+  _onKeyPress = (e: SyntheticKeyboardEvent<>) => {
+    if (this.props.onEnterKeyDown && e.key === 'Enter') {
+      this.props.onEnterKeyDown()
+    }
+  }
+
   render() {
     let backgroundColor = this.props.backgroundMode
       ? backgroundModeToColor[this.props.backgroundMode]
@@ -88,10 +94,10 @@ class FormInput extends React.Component<Props, State> {
           justifyContent: 'center',
           position: 'relative',
           width: '100%',
-          borderTopWidth: 1,
+          borderTopWidth: this.props.hideTopBorder ? 0 : 1,
           borderBottomWidth: this.props.hideBottomBorder ? 0 : 1,
           borderColor: globalColors.black_10,
-          height: this.props.multiline ? 128 : 64,
+          minHeight: this.props.multiline ? 128 : 64,
           ...(this.props.maxHeight ? {maxHeight: this.props.maxHeight} : {}),
           ...this.props.containerStyle,
         }}
@@ -127,22 +133,25 @@ class FormInput extends React.Component<Props, State> {
             />
           )}
         <NativeTextInput
+          autoCorrect={this.props.autoCorrect}
+          autoFocus={this.props.autoFocus}
+          autoGrow={!!this.props.multiline && !!this.props.maxHeight}
           value={this.state.value}
           onChangeText={this._onChangeText}
           placeholder={this.state.focused ? '' : this.props.label}
           ref={input => (this._input = input)}
           onFocus={this._onFocus}
           onBlur={this._onBlur}
+          onKeyPress={this._onKeyPress}
+          onSubmitEditing={this.props.onEnterKeyDown}
           secureTextEntry={this.props.secure}
           multiline={this.props.multiline}
           style={{
-            flex: 1,
+            flexGrow: 1,
             width: '100%',
-            height: '100%',
             paddingLeft: globalMargins.small,
             paddingRight: globalMargins.small,
-            paddingTop: globalMargins.medium - (this.props.multiline && !this.state.focused ? 3 : 0), // for some reason multiline inserts a tiny top padding
-            paddingBottom: globalMargins.medium,
+            paddingTop: this.props.multiline ? globalMargins.medium : globalMargins.tiny, // for some reason multiline inserts a tiny (~3dp) top padding
             lineHeight: 20,
             ...((this.props.textType && getStyle(this.props.textType, this.props.backgroundMode)) ||
               getStyle('BodySemibold')),
