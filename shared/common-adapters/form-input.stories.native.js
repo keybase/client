@@ -34,7 +34,7 @@ const load = () => {
           label="Multiline!"
           multiline={true}
           hideBottomBorder={true}
-          maxHeight={164}
+          maxHeight={200}
           onChangeText={onChangeText}
         />
         <FormInput label="Label 3" onChangeText={onChangeText} />

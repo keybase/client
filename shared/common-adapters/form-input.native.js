@@ -91,7 +91,7 @@ class FormInput extends React.Component<Props, State> {
         style={{
           ...globalStyles.flexBoxColumn,
           alignItems: 'center',
-          justifyContent: 'center',
+          // justifyContent: 'center',
           position: 'relative',
           width: '100%',
           borderTopWidth: this.props.hideTopBorder ? 0 : 1,
@@ -147,12 +147,12 @@ class FormInput extends React.Component<Props, State> {
           secureTextEntry={this.props.secure}
           multiline={this.props.multiline}
           style={{
-            flexGrow: 1,
+            flexBasis: 'auto',
+            // position: 'relative',
             width: '100%',
             paddingLeft: globalMargins.small,
             paddingRight: globalMargins.small,
-            paddingTop: this.props.multiline ? globalMargins.medium : globalMargins.tiny, // for some reason multiline inserts a tiny (~3dp) top padding
-            lineHeight: 20,
+            paddingTop: 21,
             ...((this.props.textType && getStyle(this.props.textType, this.props.backgroundMode)) ||
               getStyle('BodySemibold')),
             ...this.props.inputStyle,
