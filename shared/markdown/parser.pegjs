@@ -111,9 +111,12 @@ Mention = MentionMarker mention:($ ([a-zA-Z0-9]+"_"?)+) & {
     options && options.isValidMention && options.isValidMention(mention)
 } { return {type: 'mention', children: [mention] } }
 
-// children grammar adapted from topic name regexp in chat/msgchecker/plaintext_checker.go.
+// children test adapted from validateTopicName in chat/msgchecker/plaintext_checker.go.
 Channel
- = ChannelMarker children:([0-9a-zA-Z_-]+) { return {type: 'channel', children: flatten(children) } }
+ = ChannelMarker children:([0-9a-zA-Z_-]+) & {
+  const channel = flatten(children)[0]
+  return channel.length > 0 && channel.length <= 20
+} { return {type: 'channel', children: flatten(children) } }
 
 CodeBlock
  = Ticks3 LineTerminatorSequence? code:($ (!Ticks3 .)+) Ticks3 { return {type: 'code-block', children: [code]} }

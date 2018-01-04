@@ -236,6 +236,10 @@ this is a code block with two newline above\`\`\`
   })
   it('parses channels correctly', () => {
     check('hello there #some_channel')
+    // Too short.
+    check('hello there #')
+    // Too long.
+    check('hello there #123456789012345678901')
   })
   it('parses formatted channels', () => {
     check('hello there ~#some_channel~')

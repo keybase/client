@@ -256,6 +256,34 @@ Object {
 }
 `;
 
+exports[`Markdown parser parses channels correctly 2`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello there #",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses channels correctly 3`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello there #123456789012345678901",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
 exports[`Markdown parser parses chars in the middle of words correctly 1`] = `
 Object {
   "children": Array [
