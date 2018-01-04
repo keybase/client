@@ -44,7 +44,8 @@ const (
 
 // CommitSentinelValue marks the end of a list of commits, where there are
 // still commits that haven't been read.
-var CommitSentinelValue *object.Commit = nil
+// Use the zero-value `nil`.
+var CommitSentinelValue *object.Commit
 
 // This character set is what Github supports in repo names.  It's
 // probably to avoid any problems when cloning onto filesystems that
