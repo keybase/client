@@ -149,6 +149,7 @@ func (rh *RPCHandler) CreateRepo(
 	}()
 	defer gitConfig.Shutdown(ctx)
 
+	ctx = context.WithValue(ctx, libkbfs.CtxAllowNameKey, kbfsRepoDir)
 	gitID, err := CreateRepoAndID(ctx, gitConfig, tlfHandle, string(arg.Name))
 	if err != nil {
 		return "", err

@@ -1846,6 +1846,8 @@ func (r *runner) processCommands(ctx context.Context) (err error) {
 	reader := bufio.NewReader(r.input)
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
+	// Allow the creation of .kbfs_git within KBFS.
+	ctx = context.WithValue(ctx, libkbfs.CtxAllowNameKey, kbfsRepoDir)
 
 	// Process the commands with a separate queue in a separate
 	// goroutine, so we can exit as soon as EOF is received

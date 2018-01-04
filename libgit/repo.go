@@ -612,6 +612,7 @@ func DeleteRepo(
 		return castNoSuchNameError(err, repoName)
 	}
 
+	ctx = context.WithValue(ctx, libkbfs.CtxAllowNameKey, kbfsDeletedReposDir)
 	deletedReposNode, err := lookupOrCreateDir(
 		ctx, config, repoNode, kbfsDeletedReposDir)
 	if err != nil {

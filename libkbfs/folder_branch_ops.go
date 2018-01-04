@@ -2524,14 +2524,26 @@ func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *GCOp) (
 	return fbo.notifyBatchLocked(ctx, lState, irmd)
 }
 
-func checkDisallowedPrefixes(name string, mode InitMode) error {
-	if mode == InitSingleOp {
-		// Allow specialized, single-op KBFS programs (like the kbgit
-		// remote helper) to bypass the disallowed prefix check.
-		return nil
-	}
+// CtxAllowNameKeyType is the type for a context allowable name override key.
+type CtxAllowNameKeyType int
+
+const (
+	// CtxAllowNameKey can be used to set a value in a context, and
+	// that value will be treated as an allowable directory entry
+	// name, even if it also matches a disallowed prefix.
+	CtxAllowNameKey CtxAllowNameKeyType = iota
+)
+
+func checkDisallowedPrefixes(ctx context.Context, name string) error {
 	for _, prefix := range disallowedPrefixes {
 		if strings.HasPrefix(name, prefix) {
+			if allowedName := ctx.Value(CtxAllowNameKey); allowedName != nil {
+				// Allow specialized KBFS programs (like the kbgit remote
+				// helper) to bypass the disallowed prefix check.
+				if name == allowedName.(string) {
+					return nil
+				}
+			}
 			return DisallowedPrefixError{name, prefix}
 		}
 	}
@@ -2634,7 +2646,7 @@ func (fbo *folderBranchOps) createEntryLocked(
 	entryType EntryType, excl Excl) (childNode Node, de DirEntry, err error) {
 	fbo.mdWriterLock.AssertLocked(lState)
 
-	if err := checkDisallowedPrefixes(name, fbo.config.Mode()); err != nil {
+	if err := checkDisallowedPrefixes(ctx, name); err != nil {
 		return nil, DirEntry{}, err
 	}
 
@@ -3071,7 +3083,7 @@ func (fbo *folderBranchOps) createLinkLocked(
 	toPath string) (DirEntry, error) {
 	fbo.mdWriterLock.AssertLocked(lState)
 
-	if err := checkDisallowedPrefixes(fromName, fbo.config.Mode()); err != nil {
+	if err := checkDisallowedPrefixes(ctx, fromName); err != nil {
 		return DirEntry{}, err
 	}
 
@@ -3397,7 +3409,7 @@ func (fbo *folderBranchOps) renameLocked(
 		return err
 	}
 
-	if err := checkDisallowedPrefixes(newName, fbo.config.Mode()); err != nil {
+	if err := checkDisallowedPrefixes(ctx, newName); err != nil {
 		return err
 	}
 
