@@ -18,6 +18,7 @@ var usernameTests = []checkerTest{
 	{input: "_foo", valid: false},
 	{input: "foo_bar_baz", valid: true},
 	{input: "foo__bar", valid: false},
+	{input: "Upper_Case", valid: true},
 }
 
 func TestCheckUsername(t *testing.T) {
