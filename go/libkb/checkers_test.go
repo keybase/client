@@ -10,6 +10,25 @@ type checkerTest struct {
 	valid bool
 }
 
+var usernameTests = []checkerTest{
+	{input: "a", valid: false},
+	{input: "az", valid: true},
+	{input: "0123456789abcdef", valid: true},
+	{input: "0123456789abcdefg", valid: false},
+	{input: "_foo", valid: false},
+	{input: "foo_bar_baz", valid: true},
+	{input: "foo__bar", valid: false},
+}
+
+func TestCheckUsername(t *testing.T) {
+	for _, test := range usernameTests {
+		res := CheckUsername.F(test.input)
+		if res != test.valid {
+			t.Errorf("input: %q, got %v, expected %v", test.input, res, test.valid)
+		}
+	}
+}
+
 var deviceNameTests = []checkerTest{
 	{input: "home computer", valid: true},
 	{input: " home computer", valid: false},
