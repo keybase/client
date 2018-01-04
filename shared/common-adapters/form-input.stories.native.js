@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {Box} from '../common-adapters'
 import {storiesOf, action} from '../stories/storybook'
-import FormInput from './form-input.native'
+import {FormInput} from './form-input.native'
 import {globalStyles} from '../styles'
 
 const onChangeText = action('onChangeText')

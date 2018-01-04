@@ -154,4 +154,4 @@ class FormInput extends React.Component<Props, State> {
   }
 }
 
-export default FormInput
+export {FormInput}
