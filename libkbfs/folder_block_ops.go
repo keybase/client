@@ -1354,7 +1354,8 @@ func (fbo *folderBlockOps) GetDirtyDir(
 }
 
 var hiddenEntries = map[string]bool{
-	".kbfs_git": true,
+	".kbfs_git":     true,
+	".kbfs_autogit": true,
 }
 
 // GetDirtyDirChildren returns a map of EntryInfos for the (possibly

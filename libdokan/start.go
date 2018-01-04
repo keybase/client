@@ -47,10 +47,16 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 	// Hook simplefs implementation in.
 	options.KbfsParams.CreateSimpleFSInstance = simplefs.NewSimpleFS
 	// Hook git implementation in.
+	shutdownGit := func() {}
 	options.KbfsParams.CreateGitHandlerInstance =
-		func(config libkbfs.Config) keybase1.KBFSGitInterface {
-			return libgit.NewRPCHandlerWithCtx(kbCtx, config, &options.KbfsParams)
+		func(config libkbfs.Config) (i keybase1.KBFSGitInterface) {
+			i, shutdownGit = libgit.NewRPCHandlerWithCtx(
+				kbCtx, config, &options.KbfsParams)
+			return i
 		}
+	defer func() {
+		shutdownGit()
+	}()
 
 	log, err := libkbfs.InitLog(options.KbfsParams, kbCtx)
 	if err != nil {

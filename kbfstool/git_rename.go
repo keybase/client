@@ -51,7 +51,8 @@ func gitRename(ctx context.Context, config libkbfs.Config, args []string) (exitS
 	}
 
 	kbfsCtx := env.NewContext()
-	rpcHandler := libgit.NewRPCHandlerWithCtx(kbfsCtx, config, nil)
+	rpcHandler, shutdown := libgit.NewRPCHandlerWithCtx(kbfsCtx, config, nil)
+	defer shutdown()
 
 	err = doGitRename(ctx, rpcHandler, inputs[0], inputs[1], inputs[2])
 	if err != nil {

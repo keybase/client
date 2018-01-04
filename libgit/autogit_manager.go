@@ -409,3 +409,13 @@ func (am *AutogitManager) Pull(
 	}
 	return am.queueReset(ctx, req)
 }
+
+// startAutogit launches autogit, and returns a function that should
+// be called on shutdown.
+func startAutogit(kbCtx libkbfs.Context, config libkbfs.Config,
+	kbfsInitParams *libkbfs.InitParams, numWorkers int) func() {
+	am := NewAutogitManager(config, kbCtx, kbfsInitParams, numWorkers)
+	rw := rootWrapper{am}
+	config.AddRootNodeWrapper(rw.wrap)
+	return am.Shutdown
+}
