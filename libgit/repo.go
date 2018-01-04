@@ -25,6 +25,7 @@ import (
 	billy "gopkg.in/src-d/go-billy.v4"
 	gogit "gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
+	"gopkg.in/src-d/go-git.v4/plumbing/object"
 	"gopkg.in/src-d/go-git.v4/plumbing/storer"
 	"gopkg.in/src-d/go-git.v4/storage"
 	"gopkg.in/src-d/go-git.v4/storage/filesystem"
@@ -40,6 +41,11 @@ const (
 	cleaningTimeLimit        = 2 * time.Second
 	repoGCLockFileName       = ".gc"
 )
+
+// CommitSentinelValue marks the end of a list of commits, where there are
+// still commits that haven't been read.
+// Use the zero-value `nil`.
+var CommitSentinelValue *object.Commit
 
 // This character set is what Github supports in repo names.  It's
 // probably to avoid any problems when cloning onto filesystems that
@@ -181,7 +187,8 @@ func CleanOldDeletedReposTimeLimited(
 // UpdateRepoMD lets the Keybase service know that a repo's MD has
 // been updated.
 func UpdateRepoMD(ctx context.Context, config libkbfs.Config,
-	tlfHandle *libkbfs.TlfHandle, fs billy.Filesystem) error {
+	tlfHandle *libkbfs.TlfHandle, fs billy.Filesystem,
+	commitsByRef map[plumbing.ReferenceName][]*object.Commit) error {
 	folder := tlfHandle.ToFavorite().ToKBFolder(false)
 
 	// Get the user-formatted repo name.
@@ -199,11 +206,40 @@ func UpdateRepoMD(ctx context.Context, config libkbfs.Config,
 		return err
 	}
 
+	gitRefMetadata := make([]keybase1.GitRefMetadata, 0, len(commitsByRef))
+	for refName, commits := range commitsByRef {
+		hasMoreCommits := false
+		kbCommits := make([]keybase1.GitCommit, 0, len(commits))
+		for _, c := range commits {
+			if c == CommitSentinelValue {
+				// Accept a sentinel value at the end of the commit list that
+				// indicates that there would have been more commits, but we
+				// stopped due to a cap.
+				hasMoreCommits = true
+				break
+			}
+			kbCommits = append(kbCommits, keybase1.GitCommit{
+				CommitHash:  string(c.Hash[:]),
+				Message:     c.Message,
+				AuthorName:  c.Author.Name,
+				AuthorEmail: c.Author.Email,
+				Ctime:       keybase1.Time(c.Author.When.Unix()),
+			})
+		}
+		gitRefMetadata = append(gitRefMetadata, keybase1.GitRefMetadata{
+			RefName:              string(refName),
+			Commits:              kbCommits,
+			MoreCommitsAvailable: hasMoreCommits,
+		})
+	}
 	log := config.MakeLogger("")
 	log.CDebugf(ctx, "Putting git MD update")
 	err = config.KBPKI().PutGitMetadata(
 		ctx, folder, keybase1.RepoID(c.ID.String()),
-		keybase1.GitRepoName(c.Name))
+		keybase1.GitLocalMetadata{
+			RepoName: keybase1.GitRepoName(c.Name),
+			Refs:     gitRefMetadata,
+		})
 	if err != nil {
 		// Just log the put error, it shouldn't block the success of
 		// the overall git operation.
@@ -336,7 +372,7 @@ func createNewRepoAndID(
 		return NullID, err
 	}
 
-	err = UpdateRepoMD(ctx, config, tlfHandle, fs)
+	err = UpdateRepoMD(ctx, config, tlfHandle, fs, nil)
 	if err != nil {
 		return NullID, err
 	}
@@ -696,7 +732,7 @@ func RenameRepo(
 		if err != nil {
 			return err
 		}
-		return UpdateRepoMD(ctx, config, tlfHandle, oldRepoFS)
+		return UpdateRepoMD(ctx, config, tlfHandle, oldRepoFS, nil)
 	}
 
 	// Does the new repo not exist yet?
@@ -779,7 +815,7 @@ func RenameRepo(
 	if err != nil {
 		return err
 	}
-	return UpdateRepoMD(ctx, config, tlfHandle, newRepoFS)
+	return UpdateRepoMD(ctx, config, tlfHandle, newRepoFS, nil)
 }
 
 // GCOptions describe options foe garbage collection.

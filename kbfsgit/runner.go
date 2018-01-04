@@ -32,6 +32,8 @@ import (
 	gogit "gopkg.in/src-d/go-git.v4"
 	gogitcfg "gopkg.in/src-d/go-git.v4/config"
 	"gopkg.in/src-d/go-git.v4/plumbing"
+	gogitobj "gopkg.in/src-d/go-git.v4/plumbing/object"
+	gogitstor "gopkg.in/src-d/go-git.v4/plumbing/storer"
 	"gopkg.in/src-d/go-git.v4/storage"
 	"gopkg.in/src-d/go-git.v4/storage/filesystem"
 )
@@ -89,9 +91,12 @@ const (
 
 	unlockPrintBytesStatusThreshold = time.Second / 2
 	gcPrintStatusThreshold          = time.Second
+
+	maxCommitsToVisitPerRef = 20
 )
 
 type ctxCommandTagKey int
+type commitsByRefName map[plumbing.ReferenceName][]*gogitobj.Commit
 
 const (
 	ctxCommandIDKey ctxCommandTagKey = iota
@@ -1277,6 +1282,7 @@ func (r *runner) canPushAll(
 	}
 	defer refs.Close()
 
+	// Iterate through the remote references.
 	for {
 		ref, err := refs.Next()
 		if errors.Cause(err) == io.EOF {
@@ -1423,6 +1429,69 @@ func (r *runner) pushAll(ctx context.Context, fs *libfs.FS) (err error) {
 		fmt.Sprintf("Preparing and %s packed refs", verb), "pushprefs")
 }
 
+// parentCommitsForRef returns a map of refs with a list of commits for each
+// ref, newest first. It only includes commits that exist in `localStorer` but
+// not in `remoteStorer`.
+func (r *runner) parentCommitsForRef(ctx context.Context,
+	localStorer gogitstor.Storer, remoteStorer gogitstor.Storer,
+	refs map[string]bool) (commitsByRefName, error) {
+
+	commitsByRef := make(commitsByRefName, len(refs))
+	haves := make(map[plumbing.Hash]bool)
+
+	for refName := range refs {
+		ref, err := localStorer.Reference(plumbing.ReferenceName(refName))
+		if err != nil {
+			r.log.CDebugf(ctx, "Error getting reference %s: %+v",
+				refName, err)
+			continue
+		}
+		hash := ref.Hash()
+		refName := ref.Name()
+
+		// Get the HEAD commit for the ref from the local repository.
+		commit, err := gogitobj.GetCommit(localStorer, hash)
+		if err != nil {
+			r.log.CDebugf(ctx, "Error getting commit for hash %s: %+v",
+				string(hash[:]), err)
+			continue
+		}
+
+		// Iterate through the commits backward, until we experience any of the
+		// following:
+		// 1. Find a commit that the remote knows about,
+		// 2. Reach our maximum number of commits to check,
+		// 3. Run out of commits.
+		walker := gogitobj.NewCommitPreorderIter(commit, haves, nil)
+		toVisit := maxCommitsToVisitPerRef
+		commitsByRef[refName] = make([]*gogitobj.Commit, 0, maxCommitsToVisitPerRef)
+		err = walker.ForEach(func(c *gogitobj.Commit) error {
+			haves[c.Hash] = true
+			toVisit--
+			// If toVisit starts out at 0 (indicating there is no
+			// max), then it will be negative here and we won't stop
+			// early.
+			if toVisit == 0 {
+				// Append a sentinel value to communicate that there would be
+				// more commits.
+				commitsByRef[refName] = append(commitsByRef[refName],
+					libgit.CommitSentinelValue)
+				return gogitstor.ErrStop
+			}
+			hasEncodedObjectErr := remoteStorer.HasEncodedObject(c.Hash)
+			if hasEncodedObjectErr == nil {
+				return gogitstor.ErrStop
+			}
+			commitsByRef[refName] = append(commitsByRef[refName], c)
+			return nil
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+	return commitsByRef, nil
+}
+
 func (r *runner) pushSome(
 	ctx context.Context, repo *gogit.Repository, fs *libfs.FS, args [][]string,
 	kbfsRepoEmpty bool) (map[string]error, error) {
@@ -1435,6 +1504,7 @@ func (r *runner) pushSome(
 
 	results := make(map[string]error, len(args))
 	var refspecs []gogitcfg.RefSpec
+	refs := make(map[string]bool, len(args))
 	for _, push := range args {
 		if len(push) != 1 {
 			return nil, errors.Errorf("Bad push request: %v", push)
@@ -1462,6 +1532,7 @@ func (r *runner) pushSome(
 			}
 			results[dst] = err
 		} else {
+			refs[refspec.Src()] = true
 			refspecs = append(refspecs, refspec)
 		}
 		if err != nil {
@@ -1501,7 +1572,7 @@ func (r *runner) pushSome(
 			err = nil
 		}
 
-		// All non-delete refspecs in the batch get the same error.
+		// All non-deleted refspecs in the batch get the same error.
 		for _, refspec := range refspecs {
 			refStr := refspec.String()
 			start := strings.Index(refStr, ":") + 1
@@ -1540,18 +1611,40 @@ func (r *runner) pushSome(
 // option field <why> may be quoted in a C style string if it contains
 // an LF.
 func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
-	err error) {
+	commits commitsByRefName, err error) {
 	repo, fs, err := r.initRepoIfNeeded(ctx, gitCmdPush)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	canPushAll, kbfsRepoEmpty, err := r.canPushAll(ctx, repo, args)
 	if err != nil {
-		return err
+		return nil, err
+	}
+
+	localGit := osfs.New(r.gitDir)
+	localStorer, err := filesystem.NewStorage(localGit)
+	if err != nil {
+		return nil, err
+	}
+
+	sources := make(map[string]bool, len(args))
+	for _, push := range args {
+		// `canPushAll` already validates the push reference.
+		refspec := gogitcfg.RefSpec(push[0])
+		sources[refspec.Src()] = true
+	}
+
+	// Get all commits associated with the refs. This must happen before the
+	// push for us to be able to calculate the difference.
+	commits, err = r.parentCommitsForRef(ctx, localStorer,
+		repo.Storer, sources)
+	if err != nil {
+		return nil, err
 	}
 
 	var results map[string]error
+	// Ignore pushAll for commit collection, for now.
 	if canPushAll {
 		err = r.pushAll(ctx, fs)
 		// All refs in the batch get the same error.
@@ -1566,12 +1659,12 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 		results, err = r.pushSome(ctx, repo, fs, args, kbfsRepoEmpty)
 	}
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	err = r.waitForJournal(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	r.log.CDebugf(ctx, "Done waiting for journal")
 
@@ -1585,18 +1678,21 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 		_, err = r.output.Write([]byte(result + "\n"))
 	}
 
-	err = libgit.UpdateRepoMD(ctx, r.config, r.h, fs)
+	err = libgit.UpdateRepoMD(ctx, r.config, r.h, fs, commits)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	err = r.checkGC(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	_, err = r.output.Write([]byte("\n"))
-	return err
+	if err != nil {
+		return nil, err
+	}
+	return commits, nil
 }
 
 // handleOption: https://git-scm.com/docs/git-remote-helpers#git-remote-helpers-emoptionemltnamegtltvaluegt
@@ -1702,7 +1798,7 @@ func (r *runner) processCommand(
 					continue
 				} else if len(pushBatch) > 0 {
 					r.log.CDebugf(ctx, "Processing push batch")
-					err = r.handlePushBatch(ctx, pushBatch)
+					_, err = r.handlePushBatch(ctx, pushBatch)
 					if err != nil {
 						return err
 					}
