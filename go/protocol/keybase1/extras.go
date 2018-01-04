@@ -2129,3 +2129,18 @@ func (req *TeamChangeReq) AddUVWithRole(uv UserVersion, role TeamRole) error {
 	}
 	return nil
 }
+
+func TotalNumberOfCommits(refs []GitRefMetadata) (total int) {
+	for _, ref := range refs {
+		total += len(ref.Commits)
+	}
+	return total
+}
+
+func RefNames(refs []GitRefMetadata) string {
+	names := make([]string, len(refs))
+	for i, ref := range refs {
+		names[i] = ref.RefName
+	}
+	return strings.Join(names, ", ")
+}
