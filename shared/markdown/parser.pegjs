@@ -80,9 +80,6 @@ EmojiMarker = ":"
 QuoteBlockMarker = ">"
 MentionMarker = "@"
 
-ValidMentionService = "keybase" / "Keybase"
-ClosingMentionMarker = MentionMarker ValidMentionService
-
 // Can mark the beginning of a link
 PunctuationMarker = [()[\].,!?]
 
@@ -118,13 +115,14 @@ Strike
  = StrikeMarker !WhiteSpace children:StrikeInline StrikeMarker !(StrikeMarker / NormalChar) { return {type: 'strike', children: flatten(children)} }
 
 // children grammar adapted from username regexp in libkb/checkers.go.
-Mention
- = MentionMarker children:([a-zA-Z0-9][a-zA-Z0-9_]*) MentionMarker service:ValidMentionService { return {type: 'mention', children: flatten(children), service: service.toLowerCase()} }
+Mention = MentionMarker children:([a-zA-Z0-9][a-zA-Z0-9_]?)+ & {
+  return options && options.isValidMention && options.isValidMention(flatten(children)[0])
+} { return {type: 'mention', children: flatten(children)} }
 
 // Same as Mention above, but is just returns text
 // Useful if you don't want a mention in certain contexts (like in a code block)
 MentionlessMention
- = MentionMarker children:([a-zA-Z0-9][a-zA-Z0-9_]*) MentionMarker service:ValidMentionService { return prefix('@', children) }
+ = MentionMarker children:([a-zA-Z0-9][a-zA-Z0-9_]*) { return prefix('@', children) }
 
 InCodeBlock
  = children:(MentionlessMention / (!Ticks3 .))+ {return children }

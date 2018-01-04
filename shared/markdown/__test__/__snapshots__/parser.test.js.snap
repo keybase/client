@@ -40,6 +40,20 @@ Object {
 }
 `;
 
+exports[`Markdown parser does not parses mentions without isValidMention 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello there @marco",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
 exports[`Markdown parser eats multiple empty lines at end 1`] = `
 Object {
   "children": Array [
@@ -223,9 +237,8 @@ Object {
           "children": Array [
             Object {
               "children": Array [
-                "marco",
+                "validmarco",
               ],
-              "service": "keybase",
               "type": "mention",
             },
           ],
@@ -248,9 +261,8 @@ Object {
           "children": Array [
             Object {
               "children": Array [
-                "marco",
+                "validmarco",
               ],
-              "service": "keybase",
               "type": "mention",
             },
           ],
@@ -273,9 +285,8 @@ Object {
           "children": Array [
             Object {
               "children": Array [
-                "marco",
+                "validmarco",
               ],
-              "service": "keybase",
               "type": "mention",
             },
           ],
@@ -596,33 +607,11 @@ Object {
   "children": Array [
     Object {
       "children": Array [
-        "hello there ",
+        "hello there @marco ",
         Object {
           "children": Array [
-            "marco",
+            "validmarco",
           ],
-          "service": "keybase",
-          "type": "mention",
-        },
-      ],
-      "type": "text-block",
-    },
-  ],
-  "type": "markup",
-}
-`;
-
-exports[`Markdown parser parses mentions correctly, regardless of case 1`] = `
-Object {
-  "children": Array [
-    Object {
-      "children": Array [
-        "hello there ",
-        Object {
-          "children": Array [
-            "marco",
-          ],
-          "service": "keybase",
           "type": "mention",
         },
       ],
@@ -846,9 +835,8 @@ Object {
         "(",
         Object {
           "children": Array [
-            "marco",
+            "validmarco",
           ],
-          "service": "keybase",
           "type": "mention",
         },
       ],

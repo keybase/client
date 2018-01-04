@@ -39,6 +39,18 @@ function processAST(ast, createComponent) {
   return ast.component
 }
 
+function isValidMention(meta: ?MarkdownMeta, mention: string): boolean {
+  if (!meta || !meta.mentions || !meta.channelMention) {
+    return false
+  }
+  const {channelMention, mentions} = meta
+  if (channelMention === 'None' && mentions.length === 0) {
+    return false
+  }
+
+  return mention === 'here' || mention === 'channel' || mentions.has(mention)
+}
+
 function preprocessMarkdown(markdown: string, meta: ?MarkdownMeta) {
   if (!meta || !meta.mentions || !meta.channelMention) {
     return markdown
@@ -65,8 +77,15 @@ export function parseMarkdown(
   if (plainText) {
     return plainText
   }
+
+  const localIsValidMention = (mention: string) => isValidMention(meta, mention)
   try {
-    return processAST(parser.parse(preprocessMarkdown(markdown || '', meta)), markdownCreateComponent)
+    return processAST(
+      parser.parse(preprocessMarkdown(markdown || '', meta), {
+        isValidMention: localIsValidMention,
+      }),
+      markdownCreateComponent
+    )
   } catch (err) {
     logger.error('Markdown parsing failed:', err)
     return markdown
