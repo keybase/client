@@ -1121,8 +1121,20 @@ func (s *LoginState) LocalSession(h func(*Session), name string) error {
 	}, name)
 }
 
-func (s *LoginState) GetUID() (ret keybase1.UID) {
-	return s.G().ActiveDevice.UID()
+func (s *LoginState) GetUID() (uid keybase1.UID) {
+	uid = s.G().ActiveDevice.UID()
+	if !uid.IsNil() {
+		return uid
+	}
+
+	// This path is only hit during tests (specifically those that
+	// replicate a web-only user without device keys and those that
+	// reset the login state without logging in), so falling
+	// back to getting the UID this way:
+	s.Account(func(a *Account) {
+		uid = a.GetUID()
+	}, "GetUID")
+	return uid
 }
 
 func (s *LoginState) LoginSession(h func(*LoginSession), name string) error {
