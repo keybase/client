@@ -77,7 +77,7 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinals": "Array<Types.Ordinal>"
     },
-    // Clear our knowledge of which messages are in a thread
+    // Clear our knowledge of which messages are in a thread, used when a stale gap is too big
     "clearOrdinals": {
       "conversationIDKey": "Types.ConversationIDKey"
     },
