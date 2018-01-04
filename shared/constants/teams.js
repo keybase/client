@@ -118,6 +118,21 @@ const isSubteam = (maybeTeamname: string) => {
   return true
 }
 
+function getTeamChannels(state: TypedState, teamname: string): I.Set<Types.ChannelInfo> {
+  const convIDs: I.Set<ChatTypes.ConversationIDKey> = state.entities.getIn(
+    ['teams', 'teamNameToConvIDs', teamname],
+    I.Set()
+  )
+
+  return convIDs
+    .map(convID => {
+      const info: ?Types.ChannelInfo = state.entities.getIn(['teams', 'convIDToChannelInfo', convID])
+
+      return info && info.channelname ? info : null
+    })
+    .filter(Boolean)
+}
+
 // How many public admins should we display on a showcased team card at once?
 export const publicAdminsLimit = 6
 
@@ -133,4 +148,5 @@ export {
   isAdmin,
   isOwner,
   isSubteam,
+  getTeamChannels,
 }
