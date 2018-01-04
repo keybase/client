@@ -3,6 +3,7 @@ import React, {PureComponent} from 'react'
 import Text from './text'
 import Box from './box'
 import Emoji from './emoji'
+import Channel from './channel-container'
 import Mention from './mention-container'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {parseMarkdown, EmojiIfExists} from './markdown.shared'
@@ -159,11 +160,8 @@ function messageCreateComponent(style, allowFontScaling) {
           <Mention username={username} key={key} style={neutralStyle} allowFontScaling={allowFontScaling} />
         )
       case 'channel':
-        // TODO: Render as link.
         return (
-          <Text type="Body" key={key} style={codeSnippetStyle} allowFontScaling={allowFontScaling}>
-            #{children}
-          </Text>
+          <Channel channel={children[0]} key={key} style={linkStyle} allowFontScaling={allowFontScaling} />
         )
       case 'emoji':
         return (

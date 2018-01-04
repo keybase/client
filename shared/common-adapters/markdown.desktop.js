@@ -1,6 +1,7 @@
 // @flow
 import React, {PureComponent} from 'react'
 import Text from './text'
+import Channel from './channel-container'
 import Mention from './mention-container'
 import Box from './box'
 import Emoji from './emoji'
@@ -73,12 +74,7 @@ function messageCreateComponent(type, key, children, options) {
       }
       return <Mention username={username} key={key} style={wrapStyle} />
     case 'channel':
-      // TODO: Render as link.
-      return (
-        <Text type="Body" key={key} style={codeSnippetStyle}>
-          #{children}
-        </Text>
-      )
+      return <Channel channel={children[0]} key={key} style={linkStyle} />
     case 'inline-code':
       return (
         <Text type="Body" key={key} style={codeSnippetStyle}>
