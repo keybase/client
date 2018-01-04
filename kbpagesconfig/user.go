@@ -16,7 +16,7 @@ var userAddCmd = cli.Command{
 			fmt.Fprintf(os.Stderr, "empty username\n")
 			os.Exit(1)
 		}
-		editor, err := newKBPConfigEditor(c.String("path"))
+		editor, err := newKBPConfigEditor(c.GlobalString("dir"))
 		if err != nil {
 			fmt.Fprintf(os.Stderr,
 				"creating config editor error: %v", err)
@@ -44,7 +44,7 @@ var userRemoveCmd = cli.Command{
 			fmt.Fprintf(os.Stderr, "empty username\n")
 			os.Exit(1)
 		}
-		editor, err := newKBPConfigEditor(c.String("path"))
+		editor, err := newKBPConfigEditor(c.GlobalString("dir"))
 		if err != nil {
 			fmt.Fprintf(os.Stderr,
 				"creating config editor error: %v", err)

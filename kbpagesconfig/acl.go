@@ -17,7 +17,7 @@ var aclSetAnonymousCmd = cli.Command{
 			fmt.Fprintln(os.Stderr, "need at least 2 args")
 			os.Exit(1)
 		}
-		editor, err := newKBPConfigEditor(c.String("path"))
+		editor, err := newKBPConfigEditor(c.GlobalString("dir"))
 		if err != nil {
 			fmt.Fprintf(os.Stderr,
 				"creating config editor error: %v", err)
@@ -48,7 +48,7 @@ var aclClearCmd = cli.Command{
 			fmt.Fprintln(os.Stderr, "need at least 1 arg")
 			os.Exit(1)
 		}
-		editor, err := newKBPConfigEditor(c.String("path"))
+		editor, err := newKBPConfigEditor(c.GlobalString("dir"))
 		if err != nil {
 			fmt.Fprintf(os.Stderr,
 				"creating config editor error: %v", err)
@@ -74,7 +74,7 @@ var aclSetAdditionalCmd = cli.Command{
 			fmt.Fprintln(os.Stderr, "need at least 3 args")
 			os.Exit(1)
 		}
-		editor, err := newKBPConfigEditor(c.String("path"))
+		editor, err := newKBPConfigEditor(c.GlobalString("dir"))
 		if err != nil {
 			fmt.Fprintf(os.Stderr,
 				"creating config editor error: %v", err)
@@ -106,7 +106,7 @@ var aclRemoveCmd = cli.Command{
 			fmt.Fprintln(os.Stderr, "need at least 2 args")
 			os.Exit(1)
 		}
-		editor, err := newKBPConfigEditor(c.String("path"))
+		editor, err := newKBPConfigEditor(c.GlobalString("dir"))
 		if err != nil {
 			fmt.Fprintf(os.Stderr,
 				"creating config editor error: %v", err)
@@ -131,13 +131,13 @@ var aclCheckCmd = cli.Command{
 			fmt.Fprintln(os.Stderr, "need at least 2 args")
 			os.Exit(1)
 		}
-		editor, err := newKBPConfigEditor(c.String("path"))
+		editor, err := newKBPConfigEditor(c.GlobalString("dir"))
 		if err != nil {
 			fmt.Fprintf(os.Stderr,
 				"creating config editor error: %v", err)
 			os.Exit(1)
 		}
-		writer := tabwriter.NewWriter(os.Stdout, 4, 2, 0, ' ', 0)
+		writer := tabwriter.NewWriter(os.Stdout, 0, 4, 1, '\t', 0)
 		fmt.Fprintln(writer, "read\tlist\tpath")
 		for _, p := range c.Args()[1:] {
 			read, list, err := editor.checkUserOnPath(c.Args()[0], p)
@@ -146,7 +146,7 @@ var aclCheckCmd = cli.Command{
 					"%q on %q error: %v\n", c.Args()[0], p, err)
 				os.Exit(1)
 			}
-			fmt.Fprintf(writer, "%t\t%t\t%q\n", read, list, p)
+			fmt.Fprintf(writer, "%t\t%t\t%s\n", read, list, p)
 		}
 		if err := writer.Flush(); err != nil {
 			fmt.Fprintf(os.Stderr, "flushing tabwriter error: %v\n", err)

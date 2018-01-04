@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/keybase/client/go/minterm"
@@ -16,6 +17,8 @@ import (
 	"github.com/sergi/go-diff/diffmatchpatch"
 	"golang.org/x/crypto/bcrypt"
 )
+
+const configFileName = ".kbp_config"
 
 var term *minterm.MinTerm
 
@@ -46,7 +49,15 @@ func readConfig(from io.ReadCloser) (cfg config.Config, str string, err error) {
 }
 
 // initConfig reads in config file and ENV variables if set.
-func newKBPConfigEditor(kbpConfigPath string) (*kbpConfigEditor, error) {
+func newKBPConfigEditor(kbpConfigDir string) (*kbpConfigEditor, error) {
+	fi, err := os.Stat(kbpConfigDir)
+	if err != nil {
+		return nil, fmt.Errorf("stat %q error: %v", kbpConfigDir, err)
+	}
+	if !fi.IsDir() {
+		return nil, fmt.Errorf("%q is not a directory", kbpConfigDir)
+	}
+	kbpConfigPath := filepath.Join(kbpConfigDir, configFileName)
 	editor := &kbpConfigEditor{kbpConfigPath: kbpConfigPath}
 	f, err := os.Open(kbpConfigPath)
 	switch {
@@ -189,6 +200,7 @@ func (e *kbpConfigEditor) removeUserFromACL(username string, pathStr string) {
 
 func (e *kbpConfigEditor) checkUserOnPath(
 	username string, pathStr string) (read, list bool, err error) {
-	read, list, _, err = e.kbpConfig.GetPermissionsForUsername(pathStr, username)
+	read, list, _, err = e.kbpConfig.GetPermissionsForUsername(
+		pathStr, username)
 	return read, list, err
 }

@@ -13,12 +13,12 @@ import (
 func main() {
 	app := cli.NewApp()
 	app.Name = "kbpagesconfig"
-	app.Usage = "edit .kbp_config files for Keybase Pages"
+	app.Usage = "edit or create .kbp_config files for Keybase Pages"
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
-			Name:  "path, p",
-			Value: ".kbp_config",
-			Usage: "path to config file",
+			Name:  "dir, d",
+			Value: ".",
+			Usage: "path to a dir where .kbp_config is or will be created",
 		},
 	}
 	app.Commands = []cli.Command{
