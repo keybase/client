@@ -209,6 +209,12 @@ this is a code block with two newline above\`\`\`
   it('parses mentions correctly', () => {
     check('hello there @marco @validmarco', {isValidMention})
   })
+  it('parses mentions with underscores correctly', () => {
+    check('hello there @ryan_singer @m_ @dan_t', {isValidMention: (s: string) => true})
+    // This gets parsed as a mention for @invalid_ followed by the
+    // text _name_.
+    check('hello there @invalid__name_', {isValidMention: (s: string) => true})
+  })
   it('parses formatted mentions', () => {
     check('~@validmarco~', {isValidMention})
     check('*@validmarco*', {isValidMention})
