@@ -71,10 +71,9 @@ export const TeamMemberRow = (props: Props) => {
     )
   }
   if (!active) {
-    resetLabel = 'Has reset their account'
-    if (!youCanManageMembers) {
-      resetLabel += '; admins can re-invite'
-    }
+    resetLabel = youCanManageMembers
+      ? 'Has reset their account'
+      : 'Has reset their account; admins can re-invite'
   }
   return (
     <Box
