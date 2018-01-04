@@ -63,7 +63,7 @@ export function parseMarkdown(
 
   try {
     return processAST(
-      parser.parse(markdown || '', meta, {
+      parser.parse(markdown || '', {
         isValidMention: (mention: string) => isValidMention(meta, mention),
       }),
       markdownCreateComponent
