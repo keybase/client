@@ -96,6 +96,13 @@ Object {
         " ",
         Object {
           "children": Array [
+            "@validmarco",
+          ],
+          "type": "inline-code",
+        },
+        " ",
+        Object {
+          "children": Array [
             "some inline code @validmarco",
           ],
           "type": "inline-code",
@@ -119,6 +126,18 @@ Object {
           ],
           "type": "mention",
         },
+        " ",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "@validmarco",
+      ],
+      "type": "code-block",
+    },
+    Object {
+      "children": Array [
         " ",
       ],
       "type": "text-block",
