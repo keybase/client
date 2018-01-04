@@ -53,6 +53,12 @@ function previewCreateComponent(type, key, children, options) {
       return <EmojiIfExists emojiName={String(children)} size={11} key={key} />
     case 'native-emoji':
       return <Emoji emojiName={String(children)} size={11} key={key} />
+    case 'channel':
+      return (
+        <Text type="BodySmall" key={key} style={neutralPreviewStyle}>
+          #{children}
+        </Text>
+      )
     default:
       return (
         <Text type="BodySmall" key={key} style={neutralPreviewStyle}>
@@ -76,7 +82,7 @@ function messageCreateComponent(type, key, children, options) {
       // TODO: Render as link.
       return (
         <Text type="Body" key={key} style={codeSnippetStyle}>
-          {children}
+          #{children}
         </Text>
       )
     case 'inline-code':
