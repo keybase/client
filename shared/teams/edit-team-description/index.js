@@ -32,8 +32,9 @@ const EditTeamDescription = ({
       <Input
         hintText="Brief description"
         onChangeText={onChangeDescription}
-        style={{flexShrink: 0}}
         value={description}
+        multiline={true}
+        style={{alignSelf: 'stretch', flexGrow: 1}}
       />
       <ButtonBar>
         <Button label="Cancel" onClick={onClose} type="Secondary" />

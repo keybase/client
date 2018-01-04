@@ -176,7 +176,8 @@ protocol local {
     OFFLINE_1,
     IDENTIFY_2,
     TOOLONG_3,
-    DUPLICATE_4
+    DUPLICATE_4,
+    EXPIRED_5
   }
 
   record OutboxStateError {

@@ -500,8 +500,9 @@ function _unboxedToMessage(
               case RPCChatTypes.localMessageSystemType.gitpush: {
                 const team = body.gitpush ? body.gitpush.team : '???'
                 const pusher = body.gitpush ? body.gitpush.pusher : '???'
-                const repoName = body.gitpush ? body.gitpush.repoName : '???'
-                messageText = `${pusher} pushed to ${team} team repo ${repoName}.`
+                const repo = body.gitpush ? body.gitpush.repoName : '???'
+                messageText = `${pusher} pushed to ${team} team repo ${repo}.`
+                info = {team, pusher, repo, type: 'gitPush'}
                 break
               }
             }

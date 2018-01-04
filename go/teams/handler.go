@@ -161,6 +161,8 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 		case keybase1.TeamInviteCategory_EMAIL:
 			// nothing to verify, need to trust the server
 		case keybase1.TeamInviteCategory_KEYBASE:
+			// Check if UV in `untrustedInviteeFromGregor` is the same
+			// person as in `invite`, and that we can bring them in.
 			if err := assertCanAcceptKeybaseInvite(ctx, g, untrustedInviteeFromGregor, invite); err != nil {
 				g.Log.CDebugf(ctx, "Failed assertCanAcceptKeybaseInvite")
 				return err
@@ -169,7 +171,12 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 			return fmt.Errorf("no verification implemented for invite category %s (%+v)", category, invite)
 		}
 
-		uv := NewUserVersion(untrustedInviteeFromGregor.Uid, untrustedInviteeFromGregor.EldestSeqno)
+		// It's fine to use untrustedInviteeFromGregor Uid and EldestSeqno.
+		// Code above verifies that Uid/Eldest passed by the server really
+		// belongs to crypto-person described in invite in sigchain. So
+		// right now untrustedInviteeFromGregor is *verified*.
+		verifiedInvitee := untrustedInviteeFromGregor
+		uv := NewUserVersion(verifiedInvitee.Uid, verifiedInvitee.EldestSeqno)
 
 		currentRole, err := team.MemberRole(ctx, uv)
 		if err != nil {
@@ -188,19 +195,19 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 			return err
 		}
 		req.CompletedInvites = make(map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm)
-		req.CompletedInvites[untrustedInviteeFromGregor.InviteID] = uv.PercentForm()
+		req.CompletedInvites[invite.Id] = uv.PercentForm()
 
 		// Check to see if the user is already in the team with a lower eldest seqno, if so, we need
 		// to remove that entry
-		existingUV, err := team.UserVersionByUID(ctx, untrustedInviteeFromGregor.Uid)
+		existingUV, err := team.UserVersionByUID(ctx, verifiedInvitee.Uid)
 		if err == nil {
-			if existingUV.EldestSeqno > untrustedInviteeFromGregor.EldestSeqno {
+			if existingUV.EldestSeqno > verifiedInvitee.EldestSeqno {
 				return fmt.Errorf("newer version of user %s already exists in team %q (%v > %v)",
-					untrustedInviteeFromGregor.Uid, team.Name(), existingUV.EldestSeqno,
-					untrustedInviteeFromGregor.EldestSeqno)
+					verifiedInvitee.Uid, team.Name(), existingUV.EldestSeqno,
+					verifiedInvitee.EldestSeqno)
 			}
-			g.Log.CDebugf(ctx, "removing old version of user: %s (%v -> %v)", untrustedInviteeFromGregor.Uid,
-				existingUV.EldestSeqno, untrustedInviteeFromGregor.EldestSeqno)
+			g.Log.CDebugf(ctx, "removing old version of user: %s (%v -> %v)", verifiedInvitee.Uid,
+				existingUV.EldestSeqno, verifiedInvitee.EldestSeqno)
 			req.None = []keybase1.UserVersion{existingUV}
 		}
 
@@ -213,7 +220,7 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 		// Send chat welcome message
 		g.Log.CDebugf(ctx, "sending welcome message for successful SBS handle")
 		SendChatInviteWelcomeMessage(ctx, g, team.Name().String(), category, invite.Inviter.Uid,
-			untrustedInviteeFromGregor.Uid)
+			verifiedInvitee.Uid)
 
 		return nil
 	})
