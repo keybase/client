@@ -22,7 +22,9 @@ import text from '../common-adapters/text.stories'
 import editTeamDescription from '../teams/edit-team-description/index.stories'
 
 import {isMobile} from '../constants/platform'
-const nativeOnly = isMobile ? {formInput: require('../common-adapters/form-input.stories.native.js')} : {}
+const nativeOnly = isMobile
+  ? {formInput: require('../common-adapters/form-input.stories.native.js').default}
+  : {}
 
 const stories = {
   avatar,
