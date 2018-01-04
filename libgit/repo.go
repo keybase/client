@@ -185,6 +185,10 @@ func UpdateRepoMD(ctx context.Context, config libkbfs.Config,
 	tlfHandle *libkbfs.TlfHandle, fs billy.Filesystem,
 	commitsByRef map[plumbing.ReferenceName][]*object.Commit) error {
 	if len(commitsByRef) == 0 {
+		// If an empty `commitsByRef` is passed in, ensure there is at least
+		// one entry so that `PutGitMetadata` is called once. Use an empty
+		// reference name and an empty commits array since there is no way to
+		// retrieve that metadata in those situations (e.g. repo rename).
 		commitsByRef = map[plumbing.ReferenceName][]*object.Commit{"": nil}
 	}
 	folder := tlfHandle.ToFavorite().ToKBFolder(false)
