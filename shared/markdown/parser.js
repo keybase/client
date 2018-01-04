@@ -184,9 +184,11 @@ function peg$parse(input, options) {
       peg$c32 = /^[a-zA-Z0-9_]/,
       peg$c33 = peg$otherExpectation("stripped character class"),
       peg$c34 = function(children) {
-        return options && options.isValidMention && options.isValidMention(flatten(children)[0])
+       const mention = flatten(children)[0]
+       return mention.length >= 2 && mention.length <= 16 &&
+         options && options.isValidMention && options.isValidMention(mention)
       },
-      peg$c35 = function(children) { return {type: 'mention', children: flatten(children)} },
+      peg$c35 = function(children) { return {type: 'mention', children: flatten(children) } },
       peg$c36 = function(children) { return {type: 'code-block', children: flatten(children)} },
       peg$c37 = function(children) { return {type: 'inline-code', children: flatten(children)} },
       peg$c38 = /^[a-zA-Z0-9+_\-]/,

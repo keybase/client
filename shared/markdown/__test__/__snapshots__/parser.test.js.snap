@@ -153,6 +153,20 @@ Object {
 }
 `;
 
+exports[`Markdown parser ignores short/long mentions 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello there @a@keybase @0123456789abcdefg@keybase",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
 exports[`Markdown parser inline code 1`] = `
 Object {
   "children": Array [
