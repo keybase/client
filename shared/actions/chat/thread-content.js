@@ -428,6 +428,7 @@ function _unboxedToMessage(
     return {
       author: yourName,
       channelMention: 'None',
+      channelNameMentions: I.Map(),
       conversationIDKey,
       deviceName: yourDeviceName,
       deviceType: isMobile ? 'mobile' : 'desktop',
@@ -453,6 +454,7 @@ function _unboxedToMessage(
       const common = {
         author: payload.senderUsername,
         channelMention: _parseChannelMention(payload.channelMention),
+        channelNameMentions: _parseChannelNameMentions(payload.channelNameMentions || []),
         conversationIDKey,
         deviceName: payload.senderDeviceName,
         deviceType: DeviceTypes.stringToDeviceType(payload.senderDeviceType),
@@ -767,6 +769,16 @@ function _parseChannelMention(channelMention: RPCChatTypes.ChannelMention): Type
     default:
       return 'None'
   }
+}
+
+function _parseChannelNameMentions(
+  channelNameMentions: Array<RPCChatTypes.UIChannelNameMention>
+): Types.ChannelNameMentions {
+  const m = {}
+  channelNameMentions.forEach(mention => {
+    m[mention.name] = mention.convID
+  })
+  return I.Map(m)
 }
 
 function* _updateThread({
