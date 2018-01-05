@@ -47,7 +47,6 @@ sketchy-null-mixed=off
 sketchy-null-number=off
 unclear-type=off
 untyped-import=off
-unsafe-getters-setters=off
 
 [version]
 0.62
