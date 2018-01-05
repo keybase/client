@@ -235,22 +235,24 @@ this is a code block with two newline above\`\`\`
     check('@validmarco ```@validmarco``` ```this is a code block @validmarco```', {isValidMention})
   })
 
-  const isValidChannel = (s: string) => s.startsWith('valid')
+  const channelNameToConvID = (s: string) => s.startsWith('valid') && 'fakeConvID'
 
   it('parses channels correctly', () => {
-    check('hello there #some_channel #valid_channel', {isValidChannel})
+    check('hello there #some_channel #valid_channel', {channelNameToConvID})
     // Too short.
-    check('hello there #', {isValidChannel: (s: string) => true})
+    check('hello there #', {channelNameToConvID: (s: string) => 'fakeConvID'})
     // Too long.
-    check('hello there #valid6789012345678901', {isValidChannel})
+    check('hello there #valid6789012345678901', {channelNameToConvID})
   })
   it('parses formatted channels', () => {
-    check('hello there ~#valid_channel~', {isValidChannel})
-    check('hello there *#valid_channel*', {isValidChannel})
+    check('hello there ~#valid_channel~', {channelNameToConvID})
+    check('hello there *#valid_channel*', {channelNameToConvID})
     // The trailing underscore is parsed as part of the channel.
-    check('hello there _#valid_channel_', {isValidChannel})
+    check('hello there _#valid_channel_', {channelNameToConvID})
     // Even if we disallow valid_channel_ as a valid channel, prefixes
     // won't be tried, and so the whole thing renders as regular text.
-    check('hello there _#valid_channel_', {isValidChannel: (s: string) => s === 'valid_channel'})
+    check('hello there _#valid_channel_', {
+      channelNameToConvID: (s: string) => s === 'valid_channel' && 'fakeConvID',
+    })
   })
 })

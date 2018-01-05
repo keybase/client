@@ -3,6 +3,7 @@ import logger from '../logger'
 import React, {PureComponent} from 'react'
 import Emoji from './emoji'
 import Text from './text'
+import {type ConversationIDKey} from '../constants/types/chat'
 import parser, {emojiIndexByName, isPlainText} from '../markdown/parser'
 
 import type {Props as EmojiProps} from './emoji'
@@ -52,12 +53,8 @@ function isValidMention(meta: ?MarkdownMeta, mention: string): boolean {
   return mention === 'here' || mention === 'channel' || mentions.has(mention)
 }
 
-function isValidChannel(meta: ?MarkdownMeta, channel: string): boolean {
-  if (!meta) {
-    return false
-  }
-
-  return !!meta.channelNameToConvID[channel]
+function channelNameToConvID(meta: ?MarkdownMeta, channel: string): ?ConversationIDKey {
+  return meta && meta.channelNameToConvID && meta.channelNameToConvID[channel]
 }
 
 export function parseMarkdown(
@@ -74,7 +71,7 @@ export function parseMarkdown(
     return processAST(
       parser.parse(markdown || '', {
         isValidMention: (mention: string) => isValidMention(meta, mention),
-        isValidChannel: (channel: string) => isValidChannel(meta, channel),
+        channelNameToConvID: (channel: string) => channelNameToConvID(meta, channel),
       }),
       markdownCreateComponent
     )
