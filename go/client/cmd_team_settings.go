@@ -77,7 +77,7 @@ Clear the team description:
 				Usage: "[yes|no] Set whether to promote this team and its description on keybase.io/popular-teams",
 			},
 			cli.StringFlag{
-				Name:  "enable-access-requests",
+				Name:  "disable-access-requests",
 				Usage: "[yes|no] Set whether it should be possible to access request to this team",
 			},
 		},
@@ -328,12 +328,12 @@ func (c *CmdTeamSettings) printCurrentSettings(ctx context.Context, cli keybase1
 	if showcaseInfo != nil && showcaseInfo.TeamShowcase.Description != nil {
 		dui.Printf("  Description:             %v\n", *showcaseInfo.TeamShowcase.Description)
 	}
-	dui.Printf("  Open:                    %v\n", c.tfToYn(details.Settings.Open,
+	dui.Printf("  Open:                     %v\n", c.tfToYn(details.Settings.Open,
 		fmt.Sprintf("default membership = %v", strings.ToLower(details.Settings.JoinAs.String()))))
 	if showcaseInfo != nil {
-		dui.Printf("  Showcased:               %v\n", c.tfToYn(showcaseInfo.TeamShowcase.IsShowcased, "on keybase.io/popular-teams"))
-		dui.Printf("  Promoted:                %v\n", c.tfToYn(showcaseInfo.IsMemberShowcased, "on your profile"))
-		dui.Printf("  Non-admins can promote:  %v\n", c.tfToYn(showcaseInfo.TeamShowcase.AnyMemberShowcase, "on their profiles"))
+		dui.Printf("  Showcased:                %v\n", c.tfToYn(showcaseInfo.TeamShowcase.IsShowcased, "on keybase.io/popular-teams"))
+		dui.Printf("  Promoted:                 %v\n", c.tfToYn(showcaseInfo.IsMemberShowcased, "on your profile"))
+		dui.Printf("  Non-admins can promote:   %v\n", c.tfToYn(showcaseInfo.TeamShowcase.AnyMemberShowcase, "on their profiles"))
 	}
 
 	// TarsDisabled info is only available for owners and admins, check
