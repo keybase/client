@@ -1,5 +1,6 @@
 // @flow
 import logger from '../logger'
+import * as I from 'immutable'
 import * as KBFSGen from './kbfs-gen'
 import * as ConfigGen from './config-gen'
 import * as TeamsGen from './teams-gen'
@@ -21,6 +22,7 @@ import {loggedInSelector} from '../constants/selectors'
 import {type AsyncAction} from '../constants/types/flux'
 import {type TypedState} from '../constants/reducer'
 
+const maxAvatarsPerLoad = 50
 // TODO convert to sagas
 
 isMobile &&
@@ -239,43 +241,45 @@ function _validUsernames(names: Array<string>) {
   return names.filter(name => !!name.match(/^([.a-z0-9_-]{1,1000})$/i))
 }
 
-let _avatarsToLoad = {}
+let _avatarsToLoad = I.Set()
 function* _loadAvatars(action: ConfigGen.LoadAvatarsPayload) {
   const usernames = _validUsernames(action.payload.usernames)
   // store it and wait, once our timer is up we pull any and run it
-  usernames.forEach(username => {
-    _avatarsToLoad[username] = true
-  })
-  yield Saga.call(Saga.delay, 200)
+  _avatarsToLoad = _avatarsToLoad.concat(usernames)
 
-  const names = Object.keys(_avatarsToLoad)
-  _avatarsToLoad = {}
+  while (_avatarsToLoad.size > 0) {
+    yield Saga.call(Saga.delay, 200)
 
-  if (names.length) {
-    yield Saga.put({
-      payload: {endpoint: 'image/username_pic_lookups', key: 'usernames', names},
-      type: '_loadAvatarHelper',
-    })
+    const names = _avatarsToLoad.take(maxAvatarsPerLoad).toArray()
+    _avatarsToLoad = _avatarsToLoad.skip(maxAvatarsPerLoad)
+
+    if (names.length) {
+      yield Saga.put({
+        payload: {endpoint: 'image/username_pic_lookups', key: 'usernames', names},
+        type: '_loadAvatarHelper',
+      })
+    }
   }
 }
 
-let _teamAvatarsToLoad = {}
+let _teamAvatarsToLoad = I.Set()
 function* _loadTeamAvatars(action: ConfigGen.LoadTeamAvatarsPayload) {
   const teamnames = _validUsernames(action.payload.teamnames)
-  teamnames.forEach(teamname => {
-    _teamAvatarsToLoad[teamname] = true
-  })
-  // store it and wait, once our timer is up we pull any and run it
-  yield Saga.call(Saga.delay, 200)
+  _teamAvatarsToLoad = _teamAvatarsToLoad.concat(teamnames)
 
-  const names = Object.keys(_teamAvatarsToLoad)
-  _teamAvatarsToLoad = {}
+  while (_teamAvatarsToLoad.size > 0) {
+    // store it and wait, once our timer is up we pull any and run it
+    yield Saga.call(Saga.delay, 200)
 
-  if (names.length) {
-    yield Saga.put({
-      payload: {endpoint: 'image/team_avatar_lookups', key: 'team_names', names},
-      type: '_loadAvatarHelper',
-    })
+    const names = _teamAvatarsToLoad.take(maxAvatarsPerLoad).toArray()
+    _teamAvatarsToLoad = _teamAvatarsToLoad.skip(maxAvatarsPerLoad)
+
+    if (names.length) {
+      yield Saga.put({
+        payload: {endpoint: 'image/team_avatar_lookups', key: 'team_names', names},
+        type: '_loadAvatarHelper',
+      })
+    }
   }
 }
 

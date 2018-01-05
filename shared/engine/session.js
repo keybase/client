@@ -56,13 +56,13 @@ class Session {
     this._dangling = dangling
   }
 
-  set id(sessionID: SessionID) {
+  setId(sessionID: SessionID) {
     throw new Error("Can't set sessionID")
   }
-  get id(): SessionID {
+  getId(): SessionID {
     return this._id
   }
-  get dangling(): boolean {
+  getDangling(): boolean {
     return this._dangling
   }
 
@@ -70,7 +70,7 @@ class Session {
   // and do internal bookkeeping if the request is done
   _makeWaitingHandler(isOutgoing: boolean, method: MethodKey, seqid: ?number) {
     return (waiting: boolean) => {
-      rpcLog('engineInternal', 'waiting state change', {id: this.id, waiting, method, this: this, seqid})
+      rpcLog('engineInternal', 'waiting state change', {id: this.getId(), waiting, method, this: this, seqid})
       // Call the outer handler with all the params it needs
       this._waitingHandler && this._waitingHandler(waiting, method, this._id)
 
@@ -102,7 +102,7 @@ class Session {
 
   end() {
     if (this._startMethod) {
-      measureStop(`engine:${this._startMethod}:${this.id}`)
+      measureStop(`engine:${this._startMethod}:${this.getId()}`)
     }
     this._endHandler && this._endHandler(this)
   }
@@ -123,10 +123,10 @@ class Session {
     // Add the sessionID
     const wrappedParam = {
       ...param,
-      sessionID: this.id,
+      sessionID: this.getId(),
     }
 
-    rpcLog('engineInternal', 'session start call', {id: this.id, method, this: this})
+    rpcLog('engineInternal', 'session start call', {id: this.getId(), method, this: this})
     const outgoingRequest = new OutgoingRequest(
       method,
       wrappedParam,
@@ -135,14 +135,14 @@ class Session {
       this._invoke
     )
     this._outgoingRequests.push(outgoingRequest)
-    measureStart(`engine:${method}:${this.id}`)
+    measureStart(`engine:${method}:${this.getId()}`)
     outgoingRequest.send()
   }
 
   // We have an incoming call tied to a sessionID, called only by engine
   incomingCall(method: MethodKey, param: Object, response: ?Object): boolean {
-    measureStart(`engine:${method}:${this.id}`)
-    rpcLog('engineInternal', 'session incoming call', {id: this.id, method, this: this, response})
+    measureStart(`engine:${method}:${this.getId()}`)
+    rpcLog('engineInternal', 'session incoming call', {id: this.getId(), method, this: this, response})
     const handler = this._incomingCallMap[method]
 
     if (!handler) {
