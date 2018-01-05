@@ -17,6 +17,10 @@ func getBuildSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 	return []cli.Command{}
 }
 
+func getBuildSpecificChatCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
+	return []cli.Command{}
+}
+
 const develUsage = false
 
 var restrictedSignupFlags = []cli.Flag{}

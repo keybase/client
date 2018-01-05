@@ -198,15 +198,11 @@
           "name": "repoName"
         },
         {
-          "type": "string",
-          "name": "branchName"
-        },
-        {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "keybase1.GitRefMetadata"
           },
-          "name": "commitMsgs"
+          "name": "refs"
         }
       ]
     },
@@ -259,10 +255,6 @@
       "type": "record",
       "name": "MessageDeleteHistory",
       "fields": [
-        {
-          "type": "gregor1.Time",
-          "name": "uptoTime"
-        },
         {
           "type": "MessageID",
           "name": "upto"
@@ -593,7 +585,8 @@
         "OFFLINE_1",
         "IDENTIFY_2",
         "TOOLONG_3",
-        "DUPLICATE_4"
+        "DUPLICATE_4",
+        "EXPIRED_5"
       ]
     },
     {
@@ -2616,6 +2609,56 @@
         {
           "name": "identifyBehavior",
           "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "PostLocalRes"
+    },
+    "postDeleteHistoryUpto": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "tlfPublic",
+          "type": "boolean"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        },
+        {
+          "name": "upto",
+          "type": "MessageID"
+        }
+      ],
+      "response": "PostLocalRes"
+    },
+    "postDeleteHistoryByAge": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "tlfPublic",
+          "type": "boolean"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        },
+        {
+          "name": "age",
+          "type": "gregor1.DurationSec"
         }
       ],
       "response": "PostLocalRes"
