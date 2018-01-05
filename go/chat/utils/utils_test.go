@@ -81,7 +81,11 @@ func TestParseChannelNameMentions(t *testing.T) {
 	text := "#miketime is secret. #general has everyone. #random exists. #offtopic does not."
 	matches := ParseChannelNameMentions(context.TODO(), text, uid, teamID,
 		newTestTeamChannelSource(chans))
-	expected := []string{"miketime", "general", "random"}
+	expected := []types.ConvIDAndTopicName{
+		types.ConvIDAndTopicName{TopicName: "miketime"},
+		types.ConvIDAndTopicName{TopicName: "general"},
+		types.ConvIDAndTopicName{TopicName: "random"},
+	}
 	require.Equal(t, expected, matches)
 }
 
