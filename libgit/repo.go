@@ -7,6 +7,7 @@ package libgit
 import (
 	"bytes"
 	"context"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -219,7 +220,7 @@ func UpdateRepoMD(ctx context.Context, config libkbfs.Config,
 				break
 			}
 			kbCommits = append(kbCommits, keybase1.GitCommit{
-				CommitHash:  string(c.Hash[:]),
+				CommitHash:  hex.EncodeToString(c.Hash[:]),
 				Message:     c.Message,
 				AuthorName:  c.Author.Name,
 				AuthorEmail: c.Author.Email,
