@@ -8,25 +8,18 @@ type SimpleWaiting = (waiting: boolean) => void
 // Base class. Handles method and parameters. Waiting callback
 class Request {
   // RPC call name
-  _method: MethodKey
+  method: MethodKey
   // RPC parameters
-  _param: Object
+  param: Object
   // Let others know our waiting state
   _waitingHandler: (waiting: boolean) => void
   // If we're waiting for a response
   _waiting: boolean = false
 
   constructor(method: MethodKey, param: ?Object, waitingHandler: SimpleWaiting) {
-    this._method = method
-    this._param = param || {}
+    this.method = method
+    this.param = param || {}
     this._waitingHandler = waitingHandler
-  }
-
-  get param() {
-    return this._param
-  }
-  get method() {
-    return this._method
   }
 
   updateWaiting(waiting: boolean): void {
@@ -95,7 +88,9 @@ class OutgoingRequest extends Request {
 
   send(): void {
     this.updateWaiting(true)
-    this._invoke && this._invoke(this.method, this.param, (err, data) => this._sendCallback(err, data))
+    if (this._invoke) {
+      this._invoke(this.method, this.param, (err, data) => this._sendCallback(err, data))
+    }
   }
 
   _sendCallback(err: any, data: any): void {
