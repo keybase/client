@@ -69,6 +69,76 @@ export const todoTypeToIcon: {[key: Types.TodoType]: IconType} = {
   teamShowcase: isMobile ? 'icon-onboarding-team-publicity-48' : 'icon-onboarding-team-publicity-32',
 }
 
+export const reduceRPCItemToPeopleItem = (
+  list: I.List<Types.PeopleScreenItem>,
+  item: RPCTypes.HomeScreenItem
+): I.List<Types.PeopleScreenItem> => {
+  const badged = item.badged
+  if (item.data.t === RPCTypes.homeHomeScreenItemType.todo) {
+    // Todo item
+    const todoType = todoTypeEnumToType[(item.data.todo && item.data.todo.t) || 0]
+    return list.push(
+      makeTodo({
+        type: 'todo',
+        badged: badged,
+        todoType,
+        instructions: todoTypeToInstructions[todoType],
+        confirmLabel: todoTypeToConfirmLabel[todoType],
+        dismissable: todoTypeToDismissable[todoType],
+        icon: todoTypeToIcon[todoType],
+      })
+    )
+  } else if (item.data.t === RPCTypes.homeHomeScreenItemType.people) {
+    // Follow notification
+    const notification = item.data.people
+    if (notification && notification.t === RPCTypes.homeHomeScreenPeopleNotificationType.followed) {
+      // Single follow notification
+      const follow = notification.followed
+      if (!follow) {
+        return list
+      }
+      return list.push(
+        makeFollowedNotificationItem({
+          type: 'notification',
+          newFollows: [makeFollowedNotification({username: follow.user.username})],
+          notificationTime: new Date(follow.followTime),
+          badged,
+        })
+      )
+    } else if (
+      notification &&
+      notification.t === RPCTypes.homeHomeScreenPeopleNotificationType.followedMulti
+    ) {
+      // Multiple follows notification
+      const multiFollow = notification.followedMulti
+      if (!multiFollow) {
+        return list
+      }
+      const followers = multiFollow.followers
+      if (!followers) {
+        return list
+      }
+      const notificationTimes = followers.map(follow => follow.followTime)
+      const maxNotificationTime = Math.max(...notificationTimes)
+      const notificationTime = new Date(maxNotificationTime)
+      return list.push(
+        makeFollowedNotificationItem({
+          type: 'notification',
+          newFollows: followers.map(follow =>
+            makeFollowedNotification({
+              username: follow.user.username,
+            })
+          ),
+          notificationTime,
+          badged,
+          numAdditional: multiFollow.numOthers,
+        })
+      )
+    }
+  }
+  return list
+}
+
 export const makeTodo: I.RecordFactory<Types._Todo> = I.Record({
   type: 'todo',
   badged: false,

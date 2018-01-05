@@ -13,104 +13,52 @@ import {type TypedState} from '../constants/reducer'
 import {createDecrementWaiting, createIncrementWaiting} from '../actions/waiting-gen'
 
 const _getPeopleData = function(action: PeopleGen.GetPeopleDataPayload, state: TypedState) {
-  return Saga.all([
+  return Saga.sequentially([
+    Saga.put(createIncrementWaiting({key: Constants.getPeopleDataWaitingKey})),
     Saga.call(RPCTypes.homeHomeGetScreenRpcPromise, {
       markViewed: action.payload.markViewed,
       numFollowSuggestionsWanted: action.payload.numFollowSuggestionsWanted,
     }),
     Saga.identity(state.config.following),
     Saga.identity(state.config.followers),
-    Saga.put(createIncrementWaiting({key: Constants.getPeopleDataWaitingKey})),
   ])
 }
 
 const _processPeopleData = function([
+  _: any,
   data: RPCTypes.HomeScreen,
   following: I.Set<string>,
   followers: I.Set<string>,
 ]) {
-  let oldItems: I.List<Types.PeopleScreenItem> = I.List()
-  let newItems: I.List<Types.PeopleScreenItem> = I.List()
-  if (data.items) {
-    data.items.forEach(item => {
-      const badged = item.badged
-      if (item.data.t === RPCTypes.homeHomeScreenItemType.todo) {
-        // Todo item
-        const todoType = Constants.todoTypeEnumToType[(item.data.todo && item.data.todo.t) || 0]
-        newItems = newItems.push(
-          Constants.makeTodo({
-            type: 'todo',
-            badged: true, // todo items are always badged
-            todoType,
-            instructions: Constants.todoTypeToInstructions[todoType],
-            confirmLabel: Constants.todoTypeToConfirmLabel[todoType],
-            dismissable: Constants.todoTypeToDismissable[todoType],
-            icon: Constants.todoTypeToIcon[todoType],
+  const oldItems: I.List<Types.PeopleScreenItem> =
+    (data.items &&
+      data.items
+        .filter(item => !item.badged && item.data.t !== RPCTypes.homeHomeScreenItemType.todo)
+        .reduce(Constants.reduceRPCItemToPeopleItem, I.List())) ||
+    I.List()
+  const newItems: I.List<Types.PeopleScreenItem> =
+    (data.items &&
+      data.items
+        .filter(item => item.badged || RPCTypes.homeHomeScreenItemType.todo)
+        .reduce(Constants.reduceRPCItemToPeopleItem, I.List())) ||
+    I.List()
+
+  const followSuggestions: I.List<Types.FollowSuggestion> =
+    (data.followSuggestions &&
+      data.followSuggestions.reduce((list, suggestion) => {
+        const followsMe = followers.has(suggestion.username)
+        const iFollow = following.has(suggestion.username)
+        return list.push(
+          Constants.makeFollowSuggestion({
+            username: suggestion.username,
+            followsMe,
+            iFollow,
+            fullName: suggestion.fullName,
           })
         )
-      } else if (item.data.t === RPCTypes.homeHomeScreenItemType.people) {
-        // Follow notification
-        const notification = item.data.people
-        if (notification && notification.t === RPCTypes.homeHomeScreenPeopleNotificationType.followed) {
-          // Single follow notification
-          const follow = notification.followed
-          if (!follow) {
-            return
-          }
-          const item = Constants.makeFollowedNotificationItem({
-            type: 'notification',
-            newFollows: [Constants.makeFollowedNotification({username: follow.user.username})],
-            notificationTime: new Date(follow.followTime),
-            badged,
-          })
-          badged ? (newItems = newItems.push(item)) : (oldItems = oldItems.push(item))
-        } else if (
-          notification &&
-          notification.t === RPCTypes.homeHomeScreenPeopleNotificationType.followedMulti
-        ) {
-          // Multiple follows notification
-          const multiFollow = notification.followedMulti
-          if (!multiFollow) {
-            return
-          }
-          const followers = multiFollow.followers
-          if (!followers) {
-            return
-          }
-          const notificationTimes = followers.map(follow => follow.followTime)
-          const maxNotificationTime = Math.max(...notificationTimes)
-          const notificationTime = new Date(maxNotificationTime)
-          const item = Constants.makeFollowedNotificationItem({
-            type: 'notification',
-            newFollows: followers.map(follow =>
-              Constants.makeFollowedNotification({
-                username: follow.user.username,
-              })
-            ),
-            notificationTime,
-            badged,
-            numAdditional: multiFollow.numOthers,
-          })
-          badged ? (newItems = newItems.push(item)) : (oldItems = oldItems.push(item))
-        }
-      }
-    })
-  }
-  let followSuggestions: I.List<Types.FollowSuggestion> = I.List()
-  if (data.followSuggestions) {
-    data.followSuggestions.forEach(suggestion => {
-      const followsMe = followers.has(suggestion.username)
-      const iFollow = following.has(suggestion.username)
-      followSuggestions = followSuggestions.push(
-        Constants.makeFollowSuggestion({
-          username: suggestion.username,
-          followsMe,
-          iFollow,
-          fullName: suggestion.fullName,
-        })
-      )
-    })
-  }
+      }, I.List())) ||
+    I.List()
+
   return Saga.all([
     Saga.put(
       PeopleGen.createPeopleDataProcessed({
