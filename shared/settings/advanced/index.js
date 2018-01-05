@@ -49,7 +49,9 @@ function DBNuke(props: Props) {
       }}
     >
       <Text type="BodySmallSemibold" style={{textAlign: 'center'}}>
-        (Please don't do anything below here unless instructed to by a developer.)
+        {isMobile
+          ? `Please don't do anything here unless instructed to by a developer.`
+          : `Please don't do anything below here unless instructed to by a developer.`}
       </Text>
       <Box style={{width: '100%', height: 2, backgroundColor: globalColors.grey}} />
       <Button
