@@ -99,6 +99,9 @@ func TestConfigV1Full(t *testing.T) {
 			"bob":   string(generatePasswordHashForTestOrBust(t, "54321")),
 		},
 		ACLs: map[string]AccessControlV1{
+			"/": AccessControlV1{
+				AnonymousPermissions: "read,list",
+			},
 			"/alice-and-bob": AccessControlV1{
 				WhitelistAdditionalPermissions: map[string]string{
 					"alice": PermReadAndList,

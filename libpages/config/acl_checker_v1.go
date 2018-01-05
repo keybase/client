@@ -79,9 +79,9 @@ func makeAccessControlV1Internal(
 	return ac, nil
 }
 
-func defaultAccessControlV1InternalForRoot() *accessControlV1 {
+func emptyAccessControlV1InternalForRoot() *accessControlV1 {
 	return &accessControlV1{
-		anonymous: permissionsV1{read: true, list: true},
+		anonymous: permissionsV1{}, // no permission
 		p:         "/",
 	}
 }
@@ -195,7 +195,7 @@ func (c *aclCheckerV1) getPermissions(p string, username *string) (
 // corresponding checker, and all intermediate nodes have a checker populated.
 func makeACLCheckerV1(acl map[string]AccessControlV1,
 	users map[string]string) (*aclCheckerV1, error) {
-	root := &aclCheckerV1{ac: defaultAccessControlV1InternalForRoot()}
+	root := &aclCheckerV1{ac: emptyAccessControlV1InternalForRoot()}
 	if acl == nil {
 		return root, nil
 	}

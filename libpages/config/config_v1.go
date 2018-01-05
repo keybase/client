@@ -65,6 +65,11 @@ func DefaultV1() *V1 {
 		Common: Common{
 			Version: Version1Str,
 		},
+		ACLs: map[string]AccessControlV1{
+			"/": AccessControlV1{
+				AnonymousPermissions: "read,list",
+			},
+		},
 	}
 	v1.EnsureInit()
 	return v1
