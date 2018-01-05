@@ -449,7 +449,7 @@ func TestMemberAddEmail(t *testing.T) {
 	// existing invite should be untouched
 	assertInvite(tc, name, address, "email", keybase1.TeamRole_READER)
 
-	annotatedTeamList, err := List(context.TODO(), tc.G, keybase1.TeamListArg{UserAssertion: "", All: true})
+	annotatedTeamList, err := ListAll(context.TODO(), tc.G, keybase1.TeamListTeammatesArg{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -520,7 +520,7 @@ func TestMemberListInviteUsername(t *testing.T) {
 		ForceRepoll: true,
 	})
 
-	annotatedTeamList, err := List(context.TODO(), tc.G, keybase1.TeamListArg{UserAssertion: "", All: true})
+	annotatedTeamList, err := ListAll(context.TODO(), tc.G, keybase1.TeamListTeammatesArg{})
 	require.NoError(t, err)
 	require.Equal(t, 0, len(annotatedTeamList.AnnotatedActiveInvites))
 	require.Equal(t, 2, len(annotatedTeamList.Teams))
