@@ -78,12 +78,10 @@ export default class AppState {
 
     // Listen to the main window asking for this value
     ipcMain.on('getAppState', event => {
-      console.log(`aaa sending app state ${JSON.stringify(this.state, null, 2)}`)
       event.sender.send('getAppStateReply', this.state)
     })
 
     ipcMain.on('setAppState', (event, data) => {
-      console.log(`aaaaaa writing app state ${JSON.stringify(data, null, 2)}`)
       this.state = {
         ...this.state,
         ...data,
@@ -121,11 +119,10 @@ export default class AppState {
       console.log('Skip setting login item due to user pref')
       return
     }
-    console.log('aaaaaaa PUT BACK')
-    // if (__DEV__) {
-    // console.log('Skip setting login item due to dev env')
-    // return
-    // }
+    if (__DEV__) {
+      console.log('Skip setting login item due to dev env')
+      return
+    }
     console.log('Setting login item due to user pref')
     this.setOSLoginState()
   }
@@ -142,9 +139,10 @@ export default class AppState {
           ? `tell application "System Events" to make login item at end with properties {path:"${appBundlePath() ||
               ''}", hidden:false, name:"${appName}"}`
           : `tell application "System Events" to delete login item "${appName}"`
-        console.log(`aaaa sending applescirp: ${command}`)
         applescript.execString(command, (err, result) => {
-          console.log(`aaa applescirpr: ${err} ${result}`)
+          if (err) {
+            console.log(`apple script error: ${err}, ${result}`)
+          }
         })
       } catch (e) {
         console.log('Error setting apple startup prefs: ', e)
