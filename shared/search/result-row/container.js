@@ -1,7 +1,7 @@
 // @flow
 import SearchResultRow from '.'
 import {Map} from 'immutable'
-import {userIsInTeamHelper} from '../../constants/teams'
+import {userIsActiveInTeamHelper} from '../../constants/teams'
 import {followStateHelper} from '../../constants/search'
 import {type SearchResultId} from '../../constants/types/search'
 import {connect, type MapStateToProps, type TypedState} from '../../util/container'
@@ -26,10 +26,10 @@ const mapStateToProps: MapStateToProps<*, *, *> = (
   const leftFollowingState = followStateHelper(state, result.leftUsername, result.leftService)
   const rightFollowingState = followStateHelper(state, result.rightUsername, result.rightService)
   const leftIsInTeam = disableIfInTeamName
-    ? userIsInTeamHelper(state, result.leftUsername, result.leftService, disableIfInTeamName)
+    ? userIsActiveInTeamHelper(state, result.leftUsername, result.leftService, disableIfInTeamName)
     : false
   const rightIsInTeam = disableIfInTeamName
-    ? userIsInTeamHelper(state, result.rightUsername, result.rightService, disableIfInTeamName)
+    ? userIsActiveInTeamHelper(state, result.rightUsername, result.rightService, disableIfInTeamName)
     : false
   return {
     ...result,
