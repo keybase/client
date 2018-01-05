@@ -75,11 +75,6 @@ func (ttn tlfTypeNode) ShouldCreateMissedLookup(
 	}
 }
 
-// WrapChild implements the Node interface for tlfTypeNode.
-func (ttn tlfTypeNode) WrapChild(child libkbfs.Node) libkbfs.Node {
-	return &readonlyNode{child}
-}
-
 // autogitRootNode represents the .kbfs_autogit folder, and can only
 // contain subdirectories corresponding to TLF types.
 type autogitRootNode struct {
@@ -117,7 +112,7 @@ func (arn autogitRootNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 	default:
 		return child
 	}
-	return &tlfTypeNode{&readonlyNode{child}, arn.am, tlfType}
+	return &tlfTypeNode{child, arn.am, tlfType}
 }
 
 // readonlyNode is a read-only node by default, unless `ctxReadWriteKey`
@@ -131,6 +126,11 @@ var _ libkbfs.Node = (*readonlyNode)(nil)
 // Readonly implements the Node interface for readonlyNode.
 func (rn readonlyNode) Readonly(ctx context.Context) bool {
 	return ctx.Value(ctxReadWriteKey) == nil
+}
+
+// WrapChild implements the Node interface for readonlyNode.
+func (rn readonlyNode) WrapChild(child libkbfs.Node) libkbfs.Node {
+	return &readonlyNode{rn.Node.WrapChild(child)}
 }
 
 // rootNode is a Node wrapper around a TLF root node, that causes the
