@@ -606,7 +606,7 @@ function _setupTrackerHandlers() {
       }
 
       const cancelHandler: CancelHandlerType = session => {
-        const username = sessionIDToUsername[session.id]
+        const username = sessionIDToUsername[session.getId()]
 
         if (username) {
           dispatch(
@@ -624,7 +624,7 @@ function _setupTrackerHandlers() {
         cancelHandler
       )
 
-      response && response.result(session.id)
+      response && response.result(session.getId())
     }
   )
 }

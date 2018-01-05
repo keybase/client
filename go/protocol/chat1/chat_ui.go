@@ -290,19 +290,31 @@ func (o InboxUIItems) DeepCopy() InboxUIItems {
 	}
 }
 
+type UIChannelNameMention struct {
+	Name   string `codec:"name" json:"name"`
+	ConvID string `codec:"convID" json:"convID"`
+}
+
+func (o UIChannelNameMention) DeepCopy() UIChannelNameMention {
+	return UIChannelNameMention{
+		Name:   o.Name,
+		ConvID: o.ConvID,
+	}
+}
+
 type UIMessageValid struct {
-	MessageID             MessageID      `codec:"messageID" json:"messageID"`
-	Ctime                 gregor1.Time   `codec:"ctime" json:"ctime"`
-	OutboxID              *string        `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
-	MessageBody           MessageBody    `codec:"messageBody" json:"messageBody"`
-	SenderUsername        string         `codec:"senderUsername" json:"senderUsername"`
-	SenderDeviceName      string         `codec:"senderDeviceName" json:"senderDeviceName"`
-	SenderDeviceType      string         `codec:"senderDeviceType" json:"senderDeviceType"`
-	Superseded            bool           `codec:"superseded" json:"superseded"`
-	SenderDeviceRevokedAt *gregor1.Time  `codec:"senderDeviceRevokedAt,omitempty" json:"senderDeviceRevokedAt,omitempty"`
-	AtMentions            []string       `codec:"atMentions" json:"atMentions"`
-	ChannelMention        ChannelMention `codec:"channelMention" json:"channelMention"`
-	ChannelNameMentions   []string       `codec:"channelNameMentions" json:"channelNameMentions"`
+	MessageID             MessageID              `codec:"messageID" json:"messageID"`
+	Ctime                 gregor1.Time           `codec:"ctime" json:"ctime"`
+	OutboxID              *string                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
+	MessageBody           MessageBody            `codec:"messageBody" json:"messageBody"`
+	SenderUsername        string                 `codec:"senderUsername" json:"senderUsername"`
+	SenderDeviceName      string                 `codec:"senderDeviceName" json:"senderDeviceName"`
+	SenderDeviceType      string                 `codec:"senderDeviceType" json:"senderDeviceType"`
+	Superseded            bool                   `codec:"superseded" json:"superseded"`
+	SenderDeviceRevokedAt *gregor1.Time          `codec:"senderDeviceRevokedAt,omitempty" json:"senderDeviceRevokedAt,omitempty"`
+	AtMentions            []string               `codec:"atMentions" json:"atMentions"`
+	ChannelMention        ChannelMention         `codec:"channelMention" json:"channelMention"`
+	ChannelNameMentions   []UIChannelNameMention `codec:"channelNameMentions" json:"channelNameMentions"`
 }
 
 func (o UIMessageValid) DeepCopy() UIMessageValid {
@@ -340,13 +352,13 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 			return ret
 		})(o.AtMentions),
 		ChannelMention: o.ChannelMention.DeepCopy(),
-		ChannelNameMentions: (func(x []string) []string {
+		ChannelNameMentions: (func(x []UIChannelNameMention) []UIChannelNameMention {
 			if x == nil {
 				return nil
 			}
-			var ret []string
+			var ret []UIChannelNameMention
 			for _, v := range x {
-				vCopy := v
+				vCopy := v.DeepCopy()
 				ret = append(ret, vCopy)
 			}
 			return ret
