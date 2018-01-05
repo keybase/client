@@ -241,6 +241,12 @@ protocol remote {
   }
   DeleteConversationRemoteRes deleteConversation(ConversationID convID);
 
+  record GetMessageBeforeRes {
+    MessageID msgID;
+    union { null, RateLimit } rateLimit;
+  }
+  GetMessageBeforeRes getMessageBefore(ConversationID convID, gregor1.DurationSec age);
+
   record GetTLFConversationsRes {
     array<Conversation> conversations;
     union { null, RateLimit } rateLimit;

@@ -43,7 +43,6 @@ You can set environment variables for debugging:
 |---------|-------------|
 | KEYBASE_RUN_MODE | Run mode: production, staging, devel |
 | KEYBASE_LOCAL_DEBUG | For debugging |
-| KEYBASE_SHOW_DEVTOOLS | Show devtools |
 | KEYBASE_FEATURES | Feature flags |
 | KEYBASE_RPC_DELAY | Number of ms to delay all RPC calls (requires debug mode) |
 | KEYBASE_RPC_DELAY_RESULT | Number of ms to delay all RPC call callbacks (requires debug mode) |
@@ -162,8 +161,6 @@ set -e KEYBASE_PERF
 set -x KEYBASE_LOCAL_DEBUG 1
 set -x KEYBASE_DEV_TOOL_ROOTS "$HOME/Library/Application Support/Google/Chrome/Default/Extensions/fmkadmapgofadopljbjfkapdkoienihi"
 ```
-
-(You may also want `set -x KEYBASE_SHOW_DEVTOOLS 1`.)
 
 (See [this code](https://github.com/keybase/client/blob/master/shared/desktop/yarn-helper/electron.js#L47) for details.)
 

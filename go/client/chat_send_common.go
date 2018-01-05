@@ -15,15 +15,18 @@ import (
 
 type ChatSendArg struct {
 	resolvingRequest chatConversationResolvingRequest
+
 	// Only one of these should be set
 	message       string
 	setTopicName  string
 	setHeadline   string
 	clearHeadline bool
-	hasTTY        bool
-	nonBlock      bool
-	team          bool
-	mustNotExist  bool
+	deleteHistory *chat1.MessageDeleteHistory
+
+	hasTTY       bool
+	nonBlock     bool
+	team         bool // TODO is this field used?
+	mustNotExist bool
 }
 
 func chatSend(ctx context.Context, g *libkb.GlobalContext, c ChatSendArg) error {
@@ -68,6 +71,10 @@ func chatSend(ctx context.Context, g *libkb.GlobalContext, c ChatSendArg) error 
 	case c.clearHeadline:
 		msg.ClientHeader.MessageType = chat1.MessageType_HEADLINE
 		msg.MessageBody = chat1.NewMessageBodyWithHeadline(chat1.MessageHeadline{Headline: ""})
+	case c.deleteHistory != nil:
+		msg.ClientHeader.MessageType = chat1.MessageType_DELETEHISTORY
+		msg.ClientHeader.DeleteHistory = c.deleteHistory
+		msg.MessageBody = chat1.NewMessageBodyWithDeletehistory(*c.deleteHistory)
 	default:
 		// Ask for message contents
 		if len(c.message) == 0 {

@@ -144,12 +144,21 @@ func (c *CmdTeamListMemberships) runGet(cli keybase1.TeamsClient) error {
 }
 
 func (c *CmdTeamListMemberships) runUser(cli keybase1.TeamsClient) error {
-	arg := keybase1.TeamListArg{
-		UserAssertion:        c.userAssertion,
-		All:                  c.showAll,
-		IncludeImplicitTeams: c.includeImplicitTeams,
+	var err error
+	var list keybase1.AnnotatedTeamList
+	if !c.showAll {
+		arg := keybase1.TeamListUnverifiedArg{
+			UserAssertion:        c.userAssertion,
+			IncludeImplicitTeams: c.includeImplicitTeams,
+		}
+		list, err = cli.TeamListUnverified(context.Background(), arg)
+	} else {
+		arg := keybase1.TeamListTeammatesArg{
+			IncludeImplicitTeams: c.includeImplicitTeams,
+		}
+		list, err = cli.TeamListTeammates(context.Background(), arg)
 	}
-	list, err := cli.TeamList(context.Background(), arg)
+
 	if err != nil {
 		return err
 	}

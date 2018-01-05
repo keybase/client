@@ -11,6 +11,8 @@ import {createStartConversation} from '../../../actions/chat-gen'
 import {isMobile} from '../../../constants/platform'
 import {TeamMember} from '.'
 import {type TypedState} from '../../../constants/reducer'
+import {getCanPerform} from '../../../constants/teams'
+import * as RPCTypes from '../../../constants/types/rpc-gen'
 
 type StateProps = {
   teamname: string,
@@ -19,24 +21,20 @@ type StateProps = {
   _you: ?string,
   _username: string,
   _memberInfo: I.Set<Types.MemberInfo>,
-  _implicitAdminUsernames: I.Set<string>,
+  yourOperations: RPCTypes.TeamOperation,
   loading: boolean,
 }
 
 const mapStateToProps = (state: TypedState, {routeProps}): StateProps => {
   const username = routeProps.get('username')
   const teamname = routeProps.get('teamname')
-  const _implicitAdminUsernames = state.entities.getIn(
-    ['teams', 'teamNameToImplicitAdminUsernames', teamname],
-    I.Set()
-  )
 
   return {
     teamname: teamname,
     loading: state.entities.getIn(['teams', 'teamNameToLoading', teamname], true),
     following: amIFollowing(state, username),
     follower: amIBeingFollowed(state, username),
-    _implicitAdminUsernames,
+    yourOperations: getCanPerform(state, teamname),
     _username: username,
     _you: state.config.username,
     _memberInfo: state.entities.getIn(['teams', 'teamNameToMembers', teamname], I.Set()),
@@ -96,10 +94,8 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
   }
   // If they're an owner, you need to be an owner to edit them
   // otherwise you just need to be an admin
-  let admin = user.type === 'owner' ? you.type === 'owner' : you.type === 'owner' || you.type === 'admin'
-  if (stateProps.teamname.includes('.')) {
-    admin = admin || stateProps._implicitAdminUsernames.contains(you.username || '')
-  }
+  let admin = user.type === 'owner' ? you.type === 'owner' : stateProps.yourOperations.manageMembers
+
   return {
     ...stateProps,
     ...dispatchProps,

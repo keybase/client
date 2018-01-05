@@ -211,30 +211,28 @@ func (o MessageSystemCreateTeam) DeepCopy() MessageSystemCreateTeam {
 }
 
 type MessageSystemGitPush struct {
-	Team       string   `codec:"team" json:"team"`
-	Pusher     string   `codec:"pusher" json:"pusher"`
-	RepoName   string   `codec:"repoName" json:"repoName"`
-	BranchName string   `codec:"branchName" json:"branchName"`
-	CommitMsgs []string `codec:"commitMsgs" json:"commitMsgs"`
+	Team     string                    `codec:"team" json:"team"`
+	Pusher   string                    `codec:"pusher" json:"pusher"`
+	RepoName string                    `codec:"repoName" json:"repoName"`
+	Refs     []keybase1.GitRefMetadata `codec:"refs" json:"refs"`
 }
 
 func (o MessageSystemGitPush) DeepCopy() MessageSystemGitPush {
 	return MessageSystemGitPush{
-		Team:       o.Team,
-		Pusher:     o.Pusher,
-		RepoName:   o.RepoName,
-		BranchName: o.BranchName,
-		CommitMsgs: (func(x []string) []string {
+		Team:     o.Team,
+		Pusher:   o.Pusher,
+		RepoName: o.RepoName,
+		Refs: (func(x []keybase1.GitRefMetadata) []keybase1.GitRefMetadata {
 			if x == nil {
 				return nil
 			}
-			var ret []string
+			var ret []keybase1.GitRefMetadata
 			for _, v := range x {
-				vCopy := v
+				vCopy := v.DeepCopy()
 				ret = append(ret, vCopy)
 			}
 			return ret
-		})(o.CommitMsgs),
+		})(o.Refs),
 	}
 }
 
@@ -405,14 +403,12 @@ func (o MessageSystem) DeepCopy() MessageSystem {
 }
 
 type MessageDeleteHistory struct {
-	UptoTime gregor1.Time `codec:"uptoTime" json:"uptoTime"`
-	Upto     MessageID    `codec:"upto" json:"upto"`
+	Upto MessageID `codec:"upto" json:"upto"`
 }
 
 func (o MessageDeleteHistory) DeepCopy() MessageDeleteHistory {
 	return MessageDeleteHistory{
-		UptoTime: o.UptoTime.DeepCopy(),
-		Upto:     o.Upto.DeepCopy(),
+		Upto: o.Upto.DeepCopy(),
 	}
 }
 
@@ -1114,6 +1110,7 @@ const (
 	OutboxErrorType_IDENTIFY  OutboxErrorType = 2
 	OutboxErrorType_TOOLONG   OutboxErrorType = 3
 	OutboxErrorType_DUPLICATE OutboxErrorType = 4
+	OutboxErrorType_EXPIRED   OutboxErrorType = 5
 )
 
 func (o OutboxErrorType) DeepCopy() OutboxErrorType { return o }
@@ -1124,6 +1121,7 @@ var OutboxErrorTypeMap = map[string]OutboxErrorType{
 	"IDENTIFY":  2,
 	"TOOLONG":   3,
 	"DUPLICATE": 4,
+	"EXPIRED":   5,
 }
 
 var OutboxErrorTypeRevMap = map[OutboxErrorType]string{
@@ -1132,6 +1130,7 @@ var OutboxErrorTypeRevMap = map[OutboxErrorType]string{
 	2: "IDENTIFY",
 	3: "TOOLONG",
 	4: "DUPLICATE",
+	5: "EXPIRED",
 }
 
 func (e OutboxErrorType) String() string {
@@ -3772,6 +3771,22 @@ type PostMetadataArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
+type PostDeleteHistoryUptoArg struct {
+	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
+	TlfName          string                       `codec:"tlfName" json:"tlfName"`
+	TlfPublic        bool                         `codec:"tlfPublic" json:"tlfPublic"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+	Upto             MessageID                    `codec:"upto" json:"upto"`
+}
+
+type PostDeleteHistoryByAgeArg struct {
+	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
+	TlfName          string                       `codec:"tlfName" json:"tlfName"`
+	TlfPublic        bool                         `codec:"tlfPublic" json:"tlfPublic"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+	Age              gregor1.DurationSec          `codec:"age" json:"age"`
+}
+
 type SetConversationStatusLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Status           ConversationStatus           `codec:"status" json:"status"`
@@ -3952,6 +3967,8 @@ type LocalInterface interface {
 	PostHeadline(context.Context, PostHeadlineArg) (PostLocalRes, error)
 	PostMetadataNonblock(context.Context, PostMetadataNonblockArg) (PostLocalNonblockRes, error)
 	PostMetadata(context.Context, PostMetadataArg) (PostLocalRes, error)
+	PostDeleteHistoryUpto(context.Context, PostDeleteHistoryUptoArg) (PostLocalRes, error)
+	PostDeleteHistoryByAge(context.Context, PostDeleteHistoryByAgeArg) (PostLocalRes, error)
 	SetConversationStatusLocal(context.Context, SetConversationStatusLocalArg) (SetConversationStatusLocalRes, error)
 	NewConversationLocal(context.Context, NewConversationLocalArg) (NewConversationLocalRes, error)
 	GetInboxSummaryForCLILocal(context.Context, GetInboxSummaryForCLILocalQuery) (GetInboxSummaryForCLILocalRes, error)
@@ -4215,6 +4232,38 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.PostMetadata(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"postDeleteHistoryUpto": {
+				MakeArg: func() interface{} {
+					ret := make([]PostDeleteHistoryUptoArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PostDeleteHistoryUptoArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PostDeleteHistoryUptoArg)(nil), args)
+						return
+					}
+					ret, err = i.PostDeleteHistoryUpto(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"postDeleteHistoryByAge": {
+				MakeArg: func() interface{} {
+					ret := make([]PostDeleteHistoryByAgeArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PostDeleteHistoryByAgeArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PostDeleteHistoryByAgeArg)(nil), args)
+						return
+					}
+					ret, err = i.PostDeleteHistoryByAge(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4710,6 +4759,16 @@ func (c LocalClient) PostMetadataNonblock(ctx context.Context, __arg PostMetadat
 
 func (c LocalClient) PostMetadata(ctx context.Context, __arg PostMetadataArg) (res PostLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.postMetadata", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) PostDeleteHistoryUpto(ctx context.Context, __arg PostDeleteHistoryUptoArg) (res PostLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.postDeleteHistoryUpto", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) PostDeleteHistoryByAge(ctx context.Context, __arg PostDeleteHistoryByAgeArg) (res PostLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.postDeleteHistoryByAge", []interface{}{__arg}, &res)
 	return
 }
 

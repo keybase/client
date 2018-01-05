@@ -1243,7 +1243,7 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		}
 		for _, owner := range owners {
 			if owner == meUV {
-				g.Log.CInfof(ctx, "hasOtherOwner: I am the sole owner")
+				g.Log.CDebugf(ctx, "hasOtherOwner: I am the sole owner")
 				return false, nil
 			}
 		}
