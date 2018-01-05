@@ -513,6 +513,16 @@ func (fs *KBFSOpsStandard) GetTLFID(ctx context.Context,
 	return rmd.TlfID(), err
 }
 
+// GetTLFHandle implements the KBFSOps interface for KBFSOpsStandard.
+func (fs *KBFSOpsStandard) GetTLFHandle(ctx context.Context, node Node) (
+	*TlfHandle, error) {
+	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
+	defer timeTrackerDone()
+
+	ops := fs.getOpsByNode(ctx, node)
+	return ops.GetTLFHandle(ctx, node)
+}
+
 // getMaybeCreateRootNode is called for GetOrCreateRootNode and GetRootNode.
 func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 	ctx context.Context, h *TlfHandle, branch BranchName, create bool) (

@@ -937,6 +937,19 @@ func (mr *MockKBFSOpsMockRecorder) GetTLFID(ctx, tlfHandle interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTLFID", reflect.TypeOf((*MockKBFSOps)(nil).GetTLFID), ctx, tlfHandle)
 }
 
+// GetTLFHandle mocks base method
+func (m *MockKBFSOps) GetTLFHandle(ctx context.Context, node Node) (*TlfHandle, error) {
+	ret := m.ctrl.Call(m, "GetTLFHandle", ctx, node)
+	ret0, _ := ret[0].(*TlfHandle)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTLFHandle indicates an expected call of GetTLFHandle
+func (mr *MockKBFSOpsMockRecorder) GetTLFHandle(ctx, node interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTLFHandle", reflect.TypeOf((*MockKBFSOps)(nil).GetTLFHandle), ctx, node)
+}
+
 // GetOrCreateRootNode mocks base method
 func (m *MockKBFSOps) GetOrCreateRootNode(ctx context.Context, h *TlfHandle, branch BranchName) (Node, EntryInfo, error) {
 	ret := m.ctrl.Call(m, "GetOrCreateRootNode", ctx, h, branch)

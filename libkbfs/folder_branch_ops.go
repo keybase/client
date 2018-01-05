@@ -1047,6 +1047,14 @@ func (fbo *folderBranchOps) getMDForRead(
 	return ImmutableRootMetadata{}, MDWriteNeededInRequest{}
 }
 
+// GetTLFHandle implements the KBFSOps interface for folderBranchOps.
+func (fbo *folderBranchOps) GetTLFHandle(ctx context.Context, node Node) (
+	*TlfHandle, error) {
+	lState := makeFBOLockState()
+	md, _ := fbo.getHead(lState)
+	return md.GetTlfHandle(), nil
+}
+
 // getMDForWriteOrRekeyLocked can fetch MDs, identify them and
 // contains the fancy logic. For reading use getMDLockedForRead.
 // Here we actually can fetch things from the server.

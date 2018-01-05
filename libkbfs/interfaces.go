@@ -221,6 +221,9 @@ type KBFSOps interface {
 	// GetTLFID gets the TLF ID for tlfHandle.
 	GetTLFID(ctx context.Context, tlfHandle *TlfHandle) (tlf.ID, error)
 
+	// GetTLFHandle returns the TLF handle for a given node.
+	GetTLFHandle(ctx context.Context, node Node) (*TlfHandle, error)
+
 	// GetOrCreateRootNode returns the root node and root entry
 	// info associated with the given TLF handle and branch, if
 	// the logged-in user has read permissions to the top-level
