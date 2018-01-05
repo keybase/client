@@ -1,15 +1,13 @@
 // @flow
 import Channel from './channel'
-import React from 'react'
 import {connect} from '../util/container'
+import {type ConversationIDKey} from '../constants/types/chat'
 import * as ChatGen from '../actions/chat-gen'
 
-type OwnProps = {channel: string}
+type OwnProps = {channel: string, convID: ConversationIDKey}
 
-const mapDispatchToProps = (dispatch, {channel}: OwnProps) => ({
-  onClick: () => dispatch(ChatGen.createSelectConversation({conversationIDKey: null, fromUser: true})),
+const mapDispatchToProps = (dispatch, {convID}: OwnProps) => ({
+  onClick: () => dispatch(ChatGen.createSelectConversation({conversationIDKey: convID, fromUser: true})),
 })
 
-// $FlowIssue
-const Connected: React.ComponentType<OwnProps> = connect(() => {}, mapDispatchToProps)(Channel)
-export default Connected
+export default connect(null, mapDispatchToProps)(Channel)

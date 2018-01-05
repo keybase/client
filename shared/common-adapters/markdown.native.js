@@ -161,7 +161,14 @@ function messageCreateComponent(style, allowFontScaling) {
         )
       case 'channel':
         return (
-          <Channel channel={children[0]} key={key} style={linkStyle} allowFontScaling={allowFontScaling} />
+          <Channel
+            channel={children[0]}
+            // TODO: Figure out how to avoid this || ''
+            convID={options.convID || ''}
+            key={key}
+            style={linkStyle}
+            allowFontScaling={allowFontScaling}
+          />
         )
       case 'emoji':
         return (

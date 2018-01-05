@@ -74,7 +74,8 @@ function messageCreateComponent(type, key, children, options) {
       }
       return <Mention username={username} key={key} style={wrapStyle} />
     case 'channel':
-      return <Channel channel={children[0]} key={key} style={linkStyle} />
+      // TODO: Figure out how to avoid this || ''
+      return <Channel channel={children[0]} convID={options.convID || ''} key={key} style={linkStyle} />
     case 'inline-code':
       return (
         <Text type="Body" key={key} style={codeSnippetStyle}>
