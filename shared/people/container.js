@@ -15,7 +15,7 @@ import {isMobile} from '../constants/platform'
 import {getPeopleDataWaitingKey} from '../constants/people'
 // import flags from '../util/feature-flags'
 
-const INSTALL_LINK_URL = 'https://keybase.io/download'
+const installLinkURL = 'https://keybase.io/download'
 
 const mapStateToProps = (state: TypedState) => ({
   newItems: state.people.newItems,
@@ -44,7 +44,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       onDismiss: onSkipTodo('proof', dispatch),
     },
     device: {
-      onConfirm: () => openURL(INSTALL_LINK_URL),
+      onConfirm: () => openURL(installLinkURL),
       onDismiss: onSkipTodo('device', dispatch),
     },
     follow: {

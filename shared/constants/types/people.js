@@ -3,7 +3,6 @@ import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
 import {type IconType} from '../../common-adapters/icon.constants'
 
-// 'todo' | 'people'
 export type ItemTypeEnum = RPCTypes.HomeScreenItemType
 export type ItemType = $Keys<typeof RPCTypes.homeHomeScreenItemType>
 
@@ -11,8 +10,6 @@ export type ItemID = string
 export const itemIDToString: (id: ItemID) => string = id => id
 export const stringToItemID: (id: string) => ItemID = id => id
 
-// 'none' | 'bio' | 'proof' | 'device' | 'follow' | 'chat' |
-// 'paperkey' | 'team' | 'folder' | 'gitRepo' | 'teamShowcase'
 export type TodoTypeEnum = RPCTypes.HomeScreenTodoType
 export type TodoType = $Keys<typeof RPCTypes.homeHomeScreenTodoType>
 
