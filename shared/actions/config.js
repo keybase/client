@@ -256,7 +256,7 @@ function* _loadAvatars(action: ConfigGen.LoadAvatarsPayload) {
 let _teamAvatarsToLoad = I.Set()
 function* _loadTeamAvatars(action: ConfigGen.LoadTeamAvatarsPayload) {
   const teamnames = _validUsernames(action.payload.teamnames)
-  _teamAvatarsToLoad.concat(teamnames)
+  _teamAvatarsToLoad = _teamAvatarsToLoad.concat(teamnames)
 
   while (_teamAvatarsToLoad.size > 0) {
     // store it and wait, once our timer is up we pull any and run it
