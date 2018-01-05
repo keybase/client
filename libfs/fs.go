@@ -371,7 +371,7 @@ func (fs *FS) mkdirAll(filename string, perm os.FileMode) (err error) {
 		switch errors.Cause(err).(type) {
 		case libkbfs.NameExistsError:
 			// The child directory already exists.
-		case libkbfs.WriteAccessError:
+		case libkbfs.WriteAccessError, libkbfs.WriteToReadonlyNodeError:
 			// If the child already exists, this doesn't matter.
 			var lookupErr error
 			child, _, lookupErr = fs.config.KBFSOps().Lookup(fs.ctx, n, p)
