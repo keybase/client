@@ -4,7 +4,10 @@ import * as React from 'react'
 import ScrollView from '../common-adapters/scroll-view'
 import {StatusBar} from 'react-native'
 import {configure, addDecorator} from '@storybook/react-native'
-import stories from './stories'
+import commonStories from './stories'
+import nativeStories from './stories-native'
+
+const stories = {...commonStories, ...nativeStories}
 
 const scrollViewDecorator = story => [
   <StatusBar key="statusbar" hidden={true} />,
