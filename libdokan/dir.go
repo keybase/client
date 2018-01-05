@@ -17,6 +17,8 @@ import (
 	"golang.org/x/net/context"
 )
 
+const HiddenFilePrefix = `._`
+
 // Folder represents KBFS top-level folders
 type Folder struct {
 	fs   *FS
@@ -499,6 +501,9 @@ func (d *Dir) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored string,
 		ns.Name = name
 		// TODO perhaps resolve symlinks here?
 		fillStat(&ns.Stat, &de)
+		if strings.HasPrefix(name, HiddenFilePrefix) {
+			addFileAttribute(&ns.Stat, dokan.FileAttributeHidden)
+		}
 		err = callback(&ns)
 		if err != nil {
 			return err

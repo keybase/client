@@ -71,6 +71,14 @@ func fillStat(a *dokan.Stat, de *libkbfs.EntryInfo) {
 	}
 }
 
+// addFileAttribute adds a file attribute to the stat struct.
+func addFileAttribute(a *dokan.Stat, fa dokan.FileAttribute) {
+	// FileAttributeNormal is valid only if no other attribute is set.
+	// Thus clear the normal flag (if set) from the attributes and or
+	// the new flag.
+	a.FileAttributes = (a.FileAttributes &^ dokan.FileAttributeNormal) | fa
+}
+
 // errToDokan makes some libkbfs errors easier to digest in dokan. Not needed in most places.
 func errToDokan(err error) error {
 	switch err.(type) {
