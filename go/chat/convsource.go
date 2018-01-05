@@ -357,7 +357,7 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 		})
 	}
 
-	if err = s.storage.Merge(ctx, convID, uid, []chat1.MessageUnboxed{decmsg}); err != nil {
+	if err = s.mergeMaybeNotify(ctx, convID, uid, []chat1.MessageUnboxed{decmsg}); err != nil {
 		return decmsg, continuousUpdate, err
 	}
 
@@ -603,7 +603,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Store locally (just warn on error, don't abort the whole thing)
-	if err = s.storage.Merge(ctx, convID, uid, thread.Messages); err != nil {
+	if err = s.mergeMaybeNotify(ctx, convID, uid, thread.Messages); err != nil {
 		s.Debug(ctx, "Pull: unable to commit thread locally: convID: %s uid: %s", convID, uid)
 	}
 
@@ -806,7 +806,7 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, conv types.U
 		}
 
 		// Write out messages
-		if err := s.storage.Merge(ctx, convID, uid, rmsgsUnboxed); err != nil {
+		if err := s.mergeMaybeNotify(ctx, convID, uid, rmsgsUnboxed); err != nil {
 			return nil, err
 		}
 	}
@@ -876,7 +876,7 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 	}
 	if len(merges) > 0 {
 		sort.Sort(ByMsgID(merges))
-		if err = s.storage.Merge(ctx, convID, uid, merges); err != nil {
+		if err = s.mergeMaybeNotify(ctx, convID, uid, merges); err != nil {
 			return res, err
 		}
 	}
@@ -889,6 +889,24 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 
 	sort.Sort(ByMsgID(res))
 	return res, nil
+}
+
+// Merge with storage and maybe notify the gui of staleness
+func (s *HybridConversationSource) mergeMaybeNotify(ctx context.Context,
+	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed) error {
+
+	mergeRes, err := s.storage.Merge(ctx, convID, uid, msgs)
+	if err != nil {
+		return err
+	}
+	if mergeRes.DeletedHistory {
+		supdate := []chat1.ConversationStaleUpdate{chat1.ConversationStaleUpdate{
+			ConvID:     convID,
+			UpdateType: chat1.StaleUpdateType_CLEAR,
+		}}
+		s.G().Syncer.SendChatStaleNotifications(ctx, uid, supdate, false)
+	}
+	return nil
 }
 
 func NewConversationSource(g *globals.Context, typ string, boxer *Boxer, storage *storage.Storage,

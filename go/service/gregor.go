@@ -1422,7 +1422,7 @@ func (g *gregorHandler) chatAwareReconnectIsLong(ctx context.Context) bool {
 	if now.Sub(lastSendTime) < chat.ActiveIntervalAfterSend {
 		return false
 	}
-	g.chatLog.Debug(ctx, "Device isn't active in chat. Using long reconnect backoff.", g.chatLog)
+	g.chatLog.Debug(ctx, "Device isn't active in chat. Using long reconnect backoff.")
 	return true
 }
 

@@ -23,7 +23,7 @@ func newBreakTracker(g *globals.Context) *breakTracker {
 	}
 }
 
-func (b *breakTracker) makeKey(tlfID chat1.TLFID) libkb.DbKey {
+func (b *breakTracker) makeDbKey(tlfID chat1.TLFID) libkb.DbKey {
 	return libkb.DbKey{
 		Typ: libkb.DBChatBlocks,
 		Key: fmt.Sprintf("breaks:%s", tlfID),
@@ -33,7 +33,7 @@ func (b *breakTracker) makeKey(tlfID chat1.TLFID) libkb.DbKey {
 func (b *breakTracker) UpdateTLF(ctx context.Context, tlfID chat1.TLFID,
 	breaks []keybase1.TLFIdentifyFailure) error {
 
-	key := b.makeKey(tlfID)
+	key := b.makeDbKey(tlfID)
 
 	dat, err := encode(breaks)
 	if err != nil {
@@ -48,7 +48,7 @@ func (b *breakTracker) UpdateTLF(ctx context.Context, tlfID chat1.TLFID,
 
 func (b *breakTracker) IsTLFBroken(ctx context.Context, tlfID chat1.TLFID) (bool, error) {
 
-	key := b.makeKey(tlfID)
+	key := b.makeDbKey(tlfID)
 	raw, found, err := b.G().LocalChatDb.GetRaw(key)
 	if err != nil {
 		return true, NewInternalError(ctx, b.DebugLabeler, "GetRaw error: %s", err.Error())

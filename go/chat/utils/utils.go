@@ -677,6 +677,8 @@ func systemMessageSnippet(msg chat1.MessageSystem) string {
 		return fmt.Sprintf("%s converted to big team", msg.Complexteam().Team)
 	case chat1.MessageSystemType_INVITEADDEDTOTEAM:
 		return fmt.Sprintf("%s added to team", msg.Inviteaddedtoteam().Invitee)
+	case chat1.MessageSystemType_GITPUSH:
+		return fmt.Sprintf("%s pushed to %s", msg.Gitpush().Pusher, msg.Gitpush().RepoName)
 	default:
 		return ""
 	}

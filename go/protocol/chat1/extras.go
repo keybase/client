@@ -213,6 +213,23 @@ func (m MessageUnboxed) IsValid() bool {
 	return false
 }
 
+func (m MessageUnboxedValid) AsDeleteHistory() (res MessageDeleteHistory, err error) {
+	if m.ClientHeader.MessageType != MessageType_DELETEHISTORY {
+		return res, fmt.Errorf("message is %v not %v", m.ClientHeader.MessageType, MessageType_DELETEHISTORY)
+	}
+	if m.MessageBody.IsNil() {
+		return res, fmt.Errorf("missing message body")
+	}
+	btyp, err := m.MessageBody.MessageType()
+	if err != nil {
+		return res, err
+	}
+	if btyp != MessageType_DELETEHISTORY {
+		return res, fmt.Errorf("message has wrong body type: %v", btyp)
+	}
+	return m.MessageBody.Deletehistory(), nil
+}
+
 func (b MessageBody) IsNil() bool {
 	return b == MessageBody{}
 }

@@ -21,7 +21,7 @@ func (r *statusList) GetAppStatus() *libkb.AppStatus {
 	return &r.Status
 }
 
-func getTeamsListFromServer(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, all bool) ([]keybase1.MemberInfo, error) {
+func getTeamsListFromServer(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, all bool, countMembers bool) ([]keybase1.MemberInfo, error) {
 	var endpoint string
 	if all {
 		endpoint = "team/teammates_for_user"
@@ -29,10 +29,12 @@ func getTeamsListFromServer(ctx context.Context, g *libkb.GlobalContext, uid key
 		endpoint = "team/for_user"
 	}
 	a := libkb.NewAPIArg(endpoint)
+	a.Args = libkb.HTTPArgs{}
 	if uid.Exists() {
-		a.Args = libkb.HTTPArgs{
-			"uid": libkb.S{Val: uid.String()},
-		}
+		a.Args["uid"] = libkb.S{Val: uid.String()}
+	}
+	if countMembers {
+		a.Args["count_members"] = libkb.B{Val: true}
 	}
 	a.NetContext = ctx
 	a.SessionType = libkb.APISessionTypeREQUIRED
@@ -120,15 +122,11 @@ func getUsernameAndFullName(ctx context.Context, g *libkb.GlobalContext, uid key
 	return username, fullName, err
 }
 
-type pendingTeamMember struct {
-	team keybase1.TeamID
-	uv   keybase1.UserVersion
-}
-
-func ListTeams(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg) (*keybase1.AnnotatedTeamList, error) {
-	tracer := g.CTimeTracer(ctx, "TeamList.ListTeams")
+func ListTeamsVerified(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListVerifiedArg) (*keybase1.AnnotatedTeamList, error) {
+	tracer := g.CTimeTracer(ctx, "TeamList.ListTeamsVerified")
 	defer tracer.Finish()
 
+	tracer.Stage("Resolve QueryUID")
 	var queryUID keybase1.UID
 	if arg.UserAssertion != "" {
 		res := g.Resolver.ResolveFullExpression(ctx, arg.UserAssertion)
@@ -144,7 +142,7 @@ func ListTeams(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamLis
 	}
 
 	tracer.Stage("Server")
-	teams, err := getTeamsListFromServer(ctx, g, queryUID, false)
+	teams, err := getTeamsListFromServer(ctx, g, queryUID, false /* all */, false /* countMembers */)
 	if err != nil {
 		return nil, err
 	}
@@ -158,9 +156,6 @@ func ListTeams(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamLis
 	if err != nil {
 		return nil, err
 	}
-
-	var membersForTeams []pendingTeamMember
-	teamPositionInList := make(map[keybase1.TeamID]int)
 
 	res := &keybase1.AnnotatedTeamList{
 		Teams: nil,
@@ -215,16 +210,6 @@ func ListTeams(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamLis
 			continue
 		}
 
-		// See "TODO" after this for-loop.
-		/*
-			for _, uv := range members.AllUserVersions() {
-				membersForTeams = append(membersForTeams, pendingTeamMember{
-					team: team.ID,
-					uv:   uv,
-				})
-			}
-		*/
-
 		memberUIDs := make(map[keybase1.UID]bool)
 		for _, uv := range members.AllUserVersions() {
 			memberUIDs[uv.Uid] = true
@@ -246,55 +231,13 @@ func ListTeams(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamLis
 				}
 
 				memberUIDs[uv.Uid] = true
-				/*
-					membersForTeams = append(membersForTeams, pendingTeamMember{
-						team: team.ID,
-						uv:   uv,
-					})
-				*/
 			}
 
 		}
 
 		anMemberInfo.MemberCount = len(memberUIDs)
-
-		teamPositionInList[team.ID] = len(res.Teams)
 		res.Teams = append(res.Teams, *anMemberInfo)
 	}
-
-	tracer.Stage("MemberCounts")
-
-	var uids []keybase1.UID
-	for _, member := range membersForTeams {
-		uids = append(uids, member.uv.Uid)
-	}
-
-	// TODO: For now, we decided that reset-user members still count
-	// towards final team member count. If we want to change this
-	// decision, commented out is code to check members with UIDMapper
-	// and only count non-reset members as well as non-reset pukless
-	// members.
-	/*
-		namePkgs, err := uidmap.MapUIDsReturnMap(ctx, g.UIDMapper, g, uids, 0, 10*time.Second, true)
-		if err != nil {
-			g.Log.CWarningf(ctx, "| Unable to verify team members - member counts were not loaded: %v", err)
-			return res, nil
-		}
-
-		for _, member := range membersForTeams {
-			pkg := namePkgs[member.uv.Uid]
-			var memberReset bool
-			if pkg.FullName != nil && pkg.FullName.EldestSeqno != member.uv.EldestSeqno {
-				memberReset = true
-			}
-
-			if !memberReset {
-				if i, ok := teamPositionInList[member.team]; ok {
-					res.Teams[i].MemberCount++
-				}
-			}
-		}
-	*/
 
 	if len(res.Teams) == 0 && !expectEmptyList {
 		return res, fmt.Errorf("multiple errors while loading team list")
@@ -303,7 +246,7 @@ func ListTeams(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamLis
 	return res, nil
 }
 
-func ListAll(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg) (*keybase1.AnnotatedTeamList, error) {
+func ListAll(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListTeammatesArg) (*keybase1.AnnotatedTeamList, error) {
 	tracer := g.CTimeTracer(ctx, "TeamList.ListAll")
 	defer tracer.Finish()
 
@@ -313,7 +256,7 @@ func ListAll(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListA
 	}
 
 	tracer.Stage("Server")
-	teams, err := getTeamsListFromServer(ctx, g, "" /*uid*/, true /*all*/)
+	teams, err := getTeamsListFromServer(ctx, g, "" /*uid*/, true /*all*/, false /* countMembers */)
 	if err != nil {
 		return nil, err
 	}
@@ -415,16 +358,6 @@ func ListAll(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListA
 	}
 
 	return res, nil
-}
-
-// List info about teams
-// If an error is encountered while loading some teams, the team is skipped and no error is returned.
-// If an error occurs loading all the info, an error is returned.
-func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg) (*keybase1.AnnotatedTeamList, error) {
-	if arg.All {
-		return ListAll(ctx, g, arg)
-	}
-	return ListTeams(ctx, g, arg)
 }
 
 func ListSubteamsRecursive(ctx context.Context, g *libkb.GlobalContext, parentTeamName string, forceRepoll bool) (res []keybase1.TeamIDAndName, err error) {
@@ -727,7 +660,7 @@ func TeamTree(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamTree
 		return res, fmt.Errorf("cannot get tree of non-root team")
 	}
 
-	serverList, err := getTeamsListFromServer(ctx, g, "", false)
+	serverList, err := getTeamsListFromServer(ctx, g, "", false /* all */, false /* countMembers */)
 	if err != nil {
 		return res, err
 	}
