@@ -804,6 +804,18 @@ func (mr *MockNodeMockRecorder) ShouldCreateMissedLookup(ctx, name interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ShouldCreateMissedLookup", reflect.TypeOf((*MockNode)(nil).ShouldCreateMissedLookup), ctx, name)
 }
 
+// ShouldRetryOnDirRead mocks base method
+func (m *MockNode) ShouldRetryOnDirRead(ctx context.Context) bool {
+	ret := m.ctrl.Call(m, "ShouldRetryOnDirRead", ctx)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// ShouldRetryOnDirRead indicates an expected call of ShouldRetryOnDirRead
+func (mr *MockNodeMockRecorder) ShouldRetryOnDirRead(ctx interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ShouldRetryOnDirRead", reflect.TypeOf((*MockNode)(nil).ShouldRetryOnDirRead), ctx)
+}
+
 // WrapChild mocks base method
 func (m *MockNode) WrapChild(child Node) Node {
 	ret := m.ctrl.Call(m, "WrapChild", child)

@@ -87,6 +87,10 @@ func (n *nodeStandard) ShouldCreateMissedLookup(ctx context.Context, _ string) (
 	return false, ctx, File, ""
 }
 
+func (n *nodeStandard) ShouldRetryOnDirRead(ctx context.Context) bool {
+	return false
+}
+
 func (n *nodeStandard) WrapChild(child Node) Node {
 	return child
 }

@@ -1808,6 +1808,30 @@ func (fbo *folderBranchOps) pathFromNodeForMDWriteLocked(
 	return fbo.pathFromNodeHelper(n)
 }
 
+func (fbo *folderBranchOps) getDirChildren(ctx context.Context, dir Node) (
+	children map[string]EntryInfo, err error) {
+	lState := makeFBOLockState()
+
+	dirPath, err := fbo.pathFromNodeForRead(dir)
+	if err != nil {
+		return nil, err
+	}
+
+	if fbo.nodeCache.IsUnlinked(dir) {
+		fbo.log.CDebugf(ctx, "Returning an empty children set for "+
+			"unlinked directory %v", dirPath.tailPointer())
+		return nil, nil
+	}
+
+	md, err := fbo.getMDForReadNeedIdentify(ctx, lState)
+	if err != nil {
+		return nil, err
+	}
+
+	return fbo.blocks.GetDirtyDirChildren(
+		ctx, lState, md.ReadOnly(), dirPath)
+}
+
 func (fbo *folderBranchOps) GetDirChildren(ctx context.Context, dir Node) (
 	children map[string]EntryInfo, err error) {
 	fbo.log.CDebugf(ctx, "GetDirChildren %s", getNodeIDStr(dir))
@@ -1821,37 +1845,33 @@ func (fbo *folderBranchOps) GetDirChildren(ctx context.Context, dir Node) (
 		return nil, err
 	}
 
+	var retChildren map[string]EntryInfo
 	err = runUnlessCanceled(ctx, func() error {
-		var err error
-		lState := makeFBOLockState()
-
-		dirPath, err := fbo.pathFromNodeForRead(dir)
-		if err != nil {
-			return err
-		}
-
-		if fbo.nodeCache.IsUnlinked(dir) {
-			fbo.log.CDebugf(ctx, "Returning an empty children set for "+
-				"unlinked directory %v", dirPath.tailPointer())
-			return nil
-		}
-
-		md, err := fbo.getMDForReadNeedIdentify(ctx, lState)
-		if err != nil {
-			return err
-		}
-
-		children, err = fbo.blocks.GetDirtyDirChildren(
-			ctx, lState, md.ReadOnly(), dirPath)
-		if err != nil {
-			return err
-		}
-		return nil
+		retChildren, err = fbo.getDirChildren(ctx, dir)
+		return err
 	})
 	if err != nil {
 		return nil, err
 	}
-	return children, nil
+
+	if dir.ShouldRetryOnDirRead(ctx) {
+		err2 := fbo.SyncFromServerForTesting(ctx, fbo.folderBranch, nil)
+		if err2 != nil {
+			fbo.log.CDebugf(ctx, "Error syncing before retry: %+v", err2)
+			return nil, nil
+		}
+
+		fbo.log.CDebugf(ctx, "Retrying GetDirChildren of an empty directory")
+		err = runUnlessCanceled(ctx, func() error {
+			retChildren, err = fbo.getDirChildren(ctx, dir)
+			return err
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return retChildren, nil
 }
 
 func (fbo *folderBranchOps) processMissedLookup(
@@ -1885,6 +1905,33 @@ func (fbo *folderBranchOps) processMissedLookup(
 	}
 }
 
+func (fbo *folderBranchOps) lookup(ctx context.Context, dir Node, name string) (
+	node Node, de DirEntry, err error) {
+	if fbo.nodeCache.IsUnlinked(dir) {
+		fbo.log.CDebugf(ctx, "Refusing a lookup for unlinked directory %v",
+			fbo.nodeCache.PathFromNode(dir).tailPointer())
+		return nil, DirEntry{}, NoSuchNameError{name}
+	}
+
+	lState := makeFBOLockState()
+	md, err := fbo.getMDForReadNeedIdentify(ctx, lState)
+	if err != nil {
+		return nil, DirEntry{}, err
+	}
+
+	node, de, err = fbo.blocks.Lookup(ctx, lState, md.ReadOnly(), dir, name)
+	if _, isMiss := errors.Cause(err).(NoSuchNameError); isMiss {
+		node, de.EntryInfo, err = fbo.processMissedLookup(ctx, dir, name, err)
+		if _, exists := errors.Cause(err).(NameExistsError); exists {
+			// Someone raced us to create the entry, so return the
+			// new entry.
+			node, de, err = fbo.blocks.Lookup(
+				ctx, lState, md.ReadOnly(), dir, name)
+		}
+	}
+	return node, de, err
+}
+
 func (fbo *folderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 	node Node, ei EntryInfo, err error) {
 	fbo.log.CDebugf(ctx, "Lookup %s %s", getNodeIDStr(dir), name)
@@ -1903,34 +1950,25 @@ func (fbo *folderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 	var n Node
 	var de DirEntry
 	err = runUnlessCanceled(ctx, func() error {
-		if fbo.nodeCache.IsUnlinked(dir) {
-			fbo.log.CDebugf(ctx, "Refusing a lookup for unlinked directory %v",
-				fbo.nodeCache.PathFromNode(dir).tailPointer())
-			return NoSuchNameError{name}
-		}
-
-		lState := makeFBOLockState()
-		md, err := fbo.getMDForReadNeedIdentify(ctx, lState)
-		if err != nil {
-			return err
-		}
-
-		n, de, err = fbo.blocks.Lookup(ctx, lState, md.ReadOnly(), dir, name)
-		if _, isMiss := errors.Cause(err).(NoSuchNameError); isMiss {
-			n, de.EntryInfo, err = fbo.processMissedLookup(ctx, dir, name, err)
-			if _, exists := errors.Cause(err).(NameExistsError); exists {
-				// Someone raced us to create the entry, so return the
-				// new entry.
-				n, de, err = fbo.blocks.Lookup(
-					ctx, lState, md.ReadOnly(), dir, name)
-			}
-		}
+		n, de, err = fbo.lookup(ctx, dir, name)
 		return err
 	})
-	if err != nil {
-		return nil, EntryInfo{}, err
+
+	if dir.ShouldRetryOnDirRead(ctx) {
+		err2 := fbo.SyncFromServerForTesting(ctx, fbo.folderBranch, nil)
+		if err2 != nil {
+			fbo.log.CDebugf(ctx, "Error syncing before retry: %+v", err2)
+			return n, de.EntryInfo, err
+		}
+
+		fbo.log.CDebugf(ctx, "Retrying lookup of an empty directory")
+		err = runUnlessCanceled(ctx, func() error {
+			n, de, err = fbo.lookup(ctx, dir, name)
+			return err
+		})
 	}
-	return n, de.EntryInfo, nil
+
+	return n, de.EntryInfo, err
 }
 
 // statEntry is like Stat, but it returns a DirEntry. This is used by

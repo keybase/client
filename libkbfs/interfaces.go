@@ -144,6 +144,12 @@ type Node interface {
 	// decides not to return `true` on its own.
 	ShouldCreateMissedLookup(ctx context.Context, name string) (
 		shouldCreate bool, newCtx context.Context, et EntryType, sympath string)
+	// ShouldRetryOnDirRead is called for Nodes representing
+	// directories, whenever a `Lookup` or `GetDirChildren` is done on
+	// them.  It should return true to instruct the caller that it
+	// should re-sync its view of the directory and retry the
+	// operation.
+	ShouldRetryOnDirRead(ctx context.Context) bool
 	// WrapChild returns a wrapped version of child, if desired, to
 	// add custom behavior to the child node. An implementation that
 	// wraps another `Node` (`inner`) must first call
