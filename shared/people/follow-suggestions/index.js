@@ -30,6 +30,12 @@ const Suggestion = (props: Types._FollowSuggestion & {onClickUser: () => void}) 
       {...connectedUsernamesProps}
       usernames={[props.username]}
       onUsernameClicked={props.onClickUser}
+      inline={true}
+      containerStyle={{textAlign: 'center'}}
+      style={{
+        paddingLeft: 10,
+        paddingRight: 10,
+      }}
     />
     {!!props.fullName && (
       <Text type="BodySmall" lineClamp={1} style={{paddingLeft: 2, paddingRight: 2}}>
