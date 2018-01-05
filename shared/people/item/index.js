@@ -6,7 +6,7 @@ import moment from 'moment'
 import {isMobile} from '../../constants/platform'
 
 // Update moment locale for relative time strings
-moment.updateLocale('en', {
+moment.locale('shortTime', {
   relativeTime: {
     future: 'in %s',
     past: '%s ago',
@@ -24,6 +24,8 @@ moment.updateLocale('en', {
     yy: '%dy',
   },
 })
+const formatter = moment()
+moment.locale('en')
 
 export type Props = {
   badged: boolean,
@@ -62,7 +64,7 @@ export default (props: Props) => (
     <Box style={{...globalStyles.flexBoxRow, position: 'absolute', alignItems: 'center', right: 8, top: 12}}>
       {!!props.when && (
         <Text type="BodySmall" style={{}}>
-          {moment(props.when).fromNow(true)}
+          {formatter.set(moment(props.when).toObject()).fromNow(true)}
         </Text>
       )}
       {props.badged && (
