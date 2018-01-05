@@ -7,37 +7,30 @@ import * as Types from '../../../constants/types/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as KBFSGen from '../../../actions/kbfs-gen'
 import {fileUIName} from '../../../constants/platform'
-import {connect} from 'react-redux'
-import {branch, renderComponent} from 'recompose'
-
+import {connect, branch, renderComponent, type TypedState} from '../../../util/container'
 import MessagePopupHeader from './popup-header'
 
 type TextProps = {
   onHidden: () => void,
   style?: Object,
   onDelete: () => void,
-  message: TextMessage,
-  you: string,
+  message: Types.MessageText,
   onEdit: () => void,
 }
 
 type AttachmentProps = {
   localMessageState: LocalMessageState,
-  message: AttachmentMessage,
+  message: any, // TODO
   onDelete: () => void,
   onDownloadAttachment: () => void,
   onHidden: () => void,
   onOpenInFileUI: () => void,
-  onSaveAttachment?: (m: AttachmentMessage) => void,
-  onShareAttachment?: (m: AttachmentMessage) => void,
+  onSaveAttachment?: () => void,
+  onShareAttachment?: () => void,
   style?: Object,
-  you: string,
 }
 
-import type {TextProps, AttachmentProps} from './popup'
-import type {TypedState} from '../../../util/container'
-
-const TextPopupMenu = ({showActions, showDivider, onEdit, onDelete, style, you}: TextProps) => {
+const TextPopupMenu = ({showActions, showDivider, onEdit, onDelete, style}: TextProps) => {
   const items = showActions
     ? [
         ...(showDivider ? ['Divider'] : []),
@@ -59,7 +52,7 @@ const TextPopupMenu = ({showActions, showDivider, onEdit, onDelete, style, you}:
   return <PopupMenu header={header} items={items} style={{...stylePopup, ...style}} />
 }
 
-const mapStateToProps = (state: TypedState) => ({you: state.config.username})
+const mapStateToProps = (state: TypedState) => ({_you: state.config.username})
 
 const mapDispatchToTextProps = (dispatch, ownProps) => ({
   _onDeleteMessage: (message: Types.Message) =>
@@ -74,7 +67,7 @@ const mapDispatchToTextProps = (dispatch, ownProps) => ({
 
 const mergeTextProps = (stateProps, dispatchProps, ownProps) => {
   const message = ownProps.routeProps.get('message')
-  const isYou = message.author === you
+  const isYou = message.author === stateProps._you
   return {
     showActions: isYou,
     showDivider: !message.senderDeviceRevokedAt,
