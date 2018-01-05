@@ -229,3 +229,8 @@ func (f *File) Unlock() (err error) {
 func (f *File) Truncate(size int64) error {
 	return f.fs.config.KBFSOps().Truncate(f.fs.ctx, f.node, uint64(size))
 }
+
+// GetNode returns the libkbfs.Node associated with this file.
+func (f *File) GetNode() libkbfs.Node {
+	return f.node
+}

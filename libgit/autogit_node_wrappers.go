@@ -6,10 +6,12 @@ package libgit
 
 import (
 	"context"
+	"fmt"
 	"path"
 	"sync"
 	"time"
 
+	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
@@ -46,10 +48,12 @@ import (
 //   block on that clone/pull operation until it is finished, until
 //   the given context is canceled, or until 10 seconds is up.  But if
 //   it doesn't finish in time, the operation continues in the
-//   background and should update the directory asynchronously.  If
-//   the operation is a clone, a "CLONING" file will be visible in the
-//   directory until the clone completes.  `repoNode` wraps each child
-//   node as a `readonlyNode`.
+//   background and should update the directory asynchronously.  It
+//   registers with the `AutogitManager` in order to keep the checkout
+//   up-to-date asynchronously if the repo changes.  If the operation
+//   is a clone, a "CLONING" file will be visible in the directory
+//   until the clone completes.  `repoNode` wraps each child node as a
+//   `readonlyNode`.
 
 type ctxReadWriteKeyType int
 type ctxSkipPopulateKeyType int
@@ -120,16 +124,38 @@ func (rn *repoNode) populate(ctx context.Context) bool {
 		return false
 	}
 
+	// Associate this autogit repo node with the node corresponding to
+	// the branch ref for the source repo.
+	srcRepoFS, _, err := GetRepoAndID(
+		ctx, rn.am.config, rn.srcRepoHandle, rn.repoName, "")
+	if err != nil {
+		rn.am.log.CDebugf(ctx, "Couldn't get repo: %+v", err)
+		return false
+	}
+	// Hardcoded master branch for now.
+	branch := "master"
+	ref, err := srcRepoFS.Open(fmt.Sprintf("refs/heads/%s", branch))
+	if err != nil {
+		rn.am.log.CDebugf(ctx, "Couldn't get master branch: %+v", err)
+		return false
+	}
+	refAsFile, ok := ref.(*libfs.File)
+	if !ok {
+		rn.am.log.CDebugf(ctx, "Unexpected ref node type: %T", ref)
+		return false
+	}
+	rn.am.registerRepoNode(refAsFile.GetNode(), rn)
+
 	// If the directory is empty, clone it.  Otherwise, pull it.
 	var doneCh <-chan struct{}
 	cloneNeeded := len(children) == 0
 	ctx = context.WithValue(ctx, ctxReadWriteKey, 1)
 	if cloneNeeded {
 		doneCh, err = rn.am.Clone(
-			ctx, rn.srcRepoHandle, rn.repoName, "master", h, rn.dstDir())
+			ctx, rn.srcRepoHandle, rn.repoName, branch, h, rn.dstDir())
 	} else {
 		doneCh, err = rn.am.Pull(
-			ctx, rn.srcRepoHandle, rn.repoName, "master", h, rn.dstDir())
+			ctx, rn.srcRepoHandle, rn.repoName, branch, h, rn.dstDir())
 	}
 	if err != nil {
 		rn.am.log.CDebugf(ctx, "Error starting population: %+v", err)
@@ -168,6 +194,24 @@ func (rn *repoNode) finishPopulate(populated bool) {
 	rn.populated = populated
 	close(rn.populatingInProgress)
 	rn.populatingInProgress = nil
+}
+
+func (rn *repoNode) updated(ctx context.Context) {
+	h, err := rn.am.config.KBFSOps().GetTLFHandle(ctx, rn)
+	if err != nil {
+		rn.am.log.CDebugf(ctx, "Error getting handle: %+v", err)
+		return
+	}
+
+	dstDir := rn.dstDir()
+	rn.am.log.CDebugf(
+		ctx, "Repo %s/%s/%s updated", h.GetCanonicalPath(), dstDir, rn.repoName)
+	_, err = rn.am.Pull(
+		context.Background(), rn.srcRepoHandle, rn.repoName, "master", h, dstDir)
+	if err != nil {
+		rn.am.log.CDebugf(ctx, "Error calling pull: %+v", err)
+		return
+	}
 }
 
 // ShouldRetryOnDirRead implements the Node interface for

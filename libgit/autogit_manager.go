@@ -72,6 +72,11 @@ type AutogitManager struct {
 	lock             sync.Mutex
 	resetsInQueue    map[string]resetReq // key: resetReq.id()
 	resetsInProgress map[string]resetReq // key: resetReq.id()
+
+	registryLock  sync.RWMutex
+	registeredFBs map[libkbfs.FolderBranch]bool
+	repoNodeIDs   map[libkbfs.NodeID]*repoNode
+	watchedNodes  []libkbfs.Node // preventing GC on the watched nodes
 }
 
 // NewAutogitManager constructs a new AutogitManager instance, and
@@ -90,6 +95,8 @@ func NewAutogitManager(
 		queueDoneCh:      make(chan struct{}),
 		resetsInQueue:    make(map[string]resetReq),
 		resetsInProgress: make(map[string]resetReq),
+		registeredFBs:    make(map[libkbfs.FolderBranch]bool),
+		repoNodeIDs:      make(map[libkbfs.NodeID]*repoNode),
 	}
 	am.getNewConfig = am.getNewConfigDefault
 	go am.resetLoop(numWorkers)
@@ -407,6 +414,52 @@ func (am *AutogitManager) Pull(
 		srcTLF, srcRepo, branchName, dstTLF, dstDir, make(chan struct{}),
 	}
 	return am.queueReset(ctx, req)
+}
+
+func (am *AutogitManager) registerRepoNode(
+	nodeToWatch libkbfs.Node, rn *repoNode) {
+	am.registryLock.Lock()
+	defer am.registryLock.Unlock()
+	am.repoNodeIDs[nodeToWatch.GetID()] = rn
+	am.watchedNodes = append(am.watchedNodes, nodeToWatch)
+	fb := nodeToWatch.GetFolderBranch()
+	if !am.registeredFBs[fb] {
+		err := am.config.Notifier().RegisterForChanges(
+			[]libkbfs.FolderBranch{fb}, am)
+		if err != nil {
+			am.log.CWarningf(nil, "Error registering %s: +%v", fb.Tlf, err)
+			return
+		}
+		am.registeredFBs[fb] = true
+	}
+}
+
+// LocalChange implements the libkbfs.Observer interface for AutogitManager.
+func (am *AutogitManager) LocalChange(
+	_ context.Context, _ libkbfs.Node, _ libkbfs.WriteRange) {
+	// Do nothing.
+}
+
+// BatchChanges implements the libkbfs.Observer interface for AutogitManager.
+func (am *AutogitManager) BatchChanges(
+	ctx context.Context, changes []libkbfs.NodeChange) {
+	am.registryLock.RLock()
+	defer am.registryLock.RUnlock()
+	for _, change := range changes {
+		rn, ok := am.repoNodeIDs[change.Node.GetID()]
+		if !ok {
+			continue
+		}
+
+		go rn.updated(context.Background())
+	}
+}
+
+// TlfHandleChange implements the libkbfs.Observer interface for
+// AutogitManager.
+func (am *AutogitManager) TlfHandleChange(
+	ctx context.Context, newHandle *libkbfs.TlfHandle) {
+	// Do nothing.
 }
 
 // startAutogit launches autogit, and returns a function that should
