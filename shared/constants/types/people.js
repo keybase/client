@@ -38,6 +38,7 @@ export type _FollowedNotificationItem = {
 }
 export type FollowedNotificationItem = I.RecordOf<_FollowedNotificationItem>
 
+export type _PeopleScreenItem = _Todo | _FollowedNotificationItem
 export type PeopleScreenItem = Todo | FollowedNotificationItem
 
 export type _FollowSuggestion = {

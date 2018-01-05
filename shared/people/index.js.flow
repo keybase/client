@@ -4,9 +4,9 @@ import * as I from 'immutable'
 import * as Types from '../constants/types/people'
 
 export type Props = {
-  oldItems: I.List<Types.PeopleScreenItem>,
-  newItems: I.List<Types.PeopleScreenItem>,
-  followSuggestions: I.List<Types.FollowSuggestion>,
+  oldItems: Array<Types._PeopleScreenItem>,
+  newItems: Array<Types._PeopleScreenItem>,
+  followSuggestions: Array<Types._FollowSuggestion>,
   getData: () => void,
   onSearch: () => void,
   onClickUser: (username: string) => void,

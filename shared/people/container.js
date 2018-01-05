@@ -13,14 +13,13 @@ import {createShowUserProfile} from '../actions/profile-gen'
 import openURL from '../util/open-url'
 import {isMobile} from '../constants/platform'
 import {getPeopleDataWaitingKey} from '../constants/people'
-// import flags from '../util/feature-flags'
 
 const installLinkURL = 'https://keybase.io/download'
 
 const mapStateToProps = (state: TypedState) => ({
-  newItems: state.people.newItems,
-  oldItems: state.people.oldItems,
-  followSuggestions: state.people.followSuggestions,
+  newItems: state.people.newItems.toJS(),
+  oldItems: state.people.oldItems.toJS(),
+  followSuggestions: state.people.followSuggestions.toJS(),
   myUsername: state.config.username,
   waiting: !!state.waiting.get(getPeopleDataWaitingKey),
 })

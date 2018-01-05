@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/people'
-import {List} from 'immutable'
 import {Avatar, Box, ClickableBox, ScrollView, Text, ConnectedUsernames} from '../../common-adapters'
 import {globalStyles, globalMargins} from '../../styles'
 import {isMobile} from '../../constants/platform'
@@ -13,10 +12,10 @@ const connectedUsernamesProps = {
   style: {marginTop: globalMargins.xtiny, display: 'flex'},
 }
 
-export type FollowSuggestion = Types.FollowSuggestion
+export type FollowSuggestion = Types._FollowSuggestion
 
 export type Props = {
-  suggestions: List<FollowSuggestion>,
+  suggestions: Array<FollowSuggestion>,
   onClickUser: (username: string) => void,
 }
 
@@ -78,7 +77,7 @@ export default (props: Props) => (
       {props.suggestions.map(suggestion => (
         <Suggestion
           key={suggestion.username}
-          {...suggestion.toObject()}
+          {...suggestion}
           onClickUser={() => props.onClickUser(suggestion.username)}
         />
       ))}

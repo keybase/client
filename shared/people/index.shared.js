@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../constants/types/people'
-import * as I from 'immutable'
 import {Box, ClickableBox, Icon, Text} from '../common-adapters'
 import Todo from './task'
 import FollowNotification from './follow-notification'
@@ -10,41 +9,22 @@ import {type Props} from '.'
 import {globalStyles, globalColors} from '../styles'
 
 export const itemToComponent: (
-  Types.PeopleScreenItem,
+  Types._PeopleScreenItem,
   {[key: Types.TodoType]: {onConfirm: () => void, onDismiss: () => void}}
 ) => React.Node = (item, actions) => {
   switch (item.type) {
     case 'todo':
       return (
         <Todo
-          {...item.toObject()}
+          {...item}
           onConfirm={actions[item.todoType].onConfirm}
           onDismiss={actions[item.todoType].onDismiss}
           key={item.todoType}
         />
       )
     case 'notification':
-      return <FollowNotification {...item.toObject()} key={item.notificationTime} />
+      return <FollowNotification {...item} key={item.notificationTime} />
   }
-}
-
-const divider = (light: boolean, key: any) => (
-  <Box
-    style={{
-      width: '100%',
-      height: 1,
-      backgroundColor: light ? globalColors.white : globalColors.black_05,
-    }}
-    key={key}
-  />
-)
-
-const intersperse = (list: I.List<any>, light: boolean) => {
-  let newList = list
-  for (let i = list.size - 1; i > 0; i--) {
-    newList = newList.insert(i, divider(light, i))
-  }
-  return newList
 }
 
 export const PeoplePageSearchBar = (
@@ -80,9 +60,9 @@ export const PeoplePageSearchBar = (
 
 export const PeoplePageList = (props: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, width: '100%', position: 'relative', marginTop: 48}}>
-    {intersperse(props.newItems.map(item => itemToComponent(item, props.todoDispatch)), true)}
+    {props.newItems.map(item => itemToComponent(item, props.todoDispatch))}
     <FollowSuggestions suggestions={props.followSuggestions} onClickUser={props.onClickUser} />
-    {intersperse(props.oldItems.map(item => itemToComponent(item, props.todoDispatch)), false)}
+    {props.oldItems.map(item => itemToComponent(item, props.todoDispatch))}
   </Box>
 )
 
