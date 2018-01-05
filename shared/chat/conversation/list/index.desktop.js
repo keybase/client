@@ -137,8 +137,7 @@ class BaseList extends React.Component<Props, State> {
             this._onAction,
             this._onShowEditor,
             isSelected,
-            measure,
-            this.props.channelNameToConvID
+            measure
           )
           return <DivRow style={style}>{message}</DivRow>
         }}

@@ -13,7 +13,6 @@ export type StateProps = {|
   validated: boolean,
   you: string,
   teamname: ?string,
-  channelNameToConvID: {[string]: Types.ConversationIDKey},
   getMessageFromMessageKey: (messageKey: Types.MessageKey) => Types.Message,
 |}
 

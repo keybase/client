@@ -11,21 +11,12 @@ export type Props = {
   mentions: Types.Mentions,
   channelMention: Types.ChannelMention,
   channelNameMentions: Types.ChannelNameMentions,
-  channelNameToConvID: {[string]: Types.ConversationIDKey},
 }
 
-const MessageText = ({
-  text,
-  type,
-  isEditing,
-  mentions,
-  channelMention,
-  channelNameMentions,
-  channelNameToConvID,
-}: Props) => (
+const MessageText = ({text, type, isEditing, mentions, channelMention, channelNameMentions}: Props) => (
   <Markdown
     style={getStyle(type, isEditing)}
-    meta={{mentions, channelMention, channelNameMentions, channelNameToConvID}}
+    meta={{mentions, channelMention, channelNameMentions}}
     allowFontScaling={true}
   >
     {text}

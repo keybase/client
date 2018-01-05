@@ -1,6 +1,5 @@
 // @flow
 import * as Constants from '../../../constants/chat'
-import {getConvIdsFromTeamName, getChannelNameFromConvID} from '../../../constants/teams'
 import * as Types from '../../../constants/types/chat'
 import * as ChatGen from '../../../actions/chat-gen'
 import * as KBFSGen from '../../../actions/kbfs-gen'
@@ -84,32 +83,12 @@ const convStateProps = createSelector(
   })
 )
 
-const getTeamChannelNameToConvID = (
-  state: TypedState,
-  teamname: ?string
-): {[string]: Types.ConversationIDKey} => {
-  if (!teamname) return {}
-  const convIDs = getConvIdsFromTeamName(state, teamname)
-  const channelNameToConvID = {}
-  convIDs.forEach(convID => {
-    const name = getChannelNameFromConvID(state, convID)
-    if (name) {
-      channelNameToConvID[name] = convID
-    }
-  })
-  return channelNameToConvID
-}
-
 // TODO this is temp until we can discuss a better solution to this getMessageFromMessageKey thing
 let _stateHack
 const mapStateToProps = createSelector(
   [state => state, ownPropsSelector, Selectors.usernameSelector, convStateProps, messageKeysSelector],
   (state, ownProps, username, convStateProps, messageKeys) => {
     _stateHack = state
-    const teamname = convStateProps.selectedConversation
-      ? state.chat.getIn(['inboxBigChannelsToTeam', convStateProps.selectedConversation])
-      : null
-    const channelNameToConvID = getTeamChannelNameToConvID(state, teamname)
     return {
       editLastMessageCounter: ownProps.editLastMessageCounter,
       listScrollDownCounter: ownProps.listScrollDownCounter,
@@ -118,8 +97,6 @@ const mapStateToProps = createSelector(
       selectedConversation: convStateProps.selectedConversation,
       validated: convStateProps.validated,
       you: username,
-      teamname,
-      channelNameToConvID,
       hasResetUsers:
         state.chat.inboxResetParticipants.get(convStateProps.selectedConversation, I.Set()).size > 0,
       _supersedes: convStateProps._supersedes,
@@ -208,7 +185,6 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props
     validated: stateProps.validated,
     you: stateProps.you,
     teamname: stateProps.teamname,
-    channelNameToConvID: stateProps.channelNameToConvID,
   }
 }
 

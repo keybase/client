@@ -7,7 +7,6 @@ export type Props = {|
   failureDescription: ?string,
   includeHeader: boolean,
   innerClass: React.Component<*>,
-  channelNameToConvID: {[string]: Types.ConversationIDKey},
   isBroken: boolean,
   isEdited: boolean,
   isEditing: boolean,

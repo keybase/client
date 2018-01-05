@@ -105,7 +105,6 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
     isRevoked,
     isSelected: ownProps.isSelected,
     isYou: stateProps.isYou,
-    channelNameToConvID: ownProps.channelNameToConvID,
     measure: ownProps.measure,
     messageKey: ownProps.messageKey,
     onRetry: () => {

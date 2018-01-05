@@ -25,7 +25,6 @@ export type MarkdownMeta = {
   mentions: Mentions,
   channelMention: ChannelMention,
   channelNameMentions: ChannelNameMentions,
-  channelNameToConvID: {[string]: ConversationIDKey},
 }
 
 export type Props = {
