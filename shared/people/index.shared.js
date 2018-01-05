@@ -2,26 +2,16 @@
 import * as React from 'react'
 import * as Types from '../constants/types/people'
 import {Box, ClickableBox, Icon, Text} from '../common-adapters'
-import Todo from './task'
+import Todo from './task/container'
 import FollowNotification from './follow-notification'
 import FollowSuggestions from './follow-suggestions'
 import {type Props} from '.'
 import {globalStyles, globalColors} from '../styles'
 
-export const itemToComponent: (
-  Types._PeopleScreenItem,
-  {[key: Types.TodoType]: {onConfirm: () => void, onDismiss: () => void}}
-) => React.Node = (item, actions) => {
+export const itemToComponent: Types._PeopleScreenItem => React.Node = (item, actions) => {
   switch (item.type) {
     case 'todo':
-      return (
-        <Todo
-          {...item}
-          onConfirm={actions[item.todoType].onConfirm}
-          onDismiss={actions[item.todoType].onDismiss}
-          key={item.todoType}
-        />
-      )
+      return <Todo {...item} key={item.todoType} />
     case 'notification':
       return <FollowNotification {...item} key={item.notificationTime} />
   }
@@ -60,9 +50,9 @@ export const PeoplePageSearchBar = (
 
 export const PeoplePageList = (props: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, width: '100%', position: 'relative', marginTop: 48}}>
-    {props.newItems.map(item => itemToComponent(item, props.todoDispatch))}
+    {props.newItems.map(item => itemToComponent(item))}
     <FollowSuggestions suggestions={props.followSuggestions} onClickUser={props.onClickUser} />
-    {props.oldItems.map(item => itemToComponent(item, props.todoDispatch))}
+    {props.oldItems.map(item => itemToComponent(item))}
   </Box>
 )
 

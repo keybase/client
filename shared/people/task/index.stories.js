@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import {storiesOf, action} from '../../stories/storybook'
-import Task, {type Props} from '.'
+import {Task, type Props} from '.'
 
 const actionProps = {
   onConfirm: action('onConfirm'),
