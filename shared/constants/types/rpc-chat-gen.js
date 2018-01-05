@@ -926,7 +926,7 @@ export type MessageSystemComplexTeam = {|team: String|}
 
 export type MessageSystemCreateTeam = {|team: String, creator: String|}
 
-export type MessageSystemGitPush = {|team: String, pusher: String, repoName: String, branchName: String, commitMsgs?: ?Array<String>|}
+export type MessageSystemGitPush = {|team: String, pusher: String, repoName: String, refs?: ?Array<Keybase1.GitRefMetadata>|}
 
 export type MessageSystemInviteAddedToTeam = {|team: String, inviter: String, invitee: String, adder: String, inviteType: Keybase1.TeamInviteCategory|}
 

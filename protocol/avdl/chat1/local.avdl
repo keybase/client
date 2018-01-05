@@ -65,8 +65,7 @@ protocol local {
     string team;
     string pusher;
     string repoName;
-    string branchName;
-    array<string> commitMsgs;
+    array<keybase1.GitRefMetadata> refs;
   }
 
   variant MessageSystem switch (MessageSystemType systemType) {

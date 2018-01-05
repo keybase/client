@@ -198,15 +198,11 @@
           "name": "repoName"
         },
         {
-          "type": "string",
-          "name": "branchName"
-        },
-        {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "keybase1.GitRefMetadata"
           },
-          "name": "commitMsgs"
+          "name": "refs"
         }
       ]
     },
