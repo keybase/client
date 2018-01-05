@@ -17,7 +17,6 @@ export type StateProps = {|
 |}
 
 export type DispatchProps = {|
-  _loadChannels: (teamname: string) => void,
   _onDownloadAttachment: (messageKey: Types.MessageKey) => void,
   _onLoadMoreMessages: (conversationIDKey: Types.ConversationIDKey) => void,
   onDeleteMessage: (message: Types.Message) => void,

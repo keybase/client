@@ -4,7 +4,6 @@ import {List} from 'immutable'
 import * as Types from '../../../constants/types/chat'
 
 export type Props = {|
-  _loadChannels: () => void,
   messageKeys: List<string>,
   editLastMessageCounter: number,
   listScrollDownCounter: number,

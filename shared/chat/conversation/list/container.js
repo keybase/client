@@ -3,12 +3,11 @@ import * as Constants from '../../../constants/chat'
 import * as Types from '../../../constants/types/chat'
 import * as ChatGen from '../../../actions/chat-gen'
 import * as KBFSGen from '../../../actions/kbfs-gen'
-import * as TeamsGen from '../../../actions/teams-gen'
 import * as Selectors from '../../../constants/selectors'
 import * as I from 'immutable'
 import HiddenString from '../../../util/hidden-string'
 import ListComponent, {type Props} from '.'
-import {compose, connect, lifecycle, type TypedState} from '../../../util/container'
+import {compose, connect, type TypedState} from '../../../util/container'
 import {createSelector, createSelectorCreator, defaultMemoize} from 'reselect'
 import {navigateAppend} from '../../../actions/route-tree'
 import {type OwnProps, type StateProps, type DispatchProps} from './container'
@@ -105,7 +104,6 @@ const mapStateToProps = createSelector(
 )
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
-  _loadChannels: teamname => dispatch(TeamsGen.createGetChannels({teamname})),
   _onDownloadAttachment: messageKey => {
     dispatch(ChatGen.createSaveAttachment({messageKey}))
   },
@@ -163,9 +161,6 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props
     Constants.getMessageFromMessageKey(_stateHack, messageKey)
 
   return {
-    _loadChannels: () => {
-      if (stateProps.teamname) dispatchProps._loadChannels(stateProps.teamname)
-    },
     editLastMessageCounter: stateProps.editLastMessageCounter,
     getMessageFromMessageKey,
     listScrollDownCounter: stateProps.listScrollDownCounter,
@@ -188,12 +183,5 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props
   }
 }
 
-export default compose(
-  // $FlowIssue
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  lifecycle({
-    componentDidMount: function() {
-      this.props._loadChannels()
-    },
-  })
-)(ListComponent)
+// $FlowIssue
+export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps))(ListComponent)
