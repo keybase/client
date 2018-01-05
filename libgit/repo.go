@@ -220,7 +220,7 @@ func UpdateRepoMD(ctx context.Context, config libkbfs.Config,
 				break
 			}
 			kbCommits = append(kbCommits, keybase1.GitCommit{
-				CommitHash:  hex.Dump(c.Hash[:]),
+				CommitHash:  hex.EncodeToString(c.Hash[:]),
 				Message:     c.Message,
 				AuthorName:  c.Author.Name,
 				AuthorEmail: c.Author.Email,
