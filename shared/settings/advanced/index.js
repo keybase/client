@@ -1,12 +1,41 @@
 // @flow
 import * as React from 'react'
-import {globalStyles, globalMargins} from '../../styles'
-import {Box, Button, Text} from '../../common-adapters'
+import {globalStyles, globalMargins, globalColors, isMobile} from '../../styles'
+import {Box, Button, Text, Checkbox} from '../../common-adapters'
 
 type Props = {
+  openAtLogin: boolean,
+  onSetOpenAtLogin: (open: boolean) => void,
   onDBNuke: () => void,
   onBack: () => void,
 }
+
+const Advanced = (props: Props) => (
+  <Box
+    style={{
+      ...globalStyles.flexBoxColumn,
+      flex: 1,
+      padding: globalMargins.medium,
+    }}
+  >
+    {!isMobile && (
+      <Box
+        style={{
+          ...globalStyles.flexBoxColumn,
+          alignItems: 'left',
+          flex: 1,
+        }}
+      >
+        <Checkbox
+          label="Open Keybase on startup"
+          checked={props.openAtLogin}
+          onCheck={props.onSetOpenAtLogin}
+        />
+      </Box>
+    )}
+    <DBNuke {...props} />
+  </Box>
+)
 
 function DBNuke(props: Props) {
   return (
@@ -14,15 +43,15 @@ function DBNuke(props: Props) {
       style={{
         ...globalStyles.flexBoxColumn,
         alignItems: 'center',
-        flex: 1,
-        padding: globalMargins.medium,
         paddingTop: globalMargins.xlarge,
         paddingBottom: globalMargins.medium,
+        flex: 1,
       }}
     >
-      <Text type="BodySemibold" style={{textAlign: 'center'}}>
-        Please don't do anything here unless instructed to by a developer.
+      <Text type="BodySmallSemibold" style={{textAlign: 'center'}}>
+        (Please don't do anything below here unless instructed to by a developer.)
       </Text>
+      <Box style={{width: '100%', height: 2, backgroundColor: globalColors.grey}} />
       <Button
         style={{marginTop: globalMargins.small}}
         type="Danger"
@@ -34,4 +63,4 @@ function DBNuke(props: Props) {
   )
 }
 
-export default DBNuke
+export default Advanced

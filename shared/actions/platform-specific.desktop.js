@@ -1,6 +1,10 @@
 // @flow
 import {showDockIcon} from '../desktop/app/dock-icon'
 import {getMainWindow} from '../desktop/remote/util'
+// import {remote} from 'electron'
+// import fs from 'fs'
+// import path from 'path'
+import {ipcRenderer} from 'electron'
 
 function showShareActionSheet(options: {
   url?: ?any,
@@ -26,6 +30,17 @@ function setNoPushPermissions(): Promise<*> {
   throw new Error('Push permissions unsupported on this platform')
 }
 
+function setAppState(toMerge: Object) {
+  ipcRenderer.send('setAppState', toMerge)
+}
+
+function getAppState(): Promise<*> {
+  return new Promise((resolve, reject) => {
+    ipcRenderer.once('getAppStateReply', (event, data) => resolve(data))
+    ipcRenderer.send('getAppState')
+  })
+}
+
 function showMainWindow() {
   const mw = getMainWindow()
   mw && mw.show()
@@ -44,6 +59,8 @@ export {
   requestPushPermissions,
   showMainWindow,
   configurePush,
+  getAppState,
+  setAppState,
   saveAttachmentDialog,
   showShareActionSheet,
   setNoPushPermissions,

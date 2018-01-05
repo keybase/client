@@ -41,6 +41,12 @@ function SettingsNav({badgeNumbers, selectedTab, onTabChange, onLogout}: Props) 
         onClick={() => onTabChange(Constants.notificationsTab)}
       />
       <SettingsItem
+        text="Advanced"
+        selected={selectedTab === Constants.advancedTab}
+        badgeNumber={0}
+        onClick={() => onTabChange(Constants.advancedTab)}
+      />
+      <SettingsItem
         text="Delete Me"
         selected={selectedTab === Constants.deleteMeTab}
         badgeNumber={0}

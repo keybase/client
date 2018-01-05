@@ -1,10 +1,11 @@
 // @flow
 // This is modified from https://github.com/mawie81/electron-window-state
-import {app, screen} from 'electron'
+import {app, screen, ipcMain} from 'electron'
 import fs from 'fs'
 import path from 'path'
 import {appBundlePath} from './paths'
 import isEqual from 'lodash/isEqual'
+import {windowStyle} from '../../styles'
 
 export type State = {
   x: ?number,
@@ -17,7 +18,7 @@ export type State = {
   displayBounds: ?any,
   tab: ?string,
   dockHidden: boolean,
-  openAtLoginSet: boolean,
+  openAtLogin: boolean,
 }
 
 export type Config = {
@@ -45,35 +46,50 @@ export default class AppState {
   config: Config
   managed: Managed
 
-  constructor(opts: Options) {
+  constructor() {
     this.state = {
+      displayBounds: null,
+      dockHidden: false,
+      height: windowStyle.height,
+      isFullScreen: null,
+      isMaximized: null,
+      openAtLogin: true,
+      tab: null,
+      width: windowStyle.width,
+      windowHidden: false,
       x: null,
       y: null,
-      width: opts.defaultWidth,
-      height: opts.defaultHeight,
-      windowHidden: false,
-      isMaximized: null,
-      isFullScreen: null,
-      displayBounds: null,
-      tab: null,
-      dockHidden: false,
-      openAtLoginSet: false,
     }
 
     this.config = {
+      eventHandlingDelay: 1000,
       path: path.join(app.getPath('userData'), 'app-state.json'),
-      eventHandlingDelay: 100,
     }
 
     this.managed = {
-      debounceChangeTimer: null,
-      winRef: null,
-      showHandlers: [],
-      resizeHandlers: [],
-      moveHandlers: [],
       closeHandlers: [],
       closedHandlers: [],
+      debounceChangeTimer: null,
+      moveHandlers: [],
+      resizeHandlers: [],
+      showHandlers: [],
+      winRef: null,
     }
+
+    // Listen to the main window asking for this value
+    ipcMain.on('getAppState', event => {
+      console.log(`aaa sending app state ${JSON.stringify(this.state, null, 2)}`)
+      event.sender.send('getAppStateReply', this.state)
+    })
+
+    ipcMain.on('setAppState', (event, data) => {
+      console.log(`aaaaaa writing app state ${JSON.stringify(data, null, 2)}`)
+      this.state = {
+        ...this.state,
+        ...data,
+      }
+      this.saveState()
+    })
 
     this._loadStateSync()
     this._loadAppListeners()
@@ -93,16 +109,48 @@ export default class AppState {
     } catch (err) {
       console.log(`Error saving file: ${err}`)
     }
+
+    if (app.getLoginItemSettings().openAtLogin !== this.state.openAtLogin) {
+      console.log(`Login item settings changed! now ${this.state.openAtLogin ? 'true' : 'false'}`)
+      this.setOSLoginState()
+    }
   }
 
   checkOpenAtLogin() {
-    if (!this.state.openAtLoginSet && appBundlePath() === '/Applications/Keybase.app') {
-      console.log('Setting open at login')
-      app.setLoginItemSettings({
-        openAtLogin: true,
-      })
-      this.state.openAtLoginSet = true
-      this.saveState()
+    if (!this.state.openAtLogin) {
+      console.log('Skip setting login item due to user pref')
+      return
+    }
+    console.log('aaaaaaa PUT BACK')
+    // if (__DEV__) {
+    // console.log('Skip setting login item due to dev env')
+    // return
+    // }
+    console.log('Setting login item due to user pref')
+    this.setOSLoginState()
+  }
+
+  setOSLoginState() {
+    const isDarwin = process.platform === 'darwin'
+    // Electron has a bug where setting this to false fails!
+    // https://github.com/electron/electron/issues/10880
+    if (isDarwin) {
+      const applescript = require('applescript')
+      try {
+        const appName = __DEV__ ? 'Electron' : 'Keybase'
+        const command = this.state.openAtLogin
+          ? `tell application "System Events" to make login item at end with properties {path:"${appBundlePath() ||
+              ''}", hidden:false, name:"${appName}"}`
+          : `tell application "System Events" to delete login item "${appName}"`
+        console.log(`aaaa sending applescirp: ${command}`)
+        applescript.execString(command, (err, result) => {
+          console.log(`aaa applescirpr: ${err} ${result}`)
+        })
+      } catch (e) {
+        console.log('Error setting apple startup prefs: ', e)
+      }
+    } else {
+      app.setLoginItemSettings({openAtLogin: !!this.state.openAtLogin})
     }
   }
 
@@ -179,10 +227,10 @@ export default class AppState {
   _isValidWindowState(state: State): boolean {
     // Check if the display where the window was last open is still available
     let rect = {
+      height: state.height,
+      width: state.width,
       x: state.x || 0,
       y: state.y || 0,
-      width: state.width,
-      height: state.height,
     }
     let displayBounds = screen.getDisplayMatching(rect).bounds
     console.log('Check bounds:', rect, state.displayBounds, displayBounds)
@@ -203,6 +251,11 @@ export default class AppState {
       if (!this._isValidWindowState(stateLoaded)) {
         stateLoaded.x = null
         stateLoaded.y = null
+      }
+
+      if (!stateLoaded.hasOwnProperty('openAtLogin')) {
+        // always make sure we have, this
+        stateLoaded.openAtLogin = true
       }
 
       this.state = stateLoaded
