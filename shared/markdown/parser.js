@@ -195,7 +195,7 @@ function peg$parse(input, options) {
         return channel.length > 0 && channel.length <= 20 &&
           options && options.channelNameToConvID && options.channelNameToConvID(channel)
       },
-      peg$c39 = function(children) { return {type: 'channel', children: flatten(children) } },
+      peg$c39 = function(children) { return {type: 'channel', children: flatten(children), convID: options && options.channelNameToConvID && options.channelNameToConvID(flatten(children)[0]) } },
       peg$c40 = function(code) { return {type: 'code-block', children: [code]} },
       peg$c41 = function(code) { return {type: 'inline-code', children: [code]} },
       peg$c42 = /^[a-zA-Z0-9+_\-]/,

@@ -235,12 +235,12 @@ this is a code block with two newline above\`\`\`
     check('@validmarco ```@validmarco``` ```this is a code block @validmarco```', {isValidMention})
   })
 
-  const channelNameToConvID = (s: string) => s.startsWith('valid') && 'fakeConvID'
+  const channelNameToConvID = (s: string) => s.startsWith('valid') && 'fakeConvID-' + s
 
   it('parses channels correctly', () => {
     check('hello there #some_channel #valid_channel', {channelNameToConvID})
     // Too short.
-    check('hello there #', {channelNameToConvID: (s: string) => 'fakeConvID'})
+    check('hello there #', {channelNameToConvID: (s: string) => 'fakeConvID-' + s})
     // Too long.
     check('hello there #valid6789012345678901', {channelNameToConvID})
   })
@@ -252,7 +252,7 @@ this is a code block with two newline above\`\`\`
     // Even if we disallow valid_channel_ as a valid channel, prefixes
     // won't be tried, and so the whole thing renders as regular text.
     check('hello there _#valid_channel_', {
-      channelNameToConvID: (s: string) => s === 'valid_channel' && 'fakeConvID',
+      channelNameToConvID: (s: string) => s === 'valid_channel' && 'fakeConvID-valid_channel',
     })
   })
 })
