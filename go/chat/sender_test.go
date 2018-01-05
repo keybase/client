@@ -159,7 +159,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	sender := NewNonblockingSender(g, baseSender)
 	listener := chatListener{
 		incoming:       make(chan int, 100),
-		failing:        make(chan []chat1.OutboxRecord),
+		failing:        make(chan []chat1.OutboxRecord, 100),
 		identifyUpdate: make(chan keybase1.CanonicalTLFNameAndIDWithBreaks, 10),
 		inboxStale:     make(chan struct{}, 1),
 		threadsStale:   make(chan []chat1.ConversationStaleUpdate, 1),
@@ -304,6 +304,7 @@ func TestNonblockTimer(t *testing.T) {
 	}
 
 	outbox := storage.NewOutbox(tc.Context(), u.User.GetUID().ToBytes())
+	outbox.SetClock(clock)
 	var obids []chat1.OutboxID
 	msgID := *sentRef[len(sentRef)-1].msgID
 	for i := 0; i < 5; i++ {
@@ -329,6 +330,11 @@ func TestNonblockTimer(t *testing.T) {
 	select {
 	case <-listener.incoming:
 		require.Fail(t, "action event received too soon")
+	default:
+	}
+	select {
+	case <-listener.failing:
+		require.Fail(t, "failed message")
 	default:
 	}
 
@@ -364,6 +370,7 @@ func TestNonblockTimer(t *testing.T) {
 	clock.Advance(5 * time.Minute)
 
 	// Should get a blast of all 5
+
 	var olen int
 	for i := 0; i < 10; i++ {
 		select {
@@ -466,6 +473,47 @@ func TestFailingSender(t *testing.T) {
 	state, err := recvd[0].State.State()
 	require.NoError(t, err)
 	require.Equal(t, chat1.OutboxStateType_ERROR, state, "wrong state type")
+}
+
+func TestOutboxItemExpiration(t *testing.T) {
+	ctx, world, ri, sender, baseSender, listener := setupTest(t, 1)
+	defer world.Cleanup()
+
+	u := world.GetUsers()[0]
+	uid := u.User.GetUID().ToBytes()
+	cl := world.Fc
+	tc := userTc(t, world, u)
+	conv := newBlankConv(ctx, t, tc, uid, ri, baseSender, u.Username)
+
+	tc.ChatG.MessageDeliverer.Disconnected(ctx)
+	tc.ChatG.MessageDeliverer.(*Deliverer).SetSender(baseSender)
+	obid, _, _, err := sender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:      conv.Metadata.IdTriple,
+			Sender:    u.User.GetUID().ToBytes(),
+			TlfName:   u.Username,
+			TlfPublic: false,
+		},
+	}, 0, nil)
+	require.NoError(t, err)
+	cl.Advance(20 * time.Minute)
+	tc.ChatG.MessageDeliverer.Connected(ctx)
+	select {
+	case f := <-listener.failing:
+		require.Len(t, f, 1)
+		require.Equal(t, obid, f[0].OutboxID)
+		st, err := f[0].State.State()
+		require.NoError(t, err)
+		require.Equal(t, chat1.OutboxStateType_ERROR, st)
+		require.Equal(t, chat1.OutboxErrorType_EXPIRED, f[0].State.Error().Typ)
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no failing message")
+	}
+	select {
+	case <-listener.incoming:
+		require.Fail(t, "no incoming message")
+	default:
+	}
 }
 
 func TestDisconnectedFailure(t *testing.T) {

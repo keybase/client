@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 func IsLoggedIn(e Engine, ctx *Context) (ret bool, uid keybase1.UID, err error) {

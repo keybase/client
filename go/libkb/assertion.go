@@ -671,12 +671,12 @@ func parseImplicitTeamPart(ctx AssertionContext, s string) (typ string, name str
 }
 
 func FormatImplicitTeamDisplayNameSuffix(conflict keybase1.ImplicitTeamConflictInfo) string {
-	return fmt.Sprintf("(conflicted %v #%v)",
+	return fmt.Sprintf("(conflicted copy %v #%v)",
 		conflict.Time.Time().UTC().Format("2006-01-02"),
 		conflict.Generation)
 }
 
-// Parse a name like "mlsteele,malgorithms@twitter#bot (conflicted 2017-03-04 #2)"
+// Parse a name like "mlsteele,malgorithms@twitter#bot (conflicted copy 2017-03-04 #2)"
 func ParseImplicitTeamDisplayName(ctx AssertionContext, s string, isPublic bool) (ret keybase1.ImplicitTeamDisplayName, err error) {
 	// Turn the whole string tolower
 	s = strings.ToLower(s)
@@ -726,7 +726,7 @@ func ParseImplicitTeamDisplayName(ctx AssertionContext, s string, isPublic bool)
 	return ret, nil
 }
 
-var implicitTeamDisplayNameConflictRxx = regexp.MustCompile(`^\(conflicted (\d{4}-\d{2}-\d{2})( #(\d+))?\)$`)
+var implicitTeamDisplayNameConflictRxx = regexp.MustCompile(`^\(conflicted copy (\d{4}-\d{2}-\d{2})( #(\d+))?\)$`)
 
 func ParseImplicitTeamDisplayNameSuffix(suffix string) (ret *keybase1.ImplicitTeamConflictInfo, err error) {
 	if len(suffix) == 0 {
@@ -785,7 +785,7 @@ func parseImplicitTeamUserSet(ctx AssertionContext, s string, seen map[string]bo
 	return ret, nil
 }
 
-// Parse a name like "/keybase/private/mlsteele,malgorithms@twitter#bot (conflicted 2017-03-04 #2)"
+// Parse a name like "/keybase/private/mlsteele,malgorithms@twitter#bot (conflicted copy 2017-03-04 #2)"
 func ParseImplicitTeamTLFName(ctx AssertionContext, s string) (keybase1.ImplicitTeamDisplayName, error) {
 	ret := keybase1.ImplicitTeamDisplayName{}
 	s = strings.ToLower(s)

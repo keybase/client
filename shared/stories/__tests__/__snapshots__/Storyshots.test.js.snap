@@ -24498,9 +24498,10 @@ exports[`Storyshots Edit team description Description changed 1`] = `
                 style={
                   Object {
                     "alignItems": "center",
+                    "alignSelf": "stretch",
                     "display": "flex",
                     "flexDirection": "column",
-                    "flexShrink": 0,
+                    "flexGrow": 1,
                     "marginBottom": 16,
                     "marginTop": 16,
                   }
@@ -24516,7 +24517,7 @@ exports[`Storyshots Edit team description Description changed 1`] = `
                 >
                   Brief description
                 </span>
-                <input
+                <textarea
                   autoFocus={undefined}
                   className={undefined}
                   onBlur={[Function]}
@@ -24529,6 +24530,7 @@ exports[`Storyshots Edit team description Description changed 1`] = `
                   onKeyUp={[Function]}
                   placeholder="Brief description"
                   readOnly={undefined}
+                  rows={2}
                   style={
                     Object {
                       "WebkitFontSmoothing": "antialiased",
@@ -24540,16 +24542,21 @@ exports[`Storyshots Edit team description Description changed 1`] = `
                       "fontFamily": "OpenSans",
                       "fontSize": 16,
                       "fontWeight": 600,
-                      "height": 28,
+                      "height": "initial",
                       "lineHeight": "20px",
-                      "maxWidth": 460,
+                      "minHeight": 41,
                       "minWidth": 333,
                       "outlineWidth": 0,
+                      "overflowY": "hidden",
+                      "paddingBottom": 0,
+                      "paddingTop": 0,
+                      "resize": "none",
                       "textAlign": "center",
                       "textRendering": "optimizeLegibility",
+                      "width": "100%",
+                      "wrap": "off",
                     }
                   }
-                  type="text"
                   value="Second description"
                 />
               </div>
@@ -24922,9 +24929,10 @@ exports[`Storyshots Edit team description Description unchanged 1`] = `
                 style={
                   Object {
                     "alignItems": "center",
+                    "alignSelf": "stretch",
                     "display": "flex",
                     "flexDirection": "column",
-                    "flexShrink": 0,
+                    "flexGrow": 1,
                     "marginBottom": 16,
                     "marginTop": 16,
                   }
@@ -24940,7 +24948,7 @@ exports[`Storyshots Edit team description Description unchanged 1`] = `
                 >
                   Brief description
                 </span>
-                <input
+                <textarea
                   autoFocus={undefined}
                   className={undefined}
                   onBlur={[Function]}
@@ -24953,6 +24961,7 @@ exports[`Storyshots Edit team description Description unchanged 1`] = `
                   onKeyUp={[Function]}
                   placeholder="Brief description"
                   readOnly={undefined}
+                  rows={2}
                   style={
                     Object {
                       "WebkitFontSmoothing": "antialiased",
@@ -24964,16 +24973,21 @@ exports[`Storyshots Edit team description Description unchanged 1`] = `
                       "fontFamily": "OpenSans",
                       "fontSize": 16,
                       "fontWeight": 600,
-                      "height": 28,
+                      "height": "initial",
                       "lineHeight": "20px",
-                      "maxWidth": 460,
+                      "minHeight": 41,
                       "minWidth": 333,
                       "outlineWidth": 0,
+                      "overflowY": "hidden",
+                      "paddingBottom": 0,
+                      "paddingTop": 0,
+                      "resize": "none",
                       "textAlign": "center",
                       "textRendering": "optimizeLegibility",
+                      "width": "100%",
+                      "wrap": "off",
                     }
                   }
-                  type="text"
                   value="First description"
                 />
               </div>

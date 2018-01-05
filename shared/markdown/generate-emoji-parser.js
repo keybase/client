@@ -34,8 +34,10 @@ function genEmojiData() {
         addEmojiLiteral(emoji.skin_variations[k].unified, emoji.short_name, idx + 1)
       )
     }
-    emoji.variations.forEach(v => addEmojiLiteral(v, emoji.short_name))
     addEmojiLiteral(emoji.unified, emoji.short_name)
+    if (emoji.non_qualified) {
+      addEmojiLiteral(emoji.non_qualified, emoji.short_name)
+    }
   })
 
   emojiLiterals.sort((a, b) => b.length - a.length)

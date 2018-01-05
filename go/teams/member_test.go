@@ -449,7 +449,7 @@ func TestMemberAddEmail(t *testing.T) {
 	// existing invite should be untouched
 	assertInvite(tc, name, address, "email", keybase1.TeamRole_READER)
 
-	annotatedTeamList, err := List(context.TODO(), tc.G, keybase1.TeamListArg{UserAssertion: "", All: true})
+	annotatedTeamList, err := ListAll(context.TODO(), tc.G, keybase1.TeamListTeammatesArg{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -482,13 +482,13 @@ func TestMemberAddEmailBulk(t *testing.T) {
 	tc, _, name := memberSetup(t)
 	defer tc.Cleanup()
 
-	blob := "u1@keybase.io, u2@keybase.io\nu3@keybase.io,u4@keybase.io, u5@keybase.io,u6@keybase.io, u7@keybase.io\n\n\nFull Name <fullname@keybase.io>, Someone Else <someone@keybase.io>,u8@keybase.io\n\n"
+	blob := "u1@keybase.io, u2@keybase.io\nu3@keybase.io,u4@keybase.io, u5@keybase.io,u6@keybase.io, u7@keybase.io\n\n\nFull Name <fullname@keybase.io>, Someone Else <someone@keybase.io>,u8@keybase.io\n\nXXXXXXXXXXXX"
 
 	res, err := AddEmailsBulk(context.TODO(), tc.G, name, blob, keybase1.TeamRole_WRITER)
 	if err != nil {
 		t.Fatal(err)
 	}
-	emails := []string{"u1@keybase.io", "u2@keybase.io", "u3@keybase.io", "u4@keybase.io", "u5@keybase.io", "u6@keybase.io", "u7@keybase.io", "u8@keybase.io"}
+	emails := []string{"u1@keybase.io", "u2@keybase.io", "u3@keybase.io", "u4@keybase.io", "u5@keybase.io", "u6@keybase.io", "u7@keybase.io", "fullname@keybase.io", "someone@keybase.io", "u8@keybase.io"}
 
 	if len(res.Invited) != len(emails) {
 		t.Logf("invited: %+v", res.Invited)
@@ -497,11 +497,7 @@ func TestMemberAddEmailBulk(t *testing.T) {
 	if len(res.AlreadyInvited) != 0 {
 		t.Errorf("num already invited: %d, expected 0", len(res.AlreadyInvited))
 	}
-	if len(res.Malformed) != 2 {
-		t.Logf("malformed: %+v", res.Malformed)
-		t.Errorf("num malformed: %d, expected 0", len(res.Malformed))
-	}
-
+	require.Len(t, res.Malformed, 1)
 	for _, e := range emails {
 		assertInvite(tc, name, e, "email", keybase1.TeamRole_WRITER)
 	}
@@ -524,7 +520,7 @@ func TestMemberListInviteUsername(t *testing.T) {
 		ForceRepoll: true,
 	})
 
-	annotatedTeamList, err := List(context.TODO(), tc.G, keybase1.TeamListArg{UserAssertion: "", All: true})
+	annotatedTeamList, err := ListAll(context.TODO(), tc.G, keybase1.TeamListTeammatesArg{})
 	require.NoError(t, err)
 	require.Equal(t, 0, len(annotatedTeamList.AnnotatedActiveInvites))
 	require.Equal(t, 2, len(annotatedTeamList.Teams))
@@ -787,15 +783,9 @@ func assertInvite(tc libkb.TestContext, name, username, typ string, role keybase
 		tc.T.Fatal(err)
 	}
 	invite, err := memberInvite(context.TODO(), tc.G, name, iname, itype)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
-	if invite == nil {
-		tc.T.Fatalf("no invite found for team %s %s/%s", name, username, typ)
-	}
-	if invite.Role != role {
-		tc.T.Fatalf("invite role: %s, expected %s", invite.Role, role)
-	}
+	require.NoError(tc.T, err)
+	require.NotNil(tc.T, invite)
+	require.Equal(tc.T, role, invite.Role)
 }
 
 func assertNoInvite(tc libkb.TestContext, name, username, typ string) {

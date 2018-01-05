@@ -75,11 +75,65 @@
     },
     {
       "type": "record",
+      "name": "GitCommit",
+      "fields": [
+        {
+          "type": "string",
+          "name": "commitHash"
+        },
+        {
+          "type": "string",
+          "name": "message"
+        },
+        {
+          "type": "string",
+          "name": "authorName"
+        },
+        {
+          "type": "string",
+          "name": "authorEmail"
+        },
+        {
+          "type": "Time",
+          "name": "ctime"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GitRefMetadata",
+      "fields": [
+        {
+          "type": "string",
+          "name": "refName"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "GitCommit"
+          },
+          "name": "commits"
+        },
+        {
+          "type": "boolean",
+          "name": "moreCommitsAvailable"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "GitLocalMetadata",
       "fields": [
         {
           "type": "GitRepoName",
           "name": "repoName"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "GitRefMetadata"
+          },
+          "name": "refs"
         }
       ]
     },
@@ -172,6 +226,23 @@
         {
           "type": "boolean",
           "name": "canDelete"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GitTeamRepoSettings",
+      "fields": [
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "channelName"
+        },
+        {
+          "type": "boolean",
+          "name": "chatDisabled"
         }
       ]
     }
@@ -307,6 +378,43 @@
         },
         {
           "name": "force",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    },
+    "getTeamRepoSettings": {
+      "request": [
+        {
+          "name": "folder",
+          "type": "Folder"
+        },
+        {
+          "name": "repoID",
+          "type": "RepoID"
+        }
+      ],
+      "response": "GitTeamRepoSettings"
+    },
+    "setTeamRepoSettings": {
+      "request": [
+        {
+          "name": "folder",
+          "type": "Folder"
+        },
+        {
+          "name": "repoID",
+          "type": "RepoID"
+        },
+        {
+          "name": "channelName",
+          "type": [
+            null,
+            "string"
+          ]
+        },
+        {
+          "name": "chatDisabled",
           "type": "boolean"
         }
       ],

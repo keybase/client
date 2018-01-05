@@ -23,7 +23,7 @@ func newMsgIDTracker(g *globals.Context) *msgIDTracker {
 	}
 }
 
-func (t *msgIDTracker) makeMaxMsgIDKey(convID chat1.ConversationID, uid gregor1.UID) libkb.DbKey {
+func (t *msgIDTracker) makeDbKey(convID chat1.ConversationID, uid gregor1.UID) libkb.DbKey {
 	return libkb.DbKey{
 		Typ: libkb.DBChatBlocks,
 		Key: fmt.Sprintf("maxMsgID:%s:%s", uid, convID),
@@ -35,7 +35,7 @@ func (t *msgIDTracker) bumpMaxMessageID(
 
 	// No need to use transaction here since the Storage class takes lock.
 
-	maxMsgIDKey := t.makeMaxMsgIDKey(convID, uid)
+	maxMsgIDKey := t.makeDbKey(convID, uid)
 
 	raw, found, err := t.G().LocalChatDb.GetRaw(maxMsgIDKey)
 	if err != nil {
@@ -65,7 +65,7 @@ func (t *msgIDTracker) bumpMaxMessageID(
 func (t *msgIDTracker) getMaxMessageID(
 	ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (chat1.MessageID, Error) {
 
-	maxMsgIDKey := t.makeMaxMsgIDKey(convID, uid)
+	maxMsgIDKey := t.makeDbKey(convID, uid)
 
 	raw, found, err := t.G().LocalChatDb.GetRaw(maxMsgIDKey)
 	if err != nil {

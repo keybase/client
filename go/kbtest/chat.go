@@ -46,6 +46,7 @@ func (c ChatTestContext) Cleanup() {
 type ChatMockWorld struct {
 	Fc clockwork.FakeClock
 
+	T       testing.TB
 	Tcs     map[string]*ChatTestContext
 	TcsByID map[string]*ChatTestContext
 	Users   map[string]*FakeUser
@@ -61,6 +62,7 @@ type ChatMockWorld struct {
 
 func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *ChatMockWorld) {
 	world = &ChatMockWorld{
+		T:       t,
 		Fc:      clockwork.NewFakeClockAt(time.Now()),
 		Tcs:     make(map[string]*ChatTestContext),
 		TcsByID: make(map[string]*ChatTestContext),
@@ -491,6 +493,8 @@ func (m *ChatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg
 	conv := m.world.GetConversationByID(arg.ConversationID)
 	ri := m.makeReaderInfo(conv.Metadata.ConversationID)
 	inserted := m.insertMsgAndSort(arg.ConversationID, arg.MessageBoxed)
+	m.world.T.Logf("PostRemote(convid:%v, msgid:%v, %v)",
+		arg.ConversationID, inserted.ServerHeader.MessageID, arg.MessageBoxed.GetMessageType())
 	if ri.ReadMsgid == ri.MaxMsgid {
 		m.readMsgid[arg.ConversationID.String()] = inserted.ServerHeader.MessageID
 	}
@@ -696,6 +700,17 @@ func (m *ChatRemoteMock) PreviewConversation(ctx context.Context, convID chat1.C
 
 func (m *ChatRemoteMock) DeleteConversation(ctx context.Context, convID chat1.ConversationID) (chat1.DeleteConversationRemoteRes, error) {
 	return chat1.DeleteConversationRemoteRes{}, nil
+}
+
+func (m *ChatRemoteMock) GetMessageBefore(ctx context.Context, arg chat1.GetMessageBeforeArg) (chat1.GetMessageBeforeRes, error) {
+	// Ignore age and get the latest message
+	var latest chat1.MessageID
+	for _, msg := range m.world.Msgs[arg.ConvID.String()] {
+		if msg.ServerHeader.MessageID >= latest {
+			latest = msg.ServerHeader.MessageID
+		}
+	}
+	return chat1.GetMessageBeforeRes{MsgID: latest}, nil
 }
 
 type convByNewlyUpdated struct {
