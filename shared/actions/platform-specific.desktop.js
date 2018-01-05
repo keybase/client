@@ -1,9 +1,6 @@
 // @flow
 import {showDockIcon} from '../desktop/app/dock-icon'
 import {getMainWindow} from '../desktop/remote/util'
-// import {remote} from 'electron'
-// import fs from 'fs'
-// import path from 'path'
 import {ipcRenderer} from 'electron'
 
 function showShareActionSheet(options: {
