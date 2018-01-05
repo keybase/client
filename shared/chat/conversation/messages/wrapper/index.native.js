@@ -12,7 +12,7 @@ const dismissKeyboard = () => {
 
 const NativeWrapper = (props: Props) => (
   <NativeTouchableHighlight
-    onLongPress={props.onAction}
+    onLongPress={props.onShowMenu}
     underlayColor={globalColors.black_10}
     onPress={dismissKeyboard}
   >

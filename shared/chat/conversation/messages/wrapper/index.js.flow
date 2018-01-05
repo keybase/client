@@ -17,7 +17,7 @@ export type Props = {|
   isYou: boolean,
   loadMoreType: null | 'moreToLoad' | 'noMoreToLoad',
   message: Types.Message,
-  onAction: (event: SyntheticEvent<>) => void,
+  onShowMenu: (event: SyntheticEvent<>) => void,
   onRetry: () => void,
   onShowEditor: (event: SyntheticEvent<>) => void,
   onAuthorClick: () => void,

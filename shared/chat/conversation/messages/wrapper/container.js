@@ -1,14 +1,15 @@
 // @flow
-import * as Constants2 from '../../../../constants/chat2'
-// import * as Types2 from '../../../../constants/types/chat2'
 // import * as Chat2Gen from '../../../../actions/chat2-gen'
+// import {lookupMessageProps} from '../../../shared'
+import * as Constants from '../../../../constants/chat2'
+import * as Types from '../../../../constants/types/chat2'
 import Wrapper from '.'
 import {connect, type TypedState} from '../../../../util/container'
-import {formatTimeForMessages} from '../../../../util/timestamp'
-// import {lookupMessageProps} from '../../../shared'
-import {createShowUserProfile} from '../../../../actions/profile-gen'
 import {createGetProfile} from '../../../../actions/tracker-gen'
+import {createShowUserProfile} from '../../../../actions/profile-gen'
+import {formatTimeForMessages} from '../../../../util/timestamp'
 import {isMobile} from '../../../../constants/platform'
+import {navigateAppend} from '../../../../actions/route-tree'
 
 const howLongBetweenTimestampsMs = 1000 * 60 * 15
 
@@ -53,11 +54,19 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   // dispatch(ChatGen.createRetryAttachment({message})),
   // _onRetryText: (conversationIDKey: Types.ConversationIDKey, outboxIDKey: Types.OutboxIDKey) =>
   // dispatch(ChatGen.createRetryMessage({conversationIDKey, outboxIDKey})),
-  _onAuthorClick: (username: string) => {
+  _onAuthorClick: (username: string) =>
     isMobile
       ? dispatch(createShowUserProfile({username}))
-      : dispatch(createGetProfile({username, ignoreCache: true, forceDisplay: true}))
-  },
+      : dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username})),
+  _onShowMenu: (targetRect: ?ClientRect, message: Types.Message) =>
+    dispatch(
+      navigateAppend([
+        {
+          props: {message, position: 'bottom left', targetRect},
+          selected: 'messageAction',
+        },
+      ])
+    ),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {
@@ -135,7 +144,7 @@ const mergeProps = (stateProps, dispatchProps) => {
   const includeHeader = !previous || !continuingTextBlock || !!timestamp
   let loadMoreType = null
   if (!previous) {
-    if (Constants2.isOldestOrdinal(message.ordinal)) {
+    if (Constants.isOldestOrdinal(message.ordinal)) {
       loadMoreType = 'noMoreToLoad'
     } else {
       loadMoreType = 'moreToLoad'
@@ -158,6 +167,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     loadMoreType,
     message,
     onAuthorClick: () => dispatchProps._onAuthorClick(message.author),
+    onShowMenu: (clientRect: ?ClientRect) => dispatchProps._onShowMenu(clientRect, message),
     timestamp,
   }
 }

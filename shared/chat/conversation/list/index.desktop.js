@@ -46,15 +46,15 @@ class BaseList extends React.Component<Props, State> {
     selectedMessageKey: null,
   }
 
-  _onAction = () => {
-    throw new Error('_onAction Implemented in PopupEnabledList')
-  }
-  _onShowEditor = () => {
-    throw new Error('_onShowEditor Implemented in PopupEnabledList')
-  }
-  _onEditLastMessage = () => {
-    throw new Error('_onEditLastMessage Implemented in PopupEnabledList')
-  }
+  // _onShowMenu = () => {
+  // throw new Error('_onShowMenu Implemented in PopupEnabledList')
+  // }
+  // _onShowEditor = () => {
+    // throw new Error('_onShowEditor Implemented in PopupEnabledList')
+  // }
+  // _onEditLastMessage = () => {
+    // throw new Error('_onEditLastMessage Implemented in PopupEnabledList')
+  // }
 
   componentDidUpdate(prevProps: Props, prevState: State) {
     // Force a rerender if we passed a row to scroll to. If it's kept around the virutal list gets confused so we only want it to render once basically
@@ -224,14 +224,14 @@ const realCSS = `
 .message {
   border: 1px solid transparent;
 }
-.message .action-button {
+.message .menu-button {
   visibility: hidden;
   opacity: 0;
 }
 .message:hover {
   border: 1px solid ${globalColors.black_10};
 }
-.message:hover .action-button {
+.message:hover .menu-button {
   visibility: visible;
   opacity: 1;
 }
@@ -262,7 +262,7 @@ class PopupEnabledList extends BaseList {
   // }
 
   // How this works is kinda crappy. We have to plumb through this key => message helper and all this DOM stuff just to support this
-  _onEditLastMessage = () => {
+  // _onEditLastMessage = () => {
     // let tuple: ?[number, Types.MessageKey, Types.TextMessage]
     // this.props.messageKeys.findLastEntry((v, k) => {
     // const m = this.props.getMessageFromMessageKey(v)
@@ -294,10 +294,10 @@ class PopupEnabledList extends BaseList {
     // return
     // }
     // this._showEditor(message, this._domNodeToRect(messageNode))
-  }
+  // }
 
   // message: Types.TextMessage, messageRect: any
-  _showEditor = () => {
+  // _showEditor = () => {
     // const popupComponent = (
     // <EditPopup
     // messageRect={messageRect}
@@ -314,7 +314,7 @@ class PopupEnabledList extends BaseList {
     // // FIXME: this is the right way to render portals retaining context for now, though it will change in the future.
     // ReactDOM.unstable_renderSubtreeIntoContainer(this, popupComponent, container)
     // })
-  }
+  // }
 
   // _findMessageFromDOMNode(start: any): any {
   // const node = findDOMNode(start, '.message')
@@ -333,38 +333,38 @@ class PopupEnabledList extends BaseList {
   // message: Types.ServerMessage,
   // localMessageState: Types.LocalMessageState,
   // event: SyntheticEvent<>
-  _onAction = () => {
-    // if (message.type === 'Text' || message.type === 'Attachment') {
-    // this.setState({selectedMessageKey: message.key})
-    // const node = event.target instanceof window.HTMLElement ? event.target : null
-    // const messageNode = this._findMessageFromDOMNode(event.target)
-    // const messageRect = messageNode && this._domNodeToRect(messageNode)
-    // this.props.onMessageAction(
-    // message,
-    // localMessageState,
-    // () => {
-    // if (message.type === 'Text') {
-    // this._showEditor(message, messageRect)
-    // }
-    // },
-    // () => {
-    // this.setState({selectedMessageKey: null})
-    // },
-    // node && node.getBoundingClientRect()
-    // )
-    // }
-  }
+  // _onShowMenu = () => {
+  // if (message.type === 'Text' || message.type === 'Attachment') {
+  // this.setState({selectedMessageKey: message.key})
+  // const node = event.target instanceof window.HTMLElement ? event.target : null
+  // const messageNode = this._findMessageFromDOMNode(event.target)
+  // const messageRect = messageNode && this._domNodeToRect(messageNode)
+  // this.props.onMessageAction(
+  // message,
+  // localMessageState,
+  // () => {
+  // if (message.type === 'Text') {
+  // this._showEditor(message, messageRect)
+  // }
+  // },
+  // () => {
+  // this.setState({selectedMessageKey: null})
+  // },
+  // node && node.getBoundingClientRect()
+  // )
+  // }
+  // }
 
   // message: Types.Message, event: SyntheticEvent<>
-  _onShowEditor = () => {
-    // if (message.type === 'Text') {
-    // const messageNode = this._findMessageFromDOMNode(event.target)
-    // const messageRect = messageNode && this._domNodeToRect(messageNode)
-    // if (messageRect) {
-    // this._showEditor(message, messageRect)
-    // }
-    // }
-  }
+  // _onShowEditor = () => {
+  // if (message.type === 'Text') {
+  // const messageNode = this._findMessageFromDOMNode(event.target)
+  // const messageRect = messageNode && this._domNodeToRect(messageNode)
+  // if (messageRect) {
+  // this._showEditor(message, messageRect)
+  // }
+  // }
+  // }
 }
 
 const containerStyle = {

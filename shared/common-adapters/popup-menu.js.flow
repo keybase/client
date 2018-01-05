@@ -7,7 +7,7 @@ export type MenuItem = {
   subTitle?: string, // subTitle is not used on native
   danger?: boolean,
   disabled?: boolean,
-  onClick?: () => void,
+  onClick?: ?() => void,
   onPress?: void,
   style?: Object,
 }
@@ -15,7 +15,7 @@ export type MenuItem = {
 export type Props = {
   items: Array<MenuItem | 'Divider' | null>, // Divider is not used on native
   header?: ?MenuItem,
-  onHidden: () => void,
+  onHidden?: ?() => void,
   style?: Object,
   styleCatcher?: ?Object,
 }

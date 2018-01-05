@@ -8,7 +8,7 @@ export type GlobalProps = {
 export class GlobalEscapeHandler extends React.Component<GlobalProps> {}
 
 export type Props = {
-  onESC: () => void,
+  onESC: ?() => void,
   children?: React.Node,
 }
 

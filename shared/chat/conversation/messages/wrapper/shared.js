@@ -19,8 +19,8 @@ const Username = ({author, isYou, isFollowing, isBroken, includeHeader, onAuthor
   const style = {
     color: colorForAuthor(author, isYou, isFollowing, isBroken),
     ...(isYou ? globalStyles.italic : null),
-    marginBottom: 2,
     alignSelf: 'flex-start',
+    marginBottom: 2,
   }
   return (
     <Text type="BodySmallSemibold" onClick={onAuthorClick} className="hover-underline" style={style}>
@@ -29,11 +29,12 @@ const Username = ({author, isYou, isFollowing, isBroken, includeHeader, onAuthor
   )
 }
 
-const ActionButton = ({onAction}) => (
-  <Box className="action-button">
-    {!isMobile && <Icon type="iconfont-ellipsis" style={_ellipsisStyle} onClick={onAction} />}
-  </Box>
-)
+const MenuButton = ({onShowMenu}) =>
+  isMobile ? null : (
+    <Box className="menu-button">
+      <Icon type="iconfont-ellipsis" style={_ellipsisStyle} onClick={onShowMenu} />
+    </Box>
+  )
 
 const EditedMark = ({isEdited}) =>
   isEdited ? (
@@ -101,7 +102,7 @@ const MessageWrapper = (props: Props) => (
               <props.innerClass message={props.message} onAction={props.onAction} />
               <EditedMark isEdited={props.isEdited} />
             </Box>
-            <ActionButton isRevoked={props.isRevoked} onAction={props.onAction} />
+            <MenuButton onShowMenu={props.onShowMenu} />
             {props.isRevoked && <Icon type="iconfont-exclamation" style={_exclamationStyle} />}
           </Box>
           <Failure

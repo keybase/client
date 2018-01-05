@@ -19,7 +19,7 @@ class EscapeHandler extends Component<Props> {
   }
 
   onESC() {
-    this.props.onESC()
+    this.props.onESC && this.props.onESC()
   }
 
   render() {

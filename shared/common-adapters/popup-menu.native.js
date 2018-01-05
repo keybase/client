@@ -12,7 +12,7 @@ type MenuItemProps = MenuItem & {
   isHeader?: boolean,
   index: number,
   numItems: number,
-  onHidden: () => void,
+  onHidden?: ?() => void,
 }
 
 const MenuRow = (props: MenuItemProps) => (
@@ -20,7 +20,7 @@ const MenuRow = (props: MenuItemProps) => (
     disabled={!props.onClick}
     onPress={() => {
       props.onClick && props.onClick()
-      props.onHidden() // auto hide after a selection
+      props.onHidden && props.onHidden() // auto hide after a selection
     }}
     style={{...styleRow(props), ...props.style}}
   >

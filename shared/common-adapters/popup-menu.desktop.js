@@ -90,7 +90,7 @@ class PopupMenu extends Component<Props> {
         <Box
           style={{...stylesMenuCatcher, ...this.props.styleCatcher}}
           onClick={e => {
-            this.props.onHidden()
+            this.props && this.props.onHidden()
             e.stopPropagation()
           }}
         >
@@ -121,7 +121,7 @@ class OLDPopupMenu extends Component<Props> {
         <Box
           style={stylesMenuCatcher}
           onClick={e => {
-            this.props.onHidden()
+            this.props && this.props.onHidden()
             e.stopPropagation()
           }}
         >

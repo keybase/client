@@ -2,9 +2,9 @@
 import * as React from 'react'
 import * as I from 'immutable'
 import {ModalLessPopupMenu as PopupMenu} from '../../../common-adapters/popup-menu.desktop'
-import {textMessageEditable} from '../../../constants/chat'
-import * as Types from '../../../constants/types/chat'
-import * as ChatGen from '../../../actions/chat-gen'
+// import {textMessageEditable} from '../../../constants/chat'
+import * as Types from '../../../constants/types/chat2'
+import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as KBFSGen from '../../../actions/kbfs-gen'
 import {fileUIName} from '../../../constants/platform'
 import {connect} from 'react-redux'
@@ -12,45 +12,105 @@ import {branch, renderComponent} from 'recompose'
 
 import MessagePopupHeader from './popup-header'
 
+type TextProps = {
+  onHidden: () => void,
+  style?: Object,
+  onDelete: () => void,
+  message: TextMessage,
+  you: string,
+  onEdit: () => void,
+}
+
+type AttachmentProps = {
+  localMessageState: LocalMessageState,
+  message: AttachmentMessage,
+  onDelete: () => void,
+  onDownloadAttachment: () => void,
+  onHidden: () => void,
+  onOpenInFileUI: () => void,
+  onSaveAttachment?: (m: AttachmentMessage) => void,
+  onShareAttachment?: (m: AttachmentMessage) => void,
+  style?: Object,
+  you: string,
+}
+
 import type {TextProps, AttachmentProps} from './popup'
 import type {TypedState} from '../../../util/container'
 
-const stylePopup = {
-  overflow: 'visible',
-  width: 196,
-}
+const TextPopupMenu = ({showActions, showDivider, onEdit, onDelete, style, you}: TextProps) => {
+  const items = showActions
+    ? [
+        ...(showDivider ? ['Divider'] : []),
+        {disabled: !onEdit, onClick: onEdit, title: 'Edit'},
+        {
+          danger: true,
+          disabled: !onDelete,
+          onClick: onDelete,
+          subTitle: 'Deletes for everyone',
+          title: 'Delete',
+        },
+      ]
+    : []
 
-const TextPopupMenu = ({message, onShowEditor, onDeleteMessage, onHidden, style, you}: TextProps) => {
-  let items = []
-  if (message.author === you) {
-    if (!message.senderDeviceRevokedAt) {
-      items.push('Divider')
-    }
-
-    if (textMessageEditable(message)) {
-      items.push({onClick: () => onShowEditor(message), title: 'Edit'})
-    } else {
-      items.push({disabled: true, title: 'Edit'})
-    }
-
-    items.push({
-      danger: true,
-      onClick: () => onDeleteMessage(message),
-      subTitle: 'Deletes for everyone',
-      title: 'Delete',
-    })
-  }
   const header = {
     title: 'header',
     view: <MessagePopupHeader message={message} isLast={!items.length} />,
   }
-  return <PopupMenu header={header} items={items} onHidden={onHidden} style={{...stylePopup, ...style}} />
+  return <PopupMenu header={header} items={items} style={{...stylePopup, ...style}} />
+}
+
+const mapStateToProps = (state: TypedState) => ({you: state.config.username})
+
+const mapDispatchToTextProps = (dispatch, ownProps) => ({
+  _onDeleteMessage: (message: Types.Message) =>
+    dispatch(
+      Chat2Gen.createMessagesDelete({
+        conversationIDKey: message.conversationIDKey,
+        ordinals: [message.ordinal],
+      })
+    ),
+  _onEdit: (message: Types.Message) => {},
+})
+
+const mergeTextProps = (stateProps, dispatchProps, ownProps) => {
+  const message = ownProps.routeProps.get('message')
+  const isYou = message.author === you
+  return {
+    showActions: isYou,
+    showDivider: !message.senderDeviceRevokedAt,
+    onDelete: isYou ? () => dispatchProps._onDelete(message) : null,
+    onEdit: isYou ? () => dispatchProps._onEdit(message) : null, // TODO some things aren't editable
+  }
+}
+
+const ConnectedTextMessage = connect(mapStateToProps, mapDispatchToTextProps, mergeTextProps)(TextPopupMenu)
+
+type ConnectedAttachmentMessageProps = {
+  routeProps: I.RecordOf<{
+    message: Types.AttachmentMessage,
+    localMessageState: Types.LocalMessageState,
+  }>,
+}
+
+const mapDispatchToAttachmentProps = (dispatch, {routeProps}: ConnectedAttachmentMessageProps) => {
+  const localMessageState = routeProps.get('localMessageState')
+  const message = routeProps.get('message')
+  const {savedPath} = localMessageState
+  const {key: messageKey} = message
+  return {
+    onOpenInFileUI: () => savedPath && dispatch(KBFSGen.createOpenInFileUI({path: savedPath})),
+    onDownloadAttachment: () => dispatch(ChatGen.createSaveAttachment({messageKey})),
+    onDelete: (message: Types.Message) =>
+      dispatch(ChatGen.createDeleteMessage({message: routeProps.get('message')})),
+    onHidden: () => {},
+    localMessageState,
+  }
 }
 
 const AttachmentPopupMenu = ({
   message,
   localMessageState,
-  onDeleteMessage,
+  onDelete,
   onOpenInFileUI,
   onDownloadAttachment,
   onHidden,
@@ -68,70 +128,23 @@ const AttachmentPopupMenu = ({
     'Divider',
     localMessageState.savedPath ? {onClick: onOpenInFileUI, title: `Show in ${fileUIName}`} : null,
     downloadItem,
+    ...(message.author === you
+      ? [
+          {
+            danger: true,
+            onClick: onDelete,
+            subTitle: 'Deletes for everyone',
+            title: 'Delete',
+          },
+        ]
+      : []),
   ]
-  if (message.author === you) {
-    items.push({
-      danger: true,
-      onClick: () => onDeleteMessage(message),
-      subTitle: 'Deletes for everyone',
-      title: 'Delete',
-    })
-  }
+
   const header = {
     title: 'header',
     view: <MessagePopupHeader message={message} />,
   }
   return <PopupMenu header={header} items={items} onHidden={onHidden} style={{...stylePopup, ...style}} />
-}
-
-type ConnectedTextMessageProps = {
-  routeProps: I.RecordOf<{
-    message: Types.TextMessage,
-    onShowEditor: () => void,
-  }>,
-}
-
-// $FlowIssue doen'st like routeProps here
-const mapStateToProps = ({config: {username}}: TypedState, {routeProps}) => ({
-  you: username,
-  message: routeProps.get('message'),
-})
-
-const mapDispatchToTextProps = (
-  dispatch,
-  {routeProps, navigateUp}: ConnectedTextMessageProps & {navigateUp: () => any}
-) => ({
-  onDeleteMessage: (message: Types.Message) =>
-    dispatch(ChatGen.createDeleteMessage({message: routeProps.get('message')})),
-  onShowEditor: () => {
-    dispatch(navigateUp())
-    routeProps.get('onShowEditor')()
-  },
-  onHidden: () => {},
-})
-
-const ConnectedTextMessage = connect(mapStateToProps, mapDispatchToTextProps)(TextPopupMenu)
-
-type ConnectedAttachmentMessageProps = {
-  routeProps: I.RecordOf<{
-    message: Types.AttachmentMessage,
-    localMessageState: Types.LocalMessageState,
-  }>,
-}
-
-const mapDispatchToAttachmentProps = (dispatch, {routeProps}: ConnectedAttachmentMessageProps) => {
-  const localMessageState = routeProps.get('localMessageState')
-  const message = routeProps.get('message')
-  const {savedPath} = localMessageState
-  const {key: messageKey} = message
-  return {
-    onOpenInFileUI: () => savedPath && dispatch(KBFSGen.createOpenInFileUI({path: savedPath})),
-    onDownloadAttachment: () => dispatch(ChatGen.createSaveAttachment({messageKey})),
-    onDeleteMessage: (message: Types.Message) =>
-      dispatch(ChatGen.createDeleteMessage({message: routeProps.get('message')})),
-    onHidden: () => {},
-    localMessageState,
-  }
 }
 
 const ConnectedAttachmentMessage = connect(mapStateToProps, mapDispatchToAttachmentProps)(AttachmentPopupMenu)
@@ -142,5 +155,10 @@ const ConnectedMessageAction = branch(
     routeProps.get('message').type === 'Attachment',
   renderComponent(ConnectedAttachmentMessage)
 )(ConnectedTextMessage)
+
+const stylePopup = {
+  overflow: 'visible',
+  width: 196,
+}
 
 export {AttachmentPopupMenu, TextPopupMenu, ConnectedMessageAction}
