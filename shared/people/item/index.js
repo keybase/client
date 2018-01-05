@@ -63,7 +63,12 @@ export default (props: Props) => (
           {moment(props.when).fromNow(true)}
         </Text>
       )}
-      {props.badged && <Badge badgeNumber={null} badgeStyle={{marginLeft: globalMargins.tiny, height: 10}} />}
+      {props.badged && (
+        <Badge
+          badgeNumber={null}
+          badgeStyle={{marginLeft: globalMargins.tiny, height: 10, minWidth: 10, marginTop: -1}}
+        />
+      )}
     </Box>
   </Box>
 )

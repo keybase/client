@@ -11,7 +11,7 @@ function Badge({badgeStyle, badgeNumber, badgeNumberStyle, outlineColor}: Props)
     ? {minWidth: 20, height: 20, border: `3px solid ${outlineColor}`}
     : {minWidth: 14, height: 14, border: 'none'}
   return (
-    <Box style={{...defaultBadgeStyle, ...badgeStyle, ...outlineStyle}}>
+    <Box style={{...defaultBadgeStyle, ...outlineStyle, ...badgeStyle}}>
       <Text style={{...textStyle, ...badgeNumberStyle}} type="HeaderBig">
         {badgeNumber}
       </Text>

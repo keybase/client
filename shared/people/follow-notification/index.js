@@ -10,7 +10,7 @@ const connectedUsernamesProps = {
   clickable: true,
   inline: true,
   colorFollowing: true,
-  type: 'Body',
+  type: 'BodySemibold',
 }
 
 export type NewFollow = Types.FollowedNotification
@@ -34,6 +34,7 @@ export const FollowNotification = (props: Props) => {
       badged={props.badged}
       icon={<Avatar username={username} size={isMobile ? 48 : 32} />}
       when={props.notificationTime}
+      contentStyle={{justifyContent: 'center'}}
     >
       <Text type="Body" style={{marginTop: 2}}>
         <ConnectedUsernames {...connectedUsernamesProps} usernames={[username]} /> followed you.
