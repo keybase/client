@@ -84,13 +84,20 @@ const convStateProps = createSelector(
   })
 )
 
-const getTeamChannelNames = (state: TypedState, teamname: ?string): {[string]: string} => {
+const getTeamChannelNameToConvID = (
+  state: TypedState,
+  teamname: ?string
+): {[string]: Types.ConversationIDKey} => {
   if (!teamname) return {}
   const convIDs = getConvIdsFromTeamName(state, teamname)
-  const names = convIDs.map(convID => {
-    return getChannelNameFromConvID(state, convID)
+  const channelNameToConvID = {}
+  convIDs.forEach(convID => {
+    const name = getChannelNameFromConvID(state, convID)
+    if (name) {
+      channelNameToConvID[name] = convID
+    }
   })
-  return names.filter(Boolean).toObject()
+  return channelNameToConvID
 }
 
 // TODO this is temp until we can discuss a better solution to this getMessageFromMessageKey thing
@@ -102,7 +109,7 @@ const mapStateToProps = createSelector(
     const teamname = convStateProps.selectedConversation
       ? state.chat.getIn(['inboxBigChannelsToTeam', convStateProps.selectedConversation])
       : null
-    const channelNames = getTeamChannelNames(state, teamname)
+    const channelNameToConvID = getTeamChannelNameToConvID(state, teamname)
     return {
       editLastMessageCounter: ownProps.editLastMessageCounter,
       listScrollDownCounter: ownProps.listScrollDownCounter,
@@ -112,7 +119,7 @@ const mapStateToProps = createSelector(
       validated: convStateProps.validated,
       you: username,
       teamname,
-      channelNames,
+      channelNameToConvID,
       hasResetUsers:
         state.chat.inboxResetParticipants.get(convStateProps.selectedConversation, I.Set()).size > 0,
       _supersedes: convStateProps._supersedes,
@@ -201,7 +208,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props
     validated: stateProps.validated,
     you: stateProps.you,
     teamname: stateProps.teamname,
-    channelNames: stateProps.channelNames,
+    channelNameToConvID: stateProps.channelNameToConvID,
   }
 }
 

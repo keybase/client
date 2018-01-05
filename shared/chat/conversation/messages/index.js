@@ -25,7 +25,7 @@ const factory = (
   onShowEditor: (message: Types.ServerMessage, event: SyntheticEvent<>) => void,
   isSelected: boolean,
   measure: () => void,
-  channelNames: {[string]: string}
+  channelNameToConvID: {[string]: Types.ConversationIDKey}
 ) => {
   const kind = Constants.messageKeyKind(messageKey)
   switch (kind) {
@@ -42,7 +42,7 @@ const factory = (
       return (
         <Wrapper
           innerClass={Attachment}
-          channelNames={channelNames}
+          channelNameToConvID={channelNameToConvID}
           isSelected={isSelected}
           measure={measure}
           messageKey={messageKey}
@@ -60,7 +60,7 @@ const factory = (
       return (
         <Wrapper
           innerClass={TextMessage}
-          channelNames={channelNames}
+          channelNameToConvID={channelNameToConvID}
           isSelected={isSelected}
           measure={measure}
           messageKey={messageKey}

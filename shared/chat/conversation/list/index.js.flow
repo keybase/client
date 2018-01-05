@@ -26,7 +26,7 @@ export type Props = {|
   validated: boolean,
   you: string,
   teamname: ?string,
-  channelNames: {[string]: string},
+  channelNameToConvID: {[string]: Types.ConversationIDKey},
 |}
 
 export default class ConversationList extends React.Component<Props> {

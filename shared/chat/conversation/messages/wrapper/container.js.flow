@@ -13,7 +13,7 @@ export type OwnProps = {|
   onShowEditor: (message: Types.ServerMessage, event: SyntheticEvent<>) => void,
   isSelected: boolean,
   innerClass: any,
-  channelNames: {[string]: string},
+  channelNameToConvID: {[string]: Types.ConversationIDKey},
   measure: ?() => void,
 |}
 

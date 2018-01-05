@@ -9,7 +9,7 @@ import {type OwnProps} from './container'
 
 const getProps = createCachedSelector(
   [Constants.getMessageFromMessageKey, Constants.getEditingMessage],
-  (message: ?Types.TextMessage, editingMessage, channelNames: {[string]: string}) => {
+  (message: ?Types.TextMessage, editingMessage) => {
     return {
       isEditing: message === editingMessage,
       text: message ? message.message.stringValue() : null,
@@ -24,10 +24,10 @@ const mapStateToProps = (state: TypedState, {messageKey}: OwnProps) => {
   return getProps(state, messageKey)
 }
 
-const mergeProps = (stateProps, dispatchProps, {channelNames, measure}: OwnProps) => ({
+const mergeProps = (stateProps, dispatchProps, {channelNameToConvID, measure}: OwnProps) => ({
   ...stateProps,
   ...dispatchProps,
-  channelNames,
+  channelNameToConvID,
   measure,
 })
 

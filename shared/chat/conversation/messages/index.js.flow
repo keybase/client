@@ -13,6 +13,6 @@ declare function factory(
   onShowEditor: (message: Types.ServerMessage, event: SyntheticEvent<>) => void,
   isSelected: boolean,
   measure: () => void,
-  channelNames: {[string]: string}
+  channelNameToConv: {[string]: Types.ConversationIDKey}
 ): React.Node
 export default factory

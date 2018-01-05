@@ -57,7 +57,7 @@ function isValidChannel(meta: ?MarkdownMeta, channel: string): boolean {
     return false
   }
 
-  return !!meta.channelNames[channel]
+  return !!meta.channelNameToConvID[channel]
 }
 
 export function parseMarkdown(

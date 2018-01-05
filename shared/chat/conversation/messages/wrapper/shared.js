@@ -96,7 +96,7 @@ const MessageWrapper = (props: Props) => (
                 messageKey={props.messageKey}
                 measure={props.measure}
                 onAction={props.onAction}
-                channelNames={props.channelNames}
+                channelNameToConvID={props.channelNameToConvID}
               />
               <EditedMark isEdited={props.isEdited} />
             </Box>
