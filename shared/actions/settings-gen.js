@@ -42,32 +42,42 @@ export const waitingForResponse = 'settings:waitingForResponse'
 export const createDbNuke = () => ({error: false, payload: undefined, type: dbNuke})
 export const createDeleteAccountForever = () => ({error: false, payload: undefined, type: deleteAccountForever})
 export const createInvitesClearError = () => ({error: false, payload: undefined, type: invitesClearError})
-export const createInvitesReclaim = (payload: {|+inviteId: string|}) => ({error: false, payload, type: invitesReclaim})
+export const createInvitesReclaim = (payload: $ReadOnly<{inviteId: string}>) => ({error: false, payload, type: invitesReclaim})
 export const createInvitesReclaimed = () => ({error: false, payload: undefined, type: invitesReclaimed})
-export const createInvitesReclaimedError = (payload: {|+errorText: string|}) => ({error: true, payload, type: invitesReclaimed})
+export const createInvitesReclaimedError = (payload: $ReadOnly<{errorText: string}>) => ({error: true, payload, type: invitesReclaimed})
 export const createInvitesRefresh = () => ({error: false, payload: undefined, type: invitesRefresh})
-export const createInvitesRefreshed = (payload: {|+invites: Types.InvitesState|}) => ({error: false, payload, type: invitesRefreshed})
-export const createInvitesSend = (payload: {|+email: string, +message: ?string|}) => ({error: false, payload, type: invitesSend})
+export const createInvitesRefreshed = (payload: $ReadOnly<{invites: Types.InvitesState}>) => ({error: false, payload, type: invitesRefreshed})
+export const createInvitesSend = (
+  payload: $ReadOnly<{
+    email: string,
+    message: ?string,
+  }>
+) => ({error: false, payload, type: invitesSend})
 export const createInvitesSent = () => ({error: false, payload: undefined, type: invitesSent})
-export const createInvitesSentError = (payload: {|+error: Error|}) => ({error: true, payload, type: invitesSent})
+export const createInvitesSentError = (payload: $ReadOnly<{error: Error}>) => ({error: true, payload, type: invitesSent})
 export const createLoadSettings = () => ({error: false, payload: undefined, type: loadSettings})
-export const createLoadedSettings = (payload: {|+emailState: Types.EmailState|}) => ({error: false, payload, type: loadedSettings})
+export const createLoadedSettings = (payload: $ReadOnly<{emailState: Types.EmailState}>) => ({error: false, payload, type: loadedSettings})
 export const createNotificationsRefresh = () => ({error: false, payload: undefined, type: notificationsRefresh})
-export const createNotificationsRefreshed = (payload: {|+notifications: Types.NotificationsState|}) => ({error: false, payload, type: notificationsRefreshed})
+export const createNotificationsRefreshed = (payload: $ReadOnly<{notifications: Types.NotificationsState}>) => ({error: false, payload, type: notificationsRefreshed})
 export const createNotificationsSaved = () => ({error: false, payload: undefined, type: notificationsSaved})
-export const createNotificationsToggle = (payload: {|+group: string, +name?: ?string|}) => ({error: false, payload, type: notificationsToggle})
-export const createOnChangeNewEmail = (payload: {|+email: string|}) => ({error: false, payload, type: onChangeNewEmail})
-export const createOnChangeNewPassphrase = (payload: {|+passphrase: HiddenString|}) => ({error: false, payload, type: onChangeNewPassphrase})
-export const createOnChangeNewPassphraseConfirm = (payload: {|+passphrase: HiddenString|}) => ({error: false, payload, type: onChangeNewPassphraseConfirm})
+export const createNotificationsToggle = (
+  payload: $ReadOnly<{
+    group: string,
+    name?: ?string,
+  }>
+) => ({error: false, payload, type: notificationsToggle})
+export const createOnChangeNewEmail = (payload: $ReadOnly<{email: string}>) => ({error: false, payload, type: onChangeNewEmail})
+export const createOnChangeNewPassphrase = (payload: $ReadOnly<{passphrase: HiddenString}>) => ({error: false, payload, type: onChangeNewPassphrase})
+export const createOnChangeNewPassphraseConfirm = (payload: $ReadOnly<{passphrase: HiddenString}>) => ({error: false, payload, type: onChangeNewPassphraseConfirm})
 export const createOnChangeShowPassphrase = () => ({error: false, payload: undefined, type: onChangeShowPassphrase})
 export const createOnSubmitNewEmail = () => ({error: false, payload: undefined, type: onSubmitNewEmail})
 export const createOnSubmitNewPassphrase = () => ({error: false, payload: undefined, type: onSubmitNewPassphrase})
-export const createOnUpdateEmailError = (payload: {|+error: Error|}) => ({error: false, payload, type: onUpdateEmailError})
+export const createOnUpdateEmailError = (payload: $ReadOnly<{error: Error}>) => ({error: false, payload, type: onUpdateEmailError})
 export const createOnUpdatePGPSettings = () => ({error: false, payload: undefined, type: onUpdatePGPSettings})
-export const createOnUpdatePassphraseError = (payload: {|+error: Error|}) => ({error: false, payload, type: onUpdatePassphraseError})
-export const createOnUpdatedPGPSettings = (payload: {|+hasKeys: boolean|}) => ({error: false, payload, type: onUpdatedPGPSettings})
-export const createSetAllowDeleteAccount = (payload: {|+allow: boolean|}) => ({error: false, payload, type: setAllowDeleteAccount})
-export const createWaitingForResponse = (payload: {|+waiting: boolean|}) => ({error: false, payload, type: waitingForResponse})
+export const createOnUpdatePassphraseError = (payload: $ReadOnly<{error: Error}>) => ({error: false, payload, type: onUpdatePassphraseError})
+export const createOnUpdatedPGPSettings = (payload: $ReadOnly<{hasKeys: boolean}>) => ({error: false, payload, type: onUpdatedPGPSettings})
+export const createSetAllowDeleteAccount = (payload: $ReadOnly<{allow: boolean}>) => ({error: false, payload, type: setAllowDeleteAccount})
+export const createWaitingForResponse = (payload: $ReadOnly<{waiting: boolean}>) => ({error: false, payload, type: waitingForResponse})
 
 // Action Payloads
 export type DbNukePayload = More.ReturnType<typeof createDbNuke>

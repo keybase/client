@@ -198,15 +198,11 @@
           "name": "repoName"
         },
         {
-          "type": "string",
-          "name": "branchName"
-        },
-        {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "keybase1.GitRefMetadata"
           },
-          "name": "commitMsgs"
+          "name": "refs"
         }
       ]
     },
@@ -589,7 +585,8 @@
         "OFFLINE_1",
         "IDENTIFY_2",
         "TOOLONG_3",
-        "DUPLICATE_4"
+        "DUPLICATE_4",
+        "EXPIRED_5"
       ]
     },
     {

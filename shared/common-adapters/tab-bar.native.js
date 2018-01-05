@@ -77,7 +77,10 @@ const TabBarButton = (props: TabBarButtonProps) => {
   const content = (
     <Box style={{...stylesTabBarButtonIcon, ...props.style, flexGrow: 1}}>
       <Icon
-        type={props.source.icon}
+        type={
+          // $FlowIssue
+          props.source.icon
+        }
         style={{
           width: props.isNav ? undefined : 32,
           ...props.styleIcon,
@@ -105,6 +108,7 @@ const TabBarButton = (props: TabBarButtonProps) => {
 class TabBar extends React.Component<Props> {
   _labels(): Array<React.Node> {
     // TODO: Not sure why I have to wrap the child in a box, but otherwise touches won't work
+    // $FlowIssue dunno
     return (this.props.children || []).map((item: {props: ItemProps}, i) => {
       const key = item.props.label || get(item, 'props.tabBarButton.props.label') || i
       return (

@@ -30,6 +30,16 @@ const userIsInTeam = (
   return teamNameToMemberUsernames.getIn([teamname, username])
 }
 
+const userIsActiveInTeam = (
+  {entities: {teams: {teamNameToMembers}}}: TypedState,
+  teamname: string,
+  username: string
+) => {
+  const members = teamNameToMembers.get(teamname, Set())
+  const member = members.find(mem => mem.username === username)
+  return member && member.active
+}
+
 const searchResultMapSelector = createSelector(
   ({entities: {search: {searchResults}}}: TypedState) => searchResults,
   searchResults => searchResults
@@ -51,6 +61,7 @@ export {
   searchResultMapSelector,
   searchResultSelector,
   teamMemberRecordSelector,
+  userIsActiveInTeam,
   userIsInTeam,
   usernameSelector,
 }

@@ -487,6 +487,8 @@ protocol teams {
     boolean isImplicitTeam;
     TeamRole role;
     union{null, ImplicitRole} implicit;
+    @jsonkey("member_count")
+    int memberCount;
   }
 
   record TeamList {
@@ -592,7 +594,20 @@ protocol teams {
   // Includes admins of the specified team only if they are also admins of ancestor teams.
   array<TeamMemberDetails> teamImplicitAdmins(int sessionID, string teamName);
 
-  AnnotatedTeamList teamList(int sessionID, string userAssertion, boolean all, boolean includeImplicitTeams);
+  // List known team memberships for given userAssertion or current
+  // user if userAssertion is not given. This RPC uses fast server-
+  // trust path and returned list is not checked.
+  AnnotatedTeamList teamListUnverified(int sessionID, string userAssertion, boolean includeImplicitTeams);
+
+  // List all team mates from all teams for current user. Results are
+  // checked - team members returned from the server are verified
+  // locally with team sigchains.
+  AnnotatedTeamList teamListTeammates(int sessionID, boolean includeImplicitTeams);
+
+  // List verified known team memberships for given userAssertion.
+  // This function is slower than teamListUnverified because it loads
+  // and checks every team membership.
+  AnnotatedTeamList teamListVerified(int sessionID, string userAssertion, boolean includeImplicitTeams);
 
   // admin only
   array<TeamIDAndName> teamListSubteamsRecursive(int sessionID, string parentTeamName, boolean forceRepoll);

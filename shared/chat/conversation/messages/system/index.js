@@ -12,6 +12,7 @@ import type {
   AddedToTeamInfo,
   SimpleToComplexTeamInfo,
   InviteAcceptedInfo,
+  GitPushInfo,
 } from '../../../../constants/types/chat'
 
 const connectedUsernamesProps = {
@@ -228,7 +229,8 @@ const InviteAddedToTeamNotice = ({
         {you === inviter ? 'You invited them' : 'They were invited by '}
         {you !== inviter && (
           <ConnectedUsernames {...connectedUsernamesProps} usernames={[inviter]} />
-        )} via {inviteType}, and they were just now auto-added to the team sigchain by{' '}
+        )} via {inviteType}
+        , and they were just now auto-added to the team sigchain by{' '}
         {you === adder ? 'you' : <ConnectedUsernames {...connectedUsernamesProps} usernames={[adder]} />}
         , the first available admin.
       </Text>
@@ -253,4 +255,21 @@ const InviteAddedToTeamNotice = ({
   )
 }
 
-export {AddedToTeamNotice, ComplexTeamNotice, InviteAddedToTeamNotice}
+type GitPushInfoProps = Props & {info: GitPushInfo}
+
+const GitPushInfoNotice = ({message, info}: GitPushInfoProps) => {
+  return (
+    <UserNotice teamname={info.team} style={{marginTop: globalMargins.small}} bgColor={globalColors.blue4}>
+      <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
+        {formatTimeForMessages(message.timestamp)}
+      </Text>
+      <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
+        <Text type="BodySmallSemibold" style={{textAlign: 'center'}}>
+          {info.pusher} just pushed commits to the {info.repo} repo.
+        </Text>
+      </Box>
+    </UserNotice>
+  )
+}
+
+export {AddedToTeamNotice, ComplexTeamNotice, InviteAddedToTeamNotice, GitPushInfoNotice}

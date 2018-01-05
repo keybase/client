@@ -186,7 +186,7 @@ function analyzeMessages(json, project) {
 
       // if its just the incomingCallMpa or waitingHandler we can skip passing anything
       const isOptional = (!incoming && arr.length === 2) ? '?' : ''
-      return `${isOptional}{|${arr.join(',')}|}`
+      return `${isOptional}$ReadOnly<{${arr.join(',')}}>`
     }
 
     const name = `${json.protocol}${capitalize(m)}`
@@ -296,7 +296,7 @@ function parseRecord(t) {
     })
     .join('')
 
-  return `{|${fields}|}`
+  return `$ReadOnly<{${fields}}>`
 }
 
 function parseVariant(t, project) {
@@ -358,9 +358,9 @@ import engine, {EngineChannel} from '../../engine'
 import type {Boolean, Bool, Bytes, Double, Int, Int64, Long, String, Uint, Uint64, WaitingHandlerType, RPCErrorHandler, CommonResponseHandler, RPCError} from '../../engine/types'
 `
   const incomingMap =
-    `\nexport type IncomingCallMapType = {|` +
+    `\nexport type IncomingCallMapType = {` +
     Object.keys(project.incomingMaps).map(im => `  '${im}'?: ${project.incomingMaps[im]}`).join(',') +
-    '|}\n'
+    '}\n'
   const toWrite = [typePrelude, typeDefs.join('\n'), incomingMap].join('\n')
   const destinationFile = `types/${project.out.substr(3)}` // Only used by prettier so we can set an override in .prettierrc
   const formatted = prettier.format(toWrite, prettier.resolveConfig.sync(destinationFile))

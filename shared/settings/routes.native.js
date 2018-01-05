@@ -33,6 +33,7 @@ const DumbWrapper = () => {
 
 const routeTree = makeRouteDefNode({
   component: Settings,
+  // $FlowIssue
   children: {
     [Constants.aboutTab]: {
       component: About,

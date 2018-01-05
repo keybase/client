@@ -296,6 +296,20 @@
     },
     {
       "type": "record",
+      "name": "UIChannelNameMention",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "convID"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UIMessageValid",
       "fields": [
         {
@@ -354,7 +368,7 @@
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "UIChannelNameMention"
           },
           "name": "channelNameMentions"
         }

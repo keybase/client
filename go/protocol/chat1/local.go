@@ -211,30 +211,28 @@ func (o MessageSystemCreateTeam) DeepCopy() MessageSystemCreateTeam {
 }
 
 type MessageSystemGitPush struct {
-	Team       string   `codec:"team" json:"team"`
-	Pusher     string   `codec:"pusher" json:"pusher"`
-	RepoName   string   `codec:"repoName" json:"repoName"`
-	BranchName string   `codec:"branchName" json:"branchName"`
-	CommitMsgs []string `codec:"commitMsgs" json:"commitMsgs"`
+	Team     string                    `codec:"team" json:"team"`
+	Pusher   string                    `codec:"pusher" json:"pusher"`
+	RepoName string                    `codec:"repoName" json:"repoName"`
+	Refs     []keybase1.GitRefMetadata `codec:"refs" json:"refs"`
 }
 
 func (o MessageSystemGitPush) DeepCopy() MessageSystemGitPush {
 	return MessageSystemGitPush{
-		Team:       o.Team,
-		Pusher:     o.Pusher,
-		RepoName:   o.RepoName,
-		BranchName: o.BranchName,
-		CommitMsgs: (func(x []string) []string {
+		Team:     o.Team,
+		Pusher:   o.Pusher,
+		RepoName: o.RepoName,
+		Refs: (func(x []keybase1.GitRefMetadata) []keybase1.GitRefMetadata {
 			if x == nil {
 				return nil
 			}
-			var ret []string
+			var ret []keybase1.GitRefMetadata
 			for _, v := range x {
-				vCopy := v
+				vCopy := v.DeepCopy()
 				ret = append(ret, vCopy)
 			}
 			return ret
-		})(o.CommitMsgs),
+		})(o.Refs),
 	}
 }
 
@@ -1112,6 +1110,7 @@ const (
 	OutboxErrorType_IDENTIFY  OutboxErrorType = 2
 	OutboxErrorType_TOOLONG   OutboxErrorType = 3
 	OutboxErrorType_DUPLICATE OutboxErrorType = 4
+	OutboxErrorType_EXPIRED   OutboxErrorType = 5
 )
 
 func (o OutboxErrorType) DeepCopy() OutboxErrorType { return o }
@@ -1122,6 +1121,7 @@ var OutboxErrorTypeMap = map[string]OutboxErrorType{
 	"IDENTIFY":  2,
 	"TOOLONG":   3,
 	"DUPLICATE": 4,
+	"EXPIRED":   5,
 }
 
 var OutboxErrorTypeRevMap = map[OutboxErrorType]string{
@@ -1130,6 +1130,7 @@ var OutboxErrorTypeRevMap = map[OutboxErrorType]string{
 	2: "IDENTIFY",
 	3: "TOOLONG",
 	4: "DUPLICATE",
+	5: "EXPIRED",
 }
 
 func (e OutboxErrorType) String() string {

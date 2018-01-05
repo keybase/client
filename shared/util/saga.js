@@ -129,8 +129,8 @@ function* sequentially(effects: Array<any>): Generator<any, Array<any>, any> {
 function safeTakeEveryPure<A, R, FinalAction, FinalActionError>(
   pattern: string | Array<any> | Function,
   pureWorker: ((action: A, state: TypedState) => any) | ((action: A) => any),
-  actionCreatorsWithResult?: (result: R, action: A) => FinalAction,
-  actionCreatorsWithError?: (result: R, action: A) => FinalActionError
+  actionCreatorsWithResult?: ?(result: R, action: A) => FinalAction,
+  actionCreatorsWithError?: ?(result: R, action: A) => FinalActionError
 ) {
   return safeTakeEvery(pattern, function* safeTakeEveryPureWorker(action: A) {
     // If the pureWorker fn takes two arguments, let's pass the state
@@ -151,6 +151,12 @@ function safeTakeEveryPure<A, R, FinalAction, FinalActionError>(
     } catch (e) {
       if (actionCreatorsWithError) {
         yield actionCreatorsWithError(e, action)
+      } else {
+        yield put(
+          ConfigGen.createGlobalError({
+            globalError: convertToError(e),
+          })
+        )
       }
     }
   })
@@ -183,6 +189,12 @@ function safeTakeLatestPure<A, R, FinalAction, FinalActionError>(
       if (actionCreatorsWithError) {
         // $FlowIssue confused
         yield actionCreatorsWithError(e, action)
+      } else {
+        yield put(
+          ConfigGen.createGlobalError({
+            globalError: convertToError(e),
+          })
+        )
       }
     } finally {
       if (actionCreatorsWithError) {

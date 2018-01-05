@@ -235,6 +235,7 @@ const settingsNavBase = {
 const settingsContainerMap: DumbComponentMap<SettingsContainer> = {
   component: SettingsContainer,
   mocks: {
+    // $FlowIssue
     Normal: settingsNavBase,
   },
 }

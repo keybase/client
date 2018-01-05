@@ -1179,6 +1179,11 @@
             "ImplicitRole"
           ],
           "name": "implicit"
+        },
+        {
+          "type": "int",
+          "name": "memberCount",
+          "jsonkey": "member_count"
         }
       ]
     },
@@ -1716,7 +1721,7 @@
         "items": "TeamMemberDetails"
       }
     },
-    "teamList": {
+    "teamListUnverified": {
       "request": [
         {
           "name": "sessionID",
@@ -1727,8 +1732,34 @@
           "type": "string"
         },
         {
-          "name": "all",
+          "name": "includeImplicitTeams",
           "type": "boolean"
+        }
+      ],
+      "response": "AnnotatedTeamList"
+    },
+    "teamListTeammates": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "includeImplicitTeams",
+          "type": "boolean"
+        }
+      ],
+      "response": "AnnotatedTeamList"
+    },
+    "teamListVerified": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "userAssertion",
+          "type": "string"
         },
         {
           "name": "includeImplicitTeams",

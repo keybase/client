@@ -74,6 +74,11 @@ protocol chatUi {
     boolean offline;
   }
 
+  record UIChannelNameMention {
+    string name;
+    string convID;
+  }
+
   record UIMessageValid {
     MessageID messageID;
     gregor1.Time ctime;
@@ -86,7 +91,7 @@ protocol chatUi {
     union {null, gregor1.Time} senderDeviceRevokedAt;
     array<string> atMentions;
     ChannelMention channelMention;
-    array<string> channelNameMentions;
+    array<UIChannelNameMention> channelNameMentions;
   }
 
   record UIMessageOutbox {

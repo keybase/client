@@ -93,16 +93,15 @@ func sendChat(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamI
 		return nil
 	}
 
+	g.StartStandaloneChat()
+
 	subBody := chat1.NewMessageSystemWithGitpush(chat1.MessageSystemGitPush{
-		Team:       arg.Folder.Name,
-		Pusher:     g.Env.GetUsername().String(),
-		RepoName:   string(arg.Metadata.RepoName),
-		BranchName: arg.Metadata.BranchName,
-		CommitMsgs: arg.Metadata.CommitMsgs,
+		Team:     arg.Folder.Name,
+		Pusher:   g.Env.GetUsername().String(),
+		RepoName: string(arg.Metadata.RepoName),
+		Refs:     arg.Metadata.Refs,
 	})
 	body := chat1.NewMessageBodyWithSystem(subBody)
-
-	g.StartStandaloneChat()
 
 	g.Log.CDebugf(ctx, "sending git push system chat message to %s/%s", arg.Folder.Name, *settings.ChannelName)
 	return g.ChatHelper.SendMsgByNameNonblock(ctx, arg.Folder.Name, settings.ChannelName,
