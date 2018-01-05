@@ -57,6 +57,10 @@ build_script:
   - go install
   - cd ..\..\test
   - go test -i
+  - cd ..\kbpagesd
+  - go install
+  - cd ..\kbpagesconfig
+  - go install
   - cd ..
 # Eventually there will be more tests, but let's just start with these for now
 #  - go list ./... | find /V "vendor" > testlist.txt
@@ -73,6 +77,9 @@ build_script:
   - echo github.com/keybase/kbfs/kbfsgit >> testlist.txt
   - echo github.com/keybase/kbfs/simplefs >> testlist.txt
   - echo github.com/keybase/kbfs/test >> testlist.txt
+  - echo github.com/keybase/kbfs/kbpagesconfig >> testlist.txt
+  - echo github.com/keybase/kbfs/libpages >> testlist.txt
+  - echo github.com/keybase/kbfs/libpages/config >> testlist.txt
 # TODO: Run the below tests with env KEYBASE_TEST_BSERVER_ADDR=tempdir.
   - for /f %%i in (testlist.txt) do (appveyor AddTest %%i -Outcome Running -Framework gotest -Filename %%i & go test -timeout 5m %%i && appveyor UpdateTest %%i -Outcome Passed -Framework gotest -Filename %%i -Duration 0) || (appveyor UpdateTest %%i -Outcome Failed -Framework gotest -Filename %%i -Duration 0 & exit /b 1) 
   - cd test && go test -tags dokan -timeout 300s

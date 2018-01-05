@@ -20,6 +20,7 @@ import (
 
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/kbfs/libpages/config"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/acme"
 	"golang.org/x/crypto/acme/autocert"
@@ -150,7 +151,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		zap.String("proto", r.Proto),
 	)
 
-	if path.Clean(strings.ToLower(r.URL.Path)) == kbpConfigPath {
+	if path.Clean(strings.ToLower(r.URL.Path)) == config.DefaultConfigFilepath {
 		// Don't serve .kbp_config.
 		// TODO: integrate this check into Config?
 		w.WriteHeader(http.StatusForbidden)

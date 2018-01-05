@@ -376,5 +376,26 @@ def runNixTest(prefix) {
             sh './test.fuse -test.timeout 12m'
         }
     }
+    tests[prefix+'libpages'] = {
+        dir('libpages') {
+            sh 'go test -i'
+            sh 'go test -c'
+            sh './libpages.test -test.timeout 30s'
+        }
+    }
+    tests[prefix+'libpages_config'] = {
+        dir('libpages/config') {
+            sh 'go test -i'
+            sh 'go test -c'
+            sh './config.test -test.timeout 30s'
+        }
+    }
+    tests[prefix+'kbpagesconfig'] = {
+        dir('kbpagesconfig') {
+            sh 'go test -i'
+            sh 'go test -c'
+            sh './kbpagesconfig.test -test.timeout 30s'
+        }
+    }
     parallel (tests)
 }

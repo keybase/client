@@ -1,3 +1,7 @@
+// Copyright 2018 Keybase Inc. All rights reserved.
+// Use of this source code is governed by a BSD
+// license that can be found in the LICENSE file.
+
 package main
 
 import (
@@ -13,13 +17,13 @@ var userAddCmd = cli.Command{
 	ArgumentHelp: "add <username> [username ...]",
 	Action: func(c *cli.Context) {
 		if len(c.Args()) < 1 {
-			fmt.Fprintf(os.Stderr, "empty username\n")
+			fmt.Fprintln(os.Stderr, "empty username")
 			os.Exit(1)
 		}
 		editor, err := newKBPConfigEditor(c.GlobalString("dir"))
 		if err != nil {
 			fmt.Fprintf(os.Stderr,
-				"creating config editor error: %v", err)
+				"creating config editor error: %v\n", err)
 			os.Exit(1)
 		}
 		for _, username := range c.Args() {
@@ -41,13 +45,13 @@ var userRemoveCmd = cli.Command{
 	ArgumentHelp: "remove <username> [username ...]",
 	Action: func(c *cli.Context) {
 		if len(c.Args()) < 1 {
-			fmt.Fprintf(os.Stderr, "empty username\n")
+			fmt.Fprintln(os.Stderr, "empty username")
 			os.Exit(1)
 		}
 		editor, err := newKBPConfigEditor(c.GlobalString("dir"))
 		if err != nil {
 			fmt.Fprintf(os.Stderr,
-				"creating config editor error: %v", err)
+				"creating config editor error: %v\n", err)
 			os.Exit(1)
 		}
 		for _, username := range c.Args() {

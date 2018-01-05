@@ -1,4 +1,4 @@
-// Copyright 2017 Keybase Inc. All rights reserved.
+// Copyright 2018 Keybase Inc. All rights reserved.
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
@@ -18,16 +18,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-const configFileName = ".kbp_config"
-
-var term *minterm.MinTerm
-
-func init() {
-	var err error
-	if term, err = minterm.New(); err != nil {
-		fmt.Fprintf(os.Stderr, "opening terminal error: %s\n", err)
-		os.Exit(1)
-	}
+type prompter interface {
+	Prompt(string) (string, error)
+	PromptPassword(string) (string, error)
 }
 
 // not go-routine safe!
@@ -35,6 +28,7 @@ type kbpConfigEditor struct {
 	kbpConfigPath     string
 	kbpConfig         *config.V1
 	originalConfigStr string
+	prompter          prompter
 }
 
 func readConfig(from io.ReadCloser) (cfg config.Config, str string, err error) {
@@ -48,8 +42,8 @@ func readConfig(from io.ReadCloser) (cfg config.Config, str string, err error) {
 	return cfg, buf.String(), nil
 }
 
-// initConfig reads in config file and ENV variables if set.
-func newKBPConfigEditor(kbpConfigDir string) (*kbpConfigEditor, error) {
+func newKBPConfigEditorWithPrompter(kbpConfigDir string, p prompter) (
+	*kbpConfigEditor, error) {
 	fi, err := os.Stat(kbpConfigDir)
 	if err != nil {
 		return nil, fmt.Errorf("stat %q error: %v", kbpConfigDir, err)
@@ -57,11 +51,12 @@ func newKBPConfigEditor(kbpConfigDir string) (*kbpConfigEditor, error) {
 	if !fi.IsDir() {
 		return nil, fmt.Errorf("%q is not a directory", kbpConfigDir)
 	}
-	kbpConfigPath := filepath.Join(kbpConfigDir, configFileName)
-	editor := &kbpConfigEditor{kbpConfigPath: kbpConfigPath}
+	kbpConfigPath := filepath.Join(kbpConfigDir, config.DefaultConfigFilename)
+	editor := &kbpConfigEditor{kbpConfigPath: kbpConfigPath, prompter: p}
 	f, err := os.Open(kbpConfigPath)
 	switch {
 	case err == nil:
+		defer f.Close()
 		var cfg config.Config
 		cfg, editor.originalConfigStr, err = readConfig(f)
 		if err != nil {
@@ -82,6 +77,14 @@ func newKBPConfigEditor(kbpConfigDir string) (*kbpConfigEditor, error) {
 	return editor, nil
 }
 
+func newKBPConfigEditor(kbpConfigDir string) (*kbpConfigEditor, error) {
+	term, err := minterm.New()
+	if err != nil {
+		return nil, fmt.Errorf("opening terminal error: %s", err)
+	}
+	return newKBPConfigEditorWithPrompter(kbpConfigDir, term)
+}
+
 func (e *kbpConfigEditor) confirmAndWrite() error {
 	buf := &bytes.Buffer{}
 	if err := e.kbpConfig.Encode(buf, true); err != nil {
@@ -100,7 +103,7 @@ func (e *kbpConfigEditor) confirmAndWrite() error {
 			d.DiffMain(e.originalConfigStr, newConfigStr, true)))
 
 	// ask user to confirm
-	input, err := term.Prompt(fmt.Sprintf(
+	input, err := e.prompter.Prompt(fmt.Sprintf(
 		"confirm writing above changes to %s? (y/N): ", e.kbpConfigPath))
 	if err != nil {
 		return fmt.Errorf("getting confirmation error: %v", err)
@@ -131,7 +134,7 @@ func (e *kbpConfigEditor) addUser(username string) error {
 	if _, ok := e.kbpConfig.Users[username]; ok {
 		return fmt.Errorf("user %s already exists", username)
 	}
-	input, err := term.PromptPassword(fmt.Sprintf(
+	input, err := e.prompter.PromptPassword(fmt.Sprintf(
 		"enter a password for %s: ", username))
 	if err != nil {
 		return fmt.Errorf("getting password error: %v", err)
@@ -161,7 +164,7 @@ func (e *kbpConfigEditor) setAnonymousPermission(
 	if e.kbpConfig.ACLs == nil {
 		e.kbpConfig.ACLs = make(map[string]config.AccessControlV1)
 	}
-	pathACL := e.kbpConfig.ACLs[pathStr] // struct
+	pathACL := e.kbpConfig.ACLs[pathStr]
 	pathACL.AnonymousPermissions = permsStr
 	e.kbpConfig.ACLs[pathStr] = pathACL
 	return e.kbpConfig.Validate()
@@ -176,11 +179,12 @@ func (e *kbpConfigEditor) setAdditionalPermission(
 	if e.kbpConfig.ACLs == nil {
 		e.kbpConfig.ACLs = make(map[string]config.AccessControlV1)
 	}
-	pathACL := e.kbpConfig.ACLs[pathStr] // struct
+	pathACL := e.kbpConfig.ACLs[pathStr]
 	if pathACL.WhitelistAdditionalPermissions == nil {
 		// If permsStr is empty, we'd leave an empty permission entry behind.
-		// But that's OK. If user really wants it gone, they can use the
-		// "remove" command.
+		// But that's OK since it doesn't change any behavior, i.e., no
+		// additional permission is granted for the user on the path. If user
+		// really wants the entry gone, they can use the "remove" command.
 		pathACL.WhitelistAdditionalPermissions = make(map[string]string)
 	}
 	pathACL.WhitelistAdditionalPermissions[username] = permsStr
@@ -198,7 +202,7 @@ func (e *kbpConfigEditor) removeUserFromACL(username string, pathStr string) {
 	delete(e.kbpConfig.ACLs[pathStr].WhitelistAdditionalPermissions, username)
 }
 
-func (e *kbpConfigEditor) checkUserOnPath(
+func (e *kbpConfigEditor) getUserOnPath(
 	username string, pathStr string) (read, list bool, err error) {
 	read, list, _, err = e.kbpConfig.GetPermissionsForUsername(
 		pathStr, username)

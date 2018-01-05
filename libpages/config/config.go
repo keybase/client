@@ -10,6 +10,13 @@ import (
 	"io"
 )
 
+// DefaultConfigFilename is the default filename for Keybase Pages config file.
+const DefaultConfigFilename = ".kbp_config"
+
+// DefaultConfigFilepath is the default path for Keybase Pages config file
+// under the site root, and is what's used in kbpagesd.
+const DefaultConfigFilepath = "/.kbp_config"
+
 // Common includes common fields that should appear in all versions of
 // configs.
 type Common struct {

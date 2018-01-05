@@ -27,8 +27,6 @@ type site struct {
 	cachedConfigExpiresAt time.Time
 }
 
-const kbpConfigPath = "/.kbp_config"
-
 func makeSite(fs *libfs.FS) *site {
 	return &site{fs: fs}
 }
@@ -51,7 +49,7 @@ func (s *site) fetchConfigAndRefreshCache() (cfg config.Config, err error) {
 		return s.cachedConfig, nil
 	}
 
-	f, err := s.fs.Open(kbpConfigPath)
+	f, err := s.fs.Open(config.DefaultConfigFilepath)
 	switch {
 	case os.IsNotExist(err):
 		cfg = config.DefaultV1()

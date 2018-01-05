@@ -10,7 +10,9 @@ kbfsfuse/revision
 kbfsgit/git-remote-keybase/git-remote-keybase
 kbpagesd/kbpagesd
 kbpagesconfig/kbpagesconfig
+kbpagesconfig/kbpagesconfig.test
 libpages/config/config.test
+libpages/libpages.test
 *.test
 
 **/vim-go-test-compile

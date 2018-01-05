@@ -1,3 +1,7 @@
+// Copyright 2018 Keybase Inc. All rights reserved.
+// Use of this source code is governed by a BSD
+// license that can be found in the LICENSE file.
+
 package main
 
 import (
@@ -20,7 +24,7 @@ var aclSetAnonymousCmd = cli.Command{
 		editor, err := newKBPConfigEditor(c.GlobalString("dir"))
 		if err != nil {
 			fmt.Fprintf(os.Stderr,
-				"creating config editor error: %v", err)
+				"creating config editor error: %v\n", err)
 			os.Exit(1)
 		}
 		for _, p := range c.Args()[1:] {
@@ -51,7 +55,7 @@ var aclClearCmd = cli.Command{
 		editor, err := newKBPConfigEditor(c.GlobalString("dir"))
 		if err != nil {
 			fmt.Fprintf(os.Stderr,
-				"creating config editor error: %v", err)
+				"creating config editor error: %v\n", err)
 			os.Exit(1)
 		}
 		for _, p := range c.Args() {
@@ -66,8 +70,8 @@ var aclClearCmd = cli.Command{
 
 var aclSetAdditionalCmd = cli.Command{
 	Name: "set-additional",
-	Usage: "set permission(s) <username> is granted on the " +
-		"given path(s) in addition to anonymous ones",
+	Usage: "set additional permission(s) that <username> are granted on " +
+		"top of anonymous ones on the given path(s) ",
 	ArgumentHelp: "set-additional <username> <read|list|read,list> <path> [path ...]",
 	Action: func(c *cli.Context) {
 		if len(c.Args()) < 3 {
@@ -77,7 +81,7 @@ var aclSetAdditionalCmd = cli.Command{
 		editor, err := newKBPConfigEditor(c.GlobalString("dir"))
 		if err != nil {
 			fmt.Fprintf(os.Stderr,
-				"creating config editor error: %v", err)
+				"creating config editor error: %v\n", err)
 			os.Exit(1)
 		}
 		for _, p := range c.Args()[2:] {
@@ -109,7 +113,7 @@ var aclRemoveCmd = cli.Command{
 		editor, err := newKBPConfigEditor(c.GlobalString("dir"))
 		if err != nil {
 			fmt.Fprintf(os.Stderr,
-				"creating config editor error: %v", err)
+				"creating config editor error: %v\n", err)
 			os.Exit(1)
 		}
 		for _, p := range c.Args()[1:] {
@@ -122,10 +126,10 @@ var aclRemoveCmd = cli.Command{
 	},
 }
 
-var aclCheckCmd = cli.Command{
-	Name:         "check",
+var aclGetCmd = cli.Command{
+	Name:         "get",
 	Usage:        "get permissions for a user on the given path(s)",
-	ArgumentHelp: "check <username> <path> [path ...]",
+	ArgumentHelp: "get <username> <path> [path ...]",
 	Action: func(c *cli.Context) {
 		if len(c.Args()) < 2 {
 			fmt.Fprintln(os.Stderr, "need at least 2 args")
@@ -134,13 +138,13 @@ var aclCheckCmd = cli.Command{
 		editor, err := newKBPConfigEditor(c.GlobalString("dir"))
 		if err != nil {
 			fmt.Fprintf(os.Stderr,
-				"creating config editor error: %v", err)
+				"creating config editor error: %v\n", err)
 			os.Exit(1)
 		}
 		writer := tabwriter.NewWriter(os.Stdout, 0, 4, 1, '\t', 0)
 		fmt.Fprintln(writer, "read\tlist\tpath")
 		for _, p := range c.Args()[1:] {
-			read, list, err := editor.checkUserOnPath(c.Args()[0], p)
+			read, list, err := editor.getUserOnPath(c.Args()[0], p)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "getting permissions for "+
 					"%q on %q error: %v\n", c.Args()[0], p, err)
@@ -158,12 +162,12 @@ var aclCheckCmd = cli.Command{
 var aclCmd = cli.Command{
 	Name:         "acl",
 	Usage:        "make changes to the 'acls' section of the config",
-	ArgumentHelp: "acl <set-anonymous|clear|grant|remove|check>",
+	ArgumentHelp: "acl <set-anonymous|clear|grant|remove|get>",
 	Subcommands: []cli.Command{
 		aclSetAnonymousCmd,
 		aclClearCmd,
 		aclSetAdditionalCmd,
 		aclRemoveCmd,
-		aclCheckCmd,
+		aclGetCmd,
 	},
 }
