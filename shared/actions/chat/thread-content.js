@@ -567,6 +567,7 @@ function _unboxedToMessage(
             outboxID: common.outboxID,
             mentions: common.mentions,
             channelMention: common.channelMention,
+            channelNameMentions: common.channelNameMentions,
             targetMessageID,
             timestamp: common.timestamp,
             type: 'Edit',

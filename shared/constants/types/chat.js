@@ -240,6 +240,7 @@ export type EditingMessage = {
   timestamp: number,
   mentions: Mentions,
   channelMention: ChannelMention,
+  channelNameMentions: ChannelNameMentions,
   ordinal: number,
 }
 
