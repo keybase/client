@@ -205,9 +205,8 @@ func (am *AutogitManager) resetWorker(wg *sync.WaitGroup) {
 	defer wg.Done()
 	for reqInt := range am.resetQueue.Out() {
 		req := reqInt.(resetReq)
-		ctx := libkbfs.BackgroundContextWithCancellationDelayer()
-		ctx = libkbfs.CtxWithRandomIDReplayable(
-			ctx, ctxIDKey, ctxOpID, am.log)
+		ctx := libkbfs.CtxWithRandomIDReplayable(
+			context.Background(), ctxIDKey, ctxOpID, am.log)
 		for {
 			waitCh := am.markResetReqInProgress(req)
 			if waitCh == nil {

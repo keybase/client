@@ -82,6 +82,10 @@ func (nc *newConfigger) shutdown(t *testing.T, ctx context.Context) {
 func (nc *newConfigger) getNewConfigForTest(ctx context.Context) (
 	newCtx context.Context, gitConfig libkbfs.Config,
 	tempDir string, err error) {
+	ctx, err = libkbfs.NewContextWithCancellationDelayer(ctx)
+	if err != nil {
+		return nil, nil, "", err
+	}
 	config := libkbfs.ConfigAsUser(nc.config, nc.user)
 	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_server")
 	if err != nil {
@@ -165,7 +169,7 @@ func TestAutogitManager(t *testing.T) {
 		ctx, config, h, "", "", keybase1.MDPriorityNormal)
 	require.NoError(t, err)
 
-	t.Log("Init a new repo directly into git.")
+	t.Log("Init a new repo directly into KBFS.")
 	dotgitFS, _, err := GetOrCreateRepoAndID(ctx, config, h, "test", "")
 	require.NoError(t, err)
 	err = rootFS.MkdirAll("worktree", 0600)
