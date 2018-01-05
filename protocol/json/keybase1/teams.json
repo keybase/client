@@ -1622,7 +1622,7 @@
         },
         {
           "type": "boolean",
-          "name": "changeTarsEnabled"
+          "name": "changeTarsDisabled"
         }
       ]
     },
@@ -2236,7 +2236,7 @@
       ],
       "response": "TeamDebugRes"
     },
-    "getTarsEnabled": {
+    "getTarsDisabled": {
       "request": [
         {
           "name": "name",
@@ -2245,14 +2245,14 @@
       ],
       "response": "boolean"
     },
-    "setTarsEnabled": {
+    "setTarsDisabled": {
       "request": [
         {
           "name": "name",
           "type": "string"
         },
         {
-          "name": "enabled",
+          "name": "disabled",
           "type": "boolean"
         }
       ],

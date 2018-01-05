@@ -1265,7 +1265,7 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 	ret.ManageSubteams = admin || implicitAdmin
 	ret.SetTeamShowcase = admin || implicitAdmin
 	ret.ChangeOpenTeam = admin || implicitAdmin
-	ret.ChangeTarsEnabled = admin || implicitAdmin
+	ret.ChangeTarsDisabled = admin || implicitAdmin
 
 	if teamRole != keybase1.TeamRole_NONE {
 		leaveTeam := true
@@ -1352,40 +1352,40 @@ func MapImplicitTeamIDToDisplayName(ctx context.Context, g *libkb.GlobalContext,
 	return folder, nil
 }
 
-type enableTARsRes struct {
-	Status  libkb.AppStatus `json:"status"`
-	Enabled bool            `json:"enabled"`
+type disableTARsRes struct {
+	Status   libkb.AppStatus `json:"status"`
+	Disabled bool            `json:"disabled"`
 }
 
-func (c *enableTARsRes) GetAppStatus() *libkb.AppStatus {
+func (c *disableTARsRes) GetAppStatus() *libkb.AppStatus {
 	return &c.Status
 }
 
-func GetTarsEnabled(ctx context.Context, g *libkb.GlobalContext, teamname string) (bool, error) {
+func GetTarsDisabled(ctx context.Context, g *libkb.GlobalContext, teamname string) (bool, error) {
 	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 	if err != nil {
 		return false, err
 	}
 
-	arg := apiArg(ctx, "team/enable_tars")
+	arg := apiArg(ctx, "team/disable_tars")
 	arg.Args.Add("tid", libkb.S{Val: t.ID.String()})
-	var ret enableTARsRes
+	var ret disableTARsRes
 	if err := g.API.GetDecode(arg, &ret); err != nil {
 		return false, err
 	}
 
-	return ret.Enabled, nil
+	return ret.Disabled, nil
 }
 
-func SetTarsEnabled(ctx context.Context, g *libkb.GlobalContext, teamname string, enabled bool) error {
+func SetTarsDisabled(ctx context.Context, g *libkb.GlobalContext, teamname string, disabled bool) error {
 	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 	if err != nil {
 		return err
 	}
 
-	arg := apiArg(ctx, "team/enable_tars")
+	arg := apiArg(ctx, "team/disable_tars")
 	arg.Args.Add("tid", libkb.S{Val: t.ID.String()})
-	arg.Args.Add("enabled", libkb.B{Val: enabled})
+	arg.Args.Add("disabled", libkb.B{Val: disabled})
 	_, err = g.API.Post(arg)
 	return err
 }

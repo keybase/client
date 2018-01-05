@@ -1794,7 +1794,7 @@ type TeamOperation struct {
 	SetMemberShowcase      bool `codec:"setMemberShowcase" json:"setMemberShowcase"`
 	ChangeOpenTeam         bool `codec:"changeOpenTeam" json:"changeOpenTeam"`
 	LeaveTeam              bool `codec:"leaveTeam" json:"leaveTeam"`
-	ChangeTarsEnabled      bool `codec:"changeTarsEnabled" json:"changeTarsEnabled"`
+	ChangeTarsDisabled     bool `codec:"changeTarsDisabled" json:"changeTarsDisabled"`
 }
 
 func (o TeamOperation) DeepCopy() TeamOperation {
@@ -1809,7 +1809,7 @@ func (o TeamOperation) DeepCopy() TeamOperation {
 		SetMemberShowcase:      o.SetMemberShowcase,
 		ChangeOpenTeam:         o.ChangeOpenTeam,
 		LeaveTeam:              o.LeaveTeam,
-		ChangeTarsEnabled:      o.ChangeTarsEnabled,
+		ChangeTarsDisabled:     o.ChangeTarsDisabled,
 	}
 }
 
@@ -2031,13 +2031,13 @@ type TeamDebugArg struct {
 	TeamID TeamID `codec:"teamID" json:"teamID"`
 }
 
-type GetTarsEnabledArg struct {
+type GetTarsDisabledArg struct {
 	Name string `codec:"name" json:"name"`
 }
 
-type SetTarsEnabledArg struct {
-	Name    string `codec:"name" json:"name"`
-	Enabled bool   `codec:"enabled" json:"enabled"`
+type SetTarsDisabledArg struct {
+	Name     string `codec:"name" json:"name"`
+	Disabled bool   `codec:"disabled" json:"disabled"`
 }
 
 type TeamsInterface interface {
@@ -2081,8 +2081,8 @@ type TeamsInterface interface {
 	CanUserPerform(context.Context, string) (TeamOperation, error)
 	TeamRotateKey(context.Context, TeamID) error
 	TeamDebug(context.Context, TeamID) (TeamDebugRes, error)
-	GetTarsEnabled(context.Context, string) (bool, error)
-	SetTarsEnabled(context.Context, SetTarsEnabledArg) error
+	GetTarsDisabled(context.Context, string) (bool, error)
+	SetTarsDisabled(context.Context, SetTarsDisabledArg) error
 }
 
 func TeamsProtocol(i TeamsInterface) rpc.Protocol {
@@ -2681,34 +2681,34 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"getTarsEnabled": {
+			"getTarsDisabled": {
 				MakeArg: func() interface{} {
-					ret := make([]GetTarsEnabledArg, 1)
+					ret := make([]GetTarsDisabledArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]GetTarsEnabledArg)
+					typedArgs, ok := args.(*[]GetTarsDisabledArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]GetTarsEnabledArg)(nil), args)
+						err = rpc.NewTypeError((*[]GetTarsDisabledArg)(nil), args)
 						return
 					}
-					ret, err = i.GetTarsEnabled(ctx, (*typedArgs)[0].Name)
+					ret, err = i.GetTarsDisabled(ctx, (*typedArgs)[0].Name)
 					return
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"setTarsEnabled": {
+			"setTarsDisabled": {
 				MakeArg: func() interface{} {
-					ret := make([]SetTarsEnabledArg, 1)
+					ret := make([]SetTarsDisabledArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]SetTarsEnabledArg)
+					typedArgs, ok := args.(*[]SetTarsDisabledArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]SetTarsEnabledArg)(nil), args)
+						err = rpc.NewTypeError((*[]SetTarsDisabledArg)(nil), args)
 						return
 					}
-					err = i.SetTarsEnabled(ctx, (*typedArgs)[0])
+					err = i.SetTarsDisabled(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2916,13 +2916,13 @@ func (c TeamsClient) TeamDebug(ctx context.Context, teamID TeamID) (res TeamDebu
 	return
 }
 
-func (c TeamsClient) GetTarsEnabled(ctx context.Context, name string) (res bool, err error) {
-	__arg := GetTarsEnabledArg{Name: name}
-	err = c.Cli.Call(ctx, "keybase.1.teams.getTarsEnabled", []interface{}{__arg}, &res)
+func (c TeamsClient) GetTarsDisabled(ctx context.Context, name string) (res bool, err error) {
+	__arg := GetTarsDisabledArg{Name: name}
+	err = c.Cli.Call(ctx, "keybase.1.teams.getTarsDisabled", []interface{}{__arg}, &res)
 	return
 }
 
-func (c TeamsClient) SetTarsEnabled(ctx context.Context, __arg SetTarsEnabledArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.setTarsEnabled", []interface{}{__arg}, nil)
+func (c TeamsClient) SetTarsDisabled(ctx context.Context, __arg SetTarsDisabledArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.setTarsDisabled", []interface{}{__arg}, nil)
 	return
 }

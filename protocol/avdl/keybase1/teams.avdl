@@ -721,7 +721,7 @@ protocol teams {
     boolean setMemberShowcase;
     boolean changeOpenTeam;
     boolean leaveTeam;
-    boolean changeTarsEnabled;
+    boolean changeTarsDisabled;
   }
 
   TeamOperation canUserPerform(string name);
@@ -733,6 +733,6 @@ protocol teams {
     TeamSigChainState chain;
   }
 
-  boolean getTarsEnabled(string name);
-  void setTarsEnabled(string name, boolean enabled);
+  boolean getTarsDisabled(string name);
+  void setTarsDisabled(string name, boolean disabled);
 }

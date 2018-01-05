@@ -8,7 +8,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-func TestSetTarsEnabled(t *testing.T) {
+func TestSetTarsDisabled(t *testing.T) {
 	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
 
@@ -18,14 +18,14 @@ func TestSetTarsEnabled(t *testing.T) {
 	name := createTeam(tc)
 	t.Logf("Created team %q", name)
 
-	enabled, err := GetTarsEnabled(context.Background(), tc.G, name)
+	disabled, err := GetTarsDisabled(context.Background(), tc.G, name)
 	require.NoError(t, err)
-	require.True(t, enabled)
+	require.False(t, disabled)
 
-	err = SetTarsEnabled(context.Background(), tc.G, name, false)
+	err = SetTarsDisabled(context.Background(), tc.G, name, true)
 	require.NoError(t, err)
 
-	enabled, err = GetTarsEnabled(context.Background(), tc.G, name)
+	disabled, err = GetTarsDisabled(context.Background(), tc.G, name)
 	require.NoError(t, err)
-	require.False(t, enabled)
+	require.True(t, disabled)
 }
