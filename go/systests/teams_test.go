@@ -349,9 +349,17 @@ func (u *userPlusDevice) acceptInviteOrRequestAccess(tokenOrName string) keybase
 
 func (u *userPlusDevice) teamList(userAssertion string, all, includeImplicitTeams bool) keybase1.AnnotatedTeamList {
 	cli := u.teamsClient
-	res, err := cli.TeamList(context.TODO(), keybase1.TeamListArg{
+	res, err := cli.TeamListUnverified(context.TODO(), keybase1.TeamListUnverifiedArg{
 		UserAssertion:        userAssertion,
-		All:                  all,
+		IncludeImplicitTeams: includeImplicitTeams,
+	})
+	require.NoError(u.tc.T, err)
+	return res
+}
+
+func (u *userPlusDevice) teamListTeammates(includeImplicitTeams bool) keybase1.AnnotatedTeamList {
+	cli := u.teamsClient
+	res, err := cli.TeamListTeammates(context.TODO(), keybase1.TeamListTeammatesArg{
 		IncludeImplicitTeams: includeImplicitTeams,
 	})
 	require.NoError(u.tc.T, err)

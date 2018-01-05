@@ -127,7 +127,7 @@ func (e *Kex2Provisionee) Run(ctx *Context) error {
 		DeviceID:      e.device.ID,
 		Secret:        e.secret,
 		SecretChannel: e.secretCh,
-		Timeout:       5 * time.Minute,
+		Timeout:       60 * time.Minute,
 	}
 	parg := kex2.ProvisioneeArg{
 		KexBaseArg:  karg,
