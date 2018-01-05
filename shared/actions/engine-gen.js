@@ -11,7 +11,12 @@ export const resetStore = 'common:resetStore' // not a part of engine but is han
 export const waitingForRpc = 'engine:waitingForRpc'
 
 // Action Creators
-export const createWaitingForRpc = (payload: {|+waiting: boolean, +name: string|}) => ({error: false, payload, type: waitingForRpc})
+export const createWaitingForRpc = (
+  payload: $ReadOnly<{
+    waiting: boolean,
+    name: string,
+  }>
+) => ({error: false, payload, type: waitingForRpc})
 
 // Action Payloads
 export type WaitingForRpcPayload = More.ReturnType<typeof createWaitingForRpc>

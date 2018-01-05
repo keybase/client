@@ -54,49 +54,173 @@ export const updateZcash = 'tracker:updateZcash'
 export const waiting = 'tracker:waiting'
 
 // Action Creators
-export const createCacheIdentify = (payload: {|+uid: string, +goodTill: number|}) => ({error: false, payload, type: cacheIdentify})
-export const createFollow = (payload: {|+username: string, +localIgnore?: boolean|}) => ({error: false, payload, type: follow})
-export const createGetMyProfile = (payload: {|+ignoreCache?: boolean|}) => ({error: false, payload, type: getMyProfile})
-export const createGetProfile = (payload: {|+username: string, +ignoreCache?: boolean, +forceDisplay?: boolean|}) => ({error: false, payload, type: getProfile})
-export const createIdentifyFinished = (payload: {|+username: string|}) => ({error: false, payload, type: identifyFinished})
-export const createIdentifyFinishedError = (payload: {|+username: string, +error: string|}) => ({error: true, payload, type: identifyFinished})
-export const createIdentifyStarted = (payload: {|+username: string|}) => ({error: false, payload, type: identifyStarted})
-export const createIgnore = (payload: {|+username: string|}) => ({error: false, payload, type: ignore})
-export const createMarkActiveIdentifyUi = (payload: {|+username: string, +active: boolean|}) => ({error: false, payload, type: markActiveIdentifyUi})
-export const createOnClose = (payload: {|+username: string|}) => ({error: false, payload, type: onClose})
-export const createOnError = (payload: {|+username: string, +extraText: string|}) => ({error: false, payload, type: onError})
-export const createOpenProofUrl = (payload: {|+proof: Types.Proof|}) => ({error: false, payload, type: openProofUrl})
-export const createParseFriendship = (payload: {|+username: string, +uid: string, +fullname: string, +followsYou: string, +following: string|}) => ({error: false, payload, type: parseFriendship})
-export const createPendingIdentify = (payload: {|+username: string, +pending: boolean|}) => ({error: false, payload, type: pendingIdentify})
-export const createRefollow = (payload: {|+username: string|}) => ({error: false, payload, type: refollow})
-export const createRemoteDismiss = (payload: {|+username: string|}) => ({error: false, payload, type: remoteDismiss})
-export const createReportLastTrack = (payload: {|+username: string, +tracking?: boolean|}) => ({error: false, payload, type: reportLastTrack})
-export const createResetProofs = (payload: {|+username: string|}) => ({error: false, payload, type: resetProofs})
-export const createSetNeedTrackTokenDismiss = (payload: {|+username: string, +needTrackTokenDismiss: boolean|}) => ({error: false, payload, type: setNeedTrackTokenDismiss})
-export const createSetOnFollow = (payload: {|+username: string|}) => ({error: false, payload, type: setOnFollow})
-export const createSetOnRefollow = (payload: {|+username: string|}) => ({error: false, payload, type: setOnRefollow})
-export const createSetOnUnfollow = (payload: {|+username: string|}) => ({error: false, payload, type: setOnUnfollow})
-export const createSetProofs = (payload: {|+username: string, +identity: RPCTypes.Identity|}) => ({error: false, payload, type: setProofs})
-export const createSetRegisterIdentifyUi = (payload: {|+started: boolean|}) => ({error: false, payload, type: setRegisterIdentifyUi})
-export const createSetUpdateTrackers = (payload: {|+username: string, +trackers: Array<{|username: string, uid: string, fullname: string, followsYou: boolean, following: boolean|}>, +tracking: Array<{|username: string, uid: string, fullname: string, followsYou: boolean, following: boolean|}>|}) => ({error: false, payload, type: setUpdateTrackers})
+export const createCacheIdentify = (
+  payload: $ReadOnly<{
+    uid: string,
+    goodTill: number,
+  }>
+) => ({error: false, payload, type: cacheIdentify})
+export const createFollow = (
+  payload: $ReadOnly<{
+    username: string,
+    localIgnore?: boolean,
+  }>
+) => ({error: false, payload, type: follow})
+export const createGetMyProfile = (payload: $ReadOnly<{ignoreCache?: boolean}>) => ({error: false, payload, type: getMyProfile})
+export const createGetProfile = (
+  payload: $ReadOnly<{
+    username: string,
+    ignoreCache?: boolean,
+    forceDisplay?: boolean,
+  }>
+) => ({error: false, payload, type: getProfile})
+export const createIdentifyFinished = (payload: $ReadOnly<{username: string}>) => ({error: false, payload, type: identifyFinished})
+export const createIdentifyFinishedError = (
+  payload: $ReadOnly<{
+    username: string,
+    error: string,
+  }>
+) => ({error: true, payload, type: identifyFinished})
+export const createIdentifyStarted = (payload: $ReadOnly<{username: string}>) => ({error: false, payload, type: identifyStarted})
+export const createIgnore = (payload: $ReadOnly<{username: string}>) => ({error: false, payload, type: ignore})
+export const createMarkActiveIdentifyUi = (
+  payload: $ReadOnly<{
+    username: string,
+    active: boolean,
+  }>
+) => ({error: false, payload, type: markActiveIdentifyUi})
+export const createOnClose = (payload: $ReadOnly<{username: string}>) => ({error: false, payload, type: onClose})
+export const createOnError = (
+  payload: $ReadOnly<{
+    username: string,
+    extraText: string,
+  }>
+) => ({error: false, payload, type: onError})
+export const createOpenProofUrl = (payload: $ReadOnly<{proof: Types.Proof}>) => ({error: false, payload, type: openProofUrl})
+export const createParseFriendship = (
+  payload: $ReadOnly<{
+    username: string,
+    uid: string,
+    fullname: string,
+    followsYou: string,
+    following: string,
+  }>
+) => ({error: false, payload, type: parseFriendship})
+export const createPendingIdentify = (
+  payload: $ReadOnly<{
+    username: string,
+    pending: boolean,
+  }>
+) => ({error: false, payload, type: pendingIdentify})
+export const createRefollow = (payload: $ReadOnly<{username: string}>) => ({error: false, payload, type: refollow})
+export const createRemoteDismiss = (payload: $ReadOnly<{username: string}>) => ({error: false, payload, type: remoteDismiss})
+export const createReportLastTrack = (
+  payload: $ReadOnly<{
+    username: string,
+    tracking?: boolean,
+  }>
+) => ({error: false, payload, type: reportLastTrack})
+export const createResetProofs = (payload: $ReadOnly<{username: string}>) => ({error: false, payload, type: resetProofs})
+export const createSetNeedTrackTokenDismiss = (
+  payload: $ReadOnly<{
+    username: string,
+    needTrackTokenDismiss: boolean,
+  }>
+) => ({error: false, payload, type: setNeedTrackTokenDismiss})
+export const createSetOnFollow = (payload: $ReadOnly<{username: string}>) => ({error: false, payload, type: setOnFollow})
+export const createSetOnRefollow = (payload: $ReadOnly<{username: string}>) => ({error: false, payload, type: setOnRefollow})
+export const createSetOnUnfollow = (payload: $ReadOnly<{username: string}>) => ({error: false, payload, type: setOnUnfollow})
+export const createSetProofs = (
+  payload: $ReadOnly<{
+    username: string,
+    identity: RPCTypes.Identity,
+  }>
+) => ({error: false, payload, type: setProofs})
+export const createSetRegisterIdentifyUi = (payload: $ReadOnly<{started: boolean}>) => ({error: false, payload, type: setRegisterIdentifyUi})
+export const createSetUpdateTrackers = (
+  payload: $ReadOnly<{
+    username: string,
+    trackers: Array<{|username: string, uid: string, fullname: string, followsYou: boolean, following: boolean|}>,
+    tracking: Array<{|username: string, uid: string, fullname: string, followsYou: boolean, following: boolean|}>,
+  }>
+) => ({error: false, payload, type: setUpdateTrackers})
 export const createSetupTrackerHandlers = () => ({error: false, payload: undefined, type: setupTrackerHandlers})
-export const createShowNonUser = (payload: {|+username: string, +nonUser: RPCTypes.IdentifyUiDisplayTLFCreateWithInviteRpcParam|}) => ({error: false, payload, type: showNonUser})
-export const createShowTracker = (payload: {|+username: string|}) => ({error: false, payload, type: showTracker})
-export const createUnfollow = (payload: {|+username: string|}) => ({error: false, payload, type: unfollow})
-export const createUpdateBTC = (payload: {|+username: string, +address: string, +sigID: string|}) => ({error: false, payload, type: updateBTC})
-export const createUpdateEldestKidChanged = (payload: {|+username: string|}) => ({error: false, payload, type: updateEldestKidChanged})
-export const createUpdateFolders = (payload: {|+username: string, +tlfs: Array<FolderTypes.Folder>|}) => ({error: false, payload, type: updateFolders})
-export const createUpdatePGPKey = (payload: {|+username: string, +pgpFingerprint: Buffer, +kid: string|}) => ({error: false, payload, type: updatePGPKey})
-export const createUpdateProof = (payload: {|+remoteProof: RPCTypes.RemoteProof, +linkCheckResult: RPCTypes.LinkCheckResult, +username: string|}) => ({error: false, payload, type: updateProof})
-export const createUpdateProofState = (payload: {|+username: string|}) => ({error: false, payload, type: updateProofState})
-export const createUpdateReason = (payload: {|+username: string, +reason: ?string|}) => ({error: false, payload, type: updateReason})
-export const createUpdateSelectedTeam = (payload: {|+selectedTeam: string, +username: string|}) => ({error: false, payload, type: updateSelectedTeam})
-export const createUpdateTrackToken = (payload: {|+username: string, +trackToken: RPCTypes.TrackToken|}) => ({error: false, payload, type: updateTrackToken})
-export const createUpdateTrackers = (payload: {|+username: string|}) => ({error: false, payload, type: updateTrackers})
-export const createUpdateUserInfo = (payload: {|+userCard: RPCTypes.UserCard, +username: string|}) => ({error: false, payload, type: updateUserInfo})
-export const createUpdateUsername = (payload: {|+username: string|}) => ({error: false, payload, type: updateUsername})
-export const createUpdateZcash = (payload: {|+username: string, +address: string, +sigID: string|}) => ({error: false, payload, type: updateZcash})
-export const createWaiting = (payload: {|+username: string, +waiting: boolean|}) => ({error: false, payload, type: waiting})
+export const createShowNonUser = (
+  payload: $ReadOnly<{
+    username: string,
+    nonUser: RPCTypes.IdentifyUiDisplayTLFCreateWithInviteRpcParam,
+  }>
+) => ({error: false, payload, type: showNonUser})
+export const createShowTracker = (payload: $ReadOnly<{username: string}>) => ({error: false, payload, type: showTracker})
+export const createUnfollow = (payload: $ReadOnly<{username: string}>) => ({error: false, payload, type: unfollow})
+export const createUpdateBTC = (
+  payload: $ReadOnly<{
+    username: string,
+    address: string,
+    sigID: string,
+  }>
+) => ({error: false, payload, type: updateBTC})
+export const createUpdateEldestKidChanged = (payload: $ReadOnly<{username: string}>) => ({error: false, payload, type: updateEldestKidChanged})
+export const createUpdateFolders = (
+  payload: $ReadOnly<{
+    username: string,
+    tlfs: Array<FolderTypes.Folder>,
+  }>
+) => ({error: false, payload, type: updateFolders})
+export const createUpdatePGPKey = (
+  payload: $ReadOnly<{
+    username: string,
+    pgpFingerprint: Buffer,
+    kid: string,
+  }>
+) => ({error: false, payload, type: updatePGPKey})
+export const createUpdateProof = (
+  payload: $ReadOnly<{
+    remoteProof: RPCTypes.RemoteProof,
+    linkCheckResult: RPCTypes.LinkCheckResult,
+    username: string,
+  }>
+) => ({error: false, payload, type: updateProof})
+export const createUpdateProofState = (payload: $ReadOnly<{username: string}>) => ({error: false, payload, type: updateProofState})
+export const createUpdateReason = (
+  payload: $ReadOnly<{
+    username: string,
+    reason: ?string,
+  }>
+) => ({error: false, payload, type: updateReason})
+export const createUpdateSelectedTeam = (
+  payload: $ReadOnly<{
+    selectedTeam: string,
+    username: string,
+  }>
+) => ({error: false, payload, type: updateSelectedTeam})
+export const createUpdateTrackToken = (
+  payload: $ReadOnly<{
+    username: string,
+    trackToken: RPCTypes.TrackToken,
+  }>
+) => ({error: false, payload, type: updateTrackToken})
+export const createUpdateTrackers = (payload: $ReadOnly<{username: string}>) => ({error: false, payload, type: updateTrackers})
+export const createUpdateUserInfo = (
+  payload: $ReadOnly<{
+    userCard: RPCTypes.UserCard,
+    username: string,
+  }>
+) => ({error: false, payload, type: updateUserInfo})
+export const createUpdateUsername = (payload: $ReadOnly<{username: string}>) => ({error: false, payload, type: updateUsername})
+export const createUpdateZcash = (
+  payload: $ReadOnly<{
+    username: string,
+    address: string,
+    sigID: string,
+  }>
+) => ({error: false, payload, type: updateZcash})
+export const createWaiting = (
+  payload: $ReadOnly<{
+    username: string,
+    waiting: boolean,
+  }>
+) => ({error: false, payload, type: waiting})
 
 // Action Payloads
 export type CacheIdentifyPayload = More.ReturnType<typeof createCacheIdentify>

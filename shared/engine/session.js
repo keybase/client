@@ -45,7 +45,6 @@ class Session {
     cancelHandler?: ?CancelHandlerType,
     dangling?: boolean = false
   ) {
-    // $FlowIssue doesn't like empty exact types
     const empty: IncomingCallMapType = {}
     this._id = sessionID
     this._incomingCallMap = incomingCallMap || empty

@@ -19,11 +19,22 @@ export const updateSeenMsgs = 'gregor:updateSeenMsgs'
 
 // Action Creators
 export const createCheckReachability = () => ({error: false, payload: undefined, type: checkReachability})
-export const createInjectItem = (payload: {|+category: string, +body: string, +dtime?: ?Date|}) => ({error: false, payload, type: injectItem})
-export const createPushOOBM = (payload: {|+messages: Array<RPCTypesGregor.OutOfBandMessage>|}) => ({error: false, payload, type: pushOOBM})
-export const createPushState = (payload: {|+state: RPCTypesGregor.State, +reason: RPCTypes.PushReason|}) => ({error: false, payload, type: pushState})
-export const createUpdateReachability = (payload: {|+reachability: RPCTypes.Reachability|}) => ({error: false, payload, type: updateReachability})
-export const createUpdateSeenMsgs = (payload: {|+seenMsgs: Array<Types.NonNullGregorItem>|}) => ({error: false, payload, type: updateSeenMsgs})
+export const createInjectItem = (
+  payload: $ReadOnly<{
+    category: string,
+    body: string,
+    dtime?: ?Date,
+  }>
+) => ({error: false, payload, type: injectItem})
+export const createPushOOBM = (payload: $ReadOnly<{messages: Array<RPCTypesGregor.OutOfBandMessage>}>) => ({error: false, payload, type: pushOOBM})
+export const createPushState = (
+  payload: $ReadOnly<{
+    state: RPCTypesGregor.State,
+    reason: RPCTypes.PushReason,
+  }>
+) => ({error: false, payload, type: pushState})
+export const createUpdateReachability = (payload: $ReadOnly<{reachability: RPCTypes.Reachability}>) => ({error: false, payload, type: updateReachability})
+export const createUpdateSeenMsgs = (payload: $ReadOnly<{seenMsgs: Array<Types.NonNullGregorItem>}>) => ({error: false, payload, type: updateSeenMsgs})
 
 // Action Payloads
 export type CheckReachabilityPayload = More.ReturnType<typeof createCheckReachability>
