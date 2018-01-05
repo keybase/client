@@ -12,7 +12,6 @@ export type StateProps = {|
   selectedConversation: ?Types.ConversationIDKey,
   validated: boolean,
   you: string,
-  teamname: ?string,
   getMessageFromMessageKey: (messageKey: Types.MessageKey) => Types.Message,
 |}
 

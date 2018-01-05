@@ -24,7 +24,6 @@ export type Props = {|
   selectedConversation: ?Types.ConversationIDKey,
   validated: boolean,
   you: string,
-  teamname: ?string,
 |}
 
 export default class ConversationList extends React.Component<Props> {

@@ -179,7 +179,6 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props
     selectedConversation: stateProps.selectedConversation,
     validated: stateProps.validated,
     you: stateProps.you,
-    teamname: stateProps.teamname,
   }
 }
 
