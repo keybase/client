@@ -35,7 +35,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       _onConfirm: (username: string) => {
         // make sure we have tracker state & profile is up to date
         dispatch(createGetMyProfile({}))
-        dispatch(navigateAppend([{props: {username}, selected: 'profile'}, 'editProfile'], [Tabs.peopleTab]))
+        dispatch(navigateAppend(['editProfile'], [Tabs.peopleTab]))
       },
       onDismiss: () => {},
     },
