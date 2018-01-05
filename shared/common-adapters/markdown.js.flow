@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import type {ChannelMention, Mentions, ConversationIDKey} from '../constants/types/chat'
+import type {ChannelMention, ChannelNameMentions, Mentions, ConversationIDKey} from '../constants/types/chat'
 
 type MarkdownComponentType =
   | 'inline-code'
@@ -24,6 +24,7 @@ export type MarkdownCreateComponent = (
 export type MarkdownMeta = {
   mentions: Mentions,
   channelMention: ChannelMention,
+  channelNameMentions: ChannelNameMentions,
   channelNameToConvID: {[string]: ConversationIDKey},
 }
 

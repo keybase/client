@@ -3,7 +3,7 @@ import * as Constants from '../../../../constants/chat'
 import * as Types from '../../../../constants/types/chat'
 import TextMessage, {type Props} from '.'
 import createCachedSelector from 're-reselect'
-import {Set} from 'immutable'
+import {Set, Map} from 'immutable'
 import {compose, lifecycle, connect, type TypedState} from '../../../../util/container'
 import {type OwnProps} from './container'
 
@@ -16,6 +16,7 @@ const getProps = createCachedSelector(
       type: message ? message.messageState : null,
       mentions: message ? message.mentions : Set(),
       channelMention: message ? message.channelMention : 'None',
+      channelNameMentions: message ? message.channelNameMentions : Map(),
     }
   }
 )((state, messageKey) => messageKey)
