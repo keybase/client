@@ -771,6 +771,10 @@ func (f Folder) ToString() string {
 	return prefix + "/" + f.Name
 }
 
+func (f Folder) String() string {
+	return f.ToString()
+}
+
 func (t TrackToken) String() string {
 	return string(t)
 }
@@ -2124,4 +2128,19 @@ func (req *TeamChangeReq) AddUVWithRole(uv UserVersion, role TeamRole) error {
 		return fmt.Errorf("Unexpected role: %v", role)
 	}
 	return nil
+}
+
+func TotalNumberOfCommits(refs []GitRefMetadata) (total int) {
+	for _, ref := range refs {
+		total += len(ref.Commits)
+	}
+	return total
+}
+
+func RefNames(refs []GitRefMetadata) string {
+	names := make([]string, len(refs))
+	for i, ref := range refs {
+		names[i] = ref.RefName
+	}
+	return strings.Join(names, ", ")
 }

@@ -922,6 +922,7 @@ func TestChatSrvPostLocal(t *testing.T) {
 		tv, _, err := tc.Context().ConvSource.Pull(ctx, created.Id, uid, nil,
 			nil)
 		require.NoError(t, err)
+		t.Logf("nmsg: %v", len(tv.Messages))
 		require.NotZero(t, len(tv.Messages))
 		msg := tv.Messages[0]
 
@@ -932,7 +933,7 @@ func TestChatSrvPostLocal(t *testing.T) {
 		require.NotZero(t, len(msg.Valid().ClientHeader.SenderDevice.Bytes()))
 
 		t.Logf("try headline specific RPC interface")
-		_, err = ctc.as(t, users[0]).chatLocalHandler().PostHeadline(ctx, chat1.PostHeadlineArg{
+		res, err := ctc.as(t, users[0]).chatLocalHandler().PostHeadline(ctx, chat1.PostHeadlineArg{
 			ConversationID:   created.Id,
 			TlfName:          created.TlfName,
 			TlfPublic:        false,
@@ -940,12 +941,36 @@ func TestChatSrvPostLocal(t *testing.T) {
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		})
 		require.NoError(t, err)
+		t.Logf("headline -> msgid:%v", res.MessageID)
 		tv, _, err = tc.Context().ConvSource.Pull(ctx, created.Id, uid, nil,
 			nil)
 		require.NoError(t, err)
+		t.Logf("nmsg: %v", len(tv.Messages))
 		require.NotZero(t, len(tv.Messages))
 		msg = tv.Messages[0]
 		require.Equal(t, chat1.MessageType_HEADLINE, msg.GetMessageType())
+
+		t.Logf("try delete-history RPC interface")
+		_, err = ctc.as(t, users[0]).chatLocalHandler().PostDeleteHistoryByAge(ctx, chat1.PostDeleteHistoryByAgeArg{
+			ConversationID:   created.Id,
+			TlfName:          created.TlfName,
+			TlfPublic:        false,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			Age:              0,
+		})
+		require.NoError(t, err)
+		tv, _, err = tc.Context().ConvSource.Pull(ctx, created.Id, uid, nil,
+			nil)
+		require.NoError(t, err)
+		t.Logf("nmsg: %v", len(tv.Messages))
+		// Teams don't use the remote mock. So PostDeleteHistoryByAge won't have gotten a good answer from GetMessageBefore.
+		if useRemoteMock {
+			t.Logf("check that the deletable messages are gone")
+			for _, m := range tv.Messages {
+				require.False(t, chat1.IsDeletableByDeleteHistory(m.GetMessageType()),
+					"deletable message found: %v %v", m.GetMessageID(), m.GetMessageType())
+			}
+		}
 	})
 }
 

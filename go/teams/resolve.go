@@ -47,8 +47,8 @@ func ResolveNameToID(ctx context.Context, g *libkb.GlobalContext, name keybase1.
 }
 
 // Resolve assertions in an implicit team display name and verify the result.
-// Resolve an implicit team name with assertions like "alice,bob+bob@twitter#char (conflicted 2017-03-04 #1)"
-// Into "alice,bob#char (conflicted 2017-03-04 #1)"
+// Resolve an implicit team name with assertions like "alice,bob+bob@twitter#char (conflicted copy 2017-03-04 #1)"
+// Into "alice,bob#char (conflicted copy 2017-03-04 #1)"
 // The input can contain compound assertions, but if compound assertions are left unresolved, an error will be returned.
 func ResolveImplicitTeamDisplayName(ctx context.Context, g *libkb.GlobalContext,
 	name string, public bool) (res keybase1.ImplicitTeamDisplayName, err error) {

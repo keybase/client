@@ -11,7 +11,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-// These are the production rekey commands
+// These are the devel rekey commands
 func NewCmdRekey(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "rekey",

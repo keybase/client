@@ -183,10 +183,18 @@ export type InviteAcceptedInfo = {
   inviteType: 'none' | 'unknown' | 'keybase' | 'email' | 'sbs' | 'text',
 }
 
+export type GitPushInfo = {
+  type: 'gitPush',
+  pusher: string,
+  repo: string,
+  team: string,
+}
+
 export type SystemMessageInfo =
   | AddedToTeamInfo
   | SimpleToComplexTeamInfo
   | InviteAcceptedInfo
+  | GitPushInfo
   | {type: 'unknown'}
 
 export type SystemMessage = {

@@ -14,7 +14,7 @@ import openURL from '../../util/open-url'
 import {getPathProps} from '../../route-tree'
 import {navigateAppend, navigateTo, navigateUp, switchTo, putActionIfOnPath} from '../../actions/route-tree'
 import {parseUserId} from '../../util/platforms'
-import {peopleTab} from '../../constants/tabs'
+import {loginTab, peopleTab} from '../../constants/tabs'
 import {pgpSaga} from './pgp'
 import {proofsSaga} from './proofs'
 
@@ -148,7 +148,15 @@ function _openURLIfNotNull(nullableThing, url, metaText): void {
   openURL(url)
 }
 
-function _onAppLink(action: AppGen.LinkPayload) {
+function _onAppLink(action: AppGen.LinkPayload, state: TypedState) {
+  const {loggedIn} = state.config
+  if (!loggedIn) {
+    logger.info('AppLink: not logged in')
+    // TODO: Ideally, we'd then navigate to the desired link once
+    // login successfully completes.
+    return Saga.put(navigateTo(['login'], [loginTab]))
+  }
+
   const link = action.payload.link
   let url
   try {

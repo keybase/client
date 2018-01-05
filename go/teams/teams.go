@@ -127,11 +127,11 @@ func (t *Team) MemberRole(ctx context.Context, uv keybase1.UserVersion) (keybase
 }
 
 func (t *Team) myRole(ctx context.Context) (keybase1.TeamRole, error) {
-	me, err := t.loadMe(ctx)
+	uv, err := t.currentUserUV(ctx)
 	if err != nil {
 		return keybase1.TeamRole_NONE, err
 	}
-	role, err := t.MemberRole(ctx, me.ToUserVersion())
+	role, err := t.MemberRole(ctx, uv)
 	return role, err
 }
 
@@ -555,12 +555,11 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 func (t *Team) downgradeIfOwnerOrAdmin(ctx context.Context) (needsReload bool, err error) {
 	defer t.G().CTrace(ctx, "Team#downgradeIfOwnerOrAdmin", func() error { return err })()
 
-	me, err := t.loadMe(ctx)
+	uv, err := t.currentUserUV(ctx)
 	if err != nil {
 		return false, err
 	}
 
-	uv := me.ToUserVersion()
 	role, err := t.MemberRole(ctx, uv)
 	if err != nil {
 		return false, err
@@ -621,12 +620,11 @@ func (t *Team) Leave(ctx context.Context, permanent bool) error {
 }
 
 func (t *Team) deleteRoot(ctx context.Context, ui keybase1.TeamsUiInterface) error {
-	me, err := t.loadMe(ctx)
+	uv, err := t.currentUserUV(ctx)
 	if err != nil {
 		return err
 	}
 
-	uv := me.ToUserVersion()
 	role, err := t.MemberRole(ctx, uv)
 	if err != nil {
 		return err
@@ -1041,12 +1039,11 @@ func (t *Team) traverseUpUntil(ctx context.Context, validator func(t *Team) bool
 }
 
 func (t *Team) getAdminPermission(ctx context.Context, required bool) (admin *SCTeamAdmin, err error) {
-	me, err := t.loadMe(ctx)
+	uv, err := t.currentUserUV(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	uv := me.ToUserVersion()
 	targetTeam, err := t.traverseUpUntil(ctx, func(s *Team) bool {
 		return s.chain().GetAdminUserLogPoint(uv) != nil
 	})
@@ -1140,6 +1137,10 @@ func getCurrentUserUV(ctx context.Context, g *libkb.GlobalContext) (ret keybase1
 		return nil
 	})
 	return ret, err
+}
+
+func (t *Team) currentUserUV(ctx context.Context) (keybase1.UserVersion, error) {
+	return getCurrentUserUV(ctx, t.G())
 }
 
 func (t *Team) loadMe(ctx context.Context) (*libkb.User, error) {
@@ -1515,11 +1516,11 @@ func (t *Team) parseSocial(username string) (typ string, name string, err error)
 }
 
 func (t *Team) precheckLinkToPost(ctx context.Context, sigMultiItem libkb.SigMultiItem) (err error) {
-	me, err := t.loadMe(ctx)
+	uv, err := t.currentUserUV(ctx)
 	if err != nil {
 		return err
 	}
-	return precheckLinkToPost(ctx, t.G(), sigMultiItem, t.chain(), me.ToUserVersion())
+	return precheckLinkToPost(ctx, t.G(), sigMultiItem, t.chain(), uv)
 }
 
 // Try to run `post` (expected to post new team sigchain links).

@@ -30,6 +30,20 @@ protocol git {
     case V1 : GitLocalMetadataV1;
   }
 
+  record GitCommit {
+    string commitHash;
+    string message;
+    string authorName;
+    string authorEmail;
+    Time ctime; // unix time in milliseconds
+  }
+
+  record GitRefMetadata {
+    string refName;    
+    array<GitCommit> commits;
+    boolean moreCommitsAvailable; // true if `commits` doesn't include all
+  }
+
   // GitLocalMetadata is the struct that local RPCs use to read and write repo
   // metadata. It's decoupled from GitLocalMetadataVersioned, which is the
   // format that we serialize and encrypt, in case we ever need to support
@@ -37,6 +51,7 @@ protocol git {
   // the only current variant, GitLocalMetadataV1.
   record GitLocalMetadata {
     GitRepoName repoName;
+    array<GitRefMetadata> refs;
   }
 
   // Additional metadata maintained by the server, returned with query results.
@@ -96,4 +111,11 @@ protocol git {
 
   // GC a team repo
   void gcTeamRepo(GitRepoName repoName, TeamName teamName, boolean force);
+
+  record GitTeamRepoSettings {
+    union { null, string } channelName;
+    boolean chatDisabled; 
+  }
+  GitTeamRepoSettings getTeamRepoSettings(Folder folder, RepoID repoID);
+  void setTeamRepoSettings(Folder folder, RepoID repoID, union { null, string } channelName, boolean chatDisabled);
 }
