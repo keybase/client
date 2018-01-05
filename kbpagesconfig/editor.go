@@ -31,12 +31,9 @@ type kbpConfigEditor struct {
 	prompter          prompter
 }
 
-func readConfig(from io.ReadCloser) (cfg config.Config, str string, err error) {
+func readConfig(from io.Reader) (cfg config.Config, str string, err error) {
 	buf := &bytes.Buffer{}
 	if cfg, err = config.ParseConfig(io.TeeReader(from, buf)); err != nil {
-		return nil, "", err
-	}
-	if err = from.Close(); err != nil {
 		return nil, "", err
 	}
 	return cfg, buf.String(), nil
@@ -118,7 +115,9 @@ func (e *kbpConfigEditor) confirmAndWrite() error {
 		return fmt.Errorf(
 			"opening file [%s] error: %v", e.kbpConfigPath, err)
 	}
+	defer f.Close()
 	if _, err = f.WriteString(newConfigStr); err != nil {
+
 		return fmt.Errorf(
 			"writing config to file [%s] error: %v", e.kbpConfigPath, err)
 	}

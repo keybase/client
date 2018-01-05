@@ -12,37 +12,6 @@ import (
 	"github.com/keybase/cli"
 )
 
-var aclSetAnonymousCmd = cli.Command{
-	Name:         "set-anonymous",
-	Usage:        "set anonymous permission(s) for the given path(s)",
-	ArgumentHelp: "set-anonymous <read|list|read,list> <path> [path ...]",
-	Action: func(c *cli.Context) {
-		if len(c.Args()) < 2 {
-			fmt.Fprintln(os.Stderr, "need at least 2 args")
-			os.Exit(1)
-		}
-		editor, err := newKBPConfigEditor(c.GlobalString("dir"))
-		if err != nil {
-			fmt.Fprintf(os.Stderr,
-				"creating config editor error: %v\n", err)
-			os.Exit(1)
-		}
-		for _, p := range c.Args()[1:] {
-			err := editor.setAnonymousPermission(c.Args()[0], p)
-			if err != nil {
-				fmt.Fprintf(os.Stderr,
-					"setting anonymous permission %q on %q error: %v\n",
-					c.Args()[0], p, err)
-				os.Exit(1)
-			}
-		}
-		if err := editor.confirmAndWrite(); err != nil {
-			fmt.Fprintf(os.Stderr, "writing new config error: %v\n", err)
-			os.Exit(1)
-		}
-	},
-}
-
 var aclClearCmd = cli.Command{
 	Name:         "clear",
 	Usage:        "clear the ACL for the given path(s)",
@@ -60,39 +29,6 @@ var aclClearCmd = cli.Command{
 		}
 		for _, p := range c.Args() {
 			editor.clearACL(p)
-		}
-		if err := editor.confirmAndWrite(); err != nil {
-			fmt.Fprintf(os.Stderr, "writing new config error: %v\n", err)
-			os.Exit(1)
-		}
-	},
-}
-
-var aclSetAdditionalCmd = cli.Command{
-	Name: "set-additional",
-	Usage: "set additional permission(s) that <username> are granted on " +
-		"top of anonymous ones on the given path(s) ",
-	ArgumentHelp: "set-additional <username> <read|list|read,list> <path> [path ...]",
-	Action: func(c *cli.Context) {
-		if len(c.Args()) < 3 {
-			fmt.Fprintln(os.Stderr, "need at least 3 args")
-			os.Exit(1)
-		}
-		editor, err := newKBPConfigEditor(c.GlobalString("dir"))
-		if err != nil {
-			fmt.Fprintf(os.Stderr,
-				"creating config editor error: %v\n", err)
-			os.Exit(1)
-		}
-		for _, p := range c.Args()[2:] {
-			err := editor.setAdditionalPermission(c.Args()[0], c.Args()[1], p)
-			if err != nil {
-				fmt.Fprintf(os.Stderr,
-					"setting additional permission(s) %q for username "+
-						"%q on %q error: %v\n",
-					c.Args()[1], c.Args()[0], p, err)
-				os.Exit(1)
-			}
 		}
 		if err := editor.confirmAndWrite(); err != nil {
 			fmt.Fprintf(os.Stderr, "writing new config error: %v\n", err)
@@ -159,14 +95,88 @@ var aclGetCmd = cli.Command{
 	},
 }
 
+var aclSetDefaultCmd = cli.Command{
+	Name: "default",
+	Usage: "set default permission(s) that all users are granted, " +
+		"for the given path(s)",
+	ArgumentHelp: "default <read|list|read,list> <path> [path ...]",
+	Action: func(c *cli.Context) {
+		if len(c.Args()) < 2 {
+			fmt.Fprintln(os.Stderr, "need at least 2 args")
+			os.Exit(1)
+		}
+		editor, err := newKBPConfigEditor(c.GlobalString("dir"))
+		if err != nil {
+			fmt.Fprintf(os.Stderr,
+				"creating config editor error: %v\n", err)
+			os.Exit(1)
+		}
+		for _, p := range c.Args()[1:] {
+			err := editor.setAnonymousPermission(c.Args()[0], p)
+			if err != nil {
+				fmt.Fprintf(os.Stderr,
+					"setting anonymous permission %q on %q error: %v\n",
+					c.Args()[0], p, err)
+				os.Exit(1)
+			}
+		}
+		if err := editor.confirmAndWrite(); err != nil {
+			fmt.Fprintf(os.Stderr, "writing new config error: %v\n", err)
+			os.Exit(1)
+		}
+	},
+}
+
+var aclSetAdditionalCmd = cli.Command{
+	Name: "additional",
+	Usage: "set additional permission(s) that <username> are granted on " +
+		"top of default ones on the given path(s) ",
+	ArgumentHelp: "additional <username> <read|list|read,list> <path> [path ...]",
+	Action: func(c *cli.Context) {
+		if len(c.Args()) < 3 {
+			fmt.Fprintln(os.Stderr, "need at least 3 args")
+			os.Exit(1)
+		}
+		editor, err := newKBPConfigEditor(c.GlobalString("dir"))
+		if err != nil {
+			fmt.Fprintf(os.Stderr,
+				"creating config editor error: %v\n", err)
+			os.Exit(1)
+		}
+		for _, p := range c.Args()[2:] {
+			err := editor.setAdditionalPermission(c.Args()[0], c.Args()[1], p)
+			if err != nil {
+				fmt.Fprintf(os.Stderr,
+					"setting additional permission(s) %q for username "+
+						"%q on %q error: %v\n",
+					c.Args()[1], c.Args()[0], p, err)
+				os.Exit(1)
+			}
+		}
+		if err := editor.confirmAndWrite(); err != nil {
+			fmt.Fprintf(os.Stderr, "writing new config error: %v\n", err)
+			os.Exit(1)
+		}
+	},
+}
+
+var aclSetCmd = cli.Command{
+	Name:         "set",
+	Usage:        "set default or additional permissions on path(s)",
+	ArgumentHelp: "set <default|additional> [args]",
+	Subcommands: []cli.Command{
+		aclSetDefaultCmd,
+		aclSetAdditionalCmd,
+	},
+}
+
 var aclCmd = cli.Command{
 	Name:         "acl",
 	Usage:        "make changes to the 'acls' section of the config",
-	ArgumentHelp: "acl <set-anonymous|clear|grant|remove|get>",
+	ArgumentHelp: "acl <set|clear|remove|get> [args]",
 	Subcommands: []cli.Command{
-		aclSetAnonymousCmd,
+		aclSetCmd,
 		aclClearCmd,
-		aclSetAdditionalCmd,
 		aclRemoveCmd,
 		aclGetCmd,
 	},

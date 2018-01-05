@@ -378,9 +378,7 @@ def runNixTest(prefix) {
     }
     tests[prefix+'libpages'] = {
         dir('libpages') {
-            sh 'go test -i'
-            sh 'go test -c'
-            sh './libpages.test -test.timeout 30s'
+            sh 'go test -timeout 30s'
         }
     }
     tests[prefix+'libpages_config'] = {
