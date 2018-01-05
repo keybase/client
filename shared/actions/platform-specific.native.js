@@ -193,7 +193,7 @@ function configurePush() {
 export {
   displayNewMessageNotification,
   getAppState,
-setAppState,
+  setAppState,
   requestPushPermissions,
   showMainWindow,
   configurePush,
