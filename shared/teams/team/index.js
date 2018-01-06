@@ -124,6 +124,7 @@ type TeamTabsProps = {
   admin: boolean,
   invites: Array<InviteRowProps>,
   members: Array<MemberRowProps>,
+  subteams: Set<Types.Teamname>,
   name: Types.Teamname,
   newTeamRequests: Array<Types.Teamname>,
   requests: Array<RequestRowProps>,
@@ -151,6 +152,7 @@ const TeamTabs = (props: TeamTabsProps) => {
     name,
     newTeamRequests,
     requests,
+    subteams,
     loading = false,
     selectedTab,
     setSelectedTab,
@@ -195,21 +197,32 @@ const TeamTabs = (props: TeamTabsProps) => {
     )
   }
 
-  const publicityLabel = 'SETTINGS'
-  tabs.push(
-    isMobile ? (
-      <Icon key="publicity" type="iconfont-nav-settings" size={24} />
-    ) : (
+  const subteamsLabel = 'SUBTEAMS'
+  if (subteams.count() > 0) {
+    tabs.push(
       <Text
-        key="publicity"
+        key="subteams"
         type="BodySmallSemibold"
         style={{
           color: globalColors.black_75,
         }}
       >
-        {publicityLabel}
+        {subteamsLabel}
       </Text>
     )
+  }
+
+  const publicityLabel = 'SETTINGS'
+  tabs.push(
+    <Text
+      key="publicity"
+      type="BodySmallSemibold"
+      style={{
+        color: globalColors.black_75,
+      }}
+    >
+      {publicityLabel}
+    </Text>
   )
 
   if (loading) {
@@ -312,6 +325,21 @@ class Team extends React.PureComponent<Props> {
           items={memberProps}
           fixedHeight={48}
           renderItem={TeamMemberRow}
+          style={{alignSelf: 'stretch'}}
+        />
+      )
+    } else if (selectedTab === 'subteams') {
+      const subTeamsItems = [
+        {key: 'intro', type: 'intro'},
+        {key: 'addSubteam', type: 'addSubteam'},
+        ...subTeamsProps,
+      ]
+      contents = !loading && (
+        <List
+          items={subTeamsItems}
+          fixedHeight={48}
+          keyProperty="key"
+          renderItem={subTeamsRow}
           style={{alignSelf: 'stretch'}}
         />
       )

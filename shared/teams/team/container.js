@@ -74,6 +74,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
     ),
     publicityTeam: state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname, 'team'], false),
     selectedTab: routeState.get('selectedTab') || 'members',
+    subteams: state.entities.getIn(['teams', 'teamNameToSubteams', teamname], I.Set()),
     waitingForSavePublicity: anyWaiting(state, `setPublicity:${teamname}`, `getDetails:${teamname}`),
     you: state.config.username,
     yourRole: Constants.getRole(state, teamname),
