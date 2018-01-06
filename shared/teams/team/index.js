@@ -197,15 +197,19 @@ const TeamTabs = (props: TeamTabsProps) => {
 
   const publicityLabel = 'SETTINGS'
   tabs.push(
-    <Text
-      key="publicity"
-      type="BodySmallSemibold"
-      style={{
-        color: globalColors.black_75,
-      }}
-    >
-      {publicityLabel}
-    </Text>
+    isMobile ? (
+      <Icon key="publicity" type="iconfont-nav-settings" size={24} />
+    ) : (
+      <Text
+        key="publicity"
+        type="BodySmallSemibold"
+        style={{
+          color: globalColors.black_75,
+        }}
+      >
+        {publicityLabel}
+      </Text>
+    )
   )
 
   if (loading) {
