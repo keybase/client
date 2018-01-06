@@ -15,6 +15,7 @@ import (
 	"github.com/eapache/channels"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfssync"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	billy "gopkg.in/src-d/go-billy.v4"
@@ -68,15 +69,18 @@ type AutogitManager struct {
 	resetQueue     channels.Channel
 	queueDoneCh    chan struct{}
 	getNewConfig   getNewConfigFn
+	resetsWG       kbfssync.RepeatedWaitGroup
+	updatingWG     kbfssync.RepeatedWaitGroup
 
 	lock             sync.Mutex
 	resetsInQueue    map[string]resetReq // key: resetReq.id()
 	resetsInProgress map[string]resetReq // key: resetReq.id()
 
-	registryLock  sync.RWMutex
-	registeredFBs map[libkbfs.FolderBranch]bool
-	repoNodeIDs   map[libkbfs.NodeID]*repoNode
-	watchedNodes  []libkbfs.Node // preventing GC on the watched nodes
+	registryLock           sync.RWMutex
+	registeredFBs          map[libkbfs.FolderBranch]bool
+	repoNodesForWatchedIDs map[libkbfs.NodeID]*repoNode
+	watchedNodes           []libkbfs.Node // preventing GC on the watched nodes
+	populatedRepos         map[libkbfs.NodeID]bool
 }
 
 // NewAutogitManager constructs a new AutogitManager instance, and
@@ -86,17 +90,18 @@ func NewAutogitManager(
 	kbfsInitParams *libkbfs.InitParams, numWorkers int) *AutogitManager {
 	log := config.MakeLogger("")
 	am := &AutogitManager{
-		config:           config,
-		kbCtx:            kbCtx,
-		kbfsInitParams:   kbfsInitParams,
-		log:              log,
-		deferLog:         log.CloneWithAddedDepth(1),
-		resetQueue:       libkbfs.NewInfiniteChannelWrapper(),
-		queueDoneCh:      make(chan struct{}),
-		resetsInQueue:    make(map[string]resetReq),
-		resetsInProgress: make(map[string]resetReq),
-		registeredFBs:    make(map[libkbfs.FolderBranch]bool),
-		repoNodeIDs:      make(map[libkbfs.NodeID]*repoNode),
+		config:                 config,
+		kbCtx:                  kbCtx,
+		kbfsInitParams:         kbfsInitParams,
+		log:                    log,
+		deferLog:               log.CloneWithAddedDepth(1),
+		resetQueue:             libkbfs.NewInfiniteChannelWrapper(),
+		queueDoneCh:            make(chan struct{}),
+		resetsInQueue:          make(map[string]resetReq),
+		resetsInProgress:       make(map[string]resetReq),
+		registeredFBs:          make(map[libkbfs.FolderBranch]bool),
+		repoNodesForWatchedIDs: make(map[libkbfs.NodeID]*repoNode),
+		populatedRepos:         make(map[libkbfs.NodeID]bool),
 	}
 	am.getNewConfig = am.getNewConfigDefault
 	go am.resetLoop(numWorkers)
@@ -206,6 +211,7 @@ func (am *AutogitManager) clearFromInProgress(req resetReq) {
 	am.lock.Lock()
 	defer am.lock.Unlock()
 	delete(am.resetsInProgress, req.id())
+	am.resetsWG.Done()
 }
 
 func (am *AutogitManager) resetWorker(wg *sync.WaitGroup) {
@@ -259,6 +265,7 @@ func (am *AutogitManager) queueReset(ctx context.Context, req resetReq) (
 		if req, ok := am.resetsInQueue[id]; ok {
 			return req.doneCh
 		}
+		am.resetsWG.Add(1)
 		am.resetsInQueue[id] = req
 		return nil
 	}()
@@ -420,7 +427,7 @@ func (am *AutogitManager) registerRepoNode(
 	nodeToWatch libkbfs.Node, rn *repoNode) {
 	am.registryLock.Lock()
 	defer am.registryLock.Unlock()
-	am.repoNodeIDs[nodeToWatch.GetID()] = rn
+	am.repoNodesForWatchedIDs[nodeToWatch.GetID()] = rn
 	am.watchedNodes = append(am.watchedNodes, nodeToWatch)
 	fb := nodeToWatch.GetFolderBranch()
 	if !am.registeredFBs[fb] {
@@ -434,10 +441,38 @@ func (am *AutogitManager) registerRepoNode(
 	}
 }
 
+func (am *AutogitManager) isRepoNodePopulated(rn *repoNode) bool {
+	am.registryLock.RLock()
+	defer am.registryLock.RUnlock()
+	return am.populatedRepos[rn.GetID()]
+}
+
+func (am *AutogitManager) populateDone(rn *repoNode) {
+	am.registryLock.Lock()
+	defer am.registryLock.Unlock()
+	am.populatedRepos[rn.GetID()] = true
+}
+
+func (am *AutogitManager) notifyNodeLocked(
+	ctx context.Context, node libkbfs.Node) {
+	rn, ok := am.repoNodesForWatchedIDs[node.GetID()]
+	if !ok {
+		return
+	}
+
+	am.updatingWG.Add(1)
+	go func() {
+		defer am.updatingWG.Done()
+		rn.updated(context.Background())
+	}()
+}
+
 // LocalChange implements the libkbfs.Observer interface for AutogitManager.
 func (am *AutogitManager) LocalChange(
-	_ context.Context, _ libkbfs.Node, _ libkbfs.WriteRange) {
-	// Do nothing.
+	ctx context.Context, node libkbfs.Node, _ libkbfs.WriteRange) {
+	am.registryLock.RLock()
+	defer am.registryLock.RUnlock()
+	am.notifyNodeLocked(ctx, node)
 }
 
 // BatchChanges implements the libkbfs.Observer interface for AutogitManager.
@@ -446,12 +481,7 @@ func (am *AutogitManager) BatchChanges(
 	am.registryLock.RLock()
 	defer am.registryLock.RUnlock()
 	for _, change := range changes {
-		rn, ok := am.repoNodeIDs[change.Node.GetID()]
-		if !ok {
-			continue
-		}
-
-		go rn.updated(context.Background())
+		am.notifyNodeLocked(ctx, change.Node)
 	}
 }
 

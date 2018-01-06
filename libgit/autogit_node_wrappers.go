@@ -87,12 +87,19 @@ var _ libkbfs.Node = (*repoNode)(nil)
 func newRepoNode(
 	n libkbfs.Node, am *AutogitManager, srcRepoHandle *libkbfs.TlfHandle,
 	repoName string) *repoNode {
-	return &repoNode{
+	rn := &repoNode{
 		Node:          n,
 		am:            am,
 		srcRepoHandle: srcRepoHandle,
 		repoName:      repoName,
 	}
+	// We can't rely on a particular repo node being passed back into
+	// libkbfs by callers, since they may not keep a reference to it
+	// after looking it up, and `WrapChild` makes a new `repoNode` for
+	// each call to it, even for the same underlying NodeID.  So we
+	// keep the populated state in the AutogitManager.
+	rn.populated = am.isRepoNodePopulated(rn)
+	return rn
 }
 
 func (rn *repoNode) dstDir() string {
@@ -194,6 +201,7 @@ func (rn *repoNode) finishPopulate(populated bool) {
 	rn.populated = populated
 	close(rn.populatingInProgress)
 	rn.populatingInProgress = nil
+	rn.am.populateDone(rn)
 }
 
 func (rn *repoNode) updated(ctx context.Context) {

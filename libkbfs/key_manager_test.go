@@ -2243,7 +2243,7 @@ func testKeyManagerRekeyMinimal(t *testing.T, ver kbfsmd.MetadataVer) {
 	config1.SetMetadataVersion(ver)
 
 	// User 2 is in minimal mode.
-	config2 := configAsUserWithMode(config1, u2, InitMinimal)
+	config2 := ConfigAsUserWithMode(config1, u2, InitMinimal)
 	defer CheckConfigAndShutdown(ctx, t, config2)
 	session2, err := config2.KBPKI().GetCurrentSession(ctx)
 	if err != nil {

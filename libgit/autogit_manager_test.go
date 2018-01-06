@@ -29,7 +29,7 @@ func initConfigForAutogit(t *testing.T) (
 	cancel context.CancelFunc, tempdir string) {
 	ctx = libkbfs.BackgroundContextWithCancellationDelayer()
 	config = libkbfs.MakeTestConfigOrBustLoggedInWithMode(
-		t, 0, libkbfs.InitSingleOp, "user1", "user2")
+		t, 0, libkbfs.InitDefault, "user1", "user2")
 	success := false
 	ctx = context.WithValue(ctx, libkbfs.CtxAllowNameKey, kbfsRepoDir)
 
@@ -79,14 +79,15 @@ func (nc *newConfigger) shutdown(t *testing.T, ctx context.Context) {
 	}
 }
 
-func (nc *newConfigger) getNewConfigForTest(ctx context.Context) (
+func (nc *newConfigger) getNewConfigForTestWithMode(
+	ctx context.Context, mode libkbfs.InitMode) (
 	newCtx context.Context, gitConfig libkbfs.Config,
 	tempDir string, err error) {
 	ctx, err = libkbfs.NewContextWithCancellationDelayer(ctx)
 	if err != nil {
 		return nil, nil, "", err
 	}
-	config := libkbfs.ConfigAsUser(nc.config, nc.user)
+	config := libkbfs.ConfigAsUserWithMode(nc.config, nc.user, mode)
 	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_server")
 	if err != nil {
 		return nil, nil, "", err
@@ -102,6 +103,13 @@ func (nc *newConfigger) getNewConfigForTest(ctx context.Context) (
 	}
 	nc.newConfig = config
 	return ctx, &configNoShutdown{config}, tempdir, nil
+}
+
+func (nc *newConfigger) getNewConfigForTest(
+	ctx context.Context) (
+	newCtx context.Context, gitConfig libkbfs.Config,
+	tempDir string, err error) {
+	return nc.getNewConfigForTestWithMode(ctx, libkbfs.InitSingleOp)
 }
 
 func addFileToWorktreeAndCommit(

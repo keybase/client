@@ -115,7 +115,8 @@ func TestAutogitRepoNode(t *testing.T) {
 		context.Background(), func(c context.Context) context.Context {
 			return c
 		})
-	ctx2, config2, tempdir2, err := nc2.getNewConfigForTest(ctx2)
+	ctx2, config2, tempdir2, err := nc2.getNewConfigForTestWithMode(
+		ctx2, libkbfs.InitDefault)
 	require.NoError(t, err)
 	defer libkbfs.CheckConfigAndShutdown(ctx2, t, config2)
 	defer os.RemoveAll(tempdir2)
@@ -132,4 +133,66 @@ func TestAutogitRepoNode(t *testing.T) {
 		ctx2, config2, h2, "", "", keybase1.MDPriorityNormal)
 	require.NoError(t, err)
 	checkAutogit(rootFS2)
+
+	t.Log("Update the source repo and make sure the autogit repos update too")
+	addFileToWorktreeAndCommit(
+		t, ctx, config, h, repo, worktreeFS, "foo2", "hello2")
+
+	t.Log("Force the source repo to update for both users")
+	srcRootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
+		ctx, h, libkbfs.MasterBranch)
+	require.NoError(t, err)
+	err = config.KBFSOps().SyncFromServerForTesting(
+		ctx, srcRootNode.GetFolderBranch(), nil)
+	require.NoError(t, err)
+	srcRootNode2, _, err := config2.KBFSOps().GetOrCreateRootNode(
+		ctx, h, libkbfs.MasterBranch)
+	require.NoError(t, err)
+	err = config2.KBFSOps().SyncFromServerForTesting(
+		ctx, srcRootNode2.GetFolderBranch(), nil)
+	require.NoError(t, err)
+
+	t.Log("Wait for the resets to finish")
+	err = am.updatingWG.Wait(ctx)
+	require.NoError(t, err)
+	err = am2.updatingWG.Wait(ctx2)
+	require.NoError(t, err)
+	err = am.resetsWG.Wait(ctx)
+	require.NoError(t, err)
+	err = am2.resetsWG.Wait(ctx2)
+	require.NoError(t, err)
+
+	t.Log("Update the dest repo")
+	dstRootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
+		ctx, h, libkbfs.MasterBranch)
+	require.NoError(t, err)
+	err = config.KBFSOps().SyncFromServerForTesting(
+		ctx, dstRootNode.GetFolderBranch(), nil)
+	require.NoError(t, err)
+	dstRootNode2, _, err := config2.KBFSOps().GetOrCreateRootNode(
+		ctx, h2, libkbfs.MasterBranch)
+	require.NoError(t, err)
+	err = config2.KBFSOps().SyncFromServerForTesting(
+		ctx, dstRootNode2.GetFolderBranch(), nil)
+	require.NoError(t, err)
+
+	checkAutogit2 := func(rootFS *libfs.FS) {
+		fis, err := rootFS.ReadDir(".kbfs_autogit/public/user1/test")
+		require.NoError(t, err)
+		require.Len(t, fis, 3) // foo, foo2 and .git
+		f, err := rootFS.Open(".kbfs_autogit/public/user1/test/foo")
+		require.NoError(t, err)
+		defer f.Close()
+		data, err := ioutil.ReadAll(f)
+		require.NoError(t, err)
+		require.Equal(t, "hello", string(data))
+		f2, err := rootFS.Open(".kbfs_autogit/public/user1/test/foo2")
+		require.NoError(t, err)
+		defer f2.Close()
+		data2, err := ioutil.ReadAll(f2)
+		require.NoError(t, err)
+		require.Equal(t, "hello2", string(data2))
+	}
+	checkAutogit2(rootFS)
+	checkAutogit2(rootFS2)
 }

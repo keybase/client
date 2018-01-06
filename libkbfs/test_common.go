@@ -226,7 +226,11 @@ func MakeTestConfigOrBust(t logger.TestLogBackend,
 	return MakeTestConfigOrBustLoggedIn(t, 0, users...)
 }
 
-func configAsUserWithMode(config *ConfigLocal,
+// ConfigAsUserWithMode clones a test configuration in the given mode,
+// setting another user as the logged in user.  Journaling will not be
+// enabled in the returned Config, regardless of the journal status in
+// `config`.
+func ConfigAsUserWithMode(config *ConfigLocal,
 	loggedInUser libkb.NormalizedUsername, mode InitMode) *ConfigLocal {
 	c := newConfigForTest(mode, config.loggerFn)
 	c.SetMetadataVersion(config.MetadataVersion())
@@ -316,7 +320,7 @@ func configAsUserWithMode(config *ConfigLocal,
 // `config`.
 func ConfigAsUser(config *ConfigLocal,
 	loggedInUser libkb.NormalizedUsername) *ConfigLocal {
-	return configAsUserWithMode(config, loggedInUser, config.Mode())
+	return ConfigAsUserWithMode(config, loggedInUser, config.Mode())
 }
 
 // NewEmptyTLFWriterKeyBundle creates a new empty kbfsmd.TLFWriterKeyBundleV2
