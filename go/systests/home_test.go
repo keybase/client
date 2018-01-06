@@ -70,7 +70,7 @@ func assertTodoNotPresent(t *testing.T, home keybase1.HomeScreen, wanted keybase
 	}
 }
 
-func assertFollowerPreset(t *testing.T, home keybase1.HomeScreen, f string) {
+func assertFollowerPresent(t *testing.T, home keybase1.HomeScreen, f string) {
 	for _, item := range home.Items {
 		typ, err := item.Data.T()
 		if err != nil {
@@ -171,5 +171,5 @@ func TestHome(t *testing.T) {
 	iui.confirmRes = keybase1.ConfirmResult{IdentityConfirmed: true, RemoteConfirmed: true, AutoConfirmed: true}
 	bob.track(alice.username)
 	home = getHome(t, alice, true)
-	assertFollowerPreset(t, home, bob.username)
+	assertFollowerPresent(t, home, bob.username)
 }
