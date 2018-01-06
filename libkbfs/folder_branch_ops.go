@@ -2530,7 +2530,8 @@ type CtxAllowNameKeyType int
 const (
 	// CtxAllowNameKey can be used to set a value in a context, and
 	// that value will be treated as an allowable directory entry
-	// name, even if it also matches a disallowed prefix.
+	// name, even if it also matches a disallowed prefix.  The value
+	// must be of type `string`, or it will panic.
 	CtxAllowNameKey CtxAllowNameKeyType = iota
 )
 

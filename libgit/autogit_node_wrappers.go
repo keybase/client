@@ -23,7 +23,7 @@ import (
 // * `readonlyNode` is always marked as read-only, unless
 //   `ctxReadWriteKey` has a non-nil value in the context.
 // * `autogitRootNode` allows the auto-creation of subdirectories
-//   representing TLF types, e.g.. .kbfs_autogit/private or
+//   representing TLF types, e.g. .kbfs_autogit/private or
 //   .kbfs_autogit/public.  It wraps child nodes two ways, as both a
 //   `readonlyNode`, and an `tlfTypeNode`.
 // * `tlfTypeNode` allows the auto-creation of subdirectories
@@ -62,7 +62,7 @@ func (ttn tlfTypeNode) ShouldCreateMissedLookup(
 	_, err := libkbfs.ParseTlfHandle(
 		ctx, ttn.am.config.KBPKI(), ttn.am.config.MDOps(), name, ttn.tlfType)
 
-	ctx = context.WithValue(ctx, ctxReadWriteKey, 1)
+	ctx = context.WithValue(ctx, ctxReadWriteKey, struct{}{})
 	switch e := errors.Cause(err).(type) {
 	case nil:
 		return true, ctx, libkbfs.Dir, ""
@@ -91,7 +91,7 @@ func (arn autogitRootNode) ShouldCreateMissedLookup(
 	bool, context.Context, libkbfs.EntryType, string) {
 	switch name {
 	case public, private, team:
-		ctx = context.WithValue(ctx, ctxReadWriteKey, 1)
+		ctx = context.WithValue(ctx, ctxReadWriteKey, struct{}{})
 		return true, ctx, libkbfs.Dir, ""
 	default:
 		return arn.Node.ShouldCreateMissedLookup(ctx, name)
@@ -112,7 +112,11 @@ func (arn autogitRootNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 	default:
 		return child
 	}
-	return &tlfTypeNode{child, arn.am, tlfType}
+	return &tlfTypeNode{
+		Node:    child,
+		am:      arn.am,
+		tlfType: tlfType,
+	}
 }
 
 // readonlyNode is a read-only node by default, unless `ctxReadWriteKey`
@@ -147,7 +151,7 @@ var _ libkbfs.Node = (*rootNode)(nil)
 func (rn rootNode) ShouldCreateMissedLookup(ctx context.Context, name string) (
 	bool, context.Context, libkbfs.EntryType, string) {
 	if name == autogitRoot {
-		ctx = context.WithValue(ctx, ctxReadWriteKey, 1)
+		ctx = context.WithValue(ctx, ctxReadWriteKey, struct{}{})
 		ctx = context.WithValue(ctx, libkbfs.CtxAllowNameKey, autogitRoot)
 		return true, ctx, libkbfs.Dir, ""
 	}
@@ -158,7 +162,10 @@ func (rn rootNode) ShouldCreateMissedLookup(ctx context.Context, name string) (
 func (rn rootNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 	child = rn.Node.WrapChild(child)
 	if child.GetBasename() == autogitRoot {
-		return &autogitRootNode{&readonlyNode{child}, rn.am}
+		return &autogitRootNode{
+			Node: &readonlyNode{child},
+			am:   rn.am,
+		}
 	}
 	return child
 }
