@@ -31,9 +31,25 @@ import (
 //   `readonlyNode`, and an `tlfTypeNode`.
 // * `tlfTypeNode` allows the auto-creation of subdirectories
 //   representing TLFs, e.g. .kbfs_autogit/private/max or
-//   .kbfs_autogit/team/keybase.  It wraps child nodes as a
-//   `readOnlyNode`.  TODO(KBFS-2678): allow repo autocreation under
-//   a `tlfTypeNode`.
+//   .kbfs_autogit/team/keybase.  It wraps child nodes in two ways, as
+//   a `readOnlyNode` and a `tlfNode`.
+// * `tlfNode` allows auto-creation of subdirectories representing
+//   valid repository checkouts of the corresponding TLF, e.g.
+//   `.kbfs_autogit/private/chris/dotfiles`.  It wraps child nodes in
+//   two ways, as both a `readonlyNode` and a `repoNode`.
+// * `repoNode` allow auto-clone and auto-pull of the corresponding
+//   repository on its first access.  When the directory corresponding
+//   to the node is read for the first time for this KBFS instance,
+//   the `repoNode` asks `AutogitManager` to either kick off a clone
+//   or a pull for the repository in question, which will checkout a
+//   copy of the source repo under that directory.  The operation will
+//   block on that clone/pull operation until it is finished, until
+//   the given context is canceled, or until 10 seconds is up.  But if
+//   it doesn't finish in time, the operation continues in the
+//   background and should update the directory asynchronously.  If
+//   the operation is a clone, a "CLONING" file will be visible in the
+//   directory until the clone completes.  `repoNode` wraps each child
+//   node as a `readonlyNode`.
 
 type ctxReadWriteKeyType int
 type ctxSkipPopulateKeyType int
