@@ -23,12 +23,16 @@ type RegisterRekeyUIArg struct {
 type RegisterGregorFirehoseArg struct {
 }
 
+type RegisterHomeUIArg struct {
+}
+
 type DelegateUiCtlInterface interface {
 	RegisterIdentifyUI(context.Context) error
 	RegisterSecretUI(context.Context) error
 	RegisterUpdateUI(context.Context) error
 	RegisterRekeyUI(context.Context) error
 	RegisterGregorFirehose(context.Context) error
+	RegisterHomeUI(context.Context) error
 }
 
 func DelegateUiCtlProtocol(i DelegateUiCtlInterface) rpc.Protocol {
@@ -90,6 +94,17 @@ func DelegateUiCtlProtocol(i DelegateUiCtlInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"registerHomeUI": {
+				MakeArg: func() interface{} {
+					ret := make([]RegisterHomeUIArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.RegisterHomeUI(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -120,5 +135,10 @@ func (c DelegateUiCtlClient) RegisterRekeyUI(ctx context.Context) (err error) {
 
 func (c DelegateUiCtlClient) RegisterGregorFirehose(ctx context.Context) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.delegateUiCtl.registerGregorFirehose", []interface{}{RegisterGregorFirehoseArg{}}, nil)
+	return
+}
+
+func (c DelegateUiCtlClient) RegisterHomeUI(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.delegateUiCtl.registerHomeUI", []interface{}{RegisterHomeUIArg{}}, nil)
 	return
 }

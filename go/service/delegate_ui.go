@@ -50,6 +50,11 @@ func (d *DelegateUICtlHandler) RegisterUpdateUI(_ context.Context) error {
 	return nil
 }
 
+func (d *DelegateUICtlHandler) RegisterHomeUI(_ context.Context) error {
+	d.G().UIRouter.SetUI(d.id, libkb.HomeUIKind)
+	return nil
+}
+
 func (d *DelegateUICtlHandler) RegisterGregorFirehose(_ context.Context) error {
 	if d.G().GregorListener != nil {
 		d.G().Log.Debug("Registering firehose on connection %d", d.id)

@@ -1,5 +1,5 @@
 @namespace("keybase.1")
 
-protocol homeUi {
+protocol homeUI {
   void homeUIRefresh() oneway;
 }

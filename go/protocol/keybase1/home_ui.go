@@ -11,13 +11,13 @@ import (
 type HomeUIRefreshArg struct {
 }
 
-type HomeUiInterface interface {
+type HomeUIInterface interface {
 	HomeUIRefresh(context.Context) error
 }
 
-func HomeUiProtocol(i HomeUiInterface) rpc.Protocol {
+func HomeUIProtocol(i HomeUIInterface) rpc.Protocol {
 	return rpc.Protocol{
-		Name: "keybase.1.homeUi",
+		Name: "keybase.1.homeUI",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"homeUIRefresh": {
 				MakeArg: func() interface{} {
@@ -34,11 +34,11 @@ func HomeUiProtocol(i HomeUiInterface) rpc.Protocol {
 	}
 }
 
-type HomeUiClient struct {
+type HomeUIClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c HomeUiClient) HomeUIRefresh(ctx context.Context) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.homeUi.homeUIRefresh", []interface{}{HomeUIRefreshArg{}})
+func (c HomeUIClient) HomeUIRefresh(ctx context.Context) (err error) {
+	err = c.Cli.Notify(ctx, "keybase.1.homeUI.homeUIRefresh", []interface{}{HomeUIRefreshArg{}})
 	return
 }
