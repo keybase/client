@@ -77,8 +77,8 @@
       "type": "enum",
       "name": "HomeScreenPeopleNotificationType",
       "symbols": [
-        "FOLLOWED_0",
-        "FOLLOWED_MULTI_1"
+        "FOLLOWED_1",
+        "FOLLOWED_MULTI_2"
       ]
     },
     {
@@ -88,6 +88,10 @@
         {
           "type": "Time",
           "name": "followTime"
+        },
+        {
+          "type": "boolean",
+          "name": "followedBack"
         },
         {
           "type": "UserSummary",
@@ -212,6 +216,10 @@
         {
           "type": "int",
           "name": "version"
+        },
+        {
+          "type": "int",
+          "name": "visits"
         },
         {
           "type": {
