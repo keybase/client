@@ -379,6 +379,16 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
       }
     )
 
+    // Get the subteam map for this team.
+    const teamTree = yield Saga.call(
+      RPCTypes.teamsTeamTreeRpcPromise,
+      {
+        name: {parts: [teamname]},
+      }
+    )
+    console.warn('teamTree is', teamTree)
+    const subteams = teamTree.entries.map(team => team.name.parts.join('.'))
+    console.warn('subteams:', subteams)
     const publicityMap = {
       anyMemberShowcase: publicity.teamShowcase.anyMemberShowcase,
       description: publicity.teamShowcase.description,
@@ -399,6 +409,7 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
       Saga.put(replaceEntity(['teams', 'teamNameToTeamSettings'], I.Map({[teamname]: details.settings}))),
       Saga.put(replaceEntity(['teams', 'teamNameToInvites'], I.Map([[teamname, I.Set(invitesMap)]]))),
       Saga.put(replaceEntity(['teams', 'teamNameToPublicitySettings'], I.Map({[teamname]: publicityMap}))),
+      Saga.put(replaceEntity(['teams', 'teamNameToSubteams'], I.Map([[teamname, I.Set(subteams)]]))),
     ])
   } finally {
     yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, false]])))
