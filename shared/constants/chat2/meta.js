@@ -78,6 +78,7 @@ export const unverifiedInboxUIItemToConversationMeta = (
     teamType: getTeamType(i),
     teamname,
     timestamp: i.localMetadata ? 0 : i.time,
+    tlfname: i.name,
     trustedState: i.localMetadata ? 'trusted' : 'untrusted', // if we have localMetadata attached to an unverifiedInboxUIItem it's been loaded previously
   })
 }
@@ -151,6 +152,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
     supersedesCausedBy,
     teamType: getTeamType(i),
     teamname: (isTeam && i.name) || '',
+    tlfname: i.name,
     trustedState: 'trusted',
   })
 }
@@ -174,6 +176,7 @@ export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record
   teamType: 'adhoc',
   teamname: '',
   timestamp: 0,
+  tlfname: '',
   trustedState: 'untrusted',
 })
 

@@ -61,16 +61,21 @@
       "fromThreadLoad?": "Types.ConversationIDKey", // because we clicked on a conversation for the very first time?
       "messages": "Array<Types.Message>"
     },
-    // Replace a messages text
-    "messageEdit": {
+    // Update a message which changed
+    "messageWasEdited": {
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal",
       "text": "HiddenString"
     },
-    // Delete a message
-    "messagesDelete": {
+    // Mark a message as deleted
+    "messagesWereDeleted": {
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinals": "Array<Types.Ordinal>"
+    },
+    // Delete a message
+    "messageDelete": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
     },
     // Clear our knowledge of which messages are in a thread, used when a stale gap is too big
     "clearOrdinals": {

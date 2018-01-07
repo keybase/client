@@ -13,14 +13,14 @@ export type MetaTrustedState = 'untrusted' | 'requesting' | 'trusted' | 'error'
 export type _ConversationMeta = {
   channelname: string,
   conversationIDKey: Common.ConversationIDKey,
+  hasLoadedThread: boolean,
   inboxVersion: number,
   isMuted: boolean,
-  hasLoadedThread: boolean,
   membershipType: MembershipType,
   notificationSettings: ?RPCChatTypes.ConversationNotificationInfo,
   participants: I.Set<string>,
-  resetParticipants: I.Set<string>,
   rekeyers: I.Set<string>,
+  resetParticipants: I.Set<string>,
   snippet: string,
   supersededBy: ?Common.ConversationIDKey,
   supersededByCausedBy: ?Username,
@@ -29,6 +29,7 @@ export type _ConversationMeta = {
   teamType: TeamType,
   teamname: string,
   timestamp: number,
+  tlfname: string, // just used for rpc calls
   trustedState: MetaTrustedState,
 }
 

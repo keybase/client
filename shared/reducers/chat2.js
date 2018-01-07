@@ -101,9 +101,14 @@ const metaMapReducer = (metaMap, action) => {
 
 const messageMapReducer = (messageMap, action) => {
   switch (action.type) {
+    case Chat2Gen.messageDelete:
+      return messageMap.updateIn(
+        [action.payload.conversationIDKey, action.payload.ordinal],
+        message => (message && message.type === 'text' ? message.set('localState', 'deleting') : message)
+      )
     case Chat2Gen.inboxRefresh:
       return action.payload.clearAllData ? messageMap.clear() : messageMap
-    case Chat2Gen.messageEdit: {
+    case Chat2Gen.messageWasEdited: {
       const {conversationIDKey, ordinal, text} = action.payload
       return messageMap.updateIn(
         [conversationIDKey, ordinal],
@@ -111,7 +116,7 @@ const messageMapReducer = (messageMap, action) => {
           !message || message.type !== 'text' ? message : message.set('text', text).set('hasBeenEdited', true)
       )
     }
-    case Chat2Gen.messagesDelete: {
+    case Chat2Gen.messagesWereDeleted: {
       const {conversationIDKey, ordinals} = action.payload
       return messageMap.update(conversationIDKey, I.Map(), (map: I.Map<Types.Ordinal, Types.Message>) =>
         map.withMutations(m => {
@@ -192,8 +197,11 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         } else if (count === 0) {
           return loading.delete(action.payload.key)
         } else {
+          console.log('Setting negative chat loading key', action.payload.key, count)
+          return loading.set(action.payload.key, count)
+          // TODO talk to mike. sync calls don't seem to always start with syncStarting so we go negative
           // never allow negative
-          throw new Error(`Negative loading in chat ${action.payload.key}`)
+          // throw new Error(`Negative loading in chat ${action.payload.key}`)
         }
       })
     case Chat2Gen.selectConversation:
@@ -220,9 +228,10 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     // metaMap/messageMap/messageOrdinalsList actions
     case Chat2Gen.clearOrdinals:
     case Chat2Gen.inboxRefresh:
-    case Chat2Gen.messageEdit:
+    case Chat2Gen.messageDelete:
+    case Chat2Gen.messageWasEdited:
     case Chat2Gen.messagesAdd:
-    case Chat2Gen.messagesDelete:
+    case Chat2Gen.messagesWereDeleted:
     case Chat2Gen.metaReceivedError:
     case Chat2Gen.metaRequestingTrusted:
     case Chat2Gen.metasReceived:

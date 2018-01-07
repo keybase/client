@@ -13,6 +13,9 @@ export const numberToMessageID = (n: number): MessageID => n
 // TODO opaque
 export type Ordinal = number
 
+// Bookkeep us trying to do these operations
+type LocalState = null | 'deleting' | 'editing'
+
 type ChannelMention = 'none' | 'all' | 'here'
 
 type _MessageCommon = {
@@ -38,6 +41,7 @@ export type _MessageText = _MessageCommon & {
   mentionsAt: I.Set<string>,
   mentionsChannel: ChannelMention,
   text: HiddenString,
+  localState: LocalState,
 }
 export type MessageText = I.RecordOf<_MessageText>
 
@@ -48,6 +52,7 @@ export type _MessageAttachment = _MessageCommon & {
   attachmentType: AttachmentType,
   durationMs: number,
   filename: ?string,
+  localState: LocalState,
   percentUploaded: number,
   previewHeight: number,
   previewWidth: number,

@@ -79,9 +79,9 @@ const mapStateToProps = (state: TypedState) => ({_you: state.config.username})
 const mapDispatchToTextProps = (dispatch: Dispatch) => ({
   _onDelete: (message: Types.Message) =>
     dispatch(
-      Chat2Gen.createMessagesDelete({
+      Chat2Gen.createMessageDelete({
         conversationIDKey: message.conversationIDKey,
-        ordinals: [message.ordinal],
+        ordinal: message.ordinal,
       })
     ),
   _onEdit: (message: Types.Message) => {},

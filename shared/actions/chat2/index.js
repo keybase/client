@@ -241,13 +241,13 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage) => {
           if (body.edit) {
             const text = new HiddenString(body.edit.body || '')
             const ordinal = body.edit.messageID
-            actions.push(Chat2Gen.createMessageEdit({conversationIDKey, ordinal, text}))
+            actions.push(Chat2Gen.createMessageWasEdited({conversationIDKey, ordinal, text}))
           }
           break
         case RPCChatTypes.commonMessageType.delete:
           if (body.delete && body.delete.messageIDs) {
             const ordinals = body.delete.messageIDs
-            actions.push(Chat2Gen.createMessagesDelete({conversationIDKey, ordinals}))
+            actions.push(Chat2Gen.createMessagesWereDeleted({conversationIDKey, ordinals}))
           }
           break
         case RPCChatTypes.commonMessageType.attachmentuploaded:
@@ -585,6 +585,33 @@ const desktopNotify = (action: Chat2Gen.DesktopNotificationPayload, state: Typed
   }
 }
 
+const messageDelete = (action: Chat2Gen.MessageDeletePayload, state: TypedState) => {
+  const {conversationIDKey, ordinal} = action.payload
+  const message = Constants.getMessageMap(state, conversationIDKey).get(ordinal)
+  if (!message || (message.type !== 'text' && message.type !== 'attachment')) {
+    logger.warn('Deleting non-existant or, non-text non-attachment message')
+    logger.debug('Deleting invalid message:', message)
+    return
+  }
+
+  const meta = state.chat2.metaMap.get(conversationIDKey)
+  if (!meta) {
+    logger.warn('Deleting message w/ no meta')
+    logger.debug('Deleting message w/ no meta', message)
+    return
+  }
+
+  return Saga.call(RPCChatTypes.localPostDeleteNonblockRpcPromise, {
+    clientPrev: 0,
+    conversationID: Constants.keyToConversationID(conversationIDKey),
+    identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+    outboxID: null,
+    supersedes: message.ordinal,
+    tlfName: meta.tlfname,
+    tlfPublic: false,
+  })
+}
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Refresh the inbox
   yield Saga.safeTakeEveryPure(
@@ -609,6 +636,8 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     rpcLoadThread,
     rpcLoadThreadSuccess
   )
+
+  yield Saga.safeTakeEveryPure(Chat2Gen.messageDelete, messageDelete)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.setupChatHandlers, setupChatHandlers)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, navigateToThread)

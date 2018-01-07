@@ -55,5 +55,5 @@ export default mapProps(props => ({
   isEditing: false,
   mentions: I.Set(),
   text: props.message.text.stringValue(),
-  type: 'sent', // TODO
+  type: props.message.localState === 'deleting' ? 'pending' : 'sent', // TODO other states
 }))(TextMessage)

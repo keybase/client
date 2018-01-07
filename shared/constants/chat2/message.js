@@ -28,6 +28,7 @@ export const makeMessageDeleted: I.RecordFactory<MessageTypes._MessageDeleted> =
 
 export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Record({
   ...makeMessageCommon,
+  localState: null,
   mentionsAt: I.Set(),
   mentionsChannel: 'none',
   text: new HiddenString(''),
@@ -39,6 +40,7 @@ export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachm
   attachmentType: 'other',
   durationMs: 0,
   filename: null,
+  localState: null,
   percentUploaded: 0,
   previewHeight: 0,
   previewWidth: 0,
