@@ -14,37 +14,33 @@ const UserAvatar = ({author, showImage, onAuthorClick}) => (
   </Box>
 )
 
-const Username = ({author, isYou, isFollowing, isBroken, includeHeader, onAuthorClick}) => {
-  if (!includeHeader) return null
+const Username = ({username, isYou, isFollowing, isBroken, onClick}) => {
   const style = {
-    color: colorForAuthor(author, isYou, isFollowing, isBroken),
     ...(isYou ? globalStyles.italic : null),
     alignSelf: 'flex-start',
+    color: colorForAuthor(username, isYou, isFollowing, isBroken),
     marginBottom: 2,
   }
   return (
-    <Text type="BodySmallSemibold" onClick={onAuthorClick} className="hover-underline" style={style}>
-      {author}
+    <Text type="BodySmallSemibold" onClick={onClick} className="hover-underline" style={style}>
+      {username}
     </Text>
   )
 }
 
-const MenuButton = ({onShowMenu}) =>
-  isMobile ? null : (
-    <Box className="menu-button">
-      <Icon type="iconfont-ellipsis" style={_ellipsisStyle} onClick={onShowMenu} />
-    </Box>
-  )
+const MenuButton = ({onClick}) => (
+  <Box className="menu-button">
+    <Icon type="iconfont-ellipsis" style={_ellipsisStyle} onClick={onClick} />
+  </Box>
+)
 
-const EditedMark = ({isEdited}) =>
-  isEdited ? (
-    <Text type="BodySmall" style={_editedStyle}>
-      EDITED
-    </Text>
-  ) : null
+const EditedMark = () => (
+  <Text type="BodySmall" style={_editedStyle}>
+    EDITED
+  </Text>
+)
 
 const Failure = ({failureDescription, onShowEditor, onRetry}) => {
-  if (!failureDescription) return null
   const error = `Failed to send${failureDescription ? ` -  ${failureDescription}` : ''}. `
   const resolveByEdit = failureDescription === 'message is too long'
   return (
@@ -88,28 +84,31 @@ const MessageWrapper = (props: Props) => (
           onAuthorClick={props.onAuthorClick}
         />
         <Box style={_flexOneColumn} className="message-wrapper">
-          <Username
-            author={props.author}
-            isYou={props.isYou}
-            isFollowing={props.isFollowing}
-            isBroken={props.isBroken}
-            includeHeader={props.includeHeader}
-            onAuthorClick={props.onAuthorClick}
-          />
+          {props.includeHeader && (
+            <Username
+              username={props.author}
+              isYou={props.isYou}
+              isFollowing={props.isFollowing}
+              isBroken={props.isBroken}
+              onClick={props.onAuthorClick}
+            />
+          )}
           <Box style={_textContainerStyle} className="message">
             <Box style={_flexOneColumn}>
               {/* $FlowIssue */}
               <props.innerClass message={props.message} onAction={props.onAction} />
-              <EditedMark isEdited={props.isEdited} />
+              {props.isEdited && <EditedMark />}
             </Box>
-            <MenuButton onShowMenu={props.onShowMenu} />
+            {!isMobile && <MenuButton onClick={props.onShowMenu} />}
             {props.isRevoked && <Icon type="iconfont-exclamation" style={_exclamationStyle} />}
           </Box>
-          <Failure
-            failureDescription={props.failureDescription}
-            onRetry={props.onRetry}
-            onShowEditor={props.onShowEditor}
-          />
+          {!!props.failureDescription && (
+            <Failure
+              failureDescription={props.failureDescription}
+              onRetry={props.onRetry}
+              onShowEditor={props.onShowEditor}
+            />
+          )}
         </Box>
       </Box>
     </Box>
@@ -137,8 +136,8 @@ const _containerWithHeaderStyle = {
 const _rightSideNoHeaderStyle = {
   ..._flexOneRow,
   marginLeft: globalMargins.tiny,
-  paddingRight: globalMargins.tiny,
   paddingBottom: 2,
+  paddingRight: globalMargins.tiny,
 }
 
 const _rightSideWithHeaderStyle = {

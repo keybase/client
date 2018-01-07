@@ -1,6 +1,4 @@
 // @flow
-// import * as Chat2Gen from '../../../../actions/chat2-gen'
-// import {lookupMessageProps} from '../../../shared'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import Wrapper from '.'
@@ -14,39 +12,19 @@ import {navigateAppend} from '../../../../actions/route-tree'
 const howLongBetweenTimestampsMs = 1000 * 60 * 15
 
 const mapStateToProps = (state: TypedState, {message, previous, innerClass, isSelected}) => {
-  // const _conversationState = Constants.getSelectedConversationStates(state)
-  // const selectedConversationIDKey = Constants.getSelectedConversation(state)
-
-  // const {message, localMessageState} = lookupMessageProps(state, messageKey)
-  // if (!message) {
-  // throw new Error(`Can't find message for wrapper ${messageKey}`)
-  // }
-  // const author = message.author
-  // const isYou = Constants.getYou(state) === author
-  // const isFollowing = Constants.getFollowing(state).has(author)
+  const isYou = state.config.username === message.author
+  const isFollowing = state.config.following.has(message.author)
+  // TODO
   // const isBroken = Constants.getMetaDataMap(state).getIn([author, 'brokenTracker'], false)
-
-  // const {message: _prevMessage} = lookupMessageProps(state, prevMessageKey)
-  // const isEditing = message === Constants.getEditingMessage(state)
-  // const _editedCount: number =
-  // Constants.getMessageUpdateCount(state, message.type, message.key) + message.editedCount
 
   return {
     innerClass,
+    isFollowing,
     isSelected,
+    isYou,
     message,
     previous,
-    // _conversationState,
-    // _localMessageState: localMessageState,
-    // _message: message,
-    // _prevMessage,
-    // _selectedConversationIDKey: selectedConversationIDKey,
-    // _editedCount,
-    // author,
     // isBroken,
-    // isEditing,
-    // isFollowing,
-    // isYou,
   }
 }
 
@@ -163,11 +141,11 @@ const mergeProps = (stateProps, dispatchProps) => {
     isBroken: false, // TODO stateProps.isBroken,
     isEdited: message.isEdited,
     isEditing: false, // stateProps.isEditing,
-    isFirstNewMessage: false, // ,
-    isFollowing: false, // stateProps.isFollowing,
-    isRevoked: false,
+    isFirstNewMessage: false, //  TODO
+    isFollowing: stateProps.isFollowing,
+    isRevoked: !!message.deviceRevokedAt,
     isSelected: stateProps.isSelected,
-    isYou: false, // stateProps.isYou,
+    isYou: stateProps.isYou,
     loadMoreType,
     message,
     onAuthorClick: () => dispatchProps._onAuthorClick(message.author),
