@@ -50,10 +50,10 @@ class BaseList extends React.Component<Props, State> {
   // throw new Error('_onShowMenu Implemented in PopupEnabledList')
   // }
   // _onShowEditor = () => {
-    // throw new Error('_onShowEditor Implemented in PopupEnabledList')
+  // throw new Error('_onShowEditor Implemented in PopupEnabledList')
   // }
   // _onEditLastMessage = () => {
-    // throw new Error('_onEditLastMessage Implemented in PopupEnabledList')
+  // throw new Error('_onEditLastMessage Implemented in PopupEnabledList')
   // }
 
   componentDidUpdate(prevProps: Props, prevState: State) {
@@ -118,10 +118,25 @@ class BaseList extends React.Component<Props, State> {
     }
   }
 
+  _measure = ordinal => {
+    // TODO find index
+    this._cellCache.clearAll()
+    this._list && this._list.Grid && this._list.recomputeRowHeights(0)
+  }
+
   _rowRenderer = ({index, isScrolling, isVisible, key, parent, style}) => {
     const ordinal = this.props.messageOrdinals.get(index)
     const prevOrdinal = index > 0 ? this.props.messageOrdinals.get(index - 1) : null
     // const isSelected = false // messageKey === this.state.selectedMessageKey
+    // {({measure}) => (
+    // const message = messageFactory(
+    // ordinal,
+    // prevOrdinal,
+    // this._onAction,
+    // this._onShowEditor,
+    // isSelected,
+    // measure
+    // )
     return (
       <Virtualized.CellMeasurer
         cache={this._cellCache}
@@ -130,20 +145,9 @@ class BaseList extends React.Component<Props, State> {
         parent={parent}
         rowIndex={index}
       >
-        {({measure}) => (
-          // const message = messageFactory(
-          // ordinal,
-          // prevOrdinal,
-          // this._onAction,
-          // this._onShowEditor,
-          // isSelected,
-          // measure
-          // )
-          // measure={measure}
-          <div style={style}>
-            <Message ordinal={ordinal} previous={prevOrdinal} />
-          </div>
-        )}
+        <div style={style}>
+          <Message ordinal={ordinal} previous={prevOrdinal} measure={this._measure} />
+        </div>
       </Virtualized.CellMeasurer>
     )
   }
@@ -263,57 +267,57 @@ class PopupEnabledList extends BaseList {
 
   // How this works is kinda crappy. We have to plumb through this key => message helper and all this DOM stuff just to support this
   // _onEditLastMessage = () => {
-    // let tuple: ?[number, Types.MessageKey, Types.TextMessage]
-    // this.props.messageKeys.findLastEntry((v, k) => {
-    // const m = this.props.getMessageFromMessageKey(v)
-    // if (m && m.type === 'Text' && m.author === this.props.you) {
-    // tuple = [k, v, m]
-    // return true
-    // }
-    // return false
-    // })
-    // if (!tuple) {
-    // return
-    // }
-    // const [idx, messageKey, message] = tuple
-    // if (!Constants.textMessageEditable(message)) {
-    // return
-    // }
-    // this._keepIdxVisible = idx
-    // this.setState(prevState => ({listRerender: prevState.listRerender + 1}))
-    // const listNode = ReactDOM.findDOMNode(this._list)
-    // if (!(listNode instanceof window.Element)) {
-    // return
-    // }
-    // const messageNodes = listNode.querySelectorAll(`[data-message-key="${messageKey}"]`)
-    // if (!messageNodes) {
-    // return
-    // }
-    // const messageNode = messageNodes[0]
-    // if (!messageNode) {
-    // return
-    // }
-    // this._showEditor(message, this._domNodeToRect(messageNode))
+  // let tuple: ?[number, Types.MessageKey, Types.TextMessage]
+  // this.props.messageKeys.findLastEntry((v, k) => {
+  // const m = this.props.getMessageFromMessageKey(v)
+  // if (m && m.type === 'Text' && m.author === this.props.you) {
+  // tuple = [k, v, m]
+  // return true
+  // }
+  // return false
+  // })
+  // if (!tuple) {
+  // return
+  // }
+  // const [idx, messageKey, message] = tuple
+  // if (!Constants.textMessageEditable(message)) {
+  // return
+  // }
+  // this._keepIdxVisible = idx
+  // this.setState(prevState => ({listRerender: prevState.listRerender + 1}))
+  // const listNode = ReactDOM.findDOMNode(this._list)
+  // if (!(listNode instanceof window.Element)) {
+  // return
+  // }
+  // const messageNodes = listNode.querySelectorAll(`[data-message-key="${messageKey}"]`)
+  // if (!messageNodes) {
+  // return
+  // }
+  // const messageNode = messageNodes[0]
+  // if (!messageNode) {
+  // return
+  // }
+  // this._showEditor(message, this._domNodeToRect(messageNode))
   // }
 
   // message: Types.TextMessage, messageRect: any
   // _showEditor = () => {
-    // const popupComponent = (
-    // <EditPopup
-    // messageRect={messageRect}
-    // onClose={this._hidePopup}
-    // message={message.message.stringValue()}
-    // onSubmit={text => {
-    // this.props.onEditMessage(message, text)
-    // }}
-    // />
-    // )
-    // // Have to do this cause it's triggered from a popup that we're reusing else we'll get unmounted
-    // setImmediate(() => {
-    // const container = document.getElementById('popupContainer')
-    // // FIXME: this is the right way to render portals retaining context for now, though it will change in the future.
-    // ReactDOM.unstable_renderSubtreeIntoContainer(this, popupComponent, container)
-    // })
+  // const popupComponent = (
+  // <EditPopup
+  // messageRect={messageRect}
+  // onClose={this._hidePopup}
+  // message={message.message.stringValue()}
+  // onSubmit={text => {
+  // this.props.onEditMessage(message, text)
+  // }}
+  // />
+  // )
+  // // Have to do this cause it's triggered from a popup that we're reusing else we'll get unmounted
+  // setImmediate(() => {
+  // const container = document.getElementById('popupContainer')
+  // // FIXME: this is the right way to render portals retaining context for now, though it will change in the future.
+  // ReactDOM.unstable_renderSubtreeIntoContainer(this, popupComponent, container)
+  // })
   // }
 
   // _findMessageFromDOMNode(start: any): any {

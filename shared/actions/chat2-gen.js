@@ -24,7 +24,6 @@ export const metaNeedsUpdating = 'chat2:metaNeedsUpdating'
 export const metaReceivedError = 'chat2:metaReceivedError'
 export const metaRequestTrusted = 'chat2:metaRequestTrusted'
 export const metaRequestingTrusted = 'chat2:metaRequestingTrusted'
-export const metaUpdateTrustedState = 'chat2:metaUpdateTrustedState'
 export const metasReceived = 'chat2:metasReceived'
 export const selectConversation = 'chat2:selectConversation'
 export const setInboxFilter = 'chat2:setInboxFilter'
@@ -89,12 +88,6 @@ export const createMetaRequestTrusted = (
   }>
 ) => ({error: false, payload, type: metaRequestTrusted})
 export const createMetaRequestingTrusted = (payload: $ReadOnly<{conversationIDKeys: Array<Types.ConversationIDKey>}>) => ({error: false, payload, type: metaRequestingTrusted})
-export const createMetaUpdateTrustedState = (
-  payload: $ReadOnly<{
-    newState: Types.MetaTrustedState,
-    conversationIDKeys: Array<Types.ConversationIDKey>,
-  }>
-) => ({error: false, payload, type: metaUpdateTrustedState})
 export const createMetasReceived = (payload: $ReadOnly<{metas: Array<Types.ConversationMeta>}>) => ({error: false, payload, type: metasReceived})
 export const createSelectConversation = (
   payload: $ReadOnly<{
@@ -126,7 +119,6 @@ export type MetaNeedsUpdatingPayload = More.ReturnType<typeof createMetaNeedsUpd
 export type MetaReceivedErrorPayload = More.ReturnType<typeof createMetaReceivedError>
 export type MetaRequestTrustedPayload = More.ReturnType<typeof createMetaRequestTrusted>
 export type MetaRequestingTrustedPayload = More.ReturnType<typeof createMetaRequestingTrusted>
-export type MetaUpdateTrustedStatePayload = More.ReturnType<typeof createMetaUpdateTrustedState>
 export type MetasReceivedPayload = More.ReturnType<typeof createMetasReceived>
 export type SelectConversationPayload = More.ReturnType<typeof createSelectConversation>
 export type SetInboxFilterPayload = More.ReturnType<typeof createSetInboxFilter>
@@ -150,7 +142,6 @@ export type Actions =
   | More.ReturnType<typeof createMetaReceivedError>
   | More.ReturnType<typeof createMetaRequestTrusted>
   | More.ReturnType<typeof createMetaRequestingTrusted>
-  | More.ReturnType<typeof createMetaUpdateTrustedState>
   | More.ReturnType<typeof createMetasReceived>
   | More.ReturnType<typeof createSelectConversation>
   | More.ReturnType<typeof createSetInboxFilter>

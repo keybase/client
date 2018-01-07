@@ -16,8 +16,8 @@ import TextMessage from './text/container'
 // import Timestamp from './timestamp/container'
 import Wrapper from './wrapper/container'
 import {Box} from '../../../common-adapters'
-// import {connect, compose, lifecycle, type TypedState} from '../../../util/container'
-import {connect, type TypedState} from '../../../util/container'
+import {connect, compose, lifecycle, type TypedState} from '../../../util/container'
+// import {connect, type TypedState} from '../../../util/container'
 
 // const factory = (message: Types2.Message, previous: ?Types2.Message, measure: () => void) => {
 // // TEMP
@@ -143,12 +143,11 @@ const mapStateToProps = (state: TypedState, {ordinal, previous}) => {
   }
 }
 
-// export default compose(
-// connect(mapStateToProps, () => ({})),
-// lifecycle({
-// componentDidUpdate(prevProps) {
-// this.props.measure && this.props.message !== prevProps.message && this.props.measure()
-// },
-// })
-// )(MessageFactory)
-export default connect(mapStateToProps, () => ({}))(MessageFactory)
+export default compose(
+  connect(mapStateToProps, () => ({})),
+  lifecycle({
+    componentDidUpdate(prevProps) {
+      this.props.measure && this.props.message !== prevProps.message && this.props.measure()
+    },
+  })
+)(MessageFactory)

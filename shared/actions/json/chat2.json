@@ -46,11 +46,6 @@
       "force?": "boolean",
       "conversationIDKeys": "Array<Types.ConversationIDKey>"
     },
-    // Mutate the inbox row state (requesting, trusted, error, etc)
-    "metaUpdateTrustedState": {
-      "newState": "Types.MetaTrustedState",
-      "conversationIDKeys": "Array<Types.ConversationIDKey>"
-    },
     // Got some new inbox rows
     "metasReceived": {
       "metas": "Array<Types.ConversationMeta>"

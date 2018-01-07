@@ -278,6 +278,7 @@ const RelativePopupHoc: RelativePopupHocType<*> = PopupComponent => {
       position: routeProps.get('position'),
     })
   )((props: RelativePopupProps<*> & {onClosePopup: () => void}) => {
+    // $FlowIssue doens't understand routePropspass through
     return <ModalPopupComponent {...(props: RelativePopupProps<*>)} onClosePopup={props.onClosePopup} />
   })
 

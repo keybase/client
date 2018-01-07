@@ -4,37 +4,35 @@ import {Box, Icon, Text} from '../../../common-adapters'
 import {PopupHeaderText} from '../../../common-adapters/popup-menu'
 import {globalStyles, globalMargins, globalColors, isMobile} from '../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked} from '../../../util/timestamp'
-
-import type {TextMessage, AttachmentMessage} from '../../../constants/types/chat'
+import type {MessageText, MessageAttachment} from '../../../constants/types/chat2'
 import type {IconType} from '../../../common-adapters/icon'
 
-function iconNameForDeviceType(deviceType: string, isRevoked: boolean): IconType {
-  if (!isMobile) {
-    switch (deviceType) {
-      case 'mobile':
-        return isRevoked ? 'icon-fancy-revoked-phone-122-x-64' : 'icon-fancy-encrypted-phone-122-x-64'
-      default:
-        return isRevoked ? 'icon-fancy-revoked-computer-150-x-64' : 'icon-fancy-encrypted-computer-150-x-64'
+const iconNameForDeviceType = isMobile
+  ? (deviceType: string, isRevoked: boolean): IconType => {
+      switch (deviceType) {
+        case 'mobile':
+          return isRevoked ? 'icon-fancy-revoked-phone-183-x-96' : 'icon-fancy-encrypted-phone-183-x-96'
+        default:
+          return isRevoked ? 'icon-fancy-revoked-computer-226-x-96' : 'icon-fancy-encrypted-computer-226-x-96'
+      }
     }
-  } else {
-    switch (deviceType) {
-      case 'mobile':
-        return isRevoked ? 'icon-fancy-revoked-phone-183-x-96' : 'icon-fancy-encrypted-phone-183-x-96'
-      default:
-        return isRevoked ? 'icon-fancy-revoked-computer-226-x-96' : 'icon-fancy-encrypted-computer-226-x-96'
+  : (deviceType: string, isRevoked: boolean): IconType => {
+      switch (deviceType) {
+        case 'mobile':
+          return isRevoked ? 'icon-fancy-revoked-phone-122-x-64' : 'icon-fancy-encrypted-phone-122-x-64'
+        default:
+          return isRevoked ? 'icon-fancy-revoked-computer-150-x-64' : 'icon-fancy-encrypted-computer-150-x-64'
+      }
     }
-  }
-}
 
-const MessagePopupHeader = ({
-  message: {author, deviceName, deviceType, timestamp, senderDeviceRevokedAt, you},
-  isLast,
-}: {
-  message: TextMessage | AttachmentMessage,
+const MessagePopupHeader = (props: {
+  message: MessageText | MessageAttachment,
   isLast?: boolean,
+  yourMessage: boolean,
 }) => {
-  const iconName = iconNameForDeviceType(deviceType, !!senderDeviceRevokedAt)
-  const whoRevoked = author === you ? 'You' : author
+  const {message, isLast, yourMessage} = props
+  const iconName = iconNameForDeviceType(message.deviceType, !!message.deviceRevokedAt)
+  const whoRevoked = yourMessage ? 'You' : message.author
   return (
     <Box
       style={{
@@ -53,13 +51,13 @@ const MessagePopupHeader = ({
       <Box style={globalStyles.flexBoxRow}>
         <Text
           type="BodySmall"
-          style={{color: senderDeviceRevokedAt ? globalColors.black_40 : globalColors.green2}}
+          style={{color: message.deviceRevokedAt ? globalColors.black_40 : globalColors.green2}}
         >
           ENCRYPTED
         </Text>
         <Text
           type="BodySmall"
-          style={{color: senderDeviceRevokedAt ? globalColors.black_40 : globalColors.green2}}
+          style={{color: message.deviceRevokedAt ? globalColors.black_40 : globalColors.green2}}
         >
           &nbsp;& SIGNED
         </Text>
@@ -69,13 +67,13 @@ const MessagePopupHeader = ({
           by
         </Text>
         <Text type="BodySmallItalic" style={{color: globalColors.black_60}}>
-          &nbsp;{deviceName}
+          &nbsp;{message.deviceName}
         </Text>
       </Box>
       <Text type="BodySmall" style={{color: globalColors.black_40}}>
-        {formatTimeForPopup(timestamp)}
+        {formatTimeForPopup(message.timestamp)}
       </Text>
-      {senderDeviceRevokedAt && (
+      {message.deviceRevokedAt && (
         <PopupHeaderText
           color={globalColors.white}
           backgroundColor={globalColors.blue}
@@ -87,7 +85,7 @@ const MessagePopupHeader = ({
             width: '100%',
           }}
         >
-          {whoRevoked} revoked this device on {formatTimeForRevoked(senderDeviceRevokedAt)}.
+          {whoRevoked} revoked this device on {formatTimeForRevoked(message.deviceRevokedAt)}.
         </PopupHeaderText>
       )}
     </Box>

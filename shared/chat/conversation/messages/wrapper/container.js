@@ -132,7 +132,10 @@ const mergeProps = (stateProps, dispatchProps) => {
   //
   const {message, previous} = stateProps
 
-  const continuingTextBlock = previous && previous.type === 'text' && previous.author === message.author
+  const continuingTextBlock =
+    previous &&
+    previous.author === message.author &&
+    (previous.type === 'text' || previous.type === 'deleted')
 
   const oldEnough =
     previous &&

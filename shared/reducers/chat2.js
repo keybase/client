@@ -85,12 +85,6 @@ const metaMapReducer = (metaMap, action) => {
           }
         })
       })
-    case Chat2Gen.metaUpdateTrustedState:
-      return metaMap.withMutations((map: I.Map<Types.ConversationIDKey, Types.ConversationMeta>) => {
-        action.payload.conversationIDKeys.forEach(id => {
-          map.setIn([id, 'trustedState'], action.payload.newState)
-        })
-      })
     case Chat2Gen.messagesAdd:
       return action.payload.fromThreadLoad
         ? metaMap.update(
@@ -127,6 +121,7 @@ const messageMapReducer = (messageMap, action) => {
                 return message
               }
               return Constants.makeMessageDeleted({
+                author: message.author,
                 conversationIDKey: message.conversationIDKey,
                 id: message.id,
                 ordinal: message.ordinal,
@@ -230,7 +225,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.messagesDelete:
     case Chat2Gen.metaReceivedError:
     case Chat2Gen.metaRequestingTrusted:
-    case Chat2Gen.metaUpdateTrustedState:
     case Chat2Gen.metasReceived:
       return state
         .set('metaMap', metaMapReducer(state.metaMap, action))

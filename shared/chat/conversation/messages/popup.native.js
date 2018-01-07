@@ -1,4 +1,4 @@
-// @flow
+// @noflow // TEMP
 import * as ChatConstants from '../../../constants/chat'
 import * as Types from '../../../constants/types/chat'
 import * as ChatGen from '../../../actions/chat-gen'

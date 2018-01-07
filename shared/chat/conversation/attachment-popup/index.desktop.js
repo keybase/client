@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box, Icon, Text, PopupDialog, ProgressIndicator} from '../../../common-adapters/index'
-import {AttachmentPopupMenu} from '../messages/popup'
+import {AttachmentPopupMenu} from '../messages/popup.desktop'
 import {ProgressBar as AttachmentProgressBar, ImageIcon as AttachmentStatusIcon} from '../messages/attachment'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import {fileUIName} from '../../../constants/platform'

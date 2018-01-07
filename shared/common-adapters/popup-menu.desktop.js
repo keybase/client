@@ -52,7 +52,10 @@ class ModalLessPopupMenu extends Component<Props> {
                   key={i.title}
                   className={hoverClassName}
                   style={{...stylesRow, ...styleClickable}}
-                  onClick={i.onClick}
+                  onClick={event => {
+                    i.onClick && i.onClick()
+                    this.props.closeOnClick && this.props.onHidden && this.props.onHidden()
+                  }}
                 >
                   <Text
                     className="title"
@@ -90,7 +93,7 @@ class PopupMenu extends Component<Props> {
         <Box
           style={{...stylesMenuCatcher, ...this.props.styleCatcher}}
           onClick={e => {
-            this.props && this.props.onHidden()
+            this.props.onHidden && this.props.onHidden()
             e.stopPropagation()
           }}
         >
@@ -121,7 +124,7 @@ class OLDPopupMenu extends Component<Props> {
         <Box
           style={stylesMenuCatcher}
           onClick={e => {
-            this.props && this.props.onHidden()
+            this.props.onHidden && this.props.onHidden()
             e.stopPropagation()
           }}
         >
