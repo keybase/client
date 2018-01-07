@@ -379,11 +379,13 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
       }
     )
 
-    // Get the subteam map for this team.
+    // Get the subteam map for this team.  TeamTree only accepts a top-level
+    // team, not a subteam, so we'll call it for the team and filter out
+    // any subteams we don't care about later.
     const teamTree = yield Saga.call(
       RPCTypes.teamsTeamTreeRpcPromise,
       {
-        name: {parts: [teamname]},
+        name: {parts: [teamname.split('.')[0]]},
       }
     )
     console.warn('teamTree is', teamTree)
