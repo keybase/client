@@ -13,7 +13,7 @@ import {navigateAppend} from '../../../../actions/route-tree'
 
 const howLongBetweenTimestampsMs = 1000 * 60 * 15
 
-const mapStateToProps = (state: TypedState, {message, previous, innerClass}) => {
+const mapStateToProps = (state: TypedState, {message, previous, innerClass, isSelected}) => {
   // const _conversationState = Constants.getSelectedConversationStates(state)
   // const selectedConversationIDKey = Constants.getSelectedConversation(state)
 
@@ -33,6 +33,7 @@ const mapStateToProps = (state: TypedState, {message, previous, innerClass}) => 
 
   return {
     innerClass,
+    isSelected,
     message,
     previous,
     // _conversationState,
@@ -165,7 +166,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     isFirstNewMessage: false, // ,
     isFollowing: false, // stateProps.isFollowing,
     isRevoked: false,
-    isSelected: false, // ownProps.isSelected,
+    isSelected: stateProps.isSelected,
     isYou: false, // stateProps.isYou,
     loadMoreType,
     message,

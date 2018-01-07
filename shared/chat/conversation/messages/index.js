@@ -12,11 +12,13 @@ import * as Types2 from '../../../constants/types/chat2'
 // import System from './system/container'
 // import ProfileResetNotice from '../notices/profile-reset-notice/container'
 // import * as React from 'react'
+import * as RouteTree from '../../../route-tree'
 import TextMessage from './text/container'
 // import Timestamp from './timestamp/container'
 import Wrapper from './wrapper/container'
+import {chatTab} from '../../../constants/tabs'
 import {Box} from '../../../common-adapters'
-import {connect, compose, lifecycle, type TypedState} from '../../../util/container'
+import {connect, compose, lifecycle, type TypedState, createSelector} from '../../../util/container'
 // import {connect, type TypedState} from '../../../util/container'
 
 // const factory = (message: Types2.Message, previous: ?Types2.Message, measure: () => void) => {
@@ -106,13 +108,11 @@ import {connect, compose, lifecycle, type TypedState} from '../../../util/contai
 
 // export default factory
 
-// // TEMP
-const onAction = () => {}
-const onShowEditor = () => {}
 type Props = {
   // measure: () => void,
   message: Types2.Message,
   previous: ?Types2.Message,
+  isSelected: boolean,
 }
 class MessageFactory extends React.PureComponent<Props> {
   render() {
@@ -121,10 +121,8 @@ class MessageFactory extends React.PureComponent<Props> {
         return (
           <Wrapper
             innerClass={TextMessage}
-            isSelected={false}
+            isSelected={this.props.isSelected}
             message={this.props.message}
-            onAction={onAction}
-            onShowEditor={onShowEditor}
             previous={this.props.previous}
           />
         )
@@ -136,12 +134,25 @@ class MessageFactory extends React.PureComponent<Props> {
 const mapStateToProps = (state: TypedState, {ordinal, previous}) => {
   const conversationIDKey = Constants2.getSelectedConversation(state)
   const messageMap = Constants2.getMessageMap(state, conversationIDKey)
-
+  const message = messageMap.get(ordinal)
   return {
-    message: messageMap.get(ordinal),
+    isSelected: messageActionMessage(state, conversationIDKey) === message,
+    message,
     previous: previous ? messageMap.get(previous) : null,
   }
 }
+
+const getRouteState = (state: TypedState) => state.routeTree.routeState
+
+const messageActionMessage = createSelector(
+  [getRouteState, Constants2.getSelectedConversation],
+  (routeState, conversationIDKey) =>
+    RouteTree.getPathProps(routeState, [chatTab, conversationIDKey || '', 'messageAction']).getIn([
+      2,
+      'props',
+      'message',
+    ])
+)
 
 export default compose(
   connect(mapStateToProps, () => ({})),
