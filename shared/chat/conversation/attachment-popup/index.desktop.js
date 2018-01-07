@@ -1,4 +1,4 @@
-// @flow
+// @noflow TEMP
 import * as React from 'react'
 import {Box, Icon, Text, PopupDialog, ProgressIndicator} from '../../../common-adapters/index'
 import {AttachmentPopupMenu} from '../messages/popup.desktop'
