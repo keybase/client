@@ -57,6 +57,14 @@ export type _RequestInfo = {
 export type RequestInfo = I.RecordOf<_RequestInfo>
 export type TabKey = 'members' | 'requests' | 'pending'
 
+export type _SubteamInfo = {
+  key: string,
+  members: number,
+  teamname: string,
+  type: 'addSubTeam' | 'intro' | 'subteam'
+}
+export type SubteamInfo = I.RecordOf<_SubteamInfo>
+
 export type TypeMap = {
   admin: string | boolean,
   owner: string | boolean,

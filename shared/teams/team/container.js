@@ -49,6 +49,14 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
     ['teams', 'teamNameToImplicitAdminUsernames', teamname],
     I.Set()
   )
+  const subteams =  state.entities.getIn(['teams', 'teamNameToSubteams', teamname], I.Set())
+  const subTeamsProps = subteams.filter(team => team.startsWith(teamname)).map(subteam => ({
+    key: subteam,
+    members: state.entities.getIn(['teams', 'teammembercounts', subteam], 0),
+    type: 'subteam',
+    teamname: subteam,
+  }))
+
   return {
     _memberInfo: memberInfo,
     _implicitAdminUsernames: implicitAdminUsernames,
@@ -74,7 +82,8 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
     ),
     publicityTeam: state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname, 'team'], false),
     selectedTab: routeState.get('selectedTab') || 'members',
-    subteams: state.entities.getIn(['teams', 'teamNameToSubteams', teamname], I.Set()),
+    subteams,
+    subTeamsProps,
     waitingForSavePublicity: anyWaiting(state, `setPublicity:${teamname}`, `getDetails:${teamname}`),
     you: state.config.username,
     yourRole: Constants.getRole(state, teamname),

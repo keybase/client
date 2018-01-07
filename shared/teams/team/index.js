@@ -26,6 +26,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 export type MemberRowProps = Types.MemberInfo
 type InviteRowProps = Types.InviteInfo
 type RequestRowProps = Types.RequestInfo
+type SubteamRowProps = Types.SubteamInfo
 
 export type Props = {
   description: string,
@@ -124,13 +125,81 @@ type TeamTabsProps = {
   admin: boolean,
   invites: Array<InviteRowProps>,
   members: Array<MemberRowProps>,
-  subteams: Set<Types.Teamname>,
+  subTeamsProps: Set<Types.Teamname>,
   name: Types.Teamname,
   newTeamRequests: Array<Types.Teamname>,
   requests: Array<RequestRowProps>,
   loading?: boolean,
   selectedTab?: string,
   setSelectedTab: (?Types.TabKey) => void,
+}
+
+const SubteamsIntro = (index, {key}) => (
+  <Box
+    style={{
+      ...globalStyles.flexBoxRow,
+      alignItems: 'center',
+      flexShrink: 0,
+      height: globalMargins.medium,
+      padding: globalMargins.tiny,
+      width: '100%',
+    }}
+  >
+    <Box style={{...globalStyles.flexBoxRow, flexGrow: 1}}>
+      <Text style={{color: globalColors.black_40}} type="BodySmall">
+        {key}
+      </Text>
+    </Box>
+  </Box>
+)
+
+const AddSubTeam = (index, {key}) => (
+  <Box
+    style={{
+      ...globalStyles.flexBoxRow,
+      alignItems: 'center',
+      flexShrink: 0,
+      height: globalMargins.medium,
+      padding: globalMargins.tiny,
+      width: '100%',
+    }}
+  >
+    <Box style={{...globalStyles.flexBoxRow, flexGrow: 1}}>
+      <Text style={{color: globalColors.black_40}} type="BodySmall">
+        {key}
+      </Text>
+    </Box>
+  </Box>
+)
+
+const SubTeamRow = (index, {key, members}) => (
+  <Box
+    style={{
+      ...globalStyles.flexBoxRow,
+      alignItems: 'center',
+      flexShrink: 0,
+      height: globalMargins.medium,
+      padding: globalMargins.tiny,
+      width: '100%',
+    }}
+  >
+    <Box style={{...globalStyles.flexBoxRow, flexGrow: 1}}>
+      <Text style={{color: globalColors.black_40}} type="BodySmall">
+        {key} {members}
+      </Text>
+    </Box>
+  </Box>
+)
+
+const subTeamsRow = (index, row) => {
+  switch (row.type) {
+    case 'intro':
+      return SubteamsIntro(index, row)
+    case 'addSubTeam':
+      return AddSubTeam(index, row)
+    default:
+      return SubTeamRow(index, row)
+  }
 }
 
 const TeamRequestOrDividerOrInviteRow = (index, row) => {
@@ -153,6 +222,7 @@ const TeamTabs = (props: TeamTabsProps) => {
     newTeamRequests,
     requests,
     subteams,
+    subTeamsProps,
     loading = false,
     selectedTab,
     setSelectedTab,
@@ -277,6 +347,8 @@ class Team extends React.PureComponent<Props> {
       setPublicityAnyMember,
       setPublicityMember,
       setPublicityTeam,
+      subteams,
+      subTeamsProps,
       waitingForSavePublicity,
       yourRole,
       youAdmin,
