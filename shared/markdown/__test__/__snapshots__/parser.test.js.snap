@@ -748,6 +748,13 @@ Object {
           ],
           "type": "mention",
         },
+        " ",
+        Object {
+          "children": Array [
+            "a_b_c",
+          ],
+          "type": "mention",
+        },
       ],
       "type": "text-block",
     },
