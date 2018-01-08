@@ -28,6 +28,7 @@ export default function() {
       minWidth: windowStyle.minWidth,
       minHeight: windowStyle.minHeight,
       show: false,
+      titleBarStyle: windowStyle.titleBarStyle,
     }
   )
 
