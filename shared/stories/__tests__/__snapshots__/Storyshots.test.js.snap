@@ -693,316 +693,346 @@ exports[`Storyshots Chat/Conversation/InfoPanel Participants (with add button) 1
         }
       >
         <div
-          onClick={[Function]}
-          onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
-          onMouseUp={[Function]}
           style={
             Object {
-              "alignItems": "stretch",
-              "borderRadius": 0,
-              "cursor": "pointer",
               "display": "flex",
               "flexDirection": "column",
-              "height": undefined,
-              "lineHeight": 0,
-              "minWidth": undefined,
-              "position": "relative",
-              "textAlign": "left",
-              "transform": "none",
-              "transition": "none",
+              "paddingTop": 8,
             }
           }
         >
           <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
             style={
               Object {
+                "alignItems": "stretch",
+                "borderRadius": 0,
                 "cursor": "pointer",
                 "display": "flex",
                 "flexDirection": "column",
-                "minHeight": 48,
-                "paddingLeft": 16,
-                "paddingRight": 16,
+                "height": undefined,
+                "lineHeight": 0,
+                "minWidth": undefined,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
               }
             }
           >
             <div
               style={
                 Object {
-                  "alignItems": "center",
+                  "cursor": "pointer",
                   "display": "flex",
-                  "flex": 1,
-                  "flexDirection": "row",
-                  "marginRight": 8,
+                  "flexDirection": "column",
+                  "minHeight": 48,
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
                 }
               }
             >
               <div
-                onClick={undefined}
                 style={
                   Object {
-                    "height": 32,
-                    "maxWidth": 32,
-                    "minHeight": 32,
-                    "minWidth": 32,
-                    "position": "relative",
-                    "userSelect": "none",
-                  }
-                }
-              >
-                <div
-                  className="glamor-0"
-                />
-                <div
-                  className="glamor-1"
-                />
-              </div>
-              <div
-                style={
-                  Object {
+                    "alignItems": "center",
                     "display": "flex",
-                    "flexDirection": "column",
-                    "marginLeft": 16,
+                    "flex": 1,
+                    "flexDirection": "row",
+                    "marginRight": 8,
                   }
                 }
               >
-                <span
-                  className="glamor-4"
+                <div
                   onClick={undefined}
-                  title={undefined}
+                  style={
+                    Object {
+                      "height": 32,
+                      "maxWidth": 32,
+                      "minHeight": 32,
+                      "minWidth": 32,
+                      "position": "relative",
+                      "userSelect": "none",
+                    }
+                  }
+                >
+                  <div
+                    className="glamor-0"
+                  />
+                  <div
+                    className="glamor-1"
+                  />
+                </div>
+                <div
+                  style={
+                    Object {
+                      "display": "flex",
+                      "flexDirection": "column",
+                      "marginLeft": 16,
+                    }
+                  }
                 >
                   <span
-                    className="glamor-3"
+                    className="glamor-4"
                     onClick={undefined}
                     title={undefined}
                   >
                     <span
-                      className="glamor-2"
+                      className="glamor-3"
                       onClick={undefined}
                       title={undefined}
                     >
-                      akalin
+                      <span
+                        className="glamor-2"
+                        onClick={undefined}
+                        title={undefined}
+                      >
+                        akalin
+                      </span>
                     </span>
                   </span>
-                </span>
-                <span
-                  className="glamor-5"
-                  onClick={undefined}
-                  title={undefined}
-                >
-                  Fred Akalin
-                </span>
+                  <span
+                    className="glamor-5"
+                    onClick={undefined}
+                    title={undefined}
+                  >
+                    Fred Akalin
+                  </span>
+                </div>
               </div>
             </div>
           </div>
         </div>
         <div
-          onClick={[Function]}
-          onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
-          onMouseUp={[Function]}
           style={
             Object {
-              "alignItems": "stretch",
-              "borderRadius": 0,
-              "cursor": "pointer",
               "display": "flex",
               "flexDirection": "column",
-              "height": undefined,
-              "lineHeight": 0,
-              "minWidth": undefined,
-              "position": "relative",
-              "textAlign": "left",
-              "transform": "none",
-              "transition": "none",
+              "paddingTop": 8,
             }
           }
         >
           <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
             style={
               Object {
+                "alignItems": "stretch",
+                "borderRadius": 0,
                 "cursor": "pointer",
                 "display": "flex",
                 "flexDirection": "column",
-                "minHeight": 48,
-                "paddingLeft": 16,
-                "paddingRight": 16,
+                "height": undefined,
+                "lineHeight": 0,
+                "minWidth": undefined,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
               }
             }
           >
             <div
               style={
                 Object {
-                  "alignItems": "center",
+                  "cursor": "pointer",
                   "display": "flex",
-                  "flex": 1,
-                  "flexDirection": "row",
-                  "marginRight": 8,
+                  "flexDirection": "column",
+                  "minHeight": 48,
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
                 }
               }
             >
               <div
-                onClick={undefined}
                 style={
                   Object {
-                    "height": 32,
-                    "maxWidth": 32,
-                    "minHeight": 32,
-                    "minWidth": 32,
-                    "position": "relative",
-                    "userSelect": "none",
-                  }
-                }
-              >
-                <div
-                  className="glamor-0"
-                />
-                <div
-                  className="glamor-1"
-                />
-              </div>
-              <div
-                style={
-                  Object {
+                    "alignItems": "center",
                     "display": "flex",
-                    "flexDirection": "column",
-                    "marginLeft": 16,
+                    "flex": 1,
+                    "flexDirection": "row",
+                    "marginRight": 8,
                   }
                 }
               >
-                <span
-                  className="glamor-4"
+                <div
                   onClick={undefined}
-                  title={undefined}
+                  style={
+                    Object {
+                      "height": 32,
+                      "maxWidth": 32,
+                      "minHeight": 32,
+                      "minWidth": 32,
+                      "position": "relative",
+                      "userSelect": "none",
+                    }
+                  }
+                >
+                  <div
+                    className="glamor-0"
+                  />
+                  <div
+                    className="glamor-1"
+                  />
+                </div>
+                <div
+                  style={
+                    Object {
+                      "display": "flex",
+                      "flexDirection": "column",
+                      "marginLeft": 16,
+                    }
+                  }
                 >
                   <span
-                    className="glamor-3"
+                    className="glamor-4"
                     onClick={undefined}
                     title={undefined}
                   >
                     <span
-                      className="glamor-8"
+                      className="glamor-3"
                       onClick={undefined}
                       title={undefined}
                     >
-                      strib
+                      <span
+                        className="glamor-8"
+                        onClick={undefined}
+                        title={undefined}
+                      >
+                        strib
+                      </span>
                     </span>
                   </span>
-                </span>
-                <span
-                  className="glamor-5"
-                  onClick={undefined}
-                  title={undefined}
-                >
-                  Jeremy Stribling
-                </span>
+                  <span
+                    className="glamor-5"
+                    onClick={undefined}
+                    title={undefined}
+                  >
+                    Jeremy Stribling
+                  </span>
+                </div>
               </div>
             </div>
           </div>
         </div>
         <div
-          onClick={[Function]}
-          onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
-          onMouseUp={[Function]}
           style={
             Object {
-              "alignItems": "stretch",
-              "borderRadius": 0,
-              "cursor": "pointer",
               "display": "flex",
               "flexDirection": "column",
-              "height": undefined,
-              "lineHeight": 0,
-              "minWidth": undefined,
-              "position": "relative",
-              "textAlign": "left",
-              "transform": "none",
-              "transition": "none",
+              "paddingTop": 8,
             }
           }
         >
           <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
             style={
               Object {
+                "alignItems": "stretch",
+                "borderRadius": 0,
                 "cursor": "pointer",
                 "display": "flex",
                 "flexDirection": "column",
-                "minHeight": 48,
-                "paddingLeft": 16,
-                "paddingRight": 16,
+                "height": undefined,
+                "lineHeight": 0,
+                "minWidth": undefined,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
               }
             }
           >
             <div
               style={
                 Object {
-                  "alignItems": "center",
+                  "cursor": "pointer",
                   "display": "flex",
-                  "flex": 1,
-                  "flexDirection": "row",
-                  "marginRight": 8,
+                  "flexDirection": "column",
+                  "minHeight": 48,
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
                 }
               }
             >
               <div
-                onClick={undefined}
                 style={
                   Object {
-                    "height": 32,
-                    "maxWidth": 32,
-                    "minHeight": 32,
-                    "minWidth": 32,
-                    "position": "relative",
-                    "userSelect": "none",
-                  }
-                }
-              >
-                <div
-                  className="glamor-0"
-                />
-                <div
-                  className="glamor-1"
-                />
-              </div>
-              <div
-                style={
-                  Object {
+                    "alignItems": "center",
                     "display": "flex",
-                    "flexDirection": "column",
-                    "marginLeft": 16,
+                    "flex": 1,
+                    "flexDirection": "row",
+                    "marginRight": 8,
                   }
                 }
               >
-                <span
-                  className="glamor-4"
+                <div
                   onClick={undefined}
-                  title={undefined}
+                  style={
+                    Object {
+                      "height": 32,
+                      "maxWidth": 32,
+                      "minHeight": 32,
+                      "minWidth": 32,
+                      "position": "relative",
+                      "userSelect": "none",
+                    }
+                  }
+                >
+                  <div
+                    className="glamor-0"
+                  />
+                  <div
+                    className="glamor-1"
+                  />
+                </div>
+                <div
+                  style={
+                    Object {
+                      "display": "flex",
+                      "flexDirection": "column",
+                      "marginLeft": 16,
+                    }
+                  }
                 >
                   <span
-                    className="glamor-3"
+                    className="glamor-4"
                     onClick={undefined}
                     title={undefined}
                   >
                     <span
-                      className="glamor-14"
+                      className="glamor-3"
                       onClick={undefined}
                       title={undefined}
                     >
-                      max
+                      <span
+                        className="glamor-14"
+                        onClick={undefined}
+                        title={undefined}
+                      >
+                        max
+                      </span>
                     </span>
                   </span>
-                </span>
-                <span
-                  className="glamor-5"
-                  onClick={undefined}
-                  title={undefined}
-                >
-                  Max Krohn
-                </span>
+                  <span
+                    className="glamor-5"
+                    onClick={undefined}
+                    title={undefined}
+                  >
+                    Max Krohn
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -1152,316 +1182,346 @@ exports[`Storyshots Chat/Conversation/InfoPanel Participants 1`] = `
         }
       >
         <div
-          onClick={[Function]}
-          onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
-          onMouseUp={[Function]}
           style={
             Object {
-              "alignItems": "stretch",
-              "borderRadius": 0,
-              "cursor": "pointer",
               "display": "flex",
               "flexDirection": "column",
-              "height": undefined,
-              "lineHeight": 0,
-              "minWidth": undefined,
-              "position": "relative",
-              "textAlign": "left",
-              "transform": "none",
-              "transition": "none",
+              "paddingTop": 8,
             }
           }
         >
           <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
             style={
               Object {
+                "alignItems": "stretch",
+                "borderRadius": 0,
                 "cursor": "pointer",
                 "display": "flex",
                 "flexDirection": "column",
-                "minHeight": 48,
-                "paddingLeft": 16,
-                "paddingRight": 16,
+                "height": undefined,
+                "lineHeight": 0,
+                "minWidth": undefined,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
               }
             }
           >
             <div
               style={
                 Object {
-                  "alignItems": "center",
+                  "cursor": "pointer",
                   "display": "flex",
-                  "flex": 1,
-                  "flexDirection": "row",
-                  "marginRight": 8,
+                  "flexDirection": "column",
+                  "minHeight": 48,
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
                 }
               }
             >
               <div
-                onClick={undefined}
                 style={
                   Object {
-                    "height": 32,
-                    "maxWidth": 32,
-                    "minHeight": 32,
-                    "minWidth": 32,
-                    "position": "relative",
-                    "userSelect": "none",
-                  }
-                }
-              >
-                <div
-                  className="glamor-0"
-                />
-                <div
-                  className="glamor-1"
-                />
-              </div>
-              <div
-                style={
-                  Object {
+                    "alignItems": "center",
                     "display": "flex",
-                    "flexDirection": "column",
-                    "marginLeft": 16,
+                    "flex": 1,
+                    "flexDirection": "row",
+                    "marginRight": 8,
                   }
                 }
               >
-                <span
-                  className="glamor-4"
+                <div
                   onClick={undefined}
-                  title={undefined}
+                  style={
+                    Object {
+                      "height": 32,
+                      "maxWidth": 32,
+                      "minHeight": 32,
+                      "minWidth": 32,
+                      "position": "relative",
+                      "userSelect": "none",
+                    }
+                  }
+                >
+                  <div
+                    className="glamor-0"
+                  />
+                  <div
+                    className="glamor-1"
+                  />
+                </div>
+                <div
+                  style={
+                    Object {
+                      "display": "flex",
+                      "flexDirection": "column",
+                      "marginLeft": 16,
+                    }
+                  }
                 >
                   <span
-                    className="glamor-3"
+                    className="glamor-4"
                     onClick={undefined}
                     title={undefined}
                   >
                     <span
-                      className="glamor-2"
+                      className="glamor-3"
                       onClick={undefined}
                       title={undefined}
                     >
-                      akalin
+                      <span
+                        className="glamor-2"
+                        onClick={undefined}
+                        title={undefined}
+                      >
+                        akalin
+                      </span>
                     </span>
                   </span>
-                </span>
-                <span
-                  className="glamor-5"
-                  onClick={undefined}
-                  title={undefined}
-                >
-                  Fred Akalin
-                </span>
+                  <span
+                    className="glamor-5"
+                    onClick={undefined}
+                    title={undefined}
+                  >
+                    Fred Akalin
+                  </span>
+                </div>
               </div>
             </div>
           </div>
         </div>
         <div
-          onClick={[Function]}
-          onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
-          onMouseUp={[Function]}
           style={
             Object {
-              "alignItems": "stretch",
-              "borderRadius": 0,
-              "cursor": "pointer",
               "display": "flex",
               "flexDirection": "column",
-              "height": undefined,
-              "lineHeight": 0,
-              "minWidth": undefined,
-              "position": "relative",
-              "textAlign": "left",
-              "transform": "none",
-              "transition": "none",
+              "paddingTop": 8,
             }
           }
         >
           <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
             style={
               Object {
+                "alignItems": "stretch",
+                "borderRadius": 0,
                 "cursor": "pointer",
                 "display": "flex",
                 "flexDirection": "column",
-                "minHeight": 48,
-                "paddingLeft": 16,
-                "paddingRight": 16,
+                "height": undefined,
+                "lineHeight": 0,
+                "minWidth": undefined,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
               }
             }
           >
             <div
               style={
                 Object {
-                  "alignItems": "center",
+                  "cursor": "pointer",
                   "display": "flex",
-                  "flex": 1,
-                  "flexDirection": "row",
-                  "marginRight": 8,
+                  "flexDirection": "column",
+                  "minHeight": 48,
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
                 }
               }
             >
               <div
-                onClick={undefined}
                 style={
                   Object {
-                    "height": 32,
-                    "maxWidth": 32,
-                    "minHeight": 32,
-                    "minWidth": 32,
-                    "position": "relative",
-                    "userSelect": "none",
-                  }
-                }
-              >
-                <div
-                  className="glamor-0"
-                />
-                <div
-                  className="glamor-1"
-                />
-              </div>
-              <div
-                style={
-                  Object {
+                    "alignItems": "center",
                     "display": "flex",
-                    "flexDirection": "column",
-                    "marginLeft": 16,
+                    "flex": 1,
+                    "flexDirection": "row",
+                    "marginRight": 8,
                   }
                 }
               >
-                <span
-                  className="glamor-4"
+                <div
                   onClick={undefined}
-                  title={undefined}
+                  style={
+                    Object {
+                      "height": 32,
+                      "maxWidth": 32,
+                      "minHeight": 32,
+                      "minWidth": 32,
+                      "position": "relative",
+                      "userSelect": "none",
+                    }
+                  }
+                >
+                  <div
+                    className="glamor-0"
+                  />
+                  <div
+                    className="glamor-1"
+                  />
+                </div>
+                <div
+                  style={
+                    Object {
+                      "display": "flex",
+                      "flexDirection": "column",
+                      "marginLeft": 16,
+                    }
+                  }
                 >
                   <span
-                    className="glamor-3"
+                    className="glamor-4"
                     onClick={undefined}
                     title={undefined}
                   >
                     <span
-                      className="glamor-8"
+                      className="glamor-3"
                       onClick={undefined}
                       title={undefined}
                     >
-                      strib
+                      <span
+                        className="glamor-8"
+                        onClick={undefined}
+                        title={undefined}
+                      >
+                        strib
+                      </span>
                     </span>
                   </span>
-                </span>
-                <span
-                  className="glamor-5"
-                  onClick={undefined}
-                  title={undefined}
-                >
-                  Jeremy Stribling
-                </span>
+                  <span
+                    className="glamor-5"
+                    onClick={undefined}
+                    title={undefined}
+                  >
+                    Jeremy Stribling
+                  </span>
+                </div>
               </div>
             </div>
           </div>
         </div>
         <div
-          onClick={[Function]}
-          onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
-          onMouseUp={[Function]}
           style={
             Object {
-              "alignItems": "stretch",
-              "borderRadius": 0,
-              "cursor": "pointer",
               "display": "flex",
               "flexDirection": "column",
-              "height": undefined,
-              "lineHeight": 0,
-              "minWidth": undefined,
-              "position": "relative",
-              "textAlign": "left",
-              "transform": "none",
-              "transition": "none",
+              "paddingTop": 8,
             }
           }
         >
           <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
             style={
               Object {
+                "alignItems": "stretch",
+                "borderRadius": 0,
                 "cursor": "pointer",
                 "display": "flex",
                 "flexDirection": "column",
-                "minHeight": 48,
-                "paddingLeft": 16,
-                "paddingRight": 16,
+                "height": undefined,
+                "lineHeight": 0,
+                "minWidth": undefined,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
               }
             }
           >
             <div
               style={
                 Object {
-                  "alignItems": "center",
+                  "cursor": "pointer",
                   "display": "flex",
-                  "flex": 1,
-                  "flexDirection": "row",
-                  "marginRight": 8,
+                  "flexDirection": "column",
+                  "minHeight": 48,
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
                 }
               }
             >
               <div
-                onClick={undefined}
                 style={
                   Object {
-                    "height": 32,
-                    "maxWidth": 32,
-                    "minHeight": 32,
-                    "minWidth": 32,
-                    "position": "relative",
-                    "userSelect": "none",
-                  }
-                }
-              >
-                <div
-                  className="glamor-0"
-                />
-                <div
-                  className="glamor-1"
-                />
-              </div>
-              <div
-                style={
-                  Object {
+                    "alignItems": "center",
                     "display": "flex",
-                    "flexDirection": "column",
-                    "marginLeft": 16,
+                    "flex": 1,
+                    "flexDirection": "row",
+                    "marginRight": 8,
                   }
                 }
               >
-                <span
-                  className="glamor-4"
+                <div
                   onClick={undefined}
-                  title={undefined}
+                  style={
+                    Object {
+                      "height": 32,
+                      "maxWidth": 32,
+                      "minHeight": 32,
+                      "minWidth": 32,
+                      "position": "relative",
+                      "userSelect": "none",
+                    }
+                  }
+                >
+                  <div
+                    className="glamor-0"
+                  />
+                  <div
+                    className="glamor-1"
+                  />
+                </div>
+                <div
+                  style={
+                    Object {
+                      "display": "flex",
+                      "flexDirection": "column",
+                      "marginLeft": 16,
+                    }
+                  }
                 >
                   <span
-                    className="glamor-3"
+                    className="glamor-4"
                     onClick={undefined}
                     title={undefined}
                   >
                     <span
-                      className="glamor-14"
+                      className="glamor-3"
                       onClick={undefined}
                       title={undefined}
                     >
-                      max
+                      <span
+                        className="glamor-14"
+                        onClick={undefined}
+                        title={undefined}
+                      >
+                        max
+                      </span>
                     </span>
                   </span>
-                </span>
-                <span
-                  className="glamor-5"
-                  onClick={undefined}
-                  title={undefined}
-                >
-                  Max Krohn
-                </span>
+                  <span
+                    className="glamor-5"
+                    onClick={undefined}
+                    title={undefined}
+                  >
+                    Max Krohn
+                  </span>
+                </div>
               </div>
             </div>
           </div>
