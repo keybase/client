@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/keybase/cli"
+	"github.com/urfave/cli"
 )
 
 var userAddCmd = cli.Command{
-	Name:         "add",
-	Usage:        "add new user(s) to config",
-	ArgumentHelp: "add <username> [username ...]",
+	Name:      "add",
+	Usage:     "add new user(s) to config",
+	UsageText: "add <username> [username ...]",
 	Action: func(c *cli.Context) {
 		if len(c.Args()) < 1 {
 			fmt.Fprintln(os.Stderr, "empty username")
@@ -40,9 +40,9 @@ var userAddCmd = cli.Command{
 }
 
 var userRemoveCmd = cli.Command{
-	Name:         "remove",
-	Usage:        "remove user(s) from config",
-	ArgumentHelp: "remove <username> [username ...]",
+	Name:      "remove",
+	Usage:     "remove user(s) from config",
+	UsageText: "remove <username> [username ...]",
 	Action: func(c *cli.Context) {
 		if len(c.Args()) < 1 {
 			fmt.Fprintln(os.Stderr, "empty username")
@@ -65,9 +65,9 @@ var userRemoveCmd = cli.Command{
 }
 
 var userCmd = cli.Command{
-	Name:         "user",
-	Usage:        "make changes to 'users' section of the config",
-	ArgumentHelp: "user <add|remove> <args>",
+	Name:      "user",
+	Usage:     "make changes to 'users' section of the config",
+	UsageText: "user <add|remove> <args>",
 	Subcommands: []cli.Command{
 		userAddCmd,
 		userRemoveCmd,

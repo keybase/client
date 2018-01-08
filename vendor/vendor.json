@@ -165,12 +165,6 @@
 			"revisionTime": "2016-05-17T06:10:00Z"
 		},
 		{
-			"checksumSHA1": "As/C2CDekxCEGyFN5sOcrEt/r0Q=",
-			"path": "github.com/keybase/cli",
-			"revision": "16910a2a70769899c9b29a34e37c9bf5760854c9",
-			"revisionTime": "2017-11-10T21:00:35Z"
-		},
-		{
 			"checksumSHA1": "I7uTxTP05oqFbpuwtaPCl0fqElE=",
 			"path": "github.com/keybase/client/go/auth",
 			"revision": "48d481846d575f64aa78234f99d003b03f3416c0",
@@ -597,6 +591,12 @@
 			"path": "github.com/syndtr/goleveldb/leveldb/util",
 			"revision": "b89cc31ef7977104127d34c1bd31ebd1a9db2199",
 			"revisionTime": "2017-07-25T06:48:36Z"
+		},
+		{
+			"checksumSHA1": "H1Ne82yYzWRQ2DKBsmRd0Hwcl04=",
+			"path": "github.com/urfave/cli",
+			"revision": "75104e932ac2ddb944a6ea19d9f9f26316ff1145",
+			"revisionTime": "2018-01-06T19:10:48Z"
 		},
 		{
 			"path": "github.com/vaughan0/go-ini",

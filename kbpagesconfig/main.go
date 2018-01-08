@@ -7,7 +7,7 @@ package main
 import (
 	"os"
 
-	"github.com/keybase/cli"
+	"github.com/urfave/cli"
 )
 
 func main() {

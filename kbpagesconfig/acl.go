@@ -9,13 +9,13 @@ import (
 	"os"
 	"text/tabwriter"
 
-	"github.com/keybase/cli"
+	"github.com/urfave/cli"
 )
 
 var aclClearCmd = cli.Command{
-	Name:         "clear",
-	Usage:        "clear the ACL for the given path(s)",
-	ArgumentHelp: "clear <path> [path ...]",
+	Name:      "clear",
+	Usage:     "clear the ACL for the given path(s)",
+	UsageText: "clear <path> [path ...]",
 	Action: func(c *cli.Context) {
 		if len(c.Args()) < 1 {
 			fmt.Fprintln(os.Stderr, "need at least 1 arg")
@@ -38,9 +38,9 @@ var aclClearCmd = cli.Command{
 }
 
 var aclRemoveCmd = cli.Command{
-	Name:         "remove",
-	Usage:        "remove a user from the ACL(s) of the given path(s)",
-	ArgumentHelp: "remove <username> <path> [path ...]",
+	Name:      "remove",
+	Usage:     "remove a user from the ACL(s) of the given path(s)",
+	UsageText: "remove <username> <path> [path ...]",
 	Action: func(c *cli.Context) {
 		if len(c.Args()) < 2 {
 			fmt.Fprintln(os.Stderr, "need at least 2 args")
@@ -63,9 +63,9 @@ var aclRemoveCmd = cli.Command{
 }
 
 var aclGetCmd = cli.Command{
-	Name:         "get",
-	Usage:        "get permissions for a user on the given path(s)",
-	ArgumentHelp: "get <username> <path> [path ...]",
+	Name:      "get",
+	Usage:     "get permissions for a user on the given path(s)",
+	UsageText: "get <username> <path> [path ...]",
 	Action: func(c *cli.Context) {
 		if len(c.Args()) < 2 {
 			fmt.Fprintln(os.Stderr, "need at least 2 args")
@@ -99,7 +99,7 @@ var aclSetDefaultCmd = cli.Command{
 	Name: "default",
 	Usage: "set default permission(s) that all users are granted, " +
 		"for the given path(s)",
-	ArgumentHelp: "default <read|list|read,list> <path> [path ...]",
+	UsageText: "default <read|list|read,list> <path> [path ...]",
 	Action: func(c *cli.Context) {
 		if len(c.Args()) < 2 {
 			fmt.Fprintln(os.Stderr, "need at least 2 args")
@@ -131,7 +131,7 @@ var aclSetAdditionalCmd = cli.Command{
 	Name: "additional",
 	Usage: "set additional permission(s) that <username> are granted on " +
 		"top of default ones on the given path(s) ",
-	ArgumentHelp: "additional <username> <read|list|read,list> <path> [path ...]",
+	UsageText: "additional <username> <read|list|read,list> <path> [path ...]",
 	Action: func(c *cli.Context) {
 		if len(c.Args()) < 3 {
 			fmt.Fprintln(os.Stderr, "need at least 3 args")
@@ -161,9 +161,9 @@ var aclSetAdditionalCmd = cli.Command{
 }
 
 var aclSetCmd = cli.Command{
-	Name:         "set",
-	Usage:        "set default or additional permissions on path(s)",
-	ArgumentHelp: "set <default|additional> [args]",
+	Name:      "set",
+	Usage:     "set default or additional permissions on path(s)",
+	UsageText: "set <default|additional> [args]",
 	Subcommands: []cli.Command{
 		aclSetDefaultCmd,
 		aclSetAdditionalCmd,
@@ -171,9 +171,9 @@ var aclSetCmd = cli.Command{
 }
 
 var aclCmd = cli.Command{
-	Name:         "acl",
-	Usage:        "make changes to the 'acls' section of the config",
-	ArgumentHelp: "acl <set|clear|remove|get> [args]",
+	Name:      "acl",
+	Usage:     "make changes to the 'acls' section of the config",
+	UsageText: "acl <set|clear|remove|get> [args]",
 	Subcommands: []cli.Command{
 		aclSetCmd,
 		aclClearCmd,
