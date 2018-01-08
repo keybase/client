@@ -63,22 +63,33 @@ function clearAllNotifications() {
 
 function displayNewMessageNotification(text: string, convID: ?string, badgeCount: ?number, myMsgID: ?number) {
   // Dismiss any non-plaintext notifications for the same message ID
-  if (isIOS) {
-    PushNotificationIOS.getDeliveredNotifications(param => {
-      PushNotificationIOS.removeDeliveredNotifications(
-        param.filter(p => p.userInfo && p.userInfo.msgID === myMsgID).map(p => p.identifier)
-      )
-    })
-  }
+  PushNotifications.getDeliveredNotifications(param => {
+    console.log('got notifications', param)
+    const messages = []
+    PushNotifications.removeDeliveredNotifications(
+      param
+        .filter(p => {
+          if (p.userInfo && p.userInfo.convID === convID) {
+            messages.push(p.body)
+            return true
+          }
+          return false
+        })
+        .map(p => p.identifier)
+    )
+    messages.push(text)
 
-  PushNotifications.localNotification({
-    message: text,
-    soundName: 'keybasemessage.wav',
-    userInfo: {
-      convID: convID,
-      type: 'chat.newmessage',
-    },
-    number: badgeCount,
+    const message = messages.join('\n')
+
+    PushNotifications.localNotification({
+      message,
+      soundName: 'keybasemessage.wav',
+      userInfo: {
+        convID: convID,
+        type: 'chat.newmessage',
+      },
+      number: badgeCount,
+    })
   })
 }
 
