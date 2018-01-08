@@ -34,12 +34,13 @@ protocol home {
   }
 
   enum HomeScreenPeopleNotificationType {
-    FOLLOWED_0,
-    FOLLOWED_MULTI_1
+    FOLLOWED_1,
+    FOLLOWED_MULTI_2
   }
 
   record HomeScreenPeopleNotificationFollowed {
     Time followTime;
+    boolean followedBack;
     UserSummary user;
   }
 
@@ -79,6 +80,7 @@ protocol home {
   record HomeScreen {
     Time lastViewed;
     int version;
+    int visits;
     array<HomeScreenItem> items;
     array<HomeUserSummary> followSuggestions;
   }
