@@ -108,7 +108,6 @@ func postBio(t *testing.T, u *userPlusDevice) {
 }
 
 func TestHome(t *testing.T) {
-	t.Skip()
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
