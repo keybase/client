@@ -17,7 +17,7 @@ import {
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
 import {branch} from 'recompose'
 import Notifications from './notifications/container'
-import Participants, {RenderParticipant} from './participants'
+import Participants, {Participant} from './participants'
 
 const border = `1px solid ${globalColors.black_05}`
 const scrollViewStyle = {
@@ -299,11 +299,7 @@ const _renderBigTeamRow = (i: number, props: BigTeamRow) => {
       )
     case 'participant':
       return (
-        <RenderParticipant
-          key={props.key}
-          participant={props.participant}
-          onShowProfile={props.onShowProfile}
-        />
+        <Participant key={props.key} participant={props.participant} onShowProfile={props.onShowProfile} />
       )
   }
 }

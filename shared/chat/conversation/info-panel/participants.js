@@ -16,31 +16,9 @@ type Props = {
 
 const Participants = ({participants, onShowProfile}: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, paddingTop: globalMargins.tiny}}>
-    {participants.map(info => {
-      const {username, following, fullname, broken, isYou} = info
+    {participants.map(participant => {
       return (
-        <ClickableBox key={username} onClick={() => onShowProfile(username)}>
-          <Box style={isMobile ? rowStyleMobile : rowStyle}>
-            <Box
-              style={{
-                ...globalStyles.flexBoxRow,
-                alignItems: 'center',
-                flex: 1,
-                marginRight: globalMargins.tiny,
-              }}
-            >
-              <Avatar size={isMobile ? 40 : 32} username={username} />
-              <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
-                <Usernames
-                  colorFollowing={true}
-                  type="BodySemibold"
-                  users={[{broken, following, username, you: isYou}]}
-                />
-                {fullname !== '' && <Text type="BodySmall">{fullname}</Text>}
-              </Box>
-            </Box>
-          </Box>
-        </ClickableBox>
+        <Participant key={participant.username} participant={participant} onShowProfile={onShowProfile} />
       )
     })}
   </Box>
@@ -57,7 +35,7 @@ type ParticipantProps = {
   },
 }
 
-const RenderParticipant = ({
+const Participant = ({
   participant: {username, following, fullname, broken, isYou},
   onShowProfile,
 }: ParticipantProps) => (
@@ -99,5 +77,5 @@ const rowStyleMobile = {
   ...rowStyle,
   minHeight: 56,
 }
-export {RenderParticipant}
+export {Participant}
 export default Participants
