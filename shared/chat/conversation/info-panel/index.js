@@ -213,8 +213,9 @@ type BigTeamInfoPanelProps = infoPanelProps & {
   isPreview: boolean,
 }
 
-type InfoPanelRow = BigTeamInfoPanelProps & {
-  type: 'header' | 'notifications' | 'divider' | 'controls' | 'anyoneCanJoin',
+type HeaderRow = BigTeamInfoPanelProps & {
+  type: 'header',
+  key: 'HEADER',
 }
 
 type ParticipantRow = {
@@ -227,15 +228,16 @@ type ParticipantRow = {
     isYou: boolean,
   },
   onShowProfile: string => void,
+  key: string,
 }
 
-type BigTeamRow = InfoPanelRow | ParticipantRow
-
+type BigTeamRow = HeaderRow | ParticipantRow
+// For virtualizing big team participants list
 const _renderBigTeamRow = (i: number, props: BigTeamRow) => {
   switch (props.type) {
     case 'header':
       return (
-        <Box style={{...globalStyles.flexBoxColumn, alignItems: 'stretch'}}>
+        <Box key={props.key} style={{...globalStyles.flexBoxColumn, alignItems: 'stretch'}}>
           <Text style={{alignSelf: 'center', marginTop: globalMargins.medium}} type="BodyBig">
             #{props.channelname}
           </Text>
@@ -249,73 +251,97 @@ const _renderBigTeamRow = (i: number, props: BigTeamRow) => {
               {props.teamname}
             </Text>
           </ClickableBox>
-        </Box>
-      )
-    case 'notifications':
-      return (
-        <Box>
-          <Divider style={styleDivider} />
-          <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute entire channel" />
-          <Notifications />
-        </Box>
-      )
-    case 'divider':
-      return <Divider style={styleDivider} />
-    case 'controls':
-      return (
-        <Box style={{...globalStyles.flexBoxRow, justifyContent: 'center'}}>
-          {props.isPreview && (
-            <Button
-              type="Primary"
-              label="Join channel"
-              style={{marginRight: globalMargins.xtiny}}
-              small={true}
-              onClick={props.onJoinChannel}
-            />
-          )}
+
           {!props.isPreview && (
-            <Button type="Danger" small={true} label="Leave channel" onClick={props.onLeaveConversation} />
+            <Box>
+              <Divider style={styleDivider} />
+              <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute entire channel" />
+              <Notifications />
+            </Box>
           )}
+
+          <Divider style={styleDivider} />
+
+          <Box style={{...globalStyles.flexBoxRow, justifyContent: 'center'}}>
+            {props.isPreview && (
+              <Button
+                type="Primary"
+                label="Join channel"
+                style={{marginRight: globalMargins.xtiny}}
+                small={true}
+                onClick={props.onJoinChannel}
+              />
+            )}
+            {!props.isPreview && (
+              <Button type="Danger" small={true} label="Leave channel" onClick={props.onLeaveConversation} />
+            )}
+          </Box>
+
+          {props.isPreview && (
+            <Text type="BodySmall" style={{textAlign: 'center', marginTop: globalMargins.xtiny}}>
+              Anyone in {props.teamname} can join.
+            </Text>
+          )}
+
+          <Divider style={styleDivider} />
+          <Box style={{...globalStyles.flexBoxRow, marginRight: globalMargins.small}}>
+            <Text style={{flex: 1, paddingLeft: globalMargins.small}} type="BodySmallSemibold">
+              In this channel ({props.participants.length.toString()})
+            </Text>
+            {props.admin &&
+              props.channelname === 'general' && (
+                <Text type="BodySmallPrimaryLink" onClick={props.onViewTeam}>
+                  Manage
+                </Text>
+              )}
+          </Box>
         </Box>
-      )
-    case 'anyoneCanJoin':
-      return (
-        <Text type="BodySmall" style={{textAlign: 'center', marginTop: globalMargins.xtiny}}>
-          Anyone in {props.teamname} can join.
-        </Text>
       )
     case 'participant':
-      return <RenderParticipant participant={props.participant} onShowProfile={props.onShowProfile} />
+      return (
+        <RenderParticipant
+          key={props.key}
+          participant={props.participant}
+          onShowProfile={props.onShowProfile}
+        />
+      )
   }
 }
 
+const _rowSizeEstimator = (index, cache) => {
+  if (index === 0) {
+    return cache[1] || 429 // estimate basd on size of header in non-admin non-preview mode
+  }
+  return 56
+}
+
 const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => {
-  const {isPreview} = props
   const rows: Array<BigTeamRow> = [
     {
       ...props,
       type: 'header',
+      key: 'HEADER',
     },
   ]
-  if (!isPreview) {
-    rows.push({...props, type: 'notifications'})
-  }
-  rows.push({...props, type: 'divider'}, {...props, type: 'controls'})
-  if (isPreview) {
-    rows.push({...props, type: 'anyoneCanJoin'})
-  }
   props.participants.forEach(participant =>
-    rows.push({onShowProfile: props.onShowProfile, type: 'participant', participant})
+    rows.push({
+      onShowProfile: props.onShowProfile,
+      type: 'participant',
+      participant,
+      key: participant.username,
+    })
   )
 
   return (
     <List
       items={rows}
       renderItem={_renderBigTeamRow}
+      keyProperty="key"
       style={{
         ...contentContainerStyle,
         ...scrollViewStyle,
       }}
+      itemSizeEstimator={_rowSizeEstimator}
     />
   )
 }
