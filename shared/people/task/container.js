@@ -19,13 +19,9 @@ const onSkipTodo = (type: Types.TodoType, dispatch: Dispatch) => () =>
 
 const mapStateToProps = (state: TypedState) => ({myUsername: state.config.username})
 
-const makeConnector = (mapDispatchToProps, mapStateToProps?, mergeProps?) =>
-  mergeProps
-    ? connect(mapStateToProps || (() => ({})), mapDispatchToProps, mergeProps)
-    : connect(mapStateToProps || (() => ({})), mapDispatchToProps)
-
 // ----- BIO ----- //
-const bioConnector = makeConnector(
+const bioConnector = connect(
+  mapStateToProps,
   (dispatch: Dispatch) => ({
     _onConfirm: (username: string) => {
       // make sure we have tracker state & profile is up to date
@@ -34,7 +30,6 @@ const bioConnector = makeConnector(
     },
     onDismiss: () => {},
   }),
-  mapStateToProps,
   (stateProps, dispatchProps, ownProps) => ({
     ...ownProps,
     onConfirm: () => dispatchProps._onConfirm(stateProps.myUsername),
@@ -43,12 +38,12 @@ const bioConnector = makeConnector(
 )
 
 // ----- PROOF ----- //
-const proofConnector = makeConnector(
+const proofConnector = connect(
+  mapStateToProps,
   (dispatch: Dispatch) => ({
     _onConfirm: (username: string) => dispatch(createShowUserProfile({username})),
     onDismiss: onSkipTodo('proof', dispatch),
   }),
-  mapStateToProps,
   (stateProps, dispatchProps, ownProps) => ({
     ...ownProps,
     onConfirm: () => dispatchProps._onConfirm(stateProps.myUsername),
@@ -57,77 +52,101 @@ const proofConnector = makeConnector(
 )
 
 // ----- DEVICE ----- //
-const deviceConnector = makeConnector((dispatch: Dispatch) => ({
-  onConfirm: () => openURL(installLinkURL),
-  onDismiss: onSkipTodo('device', dispatch),
-}))
+const deviceConnector = connect(
+  () => ({}),
+  (dispatch: Dispatch) => ({
+    onConfirm: () => openURL(installLinkURL),
+    onDismiss: onSkipTodo('device', dispatch),
+  })
+)
 
 // ----- FOLLOW ----- //
-const followConnector = makeConnector((dispatch: Dispatch) => ({
-  onConfirm: () => dispatch(navigateAppend(['search'], [Tabs.peopleTab])),
-  onDismiss: onSkipTodo('follow', dispatch),
-}))
+const followConnector = connect(
+  () => ({}),
+  (dispatch: Dispatch) => ({
+    onConfirm: () => dispatch(navigateAppend(['search'], [Tabs.peopleTab])),
+    onDismiss: onSkipTodo('follow', dispatch),
+  })
+)
 
 // ----- CHAT ----- //
-const chatConnector = makeConnector((dispatch: Dispatch) => ({
-  onConfirm: () => dispatch(switchTo([Tabs.chatTab])),
-  onDismiss: onSkipTodo('chat', dispatch),
-}))
+const chatConnector = connect(
+  () => ({}),
+  (dispatch: Dispatch) => ({
+    onConfirm: () => dispatch(switchTo([Tabs.chatTab])),
+    onDismiss: onSkipTodo('chat', dispatch),
+  })
+)
 
 // ----- PAPERKEY ----- //
-const paperKeyConnector = makeConnector((dispatch: Dispatch) => ({
-  onConfirm: () => {
-    if (!isMobile) {
-      dispatch(switchTo([Tabs.devicesTab]))
-    } else {
-      dispatch(navigateTo([SettingsTabs.devicesTab], [Tabs.settingsTab]))
-      dispatch(switchTo([Tabs.settingsTab]))
-    }
-  },
-  onDismiss: () => {},
-}))
+const paperKeyConnector = connect(
+  () => ({}),
+  (dispatch: Dispatch) => ({
+    onConfirm: () => {
+      if (!isMobile) {
+        dispatch(switchTo([Tabs.devicesTab]))
+      } else {
+        dispatch(navigateTo([SettingsTabs.devicesTab], [Tabs.settingsTab]))
+        dispatch(switchTo([Tabs.settingsTab]))
+      }
+    },
+    onDismiss: () => {},
+  })
+)
 
 // ----- TEAM ----- //
-const teamConnector = makeConnector((dispatch: Dispatch) => ({
-  onConfirm: () => {
-    dispatch(navigateAppend(['showNewTeamDialog'], [Tabs.teamsTab]))
-    dispatch(switchTo([Tabs.teamsTab]))
-  },
-  onDismiss: onSkipTodo('team', dispatch),
-}))
+const teamConnector = connect(
+  () => ({}),
+  (dispatch: Dispatch) => ({
+    onConfirm: () => {
+      dispatch(navigateAppend(['showNewTeamDialog'], [Tabs.teamsTab]))
+      dispatch(switchTo([Tabs.teamsTab]))
+    },
+    onDismiss: onSkipTodo('team', dispatch),
+  })
+)
 
 // ----- FOLDER ----- //
-const folderConnector = makeConnector((dispatch: Dispatch) => ({
-  onConfirm: () => {
-    if (!isMobile) {
-      dispatch(navigateTo(['private'], [Tabs.folderTab]))
-      dispatch(switchTo([Tabs.folderTab]))
-    } else {
-      dispatch(navigateTo([SettingsTabs.foldersTab, 'private'], [Tabs.settingsTab]))
-      dispatch(switchTo([Tabs.settingsTab]))
-    }
-  },
-  onDismiss: onSkipTodo('folder', dispatch),
-}))
+const folderConnector = connect(
+  () => ({}),
+  (dispatch: Dispatch) => ({
+    onConfirm: () => {
+      if (!isMobile) {
+        dispatch(navigateTo(['private'], [Tabs.folderTab]))
+        dispatch(switchTo([Tabs.folderTab]))
+      } else {
+        dispatch(navigateTo([SettingsTabs.foldersTab, 'private'], [Tabs.settingsTab]))
+        dispatch(switchTo([Tabs.settingsTab]))
+      }
+    },
+    onDismiss: onSkipTodo('folder', dispatch),
+  })
+)
 
 // ----- GITREPO ----- //
-const gitRepoConnector = makeConnector((dispatch: Dispatch) => ({
-  onConfirm: () => {
-    dispatch(navigateTo([{selected: 'newRepo', props: {isTeam: false}}], [Tabs.gitTab]))
-    dispatch(switchTo([Tabs.gitTab]))
-  },
-  onDismiss: onSkipTodo('gitRepo', dispatch),
-}))
+const gitRepoConnector = connect(
+  () => ({}),
+  (dispatch: Dispatch) => ({
+    onConfirm: () => {
+      dispatch(navigateTo([{selected: 'newRepo', props: {isTeam: false}}], [Tabs.gitTab]))
+      dispatch(switchTo([Tabs.gitTab]))
+    },
+    onDismiss: onSkipTodo('gitRepo', dispatch),
+  })
+)
 
 // ----- TEAMSHOWCASE ----- //
-const teamShowcaseConnector = makeConnector((dispatch: Dispatch) => ({
-  onConfirm: () => {
-    // TODO find a team that the current user is an admin of and nav there?
-    dispatch(navigateTo([], [Tabs.teamsTab]))
-    dispatch(switchTo([Tabs.teamsTab]))
-  },
-  onDismiss: onSkipTodo('teamShowcase', dispatch),
-}))
+const teamShowcaseConnector = connect(
+  () => ({}),
+  (dispatch: Dispatch) => ({
+    onConfirm: () => {
+      // TODO find a team that the current user is an admin of and nav there?
+      dispatch(navigateTo([], [Tabs.teamsTab]))
+      dispatch(switchTo([Tabs.teamsTab]))
+    },
+    onDismiss: onSkipTodo('teamShowcase', dispatch),
+  })
+)
 
 export default compose(
   branch(props => props.todoType === 'bio', bioConnector),

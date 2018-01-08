@@ -9,8 +9,8 @@ import {createShowUserProfile} from '../actions/profile-gen'
 import {getPeopleDataWaitingKey} from '../constants/people'
 
 const mapStateToProps = (state: TypedState) => ({
-  newItems: state.people.newItems.toJS(),
-  oldItems: state.people.oldItems.toJS(),
+  _newItems: state.people.newItems,
+  _oldItems: state.people.oldItems,
   followSuggestions: state.people.followSuggestions.toJS(),
   myUsername: state.config.username,
   waiting: !!state.waiting.get(getPeopleDataWaitingKey),
@@ -27,7 +27,11 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
 const mergeProps = (stateProps, dispatchProps) => {
   return {
-    ...stateProps,
+    newItems: stateProps._newItems.toJS(),
+    oldItems: stateProps._oldItems.toJS(),
+    followSuggestions: stateProps.followSuggestions,
+    myUsername: stateProps.myUsername,
+    waiting: stateProps.waiting,
     ...dispatchProps,
   }
 }
