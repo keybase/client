@@ -35,6 +35,7 @@ func assertTodoPresent(t *testing.T, home keybase1.HomeScreen, wanted keybase1.H
 		}
 		if typ == keybase1.HomeScreenItemType_TODO {
 			todo := item.Data.Todo()
+			t.Logf("Checking todo item %v", todo)
 			typ, err := todo.T()
 			if err != nil {
 				t.Fatal(err)
@@ -43,6 +44,8 @@ func assertTodoPresent(t *testing.T, home keybase1.HomeScreen, wanted keybase1.H
 				require.Equal(t, item.Badged, isBadged)
 				return
 			}
+		} else {
+			t.Logf("Non-todo item: %v", typ)
 		}
 	}
 	t.Fatalf("Failed to find type %s in %+v", wanted, home)
@@ -65,6 +68,30 @@ func assertTodoNotPresent(t *testing.T, home keybase1.HomeScreen, wanted keybase
 			}
 		}
 	}
+}
+
+func assertFollowerPresent(t *testing.T, home keybase1.HomeScreen, f string) {
+	for _, item := range home.Items {
+		typ, err := item.Data.T()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if typ == keybase1.HomeScreenItemType_PEOPLE {
+			people := item.Data.People()
+			typ, err := people.T()
+			if err != nil {
+				t.Fatal(err)
+			}
+			if typ == keybase1.HomeScreenPeopleNotificationType_FOLLOWED {
+				follow := people.Followed()
+				if follow.User.Username == f {
+					require.True(t, item.Badged, "it should be badged")
+					return
+				}
+			}
+		}
+	}
+	t.Fatalf("Follower %q not found in home: %+v", f, home)
 }
 
 func postBio(t *testing.T, u *userPlusDevice) {
@@ -136,4 +163,13 @@ func TestHome(t *testing.T) {
 	})
 
 	assertTodoNotPresent(t, home, keybase1.HomeScreenTodoType_BIO)
+
+	tt.addUser("bob")
+	bob := tt.users[1]
+	iui := newSimpleIdentifyUI()
+	attachIdentifyUI(t, bob.tc.G, iui)
+	iui.confirmRes = keybase1.ConfirmResult{IdentityConfirmed: true, RemoteConfirmed: true, AutoConfirmed: true}
+	bob.track(alice.username)
+	home = getHome(t, alice, true)
+	assertFollowerPresent(t, home, bob.username)
 }
