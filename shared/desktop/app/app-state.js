@@ -128,6 +128,11 @@ export default class AppState {
   }
 
   setOSLoginState() {
+    // Comment this out if you want to test auto login stuff w/ a dev build, otherwise do a package build
+    if (__DEV__) {
+      console.log('Skipping auto login state change due to dev env. ')
+      return
+    }
     const isDarwin = process.platform === 'darwin'
     // Electron has a bug where setting this to false fails!
     // https://github.com/electron/electron/issues/10880
