@@ -69,9 +69,9 @@ const (
 
 type repoNode struct {
 	libkbfs.Node
-	am       *AutogitManager
-	h        *libkbfs.TlfHandle
-	repoName string
+	am            *AutogitManager
+	srcRepoHandle *libkbfs.TlfHandle
+	repoName      string
 
 	lock                 sync.Mutex
 	populated            bool
@@ -80,19 +80,20 @@ type repoNode struct {
 
 var _ libkbfs.Node = (*repoNode)(nil)
 
-func newRepoNode(n libkbfs.Node, am *AutogitManager, h *libkbfs.TlfHandle,
+func newRepoNode(
+	n libkbfs.Node, am *AutogitManager, srcRepoHandle *libkbfs.TlfHandle,
 	repoName string) *repoNode {
 	return &repoNode{
-		Node:     n,
-		am:       am,
-		h:        h,
-		repoName: repoName,
+		Node:          n,
+		am:            am,
+		srcRepoHandle: srcRepoHandle,
+		repoName:      repoName,
 	}
 }
 
 func (rn *repoNode) dstDir() string {
 	var typeStr string
-	switch rn.h.Type() {
+	switch rn.srcRepoHandle.Type() {
 	case tlf.Public:
 		typeStr = public
 	case tlf.Private:
@@ -102,7 +103,7 @@ func (rn *repoNode) dstDir() string {
 	}
 
 	return path.Join(
-		autogitRoot, typeStr, string(rn.h.GetCanonicalName()))
+		autogitRoot, typeStr, string(rn.srcRepoHandle.GetCanonicalName()))
 }
 
 func (rn *repoNode) populate(ctx context.Context) bool {
@@ -125,10 +126,10 @@ func (rn *repoNode) populate(ctx context.Context) bool {
 	ctx = context.WithValue(ctx, ctxReadWriteKey, 1)
 	if cloneNeeded {
 		doneCh, err = rn.am.Clone(
-			ctx, rn.h, rn.repoName, "master", h, rn.dstDir())
+			ctx, rn.srcRepoHandle, rn.repoName, "master", h, rn.dstDir())
 	} else {
 		doneCh, err = rn.am.Pull(
-			ctx, rn.h, rn.repoName, "master", h, rn.dstDir())
+			ctx, rn.srcRepoHandle, rn.repoName, "master", h, rn.dstDir())
 	}
 	if err != nil {
 		rn.am.log.CDebugf(ctx, "Error starting population: %+v", err)
@@ -141,7 +142,9 @@ func (rn *repoNode) populate(ctx context.Context) bool {
 	case <-ctx.Done():
 		rn.am.log.CDebugf(ctx, "Error waiting for population: %+v", ctx.Err())
 		// If we did a clone, ask for a refresh anyway, so they will
-		// see the CLONING file at least.
+		// see the CLONING file at least.  The clone operation will
+		// continue on in the background, so it's ok to consider this
+		// node `populated`.
 		return cloneNeeded
 	}
 }
@@ -183,7 +186,7 @@ func (rn *repoNode) ShouldRetryOnDirRead(ctx context.Context) (
 
 	for {
 		doPopulate, ch := rn.shouldPopulate()
-		if !doPopulate && ch == nil {
+		if ch == nil {
 			return shouldRetry
 		}
 		// If it wasn't populated on the first check, always force the
