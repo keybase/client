@@ -122,7 +122,7 @@ Mention = MentionMarker children:([a-zA-Z0-9]+"_"?)+ & {
 } { return {type: 'mention', children: flatten(children) } }
 
 CodeBlock
- = Ticks3 LineTerminatorSequence? children:(!Ticks3 .)+ Ticks3 { return {type: 'code-block', children: flatten(children)} }
+ = Ticks3 LineTerminatorSequence? children:($ (!Ticks3 .)+) Ticks3 { return {type: 'code-block', children: [children]} }
 
 InlineCode
  = Ticks1 children:($ (!Ticks1 !LineTerminatorSequence .)+) Ticks1 { return {type: 'inline-code', children: [children]} }
