@@ -353,6 +353,7 @@ class Team extends React.PureComponent<Props> {
             flexBasis: 0,
             flexGrow: 1,
           }}
+          contentContainerStyle={isMobile ? {paddingBottom: globalMargins.large} : {}}
         >
           {!youImplicitAdmin && (
             <Box
