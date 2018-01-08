@@ -226,6 +226,10 @@
           "name": "compatUnreadMessages",
           "mpackkey": "UnreadMessages",
           "jsonkey": "UnreadMessages"
+        },
+        {
+          "type": "boolean",
+          "name": "diff"
         }
       ]
     },

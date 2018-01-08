@@ -162,6 +162,7 @@ type UnreadUpdate struct {
 	UnreadMessages          int                         `codec:"unreadMessages" json:"unreadMessages"`
 	UnreadNotifyingMessages map[keybase1.DeviceType]int `codec:"unreadNotifyingMessages" json:"unreadNotifyingMessages"`
 	CompatUnreadMessages    int                         `codec:"UnreadMessages" json:"UnreadMessages"`
+	Diff                    bool                        `codec:"diff" json:"diff"`
 }
 
 func (o UnreadUpdate) DeepCopy() UnreadUpdate {
@@ -181,6 +182,7 @@ func (o UnreadUpdate) DeepCopy() UnreadUpdate {
 			return ret
 		})(o.UnreadNotifyingMessages),
 		CompatUnreadMessages: o.CompatUnreadMessages,
+		Diff:                 o.Diff,
 	}
 }
 
