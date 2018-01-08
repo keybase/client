@@ -12,6 +12,7 @@ import {createEditProfile} from '../../actions/profile-gen'
 import {maxProfileBioChars} from '../../constants/profile'
 import {navigateUp} from '../../actions/route-tree'
 import {HeaderHoc} from '../../common-adapters'
+import {isMobile} from '../../constants/platform'
 
 const mapStateToProps = (state: TypedState) => {
   if (!state.config.username) {
@@ -39,7 +40,7 @@ export default compose(
   withPropsOnChange(['bio'], props => ({
     bioLengthLeft: props.bio ? maxProfileBioChars - props.bio.length : maxProfileBioChars,
   })),
-  HeaderHoc,
+  isMobile ? HeaderHoc : a => a,
   withHandlers({
     onCancel: ({onBack}) => () => onBack(),
     onSubmit: ({bio, fullname, location, onEditProfile}) => () => onEditProfile({bio, fullname, location}),
