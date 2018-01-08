@@ -27228,19 +27228,12 @@ exports[`Storyshots People/Follow Suggestions One 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 600;
-  display: -webkit-box;
-  display: -moz-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  text-decoration: inherit;
-  -webkit-box-orient: horizontal;
-  -webkit-box-direction: normal;
-  -webkit-flex-direction: row;
-  -webkit-box-lines: multiple;
-  -webkit-flex-wrap: wrap;
+  display: inline;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+  text-align: center;
 }
 
 .glamor-4,
@@ -27264,13 +27257,10 @@ exports[`Storyshots People/Follow Suggestions One 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 600;
-  margin-top: 4px;
-  display: -webkit-box;
-  display: -moz-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
+  padding-left: 10px;
+  padding-right: 10px;
   text-decoration: inherit;
+  display: inline;
 }
 
 .glamor-6,
@@ -27486,19 +27476,12 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 600;
-  display: -webkit-box;
-  display: -moz-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  text-decoration: inherit;
-  -webkit-box-orient: horizontal;
-  -webkit-box-direction: normal;
-  -webkit-flex-direction: row;
-  -webkit-box-lines: multiple;
-  -webkit-flex-wrap: wrap;
+  display: inline;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+  text-align: center;
 }
 
 .glamor-4,
@@ -27522,13 +27505,10 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 600;
-  margin-top: 4px;
-  display: -webkit-box;
-  display: -moz-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
+  padding-left: 10px;
+  padding-right: 10px;
   text-decoration: inherit;
+  display: inline;
 }
 
 .glamor-6,
@@ -27559,13 +27539,10 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 600;
-  margin-top: 4px;
-  display: -webkit-box;
-  display: -moz-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
+  padding-left: 10px;
+  padding-right: 10px;
   text-decoration: inherit;
+  display: inline;
 }
 
 <div
@@ -28864,19 +28841,12 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 600;
-  display: -webkit-box;
-  display: -moz-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  text-decoration: inherit;
-  -webkit-box-orient: horizontal;
-  -webkit-box-direction: normal;
-  -webkit-flex-direction: row;
-  -webkit-box-lines: multiple;
-  -webkit-flex-wrap: wrap;
+  display: inline;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+  text-align: center;
 }
 
 .glamor-4,
@@ -28900,13 +28870,10 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 600;
-  margin-top: 4px;
-  display: -webkit-box;
-  display: -moz-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
+  padding-left: 10px;
+  padding-right: 10px;
   text-decoration: inherit;
+  display: inline;
 }
 
 .glamor-6,
@@ -28937,13 +28904,10 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 600;
-  margin-top: 4px;
-  display: -webkit-box;
-  display: -moz-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
+  padding-left: 10px;
+  padding-right: 10px;
   text-decoration: inherit;
+  display: inline;
 }
 
 <div
@@ -29640,7 +29604,7 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 400;
+  font-weight: 600;
   display: inline;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -29656,7 +29620,7 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 400;
+  font-weight: 600;
 }
 
 .glamor-1,
@@ -29668,7 +29632,7 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 400;
+  font-weight: 600;
   text-decoration: inherit;
   display: inline;
 }
@@ -29681,7 +29645,7 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 400;
+  font-weight: 600;
   margin-right: 1px;
   text-decoration: none;
 }
@@ -29695,7 +29659,7 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 400;
+  font-weight: 600;
   text-decoration: inherit;
   display: inline;
 }
@@ -29766,6 +29730,8 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
       style={
         Object {
           "backgroundColor": "#ebf5fc",
+          "borderBottomColor": "#ffffff",
+          "borderBottomWidth": 1,
           "display": "flex",
           "flexDirection": "row",
           "paddingBottom": 8,
@@ -30025,11 +29991,12 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
               "borderRadius": 10,
               "display": "flex",
               "flexDirection": "row",
-              "height": 14,
+              "height": 10,
               "justifyContent": "center",
               "marginLeft": 8,
               "marginRight": 8,
-              "minWidth": 14,
+              "marginTop": -1,
+              "minWidth": 10,
               "paddingLeft": 4,
               "paddingRight": 5,
             }
@@ -30088,7 +30055,7 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 400;
+  font-weight: 600;
   display: inline;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -30104,7 +30071,7 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 400;
+  font-weight: 600;
 }
 
 .glamor-1,
@@ -30116,7 +30083,7 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 400;
+  font-weight: 600;
   text-decoration: inherit;
   display: inline;
 }
@@ -30129,7 +30096,7 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 400;
+  font-weight: 600;
   margin-right: 1px;
   text-decoration: none;
 }
@@ -30143,7 +30110,7 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 400;
+  font-weight: 600;
   text-decoration: inherit;
   display: inline;
 }
@@ -30201,6 +30168,8 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
       style={
         Object {
           "backgroundColor": "#ffffff",
+          "borderBottomColor": "rgba(0, 0, 0, 0.05)",
+          "borderBottomWidth": 1,
           "display": "flex",
           "flexDirection": "row",
           "paddingBottom": 8,
@@ -30547,7 +30516,7 @@ exports[`Storyshots People/Follow notification Someone followed you 1`] = `
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 400;
+  font-weight: 600;
   display: inline;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -30563,7 +30532,7 @@ exports[`Storyshots People/Follow notification Someone followed you 1`] = `
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 400;
+  font-weight: 600;
 }
 
 .glamor-2,
@@ -30575,7 +30544,7 @@ exports[`Storyshots People/Follow notification Someone followed you 1`] = `
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 400;
+  font-weight: 600;
   text-decoration: inherit;
   display: inline;
 }
@@ -30619,6 +30588,8 @@ exports[`Storyshots People/Follow notification Someone followed you 1`] = `
       style={
         Object {
           "backgroundColor": "#ebf5fc",
+          "borderBottomColor": "#ffffff",
+          "borderBottomWidth": 1,
           "display": "flex",
           "flexDirection": "row",
           "paddingBottom": 8,
@@ -30662,6 +30633,7 @@ exports[`Storyshots People/Follow notification Someone followed you 1`] = `
           Object {
             "display": "flex",
             "flexDirection": "column",
+            "justifyContent": "center",
             "overflow": "hidden",
             "paddingRight": 80,
             "position": "relative",
@@ -30724,11 +30696,12 @@ exports[`Storyshots People/Follow notification Someone followed you 1`] = `
               "borderRadius": 10,
               "display": "flex",
               "flexDirection": "row",
-              "height": 14,
+              "height": 10,
               "justifyContent": "center",
               "marginLeft": 8,
               "marginRight": 8,
-              "minWidth": 14,
+              "marginTop": -1,
+              "minWidth": 10,
               "paddingLeft": 4,
               "paddingRight": 5,
             }
@@ -30794,7 +30767,7 @@ exports[`Storyshots People/Follow notification Someone you follow followed you 1
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 400;
+  font-weight: 600;
   display: inline;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -30810,7 +30783,7 @@ exports[`Storyshots People/Follow notification Someone you follow followed you 1
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 400;
+  font-weight: 600;
 }
 
 .glamor-2,
@@ -30822,7 +30795,7 @@ exports[`Storyshots People/Follow notification Someone you follow followed you 1
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 400;
+  font-weight: 600;
   text-decoration: inherit;
   display: inline;
 }
@@ -30853,6 +30826,8 @@ exports[`Storyshots People/Follow notification Someone you follow followed you 1
       style={
         Object {
           "backgroundColor": "#ffffff",
+          "borderBottomColor": "rgba(0, 0, 0, 0.05)",
+          "borderBottomWidth": 1,
           "display": "flex",
           "flexDirection": "row",
           "paddingBottom": 8,
@@ -30896,6 +30871,7 @@ exports[`Storyshots People/Follow notification Someone you follow followed you 1
           Object {
             "display": "flex",
             "flexDirection": "column",
+            "justifyContent": "center",
             "overflow": "hidden",
             "paddingRight": 80,
             "position": "relative",
@@ -31022,6 +30998,8 @@ exports[`Storyshots People/Todos Chat 1`] = `
       style={
         Object {
           "backgroundColor": "#ebf5fc",
+          "borderBottomColor": "#ffffff",
+          "borderBottomWidth": 1,
           "display": "flex",
           "flexDirection": "row",
           "paddingBottom": 8,
@@ -31161,11 +31139,12 @@ exports[`Storyshots People/Todos Chat 1`] = `
               "borderRadius": 10,
               "display": "flex",
               "flexDirection": "row",
-              "height": 14,
+              "height": 10,
               "justifyContent": "center",
               "marginLeft": 8,
               "marginRight": 8,
-              "minWidth": 14,
+              "marginTop": -1,
+              "minWidth": 10,
               "paddingLeft": 4,
               "paddingRight": 5,
             }
@@ -31238,6 +31217,8 @@ exports[`Storyshots People/Todos Fill out bio 1`] = `
       style={
         Object {
           "backgroundColor": "#ebf5fc",
+          "borderBottomColor": "#ffffff",
+          "borderBottomWidth": 1,
           "display": "flex",
           "flexDirection": "row",
           "paddingBottom": 8,
@@ -31370,11 +31351,12 @@ exports[`Storyshots People/Todos Fill out bio 1`] = `
               "borderRadius": 10,
               "display": "flex",
               "flexDirection": "row",
-              "height": 14,
+              "height": 10,
               "justifyContent": "center",
               "marginLeft": 8,
               "marginRight": 8,
-              "minWidth": 14,
+              "marginTop": -1,
+              "minWidth": 10,
               "paddingLeft": 4,
               "paddingRight": 5,
             }
@@ -31459,6 +31441,8 @@ exports[`Storyshots People/Todos Follow someone 1`] = `
       style={
         Object {
           "backgroundColor": "#ebf5fc",
+          "borderBottomColor": "#ffffff",
+          "borderBottomWidth": 1,
           "display": "flex",
           "flexDirection": "row",
           "paddingBottom": 8,
@@ -31598,11 +31582,12 @@ exports[`Storyshots People/Todos Follow someone 1`] = `
               "borderRadius": 10,
               "display": "flex",
               "flexDirection": "row",
-              "height": 14,
+              "height": 10,
               "justifyContent": "center",
               "marginLeft": 8,
               "marginRight": 8,
-              "minWidth": 14,
+              "marginTop": -1,
+              "minWidth": 10,
               "paddingLeft": 4,
               "paddingRight": 5,
             }
@@ -31687,6 +31672,8 @@ exports[`Storyshots People/Todos Install on phone 1`] = `
       style={
         Object {
           "backgroundColor": "#ebf5fc",
+          "borderBottomColor": "#ffffff",
+          "borderBottomWidth": 1,
           "display": "flex",
           "flexDirection": "row",
           "paddingBottom": 8,
@@ -31826,11 +31813,12 @@ exports[`Storyshots People/Todos Install on phone 1`] = `
               "borderRadius": 10,
               "display": "flex",
               "flexDirection": "row",
-              "height": 14,
+              "height": 10,
               "justifyContent": "center",
               "marginLeft": 8,
               "marginRight": 8,
-              "minWidth": 14,
+              "marginTop": -1,
+              "minWidth": 10,
               "paddingLeft": 4,
               "paddingRight": 5,
             }
@@ -31915,6 +31903,8 @@ exports[`Storyshots People/Todos Make a folder 1`] = `
       style={
         Object {
           "backgroundColor": "#ebf5fc",
+          "borderBottomColor": "#ffffff",
+          "borderBottomWidth": 1,
           "display": "flex",
           "flexDirection": "row",
           "paddingBottom": 8,
@@ -32054,11 +32044,12 @@ exports[`Storyshots People/Todos Make a folder 1`] = `
               "borderRadius": 10,
               "display": "flex",
               "flexDirection": "row",
-              "height": 14,
+              "height": 10,
               "justifyContent": "center",
               "marginLeft": 8,
               "marginRight": 8,
-              "minWidth": 14,
+              "marginTop": -1,
+              "minWidth": 10,
               "paddingLeft": 4,
               "paddingRight": 5,
             }
@@ -32143,6 +32134,8 @@ exports[`Storyshots People/Todos Make a git 1`] = `
       style={
         Object {
           "backgroundColor": "#ebf5fc",
+          "borderBottomColor": "#ffffff",
+          "borderBottomWidth": 1,
           "display": "flex",
           "flexDirection": "row",
           "paddingBottom": 8,
@@ -32282,11 +32275,12 @@ exports[`Storyshots People/Todos Make a git 1`] = `
               "borderRadius": 10,
               "display": "flex",
               "flexDirection": "row",
-              "height": 14,
+              "height": 10,
               "justifyContent": "center",
               "marginLeft": 8,
               "marginRight": 8,
-              "minWidth": 14,
+              "marginTop": -1,
+              "minWidth": 10,
               "paddingLeft": 4,
               "paddingRight": 5,
             }
@@ -32359,6 +32353,8 @@ exports[`Storyshots People/Todos Make a paper key 1`] = `
       style={
         Object {
           "backgroundColor": "#ebf5fc",
+          "borderBottomColor": "#ffffff",
+          "borderBottomWidth": 1,
           "display": "flex",
           "flexDirection": "row",
           "paddingBottom": 8,
@@ -32491,11 +32487,12 @@ exports[`Storyshots People/Todos Make a paper key 1`] = `
               "borderRadius": 10,
               "display": "flex",
               "flexDirection": "row",
-              "height": 14,
+              "height": 10,
               "justifyContent": "center",
               "marginLeft": 8,
               "marginRight": 8,
-              "minWidth": 14,
+              "marginTop": -1,
+              "minWidth": 10,
               "paddingLeft": 4,
               "paddingRight": 5,
             }
@@ -32580,6 +32577,8 @@ exports[`Storyshots People/Todos Make a team 1`] = `
       style={
         Object {
           "backgroundColor": "#ebf5fc",
+          "borderBottomColor": "#ffffff",
+          "borderBottomWidth": 1,
           "display": "flex",
           "flexDirection": "row",
           "paddingBottom": 8,
@@ -32719,11 +32718,12 @@ exports[`Storyshots People/Todos Make a team 1`] = `
               "borderRadius": 10,
               "display": "flex",
               "flexDirection": "row",
-              "height": 14,
+              "height": 10,
               "justifyContent": "center",
               "marginLeft": 8,
               "marginRight": 8,
-              "minWidth": 14,
+              "marginTop": -1,
+              "minWidth": 10,
               "paddingLeft": 4,
               "paddingRight": 5,
             }
@@ -32808,6 +32808,8 @@ exports[`Storyshots People/Todos Prove something 1`] = `
       style={
         Object {
           "backgroundColor": "#ebf5fc",
+          "borderBottomColor": "#ffffff",
+          "borderBottomWidth": 1,
           "display": "flex",
           "flexDirection": "row",
           "paddingBottom": 8,
@@ -32947,11 +32949,12 @@ exports[`Storyshots People/Todos Prove something 1`] = `
               "borderRadius": 10,
               "display": "flex",
               "flexDirection": "row",
-              "height": 14,
+              "height": 10,
               "justifyContent": "center",
               "marginLeft": 8,
               "marginRight": 8,
-              "minWidth": 14,
+              "marginTop": -1,
+              "minWidth": 10,
               "paddingLeft": 4,
               "paddingRight": 5,
             }
@@ -33036,6 +33039,8 @@ exports[`Storyshots People/Todos Set publicity 1`] = `
       style={
         Object {
           "backgroundColor": "#ebf5fc",
+          "borderBottomColor": "#ffffff",
+          "borderBottomWidth": 1,
           "display": "flex",
           "flexDirection": "row",
           "paddingBottom": 8,
@@ -33175,11 +33180,12 @@ exports[`Storyshots People/Todos Set publicity 1`] = `
               "borderRadius": 10,
               "display": "flex",
               "flexDirection": "row",
-              "height": 14,
+              "height": 10,
               "justifyContent": "center",
               "marginLeft": 8,
               "marginRight": 8,
-              "minWidth": 14,
+              "marginTop": -1,
+              "minWidth": 10,
               "paddingLeft": 4,
               "paddingRight": 5,
             }
