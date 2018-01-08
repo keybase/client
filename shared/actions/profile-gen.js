@@ -42,39 +42,70 @@ export const updateUsername = 'profile:updateUsername'
 export const waiting = 'profile:waiting'
 
 // Action Creators
-export const createAddProof = (payload: {|+platform: More.PlatformsExpandedType|}) => ({error: false, payload, type: addProof})
+export const createAddProof = (payload: $ReadOnly<{platform: More.PlatformsExpandedType}>) => ({error: false, payload, type: addProof})
 export const createBackToProfile = () => ({error: false, payload: undefined, type: backToProfile})
 export const createCancelAddProof = () => ({error: false, payload: undefined, type: cancelAddProof})
 export const createCancelPgpGen = () => ({error: false, payload: undefined, type: cancelPgpGen})
 export const createCheckProof = () => ({error: false, payload: undefined, type: checkProof})
 export const createCleanupUsername = () => ({error: false, payload: undefined, type: cleanupUsername})
-export const createDropPgp = (payload: {|+kid: RPCTypes.KID|}) => ({error: false, payload, type: dropPgp})
-export const createEditProfile = (payload: {|+bio: string, +fullname: string, +location: string|}) => ({error: false, payload, type: editProfile})
+export const createDropPgp = (payload: $ReadOnly<{kid: RPCTypes.KID}>) => ({error: false, payload, type: dropPgp})
+export const createEditProfile = (
+  payload: $ReadOnly<{
+    bio: string,
+    fullname: string,
+    location: string,
+  }>
+) => ({error: false, payload, type: editProfile})
 export const createFinishRevoking = () => ({error: false, payload: undefined, type: finishRevoking})
-export const createFinishedWithKeyGen = (payload: {|+shouldStoreKeyOnServer: boolean|}) => ({error: false, payload, type: finishedWithKeyGen})
+export const createFinishedWithKeyGen = (payload: $ReadOnly<{shouldStoreKeyOnServer: boolean}>) => ({error: false, payload, type: finishedWithKeyGen})
 export const createGeneratePgp = () => ({error: false, payload: undefined, type: generatePgp})
-export const createOnClickAvatar = (payload: {|+username: string, +openWebsite?: ?boolean|}) => ({error: false, payload, type: onClickAvatar})
-export const createOnClickFollowers = (payload: {|+username: string, +openWebsite?: ?boolean|}) => ({error: false, payload, type: onClickFollowers})
-export const createOnClickFollowing = (payload: {|+username: string, +openWebsite?: ?boolean|}) => ({error: false, payload, type: onClickFollowing})
+export const createOnClickAvatar = (
+  payload: $ReadOnly<{
+    username: string,
+    openWebsite?: ?boolean,
+  }>
+) => ({error: false, payload, type: onClickAvatar})
+export const createOnClickFollowers = (
+  payload: $ReadOnly<{
+    username: string,
+    openWebsite?: ?boolean,
+  }>
+) => ({error: false, payload, type: onClickFollowers})
+export const createOnClickFollowing = (
+  payload: $ReadOnly<{
+    username: string,
+    openWebsite?: ?boolean,
+  }>
+) => ({error: false, payload, type: onClickFollowing})
 export const createOutputInstructionsActionLink = () => ({error: false, payload: undefined, type: outputInstructionsActionLink})
 export const createRevokeFinish = () => ({error: false, payload: undefined, type: revokeFinish})
-export const createRevokeFinishError = (payload: {|+error: string|}) => ({error: true, payload, type: revokeFinish})
-export const createRevokeWaiting = (payload: {|+waiting: boolean|}) => ({error: false, payload, type: revokeWaiting})
-export const createShowUserProfile = (payload: {|+username: string|}) => ({error: false, payload, type: showUserProfile})
+export const createRevokeFinishError = (payload: $ReadOnly<{error: string}>) => ({error: true, payload, type: revokeFinish})
+export const createRevokeWaiting = (payload: $ReadOnly<{waiting: boolean}>) => ({error: false, payload, type: revokeWaiting})
+export const createShowUserProfile = (payload: $ReadOnly<{username: string}>) => ({error: false, payload, type: showUserProfile})
 export const createSubmitBTCAddress = () => ({error: false, payload: undefined, type: submitBTCAddress})
-export const createSubmitRevokeProof = (payload: {|+proofId: string|}) => ({error: false, payload, type: submitRevokeProof})
+export const createSubmitRevokeProof = (payload: $ReadOnly<{proofId: string}>) => ({error: false, payload, type: submitRevokeProof})
 export const createSubmitUsername = () => ({error: false, payload: undefined, type: submitUsername})
 export const createSubmitZcashAddress = () => ({error: false, payload: undefined, type: submitZcashAddress})
-export const createUpdateErrorText = (payload: {|+errorText?: ?string, +errorCode?: ?number|}) => ({error: false, payload, type: updateErrorText})
-export const createUpdatePgpInfo = (payload: {|+info: $Shape<Types.PgpInfo>|}) => ({error: false, payload, type: updatePgpInfo})
-export const createUpdatePgpInfoError = (payload: {|+error: Types.PgpInfoError|}) => ({error: true, payload, type: updatePgpInfo})
-export const createUpdatePgpPublicKey = (payload: {|+publicKey: string|}) => ({error: false, payload, type: updatePgpPublicKey})
-export const createUpdatePlatform = (payload: {|+platform: More.PlatformsExpandedType|}) => ({error: false, payload, type: updatePlatform})
-export const createUpdateProofStatus = (payload: {|+found: boolean, +status: RPCTypes.ProofStatus|}) => ({error: false, payload, type: updateProofStatus})
-export const createUpdateProofText = (payload: {|+proof: string|}) => ({error: false, payload, type: updateProofText})
-export const createUpdateSigID = (payload: {|+sigID: ?RPCTypes.SigID|}) => ({error: false, payload, type: updateSigID})
-export const createUpdateUsername = (payload: {|+username: string|}) => ({error: false, payload, type: updateUsername})
-export const createWaiting = (payload: {|+waiting: boolean|}) => ({error: false, payload, type: waiting})
+export const createUpdateErrorText = (
+  payload: $ReadOnly<{
+    errorText?: ?string,
+    errorCode?: ?number,
+  }>
+) => ({error: false, payload, type: updateErrorText})
+export const createUpdatePgpInfo = (payload: $ReadOnly<{info: $Shape<Types.PgpInfo>}>) => ({error: false, payload, type: updatePgpInfo})
+export const createUpdatePgpInfoError = (payload: $ReadOnly<{error: Types.PgpInfoError}>) => ({error: true, payload, type: updatePgpInfo})
+export const createUpdatePgpPublicKey = (payload: $ReadOnly<{publicKey: string}>) => ({error: false, payload, type: updatePgpPublicKey})
+export const createUpdatePlatform = (payload: $ReadOnly<{platform: More.PlatformsExpandedType}>) => ({error: false, payload, type: updatePlatform})
+export const createUpdateProofStatus = (
+  payload: $ReadOnly<{
+    found: boolean,
+    status: RPCTypes.ProofStatus,
+  }>
+) => ({error: false, payload, type: updateProofStatus})
+export const createUpdateProofText = (payload: $ReadOnly<{proof: string}>) => ({error: false, payload, type: updateProofText})
+export const createUpdateSigID = (payload: $ReadOnly<{sigID: ?RPCTypes.SigID}>) => ({error: false, payload, type: updateSigID})
+export const createUpdateUsername = (payload: $ReadOnly<{username: string}>) => ({error: false, payload, type: updateUsername})
+export const createWaiting = (payload: $ReadOnly<{waiting: boolean}>) => ({error: false, payload, type: waiting})
 
 // Action Payloads
 export type AddProofPayload = More.ReturnType<typeof createAddProof>

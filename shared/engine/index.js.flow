@@ -24,14 +24,7 @@ declare export class Engine {
   ): void;
   createSession(incomingCallMap: ?any, waitingHandler: ?any, cancelHandler: ?any, dangling?: boolean): any;
   _channelMapRpcHelper(configKeys: Array<string>, method: string, params: any): EngineChannel;
-  _rpcOutgoing(
-    method: string,
-    params: ?{
-      incomingCallMap?: any, // IncomingCallMapType, actually a mix of all the incomingcallmap types, which we don't handle yet TODO we could mix them all
-      waitingHandler?: any,
-    },
-    callback: (...args: Array<any>) => void
-  ): void;
+  _rpcOutgoing(method: string, params: ?Object, callback: (...args: Array<any>) => void): void;
 }
 
 declare export function getEngine(): Engine

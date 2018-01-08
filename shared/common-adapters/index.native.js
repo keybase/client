@@ -7,3 +7,4 @@ module.hot &&
 
 export * from './index.js'
 export * from './native-wrappers.native.js'
+export * from './form-input.native.js'

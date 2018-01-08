@@ -24,24 +24,48 @@ export const submitDeviceName = 'signup:submitDeviceName'
 export const waiting = 'signup:waiting'
 
 // Action Creators
-export const createCheckInviteCode = (payload: {|+inviteCode: string|}) => ({error: false, payload, type: checkInviteCode})
-export const createCheckInviteCodeError = (payload: {|+errorText: string|}) => ({error: true, payload, type: checkInviteCode})
-export const createCheckPassphrase = (payload: {|+passphrase: HiddenString|}) => ({error: false, payload, type: checkPassphrase})
-export const createCheckPassphraseError = (payload: {|+passphraseError: HiddenString|}) => ({error: true, payload, type: checkPassphrase})
-export const createCheckUsernameEmail = (payload: {|+username: string, +email: string|}) => ({error: false, payload, type: checkUsernameEmail})
-export const createCheckUsernameEmailError = (payload: {|+emailError: ?Error, +usernameError: ?Error, +email: ?string, +username: ?string|}) => ({error: true, payload, type: checkUsernameEmail})
+export const createCheckInviteCode = (payload: $ReadOnly<{inviteCode: string}>) => ({error: false, payload, type: checkInviteCode})
+export const createCheckInviteCodeError = (payload: $ReadOnly<{errorText: string}>) => ({error: true, payload, type: checkInviteCode})
+export const createCheckPassphrase = (payload: $ReadOnly<{passphrase: HiddenString}>) => ({error: false, payload, type: checkPassphrase})
+export const createCheckPassphraseError = (payload: $ReadOnly<{passphraseError: HiddenString}>) => ({error: true, payload, type: checkPassphrase})
+export const createCheckUsernameEmail = (
+  payload: $ReadOnly<{
+    username: string,
+    email: string,
+  }>
+) => ({error: false, payload, type: checkUsernameEmail})
+export const createCheckUsernameEmailError = (
+  payload: $ReadOnly<{
+    emailError: ?Error,
+    usernameError: ?Error,
+    email: ?string,
+    username: ?string,
+  }>
+) => ({error: true, payload, type: checkUsernameEmail})
 export const createClearDeviceNameError = () => ({error: false, payload: undefined, type: clearDeviceNameError})
-export const createRequestInvite = (payload: {|+email: string, +name: string|}) => ({error: false, payload, type: requestInvite})
-export const createRequestInviteError = (payload: {|+emailError: ?Error, +nameError: ?Error, +email: ?string, +name: ?string|}) => ({error: true, payload, type: requestInvite})
+export const createRequestInvite = (
+  payload: $ReadOnly<{
+    email: string,
+    name: string,
+  }>
+) => ({error: false, payload, type: requestInvite})
+export const createRequestInviteError = (
+  payload: $ReadOnly<{
+    emailError: ?Error,
+    nameError: ?Error,
+    email: ?string,
+    name: ?string,
+  }>
+) => ({error: true, payload, type: requestInvite})
 export const createResetSignup = () => ({error: false, payload: undefined, type: resetSignup})
 export const createRestartSignup = () => ({error: false, payload: undefined, type: restartSignup})
-export const createSetDeviceNameError = (payload: {|+deviceNameError: string|}) => ({error: false, payload, type: setDeviceNameError})
-export const createShowPaperKey = (payload: {|+paperkey: HiddenString|}) => ({error: false, payload, type: showPaperKey})
-export const createSignupError = (payload: {|+signupError: HiddenString|}) => ({error: false, payload, type: signupError})
+export const createSetDeviceNameError = (payload: $ReadOnly<{deviceNameError: string}>) => ({error: false, payload, type: setDeviceNameError})
+export const createShowPaperKey = (payload: $ReadOnly<{paperkey: HiddenString}>) => ({error: false, payload, type: showPaperKey})
+export const createSignupError = (payload: $ReadOnly<{signupError: HiddenString}>) => ({error: false, payload, type: signupError})
 export const createStartRequestInvite = () => ({error: false, payload: undefined, type: startRequestInvite})
-export const createSubmitDeviceName = (payload: {|+deviceName: string|}) => ({error: false, payload, type: submitDeviceName})
-export const createSubmitDeviceNameError = (payload: {|+deviceNameError: string|}) => ({error: true, payload, type: submitDeviceName})
-export const createWaiting = (payload: {|+waiting: boolean|}) => ({error: false, payload, type: waiting})
+export const createSubmitDeviceName = (payload: $ReadOnly<{deviceName: string}>) => ({error: false, payload, type: submitDeviceName})
+export const createSubmitDeviceNameError = (payload: $ReadOnly<{deviceNameError: string}>) => ({error: true, payload, type: submitDeviceName})
+export const createWaiting = (payload: $ReadOnly<{waiting: boolean}>) => ({error: false, payload, type: waiting})
 
 // Action Payloads
 export type CheckInviteCodePayload = More.ReturnType<typeof createCheckInviteCode>

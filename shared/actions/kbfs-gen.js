@@ -28,21 +28,26 @@ export const uninstallKBFSResult = 'kbfs:uninstallKBFSResult'
 // Action Creators
 export const createClearFuseInstall = () => ({error: false, payload: undefined, type: clearFuseInstall})
 export const createFuseStatus = () => ({error: false, payload: undefined, type: fuseStatus})
-export const createFuseStatusUpdate = (payload: {|+prevStatus: ?RPCTypes.FuseStatus, +status: RPCTypes.FuseStatus|}) => ({error: false, payload, type: fuseStatusUpdate})
+export const createFuseStatusUpdate = (
+  payload: $ReadOnly<{
+    prevStatus: ?RPCTypes.FuseStatus,
+    status: RPCTypes.FuseStatus,
+  }>
+) => ({error: false, payload, type: fuseStatusUpdate})
 export const createInstallFuse = () => ({error: false, payload: undefined, type: installFuse})
 export const createInstallFuseFinished = () => ({error: false, payload: undefined, type: installFuseFinished})
-export const createInstallFuseResult = (payload: {|+kextPermissionError: boolean|}) => ({error: false, payload, type: installFuseResult})
+export const createInstallFuseResult = (payload: $ReadOnly<{kextPermissionError: boolean}>) => ({error: false, payload, type: installFuseResult})
 export const createInstallKBFS = () => ({error: false, payload: undefined, type: installKBFS})
 export const createInstallKBFSFinished = () => ({error: false, payload: undefined, type: installKBFSFinished})
-export const createInstallKBFSResult = (payload: {|+result: RPCTypes.InstallResult|}) => ({error: false, payload, type: installKBFSResult})
-export const createList = (payload: {|+path: string|}) => ({error: false, payload, type: list})
-export const createListed = (payload: {|+result: RPCTypes.ListResult|}) => ({error: false, payload, type: listed})
-export const createListedError = (payload: {|+error: Error|}) => ({error: true, payload, type: listed})
-export const createOpen = (payload: {|+path?: string|}) => ({error: false, payload, type: open})
-export const createOpenDefaultPath = (payload: {|+opening: boolean|}) => ({error: false, payload, type: openDefaultPath})
-export const createOpenInFileUI = (payload: {|+path: string|}) => ({error: false, payload, type: openInFileUI})
+export const createInstallKBFSResult = (payload: $ReadOnly<{result: RPCTypes.InstallResult}>) => ({error: false, payload, type: installKBFSResult})
+export const createList = (payload: $ReadOnly<{path: string}>) => ({error: false, payload, type: list})
+export const createListed = (payload: $ReadOnly<{result: RPCTypes.ListResult}>) => ({error: false, payload, type: listed})
+export const createListedError = (payload: $ReadOnly<{error: Error}>) => ({error: true, payload, type: listed})
+export const createOpen = (payload: $ReadOnly<{path?: string}>) => ({error: false, payload, type: open})
+export const createOpenDefaultPath = (payload: $ReadOnly<{opening: boolean}>) => ({error: false, payload, type: openDefaultPath})
+export const createOpenInFileUI = (payload: $ReadOnly<{path: string}>) => ({error: false, payload, type: openInFileUI})
 export const createUninstallKBFS = () => ({error: false, payload: undefined, type: uninstallKBFS})
-export const createUninstallKBFSResult = (payload: {|+result: RPCTypes.UninstallResult|}) => ({error: false, payload, type: uninstallKBFSResult})
+export const createUninstallKBFSResult = (payload: $ReadOnly<{result: RPCTypes.UninstallResult}>) => ({error: false, payload, type: uninstallKBFSResult})
 
 // Action Payloads
 export type ClearFuseInstallPayload = More.ReturnType<typeof createClearFuseInstall>

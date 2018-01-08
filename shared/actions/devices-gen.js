@@ -22,16 +22,27 @@ export const paperKeyMake = 'devices:paperKeyMake'
 export const showRevokePage = 'devices:showRevokePage'
 
 // Action Creators
-export const createDeviceRevoke = (payload: {|+deviceID: Types.DeviceID|}) => ({error: false, payload, type: deviceRevoke})
-export const createDeviceRevoked = (payload: {|+deviceID: Types.DeviceID, +wasCurrentDevice: boolean, +deviceName: string|}) => ({error: false, payload, type: deviceRevoked})
+export const createDeviceRevoke = (payload: $ReadOnly<{deviceID: Types.DeviceID}>) => ({error: false, payload, type: deviceRevoke})
+export const createDeviceRevoked = (
+  payload: $ReadOnly<{
+    deviceID: Types.DeviceID,
+    wasCurrentDevice: boolean,
+    deviceName: string,
+  }>
+) => ({error: false, payload, type: deviceRevoked})
 export const createDevicesLoad = () => ({error: false, payload: undefined, type: devicesLoad})
-export const createDevicesLoaded = (payload: {|+idToDetail: I.Map<Types.DeviceID, Types.DeviceDetail>|}) => ({error: false, payload, type: devicesLoaded})
+export const createDevicesLoaded = (payload: $ReadOnly<{idToDetail: I.Map<Types.DeviceID, Types.DeviceDetail>}>) => ({error: false, payload, type: devicesLoaded})
 export const createDevicesLoadedError = () => ({error: true, payload: undefined, type: devicesLoaded})
-export const createEndangeredTLFsLoad = (payload: {|+deviceID: Types.DeviceID|}) => ({error: false, payload, type: endangeredTLFsLoad})
-export const createEndangeredTLFsLoaded = (payload: {|+deviceID: Types.DeviceID, +tlfs: Array<string>|}) => ({error: false, payload, type: endangeredTLFsLoaded})
-export const createPaperKeyCreated = (payload: {|+paperKey: HiddenString|}) => ({error: false, payload, type: paperKeyCreated})
+export const createEndangeredTLFsLoad = (payload: $ReadOnly<{deviceID: Types.DeviceID}>) => ({error: false, payload, type: endangeredTLFsLoad})
+export const createEndangeredTLFsLoaded = (
+  payload: $ReadOnly<{
+    deviceID: Types.DeviceID,
+    tlfs: Array<string>,
+  }>
+) => ({error: false, payload, type: endangeredTLFsLoaded})
+export const createPaperKeyCreated = (payload: $ReadOnly<{paperKey: HiddenString}>) => ({error: false, payload, type: paperKeyCreated})
 export const createPaperKeyMake = () => ({error: false, payload: undefined, type: paperKeyMake})
-export const createShowRevokePage = (payload: {|+deviceID: Types.DeviceID|}) => ({error: false, payload, type: showRevokePage})
+export const createShowRevokePage = (payload: $ReadOnly<{deviceID: Types.DeviceID}>) => ({error: false, payload, type: showRevokePage})
 
 // Action Payloads
 export type DeviceRevokePayload = More.ReturnType<typeof createDeviceRevoke>

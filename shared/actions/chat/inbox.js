@@ -44,6 +44,7 @@ const _getInboxQuery = {
 function* _updateFinalized(inbox: RPCChatTypes.UnverifiedInboxUIItems): Generator<any, void, any> {
   const finalizedState: Types.FinalizedState = I.Map(
     // TODO i *think* this typing is totally incorrect. should be .items etc
+    // $FlowIssue totally wrong
     (inbox.conversationsUnverified || [])
       .filter(c => c.metadata.finalizeInfo)
       .map(convoUnverified => [

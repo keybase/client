@@ -266,7 +266,6 @@ class Engine {
     const params = paramsIn || {}
     const channelConfig = Saga.singleFixedChannelConfig(configKeys)
     const channelMap = Saga.createChannelMap(channelConfig)
-    // $FlowIssue doesn't like empty objects with exact types
     const empty: IncomingCallMapType = {}
     const incomingCallMap: IncomingCallMapType = Object.keys(channelMap).reduce((acc, k) => {
       acc[k] = (params, response) => {
