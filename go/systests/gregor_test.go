@@ -52,7 +52,9 @@ func newElectronMock(g *libkb.GlobalContext) *electronMock {
 // filterPubsubdItems removes pubsubd generated IBMs from state
 func filterPubsubdItems(items []gregor1.ItemAndMetadata) (res []gregor1.ItemAndMetadata) {
 	for _, i := range items {
-		if !strings.HasPrefix(i.Category().String(), "user.") {
+		categoryStr := i.Category().String()
+		if !strings.HasPrefix(categoryStr, "user.") &&
+			!strings.HasPrefix(categoryStr, "home.") {
 			res = append(res, i)
 		}
 	}
