@@ -46,6 +46,47 @@ const Participants = ({participants, onShowProfile}: Props) => (
   </Box>
 )
 
+type ParticipantProps = {
+  onShowProfile: (user: string) => void,
+  participant: {
+    username: string,
+    following: boolean,
+    fullname: string,
+    broken: boolean,
+    isYou: boolean,
+  },
+}
+
+const RenderParticipant = ({
+  participant: {username, following, fullname, broken, isYou},
+  onShowProfile,
+}: ParticipantProps) => (
+  <Box style={{...globalStyles.flexBoxColumn, paddingTop: globalMargins.tiny}}>
+    <ClickableBox key={username} onClick={() => onShowProfile(username)}>
+      <Box style={isMobile ? rowStyleMobile : rowStyle}>
+        <Box
+          style={{
+            ...globalStyles.flexBoxRow,
+            alignItems: 'center',
+            flex: 1,
+            marginRight: globalMargins.tiny,
+          }}
+        >
+          <Avatar size={isMobile ? 40 : 32} username={username} />
+          <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
+            <Usernames
+              colorFollowing={true}
+              type="BodySemibold"
+              users={[{broken, following, username, you: isYou}]}
+            />
+            {fullname !== '' && <Text type="BodySmall">{fullname}</Text>}
+          </Box>
+        </Box>
+      </Box>
+    </ClickableBox>
+  </Box>
+)
+
 const rowStyle = {
   ...globalStyles.flexBoxColumn,
   ...globalStyles.clickable,
@@ -58,5 +99,5 @@ const rowStyleMobile = {
   ...rowStyle,
   minHeight: 56,
 }
-
+export {RenderParticipant}
 export default Participants

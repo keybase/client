@@ -10,13 +10,14 @@ import {
   Divider,
   HeaderHoc,
   Icon,
+  List,
   ScrollView,
   Text,
 } from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
 import {branch} from 'recompose'
 import Notifications from './notifications/container'
-import Participants from './participants'
+import Participants, {RenderParticipant} from './participants'
 
 const border = `1px solid ${globalColors.black_05}`
 const scrollViewStyle = {
@@ -212,68 +213,112 @@ type BigTeamInfoPanelProps = infoPanelProps & {
   isPreview: boolean,
 }
 
-const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => (
-  <ScrollView style={scrollViewStyle} contentContainerStyle={contentContainerStyle}>
-    <Text style={{alignSelf: 'center', marginTop: globalMargins.medium}} type="BodyBig">
-      #{props.channelname}
-    </Text>
+type InfoPanelRow = BigTeamInfoPanelProps & {
+  type: 'header' | 'notifications' | 'divider' | 'controls' | 'anyoneCanJoin',
+}
 
-    <ClickableBox
-      style={{...globalStyles.flexBoxRow, alignSelf: 'center', alignItems: 'center'}}
-      onClick={props.onViewTeam}
-    >
-      <Avatar teamname={props.teamname} size={12} />
-      <Text type="BodySmallSemibold" style={{marginLeft: globalMargins.xtiny}}>
-        {props.teamname}
-      </Text>
-    </ClickableBox>
+type ParticipantRow = {
+  type: 'participant',
+  participant: {
+    username: string,
+    following: boolean,
+    fullname: string,
+    broken: boolean,
+    isYou: boolean,
+  },
+  onShowProfile: string => void,
+}
 
-    {!props.isPreview && (
-      <Box>
-        <Divider style={styleDivider} />
-        <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute entire channel" />
-        <Notifications />
-      </Box>
-    )}
+type BigTeamRow = InfoPanelRow | ParticipantRow
 
-    <Divider style={styleDivider} />
-
-    <Box style={{...globalStyles.flexBoxRow, justifyContent: 'center'}}>
-      {props.isPreview && (
-        <Button
-          type="Primary"
-          label="Join channel"
-          style={{marginRight: globalMargins.xtiny}}
-          small={true}
-          onClick={props.onJoinChannel}
-        />
-      )}
-      {!props.isPreview && (
-        <Button type="Danger" small={true} label="Leave channel" onClick={props.onLeaveConversation} />
-      )}
-    </Box>
-
-    {props.isPreview && (
-      <Text type="BodySmall" style={{textAlign: 'center', marginTop: globalMargins.xtiny}}>
-        Anyone in {props.teamname} can join.
-      </Text>
-    )}
-
-    <Divider style={styleDivider} />
-    <Box style={{...globalStyles.flexBoxRow, marginRight: globalMargins.small}}>
-      <Text style={{flex: 1, paddingLeft: globalMargins.small}} type="BodySmallSemibold">
-        In this channel ({props.participants.length.toString()})
-      </Text>
-      {props.admin &&
-        props.channelname === 'general' && (
-          <Text type="BodySmallPrimaryLink" onClick={props.onViewTeam}>
-            Manage
+const _renderBigTeamRow = (i: number, props: BigTeamRow) => {
+  switch (props.type) {
+    case 'header':
+      return (
+        <Box style={{...globalStyles.flexBoxColumn, alignItems: 'stretch'}}>
+          <Text style={{alignSelf: 'center', marginTop: globalMargins.medium}} type="BodyBig">
+            #{props.channelname}
           </Text>
-        )}
-    </Box>
-    <Participants participants={props.participants} onShowProfile={props.onShowProfile} />
-  </ScrollView>
-)
+
+          <ClickableBox
+            style={{...globalStyles.flexBoxRow, alignSelf: 'center', alignItems: 'center'}}
+            onClick={props.onViewTeam}
+          >
+            <Avatar teamname={props.teamname} size={12} />
+            <Text type="BodySmallSemibold" style={{marginLeft: globalMargins.xtiny}}>
+              {props.teamname}
+            </Text>
+          </ClickableBox>
+        </Box>
+      )
+    case 'notifications':
+      return (
+        <Box>
+          <Divider style={styleDivider} />
+          <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute entire channel" />
+          <Notifications />
+        </Box>
+      )
+    case 'divider':
+      return <Divider style={styleDivider} />
+    case 'controls':
+      return (
+        <Box style={{...globalStyles.flexBoxRow, justifyContent: 'center'}}>
+          {props.isPreview && (
+            <Button
+              type="Primary"
+              label="Join channel"
+              style={{marginRight: globalMargins.xtiny}}
+              small={true}
+              onClick={props.onJoinChannel}
+            />
+          )}
+          {!props.isPreview && (
+            <Button type="Danger" small={true} label="Leave channel" onClick={props.onLeaveConversation} />
+          )}
+        </Box>
+      )
+    case 'anyoneCanJoin':
+      return (
+        <Text type="BodySmall" style={{textAlign: 'center', marginTop: globalMargins.xtiny}}>
+          Anyone in {props.teamname} can join.
+        </Text>
+      )
+    case 'participant':
+      return <RenderParticipant participant={props.participant} onShowProfile={props.onShowProfile} />
+  }
+}
+
+const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => {
+  const {isPreview} = props
+  const rows: Array<BigTeamRow> = [
+    {
+      ...props,
+      type: 'header',
+    },
+  ]
+  if (!isPreview) {
+    rows.push({...props, type: 'notifications'})
+  }
+  rows.push({...props, type: 'divider'}, {...props, type: 'controls'})
+  if (isPreview) {
+    rows.push({...props, type: 'anyoneCanJoin'})
+  }
+  props.participants.forEach(participant =>
+    rows.push({onShowProfile: props.onShowProfile, type: 'participant', participant})
+  )
+
+  return (
+    <List
+      items={rows}
+      renderItem={_renderBigTeamRow}
+      style={{
+        ...contentContainerStyle,
+        ...scrollViewStyle,
+      }}
+    />
+  )
+}
 
 const wrap = branch(() => isMobile, HeaderHoc)
 const ConversationInfoPanel = wrap(_ConversationInfoPanel)
