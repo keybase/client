@@ -39,7 +39,7 @@ const _processPeopleData = function([
   const newItems: I.List<Types.PeopleScreenItem> =
     (data.items &&
       data.items
-        .filter(item => item.badged || RPCTypes.homeHomeScreenItemType.todo)
+        .filter(item => item.badged || item.data.t === RPCTypes.homeHomeScreenItemType.todo)
         .reduce(Constants.reduceRPCItemToPeopleItem, I.List())) ||
     I.List()
 
