@@ -720,7 +720,7 @@ declare module 'redux-saga/effects' {
   }
 
   declare export var select: {
-    <S, R, Fn: (state: S) => R>(fn: void): SelectEffect<void, void>,
+    (): SelectEffect<void, []>,
     <S, R, Fn: (state: S) => R>(fn: Fn): SelectEffect<Fn, []>,
     <S, R, T1, Fn: (state: S, t1: T1) => R>(fn: Fn, t1: T1): SelectEffect<Fn, [T1]>,
     <S, R, T1, T2, Fn: (state: S, t1: T1, t2: T2) => R>(fn: Fn, t1: T1, t2: T2): SelectEffect<Fn, [T1, T2]>,
