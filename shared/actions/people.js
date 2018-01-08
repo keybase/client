@@ -82,7 +82,7 @@ const _skipTodo = (action: PeopleGen.SkipTodoPayload) => {
     Saga.put(
       PeopleGen.createGetPeopleData({
         markViewed: true,
-        numFollowSuggestionsWanted: Constants.DEFAULT_FOLLOW_SUGGESTIONS_QUANT,
+        numFollowSuggestionsWanted: Constants.defaultNumFollowSuggestions,
       })
     ),
   ])
@@ -94,7 +94,7 @@ const _setupPeopleHandlers = () => {
       dispatch(
         PeopleGen.createGetPeopleData({
           markViewed: false,
-          numFollowSuggestionsWanted: Constants.DEFAULT_FOLLOW_SUGGESTIONS_QUANT,
+          numFollowSuggestionsWanted: Constants.defaultNumFollowSuggestions,
         })
       )
     })
@@ -114,7 +114,7 @@ const _onTabChange = (action: RouteTypes.SwitchTo) => {
     return Saga.put(
       PeopleGen.createGetPeopleData({
         markViewed: true,
-        numFollowSuggestionsWanted: Constants.DEFAULT_FOLLOW_SUGGESTIONS_QUANT,
+        numFollowSuggestionsWanted: Constants.defaultNumFollowSuggestions,
       })
     )
   }

@@ -16,7 +16,7 @@ import engine from '../engine'
 import {RouteStateStorage} from '../actions/route-state-storage'
 import {createConfigurePush} from './push-gen'
 import {createGetPeopleData} from './people-gen'
-import {DEFAULT_FOLLOW_SUGGESTIONS_QUANT} from '../constants/people'
+import {defaultNumFollowSuggestions} from '../constants/people'
 import {getAppState, setAppState} from './platform-specific'
 import {isMobile, isSimulator} from '../constants/platform'
 import {loggedInSelector} from '../constants/selectors'
@@ -147,7 +147,7 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
               await dispatch(
                 createGetPeopleData({
                   markViewed: true,
-                  numFollowSuggestionsWanted: DEFAULT_FOLLOW_SUGGESTIONS_QUANT,
+                  numFollowSuggestionsWanted: defaultNumFollowSuggestions,
                 })
               )
             }
