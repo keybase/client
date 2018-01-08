@@ -267,6 +267,18 @@ const GitPushInfoNotice = ({message, info}: GitPushInfoProps) => {
         <Text type="BodySmallSemibold" style={{textAlign: 'center'}}>
           {info.pusher} just pushed commits to the {info.repo} repo.
         </Text>
+        {(info.refs || []).map(ref => (
+          <Box style={globalStyles.flexBoxColumn} key={ref.refName}>
+            <Text type="Header" style={{textAlign: 'left'}}>
+              {ref.refName}
+            </Text>
+            {(ref.commits || []).map(commit => (
+              <Text type="BodySmall" style={{textAlign: 'left'}} key={commit.commitHash}>
+                {commit.commitHash} {commit.message}
+              </Text>
+            ))}
+          </Box>
+        ))}
       </Box>
     </UserNotice>
   )
