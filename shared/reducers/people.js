@@ -10,14 +10,12 @@ export default function(state: Types.State = initialState, action: PeopleGen.Act
     case PeopleGen.resetStore:
       return initialState
     case PeopleGen.peopleDataProcessed:
-      return Constants.makeState({
-        ...state.toObject(),
-        lastViewed: action.payload.lastViewed,
-        oldItems: action.payload.oldItems,
-        newItems: action.payload.newItems,
-        followSuggestions: action.payload.followSuggestions,
-        version: action.payload.version,
-      })
+      return state
+        .set('lastViewed', action.payload.lastViewed)
+        .set('oldItems', action.payload.oldItems)
+        .set('newItems', action.payload.newItems)
+        .set('followSuggestions', action.payload.followSuggestions)
+        .set('version', action.payload.version)
     case PeopleGen.getPeopleData:
     case PeopleGen.skipTodo:
     case PeopleGen.setupPeopleHandlers:
