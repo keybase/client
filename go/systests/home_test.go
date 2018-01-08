@@ -35,6 +35,7 @@ func assertTodoPresent(t *testing.T, home keybase1.HomeScreen, wanted keybase1.H
 		}
 		if typ == keybase1.HomeScreenItemType_TODO {
 			todo := item.Data.Todo()
+			t.Logf("Checking todo item %v", todo)
 			typ, err := todo.T()
 			if err != nil {
 				t.Fatal(err)
@@ -43,6 +44,8 @@ func assertTodoPresent(t *testing.T, home keybase1.HomeScreen, wanted keybase1.H
 				require.Equal(t, item.Badged, isBadged)
 				return
 			}
+		} else {
+			t.Logf("Non-todo item: %v", typ)
 		}
 	}
 	t.Fatalf("Failed to find type %s in %+v", wanted, home)
@@ -67,6 +70,30 @@ func assertTodoNotPresent(t *testing.T, home keybase1.HomeScreen, wanted keybase
 	}
 }
 
+func assertFollowerPresent(t *testing.T, home keybase1.HomeScreen, f string) {
+	for _, item := range home.Items {
+		typ, err := item.Data.T()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if typ == keybase1.HomeScreenItemType_PEOPLE {
+			people := item.Data.People()
+			typ, err := people.T()
+			if err != nil {
+				t.Fatal(err)
+			}
+			if typ == keybase1.HomeScreenPeopleNotificationType_FOLLOWED {
+				follow := people.Followed()
+				if follow.User.Username == f {
+					require.True(t, item.Badged, "it should be badged")
+					return
+				}
+			}
+		}
+	}
+	t.Fatalf("Follower %q not found in home: %+v", f, home)
+}
+
 func postBio(t *testing.T, u *userPlusDevice) {
 	g := u.tc.G
 	cli, err := client.GetUserClient(g)
@@ -84,13 +111,11 @@ func TestHome(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
-	// It's important that we don't add with a paper key, because if we did, we'd
-	// burn through the first two todo items (1. Device; 2. Paper Key), and then
-	// we wouldn't get a badge for another day or so. So this way, we're only going
-	// to have one item done (device), and two items will be in the next todo
-	// list, with one badged. This is a bit brittle since if the server-side logic
+	// Let's add user with paper key, so we burn through "Paper Key" todo
+	// item, and then we will still have two todo items lined up next with
+	// one badged. This is a bit brittle since if the server-side logic
 	// changes, this test will break. But let's leave it for now.
-	tt.addUserNoPaper("alice")
+	tt.addUser("alice")
 	alice := tt.users[0]
 	g := alice.tc.G
 
@@ -136,4 +161,13 @@ func TestHome(t *testing.T) {
 	})
 
 	assertTodoNotPresent(t, home, keybase1.HomeScreenTodoType_BIO)
+
+	tt.addUser("bob")
+	bob := tt.users[1]
+	iui := newSimpleIdentifyUI()
+	attachIdentifyUI(t, bob.tc.G, iui)
+	iui.confirmRes = keybase1.ConfirmResult{IdentityConfirmed: true, RemoteConfirmed: true, AutoConfirmed: true}
+	bob.track(alice.username)
+	home = getHome(t, alice, true)
+	assertFollowerPresent(t, home, bob.username)
 }

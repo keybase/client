@@ -22,6 +22,13 @@ class List extends PureComponent<Props<*>, void> {
     }
   }
 
+  _getType() {
+    if (this.props.itemSizeEstimator) {
+      return 'variable'
+    }
+    return this.props.fixedHeight ? 'uniform' : 'simple'
+  }
+
   render() {
     return (
       <div
@@ -44,8 +51,9 @@ class List extends PureComponent<Props<*>, void> {
               useTranslate3d={true}
               useStaticSize={!!this.props.fixedHeight}
               itemRenderer={this._itemRender}
+              itemSizeEstimator={this.props.itemSizeEstimator}
               length={this.props.items.length}
-              type={this.props.fixedHeight ? 'uniform' : 'simple'}
+              type={this._getType()}
             />
           </div>
         </div>

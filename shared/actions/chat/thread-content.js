@@ -501,7 +501,7 @@ import * as Saga from '../../util/saga'
 // const pusher = body.gitpush ? body.gitpush.pusher : '???'
 // const repo = body.gitpush ? body.gitpush.repoName : '???'
 // messageText = `${pusher} pushed to ${team} team repo ${repo}.`
-// info = {team, pusher, repo, type: 'gitPush'}
+// info = {team, pusher, repo, refs: body.gitpush ? body.gitpush.refs : [], type: 'gitPush'}
 // break
 // }
 // }

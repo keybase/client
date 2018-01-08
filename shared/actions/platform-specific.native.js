@@ -28,6 +28,14 @@ function showMainWindow() {
   }
 }
 
+function getAppState(): Promise<*> {
+  return Promise.resolve({})
+}
+
+function setAppState(toMerge: Object) {
+  throw new Error('setAppState not implemented in mobile')
+}
+
 function showShareActionSheet(options: {
   url?: ?any,
   message?: ?any,
@@ -184,6 +192,8 @@ function configurePush() {
 
 export {
   displayNewMessageNotification,
+  getAppState,
+  setAppState,
   requestPushPermissions,
   showMainWindow,
   configurePush,

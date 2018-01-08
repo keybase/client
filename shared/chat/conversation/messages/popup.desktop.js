@@ -5,8 +5,8 @@ import {ModalLessPopupMenu as PopupMenu} from '../../../common-adapters/popup-me
 // import {textMessageEditable} from '../../../constants/chat'
 import * as Types from '../../../constants/types/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as KBFSGen from '../../../actions/kbfs-gen'
-import {fileUIName} from '../../../constants/platform'
+// import * as KBFSGen from '../../../actions/kbfs-gen'
+// import {fileUIName} from '../../../constants/platform'
 import {
   compose,
   connect,
@@ -189,5 +189,5 @@ const stylePopup = {
   overflow: 'visible',
   width: 196,
 }
-
-export {/* AttachmentPopupMenu, */ TextPopupMenu, ConnectedMessageAction}
+/* AttachmentPopupMenu, */
+export {TextPopupMenu, ConnectedMessageAction}
