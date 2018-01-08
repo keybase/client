@@ -751,8 +751,8 @@ export const homeHomeScreenItemType = {
 }
 
 export const homeHomeScreenPeopleNotificationType = {
-  followed: 0,
-  followedMulti: 1,
+  followed: 1,
+  followedMulti: 2,
 }
 
 export const homeHomeScreenTodoType = {
@@ -2353,7 +2353,7 @@ export type HomeHomeMarkViewedRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingC
 
 export type HomeHomeSkipTodoTypeRpcParam = $ReadOnly<{t: HomeScreenTodoType, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type HomeScreen = $ReadOnly<{lastViewed: Time, version: Int, items?: ?Array<HomeScreenItem>, followSuggestions?: ?Array<HomeUserSummary>}>
+export type HomeScreen = $ReadOnly<{lastViewed: Time, version: Int, visits: Int, items?: ?Array<HomeScreenItem>, followSuggestions?: ?Array<HomeUserSummary>}>
 
 export type HomeScreenItem = $ReadOnly<{badged: Boolean, data: HomeScreenItemData}>
 
@@ -2365,15 +2365,15 @@ export type HomeScreenItemType =
   | 1 // TODO_1
   | 2 // PEOPLE_2
 
-export type HomeScreenPeopleNotification = {t: 0, followed: ?HomeScreenPeopleNotificationFollowed} | {t: 1, followedMulti: ?HomeScreenPeopleNotificationFollowedMulti}
+export type HomeScreenPeopleNotification = {t: 1, followed: ?HomeScreenPeopleNotificationFollowed} | {t: 2, followedMulti: ?HomeScreenPeopleNotificationFollowedMulti}
 
-export type HomeScreenPeopleNotificationFollowed = $ReadOnly<{followTime: Time, user: UserSummary}>
+export type HomeScreenPeopleNotificationFollowed = $ReadOnly<{followTime: Time, followedBack: Boolean, user: UserSummary}>
 
 export type HomeScreenPeopleNotificationFollowedMulti = $ReadOnly<{followers?: ?Array<HomeScreenPeopleNotificationFollowed>, numOthers: Int}>
 
 export type HomeScreenPeopleNotificationType =
-  | 0 // FOLLOWED_0
-  | 1 // FOLLOWED_MULTI_1
+  | 1 // FOLLOWED_1
+  | 2 // FOLLOWED_MULTI_2
 
 export type HomeScreenTodo = {t: any}
 
