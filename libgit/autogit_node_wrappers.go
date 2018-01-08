@@ -214,8 +214,7 @@ func (rn *repoNode) updated(ctx context.Context) {
 	dstDir := rn.dstDir()
 	rn.am.log.CDebugf(
 		ctx, "Repo %s/%s/%s updated", h.GetCanonicalPath(), dstDir, rn.repoName)
-	_, err = rn.am.Pull(
-		context.Background(), rn.srcRepoHandle, rn.repoName, "master", h, dstDir)
+	_, err = rn.am.Pull(ctx, rn.srcRepoHandle, rn.repoName, "master", h, dstDir)
 	if err != nil {
 		rn.am.log.CDebugf(ctx, "Error calling pull: %+v", err)
 		return

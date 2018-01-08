@@ -230,7 +230,14 @@ func (f *File) Unlock() (err error) {
 	if f.fs.config.Mode() != libkbfs.InitSingleOp {
 		f.fs.log.CDebugf(f.fs.ctx, "Releasing the lock")
 
-		// Need to explicitly release the lock from the server.
+		// Need to explicitly release the lock from the server. If
+		// single-op mode isn't enabled, then the journal will be
+		// flushing on its own without waiting for the call to
+		// `FinishSingleOp`. That means the journal can already be
+		// completely flushed by the time `FinishSingleOp` is called,
+		// and it will be a no-op. It won't have made any call to the
+		// server to release the lock, so we have to do it explicitly
+		// here.
 		err = f.fs.config.MDServer().ReleaseLock(
 			f.fs.ctx, f.fs.root.GetFolderBranch().Tlf, f.getLockID())
 		if err != nil {

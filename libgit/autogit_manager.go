@@ -463,7 +463,9 @@ func (am *AutogitManager) notifyNodeLocked(
 	am.updatingWG.Add(1)
 	go func() {
 		defer am.updatingWG.Done()
-		rn.updated(context.Background())
+		ctx := libkbfs.CtxWithRandomIDReplayable(
+			context.Background(), ctxIDKey, ctxOpID, am.log)
+		rn.updated(ctx)
 	}()
 }
 
