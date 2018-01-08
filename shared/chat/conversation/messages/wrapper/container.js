@@ -11,7 +11,7 @@ import {navigateAppend} from '../../../../actions/route-tree'
 
 const howLongBetweenTimestampsMs = 1000 * 60 * 15
 
-const mapStateToProps = (state: TypedState, {message, previous, innerClass, isSelected}) => {
+const mapStateToProps = (state: TypedState, {message, previous, innerClass, isSelected, isEditing}) => {
   const isYou = state.config.username === message.author
   const isFollowing = state.config.following.has(message.author)
   // TODO
@@ -19,6 +19,7 @@ const mapStateToProps = (state: TypedState, {message, previous, innerClass, isSe
 
   return {
     innerClass,
+    isEditing,
     isFollowing,
     isSelected,
     isYou,
@@ -140,7 +141,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     innerClass: stateProps.innerClass,
     isBroken: false, // TODO stateProps.isBroken,
     isEdited: message.isEdited,
-    isEditing: false, // stateProps.isEditing,
+    isEditing: stateProps.isEditing,
     isFirstNewMessage: false, //  TODO
     isFollowing: stateProps.isFollowing,
     isRevoked: !!message.deviceRevokedAt,

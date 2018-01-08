@@ -13,6 +13,7 @@ export const keyToConversationID = (key: Types.ConversationIDKey): RPCChatTypes.
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   badgeMap: I.Map(),
+  editingMap: I.Map(),
   inboxFilter: '',
   isSearching: false,
   loadingMap: I.Map(),
@@ -37,6 +38,8 @@ export const getHasUnread = (state: TypedState, id: Types.ConversationIDKey) =>
 export const getIsSelected = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.selectedConversation === id
 export const getSelectedConversation = (state: TypedState) => state.chat2.selectedConversation
+export const getEditingOrdinal = (state: TypedState, id: Types.ConversationIDKey) =>
+  state.chat2.editingMap.get(id)
 
 export {
   getConversationIDKeyMetasToLoad,

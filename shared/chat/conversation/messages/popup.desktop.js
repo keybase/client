@@ -84,7 +84,14 @@ const mapDispatchToTextProps = (dispatch: Dispatch) => ({
         ordinal: message.ordinal,
       })
     ),
-  _onEdit: (message: Types.Message) => {},
+  _onEdit: (message: Types.Message) => {
+    dispatch(
+      Chat2Gen.createMessageSetEditing({
+        conversationIDKey: message.conversationIDKey,
+        ordinal: message.ordinal,
+      })
+    )
+  },
 })
 
 const mergeTextProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
@@ -93,7 +100,7 @@ const mergeTextProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   return {
     message,
     onDelete: yourMessage ? () => dispatchProps._onDelete(message) : null,
-    onEdit: yourMessage ? () => dispatchProps._onEdit(message) : null, // TODO some things aren't editable
+    onEdit: yourMessage && message.type === 'text' ? () => dispatchProps._onEdit(message) : null,
     onHidden: () => ownProps.onClosePopup(),
     showDivider: !message.deviceRevokedAt,
     yourMessage,

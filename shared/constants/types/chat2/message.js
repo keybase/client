@@ -14,7 +14,7 @@ export const numberToMessageID = (n: number): MessageID => n
 export type Ordinal = number
 
 // Bookkeep us trying to do these operations
-type LocalState = null | 'deleting' | 'editing'
+type LocalState = null | 'deleting' | 'editing' | 'error'
 
 type ChannelMention = 'none' | 'all' | 'here'
 

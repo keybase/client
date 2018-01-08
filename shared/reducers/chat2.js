@@ -101,10 +101,14 @@ const metaMapReducer = (metaMap, action) => {
 
 const messageMapReducer = (messageMap, action) => {
   switch (action.type) {
+    case Chat2Gen.messageEdit: // fallthrough
     case Chat2Gen.messageDelete:
       return messageMap.updateIn(
         [action.payload.conversationIDKey, action.payload.ordinal],
-        message => (message && message.type === 'text' ? message.set('localState', 'deleting') : message)
+        message =>
+          message && message.type === 'text'
+            ? message.set('localState', action.type === Chat2Gen.messageDelete ? 'deleting' : 'editing')
+            : message
       )
     case Chat2Gen.inboxRefresh:
       return action.payload.clearAllData ? messageMap.clear() : messageMap
@@ -225,10 +229,20 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       )
       return state.set('badgeMap', badgeMap).set('unreadMap', unreadMap)
     }
+    case Chat2Gen.messageSetEditing:
+      return state.update(
+        'editingMap',
+        editingMap =>
+          action.payload.ordinal
+            ? editingMap.set(action.payload.conversationIDKey, action.payload.ordinal)
+            : editingMap.delete(action.payload.conversationIDKey)
+      )
+
     // metaMap/messageMap/messageOrdinalsList actions
     case Chat2Gen.clearOrdinals:
     case Chat2Gen.inboxRefresh:
     case Chat2Gen.messageDelete:
+    case Chat2Gen.messageEdit:
     case Chat2Gen.messageWasEdited:
     case Chat2Gen.messagesAdd:
     case Chat2Gen.messagesWereDeleted:

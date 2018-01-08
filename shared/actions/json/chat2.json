@@ -61,6 +61,17 @@
       "fromThreadLoad?": "Types.ConversationIDKey", // because we clicked on a conversation for the very first time?
       "messages": "Array<Types.Message>"
     },
+    // Start editing a message / or clear editing
+    "messageSetEditing": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "?Types.Ordinal"
+    },
+    // Submit an edit to the daemon
+    "messageEdit": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal",
+      "text": "HiddenString"
+    },
     // Update a message which changed
     "messageWasEdited": {
       "conversationIDKey": "Types.ConversationIDKey",

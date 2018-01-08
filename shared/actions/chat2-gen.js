@@ -17,6 +17,8 @@ export const desktopNotification = 'chat2:desktopNotification'
 export const inboxRefresh = 'chat2:inboxRefresh'
 export const loadMoreMessages = 'chat2:loadMoreMessages'
 export const messageDelete = 'chat2:messageDelete'
+export const messageEdit = 'chat2:messageEdit'
+export const messageSetEditing = 'chat2:messageSetEditing'
 export const messageWasEdited = 'chat2:messageWasEdited'
 export const messagesAdd = 'chat2:messagesAdd'
 export const messagesWereDeleted = 'chat2:messagesWereDeleted'
@@ -55,6 +57,19 @@ export const createMessageDelete = (
     ordinal: Types.Ordinal,
   }>
 ) => ({error: false, payload, type: messageDelete})
+export const createMessageEdit = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    ordinal: Types.Ordinal,
+    text: HiddenString,
+  }>
+) => ({error: false, payload, type: messageEdit})
+export const createMessageSetEditing = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    ordinal: ?Types.Ordinal,
+  }>
+) => ({error: false, payload, type: messageSetEditing})
 export const createMessageWasEdited = (
   payload: $ReadOnly<{
     conversationIDKey: Types.ConversationIDKey,
@@ -119,6 +134,8 @@ export type DesktopNotificationPayload = More.ReturnType<typeof createDesktopNot
 export type InboxRefreshPayload = More.ReturnType<typeof createInboxRefresh>
 export type LoadMoreMessagesPayload = More.ReturnType<typeof createLoadMoreMessages>
 export type MessageDeletePayload = More.ReturnType<typeof createMessageDelete>
+export type MessageEditPayload = More.ReturnType<typeof createMessageEdit>
+export type MessageSetEditingPayload = More.ReturnType<typeof createMessageSetEditing>
 export type MessageWasEditedPayload = More.ReturnType<typeof createMessageWasEdited>
 export type MessagesAddPayload = More.ReturnType<typeof createMessagesAdd>
 export type MessagesWereDeletedPayload = More.ReturnType<typeof createMessagesWereDeleted>
@@ -143,6 +160,8 @@ export type Actions =
   | More.ReturnType<typeof createInboxRefresh>
   | More.ReturnType<typeof createLoadMoreMessages>
   | More.ReturnType<typeof createMessageDelete>
+  | More.ReturnType<typeof createMessageEdit>
+  | More.ReturnType<typeof createMessageSetEditing>
   | More.ReturnType<typeof createMessageWasEdited>
   | More.ReturnType<typeof createMessagesAdd>
   | More.ReturnType<typeof createMessagesWereDeleted>

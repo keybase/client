@@ -6,7 +6,7 @@ import {globalStyles, globalColors, isMobile} from '../../../../styles'
 
 export type Props = {
   text: string,
-  type: 'failed' | 'pending' | 'sent',
+  type: 'error' | 'pending' | 'sent',
   isEditing: boolean,
   mentions: Types.Mentions,
   channelMention: Types.ChannelMention,
@@ -21,18 +21,19 @@ const MessageText = ({text, type, isEditing, mentions, channelMention}: Props) =
 // Encoding all 4 states as static objects so we don't re-render
 const getStyle = (type, isEditing) => {
   if (type === 'sent') {
-    return isEditing && isMobile ? sentEditingStyle : sentStyle
+    return isEditing ? sentEditingStyle : sentStyle
   } else {
-    return isEditing && isMobile ? pendingFailEditingStyle : pendingFailStyle
+    return isEditing ? pendingFailEditingStyle : pendingFailStyle
   }
 }
 
 const editingStyle = {
   borderColor: globalColors.blue,
-  borderRadius: 8,
+  borderRadius: 4,
+  borderStyle: 'solid',
   borderWidth: 1,
-  margin: 2,
-  padding: 2,
+  paddingLeft: 2,
+  paddingRight: 2,
 }
 
 const sentStyle = {

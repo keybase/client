@@ -112,6 +112,7 @@ type Props = {
   // measure: () => void,
   message: Types2.Message,
   previous: ?Types2.Message,
+  isEditing: boolean,
   isSelected: boolean,
 }
 class MessageFactory extends React.PureComponent<Props> {
@@ -121,6 +122,7 @@ class MessageFactory extends React.PureComponent<Props> {
         return (
           <Wrapper
             innerClass={TextMessage}
+            isEditing={this.props.isEditing}
             isSelected={this.props.isSelected}
             message={this.props.message}
             previous={this.props.previous}
@@ -136,6 +138,8 @@ const mapStateToProps = (state: TypedState, {ordinal, previous}) => {
   const messageMap = Constants2.getMessageMap(state, conversationIDKey)
   const message = messageMap.get(ordinal)
   return {
+    isEditing:
+      conversationIDKey && Constants2.getEditingOrdinal(state, conversationIDKey) === message.ordinal,
     isSelected: messageActionMessage(state, conversationIDKey) === message,
     message,
     previous: previous ? messageMap.get(previous) : null,
