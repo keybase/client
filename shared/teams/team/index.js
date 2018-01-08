@@ -349,11 +349,10 @@ class Team extends React.PureComponent<Props> {
           style={{
             ...globalStyles.flexBoxColumn,
             alignSelf: 'stretch',
-            padding: globalMargins.medium,
             flexBasis: 0,
             flexGrow: 1,
           }}
-          contentContainerStyle={isMobile ? {paddingBottom: globalMargins.large} : {}}
+          contentContainerStyle={{padding: globalMargins.medium}}
         >
           {!youImplicitAdmin && (
             <Box
