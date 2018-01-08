@@ -1961,6 +1961,12 @@ func (fbo *folderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 		n, de, err = fbo.lookup(ctx, dir, name)
 		return err
 	})
+	// Only retry the lookup potentially if the lookup missed.
+	if err != nil {
+		if _, isMiss := errors.Cause(err).(NoSuchNameError); !isMiss {
+			return nil, EntryInfo{}, err
+		}
+	}
 
 	if dir.ShouldRetryOnDirRead(ctx) {
 		err2 := fbo.SyncFromServerForTesting(ctx, fbo.folderBranch, nil)
@@ -1975,8 +1981,10 @@ func (fbo *folderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 			return err
 		})
 	}
-
-	return n, de.EntryInfo, err
+	if err != nil {
+		return nil, EntryInfo{}, err
+	}
+	return n, de.EntryInfo, nil
 }
 
 // statEntry is like Stat, but it returns a DirEntry. This is used by
