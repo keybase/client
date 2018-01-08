@@ -87,6 +87,7 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
+    "applescript": "1.0.0",
     "base64-js": "1.2.1",
     "buffer": "5.0.8",
     "core-js": "2.5.1",

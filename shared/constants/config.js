@@ -39,6 +39,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   kbfsPath: defaultKBFSPath,
   loggedIn: false,
   menubarWindowID: 0,
+  openAtLogin: true,
   pgpPopupOpen: false,
   pushLoaded: false,
   readyForBootstrap,
