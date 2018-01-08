@@ -72,6 +72,7 @@ protocol gregor {
         // Compatibility field for gregor->client messages. Result of past botched protocol change.
         @mpackkey("UnreadMessages") @jsonkey("UnreadMessages")
         int compatUnreadMessages;
+        boolean diff;
     }
 
     record TLFFinalizeUpdate {

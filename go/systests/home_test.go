@@ -111,13 +111,11 @@ func TestHome(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
-	// It's important that we don't add with a paper key, because if we did, we'd
-	// burn through the first two todo items (1. Device; 2. Paper Key), and then
-	// we wouldn't get a badge for another day or so. So this way, we're only going
-	// to have one item done (device), and two items will be in the next todo
-	// list, with one badged. This is a bit brittle since if the server-side logic
+	// Let's add user with paper key, so we burn through "Paper Key" todo
+	// item, and then we will still have two todo items lined up next with
+	// one badged. This is a bit brittle since if the server-side logic
 	// changes, this test will break. But let's leave it for now.
-	tt.addUserNoPaper("alice")
+	tt.addUser("alice")
 	alice := tt.users[0]
 	g := alice.tc.G
 

@@ -188,6 +188,7 @@ export type GitPushInfo = {
   pusher: string,
   repo: string,
   team: string,
+  refs?: ?Array<RPCTypes.GitRefMetadata>,
 }
 
 export type SystemMessageInfo =

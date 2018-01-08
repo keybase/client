@@ -17,6 +17,7 @@ import {RouteStateStorage} from '../actions/route-state-storage'
 import {createConfigurePush} from './push-gen'
 import {createGetPeopleData} from './people-gen'
 import {DEFAULT_FOLLOW_SUGGESTIONS_QUANT} from '../constants/people'
+import {getAppState, setAppState} from './platform-specific'
 import {isMobile, isSimulator} from '../constants/platform'
 import {loggedInSelector} from '../constants/selectors'
 import {type AsyncAction} from '../constants/types/flux'
@@ -291,6 +292,19 @@ function* _periodicAvatarCacheClear(): Generator<any, void, any> {
   }
 }
 
+function _setOpenAtLogin(action: ConfigGen.SetOpenAtLoginPayload) {
+  if (action.payload.writeFile) {
+    setAppState({openAtLogin: action.payload.open})
+  }
+}
+
+function* _getAppState(): Generator<any, void, any> {
+  const state = yield Saga.call(getAppState)
+  if (state) {
+    yield Saga.put(ConfigGen.createSetOpenAtLogin({open: state.openAtLogin, writeFile: false}))
+  }
+}
+
 function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.bootstrapSuccess, _bootstrapSuccess)
   yield Saga.safeTakeEveryPure(ConfigGen.bootstrap, _bootstrap)
@@ -300,7 +314,9 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(ConfigGen.loadAvatars, _loadAvatars)
   yield Saga.safeTakeEvery(ConfigGen.loadTeamAvatars, _loadTeamAvatars)
   yield Saga.safeTakeEveryPure('_loadAvatarHelper', _loadAvatarHelper, _afterLoadAvatarHelper)
+  yield Saga.safeTakeEveryPure(ConfigGen.setOpenAtLogin, _setOpenAtLogin)
   yield Saga.fork(_periodicAvatarCacheClear)
+  yield Saga.fork(_getAppState)
 }
 
 export {getExtendedStatus}
