@@ -51,6 +51,7 @@ type NewMessagePayload struct {
 	Message      MessageBoxed   `codec:"message" json:"message"`
 	InboxVers    InboxVers      `codec:"inboxVers" json:"inboxVers"`
 	UnreadUpdate *UnreadUpdate  `codec:"unreadUpdate,omitempty" json:"unreadUpdate,omitempty"`
+	PrevDeleted  *MessageBoxed  `codec:"prevDeleted,omitempty" json:"prevDeleted,omitempty"`
 }
 
 func (o NewMessagePayload) DeepCopy() NewMessagePayload {
@@ -66,6 +67,13 @@ func (o NewMessagePayload) DeepCopy() NewMessagePayload {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.UnreadUpdate),
+		PrevDeleted: (func(x *MessageBoxed) *MessageBoxed {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.PrevDeleted),
 	}
 }
 

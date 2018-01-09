@@ -26,6 +26,9 @@ protocol gregor {
         MessageBoxed message;
         InboxVers inboxVers;
         union { null, UnreadUpdate } unreadUpdate;
+
+        // The previous message of the same type from the message that this messages is deleting
+        union { null, MessageBoxed } prevDeleted;
     }
 
     record ReadMessagePayload {

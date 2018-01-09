@@ -85,6 +85,13 @@
             "UnreadUpdate"
           ],
           "name": "unreadUpdate"
+        },
+        {
+          "type": [
+            null,
+            "MessageBoxed"
+          ],
+          "name": "prevDeleted"
         }
       ]
     },
