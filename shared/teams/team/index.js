@@ -22,7 +22,7 @@ import TeamInviteRow from './invite-row/container'
 import TeamMemberRow from './member-row/container'
 import TeamRequestRow from './request-row/container'
 import TeamSubteamRow from './subteam-row/container'
-
+import SubteamBanner from './subteam-banner'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 
 export type MemberRowProps = Types.MemberInfo
@@ -137,25 +137,10 @@ type TeamTabsProps = {
 }
 
 const SubteamsIntro = (index, {key}) => (
-  <Box
-    style={{
-      ...globalStyles.flexBoxRow,
-      alignItems: 'center',
-      flexShrink: 0,
-      height: globalMargins.medium,
-      padding: globalMargins.tiny,
-      width: '100%',
-    }}
-  >
-    <Box style={{...globalStyles.flexBoxRow, flexGrow: 1}}>
-      <Text style={{color: globalColors.black_40}} type="BodySmall">
-        {key}
-      </Text>
-    </Box>
-  </Box>
+  <SubteamBanner key={key}/>
 )
 
-const AddSubTeam = (index, {key}) => (
+const AddSubTeam = (index, {key, onCreateSubteam}) => (
   <Box
     style={{
       ...globalStyles.flexBoxRow,
@@ -166,7 +151,7 @@ const AddSubTeam = (index, {key}) => (
       width: '100%',
     }}
   >
-    <Box style={{...globalStyles.flexBoxRow, flexGrow: 1, justifyContent: 'center', alignItems: 'center'}}>
+    <Box onClick={onCreateSubteam} style={{...globalStyles.flexBoxRow, flexGrow: 1, justifyContent: 'center', alignItems: 'center'}}>
       <Icon type="iconfont-new" style={{color: globalColors.blue}} />
       <Text type="BodyBigLink" style={{padding: globalMargins.xtiny}}>
         Create subteam
@@ -210,6 +195,7 @@ const TeamTabs = (props: TeamTabsProps) => {
     loading = false,
     selectedTab,
     setSelectedTab,
+    yourOperations,
   } = props
   let membersLabel = 'MEMBERS'
   membersLabel += !loading || members.length !== 0 ? ' (' + members.length + ')' : ''
@@ -253,7 +239,7 @@ const TeamTabs = (props: TeamTabsProps) => {
 
   let subteamsLabel = 'SUBTEAMS'
   subteamsLabel += !loading || subteams.length !== 0 ? ' (' + subteams.count() + ')' : ''
-  if (subteams.count() > 0) {
+  if (subteams.count() > 0 || yourOperations.manageSubteams) {
     tabs.push(
       <Text
         key="subteams"
@@ -332,6 +318,7 @@ class Team extends React.PureComponent<Props> {
       setPublicityAnyMember,
       setPublicityMember,
       setPublicityTeam,
+      setSelectedTab,
       subteams,
       subTeamsProps,
       waitingForSavePublicity,
@@ -388,7 +375,7 @@ class Team extends React.PureComponent<Props> {
     } else if (selectedTab === 'subteams') {
       const subTeamsItems = [
         {key: 'intro', type: 'intro'},
-        {key: 'addSubteam', type: 'addSubteam'},
+        {key: 'addSubteam', type: 'addSubteam', onCreateSubteam},
         ...subTeamsProps,
       ]
       contents = !loading && (

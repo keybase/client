@@ -49,9 +49,9 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
     ['teams', 'teamNameToImplicitAdminUsernames', teamname],
     I.Set()
   )
-  const subteams =  state.entities.getIn(['teams', 'teamNameToSubteams', teamname], I.Set()).filter(team => team.startsWith(teamname + '.'))
   // We had to request every subteam of the top-level team, rather than just
   // child subteams of the subteam we care about.  Here's where we fix that up.
+  const subteams =  state.entities.getIn(['teams', 'teamNameToSubteams', teamname], I.Set()).filter(team => team.startsWith(teamname + '.'))
   const subTeamsProps = subteams.map(subteam => ({
     key: subteam,
     type: 'subteam',
