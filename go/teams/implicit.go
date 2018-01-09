@@ -100,19 +100,33 @@ func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 	// We will use this team. Changed later if we selected a conflict.
 	var foundSelectedConflict bool
 	teamID = imp.TeamID
-	for _, conflict := range imp.Conflicts {
+	for i, conflict := range imp.Conflicts {
+		g.Log.CDebugf(ctx, "| checking conflict: %+v (iter %d)", conflict, i)
 		conflictInfo, err := conflict.parse()
+
 		if err != nil {
 			// warn, don't fail
 			g.Log.CWarningf(ctx, "LookupImplicitTeam got conflict suffix: %v", err)
-		} else {
-			conflicts = append(conflicts, *conflictInfo)
+			err = nil
+			continue
 		}
+		conflicts = append(conflicts, *conflictInfo)
+
+		if conflictInfo == nil {
+			g.Log.CDebugf(ctx, "| got unexpected nil conflictInfo (iter %d)", i)
+			continue
+		}
+
+		g.Log.CDebugf(ctx, "| parsed conflict into conflictInfo: %+v", *conflictInfo)
+
 		if impTeamName.ConflictInfo != nil {
 			match := libkb.FormatImplicitTeamDisplayNameSuffix(*impTeamName.ConflictInfo) == libkb.FormatImplicitTeamDisplayNameSuffix(*conflictInfo)
 			if match {
 				teamID = conflict.TeamID
 				foundSelectedConflict = true
+				g.Log.CDebugf(ctx, "| found conflict suffix match: %v", teamID)
+			} else {
+				g.Log.CDebugf(ctx, "| conflict suffix didn't match (teamID %v)", conflict.TeamID)
 			}
 		}
 	}
@@ -122,7 +136,7 @@ func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 			impTeamName.IsPublic, "could not find team with suffix: %v", preResolveDisplayName)
 	}
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
-		ID:          imp.TeamID,
+		ID:          teamID,
 		Public:      impTeamName.IsPublic,
 		ForceRepoll: true,
 	})
@@ -135,7 +149,7 @@ func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 	if err != nil {
 		return teamID, teamName, impTeamName, tlfID, conflicts, err
 	}
-	referenceImpName, err := FormatImplicitTeamDisplayName(ctx, g, impTeamNameWithoutConflict)
+	referenceImpName, err := FormatImplicitTeamDisplayName(ctx, g, impTeamName)
 	if err != nil {
 		return teamID, teamName, impTeamName, tlfID, conflicts, err
 	}
