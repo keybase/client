@@ -18,10 +18,10 @@ import {
   ScrollView,
 } from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors, isMobile} from '../../styles'
-import {TeamRow} from '../main/team-list'
 import TeamInviteRow from './invite-row/container'
 import TeamMemberRow from './member-row/container'
 import TeamRequestRow from './request-row/container'
+import TeamSubteamRow from './subteam-row/container'
 
 import * as RPCTypes from '../../constants/types/rpc-gen'
 
@@ -175,9 +175,9 @@ const AddSubTeam = (index, {key}) => (
   </Box>
 )
 
-const SubteamRow = (index, {key, members}) => (
+const SubteamRow = (index, {subteam}) => (
   <Box style={{...globalStyles.flexBoxColumn, paddingLeft: globalMargins.tiny}}>
-    <TeamRow isNew={false} newRequests={0} name={key} membercount={members} />
+    <TeamSubteamRow teamname={subteam} />
   </Box>
 )
 
@@ -188,7 +188,7 @@ const subTeamsRow = (index, row) => {
     case 'addSubteam':
       return AddSubTeam(index, row)
     default:
-      return SubteamRow(index, row)
+      return TeamSubteamRow(index, row)
   }
 }
 

@@ -26,12 +26,11 @@ const mapStateToProps = (
   state: TypedState,
   {teamname}: OwnProps
 ): StateProps => ({
-  member: state.entities.getIn(['teams', 'teammembercounts', teamname], 0),
+  members: state.entities.getIn(['teams', 'teammembercounts', teamname], 0),
 })
 
 type DispatchProps = {
   onClick: () => void,
-
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps): DispatchProps => ({
