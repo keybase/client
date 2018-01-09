@@ -67,7 +67,7 @@ function messageCreateComponent(type, key, children, options) {
     case 'markup':
       return <Box key={key}>{children}</Box>
     case 'mention':
-      return <Mention username={children[0]} service={options.service || ''} key={key} style={wrapStyle} />
+      return <Mention username={children[0]} key={key} style={wrapStyle} />
     case 'inline-code':
       return (
         <Text type="Body" key={key} style={codeSnippetStyle}>

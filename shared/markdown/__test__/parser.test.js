@@ -2,8 +2,8 @@
 /* eslint-env jest */
 import parser, {isPlainText} from '../parser'
 
-function check(md) {
-  const ast = parser.parse(md)
+function check(md, options) {
+  const ast = parser.parse(md, options)
   // $FlowIssue
   expect(ast).toMatchSnapshot()
 
@@ -64,10 +64,12 @@ describe('Markdown parser', () => {
     check('thisis(*bold*) and(_italic_) and,~striked~! (*woot*) another.*test*.case')
   })
 
+  const isValidMention = (s: string) => s.startsWith('valid')
+
   it('parses punctuation then formatting', () => {
     check('(*bold*')
     check('(_italic_')
-    check('(@marco@keybase')
+    check('(@validmarco', {isValidMention})
   })
 
   it('parses double bold as text', () => {
@@ -200,15 +202,24 @@ this is a code block with two newline above\`\`\`
     ([keybase.io])
 `)
   })
-  it('parses mentions correctly', () => {
-    check('hello there @marco@keybase')
+
+  it('does not parses mentions without isValidMention', () => {
+    check('hello there @marco')
   })
-  it('parses mentions correctly, regardless of case', () => {
-    check('hello there @marco@Keybase')
+  it('parses mentions correctly', () => {
+    check('hello there @marco @validmarco', {isValidMention})
   })
   it('parses formatted mentions', () => {
-    check('~@marco@keybase~')
-    check('*@marco@keybase*')
-    check('_@marco@keybase_')
+    check('~@validmarco~', {isValidMention})
+    check('*@validmarco*', {isValidMention})
+    // The trailing underscore is parsed as part of the mention.
+    check('_@validmarco_', {isValidMention})
+    // Even if we disallow validmarco_ as a valid mention, prefixes
+    // won't be tried, and so the whole thing renders as regular text.
+    check('_@validmarco_', {isValidMention: (s: string) => s === 'validmarco'})
+  })
+  it('ignores mentions in code', () => {
+    check('@validmarco `@validmarco` `some inline code @validmarco`', {isValidMention})
+    check('@validmarco ```@validmarco``` ```this is a code block @validmarco```', {isValidMention})
   })
 })

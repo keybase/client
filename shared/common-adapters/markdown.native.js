@@ -154,7 +154,6 @@ function messageCreateComponent(style, allowFontScaling) {
         return (
           <Mention
             username={children[0]}
-            service={options.service || ''}
             key={key}
             style={neutralStyle}
             allowFontScaling={allowFontScaling}

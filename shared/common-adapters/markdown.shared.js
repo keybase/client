@@ -39,21 +39,16 @@ function processAST(ast, createComponent) {
   return ast.component
 }
 
-function preprocessMarkdown(markdown: string, meta: ?MarkdownMeta) {
+function isValidMention(meta: ?MarkdownMeta, mention: string): boolean {
   if (!meta || !meta.mentions || !meta.channelMention) {
-    return markdown
+    return false
   }
   const {channelMention, mentions} = meta
   if (channelMention === 'None' && mentions.length === 0) {
-    return markdown
+    return false
   }
 
-  return markdown.replace(/\B@([a-z0-9][a-z0-9_]+)/g, (match, matchedGroup) => {
-    if (matchedGroup === 'here' || matchedGroup === 'channel' || mentions.has(matchedGroup)) {
-      return `${match}@keybase`
-    }
-    return match
-  })
+  return mention === 'here' || mention === 'channel' || mentions.has(mention)
 }
 
 export function parseMarkdown(
@@ -65,8 +60,14 @@ export function parseMarkdown(
   if (plainText) {
     return plainText
   }
+
   try {
-    return processAST(parser.parse(preprocessMarkdown(markdown || '', meta)), markdownCreateComponent)
+    return processAST(
+      parser.parse(markdown || '', {
+        isValidMention: (mention: string) => isValidMention(meta, mention),
+      }),
+      markdownCreateComponent
+    )
   } catch (err) {
     logger.error('Markdown parsing failed:', err)
     return markdown
