@@ -147,7 +147,7 @@ func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 	if err != nil {
 		return teamID, teamName, impTeamName, tlfID, conflicts, err
 	}
-	referenceImpName, err := FormatImplicitTeamDisplayName(ctx, g, impTeamNameWithoutConflict)
+	referenceImpName, err := FormatImplicitTeamDisplayName(ctx, g, impTeamName)
 	if err != nil {
 		return teamID, teamName, impTeamName, tlfID, conflicts, err
 	}
