@@ -2878,16 +2878,6 @@ function peg$parse(input, options) {
       return result
     }
 
-    function prefix (pfix, input) {
-      if (typeof input ===  'string') {
-        return pfix + input
-      } else if (Array.isArray(input)) {
-        input.unshift(pfix)
-        return input
-      }
-      return input
-    }
-
 
   peg$result = peg$startRuleFunction();
 
