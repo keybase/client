@@ -142,11 +142,12 @@ function* _selectConversation(action: ChatGen.SelectConversationPayload): Saga.S
 function _selectOrPreviewConversation(action: ChatGen.SelectOrPreviewConversationPayload, state: TypedState) {
   const {conversationIDKey, previousPath} = action.payload
 
-  logger.info(`selectOrPreviewConversation: selecting: ${conversationIDKey}`)
   const inbox = state.chat.getIn(['inbox', conversationIDKey])
   if (inbox) {
+    logger.info(`selectOrPreviewConversation: selecting: ${conversationIDKey}`)
     return Saga.put(ChatGen.createSelectConversation({conversationIDKey, fromUser: true}))
   } else {
+    logger.info(`selectOrPreviewConversation: previewing: ${conversationIDKey}`)
     return Saga.sequentially([
       Saga.put(ChatGen.createPreviewChannel({conversationIDKey})),
       Saga.put(navigateTo([chatTab, {selected: conversationIDKey, props: {previousPath}}])),
