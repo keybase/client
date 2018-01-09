@@ -3350,52 +3350,57 @@ func (fbo *folderBlockOps) getDeferredWriteCountForTest(lState *lockState) int {
 	return writes
 }
 
-func (fbo *folderBlockOps) updatePointer(kmd KeyMetadata, oldPtr BlockPointer, newPtr BlockPointer, shouldPrefetch bool) {
-	updated := fbo.nodeCache.UpdatePointer(oldPtr.Ref(), newPtr)
-	if !updated {
-		return
+func (fbo *folderBlockOps) updatePointer(kmd KeyMetadata, oldPtr BlockPointer, newPtr BlockPointer, shouldPrefetch bool) NodeID {
+	updatedNode := fbo.nodeCache.UpdatePointer(oldPtr.Ref(), newPtr)
+	if updatedNode == nil || oldPtr.ID == newPtr.ID {
+		return nil
 	}
-	// Only prefetch if the updated pointer is a new block ID.
-	if oldPtr.ID != newPtr.ID {
-		// TODO: Remove this comment when we're done debugging because it'll be everywhere.
-		ctx := context.TODO()
-		fbo.log.CDebugf(ctx, "Updated reference for pointer %s to %s.", oldPtr.ID, newPtr.ID)
-		if shouldPrefetch {
-			// Prefetch the new ref, but only if the old ref already exists in
-			// the block cache. Ideally we'd always prefetch it, but we need
-			// the type of the block so that we can call `NewEmpty`.
-			block, _, lifetime, err :=
-				fbo.config.BlockCache().GetWithPrefetch(oldPtr)
-			if err != nil {
-				return
-			}
 
-			// No need to cache because it's already cached.
-			_ = fbo.config.BlockOps().BlockRetriever().Request(ctx,
-				updatePointerPrefetchPriority, kmd, newPtr, block.NewEmpty(),
-				lifetime)
+	// Only prefetch if the updated pointer is a new block ID.
+	// TODO: Remove this comment when we're done debugging because it'll be everywhere.
+	ctx := context.TODO()
+	fbo.log.CDebugf(ctx, "Updated reference for pointer %s to %s.", oldPtr.ID, newPtr.ID)
+	if shouldPrefetch {
+		// Prefetch the new ref, but only if the old ref already exists in
+		// the block cache. Ideally we'd always prefetch it, but we need
+		// the type of the block so that we can call `NewEmpty`.
+		block, _, lifetime, err :=
+			fbo.config.BlockCache().GetWithPrefetch(oldPtr)
+		if err != nil {
+			return updatedNode
 		}
-		// Cancel any prefetches for the old pointer from the prefetcher.
-		fbo.config.BlockOps().Prefetcher().CancelPrefetch(oldPtr.ID)
+
+		// No need to cache because it's already cached.
+		_ = fbo.config.BlockOps().BlockRetriever().Request(ctx,
+			updatePointerPrefetchPriority, kmd, newPtr, block.NewEmpty(),
+			lifetime)
 	}
+	// Cancel any prefetches for the old pointer from the prefetcher.
+	fbo.config.BlockOps().Prefetcher().CancelPrefetch(oldPtr.ID)
+	return updatedNode
 }
 
 // UpdatePointers updates all the pointers in the node cache
 // atomically.  If `afterUpdateFn` is non-nil, it's called under the
 // same block lock under which the pointers were updated.
 func (fbo *folderBlockOps) UpdatePointers(kmd KeyMetadata, lState *lockState,
-	op op, shouldPrefetch bool, afterUpdateFn func() error) error {
+	op op, shouldPrefetch bool, afterUpdateFn func() error) (
+	affectedNodeIDs []NodeID, err error) {
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
 	for _, update := range op.allUpdates() {
-		fbo.updatePointer(kmd, update.Unref, update.Ref, shouldPrefetch)
+		updatedNode := fbo.updatePointer(
+			kmd, update.Unref, update.Ref, shouldPrefetch)
+		if updatedNode != nil {
+			affectedNodeIDs = append(affectedNodeIDs, updatedNode)
+		}
 	}
 
 	if afterUpdateFn == nil {
-		return nil
+		return affectedNodeIDs, nil
 	}
 
-	return afterUpdateFn()
+	return affectedNodeIDs, afterUpdateFn()
 }
 
 func (fbo *folderBlockOps) unlinkDuringFastForwardLocked(ctx context.Context,
@@ -3418,17 +3423,17 @@ func (fbo *folderBlockOps) unlinkDuringFastForwardLocked(ctx context.Context,
 
 func (fbo *folderBlockOps) fastForwardDirAndChildrenLocked(ctx context.Context,
 	lState *lockState, currDir path, children map[string]map[pathNode]bool,
-	kmd KeyMetadata) ([]NodeChange, error) {
+	kmd KeyMetadata) (
+	changes []NodeChange, affectedNodeIDs []NodeID, err error) {
 	fbo.blockLock.AssertLocked(lState)
 	dirBlock, err := fbo.getDirLocked(ctx, lState, kmd, currDir, blockRead)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	prefix := currDir.String()
 
 	// TODO: parallelize me?
-	var changes []NodeChange
 	for child := range children[prefix] {
 		entry, ok := dirBlock.Children[child.Name]
 		if !ok {
@@ -3450,24 +3455,28 @@ func (fbo *folderBlockOps) fastForwardDirAndChildrenLocked(ctx context.Context,
 					change.DirUpdated = append(change.DirUpdated, subchild.Name)
 				}
 				changes = append(changes, change)
+				affectedNodeIDs = append(affectedNodeIDs, node.GetID())
 			}
 
-			childChanges, err := fbo.fastForwardDirAndChildrenLocked(
-				ctx, lState, newPath, children, kmd)
+			childChanges, childAffectedNodeIDs, err :=
+				fbo.fastForwardDirAndChildrenLocked(
+					ctx, lState, newPath, children, kmd)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 			changes = append(changes, childChanges...)
+			affectedNodeIDs = append(affectedNodeIDs, childAffectedNodeIDs...)
 		} else if node != nil {
 			// File -- invalidate the entire file contents.
 			changes = append(changes, NodeChange{
 				Node:        node,
 				FileUpdated: []WriteRange{{Len: 0, Off: 0}},
 			})
+			affectedNodeIDs = append(affectedNodeIDs, node.GetID())
 		}
 	}
 	delete(children, prefix)
-	return changes, nil
+	return changes, affectedNodeIDs, nil
 }
 
 // FastForwardAllNodes attempts to update the block pointers
@@ -3478,10 +3487,10 @@ func (fbo *folderBlockOps) fastForwardDirAndChildrenLocked(ctx context.Context,
 // nil error because there's nothing to be done.
 func (fbo *folderBlockOps) FastForwardAllNodes(ctx context.Context,
 	lState *lockState, md ReadOnlyRootMetadata) (
-	changes []NodeChange, err error) {
+	changes []NodeChange, affectedNodeIDs []NodeID, err error) {
 	if fbo.nodeCache == nil {
 		// Nothing needs to be done!
-		return nil, nil
+		return nil, nil, nil
 	}
 
 	// Take a hard lock through this whole process.  TODO: is there
@@ -3493,7 +3502,7 @@ func (fbo *folderBlockOps) FastForwardAllNodes(ctx context.Context,
 	nodes := fbo.nodeCache.AllNodes()
 	if len(nodes) == 0 {
 		// Nothing needs to be done!
-		return nil, nil
+		return nil, nil, nil
 	}
 	fbo.log.CDebugf(ctx, "Fast-forwarding %d nodes", len(nodes))
 	defer func() { fbo.log.CDebugf(ctx, "Fast-forward complete: %v", err) }()
@@ -3521,7 +3530,7 @@ func (fbo *folderBlockOps) FastForwardAllNodes(ctx context.Context,
 	}
 
 	if !rootPath.isValid() {
-		return nil, errors.New("Couldn't find the root path")
+		return nil, nil, errors.New("Couldn't find the root path")
 	}
 
 	fbo.log.CDebugf(ctx, "Fast-forwarding root %v -> %v",
@@ -3536,14 +3545,17 @@ func (fbo *folderBlockOps) FastForwardAllNodes(ctx context.Context,
 			change.DirUpdated = append(change.DirUpdated, child.Name)
 		}
 		changes = append(changes, change)
+		affectedNodeIDs = append(affectedNodeIDs, rootNode.GetID())
 	}
 
-	childChanges, err := fbo.fastForwardDirAndChildrenLocked(
-		ctx, lState, rootPath, children, md)
+	childChanges, childAffectedNodeIDs, err :=
+		fbo.fastForwardDirAndChildrenLocked(
+			ctx, lState, rootPath, children, md)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	changes = append(changes, childChanges...)
+	affectedNodeIDs = append(affectedNodeIDs, childAffectedNodeIDs...)
 
 	// Unlink any children that remain.
 	for _, childPNs := range children {
@@ -3552,7 +3564,7 @@ func (fbo *folderBlockOps) FastForwardAllNodes(ctx context.Context,
 				ctx, lState, md, child.BlockPointer.Ref())
 		}
 	}
-	return changes, nil
+	return changes, affectedNodeIDs, nil
 }
 
 type chainsPathPopulator interface {

@@ -157,9 +157,9 @@ func (ncs *nodeCacheStandard) Get(ref BlockRef) Node {
 
 // UpdatePointer implements the NodeCache interface for nodeCacheStandard.
 func (ncs *nodeCacheStandard) UpdatePointer(
-	oldRef BlockRef, newPtr BlockPointer) (updated bool) {
+	oldRef BlockRef, newPtr BlockPointer) (updatedNode NodeID) {
 	if oldRef == (BlockRef{}) && newPtr == (BlockPointer{}) {
-		return false
+		return nil
 	}
 
 	if !oldRef.IsValid() {
@@ -174,18 +174,18 @@ func (ncs *nodeCacheStandard) UpdatePointer(
 	defer ncs.lock.Unlock()
 	entry, ok := ncs.nodes[oldRef]
 	if !ok {
-		return false
+		return nil
 	}
 
 	// Cannot update the pointer for an unlinked node.
 	if entry.core.cachedPath.isValid() {
-		return false
+		return nil
 	}
 
 	entry.core.pathNode.BlockPointer = newPtr
 	delete(ncs.nodes, oldRef)
 	ncs.nodes[newPtr.Ref()] = entry
-	return true
+	return entry.core
 }
 
 // Move implements the NodeCache interface for nodeCacheStandard.

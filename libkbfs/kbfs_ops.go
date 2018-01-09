@@ -1076,7 +1076,7 @@ func (kofo *kbfsOpsFavoriteObserver) LocalChange(
 }
 
 func (kofo *kbfsOpsFavoriteObserver) BatchChanges(
-	_ context.Context, _ []NodeChange) {
+	_ context.Context, _ []NodeChange, _ []NodeID) {
 }
 
 func (kofo *kbfsOpsFavoriteObserver) TlfHandleChange(

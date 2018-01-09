@@ -1697,9 +1697,14 @@ type Observer interface {
 	// updated locally, but not yet saved at the server.
 	LocalChange(ctx context.Context, node Node, write WriteRange)
 	// BatchChanges announces that the nodes have all been updated
-	// together atomically.  Each NodeChange in changes affects the
-	// same top-level folder and branch.
-	BatchChanges(ctx context.Context, changes []NodeChange)
+	// together atomically.  Each NodeChange in `changes` affects the
+	// same top-level folder and branch. `allAffectedNodeIDs` is a
+	// list of all the nodes that had their underlying data changed,
+	// even if it wasn't an user-visible change (e.g., if a
+	// subdirectory was updated, the directory block for the TLF root
+	// is updated but that wouldn't be visible to a user).
+	BatchChanges(ctx context.Context, changes []NodeChange,
+		allAffectedNodeIDs []NodeID)
 	// TlfHandleChange announces that the handle of the corresponding
 	// folder branch has changed, likely due to previously-unresolved
 	// assertions becoming resolved.  This indicates that the listener
@@ -1940,8 +1945,9 @@ type NodeCache interface {
 	Get(ref BlockRef) Node
 	// UpdatePointer updates the BlockPointer for the corresponding
 	// Node.  NodeCache ignores this call when oldRef is not cached in
-	// any Node. Returns whether the pointer was updated.
-	UpdatePointer(oldRef BlockRef, newPtr BlockPointer) bool
+	// any Node. Returns whether the ID of the node that was updated,
+	// or `nil` if nothing was updated.
+	UpdatePointer(oldRef BlockRef, newPtr BlockPointer) NodeID
 	// Move swaps the parent node for the corresponding Node, and
 	// updates the node's name.  NodeCache ignores the call when ptr
 	// is not cached.  If newParent is nil, it treats the ptr's

@@ -4346,12 +4346,13 @@ func (fbo *folderBranchOps) syncAllLocked(
 		func(md ImmutableRootMetadata) error {
 			// Just update the pointers using the resolutionOp, all
 			// the ops have already been notified.
-			err = fbo.blocks.UpdatePointers(
+			affectedNodeIDs, err := fbo.blocks.UpdatePointers(
 				md, lState, md.data.Changes.Ops[0], false, afterUpdateFn)
 			if err != nil {
 				return err
 			}
 
+			fbo.observers.batchChanges(ctx, nil, affectedNodeIDs)
 			fbo.editHistory.UpdateHistory(ctx, []ImmutableRootMetadata{md})
 			return nil
 		})
@@ -4585,7 +4586,8 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 		return err
 	}
 
-	err = fbo.blocks.UpdatePointers(md, lState, op, shouldPrefetch, nil)
+	affectedNodeIDs, err := fbo.blocks.UpdatePointers(
+		md, lState, op, shouldPrefetch, nil)
 	if err != nil {
 		return err
 	}
@@ -4599,11 +4601,10 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 	switch realOp := op.(type) {
 	default:
 		fbo.log.CDebugf(ctx, "Unknown op: %s", op)
-		return nil
 	case *createOp:
 		node := fbo.nodeCache.Get(realOp.Dir.Ref.Ref())
 		if node == nil {
-			return nil // Nothing to do.
+			break
 		}
 		fbo.log.CDebugf(ctx, "notifyOneOp: create %s in node %s",
 			realOp.NewName, getNodeIDStr(node))
@@ -4614,7 +4615,7 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 	case *rmOp:
 		node := fbo.nodeCache.Get(realOp.Dir.Ref.Ref())
 		if node == nil {
-			return nil // Nothing to do.
+			break
 		}
 		fbo.log.CDebugf(ctx, "notifyOneOp: remove %s in node %s",
 			realOp.OldName, getNodeIDStr(node))
@@ -4693,7 +4694,7 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 	case *syncOp:
 		node := fbo.nodeCache.Get(realOp.File.Ref.Ref())
 		if node == nil {
-			return nil // Nothing to do.
+			break
 		}
 		fbo.log.CDebugf(ctx, "notifyOneOp: sync %d writes in node %s",
 			len(realOp.Writes), getNodeIDStr(node))
@@ -4705,7 +4706,7 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 	case *setAttrOp:
 		node := fbo.nodeCache.Get(realOp.Dir.Ref.Ref())
 		if node == nil {
-			return nil // Nothing to do.
+			break
 		}
 		fbo.log.CDebugf(ctx, "notifyOneOp: setAttr %s for file %s in node %s",
 			realOp.Attr, realOp.Name, getNodeIDStr(node))
@@ -4721,7 +4722,7 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 			return err
 		}
 		if childNode == nil {
-			return nil // Nothing to do.
+			break
 		}
 
 		changes = append(changes, NodeChange{
@@ -4798,12 +4799,11 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 			}
 			_ = fbo.nodeCache.Unlink(p.tailRef(), p, de)
 		}
-		if len(changes) == 0 {
-			return nil
-		}
 	}
 
-	fbo.observers.batchChanges(ctx, changes)
+	if len(changes) > 0 || len(affectedNodeIDs) > 0 {
+		fbo.observers.batchChanges(ctx, changes, affectedNodeIDs)
+	}
 	return nil
 }
 
@@ -5616,7 +5616,7 @@ func (fbo *folderBranchOps) doFastForwardLocked(ctx context.Context,
 
 	fbo.log.CDebugf(ctx, "Fast-forwarding from rev %d to rev %d",
 		fbo.latestMergedRevision, currHead.Revision())
-	changes, err := fbo.blocks.FastForwardAllNodes(
+	changes, affectedNodeIDs, err := fbo.blocks.FastForwardAllNodes(
 		ctx, lState, currHead.ReadOnly())
 	if err != nil {
 		return err
@@ -5629,7 +5629,7 @@ func (fbo *folderBranchOps) doFastForwardLocked(ctx context.Context,
 
 	// Invalidate all the affected nodes.
 	if len(changes) > 0 {
-		fbo.observers.batchChanges(ctx, changes)
+		fbo.observers.batchChanges(ctx, changes, affectedNodeIDs)
 	}
 
 	// Reset the edit history.  TODO: notify any listeners that we've

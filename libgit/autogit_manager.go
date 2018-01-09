@@ -506,7 +506,8 @@ func (am *AutogitManager) LocalChange(
 
 // BatchChanges implements the libkbfs.Observer interface for AutogitManager.
 func (am *AutogitManager) BatchChanges(
-	ctx context.Context, changes []libkbfs.NodeChange) {
+	ctx context.Context, changes []libkbfs.NodeChange,
+	affectedNodeIDs []libkbfs.NodeID) {
 	am.registryLock.RLock()
 	defer am.registryLock.RUnlock()
 	for _, change := range changes {

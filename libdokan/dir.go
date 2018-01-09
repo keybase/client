@@ -148,7 +148,8 @@ func (f *Folder) LocalChange(ctx context.Context, node libkbfs.Node, write libkb
 
 // BatchChanges is called for changes originating anywhere, including
 // other hosts.
-func (f *Folder) BatchChanges(ctx context.Context, changes []libkbfs.NodeChange) {
+func (f *Folder) BatchChanges(
+	ctx context.Context, changes []libkbfs.NodeChange, _ []libkbfs.NodeID) {
 	f.fs.queueNotification(func() {})
 }
 

@@ -2368,7 +2368,7 @@ type stallingNodeCache struct {
 }
 
 func (snc *stallingNodeCache) UpdatePointer(
-	oldRef BlockRef, newPtr BlockPointer) bool {
+	oldRef BlockRef, newPtr BlockPointer) NodeID {
 	select {
 	case <-snc.doStallUpdate:
 		<-snc.unstallUpdate

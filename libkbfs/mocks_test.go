@@ -5424,13 +5424,13 @@ func (mr *MockObserverMockRecorder) LocalChange(ctx, node, write interface{}) *g
 }
 
 // BatchChanges mocks base method
-func (m *MockObserver) BatchChanges(ctx context.Context, changes []NodeChange) {
-	m.ctrl.Call(m, "BatchChanges", ctx, changes)
+func (m *MockObserver) BatchChanges(ctx context.Context, changes []NodeChange, allAffectedNodeIDs []NodeID) {
+	m.ctrl.Call(m, "BatchChanges", ctx, changes, allAffectedNodeIDs)
 }
 
 // BatchChanges indicates an expected call of BatchChanges
-func (mr *MockObserverMockRecorder) BatchChanges(ctx, changes interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BatchChanges", reflect.TypeOf((*MockObserver)(nil).BatchChanges), ctx, changes)
+func (mr *MockObserverMockRecorder) BatchChanges(ctx, changes, allAffectedNodeIDs interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BatchChanges", reflect.TypeOf((*MockObserver)(nil).BatchChanges), ctx, changes, allAffectedNodeIDs)
 }
 
 // TlfHandleChange mocks base method
@@ -6781,9 +6781,9 @@ func (mr *MockNodeCacheMockRecorder) Get(ref interface{}) *gomock.Call {
 }
 
 // UpdatePointer mocks base method
-func (m *MockNodeCache) UpdatePointer(oldRef BlockRef, newPtr BlockPointer) bool {
+func (m *MockNodeCache) UpdatePointer(oldRef BlockRef, newPtr BlockPointer) NodeID {
 	ret := m.ctrl.Call(m, "UpdatePointer", oldRef, newPtr)
-	ret0, _ := ret[0].(bool)
+	ret0, _ := ret[0].(NodeID)
 	return ret0
 }
 

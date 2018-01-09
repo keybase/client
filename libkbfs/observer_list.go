@@ -49,11 +49,11 @@ func (ol *observerList) localChange(
 }
 
 func (ol *observerList) batchChanges(
-	ctx context.Context, changes []NodeChange) {
+	ctx context.Context, changes []NodeChange, affectedNodeIDs []NodeID) {
 	ol.lock.RLock()
 	defer ol.lock.RUnlock()
 	for _, o := range ol.observers {
-		o.BatchChanges(ctx, changes)
+		o.BatchChanges(ctx, changes, affectedNodeIDs)
 	}
 }
 

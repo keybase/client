@@ -43,9 +43,11 @@ func (t *testCRObserver) LocalChange(ctx context.Context, node Node,
 }
 
 func (t *testCRObserver) BatchChanges(ctx context.Context,
-	changes []NodeChange) {
+	changes []NodeChange, _ []NodeID) {
 	t.changes = append(t.changes, changes...)
-	t.c <- struct{}{}
+	if len(changes) > 0 {
+		t.c <- struct{}{}
+	}
 }
 
 func (t *testCRObserver) TlfHandleChange(ctx context.Context,
@@ -365,7 +367,7 @@ func TestUnmergedAfterRestart(t *testing.T) {
 		rootNode1B.GetFolderBranch())
 	require.NoError(t, err)
 
-	// we should have had two updates, one for the unstaging and one
+	// we should have had at least two updates, one for the unstaging and one
 	// for the fast-forward
 	select {
 	case <-c:

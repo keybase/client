@@ -239,7 +239,8 @@ func (f *Folder) localChangeInvalidate(ctx context.Context, node libkbfs.Node,
 
 // BatchChanges is called for changes originating anywhere, including
 // other hosts.
-func (f *Folder) BatchChanges(ctx context.Context, changes []libkbfs.NodeChange) {
+func (f *Folder) BatchChanges(
+	ctx context.Context, changes []libkbfs.NodeChange, _ []libkbfs.NodeID) {
 	if !f.fs.conn.Protocol().HasInvalidate() {
 		// OSXFUSE 2.x does not support notifications
 		return
