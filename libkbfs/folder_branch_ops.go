@@ -903,6 +903,9 @@ func (fbo *folderBranchOps) setHeadSuccessorLocked(ctx context.Context,
 	newName := newHandle.GetCanonicalName()
 
 	if !resolvesTo {
+		fbo.log.CDebugf(ctx, "Incompatible handle error, "+
+			"oldHandle: %#v, partialResolvedOldHandle: %#v",
+			oldHandle, partialResolvedOldHandle)
 		return IncompatibleHandleError{
 			oldName,
 			partialResolvedOldHandle.GetCanonicalName(),
