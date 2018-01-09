@@ -730,10 +730,14 @@ func (e *Identify2WithUID) runIdentifyUI(netContext context.Context, ctx *Contex
 			// the reason and don't rate limit if it is a UI profile identify.
 			checkRateLimit = false
 		}
+		if e.arg.ForceDisplay {
+			// don't rate limit ForceDisplay calls
+			checkRateLimit = false
+		}
 	}
 
 	if checkRateLimit {
-		if !e.G().IdentifyUILimiter.Wait(5 * time.Millisecond) {
+		if !e.G().IdentifyUILimiter.WaitShort() {
 			e.G().Log.Debug("| identify ui rate limit exceeded, suppressing tracker popups")
 			iui = newLoopbackIdentifyUI(e.G(), &e.trackBreaks)
 		}
