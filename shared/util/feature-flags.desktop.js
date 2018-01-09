@@ -14,6 +14,7 @@ const featureOn = (key: $Keys<FeatureFlags>) => features.includes(key)
 
 const ff: FeatureFlags = {
   admin: false,
+  newPeopleTab: false,
   plansEnabled: false,
   tabGitEnabled: true,
   tabPeopleEnabled: true,
@@ -23,6 +24,7 @@ const ff: FeatureFlags = {
 
 const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
   impTeamChatEnabled: true,
+  newPeopleTab: true,
 }
 
 // load overrides

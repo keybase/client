@@ -1,0 +1,22 @@
+{
+  "prelude": [
+    "import * as Types from '../constants/types/people'"
+  ],
+  "actions": {
+    "getPeopleData": {
+      "markViewed": "boolean",
+      "numFollowSuggestionsWanted": "number"
+    },
+    "peopleDataProcessed": {
+      "oldItems": "I.List<Types.PeopleScreenItem>",
+      "newItems": "I.List<Types.PeopleScreenItem>",
+      "followSuggestions": "I.List<Types.FollowSuggestion>",
+      "lastViewed": "Date",
+      "version": "number"
+    },
+    "skipTodo": {
+      "type": "Types.TodoType"
+    },
+    "setupPeopleHandlers": {}
+  }
+}
