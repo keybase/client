@@ -175,12 +175,6 @@ const AddSubTeam = (index, {key}) => (
   </Box>
 )
 
-const SubteamRow = (index, {subteam}) => (
-  <Box style={{...globalStyles.flexBoxColumn, paddingLeft: globalMargins.tiny}}>
-    <TeamSubteamRow teamname={subteam} />
-  </Box>
-)
-
 const subTeamsRow = (index, row) => {
   switch (row.type) {
     case 'intro':
@@ -403,7 +397,7 @@ class Team extends React.PureComponent<Props> {
           fixedHeight={48}
           keyProperty="key"
           renderItem={subTeamsRow}
-          style={{alignSelf: 'stretch'}}
+          style={{alignSelf: 'stretch', marginLeft: globalMargins.tiny}}
         />
       )
     } else if (selectedTab === 'invites') {

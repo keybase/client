@@ -54,7 +54,6 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
   // child subteams of the subteam we care about.  Here's where we fix that up.
   const subTeamsProps = subteams.map(subteam => ({
     key: subteam,
-    members: state.entities.getIn(['teams', 'teammembercounts', subteam], 0),
     type: 'subteam',
     teamname: subteam,
   }))
@@ -292,6 +291,12 @@ export default compose(
   lifecycle({
     componentDidMount: function() {
       this.props._loadTeam(this.props.name)
+    },
+    componentWillReceiveProps: function(nextProps) {
+      if (this.props.name !== nextProps.name) {
+        this.props._loadTeam(nextProps.name)
+        this.props.setSelectedTab('members')
+      }
     },
   }),
   // Now that we've calculated old vs. new state (for greying out Save button),
