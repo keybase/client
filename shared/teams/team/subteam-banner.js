@@ -71,9 +71,11 @@ const Banner = ({onReadMore, onHideBanner}: Props) => (
         Read more about subteams
       </Text>
     </Box>
-    <Box style={closeIconStyle}>
-      <Icon type="iconfont-close" onClick={onHideBanner} />
-    </Box>
+    {onHideBanner && 
+      <Box style={closeIconStyle}>
+        <Icon type="iconfont-close" onClick={onHideBanner} />
+      </Box>
+    }
   </Box>
 )
 
