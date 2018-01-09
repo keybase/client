@@ -23,6 +23,8 @@ type ServerResponseRepo struct {
 	KeyGeneration         keybase1.PerTeamKeyGeneration `json:"key_generation"`
 	LastModifyingUID      keybase1.UID                  `json:"last_writer_uid"`
 	LastModifyingDeviceID keybase1.DeviceID             `json:"last_writer_device_id"`
+	ChatConvID            string                        `json:"chat_conv_id"`
+	ChatDisabled          bool                          `json:"chat_disabled"`
 }
 
 type ServerResponse struct {
@@ -261,6 +263,15 @@ func getMetadataInnerSingle(ctx context.Context, g *libkb.GlobalContext,
 		return nil, false, err
 	}
 
+	var settings *keybase1.GitTeamRepoSettings
+	if repoFolder.FolderType == keybase1.FolderType_TEAM {
+		pset, err := convertTeamRepoSettings(ctx, g, responseRepo.ChatConvID, responseRepo.ChatDisabled)
+		if err != nil {
+			return nil, false, err
+		}
+		settings = &pset
+	}
+
 	return &keybase1.GitRepoInfo{
 		Folder:         repoFolder,
 		RepoID:         responseRepo.RepoID,
@@ -275,6 +286,7 @@ func getMetadataInnerSingle(ctx context.Context, g *libkb.GlobalContext,
 			LastModifyingDeviceID:   responseRepo.LastModifyingDeviceID,
 			LastModifyingDeviceName: deviceName,
 		},
+		TeamRepoSettings: settings,
 	}, false, nil
 }
 
