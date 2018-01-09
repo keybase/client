@@ -41,16 +41,10 @@ const MentionCatcher = ({onClick}) => (
   />
 )
 class ConversationInput extends Component<InputProps, State> {
-  state: State
-  _inputRef: ?any
-
-  constructor() {
-    super()
-    this.state = {
-      upArrowCounter: 0,
-      downArrowCounter: 0,
-      pickSelectedCounter: 0,
-    }
+  state: State = {
+    downArrowCounter: 0,
+    pickSelectedCounter: 0,
+    upArrowCounter: 0,
   }
 
   componentDidMount() {
@@ -213,9 +207,16 @@ class ConversationInput extends Component<InputProps, State> {
   }
 
   _getWordAtCursor(includeWordAfterCursor: boolean): string {
-    const text = this._inputRef && this._inputRef.getValue()
-    const selections = this._inputRef && this._inputRef.selections()
-    if (text && selections && selections.selectionStart === selections.selectionEnd) {
+    const inputRef = this.props.inputGetRef()
+    if (!inputRef) {
+      return ''
+    }
+    const text = inputRef.getValue()
+    if (!text) {
+      return ''
+    }
+    const selections = inputRef.selections()
+    if (selections && selections.selectionStart === selections.selectionEnd) {
       const upToCursor = text.substring(0, selections.selectionStart)
       const words = upToCursor.split(' ')
       const lastWord = words[words.length - 1]
@@ -234,13 +235,17 @@ class ConversationInput extends Component<InputProps, State> {
   }
 
   _replaceWordAtCursor(newWord: string): void {
-    const selections = this._inputRef && this._inputRef.selections()
+    const inputRef = this.props.inputGetRef()
+    if (!inputRef) {
+      return
+    }
+    const selections = inputRef.selections()
     const word = this._getWordAtCursor(false)
 
     if (word && selections && selections.selectionStart === selections.selectionEnd) {
       const startOfWordIdx = selections.selectionStart - word.length
       if (startOfWordIdx >= 0) {
-        this._inputRef && this._inputRef.replaceText(newWord, startOfWordIdx, selections.selectionStart)
+        inputRef.replaceText(newWord, startOfWordIdx, selections.selectionStart)
       }
     }
   }
@@ -257,10 +262,8 @@ class ConversationInput extends Component<InputProps, State> {
       logger.info('Ignoring chat submit while still loading')
       return
     }
-    if (this.props.text) {
-      this.props.onSubmit(this.props.text)
-      // this.props.setText('')
-    }
+
+    this.props.text && this.props.onSubmit(this.props.text)
   }
 
   // componentWillReceiveProps(nextProps: Props) {
@@ -268,11 +271,6 @@ class ConversationInput extends Component<InputProps, State> {
   // this.props.onUpdateTyping(!!nextProps.text)
   // }
   // }
-
-  _inputSetRef(r) {
-    this.props.inputSetRef(r)
-    this._inputRef = r
-  }
 
   _insertMention = (u: string, options?: {notUser: boolean}) => {
     this._replaceWordAtCursor(`@${u} `)
@@ -320,7 +318,7 @@ class ConversationInput extends Component<InputProps, State> {
             autoFocus={false}
             small={true}
             style={styleInput}
-            ref={r => this._inputSetRef(r)}
+            ref={this.props.inputSetRef}
             hintText="Write a message"
             hideUnderline={true}
             onChangeText={this.props.setText}
@@ -328,6 +326,7 @@ class ConversationInput extends Component<InputProps, State> {
             multiline={true}
             rowsMin={1}
             rowsMax={5}
+            onBlur={this.props.onCancelEditing}
             onKeyDown={this._onKeyDown}
             onKeyUp={this._onKeyUp}
             onEnterKeyDown={this._onEnterKeyDown}
@@ -466,11 +465,11 @@ export default compose(
       filePickerOpen: props => () => {
         fileInput && fileInput.click()
       },
-      filePickerSetRef: props => (r: any) => {
-        fileInput = r
-      },
+      filePickerSetRef: props => (r: any) => (fileInput = r),
       filePickerSetValue: props => (value: any) => {
-        if (fileInput) fileInput.value = value
+        if (fileInput) {
+          fileInput.value = value
+        }
       },
     }
   })

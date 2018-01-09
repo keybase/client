@@ -14,6 +14,7 @@ import {
   renderNothing,
   withHandlers,
   withState,
+  withProps,
   lifecycle,
   connect,
 } from '../../../util/container'
@@ -25,13 +26,19 @@ import {type OwnProps} from './container'
 const mapStateToProps = (state: TypedState) => {
   const _selectedConversationIDKey = Constants.getSelectedConversation(state)
   const routeState = getPathState(state.routeTree.routeState, [chatTab, _selectedConversationIDKey || ''])
+  const routeDefaultText =
+    (routeState && routeState.get('inputText', new HiddenString('')).stringValue()) || ''
   const editingOrdinal = Constants.getEditingOrdinal(state, _selectedConversationIDKey || '')
+  const _editingMessage = editingOrdinal
+    ? Constants.getMessageMap(state, _selectedConversationIDKey).get(editingOrdinal)
+    : null
 
   return {
-    _defaultText: (routeState && routeState.get('inputText', new HiddenString('')).stringValue()) || '',
-    _editingMessage: editingOrdinal
-      ? Constants.getMessageMap(state, _selectedConversationIDKey).get(editingOrdinal)
-      : null,
+    _defaultText:
+      _editingMessage && _editingMessage.type === 'text'
+        ? _editingMessage.text.stringValue()
+        : routeDefaultText,
+    _editingMessage,
     _meta: Constants.getMeta(state),
     _selectedConversationIDKey,
     typing: Constants.getTyping(state, _selectedConversationIDKey || ''),
@@ -53,20 +60,20 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
         text: new HiddenString(body),
       })
     ),
-  _onPostMessage: (selectedConversation: Types.ConversationIDKey, text: string) =>
-    dispatch(
-      Chat2Gen.createMessageSend({conversationIDKey: selectedConversation, text: new HiddenString(text)})
-    ),
+  _onPostMessage: (conversationIDKey: Types.ConversationIDKey, text: string) =>
+    dispatch(Chat2Gen.createMessageSend({conversationIDKey, text: new HiddenString(text)})),
   // onShowEditor: (message: Types.Message) => {
   // TODO
   // dispatch(ChatGen.createShowEditor({message}))
   // },
-  _onStoreInputText: (selectedConversation: Types.ConversationIDKey, inputText: string) => {
+  _onStoreInputText: (conversationIDKey: Types.ConversationIDKey, inputText: string) => {
     // dispatch(Creators.setSelectedRouteState(selectedConversation, {inputText: new HiddenString(inputText)})),
   },
-  _onUpdateTyping: (selectedConversation: Types.ConversationIDKey, typing: boolean) => {
-    // dispatch(ChatGen.createUpdateTyping({conversationIDKey: selectedConversation, typing})),
+  _onUpdateTyping: (conversationIDKey: Types.ConversationIDKey, typing: boolean) => {
+    // dispatch(ChatGen.createUpdateTyping({conversationIDKey, typing})),
   },
+  _onCancelEditing: (conversationIDKey: Types.ConversationIDKey) =>
+    dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
@@ -78,21 +85,22 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   // const wrappedTyping = throttle(updateTyping, 5000)
 
   return {
+    _defaultText: stateProps._defaultText,
     // ...stateProps,
     // ...dispatchProps,
     // ...ownProps,
     isEditing: !!stateProps._editingMessage,
     channelName: stateProps._meta.channelname,
     focusInputCounter: ownProps.focusInputCounter,
-    hasResetUsers: !stateProps._meta.resetParticipants.isEmpty(),
+    // hasResetUsers: !stateProps._meta.resetParticipants.isEmpty(),
     isLoading: false,
     // isPreview: false, // TODO
-    teamname: stateProps._meta.teamname,
-    // typing: [], // TODO
+    // teamname: stateProps._meta.teamname,
+    typing: stateProps.typing,
     // onAttach: (inputs: Array<any [> Types.AttachmentInput <]>) =>
     // dispatchProps.onAttach(stateProps.selectedConversationIDKey, inputs),
     // onEditLastMessage: ownProps.onEditLastMessage,
-    onPostMessage: (text: string) => {
+    _onSubmit: (text: string) => {
       if (stateProps._editingMessage) {
         dispatchProps._onEditMessage(stateProps._editingMessage, text)
       } else {
@@ -119,52 +127,64 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onLeaveChannel: () => {
       dispatchProps.onLeaveChannel(stateProps._selectedConversationIDKey, stateProps._meta.teamname)
     },
+    onCancelEditing: () => dispatchProps._onCancelEditing(stateProps._selectedConversationIDKey),
   }
 }
 
 const ConnectedInput = compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  withState('text', '_setText', props => props._defaultText || ''),
+  withState('text', 'setText', props => props._defaultText || ''),
   withState('mentionPopupOpen', 'setMentionPopupOpen', false),
   withState('mentionFilter', 'setMentionFilter', ''),
+  withProps(props => ({
+    onSubmit: (text: string) => {
+      props._onSubmit(text)
+      props.setText('')
+    },
+  })),
   withHandlers(props => {
     let input
     // mutable value to store the latest text synchronously
-    let _syncTextValue = ''
+    // let _syncTextValue = ''
     return {
       // inputClear: props => () => {
       // input && input.setNativeProps({text: ''})
       // },
-      inputFocus: props => () => input && input.focus(),
       inputBlur: props => () => input && input.blur(),
+      inputFocus: props => () => input && input.focus(),
+      inputGetRef: props => () => input,
       inputSelections: props => () => (input && input.selections()) || {},
-      inputSetRef: props => i => {
-        input = i
-      },
-      setText: props => (nextText: string) => {
-        _syncTextValue = nextText
-        return props._setText(nextText)
-      },
-      inputValue: props => () => _syncTextValue || '',
+      inputSetRef: props => i => (input = i),
+      // setText: props => (nextText: string) => {
+      // _syncTextValue = nextText
+      // return props._setText(nextText)
+      // },
+      // inputValue: props => () => _syncTextValue || '',
     }
   }),
   lifecycle({
-    componentDidUpdate: function(prevProps) {
+    componentDidUpdate(prevProps) {
       if (this.props.focusInputCounter !== prevProps.focusInputCounter) {
         this.props.inputFocus()
       }
     },
-    componentWillUnmount: function() {
+    componentWillUnmount() {
       this.props.onStoreInputText(this.props.text)
     },
-    componentWillReceiveProps: function(nextProps) {
+    componentWillReceiveProps(nextProps) {
       if (
         this.props._selectedConversationIDKey &&
         this.props._selectedConversationIDKey !== nextProps._selectedConversationIDKey
       ) {
         this.props.onStoreInputText(this.props.text)
-        // withState won't get called again if props changes!
+      }
+
+      if (this.props._defaultText !== nextProps._defaultText) {
         this.props.setText(nextProps._defaultText)
+      }
+
+      if (nextProps.isEditing && !this.props.isEditing) {
+        this.props.inputFocus()
       }
     },
   })

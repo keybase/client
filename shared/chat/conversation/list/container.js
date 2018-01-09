@@ -8,7 +8,7 @@ import * as Chat2Gen from '../../../actions/chat2-gen'
 // import * as I from 'immutable'
 // import HiddenString from '../../../util/hidden-string'
 import ListComponent from '.'
-import {connect, type TypedState} from '../../../util/container'
+import {connect, type TypedState, type Dispatch} from '../../../util/container'
 // import {createSelector, createSelectorCreator, defaultMemoize} from 'reselect'
 // import {navigateAppend} from '../../../actions/route-tree'
 
@@ -199,11 +199,11 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  loadMoreMessages: () =>
-    stateProps._selectedConversation && dispatchProps._loadMoreMessages(stateProps._selectedConversation),
+  loadMoreMessages: () => {
+    stateProps._selectedConversation && dispatchProps._loadMoreMessages(stateProps._selectedConversation)
+  },
   messageOrdinals: stateProps.messageOrdinals,
   onFocusInput: ownProps.onFocusInput,
 })
 
-// $FlowIssue TODO remove this
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(ListComponent)

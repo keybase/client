@@ -17,6 +17,7 @@ export type Props = {
   setText: (text: string) => void,
   text: string,
   typing: I.Set<string>,
+  inputGetRef: () => any,
 }
 
 export default class Input extends Component<Props> {}

@@ -15,7 +15,7 @@ export type Props = {|
   // onShowMenu: (message: Types.Message, targetRect?: ?ClientRect) => void,
   // onOpenInFileUI: (filename: string) => void,
   // getMessageFromMessageKey: (messageKey: Types.MessageKey) => ?Types.Message,
-  selectedConversation: Types.ConversationIDKey,
+  // selectedConversation: Types.ConversationIDKey,
   // validated: boolean,
   // you: string,
 |}

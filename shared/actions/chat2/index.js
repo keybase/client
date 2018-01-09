@@ -612,6 +612,11 @@ const messageDelete = (action: Chat2Gen.MessageDeletePayload, state: TypedState)
   })
 }
 
+const clearMessageSetEditing = (action: Chat2Gen.MessageEditPayload) =>
+  Saga.put(
+    Chat2Gen.createMessageSetEditing({conversationIDKey: action.payload.conversationIDKey, ordinal: null})
+  )
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Refresh the inbox
   yield Saga.safeTakeEveryPure(
@@ -637,6 +642,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     rpcLoadThreadSuccess
   )
 
+  yield Saga.safeTakeEveryPure(Chat2Gen.messageEdit, clearMessageSetEditing)
   yield Saga.safeTakeEveryPure(Chat2Gen.messageDelete, messageDelete)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.setupChatHandlers, setupChatHandlers)

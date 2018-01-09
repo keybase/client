@@ -44,10 +44,6 @@ class ConversationInput extends Component<Props> {
   // this._setEditing(this.props)
   // }
 
-  _onBlur = () => {
-    this.props.onCancelEditing()
-  }
-
   _openFilePicker = () => {
     showImagePicker({}, response => {
       if (response.didCancel) {
@@ -107,7 +103,7 @@ class ConversationInput extends Component<Props> {
             hintText="Write a message"
             inputStyle={styleInputText}
             multiline={true}
-            onBlur={this._onBlur}
+            onBlur={this.props.onCancelEditing}
             onChangeText={this.props.setText}
             ref={this.props.inputSetRef}
             small={true}
@@ -123,7 +119,7 @@ class ConversationInput extends Component<Props> {
             autoGrow={true}
             style={styleInput}
             onChangeText={this.props.setText}
-            onBlur={this._onBlur}
+            onBlur={this.props.onCancelEditing}
             placeholder="Write a message"
             underlineColorAndroid={globalColors.transparent}
             multiline={true}

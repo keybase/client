@@ -237,7 +237,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
             ? editingMap.set(action.payload.conversationIDKey, action.payload.ordinal)
             : editingMap.delete(action.payload.conversationIDKey)
       )
-
     // metaMap/messageMap/messageOrdinalsList actions
     case Chat2Gen.clearOrdinals:
     case Chat2Gen.inboxRefresh:
