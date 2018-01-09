@@ -30,7 +30,7 @@ export const todoTypeToInstructions: {[key: Types.TodoType]: string} = {
     'Open an encrypted private folder with someone! They’ll only get notified once you drop files in it.',
   gitRepo:
     'Create an encrypted Git repository! Only you will be able to decrypt any of it. And it’s so easy!',
-  teamShowcase: `Tip: Keybase team chats are private, but you can choose to publish that you're an admin. Check out “Publicity settings" on any team you manage.`,
+  teamShowcase: `Tip: Keybase team chats are private, but you can choose to publish that you're an admin. Check out the team settings on any team you manage.`,
 }
 export const todoTypeToConfirmLabel: {[key: Types.TodoType]: string} = {
   bio: 'Edit Profile',
