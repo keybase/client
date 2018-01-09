@@ -18,9 +18,11 @@ import {
   ScrollView,
 } from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors, isMobile} from '../../styles'
+import {TeamRow} from '../main/team-list'
 import TeamInviteRow from './invite-row/container'
 import TeamMemberRow from './member-row/container'
 import TeamRequestRow from './request-row/container'
+
 import * as RPCTypes from '../../constants/types/rpc-gen'
 
 export type MemberRowProps = Types.MemberInfo
@@ -164,30 +166,18 @@ const AddSubTeam = (index, {key}) => (
       width: '100%',
     }}
   >
-    <Box style={{...globalStyles.flexBoxRow, flexGrow: 1}}>
-      <Text style={{color: globalColors.black_40}} type="BodySmall">
-        {key}
+    <Box style={{...globalStyles.flexBoxRow, flexGrow: 1, justifyContent: 'center', alignItems: 'center'}}>
+      <Icon type="iconfont-new" style={{color: globalColors.blue}} />
+      <Text type="BodyBigLink" style={{padding: globalMargins.xtiny}}>
+        Create subteam
       </Text>
     </Box>
   </Box>
 )
 
-const SubTeamRow = (index, {key, members}) => (
-  <Box
-    style={{
-      ...globalStyles.flexBoxRow,
-      alignItems: 'center',
-      flexShrink: 0,
-      height: globalMargins.medium,
-      padding: globalMargins.tiny,
-      width: '100%',
-    }}
-  >
-    <Box style={{...globalStyles.flexBoxRow, flexGrow: 1}}>
-      <Text style={{color: globalColors.black_40}} type="BodySmall">
-        {key} {members}
-      </Text>
-    </Box>
+const SubteamRow = (index, {key, members}) => (
+  <Box style={{...globalStyles.flexBoxColumn, paddingLeft: globalMargins.tiny}}>
+    <TeamRow isNew={false} newRequests={0} name={key} membercount={members} />
   </Box>
 )
 
@@ -195,10 +185,10 @@ const subTeamsRow = (index, row) => {
   switch (row.type) {
     case 'intro':
       return SubteamsIntro(index, row)
-    case 'addSubTeam':
+    case 'addSubteam':
       return AddSubTeam(index, row)
     default:
-      return SubTeamRow(index, row)
+      return SubteamRow(index, row)
   }
 }
 

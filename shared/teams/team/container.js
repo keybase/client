@@ -157,6 +157,7 @@ const mapDispatchToProps = (
   },
   _savePublicity: (teamname: Types.Teamname, settings: Types.PublicitySettings) =>
     dispatch(TeamsGen.createSetPublicity({teamname, settings})),
+  onViewTeam: (teamname: Types.Teamname) => dispatch(navigateAppend([{props: {teamname}, selected: 'team'}])),
 })
 
 const getOrderedMemberArray = (
