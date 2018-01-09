@@ -24,6 +24,7 @@ const ff: FeatureFlags = {
 
 const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
   impTeamChatEnabled: true,
+  newPeopleTab: true,
 }
 
 // load overrides
