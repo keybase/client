@@ -478,7 +478,7 @@ func TestInboxNewMessage(t *testing.T) {
 	_, res, _, err := inbox.Read(context.TODO(), nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, convs[0].GetConvID(), res[0].GetConvID(), "conv not promoted")
-	require.NoError(t, inbox.NewMessage(context.TODO(), 2, conv.GetConvID(), msg))
+	require.NoError(t, inbox.NewMessage(context.TODO(), 2, conv.GetConvID(), msg, nil))
 	_, res, _, err = inbox.Read(context.TODO(), nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, conv.GetConvID(), res[0].GetConvID(), "conv not promoted")
@@ -491,7 +491,7 @@ func TestInboxNewMessage(t *testing.T) {
 
 	// Test incomplete active list
 	conv = convs[6]
-	require.NoError(t, inbox.NewMessage(context.TODO(), 3, conv.GetConvID(), msg))
+	require.NoError(t, inbox.NewMessage(context.TODO(), 3, conv.GetConvID(), msg, nil))
 	_, res, _, err = inbox.Read(context.TODO(), nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, []gregor1.UID{uid1, uid2, uid3}, res[0].Conv.Metadata.ActiveList, "active list")
@@ -499,7 +499,7 @@ func TestInboxNewMessage(t *testing.T) {
 	// Send another one from a diff User
 	msg = makeInboxMsg(3, chat1.MessageType_TEXT)
 	msg.ClientHeader.Sender = uid2
-	require.NoError(t, inbox.NewMessage(context.TODO(), 4, conv.GetConvID(), msg))
+	require.NoError(t, inbox.NewMessage(context.TODO(), 4, conv.GetConvID(), msg, nil))
 	_, res, _, err = inbox.Read(context.TODO(), nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, chat1.MessageID(3), res[0].Conv.ReaderInfo.MaxMsgid, "wrong max msgid")
@@ -507,9 +507,30 @@ func TestInboxNewMessage(t *testing.T) {
 	require.Equal(t, []gregor1.UID{uid2, uid1, uid3}, res[0].Conv.Metadata.ActiveList, "active list")
 	maxMsg, err = res[0].Conv.GetMaxMessage(chat1.MessageType_TEXT)
 	require.NoError(t, err)
-	require.Equal(t, chat1.MessageID(3), maxMsg.GetMessageID(), "max msg not updated")
+	require.Equal(t, chat1.MessageID(3), maxMsg.GetMessageID())
 
-	err = inbox.NewMessage(context.TODO(), 10, conv.GetConvID(), msg)
+	// Test delete mechanics
+	delMsg := makeInboxMsg(4, chat1.MessageType_TEXT)
+	require.NoError(t, inbox.NewMessage(context.TODO(), 5, conv.GetConvID(), delMsg, nil))
+	_, res, _, err = inbox.Read(context.TODO(), nil, nil)
+	require.NoError(t, err)
+	maxMsg, err = res[0].Conv.GetMaxMessage(chat1.MessageType_TEXT)
+	require.Equal(t, delMsg.GetMessageID(), maxMsg.GetMessageID())
+	delete := makeInboxMsg(5, chat1.MessageType_DELETE)
+	require.NoError(t, inbox.NewMessage(context.TODO(), 0, conv.GetConvID(), delete, nil))
+	require.NoError(t, inbox.NewMessage(context.TODO(), 6, conv.GetConvID(), delete,
+		[]chat1.MessageSummary{msg.Summary()}))
+	_, res, _, err = inbox.Read(context.TODO(), nil, nil)
+	require.NoError(t, err)
+	maxMsg, err = res[0].Conv.GetMaxMessage(chat1.MessageType_TEXT)
+	require.NoError(t, err)
+	require.Equal(t, msg.GetMessageID(), maxMsg.GetMessageID())
+	delete = makeInboxMsg(6, chat1.MessageType_DELETE)
+	err = inbox.NewMessage(context.TODO(), 7, conv.GetConvID(), delete, nil)
+	require.Error(t, err)
+	require.IsType(t, VersionMismatchError{}, err)
+
+	err = inbox.NewMessage(context.TODO(), 10, conv.GetConvID(), msg, nil)
 	require.IsType(t, VersionMismatchError{}, err)
 }
 
@@ -534,7 +555,7 @@ func TestInboxReadMessage(t *testing.T) {
 	conv := convs[5]
 	msg := makeInboxMsg(2, chat1.MessageType_TEXT)
 	msg.ClientHeader.Sender = uid2
-	require.NoError(t, inbox.NewMessage(context.TODO(), 2, conv.GetConvID(), msg))
+	require.NoError(t, inbox.NewMessage(context.TODO(), 2, conv.GetConvID(), msg, nil))
 	_, res, _, err = inbox.Read(context.TODO(), nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, chat1.MessageID(2), res[0].Conv.ReaderInfo.MaxMsgid, "wrong max msgid")
@@ -577,7 +598,7 @@ func TestInboxSetStatus(t *testing.T) {
 	t.Logf("sending new message to wake up conv")
 	msg := makeInboxMsg(3, chat1.MessageType_TEXT)
 	msg.ClientHeader.Sender = uid
-	require.NoError(t, inbox.NewMessage(context.TODO(), 3, conv.GetConvID(), msg))
+	require.NoError(t, inbox.NewMessage(context.TODO(), 3, conv.GetConvID(), msg, nil))
 	_, res, _, err = inbox.Read(context.TODO(), &q, nil)
 	require.NoError(t, err)
 	require.Equal(t, 0, len(res), "ignore not unset")
@@ -614,7 +635,7 @@ func TestInboxSetStatusMuted(t *testing.T) {
 	t.Logf("sending new message to wake up conv")
 	msg := makeInboxMsg(3, chat1.MessageType_TEXT)
 	msg.ClientHeader.Sender = uid
-	require.NoError(t, inbox.NewMessage(context.TODO(), 3, conv.GetConvID(), msg))
+	require.NoError(t, inbox.NewMessage(context.TODO(), 3, conv.GetConvID(), msg, nil))
 	_, res, _, err = inbox.Read(context.TODO(), &q, nil)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(res), "muted wrongly unset")

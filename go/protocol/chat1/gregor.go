@@ -46,11 +46,12 @@ func (o NewConversationPayload) DeepCopy() NewConversationPayload {
 }
 
 type NewMessagePayload struct {
-	Action       string         `codec:"Action" json:"Action"`
-	ConvID       ConversationID `codec:"convID" json:"convID"`
-	Message      MessageBoxed   `codec:"message" json:"message"`
-	InboxVers    InboxVers      `codec:"inboxVers" json:"inboxVers"`
-	UnreadUpdate *UnreadUpdate  `codec:"unreadUpdate,omitempty" json:"unreadUpdate,omitempty"`
+	Action       string           `codec:"Action" json:"Action"`
+	ConvID       ConversationID   `codec:"convID" json:"convID"`
+	Message      MessageBoxed     `codec:"message" json:"message"`
+	InboxVers    InboxVers        `codec:"inboxVers" json:"inboxVers"`
+	UnreadUpdate *UnreadUpdate    `codec:"unreadUpdate,omitempty" json:"unreadUpdate,omitempty"`
+	MaxMsgs      []MessageSummary `codec:"maxMsgs" json:"maxMsgs"`
 }
 
 func (o NewMessagePayload) DeepCopy() NewMessagePayload {
@@ -66,6 +67,17 @@ func (o NewMessagePayload) DeepCopy() NewMessagePayload {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.UnreadUpdate),
+		MaxMsgs: (func(x []MessageSummary) []MessageSummary {
+			if x == nil {
+				return nil
+			}
+			var ret []MessageSummary
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.MaxMsgs),
 	}
 }
 

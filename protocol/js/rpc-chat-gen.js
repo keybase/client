@@ -984,7 +984,7 @@ export type NewConversationPayload = $ReadOnly<{Action: String, convID: Conversa
 
 export type NewConversationRemoteRes = $ReadOnly<{convID: ConversationID, createdComplexTeam: Boolean, rateLimit?: ?RateLimit}>
 
-export type NewMessagePayload = $ReadOnly<{Action: String, convID: ConversationID, message: MessageBoxed, inboxVers: InboxVers, unreadUpdate?: ?UnreadUpdate}>
+export type NewMessagePayload = $ReadOnly<{Action: String, convID: ConversationID, message: MessageBoxed, inboxVers: InboxVers, unreadUpdate?: ?UnreadUpdate, maxMsgs?: ?Array<MessageSummary>}>
 
 export type NonblockFetchRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 
