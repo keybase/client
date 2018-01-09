@@ -21,6 +21,7 @@ const initialState = Constants.makeState()
 // So lets actually use the initial routeDef we get
 let firstRouteDef
 
+// $FlowIssue dunno
 function computeLoggedInUserNavigated(navigationSource: Types.NavigationSource, newSelectedTab: ?string) {
   const validNavigationSource = navigationSource === 'user' || navigationSource === 'initial-restore'
   if (!validNavigationSource) {
@@ -180,9 +181,9 @@ export default function routeTreeReducer(state: Types.State = initialState, acti
     }
   }
 
+  // $FlowIssue dunno
   return state.merge({
     loggedInUserNavigated: newLoggedInUserNavigated,
-    // $FlowIssue
     routeDef: newRouteDef,
     routeState: newRouteState,
   })

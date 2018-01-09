@@ -14,7 +14,7 @@ function immediateCallback(
 function timeoutFallback(
   cb: (info: {didTimeout: boolean, timeRemaining: () => number}) => void,
   deadlineOpts?: {timeout: number}
-): number {
+): TimeoutID {
   return setTimeout(function() {
     cb({
       didTimeout: true,
@@ -43,8 +43,8 @@ function cancelRunAfterInteractionsFallback(cancellablePromise: {cancel: () => v
   cancellablePromise.cancel()
 }
 
-function cancelIdleCallbackFallback(id: number) {
-  clearTimeout(id)
+function cancelIdleCallbackFallback(id: TimeoutID) {
+  id && clearTimeout(id)
 }
 
 // TODO: Re-enable requestIdleCallback for Android once https://github.com/facebook/react-native/issues/9579 is fixed

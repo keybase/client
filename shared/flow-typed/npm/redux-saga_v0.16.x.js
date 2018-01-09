@@ -8,25 +8,25 @@ declare module 'redux-saga' {
   declare export var effects: _effects
 
   declare export interface Channel {
-    take: (cb: (msg: mixed) => void) => void,
-    put: (msg: mixed) => void,
-    flush: (cb: (msgs: mixed) => void) => void,
-    close: () => void,
+    take: (cb: (msg: mixed) => void) => void;
+    put: (msg: mixed) => void;
+    flush: (cb: (msgs: mixed) => void) => void;
+    close: () => void;
   }
 
   declare export interface Task<T> {
-    isRunning: () => boolean,
-    isCancelled: () => boolean,
-    result: () => T | void,
-    error: () => Error | void,
-    cancel: () => void,
-    done: Promise<T>,
+    isRunning: () => boolean;
+    isCancelled: () => boolean;
+    result: () => T | void;
+    error: () => Error | void;
+    cancel: () => void;
+    done: Promise<T>;
   }
 
   declare export interface Buffer {
-    isEmpty: () => boolean,
-    put: (msg: mixed) => void,
-    take(): mixed,
+    isEmpty: () => boolean;
+    put: (msg: mixed) => void;
+    take(): mixed;
   }
 
   declare export interface SagaMonitor {
@@ -35,11 +35,11 @@ declare module 'redux-saga' {
       +parentEffectId: number,
       +label: string,
       +effect: Effect,
-    }) => void,
-    effectResolved: (effectId: number, result: mixed) => void,
-    effectRejected: (effectId: number, error: Error) => void,
-    effectCancelled: (effectId: number) => void,
-    actionDispatched: (action: mixed) => void,
+    }) => void;
+    effectResolved: (effectId: number, result: mixed) => void;
+    effectRejected: (effectId: number, error: Error) => void;
+    effectCancelled: (effectId: number) => void;
+    actionDispatched: (action: mixed) => void;
   }
 
   declare export type Saga<T> = Generator<Effect, T, any>
@@ -114,7 +114,7 @@ declare module 'redux-saga' {
 
   declare interface SagaMiddleware {
     // TODO: This should be aligned with the official redux typings sometime
-    (api: any): (next: any) => any,
+    (api: any): (next: any) => any;
     run: {
       <R, Fn: () => Saga<R>>(saga: Fn): Task<R>,
       <R, T1, Fn: (t1: T1) => Saga<R>>(saga: Fn, t1: T1): Task<R>,
@@ -144,7 +144,7 @@ declare module 'redux-saga' {
         t5: T5,
         t6: T6
       ): Task<R>,
-    },
+    };
   }
 
   declare type createSagaMiddleware = (options?: {
@@ -225,8 +225,8 @@ declare module 'redux-saga' {
   declare export type SelectEffect<Fn: Function, Args: $ReadOnlyArray<*>> = {
     +'@@redux-saga/IO': true,
     +SELECT: {
-      +selector: ?Fn,
-      +args: ?Args,
+      +selector: Fn,
+      +args: Args,
     },
   }
 
@@ -286,6 +286,7 @@ declare module 'redux-saga' {
     | RaceEffect<*>
     | AllEffect
 }
+
 declare module 'redux-saga/effects' {
   import type {
     ActionChannelEffect,
@@ -719,7 +720,7 @@ declare module 'redux-saga/effects' {
   }
 
   declare export var select: {
-    <S, R, Fn: (state: S) => S>(fn: void): SelectEffect<void, void>,
+    (): SelectEffect<void, []>,
     <S, R, Fn: (state: S) => R>(fn: Fn): SelectEffect<Fn, []>,
     <S, R, T1, Fn: (state: S, t1: T1) => R>(fn: Fn, t1: T1): SelectEffect<Fn, [T1]>,
     <S, R, T1, T2, Fn: (state: S, t1: T1, t2: T2) => R>(fn: Fn, t1: T1, t2: T2): SelectEffect<Fn, [T1, T2]>,

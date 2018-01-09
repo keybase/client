@@ -33,7 +33,7 @@ export type Options = {
 
 export type Managed = {
   winRef: ?any,
-  debounceChangeTimer: ?number,
+  debounceChangeTimer: ?TimeoutID,
   showHandlers: Array<Function>,
   resizeHandlers: Array<Function>,
   moveHandlers: Array<Function>,
@@ -224,7 +224,7 @@ export default class AppState {
       this.managed.closedHandlers = []
       this.managed.winRef = null
     }
-    clearTimeout(this.managed.debounceChangeTimer)
+    this.managed.debounceChangeTimer && clearTimeout(this.managed.debounceChangeTimer)
   }
 
   _isValidWindowState(state: State): boolean {
@@ -302,7 +302,7 @@ export default class AppState {
   }
 
   _debounceChangeHandler() {
-    clearTimeout(this.managed.debounceChangeTimer)
+    this.managed.debounceChangeTimer && clearTimeout(this.managed.debounceChangeTimer)
     this.managed.debounceChangeTimer = setTimeout(() => {
       this._updateState()
     }, this.config.eventHandlingDelay)
