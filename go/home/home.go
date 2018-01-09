@@ -191,6 +191,10 @@ type updateGregorMessage struct {
 func (h *Home) updateUI(ctx context.Context) (err error) {
 	defer h.G().CTrace(ctx, "Home#updateUI", func() error { return err })()
 	var ui keybase1.HomeUIInterface
+	if h.G().UIRouter == nil {
+		h.G().Log.CDebugf(ctx, "no UI router, swallowing update")
+		return nil
+	}
 	ui, err = h.G().UIRouter.GetHomeUI()
 	if err != nil {
 		return err
