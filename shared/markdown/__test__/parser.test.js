@@ -209,6 +209,18 @@ this is a code block with two newline above\`\`\`
   it('parses mentions correctly', () => {
     check('hello there @marco @validmarco', {isValidMention})
   })
+
+  const allowAllMentions = (s: string) => true
+
+  it('parses mentions with underscores correctly', () => {
+    check('hello there @ryan_singer @m_ @dan_t @a_b_c', {isValidMention: allowAllMentions})
+    // This gets parsed as a mention for @invalid_ followed by the
+    // text _name_.
+    check('hello there @invalid__name_', {isValidMention: allowAllMentions})
+  })
+  it('ignores short/long mentions', () => {
+    check('hello there @a@keybase @0123456789abcdefg@keybase', {isValidMention: allowAllMentions})
+  })
   it('parses formatted mentions', () => {
     check('~@validmarco~', {isValidMention})
     check('*@validmarco*', {isValidMention})

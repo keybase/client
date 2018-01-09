@@ -153,6 +153,20 @@ Object {
 }
 `;
 
+exports[`Markdown parser ignores short/long mentions 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello there @a@keybase @0123456789abcdefg@keybase",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
 exports[`Markdown parser inline code 1`] = `
 Object {
   "children": Array [
@@ -700,6 +714,68 @@ Object {
           ],
           "type": "mention",
         },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses mentions with underscores correctly 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello there ",
+        Object {
+          "children": Array [
+            "ryan_singer",
+          ],
+          "type": "mention",
+        },
+        " ",
+        Object {
+          "children": Array [
+            "m_",
+          ],
+          "type": "mention",
+        },
+        " ",
+        Object {
+          "children": Array [
+            "dan_t",
+          ],
+          "type": "mention",
+        },
+        " ",
+        Object {
+          "children": Array [
+            "a_b_c",
+          ],
+          "type": "mention",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses mentions with underscores correctly 2`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello there ",
+        Object {
+          "children": Array [
+            "invalid_",
+          ],
+          "type": "mention",
+        },
+        "_name_",
       ],
       "type": "text-block",
     },

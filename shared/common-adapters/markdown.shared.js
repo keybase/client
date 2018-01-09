@@ -48,6 +48,7 @@ function isValidMention(meta: ?MarkdownMeta, mention: string): boolean {
     return false
   }
 
+  // TODO: Allow uppercase in mentions, and just normalize.
   return mention === 'here' || mention === 'channel' || mentions.has(mention)
 }
 

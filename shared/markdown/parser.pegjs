@@ -114,10 +114,12 @@ __INLINE_RULE__<StrikeInline, !StrikeMarker>
 Strike
  = StrikeMarker !WhiteSpace children:StrikeInline StrikeMarker !(StrikeMarker / NormalChar) { return {type: 'strike', children: flatten(children)} }
 
-// children grammar adapted from username regexp in libkb/checkers.go.
-Mention = MentionMarker children:([a-zA-Z0-9]+[a-zA-Z0-9_]?)+ & {
-  return options && options.isValidMention && options.isValidMention(flatten(children)[0])
-} { return {type: 'mention', children: flatten(children)} }
+// children test adapted from CheckUsername in libkb/checkers.go.
+Mention = MentionMarker children:([a-zA-Z0-9]+"_"?)+ & {
+  const mention = flatten(children)[0]
+  return mention.length >= 2 && mention.length <= 16 &&
+    options && options.isValidMention && options.isValidMention(mention)
+} { return {type: 'mention', children: flatten(children) } }
 
 CodeBlock
  = Ticks3 LineTerminatorSequence? children:(!Ticks3 .)+ Ticks3 { return {type: 'code-block', children: flatten(children)} }
