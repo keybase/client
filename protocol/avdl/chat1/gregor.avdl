@@ -26,6 +26,9 @@ protocol gregor {
         MessageBoxed message;
         InboxVers inboxVers;
         union { null, UnreadUpdate } unreadUpdate;
+
+        // Optionally the server can send down the new set of max messages
+        array<MessageSummary> maxMsgs;
     }
 
     record ReadMessagePayload {
