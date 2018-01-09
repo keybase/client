@@ -152,6 +152,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
     supersedesCausedBy,
     teamType: getTeamType(i),
     teamname: (isTeam && i.name) || '',
+    timestamp: i.time,
     tlfname: i.name,
     trustedState: 'trusted',
   })

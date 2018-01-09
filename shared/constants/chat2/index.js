@@ -43,6 +43,7 @@ export const getEditingOrdinal = (state: TypedState, id: Types.ConversationIDKey
   state.chat2.editingMap.get(id)
 export const getTyping = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.typingMap.get(id, I.Set())
+export const generateOutboxId = () => Buffer.from([...Array(8)].map(() => Math.floor(Math.random() * 256)))
 
 export {
   getConversationIDKeyMetasToLoad,

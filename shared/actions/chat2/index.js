@@ -256,13 +256,12 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage) => {
     }
   }
 
-  actions.push(chatActivityToMetasAction(incoming))
-  return actions
+  return [...actions, ...chatActivityToMetasAction(incoming)]
 }
 
 const chatActivityToMetasAction = (payload: ?{+conv?: ?RPCChatTypes.InboxUIItem}) => {
   const meta = payload && payload.conv && Constants.inboxUIItemToConversationMeta(payload.conv)
-  return meta ? [Chat2Gen.createMetasReceived({metas: [meta]})] : null
+  return meta ? [Chat2Gen.createMetasReceived({metas: [meta]})] : []
 }
 
 const setupChatHandlers = () => {
@@ -617,6 +616,23 @@ const clearMessageSetEditing = (action: Chat2Gen.MessageEditPayload) =>
     Chat2Gen.createMessageSetEditing({conversationIDKey: action.payload.conversationIDKey, ordinal: null})
   )
 
+const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => {
+  const {conversationIDKey, text} = action.payload
+  const identifyBehavior = RPCTypes.tlfKeysTLFIdentifyBehavior.chatGuiStrict // TODO
+  const meta = Constants.getMeta(state, conversationIDKey)
+  const tlfName = meta.tlfname // TODO non existant convo
+  const clientPrev = Constants.getMessageOrdinals(state, conversationIDKey).last() || 0
+  return Saga.call(RPCChatTypes.localPostTextNonblockRpcPromise, {
+    body: text.stringValue(),
+    clientPrev,
+    conversationID: Constants.keyToConversationID(conversationIDKey),
+    identifyBehavior,
+    outboxID: Constants.generateOutboxId(),
+    tlfName,
+    tlfPublic: false,
+  })
+}
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Refresh the inbox
   yield Saga.safeTakeEveryPure(
@@ -642,6 +658,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     rpcLoadThreadSuccess
   )
 
+  yield Saga.safeTakeEveryPure(Chat2Gen.messageSend, messageSend)
   yield Saga.safeTakeEveryPure(Chat2Gen.messageEdit, clearMessageSetEditing)
   yield Saga.safeTakeEveryPure(Chat2Gen.messageDelete, messageDelete)
 
