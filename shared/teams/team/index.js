@@ -267,7 +267,8 @@ const TeamTabs = (props: TeamTabsProps) => {
     )
   }
 
-  const subteamsLabel = 'SUBTEAMS'
+  let subteamsLabel = 'SUBTEAMS'
+  subteamsLabel += !loading || subteams.length !== 0 ? ' (' + subteams.count() + ')' : ''
   if (subteams.count() > 0) {
     tabs.push(
       <Text
