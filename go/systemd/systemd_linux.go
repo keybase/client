@@ -4,16 +4,51 @@ package systemd
 
 import (
 	"errors"
+	"fmt"
 	"net"
 	"os"
+	"os/exec"
+	"strings"
 
 	sdActivation "github.com/coreos/go-systemd/activation"
 	sdDaemon "github.com/coreos/go-systemd/daemon"
 	sdUtil "github.com/coreos/go-systemd/util"
 )
 
+// IsUserSystemdRunning checks that systemd is running at the user- (as opposed
+// to system-) level. IsRunningSystemd below checks the system level, but there
+// are cases where the system level is working while the user level is not.
+// Sudo env weirdness can cause it, and it also happens on older distros. In
+// those cases, we'll also fall back to non-systemd startup.
+//
+// This function prints loud warnings because we only ever run it when
+// IsRunningSystemd is true, in which case all of these errors are unexpected.
+func IsUserSystemdRunning() bool {
+	c := exec.Command("systemctl", "--user", "is-system-running")
+	output, err := c.Output()
+	// Ignore non-zero-exit-status errors, because of "degraded" below.
+	_, isExitError := err.(*exec.ExitError)
+	if err != nil && !isExitError {
+		os.Stderr.WriteString(fmt.Sprintf("Failed to run systemctl: %s\n", err))
+		return false
+	}
+	outputStr := strings.TrimSpace(string(output))
+	// "degraded" just means that some service has failed to start. That could
+	// be a totally unrelated application on the user's machine, so we treat it
+	// the same as "running".
+	if outputStr == "running" || outputStr == "degraded" {
+		return true
+	} else if outputStr == "" {
+		os.Stderr.WriteString(fmt.Sprintf("Failed to reach user-level systemd daemon.\n"))
+		return false
+	} else {
+		os.Stderr.WriteString(fmt.Sprintf("Systemd reported an unexpected status: %s\n", outputStr))
+		return false
+	}
+}
+
 func IsRunningSystemd() bool {
-	return sdUtil.IsRunningSystemd()
+	return sdUtil.IsRunningSystemd() && IsUserSystemdRunning()
 }
 
 // NOTE: We no longer configure our keybse.service and kbfs.service units to be
