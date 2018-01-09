@@ -186,8 +186,8 @@ function peg$parse(input, options) {
           options && options.isValidMention && options.isValidMention(mention)
       },
       peg$c33 = function(mention) { return {type: 'mention', children: [mention] } },
-      peg$c34 = function(children) { return {type: 'code-block', children: [children]} },
-      peg$c35 = function(children) { return {type: 'inline-code', children: [children]} },
+      peg$c34 = function(code) { return {type: 'code-block', children: [code]} },
+      peg$c35 = function(code) { return {type: 'inline-code', children: [code]} },
       peg$c36 = /^[a-zA-Z0-9+_\-]/,
       peg$c37 = peg$otherExpectation("stripped character class"),
       peg$c38 = "::skin-tone-",

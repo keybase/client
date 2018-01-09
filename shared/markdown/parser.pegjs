@@ -121,10 +121,10 @@ Mention = MentionMarker mention:($ ([a-zA-Z0-9]+"_"?)+) & {
 } { return {type: 'mention', children: [mention] } }
 
 CodeBlock
- = Ticks3 LineTerminatorSequence? children:($ (!Ticks3 .)+) Ticks3 { return {type: 'code-block', children: [children]} }
+ = Ticks3 LineTerminatorSequence? code:($ (!Ticks3 .)+) Ticks3 { return {type: 'code-block', children: [code]} }
 
 InlineCode
- = Ticks1 children:($ (!Ticks1 !LineTerminatorSequence .)+) Ticks1 { return {type: 'inline-code', children: [children]} }
+ = Ticks1 code:($ (!Ticks1 !LineTerminatorSequence .)+) Ticks1 { return {type: 'inline-code', children: [code]} }
 
 // Here we use the literal ":" because we want to not match the :foo in ::foo
 InsideEmojiMarker
