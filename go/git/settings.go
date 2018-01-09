@@ -38,39 +38,6 @@ func GetTeamRepoSettings(ctx context.Context, g *libkb.GlobalContext, arg keybas
 	}
 
 	return convertTeamRepoSettings(ctx, g, resp.ChatConvID, resp.ChatDisabled)
-
-	/*
-		settings := keybase1.GitTeamRepoSettings{
-			ChatDisabled: resp.ChatDisabled,
-		}
-
-		if !settings.ChatDisabled {
-			if resp.ChatConvID == "" {
-				// chat enabled, so use default team topic (#general)
-				settings.ChannelName = &globals.DefaultTeamTopic
-			} else {
-				// lookup the channel name
-				convID, err := hex.DecodeString(resp.ChatConvID)
-				if err != nil {
-					return keybase1.GitTeamRepoSettings{}, err
-				}
-				convs, err := g.ChatHelper.FindConversationsByID(ctx, []chat1.ConversationID{convID})
-				if err != nil {
-					return keybase1.GitTeamRepoSettings{}, err
-				}
-				if len(convs) == 0 {
-					return keybase1.GitTeamRepoSettings{}, errors.New("no channel found")
-				}
-				if len(convs) > 1 {
-					return keybase1.GitTeamRepoSettings{}, errors.New("multiple conversations found")
-				}
-				name := utils.GetTopicName(convs[0])
-				settings.ChannelName = &name
-			}
-		}
-
-		return settings, nil
-	*/
 }
 
 func convertTeamRepoSettings(ctx context.Context, g *libkb.GlobalContext, chatConvID string, chatDisabled bool) (keybase1.GitTeamRepoSettings, error) {
