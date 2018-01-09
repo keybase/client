@@ -89,20 +89,21 @@ const _skipTodo = (action: PeopleGen.SkipTodoPayload) => {
   ])
 }
 
+let _wasOnPeopleTab = false
 const _setupPeopleHandlers = () => {
   return Saga.put((dispatch: Dispatch) => {
     engine().setIncomingHandler('keybase.1.homeUI.homeUIRefresh', (args: {||}) => {
-      dispatch(
-        PeopleGen.createGetPeopleData({
-          markViewed: false,
-          numFollowSuggestionsWanted: Constants.defaultNumFollowSuggestions,
-        })
-      )
+      if (_wasOnPeopleTab) {
+        dispatch(
+          PeopleGen.createGetPeopleData({
+            markViewed: true,
+            numFollowSuggestionsWanted: Constants.defaultNumFollowSuggestions,
+          })
+        )
+      }
     })
   })
 }
-
-let _wasOnPeopleTab = false
 const _onTabChange = (action: RouteTypes.SwitchTo) => {
   // TODO replace this with notification based refreshing
   const list = I.List(action.payload.path)
