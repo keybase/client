@@ -802,3 +802,7 @@ func (fs *FS) WithContext(ctx context.Context) *FS {
 func (fs *FS) ToHTTPFileSystem(ctx context.Context) http.FileSystem {
 	return httpFileSystem{fs: fs.WithContext(ctx)}
 }
+
+func (fs *FS) RootNode() libkbfs.Node {
+	return fs.root
+}

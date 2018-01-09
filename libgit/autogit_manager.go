@@ -453,9 +453,15 @@ func (am *AutogitManager) populateDone(rn *repoNode) {
 	am.populatedRepos[rn.GetID()] = true
 }
 
+// LocalChange implements the libkbfs.Observer interface for AutogitManager.
+func (am *AutogitManager) LocalChange(
+	ctx context.Context, node libkbfs.Node, wr libkbfs.WriteRange) {
+	// Do nothing.
+}
+
 func (am *AutogitManager) notifyNodeLocked(
-	ctx context.Context, node libkbfs.Node, local bool) {
-	rn, ok := am.repoNodesForWatchedIDs[node.GetID()]
+	ctx context.Context, id libkbfs.NodeID) {
+	rn, ok := am.repoNodesForWatchedIDs[id]
 	if !ok {
 		return
 	}
@@ -466,52 +472,18 @@ func (am *AutogitManager) notifyNodeLocked(
 		ctx := libkbfs.BackgroundContextWithCancellationDelayer()
 		ctx = libkbfs.CtxWithRandomIDReplayable(
 			ctx, ctxIDKey, ctxOpID, am.log)
-		if local {
-			// Local writes to the git repo should only happen during
-			// a test, since normally git writes would happen in a
-			// separate git-remote-keybase process.  We need to wait
-			// until those writes are synced all the way to the server
-			// before we consider the update successful (again, this
-			// is only needed for tests).
-			err := am.config.KBFSOps().SyncAll(ctx, node.GetFolderBranch())
-			if err != nil {
-				am.log.CDebugf(ctx, "Error syncing: %+v", err)
-			}
-			jServer, err := libkbfs.GetJournalServer(am.config)
-			if err != nil {
-				am.log.CDebugf(ctx, "No journal server: %+v", err)
-				return
-			}
-			err = jServer.Wait(ctx, node.GetFolderBranch().Tlf)
-			if err != nil {
-				am.log.CDebugf(ctx, "Error waiting for journal: %+v", err)
-			}
-		}
 		rn.updated(ctx)
 	}()
 }
 
-// LocalChange implements the libkbfs.Observer interface for AutogitManager.
-func (am *AutogitManager) LocalChange(
-	ctx context.Context, node libkbfs.Node, wr libkbfs.WriteRange) {
-	if wr.Len == 0 {
-		// Ignore local truncates.
-		return
-	}
-
-	am.registryLock.RLock()
-	defer am.registryLock.RUnlock()
-	am.notifyNodeLocked(ctx, node, true)
-}
-
 // BatchChanges implements the libkbfs.Observer interface for AutogitManager.
 func (am *AutogitManager) BatchChanges(
-	ctx context.Context, changes []libkbfs.NodeChange,
+	ctx context.Context, _ []libkbfs.NodeChange,
 	affectedNodeIDs []libkbfs.NodeID) {
 	am.registryLock.RLock()
 	defer am.registryLock.RUnlock()
-	for _, change := range changes {
-		am.notifyNodeLocked(ctx, change.Node, false)
+	for _, id := range affectedNodeIDs {
+		am.notifyNodeLocked(ctx, id)
 	}
 }
 

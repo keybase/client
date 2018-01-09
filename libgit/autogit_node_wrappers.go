@@ -6,12 +6,10 @@ package libgit
 
 import (
 	"context"
-	"fmt"
 	"path"
 	"sync"
 	"time"
 
-	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
@@ -132,31 +130,25 @@ func (rn *repoNode) populate(ctx context.Context) bool {
 	}
 
 	// Associate this autogit repo node with the node corresponding to
-	// the branch ref for the source repo.
+	// the top-level of the source repo.  This means it will detect
+	// changes more often then necessary (e.g., when a different
+	// branch is updated, or when just objects are updated), but we
+	// can't just depend on the branch reference file because a
+	// particular branch could be defined in packed-refs as well, and
+	// that could change during the lifetime of the repo.
 	srcRepoFS, _, err := GetRepoAndID(
 		ctx, rn.am.config, rn.srcRepoHandle, rn.repoName, "")
 	if err != nil {
 		rn.am.log.CDebugf(ctx, "Couldn't get repo: %+v", err)
 		return false
 	}
-	// Hardcoded master branch for now.
-	branch := "master"
-	ref, err := srcRepoFS.Open(fmt.Sprintf("refs/heads/%s", branch))
-	if err != nil {
-		rn.am.log.CDebugf(ctx, "Couldn't get master branch: %+v", err)
-		return false
-	}
-	refAsFile, ok := ref.(*libfs.File)
-	if !ok {
-		rn.am.log.CDebugf(ctx, "Unexpected ref node type: %T", ref)
-		return false
-	}
-	rn.am.registerRepoNode(refAsFile.GetNode(), rn)
+	rn.am.registerRepoNode(srcRepoFS.RootNode(), rn)
 
 	// If the directory is empty, clone it.  Otherwise, pull it.
 	var doneCh <-chan struct{}
 	cloneNeeded := len(children) == 0
 	ctx = context.WithValue(ctx, ctxReadWriteKey, 1)
+	branch := "master"
 	if cloneNeeded {
 		doneCh, err = rn.am.Clone(
 			ctx, rn.srcRepoHandle, rn.repoName, branch, h, rn.dstDir())
