@@ -89,6 +89,7 @@ func (b *bufferedIdentifyUI) flush(trackingBroke bool) (err error) {
 	}()
 
 	if b.start != nil {
+		b.G().Log.Debug("| bufferedIdentifyUI: start %+v", b.start)
 		err = b.raw.Start(b.start.s, b.start.r, b.start.f)
 		if err != nil {
 			return err
