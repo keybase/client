@@ -85,7 +85,7 @@ func main() {
 	shutdown := libgit.StartAutogit(kbCtx, kbConfig, &params, autoGitNumWorkers)
 	defer shutdown()
 
-	serverConfig := libpages.ServerConfig{
+	serverConfig := &libpages.ServerConfig{
 		UseStaging:       !fProd,
 		Logger:           logger,
 		UseDiskCertCache: fDiskCertCache,

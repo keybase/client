@@ -35,6 +35,26 @@ type ServerConfig struct {
 	UseStaging       bool
 	Logger           *zap.Logger
 	UseDiskCertCache bool
+
+	whiteList     map[string]bool
+	whiteListOnce sync.Once
+}
+
+func (c *ServerConfig) allowedByDomainWhiteList(domain string) bool {
+	c.whiteListOnce.Do(func() {
+		if len(c.DomainWhitelist) > 0 {
+			c.whiteList = make(map[string]bool, len(c.DomainWhitelist))
+			for _, d := range c.DomainWhitelist {
+				c.whiteList[d] = true
+			}
+		}
+	})
+	if c.whiteList != nil {
+		return c.whiteList[domain]
+	}
+
+	// No whitelist; allow everything!
+	return true
 }
 
 const fsCacheSize = 2 << 15
@@ -42,13 +62,10 @@ const fsCacheSize = 2 << 15
 // Server handles incoming HTTP requests by creating a Root for each host and
 // serving content from it.
 type Server struct {
-	config     ServerConfig
+	config     *ServerConfig
 	kbfsConfig libkbfs.Config
 
 	siteCache *lru.Cache
-
-	whiteList     map[string]bool
-	whiteListOnce sync.Once
 }
 
 func (s *Server) getSite(ctx context.Context, root Root) (st *site, err error) {
@@ -340,26 +357,9 @@ func (ErrDomainNotAllowedInWhitelist) Error() string {
 	return "a whitelist is configured and the given domain is not in the list"
 }
 
-func (s *Server) allowedByDomainWhiteList(domain string) bool {
-	s.whiteListOnce.Do(func() {
-		if len(s.config.DomainWhitelist) > 0 {
-			s.whiteList = make(map[string]bool, len(s.config.DomainWhitelist))
-			for _, d := range s.config.DomainWhitelist {
-				s.whiteList[d] = true
-			}
-		}
-	})
-	if s.whiteList != nil {
-		return s.whiteList[domain]
-	}
-
-	// No whitelist; allow everything!
-	return true
-}
-
 // allowConnection is used as a HostPolicy in autocert package.
 func (s *Server) allowConnectionTo(ctx context.Context, host string) error {
-	if !s.allowedByDomainWhiteList(host) {
+	if !s.config.allowedByDomainWhiteList(host) {
 		return ErrDomainNotAllowedInWhitelist{}
 	}
 
@@ -442,7 +442,7 @@ func makeACMEManager(
 // Keybase Pages based on config and kbfsConfig. HTTPs setup is handled with
 // ACME.
 func ListenAndServe(ctx context.Context,
-	config ServerConfig, kbfsConfig libkbfs.Config) (err error) {
+	config *ServerConfig, kbfsConfig libkbfs.Config) (err error) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
