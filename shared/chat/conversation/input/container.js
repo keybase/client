@@ -17,6 +17,7 @@ import {
   withProps,
   lifecycle,
   connect,
+  isMobile,
 } from '../../../util/container'
 // import throttle from 'lodash/throttle'
 import {chatTab} from '../../../constants/tabs'

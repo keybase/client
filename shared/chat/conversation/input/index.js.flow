@@ -4,7 +4,7 @@ import {Component} from 'react'
 // import * as Types from '../../../constants/types/chat2'
 
 export type Props = {
-  isEdit: boolean,
+  isEditing: boolean,
   // editingMessage: ?Types.Message,
   inputFocus: () => void,
   inputSetRef: (r: any) => void,

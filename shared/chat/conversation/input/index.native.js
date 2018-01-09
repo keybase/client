@@ -135,7 +135,7 @@ class ConversationInput extends Component<Props> {
         <Action
           text={this.props.text}
           onSubmit={this._onSubmit}
-          isEdit={this.props.isEdit}
+          isEditing={this.props.isEditing}
           openFilePicker={this._openFilePicker}
           isLoading={this.props.isLoading}
         />
@@ -160,11 +160,11 @@ const Typing = () => (
   </Box>
 )
 
-const Action = ({text, onSubmit, isEdit, openFilePicker, isLoading}) =>
+const Action = ({text, onSubmit, isEditing, openFilePicker, isLoading}) =>
   text ? (
     <Box style={styleActionText}>
       <Text type="BodyBigLink" style={{...(isLoading ? {color: globalColors.grey} : {})}} onClick={onSubmit}>
-        {isEdit ? 'Save' : 'Send'}
+        {isEditing ? 'Save' : 'Send'}
       </Text>
     </Box>
   ) : (

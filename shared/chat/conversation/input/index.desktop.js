@@ -326,13 +326,17 @@ class ConversationInput extends Component<InputProps, State> {
             multiline={true}
             rowsMin={1}
             rowsMax={5}
-            onBlur={this.props.onCancelEditing}
             onKeyDown={this._onKeyDown}
             onKeyUp={this._onKeyUp}
             onEnterKeyDown={this._onEnterKeyDown}
           />
           {this.props.emojiPickerOpen && (
             <EmojiPicker emojiPickerToggle={this.props.emojiPickerToggle} onClick={this._pickerOnClick} />
+          )}
+          {this.props.isEditing && (
+            <Text type="BodySmallPrimaryLink" onClick={this.props.onCancelEditing} style={cancelStyle}>
+              Cancel
+            </Text>
           )}
           <Icon onClick={this.props.emojiPickerToggle} style={styleIcon} type="iconfont-emoji" />
           <Icon onClick={this.props.filePickerOpen} style={styleIcon} type="iconfont-attachment" />
@@ -452,6 +456,10 @@ const styleFooter = {
   marginRight: globalMargins.tiny,
   marginTop: 0,
   textAlign: 'right',
+}
+
+const cancelStyle = {
+  marginRight: globalMargins.tiny,
 }
 
 export default compose(
