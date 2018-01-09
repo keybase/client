@@ -725,6 +725,7 @@ protocol teams {
     boolean setPublicityAny;
     boolean listFirst;
     boolean showcaseSettings;
+    boolean changeTarsDisabled;
   }
 
   TeamOperation canUserPerform(string name);
@@ -735,4 +736,7 @@ protocol teams {
   record TeamDebugRes {
     TeamSigChainState chain;
   }
+
+  boolean getTarsDisabled(string name);
+  void setTarsDisabled(string name, boolean disabled);
 }

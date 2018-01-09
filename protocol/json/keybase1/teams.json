@@ -1635,6 +1635,10 @@
         {
           "type": "boolean",
           "name": "showcaseSettings"
+        },
+        {
+          "type": "boolean",
+          "name": "changeTarsDisabled"
         }
       ]
     },
@@ -2247,6 +2251,28 @@
         }
       ],
       "response": "TeamDebugRes"
+    },
+    "getTarsDisabled": {
+      "request": [
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": "boolean"
+    },
+    "setTarsDisabled": {
+      "request": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "disabled",
+          "type": "boolean"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"

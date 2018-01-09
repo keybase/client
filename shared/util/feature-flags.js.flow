@@ -2,6 +2,7 @@
 
 export type FeatureFlags = {|
   admin: boolean,
+  newPeopleTab: boolean,
   plansEnabled: boolean,
   tabPeopleEnabled: boolean,
   teamChatEnabled: boolean,
@@ -11,6 +12,7 @@ export type FeatureFlags = {|
 
 const ff: FeatureFlags = {
   admin: false,
+  newPeopleTab: false,
   plansEnabled: false,
   tabPeopleEnabled: false,
   teamChatEnabled: false,

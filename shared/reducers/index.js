@@ -10,6 +10,7 @@ import favorite from './favorite'
 import gregor from './gregor'
 import login from './login'
 import notifications from './notifications'
+import people from './people'
 import pinentry from './pinentry'
 import planBilling from './plan-billing'
 import profile from './profile'
@@ -37,6 +38,7 @@ const reducers = {
   gregor,
   login,
   notifications,
+  people,
   pinentry,
   planBilling,
   profile,

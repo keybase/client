@@ -5,6 +5,7 @@ import * as NotificationsGen from '../actions/notifications-gen'
 import * as Tabs from '../constants/tabs'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import {isMobile} from '../constants/platform'
+import flags from '../util/feature-flags'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -25,6 +26,7 @@ export default function(state: Types.State = initialState, action: Notifications
       return initialState
     case NotificationsGen.receivedBadgeState: {
       const {
+        homeTodoItems,
         conversations,
         newTlfs,
         rekeysNeeded,
@@ -46,6 +48,7 @@ export default function(state: Types.State = initialState, action: Notifications
         n.set(Tabs.folderTab, newTlfs + rekeysNeeded)
         n.set(Tabs.gitTab, newGit)
         n.set(Tabs.teamsTab, newTeams)
+        n.set(Tabs.peopleTab, flags.newPeopleTab ? homeTodoItems : 0)
       })
       let newState = state.withMutations(s => {
         s.set('navBadges', navBadges)

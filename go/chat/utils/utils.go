@@ -724,6 +724,15 @@ func GetConvSnippet(conv chat1.ConversationLocal) string {
 	return GetMsgSnippet(msg)
 }
 
+func GetMsgSummaryByType(msgs []chat1.MessageSummary, typ chat1.MessageType) (chat1.MessageSummary, error) {
+	for _, msg := range msgs {
+		if msg.GetMessageType() == typ {
+			return msg, nil
+		}
+	}
+	return chat1.MessageSummary{}, errors.New("not found")
+}
+
 func systemMessageSnippet(msg chat1.MessageSystem) string {
 	typ, err := msg.SystemType()
 	if err != nil {

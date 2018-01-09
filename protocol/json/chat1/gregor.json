@@ -85,6 +85,13 @@
             "UnreadUpdate"
           ],
           "name": "unreadUpdate"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "MessageSummary"
+          },
+          "name": "maxMsgs"
         }
       ]
     },

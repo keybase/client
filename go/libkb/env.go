@@ -1028,10 +1028,7 @@ func (e *Env) GetChatInboxSourceLocalizeThreads() int {
 // GetChatMemberType returns the default member type for new conversations.
 // Currently defaults to `kbfs`, but `impteam` will be default in future (and is the default for admins)
 func (e *Env) GetChatMemberType() string {
-	if e.GetFeatureFlags().Admin() {
-		return "impteam"
-	}
-	return "kbfs"
+	return "impteam"
 }
 
 func (e *Env) GetDeviceID() keybase1.DeviceID {

@@ -343,10 +343,10 @@ class Team extends React.PureComponent<Props> {
           style={{
             ...globalStyles.flexBoxColumn,
             alignSelf: 'stretch',
-            padding: globalMargins.medium,
             flexBasis: 0,
             flexGrow: 1,
           }}
+          contentContainerStyle={{padding: globalMargins.medium}}
         >
           {yourOperations.showcaseSettings && (
             <Box

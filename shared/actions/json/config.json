@@ -59,6 +59,10 @@
     "retryBootstrap": {},
     "setInitialState": {
       "initialState": "Types.InitialState"
+    },
+    "setOpenAtLogin": {
+      "open": "boolean",
+      "writeFile": "boolean"
     }
   }
 }
