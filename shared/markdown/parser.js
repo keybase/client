@@ -190,12 +190,11 @@ function peg$parse(input, options) {
       peg$c35 = function(mention) { return {type: 'mention', children: [mention] } },
       peg$c36 = /^[0-9a-zA-Z_\-]/,
       peg$c37 = peg$otherExpectation("stripped character class"),
-      peg$c38 = function(children) {
-        const channel = flatten(children)[0]
+      peg$c38 = function(channel) {
         return channel.length > 0 && channel.length <= 20 &&
           options && options.channelNameToConvID && options.channelNameToConvID(channel)
       },
-      peg$c39 = function(children) { return {type: 'channel', children: flatten(children), convID: options && options.channelNameToConvID && options.channelNameToConvID(flatten(children)[0]) } },
+      peg$c39 = function(channel) { return {type: 'channel', children: [channel], convID: options && options.channelNameToConvID && options.channelNameToConvID(channel) } },
       peg$c40 = function(code) { return {type: 'code-block', children: [code]} },
       peg$c41 = function(code) { return {type: 'inline-code', children: [code]} },
       peg$c42 = /^[a-zA-Z0-9+_\-]/,
@@ -2163,32 +2162,38 @@ function peg$parse(input, options) {
   }
 
   function peg$parseChannel() {
-    var s0, s1, s2, s3;
+    var s0, s1, s2, s3, s4;
 
     s0 = peg$currPos;
     s1 = peg$parseChannelMarker();
     if (s1 !== peg$FAILED) {
-      s2 = [];
+      s2 = peg$currPos;
+      s3 = [];
       if (peg$c36.test(input.charAt(peg$currPos))) {
-        s3 = input.charAt(peg$currPos);
+        s4 = input.charAt(peg$currPos);
         peg$currPos++;
       } else {
-        s3 = peg$FAILED;
+        s4 = peg$FAILED;
         if (peg$silentFails === 0) { peg$fail(peg$c37); }
       }
-      if (s3 !== peg$FAILED) {
-        while (s3 !== peg$FAILED) {
-          s2.push(s3);
+      if (s4 !== peg$FAILED) {
+        while (s4 !== peg$FAILED) {
+          s3.push(s4);
           if (peg$c36.test(input.charAt(peg$currPos))) {
-            s3 = input.charAt(peg$currPos);
+            s4 = input.charAt(peg$currPos);
             peg$currPos++;
           } else {
-            s3 = peg$FAILED;
+            s4 = peg$FAILED;
             if (peg$silentFails === 0) { peg$fail(peg$c37); }
           }
         }
       } else {
-        s2 = peg$FAILED;
+        s3 = peg$FAILED;
+      }
+      if (s3 !== peg$FAILED) {
+        s2 = input.substring(s2, peg$currPos);
+      } else {
+        s2 = s3;
       }
       if (s2 !== peg$FAILED) {
         peg$savedPos = peg$currPos;
