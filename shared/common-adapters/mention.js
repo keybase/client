@@ -9,6 +9,7 @@ export type Props = {
   theme: 'follow' | 'nonFollow' | 'highlight' | 'none',
   onClick: ?() => void,
   style?: ?Object,
+  allowFontScaling?: boolean,
 }
 
 const mentionStyles = {
@@ -26,13 +27,14 @@ const mentionStyles = {
   none: {},
 }
 
-export default ({key, username, theme, style, onClick}: Props) => (
+export default ({key, username, theme, style, allowFontScaling, onClick}: Props) => (
   <Text
     type="BodySemibold"
     onClick={onClick || undefined}
     key={key}
     className={isMobile ? undefined : 'hover-underline'}
     style={{...style, ...mentionStyles[theme], borderRadius: 2}}
+    allowFontScaling={allowFontScaling}
   >
     @{username}
   </Text>
