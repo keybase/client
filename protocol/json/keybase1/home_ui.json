@@ -1,5 +1,5 @@
 {
-  "protocol": "homeUi",
+  "protocol": "homeUI",
   "imports": [],
   "types": [],
   "messages": {
