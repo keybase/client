@@ -136,8 +136,8 @@ type TeamTabsProps = {
   setSelectedTab: (?Types.TabKey) => void,
 }
 
-const SubteamsIntro = (index, {key}) => (
-  <SubteamBanner key={key}/>
+const SubteamsIntro = (index, {key, onReadMore}) => (
+  <SubteamBanner key={key} onReadMore={onReadMore} />
 )
 
 const AddSubTeam = (index, {key, onCreateSubteam}) => (
@@ -147,7 +147,7 @@ const AddSubTeam = (index, {key, onCreateSubteam}) => (
       alignItems: 'center',
       flexShrink: 0,
       height: globalMargins.medium,
-      padding: globalMargins.tiny,
+      padding: globalMargins.medium,
       width: '100%',
     }}
   >
@@ -307,6 +307,7 @@ class Team extends React.PureComponent<Props> {
       loading,
       memberCount,
       onManageChat,
+      onReadMoreAboutSubteams,
       onSavePublicity,
       openTeam,
       openTeamRole,
@@ -374,7 +375,7 @@ class Team extends React.PureComponent<Props> {
       )
     } else if (selectedTab === 'subteams') {
       const subTeamsItems = [
-        {key: 'intro', type: 'intro'},
+        {key: 'intro', type: 'intro', onReadMore: onReadMoreAboutSubteams},
         {key: 'addSubteam', type: 'addSubteam', onCreateSubteam},
         ...subTeamsProps,
       ]

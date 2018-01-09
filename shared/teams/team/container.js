@@ -16,6 +16,8 @@ import {isMobile} from '../../constants/platform'
 import {anyWaiting} from '../../constants/waiting'
 import {navigateAppend} from '../../actions/route-tree'
 import {createShowUserProfile} from '../../actions/profile-gen'
+import openURL from '../../util/open-url'
+
 
 const order = {owner: 0, admin: 1, writer: 2, reader: 3}
 
@@ -156,7 +158,9 @@ const mapDispatchToProps = (
   },
   _savePublicity: (teamname: Types.Teamname, settings: Types.PublicitySettings) =>
     dispatch(TeamsGen.createSetPublicity({teamname, settings})),
-  onViewTeam: (teamname: Types.Teamname) => dispatch(navigateAppend([{props: {teamname}, selected: 'team'}])),
+  onReadMoreAboutSubteams: () => {
+    openURL('https://keybase.io/docs/teams/design')
+  },
 })
 
 const getOrderedMemberArray = (
@@ -246,7 +250,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onInviteByEmail,
     onCreateSubteam,
     onLeaveTeam,
-    onManageChat,
     onOpenFolder,
     onEditDescription,
     onSetOpenTeamRole,

@@ -18,7 +18,7 @@ const Banner = ({onReadMore, onHideBanner}: Props) => (
           }
         : {
             ...globalStyles.flexBoxRow,
-            height: 212,
+            height: 256,
           }),
       alignItems: 'center',
       backgroundColor: globalColors.blue,
@@ -28,7 +28,10 @@ const Banner = ({onReadMore, onHideBanner}: Props) => (
       width: '100%',
     }}
   >
-    <Icon type="icon-illustration-subteams-380" />
+    <Box style={{...globalStyles.flexBoxColumn, margin: globalMargins.small}}>
+      <Icon type="icon-illustration-subteams-380" />
+    </Box>
+
     <Box
       style={{
         ...globalStyles.flexBoxColumn,

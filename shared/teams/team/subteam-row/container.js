@@ -50,8 +50,6 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
   console.warn('members and teamname', stateProps, dispatchProps, ownProps)
   const youAreMember = stateProps.yourRole && stateProps.yourRole !== 'none'
   const canManageChat = youAreMember && stateProps.yourOperations.createChannel
-  console.warn(youAreMember)
-  console.warn(canManageChat)
   return {
     ...ownProps,
     ...stateProps,
