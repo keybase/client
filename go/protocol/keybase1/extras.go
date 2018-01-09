@@ -2000,6 +2000,19 @@ func (t TeamInvite) KeybaseUserVersion() (UserVersion, error) {
 	return ParseUserVersion(UserVersionPercentForm(t.Name))
 }
 
+// ContainsUID is a fast check if invite Name contains UID string. If
+// this function returns true, it's possible that this is a Keybase
+// invite for given UID, but it might as well not be - to be sure,
+// KeybaseUserVersion() should be called which returns actual UV.
+func (t TeamInvite) ContainsUID(uid UID) bool {
+	category, err := t.Type.C()
+	if err != nil || category != TeamInviteCategory_KEYBASE {
+		return false
+	}
+
+	return strings.Contains(string(t.Name), uid.String())
+}
+
 func (m MemberInfo) TeamName() (TeamName, error) {
 	return TeamNameFromString(m.FqName)
 }

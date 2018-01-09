@@ -347,6 +347,18 @@ func (t *TeamSigChainState) informCompletedInvite(i keybase1.TeamInviteID) {
 	delete(t.inner.ActiveInvites, i)
 }
 
+func (t *TeamSigChainState) findAndObsoleteInviteForUser(uv keybase1.UserVersion) {
+	for id, invite := range t.inner.ActiveInvites {
+		if invite.ContainsUID(uv.Uid) {
+			if inviteUv, err := invite.KeybaseUserVersion(); err == nil {
+				if inviteUv.Uid == uv.Uid {
+					delete(t.inner.ActiveInvites, id)
+				}
+			}
+		}
+	}
+}
+
 func (t *TeamSigChainState) getLastSubteamPoint(id keybase1.TeamID) *keybase1.SubteamLogPoint {
 	if len(t.inner.SubteamLog[id]) > 0 {
 		return &t.inner.SubteamLog[id][len(t.inner.SubteamLog[id])-1]
@@ -1050,6 +1062,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
 
 		t.completeInvites(&res.newState, team.CompletedInvites)
+		t.implicitCompleteInvites(&res.newState, roleUpdates, payload.SignatureMetadata())
 
 		// Note: If someone was removed, the per-team-key should be rotated. This is not checked though.
 
@@ -1967,6 +1980,20 @@ func (t *TeamSigChainPlayer) updateInvites(stateToUpdate *TeamSigChainState, add
 func (t *TeamSigChainPlayer) completeInvites(stateToUpdate *TeamSigChainState, completed map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm) {
 	for id := range completed {
 		stateToUpdate.informCompletedInvite(id)
+	}
+}
+
+func (t *TeamSigChainPlayer) implicitCompleteInvites(stateToUpdate *TeamSigChainState, roleUpdates chainRoleUpdates, sigMeta keybase1.SignatureMetadata) {
+	if len(stateToUpdate.inner.ActiveInvites) == 0 {
+		return
+	}
+
+	for role, uvs := range roleUpdates {
+		if role != keybase1.TeamRole_NONE {
+			for _, uv := range uvs {
+				stateToUpdate.findAndObsoleteInviteForUser(uv)
+			}
+		}
 	}
 }
 

@@ -444,3 +444,47 @@ func TestClearSocialInvitesOnAdd(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, hasInv, "But should not have cleared otherbob...@rooter")
 }
+
+func TestSweepObsoleteKeybaseInvites(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	// Disable gregor in this test so Ann does not immediately add Bob
+	// through SBS handler when bob gets PUK.
+	ann := makeUserStandalone(t, "ann", standaloneUserArgs{
+		disableGregor:            true,
+		suppressTeamChatAnnounce: true,
+	})
+	tt.users = append(tt.users, ann)
+
+	// Get UIDMapper caching out of the equation - assume in real
+	// life, tested actions are spread out in time and caching is not
+	// an issue.
+	ann.tc.G.UIDMapper.SetTestingNoCachingMode(true)
+
+	bob := tt.addPuklessUser("bob")
+	t.Logf("Signed up PUK-less user bob (%s)", bob.username)
+
+	team := ann.createTeam()
+	t.Logf("Team created (%s)", team)
+
+	ann.addTeamMember(team, bob.username, keybase1.TeamRole_WRITER)
+
+	bob.perUserKeyUpgrade()
+	t.Logf("Bob (%s) gets PUK", bob.username)
+
+	// TODO: Once CORE-6905 is done, this will automatically complete
+	// invite, breaking this test.
+	ann.addTeamMember(team, bob.username, keybase1.TeamRole_WRITER)
+
+	teamObj, err := teams.Load(context.Background(), ann.tc.G, keybase1.LoadTeamArg{
+		Name:        team,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+	_ = teamObj
+
+	hasInvite, err := teamObj.HasActiveInvite(bob.userVersion().TeamInviteName(), "keybase")
+	require.NoError(t, err)
+	require.False(t, hasInvite)
+}

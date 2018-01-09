@@ -140,8 +140,6 @@ func TestTeamList(t *testing.T) {
 func TestTeamDuplicateUIDList(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
-	ctx := newSMUContext(t)
-	defer ctx.cleanup()
 
 	ann := tt.addUser("ann")
 	t.Logf("Signed up ann (%s)", ann.username)
@@ -167,7 +165,6 @@ func TestTeamDuplicateUIDList(t *testing.T) {
 	ann.addTeamMember(team, bob.username, keybase1.TeamRole_WRITER)
 
 	teamCli := ann.teamsClient
-	t.Logf("teamcli is %v", teamCli)
 	details, err := teamCli.TeamGet(context.TODO(), keybase1.TeamGetArg{
 		Name:        team,
 		ForceRepoll: true,
