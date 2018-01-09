@@ -103,19 +103,21 @@ func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 	for i, conflict := range imp.Conflicts {
 		g.Log.CDebugf(ctx, "| checking conflict: %+v (iter %d)", conflict, i)
 		conflictInfo, err := conflict.parse()
+
 		if err != nil {
 			// warn, don't fail
 			g.Log.CWarningf(ctx, "LookupImplicitTeam got conflict suffix: %v", err)
+			err = nil
 			continue
-		} else {
-			conflicts = append(conflicts, *conflictInfo)
+		}
+		conflicts = append(conflicts, *conflictInfo)
+
+		if conflictInfo == nil {
+			g.Log.CDebugf(ctx, "| got unexpected nil conflictInfo (iter %d)", i)
+			continue
 		}
 
-		if conflictInfo != nil {
-			g.Log.CDebugf(ctx, "| parsed conflict into conflictInfo: %+v", *conflictInfo)
-		} else {
-			g.Log.CDebugf(ctx, "| got unexpected nil conflictInfo (iter %d)", i)
-		}
+		g.Log.CDebugf(ctx, "| parsed conflict into conflictInfo: %+v", *conflictInfo)
 
 		if impTeamName.ConflictInfo != nil {
 			match := libkb.FormatImplicitTeamDisplayNameSuffix(*impTeamName.ConflictInfo) == libkb.FormatImplicitTeamDisplayNameSuffix(*conflictInfo)
