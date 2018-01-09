@@ -81,7 +81,7 @@ const _skipTodo = (action: PeopleGen.SkipTodoPayload) => {
     // TODO get rid of this load and have core send us a homeUIRefresh
     Saga.put(
       PeopleGen.createGetPeopleData({
-        markViewed: true,
+        markViewed: false,
         numFollowSuggestionsWanted: Constants.defaultNumFollowSuggestions,
       })
     ),
@@ -90,7 +90,7 @@ const _skipTodo = (action: PeopleGen.SkipTodoPayload) => {
 
 const _setupPeopleHandlers = () => {
   return Saga.put((dispatch: Dispatch) => {
-    engine().setIncomingHandler('keybase.1.homeUi.homeUIRefresh', (args: {||}) => {
+    engine().setIncomingHandler('keybase.1.homeUI.homeUIRefresh', (args: {||}) => {
       dispatch(
         PeopleGen.createGetPeopleData({
           markViewed: false,
