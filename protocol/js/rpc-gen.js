@@ -1495,6 +1495,10 @@ export const teamsCanUserPerformRpcChannelMap = (configKeys: Array<string>, requ
 
 export const teamsCanUserPerformRpcPromise = (request: TeamsCanUserPerformRpcParam): Promise<TeamsCanUserPerformResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.canUserPerform', request, (error: RPCError, result: TeamsCanUserPerformResult) => (error ? reject(error) : resolve(result))))
 
+export const teamsGetTarsDisabledRpcChannelMap = (configKeys: Array<string>, request: TeamsGetTarsDisabledRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.getTarsDisabled', request)
+
+export const teamsGetTarsDisabledRpcPromise = (request: TeamsGetTarsDisabledRpcParam): Promise<TeamsGetTarsDisabledResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.getTarsDisabled', request, (error: RPCError, result: TeamsGetTarsDisabledResult) => (error ? reject(error) : resolve(result))))
+
 export const teamsGetTeamAndMemberShowcaseRpcChannelMap = (configKeys: Array<string>, request: TeamsGetTeamAndMemberShowcaseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.getTeamAndMemberShowcase', request)
 
 export const teamsGetTeamAndMemberShowcaseRpcPromise = (request: TeamsGetTeamAndMemberShowcaseRpcParam): Promise<TeamsGetTeamAndMemberShowcaseResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.getTeamAndMemberShowcase', request, (error: RPCError, result: TeamsGetTeamAndMemberShowcaseResult) => (error ? reject(error) : resolve(result))))
@@ -1526,6 +1530,10 @@ export const teamsSeitanIKeyAndLabelVersion = {
 export const teamsSeitanIKeyLabelType = {
   sms: 1,
 }
+
+export const teamsSetTarsDisabledRpcChannelMap = (configKeys: Array<string>, request: TeamsSetTarsDisabledRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.setTarsDisabled', request)
+
+export const teamsSetTarsDisabledRpcPromise = (request: TeamsSetTarsDisabledRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.setTarsDisabled', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const teamsSetTeamMemberShowcaseRpcChannelMap = (configKeys: Array<string>, request: TeamsSetTeamMemberShowcaseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.setTeamMemberShowcase', request)
 
@@ -3558,7 +3566,7 @@ export type TeamNamePart = String
 
 export type TeamOpenReqMsg = $ReadOnly<{teamID: TeamID, tars?: ?Array<TeamAccessRequest>}>
 
-export type TeamOperation = $ReadOnly<{manageMembers: Boolean, manageSubteams: Boolean, createChannel: Boolean, deleteChannel: Boolean, renameChannel: Boolean, editChannelDescription: Boolean, setTeamShowcase: Boolean, setMemberShowcase: Boolean, changeOpenTeam: Boolean, leaveTeam: Boolean}>
+export type TeamOperation = $ReadOnly<{manageMembers: Boolean, manageSubteams: Boolean, createChannel: Boolean, deleteChannel: Boolean, renameChannel: Boolean, editChannelDescription: Boolean, setTeamShowcase: Boolean, setMemberShowcase: Boolean, changeOpenTeam: Boolean, leaveTeam: Boolean, changeTarsDisabled: Boolean}>
 
 export type TeamPlusApplicationKeys = $ReadOnly<{id: TeamID, name: String, implicit: Boolean, public: Boolean, application: TeamApplication, writers?: ?Array<UserVersion>, onlyReaders?: ?Array<UserVersion>, applicationKeys?: ?Array<TeamApplicationKey>}>
 
@@ -3598,6 +3606,8 @@ export type TeamType =
 
 export type TeamsCanUserPerformRpcParam = $ReadOnly<{name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
+export type TeamsGetTarsDisabledRpcParam = $ReadOnly<{name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
 export type TeamsGetTeamAndMemberShowcaseRpcParam = $ReadOnly<{name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type TeamsGetTeamRootIDRpcParam = $ReadOnly<{id: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
@@ -3609,6 +3619,8 @@ export type TeamsLoadTeamPlusApplicationKeysRpcParam = $ReadOnly<{id: TeamID, ap
 export type TeamsLookupImplicitTeamRpcParam = $ReadOnly<{name: String, public: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type TeamsLookupOrCreateImplicitTeamRpcParam = $ReadOnly<{name: String, public: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
+export type TeamsSetTarsDisabledRpcParam = $ReadOnly<{name: String, disabled: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type TeamsSetTeamMemberShowcaseRpcParam = $ReadOnly<{name: String, isShowcased: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -3983,6 +3995,7 @@ type SimpleFSSimpleFSStatResult = Dirent
 type StreamUiReadResult = Bytes
 type StreamUiWriteResult = Int
 type TeamsCanUserPerformResult = TeamOperation
+type TeamsGetTarsDisabledResult = Boolean
 type TeamsGetTeamAndMemberShowcaseResult = TeamAndMemberShowcase
 type TeamsGetTeamRootIDResult = TeamID
 type TeamsGetTeamShowcaseResult = TeamShowcase

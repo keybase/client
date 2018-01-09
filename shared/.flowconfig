@@ -47,6 +47,7 @@ sketchy-null-mixed=off
 sketchy-null-number=off
 unclear-type=off
 untyped-import=off
+deprecated-declare-exports=off
 
 [version]
-0.62
+0.63.1
