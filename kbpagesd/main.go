@@ -21,12 +21,21 @@ var (
 	fProd           bool
 	fDiskCertCache  bool
 	fNoRedirectHTTP bool
+	fKBFSLogFile    string
+	fStathatEZKey   string
+	fStathatPrefix  string
 )
 
 func init() {
 	flag.BoolVar(&fProd, "prod", false, "disable development mode")
 	flag.BoolVar(&fDiskCertCache, "use-disk-cert-cache", false, "cache cert on disk")
 	flag.BoolVar(&fNoRedirectHTTP, "no-redirect-http", false, "do not redirect to HTTPS")
+	flag.StringVar(&fKBFSLogFile, "kbfs-logfile", "kbp-kbfs.log",
+		"path to KBFS log file; empty means print to stdout")
+	flag.StringVar(&fStathatEZKey, "stathat-key", "",
+		"stathat EZ key for reporting stats to stathat; empty disables stathat")
+	flag.StringVar(&fStathatPrefix, "stathat-prefix", "kbp -",
+		"prefix to stathat statnames")
 }
 
 func newLogger(isCLI bool) (*zap.Logger, error) {
@@ -72,6 +81,7 @@ func main() {
 	params := libkbfs.DefaultInitParams(kbCtx)
 	params.EnableJournal = true
 	params.Debug = true
+	params.LogFileConfig.Path = fKBFSLogFile
 	kbfsLog, err := libkbfs.InitLog(params, kbCtx)
 	if err != nil {
 		logger.Panic("libkbfs.InitLog", zap.Error(err))
@@ -85,11 +95,17 @@ func main() {
 	shutdown := libgit.StartAutogit(kbCtx, kbConfig, &params, autoGitNumWorkers)
 	defer shutdown()
 
+	var statsReporter libpages.StatsReporter
+	if len(fStathatEZKey) != 0 {
+		statsReporter = newStathatReporter(fStathatPrefix, fStathatEZKey)
+	}
+
 	serverConfig := &libpages.ServerConfig{
 		UseStaging:       !fProd,
 		Logger:           logger,
 		UseDiskCertCache: fDiskCertCache,
 		AutoDirectHTTP:   !fNoRedirectHTTP,
+		StatsReporter:    statsReporter,
 	}
 
 	libpages.ListenAndServe(ctx, serverConfig, kbConfig)
