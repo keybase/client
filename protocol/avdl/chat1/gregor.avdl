@@ -27,8 +27,8 @@ protocol gregor {
         InboxVers inboxVers;
         union { null, UnreadUpdate } unreadUpdate;
 
-        // The previous message of the same type from the message that this messages is deleting
-        union { null, MessageBoxed } prevDeleted;
+        // Optionally the server can send down the new set of max messages
+        array<MessageSummary> maxMsgs;
     }
 
     record ReadMessagePayload {

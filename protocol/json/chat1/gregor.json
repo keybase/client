@@ -87,11 +87,11 @@
           "name": "unreadUpdate"
         },
         {
-          "type": [
-            null,
-            "MessageBoxed"
-          ],
-          "name": "prevDeleted"
+          "type": {
+            "type": "array",
+            "items": "MessageSummary"
+          },
+          "name": "maxMsgs"
         }
       ]
     },

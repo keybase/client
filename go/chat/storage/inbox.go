@@ -754,7 +754,7 @@ func (i *Inbox) promoteWriter(ctx context.Context, sender gregor1.UID, writers [
 }
 
 func (i *Inbox) NewMessage(ctx context.Context, vers chat1.InboxVers, convID chat1.ConversationID,
-	msg chat1.MessageBoxed) (err Error) {
+	msg chat1.MessageBoxed, maxMsgs []chat1.MessageSummary) (err Error) {
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.Trace(ctx, func() error { return err }, "NewMessage")()
@@ -782,18 +782,23 @@ func (i *Inbox) NewMessage(ctx context.Context, vers chat1.InboxVers, convID cha
 		return i.Clear(ctx)
 	}
 
-	// Update conversation
-	found := false
-	typ := msg.GetMessageType()
-	for mindex, maxmsg := range conv.Conv.MaxMsgSummaries {
-		if maxmsg.GetMessageType() == typ {
-			conv.Conv.MaxMsgSummaries[mindex] = msg.Summary()
-			found = true
-			break
+	// Update conversation. Use given max messages if the param is non-empty, otherwise just fill
+	// it in ourselves
+	if len(maxMsgs) == 0 {
+		found := false
+		typ := msg.GetMessageType()
+		for mindex, maxmsg := range conv.Conv.MaxMsgSummaries {
+			if maxmsg.GetMessageType() == typ {
+				conv.Conv.MaxMsgSummaries[mindex] = msg.Summary()
+				found = true
+				break
+			}
 		}
-	}
-	if !found {
-		conv.Conv.MaxMsgSummaries = append(conv.Conv.MaxMsgSummaries, msg.Summary())
+		if !found {
+			conv.Conv.MaxMsgSummaries = append(conv.Conv.MaxMsgSummaries, msg.Summary())
+		}
+	} else {
+		conv.Conv.MaxMsgSummaries = maxMsgs
 	}
 
 	// If we are all up to date on the thread (and the sender is the current user),
