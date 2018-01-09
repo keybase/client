@@ -7,6 +7,8 @@ import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as Types from '../types/chat2'
 import HiddenString from '../../util/hidden-string'
 import clamp from 'lodash/clamp'
+import {isMobile} from '../platform'
+import type {TypedState} from '../reducer'
 
 // flow is geting confused
 const makeMessageCommon = {
@@ -18,6 +20,7 @@ const makeMessageCommon = {
   hasBeenEdited: false,
   id: 0,
   ordinal: 0,
+  outboxID: null,
   timestamp: 0,
 }
 
@@ -137,6 +140,32 @@ export const uiMessageToMessage = (
 
   // TODO errors and unbox
   return null
+}
+
+function nextFractionalOrdinal(ord: number): number {
+  // Mimic what the service does with outbox items
+  return ord + 0.001
+}
+
+export const makePendingTextMessage = (
+  state: TypedState,
+  conversationIDKey: Types.ConversationIDKey,
+  text: HiddenString
+) => {
+  const lastOrindal = state.chat2.messageOrdinals.get(conversationIDKey, I.List()).last() || 0
+  const ordinal = nextFractionalOrdinal(lastOrindal)
+
+  return makeMessageText({
+    author: state.config.username || '',
+    conversationIDKey,
+    deviceName: '',
+    deviceType: isMobile ? 'mobile' : 'desktop',
+    id: 0,
+    localState: 'pending',
+    ordinal,
+    text,
+    timestamp: Date.now(),
+  })
 }
 
 export const isOldestOrdinal = (ordinal: Types.Ordinal) => ordinal === 2

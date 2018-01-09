@@ -20,6 +20,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   messageMap: I.Map(),
   messageOrdinals: I.Map(),
   metaMap: I.Map(),
+  pendingOutboxToOrdinal: I.Map(),
   selectedConversation: null,
   typingMap: I.Map(),
   unreadMap: I.Map(),
@@ -43,7 +44,7 @@ export const getEditingOrdinal = (state: TypedState, id: Types.ConversationIDKey
   state.chat2.editingMap.get(id)
 export const getTyping = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.typingMap.get(id, I.Set())
-export const generateOutboxId = () => Buffer.from([...Array(8)].map(() => Math.floor(Math.random() * 256)))
+export const generateOutboxID = () => Buffer.from([...Array(8)].map(() => Math.floor(Math.random() * 256)))
 
 export {
   getConversationIDKeyMetasToLoad,
@@ -55,4 +56,4 @@ export {
   unverifiedInboxUIItemToConversationMeta,
 } from './meta'
 
-export {makeMessageDeleted, uiMessageToMessage, isOldestOrdinal} from './message'
+export {makeMessageDeleted, uiMessageToMessage, isOldestOrdinal, makePendingTextMessage} from './message'

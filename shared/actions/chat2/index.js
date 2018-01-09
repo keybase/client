@@ -211,7 +211,7 @@ const rpcMetaRequest = (
   ])
 }
 
-const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage) => {
+const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedState) => {
   // TODO from thread-content:
   // convert outbox to regular?
   // mark as read
@@ -222,16 +222,25 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage) => {
     const conversationIDKey = Constants.conversationIDToKey(convID)
     const message = Constants.uiMessageToMessage(conversationIDKey, cMsg)
     if (message) {
-      // visible type
-      actions.push(Chat2Gen.createMessagesAdd({messages: [message]}))
-      if (!isMobile && displayDesktopNotification && conv && conv.snippet) {
+      if (cMsg.state === RPCChatTypes.chatUiMessageUnboxedState.valid && cMsg.valid && cMsg.valid.outboxID) {
         actions.push(
-          Chat2Gen.createDesktopNotification({
-            author: message.author,
-            body: conv.snippet,
-            conversationIDKey,
+          Chat2Gen.createMessagesAdd({
+            context: {outboxID: Types.stringToOutboxID(cMsg.valid.outboxID), type: 'incomingWasPending'},
+            messages: [message],
           })
         )
+      } else {
+        // visible type
+        actions.push(Chat2Gen.createMessagesAdd({context: {type: 'incoming'}, messages: [message]}))
+        if (!isMobile && displayDesktopNotification && conv && conv.snippet) {
+          actions.push(
+            Chat2Gen.createDesktopNotification({
+              author: message.author,
+              body: conv.snippet,
+              conversationIDKey,
+            })
+          )
+        }
       }
     } else if (cMsg.state === RPCChatTypes.chatUiMessageUnboxedState.valid && cMsg.valid) {
       const body = cMsg.valid.messageBody
@@ -267,11 +276,11 @@ const chatActivityToMetasAction = (payload: ?{+conv?: ?RPCChatTypes.InboxUIItem}
 const setupChatHandlers = () => {
   engine().setIncomingActionCreators(
     'chat.1.NotifyChat.NewChatActivity',
-    (payload: {activity: RPCChatTypes.ChatActivity}) => {
+    (payload: {activity: RPCChatTypes.ChatActivity}, ignore1, ignore2, getState) => {
       const activity: RPCChatTypes.ChatActivity = payload.activity
       switch (activity.activityType) {
         case RPCChatTypes.notifyChatChatActivityType.incomingMessage:
-          return activity.incomingMessage ? onIncomingMessage(activity.incomingMessage) : null
+          return activity.incomingMessage ? onIncomingMessage(activity.incomingMessage, getState()) : null
         case RPCChatTypes.notifyChatChatActivityType.setStatus:
           return chatActivityToMetasAction(activity.setStatus)
         case RPCChatTypes.notifyChatChatActivityType.readMessage:
@@ -507,7 +516,9 @@ const rpcLoadThread = (
       }, [])
 
       if (messages.length) {
-        yield Saga.put(Chat2Gen.createMessagesAdd({fromThreadLoad: conversationIDKey, messages}))
+        yield Saga.put(
+          Chat2Gen.createMessagesAdd({context: {type: 'threadLoad', conversationIDKey}, messages})
+        )
       }
     }
 
@@ -622,15 +633,31 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
   const meta = Constants.getMeta(state, conversationIDKey)
   const tlfName = meta.tlfname // TODO non existant convo
   const clientPrev = Constants.getMessageOrdinals(state, conversationIDKey).last() || 0
-  return Saga.call(RPCChatTypes.localPostTextNonblockRpcPromise, {
-    body: text.stringValue(),
-    clientPrev,
-    conversationID: Constants.keyToConversationID(conversationIDKey),
-    identifyBehavior,
-    outboxID: Constants.generateOutboxId(),
-    tlfName,
-    tlfPublic: false,
-  })
+  const outboxID = Constants.generateOutboxID()
+
+  const pendingMessage = Constants.makePendingTextMessage(state, conversationIDKey, text)
+
+  // Inject pending message and make the call
+  return Saga.sequentially([
+    Saga.put(
+      Chat2Gen.createMessagesAdd({
+        context: {
+          outboxID: Types.stringToOutboxID(outboxID.toString('hex')),
+          type: 'sent',
+        },
+        messages: [pendingMessage],
+      })
+    ),
+    Saga.call(RPCChatTypes.localPostTextNonblockRpcPromise, {
+      body: text.stringValue(),
+      clientPrev,
+      conversationID: Constants.keyToConversationID(conversationIDKey),
+      identifyBehavior,
+      outboxID,
+      tlfName,
+      tlfPublic: false,
+    }),
+  ])
 }
 
 function* chat2Saga(): Saga.SagaGenerator<any, any> {

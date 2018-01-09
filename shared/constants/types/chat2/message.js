@@ -13,8 +13,11 @@ export const numberToMessageID = (n: number): MessageID => n
 // TODO opaque
 export type Ordinal = number
 
+export opaque type OutboxID: string = string
+export const stringToOutboxID = (s: string): OutboxID => s
+
 // Bookkeep us trying to do these operations
-type LocalState = null | 'deleting' | 'editing' | 'error'
+type LocalState = null | 'deleting' | 'editing' | 'error' | 'pending'
 
 type ChannelMention = 'none' | 'all' | 'here'
 

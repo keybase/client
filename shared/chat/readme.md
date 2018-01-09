@@ -1,5 +1,7 @@
 How chat works:
 
+## Inbox:
+
 Conversations are of 2 basic types.
     - Small: adhoc conversations or teams with only the #general channel
     - Big: teams with multiple channels
@@ -27,3 +29,18 @@ The inbox is entirely derived from the metaMap
 Edge cases:
 - Rekey: If you don't have the keys to unbox the conversation we tell you who can help you out (sometimes yourself)
 - Reset users: If you have reset users in an implied team conversation (no actual team in the teams tab) we present the reset users for you to deal with.
+
+## Thread
+
+A conversation thread is a list of messages. The thread itself is just a list of ids and each row is individually connected.
+Messages have several IDs associated with them and they're used in different circumstances.
+
+MessageID: is the true id of a sent message. This is used as input to rpcs (like editing/deleting)
+OutboxID: is used when sending a message (while in the grey state)
+Ordinal: is used to order / lookup messages. Ordinals are currently fractional additions to the last visible message id. aka
+if i sent a message after the already sent {MessageID: 123}  the oridinal would be 123.001
+The ordinal is only used to ensure this client is seeing messages in order from their perspective. If you reload the thread those ordinals can be
+resolved into their real sent ids (aka 123.001 -> 124)
+
+Pending -> Send reconciliation.
+We keep our ordinals so we don't thrash or get things flipped out of order.

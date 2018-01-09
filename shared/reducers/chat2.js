@@ -22,6 +22,20 @@ const initialState: Types.State = Constants.makeState()
 // return state
 // }
 // }
+const pendingOutboxToOrdinalReducer = (pendingOutboxToOrdinal, action) => {
+  switch (action.type) {
+    case Chat2Gen.messagesAdd:
+      const {messages, context} = action.payload
+      if (messages.length === 1 && context.type === 'incomingWasPending') {
+        return pendingOutboxToOrdinal.deleteIn([messages[0].conversationIDKey, context.outboxID])
+      } else {
+        return pendingOutboxToOrdinal
+      }
+    default:
+      return pendingOutboxToOrdinal
+  }
+}
+
 const metaMapReducer = (metaMap, action) => {
   switch (action.type) {
     case Chat2Gen.metaRequestingTrusted:
@@ -85,13 +99,15 @@ const metaMapReducer = (metaMap, action) => {
           }
         })
       })
-    case Chat2Gen.messagesAdd:
-      return action.payload.fromThreadLoad
+    case Chat2Gen.messagesAdd: {
+      const {context} = action.payload
+      return context === 'threadLoad'
         ? metaMap.update(
-            action.payload.fromThreadLoad,
-            meta => (meta ? meta.set('hasLoadedThread', true) : meta)
+            context.conversationIDKey,
+            (meta: ?Types.ConversationMeta) => (meta ? meta.set('hasLoadedThread', true) : meta)
           )
         : metaMap
+    }
     case Chat2Gen.inboxRefresh:
       return action.payload.clearAllData ? metaMap.clear() : metaMap
     default:
@@ -99,7 +115,7 @@ const metaMapReducer = (metaMap, action) => {
   }
 }
 
-const messageMapReducer = (messageMap, action) => {
+const messageMapReducer = (messageMap, action, state) => {
   switch (action.type) {
     case Chat2Gen.messageEdit: // fallthrough
     case Chat2Gen.messageDelete:
@@ -142,13 +158,31 @@ const messageMapReducer = (messageMap, action) => {
       )
     }
     case Chat2Gen.messagesAdd: {
-      const {messages} = action.payload
+      const {messages, context} = action.payload
       return messageMap.withMutations(
         (map: I.Map<Types.ConversationIDKey, I.Map<Types.Ordinal, Types.Message>>) =>
-          messages.forEach(message =>
-            // Never replace old messages
-            map.updateIn([message.conversationIDKey, message.ordinal], old => old || message)
-          )
+          messages.forEach(message => {
+            // we're changing a pending to sent
+            if (context.type === 'incomingWasPending') {
+              const pendingOrdinal = state.pendingOutboxToOrdinal.getIn([
+                message.conversationIDKey,
+                context.outboxID,
+              ])
+              if (!pendingOrdinal) {
+                throw new Error(
+                  `Missing pending ordinal!? ${message.conversationIDKey} ${message.id} ${context.type} ${
+                    context.outboxID
+                  }`
+                )
+              }
+              map.updateIn([message.conversationIDKey, pendingOrdinal], old =>
+                message.set('ordinal', pendingOrdinal)
+              )
+            } else {
+              // Never replace old messages
+              map.updateIn([message.conversationIDKey, message.ordinal], old => old || message)
+            }
+          })
       )
     }
     default:
@@ -250,8 +284,9 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.metasReceived:
       return state
         .set('metaMap', metaMapReducer(state.metaMap, action))
-        .set('messageMap', messageMapReducer(state.messageMap, action))
+        .set('messageMap', messageMapReducer(state.messageMap, action, state))
         .set('messageOrdinals', messageOrdinalsReducer(state.messageOrdinals, action))
+        .set('pendingOutboxToOrdinal', pendingOutboxToOrdinalReducer(state.pendingOutboxToOrdinal, action))
     // Saga only actions
     case Chat2Gen.desktopNotification:
     case Chat2Gen.loadMoreMessages:
