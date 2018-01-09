@@ -1,11 +1,8 @@
 // @flow
-import Channel from './channel'
+import {Channel, type OwnProps} from './channel'
 import {connect, type TypedState} from '../util/container'
-import {type ConversationIDKey} from '../constants/types/chat'
 import * as ChatGen from '../actions/chat-gen'
 import {pathSelector} from '../actions/route-tree'
-
-type OwnProps = {channel: string, convID: ConversationIDKey}
 
 const mapStateToProps = (state: TypedState) => {
   return {
