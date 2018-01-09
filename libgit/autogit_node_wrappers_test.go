@@ -27,7 +27,7 @@ func TestAutogitNodeWrappers(t *testing.T) {
 
 	kbCtx := env.NewContext()
 	kbfsInitParams := libkbfs.DefaultInitParams(kbCtx)
-	shutdown := startAutogit(kbCtx, config, &kbfsInitParams, 1)
+	shutdown := StartAutogit(kbCtx, config, &kbfsInitParams, 1)
 	defer shutdown()
 
 	h, err := libkbfs.ParseTlfHandle(

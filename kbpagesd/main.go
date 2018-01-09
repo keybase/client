@@ -10,6 +10,7 @@ import (
 	"os"
 
 	"github.com/keybase/kbfs/env"
+	"github.com/keybase/kbfs/libgit"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/libpages"
 	"go.uber.org/zap"
@@ -50,6 +51,8 @@ func newLogger(isCLI bool) (*zap.Logger, error) {
 	return loggerConfig.Build()
 }
 
+const autoGitNumWorkers = 10
+
 func main() {
 	flag.Parse()
 
@@ -67,7 +70,7 @@ func main() {
 
 	kbCtx := env.NewContext()
 	params := libkbfs.DefaultInitParams(kbCtx)
-	params.EnableJournal = false
+	params.EnableJournal = true
 	params.Debug = true
 	kbfsLog, err := libkbfs.InitLog(params, kbCtx)
 	if err != nil {
@@ -78,6 +81,9 @@ func main() {
 	if err != nil {
 		logger.Panic("libkbfs.Init", zap.Error(err))
 	}
+
+	shutdown := libgit.StartAutogit(kbCtx, kbConfig, &params, autoGitNumWorkers)
+	defer shutdown()
 
 	serverConfig := libpages.ServerConfig{
 		UseStaging:       !fProd,

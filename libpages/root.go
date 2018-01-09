@@ -6,7 +6,7 @@ package libpages
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -49,6 +49,15 @@ func (t RootType) String() string {
 	}
 }
 
+// Debug tag ID for an individual FS in keybase pages.
+const ctxOpID = "KBP"
+
+type ctxTagKey int
+
+const (
+	ctxIDKey ctxTagKey = iota
+)
+
 // Root defines the root of a static site hosted by Keybase Pages. It is
 // normally constructed from DNS records directly and is cheap to make.
 type Root struct {
@@ -64,10 +73,10 @@ func (r *Root) MakeFS(ctx context.Context, log *zap.Logger,
 	kbfsConfig libkbfs.Config) (fs *libfs.FS, err error) {
 	defer func() {
 		zapFields := []zapcore.Field{
-			zap.String("type", r.Type.String()),
+			zap.String("root_type", r.Type.String()),
 			zap.String("tlf_type", r.TlfType.String()),
 			zap.String("tlf", r.TlfNameUnparsed),
-			zap.String("path", r.PathUnparsed),
+			zap.String("root_path", r.PathUnparsed),
 		}
 		if err == nil {
 			log.Info("root.MakeFS", zapFields...)
@@ -75,6 +84,12 @@ func (r *Root) MakeFS(ctx context.Context, log *zap.Logger,
 			log.Warn("root.MakeFS", append(zapFields, zap.Error(err))...)
 		}
 	}()
+	fsCtx, err := libkbfs.NewContextWithCancellationDelayer(
+		libkbfs.CtxWithRandomIDReplayable(
+			context.Background(), ctxIDKey, ctxOpID, nil))
+	if err != nil {
+		return nil, err
+	}
 	switch r.Type {
 	case KBFSRoot:
 		tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
@@ -82,15 +97,34 @@ func (r *Root) MakeFS(ctx context.Context, log *zap.Logger,
 		if err != nil {
 			return nil, err
 		}
-		fs, err = libfs.NewFS(context.Background(), kbfsConfig,
+		fs, err = libfs.NewFS(fsCtx, kbfsConfig,
 			tlfHandle, r.PathUnparsed, "", keybase1.MDPriorityNormal)
 		if err != nil {
 			return nil, err
 		}
 		return fs, nil
 	case GitRoot:
-		// TODO: implment git root
-		return nil, errors.New("unimplemented")
+		session, err := kbfsConfig.KeybaseService().CurrentSession(ctx, 0)
+		if err != nil {
+			return nil, err
+		}
+		tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
+			ctx, kbfsConfig.KBPKI(), kbfsConfig.MDOps(),
+			// We'll just checkout to the bot's private TLF for now. Note that
+			// this means git remote is only supported by kbp servers that have
+			// logged into a bot account.
+			string(session.Name), tlf.Private)
+		if err != nil {
+			return nil, err
+		}
+		fs, err = libfs.NewFS(fsCtx, kbfsConfig,
+			tlfHandle, fmt.Sprintf(".kbfs_autogit/%s/%s/%s",
+				r.TlfType, r.TlfNameUnparsed, r.PathUnparsed), "",
+			keybase1.MDPriorityNormal)
+		if err != nil {
+			return nil, err
+		}
+		return fs, nil
 	default:
 		return nil, ErrInvalidKeybasePagesRecord{}
 	}

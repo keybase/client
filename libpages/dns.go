@@ -63,14 +63,14 @@ const kbpRecordPrefix = "_keybase_pages."
 // _keybase_pages.meatball.gao.io   TXT "kbp=/keybase/public/songgao/meatball/"
 // _keybase_pages.song.gao.io       TXT "kbp=/keybase/private/songgao,kb_bot/blah"
 // _keybase_pages.blah.strib.io     TXT "kbp=/keybase/private/strib#kb_bot/blahblahb" "lah/blah/"
-// _keybase_pages.kbp.jzila.com     TXT "kbp=git-keybase://private/jzila,kb_bot/kbp.git"
+// _keybase_pages.kbp.jzila.com     TXT "kbp=git@keybase:private/jzila,kb_bot/kbp.git"
 func LoadRootFromDNS(log *zap.Logger, domain string) (root Root, err error) {
 	var rootPath string
 
 	defer func() {
 		zapFields := []zapcore.Field{
 			zap.String("domain", domain),
-			zap.String("root_path", rootPath),
+			zap.String("kbp_record", rootPath),
 		}
 		if err == nil {
 			log.Info("LoadRootFromDNS", zapFields...)

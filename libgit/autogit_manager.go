@@ -496,9 +496,9 @@ func (am *AutogitManager) TlfHandleChange(
 	// Do nothing.
 }
 
-// startAutogit launches autogit, and returns a function that should
+// StartAutogit launches autogit, and returns a function that should
 // be called on shutdown.
-func startAutogit(kbCtx libkbfs.Context, config libkbfs.Config,
+func StartAutogit(kbCtx libkbfs.Context, config libkbfs.Config,
 	kbfsInitParams *libkbfs.InitParams, numWorkers int) func() {
 	am := NewAutogitManager(config, kbCtx, kbfsInitParams, numWorkers)
 	rw := rootWrapper{am}
