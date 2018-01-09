@@ -9,6 +9,7 @@ export type _GitInfo = {
   lastEditUser: string,
   name: string,
   teamname: ?string,
+  currentChannel: ?string,
   url: string,
 }
 export type GitInfo = I.RecordOf<_GitInfo>

@@ -1,13 +1,15 @@
 // @flow
 
-import React, {Component} from 'react'
+import React, {Component, type Node} from 'react'
+import type {TextType} from './text'
 
 export type Props = {
-  label: string,
+  label: string | Node,
   onCheck: ?(newCheckedValue: boolean) => void,
   checked: boolean,
   style?: Object,
   disabled?: boolean,
+  type?: TextType,
 }
 
 declare export default class Checkbox extends Component<Props> {}

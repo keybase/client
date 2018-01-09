@@ -25,6 +25,7 @@ const mapDispatchToProps = (dispatch: any) => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...stateProps,
+  canEdit: stateProps.canDelete && !!stateProps.teamname,
   onClickDevice: () => {
     stateProps.lastEditUser && openURL(`https://keybase.io/${stateProps.lastEditUser}/devices`)
   },

@@ -4,6 +4,7 @@ import {
   Box,
   Text,
   Icon,
+  Checkbox,
   ClickableBox,
   Input,
   Button,
@@ -17,6 +18,9 @@ import {globalStyles, globalColors, globalMargins, transition, isMobile} from '.
 
 export type Props = {
   canDelete: boolean,
+  canEdit: boolean,
+  channelNames: Array<string>,
+  currentChannel: ?string,
   devicename: string,
   expanded: boolean,
   lastEditTime: string,
@@ -37,11 +41,13 @@ export type Props = {
 
 type State = {
   showingCopy: boolean,
+  showMenu: boolean,
 }
 
 class Row extends React.Component<Props, State> {
   state = {
     showingCopy: false,
+    showMenu: false,
   }
 
   _input: any
@@ -56,6 +62,10 @@ class Row extends React.Component<Props, State> {
     this.props.onCopy()
     this.setState({showingCopy: true})
     this.props.setTimeout(() => this.setState({showingCopy: false}), 1000)
+  }
+
+  _channelNameToString = (channelName: ?string) => {
+    return channelName ? `#${channelName}` : 'nowhere'
   }
 
   render() {
@@ -185,6 +195,15 @@ class Row extends React.Component<Props, State> {
                 <Text type="BodySmall">.</Text>
               </Text>
             </Box>
+            {this.props.canEdit && (
+              <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginTop: globalMargins.xtiny}}>
+                <Checkbox
+                  checked={!!this.props.currentChannel}
+                  onCheck={null}
+                  label={<Text type="BodySmall">Announce pushes in #general.</Text>}
+                />
+              </Box>
+            )}
             {isMobile &&
               this.props.canDelete && (
                 <Button
