@@ -146,7 +146,7 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
               await dispatch(TeamsGen.createGetTeams())
               await dispatch(
                 createGetPeopleData({
-                  markViewed: true,
+                  markViewed: false,
                   numFollowSuggestionsWanted: defaultNumFollowSuggestions,
                 })
               )

@@ -17,11 +17,13 @@ import {parseUserId} from '../../util/platforms'
 import {loginTab, peopleTab} from '../../constants/tabs'
 import {pgpSaga} from './pgp'
 import {proofsSaga} from './proofs'
+import flags from '../../util/feature-flags'
 
 import type {TypedState} from '../../constants/reducer'
 
 function _editProfile(action: ProfileGen.EditProfilePayload) {
   const {bio, fullname, location} = action.payload
+  const {newPeopleTab} = flags
   return Saga.sequentially([
     Saga.call(RPCTypes.userProfileEditRpcPromise, {
       bio,
@@ -30,9 +32,11 @@ function _editProfile(action: ProfileGen.EditProfilePayload) {
     }),
     // If the profile tab remained on the edit profile screen, navigate back to the top level.
     Saga.put(
-      putActionIfOnPath([peopleTab, 'profile', 'editProfile'], navigateTo(['profile'], [peopleTab]), [
-        peopleTab,
-      ])
+      putActionIfOnPath(
+        newPeopleTab ? [peopleTab, 'profile', 'editProfile'] : [peopleTab, 'editProfile'],
+        newPeopleTab ? navigateTo(['profile'], [peopleTab]) : navigateTo([], [peopleTab]),
+        [peopleTab]
+      )
     ),
   ])
 }
@@ -50,11 +54,14 @@ function _showUserProfile(action: ProfileGen.ShowUserProfilePayload, state: Type
   const searchResultMap = Selectors.searchResultMapSelector(state)
   const username = SearchConstants.maybeUpgradeSearchResultIdToKeybaseId(searchResultMap, userId)
   // get data on whose profile is currently being shown
+  const {newPeopleTab} = flags
+  const me = Selectors.usernameSelector(state)
   const getTopProfile = (state: TypedState) => {
     const routeState = state.routeTree.routeState
     const routeProps = getPathProps(routeState, [peopleTab])
     const profileNode = (routeProps && routeProps.size > 0 && routeProps.get(routeProps.size - 1)) || null
-    return profileNode && profileNode.props && profileNode.props.get('username')
+    const isRootMe = newPeopleTab ? false : profileNode && profileNode.node === peopleTab && me
+    return isRootMe || (profileNode && profileNode.props && profileNode.props.get('username'))
   }
 
   const topProfile = getTopProfile(state)
@@ -201,7 +208,7 @@ function _outputInstructionsActionLink(
 function _backToProfile() {
   return Saga.sequentially([
     Saga.put(TrackerGen.createGetMyProfile({})),
-    Saga.put(navigateTo(['profile'], [peopleTab])),
+    Saga.put(navigateTo(flags.newPeopleTab ? ['profile'] : [], [peopleTab])),
   ])
 }
 

@@ -22,6 +22,7 @@ import {
   teamsTab,
   gitTab,
 } from '../constants/tabs'
+import flags from '../util/feature-flags'
 
 const routeTree = makeRouteDefNode({
   children: {
@@ -29,7 +30,7 @@ const routeTree = makeRouteDefNode({
     [folderTab]: foldersRoutes,
     [gitTab]: gitRoutes,
     [loginTab]: loginRoutes,
-    [peopleTab]: peopleRoutes,
+    [peopleTab]: flags.newPeopleTab ? peopleRoutes : profileRoutes,
     [profileTab]: profileRoutes,
     [settingsTab]: settingsRoutes,
     [teamsTab]: teamsRoutes,
