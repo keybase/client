@@ -22,33 +22,30 @@ if (!isIOS) {
 // See if there's a better workaround later
 
 class ConversationInput extends Component<Props> {
-  _setEditing(props: Props) {
-    if (!props.editingMessage || props.editingMessage.type !== 'Text') {
-      return
-    }
+  // _setEditing(props: Props) {
+  // if (!props.editingMessage || props.editingMessage.type !== 'Text') {
+  // return
+  // }
 
-    this.props.setText(props.editingMessage.message.stringValue())
-    this.props.inputFocus()
-  }
+  // this.props.setText(props.editingMessage.message.stringValue())
+  // this.props.inputFocus()
+  // }
 
-  componentWillReceiveProps(nextProps: Props) {
-    if (this.props.editingMessage !== nextProps.editingMessage) {
-      this._setEditing(nextProps)
-    }
-    if (this.props.text !== nextProps.text) {
-      this.props.onUpdateTyping(!!nextProps.text)
-    }
-  }
+  // componentWillReceiveProps(nextProps: Props) {
+  // if (this.props.editingMessage !== nextProps.editingMessage) {
+  // this._setEditing(nextProps)
+  // }
+  // if (this.props.text !== nextProps.text) {
+  // this.props.onUpdateTyping(!!nextProps.text)
+  // }
+  // }
 
-  componentDidMount() {
-    this._setEditing(this.props)
-  }
+  // componentDidMount() {
+  // this._setEditing(this.props)
+  // }
 
   _onBlur = () => {
-    if (this.props.editingMessage) {
-      this.props.onShowEditor(null)
-      this.props.setText('')
-    }
+    this.props.onCancelEditing()
   }
 
   _openFilePicker = () => {
@@ -61,15 +58,16 @@ class ConversationInput extends Component<Props> {
         throw new Error(response.error)
       }
       const filename = isIOS ? response.uri.replace('file://', '') : response.path
-      const conversationIDKey = this.props.selectedConversationIDKey
-      if (!response.didCancel && conversationIDKey) {
-        const input: AttachmentInput = {
-          conversationIDKey,
+      // const conversationIDKey = this.props.selectedConversationIDKey
+      if (!response.didCancel) {
+        // } && conversationIDKey) {
+        const input = {
+          // conversationIDKey,
           filename: filename || '',
           title: response.fileName || '',
           type: 'Image',
         }
-        this.props.onAttach([input])
+        // this.props.onAttach([input])
       }
     })
   }
@@ -85,13 +83,13 @@ class ConversationInput extends Component<Props> {
       return
     }
 
-    this.props.setText('')
-    this.props.inputClear()
-    if (this.props.editingMessage) {
-      this.props.onEditMessage(this.props.editingMessage, text)
-    } else {
-      this.props.onPostMessage(text)
-    }
+    // this.props.setText('')
+    // this.props.inputClear()
+    // if (this.props.editingMessage) {
+    // this.props.onEditMessage(this.props.editingMessage, text)
+    // } else {
+    this.props.onSubmit(text)
+    // }
   }
 
   render() {
@@ -137,11 +135,11 @@ class ConversationInput extends Component<Props> {
             blurOnSubmit={false}
           />
         )}
-        {this.props.typing.length > 0 && <Typing typing={this.props.typing} />}
+        {!this.props.typing.isEmpty() && <Typing />}
         <Action
           text={this.props.text}
           onSubmit={this._onSubmit}
-          editingMessage={this.props.editingMessage}
+          isEdit={this.props.isEdit}
           openFilePicker={this._openFilePicker}
           isLoading={this.props.isLoading}
         />
@@ -150,7 +148,7 @@ class ConversationInput extends Component<Props> {
   }
 }
 
-const Typing = ({typing}) => (
+const Typing = () => (
   <Box
     style={{
       ...globalStyles.flexBoxRow,
@@ -166,11 +164,11 @@ const Typing = ({typing}) => (
   </Box>
 )
 
-const Action = ({text, onSubmit, editingMessage, openFilePicker, isLoading}) =>
+const Action = ({text, onSubmit, isEdit, openFilePicker, isLoading}) =>
   text ? (
     <Box style={styleActionText}>
       <Text type="BodyBigLink" style={{...(isLoading ? {color: globalColors.grey} : {})}} onClick={onSubmit}>
-        {editingMessage ? 'Save' : 'Send'}
+        {isEdit ? 'Save' : 'Send'}
       </Text>
     </Box>
   ) : (

@@ -254,12 +254,13 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         .set('messageMap', messageMapReducer(state.messageMap, action))
         .set('messageOrdinals', messageOrdinalsReducer(state.messageOrdinals, action))
     // Saga only actions
+    case Chat2Gen.desktopNotification:
     case Chat2Gen.loadMoreMessages:
+    case Chat2Gen.messageSend:
     case Chat2Gen.metaHandleQueue:
     case Chat2Gen.metaNeedsUpdating:
     case Chat2Gen.metaRequestTrusted:
     case Chat2Gen.setupChatHandlers:
-    case Chat2Gen.desktopNotification:
       return state
     default:
       // eslint-disable-next-line no-unused-expressions

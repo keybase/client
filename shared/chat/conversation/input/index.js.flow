@@ -1,31 +1,22 @@
 // @flow
+import * as I from 'immutable'
 import {Component} from 'react'
-import * as Types from '../../../constants/types/chat'
+// import * as Types from '../../../constants/types/chat2'
 
 export type Props = {
-  channelName: ?string,
-  editingMessage: ?Types.Message,
-  focusInputCounter: number,
-  inputBlur: () => void,
-  inputClear: () => void,
+  isEdit: boolean,
+  // editingMessage: ?Types.Message,
   inputFocus: () => void,
   inputSetRef: (r: any) => void,
-  inputValue: () => string,
   isLoading: boolean,
-  isPreview: boolean,
-  onAttach: (inputs: Array<Types.AttachmentInput>) => void,
+  // onAttach: (inputs: Array<Types.AttachmentInput>) => void,
   onEditLastMessage: () => void,
-  onEditMessage: (message: ?Types.Message, text: string) => void,
-  onJoinChannel: () => void,
-  onLeaveChannel: () => void,
-  onPostMessage: (text: string) => void,
-  onShowEditor: (message: ?Types.Message) => void,
-  onStoreInputText: (text: string) => void,
-  onUpdateTyping: (typing: boolean) => void,
-  selectedConversationIDKey: ?Types.ConversationIDKey,
+  onSubmit: (text: string) => void,
+  onCancelEditing: () => void,
+  // selectedConversationIDKey: ?Types.ConversationIDKey,
   setText: (text: string) => void,
   text: string,
-  typing: Array<Types.Username>,
+  typing: I.Set<string>,
 }
 
 export default class Input extends Component<Props> {}

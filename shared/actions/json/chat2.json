@@ -105,6 +105,11 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "author": "string",
       "body": "string"
+    },
+    // Send a message
+    "messageSend": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "text": "HiddenString"
     }
   }
 }

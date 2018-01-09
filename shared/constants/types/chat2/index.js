@@ -14,6 +14,7 @@ export type _State = {
   messageOrdinals: I.Map<Common.ConversationIDKey, I.List<Message.Ordinal>>,
   metaMap: I.Map<Common.ConversationIDKey, Meta.ConversationMeta>,
   selectedConversation: ?Common.ConversationIDKey,
+  typingMap: I.Map<Common.ConversationIDKey, I.Set<string>>,
   unreadMap: I.Map<Common.ConversationIDKey, number>,
 }
 

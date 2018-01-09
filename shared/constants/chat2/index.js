@@ -21,6 +21,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   messageOrdinals: I.Map(),
   metaMap: I.Map(),
   selectedConversation: null,
+  typingMap: I.Map(),
   unreadMap: I.Map(),
 })
 
@@ -40,6 +41,7 @@ export const getIsSelected = (state: TypedState, id: Types.ConversationIDKey) =>
 export const getSelectedConversation = (state: TypedState) => state.chat2.selectedConversation
 export const getEditingOrdinal = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.editingMap.get(id)
+export const getTyping = (state: TypedState, id: Types.ConversationIDKey) => state.chat2.typingMap.get(id)
 
 export {
   getConversationIDKeyMetasToLoad,

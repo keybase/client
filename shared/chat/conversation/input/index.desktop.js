@@ -104,10 +104,10 @@ class ConversationInput extends Component<InputProps, State> {
   }
 
   _pickFile = () => {
-    const conversationIDKey = this.props.selectedConversationIDKey
-    if (!conversationIDKey) {
-      throw new Error('No conversation')
-    }
+    // const conversationIDKey = this.props.selectedConversationIDKey
+    // if (!conversationIDKey) {
+    // throw new Error('No conversation')
+    // }
     const files = this.props.filePickerFiles()
     if (files.length <= 0) {
       return
@@ -116,14 +116,14 @@ class ConversationInput extends Component<InputProps, State> {
     const inputs = Array.prototype.map.call(files, file => {
       const {path, name, type} = file
       return {
-        conversationIDKey,
+        // conversationIDKey,
         filename: path,
         title: name,
         type: type.indexOf('image') >= 0 ? 'Image' : 'Other',
       }
     })
 
-    this.props.onAttach(inputs)
+    // this.props.onAttach(inputs)
     this.props.filePickerSetValue(null)
   }
 
@@ -258,16 +258,16 @@ class ConversationInput extends Component<InputProps, State> {
       return
     }
     if (this.props.text) {
-      this.props.onPostMessage(this.props.text)
-      this.props.setText('')
+      this.props.onSubmit(this.props.text)
+      // this.props.setText('')
     }
   }
 
-  componentWillReceiveProps(nextProps: Props) {
-    if (this.props.text !== nextProps.text) {
-      this.props.onUpdateTyping(!!nextProps.text)
-    }
-  }
+  // componentWillReceiveProps(nextProps: Props) {
+  // if (this.props.text !== nextProps.text) {
+  // this.props.onUpdateTyping(!!nextProps.text)
+  // }
+  // }
 
   _inputSetRef(r) {
     this.props.inputSetRef(r)
@@ -282,8 +282,7 @@ class ConversationInput extends Component<InputProps, State> {
     // This is a little wonky cause this component doesn't directly know if the list is filtered all the way out
     if (options && options.notUser) {
       if (this.props.text) {
-        this.props.onPostMessage(this.props.text)
-        this.props.setText('')
+        this.props.onSubmit(this.props.text)
       }
     }
   }
@@ -361,25 +360,24 @@ class ConversationInput extends Component<InputProps, State> {
 }
 
 const isTyping = typing => {
-  if (!typing || !typing.length) {
-    return ''
-  }
-  switch (typing.length) {
+  switch (typing.size) {
+    case 0:
+      return ''
     case 1:
       return [
         <Text key={0} type="BodySmallSemibold">
-          {typing[0]}
+          {typing.first()}
         </Text>,
         ` is typing`,
       ]
     case 2:
       return [
         <Text key={0} type="BodySmallSemibold">
-          {typing[0]}
+          {typing.first()}
         </Text>,
         ` and `,
         <Text key={1} type="BodySmallSemibold">
-          {typing[1]}
+          {typing.skip(1).first()}
         </Text>,
         ` are typing`,
       ]

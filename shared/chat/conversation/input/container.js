@@ -1,8 +1,8 @@
 // @flow
 import * as Constants from '../../../constants/chat2'
 import * as Types from '../../../constants/types/chat2'
-import * as Creators from '../../../actions/chat/creators'
-import * as ChatGen from '../../../actions/chat-gen'
+import * as Chat2Gen from '../../../actions/chat2-gen'
+// import * as RouteTree from '../../../actions/route-tree'
 import HiddenString from '../../../util/hidden-string'
 import Input from '.'
 import ChannelPreview from './channel-preview'
@@ -17,113 +17,114 @@ import {
   lifecycle,
   connect,
 } from '../../../util/container'
-import throttle from 'lodash/throttle'
-import type {TypedState} from '../../../util/container'
+// import throttle from 'lodash/throttle'
 import {chatTab} from '../../../constants/tabs'
-import {navigateAppend, navigateUp, navigateTo} from '../../../actions/route-tree'
+import type {TypedState, Dispatch} from '../../../util/container'
 import {type OwnProps} from './container'
 
-const mapStateToProps = (state: TypedState, ownProps: any) => {
-  const selectedConversationIDKey = Constants.getSelectedConversation(state)
-  const routeState = getPathState(state.routeTree.routeState, [chatTab, selectedConversationIDKey || ''])
+const mapStateToProps = (state: TypedState) => {
+  const _selectedConversationIDKey = Constants.getSelectedConversation(state)
+  const routeState = getPathState(state.routeTree.routeState, [chatTab, _selectedConversationIDKey || ''])
+  const editingOrdinal = Constants.getEditingOrdinal(state, _selectedConversationIDKey || '')
 
   return {
+    _defaultText: (routeState && routeState.get('inputText', new HiddenString('')).stringValue()) || '',
+    _editingMessage: editingOrdinal
+      ? Constants.getMessageMap(state, _selectedConversationIDKey).get(editingOrdinal)
+      : null,
     _meta: Constants.getMeta(state),
-    defaultText: (routeState && routeState.get('inputText', new HiddenString('')).stringValue()) || '',
-    selectedConversationIDKey,
+    _selectedConversationIDKey,
+    typing: Constants.getTyping(state, _selectedConversationIDKey || ''),
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
-  onAttach: (selectedConversation, inputs: Array<any /* Types.AttachmentInput */>) =>
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  // onAttach: (selectedConversation, inputs: Array<any [> Types.AttachmentInput <]>) =>
+  // dispatch(
+  // RouteTree.navigateAppend([
+  // {props: {conversationIDKey: selectedConversation, inputs}, selected: 'attachmentInput'},
+  // ])
+  // ),
+  _onEditMessage: (message: Types.Message, body: string) =>
     dispatch(
-      navigateAppend([
-        {props: {conversationIDKey: selectedConversation, inputs}, selected: 'attachmentInput'},
-      ])
+      Chat2Gen.createMessageEdit({
+        conversationIDKey: message.conversationIDKey,
+        ordinal: message.ordinal,
+        text: new HiddenString(body),
+      })
     ),
-  onEditMessage: (message: Types.Message, body: string) => {
-    // TODO
-    // dispatch(ChatGen.createEditMessage({message, text: new HiddenString(body)}))
-  },
-  onPostMessage: (selectedConversation, text) =>
-    selectedConversation &&
+  _onPostMessage: (selectedConversation: Types.ConversationIDKey, text: string) =>
     dispatch(
-      ChatGen.createPostMessage({conversationIDKey: selectedConversation, text: new HiddenString(text)})
+      Chat2Gen.createMessageSend({conversationIDKey: selectedConversation, text: new HiddenString(text)})
     ),
-  onShowEditor: (message: Types.Message) => {
-    // TODO
-    // dispatch(ChatGen.createShowEditor({message}))
+  // onShowEditor: (message: Types.Message) => {
+  // TODO
+  // dispatch(ChatGen.createShowEditor({message}))
+  // },
+  _onStoreInputText: (selectedConversation: Types.ConversationIDKey, inputText: string) => {
+    // dispatch(Creators.setSelectedRouteState(selectedConversation, {inputText: new HiddenString(inputText)})),
   },
-  onStoreInputText: (selectedConversation: Types.ConversationIDKey, inputText: string) =>
-    dispatch(Creators.setSelectedRouteState(selectedConversation, {inputText: new HiddenString(inputText)})),
-  onUpdateTyping: (selectedConversation: Types.ConversationIDKey, typing: boolean) =>
-    dispatch(ChatGen.createUpdateTyping({conversationIDKey: selectedConversation, typing})),
-  onJoinChannel: (selectedConversation: Types.ConversationIDKey) =>
-    dispatch(ChatGen.createJoinConversation({conversationIDKey: selectedConversation})),
-  onLeaveChannel: (selectedConversation: Types.ConversationIDKey, teamname: string) => {
-    dispatch(ChatGen.createLeaveConversation({conversationIDKey: selectedConversation}))
-    dispatch(navigateUp())
-    if (ownProps.previousPath) {
-      dispatch(navigateTo(ownProps.previousPath))
-    }
+  _onUpdateTyping: (selectedConversation: Types.ConversationIDKey, typing: boolean) => {
+    // dispatch(ChatGen.createUpdateTyping({conversationIDKey: selectedConversation, typing})),
   },
 })
 
-// TODO type-recompose: fix when recompose types properly
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const updateTyping = (typing: boolean) => {
-    if (stateProps.selectedConversationIDKey) {
-      dispatchProps.onUpdateTyping(stateProps.selectedConversationIDKey, typing)
-    }
-  }
-  const wrappedTyping = throttle(updateTyping, 5000)
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
+  // const updateTyping = (typing: boolean) => {
+  // if (stateProps.selectedConversationIDKey) {
+  // dispatchProps.onUpdateTyping(stateProps.selectedConversationIDKey, typing)
+  // }
+  // }
+  // const wrappedTyping = throttle(updateTyping, 5000)
 
   return {
-    ...stateProps,
-    ...dispatchProps,
-    ...ownProps,
+    // ...stateProps,
+    // ...dispatchProps,
+    // ...ownProps,
+    isEditing: !!stateProps._editingMessage,
     channelName: stateProps._meta.channelname,
     focusInputCounter: ownProps.focusInputCounter,
     hasResetUsers: !stateProps._meta.resetParticipants.isEmpty(),
     isLoading: false,
-    isPreview: false, // TODO
+    // isPreview: false, // TODO
     teamname: stateProps._meta.teamname,
-    typing: [], // TODO
-    onAttach: (inputs: Array<any /* Types.AttachmentInput */>) =>
-      dispatchProps.onAttach(stateProps.selectedConversationIDKey, inputs),
-    onEditLastMessage: ownProps.onEditLastMessage,
-    onPostMessage: text => {
-      dispatchProps.onPostMessage(stateProps.selectedConversationIDKey, text)
+    // typing: [], // TODO
+    // onAttach: (inputs: Array<any [> Types.AttachmentInput <]>) =>
+    // dispatchProps.onAttach(stateProps.selectedConversationIDKey, inputs),
+    // onEditLastMessage: ownProps.onEditLastMessage,
+    onPostMessage: (text: string) => {
+      if (stateProps._editingMessage) {
+        dispatchProps._onEditMessage(stateProps._editingMessage, text)
+      } else {
+        dispatchProps._onPostMessage(stateProps._selectedConversationIDKey, text)
+      }
       ownProps.onScrollDown()
     },
     onStoreInputText: (inputText: string) => {
-      if (stateProps.selectedConversationIDKey) {
+      if (stateProps._selectedConversationIDKey) {
         // only write if we're in a convo
-        dispatchProps.onStoreInputText(stateProps.selectedConversationIDKey, inputText)
+        dispatchProps._onStoreInputText(stateProps._selectedConversationIDKey, inputText)
       }
     },
     onUpdateTyping: (typing: boolean) => {
-      if (!typing) {
-        // Update the not-typing status immediately, even if we're throttled.
-        wrappedTyping.cancel()
-        updateTyping(typing)
-      } else {
-        wrappedTyping(typing)
-      }
+      // if (!typing) {
+      // // Update the not-typing status immediately, even if we're throttled.
+      // wrappedTyping.cancel()
+      // updateTyping(typing)
+      // } else {
+      // wrappedTyping(typing)
+      // }
     },
-    onJoinChannel: () => dispatchProps.onJoinChannel(stateProps.selectedConversationIDKey),
+    onJoinChannel: () => dispatchProps.onJoinChannel(stateProps._selectedConversationIDKey),
     onLeaveChannel: () => {
-      dispatchProps.onLeaveChannel(stateProps.selectedConversationIDKey, stateProps._meta.teamname)
+      dispatchProps.onLeaveChannel(stateProps._selectedConversationIDKey, stateProps._meta.teamname)
     },
   }
 }
 
-export default compose(
+const ConnectedInput = compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  branch(props => props.hasResetUsers, renderNothing),
-  // $FlowIssue doesn't like branch
-  branch(props => props.isPreview, renderComponent(ChannelPreview)),
-  withState('text', '_setText', props => props.defaultText || ''),
+  withState('text', '_setText', props => props._defaultText || ''),
   withState('mentionPopupOpen', 'setMentionPopupOpen', false),
   withState('mentionFilter', 'setMentionFilter', ''),
   withHandlers(props => {
@@ -131,9 +132,9 @@ export default compose(
     // mutable value to store the latest text synchronously
     let _syncTextValue = ''
     return {
-      inputClear: props => () => {
-        input && input.setNativeProps({text: ''})
-      },
+      // inputClear: props => () => {
+      // input && input.setNativeProps({text: ''})
+      // },
       inputFocus: props => () => input && input.focus(),
       inputBlur: props => () => input && input.blur(),
       inputSelections: props => () => (input && input.selections()) || {},
@@ -158,13 +159,59 @@ export default compose(
     },
     componentWillReceiveProps: function(nextProps) {
       if (
-        this.props.selectedConversationIDKey &&
-        this.props.selectedConversationIDKey !== nextProps.selectedConversationIDKey
+        this.props._selectedConversationIDKey &&
+        this.props._selectedConversationIDKey !== nextProps._selectedConversationIDKey
       ) {
         this.props.onStoreInputText(this.props.text)
         // withState won't get called again if props changes!
-        this.props.setText(nextProps.defaultText)
+        this.props.setText(nextProps._defaultText)
       }
     },
   })
 )(Input)
+
+const mapStateToPropsPreview = (state: TypedState) => {
+  const _selectedConversationIDKey = Constants.getSelectedConversation(state)
+  const _meta = Constants.getMeta(state, _selectedConversationIDKey)
+  return {
+    _meta,
+    _selectedConversationIDKey,
+  }
+}
+const mapDispatchToPropsPreview = (dispatch: Dispatch, ownProps: OwnProps) => ({
+  _onJoinChannel: (selectedConversation: Types.ConversationIDKey) => {
+    // dispatch(ChatGen.createJoinConversation({conversationIDKey: selectedConversation})),
+  },
+  _onLeaveChannel: (selectedConversation: Types.ConversationIDKey, teamname: string) => {
+    // dispatch(ChatGen.createLeaveConversation({conversationIDKey: selectedConversation}))
+    // dispatch(RouteTree.navigateUp())
+    // if (ownProps.previousPath) {
+    // dispatch(RouteTree.navigateTo(ownProps.previousPath))
+    // }
+  },
+})
+const mergePropsPreview = (stateProps, dispatchProps, ownProps) => ({
+  channelname: stateProps._meta.channelname,
+  onJoinChannel: () => dispatchProps._onJoinChannel(stateProps._selectedConversationIDKey),
+  onLeaveChannel: () =>
+    dispatchProps._onLeaveChannel(stateProps._selectedConversationIDKey, stateProps._meta.teamname),
+})
+
+const ConnectedChannelPreview = connect(mapStateToPropsPreview, mapDispatchToPropsPreview, mergePropsPreview)(
+  ChannelPreview
+)
+
+const mapStateToPropsChooser = (state: TypedState) => {
+  const selectedConversationIDKey = Constants.getSelectedConversation(state)
+  const meta = Constants.getMeta(state, selectedConversationIDKey)
+  return {
+    hasResetUsers: !meta.resetParticipants.isEmpty(),
+    isPreview: false, // TODO
+  }
+}
+
+export default compose(
+  connect(mapStateToPropsChooser, () => ({})),
+  branch(props => props.hasResetUsers, renderNothing),
+  branch(props => props.isPreview, renderComponent(ConnectedChannelPreview))
+)(ConnectedInput)

@@ -644,6 +644,8 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, clearInboxFilter)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, exitSearch)
 
+  // TODO post messageSend
+
   if (!isMobile) {
     yield Saga.safeTakeEveryPure(Chat2Gen.desktopNotification, desktopNotify)
   }
