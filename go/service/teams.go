@@ -445,3 +445,17 @@ func (h *TeamsHandler) TeamDebug(ctx context.Context, teamID keybase1.TeamID) (r
 
 	return teams.TeamDebug(ctx, h.G().ExternalG(), teamID)
 }
+
+func (h *TeamsHandler) GetTarsDisabled(ctx context.Context, teamname string) (res bool, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("GetTarsDisabled(%s)", teamname), func() error { return err })()
+
+	return teams.GetTarsDisabled(ctx, h.G().ExternalG(), teamname)
+}
+
+func (h *TeamsHandler) SetTarsDisabled(ctx context.Context, arg keybase1.SetTarsDisabledArg) (err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("SetTarsDisabled(%s,%t)", arg.Name, arg.Disabled), func() error { return err })()
+
+	return teams.SetTarsDisabled(ctx, h.G().ExternalG(), arg.Name, arg.Disabled)
+}
