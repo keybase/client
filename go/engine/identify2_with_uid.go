@@ -709,13 +709,38 @@ func (e *Identify2WithUID) runIdentifyUI(netContext context.Context, ctx *Contex
 	e.remotesReceived = e.them.BaseProofSet()
 
 	iui := ctx.IdentifyUI
+	checkRateLimit := false
 	if e.arg.IdentifyBehavior.ShouldSuppressTrackerPopups() {
 		e.G().Log.CDebugf(netContext, "| using the loopback identify UI")
 		iui = newLoopbackIdentifyUI(e.G(), &e.trackBreaks)
 	} else if e.useTracking && e.arg.CanSuppressUI && !e.arg.ForceDisplay {
+		e.G().Log.CDebugf(netContext, "| using the buffered identify UI")
 		iui = newBufferedIdentifyUI(e.G(), iui, keybase1.ConfirmResult{
 			IdentityConfirmed: true,
 		})
+	} else {
+		e.G().Log.CDebugf(netContext, "| using the standard identify UI")
+		checkRateLimit = true
+		if e.arg.IdentifyBehavior != keybase1.TLFIdentifyBehavior_DEFAULT_KBFS {
+			// only rate limit the identifies coming from KBFS
+			checkRateLimit = false
+		}
+		if e.arg.Reason.IsUIProfile() {
+			// identifies from the UI for user profiles use DEFAULT_KBFS, so check
+			// the reason and don't rate limit if it is a UI profile identify.
+			checkRateLimit = false
+		}
+		if e.arg.ForceDisplay {
+			// don't rate limit ForceDisplay calls
+			checkRateLimit = false
+		}
+	}
+
+	if checkRateLimit {
+		if !e.G().IdentifyUILimiter.WaitShort() {
+			e.G().Log.Debug("| identify ui rate limit exceeded, suppressing tracker popups")
+			iui = newLoopbackIdentifyUI(e.G(), &e.trackBreaks)
+		}
 	}
 
 	e.G().Log.CDebugf(netContext, "| IdentifyUI.Start(%s)", e.them.GetName())
