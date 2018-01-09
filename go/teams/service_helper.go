@@ -562,7 +562,12 @@ func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 
 		existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
 		if err != nil {
-			return libkb.NotFoundError{Msg: fmt.Sprintf("user %q is not a member of team %q", username, teamname)}
+			// Try to remove as an invite
+			if ierr := removeMemberInvite(ctx, g, t, username, uv); ierr == nil {
+				return nil
+			}
+			return libkb.NotFoundError{Msg: fmt.Sprintf("user %q is not a member of team %q", username,
+				teamname)}
 		}
 
 		me, err := libkb.LoadMe(libkb.NewLoadUserArgWithContext(ctx, g))
