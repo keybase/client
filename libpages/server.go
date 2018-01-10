@@ -268,6 +268,12 @@ type ServedRequestInfo struct {
 	// HTTPStatus is the HTTP status code that we have written for the request
 	// in the response header.
 	HTTPStatus int
+	// CloningShown is set to true if a "CLONING" page instead of the real site
+	// was served to the request.
+	CloningShown bool
+	// InvalidConfig is set to true if user has a config for the site being
+	// requested, but it's invalid.
+	InvalidConfig bool
 }
 
 func (s *Server) logRequest(sri *ServedRequestInfo, requestPath string) {
@@ -277,6 +283,8 @@ func (s *Server) logRequest(sri *ServedRequestInfo, requestPath string) {
 		zap.String("proto", sri.Proto),
 		zap.Int("http_status", sri.HTTPStatus),
 		zap.Bool("authenticated", sri.Authenticated),
+		zap.Bool("cloning_shown", sri.CloningShown),
+		zap.Bool("invalid_config", sri.InvalidConfig),
 	)
 }
 
@@ -329,11 +337,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if shouldShowCloningLandingPage {
-		s.config.Logger.Info("Cloning",
-			zap.String("host", r.Host),
-			zap.String("path", r.URL.Path),
-			zap.String("proto", r.Proto),
-		)
+		sri.CloningShown = true
 		// TODO: replace this with something nicer when fancy error pages and
 		// landing pages are ready.
 		w.WriteHeader(http.StatusServiceUnavailable)
@@ -347,7 +351,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// User has a .kbp_config file but it's invalid.
 		// TODO: error page to show the error message?
-		s.config.Logger.Info("getConfig", zap.String("host", r.Host), zap.Error(err))
+		sri.InvalidConfig = true
 		s.handleErrorAndPopulateStat(w, err, sri)
 		return
 	}

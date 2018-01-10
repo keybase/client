@@ -19,6 +19,8 @@ type stathatReporter struct {
 
 	statNameRequests      string
 	statNameAuthenticated string
+	statNameCloningShown  string
+	statNameInvalidConfig string
 	statPrefixProto       string
 	statPrefixStatus      string
 	statPrefixTlfType     string
@@ -58,6 +60,14 @@ func (s *stathatReporter) ReportServedRequest(sri *libpages.ServedRequestInfo) {
 	if sri.Authenticated {
 		s.reporter.PostEZCountOne(
 			s.statNameAuthenticated, s.ezKey)
+	}
+	if sri.CloningShown {
+		s.reporter.PostEZCountOne(
+			s.statNameCloningShown, s.ezKey)
+	}
+	if sri.InvalidConfig {
+		s.reporter.PostEZCountOne(
+			s.statNameInvalidConfig, s.ezKey)
 	}
 	s.reporter.PostEZCountOne(
 		s.statPrefixTlfType+sri.TlfType.String(), s.ezKey)
