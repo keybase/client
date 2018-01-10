@@ -60,6 +60,8 @@ export type TabKey = 'members' | 'requests' | 'pending'
 export type _SubteamInfo = {
   key: string,
   members: number,
+  onCreateSubteam: ?(e: SyntheticEvent<>) => void,
+  onReadMore: () => void,
   teamname: string,
   type: 'addSubteam' | 'intro' | 'noSubteams' | 'subteam',
 }

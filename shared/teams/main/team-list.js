@@ -30,8 +30,8 @@ type RowProps = {
   membercount: number,
   isNew: boolean,
   newRequests: number,
-  onOpenFolder: () => void,
-  onManageChat: () => void,
+  onOpenFolder: ?() => void,
+  onManageChat: ?() => void,
   onViewTeam: () => void,
 }
 
@@ -73,9 +73,13 @@ const TeamRow = ({
           </Box>
         </Box>
       </ClickableBox>
-      {!isMobile && <Icon type="iconfont-folder-private" onClick={onOpenFolder} />}
+      {!isMobile && <Icon type="iconfont-folder-private" onClick={onOpenFolder || undefined} />}
       {!isMobile && (
-        <Icon type="iconfont-chat" style={{marginLeft: globalMargins.small}} onClick={onManageChat} />
+        <Icon
+          type="iconfont-chat"
+          style={{marginLeft: globalMargins.small}}
+          onClick={onManageChat || undefined}
+        />
       )}
     </Box>
     {!isMobile && <Divider style={{marginLeft: 48}} />}

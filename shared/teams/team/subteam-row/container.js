@@ -8,6 +8,7 @@ import {teamsTab} from '../../../constants/tabs'
 import {connect} from 'react-redux'
 import {navigateAppend, navigateTo} from '../../../actions/route-tree'
 import * as KBFSGen from '../../../actions/kbfs-gen'
+import * as RPCTypes from '../../../constants/types/rpc-gen'
 
 import type {TypedState} from '../../../constants/reducer'
 
@@ -16,7 +17,11 @@ type OwnProps = {
 }
 
 type StateProps = {
+  _newTeams: I.Set<string>,
+  _newTeamRequests: I.List<string>,
   members: number,
+  yourOperations: RPCTypes.TeamOperation,
+  yourRole: ?Types.TeamRoleType,
 }
 
 const mapStateToProps = (state: TypedState, {teamname}: OwnProps): StateProps => ({
@@ -28,7 +33,9 @@ const mapStateToProps = (state: TypedState, {teamname}: OwnProps): StateProps =>
 })
 
 type DispatchProps = {
-  onClick: () => void,
+  _onManageChat: (teamname: Types.Teamname) => void,
+  _onOpenFolder: (teamname: Types.Teamname) => void,
+  _onViewTeam: (teamname: Types.Teamname) => void,
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps): DispatchProps => ({
@@ -51,7 +58,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
     membercount: stateProps.members,
     isNew: false,
     newTeams: stateProps._newTeams.toArray(),
-    newTeamRequests: stateProps._newTeamRequests.toArray(),
+    newRequests: stateProps._newTeamRequests.toArray().filter(team => team === ownProps.teamname).length,
     onOpenFolder: youAreMember ? () => dispatchProps._onOpenFolder(ownProps.teamname) : null,
     onManageChat: youAreMember ? () => dispatchProps._onManageChat(ownProps.teamname) : null,
     onViewTeam: () => dispatchProps._onViewTeam(ownProps.teamname),

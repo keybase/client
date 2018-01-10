@@ -25,6 +25,7 @@ import TeamRequestRow from './request-row/container'
 import TeamSubteamRow from './subteam-row/container'
 import SubteamBanner from './subteam-banner'
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as I from 'immutable'
 
 export type MemberRowProps = Types.MemberInfo
 type InviteRowProps = Types.InviteInfo
@@ -48,6 +49,7 @@ export type Props = {
   onEditDescription: () => void,
   onLeaveTeam: () => void,
   onManageChat: () => void,
+  onReadMoreAboutSubteams: () => void,
   onSavePublicity: () => void,
   onSetOpenTeamRole: () => void,
   openTeam: boolean,
@@ -65,6 +67,8 @@ export type Props = {
   showMenu: boolean,
   setOpenTeam: (checked: boolean) => void,
   setShowMenu: (s: boolean) => void,
+  subteams: I.List<Types.Teamname>,
+  subTeamsProps: Array<SubteamRowProps>,
   waitingForSavePublicity: boolean,
   you: string,
   yourRole: ?Types.TeamRoleType,
@@ -128,23 +132,27 @@ type TeamTabsProps = {
   admin: boolean,
   invites: Array<InviteRowProps>,
   members: Array<MemberRowProps>,
-  subTeamsProps: Set<Types.Teamname>,
   name: Types.Teamname,
   newTeamRequests: Array<Types.Teamname>,
   requests: Array<RequestRowProps>,
   loading?: boolean,
   selectedTab?: string,
   setSelectedTab: (?Types.TabKey) => void,
+  subteams: I.List<Types.Teamname>,
+  yourOperations: RPCTypes.TeamOperation,
 }
 
 const SubteamsIntro = (index, {key, onReadMore}) => <SubteamBanner key={key} onReadMore={onReadMore} />
 
 const SubteamRow = (index, row) => (
-  <Box key={row.teamname+'row'} style={{marginLeft: globalMargins.tiny}}>{TeamSubteamRow(index, row)}</Box>
+  <Box key={row.teamname + 'row'} style={{marginLeft: globalMargins.tiny}}>
+    {TeamSubteamRow(index, row)}
+  </Box>
 )
 
 const AddSubTeam = (index, {key, onCreateSubteam}) => (
-  <Box key='addSubteam'
+  <Box
+    key="addSubteam"
     style={{
       ...globalStyles.flexBoxRow,
       alignItems: 'center',
@@ -167,7 +175,8 @@ const AddSubTeam = (index, {key, onCreateSubteam}) => (
 )
 
 const NoSubteams = (index, key) => (
-  <Box key='noSubteams'
+  <Box
+    key="noSubteams"
     style={{
       ...globalStyles.flexBoxRow,
       alignItems: 'center',

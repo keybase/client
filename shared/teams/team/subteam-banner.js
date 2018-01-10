@@ -5,7 +5,7 @@ import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
 
 export type Props = {
   onReadMore: () => void,
-  onHideBanner: () => void,
+  onHideBanner?: () => void,
 }
 
 const Banner = ({onReadMore, onHideBanner}: Props) => (
