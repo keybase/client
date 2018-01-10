@@ -21,45 +21,63 @@ type LocalState = null | 'deleting' | 'editing' | 'error' | 'pending'
 
 type ChannelMention = 'none' | 'all' | 'here'
 
-type _MessageCommon = {
+// Message types have a lot of copy and paste. Originally I had this split out but this
+// causes flow to get confused or makes the error messages a million times harder to understand
+
+// We keep deleted messages around so the bookkeeping is simpler
+export type _MessageDeleted = {
   author: string,
   conversationIDKey: Common.ConversationIDKey,
   deviceName: string,
   deviceRevokedAt: ?number,
   deviceType: DeviceType,
-  id: MessageID,
   hasBeenEdited: boolean,
+  id: MessageID,
   ordinal: Ordinal,
   timestamp: number,
-}
-
-// We keep deleted messages around so the bookkeeping is simpler
-export type _MessageDeleted = _MessageCommon & {
   type: 'deleted',
 }
 export type MessageDeleted = I.RecordOf<_MessageDeleted>
 
-export type _MessageText = _MessageCommon & {
-  type: 'text',
+export type _MessageText = {
+  author: string,
+  conversationIDKey: Common.ConversationIDKey,
+  deviceName: string,
+  deviceRevokedAt: ?number,
+  deviceType: DeviceType,
+  hasBeenEdited: boolean,
+  id: MessageID,
+  localState: LocalState,
   mentionsAt: I.Set<string>,
   mentionsChannel: ChannelMention,
+  ordinal: Ordinal,
   text: HiddenString,
-  localState: LocalState,
+  timestamp: number,
+  type: 'text',
 }
 export type MessageText = I.RecordOf<_MessageText>
 
 type AttachmentType = 'image' | 'other'
 
-export type _MessageAttachment = _MessageCommon & {
-  type: 'attachment',
+export type _MessageAttachment = {
   attachmentType: AttachmentType,
+  author: string,
+  conversationIDKey: Common.ConversationIDKey,
+  deviceName: string,
+  deviceRevokedAt: ?number,
+  deviceType: DeviceType,
   durationMs: number,
   filename: ?string,
+  hasBeenEdited: boolean,
+  id: MessageID,
   localState: LocalState,
+  ordinal: Ordinal,
   percentUploaded: number,
   previewHeight: number,
   previewWidth: number,
+  timestamp: number,
   title: string,
+  type: 'attachment',
 }
 
 export type MessageAttachment = I.RecordOf<_MessageAttachment>

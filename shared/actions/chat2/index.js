@@ -632,7 +632,8 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
   const identifyBehavior = RPCTypes.tlfKeysTLFIdentifyBehavior.chatGuiStrict // TODO
   const meta = Constants.getMeta(state, conversationIDKey)
   const tlfName = meta.tlfname // TODO non existant convo
-  const clientPrev = Constants.getMessageOrdinals(state, conversationIDKey).last() || 0
+  // Daemon doens't like ordinals and its not worth finding the last value value so just 'converting it' into a message id
+  const clientPrev = Math.floor(Constants.getMessageOrdinals(state, conversationIDKey).last() || 0)
   const outboxID = Constants.generateOutboxID()
 
   const pendingMessage = Constants.makePendingTextMessage(state, conversationIDKey, text)
@@ -693,8 +694,6 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, navigateToThread)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, clearInboxFilter)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, exitSearch)
-
-  // TODO post messageSend
 
   if (!isMobile) {
     yield Saga.safeTakeEveryPure(Chat2Gen.desktopNotification, desktopNotify)

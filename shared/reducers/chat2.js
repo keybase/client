@@ -27,7 +27,13 @@ const pendingOutboxToOrdinalReducer = (pendingOutboxToOrdinal, action) => {
     case Chat2Gen.messagesAdd:
       const {messages, context} = action.payload
       if (messages.length === 1 && context.type === 'incomingWasPending') {
+        console.log('aaa removing pending', context.outboxID)
         return pendingOutboxToOrdinal.deleteIn([messages[0].conversationIDKey, context.outboxID])
+      } else if (messages.length === 1 && context.type === 'sent') {
+        console.log('aaa adding pending', context.outboxID)
+        return pendingOutboxToOrdinal.update(messages[0].conversationIDKey, I.Map(), map =>
+          map.set(context.outboxID, messages[0].ordinal)
+        )
       } else {
         return pendingOutboxToOrdinal
       }
@@ -164,20 +170,26 @@ const messageMapReducer = (messageMap, action, state) => {
           messages.forEach(message => {
             // we're changing a pending to sent
             if (context.type === 'incomingWasPending') {
+              console.log('aaa message add converting', context.outboxID)
               const pendingOrdinal = state.pendingOutboxToOrdinal.getIn([
                 message.conversationIDKey,
                 context.outboxID,
               ])
               if (!pendingOrdinal) {
-                throw new Error(
-                  `Missing pending ordinal!? ${message.conversationIDKey} ${message.id} ${context.type} ${
-                    context.outboxID
-                  }`
+                map.updateIn([message.conversationIDKey, message.ordinal], old => old || message)
+                // TODO we get 2 messages for each post so this happens.... talk to mike
+                // console.log('aaa message add converting no pending', context.outboxID)
+                // throw new Error(
+                // `Missing pending ordinal!? ${message.conversationIDKey} ${message.id} ${context.type} ${
+                // context.outboxID
+                // }`
+                // )
+              } else {
+                map.updateIn([message.conversationIDKey, pendingOrdinal], old =>
+                  // $FlowIssue gets confused about set existing
+                  message.set('ordinal', pendingOrdinal)
                 )
               }
-              map.updateIn([message.conversationIDKey, pendingOrdinal], old =>
-                message.set('ordinal', pendingOrdinal)
-              )
             } else {
               // Never replace old messages
               map.updateIn([message.conversationIDKey, message.ordinal], old => old || message)
@@ -198,7 +210,11 @@ const messageOrdinalsReducer = (messageOrdinalsList, action) => {
     case Chat2Gen.inboxRefresh:
       return action.payload.clearAllData ? messageOrdinalsList.clear() : messageOrdinalsList
     case Chat2Gen.messagesAdd: {
-      const {messages} = action.payload
+      const {messages, context} = action.payload
+      if (context.type === 'incomingWasPending') {
+        // Since we're keeping our old ordinal, we can effectively ignore this update from the ordinals list perspective
+        return messageOrdinalsList
+      }
       const idToMessages = messages.reduce((map, m) => {
         const set = (map[m.conversationIDKey] = map[m.conversationIDKey] || new Set()) // note: NOT immutable
         set.add(m.ordinal)
