@@ -142,18 +142,17 @@ type TeamTabsProps = {
   yourOperations: RPCTypes.TeamOperation,
 }
 
-const SubteamsIntro = ({index, row}) => {
-  console.warn('row', row)
-  return <SubteamBanner key={row.key} onReadMore={row.onReadMore} teamname={row.teamname} />
-}
+const SubteamsIntro = ({row}) => (
+  <SubteamBanner key={row.key} onReadMore={row.onReadMore} teamname={row.teamname} />
+)
 
-const SubteamRow = ({index, row}) => (
+const SubteamRow = ({row}) => (
   <Box key={row.teamname + 'row'} style={{marginLeft: globalMargins.tiny}}>
-    <TeamSubteamRow key={row.teamname} teamname={row.teamname} />
+    <TeamSubteamRow teamname={row.teamname} />
   </Box>
 )
 
-const AddSubTeam = ({index, row}) => (
+const AddSubTeam = ({row}) => (
   <Box
     key="addSubteam"
     style={{
@@ -177,7 +176,7 @@ const AddSubTeam = ({index, row}) => (
   </Box>
 )
 
-const NoSubteams = ({index, row}) => (
+const NoSubteams = ({row}) => (
   <Box
     key="noSubteams"
     style={{
@@ -198,13 +197,13 @@ const NoSubteams = ({index, row}) => (
 const subTeamsRow = (index, row) => {
   switch (row.type) {
     case 'intro':
-      return <SubteamsIntro index={index} row={row} />
+      return <SubteamsIntro row={row} />
     case 'addSubteam':
-      return <AddSubTeam index={index} row={row} />
+      return <AddSubTeam row={row} />
     case 'noSubteams':
-      return <NoSubteams index={index} row={row} />
+      return <NoSubteams row={row} />
     default:
-      return <SubteamRow index={index} row={row} />
+      return <SubteamRow row={row} />
   }
 }
 
