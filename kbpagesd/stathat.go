@@ -21,6 +21,8 @@ type stathatReporter struct {
 	statNameAuthenticated string
 	statPrefixProto       string
 	statPrefixStatus      string
+	statPrefixTlfType     string
+	statPrefixRootType    string
 }
 
 var _ libpages.StatsReporter = (*stathatReporter)(nil)
@@ -41,16 +43,26 @@ func newStathatReporter(prefix string, ezKey string) *stathatReporter {
 		statNameAuthenticated: prefix + "authenticated",
 		statPrefixProto:       prefix + "proto:",
 		statPrefixStatus:      prefix + "status:",
+		statPrefixTlfType:     prefix + "tlfType:",
+		statPrefixRootType:    prefix + "rootType:",
 	}
 }
 
-func (s *stathatReporter) ReportServedRequest(r *libpages.ServedRequestInfoForStats) {
-	s.reporter.PostEZCountOne(s.statNameRequests, s.ezKey)
-	s.reporter.PostEZCountOne(s.statPrefixProto+r.Proto, s.ezKey)
-	s.reporter.PostEZCountOne(s.statPrefixStatus+strconv.Itoa(r.HTTPStatus), s.ezKey)
-	if r.Authenticated {
-		s.reporter.PostEZCountOne(s.statNameAuthenticated, s.ezKey)
+func (s *stathatReporter) ReportServedRequest(sri *libpages.ServedRequestInfo) {
+	s.reporter.PostEZCountOne(
+		s.statNameRequests, s.ezKey)
+	s.reporter.PostEZCountOne(
+		s.statPrefixProto+sri.Proto, s.ezKey)
+	s.reporter.PostEZCountOne(
+		s.statPrefixStatus+strconv.Itoa(sri.HTTPStatus), s.ezKey)
+	if sri.Authenticated {
+		s.reporter.PostEZCountOne(
+			s.statNameAuthenticated, s.ezKey)
 	}
-	// We are ignoring r.Host for now until we have a better plan to aggregate
+	s.reporter.PostEZCountOne(
+		s.statPrefixTlfType+sri.TlfType.String(), s.ezKey)
+	s.reporter.PostEZCountOne(
+		s.statPrefixRootType+sri.RootType.String(), s.ezKey)
+	// We are ignoring sri.Host for now until we have a better plan to aggregate
 	// stats.
 }

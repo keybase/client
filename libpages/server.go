@@ -22,6 +22,7 @@ import (
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/libpages/config"
+	"github.com/keybase/kbfs/tlf"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/acme"
 	"golang.org/x/crypto/acme/autocert"
@@ -36,24 +37,24 @@ type ServerConfig struct {
 	UseDiskCertCache bool
 	StatsReporter    StatsReporter
 
-	whiteList     map[string]bool
-	whiteListOnce sync.Once
+	domainWhitelistOnce sync.Once
+	domainWhitelist     map[string]bool
 }
 
 func (c *ServerConfig) allowedByDomainWhiteList(domain string) bool {
-	c.whiteListOnce.Do(func() {
+	c.domainWhitelistOnce.Do(func() {
 		if len(c.DomainWhitelist) > 0 {
-			c.whiteList = make(map[string]bool, len(c.DomainWhitelist))
+			c.domainWhitelist = make(map[string]bool, len(c.DomainWhitelist))
 			for _, d := range c.DomainWhitelist {
-				c.whiteList[d] = true
+				c.domainWhitelist[d] = true
 			}
 		}
 	})
-	if c.whiteList != nil {
-		return c.whiteList[domain]
+	if c.domainWhitelist != nil {
+		return c.domainWhitelist[domain]
 	}
 
-	// No whitelist; allow everything!
+	// No domainWhitelist; allow everything!
 	return true
 }
 
@@ -110,22 +111,22 @@ func (s *Server) siteCacheEvict(_ interface{}, value interface{}) {
 }
 
 func (s *Server) handleErrorAndPopulateStat(
-	w http.ResponseWriter, err error, statInfo *ServedRequestInfoForStats) {
+	w http.ResponseWriter, err error, sri *ServedRequestInfo) {
 	// TODO: have a nicer error page for configuration errors?
 	switch err.(type) {
 	case nil:
 	case ErrKeybasePagesRecordNotFound:
-		statInfo.HTTPStatus = http.StatusServiceUnavailable
+		sri.HTTPStatus = http.StatusServiceUnavailable
 		w.WriteHeader(http.StatusServiceUnavailable)
 		io.WriteString(w, err.Error())
 		return
 	case ErrKeybasePagesRecordTooMany, ErrInvalidKeybasePagesRecord:
-		statInfo.HTTPStatus = http.StatusPreconditionFailed
+		sri.HTTPStatus = http.StatusPreconditionFailed
 		w.WriteHeader(http.StatusPreconditionFailed)
 		io.WriteString(w, err.Error())
 		return
 	default:
-		statInfo.HTTPStatus = http.StatusInternalServerError
+		sri.HTTPStatus = http.StatusInternalServerError
 		w.WriteHeader(http.StatusInternalServerError)
 		// Don't write unknown errors in case we leak data unintentionally.
 		return
@@ -156,9 +157,9 @@ func (a adaptedLogger) Warning(format string, args ...interface{}) {
 
 func (s *Server) handleNeedAuthenticationAndPopulateStat(
 	w http.ResponseWriter, r *http.Request, realm string,
-	statInfo *ServedRequestInfoForStats) {
+	sri *ServedRequestInfo) {
 	w.Header().Set("WWW-Authenticate", fmt.Sprintf("Basic realm=%s", realm))
-	statInfo.HTTPStatus = http.StatusUnauthorized
+	sri.HTTPStatus = http.StatusUnauthorized
 	w.WriteHeader(http.StatusUnauthorized)
 }
 
@@ -248,10 +249,40 @@ var cloningLandingPage = []byte(`
 </html>
 `)
 
+// ServedRequestInfo holds information regarding to an incoming request
+// that might be useful for stats.
+type ServedRequestInfo struct {
+	// Host is the `Host` field of http.Request.
+	Host string
+	// Proto is the `Proto` field of http.Request.
+	Proto string
+	// Authenticated means the client set WWW-Authenticate in this request and
+	// authentication using the given credentials has succeeded. It doesn't
+	// necessarily indicate that the authentication is required for this
+	// particular request.
+	Authenticated bool
+	// TlfType is the TLF type of the root that's used to serve the request.
+	TlfType tlf.Type
+	// RootType is the type of the root that's used to serve the request.
+	RootType RootType
+	// HTTPStatus is the HTTP status code that we have written for the request
+	// in the response header.
+	HTTPStatus int
+}
+
+func (s *Server) logRequest(sri *ServedRequestInfo, requestPath string) {
+	s.config.Logger.Info("ReqIn",
+		zap.String("host", sri.Host),
+		zap.String("path", requestPath),
+		zap.String("proto", sri.Proto),
+		zap.Int("http_status", sri.HTTPStatus),
+		zap.Bool("authenticated", sri.Authenticated),
+	)
+}
+
 // ServeHTTP implements the http.Handler interface.
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	var statInfo *ServedRequestInfoForStats
-	statInfo = &ServedRequestInfoForStats{
+	sri := &ServedRequestInfo{
 		Proto: r.Proto,
 		Host:  r.Host,
 		// If we don't end up responding with 200, this field will be
@@ -259,14 +290,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		HTTPStatus: http.StatusOK,
 	}
 	if s.config.StatsReporter != nil {
-		defer s.config.StatsReporter.ReportServedRequest(statInfo)
+		defer s.config.StatsReporter.ReportServedRequest(sri)
 	}
-
-	s.config.Logger.Info("ServeHTTP",
-		zap.String("host", r.Host),
-		zap.String("path", r.URL.Path),
-		zap.String("proto", r.Proto),
-	)
+	defer s.logRequest(sri, r.URL.Path)
 
 	// Don't serve the config file itself.
 	if path.Clean(strings.ToLower(r.URL.Path)) == config.DefaultConfigFilepath {
@@ -280,9 +306,10 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Construct a *site from DNS record.
 	root, err := LoadRootFromDNS(s.config.Logger, r.Host)
 	if err != nil {
-		s.handleErrorAndPopulateStat(w, err, statInfo)
+		s.handleErrorAndPopulateStat(w, err, sri)
 		return
 	}
+	sri.TlfType, sri.RootType = root.TlfType, root.Type
 	ctx := libkbfs.CtxWithRandomIDReplayable(r.Context(),
 		CtxKBPKey, CtxKBPOpID, adaptedLogger{
 			msg:    "CtxWithRandomIDReplayable",
@@ -290,7 +317,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		})
 	st, err := s.getSite(ctx, root)
 	if err != nil {
-		s.handleErrorAndPopulateStat(w, err, statInfo)
+		s.handleErrorAndPopulateStat(w, err, sri)
 		return
 	}
 
@@ -298,7 +325,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// indicates we are still cloning the assets.
 	shouldShowCloningLandingPage, err := s.shouldShowCloningLandingPage(st)
 	if err != nil {
-		s.handleErrorAndPopulateStat(w, err, statInfo)
+		s.handleErrorAndPopulateStat(w, err, sri)
 		return
 	}
 	if shouldShowCloningLandingPage {
@@ -321,7 +348,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// User has a .kbp_config file but it's invalid.
 		// TODO: error page to show the error message?
 		s.config.Logger.Info("getConfig", zap.String("host", r.Host), zap.Error(err))
-		s.handleErrorAndPopulateStat(w, err, statInfo)
+		s.handleErrorAndPopulateStat(w, err, sri)
 		return
 	}
 
@@ -329,7 +356,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var realm string
 	user, pass, ok := r.BasicAuth()
 	if ok && cfg.Authenticate(user, pass) {
-		statInfo.Authenticated = true
+		sri.Authenticated = true
 		canRead, canList, realm, err = cfg.GetPermissionsForUsername(
 			r.URL.Path, user)
 	} else {
@@ -337,7 +364,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			r.URL.Path)
 	}
 	if err != nil {
-		s.handleErrorAndPopulateStat(w, err, statInfo)
+		s.handleErrorAndPopulateStat(w, err, sri)
 		return
 	}
 
@@ -347,17 +374,17 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// way today.
 	isListing, err := s.isDirWithNoIndexHTML(st, r.URL.Path)
 	if err != nil {
-		s.handleErrorAndPopulateStat(w, err, statInfo)
+		s.handleErrorAndPopulateStat(w, err, sri)
 		return
 	}
 
 	if isListing && !canList {
-		s.handleNeedAuthenticationAndPopulateStat(w, r, realm, statInfo)
+		s.handleNeedAuthenticationAndPopulateStat(w, r, realm, sri)
 		return
 	}
 
 	if !isListing && !canRead {
-		s.handleNeedAuthenticationAndPopulateStat(w, r, realm, statInfo)
+		s.handleNeedAuthenticationAndPopulateStat(w, r, realm, sri)
 		return
 	}
 
