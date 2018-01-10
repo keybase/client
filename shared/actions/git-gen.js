@@ -18,6 +18,7 @@ export const handleIncomingGregor = 'git:handleIncomingGregor'
 export const loadGit = 'git:loadGit'
 export const setError = 'git:setError'
 export const setLoading = 'git:setLoading'
+export const setTeamRepoSettings = 'git:setTeamRepoSettings'
 
 // Action Creators
 export const createBadgeAppForGit = (payload: $ReadOnly<{ids: Array<string>}>) => ({error: false, payload, type: badgeAppForGit})
@@ -41,6 +42,14 @@ export const createHandleIncomingGregor = (payload: $ReadOnly<{messages: Array<R
 export const createLoadGit = () => ({error: false, payload: undefined, type: loadGit})
 export const createSetError = (payload: $ReadOnly<{error: ?Error}>) => ({error: false, payload, type: setError})
 export const createSetLoading = (payload: $ReadOnly<{loading: boolean}>) => ({error: false, payload, type: setLoading})
+export const createSetTeamRepoSettings = (
+  payload: $ReadOnly<{
+    chatDisabled: boolean,
+    channelName: ?string,
+    teamname: string,
+    repoID: string,
+  }>
+) => ({error: false, payload, type: setTeamRepoSettings})
 
 // Action Payloads
 export type BadgeAppForGitPayload = More.ReturnType<typeof createBadgeAppForGit>
@@ -52,6 +61,7 @@ export type HandleIncomingGregorPayload = More.ReturnType<typeof createHandleInc
 export type LoadGitPayload = More.ReturnType<typeof createLoadGit>
 export type SetErrorPayload = More.ReturnType<typeof createSetError>
 export type SetLoadingPayload = More.ReturnType<typeof createSetLoading>
+export type SetTeamRepoSettingsPayload = More.ReturnType<typeof createSetTeamRepoSettings>
 
 // All Actions
 // prettier-ignore
@@ -65,4 +75,5 @@ export type Actions =
   | More.ReturnType<typeof createLoadGit>
   | More.ReturnType<typeof createSetError>
   | More.ReturnType<typeof createSetLoading>
+  | More.ReturnType<typeof createSetTeamRepoSettings>
   | {type: 'common:resetStore', payload: void}

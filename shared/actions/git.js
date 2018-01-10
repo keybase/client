@@ -13,6 +13,7 @@ import * as Tabs from '../constants/tabs'
 import moment from 'moment'
 import {isMobile} from '../constants/platform'
 import {navigateTo} from './route-tree'
+import {createIncrementWaiting, createDecrementWaiting} from './waiting-gen'
 
 function* _loadGit(action: GitGen.LoadGitPayload): Saga.SagaGenerator<any, any> {
   yield Saga.put(GitGen.createSetError({error: null}))
@@ -42,6 +43,8 @@ function* _loadGit(action: GitGen.LoadGitPayload): Saga.SagaGenerator<any, any> 
           name: r.localMetadata.repoName,
           teamname,
           url: r.repoUrl,
+          channelName: (r.teamRepoSettings && r.teamRepoSettings.channelName) || null,
+          chatDisabled: !!r.teamRepoSettings && r.teamRepoSettings.chatDisabled,
         })
       } else {
         let errStr: string = 'unknown'
@@ -120,6 +123,24 @@ const _deleteTeamRepo = (action: GitGen.DeleteTeamRepoPayload) =>
     })
   )
 
+const _setTeamRepoSettings = (action: GitGen.SetTeamRepoSettingsPayload) =>
+  Saga.sequentially([
+    createIncrementWaiting({key: `teamRepoSettings:${action.payload.repoID}`}),
+    Saga.call(RPCTypes.gitSetTeamRepoSettingsRpcPromise, {
+      folder: {
+        name: action.payload.teamname,
+        folderType: RPCTypes.favoriteFolderType.team,
+        private: true,
+        created: false,
+        notificationsOn: false,
+      },
+      repoID: action.payload.repoID,
+      channelName: action.payload.channelName,
+      chatDisabled: action.payload.chatDisabled,
+    }),
+    createDecrementWaiting({key: `teamRepoSettings:${action.payload.repoID}`}),
+  ])
+
 const _setLoading = (action: GitGen.SetLoadingPayload) =>
   Saga.put(Entities.replaceEntity(['git'], I.Map([['loading', action.payload.loading]])))
 
@@ -169,6 +190,7 @@ function* gitSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(GitGen.badgeAppForGit, _badgeAppForGit)
   yield Saga.safeTakeEveryPure(GitGen.handleIncomingGregor, _handleIncomingGregor)
   yield Saga.safeTakeEveryPure(RouteTreeConstants.switchTo, _onTabChange)
+  yield Saga.safeTakeEveryPure(GitGen.setTeamRepoSettings, _setTeamRepoSettings)
 }
 
 export default gitSaga

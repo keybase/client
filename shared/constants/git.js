@@ -11,8 +11,9 @@ export const makeGitInfo: I.RecordFactory<Types._GitInfo> = I.Record({
   lastEditUser: '',
   name: '',
   teamname: null,
-  currentChannel: null,
   url: '',
+  channelName: null,
+  chatDisabled: false,
 })
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({

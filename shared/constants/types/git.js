@@ -9,8 +9,9 @@ export type _GitInfo = {
   lastEditUser: string,
   name: string,
   teamname: ?string,
-  currentChannel: ?string,
   url: string,
+  channelName: ?string,
+  chatDisabled: boolean,
 }
 export type GitInfo = I.RecordOf<_GitInfo>
 export type _State = {
