@@ -4,7 +4,6 @@ import Text from './text'
 import {type ConversationIDKey} from '../constants/types/chat'
 
 export type OwnProps = {
-  key: string,
   channel: string,
   convID: ConversationIDKey,
   style: Object,
@@ -15,8 +14,8 @@ export type Props = OwnProps & {
   onClick: () => void,
 }
 
-export const Channel = ({key, channel, onClick, style, allowFontScaling}: Props) => (
-  <Text type="BodyPrimaryLink" onClick={onClick} key={key} style={style} allowFontScaling={allowFontScaling}>
+export const Channel = ({channel, onClick, style, allowFontScaling}: Props) => (
+  <Text type="BodyPrimaryLink" onClick={onClick} style={style} allowFontScaling={allowFontScaling}>
     #{channel}
   </Text>
 )
