@@ -67,7 +67,11 @@ function messageCreateComponent(type, key, children, options) {
     case 'markup':
       return <Box key={key}>{children}</Box>
     case 'mention':
-      return <Mention username={children[0]} key={key} style={wrapStyle} />
+      const username = children[0]
+      if (typeof username !== 'string') {
+        throw new Error('username unexpectedly not string')
+      }
+      return <Mention username={username} key={key} style={wrapStyle} />
     case 'inline-code':
       return (
         <Text type="Body" key={key} style={codeSnippetStyle}>

@@ -151,13 +151,12 @@ function messageCreateComponent(style, allowFontScaling) {
           </Text>
         )
       case 'mention':
+        const username = children[0]
+        if (typeof username !== 'string') {
+          throw new Error('username unexpectedly not string')
+        }
         return (
-          <Mention
-            username={children[0]}
-            key={key}
-            style={neutralStyle}
-            allowFontScaling={allowFontScaling}
-          />
+          <Mention username={username} key={key} style={neutralStyle} allowFontScaling={allowFontScaling} />
         )
       case 'emoji':
         return (
