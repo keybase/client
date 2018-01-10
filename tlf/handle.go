@@ -6,6 +6,7 @@ package tlf
 
 import (
 	"errors"
+	"reflect"
 	"sort"
 
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -325,4 +326,18 @@ func (h Handle) IsFinal() bool {
 // IsConflict returns true if the handle is a conflict handle.
 func (h Handle) IsConflict() bool {
 	return h.ConflictInfo != nil
+}
+
+// DeepEqual returns true if the handle is equal to another handle.
+func (h Handle) DeepEqual(other Handle) bool {
+	sort.Sort(UIDList(h.Writers))
+	sort.Sort(UIDList(h.Readers))
+	sort.Sort(SocialAssertionList(h.UnresolvedWriters))
+	sort.Sort(SocialAssertionList(h.UnresolvedReaders))
+	sort.Sort(UIDList(other.Writers))
+	sort.Sort(UIDList(other.Readers))
+	sort.Sort(SocialAssertionList(other.UnresolvedWriters))
+	sort.Sort(SocialAssertionList(other.UnresolvedReaders))
+
+	return reflect.DeepEqual(h, other)
 }
