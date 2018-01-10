@@ -12,6 +12,6 @@ declare function factory(
   ) => void,
   onShowEditor: (message: Types.ServerMessage, event: SyntheticEvent<>) => void,
   isSelected: boolean,
-  measure: () => void,
+  measure: () => void
 ): React.Node
 export default factory
