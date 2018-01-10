@@ -47,7 +47,7 @@ func WritePermMode(
 	kbpki libkbfs.KBPKI, h *libkbfs.TlfHandle) (os.FileMode, error) {
 	original &^= os.FileMode(0222) // clear write perm bits
 
-	if node.Readonly(ctx) {
+	if node != nil && node.Readonly(ctx) {
 		return original, nil
 	}
 
