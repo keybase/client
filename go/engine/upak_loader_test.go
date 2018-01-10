@@ -436,7 +436,10 @@ func TestLoadAfterAcctReset2(t *testing.T) {
 	}
 }
 
-func TestLoadAfterAcctReset3(t *testing.T) {
+// Test the bug in CORE-6943: after a reset, if we did two
+// logins in a row, right on top of each other, previous subchains
+// would be dropped from the self UPAK.
+func TestLoadAfterAcctResetCORE6943(t *testing.T) {
 	tc := SetupEngineTest(t, "clu")
 	defer tc.Cleanup()
 
@@ -470,8 +473,10 @@ func TestLoadAfterAcctReset3(t *testing.T) {
 	if err := AssertProvisioned(tc); err != nil {
 		t.Fatal(err)
 	}
+	// login a second time to force the bug.
 	fu.LoginOrBust(tc)
 
+	// Make sure that we can load the eldest key from the previous subchain
 	_, _, _, err = tc.G.GetUPAKLoader().LoadKeyV2(context.TODO(), fu.UID(), upak1.Base.DeviceKeys[0].KID)
 
 	if err != nil {

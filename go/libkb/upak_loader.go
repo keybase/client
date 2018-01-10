@@ -189,7 +189,7 @@ func (u *CachedUPAKLoader) putUPAKToCache(ctx context.Context, obj *keybase1.Use
 	}
 
 	uid := obj.Current.Uid
-	u.G().VDL.CLogf(ctx, VLog0, "| Caching UPAK for %s %+v", uid, *obj)
+	u.G().VDL.CLogf(ctx, VLog0, "| Caching UPAK for %s", uid)
 
 	stale := false
 	existing := u.getMemCache(ctx, uid)
