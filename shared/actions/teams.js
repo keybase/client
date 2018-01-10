@@ -385,9 +385,7 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
     const teamTree = yield Saga.call(RPCTypes.teamsTeamTreeRpcPromise, {
       name: {parts: [teamname.split('.')[0]]},
     })
-    console.warn('teamTree is', teamTree)
     const subteams = teamTree.entries.map(team => team.name.parts.join('.'))
-    console.warn('subteams:', subteams)
     const publicityMap = {
       anyMemberShowcase: publicity.teamShowcase.anyMemberShowcase,
       description: publicity.teamShowcase.description,

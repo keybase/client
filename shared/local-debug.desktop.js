@@ -17,7 +17,7 @@ let config = {
   isTesting: __SCREENSHOT__, // Is running a unit test
   maskStrings: false, // Replace all hiddenstrings w/ fake values
   printOutstandingRPCs: false, // Periodically print rpcs we're waiting for
-  printRPC: true, // Print rpc traffic
+  printRPC: false, // Print rpc traffic
   reduxSagaLogger: false, // Print saga debug info
   reduxSagaLoggerMasked: true, // Print saga debug info masked out
   showDevTools: false, // Show devtools on start
@@ -81,7 +81,7 @@ if (PERF) {
   config.ignoreDisconnectOverlay = false
   config.immediateStateLogging = false
   config.printOutstandingRPCs = false
-  config.printRPC = true
+  config.printRPC = false
   config.reduxSagaLogger = false
   config.reduxSagaLoggerMasked = false
   config.userTimings = true

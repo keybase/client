@@ -139,7 +139,7 @@ type TeamTabsProps = {
 
 const SubteamsIntro = (index, {key, onReadMore}) => <SubteamBanner key={key} onReadMore={onReadMore} />
 
-const SubteamRow = (index, row) => (<Box style={{...globalStyles.row, marginLeft: globalMargins.tiny}}>
+const SubteamRow = (index, row) => (<Box style={{...globalStyles.flexBoxRow, marginLeft: globalMargins.tiny}}>
   {TeamSubteamRow(index, row)}
 </Box>)
 

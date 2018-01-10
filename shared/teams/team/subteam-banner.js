@@ -49,21 +49,18 @@ const Banner = ({onReadMore, onHideBanner}: Props) => (
       <Text
         backgroundMode="Terminal"
         type="BodySemibold"
-        style={{...(isMobile ? {textAlign: 'center'} : {})}}
       >
         • stripe.devops
       </Text>
       <Text
         backgroundMode="Terminal"
         type="BodySemibold"
-        style={{...(isMobile ? {textAlign: 'center'} : {})}}
       >
         • stripe.legal
       </Text>
       <Text
         backgroundMode="Terminal"
         type="BodySemibold"
-        style={{...(isMobile ? {textAlign: 'center'} : {})}}
       >
         • stripe.customers.nike
       </Text>
