@@ -26,8 +26,8 @@ const mapDispatchToProps = (dispatch: any) => ({
   openUserTracker: (username: string) => dispatch(createGetProfile({username, forceDisplay: true})),
   _setDisableChat: (disabled: boolean, repoID: string, teamname: string) =>
     dispatch(createSetTeamRepoSettings({chatDisabled: disabled, repoID, teamname, channelName: null})),
-  _onOpenChannelSelection: (repoID: string, teamname: string) =>
-    dispatch(navigateAppend([{selected: 'selectChannel', props: {repoID, teamname}}], [gitTab])),
+  _onOpenChannelSelection: (repoID: string, teamname: string, selected: string) =>
+    dispatch(navigateAppend([{selected: 'selectChannel', props: {repoID, teamname, selected}}], [gitTab])),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
@@ -39,7 +39,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onCopy: () => copyToClipboard(stateProps.url),
   onShowDelete: () => ownProps.onShowDelete(stateProps.id),
   openUserTracker: dispatchProps.openUserTracker,
-  onOpenChannelSelection: () => dispatchProps._onOpenChannelSelection(stateProps.repoID, stateProps.teamname),
+  onOpenChannelSelection: () =>
+    dispatchProps._onOpenChannelSelection(
+      stateProps.repoID,
+      stateProps.teamname,
+      stateProps.channelName || 'general'
+    ),
   onToggleChatEnabled: () =>
     dispatchProps._setDisableChat(!stateProps.chatDisabled, stateProps.repoID, stateProps.teamname),
   onToggleExpand: () => ownProps.onToggleExpand(stateProps.id),

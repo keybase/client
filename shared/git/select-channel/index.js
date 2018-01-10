@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {ScrollView, CheckBox, Text, Box} from '../../common-adapters'
+import {Button, ScrollView, RadioButton, Text, Box} from '../../common-adapters'
 import {globalMargins, globalStyles} from '../../styles'
 
 export type Props = {
@@ -9,10 +9,11 @@ export type Props = {
   onSelect: (channel: string) => void,
   onSubmit: () => void,
   onCancel: () => void,
+  waiting: boolean,
 }
 
 export default (props: Props) => (
-  <ScrollView contentContainerStyle={{padding: globalMargins.medium}}>
+  <ScrollView contentContainerStyle={{padding: globalMargins.large}}>
     <Box
       style={{
         ...globalStyles.flexBoxColumn,
@@ -22,7 +23,40 @@ export default (props: Props) => (
         paddingBottom: globalMargins.xtiny,
       }}
     >
-      <Text type="Header">Hi!</Text>
+      <Text type="Header">Select a channel</Text>
+      <Box
+        style={{
+          ...globalStyles.flexBoxColumn,
+          marginBottom: globalMargins.medium,
+          marginTop: globalMargins.medium,
+        }}
+      >
+        {props.channelNames.map(name => (
+          <Box key={name} style={globalStyles.flexBoxRow}>
+            <RadioButton
+              label={name}
+              selected={props.selected === name}
+              style={styleRadioButton}
+              onSelect={selected => (selected ? props.onSelect(name) : undefined)}
+            />
+          </Box>
+        ))}
+      </Box>
+      <Button
+        waiting={props.waiting}
+        type="Primary"
+        label="Submit"
+        onClick={() => {
+          props.onSubmit()
+          props.onCancel()
+        }}
+        small={true}
+      />
     </Box>
   </ScrollView>
 )
+
+const styleRadioButton = {
+  ...globalStyles.flexBoxRow,
+  marginLeft: globalMargins.tiny,
+}
