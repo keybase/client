@@ -15,8 +15,8 @@ import (
 // Handle uniquely identified top-level folders by readers and writers.
 //
 // NOTE: if you change this type, ensure you update the `NumField` check in
-// `MakeHandle`, and that the new fields are correctly checked for equality in
-// `DeepEqual`.
+// `init`, and that the new fields are correctly checked for equality in
+// `Handle.DeepEqual()`.
 // TODO: Have separate types for writers vs. readers.
 type Handle struct {
 	Writers           []keybase1.UserOrTeamID    `codec:"w,omitempty"`
@@ -28,6 +28,17 @@ type Handle struct {
 
 	// caching field to track whether we've sorted the slices.
 	sorted bool `codec:"-"`
+}
+
+// init verifies that we haven't changed the number of fields, so that if we
+// do, the engineer can take a good, long look at what they've done.
+func init() {
+	if reflect.ValueOf(Handle{}).NumField() != 7 {
+		panic(errors.New(
+			"Unexpected number of fields in Handle; please update the check " +
+				"above and ensure that Handle.DeepEqual() accounts for the " +
+				"new field"))
+	}
 }
 
 // errNoWriters is the error returned by MakeHandle if it is
@@ -83,12 +94,6 @@ func MakeHandle(
 	writers, readers []keybase1.UserOrTeamID,
 	unresolvedWriters, unresolvedReaders []keybase1.SocialAssertion,
 	extensions []HandleExtension) (Handle, error) {
-	if reflect.ValueOf(Handle{}).NumField() != 7 {
-		panic(errors.New(
-			"Unexpected number of fields in Handle; please update the check " +
-				"above and ensure that Handle.DeepEqual() accounts for the " +
-				"new field"))
-	}
 	if len(writers) == 0 {
 		return Handle{}, errNoWriters
 	}
@@ -158,6 +163,7 @@ func MakeHandle(
 		UnresolvedReaders: unresolvedReadersCopy,
 		ConflictInfo:      conflictInfo,
 		FinalizedInfo:     finalizedInfo,
+		sorted:            true,
 	}, nil
 }
 
@@ -315,6 +321,7 @@ func (h Handle) ResolveAssertions(
 	sort.Sort(UIDList(h.Readers))
 	sort.Sort(SocialAssertionList(h.UnresolvedWriters))
 	sort.Sort(SocialAssertionList(h.UnresolvedReaders))
+	h.sorted = true
 	return h
 }
 
@@ -340,7 +347,9 @@ func (h Handle) IsConflict() bool {
 }
 
 // DeepEqual returns true if the handle is equal to another handle.
-func (h Handle) DeepEqual(other Handle) bool {
+// This can mutate the Handle in that it might sort its Writers,
+// Readers, UnresolvedWriters, and UnresolvedReaders.
+func (h *Handle) DeepEqual(other Handle) bool {
 	if len(h.Writers) != len(other.Writers) {
 		return false
 	}
@@ -366,7 +375,6 @@ func (h Handle) DeepEqual(other Handle) bool {
 		sort.Sort(UIDList(other.Readers))
 		sort.Sort(SocialAssertionList(other.UnresolvedWriters))
 		sort.Sort(SocialAssertionList(other.UnresolvedReaders))
-		other.sorted = true
 	}
 
 	for i, v := range h.Writers {
