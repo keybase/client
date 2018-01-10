@@ -803,6 +803,7 @@ func (fs *FS) ToHTTPFileSystem(ctx context.Context) http.FileSystem {
 	return httpFileSystem{fs: fs.WithContext(ctx)}
 }
 
+// RootNode returns the Node of the root directory of this FS.
 func (fs *FS) RootNode() libkbfs.Node {
 	return fs.root
 }
