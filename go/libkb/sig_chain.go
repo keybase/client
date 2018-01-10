@@ -1155,7 +1155,7 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 
 	stage("GetFingerprint")
 	if err = l.GetKeyFamily(); err != nil {
-		return
+		return nil, err
 	}
 
 	stage("AccessPreload")
@@ -1164,27 +1164,27 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	if !preload {
 		stage("LoadLinksFromStorage")
 		if err = l.LoadLinksFromStorage(); err != nil {
-			return
+			return nil, err
 		}
 	}
 
 	stage("MakeSigChain")
 	if err = l.MakeSigChain(); err != nil {
-		return
+		return nil, err
 	}
 	ret = l.chain
 	stage("VerifyChain")
 	if err = l.chain.VerifyChain(l.ctx); err != nil {
-		return
+		return nil, err
 	}
 	stage("CheckFreshness")
 	if current, err = l.CheckFreshness(); err != nil {
-		return
+		return nil, err
 	}
 	if !current {
 		stage("LoadFromServer")
 		if err = l.LoadFromServer(); err != nil {
-			return
+			return nil, err
 		}
 	} else if l.chain.GetComputedKeyInfosWithVersionBust() == nil {
 		// The chain tip doesn't have a cached cki, probably because new
@@ -1205,13 +1205,17 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 		// Even though we're fully cached, we still need to call the below, so
 		// we recompute historical subchains. Otherwise, we might hose our
 		// UPAK caches.
-		err = l.VerifySigsAndComputeKeys()
-		return
+		if err = l.VerifySigsAndComputeKeys(); err != nil {
+			return nil, err
+		}
+
+		// Success in the fully cached case.
+		return ret, nil
 	}
 
 	stage("VerifyChain")
 	if err = l.chain.VerifyChain(l.ctx); err != nil {
-		return
+		return nil, err
 	}
 
 	stage("StoreChain")
@@ -1220,7 +1224,7 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	}
 	stage("VerifySig")
 	if err = l.VerifySigsAndComputeKeys(); err != nil {
-		return
+		return nil, err
 	}
 	stage("Store")
 	if err = l.Store(); err != nil {
