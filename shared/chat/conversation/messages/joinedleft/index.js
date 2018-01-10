@@ -59,7 +59,7 @@ const JoinedLeftNotice = ({
           backgroundMode="Announcements"
           onClick={onManageChannels}
           style={{color: globalColors.blue}}
-          type="BodySmallPrimaryLink"
+          type="BodySmallSemibold"
         >
           Manage channel subscriptions.
         </Text>
