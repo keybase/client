@@ -9,6 +9,7 @@ import type {TextMessage} from '../../../../constants/types/chat'
 
 type Props = {
   channelname: string,
+  isBigTeam: boolean,
   message: TextMessage,
   onManageChannels: () => void,
   onUsernameClicked: (username: string) => void,
@@ -20,8 +21,10 @@ type Props = {
 const JoinedLeftNotice = ({
   channelname,
   message,
+  isBigTeam,
   onManageChannels,
   you,
+  teamname,
   following,
   onUsernameClicked,
 }: Props) => (
@@ -41,18 +44,26 @@ const JoinedLeftNotice = ({
           users={[{username: message.author, following, you: you === message.author}]}
         />
       )}{' '}
-      {message.message.stringValue()} #{channelname}.
+      {message.message.stringValue()}{' '}
+      {isBigTeam ? (
+        `#${channelname}`
+      ) : (
+        <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
+          {teamname}
+        </Text>
+      )}.
     </Text>
-    {message.author === you && (
-      <Text
-        backgroundMode="Announcements"
-        onClick={onManageChannels}
-        style={{color: globalColors.blue}}
-        type="BodySmallPrimaryLink"
-      >
-        Manage channel subscriptions.
-      </Text>
-    )}
+    {message.author === you &&
+      isBigTeam && (
+        <Text
+          backgroundMode="Announcements"
+          onClick={onManageChannels}
+          style={{color: globalColors.blue}}
+          type="BodySmallPrimaryLink"
+        >
+          Manage channel subscriptions.
+        </Text>
+      )}
   </UserNotice>
 )
 

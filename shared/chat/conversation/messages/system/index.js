@@ -25,6 +25,7 @@ const connectedUsernamesProps = {
 type Props = {
   admin: boolean,
   channelname: string,
+  isBigTeam: boolean,
   message: SystemMessage,
   onManageChannels: (teamname: string) => void,
   onViewTeam: (teamname: string) => void,
@@ -37,6 +38,7 @@ type AddedToTeamProps = Props & {info: AddedToTeamInfo}
 const AddedToTeamNotice = ({
   admin,
   channelname,
+  isBigTeam,
   message,
   info,
   onManageChannels,
@@ -53,7 +55,7 @@ const AddedToTeamNotice = ({
 
   let manageComponent = null
 
-  if (addee === you) {
+  if (addee === you && isBigTeam) {
     manageComponent = (
       <Text
         onClick={() => onManageChannels(team)}
