@@ -2,7 +2,6 @@
 import logger from '../../logger'
 import pickBy from 'lodash/pickBy'
 import isEqual from 'lodash/isEqual'
-import * as I from 'immutable'
 import * as Types from '../../constants/types/teams'
 import * as ChatGen from '../../actions/chat-gen'
 import * as TeamsGen from '../../actions/teams-gen'
@@ -12,6 +11,7 @@ import {pausableConnect, compose, lifecycle, type TypedState} from '../../util/c
 import {navigateTo, navigateAppend, pathSelector, switchTo} from '../../actions/route-tree'
 import {anyWaiting} from '../../constants/waiting'
 import {chatTab} from '../../constants/tabs'
+import {getConvIdsFromTeamName, getChannelInfoFromConvID} from '../../constants/teams'
 import '../../constants/route-tree'
 
 type ChannelMembershipState = {[channelname: string]: boolean}
@@ -19,12 +19,12 @@ type ChannelMembershipState = {[channelname: string]: boolean}
 const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
   const teamname = routeProps.get('teamname')
   const waitingForSave = anyWaiting(state, `saveChannel:${teamname}`, `getChannels:${teamname}`)
-  const convIDs = state.entities.getIn(['teams', 'teamNameToConvIDs', routeProps.get('teamname')], I.Set())
+  const convIDs = getConvIdsFromTeamName(state, teamname)
   const you = state.config.username
 
   const channels = convIDs
     .map(convID => {
-      const info: ?Types.ChannelInfo = state.entities.getIn(['teams', 'convIDToChannelInfo', convID])
+      const info: ?Types.ChannelInfo = getChannelInfoFromConvID(state, convID)
 
       return info && info.channelname
         ? {
