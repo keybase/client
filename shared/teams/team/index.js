@@ -9,6 +9,7 @@ import {
   Button,
   ButtonBar,
   Checkbox,
+  ClickableBox,
   Text,
   Tabs,
   List,
@@ -153,7 +154,7 @@ const AddSubTeam = (index, {key, onCreateSubteam}) => (
       width: '100%',
     }}
   >
-    <Box
+    <ClickableBox
       onClick={onCreateSubteam}
       style={{...globalStyles.flexBoxRow, flexGrow: 1, justifyContent: 'center', alignItems: 'center'}}
     >
@@ -161,7 +162,7 @@ const AddSubTeam = (index, {key, onCreateSubteam}) => (
       <Text type="BodyBigLink" style={{padding: globalMargins.xtiny}}>
         Create subteam
       </Text>
-    </Box>
+    </ClickableBox>
   </Box>
 )
 
