@@ -3,7 +3,9 @@ import * as I from 'immutable'
 import MainPage from './container.js'
 import NewRepo from './new-repo/container'
 import DeleteRepo from './delete-repo/container'
+import SelectChannel from './select-channel/container'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
+import {isMobile} from '../constants/platform'
 
 const routeTree = makeRouteDefNode({
   children: {
@@ -12,6 +14,10 @@ const routeTree = makeRouteDefNode({
     },
     newRepo: {
       component: NewRepo,
+    },
+    selectChannel: {
+      component: SelectChannel,
+      tags: makeLeafTags({layerOnTop: !isMobile}),
     },
   },
   component: MainPage,

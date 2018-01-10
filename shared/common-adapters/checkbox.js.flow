@@ -10,7 +10,6 @@ export type Props = {
   checked: boolean,
   style?: Object,
   disabled?: boolean,
-  type?: TextType,
 }
 
 declare export default class Checkbox extends Component<Props> {}

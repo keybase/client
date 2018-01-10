@@ -35,6 +35,7 @@ export type Props = {
   onCopy: () => void,
   onClickDevice: () => void,
   onShowDelete: () => void,
+  onOpenChannelSelection: () => void,
   onToggleChatEnabled: () => void,
   onToggleExpand: () => void,
   setTimeout: (() => void, number) => number,
@@ -205,9 +206,13 @@ class Row extends React.Component<Props, State> {
                     <Text type="BodySmall">
                       Announce pushes in{' '}
                       <Text
-                        type="BodySmallPrimaryLink"
+                        type={this.props.chatDisabled ? 'BodySmall' : 'BodySmallPrimaryLink'}
                         onClick={e => {
+                          if (this.props.chatDisabled) {
+                            return
+                          }
                           e.preventDefault()
+                          this.props.onOpenChannelSelection()
                         }}
                       >
                         #general
