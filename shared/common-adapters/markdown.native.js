@@ -155,8 +155,16 @@ function messageCreateComponent(style, allowFontScaling) {
         if (typeof username !== 'string') {
           throw new Error('username unexpectedly not string')
         }
+        // Don't pass in neutralStyle for style as that sets
+        // fontWeight to undefined, which overrides the BodySemibold
+        // type that Mention uses.
         return (
-          <Mention username={username} key={key} style={neutralStyle} allowFontScaling={allowFontScaling} />
+          <Mention
+            username={username}
+            key={key}
+            style={{color: undefined}}
+            allowFontScaling={allowFontScaling}
+          />
         )
       case 'emoji':
         return (
