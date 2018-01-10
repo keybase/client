@@ -1961,6 +1961,7 @@ func (fbo *folderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 	var n Node
 	var de DirEntry
 	err = runUnlessCanceled(ctx, func() error {
+		var err error
 		n, de, err = fbo.lookup(ctx, dir, name)
 		return err
 	})
@@ -1980,6 +1981,7 @@ func (fbo *folderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 
 		fbo.log.CDebugf(ctx, "Retrying lookup of an empty directory")
 		err = runUnlessCanceled(ctx, func() error {
+			var err error
 			n, de, err = fbo.lookup(ctx, dir, name)
 			return err
 		})
