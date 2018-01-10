@@ -286,7 +286,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Proto: r.Proto,
 		Host:  r.Host,
 		// If we don't end up responding with 200, this field will be
-		// overwritten when writting the header.
+		// overwritten when writing the header.
 		HTTPStatus: http.StatusOK,
 	}
 	if s.config.StatsReporter != nil {
