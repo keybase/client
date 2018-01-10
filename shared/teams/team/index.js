@@ -29,6 +29,7 @@ type RequestRowProps = Types.RequestInfo
 
 export type Props = {
   description: string,
+  ignoreAccessRequests: boolean,
   invites: Array<InviteRowProps>,
   isTeamOpen: boolean,
   newTeamRequests: Array<Types.Teamname>,
@@ -55,6 +56,7 @@ export type Props = {
   requests: Array<RequestRowProps>,
   selectedTab: Types.TabKey,
   showAddYourselfBanner: boolean,
+  setIgnoreAccessRequests: (checked: boolean) => void,
   setPublicityAnyMember: (checked: boolean) => void,
   setPublicityMember: (checked: boolean) => void,
   setPublicityTeam: (checked: boolean) => void,
@@ -231,6 +233,7 @@ class Team extends React.PureComponent<Props> {
   render() {
     const {
       description,
+      ignoreAccessRequests,
       invites,
       name,
       members,
@@ -256,6 +259,7 @@ class Team extends React.PureComponent<Props> {
       publicityMember,
       publicitySettingsChanged,
       publicityTeam,
+      setIgnoreAccessRequests,
       setOpenTeam,
       setPublicityAnyMember,
       setPublicityMember,
@@ -380,7 +384,7 @@ class Team extends React.PureComponent<Props> {
                 </Text>
                 <Text type="BodySmall">
                   {yourOperations.setMemberShowcase
-                    ? 'Your profile on the Keybase website will mention this team. Description + number of members will be public.'
+                    ? 'Your profile will mention this team. Team description and number of members will be public.'
                     : "Admins aren't allowing members to publish this team on their profile."}
                 </Text>
               </Box>
@@ -419,12 +423,7 @@ class Team extends React.PureComponent<Props> {
 
               <Box style={stylesSettingsTabRow}>
                 <Box style={stylesPublicitySettingsBox}>
-                  <Checkbox
-                    checked={openTeam}
-                    label=""
-                    onCheck={setOpenTeam}
-                    style={{paddingRight: globalMargins.xtiny}}
-                  />
+                  <Checkbox checked={openTeam} label="" onCheck={setOpenTeam} />
                 </Box>
                 <Box
                   style={{...globalStyles.flexBoxColumn, flexShrink: 1, paddingRight: globalMargins.small}}
@@ -442,6 +441,18 @@ class Team extends React.PureComponent<Props> {
                   </Text>
                 </Box>
               </Box>
+
+              {yourOperations.changeTarsDisabled && (
+                <Box style={stylesSettingsTabRow}>
+                  <Box style={stylesPublicitySettingsBox}>
+                    <Checkbox checked={ignoreAccessRequests} label="" onCheck={setIgnoreAccessRequests} />
+                  </Box>
+                  <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
+                    <Text type="Body">Ignore requests to join this team</Text>
+                    <Text type="BodySmall">You won't be bothered by hordes of fans.</Text>
+                  </Box>
+                </Box>
+              )}
             </Box>
           )}
 
