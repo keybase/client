@@ -140,11 +140,11 @@ type TeamTabsProps = {
 const SubteamsIntro = (index, {key, onReadMore}) => <SubteamBanner key={key} onReadMore={onReadMore} />
 
 const SubteamRow = (index, row) => (
-  <Box style={{...globalStyles.flexBoxRow, marginLeft: globalMargins.tiny}}>{TeamSubteamRow(index, row)}</Box>
+  <Box key={row.teamname+'row'} style={{marginLeft: globalMargins.tiny}}>{TeamSubteamRow(index, row)}</Box>
 )
 
 const AddSubTeam = (index, {key, onCreateSubteam}) => (
-  <Box
+  <Box key='addSubteam'
     style={{
       ...globalStyles.flexBoxRow,
       alignItems: 'center',
@@ -167,7 +167,7 @@ const AddSubTeam = (index, {key, onCreateSubteam}) => (
 )
 
 const NoSubteams = (index, key) => (
-  <Box
+  <Box key='noSubteams'
     style={{
       ...globalStyles.flexBoxRow,
       alignItems: 'center',
