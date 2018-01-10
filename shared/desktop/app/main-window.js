@@ -11,48 +11,45 @@ import {resolveRootAsURL} from '../resolve-root'
 import {windowStyle} from '../../styles'
 import {isWindows} from '../../constants/platform'
 
+const scripts = [
+  ...(__DEV__
+    ? [
+        {
+          async: false,
+          src: resolveRootAsURL('dist', 'dll/dll.vendor.js'),
+        },
+        {
+          async: false,
+          src: hotPath('common-chunks.js'),
+        },
+      ]
+    : []),
+  {
+    async: false,
+    src: hotPath('index.bundle.js'),
+  },
+]
+
 export default function() {
-  let appState = new AppState({
-    defaultWidth: windowStyle.width,
-    defaultHeight: windowStyle.height,
-  })
+  let appState = new AppState()
   appState.checkOpenAtLogin()
 
   const mainWindow = new Window(
     resolveRootAsURL('renderer', injectReactQueryParams('renderer.html?mainWindow')),
     {
+      height: appState.state.height,
+      minHeight: windowStyle.minHeight,
+      minWidth: windowStyle.minWidth,
+      show: false,
+      width: appState.state.width,
       x: appState.state.x,
       y: appState.state.y,
-      width: appState.state.width,
-      height: appState.state.height,
-      minWidth: windowStyle.minWidth,
-      minHeight: windowStyle.minHeight,
-      show: false,
     }
   )
 
   const webContents = mainWindow.window.webContents
   webContents.on('did-finish-load', () => {
-    webContents.send('load', {
-      scripts: [
-        ...(__DEV__
-          ? [
-              {
-                src: resolveRootAsURL('dist', 'dll/dll.vendor.js'),
-                async: false,
-              },
-              {
-                src: hotPath('common-chunks.js'),
-                async: false,
-              },
-            ]
-          : []),
-        {
-          src: hotPath('index.bundle.js'),
-          async: false,
-        },
-      ],
-    })
+    webContents.send('load', {scripts})
   })
 
   if (showDevTools) {

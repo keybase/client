@@ -29,16 +29,6 @@
     }
     return result
   }
-
-  function prefix (pfix, input) {
-    if (typeof input ===  'string') {
-      return pfix + input
-    } else if (Array.isArray(input)) {
-      input.unshift(pfix)
-      return input
-    }
-    return input
-  }
 }
 
 start
@@ -80,9 +70,6 @@ EmojiMarker = ":"
 QuoteBlockMarker = ">"
 MentionMarker = "@"
 
-ValidMentionService = "keybase" / "Keybase"
-ClosingMentionMarker = MentionMarker ValidMentionService
-
 // Can mark the beginning of a link
 PunctuationMarker = [()[\].,!?]
 
@@ -117,26 +104,17 @@ __INLINE_RULE__<StrikeInline, !StrikeMarker>
 Strike
  = StrikeMarker !WhiteSpace children:StrikeInline StrikeMarker !(StrikeMarker / NormalChar) { return {type: 'strike', children: flatten(children)} }
 
-// children grammar adapted from username regexp in libkb/checkers.go.
-Mention
- = MentionMarker children:([a-zA-Z0-9][a-zA-Z0-9_]*) MentionMarker service:ValidMentionService { return {type: 'mention', children: flatten(children), service: service.toLowerCase()} }
-
-// Same as Mention above, but is just returns text
-// Useful if you don't want a mention in certain contexts (like in a code block)
-MentionlessMention
- = MentionMarker children:([a-zA-Z0-9][a-zA-Z0-9_]*) MentionMarker service:ValidMentionService { return prefix('@', children) }
-
-InCodeBlock
- = children:(MentionlessMention / (!Ticks3 .))+ {return children }
+// children test adapted from CheckUsername in libkb/checkers.go.
+Mention = MentionMarker mention:($ ([a-zA-Z0-9]+"_"?)+) & {
+  return mention.length >= 2 && mention.length <= 16 &&
+    options && options.isValidMention && options.isValidMention(mention)
+} { return {type: 'mention', children: [mention] } }
 
 CodeBlock
- = Ticks3 LineTerminatorSequence? children:InCodeBlock Ticks3 { return {type: 'code-block', children: flatten(children)} }
-
-InInlineCode
- = children:((MentionlessMention / !Ticks1) !LineTerminatorSequence .)+ {return children}
+ = Ticks3 LineTerminatorSequence? code:($ (!Ticks3 .)+) Ticks3 { return {type: 'code-block', children: [code]} }
 
 InlineCode
- = Ticks1 children:InInlineCode Ticks1 { return {type: 'inline-code', children: flatten(children)} }
+ = Ticks1 code:($ (!Ticks1 !LineTerminatorSequence .)+) Ticks1 { return {type: 'inline-code', children: [code]} }
 
 // Here we use the literal ":" because we want to not match the :foo in ::foo
 InsideEmojiMarker

@@ -13,6 +13,7 @@ import {NotifyPopup} from '../native/notifications'
 import {isMobile} from '../constants/platform'
 import {createBadgeAppForChat, createSetupChatHandlers} from './chat-gen'
 import {createRegisterRekeyListener} from './unlock-folders-gen'
+import {createSetupPeopleHandlers} from './people-gen'
 
 function* _listenSaga(): Saga.SagaGenerator<any, any> {
   const channels = {
@@ -57,6 +58,7 @@ function* _listenKBFSSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.put(createSetupChatHandlers())
   yield Saga.put(TeamsGen.createSetupTeamHandlers())
   yield Saga.put(createRegisterRekeyListener())
+  yield Saga.put(createSetupPeopleHandlers())
 }
 
 function _onRecievedBadgeState(action: NotificationsGen.ReceivedBadgeStatePayload) {

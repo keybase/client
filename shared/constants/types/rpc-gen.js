@@ -595,6 +595,10 @@ export const delegateUiCtlRegisterGregorFirehoseRpcChannelMap = (configKeys: Arr
 
 export const delegateUiCtlRegisterGregorFirehoseRpcPromise = (request: DelegateUiCtlRegisterGregorFirehoseRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerGregorFirehose', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
+export const delegateUiCtlRegisterHomeUIRpcChannelMap = (configKeys: Array<string>, request: DelegateUiCtlRegisterHomeUIRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.delegateUiCtl.registerHomeUI', request)
+
+export const delegateUiCtlRegisterHomeUIRpcPromise = (request: DelegateUiCtlRegisterHomeUIRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerHomeUI', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+
 export const delegateUiCtlRegisterIdentifyUIRpcChannelMap = (configKeys: Array<string>, request: DelegateUiCtlRegisterIdentifyUIRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.delegateUiCtl.registerIdentifyUI', request)
 
 export const delegateUiCtlRegisterIdentifyUIRpcPromise = (request: DelegateUiCtlRegisterIdentifyUIRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerIdentifyUI', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
@@ -751,8 +755,8 @@ export const homeHomeScreenItemType = {
 }
 
 export const homeHomeScreenPeopleNotificationType = {
-  followed: 0,
-  followedMulti: 1,
+  followed: 1,
+  followedMulti: 2,
 }
 
 export const homeHomeScreenTodoType = {
@@ -1495,6 +1499,10 @@ export const teamsCanUserPerformRpcChannelMap = (configKeys: Array<string>, requ
 
 export const teamsCanUserPerformRpcPromise = (request: TeamsCanUserPerformRpcParam): Promise<TeamsCanUserPerformResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.canUserPerform', request, (error: RPCError, result: TeamsCanUserPerformResult) => (error ? reject(error) : resolve(result))))
 
+export const teamsGetTarsDisabledRpcChannelMap = (configKeys: Array<string>, request: TeamsGetTarsDisabledRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.getTarsDisabled', request)
+
+export const teamsGetTarsDisabledRpcPromise = (request: TeamsGetTarsDisabledRpcParam): Promise<TeamsGetTarsDisabledResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.getTarsDisabled', request, (error: RPCError, result: TeamsGetTarsDisabledResult) => (error ? reject(error) : resolve(result))))
+
 export const teamsGetTeamAndMemberShowcaseRpcChannelMap = (configKeys: Array<string>, request: TeamsGetTeamAndMemberShowcaseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.getTeamAndMemberShowcase', request)
 
 export const teamsGetTeamAndMemberShowcaseRpcPromise = (request: TeamsGetTeamAndMemberShowcaseRpcParam): Promise<TeamsGetTeamAndMemberShowcaseResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.getTeamAndMemberShowcase', request, (error: RPCError, result: TeamsGetTeamAndMemberShowcaseResult) => (error ? reject(error) : resolve(result))))
@@ -1526,6 +1534,10 @@ export const teamsSeitanIKeyAndLabelVersion = {
 export const teamsSeitanIKeyLabelType = {
   sms: 1,
 }
+
+export const teamsSetTarsDisabledRpcChannelMap = (configKeys: Array<string>, request: TeamsSetTarsDisabledRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.setTarsDisabled', request)
+
+export const teamsSetTarsDisabledRpcPromise = (request: TeamsSetTarsDisabledRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.setTarsDisabled', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const teamsSetTeamMemberShowcaseRpcChannelMap = (configKeys: Array<string>, request: TeamsSetTeamMemberShowcaseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.setTeamMemberShowcase', request)
 
@@ -2077,6 +2089,8 @@ export type DebuggingSecondStepRpcParam = $ReadOnly<{val: Int, incomingCallMap?:
 
 export type DelegateUiCtlRegisterGregorFirehoseRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
+export type DelegateUiCtlRegisterHomeUIRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
 export type DelegateUiCtlRegisterIdentifyUIRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type DelegateUiCtlRegisterRekeyUIRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
@@ -2353,7 +2367,7 @@ export type HomeHomeMarkViewedRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingC
 
 export type HomeHomeSkipTodoTypeRpcParam = $ReadOnly<{t: HomeScreenTodoType, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type HomeScreen = $ReadOnly<{lastViewed: Time, version: Int, items?: ?Array<HomeScreenItem>, followSuggestions?: ?Array<HomeUserSummary>}>
+export type HomeScreen = $ReadOnly<{lastViewed: Time, version: Int, visits: Int, items?: ?Array<HomeScreenItem>, followSuggestions?: ?Array<HomeUserSummary>}>
 
 export type HomeScreenItem = $ReadOnly<{badged: Boolean, data: HomeScreenItemData}>
 
@@ -2365,15 +2379,15 @@ export type HomeScreenItemType =
   | 1 // TODO_1
   | 2 // PEOPLE_2
 
-export type HomeScreenPeopleNotification = {t: 0, followed: ?HomeScreenPeopleNotificationFollowed} | {t: 1, followedMulti: ?HomeScreenPeopleNotificationFollowedMulti}
+export type HomeScreenPeopleNotification = {t: 1, followed: ?HomeScreenPeopleNotificationFollowed} | {t: 2, followedMulti: ?HomeScreenPeopleNotificationFollowedMulti}
 
-export type HomeScreenPeopleNotificationFollowed = $ReadOnly<{followTime: Time, user: UserSummary}>
+export type HomeScreenPeopleNotificationFollowed = $ReadOnly<{followTime: Time, followedBack: Boolean, user: UserSummary}>
 
 export type HomeScreenPeopleNotificationFollowedMulti = $ReadOnly<{followers?: ?Array<HomeScreenPeopleNotificationFollowed>, numOthers: Int}>
 
 export type HomeScreenPeopleNotificationType =
-  | 0 // FOLLOWED_0
-  | 1 // FOLLOWED_MULTI_1
+  | 1 // FOLLOWED_1
+  | 2 // FOLLOWED_MULTI_2
 
 export type HomeScreenTodo = {t: any}
 
@@ -2390,7 +2404,7 @@ export type HomeScreenTodoType =
   | 9 // GIT_REPO_9
   | 10 // TEAM_SHOWCASE_10
 
-export type HomeUiHomeUIRefreshRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type HomeUIHomeUIRefreshRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type HomeUserSummary = $ReadOnly<{uid: UID, username: String, bio: String, fullName: String, pics?: ?Pics}>
 
@@ -3558,7 +3572,7 @@ export type TeamNamePart = String
 
 export type TeamOpenReqMsg = $ReadOnly<{teamID: TeamID, tars?: ?Array<TeamAccessRequest>}>
 
-export type TeamOperation = $ReadOnly<{manageMembers: Boolean, manageSubteams: Boolean, createChannel: Boolean, deleteChannel: Boolean, renameChannel: Boolean, editChannelDescription: Boolean, setTeamShowcase: Boolean, setMemberShowcase: Boolean, changeOpenTeam: Boolean, leaveTeam: Boolean}>
+export type TeamOperation = $ReadOnly<{manageMembers: Boolean, manageSubteams: Boolean, createChannel: Boolean, deleteChannel: Boolean, renameChannel: Boolean, editChannelDescription: Boolean, setTeamShowcase: Boolean, setMemberShowcase: Boolean, changeOpenTeam: Boolean, leaveTeam: Boolean, changeTarsDisabled: Boolean}>
 
 export type TeamPlusApplicationKeys = $ReadOnly<{id: TeamID, name: String, implicit: Boolean, public: Boolean, application: TeamApplication, writers?: ?Array<UserVersion>, onlyReaders?: ?Array<UserVersion>, applicationKeys?: ?Array<TeamApplicationKey>}>
 
@@ -3598,6 +3612,8 @@ export type TeamType =
 
 export type TeamsCanUserPerformRpcParam = $ReadOnly<{name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
+export type TeamsGetTarsDisabledRpcParam = $ReadOnly<{name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
 export type TeamsGetTeamAndMemberShowcaseRpcParam = $ReadOnly<{name: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type TeamsGetTeamRootIDRpcParam = $ReadOnly<{id: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
@@ -3609,6 +3625,8 @@ export type TeamsLoadTeamPlusApplicationKeysRpcParam = $ReadOnly<{id: TeamID, ap
 export type TeamsLookupImplicitTeamRpcParam = $ReadOnly<{name: String, public: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type TeamsLookupOrCreateImplicitTeamRpcParam = $ReadOnly<{name: String, public: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
+export type TeamsSetTarsDisabledRpcParam = $ReadOnly<{name: String, disabled: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type TeamsSetTeamMemberShowcaseRpcParam = $ReadOnly<{name: String, isShowcased: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -3983,6 +4001,7 @@ type SimpleFSSimpleFSStatResult = Dirent
 type StreamUiReadResult = Bytes
 type StreamUiWriteResult = Int
 type TeamsCanUserPerformResult = TeamOperation
+type TeamsGetTarsDisabledResult = Boolean
 type TeamsGetTeamAndMemberShowcaseResult = TeamAndMemberShowcase
 type TeamsGetTeamRootIDResult = TeamID
 type TeamsGetTeamShowcaseResult = TeamShowcase
@@ -4045,7 +4064,7 @@ export type IncomingCallMapType = {
   'keybase.1.gpgUi.getTTY'?: (params: $ReadOnly<{}>, response: {error: RPCErrorHandler, result: (result: GpgUiGetTTYResult) => void}) => void,
   'keybase.1.gregorUI.pushState'?: (params: $ReadOnly<{state: Gregor1.State, reason: PushReason}>, response: CommonResponseHandler) => void,
   'keybase.1.gregorUI.pushOutOfBandMessages'?: (params: $ReadOnly<{oobm?: ?Array<Gregor1.OutOfBandMessage>}>, response: CommonResponseHandler) => void,
-  'keybase.1.homeUi.homeUIRefresh'?: (params: $ReadOnly<{}>, response: CommonResponseHandler) => void,
+  'keybase.1.homeUI.homeUIRefresh'?: (params: $ReadOnly<{}>, response: CommonResponseHandler) => void,
   'keybase.1.identifyUi.displayTLFCreateWithInvite'?: (params: $ReadOnly<{sessionID: Int, folderName: String, isPrivate: Boolean, assertion: String, socialAssertion: SocialAssertion, inviteLink: String, throttled: Boolean}>, response: CommonResponseHandler) => void,
   'keybase.1.identifyUi.delegateIdentifyUI'?: (params: $ReadOnly<{}>, response: {error: RPCErrorHandler, result: (result: IdentifyUiDelegateIdentifyUIResult) => void}) => void,
   'keybase.1.identifyUi.start'?: (params: $ReadOnly<{sessionID: Int, username: String, reason: IdentifyReason, forceDisplay?: Boolean}>, response: CommonResponseHandler) => void,

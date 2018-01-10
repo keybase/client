@@ -33,7 +33,6 @@ const DumbWrapper = () => {
 
 const routeTree = makeRouteDefNode({
   component: Settings,
-  // $FlowIssue
   children: {
     [Constants.aboutTab]: {
       component: About,
@@ -65,7 +64,7 @@ const routeTree = makeRouteDefNode({
       children: {
         dbNukeConfirm: {
           component: DBNukeConfirm,
-          tags: {modal: true},
+          tags: makeLeafTags({modal: true}),
         },
       },
     },

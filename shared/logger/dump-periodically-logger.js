@@ -12,7 +12,7 @@ class DumpPeriodicallyLogger implements Logger {
   _innerLogger: Logger
   _periodInMs: number
   _fileWriterFn: FileWriterFn
-  _lastTimeoutId: ?number
+  _lastTimeoutId: ?TimeoutID
   _levelPrefix: LogLevel
   _ok: boolean = true
   log: LogFn

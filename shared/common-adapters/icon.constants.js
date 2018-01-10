@@ -356,6 +356,16 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-follow-me-32.png'),
   },
+  'icon-followers-new-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-followers-new-32.png'),
+  },
+  'icon-followers-new-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-followers-new-48.png'),
+  },
   'icon-following-21': {
     isFont: false,
     extension: 'png',
@@ -650,6 +660,106 @@ const iconMeta_ = {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-nav-settings-selected-40.png'),
+  },
+  'icon-onboarding-chat-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-onboarding-chat-32.png'),
+  },
+  'icon-onboarding-chat-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-onboarding-chat-48.png'),
+  },
+  'icon-onboarding-computer-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-onboarding-computer-48.png'),
+  },
+  'icon-onboarding-folder-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-onboarding-folder-32.png'),
+  },
+  'icon-onboarding-folder-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-onboarding-folder-48.png'),
+  },
+  'icon-onboarding-follow-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-onboarding-follow-32.png'),
+  },
+  'icon-onboarding-follow-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-onboarding-follow-48.png'),
+  },
+  'icon-onboarding-git-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-onboarding-git-32.png'),
+  },
+  'icon-onboarding-git-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-onboarding-git-48.png'),
+  },
+  'icon-onboarding-paper-key-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-onboarding-paper-key-32.png'),
+  },
+  'icon-onboarding-paper-key-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-onboarding-paper-key-48.png'),
+  },
+  'icon-onboarding-phone-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-onboarding-phone-32.png'),
+  },
+  'icon-onboarding-proofs-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-onboarding-proofs-32.png'),
+  },
+  'icon-onboarding-proofs-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-onboarding-proofs-48.png'),
+  },
+  'icon-onboarding-team-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-onboarding-team-32.png'),
+  },
+  'icon-onboarding-team-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-onboarding-team-48.png'),
+  },
+  'icon-onboarding-team-publicity-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-onboarding-team-publicity-32.png'),
+  },
+  'icon-onboarding-team-publicity-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-onboarding-team-publicity-48.png'),
+  },
+  'icon-onboarding-user-info-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-onboarding-user-info-32.png'),
+  },
+  'icon-onboarding-user-info-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-onboarding-user-info-48.png'),
   },
   'icon-paper-key-32': {
     isFont: false,

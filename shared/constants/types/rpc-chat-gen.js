@@ -984,7 +984,7 @@ export type NewConversationPayload = $ReadOnly<{Action: String, convID: Conversa
 
 export type NewConversationRemoteRes = $ReadOnly<{convID: ConversationID, createdComplexTeam: Boolean, rateLimit?: ?RateLimit}>
 
-export type NewMessagePayload = $ReadOnly<{Action: String, convID: ConversationID, message: MessageBoxed, inboxVers: InboxVers, unreadUpdate?: ?UnreadUpdate}>
+export type NewMessagePayload = $ReadOnly<{Action: String, convID: ConversationID, message: MessageBoxed, inboxVers: InboxVers, unreadUpdate?: ?UnreadUpdate, maxMsgs?: ?Array<MessageSummary>}>
 
 export type NonblockFetchRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 
@@ -1219,7 +1219,7 @@ export type UIPagination = $ReadOnly<{next: String, previous: String, num: Int, 
 
 export type UnreadFirstNumLimit = $ReadOnly<{NumRead: Int, AtLeast: Int, AtMost: Int}>
 
-export type UnreadUpdate = $ReadOnly<{convID: ConversationID, unreadMessages: Int, unreadNotifyingMessages: {[key: string]: Int}, compatUnreadMessages: Int}>
+export type UnreadUpdate = $ReadOnly<{convID: ConversationID, unreadMessages: Int, unreadNotifyingMessages: {[key: string]: Int}, compatUnreadMessages: Int, diff: Boolean}>
 
 export type UnreadUpdateFull = $ReadOnly<{ignore: Boolean, inboxVers: InboxVers, inboxSyncStatus: SyncInboxResType, updates?: ?Array<UnreadUpdate>}>
 

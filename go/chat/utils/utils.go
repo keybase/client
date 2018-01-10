@@ -211,6 +211,65 @@ type ConversationStatusBehavior struct {
 	ShowBadges bool
 }
 
+// ConversationMemberStatusBehavior describes how a ConversationMemberStatus behaves
+type ConversationMemberStatusBehavior struct {
+	// Whether to show the conv in the inbox
+	ShowInInbox bool
+	// Whether to show desktop notifications
+	DesktopNotifications bool
+	// Whether to send push notifications
+	PushNotifications bool
+	// Whether to show as part of badging
+	ShowBadges bool
+}
+
+func GetConversationMemberStatusBehavior(s chat1.ConversationMemberStatus) ConversationMemberStatusBehavior {
+	switch s {
+	case chat1.ConversationMemberStatus_ACTIVE:
+		return ConversationMemberStatusBehavior{
+			ShowInInbox:          true,
+			DesktopNotifications: true,
+			PushNotifications:    true,
+			ShowBadges:           true,
+		}
+	case chat1.ConversationMemberStatus_PREVIEW:
+		return ConversationMemberStatusBehavior{
+			ShowInInbox:          true,
+			DesktopNotifications: true,
+			PushNotifications:    true,
+			ShowBadges:           true,
+		}
+	case chat1.ConversationMemberStatus_LEFT:
+		return ConversationMemberStatusBehavior{
+			ShowInInbox:          false,
+			DesktopNotifications: false,
+			PushNotifications:    false,
+			ShowBadges:           false,
+		}
+	case chat1.ConversationMemberStatus_REMOVED:
+		return ConversationMemberStatusBehavior{
+			ShowInInbox:          false,
+			DesktopNotifications: false,
+			PushNotifications:    false,
+			ShowBadges:           false,
+		}
+	case chat1.ConversationMemberStatus_RESET:
+		return ConversationMemberStatusBehavior{
+			ShowInInbox:          true,
+			DesktopNotifications: false,
+			PushNotifications:    false,
+			ShowBadges:           false,
+		}
+	default:
+		return ConversationMemberStatusBehavior{
+			ShowInInbox:          true,
+			DesktopNotifications: true,
+			PushNotifications:    true,
+			ShowBadges:           true,
+		}
+	}
+}
+
 // GetConversationStatusBehavior gives information about what is allowed for a conversation status.
 // When changing these, be sure to update gregor's postMessage as well
 func GetConversationStatusBehavior(s chat1.ConversationStatus) ConversationStatusBehavior {
@@ -663,6 +722,15 @@ func GetConvSnippet(conv chat1.ConversationLocal) string {
 		return ""
 	}
 	return GetMsgSnippet(msg)
+}
+
+func GetMsgSummaryByType(msgs []chat1.MessageSummary, typ chat1.MessageType) (chat1.MessageSummary, error) {
+	for _, msg := range msgs {
+		if msg.GetMessageType() == typ {
+			return msg, nil
+		}
+	}
+	return chat1.MessageSummary{}, errors.New("not found")
 }
 
 func systemMessageSnippet(msg chat1.MessageSystem) string {

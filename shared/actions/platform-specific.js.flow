@@ -1,30 +1,21 @@
 // @flow
-declare function setNoPushPermissions(): Promise<*>
-declare function requestPushPermissions(): Promise<*>
-declare function configurePush(): void
-declare function showMainWindow(): void
-declare function showShareActionSheet(options: {url?: ?any, message?: ?any}): Promise<{
+declare export function setNoPushPermissions(): Promise<*>
+declare export function requestPushPermissions(): Promise<*>
+declare export function configurePush(): void
+declare export function showMainWindow(): void
+declare export function getAppState(): Promise<*>
+declare export function setAppState(toMerge: Object): void
+declare export function showShareActionSheet(options: {url?: ?any, message?: ?any}): Promise<{
   completed: boolean,
   method: string,
 }>
 
 type NextURI = string
-declare function saveAttachmentDialog(filePath: string): Promise<NextURI>
-declare function displayNewMessageNotification(
+declare export function saveAttachmentDialog(filePath: string): Promise<NextURI>
+declare export function displayNewMessageNotification(
   text: string,
   convID: ?string,
   badgeCount: ?number,
   myMsgID: ?number
 ): void
-declare function clearAllNotifications(): void
-
-export {
-  requestPushPermissions,
-  showMainWindow,
-  configurePush,
-  saveAttachmentDialog,
-  showShareActionSheet,
-  setNoPushPermissions,
-  displayNewMessageNotification,
-  clearAllNotifications,
-}
+declare export function clearAllNotifications(): void

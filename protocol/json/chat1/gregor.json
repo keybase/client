@@ -85,6 +85,13 @@
             "UnreadUpdate"
           ],
           "name": "unreadUpdate"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "MessageSummary"
+          },
+          "name": "maxMsgs"
         }
       ]
     },
@@ -226,6 +233,10 @@
           "name": "compatUnreadMessages",
           "mpackkey": "UnreadMessages",
           "jsonkey": "UnreadMessages"
+        },
+        {
+          "type": "boolean",
+          "name": "diff"
         }
       ]
     },

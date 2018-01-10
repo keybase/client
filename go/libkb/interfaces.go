@@ -424,6 +424,7 @@ type UIRouter interface {
 	GetSecretUI(sessionID int) (SecretUI, error)
 	GetRekeyUI() (keybase1.RekeyUIInterface, int, error)
 	GetRekeyUINoSessionID() (keybase1.RekeyUIInterface, error)
+	GetHomeUI() (keybase1.HomeUIInterface, error)
 
 	Shutdown()
 }

@@ -80,16 +80,20 @@ export const initialCanUserPerform: RPCTypes.TeamOperation = {
   setMemberShowcase: false,
   changeOpenTeam: false,
   leaveTeam: false,
+  changeTarsDisabled: false,
 }
 
 const userIsActiveInTeamHelper = (state: TypedState, username: string, service: Service, teamname: string) =>
   service === 'Keybase' ? userIsActiveInTeam(state, teamname, username) : false
 
-const getConvIdsFromTeamName = (state: TypedState, teamname: string): I.Set<string> =>
+const getConvIdsFromTeamName = (state: TypedState, teamname: string): I.Set<ChatTypes.ConversationIDKey> =>
   state.entities.teams.teamNameToConvIDs.get(teamname, I.Set())
 
 const getTeamNameFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
   state.entities.teams.teamNameToConvIDs.findKey(i => i.has(conversationIDKey))
+
+const getChannelInfoFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
+  state.entities.teams.convIDToChannelInfo.get(conversationIDKey, null)
 
 const getChannelNameFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
   state.entities.teams.convIDToChannelInfo.getIn([conversationIDKey, 'channelname'], null)
@@ -124,6 +128,7 @@ export {
   getCanPerform,
   userIsActiveInTeamHelper,
   getTeamNameFromConvID,
+  getChannelInfoFromConvID,
   getChannelNameFromConvID,
   getTopicFromConvID,
   isAdmin,

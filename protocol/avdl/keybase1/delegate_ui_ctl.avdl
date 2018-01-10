@@ -8,4 +8,5 @@ protocol delegateUiCtl {
   void registerUpdateUI();
   void registerRekeyUI();
   void registerGregorFirehose();
+  void registerHomeUI();
 }

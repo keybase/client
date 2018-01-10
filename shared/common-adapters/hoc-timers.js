@@ -2,20 +2,11 @@
 import * as React from 'react'
 
 // duplicating this from the .flow file as we don't pull in those files for rn
-type TimerFunc = (func: () => void, timing: number) => number
-type ClearTimerFunc = (id: ?number) => void
 type TimerProps = {
-  setTimeout: TimerFunc,
-  clearTimeout: ClearTimerFunc,
-  setInterval: TimerFunc,
-  clearInterval: ClearTimerFunc,
-}
-
-function clearId(clearFunc: (id?: number) => void, array: Array<number>, id?: ?number): void {
-  if ((id || id === 0) && array.includes(id)) {
-    array.splice(array.indexOf(id), 1)
-    clearFunc(id)
-  }
+  setTimeout: (func: () => void, timing: number) => TimeoutID,
+  clearTimeout: (id: TimeoutID) => void,
+  setInterval: (func: () => void, timing: number) => IntervalID,
+  clearInterval: (id: IntervalID) => void,
 }
 
 function getDisplayName(WrappedComponent): string {
@@ -25,8 +16,8 @@ function getDisplayName(WrappedComponent): string {
 export default function HOCTimers(ComposedComponent: any) {
   class TimersComponent extends React.Component<any> {
     static displayName = `HOCTimers(${getDisplayName(ComposedComponent)})`
-    _timeoutIds: Array<number>
-    _intervalIds: Array<number>
+    _timeoutIds: Array<TimeoutID>
+    _intervalIds: Array<IntervalID>
     _timerFuncs: TimerProps
 
     constructor(props: any) {
@@ -40,7 +31,10 @@ export default function HOCTimers(ComposedComponent: any) {
           return id
         },
         clearTimeout: id => {
-          clearId(clearTimeout, this._timeoutIds, id)
+          if ((id || id === 0) && this._timeoutIds.includes(id)) {
+            this._timeoutIds.splice(this._timeoutIds.indexOf(id), 1)
+            clearTimeout(id)
+          }
         },
         setInterval: (f, n) => {
           const id = setInterval(f, n)
@@ -48,7 +42,10 @@ export default function HOCTimers(ComposedComponent: any) {
           return id
         },
         clearInterval: id => {
-          clearId(clearInterval, this._intervalIds, id)
+          if ((id || id === 0) && this._intervalIds.includes(id)) {
+            this._intervalIds.splice(this._intervalIds.indexOf(id), 1)
+            clearInterval(id)
+          }
         },
       }
     }
