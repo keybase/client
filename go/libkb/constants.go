@@ -647,3 +647,7 @@ const (
 )
 
 const CurrentGitMetadataEncryptionVersion = 1
+
+// limit the number of tracker popups to 5 per hour
+const identifyUIBurstSize = 5
+const identifyUIRateDuration = 12 * time.Minute

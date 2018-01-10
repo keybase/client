@@ -15,10 +15,23 @@ export const setupPeopleHandlers = 'people:setupPeopleHandlers'
 export const skipTodo = 'people:skipTodo'
 
 // Action Creators
-export const createGetPeopleData = (payload: {|+markViewed: boolean, +numFollowSuggestionsWanted: number|}) => ({error: false, payload, type: getPeopleData})
-export const createPeopleDataProcessed = (payload: {|+oldItems: I.List<Types.PeopleScreenItem>, +newItems: I.List<Types.PeopleScreenItem>, +followSuggestions: I.List<Types.FollowSuggestion>, +lastViewed: Date, +version: number|}) => ({error: false, payload, type: peopleDataProcessed})
+export const createGetPeopleData = (
+  payload: $ReadOnly<{
+    markViewed: boolean,
+    numFollowSuggestionsWanted: number,
+  }>
+) => ({error: false, payload, type: getPeopleData})
+export const createPeopleDataProcessed = (
+  payload: $ReadOnly<{
+    oldItems: I.List<Types.PeopleScreenItem>,
+    newItems: I.List<Types.PeopleScreenItem>,
+    followSuggestions: I.List<Types.FollowSuggestion>,
+    lastViewed: Date,
+    version: number,
+  }>
+) => ({error: false, payload, type: peopleDataProcessed})
 export const createSetupPeopleHandlers = () => ({error: false, payload: undefined, type: setupPeopleHandlers})
-export const createSkipTodo = (payload: {|+type: Types.TodoType|}) => ({error: false, payload, type: skipTodo})
+export const createSkipTodo = (payload: $ReadOnly<{type: Types.TodoType}>) => ({error: false, payload, type: skipTodo})
 
 // Action Payloads
 export type GetPeopleDataPayload = More.ReturnType<typeof createGetPeopleData>
