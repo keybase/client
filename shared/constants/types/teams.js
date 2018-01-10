@@ -6,6 +6,7 @@ import type {ConversationIDKey} from './chat'
 export type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner'
 
 export type PublicitySettings = {
+  ignoreAccessRequests: boolean,
   openTeam: boolean,
   openTeamRole: TeamRoleType,
   publicityAnyMember: boolean,

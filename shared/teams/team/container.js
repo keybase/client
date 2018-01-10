@@ -284,7 +284,7 @@ export default compose(
   withHandlers({
     onSavePublicity: props => () =>
       props.savePublicity({
-        ignoreAccessRequests: props.ignoreAccessRequests,
+        ignoreAccessRequests: props.newIgnoreAccessRequests,
         openTeam: props.newOpenTeam,
         openTeamRole: props.newOpenTeamRole,
         publicityAnyMember: props.newPublicityAnyMember,

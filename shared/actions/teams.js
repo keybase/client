@@ -379,10 +379,21 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
       }
     )
 
+    const state: TypedState = yield Saga.select()
+    const yourOperations = Constants.getCanPerform(state, teamname)
+
+    let tarsDisabled = false
+    // Find out whether team access requests are enabled. Throws if you aren't admin.
+    if (yourOperations.changeTarsDisabled) {
+      tarsDisabled = yield Saga.call(RPCTypes.teamsGetTarsDisabledRpcPromise, {
+        name: teamname,
+      })
+    }
+
     const publicityMap = {
       anyMemberShowcase: publicity.teamShowcase.anyMemberShowcase,
       description: publicity.teamShowcase.description,
-      ignoreAccessRequests: publicity.teamShowcase.ignoreAccessRequests,
+      ignoreAccessRequests: tarsDisabled,
       member: publicity.isMemberShowcased,
       team: publicity.teamShowcase.isShowcased,
     }
@@ -646,8 +657,8 @@ const _setPublicity = function(action: TeamsGen.SetPublicityPayload, state: Type
   if (ignoreAccessRequests !== settings.ignoreAccessRequests) {
     calls.push(
       // $FlowIssue doesn't like callAndWrap
-      Saga.callAndWrap(RPCTypes.teamsSetTeamShowcaseRpcPromise, {
-        ignoreAccessRequests: settings.ignoreAccessRequests,
+      Saga.callAndWrap(RPCTypes.teamsSetTarsDisabledRpcPromise, {
+        disabled: settings.ignoreAccessRequests,
         name: teamname,
       })
     )
