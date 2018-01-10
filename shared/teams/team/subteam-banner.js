@@ -46,22 +46,13 @@ const Banner = ({onReadMore, onHideBanner}: Props) => (
         Subteams are cryptographically distinct, and can welcome people who aren't elsewhere in your team
         hierarchy. Some random ideas:
       </Text>
-      <Text
-        backgroundMode="Terminal"
-        type="BodySemibold"
-      >
+      <Text backgroundMode="Terminal" type="BodySemibold">
         • stripe.devops
       </Text>
-      <Text
-        backgroundMode="Terminal"
-        type="BodySemibold"
-      >
+      <Text backgroundMode="Terminal" type="BodySemibold">
         • stripe.legal
       </Text>
-      <Text
-        backgroundMode="Terminal"
-        type="BodySemibold"
-      >
+      <Text backgroundMode="Terminal" type="BodySemibold">
         • stripe.customers.nike
       </Text>
 

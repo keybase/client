@@ -139,9 +139,9 @@ type TeamTabsProps = {
 
 const SubteamsIntro = (index, {key, onReadMore}) => <SubteamBanner key={key} onReadMore={onReadMore} />
 
-const SubteamRow = (index, row) => (<Box style={{...globalStyles.flexBoxRow, marginLeft: globalMargins.tiny}}>
-  {TeamSubteamRow(index, row)}
-</Box>)
+const SubteamRow = (index, row) => (
+  <Box style={{...globalStyles.flexBoxRow, marginLeft: globalMargins.tiny}}>{TeamSubteamRow(index, row)}</Box>
+)
 
 const AddSubTeam = (index, {key, onCreateSubteam}) => (
   <Box
@@ -177,12 +177,8 @@ const NoSubteams = (index, key) => (
       width: '100%',
     }}
   >
-    <Box
-      style={{...globalStyles.flexBoxRow, flexGrow: 1, justifyContent: 'center', alignItems: 'center'}}
-    >
-      <Text type="BodySmall">
-        This team has no subteams.
-      </Text>
+    <Box style={{...globalStyles.flexBoxRow, flexGrow: 1, justifyContent: 'center', alignItems: 'center'}}>
+      <Text type="BodySmall">This team has no subteams.</Text>
     </Box>
   </Box>
 )
@@ -220,7 +216,6 @@ const TeamTabs = (props: TeamTabsProps) => {
     newTeamRequests,
     requests,
     subteams,
-    subTeamsProps,
     loading = false,
     selectedTab,
     setSelectedTab,
@@ -283,16 +278,20 @@ const TeamTabs = (props: TeamTabsProps) => {
   }
 
   const publicityLabel = 'SETTINGS'
-  tabs.push(isMobile ? <Icon key="publicity" type="iconfont-nav-settings" /> :
-    <Text
-      key="publicity"
-      type="BodySmallSemibold"
-      style={{
-        color: globalColors.black_75,
-      }}
-    >
-      {publicityLabel}
-    </Text>
+  tabs.push(
+    isMobile ? (
+      <Icon key="publicity" type="iconfont-nav-settings" />
+    ) : (
+      <Text
+        key="publicity"
+        type="BodySmallSemibold"
+        style={{
+          color: globalColors.black_75,
+        }}
+      >
+        {publicityLabel}
+      </Text>
+    )
   )
 
   if (loading) {
@@ -348,7 +347,6 @@ class Team extends React.PureComponent<Props> {
       setPublicityAnyMember,
       setPublicityMember,
       setPublicityTeam,
-      setSelectedTab,
       subteams,
       subTeamsProps,
       waitingForSavePublicity,
