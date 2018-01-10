@@ -2,15 +2,13 @@
 import * as React from 'react'
 import * as TeamsGen from '../../../actions/teams-gen'
 import {amIFollowing} from '../../../constants/selectors'
-import {connect} from 'react-redux'
 import {TeamRequestRow} from '.'
 import {navigateAppend} from '../../../actions/route-tree'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import {createGetProfile} from '../../../actions/tracker-gen'
 import {createStartConversation} from '../../../actions/chat-gen'
 import {isMobile} from '../../../constants/platform'
-
-import type {TypedState} from '../../../constants/reducer'
+import {connect, type TypedState} from '../../../util/container'
 
 type OwnProps = {
   username: string,

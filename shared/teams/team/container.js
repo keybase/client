@@ -55,11 +55,6 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
   const subteams = state.entities
     .getIn(['teams', 'teamNameToSubteams', teamname], I.Set())
     .filter(team => team.startsWith(teamname + '.'))
-  const subTeamsProps = subteams.map(subteam => ({
-    key: subteam,
-    type: 'subteam',
-    teamname: subteam,
-  }))
 
   return {
     _memberInfo: memberInfo,
@@ -87,7 +82,6 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
     publicityTeam: state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname, 'team'], false),
     selectedTab: routeState.get('selectedTab') || 'members',
     subteams,
-    subTeamsProps,
     waitingForSavePublicity: anyWaiting(state, `setPublicity:${teamname}`, `getDetails:${teamname}`),
     you: state.config.username,
     yourRole: Constants.getRole(state, teamname),

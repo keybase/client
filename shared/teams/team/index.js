@@ -30,7 +30,6 @@ import * as I from 'immutable'
 export type MemberRowProps = Types.MemberInfo
 type InviteRowProps = Types.InviteInfo
 type RequestRowProps = Types.RequestInfo
-type SubteamRowProps = Types.SubteamInfo
 
 export type Props = {
   description: string,
@@ -68,7 +67,6 @@ export type Props = {
   setOpenTeam: (checked: boolean) => void,
   setShowMenu: (s: boolean) => void,
   subteams: I.List<Types.Teamname>,
-  subTeamsProps: Array<SubteamRowProps>,
   waitingForSavePublicity: boolean,
   you: string,
   yourRole: ?Types.TeamRoleType,
@@ -142,15 +140,18 @@ type TeamTabsProps = {
   yourOperations: RPCTypes.TeamOperation,
 }
 
-const SubteamsIntro = (index, {key, onReadMore}) => <SubteamBanner key={key} onReadMore={onReadMore} />
+const SubteamsIntro = ({index, row}) => {
+  console.warn('row', row)
+  return <SubteamBanner key={row.key} onReadMore={row.onReadMore} teamname={row.teamname} />
+}
 
-const SubteamRow = (index, row) => (
+const SubteamRow = ({index, row}) => (
   <Box key={row.teamname + 'row'} style={{marginLeft: globalMargins.tiny}}>
-    {TeamSubteamRow(index, row)}
+    <TeamSubteamRow key={row.teamname} teamname={row.teamname} />
   </Box>
 )
 
-const AddSubTeam = (index, {key, onCreateSubteam}) => (
+const AddSubTeam = ({index, row}) => (
   <Box
     key="addSubteam"
     style={{
@@ -163,7 +164,7 @@ const AddSubTeam = (index, {key, onCreateSubteam}) => (
     }}
   >
     <ClickableBox
-      onClick={onCreateSubteam}
+      onClick={row.onCreateSubteam}
       style={{...globalStyles.flexBoxRow, flexGrow: 1, justifyContent: 'center', alignItems: 'center'}}
     >
       <Icon type="iconfont-new" style={{color: globalColors.blue}} />
@@ -174,7 +175,7 @@ const AddSubTeam = (index, {key, onCreateSubteam}) => (
   </Box>
 )
 
-const NoSubteams = (index, key) => (
+const NoSubteams = ({index, row}) => (
   <Box
     key="noSubteams"
     style={{
@@ -195,13 +196,13 @@ const NoSubteams = (index, key) => (
 const subTeamsRow = (index, row) => {
   switch (row.type) {
     case 'intro':
-      return SubteamsIntro(index, row)
+      return <SubteamsIntro index={index} row={row} />
     case 'addSubteam':
-      return AddSubTeam(index, row)
+      return <AddSubTeam index={index} row={row} />
     case 'noSubteams':
-      return NoSubteams(index, row)
+      return <NoSubteams index={index} row={row} />
     default:
-      return SubteamRow(index, row)
+      return <SubteamRow index={index} row={row} />
   }
 }
 
@@ -357,7 +358,6 @@ class Team extends React.PureComponent<Props> {
       setPublicityMember,
       setPublicityTeam,
       subteams,
-      subTeamsProps,
       waitingForSavePublicity,
       yourRole,
       youAdmin,
@@ -410,16 +410,17 @@ class Team extends React.PureComponent<Props> {
         />
       )
     } else if (selectedTab === 'subteams') {
-      let subTeamsItems = [...subTeamsProps]
-      if (yourOperations.manageSubteams) {
-        subTeamsItems.unshift({key: 'addSubteam', type: 'addSubteam', onCreateSubteam})
-      }
-      const noSubteams = subteams.count() === 0
-      if (noSubteams) {
-        subTeamsItems.unshift({key: 'intro', type: 'intro', onReadMore: onReadMoreAboutSubteams})
-        subTeamsItems.push({key: 'noSubteams', type: 'noSubteams'})
-      }
+      const noSubteams = subteams.isEmpty()
+      const subTeamsItems = [
+        ...(noSubteams
+          ? [{key: 'intro', type: 'intro', teamname: name, onReadMore: onReadMoreAboutSubteams}]
+          : []),
+        ...(yourOperations.manageSubteams ? [{key: 'addSubteam', type: 'addSubteam', onCreateSubteam}] : []),
+        ...subteams.map(subteam => ({key: 'subteam', teamname: subteam, type: 'subteam'})),
+        ...(noSubteams ? [{key: 'noSubteams', type: 'noSubteams'}] : []),
+      ]
 
+      console.warn('subTeamsItems is', subTeamsItems)
       contents = !loading && (
         <List
           items={subTeamsItems}

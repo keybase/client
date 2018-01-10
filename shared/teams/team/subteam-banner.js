@@ -2,30 +2,19 @@
 import * as React from 'react'
 import {Box, Icon, Text} from '../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
+import type {Teamname} from '../../constants/types/teams'
 
 export type Props = {
   onReadMore: () => void,
   onHideBanner?: () => void,
+  teamname: Teamname,
 }
 
-const Banner = ({onReadMore, onHideBanner}: Props) => (
+const Banner = ({onReadMore, onHideBanner, teamname}: Props) => (
   <Box
     style={{
-      ...(isMobile
-        ? {
-            ...globalStyles.flexBoxColumn,
-            padding: 24,
-          }
-        : {
-            ...globalStyles.flexBoxRow,
-            height: 256,
-          }),
-      alignItems: 'center',
-      backgroundColor: globalColors.blue,
-      flexShrink: 0,
-      justifyContent: 'center',
-      position: 'relative',
-      width: '100%',
+      ...(isMobile ? styleMobile : styleDesktop),
+      ...styleContainer,
     }}
   >
     <Box style={{...globalStyles.flexBoxColumn, margin: globalMargins.small}}>
@@ -47,13 +36,13 @@ const Banner = ({onReadMore, onHideBanner}: Props) => (
         hierarchy. Some random ideas:
       </Text>
       <Text backgroundMode="Terminal" type="BodySemibold">
-        • stripe.devops
+        • {teamname}.devops
       </Text>
       <Text backgroundMode="Terminal" type="BodySemibold">
-        • stripe.legal
+        • {teamname}.legal
       </Text>
       <Text backgroundMode="Terminal" type="BodySemibold">
-        • stripe.customers.nike
+        • {teamname}.customers.nike
       </Text>
 
       <Text
@@ -87,6 +76,25 @@ let closeIconStyle = {
         right: globalMargins.tiny,
         top: globalMargins.tiny,
       }),
+}
+
+const styleDesktop = {
+  ...globalStyles.flexBoxRow,
+  height: 256,
+}
+
+const styleMobile = {
+  ...globalStyles.flexBoxColumn,
+  padding: 24,
+}
+
+const styleContainer = {
+  alignItems: 'center',
+  backgroundColor: globalColors.blue,
+  flexShrink: 0,
+  justifyContent: 'center',
+  position: 'relative',
+  width: '100%',
 }
 
 export default Banner

@@ -1,30 +1,18 @@
 // @flow
 import * as I from 'immutable'
-import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
 import * as Constants from '../../../constants/teams'
 import {TeamRow} from '../../main/team-list'
 import {teamsTab} from '../../../constants/tabs'
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../../../util/container'
 import {navigateAppend, navigateTo} from '../../../actions/route-tree'
 import * as KBFSGen from '../../../actions/kbfs-gen'
-import * as RPCTypes from '../../../constants/types/rpc-gen'
-
-import type {TypedState} from '../../../constants/reducer'
 
 type OwnProps = {
   teamname: string,
 }
 
-type StateProps = {
-  _newTeams: I.Set<string>,
-  _newTeamRequests: I.List<string>,
-  members: number,
-  yourOperations: RPCTypes.TeamOperation,
-  yourRole: ?Types.TeamRoleType,
-}
-
-const mapStateToProps = (state: TypedState, {teamname}: OwnProps): StateProps => ({
+const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => ({
   _newTeams: state.entities.getIn(['teams', 'newTeams'], I.Set()),
   _newTeamRequests: state.entities.getIn(['teams', 'newTeamRequests'], I.List()),
   members: state.entities.getIn(['teams', 'teammembercounts', teamname], 0),
@@ -32,13 +20,7 @@ const mapStateToProps = (state: TypedState, {teamname}: OwnProps): StateProps =>
   yourRole: Constants.getRole(state, teamname),
 })
 
-type DispatchProps = {
-  _onManageChat: (teamname: Types.Teamname) => void,
-  _onOpenFolder: (teamname: Types.Teamname) => void,
-  _onViewTeam: (teamname: Types.Teamname) => void,
-}
-
-const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps): DispatchProps => ({
+const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   _onManageChat: (teamname: Types.Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
   _onOpenFolder: (teamname: Types.Teamname) =>
@@ -48,12 +30,9 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps): DispatchPro
   },
 })
 
-const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => {
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const youAreMember = stateProps.yourRole && stateProps.yourRole !== 'none'
   return {
-    ...ownProps,
-    ...stateProps,
-    ...dispatchProps,
     name: ownProps.teamname,
     membercount: stateProps.members,
     isNew: false,
@@ -62,11 +41,10 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
     onOpenFolder: youAreMember ? () => dispatchProps._onOpenFolder(ownProps.teamname) : null,
     onManageChat: youAreMember ? () => dispatchProps._onManageChat(ownProps.teamname) : null,
     onViewTeam: () => dispatchProps._onViewTeam(ownProps.teamname),
+    yourOperations: stateProps.yourOperations,
+    yourRole: stateProps.yourRole,
   }
 }
 
 const ConnectedTeamRow = connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamRow)
-
-export default function(i: number, props: OwnProps) {
-  return <ConnectedTeamRow key={props.teamname} {...props} />
-}
+export default ConnectedTeamRow
