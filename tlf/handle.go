@@ -12,9 +12,11 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-// Handle uniquely identifies top-level folders by readers and
-// writers.
+// Handle uniquely identified top-level folders by readers and writers.
 //
+// NOTE: if you change this type, ensure you update the `NumField` check in
+// `MakeHandle`, and that the new fields are correctly checked for equality in
+// `DeepEqual`.
 // TODO: Have separate types for writers vs. readers.
 type Handle struct {
 	Writers           []keybase1.UserOrTeamID    `codec:"w,omitempty"`
@@ -23,6 +25,9 @@ type Handle struct {
 	UnresolvedReaders []keybase1.SocialAssertion `codec:"ur,omitempty"`
 	ConflictInfo      *HandleExtension           `codec:"ci,omitempty"`
 	FinalizedInfo     *HandleExtension           `codec:"fi,omitempty"`
+
+	// caching field to track whether we've sorted the slices.
+	sorted bool `codec:"-"`
 }
 
 // errNoWriters is the error returned by MakeHandle if it is
@@ -78,6 +83,12 @@ func MakeHandle(
 	writers, readers []keybase1.UserOrTeamID,
 	unresolvedWriters, unresolvedReaders []keybase1.SocialAssertion,
 	extensions []HandleExtension) (Handle, error) {
+	if reflect.ValueOf(Handle{}).NumField() != 7 {
+		panic(errors.New(
+			"Unexpected number of fields in Handle; please update the check " +
+				"above and ensure that Handle.DeepEqual() accounts for the " +
+				"new field"))
+	}
 	if len(writers) == 0 {
 		return Handle{}, errNoWriters
 	}
@@ -330,14 +341,67 @@ func (h Handle) IsConflict() bool {
 
 // DeepEqual returns true if the handle is equal to another handle.
 func (h Handle) DeepEqual(other Handle) bool {
-	sort.Sort(UIDList(h.Writers))
-	sort.Sort(UIDList(h.Readers))
-	sort.Sort(SocialAssertionList(h.UnresolvedWriters))
-	sort.Sort(SocialAssertionList(h.UnresolvedReaders))
-	sort.Sort(UIDList(other.Writers))
-	sort.Sort(UIDList(other.Readers))
-	sort.Sort(SocialAssertionList(other.UnresolvedWriters))
-	sort.Sort(SocialAssertionList(other.UnresolvedReaders))
+	if !h.sorted {
+		sort.Sort(UIDList(h.Writers))
+		sort.Sort(UIDList(h.Readers))
+		sort.Sort(SocialAssertionList(h.UnresolvedWriters))
+		sort.Sort(SocialAssertionList(h.UnresolvedReaders))
+		h.sorted = true
+	}
+	if !other.sorted {
+		sort.Sort(UIDList(other.Writers))
+		sort.Sort(UIDList(other.Readers))
+		sort.Sort(SocialAssertionList(other.UnresolvedWriters))
+		sort.Sort(SocialAssertionList(other.UnresolvedReaders))
+		other.sorted = true
+	}
 
-	return reflect.DeepEqual(h, other)
+	if len(h.Writers) != len(other.Writers) {
+		return false
+	}
+	if len(h.UnresolvedWriters) != len(other.UnresolvedWriters) {
+		return false
+	}
+	if len(h.Readers) != len(other.Readers) {
+		return false
+	}
+	if len(h.UnresolvedReaders) != len(other.UnresolvedReaders) {
+		return false
+	}
+	for i, v := range h.Writers {
+		if other.Writers[i] != v {
+			return false
+		}
+	}
+	for i, v := range h.UnresolvedWriters {
+		if other.UnresolvedWriters[i] != v {
+			return false
+		}
+	}
+	for i, v := range h.Readers {
+		if other.Readers[i] != v {
+			return false
+		}
+	}
+	for i, v := range h.UnresolvedReaders {
+		if other.UnresolvedReaders[i] != v {
+			return false
+		}
+	}
+	if h.IsConflict() != other.IsConflict() {
+		return false
+	}
+	if h.IsFinal() != other.IsFinal() {
+		return false
+	}
+	if h.ConflictInfo != nil &&
+		h.ConflictInfo.String() != other.ConflictInfo.String() {
+		return false
+	}
+	if h.FinalizedInfo != nil &&
+		h.FinalizedInfo.String() != other.FinalizedInfo.String() {
+		return false
+	}
+
+	return true
 }
