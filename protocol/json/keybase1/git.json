@@ -226,6 +226,13 @@
         {
           "type": "boolean",
           "name": "canDelete"
+        },
+        {
+          "type": [
+            null,
+            "GitTeamRepoSettings"
+          ],
+          "name": "teamRepoSettings"
         }
       ]
     },
