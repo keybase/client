@@ -64,8 +64,17 @@ func (s *Server) getSite(ctx context.Context, root Root) (st *site, err error) {
 	if err != nil {
 		return nil, err
 	}
+	var added bool
+	defer func() {
+		// This is in case there's a panic before we get to add st into
+		// s.siteCache.
+		if !added {
+			fsShutdown()
+		}
+	}()
 	st = makeSite(fs, fsShutdown, root)
 	s.siteCache.Add(root, st)
+	added = true
 	return st, nil
 }
 
@@ -73,7 +82,7 @@ func (s *Server) siteCacheEvict(_ interface{}, value interface{}) {
 	if s, ok := value.(*site); ok {
 		// It's possible to have a race here where a site gets evicted by the
 		// LRU cache while the server is still using it to serve a request. But
-		// since the cacue is LRU, this should almost never happen given a
+		// since the cache is LRU, this should almost never happen given a
 		// sufficiently large cache, and under the assumption that serving a
 		// request won't take super long.
 		s.shutdown()
@@ -215,7 +224,7 @@ var cloningLandingPage = []byte(`
 	</head>
 	<body>
 		Keybase Pages server is cloning your site.
-		This page will refresh in 5 second ...
+		This page will refresh in 5 seconds...
 	</body>
 </html>
 `)
