@@ -351,17 +351,18 @@ func (f *Folder) tlfHandleChangeInvalidate(ctx context.Context,
 }
 
 func (f *Folder) writePermMode(ctx context.Context,
-	original os.FileMode) (os.FileMode, error) {
+	node libkbfs.Node, original os.FileMode) (os.FileMode, error) {
 	f.handleMu.RLock()
 	defer f.handleMu.RUnlock()
-	return libfs.WritePermMode(ctx, original, f.fs.config.KBPKI(), f.h)
+	return libfs.WritePermMode(ctx, node, original, f.fs.config.KBPKI(), f.h)
 }
 
 // fillAttrWithUIDAndWritePerm sets attributes based on the entry info, and
 // pops in correct UID and write permissions. It only handles fields common to
 // all entryinfo types.
 func (f *Folder) fillAttrWithUIDAndWritePerm(
-	ctx context.Context, ei *libkbfs.EntryInfo, a *fuse.Attr) (err error) {
+	ctx context.Context, node libkbfs.Node, ei *libkbfs.EntryInfo,
+	a *fuse.Attr) (err error) {
 	a.Valid = 1 * time.Minute
 
 	a.Size = ei.Size
@@ -371,7 +372,7 @@ func (f *Folder) fillAttrWithUIDAndWritePerm(
 
 	a.Uid = uint32(os.Getuid())
 
-	if a.Mode, err = f.writePermMode(ctx, a.Mode); err != nil {
+	if a.Mode, err = f.writePermMode(ctx, node, a.Mode); err != nil {
 		return err
 	}
 
@@ -486,7 +487,8 @@ func (d *Dir) attr(ctx context.Context, a *fuse.Attr) (err error) {
 		}
 		return err
 	}
-	if err = d.folder.fillAttrWithUIDAndWritePerm(ctx, &de, a); err != nil {
+	if err = d.folder.fillAttrWithUIDAndWritePerm(
+		ctx, d.node, &de, a); err != nil {
 		return err
 	}
 

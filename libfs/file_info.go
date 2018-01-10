@@ -16,14 +16,14 @@ import (
 type FileInfo struct {
 	fs   *FS
 	ei   libkbfs.EntryInfo
-	name string
+	node libkbfs.Node
 }
 
 var _ os.FileInfo = (*FileInfo)(nil)
 
 // Name implements the os.FileInfo interface for FileInfo.
 func (fi *FileInfo) Name() string {
-	return fi.name
+	return fi.node.GetBasename()
 }
 
 // Size implements the os.FileInfo interface for FileInfo.
@@ -35,10 +35,10 @@ func (fi *FileInfo) Size() int64 {
 // Mode implements the os.FileInfo interface for FileInfo.
 func (fi *FileInfo) Mode() os.FileMode {
 	mode, err := WritePermMode(
-		fi.fs.ctx, os.FileMode(0), fi.fs.config.KBPKI(), fi.fs.h)
+		fi.fs.ctx, fi.node, os.FileMode(0), fi.fs.config.KBPKI(), fi.fs.h)
 	if err != nil {
 		fi.fs.log.CWarningf(
-			fi.fs.ctx, "Couldn't get mode for file %s: %+v", fi.name, err)
+			fi.fs.ctx, "Couldn't get mode for file %s: %+v", fi.Name(), err)
 		mode = os.FileMode(0)
 	}
 

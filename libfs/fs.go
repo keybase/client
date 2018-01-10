@@ -463,7 +463,7 @@ func (fs *FS) Stat(filename string) (fi os.FileInfo, err error) {
 	return &FileInfo{
 		fs:   fs,
 		ei:   ei,
-		name: n.GetBasename(),
+		node: n,
 	}, nil
 }
 
@@ -547,10 +547,15 @@ func (fs *FS) readDir(n libkbfs.Node) (fis []os.FileInfo, err error) {
 
 	fis = make([]os.FileInfo, 0, len(children))
 	for name, ei := range children {
+		child, _, err := fs.config.KBFSOps().Lookup(fs.ctx, n, name)
+		if err != nil {
+			return nil, err
+		}
+
 		fis = append(fis, &FileInfo{
 			fs:   fs,
 			ei:   ei,
-			name: name,
+			node: child,
 		})
 	}
 	return fis, nil
@@ -594,7 +599,7 @@ func (fs *FS) Lstat(filename string) (fi os.FileInfo, err error) {
 		return nil, err
 	}
 
-	_, ei, err := fs.config.KBFSOps().Lookup(fs.ctx, n, base)
+	n, ei, err := fs.config.KBFSOps().Lookup(fs.ctx, n, base)
 	if err != nil {
 		return nil, err
 	}
@@ -602,7 +607,7 @@ func (fs *FS) Lstat(filename string) (fi os.FileInfo, err error) {
 	return &FileInfo{
 		fs:   fs,
 		ei:   ei,
-		name: base,
+		node: n,
 	}, nil
 }
 

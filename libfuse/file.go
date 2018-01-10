@@ -65,7 +65,8 @@ var _ fs.Node = (*File)(nil)
 
 func (f *File) fillAttrWithMode(
 	ctx context.Context, ei *libkbfs.EntryInfo, a *fuse.Attr) (err error) {
-	if err = f.folder.fillAttrWithUIDAndWritePerm(ctx, ei, a); err != nil {
+	if err = f.folder.fillAttrWithUIDAndWritePerm(
+		ctx, f.node, ei, a); err != nil {
 		return err
 	}
 	a.Mode |= 0400

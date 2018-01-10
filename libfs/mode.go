@@ -43,9 +43,13 @@ func IsWriter(ctx context.Context, kbpki libkbfs.KBPKI,
 // currently logged-in user is a valid writer for the folder described
 // by `h`.
 func WritePermMode(
-	ctx context.Context, original os.FileMode, kbpki libkbfs.KBPKI,
-	h *libkbfs.TlfHandle) (os.FileMode, error) {
+	ctx context.Context, node libkbfs.Node, original os.FileMode,
+	kbpki libkbfs.KBPKI, h *libkbfs.TlfHandle) (os.FileMode, error) {
 	original &^= os.FileMode(0222) // clear write perm bits
+
+	if node.Readonly(ctx) {
+		return original, nil
+	}
 
 	isWriter, err := IsWriter(ctx, kbpki, h)
 	if err != nil {
