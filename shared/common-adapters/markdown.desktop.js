@@ -74,8 +74,15 @@ function messageCreateComponent(type, key, children, options) {
       }
       return <Mention username={username} key={key} style={wrapStyle} />
     case 'channel':
-      // TODO: Figure out how to avoid this || ''
-      return <Channel channel={children[0]} convID={options.convID || ''} key={key} style={linkStyle} />
+      const name = children[0]
+      if (typeof name !== 'string') {
+        throw new Error('name unexpectedly not string')
+      }
+      const convID = options.convID || ''
+      if (typeof convID !== 'string') {
+        throw new Error('convID unexpectedly not string')
+      }
+      return <Channel name={name} convID={convID} key={key} style={linkStyle} />
     case 'inline-code':
       return (
         <Text type="Body" key={key} style={codeSnippetStyle}>

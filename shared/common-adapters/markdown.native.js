@@ -160,11 +160,18 @@ function messageCreateComponent(style, allowFontScaling) {
           <Mention username={username} key={key} style={neutralStyle} allowFontScaling={allowFontScaling} />
         )
       case 'channel':
+        const name = children[0]
+        if (typeof name !== 'string') {
+          throw new Error('name unexpectedly not string')
+        }
+        const convID = options.convID || ''
+        if (typeof convID !== 'string') {
+          throw new Error('convID unexpectedly not string')
+        }
         return (
           <Channel
-            channel={children[0]}
-            // TODO: Figure out how to avoid this || ''
-            convID={options.convID || ''}
+            name={name}
+            convID={convID}
             key={key}
             style={linkStyle}
             allowFontScaling={allowFontScaling}

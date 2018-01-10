@@ -24,5 +24,4 @@ const mergeProps = ({currentPath}, {onClick}, ownProps: OwnProps) => {
   }
 }
 
-// $FlowIssue
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Channel)
