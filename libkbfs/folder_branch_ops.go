@@ -893,8 +893,8 @@ func (fbo *folderBranchOps) setHeadSuccessorLocked(ctx context.Context,
 	// unmerged branch. Add checks for this.
 	resolvesTo, partialResolvedOldHandle, err :=
 		oldHandle.ResolvesTo(
-			ctx, fbo.config.Codec(), fbo.config.KBPKI(), fbo.config.MDOps(),
-			*newHandle)
+			ctx, fbo.config.Codec(), fbo.config.KBPKI(),
+			constIDGetter{fbo.id()}, *newHandle)
 	if err != nil {
 		return err
 	}
