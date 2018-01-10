@@ -58,7 +58,7 @@ func TestBasicTlfEditHistory(t *testing.T) {
 	require.NoError(t, err)
 
 	kbfsOps2 := config2.KBFSOps()
-	err = kbfsOps2.SyncFromServerForTesting(ctx,
+	err = kbfsOps2.SyncFromServer(ctx,
 		rootNode2.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
@@ -67,7 +67,7 @@ func TestBasicTlfEditHistory(t *testing.T) {
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)
 
-	err = kbfsOps1.SyncFromServerForTesting(ctx,
+	err = kbfsOps1.SyncFromServer(ctx,
 		rootNode1.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
@@ -109,7 +109,7 @@ func TestBasicTlfEditHistory(t *testing.T) {
 func testDoTlfEdit(t *testing.T, ctx context.Context, tlfName string,
 	kbfsOps KBFSOps, rootNode Node, i int, uid keybase1.UID, now time.Time,
 	createRemainders map[keybase1.UID]int, edits TlfWriterEdits) {
-	err := kbfsOps.SyncFromServerForTesting(ctx,
+	err := kbfsOps.SyncFromServer(ctx,
 		rootNode.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
@@ -225,10 +225,10 @@ func TestLongTlfEditHistory(t *testing.T) {
 			createRemainders, expectedEdits)
 	}
 
-	err = kbfsOps1.SyncFromServerForTesting(ctx,
+	err = kbfsOps1.SyncFromServer(ctx,
 		rootNode1.GetFolderBranch(), nil)
 	require.NoError(t, err)
-	err = kbfsOps2.SyncFromServerForTesting(ctx,
+	err = kbfsOps2.SyncFromServer(ctx,
 		rootNode2.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
@@ -294,7 +294,7 @@ func TestLongTlfEditHistory(t *testing.T) {
 		renameFile+".New")
 	require.NoError(t, err)
 
-	err = kbfsOps2.SyncFromServerForTesting(ctx,
+	err = kbfsOps2.SyncFromServer(ctx,
 		rootNode2.GetFolderBranch(), nil)
 	require.NoError(t, err)
 	editNode, _, err := kbfsOps2.Lookup(ctx, rootNode2, editFile)
@@ -304,10 +304,10 @@ func TestLongTlfEditHistory(t *testing.T) {
 	err = kbfsOps2.SyncAll(ctx, editNode.GetFolderBranch())
 	require.NoError(t, err)
 
-	err = kbfsOps1.SyncFromServerForTesting(ctx,
+	err = kbfsOps1.SyncFromServer(ctx,
 		rootNode1.GetFolderBranch(), nil)
 	require.NoError(t, err)
-	err = kbfsOps2.SyncFromServerForTesting(ctx,
+	err = kbfsOps2.SyncFromServer(ctx,
 		rootNode2.GetFolderBranch(), nil)
 	require.NoError(t, err)
 

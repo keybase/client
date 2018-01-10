@@ -175,7 +175,7 @@ func (f *File) Lock() (err error) {
 	// Now, sync up with the server, while making sure a lock is held by us. If
 	// lock taking fails, RPC layer retries automatically.
 	lockID := f.getLockID()
-	return f.fs.config.KBFSOps().SyncFromServerForTesting(f.fs.ctx,
+	return f.fs.config.KBFSOps().SyncFromServer(f.fs.ctx,
 		f.fs.root.GetFolderBranch(), &lockID)
 }
 

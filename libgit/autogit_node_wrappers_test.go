@@ -142,13 +142,13 @@ func TestAutogitRepoNode(t *testing.T) {
 	srcRootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
 		ctx, h, libkbfs.MasterBranch)
 	require.NoError(t, err)
-	err = config.KBFSOps().SyncFromServerForTesting(
+	err = config.KBFSOps().SyncFromServer(
 		ctx, srcRootNode.GetFolderBranch(), nil)
 	require.NoError(t, err)
 	srcRootNode2, _, err := config2.KBFSOps().GetOrCreateRootNode(
 		ctx, h, libkbfs.MasterBranch)
 	require.NoError(t, err)
-	err = config2.KBFSOps().SyncFromServerForTesting(
+	err = config2.KBFSOps().SyncFromServer(
 		ctx, srcRootNode2.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
@@ -166,13 +166,13 @@ func TestAutogitRepoNode(t *testing.T) {
 	dstRootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
 		ctx, h, libkbfs.MasterBranch)
 	require.NoError(t, err)
-	err = config.KBFSOps().SyncFromServerForTesting(
+	err = config.KBFSOps().SyncFromServer(
 		ctx, dstRootNode.GetFolderBranch(), nil)
 	require.NoError(t, err)
 	dstRootNode2, _, err := config2.KBFSOps().GetOrCreateRootNode(
 		ctx, h2, libkbfs.MasterBranch)
 	require.NoError(t, err)
-	err = config2.KBFSOps().SyncFromServerForTesting(
+	err = config2.KBFSOps().SyncFromServer(
 		ctx, dstRootNode2.GetFolderBranch(), nil)
 	require.NoError(t, err)
 

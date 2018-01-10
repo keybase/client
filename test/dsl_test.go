@@ -501,7 +501,7 @@ func initRoot() fileOp {
 		if !c.noSyncInit {
 			// Do this before GetRootDir so that we pick
 			// up any TLF name changes.
-			err := c.engine.SyncFromServerForTesting(c.user, c.tlfName, c.tlfType)
+			err := c.engine.SyncFromServer(c.user, c.tlfName, c.tlfType)
 			if err != nil {
 				return err
 			}
@@ -714,7 +714,7 @@ func rename(src, dst string) fileOp {
 
 func disableUpdates() fileOp {
 	return fileOp{func(c *ctx) error {
-		err := c.engine.SyncFromServerForTesting(c.user, c.tlfName, c.tlfType)
+		err := c.engine.SyncFromServer(c.user, c.tlfName, c.tlfType)
 		if err != nil {
 			return err
 		}
@@ -876,7 +876,7 @@ func reenableUpdates() fileOp {
 		if err != nil {
 			return err
 		}
-		return c.engine.SyncFromServerForTesting(c.user, c.tlfName, c.tlfType)
+		return c.engine.SyncFromServer(c.user, c.tlfName, c.tlfType)
 	}, IsInit, "reenableUpdates()"}
 }
 
@@ -893,7 +893,7 @@ func forceQuotaReclamation() fileOp {
 			return err
 		}
 		// Wait for QR to finish.
-		return c.engine.SyncFromServerForTesting(c.user, c.tlfName, c.tlfType)
+		return c.engine.SyncFromServer(c.user, c.tlfName, c.tlfType)
 	}, IsInit, "forceQuotaReclamation()"}
 }
 

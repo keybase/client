@@ -361,14 +361,14 @@ type KBFSOps interface {
 	// RequestRekey requests to rekey this folder. Note that this asynchronously
 	// requests a rekey, so canceling ctx doesn't cancel the rekey.
 	RequestRekey(ctx context.Context, id tlf.ID)
-	// SyncFromServerForTesting blocks until the local client has
-	// contacted the server and guaranteed that all known updates
-	// for the given top-level folder have been applied locally
-	// (and notifications sent out to any observers).  It returns
-	// an error if this folder-branch is currently unmerged or
-	// dirty locally. If lockBeforeGet is non-nil, it blocks on idempotently
-	// taking the lock from server at the time it gets any metadata.
-	SyncFromServerForTesting(ctx context.Context,
+	// SyncFromServer blocks until the local client has contacted the
+	// server and guaranteed that all known updates for the given
+	// top-level folder have been applied locally (and notifications
+	// sent out to any observers).  It returns an error if this
+	// folder-branch is currently unmerged or dirty locally. If
+	// lockBeforeGet is non-nil, it blocks on idempotently taking the
+	// lock from server at the time it gets any metadata.
+	SyncFromServer(ctx context.Context,
 		folderBranch FolderBranch, lockBeforeGet *keybase1.LockID) error
 	// GetUpdateHistory returns a complete history of all the merged
 	// updates of the given folder, in a data structure that's

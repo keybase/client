@@ -919,14 +919,14 @@ func (fs *KBFSOpsStandard) RequestRekey(ctx context.Context, id tlf.ID) {
 	ops.RequestRekey(ctx, id)
 }
 
-// SyncFromServerForTesting implements the KBFSOps interface for KBFSOpsStandard
-func (fs *KBFSOpsStandard) SyncFromServerForTesting(ctx context.Context,
+// SyncFromServer implements the KBFSOps interface for KBFSOpsStandard
+func (fs *KBFSOpsStandard) SyncFromServer(ctx context.Context,
 	folderBranch FolderBranch, lockBeforeGet *keybase1.LockID) error {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 
 	ops := fs.getOps(ctx, folderBranch, FavoritesOpAdd)
-	return ops.SyncFromServerForTesting(ctx, folderBranch, lockBeforeGet)
+	return ops.SyncFromServer(ctx, folderBranch, lockBeforeGet)
 }
 
 // GetUpdateHistory implements the KBFSOps interface for KBFSOpsStandard

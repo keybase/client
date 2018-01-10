@@ -399,7 +399,7 @@ func TestKeybaseDaemonRPCEditList(t *testing.T) {
 	require.NoError(t, err)
 
 	kbfsOps2 := config2.KBFSOps()
-	err = kbfsOps2.SyncFromServerForTesting(ctx,
+	err = kbfsOps2.SyncFromServer(ctx,
 		rootNode2.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
@@ -408,7 +408,7 @@ func TestKeybaseDaemonRPCEditList(t *testing.T) {
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)
 
-	err = kbfsOps1.SyncFromServerForTesting(ctx,
+	err = kbfsOps1.SyncFromServer(ctx,
 		rootNode1.GetFolderBranch(), nil)
 	require.NoError(t, err)
 

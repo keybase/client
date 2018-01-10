@@ -456,7 +456,7 @@ func (fbo *folderBranchOps) Shutdown(ctx context.Context) error {
 			fbo.log.CDebugf(ctx, "Skipping state-checking due to being staged")
 		} else {
 			// Make sure we're up to date first
-			if err := fbo.SyncFromServerForTesting(ctx,
+			if err := fbo.SyncFromServer(ctx,
 				fbo.folderBranch, nil); err != nil {
 				return err
 			}
@@ -873,7 +873,7 @@ func (fbo *folderBranchOps) setHeadSuccessorLocked(ctx context.Context,
 	fbo.mdWriterLock.AssertLocked(lState)
 	fbo.headLock.AssertLocked(lState)
 	if fbo.head == (ImmutableRootMetadata{}) {
-		// This can happen in tests via SyncFromServerForTesting().
+		// This can happen in tests via SyncFromServer().
 		return fbo.setInitialHeadTrustedLocked(ctx, lState, md)
 	}
 
@@ -1866,7 +1866,7 @@ func (fbo *folderBranchOps) GetDirChildren(ctx context.Context, dir Node) (
 	}
 
 	if dir.ShouldRetryOnDirRead(ctx) {
-		err2 := fbo.SyncFromServerForTesting(ctx, fbo.folderBranch, nil)
+		err2 := fbo.SyncFromServer(ctx, fbo.folderBranch, nil)
 		if err2 != nil {
 			fbo.log.CDebugf(ctx, "Error syncing before retry: %+v", err2)
 			return nil, nil
@@ -1973,7 +1973,7 @@ func (fbo *folderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 	}
 
 	if dir.ShouldRetryOnDirRead(ctx) {
-		err2 := fbo.SyncFromServerForTesting(ctx, fbo.folderBranch, nil)
+		err2 := fbo.SyncFromServer(ctx, fbo.folderBranch, nil)
 		if err2 != nil {
 			fbo.log.CDebugf(ctx, "Error syncing before retry: %+v", err2)
 			return n, de.EntryInfo, err
@@ -5457,12 +5457,11 @@ func (fbo *folderBranchOps) RequestRekey(_ context.Context, tlf tlf.ID) {
 	fbo.rekeyFSM.Event(NewRekeyRequestEvent())
 }
 
-func (fbo *folderBranchOps) SyncFromServerForTesting(ctx context.Context,
+func (fbo *folderBranchOps) SyncFromServer(ctx context.Context,
 	folderBranch FolderBranch, lockBeforeGet *keybase1.LockID) (err error) {
-	fbo.log.CDebugf(ctx, "SyncFromServerForTesting")
+	fbo.log.CDebugf(ctx, "SyncFromServer")
 	defer func() {
-		fbo.deferLog.CDebugf(ctx,
-			"SyncFromServerForTesting done: %+v", err)
+		fbo.deferLog.CDebugf(ctx, "SyncFromServer done: %+v", err)
 	}()
 
 	if folderBranch != fbo.folderBranch {

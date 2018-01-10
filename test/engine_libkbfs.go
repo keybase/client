@@ -575,8 +575,8 @@ func (k *LibKBFS) ReenableUpdates(u User, tlfName string, t tlf.Type) error {
 	return nil
 }
 
-// SyncFromServerForTesting implements the Engine interface.
-func (k *LibKBFS) SyncFromServerForTesting(u User, tlfName string, t tlf.Type) (err error) {
+// SyncFromServer implements the Engine interface.
+func (k *LibKBFS) SyncFromServer(u User, tlfName string, t tlf.Type) (err error) {
 	config := u.(*libkbfs.ConfigLocal)
 
 	ctx, cancel := k.newContext(u)
@@ -586,7 +586,7 @@ func (k *LibKBFS) SyncFromServerForTesting(u User, tlfName string, t tlf.Type) (
 		return err
 	}
 
-	return config.KBFSOps().SyncFromServerForTesting(ctx,
+	return config.KBFSOps().SyncFromServer(ctx,
 		dir.GetFolderBranch(), nil)
 }
 

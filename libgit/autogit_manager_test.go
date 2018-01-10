@@ -152,7 +152,7 @@ func checkFileInRootFS(
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
 		ctx, h, libkbfs.MasterBranch)
 	require.NoError(t, err)
-	err = config.KBFSOps().SyncFromServerForTesting(
+	err = config.KBFSOps().SyncFromServer(
 		ctx, rootNode.GetFolderBranch(), nil)
 	require.NoError(t, err)
 

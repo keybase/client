@@ -1218,16 +1218,16 @@ func (mr *MockKBFSOpsMockRecorder) RequestRekey(ctx, id interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RequestRekey", reflect.TypeOf((*MockKBFSOps)(nil).RequestRekey), ctx, id)
 }
 
-// SyncFromServerForTesting mocks base method
-func (m *MockKBFSOps) SyncFromServerForTesting(ctx context.Context, folderBranch FolderBranch, lockBeforeGet *keybase1.LockID) error {
-	ret := m.ctrl.Call(m, "SyncFromServerForTesting", ctx, folderBranch, lockBeforeGet)
+// SyncFromServer mocks base method
+func (m *MockKBFSOps) SyncFromServer(ctx context.Context, folderBranch FolderBranch, lockBeforeGet *keybase1.LockID) error {
+	ret := m.ctrl.Call(m, "SyncFromServer", ctx, folderBranch, lockBeforeGet)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SyncFromServerForTesting indicates an expected call of SyncFromServerForTesting
-func (mr *MockKBFSOpsMockRecorder) SyncFromServerForTesting(ctx, folderBranch, lockBeforeGet interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SyncFromServerForTesting", reflect.TypeOf((*MockKBFSOps)(nil).SyncFromServerForTesting), ctx, folderBranch, lockBeforeGet)
+// SyncFromServer indicates an expected call of SyncFromServer
+func (mr *MockKBFSOpsMockRecorder) SyncFromServer(ctx, folderBranch, lockBeforeGet interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SyncFromServer", reflect.TypeOf((*MockKBFSOps)(nil).SyncFromServer), ctx, folderBranch, lockBeforeGet)
 }
 
 // GetUpdateHistory mocks base method

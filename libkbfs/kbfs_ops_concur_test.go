@@ -832,7 +832,7 @@ func TestKBFSOpsTruncateAndOverwriteDeferredWithArchivedBlock(t *testing.T) {
 	}
 
 	// Wait for the archiving to finish
-	err = kbfsOps.SyncFromServerForTesting(ctx, rootNode.GetFolderBranch(), nil)
+	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
 	if err != nil {
 		t.Fatalf("Couldn't sync from server")
 	}
@@ -1521,7 +1521,7 @@ func testKBFSOpsMultiBlockWriteDuringRetriedSync(t *testing.T, nFiles int) {
 		t.Fatalf("Couldn't remove file: %v", err)
 	}
 
-	err = kbfsOps.SyncFromServerForTesting(ctx, rootNode.GetFolderBranch(), nil)
+	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
@@ -1677,7 +1677,7 @@ func testKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T, nFiles int) {
 		t.Fatalf("Couldn't remove file: %v", err)
 	}
 
-	err = kbfsOps.SyncFromServerForTesting(ctx, rootNode.GetFolderBranch(), nil)
+	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
@@ -2025,9 +2025,9 @@ func TestKBFSOpsConcurCanceledSyncSucceeds(t *testing.T) {
 		t.Fatalf("Blocks left to delete after sync")
 	}
 
-	// The first put actually succeeded, so
-	// SyncFromServerForTesting and make sure it worked.
-	err = kbfsOps.SyncFromServerForTesting(ctx, rootNode.GetFolderBranch(), nil)
+	// The first put actually succeeded, so SyncFromServer and make
+	// sure it worked.
+	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
@@ -2140,7 +2140,7 @@ func TestKBFSOpsConcurCanceledSyncFailsAfterCanceledSyncSucceeds(t *testing.T) {
 	}
 
 	// Wait for CR to finish
-	err = kbfsOps.SyncFromServerForTesting(ctx, rootNode.GetFolderBranch(), nil)
+	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
@@ -2176,7 +2176,7 @@ func TestKBFSOpsTruncateWithDupBlockCanceled(t *testing.T) {
 		t.Fatalf("Couldn't sync file: %v", err)
 	}
 
-	err = kbfsOps.SyncFromServerForTesting(ctx, rootNode.GetFolderBranch(), nil)
+	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
@@ -2431,7 +2431,7 @@ func TestKBFSOpsLookupSyncRace(t *testing.T) {
 	}
 
 	// u2 syncs and then disables updates.
-	if err := kbfsOps2.SyncFromServerForTesting(
+	if err := kbfsOps2.SyncFromServer(
 		ctx, rootNode2.GetFolderBranch(), nil); err != nil {
 		t.Fatal("Couldn't sync user 2 from server")
 	}
@@ -2476,7 +2476,7 @@ func TestKBFSOpsLookupSyncRace(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		if err := kbfsOps2.SyncFromServerForTesting(
+		if err := kbfsOps2.SyncFromServer(
 			ctx, rootNode2.GetFolderBranch(), nil); err != nil {
 			t.Errorf("Couldn't sync user 2 from server: %v", err)
 		}

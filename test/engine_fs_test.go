@@ -302,9 +302,9 @@ func (*fsEngine) ReenableUpdates(user User, tlfName string, t tlf.Type) (err err
 		[]byte("on"), 0644)
 }
 
-// SyncFromServerForTesting is called by the test harness as the given
-// user to actively retrieve new metadata for a folder.
-func (e *fsEngine) SyncFromServerForTesting(user User, tlfName string, t tlf.Type) (err error) {
+// SyncFromServer is called by the test harness as the given user to
+// actively retrieve new metadata for a folder.
+func (e *fsEngine) SyncFromServer(user User, tlfName string, t tlf.Type) (err error) {
 	u := user.(*fsUser)
 	path := buildTlfPath(u, tlfName, t)
 	return ioutil.WriteFile(

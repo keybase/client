@@ -38,7 +38,7 @@ func (f *SyncFromServerFile) WriteFile(ctx context.Context, fi *dokan.FileInfo, 
 		// Nothing to do.
 		return len(bs), nil
 	}
-	err = f.folder.fs.config.KBFSOps().SyncFromServerForTesting(
+	err = f.folder.fs.config.KBFSOps().SyncFromServer(
 		ctx, folderBranch, nil)
 	if err != nil {
 		return 0, err

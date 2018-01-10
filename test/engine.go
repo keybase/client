@@ -114,10 +114,9 @@ type Engine interface {
 	// ReenableUpdates is called by the test harness as the given
 	// user to resume updates if previously disabled for testing.
 	ReenableUpdates(u User, tlfName string, t tlf.Type) (err error)
-	// SyncFromServerForTesting is called by the test harness as
-	// the given user to actively retrieve new metadata for a
-	// folder.
-	SyncFromServerForTesting(u User, tlfName string, t tlf.Type) (err error)
+	// SyncFromServer is called by the test harness as the given user
+	// to actively retrieve new metadata for a folder.
+	SyncFromServer(u User, tlfName string, t tlf.Type) (err error)
 	// ForceQuotaReclamation starts quota reclamation by the given
 	// user in the TLF corresponding to the given node.
 	ForceQuotaReclamation(u User, tlfName string, t tlf.Type) (err error)

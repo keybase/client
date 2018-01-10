@@ -1809,7 +1809,7 @@ func syncFolderToServerHelper(t *testing.T, tlf string, ty tlf.Type, fs *FS) {
 	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
 	defer libkbfs.CleanupCancellationDelayer(ctx)
 	root := libkbfs.GetRootNodeOrBust(ctx, t, fs.config, tlf, ty)
-	err := fs.config.KBFSOps().SyncFromServerForTesting(
+	err := fs.config.KBFSOps().SyncFromServer(
 		ctx, root.GetFolderBranch(), nil)
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)

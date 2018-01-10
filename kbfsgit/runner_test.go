@@ -779,7 +779,7 @@ func TestPackRefsAndOverwritePackedRef(t *testing.T) {
 	rootNode, _, err := config2.KBFSOps().GetOrCreateRootNode(
 		ctx, h, libkbfs.MasterBranch)
 	require.NoError(t, err)
-	err = config2.KBFSOps().SyncFromServerForTesting(
+	err = config2.KBFSOps().SyncFromServer(
 		ctx, rootNode.GetFolderBranch(), nil)
 	require.NoError(t, err)
 	heads = testListAndGetHeadsWithName(t, ctx, config2, git2,
@@ -897,7 +897,7 @@ func TestPackRefsAndDeletePackedRef(t *testing.T) {
 	rootNode, _, err := config2.KBFSOps().GetOrCreateRootNode(
 		ctx, h, libkbfs.MasterBranch)
 	require.NoError(t, err)
-	err = config2.KBFSOps().SyncFromServerForTesting(
+	err = config2.KBFSOps().SyncFromServer(
 		ctx, rootNode.GetFolderBranch(), nil)
 	require.NoError(t, err)
 	testListAndGetHeadsWithName(t, ctx, config2, git2,
