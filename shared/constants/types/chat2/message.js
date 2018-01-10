@@ -34,6 +34,7 @@ export type _MessageDeleted = {
   hasBeenEdited: boolean,
   id: MessageID,
   ordinal: Ordinal,
+  outboxID: ?OutboxID,
   timestamp: number,
   type: 'deleted',
 }
@@ -51,6 +52,7 @@ export type _MessageText = {
   mentionsAt: I.Set<string>,
   mentionsChannel: ChannelMention,
   ordinal: Ordinal,
+  outboxID: ?OutboxID,
   text: HiddenString,
   timestamp: number,
   type: 'text',
@@ -72,6 +74,7 @@ export type _MessageAttachment = {
   id: MessageID,
   localState: LocalState,
   ordinal: Ordinal,
+  outboxID: ?OutboxID,
   percentUploaded: number,
   previewHeight: number,
   previewWidth: number,

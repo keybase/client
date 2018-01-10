@@ -22,25 +22,6 @@ const initialState: Types.State = Constants.makeState()
 // return state
 // }
 // }
-const pendingOutboxToOrdinalReducer = (pendingOutboxToOrdinal, action) => {
-  switch (action.type) {
-    case Chat2Gen.messagesAdd:
-      const {messages, context} = action.payload
-      if (messages.length === 1 && context.type === 'incomingWasPending') {
-        console.log('aaa removing pending', context.outboxID)
-        return pendingOutboxToOrdinal.deleteIn([messages[0].conversationIDKey, context.outboxID])
-      } else if (messages.length === 1 && context.type === 'sent') {
-        console.log('aaa adding pending', context.outboxID)
-        return pendingOutboxToOrdinal.update(messages[0].conversationIDKey, I.Map(), map =>
-          map.set(context.outboxID, messages[0].ordinal)
-        )
-      } else {
-        return pendingOutboxToOrdinal
-      }
-    default:
-      return pendingOutboxToOrdinal
-  }
-}
 
 const metaMapReducer = (metaMap, action) => {
   switch (action.type) {
@@ -105,15 +86,6 @@ const metaMapReducer = (metaMap, action) => {
           }
         })
       })
-    case Chat2Gen.messagesAdd: {
-      const {context} = action.payload
-      return context === 'threadLoad'
-        ? metaMap.update(
-            context.conversationIDKey,
-            (meta: ?Types.ConversationMeta) => (meta ? meta.set('hasLoadedThread', true) : meta)
-          )
-        : metaMap
-    }
     case Chat2Gen.inboxRefresh:
       return action.payload.clearAllData ? metaMap.clear() : metaMap
     default:
@@ -121,7 +93,7 @@ const metaMapReducer = (metaMap, action) => {
   }
 }
 
-const messageMapReducer = (messageMap, action, state) => {
+const messageMapReducer = (messageMap, action) => {
   switch (action.type) {
     case Chat2Gen.messageEdit: // fallthrough
     case Chat2Gen.messageDelete:
@@ -163,40 +135,7 @@ const messageMapReducer = (messageMap, action, state) => {
         })
       )
     }
-    case Chat2Gen.messagesAdd: {
-      const {messages, context} = action.payload
-      return messageMap.withMutations(
-        (map: I.Map<Types.ConversationIDKey, I.Map<Types.Ordinal, Types.Message>>) =>
-          messages.forEach(message => {
-            // we're changing a pending to sent
-            if (context.type === 'incomingWasPending') {
-              console.log('aaa message add converting', context.outboxID)
-              const pendingOrdinal = state.pendingOutboxToOrdinal.getIn([
-                message.conversationIDKey,
-                context.outboxID,
-              ])
-              if (!pendingOrdinal) {
-                map.updateIn([message.conversationIDKey, message.ordinal], old => old || message)
-                // TODO we get 2 messages for each post so this happens.... talk to mike
-                // console.log('aaa message add converting no pending', context.outboxID)
-                // throw new Error(
-                // `Missing pending ordinal!? ${message.conversationIDKey} ${message.id} ${context.type} ${
-                // context.outboxID
-                // }`
-                // )
-              } else {
-                map.updateIn([message.conversationIDKey, pendingOrdinal], old =>
-                  // $FlowIssue gets confused about set existing
-                  message.set('ordinal', pendingOrdinal)
-                )
-              }
-            } else {
-              // Never replace old messages
-              map.updateIn([message.conversationIDKey, message.ordinal], old => old || message)
-            }
-          })
-      )
-    }
+
     default:
       return messageMap
   }
@@ -209,29 +148,6 @@ const messageOrdinalsReducer = (messageOrdinalsList, action) => {
       return messageOrdinalsList.set(action.payload.conversationIDKey, I.List())
     case Chat2Gen.inboxRefresh:
       return action.payload.clearAllData ? messageOrdinalsList.clear() : messageOrdinalsList
-    case Chat2Gen.messagesAdd: {
-      const {messages, context} = action.payload
-      if (context.type === 'incomingWasPending') {
-        // Since we're keeping our old ordinal, we can effectively ignore this update from the ordinals list perspective
-        return messageOrdinalsList
-      }
-      const idToMessages = messages.reduce((map, m) => {
-        const set = (map[m.conversationIDKey] = map[m.conversationIDKey] || new Set()) // note: NOT immutable
-        set.add(m.ordinal)
-        return map
-      }, {})
-
-      return messageOrdinalsList.withMutations(map =>
-        Object.keys(idToMessages).forEach(conversationIDKey =>
-          map.update(conversationIDKey, I.List(), (list: I.List<Types.Ordinal>) =>
-            I.Set(list)
-              .concat(idToMessages[conversationIDKey])
-              .toList()
-              .sort()
-          )
-        )
-      )
-    }
     default:
       return messageOrdinalsList
   }
@@ -287,22 +203,124 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
             ? editingMap.set(action.payload.conversationIDKey, action.payload.ordinal)
             : editingMap.delete(action.payload.conversationIDKey)
       )
-    // metaMap/messageMap/messageOrdinalsList actions
+    case Chat2Gen.messagesAdd: {
+      const {messages, context} = action.payload
+
+      let updatedMessages = messages
+
+      // Update our pending mapping
+      let pendingOutboxToOrdinal = state.pendingOutboxToOrdinal
+
+      // We're sending a message, add it to the map
+      if (context.type === 'sent') {
+        pendingOutboxToOrdinal = pendingOutboxToOrdinal.withMutations(
+          (map: I.Map<Types.ConversationIDKey, I.Map<Types.OutboxID, Types.Ordinal>>) =>
+            updatedMessages.forEach(
+              message =>
+                message.outboxID && map.setIn([message.conversationIDKey, message.outboxID], message.ordinal)
+            )
+        )
+      } else {
+        // We got messages, see if we should remove it from the map and update the message
+        pendingOutboxToOrdinal = pendingOutboxToOrdinal.withMutations(
+          (map: I.Map<Types.ConversationIDKey, I.Map<Types.OutboxID, Types.Ordinal>>) =>
+            (updatedMessages = updatedMessages.map(message => {
+              const existingOrdinal = message.outboxID
+                ? map.getIn([message.conversationIDKey, message.outboxID])
+                : null
+              // Was pending?
+              if (existingOrdinal && message.outboxID) {
+                // We get 2 incoming calls when a pending goes to real. If we clean up the map then we lose the bookkeeping so lets just keep it
+                // map.deleteIn([message.conversationIDKey, message.outboxID])
+                console.log('aaa found existing and upgrading', message, existingOrdinal)
+                // We keep the original ordinal we created always so that mapping is fixed
+                // This is required to help flow not confuse itself...
+                switch (message.type) {
+                  case 'text':
+                    return message.set('ordinal', existingOrdinal)
+                  case 'attachment':
+                    return message.set('ordinal', existingOrdinal)
+                  case 'deleted':
+                    return message.set('ordinal', existingOrdinal)
+                  default:
+                    return message
+                }
+              } else {
+                return message
+              }
+            }))
+        )
+      }
+
+      // Update our ordinals list
+      // First build a map of conversationIDKey to Set of ordinals (eliminates dupes)
+      const idToMessages = updatedMessages.reduce((map, m) => {
+        const set = (map[m.conversationIDKey] = map[m.conversationIDKey] || new Set()) // note: NOT immutable
+        set.add(m.ordinal)
+        return map
+      }, {})
+
+      // Create a map of conversationIDKey to Sorted list of ordinals
+      const messageOrdinals = state.messageOrdinals.withMutations(
+        (map: I.Map<Types.ConversationIDKey, I.List<Types.Ordinal>>) =>
+          Object.keys(idToMessages).forEach(conversationIDKey =>
+            map.update(conversationIDKey, I.List(), (list: I.List<Types.Ordinal>) =>
+              I.Set(list)
+                .concat(idToMessages[conversationIDKey])
+                .toList()
+                .sort()
+            )
+          )
+      )
+
+      const messageMap = state.messageMap.withMutations(
+        (map: I.Map<Types.ConversationIDKey, I.Map<Types.Ordinal, Types.Message>>) =>
+          updatedMessages.forEach(message => {
+            // Keep old messages unless we got a valid id
+            map.updateIn([message.conversationIDKey, message.ordinal], old => {
+              if (old) {
+                // Our old one was pending
+                if (!old.id && message.id) {
+                  return message
+                }
+                // Keep old messages otherwise
+                return old
+              }
+              // A new message
+              return message
+            })
+          })
+      )
+
+      const metaMap =
+        context === 'threadLoad'
+          ? state.metaMap.update(
+              context.conversationIDKey,
+              (meta: ?Types.ConversationMeta) => (meta ? meta.set('hasLoadedThread', true) : meta)
+            )
+          : state.metaMap
+
+      return state
+        .set('metaMap', metaMap)
+        .set('messageMap', messageMap)
+        .set('messageOrdinals', messageOrdinals)
+        .set('pendingOutboxToOrdinal', pendingOutboxToOrdinal)
+    }
+
+    // metaMap/messageMap/messageOrdinalsList only actions
     case Chat2Gen.clearOrdinals:
     case Chat2Gen.inboxRefresh:
     case Chat2Gen.messageDelete:
     case Chat2Gen.messageEdit:
     case Chat2Gen.messageWasEdited:
-    case Chat2Gen.messagesAdd:
     case Chat2Gen.messagesWereDeleted:
     case Chat2Gen.metaReceivedError:
     case Chat2Gen.metaRequestingTrusted:
     case Chat2Gen.metasReceived:
       return state
         .set('metaMap', metaMapReducer(state.metaMap, action))
-        .set('messageMap', messageMapReducer(state.messageMap, action, state))
+        .set('messageMap', messageMapReducer(state.messageMap, action))
         .set('messageOrdinals', messageOrdinalsReducer(state.messageOrdinals, action))
-        .set('pendingOutboxToOrdinal', pendingOutboxToOrdinalReducer(state.pendingOutboxToOrdinal, action))
     // Saga only actions
     case Chat2Gen.desktopNotification:
     case Chat2Gen.loadMoreMessages:

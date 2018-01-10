@@ -58,7 +58,7 @@
     },
     // Add a new message
     "messagesAdd": {
-      "context": "{type: 'incomingWasPending', outboxID: Types.OutboxID} | {type: 'sent', outboxID: Types.OutboxID} | {type: 'incoming'} | {type: 'threadLoad', conversationIDKey: Types.ConversationIDKey}", // because we clicked on a conversation for the very first time?
+      "context": "{type: 'sent'} | {type: 'incoming'} | {type: 'threadLoad', conversationIDKey: Types.ConversationIDKey}", // because we clicked on a conversation for the very first time?
       "messages": "Array<Types.Message>"
     },
     // Start editing a message / or clear editing

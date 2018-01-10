@@ -86,7 +86,7 @@ export const createMessageWasEdited = (
 ) => ({error: false, payload, type: messageWasEdited})
 export const createMessagesAdd = (
   payload: $ReadOnly<{
-    context: {type: 'incomingWasPending', outboxID: Types.OutboxID} | {type: 'sent', outboxID: Types.OutboxID} | {type: 'incoming'} | {type: 'threadLoad', conversationIDKey: Types.ConversationIDKey},
+    context: {type: 'sent'} | {type: 'incoming'} | {type: 'threadLoad', conversationIDKey: Types.ConversationIDKey},
     messages: Array<Types.Message>,
   }>
 ) => ({error: false, payload, type: messagesAdd})

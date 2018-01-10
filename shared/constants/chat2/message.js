@@ -10,7 +10,6 @@ import clamp from 'lodash/clamp'
 import {isMobile} from '../platform'
 import type {TypedState} from '../reducer'
 
-// flow is geting confused
 const makeMessageCommon = {
   author: '',
   conversationIDKey: '',
@@ -89,6 +88,7 @@ export const uiMessageToMessage = (
       hasBeenEdited: m.superseded,
       id: m.messageID,
       ordinal: m.messageID,
+      outboxID: m.outboxID ? Types.stringToOutboxID(m.outboxID) : null,
       timestamp: m.ctime,
     }
 
@@ -150,7 +150,8 @@ function nextFractionalOrdinal(ord: number): number {
 export const makePendingTextMessage = (
   state: TypedState,
   conversationIDKey: Types.ConversationIDKey,
-  text: HiddenString
+  text: HiddenString,
+  outboxID: Types.OutboxID
 ) => {
   const lastOrindal = state.chat2.messageOrdinals.get(conversationIDKey, I.List()).last() || 0
   const ordinal = nextFractionalOrdinal(lastOrindal)
@@ -163,6 +164,7 @@ export const makePendingTextMessage = (
     id: 0,
     localState: 'pending',
     ordinal,
+    outboxID,
     text,
     timestamp: Date.now(),
   })

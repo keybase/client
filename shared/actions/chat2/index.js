@@ -222,25 +222,16 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
     const conversationIDKey = Constants.conversationIDToKey(convID)
     const message = Constants.uiMessageToMessage(conversationIDKey, cMsg)
     if (message) {
-      if (cMsg.state === RPCChatTypes.chatUiMessageUnboxedState.valid && cMsg.valid && cMsg.valid.outboxID) {
+      // visible type
+      actions.push(Chat2Gen.createMessagesAdd({context: {type: 'incoming'}, messages: [message]}))
+      if (!isMobile && displayDesktopNotification && conv && conv.snippet) {
         actions.push(
-          Chat2Gen.createMessagesAdd({
-            context: {outboxID: Types.stringToOutboxID(cMsg.valid.outboxID), type: 'incomingWasPending'},
-            messages: [message],
+          Chat2Gen.createDesktopNotification({
+            author: message.author,
+            body: conv.snippet,
+            conversationIDKey,
           })
         )
-      } else {
-        // visible type
-        actions.push(Chat2Gen.createMessagesAdd({context: {type: 'incoming'}, messages: [message]}))
-        if (!isMobile && displayDesktopNotification && conv && conv.snippet) {
-          actions.push(
-            Chat2Gen.createDesktopNotification({
-              author: message.author,
-              body: conv.snippet,
-              conversationIDKey,
-            })
-          )
-        }
       }
     } else if (cMsg.state === RPCChatTypes.chatUiMessageUnboxedState.valid && cMsg.valid) {
       const body = cMsg.valid.messageBody
@@ -525,6 +516,9 @@ const rpcLoadThread = (
     return EngineRpc.rpcResult()
   }
 
+  // Disallow fractional ordinals in pivot
+  pivot = pivot ? Math.floor(pivot) : null
+
   logger.info(
     `Load thread: calling rpc convo: ${conversationIDKey} pivot: ${pivot || ''} recent: ${
       recent ? 'true' : 'false'
@@ -636,17 +630,19 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
   const clientPrev = Math.floor(Constants.getMessageOrdinals(state, conversationIDKey).last() || 0)
   const outboxID = Constants.generateOutboxID()
 
-  const pendingMessage = Constants.makePendingTextMessage(state, conversationIDKey, text)
-
   // Inject pending message and make the call
   return Saga.sequentially([
     Saga.put(
       Chat2Gen.createMessagesAdd({
-        context: {
-          outboxID: Types.stringToOutboxID(outboxID.toString('hex')),
-          type: 'sent',
-        },
-        messages: [pendingMessage],
+        context: {type: 'sent'},
+        messages: [
+          Constants.makePendingTextMessage(
+            state,
+            conversationIDKey,
+            text,
+            Types.stringToOutboxID(outboxID.toString('hex') || '') // never null but makes flow happy
+          ),
+        ],
       })
     ),
     Saga.call(RPCChatTypes.localPostTextNonblockRpcPromise, {
