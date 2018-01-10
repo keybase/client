@@ -13,8 +13,8 @@ import * as Tabs from '../constants/tabs'
 import moment from 'moment'
 import {isMobile} from '../constants/platform'
 import {navigateTo} from './route-tree'
-import {createIncrementWaiting, createDecrementWaiting} from './waiting-gen'
 
+// TODO refactor into pure function & reuse _processGitRepo
 function* _loadGit(action: GitGen.LoadGitPayload): Saga.SagaGenerator<any, any> {
   yield Saga.put(GitGen.createSetError({error: null}))
   yield Saga.put(GitGen.createSetLoading({loading: true}))
@@ -42,6 +42,7 @@ function* _loadGit(action: GitGen.LoadGitPayload): Saga.SagaGenerator<any, any> 
           lastEditUser: r.serverMetadata.lastModifyingUsername,
           name: r.localMetadata.repoName,
           teamname,
+          repoID: r.repoID,
           url: r.repoUrl,
           channelName: (r.teamRepoSettings && r.teamRepoSettings.channelName) || null,
           chatDisabled: !!r.teamRepoSettings && r.teamRepoSettings.chatDisabled,
@@ -125,7 +126,6 @@ const _deleteTeamRepo = (action: GitGen.DeleteTeamRepoPayload) =>
 
 const _setTeamRepoSettings = (action: GitGen.SetTeamRepoSettingsPayload) =>
   Saga.sequentially([
-    createIncrementWaiting({key: `teamRepoSettings:${action.payload.repoID}`}),
     Saga.call(RPCTypes.gitSetTeamRepoSettingsRpcPromise, {
       folder: {
         name: action.payload.teamname,
@@ -138,8 +138,63 @@ const _setTeamRepoSettings = (action: GitGen.SetTeamRepoSettingsPayload) =>
       channelName: action.payload.channelName,
       chatDisabled: action.payload.chatDisabled,
     }),
-    createDecrementWaiting({key: `teamRepoSettings:${action.payload.repoID}`}),
+    Saga.put(GitGen.createLoadGitRepo({teamname: action.payload.teamname, username: null})),
   ])
+
+const _loadGitRepo = (action: GitGen.LoadGitRepoPayload) =>
+  Saga.call(RPCTypes.gitGetGitMetadataRpcPromise, {
+    folder: {
+      name: action.payload.teamname || action.payload.username || '',
+      folderType: action.payload.teamname
+        ? RPCTypes.favoriteFolderType.team
+        : RPCTypes.favoriteFolderType.private,
+      private: true,
+      created: false,
+      notificationsOn: false,
+    },
+  })
+
+// TODO refactor along with _loadGit to reuse this function
+const _processGitRepo = (results: Array<RPCTypes.GitRepoResult>) => {
+  let idToInfo = {}
+
+  for (let i = 0; i < results.length; i++) {
+    const repoResult = results[i]
+    if (repoResult.state === RPCTypes.gitGitRepoResultState.ok && repoResult.ok) {
+      const r: RPCTypes.GitRepoInfo = repoResult.ok
+      if (!r.folder.private) {
+        // Skip public repos
+        continue
+      }
+      const teamname = r.folder.folderType === RPCTypes.favoriteFolderType.team ? r.folder.name : null
+      idToInfo[r.globalUniqueID] = Constants.makeGitInfo({
+        canDelete: r.canDelete,
+        devicename: r.serverMetadata.lastModifyingDeviceName,
+        id: r.globalUniqueID,
+        lastEditTime: moment(r.serverMetadata.mtime).fromNow(),
+        lastEditUser: r.serverMetadata.lastModifyingUsername,
+        name: r.localMetadata.repoName,
+        teamname,
+        repoID: r.repoID,
+        url: r.repoUrl,
+        channelName: (r.teamRepoSettings && r.teamRepoSettings.channelName) || null,
+        chatDisabled: !!r.teamRepoSettings && r.teamRepoSettings.chatDisabled,
+      })
+    } else {
+      let errStr: string = 'unknown'
+      if (repoResult.state === RPCTypes.gitGitRepoResultState.err && repoResult.err) {
+        errStr = repoResult.err
+      }
+      return Saga.put(
+        ConfigGen.createGlobalError({
+          globalError: new Error(`Git repo error: ${errStr}`),
+        })
+      )
+    }
+  }
+
+  return Saga.put(Entities.mergeEntity(['git'], I.Map({idToInfo: I.Map(idToInfo)})))
+}
 
 const _setLoading = (action: GitGen.SetLoadingPayload) =>
   Saga.put(Entities.replaceEntity(['git'], I.Map([['loading', action.payload.loading]])))
@@ -191,6 +246,7 @@ function* gitSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(GitGen.handleIncomingGregor, _handleIncomingGregor)
   yield Saga.safeTakeEveryPure(RouteTreeConstants.switchTo, _onTabChange)
   yield Saga.safeTakeEveryPure(GitGen.setTeamRepoSettings, _setTeamRepoSettings)
+  yield Saga.safeTakeEveryPure(GitGen.loadGitRepo, _loadGitRepo, _processGitRepo)
 }
 
 export default gitSaga

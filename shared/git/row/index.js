@@ -20,7 +20,8 @@ export type Props = {
   canDelete: boolean,
   canEdit: boolean,
   channelNames: Array<string>,
-  currentChannel: ?string,
+  channelName: ?string,
+  chatDisabled: boolean,
   devicename: string,
   expanded: boolean,
   lastEditTime: string,
@@ -34,6 +35,7 @@ export type Props = {
   onCopy: () => void,
   onClickDevice: () => void,
   onShowDelete: () => void,
+  onToggleChatEnabled: () => void,
   onToggleExpand: () => void,
   setTimeout: (() => void, number) => number,
   openUserTracker: (username: string) => void,
@@ -41,13 +43,11 @@ export type Props = {
 
 type State = {
   showingCopy: boolean,
-  showMenu: boolean,
 }
 
 class Row extends React.Component<Props, State> {
   state = {
     showingCopy: false,
-    showMenu: false,
   }
 
   _input: any
@@ -198,8 +198,8 @@ class Row extends React.Component<Props, State> {
             {this.props.canEdit && (
               <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginTop: globalMargins.xtiny}}>
                 <Checkbox
-                  checked={!!this.props.currentChannel}
-                  onCheck={null}
+                  checked={!this.props.chatDisabled}
+                  onCheck={this.props.onToggleChatEnabled}
                   label=""
                   labelComponent={
                     <Text type="BodySmall">

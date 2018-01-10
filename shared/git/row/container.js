@@ -2,6 +2,7 @@
 import React from 'react'
 import Row from '.'
 import * as Constants from '../../constants/git'
+import {createSetTeamRepoSettings} from '../../actions/git-gen'
 import {connect, type TypedState} from '../../util/container'
 import {createGetProfile} from '../../actions/tracker-gen'
 import {copyToClipboard} from '../../util/clipboard'
@@ -21,6 +22,8 @@ const mapStateToProps = (state: TypedState, {id, expanded}) => {
 
 const mapDispatchToProps = (dispatch: any) => ({
   openUserTracker: (username: string) => dispatch(createGetProfile({username, forceDisplay: true})),
+  _setDisableChat: (disabled: boolean, repoID: string, teamname: string) =>
+    dispatch(createSetTeamRepoSettings({chatDisabled: disabled, repoID, teamname, channelName: null})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
@@ -32,6 +35,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onCopy: () => copyToClipboard(stateProps.url),
   onShowDelete: () => ownProps.onShowDelete(stateProps.id),
   openUserTracker: dispatchProps.openUserTracker,
+  onToggleChatEnabled: () => {
+    dispatchProps._setDisableChat(!stateProps.chatDisabled, stateProps.repoID, stateProps.teamname)
+  },
   onToggleExpand: () => ownProps.onToggleExpand(stateProps.id),
 })
 

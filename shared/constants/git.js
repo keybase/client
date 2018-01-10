@@ -10,6 +10,7 @@ export const makeGitInfo: I.RecordFactory<Types._GitInfo> = I.Record({
   lastEditTime: '',
   lastEditUser: '',
   name: '',
+  repoID: '',
   teamname: null,
   url: '',
   channelName: null,

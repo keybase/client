@@ -37,6 +37,10 @@
       "channelName": "?string",
       "teamname": "string",
       "repoID": "string"
+    },
+    "loadGitRepo": {
+      "username": "?string",
+      "teamname": "?string"
     }
   }
 }
