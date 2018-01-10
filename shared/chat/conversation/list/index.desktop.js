@@ -71,11 +71,11 @@ class BaseList extends React.Component<Props, State> {
 
   componentWillReceiveProps(nextProps: Props) {
     // if (
-      // this.props.selectedConversation !== nextProps.selectedConversation // ||
-      // // this.props.listScrollDownCounter !== nextProps.listScrollDownCounter
+    // this.props.selectedConversation !== nextProps.selectedConversation // ||
+    // // this.props.listScrollDownCounter !== nextProps.listScrollDownCounter
     // ) {
-      // this._cellCache.clearAll()
-      // this.setState({isLockedToBottom: true})
+    // this._cellCache.clearAll()
+    // this.setState({isLockedToBottom: true})
     // }
 
     if (this.props.messageOrdinals.size !== nextProps.messageOrdinals.size) {

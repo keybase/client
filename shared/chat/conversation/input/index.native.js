@@ -2,13 +2,13 @@
 /* eslint-env browser */
 import logger from '../../../logger'
 // $FlowIssue can't find this
-import {showImagePicker} from 'react-native-image-picker'
+// import {showImagePicker} from 'react-native-image-picker'
 import React, {Component} from 'react'
 import {Box, Icon, Input, Text} from '../../../common-adapters'
 import {globalMargins, globalStyles, globalColors} from '../../../styles'
 import {isIOS} from '../../../constants/platform'
 
-import type {AttachmentInput} from '../../../constants/types/chat'
+// import type {AttachmentInput} from '../../../constants/types/chat'
 import type {Props} from '.'
 
 let CustomTextInput
@@ -45,27 +45,27 @@ class ConversationInput extends Component<Props> {
   // }
 
   _openFilePicker = () => {
-    showImagePicker({}, response => {
-      if (response.didCancel) {
-        return
-      }
-      if (response.error) {
-        console.error(response.error)
-        throw new Error(response.error)
-      }
-      const filename = isIOS ? response.uri.replace('file://', '') : response.path
-      // const conversationIDKey = this.props.selectedConversationIDKey
-      if (!response.didCancel) {
-        // } && conversationIDKey) {
-        const input = {
-          // conversationIDKey,
-          filename: filename || '',
-          title: response.fileName || '',
-          type: 'Image',
-        }
-        // this.props.onAttach([input])
-      }
-    })
+    // showImagePicker({}, response => {
+    // if (response.didCancel) {
+    // return
+    // }
+    // if (response.error) {
+    // console.error(response.error)
+    // throw new Error(response.error)
+    // }
+    // const filename = isIOS ? response.uri.replace('file://', '') : response.path
+    // // const conversationIDKey = this.props.selectedConversationIDKey
+    // if (!response.didCancel) {
+    // // } && conversationIDKey) {
+    // // const input = {
+    // // // conversationIDKey,
+    // // filename: filename || '',
+    // // title: response.fileName || '',
+    // // type: 'Image',
+    // // }
+    // // this.props.onAttach([input])
+    // }
+    // })
   }
 
   _onSubmit = () => {

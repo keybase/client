@@ -117,6 +117,10 @@ type Props = {
 }
 class MessageFactory extends React.PureComponent<Props> {
   render() {
+    if (!this.props.message) {
+      return null
+    }
+
     switch (this.props.message.type) {
       case 'text':
         return (
@@ -139,7 +143,9 @@ const mapStateToProps = (state: TypedState, {ordinal, previous}) => {
   const message = messageMap.get(ordinal)
   return {
     isEditing:
-      conversationIDKey && Constants2.getEditingOrdinal(state, conversationIDKey) === message.ordinal,
+      message &&
+      conversationIDKey &&
+      Constants2.getEditingOrdinal(state, conversationIDKey) === message.ordinal,
     isSelected: messageActionMessage(state, conversationIDKey) === message,
     message,
     previous: previous ? messageMap.get(previous) : null,

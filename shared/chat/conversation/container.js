@@ -3,7 +3,6 @@ import * as Constants from '../../constants/chat'
 import * as Types from '../../constants/types/chat'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as SearchConstants from '../../constants/search'
-import * as Creators from '../../actions/chat/creators'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import {type List} from 'immutable'
 import HiddenString from '../../util/hidden-string'
@@ -48,7 +47,7 @@ type DispatchProps = {|
   onOpenInfoPanelMobile: () => void,
   onExitSearch: () => void,
   onBack: () => void,
-  _onStoreInputText: (selectedConversation: Types.ConversationIDKey, inputText: string) => void,
+  // _onStoreInputText: (selectedConversation: Types.ConversationIDKey, inputText: string) => void,
   onShowTrackerInSearch: (id: string) => void,
 |}
 
@@ -138,20 +137,20 @@ const mapDispatchToProps = (
   onBack: () => dispatch(navigateUp()),
   onShowTrackerInSearch: (username: string) =>
     dispatch(createGetProfile({username, ignoreCache: false, forceDisplay: true})),
-  _onStoreInputText: (selectedConversation: Types.ConversationIDKey, inputText: string) =>
-    dispatch(Creators.setSelectedRouteState(selectedConversation, {inputText: new HiddenString(inputText)})),
+  // _onStoreInputText: (selectedConversation: Types.ConversationIDKey, inputText: string) =>
+  // dispatch(Creators.setSelectedRouteState(selectedConversation, {inputText: new HiddenString(inputText)})),
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
   return {
     ...stateProps,
     ...dispatchProps,
-    onStoreInputText: (chatText: string) => {
-      if (stateProps.selectedConversationIDKey) {
-        // only write if we're in a convo
-        dispatchProps._onStoreInputText(stateProps.selectedConversationIDKey, chatText)
-      }
-    },
+    // onStoreInputText: (chatText: string) => {
+    // if (stateProps.selectedConversationIDKey) {
+    // // only write if we're in a convo
+    // dispatchProps._onStoreInputText(stateProps.selectedConversationIDKey, chatText)
+    // }
+    // },
     onAttach: (inputs: Array<Types.AttachmentInput>) => {
       stateProps.selectedConversationIDKey &&
         dispatchProps._onAttach(stateProps.selectedConversationIDKey, inputs)

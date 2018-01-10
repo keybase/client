@@ -102,23 +102,21 @@ class ConversationInput extends Component<InputProps, State> {
     // if (!conversationIDKey) {
     // throw new Error('No conversation')
     // }
-    const files = this.props.filePickerFiles()
-    if (files.length <= 0) {
-      return
-    }
-
-    const inputs = Array.prototype.map.call(files, file => {
-      const {path, name, type} = file
-      return {
-        // conversationIDKey,
-        filename: path,
-        title: name,
-        type: type.indexOf('image') >= 0 ? 'Image' : 'Other',
-      }
-    })
-
-    // this.props.onAttach(inputs)
-    this.props.filePickerSetValue(null)
+    // const files = this.props.filePickerFiles()
+    // if (files.length <= 0) {
+    // return
+    // }
+    // // const inputs = Array.prototype.map.call(files, file => {
+    // // const {path, name, type} = file
+    // // return {
+    // // // conversationIDKey,
+    // // filename: path,
+    // // title: name,
+    // // type: type.indexOf('image') >= 0 ? 'Image' : 'Other',
+    // // }
+    // // })
+    // // this.props.onAttach(inputs)
+    // this.props.filePickerSetValue(null)
   }
 
   _pickerOnClick = emoji => {

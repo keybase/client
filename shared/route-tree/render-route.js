@@ -176,7 +176,6 @@ function renderRouteStack({
               setRouteState={setRouteState}
               leafTags={leafTags}
               stack={childStack}
-              key={path.join(':')}
             >
               {child({isActiveRoute, shouldRender})}
             </RenderRouteNode>
@@ -197,7 +196,6 @@ function renderRouteStack({
           routeDef={routeDef}
           routeState={routeState}
           path={path}
-          key={path.join(':')}
           setRouteState={setRouteState}
         />
       ) : (

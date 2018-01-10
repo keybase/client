@@ -46,19 +46,19 @@ class Input extends Component<Props, State> {
     this._autoResize()
   }
 
-  getValue(): string {
+  getValue = (): string => {
     return this.state.value || ''
   }
 
-  setValue(value: string) {
+  setValue = (value: string) => {
     this.setState({value: value || ''})
   }
 
-  clearValue() {
+  clearValue = () => {
     this._onChange({target: {value: ''}})
   }
 
-  selections() {
+  selections = () => {
     const node = this._input && this._inputNode()
     if (node) {
       // $FlowIssue
@@ -74,7 +74,7 @@ class Input extends Component<Props, State> {
     this.props.onChangeText && this.props.onChangeText(event.target.value || '')
   }
 
-  _autoResize() {
+  _autoResize = () => {
     if (!this.props.multiline) {
       return
     }
@@ -90,29 +90,29 @@ class Input extends Component<Props, State> {
     node.style.height = `${node.scrollHeight}px`
   }
 
-  _inputNode() {
+  _inputNode = () => {
     return findDOMNode(this._input)
   }
 
-  focus() {
+  focus = () => {
     const n = this._input && this._inputNode()
     // $FlowIssue
     n && n.focus()
   }
 
-  select() {
+  select = () => {
     const n = this._input && this._inputNode()
     // $FlowIssue
     n && n.select()
   }
 
-  blur() {
+  blur = () => {
     const n = this._input && this._inputNode()
     // $FlowIssue
     n && n.blur()
   }
 
-  insertTextAtCursor(text: string) {
+  insertTextAtCursor = (text: string) => {
     const n = this._input && this._inputNode()
     const selections = this.selections()
     if (n && selections) {
@@ -121,7 +121,7 @@ class Input extends Component<Props, State> {
     }
   }
 
-  replaceText(text: string, startIdx: number, endIdx: number) {
+  replaceText = (text: string, startIdx: number, endIdx: number) => {
     const n = this._input && this._inputNode()
     if (n) {
       // $FlowIssue
@@ -170,7 +170,7 @@ class Input extends Component<Props, State> {
     this.props.onBlur && this.props.onBlur()
   }
 
-  _underlineColor() {
+  _underlineColor = () => {
     if (this.props.hideUnderline) {
       return globalColors.transparent
     }
@@ -182,11 +182,11 @@ class Input extends Component<Props, State> {
     return this.state.focused ? globalColors.blue : globalColors.black_10
   }
 
-  _rowsToHeight(rows) {
+  _rowsToHeight = rows => {
     return rows * _lineHeight + 1 // border
   }
 
-  _containerStyle(underlineColor) {
+  _containerStyle = underlineColor => {
     return this.props.small
       ? {
           ...globalStyles.flexBoxRow,
@@ -201,7 +201,7 @@ class Input extends Component<Props, State> {
         }
   }
 
-  _propTypeToSingleLineType() {
+  _propTypeToSingleLineType = () => {
     switch (this.props.type) {
       case 'password':
         return 'password'
