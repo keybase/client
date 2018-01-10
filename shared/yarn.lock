@@ -7654,9 +7654,9 @@ react-native-iphone-x-helper@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/react-native-iphone-x-helper/-/react-native-iphone-x-helper-1.0.1.tgz#950dbdaca66f458689a7e9697c5beb9bd53f98f2"
 
-react-native-push-notification@3.0.1:
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/react-native-push-notification/-/react-native-push-notification-3.0.1.tgz#0e23db302d03bb4a3f28dc072dcaf2a9a1178ed8"
+"react-native-push-notification@git://github.com/keybase/react-native-push-notification#keybase-fixes-off-302":
+  version "3.0.2"
+  resolved "git://github.com/keybase/react-native-push-notification#e60fbd9c3ef0466a8b8b8bd2d7549e4f34b8f943"
 
 react-native-tab-view@^0.0.67:
   version "0.0.67"
