@@ -4,7 +4,8 @@ import React, {Component, type Node} from 'react'
 import type {TextType} from './text'
 
 export type Props = {
-  label: string | Node,
+  label: string,
+  labelComponent?: Node,
   onCheck: ?(newCheckedValue: boolean) => void,
   checked: boolean,
   style?: Object,

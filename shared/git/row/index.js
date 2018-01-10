@@ -200,7 +200,20 @@ class Row extends React.Component<Props, State> {
                 <Checkbox
                   checked={!!this.props.currentChannel}
                   onCheck={null}
-                  label={<Text type="BodySmall">Announce pushes in #general.</Text>}
+                  label=""
+                  labelComponent={
+                    <Text type="BodySmall">
+                      Announce pushes in{' '}
+                      <Text
+                        type="BodySmallPrimaryLink"
+                        onClick={e => {
+                          e.preventDefault()
+                        }}
+                      >
+                        #general
+                      </Text>
+                    </Text>
+                  }
                 />
               </Box>
             )}
