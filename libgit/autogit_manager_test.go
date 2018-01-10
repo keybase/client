@@ -33,7 +33,7 @@ func initConfigForAutogit(t *testing.T) (
 	success := false
 	ctx = context.WithValue(ctx, libkbfs.CtxAllowNameKey, kbfsRepoDir)
 
-	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel = context.WithTimeout(ctx, 60*time.Second)
 
 	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_server")
 	require.NoError(t, err)
