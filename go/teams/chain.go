@@ -1062,7 +1062,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
 
 		t.completeInvites(&res.newState, team.CompletedInvites)
-		t.implicitCompleteInvites(&res.newState, roleUpdates, payload.SignatureMetadata())
+		t.obsoleteInvites(&res.newState, roleUpdates, payload.SignatureMetadata())
 
 		// Note: If someone was removed, the per-team-key should be rotated. This is not checked though.
 
@@ -1983,7 +1983,7 @@ func (t *TeamSigChainPlayer) completeInvites(stateToUpdate *TeamSigChainState, c
 	}
 }
 
-func (t *TeamSigChainPlayer) implicitCompleteInvites(stateToUpdate *TeamSigChainState, roleUpdates chainRoleUpdates, sigMeta keybase1.SignatureMetadata) {
+func (t *TeamSigChainPlayer) obsoleteInvites(stateToUpdate *TeamSigChainState, roleUpdates chainRoleUpdates, sigMeta keybase1.SignatureMetadata) {
 	if len(stateToUpdate.inner.ActiveInvites) == 0 {
 		return
 	}
