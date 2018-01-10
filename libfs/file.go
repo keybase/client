@@ -218,16 +218,23 @@ func (f *File) Unlock() (err error) {
 		return f.fs.config.MDServer().ReleaseLock(f.fs.ctx,
 			f.fs.root.GetFolderBranch().Tlf, f.getLockID())
 	}
-	err = jServer.FinishSingleOp(f.fs.ctx,
-		f.fs.root.GetFolderBranch().Tlf, &keybase1.LockContext{
-			RequireLockID:       f.getLockID(),
-			ReleaseAfterSuccess: true,
-		}, f.fs.priority)
-	if err != nil {
-		return err
-	}
 
-	if f.fs.config.Mode() != libkbfs.InitSingleOp {
+	if f.fs.config.Mode() == libkbfs.InitSingleOp {
+		err = jServer.FinishSingleOp(f.fs.ctx,
+			f.fs.root.GetFolderBranch().Tlf, &keybase1.LockContext{
+				RequireLockID:       f.getLockID(),
+				ReleaseAfterSuccess: true,
+			}, f.fs.priority)
+		if err != nil {
+			return err
+		}
+	} else {
+		err = jServer.WaitForCompleteFlush(
+			f.fs.ctx, f.fs.root.GetFolderBranch().Tlf)
+		if err != nil {
+			return err
+		}
+
 		f.fs.log.CDebugf(f.fs.ctx, "Releasing the lock")
 
 		// Need to explicitly release the lock from the server. If
