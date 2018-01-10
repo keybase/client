@@ -50,8 +50,9 @@ const AddedToTeamNotice = ({
   const adderComponent =
     adder === you ? 'You' : <ConnectedUsernames {...connectedUsernamesProps} usernames={[adder]} />
 
+  const selfAddee = adder === you ? 'yourself' : 'you'
   const addeeComponent =
-    addee === you ? 'you' : <ConnectedUsernames {...connectedUsernamesProps} usernames={[addee]} />
+    addee === you ? selfAddee : <ConnectedUsernames {...connectedUsernamesProps} usernames={[addee]} />
 
   let manageComponent = null
 
