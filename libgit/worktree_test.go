@@ -90,6 +90,11 @@ func TestWorktreeReset(t *testing.T) {
 	require.NoError(t, err)
 	testCheckFile(t, git2FS, "foo", "hello")
 
+	// No-op.
+	err = Reset(ctx, dotgit1FS, git2FS, "refs/heads/master")
+	require.NoError(t, err)
+	testCheckFile(t, git2FS, "foo", "hello")
+
 	// Try a second file.
 	addOneFileToRepo(t, git1, "foo2", "hello2")
 	err = Reset(ctx, dotgit1FS, git2FS, "refs/heads/master")
