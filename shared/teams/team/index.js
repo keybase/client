@@ -403,15 +403,16 @@ class Team extends React.PureComponent<Props> {
         />
       )
     } else if (selectedTab === 'subteams') {
-      let subTeamsItems = [
-        {key: 'addSubteam', type: 'addSubteam', onCreateSubteam},
-        ...subTeamsProps,
-      ]
+      let subTeamsItems = [...subTeamsProps]
+      if (yourOperations.manageSubteams) {
+        subTeamsItems.unshift({key: 'addSubteam', type: 'addSubteam', onCreateSubteam})
+      }
       const noSubteams = subteams.count() === 0
       if (noSubteams) {
         subTeamsItems.unshift({key: 'intro', type: 'intro', onReadMore: onReadMoreAboutSubteams})
         subTeamsItems.push({key: 'noSubteams', type: 'noSubteams'})
       }
+
       contents = !loading && (
         <List
           items={subTeamsItems}
