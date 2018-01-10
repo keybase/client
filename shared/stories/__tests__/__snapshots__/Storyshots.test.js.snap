@@ -15633,7 +15633,7 @@ exports[`Storyshots Common Checkbox 1`] = `
         </span>
       </div>
       <div
-        onClick={undefined}
+        onClick={[Function]}
         style={
           Object {
             "alignItems": "flex-start",
@@ -15698,7 +15698,7 @@ exports[`Storyshots Common Checkbox 1`] = `
         </span>
       </div>
       <div
-        onClick={undefined}
+        onClick={[Function]}
         style={
           Object {
             "alignItems": "flex-start",
