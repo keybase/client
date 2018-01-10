@@ -40,6 +40,7 @@ export const teamRoleByEnum = invert(RPCTypes.teamsTeamRole)
 
 export const typeToLabel: Types.TypeMap = {
   admin: 'Admin',
+  none: 'None',
   owner: 'Owner',
   reader: 'Reader',
   writer: 'Writer',
