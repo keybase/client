@@ -100,6 +100,8 @@ export default function(
         ...nameToUrlMap,
       })
     }
+    case ConfigGen.setOpenAtLogin:
+      return state.set('openAtLogin', action.payload.open)
     case 'remote:updateMenubarWindowID':
       return state.set('menubarWindowID', action.payload.id)
     // Saga only actions

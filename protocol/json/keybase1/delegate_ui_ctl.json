@@ -27,6 +27,10 @@
     "registerGregorFirehose": {
       "request": [],
       "response": null
+    },
+    "registerHomeUI": {
+      "request": [],
+      "response": null
     }
   },
   "namespace": "keybase.1"

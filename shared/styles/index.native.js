@@ -122,7 +122,18 @@ function transition(...properties: Array<string>): Object {
   return {}
 }
 
+const backgroundModeToColor = {
+  Normal: globalColors.white,
+  Terminal: globalColors.darkBlue3,
+  Announcements: globalColors.blue,
+  Success: globalColors.green,
+  Information: globalColors.yellow,
+  HighRisk: globalColors.red,
+  Documentation: globalColors.darkBlue,
+}
+
 export {
+  backgroundModeToColor,
   backgroundURL,
   collapseStyles,
   glamorous,

@@ -22,7 +22,6 @@ include_warnings=true
 munge_underscores=true
 esproposal.class_static_fields=enable
 esproposal.class_instance_fields=enable
-unsafe.enable_getters_and_setters=true
 experimental.const_params=true
 
 module.name_mapper='^image![a-zA-Z0-9$_-]+$' -> 'GlobalImageStub'
@@ -48,6 +47,7 @@ sketchy-null-mixed=off
 sketchy-null-number=off
 unclear-type=off
 untyped-import=off
+deprecated-declare-exports=off
 
 [version]
-0.61
+0.63.1

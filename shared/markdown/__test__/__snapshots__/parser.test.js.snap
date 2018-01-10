@@ -40,6 +40,20 @@ Object {
 }
 `;
 
+exports[`Markdown parser does not parses mentions without isValidMention 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello there @marco",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
 exports[`Markdown parser eats multiple empty lines at end 1`] = `
 Object {
   "children": Array [
@@ -60,6 +74,91 @@ Object {
     Object {
       "children": Array [
         "start",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser ignores mentions in code 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "validmarco",
+          ],
+          "type": "mention",
+        },
+        " ",
+        Object {
+          "children": Array [
+            "@validmarco",
+          ],
+          "type": "inline-code",
+        },
+        " ",
+        Object {
+          "children": Array [
+            "some inline code @validmarco",
+          ],
+          "type": "inline-code",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser ignores mentions in code 2`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "validmarco",
+          ],
+          "type": "mention",
+        },
+        " ",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "@validmarco",
+      ],
+      "type": "code-block",
+    },
+    Object {
+      "children": Array [
+        " ",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "this is a code block @validmarco",
+      ],
+      "type": "code-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser ignores short/long mentions 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello there @a@keybase @0123456789abcdefg@keybase",
       ],
       "type": "text-block",
     },
@@ -223,9 +322,8 @@ Object {
           "children": Array [
             Object {
               "children": Array [
-                "marco",
+                "validmarco",
               ],
-              "service": "keybase",
               "type": "mention",
             },
           ],
@@ -248,9 +346,8 @@ Object {
           "children": Array [
             Object {
               "children": Array [
-                "marco",
+                "validmarco",
               ],
-              "service": "keybase",
               "type": "mention",
             },
           ],
@@ -269,15 +366,29 @@ Object {
   "children": Array [
     Object {
       "children": Array [
+        "_",
         Object {
           "children": Array [
-            Object {
-              "children": Array [
-                "marco",
-              ],
-              "service": "keybase",
-              "type": "mention",
-            },
+            "validmarco_",
+          ],
+          "type": "mention",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses formatted mentions 4`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "@validmarco",
           ],
           "type": "italic",
         },
@@ -596,12 +707,11 @@ Object {
   "children": Array [
     Object {
       "children": Array [
-        "hello there ",
+        "hello there @marco ",
         Object {
           "children": Array [
-            "marco",
+            "validmarco",
           ],
-          "service": "keybase",
           "type": "mention",
         },
       ],
@@ -612,7 +722,7 @@ Object {
 }
 `;
 
-exports[`Markdown parser parses mentions correctly, regardless of case 1`] = `
+exports[`Markdown parser parses mentions with underscores correctly 1`] = `
 Object {
   "children": Array [
     Object {
@@ -620,11 +730,52 @@ Object {
         "hello there ",
         Object {
           "children": Array [
-            "marco",
+            "ryan_singer",
           ],
-          "service": "keybase",
           "type": "mention",
         },
+        " ",
+        Object {
+          "children": Array [
+            "m_",
+          ],
+          "type": "mention",
+        },
+        " ",
+        Object {
+          "children": Array [
+            "dan_t",
+          ],
+          "type": "mention",
+        },
+        " ",
+        Object {
+          "children": Array [
+            "a_b_c",
+          ],
+          "type": "mention",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses mentions with underscores correctly 2`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello there ",
+        Object {
+          "children": Array [
+            "invalid_",
+          ],
+          "type": "mention",
+        },
+        "_name_",
       ],
       "type": "text-block",
     },
@@ -846,9 +997,8 @@ Object {
         "(",
         Object {
           "children": Array [
-            "marco",
+            "validmarco",
           ],
-          "service": "keybase",
           "type": "mention",
         },
       ],

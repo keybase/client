@@ -64,7 +64,7 @@ const routeTree = makeRouteDefNode({
       children: {
         dbNukeConfirm: {
           component: DBNukeConfirm,
-          tags: {modal: true},
+          tags: makeLeafTags({modal: true}),
         },
       },
     },

@@ -1,27 +1,18 @@
 // @flow
-import logger from '../logger'
 import * as Selectors from '../constants/selectors'
-import Mention, {type Props as MentionProps} from './mention'
-import React from 'react'
+import Mention, {type OwnProps} from './mention'
 import {connect, type TypedState} from '../util/container'
 import {createGetProfile} from '../actions/tracker-gen'
 import {isMobile} from '../constants/platform'
 import {createShowUserProfile} from '../actions/profile-gen'
-
-type OwnProps = {username: string, service: string}
 
 const isSpecialCaseHighlight = (username: string) =>
   username === 'channel' || username === 'here' || username === 'everyone'
 
 const mapStateToProps = (
   state: TypedState,
-  {username, service}: OwnProps
-): {theme: $PropertyType<MentionProps, 'theme'>} => {
-  if (service !== 'keybase') {
-    logger.warn('Non keybase service not implmented for mentions')
-    return {theme: 'none'}
-  }
-
+  {username}: OwnProps
+): {theme: $PropertyType<OwnProps, 'theme'>} => {
   if (isSpecialCaseHighlight(username)) {
     return {theme: 'highlight'}
   }
@@ -47,6 +38,4 @@ const mapDispatchToProps = (dispatch, {username}: OwnProps) => ({
       },
 })
 
-// $FlowIssue
-const Connected: React.ComponentType<OwnProps> = connect(mapStateToProps, mapDispatchToProps)(Mention)
-export default Connected
+export default connect(mapStateToProps, mapDispatchToProps)(Mention)

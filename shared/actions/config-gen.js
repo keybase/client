@@ -31,32 +31,55 @@ export const pushLoaded = 'config:pushLoaded'
 export const readyForBootstrap = 'config:readyForBootstrap'
 export const retryBootstrap = 'config:retryBootstrap'
 export const setInitialState = 'config:setInitialState'
+export const setOpenAtLogin = 'config:setOpenAtLogin'
 export const updateFollowing = 'config:updateFollowing'
 
 // Action Creators
-export const createBootstrap = (payload: {|+isReconnect?: boolean|}) => ({error: false, payload, type: bootstrap})
+export const createBootstrap = (payload: $ReadOnly<{isReconnect?: boolean}>) => ({error: false, payload, type: bootstrap})
 export const createBootstrapAttemptFailed = () => ({error: false, payload: undefined, type: bootstrapAttemptFailed})
 export const createBootstrapFailed = () => ({error: false, payload: undefined, type: bootstrapFailed})
 export const createBootstrapRetry = () => ({error: false, payload: undefined, type: bootstrapRetry})
-export const createBootstrapStatusLoaded = (payload: {|+deviceID: string, +deviceName: string, +followers?: ?Array<string>, +following?: ?Array<string>, +loggedIn: boolean, +registered: boolean, +uid: string, +username: string|}) => ({error: false, payload, type: bootstrapStatusLoaded})
+export const createBootstrapStatusLoaded = (
+  payload: $ReadOnly<{
+    deviceID: string,
+    deviceName: string,
+    followers?: ?Array<string>,
+    following?: ?Array<string>,
+    loggedIn: boolean,
+    registered: boolean,
+    uid: string,
+    username: string,
+  }>
+) => ({error: false, payload, type: bootstrapStatusLoaded})
 export const createBootstrapSuccess = () => ({error: false, payload: undefined, type: bootstrapSuccess})
-export const createChangeKBFSPath = (payload: {|+kbfsPath: string|}) => ({error: false, payload, type: changeKBFSPath})
+export const createChangeKBFSPath = (payload: $ReadOnly<{kbfsPath: string}>) => ({error: false, payload, type: changeKBFSPath})
 export const createClearAvatarCache = () => ({error: false, payload: undefined, type: clearAvatarCache})
 export const createClearRouteState = () => ({error: false, payload: undefined, type: clearRouteState})
-export const createConfigLoaded = (payload: {|+config: RPCTypes.Config|}) => ({error: false, payload, type: configLoaded})
-export const createDaemonError = (payload: {|+daemonError: ?Error|}) => ({error: false, payload, type: daemonError})
-export const createExtendedConfigLoaded = (payload: {|+extendedConfig: RPCTypes.ExtendedStatus|}) => ({error: false, payload, type: extendedConfigLoaded})
+export const createConfigLoaded = (payload: $ReadOnly<{config: RPCTypes.Config}>) => ({error: false, payload, type: configLoaded})
+export const createDaemonError = (payload: $ReadOnly<{daemonError: ?Error}>) => ({error: false, payload, type: daemonError})
+export const createExtendedConfigLoaded = (payload: $ReadOnly<{extendedConfig: RPCTypes.ExtendedStatus}>) => ({error: false, payload, type: extendedConfigLoaded})
 export const createGetExtendedStatus = () => ({error: false, payload: undefined, type: getExtendedStatus})
-export const createGlobalError = (payload: {|+globalError: ?Error|}) => ({error: false, payload, type: globalError})
-export const createLoadAvatars = (payload: {|+usernames: Array<string>|}) => ({error: false, payload, type: loadAvatars})
-export const createLoadTeamAvatars = (payload: {|+teamnames: Array<string>|}) => ({error: false, payload, type: loadTeamAvatars})
-export const createLoadedAvatars = (payload: {|+nameToUrlMap: {[name: string]: ?Object}|}) => ({error: false, payload, type: loadedAvatars})
+export const createGlobalError = (payload: $ReadOnly<{globalError: ?Error}>) => ({error: false, payload, type: globalError})
+export const createLoadAvatars = (payload: $ReadOnly<{usernames: Array<string>}>) => ({error: false, payload, type: loadAvatars})
+export const createLoadTeamAvatars = (payload: $ReadOnly<{teamnames: Array<string>}>) => ({error: false, payload, type: loadTeamAvatars})
+export const createLoadedAvatars = (payload: $ReadOnly<{nameToUrlMap: {[name: string]: ?Object}}>) => ({error: false, payload, type: loadedAvatars})
 export const createPersistRouteState = () => ({error: false, payload: undefined, type: persistRouteState})
-export const createPushLoaded = (payload: {|+pushLoaded: boolean|}) => ({error: false, payload, type: pushLoaded})
+export const createPushLoaded = (payload: $ReadOnly<{pushLoaded: boolean}>) => ({error: false, payload, type: pushLoaded})
 export const createReadyForBootstrap = () => ({error: false, payload: undefined, type: readyForBootstrap})
 export const createRetryBootstrap = () => ({error: false, payload: undefined, type: retryBootstrap})
-export const createSetInitialState = (payload: {|+initialState: Types.InitialState|}) => ({error: false, payload, type: setInitialState})
-export const createUpdateFollowing = (payload: {|+username: string, +isTracking: boolean|}) => ({error: false, payload, type: updateFollowing})
+export const createSetInitialState = (payload: $ReadOnly<{initialState: Types.InitialState}>) => ({error: false, payload, type: setInitialState})
+export const createSetOpenAtLogin = (
+  payload: $ReadOnly<{
+    open: boolean,
+    writeFile: boolean,
+  }>
+) => ({error: false, payload, type: setOpenAtLogin})
+export const createUpdateFollowing = (
+  payload: $ReadOnly<{
+    username: string,
+    isTracking: boolean,
+  }>
+) => ({error: false, payload, type: updateFollowing})
 
 // Action Payloads
 export type BootstrapAttemptFailedPayload = More.ReturnType<typeof createBootstrapAttemptFailed>
@@ -81,6 +104,7 @@ export type PushLoadedPayload = More.ReturnType<typeof createPushLoaded>
 export type ReadyForBootstrapPayload = More.ReturnType<typeof createReadyForBootstrap>
 export type RetryBootstrapPayload = More.ReturnType<typeof createRetryBootstrap>
 export type SetInitialStatePayload = More.ReturnType<typeof createSetInitialState>
+export type SetOpenAtLoginPayload = More.ReturnType<typeof createSetOpenAtLogin>
 export type UpdateFollowingPayload = More.ReturnType<typeof createUpdateFollowing>
 
 // All Actions
@@ -108,5 +132,6 @@ export type Actions =
   | More.ReturnType<typeof createReadyForBootstrap>
   | More.ReturnType<typeof createRetryBootstrap>
   | More.ReturnType<typeof createSetInitialState>
+  | More.ReturnType<typeof createSetOpenAtLogin>
   | More.ReturnType<typeof createUpdateFollowing>
   | {type: 'common:resetStore', payload: void}

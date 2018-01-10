@@ -296,14 +296,21 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
   yield Saga.put(TeamsGen.createGetTeamOperations({teamname}))
   yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
   try {
-    const details: RPCTypes.TeamDetails = yield Saga.call(RPCTypes.teamsTeamGetRpcPromise, {
-      name: teamname,
+    const unsafeDetails: RPCTypes.TeamDetails = yield Saga.call(RPCTypes.teamsTeamGetRpcPromise, {
       forceRepoll: false,
+      name: teamname,
     })
 
     // Don't allow the none default
-    if (details.settings.joinAs === RPCTypes.teamsTeamRole.none) {
-      details.settings.joinAs = RPCTypes.teamsTeamRole.reader
+    const details: RPCTypes.TeamDetails = {
+      ...unsafeDetails,
+      settings: {
+        ...unsafeDetails.settings,
+        joinAs:
+          unsafeDetails.settings.joinAs === RPCTypes.teamsTeamRole.none
+            ? RPCTypes.teamsTeamRole.reader
+            : unsafeDetails.settings.joinAs,
+      },
     }
 
     const implicitAdminDetails: Array<RPCTypes.TeamMemberDetails> =
@@ -465,8 +472,7 @@ const _getTeams = function*(action: TeamsGen.GetTeamsPayload): Saga.SagaGenerato
   }
   yield Saga.put(replaceEntity(['teams'], I.Map([['loaded', false]])))
   try {
-    const results: RPCTypes.AnnotatedTeamList = yield Saga.call(RPCTypes.teamsTeamListRpcPromise, {
-      all: false,
+    const results: RPCTypes.AnnotatedTeamList = yield Saga.call(RPCTypes.teamsTeamListUnverifiedRpcPromise, {
       includeImplicitTeams: false,
       userAssertion: username,
     })
@@ -512,7 +518,7 @@ function _checkRequestedAccessSuccess(result) {
 
 const _saveChannelMembership = function(action: TeamsGen.SaveChannelMembershipPayload, state: TypedState) {
   const {teamname, channelState} = action.payload
-  const convIDs: I.Set<string> = Constants.getConvIdsFromTeamName(state, teamname)
+  const convIDs: I.Set<ChatTypes.ConversationIDKey> = Constants.getConvIdsFromTeamName(state, teamname)
   const channelnameToConvID = keyBy(convIDs.toArray(), c => Constants.getChannelNameFromConvID(state, c))
   const waitingKey = {key: `saveChannel:${teamname}`}
 

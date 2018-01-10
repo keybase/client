@@ -101,6 +101,7 @@ class MakeRouteDefNodeClass extends _makeRouteDefNode {
   }
 }
 
+// $FlowIssue
 export const makeRouteDefNode: I.RecordFactory<RouteDefParams> = params => new MakeRouteDefNodeClass(params)
 
 type _RouteState = {
@@ -202,7 +203,6 @@ function _routeSet(
     }
   }
 
-  // $FlowIssue
   const childName = pathHead && pathHead.type === 'traverse' ? pathHead.next : newRouteState.selected
   if (childName !== null) {
     // $FlowIssue
@@ -384,6 +384,7 @@ export function getPathProps(
     curState = curState.getChild(curState.selected)
     path.push({
       node: thisNode,
+      // $FlowIssue dunno
       props: (curState && curState.props) || I.Map(),
     })
   }

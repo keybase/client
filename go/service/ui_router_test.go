@@ -42,4 +42,8 @@ func (f fakeUIRouter) GetGregorUI() (keybase1.GregorUIInterface, error) {
 	return f.gregorUI, nil
 }
 
+func (f fakeUIRouter) GetHomeUI() (keybase1.HomeUIInterface, error) {
+	return nil, nil
+}
+
 func (f fakeUIRouter) Shutdown() {}

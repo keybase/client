@@ -45,8 +45,9 @@ func (t FacebookServiceType) NormalizeUsername(s string) (string, error) {
 	if !facebookUsernameRegexp.MatchString(s) {
 		return "", libkb.NewBadUsernameError(s)
 	}
-	// Convert to lowercase and strip out dots.
-	return strings.ToLower(strings.Replace(s, ".", "", -1)), nil
+	// Convert to lowercase. Don't strip out dots, because while Facebook makes
+	// them optional, there are still dots in a user's "canonical" account name.
+	return strings.ToLower(s), nil
 }
 
 func (t FacebookServiceType) NormalizeRemoteName(ctx libkb.ProofContext, s string) (string, error) {

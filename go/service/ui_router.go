@@ -4,6 +4,7 @@
 package service
 
 import (
+	"fmt"
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -78,7 +79,7 @@ func (u *UIRouter) run() {
 }
 
 func (u *UIRouter) SetUI(c libkb.ConnectionID, k libkb.UIKind) {
-	u.G().Log.Debug("UIRouter: connection %v registering UI %s", c, k)
+	u.G().Log.Debug("UIRouter: connection %v registering UI %s [%p]", c, k, u)
 	u.setCh <- setObj{c, k}
 }
 
@@ -152,6 +153,20 @@ func (u *UIRouter) GetSecretUI(sessionID int) (ui libkb.SecretUI, err error) {
 		Contextified: libkb.NewContextified(u.G()),
 	}
 	return ret, nil
+}
+
+func (u *UIRouter) GetHomeUI() (keybase1.HomeUIInterface, error) {
+	var err error
+	defer u.G().Trace(fmt.Sprintf("UIRouter#GetHomeUI [%p]", u), func() error { return err })()
+
+	x, _ := u.getUI(libkb.HomeUIKind)
+	if x == nil {
+		u.G().Log.Debug("| getUI(libkb.HomeUIKind) returned nil")
+		return nil, nil
+	}
+	cli := rpc.NewClient(x, libkb.NewContextifiedErrorUnwrapper(u.G()), nil)
+	uicli := keybase1.HomeUIClient{Cli: cli}
+	return uicli, nil
 }
 
 func (u *UIRouter) GetRekeyUI() (keybase1.RekeyUIInterface, int, error) {

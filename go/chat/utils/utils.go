@@ -211,6 +211,65 @@ type ConversationStatusBehavior struct {
 	ShowBadges bool
 }
 
+// ConversationMemberStatusBehavior describes how a ConversationMemberStatus behaves
+type ConversationMemberStatusBehavior struct {
+	// Whether to show the conv in the inbox
+	ShowInInbox bool
+	// Whether to show desktop notifications
+	DesktopNotifications bool
+	// Whether to send push notifications
+	PushNotifications bool
+	// Whether to show as part of badging
+	ShowBadges bool
+}
+
+func GetConversationMemberStatusBehavior(s chat1.ConversationMemberStatus) ConversationMemberStatusBehavior {
+	switch s {
+	case chat1.ConversationMemberStatus_ACTIVE:
+		return ConversationMemberStatusBehavior{
+			ShowInInbox:          true,
+			DesktopNotifications: true,
+			PushNotifications:    true,
+			ShowBadges:           true,
+		}
+	case chat1.ConversationMemberStatus_PREVIEW:
+		return ConversationMemberStatusBehavior{
+			ShowInInbox:          true,
+			DesktopNotifications: true,
+			PushNotifications:    true,
+			ShowBadges:           true,
+		}
+	case chat1.ConversationMemberStatus_LEFT:
+		return ConversationMemberStatusBehavior{
+			ShowInInbox:          false,
+			DesktopNotifications: false,
+			PushNotifications:    false,
+			ShowBadges:           false,
+		}
+	case chat1.ConversationMemberStatus_REMOVED:
+		return ConversationMemberStatusBehavior{
+			ShowInInbox:          false,
+			DesktopNotifications: false,
+			PushNotifications:    false,
+			ShowBadges:           false,
+		}
+	case chat1.ConversationMemberStatus_RESET:
+		return ConversationMemberStatusBehavior{
+			ShowInInbox:          true,
+			DesktopNotifications: false,
+			PushNotifications:    false,
+			ShowBadges:           false,
+		}
+	default:
+		return ConversationMemberStatusBehavior{
+			ShowInInbox:          true,
+			DesktopNotifications: true,
+			PushNotifications:    true,
+			ShowBadges:           true,
+		}
+	}
+}
+
 // GetConversationStatusBehavior gives information about what is allowed for a conversation status.
 // When changing these, be sure to update gregor's postMessage as well
 func GetConversationStatusBehavior(s chat1.ConversationStatus) ConversationStatusBehavior {
@@ -425,7 +484,7 @@ func GetSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, error) {
 var chanNameMentionRegExp = regexp.MustCompile(`\B#([0-9a-zA-Z_-]+)`)
 
 func ParseChannelNameMentions(ctx context.Context, body string, uid gregor1.UID, teamID chat1.TLFID,
-	ts types.TeamChannelSource) (res []string) {
+	ts types.TeamChannelSource) (res []types.ConvIDAndTopicName) {
 	names := parseRegexpNames(ctx, body, chanNameMentionRegExp)
 	if len(names) == 0 {
 		return nil
@@ -434,13 +493,13 @@ func ParseChannelNameMentions(ctx context.Context, body string, uid gregor1.UID,
 	if err != nil {
 		return nil
 	}
-	validChans := make(map[string]bool)
+	validChans := make(map[string]types.ConvIDAndTopicName)
 	for _, cr := range chanResponse {
-		validChans[cr.TopicName] = true
+		validChans[cr.TopicName] = cr
 	}
 	for _, name := range names {
-		if validChans[name] {
-			res = append(res, name)
+		if cr, ok := validChans[name]; ok {
+			res = append(res, cr)
 		}
 	}
 	return res
@@ -665,6 +724,15 @@ func GetConvSnippet(conv chat1.ConversationLocal) string {
 	return GetMsgSnippet(msg)
 }
 
+func GetMsgSummaryByType(msgs []chat1.MessageSummary, typ chat1.MessageType) (chat1.MessageSummary, error) {
+	for _, msg := range msgs {
+		if msg.GetMessageType() == typ {
+			return msg, nil
+		}
+	}
+	return chat1.MessageSummary{}, errors.New("not found")
+}
+
 func systemMessageSnippet(msg chat1.MessageSystem) string {
 	typ, err := msg.SystemType()
 	if err != nil {
@@ -782,6 +850,16 @@ func computeOutboxOrdinal(obr chat1.OutboxRecord) float64 {
 	return float64(obr.Msg.ClientHeader.OutboxInfo.Prev) + float64(obr.Ordinal)/1000.0
 }
 
+func presentChannelNameMentions(ctx context.Context, crs []types.ConvIDAndTopicName) (res []chat1.UIChannelNameMention) {
+	for _, cr := range crs {
+		res = append(res, chat1.UIChannelNameMention{
+			Name:   cr.TopicName,
+			ConvID: cr.ConvID.String(),
+		})
+	}
+	return res
+}
+
 func PresentMessageUnboxed(ctx context.Context, rawMsg chat1.MessageUnboxed, uid gregor1.UID,
 	tcs types.TeamChannelSource) (res chat1.UIMessage) {
 
@@ -803,7 +881,7 @@ func PresentMessageUnboxed(ctx context.Context, rawMsg chat1.MessageUnboxed, uid
 		bodyIsDeleted := rawMsg.Valid().MessageBody.IsNil()
 
 		// Get channel name mentions (only frontend really cares about these, so just get it here)
-		var channelNameMentions []string
+		var channelNameMentions []types.ConvIDAndTopicName
 		switch rawMsg.GetMessageType() {
 		case chat1.MessageType_TEXT:
 			if bodyIsDeleted {
@@ -835,7 +913,7 @@ func PresentMessageUnboxed(ctx context.Context, rawMsg chat1.MessageUnboxed, uid
 			Superseded:            rawMsg.Valid().ServerHeader.SupersededBy != 0,
 			AtMentions:            rawMsg.Valid().AtMentionUsernames,
 			ChannelMention:        rawMsg.Valid().ChannelMention,
-			ChannelNameMentions:   channelNameMentions,
+			ChannelNameMentions:   presentChannelNameMentions(ctx, channelNameMentions),
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
 		var body string

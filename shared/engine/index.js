@@ -32,7 +32,7 @@ class EngineChannel {
     this._configKeys = configKeys
   }
 
-  get map(): ChannelMap<*> {
+  getMap(): ChannelMap<*> {
     return this._map
   }
 
@@ -134,7 +134,7 @@ class Engine {
     // Print out any alive sessions periodically
     if (printOutstandingRPCs) {
       setInterval(() => {
-        if (Object.keys(this._sessionsMap).filter(k => !this._sessionsMap[k].dangling).length) {
+        if (Object.keys(this._sessionsMap).filter(k => !this._sessionsMap[k].getDangling()).length) {
           localLog('outstandingSessionDebugger: ', this._sessionsMap)
         }
       }, 10 * 1000)
@@ -266,7 +266,6 @@ class Engine {
     const params = paramsIn || {}
     const channelConfig = Saga.singleFixedChannelConfig(configKeys)
     const channelMap = Saga.createChannelMap(channelConfig)
-    // $FlowIssue doesn't like empty objects with exact types
     const empty: IncomingCallMapType = {}
     const incomingCallMap: IncomingCallMapType = Object.keys(channelMap).reduce((acc, k) => {
       acc[k] = (params, response) => {
@@ -306,7 +305,7 @@ class Engine {
     setImmediate(() => {
       session.start(method, param, callback)
     })
-    return session.id
+    return session.getId()
   }
 
   // Make a new session. If the session hangs around forever set dangling to true
@@ -352,9 +351,9 @@ class Engine {
 
   // Cleanup a session that ended
   _sessionEnded(session: Session) {
-    rpcLog('engineInternal', 'session end', {sessionID: session.id})
-    delete this._sessionsMap[String(session.id)]
-    this._deadSessionsMap[String(session.id)] = true
+    rpcLog('engineInternal', 'session end', {sessionID: session.getId()})
+    delete this._sessionsMap[String(session.getId())]
+    this._deadSessionsMap[String(session.getId())] = true
   }
 
   // Cancel an rpc

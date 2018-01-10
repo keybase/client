@@ -105,7 +105,7 @@ function folderRPCFromPath(path: string): ?RPCTypes.Folder {
 }
 
 function folderFromFolderRPCWithMeta(username: string, f: FolderRPCWithMeta): Folder {
-  const users = sortUserList(parseFolderNameToUsers(username, f.name))
+  const users = sortUserList(parseFolderNameToUsers(username, f.name || ''))
 
   const {sortName, path} = pathFromFolder({
     users,

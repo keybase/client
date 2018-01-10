@@ -20,15 +20,27 @@ export const setError = 'git:setError'
 export const setLoading = 'git:setLoading'
 
 // Action Creators
-export const createBadgeAppForGit = (payload: {|+ids: Array<string>|}) => ({error: false, payload, type: badgeAppForGit})
-export const createCreatePersonalRepo = (payload: {|+name: string|}) => ({error: false, payload, type: createPersonalRepo})
-export const createCreateTeamRepo = (payload: {|+name: string, +teamname: string, +notifyTeam: boolean|}) => ({error: false, payload, type: createTeamRepo})
-export const createDeletePersonalRepo = (payload: {|+name: string|}) => ({error: false, payload, type: deletePersonalRepo})
-export const createDeleteTeamRepo = (payload: {|+name: string, +teamname: string, +notifyTeam: boolean|}) => ({error: false, payload, type: deleteTeamRepo})
-export const createHandleIncomingGregor = (payload: {|+messages: Array<RPCTypesGregor.OutOfBandMessage>|}) => ({error: false, payload, type: handleIncomingGregor})
+export const createBadgeAppForGit = (payload: $ReadOnly<{ids: Array<string>}>) => ({error: false, payload, type: badgeAppForGit})
+export const createCreatePersonalRepo = (payload: $ReadOnly<{name: string}>) => ({error: false, payload, type: createPersonalRepo})
+export const createCreateTeamRepo = (
+  payload: $ReadOnly<{
+    name: string,
+    teamname: string,
+    notifyTeam: boolean,
+  }>
+) => ({error: false, payload, type: createTeamRepo})
+export const createDeletePersonalRepo = (payload: $ReadOnly<{name: string}>) => ({error: false, payload, type: deletePersonalRepo})
+export const createDeleteTeamRepo = (
+  payload: $ReadOnly<{
+    name: string,
+    teamname: string,
+    notifyTeam: boolean,
+  }>
+) => ({error: false, payload, type: deleteTeamRepo})
+export const createHandleIncomingGregor = (payload: $ReadOnly<{messages: Array<RPCTypesGregor.OutOfBandMessage>}>) => ({error: false, payload, type: handleIncomingGregor})
 export const createLoadGit = () => ({error: false, payload: undefined, type: loadGit})
-export const createSetError = (payload: {|+error: ?Error|}) => ({error: false, payload, type: setError})
-export const createSetLoading = (payload: {|+loading: boolean|}) => ({error: false, payload, type: setLoading})
+export const createSetError = (payload: $ReadOnly<{error: ?Error}>) => ({error: false, payload, type: setError})
+export const createSetLoading = (payload: $ReadOnly<{loading: boolean}>) => ({error: false, payload, type: setLoading})
 
 // Action Payloads
 export type BadgeAppForGitPayload = More.ReturnType<typeof createBadgeAppForGit>

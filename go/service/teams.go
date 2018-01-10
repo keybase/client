@@ -115,10 +115,30 @@ func (h *TeamsHandler) TeamImplicitAdmins(ctx context.Context, arg keybase1.Team
 	return teams.ImplicitAdmins(ctx, h.G().ExternalG(), teamID)
 }
 
-func (h *TeamsHandler) TeamList(ctx context.Context, arg keybase1.TeamListArg) (res keybase1.AnnotatedTeamList, err error) {
+func (h *TeamsHandler) TeamListUnverified(ctx context.Context, arg keybase1.TeamListUnverifiedArg) (res keybase1.AnnotatedTeamList, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamList(%s)", arg.UserAssertion), func() error { return err })()
-	x, err := teams.List(ctx, h.G().ExternalG(), arg)
+	x, err := teams.ListTeamsUnverified(ctx, h.G().ExternalG(), arg)
+	if err != nil {
+		return keybase1.AnnotatedTeamList{}, err
+	}
+	return *x, nil
+}
+
+func (h *TeamsHandler) TeamListTeammates(ctx context.Context, arg keybase1.TeamListTeammatesArg) (res keybase1.AnnotatedTeamList, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamListTeammates(%t)", arg.IncludeImplicitTeams), func() error { return err })()
+	x, err := teams.ListAll(ctx, h.G().ExternalG(), arg)
+	if err != nil {
+		return keybase1.AnnotatedTeamList{}, err
+	}
+	return *x, nil
+}
+
+func (h *TeamsHandler) TeamListVerified(ctx context.Context, arg keybase1.TeamListVerifiedArg) (res keybase1.AnnotatedTeamList, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamListVerified(%s)", arg.UserAssertion), func() error { return err })()
+	x, err := teams.ListTeamsVerified(ctx, h.G().ExternalG(), arg)
 	if err != nil {
 		return keybase1.AnnotatedTeamList{}, err
 	}
@@ -424,4 +444,18 @@ func (h *TeamsHandler) TeamDebug(ctx context.Context, teamID keybase1.TeamID) (r
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamDebug(%v)", teamID), func() error { return err })()
 
 	return teams.TeamDebug(ctx, h.G().ExternalG(), teamID)
+}
+
+func (h *TeamsHandler) GetTarsDisabled(ctx context.Context, teamname string) (res bool, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("GetTarsDisabled(%s)", teamname), func() error { return err })()
+
+	return teams.GetTarsDisabled(ctx, h.G().ExternalG(), teamname)
+}
+
+func (h *TeamsHandler) SetTarsDisabled(ctx context.Context, arg keybase1.SetTarsDisabledArg) (err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("SetTarsDisabled(%s,%t)", arg.Name, arg.Disabled), func() error { return err })()
+
+	return teams.SetTarsDisabled(ctx, h.G().ExternalG(), arg.Name, arg.Disabled)
 }

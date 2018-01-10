@@ -3672,7 +3672,7 @@ func TestChatSrvTeamChannelNameMentions(t *testing.T) {
 			ptv := utils.PresentThreadView(ctx, uid, tv.Thread, ctc.as(t, users[0]).h.G().TeamChannelSource)
 			require.Equal(t, 1, len(ptv.Messages))
 			require.Equal(t, 1, len(ptv.Messages[0].Valid().ChannelNameMentions))
-			require.Equal(t, topicName, ptv.Messages[0].Valid().ChannelNameMentions[0])
+			require.Equal(t, topicName, ptv.Messages[0].Valid().ChannelNameMentions[0].Name)
 		}
 	})
 }

@@ -409,7 +409,7 @@ func (s *RemoteInboxSource) NewConversation(ctx context.Context, uid gregor1.UID
 }
 
 func (s *RemoteInboxSource) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	convID chat1.ConversationID, msg chat1.MessageBoxed) (*chat1.ConversationLocal, error) {
+	convID chat1.ConversationID, msg chat1.MessageBoxed, maxMsgs []chat1.MessageSummary) (*chat1.ConversationLocal, error) {
 	return nil, nil
 }
 
@@ -645,9 +645,9 @@ func (s *HybridInboxSource) getConvLocal(ctx context.Context, uid gregor1.UID,
 }
 
 func (s *HybridInboxSource) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	convID chat1.ConversationID, msg chat1.MessageBoxed) (conv *chat1.ConversationLocal, err error) {
+	convID chat1.ConversationID, msg chat1.MessageBoxed, maxMsgs []chat1.MessageSummary) (conv *chat1.ConversationLocal, err error) {
 	defer s.Trace(ctx, func() error { return err }, "NewMessage")()
-	if cerr := storage.NewInbox(s.G(), uid).NewMessage(ctx, vers, convID, msg); cerr != nil {
+	if cerr := storage.NewInbox(s.G(), uid).NewMessage(ctx, vers, convID, msg, maxMsgs); cerr != nil {
 		err = s.handleInboxError(ctx, cerr, uid)
 		return nil, err
 	}

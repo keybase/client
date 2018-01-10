@@ -588,7 +588,7 @@ function _setupTrackerHandlers() {
     (param: any, response: ?Object, dispatch: Dispatch, getState: () => TypedState) => {
       // If we don't finish the session by our timeout, we'll display an error
       const trackerTimeout = 1e3 * 60 * 5
-      let trackerTimeoutError = 0
+      let trackerTimeoutError = null
 
       const onStart = username => {
         // Don't do this on mobile
@@ -602,11 +602,11 @@ function _setupTrackerHandlers() {
 
       const onFinish = () => {
         session.end()
-        clearTimeout(trackerTimeoutError)
+        trackerTimeoutError && clearTimeout(trackerTimeoutError)
       }
 
       const cancelHandler: CancelHandlerType = session => {
-        const username = sessionIDToUsername[session.id]
+        const username = sessionIDToUsername[session.getId()]
 
         if (username) {
           dispatch(
@@ -624,7 +624,7 @@ function _setupTrackerHandlers() {
         cancelHandler
       )
 
-      response && response.result(session.id)
+      response && response.result(session.getId())
     }
   )
 }

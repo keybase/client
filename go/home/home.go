@@ -27,17 +27,8 @@ type Home struct {
 }
 
 type rawGetHome struct {
-	Status      libkb.AppStatus `json:"status"`
-	VisitRecord *struct {
-		Visits  int           `json:"visits"`
-		Atime   keybase1.Time `json:"atime"`
-		Version int           `json:"version"`
-	} `json:"visit_record"`
-	TodoList []struct {
-		Badged bool                        `json:"badged"`
-		Type   keybase1.HomeScreenTodoType `json:"type"`
-	} `json:"todo_list"`
-	People []keybase1.HomeUserSummary `json:"people"`
+	Status libkb.AppStatus     `json:"status"`
+	Home   keybase1.HomeScreen `json:"home"`
 }
 
 func (c *cache) hasEnoughPeople(i int) bool {
@@ -85,22 +76,8 @@ func (h *Home) get(ctx context.Context, markedViewed bool, numPeopleWanted int) 
 	if err = h.G().API.GetDecode(arg, &raw); err != nil {
 		return ret, err
 	}
-	for _, item := range raw.TodoList {
-		ret.Items = append(ret.Items, keybase1.HomeScreenItem{
-			Data:   keybase1.NewHomeScreenItemDataWithTodo(keybase1.NewHomeScreenTodoDefault(item.Type)),
-			Badged: item.Badged,
-		})
-	}
-	if raw.VisitRecord != nil {
-		ret.LastViewed = raw.VisitRecord.Atime
-		ret.Version = raw.VisitRecord.Version
-	}
-	// Normalize the usernames received from API for follow suggestions
-	for _, fs := range raw.People {
-		fs.Username = libkb.NewNormalizedUsername(fs.Username).String()
-		ret.FollowSuggestions = append(ret.FollowSuggestions, fs)
-	}
-	h.G().Log.CDebugf(ctx, "| %d follow suggestions returned", len(raw.People))
+	ret = raw.Home
+	h.G().Log.CDebugf(ctx, "| %d follow suggestions returned", len(ret.FollowSuggestions))
 	return ret, err
 }
 
@@ -211,6 +188,25 @@ type updateGregorMessage struct {
 	Version int `json:"version"`
 }
 
+func (h *Home) updateUI(ctx context.Context) (err error) {
+	defer h.G().CTrace(ctx, "Home#updateUI", func() error { return err })()
+	var ui keybase1.HomeUIInterface
+	if h.G().UIRouter == nil {
+		h.G().Log.CDebugf(ctx, "no UI router, swallowing update")
+		return nil
+	}
+	ui, err = h.G().UIRouter.GetHomeUI()
+	if err != nil {
+		return err
+	}
+	if ui == nil {
+		h.G().Log.CDebugf(ctx, "no registered HomeUI, swallowing update")
+		return nil
+	}
+	err = ui.HomeUIRefresh(context.Background())
+	return err
+}
+
 func (h *Home) handleUpdate(ctx context.Context, item gregor.Item) (err error) {
 	defer h.G().CTrace(ctx, "Home#handleUpdate", func() error { return err })()
 	var msg updateGregorMessage
@@ -225,6 +221,9 @@ func (h *Home) handleUpdate(ctx context.Context, item gregor.Item) (err error) {
 	if h.cache != nil && msg.Version > h.cache.obj.Version {
 		h.cache = nil
 	}
+
+	// Ignore the error code...
+	h.updateUI(ctx)
 	return nil
 }
 

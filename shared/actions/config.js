@@ -1,5 +1,6 @@
 // @flow
 import logger from '../logger'
+import * as I from 'immutable'
 import * as KBFSGen from './kbfs-gen'
 import * as ConfigGen from './config-gen'
 import * as TeamsGen from './teams-gen'
@@ -14,11 +15,15 @@ import * as SignupGen from '../actions/signup-gen'
 import engine from '../engine'
 import {RouteStateStorage} from '../actions/route-state-storage'
 import {createConfigurePush} from './push-gen'
+import {createGetPeopleData} from './people-gen'
+import {defaultNumFollowSuggestions} from '../constants/people'
+import {getAppState, setAppState} from './platform-specific'
 import {isMobile, isSimulator} from '../constants/platform'
 import {loggedInSelector} from '../constants/selectors'
 import {type AsyncAction} from '../constants/types/flux'
 import {type TypedState} from '../constants/reducer'
 
+const maxAvatarsPerLoad = 50
 // TODO convert to sagas
 
 isMobile &&
@@ -134,10 +139,17 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
             if (getState().config.loggedIn) {
               // If we're logged in, restore any saved route state and
               // then nav again based on it.
+              // load people tab info on startup as well
               // also load the teamlist for auxiliary information around the app
               await dispatch(routeStateStorage.load)
               await dispatch(LoginGen.createNavBasedOnLoginAndInitialState())
               await dispatch(TeamsGen.createGetTeams())
+              await dispatch(
+                createGetPeopleData({
+                  markViewed: false,
+                  numFollowSuggestionsWanted: defaultNumFollowSuggestions,
+                })
+              )
             }
           })
           dispatch(SignupGen.createResetSignup())
@@ -230,43 +242,45 @@ function _validUsernames(names: Array<string>) {
   return names.filter(name => !!name.match(/^([.a-z0-9_-]{1,1000})$/i))
 }
 
-let _avatarsToLoad = {}
+let _avatarsToLoad = I.Set()
 function* _loadAvatars(action: ConfigGen.LoadAvatarsPayload) {
   const usernames = _validUsernames(action.payload.usernames)
   // store it and wait, once our timer is up we pull any and run it
-  usernames.forEach(username => {
-    _avatarsToLoad[username] = true
-  })
-  yield Saga.call(Saga.delay, 200)
+  _avatarsToLoad = _avatarsToLoad.concat(usernames)
 
-  const names = Object.keys(_avatarsToLoad)
-  _avatarsToLoad = {}
+  while (_avatarsToLoad.size > 0) {
+    yield Saga.call(Saga.delay, 200)
 
-  if (names.length) {
-    yield Saga.put({
-      payload: {endpoint: 'image/username_pic_lookups', key: 'usernames', names},
-      type: '_loadAvatarHelper',
-    })
+    const names = _avatarsToLoad.take(maxAvatarsPerLoad).toArray()
+    _avatarsToLoad = _avatarsToLoad.skip(maxAvatarsPerLoad)
+
+    if (names.length) {
+      yield Saga.put({
+        payload: {endpoint: 'image/username_pic_lookups', key: 'usernames', names},
+        type: '_loadAvatarHelper',
+      })
+    }
   }
 }
 
-let _teamAvatarsToLoad = {}
+let _teamAvatarsToLoad = I.Set()
 function* _loadTeamAvatars(action: ConfigGen.LoadTeamAvatarsPayload) {
   const teamnames = _validUsernames(action.payload.teamnames)
-  teamnames.forEach(teamname => {
-    _teamAvatarsToLoad[teamname] = true
-  })
-  // store it and wait, once our timer is up we pull any and run it
-  yield Saga.call(Saga.delay, 200)
+  _teamAvatarsToLoad = _teamAvatarsToLoad.concat(teamnames)
 
-  const names = Object.keys(_teamAvatarsToLoad)
-  _teamAvatarsToLoad = {}
+  while (_teamAvatarsToLoad.size > 0) {
+    // store it and wait, once our timer is up we pull any and run it
+    yield Saga.call(Saga.delay, 200)
 
-  if (names.length) {
-    yield Saga.put({
-      payload: {endpoint: 'image/team_avatar_lookups', key: 'team_names', names},
-      type: '_loadAvatarHelper',
-    })
+    const names = _teamAvatarsToLoad.take(maxAvatarsPerLoad).toArray()
+    _teamAvatarsToLoad = _teamAvatarsToLoad.skip(maxAvatarsPerLoad)
+
+    if (names.length) {
+      yield Saga.put({
+        payload: {endpoint: 'image/team_avatar_lookups', key: 'team_names', names},
+        type: '_loadAvatarHelper',
+      })
+    }
   }
 }
 
@@ -275,6 +289,19 @@ function* _periodicAvatarCacheClear(): Generator<any, void, any> {
   while (true) {
     yield Saga.call(Saga.delay, 1000 * 60)
     yield Saga.put(ConfigGen.createClearAvatarCache())
+  }
+}
+
+function _setOpenAtLogin(action: ConfigGen.SetOpenAtLoginPayload) {
+  if (action.payload.writeFile) {
+    setAppState({openAtLogin: action.payload.open})
+  }
+}
+
+function* _getAppState(): Generator<any, void, any> {
+  const state = yield Saga.call(getAppState)
+  if (state) {
+    yield Saga.put(ConfigGen.createSetOpenAtLogin({open: state.openAtLogin, writeFile: false}))
   }
 }
 
@@ -287,7 +314,9 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(ConfigGen.loadAvatars, _loadAvatars)
   yield Saga.safeTakeEvery(ConfigGen.loadTeamAvatars, _loadTeamAvatars)
   yield Saga.safeTakeEveryPure('_loadAvatarHelper', _loadAvatarHelper, _afterLoadAvatarHelper)
+  yield Saga.safeTakeEveryPure(ConfigGen.setOpenAtLogin, _setOpenAtLogin)
   yield Saga.fork(_periodicAvatarCacheClear)
+  yield Saga.fork(_getAppState)
 }
 
 export {getExtendedStatus}

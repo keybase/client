@@ -2,7 +2,7 @@
 import * as I from 'immutable'
 import * as ChatTypes from './types/chat'
 import * as Types from './types/teams'
-import {userIsInTeam} from './selectors'
+import {userIsActiveInTeam} from './selectors'
 import * as RPCTypes from './types/rpc-gen'
 import invert from 'lodash/invert'
 
@@ -79,16 +79,20 @@ export const initialCanUserPerform: RPCTypes.TeamOperation = {
   setMemberShowcase: false,
   changeOpenTeam: false,
   leaveTeam: false,
+  changeTarsDisabled: false,
 }
 
-const userIsInTeamHelper = (state: TypedState, username: string, service: Service, teamname: string) =>
-  service === 'Keybase' ? userIsInTeam(state, teamname, username) : false
+const userIsActiveInTeamHelper = (state: TypedState, username: string, service: Service, teamname: string) =>
+  service === 'Keybase' ? userIsActiveInTeam(state, teamname, username) : false
 
-const getConvIdsFromTeamName = (state: TypedState, teamname: string): I.Set<string> =>
+const getConvIdsFromTeamName = (state: TypedState, teamname: string): I.Set<ChatTypes.ConversationIDKey> =>
   state.entities.teams.teamNameToConvIDs.get(teamname, I.Set())
 
 const getTeamNameFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
   state.entities.teams.teamNameToConvIDs.findKey(i => i.has(conversationIDKey))
+
+const getChannelInfoFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
+  state.entities.teams.convIDToChannelInfo.get(conversationIDKey, null)
 
 const getChannelNameFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
   state.entities.teams.convIDToChannelInfo.getIn([conversationIDKey, 'channelname'], null)
@@ -121,8 +125,9 @@ export {
   getConvIdsFromTeamName,
   getRole,
   getCanPerform,
-  userIsInTeamHelper,
+  userIsActiveInTeamHelper,
   getTeamNameFromConvID,
+  getChannelInfoFromConvID,
   getChannelNameFromConvID,
   getTopicFromConvID,
   isAdmin,

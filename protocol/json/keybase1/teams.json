@@ -1179,6 +1179,11 @@
             "ImplicitRole"
           ],
           "name": "implicit"
+        },
+        {
+          "type": "int",
+          "name": "memberCount",
+          "jsonkey": "member_count"
         }
       ]
     },
@@ -1614,6 +1619,10 @@
         {
           "type": "boolean",
           "name": "leaveTeam"
+        },
+        {
+          "type": "boolean",
+          "name": "changeTarsDisabled"
         }
       ]
     },
@@ -1700,7 +1709,7 @@
         "items": "TeamMemberDetails"
       }
     },
-    "teamList": {
+    "teamListUnverified": {
       "request": [
         {
           "name": "sessionID",
@@ -1711,8 +1720,34 @@
           "type": "string"
         },
         {
-          "name": "all",
+          "name": "includeImplicitTeams",
           "type": "boolean"
+        }
+      ],
+      "response": "AnnotatedTeamList"
+    },
+    "teamListTeammates": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "includeImplicitTeams",
+          "type": "boolean"
+        }
+      ],
+      "response": "AnnotatedTeamList"
+    },
+    "teamListVerified": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "userAssertion",
+          "type": "string"
         },
         {
           "name": "includeImplicitTeams",
@@ -2200,6 +2235,28 @@
         }
       ],
       "response": "TeamDebugRes"
+    },
+    "getTarsDisabled": {
+      "request": [
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": "boolean"
+    },
+    "setTarsDisabled": {
+      "request": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "disabled",
+          "type": "boolean"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"

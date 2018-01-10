@@ -23,16 +23,26 @@ export const updatePushToken = 'push:updatePushToken'
 
 // Action Creators
 export const createConfigurePush = () => ({error: false, payload: undefined, type: configurePush})
-export const createError = (payload: {|+error: Error|}) => ({error: false, payload, type: error})
-export const createNotification = (payload: {|+notification: Types.PushNotification|}) => ({error: false, payload, type: notification})
+export const createError = (payload: $ReadOnly<{error: Error}>) => ({error: false, payload, type: error})
+export const createNotification = (payload: $ReadOnly<{notification: Types.PushNotification}>) => ({error: false, payload, type: notification})
 export const createPermissionsNo = () => ({error: false, payload: undefined, type: permissionsNo})
-export const createPermissionsPrompt = (payload: {|+prompt: boolean|}) => ({error: false, payload, type: permissionsPrompt})
+export const createPermissionsPrompt = (payload: $ReadOnly<{prompt: boolean}>) => ({error: false, payload, type: permissionsPrompt})
 export const createPermissionsRequest = () => ({error: false, payload: undefined, type: permissionsRequest})
-export const createPermissionsRequesting = (payload: {|+requesting: boolean|}) => ({error: false, payload, type: permissionsRequesting})
-export const createPushToken = (payload: {|+token: string, +tokenType: Types.TokenType|}) => ({error: false, payload, type: pushToken})
-export const createRegistrationError = (payload: {|+error: Error|}) => ({error: false, payload, type: registrationError})
+export const createPermissionsRequesting = (payload: $ReadOnly<{requesting: boolean}>) => ({error: false, payload, type: permissionsRequesting})
+export const createPushToken = (
+  payload: $ReadOnly<{
+    token: string,
+    tokenType: Types.TokenType,
+  }>
+) => ({error: false, payload, type: pushToken})
+export const createRegistrationError = (payload: $ReadOnly<{error: Error}>) => ({error: false, payload, type: registrationError})
 export const createSavePushToken = () => ({error: false, payload: undefined, type: savePushToken})
-export const createUpdatePushToken = (payload: {|+token: string, +tokenType: Types.TokenType|}) => ({error: false, payload, type: updatePushToken})
+export const createUpdatePushToken = (
+  payload: $ReadOnly<{
+    token: string,
+    tokenType: Types.TokenType,
+  }>
+) => ({error: false, payload, type: updatePushToken})
 
 // Action Payloads
 export type ConfigurePushPayload = More.ReturnType<typeof createConfigurePush>

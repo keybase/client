@@ -1,16 +1,11 @@
 // @flow
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
-import {
-  landingTab,
-  updatePaymentTab,
-  invitationsTab,
-  notificationsTab,
-  deleteMeTab,
-  devMenuTab,
-} from '../constants/settings'
+import * as Constants from '../constants/settings'
 import Settings from './'
 import LandingContainer from './landing/container'
 import UpdatePayment from './payment/container'
+import AdvancedContainer from './advanced/container'
+import DBNukeConfirm from './db-nuke-confirm/container'
 import InvitationsContainer from './invites/container'
 import NotificationsContainer from './notifications/container'
 import DeleteContainer from './delete/container'
@@ -24,10 +19,10 @@ import UserEmail from './email/container'
 import PlanDetails from './plan-details/container'
 
 const routeTree = makeRouteDefNode({
-  defaultSelected: landingTab,
+  defaultSelected: Constants.landingTab,
   containerComponent: Settings,
   children: {
-    [landingTab]: {
+    [Constants.landingTab]: {
       component: LandingContainer,
       children: {
         changePassphrase: {
@@ -41,10 +36,10 @@ const routeTree = makeRouteDefNode({
         },
       },
     },
-    [updatePaymentTab]: {
+    [Constants.updatePaymentTab]: {
       component: UpdatePayment,
     },
-    [invitationsTab]: {
+    [Constants.invitationsTab]: {
       component: InvitationsContainer,
       children: {
         inviteSent: {
@@ -52,10 +47,10 @@ const routeTree = makeRouteDefNode({
         },
       },
     },
-    [notificationsTab]: {
+    [Constants.notificationsTab]: {
       component: NotificationsContainer,
     },
-    [deleteMeTab]: {
+    [Constants.deleteMeTab]: {
       component: DeleteContainer,
       children: {
         deleteConfirm: {
@@ -68,11 +63,20 @@ const routeTree = makeRouteDefNode({
         },
       },
     },
-    [devMenuTab]: {
+    [Constants.devMenuTab]: {
       component: DevMenu,
       children: {
         dumbSheet: {
           component: DumbSheet,
+          tags: makeLeafTags({modal: true}),
+        },
+      },
+    },
+    [Constants.advancedTab]: {
+      component: AdvancedContainer,
+      children: {
+        dbNukeConfirm: {
+          component: DBNukeConfirm,
           tags: makeLeafTags({modal: true}),
         },
       },

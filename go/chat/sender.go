@@ -621,7 +621,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		s.Debug(ctx, "failed to push new message into convsource: %s", err)
 	}
 	if convLocal, err = s.G().InboxSource.NewMessage(ctx, boxed.ClientHeader.Sender, 0, convID,
-		*boxed); err != nil {
+		*boxed, nil); err != nil {
 		s.Debug(ctx, "failed to update inbox: %s", err)
 	}
 	// Send up to frontend
@@ -644,6 +644,17 @@ const deliverDisconnectLimitMinutes = 10 // need to be offline for at least 10 m
 
 type DelivererInfoError interface {
 	IsImmediateFail() (chat1.OutboxErrorType, bool)
+}
+
+// delivererExpireError is used when a message fails because it has languished in the outbox for too long.
+type delivererExpireError struct{}
+
+func (e delivererExpireError) Error() string {
+	return "message failed to send"
+}
+
+func (e delivererExpireError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_EXPIRED, true
 }
 
 type Deliverer struct {
@@ -881,6 +892,12 @@ func (s *Deliverer) deliverLoop() {
 			}
 			if !s.connected {
 				err = errors.New("disconnected from chat server")
+			} else if s.clock.Now().Sub(obr.Ctime.Time()) > 10*time.Minute {
+				// If we are re-trying a message after 10 minutes, let's just give up. These times can
+				// get very long if the app is suspended on mobile.
+				s.Debug(bgctx, "expiring pending message because it is too old: obid: %s dur: %v",
+					obr.OutboxID, s.clock.Now().Sub(obr.Ctime.Time()))
+				err = delivererExpireError{}
 			} else {
 				_, _, _, err = s.sender.Send(bctx, obr.ConvID, obr.Msg, 0, nil)
 			}
