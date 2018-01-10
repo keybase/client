@@ -218,7 +218,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     />
   )
   const publicitySettingsChanged =
-    ownProps.ignoreAccessRequests !== stateProps.ignoreAccessRequests ||
+    ownProps.newIgnoreAccessRequests !== stateProps.ignoreAccessRequests ||
     ownProps.newPublicityAnyMember !== stateProps.publicityAnyMember ||
     ownProps.newPublicityMember !== stateProps.publicityMember ||
     ownProps.newPublicityTeam !== stateProps.publicityTeam ||

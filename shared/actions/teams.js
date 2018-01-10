@@ -382,7 +382,7 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
     const publicityMap = {
       anyMemberShowcase: publicity.teamShowcase.anyMemberShowcase,
       description: publicity.teamShowcase.description,
-      ignoreAccessRequests: !publicity.teamShowcase.allowAccessRequests,
+      ignoreAccessRequests: publicity.teamShowcase.ignoreAccessRequests,
       member: publicity.isMemberShowcased,
       team: publicity.teamShowcase.isShowcased,
     }
@@ -647,7 +647,7 @@ const _setPublicity = function(action: TeamsGen.SetPublicityPayload, state: Type
     calls.push(
       // $FlowIssue doesn't like callAndWrap
       Saga.callAndWrap(RPCTypes.teamsSetTeamShowcaseRpcPromise, {
-        allowAccessRequests: !settings.ignoreAccessRequests,
+        ignoreAccessRequests: settings.ignoreAccessRequests,
         name: teamname,
       })
     )
