@@ -152,10 +152,6 @@ func (c testTLFJournalConfig) teamMembershipChecker() kbfsmd.TeamMembershipCheck
 	return nil
 }
 
-func (c testTLFJournalConfig) tlfIDGetter() tlfIDGetter {
-	return nil
-}
-
 func (c testTLFJournalConfig) diskLimitTimeout() time.Duration {
 	return c.dlTimeout
 }

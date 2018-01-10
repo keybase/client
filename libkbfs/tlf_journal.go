@@ -46,7 +46,6 @@ type tlfJournalConfig interface {
 	diskLimitTimeout() time.Duration
 	teamMembershipChecker() kbfsmd.TeamMembershipChecker
 	BGFlushDirOpBatchSize() int
-	tlfIDGetter() tlfIDGetter
 }
 
 // tlfJournalConfigWrapper is an adapter for Config objects to the
@@ -73,10 +72,6 @@ func (ca tlfJournalConfigAdapter) resolver() resolver {
 
 func (ca tlfJournalConfigAdapter) teamMembershipChecker() kbfsmd.TeamMembershipChecker {
 	return ca.Config.KBPKI()
-}
-
-func (ca tlfJournalConfigAdapter) tlfIDGetter() tlfIDGetter {
-	return ca.Config.MDOps()
 }
 
 func (ca tlfJournalConfigAdapter) diskLimitTimeout() time.Duration {
@@ -1655,7 +1650,7 @@ func (j *tlfJournal) getUnflushedPathMDInfos(ctx context.Context,
 
 	handle, err := MakeTlfHandle(
 		ctx, ibrmdBareHandle, j.tlfID.Type(), j.config.resolver(),
-		j.config.usernameGetter(), j.config.tlfIDGetter())
+		j.config.usernameGetter(), constIDGetter{j.tlfID})
 	if err != nil {
 		return nil, err
 	}
