@@ -70,7 +70,8 @@ type Root struct {
 // MakeFS makes a *libfs.FS from *r, which can be adapted to a http.FileSystem
 // (through ToHTTPFileSystem) to be used by http package to serve through HTTP.
 func (r *Root) MakeFS(ctx context.Context, log *zap.Logger,
-	kbfsConfig libkbfs.Config) (fs *libfs.FS, err error) {
+	kbfsConfig libkbfs.Config) (fs *libfs.FS, shutdown func(), err error) {
+	fsCtx, cancel := context.WithCancel(context.Background())
 	defer func() {
 		zapFields := []zapcore.Field{
 			zap.String("root_type", r.Type.String()),
@@ -81,32 +82,33 @@ func (r *Root) MakeFS(ctx context.Context, log *zap.Logger,
 		if err == nil {
 			log.Info("root.MakeFS", zapFields...)
 		} else {
+			cancel()
 			log.Warn("root.MakeFS", append(zapFields, zap.Error(err))...)
 		}
 	}()
-	fsCtx, err := libkbfs.NewContextWithCancellationDelayer(
+	fsCtx, err = libkbfs.NewContextWithCancellationDelayer(
 		libkbfs.CtxWithRandomIDReplayable(
-			context.Background(), ctxIDKey, ctxOpID, nil))
+			fsCtx, ctxIDKey, ctxOpID, nil))
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	switch r.Type {
 	case KBFSRoot:
 		tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
 			ctx, kbfsConfig.KBPKI(), kbfsConfig.MDOps(), r.TlfNameUnparsed, r.TlfType)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		fs, err = libfs.NewFS(fsCtx, kbfsConfig,
 			tlfHandle, r.PathUnparsed, "", keybase1.MDPriorityNormal)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
-		return fs, nil
+		return fs, cancel, nil
 	case GitRoot:
 		session, err := kbfsConfig.KeybaseService().CurrentSession(ctx, 0)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
 			ctx, kbfsConfig.KBPKI(), kbfsConfig.MDOps(),
@@ -115,18 +117,18 @@ func (r *Root) MakeFS(ctx context.Context, log *zap.Logger,
 			// logged into a bot account.
 			string(session.Name), tlf.Private)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		fs, err = libfs.NewFS(fsCtx, kbfsConfig,
 			tlfHandle, fmt.Sprintf(".kbfs_autogit/%s/%s/%s",
 				r.TlfType, r.TlfNameUnparsed, r.PathUnparsed), "",
 			keybase1.MDPriorityNormal)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
-		return fs, nil
+		return fs, cancel, nil
 	default:
-		return nil, ErrInvalidKeybasePagesRecord{}
+		return nil, nil, ErrInvalidKeybasePagesRecord{}
 	}
 }
 

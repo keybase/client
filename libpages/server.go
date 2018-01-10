@@ -60,13 +60,27 @@ func (s *Server) getSite(ctx context.Context, root Root) (st *site, err error) {
 		s.config.Logger.Error("nasty entry in s.siteCache",
 			zap.String("reflect_type", reflect.TypeOf(siteCached).String()))
 	}
-	fs, err := root.MakeFS(ctx, s.config.Logger, s.kbfsConfig)
+	fs, fsShutdown, err := root.MakeFS(ctx, s.config.Logger, s.kbfsConfig)
 	if err != nil {
 		return nil, err
 	}
-	st = makeSite(fs, root)
+	st = makeSite(fs, fsShutdown, root)
 	s.siteCache.Add(root, st)
 	return st, nil
+}
+
+func (s *Server) siteCacheEvict(_ interface{}, value interface{}) {
+	if s, ok := value.(*site); ok {
+		// It's possible to have a race here where a site gets evicted by the
+		// LRU cache while the server is still using it to serve a request. But
+		// since the cacue is LRU, this should almost never happen given a
+		// sufficiently large cache, and under the assumption that serving a
+		// request won't take super long.
+		s.shutdown()
+		return
+	}
+	s.config.Logger.Error("nasty entry in s.siteCache",
+		zap.String("reflect_type", reflect.TypeOf(value).String()))
 }
 
 func (s *Server) handleError(w http.ResponseWriter, err error) {
@@ -158,14 +172,15 @@ func (s *Server) shouldShowCloningLandingPage(st *site) (bool, error) {
 		// CLONING file only matters for git roots.
 		return false, nil
 	}
-	newCtx, err := libkbfs.NewContextWithCancellationDelayer(
-		libkbfs.CtxWithRandomIDReplayable(context.Background(),
+	ctxInitialRead, cancel := context.WithTimeout(
+		context.Background(), gitRootInitialTimeout)
+	defer cancel()
+	ctxInitialRead, err := libkbfs.NewContextWithCancellationDelayer(
+		libkbfs.CtxWithRandomIDReplayable(ctxInitialRead,
 			ctxIDKey, ctxOpID, nil))
 	if err != nil {
 		return false, err
 	}
-	ctxInitialRead, cancel := context.WithTimeout(newCtx, gitRootInitialTimeout)
-	defer cancel()
 	// Read under timeout to trigger a clone in case this is an initial
 	// request. This should only happen to the first ever access to a site
 	// backed by this git repo.
@@ -196,6 +211,7 @@ var cloningLandingPage = []byte(`
 	<head>
 		<meta charset="UTF-8">
 		<meta http-equiv="refresh" content="5">
+		<title>CLONING</title>
 	</head>
 	<body>
 		Keybase Pages server is cloning your site.
@@ -421,14 +437,13 @@ func ListenAndServe(ctx context.Context,
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	siteCache, err := lru.New(fsCacheSize)
-	if err != nil {
-		return err
-	}
 	server := &Server{
 		config:     config,
 		kbfsConfig: kbfsConfig,
-		siteCache:  siteCache,
+	}
+	server.siteCache, err = lru.NewWithEvict(fsCacheSize, server.siteCacheEvict)
+	if err != nil {
+		return err
 	}
 
 	manager, err := makeACMEManager(

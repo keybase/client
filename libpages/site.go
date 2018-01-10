@@ -19,8 +19,9 @@ const configCacheTime = 16 * time.Second
 
 type site struct {
 	// fs should never be changed once it's constructed.
-	fs   *libfs.FS
-	root Root
+	fs         *libfs.FS
+	fsShutdown func()
+	root       Root
 
 	// TODO: replace this with a notification mechanism from the FBO.
 	cachedConfigLock      sync.RWMutex
@@ -28,8 +29,16 @@ type site struct {
 	cachedConfigExpiresAt time.Time
 }
 
-func makeSite(fs *libfs.FS, root Root) *site {
-	return &site{fs: fs, root: root}
+func makeSite(fs *libfs.FS, fsShutdown func(), root Root) *site {
+	return &site{
+		fs:         fs,
+		fsShutdown: fsShutdown,
+		root:       root,
+	}
+}
+
+func (s *site) shutdown() {
+	s.fsShutdown()
 }
 
 func (s *site) getCachedConfig() (cfg config.Config, expiresAt time.Time) {
