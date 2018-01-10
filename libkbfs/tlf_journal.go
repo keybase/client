@@ -2381,23 +2381,7 @@ func (j *tlfJournal) wait(ctx context.Context) error {
 	return nil
 }
 
-func (j *tlfJournal) finishSingleOp(ctx context.Context,
-	lc *keybase1.LockContext, priority keybase1.MDPriority) error {
-	j.log.CDebugf(ctx, "Finishing single op")
-
-	flushCtx := flushContext{
-		lockContextForPut: lc,
-		priorityForPut:    priority,
-	}
-
-	// Let the background flusher know it should change the single op
-	// mode to finished, so we can have it set ASAP without waiting to
-	// take `flushLock` here.
-	select {
-	case j.finishSingleOpCh <- flushCtx:
-	default:
-	}
-
+func (j *tlfJournal) waitForCompleteFlush(ctx context.Context) error {
 	// Now we wait for the journal to completely empty.  Waiting on
 	// the wg isn't enough, because conflicts/squashes can cause the
 	// journal to pause and we'll be called too early.
@@ -2424,4 +2408,24 @@ func (j *tlfJournal) finishSingleOp(ctx context.Context,
 			return j.lastFlushErr
 		}
 	}
+}
+
+func (j *tlfJournal) finishSingleOp(ctx context.Context,
+	lc *keybase1.LockContext, priority keybase1.MDPriority) error {
+	j.log.CDebugf(ctx, "Finishing single op")
+
+	flushCtx := flushContext{
+		lockContextForPut: lc,
+		priorityForPut:    priority,
+	}
+
+	// Let the background flusher know it should change the single op
+	// mode to finished, so we can have it set ASAP without waiting to
+	// take `flushLock` here.
+	select {
+	case j.finishSingleOpCh <- flushCtx:
+	default:
+	}
+
+	return j.waitForCompleteFlush(ctx)
 }

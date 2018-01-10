@@ -668,10 +668,26 @@ func (j *JournalServer) Flush(ctx context.Context, tlfID tlf.ID) (err error) {
 // everything.  It is essentially the same as Flush() when the journal
 // is enabled and unpaused, except that it is safe to cancel the
 // context without leaving the journal in a partially-flushed state.
+// It does not wait for any conflicts or squashes resulting from
+// flushing the data currently in the journal.
 func (j *JournalServer) Wait(ctx context.Context, tlfID tlf.ID) (err error) {
 	j.log.CDebugf(ctx, "Waiting on journal for %s", tlfID)
 	if tlfJournal, ok := j.getTLFJournal(tlfID, nil); ok {
 		return tlfJournal.wait(ctx)
+	}
+
+	j.log.CDebugf(ctx, "Journal not enabled for %s", tlfID)
+	return nil
+}
+
+// WaitForCompleteFlush blocks until the write journal has finished
+// flushing everything.  Unlike `Wait()`, it also waits for any
+// conflicts or squashes detected during each flush attempt.
+func (j *JournalServer) WaitForCompleteFlush(
+	ctx context.Context, tlfID tlf.ID) (err error) {
+	j.log.CDebugf(ctx, "Finishing single op for %s", tlfID)
+	if tlfJournal, ok := j.getTLFJournal(tlfID, nil); ok {
+		return tlfJournal.waitForCompleteFlush(ctx)
 	}
 
 	j.log.CDebugf(ctx, "Journal not enabled for %s", tlfID)
