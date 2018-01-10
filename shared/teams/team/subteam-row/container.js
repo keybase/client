@@ -21,10 +21,7 @@ type StateProps = {
   members: number,
 }
 
-const mapStateToProps = (
-  state: TypedState,
-  {teamname}: OwnProps
-): StateProps => ({
+const mapStateToProps = (state: TypedState, {teamname}: OwnProps): StateProps => ({
   _newTeams: state.entities.getIn(['teams', 'newTeams'], I.Set()),
   _newTeamRequests: state.entities.getIn(['teams', 'newTeamRequests'], I.List()),
   members: state.entities.getIn(['teams', 'teammembercounts', teamname], 0),
@@ -38,7 +35,7 @@ type DispatchProps = {
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps): DispatchProps => ({
   _onManageChat: (teamname: Types.Teamname) =>
-  dispatch(navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
+    dispatch(navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
   _onOpenFolder: (teamname: Types.Teamname) =>
     dispatch(KBFSGen.createOpen({path: `/keybase/team/${teamname}`})),
   _onViewTeam: (teamname: Types.Teamname) => {

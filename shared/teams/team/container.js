@@ -18,7 +18,6 @@ import {navigateAppend} from '../../actions/route-tree'
 import {createShowUserProfile} from '../../actions/profile-gen'
 import openURL from '../../util/open-url'
 
-
 const order = {owner: 0, admin: 1, writer: 2, reader: 3}
 
 type StateProps = {
@@ -53,7 +52,9 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
   )
   // We had to request every subteam of the top-level team, rather than just
   // child subteams of the subteam we care about.  Here's where we fix that up.
-  const subteams =  state.entities.getIn(['teams', 'teamNameToSubteams', teamname], I.Set()).filter(team => team.startsWith(teamname + '.'))
+  const subteams = state.entities
+    .getIn(['teams', 'teamNameToSubteams', teamname], I.Set())
+    .filter(team => team.startsWith(teamname + '.'))
   const subTeamsProps = subteams.map(subteam => ({
     key: subteam,
     type: 'subteam',

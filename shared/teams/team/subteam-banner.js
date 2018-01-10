@@ -43,7 +43,8 @@ const Banner = ({onReadMore, onHideBanner}: Props) => (
         type="BodySemibold"
         style={{marginBottom: globalMargins.small, ...(isMobile ? {textAlign: 'center'} : {})}}
       >
-        Subteams are cryptographically distinct, and can welcome people who aren't elsewhere in your team hierarchy. Some random ideas:
+        Subteams are cryptographically distinct, and can welcome people who aren't elsewhere in your team
+        hierarchy. Some random ideas:
       </Text>
       <Text
         backgroundMode="Terminal"
@@ -67,15 +68,21 @@ const Banner = ({onReadMore, onHideBanner}: Props) => (
         • stripe.customers.nike
       </Text>
 
-      <Text style={{marginTop: globalMargins.small}} backgroundMode="Terminal" type="BodySemiboldLink" className="underline" onClick={onReadMore}>
+      <Text
+        style={{marginTop: globalMargins.small}}
+        backgroundMode="Terminal"
+        type="BodySemiboldLink"
+        className="underline"
+        onClick={onReadMore}
+      >
         Read more about subteams
       </Text>
     </Box>
-    {onHideBanner && 
+    {onHideBanner && (
       <Box style={closeIconStyle}>
         <Icon type="iconfont-close" onClick={onHideBanner} />
       </Box>
-    }
+    )}
   </Box>
 )
 

@@ -42,7 +42,15 @@ const newCharmStyle = {
   alignSelf: 'center',
 }
 
-const TeamRow = ({name, membercount, isNew, newRequests, onOpenFolder, onManageChat, onViewTeam}: RowProps) => (
+const TeamRow = ({
+  name,
+  membercount,
+  isNew,
+  newRequests,
+  onOpenFolder,
+  onManageChat,
+  onViewTeam,
+}: RowProps) => (
   <Box style={rowStyle}>
     <Box
       style={{

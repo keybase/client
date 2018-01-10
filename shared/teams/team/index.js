@@ -136,9 +136,7 @@ type TeamTabsProps = {
   setSelectedTab: (?Types.TabKey) => void,
 }
 
-const SubteamsIntro = (index, {key, onReadMore}) => (
-  <SubteamBanner key={key} onReadMore={onReadMore} />
-)
+const SubteamsIntro = (index, {key, onReadMore}) => <SubteamBanner key={key} onReadMore={onReadMore} />
 
 const AddSubTeam = (index, {key, onCreateSubteam}) => (
   <Box
@@ -151,7 +149,10 @@ const AddSubTeam = (index, {key, onCreateSubteam}) => (
       width: '100%',
     }}
   >
-    <Box onClick={onCreateSubteam} style={{...globalStyles.flexBoxRow, flexGrow: 1, justifyContent: 'center', alignItems: 'center'}}>
+    <Box
+      onClick={onCreateSubteam}
+      style={{...globalStyles.flexBoxRow, flexGrow: 1, justifyContent: 'center', alignItems: 'center'}}
+    >
       <Icon type="iconfont-new" style={{color: globalColors.blue}} />
       <Text type="BodyBigLink" style={{padding: globalMargins.xtiny}}>
         Create subteam
@@ -374,10 +375,7 @@ class Team extends React.PureComponent<Props> {
         />
       )
     } else if (selectedTab === 'subteams') {
-      let subTeamsItems = [
-        {key: 'addSubteam', type: 'addSubteam', onCreateSubteam},
-        ...subTeamsProps,
-      ]
+      let subTeamsItems = [{key: 'addSubteam', type: 'addSubteam', onCreateSubteam}, ...subTeamsProps]
       const showIntro = subteams.count() == 0
       showIntro && subTeamsItems.unshift({key: 'intro', type: 'intro', onReadMore: onReadMoreAboutSubteams})
       contents = !loading && (

@@ -61,7 +61,7 @@ export type _SubteamInfo = {
   key: string,
   members: number,
   teamname: string,
-  type: 'addSubTeam' | 'intro' | 'subteam'
+  type: 'addSubTeam' | 'intro' | 'subteam',
 }
 export type SubteamInfo = I.RecordOf<_SubteamInfo>
 
