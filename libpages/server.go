@@ -78,7 +78,7 @@ func (s *Server) getSite(ctx context.Context, root Root) (st *site, err error) {
 		s.config.Logger.Error("nasty entry in s.siteCache",
 			zap.String("reflect_type", reflect.TypeOf(siteCached).String()))
 	}
-	fs, fsShutdown, err := root.MakeFS(ctx, s.config.Logger, s.kbfsConfig)
+	fs, tlfID, fsShutdown, err := root.MakeFS(ctx, s.config.Logger, s.kbfsConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +90,7 @@ func (s *Server) getSite(ctx context.Context, root Root) (st *site, err error) {
 			fsShutdown()
 		}
 	}()
-	st = makeSite(fs, fsShutdown, root)
+	st = makeSite(fs, tlfID, fsShutdown, root)
 	s.siteCache.Add(root, st)
 	added = true
 	return st, nil
@@ -110,7 +110,7 @@ func (s *Server) siteCacheEvict(_ interface{}, value interface{}) {
 		zap.String("reflect_type", reflect.TypeOf(value).String()))
 }
 
-func (s *Server) handleErrorAndPopulateStat(
+func (s *Server) handleErrorAndPopulateSRI(
 	w http.ResponseWriter, err error, sri *ServedRequestInfo) {
 	// TODO: have a nicer error page for configuration errors?
 	switch err.(type) {
@@ -155,7 +155,7 @@ func (a adaptedLogger) Warning(format string, args ...interface{}) {
 	a.logger.Warn(a.msg, zap.String("desc", fmt.Sprintf(format, args...)))
 }
 
-func (s *Server) handleNeedAuthenticationAndPopulateStat(
+func (s *Server) handleNeedAuthenticationAndPopulateSRI(
 	w http.ResponseWriter, r *http.Request, realm string,
 	sri *ServedRequestInfo) {
 	w.Header().Set("WWW-Authenticate", fmt.Sprintf("Basic realm=%s", realm))
@@ -261,6 +261,8 @@ type ServedRequestInfo struct {
 	// necessarily indicate that the authentication is required for this
 	// particular request.
 	Authenticated bool
+	// TlfID is the TLF ID associated with the site.
+	TlfID tlf.ID
 	// TlfType is the TLF type of the root that's used to serve the request.
 	TlfType tlf.Type
 	// RootType is the type of the root that's used to serve the request.
@@ -281,6 +283,7 @@ func (s *Server) logRequest(sri *ServedRequestInfo, requestPath string) {
 		zap.String("host", sri.Host),
 		zap.String("path", requestPath),
 		zap.String("proto", sri.Proto),
+		zap.String("tlf_id", sri.TlfID.String()),
 		zap.Int("http_status", sri.HTTPStatus),
 		zap.Bool("authenticated", sri.Authenticated),
 		zap.Bool("cloning_shown", sri.CloningShown),
@@ -314,7 +317,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Construct a *site from DNS record.
 	root, err := LoadRootFromDNS(s.config.Logger, r.Host)
 	if err != nil {
-		s.handleErrorAndPopulateStat(w, err, sri)
+		s.handleErrorAndPopulateSRI(w, err, sri)
 		return
 	}
 	sri.TlfType, sri.RootType = root.TlfType, root.Type
@@ -325,15 +328,16 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		})
 	st, err := s.getSite(ctx, root)
 	if err != nil {
-		s.handleErrorAndPopulateStat(w, err, sri)
+		s.handleErrorAndPopulateSRI(w, err, sri)
 		return
 	}
+	sri.TlfID = st.tlfID
 
 	// Show a landing page if site uses git root and has a CLONING file which
 	// indicates we are still cloning the assets.
 	shouldShowCloningLandingPage, err := s.shouldShowCloningLandingPage(st)
 	if err != nil {
-		s.handleErrorAndPopulateStat(w, err, sri)
+		s.handleErrorAndPopulateSRI(w, err, sri)
 		return
 	}
 	if shouldShowCloningLandingPage {
@@ -352,7 +356,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// User has a .kbp_config file but it's invalid.
 		// TODO: error page to show the error message?
 		sri.InvalidConfig = true
-		s.handleErrorAndPopulateStat(w, err, sri)
+		s.handleErrorAndPopulateSRI(w, err, sri)
 		return
 	}
 
@@ -368,7 +372,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			r.URL.Path)
 	}
 	if err != nil {
-		s.handleErrorAndPopulateStat(w, err, sri)
+		s.handleErrorAndPopulateSRI(w, err, sri)
 		return
 	}
 
@@ -378,17 +382,17 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// way today.
 	isListing, err := s.isDirWithNoIndexHTML(st, r.URL.Path)
 	if err != nil {
-		s.handleErrorAndPopulateStat(w, err, sri)
+		s.handleErrorAndPopulateSRI(w, err, sri)
 		return
 	}
 
 	if isListing && !canList {
-		s.handleNeedAuthenticationAndPopulateStat(w, r, realm, sri)
+		s.handleNeedAuthenticationAndPopulateSRI(w, r, realm, sri)
 		return
 	}
 
 	if !isListing && !canRead {
-		s.handleNeedAuthenticationAndPopulateStat(w, r, realm, sri)
+		s.handleNeedAuthenticationAndPopulateSRI(w, r, realm, sri)
 		return
 	}
 

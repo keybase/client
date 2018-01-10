@@ -13,6 +13,7 @@ import (
 
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libpages/config"
+	"github.com/keybase/kbfs/tlf"
 )
 
 const configCacheTime = 16 * time.Second
@@ -20,6 +21,7 @@ const configCacheTime = 16 * time.Second
 type site struct {
 	// fs should never be changed once it's constructed.
 	fs         *libfs.FS
+	tlfID      tlf.ID
 	fsShutdown func()
 	root       Root
 
@@ -29,9 +31,10 @@ type site struct {
 	cachedConfigExpiresAt time.Time
 }
 
-func makeSite(fs *libfs.FS, fsShutdown func(), root Root) *site {
+func makeSite(fs *libfs.FS, tlfID tlf.ID, fsShutdown func(), root Root) *site {
 	return &site{
 		fs:         fs,
+		tlfID:      tlfID,
 		fsShutdown: fsShutdown,
 		root:       root,
 	}

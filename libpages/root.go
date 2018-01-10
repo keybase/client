@@ -69,8 +69,9 @@ type Root struct {
 
 // MakeFS makes a *libfs.FS from *r, which can be adapted to a http.FileSystem
 // (through ToHTTPFileSystem) to be used by http package to serve through HTTP.
-func (r *Root) MakeFS(ctx context.Context, log *zap.Logger,
-	kbfsConfig libkbfs.Config) (fs *libfs.FS, shutdown func(), err error) {
+func (r *Root) MakeFS(
+	ctx context.Context, log *zap.Logger, kbfsConfig libkbfs.Config) (
+	fs *libfs.FS, tlfID tlf.ID, shutdown func(), err error) {
 	fsCtx, cancel := context.WithCancel(context.Background())
 	defer func() {
 		zapFields := []zapcore.Field{
@@ -90,25 +91,25 @@ func (r *Root) MakeFS(ctx context.Context, log *zap.Logger,
 		libkbfs.CtxWithRandomIDReplayable(
 			fsCtx, ctxIDKey, ctxOpID, nil))
 	if err != nil {
-		return nil, nil, err
+		return nil, tlf.ID{}, nil, err
 	}
 	switch r.Type {
 	case KBFSRoot:
 		tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
 			ctx, kbfsConfig.KBPKI(), kbfsConfig.MDOps(), r.TlfNameUnparsed, r.TlfType)
 		if err != nil {
-			return nil, nil, err
+			return nil, tlf.ID{}, nil, err
 		}
 		fs, err = libfs.NewFS(fsCtx, kbfsConfig,
 			tlfHandle, r.PathUnparsed, "", keybase1.MDPriorityNormal)
 		if err != nil {
-			return nil, nil, err
+			return nil, tlf.ID{}, nil, err
 		}
-		return fs, cancel, nil
+		return fs, tlfHandle.TlfID(), cancel, nil
 	case GitRoot:
 		session, err := kbfsConfig.KeybaseService().CurrentSession(ctx, 0)
 		if err != nil {
-			return nil, nil, err
+			return nil, tlf.ID{}, nil, err
 		}
 		tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
 			ctx, kbfsConfig.KBPKI(), kbfsConfig.MDOps(),
@@ -117,18 +118,18 @@ func (r *Root) MakeFS(ctx context.Context, log *zap.Logger,
 			// logged into a bot account.
 			string(session.Name), tlf.Private)
 		if err != nil {
-			return nil, nil, err
+			return nil, tlf.ID{}, nil, err
 		}
 		fs, err = libfs.NewFS(fsCtx, kbfsConfig,
 			tlfHandle, fmt.Sprintf(".kbfs_autogit/%s/%s/%s",
 				r.TlfType, r.TlfNameUnparsed, r.PathUnparsed), "",
 			keybase1.MDPriorityNormal)
 		if err != nil {
-			return nil, nil, err
+			return nil, tlf.ID{}, nil, err
 		}
-		return fs, cancel, nil
+		return fs, tlfHandle.TlfID(), cancel, nil
 	default:
-		return nil, nil, ErrInvalidKeybasePagesRecord{}
+		return nil, tlf.ID{}, nil, ErrInvalidKeybasePagesRecord{}
 	}
 }
 
