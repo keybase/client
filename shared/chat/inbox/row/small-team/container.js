@@ -1,6 +1,5 @@
 // @flow
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as Constants from '../../../../constants/chat'
 import * as Constants2 from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import {SmallTeam} from '.'
@@ -11,7 +10,7 @@ type OwnProps = {conversationIDKey: ?Types.ConversationIDKey, isActiveRoute: boo
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const _conversationIDKey = ownProps.conversationIDKey || ''
   const {isActiveRoute} = ownProps
-  const youAreReset = Constants.isResetConversationIDKey(state, _conversationIDKey)
+  const youAreReset = false // Constants.isResetConversationIDKey(state, _conversationIDKey)
 
   return {
     _conversationIDKey,
