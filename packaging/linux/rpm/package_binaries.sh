@@ -59,6 +59,14 @@ build_one_architecture() {
   cp -r "$binaries_path"/* "$copied_binaries/"
   echo "copied_binaries: $copied_binaries"
 
+  # RPM-based distros (though not Debian or Arch, see
+  # https://wiki.debian.org/Multiarch/TheCaseForMultiarch) distinguish between
+  # /usr/lib and /usr/lib64, and on 64-bit systems Firefox will not search for
+  # native messaging manifests under /usr/lib. Copy the manifests into both
+  # places, for good measure.
+  mkdir -p "$copied_binaries/usr/lib64/mozilla"
+  cp -r "$copied_binaries/usr/lib/mozilla/native-messaging-hosts" "$copied_binaries/usr/lib64/mozilla/"
+
   # We need to copy in the cron file before we collect the list of all files
   # below.
   cron_file="$copied_binaries/etc/cron.daily/$name"
