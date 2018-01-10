@@ -341,6 +341,19 @@ func (h Handle) IsConflict() bool {
 
 // DeepEqual returns true if the handle is equal to another handle.
 func (h Handle) DeepEqual(other Handle) bool {
+	if len(h.Writers) != len(other.Writers) {
+		return false
+	}
+	if len(h.UnresolvedWriters) != len(other.UnresolvedWriters) {
+		return false
+	}
+	if len(h.Readers) != len(other.Readers) {
+		return false
+	}
+	if len(h.UnresolvedReaders) != len(other.UnresolvedReaders) {
+		return false
+	}
+
 	if !h.sorted {
 		sort.Sort(UIDList(h.Writers))
 		sort.Sort(UIDList(h.Readers))
@@ -356,18 +369,6 @@ func (h Handle) DeepEqual(other Handle) bool {
 		other.sorted = true
 	}
 
-	if len(h.Writers) != len(other.Writers) {
-		return false
-	}
-	if len(h.UnresolvedWriters) != len(other.UnresolvedWriters) {
-		return false
-	}
-	if len(h.Readers) != len(other.Readers) {
-		return false
-	}
-	if len(h.UnresolvedReaders) != len(other.UnresolvedReaders) {
-		return false
-	}
 	for i, v := range h.Writers {
 		if other.Writers[i] != v {
 			return false
