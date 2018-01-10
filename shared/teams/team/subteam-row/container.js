@@ -44,9 +44,7 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps): DispatchPro
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => {
-  console.warn('members and teamname', stateProps, dispatchProps, ownProps)
   const youAreMember = stateProps.yourRole && stateProps.yourRole !== 'none'
-  const canManageChat = youAreMember && stateProps.yourOperations.createChannel
   return {
     ...ownProps,
     ...stateProps,
@@ -57,7 +55,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
     newTeams: stateProps._newTeams.toArray(),
     newTeamRequests: stateProps._newTeamRequests.toArray(),
     onOpenFolder: youAreMember ? () => dispatchProps._onOpenFolder(ownProps.teamname) : null,
-    onManageChat: canManageChat ? () => dispatchProps._onManageChat(ownProps.teamname) : null,
+    onManageChat: youAreMember ? () => dispatchProps._onManageChat(ownProps.teamname) : null,
     onViewTeam: () => dispatchProps._onViewTeam(ownProps.teamname),
   }
 }

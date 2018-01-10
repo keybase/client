@@ -138,6 +138,10 @@ type TeamTabsProps = {
 
 const SubteamsIntro = (index, {key, onReadMore}) => <SubteamBanner key={key} onReadMore={onReadMore} />
 
+const SubteamRow = (index, row) => (<Box style={{...globalStyles.row, marginLeft: globalMargins.tiny}}>
+  {TeamSubteamRow(index, row)}
+</Box>)
+
 const AddSubTeam = (index, {key, onCreateSubteam}) => (
   <Box
     style={{
@@ -161,14 +165,37 @@ const AddSubTeam = (index, {key, onCreateSubteam}) => (
   </Box>
 )
 
+const NoSubteams = (index, key) => (
+  <Box
+    style={{
+      ...globalStyles.flexBoxRow,
+      alignItems: 'center',
+      flexShrink: 0,
+      height: globalMargins.medium,
+      padding: globalMargins.tiny,
+      width: '100%',
+    }}
+  >
+    <Box
+      style={{...globalStyles.flexBoxRow, flexGrow: 1, justifyContent: 'center', alignItems: 'center'}}
+    >
+      <Text type="BodySmall">
+        This team has no subteams.
+      </Text>
+    </Box>
+  </Box>
+)
+
 const subTeamsRow = (index, row) => {
   switch (row.type) {
     case 'intro':
       return SubteamsIntro(index, row)
     case 'addSubteam':
       return AddSubTeam(index, row)
+    case 'noSubteams':
+      return NoSubteams(index, row)
     default:
-      return TeamSubteamRow(index, row)
+      return SubteamRow(index, row)
   }
 }
 
@@ -255,7 +282,7 @@ const TeamTabs = (props: TeamTabsProps) => {
   }
 
   const publicityLabel = 'SETTINGS'
-  tabs.push(
+  tabs.push(isMobile ? <Icon key="publicity" type="iconfont-nav-settings" /> :
     <Text
       key="publicity"
       type="BodySmallSemibold"
@@ -375,16 +402,22 @@ class Team extends React.PureComponent<Props> {
         />
       )
     } else if (selectedTab === 'subteams') {
-      let subTeamsItems = [{key: 'addSubteam', type: 'addSubteam', onCreateSubteam}, ...subTeamsProps]
-      const showIntro = subteams.count() == 0
-      showIntro && subTeamsItems.unshift({key: 'intro', type: 'intro', onReadMore: onReadMoreAboutSubteams})
+      let subTeamsItems = [
+        {key: 'addSubteam', type: 'addSubteam', onCreateSubteam},
+        ...subTeamsProps,
+      ]
+      const noSubteams = subteams.count() === 0
+      if (noSubteams) {
+        subTeamsItems.unshift({key: 'intro', type: 'intro', onReadMore: onReadMoreAboutSubteams})
+        subTeamsItems.push({key: 'noSubteams', type: 'noSubteams'})
+      }
       contents = !loading && (
         <List
           items={subTeamsItems}
           fixedHeight={48}
           keyProperty="key"
           renderItem={subTeamsRow}
-          style={{alignSelf: 'stretch', marginLeft: globalMargins.tiny}}
+          style={{alignSelf: 'stretch'}}
         />
       )
     } else if (selectedTab === 'invites') {
