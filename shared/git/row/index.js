@@ -19,7 +19,6 @@ import {globalStyles, globalColors, globalMargins, transition, isMobile} from '.
 export type Props = {
   canDelete: boolean,
   canEdit: boolean,
-  channelNames: Array<string>,
   channelName: ?string,
   chatDisabled: boolean,
   devicename: string,
@@ -66,7 +65,7 @@ class Row extends React.Component<Props, State> {
   }
 
   _channelNameToString = (channelName: ?string) => {
-    return channelName ? `#${channelName}` : 'nowhere'
+    return channelName ? `#${channelName}` : '#general'
   }
 
   render() {
@@ -196,30 +195,41 @@ class Row extends React.Component<Props, State> {
                 <Text type="BodySmall">.</Text>
               </Text>
             </Box>
-            {this.props.canEdit && (
+            {!!this.props.teamname && (
               <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginTop: globalMargins.xtiny}}>
-                <Checkbox
-                  checked={!this.props.chatDisabled}
-                  onCheck={this.props.onToggleChatEnabled}
-                  label=""
-                  labelComponent={
-                    <Text type="BodySmall">
-                      Announce pushes in{' '}
-                      <Text
-                        type={this.props.chatDisabled ? 'BodySmall' : 'BodySmallPrimaryLink'}
-                        onClick={e => {
-                          if (this.props.chatDisabled) {
-                            return
-                          }
-                          e.preventDefault()
-                          this.props.onOpenChannelSelection()
-                        }}
-                      >
-                        #general
+                {this.props.canEdit && (
+                  <Checkbox
+                    checked={!this.props.chatDisabled}
+                    onCheck={this.props.onToggleChatEnabled}
+                    label=""
+                    labelComponent={
+                      <Text type="BodySmall">
+                        Announce pushes in{' '}
+                        <Text
+                          type={this.props.chatDisabled ? 'BodySmall' : 'BodySmallPrimaryLink'}
+                          onClick={e => {
+                            if (this.props.chatDisabled) {
+                              return
+                            }
+                            e.preventDefault()
+                            this.props.onOpenChannelSelection()
+                          }}
+                        >
+                          {this._channelNameToString(this.props.channelName)}
+                        </Text>
                       </Text>
-                    </Text>
-                  }
-                />
+                    }
+                  />
+                )}
+                {!this.props.canEdit && (
+                  <Text type="BodySmall">
+                    {this.props.chatDisabled
+                      ? 'Pushes are not announced'
+                      : `Pushes are announced in ${this.props.teamname}${this._channelNameToString(
+                          this.props.channelName
+                        )}`}
+                  </Text>
+                )}
               </Box>
             )}
             {isMobile &&
