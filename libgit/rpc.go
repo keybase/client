@@ -136,6 +136,8 @@ func (rh *RPCHandler) CreateRepo(
 		rh.log.CDebugf(ctx, "Done creating repo: %+v", err)
 	}()
 
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 	ctx, gitConfig, tlfHandle, tempDir, err := rh.getHandleAndConfig(
 		ctx, arg.Folder)
 	if err != nil {
@@ -170,8 +172,10 @@ func (rh *RPCHandler) scheduleCleaning(folder keybase1.Folder) {
 	time.AfterFunc(minDeletedAgeForCleaning+1*time.Second, func() {
 		log := rh.config.MakeLogger("")
 
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
 		ctx, gitConfig, tlfHandle, tempDir, err := rh.getHandleAndConfig(
-			context.Background(), folder)
+			ctx, folder)
 		if err != nil {
 			log.CDebugf(nil, "Couldn't init for scheduled cleaning of %s: %+v",
 				folder.Name, err)
@@ -213,6 +217,8 @@ func (rh *RPCHandler) DeleteRepo(
 		rh.log.CDebugf(ctx, "Done deleting repo: %+v", err)
 	}()
 
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 	ctx, gitConfig, tlfHandle, tempDir, err := rh.getHandleAndConfig(
 		ctx, arg.Folder)
 	if err != nil {
@@ -250,6 +256,8 @@ func (rh *RPCHandler) Gc(
 		rh.log.CDebugf(ctx, "Done garbage-collecting repo: %+v", err)
 	}()
 
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 	ctx, gitConfig, tlfHandle, tempDir, err := rh.getHandleAndConfig(
 		ctx, arg.Folder)
 	if err != nil {
@@ -288,6 +296,8 @@ func (rh *RPCHandler) RenameRepo(ctx context.Context,
 		rh.log.CDebugf(ctx, "Done renaming repo: %+v", err)
 	}()
 
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 	ctx, gitConfig, tlfHandle, tempDir, err := rh.getHandleAndConfig(
 		ctx, folder)
 	if err != nil {
