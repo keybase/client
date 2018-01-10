@@ -754,7 +754,7 @@ func (i *Inbox) promoteWriter(ctx context.Context, sender gregor1.UID, writers [
 }
 
 func (i *Inbox) NewMessage(ctx context.Context, vers chat1.InboxVers, convID chat1.ConversationID,
-	msg chat1.MessageBoxed) (err Error) {
+	msg chat1.MessageBoxed, maxMsgs []chat1.MessageSummary) (err Error) {
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.Trace(ctx, func() error { return err }, "NewMessage")()
@@ -771,17 +771,9 @@ func (i *Inbox) NewMessage(ctx context.Context, vers chat1.InboxVers, convID cha
 
 	// Check inbox versions, make sure it makes sense (clear otherwise)
 	var cont bool
+	updateVers := vers
 	if vers, cont, err = i.handleVersion(ctx, ibox.InboxVersion, vers); !cont {
 		return err
-	}
-
-	// Check for a delete, if so just auto return a version mismatch to resync. The reason
-	// is it is tricky to update max messages in this case.
-	switch msg.GetMessageType() {
-	case chat1.MessageType_DELETE,
-		chat1.MessageType_DELETEHISTORY:
-		i.Debug(ctx, "NewMessage: returning fake version mismatch error because of delete")
-		return NewVersionMismatchError(ibox.InboxVersion, vers)
 	}
 
 	// Find conversation
@@ -791,18 +783,35 @@ func (i *Inbox) NewMessage(ctx context.Context, vers chat1.InboxVers, convID cha
 		return i.Clear(ctx)
 	}
 
-	// Update conversation
-	found := false
-	typ := msg.GetMessageType()
-	for mindex, maxmsg := range conv.Conv.MaxMsgSummaries {
-		if maxmsg.GetMessageType() == typ {
-			conv.Conv.MaxMsgSummaries[mindex] = msg.Summary()
-			found = true
-			break
+	// Update conversation. Use given max messages if the param is non-empty, otherwise just fill
+	// it in ourselves
+	if len(maxMsgs) == 0 {
+		// Check for a delete, if so just auto return a version mismatch to resync. The reason
+		// is it is tricky to update max messages in this case. NOTE: this update must also not be a
+		// self update, we only do this clear if the server transmitted the update to us.
+		if updateVers > 0 {
+			switch msg.GetMessageType() {
+			case chat1.MessageType_DELETE, chat1.MessageType_DELETEHISTORY:
+				i.Debug(ctx, "NewMessage: returning fake version mismatch error because of delete: vers: %d",
+					vers)
+				return NewVersionMismatchError(ibox.InboxVersion, vers)
+			}
 		}
-	}
-	if !found {
-		conv.Conv.MaxMsgSummaries = append(conv.Conv.MaxMsgSummaries, msg.Summary())
+		found := false
+		typ := msg.GetMessageType()
+		for mindex, maxmsg := range conv.Conv.MaxMsgSummaries {
+			if maxmsg.GetMessageType() == typ {
+				conv.Conv.MaxMsgSummaries[mindex] = msg.Summary()
+				found = true
+				break
+			}
+		}
+		if !found {
+			conv.Conv.MaxMsgSummaries = append(conv.Conv.MaxMsgSummaries, msg.Summary())
+		}
+	} else {
+		i.Debug(ctx, "NewMessage: setting max messages from server payload")
+		conv.Conv.MaxMsgSummaries = maxMsgs
 	}
 
 	// If we are all up to date on the thread (and the sender is the current user),

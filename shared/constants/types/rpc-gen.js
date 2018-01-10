@@ -595,6 +595,10 @@ export const delegateUiCtlRegisterGregorFirehoseRpcChannelMap = (configKeys: Arr
 
 export const delegateUiCtlRegisterGregorFirehoseRpcPromise = (request: DelegateUiCtlRegisterGregorFirehoseRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerGregorFirehose', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
+export const delegateUiCtlRegisterHomeUIRpcChannelMap = (configKeys: Array<string>, request: DelegateUiCtlRegisterHomeUIRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.delegateUiCtl.registerHomeUI', request)
+
+export const delegateUiCtlRegisterHomeUIRpcPromise = (request: DelegateUiCtlRegisterHomeUIRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerHomeUI', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+
 export const delegateUiCtlRegisterIdentifyUIRpcChannelMap = (configKeys: Array<string>, request: DelegateUiCtlRegisterIdentifyUIRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.delegateUiCtl.registerIdentifyUI', request)
 
 export const delegateUiCtlRegisterIdentifyUIRpcPromise = (request: DelegateUiCtlRegisterIdentifyUIRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerIdentifyUI', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
@@ -2085,6 +2089,8 @@ export type DebuggingSecondStepRpcParam = $ReadOnly<{val: Int, incomingCallMap?:
 
 export type DelegateUiCtlRegisterGregorFirehoseRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
+export type DelegateUiCtlRegisterHomeUIRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
 export type DelegateUiCtlRegisterIdentifyUIRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type DelegateUiCtlRegisterRekeyUIRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
@@ -2305,7 +2311,7 @@ export type GitPutGitMetadataRpcParam = $ReadOnly<{folder: Folder, repoID: RepoI
 
 export type GitRefMetadata = $ReadOnly<{refName: String, commits?: ?Array<GitCommit>, moreCommitsAvailable: Boolean}>
 
-export type GitRepoInfo = $ReadOnly<{folder: Folder, repoID: RepoID, localMetadata: GitLocalMetadata, serverMetadata: GitServerMetadata, repoUrl: String, globalUniqueID: String, canDelete: Boolean}>
+export type GitRepoInfo = $ReadOnly<{folder: Folder, repoID: RepoID, localMetadata: GitLocalMetadata, serverMetadata: GitServerMetadata, repoUrl: String, globalUniqueID: String, canDelete: Boolean, teamRepoSettings?: ?GitTeamRepoSettings}>
 
 export type GitRepoName = String
 
@@ -2398,7 +2404,7 @@ export type HomeScreenTodoType =
   | 9 // GIT_REPO_9
   | 10 // TEAM_SHOWCASE_10
 
-export type HomeUiHomeUIRefreshRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type HomeUIHomeUIRefreshRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type HomeUserSummary = $ReadOnly<{uid: UID, username: String, bio: String, fullName: String, pics?: ?Pics}>
 
@@ -4058,7 +4064,7 @@ export type IncomingCallMapType = {
   'keybase.1.gpgUi.getTTY'?: (params: $ReadOnly<{}>, response: {error: RPCErrorHandler, result: (result: GpgUiGetTTYResult) => void}) => void,
   'keybase.1.gregorUI.pushState'?: (params: $ReadOnly<{state: Gregor1.State, reason: PushReason}>, response: CommonResponseHandler) => void,
   'keybase.1.gregorUI.pushOutOfBandMessages'?: (params: $ReadOnly<{oobm?: ?Array<Gregor1.OutOfBandMessage>}>, response: CommonResponseHandler) => void,
-  'keybase.1.homeUi.homeUIRefresh'?: (params: $ReadOnly<{}>, response: CommonResponseHandler) => void,
+  'keybase.1.homeUI.homeUIRefresh'?: (params: $ReadOnly<{}>, response: CommonResponseHandler) => void,
   'keybase.1.identifyUi.displayTLFCreateWithInvite'?: (params: $ReadOnly<{sessionID: Int, folderName: String, isPrivate: Boolean, assertion: String, socialAssertion: SocialAssertion, inviteLink: String, throttled: Boolean}>, response: CommonResponseHandler) => void,
   'keybase.1.identifyUi.delegateIdentifyUI'?: (params: $ReadOnly<{}>, response: {error: RPCErrorHandler, result: (result: IdentifyUiDelegateIdentifyUIResult) => void}) => void,
   'keybase.1.identifyUi.start'?: (params: $ReadOnly<{sessionID: Int, username: String, reason: IdentifyReason, forceDisplay?: Boolean}>, response: CommonResponseHandler) => void,

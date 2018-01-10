@@ -188,6 +188,25 @@ type updateGregorMessage struct {
 	Version int `json:"version"`
 }
 
+func (h *Home) updateUI(ctx context.Context) (err error) {
+	defer h.G().CTrace(ctx, "Home#updateUI", func() error { return err })()
+	var ui keybase1.HomeUIInterface
+	if h.G().UIRouter == nil {
+		h.G().Log.CDebugf(ctx, "no UI router, swallowing update")
+		return nil
+	}
+	ui, err = h.G().UIRouter.GetHomeUI()
+	if err != nil {
+		return err
+	}
+	if ui == nil {
+		h.G().Log.CDebugf(ctx, "no registered HomeUI, swallowing update")
+		return nil
+	}
+	err = ui.HomeUIRefresh(context.Background())
+	return err
+}
+
 func (h *Home) handleUpdate(ctx context.Context, item gregor.Item) (err error) {
 	defer h.G().CTrace(ctx, "Home#handleUpdate", func() error { return err })()
 	var msg updateGregorMessage
@@ -202,6 +221,9 @@ func (h *Home) handleUpdate(ctx context.Context, item gregor.Item) (err error) {
 	if h.cache != nil && msg.Version > h.cache.obj.Version {
 		h.cache = nil
 	}
+
+	// Ignore the error code...
+	h.updateUI(ctx)
 	return nil
 }
 

@@ -2,7 +2,9 @@ package systests
 
 import (
 	"github.com/keybase/client/go/client"
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/stretchr/testify/require"
 	context "golang.org/x/net/context"
 	"testing"
@@ -107,6 +109,15 @@ func postBio(t *testing.T, u *userPlusDevice) {
 	require.NoError(t, err)
 }
 
+type homeUI struct {
+	refreshed bool
+}
+
+func (h *homeUI) HomeUIRefresh(_ context.Context) (err error) {
+	h.refreshed = true
+	return nil
+}
+
 func TestHome(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
@@ -151,6 +162,9 @@ func TestHome(t *testing.T) {
 		return (countPre == 1)
 	})
 
+	hui := homeUI{}
+	attachHomeUI(t, g, &hui)
+
 	postBio(t, alice)
 
 	pollForTrue(func(i int) bool {
@@ -158,6 +172,11 @@ func TestHome(t *testing.T) {
 		badges := getBadgeState(t, alice)
 		g.Log.Debug("Iter %d of check loop: Home is: %+v; BadgeState is: %+v", i, home, badges)
 		return (home.Version > initialVersion && badges.HomeTodoItems < countPre)
+	})
+
+	pollForTrue(func(i int) bool {
+		g.Log.Debug("Iter %d of check loop for home refresh; value is %v", i, hui.refreshed)
+		return hui.refreshed
 	})
 
 	assertTodoNotPresent(t, home, keybase1.HomeScreenTodoType_BIO)
@@ -170,4 +189,15 @@ func TestHome(t *testing.T) {
 	bob.track(alice.username)
 	home = getHome(t, alice, true)
 	assertFollowerPresent(t, home, bob.username)
+}
+
+func attachHomeUI(t *testing.T, g *libkb.GlobalContext, hui keybase1.HomeUIInterface) {
+	cli, xp, err := client.GetRPCClientWithContext(g)
+	require.NoError(t, err)
+	srv := rpc.NewServer(xp, nil)
+	err = srv.Register(keybase1.HomeUIProtocol(hui))
+	require.NoError(t, err)
+	ncli := keybase1.DelegateUiCtlClient{Cli: cli}
+	err = ncli.RegisterHomeUI(context.TODO())
+	require.NoError(t, err)
 }

@@ -22,6 +22,8 @@ function usernameText({
   colorBroken = true,
   onUsernameClicked,
   underline = false,
+  inlineGrammar = false,
+  showAnd = false,
 }: Props) {
   return users.map((u, i) => {
     const userStyle = {
@@ -39,6 +41,7 @@ function usernameText({
     const _onUsernameClicked = onUsernameClicked
     return (
       <Text type={type} key={u.username}>
+        {i === users.length - 1 && showAnd && 'and '}
         <Text
           type={type}
           backgroundMode={backgroundMode}
@@ -55,6 +58,7 @@ function usernameText({
             style={{...style, color: commaColor, marginRight: 1, textDecoration: 'none'}}
           >
             ,
+            {inlineGrammar && ' '}
           </Text>
         )}
       </Text>
@@ -178,13 +182,15 @@ const mapStateToProps = (state: TypedState, ownProps: ConnectedProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: ConnectedProps) => ({
-  onUsernameClicked: ownProps.clickable
-    ? (username: string) => {
-        isMobile
-          ? dispatch(createShowUserProfile({username}))
-          : dispatch(createGetProfile({username, ignoreCache: true, forceDisplay: true}))
-      }
-    : undefined,
+  onUsernameClicked:
+    ownProps.onUsernameClicked ||
+    (ownProps.clickable
+      ? (username: string) => {
+          isMobile
+            ? dispatch(createShowUserProfile({username}))
+            : dispatch(createGetProfile({username, ignoreCache: true, forceDisplay: true}))
+        }
+      : undefined),
 })
 
 const ConnectedUsernames = connect(mapStateToProps, mapDispatchToProps)(Usernames)

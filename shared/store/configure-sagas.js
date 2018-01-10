@@ -24,6 +24,7 @@ import sagaMonitor from './saga-monitor'
 import {reduxSagaLogger} from '../local-debug'
 import appStateSaga from '../actions/app'
 import teamsSaga from '../actions/teams'
+import peopleSaga from '../actions/people'
 import {sagaTimer} from '../dev/user-timings'
 
 import type {SagaGenerator} from '../constants/types/saga'
@@ -50,6 +51,7 @@ function* mainSaga(): SagaGenerator<any, any> {
   yield fork(teamsSaga)
   yield fork(unlockFoldersSaga)
   yield fork(gitSaga)
+  yield fork(peopleSaga)
 }
 
 let middleWare

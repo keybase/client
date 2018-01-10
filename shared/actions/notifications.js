@@ -14,6 +14,7 @@ import engine, {Engine} from '../engine'
 import logger from '../logger'
 import {NotifyPopup} from '../native/notifications'
 import {isMobile} from '../constants/platform'
+import {createSetupPeopleHandlers} from './people-gen'
 
 function* _listenSaga(): Saga.SagaGenerator<any, any> {
   const channels = {
@@ -59,6 +60,7 @@ function* _listenKBFSSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.put(ChatGen.createSetupChatHandlers())
   yield Saga.put(TeamsGen.createSetupTeamHandlers())
   yield Saga.put(UnlockFoldersGen.createRegisterRekeyListener())
+  yield Saga.put(createSetupPeopleHandlers())
 }
 
 function _onRecievedBadgeState(action: NotificationsGen.ReceivedBadgeStatePayload) {

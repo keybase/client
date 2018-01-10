@@ -15,6 +15,8 @@ import * as SignupGen from '../actions/signup-gen'
 import engine from '../engine'
 import {RouteStateStorage} from '../actions/route-state-storage'
 import {createConfigurePush} from './push-gen'
+import {createGetPeopleData} from './people-gen'
+import {defaultNumFollowSuggestions} from '../constants/people'
 import {getAppState, setAppState} from './platform-specific'
 import {isMobile, isSimulator} from '../constants/platform'
 import {loggedInSelector} from '../constants/selectors'
@@ -137,10 +139,17 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
             if (getState().config.loggedIn) {
               // If we're logged in, restore any saved route state and
               // then nav again based on it.
+              // load people tab info on startup as well
               // also load the teamlist for auxiliary information around the app
               await dispatch(routeStateStorage.load)
               await dispatch(LoginGen.createNavBasedOnLoginAndInitialState())
               await dispatch(TeamsGen.createGetTeams())
+              await dispatch(
+                createGetPeopleData({
+                  markViewed: false,
+                  numFollowSuggestionsWanted: defaultNumFollowSuggestions,
+                })
+              )
             }
           })
           dispatch(SignupGen.createResetSignup())

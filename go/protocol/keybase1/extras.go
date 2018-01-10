@@ -2144,3 +2144,8 @@ func RefNames(refs []GitRefMetadata) string {
 	}
 	return strings.Join(names, ", ")
 }
+
+// Is the reason for this identify a UI profile load?
+func (r IdentifyReason) IsUIProfile() bool {
+	return r.Type == IdentifyReasonType_ID && r.Reason == "@@UI-PROFILE"
+}
