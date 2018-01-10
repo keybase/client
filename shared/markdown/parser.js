@@ -183,18 +183,18 @@ function peg$parse(input, options) {
       peg$c31 = function(children) { return {type: 'strike', children: flatten(children)} },
       peg$c32 = /^[a-zA-Z0-9]/,
       peg$c33 = peg$otherExpectation("stripped character class"),
-      peg$c34 = function(mention) {
-        return mention.length >= 2 && mention.length <= 16 &&
-          options && options.isValidMention && options.isValidMention(mention)
+      peg$c34 = function(username) {
+        return username.length >= 2 && username.length <= 16 &&
+          options && options.isValidMention && options.isValidMention(username)
       },
-      peg$c35 = function(mention) { return {type: 'mention', children: [mention] } },
+      peg$c35 = function(username) { return {type: 'mention', children: [username] } },
       peg$c36 = /^[0-9a-zA-Z_\-]/,
       peg$c37 = peg$otherExpectation("stripped character class"),
-      peg$c38 = function(channel) {
-        return channel.length > 0 && channel.length <= 20 &&
-          options && options.channelNameToConvID && options.channelNameToConvID(channel)
+      peg$c38 = function(name) {
+        return name.length > 0 && name.length <= 20 &&
+          options && options.channelNameToConvID && options.channelNameToConvID(name)
       },
-      peg$c39 = function(channel) { return {type: 'channel', children: [channel], convID: options && options.channelNameToConvID && options.channelNameToConvID(channel) } },
+      peg$c39 = function(name) { return {type: 'channel', children: [name], convID: options && options.channelNameToConvID && options.channelNameToConvID(name) } },
       peg$c40 = function(code) { return {type: 'code-block', children: [code]} },
       peg$c41 = function(code) { return {type: 'inline-code', children: [code]} },
       peg$c42 = /^[a-zA-Z0-9+_\-]/,
