@@ -59,6 +59,16 @@ export type _RequestInfo = {
 export type RequestInfo = I.RecordOf<_RequestInfo>
 export type TabKey = 'members' | 'requests' | 'pending'
 
+export type _SubteamInfo = {
+  key: string,
+  members: number,
+  onCreateSubteam: ?(e: SyntheticEvent<>) => void,
+  onReadMore: () => void,
+  teamname: string,
+  type: 'addSubteam' | 'intro' | 'noSubteams' | 'subteam',
+}
+export type SubteamInfo = I.RecordOf<_SubteamInfo>
+
 export type TypeMap = {
   admin: string | boolean,
   owner: string | boolean,
@@ -90,6 +100,7 @@ export type _State = {
   teamNameToLoading: I.Map<Teamname, boolean>,
   teamNameToRequests: I.Map<Teamname, I.Set<RequestInfo>>,
   teamNameToRole: I.Map<Teamname, TeamRoleType>,
+  teamNameToSubteams: I.Map<Teamname, I.Set<Teamname>>,
   teamNameToCanPerform: I.Map<Teamname, RPCTypes.TeamOperation>,
   teamNameToTeamSettings: I.Map<Teamname, TeamSettings>,
   teamNameToPublicitySettings: I.Map<Teamname, _PublicitySettings>,

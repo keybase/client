@@ -5,9 +5,7 @@ import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
 import {amIFollowing} from '../../../constants/selectors'
 import {TeamInviteRow} from '.'
-import {connect} from 'react-redux'
-
-import type {TypedState} from '../../../constants/reducer'
+import {connect, type TypedState} from '../../../util/container'
 
 type OwnProps = {
   email?: string,

@@ -22860,6 +22860,44 @@ exports[`Storyshots Common Icon 1`] = `
         onClick={undefined}
         title={undefined}
       >
+        380
+      </span>
+      <div
+        style={
+          Object {
+            "alignItems": "flex-start",
+            "display": "flex",
+            "flexDirection": "row",
+            "flexWrap": "wrap",
+            "justifyContent": "flex-start",
+          }
+        }
+      >
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-illustration-subteams-380.png 1x, icons/icon-illustration-subteams-380@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+      </div>
+    </div>
+    <div>
+      <span
+        className="glamor-0"
+        onClick={undefined}
+        title={undefined}
+      >
         ?
       </span>
       <div
