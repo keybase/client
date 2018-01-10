@@ -6,17 +6,8 @@
 -- Checkout as-is, commit Unix-style line endings  
 -- Use Windows' default console window (especially on Windows 10)  
 - Install [Go](https://golang.org/dl/) 1.9  
-- Open a command console and make a directory for cloning the repo, e.g.:  
-`cd c:\`  
-`mkdir work`  
-`cd work`  
-`mkdir src`  
-`cd src`  
-`mkdir github.com`  
-`cd github.com`  
-`mkdir keybase`  
-`cd keybase`  
-`git clone https://github.com/keybase/client.git`  
+- Open a command console and make a directory for cloning the repo, e.g.:   
+`git clone https://github.com/keybase/client.git c:\work\src\github.com\keybase\client`
 - set GOPATH, e.g. `set GOPATH=c:\work`  
 - `cd %GOPATH%\github.com\keybase\client\go\keybase`  
 - `go build`

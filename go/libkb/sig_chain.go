@@ -1200,6 +1200,12 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 		// it. Use what's cached and short circuit.
 		l.G().Log.CDebugf(l.ctx, "| Sigchain was fully cached. Short-circuiting verification.")
 		ret.wasFullyCached = true
+		stage("VerifySig (in fully cached)")
+
+		// Even though we're fully cached, we still need to call the below, so
+		// we recompute historical subchains. Otherwise, we might hose our
+		// UPAK caches.
+		err = l.VerifySigsAndComputeKeys()
 		return
 	}
 
@@ -1207,6 +1213,7 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	if err = l.chain.VerifyChain(l.ctx); err != nil {
 		return
 	}
+
 	stage("StoreChain")
 	if err = l.chain.Store(l.ctx); err != nil {
 		l.G().Log.CDebugf(l.ctx, "| continuing past error storing chain links: %s", err)

@@ -85,6 +85,7 @@ protocol git {
     string repoUrl;
     string globalUniqueID;  // for the GUI's convenient bookkeeping
     boolean canDelete;
+    union { null, GitTeamRepoSettings } teamRepoSettings;
   }
 
   // fetch git repos for a single team / implicit team

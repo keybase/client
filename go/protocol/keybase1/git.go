@@ -300,13 +300,14 @@ func (o GitRepoResult) DeepCopy() GitRepoResult {
 }
 
 type GitRepoInfo struct {
-	Folder         Folder            `codec:"folder" json:"folder"`
-	RepoID         RepoID            `codec:"repoID" json:"repoID"`
-	LocalMetadata  GitLocalMetadata  `codec:"localMetadata" json:"localMetadata"`
-	ServerMetadata GitServerMetadata `codec:"serverMetadata" json:"serverMetadata"`
-	RepoUrl        string            `codec:"repoUrl" json:"repoUrl"`
-	GlobalUniqueID string            `codec:"globalUniqueID" json:"globalUniqueID"`
-	CanDelete      bool              `codec:"canDelete" json:"canDelete"`
+	Folder           Folder               `codec:"folder" json:"folder"`
+	RepoID           RepoID               `codec:"repoID" json:"repoID"`
+	LocalMetadata    GitLocalMetadata     `codec:"localMetadata" json:"localMetadata"`
+	ServerMetadata   GitServerMetadata    `codec:"serverMetadata" json:"serverMetadata"`
+	RepoUrl          string               `codec:"repoUrl" json:"repoUrl"`
+	GlobalUniqueID   string               `codec:"globalUniqueID" json:"globalUniqueID"`
+	CanDelete        bool                 `codec:"canDelete" json:"canDelete"`
+	TeamRepoSettings *GitTeamRepoSettings `codec:"teamRepoSettings,omitempty" json:"teamRepoSettings,omitempty"`
 }
 
 func (o GitRepoInfo) DeepCopy() GitRepoInfo {
@@ -318,6 +319,13 @@ func (o GitRepoInfo) DeepCopy() GitRepoInfo {
 		RepoUrl:        o.RepoUrl,
 		GlobalUniqueID: o.GlobalUniqueID,
 		CanDelete:      o.CanDelete,
+		TeamRepoSettings: (func(x *GitTeamRepoSettings) *GitTeamRepoSettings {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.TeamRepoSettings),
 	}
 }
 

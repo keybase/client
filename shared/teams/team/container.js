@@ -26,6 +26,7 @@ type StateProps = {
   _implicitAdminUsernames: I.Set<string>,
   _requests: I.Set<Types.RequestInfo>,
   _newTeamRequests: I.List<string>,
+  ignoreAccessRequests: boolean,
   loading: boolean,
   openTeam: boolean,
   openTeamRole: Types.TeamRoleType,
@@ -64,6 +65,10 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
     description: state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname, 'description'], ''),
     openTeam: state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname], {open: false}).open,
     _newTeamRequests: state.entities.getIn(['teams', 'newTeamRequests'], I.List()),
+    ignoreAccessRequests: state.entities.getIn(
+      ['teams', 'teamNameToPublicitySettings', teamname, 'ignoreAccessRequests'],
+      false
+    ),
     loading: state.entities.getIn(['teams', 'teamNameToLoading', teamname], true),
     memberCount: state.entities.getIn(['teams', 'teammembercounts', teamname], 0),
     name: teamname,
@@ -224,6 +229,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     />
   )
   const publicitySettingsChanged =
+    ownProps.newIgnoreAccessRequests !== stateProps.ignoreAccessRequests ||
     ownProps.newPublicityAnyMember !== stateProps.publicityAnyMember ||
     ownProps.newPublicityMember !== stateProps.publicityMember ||
     ownProps.newPublicityTeam !== stateProps.publicityTeam ||
@@ -259,6 +265,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 
 export default compose(
   withState('showMenu', 'setShowMenu', false),
+  withState('newIgnoreAccessRequests', 'setIgnoreAccessRequests', props => props.ignoreAccessRequests),
   withState('newPublicityAnyMember', 'setPublicityAnyMember', props => props.publicityAnyMember),
   withState('newPublicityMember', 'setPublicityMember', props => props.publicityMember),
   withState('newPublicityTeam', 'setPublicityTeam', props => props.publicityTeam),
@@ -267,8 +274,16 @@ export default compose(
   withState('publicitySettingsChanged', 'setPublicitySettingsChanged', false),
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   withPropsOnChange(
-    ['publicityAnyMember', 'publicityMember', 'publicityTeam', 'openTeam', 'openTeamRole'],
+    [
+      'ignoreAccessRequests',
+      'publicityAnyMember',
+      'publicityMember',
+      'publicityTeam',
+      'openTeam',
+      'openTeamRole',
+    ],
     props => {
+      props.setIgnoreAccessRequests(props.ignoreAccessRequests)
       props.setPublicityAnyMember(props.publicityAnyMember)
       props.setPublicityMember(props.publicityMember)
       props.setPublicityTeam(props.publicityTeam)
@@ -279,11 +294,12 @@ export default compose(
   withHandlers({
     onSavePublicity: props => () =>
       props.savePublicity({
+        ignoreAccessRequests: props.newIgnoreAccessRequests,
+        openTeam: props.newOpenTeam,
+        openTeamRole: props.newOpenTeamRole,
         publicityAnyMember: props.newPublicityAnyMember,
         publicityMember: props.newPublicityMember,
         publicityTeam: props.newPublicityTeam,
-        openTeam: props.newOpenTeam,
-        openTeamRole: props.newOpenTeamRole,
       }),
   }),
   lifecycle({
@@ -300,6 +316,7 @@ export default compose(
   // Now that we've calculated old vs. new state (for greying out Save button),
   // we can present just one set of props to the display component.
   renameProps({
+    newIgnoreAccessRequests: 'ignoreAccessRequests',
     newOpenTeam: 'openTeam',
     newOpenTeamRole: 'openTeamRole',
     newPublicityAnyMember: 'publicityAnyMember',

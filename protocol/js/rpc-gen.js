@@ -2311,7 +2311,7 @@ export type GitPutGitMetadataRpcParam = $ReadOnly<{folder: Folder, repoID: RepoI
 
 export type GitRefMetadata = $ReadOnly<{refName: String, commits?: ?Array<GitCommit>, moreCommitsAvailable: Boolean}>
 
-export type GitRepoInfo = $ReadOnly<{folder: Folder, repoID: RepoID, localMetadata: GitLocalMetadata, serverMetadata: GitServerMetadata, repoUrl: String, globalUniqueID: String, canDelete: Boolean}>
+export type GitRepoInfo = $ReadOnly<{folder: Folder, repoID: RepoID, localMetadata: GitLocalMetadata, serverMetadata: GitServerMetadata, repoUrl: String, globalUniqueID: String, canDelete: Boolean, teamRepoSettings?: ?GitTeamRepoSettings}>
 
 export type GitRepoName = String
 
