@@ -287,12 +287,14 @@ class ConversationInput extends Component<InputProps, State> {
     this._replaceWordAtCursor(`@${u}`)
   }
 
+  _mentionCatcherClick = () => {
+    this.props.setMentionPopupOpen(false)
+  }
+
   render() {
     return (
       <Box style={{...globalStyles.flexBoxColumn, borderTop: `solid 1px ${globalColors.black_05}`}}>
-        {this.props.mentionPopupOpen && (
-          <MentionCatcher onClick={() => this.props.setMentionPopupOpen(false)} />
-        )}
+        {this.props.mentionPopupOpen && <MentionCatcher onClick={this._mentionCatcherClick} />}
         {this.props.mentionPopupOpen && (
           <MentionHud
             selectDownCounter={this.state.downArrowCounter}
@@ -315,6 +317,7 @@ class ConversationInput extends Component<InputProps, State> {
             className={'mousetrap' /* className needed so key handler doesn't ignore hotkeys */}
             autoFocus={false}
             small={true}
+            smartAutoresize={true}
             style={styleInput}
             ref={this.props.inputSetRef}
             hintText="Write a message"
