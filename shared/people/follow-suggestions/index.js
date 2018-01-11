@@ -59,7 +59,7 @@ export default (props: Props) => (
       Consider following...
     </Text>
     <ScrollView
-      {...(isMobile ? {horizontal: true} : {})} // Causes error on desktop
+      {...(isMobile ? {horizontal: true} : {className: 'noScrollBar'})} // horizontal causes error on desktop
       contentContainerStyle={globalStyles.flexBoxRow}
       style={{
         ...globalStyles.flexBoxRow,
