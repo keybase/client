@@ -289,16 +289,24 @@ func (ruid resolvableID) resolve(ctx context.Context) (
 	}
 
 	// If not, resolve it the normal way, and assume it's a classic
-	// TLF. TODO(KBFS-2652): look up any possible single team TLF ID
-	// from the service before returning null ID.
+	// TLF.
 	name, err := ruid.nug.GetNormalizedUsername(ctx, ruid.id)
 	if err != nil {
 		return nameIDPair{}, keybase1.SocialAssertion{}, tlf.NullID, err
 	}
+	var tlfID tlf.ID
+	if ruid.id.IsTeamOrSubteam() {
+		// If no TLF ID has been set yet, we'll get a nil err with a
+		// null TLF ID.
+		tlfID, err = ruid.resolver.ResolveTeamTLFID(ctx, ruid.id.AsTeamOrBust())
+		if err != nil {
+			return nameIDPair{}, keybase1.SocialAssertion{}, tlf.NullID, err
+		}
+	}
 	return nameIDPair{
 		name: name,
 		id:   ruid.id,
-	}, keybase1.SocialAssertion{}, tlf.NullID, nil
+	}, keybase1.SocialAssertion{}, tlfID, nil
 }
 
 type resolvableSocialAssertion keybase1.SocialAssertion
@@ -611,10 +619,20 @@ func (ra resolvableAssertion) resolve(ctx context.Context) (
 	default:
 		return nameIDPair{}, keybase1.SocialAssertion{}, tlf.NullID, err
 	case nil:
+		var tlfID tlf.ID
+		if id.IsTeamOrSubteam() {
+			// If no TLF ID has been set yet, we'll get a nil err with
+			// a null TLF ID.
+			tlfID, err = ra.resolver.ResolveTeamTLFID(ctx, id.AsTeamOrBust())
+			if err != nil {
+				return nameIDPair{}, keybase1.SocialAssertion{}, tlf.NullID, err
+			}
+		}
+
 		return nameIDPair{
 			name: name,
 			id:   id,
-		}, keybase1.SocialAssertion{}, tlf.NullID, nil
+		}, keybase1.SocialAssertion{}, tlfID, nil
 	case NoSuchUserError:
 		socialAssertion, ok := externals.NormalizeSocialAssertion(ra.assertion)
 		if !ok {

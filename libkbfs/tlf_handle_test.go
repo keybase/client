@@ -94,6 +94,32 @@ func TestParseTlfHandleNotReaderFailure(t *testing.T) {
 	assert.Equal(t, ReadAccessError{User: "u1", Tlf: tlf.CanonicalName(name), Type: tlf.Private, Filename: "/keybase/private/u2,u3"}, err)
 }
 
+func TestParseTlfHandleSingleTeam(t *testing.T) {
+	ctx := context.Background()
+
+	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1"})
+	currentUID := localUsers[0].UID
+	localTeams := MakeLocalTeams([]libkb.NormalizedUsername{"t1"})
+	daemon := NewKeybaseDaemonMemory(
+		currentUID, localUsers, localTeams, kbfscodec.NewMsgpack())
+
+	tlfID := tlf.FakeID(0, tlf.SingleTeam)
+	err := daemon.CreateTeamTLF(ctx, localTeams[0].TID, tlfID)
+	require.NoError(t, err)
+
+	kbpki := &identifyCountingKBPKI{
+		KBPKI: &daemonKBPKI{
+			KBPKI:  NewKBPKIClient(keybaseServiceSelfOwner{daemon}, nil),
+			daemon: daemon,
+		},
+	}
+
+	h, err := ParseTlfHandle(ctx, kbpki, nil, "t1", tlf.SingleTeam)
+	assert.Equal(t, 0, kbpki.getIdentifyCalls())
+	require.NoError(t, err)
+	require.Equal(t, tlfID, h.tlfID)
+}
+
 func TestParseTlfHandleSingleTeamFailures(t *testing.T) {
 	ctx := context.Background()
 
