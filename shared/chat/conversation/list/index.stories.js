@@ -77,6 +77,7 @@ function makeMessage(
     editedCount: 0,
     mentions: I.Set(),
     channelMention: 'None',
+    channelNameMentions: I.Map(),
     rawMessageID: -1,
     ordinal: 0,
   }

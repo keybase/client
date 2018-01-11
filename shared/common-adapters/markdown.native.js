@@ -3,6 +3,7 @@ import React, {PureComponent} from 'react'
 import Text from './text'
 import Box from './box'
 import Emoji from './emoji'
+import Channel from './channel-container'
 import Mention from './mention-container'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {parseMarkdown, EmojiIfExists} from './markdown.shared'
@@ -163,6 +164,24 @@ function messageCreateComponent(style, allowFontScaling) {
             username={username}
             key={key}
             style={{color: undefined}}
+            allowFontScaling={allowFontScaling}
+          />
+        )
+      case 'channel':
+        const name = children[0]
+        if (typeof name !== 'string') {
+          throw new Error('name unexpectedly not string')
+        }
+        const convID = options.convID || ''
+        if (typeof convID !== 'string') {
+          throw new Error('convID unexpectedly not string')
+        }
+        return (
+          <Channel
+            name={name}
+            convID={convID}
+            key={key}
+            style={linkStyle}
             allowFontScaling={allowFontScaling}
           />
         )

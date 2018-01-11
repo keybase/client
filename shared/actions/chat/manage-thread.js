@@ -139,6 +139,22 @@ function* _selectConversation(action: ChatGen.SelectConversationPayload): Saga.S
   }
 }
 
+function _selectOrPreviewConversation(action: ChatGen.SelectOrPreviewConversationPayload, state: TypedState) {
+  const {conversationIDKey, previousPath} = action.payload
+
+  const inbox = state.chat.getIn(['inbox', conversationIDKey])
+  if (inbox) {
+    logger.info(`selectOrPreviewConversation: selecting: ${conversationIDKey}`)
+    return Saga.put(ChatGen.createSelectConversation({conversationIDKey, fromUser: true}))
+  } else {
+    logger.info(`selectOrPreviewConversation: previewing: ${conversationIDKey}`)
+    return Saga.sequentially([
+      Saga.put(ChatGen.createPreviewChannel({conversationIDKey})),
+      Saga.put(navigateTo([chatTab, {selected: conversationIDKey, props: {previousPath}}])),
+    ])
+  }
+}
+
 const _openTeamConversation = function*(action: ChatGen.OpenTeamConversationPayload) {
   // TODO handle channels you're not a member of, or small teams you've never opened the chat for.
   const {payload: {teamname, channelname}} = action
@@ -289,6 +305,7 @@ function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ChatGen.muteConversation, _muteConversation)
   yield Saga.safeTakeEvery(ChatGen.startConversation, _startConversation)
   yield Saga.safeTakeLatest(ChatGen.selectConversation, _selectConversation)
+  yield Saga.safeTakeLatestPure(ChatGen.selectOrPreviewConversation, _selectOrPreviewConversation)
   yield Saga.safeTakeEvery(
     [ChatGen.setNotifications, ChatGen.updatedNotifications, ChatGen.toggleChannelWideNotifications],
     _setNotifications
