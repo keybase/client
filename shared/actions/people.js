@@ -73,6 +73,9 @@ const _processPeopleData = function(fromGetPeopleData: any[]) {
   ])
 }
 
+const _markViewed = (action: PeopleGen.MarkViewedPayload) =>
+  Saga.call(RPCTypes.homeHomeMarkViewedRpcPromise, {})
+
 const _skipTodo = (action: PeopleGen.SkipTodoPayload) => {
   return Saga.sequentially([
     Saga.call(RPCTypes.homeHomeSkipTodoTypeRpcPromise, {
@@ -95,7 +98,7 @@ const _setupPeopleHandlers = () => {
       if (_wasOnPeopleTab) {
         dispatch(
           PeopleGen.createGetPeopleData({
-            markViewed: true,
+            markViewed: false,
             numFollowSuggestionsWanted: Constants.defaultNumFollowSuggestions,
           })
         )
@@ -108,13 +111,14 @@ const _onTabChange = (action: RouteTypes.SwitchTo) => {
   const list = I.List(action.payload.path)
   const root = list.first()
 
-  if (root !== peopleTab) {
+  if (root !== peopleTab && _wasOnPeopleTab) {
     _wasOnPeopleTab = false
+    return Saga.put(PeopleGen.createMarkViewed())
   } else if (root === peopleTab && !_wasOnPeopleTab) {
     _wasOnPeopleTab = true
     return Saga.put(
       PeopleGen.createGetPeopleData({
-        markViewed: true,
+        markViewed: false,
         numFollowSuggestionsWanted: Constants.defaultNumFollowSuggestions,
       })
     )
@@ -126,6 +130,7 @@ const peopleSaga = function*(): Saga.SagaGenerator<any, any> {
     // TODO replace this with engine handling once that lands
     Saga.put(createDecrementWaiting({key: Constants.getPeopleDataWaitingKey}))
   )
+  yield Saga.safeTakeEveryPure(PeopleGen.markViewed, _markViewed)
   yield Saga.safeTakeEveryPure(PeopleGen.skipTodo, _skipTodo)
   yield Saga.safeTakeEveryPure(PeopleGen.setupPeopleHandlers, _setupPeopleHandlers)
   yield Saga.safeTakeEveryPure(RouteConstants.switchTo, _onTabChange)
