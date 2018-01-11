@@ -475,6 +475,10 @@ type KeybaseService interface {
 	CreateTeamTLF(
 		ctx context.Context, teamID keybase1.TeamID, tlfID tlf.ID) error
 
+	// GetTeamSettings returns the KBFS settings for the given team.
+	GetTeamSettings(ctx context.Context, teamID keybase1.TeamID) (
+		keybase1.KBFSTeamSettings, error)
+
 	// LoadUserPlusKeys returns a UserInfo struct for a
 	// user with the specified UID.
 	// If you have the UID for a user and don't require Identify to
@@ -582,6 +586,11 @@ type resolver interface {
 	ResolveImplicitTeamByID(
 		ctx context.Context, teamID keybase1.TeamID, tlfType tlf.Type) (
 		ImplicitTeamInfo, error)
+	// ResolveTeamTLFID returns the TLF ID associated with a given
+	// team ID, or tlf.NullID if no ID is yet associated with that
+	// team.
+	ResolveTeamTLFID(ctx context.Context, teamID keybase1.TeamID) (
+		tlf.ID, error)
 }
 
 type identifier interface {

@@ -671,7 +671,7 @@ func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 	return info, nil
 }
 
-// CreateTeamTLF implements the KBPKI interface for
+// CreateTeamTLF implements the KeybaseService interface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) CreateTeamTLF(
 	ctx context.Context, teamID keybase1.TeamID, tlfID tlf.ID) (err error) {
@@ -679,6 +679,15 @@ func (k *KeybaseServiceBase) CreateTeamTLF(
 		TeamID: teamID,
 		TlfID:  keybase1.TLFID(tlfID.String()),
 	})
+}
+
+// GetTeamSettings implements the KeybaseService interface for
+// KeybaseServiceBase.
+func (k *KeybaseServiceBase) GetTeamSettings(
+	ctx context.Context, teamID keybase1.TeamID) (
+	keybase1.KBFSTeamSettings, error) {
+	// TODO: get invalidations from the server and cache the settings?
+	return k.kbfsClient.GetKBFSTeamSettings(ctx, teamID)
 }
 
 func (k *KeybaseServiceBase) getCurrentMerkleRoot(ctx context.Context) (

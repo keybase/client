@@ -25,6 +25,7 @@ type KeybaseServiceMeasured struct {
 	loadTeamPlusKeysTimer            metrics.Timer
 	loadUnverifiedKeysTimer          metrics.Timer
 	createTeamTLFTimer               metrics.Timer
+	getTeamSettingsTimer             metrics.Timer
 	getCurrentMerkleRootTimer        metrics.Timer
 	currentSessionTimer              metrics.Timer
 	favoriteAddTimer                 metrics.Timer
@@ -49,6 +50,7 @@ func NewKeybaseServiceMeasured(delegate KeybaseService, r metrics.Registry) Keyb
 	loadTeamPlusKeysTimer := metrics.GetOrRegisterTimer("KeybaseService.LoadTeamPlusKeys", r)
 	loadUnverifiedKeysTimer := metrics.GetOrRegisterTimer("KeybaseService.LoadUnverifiedKeys", r)
 	createTeamTLFTimer := metrics.GetOrRegisterTimer("KeybaseService.CreateTeamTLF", r)
+	getTeamSettingsTimer := metrics.GetOrRegisterTimer("KeybaseService.GetTeamSettings", r)
 	getCurrentMerkleRootTimer := metrics.GetOrRegisterTimer("KeybaseService.GetCurrentMerkleRoot", r)
 	currentSessionTimer := metrics.GetOrRegisterTimer("KeybaseService.CurrentSession", r)
 	favoriteAddTimer := metrics.GetOrRegisterTimer("KeybaseService.FavoriteAdd", r)
@@ -67,6 +69,7 @@ func NewKeybaseServiceMeasured(delegate KeybaseService, r metrics.Registry) Keyb
 		loadTeamPlusKeysTimer:            loadTeamPlusKeysTimer,
 		loadUnverifiedKeysTimer:          loadUnverifiedKeysTimer,
 		createTeamTLFTimer:               createTeamTLFTimer,
+		getTeamSettingsTimer:             getTeamSettingsTimer,
 		getCurrentMerkleRootTimer:        getCurrentMerkleRootTimer,
 		currentSessionTimer:              currentSessionTimer,
 		favoriteAddTimer:                 favoriteAddTimer,
@@ -137,7 +140,7 @@ func (k KeybaseServiceMeasured) LoadTeamPlusKeys(ctx context.Context,
 	return teamInfo, err
 }
 
-// CreateTeamTLF implements the KBPKI interface for
+// CreateTeamTLF implements the KeybaseService interface for
 // KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) CreateTeamTLF(
 	ctx context.Context, teamID keybase1.TeamID, tlfID tlf.ID) (err error) {
@@ -145,6 +148,17 @@ func (k KeybaseServiceMeasured) CreateTeamTLF(
 		err = k.delegate.CreateTeamTLF(ctx, teamID, tlfID)
 	})
 	return err
+}
+
+// GetTeamSettings implements the KeybaseService interface for
+// KeybaseServiceMeasured.
+func (k KeybaseServiceMeasured) GetTeamSettings(
+	ctx context.Context, teamID keybase1.TeamID) (
+	settings keybase1.KBFSTeamSettings, err error) {
+	k.getTeamSettingsTimer.Time(func() {
+		settings, err = k.delegate.GetTeamSettings(ctx, teamID)
+	})
+	return settings, err
 }
 
 // GetCurrentMerkleRoot implements the KeybaseService interface for

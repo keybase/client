@@ -1074,7 +1074,7 @@ func TestParseTlfHandleImplicitTeams(t *testing.T) {
 		require.NoError(t, err)
 		tlfID := tlf.FakeID(counter, ty)
 		counter++
-		err = daemon.addImplicitTeamTlfID(iteamInfo.TID, tlfID)
+		err = daemon.CreateTeamTLF(ctx, iteamInfo.TID, tlfID)
 		require.NoError(t, err)
 		return iteamInfo.TID, tlfID
 	}

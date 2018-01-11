@@ -42,6 +42,8 @@ func (m localTeamMap) getLocalTeam(tid keybase1.TeamID) (TeamInfo, error) {
 	return team, nil
 }
 
+type localTeamSettingsMap map[keybase1.TeamID]keybase1.KBFSTeamSettings
+
 type localImplicitTeamMap map[keybase1.TeamID]ImplicitTeamInfo
 
 func (m localImplicitTeamMap) getLocalImplicitTeam(
@@ -156,6 +158,7 @@ type KeybaseDaemonLocal struct {
 	lock               sync.Mutex
 	localUsers         localUserMap
 	localTeams         localTeamMap
+	localTeamSettings  localTeamSettingsMap
 	localImplicitTeams localImplicitTeamMap
 	currentUID         keybase1.UID
 	asserts            map[string]keybase1.UserOrTeamID
@@ -405,21 +408,6 @@ func (k *KeybaseDaemonLocal) ResolveImplicitTeamByID(
 	return info.Name.String(), nil
 }
 
-func (k *KeybaseDaemonLocal) addImplicitTeamTlfID(
-	tid keybase1.TeamID, tlfID tlf.ID) error {
-	// TODO: add check to make sure the private/public suffix of the
-	// team ID matches that of the tlf ID.
-	k.lock.Lock()
-	defer k.lock.Unlock()
-	iteamInfo, ok := k.localImplicitTeams[tid]
-	if !ok {
-		return NoSuchTeamError{tid.String()}
-	}
-	iteamInfo.TlfID = tlfID
-	k.localImplicitTeams[tid] = iteamInfo
-	return nil
-}
-
 // LoadUserPlusKeys implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) LoadUserPlusKeys(ctx context.Context,
 	uid keybase1.UID, _ keybase1.KID) (UserInfo, error) {
@@ -468,17 +456,40 @@ func (k *KeybaseDaemonLocal) LoadTeamPlusKeys(
 // KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) CreateTeamTLF(
 	ctx context.Context, teamID keybase1.TeamID, tlfID tlf.ID) (err error) {
-	// For now, only support implicit teams; regular teams will get a
-	// NoSuchTeamError.  TODO: when the keybase1 RPCs allow it, store
-	// the TLF ID along with the regular team info.
-	//
-	// Note that this only adds the implicit team TLF to this instance
-	// of KeybaseDaemonLocal; the caller would have to make the call
-	// to all instances to make it global.  However, the IDs are
-	// always deterministic so any client who thinks the ID is missing
-	// will just generate the same one.  TODO: abstract out the users
-	// and teams into a shareable module among all the instances.
-	return k.addImplicitTeamTlfID(teamID, tlfID)
+	if err := checkContext(ctx); err != nil {
+		return err
+	}
+
+	// TODO: add check to make sure the private/public suffix of the
+	// team ID matches that of the tlf ID.
+	k.lock.Lock()
+	defer k.lock.Unlock()
+	iteamInfo, isImplicit := k.localImplicitTeams[teamID]
+	if isImplicit {
+		iteamInfo.TlfID = tlfID
+		k.localImplicitTeams[teamID] = iteamInfo
+	}
+	_, isRegularTeam := k.localTeams[teamID]
+	if !isImplicit && !isRegularTeam {
+		return NoSuchTeamError{teamID.String()}
+	}
+	k.localTeamSettings[teamID] = keybase1.KBFSTeamSettings{
+		TlfID: keybase1.TLFID(tlfID.String())}
+	return nil
+}
+
+// GetTeamSettings implements the KeybaseService interface for
+// KeybaseDaemonLocal.
+func (k *KeybaseDaemonLocal) GetTeamSettings(
+	ctx context.Context, teamID keybase1.TeamID) (
+	settings keybase1.KBFSTeamSettings, err error) {
+	if err := checkContext(ctx); err != nil {
+		return keybase1.KBFSTeamSettings{}, err
+	}
+
+	k.lock.Lock()
+	defer k.lock.Unlock()
+	return k.localTeamSettings[teamID], nil
 }
 
 // LoadUnverifiedKeys implements KeybaseDaemon for KeybaseDaemonLocal.
@@ -922,6 +933,7 @@ func newKeybaseDaemonLocal(codec kbfscodec.Codec,
 		codec:              codec,
 		localUsers:         localUserMap,
 		localTeams:         make(localTeamMap),
+		localTeamSettings:  make(localTeamSettingsMap),
 		localImplicitTeams: make(localImplicitTeamMap),
 		asserts:            asserts,
 		implicitAsserts:    make(map[string]keybase1.TeamID),
