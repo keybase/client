@@ -592,6 +592,7 @@ const parseNotifications = (
           RPCChatTypes.commonNotificationKind.generic.toString()
         ],
     },
+    saving: false,
   }
 }
 
