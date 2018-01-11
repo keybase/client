@@ -216,7 +216,7 @@ const _setNotifications = function*(
       nextNotifications = action.payload.notifications
     }
 
-    yield Saga.put.resolve(
+    yield Saga.put(
       ChatGen.createReplaceEntity({
         keyPath: ['inbox', conversationIDKey],
         entities: old.set('notifications', {
