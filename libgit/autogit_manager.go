@@ -49,7 +49,7 @@ const (
 )
 
 func autogitLockName(srcRepo string) string {
-	return fmt.Sprintf(".%s.lock", srcRepo)
+	return fmt.Sprintf(".autogit_%s.lock", srcRepo)
 }
 
 type getNewConfigFn func(context.Context) (
