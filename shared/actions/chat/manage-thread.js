@@ -259,7 +259,23 @@ const _setNotifications = function*(
           },
         ],
       }
+      yield Saga.put(
+        ChatGen.createMergeEntity({
+          keyPath: ['inbox', conversationIDKey, 'notifications'],
+          entities: I.Map({
+            loading: true,
+          }),
+        })
+      )
       yield Saga.call(ChatTypes.localSetAppNotificationSettingsLocalRpcPromise, param)
+      yield Saga.put(
+        ChatGen.createMergeEntity({
+          keyPath: ['inbox', conversationIDKey, 'notifications'],
+          entities: I.Map({
+            loading: false,
+          }),
+        })
+      )
     }
   }
 }
