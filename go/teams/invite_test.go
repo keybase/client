@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestObsoletingInvites(t *testing.T) {
+func TestObsoletingInvites1(t *testing.T) {
 	// This chain has 3 keybase invites total:
 	// 1) 579651b0d574971040b531b66efbc519%1
 	// 2) 618d663af0f1ec88a5a19defa65a2f19%1

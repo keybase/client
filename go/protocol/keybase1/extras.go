@@ -2001,9 +2001,9 @@ func (t TeamInvite) KeybaseUserVersion() (UserVersion, error) {
 }
 
 // ContainsUID returns true if invite type is Keybase and uid is found
-// in the invite name. This does not mean that the invite is valid.
-// Proper parsing using ParseUserVersion or KeybaseUserVersion should
-// be used afterwards.
+// in the invite name. This does not mean that this is a valid invite
+// for that uid. Proper parsing using ParseUserVersion or
+// KeybaseUserVersion should be used afterwards.
 func (t TeamInvite) ContainsUID(uid UID) bool {
 	category, err := t.Type.C()
 	if err != nil || category != TeamInviteCategory_KEYBASE {
