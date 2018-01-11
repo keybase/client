@@ -25,12 +25,11 @@ const _getPeopleData = function(action: PeopleGen.GetPeopleDataPayload, state: T
   ])
 }
 
-const _processPeopleData = function([
-  _: any,
-  data: RPCTypes.HomeScreen,
-  following: I.Set<string>,
-  followers: I.Set<string>,
-]) {
+const _processPeopleData = function(fromGetPeopleData: any[]) {
+  const data: RPCTypes.HomeScreen = fromGetPeopleData[1]
+  const following: I.Set<string> = fromGetPeopleData[2]
+  const followers: I.Set<string> = fromGetPeopleData[3]
+
   const oldItems: I.List<Types.PeopleScreenItem> =
     (data.items &&
       data.items
