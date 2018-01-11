@@ -23,6 +23,9 @@ import (
 //
 // This function prints loud warnings because we only ever run it when
 // IsRunningSystemd is true, in which case all of these errors are unexpected.
+//
+// NOTE: This logic is duplicated in run_keybase. If you make changes here,
+// keep them in sync.
 func IsUserSystemdRunning() bool {
 	c := exec.Command("systemctl", "--user", "is-system-running")
 	output, err := c.Output()

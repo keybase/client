@@ -14,6 +14,8 @@ runtime_dir="${XDG_RUNTIME_DIR:-$HOME/.config}/keybase"
 mkdir -p "$runtime_dir"
 startup_token="$runtime_dir/startup_mode"
 
+# NOTE: This logic is duplicated in systemd_linux.go. If you make changes here,
+# keep them in sync.
 systemd_running() {
     # First check that systemd is running at all at the system level. See
     # https://www.freedesktop.org/software/systemd/man/sd_booted.html.
