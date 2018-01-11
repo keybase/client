@@ -223,4 +223,16 @@ func TestAutogitManager(t *testing.T) {
 	}
 
 	checkFileInRootFS(t, ctx, config, h, rootFS, "checkout/test/foo2", "hello2")
+
+	t.Log("Deleting repo")
+	doneCh, err = am.Delete(ctx, h, "checkout", "test", "master")
+	require.NoError(t, err)
+	select {
+	case <-doneCh:
+	case <-ctx.Done():
+		t.Fatal(ctx.Err().Error())
+	}
+
+	_, err = rootFS.Stat("checkout/test")
+	require.True(t, os.IsNotExist(err))
 }

@@ -36,6 +36,14 @@ func (r resetReq) id() string {
 	return path.Join(r.dstTLF.GetCanonicalPath(), r.dstDir, r.srcRepo)
 }
 
+type deleteReq struct {
+	dstTLF     *libkbfs.TlfHandle
+	dstDir     string
+	repo       string
+	branchName string
+	doneCh     chan struct{}
+}
+
 const (
 	cloneFileName = "CLONING"
 
@@ -82,6 +90,8 @@ type AutogitManager struct {
 	getNewConfig   getNewConfigFn
 	resetsWG       kbfssync.RepeatedWaitGroup
 	updatingWG     kbfssync.RepeatedWaitGroup
+	deleteQueue    channels.Channel
+	deleteDoneCh   chan struct{}
 
 	lock             sync.Mutex
 	resetsInQueue    map[string]resetReq // key: resetReq.id()
@@ -108,6 +118,8 @@ func NewAutogitManager(
 		deferLog:               log.CloneWithAddedDepth(1),
 		resetQueue:             libkbfs.NewInfiniteChannelWrapper(),
 		queueDoneCh:            make(chan struct{}),
+		deleteQueue:            libkbfs.NewInfiniteChannelWrapper(),
+		deleteDoneCh:           make(chan struct{}),
 		resetsInQueue:          make(map[string]resetReq),
 		resetsInProgress:       make(map[string]resetReq),
 		registeredFBs:          make(map[libkbfs.FolderBranch]bool),
@@ -116,13 +128,16 @@ func NewAutogitManager(
 	}
 	am.getNewConfig = am.getNewConfigDefault
 	go am.resetLoop(numWorkers)
+	go am.deleteLoop()
 	return am
 }
 
 // Shutdown shuts down this manager.
 func (am *AutogitManager) Shutdown() {
 	am.resetQueue.Close()
+	am.deleteQueue.Close()
 	<-am.queueDoneCh
+	<-am.deleteDoneCh
 }
 
 func (am *AutogitManager) getNewConfigDefault(ctx context.Context) (
@@ -438,6 +453,79 @@ func (am *AutogitManager) queueReset(ctx context.Context, req resetReq) (
 	return req.doneCh, nil
 }
 
+func (am *AutogitManager) doDelete(req deleteReq) (err error) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	ctx = libkbfs.CtxWithRandomIDReplayable(
+		ctx, ctxIDKey, ctxOpID, am.log)
+
+	am.log.CDebugf(ctx, "Processing delete request of %s/%s/%s",
+		req.dstTLF.GetCanonicalPath(), req.dstDir, req.repo)
+	defer func() {
+		am.deferLog.CDebugf(ctx, "Delete request completed: %+v", err)
+	}()
+
+	// Make a new single-op config for processing this request.
+	ctx, gitConfig, tempDir, err := am.getNewConfig(ctx)
+	if err != nil {
+		return err
+	}
+	// Autogit data should be regular data blocks.
+	gitConfig.SetDefaultBlockType(keybase1.BlockType_DATA)
+	defer func() {
+		gitConfig.Shutdown(ctx)
+		rmErr := os.RemoveAll(tempDir)
+		if rmErr != nil {
+			am.log.CWarningf(
+				ctx, "Error cleaning storage dir %s: %+v\n", tempDir, rmErr)
+		}
+	}()
+
+	uniqID, err := makeUniqueID(ctx, gitConfig)
+	if err != nil {
+		return err
+	}
+
+	dstFS, err := libfs.NewFS(
+		ctx, gitConfig, req.dstTLF, req.dstDir, uniqID,
+		keybase1.MDPriorityNormal)
+	if err != nil {
+		return err
+	}
+
+	canWork, err := am.canWorkOnRepo(ctx, dstFS, req.repo)
+	if err != nil {
+		return err
+	}
+	if !canWork {
+		am.log.CDebugf(ctx,
+			"Another worker is currently in charge; skipping reset")
+		// TODO: retry in a little while?
+		return nil
+	}
+	defer func() {
+		workDoneErr := am.workDoneOnRepo(ctx, dstFS, req.repo, err)
+		if err == nil {
+			err = workDoneErr
+		}
+	}()
+
+	fi, err := dstFS.Stat(req.repo)
+	if err != nil {
+		return err
+	}
+	return recursiveDelete(ctx, dstFS, fi)
+}
+
+func (am *AutogitManager) deleteLoop() {
+	for reqInt := range am.deleteQueue.Out() {
+		req := reqInt.(deleteReq)
+		_ = am.doDelete(req)
+		close(req.doneCh)
+	}
+	close(am.deleteDoneCh)
+}
+
 func (am *AutogitManager) makeCloningFile(
 	ctx context.Context, dstRepoFS billy.Filesystem, srcTLF *libkbfs.TlfHandle,
 	srcRepo, branchName string) error {
@@ -575,6 +663,34 @@ func (am *AutogitManager) Pull(
 		srcTLF, srcRepo, branchName, dstTLF, dstDir, make(chan struct{}),
 	}
 	return am.queueReset(ctx, req)
+}
+
+// Delete queues a request to delete an autogit destination subdir
+// named `dstDir/srcRepo` in the TLF `dstTLF`.
+//
+// It returns a channel that, when closed, indicates the pull request
+// has finished (though not necessarily successfully).  The caller may
+// have to sync from the server to ensure they are see the changes,
+// however.
+func (am *AutogitManager) Delete(
+	ctx context.Context, dstTLF *libkbfs.TlfHandle, dstDir string,
+	repo, branchName string) (doneCh <-chan struct{}, err error) {
+	am.log.CDebugf(ctx, "Autogit delete request for %s/%s:%s",
+		dstTLF.GetCanonicalPath(), dstDir, repo, branchName)
+	defer func() {
+		am.deferLog.CDebugf(ctx, "Delete request processed: %+v", err)
+	}()
+
+	req := deleteReq{
+		dstTLF, dstDir, repo, branchName, make(chan struct{}),
+	}
+
+	select {
+	case am.deleteQueue.In() <- req:
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
+	return req.doneCh, nil
 }
 
 func (am *AutogitManager) registerRepoNode(
