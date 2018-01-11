@@ -28,8 +28,6 @@ const colors = {
   grey: '#cccccc',
   lightGrey2: '#e6e6e6',
   lightGrey: '#f0f0f0',
-  midnightBlue: '#002240',
-  midnightBlue_75: 'rgba(0, 34, 64, 0.75)',
   orange: '#ff6f21',
   red: '#ff4d61',
   red_75: 'rgba(255,0,0,0.75)',
