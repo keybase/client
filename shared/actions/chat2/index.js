@@ -453,7 +453,7 @@ const rpcLoadThread = (
         num = numMessagesOnInitialLoad
       } else {
         const last = ordinals.last()
-        const secondToLast = ordinals.get(-2)
+        const secondToLast = ordinals.skipLast(1).last()
         // Is there a gap?
         const gap = last && secondToLast ? last - secondToLast : 0
         if (gap > 1) {
@@ -463,7 +463,7 @@ const rpcLoadThread = (
             logger.info('Load thread: case 4: small gap, filling in')
             num = largestGapToFillOnSyncCall
             recent = true
-            pivot = ordinals.get(-2) // newer than the top of the gap
+            pivot = secondToLast // newer than the top of the gap
           } else {
             logger.info('Load thread: case 4: big gap, acting like not loaded yet')
             // Gap is too big, treat as Case 1/2 and clear old ordinals
@@ -475,7 +475,7 @@ const rpcLoadThread = (
           // Case 3
           logger.info('Load thread: case 3: already loaded, just load newer')
           recent = true
-          pivot = ordinals.last()
+          pivot = last
         }
       }
 

@@ -101,7 +101,7 @@
     "glamorous": "4.11.0",
     "glamorous-native": "1.2.0",
     "iced-runtime": "1.0.3",
-    "immutable": "4.0.0-rc.9",
+    "immutable": "git://github.com/keybase/immutable-sorted#58fa578bebcf19da76a9575655c4d6ec6f72762d",
     "jsonfile": "^4.0.0",
     "lodash": "4.17.4",
     "menubar": "5.2.3",

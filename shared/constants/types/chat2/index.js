@@ -11,7 +11,7 @@ export type _State = {
   isSearching: boolean,
   loadingMap: I.Map<string, number>, // reasons why we're loading
   messageMap: I.Map<Common.ConversationIDKey, I.Map<Message.Ordinal, Message.Message>>,
-  messageOrdinals: I.Map<Common.ConversationIDKey, I.List<Message.Ordinal>>,
+  messageOrdinals: I.Map<Common.ConversationIDKey, I.SortedSet<Message.Ordinal>>,
   metaMap: I.Map<Common.ConversationIDKey, Meta.ConversationMeta>,
   selectedConversation: ?Common.ConversationIDKey,
   typingMap: I.Map<Common.ConversationIDKey, I.Set<string>>,

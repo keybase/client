@@ -202,7 +202,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   loadMoreMessages: () => {
     stateProps._selectedConversation && dispatchProps._loadMoreMessages(stateProps._selectedConversation)
   },
-  messageOrdinals: stateProps.messageOrdinals,
+  messageOrdinals: stateProps.messageOrdinals.toList(),
   onFocusInput: ownProps.onFocusInput,
 })
 

@@ -78,12 +78,7 @@ const metaMapReducer = (metaMap, action) => {
       return metaMap.withMutations(map => {
         action.payload.metas.forEach(meta => {
           const old = map.get(meta.conversationIDKey)
-          // Only update if this is has a newer version or our state is changing
-          if (!old || meta.inboxVersion > old.inboxVersion || meta.trustedState !== old.trustedState) {
-            // Keep some of our own props eve when loading a new one
-            const toSet = old ? meta.set('hasLoadedThread', old.hasLoadedThread) : meta
-            map.set(meta.conversationIDKey, toSet)
-          }
+          map.set(meta.conversationIDKey, old ? Constants.updateMeta(old, meta) : meta)
         })
       })
     case Chat2Gen.inboxRefresh:
@@ -141,15 +136,15 @@ const messageMapReducer = (messageMap, action) => {
   }
 }
 
-const messageOrdinalsReducer = (messageOrdinalsList, action) => {
+const messageOrdinalsReducer = (messageOrdinals, action) => {
   // Note: on a delete we leave the ordinals in the list
   switch (action.type) {
     case Chat2Gen.clearOrdinals:
-      return messageOrdinalsList.set(action.payload.conversationIDKey, I.List())
+      return messageOrdinals.set(action.payload.conversationIDKey, I.SortedSet())
     case Chat2Gen.inboxRefresh:
-      return action.payload.clearAllData ? messageOrdinalsList.clear() : messageOrdinalsList
+      return action.payload.clearAllData ? messageOrdinals.clear() : messageOrdinals
     default:
-      return messageOrdinalsList
+      return messageOrdinals
   }
 }
 
@@ -262,13 +257,10 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
 
       // Create a map of conversationIDKey to Sorted list of ordinals
       const messageOrdinals = state.messageOrdinals.withMutations(
-        (map: I.Map<Types.ConversationIDKey, I.List<Types.Ordinal>>) =>
+        (map: I.Map<Types.ConversationIDKey, I.SortedSet<Types.Ordinal>>) =>
           Object.keys(idToMessages).forEach(conversationIDKey =>
-            map.update(conversationIDKey, I.List(), (list: I.List<Types.Ordinal>) =>
-              I.Set(list)
-                .concat(idToMessages[conversationIDKey])
-                .toList()
-                .sort()
+            map.update(conversationIDKey, I.SortedSet(), (set: I.SortedSet<Types.Ordinal>) =>
+              set.concat(idToMessages[conversationIDKey])
             )
           )
       )
@@ -293,18 +285,18 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       )
 
       const metaMap =
-        context === 'threadLoad'
-          ? state.metaMap.update(
-              context.conversationIDKey,
-              (meta: ?Types.ConversationMeta) => (meta ? meta.set('hasLoadedThread', true) : meta)
+        context.type === 'threadLoad' && state.metaMap.get(context.conversationIDKey)
+          ? state.metaMap.update(context.conversationIDKey, (meta: Types.ConversationMeta) =>
+              meta.set('hasLoadedThread', true)
             )
           : state.metaMap
 
-      return state
-        .set('metaMap', metaMap)
-        .set('messageMap', messageMap)
-        .set('messageOrdinals', messageOrdinals)
-        .set('pendingOutboxToOrdinal', pendingOutboxToOrdinal)
+      return state.withMutations(s => {
+        s.set('metaMap', metaMap)
+        s.set('messageMap', messageMap)
+        s.set('messageOrdinals', messageOrdinals)
+        s.set('pendingOutboxToOrdinal', pendingOutboxToOrdinal)
+      })
     }
 
     // metaMap/messageMap/messageOrdinalsList only actions
@@ -317,10 +309,11 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.metaReceivedError:
     case Chat2Gen.metaRequestingTrusted:
     case Chat2Gen.metasReceived:
-      return state
-        .set('metaMap', metaMapReducer(state.metaMap, action))
-        .set('messageMap', messageMapReducer(state.messageMap, action))
-        .set('messageOrdinals', messageOrdinalsReducer(state.messageOrdinals, action))
+      return state.withMutations(s => {
+        s.set('metaMap', metaMapReducer(state.metaMap, action))
+        s.set('messageMap', messageMapReducer(state.messageMap, action))
+        s.set('messageOrdinals', messageOrdinalsReducer(state.messageOrdinals, action))
+      })
     // Saga only actions
     case Chat2Gen.desktopNotification:
     case Chat2Gen.loadMoreMessages:

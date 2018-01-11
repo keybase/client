@@ -13,9 +13,9 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const youAreReset = false // Constants.isResetConversationIDKey(state, _conversationIDKey)
 
   return {
-    _conversationIDKey,
-    _messageIDs: Constants2.getMessageOrdinals(state, _conversationIDKey),
-    _messageMap: Constants2.getMessageMap(state, _conversationIDKey),
+    // _conversationIDKey,
+    // _messageIDs: Constants2.getMessageOrdinals(state, _conversationIDKey),
+    // _messageMap: Constants2.getMessageMap(state, _conversationIDKey),
     _meta: Constants2.getMeta(state, _conversationIDKey),
     _username: state.config.username || '',
     hasBadge: Constants2.getHasBadge(state, _conversationIDKey),

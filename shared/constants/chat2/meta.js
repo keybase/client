@@ -73,11 +73,12 @@ export const unverifiedInboxUIItemToConversationMeta = (
     notificationSettings: null,
     participants,
     resetParticipants,
+    snippet: i.localMetadata ? i.localMetadata.snippet : '',
     supersededBy: null,
     supersedes: null,
     teamType: getTeamType(i),
     teamname,
-    timestamp: i.localMetadata ? 0 : i.time,
+    timestamp: i.time,
     tlfname: i.name,
     trustedState: i.localMetadata ? 'trusted' : 'untrusted', // if we have localMetadata attached to an unverifiedInboxUIItem it's been loaded previously
   })
@@ -102,6 +103,43 @@ const getTeamType = ({teamType, membersType}) => {
   } else {
     return 'adhoc'
   }
+}
+
+// Upgrade a meta, try and keep exising values if possible to reduce render thrashing in components
+// Enforce the verions only increase and we only go from untrusted to trusted, etc
+export const updateMeta = (
+  old: Types.ConversationMeta,
+  meta: Types.ConversationMeta
+): Types.ConversationMeta => {
+  // Don't downgrade version
+  if (meta.inboxVersion < old.inboxVersion) {
+    return old
+  }
+
+  // Same version and same state?
+  if (meta.inboxVersion === old.inboxVersion && meta.trustedState === old.trustedState) {
+    return old
+  }
+
+  // TODO this should be our own type and NOT this raw structure from the daemon
+  const notificationSettings =
+    JSON.stringify(old.notificationSettings || {}) === JSON.stringify(meta.notificationSettings || {})
+      ? old.notificationSettings
+      : meta.notificationSettings
+  const hasLoadedThread = old.hasLoadedThread
+  const participants = old.participants.equals(meta.participants) ? old.participants : meta.participants
+  const rekeyers = old.rekeyers.equals(meta.rekeyers) ? old.rekeyers : meta.rekeyers
+  const resetParticipants = old.resetParticipants.equals(meta.resetParticipants)
+    ? old.resetParticipants
+    : meta.resetParticipants
+
+  return meta.withMutations(m => {
+    m.set('hasLoadedThread', hasLoadedThread)
+    m.set('notificationSettings', notificationSettings)
+    m.set('participants', participants)
+    m.set('rekeyers', rekeyers)
+    m.set('resetParticipants', resetParticipants)
+  })
 }
 
 export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {

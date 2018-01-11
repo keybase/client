@@ -30,7 +30,7 @@ const emptyMeta = makeConversationMeta()
 export const getMeta = (state: TypedState, id: ?Types.ConversationIDKey) =>
   id ? state.chat2.metaMap.get(id, emptyMeta) : emptyMeta
 export const getMessageOrdinals = (state: TypedState, id: ?Types.ConversationIDKey) =>
-  (id && state.chat2.messageOrdinals.get(id)) || I.List()
+  (id && state.chat2.messageOrdinals.get(id)) || I.SortedSet()
 export const getMessageMap = (state: TypedState, id: ?Types.ConversationIDKey) =>
   (id && state.chat2.messageMap.get(id)) || I.Map()
 export const getHasBadge = (state: TypedState, id: Types.ConversationIDKey) =>
@@ -54,6 +54,7 @@ export {
   makeConversationMeta,
   timestampToString,
   unverifiedInboxUIItemToConversationMeta,
+  updateMeta,
 } from './meta'
 
 export {makeMessageDeleted, uiMessageToMessage, isOldestOrdinal, makePendingTextMessage} from './message'
