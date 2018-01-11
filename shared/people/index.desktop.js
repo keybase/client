@@ -5,15 +5,8 @@ import {PeoplePageSearchBar, PeoplePageList} from './index.shared'
 import {type Props} from '.'
 import {globalColors, globalStyles} from '../styles'
 
-const noScrollBarStyle = `
-  .noScrollBar ::-webkit-scrollbar {
-    display: none;
-  }
-`
-
 const People = (props: Props) => (
   <ScrollView style={{...globalStyles.fullHeight}}>
-    <style>{noScrollBarStyle}</style>
     {props.waiting && (
       <ProgressIndicator style={{position: 'absolute', top: 8, left: 96, zIndex: 2, width: 32, height: 32}} />
     )}

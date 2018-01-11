@@ -92,7 +92,7 @@ export const MultiFollowNotification = (props: Props) => {
         following you.
       </Text>
       <ScrollView
-        {...(isMobile ? {horizontal: true} : {className: 'noScrollBar'})} // horizontal causes error on desktop
+        {...(isMobile ? {horizontal: true} : {})} // Causes error on desktop
         contentContainerStyle={globalStyles.flexBoxRow}
         style={{
           ...globalStyles.flexBoxRow,
