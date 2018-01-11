@@ -270,4 +270,8 @@ func TestTeamTree(t *testing.T) {
 	checkTeamTree(team, subTeam1, subTeam2, sub1SubTeam1, sub1SubTeam2, sub2SubTeam1, sub2SubTeam2, sub2SubTeam3)
 	checkTeamTree(subTeam1, sub1SubTeam1, sub1SubTeam2)
 	checkTeamTree(subTeam2, sub2SubTeam1, sub2SubTeam2, sub2SubTeam3)
+
+	checkTeamTree(sub2SubTeam1)
+	checkTeamTree(sub2SubTeam2)
+	checkTeamTree(sub2SubTeam3)
 }
