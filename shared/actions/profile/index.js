@@ -11,7 +11,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import URL from 'url-parse'
 import keybaseUrl from '../../constants/urls'
 import openURL from '../../util/open-url'
-import {getPathProps} from '../../route-tree'
+import {getPathProps, getPath} from '../../route-tree'
 import {navigateAppend, navigateTo, navigateUp, switchTo, putActionIfOnPath} from '../../actions/route-tree'
 import {parseUserId} from '../../util/platforms'
 import {loginTab, peopleTab} from '../../constants/tabs'
@@ -56,23 +56,42 @@ function _showUserProfile(action: ProfileGen.ShowUserProfilePayload, state: Type
   // get data on whose profile is currently being shown
   const {newPeopleTab} = flags
   const me = Selectors.usernameSelector(state)
-  const getTopProfile = (state: TypedState) => {
+  const getTopNode = (state: TypedState) => {
     const routeState = state.routeTree.routeState
     const routeProps = getPathProps(routeState, [peopleTab])
-    const profileNode = (routeProps && routeProps.size > 0 && routeProps.get(routeProps.size - 1)) || null
-    const isRootMe = newPeopleTab ? false : profileNode && profileNode.node === peopleTab && me
-    return isRootMe || (profileNode && profileNode.props && profileNode.props.get('username'))
+    const leafNode = (routeProps && routeProps.size > 0 && routeProps.get(routeProps.size - 1)) || null
+    return leafNode
   }
 
-  const topProfile = getTopProfile(state)
-
-  // If the username is the top profile, just switch to the profile tab
-  if (username === topProfile) {
-    return Saga.put(switchTo([peopleTab]))
+  const topNode = getTopNode(state)
+  if (topNode) {
+    const topNodeIsProfile = topNode.node === 'profile' || (newPeopleTab ? false : topNode.node === peopleTab)
+    if (!topNodeIsProfile) {
+      // Recursively call navigateUp until we hit a profile or the root
+      return Saga.sequentially([
+        Saga.put(navigateUp()),
+        Saga.put(ProfileGen.createShowUserProfile({username: userId})),
+      ])
+    }
+    const username = topNode.props.get('username') || me
+    // If the username is the top profile, just switch to the profile tab
+    if (username === userId) {
+      return Saga.put(switchTo([peopleTab]))
+    }
   }
 
   // Assume user exists
   if (!username.includes('@')) {
+    const actions = []
+    const routeState = state.routeTree.routeState
+    const peoplePath = getPath(routeState, [peopleTab])
+    if (peoplePath.size > 0) {
+      // Traverse backwards down the peoplePath until we hit a profile
+      const leafNode = peoplePath.get(peoplePath.size - 1)
+    } else {
+      actions.push(navigateTo([peopleTab, {props: {username}, selected: 'profile'}], [peopleTab]))
+    }
+
     return Saga.sequentially([
       Saga.put(switchTo([peopleTab])),
       Saga.put(navigateAppend([{props: {username}, selected: 'profile'}], [peopleTab])),
