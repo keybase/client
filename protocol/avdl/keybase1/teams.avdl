@@ -724,7 +724,6 @@ protocol teams {
     boolean joinTeam;
     boolean setPublicityAny;
     boolean listFirst;
-    boolean showcaseSettings;
     boolean changeTarsDisabled;
   }
 

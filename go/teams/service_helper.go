@@ -1266,7 +1266,6 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 	ret.ListFirst = implicitAdmin
 	ret.JoinTeam = teamRole == keybase1.TeamRole_NONE && implicitAdmin
 	ret.SetPublicityAny = admin || implicitAdmin
-	ret.ShowcaseSettings = teamRole != keybase1.TeamRole_NONE || implicitAdmin
 
 	if teamRole != keybase1.TeamRole_NONE {
 		leaveTeam := true

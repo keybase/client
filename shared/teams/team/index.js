@@ -348,38 +348,37 @@ class Team extends React.PureComponent<Props> {
           }}
           contentContainerStyle={{padding: globalMargins.medium}}
         >
-          {yourOperations.showcaseSettings && (
-            <Box
-              style={{
-                ...globalStyles.flexBoxRow,
-              }}
-            >
-              <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-                <Checkbox
-                  checked={publicityMember}
-                  disabled={!yourOperations.setMemberShowcase}
-                  label=""
-                  onCheck={setPublicityMember}
-                  style={{paddingRight: globalMargins.xtiny}}
-                />
-              </Box>
-              <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
-                <Text
-                  style={{
-                    color: yourOperations.setMemberShowcase ? globalColors.black_75 : globalColors.grey,
-                  }}
-                  type="Body"
-                >
-                  Publish team on your own profile
-                </Text>
-                <Text type="BodySmall">
-                  {yourOperations.setMemberShowcase
-                    ? 'Your profile on the Keybase website will mention this team. Description + number of members will be public.'
-                    : "Admins aren't allowing members to publish this team on their profile."}
-                </Text>
-              </Box>
+          <Box
+            style={{
+              ...globalStyles.flexBoxRow,
+            }}
+          >
+            <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
+              <Checkbox
+                checked={publicityMember}
+                disabled={!yourOperations.setMemberShowcase}
+                label=""
+                onCheck={setPublicityMember}
+                style={{paddingRight: globalMargins.xtiny}}
+              />
             </Box>
-          )}
+            <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
+              <Text
+                style={{
+                  color: yourOperations.setMemberShowcase ? globalColors.black_75 : globalColors.grey,
+                }}
+                type="Body"
+              >
+                Publish team on your own profile
+              </Text>
+              <Text type="BodySmall">
+                {yourOperations.setMemberShowcase
+                  ? 'Your profile on the Keybase website will mention this team. Description + number of members will be public.'
+                  : "Admins aren't allowing members to publish this team on their profile."}
+              </Text>
+            </Box>
+          </Box>
+
           {(yourOperations.changeOpenTeam ||
             yourOperations.setTeamShowcase ||
             yourOperations.setPublicityAny) && (

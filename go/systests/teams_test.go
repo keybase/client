@@ -956,7 +956,6 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, annPerms.ListFirst) // only true for implicit admins
 	require.False(t, annPerms.JoinTeam)
 	require.True(t, annPerms.SetPublicityAny)
-	require.True(t, annPerms.ShowcaseSettings)
 	require.True(t, annPerms.ChangeTarsDisabled)
 
 	require.True(t, bobPerms.ManageMembers)
@@ -972,7 +971,6 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, bobPerms.ListFirst)
 	require.False(t, bobPerms.JoinTeam)
 	require.True(t, bobPerms.SetPublicityAny)
-	require.True(t, bobPerms.ShowcaseSettings)
 	require.True(t, bobPerms.ChangeTarsDisabled)
 
 	// Some ops are fine for writers
@@ -989,7 +987,6 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, pamPerms.ListFirst)
 	require.False(t, pamPerms.JoinTeam)
 	require.False(t, pamPerms.SetPublicityAny)
-	require.True(t, pamPerms.ShowcaseSettings)
 	require.False(t, pamPerms.ChangeTarsDisabled)
 
 	// Only SetMemberShowcase (by default) and LeaveTeam is available for readers
@@ -1006,7 +1003,6 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, eddPerms.ListFirst)
 	require.False(t, eddPerms.JoinTeam)
 	require.False(t, eddPerms.SetPublicityAny)
-	require.True(t, eddPerms.ShowcaseSettings)
 	require.False(t, eddPerms.ChangeTarsDisabled)
 
 	annPerms = callCanPerform(ann, subteam)
@@ -1025,7 +1021,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.True(t, annPerms.ListFirst)
 	require.True(t, annPerms.JoinTeam)
 	require.True(t, annPerms.SetPublicityAny)
-	require.True(t, annPerms.ShowcaseSettings)
+
 	require.True(t, annPerms.ChangeTarsDisabled)
 
 	require.True(t, bobPerms.ManageMembers)
@@ -1041,7 +1037,6 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.True(t, annPerms.ListFirst)
 	require.True(t, annPerms.JoinTeam)
 	require.True(t, annPerms.SetPublicityAny)
-	require.True(t, annPerms.ShowcaseSettings)
 	require.True(t, annPerms.ChangeTarsDisabled)
 
 	// Invalid team for pam

@@ -81,7 +81,6 @@ export const initialCanUserPerform: RPCTypes.TeamOperation = {
   joinTeam: false,
   setPublicityAny: false,
   listFirst: false,
-  showcaseSettings: false,
   changeTarsDisabled: false,
 }
 

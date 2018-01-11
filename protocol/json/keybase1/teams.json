@@ -1634,10 +1634,6 @@
         },
         {
           "type": "boolean",
-          "name": "showcaseSettings"
-        },
-        {
-          "type": "boolean",
           "name": "changeTarsDisabled"
         }
       ]
