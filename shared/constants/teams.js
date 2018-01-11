@@ -40,6 +40,7 @@ export const teamRoleByEnum = invert(RPCTypes.teamsTeamRole)
 
 export const typeToLabel: Types.TypeMap = {
   admin: 'Admin',
+  none: 'None',
   owner: 'Owner',
   reader: 'Reader',
   writer: 'Writer',
@@ -58,6 +59,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   teamNameToMembers: I.Map(),
   teamNameToRequests: I.Map(),
   teamNameToRole: I.Map(),
+  teamNameToSubteams: I.Map(),
   teamNameToCanPerform: I.Map(),
   teamNameToTeamSettings: I.Map(),
   teamNameToPublicitySettings: I.Map(),
@@ -87,11 +89,14 @@ export const initialCanUserPerform: RPCTypes.TeamOperation = {
 const userIsActiveInTeamHelper = (state: TypedState, username: string, service: Service, teamname: string) =>
   service === 'Keybase' ? userIsActiveInTeam(state, teamname, username) : false
 
-const getConvIdsFromTeamName = (state: TypedState, teamname: string): I.Set<string> =>
+const getConvIdsFromTeamName = (state: TypedState, teamname: string): I.Set<ChatTypes.ConversationIDKey> =>
   state.entities.teams.teamNameToConvIDs.get(teamname, I.Set())
 
 const getTeamNameFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
   state.entities.teams.teamNameToConvIDs.findKey(i => i.has(conversationIDKey))
+
+const getChannelInfoFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
+  state.entities.teams.convIDToChannelInfo.get(conversationIDKey, null)
 
 const getChannelNameFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
   state.entities.teams.convIDToChannelInfo.getIn([conversationIDKey, 'channelname'], null)
@@ -126,6 +131,7 @@ export {
   getCanPerform,
   userIsActiveInTeamHelper,
   getTeamNameFromConvID,
+  getChannelInfoFromConvID,
   getChannelNameFromConvID,
   getTopicFromConvID,
   isAdmin,

@@ -29,16 +29,6 @@
     }
     return result
   }
-
-  function prefix (pfix, input) {
-    if (typeof input ===  'string') {
-      return pfix + input
-    } else if (Array.isArray(input)) {
-      input.unshift(pfix)
-      return input
-    }
-    return input
-  }
 }
 
 start
@@ -57,7 +47,7 @@ NonEndBlankLine
 // instantiations of __INLINE_RULE__.
 
 InlineStartCommon
-  = InlineCode / Italic / Bold / Link / Mention / Strike / Text / Emoji / NativeEmoji
+  = InlineCode / Italic / Bold / Link / Mention / Channel / Strike / Text / Emoji / NativeEmoji
 
 InlineCont
  = !CodeBlock (Text / Emoji / NativeEmoji / EscapedChar / SpecialChar)
@@ -79,12 +69,13 @@ ItalicMarker = "_"
 EmojiMarker = ":"
 QuoteBlockMarker = ">"
 MentionMarker = "@"
+ChannelMarker = "#"
 
 // Can mark the beginning of a link
 PunctuationMarker = [()[\].,!?]
 
 SpecialChar
- = EscapeMarker / StrikeMarker / MentionMarker / BoldMarker / ItalicMarker / EmojiMarker / QuoteBlockMarker / Ticks1 / PunctuationMarker { return text() }
+ = EscapeMarker / StrikeMarker / MentionMarker / ChannelMarker / BoldMarker / ItalicMarker / EmojiMarker / QuoteBlockMarker / Ticks1 / PunctuationMarker { return text() }
 
 EscapedChar
  = EscapeMarker char:SpecialChar { return char }
@@ -115,17 +106,23 @@ Strike
  = StrikeMarker !WhiteSpace children:StrikeInline StrikeMarker !(StrikeMarker / NormalChar) { return {type: 'strike', children: flatten(children)} }
 
 // children test adapted from CheckUsername in libkb/checkers.go.
-Mention = MentionMarker children:([a-zA-Z0-9]+"_"?)+ & {
-  const mention = flatten(children)[0]
-  return mention.length >= 2 && mention.length <= 16 &&
-    options && options.isValidMention && options.isValidMention(mention)
-} { return {type: 'mention', children: flatten(children) } }
+Mention = MentionMarker username:($ ([a-zA-Z0-9]+"_"?)+) & {
+  return username.length >= 2 && username.length <= 16 &&
+    options && options.isValidMention && options.isValidMention(username)
+} { return {type: 'mention', children: [username] } }
+
+// children test adapted from validateTopicName in chat/msgchecker/plaintext_checker.go.
+Channel
+ = ChannelMarker name:($ ([0-9a-zA-Z_-]+)) & {
+  return name.length > 0 && name.length <= 20 &&
+    options && options.channelNameToConvID && options.channelNameToConvID(name)
+} { return {type: 'channel', children: [name], convID: options && options.channelNameToConvID && options.channelNameToConvID(name) } }
 
 CodeBlock
- = Ticks3 LineTerminatorSequence? children:(!Ticks3 .)+ Ticks3 { return {type: 'code-block', children: flatten(children)} }
+ = Ticks3 LineTerminatorSequence? code:($ (!Ticks3 .)+) Ticks3 { return {type: 'code-block', children: [code]} }
 
 InlineCode
- = Ticks1 children:(!Ticks1 !LineTerminatorSequence .)+ Ticks1 { return {type: 'inline-code', children: flatten(children)} }
+ = Ticks1 code:($ (!Ticks1 !LineTerminatorSequence .)+) Ticks1 { return {type: 'inline-code', children: [code]} }
 
 // Here we use the literal ":" because we want to not match the :foo in ::foo
 InsideEmojiMarker

@@ -1,6 +1,7 @@
 // @flow
 import React, {PureComponent} from 'react'
 import Text from './text'
+import Channel from './channel-container'
 import Mention from './mention-container'
 import Box from './box'
 import Emoji from './emoji'
@@ -67,7 +68,21 @@ function messageCreateComponent(type, key, children, options) {
     case 'markup':
       return <Box key={key}>{children}</Box>
     case 'mention':
-      return <Mention username={children[0]} key={key} style={wrapStyle} />
+      const username = children[0]
+      if (typeof username !== 'string') {
+        throw new Error('username unexpectedly not string')
+      }
+      return <Mention username={username} key={key} style={wrapStyle} />
+    case 'channel':
+      const name = children[0]
+      if (typeof name !== 'string') {
+        throw new Error('name unexpectedly not string')
+      }
+      const convID = options.convID || ''
+      if (typeof convID !== 'string') {
+        throw new Error('convID unexpectedly not string')
+      }
+      return <Channel name={name} convID={convID} key={key} style={linkStyle} />
     case 'inline-code':
       return (
         <Text type="Body" key={key} style={codeSnippetStyle}>

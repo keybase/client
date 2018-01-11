@@ -373,9 +373,28 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
       }
     )
 
+    // Get the subteam map for this team.  TeamTree only accepts a top-level
+    // team, not a subteam, so we'll call it for the team and filter out
+    // any subteams we don't care about later.
+    const teamTree = yield Saga.call(RPCTypes.teamsTeamTreeRpcPromise, {
+      name: {parts: [teamname.split('.')[0]]},
+    })
+    const subteams = teamTree.entries.map(team => team.name.parts.join('.'))
+    const state: TypedState = yield Saga.select()
+    const yourOperations = Constants.getCanPerform(state, teamname)
+
+    let tarsDisabled = false
+    // Find out whether team access requests are enabled. Throws if you aren't admin.
+    if (yourOperations.changeTarsDisabled) {
+      tarsDisabled = yield Saga.call(RPCTypes.teamsGetTarsDisabledRpcPromise, {
+        name: teamname,
+      })
+    }
+
     const publicityMap = {
       anyMemberShowcase: publicity.teamShowcase.anyMemberShowcase,
       description: publicity.teamShowcase.description,
+      ignoreAccessRequests: tarsDisabled,
       member: publicity.isMemberShowcased,
       team: publicity.teamShowcase.isShowcased,
     }
@@ -387,6 +406,7 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
       Saga.put(replaceEntity(['teams', 'teamNameToTeamSettings'], I.Map({[teamname]: details.settings}))),
       Saga.put(replaceEntity(['teams', 'teamNameToInvites'], I.Map([[teamname, I.Set(invitesMap)]]))),
       Saga.put(replaceEntity(['teams', 'teamNameToPublicitySettings'], I.Map({[teamname]: publicityMap}))),
+      Saga.put(replaceEntity(['teams', 'teamNameToSubteams'], I.Map([[teamname, I.Set(subteams)]]))),
     ])
   } finally {
     yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, false]])))
@@ -505,7 +525,7 @@ function _checkRequestedAccessSuccess(result) {
 
 const _saveChannelMembership = function(action: TeamsGen.SaveChannelMembershipPayload, state: TypedState) {
   const {teamname, channelState} = action.payload
-  const convIDs: I.Set<string> = Constants.getConvIdsFromTeamName(state, teamname)
+  const convIDs: I.Set<ChatTypes.ConversationIDKey> = Constants.getConvIdsFromTeamName(state, teamname)
   const channelnameToConvID = keyBy(convIDs.toArray(), c => Constants.getChannelNameFromConvID(state, c))
   const waitingKey = {key: `saveChannel:${teamname}`}
 
@@ -606,9 +626,11 @@ const _setPublicity = function(action: TeamsGen.SetPublicityPayload, state: Type
   })
   const teamPublicitySettings = state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname], {
     anyMemberShowcase: false,
+    ignoreAccessRequests: false,
     member: false,
     team: false,
   })
+  const ignoreAccessRequests = teamPublicitySettings.ignoreAccessRequests
   const openTeam = teamSettings.open
   const openTeamRole = Constants.teamRoleByEnum[teamSettings.joinAs]
   const publicityAnyMember = teamPublicitySettings.anyMemberShowcase
@@ -628,9 +650,18 @@ const _setPublicity = function(action: TeamsGen.SetPublicityPayload, state: Type
       })
     )
   }
+  if (ignoreAccessRequests !== settings.ignoreAccessRequests) {
+    calls.push(
+      // $FlowIssue doesn't like callAndWrap
+      Saga.callAndWrap(RPCTypes.teamsSetTarsDisabledRpcPromise, {
+        disabled: settings.ignoreAccessRequests,
+        name: teamname,
+      })
+    )
+  }
   if (publicityAnyMember !== settings.publicityAnyMember) {
     calls.push(
-      // $FlowIssue doens't like callAndWrap
+      // $FlowIssue doesn't like callAndWrap
       Saga.callAndWrap(RPCTypes.teamsSetTeamShowcaseRpcPromise, {
         anyMemberShowcase: settings.publicityAnyMember,
         name: teamname,
@@ -639,7 +670,7 @@ const _setPublicity = function(action: TeamsGen.SetPublicityPayload, state: Type
   }
   if (publicityMember !== settings.publicityMember) {
     calls.push(
-      // $FlowIssue doens't like callAndWrap
+      // $FlowIssue doesn't like callAndWrap
       Saga.callAndWrap(RPCTypes.teamsSetTeamMemberShowcaseRpcPromise, {
         isShowcased: settings.publicityMember,
         name: teamname,
@@ -648,7 +679,7 @@ const _setPublicity = function(action: TeamsGen.SetPublicityPayload, state: Type
   }
   if (publicityTeam !== settings.publicityTeam) {
     calls.push(
-      // $FlowIssue doens't like callAndWrap
+      // $FlowIssue doesn't like callAndWrap
       Saga.callAndWrap(RPCTypes.teamsSetTeamShowcaseRpcPromise, {
         isShowcased: settings.publicityTeam,
         name: teamname,

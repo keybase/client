@@ -69,7 +69,7 @@ $1
   const linkExp = /^(?:(http(s)?):\/\/)?(([a-z0-9-]+\.)+([a-z]{2,63})|(\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b))(((\/)|(\?))[a-z0-9.()\-_~:?#[\]@!$&'%*+,;=]*)*$/i
   const tldPuncExp = /^(?:(http(s)?):\/\/)?(([a-z0-9-]+\.)+([a-z]{2,63})|(\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b))([)\].,;:"']+$)/i
   const tldExp = /^(?:(http(s)?):\/\/)?([a-z0-9-]+\.)+([a-z]{2,63})/i
-  const plaintextExp = /^([A-Za-z0-9!?=+#$%^&()[\],'"\s]|\.\B)*$/
+  const plaintextExp = /^([A-Za-z0-9!?=+$%^&()[\],'"\s]|\.\B)*$/
 
   // the regexes here get recompiled on every parse if we put it in the initializer, so we force it to run at import time.
   //

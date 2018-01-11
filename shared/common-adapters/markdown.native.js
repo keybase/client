@@ -3,6 +3,7 @@ import React, {PureComponent} from 'react'
 import Text from './text'
 import Box from './box'
 import Emoji from './emoji'
+import Channel from './channel-container'
 import Mention from './mention-container'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {parseMarkdown, EmojiIfExists} from './markdown.shared'
@@ -151,11 +152,36 @@ function messageCreateComponent(style, allowFontScaling) {
           </Text>
         )
       case 'mention':
+        const username = children[0]
+        if (typeof username !== 'string') {
+          throw new Error('username unexpectedly not string')
+        }
+        // Don't pass in neutralStyle for style as that sets
+        // fontWeight to undefined, which overrides the BodySemibold
+        // type that Mention uses.
         return (
           <Mention
-            username={children[0]}
+            username={username}
             key={key}
-            style={neutralStyle}
+            style={{color: undefined}}
+            allowFontScaling={allowFontScaling}
+          />
+        )
+      case 'channel':
+        const name = children[0]
+        if (typeof name !== 'string') {
+          throw new Error('name unexpectedly not string')
+        }
+        const convID = options.convID || ''
+        if (typeof convID !== 'string') {
+          throw new Error('convID unexpectedly not string')
+        }
+        return (
+          <Channel
+            name={name}
+            convID={convID}
+            key={key}
+            style={linkStyle}
             allowFontScaling={allowFontScaling}
           />
         )
