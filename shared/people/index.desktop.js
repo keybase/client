@@ -6,10 +6,10 @@ import {type Props} from '.'
 import {globalColors, globalStyles} from '../styles'
 
 const noScrollBarStyle = `
-  .noScrollBar::-webkit-scrollbar: {
-    display: 'none';
+  .noScrollBar ::-webkit-scrollbar {
+    display: none;
   }
-}`
+`
 
 const People = (props: Props) => (
   <ScrollView style={{...globalStyles.fullHeight}}>
