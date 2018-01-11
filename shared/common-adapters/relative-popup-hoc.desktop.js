@@ -223,7 +223,8 @@ function ModalPositionRelative<PP>(
 
     _handleScroll = throttle(
       () => {
-        this.props.onClosePopup()
+        // TODO?
+        // this.props.onClosePopup()
       },
       500,
       {trailing: false}

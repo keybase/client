@@ -1,6 +1,0 @@
-// @flow
-import {Component} from 'react'
-
-import type {Props} from '.'
-
-export default class NoConversation extends Component<Props> {}

@@ -1,14 +1,21 @@
 // @flow
 import * as I from 'immutable'
 import * as Constants2 from '../../../constants/chat2'
+import * as RouteTree from '../../../actions/route-tree'
 import * as ChatGen from '../../../actions/chat-gen'
 import {ChannelHeader, UsernameHeader} from '.'
-import {branch, compose, renderComponent, connect, type TypedState} from '../../../util/container'
+import {
+  branch,
+  compose,
+  renderComponent,
+  connect,
+  type TypedState,
+  type Dispatch,
+} from '../../../util/container'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import {chatTab} from '../../../constants/tabs'
-import {type OwnProps} from './container'
 
-const mapStateToProps = (state: TypedState, {infoPanelOpen}: OwnProps) => {
+const mapStateToProps = (state: TypedState, {infoPanelOpen}) => {
   const conversationIDKey = Constants2.getSelectedConversation(state)
   const meta = Constants2.getMeta(state, conversationIDKey)
   return {
@@ -23,8 +30,8 @@ const mapStateToProps = (state: TypedState, {infoPanelOpen}: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {onBack, onToggleInfoPanel}: OwnProps) => ({
-  onBack,
+const mapDispatchToProps = (dispatch: Dispatch, {onToggleInfoPanel}) => ({
+  onBack: () => dispatch(RouteTree.navigateUp()),
   onOpenFolder: () => dispatch(ChatGen.createOpenFolder()),
   onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
   onToggleInfoPanel,

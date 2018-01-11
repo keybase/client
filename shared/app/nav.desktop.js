@@ -1,46 +1,45 @@
 // @flow
+import * as I from 'immutable'
 import * as React from 'react'
+import * as RouteTree from '../route-tree/render-route'
 import GlobalError from './global-errors/container'
-import Offline from '../offline'
+import Offline from '../offline/container'
 import TabBar from './tab-bar/container'
 import {Box, ErrorBoundary} from '../common-adapters'
 import {chatTab, loginTab, peopleTab, profileTab, type Tab} from '../constants/tabs'
-import {connect, type TypedState} from '../util/container'
+import {connect, type TypedState, type Dispatch} from '../util/container'
 import {globalStyles} from '../styles'
 import {navigateTo, switchTo} from '../actions/route-tree'
 import {createShowUserProfile} from '../actions/profile-gen'
-import {type Props, type StateProps, type DispatchProps, type OwnProps} from './nav'
+import {type OwnProps} from './nav'
 
-class Nav extends React.Component<Props> {
-  _switchTab = tab => {
-    this.props.switchTab(tab)
-  }
+type Props = {
+  layerScreens: I.Stack<RouteTree.RenderRouteResult>,
+  switchTab: (tab: Tab) => void,
+  visibleScreen: RouteTree.RenderRouteResult,
+  routeSelected: Tab,
+}
 
+class Nav extends React.PureComponent<Props> {
   render() {
-    const props = this.props
-    const visibleScreen = props.routeStack.findLast(r => !r.tags.layerOnTop)
-    if (!visibleScreen) {
-      throw new Error('no route component to render without layerOnTop tag')
-    }
-    const layerScreens = props.routeStack.filter(r => r.tags.layerOnTop)
+    const {routeSelected, visibleScreen, layerScreens, switchTab} = this.props
     return (
       <ErrorBoundary>
         <Box style={stylesTabsContainer}>
-          {props.routeSelected !== loginTab && (
-            <TabBar onTabClick={this._switchTab} selectedTab={props.routeSelected} />
-          )}
+          {routeSelected !== loginTab && <TabBar onTabClick={switchTab} selectedTab={routeSelected} />}
           <ErrorBoundary>
             <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-              {visibleScreen.component({isActiveRoute: true, shouldRender: true})}
-              {layerScreens.map(r => r.leafComponent({isActiveRoute: true, shouldRender: true}))}
+              {/* We use a fixed key here so we don't remount components like chat. */}
+              <visibleScreen.component key="0" isActiveRoute={true} shouldRender={true} />
+              {layerScreens.map(r => (
+                <r.leafComponent key={r.path.join(':')} isActiveRoute={true} shouldRender={true} />
+              ))}
             </Box>
           </ErrorBoundary>
           <ErrorBoundary>
             <div id="popupContainer" />
           </ErrorBoundary>
-          {![chatTab, loginTab].includes(props.routeSelected) && (
-            <Offline reachable={props.reachable} appFocused={props.appFocused} />
-          )}
+          {![chatTab, loginTab].includes(routeSelected) && <Offline />}
           <GlobalError />
         </Box>
       </ErrorBoundary>
@@ -54,9 +53,7 @@ const stylesTabsContainer = {
 }
 
 const mapStateToProps = (state: TypedState) => ({
-  _me: state.config.username,
-  appFocused: state.config.appFocused,
-  reachable: state.gregor.reachability.reachable,
+  _username: state.config.username,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
@@ -91,13 +88,18 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   },
 })
 
-const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps: OwnProps): Props => {
+const mergeProps = (stateProps, dispatchProps, ownProps): Props => {
+  const visibleScreen = ownProps.routeStack.findLast(r => !r.tags.layerOnTop)
+  if (!visibleScreen) {
+    throw new Error('no route component to render without layerOnTop tag')
+  }
+
+  const layerScreens = ownProps.routeStack.filter(r => r.tags.layerOnTop)
   return {
-    ...stateProps,
-    ...ownProps,
-    switchTab: (tab: Tab) => {
-      dispatchProps._switchTab(tab, stateProps._me)
-    },
+    layerScreens,
+    routeSelected: ownProps.routeSelected,
+    switchTab: (tab: Tab) => dispatchProps._switchTab(tab, stateProps._username),
+    visibleScreen,
   }
 }
 

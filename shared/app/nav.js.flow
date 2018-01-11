@@ -5,23 +5,10 @@ import type {RouteProps} from '../route-tree/render-route'
 import type {Reachable} from '../constants/types/rpc-gen'
 import type {Tab} from '../constants/tabs'
 
-export type StateProps = {
-  _me: ?string,
-  appFocused: boolean,
-  reachable: Reachable,
-  hideNav?: boolean,
-}
-
-export type DispatchProps = {
-  _switchTab: (Tab, ?string) => void,
-}
-
 export type OwnProps = RouteProps<{}, {}>
 
 export type Props = OwnProps & {
-  appFocused: boolean,
   switchTab: (tab: Tab) => void,
-  reachable: Reachable,
   hideNav?: boolean,
 }
 

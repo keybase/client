@@ -1,7 +1,7 @@
 // @flow
 import CardStackTransitioner from 'react-navigation/src/views/CardStack/CardStackTransitioner'
 import GlobalError from './global-errors/container'
-import Offline from '../offline'
+import Offline from '../offline/container'
 import React, {Component} from 'react'
 import TabBar from './tab-bar/container'
 import {
@@ -192,9 +192,7 @@ class MainNavStack extends Component<any, any> {
     const content = (
       <Box style={globalStyles.flexGrow}>
         {stacks}
-        {![chatTab].includes(props.routeSelected) ? (
-          <Offline key="offline" reachable={props.reachable} appFocused={true} />
-        ) : null}
+        {![chatTab].includes(props.routeSelected) ? <Offline key="offline" /> : null}
         <GlobalError key="globalError" />
         <AnimatedTabBar show={!props.hideNav}>
           <TabBar onTabClick={this._switchTab} selectedTab={props.routeSelected} />
@@ -365,7 +363,6 @@ const sceneWrapStyleWithStatusBarPadding = {
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
   _me: state.config.username,
   hideNav: ownProps.routeSelected === loginTab,
-  reachable: state.gregor.reachability.reachable,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
