@@ -27395,7 +27395,7 @@ exports[`Storyshots People/Follow Suggestions One 1`] = `
         Object {
           "display": "flex",
           "flexDirection": "column",
-          "paddingBottom": 106,
+          "paddingBottom": 8,
           "paddingLeft": 12,
           "paddingRight": 12,
           "paddingTop": 8,
@@ -27413,13 +27413,7 @@ exports[`Storyshots People/Follow Suggestions One 1`] = `
       <div
         style={
           Object {
-            "bottom": 0,
-            "display": "flex",
-            "flexDirection": "row",
-            "left": 0,
-            "overflow": "scroll",
-            "position": "absolute",
-            "right": 0,
+            "overflow": "auto",
           }
         }
       >
@@ -27428,6 +27422,10 @@ exports[`Storyshots People/Follow Suggestions One 1`] = `
             Object {
               "display": "flex",
               "flexDirection": "row",
+              "flexWrap": "wrap",
+              "height": 106,
+              "overflow": "hidden",
+              "width": "100%",
             }
           }
         >
@@ -27659,7 +27657,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
         Object {
           "display": "flex",
           "flexDirection": "column",
-          "paddingBottom": 106,
+          "paddingBottom": 8,
           "paddingLeft": 12,
           "paddingRight": 12,
           "paddingTop": 8,
@@ -27677,13 +27675,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
       <div
         style={
           Object {
-            "bottom": 0,
-            "display": "flex",
-            "flexDirection": "row",
-            "left": 0,
-            "overflow": "scroll",
-            "position": "absolute",
-            "right": 0,
+            "overflow": "auto",
           }
         }
       >
@@ -27692,6 +27684,10 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
             Object {
               "display": "flex",
               "flexDirection": "row",
+              "flexWrap": "wrap",
+              "height": 106,
+              "overflow": "hidden",
+              "width": "100%",
             }
           }
         >
@@ -29024,7 +29020,7 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
         Object {
           "display": "flex",
           "flexDirection": "column",
-          "paddingBottom": 106,
+          "paddingBottom": 8,
           "paddingLeft": 12,
           "paddingRight": 12,
           "paddingTop": 8,
@@ -29042,13 +29038,7 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
       <div
         style={
           Object {
-            "bottom": 0,
-            "display": "flex",
-            "flexDirection": "row",
-            "left": 0,
-            "overflow": "scroll",
-            "position": "absolute",
-            "right": 0,
+            "overflow": "auto",
           }
         }
       >
@@ -29057,6 +29047,10 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
             Object {
               "display": "flex",
               "flexDirection": "row",
+              "flexWrap": "wrap",
+              "height": 106,
+              "overflow": "hidden",
+              "width": "100%",
             }
           }
         >
@@ -29898,7 +29892,6 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
             "display": "flex",
             "flexDirection": "column",
             "overflow": "hidden",
-            "paddingBottom": 32,
             "paddingRight": 80,
             "position": "relative",
             "width": "auto",
@@ -29977,13 +29970,7 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
         <div
           style={
             Object {
-              "bottom": 0,
-              "display": "flex",
-              "flexDirection": "row",
-              "left": 0,
-              "overflow": "scroll",
-              "position": "absolute",
-              "width": "100%",
+              "overflow": "auto",
             }
           }
         >
@@ -29992,6 +29979,10 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
               Object {
                 "display": "flex",
                 "flexDirection": "row",
+                "flexWrap": "wrap",
+                "height": 32,
+                "overflow": "hidden",
+                "width": "100%",
               }
             }
           >
@@ -30336,7 +30327,6 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
             "display": "flex",
             "flexDirection": "column",
             "overflow": "hidden",
-            "paddingBottom": 32,
             "paddingRight": 80,
             "position": "relative",
             "width": "auto",
@@ -30436,13 +30426,7 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
         <div
           style={
             Object {
-              "bottom": 0,
-              "display": "flex",
-              "flexDirection": "row",
-              "left": 0,
-              "overflow": "scroll",
-              "position": "absolute",
-              "width": "100%",
+              "overflow": "auto",
             }
           }
         >
@@ -30451,6 +30435,10 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
               Object {
                 "display": "flex",
                 "flexDirection": "row",
+                "flexWrap": "wrap",
+                "height": 32,
+                "overflow": "hidden",
+                "width": "100%",
               }
             }
           >
