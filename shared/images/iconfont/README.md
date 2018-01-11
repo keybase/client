@@ -34,7 +34,7 @@ Go [here](https://www.fontsquirrel.com/tools/webfont-generator)
 1. turn off subsetting
 1. remove the ‘-webfont’ as the suffix
 1. check the agree then download
-1. replace `kb.ttf` from the downloaded zip file with the file of the same name in [shared/fonts]
+1. replace `kb.ttf` from the downloaded zip file with the file of the same name in `shared/fonts`
 
 ## Phase 5: Update the flowtype and fonts on both apps
 
