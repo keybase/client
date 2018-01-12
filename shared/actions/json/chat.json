@@ -238,6 +238,10 @@
       "deviceType": "DeviceType",
       "notifyType": "Types.NotifyType"
     },
+    "setNotificationSaveState": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "saveState": "Types.NotificationSaveState",
+    },
     "toggleChannelWideNotifications": {
       "conversationIDKey": "Types.ConversationIDKey"
     },

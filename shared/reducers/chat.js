@@ -362,6 +362,7 @@ function reducer(
     case ChatGen.selectOrPreviewConversation:
     case ChatGen.selectNext:
     case ChatGen.setNotifications:
+    case ChatGen.setNotificationSaveState:
     case ChatGen.setupChatHandlers:
     case ChatGen.shareAttachment:
     case ChatGen.startConversation:

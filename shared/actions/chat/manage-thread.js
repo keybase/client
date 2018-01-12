@@ -216,7 +216,7 @@ const _setNotifications = function*(
       nextNotifications = action.payload.notifications
     }
 
-    yield Saga.put.resolve(
+    yield Saga.put(
       ChatGen.createReplaceEntity({
         keyPath: ['inbox', conversationIDKey],
         entities: old.set('notifications', {
@@ -259,9 +259,25 @@ const _setNotifications = function*(
           },
         ],
       }
+      yield Saga.put(ChatGen.createSetNotificationSaveState({conversationIDKey, saveState: 'saving'}))
+      // TODO: Ideally, we'd handle and update the UI for any errors
+      // that happen for this RPC.
       yield Saga.call(ChatTypes.localSetAppNotificationSettingsLocalRpcPromise, param)
+      yield Saga.put(ChatGen.createSetNotificationSaveState({conversationIDKey, saveState: 'saved'}))
     }
   }
+}
+
+function _setNotificationSaveState(action: ChatGen.SetNotificationSaveStatePayload) {
+  const {conversationIDKey, saveState} = action.payload
+  return Saga.put(
+    ChatGen.createMergeEntity({
+      keyPath: ['inbox', conversationIDKey],
+      entities: I.Map({
+        notificationSaveState: saveState,
+      }),
+    })
+  )
 }
 
 function _blockConversation(action: ChatGen.BlockConversationPayload) {
@@ -310,6 +326,7 @@ function* registerSagas(): SagaGenerator<any, any> {
     [ChatGen.setNotifications, ChatGen.updatedNotifications, ChatGen.toggleChannelWideNotifications],
     _setNotifications
   )
+  yield Saga.safeTakeLatestPure(ChatGen.setNotificationSaveState, _setNotificationSaveState)
   yield Saga.safeTakeEveryPure(ChatGen.blockConversation, _blockConversation)
   yield Saga.safeTakeLatest(ChatGen.openTeamConversation, _openTeamConversation)
 }

@@ -4,7 +4,7 @@ import * as Constants from '../../../../constants/chat'
 import * as Types from '../../../../constants/types/chat'
 import * as ChatGen from '../../../../actions/chat-gen'
 import Notifications from '.'
-import {compose, branch, renderNothing, connect, type TypedState} from '../../../../util/container'
+import {compose, branch, renderNothing, connect, lifecycle, type TypedState} from '../../../../util/container'
 import {type DeviceType} from '../../../../constants/types/devices'
 import {type StateProps, type DispatchProps} from './container'
 
@@ -50,10 +50,13 @@ const mapStateToProps = (state: TypedState): * => {
     conversationIDKey,
     desktop,
     mobile,
+    saveState: inbox.get('notificationSaveState'),
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
+  _resetNotificationSaveState: (conversationIDKey: Types.ConversationIDKey) =>
+    dispatch(ChatGen.createSetNotificationSaveState({conversationIDKey, saveState: 'unsaved'})),
   onSetNotification: (
     conversationIDKey: Types.ConversationIDKey,
     deviceType: DeviceType,
@@ -67,10 +70,12 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
   if (stateProps.conversationIDKey) {
     const {conversationIDKey} = stateProps
     return {
+      _resetNotificationSaveState: () => dispatchProps._resetNotificationSaveState(conversationIDKey),
       conversationIDKey: stateProps.conversationIDKey,
       channelWide: stateProps.channelWide,
       desktop: stateProps.desktop,
       mobile: stateProps.mobile,
+      saveState: stateProps.saveState,
       onSetDesktop: (notifyType: Types.NotifyType) => {
         dispatchProps.onSetNotification(conversationIDKey, 'desktop', notifyType)
       },
@@ -88,6 +93,11 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  // $FlowIssue doens't like dynamic props like we do above
+  lifecycle({
+    componentDidMount: function() {
+      this.props._resetNotificationSaveState()
+    },
+  }),
+  // $FlowIssue doesn't like dynamic props like we do above
   branch(props => !props.conversationIDKey, renderNothing)
 )(Notifications)
