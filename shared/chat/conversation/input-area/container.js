@@ -16,8 +16,10 @@ const mapStateToProps = (state: TypedState): * => {
 }
 
 type Props = {
-  isReset: boolean,
+  focusInputCounter: number,
   isPreview: boolean,
+  isReset: boolean,
+  onScrollDown: () => void,
 }
 class InputArea extends React.PureComponent<Props> {
   render() {
@@ -27,7 +29,7 @@ class InputArea extends React.PureComponent<Props> {
     if (this.props.isPreview) {
       return <Preview />
     }
-    return <Normal />
+    return <Normal focusInputCounter={this.props.focusInputCounter} onScrollDown={this.props.onScrollDown} />
   }
 }
 

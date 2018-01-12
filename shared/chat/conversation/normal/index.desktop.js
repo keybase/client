@@ -157,9 +157,7 @@ class Conversation extends React.PureComponent<Props, State> {
       <div style={{...globalStyles.flexBoxColumn, flex: 1}}>
         {/* this.props.showTeamOffer && <CreateTeamHeader /> TODO */}
         <List
-          focusInputCounter={this.props.focusInputCounter}
           listScrollDownCounter={this.props.listScrollDownCounter}
-          onScrollDown={this.props.onScrollDown}
           onFocusInput={this.props.onFocusInput}
         />
         <Banner />
@@ -186,7 +184,7 @@ class Conversation extends React.PureComponent<Props, State> {
         {header}
         {this.props.showLoader && <LoadingLine />}
         {list}
-        <InputArea />
+        <InputArea focusInputCounter={this.props.focusInputCounter} onScrollDown={this.props.onScrollDown} />
         {this.state.infoPanelOpen && <InfoPaneWrapper onToggle={this._onToggleInfoPanel} />}
         {this.state.showDropOverlay && <DropOverlay onDragLeave={this._onDragLeave} onDrop={this._onDrop} />}
       </Box>

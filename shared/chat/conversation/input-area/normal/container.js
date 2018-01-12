@@ -19,25 +19,30 @@ import {
 import {chatTab} from '../../../../constants/tabs'
 import type {TypedState, Dispatch} from '../../../../util/container'
 
+type OwnProps = {
+  focusInputCounter: number,
+  onScrollDown: () => void,
+}
+
 // We used to store this in the route state but thats so complicated. We just want a map of id => text if we haven't sent
 const unsentText = {}
 
 const mapStateToProps = (state: TypedState) => {
-  const _selectedConversationIDKey = Constants.getSelectedConversation(state)
-  const editingOrdinal = Constants.getEditingOrdinal(state, _selectedConversationIDKey || '')
+  const _conversationIDKey = Constants.getSelectedConversation(state) || ''
+  const editingOrdinal = Constants.getEditingOrdinal(state, _conversationIDKey)
   const _editingMessage = editingOrdinal
-    ? Constants.getMessageMap(state, _selectedConversationIDKey).get(editingOrdinal)
+    ? Constants.getMessageMap(state, _conversationIDKey).get(editingOrdinal)
     : null
 
   return {
+    _conversationIDKey,
     _editingMessage,
     _meta: Constants.getMeta(state),
-    _selectedConversationIDKey,
-    typing: Constants.getTyping(state, _selectedConversationIDKey || ''),
+    typing: Constants.getTyping(state, _conversationIDKey),
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch: Dispatch): * => ({
   // onAttach: (selectedConversation, inputs: Array<any [> Types.AttachmentInput <]>) =>
   // dispatch(
   // RouteTree.navigateAppend([
@@ -69,7 +74,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   // const updateTyping = (typing: boolean) => {
   // if (stateProps.selectedConversationIDKey) {
   // dispatchProps.onUpdateTyping(stateProps.selectedConversationIDKey, typing)
@@ -78,7 +83,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   // const wrappedTyping = throttle(updateTyping, 5000)
 
   return {
-    _selectedConversationIDKey: stateProps._selectedConversationIDKey,
+    _conversationIDKey: stateProps._conversationIDKey,
     _editingMessage: stateProps._editingMessage,
     // ...stateProps,
     // ...dispatchProps,
@@ -98,7 +103,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       if (stateProps._editingMessage) {
         dispatchProps._onEditMessage(stateProps._editingMessage, text)
       } else {
-        dispatchProps._onPostMessage(stateProps._selectedConversationIDKey, text)
+        dispatchProps._onPostMessage(stateProps._conversationIDKey, text)
       }
       ownProps.onScrollDown()
     },
@@ -111,11 +116,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       // wrappedTyping(typing)
       // }
     },
-    onJoinChannel: () => dispatchProps.onJoinChannel(stateProps._selectedConversationIDKey),
+    onJoinChannel: () => dispatchProps.onJoinChannel(stateProps._conversationIDKey),
     onLeaveChannel: () => {
-      dispatchProps.onLeaveChannel(stateProps._selectedConversationIDKey, stateProps._meta.teamname)
+      dispatchProps.onLeaveChannel(stateProps._conversationIDKey, stateProps._meta.teamname)
     },
-    onCancelEditing: () => dispatchProps._onCancelEditing(stateProps._selectedConversationIDKey),
+    onCancelEditing: () => dispatchProps._onCancelEditing(stateProps._conversationIDKey),
   }
 }
 
@@ -128,16 +133,16 @@ export default compose(
       text: '',
     },
     {
-      setMentionFilter: () => (mentionFilter: string) => ({mentionFilter}),
-      setMentionPopupOpen: () => (mentionPopupOpen: boolean) => ({mentionPopupOpen}),
-      setText: () => (text: string) => ({text}),
+      _setText: () => (text: string) => ({text}),
+      // setMentionFilter: () => (mentionFilter: string) => ({mentionFilter}),
+      // setMentionPopupOpen: () => (mentionPopupOpen: boolean) => ({mentionPopupOpen}),
     }
   ),
   withProps(props => ({
     setText: (text: string, skipUnsentSaving?: boolean) => {
-      props.setText(text)
+      props._setText(text)
       if (!skipUnsentSaving) {
-        unsentText[props._selectedConversationIDKey] = text
+        unsentText[props._conversationIDKey] = text
       }
     },
   })),
@@ -172,8 +177,8 @@ export default compose(
             : ''
         this.props.setText('') // blow away any unset stuff if we go into an edit, else you edit / cancel / switch tabs and come back and you see the unsent value
         this.props.setText(text, true)
-      } else if (this.props._selectedConversationIDKey !== nextProps._selectedConversationIDKey) {
-        const text = unsentText[nextProps._selectedConversationIDKey] || ''
+      } else if (this.props._conversationIDKey !== nextProps._conversationIDKey) {
+        const text = unsentText[nextProps._conversationIDKey] || ''
         this.props.setText(text, true)
       }
 
