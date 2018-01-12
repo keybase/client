@@ -10,7 +10,6 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 	"path"
@@ -116,18 +115,16 @@ func (s *Server) handleErrorAndPopulateSRI(
 	case nil:
 	case ErrKeybasePagesRecordNotFound:
 		sri.HTTPStatus = http.StatusServiceUnavailable
-		w.WriteHeader(http.StatusServiceUnavailable)
-		io.WriteString(w, err.Error())
+		http.Error(w, err.Error(), http.StatusServiceUnavailable)
 		return
 	case ErrKeybasePagesRecordTooMany, ErrInvalidKeybasePagesRecord:
 		sri.HTTPStatus = http.StatusPreconditionFailed
-		w.WriteHeader(http.StatusPreconditionFailed)
-		io.WriteString(w, err.Error())
+		http.Error(w, err.Error(), http.StatusPreconditionFailed)
 		return
 	default:
 		sri.HTTPStatus = http.StatusInternalServerError
-		w.WriteHeader(http.StatusInternalServerError)
 		// Don't write unknown errors in case we leak data unintentionally.
+		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
 }
