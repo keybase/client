@@ -222,6 +222,7 @@ const _setNotifications = function*(
         entities: old.set('notifications', {
           ...old.notifications,
           ...nextNotifications,
+          saveState: old.notifications.saveState,
         }),
       })
     )
