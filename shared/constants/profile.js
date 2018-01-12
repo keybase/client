@@ -181,9 +181,8 @@ const getProfilePath = (
     // Check for duplicates
     const topProfile = onlyProfilesPath[onlyProfilesPath.length - 1]
     if (
-      // $FlowIssue not sure why it thinks topProfile is a string
-      topProfile.props.fullUsername !== props.fullUsername ||
-      topProfile.props.serviceName !== props.serviceName
+      (topProfile.props && topProfile.props.fullUsername !== props.fullUsername) ||
+      (topProfile.props && topProfile.props.serviceName !== props.serviceName)
     ) {
       // This user is not the top profile, push on top
       onlyProfilesPath.push({selected: 'nonUserProfile', props})

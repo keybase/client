@@ -52,7 +52,6 @@ function _showUserProfile(action: ProfileGen.ShowUserProfilePayload, state: Type
   const {username: userId} = action.payload
   const searchResultMap = Selectors.searchResultMapSelector(state)
   const username = SearchConstants.maybeUpgradeSearchResultIdToKeybaseId(searchResultMap, userId)
-  // get data on whose profile is currently being shown
   const me = Selectors.usernameSelector(state) || ''
   // Get the peopleTab path
   const peopleRouteProps = getPathProps(state.routeTree.routeState, [peopleTab])
