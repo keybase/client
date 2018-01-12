@@ -11,6 +11,7 @@ import engine from '../engine'
 import {peopleTab} from '../constants/tabs'
 import {type TypedState} from '../constants/reducer'
 import {createDecrementWaiting, createIncrementWaiting} from '../actions/waiting-gen'
+import {getPath} from '../route-tree'
 import flags from '../util/feature-flags'
 
 const _getPeopleData = function(action: PeopleGen.GetPeopleDataPayload, state: TypedState) {
@@ -106,12 +107,13 @@ const _setupPeopleHandlers = () => {
     })
   })
 }
-const _onTabChange = (action: RouteTypes.SwitchTo) => {
+const _onTabChange = (action: RouteTypes.SwitchTo, state: TypedState) => {
   // TODO replace this with notification based refreshing
   const list = I.List(action.payload.path)
   const root = list.first()
+  const peoplePath = getPath(state.routeTree.routeState, [peopleTab])
 
-  if (root !== peopleTab && _wasOnPeopleTab) {
+  if (root !== peopleTab && _wasOnPeopleTab && peoplePath.size === 1) {
     _wasOnPeopleTab = false
     return Saga.put(PeopleGen.createMarkViewed())
   } else if (root === peopleTab && !_wasOnPeopleTab) {
