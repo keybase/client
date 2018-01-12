@@ -19,18 +19,16 @@ import (
 )
 
 var (
-	fProd           bool
-	fDiskCertCache  bool
-	fNoRedirectHTTP bool
-	fKBFSLogFile    string
-	fStathatEZKey   string
-	fStathatPrefix  string
+	fProd          bool
+	fDiskCertCache bool
+	fKBFSLogFile   string
+	fStathatEZKey  string
+	fStathatPrefix string
 )
 
 func init() {
 	flag.BoolVar(&fProd, "prod", false, "disable development mode")
 	flag.BoolVar(&fDiskCertCache, "use-disk-cert-cache", false, "cache cert on disk")
-	flag.BoolVar(&fNoRedirectHTTP, "no-redirect-http", false, "do not redirect to HTTPS")
 	flag.StringVar(&fKBFSLogFile, "kbfs-logfile", "kbp-kbfs.log",
 		"path to KBFS log file; empty means print to stdout")
 	flag.StringVar(&fStathatEZKey, "stathat-key", "",
@@ -126,7 +124,6 @@ func main() {
 		UseStaging:       !fProd,
 		Logger:           logger,
 		UseDiskCertCache: fDiskCertCache,
-		AutoDirectHTTP:   !fNoRedirectHTTP,
 		StatsReporter:    statsReporter,
 	}
 

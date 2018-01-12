@@ -30,7 +30,6 @@ import (
 
 // ServerConfig holds configuration parameters for Server.
 type ServerConfig struct {
-	AutoDirectHTTP   bool
 	DomainWhitelist  []string
 	UseStaging       bool
 	Logger           *zap.Logger
@@ -438,28 +437,6 @@ const (
 	prodDiskCacheName       = "./kbp-cert-cache"
 )
 
-func (s *Server) redirectHandlerFunc(w http.ResponseWriter, req *http.Request) {
-	// URL.RequestURI(), unlike the Request-URI field in HTTP header, does not
-	// include protocol and host. Instead, it's always constructed in the
-	// `http` package as `path?query` for HTTP(s) URLs (when Opaque field is
-	// empty).
-	if len(req.URL.Opaque) > 0 {
-		// This shouldn't happen for HTTP(s) URLs.
-		s.config.Logger.Warn("len(URL.Opaque)>0",
-			zap.String("url", req.URL.String()),
-			zap.String("Opaque", req.URL.Opaque))
-		w.WriteHeader(http.StatusBadRequest)
-		io.WriteString(w, "bad request")
-		return
-	}
-	http.Redirect(w, req, "https://"+req.Host+req.URL.RequestURI(),
-		// Using 307 (Temporary Redirect) here, 1) instead of 302 to require
-		// same method to be used; and 2) instead of 308/301 to avoid pollute
-		// visitors' browser cache in case kbp user wants to use the domain in
-		// a way that needs HTTP not to be redirected to HTTPS.
-		http.StatusTemporaryRedirect)
-}
-
 func makeACMEManager(
 	useStaging bool, useDiskCertCacache bool, hostPolicy autocert.HostPolicy) (
 	*autocert.Manager, error) {
@@ -519,9 +496,13 @@ func ListenAndServe(ctx context.Context,
 		IdleTimeout:       httpIdleTimeout,
 	}
 
-	httpRedirectServer := http.Server{
-		Addr:              ":80",
-		Handler:           http.HandlerFunc(server.redirectHandlerFunc),
+	httpServer := http.Server{
+		Addr: ":80",
+		// Enable http-01 by calling the HTTPHandler method, and set the
+		// fallback HTTP handler to nil, which means we'll get a handler that
+		// redirects all HTTP traffic that's not for ACME domain verification
+		// to HTTPS.
+		Handler:           manager.HTTPHandler(nil),
 		ReadHeaderTimeout: httpReadHeaderTimeout,
 		IdleTimeout:       httpIdleTimeout,
 	}
@@ -532,17 +513,15 @@ func ListenAndServe(ctx context.Context,
 			context.Background(), gracefulShutdownTimeout)
 		defer cancel()
 		httpsServer.Shutdown(shutdownCtx)
-		httpRedirectServer.Shutdown(shutdownCtx)
+		httpServer.Shutdown(shutdownCtx)
 	}()
 
-	if config.AutoDirectHTTP {
-		go func() {
-			err := httpRedirectServer.ListenAndServe()
-			if err != nil {
-				config.Logger.Error("http.ListenAndServe:80", zap.Error(err))
-			}
-		}()
-	}
+	go func() {
+		err := httpServer.ListenAndServe()
+		if err != nil {
+			config.Logger.Error("http.ListenAndServe:80", zap.Error(err))
+		}
+	}()
 
 	return httpsServer.Serve(manager.Listener())
 }
