@@ -54,7 +54,7 @@ class MenubarRender extends Component<Props, State> {
     const styles = stylesPublic
 
     const menuColor = this.state.showingMenu ? globalColors.black_60 : globalColors.black_40
-    const menuStyle = {...globalStyles.clickable, color: menuColor, hoverColor: menuColor, fontSize: 24}
+    const menuStyle = {...globalStyles.clickable, color: menuColor, hoverColor: menuColor}
 
     return (
       <Box style={styles.container}>
@@ -169,7 +169,7 @@ class MenubarRender extends Component<Props, State> {
               ...globalStyles.clickable,
               color: globalColors.black_40,
               hoverColor: globalColors.black,
-              width: 24,
+              width: 16,
               marginLeft: 8,
             }}
             type="iconfont-hamburger"

@@ -20,6 +20,7 @@ const colors = {
   brown_60: 'rgba(71, 31, 17, 0.6)',
   darkBlue2: '#0069C6',
   darkBlue3: '#002C52',
+  darkBlue3_75: 'rgba(0, 44, 82, .75)',
   darkBlue4: '#003563',
   darkBlue: '#004481',
   green2: '#36b37c',
