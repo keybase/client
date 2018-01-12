@@ -11,8 +11,8 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import URL from 'url-parse'
 import keybaseUrl from '../../constants/urls'
 import openURL from '../../util/open-url'
-import {getPathProps, getPath} from '../../route-tree'
-import {navigateAppend, navigateTo, navigateUp, switchTo, putActionIfOnPath} from '../../actions/route-tree'
+import {getPathProps} from '../../route-tree'
+import {navigateTo, navigateUp, putActionIfOnPath} from '../../actions/route-tree'
 import {parseUserId} from '../../util/platforms'
 import {loginTab, peopleTab} from '../../constants/tabs'
 import {pgpSaga} from './pgp'
@@ -56,46 +56,36 @@ function _showUserProfile(action: ProfileGen.ShowUserProfilePayload, state: Type
   // get data on whose profile is currently being shown
   const {newPeopleTab} = flags
   const me = Selectors.usernameSelector(state)
-  const getTopNode = (state: TypedState) => {
-    const routeState = state.routeTree.routeState
-    const routeProps = getPathProps(routeState, [peopleTab])
-    const leafNode = (routeProps && routeProps.size > 0 && routeProps.get(routeProps.size - 1)) || null
-    return leafNode
-  }
 
-  const topNode = getTopNode(state)
-  if (topNode) {
-    const topNodeIsProfile = topNode.node === 'profile' || (newPeopleTab ? false : topNode.node === peopleTab)
-    if (!topNodeIsProfile) {
-      // Recursively call navigateUp until we hit a profile or the root
-      return Saga.sequentially([
-        Saga.put(navigateUp()),
-        Saga.put(ProfileGen.createShowUserProfile({username: userId})),
-      ])
-    }
-    const username = topNode.props.get('username') || me
-    // If the username is the top profile, just switch to the profile tab
-    if (username === userId) {
-      return Saga.put(switchTo([peopleTab]))
-    }
-  }
-
+  // Get the peopleTab path including only profiles
+  const peopleRouteProps = getPathProps(state.routeTree.routeState, [peopleTab])
+  const onlyProfilesProps = peopleRouteProps.filter(segment =>
+    [peopleTab, 'profile', 'nonUserProfile'].includes(segment.node)
+  )
+  const onlyProfilesPath = onlyProfilesProps.toArray().map(segment => ({
+    selected: segment.node || null,
+    props: segment.props.toObject(),
+  }))
   // Assume user exists
   if (!username.includes('@')) {
-    const actions = []
-    const routeState = state.routeTree.routeState
-    const peoplePath = getPath(routeState, [peopleTab])
-    if (peoplePath.size > 0) {
-      // Traverse backwards down the peoplePath until we hit a profile
-      const leafNode = peoplePath.get(peoplePath.size - 1)
-    } else {
-      actions.push(navigateTo([peopleTab, {props: {username}, selected: 'profile'}], [peopleTab]))
+    if (onlyProfilesProps.size <= 1) {
+      // There's nothing on the peopleTab stack
+      if (username === me && !newPeopleTab) {
+        // I'm already the root of the tab
+        return Saga.put(navigateTo([peopleTab]))
+      }
+      return Saga.put(navigateTo([peopleTab, {selected: 'profile', props: {username}}]))
     }
-
-    return Saga.sequentially([
-      Saga.put(switchTo([peopleTab])),
-      Saga.put(navigateAppend([{props: {username}, selected: 'profile'}], [peopleTab])),
-    ])
+    // check last entry in path
+    const topNode = onlyProfilesProps.get(onlyProfilesProps.size - 1)
+    if (!topNode) {
+      // Will never happen
+      throw new Error('topProps undefined in _showUserProfile!')
+    }
+    if (topNode.node === 'profile' && topNode.props.get('username') === username) {
+      return Saga.put(navigateTo(onlyProfilesPath))
+    }
+    return Saga.put(navigateTo([...onlyProfilesPath, {selected: 'profile', props: {username}}]))
   }
 
   // search for user first
@@ -116,11 +106,18 @@ function _showUserProfile(action: ProfileGen.ShowUserProfilePayload, state: Type
       username: parsedUsername,
     }
   }
-
-  return Saga.sequentially([
-    Saga.put(switchTo([peopleTab])),
-    Saga.put(navigateAppend([{props, selected: 'nonUserProfile'}], [peopleTab])),
-  ])
+  if (onlyProfilesPath.length > 0) {
+    // don't allow dupe
+    const topProfile = onlyProfilesPath[onlyProfilesPath.length - 1]
+    if (
+      // $FlowIssue not sure why it thinks topProfile is a string
+      topProfile.props.fullUsername !== props.fullUsername ||
+      topProfile.props.serviceName !== props.serviceName
+    ) {
+      onlyProfilesPath.push({selected: 'nonUserProfile', props})
+    }
+  }
+  return Saga.put(navigateTo(onlyProfilesPath))
 }
 
 function _onClickAvatar(action: ProfileGen.OnClickFollowersPayload) {
