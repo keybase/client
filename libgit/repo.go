@@ -344,13 +344,18 @@ func createNewRepoAndID(
 		}
 	}()
 
-	f, err := fs.Create(kbfsConfigName)
-	if err != nil && !os.IsExist(err) {
-		return NullID, err
-	} else if os.IsExist(err) {
+	_, err = fs.Stat(kbfsConfigName)
+	if err == nil {
 		// The config file already exists, so someone else already
 		// initialized the repo.
 		return NullID, makeExistingRepoError(ctx, config, fs, repoName)
+	} else if !os.IsNotExist(err) {
+		return NullID, err
+	}
+
+	f, err := fs.Create(kbfsConfigName)
+	if err != nil {
+		return NullID, err
 	}
 	defer f.Close()
 

@@ -20,12 +20,15 @@ import (
 )
 
 func initConfig(t *testing.T) (
-	ctx context.Context, config *libkbfs.ConfigLocal, tempdir string) {
+	ctx context.Context, cancel context.CancelFunc,
+	config *libkbfs.ConfigLocal, tempdir string) {
 	ctx = libkbfs.BackgroundContextWithCancellationDelayer()
 	config = libkbfs.MakeTestConfigOrBustLoggedInWithMode(
-		t, 0, libkbfs.InitSingleOp, "user1")
+		t, 0, libkbfs.InitSingleOp, "user1", "user2")
 	success := false
 	ctx = context.WithValue(ctx, libkbfs.CtxAllowNameKey, kbfsRepoDir)
+
+	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
 
 	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_server")
 	require.NoError(t, err)
@@ -41,11 +44,12 @@ func initConfig(t *testing.T) (
 		ctx, tempdir, libkbfs.TLFJournalBackgroundWorkEnabled)
 	require.NoError(t, err)
 
-	return ctx, config, tempdir
+	return ctx, cancel, config, tempdir
 }
 
 func TestGetOrCreateRepoAndID(t *testing.T) {
-	ctx, config, tempdir := initConfig(t)
+	ctx, cancel, config, tempdir := initConfig(t)
+	defer cancel()
 	defer os.RemoveAll(tempdir)
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
@@ -99,7 +103,8 @@ func TestGetOrCreateRepoAndID(t *testing.T) {
 }
 
 func TestCreateRepoAndID(t *testing.T) {
-	ctx, config, tempdir := initConfig(t)
+	ctx, cancel, config, tempdir := initConfig(t)
+	defer cancel()
 	defer os.RemoveAll(tempdir)
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
@@ -133,8 +138,96 @@ func TestCreateRepoAndID(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestCreateDuplicateRepo(t *testing.T) {
+	ctx, cancel, config, tempdir := initConfig(t)
+	defer cancel()
+	defer os.RemoveAll(tempdir)
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
+
+	nc := newConfigger{config: config, user: "user2"}
+	ctx2 := libkbfs.NewContextReplayable(
+		context.Background(), func(c context.Context) context.Context {
+			return c
+		})
+	ctx2, cancel2 := context.WithCancel(ctx2)
+	defer cancel2()
+	ctx2, config2, tempdir2, err := nc.getNewConfigForTest(ctx2)
+	require.NoError(t, err)
+	defer os.RemoveAll(tempdir2)
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config2)
+
+	h, err := libkbfs.ParseTlfHandle(
+		ctx, config.KBPKI(), config.MDOps(), "user1,user2", tlf.Private)
+	require.NoError(t, err)
+
+	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
+		ctx, h, libkbfs.MasterBranch)
+	require.NoError(t, err)
+
+	t.Log("Start one create and wait for it to get the lock")
+	onStalled, unstall, getCtx := libkbfs.StallMDOp(
+		ctx, config, libkbfs.StallableMDAfterGetRange, 1)
+	err1ch := make(chan error, 1)
+	go func() {
+		_, err := CreateRepoAndID(getCtx, config, h, "Repo1")
+		err1ch <- err
+	}()
+
+	select {
+	case <-onStalled:
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
+
+	t.Log("Start 2nd create and wait for it to try to get the lock")
+	_, _, err = config2.KBFSOps().GetOrCreateRootNode(
+		ctx2, h, libkbfs.MasterBranch)
+	require.NoError(t, err)
+	onStalled2, unstall2, getCtx2 := libkbfs.StallMDOp(
+		ctx2, config2, libkbfs.StallableMDGetRange, 1)
+	err2ch := make(chan error, 1)
+	go func() {
+		_, err := CreateRepoAndID(getCtx2, config2, h, "Repo1")
+		err2ch <- err
+	}()
+
+	select {
+	case <-onStalled2:
+	case <-ctx.Done():
+		select {
+		case err := <-err2ch:
+			t.Log("2nd create finished: %+v", err)
+		default:
+		}
+		t.Fatal(ctx.Err())
+	}
+
+	close(unstall)
+	select {
+	case err := <-err1ch:
+		require.NoError(t, err)
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
+
+	close(unstall2)
+	select {
+	case err := <-err2ch:
+		require.IsType(t, libkb.RepoAlreadyExistsError{}, errors.Cause(err))
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
+
+	jServer, err := libkbfs.GetJournalServer(config)
+	require.NoError(t, err)
+	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf,
+		nil, keybase1.MDPriorityGit)
+	require.NoError(t, err)
+}
+
 func TestGetRepoAndID(t *testing.T) {
-	ctx, config, tempdir := initConfig(t)
+	ctx, cancel, config, tempdir := initConfig(t)
+	defer cancel()
 	defer os.RemoveAll(tempdir)
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
@@ -167,7 +260,8 @@ func TestGetRepoAndID(t *testing.T) {
 }
 
 func TestDeleteRepo(t *testing.T) {
-	ctx, config, tempdir := initConfig(t)
+	ctx, cancel, config, tempdir := initConfig(t)
+	defer cancel()
 	defer os.RemoveAll(tempdir)
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 	clock := &libkbfs.TestClock{}
@@ -227,7 +321,8 @@ func TestDeleteRepo(t *testing.T) {
 }
 
 func TestRepoRename(t *testing.T) {
-	ctx, config, tempdir := initConfig(t)
+	ctx, cancel, config, tempdir := initConfig(t)
+	defer cancel()
 	defer os.RemoveAll(tempdir)
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
