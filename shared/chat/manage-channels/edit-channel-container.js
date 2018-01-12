@@ -9,7 +9,7 @@ import {connect, type TypedState} from '../../util/container'
 import {anyWaiting} from '../../constants/waiting'
 
 const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps}) => {
-  const conversationIDKey = routeProps.get('conversationIDKey') || ''
+  const conversationIDKey = routeProps.get('conversationIDKey')
   const teamname = Constants.getTeamNameFromConvID(state, conversationIDKey) || ''
   const waitingForSave = anyWaiting(
     state,

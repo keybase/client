@@ -1,7 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
-import type {ConversationIDKey} from './chat'
+import type {ConversationIDKey} from './chat2'
 
 export type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner'
 

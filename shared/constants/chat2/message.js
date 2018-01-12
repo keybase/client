@@ -12,14 +12,14 @@ import type {TypedState} from '../reducer'
 
 const makeMessageCommon = {
   author: '',
-  conversationIDKey: '',
+  conversationIDKey: Types.stringToConversationIDKey(''),
   deviceName: '',
   deviceRevokedAt: null,
   deviceType: 'mobile',
   hasBeenEdited: false,
-  id: 0,
-  ordinal: 0,
-  outboxID: null,
+  id: Types.numberToMessageID(0),
+  ordinal: Types.numberToOrdinal(0),
+  outboxID: Types.stringToOutboxID(''),
   timestamp: 0,
 }
 
@@ -86,8 +86,8 @@ export const uiMessageToMessage = (
       deviceRevokedAt: m.senderDeviceRevokedAt,
       deviceType: DeviceTypes.stringToDeviceType(m.senderDeviceType),
       hasBeenEdited: m.superseded,
-      id: m.messageID,
-      ordinal: m.messageID,
+      id: Types.numberToMessageID(m.messageID),
+      ordinal: Types.numberToOrdinal(m.messageID),
       outboxID: m.outboxID ? Types.stringToOutboxID(m.outboxID) : null,
       timestamp: m.ctime,
     }
@@ -142,9 +142,9 @@ export const uiMessageToMessage = (
   return null
 }
 
-function nextFractionalOrdinal(ord: number): number {
+function nextFractionalOrdinal(ord: Types.Ordinal): Types.Ordinal {
   // Mimic what the service does with outbox items
-  return ord + 0.001
+  return Types.numberToOrdinal(Types.ordinalToNumber(ord) + 0.001)
 }
 
 export const makePendingTextMessage = (
@@ -153,7 +153,8 @@ export const makePendingTextMessage = (
   text: HiddenString,
   outboxID: Types.OutboxID
 ) => {
-  const lastOrindal = state.chat2.messageOrdinals.get(conversationIDKey, I.List()).last() || 0
+  const lastOrindal =
+    state.chat2.messageOrdinals.get(conversationIDKey, I.List()).last() || Types.numberToOrdinal(0)
   const ordinal = nextFractionalOrdinal(lastOrindal)
 
   return makeMessageText({
@@ -161,7 +162,7 @@ export const makePendingTextMessage = (
     conversationIDKey,
     deviceName: '',
     deviceType: isMobile ? 'mobile' : 'desktop',
-    id: 0,
+    id: Types.numberToMessageID(0),
     localState: 'pending',
     ordinal,
     outboxID,

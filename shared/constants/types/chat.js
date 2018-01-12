@@ -1,4 +1,4 @@
-// @flow
+// @noflow TODO REMOVE
 import * as I from 'immutable'
 import * as RPCChatTypes from './rpc-chat-gen'
 import * as RPCTypes from './rpc-gen'
@@ -38,7 +38,6 @@ export type AttachmentMessageState = MessageState | 'placeholder' | 'uploading'
 export type AttachmentType = 'Image' | 'Video' | 'Other'
 
 export type ConversationID = RPCChatTypes.ConversationID
-export type ConversationIDKey = string
 
 export type OutboxID = RPCChatTypes.OutboxID
 export type OutboxIDKey = string
@@ -48,7 +47,7 @@ export type MessageID = string
 export type NotifyType = 'atmention' | 'generic' | 'never'
 export type Mentions = I.Set<string>
 export type ChannelMention = 'None' | 'All' | 'Here'
-export type ChannelNameMentions = I.Map<string, ConversationIDKey>
+// export type ChannelNameMentions = I.Map<string, ConversationIDKey>
 export type TextMessage = {
   type: 'Text',
   message: HiddenString,
@@ -425,3 +424,5 @@ export type ParsedMessageID =
       type: 'invalid',
       msgID: number,
     }
+
+export type {ConversationIDKey} from './chat2'

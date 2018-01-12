@@ -157,7 +157,7 @@ const getRouteState = (state: TypedState) => state.routeTree.routeState
 const messageActionMessage = createSelector(
   [getRouteState, Constants2.getSelectedConversation],
   (routeState, conversationIDKey) =>
-    RouteTree.getPathProps(routeState, [chatTab, conversationIDKey || '', 'messageAction']).getIn([
+    RouteTree.getPathProps(routeState, [chatTab, conversationIDKey, 'messageAction']).getIn([
       2,
       'props',
       'message',

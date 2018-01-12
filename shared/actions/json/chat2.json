@@ -12,7 +12,7 @@
     },
     // Select a conversation (or leave nothing selected)
     "selectConversation": {
-      "conversationIDKey": "?Types.ConversationIDKey",
+      "conversationIDKey": "Types.ConversationIDKey",
       "fromUser?": "boolean" // true if this is a direct result of the user clicking
     },
     // We got updated badges

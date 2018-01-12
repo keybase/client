@@ -5,7 +5,7 @@ import {BigTeamChannel} from '.'
 import {connect, type TypedState} from '../../../../util/container'
 
 const mapStateToProps = (state: TypedState, ownProps) => {
-  const _conversationIDKey = ownProps.conversationIDKey || ''
+  const _conversationIDKey = ownProps.conversationIDKey
 
   return {
     _meta: Constants2.getMeta(state, _conversationIDKey),

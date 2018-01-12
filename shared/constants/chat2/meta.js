@@ -66,7 +66,7 @@ export const unverifiedInboxUIItemToConversationMeta = (
 
   return makeConversationMeta({
     channelname,
-    conversationIDKey: i.convID,
+    conversationIDKey: Types.stringToConversationIDKey(i.convID),
     inboxVersion: i.version,
     isMuted: i.status === RPCChatTypes.commonConversationStatus.muted,
     membershipType: conversationMemberStatusToMembershipType(i.memberStatus),
@@ -176,7 +176,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
 
   return makeConversationMeta({
     channelname: (isTeam && i.channel) || '',
-    conversationIDKey: i.convID,
+    conversationIDKey: Types.stringToConversationIDKey(i.convID),
     inboxVersion: i.version,
     isMuted: i.status === RPCChatTypes.commonConversationStatus.muted,
     membershipType: conversationMemberStatusToMembershipType(i.memberStatus),
@@ -184,9 +184,9 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
     participants: I.Set(i.participants || []),
     resetParticipants,
     snippet: i.snippet,
-    supersededBy,
+    supersededBy: supersededBy ? Types.stringToConversationIDKey(supersededBy) : null,
     supersededByCausedBy,
-    supersedes,
+    supersedes: supersedes ? Types.stringToConversationIDKey(supersedes) : null,
     supersedesCausedBy,
     teamType: getTeamType(i),
     teamname: (isTeam && i.name) || '',

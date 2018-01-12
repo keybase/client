@@ -5,10 +5,10 @@ import * as Types from '../../../../constants/types/chat2'
 import {FilterSmallTeam} from '.'
 import {connect, type TypedState} from '../../../../util/container'
 
-type OwnProps = {conversationIDKey: ?Types.ConversationIDKey}
+type OwnProps = {conversationIDKey: Types.ConversationIDKey}
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
-  const conversationIDKey = ownProps.conversationIDKey || ''
+  const conversationIDKey = ownProps.conversationIDKey
 
   return {
     _meta: Constants2.getMeta(state, conversationIDKey),

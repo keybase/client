@@ -6,10 +6,10 @@ import type {TypedState} from '../reducer'
 import {makeConversationMeta} from './meta'
 
 export const conversationIDToKey = (conversationID: RPCChatTypes.ConversationID): Types.ConversationIDKey =>
-  conversationID.toString('hex')
+  Types.stringToConversationIDKey(conversationID.toString('hex'))
 
 export const keyToConversationID = (key: Types.ConversationIDKey): RPCChatTypes.ConversationID =>
-  Buffer.from(key, 'hex')
+  Buffer.from(Types.conversationIDKeyToString(key), 'hex')
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   badgeMap: I.Map(),
@@ -21,18 +21,18 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   messageOrdinals: I.Map(),
   metaMap: I.Map(),
   pendingOutboxToOrdinal: I.Map(),
-  selectedConversation: null,
+  selectedConversation: Types.stringToConversationIDKey(''),
   typingMap: I.Map(),
   unreadMap: I.Map(),
 })
 
 const emptyMeta = makeConversationMeta()
-export const getMeta = (state: TypedState, id: ?Types.ConversationIDKey) =>
-  id ? state.chat2.metaMap.get(id, emptyMeta) : emptyMeta
-export const getMessageOrdinals = (state: TypedState, id: ?Types.ConversationIDKey) =>
-  (id && state.chat2.messageOrdinals.get(id)) || I.SortedSet()
-export const getMessageMap = (state: TypedState, id: ?Types.ConversationIDKey) =>
-  (id && state.chat2.messageMap.get(id)) || I.Map()
+export const getMeta = (state: TypedState, id: Types.ConversationIDKey) =>
+  state.chat2.metaMap.get(id, emptyMeta)
+export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
+  state.chat2.messageOrdinals.get(id, I.SortedSet())
+export const getMessageMap = (state: TypedState, id: Types.ConversationIDKey) =>
+  state.chat2.messageMap.get(id, I.Map())
 export const getHasBadge = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.badgeMap.get(id, 0) > 0
 export const getHasUnread = (state: TypedState, id: Types.ConversationIDKey) =>

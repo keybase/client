@@ -5,13 +5,12 @@ import * as I from 'immutable'
 import HiddenString from '../../../util/hidden-string'
 import type {DeviceType} from '../devices'
 
-// TODO put back
-// export opaque type MessageID: string = string
-export type MessageID = number
+export opaque type MessageID: number = number
 export const numberToMessageID = (n: number): MessageID => n
 
-// TODO opaque
-export type Ordinal = number
+export opaque type Ordinal = number
+export const numberToOrdinal = (n: number): Ordinal => n
+export const ordinalToNumber = (o: Ordinal): number => o
 
 export opaque type OutboxID: string = string
 export const stringToOutboxID = (s: string): OutboxID => s

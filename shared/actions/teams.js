@@ -6,8 +6,8 @@ import last from 'lodash/last'
 import * as I from 'immutable'
 import * as TeamsGen from './teams-gen'
 import * as Constants from '../constants/teams'
-import * as ChatConstants from '../constants/chat'
-import * as ChatTypes from '../constants/types/chat'
+import * as ChatConstants from '../constants/chat2'
+import * as ChatTypes from '../constants/types/chat2'
 import * as SearchConstants from '../constants/search'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -240,9 +240,10 @@ const _ignoreRequest = function*(action: TeamsGen.IgnoreRequestPayload) {
 }
 
 function getPendingConvParticipants(state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) {
-  if (!ChatConstants.isPendingConversationIDKey(conversationIDKey)) return null
+  return null
+  // if (!ChatConstants.isPendingConversationIDKey(conversationIDKey)) return null
 
-  return state.chat.pendingConversations.get(conversationIDKey)
+  // return state.chat.pendingConversations.get(conversationIDKey)
 }
 
 const _createNewTeamFromConversation = function*(
@@ -251,14 +252,16 @@ const _createNewTeamFromConversation = function*(
   const {conversationIDKey, teamname} = action.payload
   const state: TypedState = yield Saga.select()
   const me = usernameSelector(state)
-  const inbox = ChatConstants.getInbox(state, conversationIDKey)
+  const meta = ChatConstants.getMeta(state, conversationIDKey)
   let participants
 
-  if (inbox) {
-    participants = inbox.get('participants')
-  } else {
-    participants = getPendingConvParticipants(state, conversationIDKey)
-  }
+  participants = meta.participants
+
+  // if (inbox) {
+  // participants = inbox.get('participants')
+  // } else {
+  // participants = getPendingConvParticipants(state, ChatTypes.stringToConversationIDKey(conversationIDKey))
+  // }
 
   if (participants) {
     yield Saga.put(TeamsGen.createSetTeamCreationError({error: ''}))
@@ -279,7 +282,9 @@ const _createNewTeamFromConversation = function*(
           })
         }
       }
-      yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey: null}))
+      yield Saga.put(
+        Chat2Gen.createSelectConversation({conversationIDKey: ChatTypes.stringToConversationIDKey('')})
+      )
     } catch (error) {
       yield Saga.put(TeamsGen.createSetTeamCreationError({error: error.desc}))
     } finally {

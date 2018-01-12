@@ -120,7 +120,7 @@ export const createMetaRequestingTrusted = (payload: $ReadOnly<{conversationIDKe
 export const createMetasReceived = (payload: $ReadOnly<{metas: Array<Types.ConversationMeta>}>) => ({error: false, payload, type: metasReceived})
 export const createSelectConversation = (
   payload: $ReadOnly<{
-    conversationIDKey: ?Types.ConversationIDKey,
+    conversationIDKey: Types.ConversationIDKey,
     fromUser?: boolean,
   }>
 ) => ({error: false, payload, type: selectConversation})

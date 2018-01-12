@@ -166,7 +166,7 @@ const rpcMetaRequest = (
     } else {
       yield Saga.put(
         Chat2Gen.createMetaReceivedError({
-          conversationIDKey: inboxUIItem.convID,
+          conversationIDKey: Types.stringToConversationIDKey(inboxUIItem.convID),
           error: null, // just remove this item, not a real server error
           username: null,
         })
@@ -240,13 +240,13 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
         case RPCChatTypes.commonMessageType.edit:
           if (body.edit) {
             const text = new HiddenString(body.edit.body || '')
-            const ordinal = body.edit.messageID
+            const ordinal = Types.numberToOrdinal(body.edit.messageID)
             actions.push(Chat2Gen.createMessageWasEdited({conversationIDKey, ordinal, text}))
           }
           break
         case RPCChatTypes.commonMessageType.delete:
           if (body.delete && body.delete.messageIDs) {
-            const ordinals = body.delete.messageIDs
+            const ordinals = body.delete.messageIDs.map(Types.numberToOrdinal)
             actions.push(Chat2Gen.createMessagesWereDeleted({conversationIDKey, ordinals}))
           }
           break
@@ -378,7 +378,10 @@ const setupChatHandlers = () => {
           }
           // Unbox items
           actions.push(
-            Chat2Gen.createMetaRequestTrusted({conversationIDKeys: items.map(i => i.convID), force: true})
+            Chat2Gen.createMetaRequestTrusted({
+              conversationIDKeys: items.map(i => Types.stringToConversationIDKey(i.convID)),
+              force: true,
+            })
           )
           break
         }
@@ -396,7 +399,7 @@ const setupChatHandlers = () => {
 
 const navigateToThread = (action: Chat2Gen.SelectConversationPayload) => {
   const {conversationIDKey} = action.payload
-  logger.info(`selectConversation: selecting: ${conversationIDKey || ''}`)
+  logger.info(`selectConversation: selecting: ${Types.conversationIDKeyToString(conversationIDKey)}`)
   return Saga.put(Route.navigateTo([conversationIDKey].filter(Boolean), [chatTab]))
 }
 
@@ -455,7 +458,8 @@ const rpcLoadThread = (
         const last = ordinals.last()
         const secondToLast = ordinals.skipLast(1).last()
         // Is there a gap?
-        const gap = last && secondToLast ? last - secondToLast : 0
+        const gap =
+          last && secondToLast ? Types.ordinalToNumber(last) - Types.ordinalToNumber(secondToLast) : 0
         if (gap > 1) {
           // Case 4
           if (gap < largestGapToFillOnSyncCall) {
@@ -508,7 +512,7 @@ const rpcLoadThread = (
 
       if (messages.length) {
         yield Saga.put(
-          Chat2Gen.createMessagesAdd({context: {type: 'threadLoad', conversationIDKey}, messages})
+          Chat2Gen.createMessagesAdd({context: {conversationIDKey, type: 'threadLoad'}, messages})
         )
       }
     }
@@ -517,12 +521,12 @@ const rpcLoadThread = (
   }
 
   // Disallow fractional ordinals in pivot
-  pivot = pivot ? Math.floor(pivot) : null
+  pivot = pivot ? Types.numberToOrdinal(Math.floor(Types.ordinalToNumber(pivot))) : null
 
   logger.info(
-    `Load thread: calling rpc convo: ${conversationIDKey} pivot: ${pivot || ''} recent: ${
-      recent ? 'true' : 'false'
-    } num: ${num}`
+    `Load thread: calling rpc convo: ${conversationIDKey} pivot: ${
+      pivot ? Types.ordinalToNumber(pivot) : ''
+    } recent: ${recent ? 'true' : 'false'} num: ${num}`
   )
   const loadThreadChanMapRpc = new EngineRpc.EngineRpcCall(
     {
@@ -610,7 +614,7 @@ const messageDelete = (action: Chat2Gen.MessageDeletePayload, state: TypedState)
     conversationID: Constants.keyToConversationID(conversationIDKey),
     identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
     outboxID: null,
-    supersedes: message.ordinal,
+    supersedes: Types.ordinalToNumber(message.ordinal),
     tlfName: meta.tlfname,
     tlfPublic: false,
   })
@@ -627,7 +631,9 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
   const meta = Constants.getMeta(state, conversationIDKey)
   const tlfName = meta.tlfname // TODO non existant convo
   // Daemon doens't like ordinals and its not worth finding the last value value so just 'converting it' into a message id
-  const clientPrev = Math.floor(Constants.getMessageOrdinals(state, conversationIDKey).last() || 0)
+  const lastOrdinal =
+    Constants.getMessageOrdinals(state, conversationIDKey).last() || Types.numberToOrdinal(0)
+  const clientPrev = Math.floor(Types.ordinalToNumber(lastOrdinal))
   const outboxID = Constants.generateOutboxID()
 
   // Inject pending message and make the call

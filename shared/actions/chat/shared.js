@@ -1,4 +1,4 @@
-// @flow
+// @noflow TODO deprecate
 import logger from '../../logger'
 import * as Chat2Gen from '../chat2-gen'
 import * as ChatGen from '../chat-gen'

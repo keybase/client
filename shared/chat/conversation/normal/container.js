@@ -51,7 +51,7 @@ import {
 // |}
 
 const mapStateToProps = (state: TypedState, {routePath, routeProps}) => {
-  const conversationIDKey = Constants.getSelectedConversation(state) || ''
+  const conversationIDKey = Constants.getSelectedConversation(state)
   return {conversationIDKey}
   // const routeState = Constants.getSelectedRouteState(state)
 

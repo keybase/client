@@ -2,7 +2,8 @@
 import logger from '../logger'
 import * as Chat2Gen from './chat2-gen'
 import * as PushGen from './push-gen'
-import * as ChatTypes from '../constants/types/rpc-chat-gen'
+import * as ChatTypes from '../constants/types/chat2'
+import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import {isMobile} from '../constants/platform'
@@ -52,7 +53,7 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
     if (payload.type === 'chat.newmessageSilent') {
       logger.info('Push notification: silent notification received')
       try {
-        const unboxRes = yield Saga.call(ChatTypes.localUnboxMobilePushNotificationRpcPromise, {
+        const unboxRes = yield Saga.call(RPCChatTypes.localUnboxMobilePushNotificationRpcPromise, {
           convID: payload.c || '',
           // $FlowIssue payload.t isn't ConversationMembersType
           membersType: typeof payload.t === 'string' ? parseInt(payload.t) : payload.t,
@@ -90,7 +91,12 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
           logger.error('Push chat notification payload missing conversation ID')
           return
         }
-        yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey: convID, fromUser: true}))
+        yield Saga.put(
+          Chat2Gen.createSelectConversation({
+            conversationIDKey: ChatTypes.stringToConversationIDKey(convID),
+            fromUser: true,
+          })
+        )
         yield Saga.put(switchTo([chatTab]))
       } else if (payload.type === 'follow') {
         const {username} = payload

@@ -1,5 +1,6 @@
 // @flow
 import React, {PureComponent} from 'react'
+import * as Types from '../constants/types/chat2'
 import Text from './text'
 import Box from './box'
 import Emoji from './emoji'
@@ -179,7 +180,7 @@ function messageCreateComponent(style, allowFontScaling) {
         return (
           <Channel
             name={name}
-            convID={convID}
+            convID={Types.stringToConversationIDKey(convID)}
             key={key}
             style={linkStyle}
             allowFontScaling={allowFontScaling}

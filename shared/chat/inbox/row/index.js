@@ -12,7 +12,7 @@ import * as Types from '../../../constants/types/chat'
 
 type MakeRowOptions = {
   channelname: string,
-  conversationIDKey: ?Types.ConversationIDKey,
+  conversationIDKey: Types.ConversationIDKey,
   filtered: boolean,
   teamname: string,
   type: 'small' | 'bigHeader' | 'bigTeamsLabel' | 'big',

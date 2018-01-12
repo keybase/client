@@ -3,6 +3,7 @@ import logger from '../../logger'
 import pickBy from 'lodash/pickBy'
 import isEqual from 'lodash/isEqual'
 import * as Types from '../../constants/types/teams'
+import * as ChatTypes from '../../constants/types/chat2'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as ChatGen from '../../actions/chat-gen'
 import * as TeamsGen from '../../actions/teams-gen'
@@ -70,13 +71,19 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
       )
       dispatch(TeamsGen.createSaveChannelMembership({teamname, channelState: channelsToChange}))
     },
-    _onPreview: (conversationIDKey: string, previousPath?: string[]) => {
+    _onPreview: (conversationIDKey: ChatTypes.ConversationIDKey, previousPath?: string[]) => {
       dispatch(ChatGen.createPreviewChannel({conversationIDKey}))
       dispatch(
-        navigateTo([chatTab, {selected: conversationIDKey, props: {previousPath: previousPath || null}}])
+        navigateTo([
+          chatTab,
+          {
+            selected: ChatTypes.conversationIDKeyToString(conversationIDKey),
+            props: {previousPath: previousPath || null},
+          },
+        ])
       )
     },
-    _onView: (conversationIDKey: string) => {
+    _onView: (conversationIDKey: ChatTypes.ConversationIDKey) => {
       dispatch(Chat2Gen.createSelectConversation({conversationIDKey, fromUser: true}))
       dispatch(switchTo([chatTab]))
     },

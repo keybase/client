@@ -6,7 +6,7 @@ import type {DeviceType} from '../../../../constants/types/devices'
 export type StateProps =
   | {|
       channelWide: boolean,
-      conversationIDKey: string,
+      conversationIDKey: Types.ConversationIDKey,
       desktop: Types.NotifyType,
       mobile: Types.NotifyType,
     |}

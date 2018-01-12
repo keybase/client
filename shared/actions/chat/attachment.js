@@ -1,4 +1,4 @@
-// @flow
+// @noflow //TODO
 import logger from '../../logger'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as Types from '../../constants/types/chat'

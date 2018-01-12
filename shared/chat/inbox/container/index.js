@@ -51,7 +51,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeState, setRouteState}) => 
     }
   },
   onNewChat: () => dispatch(Chat2Gen.createSetSearching({searching: true})),
-  onSelect: (conversationIDKey: ?Types.ConversationIDKey) =>
+  onSelect: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createSelectConversation({conversationIDKey, fromUser: true})),
   onSetFilter: (filter: string) => dispatch(Chat2Gen.createSetInboxFilter({filter})),
   onUntrustedInboxVisible: (conversationIDKeys: Array<Types.ConversationIDKey>) =>

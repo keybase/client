@@ -250,7 +250,8 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       // Update our ordinals list
       // First build a map of conversationIDKey to Set of ordinals (eliminates dupes)
       const idToMessages = updatedMessages.reduce((map, m) => {
-        const set = (map[m.conversationIDKey] = map[m.conversationIDKey] || new Set()) // note: NOT immutable
+        const conversationIDKey = Types.conversationIDKeyToString(m.conversationIDKey)
+        const set = (map[conversationIDKey] = map[conversationIDKey] || new Set()) // note: NOT immutable
         set.add(m.ordinal)
         return map
       }, {})
@@ -259,8 +260,10 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       const messageOrdinals = state.messageOrdinals.withMutations(
         (map: I.Map<Types.ConversationIDKey, I.SortedSet<Types.Ordinal>>) =>
           Object.keys(idToMessages).forEach(conversationIDKey =>
-            map.update(conversationIDKey, I.SortedSet(), (set: I.SortedSet<Types.Ordinal>) =>
-              set.concat(idToMessages[conversationIDKey])
+            map.update(
+              Types.stringToConversationIDKey(conversationIDKey),
+              I.SortedSet(),
+              (set: I.SortedSet<Types.Ordinal>) => set.concat(idToMessages[conversationIDKey])
             )
           )
       )

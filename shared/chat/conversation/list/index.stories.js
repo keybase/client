@@ -1,4 +1,4 @@
-// @flow
+// @noflow // TODO
 import * as React from 'react'
 import * as I from 'immutable'
 import * as Constants from '../../../constants/chat'
@@ -62,25 +62,25 @@ function makeMessage(
 ): Types.Message {
   const key = Constants.messageKey(conversationIDKey, 'messageIDText', messageID)
   return {
-    type: 'Text',
-    message: new HiddenString(message),
     author,
-    deviceName: `${author}-phone`,
-    deviceType: 'mobile',
-    timestamp,
-    conversationIDKey,
-    messageID,
-    you,
-    messageState: 'sent',
-    failureDescription: null,
-    senderDeviceRevokedAt: null,
-    key,
-    editedCount: 0,
-    mentions: I.Set(),
     channelMention: 'None',
     channelNameMentions: I.Map(),
-    rawMessageID: -1,
+    conversationIDKey,
+    deviceName: `${author}-phone`,
+    deviceType: 'mobile',
+    editedCount: 0,
+    failureDescription: null,
+    key,
+    mentions: I.Set(),
+    message: new HiddenString(message),
+    messageID,
+    messageState: 'sent',
     ordinal: 0,
+    rawMessageID: -1,
+    senderDeviceRevokedAt: null,
+    timestamp,
+    type: 'Text',
+    you,
   }
 }
 

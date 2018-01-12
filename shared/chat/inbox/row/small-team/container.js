@@ -5,10 +5,10 @@ import * as Types from '../../../../constants/types/chat2'
 import {SmallTeam} from '.'
 import {connect, type TypedState, type Dispatch} from '../../../../util/container'
 
-type OwnProps = {conversationIDKey: ?Types.ConversationIDKey}
+type OwnProps = {conversationIDKey: Types.ConversationIDKey}
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
-  const _conversationIDKey = ownProps.conversationIDKey || ''
+  const _conversationIDKey = ownProps.conversationIDKey
   const youAreReset = false // Constants.isResetConversationIDKey(state, _conversationIDKey)
 
   return {

@@ -28,7 +28,7 @@ type OwnProps = {
 const unsentText = {}
 
 const mapStateToProps = (state: TypedState) => {
-  const _conversationIDKey = Constants.getSelectedConversation(state) || ''
+  const _conversationIDKey = Constants.getSelectedConversation(state)
   const editingOrdinal = Constants.getEditingOrdinal(state, _conversationIDKey)
   const _editingMessage = editingOrdinal
     ? Constants.getMessageMap(state, _conversationIDKey).get(editingOrdinal)
@@ -37,7 +37,7 @@ const mapStateToProps = (state: TypedState) => {
   return {
     _conversationIDKey,
     _editingMessage,
-    _meta: Constants.getMeta(state),
+    _meta: Constants.getMeta(state, _conversationIDKey),
     typing: Constants.getTyping(state, _conversationIDKey),
   }
 }
@@ -142,7 +142,7 @@ export default compose(
     setText: (text: string, skipUnsentSaving?: boolean) => {
       props._setText(text)
       if (!skipUnsentSaving) {
-        unsentText[props._conversationIDKey] = text
+        unsentText[Types.conversationIDKeyToString(props._conversationIDKey)] = text
       }
     },
   })),
@@ -178,7 +178,7 @@ export default compose(
         this.props.setText('') // blow away any unset stuff if we go into an edit, else you edit / cancel / switch tabs and come back and you see the unsent value
         this.props.setText(text, true)
       } else if (this.props._conversationIDKey !== nextProps._conversationIDKey) {
-        const text = unsentText[nextProps._conversationIDKey] || ''
+        const text = unsentText[Types.conversationIDKeyToString(nextProps._conversationIDKey)] || ''
         this.props.setText(text, true)
       }
 

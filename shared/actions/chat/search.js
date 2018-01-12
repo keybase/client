@@ -1,6 +1,7 @@
 // @flow
 import * as Chat2Gen from '../chat2-gen'
 import * as ChatGen from '../chat-gen'
+import * as Types from '../../constants/types/chat2'
 import * as Constants from '../../constants/chat'
 import * as Selectors from '../../constants/selectors'
 import * as SearchConstants from '../../constants/search'
@@ -25,7 +26,9 @@ function _newChat(action: Chat2Gen.SetSearchingPayload, state: TypedState) {
         })
       )
     )
-    actions.push(Saga.put(Chat2Gen.createSelectConversation({conversationIDKey: null})))
+    actions.push(
+      Saga.put(Chat2Gen.createSelectConversation({conversationIDKey: Types.stringToConversationIDKey('')}))
+    )
     actions.push(Saga.put(SearchGen.createSearchSuggestions({searchKey: 'chatSearch'})))
   }
 
@@ -40,9 +43,10 @@ function _exitSearch(action: Chat2Gen.SetSearchingPayload, s: TypedState) {
   const userInputItemIds: ReturnValue<
     typeof SearchConstants.getUserInputItemIds
   > = SearchConstants.getUserInputItemIds(s, {searchKey: 'chatSearch'})
-  const previousConversation: ReturnValue<
-    typeof Selectors.previousConversationSelector
-  > = Selectors.previousConversationSelector(s)
+  const previousConversation = Types.stringToConversationIDKey('') // TODO
+  // const previousConversation: ReturnValue<
+  // typeof Selectors.previousConversationSelector
+  // > = Selectors.previousConversationSelector(s)
 
   return Saga.sequentially(
     [
@@ -79,7 +83,14 @@ function* _updateTempSearchConversation(action: SearchGen.UserInputItemsUpdatedP
       )
     )
   } else {
-    actionsToPut.push(Saga.put(Chat2Gen.createSelectConversation({conversationIDKey: null, fromUser: false})))
+    actionsToPut.push(
+      Saga.put(
+        Chat2Gen.createSelectConversation({
+          conversationIDKey: Types.stringToConversationIDKey(''),
+          fromUser: false,
+        })
+      )
+    )
     actionsToPut.push(Saga.put(SearchGen.createSearchSuggestions({searchKey: 'chatSearch'})))
   }
 

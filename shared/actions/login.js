@@ -10,6 +10,7 @@ import * as WaitingGen from './waiting-gen'
 import * as DevicesGen from './devices-gen'
 import * as LoginGen from './login-gen'
 import * as SignupGen from './signup-gen'
+import * as ChatTypes from '../constants/types/chat2'
 import * as Types from '../constants/types/login'
 import * as Constants from '../constants/login'
 import * as EngineRpc from '../constants/engine'
@@ -112,7 +113,11 @@ function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
         yield Saga.put(AppGen.createLink({link: url}))
       } else if (tab && isValidInitialTab(tab)) {
         if (tab === chatTab && conversation) {
-          yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey: conversation}))
+          yield Saga.put(
+            Chat2Gen.createSelectConversation({
+              conversationIDKey: ChatTypes.stringToConversationIDKey(conversation),
+            })
+          )
           yield Saga.put(navigateTo([chatTab], null, 'initial-restore'))
         } else {
           yield Saga.put(navigateTo([tab], null, 'initial-restore'))

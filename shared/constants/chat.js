@@ -1,4 +1,4 @@
-// @flow
+// @noflow TODO delete
 import logger from '../logger'
 import * as I from 'immutable'
 import * as RPCChatTypes from './types/rpc-chat-gen'
@@ -100,13 +100,13 @@ export const howLongBetweenTimestampsMs = 1000 * 60 * 15
 export const maxMessagesToLoadAtATime = 50
 export const nothingSelected = 'chat:noneSelected'
 
-function conversationIDToKey(conversationID: Types.ConversationID): Types.ConversationIDKey {
-  return conversationID.toString('hex')
-}
+// function conversationIDToKey(conversationID: Types.ConversationID): Types.ConversationIDKey {
+// return conversationID.toString('hex')
+// }
 
-function keyToConversationID(key: Types.ConversationIDKey): Types.ConversationID {
-  return Buffer.from(key, 'hex')
-}
+// function keyToConversationID(key: Types.ConversationIDKey): Types.ConversationID {
+// return Buffer.from(key, 'hex')
+// }
 
 const _outboxPrefix = 'OUTBOXID-'
 const _outboxPrefixReg = new RegExp('^' + _outboxPrefix)
@@ -323,77 +323,77 @@ const getSelectedRouteState = (state: TypedState) => {
   return getPathState(state.routeTree.routeState, [chatTab, selected])
 }
 
-function messageKey(
-  conversationIDKey: Types.ConversationIDKey,
-  kind: Types.MessageKeyKind,
-  value: string
-): Types.MessageKey {
-  return `${conversationIDKey}:${kind}:${value}`
-}
+// function messageKey(
+// conversationIDKey: Types.ConversationIDKey,
+// kind: Types.MessageKeyKind,
+// value: string
+// ): Types.MessageKey {
+// return `${conversationIDKey}:${kind}:${value}`
+// }
 
-function splitMessageIDKey(
-  key: Types.MessageKey
-): {
-  conversationIDKey: Types.ConversationIDKey,
-  keyKind: string,
-  messageID: Types.MessageID,
-} {
-  const [conversationIDKey, keyKind, messageID] = key.split(':')
-  return {conversationIDKey, keyKind, messageID}
-}
+// function splitMessageIDKey(
+// key: Types.MessageKey
+// ): {
+// conversationIDKey: Types.ConversationIDKey,
+// keyKind: string,
+// messageID: Types.MessageID,
+// } {
+// const [conversationIDKey, keyKind, messageID] = key.split(':')
+// return {conversationIDKey, keyKind, messageID}
+// }
 
-function messageKeyValue(key: Types.MessageKey): string {
-  return key.split(':')[2]
-}
+// function messageKeyValue(key: Types.MessageKey): string {
+// return key.split(':')[2]
+// }
 
-function messageKeyConversationIDKey(key: Types.MessageKey): Types.ConversationIDKey {
-  return key.split(':')[0]
-}
+// function messageKeyConversationIDKey(key: Types.MessageKey): Types.ConversationIDKey {
+// return key.split(':')[0]
+// }
 
-function messageKeyKindIsMessageID(key: Types.MessageKey): boolean {
-  return messageKeyKind(key).startsWith('messageID')
-}
+// function messageKeyKindIsMessageID(key: Types.MessageKey): boolean {
+// return messageKeyKind(key).startsWith('messageID')
+// }
 
-function messageKeyKind(key: Types.MessageKey): Types.MessageKeyKind {
-  const [, kind] = key.split(':')
-  switch (kind) {
-    case 'resetUser':
-      return 'resetUser'
-    case 'joinedleft':
-      return 'joinedleft'
-    case 'system':
-      return 'system'
-    case 'error':
-      return 'error'
-    case 'errorInvisible':
-      return 'errorInvisible'
-    case 'header':
-      return 'header'
-    case 'messageIDAttachment':
-      return 'messageIDAttachment'
-    case 'messageIDAttachmentUpdate':
-      return 'messageIDAttachmentUpdate'
-    case 'messageIDDeleted':
-      return 'messageIDDeleted'
-    case 'messageIDEdit':
-      return 'messageIDEdit'
-    case 'messageIDError':
-      return 'messageIDError'
-    case 'messageIDText':
-      return 'messageIDText'
-    case 'messageIDUnhandled':
-      return 'messageIDUnhandled'
-    case 'outboxIDText':
-      return 'outboxIDText'
-    case 'outboxIDAttachment':
-      return 'outboxIDAttachment'
-    case 'timestamp':
-      return 'timestamp'
-    case 'supersedes':
-      return 'supersedes'
-  }
-  throw new Error(`Invalid messageKeyKind passed key: ${key}`)
-}
+// function messageKeyKind(key: Types.MessageKey): Types.MessageKeyKind {
+// const [, kind] = key.split(':')
+// switch (kind) {
+// case 'resetUser':
+// return 'resetUser'
+// case 'joinedleft':
+// return 'joinedleft'
+// case 'system':
+// return 'system'
+// case 'error':
+// return 'error'
+// case 'errorInvisible':
+// return 'errorInvisible'
+// case 'header':
+// return 'header'
+// case 'messageIDAttachment':
+// return 'messageIDAttachment'
+// case 'messageIDAttachmentUpdate':
+// return 'messageIDAttachmentUpdate'
+// case 'messageIDDeleted':
+// return 'messageIDDeleted'
+// case 'messageIDEdit':
+// return 'messageIDEdit'
+// case 'messageIDError':
+// return 'messageIDError'
+// case 'messageIDText':
+// return 'messageIDText'
+// case 'messageIDUnhandled':
+// return 'messageIDUnhandled'
+// case 'outboxIDText':
+// return 'outboxIDText'
+// case 'outboxIDAttachment':
+// return 'outboxIDAttachment'
+// case 'timestamp':
+// return 'timestamp'
+// case 'supersedes':
+// return 'supersedes'
+// }
+// throw new Error(`Invalid messageKeyKind passed key: ${key}`)
+// }
 
 // TODO(mm) type these properly - they return any
 const getYou = (state: TypedState) => state.config.username || ''
@@ -684,17 +684,17 @@ export {
   getSelectedConversationStates,
   getAttachmentDownloadedPath,
   getAttachmentSavedPath,
-  conversationIDToKey,
-  keyToConversationID,
+  // conversationIDToKey,
+  // keyToConversationID,
   keyToOutboxID,
   makeConversationMessages,
   makeSnippet,
-  messageKey,
-  messageKeyKind,
-  messageKeyKindIsMessageID,
-  messageKeyValue,
-  messageKeyConversationIDKey,
-  splitMessageIDKey,
+  // messageKey,
+  // messageKeyKind,
+  // messageKeyKindIsMessageID,
+  // messageKeyValue,
+  // messageKeyConversationIDKey,
+  // splitMessageIDKey,
   outboxIDToKey,
   stringOutboxIDToKey,
   participantFilter,
