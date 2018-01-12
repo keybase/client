@@ -163,6 +163,8 @@ func (am *AutogitManager) canWorkOnRepo(
 		closeErr := lockFile.Close()
 		if err == nil {
 			err = closeErr
+		} else if closeErr != nil {
+			am.log.CDebugf(ctx, "Lock close error: %+v", closeErr)
 		}
 	}()
 	err = lockFile.Lock()
@@ -232,6 +234,8 @@ func (am *AutogitManager) workDoneOnRepo(
 			err = closeErr
 			// TODO: if `closeErr != nil`, write it to the lasterr
 			// file somehow, even though we're no longer under lock?
+		} else if closeErr != nil {
+			am.log.CDebugf(ctx, "Lock close error: %+v", closeErr)
 		}
 	}()
 	err = lockFile.Lock()
