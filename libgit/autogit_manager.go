@@ -11,6 +11,7 @@ import (
 	"os"
 	"path"
 	"sync"
+	"time"
 
 	"github.com/eapache/channels"
 	"github.com/keybase/client/go/logger"
@@ -40,6 +41,8 @@ const (
 
 	// Debug tag ID for an individual autogit operation
 	ctxOpID = "AGM"
+
+	workTimeLimit = 1 * time.Hour
 )
 
 type ctxTagKey int
@@ -50,6 +53,14 @@ const (
 
 func autogitLockName(srcRepo string) string {
 	return fmt.Sprintf(".autogit_%s.lock", srcRepo)
+}
+
+func autogitWorkingName(srcRepo string) string {
+	return fmt.Sprintf(".autogit_%s.working", srcRepo)
+}
+
+func autogitLastErrName(srcRepo string) string {
+	return fmt.Sprintf(".autogit_%s.lasterr", srcRepo)
 }
 
 type getNewConfigFn func(context.Context) (
@@ -119,6 +130,144 @@ func (am *AutogitManager) getNewConfigDefault(ctx context.Context) (
 	return getNewConfig(ctx, am.config, am.kbCtx, am.kbfsInitParams, am.log)
 }
 
+// commonTime computes the current time according to our estimate of
+// the mdserver's time.  It's a very crude way of normalizing the
+// local clock.
+func (am *AutogitManager) commonTime(ctx context.Context) time.Time {
+	offset, haveOffset := am.config.MDServer().OffsetFromServerTime()
+	if !haveOffset {
+		am.log.CDebugf(ctx, "No offset, cannot use common time; "+
+			"falling back to local time")
+		return am.config.Clock().Now()
+	}
+	return am.config.Clock().Now().Add(-offset)
+}
+
+func (am *AutogitManager) canWorkOnRepo(
+	ctx context.Context, dstFS *libfs.FS, repo string) (
+	canWork bool, err error) {
+	am.log.CDebugf(ctx, "Checking if we can work on %s", repo)
+	defer func() {
+		am.deferLog.CDebugf(ctx, "Work check completed: canWork=%t, %+v",
+			canWork, err)
+	}()
+
+	// Take the lock for the dst repo while checking the work time.
+	lockFile, err := dstFS.Create(autogitLockName(repo))
+	if err != nil {
+		return false, err
+	}
+	defer func() {
+		// Because we took the lock, this Close will sync/flush the
+		// whole journal.
+		closeErr := lockFile.Close()
+		if err == nil {
+			err = closeErr
+		}
+	}()
+	err = lockFile.Lock()
+	if err != nil {
+		return false, err
+	}
+
+	// See if someone else is already working on this repo by seeing
+	// if the timestamp (converted to "common" time) is within the
+	// expected time limit for a worker.
+	workingFileName := autogitWorkingName(repo)
+	fi, err := dstFS.Stat(workingFileName)
+	currCommonTime := am.commonTime(ctx)
+	if err != nil && !os.IsNotExist(err) {
+		return false, err
+	} else if os.IsNotExist(err) {
+		am.log.CDebugf(ctx, "Creating new working file for %s", repo)
+		f, err := dstFS.Create(workingFileName)
+		if err != nil {
+			return false, err
+		}
+		err = f.Close()
+		if err != nil {
+			return false, err
+		}
+	} else { // err == nil
+		modCommonTime := fi.ModTime()
+		if modCommonTime.Add(workTimeLimit).After(currCommonTime) {
+			am.log.CDebugf(ctx, "Other worker is still working on %s; "+
+				"modCommonTime=%s, currCommonTime=%s, workTimeLimit=%s",
+				repo, modCommonTime, currCommonTime, workTimeLimit)
+			// The other worker is still running within the time
+			// limit.
+			return false, nil
+		}
+		am.log.CDebugf(ctx, "Other work expired on %s; "+
+			"modCommonTime=%s, currCommonTime=%s, workTimeLimit=%s",
+			repo, modCommonTime, currCommonTime, workTimeLimit)
+	}
+
+	am.log.CDebugf(ctx, "Setting work common time to %s", currCommonTime)
+	err = dstFS.Chtimes(workingFileName, time.Time{}, currCommonTime)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func (am *AutogitManager) workDoneOnRepo(
+	ctx context.Context, dstFS *libfs.FS, repo string, workErr error) (
+	err error) {
+	am.log.CDebugf(ctx, "Completing work on %s, workErr=%+v", repo, workErr)
+	defer func() {
+		am.deferLog.CDebugf(ctx, "Work done completed: %+v", err)
+	}()
+
+	// Take the lock for the dst repo while checking the work time.
+	lockFile, err := dstFS.Create(autogitLockName(repo))
+	if err != nil {
+		return err
+	}
+	defer func() {
+		// Because we took the lock, this Close will sync/flush the
+		// whole journal.
+		closeErr := lockFile.Close()
+		if err == nil {
+			err = closeErr
+			// TODO: if `closeErr != nil`, write it to the lasterr
+			// file somehow, even though we're no longer under lock?
+		}
+	}()
+	err = lockFile.Lock()
+	if err != nil {
+		return err
+	}
+
+	err = dstFS.Remove(autogitWorkingName(repo))
+	if err != nil {
+		return err
+	}
+
+	// Remove the old lasterr file if it exists.  TODO: check if we
+	// are the user who was supposed to be doing work?
+	err = dstFS.Remove(autogitLastErrName(repo))
+	if err != nil && !os.IsNotExist(err) {
+		return err
+	}
+
+	if workErr == nil {
+		return nil
+	}
+
+	// Otherwise write the last error
+	lastErrFile, err := dstFS.Create(autogitLastErrName(repo))
+	if err != nil {
+		return err
+	}
+	defer lastErrFile.Close()
+	_, err = io.WriteString(lastErrFile, workErr.Error())
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (am *AutogitManager) doReset(ctx context.Context, req resetReq) (
 	err error) {
 	am.log.CDebugf(ctx, "Processing reset request from %s/%s to %s/%s",
@@ -164,23 +313,22 @@ func (am *AutogitManager) doReset(ctx context.Context, req resetReq) (
 		return err
 	}
 
-	// Take the lock for the dst repo while resetting.
-	lockFile, err := dstFS.Create(autogitLockName(req.srcRepo))
+	canWork, err := am.canWorkOnRepo(ctx, dstFS, req.srcRepo)
 	if err != nil {
 		return err
+	}
+	if !canWork {
+		am.log.CDebugf(ctx,
+			"Another worker is currently in charge; skipping reset")
+		// TODO: retry in a little while?
+		return nil
 	}
 	defer func() {
-		// Because we took the lock, this Close will sync/flush the
-		// whole journal.
-		closeErr := lockFile.Close()
+		workDoneErr := am.workDoneOnRepo(ctx, dstFS, req.srcRepo, err)
 		if err == nil {
-			err = closeErr
+			err = workDoneErr
 		}
 	}()
-	err = lockFile.Lock()
-	if err != nil {
-		return err
-	}
 
 	dstRepoFS, err := dstFS.Chroot(req.srcRepo)
 	if err != nil {
