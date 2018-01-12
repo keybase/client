@@ -14,9 +14,10 @@ import type {TypedState} from '../../../../constants/reducer'
 import type {OwnProps} from './container'
 
 const getDetails = createCachedSelector(
-  [Constants.getMessageFromMessageKey, Constants.getYou, getRole],
-  (message: Types.SystemMessage, you: string, role: TeamRoleType) => ({
+  [Constants.getMessageFromMessageKey, Constants.getYou, getRole, Constants.getIsBigTeam],
+  (message: Types.SystemMessage, you: string, role: TeamRoleType, isBigTeam: boolean) => ({
     admin: isAdmin(role) || isOwner(role),
+    isBigTeam,
     message,
     info: message.info,
     you,

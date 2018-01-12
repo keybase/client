@@ -3,6 +3,7 @@ import {makeRouteDefNode} from '../route-tree'
 import chatRoutes from '../chat/routes'
 import loginRoutes from '../login/routes'
 import devicesRoutes from '../devices/routes'
+import fsRoutes from '../fs/routes'
 import gitRoutes from '../git/routes'
 import foldersRoutes from '../folders/routes'
 import peopleRoutes from '../people/routes'
@@ -20,6 +21,7 @@ import {
   profileTab,
   settingsTab,
   teamsTab,
+  fsTab,
   gitTab,
 } from '../constants/tabs'
 import flags from '../util/feature-flags'
@@ -34,6 +36,11 @@ const routeTree = makeRouteDefNode({
     [profileTab]: profileRoutes,
     [settingsTab]: settingsRoutes,
     [teamsTab]: teamsRoutes,
+    ...(flags.fsEnabled
+      ? {
+          [fsTab]: fsRoutes,
+        }
+      : {}),
     ...(isMobile
       ? {}
       : {

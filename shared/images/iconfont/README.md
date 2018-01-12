@@ -17,7 +17,8 @@
 ## Phase 3: Generate fonts
 1. run `yarn run generate-font-project` (this updates our Icon constants for you)
 1. On icomoon.io import the generated project [menu -> Projects -> Import Project -> kb-icomoon-project-generated.json]
-1. Generate font and download
+1. Click Load on the new project row (it should select all the icons)
+1. Generate font, replace 'icomoon' with 'kb' in [gear icon > Font Name], and download
 1. Unzip kb.zip into `./kb/` in `shared/images/iconfont`.
 1. run `yarn run apply-new-fonts`
 1. Delete `shared/images/iconfont/kb/`
@@ -34,7 +35,7 @@ Go [here](https://www.fontsquirrel.com/tools/webfont-generator)
 1. turn off subsetting
 1. remove the ‘-webfont’ as the suffix
 1. check the agree then download
-1. replace `kb.ttf` with the file of the same name from the downloaded zip file
+1. replace `kb.ttf` from the downloaded zip file with the file of the same name in `shared/fonts`
 
 ## Phase 5: Update the flowtype and fonts on both apps
 

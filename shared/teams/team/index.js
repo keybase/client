@@ -72,8 +72,6 @@ export type Props = {
   waitingForSavePublicity: boolean,
   you: string,
   yourRole: ?Types.TeamRoleType,
-  youAdmin: boolean,
-  youImplicitAdmin: boolean,
   yourOperations: RPCTypes.TeamOperation,
 }
 
@@ -343,7 +341,6 @@ class Team extends React.PureComponent<Props> {
       onLeaveTeam,
       onSetOpenTeamRole,
       selectedTab,
-      showAddYourselfBanner,
       loading,
       memberCount,
       onManageChat,
@@ -363,8 +360,6 @@ class Team extends React.PureComponent<Props> {
       subteams,
       waitingForSavePublicity,
       yourRole,
-      youAdmin,
-      youImplicitAdmin,
       yourOperations,
     } = this.props
 
@@ -476,90 +471,93 @@ class Team extends React.PureComponent<Props> {
           }}
           contentContainerStyle={{padding: globalMargins.medium}}
         >
-          {!youImplicitAdmin && (
-            <Box
-              style={{
-                ...globalStyles.flexBoxRow,
-              }}
-            >
-              <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-                <Checkbox
-                  checked={publicityMember}
-                  disabled={!yourOperations.setMemberShowcase}
-                  label=""
-                  onCheck={setPublicityMember}
-                  style={{paddingRight: globalMargins.xtiny}}
-                />
-              </Box>
-              <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
-                <Text
-                  style={{
-                    color: yourOperations.setMemberShowcase ? globalColors.black_75 : globalColors.grey,
-                  }}
-                  type="Body"
-                >
-                  Publish team on your own profile
-                </Text>
-                <Text type="BodySmall">
-                  {yourOperations.setMemberShowcase
-                    ? 'Your profile will mention this team. Team description and number of members will be public.'
-                    : "Admins aren't allowing members to publish this team on their profile."}
-                </Text>
-              </Box>
+          <Box
+            style={{
+              ...globalStyles.flexBoxRow,
+            }}
+          >
+            <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
+              <Checkbox
+                checked={publicityMember}
+                disabled={!yourOperations.setMemberShowcase}
+                label=""
+                onCheck={setPublicityMember}
+                style={{paddingRight: globalMargins.xtiny}}
+              />
             </Box>
-          )}
-          {youAdmin && (
+            <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
+              <Text
+                style={{
+                  color: yourOperations.setMemberShowcase ? globalColors.black_75 : globalColors.grey,
+                }}
+                type="Body"
+              >
+                Publish team on your own profile
+              </Text>
+              <Text type="BodySmall">
+                {yourOperations.setMemberShowcase
+                  ? 'Your profile will mention this team. Team description and number of members will be public.'
+                  : "Admins aren't allowing members to publish this team on their profile."}
+              </Text>
+            </Box>
+          </Box>
+
+          {(yourOperations.changeOpenTeam ||
+            yourOperations.setTeamShowcase ||
+            yourOperations.setPublicityAny) && (
             <Box style={globalStyles.flexBoxColumn}>
               <Box style={stylesSettingsTabRow}>
                 <Text type="Header">Team</Text>
               </Box>
-
-              <Box style={stylesSettingsTabRow}>
-                <Box style={stylesPublicitySettingsBox}>
-                  <Checkbox checked={publicityAnyMember} label="" onCheck={setPublicityAnyMember} />
+              {yourOperations.setPublicityAny && (
+                <Box style={stylesSettingsTabRow}>
+                  <Box style={stylesPublicitySettingsBox}>
+                    <Checkbox checked={publicityAnyMember} label="" onCheck={setPublicityAnyMember} />
+                  </Box>
+                  <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
+                    <Text type="Body">Allow non-admin members to publish the team on their profile</Text>
+                    <Text type="BodySmall">Team descriptions and number of members will be public.</Text>
+                  </Box>
                 </Box>
-                <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
-                  <Text type="Body">Allow non-admin members to publish the team on their profile</Text>
-                  <Text type="BodySmall">Team descriptions and number of members will be public.</Text>
-                </Box>
-              </Box>
-
-              <Box style={stylesSettingsTabRow}>
-                <Box style={stylesPublicitySettingsBox}>
-                  <Checkbox checked={publicityTeam} label="" onCheck={setPublicityTeam} />
-                </Box>
-                <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
-                  <Text type="Body">
-                    Publicize this team on{' '}
-                    <Text type="BodyPrimaryLink" onClickURL={`https://${teamsLink}`}>
-                      {teamsLink}
+              )}
+              {yourOperations.setTeamShowcase && (
+                <Box style={stylesSettingsTabRow}>
+                  <Box style={stylesPublicitySettingsBox}>
+                    <Checkbox checked={publicityTeam} label="" onCheck={setPublicityTeam} />
+                  </Box>
+                  <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
+                    <Text type="Body">
+                      Publicize this team on{' '}
+                      <Text type="BodyPrimaryLink" onClickURL={`https://${teamsLink}`}>
+                        {teamsLink}
+                      </Text>
                     </Text>
-                  </Text>
-                  <Text type="BodySmall">Team descriptions and number of members will be public.</Text>
+                    <Text type="BodySmall">Team descriptions and number of members will be public.</Text>
+                  </Box>
                 </Box>
-              </Box>
-
-              <Box style={stylesSettingsTabRow}>
-                <Box style={stylesPublicitySettingsBox}>
-                  <Checkbox checked={openTeam} label="" onCheck={setOpenTeam} />
-                </Box>
-                <Box
-                  style={{...globalStyles.flexBoxColumn, flexShrink: 1, paddingRight: globalMargins.small}}
-                >
-                  <Text type="Body">Make this an open team</Text>
-                  <Text type="BodySmall">
-                    Anyone will be able to join immediately. Users will join as{' '}
-                    <Text
-                      type={openTeam ? 'BodySmallPrimaryLink' : 'BodySmall'}
-                      onClick={openTeam ? onSetOpenTeamRole : undefined}
-                    >
-                      {openTeamRole}
+              )}
+              {yourOperations.changeOpenTeam && (
+                <Box style={stylesSettingsTabRow}>
+                  <Box style={stylesPublicitySettingsBox}>
+                    <Checkbox checked={openTeam} label="" onCheck={setOpenTeam} />
+                  </Box>
+                  <Box
+                    style={{...globalStyles.flexBoxColumn, flexShrink: 1, paddingRight: globalMargins.small}}
+                  >
+                    <Text type="Body">Make this an open team</Text>
+                    <Text type="BodySmall">
+                      Anyone will be able to join immediately. Users will join as{' '}
+                      <Text
+                        type={openTeam ? 'BodySmallPrimaryLink' : 'BodySmall'}
+                        onClick={openTeam ? onSetOpenTeamRole : undefined}
+                      >
+                        {openTeamRole}
+                      </Text>
+                      .
                     </Text>
-                    .
-                  </Text>
+                  </Box>
                 </Box>
-              </Box>
-
+              )}
               {yourOperations.changeTarsDisabled && (
                 <Box style={stylesSettingsTabRow}>
                   <Box style={stylesPublicitySettingsBox}>
@@ -610,7 +608,7 @@ class Team extends React.PureComponent<Props> {
 
     return (
       <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1}}>
-        {showAddYourselfBanner && (
+        {yourOperations.joinTeam && (
           <Box style={stylesAddYourselfBanner}>
             <Text type="BodySemibold" style={stylesAddYourselfBannerText}>
               You are not a member of this team.
@@ -637,16 +635,16 @@ class Team extends React.PureComponent<Props> {
             {yourRole && Constants.typeToLabel[yourRole]}
           </Text>
           {!loading &&
-            (youAdmin || description) && (
+            (yourOperations.editChannelDescription || description) && (
               <Text
                 style={{
                   paddingTop: globalMargins.tiny,
                   color: description ? globalColors.black_75 : globalColors.black_20,
                 }}
-                onClick={youAdmin ? onEditDescription : null}
-                type={youAdmin ? 'BodySecondaryLink' : 'Body'}
+                onClick={yourOperations.editChannelDescription ? onEditDescription : null}
+                type={yourOperations.editChannelDescription ? 'BodySecondaryLink' : 'Body'}
               >
-                {description || (youAdmin && 'Write a brief description')}
+                {description || (yourOperations.editChannelDescription && 'Write a brief description')}
               </Text>
             )}
 
@@ -673,7 +671,7 @@ class Team extends React.PureComponent<Props> {
           )}
           <Help name={name} />
         </Box>
-        <TeamTabs {...this.props} admin={youAdmin} />
+        <TeamTabs {...this.props} admin={yourOperations.manageMembers} />
         {contents}
         {showMenu &&
           popupMenuItems.length > 0 && (
