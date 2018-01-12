@@ -5,7 +5,7 @@ import Notifications from './index'
 
 const load = () => {
   storiesOf('Chat/Conversation/InfoPanelNotifications', module)
-    .add('Notifications (1)', () => (
+    .add('Notifications (unsaved)', () => (
       <Notifications
         channelWide={false}
         desktop="atmention"
@@ -16,12 +16,23 @@ const load = () => {
         onToggleChannelWide={action('onToggleChannelwide')}
       />
     ))
-    .add('Notifications (2)', () => (
+    .add('Notifications (saving)', () => (
       <Notifications
         channelWide={true}
         desktop="generic"
         mobile="atmention"
-        saveState="unsaved"
+        saveState="saving"
+        onSetDesktop={action('onSetDesktop')}
+        onSetMobile={action('onSetMobile')}
+        onToggleChannelWide={action('onToggleChannelwide')}
+      />
+    ))
+    .add('Notifications (saved)', () => (
+      <Notifications
+        channelWide={true}
+        desktop="generic"
+        mobile="atmention"
+        saveState="saved"
         onSetDesktop={action('onSetDesktop')}
         onSetMobile={action('onSetMobile')}
         onToggleChannelWide={action('onToggleChannelwide')}
