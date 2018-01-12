@@ -263,7 +263,7 @@ const _setNotifications = function*(
         ChatGen.createMergeEntity({
           keyPath: ['inbox', conversationIDKey, 'notifications'],
           entities: I.Map({
-            saving: true,
+            saveState: 'saving',
           }),
         })
       )
@@ -272,7 +272,7 @@ const _setNotifications = function*(
         ChatGen.createMergeEntity({
           keyPath: ['inbox', conversationIDKey, 'notifications'],
           entities: I.Map({
-            saving: false,
+            saveState: 'saved',
           }),
         })
       )

@@ -8,7 +8,7 @@ const Notifications = ({
   channelWide,
   desktop,
   mobile,
-  saving,
+  saveState,
   onSetDesktop,
   onSetMobile,
   onToggleChannelWide,
@@ -92,7 +92,7 @@ const Notifications = ({
       />
     </Box>
     <Box style={styleHeader}>
-      {saving && (
+      {saveState !== 'unchanged' && (
         <ProgressIndicator
           style={{alignSelf: 'center', marginLeft: globalMargins.small, width: globalMargins.small}}
         />

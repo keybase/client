@@ -313,10 +313,12 @@ export type NotificationsKindState = {
   atmention: boolean,
 }
 
+export type NotificationSaveState = 'unchanged' | 'saving' | 'saved'
+
 export type NotificationsState = {
   channelWide: boolean,
   desktop: NotificationsKindState,
-  saving: boolean,
+  saveState: NotificationSaveState,
   mobile: NotificationsKindState,
 }
 

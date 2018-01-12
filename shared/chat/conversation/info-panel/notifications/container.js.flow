@@ -9,7 +9,7 @@ export type StateProps =
       conversationIDKey: string,
       desktop: Types.NotifyType,
       mobile: Types.NotifyType,
-      saving: boolean,
+      saveState: Types.NotificationSaveState,
     |}
   | {||}
 
