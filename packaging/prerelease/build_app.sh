@@ -144,7 +144,7 @@ for ((i=1; i<=$number_of_builds; i++)); do
 done
 
 
-if [ ! "$istest" = "" ]; then
+if [ "$istest" = "1" ]; then
   "$client_dir/packaging/slack/send.sh" "Finished *test* build $platform (keybase: $version). See $s3host/darwin-test/index.html"
 else
   # Promote the build we just made to the test channel -- if smoketest, then

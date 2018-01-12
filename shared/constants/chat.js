@@ -553,6 +553,7 @@ function getMessageFromMessageKey(state: TypedState, messageKey: Types.MessageKe
         message: last.message,
         mentions: last.mentions,
         channelMention: last.channelMention,
+        channelNameMentions: last.channelNameMentions,
       }: Types.TextMessage)
     }
   } else if (message.type === 'Attachment') {

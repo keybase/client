@@ -272,6 +272,7 @@ function reducer(
     case ChatGen.saveAttachment:
     case ChatGen.saveAttachmentNative:
     case ChatGen.selectAttachment:
+    case ChatGen.selectOrPreviewConversation:
     case ChatGen.setNotifications:
     case ChatGen.setupChatHandlers:
     case ChatGen.shareAttachment:

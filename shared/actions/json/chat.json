@@ -118,6 +118,10 @@
       "messageKey": "Types.MessageKey",
       "progress": "?number"
     },
+    "selectOrPreviewConversation": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "previousPath": "Array<string>"
+    },
     "attachmentSaved": {
       "messageKey": "Types.MessageKey",
       "path": "?string"

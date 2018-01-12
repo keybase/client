@@ -56,6 +56,7 @@ export const retryMessage = 'chat:retryMessage'
 export const saveAttachment = 'chat:saveAttachment'
 export const saveAttachmentNative = 'chat:saveAttachmentNative'
 export const selectAttachment = 'chat:selectAttachment'
+export const selectOrPreviewConversation = 'chat:selectOrPreviewConversation'
 export const setLoaded = 'chat:setLoaded'
 export const setNotifications = 'chat:setNotifications'
 export const setPreviousConversation = 'chat:setPreviousConversation'
@@ -262,6 +263,12 @@ export const createRetryMessage = (
 export const createSaveAttachment = (payload: $ReadOnly<{messageKey: Types.MessageKey}>) => ({error: false, payload, type: saveAttachment})
 export const createSaveAttachmentNative = (payload: $ReadOnly<{messageKey: Types.MessageKey}>) => ({error: false, payload, type: saveAttachmentNative})
 export const createSelectAttachment = (payload: $ReadOnly<{input: Types.AttachmentInput}>) => ({error: false, payload, type: selectAttachment})
+export const createSelectOrPreviewConversation = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    previousPath: Array<string>,
+  }>
+) => ({error: false, payload, type: selectOrPreviewConversation})
 export const createSetLoaded = (
   payload: $ReadOnly<{
     conversationIDKey: Types.ConversationIDKey,
@@ -390,6 +397,7 @@ export type RetryMessagePayload = More.ReturnType<typeof createRetryMessage>
 export type SaveAttachmentNativePayload = More.ReturnType<typeof createSaveAttachmentNative>
 export type SaveAttachmentPayload = More.ReturnType<typeof createSaveAttachment>
 export type SelectAttachmentPayload = More.ReturnType<typeof createSelectAttachment>
+export type SelectOrPreviewConversationPayload = More.ReturnType<typeof createSelectOrPreviewConversation>
 export type SetLoadedPayload = More.ReturnType<typeof createSetLoaded>
 export type SetNotificationsPayload = More.ReturnType<typeof createSetNotifications>
 export type SetPreviousConversationPayload = More.ReturnType<typeof createSetPreviousConversation>
@@ -458,6 +466,7 @@ export type Actions =
   | More.ReturnType<typeof createSaveAttachment>
   | More.ReturnType<typeof createSaveAttachmentNative>
   | More.ReturnType<typeof createSelectAttachment>
+  | More.ReturnType<typeof createSelectOrPreviewConversation>
   | More.ReturnType<typeof createSetLoaded>
   | More.ReturnType<typeof createSetNotifications>
   | More.ReturnType<typeof createSetPreviousConversation>

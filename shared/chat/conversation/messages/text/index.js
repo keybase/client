@@ -10,10 +10,15 @@ export type Props = {
   isEditing: boolean,
   mentions: Types.Mentions,
   channelMention: Types.ChannelMention,
+  channelNameMentions: Types.ChannelNameMentions,
 }
 
-const MessageText = ({text, type, isEditing, mentions, channelMention}: Props) => (
-  <Markdown style={getStyle(type, isEditing)} meta={{mentions, channelMention}} allowFontScaling={true}>
+const MessageText = ({text, type, isEditing, mentions, channelMention, channelNameMentions}: Props) => (
+  <Markdown
+    style={getStyle(type, isEditing)}
+    meta={{mentions, channelMention, channelNameMentions}}
+    allowFontScaling={true}
+  >
     {text}
   </Markdown>
 )

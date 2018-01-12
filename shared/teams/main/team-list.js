@@ -30,8 +30,8 @@ type RowProps = {
   membercount: number,
   isNew: boolean,
   newRequests: number,
-  onOpenFolder: () => void,
-  onManageChat: () => void,
+  onOpenFolder: ?() => void,
+  onManageChat: ?() => void,
   onViewTeam: () => void,
 }
 
@@ -42,7 +42,15 @@ const newCharmStyle = {
   alignSelf: 'center',
 }
 
-const Row = ({name, membercount, isNew, newRequests, onOpenFolder, onManageChat, onViewTeam}: RowProps) => (
+const TeamRow = ({
+  name,
+  membercount,
+  isNew,
+  newRequests,
+  onOpenFolder,
+  onManageChat,
+  onViewTeam,
+}: RowProps) => (
   <Box style={rowStyle}>
     <Box
       style={{
@@ -65,10 +73,11 @@ const Row = ({name, membercount, isNew, newRequests, onOpenFolder, onManageChat,
           </Box>
         </Box>
       </ClickableBox>
-      {!isMobile && <Icon type="iconfont-folder-private" onClick={onOpenFolder} />}
-      {!isMobile && (
-        <Icon type="iconfont-chat" style={{marginLeft: globalMargins.small}} onClick={onManageChat} />
-      )}
+      {!isMobile && onOpenFolder && <Icon type="iconfont-folder-private" onClick={onOpenFolder} />}
+      {!isMobile &&
+        onManageChat && (
+          <Icon type="iconfont-chat" style={{marginLeft: globalMargins.small}} onClick={onManageChat} />
+        )}
     </Box>
     {!isMobile && <Divider style={{marginLeft: 48}} />}
   </Box>
@@ -84,7 +93,7 @@ const TeamList = (props: Props) => (
   >
     {!props.loaded && <ProgressIndicator style={{alignSelf: 'center', width: 20}} />}
     {props.teamnames.map((name, index, arr) => (
-      <Row
+      <TeamRow
         key={name}
         name={name}
         isNew={props.newTeams.includes(name)}
@@ -105,3 +114,4 @@ const rowStyle = {
 }
 
 export default TeamList
+export {TeamRow}
