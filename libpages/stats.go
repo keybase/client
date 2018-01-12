@@ -16,10 +16,10 @@ import (
 	"go.uber.org/zap"
 )
 
-// ActivesGetter holds necessary data to generate number of active Tlfs or
+// ActivesGetter holds necessary data to generate number of active TLFs or
 // hosts.
 type ActivesGetter interface {
-	// GetActives returns the number of active Tlfs and active hosts in the
+	// GetActives returns the number of active TLFs and active hosts in the
 	// past dur.
 	GetActives(dur time.Duration) (activeTlfs int, activeHosts int, err error)
 }
@@ -35,6 +35,21 @@ type ActivityStatsStorer interface {
 	GetActivesGetter() (ActivesGetter, error)
 }
 
+// NameableDuration is a wrapper around time.Duration that allows customized
+// String() encoding.
+type NameableDuration struct {
+	Duration time.Duration
+	Name     string
+}
+
+// String returns d.Name if it's not empty, or d.Duration.String().
+func (d NameableDuration) String() string {
+	if len(d.Name) > 0 {
+		return d.Name
+	}
+	return d.Duration.String()
+}
+
 // ActivityStatsEnabler describes what backend storer a StatsReporter should
 // use for activity-based stats, and how the stats should be generated.
 type ActivityStatsEnabler struct {
@@ -44,7 +59,7 @@ type ActivityStatsEnabler struct {
 	// Durations specifies a slice of durations that activity-based stats
 	// should be about. For example, [1h, 1d, 1week] makes the StatsReporter
 	// should report hourly, daily, and weekly active stats.
-	Durations []time.Duration
+	Durations []NameableDuration
 	// Interval specifies how often the activity-based stats should be
 	// reported.
 	Interval time.Duration

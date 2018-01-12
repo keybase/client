@@ -1,5 +1,7 @@
 // Copyright 2017 Keybase Inc. All rights reserved.
-// Use of this source code is governed by a BSD license that can be found in the LICENSE file.
+// Use of this source code is governed by a BSD
+// license that can be found in the LICENSE file.
+
 package main
 
 import (
@@ -60,7 +62,7 @@ func newLogger(isCLI bool) (*zap.Logger, error) {
 }
 
 const autoGitNumWorkers = 10
-const activityStatsReportInterval = time.Minute
+const activityStatsReportInterval = 5 * time.Minute
 const activityStatsPath = "./kbp-stats"
 
 func main() {
@@ -105,8 +107,14 @@ func main() {
 				"libpages.NewFileBasedActivityStatsStorer", zap.Error(err))
 		}
 		enabler := &libpages.ActivityStatsEnabler{
-			Durations: []time.Duration{
-				time.Hour, time.Hour * 24, time.Hour * 24 * 7},
+			Durations: []libpages.NameableDuration{
+				libpages.NameableDuration{
+					Duration: time.Hour, Name: "hourly"},
+				libpages.NameableDuration{
+					Duration: time.Hour * 24, Name: "daily"},
+				libpages.NameableDuration{
+					Duration: time.Hour * 24 * 7, Name: "weekly"},
+			},
 			Interval: activityStatsReportInterval,
 			Storer:   activityStorer,
 		}

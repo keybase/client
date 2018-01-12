@@ -37,13 +37,15 @@ func (s *stathatReporter) activityStatsReportLoop() {
 		return
 	}
 
-	durations := make([]time.Duration, len(s.activityStats.Durations))
+	durations := make([]NameableDuration, len(s.activityStats.Durations))
 	copy(durations, s.activityStats.Durations)
 	statNamesHosts := make([]string, 0, len(durations))
 	statNamesTlfs := make([]string, 0, len(durations))
 	for _, d := range durations {
-		statNamesHosts = append(statNamesHosts, s.statPrefixActiveHosts+"("+d.String()+")")
-		statNamesTlfs = append(statNamesTlfs, s.statPrefixActiveTlfs+"("+d.String()+")")
+		statNamesHosts = append(statNamesHosts,
+			s.statPrefixActiveHosts+"("+d.String()+")")
+		statNamesTlfs = append(statNamesTlfs,
+			s.statPrefixActiveTlfs+"("+d.String()+")")
 	}
 	reportTicker := time.NewTicker(s.activityStats.Interval)
 	defer reportTicker.Stop()
@@ -55,7 +57,7 @@ func (s *stathatReporter) activityStatsReportLoop() {
 			continue
 		}
 		for i, d := range durations {
-			tlfs, hosts, err := getter.GetActives(d)
+			tlfs, hosts, err := getter.GetActives(d.Duration)
 			if err = s.reporter.PostEZValue(statNamesTlfs[i], s.ezKey,
 				float64(tlfs)); err != nil {
 				s.logger.Warn("PostEZValue", zap.Error(err))
