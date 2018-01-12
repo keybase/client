@@ -7,6 +7,7 @@ import devices from './devices'
 import engine from './engine'
 import entities from './entities'
 import favorite from './favorite'
+import fs from './fs'
 import gregor from './gregor'
 import login from './login'
 import notifications from './notifications'
@@ -35,6 +36,7 @@ const reducers = {
   engine,
   entities,
   favorite,
+  fs,
   gregor,
   login,
   notifications,

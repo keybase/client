@@ -116,6 +116,7 @@ function* postMessage(action: ChatGen.PostMessagePayload): SagaGenerator<any, an
   const message: Types.TextMessage = {
     author,
     channelMention: 'None',
+    channelNameMentions: I.Map(),
     conversationIDKey: conversationIDKey,
     deviceName: '',
     deviceType: isMobile ? 'mobile' : 'desktop',

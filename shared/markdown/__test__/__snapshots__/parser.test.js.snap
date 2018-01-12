@@ -236,6 +236,55 @@ Object {
 }
 `;
 
+exports[`Markdown parser parses channels correctly 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello there #some_channel ",
+        Object {
+          "children": Array [
+            "valid_channel",
+          ],
+          "convID": "fakeConvID-valid_channel",
+          "type": "channel",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses channels correctly 2`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello there #",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses channels correctly 3`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello there #valid6789012345678901",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
 exports[`Markdown parser parses chars in the middle of words correctly 1`] = `
 Object {
   "children": Array [
@@ -305,6 +354,93 @@ Object {
     Object {
       "children": Array [
         "I *should* see asterisks",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses formatted channels 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello there ",
+        Object {
+          "children": Array [
+            Object {
+              "children": Array [
+                "valid_channel",
+              ],
+              "convID": "fakeConvID-valid_channel",
+              "type": "channel",
+            },
+          ],
+          "type": "strike",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses formatted channels 2`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello there ",
+        Object {
+          "children": Array [
+            Object {
+              "children": Array [
+                "valid_channel",
+              ],
+              "convID": "fakeConvID-valid_channel",
+              "type": "channel",
+            },
+          ],
+          "type": "bold",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses formatted channels 3`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello there _",
+        Object {
+          "children": Array [
+            "valid_channel_",
+          ],
+          "convID": "fakeConvID-valid_channel_",
+          "type": "channel",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses formatted channels 4`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello there _#valid_channel_",
       ],
       "type": "text-block",
     },

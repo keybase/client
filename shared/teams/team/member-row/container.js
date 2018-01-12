@@ -5,10 +5,8 @@ import * as Types from '../../../constants/types/teams'
 import * as TeamsGen from '../../../actions/teams-gen'
 import {TeamMemberRow} from '.'
 import {amIFollowing} from '../../../constants/selectors'
-import {connect} from 'react-redux'
 import {navigateAppend} from '../../../actions/route-tree'
-
-import type {TypedState} from '../../../constants/reducer'
+import {connect, type TypedState} from '../../../util/container'
 
 type OwnProps = {
   active: boolean,

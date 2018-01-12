@@ -50,6 +50,7 @@ export const makeInboxState: I.RecordFactory<Types._InboxState> = I.Record({
   memberStatus: 0,
   membersType: 0,
   notifications: null,
+  notificationSaveState: 'unsaved',
   participants: I.List(),
   fullNames: I.Map(),
   status: 'unfiled',
@@ -437,6 +438,7 @@ const getInbox = (state: TypedState, conversationIDKey: ?Types.ConversationIDKey
 const getFullInbox = (state: TypedState) => state.chat.inbox
 const getSelectedInbox = (state: TypedState) => getInbox(state, getSelectedConversation(state))
 const getEditingMessage = (state: TypedState) => state.chat.get('editingMessage')
+const getInboxBigChannelsToTeam = (state: TypedState) => state.chat.get('inboxBigChannelsToTeam')
 
 const getParticipants = createSelector(
   [getSelectedInbox, getSelectedConversation],
@@ -498,6 +500,12 @@ const getTeamName = createSelector(
 const getTeamType = createSelector(
   [getSelectedInbox],
   selectedInbox => selectedInbox && selectedInbox.get('teamType')
+)
+
+const getIsBigTeam = createSelector(
+  [getSelectedInbox, getInboxBigChannelsToTeam],
+  (selectedInbox, inboxBigChannelsToTeam) =>
+    inboxBigChannelsToTeam.includes((!!selectedInbox && selectedInbox.teamname) || '')
 )
 
 const getSelectedConversationStates = (state: TypedState): ?Types.ConversationState => {
@@ -606,6 +614,7 @@ function getMessageFromMessageKey(state: TypedState, messageKey: Types.MessageKe
         message: last.message,
         mentions: last.mentions,
         channelMention: last.channelMention,
+        channelNameMentions: last.channelNameMentions,
       }: Types.TextMessage)
     }
   } else if (message.type === 'Attachment') {
@@ -746,6 +755,7 @@ export {
   getSnippet,
   getTeamName,
   getTeamType,
+  getIsBigTeam,
   conversationIDToKey,
   convSupersedesInfo,
   convSupersededByInfo,

@@ -173,6 +173,10 @@
       "conversationIDKey": "?Types.ConversationIDKey",
       "fromUser?": "boolean"
     },
+    "selectOrPreviewConversation": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "previousPath": "Array<string>"
+    },
     "attachmentSaved": {
       "messageKey": "Types.MessageKey",
       "path": "?string"
@@ -233,6 +237,10 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "deviceType": "DeviceType",
       "notifyType": "Types.NotifyType"
+    },
+    "setNotificationSaveState": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "saveState": "Types.NotificationSaveState",
     },
     "toggleChannelWideNotifications": {
       "conversationIDKey": "Types.ConversationIDKey"

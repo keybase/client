@@ -69,10 +69,12 @@ export const saveAttachmentNative = 'chat:saveAttachmentNative'
 export const selectAttachment = 'chat:selectAttachment'
 export const selectConversation = 'chat:selectConversation'
 export const selectNext = 'chat:selectNext'
+export const selectOrPreviewConversation = 'chat:selectOrPreviewConversation'
 export const setInboxFilter = 'chat:setInboxFilter'
 export const setInboxGlobalUntrustedState = 'chat:setInboxGlobalUntrustedState'
 export const setInboxSyncingState = 'chat:setInboxSyncingState'
 export const setLoaded = 'chat:setLoaded'
+export const setNotificationSaveState = 'chat:setNotificationSaveState'
 export const setNotifications = 'chat:setNotifications'
 export const setPreviousConversation = 'chat:setPreviousConversation'
 export const setTypers = 'chat:setTypers'
@@ -310,6 +312,12 @@ export const createSelectNext = (
     direction: -1 | 1,
   }>
 ) => ({error: false, payload, type: selectNext})
+export const createSelectOrPreviewConversation = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    previousPath: Array<string>,
+  }>
+) => ({error: false, payload, type: selectOrPreviewConversation})
 export const createSetInboxFilter = (payload: $ReadOnly<{filter: string}>) => ({error: false, payload, type: setInboxFilter})
 export const createSetInboxGlobalUntrustedState = (payload: $ReadOnly<{inboxGlobalUntrustedState: Types.UntrustedState}>) => ({error: false, payload, type: setInboxGlobalUntrustedState})
 export const createSetInboxSyncingState = (payload: $ReadOnly<{inboxSyncingState: Types.SyncingState}>) => ({error: false, payload, type: setInboxSyncingState})
@@ -319,6 +327,12 @@ export const createSetLoaded = (
     isLoaded: boolean,
   }>
 ) => ({error: false, payload, type: setLoaded})
+export const createSetNotificationSaveState = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    saveState: Types.NotificationSaveState,
+  }>
+) => ({error: false, payload, type: setNotificationSaveState})
 export const createSetNotifications = (
   payload: $ReadOnly<{
     conversationIDKey: Types.ConversationIDKey,
@@ -481,10 +495,12 @@ export type SaveAttachmentPayload = More.ReturnType<typeof createSaveAttachment>
 export type SelectAttachmentPayload = More.ReturnType<typeof createSelectAttachment>
 export type SelectConversationPayload = More.ReturnType<typeof createSelectConversation>
 export type SelectNextPayload = More.ReturnType<typeof createSelectNext>
+export type SelectOrPreviewConversationPayload = More.ReturnType<typeof createSelectOrPreviewConversation>
 export type SetInboxFilterPayload = More.ReturnType<typeof createSetInboxFilter>
 export type SetInboxGlobalUntrustedStatePayload = More.ReturnType<typeof createSetInboxGlobalUntrustedState>
 export type SetInboxSyncingStatePayload = More.ReturnType<typeof createSetInboxSyncingState>
 export type SetLoadedPayload = More.ReturnType<typeof createSetLoaded>
+export type SetNotificationSaveStatePayload = More.ReturnType<typeof createSetNotificationSaveState>
 export type SetNotificationsPayload = More.ReturnType<typeof createSetNotifications>
 export type SetPreviousConversationPayload = More.ReturnType<typeof createSetPreviousConversation>
 export type SetTypersPayload = More.ReturnType<typeof createSetTypers>
@@ -574,10 +590,12 @@ export type Actions =
   | More.ReturnType<typeof createSelectAttachment>
   | More.ReturnType<typeof createSelectConversation>
   | More.ReturnType<typeof createSelectNext>
+  | More.ReturnType<typeof createSelectOrPreviewConversation>
   | More.ReturnType<typeof createSetInboxFilter>
   | More.ReturnType<typeof createSetInboxGlobalUntrustedState>
   | More.ReturnType<typeof createSetInboxSyncingState>
   | More.ReturnType<typeof createSetLoaded>
+  | More.ReturnType<typeof createSetNotificationSaveState>
   | More.ReturnType<typeof createSetNotifications>
   | More.ReturnType<typeof createSetPreviousConversation>
   | More.ReturnType<typeof createSetTypers>

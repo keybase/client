@@ -48,6 +48,7 @@ export type MessageID = string
 export type NotifyType = 'atmention' | 'generic' | 'never'
 export type Mentions = I.Set<string>
 export type ChannelMention = 'None' | 'All' | 'Here'
+export type ChannelNameMentions = I.Map<string, ConversationIDKey>
 export type TextMessage = {
   type: 'Text',
   message: HiddenString,
@@ -67,6 +68,7 @@ export type TextMessage = {
   editedCount: number, // increase as we edit it
   mentions: Mentions,
   channelMention: ChannelMention,
+  channelNameMentions: ChannelNameMentions,
   ordinal: number,
 }
 export type ErrorMessage = {
@@ -238,6 +240,7 @@ export type EditingMessage = {
   timestamp: number,
   mentions: Mentions,
   channelMention: ChannelMention,
+  channelNameMentions: ChannelNameMentions,
   ordinal: number,
 }
 
@@ -319,6 +322,8 @@ export type NotificationsState = {
 // firstUnboxing is when its going from untrusted to unboxing vs unboxed to reUnboxing
 export type InboxUntrustedState = 'untrusted' | 'unboxed' | 'error' | 'firstUnboxing' | 'reUnboxing'
 
+export type NotificationSaveState = 'unsaved' | 'saving' | 'saved'
+
 export type _InboxState = {
   conversationIDKey: ConversationIDKey,
   info: ?RPCChatTypes.ConversationInfoLocal,
@@ -330,6 +335,7 @@ export type _InboxState = {
   memberStatus: RPCChatTypes.ConversationMemberStatus,
   membersType: RPCChatTypes.ConversationMembersType,
   notifications: ?NotificationsState,
+  notificationSaveState: NotificationSaveState,
   participants: I.List<string>,
   fullNames: I.Map<string, string>,
   status: ConversationStateEnum,

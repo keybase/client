@@ -4,12 +4,13 @@ import type {FeatureFlags} from './feature-flags'
 
 const ff: FeatureFlags = {
   admin: __DEV__,
+  fsEnabled: __DEV__,
+  impTeamChatEnabled: true,
   newPeopleTab: __DEV__,
   plansEnabled: false,
+  tabGitEnabled: true,
   tabPeopleEnabled: false,
   teamChatEnabled: true,
-  tabGitEnabled: true,
-  impTeamChatEnabled: true,
 }
 
 if (__DEV__) {

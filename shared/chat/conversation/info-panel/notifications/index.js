@@ -1,13 +1,31 @@
 // @flow
 import * as React from 'react'
-import {Box, Checkbox, Icon, RadioButton, Text} from '../../../../common-adapters'
+import {Box, Checkbox, Icon, RadioButton, ProgressIndicator, Text} from '../../../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../../styles'
+import {type NotificationSaveState} from '../../../../constants/types/chat'
 import type {Props} from '.'
+
+const SaveStateComponents = (saveState: NotificationSaveState) => {
+  switch (saveState) {
+    case 'unsaved':
+      return null
+    case 'saving':
+      return <ProgressIndicator style={{alignSelf: 'center', width: globalMargins.medium}} />
+    case 'saved':
+      return [
+        <Icon key="0" type="iconfont-check" style={{color: globalColors.green}} />,
+        <Text key="1" type="BodySmall" style={{color: globalColors.green}}>
+          &nbsp; Saved
+        </Text>,
+      ]
+  }
+}
 
 const Notifications = ({
   channelWide,
   desktop,
   mobile,
+  saveState,
   onSetDesktop,
   onSetMobile,
   onToggleChannelWide,
@@ -90,6 +108,7 @@ const Notifications = ({
         label={'Never'}
       />
     </Box>
+    <Box style={styleSaveState}>{SaveStateComponents(saveState)}</Box>
   </Box>
 )
 
@@ -107,6 +126,13 @@ const styleHeaderMobile = {
 const styleRadioButton = {
   ...globalStyles.flexBoxRow,
   marginLeft: globalMargins.tiny,
+}
+
+const styleSaveState = {
+  ...globalStyles.flexBoxRow,
+  height: globalMargins.large,
+  justifyContent: 'center',
+  paddingTop: globalMargins.small,
 }
 
 export default Notifications

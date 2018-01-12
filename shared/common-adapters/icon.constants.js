@@ -491,6 +491,11 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-history-clear-64.png'),
   },
+  'icon-illustration-subteams-380': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-illustration-subteams-380.png'),
+  },
   'icon-illustration-teams-180': {
     isFont: false,
     extension: 'png',

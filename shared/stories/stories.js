@@ -23,6 +23,7 @@ import editTeamDescription from '../teams/edit-team-description/index.stories'
 import peopleTask from '../people/task/index.stories'
 import peopleFollowNotification from '../people/follow-notification/index.stories'
 import peopleFollowSuggestions from '../people/follow-suggestions/index.stories'
+import fs from '../fs/index.stories.js'
 
 const stories = {
   avatar,
@@ -39,6 +40,7 @@ const stories = {
   checkbox,
   dropdown,
   editTeamDescription,
+  fs,
   git,
   icon,
   peopleTask,

@@ -313,12 +313,6 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
       },
     }
 
-    const implicitAdminDetails: Array<RPCTypes.TeamMemberDetails> =
-      (yield Saga.call(RPCTypes.teamsTeamImplicitAdminsRpcPromise, {
-        teamName: teamname,
-      })) || []
-    const implicitAdminUsernames = I.Set(implicitAdminDetails.map(x => x.username))
-
     // Get requests to join
     const requests: RPCTypes.TeamJoinRequest[] = yield Saga.call(RPCTypes.teamsTeamListRequestsRpcPromise)
     requests.sort((a, b) => a.username.localeCompare(b.username))
@@ -379,6 +373,13 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
       }
     )
 
+    // Get the subteam map for this team.  TeamTree only accepts a top-level
+    // team, not a subteam, so we'll call it for the team and filter out
+    // any subteams we don't care about later.
+    const teamTree = yield Saga.call(RPCTypes.teamsTeamTreeRpcPromise, {
+      name: {parts: [teamname.split('.')[0]]},
+    })
+    const subteams = teamTree.entries.map(team => team.name.parts.join('.'))
     const state: TypedState = yield Saga.select()
     const yourOperations = Constants.getCanPerform(state, teamname)
 
@@ -401,16 +402,11 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
     yield Saga.all([
       Saga.put(replaceEntity(['teams', 'teamNameToMembers'], I.Map([[teamname, I.Set(infos)]]))),
       Saga.put(replaceEntity(['teams', 'teamNameToMemberUsernames'], I.Map([[teamname, memberNames]]))),
-      Saga.put(
-        replaceEntity(
-          ['teams', 'teamNameToImplicitAdminUsernames'],
-          I.Map([[teamname, implicitAdminUsernames]])
-        )
-      ),
       Saga.put(replaceEntity(['teams', 'teamNameToRequests'], I.Map(requestMap))),
       Saga.put(replaceEntity(['teams', 'teamNameToTeamSettings'], I.Map({[teamname]: details.settings}))),
       Saga.put(replaceEntity(['teams', 'teamNameToInvites'], I.Map([[teamname, I.Set(invitesMap)]]))),
       Saga.put(replaceEntity(['teams', 'teamNameToPublicitySettings'], I.Map({[teamname]: publicityMap}))),
+      Saga.put(replaceEntity(['teams', 'teamNameToSubteams'], I.Map([[teamname, I.Set(subteams)]]))),
     ])
   } finally {
     yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, false]])))

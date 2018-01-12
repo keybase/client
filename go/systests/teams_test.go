@@ -942,7 +942,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	pamPerms := callCanPerform(pam, team)
 	eddPerms := callCanPerform(edd, team)
 
-	// All ops except leave should be fine for owners and admins
+	// All ops except leave and join should be fine for owners and admins
 	require.True(t, annPerms.ManageMembers)
 	require.True(t, annPerms.ManageSubteams)
 	require.True(t, annPerms.CreateChannel)
@@ -953,6 +953,9 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.True(t, annPerms.SetMemberShowcase)
 	require.True(t, annPerms.ChangeOpenTeam)
 	require.False(t, annPerms.LeaveTeam) // sole owner can't leave
+	require.False(t, annPerms.ListFirst) // only true for implicit admins
+	require.False(t, annPerms.JoinTeam)
+	require.True(t, annPerms.SetPublicityAny)
 	require.True(t, annPerms.ChangeTarsDisabled)
 
 	require.True(t, bobPerms.ManageMembers)
@@ -965,6 +968,9 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.True(t, bobPerms.SetMemberShowcase)
 	require.True(t, bobPerms.ChangeOpenTeam)
 	require.True(t, bobPerms.LeaveTeam)
+	require.False(t, bobPerms.ListFirst)
+	require.False(t, bobPerms.JoinTeam)
+	require.True(t, bobPerms.SetPublicityAny)
 	require.True(t, bobPerms.ChangeTarsDisabled)
 
 	// Some ops are fine for writers
@@ -978,6 +984,9 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.True(t, pamPerms.SetMemberShowcase)
 	require.False(t, pamPerms.ChangeOpenTeam)
 	require.True(t, pamPerms.LeaveTeam)
+	require.False(t, pamPerms.ListFirst)
+	require.False(t, pamPerms.JoinTeam)
+	require.False(t, pamPerms.SetPublicityAny)
 	require.False(t, pamPerms.ChangeTarsDisabled)
 
 	// Only SetMemberShowcase (by default) and LeaveTeam is available for readers
@@ -991,6 +1000,9 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.True(t, eddPerms.SetMemberShowcase)
 	require.False(t, eddPerms.ChangeOpenTeam)
 	require.True(t, eddPerms.LeaveTeam)
+	require.False(t, eddPerms.ListFirst)
+	require.False(t, eddPerms.JoinTeam)
+	require.False(t, eddPerms.SetPublicityAny)
 	require.False(t, eddPerms.ChangeTarsDisabled)
 
 	annPerms = callCanPerform(ann, subteam)
@@ -1006,6 +1018,10 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.True(t, annPerms.SetTeamShowcase)
 	require.False(t, annPerms.SetMemberShowcase)
 	require.True(t, annPerms.ChangeOpenTeam) // not a member of the subteam
+	require.True(t, annPerms.ListFirst)
+	require.True(t, annPerms.JoinTeam)
+	require.True(t, annPerms.SetPublicityAny)
+
 	require.True(t, annPerms.ChangeTarsDisabled)
 
 	require.True(t, bobPerms.ManageMembers)
@@ -1018,6 +1034,9 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, bobPerms.SetMemberShowcase)
 	require.True(t, bobPerms.ChangeOpenTeam)
 	require.False(t, bobPerms.LeaveTeam) // not a member of the subteam
+	require.True(t, annPerms.ListFirst)
+	require.True(t, annPerms.JoinTeam)
+	require.True(t, annPerms.SetPublicityAny)
 	require.True(t, annPerms.ChangeTarsDisabled)
 
 	// Invalid team for pam
