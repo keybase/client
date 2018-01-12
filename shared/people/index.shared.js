@@ -6,7 +6,7 @@ import Todo from './task/container'
 import FollowNotification from './follow-notification'
 import FollowSuggestions from './follow-suggestions'
 import {type Props} from '.'
-import {globalStyles, globalColors} from '../styles'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 
 export const itemToComponent: Types._PeopleScreenItem => React.Node = (item, actions) => {
   switch (item.type) {
@@ -61,7 +61,7 @@ const styleSearchContainer = {
   ...globalStyles.clickable,
   alignItems: 'center',
   alignSelf: 'center',
-  backgroundColor: globalColors.white,
+  backgroundColor: globalColors.black_05,
   borderRadius: 100,
   justifyContent: 'center',
   zIndex: 20,
@@ -69,12 +69,12 @@ const styleSearchContainer = {
 
 const styleSearch = {
   color: globalColors.black_20,
-  fontSize: 15,
-  padding: 3,
+  padding: globalMargins.xtiny,
 }
 
 const styleSearchText = {
   ...styleSearch,
+  color: globalColors.black_40,
   position: 'relative',
   top: -1,
 }

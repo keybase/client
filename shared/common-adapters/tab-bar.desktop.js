@@ -118,11 +118,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
         {badgeNumber > 0 && (
           <Box style={{width: 0, display: 'flex'}}>
             <Box style={styleBadgeAvatar}>
-              <Badge
-                badgeNumber={badgeNumber}
-                badgeStyle={{marginLeft: 0, marginRight: 0}}
-                outlineColor={globalColors.darkBlue2}
-              />
+              <Badge badgeNumber={badgeNumber} badgeStyle={{marginLeft: 0, marginRight: 0}} />
             </Box>
           </Box>
         )}
@@ -162,7 +158,6 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
               <Badge
                 badgeNumber={badgeNumber}
                 badgeStyle={{marginLeft: 0, marginRight: globalMargins.tiny}}
-                outlineColor={globalColors.darkBlue2}
               />
             </Box>
           )}
@@ -309,7 +304,7 @@ const stylesTabBarNavIcon = {
 }
 
 const navRealCSS = `
-  .nav-item .img { color: ${globalColors.darkBlue}; }
+  .nav-item .img { color: ${globalColors.darkBlue3_75}; }
   .nav-item:hover .img { color: ${globalColors.white}; }
   .nav-item.selected .img { color: ${globalColors.white}; }
 
@@ -329,14 +324,14 @@ const stylesNavText = {
 
 const styleBadgeAvatar = {
   position: 'absolute',
-  left: 45,
-  top: 0,
+  left: 46,
+  top: 4,
 }
 
 const styleBadgeNav = {
   position: 'absolute',
-  left: 45,
-  top: 4,
+  left: 46,
+  top: 5,
 }
 
 const styleBadgeIcon = {

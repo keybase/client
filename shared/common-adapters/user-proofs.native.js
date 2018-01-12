@@ -102,7 +102,7 @@ function ProofRow({proof, onClickStatus, onClickProfile, hasMenu, style}: ProofR
             ) : (
               <Icon
                 type={proofStatusIconType}
-                style={{fontSize: 32, color: shared.proofColor(proof, true)}}
+                style={{fontSize: 26, color: shared.proofColor(proof, true)}}
               />
             ))}
           {hasMenu && <Icon type="iconfont-caret-down" />}

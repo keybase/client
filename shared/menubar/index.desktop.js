@@ -258,13 +258,7 @@ const BadgeIcon = ({
       onClick={() => openApp(tab)}
     >
       <Icon style={{color: count ? globalColors.blue : globalColors.lightGrey2}} type={iconType} />
-      {!!count && (
-        <Badge
-          badgeNumber={count}
-          badgeStyle={{position: 'absolute', left: 14, bottom: -3}}
-          outlineColor={globalColors.white}
-        />
-      )}
+      {!!count && <Badge badgeNumber={count} badgeStyle={{position: 'absolute', left: 18, top: 0}} />}
     </Box>
   )
 }
