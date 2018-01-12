@@ -10,11 +10,7 @@ const SaveStateControl = (saveState: NotificationSaveState) => {
     case 'unsaved':
       return null
     case 'saving':
-      return (
-        <ProgressIndicator
-          style={{alignSelf: 'center', marginLeft: globalMargins.small, width: globalMargins.small}}
-        />
-      )
+      return <ProgressIndicator style={{alignSelf: 'center', width: globalMargins.medium}} />
     case 'saved':
       return <Text type="BodySmallSemibold">Saved!</Text>
   }
@@ -107,7 +103,7 @@ const Notifications = ({
         label={'Never'}
       />
     </Box>
-    <Box style={styleHeader}>{SaveStateControl(saveState)}</Box>
+    <Box style={styleSaveState}>{SaveStateControl(saveState)}</Box>
   </Box>
 )
 
@@ -125,6 +121,12 @@ const styleHeaderMobile = {
 const styleRadioButton = {
   ...globalStyles.flexBoxRow,
   marginLeft: globalMargins.tiny,
+}
+
+const styleSaveState = {
+  ...globalStyles.flexBoxRow,
+  justifyContent: 'center',
+  paddingTop: globalMargins.small,
 }
 
 export default Notifications
