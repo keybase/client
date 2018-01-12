@@ -496,9 +496,12 @@ func ListenAndServe(ctx context.Context,
 	httpServer := http.Server{
 		Addr: ":80",
 		// Enable http-01 by calling the HTTPHandler method, and set the
-		// fallback HTTP handler to nil, which means we'll get a handler that
-		// redirects all HTTP traffic that's not for ACME domain verification
-		// to HTTPS.
+		// fallback HTTP handler to nil. As described in the autocert doc
+		// (https://github.com/golang/crypto/blob/13931e22f9e72ea58bb73048bc752b48c6d4d4ac/acme/autocert/autocert.go#L248-L251),
+		// this means for requests not for ACME domain verification, a default
+		// fallback handler is used, which redirects all HTTP traffic using GET
+		// and HEAD to HTTPS using 302 Found, and responds with 400 Bad Request
+		// for requests with other methods.
 		Handler:           manager.HTTPHandler(nil),
 		ReadHeaderTimeout: httpReadHeaderTimeout,
 		IdleTimeout:       httpIdleTimeout,
