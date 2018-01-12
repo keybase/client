@@ -13,8 +13,8 @@ const SaveStateControl = (saveState: NotificationSaveState) => {
       return <ProgressIndicator style={{alignSelf: 'center', width: globalMargins.medium}} />
     case 'saved':
       return [
-        <Icon key="0" type="iconfont-check" />,
-        <Text key="1" type="BodySmall" style={{color: globalColors.black_75}}>
+        <Icon key="0" type="iconfont-check" style={{color: globalColors.green}} />,
+        <Text key="1" type="BodySmall" style={{color: globalColors.green}}>
           &nbsp; Saved
         </Text>,
       ]
