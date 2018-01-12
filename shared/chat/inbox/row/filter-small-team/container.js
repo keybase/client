@@ -3,20 +3,18 @@ import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Constants2 from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import {FilterSmallTeam} from '.'
-import {pausableConnect, type TypedState} from '../../../../util/container'
+import {connect, type TypedState} from '../../../../util/container'
 
-type OwnProps = {conversationIDKey: ?Types.ConversationIDKey, isActiveRoute: boolean}
+type OwnProps = {conversationIDKey: ?Types.ConversationIDKey}
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const conversationIDKey = ownProps.conversationIDKey || ''
-  const {isActiveRoute} = ownProps
 
   return {
     _meta: Constants2.getMeta(state, conversationIDKey),
     _username: state.config.username || '',
     hasBadge: Constants2.getHasBadge(state, conversationIDKey),
     hasUnread: Constants2.getHasUnread(state, conversationIDKey),
-    isActiveRoute,
     isSelected: Constants2.getIsSelected(state, conversationIDKey),
   }
 }
@@ -38,7 +36,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     backgroundColor: styles.backgroundColor,
     hasBadge: stateProps.hasBadge,
     hasUnread,
-    isActiveRoute: ownProps.isActiveRoute,
     isMuted: stateProps._meta.isMuted,
     isSelected,
     onSelectConversation: dispatchProps.onSelectConversation,
@@ -52,4 +49,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps)(FilterSmallTeam)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(FilterSmallTeam)

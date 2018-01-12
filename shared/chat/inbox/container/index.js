@@ -1,29 +1,14 @@
 // @flow
-import * as More from '../../../constants/types/more'
 import * as Types from '../../../constants/types/chat2'
 import * as Inbox from '..'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as TeamsGen from '../../../actions/teams-gen'
-import * as I from 'immutable'
-import {pausableConnect, compose, lifecycle, withState, withHandlers} from '../../../util/container'
+import {connect, compose, lifecycle, withStateHandlers, withProps} from '../../../util/container'
 import type {TypedState, Dispatch} from '../../../util/container'
-import type {Props} from '..'
 import normalRowData from './normal'
 import filteredRowData from './filtered'
 
-type OwnProps = {
-  isActiveRoute: boolean,
-  filterFocusCount: number,
-  routeState: I.RecordOf<{
-    smallTeamsExpanded: boolean,
-  }>,
-  focusFilter: () => void,
-  setRouteState: ({
-    smallTeamsExpanded?: boolean,
-  }) => void,
-}
-
-const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}: OwnProps) => {
+const mapStateToProps = (state: TypedState, {routeState}) => {
   const filter = state.chat2.inboxFilter
   const smallTeamsExpanded = routeState.get('smallTeamsExpanded')
   const rowMetadata = filter ? filteredRowData(state) : normalRowData(state, smallTeamsExpanded)
@@ -33,14 +18,13 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}: OwnProp
     ...rowMetadata,
     _selectedConversationIDKey,
     filter,
-    isActiveRoute,
     isLoading: !state.chat2.loadingMap.isEmpty(),
     neverLoaded: state.chat2.metaMap.isEmpty(),
     showNewConversation: state.chat2.isSearching,
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRouteState}: OwnProps) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {routeState, setRouteState}) => ({
   _onSelectNext: (
     rows: Array<Inbox.RowItem>,
     selectedConversationIDKey: ?Types.ConversationIDKey,
@@ -59,7 +43,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRou
     }
   },
   getTeams: () => dispatch(TeamsGen.createGetTeams()),
-  onHotkey: (cmd: string) => {
+  _onHotkey: (cmd: string, focusFilter: () => void) => {
     if (cmd.endsWith('+n')) {
       dispatch(Chat2Gen.createSetSearching({searching: true}))
     } else {
@@ -86,18 +70,12 @@ const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRou
 })
 
 // This merge props is not spreading on purpose so we never have any random props that might mutate and force a re-render
-const mergeProps = (
-  stateProps: More.ReturnType<typeof mapStateToProps>,
-  dispatchProps: More.ReturnType<typeof mapDispatchToProps>,
-  ownProps: OwnProps
-): Props => ({
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  _onHotkey: dispatchProps._onHotkey,
   filter: stateProps.filter,
-  filterFocusCount: ownProps.filterFocusCount,
   getTeams: dispatchProps.getTeams,
-  isActiveRoute: stateProps.isActiveRoute,
   isLoading: stateProps.isLoading,
   neverLoaded: stateProps.neverLoaded,
-  onHotkey: dispatchProps.onHotkey,
   onNewChat: dispatchProps.onNewChat,
   onSelect: dispatchProps.onSelect,
   onSelectDown: () => dispatchProps._onSelectNext(stateProps.rows, stateProps._selectedConversationIDKey, 1),
@@ -115,11 +93,14 @@ const mergeProps = (
 })
 
 export default compose(
-  withState('filterFocusCount', 'setFilterFocusCount', 0),
-  withHandlers({
-    focusFilter: props => () => props.setFilterFocusCount(props.filterFocusCount + 1),
-  }),
-  pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  withStateHandlers(
+    {filterFocusCount: 0},
+    {focusFilter: ({filterFocusCount}) => () => ({filterFocusCount: filterFocusCount + 1})}
+  ),
+  withProps(props => ({
+    onHotkey: (cmd: string) => props._onHotkey(cmd, props.focusFilter),
+  })),
   lifecycle({
     componentDidMount() {
       if (this.props.neverLoaded) {

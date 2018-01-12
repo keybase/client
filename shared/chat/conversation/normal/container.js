@@ -168,7 +168,7 @@ export default compose(
     }
   )
 )(Normal)
-// pausableConnect(mapStateToPropsConversation, mapDispatchToPropsConversation, mergePropsConversation),
+// connect(mapStateToPropsConversation, mapDispatchToPropsConversation, mergePropsConversation),
 // withHandlers({
 // // onAddNewParticipant: props => () => props.onAddNewParticipant(true),
 // })

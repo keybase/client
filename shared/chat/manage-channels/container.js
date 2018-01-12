@@ -8,7 +8,7 @@ import * as ChatGen from '../../actions/chat-gen'
 import * as TeamsGen from '../../actions/teams-gen'
 import ManageChannels from '.'
 import {withHandlers, withState, withPropsOnChange} from 'recompose'
-import {pausableConnect, compose, lifecycle, type TypedState} from '../../util/container'
+import {connect, compose, lifecycle, type TypedState} from '../../util/container'
 import {navigateTo, navigateAppend, pathSelector, switchTo} from '../../actions/route-tree'
 import {anyWaiting} from '../../constants/waiting'
 import {chatTab} from '../../constants/tabs'
@@ -84,7 +84,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
 }
 
 export default compose(
-  pausableConnect(mapStateToProps, mapDispatchToProps),
+  connect(mapStateToProps, mapDispatchToProps),
   withPropsOnChange(['channels'], props => ({
     oldChannelState: props.channels.reduce((acc, c) => {
       acc[c.name] = c.selected

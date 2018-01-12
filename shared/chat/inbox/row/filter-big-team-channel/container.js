@@ -1,11 +1,10 @@
 // @flow
 import {FilterBigTeamChannel} from '.'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import {pausableConnect} from '../../../../util/container'
+import {connect} from '../../../../util/container'
 
-const mapStateToProps = (_, {teamname, channelname, isActiveRoute}) => ({
+const mapStateToProps = (_, {teamname, channelname}) => ({
   channelname,
-  isActiveRoute,
   teamname,
 })
 
@@ -16,9 +15,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}) => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   channelname: stateProps.channelname || '',
-  isActiveRoute: stateProps.isActiveRoute,
   onSelectConversation: dispatchProps.onSelectConversation,
   teamname: stateProps.teamname || '',
 })
 
-export default pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps)(FilterBigTeamChannel)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(FilterBigTeamChannel)

@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 import * as React from 'react'
 import type {ConversationIDKey} from '../../constants/types/chat'
 
@@ -26,15 +27,14 @@ export type RowItemDivider = {|
 
 export type RowItem = RowItemSmall | RowItemBigTeamsLabel | RowItemBigHeader | RowItemBig | RowItemDivider
 
-export type RouteState = {
+export type RouteState = I.RecordOf<{
   smallTeamsExpanded: boolean,
-}
+}>
 
 export type Props = {
   children?: React$Element<*>,
   filter: string,
   filterFocusCount: number,
-  isActiveRoute: boolean,
   isLoading: boolean,
   nowOverride?: number, // just for dumb rendering
   onNewChat: () => void,

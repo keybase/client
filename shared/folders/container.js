@@ -5,7 +5,7 @@ import * as ChatGen from '../actions/chat-gen'
 import * as KBFSGen from '../actions/kbfs-gen'
 import * as FavoriteGen from '../actions/favorite-gen'
 import flags from '../util/feature-flags'
-import {pausableConnect, compose, lifecycle, withProps, type TypedState} from '../util/container'
+import {connect, compose, lifecycle, withProps, type TypedState} from '../util/container'
 import {settingsTab} from '../constants/tabs'
 import {switchTo, navigateAppend, navigateTo} from '../actions/route-tree'
 import {type RouteProps} from '../route-tree/render-route'
@@ -42,7 +42,7 @@ const mapDispatchToProps = (dispatch: any, {routePath, routeState, setRouteState
 })
 
 const ConnectedFolders = compose(
-  pausableConnect(mapStateToProps, mapDispatchToProps),
+  connect(mapStateToProps, mapDispatchToProps),
   lifecycle({
     componentDidMount: function() {
       this.props.favoriteList()

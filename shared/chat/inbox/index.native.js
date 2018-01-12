@@ -64,7 +64,6 @@ class Inbox extends React.PureComponent<Props, State> {
       channelname: row.channelname,
       conversationIDKey: row.conversationIDKey,
       filtered: !!this.props.filter,
-      isActiveRoute: true,
       teamname: row.teamname,
       type: row.type,
     })
@@ -198,7 +197,6 @@ class Inbox extends React.PureComponent<Props, State> {
             }
             loading={this.props.isLoading /* force loading to update */}
             data={this.props.rows}
-            isActiveRoute={this.props.isActiveRoute}
             keyExtractor={this._keyExtractor}
             renderItem={this._renderItem}
             ref={this._setRef}

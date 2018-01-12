@@ -26,7 +26,7 @@ import {makeLeafTags} from '../route-tree'
 
 type CardStackShimProps = {
   mode?: 'modal',
-  renderRoute: (route: RenderRouteResult, isActiveRoute: boolean, shouldRender: boolean) => any,
+  renderRoute: (route: RenderRouteResult, shouldRender: boolean) => any,
   onNavigateBack: () => void,
   stack: RouteRenderStack,
   hidden?: boolean,
@@ -43,8 +43,8 @@ class CardStackShim extends Component<CardStackShimProps, *> {
   getComponentForRouteName = () => this.RenderRouteShim
 
   RenderRouteShim = ({navigation}) => {
-    const {route, isActiveRoute, shouldRender} = navigation.state.params
-    return this.props.renderRoute(route, isActiveRoute, shouldRender)
+    const {route, shouldRender} = navigation.state.params
+    return this.props.renderRoute(route, shouldRender)
   }
 
   _dispatchShim = (action: NavigationAction) => {
@@ -72,9 +72,8 @@ class CardStackShim extends Component<CardStackShimProps, *> {
           .map((route, index) => {
             const routeName = route.path.join('/')
             // The bottom/back item of the stack is our top (active) screen
-            const isActiveRoute = !this.props.hidden && index === stack.size - 1
             const shouldRender = !this.props.hidden && (index === stack.size - 1 || index === stack.size - 2)
-            return {key: routeName, routeName, params: {route, isActiveRoute, shouldRender}}
+            return {key: routeName, routeName, params: {route, shouldRender}}
           })
           .toArray(),
       },
@@ -121,7 +120,7 @@ const barStyle = (showStatusBarDarkContent, underStatusBar) => {
   return 'dark-content'
 }
 
-function renderStackRoute(route, isActiveRoute, shouldRender) {
+function renderStackRoute(route, shouldRender) {
   const {underStatusBar, showStatusBarDarkContent, hideStatusBar, root} = route.tags || {}
 
   let style
@@ -144,7 +143,7 @@ function renderStackRoute(route, isActiveRoute, shouldRender) {
           barStyle={barStyle(showStatusBarDarkContent, underStatusBar)}
         />
       )}
-      {route.component({isActiveRoute, shouldRender})}
+      {route.component({shouldRender})}
     </Box>
   )
 }
@@ -334,7 +333,7 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
       />
     )
     const layerScreens = this.props.routeStack.filter(r => r.tags && r.tags.layerOnTop)
-    const layers = layerScreens.map(r => r.leafComponent({isActiveRoute: true, shouldRender: true}))
+    const layers = layerScreens.map(r => r.leafComponent({shouldRender: true}))
 
     // If we have layers, lets add an extra box, else lets just pass through
     if (layers.count()) {

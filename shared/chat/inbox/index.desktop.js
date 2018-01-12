@@ -56,7 +56,6 @@ class Inbox extends PureComponent<Props, State> {
       channelname: row.channelname,
       conversationIDKey: row.conversationIDKey,
       filtered: !!this.props.filter,
-      isActiveRoute: true,
       teamname: row.teamname,
       type: row.type,
     })

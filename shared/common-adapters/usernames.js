@@ -8,7 +8,7 @@ import {connect} from 'react-redux'
 import {type TypedState} from '../constants/reducer'
 import {createShowUserProfile} from '../actions/profile-gen'
 import {createGetProfile} from '../actions/tracker-gen.js'
-import type {Props, PlaintextProps, ConnectedProps} from './usernames'
+import type {Props, PlaintextProps} from './usernames'
 
 function usernameText({
   type,

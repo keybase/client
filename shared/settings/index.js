@@ -1,7 +1,7 @@
 // @flow
 import * as LoginGen from '../actions/login-gen'
 import SettingsContainer from './render'
-import {pausableConnect, type TypedState} from '../util/container'
+import {connect, type TypedState} from '../util/container'
 import {switchTo} from '../actions/route-tree'
 import {type RouteProps} from '../route-tree/render-route'
 import {type Tab} from '../constants/types/settings'
@@ -38,4 +38,4 @@ const mapDispatchToProps = (dispatch: Dispatch, {routePath}: RouteProps<{}, {}>)
   onTabChange: tab => dispatch(switchTo(routePath.push(tab))),
 })
 
-export default pausableConnect(mapStateToProps, mapDispatchToProps)(SettingsContainer)
+export default connect(mapStateToProps, mapDispatchToProps)(SettingsContainer)

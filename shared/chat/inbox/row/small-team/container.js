@@ -3,13 +3,12 @@ import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Constants2 from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import {SmallTeam} from '.'
-import {pausableConnect, type TypedState, type Dispatch} from '../../../../util/container'
+import {connect, type TypedState, type Dispatch} from '../../../../util/container'
 
-type OwnProps = {conversationIDKey: ?Types.ConversationIDKey, isActiveRoute: boolean}
+type OwnProps = {conversationIDKey: ?Types.ConversationIDKey}
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const _conversationIDKey = ownProps.conversationIDKey || ''
-  const {isActiveRoute} = ownProps
   const youAreReset = false // Constants.isResetConversationIDKey(state, _conversationIDKey)
 
   return {
@@ -20,7 +19,6 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
     _username: state.config.username || '',
     hasBadge: Constants2.getHasBadge(state, _conversationIDKey),
     hasUnread: Constants2.getHasUnread(state, _conversationIDKey),
-    isActiveRoute,
     isSelected: Constants2.getIsSelected(state, _conversationIDKey),
     youAreReset,
   }
@@ -43,7 +41,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     hasBadge: stateProps.hasBadge,
     hasResetUsers: !stateProps._meta.resetParticipants.isEmpty(),
     hasUnread,
-    isActiveRoute: ownProps.isActiveRoute,
     isMuted: stateProps._meta.isMuted,
     isSelected,
     onSelectConversation: dispatchProps.onSelectConversation,
@@ -60,4 +57,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps)(SmallTeam)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(SmallTeam)
