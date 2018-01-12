@@ -6,6 +6,7 @@ package libgit
 
 import (
 	"context"
+	"fmt"
 
 	billy "gopkg.in/src-d/go-billy.v4"
 	gogit "gopkg.in/src-d/go-git.v4"
@@ -23,15 +24,15 @@ import (
 // no modifying calls into the repo, other than checkout/reset-related
 // calls.
 //
-// For the convenience of the caller, it also returns `currentHead`,
+// For the convenience of the caller, it also returns `repoHead`,
 // which is the current commit at the HEAD of `branch`, according to
 // the bare repo represented by `repoFS`.  In addition, it returns
-// `repoHead`, which is the current commit that the worktree has or
+// `worktreeHead`, which is the current commit that the worktree has or
 // `plumbing.ZeroHash` if the worktree is uninitialized.
 func repoFromStorageAndWorktree(
 	repoFS billy.Filesystem, worktreeFS billy.Filesystem,
 	branch plumbing.ReferenceName) (
-	repo *gogit.Repository, currentHead, repoHead plumbing.Hash, err error) {
+	repo *gogit.Repository, repoHead, worktreeHead plumbing.Hash, err error) {
 	repoStorer, err := filesystem.NewStorage(repoFS)
 	if err != nil {
 		return nil, plumbing.ZeroHash, plumbing.ZeroHash, err
@@ -44,7 +45,7 @@ func repoFromStorageAndWorktree(
 		return nil, plumbing.ZeroHash, plumbing.ZeroHash, err
 	}
 
-	currentHeadRef, err := storer.ResolveReference(storage, branch)
+	repoHeadRef, err := storer.ResolveReference(storage, branch)
 	if err != nil {
 		return nil, plumbing.ZeroHash, plumbing.ZeroHash, err
 	}
@@ -61,10 +62,10 @@ func repoFromStorageAndWorktree(
 	if err != nil {
 		return nil, plumbing.ZeroHash, plumbing.ZeroHash, err
 	}
-	repoHead = plumbing.ZeroHash
-	repoHeadRef, err := storer.ResolveReference(wtDotgit, plumbing.HEAD)
+	worktreeHead = plumbing.ZeroHash
+	worktreeHeadRef, err := storer.ResolveReference(wtDotgit, plumbing.HEAD)
 	if err == nil {
-		repoHead = repoHeadRef.Hash()
+		worktreeHead = worktreeHeadRef.Hash()
 	}
 
 	wtStorage := &worktreeStorer{storage, storage, wtDotgit}
@@ -76,7 +77,7 @@ func repoFromStorageAndWorktree(
 	if err != nil {
 		return nil, plumbing.ZeroHash, plumbing.ZeroHash, err
 	}
-	return repo, currentHeadRef.Hash(), repoHead, nil
+	return repo, repoHeadRef.Hash(), worktreeHead, nil
 }
 
 // Reset checks out a repo from a billy filesystem, into another billy
@@ -102,14 +103,14 @@ func repoFromStorageAndWorktree(
 func Reset(
 	ctx context.Context, repoFS billy.Filesystem, worktreeFS billy.Filesystem,
 	branch plumbing.ReferenceName) error {
-	repo, currentHead, repoHead, err := repoFromStorageAndWorktree(
+	repo, repoHead, worktreeHead, err := repoFromStorageAndWorktree(
 		repoFS, worktreeFS, branch)
 	if err != nil {
 		return err
 	}
 
 	// Quickly check if the repo is already up-to-date.
-	if repoHead == currentHead {
+	if worktreeHead == repoHead {
 		return nil
 	}
 
@@ -118,8 +119,16 @@ func Reset(
 		return err
 	}
 
+	defer func() {
+		if err != nil {
+			// Clean up the worktree HEAD so the next update attempt
+			// won't get optimized away.
+			_ = worktreeFS.Remove(fmt.Sprintf(".git/%s", plumbing.HEAD))
+		}
+	}()
+
 	return wt.Reset(&gogit.ResetOptions{
-		Commit: currentHead,
+		Commit: repoHead,
 		Mode:   gogit.HardReset,
 	})
 }
