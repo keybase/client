@@ -50,7 +50,7 @@ const mapStateToProps = (state: TypedState): * => {
     conversationIDKey,
     desktop,
     mobile,
-    saveState: notifications.saveState,
+    saveState: inbox.get('notificationSaveState'),
   }
 }
 

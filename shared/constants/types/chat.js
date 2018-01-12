@@ -313,17 +313,16 @@ export type NotificationsKindState = {
   atmention: boolean,
 }
 
-export type NotificationSaveState = 'unchanged' | 'saving' | 'saved'
-
 export type NotificationsState = {
   channelWide: boolean,
   desktop: NotificationsKindState,
-  saveState: NotificationSaveState,
   mobile: NotificationsKindState,
 }
 
 // firstUnboxing is when its going from untrusted to unboxing vs unboxed to reUnboxing
 export type InboxUntrustedState = 'untrusted' | 'unboxed' | 'error' | 'firstUnboxing' | 'reUnboxing'
+
+export type NotificationSaveState = 'unchanged' | 'saving' | 'saved'
 
 export type _InboxState = {
   conversationIDKey: ConversationIDKey,
@@ -336,6 +335,7 @@ export type _InboxState = {
   memberStatus: RPCChatTypes.ConversationMemberStatus,
   membersType: RPCChatTypes.ConversationMembersType,
   notifications: ?NotificationsState,
+  notificationSaveState: NotificationSaveState,
   participants: I.List<string>,
   fullNames: I.Map<string, string>,
   status: ConversationStateEnum,
