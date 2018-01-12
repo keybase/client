@@ -90,6 +90,6 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  // $FlowIssue doens't like dynamic props like we do above
+  // $FlowIssue doesn't like dynamic props like we do above
   branch(props => !props.conversationIDKey, renderNothing)
 )(Notifications)
