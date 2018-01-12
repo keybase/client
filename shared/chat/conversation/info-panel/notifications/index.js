@@ -10,12 +10,13 @@ const SaveStateControl = (saveState: NotificationSaveState) => {
     case 'unchanged':
       return null
     case 'saving':
-    case 'saved':
       return (
         <ProgressIndicator
           style={{alignSelf: 'center', marginLeft: globalMargins.small, width: globalMargins.small}}
         />
       )
+    case 'saved':
+      return <Text type="BodySmallSemibold">Saved!</Text>
   }
 }
 
