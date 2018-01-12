@@ -13,7 +13,6 @@ import keybaseUrl from '../../constants/urls'
 import openURL from '../../util/open-url'
 import {getPathProps} from '../../route-tree'
 import {navigateTo, navigateUp, putActionIfOnPath} from '../../actions/route-tree'
-import {parseUserId} from '../../util/platforms'
 import {loginTab, peopleTab} from '../../constants/tabs'
 import {pgpSaga} from './pgp'
 import {proofsSaga} from './proofs'
@@ -54,69 +53,10 @@ function _showUserProfile(action: ProfileGen.ShowUserProfilePayload, state: Type
   const searchResultMap = Selectors.searchResultMapSelector(state)
   const username = SearchConstants.maybeUpgradeSearchResultIdToKeybaseId(searchResultMap, userId)
   // get data on whose profile is currently being shown
-  const {newPeopleTab} = flags
-  const me = Selectors.usernameSelector(state)
-
-  // Get the peopleTab path including only profiles
+  const me = Selectors.usernameSelector(state) || ''
+  // Get the peopleTab path
   const peopleRouteProps = getPathProps(state.routeTree.routeState, [peopleTab])
-  const onlyProfilesProps = peopleRouteProps.filter(segment =>
-    [peopleTab, 'profile', 'nonUserProfile'].includes(segment.node)
-  )
-  const onlyProfilesPath = onlyProfilesProps.toArray().map(segment => ({
-    selected: segment.node || null,
-    props: segment.props.toObject(),
-  }))
-  // Assume user exists
-  if (!username.includes('@')) {
-    if (onlyProfilesProps.size <= 1) {
-      // There's nothing on the peopleTab stack
-      if (username === me && !newPeopleTab) {
-        // I'm already the root of the tab
-        return Saga.put(navigateTo([peopleTab]))
-      }
-      return Saga.put(navigateTo([peopleTab, {selected: 'profile', props: {username}}]))
-    }
-    // check last entry in path
-    const topNode = onlyProfilesProps.get(onlyProfilesProps.size - 1)
-    if (!topNode) {
-      // Will never happen
-      throw new Error('topProps undefined in _showUserProfile!')
-    }
-    if (topNode.node === 'profile' && topNode.props.get('username') === username) {
-      return Saga.put(navigateTo(onlyProfilesPath))
-    }
-    return Saga.put(navigateTo([...onlyProfilesPath, {selected: 'profile', props: {username}}]))
-  }
-
-  // search for user first
-  let props = {}
-  const searchResult = Selectors.searchResultSelector(state, username)
-  if (searchResult) {
-    props = {
-      fullname: searchResult.leftFullname,
-      fullUsername: username,
-      serviceName: searchResult.leftService,
-      username: searchResult.leftUsername,
-    }
-  } else {
-    const {username: parsedUsername, serviceId} = parseUserId(username)
-    props = {
-      fullUsername: username,
-      serviceName: SearchConstants.serviceIdToService(serviceId),
-      username: parsedUsername,
-    }
-  }
-  if (onlyProfilesPath.length > 0) {
-    // don't allow dupe
-    const topProfile = onlyProfilesPath[onlyProfilesPath.length - 1]
-    if (
-      // $FlowIssue not sure why it thinks topProfile is a string
-      topProfile.props.fullUsername !== props.fullUsername ||
-      topProfile.props.serviceName !== props.serviceName
-    ) {
-      onlyProfilesPath.push({selected: 'nonUserProfile', props})
-    }
-  }
+  const onlyProfilesPath = Constants.getProfilePath(peopleRouteProps, username, me, state)
   return Saga.put(navigateTo(onlyProfilesPath))
 }
 

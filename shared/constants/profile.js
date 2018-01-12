@@ -1,5 +1,13 @@
 // @flow
 import type {State} from './types/profile'
+import * as I from 'immutable'
+import {type TypedState} from '../util/container'
+import flags from '../util/feature-flags'
+import {peopleTab} from '../constants/tabs'
+import {serviceIdToService} from './search'
+import {parseUserId} from '../util/platforms'
+import {searchResultSelector} from './selectors'
+import {type PropsPath} from '../route-tree'
 
 const initialState: State = {
   errorCode: null,
@@ -113,4 +121,72 @@ function urlToUsername(url: URL): ?string {
   return username
 }
 
-export {urlToUsername, maxProfileBioChars, initialState, checkUsernameValid, cleanupUsername}
+const getProfilePath = (
+  peopleRouteProps: I.List<{node: ?string, props: I.Map<string, any>}>,
+  username: string,
+  me: string,
+  state: TypedState
+): PropsPath<*> => {
+  const {newPeopleTab} = flags
+  const onlyProfilesProps = peopleRouteProps.filter(segment =>
+    [peopleTab, 'profile', 'nonUserProfile'].includes(segment.node)
+  )
+  const onlyProfilesPath = onlyProfilesProps.toArray().map(segment => ({
+    selected: segment.node || null,
+    props: segment.props.toObject(),
+  }))
+  // Assume user exists
+  if (!username.includes('@')) {
+    if (onlyProfilesProps.size <= 1) {
+      // There's nothing on the peopleTab stack
+      if (username === me && !newPeopleTab) {
+        // I'm already the root of the tab
+        return [peopleTab]
+      }
+      return [peopleTab, {selected: 'profile', props: {username}}]
+    }
+    // check last entry in path
+    const topNode = onlyProfilesProps.get(onlyProfilesProps.size - 1)
+    if (!topNode) {
+      // Will never happen
+      throw new Error('topProps undefined in _showUserProfile!')
+    }
+    if (topNode.node === 'profile' && topNode.props.get('username') === username) {
+      return onlyProfilesPath
+    }
+    return [...onlyProfilesPath, {selected: 'profile', props: {username}}]
+  }
+
+  // search for user first
+  let props = {}
+  const searchResult = searchResultSelector(state, username)
+  if (searchResult) {
+    props = {
+      fullname: searchResult.leftFullname,
+      fullUsername: username,
+      serviceName: searchResult.leftService,
+      username: searchResult.leftUsername,
+    }
+  } else {
+    const {username: parsedUsername, serviceId} = parseUserId(username)
+    props = {
+      fullUsername: username,
+      serviceName: serviceIdToService(serviceId),
+      username: parsedUsername,
+    }
+  }
+  if (onlyProfilesPath.length > 0) {
+    // don't allow dupe
+    const topProfile = onlyProfilesPath[onlyProfilesPath.length - 1]
+    if (
+      // $FlowIssue not sure why it thinks topProfile is a string
+      topProfile.props.fullUsername !== props.fullUsername ||
+      topProfile.props.serviceName !== props.serviceName
+    ) {
+      onlyProfilesPath.push({selected: 'nonUserProfile', props})
+    }
+  }
+  return onlyProfilesPath
+}
+
+export {checkUsernameValid, cleanupUsername, getProfilePath, initialState, maxProfileBioChars, urlToUsername}
