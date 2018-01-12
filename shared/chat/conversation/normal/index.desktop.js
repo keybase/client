@@ -2,16 +2,16 @@
 import * as React from 'react'
 import Banner from '../banner/container'
 import Header from '../header/container'
-import SearchResultsList from '../../../search/results-list/container'
+// import SearchResultsList from '../../../search/results-list/container'
 import InputArea from '../input-area/container'
 import List from '../list/container'
 // import OldProfileResetNotice from '../notices/old-profile-reset-notice/container'
 import InfoPanel from '../info-panel/container'
-import {Box, Icon, LoadingLine, ProgressIndicator, Text} from '../../../common-adapters'
+import {Box, Icon, LoadingLine, /* ProgressIndicator, */ Text} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
-import {readImageFromClipboard} from '../../../util/clipboard.desktop'
-import CreateTeamHeader from '../create-team-header/container'
-import YouAreReset from '../you-are-reset'
+// import {readImageFromClipboard} from '../../../util/clipboard.desktop'
+// import CreateTeamHeader from '../create-team-header/container'
+// import YouAreReset from '../you-are-reset'
 
 import type {Props} from '.'
 
@@ -211,10 +211,10 @@ const dropOverlayStyle = {
   top: 0,
 }
 
-const styleSpinner = {
-  alignSelf: 'center',
-  marginTop: globalMargins.small,
-  width: 24,
-}
+// const styleSpinner = {
+// alignSelf: 'center',
+// marginTop: globalMargins.small,
+// width: 24,
+// }
 
 export default Conversation

@@ -14,7 +14,7 @@ type SwitchProps = {
 
 class Conversation extends React.PureComponent<SwitchProps> {
   render() {
-    if (this.showNoConvo) {
+    if (this.props.showNoConvo) {
       return <NoConversation />
     }
     // if (this.props.showRekey) {

@@ -2,31 +2,46 @@
 import * as I from 'immutable'
 import * as React from 'react'
 import * as RouteTree from '../route-tree/render-route'
+import shallowEqual from 'shallowequal'
 import GlobalError from './global-errors/container'
 import Offline from '../offline/container'
 import TabBar from './tab-bar/container'
 import {Box, ErrorBoundary} from '../common-adapters'
-import {chatTab, loginTab, peopleTab, profileTab, type Tab} from '../constants/tabs'
+import {chatTab, loginTab, type Tab} from '../constants/tabs'
 import {connect, type TypedState, type Dispatch} from '../util/container'
 import {globalStyles} from '../styles'
-import {navigateTo, switchTo} from '../actions/route-tree'
-import {createShowUserProfile} from '../actions/profile-gen'
-import {type OwnProps} from './nav'
 
 type Props = {
   layerScreens: I.Stack<RouteTree.RenderRouteResult>,
-  switchTab: (tab: Tab) => void,
   visibleScreen: RouteTree.RenderRouteResult,
   routeSelected: Tab,
+  routePath: I.List<string>,
 }
 
-class Nav extends React.PureComponent<Props> {
+class Nav extends React.Component<Props> {
+  shouldComponentUpdate(nextProps: Props) {
+    // specialized comparison here since we really don't want to render thrash
+    const equal = shallowEqual(this.props, nextProps, (obj, oth, key) => {
+      // Use immutable comparison for these props
+      if (['layerScreens', 'routePath'].includes(key)) {
+        return this.props[key].equals(nextProps[key])
+      }
+      // Assume these are the same
+      if (key === 'visibleScreen') {
+        return true
+      }
+      return undefined
+    })
+
+    return !equal
+  }
+
   render() {
-    const {routeSelected, visibleScreen, layerScreens, switchTab} = this.props
+    const {routeSelected, routePath, visibleScreen, layerScreens} = this.props
     return (
       <ErrorBoundary>
         <Box style={stylesTabsContainer}>
-          {routeSelected !== loginTab && <TabBar onTabClick={switchTab} selectedTab={routeSelected} />}
+          {routeSelected !== loginTab && <TabBar routeSelected={routeSelected} routePath={routePath} />}
           <ErrorBoundary>
             <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
               {/* We use a fixed key here so we don't remount components like chat. */}
@@ -56,37 +71,7 @@ const mapStateToProps = (state: TypedState) => ({
   _username: state.config.username,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
-  _switchTab: (tab: Tab, me: ?string) => {
-    if (tab === chatTab && ownProps.routeSelected === tab) {
-      // clicking the chat tab when already selected should do nothing.
-      return
-    }
-
-    // If we're going to the people tab, switch to the current user's
-    // people first before switching tabs, if necessary.
-    if (tab === peopleTab) {
-      if (ownProps.routeSelected === tab) {
-        // clicking on people tab when already selected should back out to root people page
-        dispatch(navigateTo([], [peopleTab]))
-      }
-      dispatch(switchTo([peopleTab]))
-      return
-    }
-
-    // profileTab = self avatar in bottom left corner
-    // On click switch to people tab and push current user onto people route stack
-    if (tab === profileTab) {
-      me && dispatch(createShowUserProfile({username: me}))
-      dispatch(switchTo([peopleTab]))
-      return
-    }
-
-    // otherwise, back out to the default route of the tab.
-    const action = ownProps.routeSelected === tab ? navigateTo : switchTo
-    dispatch(action(ownProps.routePath.push(tab)))
-  },
-})
+const mapDispatchToProps = (dispatch: Dispatch) => ({})
 
 const mergeProps = (stateProps, dispatchProps, ownProps): Props => {
   const visibleScreen = ownProps.routeStack.findLast(r => !r.tags.layerOnTop)
@@ -97,8 +82,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps): Props => {
   const layerScreens = ownProps.routeStack.filter(r => r.tags.layerOnTop)
   return {
     layerScreens,
+    routePath: ownProps.routePath,
     routeSelected: ownProps.routeSelected,
-    switchTab: (tab: Tab) => dispatchProps._switchTab(tab, stateProps._username),
     visibleScreen,
   }
 }

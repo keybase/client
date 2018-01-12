@@ -12,13 +12,13 @@ import {
   NativeStatusBar,
 } from '../common-adapters/index.native'
 import {NavigationActions, type NavigationAction} from 'react-navigation'
-import {chatTab, loginTab, peopleTab, folderTab, settingsTab, type Tab} from '../constants/tabs'
+import {chatTab, loginTab, peopleTab, folderTab, settingsTab} from '../constants/tabs'
 import {compose} from 'recompose'
 import {connect, type TypedState} from '../util/container'
 import {globalColors, globalStyles, statusBarHeight} from '../styles/index.native'
 import * as I from 'immutable'
 import {isIOS, isIPhoneX} from '../constants/platform'
-import {navigateTo, navigateUp, switchTo} from '../actions/route-tree'
+import {navigateUp} from '../actions/route-tree'
 import {tabBarHeight} from './tab-bar/index.render.native'
 import {type Props, type OwnProps} from './nav'
 import {type RouteRenderStack, type RenderRouteResult} from '../route-tree/render-route'
@@ -195,7 +195,7 @@ class MainNavStack extends Component<any, any> {
         {![chatTab].includes(props.routeSelected) ? <Offline key="offline" /> : null}
         <GlobalError key="globalError" />
         <AnimatedTabBar show={!props.hideNav}>
-          <TabBar onTabClick={this._switchTab} selectedTab={props.routeSelected} />
+          <TabBar routeSelected={props.routeSelected} routePath={props.routePath} />
         </AnimatedTabBar>
       </Box>
     )
@@ -367,26 +367,6 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   navigateUp: () => dispatch(navigateUp()),
-  switchTab: (tab: Tab) => {
-    if (tab === chatTab && ownProps.routeSelected === tab) {
-      dispatch(navigateTo(ownProps.routePath.push(tab)))
-      return
-    }
-
-    // If we're going to the people tab, switch to the current user's
-    // profile first before switching tabs, if necessary.
-    if (tab === peopleTab) {
-      if (ownProps.routeSelected === tab) {
-        // clicking on profile tab when already selected should back out to root profile page
-        dispatch(navigateTo([], [peopleTab]))
-      }
-      dispatch(switchTo([peopleTab]))
-      return
-    }
-
-    const action = ownProps.routeSelected === tab ? navigateTo : switchTo
-    dispatch(action(ownProps.routePath.push(tab)))
-  },
 })
 
 export default compose(connect(mapStateToProps, mapDispatchToProps))(Nav)
