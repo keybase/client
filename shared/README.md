@@ -184,10 +184,10 @@ set -x KEYBASE_DEV_TOOL_EXTENSIONS "$HOME/Library/Application Support/Google/Chr
 ```
 
 Note that this means you'll have to change the last path component if
-the extension gets
-updated. (See
-[this code](https://github.com/keybase/client/blob/7e9ad67c0f86a82649f2e81586986892adcdf6fa/shared/desktop/app/dev-tools.js) and
-[the Electron docs](https://electron.atom.io/docs/tutorial/devtools-extension/) for
+Chrome updates the extension, which can happen at any time. (See [this
+code](https://github.com/keybase/client/blob/7e9ad67c0f86a82649f2e81586986892adcdf6fa/shared/desktop/app/dev-tools.js)
+and [the Electron
+docs](https://electron.atom.io/docs/tutorial/devtools-extension/) for
 details.)
 
 Then you can run, e.g. `yarn run start`.
