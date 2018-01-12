@@ -194,11 +194,6 @@ func TestCreateDuplicateRepo(t *testing.T) {
 	select {
 	case <-onStalled2:
 	case <-ctx.Done():
-		select {
-		case err := <-err2ch:
-			t.Log("2nd create finished: %+v", err)
-		default:
-		}
 		t.Fatal(ctx.Err())
 	}
 
