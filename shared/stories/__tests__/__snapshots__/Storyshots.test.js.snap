@@ -1532,7 +1532,7 @@ exports[`Storyshots Chat/Conversation/InfoPanel Participants 1`] = `
 </div>
 `;
 
-exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (1) 1`] = `
+exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (saved) 1`] = `
 .glamor-0,
 [data-glamor-0] {
   color: #ffffff;
@@ -1573,9 +1573,10 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (1) 1
   margin-right: 8px;
   position: relative;
   width: 14px;
-  background-color: inherit;
+  background-color: #33a0ff;
   border: solid 1px rgba(0, 0, 0, 0.10);
   opacity: 1;
+  selected: ;
   -webkit-transition: background 0.1s ease-out;
   -moz-transition: background 0.1s ease-out;
 }
@@ -1593,10 +1594,9 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (1) 1
   margin-right: 8px;
   position: relative;
   width: 14px;
-  background-color: #33a0ff;
+  background-color: inherit;
   border: solid 1px rgba(0, 0, 0, 0.10);
   opacity: 1;
-  selected: ;
   -webkit-transition: background 0.1s ease-out;
   -moz-transition: background 0.1s ease-out;
 }
@@ -1604,6 +1604,22 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (1) 1
 .glamor-6:hover,
 [data-glamor-6]:hover {
   border: solid 1px #33a0ff;
+}
+
+.glamor-18,
+[data-glamor-18] {
+  color: #3dcc8e;
+}
+
+.glamor-19,
+[data-glamor-19] {
+  font-size: 11px;
+  line-height: 15px;
+  color: #3dcc8e;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
 }
 
 <div
@@ -1641,8 +1657,8 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (1) 1
         <div
           style={
             Object {
-              "backgroundColor": "#33a0ff",
-              "border": "solid 1px #33a0ff",
+              "backgroundColor": "inherit",
+              "border": "solid 1px rgba(0, 0, 0, 0.20)",
               "borderRadius": 2,
               "height": 13,
               "marginRight": 8,
@@ -1670,6 +1686,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (1) 1
                   "fontWeight": "normal",
                   "left": 1,
                   "lineHeight": 1,
+                  "opacity": 0,
                   "position": "absolute",
                   "speak": "none",
                   "textTransform": "none",
@@ -1851,7 +1868,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (1) 1
           }
         >
           <div
-            className="glamor-4"
+            className="glamor-6"
           >
             <div
               style={
@@ -1941,7 +1958,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (1) 1
           }
         >
           <div
-            className="glamor-4"
+            className="glamor-6"
           >
             <div
               style={
@@ -2073,13 +2090,45 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (1) 1
             "paddingTop": 16,
           }
         }
-      />
+      >
+        <div>
+          <span
+            className="glamor-18"
+            onClick={null}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
+            style={
+              Object {
+                "WebkitFontSmoothing": "antialiased",
+                "fontFamily": "kb",
+                "fontSize": 16,
+                "fontStyle": "normal",
+                "fontVariant": "normal",
+                "fontWeight": "normal",
+                "lineHeight": 1,
+                "speak": "none",
+                "textTransform": "none",
+                "userSelect": "none",
+              }
+            }
+          >
+            
+          </span>
+        </div>
+        <span
+          className="glamor-19"
+          onClick={undefined}
+          title={undefined}
+        >
+            Saved
+        </span>
+      </div>
     </div>
   </div>
 </div>
 `;
 
-exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (2) 1`] = `
+exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (saving) 1`] = `
 .glamor-0,
 [data-glamor-0] {
   color: #ffffff;
@@ -2490,6 +2539,568 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (2) 1
         >
           <div
             className="glamor-6"
+          >
+            <div
+              style={
+                Object {
+                  "border": "solid 3px #ffffff",
+                  "borderRadius": "100%",
+                  "color": "#ffffff",
+                  "hoverColor": "#ffffff",
+                  "left": 3,
+                  "position": "absolute",
+                  "top": 3,
+                  "transition": "opacity 0.1s ease-out",
+                }
+              }
+            />
+          </div>
+          <span
+            className="glamor-1"
+            onClick={undefined}
+            title={undefined}
+          >
+            On any activity
+          </span>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "row",
+            "marginLeft": 8,
+          }
+        }
+      >
+        <div
+          onClick={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "cursor": "pointer",
+              "display": "flex",
+              "flexDirection": "row",
+              "marginTop": 4,
+            }
+          }
+        >
+          <div
+            className="glamor-4"
+          >
+            <div
+              style={
+                Object {
+                  "border": "solid 3px #ffffff",
+                  "borderRadius": "100%",
+                  "color": "#ffffff",
+                  "hoverColor": "#ffffff",
+                  "left": 3,
+                  "position": "absolute",
+                  "top": 3,
+                  "transition": "opacity 0.1s ease-out",
+                }
+              }
+            />
+          </div>
+          <span
+            className="glamor-1"
+            onClick={undefined}
+            title={undefined}
+          >
+            Only when @mentioned
+          </span>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "row",
+            "marginLeft": 8,
+          }
+        }
+      >
+        <div
+          onClick={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "cursor": "pointer",
+              "display": "flex",
+              "flexDirection": "row",
+              "marginTop": 4,
+            }
+          }
+        >
+          <div
+            className="glamor-6"
+          >
+            <div
+              style={
+                Object {
+                  "border": "solid 3px #ffffff",
+                  "borderRadius": "100%",
+                  "color": "#ffffff",
+                  "hoverColor": "#ffffff",
+                  "left": 3,
+                  "position": "absolute",
+                  "top": 3,
+                  "transition": "opacity 0.1s ease-out",
+                }
+              }
+            />
+          </div>
+          <span
+            className="glamor-1"
+            onClick={undefined}
+            title={undefined}
+          >
+            Never
+          </span>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "row",
+            "height": 40,
+            "justifyContent": "center",
+            "paddingTop": 16,
+          }
+        }
+      >
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={null}
+          srcSet="icons/icon-progress-grey-static.png 1x, icons/icon-progress-grey-static@2x.png 2x"
+          style={
+            Object {
+              "alignSelf": "center",
+              "userSelect": "none",
+              "width": 24,
+            }
+          }
+          title={undefined}
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsaved) 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  color: #ffffff;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+}
+
+.glamor-2,
+[data-glamor-2] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+}
+
+.glamor-3,
+[data-glamor-3] {
+  color: rgba(0, 0, 0, 0.20);
+}
+
+.glamor-4,
+[data-glamor-4] {
+  transition: background 0.1s ease-out;
+  border-radius: 100%;
+  height: 14px;
+  margin-right: 8px;
+  position: relative;
+  width: 14px;
+  background-color: inherit;
+  border: solid 1px rgba(0, 0, 0, 0.10);
+  opacity: 1;
+  -webkit-transition: background 0.1s ease-out;
+  -moz-transition: background 0.1s ease-out;
+}
+
+.glamor-4:hover,
+[data-glamor-4]:hover {
+  border: solid 1px #33a0ff;
+}
+
+.glamor-6,
+[data-glamor-6] {
+  transition: background 0.1s ease-out;
+  border-radius: 100%;
+  height: 14px;
+  margin-right: 8px;
+  position: relative;
+  width: 14px;
+  background-color: #33a0ff;
+  border: solid 1px rgba(0, 0, 0, 0.10);
+  opacity: 1;
+  selected: ;
+  -webkit-transition: background 0.1s ease-out;
+  -moz-transition: background 0.1s ease-out;
+}
+
+.glamor-6:hover,
+[data-glamor-6]:hover {
+  border: solid 1px #33a0ff;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={undefined}
+  >
+    <div
+      style={
+        Object {
+          "display": "flex",
+          "flexDirection": "column",
+          "paddingLeft": 16,
+          "paddingRight": 16,
+        }
+      }
+    >
+      <div
+        onClick={[Function]}
+        style={
+          Object {
+            "alignItems": "flex-start",
+            "cursor": "pointer",
+            "display": "flex",
+            "flexDirection": "row",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "backgroundColor": "#33a0ff",
+              "border": "solid 1px #33a0ff",
+              "borderRadius": 2,
+              "height": 13,
+              "marginRight": 8,
+              "marginTop": 2,
+              "opacity": 1,
+              "position": "relative",
+              "transition": "background 0.1s ease-out",
+              "width": 13,
+            }
+          }
+        >
+          <div>
+            <span
+              className="glamor-0"
+              onClick={null}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "fontFamily": "kb",
+                  "fontSize": 9,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "left": 1,
+                  "lineHeight": 1,
+                  "position": "absolute",
+                  "speak": "none",
+                  "textTransform": "none",
+                  "top": 1,
+                  "transition": "opacity 0.1s ease-out",
+                  "userSelect": "none",
+                }
+              }
+            >
+              
+            </span>
+          </div>
+        </div>
+        <span
+          className="glamor-1"
+          onClick={undefined}
+          title={undefined}
+        >
+          Ignore @here and @channel mentions
+        </span>
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "row",
+            "paddingTop": 16,
+          }
+        }
+      >
+        <span
+          className="glamor-2"
+          onClick={undefined}
+          title={undefined}
+        >
+          Desktop notifications
+        </span>
+        <div>
+          <span
+            className="glamor-3"
+            onClick={null}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
+            style={
+              Object {
+                "WebkitFontSmoothing": "antialiased",
+                "fontFamily": "kb",
+                "fontSize": 16,
+                "fontStyle": "normal",
+                "fontVariant": "normal",
+                "fontWeight": "normal",
+                "lineHeight": 1,
+                "paddingLeft": 4,
+                "speak": "none",
+                "textTransform": "none",
+                "userSelect": "none",
+              }
+            }
+          >
+            
+          </span>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "row",
+            "marginLeft": 8,
+          }
+        }
+      >
+        <div
+          onClick={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "cursor": "pointer",
+              "display": "flex",
+              "flexDirection": "row",
+              "marginTop": 4,
+            }
+          }
+        >
+          <div
+            className="glamor-4"
+          >
+            <div
+              style={
+                Object {
+                  "border": "solid 3px #ffffff",
+                  "borderRadius": "100%",
+                  "color": "#ffffff",
+                  "hoverColor": "#ffffff",
+                  "left": 3,
+                  "position": "absolute",
+                  "top": 3,
+                  "transition": "opacity 0.1s ease-out",
+                }
+              }
+            />
+          </div>
+          <span
+            className="glamor-1"
+            onClick={undefined}
+            title={undefined}
+          >
+            On any activity
+          </span>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "row",
+            "marginLeft": 8,
+          }
+        }
+      >
+        <div
+          onClick={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "cursor": "pointer",
+              "display": "flex",
+              "flexDirection": "row",
+              "marginTop": 4,
+            }
+          }
+        >
+          <div
+            className="glamor-6"
+          >
+            <div
+              style={
+                Object {
+                  "border": "solid 3px #ffffff",
+                  "borderRadius": "100%",
+                  "color": "#ffffff",
+                  "hoverColor": "#ffffff",
+                  "left": 3,
+                  "position": "absolute",
+                  "top": 3,
+                  "transition": "opacity 0.1s ease-out",
+                }
+              }
+            />
+          </div>
+          <span
+            className="glamor-1"
+            onClick={undefined}
+            title={undefined}
+          >
+            Only when @mentioned
+          </span>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "row",
+            "marginLeft": 8,
+          }
+        }
+      >
+        <div
+          onClick={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "cursor": "pointer",
+              "display": "flex",
+              "flexDirection": "row",
+              "marginTop": 4,
+            }
+          }
+        >
+          <div
+            className="glamor-4"
+          >
+            <div
+              style={
+                Object {
+                  "border": "solid 3px #ffffff",
+                  "borderRadius": "100%",
+                  "color": "#ffffff",
+                  "hoverColor": "#ffffff",
+                  "left": 3,
+                  "position": "absolute",
+                  "top": 3,
+                  "transition": "opacity 0.1s ease-out",
+                }
+              }
+            />
+          </div>
+          <span
+            className="glamor-1"
+            onClick={undefined}
+            title={undefined}
+          >
+            Never
+          </span>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "row",
+            "paddingTop": 16,
+          }
+        }
+      >
+        <span
+          className="glamor-2"
+          onClick={undefined}
+          title={undefined}
+        >
+          Mobile notifications
+        </span>
+        <div>
+          <span
+            className="glamor-3"
+            onClick={null}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
+            style={
+              Object {
+                "WebkitFontSmoothing": "antialiased",
+                "fontFamily": "kb",
+                "fontSize": 16,
+                "fontStyle": "normal",
+                "fontVariant": "normal",
+                "fontWeight": "normal",
+                "lineHeight": 1,
+                "paddingLeft": 4,
+                "speak": "none",
+                "textTransform": "none",
+                "userSelect": "none",
+              }
+            }
+          >
+            
+          </span>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "row",
+            "marginLeft": 8,
+          }
+        }
+      >
+        <div
+          onClick={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "cursor": "pointer",
+              "display": "flex",
+              "flexDirection": "row",
+              "marginTop": 4,
+            }
+          }
+        >
+          <div
+            className="glamor-4"
           >
             <div
               style={
