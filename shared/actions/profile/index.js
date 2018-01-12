@@ -12,7 +12,7 @@ import URL from 'url-parse'
 import keybaseUrl from '../../constants/urls'
 import openURL from '../../util/open-url'
 import {getPathProps} from '../../route-tree'
-import {navigateTo, navigateUp, putActionIfOnPath} from '../../actions/route-tree'
+import {navigateTo, navigateUp} from '../../actions/route-tree'
 import {loginTab, peopleTab} from '../../constants/tabs'
 import {pgpSaga} from './pgp'
 import {proofsSaga} from './proofs'
@@ -22,7 +22,6 @@ import type {TypedState} from '../../constants/reducer'
 
 function _editProfile(action: ProfileGen.EditProfilePayload) {
   const {bio, fullname, location} = action.payload
-  const {newPeopleTab} = flags
   return Saga.sequentially([
     Saga.call(RPCTypes.userProfileEditRpcPromise, {
       bio,
@@ -30,13 +29,7 @@ function _editProfile(action: ProfileGen.EditProfilePayload) {
       location,
     }),
     // If the profile tab remained on the edit profile screen, navigate back to the top level.
-    Saga.put(
-      putActionIfOnPath(
-        newPeopleTab ? [peopleTab, 'profile', 'editProfile'] : [peopleTab, 'editProfile'],
-        newPeopleTab ? navigateTo(['profile'], [peopleTab]) : navigateTo([], [peopleTab]),
-        [peopleTab]
-      )
-    ),
+    Saga.put(navigateUp()),
   ])
 }
 
