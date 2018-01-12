@@ -146,14 +146,16 @@ const getProfilePath = (
       return [peopleTab, {selected: 'profile', props: {username}}]
     }
     // check last entry in path
-    const topNode = onlyProfilesProps.get(onlyProfilesProps.size - 1)
-    if (!topNode) {
+    const topProfile = onlyProfilesProps.get(onlyProfilesProps.size - 1)
+    if (!topProfile) {
       // Will never happen
       throw new Error('topProps undefined in _showUserProfile!')
     }
-    if (topNode.node === 'profile' && topNode.props.get('username') === username) {
+    if (topProfile.node === 'profile' && topProfile.props.get('username') === username) {
+      // This user is already the top profile
       return onlyProfilesPath
     }
+    // Push the user onto the stack
     return [...onlyProfilesPath, {selected: 'profile', props: {username}}]
   }
 
@@ -176,13 +178,14 @@ const getProfilePath = (
     }
   }
   if (onlyProfilesPath.length > 0) {
-    // don't allow dupe
+    // Check for duplicates
     const topProfile = onlyProfilesPath[onlyProfilesPath.length - 1]
     if (
       // $FlowIssue not sure why it thinks topProfile is a string
       topProfile.props.fullUsername !== props.fullUsername ||
       topProfile.props.serviceName !== props.serviceName
     ) {
+      // This user is not the top profile, push on top
       onlyProfilesPath.push({selected: 'nonUserProfile', props})
     }
   }
