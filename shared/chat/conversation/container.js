@@ -4,6 +4,7 @@ import * as Constants from '../../constants/chat2'
 import {connect, type TypedState} from '../../util/container'
 import Normal from './normal/container'
 import NoConversation from './no-conversation'
+import Error from './error/container'
 
 type SwitchProps = {
   showError: boolean,
@@ -19,9 +20,9 @@ class Conversation extends React.PureComponent<SwitchProps> {
     // if (this.props.showRekey) {
     // return <Rekey />
     // }
-    // if (this.props.showError) {
-    // return <ConversationError />
-    // }
+    if (this.props.showError) {
+      return <Error />
+    }
     return <Normal />
   }
 }
