@@ -2063,6 +2063,17 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (1) 1
           </span>
         </div>
       </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "row",
+            "height": 40,
+            "justifyContent": "center",
+            "paddingTop": 16,
+          }
+        }
+      />
     </div>
   </div>
 </div>
@@ -2600,6 +2611,17 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (2) 1
           </span>
         </div>
       </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "row",
+            "height": 40,
+            "justifyContent": "center",
+            "paddingTop": 16,
+          }
+        }
+      />
     </div>
   </div>
 </div>
