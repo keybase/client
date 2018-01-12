@@ -3951,6 +3951,16 @@ type AddTeamMemberAfterResetArg struct {
 	ConvID   ConversationID `codec:"convID" json:"convID"`
 }
 
+type SetConvRetentionLocalArg struct {
+	ConvID ConversationID  `codec:"convID" json:"convID"`
+	Policy RetentionPolicy `codec:"policy" json:"policy"`
+}
+
+type SetTeamRetentionLocalArg struct {
+	TeamID keybase1.TeamID `codec:"teamID" json:"teamID"`
+	Policy RetentionPolicy `codec:"policy" json:"policy"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
@@ -3995,6 +4005,8 @@ type LocalInterface interface {
 	GetGlobalAppNotificationSettingsLocal(context.Context) (GlobalAppNotificationSettings, error)
 	UnboxMobilePushNotification(context.Context, UnboxMobilePushNotificationArg) (string, error)
 	AddTeamMemberAfterReset(context.Context, AddTeamMemberAfterResetArg) error
+	SetConvRetentionLocal(context.Context, SetConvRetentionLocalArg) error
+	SetTeamRetentionLocal(context.Context, SetTeamRetentionLocalArg) error
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -4679,6 +4691,38 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"setConvRetentionLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]SetConvRetentionLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SetConvRetentionLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SetConvRetentionLocalArg)(nil), args)
+						return
+					}
+					err = i.SetConvRetentionLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"setTeamRetentionLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]SetTeamRetentionLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SetTeamRetentionLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SetTeamRetentionLocalArg)(nil), args)
+						return
+					}
+					err = i.SetTeamRetentionLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -4907,5 +4951,15 @@ func (c LocalClient) UnboxMobilePushNotification(ctx context.Context, __arg Unbo
 
 func (c LocalClient) AddTeamMemberAfterReset(ctx context.Context, __arg AddTeamMemberAfterResetArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.addTeamMemberAfterReset", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) SetConvRetentionLocal(ctx context.Context, __arg SetConvRetentionLocalArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.setConvRetentionLocal", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) SetTeamRetentionLocal(ctx context.Context, __arg SetTeamRetentionLocalArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.setTeamRetentionLocal", []interface{}{__arg}, nil)
 	return
 }

@@ -60,6 +60,8 @@ type Server struct {
 	cachedThreadDelay *time.Duration
 }
 
+var _ chat1.LocalInterface = (*Server)(nil)
+
 func NewServer(g *globals.Context, store *AttachmentStore, serverConn ServerConnection,
 	uiSource UISource) *Server {
 	return &Server{
@@ -2583,4 +2585,22 @@ func (h *Server) AddTeamMemberAfterReset(ctx context.Context,
 
 	teamID := keybase1.TeamID(conv.Info.Triple.Tlfid.String())
 	return teams.ReAddMemberAfterReset(ctx, h.G().ExternalG(), teamID, arg.Username)
+}
+
+func (h *Server) SetConvRetentionLocal(ctx context.Context, arg chat1.SetConvRetentionLocalArg) (err error) {
+	defer h.Trace(ctx, func() error { return err }, "SetConvRetention(%v, %v)", arg.ConvID, arg.Policy.Summary())()
+	_, err = h.remoteClient().SetConvRetention(ctx, chat1.SetConvRetentionArg{
+		ConvID: arg.ConvID,
+		Policy: arg.Policy,
+	})
+	return err
+}
+
+func (h *Server) SetTeamRetentionLocal(ctx context.Context, arg chat1.SetTeamRetentionLocalArg) (err error) {
+	defer h.Trace(ctx, func() error { return err }, "SetTeamRetention(%v, %v)", arg.TeamID, arg.Policy.Summary())()
+	_, err = h.remoteClient().SetTeamRetention(ctx, chat1.SetTeamRetentionArg{
+		TeamID: arg.TeamID,
+		Policy: arg.Policy,
+	})
+	return err
 }

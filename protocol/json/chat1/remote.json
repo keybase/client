@@ -5,6 +5,11 @@
       "path": "github.com/keybase/client/go/protocol/gregor1",
       "type": "idl",
       "import_as": "gregor1"
+    },
+    {
+      "path": "github.com/keybase/client/go/protocol/keybase1",
+      "type": "idl",
+      "import_as": "keybase1"
     }
   ],
   "types": [
@@ -534,6 +539,19 @@
           "name": "rateLimit"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "SetRetentionRes",
+      "fields": [
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
     }
   ],
   "messages": {
@@ -1014,6 +1032,32 @@
         }
       ],
       "response": null
+    },
+    "setConvRetention": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "policy",
+          "type": "RetentionPolicy"
+        }
+      ],
+      "response": "SetRetentionRes"
+    },
+    "setTeamRetention": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "keybase1.TeamID"
+        },
+        {
+          "name": "policy",
+          "type": "RetentionPolicy"
+        }
+      ],
+      "response": "SetRetentionRes"
     }
   },
   "namespace": "chat.1"
