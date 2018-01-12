@@ -5,7 +5,7 @@ import {globalColors, globalMargins, globalStyles, isMobile} from '../../../../s
 import {type NotificationSaveState} from '../../../../constants/types/chat'
 import type {Props} from '.'
 
-const SaveStateControl = (saveState: NotificationSaveState) => {
+const SaveStateComponents = (saveState: NotificationSaveState) => {
   switch (saveState) {
     case 'unsaved':
       return null
@@ -108,7 +108,7 @@ const Notifications = ({
         label={'Never'}
       />
     </Box>
-    <Box style={styleSaveState}>{SaveStateControl(saveState)}</Box>
+    <Box style={styleSaveState}>{SaveStateComponents(saveState)}</Box>
   </Box>
 )
 
