@@ -227,7 +227,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
               if (existingOrdinal && message.outboxID) {
                 // We get 2 incoming calls when a pending goes to real. If we clean up the map then we lose the bookkeeping so lets just keep it
                 // map.deleteIn([message.conversationIDKey, message.outboxID])
-                console.log('aaa found existing and upgrading', message, existingOrdinal)
                 // We keep the original ordinal we created always so that mapping is fixed
                 // This is required to help flow not confuse itself...
                 switch (message.type) {

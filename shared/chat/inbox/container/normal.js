@@ -1,28 +1,44 @@
 // @flow
 // Rows for our normal inbox view. A set of small items on top ordered by time, a set of teams/channels ordered by alpha
 // If you have teams and a bunch of small chats we truncate and put a divider in between
-import {createSelector, type TypedState} from '../../../util/container'
+import shallowEqual from 'shallowequal'
+import {
+  createSelector,
+  createImmutableEqualSelector,
+  type TypedState,
+  createSelectorCreator,
+  defaultMemoize,
+} from '../../../util/container'
+
+const createShallowEqualSelector = createSelectorCreator(defaultMemoize, shallowEqual)
 
 const getMetaMap = (state: TypedState) => state.chat2.metaMap
 const smallTeamsCollapsedMaxShown = 5
 
-const getSmallIDs = createSelector([getMetaMap], metaMap => {
-  // Get small/adhoc teams
-  const smallMap = metaMap.filter(meta => meta.teamType !== 'big')
-  // Sort by timestamp
-  return smallMap
+// Since the snippets are back in the meta we want to not have a ton of recalculation as the snippets are updating. especially when you're typing and updating
+// and the order isn't changing
+
+// Get small/adhoc teams
+const getSmallMetas = createSelector([getMetaMap], metaMap => metaMap.filter(meta => meta.teamType !== 'big'))
+
+// Sort by timestamp
+const getSortedSmallIDs = createSelector([getSmallMetas], smallMap =>
+  smallMap
     .sort((a, b) => b.timestamp - a.timestamp)
     .keySeq()
     .toArray()
-})
+)
+
+// Just to reselect cache the sorted values
+const getCachedSortedSmallIDs = createShallowEqualSelector([getSortedSmallIDs], smallMap => smallMap)
 
 // Alphabetical teams / channels
-const getBigRowItems = createSelector([getMetaMap], metaMap => {
+const getBigMetas = createSelector([getMetaMap], metaMap => metaMap.filter(meta => meta.teamType === 'big'))
+
+const getBigRowItems = createImmutableEqualSelector([getBigMetas], bigMetaMap => {
   let lastTeam: ?string
   return (
-    metaMap
-      // only big teams
-      .filter(meta => meta.teamType === 'big')
+    bigMetaMap
       // alpha by team/channel
       .sort(
         (a, b) =>
@@ -52,7 +68,7 @@ const getBigRowItems = createSelector([getMetaMap], metaMap => {
 // Get smallIDs and big RowItems. Figure out the divider if it exists and truncate the small list.
 // Convert the smallIDs to the Small RowItems
 const getRowsAndMetadata = createSelector(
-  [getSmallIDs, getBigRowItems, (_, smallTeamsExpanded) => smallTeamsExpanded],
+  [getCachedSortedSmallIDs, getBigRowItems, (_, smallTeamsExpanded) => smallTeamsExpanded],
   (smallIDs, bigRows, smallTeamsExpanded) => {
     const smallTeamsBelowTheFold = Math.max(0, smallIDs.length - smallTeamsCollapsedMaxShown)
     const showSmallTeamsExpandDivider = !!(bigRows.length && smallTeamsBelowTheFold)
