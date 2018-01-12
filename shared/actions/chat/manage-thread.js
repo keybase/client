@@ -260,6 +260,8 @@ const _setNotifications = function*(
         ],
       }
       yield Saga.put(ChatGen.createSetNotificationSaveState({conversationIDKey, saveState: 'saving'}))
+      // TODO: Ideally, we'd handle and update the UI for any errors
+      // that happen for this RPC.
       yield Saga.call(ChatTypes.localSetAppNotificationSettingsLocalRpcPromise, param)
       yield Saga.put(ChatGen.createSetNotificationSaveState({conversationIDKey, saveState: 'saved'}))
     }
