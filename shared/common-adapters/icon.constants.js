@@ -356,6 +356,56 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-follow-me-32.png'),
   },
+  'icon-followers-1-k-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-followers-1-k-32.png'),
+  },
+  'icon-followers-1-k-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-followers-1-k-48.png'),
+  },
+  'icon-followers-10-k-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-followers-10-k-32.png'),
+  },
+  'icon-followers-10-k-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-followers-10-k-48.png'),
+  },
+  'icon-followers-100-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-followers-100-32.png'),
+  },
+  'icon-followers-100-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-followers-100-48.png'),
+  },
+  'icon-followers-5-k-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-followers-5-k-32.png'),
+  },
+  'icon-followers-5-k-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-followers-5-k-48.png'),
+  },
+  'icon-followers-500-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-followers-500-32.png'),
+  },
+  'icon-followers-500-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-followers-500-48.png'),
+  },
   'icon-followers-new-32': {
     isFont: false,
     extension: 'png',
@@ -460,6 +510,16 @@ const iconMeta_ = {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-invite-link-16.png'),
+  },
+  'icon-invite-link-24': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-invite-link-24.png'),
+  },
+  'icon-invite-link-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-invite-link-32.png'),
   },
   'icon-invite-link-48': {
     isFont: false,
