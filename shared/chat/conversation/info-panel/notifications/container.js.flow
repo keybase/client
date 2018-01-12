@@ -14,6 +14,7 @@ export type StateProps =
   | {||}
 
 export type DispatchProps = {|
+  _resetNotificationSaveState: (conversationIDKey: Types.ConversationIDKey) => void,
   onSetNotification: (
     conversationIDKey: Types.ConversationIDKey,
     deviceType: DeviceType,
