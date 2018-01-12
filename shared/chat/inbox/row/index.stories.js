@@ -1,4 +1,4 @@
-// @flow
+// @noflow // TODO
 import React from 'react'
 import * as I from 'immutable'
 import {Box} from '../../../common-adapters'

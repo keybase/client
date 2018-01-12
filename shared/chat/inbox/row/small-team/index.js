@@ -1,11 +1,10 @@
 // @flow
-import React, {PureComponent} from 'react'
+import * as React from 'react'
 import {Box, ClickableBox} from '../../../../common-adapters'
 import {globalStyles} from '../../../../styles'
-import {List} from 'immutable'
 import {SimpleTopLine} from './top-line'
 import {BottomLine} from './bottom-line'
-import {Avatars, TeamAvatar} from '.././avatars'
+import {Avatars, TeamAvatar} from '../avatars'
 import {isMobile} from '../../../../constants/platform'
 
 type Props = {
@@ -17,7 +16,7 @@ type Props = {
   isSelected: boolean,
   onSelectConversation: () => void,
   participantNeedToRekey: boolean,
-  participants: List<string>,
+  participants: Array<string>,
   showBold: boolean,
   snippet: string,
   subColor: string,
@@ -28,7 +27,7 @@ type Props = {
   youNeedToRekey: boolean,
 }
 
-class SmallTeam extends PureComponent<Props> {
+class SmallTeam extends React.PureComponent<Props> {
   render() {
     const props = this.props
     return (
@@ -59,7 +58,7 @@ class SmallTeam extends PureComponent<Props> {
             <SimpleTopLine
               hasUnread={props.hasUnread}
               hasBadge={props.hasBadge}
-              participants={props.teamname ? List.of(props.teamname) : props.participants}
+              participants={props.teamname ? [props.teamname] : props.participants}
               showBold={props.showBold}
               subColor={props.subColor}
               timestamp={props.timestamp}

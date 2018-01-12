@@ -1,9 +1,9 @@
 // @flow
-import React, {PureComponent} from 'react'
+import * as React from 'react'
+import shallowEqual from 'shallowequal'
 import {Avatar, MultiAvatar, Icon, Box} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins, isMobile} from '../../../styles'
 import memoize from 'lodash/memoize'
-import {List} from 'immutable'
 
 // All this complexity isn't great but the current implementation of avatar forces us to juggle all these colors and
 // forces us to explicitly choose undefined/the background/ etc. This can be cleaned up when avatar is simplified
@@ -18,7 +18,7 @@ function rowBorderColor(idx: number, isLastParticipant: boolean, backgroundColor
 }
 
 type AvatarProps = {
-  participants: List<string>,
+  participants: Array<string>,
   youNeedToRekey: boolean,
   participantNeedToRekey: boolean,
   isMuted: boolean,
@@ -42,7 +42,17 @@ const MutedIcon = ({isMuted, isSelected, participantNeedToRekey, youNeedToRekey}
   return icon
 }
 
-class Avatars extends PureComponent<AvatarProps> {
+class Avatars extends React.Component<AvatarProps> {
+  shouldComponentUpdate(nextProps: AvatarProps) {
+    return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
+      if (key === 'participants') {
+        return shallowEqual(this.props.participants, nextProps.participants)
+      }
+
+      return undefined
+    })
+  }
+
   render() {
     const {
       participants,
@@ -53,18 +63,15 @@ class Avatars extends PureComponent<AvatarProps> {
       backgroundColor,
     } = this.props
 
-    const avatarCount = Math.min(2, participants.count())
+    const avatarCount = Math.min(2, participants.length)
     const opacity = youNeedToRekey || participantNeedToRekey ? 0.4 : 1
-    const avatarProps = participants
-      .slice(0, 2)
-      .map((username, idx) => ({
-        borderColor: rowBorderColor(idx, idx === avatarCount - 1, backgroundColor),
-        loadingColor: globalColors.lightGrey,
-        size: isMobile ? 24 : 32,
-        skipBackground: isMobile,
-        username,
-      }))
-      .toArray()
+    const avatarProps = participants.slice(0, 2).map((username, idx) => ({
+      borderColor: rowBorderColor(idx, idx === avatarCount - 1, backgroundColor),
+      loadingColor: globalColors.lightGrey,
+      size: isMobile ? 24 : 32,
+      skipBackground: isMobile,
+      username,
+    }))
 
     return (
       <Box style={avatarBoxStyle}>
@@ -117,7 +124,7 @@ const avatarInnerBoxStyle = {
   position: 'relative',
 }
 
-class TeamAvatar extends PureComponent<{
+class TeamAvatar extends React.Component<{
   teamname: string,
   isMuted: boolean,
   isSelected: boolean,

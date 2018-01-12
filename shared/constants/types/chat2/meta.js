@@ -18,7 +18,7 @@ export type _ConversationMeta = {
   isMuted: boolean,
   membershipType: MembershipType,
   notificationSettings: ?RPCChatTypes.ConversationNotificationInfo,
-  participants: I.Set<string>,
+  participants: I.OrderedSet<string>,
   rekeyers: I.Set<string>,
   resetParticipants: I.Set<string>,
   snippet: string,

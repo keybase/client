@@ -40,7 +40,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     isSelected,
     onSelectConversation: dispatchProps.onSelectConversation,
     participantNeedToRekey,
-    participants: Constants2.getRowParticipants(stateProps._meta, stateProps._username),
+    participants: Constants2.getRowParticipants(stateProps._meta, stateProps._username).toArray(),
     showBold: styles.showBold,
     subColor: styles.subColor,
     teamname: stateProps._meta.teamname,

@@ -1,12 +1,12 @@
 // @flow
-import React, {PureComponent} from 'react'
+import * as React from 'react'
+import shallowEqual from 'shallowequal'
 import {Text, PlaintextUsernames, Box} from '../../../../common-adapters'
 import {globalStyles, globalColors, lineHeight, isMobile} from '../../../../styles'
-import {List} from 'immutable'
 
 type Props = {
   hasUnread: boolean,
-  participants: List<string>,
+  participants: Array<string>,
   showBold: boolean,
   subColor: ?string,
   timestamp: ?string,
@@ -16,7 +16,17 @@ type Props = {
 
 const height = isMobile ? 19 : 17
 
-class SimpleTopLine extends PureComponent<Props> {
+class SimpleTopLine extends React.Component<Props> {
+  shouldComponentUpdate(nextProps: Props) {
+    return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
+      if (key === 'participants') {
+        return shallowEqual(this.props.participants, nextProps.participants)
+      }
+
+      return undefined
+    })
+  }
+
   render() {
     const {participants, showBold, subColor, timestamp, usernameColor, hasBadge} = this.props
     const boldOverride = showBold ? globalStyles.fontBold : null
@@ -45,7 +55,7 @@ class SimpleTopLine extends PureComponent<Props> {
             <PlaintextUsernames
               type="BodySemibold"
               containerStyle={{...boldOverride, color: usernameColor, paddingRight: 7}}
-              users={participants.map(p => ({username: p})).toArray()}
+              users={participants.map(p => ({username: p}))}
               title={participants.join(', ')}
             />
           </Box>

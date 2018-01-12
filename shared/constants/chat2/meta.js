@@ -51,7 +51,7 @@ export const unverifiedInboxUIItemToConversationMeta = (
       : []
   )
 
-  const participants = I.Set(
+  const participants = I.OrderedSet(
     i.localMetadata
       ? i.localMetadata.writerNames || []
       : parseFolderNameToUsers(username, i.name).map(ul => ul.username)
@@ -181,7 +181,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
     isMuted: i.status === RPCChatTypes.commonConversationStatus.muted,
     membershipType: conversationMemberStatusToMembershipType(i.memberStatus),
     notificationSettings: i.notifications,
-    participants: I.Set(i.participants || []),
+    participants: I.OrderedSet(i.participants || []),
     resetParticipants,
     snippet: i.snippet,
     supersededBy: supersededBy ? Types.stringToConversationIDKey(supersededBy) : null,
@@ -204,7 +204,7 @@ export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record
   isMuted: false,
   membershipType: 'active',
   notificationSettings: null,
-  participants: I.Set(),
+  participants: I.OrderedSet(),
   rekeyers: I.Set(),
   resetParticipants: I.Set(),
   snippet: '',
@@ -253,7 +253,6 @@ export const getConversationIDKeyMetasToLoad = (
 
 export const getRowParticipants = (meta: Types.ConversationMeta, username: string) =>
   meta.participants
-    .toList()
     // Filter out ourselves unless its our 1:1 conversation
     .filter((participant, idx, list) => (list.size === 1 ? true : participant !== username))
 
