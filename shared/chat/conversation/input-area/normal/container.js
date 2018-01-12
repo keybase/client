@@ -130,7 +130,7 @@ export default compose(
     {
       mentionFilter: '',
       mentionPopupOpen: false,
-      text: '',
+      text: 'foo',
     },
     {
       _setText: () => (text: string) => ({text}),
