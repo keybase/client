@@ -21,6 +21,10 @@ func CreateAddMemberTx(t *Team) *AddMemberTx {
 	return &AddMemberTx{team: t}
 }
 
+func (tx *AddMemberTx) DebugPayloads() []interface{} {
+	return tx.payloads
+}
+
 func (tx *AddMemberTx) invitePayload() *SCTeamInvites {
 	for _, v := range tx.payloads {
 		if ret, ok := v.(*SCTeamInvites); ok {
@@ -72,12 +76,10 @@ func appendToInviteList(inv SCTeamInvite, list *[]SCTeamInvite) *[]SCTeamInvite 
 	var tmp []SCTeamInvite
 	if list == nil {
 		tmp = []SCTeamInvite{inv}
-		return &tmp
 	} else {
-		tmp = *list
-		tmp = append(tmp, inv)
-		return &tmp
+		tmp = append(*list, inv)
 	}
+	return &tmp
 }
 
 func (tx *AddMemberTx) CreateInvite(uv keybase1.UserVersion, role keybase1.TeamRole) error {
@@ -152,17 +154,19 @@ func (tx *AddMemberTx) AddMemberTransaction(ctx context.Context, g *libkb.Global
 			normalizedUsername, team.Name())}
 	}
 
-	ok, err := team.HasActiveInvite(uv.TeamInviteName(), "keybase")
+	curInvite, err := team.FindActiveInvite(uv.TeamInviteName(), "keybase")
 	if err != nil {
-		return err
-	}
-	if ok {
-		if !inviteRequired {
-			return fmt.Errorf("???")
+		if _, ok := err.(libkb.NotFoundError); !ok {
+			return err
+		} else {
+			curInvite = nil
 		}
+	}
+	if curInvite != nil && inviteRequired {
 		return libkb.ExistsError{Msg: fmt.Sprintf("user %s is already a pukless member of team %q",
 			normalizedUsername, team.Name())}
 	}
+	// TODO: Complete invite using curInvite in tx.AddMember branch.
 
 	tx.SweepMembers(uv)        // Sweep all existing crypto members
 	tx.SweepKeybaseInvites(uv) // Sweep all existing keybase type invites

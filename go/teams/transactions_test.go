@@ -18,7 +18,8 @@ func TestTransactions1(t *testing.T) {
 	defer tc.Cleanup()
 
 	team, err := Load(context.Background(), tc.G, keybase1.LoadTeamArg{
-		Name: name,
+		Name:      name,
+		NeedAdmin: true,
 	})
 	require.NoError(t, err)
 
