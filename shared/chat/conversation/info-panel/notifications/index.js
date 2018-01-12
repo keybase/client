@@ -7,7 +7,7 @@ import type {Props} from '.'
 
 const SaveStateControl = (saveState: NotificationSaveState) => {
   switch (saveState) {
-    case 'unchanged':
+    case 'unsaved':
       return null
     case 'saving':
       return (

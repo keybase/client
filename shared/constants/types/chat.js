@@ -322,7 +322,7 @@ export type NotificationsState = {
 // firstUnboxing is when its going from untrusted to unboxing vs unboxed to reUnboxing
 export type InboxUntrustedState = 'untrusted' | 'unboxed' | 'error' | 'firstUnboxing' | 'reUnboxing'
 
-export type NotificationSaveState = 'unchanged' | 'saving' | 'saved'
+export type NotificationSaveState = 'unsaved' | 'saving' | 'saved'
 
 export type _InboxState = {
   conversationIDKey: ConversationIDKey,

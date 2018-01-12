@@ -50,7 +50,7 @@ export const makeInboxState: I.RecordFactory<Types._InboxState> = I.Record({
   memberStatus: 0,
   membersType: 0,
   notifications: null,
-  notificationSaveState: 'unchanged',
+  notificationSaveState: 'unsaved',
   participants: I.List(),
   fullNames: I.Map(),
   status: 'unfiled',

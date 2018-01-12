@@ -56,7 +56,7 @@ const mapStateToProps = (state: TypedState): * => {
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _resetNotificationSaveState: (conversationIDKey: Types.ConversationIDKey) =>
-    dispatch(ChatGen.createSetNotificationSaveState({conversationIDKey, saveState: 'unchanged'})),
+    dispatch(ChatGen.createSetNotificationSaveState({conversationIDKey, saveState: 'unsaved'})),
   onSetNotification: (
     conversationIDKey: Types.ConversationIDKey,
     deviceType: DeviceType,
