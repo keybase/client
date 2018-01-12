@@ -2,7 +2,22 @@
 import * as React from 'react'
 import {Box, Checkbox, Icon, RadioButton, ProgressIndicator, Text} from '../../../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../../styles'
+import {type NotificationSaveState} from '../../../../constants/types/chat'
 import type {Props} from '.'
+
+const SaveStateControl = (saveState: NotificationSaveState) => {
+  switch (saveState) {
+    case 'unchanged':
+      return null
+    case 'saving':
+    case 'saved':
+      return (
+        <ProgressIndicator
+          style={{alignSelf: 'center', marginLeft: globalMargins.small, width: globalMargins.small}}
+        />
+      )
+  }
+}
 
 const Notifications = ({
   channelWide,
@@ -91,13 +106,7 @@ const Notifications = ({
         label={'Never'}
       />
     </Box>
-    <Box style={styleHeader}>
-      {saveState !== 'unchanged' && (
-        <ProgressIndicator
-          style={{alignSelf: 'center', marginLeft: globalMargins.small, width: globalMargins.small}}
-        />
-      )}
-    </Box>
+    <Box style={styleHeader}>{SaveStateControl(saveState)}</Box>
   </Box>
 )
 
