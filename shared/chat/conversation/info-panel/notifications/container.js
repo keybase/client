@@ -50,6 +50,7 @@ const mapStateToProps = (state: TypedState): * => {
     conversationIDKey,
     desktop,
     mobile,
+    saving: notifications.saving,
   }
 }
 
@@ -71,6 +72,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
       channelWide: stateProps.channelWide,
       desktop: stateProps.desktop,
       mobile: stateProps.mobile,
+      saving: stateProps.saving,
       onSetDesktop: (notifyType: Types.NotifyType) => {
         dispatchProps.onSetNotification(conversationIDKey, 'desktop', notifyType)
       },

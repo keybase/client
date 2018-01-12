@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box, Checkbox, Icon, RadioButton, Text} from '../../../../common-adapters'
+import {Box, Checkbox, Icon, RadioButton, ProgressIndicator, Text} from '../../../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../../styles'
 import type {Props} from '.'
 
@@ -8,6 +8,7 @@ const Notifications = ({
   channelWide,
   desktop,
   mobile,
+  saving,
   onSetDesktop,
   onSetMobile,
   onToggleChannelWide,
@@ -89,6 +90,13 @@ const Notifications = ({
         selected={mobile === 'never'}
         label={'Never'}
       />
+    </Box>
+    <Box style={styleHeader}>
+      {saving && (
+        <ProgressIndicator
+          style={{alignSelf: 'center', marginLeft: globalMargins.small, width: globalMargins.small}}
+        />
+      )}
     </Box>
   </Box>
 )

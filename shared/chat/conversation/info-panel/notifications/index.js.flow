@@ -6,6 +6,7 @@ export type Props = {
   channelWide: boolean,
   desktop: NotifyType,
   mobile: NotifyType,
+  saving: boolean,
   onSetDesktop: NotifyType => void,
   onSetMobile: NotifyType => void,
   onToggleChannelWide: () => void,

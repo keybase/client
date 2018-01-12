@@ -10,6 +10,7 @@ const load = () => {
         channelWide={false}
         desktop="atmention"
         mobile="never"
+        saving={false}
         onSetDesktop={action('onSetDesktop')}
         onSetMobile={action('onSetMobile')}
         onToggleChannelWide={action('onToggleChannelwide')}
@@ -20,6 +21,7 @@ const load = () => {
         channelWide={true}
         desktop="generic"
         mobile="atmention"
+        saving={false}
         onSetDesktop={action('onSetDesktop')}
         onSetMobile={action('onSetMobile')}
         onToggleChannelWide={action('onToggleChannelwide')}
