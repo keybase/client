@@ -1,13 +1,12 @@
 // Copyright 2017 Keybase Inc. All rights reserved.
-// Use of this source code is governed by a BSD
-// license that can be found in the LICENSE file.
-
+// Use of this source code is governed by a BSD license that can be found in the LICENSE file.
 package main
 
 import (
 	"context"
 	"flag"
 	"os"
+	"time"
 
 	"github.com/keybase/kbfs/env"
 	"github.com/keybase/kbfs/libgit"
@@ -61,6 +60,8 @@ func newLogger(isCLI bool) (*zap.Logger, error) {
 }
 
 const autoGitNumWorkers = 10
+const activityStatsReportInterval = time.Minute
+const activityStatsPath = "./kbp-stats"
 
 func main() {
 	flag.Parse()
@@ -97,7 +98,20 @@ func main() {
 
 	var statsReporter libpages.StatsReporter
 	if len(fStathatEZKey) != 0 {
-		statsReporter = newStathatReporter(fStathatPrefix, fStathatEZKey)
+		activityStorer, err := libpages.NewFileBasedActivityStatsStorer(
+			activityStatsPath, logger)
+		if err != nil {
+			logger.Panic(
+				"libpages.NewFileBasedActivityStatsStorer", zap.Error(err))
+		}
+		enabler := &libpages.ActivityStatsEnabler{
+			Durations: []time.Duration{
+				time.Hour, time.Hour * 24, time.Hour * 24 * 7},
+			Interval: activityStatsReportInterval,
+			Storer:   activityStorer,
+		}
+		statsReporter = libpages.NewStathatReporter(
+			logger, fStathatPrefix, fStathatEZKey, enabler)
 	}
 
 	serverConfig := &libpages.ServerConfig{
