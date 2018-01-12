@@ -1,0 +1,8 @@
+{
+  "prelude": [],
+  "actions": {
+    "increaseCount": {
+      "amount?": "number"
+    }
+  }
+}

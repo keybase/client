@@ -8,6 +8,7 @@ import type {State as Entity} from '../constants/types/entities'
 import type {State as Engine} from '../constants/types/engine'
 import type {State as Favorite} from '../constants/types/favorite'
 import type {State as Gregor} from '../constants/types/gregor'
+import type {State as FS} from '../constants/types/fs'
 import type {State as Login} from '../constants/types/login'
 import type {State as Notification} from '../constants/types/notifications'
 import type {State as Pinentry} from '../constants/types/pinentry'
@@ -21,26 +22,27 @@ import type {State as UnlockFolders} from '../constants/types/unlock-folders'
 import type {State as Waiting} from '../constants/types/waiting'
 import type {State as People} from '../constants/types/people'
 
-export type TypedState = {|
-  +config: Config,
-  +chat: Chat,
-  +dev: Dev,
-  +devices: Devices,
-  +entities: Entity,
-  +engine: Engine,
-  +favorite: Favorite,
-  +gregor: Gregor,
-  +login: Login,
-  +notifications: Notification,
-  +people: People,
-  +pinentry: Pinentry,
-  +planBilling: Billing,
-  +profile: Profile,
-  +push: Push,
-  +routeTree: RouteTree,
-  +settings: Settings,
-  +signup: Signup,
-  +tracker: Tracker,
-  +unlockFolders: UnlockFolders,
-  +waiting: Waiting,
-|}
+export type TypedState = $ReadOnly<{|
+  config: Config,
+  chat: Chat,
+  dev: Dev,
+  devices: Devices,
+  entities: Entity,
+  engine: Engine,
+  favorite: Favorite,
+  fs: FS,
+  gregor: Gregor,
+  login: Login,
+  notifications: Notification,
+  people: People,
+  pinentry: Pinentry,
+  planBilling: Billing,
+  profile: Profile,
+  push: Push,
+  routeTree: RouteTree,
+  settings: Settings,
+  signup: Signup,
+  tracker: Tracker,
+  unlockFolders: UnlockFolders,
+  waiting: Waiting,
+|}>

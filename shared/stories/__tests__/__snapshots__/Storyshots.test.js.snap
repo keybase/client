@@ -25589,6 +25589,499 @@ exports[`Storyshots Edit team description Description unchanged 1`] = `
 </div>
 `;
 
+exports[`Storyshots FS Root 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  font-size: 16px;
+  line-height: 20px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+}
+
+.glamor-2,
+[data-glamor-2] {
+  font-size: 14px;
+  line-height: 18px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={undefined}
+  >
+    <div
+      style={
+        Object {
+          "width": "100%",
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flex": 1,
+            "flexDirection": "column",
+            "padding": 64,
+          }
+        }
+      >
+        <span
+          className="glamor-0"
+          onClick={undefined}
+          title={undefined}
+        >
+          Hi 
+          jzila
+          !
+        </span>
+        <span
+          className="glamor-1"
+          onClick={undefined}
+          title={undefined}
+        >
+          Count: 
+          1
+        </span>
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "justifyContent": "flex-start",
+              "minHeight": 64,
+              "width": "100%",
+            }
+          }
+        >
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": "center",
+                "backgroundColor": "#33a0ff",
+                "borderRadius": 50,
+                "cursor": "pointer",
+                "display": "inline-block",
+                "flexDirection": "column",
+                "height": 32,
+                "justifyContent": "center",
+                "lineHeight": "inherit",
+                "minWidth": undefined,
+                "paddingLeft": 24,
+                "paddingRight": 24,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "height": "100%",
+                  "justifyContent": "center",
+                  "position": "relative",
+                }
+              }
+            >
+              <span
+                className="glamor-2"
+                onClick={undefined}
+                title={undefined}
+              >
+                Up by 1
+              </span>
+            </div>
+          </div>
+          <div
+            style={
+              Object {
+                "height": 8,
+                "width": 8,
+              }
+            }
+          />
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": "center",
+                "backgroundColor": "#33a0ff",
+                "borderRadius": 50,
+                "cursor": "pointer",
+                "display": "inline-block",
+                "flexDirection": "column",
+                "height": 32,
+                "justifyContent": "center",
+                "lineHeight": "inherit",
+                "minWidth": undefined,
+                "paddingLeft": 24,
+                "paddingRight": 24,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "height": "100%",
+                  "justifyContent": "center",
+                  "position": "relative",
+                }
+              }
+            >
+              <span
+                className="glamor-2"
+                onClick={undefined}
+                title={undefined}
+              >
+                Up by 10
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flex": 1,
+            "flexDirection": "column",
+            "padding": 64,
+          }
+        }
+      >
+        <span
+          className="glamor-0"
+          onClick={undefined}
+          title={undefined}
+        >
+          Hi 
+          !
+        </span>
+        <span
+          className="glamor-1"
+          onClick={undefined}
+          title={undefined}
+        >
+          Count: 
+          1
+        </span>
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "justifyContent": "flex-start",
+              "minHeight": 64,
+              "width": "100%",
+            }
+          }
+        >
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": "center",
+                "backgroundColor": "#33a0ff",
+                "borderRadius": 50,
+                "cursor": "pointer",
+                "display": "inline-block",
+                "flexDirection": "column",
+                "height": 32,
+                "justifyContent": "center",
+                "lineHeight": "inherit",
+                "minWidth": undefined,
+                "paddingLeft": 24,
+                "paddingRight": 24,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "height": "100%",
+                  "justifyContent": "center",
+                  "position": "relative",
+                }
+              }
+            >
+              <span
+                className="glamor-2"
+                onClick={undefined}
+                title={undefined}
+              >
+                Up by 1
+              </span>
+            </div>
+          </div>
+          <div
+            style={
+              Object {
+                "height": 8,
+                "width": 8,
+              }
+            }
+          />
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": "center",
+                "backgroundColor": "#33a0ff",
+                "borderRadius": 50,
+                "cursor": "pointer",
+                "display": "inline-block",
+                "flexDirection": "column",
+                "height": 32,
+                "justifyContent": "center",
+                "lineHeight": "inherit",
+                "minWidth": undefined,
+                "paddingLeft": 24,
+                "paddingRight": 24,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "height": "100%",
+                  "justifyContent": "center",
+                  "position": "relative",
+                }
+              }
+            >
+              <span
+                className="glamor-2"
+                onClick={undefined}
+                title={undefined}
+              >
+                Up by 10
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flex": 1,
+            "flexDirection": "column",
+            "padding": 64,
+          }
+        }
+      >
+        <span
+          className="glamor-0"
+          onClick={undefined}
+          title={undefined}
+        >
+          Hi 
+          jzila
+          !
+        </span>
+        <span
+          className="glamor-1"
+          onClick={undefined}
+          title={undefined}
+        >
+          Count: 
+          1
+        </span>
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "justifyContent": "flex-start",
+              "minHeight": 64,
+              "width": "100%",
+            }
+          }
+        >
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": "center",
+                "backgroundColor": "#33a0ff",
+                "borderRadius": 50,
+                "cursor": "pointer",
+                "display": "inline-block",
+                "flexDirection": "column",
+                "height": 32,
+                "justifyContent": "center",
+                "lineHeight": "inherit",
+                "minWidth": undefined,
+                "paddingLeft": 24,
+                "paddingRight": 24,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "height": "100%",
+                  "justifyContent": "center",
+                  "position": "relative",
+                }
+              }
+            >
+              <span
+                className="glamor-2"
+                onClick={undefined}
+                title={undefined}
+              >
+                Up by 1
+              </span>
+            </div>
+          </div>
+          <div
+            style={
+              Object {
+                "height": 8,
+                "width": 8,
+              }
+            }
+          />
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": "center",
+                "backgroundColor": "#33a0ff",
+                "borderRadius": 50,
+                "cursor": "pointer",
+                "display": "inline-block",
+                "flexDirection": "column",
+                "height": 32,
+                "justifyContent": "center",
+                "lineHeight": "inherit",
+                "minWidth": undefined,
+                "paddingLeft": 24,
+                "paddingRight": 24,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "height": "100%",
+                  "justifyContent": "center",
+                  "position": "relative",
+                }
+              }
+            >
+              <span
+                className="glamor-2"
+                onClick={undefined}
+                title={undefined}
+              >
+                Up by 10
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`Storyshots Git DeleteRepo 1`] = `
 .glamor-0,
 [data-glamor-0] {
