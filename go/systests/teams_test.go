@@ -1043,21 +1043,21 @@ func TestTeamCanUserPerform(t *testing.T) {
 	_, err = teams.CanUserPerform(context.TODO(), pam.tc.G, subteam)
 
 	// Non-membership shouldn't be an error
-	donnovan := tt.addUser("donnovan")
-	donnovanPerms, err := teams.CanUserPerform(context.TODO(), donnovan.tc.G, team)
+	donny := tt.addUser("donny")
+	donnyPerms, err := teams.CanUserPerform(context.TODO(), donny.tc.G, team)
 	require.NoError(t, err, "non-member canUserPerform")
 
 	// Make sure a non-member can't do stuff
-	require.False(t, donnovanPerms.ManageMembers)
-	require.False(t, donnovanPerms.ManageSubteams)
-	require.False(t, donnovanPerms.CreateChannel)
-	require.False(t, donnovanPerms.DeleteChannel)
-	require.False(t, donnovanPerms.RenameChannel)
-	require.False(t, donnovanPerms.EditChannelDescription)
-	require.False(t, donnovanPerms.SetTeamShowcase)
-	require.False(t, donnovanPerms.SetMemberShowcase)
-	require.False(t, donnovanPerms.ChangeOpenTeam) // not a member of the subteam
-	require.False(t, donnovanPerms.ListFirst)
+	require.False(t, donnyPerms.ManageMembers)
+	require.False(t, donnyPerms.ManageSubteams)
+	require.False(t, donnyPerms.CreateChannel)
+	require.False(t, donnyPerms.DeleteChannel)
+	require.False(t, donnyPerms.RenameChannel)
+	require.False(t, donnyPerms.EditChannelDescription)
+	require.False(t, donnyPerms.SetTeamShowcase)
+	require.False(t, donnyPerms.SetMemberShowcase)
+	require.False(t, donnyPerms.ChangeOpenTeam) // not a member of the subteam
+	require.False(t, donnyPerms.ListFirst)
 	// require.True(t, annPerms.JoinTeam) // TODO: not sure about this one
-	require.False(t, donnovanPerms.SetPublicityAny)
+	require.False(t, donnyPerms.SetPublicityAny)
 }
