@@ -499,7 +499,7 @@ func (am *AutogitManager) doDelete(req deleteReq) (err error) {
 	}
 	if !canWork {
 		am.log.CDebugf(ctx,
-			"Another worker is currently in charge; skipping reset")
+			"Another worker is currently in charge; skipping delete")
 		// TODO: retry in a little while?
 		return nil
 	}
