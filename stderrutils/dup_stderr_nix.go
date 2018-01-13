@@ -3,14 +3,17 @@
 
 // +build linux,!android darwin freebsd openbsd
 
-package main
+package stderrutils
 
 import (
 	"os"
 	"syscall"
 )
 
-func dupStderr() (*os.File, error) {
+// DupStderr duplicates stderr and return it as an *os.File. Use this to
+// preserve stderr before any redirection (e.g. from keybase/client/go/logger)
+// if needed.
+func DupStderr() (*os.File, error) {
 	dupStderrFd, err := syscall.Dup(2)
 	if err != nil {
 		return nil, err

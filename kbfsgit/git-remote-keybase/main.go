@@ -20,6 +20,7 @@ import (
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libgit"
 	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/kbfs/stderrutils"
 )
 
 var version = flag.Bool("version", false, "Print version")
@@ -113,7 +114,7 @@ func start() (startErr *libfs.Error) {
 	// Duplicate the stderr fd, so that when the logger closes it when
 	// redirecting log messages to a file, we will still be able to
 	// write status updates back to the git process.
-	stderrFile, err := dupStderr()
+	stderrFile, err := stderrutils.DupStderr()
 	if err != nil {
 		return libfs.InitError(err.Error())
 	}

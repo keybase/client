@@ -3,13 +3,14 @@
 
 // +build android
 
-package main
+package stderrutils
 
 import (
 	"errors"
 	"os"
 )
 
-func dupStderr() (*os.File, error) {
+// DupStderr makes compiler happy on unsupported platforms.
+func DupStderr() (*os.File, error) {
 	return nil, errors.New("Duplicating stderr is not supported on this operating system")
 }

@@ -1,7 +1,7 @@
 // Copyright 2017 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-package main
+package stderrutils
 
 import (
 	"os"
@@ -9,7 +9,10 @@ import (
 	"golang.org/x/sys/windows"
 )
 
-func dupStderr() (*os.File, error) {
+// DupStderr duplicates stderr and return it as an *os.File. Use this to
+// preserve stderr before any redirection (e.g. from keybase/client/go/logger)
+// if needed.
+func DupStderr() (*os.File, error) {
 	proc, err := windows.GetCurrentProcess()
 	if err != nil {
 		return nil, err

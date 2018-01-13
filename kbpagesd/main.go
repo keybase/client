@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/kbfs/libgit"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/libpages"
+	"github.com/keybase/kbfs/stderrutils"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -38,8 +39,24 @@ func init() {
 }
 
 func newLogger(isCLI bool) (*zap.Logger, error) {
-	var loggerConfig zap.Config
+	// In keybase/client/go/logger fd 2 is closed. To make sure our logger can
+	// log to stderr, duplicate the fd beforehand. Apparently it's important to
+	// call this function before any keybase/client/go/logger logging is set
+	// up.
+	stderr, err := stderrutils.DupStderr()
+	if err != nil {
+		panic(err)
+	}
 
+	// Zap loggers use os.Stderr by default. We could pass in stderr by making
+	// more boilerplate, but there's not much else we need from those. So
+	// override os.Stderr temporarily as a hack to inject stderr to the zap
+	// logger.
+	originalStderr := os.Stderr
+	os.Stderr = stderr
+	defer func() { os.Stderr = originalStderr }()
+
+	var loggerConfig zap.Config
 	if isCLI {
 		// The default development logger is suitable for console. Disable
 		// stacktrace here for less verbosity, and colorize loglevel for better
