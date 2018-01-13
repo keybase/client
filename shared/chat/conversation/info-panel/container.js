@@ -1,18 +1,12 @@
 // @flow
+import * as React from 'react'
 import * as Constants from '../../../constants/chat'
 import * as Types from '../../../constants/types/chat'
 import * as TeamTypes from '../../../constants/types/teams'
 import * as ChatGen from '../../../actions/chat-gen'
 import {ConversationInfoPanel, SmallTeamInfoPanel, BigTeamInfoPanel} from '.'
 import {Map} from 'immutable'
-import {
-  compose,
-  renderComponent,
-  renderNothing,
-  branch,
-  connect,
-  type TypedState,
-} from '../../../util/container'
+import {connect, type TypedState} from '../../../util/container'
 import {getCanPerform} from '../../../constants/teams'
 import {createSelector} from 'reselect'
 import {navigateAppend, navigateTo} from '../../../actions/route-tree'
@@ -50,7 +44,24 @@ const getPreviewState = createSelector([Constants.getSelectedInbox], inbox => {
   return {isPreview: (inbox && inbox.memberStatus) === ChatTypes.commonConversationMemberStatus.preview}
 })
 
-const mapStateToProps = (state: TypedState) => {
+type StateProps = {
+  isPreview?: boolean,
+  admin?: boolean,
+  channelname?: ?string,
+  muted?: ?boolean,
+  participants?: Array<{
+    username: string,
+    following: boolean,
+    fullname: string,
+    broken: boolean,
+  }>,
+  selectedConversationIDKey?: Types.ConversationIDKey,
+  showTeamButton?: boolean,
+  teamname?: ?string,
+  smallTeam?: boolean,
+}
+
+const mapStateToProps = (state: TypedState): StateProps => {
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
   const inbox = Constants.getSelectedInbox(state)
   if (!selectedConversationIDKey || !inbox) {
@@ -140,7 +151,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
   onShowBlockConversationDialog: () =>
     dispatchProps._onShowBlockConversationDialog(
       stateProps.selectedConversationIDKey,
-      stateProps.participants.map(p => p.username).join(',')
+      (stateProps.participants || []).map(p => p.username).join(',')
     ),
   onShowNewTeamDialog: () => {
     stateProps.selectedConversationIDKey &&
@@ -150,11 +161,56 @@ const mergeProps = (stateProps, dispatchProps) => ({
   onViewTeam: () => dispatchProps._onViewTeam(stateProps.teamname),
 })
 
-const ConnectedInfoPanel = compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  branch(props => !props.selectedConversationIDKey, renderNothing),
-  branch(props => props.channelname && !props.smallTeam, renderComponent(BigTeamInfoPanel)),
-  branch(props => !props.channelname && !props.smallTeam, renderComponent(ConversationInfoPanel))
-)(SmallTeamInfoPanel)
+const ConnectedBigTeamInfoPanel = connect(mapStateToProps, mapDispatchToProps, mergeProps)(BigTeamInfoPanel)
+
+const ConnectedSmallTeamInfoPanel = connect(mapStateToProps, mapDispatchToProps, mergeProps)(
+  SmallTeamInfoPanel
+)
+
+const ConnectedConversationInfoPanel = connect(mapStateToProps, mapDispatchToProps, mergeProps)(
+  ConversationInfoPanel
+)
+
+type SelectorProps = {
+  channelname?: ?string,
+  selectedConversationIDKey?: Types.ConversationIDKey,
+  smallTeam?: boolean,
+}
+
+const mapStateToSelectorProps = (state: TypedState): SelectorProps => {
+  const selectedConversationIDKey = Constants.getSelectedConversation(state)
+  const inbox = Constants.getSelectedInbox(state)
+  if (!selectedConversationIDKey || !inbox) {
+    return {}
+  }
+  const channelname = inbox.get('channelname')
+  const smallTeam = Constants.getTeamType(state) === ChatTypes.commonTeamType.simple
+
+  return {
+    channelname,
+    selectedConversationIDKey,
+    smallTeam,
+  }
+}
+
+class InfoPanelSelector extends React.PureComponent<SelectorProps> {
+  render() {
+    if (!this.props.selectedConversationIDKey) {
+      return null
+    }
+
+    if (this.props.smallTeam) {
+      return <ConnectedSmallTeamInfoPanel />
+    }
+
+    if (this.props.channelname) {
+      return <ConnectedBigTeamInfoPanel />
+    }
+
+    return <ConnectedConversationInfoPanel />
+  }
+}
+
+const ConnectedInfoPanel = connect(mapStateToSelectorProps)(InfoPanelSelector)
 
 export default ConnectedInfoPanel
