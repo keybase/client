@@ -160,11 +160,11 @@ func (s *fileBasedActivityStatsStorer) processLoop() {
 // testing only and does not scale well.
 func NewFileBasedActivityStatsStorer(
 	rootPath string, logger *zap.Logger) (ActivityStatsStorer, error) {
-	err := os.MkdirAll(filepath.Join(rootPath, dirnameTlfStamps), os.ModeDir)
+	err := os.MkdirAll(filepath.Join(rootPath, dirnameTlfStamps), os.ModeDir|0700)
 	if err != nil {
 		return nil, err
 	}
-	err = os.MkdirAll(filepath.Join(rootPath, dirnameHostStamps), os.ModeDir)
+	err = os.MkdirAll(filepath.Join(rootPath, dirnameHostStamps), os.ModeDir|0700)
 	if err != nil {
 		return nil, err
 	}
