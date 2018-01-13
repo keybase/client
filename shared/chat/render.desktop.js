@@ -12,6 +12,9 @@ type Props = {
 }
 
 class Render extends React.PureComponent<Props> {
+  componentWillUnmount() {
+    console.log('aaa chat unmount')
+  }
   render() {
     return (
       <div style={style}>

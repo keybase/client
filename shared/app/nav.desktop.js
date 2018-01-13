@@ -45,8 +45,8 @@ class Nav extends React.Component<Props> {
           <ErrorBoundary>
             <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
               {/* We use a fixed key here so we don't remount components like chat. */}
-              <visibleScreen.component key="0" shouldRender={true} />
-              {layerScreens.map(r => <r.leafComponent key={r.path.join(':')} shouldRender={true} />)}
+              {visibleScreen.component({key: '0', shouldRender: true})}
+              {layerScreens.map(r => r.leafComponent({shouldRender: true}))}
             </Box>
           </ErrorBoundary>
           <ErrorBoundary>

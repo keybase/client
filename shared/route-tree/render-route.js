@@ -11,8 +11,8 @@ import type {Tab} from '../constants/tabs'
 type _RenderRouteResult = {
   path: I.List<string>,
   tags: LeafTags,
-  component: ({shouldRender: boolean}) => React.Node,
-  leafComponent: ({shouldRender: boolean}) => React.Node,
+  component: ({shouldRender: boolean, key?: string}) => React.Node,
+  leafComponent: ({shouldRender: boolean, key?: string}) => React.Node,
 }
 
 export type RenderRouteResult = I.RecordOf<_RenderRouteResult>
@@ -149,7 +149,7 @@ function renderRouteStack({
       // If this route specifies a container component, compose it around every
       // view in the stack.
       stack = stack.map(r =>
-        r.update('component', child => ({shouldRender}) => {
+        r.update('component', child => ({shouldRender, key}) => {
           const last = childStack.last()
           const leafTags = last ? last.tags : {}
           return (
@@ -162,6 +162,7 @@ function renderRouteStack({
               setRouteState={setRouteState}
               leafTags={leafTags}
               stack={childStack}
+              key={key || path.join(':')}
             >
               {child({shouldRender})}
             </RenderRouteNode>
@@ -173,7 +174,7 @@ function renderRouteStack({
 
   if (routeDef.component) {
     // If this path has a leaf component to render, add it to the stack.
-    const routeComponent = ({shouldRender}) =>
+    const routeComponent = ({shouldRender, key}) =>
       shouldRender ? (
         <RenderRouteNode
           shouldRender={shouldRender}
@@ -182,6 +183,7 @@ function renderRouteStack({
           routeState={routeState}
           path={path}
           setRouteState={setRouteState}
+          key={key || path.join(':')}
         />
       ) : (
         <Box />
@@ -211,6 +213,8 @@ export default class RenderRoute extends React.PureComponent<RenderRouteProps<*>
     // This component renders the bottom (currently visible) one.
     const viewStack = renderRouteStack({...this.props, path: I.List()})
     const last: ?RenderRouteResult = viewStack.last()
-    return last ? last.component({shouldRender: false}) : null
+    const TEMP = last ? last.component({shouldRender: false}) : null
+    console.log('aaa', this.props.routeState.toJS())
+    return TEMP
   }
 }
