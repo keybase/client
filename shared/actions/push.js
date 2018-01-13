@@ -90,6 +90,9 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
           logger.error('Push chat notification payload missing conversation ID')
           return
         }
+        yield Saga.call(RPCTypes.appStateUpdateAppStateRpcPromise, {
+          state: RPCTypes.appStateAppState.foreground,
+        })
         yield Saga.put(ChatGen.createSelectConversation({conversationIDKey: convID, fromUser: true}))
         yield Saga.put(switchTo([chatTab]))
       } else if (payload.type === 'follow') {
