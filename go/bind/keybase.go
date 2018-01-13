@@ -82,8 +82,11 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 		fmt.Printf("Go: Using log: %s\n", logFile)
 	}
 
-	// Set to one OS thread on mobile so we don't have too much contention with JS thread
-	fmt.Printf("Go: setting GOMAXPROCS to 1: previous: %d\n", runtime.GOMAXPROCS(1))
+	// Reduce OS threads on mobile so we don't have too much contention with JS thread
+	oldProcs := runtime.GOMAXPROCS(0)
+	newProcs := oldProcs / 2
+	runtime.GOMAXPROCS(newProcs)
+	fmt.Printf("Go: setting GOMAXPROCS to: %d previous: %d\n", newProcs, oldProcs)
 
 	startTrace(logFile)
 
