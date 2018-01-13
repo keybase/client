@@ -97,7 +97,7 @@ exports[`Storyshots Chat/Conversation/InfoPanel Mute row (big) 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
         </div>
@@ -131,7 +131,7 @@ exports[`Storyshots Chat/Conversation/InfoPanel Mute row (big) 1`] = `
             }
           }
         >
-          
+          
         </span>
       </div>
     </div>
@@ -235,7 +235,7 @@ exports[`Storyshots Chat/Conversation/InfoPanel Mute row (big, muted) 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
         </div>
@@ -269,7 +269,7 @@ exports[`Storyshots Chat/Conversation/InfoPanel Mute row (big, muted) 1`] = `
             }
           }
         >
-          
+          
         </span>
       </div>
     </div>
@@ -374,7 +374,7 @@ exports[`Storyshots Chat/Conversation/InfoPanel Mute row (small) 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
         </div>
@@ -408,7 +408,7 @@ exports[`Storyshots Chat/Conversation/InfoPanel Mute row (small) 1`] = `
             }
           }
         >
-          
+          
         </span>
       </div>
     </div>
@@ -512,7 +512,7 @@ exports[`Storyshots Chat/Conversation/InfoPanel Mute row (small, muted) 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
         </div>
@@ -546,7 +546,7 @@ exports[`Storyshots Chat/Conversation/InfoPanel Mute row (small, muted) 1`] = `
             }
           }
         >
-          
+          
         </span>
       </div>
     </div>
@@ -1696,7 +1696,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
                 }
               }
             >
-              
+              
             </span>
           </div>
         </div>
@@ -2112,7 +2112,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
               }
             }
           >
-            
+            
           </span>
         </div>
         <span
@@ -2276,7 +2276,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
                 }
               }
             >
-              
+              
             </span>
           </div>
         </div>
@@ -2838,7 +2838,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
                 }
               }
             >
-              
+              
             </span>
           </div>
         </div>
@@ -3880,7 +3880,7 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
 [data-glamor-4] {
   font-size: 13px;
   line-height: 17px;
-  color: #195080;
+  color: #004481;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -4854,7 +4854,7 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
 [data-glamor-2] {
   font-size: 13px;
   line-height: 17px;
-  color: #195080;
+  color: #004481;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -5728,7 +5728,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
 [data-glamor-2] {
   font-size: 11px;
   line-height: 15px;
-  color: #195080;
+  color: #004481;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -5868,7 +5868,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
               }
             }
           >
-            
+            
           </span>
         </div>
       </div>
@@ -6195,7 +6195,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
               }
             }
           >
-            
+            
           </span>
         </div>
       </div>
@@ -6699,7 +6699,7 @@ exports[`Storyshots Chat/Teams CreateChannel 1`] = `
 [data-glamor-3] {
   font-size: 11px;
   line-height: 15px;
-  color: #195080;
+  color: #004481;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -6855,7 +6855,7 @@ exports[`Storyshots Chat/Teams CreateChannel 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
           <div
@@ -7274,7 +7274,7 @@ exports[`Storyshots Chat/Teams EditChannel - general 1`] = `
 [data-glamor-2] {
   font-size: 11px;
   line-height: 15px;
-  color: #195080;
+  color: #004481;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -7611,7 +7611,7 @@ exports[`Storyshots Chat/Teams EditChannel - general 1`] = `
                   }
                 }
               >
-                
+                
               </span>
             </div>
             <span
@@ -7779,7 +7779,7 @@ exports[`Storyshots Chat/Teams EditChannel 1`] = `
 [data-glamor-2] {
   font-size: 11px;
   line-height: 15px;
-  color: #195080;
+  color: #004481;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -8094,7 +8094,7 @@ exports[`Storyshots Chat/Teams EditChannel 1`] = `
                   }
                 }
               >
-                
+                
               </span>
             </div>
             <span
@@ -8267,7 +8267,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
 [data-glamor-3] {
   font-size: 11px;
   line-height: 15px;
-  color: #195080;
+  color: #004481;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -8448,7 +8448,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
           <div
@@ -8626,7 +8626,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                                     }
                                   }
                                 >
-                                  
+                                  
                                 </span>
                               </div>
                             </div>
@@ -8765,7 +8765,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                                     }
                                   }
                                 >
-                                  
+                                  
                                 </span>
                               </div>
                             </div>
@@ -8905,7 +8905,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                                     }
                                   }
                                 >
-                                  
+                                  
                                 </span>
                               </div>
                             </div>
@@ -9045,7 +9045,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                                     }
                                   }
                                 >
-                                  
+                                  
                                 </span>
                               </div>
                             </div>
@@ -9185,7 +9185,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                                     }
                                   }
                                 >
-                                  
+                                  
                                 </span>
                               </div>
                             </div>
@@ -9324,7 +9324,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                                     }
                                   }
                                 >
-                                  
+                                  
                                 </span>
                               </div>
                             </div>
@@ -9463,7 +9463,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                                     }
                                   }
                                 >
-                                  
+                                  
                                 </span>
                               </div>
                             </div>
@@ -9729,7 +9729,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
 [data-glamor-3] {
   font-size: 11px;
   line-height: 15px;
-  color: #195080;
+  color: #004481;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -9937,7 +9937,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
           <div
@@ -10115,7 +10115,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                                     }
                                   }
                                 >
-                                  
+                                  
                                 </span>
                               </div>
                             </div>
@@ -10189,7 +10189,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                                 }
                               }
                             >
-                              
+                              
                             </span>
                           </div>
                           <span
@@ -10300,7 +10300,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                                     }
                                   }
                                 >
-                                  
+                                  
                                 </span>
                               </div>
                             </div>
@@ -10374,7 +10374,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                                 }
                               }
                             >
-                              
+                              
                             </span>
                           </div>
                           <span
@@ -10486,7 +10486,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                                     }
                                   }
                                 >
-                                  
+                                  
                                 </span>
                               </div>
                             </div>
@@ -10560,7 +10560,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                                 }
                               }
                             >
-                              
+                              
                             </span>
                           </div>
                           <span
@@ -10672,7 +10672,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                                     }
                                   }
                                 >
-                                  
+                                  
                                 </span>
                               </div>
                             </div>
@@ -10746,7 +10746,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                                 }
                               }
                             >
-                              
+                              
                             </span>
                           </div>
                           <span
@@ -10858,7 +10858,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                                     }
                                   }
                                 >
-                                  
+                                  
                                 </span>
                               </div>
                             </div>
@@ -10932,7 +10932,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                                 }
                               }
                             >
-                              
+                              
                             </span>
                           </div>
                           <span
@@ -11043,7 +11043,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                                     }
                                   }
                                 >
-                                  
+                                  
                                 </span>
                               </div>
                             </div>
@@ -11117,7 +11117,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                                 }
                               }
                             >
-                              
+                              
                             </span>
                           </div>
                           <span
@@ -11228,7 +11228,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                                     }
                                   }
                                 >
-                                  
+                                  
                                 </span>
                               </div>
                             </div>
@@ -11302,7 +11302,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                                 }
                               }
                             >
-                              
+                              
                             </span>
                           </div>
                           <span
@@ -16188,7 +16188,7 @@ exports[`Storyshots Common Checkbox 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
         </div>
@@ -16253,7 +16253,7 @@ exports[`Storyshots Common Checkbox 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
         </div>
@@ -16318,7 +16318,7 @@ exports[`Storyshots Common Checkbox 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
         </div>
@@ -16382,7 +16382,7 @@ exports[`Storyshots Common Checkbox 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
         </div>
@@ -16598,34 +16598,34 @@ exports[`Storyshots Common Icon 1`] = `
   color: rgba(0, 0, 0, 0.75);
 }
 
-.glamor-11,
-[data-glamor-11] {
+.glamor-12,
+[data-glamor-12] {
   color: rgba(0, 0, 0, 0.20);
 }
 
-.glamor-11:hover,
-[data-glamor-11]:hover {
+.glamor-12:hover,
+[data-glamor-12]:hover {
   color: rgba(0, 0, 0, 0.60);
 }
 
-.glamor-76,
-[data-glamor-76] {
-  color: #ff4d61;
-}
-
-.glamor-76:hover,
-[data-glamor-76]:hover {
-  color: #ff4d61;
-}
-
-.glamor-78,
-[data-glamor-78] {
+.glamor-48,
+[data-glamor-48] {
   color: rgba(0, 0, 0, 0.40);
 }
 
-.glamor-78:hover,
-[data-glamor-78]:hover {
+.glamor-48:hover,
+[data-glamor-48]:hover {
   color: rgba(0, 0, 0, 0.40);
+}
+
+.glamor-50,
+[data-glamor-50] {
+  color: #ff4d61;
+}
+
+.glamor-50:hover,
+[data-glamor-50]:hover {
+  color: #ff4d61;
 }
 
 <div
@@ -17257,7 +17257,7 @@ exports[`Storyshots Common Icon 1`] = `
         </div>
         <div>
           <span
-            className="glamor-11"
+            className="glamor-1"
             onClick={[Function]}
             onMouseEnter={[Function]}
             onMouseLeave={[Function]}
@@ -17286,7 +17286,7 @@ exports[`Storyshots Common Icon 1`] = `
         </div>
         <div>
           <span
-            className="glamor-1"
+            className="glamor-12"
             onClick={[Function]}
             onMouseEnter={[Function]}
             onMouseLeave={[Function]}
@@ -18330,7 +18330,7 @@ exports[`Storyshots Common Icon 1`] = `
         </div>
         <div>
           <span
-            className="glamor-1"
+            className="glamor-48"
             onClick={[Function]}
             onMouseEnter={[Function]}
             onMouseLeave={[Function]}
@@ -18388,7 +18388,7 @@ exports[`Storyshots Common Icon 1`] = `
         </div>
         <div>
           <span
-            className="glamor-1"
+            className="glamor-50"
             onClick={[Function]}
             onMouseEnter={[Function]}
             onMouseLeave={[Function]}
@@ -18792,6 +18792,93 @@ exports[`Storyshots Common Icon 1`] = `
             
           </span>
         </div>
+        <div>
+          <span
+            className="glamor-1"
+            onClick={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            style={
+              Object {
+                "WebkitFontSmoothing": "antialiased",
+                "borderColor": "rgba(0, 0, 0, 0.05)",
+                "borderStyle": "solid",
+                "borderWidth": 1,
+                "cursor": "pointer",
+                "fontFamily": "kb",
+                "fontSize": 16,
+                "fontStyle": "normal",
+                "fontVariant": "normal",
+                "fontWeight": "normal",
+                "lineHeight": 1,
+                "margin": 5,
+                "speak": "none",
+                "textTransform": "none",
+                "userSelect": "none",
+              }
+            }
+          >
+            
+          </span>
+        </div>
+        <div>
+          <span
+            className="glamor-1"
+            onClick={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            style={
+              Object {
+                "WebkitFontSmoothing": "antialiased",
+                "borderColor": "rgba(0, 0, 0, 0.05)",
+                "borderStyle": "solid",
+                "borderWidth": 1,
+                "cursor": "pointer",
+                "fontFamily": "kb",
+                "fontSize": 16,
+                "fontStyle": "normal",
+                "fontVariant": "normal",
+                "fontWeight": "normal",
+                "lineHeight": 1,
+                "margin": 5,
+                "speak": "none",
+                "textTransform": "none",
+                "userSelect": "none",
+              }
+            }
+          >
+            
+          </span>
+        </div>
+        <div>
+          <span
+            className="glamor-1"
+            onClick={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            style={
+              Object {
+                "WebkitFontSmoothing": "antialiased",
+                "borderColor": "rgba(0, 0, 0, 0.05)",
+                "borderStyle": "solid",
+                "borderWidth": 1,
+                "cursor": "pointer",
+                "fontFamily": "kb",
+                "fontSize": 16,
+                "fontStyle": "normal",
+                "fontVariant": "normal",
+                "fontWeight": "normal",
+                "lineHeight": 1,
+                "margin": 5,
+                "speak": "none",
+                "textTransform": "none",
+                "userSelect": "none",
+              }
+            }
+          >
+            
+          </span>
+        </div>
       </div>
     </div>
     <div>
@@ -19093,6 +19180,23 @@ exports[`Storyshots Common Icon 1`] = `
           className={undefined}
           draggable="false"
           onClick={[Function]}
+          srcSet="icons/icon-invite-link-24.png 1x, icons/icon-invite-link-24@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
           srcSet="icons/icon-keybase-logo-24.png 1x, icons/icon-keybase-logo-24@2x.png 2x"
           style={
             Object {
@@ -19242,93 +19346,6 @@ exports[`Storyshots Common Icon 1`] = `
           }
           title="hint text"
         />
-        <div>
-          <span
-            className="glamor-1"
-            onClick={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
-            style={
-              Object {
-                "WebkitFontSmoothing": "antialiased",
-                "borderColor": "rgba(0, 0, 0, 0.05)",
-                "borderStyle": "solid",
-                "borderWidth": 1,
-                "cursor": "pointer",
-                "fontFamily": "kb",
-                "fontSize": 24,
-                "fontStyle": "normal",
-                "fontVariant": "normal",
-                "fontWeight": "normal",
-                "lineHeight": 1,
-                "margin": 5,
-                "speak": "none",
-                "textTransform": "none",
-                "userSelect": "none",
-              }
-            }
-          >
-            
-          </span>
-        </div>
-        <div>
-          <span
-            className="glamor-1"
-            onClick={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
-            style={
-              Object {
-                "WebkitFontSmoothing": "antialiased",
-                "borderColor": "rgba(0, 0, 0, 0.05)",
-                "borderStyle": "solid",
-                "borderWidth": 1,
-                "cursor": "pointer",
-                "fontFamily": "kb",
-                "fontSize": 24,
-                "fontStyle": "normal",
-                "fontVariant": "normal",
-                "fontWeight": "normal",
-                "lineHeight": 1,
-                "margin": 5,
-                "speak": "none",
-                "textTransform": "none",
-                "userSelect": "none",
-              }
-            }
-          >
-            
-          </span>
-        </div>
-        <div>
-          <span
-            className="glamor-1"
-            onClick={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
-            style={
-              Object {
-                "WebkitFontSmoothing": "antialiased",
-                "borderColor": "rgba(0, 0, 0, 0.05)",
-                "borderStyle": "solid",
-                "borderWidth": 1,
-                "cursor": "pointer",
-                "fontFamily": "kb",
-                "fontSize": 24,
-                "fontStyle": "normal",
-                "fontVariant": "normal",
-                "fontWeight": "normal",
-                "lineHeight": 1,
-                "margin": 5,
-                "speak": "none",
-                "textTransform": "none",
-                "userSelect": "none",
-              }
-            }
-          >
-            
-          </span>
-        </div>
         <div>
           <span
             className="glamor-1"
@@ -19534,7 +19551,7 @@ exports[`Storyshots Common Icon 1`] = `
         </div>
         <div>
           <span
-            className="glamor-76"
+            className="glamor-1"
             onClick={[Function]}
             onMouseEnter={[Function]}
             onMouseLeave={[Function]}
@@ -19559,93 +19576,6 @@ exports[`Storyshots Common Icon 1`] = `
             }
           >
             
-          </span>
-        </div>
-        <div>
-          <span
-            className="glamor-1"
-            onClick={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
-            style={
-              Object {
-                "WebkitFontSmoothing": "antialiased",
-                "borderColor": "rgba(0, 0, 0, 0.05)",
-                "borderStyle": "solid",
-                "borderWidth": 1,
-                "cursor": "pointer",
-                "fontFamily": "kb",
-                "fontSize": 24,
-                "fontStyle": "normal",
-                "fontVariant": "normal",
-                "fontWeight": "normal",
-                "lineHeight": 1,
-                "margin": 5,
-                "speak": "none",
-                "textTransform": "none",
-                "userSelect": "none",
-              }
-            }
-          >
-            
-          </span>
-        </div>
-        <div>
-          <span
-            className="glamor-78"
-            onClick={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
-            style={
-              Object {
-                "WebkitFontSmoothing": "antialiased",
-                "borderColor": "rgba(0, 0, 0, 0.05)",
-                "borderStyle": "solid",
-                "borderWidth": 1,
-                "cursor": "pointer",
-                "fontFamily": "kb",
-                "fontSize": 24,
-                "fontStyle": "normal",
-                "fontVariant": "normal",
-                "fontWeight": "normal",
-                "lineHeight": 1,
-                "margin": 5,
-                "speak": "none",
-                "textTransform": "none",
-                "userSelect": "none",
-              }
-            }
-          >
-            
-          </span>
-        </div>
-        <div>
-          <span
-            className="glamor-1"
-            onClick={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
-            style={
-              Object {
-                "WebkitFontSmoothing": "antialiased",
-                "borderColor": "rgba(0, 0, 0, 0.05)",
-                "borderStyle": "solid",
-                "borderWidth": 1,
-                "cursor": "pointer",
-                "fontFamily": "kb",
-                "fontSize": 24,
-                "fontStyle": "normal",
-                "fontVariant": "normal",
-                "fontWeight": "normal",
-                "lineHeight": 1,
-                "margin": 5,
-                "speak": "none",
-                "textTransform": "none",
-                "userSelect": "none",
-              }
-            }
-          >
-            
           </span>
         </div>
       </div>
@@ -19932,6 +19862,91 @@ exports[`Storyshots Common Icon 1`] = `
           className={undefined}
           draggable="false"
           onClick={[Function]}
+          srcSet="icons/icon-followers-1-k-32.png 1x, icons/icon-followers-1-k-32@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-followers-10-k-32.png 1x, icons/icon-followers-10-k-32@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-followers-100-32.png 1x, icons/icon-followers-100-32@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-followers-5-k-32.png 1x, icons/icon-followers-5-k-32@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-followers-500-32.png 1x, icons/icon-followers-500-32@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
           srcSet="icons/icon-followers-new-32.png 1x, icons/icon-followers-new-32@2x.png 2x"
           style={
             Object {
@@ -19984,6 +19999,23 @@ exports[`Storyshots Common Icon 1`] = `
           draggable="false"
           onClick={[Function]}
           srcSet="icons/icon-hacker-news-logo-32.png 1x, icons/icon-hacker-news-logo-32@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-invite-link-32.png 1x, icons/icon-invite-link-32@2x.png 2x"
           style={
             Object {
               "borderColor": "rgba(0, 0, 0, 0.05)",
@@ -21505,6 +21537,91 @@ exports[`Storyshots Common Icon 1`] = `
           draggable="false"
           onClick={[Function]}
           srcSet="icons/icon-folders-private-success-48.png 1x, icons/icon-folders-private-success-48@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-followers-1-k-48.png 1x, icons/icon-followers-1-k-48@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-followers-10-k-48.png 1x, icons/icon-followers-10-k-48@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-followers-100-48.png 1x, icons/icon-followers-100-48@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-followers-5-k-48.png 1x, icons/icon-followers-5-k-48@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-followers-500-48.png 1x, icons/icon-followers-500-48@2x.png 2x"
           style={
             Object {
               "borderColor": "rgba(0, 0, 0, 0.05)",
@@ -23769,6 +23886,23 @@ exports[`Storyshots Common Icon 1`] = `
           className={undefined}
           draggable="false"
           onClick={[Function]}
+          srcSet="icons/icon-proof-published.png 1x, icons/icon-proof-published@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
           srcSet="icons/icon-proof-success.png 1x, icons/icon-proof-success@2x.png 2x"
           style={
             Object {
@@ -24900,7 +25034,7 @@ exports[`Storyshots Common Text 1`] = `
       <div
         style={
           Object {
-            "backgroundColor": "#082640",
+            "backgroundColor": "#002C52",
             "padding": 90,
             "position": "relative",
           }
@@ -24924,7 +25058,7 @@ exports[`Storyshots Common Text 1`] = `
           <div
             style={
               Object {
-                "backgroundColor": "#082640",
+                "backgroundColor": "#002C52",
                 "flex": 1,
               }
             }
@@ -24956,7 +25090,7 @@ exports[`Storyshots Common Text 1`] = `
           <div
             style={
               Object {
-                "backgroundColor": "#195080",
+                "backgroundColor": "#004481",
                 "flex": 1,
               }
             }
@@ -25537,7 +25671,7 @@ exports[`Storyshots Edit team description Description changed 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
           <div
@@ -25968,7 +26102,7 @@ exports[`Storyshots Edit team description Description unchanged 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
           <div
@@ -27430,7 +27564,7 @@ exports[`Storyshots Git DeleteTeamRepo 1`] = `
                       }
                     }
                   >
-                    
+                    
                   </span>
                 </div>
               </div>
@@ -28247,7 +28381,7 @@ exports[`Storyshots Git NewTeamRepo 1`] = `
                       }
                     }
                   >
-                    
+                    
                   </span>
                 </div>
               </div>
@@ -30803,7 +30937,7 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
   padding-right: 2px;
   align-self: center;
   text-transform: uppercase;
-  background-color: rgba(51, 160, 255, 0.6);
+  background-color: #33a0ff;
   -webkit-align-self: center;
 }
 
@@ -31211,7 +31345,6 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
             Object {
               "alignItems": "center",
               "backgroundColor": "#ff6f21",
-              "border": "none",
               "borderRadius": 10,
               "display": "flex",
               "flexDirection": "row",
@@ -31254,7 +31387,7 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
   padding-right: 2px;
   align-self: center;
   text-transform: uppercase;
-  background-color: rgba(51, 160, 255, 0.6);
+  background-color: #33a0ff;
   -webkit-align-self: center;
 }
 
@@ -31916,7 +32049,6 @@ exports[`Storyshots People/Follow notification Someone followed you 1`] = `
             Object {
               "alignItems": "center",
               "backgroundColor": "#ff6f21",
-              "border": "none",
               "borderRadius": 10,
               "display": "flex",
               "flexDirection": "row",
@@ -32359,7 +32491,6 @@ exports[`Storyshots People/Todos Chat 1`] = `
             Object {
               "alignItems": "center",
               "backgroundColor": "#ff6f21",
-              "border": "none",
               "borderRadius": 10,
               "display": "flex",
               "flexDirection": "row",
@@ -32571,7 +32702,6 @@ exports[`Storyshots People/Todos Fill out bio 1`] = `
             Object {
               "alignItems": "center",
               "backgroundColor": "#ff6f21",
-              "border": "none",
               "borderRadius": 10,
               "display": "flex",
               "flexDirection": "row",
@@ -32802,7 +32932,6 @@ exports[`Storyshots People/Todos Follow someone 1`] = `
             Object {
               "alignItems": "center",
               "backgroundColor": "#ff6f21",
-              "border": "none",
               "borderRadius": 10,
               "display": "flex",
               "flexDirection": "row",
@@ -33033,7 +33162,6 @@ exports[`Storyshots People/Todos Install on phone 1`] = `
             Object {
               "alignItems": "center",
               "backgroundColor": "#ff6f21",
-              "border": "none",
               "borderRadius": 10,
               "display": "flex",
               "flexDirection": "row",
@@ -33264,7 +33392,6 @@ exports[`Storyshots People/Todos Make a folder 1`] = `
             Object {
               "alignItems": "center",
               "backgroundColor": "#ff6f21",
-              "border": "none",
               "borderRadius": 10,
               "display": "flex",
               "flexDirection": "row",
@@ -33495,7 +33622,6 @@ exports[`Storyshots People/Todos Make a git 1`] = `
             Object {
               "alignItems": "center",
               "backgroundColor": "#ff6f21",
-              "border": "none",
               "borderRadius": 10,
               "display": "flex",
               "flexDirection": "row",
@@ -33707,7 +33833,6 @@ exports[`Storyshots People/Todos Make a paper key 1`] = `
             Object {
               "alignItems": "center",
               "backgroundColor": "#ff6f21",
-              "border": "none",
               "borderRadius": 10,
               "display": "flex",
               "flexDirection": "row",
@@ -33938,7 +34063,6 @@ exports[`Storyshots People/Todos Make a team 1`] = `
             Object {
               "alignItems": "center",
               "backgroundColor": "#ff6f21",
-              "border": "none",
               "borderRadius": 10,
               "display": "flex",
               "flexDirection": "row",
@@ -34169,7 +34293,6 @@ exports[`Storyshots People/Todos Prove something 1`] = `
             Object {
               "alignItems": "center",
               "backgroundColor": "#ff6f21",
-              "border": "none",
               "borderRadius": 10,
               "display": "flex",
               "flexDirection": "row",
@@ -34400,7 +34523,6 @@ exports[`Storyshots People/Todos Set publicity 1`] = `
             Object {
               "alignItems": "center",
               "backgroundColor": "#ff6f21",
-              "border": "none",
               "borderRadius": 10,
               "display": "flex",
               "flexDirection": "row",
@@ -38035,7 +38157,7 @@ exports[`Storyshots Search Result 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
           <div
@@ -40279,7 +40401,7 @@ input.lighterPlaceholder::placeholder {
                   }
                 }
               >
-                
+                
               </span>
             </div>
           </div>
@@ -40355,7 +40477,7 @@ input.lighterPlaceholder::placeholder {
                   }
                 }
               >
-                
+                
               </span>
             </div>
           </div>
@@ -40423,7 +40545,7 @@ input.lighterPlaceholder::placeholder {
                   }
                 }
               >
-                
+                
               </span>
             </div>
           </div>
@@ -40633,7 +40755,7 @@ input.lighterPlaceholder::placeholder {
                   }
                 }
               >
-                
+                
               </span>
             </div>
           </div>
@@ -40709,7 +40831,7 @@ input.lighterPlaceholder::placeholder {
                   }
                 }
               >
-                
+                
               </span>
             </div>
           </div>
@@ -40777,7 +40899,7 @@ input.lighterPlaceholder::placeholder {
                   }
                 }
               >
-                
+                
               </span>
             </div>
           </div>
@@ -40961,7 +41083,7 @@ input.lighterPlaceholder::placeholder {
                   }
                 }
               >
-                
+                
               </span>
             </div>
           </div>
@@ -41037,7 +41159,7 @@ input.lighterPlaceholder::placeholder {
                   }
                 }
               >
-                
+                
               </span>
             </div>
           </div>
@@ -41105,7 +41227,7 @@ input.lighterPlaceholder::placeholder {
                   }
                 }
               >
-                
+                
               </span>
             </div>
           </div>
@@ -41243,7 +41365,7 @@ input.lighterPlaceholder::placeholder {
               }
             }
           >
-            
+            
           </span>
         </div>
       </div>
@@ -41354,7 +41476,7 @@ input.lighterPlaceholder::placeholder {
                     }
                   }
                 >
-                  
+                  
                 </span>
               </div>
             </div>
@@ -41430,7 +41552,7 @@ input.lighterPlaceholder::placeholder {
                     }
                   }
                 >
-                  
+                  
                 </span>
               </div>
             </div>
@@ -41498,7 +41620,7 @@ input.lighterPlaceholder::placeholder {
                     }
                   }
                 >
-                  
+                  
                 </span>
               </div>
             </div>
@@ -41566,7 +41688,7 @@ input.lighterPlaceholder::placeholder {
                     }
                   }
                 >
-                  
+                  
                 </span>
               </div>
             </div>
@@ -41634,7 +41756,7 @@ input.lighterPlaceholder::placeholder {
                     }
                   }
                 >
-                  
+                  
                 </span>
               </div>
             </div>
@@ -41702,7 +41824,7 @@ input.lighterPlaceholder::placeholder {
                     }
                   }
                 >
-                  
+                  
                 </span>
               </div>
             </div>
@@ -41770,7 +41892,7 @@ input.lighterPlaceholder::placeholder {
                     }
                   }
                 >
-                  
+                  
                 </span>
               </div>
             </div>
@@ -41992,7 +42114,7 @@ input.lighterPlaceholder::placeholder {
                     }
                   }
                 >
-                  
+                  
                 </span>
               </div>
             </div>
@@ -42068,7 +42190,7 @@ input.lighterPlaceholder::placeholder {
                     }
                   }
                 >
-                  
+                  
                 </span>
               </div>
             </div>
@@ -42136,7 +42258,7 @@ input.lighterPlaceholder::placeholder {
                     }
                   }
                 >
-                  
+                  
                 </span>
               </div>
             </div>
@@ -42557,7 +42679,7 @@ input.lighterPlaceholder::placeholder {
                   }
                 }
               >
-                
+                
               </span>
             </div>
           </div>
@@ -42633,7 +42755,7 @@ input.lighterPlaceholder::placeholder {
                   }
                 }
               >
-                
+                
               </span>
             </div>
           </div>
@@ -42701,7 +42823,7 @@ input.lighterPlaceholder::placeholder {
                   }
                 }
               >
-                
+                
               </span>
             </div>
           </div>
@@ -42769,7 +42891,7 @@ input.lighterPlaceholder::placeholder {
                   }
                 }
               >
-                
+                
               </span>
             </div>
           </div>
@@ -42837,7 +42959,7 @@ input.lighterPlaceholder::placeholder {
                   }
                 }
               >
-                
+                
               </span>
             </div>
           </div>
@@ -42905,7 +43027,7 @@ input.lighterPlaceholder::placeholder {
                   }
                 }
               >
-                
+                
               </span>
             </div>
           </div>
@@ -42973,7 +43095,7 @@ input.lighterPlaceholder::placeholder {
                   }
                 }
               >
-                
+                
               </span>
             </div>
           </div>
@@ -43300,7 +43422,7 @@ exports[`Storyshots Team Roles ConfirmAdmin 1`] = `
               }
             }
           >
-            
+            
           </span>
         </div>
         <div
@@ -43402,7 +43524,7 @@ exports[`Storyshots Team Roles ConfirmAdmin 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
           <span
@@ -43446,7 +43568,7 @@ exports[`Storyshots Team Roles ConfirmAdmin 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
           <span
@@ -43490,7 +43612,7 @@ exports[`Storyshots Team Roles ConfirmAdmin 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
           <span
@@ -43534,7 +43656,7 @@ exports[`Storyshots Team Roles ConfirmAdmin 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
           <span
@@ -43578,7 +43700,7 @@ exports[`Storyshots Team Roles ConfirmAdmin 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
           <span
@@ -43649,7 +43771,7 @@ exports[`Storyshots Team Roles ConfirmAdmin 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
           <span
@@ -43986,7 +44108,7 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
               }
             }
           >
-            
+            
           </span>
         </div>
         <div
@@ -44088,7 +44210,7 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
           <span
@@ -44132,7 +44254,7 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
           <span
@@ -44176,7 +44298,7 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
           <span
@@ -44220,7 +44342,7 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
           <span
@@ -44264,7 +44386,7 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
           <span
@@ -44308,7 +44430,7 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
           <span
@@ -44650,7 +44772,7 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
               }
             }
           >
-            
+            
           </span>
         </div>
         <div
@@ -44752,7 +44874,7 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
           <span
@@ -44796,7 +44918,7 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
           <span
@@ -44867,7 +44989,7 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
           <span
@@ -44911,7 +45033,7 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
           <span
@@ -44955,7 +45077,7 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
           <span
@@ -44999,7 +45121,7 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
           <span
@@ -45043,7 +45165,7 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
           <span
@@ -45385,7 +45507,7 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
               }
             }
           >
-            
+            
           </span>
         </div>
         <div
@@ -45487,7 +45609,7 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
           <span
@@ -45531,7 +45653,7 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
           <span
@@ -45602,7 +45724,7 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
           <span
@@ -45646,7 +45768,7 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
           <span
@@ -45690,7 +45812,7 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
           <span
@@ -45734,7 +45856,7 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
           <span
@@ -46052,7 +46174,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
               }
             }
           >
-            
+            
           </span>
         </div>
         <div
@@ -46094,7 +46216,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
                   }
                 }
               >
-                
+                
               </span>
             </div>
             <span
@@ -46163,7 +46285,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
               }
             }
           >
-            
+            
           </span>
         </div>
         <div
@@ -46205,7 +46327,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
                   }
                 }
               >
-                
+                
               </span>
             </div>
             <span
@@ -46274,7 +46396,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
               }
             }
           >
-            
+            
           </span>
         </div>
         <div
@@ -46360,7 +46482,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
               }
             }
           >
-            
+            
           </span>
         </div>
         <div
@@ -46458,7 +46580,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
                   }
                 }
               >
-                
+                
               </span>
             </div>
           </div>
@@ -46658,7 +46780,7 @@ exports[`Storyshots Teams Header 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 600;
-  margin: 4px;
+  margin: 8px;
 }
 
 <div
@@ -46789,7 +46911,7 @@ exports[`Storyshots Teams Header 1`] = `
               }
             }
           >
-            
+            
           </span>
         </div>
         <span
@@ -47063,7 +47185,7 @@ exports[`Storyshots Teams TeamList 1`] = `
                   }
                 }
               >
-                
+                
               </span>
             </div>
             <div>
@@ -47089,7 +47211,7 @@ exports[`Storyshots Teams TeamList 1`] = `
                   }
                 }
               >
-                
+                
               </span>
             </div>
           </div>
@@ -47235,7 +47357,7 @@ exports[`Storyshots Teams TeamList 1`] = `
                   }
                 }
               >
-                
+                
               </span>
             </div>
             <div>
@@ -47261,7 +47383,7 @@ exports[`Storyshots Teams TeamList 1`] = `
                   }
                 }
               >
-                
+                
               </span>
             </div>
           </div>
@@ -47373,7 +47495,6 @@ exports[`Storyshots Teams TeamList 1`] = `
                       Object {
                         "alignItems": "center",
                         "backgroundColor": "#ff6f21",
-                        "border": "none",
                         "borderRadius": 10,
                         "display": "flex",
                         "flexDirection": "row",
@@ -47428,7 +47549,7 @@ exports[`Storyshots Teams TeamList 1`] = `
                   }
                 }
               >
-                
+                
               </span>
             </div>
             <div>
@@ -47454,7 +47575,7 @@ exports[`Storyshots Teams TeamList 1`] = `
                   }
                 }
               >
-                
+                
               </span>
             </div>
           </div>
