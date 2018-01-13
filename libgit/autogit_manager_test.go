@@ -112,9 +112,8 @@ func (nc *newConfigger) getNewConfigForTest(
 	return nc.getNewConfigForTestWithMode(ctx, libkbfs.InitSingleOp)
 }
 
-func addFileToWorktreeAndCommit(
-	t *testing.T, ctx context.Context, config libkbfs.Config,
-	h *libkbfs.TlfHandle, repo *gogit.Repository, worktreeFS billy.Filesystem,
+func addFileToWorktree(
+	t *testing.T, repo *gogit.Repository, worktreeFS billy.Filesystem,
 	name, data string) {
 	foo, err := worktreeFS.Create(name)
 	require.NoError(t, err)
@@ -133,8 +132,12 @@ func addFileToWorktreeAndCommit(
 		},
 	})
 	require.NoError(t, err)
+}
 
-	err = worktreeFS.(*libfs.FS).SyncAll()
+func commitWorktree(
+	t *testing.T, ctx context.Context, config libkbfs.Config,
+	h *libkbfs.TlfHandle, worktreeFS billy.Filesystem) {
+	err := worktreeFS.(*libfs.FS).SyncAll()
 	require.NoError(t, err)
 	jServer, err := libkbfs.GetJournalServer(config)
 	require.NoError(t, err)
@@ -144,6 +147,14 @@ func addFileToWorktreeAndCommit(
 	err = jServer.FinishSingleOp(ctx,
 		rootNode.GetFolderBranch().Tlf, nil, keybase1.MDPriorityNormal)
 	require.NoError(t, err)
+}
+
+func addFileToWorktreeAndCommit(
+	t *testing.T, ctx context.Context, config libkbfs.Config,
+	h *libkbfs.TlfHandle, repo *gogit.Repository, worktreeFS billy.Filesystem,
+	name, data string) {
+	addFileToWorktree(t, repo, worktreeFS, name, data)
+	commitWorktree(t, ctx, config, h, worktreeFS)
 }
 
 func checkFileInRootFS(

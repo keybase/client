@@ -400,7 +400,17 @@ func (fs *FS) OpenFile(filename string, flag int, perm os.FileMode) (
 
 	err = fs.mkdirAll(path.Dir(filename), 0755)
 	if err != nil && !os.IsExist(err) {
-		return nil, err
+		switch errors.Cause(err).(type) {
+		case libkbfs.WriteAccessError, libkbfs.WriteToReadonlyNodeError:
+			// We're not allowed to create any of the parent
+			// directories automatically, so give back a proper
+			// isNotExist error.
+			fs.log.CDebugf(fs.ctx,
+				"Open can't mkdir all due to permission error %+v", err)
+			return nil, os.ErrNotExist
+		default:
+			return nil, err
+		}
 	}
 
 	n, ei, err := fs.lookupOrCreateEntry(filename, flag, perm)
