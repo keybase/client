@@ -60,7 +60,7 @@ func TestAutogitNodeWrappers(t *testing.T) {
 	require.NotNil(t, err)
 }
 
-func checkAutogit(t *testing.T, rootFS *libfs.FS, tlfType string) {
+func checkAutogitOneFile(t *testing.T, rootFS *libfs.FS, tlfType string) {
 	fis, err := rootFS.ReadDir(
 		fmt.Sprintf(".kbfs_autogit/%s/user1/test", tlfType))
 	require.NoError(t, err)
@@ -74,7 +74,7 @@ func checkAutogit(t *testing.T, rootFS *libfs.FS, tlfType string) {
 	require.Equal(t, "hello", string(data))
 }
 
-func checkAutogit2(t *testing.T, rootFS *libfs.FS, tlfType string) {
+func checkAutogitTwoFiles(t *testing.T, rootFS *libfs.FS, tlfType string) {
 	fis, err := rootFS.ReadDir(
 		fmt.Sprintf(".kbfs_autogit/%s/user1/test", tlfType))
 	require.NoError(t, err)
@@ -132,7 +132,7 @@ func TestAutogitRepoNode(t *testing.T) {
 		t, ctx, config, h, repo, worktreeFS, "foo", "hello")
 
 	t.Log("Use autogit to clone it using ReadDir")
-	checkAutogit(t, rootFS, "private")
+	checkAutogitOneFile(t, rootFS, "private")
 
 	t.Log("Update the source repo and make sure the autogit repos update too")
 	addFileToWorktreeAndCommit(
@@ -160,7 +160,7 @@ func TestAutogitRepoNode(t *testing.T) {
 		ctx, dstRootNode.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
-	checkAutogit2(t, rootFS, "private")
+	checkAutogitTwoFiles(t, rootFS, "private")
 }
 
 func TestAutogitRepoNodeReadonly(t *testing.T) {
@@ -222,7 +222,7 @@ func TestAutogitRepoNodeReadonly(t *testing.T) {
 	rootFS2, err := libfs.NewFS(
 		ctx2, config2, h2, "", "", keybase1.MDPriorityNormal)
 	require.NoError(t, err)
-	checkAutogit(t, rootFS2, "public")
+	checkAutogitOneFile(t, rootFS2, "public")
 
 	addFileToWorktree(t, repo, worktreeFS, "foo2", "hello2")
 	t.Log("Repacking objects to more closely resemble a real kbfsgit push, " +
@@ -264,5 +264,5 @@ func TestAutogitRepoNodeReadonly(t *testing.T) {
 		ctx, dstRootNode2.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
-	checkAutogit2(t, rootFS2, "public")
+	checkAutogitTwoFiles(t, rootFS2, "public")
 }
