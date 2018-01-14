@@ -622,7 +622,10 @@ const messageDelete = (action: Chat2Gen.MessageDeletePayload, state: TypedState)
 
 const clearMessageSetEditing = (action: Chat2Gen.MessageEditPayload) =>
   Saga.put(
-    Chat2Gen.createMessageSetEditing({conversationIDKey: action.payload.conversationIDKey, ordinal: null})
+    Chat2Gen.createMessageSetEditing({
+      conversationIDKey: action.payload.conversationIDKey,
+      ordinal: null,
+    })
   )
 
 const messageEdit = (action: Chat2Gen.MessageEditPayload, state: TypedState) => {

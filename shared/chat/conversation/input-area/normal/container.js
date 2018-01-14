@@ -33,8 +33,10 @@ const mapStateToProps = (state: TypedState) => {
   const _editingMessage = editingOrdinal
     ? Constants.getMessageMap(state, _conversationIDKey).get(editingOrdinal)
     : null
+  const _you = state.config.username || ''
 
   return {
+    _you,
     _conversationIDKey,
     _editingMessage,
     _meta: Constants.getMeta(state, _conversationIDKey),
@@ -49,6 +51,14 @@ const mapDispatchToProps = (dispatch: Dispatch): * => ({
   // {props: {conversationIDKey: selectedConversation, inputs}, selected: 'attachmentInput'},
   // ])
   // ),
+  _onEditLastMessage: (conversationIDKey: Types.ConversationIDKey, you: string) =>
+    dispatch(
+      Chat2Gen.createMessageSetEditing({
+        conversationIDKey,
+        editLastUser: you,
+        ordinal: null,
+      })
+    ),
   _onEditMessage: (message: Types.Message, body: string) =>
     dispatch(
       Chat2Gen.createMessageEdit({
@@ -98,7 +108,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     typing: stateProps.typing,
     // onAttach: (inputs: Array<any [> Types.AttachmentInput <]>) =>
     // dispatchProps.onAttach(stateProps.selectedConversationIDKey, inputs),
-    // onEditLastMessage: ownProps.onEditLastMessage,
+    onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps._conversationIDKey, stateProps._you),
     _onSubmit: (text: string) => {
       if (stateProps._editingMessage) {
         dispatchProps._onEditMessage(stateProps._editingMessage, text)

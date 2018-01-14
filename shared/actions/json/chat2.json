@@ -61,10 +61,11 @@
       "context": "{type: 'sent'} | {type: 'incoming'} | {type: 'threadLoad', conversationIDKey: Types.ConversationIDKey}", // because we clicked on a conversation for the very first time?
       "messages": "Array<Types.Message>"
     },
-    // Start editing a message / or clear editing
+    // Start editing a message / or edit the last message / or clear editing
     "messageSetEditing": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "?Types.Ordinal"
+      "ordinal": "?Types.Ordinal",
+      "editLastUser?": "string"
     },
     // Submit an edit to the daemon
     "messageEdit": {

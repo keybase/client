@@ -75,6 +75,7 @@ export const createMessageSetEditing = (
   payload: $ReadOnly<{
     conversationIDKey: Types.ConversationIDKey,
     ordinal: ?Types.Ordinal,
+    editLastUser?: string,
   }>
 ) => ({error: false, payload, type: messageSetEditing})
 export const createMessageWasEdited = (
