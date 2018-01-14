@@ -72,6 +72,7 @@ const UsernameHeader = ({
         usernames={participants}
         containerStyle={styleCenter}
         onUsernameClicked={onShowProfile}
+        skipSelf={true}
       />
       {muted && <ShhIcon />}
     </Box>
