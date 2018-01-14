@@ -69,7 +69,13 @@ const metaMapReducer = (metaMap, action) => {
           default:
             return metaMap.update(
               action.payload.conversationIDKey,
-              meta => (meta ? meta.set('trustedState', 'error').set('snippet', error.message) : meta)
+              meta =>
+                meta
+                  ? meta.withMutations(m => {
+                      m.set('trustedState', 'error')
+                      m.set('snippet', error.message)
+                    })
+                  : meta
             )
         }
       } else {
@@ -110,10 +116,11 @@ const messageMapReducer = (messageMap, action) => {
         message =>
           !message || message.type !== 'text'
             ? message
-            : message
-                .set('text', text)
-                .set('hasBeenEdited', true)
-                .set('localState', null)
+            : message.withMutations(m => {
+                m.set('text', text)
+                m.set('hasBeenEdited', true)
+                m.set('localState', null)
+              })
       )
     }
     case Chat2Gen.messagesWereDeleted: {
@@ -195,7 +202,10 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
           unreadMessages,
         ])
       )
-      return state.set('badgeMap', badgeMap).set('unreadMap', unreadMap)
+      return state.withMutations(s => {
+        s.set('badgeMap', badgeMap)
+        s.set('unreadMap', unreadMap)
+      })
     }
     case Chat2Gen.messageSetEditing:
       return state.update(
