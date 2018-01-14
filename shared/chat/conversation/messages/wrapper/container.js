@@ -140,7 +140,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     includeHeader,
     innerClass: stateProps.innerClass,
     isBroken: false, // TODO stateProps.isBroken,
-    isEdited: message.isEdited,
+    isEdited: message.hasBeenEdited,
     isEditing: stateProps.isEditing,
     isFirstNewMessage: false, //  TODO
     isFollowing: stateProps.isFollowing,

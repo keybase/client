@@ -164,11 +164,27 @@ const messageActionMessage = createSelector(
     ])
 )
 
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  _measure: ownProps.measure,
+  isEditing: stateProps.isEditing,
+  isSelected: stateProps.isSelected,
+  message: stateProps.message,
+  previous: stateProps.previous,
+})
+
 export default compose(
-  connect(mapStateToProps, () => ({})),
+  connect(mapStateToProps, () => ({}), mergeProps),
   lifecycle({
     componentDidUpdate(prevProps) {
-      this.props.measure && this.props.message !== prevProps.message && this.props.measure()
+      // If our message is the same id but anything else changed then we need to remeasure
+      if (
+        this.props._measure &&
+        this.props.message !== prevProps.message &&
+        this.props.message.ordinal === prevProps.message.ordinal
+      ) {
+        console.log('aaa measure')
+        this.props._measure()
+      }
     },
   })
 )(MessageFactory)
