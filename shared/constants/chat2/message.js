@@ -172,3 +172,10 @@ export const makePendingTextMessage = (
 }
 
 export const isOldestOrdinal = (ordinal: Types.Ordinal) => ordinal === 2
+
+// Daemon doens't like ordinals and its not worth finding the last value value so just 'converting it' into a message id
+export const getClientPrev = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
+  const lastOrdinal =
+    state.chat2.messageOrdinals.get(conversationIDKey, I.SortedSet()).last() || Types.numberToOrdinal(0)
+  return Math.floor(Types.ordinalToNumber(lastOrdinal))
+}

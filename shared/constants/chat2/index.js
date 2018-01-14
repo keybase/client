@@ -57,4 +57,10 @@ export {
   updateMeta,
 } from './meta'
 
-export {makeMessageDeleted, uiMessageToMessage, isOldestOrdinal, makePendingTextMessage} from './message'
+export {
+  makeMessageDeleted,
+  uiMessageToMessage,
+  isOldestOrdinal,
+  makePendingTextMessage,
+  getClientPrev,
+} from './message'

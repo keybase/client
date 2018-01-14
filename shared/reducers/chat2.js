@@ -108,7 +108,12 @@ const messageMapReducer = (messageMap, action) => {
       return messageMap.updateIn(
         [conversationIDKey, ordinal],
         message =>
-          !message || message.type !== 'text' ? message : message.set('text', text).set('hasBeenEdited', true)
+          !message || message.type !== 'text'
+            ? message
+            : message
+                .set('text', text)
+                .set('hasBeenEdited', true)
+                .set('localState', null)
       )
     }
     case Chat2Gen.messagesWereDeleted: {

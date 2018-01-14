@@ -625,15 +625,48 @@ const clearMessageSetEditing = (action: Chat2Gen.MessageEditPayload) =>
     Chat2Gen.createMessageSetEditing({conversationIDKey: action.payload.conversationIDKey, ordinal: null})
   )
 
+const messageEdit = (action: Chat2Gen.MessageEditPayload, state: TypedState) => {
+  const {conversationIDKey, text, ordinal} = action.payload
+  const message = Constants.getMessageMap(state, conversationIDKey).get(ordinal)
+  if (!message) {
+    logger.warn("Can't find message to edit", ordinal)
+    return
+  }
+  if (message.type !== 'text') {
+    logger.warn('Editing non-text message')
+    return
+  }
+  // Skip if the content is the same
+  if (message.text.stringValue() === text) {
+    return
+  }
+
+  const identifyBehavior = RPCTypes.tlfKeysTLFIdentifyBehavior.chatGuiStrict // TODO
+  const meta = Constants.getMeta(state, conversationIDKey)
+  const tlfName = meta.tlfname // TODO non existant convo
+  const clientPrev = Constants.getClientPrev(state, conversationIDKey)
+  const outboxID = Constants.generateOutboxID()
+  const supersedes = message.id
+
+  // Inject pending message and make the call
+  return Saga.call(RPCChatTypes.localPostEditNonblockRpcPromise, {
+    body: text.stringValue(),
+    clientPrev,
+    conversationID: Constants.keyToConversationID(conversationIDKey),
+    identifyBehavior,
+    outboxID,
+    supersedes,
+    tlfName,
+    tlfPublic: false,
+  })
+}
+
 const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => {
   const {conversationIDKey, text} = action.payload
   const identifyBehavior = RPCTypes.tlfKeysTLFIdentifyBehavior.chatGuiStrict // TODO
   const meta = Constants.getMeta(state, conversationIDKey)
   const tlfName = meta.tlfname // TODO non existant convo
-  // Daemon doens't like ordinals and its not worth finding the last value value so just 'converting it' into a message id
-  const lastOrdinal =
-    Constants.getMessageOrdinals(state, conversationIDKey).last() || Types.numberToOrdinal(0)
-  const clientPrev = Math.floor(Types.ordinalToNumber(lastOrdinal))
+  const clientPrev = Constants.getClientPrev(state, conversationIDKey)
   const outboxID = Constants.generateOutboxID()
 
   // Inject pending message and make the call
@@ -689,6 +722,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   )
 
   yield Saga.safeTakeEveryPure(Chat2Gen.messageSend, messageSend)
+  yield Saga.safeTakeEveryPure(Chat2Gen.messageEdit, messageEdit)
   yield Saga.safeTakeEveryPure(Chat2Gen.messageEdit, clearMessageSetEditing)
   yield Saga.safeTakeEveryPure(Chat2Gen.messageDelete, messageDelete)
 
