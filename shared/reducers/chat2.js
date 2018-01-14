@@ -209,26 +209,33 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     }
     case Chat2Gen.messageSetEditing:
       return state.update('editingMap', editingMap => {
-        const {conversationIDKey, editLastUser} = action.payload
+        const {conversationIDKey, editLastUser, ordinal} = action.payload
 
-        // editing a specific message
-        if (action.payload.ordinal) {
-          return editingMap.set(conversationIDKey, action.payload.ordinal)
-        }
         // clearing
-        if (!action.payload.editLastUser) {
+        if (!editLastUser && !ordinal) {
           return editingMap.delete(conversationIDKey)
         }
 
         const messageMap = state.messageMap.get(conversationIDKey, I.Map())
+
+        // editing a specific message
+        if (ordinal) {
+          const message = messageMap.get(ordinal)
+          if (message && message.type === 'text') {
+            return editingMap.set(conversationIDKey, ordinal)
+          } else {
+            return editingMap
+          }
+        }
+
+        // Editing your last message
         const ordinals = state.messageOrdinals.get(conversationIDKey, I.SortedSet())
-        // Find the last one you wrote
-        const ordinal = ordinals.findLast(o => {
+        const found = ordinals.findLast(o => {
           const message = messageMap.get(o)
           return message && message.type === 'text' && message.author === editLastUser
         })
-        if (ordinal) {
-          return editingMap.set(conversationIDKey, ordinal)
+        if (found) {
+          return editingMap.set(conversationIDKey, found)
         }
         return editingMap
       })
