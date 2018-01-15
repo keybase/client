@@ -99,6 +99,15 @@ const makeMessageSystemText: I.RecordFactory<MessageTypes._MessageSystemText> = 
   type: 'systemText',
 })
 
+const makeMessageSystemGitPush: I.RecordFactory<MessageTypes._MessageSystemGitPush> = I.Record({
+  ...makeMessageMinimum,
+  pusher: '',
+  refs: [],
+  repo: '',
+  team: '',
+  type: 'systemGitPush',
+})
+
 const channelMentionToMentionsChannel = (channelMention: RPCChatTypes.ChannelMention) => {
   switch (channelMention) {
     case RPCChatTypes.remoteChannelMention.all:
@@ -170,7 +179,6 @@ const uiMessageToSystemMessage = (minimum, body): ?Types.Message => {
           ;(iType: empty) // eslint-disable-line no-unused-expressions
           return null
       }
-      // messageText = `${invitee} accepted an invite to join ${team}`
       return makeMessageSystemInviteAccepted({
         ...minimum,
         adder,
@@ -194,8 +202,16 @@ const uiMessageToSystemMessage = (minimum, body): ?Types.Message => {
         ...minimum,
       })
     }
-    case RPCChatTypes.localMessageSystemType.gitpush:
-      return null
+    case RPCChatTypes.localMessageSystemType.gitpush: {
+      const {team = '???', pusher = '???', repoName: repo = '???', refs} = body.gitpush || {}
+      return makeMessageSystemGitPush({
+        ...minimum,
+        pusher,
+        refs: refs || [],
+        repo,
+        team,
+      })
+    }
     default:
       // eslint-disable-next-line no-unused-expressions
       ;(body.systemType: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
