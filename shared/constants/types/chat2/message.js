@@ -82,19 +82,18 @@ export type _MessageAttachment = {
   title: string,
   type: 'attachment',
 }
-
 export type MessageAttachment = I.RecordOf<_MessageAttachment>
 
-// export type _MessageError = {|
-// conversationIDKey: Common.ConversationIDKey,
-// ordinal: Ordinal,
-// type: 'error',
-// // errorType unknown version, etc
-// |}
-// export type MessageError = I.RecordOf<_MessageError>
-
-// case 'addedToTeam':
-// case 'gitPush':
+export type _MessageError = {
+  author: '[Keybase]',
+  conversationIDKey: Common.ConversationIDKey,
+  id: MessageID,
+  ordinal: Ordinal,
+  reason: string,
+  timestamp: number,
+  type: 'error',
+}
+export type MessageError = I.RecordOf<_MessageError>
 
 export type _MessageSystemInviteAccepted = {
   adder: string,
@@ -173,12 +172,13 @@ export type _MessageSystemLeft = {
 export type MessageSystemLeft = I.RecordOf<_MessageSystemLeft>
 
 export type Message =
-  | MessageText
   | MessageAttachment
   | MessageDeleted
-  | MessageSystemInviteAccepted
-  | MessageSystemSimpleToComplex
-  | MessageSystemGitPush
+  | MessageError
   | MessageSystemAddedToTeam
+  | MessageSystemGitPush
+  | MessageSystemInviteAccepted
   | MessageSystemJoined
   | MessageSystemLeft
+  | MessageSystemSimpleToComplex
+  | MessageText

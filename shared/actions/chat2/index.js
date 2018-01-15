@@ -17,12 +17,6 @@ import {isMobile} from '../../constants/platform'
 import {NotifyPopup} from '../../native/notifications'
 import {showMainWindow} from '../platform-specific'
 
-/*
- * TODO:
- * reset
- * >>>> Send tlfname and convid to send so daemon can verify its been unboxed
- */
-
 // If we're out of date we'll only try and fill a gap of this size, otherwise we throw old messages away
 const largestGapToFillOnSyncCall = 50
 const numMessagesOnInitialLoad = 20
@@ -635,33 +629,34 @@ const messageEdit = (action: Chat2Gen.MessageEditPayload, state: TypedState) => 
     logger.warn("Can't find message to edit", ordinal)
     return
   }
-  if (message.type !== 'text') {
+
+  if (message.type === 'text') {
+    // Skip if the content is the same
+    if (message.text.stringValue() === text) {
+      return
+    }
+
+    const identifyBehavior = RPCTypes.tlfKeysTLFIdentifyBehavior.chatGuiStrict // TODO
+    const meta = Constants.getMeta(state, conversationIDKey)
+    const tlfName = meta.tlfname // TODO non existant convo
+    const clientPrev = Constants.getClientPrev(state, conversationIDKey)
+    const outboxID = Constants.generateOutboxID()
+    const supersedes = message.id
+
+    // Inject pending message and make the call
+    return Saga.call(RPCChatTypes.localPostEditNonblockRpcPromise, {
+      body: text.stringValue(),
+      clientPrev,
+      conversationID: Constants.keyToConversationID(conversationIDKey),
+      identifyBehavior,
+      outboxID,
+      supersedes,
+      tlfName,
+      tlfPublic: false,
+    })
+  } else {
     logger.warn('Editing non-text message')
-    return
   }
-  // Skip if the content is the same
-  if (message.text.stringValue() === text) {
-    return
-  }
-
-  const identifyBehavior = RPCTypes.tlfKeysTLFIdentifyBehavior.chatGuiStrict // TODO
-  const meta = Constants.getMeta(state, conversationIDKey)
-  const tlfName = meta.tlfname // TODO non existant convo
-  const clientPrev = Constants.getClientPrev(state, conversationIDKey)
-  const outboxID = Constants.generateOutboxID()
-  const supersedes = message.id
-
-  // Inject pending message and make the call
-  return Saga.call(RPCChatTypes.localPostEditNonblockRpcPromise, {
-    body: text.stringValue(),
-    clientPrev,
-    conversationID: Constants.keyToConversationID(conversationIDKey),
-    identifyBehavior,
-    outboxID,
-    supersedes,
-    tlfName,
-    tlfPublic: false,
-  })
 }
 
 const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => {

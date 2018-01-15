@@ -25,6 +25,7 @@ export type {ConversationMeta, MetaTrustedState} from './meta'
 export type {
   Message,
   MessageAttachment,
+  MessageError,
   MessageSystemAddedToTeam,
   MessageSystemGitPush,
   MessageSystemInviteAccepted,

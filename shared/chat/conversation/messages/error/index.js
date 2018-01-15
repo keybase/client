@@ -1,19 +1,24 @@
 // @flow
 import * as React from 'react'
+import * as Types from '../../../../constants/types/chat2'
 import {Text, Box} from '../../../../common-adapters'
 import {globalStyles, globalColors} from '../../../../styles'
 
 export type Props = {
-  reason: string,
+  message: Types.MessageError,
 }
 
-const Error = ({reason}: Props) => (
-  <Box style={errorStyle}>
-    <Text type="BodySmallItalic" style={textStyle}>
-      {reason}
-    </Text>
-  </Box>
-)
+class Error extends React.PureComponent<Props> {
+  render() {
+    return (
+      <Box style={errorStyle}>
+        <Text type="BodySmallItalic" style={textStyle}>
+          {this.props.message.reason}
+        </Text>
+      </Box>
+    )
+  }
+}
 
 const textStyle = {
   color: globalColors.red,
