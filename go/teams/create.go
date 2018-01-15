@@ -431,37 +431,57 @@ func makeSigchainV2OuterSig(
 	hasRevokes bool,
 	seqType keybase1.SeqType,
 	ignoreIfUnsupported bool,
-) (
-	string,
-	error,
-) {
-	linkID := libkb.ComputeLinkID(innerLinkJSON)
+) (string, error) {
+	ret, _, err := makeSigchainOuterLinkV2(signingKey, v1LinkType, seqno, innerLinkJSON,
+		prevLinkID, hasRevokes, seqType, ignoreIfUnsupported)
+	if err != nil {
+		return "", err
+	}
+	return ret, nil
+}
+
+func makeSigchainOuterLinkV2(
+	signingKey libkb.GenericKey,
+	v1LinkType libkb.LinkType,
+	seqno keybase1.Seqno,
+	innerLinkJSON []byte,
+	prevLinkID libkb.LinkID,
+	hasRevokes bool,
+	seqType keybase1.SeqType,
+	ignoreIfUnsupported bool,
+) (sig string, linkID libkb.LinkID, err error) {
+	currLinkID := libkb.ComputeLinkID(innerLinkJSON)
 
 	v2LinkType, err := libkb.SigchainV2TypeFromV1TypeAndRevocations(string(v1LinkType), hasRevokes)
 	if err != nil {
-		return "", err
+		return sig, linkID, err
 	}
 
 	outerLink := libkb.OuterLinkV2{
 		Version:             2,
 		Seqno:               seqno,
 		Prev:                prevLinkID,
-		Curr:                linkID,
+		Curr:                currLinkID,
 		LinkType:            v2LinkType,
 		SeqType:             seqType,
 		IgnoreIfUnsupported: ignoreIfUnsupported,
 	}
 	encodedOuterLink, err := outerLink.Encode()
 	if err != nil {
-		return "", err
+		return sig, linkID, err
 	}
 
-	sig, _, err := signingKey.SignToString(encodedOuterLink)
+	sig, _, err = signingKey.SignToString(encodedOuterLink)
 	if err != nil {
-		return "", err
+		return sig, linkID, err
 	}
 
-	return sig, nil
+	// TODO: The plan here was to return OuterLinkV2WithMetadata, so
+	// caller can have more insight into what link has been created,
+	// but that struct seems internal (all but one fields are
+	// private), so for now it just returns sig, linkid, err.
+	linkID = libkb.ComputeLinkID(encodedOuterLink)
+	return sig, linkID, nil
 }
 
 func generateNewSubteamSigForParentChain(g *libkb.GlobalContext, me *libkb.User, signingKey libkb.GenericKey, parentTeam *TeamSigChainState, subteamName keybase1.TeamName, subteamID keybase1.TeamID, admin *SCTeamAdmin) (item *libkb.SigMultiItem, err error) {

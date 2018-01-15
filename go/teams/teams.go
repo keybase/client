@@ -1154,7 +1154,7 @@ func (t *Team) sigTeamItemRaw(ctx context.Context, section SCTeamSection, linkTy
 	if err != nil {
 		return libkb.SigMultiItem{}, "", err
 	}
-	v2Sig, err := makeSigchainV2OuterSig(
+	v2Sig, newLinkID, err := makeSigchainOuterLinkV2(
 		deviceSigningKey,
 		linkType,
 		nextSeqno,
@@ -1183,9 +1183,7 @@ func (t *Team) sigTeamItemRaw(ctx context.Context, section SCTeamSection, linkTy
 		}
 	}
 
-	linkID := keybase1.LinkID(libkb.ComputeLinkID(sigJSON).String())
-	fmt.Printf("Posting, prev link ID is %s, cur is %s\n", latestLinkID, linkID)
-	return sigMultiItem, linkID, nil
+	return sigMultiItem, keybase1.LinkID(newLinkID.String()), nil
 }
 
 func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet) (*PerTeamSharedSecretBoxes, map[keybase1.TeamID]*PerTeamSharedSecretBoxes, *SCPerTeamKey, error) {

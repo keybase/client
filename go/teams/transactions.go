@@ -4,6 +4,7 @@
 package teams
 
 import (
+	"errors"
 	"fmt"
 
 	"golang.org/x/net/context"
@@ -118,7 +119,7 @@ func (tx *AddMemberTx) SweepMembers(uv keybase1.UserVersion) {
 func (tx *AddMemberTx) SweepKeybaseInvites(uv keybase1.UserVersion) {
 	team := tx.team
 	for _, invite := range team.chain().inner.ActiveInvites {
-		if inviteUv, err := invite.KeybaseUserVersion(); err != nil {
+		if inviteUv, err := invite.KeybaseUserVersion(); err == nil {
 			if inviteUv.Uid == uv.Uid {
 				tx.CancelInvite(invite.Id)
 			}
@@ -178,11 +179,10 @@ func (tx *AddMemberTx) AddMemberTransaction(ctx context.Context, g *libkb.Global
 	return nil
 }
 
-func txChangeMembershipSection(ctx context.Context) {
-
-}
-
 func (tx *AddMemberTx) Post(ctx context.Context, g *libkb.GlobalContext) error {
+	if len(tx.payloads) == 0 {
+		return errors.New("There are no sigs to post")
+	}
 	team := tx.team
 
 	// Initialize key manager.
@@ -201,10 +201,6 @@ func (tx *AddMemberTx) Post(ctx context.Context, g *libkb.GlobalContext) error {
 	}
 
 	var sections []SCTeamSection
-
-	var secretBoxes *PerTeamSharedSecretBoxes
-	implicitAdminBoxes := make(map[keybase1.TeamID]*PerTeamSharedSecretBoxes)
-
 	memSet := newMemberSet()
 
 	for _, p := range tx.payloads {
@@ -231,9 +227,6 @@ func (tx *AddMemberTx) Post(ctx context.Context, g *libkb.GlobalContext) error {
 			if err := memSet.loadMembers(ctx, g, *payload, true /* forcePoll */); err != nil {
 				return err
 			}
-
-			_ = secretBoxes
-			_ = implicitAdminBoxes
 
 			section.Members, err = payloadMemberSet.Section()
 			if err != nil {
@@ -273,6 +266,22 @@ func (tx *AddMemberTx) Post(ctx context.Context, g *libkb.GlobalContext) error {
 		}()
 	}
 
+	secretBoxes, implicitAdminBoxes, perTeamKeySection, err := team.recipientBoxes(ctx, memSet)
+	if err != nil {
+		return err
+	}
+
+	if perTeamKeySection != nil {
+		// We have a new per team key, find first TeamChangeReq
+		// section created and add perTeamKeySection.
+		for i, v := range tx.payloads {
+			if _, ok := v.(*keybase1.TeamChangeReq); ok {
+				sections[i].PerTeamKey = perTeamKeySection
+				break
+			}
+		}
+	}
+
 	nextSeqno := team.NextSeqno()
 	latestLinkID := team.chain().GetLatestLinkID()
 
@@ -308,10 +317,5 @@ func (tx *AddMemberTx) Post(ctx context.Context, g *libkb.GlobalContext) error {
 		payload["per_team_key"] = secretBoxes
 	}
 
-	_, err = g.API.PostJSON(libkb.APIArg{
-		Endpoint:    "sig/multi",
-		SessionType: libkb.APISessionTypeREQUIRED,
-		JSONPayload: payload,
-	})
-	return err
+	return team.postMulti(payload)
 }

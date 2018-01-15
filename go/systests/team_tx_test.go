@@ -16,7 +16,11 @@ func TestTeamTransactions(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
-	ann := tt.addUser("ann")
+	ann := makeUserStandalone(t, "ann", standaloneUserArgs{
+		disableGregor:            true,
+		suppressTeamChatAnnounce: true,
+	})
+	tt.users = append(tt.users, ann)
 	t.Logf("Signed up ann (%s)", ann.username)
 
 	bob := tt.addPuklessUser("bob")
@@ -28,6 +32,8 @@ func TestTeamTransactions(t *testing.T) {
 	team := ann.createTeam()
 	t.Logf("Team created (%s)", team)
 
+	// TRANSACTION 1 - add bob (keybase-type invite) and tracy (crypto member)
+
 	teamObj, err := teams.Load(context.Background(), ann.tc.G, keybase1.LoadTeamArg{
 		Name:      team,
 		NeedAdmin: true,
@@ -36,8 +42,24 @@ func TestTeamTransactions(t *testing.T) {
 
 	tx := teams.CreateAddMemberTx(teamObj)
 	tx.AddMemberTransaction(context.Background(), ann.tc.G, bob.username, keybase1.TeamRole_WRITER)
-	//tx.AddMemberTransaction(context.Background(), ann.tc.G, tracy.username, keybase1.TeamRole_READER)
+	tx.AddMemberTransaction(context.Background(), ann.tc.G, tracy.username, keybase1.TeamRole_READER)
 
+	err = tx.Post(context.Background(), ann.tc.G)
+	require.NoError(t, err)
+
+	// TRANSACTION 2 - bob gets puk, add bob but not through SBS.
+	bob.perUserKeyUpgrade()
+
+	teamObj, err = teams.Load(context.Background(), ann.tc.G, keybase1.LoadTeamArg{
+		Name:        team,
+		NeedAdmin:   true,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+
+	tx = teams.CreateAddMemberTx(teamObj)
+	tx.AddMemberTransaction(context.Background(), ann.tc.G, bob.username, keybase1.TeamRole_WRITER)
+	tx.RemoveMember(tracy.userVersion())
 	spew.Dump(tx.DebugPayloads())
 
 	err = tx.Post(context.Background(), ann.tc.G)
