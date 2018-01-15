@@ -96,7 +96,6 @@ export type _State = {
   teamNameToLoadingInvites: I.Map<Teamname, I.Map<string, boolean>>,
   teamNameToMembers: I.Map<Teamname, I.Set<MemberInfo>>,
   teamNameToMemberUsernames: I.Map<Teamname, I.Set<string>>,
-  teamNameToImplicitAdminUsernames: I.Map<Teamname, I.Set<string>>,
   teamNameToLoading: I.Map<Teamname, boolean>,
   teamNameToRequests: I.Map<Teamname, I.Set<RequestInfo>>,
   teamNameToRole: I.Map<Teamname, TeamRoleType>,

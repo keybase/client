@@ -58,6 +58,7 @@ export const saveAttachmentNative = 'chat:saveAttachmentNative'
 export const selectAttachment = 'chat:selectAttachment'
 export const selectOrPreviewConversation = 'chat:selectOrPreviewConversation'
 export const setLoaded = 'chat:setLoaded'
+export const setNotificationSaveState = 'chat:setNotificationSaveState'
 export const setNotifications = 'chat:setNotifications'
 export const setPreviousConversation = 'chat:setPreviousConversation'
 export const setTypers = 'chat:setTypers'
@@ -275,6 +276,12 @@ export const createSetLoaded = (
     isLoaded: boolean,
   }>
 ) => ({error: false, payload, type: setLoaded})
+export const createSetNotificationSaveState = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    saveState: Types.NotificationSaveState,
+  }>
+) => ({error: false, payload, type: setNotificationSaveState})
 export const createSetNotifications = (
   payload: $ReadOnly<{
     conversationIDKey: Types.ConversationIDKey,
@@ -399,6 +406,7 @@ export type SaveAttachmentPayload = More.ReturnType<typeof createSaveAttachment>
 export type SelectAttachmentPayload = More.ReturnType<typeof createSelectAttachment>
 export type SelectOrPreviewConversationPayload = More.ReturnType<typeof createSelectOrPreviewConversation>
 export type SetLoadedPayload = More.ReturnType<typeof createSetLoaded>
+export type SetNotificationSaveStatePayload = More.ReturnType<typeof createSetNotificationSaveState>
 export type SetNotificationsPayload = More.ReturnType<typeof createSetNotifications>
 export type SetPreviousConversationPayload = More.ReturnType<typeof createSetPreviousConversation>
 export type SetTypersPayload = More.ReturnType<typeof createSetTypers>
@@ -468,6 +476,7 @@ export type Actions =
   | More.ReturnType<typeof createSelectAttachment>
   | More.ReturnType<typeof createSelectOrPreviewConversation>
   | More.ReturnType<typeof createSetLoaded>
+  | More.ReturnType<typeof createSetNotificationSaveState>
   | More.ReturnType<typeof createSetNotifications>
   | More.ReturnType<typeof createSetPreviousConversation>
   | More.ReturnType<typeof createSetTypers>

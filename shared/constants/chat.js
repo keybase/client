@@ -50,6 +50,7 @@ export const makeInboxState: I.RecordFactory<Types._InboxState> = I.Record({
   memberStatus: 0,
   membersType: 0,
   notifications: null,
+  notificationSaveState: 'unsaved',
   participants: I.List(),
   fullNames: I.Map(),
   status: 'unfiled',
@@ -404,6 +405,7 @@ const getInbox = (state: TypedState, conversationIDKey: ?Types.ConversationIDKey
 const getFullInbox = (state: TypedState) => state.chat.inbox
 const getSelectedInbox = (state: TypedState) => getInbox(state, getSelectedConversation(state))
 const getEditingMessage = (state: TypedState) => state.chat.get('editingMessage')
+// const getInboxBigChannelsToTeam = (state: TypedState) => state.chat.get('inboxBigChannelsToTeam')
 
 const getParticipants = createSelector(
   [getSelectedInbox, getSelectedConversation],

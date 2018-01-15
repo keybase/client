@@ -17,6 +17,7 @@ import type {OwnProps} from './container'
 
 type StateProps = {
   channelname: string,
+  isBigTeam: boolean,
   message: Types.TextMessage,
   following: boolean,
   teamname: string,
@@ -35,16 +36,19 @@ type DispatchProps = {
 // Constants.getChannelName,
 // Constants.getTeamName,
 // Constants.getFollowing,
+// Constants.getIsBigTeam,
 // ],
 // (
 // message: Types.JoinedLeftMessage,
 // you: string,
 // channelname: string,
 // teamname: string,
-// following: I.Set<Types.Username>
+// following: I.Set<Types.Username>,
+// isBigTeam: boolean
 // ) => ({
 // channelname,
 // following: following.has(message.author),
+// isBigTeam,
 // message,
 // teamname,
 // you,

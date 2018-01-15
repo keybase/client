@@ -321,6 +321,8 @@ export type NotificationsState = {
 // firstUnboxing is when its going from untrusted to unboxing vs unboxed to reUnboxing
 export type InboxUntrustedState = 'untrusted' | 'unboxed' | 'error' | 'firstUnboxing' | 'reUnboxing'
 
+export type NotificationSaveState = 'unsaved' | 'saving' | 'saved'
+
 export type _InboxState = {
   conversationIDKey: ConversationIDKey,
   info: ?RPCChatTypes.ConversationInfoLocal,
@@ -332,6 +334,7 @@ export type _InboxState = {
   memberStatus: RPCChatTypes.ConversationMemberStatus,
   membersType: RPCChatTypes.ConversationMembersType,
   notifications: ?NotificationsState,
+  notificationSaveState: NotificationSaveState,
   participants: I.List<string>,
   fullNames: I.Map<string, string>,
   status: ConversationStateEnum,

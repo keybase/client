@@ -1214,10 +1214,6 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		return teamRole.IsOrAbove(role), nil
 	}
 
-	isAdmin := func() (bool, error) {
-		return isRoleOrAbove(keybase1.TeamRole_ADMIN)
-	}
-
 	isWriter := func() (bool, error) {
 		return isRoleOrAbove(keybase1.TeamRole_WRITER)
 	}
@@ -1261,7 +1257,7 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		return ret, err
 	}
 	var admin bool
-	admin, err = isAdmin()
+	admin, err = isRoleOrAbove(keybase1.TeamRole_ADMIN)
 	if err != nil {
 		return ret, err
 	}
@@ -1271,6 +1267,10 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 	ret.SetTeamShowcase = admin || implicitAdmin
 	ret.ChangeOpenTeam = admin || implicitAdmin
 	ret.ChangeTarsDisabled = admin || implicitAdmin
+
+	ret.ListFirst = implicitAdmin
+	ret.JoinTeam = teamRole == keybase1.TeamRole_NONE && implicitAdmin
+	ret.SetPublicityAny = admin || implicitAdmin
 
 	if teamRole != keybase1.TeamRole_NONE {
 		leaveTeam := true
