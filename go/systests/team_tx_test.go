@@ -22,6 +22,9 @@ func TestTeamTransactions(t *testing.T) {
 	bob := tt.addPuklessUser("bob")
 	t.Logf("Signed up PUK-less user bob (%s)", bob.username)
 
+	tracy := tt.addUser("trc")
+	t.Logf("Signed up PUK-ful user trc (%s)", tracy.username)
+
 	team := ann.createTeam()
 	t.Logf("Team created (%s)", team)
 
@@ -33,6 +36,10 @@ func TestTeamTransactions(t *testing.T) {
 
 	tx := teams.CreateAddMemberTx(teamObj)
 	tx.AddMemberTransaction(context.Background(), ann.tc.G, bob.username, keybase1.TeamRole_WRITER)
+	//tx.AddMemberTransaction(context.Background(), ann.tc.G, tracy.username, keybase1.TeamRole_READER)
 
 	spew.Dump(tx.DebugPayloads())
+
+	err = tx.Post(context.Background(), ann.tc.G)
+	require.NoError(t, err)
 }

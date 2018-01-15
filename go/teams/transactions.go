@@ -154,13 +154,12 @@ func (tx *AddMemberTx) AddMemberTransaction(ctx context.Context, g *libkb.Global
 			normalizedUsername, team.Name())}
 	}
 
-	curInvite, err := team.FindActiveInvite(uv.TeamInviteName(), "keybase")
+	curInvite, err := team.chain().FindActiveInvite(uv.TeamInviteName(), keybase1.NewTeamInviteTypeDefault(keybase1.TeamInviteCategory_KEYBASE))
 	if err != nil {
 		if _, ok := err.(libkb.NotFoundError); !ok {
 			return err
-		} else {
-			curInvite = nil
 		}
+		curInvite = nil
 	}
 	if curInvite != nil && inviteRequired {
 		return libkb.ExistsError{Msg: fmt.Sprintf("user %s is already a pukless member of team %q",
@@ -177,4 +176,142 @@ func (tx *AddMemberTx) AddMemberTransaction(ctx context.Context, g *libkb.Global
 		tx.AddMember(uv, role)
 	}
 	return nil
+}
+
+func txChangeMembershipSection(ctx context.Context) {
+
+}
+
+func (tx *AddMemberTx) Post(ctx context.Context, g *libkb.GlobalContext) error {
+	team := tx.team
+
+	// Initialize key manager.
+	if _, err := team.SharedSecret(ctx); err != nil {
+		return err
+	}
+
+	// Make sure we know recent merkle root.
+	if err := team.ForceMerkleRootUpdate(ctx); err != nil {
+		return err
+	}
+
+	admin, err := team.getAdminPermission(ctx, true)
+	if err != nil {
+		return err
+	}
+
+	var sections []SCTeamSection
+
+	var secretBoxes *PerTeamSharedSecretBoxes
+	implicitAdminBoxes := make(map[keybase1.TeamID]*PerTeamSharedSecretBoxes)
+
+	memSet := newMemberSet()
+
+	for _, p := range tx.payloads {
+		section := SCTeamSection{
+			ID:       SCTeamID(team.ID),
+			Admin:    admin,
+			Implicit: team.IsImplicit(),
+			Public:   team.IsPublic(),
+		}
+
+		switch payload := p.(type) {
+		case *keybase1.TeamChangeReq:
+			// TODO: Do subteam + req.Owners check
+
+			// We need memberSet for this particular payload, but also keep a
+			// memberSet for entire transaction to generate boxes afterwards.
+			payloadMemberSet, err := newMemberSetChange(ctx, g, *payload)
+			if err != nil {
+				return err
+			}
+
+			// TODO: Instead of loading members twice, have a "append"
+			// function in memberSet.
+			if err := memSet.loadMembers(ctx, g, *payload, true /* forcePoll */); err != nil {
+				return err
+			}
+
+			_ = secretBoxes
+			_ = implicitAdminBoxes
+
+			section.Members, err = payloadMemberSet.Section()
+			if err != nil {
+				return err
+			}
+
+			section.CompletedInvites = payload.CompletedInvites
+			sections = append(sections, section)
+		case *SCTeamInvites:
+			entropy, err := makeSCTeamEntropy()
+			if err != nil {
+				return err
+			}
+
+			section.Invites = payload
+			section.Entropy = entropy
+			sections = append(sections, section)
+		default:
+			return fmt.Errorf("Unhandled case in AddMemberTx.Post, unknown type: %T", p)
+		}
+	}
+
+	var merkleRoot *libkb.MerkleRoot
+	var lease *libkb.Lease
+
+	downgrades, err := team.getDowngradedUsers(ctx, memSet)
+	if len(downgrades) != 0 {
+		lease, merkleRoot, err = libkb.RequestDowngradeLeaseByTeam(ctx, g, team.ID, downgrades)
+		if err != nil {
+			return err
+		}
+		defer func() {
+			err := libkb.CancelDowngradeLease(ctx, g, lease.LeaseID)
+			if err != nil {
+				g.Log.CWarningf(ctx, "Failed to cancel downgrade lease: %s", err.Error())
+			}
+		}()
+	}
+
+	nextSeqno := team.NextSeqno()
+	latestLinkID := team.chain().GetLatestLinkID()
+
+	var readySigs []libkb.SigMultiItem
+	for i, section := range sections {
+		var linkType libkb.LinkType
+		switch tx.payloads[i].(type) {
+		case *keybase1.TeamChangeReq:
+			linkType = libkb.LinkTypeChangeMembership
+		case *SCTeamInvites:
+			linkType = libkb.LinkTypeInvite
+		}
+
+		sigMultiItem, linkID, err := team.sigTeamItemRaw(ctx, section, linkType, nextSeqno, latestLinkID, merkleRoot)
+		if err != nil {
+			return err
+		}
+
+		nextSeqno += 1
+		latestLinkID = linkID
+		readySigs = append(readySigs, sigMultiItem)
+	}
+
+	payload := libkb.JSONPayload{}
+	payload["sigs"] = readySigs
+	if lease != nil {
+		payload["downgrade_lease_id"] = lease.LeaseID
+	}
+	if len(implicitAdminBoxes) != 0 {
+		payload["implicit_team_keys"] = implicitAdminBoxes
+	}
+	if secretBoxes != nil {
+		payload["per_team_key"] = secretBoxes
+	}
+
+	_, err = g.API.PostJSON(libkb.APIArg{
+		Endpoint:    "sig/multi",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		JSONPayload: payload,
+	})
+	return err
 }
