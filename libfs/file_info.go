@@ -17,13 +17,14 @@ type FileInfo struct {
 	fs   *FS
 	ei   libkbfs.EntryInfo
 	node libkbfs.Node
+	name string
 }
 
 var _ os.FileInfo = (*FileInfo)(nil)
 
 // Name implements the os.FileInfo interface for FileInfo.
 func (fi *FileInfo) Name() string {
-	return fi.node.GetBasename()
+	return fi.name
 }
 
 // Size implements the os.FileInfo interface for FileInfo.

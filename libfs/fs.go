@@ -474,6 +474,7 @@ func (fs *FS) Stat(filename string) (fi os.FileInfo, err error) {
 		fs:   fs,
 		ei:   ei,
 		node: n,
+		name: n.GetBasename(),
 	}, nil
 }
 
@@ -566,6 +567,7 @@ func (fs *FS) readDir(n libkbfs.Node) (fis []os.FileInfo, err error) {
 			fs:   fs,
 			ei:   ei,
 			node: child,
+			name: name,
 		})
 	}
 	return fis, nil
@@ -618,6 +620,7 @@ func (fs *FS) Lstat(filename string) (fi os.FileInfo, err error) {
 		fs:   fs,
 		ei:   ei,
 		node: n,
+		name: base,
 	}, nil
 }
 

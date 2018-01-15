@@ -493,6 +493,10 @@ func TestSymlink(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "b/c/foo", link)
 
+	fi, err := fs.Lstat("a/bar")
+	require.NoError(t, err)
+	require.Equal(t, "bar", fi.Name())
+
 	err = fs.SyncAll()
 	require.NoError(t, err)
 }
