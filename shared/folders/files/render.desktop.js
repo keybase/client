@@ -217,7 +217,7 @@ class FilesRender extends Component<Props> {
                 hoverColor: menuColor,
                 marginRight: 16,
                 position: 'relative',
-                top: 14,
+                top: 18,
               }}
               type="iconfont-hamburger"
               onClick={this.props.onTogglePopupMenu}

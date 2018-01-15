@@ -21,7 +21,6 @@
 1. Generate font, replace 'icomoon' with 'kb' in [gear icon > Font Name], and download
 1. Unzip kb.zip into `./kb/` in `shared/images/iconfont`.
 1. run `yarn run apply-new-fonts`
-1. Delete `shared/images/iconfont/kb/`
 
 ## Phase 4: Fix Vertical Metrics
 
@@ -39,5 +38,6 @@ Go [here](https://www.fontsquirrel.com/tools/webfont-generator)
 
 ## Phase 5: Update the flowtype and fonts on both apps
 
+1. Delete `shared/images/iconfont/kb/`
 1. Go to `shared/`
 1. Run ```yarn run updated-fonts``` (it's okay if this doesn't do anything)

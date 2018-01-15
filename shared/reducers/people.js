@@ -17,6 +17,7 @@ export default function(state: Types.State = initialState, action: PeopleGen.Act
         .set('followSuggestions', action.payload.followSuggestions)
         .set('version', action.payload.version)
     case PeopleGen.getPeopleData:
+    case PeopleGen.markViewed:
     case PeopleGen.skipTodo:
     case PeopleGen.setupPeopleHandlers:
       return state

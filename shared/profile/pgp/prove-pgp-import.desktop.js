@@ -59,7 +59,7 @@ const styleCancelButton = {
 const styleTerminal = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'stretch',
-  backgroundColor: globalColors.midnightBlue,
+  backgroundColor: globalColors.darkBlue3,
   borderRadius: 4,
   boxSizing: 'content-box',
   color: globalColors.white,

@@ -11,7 +11,7 @@ import {getPeopleDataWaitingKey} from '../constants/people'
 const mapStateToProps = (state: TypedState) => ({
   _newItems: state.people.newItems,
   _oldItems: state.people.oldItems,
-  followSuggestions: state.people.followSuggestions.toJS(),
+  followSuggestions: state.people.followSuggestions,
   myUsername: state.config.username,
   waiting: !!state.waiting.get(getPeopleDataWaitingKey),
 })
@@ -29,7 +29,7 @@ const mergeProps = (stateProps, dispatchProps) => {
   return {
     newItems: stateProps._newItems.toJS(),
     oldItems: stateProps._oldItems.toJS(),
-    followSuggestions: stateProps.followSuggestions,
+    followSuggestions: stateProps.followSuggestions.toJS(),
     myUsername: stateProps.myUsername,
     waiting: stateProps.waiting,
     ...dispatchProps,

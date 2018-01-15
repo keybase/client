@@ -183,6 +183,7 @@ const styleActionText = {
 
 const styleActionButton = {
   alignSelf: isIOS ? 'flex-end' : 'center',
+  fontSize: 21,
   paddingBottom: 2,
   paddingLeft: globalMargins.tiny,
   paddingRight: globalMargins.tiny,

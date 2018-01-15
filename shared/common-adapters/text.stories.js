@@ -30,7 +30,7 @@ const SecondaryColorBox = () => (
       height: 30,
     }}
   >
-    <Box style={{backgroundColor: globalColors.midnightBlue, flex: 1}} />
+    <Box style={{backgroundColor: globalColors.darkBlue3, flex: 1}} />
     <Box style={{backgroundColor: globalColors.blue, flex: 1}} />
     <Box style={{backgroundColor: globalColors.red, flex: 1}} />
     <Box style={{backgroundColor: globalColors.green, flex: 1}} />
@@ -111,7 +111,7 @@ const load = () => {
   storiesOf('Common', module).add('Text', () => (
     <Box style={outerStyle}>
       <Container backgroundColor={globalColors.white}>{mapText(false)}</Container>
-      <Container backgroundColor={globalColors.midnightBlue}>
+      <Container backgroundColor={globalColors.darkBlue3}>
         <SecondaryColorBox />
         {mapText(true)}
       </Container>
