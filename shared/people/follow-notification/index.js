@@ -106,7 +106,13 @@ export const MultiFollowNotification = (props: Props) => {
         }}
       >
         {usernames.map(username => (
-          <Avatar username={username} size={32} key={username} style={{marginRight: globalMargins.xtiny}} />
+          <Avatar
+            onClick={() => props.onClickUser(username)}
+            username={username}
+            size={32}
+            key={username}
+            style={{marginRight: globalMargins.xtiny}}
+          />
         ))}
       </ScrollView>
     </PeopleItem>
