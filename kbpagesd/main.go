@@ -52,6 +52,7 @@ func newLogger(isCLI bool) (*zap.Logger, error) {
 	// more boilerplate, but there's not much else we need from those. So
 	// override os.Stderr temporarily as a hack to inject stderr to the zap
 	// logger.
+	// TODO: replace this hack when we get logstash forwarding to work.
 	originalStderr := os.Stderr
 	os.Stderr = stderr
 	defer func() { os.Stderr = originalStderr }()
