@@ -17,6 +17,7 @@ import (
 	"golang.org/x/net/context"
 )
 
+// HiddenFilePrefix is the prefix for files to be hidden.
 const HiddenFilePrefix = `._`
 
 // Folder represents KBFS top-level folders
