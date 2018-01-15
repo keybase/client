@@ -109,7 +109,7 @@ func (tx *AddMemberTx) CreateInvite(uv keybase1.UserVersion, role keybase1.TeamR
 func (tx *AddMemberTx) SweepMembers(uv keybase1.UserVersion) {
 	team := tx.team
 	for chainUv := range team.chain().inner.UserLog {
-		if chainUv.Uid == uv.Uid && team.chain().getUserRole(uv) != keybase1.TeamRole_NONE {
+		if chainUv.Uid == uv.Uid && team.chain().getUserRole(chainUv) != keybase1.TeamRole_NONE {
 			tx.RemoveMember(chainUv)
 		}
 	}
