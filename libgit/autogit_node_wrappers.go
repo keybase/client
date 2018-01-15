@@ -36,7 +36,8 @@ import (
 // * `tlfNode` allows auto-creation of subdirectories representing
 //   valid repository checkouts of the corresponding TLF, e.g.
 //   `.kbfs_autogit/private/chris/dotfiles`.  It wraps child nodes in
-//   two ways, as both a `readonlyNode` and a `repoNode`.
+//   two ways, as both a `readonlyNode` and a `repoNode`.  It allows
+//   repo directories to be removed via `RemoveDir`.
 // * `repoNode` allow auto-clone and auto-pull of the corresponding
 //   repository on its first access.  When the directory corresponding
 //   to the node is read for the first time for this KBFS instance,
@@ -55,14 +56,16 @@ import (
 
 type ctxReadWriteKeyType int
 type ctxSkipPopulateKeyType int
+type ctxSkipRemoveDirKeyType int
 
 const (
 	autogitRoot = ".kbfs_autogit"
 
-	populateTimeout = 10 * time.Second
+	autogitWrapTimeout = 10 * time.Second
 
-	ctxReadWriteKey    ctxReadWriteKeyType    = 1
-	ctxSkipPopulateKey ctxSkipPopulateKeyType = 1
+	ctxReadWriteKey     ctxReadWriteKeyType     = 1
+	ctxSkipPopulateKey  ctxSkipPopulateKeyType  = 1
+	ctxSkipRemoveDirKey ctxSkipRemoveDirKeyType = 1
 
 	public  = "public"
 	private = "private"
@@ -100,9 +103,9 @@ func newRepoNode(
 	return rn
 }
 
-func (rn *repoNode) dstDir() string {
+func autogitDstDir(h *libkbfs.TlfHandle) string {
 	var typeStr string
-	switch rn.srcRepoHandle.Type() {
+	switch h.Type() {
 	case tlf.Public:
 		typeStr = public
 	case tlf.Private:
@@ -112,7 +115,11 @@ func (rn *repoNode) dstDir() string {
 	}
 
 	return path.Join(
-		autogitRoot, typeStr, string(rn.srcRepoHandle.GetCanonicalName()))
+		autogitRoot, typeStr, string(h.GetCanonicalName()))
+}
+
+func (rn *repoNode) dstDir() string {
+	return autogitDstDir(rn.srcRepoHandle)
 }
 
 func (rn *repoNode) populate(ctx context.Context) bool {
@@ -147,7 +154,7 @@ func (rn *repoNode) populate(ctx context.Context) bool {
 	// If the directory is empty, clone it.  Otherwise, pull it.
 	var doneCh <-chan struct{}
 	cloneNeeded := len(children) == 0
-	ctx = context.WithValue(ctx, ctxReadWriteKey, 1)
+	ctx = context.WithValue(ctx, ctxReadWriteKey, struct{}{})
 	branch := "master"
 	if cloneNeeded {
 		doneCh, err = rn.am.Clone(
@@ -224,7 +231,7 @@ func (rn *repoNode) ShouldRetryOnDirRead(ctx context.Context) (
 	// Don't let this operation take more than a fixed amount of time.
 	// We should just let the caller see the CLONING file if it takes
 	// too long.
-	ctx, cancel := context.WithTimeout(ctx, populateTimeout)
+	ctx, cancel := context.WithTimeout(ctx, autogitWrapTimeout)
 	defer cancel()
 
 	for {
@@ -275,11 +282,51 @@ func (tn tlfNode) ShouldCreateMissedLookup(
 		return false, ctx, libkbfs.File, ""
 	}
 
-	ctx = context.WithValue(ctx, ctxReadWriteKey, 1)
+	ctx = context.WithValue(ctx, ctxReadWriteKey, struct{}{})
 	if name != normalizedRepoName {
 		return true, ctx, libkbfs.Sym, normalizedRepoName
 	}
 	return true, ctx, libkbfs.Dir, ""
+}
+
+// RemoveDir implements the Node interface for tlfNode.
+func (tn tlfNode) RemoveDir(ctx context.Context, name string) (
+	removeHandled bool, err error) {
+	if ctx.Value(ctxSkipRemoveDirKey) != nil {
+		return false, nil
+	}
+
+	// Is this a legit repo?
+	_, _, err = GetRepoAndID(ctx, tn.am.config, tn.h, name, "")
+	if err != nil {
+		return false, err
+	}
+
+	if normalizeRepoName(name) != name {
+		// Can't remove a symlink as if it were a directory.
+		return false, nil
+	}
+	ctx = context.WithValue(ctx, ctxSkipRemoveDirKey, struct{}{})
+	ctx, cancel := context.WithTimeout(ctx, autogitWrapTimeout)
+	defer cancel()
+
+	h, err := tn.am.config.KBFSOps().GetTLFHandle(ctx, tn)
+	if err != nil {
+		return false, err
+	}
+	doneCh, err := tn.am.Delete(ctx, h, autogitDstDir(tn.h), name, "master")
+	if err != nil {
+		return false, err
+	}
+
+	select {
+	case <-doneCh:
+	case <-ctx.Done():
+		// The delete will continue in the background.
+		tn.am.log.CDebugf(ctx,
+			"Timeout waiting for background delete: %+v", ctx.Err())
+	}
+	return true, nil
 }
 
 // WrapChild implements the Node interface for tlfNode.
@@ -323,7 +370,7 @@ func (ttn tlfTypeNode) ShouldCreateMissedLookup(
 // WrapChild implements the Node interface for tlfTypeNode.
 func (ttn tlfTypeNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 	child = ttn.Node.WrapChild(child)
-	ctx, cancel := context.WithTimeout(context.Background(), populateTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), autogitWrapTimeout)
 	defer cancel()
 	h, err := libkbfs.ParseTlfHandle(
 		ctx, ttn.am.config.KBPKI(), ttn.am.config.MDOps(),

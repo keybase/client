@@ -161,6 +161,15 @@ func TestAutogitRepoNode(t *testing.T) {
 	require.NoError(t, err)
 
 	checkAutogitTwoFiles(t, rootFS, "private")
+
+	// Delete the checkout.
+	err = rootFS.Remove(".kbfs_autogit/private/user1/test")
+	require.NoError(t, err)
+	err = config.KBFSOps().SyncFromServer(
+		ctx, dstRootNode.GetFolderBranch(), nil)
+	require.NoError(t, err)
+	fis, err := rootFS.ReadDir(".kbfs_autogit/private/user1")
+	require.Len(t, fis, 0)
 }
 
 func TestAutogitRepoNodeReadonly(t *testing.T) {
@@ -265,4 +274,13 @@ func TestAutogitRepoNodeReadonly(t *testing.T) {
 	require.NoError(t, err)
 
 	checkAutogitTwoFiles(t, rootFS2, "public")
+
+	// Delete the checkout.
+	err = rootFS2.Remove(".kbfs_autogit/public/user1/test")
+	require.NoError(t, err)
+	err = config2.KBFSOps().SyncFromServer(
+		ctx, dstRootNode2.GetFolderBranch(), nil)
+	require.NoError(t, err)
+	fis, err = rootFS2.ReadDir(".kbfs_autogit/public/user1")
+	require.Len(t, fis, 0)
 }

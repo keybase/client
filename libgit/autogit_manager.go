@@ -453,6 +453,26 @@ func (am *AutogitManager) queueReset(ctx context.Context, req resetReq) (
 	return req.doneCh, nil
 }
 
+func (am *AutogitManager) removeLock(
+	ctx context.Context, gitConfig libkbfs.Config, fs *libfs.FS, repo string) (
+	err error) {
+	err = fs.Remove(autogitLockName(repo))
+	if err != nil {
+		return err
+	}
+	err = fs.SyncAll()
+	if err != nil {
+		return err
+	}
+	jServer, err := libkbfs.GetJournalServer(gitConfig)
+	if err != nil {
+		return err
+	}
+	return jServer.FinishSingleOp(
+		ctx, fs.RootNode().GetFolderBranch().Tlf, nil,
+		keybase1.MDPriorityNormal)
+}
+
 func (am *AutogitManager) doDelete(req deleteReq) (err error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -507,6 +527,13 @@ func (am *AutogitManager) doDelete(req deleteReq) (err error) {
 		workDoneErr := am.workDoneOnRepo(ctx, dstFS, req.repo, err)
 		if err == nil {
 			err = workDoneErr
+		}
+		// Remove the lock file.  This happens outside of the main
+		// deletion single-op, and so won't appear strictly atomically
+		// with the rest of the delete.
+		rmErr := am.removeLock(ctx, gitConfig, dstFS, req.repo)
+		if err == nil {
+			err = rmErr
 		}
 	}()
 
