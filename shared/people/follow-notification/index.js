@@ -32,7 +32,9 @@ export const FollowNotification = (props: Props) => {
   return (
     <PeopleItem
       badged={props.badged}
-      icon={<Avatar username={username} size={isMobile ? 48 : 32} />}
+      icon={
+        <Avatar username={username} onClick={() => props.onClickUser(username)} size={isMobile ? 48 : 32} />
+      }
       when={props.notificationTime}
       contentStyle={{justifyContent: 'center'}}
     >
