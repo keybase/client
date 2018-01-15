@@ -169,6 +169,17 @@ export type _MessageSystemLeft = {
 }
 export type MessageSystemLeft = I.RecordOf<_MessageSystemLeft>
 
+export type _MessageSystemText = {
+  author: string,
+  conversationIDKey: Common.ConversationIDKey,
+  id: MessageID,
+  ordinal: Ordinal,
+  timestamp: number,
+  text: HiddenString,
+  type: 'systemText',
+}
+export type MessageSystemText = I.RecordOf<_MessageSystemText>
+
 export type Message =
   | MessageAttachment
   | MessageDeleted
@@ -179,4 +190,5 @@ export type Message =
   | MessageSystemJoined
   | MessageSystemLeft
   | MessageSystemSimpleToComplex
+  | MessageSystemText
   | MessageText

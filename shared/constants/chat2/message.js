@@ -85,6 +85,20 @@ const makeMessageSystemInviteAccepted: I.RecordFactory<MessageTypes._MessageSyst
   type: 'systemInviteAccepted',
 })
 
+const makeMessageSystemSimpleToComplex: I.RecordFactory<
+  MessageTypes._MessageSystemSimpleToComplex
+> = I.Record({
+  ...makeMessageMinimum,
+  team: '',
+  type: 'systemSimpleToComplex',
+})
+
+const makeMessageSystemText: I.RecordFactory<MessageTypes._MessageSystemText> = I.Record({
+  ...makeMessageMinimum,
+  text: new HiddenString(''),
+  type: 'systemText',
+})
+
 const channelMentionToMentionsChannel = (channelMention: RPCChatTypes.ChannelMention) => {
   switch (channelMention) {
     case RPCChatTypes.remoteChannelMention.all:
@@ -152,7 +166,7 @@ const uiMessageToSystemMessage = (minimum, body): ?Types.Message => {
           inviteType = 'text'
           break
         default:
-          // $FlowIssue : Flow gets confused by break statements apparently
+          // $FlowIssue : Flow gets confused here for some reason, unclear
           ;(iType: empty) // eslint-disable-line no-unused-expressions
           return null
       }
@@ -166,10 +180,20 @@ const uiMessageToSystemMessage = (minimum, body): ?Types.Message => {
         team,
       })
     }
-    case RPCChatTypes.localMessageSystemType.complexteam:
-      return null
-    case RPCChatTypes.localMessageSystemType.createteam:
-      return null
+    case RPCChatTypes.localMessageSystemType.complexteam: {
+      const {team = ''} = body.complexteam || {}
+      return makeMessageSystemSimpleToComplex({
+        ...minimum,
+        team,
+      })
+    }
+    case RPCChatTypes.localMessageSystemType.createteam: {
+      const {team = '???', creator = '????'} = body.createteam || {}
+      return makeMessageSystemText({
+        text: new HiddenString(`${creator} created a new team ${team}.`),
+        ...minimum,
+      })
+    }
     case RPCChatTypes.localMessageSystemType.gitpush:
       return null
     default:

@@ -16,6 +16,7 @@ import SystemGitPush from './system-git-push/container'
 import SystemAddedToTeam from './system-added-to-team/container'
 import SystemJoined from './system-joined/container'
 import SystemLeft from './system-left/container'
+import SystemText from './system-text/container'
 import Error from './error/container'
 // import ProfileResetNotice from '../notices/profile-reset-notice/container'
 // import * as React from 'react'
@@ -149,6 +150,8 @@ class MessageFactory extends React.PureComponent<Props> {
         return <SystemAddedToTeam message={this.props.message} />
       case 'systemJoined':
         return <SystemJoined message={this.props.message} />
+      case 'systemText':
+        return <SystemText message={this.props.message} />
       case 'systemLeft':
         return <SystemLeft message={this.props.message} />
       case 'error':

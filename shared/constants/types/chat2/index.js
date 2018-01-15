@@ -31,6 +31,7 @@ export type {
   MessageSystemInviteAccepted,
   MessageSystemJoined,
   MessageSystemLeft,
+  MessageSystemText,
   MessageSystemSimpleToComplex,
   MessageText,
   Ordinal,
