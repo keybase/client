@@ -10,6 +10,7 @@ import * as Types2 from '../../../constants/types/chat2'
 // import ResetUser from './resetUser/container'
 // import JoinedLeft from './joinedleft/container'
 import System from './system/container'
+import SystemInviteAccepted from './system-invite-accepted/container'
 // import ProfileResetNotice from '../notices/profile-reset-notice/container'
 // import * as React from 'react'
 import * as RouteTree from '../../../route-tree'
@@ -133,7 +134,7 @@ class MessageFactory extends React.PureComponent<Props> {
           />
         )
       case 'systemInviteAccepted':
-        return <System message={this.props.message} />
+        return <SystemInviteAccepted message={this.props.message} />
       case 'systemSimpleToComplex':
         return <System message={this.props.message} />
       case 'deleted':
