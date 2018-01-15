@@ -838,6 +838,9 @@ func (r *runner) recursiveByteCount(
 
 	for _, fi := range fileInfos {
 		if fi.IsDir() {
+			if fi.Name() == "." {
+				continue
+			}
 			chrootFS, err := fs.Chroot(fi.Name())
 			if err != nil {
 				return 0, 0, err
@@ -970,6 +973,9 @@ func (r *runner) recursiveCopy(
 
 	for _, fi := range fileInfos {
 		if fi.IsDir() {
+			if fi.Name() == "." {
+				continue
+			}
 			err := to.MkdirAll(fi.Name(), 0775)
 			if err != nil {
 				return err

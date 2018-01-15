@@ -93,6 +93,9 @@ func recursiveDelete(
 		return err
 	}
 	for _, childFI := range children {
+		if childFI.Name() == "." {
+			continue
+		}
 		err := recursiveDelete(ctx, subdirFS.(*libfs.FS), childFI)
 		if err != nil {
 			return err
