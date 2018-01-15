@@ -154,7 +154,6 @@ export type _MessageSystemJoined = {
   conversationIDKey: Common.ConversationIDKey,
   id: MessageID,
   ordinal: Ordinal,
-  team: string,
   timestamp: number,
   type: 'systemJoined',
 }
@@ -165,7 +164,6 @@ export type _MessageSystemLeft = {
   conversationIDKey: Common.ConversationIDKey,
   id: MessageID,
   ordinal: Ordinal,
-  team: string,
   timestamp: number,
   type: 'systemLeft',
 }

@@ -10,17 +10,21 @@ import clamp from 'lodash/clamp'
 import {isMobile} from '../platform'
 import type {TypedState} from '../reducer'
 
-const makeMessageCommon = {
+const makeMessageMinimum = {
   author: '',
   conversationIDKey: Types.stringToConversationIDKey(''),
+  id: Types.numberToMessageID(0),
+  ordinal: Types.numberToOrdinal(0),
+  timestamp: 0,
+}
+
+const makeMessageCommon = {
+  ...makeMessageMinimum,
   deviceName: '',
   deviceRevokedAt: null,
   deviceType: 'mobile',
   hasBeenEdited: false,
-  id: Types.numberToMessageID(0),
-  ordinal: Types.numberToOrdinal(0),
   outboxID: Types.stringToOutboxID(''),
-  timestamp: 0,
 }
 
 export const makeMessageDeleted: I.RecordFactory<MessageTypes._MessageDeleted> = I.Record({
@@ -48,6 +52,16 @@ export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachm
   previewWidth: 0,
   title: '',
   type: 'attachment',
+})
+
+const makeMessageSystemJoined: I.RecordFactory<MessageTypes._MessageSystemJoined> = I.Record({
+  ...makeMessageMinimum,
+  type: 'systemJoined',
+})
+
+const makeMessageSystemLeft: I.RecordFactory<MessageTypes._MessageSystemLeft> = I.Record({
+  ...makeMessageMinimum,
+  type: 'systemLeft',
 })
 
 const channelMentionToMentionsChannel = (channelMention: RPCChatTypes.ChannelMention) => {
@@ -79,17 +93,20 @@ export const uiMessageToMessage = (
 ): ?Types.Message => {
   if (uiMessage.state === RPCChatTypes.chatUiMessageUnboxedState.valid && uiMessage.valid) {
     const m: RPCChatTypes.UIMessageValid = uiMessage.valid
-    const common = {
+    const minimum = {
       author: m.senderUsername,
       conversationIDKey,
+      id: Types.numberToMessageID(m.messageID),
+      ordinal: Types.numberToOrdinal(m.messageID),
+      timestamp: m.ctime,
+    }
+    const common = {
+      ...minimum,
       deviceName: m.senderDeviceName,
       deviceRevokedAt: m.senderDeviceRevokedAt,
       deviceType: DeviceTypes.stringToDeviceType(m.senderDeviceType),
       hasBeenEdited: m.superseded,
-      id: Types.numberToMessageID(m.messageID),
-      ordinal: Types.numberToOrdinal(m.messageID),
       outboxID: m.outboxID ? Types.stringToOutboxID(m.outboxID) : null,
-      timestamp: m.ctime,
     }
 
     switch (m.messageBody.messageType) {
@@ -128,17 +145,34 @@ export const uiMessageToMessage = (
           title,
         })
       }
-
-      // TODO
-      // case RPCChatTypes.commonMessageType.join:
-      // case RPCChatTypes.commonMessageType.leave:
-      // case RPCChatTypes.commonMessageType.system:
+      case RPCChatTypes.commonMessageType.join:
+        return makeMessageSystemJoined(minimum)
+      case RPCChatTypes.commonMessageType.leave:
+        return makeMessageSystemLeft(minimum)
+      case RPCChatTypes.commonMessageType.system:
+        return null
+      case RPCChatTypes.commonMessageType.none:
+        return null
+      case RPCChatTypes.commonMessageType.edit:
+        return null
+      case RPCChatTypes.commonMessageType.delete:
+        return null
+      case RPCChatTypes.commonMessageType.metadata:
+        return null
+      case RPCChatTypes.commonMessageType.tlfname:
+        return null
+      case RPCChatTypes.commonMessageType.headline:
+        return null
+      case RPCChatTypes.commonMessageType.attachmentuploaded:
+        return null
+      case RPCChatTypes.commonMessageType.deletehistory:
+        return null
       default:
+        // eslint-disable-next-line no-unused-expressions
+        ;(m.messageBody.messageType: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
         return null
     }
   }
-
-  // TODO errors and unbox
   return null
 }
 

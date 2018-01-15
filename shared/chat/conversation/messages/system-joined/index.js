@@ -37,7 +37,7 @@ class Joined extends React.PureComponent<Props> {
               usernames={[author]}
             />
           )}{' '}
-          joined
+          joined{' '}
           {isBigTeam ? (
             `#${channelname}`
           ) : (
