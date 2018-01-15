@@ -87,6 +87,25 @@ const clampAttachmentPreviewSize = (width: number, height: number) =>
         width: clamp(width || 0, 0, maxAttachmentPreviewSize),
       }
 
+const uiMessageToSystemMessage = (minimum, body): ?Types.Message => {
+  switch (body) {
+    case RPCChatTypes.localMessageSystemType.addedtoteam:
+      return null
+    case RPCChatTypes.localMessageSystemType.inviteaddedtoteam:
+      return null
+    case RPCChatTypes.localMessageSystemType.complexteam:
+      return null
+    case RPCChatTypes.localMessageSystemType.createteam:
+      return null
+    case RPCChatTypes.localMessageSystemType.gitpush:
+      return null
+    default:
+      // eslint-disable-next-line no-unused-expressions
+      ;(body: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
+      return null
+  }
+}
+
 export const uiMessageToMessage = (
   conversationIDKey: Types.ConversationIDKey,
   uiMessage: RPCChatTypes.UIMessage
@@ -150,7 +169,7 @@ export const uiMessageToMessage = (
       case RPCChatTypes.commonMessageType.leave:
         return makeMessageSystemLeft(minimum)
       case RPCChatTypes.commonMessageType.system:
-        return null
+        return m.messageBody.system ? uiMessageToSystemMessage(minimum, m.messageBody.system) : null
       case RPCChatTypes.commonMessageType.none:
         return null
       case RPCChatTypes.commonMessageType.edit:
