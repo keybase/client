@@ -3,6 +3,7 @@
 import * as DeviceTypes from '../types/devices'
 import * as I from 'immutable'
 import * as MessageTypes from '../types/chat2/message'
+import * as RPCTypes from '../types/rpc-gen'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as Types from '../types/chat2'
 import HiddenString from '../../util/hidden-string'
@@ -64,6 +65,26 @@ const makeMessageSystemLeft: I.RecordFactory<MessageTypes._MessageSystemLeft> = 
   type: 'systemLeft',
 })
 
+const makeMessageSystemAddedToTeam: I.RecordFactory<MessageTypes._MessageSystemAddedToTeam> = I.Record({
+  ...makeMessageMinimum,
+  addee: '',
+  adder: '',
+  isAdmin: false,
+  team: '',
+  type: 'systemAddedToTeam',
+})
+
+const makeMessageSystemInviteAccepted: I.RecordFactory<MessageTypes._MessageSystemInviteAccepted> = I.Record({
+  ...makeMessageMinimum,
+  adder: '',
+  author: '[Keybase]',
+  inviteType: 'none',
+  invitee: '',
+  inviter: '',
+  team: '',
+  type: 'systemInviteAccepted',
+})
+
 const channelMentionToMentionsChannel = (channelMention: RPCChatTypes.ChannelMention) => {
   switch (channelMention) {
     case RPCChatTypes.remoteChannelMention.all:
@@ -88,11 +109,64 @@ const clampAttachmentPreviewSize = (width: number, height: number) =>
       }
 
 const uiMessageToSystemMessage = (minimum, body): ?Types.Message => {
-  switch (body) {
-    case RPCChatTypes.localMessageSystemType.addedtoteam:
-      return null
-    case RPCChatTypes.localMessageSystemType.inviteaddedtoteam:
-      return null
+  switch (body.systemType) {
+    case RPCChatTypes.localMessageSystemType.addedtoteam: {
+      // TODO @mikem admins is always empty?
+      const {adder = '', addee = '', team = '', admins} = body.addedtoteam || {}
+      const isAdmin = (admins || []).includes(minimum.author)
+      return makeMessageSystemAddedToTeam({
+        ...minimum,
+        addee,
+        adder,
+        isAdmin,
+        team,
+      })
+    }
+    case RPCChatTypes.localMessageSystemType.inviteaddedtoteam: {
+      const {
+        invitee = 'someone',
+        adder = 'someone',
+        inviter = 'someone',
+        team = '???',
+        inviteType: iType = RPCTypes.teamsTeamInviteCategory.unknown,
+      } =
+        body.inviteaddedtoteam || {}
+      let inviteType
+      switch (iType) {
+        case RPCTypes.teamsTeamInviteCategory.unknown:
+          inviteType = 'unknown'
+          break
+        case RPCTypes.teamsTeamInviteCategory.none:
+          inviteType = 'none'
+          break
+        case RPCTypes.teamsTeamInviteCategory.keybase:
+          inviteType = 'keybase'
+          break
+        case RPCTypes.teamsTeamInviteCategory.email:
+          inviteType = 'email'
+          break
+        case RPCTypes.teamsTeamInviteCategory.sbs:
+          inviteType = 'sbs'
+          break
+        case RPCTypes.teamsTeamInviteCategory.seitan:
+          inviteType = 'text'
+          break
+        default:
+          // eslint-disable-next-line no-unused-expressions
+          // $FlowIssue : Flow gets confused by break statements apparently
+          ;(iType: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
+          return null
+      }
+      // messageText = `${invitee} accepted an invite to join ${team}`
+      return makeMessageSystemInviteAccepted({
+        ...minimum,
+        adder,
+        inviteType,
+        invitee,
+        inviter,
+        team,
+      })
+    }
     case RPCChatTypes.localMessageSystemType.complexteam:
       return null
     case RPCChatTypes.localMessageSystemType.createteam:
@@ -101,7 +175,7 @@ const uiMessageToSystemMessage = (minimum, body): ?Types.Message => {
       return null
     default:
       // eslint-disable-next-line no-unused-expressions
-      ;(body: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
+      ;(body.systemType: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
       return null
   }
 }

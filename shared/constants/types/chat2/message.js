@@ -85,7 +85,7 @@ export type _MessageAttachment = {
 export type MessageAttachment = I.RecordOf<_MessageAttachment>
 
 export type _MessageError = {
-  author: '[Keybase]',
+  author: string,
   conversationIDKey: Common.ConversationIDKey,
   id: MessageID,
   ordinal: Ordinal,
@@ -97,7 +97,7 @@ export type MessageError = I.RecordOf<_MessageError>
 
 export type _MessageSystemInviteAccepted = {
   adder: string,
-  author: '[Keybase]',
+  author: string,
   conversationIDKey: Common.ConversationIDKey,
   id: MessageID,
   inviteType: 'none' | 'unknown' | 'keybase' | 'email' | 'sbs' | 'text',
