@@ -886,10 +886,20 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-pgp-key-import-48.png'),
   },
+  'icon-pgp-key-import-64': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-pgp-key-import-64.png'),
+  },
   'icon-pgp-key-new-48': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-pgp-key-new-48.png'),
+  },
+  'icon-pgp-key-new-64': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-pgp-key-new-64.png'),
   },
   'icon-phone-32': {
     isFont: false,
@@ -1355,6 +1365,21 @@ const iconMeta_ = {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-user-add-32.png'),
+  },
+  'icon-website-16': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-website-16.png'),
+  },
+  'icon-website-24': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-website-24.png'),
+  },
+  'icon-website-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-website-32.png'),
   },
   'icon-website-48': {
     isFont: false,
