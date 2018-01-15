@@ -224,10 +224,10 @@ function* _addServiceProof(service: ProvablePlatformsType): Saga.SagaGenerator<a
   }
 }
 
-function _cancelAddProof() {
+function _cancelAddProof(_, state: TypedState) {
   return Saga.sequentially([
     Saga.put(ProfileGen.createUpdateErrorText({})),
-    Saga.put(navigateTo([], [peopleTab])),
+    Saga.put(ProfileGen.createShowUserProfile({username: state.config.username || ''})),
   ])
 }
 
