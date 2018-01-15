@@ -626,7 +626,7 @@ class Team extends React.PureComponent<Props> {
         )}
         <Box style={stylesTeamHeader}>
           <Avatar isTeam={true} teamname={name} size={64} />
-          <Text type="HeaderBig" style={{marginTop: globalMargins.tiny}}>
+          <Text type="HeaderBig" style={{...globalStyles.selectable, marginTop: globalMargins.tiny}}>
             {name}
           </Text>
           <Text type="BodySmall">TEAM</Text>
