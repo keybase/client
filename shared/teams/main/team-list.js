@@ -61,7 +61,12 @@ const TeamRow = ({
       }}
     >
       <ClickableBox style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}} onClick={onViewTeam}>
-        <Avatar size={isMobile ? 48 : 32} teamname={name} isTeam={true} />
+        <Avatar
+          size={isMobile ? 48 : 32}
+          teamname={name}
+          isTeam={true}
+          style={{marginLeft: globalMargins.tiny}}
+        />
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: globalMargins.small}}>
           <Text type="BodySemibold">{name}</Text>
           <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
@@ -76,7 +81,11 @@ const TeamRow = ({
       {!isMobile && onOpenFolder && <Icon type="iconfont-folder-private" onClick={onOpenFolder} />}
       {!isMobile &&
         onManageChat && (
-          <Icon type="iconfont-chat" style={{marginLeft: globalMargins.small}} onClick={onManageChat} />
+          <Icon
+            type="iconfont-chat"
+            style={{marginLeft: globalMargins.small, marginRight: globalMargins.tiny}}
+            onClick={onManageChat}
+          />
         )}
     </Box>
     {!isMobile && <Divider style={{marginLeft: 48}} />}
@@ -87,7 +96,6 @@ const TeamList = (props: Props) => (
   <Box
     style={{
       ...globalStyles.flexBoxColumn,
-      padding: globalMargins.tiny,
       width: '100%',
     }}
   >
