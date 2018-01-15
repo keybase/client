@@ -10,6 +10,7 @@ import * as Types from '../constants/types/people'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of people but is handled by every reducer
 export const getPeopleData = 'people:getPeopleData'
+export const markViewed = 'people:markViewed'
 export const peopleDataProcessed = 'people:peopleDataProcessed'
 export const setupPeopleHandlers = 'people:setupPeopleHandlers'
 export const skipTodo = 'people:skipTodo'
@@ -21,6 +22,7 @@ export const createGetPeopleData = (
     numFollowSuggestionsWanted: number,
   }>
 ) => ({error: false, payload, type: getPeopleData})
+export const createMarkViewed = () => ({error: false, payload: undefined, type: markViewed})
 export const createPeopleDataProcessed = (
   payload: $ReadOnly<{
     oldItems: I.List<Types.PeopleScreenItem>,
@@ -35,6 +37,7 @@ export const createSkipTodo = (payload: $ReadOnly<{type: Types.TodoType}>) => ({
 
 // Action Payloads
 export type GetPeopleDataPayload = More.ReturnType<typeof createGetPeopleData>
+export type MarkViewedPayload = More.ReturnType<typeof createMarkViewed>
 export type PeopleDataProcessedPayload = More.ReturnType<typeof createPeopleDataProcessed>
 export type SetupPeopleHandlersPayload = More.ReturnType<typeof createSetupPeopleHandlers>
 export type SkipTodoPayload = More.ReturnType<typeof createSkipTodo>
@@ -43,6 +46,7 @@ export type SkipTodoPayload = More.ReturnType<typeof createSkipTodo>
 // prettier-ignore
 export type Actions =
   | More.ReturnType<typeof createGetPeopleData>
+  | More.ReturnType<typeof createMarkViewed>
   | More.ReturnType<typeof createPeopleDataProcessed>
   | More.ReturnType<typeof createSetupPeopleHandlers>
   | More.ReturnType<typeof createSkipTodo>

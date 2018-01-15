@@ -78,7 +78,6 @@ export const MultiFollowNotification = (props: Props) => {
         </Box>
       }
       when={props.notificationTime}
-      contentStyle={isMobile ? null : {paddingBottom: 32}}
     >
       <Text type="Body" style={{marginTop: 2, marginBottom: globalMargins.xtiny}}>
         <ConnectedUsernames
@@ -93,18 +92,11 @@ export const MultiFollowNotification = (props: Props) => {
       </Text>
       <ScrollView
         {...(isMobile ? {horizontal: true} : {})} // Causes error on desktop
-        contentContainerStyle={globalStyles.flexBoxRow}
-        style={{
+        contentContainerStyle={{
           ...globalStyles.flexBoxRow,
-          overflow: 'scroll',
           ...(isMobile
             ? null
-            : {
-                position: 'absolute',
-                bottom: 0,
-                left: 0,
-                width: '100%',
-              }),
+            : {...globalStyles.flexBoxRow, width: '100%', height: 32, flexWrap: 'wrap', overflow: 'hidden'}),
         }}
       >
         {usernames.map(username => (
