@@ -8,12 +8,12 @@ import FollowSuggestions from './follow-suggestions'
 import {type Props} from '.'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
-export const itemToComponent: Types._PeopleScreenItem => React.Node = (item, actions) => {
+export const itemToComponent: (Types._PeopleScreenItem, Props) => React.Node = (item, props) => {
   switch (item.type) {
     case 'todo':
       return <Todo {...item} key={item.todoType} />
     case 'notification':
-      return <FollowNotification {...item} key={item.notificationTime} />
+      return <FollowNotification {...item} key={item.notificationTime} onClickUser={props.onClickUser} />
   }
 }
 
@@ -50,9 +50,9 @@ export const PeoplePageSearchBar = (
 
 export const PeoplePageList = (props: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, width: '100%', position: 'relative', marginTop: 48}}>
-    {props.newItems.map(item => itemToComponent(item))}
+    {props.newItems.map(item => itemToComponent(item, props))}
     <FollowSuggestions suggestions={props.followSuggestions} onClickUser={props.onClickUser} />
-    {props.oldItems.map(item => itemToComponent(item))}
+    {props.oldItems.map(item => itemToComponent(item, props))}
   </Box>
 )
 

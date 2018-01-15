@@ -15,7 +15,7 @@ const connectedUsernamesProps = {
 
 export type NewFollow = Types.FollowedNotification
 
-export type Props = Types._FollowedNotificationItem
+export type Props = Types._FollowedNotificationItem & {onClickUser: (username: string) => void}
 
 export default (props: Props) => {
   if (props.newFollows.length === 1) {
@@ -37,7 +37,12 @@ export const FollowNotification = (props: Props) => {
       contentStyle={{justifyContent: 'center'}}
     >
       <Text type="Body" style={{marginTop: 2}}>
-        <ConnectedUsernames {...connectedUsernamesProps} usernames={[username]} /> followed you.
+        <ConnectedUsernames
+          {...connectedUsernamesProps}
+          usernames={[username]}
+          onUsernameClicked={props.onClickUser}
+        />{' '}
+        followed you.
       </Text>
     </PeopleItem>
   )
@@ -86,6 +91,7 @@ export const MultiFollowNotification = (props: Props) => {
           showAnd={!props.numAdditional}
           {...connectedUsernamesProps}
           usernames={usernames}
+          onUsernameClicked={props.onClickUser}
         />
         {!!props.numAdditional && props.numAdditional > 0 && ` and ${props.numAdditional} others `} started
         following you.
