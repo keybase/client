@@ -59,27 +59,27 @@ export type _MessageText = {
 }
 export type MessageText = I.RecordOf<_MessageText>
 
-type AttachmentType = 'image' | 'other'
+// type AttachmentType = 'image' | 'other'
 
 export type _MessageAttachment = {
-  attachmentType: AttachmentType,
+  // attachmentType: AttachmentType,
   author: string,
   conversationIDKey: Common.ConversationIDKey,
   deviceName: string,
   deviceRevokedAt: ?number,
   deviceType: DeviceType,
-  durationMs: number,
-  filename: ?string,
+  // durationMs: number,
+  // filename: ?string,
   hasBeenEdited: boolean,
   id: MessageID,
   localState: LocalState,
   ordinal: Ordinal,
   outboxID: ?OutboxID,
-  percentUploaded: number,
-  previewHeight: number,
-  previewWidth: number,
+  // percentUploaded: number,
+  // previewHeight: number,
+  // previewWidth: number,
   timestamp: number,
-  title: string,
+  // title: string,
   type: 'attachment',
 }
 export type MessageAttachment = I.RecordOf<_MessageAttachment>

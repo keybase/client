@@ -2,11 +2,21 @@
 import * as React from 'react'
 import {Avatar, Icon, Text, Box} from '../../../../common-adapters'
 import {globalStyles, globalMargins, globalColors, isMobile} from '../../../../styles'
-import {colorForAuthor} from '../shared'
 import Timestamp from './timestamp'
 import LoadMore from './load-more'
 
 import type {Props} from '.'
+
+const colorForAuthor = (user: string, isYou: boolean, isFollowing: boolean, isBroken: boolean) => {
+  if (isYou) {
+    return globalColors.black_75
+  }
+
+  if (isBroken) {
+    return globalColors.red
+  }
+  return isFollowing ? globalColors.green2 : globalColors.blue
+}
 
 const UserAvatar = ({author, showImage, onAuthorClick}) => (
   <Box style={_userAvatarStyle}>

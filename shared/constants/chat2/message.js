@@ -44,14 +44,14 @@ export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Rec
 
 export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachment> = I.Record({
   ...makeMessageCommon,
-  attachmentType: 'other',
-  durationMs: 0,
-  filename: null,
+  // attachmentType: 'other',
+  // durationMs: 0,
+  // filename: null,
   localState: null,
-  percentUploaded: 0,
-  previewHeight: 0,
-  previewWidth: 0,
-  title: '',
+  // percentUploaded: 0,
+  // previewHeight: 0,
+  // previewWidth: 0,
+  // title: '',
   type: 'attachment',
 })
 
@@ -251,30 +251,27 @@ export const uiMessageToMessage = (
           text: new HiddenString(rawText),
         })
       case RPCChatTypes.commonMessageType.attachment: {
-        const attachment = m.messageBody.attachment
-        if (!attachment) {
-          break // make an error
-        }
-        const {filename, title, mimeType, metadata} = attachment.object
-        const metadataVideo =
-          metadata.assetType === RPCChatTypes.localAssetMetadataType.video ? metadata.video : null
-        const metadataImage =
-          metadata.assetType === RPCChatTypes.localAssetMetadataType.image ? metadata.image : null
-        const attachmentType = mimeType.indexOf('image') === 0 ? 'image' : 'other'
-        const {width, height} = metadataVideo || metadataImage || {height: 0, width: 0}
-        const {width: previewWidth = 0, height: previewHeight = 0} = clampAttachmentPreviewSize(width, height)
-        const durationMs = (metadataVideo && metadataVideo.durationMs) || 0
-        const percentUploaded = 0 // TODO
+        const attachment = m.messageBody.attachment || {}
+        // const {filename, title, mimeType, metadata} = attachment.object
+        // const metadataVideo =
+        // metadata.assetType === RPCChatTypes.localAssetMetadataType.video ? metadata.video : null
+        // const metadataImage =
+        // metadata.assetType === RPCChatTypes.localAssetMetadataType.image ? metadata.image : null
+        // const attachmentType = mimeType.indexOf('image') === 0 ? 'image' : 'other'
+        // const {width, height} = metadataVideo || metadataImage || {height: 0, width: 0}
+        // const {width: previewWidth = 0, height: previewHeight = 0} = clampAttachmentPreviewSize(width, height)
+        // const durationMs = (metadataVideo && metadataVideo.durationMs) || 0
+        // const percentUploaded = 0 // TODO
 
         return makeMessageAttachment({
           ...common,
-          attachmentType,
-          durationMs,
-          filename,
-          percentUploaded,
-          previewHeight,
-          previewWidth,
-          title,
+          // attachmentType,
+          // durationMs,
+          // filename,
+          // percentUploaded,
+          // previewHeight,
+          // previewWidth,
+          // title,
         })
       }
       case RPCChatTypes.commonMessageType.join:
