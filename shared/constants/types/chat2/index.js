@@ -25,11 +25,12 @@ export type {ConversationMeta, MetaTrustedState} from './meta'
 export type {
   Message,
   MessageAttachment,
+  MessageSystemGitPush,
+  MessageSystemInviteAccepted,
+  MessageSystemSimpleToComplex,
   MessageText,
   Ordinal,
   OutboxID,
-  MessageSystemSimpleToComplex,
-  MessageSystemInviteAccepted,
 } from './message'
 export type {ConversationIDKey} from './common'
 

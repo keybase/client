@@ -479,141 +479,141 @@ function getDeletedMessageIDs(state: TypedState, convIDKey: Types.ConversationID
   return state.entities.deletedIDs.get(convIDKey, I.Set())
 }
 
-function getMessageUpdateKeys(
-  state: TypedState,
-  messageKey: Types.MessageKey
-): I.OrderedSet<Types.MessageKey> {
-  const {conversationIDKey, messageID} = splitMessageIDKey(messageKey)
-  return conversationIDKey
-    ? state.entities.messageUpdates.getIn([conversationIDKey, String(messageID)], I.OrderedSet())
-    : I.OrderedSet()
-}
+// function getMessageUpdateKeys(
+// state: TypedState,
+// messageKey: Types.MessageKey
+// ): I.OrderedSet<Types.MessageKey> {
+// const {conversationIDKey, messageID} = splitMessageIDKey(messageKey)
+// return conversationIDKey
+// ? state.entities.messageUpdates.getIn([conversationIDKey, String(messageID)], I.OrderedSet())
+// : I.OrderedSet()
+// }
 
-function getTextMessageUpdates(
-  state: TypedState,
-  messageKey: Types.MessageKey
-): {last: ?Types.EditingMessage, count: number} {
-  const updateKeys = getMessageUpdateKeys(state, messageKey)
-  return updateKeys.reduce(
-    (ret, k) => {
-      const message = state.entities.messages.get(k)
-      if (message && message.type === 'Edit') {
-        return {last: message, count: ret.count + 1}
-      } else {
-        return ret
-      }
-    },
-    {last: null, count: 0}
-  )
-}
+// function getTextMessageUpdates(
+// state: TypedState,
+// messageKey: Types.MessageKey
+// ): {last: ?Types.EditingMessage, count: number} {
+// const updateKeys = getMessageUpdateKeys(state, messageKey)
+// return updateKeys.reduce(
+// (ret, k) => {
+// const message = state.entities.messages.get(k)
+// if (message && message.type === 'Edit') {
+// return {last: message, count: ret.count + 1}
+// } else {
+// return ret
+// }
+// },
+// {last: null, count: 0}
+// )
+// }
 
-function getAttachmentMessageUpdates(
-  state: TypedState,
-  messageKey: Types.MessageKey
-): {last: ?Types.UpdatingAttachment, count: number} {
-  const updateKeys = getMessageUpdateKeys(state, messageKey)
-  return updateKeys.reduce(
-    (ret, k) => {
-      const message = state.entities.messages.get(k)
-      if (message && message.type === 'UpdateAttachment') {
-        return {last: message, count: ret.count + 1}
-      } else {
-        return ret
-      }
-    },
-    {last: null, count: 0}
-  )
-}
+// function getAttachmentMessageUpdates(
+// state: TypedState,
+// messageKey: Types.MessageKey
+// ): {last: ?Types.UpdatingAttachment, count: number} {
+// const updateKeys = getMessageUpdateKeys(state, messageKey)
+// return updateKeys.reduce(
+// (ret, k) => {
+// const message = state.entities.messages.get(k)
+// if (message && message.type === 'UpdateAttachment') {
+// return {last: message, count: ret.count + 1}
+// } else {
+// return ret
+// }
+// },
+// {last: null, count: 0}
+// )
+// }
 
-function getMessageUpdateCount(
-  state: TypedState,
-  messageType: Types.MessageType,
-  messageKey: Types.MessageKey
-): number {
-  if (messageType === 'Text') {
-    return getTextMessageUpdates(state, messageKey).count
-  } else if (messageType === 'Attachment') {
-    return getAttachmentMessageUpdates(state, messageKey).count
-  } else {
-    return 0
-  }
-}
+// function getMessageUpdateCount(
+// state: TypedState,
+// messageType: Types.MessageType,
+// messageKey: Types.MessageKey
+// ): number {
+// if (messageType === 'Text') {
+// return getTextMessageUpdates(state, messageKey).count
+// } else if (messageType === 'Attachment') {
+// return getAttachmentMessageUpdates(state, messageKey).count
+// } else {
+// return 0
+// }
+// }
 
-function getMessageFromMessageKey(state: TypedState, messageKey: Types.MessageKey): ?Types.Message {
-  const message = state.entities.messages.get(messageKey)
-  if (!message) {
-    return null
-  }
+// function getMessageFromMessageKey(state: TypedState, messageKey: Types.MessageKey): ?Types.Message {
+// const message = state.entities.messages.get(messageKey)
+// if (!message) {
+// return null
+// }
 
-  if (message.type === 'Text') {
-    const {last} = getTextMessageUpdates(state, messageKey)
-    if (last) {
-      return ({
-        ...message,
-        message: last.message,
-        mentions: last.mentions,
-        channelMention: last.channelMention,
-        channelNameMentions: last.channelNameMentions,
-      }: Types.TextMessage)
-    }
-  } else if (message.type === 'Attachment') {
-    const {last} = getAttachmentMessageUpdates(state, messageKey)
-    if (last) {
-      return ({
-        ...message,
-        ...last.updates,
-      }: Types.AttachmentMessage)
-    }
-  }
+// if (message.type === 'Text') {
+// const {last} = getTextMessageUpdates(state, messageKey)
+// if (last) {
+// return ({
+// ...message,
+// message: last.message,
+// mentions: last.mentions,
+// channelMention: last.channelMention,
+// channelNameMentions: last.channelNameMentions,
+// }: Types.TextMessage)
+// }
+// } else if (message.type === 'Attachment') {
+// const {last} = getAttachmentMessageUpdates(state, messageKey)
+// if (last) {
+// return ({
+// ...message,
+// ...last.updates,
+// }: Types.AttachmentMessage)
+// }
+// }
 
-  return message
-}
+// return message
+// }
 
 // Sometimes we only have the conv id and msg id. Like when the service tells us something
-function getMessageKeyFromConvKeyMessageID(
-  state: TypedState,
-  conversationIDKey: Types.ConversationIDKey,
-  messageID: Types.MessageID | Types.OutboxIDKey // Works for outbox id too since it uses the message key
-) {
-  const convMsgs = getConversationMessages(state, conversationIDKey)
-  const messageKeys = convMsgs.messages
-  return messageKeys.find(k => {
-    const {messageID: mID} = splitMessageIDKey(k)
-    return messageID === mID
-  })
-}
+// function getMessageKeyFromConvKeyMessageID(
+// state: TypedState,
+// conversationIDKey: Types.ConversationIDKey,
+// messageID: Types.MessageID | Types.OutboxIDKey // Works for outbox id too since it uses the message key
+// ) {
+// const convMsgs = getConversationMessages(state, conversationIDKey)
+// const messageKeys = convMsgs.messages
+// return messageKeys.find(k => {
+// const {messageID: mID} = splitMessageIDKey(k)
+// return messageID === mID
+// })
+// }
 
-function getMessageFromConvKeyMessageID(
-  state: TypedState,
-  conversationIDKey: Types.ConversationIDKey,
-  messageID: Types.MessageID
-): ?Types.Message {
-  const key = getMessageKeyFromConvKeyMessageID(state, conversationIDKey, messageID)
-  return key ? getMessageFromMessageKey(state, key) : null
-}
+// function getMessageFromConvKeyMessageID(
+// state: TypedState,
+// conversationIDKey: Types.ConversationIDKey,
+// messageID: Types.MessageID
+// ): ?Types.Message {
+// const key = getMessageKeyFromConvKeyMessageID(state, conversationIDKey, messageID)
+// return key ? getMessageFromMessageKey(state, key) : null
+// }
 
-function lastMessageID(state: TypedState, conversationIDKey: Types.ConversationIDKey): ?Types.MessageID {
-  const convMsgs = getConversationMessages(state, conversationIDKey)
-  const messageKeys = convMsgs.messages
-  const lastMessageKey = messageKeys.findLast(m => {
-    if (m) {
-      const {type: msgIDType} = parseMessageID(messageKeyValue(m))
-      return msgIDType === 'rpcMessageID'
-    }
-  })
+// function lastMessageID(state: TypedState, conversationIDKey: Types.ConversationIDKey): ?Types.MessageID {
+// const convMsgs = getConversationMessages(state, conversationIDKey)
+// const messageKeys = convMsgs.messages
+// const lastMessageKey = messageKeys.findLast(m => {
+// if (m) {
+// const {type: msgIDType} = parseMessageID(messageKeyValue(m))
+// return msgIDType === 'rpcMessageID'
+// }
+// })
 
-  return lastMessageKey ? messageKeyValue(lastMessageKey) : null
-}
+// return lastMessageKey ? messageKeyValue(lastMessageKey) : null
+// }
 
-function lastOrdinal(state: TypedState, conversationIDKey: Types.ConversationIDKey): number {
-  const convMsgs = getConversationMessages(state, conversationIDKey)
-  return convMsgs.high
-}
+// function lastOrdinal(state: TypedState, conversationIDKey: Types.ConversationIDKey): number {
+// const convMsgs = getConversationMessages(state, conversationIDKey)
+// return convMsgs.high
+// }
 
-function nextFractionalOrdinal(ord: number): number {
-  // Mimic what the service does with outbox items
-  return ord + 0.001
-}
+// function nextFractionalOrdinal(ord: number): number {
+// // Mimic what the service does with outbox items
+// return ord + 0.001
+// }
 
 const getDownloadProgress = (
   {entities: {attachmentDownloadProgress}}: TypedState,
@@ -678,8 +678,8 @@ export {
   getDeletedMessageIDs,
   getEditingMessage,
   getInbox,
-  getMessageFromMessageKey,
-  getMessageUpdateCount,
+  // getMessageFromMessageKey,
+  // getMessageUpdateCount,
   getSelectedConversation,
   getSelectedConversationStates,
   getAttachmentDownloadedPath,
@@ -713,16 +713,16 @@ export {
   getParticipantsWithFullNames,
   getSelectedInbox,
   getLocalMessageStateFromMessageKey,
-  getMessageFromConvKeyMessageID,
+  // getMessageFromConvKeyMessageID,
   isImageFileName,
   rpcMessageIDToMessageID,
   messageIDToRpcMessageID,
   selfInventedIDToMessageID,
   parseMessageID,
-  lastMessageID,
+  // lastMessageID,
   getGeneralChannelOfSelectedInbox,
-  lastOrdinal,
-  nextFractionalOrdinal,
+  // lastOrdinal,
+  // nextFractionalOrdinal,
   emptyConversationMessages,
   inviteCategoryEnumToName,
 }

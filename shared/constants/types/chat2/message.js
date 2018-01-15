@@ -1,6 +1,7 @@
 // Types related to a message
 // @flow
 import * as Common from './common'
+import * as RPCTypes from '../rpc-gen'
 import * as I from 'immutable'
 import HiddenString from '../../../util/hidden-string'
 import type {DeviceType} from '../devices'
@@ -121,11 +122,24 @@ export type _MessageSystemSimpleToComplex = {
 }
 export type MessageSystemSimpleToComplex = I.RecordOf<_MessageSystemSimpleToComplex>
 
+export type _MessageSystemGitPush = {
+  author: string,
+  conversationIDKey: Common.ConversationIDKey,
+  id: MessageID,
+  ordinal: Ordinal,
+  pusher: string,
+  refs: Array<RPCTypes.GitRefMetadata>,
+  repo: string,
+  team: string,
+  timestamp: number,
+  type: 'systemGitPush',
+}
+export type MessageSystemGitPush = I.RecordOf<_MessageSystemGitPush>
+
 export type Message =
   | MessageText
   | MessageAttachment
   | MessageDeleted
   | MessageSystemInviteAccepted
   | MessageSystemSimpleToComplex
-// export type Message = I.RecordOf<_Message>
-// | MessageError
+  | MessageSystemGitPush

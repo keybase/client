@@ -239,12 +239,12 @@ const _ignoreRequest = function*(action: TeamsGen.IgnoreRequestPayload) {
   }
 }
 
-function getPendingConvParticipants(state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) {
-  return null
-  // if (!ChatConstants.isPendingConversationIDKey(conversationIDKey)) return null
+// function getPendingConvParticipants(state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) {
+// return null
+// // if (!ChatConstants.isPendingConversationIDKey(conversationIDKey)) return null
 
-  // return state.chat.pendingConversations.get(conversationIDKey)
-}
+// // return state.chat.pendingConversations.get(conversationIDKey)
+// }
 
 const _createNewTeamFromConversation = function*(
   action: TeamsGen.CreateNewTeamFromConversationPayload

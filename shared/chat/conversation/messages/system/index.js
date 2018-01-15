@@ -6,7 +6,7 @@ import UserNotice from '../../notices/user-notice'
 import {globalStyles, globalColors, globalMargins} from '../../../../styles'
 import {formatTimeForMessages} from '../../../../util/timestamp'
 
-import type {SystemMessage, AddedToTeamInfo, GitPushInfo} from '../../../../constants/types/chat'
+import type {SystemMessage, AddedToTeamInfo} from '../../../../constants/types/chat'
 
 const connectedUsernamesProps = {
   clickable: true,
@@ -114,33 +114,4 @@ const AddedToTeamNotice = ({
   )
 }
 
-type GitPushInfoProps = Props & {info: GitPushInfo}
-
-const GitPushInfoNotice = ({message, info}: GitPushInfoProps) => {
-  return (
-    <UserNotice teamname={info.team} style={{marginTop: globalMargins.small}} bgColor={globalColors.blue4}>
-      <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
-        {formatTimeForMessages(message.timestamp)}
-      </Text>
-      <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-        <Text type="BodySmallSemibold" style={{textAlign: 'center'}}>
-          {info.pusher} just pushed commits to the {info.repo} repo.
-        </Text>
-        {(info.refs || []).map(ref => (
-          <Box style={globalStyles.flexBoxColumn} key={ref.refName}>
-            <Text type="Header" style={{textAlign: 'left'}}>
-              {ref.refName}
-            </Text>
-            {(ref.commits || []).map(commit => (
-              <Text type="BodySmall" style={{textAlign: 'left'}} key={commit.commitHash}>
-                {commit.commitHash} {commit.message}
-              </Text>
-            ))}
-          </Box>
-        ))}
-      </Box>
-    </UserNotice>
-  )
-}
-
-export {AddedToTeamNotice, GitPushInfoNotice}
+export {AddedToTeamNotice}
