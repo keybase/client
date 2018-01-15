@@ -91,6 +91,11 @@ func (n *nodeStandard) ShouldRetryOnDirRead(ctx context.Context) bool {
 	return false
 }
 
+func (n *nodeStandard) RemoveDir(_ context.Context, _ string) (
+	removeHandled bool, err error) {
+	return false, nil
+}
+
 func (n *nodeStandard) WrapChild(child Node) Node {
 	return child
 }

@@ -816,6 +816,19 @@ func (mr *MockNodeMockRecorder) ShouldRetryOnDirRead(ctx interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ShouldRetryOnDirRead", reflect.TypeOf((*MockNode)(nil).ShouldRetryOnDirRead), ctx)
 }
 
+// RemoveDir mocks base method
+func (m *MockNode) RemoveDir(ctx context.Context, dirName string) (bool, error) {
+	ret := m.ctrl.Call(m, "RemoveDir", ctx, dirName)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RemoveDir indicates an expected call of RemoveDir
+func (mr *MockNodeMockRecorder) RemoveDir(ctx, dirName interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveDir", reflect.TypeOf((*MockNode)(nil).RemoveDir), ctx, dirName)
+}
+
 // WrapChild mocks base method
 func (m *MockNode) WrapChild(child Node) Node {
 	ret := m.ctrl.Call(m, "WrapChild", child)

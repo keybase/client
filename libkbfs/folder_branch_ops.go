@@ -3414,9 +3414,17 @@ func (fbo *folderBranchOps) RemoveDir(
 			getNodeIDStr(dir), dirName, err)
 	}()
 
+	removeDone, err := dir.RemoveDir(ctx, dirName)
+	if err != nil {
+		return err
+	}
+	if removeDone {
+		return nil
+	}
+
 	err = fbo.checkNodeForWrite(ctx, dir)
 	if err != nil {
-		return
+		return err
 	}
 
 	return fbo.doMDWriteWithRetryUnlessCanceled(ctx,

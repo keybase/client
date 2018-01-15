@@ -150,6 +150,12 @@ type Node interface {
 	// should re-sync its view of the directory and retry the
 	// operation.
 	ShouldRetryOnDirRead(ctx context.Context) bool
+	// RemoveDir is called on a `Node` before going through the normal
+	// `RemoveDir` flow, to give the Node a chance to handle it in a
+	// custom way.  If the `Node` handles it internally, it should
+	// return `true`.
+	RemoveDir(ctx context.Context, dirName string) (
+		removeHandled bool, err error)
 	// WrapChild returns a wrapped version of child, if desired, to
 	// add custom behavior to the child node. An implementation that
 	// wraps another `Node` (`inner`) must first call
