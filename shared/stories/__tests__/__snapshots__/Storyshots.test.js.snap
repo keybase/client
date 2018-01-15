@@ -17081,6 +17081,23 @@ exports[`Storyshots Common Icon 1`] = `
           }
           title="hint text"
         />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-website-16.png 1x, icons/icon-website-16@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
         <div>
           <span
             className="glamor-1"
@@ -19346,6 +19363,23 @@ exports[`Storyshots Common Icon 1`] = `
           }
           title="hint text"
         />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-website-24.png 1x, icons/icon-website-24@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
         <div>
           <span
             className="glamor-1"
@@ -20815,6 +20849,23 @@ exports[`Storyshots Common Icon 1`] = `
           draggable="false"
           onClick={[Function]}
           srcSet="icons/icon-user-add-32.png 1x, icons/icon-user-add-32@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-website-32.png 1x, icons/icon-website-32@2x.png 2x"
           style={
             Object {
               "borderColor": "rgba(0, 0, 0, 0.05)",
@@ -22578,6 +22629,40 @@ exports[`Storyshots Common Icon 1`] = `
           draggable="false"
           onClick={[Function]}
           srcSet="icons/icon-pgp-key-64.png 1x, icons/icon-pgp-key-64@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-pgp-key-import-64.png 1x, icons/icon-pgp-key-import-64@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-pgp-key-new-64.png 1x, icons/icon-pgp-key-new-64@2x.png 2x"
           style={
             Object {
               "borderColor": "rgba(0, 0, 0, 0.05)",
@@ -43244,11 +43329,6 @@ exports[`Storyshots Team Roles ConfirmAdmin 1`] = `
 
 .glamor-2,
 [data-glamor-2] {
-  color: rgba(0, 0, 0, 0.40);
-}
-
-.glamor-3,
-[data-glamor-3] {
   bottom: 1px;
   left: 1px;
   position: absolute;
@@ -43258,8 +43338,8 @@ exports[`Storyshots Team Roles ConfirmAdmin 1`] = `
   border-radius: 6px;
 }
 
-.glamor-4,
-[data-glamor-4] {
+.glamor-3,
+[data-glamor-3] {
   background-size: cover;
   bottom: 0;
   left: 0;
@@ -43274,8 +43354,8 @@ exports[`Storyshots Team Roles ConfirmAdmin 1`] = `
   opacity: 1;
 }
 
-.glamor-5,
-[data-glamor-5] {
+.glamor-4,
+[data-glamor-4] {
   font-size: 14px;
   line-height: 18px;
   color: rgba(0, 0, 0, 0.75);
@@ -43285,8 +43365,8 @@ exports[`Storyshots Team Roles ConfirmAdmin 1`] = `
   font-weight: 600;
 }
 
-.glamor-6,
-[data-glamor-6] {
+.glamor-5,
+[data-glamor-5] {
   font-size: 13px;
   line-height: 17px;
   color: rgba(0, 0, 0, 0.75);
@@ -43294,714 +43374,28 @@ exports[`Storyshots Team Roles ConfirmAdmin 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 600;
+}
+
+.glamor-6,
+[data-glamor-6] {
+  color: #3dcc8e;
 }
 
 .glamor-7,
 [data-glamor-7] {
-  color: #3dcc8e;
-}
-
-.glamor-8,
-[data-glamor-8] {
   font-size: 13px;
   line-height: 17px;
   color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 600;
+  font-weight: 400;
   margin-left: 8px;
 }
 
-.glamor-18,
-[data-glamor-18] {
+.glamor-17,
+[data-glamor-17] {
   color: #ff4d61;
-}
-
-.glamor-20,
-[data-glamor-20] {
-  font-size: 14px;
-  line-height: 18px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-  text-align: center;
-  white-space: pre;
-}
-
-.glamor-21,
-[data-glamor-21] {
-  font-size: 14px;
-  line-height: 18px;
-  color: #ffffff;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-  text-align: center;
-  white-space: pre;
-}
-
-<div
-  style={
-    Object {
-      "flex": 1,
-      "overflow": "auto",
-    }
-  }
->
-  <div
-    style={undefined}
-  >
-    <div
-      style={
-        Object {
-          "alignItems": "center",
-          "display": "flex",
-          "flex": 1,
-          "flexDirection": "column",
-          "paddingBottom": 4,
-          "paddingTop": 4,
-        }
-      }
-    >
-      <div
-        style={
-          Object {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "row",
-            "margin": 16,
-          }
-        }
-      >
-        <div
-          onClick={undefined}
-          style={
-            Object {
-              "alignSelf": "center",
-              "height": 48,
-              "marginRight": 8,
-              "maxWidth": 48,
-              "minHeight": 48,
-              "minWidth": 48,
-              "position": "relative",
-              "userSelect": "none",
-            }
-          }
-        >
-          <div
-            className="glamor-0"
-          />
-          <div
-            className="glamor-1"
-          />
-        </div>
-        <div>
-          <span
-            className="glamor-2"
-            onClick={null}
-            onMouseEnter={undefined}
-            onMouseLeave={undefined}
-            style={
-              Object {
-                "WebkitFontSmoothing": "antialiased",
-                "alignSelf": "center",
-                "fontFamily": "kb",
-                "fontSize": 20,
-                "fontStyle": "normal",
-                "fontVariant": "normal",
-                "fontWeight": "normal",
-                "lineHeight": 1,
-                "margin": 8,
-                "speak": "none",
-                "textTransform": "none",
-                "userSelect": "none",
-              }
-            }
-          >
-            
-          </span>
-        </div>
-        <div
-          onClick={undefined}
-          style={
-            Object {
-              "alignSelf": "center",
-              "height": 48,
-              "marginLeft": 8,
-              "maxWidth": 48,
-              "minHeight": 48,
-              "minWidth": 48,
-              "position": "relative",
-              "userSelect": "none",
-            }
-          }
-        >
-          <div
-            className="glamor-3"
-          />
-          <div
-            className="glamor-4"
-          />
-        </div>
-      </div>
-      <div
-        style={
-          Object {
-            "margin": 8,
-            "marginLeft": 16,
-            "marginRight": 16,
-          }
-        }
-      >
-        <span
-          className="glamor-5"
-          onClick={undefined}
-          title={undefined}
-        >
-          Make ayoubd an admin of keybase?
-        </span>
-      </div>
-      <div
-        style={
-          Object {
-            "display": "flex",
-            "flexDirection": "row",
-            "margin": 8,
-          }
-        }
-      >
-        <span
-          className="glamor-6"
-          onClick={undefined}
-          title={undefined}
-        >
-          They'll be able to:
-        </span>
-      </div>
-      <div
-        style={
-          Object {
-            "display": "flex",
-            "flexDirection": "column",
-            "width": 280,
-          }
-        }
-      >
-        <div
-          style={
-            Object {
-              "alignItems": "center",
-              "display": "flex",
-              "flexDirection": "row",
-              "height": 24,
-              "padding": 8,
-            }
-          }
-        >
-          <div>
-            <span
-              className="glamor-7"
-              onClick={null}
-              onMouseEnter={undefined}
-              onMouseLeave={undefined}
-              style={
-                Object {
-                  "WebkitFontSmoothing": "antialiased",
-                  "alignSelf": "center",
-                  "fontFamily": "kb",
-                  "fontSize": 16,
-                  "fontStyle": "normal",
-                  "fontVariant": "normal",
-                  "fontWeight": "normal",
-                  "lineHeight": 1,
-                  "speak": "none",
-                  "textTransform": "none",
-                  "userSelect": "none",
-                }
-              }
-            >
-              
-            </span>
-          </div>
-          <span
-            className="glamor-8"
-            onClick={undefined}
-            title={undefined}
-          >
-            Write and read in chats and folders
-          </span>
-        </div>
-        <div
-          style={
-            Object {
-              "alignItems": "center",
-              "display": "flex",
-              "flexDirection": "row",
-              "height": 24,
-              "padding": 8,
-            }
-          }
-        >
-          <div>
-            <span
-              className="glamor-7"
-              onClick={null}
-              onMouseEnter={undefined}
-              onMouseLeave={undefined}
-              style={
-                Object {
-                  "WebkitFontSmoothing": "antialiased",
-                  "alignSelf": "center",
-                  "fontFamily": "kb",
-                  "fontSize": 16,
-                  "fontStyle": "normal",
-                  "fontVariant": "normal",
-                  "fontWeight": "normal",
-                  "lineHeight": 1,
-                  "speak": "none",
-                  "textTransform": "none",
-                  "userSelect": "none",
-                }
-              }
-            >
-              
-            </span>
-          </div>
-          <span
-            className="glamor-8"
-            onClick={undefined}
-            title={undefined}
-          >
-            Create channels
-          </span>
-        </div>
-        <div
-          style={
-            Object {
-              "alignItems": "center",
-              "display": "flex",
-              "flexDirection": "row",
-              "height": 24,
-              "padding": 8,
-            }
-          }
-        >
-          <div>
-            <span
-              className="glamor-7"
-              onClick={null}
-              onMouseEnter={undefined}
-              onMouseLeave={undefined}
-              style={
-                Object {
-                  "WebkitFontSmoothing": "antialiased",
-                  "alignSelf": "center",
-                  "fontFamily": "kb",
-                  "fontSize": 16,
-                  "fontStyle": "normal",
-                  "fontVariant": "normal",
-                  "fontWeight": "normal",
-                  "lineHeight": 1,
-                  "speak": "none",
-                  "textTransform": "none",
-                  "userSelect": "none",
-                }
-              }
-            >
-              
-            </span>
-          </div>
-          <span
-            className="glamor-8"
-            onClick={undefined}
-            title={undefined}
-          >
-            Create subteams
-          </span>
-        </div>
-        <div
-          style={
-            Object {
-              "alignItems": "center",
-              "display": "flex",
-              "flexDirection": "row",
-              "height": 24,
-              "padding": 8,
-            }
-          }
-        >
-          <div>
-            <span
-              className="glamor-7"
-              onClick={null}
-              onMouseEnter={undefined}
-              onMouseLeave={undefined}
-              style={
-                Object {
-                  "WebkitFontSmoothing": "antialiased",
-                  "alignSelf": "center",
-                  "fontFamily": "kb",
-                  "fontSize": 16,
-                  "fontStyle": "normal",
-                  "fontVariant": "normal",
-                  "fontWeight": "normal",
-                  "lineHeight": 1,
-                  "speak": "none",
-                  "textTransform": "none",
-                  "userSelect": "none",
-                }
-              }
-            >
-              
-            </span>
-          </div>
-          <span
-            className="glamor-8"
-            onClick={undefined}
-            title={undefined}
-          >
-            Add and remove members
-          </span>
-        </div>
-        <div
-          style={
-            Object {
-              "alignItems": "center",
-              "display": "flex",
-              "flexDirection": "row",
-              "height": 24,
-              "padding": 8,
-            }
-          }
-        >
-          <div>
-            <span
-              className="glamor-7"
-              onClick={null}
-              onMouseEnter={undefined}
-              onMouseLeave={undefined}
-              style={
-                Object {
-                  "WebkitFontSmoothing": "antialiased",
-                  "alignSelf": "center",
-                  "fontFamily": "kb",
-                  "fontSize": 16,
-                  "fontStyle": "normal",
-                  "fontVariant": "normal",
-                  "fontWeight": "normal",
-                  "lineHeight": 1,
-                  "speak": "none",
-                  "textTransform": "none",
-                  "userSelect": "none",
-                }
-              }
-            >
-              
-            </span>
-          </div>
-          <span
-            className="glamor-8"
-            onClick={undefined}
-            title={undefined}
-          >
-            Manage team members' roles
-          </span>
-        </div>
-      </div>
-      <div
-        style={
-          Object {
-            "display": "flex",
-            "flexDirection": "row",
-            "margin": 8,
-          }
-        }
-      >
-        <span
-          className="glamor-6"
-          onClick={undefined}
-          title={undefined}
-        >
-          They won't be able to:
-        </span>
-      </div>
-      <div
-        style={
-          Object {
-            "display": "flex",
-            "flexDirection": "column",
-            "width": 280,
-          }
-        }
-      >
-        <div
-          style={
-            Object {
-              "alignItems": "center",
-              "display": "flex",
-              "flexDirection": "row",
-              "height": 24,
-              "padding": 8,
-            }
-          }
-        >
-          <div>
-            <span
-              className="glamor-18"
-              onClick={null}
-              onMouseEnter={undefined}
-              onMouseLeave={undefined}
-              style={
-                Object {
-                  "WebkitFontSmoothing": "antialiased",
-                  "alignSelf": "center",
-                  "fontFamily": "kb",
-                  "fontSize": 16,
-                  "fontStyle": "normal",
-                  "fontVariant": "normal",
-                  "fontWeight": "normal",
-                  "lineHeight": 1,
-                  "speak": "none",
-                  "textTransform": "none",
-                  "userSelect": "none",
-                }
-              }
-            >
-              
-            </span>
-          </div>
-          <span
-            className="glamor-8"
-            onClick={undefined}
-            title={undefined}
-          >
-            Delete the team
-          </span>
-        </div>
-      </div>
-      <div
-        style={
-          Object {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "row",
-            "justifyContent": "center",
-            "minHeight": 64,
-            "width": "100%",
-          }
-        }
-      >
-        <div
-          onClick={[Function]}
-          onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
-          onMouseUp={[Function]}
-          style={
-            Object {
-              "alignItems": "center",
-              "alignSelf": "center",
-              "backgroundColor": "#e6e6e6",
-              "borderRadius": 50,
-              "cursor": "pointer",
-              "display": "inline-block",
-              "flexDirection": "column",
-              "height": 32,
-              "justifyContent": "center",
-              "lineHeight": "inherit",
-              "minWidth": undefined,
-              "paddingLeft": 24,
-              "paddingRight": 24,
-              "position": "relative",
-              "textAlign": "left",
-              "transform": "none",
-              "transition": "none",
-            }
-          }
-        >
-          <div
-            style={
-              Object {
-                "alignItems": "center",
-                "display": "flex",
-                "height": "100%",
-                "justifyContent": "center",
-                "position": "relative",
-              }
-            }
-          >
-            <span
-              className="glamor-20"
-              onClick={undefined}
-              title={undefined}
-            >
-              Back
-            </span>
-          </div>
-        </div>
-        <div
-          style={
-            Object {
-              "height": 8,
-              "width": 8,
-            }
-          }
-        />
-        <div
-          onClick={[Function]}
-          onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
-          onMouseUp={[Function]}
-          style={
-            Object {
-              "alignItems": "center",
-              "alignSelf": "center",
-              "backgroundColor": "#33a0ff",
-              "borderRadius": 50,
-              "cursor": "pointer",
-              "display": "inline-block",
-              "flexDirection": "column",
-              "height": 32,
-              "justifyContent": "center",
-              "lineHeight": "inherit",
-              "minWidth": undefined,
-              "paddingLeft": 24,
-              "paddingRight": 24,
-              "position": "relative",
-              "textAlign": "left",
-              "transform": "none",
-              "transition": "none",
-            }
-          }
-        >
-          <div
-            style={
-              Object {
-                "alignItems": "center",
-                "display": "flex",
-                "height": "100%",
-                "justifyContent": "center",
-                "position": "relative",
-              }
-            }
-          >
-            <span
-              className="glamor-21"
-              onClick={undefined}
-              title={undefined}
-            >
-              Confirm
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Team Roles ConfirmOwner 1`] = `
-.glamor-0,
-[data-glamor-0] {
-  bottom: 1px;
-  left: 1px;
-  position: absolute;
-  right: 1px;
-  top: 1px;
-  background-color: #f0f0f0;
-  border-radius: 50%;
-}
-
-.glamor-1,
-[data-glamor-1] {
-  background-size: cover;
-  bottom: 0;
-  left: 0;
-  position: absolute;
-  right: 0;
-  top: 0;
-  background-image: -webkit-image-set(url('icons/icon-placeholder-avatar-48.png') 1x, url('icons/icon-placeholder-avatar-48@2x.png') 2x);
-  border-radius: 50%;
-  height: 48px;
-  max-width: 48px;
-  min-width: 48px;
-  opacity: 1;
-}
-
-.glamor-2,
-[data-glamor-2] {
-  color: rgba(0, 0, 0, 0.40);
-}
-
-.glamor-3,
-[data-glamor-3] {
-  bottom: 1px;
-  left: 1px;
-  position: absolute;
-  right: 1px;
-  top: 1px;
-  background-color: #f0f0f0;
-  border-radius: 6px;
-}
-
-.glamor-4,
-[data-glamor-4] {
-  background-size: cover;
-  bottom: 0;
-  left: 0;
-  position: absolute;
-  right: 0;
-  top: 0;
-  background-image: -webkit-image-set(url('icons/icon-team-placeholder-avatar-48.png') 1x, url('icons/icon-team-placeholder-avatar-48@2x.png') 2x);
-  border-radius: 6px;
-  height: 48px;
-  max-width: 48px;
-  min-width: 48px;
-  opacity: 1;
-}
-
-.glamor-5,
-[data-glamor-5] {
-  font-size: 14px;
-  line-height: 18px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-}
-
-.glamor-6,
-[data-glamor-6] {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-}
-
-.glamor-7,
-[data-glamor-7] {
-  color: #3dcc8e;
-}
-
-.glamor-8,
-[data-glamor-8] {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-  margin-left: 8px;
 }
 
 .glamor-19,
@@ -44048,6 +43442,7 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
           "display": "flex",
           "flex": 1,
           "flexDirection": "column",
+          "minWidth": 480,
           "paddingBottom": 4,
           "paddingTop": 4,
         }
@@ -44085,32 +43480,6 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
             className="glamor-1"
           />
         </div>
-        <div>
-          <span
-            className="glamor-2"
-            onClick={null}
-            onMouseEnter={undefined}
-            onMouseLeave={undefined}
-            style={
-              Object {
-                "WebkitFontSmoothing": "antialiased",
-                "alignSelf": "center",
-                "fontFamily": "kb",
-                "fontSize": 20,
-                "fontStyle": "normal",
-                "fontVariant": "normal",
-                "fontWeight": "normal",
-                "lineHeight": 1,
-                "margin": 8,
-                "speak": "none",
-                "textTransform": "none",
-                "userSelect": "none",
-              }
-            }
-          >
-            
-          </span>
-        </div>
         <div
           onClick={undefined}
           style={
@@ -44127,10 +43496,10 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-2"
           />
           <div
-            className="glamor-4"
+            className="glamor-3"
           />
         </div>
       </div>
@@ -44144,11 +43513,11 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
         }
       >
         <span
-          className="glamor-5"
+          className="glamor-4"
           onClick={undefined}
           title={undefined}
         >
-          Make ayoubd an owner of keybase?
+          Make ayoubd an admin of keybase?
         </span>
       </div>
       <div
@@ -44161,11 +43530,11 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
         }
       >
         <span
-          className="glamor-6"
+          className="glamor-5"
           onClick={undefined}
           title={undefined}
         >
-          They'll have full power on the team:
+          They'll be able to:
         </span>
       </div>
       <div
@@ -44190,7 +43559,7 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
         >
           <div>
             <span
-              className="glamor-7"
+              className="glamor-6"
               onClick={null}
               onMouseEnter={undefined}
               onMouseLeave={undefined}
@@ -44214,7 +43583,7 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
             </span>
           </div>
           <span
-            className="glamor-8"
+            className="glamor-7"
             onClick={undefined}
             title={undefined}
           >
@@ -44234,7 +43603,7 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
         >
           <div>
             <span
-              className="glamor-7"
+              className="glamor-6"
               onClick={null}
               onMouseEnter={undefined}
               onMouseLeave={undefined}
@@ -44258,7 +43627,7 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
             </span>
           </div>
           <span
-            className="glamor-8"
+            className="glamor-7"
             onClick={undefined}
             title={undefined}
           >
@@ -44278,7 +43647,7 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
         >
           <div>
             <span
-              className="glamor-7"
+              className="glamor-6"
               onClick={null}
               onMouseEnter={undefined}
               onMouseLeave={undefined}
@@ -44302,7 +43671,7 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
             </span>
           </div>
           <span
-            className="glamor-8"
+            className="glamor-7"
             onClick={undefined}
             title={undefined}
           >
@@ -44322,7 +43691,7 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
         >
           <div>
             <span
-              className="glamor-7"
+              className="glamor-6"
               onClick={null}
               onMouseEnter={undefined}
               onMouseLeave={undefined}
@@ -44346,7 +43715,7 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
             </span>
           </div>
           <span
-            className="glamor-8"
+            className="glamor-7"
             onClick={undefined}
             title={undefined}
           >
@@ -44366,7 +43735,7 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
         >
           <div>
             <span
-              className="glamor-7"
+              className="glamor-6"
               onClick={null}
               onMouseEnter={undefined}
               onMouseLeave={undefined}
@@ -44390,13 +43759,40 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
             </span>
           </div>
           <span
-            className="glamor-8"
+            className="glamor-7"
             onClick={undefined}
             title={undefined}
           >
             Manage team members' roles
           </span>
         </div>
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "row",
+            "margin": 8,
+          }
+        }
+      >
+        <span
+          className="glamor-5"
+          onClick={undefined}
+          title={undefined}
+        >
+          They won't be able to:
+        </span>
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "column",
+            "width": 280,
+          }
+        }
+      >
         <div
           style={
             Object {
@@ -44410,7 +43806,7 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
         >
           <div>
             <span
-              className="glamor-7"
+              className="glamor-17"
               onClick={null}
               onMouseEnter={undefined}
               onMouseLeave={undefined}
@@ -44430,11 +43826,11 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
           <span
-            className="glamor-8"
+            className="glamor-7"
             onClick={undefined}
             title={undefined}
           >
@@ -44564,7 +43960,7 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
 </div>
 `;
 
-exports[`Storyshots Team Roles ConfirmReader 1`] = `
+exports[`Storyshots Team Roles ConfirmOwner 1`] = `
 .glamor-0,
 [data-glamor-0] {
   bottom: 1px;
@@ -44594,11 +43990,6 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
 
 .glamor-2,
 [data-glamor-2] {
-  color: rgba(0, 0, 0, 0.20);
-}
-
-.glamor-3,
-[data-glamor-3] {
   bottom: 1px;
   left: 1px;
   position: absolute;
@@ -44608,8 +43999,8 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
   border-radius: 6px;
 }
 
-.glamor-4,
-[data-glamor-4] {
+.glamor-3,
+[data-glamor-3] {
   background-size: cover;
   bottom: 0;
   left: 0;
@@ -44624,8 +44015,8 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
   opacity: 1;
 }
 
-.glamor-5,
-[data-glamor-5] {
+.glamor-4,
+[data-glamor-4] {
   font-size: 14px;
   line-height: 18px;
   color: rgba(0, 0, 0, 0.75);
@@ -44635,8 +44026,8 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
   font-weight: 600;
 }
 
-.glamor-6,
-[data-glamor-6] {
+.glamor-5,
+[data-glamor-5] {
   font-size: 13px;
   line-height: 17px;
   color: rgba(0, 0, 0, 0.75);
@@ -44644,32 +44035,27 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 600;
+}
+
+.glamor-6,
+[data-glamor-6] {
+  color: #3dcc8e;
 }
 
 .glamor-7,
 [data-glamor-7] {
-  color: #3dcc8e;
-}
-
-.glamor-8,
-[data-glamor-8] {
   font-size: 13px;
   line-height: 17px;
   color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 600;
+  font-weight: 400;
   margin-left: 8px;
 }
 
-.glamor-12,
-[data-glamor-12] {
-  color: #ff4d61;
-}
-
-.glamor-22,
-[data-glamor-22] {
+.glamor-18,
+[data-glamor-18] {
   font-size: 14px;
   line-height: 18px;
   color: rgba(0, 0, 0, 0.75);
@@ -44681,8 +44067,8 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
   white-space: pre;
 }
 
-.glamor-23,
-[data-glamor-23] {
+.glamor-19,
+[data-glamor-19] {
   font-size: 14px;
   line-height: 18px;
   color: #ffffff;
@@ -44712,6 +44098,7 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
           "display": "flex",
           "flex": 1,
           "flexDirection": "column",
+          "minWidth": 480,
           "paddingBottom": 4,
           "paddingTop": 4,
         }
@@ -44749,32 +44136,6 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
             className="glamor-1"
           />
         </div>
-        <div>
-          <span
-            className="glamor-2"
-            onClick={null}
-            onMouseEnter={undefined}
-            onMouseLeave={undefined}
-            style={
-              Object {
-                "WebkitFontSmoothing": "antialiased",
-                "alignSelf": "center",
-                "fontFamily": "kb",
-                "fontSize": 20,
-                "fontStyle": "normal",
-                "fontVariant": "normal",
-                "fontWeight": "normal",
-                "lineHeight": 1,
-                "margin": 8,
-                "speak": "none",
-                "textTransform": "none",
-                "userSelect": "none",
-              }
-            }
-          >
-            
-          </span>
-        </div>
         <div
           onClick={undefined}
           style={
@@ -44791,10 +44152,10 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-2"
           />
           <div
-            className="glamor-4"
+            className="glamor-3"
           />
         </div>
       </div>
@@ -44808,28 +44169,28 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
         }
       >
         <span
+          className="glamor-4"
+          onClick={undefined}
+          title={undefined}
+        >
+          Make ayoubd an owner of keybase?
+        </span>
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "row",
+            "margin": 8,
+          }
+        }
+      >
+        <span
           className="glamor-5"
           onClick={undefined}
           title={undefined}
         >
-          Make ayoubd a reader of keybase?
-        </span>
-      </div>
-      <div
-        style={
-          Object {
-            "display": "flex",
-            "flexDirection": "row",
-            "margin": 8,
-          }
-        }
-      >
-        <span
-          className="glamor-6"
-          onClick={undefined}
-          title={undefined}
-        >
-          They'll be able to:
+          They'll have full power on the team:
         </span>
       </div>
       <div
@@ -44854,7 +44215,7 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
         >
           <div>
             <span
-              className="glamor-7"
+              className="glamor-6"
               onClick={null}
               onMouseEnter={undefined}
               onMouseLeave={undefined}
@@ -44878,11 +44239,11 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
             </span>
           </div>
           <span
-            className="glamor-8"
+            className="glamor-7"
             onClick={undefined}
             title={undefined}
           >
-            Write and read in chats
+            Write and read in chats and folders
           </span>
         </div>
         <div
@@ -44898,7 +44259,7 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
         >
           <div>
             <span
-              className="glamor-7"
+              className="glamor-6"
               onClick={null}
               onMouseEnter={undefined}
               onMouseLeave={undefined}
@@ -44922,78 +44283,7 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
             </span>
           </div>
           <span
-            className="glamor-8"
-            onClick={undefined}
-            title={undefined}
-          >
-            Read in folders
-          </span>
-        </div>
-      </div>
-      <div
-        style={
-          Object {
-            "display": "flex",
-            "flexDirection": "row",
-            "margin": 8,
-          }
-        }
-      >
-        <span
-          className="glamor-6"
-          onClick={undefined}
-          title={undefined}
-        >
-          They won't be able to:
-        </span>
-      </div>
-      <div
-        style={
-          Object {
-            "display": "flex",
-            "flexDirection": "column",
-            "width": 280,
-          }
-        }
-      >
-        <div
-          style={
-            Object {
-              "alignItems": "center",
-              "display": "flex",
-              "flexDirection": "row",
-              "height": 24,
-              "padding": 8,
-            }
-          }
-        >
-          <div>
-            <span
-              className="glamor-12"
-              onClick={null}
-              onMouseEnter={undefined}
-              onMouseLeave={undefined}
-              style={
-                Object {
-                  "WebkitFontSmoothing": "antialiased",
-                  "alignSelf": "center",
-                  "fontFamily": "kb",
-                  "fontSize": 16,
-                  "fontStyle": "normal",
-                  "fontVariant": "normal",
-                  "fontWeight": "normal",
-                  "lineHeight": 1,
-                  "speak": "none",
-                  "textTransform": "none",
-                  "userSelect": "none",
-                }
-              }
-            >
-              
-            </span>
-          </div>
-          <span
-            className="glamor-8"
+            className="glamor-7"
             onClick={undefined}
             title={undefined}
           >
@@ -45013,7 +44303,7 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
         >
           <div>
             <span
-              className="glamor-12"
+              className="glamor-6"
               onClick={null}
               onMouseEnter={undefined}
               onMouseLeave={undefined}
@@ -45033,11 +44323,11 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
           <span
-            className="glamor-8"
+            className="glamor-7"
             onClick={undefined}
             title={undefined}
           >
@@ -45057,7 +44347,7 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
         >
           <div>
             <span
-              className="glamor-12"
+              className="glamor-6"
               onClick={null}
               onMouseEnter={undefined}
               onMouseLeave={undefined}
@@ -45077,11 +44367,11 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
           <span
-            className="glamor-8"
+            className="glamor-7"
             onClick={undefined}
             title={undefined}
           >
@@ -45101,7 +44391,7 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
         >
           <div>
             <span
-              className="glamor-12"
+              className="glamor-6"
               onClick={null}
               onMouseEnter={undefined}
               onMouseLeave={undefined}
@@ -45121,11 +44411,11 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
           <span
-            className="glamor-8"
+            className="glamor-7"
             onClick={undefined}
             title={undefined}
           >
@@ -45145,7 +44435,7 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
         >
           <div>
             <span
-              className="glamor-12"
+              className="glamor-6"
               onClick={null}
               onMouseEnter={undefined}
               onMouseLeave={undefined}
@@ -45165,11 +44455,11 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
                 }
               }
             >
-              
+              
             </span>
           </div>
           <span
-            className="glamor-8"
+            className="glamor-7"
             onClick={undefined}
             title={undefined}
           >
@@ -45229,7 +44519,7 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
             }
           >
             <span
-              className="glamor-22"
+              className="glamor-18"
               onClick={undefined}
               title={undefined}
             >
@@ -45285,7 +44575,712 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
             }
           >
             <span
-              className="glamor-23"
+              className="glamor-19"
+              onClick={undefined}
+              title={undefined}
+            >
+              Confirm
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Team Roles ConfirmReader 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  bottom: 1px;
+  left: 1px;
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  background-color: #f0f0f0;
+  border-radius: 50%;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  background-size: cover;
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  background-image: -webkit-image-set(url('icons/icon-placeholder-avatar-48.png') 1x, url('icons/icon-placeholder-avatar-48@2x.png') 2x);
+  border-radius: 50%;
+  height: 48px;
+  max-width: 48px;
+  min-width: 48px;
+  opacity: 1;
+}
+
+.glamor-2,
+[data-glamor-2] {
+  bottom: 1px;
+  left: 1px;
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  background-color: #f0f0f0;
+  border-radius: 6px;
+}
+
+.glamor-3,
+[data-glamor-3] {
+  background-size: cover;
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  background-image: -webkit-image-set(url('icons/icon-team-placeholder-avatar-48.png') 1x, url('icons/icon-team-placeholder-avatar-48@2x.png') 2x);
+  border-radius: 6px;
+  height: 48px;
+  max-width: 48px;
+  min-width: 48px;
+  opacity: 1;
+}
+
+.glamor-4,
+[data-glamor-4] {
+  font-size: 14px;
+  line-height: 18px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+}
+
+.glamor-5,
+[data-glamor-5] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+}
+
+.glamor-6,
+[data-glamor-6] {
+  color: #3dcc8e;
+}
+
+.glamor-7,
+[data-glamor-7] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  margin-left: 8px;
+}
+
+.glamor-11,
+[data-glamor-11] {
+  color: #ff4d61;
+}
+
+.glamor-21,
+[data-glamor-21] {
+  font-size: 14px;
+  line-height: 18px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+}
+
+.glamor-22,
+[data-glamor-22] {
+  font-size: 14px;
+  line-height: 18px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={undefined}
+  >
+    <div
+      style={
+        Object {
+          "alignItems": "center",
+          "display": "flex",
+          "flex": 1,
+          "flexDirection": "column",
+          "minWidth": 480,
+          "paddingBottom": 4,
+          "paddingTop": 4,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "margin": 16,
+          }
+        }
+      >
+        <div
+          onClick={undefined}
+          style={
+            Object {
+              "alignSelf": "center",
+              "height": 48,
+              "marginRight": 8,
+              "maxWidth": 48,
+              "minHeight": 48,
+              "minWidth": 48,
+              "position": "relative",
+              "userSelect": "none",
+            }
+          }
+        >
+          <div
+            className="glamor-0"
+          />
+          <div
+            className="glamor-1"
+          />
+        </div>
+        <div
+          onClick={undefined}
+          style={
+            Object {
+              "alignSelf": "center",
+              "height": 48,
+              "marginLeft": 8,
+              "maxWidth": 48,
+              "minHeight": 48,
+              "minWidth": 48,
+              "position": "relative",
+              "userSelect": "none",
+            }
+          }
+        >
+          <div
+            className="glamor-2"
+          />
+          <div
+            className="glamor-3"
+          />
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "margin": 8,
+            "marginLeft": 16,
+            "marginRight": 16,
+          }
+        }
+      >
+        <span
+          className="glamor-4"
+          onClick={undefined}
+          title={undefined}
+        >
+          Make ayoubd a reader of keybase?
+        </span>
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "row",
+            "margin": 8,
+          }
+        }
+      >
+        <span
+          className="glamor-5"
+          onClick={undefined}
+          title={undefined}
+        >
+          They'll be able to:
+        </span>
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "column",
+            "width": 280,
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "height": 24,
+              "padding": 8,
+            }
+          }
+        >
+          <div>
+            <span
+              className="glamor-6"
+              onClick={null}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "alignSelf": "center",
+                  "fontFamily": "kb",
+                  "fontSize": 16,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "lineHeight": 1,
+                  "speak": "none",
+                  "textTransform": "none",
+                  "userSelect": "none",
+                }
+              }
+            >
+              
+            </span>
+          </div>
+          <span
+            className="glamor-7"
+            onClick={undefined}
+            title={undefined}
+          >
+            Write and read in chats
+          </span>
+        </div>
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "height": 24,
+              "padding": 8,
+            }
+          }
+        >
+          <div>
+            <span
+              className="glamor-6"
+              onClick={null}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "alignSelf": "center",
+                  "fontFamily": "kb",
+                  "fontSize": 16,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "lineHeight": 1,
+                  "speak": "none",
+                  "textTransform": "none",
+                  "userSelect": "none",
+                }
+              }
+            >
+              
+            </span>
+          </div>
+          <span
+            className="glamor-7"
+            onClick={undefined}
+            title={undefined}
+          >
+            Read in folders
+          </span>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "row",
+            "margin": 8,
+          }
+        }
+      >
+        <span
+          className="glamor-5"
+          onClick={undefined}
+          title={undefined}
+        >
+          They won't be able to:
+        </span>
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "column",
+            "width": 280,
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "height": 24,
+              "padding": 8,
+            }
+          }
+        >
+          <div>
+            <span
+              className="glamor-11"
+              onClick={null}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "alignSelf": "center",
+                  "fontFamily": "kb",
+                  "fontSize": 16,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "lineHeight": 1,
+                  "speak": "none",
+                  "textTransform": "none",
+                  "userSelect": "none",
+                }
+              }
+            >
+              
+            </span>
+          </div>
+          <span
+            className="glamor-7"
+            onClick={undefined}
+            title={undefined}
+          >
+            Create channels
+          </span>
+        </div>
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "height": 24,
+              "padding": 8,
+            }
+          }
+        >
+          <div>
+            <span
+              className="glamor-11"
+              onClick={null}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "alignSelf": "center",
+                  "fontFamily": "kb",
+                  "fontSize": 16,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "lineHeight": 1,
+                  "speak": "none",
+                  "textTransform": "none",
+                  "userSelect": "none",
+                }
+              }
+            >
+              
+            </span>
+          </div>
+          <span
+            className="glamor-7"
+            onClick={undefined}
+            title={undefined}
+          >
+            Create subteams
+          </span>
+        </div>
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "height": 24,
+              "padding": 8,
+            }
+          }
+        >
+          <div>
+            <span
+              className="glamor-11"
+              onClick={null}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "alignSelf": "center",
+                  "fontFamily": "kb",
+                  "fontSize": 16,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "lineHeight": 1,
+                  "speak": "none",
+                  "textTransform": "none",
+                  "userSelect": "none",
+                }
+              }
+            >
+              
+            </span>
+          </div>
+          <span
+            className="glamor-7"
+            onClick={undefined}
+            title={undefined}
+          >
+            Add and remove members
+          </span>
+        </div>
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "height": 24,
+              "padding": 8,
+            }
+          }
+        >
+          <div>
+            <span
+              className="glamor-11"
+              onClick={null}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "alignSelf": "center",
+                  "fontFamily": "kb",
+                  "fontSize": 16,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "lineHeight": 1,
+                  "speak": "none",
+                  "textTransform": "none",
+                  "userSelect": "none",
+                }
+              }
+            >
+              
+            </span>
+          </div>
+          <span
+            className="glamor-7"
+            onClick={undefined}
+            title={undefined}
+          >
+            Manage team members' roles
+          </span>
+        </div>
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "height": 24,
+              "padding": 8,
+            }
+          }
+        >
+          <div>
+            <span
+              className="glamor-11"
+              onClick={null}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "alignSelf": "center",
+                  "fontFamily": "kb",
+                  "fontSize": 16,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "lineHeight": 1,
+                  "speak": "none",
+                  "textTransform": "none",
+                  "userSelect": "none",
+                }
+              }
+            >
+              
+            </span>
+          </div>
+          <span
+            className="glamor-7"
+            onClick={undefined}
+            title={undefined}
+          >
+            Delete the team
+          </span>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "justifyContent": "center",
+            "minHeight": 64,
+            "width": "100%",
+          }
+        }
+      >
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": "center",
+              "backgroundColor": "#e6e6e6",
+              "borderRadius": 50,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 32,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 24,
+              "paddingRight": 24,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "height": "100%",
+                "justifyContent": "center",
+                "position": "relative",
+              }
+            }
+          >
+            <span
+              className="glamor-21"
+              onClick={undefined}
+              title={undefined}
+            >
+              Back
+            </span>
+          </div>
+        </div>
+        <div
+          style={
+            Object {
+              "height": 8,
+              "width": 8,
+            }
+          }
+        />
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": "center",
+              "backgroundColor": "#33a0ff",
+              "borderRadius": 50,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 32,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 24,
+              "paddingRight": 24,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "height": "100%",
+                "justifyContent": "center",
+                "position": "relative",
+              }
+            }
+          >
+            <span
+              className="glamor-22"
               onClick={undefined}
               title={undefined}
             >
@@ -45329,11 +45324,6 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
 
 .glamor-2,
 [data-glamor-2] {
-  color: rgba(0, 0, 0, 0.20);
-}
-
-.glamor-3,
-[data-glamor-3] {
   bottom: 1px;
   left: 1px;
   position: absolute;
@@ -45343,8 +45333,8 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
   border-radius: 6px;
 }
 
-.glamor-4,
-[data-glamor-4] {
+.glamor-3,
+[data-glamor-3] {
   background-size: cover;
   bottom: 0;
   left: 0;
@@ -45359,8 +45349,8 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
   opacity: 1;
 }
 
-.glamor-5,
-[data-glamor-5] {
+.glamor-4,
+[data-glamor-4] {
   font-size: 14px;
   line-height: 18px;
   color: rgba(0, 0, 0, 0.75);
@@ -45370,8 +45360,8 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
   font-weight: 600;
 }
 
-.glamor-6,
-[data-glamor-6] {
+.glamor-5,
+[data-glamor-5] {
   font-size: 13px;
   line-height: 17px;
   color: rgba(0, 0, 0, 0.75);
@@ -45379,32 +45369,32 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 600;
+}
+
+.glamor-6,
+[data-glamor-6] {
+  color: #3dcc8e;
 }
 
 .glamor-7,
 [data-glamor-7] {
-  color: #3dcc8e;
-}
-
-.glamor-8,
-[data-glamor-8] {
   font-size: 13px;
   line-height: 17px;
   color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 600;
+  font-weight: 400;
   margin-left: 8px;
 }
 
-.glamor-12,
-[data-glamor-12] {
+.glamor-11,
+[data-glamor-11] {
   color: #ff4d61;
 }
 
-.glamor-20,
-[data-glamor-20] {
+.glamor-19,
+[data-glamor-19] {
   font-size: 14px;
   line-height: 18px;
   color: rgba(0, 0, 0, 0.75);
@@ -45416,8 +45406,8 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
   white-space: pre;
 }
 
-.glamor-21,
-[data-glamor-21] {
+.glamor-20,
+[data-glamor-20] {
   font-size: 14px;
   line-height: 18px;
   color: #ffffff;
@@ -45447,6 +45437,7 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
           "display": "flex",
           "flex": 1,
           "flexDirection": "column",
+          "minWidth": 480,
           "paddingBottom": 4,
           "paddingTop": 4,
         }
@@ -45484,32 +45475,6 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
             className="glamor-1"
           />
         </div>
-        <div>
-          <span
-            className="glamor-2"
-            onClick={null}
-            onMouseEnter={undefined}
-            onMouseLeave={undefined}
-            style={
-              Object {
-                "WebkitFontSmoothing": "antialiased",
-                "alignSelf": "center",
-                "fontFamily": "kb",
-                "fontSize": 20,
-                "fontStyle": "normal",
-                "fontVariant": "normal",
-                "fontWeight": "normal",
-                "lineHeight": 1,
-                "margin": 8,
-                "speak": "none",
-                "textTransform": "none",
-                "userSelect": "none",
-              }
-            }
-          >
-            
-          </span>
-        </div>
         <div
           onClick={undefined}
           style={
@@ -45526,10 +45491,10 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
           }
         >
           <div
-            className="glamor-3"
+            className="glamor-2"
           />
           <div
-            className="glamor-4"
+            className="glamor-3"
           />
         </div>
       </div>
@@ -45543,7 +45508,7 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
         }
       >
         <span
-          className="glamor-5"
+          className="glamor-4"
           onClick={undefined}
           title={undefined}
         >
@@ -45560,7 +45525,7 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
         }
       >
         <span
-          className="glamor-6"
+          className="glamor-5"
           onClick={undefined}
           title={undefined}
         >
@@ -45589,7 +45554,7 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
         >
           <div>
             <span
-              className="glamor-7"
+              className="glamor-6"
               onClick={null}
               onMouseEnter={undefined}
               onMouseLeave={undefined}
@@ -45613,7 +45578,7 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
             </span>
           </div>
           <span
-            className="glamor-8"
+            className="glamor-7"
             onClick={undefined}
             title={undefined}
           >
@@ -45633,7 +45598,7 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
         >
           <div>
             <span
-              className="glamor-7"
+              className="glamor-6"
               onClick={null}
               onMouseEnter={undefined}
               onMouseLeave={undefined}
@@ -45657,7 +45622,7 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
             </span>
           </div>
           <span
-            className="glamor-8"
+            className="glamor-7"
             onClick={undefined}
             title={undefined}
           >
@@ -45675,7 +45640,7 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
         }
       >
         <span
-          className="glamor-6"
+          className="glamor-5"
           onClick={undefined}
           title={undefined}
         >
@@ -45704,7 +45669,7 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
         >
           <div>
             <span
-              className="glamor-12"
+              className="glamor-11"
               onClick={null}
               onMouseEnter={undefined}
               onMouseLeave={undefined}
@@ -45728,7 +45693,7 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
             </span>
           </div>
           <span
-            className="glamor-8"
+            className="glamor-7"
             onClick={undefined}
             title={undefined}
           >
@@ -45748,7 +45713,7 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
         >
           <div>
             <span
-              className="glamor-12"
+              className="glamor-11"
               onClick={null}
               onMouseEnter={undefined}
               onMouseLeave={undefined}
@@ -45772,7 +45737,7 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
             </span>
           </div>
           <span
-            className="glamor-8"
+            className="glamor-7"
             onClick={undefined}
             title={undefined}
           >
@@ -45792,7 +45757,7 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
         >
           <div>
             <span
-              className="glamor-12"
+              className="glamor-11"
               onClick={null}
               onMouseEnter={undefined}
               onMouseLeave={undefined}
@@ -45816,7 +45781,7 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
             </span>
           </div>
           <span
-            className="glamor-8"
+            className="glamor-7"
             onClick={undefined}
             title={undefined}
           >
@@ -45836,7 +45801,7 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
         >
           <div>
             <span
-              className="glamor-12"
+              className="glamor-11"
               onClick={null}
               onMouseEnter={undefined}
               onMouseLeave={undefined}
@@ -45860,7 +45825,7 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
             </span>
           </div>
           <span
-            className="glamor-8"
+            className="glamor-7"
             onClick={undefined}
             title={undefined}
           >
@@ -45920,7 +45885,7 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
             }
           >
             <span
-              className="glamor-20"
+              className="glamor-19"
               onClick={undefined}
               title={undefined}
             >
@@ -45976,7 +45941,7 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
             }
           >
             <span
-              className="glamor-21"
+              className="glamor-20"
               onClick={undefined}
               title={undefined}
             >
@@ -46014,9 +45979,9 @@ exports[`Storyshots Team Roles Picker 1`] = `
 
 .glamor-3,
 [data-glamor-3] {
-  font-size: 16px;
-  line-height: 20px;
-  color: #000000;
+  font-size: 14px;
+  line-height: 18px;
+  color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -46031,7 +45996,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 600;
+  font-weight: 400;
   width: 267px;
 }
 
@@ -46042,8 +46007,8 @@ exports[`Storyshots Team Roles Picker 1`] = `
 
 .glamor-10,
 [data-glamor-10] {
-  font-size: 16px;
-  line-height: 20px;
+  font-size: 14px;
+  line-height: 18px;
   color: #ffffff;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -46059,7 +46024,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 600;
+  font-weight: 400;
   width: 267px;
 }
 
@@ -46104,8 +46069,9 @@ exports[`Storyshots Team Roles Picker 1`] = `
           "alignItems": "center",
           "display": "flex",
           "flexDirection": "column",
-          "paddingBottom": 4,
-          "paddingTop": 4,
+          "minWidth": 480,
+          "paddingBottom": 8,
+          "paddingTop": 16,
         }
       }
     >
@@ -46122,7 +46088,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
           onClick={undefined}
           title={undefined}
         >
-          Select a role for ayoubd
+          Select a role for ayoubd:
         </span>
       </div>
       <div
@@ -46141,10 +46107,10 @@ exports[`Storyshots Team Roles Picker 1`] = `
             "flexDirection": "row",
             "height": undefined,
             "lineHeight": 0,
-            "minWidth": undefined,
+            "minWidth": 480,
             "padding": 8,
-            "paddingLeft": 8,
-            "paddingRight": 8,
+            "paddingLeft": 16,
+            "paddingRight": 40,
             "position": "relative",
             "textAlign": "left",
             "transform": "none",
@@ -46163,7 +46129,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
                 "WebkitFontSmoothing": "antialiased",
                 "alignSelf": "center",
                 "fontFamily": "kb",
-                "fontSize": 24,
+                "fontSize": 16,
                 "fontStyle": "normal",
                 "fontVariant": "normal",
                 "fontWeight": "normal",
@@ -46182,7 +46148,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
             Object {
               "display": "flex",
               "flexDirection": "column",
-              "paddingLeft": 8,
+              "paddingLeft": 16,
             }
           }
         >
@@ -46209,7 +46175,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
                     "fontVariant": "normal",
                     "fontWeight": "normal",
                     "lineHeight": 1,
-                    "marginRight": 8,
+                    "marginRight": 4,
                     "speak": "none",
                     "textTransform": "none",
                     "userSelect": "none",
@@ -46252,10 +46218,10 @@ exports[`Storyshots Team Roles Picker 1`] = `
             "flexDirection": "row",
             "height": undefined,
             "lineHeight": 0,
-            "minWidth": undefined,
+            "minWidth": 480,
             "padding": 8,
-            "paddingLeft": 8,
-            "paddingRight": 8,
+            "paddingLeft": 16,
+            "paddingRight": 40,
             "position": "relative",
             "textAlign": "left",
             "transform": "none",
@@ -46274,7 +46240,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
                 "WebkitFontSmoothing": "antialiased",
                 "alignSelf": "center",
                 "fontFamily": "kb",
-                "fontSize": 24,
+                "fontSize": 16,
                 "fontStyle": "normal",
                 "fontVariant": "normal",
                 "fontWeight": "normal",
@@ -46293,7 +46259,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
             Object {
               "display": "flex",
               "flexDirection": "column",
-              "paddingLeft": 8,
+              "paddingLeft": 16,
             }
           }
         >
@@ -46320,7 +46286,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
                     "fontVariant": "normal",
                     "fontWeight": "normal",
                     "lineHeight": 1,
-                    "marginRight": 8,
+                    "marginRight": 4,
                     "speak": "none",
                     "textTransform": "none",
                     "userSelect": "none",
@@ -46363,10 +46329,10 @@ exports[`Storyshots Team Roles Picker 1`] = `
             "flexDirection": "row",
             "height": undefined,
             "lineHeight": 0,
-            "minWidth": undefined,
+            "minWidth": 480,
             "padding": 8,
-            "paddingLeft": 8,
-            "paddingRight": 8,
+            "paddingLeft": 16,
+            "paddingRight": 40,
             "position": "relative",
             "textAlign": "left",
             "transform": "none",
@@ -46385,7 +46351,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
                 "WebkitFontSmoothing": "antialiased",
                 "alignSelf": "center",
                 "fontFamily": "kb",
-                "fontSize": 24,
+                "fontSize": 16,
                 "fontStyle": "normal",
                 "fontVariant": "normal",
                 "fontWeight": "normal",
@@ -46404,7 +46370,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
             Object {
               "display": "flex",
               "flexDirection": "column",
-              "paddingLeft": 8,
+              "paddingLeft": 16,
             }
           }
         >
@@ -46449,10 +46415,10 @@ exports[`Storyshots Team Roles Picker 1`] = `
             "flexDirection": "row",
             "height": undefined,
             "lineHeight": 0,
-            "minWidth": undefined,
+            "minWidth": 480,
             "padding": 8,
-            "paddingLeft": 8,
-            "paddingRight": 8,
+            "paddingLeft": 16,
+            "paddingRight": 40,
             "position": "relative",
             "textAlign": "left",
             "transform": "none",
@@ -46471,7 +46437,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
                 "WebkitFontSmoothing": "antialiased",
                 "alignSelf": "center",
                 "fontFamily": "kb",
-                "fontSize": 24,
+                "fontSize": 16,
                 "fontStyle": "normal",
                 "fontVariant": "normal",
                 "fontWeight": "normal",
@@ -46490,7 +46456,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
             Object {
               "display": "flex",
               "flexDirection": "column",
-              "paddingLeft": 8,
+              "paddingLeft": 16,
             }
           }
         >
@@ -47043,7 +47009,6 @@ exports[`Storyshots Teams TeamList 1`] = `
           Object {
             "display": "flex",
             "flexDirection": "column",
-            "padding": 8,
             "width": "100%",
           }
         }
@@ -47112,6 +47077,7 @@ exports[`Storyshots Teams TeamList 1`] = `
                 style={
                   Object {
                     "height": 32,
+                    "marginLeft": 8,
                     "maxWidth": 32,
                     "minHeight": 32,
                     "minWidth": 32,
@@ -47205,6 +47171,7 @@ exports[`Storyshots Teams TeamList 1`] = `
                     "fontWeight": "normal",
                     "lineHeight": 1,
                     "marginLeft": 16,
+                    "marginRight": 8,
                     "speak": "none",
                     "textTransform": "none",
                     "userSelect": "none",
@@ -47277,6 +47244,7 @@ exports[`Storyshots Teams TeamList 1`] = `
                 style={
                   Object {
                     "height": 32,
+                    "marginLeft": 8,
                     "maxWidth": 32,
                     "minHeight": 32,
                     "minWidth": 32,
@@ -47377,6 +47345,7 @@ exports[`Storyshots Teams TeamList 1`] = `
                     "fontWeight": "normal",
                     "lineHeight": 1,
                     "marginLeft": 16,
+                    "marginRight": 8,
                     "speak": "none",
                     "textTransform": "none",
                     "userSelect": "none",
@@ -47449,6 +47418,7 @@ exports[`Storyshots Teams TeamList 1`] = `
                 style={
                   Object {
                     "height": 32,
+                    "marginLeft": 8,
                     "maxWidth": 32,
                     "minHeight": 32,
                     "minWidth": 32,
@@ -47569,6 +47539,7 @@ exports[`Storyshots Teams TeamList 1`] = `
                     "fontWeight": "normal",
                     "lineHeight": 1,
                     "marginLeft": 16,
+                    "marginRight": 8,
                     "speak": "none",
                     "textTransform": "none",
                     "userSelect": "none",
