@@ -288,18 +288,11 @@ func (s *Server) logRequest(sri *ServedRequestInfo, requestPath string) {
 }
 
 func (s *Server) setCommonResponseHeaders(w http.ResponseWriter) {
-	// Since http.FileServer already sets MIME type properly, disable MIME type
-	// sniffing on browser-side. This would prevent e.g. an attack where a
-	// malicious html file with .jpg suffix being executed by browser without
-	// site visitors' awareness. References:
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
-	// https://helmetjs.github.io/docs/dont-sniff-mimetype/
-	w.Header().Set("X-Content-Type-Options", "nosniff")
 	// Enforce XSS protection. References:
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-XSS-Protection
 	// https://blog.innerht.ml/the-misunderstood-x-xss-protection/
 	w.Header().Set("X-XSS-Protection", "1; mode=block")
-	// Only allow HTTPS on this domain, and make this policy it expire in a
+	// Only allow HTTPS on this domain, and make this policy expire in a
 	// week. This means if user decides to migrate off Keybase Pages, there's a
 	// 1-week gap before they can use HTTP again. Note that we don't use the
 	// 'preload' directive, for the same reason we use 302 instead of 301 for
