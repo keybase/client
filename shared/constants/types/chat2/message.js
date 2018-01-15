@@ -136,6 +136,20 @@ export type _MessageSystemGitPush = {
 }
 export type MessageSystemGitPush = I.RecordOf<_MessageSystemGitPush>
 
+export type _MessageSystemAddedToTeam = {
+  addee: string,
+  adder: string,
+  author: string,
+  conversationIDKey: Common.ConversationIDKey,
+  id: MessageID,
+  isAdmin: boolean,
+  ordinal: Ordinal,
+  team: string,
+  timestamp: number,
+  type: 'systemAddedToTeam',
+}
+export type MessageSystemAddedToTeam = I.RecordOf<_MessageSystemAddedToTeam>
+
 export type Message =
   | MessageText
   | MessageAttachment
@@ -143,3 +157,4 @@ export type Message =
   | MessageSystemInviteAccepted
   | MessageSystemSimpleToComplex
   | MessageSystemGitPush
+  | MessageSystemAddedToTeam
