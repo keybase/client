@@ -111,11 +111,12 @@ export type _MessageSystemInviteAccepted = {
 export type MessageSystemInviteAccepted = I.RecordOf<_MessageSystemInviteAccepted>
 
 export type _MessageSystemSimpleToComplex = {
-  author: '[Keybase]',
+  author: string,
   conversationIDKey: Common.ConversationIDKey,
   id: MessageID,
   ordinal: Ordinal,
   timestamp: number,
+  team: string,
   type: 'systemSimpleToComplex',
 }
 export type MessageSystemSimpleToComplex = I.RecordOf<_MessageSystemSimpleToComplex>
