@@ -3,8 +3,8 @@ import * as React from 'react'
 import {Avatar, Icon, Text, Box} from '../../../../common-adapters'
 import {globalStyles, globalMargins, globalColors, isMobile} from '../../../../styles'
 import {colorForAuthor} from '../shared'
-import Timestamp from '../timestamp'
-import LoadMore from '../load-more'
+import Timestamp from './timestamp'
+import LoadMore from './load-more'
 
 import type {Props} from '.'
 
