@@ -41,6 +41,13 @@ func TestObsoletingInvites1(t *testing.T) {
 		require.EqualValues(t, "40903c59d19feef1d67c455499304c19%1", invite.Name)
 		require.EqualValues(t, keybase1.UserVersion{Uid: "25852c87d6e47fb8d7d55400be9c7a19", EldestSeqno: 1}, invite.Inviter)
 	}
+
+	members, err := team.Members()
+	require.NoError(t, err)
+	require.Equal(t, 1, len(members.Owners))
+	require.Equal(t, 0, len(members.Admins))
+	require.Equal(t, 1, len(members.Writers))
+	require.Equal(t, 0, len(members.Readers))
 }
 
 func TestObsoletingInvites2(t *testing.T) {

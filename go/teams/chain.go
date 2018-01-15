@@ -347,13 +347,11 @@ func (t *TeamSigChainState) informCompletedInvite(i keybase1.TeamInviteID) {
 	delete(t.inner.ActiveInvites, i)
 }
 
-func (t *TeamSigChainState) findAndObsoleteInviteForUser(uv keybase1.UserVersion) {
+func (t *TeamSigChainState) findAndObsoleteInviteForUser(uid keybase1.UID) {
 	for id, invite := range t.inner.ActiveInvites {
-		if invite.ContainsUID(uv.Uid) {
-			if inviteUv, err := invite.KeybaseUserVersion(); err == nil {
-				if inviteUv.Uid == uv.Uid {
-					delete(t.inner.ActiveInvites, id)
-				}
+		if inviteUv, err := invite.KeybaseUserVersion(); err == nil {
+			if inviteUv.Uid == uid {
+				delete(t.inner.ActiveInvites, id)
 			}
 		}
 	}
@@ -1991,7 +1989,7 @@ func (t *TeamSigChainPlayer) obsoleteInvites(stateToUpdate *TeamSigChainState, r
 	for role, uvs := range roleUpdates {
 		if role != keybase1.TeamRole_NONE {
 			for _, uv := range uvs {
-				stateToUpdate.findAndObsoleteInviteForUser(uv)
+				stateToUpdate.findAndObsoleteInviteForUser(uv.Uid)
 			}
 		}
 	}
