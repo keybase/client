@@ -152,9 +152,8 @@ const uiMessageToSystemMessage = (minimum, body): ?Types.Message => {
           inviteType = 'text'
           break
         default:
-          // eslint-disable-next-line no-unused-expressions
           // $FlowIssue : Flow gets confused by break statements apparently
-          ;(iType: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
+          ;(iType: empty) // eslint-disable-line no-unused-expressions
           return null
       }
       // messageText = `${invitee} accepted an invite to join ${team}`
