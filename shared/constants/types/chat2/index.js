@@ -28,6 +28,8 @@ export type {
   MessageSystemAddedToTeam,
   MessageSystemGitPush,
   MessageSystemInviteAccepted,
+  MessageSystemJoined,
+  MessageSystemLeft,
   MessageSystemSimpleToComplex,
   MessageText,
   Ordinal,

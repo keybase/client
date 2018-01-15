@@ -14,6 +14,8 @@ import SystemSimpleToComplex from './system-simple-to-complex/container'
 import SystemInviteAccepted from './system-invite-accepted/container'
 import SystemGitPush from './system-git-push/container'
 import SystemAddedToTeam from './system-added-to-team/container'
+import SystemJoined from './system-joined/container'
+import SystemLeft from './system-left/container'
 // import ProfileResetNotice from '../notices/profile-reset-notice/container'
 // import * as React from 'react'
 import * as RouteTree from '../../../route-tree'
@@ -144,6 +146,10 @@ class MessageFactory extends React.PureComponent<Props> {
         return <SystemGitPush message={this.props.message} />
       case 'systemAddedToTeam':
         return <SystemAddedToTeam message={this.props.message} />
+      case 'systemJoined':
+        return <SystemJoined message={this.props.message} />
+      case 'systemLeft':
+        return <SystemLeft message={this.props.message} />
       case 'deleted':
         return null
       case 'attachment':

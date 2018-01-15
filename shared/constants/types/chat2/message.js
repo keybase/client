@@ -150,6 +150,28 @@ export type _MessageSystemAddedToTeam = {
 }
 export type MessageSystemAddedToTeam = I.RecordOf<_MessageSystemAddedToTeam>
 
+export type _MessageSystemJoined = {
+  author: string,
+  conversationIDKey: Common.ConversationIDKey,
+  id: MessageID,
+  ordinal: Ordinal,
+  team: string,
+  timestamp: number,
+  type: 'systemJoined',
+}
+export type MessageSystemJoined = I.RecordOf<_MessageSystemJoined>
+
+export type _MessageSystemLeft = {
+  author: string,
+  conversationIDKey: Common.ConversationIDKey,
+  id: MessageID,
+  ordinal: Ordinal,
+  team: string,
+  timestamp: number,
+  type: 'systemLeft',
+}
+export type MessageSystemLeft = I.RecordOf<_MessageSystemLeft>
+
 export type Message =
   | MessageText
   | MessageAttachment
@@ -158,3 +180,5 @@ export type Message =
   | MessageSystemSimpleToComplex
   | MessageSystemGitPush
   | MessageSystemAddedToTeam
+  | MessageSystemJoined
+  | MessageSystemLeft
