@@ -287,6 +287,27 @@ func (s *Server) logRequest(sri *ServedRequestInfo, requestPath string) {
 	)
 }
 
+func (s *Server) setCommonResponseHeaders(w http.ResponseWriter) {
+	// Since http.FileServer already sets MIME type properly, disable MIME type
+	// sniffing on browser-side. This would prevent e.g. an attack where a
+	// malicious html file with .jpg suffix being executed by browser without
+	// site visitors' awareness. References:
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
+	// https://helmetjs.github.io/docs/dont-sniff-mimetype/
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	// Enforce XSS protection. References:
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-XSS-Protection
+	// https://blog.innerht.ml/the-misunderstood-x-xss-protection/
+	w.Header().Set("X-XSS-Protection", "1; mode=block")
+	// Only allow HTTPS on this domain, and make this policy it expire in a
+	// week. This means if user decides to migrate off Keybase Pages, there's a
+	// 1-week gap before they can use HTTP again. Note that we don't use the
+	// 'preload' directive, for the same reason we use 302 instead of 301 for
+	// HTTP->HTTPS redirection. Reference: https://hstspreload.org/#opt-in
+	w.Header().Set("Strict-Transport-Security", "max-age=604800; includeSubDomains")
+	// TODO: allow user to opt-in some directives of Content-Security-Policy?
+}
+
 // ServeHTTP implements the http.Handler interface.
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	sri := &ServedRequestInfo{
@@ -301,12 +322,13 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	defer s.logRequest(sri, r.URL.Path)
 
+	s.setCommonResponseHeaders(w)
+
 	// Don't serve the config file itself.
 	if path.Clean(strings.ToLower(r.URL.Path)) == config.DefaultConfigFilepath {
 		// TODO: integrate this check into Config?
-		w.WriteHeader(http.StatusForbidden)
-		fmt.Fprintf(w, "Reading %s directly is forbidden.",
-			config.DefaultConfigFilepath)
+		http.Error(w, fmt.Sprintf("Reading %s directly is forbidden.",
+			config.DefaultConfigFilepath), http.StatusForbidden)
 		return
 	}
 
@@ -340,6 +362,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		sri.CloningShown = true
 		// TODO: replace this with something nicer when fancy error pages and
 		// landing pages are ready.
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.WriteHeader(http.StatusServiceUnavailable)
 		w.Write(cloningLandingPage)
 		return
