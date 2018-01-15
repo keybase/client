@@ -201,11 +201,12 @@ func (g *fileinfoActivesGetter) GetActives(
 		g.sorted = true
 	}
 	cutoff := time.Now().Add(-dur)
+	// sort.Search requires a false,false...true,true... sequence.
 	tlfs = sort.Search(len(g.tlfs), func(i int) bool {
-		return cutoff.Before(g.tlfs[i].ModTime())
+		return cutoff.After(g.tlfs[i].ModTime())
 	})
 	hosts = sort.Search(len(g.hosts), func(i int) bool {
-		return cutoff.Before(g.hosts[i].ModTime())
+		return cutoff.After(g.hosts[i].ModTime())
 	})
 
 	return tlfs, hosts, nil
