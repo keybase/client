@@ -1193,8 +1193,10 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 			return false, nil
 		}
 		uvs, err := g.GetTeamLoader().ImplicitAdmins(ctx, team.ID)
+		// Note: we eat the error here, assuming it meant this user
+		// is not a member
 		if err != nil {
-			return false, err
+			return false, nil
 		}
 		for _, uv := range uvs {
 			if uv == meUV {

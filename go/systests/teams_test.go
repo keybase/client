@@ -1056,8 +1056,8 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, donnyPerms.EditChannelDescription)
 	require.False(t, donnyPerms.SetTeamShowcase)
 	require.False(t, donnyPerms.SetMemberShowcase)
-	require.False(t, donnyPerms.ChangeOpenTeam) // not a member of the subteam
+	require.False(t, donnyPerms.ChangeOpenTeam)
 	require.False(t, donnyPerms.ListFirst)
-	// require.True(t, annPerms.JoinTeam) // TODO: not sure about this one
+	require.True(t, donnyPerms.JoinTeam)
 	require.False(t, donnyPerms.SetPublicityAny)
 }
