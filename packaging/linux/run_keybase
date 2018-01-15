@@ -161,7 +161,9 @@ main() {
 
   echo 'Success!'
   # Magical squirrel produced by https://github.com/erkin/ponysay
-  cat /opt/keybase/crypto_squirrel.txt
+  if [ "$KEYBASE_NO_SQUIRREL" != "1" ]; then
+    cat /opt/keybase/crypto_squirrel.txt
+  fi
 }
 
 main
