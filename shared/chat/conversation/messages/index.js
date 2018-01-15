@@ -9,7 +9,7 @@ import * as Types2 from '../../../constants/types/chat2'
 // import ErrorMessage from './error/container'
 // import ResetUser from './resetUser/container'
 // import JoinedLeft from './joinedleft/container'
-// import System from './system/container'
+import System from './system/container'
 // import ProfileResetNotice from '../notices/profile-reset-notice/container'
 // import * as React from 'react'
 import * as RouteTree from '../../../route-tree'
@@ -17,7 +17,7 @@ import TextMessage from './text/container'
 // import Timestamp from './timestamp/container'
 import Wrapper from './wrapper/container'
 import {chatTab} from '../../../constants/tabs'
-import {Box} from '../../../common-adapters'
+// import {Box} from '../../../common-adapters'
 import {connect, compose, lifecycle, type TypedState, createSelector} from '../../../util/container'
 // import {connect, type TypedState} from '../../../util/container'
 
@@ -109,12 +109,12 @@ import {connect, compose, lifecycle, type TypedState, createSelector} from '../.
 // export default factory
 
 type Props = {
-  // measure: () => void,
   message: Types2.Message,
   previous: ?Types2.Message,
   isEditing: boolean,
   isSelected: boolean,
 }
+
 class MessageFactory extends React.PureComponent<Props> {
   render() {
     if (!this.props.message) {
@@ -132,8 +132,19 @@ class MessageFactory extends React.PureComponent<Props> {
             previous={this.props.previous}
           />
         )
+      case 'systemInviteAccepted':
+        return <System message={this.props.message} />
+      case 'systemSimpleToComplex':
+        return <System message={this.props.message} />
+      case 'deleted':
+        return null
+      case 'attachment':
+        return null // TODO
+      default:
+        // eslint-disable-next-line no-unused-expressions
+        ;(this.props.message.type: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
+        return null
     }
-    return <Box data-message-key={this.props.message.ordinal} />
   }
 }
 
@@ -182,7 +193,6 @@ export default compose(
         this.props.message !== prevProps.message &&
         this.props.message.ordinal === prevProps.message.ordinal
       ) {
-        console.log('aaa measure')
         this.props._measure()
       }
     },

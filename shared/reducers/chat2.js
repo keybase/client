@@ -251,16 +251,20 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       if (context.type === 'sent') {
         pendingOutboxToOrdinal = pendingOutboxToOrdinal.withMutations(
           (map: I.Map<Types.ConversationIDKey, I.Map<Types.OutboxID, Types.Ordinal>>) =>
-            updatedMessages.forEach(
-              message =>
+            updatedMessages.forEach(message => {
+              if (message.type === 'attachment' || message.type === 'text') {
                 message.outboxID && map.setIn([message.conversationIDKey, message.outboxID], message.ordinal)
-            )
+              }
+            })
         )
       } else {
         // We got messages, see if we should remove it from the map and update the message
         pendingOutboxToOrdinal = pendingOutboxToOrdinal.withMutations(
           (map: I.Map<Types.ConversationIDKey, I.Map<Types.OutboxID, Types.Ordinal>>) =>
             (updatedMessages = updatedMessages.map(message => {
+              if (!(message.type === 'text' || message.type === 'attachment')) {
+                return message
+              }
               const existingOrdinal = message.outboxID
                 ? map.getIn([message.conversationIDKey, message.outboxID])
                 : null

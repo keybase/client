@@ -92,14 +92,39 @@ export type MessageAttachment = I.RecordOf<_MessageAttachment>
 // |}
 // export type MessageError = I.RecordOf<_MessageError>
 
-// export type _MessageSystem = {|
-// conversationIDKey: Common.ConversationIDKey,
-// ordinal: Ordinal,
-// type: 'system',
-// // systemType: joinLeft/etc
-// |}
-// export type MessageSystem = I.RecordOf<_MessageSystem>
+// case 'addedToTeam':
+// case 'gitPush':
 
-export type Message = MessageText | MessageAttachment | MessageDeleted
+export type _MessageSystemInviteAccepted = {
+  adder: string,
+  author: '[Keybase]',
+  conversationIDKey: Common.ConversationIDKey,
+  id: MessageID,
+  inviteType: 'none' | 'unknown' | 'keybase' | 'email' | 'sbs' | 'text',
+  invitee: string,
+  inviter: string,
+  ordinal: Ordinal,
+  team: string,
+  timestamp: number,
+  type: 'systemInviteAccepted',
+}
+export type MessageSystemInviteAccepted = I.RecordOf<_MessageSystemInviteAccepted>
+
+export type _MessageSystemSimpleToComplex = {
+  author: '[Keybase]',
+  conversationIDKey: Common.ConversationIDKey,
+  id: MessageID,
+  ordinal: Ordinal,
+  timestamp: number,
+  type: 'systemSimpleToComplex',
+}
+export type MessageSystemSimpleToComplex = I.RecordOf<_MessageSystemSimpleToComplex>
+
+export type Message =
+  | MessageText
+  | MessageAttachment
+  | MessageDeleted
+  | MessageSystemInviteAccepted
+  | MessageSystemSimpleToComplex
 // export type Message = I.RecordOf<_Message>
-// | MessageError | MessageSystem
+// | MessageError
