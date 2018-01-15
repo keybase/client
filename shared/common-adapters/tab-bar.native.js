@@ -22,7 +22,7 @@ class SimpleTabBarButton extends React.Component<ItemProps> {
       <Box style={{...stylesTab, ...this.props.style}}>
         <Text
           type="BodySmallSemibold"
-          style={{...stylesLabel, color: this.props.selected ? globalColors.black_75 : globalColors.black_60}}
+          style={{...stylesLabel, color: this.props.selected ? globalColors.black_75 : globalColors.black_40}}
         >
           {!!this.props.label && this.props.label.toUpperCase()}
         </Text>
@@ -62,11 +62,7 @@ const TabBarButton = (props: TabBarButtonProps) => {
             justifyContent: 'center',
           }}
         >
-          <Badge
-            badgeNumber={badgeNumber}
-            badgeStyle={{marginRight: -30, marginTop: -20}}
-            outlineColor={globalColors.darkBlue2}
-          />
+          <Badge badgeNumber={badgeNumber} badgeStyle={{marginRight: -30, marginTop: -20}} />
         </Box>
       )
     } else {

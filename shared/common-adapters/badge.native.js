@@ -6,10 +6,9 @@ import {globalStyles, globalColors} from '../styles'
 
 import type {Props} from './badge'
 
-function Badge({badgeStyle, badgeNumber, badgeNumberStyle, outlineColor}: Props) {
-  const outlineStyle = outlineColor ? {borderWidth: 3, borderColor: outlineColor} : {}
+function Badge({badgeStyle, badgeNumber, badgeNumberStyle}: Props) {
   return (
-    <Box style={{...defaultBadgeStyle, ...outlineStyle, ...badgeStyle}}>
+    <Box style={{...defaultBadgeStyle, ...badgeStyle}}>
       <Text style={{...textStyle, ...badgeNumberStyle}} type="HeaderBig">
         {badgeNumber}
       </Text>
