@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import Banner from '../banner/container'
-import Header from '../header/container'
+import HeaderArea from '../header-area/container'
 // import SearchResultsList from '../../../search/results-list/container'
 import InputArea from '../input-area/container'
 import List from '../list/container'
@@ -126,19 +126,7 @@ class Conversation extends React.PureComponent<Props, State> {
   }
 
   render() {
-    // TODO
-    const header = (
-      /* this.props.inSearch ? (
-    <SearchHeader
-      onExitSearch={props.onExitSearch}
-      selectedConversationIDKey={props.selectedConversationIDKey}
-    />
-  ) : */ <Header
-        infoPanelOpen={this.state.infoPanelOpen}
-        onToggleInfoPanel={this._onToggleInfoPanel}
-      />
-    )
-    let list
+    // let list
 
     // if (this.props.showSearchPending) {
     // list = <ProgressIndicator style={styleSpinner} />
@@ -153,7 +141,7 @@ class Conversation extends React.PureComponent<Props, State> {
     // } else if (this.props.youAreReset) {
     // list = <YouAreReset />
     // } else {
-    list = (
+    const list = (
       <div style={{...globalStyles.flexBoxColumn, flex: 1}}>
         {/* this.props.showTeamOffer && <CreateTeamHeader /> TODO */}
         <List
@@ -181,7 +169,7 @@ class Conversation extends React.PureComponent<Props, State> {
         onPaste={this._onPaste}
       >
         {this.props.threadLoadedOffline && <Offline />}
-        {header}
+        <HeaderArea onToggleInfoPanel={this._onToggleInfoPanel} infoPanelOpen={this.state.infoPanelOpen} />
         {this.props.showLoader && <LoadingLine />}
         {list}
         <InputArea focusInputCounter={this.props.focusInputCounter} onScrollDown={this.props.onScrollDown} />

@@ -10,7 +10,7 @@ import ChatFilterRow from './row/chat-filter-row'
 import debounce from 'lodash/debounce'
 import {isDarwin} from '../../constants/platform'
 import {Owl} from './owl'
-import NewConversation from './row/new-conversation'
+import NewConversation from './new-conversation/container'
 
 import type {Props} from './'
 
@@ -107,7 +107,6 @@ class Inbox extends PureComponent<Props, State> {
   }
 
   render() {
-    const newConversation = this.props.showNewConversation && <NewConversation />
     const owl = !this.props.rows.length && !!this.props.filter && <Owl />
     const floatingDivider = this.state.showFloating &&
       this.props.showSmallTeamsExpandDivider && (
@@ -127,7 +126,7 @@ class Inbox extends PureComponent<Props, State> {
             onSelectUp={this.props.onSelectUp}
             onSelectDown={this.props.onSelectDown}
           />
-          {newConversation}
+          <NewConversation />
           <div style={_scrollableStyle} onScroll={this._onScroll}>
             <ReactList
               ref={this._setRef}

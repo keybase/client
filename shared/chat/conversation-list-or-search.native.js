@@ -1,6 +1,6 @@
 // @flow
-
-import Search from './search'
+// // TODO remove
+import Search from './search.native'
 import ConversationList from './inbox/container'
 import {compose, renderComponent, branch} from 'recompose'
 import {connect, type MapStateToProps} from 'react-redux'

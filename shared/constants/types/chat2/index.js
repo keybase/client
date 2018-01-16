@@ -6,6 +6,7 @@ import * as Message from './message'
 
 export type _State = {
   badgeMap: I.Map<Common.ConversationIDKey, number>,
+  beforeSearchSelectedConversation: ?Common.ConversationIDKey, // to reset after a search cancel
   editingMap: I.Map<Common.ConversationIDKey, Message.Ordinal>, // current message being edited
   inboxFilter: string,
   isSearching: boolean,
@@ -17,6 +18,7 @@ export type _State = {
   typingMap: I.Map<Common.ConversationIDKey, I.Set<string>>,
   unreadMap: I.Map<Common.ConversationIDKey, number>,
   pendingOutboxToOrdinal: I.Map<Common.ConversationIDKey, I.Map<Message.OutboxID, Message.Ordinal>>,
+  pendingConversationUsers: I.Set<string>,
 }
 
 export type State = I.RecordOf<_State>

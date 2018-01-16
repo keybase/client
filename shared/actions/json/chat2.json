@@ -152,5 +152,10 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "username": "string"
     },
+    "exitSearch": {
+    },
+    "setPendingConversationUsers": {
+      "users": "Array<string>"
+    }
   }
 }

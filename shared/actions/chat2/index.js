@@ -1,7 +1,9 @@
 // @flow
 import * as Chat2Gen from '../chat2-gen'
+import * as SearchGen from '../search-gen'
 import * as ConfigGen from '../config-gen'
 import * as Constants from '../../constants/chat2'
+import * as SearchConstants from '../../constants/search'
 import * as EngineRpc from '../../constants/engine'
 import * as I from 'immutable'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
@@ -818,6 +820,52 @@ const selectTheNewestConversation = (action: any, state: TypedState) => {
   }
 }
 
+const onExitSearch = (_: any, state: TypedState) => {
+  // const userInputItemIds = SearchConstants.getUserInputItemIds(state, {searchKey: 'chatSearch'})
+
+  return Saga.sequentially(
+    [
+      Saga.put(SearchGen.createClearSearchResults({searchKey: 'chatSearch'})),
+      Saga.put(SearchGen.createSetUserInputItems({searchKey: 'chatSearch', searchResults: []})),
+      // Saga.put(ChatGen.createRemoveTempPendingConversations()),
+      // userInputItemIds.length === 0 && !skipSelectPreviousConversation
+      // ? Saga.put(ChatGen.createSelectConversation({conversationIDKey: previousConversation}))
+      // : null,
+    ].filter(Boolean)
+  )
+}
+
+const searchUpdated = (action: SearchGen.UserInputItemsUpdatedPayload, state: TypedState) => {
+  const {userInputItemIds} = action.payload
+  const me = state.config.username
+  const isSearching = state.chat2.isSearching
+
+  if (!isSearching || !me) {
+    return
+  }
+
+  return Saga.sequentially([
+    Saga.put(SearchGen.createClearSearchResults({searchKey: 'chatSearch'})),
+    ...(userInputItemIds.length
+      ? [
+          Saga.put(
+            Chat2Gen.createSetPendingConversationUsers({
+              users: userInputItemIds,
+            })
+          ),
+        ]
+      : [
+          Saga.put(
+            Chat2Gen.createSelectConversation({
+              conversationIDKey: Types.stringToConversationIDKey(''),
+              fromUser: true,
+            })
+          ),
+        ]),
+    Saga.put(SearchGen.createSearchSuggestions({searchKey: 'chatSearch'})),
+  ])
+}
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Refresh the inbox
   yield Saga.safeTakeEveryPure(
@@ -873,6 +921,10 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
 
   // On bootstrap lets load the untrusted inbox. This helps make some flows easier
   yield Saga.safeTakeEveryPure(ConfigGen.bootstrapSuccess, bootstrapSuccess)
+
+  // Search handling
+  yield Saga.safeTakeEveryPure(Chat2Gen.exitSearch, onExitSearch)
+  yield Saga.safeTakeEveryPure(SearchConstants.isUserInputItemsUpdated('chatSearch'), searchUpdated)
 }
 
 export default chat2Saga

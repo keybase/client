@@ -13,6 +13,7 @@ export const keyToConversationID = (key: Types.ConversationIDKey): RPCChatTypes.
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   badgeMap: I.Map(),
+  beforeSearchSelectedConversation: null,
   editingMap: I.Map(),
   inboxFilter: '',
   isSearching: false,
@@ -20,6 +21,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   messageMap: I.Map(),
   messageOrdinals: I.Map(),
   metaMap: I.Map(),
+  pendingConversationUsers: I.Set(),
   pendingOutboxToOrdinal: I.Map(),
   selectedConversation: Types.stringToConversationIDKey(''),
   typingMap: I.Map(),

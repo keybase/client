@@ -189,6 +189,8 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       return state.set('inboxFilter', action.payload.filter)
     case Chat2Gen.setSearching:
       return state.set('isSearching', action.payload.searching)
+    case Chat2Gen.setPendingConversationUsers:
+      return state.set('pendingConversationUsers', I.Set(action.payload.users))
     case Chat2Gen.badgesUpdated: {
       const badgeMap = I.Map(
         action.payload.conversations.map(({convID, badgeCounts}) => [
@@ -378,6 +380,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.resetLetThemIn:
     case Chat2Gen.setupChatHandlers:
     case Chat2Gen.startConversation:
+    case Chat2Gen.exitSearch:
       return state
     default:
       // eslint-disable-next-line no-unused-expressions

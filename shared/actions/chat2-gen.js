@@ -16,6 +16,7 @@ export const attachmentWithPreviewSend = 'chat2:attachmentWithPreviewSend'
 export const badgesUpdated = 'chat2:badgesUpdated'
 export const clearOrdinals = 'chat2:clearOrdinals'
 export const desktopNotification = 'chat2:desktopNotification'
+export const exitSearch = 'chat2:exitSearch'
 export const inboxRefresh = 'chat2:inboxRefresh'
 export const joinConversation = 'chat2:joinConversation'
 export const leaveConversation = 'chat2:leaveConversation'
@@ -40,6 +41,7 @@ export const resetLetThemIn = 'chat2:resetLetThemIn'
 export const selectConversation = 'chat2:selectConversation'
 export const setInboxFilter = 'chat2:setInboxFilter'
 export const setLoading = 'chat2:setLoading'
+export const setPendingConversationUsers = 'chat2:setPendingConversationUsers'
 export const setSearching = 'chat2:setSearching'
 export const setupChatHandlers = 'chat2:setupChatHandlers'
 export const startConversation = 'chat2:startConversation'
@@ -69,6 +71,7 @@ export const createDesktopNotification = (
     body: string,
   }>
 ) => ({error: false, payload, type: desktopNotification})
+export const createExitSearch = () => ({error: false, payload: undefined, type: exitSearch})
 export const createInboxRefresh = (
   payload: $ReadOnly<{
     reason: string,
@@ -177,12 +180,14 @@ export const createSetLoading = (
     loading: boolean,
   }>
 ) => ({error: false, payload, type: setLoading})
+export const createSetPendingConversationUsers = (payload: $ReadOnly<{users: Array<string>}>) => ({error: false, payload, type: setPendingConversationUsers})
 export const createSetSearching = (payload: $ReadOnly<{searching: boolean}>) => ({error: false, payload, type: setSearching})
 export const createSetupChatHandlers = () => ({error: false, payload: undefined, type: setupChatHandlers})
 export const createStartConversation = (
   payload: $ReadOnly<{
     participants?: ?Array<string>,
     tlf?: ?string,
+    forceImmediate?: boolean,
   }>
 ) => ({error: false, payload, type: startConversation})
 
@@ -192,6 +197,7 @@ export type AttachmentWithPreviewSendPayload = More.ReturnType<typeof createAtta
 export type BadgesUpdatedPayload = More.ReturnType<typeof createBadgesUpdated>
 export type ClearOrdinalsPayload = More.ReturnType<typeof createClearOrdinals>
 export type DesktopNotificationPayload = More.ReturnType<typeof createDesktopNotification>
+export type ExitSearchPayload = More.ReturnType<typeof createExitSearch>
 export type InboxRefreshPayload = More.ReturnType<typeof createInboxRefresh>
 export type JoinConversationPayload = More.ReturnType<typeof createJoinConversation>
 export type LeaveConversationPayload = More.ReturnType<typeof createLeaveConversation>
@@ -216,6 +222,7 @@ export type ResetLetThemInPayload = More.ReturnType<typeof createResetLetThemIn>
 export type SelectConversationPayload = More.ReturnType<typeof createSelectConversation>
 export type SetInboxFilterPayload = More.ReturnType<typeof createSetInboxFilter>
 export type SetLoadingPayload = More.ReturnType<typeof createSetLoading>
+export type SetPendingConversationUsersPayload = More.ReturnType<typeof createSetPendingConversationUsers>
 export type SetSearchingPayload = More.ReturnType<typeof createSetSearching>
 export type SetupChatHandlersPayload = More.ReturnType<typeof createSetupChatHandlers>
 export type StartConversationPayload = More.ReturnType<typeof createStartConversation>
@@ -228,6 +235,7 @@ export type Actions =
   | More.ReturnType<typeof createBadgesUpdated>
   | More.ReturnType<typeof createClearOrdinals>
   | More.ReturnType<typeof createDesktopNotification>
+  | More.ReturnType<typeof createExitSearch>
   | More.ReturnType<typeof createInboxRefresh>
   | More.ReturnType<typeof createJoinConversation>
   | More.ReturnType<typeof createLeaveConversation>
@@ -252,6 +260,7 @@ export type Actions =
   | More.ReturnType<typeof createSelectConversation>
   | More.ReturnType<typeof createSetInboxFilter>
   | More.ReturnType<typeof createSetLoading>
+  | More.ReturnType<typeof createSetPendingConversationUsers>
   | More.ReturnType<typeof createSetSearching>
   | More.ReturnType<typeof createSetupChatHandlers>
   | More.ReturnType<typeof createStartConversation>

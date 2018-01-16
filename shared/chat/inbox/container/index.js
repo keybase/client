@@ -20,7 +20,6 @@ const mapStateToProps = (state: TypedState, {routeState}) => {
     filter,
     isLoading: !state.chat2.loadingMap.isEmpty(),
     neverLoaded: state.chat2.metaMap.isEmpty(),
-    showNewConversation: state.chat2.isSearching,
   }
 }
 
@@ -85,7 +84,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   refreshInbox: dispatchProps.refreshInbox,
   rows: stateProps.rows,
   showBuildATeam: stateProps.showBuildATeam,
-  showNewConversation: stateProps.showNewConversation,
   showSmallTeamsExpandDivider: stateProps.showSmallTeamsExpandDivider,
   smallIDsHidden: stateProps.smallIDsHidden,
   smallTeamsExpanded: stateProps.smallTeamsExpanded,

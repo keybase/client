@@ -12,14 +12,11 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const youAreReset = false // Constants.isResetConversationIDKey(state, _conversationIDKey)
 
   return {
-    // _conversationIDKey,
-    // _messageIDs: Constants2.getMessageOrdinals(state, _conversationIDKey),
-    // _messageMap: Constants2.getMessageMap(state, _conversationIDKey),
     _meta: Constants2.getMeta(state, _conversationIDKey),
     _username: state.config.username || '',
     hasBadge: Constants2.getHasBadge(state, _conversationIDKey),
     hasUnread: Constants2.getHasUnread(state, _conversationIDKey),
-    isSelected: Constants2.getIsSelected(state, _conversationIDKey),
+    isSelected: !state.chat2.isSearching && Constants2.getIsSelected(state, _conversationIDKey),
     youAreReset,
   }
 }
