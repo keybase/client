@@ -7,8 +7,8 @@ import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../common-adapters/emoji'
 import {compose, withState, withHandlers} from 'recompose'
-import ConnectedMentionHud from '../../hud/mention-hud-container'
-import ConnectedChannelMentionHud from '../../hud/mention-hud-container'
+import ConnectedMentionHud from '../../user-mention-hud/mention-hud-container'
+import ConnectedChannelMentionHud from '../../channel-mention-hud/mention-hud-container'
 
 import type {Props} from '.'
 
@@ -20,14 +20,14 @@ type InputProps = {
   filePickerOpen: () => void,
   filePickerSetValue: (value: any) => void,
   filePickerSetRef: (r: any) => void,
-  mentionPopupOpen: boolean,
-  channelMentionPopupOpen: boolean,
-  setChannelMentionPopupOpen: (setOpen: boolean) => void,
-  setMentionPopupOpen: (setOpen: boolean) => void,
   channelMentionFilter: string,
+  channelMentionPopupOpen: boolean,
   setChannelMentionFilter: (filter: string) => void,
+  setChannelMentionPopupOpen: (setOpen: boolean) => void,
   mentionFilter: string,
+  mentionPopupOpen: boolean,
   setMentionFilter: (filter: string) => void,
+  setMentionPopupOpen: (setOpen: boolean) => void,
 } & Props
 
 type State = {
@@ -402,9 +402,9 @@ class ConversationInput extends Component<InputProps, State> {
           <ChannelMentionHud
             selectDownCounter={this.state.channelDownArrowCounter}
             selectUpCounter={this.state.channelUpArrowCounter}
-            pickSelectedUserCounter={this.state.channelPickSelectedCounter}
-            onPickUser={this._insertChannelMention}
-            onSelectUser={this._switchChannelMention}
+            pickSelectedChannelCounter={this.state.channelPickSelectedCounter}
+            onPickChannel={this._insertChannelMention}
+            onSelectChannel={this._switchChannelMention}
             filter={this.props.channelMentionFilter}
           />
         )}

@@ -6,11 +6,11 @@ import {connect, type MapStateToProps} from 'react-redux'
 import {getGeneralChannelOfSelectedInbox} from '../../constants/chat'
 
 type ConnectedMentionHudProps = {
-  onPickUser: (user: string) => void,
-  onSelectUser: (user: string) => void,
+  onPickChannel: (user: string) => void,
+  onSelectChannel: (user: string) => void,
   selectUpCounter: number,
   selectDownCounter: number,
-  pickSelectedUserCounter: number,
+  pickSelectedChannelCounter: number,
   filter: string,
   style?: Object,
 }

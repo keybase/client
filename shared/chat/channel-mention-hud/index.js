@@ -80,9 +80,9 @@ const hudStyle = {
 
 type MentionHudProps = {
   users: Array<{username: string, fullName: string}>,
-  onPickUser: (user: string) => void,
-  onSelectUser: (user: string) => void,
-  pickSelectedUserCounter: number,
+  onPickChannel: (user: string) => void,
+  onSelectChannel: (user: string) => void,
+  pickSelectedChannelCounter: number,
   selectUpCounter: number,
   selectDownCounter: number,
   filter: string,
@@ -135,28 +135,28 @@ const MentionHud: Class<React.Component<MentionHudProps, void>> = compose(
         })
       }
 
-      if (nextProps.pickSelectedUserCounter !== this.props.pickSelectedUserCounter) {
+      if (nextProps.pickSelectedChannelCounter !== this.props.pickSelectedChannelCounter) {
         if (nextProps.selectedIndex < nextProps.data.length) {
-          nextProps.onPickUser(nextProps.data[nextProps.selectedIndex].username)
+          nextProps.onPickChannel(nextProps.data[nextProps.selectedIndex].username)
         } else {
           // Just exit
-          nextProps.onPickUser(nextProps.filter, {notUser: true})
+          nextProps.onPickChannel(nextProps.filter, {notUser: true})
         }
       }
 
       if (nextProps.selectedIndex !== this.props.selectedIndex) {
         if (nextProps.selectedIndex < nextProps.data.length) {
-          nextProps.onSelectUser(nextProps.data[nextProps.selectedIndex].username)
+          nextProps.onSelectChannel(nextProps.data[nextProps.selectedIndex].username)
         }
       }
     },
   }),
-  withPropsOnChange(['onPickUser'], ownerProps => ({
+  withPropsOnChange(['onPickChannel'], ownerProps => ({
     rowRenderer: (index, props) => {
       return (
         <MentionRowRenderer
           key={props.key}
-          onClick={() => ownerProps.onPickUser(props.username)}
+          onClick={() => ownerProps.onPickChannel(props.username)}
           onHover={() => ownerProps.setSelectedIndex(index)}
           following={ownerProps.following}
           you={ownerProps.you}
