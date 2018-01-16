@@ -560,7 +560,7 @@ const clearInboxFilter = (action: Chat2Gen.SelectConversationPayload) =>
   Saga.put(Chat2Gen.createSetInboxFilter({filter: ''}))
 
 const exitSearch = (action: Chat2Gen.SelectConversationPayload) =>
-  action.payload.conversationIDKey && Saga.put(Chat2Gen.createSetSearching({searching: false}))
+  action.payload.conversationIDKey && Saga.put(Chat2Gen.createExitSearch()
 
 const desktopNotify = (action: Chat2Gen.DesktopNotificationPayload, state: TypedState) => {
   const {conversationIDKey, author, body} = action.payload
@@ -825,6 +825,7 @@ const onExitSearch = (_: any, state: TypedState) => {
 
   return Saga.sequentially(
     [
+      Saga.put(Chat2Gen.createSetSearching({searching: false})),
       Saga.put(SearchGen.createClearSearchResults({searchKey: 'chatSearch'})),
       Saga.put(SearchGen.createSetUserInputItems({searchKey: 'chatSearch', searchResults: []})),
       // Saga.put(ChatGen.createRemoveTempPendingConversations()),

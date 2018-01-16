@@ -2,12 +2,10 @@
 import * as React from 'react'
 import Banner from '../banner/container'
 import HeaderArea from '../header-area/container'
-// import SearchResultsList from '../../../search/results-list/container'
 import InputArea from '../input-area/container'
-import List from '../list/container'
-// import OldProfileResetNotice from '../notices/old-profile-reset-notice/container'
+import ListArea from '../list-area/container'
 import InfoPanel from '../info-panel/container'
-import {Box, Icon, LoadingLine, /* ProgressIndicator, */ Text} from '../../../common-adapters'
+import {Box, Icon, LoadingLine, Text} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
 // import {readImageFromClipboard} from '../../../util/clipboard.desktop'
 // import CreateTeamHeader from '../create-team-header/container'
@@ -126,41 +124,6 @@ class Conversation extends React.PureComponent<Props, State> {
   }
 
   render() {
-    // let list
-
-    // if (this.props.showSearchPending) {
-    // list = <ProgressIndicator style={styleSpinner} />
-    // } else if (this.props.showSearchResults) {
-    // list = (
-    // <SearchResultsList
-    // searchKey={'chatSearch'}
-    // onShowTracker={this.props.onShowTracker}
-    // style={{...globalStyles.scrollable, flexGrow: 1}}
-    // />
-    // )
-    // } else if (this.props.youAreReset) {
-    // list = <YouAreReset />
-    // } else {
-    const list = (
-      <div style={{...globalStyles.flexBoxColumn, flex: 1}}>
-        {/* this.props.showTeamOffer && <CreateTeamHeader /> TODO */}
-        <List
-          listScrollDownCounter={this.props.listScrollDownCounter}
-          onFocusInput={this.props.onFocusInput}
-        />
-        <Banner />
-      </div>
-    )
-    // }
-
-    // TODO
-    // const input = this.props.finalizeInfo ? (
-    // <OldProfileResetNotice />
-    // ) : (
-    // const input = (
-    // <Input focusInputCounter={this.props.focusInputCounter} onScrollDown={this.props.onScrollDown} />
-    // )
-
     return (
       <Box
         className="conversation"
@@ -171,7 +134,11 @@ class Conversation extends React.PureComponent<Props, State> {
         {this.props.threadLoadedOffline && <Offline />}
         <HeaderArea onToggleInfoPanel={this._onToggleInfoPanel} infoPanelOpen={this.state.infoPanelOpen} />
         {this.props.showLoader && <LoadingLine />}
-        {list}
+        <ListArea
+          listScrollDownCounter={this.props.listScrollDownCounter}
+          onFocusInput={this.props.onFocusInput}
+        />
+        <Banner />
         <InputArea focusInputCounter={this.props.focusInputCounter} onScrollDown={this.props.onScrollDown} />
         {this.state.infoPanelOpen && <InfoPaneWrapper onToggle={this._onToggleInfoPanel} />}
         {this.state.showDropOverlay && <DropOverlay onDragLeave={this._onDragLeave} onDrop={this._onDrop} />}
