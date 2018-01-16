@@ -261,6 +261,22 @@ const InviteAddedToTeamNotice = ({
 type GitPushInfoProps = Props & {info: GitPushInfo}
 
 const GitPushInfoNotice = ({message, info}: GitPushInfoProps) => {
+  // There is a bug in the data layer where mergeEntities when it sees dupes of this message will keep on adding to the array
+  // Short term fix: clean this up
+
+  const refsMap = (info.refs || []).reduce((map, ref) => {
+    ;(ref.commits || []).forEach(commit => {
+      const name = ref.refName
+      if (!map[name]) {
+        map[name] = []
+      }
+      if (!map[name].find(c => c.commitHash === commit.commitHash)) {
+        map[name].push(commit)
+      }
+    })
+    return map
+  }, {})
+
   return (
     <UserNotice teamname={info.team} style={{marginTop: globalMargins.small}} bgColor={globalColors.blue4}>
       <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
@@ -270,12 +286,12 @@ const GitPushInfoNotice = ({message, info}: GitPushInfoProps) => {
         <Text type="BodySmallSemibold" style={{textAlign: 'center'}}>
           {info.pusher} just pushed commits to the {info.repo} repo.
         </Text>
-        {(info.refs || []).map(ref => (
-          <Box style={globalStyles.flexBoxColumn} key={ref.refName}>
+        {Object.keys(refsMap).map(name => (
+          <Box style={globalStyles.flexBoxColumn} key={name}>
             <Text type="Header" style={{textAlign: 'left'}}>
-              {ref.refName}
+              {name}
             </Text>
-            {(ref.commits || []).map(commit => (
+            {refsMap[name].map(commit => (
               <Text type="BodySmall" style={{textAlign: 'left'}} key={commit.commitHash}>
                 {commit.commitHash} {commit.message}
               </Text>
