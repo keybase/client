@@ -14,7 +14,8 @@ protocol tlfKeys {
     KBFS_REKEY_4,
     KBFS_QR_5,
     CHAT_SKIP_6,
-    SALTPACK_7
+    SALTPACK_7,
+    CLI_8
   }
 
   @typedef("string")

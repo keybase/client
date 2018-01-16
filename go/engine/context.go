@@ -32,6 +32,10 @@ type Context struct {
 	// depending.
 	ClientType keybase1.ClientType
 
+	// Special-case flag for identifyUI -- if it's been delegated
+	// to the electron UI, then it's rate-limitable
+	IdentifyUIIsDelegated bool
+
 	SessionID int
 }
 
