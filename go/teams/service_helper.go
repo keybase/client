@@ -283,46 +283,30 @@ func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 			return err
 		}
 
-		if inviteRequired {
-			res, err = t.InviteMember(ctx, username, role, resolvedUsername, uv)
-			return err
-		}
+		// TODO: Recreate this in transactions.go
+		// TODO: Or remove commented code if we don't.
+		// timeoutCtx, timeoutCancel := context.WithTimeout(ctx, 2*time.Second)
+		// if err := tryToCompleteInvites(timeoutCtx, g, t, username, uv, &req); err != nil {
+		// 	g.Log.CWarningf(ctx, "team.AddMember: error during tryToCompleteInvites: %v", err)
+		// }
+		// timeoutCancel()
 
-		if t.IsMember(ctx, uv) {
-			showUsername := fmt.Sprintf("%q", resolvedUsername.String())
-			if username != resolvedUsername.String() {
-				showUsername = fmt.Sprintf("%q (%s)", username, resolvedUsername.String())
-			}
-			return libkb.ExistsError{Msg: fmt.Sprintf("user %s is already a member of team %q", showUsername,
-				t.Name())}
-		}
-		req, err := reqFromRole(uv, role)
+		tx := CreateAddMemberTx(t)
+		err = tx.AddMemberTransaction(ctx, username, role)
 		if err != nil {
 			return err
 		}
-		existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
-		if err == nil {
-			g.Log.CDebugf(ctx, "found existing UV %v", existingUV.PercentForm())
-			// Case where same UV (uid+seqno) already exists is covered by
-			// `t.IsMember` check above. This only checks if there is a reset
-			// member in the team to automatically remove them (so AddMember
-			// can function as a Re-Add).
-			// Case where uv.EldestSeqno=0 is covered by errInviteRequired above.
-			if existingUV.EldestSeqno > uv.EldestSeqno {
-				return fmt.Errorf("newer version of user %q already exists in team %q (%v > %v)", resolvedUsername, t.Name(), existingUV.EldestSeqno, uv.EldestSeqno)
-			}
-			req.None = []keybase1.UserVersion{existingUV}
-		}
-		timeoutCtx, timeoutCancel := context.WithTimeout(ctx, 2*time.Second)
-		if err := tryToCompleteInvites(timeoutCtx, g, t, username, uv, &req); err != nil {
-			g.Log.CWarningf(ctx, "team.AddMember: error during tryToCompleteInvites: %v", err)
-		}
-		timeoutCancel()
-		if err := t.ChangeMembership(ctx, req); err != nil {
+
+		err = tx.Post(ctx)
+		if err != nil {
 			return err
 		}
+
 		// return value assign to escape closure
-		res = keybase1.TeamAddMemberResult{User: &keybase1.User{Uid: uv.Uid, Username: resolvedUsername.String()}}
+		res = keybase1.TeamAddMemberResult{
+			User:    &keybase1.User{Uid: uv.Uid, Username: resolvedUsername.String()},
+			Invited: inviteRequired,
+		}
 		return nil
 	})
 	return res, err

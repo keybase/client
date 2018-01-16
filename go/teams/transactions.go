@@ -100,7 +100,7 @@ func (tx *AddMemberTx) CreateInvite(uv keybase1.UserVersion, role keybase1.TeamR
 	case keybase1.TeamRole_ADMIN:
 		payload.Admins = appendToInviteList(invite, payload.Admins)
 	case keybase1.TeamRole_OWNER:
-		return fmt.Errorf("Cannot add invites as owners")
+		payload.Owners = appendToInviteList(invite, payload.Owners)
 	default:
 		return fmt.Errorf("Unexpected role: %v", role)
 	}
