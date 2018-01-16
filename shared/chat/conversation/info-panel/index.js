@@ -4,7 +4,6 @@ import {
   Avatar,
   Box,
   Button,
-  ButtonBar,
   Checkbox,
   ClickableBox,
   Divider,
@@ -17,6 +16,7 @@ import {
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
 import Notifications from './notifications/container'
 import Participants, {Participant} from './participants'
+import {TurnIntoTeam} from './turn-into-team'
 
 const border = `1px solid ${globalColors.black_05}`
 const scrollViewStyle = {
@@ -94,22 +94,7 @@ const _ConversationInfoPanel = (props: ConversationInfoPanelProps) => (
 
     <Divider style={{marginBottom: 20, marginTop: 10}} />
 
-    <ButtonBar>
-      <Button type="Primary" small={true} label="Turn into team" onClick={props.onShowNewTeamDialog} />
-    </ButtonBar>
-
-    <Text
-      style={{
-        alignSelf: 'center',
-        marginLeft: globalMargins.small,
-        marginRight: globalMargins.small,
-        marginTop: globalMargins.tiny,
-        textAlign: 'center',
-      }}
-      type="BodySmall"
-    >
-      You'll be able to add and delete members as you wish.
-    </Text>
+    <TurnIntoTeam onClick={props.onShowNewTeamDialog} />
 
     <Divider style={styleDivider} />
 
