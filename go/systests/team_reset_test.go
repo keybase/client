@@ -573,6 +573,40 @@ func TestImplicitTeamUserReset(t *testing.T) {
 	require.Equal(t, role, keybase1.TeamRole_OWNER)
 }
 
+// ann and bob both reset
+func TestImplicitTeamResetAll(t *testing.T) {
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	ann := ctx.installKeybaseForUser("ann", 10)
+	ann.signup()
+	divDebug(ctx, "Signed up ann (%s)", ann.username)
+	bob := ctx.installKeybaseForUser("bob", 10)
+	bob.signup()
+	divDebug(ctx, "Signed up bob (%s)", bob.username)
+
+	displayName := strings.Join([]string{ann.username, bob.username}, ",")
+	iteam := ann.lookupImplicitTeam(true /*create*/, displayName, false /*isPublic*/)
+	divDebug(ctx, "team created (%s)", iteam.ID)
+
+	iteam2 := ann.lookupImplicitTeam(false /*create*/, displayName, false /*isPublic*/)
+	require.Equal(t, iteam.ID, iteam2.ID, "second lookup should return same team")
+	divDebug(ctx, "team looked up before reset")
+
+	bob.reset()
+	divDebug(ctx, "Reset bob (%s)", bob.username)
+
+	ann.reset()
+	divDebug(ctx, "Reset ann (%s)", ann.username)
+
+	ann.loginAfterReset(10)
+	divDebug(ctx, "Ann logged in after reset")
+
+	iteam3 := ann.lookupImplicitTeam(true /*create*/, displayName, false /*isPublic*/)
+	require.NotEqual(t, iteam.ID, iteam3.ID, "lookup after resets should return different team")
+	divDebug(ctx, "team looked up after resets")
+}
+
 // Remove a member who was in a team and reset.
 func TestTeamRemoveAfterReset(t *testing.T) {
 	ctx := newSMUContext(t)
