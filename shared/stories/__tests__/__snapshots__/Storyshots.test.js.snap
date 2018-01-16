@@ -31271,8 +31271,8 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
                 title={undefined}
               >
                 ,
-                 
               </span>
+               
             </span>
             <span
               className="glamor-3"
@@ -31292,8 +31292,8 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
                 title={undefined}
               >
                 ,
-                 
               </span>
+               
             </span>
             <span
               className="glamor-3"
@@ -31308,6 +31308,7 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
               >
                 chrisnojima
               </span>
+               
             </span>
           </span>
            started following you.
@@ -31332,9 +31333,10 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
             }
           >
             <div
-              onClick={undefined}
+              onClick={[Function]}
               style={
                 Object {
+                  "cursor": "pointer",
                   "height": 32,
                   "marginRight": 4,
                   "maxWidth": 32,
@@ -31353,9 +31355,10 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
               />
             </div>
             <div
-              onClick={undefined}
+              onClick={[Function]}
               style={
                 Object {
+                  "cursor": "pointer",
                   "height": 32,
                   "marginRight": 4,
                   "maxWidth": 32,
@@ -31374,9 +31377,10 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
               />
             </div>
             <div
-              onClick={undefined}
+              onClick={[Function]}
               style={
                 Object {
+                  "cursor": "pointer",
                   "height": 32,
                   "marginRight": 4,
                   "maxWidth": 32,
@@ -31705,8 +31709,8 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
                 title={undefined}
               >
                 ,
-                 
               </span>
+               
             </span>
             <span
               className="glamor-3"
@@ -31726,8 +31730,8 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
                 title={undefined}
               >
                 ,
-                 
               </span>
+               
             </span>
             <span
               className="glamor-3"
@@ -31747,8 +31751,8 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
                 title={undefined}
               >
                 ,
-                 
               </span>
+               
             </span>
             <span
               className="glamor-3"
@@ -31762,6 +31766,7 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
               >
                 chris
               </span>
+               
             </span>
           </span>
            and 5 others 
@@ -31787,9 +31792,10 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
             }
           >
             <div
-              onClick={undefined}
+              onClick={[Function]}
               style={
                 Object {
+                  "cursor": "pointer",
                   "height": 32,
                   "marginRight": 4,
                   "maxWidth": 32,
@@ -31808,9 +31814,10 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
               />
             </div>
             <div
-              onClick={undefined}
+              onClick={[Function]}
               style={
                 Object {
+                  "cursor": "pointer",
                   "height": 32,
                   "marginRight": 4,
                   "maxWidth": 32,
@@ -31829,9 +31836,10 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
               />
             </div>
             <div
-              onClick={undefined}
+              onClick={[Function]}
               style={
                 Object {
+                  "cursor": "pointer",
                   "height": 32,
                   "marginRight": 4,
                   "maxWidth": 32,
@@ -31850,9 +31858,10 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
               />
             </div>
             <div
-              onClick={undefined}
+              onClick={[Function]}
               style={
                 Object {
+                  "cursor": "pointer",
                   "height": 32,
                   "marginRight": 4,
                   "maxWidth": 32,
@@ -32038,9 +32047,10 @@ exports[`Storyshots People/Follow notification Someone followed you 1`] = `
         }
       >
         <div
-          onClick={undefined}
+          onClick={[Function]}
           style={
             Object {
+              "cursor": "pointer",
               "height": 32,
               "maxWidth": 32,
               "minHeight": 32,
@@ -32095,7 +32105,8 @@ exports[`Storyshots People/Follow notification Someone followed you 1`] = `
               </span>
             </span>
           </span>
-           followed you.
+           
+          followed you.
         </span>
       </div>
       <div
@@ -32275,9 +32286,10 @@ exports[`Storyshots People/Follow notification Someone you follow followed you 1
         }
       >
         <div
-          onClick={undefined}
+          onClick={[Function]}
           style={
             Object {
+              "cursor": "pointer",
               "height": 32,
               "maxWidth": 32,
               "minHeight": 32,
@@ -32332,7 +32344,8 @@ exports[`Storyshots People/Follow notification Someone you follow followed you 1
               </span>
             </span>
           </span>
-           followed you.
+           
+          followed you.
         </span>
       </div>
       <div
