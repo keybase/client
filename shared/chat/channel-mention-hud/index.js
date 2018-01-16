@@ -1,6 +1,5 @@
 // @flow
 import React from 'react'
-import * as I from 'immutable'
 import {
   compose,
   withState,
