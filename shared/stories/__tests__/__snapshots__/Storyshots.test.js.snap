@@ -1,5 +1,426 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`Storyshots Chat/Channel Heads up Display Mention Hud 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  font-size: 14px;
+  line-height: 18px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+}
+
+.glamor-2,
+[data-glamor-2] {
+  font-size: 11px;
+  line-height: 15px;
+  color: #33a0ff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  min-height: 15px;
+  display: block;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={undefined}
+  >
+    <div
+      style={
+        Object {
+          "display": "flex",
+          "flexDirection": "column",
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "column",
+            "height": 100,
+            "width": 240,
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "backgroundColor": "#ffffff",
+              "display": "flex",
+              "flex": 1,
+              "flexDirection": "row",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "flexGrow": 1,
+                "position": "relative",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "bottom": 0,
+                  "left": 0,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <div
+                style={
+                  Object {
+                    "height": "100%",
+                    "overflowY": "auto",
+                    "width": "100%",
+                  }
+                }
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "justifyContent": "center",
+            "minHeight": 64,
+            "width": "100%",
+          }
+        }
+      >
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": "center",
+              "backgroundColor": "#33a0ff",
+              "borderRadius": 50,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 32,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 24,
+              "paddingRight": 24,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "height": "100%",
+                "justifyContent": "center",
+                "position": "relative",
+              }
+            }
+          >
+            <span
+              className="glamor-0"
+              onClick={undefined}
+              title={undefined}
+            >
+              Up
+            </span>
+          </div>
+        </div>
+        <div
+          style={
+            Object {
+              "height": 8,
+              "width": 8,
+            }
+          }
+        />
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": "center",
+              "backgroundColor": "#33a0ff",
+              "borderRadius": 50,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 32,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 24,
+              "paddingRight": 24,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "height": "100%",
+                "justifyContent": "center",
+                "position": "relative",
+              }
+            }
+          >
+            <span
+              className="glamor-0"
+              onClick={undefined}
+              title={undefined}
+            >
+              Down
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "column",
+            "marginBottom": 16,
+            "marginTop": 16,
+          }
+        }
+      >
+        <style>
+          ::-webkit-input-placeholder { color: rgba(0,0,0,.2); }
+        </style>
+        <span
+          className="glamor-2"
+          onClick={undefined}
+          title={undefined}
+        />
+        <input
+          autoFocus={undefined}
+          className={undefined}
+          onBlur={[Function]}
+          onChange={[Function]}
+          onClick={undefined}
+          onCompositionEnd={[Function]}
+          onCompositionStart={[Function]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          placeholder="Filter"
+          readOnly={undefined}
+          style={
+            Object {
+              "WebkitFontSmoothing": "antialiased",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "border": "none",
+              "borderBottom": "1px solid rgba(0, 0, 0, 0.10)",
+              "color": "rgba(0, 0, 0, 0.75)",
+              "flex": 1,
+              "fontFamily": "OpenSans",
+              "fontSize": 16,
+              "fontWeight": 600,
+              "height": 28,
+              "lineHeight": "20px",
+              "maxWidth": 460,
+              "minWidth": 333,
+              "outlineWidth": 0,
+              "textAlign": "center",
+              "textRendering": "optimizeLegibility",
+            }
+          }
+          type="text"
+          value=""
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Chat/Channel Heads up Display Mention Row 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  margin-left: 8px;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={undefined}
+  >
+    <div
+      style={
+        Object {
+          "width": 240,
+        }
+      }
+    >
+      <div
+        onClick={[Function]}
+        onMouseDown={[Function]}
+        onMouseEnter={[Function]}
+        onMouseLeave={[Function]}
+        onMouseOver={[Function]}
+        onMouseUp={[Function]}
+        style={
+          Object {
+            "alignItems": "center",
+            "backgroundColor": undefined,
+            "borderRadius": 0,
+            "cursor": "pointer",
+            "display": "flex",
+            "flexDirection": "row",
+            "height": 40,
+            "lineHeight": 0,
+            "minWidth": undefined,
+            "paddingLeft": 8,
+            "paddingRight": 8,
+            "position": "relative",
+            "textAlign": "left",
+            "transform": "none",
+            "transition": "none",
+          }
+        }
+      >
+        <span
+          className="glamor-0"
+          onClick={undefined}
+          title={undefined}
+        >
+          #
+          foo
+        </span>
+      </div>
+      <div
+        onClick={[Function]}
+        onMouseDown={[Function]}
+        onMouseEnter={[Function]}
+        onMouseLeave={[Function]}
+        onMouseOver={[Function]}
+        onMouseUp={[Function]}
+        style={
+          Object {
+            "alignItems": "center",
+            "backgroundColor": "#ebf5fc",
+            "borderRadius": 0,
+            "cursor": "pointer",
+            "display": "flex",
+            "flexDirection": "row",
+            "height": 40,
+            "lineHeight": 0,
+            "minWidth": undefined,
+            "paddingLeft": 8,
+            "paddingRight": 8,
+            "position": "relative",
+            "textAlign": "left",
+            "transform": "none",
+            "transition": "none",
+          }
+        }
+      >
+        <span
+          className="glamor-0"
+          onClick={undefined}
+          title={undefined}
+        >
+          #
+          bar
+        </span>
+      </div>
+      <div
+        onClick={[Function]}
+        onMouseDown={[Function]}
+        onMouseEnter={[Function]}
+        onMouseLeave={[Function]}
+        onMouseOver={[Function]}
+        onMouseUp={[Function]}
+        style={
+          Object {
+            "alignItems": "center",
+            "backgroundColor": undefined,
+            "borderRadius": 0,
+            "cursor": "pointer",
+            "display": "flex",
+            "flexDirection": "row",
+            "height": 40,
+            "lineHeight": 0,
+            "minWidth": undefined,
+            "paddingLeft": 8,
+            "paddingRight": 8,
+            "position": "relative",
+            "textAlign": "left",
+            "transform": "none",
+            "transition": "none",
+          }
+        }
+      >
+        <span
+          className="glamor-0"
+          onClick={undefined}
+          title={undefined}
+        >
+          #
+          baz
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`Storyshots Chat/Conversation/InfoPanel Mute row (big) 1`] = `
 .glamor-0,
 [data-glamor-0] {
