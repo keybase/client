@@ -11,8 +11,9 @@ Type=notify
 # Without this line, `systemctl --user restart kbfs.service` will hit mount
 # failures if there are any running shells cd'd into a Keybase folder.
 ExecStartPre=-/usr/bin/env fusermount -uz /keybase
-ExecStart=/usr/bin/kbfsfuse -debug -log-to-file /keybase
+ExecStart=/usr/bin/kbfsfuse -debug -log-to-file $KEYBASE_MOUNTDIR
 Restart=on-failure
+EnvironmentFile=-%t/keybase/kbfs.env
 
 [Install]
 WantedBy=default.target
