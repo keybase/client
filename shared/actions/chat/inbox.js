@@ -407,9 +407,14 @@ function* _chatInboxFailedSubSaga(params: RPCChatTypes.ChatUiChatInboxFailedRpcP
     participants: error.rekeyInfo
       ? I.List([].concat(error.rekeyInfo.writerNames, error.rekeyInfo.readerNames).filter(Boolean))
       : I.List(error.unverifiedTLFName.split(',')),
-    status: 'unfiled',
     time: error.remoteConv.readerInfo ? error.remoteConv.readerInfo.mtime : 0,
     membersType: error.remoteConv.metadata.membersType,
+    teamType: error.remoteConv.metadata.teamType,
+    memberStatus: error.remoteConv.readerInfo
+      ? error.remoteConv.readerInfo.status
+      : RPCChatTypes.commonConversationMemberStatus.active,
+    status: Constants.ConversationStatusByEnum[error.remoteConv.metadata.status],
+    version: error.remoteConv.metadata.version,
     teamname,
   })
 
