@@ -15,6 +15,7 @@ import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styl
 import {SmallTeamHeader, BigTeamHeader} from './header'
 import Notifications from './notifications/container'
 import Participants, {Participant} from './participants'
+import {ManageTeam} from './manage-team'
 import {TurnIntoTeam} from './turn-into-team'
 
 const border = `1px solid ${globalColors.black_05}`
@@ -153,16 +154,14 @@ const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
       </ClickableBox>
     </Box> */}
     <Divider style={styleDivider} />
-    <Box style={{...globalStyles.flexBoxRow, marginRight: globalMargins.small}}>
-      <Text style={{flex: 1, paddingLeft: globalMargins.small}} type="BodySmallSemibold">
-        In this team ({props.participants.length.toString()})
-      </Text>
-      {props.admin && (
-        <Text type="BodySmallPrimaryLink" onClick={props.onViewTeam}>
-          Manage
-        </Text>
-      )}
-    </Box>
+
+    <ManageTeam
+      canManage={props.admin}
+      label="In this team"
+      participantCount={props.participants.length}
+      onClick={props.onViewTeam}
+    />
+
     <Participants participants={props.participants} onShowProfile={props.onShowProfile} />
   </ScrollView>
 )
@@ -239,17 +238,13 @@ const _renderBigTeamRow = (i: number, props: BigTeamRow) => {
           )}
 
           <Divider style={styleDivider} />
-          <Box style={{...globalStyles.flexBoxRow, marginRight: globalMargins.small}}>
-            <Text style={{flex: 1, paddingLeft: globalMargins.small}} type="BodySmallSemibold">
-              In this channel ({props.participants.length.toString()})
-            </Text>
-            {props.admin &&
-              props.channelname === 'general' && (
-                <Text type="BodySmallPrimaryLink" onClick={props.onViewTeam}>
-                  Manage
-                </Text>
-              )}
-          </Box>
+
+          <ManageTeam
+            canManage={props.admin && props.channelname === 'general'}
+            label="In this channel"
+            participantCount={props.participants.length}
+            onClick={props.onViewTeam}
+          />
         </Box>
       )
     case 'participant':
