@@ -398,6 +398,10 @@ function* _chatInboxFailedSubSaga(params: RPCChatTypes.ChatUiChatInboxFailedRpcP
   const conversationIDKey = Constants.conversationIDToKey(convID)
 
   // Valid inbox item for rekey errors only
+  let teamname = null
+  if (error.remoteConv.metadata.membersType === RPCChatTypes.commonConversationMembersType.team) {
+    teamname = error.unverifiedTLFName
+  }
   const conversation = Constants.makeInboxState({
     conversationIDKey,
     participants: error.rekeyInfo
@@ -405,6 +409,8 @@ function* _chatInboxFailedSubSaga(params: RPCChatTypes.ChatUiChatInboxFailedRpcP
       : I.List(error.unverifiedTLFName.split(',')),
     status: 'unfiled',
     time: error.remoteConv.readerInfo ? error.remoteConv.readerInfo.mtime : 0,
+    membersType: error.remoteConv.metadata.membersType,
+    teamname,
   })
 
   yield Saga.put(
