@@ -736,6 +736,21 @@ const attachmentSend = (action: Chat2Gen.AttachmentWithPreviewSendPayload, state
   // export type LocalPostAttachmentLocalRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, visibility: Keybase1.TLFVisibility, attachment: LocalSource, preview?: ?MakePreviewRes, title: String, metadata: Bytes, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 }
 
+const startConversation = (action: Chat2Gen.StartConversationPayload, state: TypedState) => {
+  const {participants, tlf, forceImmediate} = action.payload
+  const you = state.config.username || ''
+
+  let users
+
+  if (participants) {
+    users = participants.filter(p => p !== you)
+  } else if (tlf) {
+    // users =
+    // TODO
+  }
+
+}
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Refresh the inbox
   yield Saga.safeTakeEveryPure(
@@ -779,6 +794,9 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, navigateToThread)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, clearInboxFilter)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, exitSearch)
+
+
+  yield Saga.safeTakeEveryPure(Chat2Gen.startConversation, startConversation)
 
   if (!isMobile) {
     yield Saga.safeTakeEveryPure(Chat2Gen.desktopNotification, desktopNotify)
