@@ -12,6 +12,7 @@ import SystemLeft from './system-left/container'
 import SystemSimpleToComplex from './system-simple-to-complex/container'
 import SystemText from './system-text/container'
 import TextMessage from './text/container'
+import Attachment from './attachment/container'
 import Wrapper from './wrapper/container'
 import {chatTab} from '../../../constants/tabs'
 import {connect, compose, lifecycle, type TypedState, createSelector} from '../../../util/container'
@@ -40,6 +41,16 @@ class MessageFactory extends React.PureComponent<Props> {
             previous={this.props.previous}
           />
         )
+      case 'attachment':
+        return (
+          <Wrapper
+            innerClass={Attachment}
+            isEditing={this.props.isEditing}
+            isSelected={this.props.isSelected}
+            message={this.props.message}
+            previous={this.props.previous}
+          />
+        )
       case 'systemInviteAccepted':
         return <SystemInviteAccepted message={this.props.message} />
       case 'systemSimpleToComplex':
@@ -58,8 +69,6 @@ class MessageFactory extends React.PureComponent<Props> {
         return <Error message={this.props.message} />
       case 'deleted':
         return null
-      case 'attachment':
-        return null // TODO
       default:
         // eslint-disable-next-line no-unused-expressions
         ;(this.props.message.type: empty) // if you get a flow error here it means there's an action you claim to handle but didn't

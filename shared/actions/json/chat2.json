@@ -107,10 +107,22 @@
       "author": "string",
       "body": "string"
     },
-    // Send a message
+    // Send a text message
     "messageSend": {
       "conversationIDKey": "Types.ConversationIDKey",
       "text": "HiddenString"
+    },
+    // User sends an attachment
+    "attachmentSend": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "filename": "string",
+      "title": "string"
+    },
+    "attachmentWithPreviewSend": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "filename": "string",
+      "title": "string",
+      "preview": "RPCChatTypes.MakePreviewRes"
     }
   }
 }

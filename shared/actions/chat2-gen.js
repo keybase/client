@@ -11,6 +11,8 @@ import HiddenString from '../util/hidden-string'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of chat2 but is handled by every reducer
+export const attachmentSend = 'chat2:attachmentSend'
+export const attachmentWithPreviewSend = 'chat2:attachmentWithPreviewSend'
 export const badgesUpdated = 'chat2:badgesUpdated'
 export const clearOrdinals = 'chat2:clearOrdinals'
 export const desktopNotification = 'chat2:desktopNotification'
@@ -36,6 +38,21 @@ export const setSearching = 'chat2:setSearching'
 export const setupChatHandlers = 'chat2:setupChatHandlers'
 
 // Action Creators
+export const createAttachmentSend = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    filename: string,
+    title: string,
+  }>
+) => ({error: false, payload, type: attachmentSend})
+export const createAttachmentWithPreviewSend = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    filename: string,
+    title: string,
+    preview: RPCChatTypes.MakePreviewRes,
+  }>
+) => ({error: false, payload, type: attachmentWithPreviewSend})
 export const createBadgesUpdated = (payload: $ReadOnly<{conversations: Array<RPCTypes.BadgeConversationInfo>}>) => ({error: false, payload, type: badgesUpdated})
 export const createClearOrdinals = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: clearOrdinals})
 export const createDesktopNotification = (
@@ -136,6 +153,8 @@ export const createSetSearching = (payload: $ReadOnly<{searching: boolean}>) => 
 export const createSetupChatHandlers = () => ({error: false, payload: undefined, type: setupChatHandlers})
 
 // Action Payloads
+export type AttachmentSendPayload = More.ReturnType<typeof createAttachmentSend>
+export type AttachmentWithPreviewSendPayload = More.ReturnType<typeof createAttachmentWithPreviewSend>
 export type BadgesUpdatedPayload = More.ReturnType<typeof createBadgesUpdated>
 export type ClearOrdinalsPayload = More.ReturnType<typeof createClearOrdinals>
 export type DesktopNotificationPayload = More.ReturnType<typeof createDesktopNotification>
@@ -163,6 +182,8 @@ export type SetupChatHandlersPayload = More.ReturnType<typeof createSetupChatHan
 // All Actions
 // prettier-ignore
 export type Actions =
+  | More.ReturnType<typeof createAttachmentSend>
+  | More.ReturnType<typeof createAttachmentWithPreviewSend>
   | More.ReturnType<typeof createBadgesUpdated>
   | More.ReturnType<typeof createClearOrdinals>
   | More.ReturnType<typeof createDesktopNotification>

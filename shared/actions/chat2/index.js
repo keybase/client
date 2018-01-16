@@ -16,6 +16,7 @@ import {chatTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {NotifyPopup} from '../../native/notifications'
 import {showMainWindow} from '../platform-specific'
+import {tmpDir} from '../../util/file'
 
 // If we're out of date we'll only try and fill a gap of this size, otherwise we throw old messages away
 const largestGapToFillOnSyncCall = 50
@@ -694,6 +695,47 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
   ])
 }
 
+// First we make a preview
+const attachmentPreviewCreate = (action: Chat2Gen.AttachmentSendPayload, state: TypedState) => {
+  const param: RPCChatTypes.LocalMakePreviewRpcParam = {
+    attachment: {filename: action.payload.filename},
+    outputDir: tmpDir(),
+  }
+  return Saga.call(RPCChatTypes.localMakePreviewRpcPromise, param)
+}
+
+const attachmentPreviewCreateSuccess = (
+  preview: RPCChatTypes.MakePreviewRes,
+  action: Chat2Gen.AttachmentSendPayload
+) =>
+  Saga.put(
+    Chat2Gen.createAttachmentWithPreviewSend({
+      ...action.payload,
+      preview,
+    })
+  )
+
+const attachmentSend = (action: Chat2Gen.AttachmentWithPreviewSendPayload, state: TypedState) => {
+  // TODO
+  // const {conversationIDKey, preview, filename, title} = action.payload
+  // const identifyBehavior = RPCTypes.tlfKeysTLFIdentifyBehavior.chatGuiStrict // TODO
+  // const meta = Constants.getMeta(state, conversationIDKey)
+  // const tlfName = meta.tlfname // TODO non existant convo
+  // // TODO be able to send this
+  // // const outboxID = Constants.generateOutboxID()
+  // const param = {
+  // attachment: {filename},
+  // conversationID: Constants.keyToConversationID(conversationIDKey),
+  // identifyBehavior,
+  // metadata: null,
+  // preview,
+  // title,
+  // tlfName,
+  // visibility: RPCTypes.commonTLFVisibility.private,
+  // }
+  // export type LocalPostAttachmentLocalRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, visibility: Keybase1.TLFVisibility, attachment: LocalSource, preview?: ?MakePreviewRes, title: String, metadata: Bytes, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+}
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Refresh the inbox
   yield Saga.safeTakeEveryPure(
@@ -723,6 +765,15 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.messageEdit, messageEdit)
   yield Saga.safeTakeEveryPure(Chat2Gen.messageEdit, clearMessageSetEditing)
   yield Saga.safeTakeEveryPure(Chat2Gen.messageDelete, messageDelete)
+
+  // First we make a preview, then we post it
+  yield Saga.safeTakeEveryPure(
+    Chat2Gen.attachmentSend,
+    attachmentPreviewCreate,
+    attachmentPreviewCreateSuccess
+  )
+  // We got the preview made so do the real upload
+  yield Saga.safeTakeEveryPure(Chat2Gen.attachmentWithPreviewSend, attachmentSend)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.setupChatHandlers, setupChatHandlers)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, navigateToThread)
