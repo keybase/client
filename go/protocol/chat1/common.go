@@ -689,6 +689,18 @@ func (o ConversationResolveInfo) DeepCopy() ConversationResolveInfo {
 	}
 }
 
+type Expunge struct {
+	Upto  MessageID `codec:"upto" json:"upto"`
+	Basis MessageID `codec:"basis" json:"basis"`
+}
+
+func (o Expunge) DeepCopy() Expunge {
+	return Expunge{
+		Upto:  o.Upto.DeepCopy(),
+		Basis: o.Basis.DeepCopy(),
+	}
+}
+
 type ConversationMetadata struct {
 	IdTriple       ConversationIDTriple      `codec:"idTriple" json:"idTriple"`
 	ConversationID ConversationID            `codec:"conversationID" json:"conversationID"`
@@ -698,6 +710,9 @@ type ConversationMetadata struct {
 	TeamType       TeamType                  `codec:"teamType" json:"teamType"`
 	Existence      ConversationExistence     `codec:"existence" json:"existence"`
 	Version        ConversationVers          `codec:"version" json:"version"`
+	Expunge        Expunge                   `codec:"expunge" json:"expunge"`
+	ConvRetention  *RetentionPolicy          `codec:"convRetention,omitempty" json:"convRetention,omitempty"`
+	TeamRetention  *RetentionPolicy          `codec:"teamRetention,omitempty" json:"teamRetention,omitempty"`
 	FinalizeInfo   *ConversationFinalizeInfo `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
 	Supersedes     []ConversationMetadata    `codec:"supersedes" json:"supersedes"`
 	SupersededBy   []ConversationMetadata    `codec:"supersededBy" json:"supersededBy"`
@@ -716,6 +731,21 @@ func (o ConversationMetadata) DeepCopy() ConversationMetadata {
 		TeamType:       o.TeamType.DeepCopy(),
 		Existence:      o.Existence.DeepCopy(),
 		Version:        o.Version.DeepCopy(),
+		Expunge:        o.Expunge.DeepCopy(),
+		ConvRetention: (func(x *RetentionPolicy) *RetentionPolicy {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ConvRetention),
+		TeamRetention: (func(x *RetentionPolicy) *RetentionPolicy {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.TeamRetention),
 		FinalizeInfo: (func(x *ConversationFinalizeInfo) *ConversationFinalizeInfo {
 			if x == nil {
 				return nil
@@ -1322,6 +1352,168 @@ func (o InboxView) DeepCopy() InboxView {
 			return &tmp
 		})(o.Full__),
 	}
+}
+
+type RetentionPolicyType int
+
+const (
+	RetentionPolicyType_NONE    RetentionPolicyType = 0
+	RetentionPolicyType_RETAIN  RetentionPolicyType = 1
+	RetentionPolicyType_EXPIRE  RetentionPolicyType = 2
+	RetentionPolicyType_INHERIT RetentionPolicyType = 3
+)
+
+func (o RetentionPolicyType) DeepCopy() RetentionPolicyType { return o }
+
+var RetentionPolicyTypeMap = map[string]RetentionPolicyType{
+	"NONE":    0,
+	"RETAIN":  1,
+	"EXPIRE":  2,
+	"INHERIT": 3,
+}
+
+var RetentionPolicyTypeRevMap = map[RetentionPolicyType]string{
+	0: "NONE",
+	1: "RETAIN",
+	2: "EXPIRE",
+	3: "INHERIT",
+}
+
+func (e RetentionPolicyType) String() string {
+	if v, ok := RetentionPolicyTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type RetentionPolicy struct {
+	Typ__     RetentionPolicyType `codec:"typ" json:"typ"`
+	Retain__  *RpRetain           `codec:"retain,omitempty" json:"retain,omitempty"`
+	Expire__  *RpExpire           `codec:"expire,omitempty" json:"expire,omitempty"`
+	Inherit__ *RpInherit          `codec:"inherit,omitempty" json:"inherit,omitempty"`
+}
+
+func (o *RetentionPolicy) Typ() (ret RetentionPolicyType, err error) {
+	switch o.Typ__ {
+	case RetentionPolicyType_RETAIN:
+		if o.Retain__ == nil {
+			err = errors.New("unexpected nil value for Retain__")
+			return ret, err
+		}
+	case RetentionPolicyType_EXPIRE:
+		if o.Expire__ == nil {
+			err = errors.New("unexpected nil value for Expire__")
+			return ret, err
+		}
+	case RetentionPolicyType_INHERIT:
+		if o.Inherit__ == nil {
+			err = errors.New("unexpected nil value for Inherit__")
+			return ret, err
+		}
+	}
+	return o.Typ__, nil
+}
+
+func (o RetentionPolicy) Retain() (res RpRetain) {
+	if o.Typ__ != RetentionPolicyType_RETAIN {
+		panic("wrong case accessed")
+	}
+	if o.Retain__ == nil {
+		return
+	}
+	return *o.Retain__
+}
+
+func (o RetentionPolicy) Expire() (res RpExpire) {
+	if o.Typ__ != RetentionPolicyType_EXPIRE {
+		panic("wrong case accessed")
+	}
+	if o.Expire__ == nil {
+		return
+	}
+	return *o.Expire__
+}
+
+func (o RetentionPolicy) Inherit() (res RpInherit) {
+	if o.Typ__ != RetentionPolicyType_INHERIT {
+		panic("wrong case accessed")
+	}
+	if o.Inherit__ == nil {
+		return
+	}
+	return *o.Inherit__
+}
+
+func NewRetentionPolicyWithRetain(v RpRetain) RetentionPolicy {
+	return RetentionPolicy{
+		Typ__:    RetentionPolicyType_RETAIN,
+		Retain__: &v,
+	}
+}
+
+func NewRetentionPolicyWithExpire(v RpExpire) RetentionPolicy {
+	return RetentionPolicy{
+		Typ__:    RetentionPolicyType_EXPIRE,
+		Expire__: &v,
+	}
+}
+
+func NewRetentionPolicyWithInherit(v RpInherit) RetentionPolicy {
+	return RetentionPolicy{
+		Typ__:     RetentionPolicyType_INHERIT,
+		Inherit__: &v,
+	}
+}
+
+func (o RetentionPolicy) DeepCopy() RetentionPolicy {
+	return RetentionPolicy{
+		Typ__: o.Typ__.DeepCopy(),
+		Retain__: (func(x *RpRetain) *RpRetain {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Retain__),
+		Expire__: (func(x *RpExpire) *RpExpire {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Expire__),
+		Inherit__: (func(x *RpInherit) *RpInherit {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Inherit__),
+	}
+}
+
+type RpRetain struct {
+}
+
+func (o RpRetain) DeepCopy() RpRetain {
+	return RpRetain{}
+}
+
+type RpExpire struct {
+	Age gregor1.DurationSec `codec:"age" json:"age"`
+}
+
+func (o RpExpire) DeepCopy() RpExpire {
+	return RpExpire{
+		Age: o.Age.DeepCopy(),
+	}
+}
+
+type RpInherit struct {
+}
+
+func (o RpInherit) DeepCopy() RpInherit {
+	return RpInherit{}
 }
 
 type CommonInterface interface {

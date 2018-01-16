@@ -6,6 +6,7 @@ package chat1
 import (
 	"errors"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 )
@@ -729,6 +730,22 @@ func (o SetAppNotificationSettingsRes) DeepCopy() SetAppNotificationSettingsRes 
 	}
 }
 
+type SetRetentionRes struct {
+	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
+func (o SetRetentionRes) DeepCopy() SetRetentionRes {
+	return SetRetentionRes{
+		RateLimit: (func(x *RateLimit) *RateLimit {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.RateLimit),
+	}
+}
+
 type GetInboxRemoteArg struct {
 	Vers       InboxVers      `codec:"vers" json:"vers"`
 	Query      *GetInboxQuery `codec:"query,omitempty" json:"query,omitempty"`
@@ -894,6 +911,16 @@ type RemoteNotificationSuccessfulArg struct {
 	CompanionPushIDs []string             `codec:"companionPushIDs" json:"companionPushIDs"`
 }
 
+type SetConvRetentionArg struct {
+	ConvID ConversationID  `codec:"convID" json:"convID"`
+	Policy RetentionPolicy `codec:"policy" json:"policy"`
+}
+
+type SetTeamRetentionArg struct {
+	TeamID keybase1.TeamID `codec:"teamID" json:"teamID"`
+	Policy RetentionPolicy `codec:"policy" json:"policy"`
+}
+
 type RemoteInterface interface {
 	GetInboxRemote(context.Context, GetInboxRemoteArg) (GetInboxRemoteRes, error)
 	GetThreadRemote(context.Context, GetThreadRemoteArg) (GetThreadRemoteRes, error)
@@ -926,6 +953,8 @@ type RemoteInterface interface {
 	SetGlobalAppNotificationSettings(context.Context, GlobalAppNotificationSettings) error
 	GetGlobalAppNotificationSettings(context.Context) (GlobalAppNotificationSettings, error)
 	RemoteNotificationSuccessful(context.Context, RemoteNotificationSuccessfulArg) error
+	SetConvRetention(context.Context, SetConvRetentionArg) (SetRetentionRes, error)
+	SetTeamRetention(context.Context, SetTeamRetentionArg) (SetRetentionRes, error)
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -1423,6 +1452,38 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"setConvRetention": {
+				MakeArg: func() interface{} {
+					ret := make([]SetConvRetentionArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SetConvRetentionArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SetConvRetentionArg)(nil), args)
+						return
+					}
+					ret, err = i.SetConvRetention(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"setTeamRetention": {
+				MakeArg: func() interface{} {
+					ret := make([]SetTeamRetentionArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SetTeamRetentionArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SetTeamRetentionArg)(nil), args)
+						return
+					}
+					ret, err = i.SetTeamRetention(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -1594,5 +1655,15 @@ func (c RemoteClient) GetGlobalAppNotificationSettings(ctx context.Context) (res
 
 func (c RemoteClient) RemoteNotificationSuccessful(ctx context.Context, __arg RemoteNotificationSuccessfulArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.remote.remoteNotificationSuccessful", []interface{}{__arg}, nil)
+	return
+}
+
+func (c RemoteClient) SetConvRetention(ctx context.Context, __arg SetConvRetentionArg) (res SetRetentionRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.remote.setConvRetention", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) SetTeamRetention(ctx context.Context, __arg SetTeamRetentionArg) (res SetRetentionRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.remote.setTeamRetention", []interface{}{__arg}, &res)
 	return
 }

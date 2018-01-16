@@ -2,6 +2,7 @@
 protocol remote {
 
   import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
+  import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
 
   record MessageBoxed {
     // This was not present in most V1 messages.
@@ -264,4 +265,11 @@ protocol remote {
 
   // Endpoint to indicate a high priority push notification has been processed
   void remoteNotificationSuccessful(gregor1.SessionToken authToken, array<string> companionPushIDs);
+
+  record SetRetentionRes {
+    union { null, RateLimit } rateLimit;
+  }
+  SetRetentionRes setConvRetention(ConversationID convID, RetentionPolicy policy);
+  SetRetentionRes setTeamRetention(keybase1.TeamID teamID, RetentionPolicy policy);
+
 }

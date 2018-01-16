@@ -3166,6 +3166,32 @@
         }
       ],
       "response": null
+    },
+    "setConvRetentionLocal": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "policy",
+          "type": "RetentionPolicy"
+        }
+      ],
+      "response": null
+    },
+    "setTeamRetentionLocal": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "keybase1.TeamID"
+        },
+        {
+          "name": "policy",
+          "type": "RetentionPolicy"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"
