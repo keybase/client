@@ -603,7 +603,7 @@ func TestImplicitTeamResetAll(t *testing.T) {
 	divDebug(ctx, "Ann logged in after reset")
 
 	iteam3 := ann.lookupImplicitTeam(true /*create*/, displayName, false /*isPublic*/)
-	require.Equal(t, iteam.ID, iteam3.ID, "lookup after resets should return same team")
+	require.NotEqual(t, iteam.ID, iteam3.ID, "lookup after resets should return different team")
 	divDebug(ctx, "team looked up after resets")
 }
 
