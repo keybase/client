@@ -108,6 +108,5 @@ export default compose(
       this.props._resetNotificationSaveState && this.props._resetNotificationSaveState()
     },
   }),
-  // $FlowIssue doesn't like dynamic props like we do above
-  branch(props => !props.conversationIDKey, renderNothing)
+  branch(props => !('conversationIDKey' in props), renderNothing)
 )(Notifications)
