@@ -127,7 +127,10 @@ func (tx *AddMemberTx) SweepKeybaseInvites(uid keybase1.UID) {
 	}
 }
 
-func (tx *AddMemberTx) AddMemberTransaction(ctx context.Context, g *libkb.GlobalContext, username string, role keybase1.TeamRole) error {
+func (tx *AddMemberTx) AddMemberTransaction(ctx context.Context, username string, role keybase1.TeamRole) error {
+	team := tx.team
+	g := team.G()
+
 	inviteRequired := false
 	normalizedUsername, uv, err := loadUserVersionPlusByUsername(ctx, g, username)
 	if err != nil {
@@ -144,8 +147,6 @@ func (tx *AddMemberTx) AddMemberTransaction(ctx context.Context, g *libkb.Global
 	// other attempts. This is used in batch member adds, when even if
 	// some users can't be added, it skips them and continues with
 	// others.
-
-	team := tx.team
 
 	if team.IsMember(ctx, uv) {
 		if inviteRequired {
@@ -166,7 +167,11 @@ func (tx *AddMemberTx) AddMemberTransaction(ctx context.Context, g *libkb.Global
 		return libkb.ExistsError{Msg: fmt.Sprintf("user %s is already a pukless member of team %q",
 			normalizedUsername, team.Name())}
 	}
+
 	// TODO: Complete invite using curInvite in tx.AddMember branch.
+	// Or decide if we want this - maybe complete_invites should be
+	// reserved for "real" invite resolutions, as in these that come
+	// from SBS handler.
 
 	tx.SweepMembers(uv.Uid)        // Sweep all existing crypto members
 	tx.SweepKeybaseInvites(uv.Uid) // Sweep all existing keybase type invites
@@ -179,11 +184,13 @@ func (tx *AddMemberTx) AddMemberTransaction(ctx context.Context, g *libkb.Global
 	return nil
 }
 
-func (tx *AddMemberTx) Post(ctx context.Context, g *libkb.GlobalContext) error {
+func (tx *AddMemberTx) Post(ctx context.Context) error {
 	if len(tx.payloads) == 0 {
 		return errors.New("there are no signatures to post")
 	}
+
 	team := tx.team
+	g := team.G()
 
 	// Initialize key manager.
 	if _, err := team.SharedSecret(ctx); err != nil {

@@ -41,10 +41,10 @@ func TestTeamTransactions(t *testing.T) {
 	require.NoError(t, err)
 
 	tx := teams.CreateAddMemberTx(teamObj)
-	tx.AddMemberTransaction(context.Background(), ann.tc.G, bob.username, keybase1.TeamRole_WRITER)
-	tx.AddMemberTransaction(context.Background(), ann.tc.G, tracy.username, keybase1.TeamRole_READER)
+	tx.AddMemberTransaction(context.Background(), bob.username, keybase1.TeamRole_WRITER)
+	tx.AddMemberTransaction(context.Background(), tracy.username, keybase1.TeamRole_READER)
 
-	err = tx.Post(context.Background(), ann.tc.G)
+	err = tx.Post(context.Background())
 	require.NoError(t, err)
 
 	// TRANSACTION 2 - bob gets puk, add bob but not through SBS.
@@ -59,11 +59,11 @@ func TestTeamTransactions(t *testing.T) {
 	require.NoError(t, err)
 
 	tx = teams.CreateAddMemberTx(teamObj)
-	tx.AddMemberTransaction(context.Background(), ann.tc.G, bob.username, keybase1.TeamRole_WRITER)
+	tx.AddMemberTransaction(context.Background(), bob.username, keybase1.TeamRole_WRITER)
 	tx.RemoveMember(tracy.userVersion())
 	spew.Dump(tx.DebugPayloads())
 
-	err = tx.Post(context.Background(), ann.tc.G)
+	err = tx.Post(context.Background())
 	require.NoError(t, err)
 }
 
@@ -124,13 +124,14 @@ func TestTeamTxDependency(t *testing.T) {
 	require.NoError(t, err)
 
 	tx := teams.CreateAddMemberTx(teamObj)
-	tx.AddMemberTransaction(context.Background(), ann.tc.G, tracy.username, keybase1.TeamRole_READER)
-	tx.AddMemberTransaction(context.Background(), ann.tc.G, bob.username, keybase1.TeamRole_WRITER)
+	tx.AddMemberTransaction(context.Background(), tracy.username, keybase1.TeamRole_READER)
+	tx.AddMemberTransaction(context.Background(), bob.username, keybase1.TeamRole_WRITER)
 
 	payloads := tx.DebugPayloads()
 	// TODO: this has to pass once this feature actually work.
 	// require.Equal(t, 3, len(payloads))
+	_ = payloads
 
-	err = tx.Post(context.Background(), ann.tc.G)
+	err = tx.Post(context.Background())
 	require.NoError(t, err)
 }
