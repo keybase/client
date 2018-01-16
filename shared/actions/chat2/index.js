@@ -1,5 +1,6 @@
 // @flow
 import * as Chat2Gen from '../chat2-gen'
+import * as ConfigGen from '../config-gen'
 import * as Constants from '../../constants/chat2'
 import * as EngineRpc from '../../constants/engine'
 import * as I from 'immutable'
@@ -773,6 +774,8 @@ const startConversation = (action: Chat2Gen.StartConversationPayload, state: Typ
   // TODO make it
 }
 
+const bootstrapSuccess = () => Saga.put(Chat2Gen.createInboxRefresh({reason: 'bootstrap'}))
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Refresh the inbox
   yield Saga.safeTakeEveryPure(
@@ -822,6 +825,9 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   if (!isMobile) {
     yield Saga.safeTakeEveryPure(Chat2Gen.desktopNotification, desktopNotify)
   }
+
+  // On bootstrap lets load the untrusted inbox. This helps make some flows easier
+  yield Saga.safeTakeEveryPure(ConfigGen.bootstrapSuccess, bootstrapSuccess)
 }
 
 export default chat2Saga
