@@ -836,7 +836,10 @@ const onExitSearch = (_: any, state: TypedState) => {
   )
 }
 
-const searchUpdated = (action: SearchGen.UserInputItemsUpdatedPayload, state: TypedState) => {
+const searchUpdated = (action: Chat2Gen.SetSearchingPayload | SearchGen.UserInputItemsUpdatedPayload, state: TypedState) => {
+  if (action.type === Chat2Gen.setSearching) {
+    // TODo
+  }
   const {userInputItemIds} = action.payload
   const me = state.config.username
   const isSearching = state.chat2.isSearching
@@ -925,7 +928,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
 
   // Search handling
   yield Saga.safeTakeEveryPure(Chat2Gen.exitSearch, onExitSearch)
-  yield Saga.safeTakeEveryPure(SearchConstants.isUserInputItemsUpdated('chatSearch'), searchUpdated)
+  yield Saga.safeTakeEveryPure([SearchConstants.isUserInputItemsUpdated('chatSearch')], searchUpdated)
 }
 
 export default chat2Saga
