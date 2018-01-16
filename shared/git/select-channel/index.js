@@ -8,7 +8,6 @@ export type Props = {
   selected: string,
   onSelect: (channel: string) => void,
   onSubmit: () => void,
-  onCancel: () => void,
   waiting: boolean,
 }
 
@@ -48,16 +47,7 @@ export default (props: Props) => (
           </Box>
         ))}
       </Box>
-      <Button
-        waiting={props.waiting}
-        type="Primary"
-        label="Submit"
-        onClick={() => {
-          props.onSubmit()
-          props.onCancel()
-        }}
-        small={true}
-      />
+      <Button waiting={props.waiting} type="Primary" label="Submit" onClick={props.onSubmit} small={true} />
     </Box>
   </ScrollView>
 )

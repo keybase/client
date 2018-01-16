@@ -35,8 +35,6 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
-  onCancel: () => dispatch(navigateUp()),
-  onLoad: () => dispatch(TeamsGen.createGetChannels({teamname: routeProps.get('teamname')})),
   _onSubmit: (channelName: string) =>
     dispatch(
       GitGen.createSetTeamRepoSettings({
@@ -46,6 +44,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
         repoID: routeProps.get('repoID'),
       })
     ),
+  onCancel: () => dispatch(navigateUp()),
+  onLoad: () => dispatch(TeamsGen.createGetChannels({teamname: routeProps.get('teamname')})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
@@ -82,6 +82,9 @@ export default compose(
     onSelect: () => (selected: string) => ({selected}),
   }),
   withHandlers({
-    onSubmit: ({_onSubmit, selected}) => () => _onSubmit(selected),
+    onSubmit: ({_onSubmit, onCancel, selected}) => () => {
+      _onSubmit(selected)
+      onCancel()
+    },
   })
 )(isMobile ? HeaderHoc(SelectChannel) : PopupWrapped)
