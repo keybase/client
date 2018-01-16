@@ -54,7 +54,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeSelected, routePath}) => (
         // On click switch to people tab and push current user onto people route stack
         if (tab === profileTab) {
           me && dispatch(createShowUserProfile({username: me}))
-          dispatch(switchTo([peopleTab]))
           return
         }
 
