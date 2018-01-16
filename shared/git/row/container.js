@@ -3,7 +3,7 @@ import React from 'react'
 import Row from '.'
 import * as Constants from '../../constants/git'
 import {createSetTeamRepoSettings} from '../../actions/git-gen'
-import {connect, type TypedState} from '../../util/container'
+import {connect, type TypedState, compose, withHandlers} from '../../util/container'
 import {createGetProfile} from '../../actions/tracker-gen'
 import {navigateAppend} from '../../actions/route-tree'
 import {gitTab, settingsTab} from '../../constants/tabs'
@@ -64,6 +64,17 @@ const ConnectedRow: Class<
     onShowDelete: (id: string) => void,
     onToggleExpand: (id: string) => void,
   }>
-> = connect(mapStateToProps, mapDispatchToProps, mergeProps)(Row)
+> = compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  withHandlers({
+    onChannelClick: ({chatDisabled, onOpenChannelSelection}) => e => {
+      if (chatDisabled) {
+        return
+      }
+      e.preventDefault()
+      onOpenChannelSelection()
+    },
+  })
+)(Row)
 
 export default ConnectedRow

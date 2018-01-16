@@ -34,7 +34,7 @@ export type Props = {
   onCopy: () => void,
   onClickDevice: () => void,
   onShowDelete: () => void,
-  onOpenChannelSelection: () => void,
+  onChannelClick: (SyntheticEvent<>) => void,
   onToggleChatEnabled: () => void,
   onToggleExpand: () => void,
   setTimeout: (() => void, number) => number,
@@ -207,13 +207,7 @@ class Row extends React.Component<Props, State> {
                         Announce pushes in{' '}
                         <Text
                           type={this.props.chatDisabled ? 'BodySmall' : 'BodySmallPrimaryLink'}
-                          onClick={e => {
-                            if (this.props.chatDisabled) {
-                              return
-                            }
-                            e.preventDefault()
-                            this.props.onOpenChannelSelection()
-                          }}
+                          onClick={this.props.onChannelClick}
                         >
                           {this._channelNameToString(this.props.channelName)}
                         </Text>
