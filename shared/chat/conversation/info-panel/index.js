@@ -1,11 +1,9 @@
 // @flow
 import * as React from 'react'
 import {
-  Avatar,
   Box,
   Button,
   Checkbox,
-  ClickableBox,
   Divider,
   HeaderHoc,
   Icon,
@@ -14,7 +12,7 @@ import {
   Text,
 } from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
-import {SmallTeamHeader} from './header'
+import {SmallTeamHeader, BigTeamHeader} from './header'
 import Notifications from './notifications/container'
 import Participants, {Participant} from './participants'
 import {TurnIntoTeam} from './turn-into-team'
@@ -203,19 +201,11 @@ const _renderBigTeamRow = (i: number, props: BigTeamRow) => {
     case 'header':
       return (
         <Box key={props.key} style={{...globalStyles.flexBoxColumn, alignItems: 'stretch'}}>
-          <Text style={{alignSelf: 'center', marginTop: globalMargins.medium}} type="BodyBig">
-            #{props.channelname}
-          </Text>
-
-          <ClickableBox
-            style={{...globalStyles.flexBoxRow, alignSelf: 'center', alignItems: 'center'}}
+          <BigTeamHeader
+            channelname={props.channelname}
+            teamname={props.teamname}
             onClick={props.onViewTeam}
-          >
-            <Avatar teamname={props.teamname} size={12} />
-            <Text type="BodySmallSemibold" style={{marginLeft: globalMargins.xtiny}}>
-              {props.teamname}
-            </Text>
-          </ClickableBox>
+          />
 
           {!props.isPreview && (
             <Box>
