@@ -565,7 +565,7 @@ class Team extends React.PureComponent<Props> {
                   </Box>
                   <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
                     <Text type="Body">Ignore requests to join this team</Text>
-                    <Text type="BodySmall">You won't be bothered by hordes of fans.</Text>
+                    <Text type="BodySmall">Admins won't be bothered by hordes of fans.</Text>
                   </Box>
                 </Box>
               )}

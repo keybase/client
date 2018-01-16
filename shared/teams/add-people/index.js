@@ -82,7 +82,7 @@ const AddPeople = (props: Props) => (
           />
         </ClickableBox>
         <Button
-          label="Invite"
+          label="Add"
           onClick={props.isEmpty ? undefined : props.onAddPeople}
           disabled={props.isEmpty}
           style={{margin: globalMargins.tiny}}
