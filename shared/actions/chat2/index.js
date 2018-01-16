@@ -17,6 +17,7 @@ import {isMobile} from '../../constants/platform'
 import {NotifyPopup} from '../../native/notifications'
 import {showMainWindow} from '../platform-specific'
 import {tmpDir} from '../../util/file'
+import {parseFolderNameToUsers} from '../../util/kbfs'
 
 // If we're out of date we'll only try and fill a gap of this size, otherwise we throw old messages away
 const largestGapToFillOnSyncCall = 50
@@ -745,9 +746,31 @@ const startConversation = (action: Chat2Gen.StartConversationPayload, state: Typ
   if (participants) {
     users = participants.filter(p => p !== you)
   } else if (tlf) {
-    // users =
-    // TODO
+    users = parseFolderNameToUsers(you, tlf).map(u => u.username)
+  } else {
+    throw new Error('Start conversation called w/ no participants or tlf')
   }
+
+  // existing?
+  const toFind = I.Set(users.concat(you))
+  const conversationIDKey = state.chat2.metaMap.findKey((meta, conversationIDKey) =>
+    // Ignore the order of participants
+    meta.participants.toSet().equals(toFind)
+  )
+
+  if (conversationIDKey) {
+    return Saga.sequentially([
+      Saga.put(
+        Chat2Gen.createSelectConversation({
+          conversationIDKey,
+          fromUser: true,
+        })
+      ),
+      Saga.put(Route.switchTo([chatTab])),
+    ])
+  }
+
+  // TODO make it
 }
 
 function* chat2Saga(): Saga.SagaGenerator<any, any> {

@@ -6,7 +6,7 @@ import box from '../common-adapters/box.stories'
 import chatInboxRow from '../chat/inbox/row/index.stories'
 import chatInfoPanel from '../chat/conversation/info-panel/index.stories'
 import chatInfoPanelNotifications from '../chat/conversation/info-panel/notifications/index.stories'
-import chatList from '../chat/conversation/list/index.stories'
+// import chatList from '../chat/conversation/list/index.stories'
 import chatCreateChannel from '../chat/create-channel/index.stories'
 import chatManageChannels from '../chat/manage-channels/index.stories'
 import chatHud from '../chat/hud/index.stories'
@@ -35,7 +35,7 @@ const stories = {
   chatInboxRow,
   chatInfoPanel,
   chatInfoPanelNotifications,
-  chatList,
+  // chatList,
   chatManageChannels,
   checkbox,
   dropdown,
