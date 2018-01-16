@@ -15,7 +15,6 @@ import {
   Text,
 } from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
-import {branch} from 'recompose'
 import Notifications from './notifications/container'
 import Participants, {Participant} from './participants'
 
@@ -75,7 +74,6 @@ type infoPanelProps = {
   onMuteConversation: (muted: boolean) => void,
   onShowProfile: (username: string) => void,
   onToggleInfoPanel: () => void,
-  numberParticipants: number,
   participants: Array<{
     username: string,
     following: boolean,
@@ -343,7 +341,7 @@ const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => {
   )
 }
 
-const wrap = branch(() => isMobile, HeaderHoc)
+const wrap = x => (isMobile ? HeaderHoc(x) : x)
 const ConversationInfoPanel = wrap(_ConversationInfoPanel)
 const SmallTeamInfoPanel = wrap(_SmallTeamInfoPanel)
 const BigTeamInfoPanel = wrap(_BigTeamInfoPanel)
