@@ -129,8 +129,6 @@ type GlobalContext struct {
 	// But don't access its members directly.
 	ActiveDevice *ActiveDevice
 
-	IdentifyUILimiter *BurstLimiter
-
 	NetContext context.Context
 }
 
@@ -176,7 +174,6 @@ func NewGlobalContext() *GlobalContext {
 		uchMu:              new(sync.Mutex),
 		NewTriplesec:       NewSecureTriplesec,
 		ActiveDevice:       new(ActiveDevice),
-		IdentifyUILimiter:  NewBurstLimiter(identifyUIBurstSize, identifyUIRateDuration),
 		NetContext:         context.TODO(),
 	}
 }
@@ -559,9 +556,6 @@ func (g *GlobalContext) Shutdown() error {
 		}
 		if g.Resolver != nil {
 			g.Resolver.Shutdown()
-		}
-		if g.IdentifyUILimiter != nil {
-			g.IdentifyUILimiter.Stop()
 		}
 
 		for _, hook := range g.ShutdownHooks {

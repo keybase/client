@@ -7,7 +7,6 @@ import (
 	"path"
 	"runtime"
 	"sync"
-	"time"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -76,10 +75,6 @@ func (b *bufferedIdentifyUI) flush(trackingBroke bool) (err error) {
 	if !trackingBroke && b.bufferedMode {
 		b.G().Log.Debug("- bufferedIdentifyUI#flush: short-circuit")
 		return nil
-	}
-
-	if !b.G().IdentifyUILimiter.Wait(5 * time.Millisecond) {
-		return libkb.IdentifyRateLimitError{}
 	}
 
 	defer func() {

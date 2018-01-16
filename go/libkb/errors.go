@@ -2268,9 +2268,3 @@ func NewTeamProvisionalError(canKey bool, isPublic bool, dn string) error {
 }
 
 //=============================================================================
-
-type IdentifyRateLimitError struct{}
-
-func (e IdentifyRateLimitError) Error() string {
-	return "Exceeded identify UI rate limit: cannot run identify ui calls at this time"
-}
