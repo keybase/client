@@ -131,6 +131,8 @@ func (tx *AddMemberTx) AddMemberTransaction(ctx context.Context, username string
 	team := tx.team
 	g := team.G()
 
+	g.Log.CDebugf(ctx, "AddMemberTransaction(%s, %v) to team %q", username, role, team.Name())
+
 	inviteRequired := false
 	normalizedUsername, uv, err := loadUserVersionPlusByUsername(ctx, g, username)
 	g.Log.CDebugf(ctx, "AddMemberTransaction: loaded user %q -> (%q, %v, %v)", username, normalizedUsername, uv, err)
@@ -149,12 +151,27 @@ func (tx *AddMemberTx) AddMemberTransaction(ctx context.Context, username string
 	// some users can't be added, it skips them and continues with
 	// others.
 
+	if role == keybase1.TeamRole_OWNER && team.IsSubteam() {
+		return NewSubteamOwnersError()
+	}
+
 	if team.IsMember(ctx, uv) {
 		if inviteRequired {
 			return fmt.Errorf("user is already member but we got errInviteRequired")
 		}
 		return libkb.ExistsError{Msg: fmt.Sprintf("user %s is already a member of team %q",
 			normalizedUsername, team.Name())}
+	}
+
+	existingUV, err := team.UserVersionByUID(ctx, uv.Uid)
+	if err == nil {
+		// TODO: Might be able to collapse the two assertions together - the one
+		// above with team.IsMember and this one which checking Uid/Eldest.
+
+		if existingUV.EldestSeqno > uv.EldestSeqno {
+			return fmt.Errorf("newer version of user %s (uid:%s) already exists in the team %q (%v > %v)",
+				normalizedUsername, uv.Uid, team.Name(), existingUV.EldestSeqno, uv.EldestSeqno)
+		}
 	}
 
 	curInvite, err := team.chain().FindActiveInvite(uv.TeamInviteName(), keybase1.NewTeamInviteTypeDefault(keybase1.TeamInviteCategory_KEYBASE))
@@ -223,8 +240,6 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 
 		switch payload := p.(type) {
 		case *keybase1.TeamChangeReq:
-			// TODO: Do subteam + req.Owners check
-
 			// We need memberSet for this particular payload, but also keep a
 			// memberSet for entire transaction to generate boxes afterwards.
 			payloadMemberSet, err := newMemberSetChange(ctx, g, *payload)
