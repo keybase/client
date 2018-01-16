@@ -74,7 +74,6 @@ type infoPanelProps = {
   onMuteConversation: (muted: boolean) => void,
   onShowProfile: (username: string) => void,
   onToggleInfoPanel: () => void,
-  numberParticipants: number,
   participants: Array<{
     username: string,
     following: boolean,
