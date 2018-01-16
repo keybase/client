@@ -2,7 +2,6 @@
 import * as I from 'immutable'
 import * as React from 'react'
 import * as RouteTree from '../route-tree/render-route'
-import shallowEqual from 'shallowequal'
 import GlobalError from './global-errors/container'
 import Offline from '../offline/container'
 import TabBar from './tab-bar/container'
