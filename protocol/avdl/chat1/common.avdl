@@ -205,10 +205,6 @@ protocol common {
     TeamType teamType;
     ConversationExistence existence;
     ConversationVers version;
-    // The latest history deletion. Defaults to zeroes.
-    Expunge expunge;
-    union { null, RetentionPolicy } convRetention;
-    union { null, RetentionPolicy } teamRetention;
 
     // Finalize info for underlying TLF (only makes sense for KBFS convos)
     union { null, ConversationFinalizeInfo } finalizeInfo;
@@ -261,6 +257,10 @@ protocol common {
 
     // creator info for the conversation
     union { null, ConversationCreatorInfo } creatorInfo;
+
+    Expunge expunge; // The latest history deletion. Defaults to zeroes.
+    union { null, RetentionPolicy } convRetention;
+    union { null, RetentionPolicy } teamRetention;
   }
 
   record MessageSummary {
