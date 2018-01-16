@@ -4,7 +4,14 @@ import * as GitGen from '../../actions/git-gen'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as I from 'immutable'
 import {PopupDialog, HeaderHoc} from '../../common-adapters'
-import {connect, compose, lifecycle, withState, withHandlers, type TypedState} from '../../util/container'
+import {
+  connect,
+  compose,
+  lifecycle,
+  withHandlers,
+  withStateHandlers,
+  type TypedState,
+} from '../../util/container'
 import SelectChannel from '.'
 import {isMobile} from '../../constants/platform'
 
@@ -69,7 +76,9 @@ export default compose(
       this.props.onLoad()
     },
   }),
-  withState('selected', 'onSelect', props => props._selected),
+  withStateHandlers(props => ({selected: props._selected}), {
+    onSelect: () => (selected: string) => ({selected}),
+  }),
   withHandlers({
     onSubmit: ({_onSubmit, selected}) => () => _onSubmit(selected),
   })
