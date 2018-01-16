@@ -58,7 +58,6 @@ type StateProps = {
   selectedConversationIDKey?: Types.ConversationIDKey,
   showTeamButton?: boolean,
   teamname?: ?string,
-  smallTeam?: boolean,
 }
 
 const mapStateToProps = (state: TypedState): StateProps => {
@@ -70,7 +69,6 @@ const mapStateToProps = (state: TypedState): StateProps => {
   const channelname = inbox.get('channelname')
   const teamname = inbox.get('teamname')
   const showTeamButton = flags.teamChatEnabled
-  const smallTeam = Constants.getTeamType(state) === ChatTypes.commonTeamType.simple
 
   let admin = false
   if (teamname) {
@@ -87,7 +85,6 @@ const mapStateToProps = (state: TypedState): StateProps => {
     selectedConversationIDKey,
     showTeamButton,
     teamname,
-    smallTeam,
   }
 }
 
