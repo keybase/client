@@ -51,16 +51,17 @@ function usernameText({
         >
           {u.username}
         </Text>
-        {i !== users.length - 1 && ( // Injecting the commas here so we never wrap and have newlines starting with a ,
-          <Text
-            type={type}
-            backgroundMode={backgroundMode}
-            style={{...style, color: commaColor, marginRight: 1, textDecoration: 'none'}}
-          >
-            ,
-            {inlineGrammar && ' '}
-          </Text>
-        )}
+        {i !== users.length - 1 &&
+        users.length > 2 && ( // Injecting the commas here so we never wrap and have newlines starting with a ,
+            <Text
+              type={type}
+              backgroundMode={backgroundMode}
+              style={{...style, color: commaColor, marginRight: 1, textDecoration: 'none'}}
+            >
+              ,
+            </Text>
+          )}
+        {inlineGrammar && ' '}
       </Text>
     )
   })
