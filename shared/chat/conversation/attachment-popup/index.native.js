@@ -34,8 +34,12 @@ class AutoMaxSizeImage extends Component<any, {width: number, height: number}> {
     return (
       <ScrollView
         minimumZoomScale={1}
-        maximumZoomScale={5}
-        centerContent={true}
+        // maximumZoomScale arbitrarily set to 10 here.
+        // In the future we could set it to max(imageHeight / contentHeight, imageWidth / contentWidth)
+        maximumZoomScale={10}
+        scrollsToTop={false}
+        indicatorStyle="white"
+        alwaysBounceVertical={false}
         contentContainerStyle={{flex: 1, position: 'relative'}}
         style={{position: 'relative', overflow: 'hidden', width: '100%', height: '100%'}}
       >
