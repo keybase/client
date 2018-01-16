@@ -1,16 +1,6 @@
 // @flow
 import * as React from 'react'
-import {
-  Box,
-  Button,
-  Checkbox,
-  Divider,
-  HeaderHoc,
-  Icon,
-  List,
-  ScrollView,
-  Text,
-} from '../../../common-adapters'
+import {Box, Button, Divider, HeaderHoc, List, ScrollView, Text} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
 import {SmallTeamHeader, BigTeamHeader} from './header'
 import Notifications from './notifications/container'
@@ -35,38 +25,6 @@ const contentContainerStyle = {
   alignItems: 'stretch',
   paddingBottom: globalMargins.medium,
 }
-
-type MuteRowProps = {
-  muted: boolean,
-  onMute: (muted: boolean) => void,
-  label: string,
-}
-
-const MuteRow = (props: MuteRowProps) => (
-  <Box
-    style={{
-      ...globalStyles.flexBoxRow,
-      alignItems: 'center',
-      marginBottom: globalMargins.xtiny,
-      marginLeft: globalMargins.small,
-    }}
-  >
-    <Checkbox
-      checked={props.muted}
-      disabled={props.onMute == null}
-      onCheck={props.onMute}
-      label={props.label}
-    />
-    <Icon
-      type="iconfont-shh"
-      style={{
-        color: globalColors.black_20,
-        marginLeft: globalMargins.xtiny,
-        ...(isMobile ? {fontSize: 24} : {}),
-      }}
-    />
-  </Box>
-)
 
 type infoPanelProps = {
   admin: boolean,
@@ -97,8 +55,6 @@ const _ConversationInfoPanel = (props: ConversationInfoPanelProps) => (
     <TurnIntoTeam onClick={props.onShowNewTeamDialog} />
 
     <Divider style={styleDivider} />
-
-    <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute entire conversation" />
 
     <Notifications />
 
@@ -140,8 +96,6 @@ const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
     />
 
     <Divider style={{marginBottom: 20, marginTop: 20}} />
-
-    <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute all notifications" />
 
     <Notifications />
     {/* <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'flex-end'}}>
@@ -209,7 +163,6 @@ const _renderBigTeamRow = (i: number, props: BigTeamRow) => {
           {!props.isPreview && (
             <Box>
               <Divider style={styleDivider} />
-              <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute entire channel" />
               <Notifications />
             </Box>
           )}
@@ -303,4 +256,4 @@ const styleDivider = {
   marginTop: globalMargins.small,
 }
 
-export {ConversationInfoPanel, SmallTeamInfoPanel, BigTeamInfoPanel, MuteRow}
+export {ConversationInfoPanel, SmallTeamInfoPanel, BigTeamInfoPanel}

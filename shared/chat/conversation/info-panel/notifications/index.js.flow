@@ -6,9 +6,11 @@ export type Props = {
   channelWide: boolean,
   desktop: NotifyType,
   mobile: NotifyType,
+  muted: boolean,
   saveState: NotificationSaveState,
   onSetDesktop: NotifyType => void,
   onSetMobile: NotifyType => void,
+  onMuteConversation: (muted: boolean) => void,
   onToggleChannelWide: () => void,
 }
 
