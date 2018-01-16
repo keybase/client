@@ -748,7 +748,6 @@ const startConversation = (action: Chat2Gen.StartConversationPayload, state: Typ
     // users =
     // TODO
   }
-
 }
 
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
@@ -794,7 +793,6 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, navigateToThread)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, clearInboxFilter)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, exitSearch)
-
 
   yield Saga.safeTakeEveryPure(Chat2Gen.startConversation, startConversation)
 
