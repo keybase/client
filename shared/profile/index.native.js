@@ -575,16 +575,15 @@ const styleFolderIcon = {
 const styleSearchContainer = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-  backgroundColor: globalColors.white_20,
+  backgroundColor: globalColors.black_10,
   borderRadius: 100,
   justifyContent: 'center',
   minHeight: 32,
-  minWidth: 233,
+  minWidth: 200,
 }
 
 const styleSearch = {
   color: globalColors.white_75,
-  fontSize: 12,
   padding: globalMargins.xtiny,
 }
 

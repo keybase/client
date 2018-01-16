@@ -650,7 +650,7 @@ const tabBarCustomButtons = selectedIndex => {
     styleTabBar: {
       justifyContent: 'flex-start',
       width: 160,
-      backgroundColor: globalColors.midnightBlue,
+      backgroundColor: globalColors.darkBlue3,
       ...globalStyles.flexBoxColumn,
     },
     children: [

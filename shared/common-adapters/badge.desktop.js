@@ -6,12 +6,9 @@ import {globalStyles, globalColors} from '../styles'
 
 import type {Props} from './badge'
 
-function Badge({badgeStyle, badgeNumber, badgeNumberStyle, outlineColor}: Props) {
-  const outlineStyle = outlineColor
-    ? {minWidth: 20, height: 20, border: `3px solid ${outlineColor}`}
-    : {minWidth: 14, height: 14, border: 'none'}
+function Badge({badgeStyle, badgeNumber, badgeNumberStyle}: Props) {
   return (
-    <Box style={{...defaultBadgeStyle, ...outlineStyle, ...badgeStyle}}>
+    <Box style={{...defaultBadgeStyle, ...badgeStyle}}>
       <Text style={{...textStyle, ...badgeNumberStyle}} type="HeaderBig">
         {badgeNumber}
       </Text>
@@ -24,11 +21,13 @@ const defaultBadgeStyle = {
   backgroundColor: globalColors.orange,
   borderRadius: 10,
   alignItems: 'center',
+  height: 14,
   justifyContent: 'center',
   paddingLeft: 4,
   paddingRight: 5,
   marginLeft: 'auto',
   marginRight: 8,
+  minWidth: 14,
 }
 
 const textStyle = {

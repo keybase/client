@@ -15,7 +15,7 @@ const connectedUsernamesProps = {
 
 export type NewFollow = Types.FollowedNotification
 
-export type Props = Types._FollowedNotificationItem
+export type Props = Types._FollowedNotificationItem & {onClickUser: (username: string) => void}
 
 export default (props: Props) => {
   if (props.newFollows.length === 1) {
@@ -32,12 +32,19 @@ export const FollowNotification = (props: Props) => {
   return (
     <PeopleItem
       badged={props.badged}
-      icon={<Avatar username={username} size={isMobile ? 48 : 32} />}
+      icon={
+        <Avatar username={username} onClick={() => props.onClickUser(username)} size={isMobile ? 48 : 32} />
+      }
       when={props.notificationTime}
       contentStyle={{justifyContent: 'center'}}
     >
       <Text type="Body" style={{marginTop: 2}}>
-        <ConnectedUsernames {...connectedUsernamesProps} usernames={[username]} /> followed you.
+        <ConnectedUsernames
+          {...connectedUsernamesProps}
+          usernames={[username]}
+          onUsernameClicked={props.onClickUser}
+        />{' '}
+        followed you.
       </Text>
     </PeopleItem>
   )
@@ -72,7 +79,7 @@ export const MultiFollowNotification = (props: Props) => {
           >
             <Meta
               title={`+${props.newFollows.length + (props.numAdditional || 0)}`}
-              style={{backgroundColor: globalColors.blue_60, alignSelf: 'center'}}
+              style={{backgroundColor: globalColors.blue, alignSelf: 'center'}}
             />
           </Box>
         </Box>
@@ -86,6 +93,7 @@ export const MultiFollowNotification = (props: Props) => {
           showAnd={!props.numAdditional}
           {...connectedUsernamesProps}
           usernames={usernames}
+          onUsernameClicked={props.onClickUser}
         />
         {!!props.numAdditional && props.numAdditional > 0 && ` and ${props.numAdditional} others `} started
         following you.
@@ -100,7 +108,13 @@ export const MultiFollowNotification = (props: Props) => {
         }}
       >
         {usernames.map(username => (
-          <Avatar username={username} size={32} key={username} style={{marginRight: globalMargins.xtiny}} />
+          <Avatar
+            onClick={() => props.onClickUser(username)}
+            username={username}
+            size={32}
+            key={username}
+            style={{marginRight: globalMargins.xtiny}}
+          />
         ))}
       </ScrollView>
     </PeopleItem>

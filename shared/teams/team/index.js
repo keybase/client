@@ -145,7 +145,7 @@ const SubteamsIntro = ({row}) => (
 )
 
 const SubteamRow = ({row}) => (
-  <Box key={row.teamname + 'row'} style={{marginLeft: globalMargins.tiny}}>
+  <Box key={row.teamname + 'row'}>
     <TeamSubteamRow teamname={row.teamname} />
   </Box>
 )
@@ -565,7 +565,7 @@ class Team extends React.PureComponent<Props> {
                   </Box>
                   <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
                     <Text type="Body">Ignore requests to join this team</Text>
-                    <Text type="BodySmall">You won't be bothered by hordes of fans.</Text>
+                    <Text type="BodySmall">Admins won't be bothered by hordes of fans.</Text>
                   </Box>
                 </Box>
               )}
@@ -626,7 +626,7 @@ class Team extends React.PureComponent<Props> {
         )}
         <Box style={stylesTeamHeader}>
           <Avatar isTeam={true} teamname={name} size={64} />
-          <Text type="Header" style={{marginTop: globalMargins.tiny}}>
+          <Text type="HeaderBig" style={{...globalStyles.selectable, marginTop: globalMargins.tiny}}>
             {name}
           </Text>
           <Text type="BodySmall">TEAM</Text>

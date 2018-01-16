@@ -6,7 +6,7 @@ const ff: FeatureFlags = {
   admin: __DEV__,
   fsEnabled: __DEV__,
   impTeamChatEnabled: true,
-  newPeopleTab: __DEV__,
+  newPeopleTab: true,
   plansEnabled: false,
   tabGitEnabled: true,
   tabPeopleEnabled: false,

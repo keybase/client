@@ -46,6 +46,9 @@ const profileRoute = makeRouteDefNode({
     },
     nonUserProfile: {
       component: NonUserProfile,
+      children: {
+        profile: () => profileRoute,
+      },
     },
     proveEnterUsername,
     proveWebsiteChoice: {
