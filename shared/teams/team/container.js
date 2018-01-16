@@ -234,6 +234,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onInviteByEmail,
     onCreateSubteam,
     onLeaveTeam,
+    onManageChat,
     onOpenFolder,
     onEditDescription,
     onSetOpenTeamRole,
