@@ -1,8 +1,8 @@
 // @noflow
 import logger from '../../../../logger'
-import * as Constants from '../../../../constants/chat'
-import * as Types from '../../../../constants/types/chat'
-import * as ChatGen from '../../../../actions/chat-gen'
+import * as Constants from '../../../../constants/chat2'
+import * as Types from '../../../../constants/types/chat2'
+// import * as Chat2Gen from '../../../../actions/chat2-gen'
 import Notifications from '.'
 import {compose, branch, renderNothing, connect, lifecycle, type TypedState} from '../../../../util/container'
 import {type DeviceType} from '../../../../constants/types/devices'
@@ -55,15 +55,15 @@ const mapStateToProps = (state: TypedState): * => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _resetNotificationSaveState: (conversationIDKey: Types.ConversationIDKey) =>
-    dispatch(ChatGen.createSetNotificationSaveState({conversationIDKey, saveState: 'unsaved'})),
+  _resetNotificationSaveState: (conversationIDKey: Types.ConversationIDKey) => null, // TODO
+  // dispatch(ChatGen.createSetNotificationSaveState({conversationIDKey, saveState: 'unsaved'})),
   onSetNotification: (
     conversationIDKey: Types.ConversationIDKey,
     deviceType: DeviceType,
     notifyType: Types.NotifyType
-  ) => dispatch(ChatGen.createSetNotifications({conversationIDKey, deviceType, notifyType})),
-  onToggleChannelWide: (conversationIDKey: Types.ConversationIDKey) =>
-    dispatch(ChatGen.createToggleChannelWideNotifications({conversationIDKey})),
+  ) => null, // TODO dispatch(ChatGen.createSetNotifications({conversationIDKey, deviceType, notifyType})),
+  onToggleChannelWide: (conversationIDKey: Types.ConversationIDKey) => null, // TODO
+  // dispatch(ChatGen.createToggleChannelWideNotifications({conversationIDKey})),
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {

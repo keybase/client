@@ -1,7 +1,7 @@
 // @noflow
+import * as Chat2Gen from '../actions/chat2-gen'
 import {Channel, type OwnProps} from './channel'
 import {connect, type TypedState} from '../util/container'
-import * as ChatGen from '../actions/chat-gen'
 import {pathSelector} from '../actions/route-tree'
 
 const mapStateToProps = (state: TypedState) => {
@@ -11,10 +11,7 @@ const mapStateToProps = (state: TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch, {convID}: OwnProps) => ({
-  onClick: currentPath =>
-    dispatch(
-      ChatGen.createSelectOrPreviewConversation({conversationIDKey: convID, previousPath: currentPath})
-    ),
+  onClick: currentPath => dispatch(Chat2Gen.createSelectConversation({conversationIDKey: convID})),
 })
 
 const mergeProps = ({currentPath}, {onClick}, ownProps: OwnProps) => {

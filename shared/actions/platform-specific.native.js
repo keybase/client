@@ -8,7 +8,7 @@ import {PushNotificationIOS, CameraRoll, ActionSheetIOS, AsyncStorage} from 'rea
 import {eventChannel} from 'redux-saga'
 import {isDevApplePushToken} from '../local-debug'
 import {isIOS} from '../constants/platform'
-import {isImageFileName} from '../constants/chat'
+// import {isImageFileName} from '../constants/chat'
 
 function requestPushPermissions(): Promise<*> {
   return PushNotifications.requestPermissions()
@@ -54,7 +54,8 @@ type NextURI = string
 function saveAttachmentDialog(filePath: string): Promise<NextURI> {
   let goodPath = filePath
   logger.debug('saveAttachment: ', goodPath)
-  if (isIOS || isImageFileName(goodPath)) {
+  if (isIOS) {
+    // } || isImageFileName(goodPath)) { TODO need this?
     if (!isIOS) {
       goodPath = 'file://' + goodPath
     }

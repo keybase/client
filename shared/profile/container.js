@@ -2,6 +2,7 @@
 import logger from '../logger'
 import * as KBFSGen from '../actions/kbfs-gen'
 import * as TrackerGen from '../actions/tracker-gen'
+import * as Chat2Gen from '../actions/chat2-gen'
 import * as ProfileGen from '../actions/profile-gen'
 import * as Constants from '../constants/tracker'
 import * as Types from '../constants/types/tracker'
@@ -12,7 +13,6 @@ import {createSearchSuggestions} from '../actions/search-gen'
 import {isTesting} from '../local-debug'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
 import {peopleTab} from '../constants/tabs'
-// import {createStartConversation} from '../actions/chat-gen'
 import {connect, type TypedState} from '../util/container'
 
 import type {MissingProof} from '../common-adapters/user-proofs'
@@ -66,7 +66,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState}: OwnProps) => ({
   onAcceptProofs: (username: string) => dispatch(TrackerGen.createFollow({localIgnore: false, username})),
   onBack: () => dispatch(navigateUp()),
   onChangeFriendshipsTab: currentFriendshipsTab => setRouteState({currentFriendshipsTab}),
-  onChat: (myUsername, username) => null, // TODO dispatch(createStartConversation({users: [username, myUsername]})),
+  onChat: username => dispatch(Chat2Gen.createStartConversation({participants: [username]})),
   onClickAvatar: (username: string) => dispatch(ProfileGen.createOnClickAvatar({username})),
   onClickFollowers: (username: string) => dispatch(ProfileGen.createOnClickFollowers({username})),
   onClickFollowing: (username: string) => dispatch(ProfileGen.createOnClickFollowing({username})),
@@ -147,7 +147,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     loading: Constants.isLoading(stateProps.trackerState) && !isTesting,
     onAcceptProofs: () => dispatchProps.onFollow(username),
     onBack: stateProps.profileIsRoot ? null : dispatchProps.onBack,
-    onChat: () => dispatchProps.onChat(stateProps.myUsername, username),
+    onChat: () => dispatchProps.onChat(username),
     onClickAvatar: () => dispatchProps.onClickAvatar(username),
     onClickFollowers: () => dispatchProps.onClickFollowers(username),
     onClickFollowing: () => dispatchProps.onClickFollowing(username),

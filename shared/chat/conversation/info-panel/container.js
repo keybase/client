@@ -3,7 +3,7 @@ import * as Constants2 from '../../../constants/chat2'
 import * as Constants from '../../../constants/chat'
 import * as Types from '../../../constants/types/chat2'
 import * as TeamTypes from '../../../constants/types/teams'
-// import * as ChatGen from '../../../actions/chat-gen'
+import * as Chat2Gen from '../../../actions/chat2-gen'
 import {ConversationInfoPanel, SmallTeamInfoPanel, BigTeamInfoPanel} from '.'
 import {
   compose,
@@ -39,18 +39,12 @@ const mapStateToProps = (state: TypedState) => {
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   _navToRootChat: () => dispatch(navigateTo([chatTab])),
-  _onLeaveConversation: (conversationIDKey: Types.ConversationIDKey) => {
-    // TODO
-    // dispatch(ChatGen.createLeaveConversation({conversationIDKey}))
-  },
-  _onJoinChannel: (selectedConversation: Types.ConversationIDKey) => {
-    // TODO
-    // dispatch(ChatGen.createJoinConversation({conversationIDKey: selectedConversation}))
-  },
-  _onMuteConversation: (conversationIDKey: Types.ConversationIDKey, muted: boolean) => {
-    // TODO
-    // dispatch(ChatGen.createMuteConversation({conversationIDKey, muted}))
-  },
+  _onLeaveConversation: (conversationIDKey: Types.ConversationIDKey) =>
+    dispatch(Chat2Gen.createLeaveConversation({conversationIDKey})),
+  _onJoinChannel: (conversationIDKey: Types.ConversationIDKey) =>
+    dispatch(Chat2Gen.createJoinConversation({conversationIDKey})),
+  _onMuteConversation: (conversationIDKey: Types.ConversationIDKey, muted: boolean) =>
+    dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted})),
   _onShowBlockConversationDialog: (selectedConversation, participants) => {
     dispatch(
       navigateAppend([

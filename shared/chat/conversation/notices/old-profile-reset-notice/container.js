@@ -1,7 +1,7 @@
 // @noflow
-import * as Constants from '../../../../constants/chat'
-import * as Types from '../../../../constants/types/chat'
-import * as ChatGen from '../../../../actions/chat-gen'
+import * as Constants from '../../../../constants/chat2'
+import * as Types from '../../../../constants/types/chat2'
+import * as Chat2Gen from '../../../../actions/chat2-gen'
 import OldProfileResetNotice from '.'
 import {List} from 'immutable'
 import {compose, branch, renderNothing, connect, type TypedState} from '../../../../util/container'
@@ -27,9 +27,9 @@ const mapStateToProps = (state: TypedState) => {
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onOpenConversation: (conversationIDKey: Types.ConversationIDKey) =>
-    dispatch(ChatGen.createOpenConversation({conversationIDKey})),
+    dispatch(Chat2Gen.createSelectConversation({conversationIDKey})),
   startConversation: (users: Array<string>) =>
-    dispatch(ChatGen.createStartConversation({users, forceImmediate: true})),
+    dispatch(Chat2Gen.createStartConversation({participants: users, forceImmediate: true})),
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => ({

@@ -1,12 +1,12 @@
 // @flow
 import * as React from 'react'
 import * as TeamsGen from '../../../actions/teams-gen'
+import * as Chat2Gen from '../../../actions/chat2-gen'
 import {amIFollowing} from '../../../constants/selectors'
 import {TeamRequestRow} from '.'
 import {navigateAppend} from '../../../actions/route-tree'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import {createGetProfile} from '../../../actions/tracker-gen'
-// import {createStartConversation} from '../../../actions/chat-gen'
 import {isMobile} from '../../../constants/platform'
 import {connect, type TypedState} from '../../../util/container'
 
@@ -47,9 +47,8 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
         },
       ])
     ),
-  _onChat: (username, myUsername) => {
-    // TODO
-    // username && myUsername && dispatch(createStartConversation({users: [username, myUsername]}))
+  _onChat: username => {
+    username && dispatch(Chat2Gen.createStartConversation({participants: [username]}))
   },
   _onIgnoreRequest: (teamname: string, username: string) =>
     dispatch(TeamsGen.createIgnoreRequest({teamname, username})),
@@ -60,7 +59,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
     ...ownProps,
     ...dispatchProps,
     ...stateProps,
-    onChat: () => dispatchProps._onChat(ownProps.username, stateProps.you),
+    onChat: () => dispatchProps._onChat(ownProps.username),
     onAccept: () => dispatchProps._onAccept(ownProps.teamname, ownProps.username),
     onIgnoreRequest: () => dispatchProps._onIgnoreRequest(ownProps.teamname, ownProps.username),
   }

@@ -17,6 +17,8 @@ export const badgesUpdated = 'chat2:badgesUpdated'
 export const clearOrdinals = 'chat2:clearOrdinals'
 export const desktopNotification = 'chat2:desktopNotification'
 export const inboxRefresh = 'chat2:inboxRefresh'
+export const joinConversation = 'chat2:joinConversation'
+export const leaveConversation = 'chat2:leaveConversation'
 export const loadMoreMessages = 'chat2:loadMoreMessages'
 export const messageDelete = 'chat2:messageDelete'
 export const messageEdit = 'chat2:messageEdit'
@@ -31,11 +33,16 @@ export const metaReceivedError = 'chat2:metaReceivedError'
 export const metaRequestTrusted = 'chat2:metaRequestTrusted'
 export const metaRequestingTrusted = 'chat2:metaRequestingTrusted'
 export const metasReceived = 'chat2:metasReceived'
+export const muteConversation = 'chat2:muteConversation'
+export const openSelectedFolder = 'chat2:openSelectedFolder'
+export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
+export const resetLetThemIn = 'chat2:resetLetThemIn'
 export const selectConversation = 'chat2:selectConversation'
 export const setInboxFilter = 'chat2:setInboxFilter'
 export const setLoading = 'chat2:setLoading'
 export const setSearching = 'chat2:setSearching'
 export const setupChatHandlers = 'chat2:setupChatHandlers'
+export const startConversation = 'chat2:startConversation'
 
 // Action Creators
 export const createAttachmentSend = (
@@ -68,6 +75,8 @@ export const createInboxRefresh = (
     clearAllData?: boolean,
   }>
 ) => ({error: false, payload, type: inboxRefresh})
+export const createJoinConversation = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: joinConversation})
+export const createLeaveConversation = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: leaveConversation})
 export const createLoadMoreMessages = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: loadMoreMessages})
 export const createMessageDelete = (
   payload: $ReadOnly<{
@@ -136,6 +145,25 @@ export const createMetaRequestTrusted = (
 ) => ({error: false, payload, type: metaRequestTrusted})
 export const createMetaRequestingTrusted = (payload: $ReadOnly<{conversationIDKeys: Array<Types.ConversationIDKey>}>) => ({error: false, payload, type: metaRequestingTrusted})
 export const createMetasReceived = (payload: $ReadOnly<{metas: Array<Types.ConversationMeta>}>) => ({error: false, payload, type: metasReceived})
+export const createMuteConversation = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    muted: boolean,
+  }>
+) => ({error: false, payload, type: muteConversation})
+export const createOpenSelectedFolder = () => ({error: false, payload: undefined, type: openSelectedFolder})
+export const createResetChatWithoutThem = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    username: string,
+  }>
+) => ({error: false, payload, type: resetChatWithoutThem})
+export const createResetLetThemIn = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    username: string,
+  }>
+) => ({error: false, payload, type: resetLetThemIn})
 export const createSelectConversation = (
   payload: $ReadOnly<{
     conversationIDKey: Types.ConversationIDKey,
@@ -151,6 +179,12 @@ export const createSetLoading = (
 ) => ({error: false, payload, type: setLoading})
 export const createSetSearching = (payload: $ReadOnly<{searching: boolean}>) => ({error: false, payload, type: setSearching})
 export const createSetupChatHandlers = () => ({error: false, payload: undefined, type: setupChatHandlers})
+export const createStartConversation = (
+  payload: $ReadOnly<{
+    participants?: ?Array<string>,
+    tlf?: ?string,
+  }>
+) => ({error: false, payload, type: startConversation})
 
 // Action Payloads
 export type AttachmentSendPayload = More.ReturnType<typeof createAttachmentSend>
@@ -159,6 +193,8 @@ export type BadgesUpdatedPayload = More.ReturnType<typeof createBadgesUpdated>
 export type ClearOrdinalsPayload = More.ReturnType<typeof createClearOrdinals>
 export type DesktopNotificationPayload = More.ReturnType<typeof createDesktopNotification>
 export type InboxRefreshPayload = More.ReturnType<typeof createInboxRefresh>
+export type JoinConversationPayload = More.ReturnType<typeof createJoinConversation>
+export type LeaveConversationPayload = More.ReturnType<typeof createLeaveConversation>
 export type LoadMoreMessagesPayload = More.ReturnType<typeof createLoadMoreMessages>
 export type MessageDeletePayload = More.ReturnType<typeof createMessageDelete>
 export type MessageEditPayload = More.ReturnType<typeof createMessageEdit>
@@ -173,11 +209,16 @@ export type MetaReceivedErrorPayload = More.ReturnType<typeof createMetaReceived
 export type MetaRequestTrustedPayload = More.ReturnType<typeof createMetaRequestTrusted>
 export type MetaRequestingTrustedPayload = More.ReturnType<typeof createMetaRequestingTrusted>
 export type MetasReceivedPayload = More.ReturnType<typeof createMetasReceived>
+export type MuteConversationPayload = More.ReturnType<typeof createMuteConversation>
+export type OpenSelectedFolderPayload = More.ReturnType<typeof createOpenSelectedFolder>
+export type ResetChatWithoutThemPayload = More.ReturnType<typeof createResetChatWithoutThem>
+export type ResetLetThemInPayload = More.ReturnType<typeof createResetLetThemIn>
 export type SelectConversationPayload = More.ReturnType<typeof createSelectConversation>
 export type SetInboxFilterPayload = More.ReturnType<typeof createSetInboxFilter>
 export type SetLoadingPayload = More.ReturnType<typeof createSetLoading>
 export type SetSearchingPayload = More.ReturnType<typeof createSetSearching>
 export type SetupChatHandlersPayload = More.ReturnType<typeof createSetupChatHandlers>
+export type StartConversationPayload = More.ReturnType<typeof createStartConversation>
 
 // All Actions
 // prettier-ignore
@@ -188,6 +229,8 @@ export type Actions =
   | More.ReturnType<typeof createClearOrdinals>
   | More.ReturnType<typeof createDesktopNotification>
   | More.ReturnType<typeof createInboxRefresh>
+  | More.ReturnType<typeof createJoinConversation>
+  | More.ReturnType<typeof createLeaveConversation>
   | More.ReturnType<typeof createLoadMoreMessages>
   | More.ReturnType<typeof createMessageDelete>
   | More.ReturnType<typeof createMessageEdit>
@@ -202,9 +245,14 @@ export type Actions =
   | More.ReturnType<typeof createMetaRequestTrusted>
   | More.ReturnType<typeof createMetaRequestingTrusted>
   | More.ReturnType<typeof createMetasReceived>
+  | More.ReturnType<typeof createMuteConversation>
+  | More.ReturnType<typeof createOpenSelectedFolder>
+  | More.ReturnType<typeof createResetChatWithoutThem>
+  | More.ReturnType<typeof createResetLetThemIn>
   | More.ReturnType<typeof createSelectConversation>
   | More.ReturnType<typeof createSetInboxFilter>
   | More.ReturnType<typeof createSetLoading>
   | More.ReturnType<typeof createSetSearching>
   | More.ReturnType<typeof createSetupChatHandlers>
+  | More.ReturnType<typeof createStartConversation>
   | {type: 'common:resetStore', payload: void}

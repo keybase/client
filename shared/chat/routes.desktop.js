@@ -11,7 +11,6 @@ import ManageChannels from './manage-channels/container'
 import {ConnectedMessageAction} from './conversation/messages/popup.desktop'
 import EditChannel from './manage-channels/edit-channel-container'
 import CreateChannel from './create-channel/container'
-import {nothingSelected} from '../constants/chat'
 import Render from './render.desktop'
 import ReallyLeaveTeam from '../teams/really-leave-team/container-chat'
 import {isMobile} from '../constants/platform'
@@ -69,7 +68,7 @@ const conversationRoute = makeRouteDefNode({
 
 const routeTree = makeRouteDefNode({
   containerComponent: Render,
-  defaultSelected: nothingSelected,
+  defaultSelected: '',
   children: () => conversationRoute,
   tags: makeLeafTags({persistChildren: true}),
   initialState: {smallTeamsExpanded: false},

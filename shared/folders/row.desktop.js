@@ -114,7 +114,7 @@ type RowType = {
   smallMode: boolean,
   sortName: string,
   onOpen: (path: string) => void,
-  onChat: (tlf: string, isTeam?: boolean) => void,
+  onChat: (tlf: string) => void,
   onClick: (path: string) => void,
   onRekey: (path: string) => void,
 }
@@ -149,7 +149,7 @@ class Row extends React.PureComponent<RowType & Folder> {
       event.preventDefault()
       event.stopPropagation()
       if (onChat) {
-        onChat(sortName, isTeam)
+        onChat(sortName)
       }
     }
     const styles = isPublic ? stylesPublic : stylesPrivate

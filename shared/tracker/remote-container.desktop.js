@@ -1,6 +1,6 @@
 // @flow
 import * as AppGen from '../actions/app-gen'
-// import * as ChatGen from '../actions/chat-gen'
+import * as Chat2Gen from '../actions/chat2-gen'
 import * as ProfileGen from '../actions/profile-gen'
 import * as TeamsGen from '../actions/teams-gen'
 import * as TrackerGen from '../actions/tracker-gen'
@@ -11,10 +11,9 @@ import {branch, connect, compose, lifecycle, renderNothing, withState, type Disp
 const mapDispatchToProps = (dispatch: Dispatch, {teamname}) => ({
   _checkRequestedAccess: (teamname: string) => dispatch(TeamsGen.createCheckRequestedAccess({teamname})),
   _loadTeams: () => dispatch(TeamsGen.createGetTeams()),
-  _onChat: (username: string, myUsername: string) => {
+  _onChat: (username: string) => {
     dispatch(AppGen.createShowMain())
-    // TODO
-    // dispatch(ChatGen.createStartConversation({users: [username, myUsername]}))
+    dispatch(Chat2Gen.createStartConversation({participants: [username]}))
   },
   _onClickAvatar: (username: string) =>
     dispatch(ProfileGen.createOnClickAvatar({openWebsite: true, username})),
@@ -38,7 +37,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...stateProps,
   ...dispatchProps,
   ...ownProps,
-  onChat: () => dispatchProps._onChat(stateProps.username, stateProps.myUsername),
+  onChat: () => dispatchProps._onChat(stateProps.username),
   onClickAvatar: () => dispatchProps._onClickAvatar(stateProps.username),
   onClose: () => dispatchProps._onClose(stateProps.username),
   onFollow: () => dispatchProps._onFollow(stateProps.username),

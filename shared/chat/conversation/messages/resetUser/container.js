@@ -1,6 +1,6 @@
-// @noflow
+// @flow
 // TODO
-// import * as ChatGen from '../../../../actions/chat-gen'
+import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Constants from '../../../../constants/chat2'
 import * as TrackerGen from '../../../../actions/profile-gen'
 import * as Types from '../../../../constants/types/chat2'
@@ -17,8 +17,10 @@ const mapStateToProps = (state: TypedState, {messageKey}): * => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _chatWithoutThem: (username: string, conversationIDKey: Types.ConversationIDKey) => null, // dispatch(ChatGen.createResetChatWithoutThem({conversationIDKey, username})),
-  _letThemIn: (username: string, conversationIDKey: Types.ConversationIDKey) => null, // dispatch(ChatGen.createResetLetThemIn({conversationIDKey, username})),
+  _chatWithoutThem: (username: string, conversationIDKey: Types.ConversationIDKey) =>
+    dispatch(Chat2Gen.createResetChatWithoutThem({conversationIDKey, username})),
+  _letThemIn: (username: string, conversationIDKey: Types.ConversationIDKey) =>
+    dispatch(Chat2Gen.createResetLetThemIn({conversationIDKey, username})),
   _viewProfile: (username: string) => dispatch(TrackerGen.createShowUserProfile({username})),
 })
 

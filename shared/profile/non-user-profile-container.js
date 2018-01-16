@@ -1,8 +1,8 @@
 // @flow
 import * as KBFSGen from '../actions/kbfs-gen'
+import * as Chat2Gen from '../actions/chat2-gen'
 import {connect, type TypedState} from '../util/container'
 import {privateFolderWithUsers} from '../constants/config'
-// import {createStartConversation} from '../actions/chat-gen'
 import NonUserProfile from './non-user-profile'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
@@ -19,10 +19,9 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
       dispatch(KBFSGen.createOpen({path: privateFolderWithUsers([username, myUsername])}))
     }
   },
-  onStartChat: (myUsername, username) => {
-    if (myUsername && username) {
-      // TODO
-      // dispatch(createStartConversation({users: [username, myUsername]}))
+  onStartChat: (username: string) => {
+    if (username) {
+      dispatch(Chat2Gen.createStartConversation({participants: [username]}))
     }
   },
 })
@@ -32,7 +31,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
   ...dispatchProps,
   onOpenPrivateFolder: () =>
     dispatchProps.onOpenPrivateFolder(stateProps.myUsername, stateProps.fullUsername),
-  onStartChat: () => dispatchProps.onStartChat(stateProps.myUsername, stateProps.fullUsername),
+  onStartChat: () => dispatchProps.onStartChat(stateProps.fullUsername),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(NonUserProfile)

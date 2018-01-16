@@ -1,7 +1,7 @@
 // @noflow
-import * as Constants from '../../../../constants/chat'
-import * as Types from '../../../../constants/types/chat'
-import * as ChatGen from '../../../../actions/chat-gen'
+import * as Constants from '../../../../constants/chat2'
+import * as Types from '../../../../constants/types/chat2'
+import * as Chat2Gen from '../../../../actions/chat2-gen'
 import ProfileResetNotice from '.'
 import {connect, type TypedState} from '../../../../util/container'
 import {type StateProps, type DispatchProps} from './container'
@@ -23,14 +23,12 @@ const mapStateToProps = (state: TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onOpenConversation: (conversationIDKey: Types.ConversationIDKey) =>
-    dispatch(ChatGen.createOpenConversation({conversationIDKey})),
+  _onOpenOlderConversation: (conversationIDKey: Types.ConversationIDKey) =>
+    dispatch(Chat2Gen.createSelectConversation({conversationIDKey, fromUser: true})),
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => ({
-  onOpenOlderConversation: () => {
-    dispatchProps.onOpenConversation(stateProps.prevConversationIDKey)
-  },
+  onOpenOlderConversation: () => dispatchProps._onOpenOlderConversation(stateProps.prevConversationIDKey),
   username: stateProps.username,
 })
 

@@ -15,6 +15,14 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "fromUser?": "boolean" // true if this is a direct result of the user clicking
     },
+    // Select an existing conversation or setup an empty one. Can either be adhoc or
+    // a tlf (adhoc or team)
+    // if forceImmediate make it even without any text
+    "startConversation":{
+      "participants?": "?Array<string>",
+      "tlf?": "?string",
+      "forceImmediate?": "boolean"
+    },
     // We got updated badges
     "badgesUpdated": {
       "conversations": "Array<RPCTypes.BadgeConversationInfo>"
@@ -123,6 +131,26 @@
       "filename": "string",
       "title": "string",
       "preview": "RPCChatTypes.MakePreviewRes"
-    }
+    },
+    "joinConversation": {
+      "conversationIDKey": "Types.ConversationIDKey",
+    },
+    "leaveConversation": {
+      "conversationIDKey": "Types.ConversationIDKey",
+    },
+    "muteConversation": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "muted": "boolean"
+    },
+    "openSelectedFolder": {
+    },
+    "resetChatWithoutThem": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "username": "string"
+    },
+    "resetLetThemIn": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "username": "string"
+    },
   }
 }

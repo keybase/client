@@ -1,5 +1,5 @@
 // @flow
-import ChatMap from '../../chat/dumb'
+// import ChatMap from '../../chat/dumb'
 import CommonMap from '../../common-adapters/dumb'
 import DevicePageMap from '../../devices/device-page/dumb'
 import DeviceRevokeMap from '../../devices/device-revoke/dumb'
@@ -10,7 +10,7 @@ import FoldersConfirmMap from '../../folders/confirm/dumb'
 // import FoldersMap from '../../folders/dumb'
 import LoginMap from '../../login/dumb'
 // import MenubarMap from '../../menubar/dumb.desktop'
-import MessagesMap from '../../chat/conversation/messages/dumb'
+// import MessagesMap from '../../chat/conversation/messages/dumb'
 import MessageNoticesMap from '../../chat/conversation/notices/dumb'
 import PinentryMap from '../../pinentry/dumb.desktop'
 import ProfileMap from '../../profile/dumb'
@@ -23,7 +23,7 @@ import TrackerMap from '../../tracker/dumb.desktop'
 import UnlockFoldersMap from '../../unlock-folders/dumb'
 
 const map: any = {
-  ...ChatMap,
+  // ...ChatMap,
   ...CommonMap,
   ...DevicePageMap,
   ...DeviceRevokeMap,
@@ -33,7 +33,7 @@ const map: any = {
   // ...FoldersMap,
   ...LoginMap,
   // ...MenubarMap,
-  ...MessagesMap,
+  // ...MessagesMap,
   ...MessageNoticesMap,
   ...PinentryMap,
   ...ProfileMap,
