@@ -776,6 +776,25 @@ const startConversation = (action: Chat2Gen.StartConversationPayload, state: Typ
 
 const bootstrapSuccess = () => Saga.put(Chat2Gen.createInboxRefresh({reason: 'bootstrap'}))
 
+const selectTheNewestConversation = (action: any, state: TypedState) => {
+  // already something?
+  if (state.chat2.selectedConversation) {
+    return
+  }
+
+  const meta = state.chat2.metaMap
+    .filter(meta => meta.teamType !== 'big')
+    .sort((a, b) => b.timestamp - a.timestamp)
+    .first()
+  if (meta) {
+    return Saga.put(
+      Chat2Gen.createSelectConversation({
+        conversationIDKey: meta.conversationIDKey,
+      })
+    )
+  }
+}
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Refresh the inbox
   yield Saga.safeTakeEveryPure(
@@ -821,6 +840,9 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, exitSearch)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.startConversation, startConversation)
+
+  // Anything that means we should try and select
+  yield Saga.safeTakeEveryPure([Chat2Gen.metasReceived], selectTheNewestConversation)
 
   if (!isMobile) {
     yield Saga.safeTakeEveryPure(Chat2Gen.desktopNotification, desktopNotify)
