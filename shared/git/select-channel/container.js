@@ -16,7 +16,7 @@ export type SelectChannelProps = {
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const teamname = routeProps.get('teamname')
-  const _convIDs = state.entities.getIn(['teams', 'teamNameToConvIDs', teamname], I.Map())
+  const _convIDs = state.entities.getIn(['teams', 'teamNameToConvIDs', teamname], I.Set())
   const _channelInfo = state.entities.getIn(['teams', 'convIDToChannelInfo'], I.Map())
   return {
     _channelInfo,
@@ -42,9 +42,12 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const channelNames = stateProps._convIDs.map(
-    (id: string) => stateProps._channelInfo.get(id, {}).channelname
-  )
+  const convIDs = stateProps._convIDs.toArray()
+  // Without the .filter we get a bunch of intermediate arrays of [undefined, undefined, ...] leading
+  // to React key prop errors
+  const channelNames = convIDs
+    .map((id: string) => stateProps._channelInfo.get(id, {}).channelname)
+    .filter(name => !!name)
   return {
     ...stateProps,
     ...dispatchProps,
