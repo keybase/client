@@ -52,7 +52,7 @@ function usernameText({
           {u.username}
         </Text>
         {i !== users.length - 1 &&
-        users.length > 2 && ( // Injecting the commas here so we never wrap and have newlines starting with a ,
+        (!inlineGrammar || users.length > 2) && ( // Injecting the commas here so we never wrap and have newlines starting with a ,
             <Text
               type={type}
               backgroundMode={backgroundMode}
