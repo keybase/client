@@ -36,7 +36,7 @@ const _tabs = [
   ...(flags.tabPeopleEnabled ? [Tabs.peopleTab] : []),
   Tabs.chatTab,
   Tabs.folderTab,
-  ...(flags.teamChatEnabled ? [Tabs.teamsTab] : []),
+  Tabs.teamsTab,
   Tabs.devicesTab,
   ...(flags.tabGitEnabled ? [Tabs.gitTab] : []),
   Tabs.settingsTab,
