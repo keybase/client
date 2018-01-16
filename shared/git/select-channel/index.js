@@ -32,7 +32,13 @@ export default (props: Props) => (
         }}
       >
         {props.channelNames.map(name => (
-          <Box key={name} style={globalStyles.flexBoxRow}>
+          <Box
+            key={name}
+            style={
+              (globalStyles.flexBoxRow,
+              {paddingLeft: globalMargins.medium, paddingRight: globalMargins.medium})
+            }
+          >
             <RadioButton
               label={name}
               selected={props.selected === name}
