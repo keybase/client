@@ -168,7 +168,10 @@ func (tx *AddMemberTx) AddMemberTransaction(ctx context.Context, username string
 		// TODO: Might be able to collapse the two assertions together - the one
 		// above with team.IsMember and this one which checking Uid/Eldest.
 
-		if existingUV.EldestSeqno > uv.EldestSeqno {
+		// There is an edge case where user is in the middle of
+		// resetting (after reset, before provisioning) and has
+		// EldestSeqno=0.
+		if !inviteRequired && existingUV.EldestSeqno > uv.EldestSeqno {
 			return fmt.Errorf("newer version of user %s (uid:%s) already exists in the team %q (%v > %v)",
 				normalizedUsername, uv.Uid, team.Name(), existingUV.EldestSeqno, uv.EldestSeqno)
 		}
