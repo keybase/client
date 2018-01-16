@@ -19,22 +19,6 @@ type Props = {
 }
 
 class Nav extends React.Component<Props> {
-  shouldComponentUpdate(nextProps: Props) {
-    // specialized comparison here since we really don't want to render thrash
-    const equal = shallowEqual(this.props, nextProps, (obj, oth, key) => {
-      // Use immutable comparison for these props
-      if (['layerScreens', 'routePath'].includes(key)) {
-        return this.props[key].equals(nextProps[key])
-      }
-      if (key === 'visibleScreen') {
-        return this.props.visibleScreen.path.equals(nextProps.visibleScreen.path)
-      }
-      return undefined
-    })
-
-    return !equal
-  }
-
   render() {
     const {routeSelected, routePath, visibleScreen, layerScreens} = this.props
     return (
