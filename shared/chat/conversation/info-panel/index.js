@@ -86,37 +86,32 @@ type infoPanelProps = {
 type ConversationInfoPanelProps = infoPanelProps & {
   onShowBlockConversationDialog: () => void,
   onShowNewTeamDialog: () => void,
-  showTeamButton: boolean,
 }
 
 const _ConversationInfoPanel = (props: ConversationInfoPanelProps) => (
   <ScrollView style={scrollViewStyle} contentContainerStyle={contentContainerStyle}>
     <Participants participants={props.participants} onShowProfile={props.onShowProfile} />
 
-    <Divider style={{marginBottom: 20, marginTop: props.showTeamButton ? 10 : 20}} />
+    <Divider style={{marginBottom: 20, marginTop: 10}} />
 
-    {props.showTeamButton ? (
-      <ButtonBar>
-        <Button type="Primary" small={true} label="Turn into team" onClick={props.onShowNewTeamDialog} />
-      </ButtonBar>
-    ) : null}
+    <ButtonBar>
+      <Button type="Primary" small={true} label="Turn into team" onClick={props.onShowNewTeamDialog} />
+    </ButtonBar>
 
-    {props.showTeamButton ? (
-      <Text
-        style={{
-          alignSelf: 'center',
-          marginLeft: globalMargins.small,
-          marginRight: globalMargins.small,
-          marginTop: globalMargins.tiny,
-          textAlign: 'center',
-        }}
-        type="BodySmall"
-      >
-        You'll be able to add and delete members as you wish.
-      </Text>
-    ) : null}
+    <Text
+      style={{
+        alignSelf: 'center',
+        marginLeft: globalMargins.small,
+        marginRight: globalMargins.small,
+        marginTop: globalMargins.tiny,
+        textAlign: 'center',
+      }}
+      type="BodySmall"
+    >
+      You'll be able to add and delete members as you wish.
+    </Text>
 
-    {props.showTeamButton ? <Divider style={styleDivider} /> : null}
+    <Divider style={styleDivider} />
 
     <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute entire conversation" />
 

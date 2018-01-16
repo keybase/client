@@ -12,7 +12,6 @@ import {createSelector} from 'reselect'
 import {navigateAppend, navigateTo} from '../../../actions/route-tree'
 import {chatTab, teamsTab} from '../../../constants/tabs'
 import {createShowUserProfile} from '../../../actions/profile-gen'
-import flags from '../../../util/feature-flags'
 import * as ChatTypes from '../../../constants/types/rpc-chat-gen'
 
 const getParticipants = createSelector(
@@ -68,7 +67,6 @@ const mapStateToProps = (state: TypedState): StateProps => {
   }
   const channelname = inbox.get('channelname')
   const teamname = inbox.get('teamname')
-  const showTeamButton = flags.teamChatEnabled
 
   let admin = false
   if (teamname) {
@@ -83,7 +81,6 @@ const mapStateToProps = (state: TypedState): StateProps => {
     muted: Constants.getMuted(state),
     participants: getParticipants(state),
     selectedConversationIDKey,
-    showTeamButton,
     teamname,
   }
 }

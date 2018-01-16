@@ -8,9 +8,6 @@ const ff: FeatureFlags = {
   impTeamChatEnabled: true,
   newPeopleTab: true,
   plansEnabled: false,
-  tabGitEnabled: true,
-  tabPeopleEnabled: false,
-  teamChatEnabled: true,
 }
 
 if (__DEV__) {
