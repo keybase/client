@@ -415,6 +415,7 @@ function* _chatInboxFailedSubSaga(params: RPCChatTypes.ChatUiChatInboxFailedRpcP
       : RPCChatTypes.commonConversationMemberStatus.active,
     status: Constants.ConversationStatusByEnum[error.remoteConv.metadata.status],
     version: error.remoteConv.metadata.version,
+    name: error.unverifiedTLFName,
     teamname,
   })
 
