@@ -283,6 +283,12 @@ func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 			return err
 		}
 
+		if inviteRequired && !uv.Uid.Exists() {
+			// Handle social invites without transactions.
+			res, err = t.InviteMember(ctx, username, role, resolvedUsername, uv)
+			return err
+		}
+
 		// TODO: Recreate this in transactions.go
 		// TODO: Or remove commented code if we don't.
 		// timeoutCtx, timeoutCancel := context.WithTimeout(ctx, 2*time.Second)
