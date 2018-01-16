@@ -52,9 +52,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const convIDs = stateProps._convIDs.toArray()
   // Without the .filter we get a bunch of intermediate arrays of [undefined, undefined, ...] leading
   // to React key prop errors
-  const channelNames = convIDs
-    .map((id: string) => stateProps._channelInfo.get(id, {}).channelname)
-    .filter(name => !!name)
+  const channelNames = convIDs.reduce((result: Array<string>, id: string) => {
+    const channelname = stateProps._channelInfo.get(id, {}).channelname
+    !!channelname && result.push(channelname)
+    return result
+  }, [])
   return {
     ...stateProps,
     ...dispatchProps,
