@@ -160,6 +160,8 @@ func newFailingRemote(t *testing.T) failingRemote {
 	}
 }
 
+var _ chat1.RemoteInterface = (*failingRemote)(nil)
+
 func (f failingRemote) GetInboxRemote(context.Context, chat1.GetInboxRemoteArg) (chat1.GetInboxRemoteRes, error) {
 	require.Fail(f.t, "GetInboxRemote call")
 	return chat1.GetInboxRemoteRes{}, nil
@@ -311,6 +313,16 @@ func (f failingRemote) SetGlobalAppNotificationSettings(ctx context.Context, arg
 func (f failingRemote) GetGlobalAppNotificationSettings(ctx context.Context) (chat1.GlobalAppNotificationSettings, error) {
 	require.Fail(f.t, "GetGlobalAppNotificationSettings")
 	return chat1.GlobalAppNotificationSettings{}, nil
+}
+
+func (f failingRemote) SetConvRetention(ctx context.Context, _ chat1.SetConvRetentionArg) (res chat1.SetRetentionRes, err error) {
+	require.Fail(f.t, "SetConvRetention")
+	return res, errors.New("SetConvRetention not mocked")
+}
+
+func (f failingRemote) SetTeamRetention(ctx context.Context, _ chat1.SetTeamRetentionArg) (res chat1.SetRetentionRes, err error) {
+	require.Fail(f.t, "SetTeamRetention")
+	return res, errors.New("SetTeamRetention not mocked")
 }
 
 type failingTlf struct {

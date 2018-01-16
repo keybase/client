@@ -188,6 +188,14 @@ protocol common {
     string newTLFName;
   }
 
+  record Expunge {
+    // Delete upto this message ID (exclusive)
+    MessageID upto;
+    // The message that justifies this deletion.
+    // Can point to a DeleteHistory message or be 0 in the case of a retention sweep.
+    MessageID basis;
+  }
+
   record ConversationMetadata  {
     ConversationIDTriple idTriple;
     ConversationID conversationID;
@@ -197,6 +205,10 @@ protocol common {
     TeamType teamType;
     ConversationExistence existence;
     ConversationVers version;
+    // The latest history deletion. Defaults to zeroes.
+    Expunge expunge;
+    union { null, RetentionPolicy } convRetention;
+    union { null, RetentionPolicy } teamRetention;
 
     // Finalize info for underlying TLF (only makes sense for KBFS convos)
     union { null, ConversationFinalizeInfo } finalizeInfo;
@@ -376,4 +388,27 @@ protocol common {
     case VERSIONHIT: void;
     case FULL: InboxViewFull;
   }
+
+  enum RetentionPolicyType {
+    NONE_0,
+    RETAIN_1, // Keep messages forever
+    EXPIRE_2, // Delete afer a while
+    INHERIT_3 // Use the team's policy
+  }
+
+  variant RetentionPolicy switch (RetentionPolicyType typ){
+    case RETAIN: RpRetain;
+    case EXPIRE: RpExpire;
+    case INHERIT: RpInherit;
+  }
+
+  record RpRetain {}
+
+  record RpExpire {
+    // Delete messages older than this.
+    gregor1.DurationSec age;
+  }
+
+  record RpInherit {}
+
 }

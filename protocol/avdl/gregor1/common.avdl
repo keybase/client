@@ -92,7 +92,7 @@ protocol common {
   @typedef("bytes") record MsgID {}
   @typedef("bytes") record DeviceID {}
   @typedef("bytes") record Body {}
-  @typedef("long") record Time {}
+  @typedef("long") record Time {} // ms since epoch
   @typedef("string") record SessionID {}
   @typedef("string") record SessionToken {}
 }

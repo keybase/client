@@ -4,7 +4,7 @@ import * as C from '../../constants/people'
 import {Provider} from 'react-redux'
 import {createStore} from 'redux'
 import {Set} from 'immutable'
-import {storiesOf} from '../../stories/storybook'
+import {action, storiesOf} from '../../stories/storybook'
 import FollowNotification, {type Props} from '.'
 import moment from 'moment'
 
@@ -20,6 +20,7 @@ const singleFollowProps1: Props = {
   newFollows: [C.makeFollowedNotification({username: 'mmaxim'})],
   badged: true,
   notificationTime: new Date(),
+  onClickUser: action('onClickUser'),
 }
 
 const singleFollowProps2: Props = {
@@ -29,6 +30,7 @@ const singleFollowProps2: Props = {
   notificationTime: moment()
     .subtract(3, 'days')
     .toDate(),
+  onClickUser: action('onClickUser'),
 }
 
 const multiFollowProps1: Props = {
@@ -43,6 +45,7 @@ const multiFollowProps1: Props = {
     .subtract(3, 'weeks')
     .toDate(),
   numAdditional: 0,
+  onClickUser: action('onClickUser'),
 }
 
 const multiFollowProps2: Props = {
@@ -58,6 +61,7 @@ const multiFollowProps2: Props = {
     .subtract(3, 'months')
     .toDate(),
   numAdditional: 5,
+  onClickUser: action('onClickUser'),
 }
 
 const load = () => {

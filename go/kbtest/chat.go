@@ -782,6 +782,14 @@ func (m *ChatRemoteMock) S3Sign(context.Context, chat1.S3SignArg) ([]byte, error
 	return nil, errors.New("GetS3Params not mocked")
 }
 
+func (m *ChatRemoteMock) SetConvRetention(ctx context.Context, _ chat1.SetConvRetentionArg) (res chat1.SetRetentionRes, err error) {
+	return res, errors.New("SetConvRetention not mocked")
+}
+
+func (m *ChatRemoteMock) SetTeamRetention(ctx context.Context, _ chat1.SetTeamRetentionArg) (res chat1.SetRetentionRes, err error) {
+	return res, errors.New("SetTeamRetention not mocked")
+}
+
 type NonblockInboxResult struct {
 	ConvID   chat1.ConversationID
 	Err      error
