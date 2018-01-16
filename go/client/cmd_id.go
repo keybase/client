@@ -49,6 +49,7 @@ func (v *CmdID) makeArg() keybase1.Identify2Arg {
 		NeedProofSet:     true,
 		AllowEmptySelfID: true,
 		NoSkipSelf:       true,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 	}
 }
 
