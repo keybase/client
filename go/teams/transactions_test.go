@@ -24,8 +24,17 @@ func TestTransactions1(t *testing.T) {
 	require.NoError(t, err)
 
 	tx := CreateAddMemberTx(team)
-	tx.AddMemberTransaction(context.Background(), tc.G, other.Username, keybase1.TeamRole_WRITER)
+	//tx.AddMemberTransaction(context.Background(), tc.G, "t_rosetta", keybase1.TeamRole_READER)
 	tx.AddMemberTransaction(context.Background(), tc.G, "t_alice", keybase1.TeamRole_WRITER)
+	tx.AddMemberTransaction(context.Background(), tc.G, other.Username, keybase1.TeamRole_WRITER)
+	tx.AddMemberTransaction(context.Background(), tc.G, "t_tracy", keybase1.TeamRole_ADMIN)
+
+	// 3rd add (pukless member) should re-use first signature instead
+	// of creating new one.
+	require.Equal(t, 2, len(tx.payloads))
 
 	spew.Dump(tx.payloads)
+
+	err = tx.Post(context.Background(), tc.G)
+	require.NoError(t, err)
 }

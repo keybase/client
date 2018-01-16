@@ -107,20 +107,20 @@ func (tx *AddMemberTx) CreateInvite(uv keybase1.UserVersion, role keybase1.TeamR
 	return nil
 }
 
-func (tx *AddMemberTx) SweepMembers(uv keybase1.UserVersion) {
+func (tx *AddMemberTx) SweepMembers(uid keybase1.UID) {
 	team := tx.team
 	for chainUv := range team.chain().inner.UserLog {
-		if chainUv.Uid == uv.Uid && team.chain().getUserRole(chainUv) != keybase1.TeamRole_NONE {
+		if chainUv.Uid == uid && team.chain().getUserRole(chainUv) != keybase1.TeamRole_NONE {
 			tx.RemoveMember(chainUv)
 		}
 	}
 }
 
-func (tx *AddMemberTx) SweepKeybaseInvites(uv keybase1.UserVersion) {
+func (tx *AddMemberTx) SweepKeybaseInvites(uid keybase1.UID) {
 	team := tx.team
 	for _, invite := range team.chain().inner.ActiveInvites {
 		if inviteUv, err := invite.KeybaseUserVersion(); err == nil {
-			if inviteUv.Uid == uv.Uid {
+			if inviteUv.Uid == uid {
 				tx.CancelInvite(invite.Id)
 			}
 		}
@@ -168,8 +168,8 @@ func (tx *AddMemberTx) AddMemberTransaction(ctx context.Context, g *libkb.Global
 	}
 	// TODO: Complete invite using curInvite in tx.AddMember branch.
 
-	tx.SweepMembers(uv)        // Sweep all existing crypto members
-	tx.SweepKeybaseInvites(uv) // Sweep all existing keybase type invites
+	tx.SweepMembers(uv.Uid)        // Sweep all existing crypto members
+	tx.SweepKeybaseInvites(uv.Uid) // Sweep all existing keybase type invites
 
 	if inviteRequired {
 		tx.CreateInvite(uv, role)
@@ -181,7 +181,7 @@ func (tx *AddMemberTx) AddMemberTransaction(ctx context.Context, g *libkb.Global
 
 func (tx *AddMemberTx) Post(ctx context.Context, g *libkb.GlobalContext) error {
 	if len(tx.payloads) == 0 {
-		return errors.New("There are no sigs to post")
+		return errors.New("there are no signatures to post")
 	}
 	team := tx.team
 
@@ -195,6 +195,7 @@ func (tx *AddMemberTx) Post(ctx context.Context, g *libkb.GlobalContext) error {
 		return err
 	}
 
+	// Get admin permission, we will use the same one for all sigs.
 	admin, err := team.getAdminPermission(ctx, true)
 	if err != nil {
 		return err
@@ -274,6 +275,7 @@ func (tx *AddMemberTx) Post(ctx context.Context, g *libkb.GlobalContext) error {
 	if perTeamKeySection != nil {
 		// We have a new per team key, find first TeamChangeReq
 		// section created and add perTeamKeySection.
+		// TODO: Should it be the first ChangeMembership sig or the last?
 		for i, v := range tx.payloads {
 			if _, ok := v.(*keybase1.TeamChangeReq); ok {
 				sections[i].PerTeamKey = perTeamKeySection
@@ -300,7 +302,7 @@ func (tx *AddMemberTx) Post(ctx context.Context, g *libkb.GlobalContext) error {
 			return err
 		}
 
-		nextSeqno += 1
+		nextSeqno++
 		latestLinkID = linkID
 		readySigs = append(readySigs, sigMultiItem)
 	}
