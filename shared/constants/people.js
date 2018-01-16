@@ -13,6 +13,19 @@ export const todoTypeEnumToType: {[key: Types.TodoTypeEnum]: Types.TodoType} = i
   RPCTypes.homeHomeScreenTodoType
 )
 
+export const todoTypes: {[key: Types.TodoType]: Types.TodoType} = {
+  bio: 'bio',
+  proof: 'proof',
+  device: 'device',
+  follow: 'follow',
+  chat: 'chat',
+  paperkey: 'paperkey',
+  team: 'team',
+  folder: 'folder',
+  gitRepo: 'gitRepo',
+  teamShowcase: 'teamShowcase',
+}
+
 export const todoTypeToInstructions: {[key: Types.TodoType]: string} = {
   bio: 'Add your name, bio, and location to complete your profile.',
   proof: 'Add some proofs to your profile. The more you have, the stronger your cryptographic identity.',
