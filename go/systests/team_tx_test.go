@@ -34,29 +34,21 @@ func TestTeamTransactions(t *testing.T) {
 
 	// TRANSACTION 1 - add bob (keybase-type invite) and tracy (crypto member)
 
-	teamObj, err := teams.Load(context.Background(), ann.tc.G, keybase1.LoadTeamArg{
-		Name:      team,
-		NeedAdmin: true,
-	})
-	require.NoError(t, err)
+	teamObj := ann.loadTeam(team, true /* admin */)
 
 	tx := teams.CreateAddMemberTx(teamObj)
 	tx.AddMemberTransaction(context.Background(), bob.username, keybase1.TeamRole_WRITER)
 	tx.AddMemberTransaction(context.Background(), tracy.username, keybase1.TeamRole_READER)
 
-	err = tx.Post(context.Background())
+	err := tx.Post(context.Background())
 	require.NoError(t, err)
 
-	// TRANSACTION 2 - bob gets puk, add bob but not through SBS.
+	// TRANSACTION 2 - bob gets puk, add bob but not through SBS - we
+	// expect the invite to be sweeped away by this transaction.
 
 	bob.perUserKeyUpgrade()
 
-	teamObj, err = teams.Load(context.Background(), ann.tc.G, keybase1.LoadTeamArg{
-		Name:        team,
-		NeedAdmin:   true,
-		ForceRepoll: true,
-	})
-	require.NoError(t, err)
+	teamObj = ann.loadTeam(team, true /* admin */)
 
 	tx = teams.CreateAddMemberTx(teamObj)
 	tx.AddMemberTransaction(context.Background(), bob.username, keybase1.TeamRole_WRITER)
@@ -65,6 +57,8 @@ func TestTeamTransactions(t *testing.T) {
 
 	err = tx.Post(context.Background())
 	require.NoError(t, err)
+
+	teamObj = ann.loadTeam(team, true /* admin */)
 }
 
 func TestTeamTxDependency(t *testing.T) {
@@ -117,11 +111,7 @@ func TestTeamTxDependency(t *testing.T) {
 	// read them as pukless. invite signature for bob@keybase would
 	// have a dependency on change_signature sweeping bob.
 
-	teamObj, err := teams.Load(context.Background(), ann.tc.G, keybase1.LoadTeamArg{
-		Name:      team,
-		NeedAdmin: true,
-	})
-	require.NoError(t, err)
+	teamObj := ann.loadTeam(team, true /* admin */)
 
 	tx := teams.CreateAddMemberTx(teamObj)
 	tx.AddMemberTransaction(context.Background(), tracy.username, keybase1.TeamRole_READER)
@@ -132,6 +122,6 @@ func TestTeamTxDependency(t *testing.T) {
 	// require.Equal(t, 3, len(payloads))
 	_ = payloads
 
-	err = tx.Post(context.Background())
+	err := tx.Post(context.Background())
 	require.NoError(t, err)
 }

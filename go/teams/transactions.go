@@ -133,10 +133,11 @@ func (tx *AddMemberTx) AddMemberTransaction(ctx context.Context, username string
 
 	inviteRequired := false
 	normalizedUsername, uv, err := loadUserVersionPlusByUsername(ctx, g, username)
+	g.Log.CDebugf(ctx, "AddMemberTransaction: loaded user %q -> (%q, %v, %v)", username, normalizedUsername, uv, err)
 	if err != nil {
 		if err == errInviteRequired {
 			inviteRequired = true
-			g.Log.CDebugf(ctx, "Invite required for %+v", uv)
+			g.Log.CDebugf(ctx, "Invite required for %v", uv)
 		} else {
 			return err
 		}
@@ -177,20 +178,21 @@ func (tx *AddMemberTx) AddMemberTransaction(ctx context.Context, username string
 	tx.SweepKeybaseInvites(uv.Uid) // Sweep all existing keybase type invites
 
 	if inviteRequired {
-		tx.CreateInvite(uv, role)
-	} else {
-		tx.AddMember(uv, role)
+		return tx.CreateInvite(uv, role)
 	}
-	return nil
+	return tx.AddMember(uv, role)
 }
 
-func (tx *AddMemberTx) Post(ctx context.Context) error {
+func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 	if len(tx.payloads) == 0 {
 		return errors.New("there are no signatures to post")
 	}
 
 	team := tx.team
 	g := team.G()
+
+	defer g.CTrace(ctx, "AddMemberTx.Post", func() error { return err })()
+	g.Log.CDebugf(ctx, "AddMemberTx: Attempting to post %d signatures", len(tx.payloads))
 
 	// Initialize key manager.
 	if _, err := team.SharedSecret(ctx); err != nil {
@@ -308,6 +310,8 @@ func (tx *AddMemberTx) Post(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
+
+		g.Log.CDebugf(ctx, "AddMemberTx: Prepared signature %d: Type: %v SeqNo: %d Hash: %q", i, linkType, nextSeqno, linkID)
 
 		nextSeqno++
 		latestLinkID = linkID
