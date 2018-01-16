@@ -1,6 +1,6 @@
 {
   "prelude": [
-    "import * as ChatTypes from '../constants/types/chat'",
+    "import * as ChatTypes from '../constants/types/chat2'",
     "import * as Types from '../constants/types/teams'"
   ],
   "actions": {
@@ -31,7 +31,7 @@
     },
     "getTeamOperations": {
       "teamname": "string"
-    },    
+    },
     "saveChannelMembership": {
       "teamname": "string",
       "channelState": "Types.ChannelMembershipState"

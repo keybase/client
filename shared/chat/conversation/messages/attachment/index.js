@@ -5,7 +5,7 @@ import * as Types from '../../../../constants/types/chat2'
 // import {Box, Icon, ProgressIndicator, Text, ClickableBox} from '../../../../common-adapters'
 // import {isMobile, fileUIName} from '../../../../constants/platform'
 // import {globalStyles, globalMargins, globalColors} from '../../../../styles'
-import {imgMaxWidth} from './image'
+// import {imgMaxWidth} from './image'
 // import {ImageRender, imgMaxWidth} from './image'
 
 // const maxWidth = imgMaxWidth()

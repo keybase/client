@@ -1,4 +1,4 @@
-// @flow
+// @noflow
 import logger from '../../../../logger'
 import * as Constants from '../../../../constants/chat'
 import * as Types from '../../../../constants/types/chat'

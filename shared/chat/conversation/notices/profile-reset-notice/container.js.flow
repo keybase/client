@@ -1,6 +1,6 @@
 // @flow
 import {Component} from 'react'
-import * as Types from '../../../../constants/types/chat'
+import * as Types from '../../../../constants/types/chat2'
 
 export type StateProps = {|
   username: string,

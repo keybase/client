@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import * as Types from '../../../../constants/types/chat'
+import * as Types from '../../../../constants/types/chat2'
 
 export type StateProps = {|
   selectedConversationIDKey: Types.ConversationIDKey,

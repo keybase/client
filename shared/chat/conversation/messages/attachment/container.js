@@ -1,5 +1,4 @@
 // @flow
-// import * as Types from '../../../../constants/types/chat'
 // import * as ChatGen from '../../../../actions/chat-gen'
 // import * as KBFSGen from '../../../../actions/kbfs-gen'
 import Attachment from '.'

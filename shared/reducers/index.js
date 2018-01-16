@@ -1,6 +1,5 @@
 // @flow
 import logger from '../logger'
-import chat from './chat'
 import chat2 from './chat2'
 import config from './config'
 import dev from './dev'
@@ -30,7 +29,6 @@ import {reducerTimer} from '../dev/user-timings'
 import type {TypedState} from '../constants/reducer'
 
 const reducers = {
-  chat,
   chat2,
   config,
   dev,

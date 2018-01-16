@@ -1,9 +1,9 @@
-// @flow
+// @noflow
 import React, {Component} from 'react'
 import {Box, Button, Icon, Input, PopupDialog, Text, ButtonBar} from '../../../common-adapters/index'
 import {globalColors, globalStyles, isMobile} from '../../../styles'
-import type {Props} from '.'
 
+type Props = {}
 type State = {
   index: number,
   title: string,

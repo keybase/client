@@ -1,4 +1,4 @@
-// @flow
+// @noflow
 import * as React from 'react'
 import {Box, Checkbox, Icon, RadioButton, ProgressIndicator, Text} from '../../../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../../styles'

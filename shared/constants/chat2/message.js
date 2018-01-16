@@ -7,7 +7,7 @@ import * as RPCTypes from '../types/rpc-gen'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as Types from '../types/chat2'
 import HiddenString from '../../util/hidden-string'
-import clamp from 'lodash/clamp'
+// import clamp from 'lodash/clamp'
 import {isMobile} from '../platform'
 import type {TypedState} from '../reducer'
 
@@ -119,17 +119,17 @@ const channelMentionToMentionsChannel = (channelMention: RPCChatTypes.ChannelMen
   }
 }
 
-const maxAttachmentPreviewSize = 320
-const clampAttachmentPreviewSize = (width: number, height: number) =>
-  height > width
-    ? {
-        height: clamp(height || 0, 0, maxAttachmentPreviewSize),
-        width: clamp(height || 0, 0, maxAttachmentPreviewSize) * width / (height || 1),
-      }
-    : {
-        height: clamp(width || 0, 0, maxAttachmentPreviewSize) * height / (width || 1),
-        width: clamp(width || 0, 0, maxAttachmentPreviewSize),
-      }
+// const maxAttachmentPreviewSize = 320
+// const clampAttachmentPreviewSize = (width: number, height: number) =>
+// height > width
+// ? {
+// height: clamp(height || 0, 0, maxAttachmentPreviewSize),
+// width: clamp(height || 0, 0, maxAttachmentPreviewSize) * width / (height || 1),
+// }
+// : {
+// height: clamp(width || 0, 0, maxAttachmentPreviewSize) * height / (width || 1),
+// width: clamp(width || 0, 0, maxAttachmentPreviewSize),
+// }
 
 const uiMessageToSystemMessage = (minimum, body): ?Types.Message => {
   switch (body.systemType) {
@@ -251,7 +251,7 @@ export const uiMessageToMessage = (
           text: new HiddenString(rawText),
         })
       case RPCChatTypes.commonMessageType.attachment: {
-        const attachment = m.messageBody.attachment || {}
+        // const attachment = m.messageBody.attachment || {}
         // const {filename, title, mimeType, metadata} = attachment.object
         // const metadataVideo =
         // metadata.assetType === RPCChatTypes.localAssetMetadataType.video ? metadata.video : null

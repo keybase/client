@@ -2,7 +2,7 @@
 import logger from '../logger'
 import * as I from 'immutable'
 import * as RPCChatTypes from './types/rpc-chat-gen'
-import * as Types from './types/chat'
+import * as Types from './types/chat2'
 import * as RPCTypes from './types/rpc-gen'
 import clamp from 'lodash/clamp'
 import invert from 'lodash/invert'

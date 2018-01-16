@@ -1,6 +1,6 @@
-// @flow
+// @noflow
 import * as Constants from '../../../../constants/chat'
-import * as Types from '../../../../constants/types/chat'
+import * as Types from '../../../../constants/types/chat2'
 import CreateTeamNotice from '.'
 import {connect, type TypedState} from '../../../../util/container'
 import {navigateAppend} from '../../../../actions/route-tree'

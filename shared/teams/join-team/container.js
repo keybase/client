@@ -3,14 +3,14 @@ import * as TeamsGen from '../../actions/teams-gen'
 import JoinTeamDialog from '.'
 import {connect} from 'react-redux'
 import {compose, lifecycle, withState, withHandlers} from 'recompose'
-import upperFirst from 'lodash/upperFirst'
+// import upperFirst from 'lodash/upperFirst'
 
 import type {TypedState} from '../../constants/reducer'
 
 const mapStateToProps = (state: TypedState) => ({
-  errorText: upperFirst(state.chat.teamJoinError),
-  success: state.chat.teamJoinSuccess,
-  successTeamName: state.chat.teamJoinSuccessTeamName,
+  errorText: null, // TODO upperFirst(state.chat.teamJoinError),
+  success: null, // TODO state.chat.teamJoinSuccess,
+  successTeamName: null, // TODO state.chat.teamJoinSuccessTeamName,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({

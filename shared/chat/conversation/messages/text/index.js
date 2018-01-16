@@ -1,6 +1,6 @@
-// @flow
+// @noflow
 import * as React from 'react'
-import * as Types from '../../../../constants/types/chat'
+import * as Types from '../../../../constants/types/chat2'
 import {Markdown} from '../../../../common-adapters'
 import {globalStyles, globalColors, isMobile} from '../../../../styles'
 

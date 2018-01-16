@@ -1,7 +1,7 @@
 // @flow
 // An infinite scrolling chat list. Using react-virtualized which doesn't really handle this case out of the box.
 // import * as Constants from '../../../constants/chat'
-import * as Types from '../../../constants/types/chat'
+// import * as Types from '../../../constants/types/chat2'
 import * as Virtualized from 'react-virtualized'
 // import EditPopup from '../edit-popup.desktop'
 import * as React from 'react'
@@ -18,7 +18,7 @@ import type {Props} from '.'
 type State = {
   isLockedToBottom: boolean,
   listRerender: number,
-  selectedMessageKey: ?Types.MessageKey,
+  // selectedMessageKey: ?Types.MessageKey,
 }
 
 const lockedToBottomSlop = 20

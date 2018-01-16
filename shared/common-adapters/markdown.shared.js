@@ -1,9 +1,9 @@
-// @flow
+// @noflow
 import logger from '../logger'
 import React, {PureComponent} from 'react'
 import Emoji from './emoji'
 import Text from './text'
-import {type ConversationIDKey} from '../constants/types/chat'
+import {type ConversationIDKey} from '../constants/types/chat2'
 import parser, {emojiIndexByName, isPlainText} from '../markdown/parser'
 
 import type {Props as EmojiProps} from './emoji'

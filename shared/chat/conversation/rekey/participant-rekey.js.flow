@@ -1,4 +1,4 @@
-// @flow
+// @noflow
 import {Component} from 'react'
 import type {RekeyInfo} from '../../../constants/types/chat'
 

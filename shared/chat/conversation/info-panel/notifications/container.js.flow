@@ -1,6 +1,6 @@
-// @flow
+// @noflow
 import {Component} from 'react'
-import * as Types from '../../../../constants/types/chat'
+import * as Types from '../../../../constants/types/chat2'
 import type {DeviceType} from '../../../../constants/types/devices'
 
 export type StateProps =

@@ -1,22 +1,22 @@
 // @flow
-import {Component} from 'react'
+import * as React from 'react'
 
-import type {AttachmentMessage, LocalMessageState} from '../../../constants/types/chat'
+// import type {AttachmentMessage, LocalMessageState} from '../../../constants/types/chat'
 
 export type Props = {
-  you: string,
-  message: AttachmentMessage,
-  localMessageState: LocalMessageState,
-  detailsPopupShowing: boolean,
-  isZoomed: boolean,
-  onCloseDetailsPopup: () => void,
-  onClose: () => void,
-  onDownloadAttachment: () => void,
-  onOpenInFileUI: () => void,
-  onDeleteMessage: () => void,
-  onOpenDetailsPopup: () => void,
-  onMessageAction: () => void,
-  onToggleZoom: () => void,
+  // you: string,
+  // message: AttachmentMessage,
+  // localMessageState: LocalMessageState,
+  // detailsPopupShowing: boolean,
+  // isZoomed: boolean,
+  // onCloseDetailsPopup: () => void,
+  // onClose: () => void,
+  // onDownloadAttachment: () => void,
+  // onOpenInFileUI: () => void,
+  // onDeleteMessage: () => void,
+  // onOpenDetailsPopup: () => void,
+  // onMessageAction: () => void,
+  // onToggleZoom: () => void,
 }
 
-export default class AttachmentPopup extends Component<Props> {}
+export default class AttachmentPopup extends React.Component<Props> {}

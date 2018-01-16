@@ -1,6 +1,6 @@
 // @flow
 import * as I from 'immutable'
-import {type ConversationIDKey} from './chat'
+import {type ConversationIDKey} from './chat2'
 import {type Tab} from '../tabs'
 import {type Config, type DeviceID, type ExtendedStatus} from './rpc-gen'
 

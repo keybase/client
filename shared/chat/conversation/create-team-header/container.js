@@ -1,39 +1,39 @@
-// @flow
-import CreateTeamHeader from '.'
-import {connect} from 'react-redux'
-import {navigateAppend} from '../../../actions/route-tree'
-import * as Constants from '../../../constants/chat'
-import * as Types from '../../../constants/types/chat'
-import type {TypedState} from '../../../constants/reducer'
+// @noflow
+// import CreateTeamHeader from '.'
+// import {connect} from 'react-redux'
+// import {navigateAppend} from '../../../actions/route-tree'
+// import * as Constants from '../../../constants/chat'
+// import * as Types from '../../../constants/types/chat'
+// import type {TypedState} from '../../../constants/reducer'
 
-import type {StateProps, DispatchProps} from './container'
+// import type {StateProps, DispatchProps} from './container'
 
-const mapStateToProps = (state: TypedState) => {
-  const selectedConversationIDKey = Constants.getSelectedConversation(state)
-  if (!selectedConversationIDKey) {
-    throw new Error('no selected conversation')
-  }
+// const mapStateToProps = (state: TypedState) => {
+// const selectedConversationIDKey = Constants.getSelectedConversation(state)
+// if (!selectedConversationIDKey) {
+// throw new Error('no selected conversation')
+// }
 
-  return {
-    selectedConversationIDKey,
-  }
-}
+// return {
+// selectedConversationIDKey,
+// }
+// }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _onShowNewTeamDialog: (conversationIDKey: Types.ConversationIDKey) => {
-    dispatch(
-      navigateAppend([
-        {
-          props: {conversationIDKey},
-          selected: 'showNewTeamDialog',
-        },
-      ])
-    )
-  },
-})
+// const mapDispatchToProps = (dispatch: Dispatch) => ({
+// _onShowNewTeamDialog: (conversationIDKey: Types.ConversationIDKey) => {
+// dispatch(
+// navigateAppend([
+// {
+// props: {conversationIDKey},
+// selected: 'showNewTeamDialog',
+// },
+// ])
+// )
+// },
+// })
 
-const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => ({
-  onShowNewTeamDialog: () => dispatchProps._onShowNewTeamDialog(stateProps.selectedConversationIDKey),
-})
+// const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => ({
+// onShowNewTeamDialog: () => dispatchProps._onShowNewTeamDialog(stateProps.selectedConversationIDKey),
+// })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(CreateTeamHeader)
+// export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(CreateTeamHeader)

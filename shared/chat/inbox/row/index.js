@@ -8,7 +8,7 @@ import SmallTeam from './small-team/container'
 import {BigTeamsLabel} from './big-teams-label'
 import {Box} from '../../../common-adapters'
 import {globalStyles, globalMargins, isMobile} from '../../../styles'
-import * as Types from '../../../constants/types/chat'
+import * as Types from '../../../constants/types/chat2'
 
 type MakeRowOptions = {
   channelname: string,

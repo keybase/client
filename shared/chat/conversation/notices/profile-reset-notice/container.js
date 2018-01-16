@@ -1,4 +1,4 @@
-// @flow
+// @noflow
 import * as Constants from '../../../../constants/chat'
 import * as Types from '../../../../constants/types/chat'
 import * as ChatGen from '../../../../actions/chat-gen'

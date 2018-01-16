@@ -1,4 +1,4 @@
-// @flow
+// @noflow
 import * as TeamsGen from '../actions/teams-gen'
 import NewTeamDialog from '../teams/new-team'
 import {connect} from 'react-redux'

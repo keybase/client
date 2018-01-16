@@ -1,4 +1,4 @@
-// @flow
+// @noflow
 import React from 'react'
 import {storiesOf, action} from '../../../../stories/storybook'
 import Notifications from './index'

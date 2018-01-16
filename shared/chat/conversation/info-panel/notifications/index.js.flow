@@ -1,15 +1,15 @@
 // @flow
-import {Component} from 'react'
-import {type NotifyType, type NotificationSaveState} from '../../../../constants/types/chat'
+// import {Component} from 'react'
+// import {type NotifyType, type NotificationSaveState} from '../../../../constants/types/chat'
 
-export type Props = {
-  channelWide: boolean,
-  desktop: NotifyType,
-  mobile: NotifyType,
-  saveState: NotificationSaveState,
-  onSetDesktop: NotifyType => void,
-  onSetMobile: NotifyType => void,
-  onToggleChannelWide: () => void,
-}
+// export type Props = {
+  // channelWide: boolean,
+  // desktop: NotifyType,
+  // mobile: NotifyType,
+  // saveState: NotificationSaveState,
+  // onSetDesktop: NotifyType => void,
+  // onSetMobile: NotifyType => void,
+  // onToggleChannelWide: () => void,
+// }
 
-export default class Notifications extends Component<Props> {}
+// export default class Notifications extends Component<Props> {}

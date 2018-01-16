@@ -1,4 +1,4 @@
-// @flow
+// @noflow
 import * as TeamsGen from '../../actions/teams-gen'
 import CreateChannel from '.'
 import {compose, withHandlers, lifecycle, withState, connect, type TypedState} from '../../util/container'

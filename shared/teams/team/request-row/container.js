@@ -6,7 +6,7 @@ import {TeamRequestRow} from '.'
 import {navigateAppend} from '../../../actions/route-tree'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import {createGetProfile} from '../../../actions/tracker-gen'
-import {createStartConversation} from '../../../actions/chat-gen'
+// import {createStartConversation} from '../../../actions/chat-gen'
 import {isMobile} from '../../../constants/platform'
 import {connect, type TypedState} from '../../../util/container'
 
@@ -48,7 +48,8 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
       ])
     ),
   _onChat: (username, myUsername) => {
-    username && myUsername && dispatch(createStartConversation({users: [username, myUsername]}))
+    // TODO
+    // username && myUsername && dispatch(createStartConversation({users: [username, myUsername]}))
   },
   _onIgnoreRequest: (teamname: string, username: string) =>
     dispatch(TeamsGen.createIgnoreRequest({teamname, username})),

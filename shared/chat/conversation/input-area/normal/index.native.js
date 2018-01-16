@@ -7,7 +7,6 @@ import {Box, Icon, Input, Text} from '../../../common-adapters'
 import {globalMargins, globalStyles, globalColors} from '../../../styles'
 import {isIOS} from '../../../constants/platform'
 
-// import type {AttachmentInput} from '../../../constants/types/chat'
 import type {Props} from '.'
 
 let CustomTextInput

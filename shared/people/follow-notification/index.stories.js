@@ -1,4 +1,4 @@
-// @flow
+// @noflow
 import React from 'react'
 import * as C from '../../constants/people'
 import {Provider} from 'react-redux'

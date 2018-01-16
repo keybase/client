@@ -1,5 +1,5 @@
 // @flow
-import * as ChatGen from '../../actions/chat-gen'
+// import * as ChatGen from '../../actions/chat-gen'
 import * as KBFSGen from '../../actions/kbfs-gen'
 import * as FavoriteGen from '../../actions/favorite-gen'
 import React, {Component} from 'react'
@@ -134,7 +134,7 @@ const mapDispatchToProps = (dispatch: any) => ({
   navigateAppend: route => dispatch(navigateAppend(route)),
   navigateUp: () => dispatch(navigateUp()),
   openInKBFS: path => dispatch(KBFSGen.createOpen({path})),
-  openTlfInChat: tlf => dispatch(ChatGen.createOpenTlfInChat({tlf})),
+  openTlfInChat: tlf => null, // TODO dispatch(ChatGen.createOpenTlfInChat({tlf})),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(Files)

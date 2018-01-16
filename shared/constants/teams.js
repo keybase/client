@@ -1,6 +1,6 @@
 // @flow
 import * as I from 'immutable'
-import * as ChatTypes from './types/chat'
+import * as ChatTypes from './types/chat2'
 import * as Types from './types/teams'
 import {userIsActiveInTeam} from './selectors'
 import * as RPCTypes from './types/rpc-gen'

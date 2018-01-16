@@ -1,5 +1,4 @@
 // @flow
-import * as ChatGen from '../actions/chat-gen'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as FavoriteGen from '../actions/favorite-gen'
 import * as GitGen from '../actions/git-gen'
@@ -57,7 +56,6 @@ function* _listenSaga(): Saga.SagaGenerator<any, any> {
 function* _listenKBFSSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.put(FavoriteGen.createSetupKBFSChangedHandler())
   yield Saga.put(Chat2Gen.createSetupChatHandlers())
-  yield Saga.put(ChatGen.createSetupChatHandlers())
   yield Saga.put(TeamsGen.createSetupTeamHandlers())
   yield Saga.put(UnlockFoldersGen.createRegisterRekeyListener())
   yield Saga.put(createSetupPeopleHandlers())

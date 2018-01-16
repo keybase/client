@@ -1,4 +1,4 @@
-// @flow
+// @noflow
 import logger from '../../logger'
 import pickBy from 'lodash/pickBy'
 import isEqual from 'lodash/isEqual'

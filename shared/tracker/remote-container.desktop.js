@@ -1,6 +1,6 @@
 // @flow
 import * as AppGen from '../actions/app-gen'
-import * as ChatGen from '../actions/chat-gen'
+// import * as ChatGen from '../actions/chat-gen'
 import * as ProfileGen from '../actions/profile-gen'
 import * as TeamsGen from '../actions/teams-gen'
 import * as TrackerGen from '../actions/tracker-gen'
@@ -13,7 +13,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {teamname}) => ({
   _loadTeams: () => dispatch(TeamsGen.createGetTeams()),
   _onChat: (username: string, myUsername: string) => {
     dispatch(AppGen.createShowMain())
-    dispatch(ChatGen.createStartConversation({users: [username, myUsername]}))
+    // TODO
+    // dispatch(ChatGen.createStartConversation({users: [username, myUsername]}))
   },
   _onClickAvatar: (username: string) =>
     dispatch(ProfileGen.createOnClickAvatar({openWebsite: true, username})),

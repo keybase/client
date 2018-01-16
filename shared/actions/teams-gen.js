@@ -5,7 +5,7 @@
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as More from '../constants/types/more'
-import * as ChatTypes from '../constants/types/chat'
+import * as ChatTypes from '../constants/types/chat2'
 import * as Types from '../constants/types/teams'
 
 // Constants

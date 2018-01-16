@@ -1,4 +1,4 @@
-// @flow
+// @noflow
 import * as Types from '../../../constants/types/chat'
 import ParticipantRekey, {type Props as ParticipantRekeyProps} from './participant-rekey'
 import YouRekey, {type Props as YouRekeyProps} from './you-rekey'

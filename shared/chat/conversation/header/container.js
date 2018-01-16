@@ -1,8 +1,8 @@
-// @flow
+// @noflow
 import * as I from 'immutable'
 import * as Constants2 from '../../../constants/chat2'
 import * as RouteTree from '../../../actions/route-tree'
-import * as ChatGen from '../../../actions/chat-gen'
+// import * as ChatGen from '../../../actions/chat-gen'
 import {ChannelHeader, UsernameHeader} from '.'
 import {
   branch,
@@ -32,7 +32,7 @@ const mapStateToProps = (state: TypedState, {infoPanelOpen}) => {
 
 const mapDispatchToProps = (dispatch: Dispatch, {onToggleInfoPanel}) => ({
   onBack: () => dispatch(RouteTree.navigateUp()),
-  onOpenFolder: () => dispatch(ChatGen.createOpenFolder()),
+  onOpenFolder: () => null, // TODO dispatch(ChatGen.createOpenFolder()),
   onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
   onToggleInfoPanel,
 })

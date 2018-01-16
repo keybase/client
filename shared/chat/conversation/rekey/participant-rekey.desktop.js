@@ -1,4 +1,4 @@
-// @flow
+// @noflow
 import * as React from 'react'
 import {Box, Avatar, Usernames, Text} from '../../../common-adapters'
 import {globalColors, globalStyles} from '../../../styles'

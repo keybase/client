@@ -1,5 +1,5 @@
-// @flow
-import * as Types from '../../../../constants/types/chat'
+// @noflow
+import * as Types from '../../../../constants/types/chat2'
 import {Component} from 'react'
 import {List} from 'immutable'
 

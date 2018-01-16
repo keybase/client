@@ -1,4 +1,4 @@
-// @flow
+// @noflow
 import React, {Component} from 'react'
 import {Box, Icon, Text, ProgressIndicator, NativeImage} from '../../../common-adapters/index.native'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
