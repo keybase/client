@@ -52,7 +52,7 @@ export default (props: Props) => (
       paddingTop: globalMargins.tiny,
       paddingLeft: 12,
       paddingRight: 12,
-      paddingBottom: isMobile ? globalMargins.tiny : 106,
+      paddingBottom: globalMargins.tiny,
     }}
   >
     <Text type="BodySmallSemibold" style={{marginBottom: globalMargins.tiny}}>
@@ -60,18 +60,11 @@ export default (props: Props) => (
     </Text>
     <ScrollView
       {...(isMobile ? {horizontal: true} : {})} // Causes error on desktop
-      contentContainerStyle={globalStyles.flexBoxRow}
-      style={{
+      contentContainerStyle={{
         ...globalStyles.flexBoxRow,
-        overflow: 'scroll',
         ...(isMobile
           ? null
-          : {
-              position: 'absolute',
-              bottom: 0,
-              left: 0,
-              right: 0,
-            }),
+          : {...globalStyles.flexBoxRow, width: '100%', height: 106, flexWrap: 'wrap', overflow: 'hidden'}),
       }}
     >
       {props.suggestions.map(suggestion => (

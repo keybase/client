@@ -40,6 +40,7 @@ export const teamRoleByEnum = invert(RPCTypes.teamsTeamRole)
 
 export const typeToLabel: Types.TypeMap = {
   admin: 'Admin',
+  none: 'None',
   owner: 'Owner',
   reader: 'Reader',
   writer: 'Writer',
@@ -55,10 +56,10 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   teamNameToLoadingInvites: I.Map(),
   teamNameToLoading: I.Map(),
   teamNameToMemberUsernames: I.Map(),
-  teamNameToImplicitAdminUsernames: I.Map(),
   teamNameToMembers: I.Map(),
   teamNameToRequests: I.Map(),
   teamNameToRole: I.Map(),
+  teamNameToSubteams: I.Map(),
   teamNameToCanPerform: I.Map(),
   teamNameToTeamSettings: I.Map(),
   teamNameToPublicitySettings: I.Map(),
@@ -79,6 +80,9 @@ export const initialCanUserPerform: RPCTypes.TeamOperation = {
   setMemberShowcase: false,
   changeOpenTeam: false,
   leaveTeam: false,
+  joinTeam: false,
+  setPublicityAny: false,
+  listFirst: false,
   changeTarsDisabled: false,
 }
 

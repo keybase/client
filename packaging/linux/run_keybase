@@ -14,9 +14,34 @@ runtime_dir="${XDG_RUNTIME_DIR:-$HOME/.config}/keybase"
 mkdir -p "$runtime_dir"
 startup_token="$runtime_dir/startup_mode"
 
+# NOTE: This logic is duplicated in systemd_linux.go. If you make changes here,
+# keep them in sync.
 systemd_running() {
-    # Mirrors https://www.freedesktop.org/software/systemd/man/sd_booted.html.
-    [ -d "/run/systemd/system" ]
+    # First check that systemd is running at all at the system level. See
+    # https://www.freedesktop.org/software/systemd/man/sd_booted.html.
+    if ! [ -d "/run/systemd/system" ] ; then
+        return 1
+    fi
+
+    # There are also systems that have systemd running at the system level (so
+    # they pass the check above), but not at the user level, for whatever
+    # reason. Ask the systemd user daemon for its status directly, to be sure
+    # it's running. Note that "degraded" just means some service has failed to
+    # start -- it could be anything, so we treat it the same as "running". (We
+    # have to `|| true` to ignore non-zero exit status errors also for that
+    # reason.)
+    status="$(systemctl --user is-system-running || true)"
+    if [ "$status" = "running" ] || [ "$status" = "degraded" ] ; then
+        return 0
+    elif [ -z "$status" ] ; then
+        echo "WARNING: Couldn't reach the systemd user-level daemon."
+        echo "Falling back to non-systemd startup."
+        return 1
+    else
+        echo "WARNING: Systemd reported an unexpected status: $status"
+        echo "Falling back to non-systemd startup."
+        return 1
+    fi
 }
 
 was_started_with_systemd() {
@@ -136,7 +161,9 @@ main() {
 
   echo 'Success!'
   # Magical squirrel produced by https://github.com/erkin/ponysay
-  cat /opt/keybase/crypto_squirrel.txt
+  if [ "$KEYBASE_NO_SQUIRREL" != "1" ]; then
+    cat /opt/keybase/crypto_squirrel.txt
+  fi
 }
 
 main

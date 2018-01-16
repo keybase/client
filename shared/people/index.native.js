@@ -24,7 +24,7 @@ const People = (props: Props) => (
           borderColor: globalColors.black_05,
           borderWidth: NativeStyleSheet.hairlineWidth,
           minHeight: 33,
-          width: 233,
+          width: 200,
         }}
         styleSearchText={{fontSize: 15}}
       />

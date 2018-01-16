@@ -17,6 +17,7 @@ type cache struct {
 	obj          keybase1.HomeScreen
 	cachedAt     time.Time
 	peopleOffset int
+	lastPopAt    time.Time
 }
 
 type Home struct {
@@ -36,15 +37,30 @@ func (c *cache) hasEnoughPeople(i int) bool {
 }
 
 func (c *cache) popPeople(ctx context.Context, g *libkb.GlobalContext, i int) keybase1.HomeScreen {
+	offset := c.peopleOffset
+	if time.Since(c.lastPopAt) < libkb.HomeCachePopValidFor {
+		// use previous list, since it was returned recently
+		g.Log.CDebugf(ctx, "| Using previous result for people cache since it is recent")
+		offset -= i
+		if offset < 0 {
+			offset = 0
+		}
+	}
+
 	ret := c.obj.DeepCopy()
-	numLeft := len(ret.FollowSuggestions) - c.peopleOffset
+	numLeft := len(ret.FollowSuggestions) - offset
 	if i > numLeft {
 		i = numLeft
 	}
 	g.Log.CDebugf(ctx, "| Accessing people cache; %d left, taking %d of them", numLeft, i)
-	rightLimit := c.peopleOffset + i
-	ret.FollowSuggestions = ret.FollowSuggestions[c.peopleOffset:rightLimit]
-	c.peopleOffset += i
+	rightLimit := offset + i
+	ret.FollowSuggestions = ret.FollowSuggestions[offset:rightLimit]
+	if c.peopleOffset == offset {
+		// not using the previous list, so increment offset and remember the time
+		g.Log.CDebugf(ctx, "| incrementing people cache offset")
+		c.peopleOffset += i
+		c.lastPopAt = time.Now()
+	}
 	return ret
 }
 
@@ -157,7 +173,6 @@ func (h *Home) SkipTodoType(ctx context.Context, typ keybase1.HomeScreenTodoType
 
 func (h *Home) MarkViewed(ctx context.Context) (err error) {
 	defer h.G().CTrace(ctx, "Home#MarkViewed", func() error { return err })()
-	h.bustCache(ctx)
 	return h.markViewed(ctx)
 }
 

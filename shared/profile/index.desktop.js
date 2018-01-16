@@ -465,7 +465,6 @@ const styleBioColumn = {
 
 const styleActions = {
   ...globalStyles.flexBoxRow,
-  marginTop: globalMargins.small,
 }
 
 const styleProofColumn = {
@@ -521,11 +520,11 @@ const styleSearchContainer = {
   ...globalStyles.clickable,
   alignItems: 'center',
   alignSelf: 'center',
-  backgroundColor: globalColors.white_20,
+  backgroundColor: globalColors.black_10,
   borderRadius: 100,
   justifyContent: 'center',
   minHeight: 24,
-  minWidth: 273,
+  minWidth: 240,
   position: 'absolute',
   top: 12,
   zIndex: SEARCH_CONTAINER_ZINDEX,
@@ -533,7 +532,6 @@ const styleSearchContainer = {
 
 const styleSearch = {
   color: globalColors.white_75,
-  fontSize: 12,
   padding: 3,
 }
 

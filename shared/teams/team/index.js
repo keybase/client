@@ -9,6 +9,7 @@ import {
   Button,
   ButtonBar,
   Checkbox,
+  ClickableBox,
   Text,
   Tabs,
   List,
@@ -21,7 +22,10 @@ import {globalStyles, globalMargins, globalColors, isMobile} from '../../styles'
 import TeamInviteRow from './invite-row/container'
 import TeamMemberRow from './member-row/container'
 import TeamRequestRow from './request-row/container'
+import TeamSubteamRow from './subteam-row/container'
+import SubteamBanner from './subteam-banner'
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as I from 'immutable'
 
 export type MemberRowProps = Types.MemberInfo
 type InviteRowProps = Types.InviteInfo
@@ -29,6 +33,7 @@ type RequestRowProps = Types.RequestInfo
 
 export type Props = {
   description: string,
+  ignoreAccessRequests: boolean,
   invites: Array<InviteRowProps>,
   isTeamOpen: boolean,
   newTeamRequests: Array<Types.Teamname>,
@@ -44,6 +49,7 @@ export type Props = {
   onEditDescription: () => void,
   onLeaveTeam: () => void,
   onManageChat: () => void,
+  onReadMoreAboutSubteams: () => void,
   onSavePublicity: () => void,
   onSetOpenTeamRole: () => void,
   openTeam: boolean,
@@ -55,17 +61,17 @@ export type Props = {
   requests: Array<RequestRowProps>,
   selectedTab: Types.TabKey,
   showAddYourselfBanner: boolean,
+  setIgnoreAccessRequests: (checked: boolean) => void,
   setPublicityAnyMember: (checked: boolean) => void,
   setPublicityMember: (checked: boolean) => void,
   setPublicityTeam: (checked: boolean) => void,
   showMenu: boolean,
   setOpenTeam: (checked: boolean) => void,
   setShowMenu: (s: boolean) => void,
+  subteams: I.List<Types.Teamname>,
   waitingForSavePublicity: boolean,
   you: string,
   yourRole: ?Types.TeamRoleType,
-  youAdmin: boolean,
-  youImplicitAdmin: boolean,
   yourOperations: RPCTypes.TeamOperation,
 }
 
@@ -130,6 +136,73 @@ type TeamTabsProps = {
   loading?: boolean,
   selectedTab?: string,
   setSelectedTab: (?Types.TabKey) => void,
+  subteams: I.List<Types.Teamname>,
+  yourOperations: RPCTypes.TeamOperation,
+}
+
+const SubteamsIntro = ({row}) => (
+  <SubteamBanner key={row.key} onReadMore={row.onReadMore} teamname={row.teamname} />
+)
+
+const SubteamRow = ({row}) => (
+  <Box key={row.teamname + 'row'}>
+    <TeamSubteamRow teamname={row.teamname} />
+  </Box>
+)
+
+const AddSubTeam = ({row}) => (
+  <Box
+    key="addSubteam"
+    style={{
+      ...globalStyles.flexBoxRow,
+      alignItems: 'center',
+      flexShrink: 0,
+      height: globalMargins.medium,
+      padding: globalMargins.medium,
+      width: '100%',
+    }}
+  >
+    <ClickableBox
+      onClick={row.onCreateSubteam}
+      style={{...globalStyles.flexBoxRow, flexGrow: 1, justifyContent: 'center', alignItems: 'center'}}
+    >
+      <Icon type="iconfont-new" style={{color: globalColors.blue}} />
+      <Text type="BodyBigLink" style={{padding: globalMargins.xtiny}}>
+        Create subteam
+      </Text>
+    </ClickableBox>
+  </Box>
+)
+
+const NoSubteams = ({row}) => (
+  <Box
+    key="noSubteams"
+    style={{
+      ...globalStyles.flexBoxRow,
+      alignItems: 'center',
+      flexShrink: 0,
+      height: globalMargins.medium,
+      padding: globalMargins.tiny,
+      width: '100%',
+    }}
+  >
+    <Box style={{...globalStyles.flexBoxRow, flexGrow: 1, justifyContent: 'center', alignItems: 'center'}}>
+      <Text type="BodySmall">This team has no subteams.</Text>
+    </Box>
+  </Box>
+)
+
+const subTeamsRow = (index, row) => {
+  switch (row.type) {
+    case 'intro':
+      return <SubteamsIntro row={row} />
+    case 'addSubteam':
+      return <AddSubTeam row={row} />
+    case 'noSubteams':
+      return <NoSubteams row={row} />
+    default:
+      return <SubteamRow row={row} />
+  }
 }
 
 const TeamRequestOrDividerOrInviteRow = (index, row) => {
@@ -151,9 +224,11 @@ const TeamTabs = (props: TeamTabsProps) => {
     name,
     newTeamRequests,
     requests,
+    subteams,
     loading = false,
     selectedTab,
     setSelectedTab,
+    yourOperations,
   } = props
   let membersLabel = 'MEMBERS'
   membersLabel += !loading || members.length !== 0 ? ' (' + members.length + ')' : ''
@@ -195,17 +270,37 @@ const TeamTabs = (props: TeamTabsProps) => {
     )
   }
 
+  let subteamsLabel = 'SUBTEAMS'
+  subteamsLabel += !loading || subteams.length !== 0 ? ' (' + subteams.count() + ')' : ''
+  if (subteams.count() > 0 || yourOperations.manageSubteams) {
+    tabs.push(
+      <Text
+        key="subteams"
+        type="BodySmallSemibold"
+        style={{
+          color: globalColors.black_75,
+        }}
+      >
+        {subteamsLabel}
+      </Text>
+    )
+  }
+
   const publicityLabel = 'SETTINGS'
   tabs.push(
-    <Text
-      key="publicity"
-      type="BodySmallSemibold"
-      style={{
-        color: globalColors.black_75,
-      }}
-    >
-      {publicityLabel}
-    </Text>
+    isMobile ? (
+      <Icon key="publicity" type="iconfont-nav-settings" />
+    ) : (
+      <Text
+        key="publicity"
+        type="BodySmallSemibold"
+        style={{
+          color: globalColors.black_75,
+        }}
+      >
+        {publicityLabel}
+      </Text>
+    )
   )
 
   if (loading) {
@@ -231,6 +326,7 @@ class Team extends React.PureComponent<Props> {
   render() {
     const {
       description,
+      ignoreAccessRequests,
       invites,
       name,
       members,
@@ -245,10 +341,10 @@ class Team extends React.PureComponent<Props> {
       onLeaveTeam,
       onSetOpenTeamRole,
       selectedTab,
-      showAddYourselfBanner,
       loading,
       memberCount,
       onManageChat,
+      onReadMoreAboutSubteams,
       onSavePublicity,
       openTeam,
       openTeamRole,
@@ -256,14 +352,14 @@ class Team extends React.PureComponent<Props> {
       publicityMember,
       publicitySettingsChanged,
       publicityTeam,
+      setIgnoreAccessRequests,
       setOpenTeam,
       setPublicityAnyMember,
       setPublicityMember,
       setPublicityTeam,
+      subteams,
       waitingForSavePublicity,
       yourRole,
-      youAdmin,
-      youImplicitAdmin,
       yourOperations,
     } = this.props
 
@@ -311,6 +407,27 @@ class Team extends React.PureComponent<Props> {
           style={{alignSelf: 'stretch'}}
         />
       )
+    } else if (selectedTab === 'subteams') {
+      const noSubteams = subteams.isEmpty()
+      const subTeamsItems = [
+        ...(noSubteams
+          ? [{key: 'intro', type: 'intro', teamname: name, onReadMore: onReadMoreAboutSubteams}]
+          : []),
+        ...(yourOperations.manageSubteams ? [{key: 'addSubteam', type: 'addSubteam', onCreateSubteam}] : []),
+        ...subteams.map(subteam => ({key: 'subteam', teamname: subteam, type: 'subteam'})),
+        ...(noSubteams ? [{key: 'noSubteams', type: 'noSubteams'}] : []),
+      ]
+
+      console.warn('subTeamsItems is', subTeamsItems)
+      contents = !loading && (
+        <List
+          items={subTeamsItems}
+          fixedHeight={48}
+          keyProperty="key"
+          renderItem={subTeamsRow}
+          style={{alignSelf: 'stretch'}}
+        />
+      )
     } else if (selectedTab === 'invites') {
       // Show requests first, then invites.
       const requestsAndInvites =
@@ -354,94 +471,104 @@ class Team extends React.PureComponent<Props> {
           }}
           contentContainerStyle={{padding: globalMargins.medium}}
         >
-          {!youImplicitAdmin && (
-            <Box
-              style={{
-                ...globalStyles.flexBoxRow,
-              }}
-            >
-              <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-                <Checkbox
-                  checked={publicityMember}
-                  disabled={!yourOperations.setMemberShowcase}
-                  label=""
-                  onCheck={setPublicityMember}
-                  style={{paddingRight: globalMargins.xtiny}}
-                />
-              </Box>
-              <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
-                <Text
-                  style={{
-                    color: yourOperations.setMemberShowcase ? globalColors.black_75 : globalColors.grey,
-                  }}
-                  type="Body"
-                >
-                  Publish team on your own profile
-                </Text>
-                <Text type="BodySmall">
-                  {yourOperations.setMemberShowcase
-                    ? 'Your profile on the Keybase website will mention this team. Description + number of members will be public.'
-                    : "Admins aren't allowing members to publish this team on their profile."}
-                </Text>
-              </Box>
+          <Box
+            style={{
+              ...globalStyles.flexBoxRow,
+            }}
+          >
+            <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
+              <Checkbox
+                checked={publicityMember}
+                disabled={!yourOperations.setMemberShowcase}
+                label=""
+                onCheck={setPublicityMember}
+                style={{paddingRight: globalMargins.xtiny}}
+              />
             </Box>
-          )}
-          {youAdmin && (
+            <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
+              <Text
+                style={{
+                  color: yourOperations.setMemberShowcase ? globalColors.black_75 : globalColors.grey,
+                }}
+                type="Body"
+              >
+                Publish team on your own profile
+              </Text>
+              <Text type="BodySmall">
+                {yourOperations.setMemberShowcase
+                  ? 'Your profile will mention this team. Team description and number of members will be public.'
+                  : "Admins aren't allowing members to publish this team on their profile."}
+              </Text>
+            </Box>
+          </Box>
+
+          {(yourOperations.changeOpenTeam ||
+            yourOperations.setTeamShowcase ||
+            yourOperations.setPublicityAny) && (
             <Box style={globalStyles.flexBoxColumn}>
               <Box style={stylesSettingsTabRow}>
                 <Text type="Header">Team</Text>
               </Box>
-
-              <Box style={stylesSettingsTabRow}>
-                <Box style={stylesPublicitySettingsBox}>
-                  <Checkbox checked={publicityAnyMember} label="" onCheck={setPublicityAnyMember} />
+              {yourOperations.setPublicityAny && (
+                <Box style={stylesSettingsTabRow}>
+                  <Box style={stylesPublicitySettingsBox}>
+                    <Checkbox checked={publicityAnyMember} label="" onCheck={setPublicityAnyMember} />
+                  </Box>
+                  <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
+                    <Text type="Body">Allow non-admin members to publish the team on their profile</Text>
+                    <Text type="BodySmall">Team descriptions and number of members will be public.</Text>
+                  </Box>
                 </Box>
-                <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
-                  <Text type="Body">Allow non-admin members to publish the team on their profile</Text>
-                  <Text type="BodySmall">Team descriptions and number of members will be public.</Text>
-                </Box>
-              </Box>
-
-              <Box style={stylesSettingsTabRow}>
-                <Box style={stylesPublicitySettingsBox}>
-                  <Checkbox checked={publicityTeam} label="" onCheck={setPublicityTeam} />
-                </Box>
-                <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
-                  <Text type="Body">
-                    Publicize this team on{' '}
-                    <Text type="BodyPrimaryLink" onClickURL={`https://${teamsLink}`}>
-                      {teamsLink}
+              )}
+              {yourOperations.setTeamShowcase && (
+                <Box style={stylesSettingsTabRow}>
+                  <Box style={stylesPublicitySettingsBox}>
+                    <Checkbox checked={publicityTeam} label="" onCheck={setPublicityTeam} />
+                  </Box>
+                  <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
+                    <Text type="Body">
+                      Publicize this team on{' '}
+                      <Text type="BodyPrimaryLink" onClickURL={`https://${teamsLink}`}>
+                        {teamsLink}
+                      </Text>
                     </Text>
-                  </Text>
-                  <Text type="BodySmall">Team descriptions and number of members will be public.</Text>
+                    <Text type="BodySmall">Team descriptions and number of members will be public.</Text>
+                  </Box>
                 </Box>
-              </Box>
-
-              <Box style={stylesSettingsTabRow}>
-                <Box style={stylesPublicitySettingsBox}>
-                  <Checkbox
-                    checked={openTeam}
-                    label=""
-                    onCheck={setOpenTeam}
-                    style={{paddingRight: globalMargins.xtiny}}
-                  />
-                </Box>
-                <Box
-                  style={{...globalStyles.flexBoxColumn, flexShrink: 1, paddingRight: globalMargins.small}}
-                >
-                  <Text type="Body">Make this an open team</Text>
-                  <Text type="BodySmall">
-                    Anyone will be able to join immediately. Users will join as{' '}
-                    <Text
-                      type={openTeam ? 'BodySmallPrimaryLink' : 'BodySmall'}
-                      onClick={openTeam ? onSetOpenTeamRole : undefined}
-                    >
-                      {openTeamRole}
+              )}
+              {yourOperations.changeOpenTeam && (
+                <Box style={stylesSettingsTabRow}>
+                  <Box style={stylesPublicitySettingsBox}>
+                    <Checkbox checked={openTeam} label="" onCheck={setOpenTeam} />
+                  </Box>
+                  <Box
+                    style={{...globalStyles.flexBoxColumn, flexShrink: 1, paddingRight: globalMargins.small}}
+                  >
+                    <Text type="Body">Make this an open team</Text>
+                    <Text type="BodySmall">
+                      Anyone will be able to join immediately. Users will join as{' '}
+                      <Text
+                        type={openTeam ? 'BodySmallPrimaryLink' : 'BodySmall'}
+                        onClick={openTeam ? onSetOpenTeamRole : undefined}
+                      >
+                        {openTeamRole}
+                      </Text>
+                      .
                     </Text>
-                    .
-                  </Text>
+                  </Box>
                 </Box>
-              </Box>
+              )}
+              {yourOperations.changeTarsDisabled && (
+                <Box style={stylesSettingsTabRow}>
+                  <Box style={stylesPublicitySettingsBox}>
+                    <Checkbox checked={ignoreAccessRequests} label="" onCheck={setIgnoreAccessRequests} />
+                  </Box>
+                  <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
+                    <Text type="Body">Ignore requests to join this team</Text>
+                    <Text type="BodySmall">Admins won't be bothered by hordes of fans.</Text>
+                  </Box>
+                </Box>
+              )}
             </Box>
           )}
 
@@ -481,7 +608,7 @@ class Team extends React.PureComponent<Props> {
 
     return (
       <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1}}>
-        {showAddYourselfBanner && (
+        {yourOperations.joinTeam && (
           <Box style={stylesAddYourselfBanner}>
             <Text type="BodySemibold" style={stylesAddYourselfBannerText}>
               You are not a member of this team.
@@ -499,7 +626,7 @@ class Team extends React.PureComponent<Props> {
         )}
         <Box style={stylesTeamHeader}>
           <Avatar isTeam={true} teamname={name} size={64} />
-          <Text type="Header" style={{marginTop: globalMargins.tiny}}>
+          <Text type="HeaderBig" style={{...globalStyles.selectable, marginTop: globalMargins.tiny}}>
             {name}
           </Text>
           <Text type="BodySmall">TEAM</Text>
@@ -508,16 +635,16 @@ class Team extends React.PureComponent<Props> {
             {yourRole && Constants.typeToLabel[yourRole]}
           </Text>
           {!loading &&
-            (youAdmin || description) && (
+            (yourOperations.editChannelDescription || description) && (
               <Text
                 style={{
                   paddingTop: globalMargins.tiny,
                   color: description ? globalColors.black_75 : globalColors.black_20,
                 }}
-                onClick={youAdmin ? onEditDescription : null}
-                type={youAdmin ? 'BodySecondaryLink' : 'Body'}
+                onClick={yourOperations.editChannelDescription ? onEditDescription : null}
+                type={yourOperations.editChannelDescription ? 'BodySecondaryLink' : 'Body'}
               >
-                {description || (youAdmin && 'Write a brief description')}
+                {description || (yourOperations.editChannelDescription && 'Write a brief description')}
               </Text>
             )}
 
@@ -544,7 +671,7 @@ class Team extends React.PureComponent<Props> {
           )}
           <Help name={name} />
         </Box>
-        <TeamTabs {...this.props} admin={youAdmin} />
+        <TeamTabs {...this.props} admin={yourOperations.manageMembers} />
         {contents}
         {showMenu &&
           popupMenuItems.length > 0 && (
