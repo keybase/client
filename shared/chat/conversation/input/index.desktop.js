@@ -8,6 +8,7 @@ import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../common-adapters/emoji'
 import {compose, withState, withHandlers} from 'recompose'
 import ConnectedMentionHud from '../../hud/mention-hud-container'
+import ConnectedChannelMentionHud from '../../hud/mention-hud-container'
 
 import type {Props} from '.'
 
@@ -20,7 +21,11 @@ type InputProps = {
   filePickerSetValue: (value: any) => void,
   filePickerSetRef: (r: any) => void,
   mentionPopupOpen: boolean,
+  channelMentionPopupOpen: boolean,
+  setChannelMentionPopupOpen: (setOpen: boolean) => void,
   setMentionPopupOpen: (setOpen: boolean) => void,
+  channelMentionFilter: string,
+  setChannelMentionFilter: (filter: string) => void,
   mentionFilter: string,
   setMentionFilter: (filter: string) => void,
 } & Props
@@ -29,6 +34,9 @@ type State = {
   upArrowCounter: number,
   downArrowCounter: number,
   pickSelectedCounter: number,
+  channelUpArrowCounter: number,
+  channelDownArrowCounter: number,
+  channelPickSelectedCounter: number,
 }
 
 const MentionCatcher = ({onClick}) => (
@@ -40,6 +48,7 @@ const MentionCatcher = ({onClick}) => (
     }}
   />
 )
+
 class ConversationInput extends Component<InputProps, State> {
   state: State
   _inputRef: ?any
@@ -50,6 +59,9 @@ class ConversationInput extends Component<InputProps, State> {
       upArrowCounter: 0,
       downArrowCounter: 0,
       pickSelectedCounter: 0,
+      channelUpArrowCounter: 0,
+      channelDownArrowCounter: 0,
+      channelPickSelectedCounter: 0,
     }
   }
 
@@ -144,6 +156,18 @@ class ConversationInput extends Component<InputProps, State> {
     this.setState(({pickSelectedCounter}) => ({pickSelectedCounter: pickSelectedCounter + 1}))
   }
 
+  _triggerChannelUpArrowCounter = () => {
+    this.setState(({channelUpArrowCounter}) => ({channelUpArrowCounter: channelUpArrowCounter + 1}))
+  }
+
+  _triggerChannelDownArrowCounter = () => {
+    this.setState(({channelDownArrowCounter}) => ({channelDownArrowCounter: channelDownArrowCounter + 1}))
+  }
+
+  _triggerChannelPickSelectedCounter = () => {
+    this.setState(({channelPickSelectedCounter}) => ({channelPickSelectedCounter: channelPickSelectedCounter + 1}))
+  }
+
   _onKeyDown = (e: SyntheticKeyboardEvent<>) => {
     if (e.key === 'ArrowUp' && !this.props.text) {
       this.props.onEditLastMessage()
@@ -179,8 +203,39 @@ class ConversationInput extends Component<InputProps, State> {
       }
     }
 
+    if (this.props.channelMentionPopupOpen) {
+      if (e.key === 'Tab') {
+        e.preventDefault()
+        // If you tab with a partial name typed, we pick the selected item
+        if (this.props.channelMentionFilter.length > 0) {
+          this._triggerChannelPickSelectedCounter()
+          return
+        }
+        // else we move you up/down
+        if (e.shiftKey) {
+          this._triggerChannelUpArrowCounter()
+        } else {
+          this._triggerChannelDownArrowCounter()
+        }
+        return
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault()
+        this._triggerChannelUpArrowCounter()
+        return
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault()
+        this._triggerChannelDownArrowCounter()
+        return
+      } else if (['Escape', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        this.props.setChannelMentionPopupOpen(false)
+        return
+      }
+    }
+
     if (e.key === '@') {
       this.props.setMentionPopupOpen(true)
+    } else if (e.key === '#') {
+      this.props.setChannelMentionPopupOpen(true)
     }
 
     if (this.props.mentionPopupOpen && e.key === 'Backspace') {
@@ -189,11 +244,17 @@ class ConversationInput extends Component<InputProps, State> {
         this.props.setMentionPopupOpen(false)
       }
     }
+    if (this.props.channelMentionPopupOpen && e.key === 'Backspace') {
+      const lastChar = this.props.text[this.props.text.length - 1]
+      if (lastChar === '#') {
+        this.props.setChannelMentionPopupOpen(false)
+      }
+    }
   }
 
   _onKeyUp = (e: SyntheticKeyboardEvent<*>) => {
     // Ignore moving within the list
-    if (this.props.mentionPopupOpen) {
+    if (this.props.mentionPopupOpen || this.props.channelMentionPopupOpen) {
       if (['ArrowUp', 'ArrowDown', 'Shift', 'Tab'].includes(e.key)) {
         // handled above in _onKeyDown
         return
@@ -201,13 +262,17 @@ class ConversationInput extends Component<InputProps, State> {
     }
 
     // Get the word typed so far
-    if (this.props.mentionPopupOpen || e.key === 'Backspace') {
+    if (this.props.mentionPopupOpen || this.props.channelMentionPopupOpen ||  e.key === 'Backspace') {
       const wordSoFar = this._getWordAtCursor(false)
       if (wordSoFar && wordSoFar[0] === '@') {
         !this.props.mentionPopupOpen && this.props.setMentionPopupOpen(true)
         this.props.setMentionFilter(wordSoFar.substring(1))
+      } else if (wordSoFar && wordSoFar[0] === '#') {
+        !this.props.channelMentionPopupOpen && this.props.setChannelMentionPopupOpen(true)
+        this.props.setChannelMentionFilter(wordSoFar.substring(1))
       } else {
         this.props.mentionPopupOpen && this.props.setMentionPopupOpen(false)
+        this.props.channelMentionPopupOpen && this.props.setChannelMentionPopupOpen(false)
       }
     }
   }
@@ -252,6 +317,10 @@ class ConversationInput extends Component<InputProps, State> {
       this._triggerPickSelectedCounter()
       return
     }
+    if (this.props.channelMentionPopupOpen) {
+      this._triggerChannelPickSelectedCounter()
+      return
+    }
 
     if (this.props.isLoading) {
       logger.info('Ignoring chat submit while still loading')
@@ -292,6 +361,24 @@ class ConversationInput extends Component<InputProps, State> {
     this._replaceWordAtCursor(`@${u}`)
   }
 
+  _insertChannelMention = (c: string, options?: {notUser: boolean}) => {
+    this._replaceWordAtCursor(`#${c} `)
+    this.props.setChannelMentionPopupOpen(false)
+
+    // This happens if you type #notachannel<enter>. We've essentially 'picked' nothing and really want to submit
+    // This is a little wonky cause this component doesn't directly know if the list is filtered all the way out
+    if (options && options.notUser) {
+      if (this.props.text) {
+        this.props.onPostMessage(this.props.text)
+        this.props.setText('')
+      }
+    }
+  }
+
+  _switchChannelMention = (c: string) => {
+    this._replaceWordAtCursor(`#${c}`)
+  }
+
   render() {
     return (
       <Box style={{...globalStyles.flexBoxColumn, borderTop: `solid 1px ${globalColors.black_05}`}}>
@@ -306,6 +393,19 @@ class ConversationInput extends Component<InputProps, State> {
             onPickUser={this._insertMention}
             onSelectUser={this._switchMention}
             filter={this.props.mentionFilter}
+          />
+        )}
+        {this.props.channelMentionPopupOpen && (
+          <MentionCatcher onClick={() => this.props.setChannelMentionPopupOpen(false)} />
+        )}
+        {this.props.channelMentionPopupOpen && (
+          <ChannelMentionHud
+            selectDownCounter={this.state.channelDownArrowCounter}
+            selectUpCounter={this.state.channelUpArrowCounter}
+            pickSelectedUserCounter={this.state.channelPickSelectedCounter}
+            onPickUser={this._insertChannelMention}
+            onSelectUser={this._switchChannelMention}
+            filter={this.props.channelMentionFilter}
           />
         )}
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
@@ -411,14 +511,14 @@ const InputAccessory = Component => props => (
 
 const MentionHud = InputAccessory(props => (
   <ConnectedMentionHud
-    style={{
-      borderRadius: 4,
-      boxShadow: '0 0 8px 0 rgba(0, 0, 0, 0.2)',
-      height: 220,
-      marginLeft: 20,
-      marginRight: 20,
-      width: '100%',
-    }}
+    style={styleMentionHud}
+    {...props}
+  />
+))
+
+const ChannelMentionHud = InputAccessory(props => (
+  <ConnectedChannelMentionHud
+    style={styleMentionHud}
     {...props}
   />
 ))
@@ -433,6 +533,15 @@ const EmojiPicker = ({emojiPickerToggle, onClick}) => (
     </Box>
   </Box>
 )
+
+const styleMentionHud = {
+  borderRadius: 4,
+  boxShadow: '0 0 8px 0 rgba(0, 0, 0, 0.2)',
+  height: 220,
+  marginLeft: 20,
+  marginRight: 20,
+  width: '100%',
+}
 
 const styleInput = {
   flex: 1,
