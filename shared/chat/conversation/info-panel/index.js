@@ -14,6 +14,7 @@ import {
   Text,
 } from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
+import {SmallTeamHeader} from './header'
 import Notifications from './notifications/container'
 import Participants, {Participant} from './participants'
 import {TurnIntoTeam} from './turn-into-team'
@@ -133,25 +134,11 @@ type SmallTeamInfoPanelProps = infoPanelProps & {
 
 const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
   <ScrollView style={scrollViewStyle} contentContainerStyle={contentContainerStyle}>
-    <ClickableBox
-      style={{
-        ...globalStyles.flexBoxRow,
-        alignItems: 'center',
-        marginLeft: globalMargins.small,
-        marginTop: globalMargins.small,
-      }}
+    <SmallTeamHeader
+      teamname={props.teamname}
+      participantCount={props.participants.length}
       onClick={props.onViewTeam}
-    >
-      <Avatar size={isMobile ? 48 : 32} teamname={props.teamname} isTeam={true} />
-      <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: globalMargins.small}}>
-        <Text type="BodySemibold">{props.teamname}</Text>
-        <Box style={globalStyles.flexBoxRow}>
-          <Text type="BodySmall">
-            {props.participants.length.toString() + ' member' + (props.participants.length !== 1 ? 's' : '')}
-          </Text>
-        </Box>
-      </Box>
-    </ClickableBox>
+    />
 
     <Divider style={{marginBottom: 20, marginTop: 20}} />
 
