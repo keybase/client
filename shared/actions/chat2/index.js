@@ -743,21 +743,43 @@ const startConversation = (action: Chat2Gen.StartConversationPayload, state: Typ
   const you = state.config.username || ''
 
   let users
+  let conversationIDKey
 
   if (participants) {
-    users = participants.filter(p => p !== you)
+    users = participants
   } else if (tlf) {
-    users = parseFolderNameToUsers(you, tlf).map(u => u.username)
+    const parts = tlf.split('/')
+    if (parts.length >= 4) {
+      const [, , type, names] = parts
+      if (type === 'private' || type === 'public') {
+        // allow talking to yourself, [] since we add yourself later
+        users = names === you ? [you] : parseFolderNameToUsers('', names).map(u => u.username)
+      } else if (type === 'team') {
+        // Actually a team
+        const meta = state.chat2.metaMap.find(meta => meta.teamname === names)
+        if (meta) {
+          conversationIDKey = meta.conversationIDKey
+        } else {
+          throw new Error('Start conversation called w/ bad team tlf')
+        }
+      } else {
+        throw new Error('Start conversation called w/ bad tlf type')
+      }
+    } else {
+      throw new Error('Start conversation called w/ bad tlf')
+    }
   } else {
     throw new Error('Start conversation called w/ no participants or tlf')
   }
 
-  // existing?
-  const toFind = I.Set(users.concat(you))
-  const conversationIDKey = state.chat2.metaMap.findKey((meta, conversationIDKey) =>
-    // Ignore the order of participants
-    meta.participants.toSet().equals(toFind)
-  )
+  // Is this an existing conversation?
+  if (!conversationIDKey && users) {
+    const toFind = I.Set(users)
+    conversationIDKey = state.chat2.metaMap.findKey(meta =>
+      // Ignore the order of participants
+      meta.participants.toSet().equals(toFind)
+    )
+  }
 
   if (conversationIDKey) {
     return Saga.sequentially([
@@ -771,6 +793,7 @@ const startConversation = (action: Chat2Gen.StartConversationPayload, state: Typ
     ])
   }
 
+  console.log('aaa TODO make convo', users || '')
   // TODO make it
 }
 

@@ -149,7 +149,7 @@ class Row extends React.PureComponent<RowType & Folder> {
       event.preventDefault()
       event.stopPropagation()
       if (onChat) {
-        onChat(sortName)
+        onChat(path)
       }
     }
     const styles = isPublic ? stylesPublic : stylesPrivate
