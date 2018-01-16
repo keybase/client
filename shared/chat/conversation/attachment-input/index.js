@@ -2,6 +2,7 @@
 import React, {Component} from 'react'
 import {Box, Button, Icon, Image, Input, PopupDialog, Text, ButtonBar} from '../../../common-adapters/index'
 import {globalColors, globalStyles, isMobile} from '../../../styles'
+import {isIPhoneX} from '../../../constants/platform'
 import type {Props} from '.'
 
 type State = {
@@ -44,7 +45,7 @@ class RenderAttachmentInput extends Component<Props, State> {
     const isImage = !!input && input.type === 'Image'
 
     return (
-      <PopupDialog onClose={this.props.onClose}>
+      <PopupDialog onClose={this.props.onClose} styleContainer={isIPhoneX ? {marginTop: 30} : undefined}>
         <Box style={isMobile ? stylesMobile : stylesDesktop}>
           {!isImage && <Icon type="icon-file-uploading-48" />}
           {isImage && (
