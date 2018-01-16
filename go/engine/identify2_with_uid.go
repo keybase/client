@@ -732,20 +732,10 @@ func (e *Identify2WithUID) runIdentifyUI(netContext context.Context, ctx *Contex
 			e.G().Log.CDebugf(netContext, "| no rate limit; is UI profile")
 			checkRateLimit = false
 		}
-		if e.arg.ForceDisplay {
-			// don't rate limit ForceDisplay calls
-			e.G().Log.CDebugf(netContext, "| no rate limit; force display")
-			checkRateLimit = false
-		}
-
-		if !ctx.IdentifyUIIsDelegated {
-			e.G().Log.CDebugf(netContext, "| no rate limit; UI isn't delegated")
-			checkRateLimit = false
-		}
 	}
 
 	if checkRateLimit {
-		if !e.G().IdentifyUILimiter.WaitShort() {
+		if !e.G().IdentifyUILimiter.Wait(5 * time.Millisecond) {
 			e.G().Log.Debug("| identify ui rate limit exceeded, suppressing tracker popups")
 			iui = newLoopbackIdentifyUI(e.G(), &e.trackBreaks)
 		}

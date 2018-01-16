@@ -44,11 +44,6 @@ func (b *BurstLimiter) Wait(d time.Duration) (ok bool) {
 	}
 }
 
-// WaitShort is a convenience function to wait for a short amount of time.
-func (b *BurstLimiter) WaitShort() (ok bool) {
-	return b.Wait(5 * time.Millisecond)
-}
-
 func (b *BurstLimiter) Stop() {
 	b.ticker.Stop()
 }
