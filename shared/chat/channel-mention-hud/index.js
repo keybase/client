@@ -10,7 +10,7 @@ import {
   connect,
   type MapStateToProps,
 } from '../../util/container'
-import {Avatar, Box, ClickableBox, List, Text, Usernames} from '../../common-adapters/index'
+import {Box, ClickableBox, List, Text} from '../../common-adapters/index'
 import {globalColors, globalMargins, globalStyles} from '../../styles'
 
 type Props<D: {key: string, selected: boolean}> = {
@@ -21,24 +21,13 @@ type Props<D: {key: string, selected: boolean}> = {
 }
 
 type MentionDatum = {
-  following: I.Set<string>,
-  you: string,
-  username: string,
-  fullName: string,
+  channelName: string,
   selected: boolean,
   onClick: () => void,
   onHover: () => void,
 }
 
-const MentionRowRenderer = ({
-  username,
-  fullName,
-  selected,
-  onClick,
-  onHover,
-  following,
-  you,
-}: MentionDatum) => (
+const MentionRowRenderer = ({channelName, selected, onClick, onHover}: MentionDatum) => (
   <ClickableBox
     style={{
       ...globalStyles.flexBoxRow,
@@ -51,15 +40,8 @@ const MentionRowRenderer = ({
     onClick={onClick}
     onMouseOver={onHover}
   >
-    <Avatar username={username} size={32} />
-    <Usernames
-      type="BodySemibold"
-      colorFollowing={true}
-      users={[{you: you === username, username, following: following.has(username)}]}
-      style={{marginLeft: globalMargins.small}}
-    />
-    <Text type="Body" style={{marginLeft: globalMargins.tiny}}>
-      {fullName}
+    <Text type="BodySemibold" style={{marginLeft: globalMargins.tiny}}>
+      #{channelName}
     </Text>
   </ClickableBox>
 )
@@ -79,7 +61,7 @@ const hudStyle = {
 }
 
 type MentionHudProps = {
-  users: Array<{username: string, fullName: string}>,
+  channels: Array<{channelName: string}>,
   onPickChannel: (user: string) => void,
   onSelectChannel: (user: string) => void,
   pickSelectedChannelCounter: number,
@@ -90,20 +72,15 @@ type MentionHudProps = {
 }
 
 // TODO figure typing out
-const mapStateToProps: MapStateToProps<*, *, *> = (state: TypedState, {users, selectedIndex, filter}) => ({
-  following: state.config.following,
-  you: state.config.username || '',
-  data: users
-    .map((u, i) => ({
-      username: u.username,
-      fullName: u.fullName,
-      key: u.username,
-    }))
-    .filter(u => {
-      return u.username.toLowerCase().indexOf(filter) >= 0 || u.fullName.toLowerCase().indexOf(filter) >= 0
-    })
-    .map((u, i) => ({...u, selected: i === selectedIndex})),
-})
+const mapStateToProps: MapStateToProps<*, *, *> = (state: TypedState, {channels, selectedIndex, filter}) => {
+  console.warn('state props', channels)
+  return {
+    data: Object.keys(channels)
+      .filter(c => c.toLowerCase().indexOf(filter) >= 0)
+      .sort()
+      .map((c, i) => ({channelName: c, selected: i === selectedIndex})),
+  }
+}
 // $FlowIssue is confused
 const MentionHud: Class<React.Component<MentionHudProps, void>> = compose(
   withState('selectedIndex', 'setSelectedIndex', 0),
@@ -137,16 +114,16 @@ const MentionHud: Class<React.Component<MentionHudProps, void>> = compose(
 
       if (nextProps.pickSelectedChannelCounter !== this.props.pickSelectedChannelCounter) {
         if (nextProps.selectedIndex < nextProps.data.length) {
-          nextProps.onPickChannel(nextProps.data[nextProps.selectedIndex].username)
+          nextProps.onPickChannel(nextProps.data[nextProps.selectedIndex].channelName)
         } else {
           // Just exit
-          nextProps.onPickChannel(nextProps.filter, {notUser: true})
+          nextProps.onPickChannel(nextProps.filter, {notChannel: true})
         }
       }
 
       if (nextProps.selectedIndex !== this.props.selectedIndex) {
         if (nextProps.selectedIndex < nextProps.data.length) {
-          nextProps.onSelectChannel(nextProps.data[nextProps.selectedIndex].username)
+          nextProps.onSelectChannel(nextProps.data[nextProps.selectedIndex].channelName)
         }
       }
     },
@@ -156,10 +133,8 @@ const MentionHud: Class<React.Component<MentionHudProps, void>> = compose(
       return (
         <MentionRowRenderer
           key={props.key}
-          onClick={() => ownerProps.onPickChannel(props.username)}
+          onClick={() => ownerProps.onPickChannel(props.channelName)}
           onHover={() => ownerProps.setSelectedIndex(index)}
-          following={ownerProps.following}
-          you={ownerProps.you}
           {...props}
         />
       )

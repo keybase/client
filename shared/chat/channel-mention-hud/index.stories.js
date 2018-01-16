@@ -35,35 +35,26 @@ const UpDownFilterHoc = compose(
 )
 
 const load = () => {
-  storiesOf('Chat/Heads up Display', module)
+  storiesOf('Chat/Channel Heads up Display', module)
     .add('Mention Row', () => (
       <Box style={{width: 240}}>
         <MentionRowRenderer
-          following={I.Set()}
-          you="chris"
-          username="trex"
-          fullName="T. Bone Rexasaurus"
-          key="trex"
+          channelName="foo"
+          key="foo"
           selected={false}
           onClick={action('onClick')}
           onHover={action('onHover')}
         />
         <MentionRowRenderer
-          following={I.Set()}
-          you="chris"
-          username="marcopolo"
-          fullName="Marco Munizaga"
-          key="marcopolo"
+          channelName="bar"
+          key="bar"
           selected={true}
           onClick={action('onClick')}
           onHover={action('onHover')}
         />
         <MentionRowRenderer
-          following={I.Set()}
-          you="chris"
-          username="missingno"
-          fullName="MissingNo"
-          key="missingno"
+          channelName="baz"
+          key="baz"
           selected={false}
           onClick={action('onClick')}
           onHover={action('onHover')}
@@ -74,9 +65,9 @@ const load = () => {
       const Hud = UpDownFilterHoc(({upCounter, downCounter, filter}) => (
         <Box style={{height: 100, width: 240, ...globalStyles.flexBoxColumn}}>
           <MentionHud
-            users={[{username: 'marcopolo', fullName: 'Marco Munizaga'}, {username: 'trex', fullName: ''}]}
-            onPickUser={action('onPickUser')}
-            onSelectUser={action('onSelectUser')}
+            channels={[{channelName: 'foo'}, {channelName: 'bar'}, {channelName: 'baz'}]}
+            onPickChannel={action('onPickChannel')}
+            onSelectChannel={action('onSelectChannel')}
             selectUpCounter={upCounter}
             selectDownCounter={downCounter}
             pickSelectedUserCounter={0}

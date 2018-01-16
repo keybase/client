@@ -165,7 +165,9 @@ class ConversationInput extends Component<InputProps, State> {
   }
 
   _triggerChannelPickSelectedCounter = () => {
-    this.setState(({channelPickSelectedCounter}) => ({channelPickSelectedCounter: channelPickSelectedCounter + 1}))
+    this.setState(({channelPickSelectedCounter}) => ({
+      channelPickSelectedCounter: channelPickSelectedCounter + 1,
+    }))
   }
 
   _onKeyDown = (e: SyntheticKeyboardEvent<>) => {
@@ -262,7 +264,7 @@ class ConversationInput extends Component<InputProps, State> {
     }
 
     // Get the word typed so far
-    if (this.props.mentionPopupOpen || this.props.channelMentionPopupOpen ||  e.key === 'Backspace') {
+    if (this.props.mentionPopupOpen || this.props.channelMentionPopupOpen || e.key === 'Backspace') {
       const wordSoFar = this._getWordAtCursor(false)
       if (wordSoFar && wordSoFar[0] === '@') {
         !this.props.mentionPopupOpen && this.props.setMentionPopupOpen(true)
@@ -361,13 +363,13 @@ class ConversationInput extends Component<InputProps, State> {
     this._replaceWordAtCursor(`@${u}`)
   }
 
-  _insertChannelMention = (c: string, options?: {notUser: boolean}) => {
+  _insertChannelMention = (c: string, options?: {notChannel: boolean}) => {
     this._replaceWordAtCursor(`#${c} `)
     this.props.setChannelMentionPopupOpen(false)
 
     // This happens if you type #notachannel<enter>. We've essentially 'picked' nothing and really want to submit
     // This is a little wonky cause this component doesn't directly know if the list is filtered all the way out
-    if (options && options.notUser) {
+    if (options && options.notChannel) {
       if (this.props.text) {
         this.props.onPostMessage(this.props.text)
         this.props.setText('')
@@ -509,18 +511,10 @@ const InputAccessory = Component => props => (
   </Box>
 )
 
-const MentionHud = InputAccessory(props => (
-  <ConnectedMentionHud
-    style={styleMentionHud}
-    {...props}
-  />
-))
+const MentionHud = InputAccessory(props => <ConnectedMentionHud style={styleMentionHud} {...props} />)
 
 const ChannelMentionHud = InputAccessory(props => (
-  <ConnectedChannelMentionHud
-    style={styleMentionHud}
-    {...props}
-  />
+  <ConnectedChannelMentionHud style={styleMentionHud} {...props} />
 ))
 
 const EmojiPicker = ({emojiPickerToggle, onClick}) => (

@@ -1,9 +1,11 @@
 // @flow
 import React from 'react'
 import {MentionHud} from '.'
-import {createSelector} from 'reselect'
+import {createSelector} from '../../util/container'
 import {connect, type MapStateToProps} from 'react-redux'
-import {getGeneralChannelOfSelectedInbox} from '../../constants/chat'
+import {getTeamName} from '../../constants/chat'
+import {getTeamToChannel} from '../inbox/container'
+import * as ChatTypes from '../../constants/types/chat'
 
 type ConnectedMentionHudProps = {
   onPickChannel: (user: string) => void,
@@ -15,28 +17,19 @@ type ConnectedMentionHudProps = {
   style?: Object,
 }
 
-const fullNameSelector = createSelector(
-  getGeneralChannelOfSelectedInbox,
-  inbox => (inbox ? inbox.get('fullNames') : null)
+const channelSelector = createSelector(
+  [getTeamName, getTeamToChannel],
+  (
+    teamname: any,
+    teamsToChannels
+  ): {
+    [channelname: string]: ChatTypes.ConversationIDKey,
+  } => (teamname ? teamsToChannels[teamname] : {})
 )
-const participantsSelector = createSelector(
-  getGeneralChannelOfSelectedInbox,
-  inbox => (inbox ? inbox.get('participants') : null)
-)
-
-const userSelector = createSelector(fullNameSelector, participantsSelector, (fullNames, participants) => {
-  return participants
-    ? participants.reduce((res, username) => {
-        const fullName = fullNames ? fullNames.get(username) : ''
-        res.push({fullName: fullName || '', username})
-        return res
-      }, [])
-    : []
-})
 
 const mapStateToProps: MapStateToProps<*, *, *> = (state, {filter}) => {
   return {
-    users: userSelector(state),
+    channels: channelSelector(state),
     filter: filter.toLowerCase(),
   }
 }
