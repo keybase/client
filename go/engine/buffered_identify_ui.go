@@ -79,7 +79,6 @@ func (b *bufferedIdentifyUI) flush(trackingBroke bool) (err error) {
 	}
 
 	if !b.G().IdentifyUILimiter.Wait(5 * time.Millisecond) {
-		b.G().Log.Debug("- bufferedIdentifyUI#flush: rate limit exceeded")
 		return libkb.IdentifyRateLimitError{}
 	}
 

@@ -6,8 +6,7 @@ import (
 )
 
 func TestBurstLimiter(t *testing.T) {
-	tc := SetupTest(t, "burst limiter", 0)
-	b := NewBurstLimiter(tc.G, 5, 1*time.Second)
+	b := NewBurstLimiter(5, 1*time.Second)
 	for i := 0; i < 5; i++ {
 		if b.Wait(1*time.Millisecond) == false {
 			t.Errorf("expected to be able to get request %d immediately", i)

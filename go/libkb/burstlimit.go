@@ -4,7 +4,6 @@ import "time"
 
 // BurstLimiter is a rate limiter that allows bursts of requests.
 type BurstLimiter struct {
-	g         *GlobalContext
 	limiter   chan time.Time
 	burstSize int
 	duration  time.Duration
@@ -17,9 +16,8 @@ type BurstLimiter struct {
 //
 // For example, NewBurstLimiter(5, 12 * time.Minute) will allow a burst
 // of 5 requests, but will limit the number of requests to 5 per hour.
-func NewBurstLimiter(g *GlobalContext, burstSize int, duration time.Duration) *BurstLimiter {
+func NewBurstLimiter(burstSize int, duration time.Duration) *BurstLimiter {
 	b := &BurstLimiter{
-		g:         g,
 		limiter:   make(chan time.Time, burstSize),
 		burstSize: burstSize,
 		duration:  duration,
@@ -36,10 +34,8 @@ func NewBurstLimiter(g *GlobalContext, burstSize int, duration time.Duration) *B
 func (b *BurstLimiter) Wait(d time.Duration) (ok bool) {
 	select {
 	case <-b.limiter:
-		b.g.Log.Debug("BurstLimiter: got request from limiter")
 		return true
-	case <-time.After(d * CITimeMultiplier(b.g)):
-		b.g.Log.Debug("BurstLimiter: timed out getting request from limiter")
+	case <-time.After(d):
 		return false
 	}
 }
@@ -59,6 +55,5 @@ func (b *BurstLimiter) start() {
 func (b *BurstLimiter) tick() {
 	for t := range b.ticker.C {
 		b.limiter <- t
-		b.g.Log.Debug("BurstLimiter: added %v to limiter", t)
 	}
 }

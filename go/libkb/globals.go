@@ -176,6 +176,7 @@ func NewGlobalContext() *GlobalContext {
 		uchMu:              new(sync.Mutex),
 		NewTriplesec:       NewSecureTriplesec,
 		ActiveDevice:       new(ActiveDevice),
+		IdentifyUILimiter:  NewBurstLimiter(identifyUIBurstSize, identifyUIRateDuration),
 		NetContext:         context.TODO(),
 	}
 }
@@ -214,7 +215,6 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.ConnectivityMonitor = NullConnectivityMonitor{}
 	g.localSigchainGuard = NewLocalSigchainGuard(g)
 	g.AppState = NewAppState(g)
-	g.IdentifyUILimiter = NewBurstLimiter(g, identifyUIBurstSize, identifyUIRateDuration)
 	return g
 }
 
