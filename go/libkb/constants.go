@@ -124,7 +124,8 @@ const (
 	// By default, only 64 files can be opened.
 	LevelDBNumFiles = 64
 
-	HomeCacheTimeout = (time.Hour - time.Minute)
+	HomeCacheTimeout       = (time.Hour - time.Minute)
+	HomePeopleCacheTimeout = 10 * time.Minute
 )
 
 const RemoteIdentifyUITimeout = 5 * time.Second

@@ -13,39 +13,28 @@ import (
 	"golang.org/x/net/context"
 )
 
-type cache struct {
-	obj          keybase1.HomeScreen
-	cachedAt     time.Time
-	peopleOffset int
+type homeCache struct {
+	obj      keybase1.HomeScreen
+	cachedAt time.Time
+}
+
+type peopleCache struct {
+	all       []keybase1.HomeUserSummary
+	lastShown []keybase1.HomeUserSummary
+	cachedAt  time.Time
 }
 
 type Home struct {
 	libkb.Contextified
 
 	sync.Mutex
-	cache *cache
+	homeCache   *homeCache
+	peopleCache *peopleCache
 }
 
 type rawGetHome struct {
 	Status libkb.AppStatus     `json:"status"`
 	Home   keybase1.HomeScreen `json:"home"`
-}
-
-func (c *cache) hasEnoughPeople(i int) bool {
-	return c.peopleOffset+i <= len(c.obj.FollowSuggestions)
-}
-
-func (c *cache) popPeople(ctx context.Context, g *libkb.GlobalContext, i int) keybase1.HomeScreen {
-	ret := c.obj.DeepCopy()
-	numLeft := len(ret.FollowSuggestions) - c.peopleOffset
-	if i > numLeft {
-		i = numLeft
-	}
-	g.Log.CDebugf(ctx, "| Accessing people cache; %d left, taking %d of them", numLeft, i)
-	rightLimit := c.peopleOffset + i
-	ret.FollowSuggestions = ret.FollowSuggestions[c.peopleOffset:rightLimit]
-	c.peopleOffset += i
-	return ret
 }
 
 func (r *rawGetHome) GetAppStatus() *libkb.AppStatus {
@@ -58,7 +47,7 @@ func NewHome(g *libkb.GlobalContext) *Home {
 	return home
 }
 
-func (h *Home) get(ctx context.Context, markedViewed bool, numPeopleWanted int) (ret keybase1.HomeScreen, err error) {
+func (h *Home) getToCache(ctx context.Context, markedViewed bool, numPeopleWanted int) (err error) {
 	defer h.G().CTrace(ctx, "Home#get", func() error { return err })()
 
 	numPeopleToRequest := 100
@@ -74,11 +63,29 @@ func (h *Home) get(ctx context.Context, markedViewed bool, numPeopleWanted int) 
 	}
 	var raw rawGetHome
 	if err = h.G().API.GetDecode(arg, &raw); err != nil {
-		return ret, err
+		return err
 	}
-	ret = raw.Home
-	h.G().Log.CDebugf(ctx, "| %d follow suggestions returned", len(ret.FollowSuggestions))
-	return ret, err
+	home := raw.Home
+
+	newPeopleCache := &peopleCache{
+		all: home.FollowSuggestions,
+	}
+
+	if h.peopleCache != nil {
+		newPeopleCache.lastShown = h.peopleCache.lastShown
+		newPeopleCache.cachedAt = h.peopleCache.cachedAt
+	}
+	h.peopleCache = newPeopleCache
+
+	h.G().Log.CDebugf(ctx, "| %d follow suggestions returned", len(home.FollowSuggestions))
+	home.FollowSuggestions = nil
+
+	h.homeCache = &homeCache{
+		obj:      home,
+		cachedAt: h.G().GetClock().Now(),
+	}
+
+	return nil
 }
 
 func (h *Home) Get(ctx context.Context, markViewed bool, numPeopleWanted int) (ret keybase1.HomeScreen, err error) {
@@ -92,34 +99,85 @@ func (h *Home) Get(ctx context.Context, markViewed bool, numPeopleWanted int) (r
 	h.Lock()
 	defer h.Unlock()
 
-	if h.cache != nil {
-		if !h.cache.hasEnoughPeople(numPeopleWanted) {
-			h.G().Log.CDebugf(ctx, "| going to server, since not enough people left in cache; %d wanted", numPeopleWanted)
-		} else {
-			diff := h.G().GetClock().Now().Sub(h.cache.cachedAt)
-			if diff < libkb.HomeCacheTimeout {
-				h.G().Log.CDebugf(ctx, "| hit cache (cached %s ago)", diff)
-				if markViewed {
-					h.G().Log.CDebugf(ctx, "| going to server to mark view, anyways")
-					tmpErr := h.markViewed(ctx)
-					if tmpErr != nil {
-						h.G().Log.CInfof(ctx, "Error marking home as viewed: %s", tmpErr.Error())
-					}
-				}
-				return h.cache.popPeople(ctx, h.G(), numPeopleWanted), nil
+	inCache := h.homeCache.isValid(ctx, h.G())
+	var people []keybase1.HomeUserSummary
+	if inCache {
+		inCache, people = h.peopleCache.isValid(ctx, h.G(), numPeopleWanted)
+	}
+
+	if inCache {
+		h.G().Log.CDebugf(ctx, "| cache is good; skipping get")
+		if markViewed {
+			h.G().Log.CDebugf(ctx, "| going to server to mark view, anyways")
+			tmpErr := h.markViewed(ctx)
+			if tmpErr != nil {
+				h.G().Log.CInfof(ctx, "Error marking home as viewed: %s", tmpErr.Error())
 			}
+		}
+	} else {
+		err = h.getToCache(ctx, markViewed, numPeopleWanted)
+		if err != nil {
+			return ret, err
 		}
 	}
 
-	ret, err = h.get(ctx, markViewed, numPeopleWanted)
-	if err == nil {
-		h.cache = &cache{
-			obj:      ret,
-			cachedAt: h.G().GetClock().Now(),
-		}
-		ret = h.cache.popPeople(ctx, h.G(), numPeopleWanted)
+	// Prime the return object with whatever was cached for home
+	tmp := h.homeCache.obj
+
+	if people != nil {
+		tmp.FollowSuggestions = people
+	} else {
+		h.peopleCache.loadInto(ctx, h.G(), &tmp, numPeopleWanted)
 	}
-	return ret, err
+
+	// Return a deep copy of the tmp object, so that the caller can't
+	// change it or race against other Go routines.
+	ret = tmp.DeepCopy()
+
+	return ret, nil
+}
+
+func (p *peopleCache) loadInto(ctx context.Context, g *libkb.GlobalContext, out *keybase1.HomeScreen, numPeopleWanted int) error {
+	if numPeopleWanted > len(p.all) {
+		numPeopleWanted = len(p.all)
+		g.Log.CDebugf(ctx, "| didn't get enough people loaded, so short-changing at %d", numPeopleWanted)
+	}
+	out.FollowSuggestions = p.all[0:numPeopleWanted]
+	p.all = p.all[numPeopleWanted:]
+	p.lastShown = out.FollowSuggestions
+	p.cachedAt = g.GetClock().Now()
+	return nil
+}
+
+func (h *homeCache) isValid(ctx context.Context, g *libkb.GlobalContext) bool {
+	if h == nil {
+		g.Log.CDebugf(ctx, "| homeCache == nil, therefore isn't valid")
+		return false
+	}
+	diff := g.GetClock().Now().Sub(h.cachedAt)
+	if diff >= libkb.HomeCacheTimeout {
+		g.Log.CDebugf(ctx, "| homeCache was stale (cached %s ago)", diff)
+		return false
+	}
+	g.Log.CDebugf(ctx, "| homeCache was valid (cached %s ago)", diff)
+	return true
+}
+
+func (p *peopleCache) isValid(ctx context.Context, g *libkb.GlobalContext, numPeopleWanted int) (bool, []keybase1.HomeUserSummary) {
+	if p == nil {
+		g.Log.CDebugf(ctx, "| peopleCache = nil, therefore isn't valid")
+		return false, nil
+	}
+	diff := g.GetClock().Now().Sub(p.cachedAt)
+	if diff < libkb.HomePeopleCacheTimeout && numPeopleWanted <= len(p.lastShown) {
+		g.Log.CDebugf(ctx, "| peopleCache is valid, just returning last viewed")
+		return true, p.lastShown
+	}
+	if numPeopleWanted <= len(p.all) {
+		g.Log.CDebugf(ctx, "| people cache is valid, can pop from all")
+		return true, nil
+	}
+	return false, nil
 }
 
 func (h *Home) skipTodoType(ctx context.Context, typ keybase1.HomeScreenTodoType) (err error) {
@@ -141,7 +199,7 @@ func (h *Home) bustCache(ctx context.Context) {
 	h.G().Log.CDebugf(ctx, "Home#bustCache")
 	h.Lock()
 	defer h.Unlock()
-	h.cache = nil
+	h.homeCache = nil
 }
 
 func (h *Home) SkipTodoType(ctx context.Context, typ keybase1.HomeScreenTodoType) (err error) {
@@ -218,8 +276,8 @@ func (h *Home) handleUpdate(ctx context.Context, item gregor.Item) (err error) {
 
 	h.Lock()
 	defer h.Unlock()
-	if h.cache != nil && msg.Version > h.cache.obj.Version {
-		h.cache = nil
+	if h.homeCache != nil && msg.Version > h.homeCache.obj.Version {
+		h.homeCache = nil
 	}
 
 	// Ignore the error code...
