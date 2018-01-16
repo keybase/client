@@ -200,6 +200,113 @@ func (tx *AddMemberTx) AddMemberTransaction(ctx context.Context, username string
 	return tx.AddMember(uv, role)
 }
 
+func (tx *AddMemberTx) CompleteSocialInvitesFor(ctx context.Context, uv keybase1.UserVersion, username string) error {
+	team := tx.team
+	g := team.G()
+
+	if team.NumActiveInvites() == 0 {
+		g.Log.CDebugf(ctx, "CompleteSocialInvitesFor: no active invites in team")
+		return nil
+	}
+
+	// Find the right payload first
+	var payload *keybase1.TeamChangeReq
+	for _, v := range tx.payloads {
+		if req, ok := v.(*keybase1.TeamChangeReq); ok {
+			found := false
+			for _, x := range req.GetAllAdds() {
+				if x.Eq(uv) {
+					found = true
+				}
+			}
+			if found {
+				payload = req
+				break
+			}
+		}
+	}
+
+	if payload == nil {
+		return fmt.Errorf("could not find uv %v in transaction", uv)
+	}
+
+	proofs, err := getUserProofs(ctx, g, username)
+	if err != nil {
+		return err
+	}
+
+	actx := g.MakeAssertionContext()
+
+	var completedInvites = map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm{}
+
+	for _, invite := range team.chain().inner.ActiveInvites {
+		ityp, err := invite.Type.String()
+		if err != nil {
+			return err
+		}
+		category, err := invite.Type.C()
+		if err != nil {
+			return err
+		}
+
+		if category != keybase1.TeamInviteCategory_SBS {
+			continue
+		}
+
+		proofsWithType := proofs.Get([]string{ityp})
+
+		var proof *libkb.Proof
+		for _, p := range proofsWithType {
+			if p.Value == string(invite.Name) {
+				proof = &p
+				break
+			}
+		}
+
+		if proof == nil {
+			continue
+		}
+
+		assertionStr := fmt.Sprintf("%s@%s", string(invite.Name), ityp)
+		g.Log.CDebugf(ctx, "CompleteSocialInvitesFor: Found proof in user's ProofSet: key: %s value: %q; invite proof is %s", proof.Key, proof.Value, assertionStr)
+
+		resolveResult := g.Resolver.ResolveFullExpressionNeedUsername(ctx, assertionStr)
+		g.Log.CDebugf(ctx, "CompleteSocialInvitesFor: Resolve result is: %+v", resolveResult)
+		if resolveResult.GetError() != nil || resolveResult.GetUID() != uv.Uid {
+			// Cannot resolve invitation or it does not match user
+			continue
+		}
+
+		parsedAssertion, err := libkb.AssertionParseAndOnly(actx, assertionStr)
+		if err != nil {
+			return err
+		}
+
+		resolvedAssertion := libkb.ResolvedAssertion{
+			UID:           uv.Uid,
+			Assertion:     parsedAssertion,
+			ResolveResult: resolveResult,
+		}
+		if err := verifyResolveResult(ctx, g, resolvedAssertion); err == nil {
+			completedInvites[invite.Id] = uv.PercentForm()
+			g.Log.CDebugf(ctx, "CompleteSocialInvitesFor: Found completed invite: %s -> %v", invite.Id, uv)
+		}
+	}
+
+	// After checking everything, mutate payload.
+	g.Log.CDebugf(ctx, "CompleteSocialInvitesFor: checked invites without errors, adding %d complete(s)", len(completedInvites))
+	if len(completedInvites) > 0 {
+		if payload.CompletedInvites == nil {
+			payload.CompletedInvites = make(map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm)
+		}
+		for i, v := range completedInvites {
+			payload.CompletedInvites[i] = v
+		}
+	}
+
+	return nil
+}
+
 func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 	if len(tx.payloads) == 0 {
 		return errors.New("there are no signatures to post")

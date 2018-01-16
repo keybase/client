@@ -189,78 +189,6 @@ func getUserProofs(ctx context.Context, g *libkb.GlobalContext, username string)
 	return eng.GetProofSet(), nil
 }
 
-func tryToCompleteInvites(ctx context.Context, g *libkb.GlobalContext, team *Team, username string, uv keybase1.UserVersion, req *keybase1.TeamChangeReq) error {
-	if team.NumActiveInvites() == 0 {
-		return nil
-	}
-
-	proofs, err := getUserProofs(ctx, g, username)
-	if err != nil {
-		return err
-	}
-
-	actx := g.MakeAssertionContext()
-
-	var completedInvites = map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm{}
-
-	for i, invite := range team.chain().inner.ActiveInvites {
-		g.Log.CDebugf(ctx, "tryToCompleteInvites invite %q %+v", i, invite)
-		ityp, err := invite.Type.String()
-		if err != nil {
-			return err
-		}
-		category, err := invite.Type.C()
-		if err != nil {
-			return err
-		}
-
-		if category != keybase1.TeamInviteCategory_SBS {
-			continue
-		}
-
-		proofsWithType := proofs.Get([]string{ityp})
-
-		var proof *libkb.Proof
-		for _, p := range proofsWithType {
-			if p.Value == string(invite.Name) {
-				proof = &p
-				break
-			}
-		}
-
-		if proof == nil {
-			continue
-		}
-
-		assertionStr := fmt.Sprintf("%s@%s", string(invite.Name), ityp)
-		g.Log.CDebugf(ctx, "Found proof in user's ProofSet: key: %s value: %q; invite proof is %s", proof.Key, proof.Value, assertionStr)
-
-		resolveResult := g.Resolver.ResolveFullExpressionNeedUsername(ctx, assertionStr)
-		g.Log.CDebugf(ctx, "Resolve result is: %+v", resolveResult)
-		if resolveResult.GetError() != nil || resolveResult.GetUID() != uv.Uid {
-			// Cannot resolve invitation or it does not match user
-			continue
-		}
-
-		parsedAssertion, err := libkb.AssertionParseAndOnly(actx, assertionStr)
-		if err != nil {
-			return err
-		}
-
-		resolvedAssertion := libkb.ResolvedAssertion{
-			UID:           uv.Uid,
-			Assertion:     parsedAssertion,
-			ResolveResult: resolveResult,
-		}
-		if err := verifyResolveResult(ctx, g, resolvedAssertion); err == nil {
-			completedInvites[invite.Id] = uv.PercentForm()
-		}
-	}
-
-	req.CompletedInvites = completedInvites
-	return nil
-}
-
 func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, username string, role keybase1.TeamRole) (res keybase1.TeamAddMemberResult, err error) {
 	var inviteRequired bool
 	resolvedUsername, uv, err := loadUserVersionPlusByUsername(ctx, g, username)
@@ -302,6 +230,12 @@ func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 		if err != nil {
 			return err
 		}
+
+		timeoutCtx, timeoutCancel := context.WithTimeout(ctx, 2*time.Second)
+		if err := tx.CompleteSocialInvitesFor(timeoutCtx, uv, username); err != nil {
+			g.Log.CWarningf(ctx, "Failed in CompleteSocialInvitesFor, no invites will be cleared. Err was: %v", err)
+		}
+		timeoutCancel()
 
 		err = tx.Post(ctx)
 		if err != nil {
