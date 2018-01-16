@@ -31432,10 +31432,10 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
               "justifyContent": "center",
               "marginLeft": 8,
               "marginRight": 8,
-              "marginTop": -1,
               "minWidth": 10,
               "paddingLeft": 4,
               "paddingRight": 5,
+              "width": 10,
             }
           }
         >
@@ -32140,10 +32140,10 @@ exports[`Storyshots People/Follow notification Someone followed you 1`] = `
               "justifyContent": "center",
               "marginLeft": 8,
               "marginRight": 8,
-              "marginTop": -1,
               "minWidth": 10,
               "paddingLeft": 4,
               "paddingRight": 5,
+              "width": 10,
             }
           }
         >
@@ -32584,10 +32584,10 @@ exports[`Storyshots People/Todos Chat 1`] = `
               "justifyContent": "center",
               "marginLeft": 8,
               "marginRight": 8,
-              "marginTop": -1,
               "minWidth": 10,
               "paddingLeft": 4,
               "paddingRight": 5,
+              "width": 10,
             }
           }
         >
@@ -32795,10 +32795,10 @@ exports[`Storyshots People/Todos Fill out bio 1`] = `
               "justifyContent": "center",
               "marginLeft": 8,
               "marginRight": 8,
-              "marginTop": -1,
               "minWidth": 10,
               "paddingLeft": 4,
               "paddingRight": 5,
+              "width": 10,
             }
           }
         >
@@ -33025,10 +33025,10 @@ exports[`Storyshots People/Todos Follow someone 1`] = `
               "justifyContent": "center",
               "marginLeft": 8,
               "marginRight": 8,
-              "marginTop": -1,
               "minWidth": 10,
               "paddingLeft": 4,
               "paddingRight": 5,
+              "width": 10,
             }
           }
         >
@@ -33255,10 +33255,10 @@ exports[`Storyshots People/Todos Install on phone 1`] = `
               "justifyContent": "center",
               "marginLeft": 8,
               "marginRight": 8,
-              "marginTop": -1,
               "minWidth": 10,
               "paddingLeft": 4,
               "paddingRight": 5,
+              "width": 10,
             }
           }
         >
@@ -33485,10 +33485,10 @@ exports[`Storyshots People/Todos Make a folder 1`] = `
               "justifyContent": "center",
               "marginLeft": 8,
               "marginRight": 8,
-              "marginTop": -1,
               "minWidth": 10,
               "paddingLeft": 4,
               "paddingRight": 5,
+              "width": 10,
             }
           }
         >
@@ -33715,10 +33715,10 @@ exports[`Storyshots People/Todos Make a git 1`] = `
               "justifyContent": "center",
               "marginLeft": 8,
               "marginRight": 8,
-              "marginTop": -1,
               "minWidth": 10,
               "paddingLeft": 4,
               "paddingRight": 5,
+              "width": 10,
             }
           }
         >
@@ -33926,10 +33926,10 @@ exports[`Storyshots People/Todos Make a paper key 1`] = `
               "justifyContent": "center",
               "marginLeft": 8,
               "marginRight": 8,
-              "marginTop": -1,
               "minWidth": 10,
               "paddingLeft": 4,
               "paddingRight": 5,
+              "width": 10,
             }
           }
         >
@@ -34156,10 +34156,10 @@ exports[`Storyshots People/Todos Make a team 1`] = `
               "justifyContent": "center",
               "marginLeft": 8,
               "marginRight": 8,
-              "marginTop": -1,
               "minWidth": 10,
               "paddingLeft": 4,
               "paddingRight": 5,
+              "width": 10,
             }
           }
         >
@@ -34386,10 +34386,10 @@ exports[`Storyshots People/Todos Prove something 1`] = `
               "justifyContent": "center",
               "marginLeft": 8,
               "marginRight": 8,
-              "marginTop": -1,
               "minWidth": 10,
               "paddingLeft": 4,
               "paddingRight": 5,
+              "width": 10,
             }
           }
         >
@@ -34616,10 +34616,10 @@ exports[`Storyshots People/Todos Set publicity 1`] = `
               "justifyContent": "center",
               "marginLeft": 8,
               "marginRight": 8,
-              "marginTop": -1,
               "minWidth": 10,
               "paddingLeft": 4,
               "paddingRight": 5,
+              "width": 10,
             }
           }
         >
