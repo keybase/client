@@ -31271,8 +31271,8 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
                 title={undefined}
               >
                 ,
-                 
               </span>
+               
             </span>
             <span
               className="glamor-3"
@@ -31292,8 +31292,8 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
                 title={undefined}
               >
                 ,
-                 
               </span>
+               
             </span>
             <span
               className="glamor-3"
@@ -31308,6 +31308,7 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
               >
                 chrisnojima
               </span>
+               
             </span>
           </span>
            started following you.
@@ -31708,8 +31709,8 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
                 title={undefined}
               >
                 ,
-                 
               </span>
+               
             </span>
             <span
               className="glamor-3"
@@ -31729,8 +31730,8 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
                 title={undefined}
               >
                 ,
-                 
               </span>
+               
             </span>
             <span
               className="glamor-3"
@@ -31750,8 +31751,8 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
                 title={undefined}
               >
                 ,
-                 
               </span>
+               
             </span>
             <span
               className="glamor-3"
@@ -31765,6 +31766,7 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
               >
                 chris
               </span>
+               
             </span>
           </span>
            and 5 others 
