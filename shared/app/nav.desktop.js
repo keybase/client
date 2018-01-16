@@ -26,9 +26,8 @@ class Nav extends React.Component<Props> {
       if (['layerScreens', 'routePath'].includes(key)) {
         return this.props[key].equals(nextProps[key])
       }
-      // Assume these are the same
       if (key === 'visibleScreen') {
-        return true
+        return this.props.visibleScreen.path.equals(nextProps.visibleScreen.path)
       }
       return undefined
     })

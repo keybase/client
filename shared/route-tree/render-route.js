@@ -164,7 +164,7 @@ function renderRouteStack({
               stack={childStack}
               key={key || path.join(':')}
             >
-              {child({shouldRender})}
+              {child({key: '0', shouldRender})}
             </RenderRouteNode>
           )
         })
