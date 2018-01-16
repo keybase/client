@@ -402,6 +402,7 @@ function* _chatInboxFailedSubSaga(params: RPCChatTypes.ChatUiChatInboxFailedRpcP
   if (error.remoteConv.metadata.membersType === RPCChatTypes.commonConversationMembersType.team) {
     teamname = error.unverifiedTLFName
   }
+  const notifications = error.remoteConv.notifications && parseNotifications(error.remoteConv.notifications)
   const conversation = Constants.makeInboxState({
     conversationIDKey,
     participants: error.rekeyInfo
@@ -416,6 +417,7 @@ function* _chatInboxFailedSubSaga(params: RPCChatTypes.ChatUiChatInboxFailedRpcP
     status: Constants.ConversationStatusByEnum[error.remoteConv.metadata.status],
     version: error.remoteConv.metadata.version,
     name: error.unverifiedTLFName,
+    notifications,
     teamname,
   })
 
