@@ -1,6 +1,6 @@
 // @noflow
 import {Component} from 'react'
-import type {RekeyInfo} from '../../../constants/types/chat'
+// import type {RekeyInfo} from '../../../constants/types/chat'
 
 export type Props = {
   rekeyInfo: ?RekeyInfo,

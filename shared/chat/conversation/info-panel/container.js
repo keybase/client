@@ -1,6 +1,5 @@
 // @noflow
 import * as Constants2 from '../../../constants/chat2'
-import * as Constants from '../../../constants/chat'
 import * as Types from '../../../constants/types/chat2'
 import * as TeamTypes from '../../../constants/types/teams'
 import * as Chat2Gen from '../../../actions/chat2-gen'
@@ -24,7 +23,7 @@ import flags from '../../../util/feature-flags'
 // })
 
 const mapStateToProps = (state: TypedState) => {
-  const selectedConversationIDKey = Constants.getSelectedConversation(state)
+  const selectedConversationIDKey = Constants2.getSelectedConversation(state)
   if (!selectedConversationIDKey) {
     return {}
   }
@@ -91,11 +90,8 @@ const mergeProps = (stateProps, dispatchProps) => {
       }
     },
     onJoinChannel: () => dispatchProps._onJoinChannel(selectedConversationIDKey),
-    onMuteConversation:
-      selectedConversationIDKey && !Constants.isPendingConversationIDKey(selectedConversationIDKey)
-        ? (muted: boolean) =>
-            selectedConversationIDKey && dispatchProps._onMuteConversation(selectedConversationIDKey, muted)
-        : null,
+    onMuteConversation: (muted: boolean) =>
+      selectedConversationIDKey && dispatchProps._onMuteConversation(selectedConversationIDKey, muted),
     onShowBlockConversationDialog: () =>
       dispatchProps._onShowBlockConversationDialog(
         selectedConversationIDKey,

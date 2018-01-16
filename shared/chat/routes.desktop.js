@@ -68,7 +68,7 @@ const conversationRoute = makeRouteDefNode({
 
 const routeTree = makeRouteDefNode({
   containerComponent: Render,
-  defaultSelected: '',
+  defaultSelected: '0',
   children: () => conversationRoute,
   tags: makeLeafTags({persistChildren: true}),
   initialState: {smallTeamsExpanded: false},
