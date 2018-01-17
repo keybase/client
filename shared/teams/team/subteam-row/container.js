@@ -3,9 +3,8 @@ import * as I from 'immutable'
 import * as Types from '../../../constants/types/teams'
 import * as Constants from '../../../constants/teams'
 import {TeamRow} from '../../main/team-list'
-import {teamsTab} from '../../../constants/tabs'
 import {connect, type TypedState} from '../../../util/container'
-import {navigateAppend, navigateTo} from '../../../actions/route-tree'
+import {navigateAppend} from '../../../actions/route-tree'
 import * as KBFSGen from '../../../actions/kbfs-gen'
 
 type OwnProps = {
@@ -26,7 +25,7 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   _onOpenFolder: (teamname: Types.Teamname) =>
     dispatch(KBFSGen.createOpen({path: `/keybase/team/${teamname}`})),
   _onViewTeam: (teamname: Types.Teamname) => {
-    dispatch(navigateTo([teamsTab, {props: {teamname}, selected: 'team'}]))
+    dispatch(navigateAppend([{props: {teamname}, selected: 'team'}]))
   },
 })
 

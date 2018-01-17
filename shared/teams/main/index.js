@@ -25,7 +25,9 @@ const Teams = (props: Props) => (
           alignItems: 'center',
         }}
       >
-        {!props.sawChatBanner && <Banner onReadMore={props.onReadMore} onHideBanner={props.onHideBanner} />}
+        {!props.sawChatBanner && (
+          <Banner onReadMore={props.onReadMore} onHideChatBanner={props.onHideChatBanner} />
+        )}
         <TeamList {...props} />
         <BetaNote {...props} />
       </ScrollView>

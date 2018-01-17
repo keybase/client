@@ -6,11 +6,11 @@ import type {Teamname} from '../../constants/types/teams'
 
 export type Props = {
   onReadMore: () => void,
-  onHideBanner?: () => void,
+  onHideSubteamsBanner: () => void,
   teamname: Teamname,
 }
 
-const Banner = ({onReadMore, onHideBanner, teamname}: Props) => (
+const Banner = ({onReadMore, onHideSubteamsBanner, teamname}: Props) => (
   <Box
     style={{
       ...(isMobile ? styleMobile : styleDesktop),
@@ -42,7 +42,7 @@ const Banner = ({onReadMore, onHideBanner, teamname}: Props) => (
         • {teamname}.legal
       </Text>
       <Text backgroundMode="Terminal" type="BodySemibold">
-        • {teamname}.customers.nike
+        • {teamname}.customers.vip
       </Text>
 
       <Text
@@ -55,9 +55,9 @@ const Banner = ({onReadMore, onHideBanner, teamname}: Props) => (
         Read more about subteams
       </Text>
     </Box>
-    {onHideBanner && (
+    {onHideSubteamsBanner && (
       <Box style={closeIconStyle}>
-        <Icon type="iconfont-close" onClick={onHideBanner} />
+        <Icon type="iconfont-close" onClick={onHideSubteamsBanner} />
       </Box>
     )}
   </Box>

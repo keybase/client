@@ -3,6 +3,7 @@ import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as TeamsGen from '../../actions/teams-gen'
+import * as GregorGen from '../../actions/gregor-gen'
 import * as SearchGen from '../../actions/search-gen'
 import * as I from 'immutable'
 import * as KBFSGen from '../../actions/kbfs-gen'
@@ -33,6 +34,7 @@ type StateProps = {
   publicityAnyMember: boolean,
   publicityMember: boolean,
   publicityTeam: boolean,
+  sawSubteamsBanner: boolean,
   selectedTab: string,
   waitingForSavePublicity: boolean,
   you: ?string,
@@ -52,6 +54,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
   const subteams = state.entities
     .getIn(['teams', 'teamNameToSubteams', teamname], I.Set())
     .filter(team => team.startsWith(teamname + '.'))
+    .sort()
 
   return {
     _memberInfo: memberInfo,
@@ -80,6 +83,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
       false
     ),
     publicityTeam: state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname, 'team'], false),
+    sawSubteamsBanner: state.entities.getIn(['teams', 'sawSubteamsBanner'], false),
     selectedTab: routeState.get('selectedTab') || 'members',
     subteams,
     waitingForSavePublicity: anyWaiting(state, `setPublicity:${teamname}`, `getDetails:${teamname}`),
@@ -153,6 +157,8 @@ const mapDispatchToProps = (
   },
   _savePublicity: (teamname: Types.Teamname, settings: Types.PublicitySettings) =>
     dispatch(TeamsGen.createSetPublicity({teamname, settings})),
+  onHideSubteamsBanner: () =>
+    dispatch(GregorGen.createInjectItem({body: 'true', category: 'sawSubteamsBanner'})),
   onReadMoreAboutSubteams: () => {
     openURL('https://keybase.io/docs/teams/design')
   },
