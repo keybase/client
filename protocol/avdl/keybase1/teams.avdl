@@ -253,6 +253,9 @@ protocol teams {
     // All invitations that are currently active.
     map<TeamInviteID,TeamInvite> activeInvites;
 
+    // Invitations that were obsolete by ChangeMembership links at Seqno.
+    map<TeamInviteID,Seqno> obsoleteInvites;
+
     // Whether this is an open team.
     boolean open;
     TeamRole openTeamJoinAs;

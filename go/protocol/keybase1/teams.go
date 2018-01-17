@@ -728,25 +728,26 @@ func (o AnnotatedTeamInvite) DeepCopy() AnnotatedTeamInvite {
 }
 
 type TeamSigChainState struct {
-	Reader         UserVersion                         `codec:"reader" json:"reader"`
-	Id             TeamID                              `codec:"id" json:"id"`
-	Implicit       bool                                `codec:"implicit" json:"implicit"`
-	Public         bool                                `codec:"public" json:"public"`
-	RootAncestor   TeamName                            `codec:"rootAncestor" json:"rootAncestor"`
-	NameDepth      int                                 `codec:"nameDepth" json:"nameDepth"`
-	NameLog        []TeamNameLogPoint                  `codec:"nameLog" json:"nameLog"`
-	LastSeqno      Seqno                               `codec:"lastSeqno" json:"lastSeqno"`
-	LastLinkID     LinkID                              `codec:"lastLinkID" json:"lastLinkID"`
-	ParentID       *TeamID                             `codec:"parentID,omitempty" json:"parentID,omitempty"`
-	UserLog        map[UserVersion][]UserLogPoint      `codec:"userLog" json:"userLog"`
-	SubteamLog     map[TeamID][]SubteamLogPoint        `codec:"subteamLog" json:"subteamLog"`
-	PerTeamKeys    map[PerTeamKeyGeneration]PerTeamKey `codec:"perTeamKeys" json:"perTeamKeys"`
-	LinkIDs        map[Seqno]LinkID                    `codec:"linkIDs" json:"linkIDs"`
-	StubbedLinks   map[Seqno]bool                      `codec:"stubbedLinks" json:"stubbedLinks"`
-	ActiveInvites  map[TeamInviteID]TeamInvite         `codec:"activeInvites" json:"activeInvites"`
-	Open           bool                                `codec:"open" json:"open"`
-	OpenTeamJoinAs TeamRole                            `codec:"openTeamJoinAs" json:"openTeamJoinAs"`
-	TlfID          TLFID                               `codec:"tlfID" json:"tlfID"`
+	Reader          UserVersion                         `codec:"reader" json:"reader"`
+	Id              TeamID                              `codec:"id" json:"id"`
+	Implicit        bool                                `codec:"implicit" json:"implicit"`
+	Public          bool                                `codec:"public" json:"public"`
+	RootAncestor    TeamName                            `codec:"rootAncestor" json:"rootAncestor"`
+	NameDepth       int                                 `codec:"nameDepth" json:"nameDepth"`
+	NameLog         []TeamNameLogPoint                  `codec:"nameLog" json:"nameLog"`
+	LastSeqno       Seqno                               `codec:"lastSeqno" json:"lastSeqno"`
+	LastLinkID      LinkID                              `codec:"lastLinkID" json:"lastLinkID"`
+	ParentID        *TeamID                             `codec:"parentID,omitempty" json:"parentID,omitempty"`
+	UserLog         map[UserVersion][]UserLogPoint      `codec:"userLog" json:"userLog"`
+	SubteamLog      map[TeamID][]SubteamLogPoint        `codec:"subteamLog" json:"subteamLog"`
+	PerTeamKeys     map[PerTeamKeyGeneration]PerTeamKey `codec:"perTeamKeys" json:"perTeamKeys"`
+	LinkIDs         map[Seqno]LinkID                    `codec:"linkIDs" json:"linkIDs"`
+	StubbedLinks    map[Seqno]bool                      `codec:"stubbedLinks" json:"stubbedLinks"`
+	ActiveInvites   map[TeamInviteID]TeamInvite         `codec:"activeInvites" json:"activeInvites"`
+	ObsoleteInvites map[TeamInviteID]Seqno              `codec:"obsoleteInvites" json:"obsoleteInvites"`
+	Open            bool                                `codec:"open" json:"open"`
+	OpenTeamJoinAs  TeamRole                            `codec:"openTeamJoinAs" json:"openTeamJoinAs"`
+	TlfID           TLFID                               `codec:"tlfID" json:"tlfID"`
 }
 
 func (o TeamSigChainState) DeepCopy() TeamSigChainState {
@@ -869,6 +870,18 @@ func (o TeamSigChainState) DeepCopy() TeamSigChainState {
 			}
 			return ret
 		})(o.ActiveInvites),
+		ObsoleteInvites: (func(x map[TeamInviteID]Seqno) map[TeamInviteID]Seqno {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[TeamInviteID]Seqno)
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.ObsoleteInvites),
 		Open:           o.Open,
 		OpenTeamJoinAs: o.OpenTeamJoinAs.DeepCopy(),
 		TlfID:          o.TlfID.DeepCopy(),

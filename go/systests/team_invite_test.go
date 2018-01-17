@@ -479,14 +479,45 @@ func TestSweepObsoleteKeybaseInvites(t *testing.T) {
 	// TestObsoletingInvites*.
 	ann.addTeamMember(team, bob.username, keybase1.TeamRole_WRITER)
 
+	// Bob then leaves team.
+	bob.leave(team)
+
 	teamObj, err := teams.Load(context.Background(), ann.tc.G, keybase1.LoadTeamArg{
 		Name:        team,
 		ForceRepoll: true,
 	})
 	require.NoError(t, err)
-	_ = teamObj
 
-	hasInvite, err := teamObj.HasActiveInvite(bob.userVersion().TeamInviteName(), "keybase")
+	// Invite should be obsolete.
+	invite, err := teamObj.FindActiveInvite(bob.userVersion().TeamInviteName(), "keybase")
 	require.NoError(t, err)
-	require.False(t, hasInvite)
+	require.True(t, teamObj.IsInviteObsolete(invite.Id))
+
+	// Simulate SBS message to Ann trying to re-add Bob.
+	sbsMsg := keybase1.TeamSBSMsg{
+		TeamID: teamObj.ID,
+		Score:  0,
+		Invitees: []keybase1.TeamInvitee{
+			keybase1.TeamInvitee{
+				InviteID:    invite.Id,
+				Uid:         bob.uid,
+				EldestSeqno: 1,
+				Role:        keybase1.TeamRole_WRITER,
+			},
+		},
+	}
+
+	err = teams.HandleSBSRequest(context.Background(), ann.tc.G, sbsMsg)
+	require.Error(t, err)
+
+	teamObj, err = teams.Load(context.Background(), ann.tc.G, keybase1.LoadTeamArg{
+		Name:        team,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+
+	// Bob should still be out of the team.
+	role, err := teamObj.MemberRole(context.Background(), bob.userVersion())
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_NONE, role)
 }

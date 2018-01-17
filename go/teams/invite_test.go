@@ -20,27 +20,30 @@ func TestObsoletingInvites1(t *testing.T) {
 	// replaying.
 	team := runUnitFromFilename(t, "invite_obsolete.json")
 
-	hasInvite, err := team.HasActiveInvite(keybase1.TeamInviteName("579651b0d574971040b531b66efbc519%1"), "keybase")
-	require.NoError(t, err)
-	require.False(t, hasInvite)
-
-	hasInvite, err = team.HasActiveInvite(keybase1.TeamInviteName("618d663af0f1ec88a5a19defa65a2f19%1"), "keybase")
-	require.NoError(t, err)
-	require.False(t, hasInvite)
-
-	hasInvite, err = team.HasActiveInvite(keybase1.TeamInviteName("40903c59d19feef1d67c455499304c19%1"), "keybase")
-	require.NoError(t, err)
-	require.True(t, hasInvite)
-
 	activeInvites := team.chain().inner.ActiveInvites
-	require.Equal(t, 1, len(activeInvites))
+	require.Equal(t, 2, len(activeInvites))
 
-	for _, invite := range activeInvites {
-		require.Equal(t, keybase1.TeamRole_READER, invite.Role)
-		require.EqualValues(t, "56eafff3400b5bcd8b40bff3d225ab27", invite.Id)
-		require.EqualValues(t, "40903c59d19feef1d67c455499304c19%1", invite.Name)
-		require.EqualValues(t, keybase1.UserVersion{Uid: "25852c87d6e47fb8d7d55400be9c7a19", EldestSeqno: 1}, invite.Inviter)
-	}
+	itype, err := keybase1.TeamInviteTypeFromString("keybase", true)
+	require.NoError(t, err)
+
+	invite, err := team.chain().FindActiveInvite(keybase1.TeamInviteName("579651b0d574971040b531b66efbc519%1"), itype)
+	require.NoError(t, err)
+	require.NotNil(t, invite)
+	require.True(t, team.chain().IsInviteObsolete(invite.Id))
+
+	invite, err = team.chain().FindActiveInvite(keybase1.TeamInviteName("618d663af0f1ec88a5a19defa65a2f19%1"), itype)
+	require.Error(t, err)
+	require.Nil(t, invite)
+
+	invite, err = team.chain().FindActiveInvite(keybase1.TeamInviteName("40903c59d19feef1d67c455499304c19%1"), itype)
+	require.NoError(t, err)
+	require.NotNil(t, invite)
+	require.False(t, team.chain().IsInviteObsolete(invite.Id))
+
+	require.Equal(t, keybase1.TeamRole_READER, invite.Role)
+	require.EqualValues(t, "56eafff3400b5bcd8b40bff3d225ab27", invite.Id)
+	require.EqualValues(t, "40903c59d19feef1d67c455499304c19%1", invite.Name)
+	require.EqualValues(t, keybase1.UserVersion{Uid: "25852c87d6e47fb8d7d55400be9c7a19", EldestSeqno: 1}, invite.Inviter)
 
 	members, err := team.Members()
 	require.NoError(t, err)
