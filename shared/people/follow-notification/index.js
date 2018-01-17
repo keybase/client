@@ -82,7 +82,7 @@ export const MultiFollowNotification = (props: Props) => {
               style={{
                 alignSelf: 'center',
                 backgroundColor: globalColors.blue,
-                minWidth: isMobile ? 40 : 24,
+                minWidth: isMobile ? 24 : 16,
                 textAlign: 'center',
               }}
             />

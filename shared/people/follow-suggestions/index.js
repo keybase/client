@@ -21,7 +21,13 @@ export type Props = {
 
 const Suggestion = (props: Types._FollowSuggestion & {onClickUser: () => void}) => (
   <ClickableBox
-    style={{...globalStyles.flexBoxColumn, flexShrink: 0, width: 112, height: 106, alignItems: 'center'}}
+    style={{
+      ...globalStyles.flexBoxColumn,
+      flexShrink: 0,
+      width: 112,
+      height: 106,
+      alignItems: 'center',
+    }}
     onClick={props.onClickUser}
   >
     <Avatar
@@ -56,12 +62,10 @@ export default (props: Props) => (
       ...globalStyles.flexBoxColumn,
       position: 'relative',
       paddingTop: globalMargins.tiny,
-      paddingLeft: 12,
-      paddingRight: 12,
       paddingBottom: globalMargins.tiny,
     }}
   >
-    <Text type="BodySmallSemibold" style={{marginBottom: globalMargins.tiny}}>
+    <Text type="BodySmallSemibold" style={{marginBottom: globalMargins.tiny, marginLeft: globalMargins.tiny}}>
       Consider following...
     </Text>
     <ScrollView
