@@ -850,7 +850,7 @@ func (t *Team) inviteKeybaseMember(ctx context.Context, uv keybase1.UserVersion,
 	// no hard limit in team player to disallow multiple keybase invites
 	// for the same UID, but there is a soft serverside check when
 	// signature is posted.
-	for inviteID, existingInvite := range t.chain().inner.ActiveInvites {
+	for inviteID, existingInvite := range t.GetAllInvites() {
 		// KeybaseUserVersion checks if invite is KEYBASE and errors
 		// if not, we can blindly call it for all invites, and continue
 		// to next one if we get an error.
