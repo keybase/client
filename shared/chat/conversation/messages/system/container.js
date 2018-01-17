@@ -30,7 +30,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onManageChannels: (teamname: string) => {
     dispatch(navigateAppend([{props: {teamname}, selected: 'manageChannels'}]))
   },
-  onViewTeam: (teamname: string) => dispatch(navigateTo([teamsTab, {props: {teamname}, selected: 'team'}])),
+  onViewTeam: (teamname: string) =>
+    dispatch(navigateTo([teamsTab, {props: {selectedTab: 'members', teamname}, selected: 'team'}])),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {
