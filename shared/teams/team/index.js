@@ -47,6 +47,7 @@ export type Props = {
   setSelectedTab: (t: ?Types.TabKey) => void,
   onCreateSubteam: () => void,
   onEditDescription: () => void,
+  onHideSubteamsBanner: () => void,
   onLeaveTeam: () => void,
   onManageChat: () => void,
   onReadMoreAboutSubteams: () => void,
@@ -59,6 +60,7 @@ export type Props = {
   publicitySettingsChanged: boolean,
   publicityTeam: boolean,
   requests: Array<RequestRowProps>,
+  sawSubteamsBanner: boolean,
   selectedTab: Types.TabKey,
   showAddYourselfBanner: boolean,
   setIgnoreAccessRequests: (checked: boolean) => void,
@@ -141,7 +143,12 @@ type TeamTabsProps = {
 }
 
 const SubteamsIntro = ({row}) => (
-  <SubteamBanner key={row.key} onReadMore={row.onReadMore} teamname={row.teamname} />
+  <SubteamBanner
+    key={row.key}
+    onHideSubteamsBanner={row.onHideSubteamsBanner}
+    onReadMore={row.onReadMore}
+    teamname={row.teamname}
+  />
 )
 
 const SubteamRow = ({row}) => (
@@ -343,6 +350,7 @@ class Team extends React.PureComponent<Props> {
       selectedTab,
       loading,
       memberCount,
+      onHideSubteamsBanner,
       onManageChat,
       onReadMoreAboutSubteams,
       onSavePublicity,
@@ -352,6 +360,7 @@ class Team extends React.PureComponent<Props> {
       publicityMember,
       publicitySettingsChanged,
       publicityTeam,
+      sawSubteamsBanner,
       setIgnoreAccessRequests,
       setOpenTeam,
       setPublicityAnyMember,
@@ -363,17 +372,18 @@ class Team extends React.PureComponent<Props> {
       yourOperations,
     } = this.props
 
+    const teamname = name
     // massage data for rowrenderers
     const memberProps = members.map(member => ({
       fullName: member.fullName,
       username: member.username,
-      teamname: name,
+      teamname,
       active: member.active,
       key: member.username + member.active.toString(),
     }))
     const requestProps = requests.map(req => ({
       key: req.username,
-      teamname: name,
+      teamname,
       type: 'request',
       username: req.username,
     }))
@@ -388,7 +398,7 @@ class Team extends React.PureComponent<Props> {
       }
       return {
         ...inviteInfo,
-        teamname: name,
+        teamname,
         username: invite.username,
         id: invite.id,
         type: 'invite',
@@ -410,15 +420,22 @@ class Team extends React.PureComponent<Props> {
     } else if (selectedTab === 'subteams') {
       const noSubteams = subteams.isEmpty()
       const subTeamsItems = [
-        ...(noSubteams
-          ? [{key: 'intro', type: 'intro', teamname: name, onReadMore: onReadMoreAboutSubteams}]
+        ...(!sawSubteamsBanner
+          ? [
+              {
+                key: 'intro',
+                teamname,
+                type: 'intro',
+                onHideSubteamsBanner,
+                onReadMore: onReadMoreAboutSubteams,
+              },
+            ]
           : []),
         ...(yourOperations.manageSubteams ? [{key: 'addSubteam', type: 'addSubteam', onCreateSubteam}] : []),
         ...subteams.map(subteam => ({key: 'subteam', teamname: subteam, type: 'subteam'})),
         ...(noSubteams ? [{key: 'noSubteams', type: 'noSubteams'}] : []),
       ]
 
-      console.warn('subTeamsItems is', subTeamsItems)
       contents = !loading && (
         <List
           items={subTeamsItems}
@@ -443,7 +460,7 @@ class Team extends React.PureComponent<Props> {
         contents = (
           <Text
             type="BodySmall"
-            style={{color: globalColors.black_40, textAlign: 'center', marginTop: globalMargins.xlarge}}
+            style={{color: globalColors.black_40, marginTop: globalMargins.xlarge, textAlign: 'center'}}
           >
             This team has no pending invites.
           </Text>
