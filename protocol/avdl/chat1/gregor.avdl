@@ -110,4 +110,16 @@ protocol gregor {
     record TeamChannelUpdate {
         TLFID teamID;
     }
+
+    record ConvRetentionUpdate {
+        InboxVers inboxVers;
+        ConversationID convID;
+        RetentionPolicy policy;
+    }
+
+    record TeamRetentionUpdate {
+        InboxVers inboxVers;
+        keybase1.TeamID teamID;
+        RetentionPolicy policy;
+    }
 }

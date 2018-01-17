@@ -19,6 +19,8 @@ var PushMembershipUpdate = "chat.membershipUpdate"
 var PushTLFFinalize = "chat.tlffinalize"
 var PushTLFResolve = "chat.tlfresolve"
 var PushTeamChannels = "chat.teamchannels"
+var PushConvRetention = "chat.convretention"
+var PushTeamRetention = "chat.teamretention"
 
 type NameInfo struct {
 	ID               chat1.TLFID

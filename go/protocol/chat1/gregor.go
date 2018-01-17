@@ -338,6 +338,34 @@ func (o TeamChannelUpdate) DeepCopy() TeamChannelUpdate {
 	}
 }
 
+type ConvRetentionUpdate struct {
+	InboxVers InboxVers       `codec:"inboxVers" json:"inboxVers"`
+	ConvID    ConversationID  `codec:"convID" json:"convID"`
+	Policy    RetentionPolicy `codec:"policy" json:"policy"`
+}
+
+func (o ConvRetentionUpdate) DeepCopy() ConvRetentionUpdate {
+	return ConvRetentionUpdate{
+		InboxVers: o.InboxVers.DeepCopy(),
+		ConvID:    o.ConvID.DeepCopy(),
+		Policy:    o.Policy.DeepCopy(),
+	}
+}
+
+type TeamRetentionUpdate struct {
+	InboxVers InboxVers       `codec:"inboxVers" json:"inboxVers"`
+	TeamID    keybase1.TeamID `codec:"teamID" json:"teamID"`
+	Policy    RetentionPolicy `codec:"policy" json:"policy"`
+}
+
+func (o TeamRetentionUpdate) DeepCopy() TeamRetentionUpdate {
+	return TeamRetentionUpdate{
+		InboxVers: o.InboxVers.DeepCopy(),
+		TeamID:    o.TeamID.DeepCopy(),
+		Policy:    o.Policy.DeepCopy(),
+	}
+}
+
 type GregorInterface interface {
 }
 
