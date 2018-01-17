@@ -37,7 +37,8 @@ import (
 //   valid repository checkouts of the corresponding TLF, e.g.
 //   `.kbfs_autogit/private/chris/dotfiles`.  It wraps child nodes in
 //   two ways, as both a `readonlyNode` and a `repoNode`.  It allows
-//   repo directories to be removed via `RemoveDir`.
+//   repo directories to be removed via `RemoveDir` if the caller has
+//   write permissions to the TLF where the autogit resides.
 // * `repoNode` allow auto-clone and auto-pull of the corresponding
 //   repository on its first access.  When the directory corresponding
 //   to the node is read for the first time for this KBFS instance,
@@ -56,16 +57,14 @@ import (
 
 type ctxReadWriteKeyType int
 type ctxSkipPopulateKeyType int
-type ctxSkipRemoveDirKeyType int
 
 const (
 	autogitRoot = ".kbfs_autogit"
 
 	autogitWrapTimeout = 10 * time.Second
 
-	ctxReadWriteKey     ctxReadWriteKeyType     = 1
-	ctxSkipPopulateKey  ctxSkipPopulateKeyType  = 1
-	ctxSkipRemoveDirKey ctxSkipRemoveDirKeyType = 1
+	ctxReadWriteKey    ctxReadWriteKeyType    = 1
+	ctxSkipPopulateKey ctxSkipPopulateKeyType = 1
 
 	public  = "public"
 	private = "private"
@@ -292,10 +291,6 @@ func (tn tlfNode) ShouldCreateMissedLookup(
 // RemoveDir implements the Node interface for tlfNode.
 func (tn tlfNode) RemoveDir(ctx context.Context, name string) (
 	removeHandled bool, err error) {
-	if ctx.Value(ctxSkipRemoveDirKey) != nil {
-		return false, nil
-	}
-
 	// Is this a legit repo?
 	_, _, err = GetRepoAndID(ctx, tn.am.config, tn.h, name, "")
 	if err != nil {
@@ -306,7 +301,6 @@ func (tn tlfNode) RemoveDir(ctx context.Context, name string) (
 		// Can't remove a symlink as if it were a directory.
 		return false, nil
 	}
-	ctx = context.WithValue(ctx, ctxSkipRemoveDirKey, struct{}{})
 	ctx, cancel := context.WithTimeout(ctx, autogitWrapTimeout)
 	defer cancel()
 
