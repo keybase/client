@@ -66,16 +66,17 @@ class Checkbox extends Component<Props, State> {
     }
 
     return (
-      <NativeTouchableWithoutFeedback onPress={onClick} delayPressIn={0}>
+      <NativeTouchableWithoutFeedback
+        onPress={e => (e.defaultPrevented ? undefined : onClick && onClick())}
+        delayPressIn={0}
+      >
         <Box style={{...styleContainer, ...containerStyle, ...this.props.style}}>
           <NativeAnimated.View style={{...styleOuter, ...outerOverride}}>
             <NativeAnimated.View style={{...styleInner, ...innerOverride, left: this.state.left}} />
           </NativeAnimated.View>
-          {!!this.props.label && (
-            <Text type="Body" style={styleText}>
-              {this.props.label}
-            </Text>
-          )}
+          <Text type="Body" style={styleText}>
+            {this.props.labelComponent || this.props.label}
+          </Text>
         </Box>
       </NativeTouchableWithoutFeedback>
     )

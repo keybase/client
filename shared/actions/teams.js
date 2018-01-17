@@ -445,11 +445,10 @@ function _getChannels(action: TeamsGen.GetChannelsPayload) {
   ])
 }
 
-function _afterGetChannels([results, teamname, waitingKey]: [
-  RPCChatTypes.GetTLFConversationsLocalRes,
-  string,
-  {|key: string|},
-]) {
+function _afterGetChannels(fromGetChannels: any[]) {
+  const results: RPCChatTypes.GetTLFConversationsLocalRes = fromGetChannels[0]
+  const teamname: string = fromGetChannels[1]
+  const waitingKey: {|key: string|} = fromGetChannels[2]
   const convIDs = []
   const convIDToChannelInfo = {}
 
