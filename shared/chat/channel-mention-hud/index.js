@@ -71,15 +71,15 @@ type MentionHudProps = {
 }
 
 // TODO figure typing out
-const mapStateToProps: MapStateToProps<*, *, *> = (state: TypedState, {channels, selectedIndex, filter}) => {
-  console.warn('state props', channels)
-  return {
-    data: Object.keys(channels)
-      .filter(c => c.toLowerCase().indexOf(filter) >= 0)
-      .sort()
-      .map((c, i) => ({channelName: c, selected: i === selectedIndex})),
-  }
-}
+const mapStateToProps: MapStateToProps<*, *, *> = (state: TypedState, {channels, selectedIndex, filter}) => ({
+  data: channels
+    ? Object.keys(channels)
+        .filter(c => c.toLowerCase().indexOf(filter) >= 0)
+        .sort()
+        .map((c, i) => ({channelName: c, selected: i === selectedIndex}))
+    : {},
+})
+
 // $FlowIssue is confused
 const MentionHud: Class<React.Component<MentionHudProps, void>> = compose(
   withState('selectedIndex', 'setSelectedIndex', 0),
