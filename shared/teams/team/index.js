@@ -433,7 +433,7 @@ class Team extends React.PureComponent<Props> {
             ]
           : []),
         ...(yourOperations.manageSubteams ? [{key: 'addSubteam', type: 'addSubteam', onCreateSubteam}] : []),
-        ...subteams.map(subteam => ({key: 'subteam', teamname: subteam, type: 'subteam'})),
+        ...subteams.map(subteam => ({key: subteam, teamname: subteam, type: 'subteam'})),
         ...(noSubteams ? [{key: 'noSubteams', type: 'noSubteams'}] : []),
       ]
 
@@ -652,19 +652,21 @@ class Team extends React.PureComponent<Props> {
             {memberCount + ' member' + (memberCount !== 1 ? 's' : '')} •{' '}
             {yourRole && Constants.typeToLabel[yourRole]}
           </Text>
-          {!loading &&
-            (yourOperations.editChannelDescription || description) && (
-              <Text
-                style={{
-                  paddingTop: globalMargins.tiny,
-                  color: description ? globalColors.black_75 : globalColors.black_20,
-                }}
-                onClick={yourOperations.editChannelDescription ? onEditDescription : null}
-                type={yourOperations.editChannelDescription ? 'BodySecondaryLink' : 'Body'}
-              >
-                {description || (yourOperations.editChannelDescription && 'Write a brief description')}
-              </Text>
-            )}
+
+          {!loading && (yourOperations.editChannelDescription || description) ? (
+            <Text
+              style={{
+                paddingTop: globalMargins.tiny,
+                color: description ? globalColors.black_75 : globalColors.black_20,
+              }}
+              onClick={yourOperations.editChannelDescription ? onEditDescription : null}
+              type={yourOperations.editChannelDescription ? 'BodySecondaryLink' : 'Body'}
+            >
+              {description || (yourOperations.editChannelDescription && 'Write a brief description')}
+            </Text>
+          ) : (
+            <Box />
+          )}
 
           {yourOperations.manageMembers && (
             <ButtonBar>
