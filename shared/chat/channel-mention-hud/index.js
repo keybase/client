@@ -81,6 +81,7 @@ const mapStateToProps: MapStateToProps<*, *, *> = (state: TypedState, {channels,
 })
 
 // $FlowIssue is confused
+// TODO share this connector with user-mention-hud?
 const MentionHud: Class<React.Component<MentionHudProps, void>> = compose(
   withState('selectedIndex', 'setSelectedIndex', 0),
   connect(mapStateToProps),

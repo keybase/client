@@ -34,9 +34,6 @@ type State = {
   upArrowCounter: number,
   downArrowCounter: number,
   pickSelectedCounter: number,
-  channelUpArrowCounter: number,
-  channelDownArrowCounter: number,
-  channelPickSelectedCounter: number,
 }
 
 const MentionCatcher = ({onClick}) => (
@@ -59,9 +56,6 @@ class ConversationInput extends Component<InputProps, State> {
       upArrowCounter: 0,
       downArrowCounter: 0,
       pickSelectedCounter: 0,
-      channelUpArrowCounter: 0,
-      channelDownArrowCounter: 0,
-      channelPickSelectedCounter: 0,
     }
   }
 
@@ -156,31 +150,17 @@ class ConversationInput extends Component<InputProps, State> {
     this.setState(({pickSelectedCounter}) => ({pickSelectedCounter: pickSelectedCounter + 1}))
   }
 
-  _triggerChannelUpArrowCounter = () => {
-    this.setState(({channelUpArrowCounter}) => ({channelUpArrowCounter: channelUpArrowCounter + 1}))
-  }
-
-  _triggerChannelDownArrowCounter = () => {
-    this.setState(({channelDownArrowCounter}) => ({channelDownArrowCounter: channelDownArrowCounter + 1}))
-  }
-
-  _triggerChannelPickSelectedCounter = () => {
-    this.setState(({channelPickSelectedCounter}) => ({
-      channelPickSelectedCounter: channelPickSelectedCounter + 1,
-    }))
-  }
-
   _onKeyDown = (e: SyntheticKeyboardEvent<>) => {
     if (e.key === 'ArrowUp' && !this.props.text) {
       this.props.onEditLastMessage()
       return
     }
 
-    if (this.props.mentionPopupOpen) {
+    if (this.props.mentionPopupOpen || this.props.channelMentionPopupOpen) {
       if (e.key === 'Tab') {
         e.preventDefault()
         // If you tab with a partial name typed, we pick the selected item
-        if (this.props.mentionFilter.length > 0) {
+        if (this.props.mentionFilter.length > 0 || this.props.channelMentionFilter.length > 0) {
           this._triggerPickSelectedCounter()
           return
         }
@@ -201,34 +181,6 @@ class ConversationInput extends Component<InputProps, State> {
         return
       } else if (['Escape', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
         this.props.setMentionPopupOpen(false)
-        return
-      }
-    }
-
-    if (this.props.channelMentionPopupOpen) {
-      if (e.key === 'Tab') {
-        e.preventDefault()
-        // If you tab with a partial name typed, we pick the selected item
-        if (this.props.channelMentionFilter.length > 0) {
-          this._triggerChannelPickSelectedCounter()
-          return
-        }
-        // else we move you up/down
-        if (e.shiftKey) {
-          this._triggerChannelUpArrowCounter()
-        } else {
-          this._triggerChannelDownArrowCounter()
-        }
-        return
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault()
-        this._triggerChannelUpArrowCounter()
-        return
-      } else if (e.key === 'ArrowDown') {
-        e.preventDefault()
-        this._triggerChannelDownArrowCounter()
-        return
-      } else if (['Escape', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
         this.props.setChannelMentionPopupOpen(false)
         return
       }
@@ -402,9 +354,9 @@ class ConversationInput extends Component<InputProps, State> {
         )}
         {this.props.channelMentionPopupOpen && (
           <ChannelMentionHud
-            selectDownCounter={this.state.channelDownArrowCounter}
-            selectUpCounter={this.state.channelUpArrowCounter}
-            pickSelectedChannelCounter={this.state.channelPickSelectedCounter}
+            selectDownCounter={this.state.downArrowCounter}
+            selectUpCounter={this.state.upArrowCounter}
+            pickSelectedChannelCounter={this.state.pickSelectedCounter}
             onPickChannel={this._insertChannelMention}
             onSelectChannel={this._switchChannelMention}
             filter={this.props.channelMentionFilter}
