@@ -5,10 +5,10 @@ import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
 
 export type Props = {
   onReadMore: () => void,
-  onHideBanner: () => void,
+  onHideChatBanner: () => void,
 }
 
-const Banner = ({onReadMore, onHideBanner}: Props) => (
+const Banner = ({onReadMore, onHideChatBanner}: Props) => (
   <Box
     style={{
       ...(isMobile
@@ -58,7 +58,7 @@ const Banner = ({onReadMore, onHideBanner}: Props) => (
       </Text>
     </Box>
     <Box style={closeIconStyle}>
-      <Icon type="iconfont-close" onClick={onHideBanner} />
+      <Icon type="iconfont-close" onClick={onHideChatBanner} />
     </Box>
   </Box>
 )

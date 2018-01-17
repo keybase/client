@@ -1041,5 +1041,23 @@ func TestTeamCanUserPerform(t *testing.T) {
 
 	// Invalid team for pam
 	_, err = teams.CanUserPerform(context.TODO(), pam.tc.G, subteam)
-	require.Error(t, err)
+
+	// Non-membership shouldn't be an error
+	donny := tt.addUser("donny")
+	donnyPerms, err := teams.CanUserPerform(context.TODO(), donny.tc.G, team)
+	require.NoError(t, err, "non-member canUserPerform")
+
+	// Make sure a non-member can't do stuff
+	require.False(t, donnyPerms.ManageMembers)
+	require.False(t, donnyPerms.ManageSubteams)
+	require.False(t, donnyPerms.CreateChannel)
+	require.False(t, donnyPerms.DeleteChannel)
+	require.False(t, donnyPerms.RenameChannel)
+	require.False(t, donnyPerms.EditChannelDescription)
+	require.False(t, donnyPerms.SetTeamShowcase)
+	require.False(t, donnyPerms.SetMemberShowcase)
+	require.False(t, donnyPerms.ChangeOpenTeam)
+	require.False(t, donnyPerms.ListFirst)
+	// TBD: require.True(t, donnyPerms.JoinTeam)
+	require.False(t, donnyPerms.SetPublicityAny)
 }

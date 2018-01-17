@@ -1,7 +1,8 @@
 // @flow
 import React, {Component} from 'react'
-import {Box, Button, Icon, Input, PopupDialog, Text, ButtonBar} from '../../../common-adapters/index'
+import {Box, Button, Icon, Image, Input, PopupDialog, Text, ButtonBar} from '../../../common-adapters/index'
 import {globalColors, globalStyles, isMobile} from '../../../styles'
+import {isIPhoneX} from '../../../constants/platform'
 import type {Props} from '.'
 
 type State = {
@@ -37,14 +38,23 @@ class RenderAttachmentInput extends Component<Props, State> {
   }
 
   render() {
+    const input = this.props.inputs[this.state.index]
     const count = this.props.inputs.length
-    const currentTitle =
-      (this.props.inputs[this.state.index] && this.props.inputs[this.state.index].title) || ''
+    const currentTitle = (input && input.title) || ''
+    const currentPath = (input && input.filename) || ''
+    const isImage = !!input && input.type === 'Image'
 
     return (
-      <PopupDialog onClose={this.props.onClose}>
+      <PopupDialog onClose={this.props.onClose} styleContainer={isIPhoneX ? {marginTop: 30} : undefined}>
         <Box style={isMobile ? stylesMobile : stylesDesktop}>
-          <Icon type="icon-file-uploading-48" />
+          {!isImage && <Icon type="icon-file-uploading-48" />}
+          {isImage && (
+            <Image
+              src={currentPath}
+              // resize dynamically on desktop, crop to 150x150 on mobile
+              style={isMobile ? {width: 150, height: 150} : {maxHeight: '70%', maxWidth: '70%'}}
+            />
+          )}
           {count > 0 && (
             <Text type="BodySmall" style={{color: globalColors.black_40, marginTop: 5}}>
               {currentTitle} ({this.state.index + 1} of {count})
@@ -58,7 +68,7 @@ class RenderAttachmentInput extends Component<Props, State> {
             onEnterKeyDown={this._onSelect}
             onChangeText={this._updateTitle}
           />
-          <ButtonBar>
+          <ButtonBar style={{flexShrink: 0}}>
             <Button type="Secondary" onClick={this.props.onClose} label="Cancel" />
             <Button type="Primary" onClick={this._onSelect} label="Send" />
           </ButtonBar>
@@ -82,6 +92,7 @@ const stylesDesktop = {
 const stylesInputDesktop = {
   marginTop: 70,
   width: 460,
+  flexShrink: 0,
 }
 
 const stylesMobile = {

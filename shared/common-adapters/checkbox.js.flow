@@ -1,9 +1,11 @@
 // @flow
 
-import React, {Component} from 'react'
+import React, {Component, type Node} from 'react'
+import type {TextType} from './text'
 
 export type Props = {
   label: string,
+  labelComponent?: Node,
   onCheck: ?(newCheckedValue: boolean) => void,
   checked: boolean,
   style?: Object,

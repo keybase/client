@@ -34,17 +34,19 @@ class Checkbox extends Component<Props> {
     return (
       <div
         style={{...styleContainer, ...clickableStyle, ...this.props.style}}
-        onClick={
-          this.props.disabled
+        onClick={e =>
+          // If something in labelComponent needs to catch a click without calling this, use
+          // event.preventDefault()
+          this.props.disabled || e.defaultPrevented
             ? undefined
-            : () => this.props.onCheck && this.props.onCheck(!this.props.checked)
+            : this.props.onCheck && this.props.onCheck(!this.props.checked)
         }
       >
         <div style={boxStyle}>
           <Icon type="iconfont-check" style={{...styleIcon, ...(this.props.checked ? {} : {opacity: 0})}} />
         </div>
         <Text type="Body" style={{color: globalColors.black_75}}>
-          {this.props.label}
+          {this.props.labelComponent || this.props.label}
         </Text>
       </div>
     )
