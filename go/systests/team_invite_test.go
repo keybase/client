@@ -7,6 +7,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	"github.com/stretchr/testify/require"
@@ -488,10 +489,18 @@ func TestSweepObsoleteKeybaseInvites(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	// Invite should be obsolete.
-	invite, err := teamObj.FindActiveInvite(bob.userVersion().TeamInviteName(), "keybase")
-	require.NoError(t, err)
-	require.True(t, teamObj.IsInviteObsolete(invite.Id))
+	// Invite should be obsolete, so there are 0 active invites...
+	require.Equal(t, 0, teamObj.NumActiveInvites())
+
+	// ...but one in "all invites".
+	allInvites := teamObj.GetAllInvites()
+	require.Equal(t, 1, len(allInvites))
+
+	var invite keybase1.TeamInvite
+	for _, invite = range allInvites {
+		break // get the only invite returned
+	}
+	require.Equal(t, bob.userVersion().TeamInviteName(), invite.Name)
 
 	// Simulate SBS message to Ann trying to re-add Bob.
 	sbsMsg := keybase1.TeamSBSMsg{
@@ -509,6 +518,7 @@ func TestSweepObsoleteKeybaseInvites(t *testing.T) {
 
 	err = teams.HandleSBSRequest(context.Background(), ann.tc.G, sbsMsg)
 	require.Error(t, err)
+	require.IsType(t, libkb.NotFoundError{}, err)
 
 	teamObj, err = teams.Load(context.Background(), ann.tc.G, keybase1.LoadTeamArg{
 		Name:        team,

@@ -765,20 +765,15 @@ func (t *Team) HasActiveInvite(name keybase1.TeamInviteName, typ string) (bool, 
 	return t.chain().HasActiveInvite(name, it)
 }
 
-func (t *Team) FindActiveInvite(name keybase1.TeamInviteName, typ string) (ret keybase1.TeamInvite, err error) {
-	ityp, err := keybase1.TeamInviteTypeFromString(typ, t.G().Env.GetRunMode() == libkb.DevelRunMode)
-	if err != nil {
-		return ret, err
+func (t *Team) GetAllInvites() (ret map[keybase1.TeamInviteID]keybase1.TeamInvite) {
+	ret = make(map[keybase1.TeamInviteID]keybase1.TeamInvite)
+	for id, invite := range t.chain().inner.ActiveInvites {
+		ret[id] = invite
 	}
-	invite, err := t.chain().FindActiveInvite(name, ityp)
-	if err != nil {
-		return ret, err
+	for id, invite := range t.chain().inner.ObsoleteInvites {
+		ret[id] = invite
 	}
-	return *invite, nil
-}
-
-func (t *Team) IsInviteObsolete(id keybase1.TeamInviteID) bool {
-	return t.chain().IsInviteObsolete(id)
+	return ret
 }
 
 // If uv.Uid is set, then username is ignored.

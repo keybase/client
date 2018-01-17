@@ -662,7 +662,7 @@
         {
           "type": {
             "type": "map",
-            "values": "Seqno",
+            "values": "TeamInvite",
             "keys": "TeamInviteID"
           },
           "name": "obsoleteInvites"

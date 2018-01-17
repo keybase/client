@@ -341,19 +341,20 @@ func (t *TeamSigChainState) informNewInvite(i keybase1.TeamInvite) {
 
 func (t *TeamSigChainState) informCanceledInvite(i keybase1.TeamInviteID) {
 	delete(t.inner.ActiveInvites, i)
+	delete(t.inner.ObsoleteInvites, i)
 }
 
 func (t *TeamSigChainState) informCompletedInvite(i keybase1.TeamInviteID) {
 	delete(t.inner.ActiveInvites, i)
+	delete(t.inner.ObsoleteInvites, i)
 }
 
 func (t *TeamSigChainState) findAndObsoleteInviteForUser(uid keybase1.UID) {
 	for id, invite := range t.inner.ActiveInvites {
 		if inviteUv, err := invite.KeybaseUserVersion(); err == nil {
 			if inviteUv.Uid == uid {
-				if _, ok := t.inner.ObsoleteInvites[id]; !ok {
-					t.inner.ObsoleteInvites[id] = t.inner.LastSeqno
-				}
+				delete(t.inner.ActiveInvites, id)
+				t.inner.ObsoleteInvites[id] = invite
 			}
 		}
 	}
@@ -909,7 +910,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 				LinkIDs:         make(map[keybase1.Seqno]keybase1.LinkID),
 				StubbedLinks:    make(map[keybase1.Seqno]bool),
 				ActiveInvites:   make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
-				ObsoleteInvites: make(map[keybase1.TeamInviteID]keybase1.Seqno),
+				ObsoleteInvites: make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
 			}}
 
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
@@ -1300,7 +1301,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 				LinkIDs:         make(map[keybase1.Seqno]keybase1.LinkID),
 				StubbedLinks:    make(map[keybase1.Seqno]bool),
 				ActiveInvites:   make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
-				ObsoleteInvites: make(map[keybase1.TeamInviteID]keybase1.Seqno),
+				ObsoleteInvites: make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
 			}}
 
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())

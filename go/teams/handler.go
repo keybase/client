@@ -131,10 +131,6 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 			return libkb.NotFoundError{}
 		}
 		g.Log.CDebugf(ctx, "Found invite: %+v", invite)
-		if team.chain().IsInviteObsolete(invite.Id) {
-			g.Log.CDebugf(ctx, "Invite %s is obsolete", invite.Id)
-			return libkb.NotFoundError{}
-		}
 		category, err := invite.Type.C()
 		if err != nil {
 			return err
