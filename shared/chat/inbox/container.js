@@ -294,6 +294,8 @@ const mergeProps = (
   }
 }
 
+export {getTeamToChannel}
+
 export default compose(
   withState('filterFocusCount', 'setFilterFocusCount', 0),
   withHandlers({
