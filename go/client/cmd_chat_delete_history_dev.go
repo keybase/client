@@ -96,7 +96,6 @@ func (c *CmdChatDeleteHistoryDev) ParseArgv(ctx *cli.Context) (err error) {
 	// Send a normal message.
 	upto := ctx.Int("upto")
 	if upto == 0 {
-		cli.ShowCommandHelp(ctx, "delete-history-dev")
 		return fmt.Errorf("upto must be > 0")
 	}
 	c.upto = chat1.MessageID(upto)
