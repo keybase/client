@@ -58,13 +58,10 @@ func TestTeamInviteRooter(t *testing.T) {
 
 	// the invite should not be in the active invite map
 	exists, err := t0.HasActiveInvite(keybase1.TeamInviteName(tt.users[1].username), "rooter")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if exists {
-		t.Error("after accepting invite, active invite still exists")
-	}
-	require.Equal(t, 0, t0.NumActiveInvites(), "after accepting invite, active invites still exists")
+	require.NoError(t, err)
+	require.False(t, exists)
+	require.Equal(t, 0, t0.NumActiveInvites())
+	require.Equal(t, 0, len(t0.GetAllInvites()))
 }
 
 func TestTeamInviteEmail(t *testing.T) {
