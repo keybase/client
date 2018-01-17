@@ -47,14 +47,16 @@ func NewHome(g *libkb.GlobalContext) *Home {
 	return home
 }
 
-func (h *Home) getToCache(ctx context.Context, markedViewed bool, numPeopleWanted int) (err error) {
+func (h *Home) getToCache(ctx context.Context, markedViewed bool, numPeopleWanted int, skipPeople bool) (err error) {
 	defer h.G().CTrace(ctx, "Home#get", func() error { return err })()
 
 	numPeopleToRequest := 100
 	if numPeopleWanted > numPeopleToRequest {
 		numPeopleToRequest = numPeopleWanted
 	}
-
+	if skipPeople {
+		numPeopleToRequest = 0
+	}
 	arg := libkb.NewAPIArgWithNetContext(ctx, "home")
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	arg.Args = libkb.HTTPArgs{
@@ -99,10 +101,9 @@ func (h *Home) Get(ctx context.Context, markViewed bool, numPeopleWanted int) (r
 	h.Lock()
 	defer h.Unlock()
 
-	inCache := h.homeCache.isValid(ctx, h.G())
-	var people []keybase1.HomeUserSummary
+	inCache, people := h.peopleCache.isValid(ctx, h.G(), numPeopleWanted)
 	if inCache {
-		inCache, people = h.peopleCache.isValid(ctx, h.G(), numPeopleWanted)
+		inCache = h.homeCache.isValid(ctx, h.G())
 	}
 
 	if inCache {
@@ -115,7 +116,7 @@ func (h *Home) Get(ctx context.Context, markViewed bool, numPeopleWanted int) (r
 			}
 		}
 	} else {
-		err = h.getToCache(ctx, markViewed, numPeopleWanted)
+		err = h.getToCache(ctx, markViewed, numPeopleWanted, (len(people) > 0))
 		if err != nil {
 			return ret, err
 		}
