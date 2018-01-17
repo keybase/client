@@ -267,15 +267,10 @@ class ConversationInput extends Component<InputProps, State> {
   _onEnterKeyDown = (e: SyntheticKeyboardEvent<>) => {
     e.preventDefault()
 
-    if (this.props.mentionPopupOpen) {
+    if (this.props.mentionPopupOpen || this.props.channelMentionPopupOpen) {
       this._triggerPickSelectedCounter()
       return
     }
-    if (this.props.channelMentionPopupOpen) {
-      this._triggerChannelPickSelectedCounter()
-      return
-    }
-
     if (this.props.isLoading) {
       logger.info('Ignoring chat submit while still loading')
       return
