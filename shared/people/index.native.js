@@ -17,6 +17,8 @@ const People = (props: Props) => (
     <ScrollView
       style={{...globalStyles.fullHeight}}
       refreshControl={
+        // TODO set refreshing to the actual prop once the bug in RN gets fixed
+        // see https://github.com/facebook/react-native/issues/5839
         <NativeRefreshControl refreshing={isIOS ? false : props.waiting} onRefresh={() => props.getData()} />
       }
     >
