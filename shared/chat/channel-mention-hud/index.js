@@ -12,7 +12,7 @@ import {
 import {Box, ClickableBox, List, Text} from '../../common-adapters/index'
 import {globalColors, globalMargins, globalStyles} from '../../styles'
 
-type Props<D: {key: string, selected: boolean}> = {
+type Props<D: {channelName: string, selected: boolean}> = {
   rowRenderer: (i: number, d: D) => React$Element<*>,
   data: Array<D>,
   style: Object,
