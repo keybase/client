@@ -194,7 +194,7 @@ function findKeybaseUninstallString(): Promise<string> {
         }
       })
     } catch (err) {
-      logger.info('findKeybaseUninstallString caught', err)
+      logger.error('findKeybaseUninstallString caught', err)
     }
   })
 }
