@@ -28633,6 +28633,7 @@ exports[`Storyshots People/Follow Suggestions One 1`] = `
   font-family: OpenSans;
   font-weight: 600;
   margin-bottom: 8px;
+  margin-left: 8px;
 }
 
 .glamor-1,
@@ -28700,8 +28701,8 @@ exports[`Storyshots People/Follow Suggestions One 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 600;
-  padding-left: 10px;
-  padding-right: 10px;
+  padding-left: 8px;
+  padding-right: 8px;
   text-decoration: inherit;
   display: inline;
 }
@@ -28741,8 +28742,6 @@ exports[`Storyshots People/Follow Suggestions One 1`] = `
           "display": "flex",
           "flexDirection": "column",
           "paddingBottom": 8,
-          "paddingLeft": 12,
-          "paddingRight": 12,
           "paddingTop": 8,
           "position": "relative",
         }
@@ -28804,6 +28803,7 @@ exports[`Storyshots People/Follow Suggestions One 1`] = `
               style={
                 Object {
                   "height": 64,
+                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -28879,6 +28879,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
   font-family: OpenSans;
   font-weight: 600;
   margin-bottom: 8px;
+  margin-left: 8px;
 }
 
 .glamor-1,
@@ -28946,8 +28947,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 600;
-  padding-left: 10px;
-  padding-right: 10px;
+  padding-left: 8px;
+  padding-right: 8px;
   text-decoration: inherit;
   display: inline;
 }
@@ -28980,8 +28981,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 600;
-  padding-left: 10px;
-  padding-right: 10px;
+  padding-left: 8px;
+  padding-right: 8px;
   text-decoration: inherit;
   display: inline;
 }
@@ -29003,8 +29004,6 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
           "display": "flex",
           "flexDirection": "column",
           "paddingBottom": 8,
-          "paddingLeft": 12,
-          "paddingRight": 12,
           "paddingTop": 8,
           "position": "relative",
         }
@@ -29066,6 +29065,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
               style={
                 Object {
                   "height": 64,
+                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -29153,6 +29153,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
               style={
                 Object {
                   "height": 64,
+                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -29240,6 +29241,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
               style={
                 Object {
                   "height": 64,
+                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -29312,6 +29314,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
               style={
                 Object {
                   "height": 64,
+                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -29399,6 +29402,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
               style={
                 Object {
                   "height": 64,
+                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -29486,6 +29490,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
               style={
                 Object {
                   "height": 64,
+                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -29573,6 +29578,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
               style={
                 Object {
                   "height": 64,
+                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -29660,6 +29666,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
               style={
                 Object {
                   "height": 64,
+                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -29747,6 +29754,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
               style={
                 Object {
                   "height": 64,
+                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -29834,6 +29842,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
               style={
                 Object {
                   "height": 64,
+                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -29906,6 +29915,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
               style={
                 Object {
                   "height": 64,
+                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -29993,6 +30003,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
               style={
                 Object {
                   "height": 64,
+                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -30080,6 +30091,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
               style={
                 Object {
                   "height": 64,
+                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -30167,6 +30179,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
               style={
                 Object {
                   "height": 64,
+                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -30242,6 +30255,7 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
   font-family: OpenSans;
   font-weight: 600;
   margin-bottom: 8px;
+  margin-left: 8px;
 }
 
 .glamor-1,
@@ -30309,8 +30323,8 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 600;
-  padding-left: 10px;
-  padding-right: 10px;
+  padding-left: 8px;
+  padding-right: 8px;
   text-decoration: inherit;
   display: inline;
 }
@@ -30343,8 +30357,8 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 600;
-  padding-left: 10px;
-  padding-right: 10px;
+  padding-left: 8px;
+  padding-right: 8px;
   text-decoration: inherit;
   display: inline;
 }
@@ -30366,8 +30380,6 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
           "display": "flex",
           "flexDirection": "column",
           "paddingBottom": 8,
-          "paddingLeft": 12,
-          "paddingRight": 12,
           "paddingTop": 8,
           "position": "relative",
         }
@@ -30429,6 +30441,7 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
               style={
                 Object {
                   "height": 64,
+                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -30516,6 +30529,7 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
               style={
                 Object {
                   "height": 64,
+                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -30603,6 +30617,7 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
               style={
                 Object {
                   "height": 64,
+                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -30675,6 +30690,7 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
               style={
                 Object {
                   "height": 64,
+                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -30762,6 +30778,7 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
               style={
                 Object {
                   "height": 64,
+                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -30849,6 +30866,7 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
               style={
                 Object {
                   "height": 64,
+                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -30936,6 +30954,7 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
               style={
                 Object {
                   "height": 64,
+                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -31009,14 +31028,16 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 600;
-  border-radius: 1px;
+  font-weight: 700;
+  border-radius: 2px;
   height: 11px;
-  padding-left: 2px;
-  padding-right: 2px;
+  padding-left: 3px;
+  padding-right: 3px;
   align-self: center;
   text-transform: uppercase;
   background-color: #33a0ff;
+  min-width: 16px;
+  text-align: center;
   -webkit-align-self: center;
 }
 
@@ -31428,14 +31449,14 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
               "borderRadius": 10,
               "display": "flex",
               "flexDirection": "row",
-              "height": 10,
+              "height": 8,
               "justifyContent": "center",
               "marginLeft": 8,
               "marginRight": 8,
               "minWidth": 10,
               "paddingLeft": 4,
               "paddingRight": 5,
-              "width": 10,
+              "width": 8,
             }
           }
         >
@@ -31460,14 +31481,16 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 600;
-  border-radius: 1px;
+  font-weight: 700;
+  border-radius: 2px;
   height: 11px;
-  padding-left: 2px;
-  padding-right: 2px;
+  padding-left: 3px;
+  padding-right: 3px;
   align-self: center;
   text-transform: uppercase;
   background-color: #33a0ff;
+  min-width: 16px;
+  text-align: center;
   -webkit-align-self: center;
 }
 
@@ -32136,14 +32159,14 @@ exports[`Storyshots People/Follow notification Someone followed you 1`] = `
               "borderRadius": 10,
               "display": "flex",
               "flexDirection": "row",
-              "height": 10,
+              "height": 8,
               "justifyContent": "center",
               "marginLeft": 8,
               "marginRight": 8,
               "minWidth": 10,
               "paddingLeft": 4,
               "paddingRight": 5,
-              "width": 10,
+              "width": 8,
             }
           }
         >
@@ -32580,14 +32603,14 @@ exports[`Storyshots People/Todos Chat 1`] = `
               "borderRadius": 10,
               "display": "flex",
               "flexDirection": "row",
-              "height": 10,
+              "height": 8,
               "justifyContent": "center",
               "marginLeft": 8,
               "marginRight": 8,
               "minWidth": 10,
               "paddingLeft": 4,
               "paddingRight": 5,
-              "width": 10,
+              "width": 8,
             }
           }
         >
@@ -32791,14 +32814,14 @@ exports[`Storyshots People/Todos Fill out bio 1`] = `
               "borderRadius": 10,
               "display": "flex",
               "flexDirection": "row",
-              "height": 10,
+              "height": 8,
               "justifyContent": "center",
               "marginLeft": 8,
               "marginRight": 8,
               "minWidth": 10,
               "paddingLeft": 4,
               "paddingRight": 5,
-              "width": 10,
+              "width": 8,
             }
           }
         >
@@ -33021,14 +33044,14 @@ exports[`Storyshots People/Todos Follow someone 1`] = `
               "borderRadius": 10,
               "display": "flex",
               "flexDirection": "row",
-              "height": 10,
+              "height": 8,
               "justifyContent": "center",
               "marginLeft": 8,
               "marginRight": 8,
               "minWidth": 10,
               "paddingLeft": 4,
               "paddingRight": 5,
-              "width": 10,
+              "width": 8,
             }
           }
         >
@@ -33251,14 +33274,14 @@ exports[`Storyshots People/Todos Install on phone 1`] = `
               "borderRadius": 10,
               "display": "flex",
               "flexDirection": "row",
-              "height": 10,
+              "height": 8,
               "justifyContent": "center",
               "marginLeft": 8,
               "marginRight": 8,
               "minWidth": 10,
               "paddingLeft": 4,
               "paddingRight": 5,
-              "width": 10,
+              "width": 8,
             }
           }
         >
@@ -33481,14 +33504,14 @@ exports[`Storyshots People/Todos Make a folder 1`] = `
               "borderRadius": 10,
               "display": "flex",
               "flexDirection": "row",
-              "height": 10,
+              "height": 8,
               "justifyContent": "center",
               "marginLeft": 8,
               "marginRight": 8,
               "minWidth": 10,
               "paddingLeft": 4,
               "paddingRight": 5,
-              "width": 10,
+              "width": 8,
             }
           }
         >
@@ -33711,14 +33734,14 @@ exports[`Storyshots People/Todos Make a git 1`] = `
               "borderRadius": 10,
               "display": "flex",
               "flexDirection": "row",
-              "height": 10,
+              "height": 8,
               "justifyContent": "center",
               "marginLeft": 8,
               "marginRight": 8,
               "minWidth": 10,
               "paddingLeft": 4,
               "paddingRight": 5,
-              "width": 10,
+              "width": 8,
             }
           }
         >
@@ -33922,14 +33945,14 @@ exports[`Storyshots People/Todos Make a paper key 1`] = `
               "borderRadius": 10,
               "display": "flex",
               "flexDirection": "row",
-              "height": 10,
+              "height": 8,
               "justifyContent": "center",
               "marginLeft": 8,
               "marginRight": 8,
               "minWidth": 10,
               "paddingLeft": 4,
               "paddingRight": 5,
-              "width": 10,
+              "width": 8,
             }
           }
         >
@@ -34152,14 +34175,14 @@ exports[`Storyshots People/Todos Make a team 1`] = `
               "borderRadius": 10,
               "display": "flex",
               "flexDirection": "row",
-              "height": 10,
+              "height": 8,
               "justifyContent": "center",
               "marginLeft": 8,
               "marginRight": 8,
               "minWidth": 10,
               "paddingLeft": 4,
               "paddingRight": 5,
-              "width": 10,
+              "width": 8,
             }
           }
         >
@@ -34382,14 +34405,14 @@ exports[`Storyshots People/Todos Prove something 1`] = `
               "borderRadius": 10,
               "display": "flex",
               "flexDirection": "row",
-              "height": 10,
+              "height": 8,
               "justifyContent": "center",
               "marginLeft": 8,
               "marginRight": 8,
               "minWidth": 10,
               "paddingLeft": 4,
               "paddingRight": 5,
-              "width": 10,
+              "width": 8,
             }
           }
         >
@@ -34612,14 +34635,14 @@ exports[`Storyshots People/Todos Set publicity 1`] = `
               "borderRadius": 10,
               "display": "flex",
               "flexDirection": "row",
-              "height": 10,
+              "height": 8,
               "justifyContent": "center",
               "marginLeft": 8,
               "marginRight": 8,
               "minWidth": 10,
               "paddingLeft": 4,
               "paddingRight": 5,
-              "width": 10,
+              "width": 8,
             }
           }
         >
@@ -46962,11 +46985,11 @@ exports[`Storyshots Teams TeamList 1`] = `
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 600;
+  font-weight: 700;
   border-radius: 1px;
   height: 11px;
-  padding-left: 2px;
-  padding-right: 2px;
+  padding-left: 3px;
+  padding-right: 3px;
   align-self: center;
   text-transform: uppercase;
   background-color: #ff6f21;
