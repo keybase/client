@@ -195,11 +195,14 @@ func (h *Home) skipTodoType(ctx context.Context, typ keybase1.HomeScreenTodoType
 	return err
 }
 
-func (h *Home) bustCache(ctx context.Context) {
+func (h *Home) bustCache(ctx context.Context, bustPeople bool) {
 	h.G().Log.CDebugf(ctx, "Home#bustCache")
 	h.Lock()
 	defer h.Unlock()
 	h.homeCache = nil
+	if bustPeople {
+		h.peopleCache = nil
+	}
 }
 
 func (h *Home) SkipTodoType(ctx context.Context, typ keybase1.HomeScreenTodoType) (err error) {
@@ -209,13 +212,13 @@ func (h *Home) SkipTodoType(ctx context.Context, typ keybase1.HomeScreenTodoType
 		which = fmt.Sprintf("unknown=%d", int(typ))
 	}
 	defer h.G().CTrace(ctx, fmt.Sprintf("home#SkipTodoType(%s)", which), func() error { return err })()
-	h.bustCache(ctx)
+	h.bustCache(ctx, false)
 	return h.skipTodoType(ctx, typ)
 }
 
 func (h *Home) MarkViewed(ctx context.Context) (err error) {
 	defer h.G().CTrace(ctx, "Home#MarkViewed", func() error { return err })()
-	h.bustCache(ctx)
+	h.bustCache(ctx, false)
 	return h.markViewed(ctx)
 }
 
@@ -233,12 +236,12 @@ func (h *Home) markViewed(ctx context.Context) (err error) {
 
 func (h *Home) ActionTaken(ctx context.Context) (err error) {
 	defer h.G().CTrace(ctx, "Home#ActionTaken", func() error { return err })()
-	h.bustCache(ctx)
+	h.bustCache(ctx, false)
 	return err
 }
 
 func (h *Home) OnLogout() error {
-	h.bustCache(context.Background())
+	h.bustCache(context.Background(), true)
 	return nil
 }
 
