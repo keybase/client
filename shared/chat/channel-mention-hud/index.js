@@ -129,16 +129,14 @@ const MentionHud: Class<React.Component<MentionHudProps, void>> = compose(
     },
   }),
   withPropsOnChange(['onPickChannel'], ownerProps => ({
-    rowRenderer: (index, props) => {
-      return (
-        <MentionRowRenderer
-          key={props.key}
-          onClick={() => ownerProps.onPickChannel(props.channelName)}
-          onHover={() => ownerProps.setSelectedIndex(index)}
-          {...props}
-        />
-      )
-    },
+    rowRenderer: (index, props) => (
+      <MentionRowRenderer
+        key={props.channelName}
+        onClick={() => ownerProps.onPickChannel(props.channelName)}
+        onHover={() => ownerProps.setSelectedIndex(index)}
+        {...props}
+      />
+    ),
   }))
 )(Hud)
 
