@@ -123,7 +123,7 @@ export default compose(
       if (
         this.props._measure &&
         this.props.message !== prevProps.message &&
-        this.props.message.ordinal === prevProps.message.ordinal
+        (prevProps.message && this.props.message.ordinal === prevProps.message.ordinal)
       ) {
         this.props._measure()
       }

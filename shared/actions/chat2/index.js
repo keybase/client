@@ -830,17 +830,15 @@ const selectTheNewestConversation = (action: any, state: TypedState) => {
 const onExitSearch = (_: any, state: TypedState) => {
   // const userInputItemIds = SearchConstants.getUserInputItemIds(state, {searchKey: 'chatSearch'})
 
-  return Saga.sequentially(
-    [
-      Saga.put(Chat2Gen.createSetSearching({searching: false})),
-      Saga.put(SearchGen.createClearSearchResults({searchKey: 'chatSearch'})),
-      Saga.put(SearchGen.createSetUserInputItems({searchKey: 'chatSearch', searchResults: []})),
-      // Saga.put(ChatGen.createRemoveTempPendingConversations()),
-      // userInputItemIds.length === 0 && !skipSelectPreviousConversation
-      // ? Saga.put(ChatGen.createSelectConversation({conversationIDKey: previousConversation}))
-      // : null,
-    ].filter(Boolean)
-  )
+  return Saga.sequentially([
+    Saga.put(Chat2Gen.createSetSearching({searching: false})),
+    Saga.put(SearchGen.createClearSearchResults({searchKey: 'chatSearch'})),
+    Saga.put(SearchGen.createSetUserInputItems({searchKey: 'chatSearch', searchResults: []})),
+    // Saga.put(ChatGen.createRemoveTempPendingConversations()),
+    // userInputItemIds.length === 0 && !skipSelectPreviousConversation
+    // ? Saga.put(ChatGen.createSelectConversation({conversationIDKey: previousConversation}))
+    // : null,
+  ])
 }
 
 const searchUpdated = (
