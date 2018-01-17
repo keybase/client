@@ -90,9 +90,15 @@ const _skipTodo = (action: PeopleGen.SkipTodoPayload) => {
   ])
 }
 
-let _wasOnPeopleTab = false
+let _wasOnPeopleTab = true
 const _setupPeopleHandlers = () => {
   return Saga.put((dispatch: Dispatch) => {
+    engine().listenOnConnect('registerHomeUI', () => {
+      RPCTypes.delegateUiCtlRegisterHomeUIRpcPromise()
+        .then(() => console.log('Registered home UI'))
+        .catch(error => console.warn('Error in registering home UI:', error))
+    })
+
     engine().setIncomingHandler('keybase.1.homeUI.homeUIRefresh', (args: {||}) => {
       if (_wasOnPeopleTab) {
         dispatch(
