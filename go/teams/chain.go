@@ -1995,11 +1995,9 @@ func (t *TeamSigChainPlayer) obsoleteInvites(stateToUpdate *TeamSigChainState, r
 		return
 	}
 
-	for role, uvs := range roleUpdates {
-		if role != keybase1.TeamRole_NONE {
-			for _, uv := range uvs {
-				stateToUpdate.findAndObsoleteInviteForUser(uv.Uid)
-			}
+	for _, uvs := range roleUpdates {
+		for _, uv := range uvs {
+			stateToUpdate.findAndObsoleteInviteForUser(uv.Uid)
 		}
 	}
 }
