@@ -117,9 +117,6 @@ func (c *CmdChatDeleteHistory) parseAge(s string) (gregor1.DurationSec, string, 
 	case 's':
 		factor = time.Second
 		unitName = "second"
-	case 'm':
-		factor = time.Minute
-		unitName = "minute"
 	case 'h':
 		factor = time.Hour
 		unitName = "hour"
@@ -129,6 +126,9 @@ func (c *CmdChatDeleteHistory) parseAge(s string) (gregor1.DurationSec, string, 
 	case 'w':
 		factor = 7 * 24 * time.Hour
 		unitName = "week"
+	case 'm':
+		factor = 30 * 24 * time.Hour
+		unitName = "month"
 	default:
 		return 0, "", generalErr
 	}
@@ -140,6 +140,10 @@ func (c *CmdChatDeleteHistory) parseAge(s string) (gregor1.DurationSec, string, 
 		return 0, "", fmt.Errorf("age cannot be negative")
 	}
 	d := time.Duration(base) * factor
+	if unitName == "month" {
+		base *= 30
+		unitName = "day"
+	}
 	plural := "s"
 	if base == 1 {
 		plural = ""
