@@ -6,7 +6,7 @@ import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import {isMobile} from '../constants/platform'
 import {chatTab} from '../constants/tabs'
-import {navigateTo} from './route-tree'
+import {navigateTo, switchTo} from './route-tree'
 import {createShowUserProfile} from './profile-gen'
 import {
   requestPushPermissions,
@@ -90,6 +90,7 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
           return
         }
         logger.info(`Push notification: new message: convID: ${convID}`)
+        yield Saga.put(switchTo([chatTab]))
         yield Saga.put(navigateTo([convID], [chatTab]))
       } else if (payload.type === 'follow') {
         const {username} = payload
