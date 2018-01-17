@@ -116,7 +116,10 @@ func (h *Home) Get(ctx context.Context, markViewed bool, numPeopleWanted int) (r
 			}
 		}
 	} else {
-		err = h.getToCache(ctx, markViewed, numPeopleWanted, (len(people) > 0))
+		// If we've already found the people we need to show in the cache,
+		// there's no reason to reload them.
+		skipLoadPeople := len(people) > 0
+		err = h.getToCache(ctx, markViewed, numPeopleWanted, skipLoadPeople)
 		if err != nil {
 			return ret, err
 		}
@@ -206,6 +209,46 @@ func (h *Home) bustCache(ctx context.Context, bustPeople bool) {
 	}
 }
 
+func (h *Home) bustHomeCacheIfBadgedFollowers(ctx context.Context) (err error) {
+
+	h.Lock()
+	defer h.Unlock()
+
+	defer h.G().CTrace(ctx, "+ Home#bustHomeCacheIfBadgedFollowers", func() error { return err })()
+
+	if h.homeCache == nil {
+		h.G().Log.CDebugf(ctx, "| nil home cache, nothing to bust")
+		return nil
+	}
+
+	bust := false
+	for i, item := range h.homeCache.obj.Items {
+		if !item.Badged {
+			continue
+		}
+		typ, err := item.Data.T()
+		if err != nil {
+			bust = true
+			h.G().Log.CDebugf(ctx, "| in bustHomeCacheIfBadgedFollowers: bad item: %v", err)
+			break
+		}
+		if typ == keybase1.HomeScreenItemType_PEOPLE {
+			bust = true
+			h.G().Log.CDebugf(ctx, "| in bustHomeCacheIfBadgedFollowers: found badged home people item @%d", i)
+			break
+		}
+	}
+
+	if bust {
+		h.G().Log.CDebugf(ctx, "| busting home cache")
+		h.homeCache = nil
+	} else {
+		h.G().Log.CDebugf(ctx, "| not busting home cache")
+	}
+
+	return nil
+}
+
 func (h *Home) SkipTodoType(ctx context.Context, typ keybase1.HomeScreenTodoType) (err error) {
 	var which string
 	var ok bool
@@ -219,7 +262,7 @@ func (h *Home) SkipTodoType(ctx context.Context, typ keybase1.HomeScreenTodoType
 
 func (h *Home) MarkViewed(ctx context.Context) (err error) {
 	defer h.G().CTrace(ctx, "Home#MarkViewed", func() error { return err })()
-	h.bustCache(ctx, false)
+	h.bustHomeCacheIfBadgedFollowers(ctx)
 	return h.markViewed(ctx)
 }
 
