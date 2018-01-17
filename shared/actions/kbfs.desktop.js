@@ -194,7 +194,7 @@ function findKeybaseUninstallString(): Promise<string> {
         }
       })
     } catch (err) {
-      logger.info('findKeybaseUninstallString caught', err)
+      logger.error('findKeybaseUninstallString caught', err)
     }
   })
 }
@@ -207,8 +207,7 @@ function installCachedDokan(): Promise<*> {
     modifyCommand =>
       new Promise((resolve, reject) => {
         if (modifyCommand) {
-          // use the action logger so it has a chance of making it into the upload
-          logger.action('Invoking repair to add driver: ' + modifyCommand)
+          logger.record('Invoking repair to add driver: ' + modifyCommand)
           execFile(modifyCommand, [
             '/modify',
             'driver=1',
