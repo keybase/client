@@ -238,7 +238,7 @@ const TeamTabs = (props: TeamTabsProps) => {
     yourOperations,
   } = props
   let membersLabel = 'MEMBERS'
-  membersLabel += !loading || members.length !== 0 ? ' (' + members.length + ')' : ''
+  membersLabel += !loading && members.length !== 0 ? ` (${members.length})` : ''
   const tabs = [
     <Text
       key="members"
@@ -261,7 +261,8 @@ const TeamTabs = (props: TeamTabsProps) => {
   }
 
   if (admin) {
-    const invitesLabel = `INVITES (${invites.length})`
+    let invitesLabel = 'INVITES'
+    invitesLabel += !loading && invites.length !== 0 ? ` (${invites.length})` : ''
     tabs.push(
       <Box key="invites" style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
         <Text
@@ -278,7 +279,7 @@ const TeamTabs = (props: TeamTabsProps) => {
   }
 
   let subteamsLabel = 'SUBTEAMS'
-  subteamsLabel += !loading || subteams.length !== 0 ? ' (' + subteams.count() + ')' : ''
+  subteamsLabel += !loading && subteams.count() !== 0 ? ` (${subteams.count()})` : ''
   if (subteams.count() > 0 || yourOperations.manageSubteams) {
     tabs.push(
       <Text
