@@ -79,7 +79,12 @@ export const MultiFollowNotification = (props: Props) => {
           >
             <Meta
               title={`+${props.newFollows.length + (props.numAdditional || 0)}`}
-              style={{backgroundColor: globalColors.blue, alignSelf: 'center'}}
+              style={{
+                alignSelf: 'center',
+                backgroundColor: globalColors.blue,
+                minWidth: isMobile ? 40 : 24,
+                textAlign: 'center',
+              }}
             />
           </Box>
         </Box>
