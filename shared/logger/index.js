@@ -42,13 +42,11 @@ class AggregateLoggerImpl implements AggregateLogger {
   _info: Logger
   _action: Logger
   _debug: Logger
-  _record: Logger
   error: LogFn
   warn: LogFn
   info: LogFn
   action: LogFn
   debug: LogFn
-  record: LogFn
   _allLoggers: {[key: LogLevel]: Logger}
 
   constructor({
@@ -57,21 +55,18 @@ class AggregateLoggerImpl implements AggregateLogger {
     info,
     action,
     debug,
-    record,
   }: {
     error: Logger,
     warn: Logger,
     info: Logger,
     action: Logger,
     debug: Logger,
-    record: Logger,
   }) {
     this._error = error
     this._warn = warn
     this._info = info
     this._action = action
     this._debug = debug
-    this._record = record
 
     this._allLoggers = {
       Error: error,
@@ -79,7 +74,6 @@ class AggregateLoggerImpl implements AggregateLogger {
       Info: info,
       Action: action,
       Debug: debug,
-      Record: record,
     }
 
     this.error = error.log
@@ -87,7 +81,6 @@ class AggregateLoggerImpl implements AggregateLogger {
     this.info = info.log
     this.action = action.log
     this.debug = debug.log
-    this.record = record.log
 
     const olderThanMs = 1e3 * 60 * 60 * 24 // 24 hours
     if (!__STORYBOOK__) {
@@ -124,7 +117,6 @@ const devLoggers = () => ({
   error: new ConsoleLogger('error'),
   info: new ConsoleLogger('log'),
   warn: new ConsoleLogger('warn'),
-  record: new ConsoleLogger('log'),
 })
 
 const prodLoggers = () => ({
@@ -137,9 +129,6 @@ const prodLoggers = () => ({
     : new DumpPeriodicallyLogger(new RingLogger(1000), 1 * 60e3, writeLogLinesToFile, 'Error'),
   info: new RingLogger(1000),
   warn: new RingLogger(1000),
-  record: isMobile
-    ? new NativeLogger()
-    : new DumpPeriodicallyLogger(new RingLogger(5000), 1 * 60e3, writeLogLinesToFile, 'Record'),
 })
 
 // Settings
