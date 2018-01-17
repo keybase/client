@@ -9,9 +9,9 @@ import type {TypedState} from '../../../constants/reducer'
 import type {StateProps, DispatchProps} from './container'
 
 const mapStateToProps = (state: TypedState) => {
-  const selectedConversationIDKey = Constants.getSelectedConversation(state)
+  const selectedConversationIDKey = Constants.getSelectedConversation(state) || ''
   if (!selectedConversationIDKey) {
-    throw new Error('no selected conversation')
+    console.warn('no selected conversation in chat create team header')
   }
 
   return {
