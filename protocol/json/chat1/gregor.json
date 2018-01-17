@@ -358,6 +358,42 @@
           "name": "teamID"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "ConvRetentionUpdate",
+      "fields": [
+        {
+          "type": "InboxVers",
+          "name": "inboxVers"
+        },
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "RetentionPolicy",
+          "name": "policy"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamRetentionUpdate",
+      "fields": [
+        {
+          "type": "InboxVers",
+          "name": "inboxVers"
+        },
+        {
+          "type": "keybase1.TeamID",
+          "name": "teamID"
+        },
+        {
+          "type": "RetentionPolicy",
+          "name": "policy"
+        }
+      ]
     }
   ],
   "messages": {},
