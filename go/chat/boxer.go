@@ -101,7 +101,7 @@ func (b *Boxer) detectKBFSPermanentServerError(err error) bool {
 		case keybase1.StatusCode_SCTeamReadError:
 			// These errors get obfuscated by the server on purpose. Just mark this as permanent error
 			// since it likely means the team is in bad shape.
-			return aerr.Error() == "You are not a member of this team"
+			return aerr.Error() == "You are not a member of this team (error 2623)"
 		}
 	}
 
