@@ -90,11 +90,6 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
           return
         }
         logger.info(`Push notification: new message: convID: ${convID}`)
-        // Short term hack: this just ensures that the service definitely knows we are now in the
-        // foreground for the GetThreadLocal call coming from selectConversation.
-        yield Saga.call(RPCTypes.appStateUpdateAppStateRpcPromise, {
-          state: RPCTypes.appStateAppState.foreground,
-        })
         yield Saga.put(navigateTo([convID], [chatTab]))
       } else if (payload.type === 'follow') {
         const {username} = payload
