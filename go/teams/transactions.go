@@ -220,6 +220,7 @@ func (tx *AddMemberTx) CompleteSocialInvitesFor(ctx context.Context, uv keybase1
 			for _, x := range req.GetAllAdds() {
 				if x.Eq(uv) {
 					found = true
+					break
 				}
 			}
 			if found {
@@ -340,6 +341,7 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 	var sections []SCTeamSection
 	memSet := newMemberSet()
 
+	// Transform payloads to SCTeamSections.
 	for _, p := range tx.payloads {
 		section := SCTeamSection{
 			ID:       SCTeamID(team.ID),
@@ -384,6 +386,7 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 		}
 	}
 
+	// If memSet has any downgrades, request downgrade lease.
 	var merkleRoot *libkb.MerkleRoot
 	var lease *libkb.Lease
 
@@ -393,6 +396,7 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 		if err != nil {
 			return err
 		}
+		// Always cancel lease so we don't leave any hanging.
 		defer func() {
 			err := libkb.CancelDowngradeLease(ctx, g, lease.LeaseID)
 			if err != nil {
@@ -418,6 +422,7 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 		}
 	}
 
+	// Take payloads and team sections and generate chain of signatures.
 	nextSeqno := team.NextSeqno()
 	latestLinkID := team.chain().GetLatestLinkID()
 
@@ -431,12 +436,14 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 			linkType = libkb.LinkTypeInvite
 		}
 
-		sigMultiItem, linkID, err := team.sigTeamItemRaw(ctx, section, linkType, nextSeqno, latestLinkID, merkleRoot)
+		sigMultiItem, linkID, err := team.sigTeamItemRaw(ctx, section, linkType,
+			nextSeqno, latestLinkID, merkleRoot)
 		if err != nil {
 			return err
 		}
 
-		g.Log.CDebugf(ctx, "AddMemberTx: Prepared signature %d: Type: %v SeqNo: %d Hash: %q", i, linkType, nextSeqno, linkID)
+		g.Log.CDebugf(ctx, "AddMemberTx: Prepared signature %d: Type: %v SeqNo: %d Hash: %q",
+			i, linkType, nextSeqno, linkID)
 
 		nextSeqno++
 		latestLinkID = linkID
