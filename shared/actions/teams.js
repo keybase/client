@@ -279,7 +279,8 @@ const _createNewTeamFromConversation = function*(
           })
         }
       }
-      yield Saga.put(ChatGen.createSelectConversation({conversationIDKey: null}))
+      yield Saga.put(ChatGen.createExitSearch({skipSelectPreviousConversation: true}))
+      yield Saga.put(ChatGen.createOpenTeamConversation({teamname, channelname: 'general'}))
     } catch (error) {
       yield Saga.put(TeamsGen.createSetTeamCreationError({error: error.desc}))
     } finally {
