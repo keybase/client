@@ -23,6 +23,7 @@ const _getPeopleData = function(action: PeopleGen.GetPeopleDataPayload, state: T
     }),
     Saga.identity(state.config.following),
     Saga.identity(state.config.followers),
+    Saga.put(createDecrementWaiting({key: Constants.getPeopleDataWaitingKey})),
   ])
 }
 
@@ -60,18 +61,15 @@ const _processPeopleData = function(fromGetPeopleData: any[]) {
       }, I.List())) ||
     I.List()
 
-  return Saga.all([
-    Saga.put(
-      PeopleGen.createPeopleDataProcessed({
-        oldItems,
-        newItems,
-        lastViewed: new Date(data.lastViewed),
-        followSuggestions,
-        version: data.version,
-      })
-    ),
-    Saga.put(createDecrementWaiting({key: Constants.getPeopleDataWaitingKey})),
-  ])
+  return Saga.put(
+    PeopleGen.createPeopleDataProcessed({
+      oldItems,
+      newItems,
+      lastViewed: new Date(data.lastViewed),
+      followSuggestions,
+      version: data.version,
+    })
+  )
 }
 
 const _markViewed = (action: PeopleGen.MarkViewedPayload) =>

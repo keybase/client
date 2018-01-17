@@ -10,12 +10,15 @@ import {
 import {PeoplePageSearchBar, PeoplePageList} from './index.shared'
 import {type Props} from '.'
 import {globalColors, globalStyles} from '../styles'
+import {isIOS} from '../constants/platform'
 
 const People = (props: Props) => (
   <NativeSafeAreaView>
     <ScrollView
       style={{...globalStyles.fullHeight}}
-      refreshControl={<NativeRefreshControl refreshing={props.waiting} onRefresh={() => props.getData()} />}
+      refreshControl={
+        <NativeRefreshControl refreshing={isIOS ? false : props.waiting} onRefresh={() => props.getData()} />
+      }
     >
       <PeoplePageSearchBar
         {...props}
