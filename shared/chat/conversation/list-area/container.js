@@ -1,9 +1,10 @@
 // @flow
 import * as React from 'react'
+import * as SearchConstants from '../../../constants/search'
+import * as TrackerGen from '../../../actions/tracker-gen'
 import Normal from './normal/container'
 import SearchResultsList from '../../../search/results-list/container'
-import * as TrackerGen from '../../../actions/tracker-gen'
-import {connect, type TypedState} from '../../../util/container'
+import {connect, type TypedState, type Dispatch} from '../../../util/container'
 import {globalStyles} from '../../../styles'
 /* ProgressIndicator, */
 
@@ -11,6 +12,7 @@ type Props = {
   listScrollDownCounter: number,
   onFocusInput: () => void,
   onShowTracker: (user: string) => void,
+  showSearchResults: boolean,
 }
 
 class ListArea extends React.PureComponent<Props> {
@@ -19,7 +21,7 @@ class ListArea extends React.PureComponent<Props> {
     // list = <ProgressIndicator style={styleSpinner} />
     // } else if (this.props.youAreReset) {
     // list = <YouAreReset />
-    if (this.props.isSearching) {
+    if (this.props.showSearchResults) {
       return (
         <SearchResultsList
           searchKey="chatSearch"
@@ -41,7 +43,8 @@ class ListArea extends React.PureComponent<Props> {
 const searchResultStyle = {...globalStyles.scrollable, flexGrow: 1}
 
 const mapStateToProps = (state: TypedState): * => ({
-  isSearching: state.chat2.isSearching,
+  showSearchResults:
+    state.chat2.isSearching && !!SearchConstants.getSearchResultIdsArray(state, {searchKey: 'chatSearch'}),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

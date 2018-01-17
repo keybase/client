@@ -1,7 +1,7 @@
 // @flow
 import {connect, type TypedState} from '../../util/container'
 import React from 'react'
-import {ProgressIndicator} from '../../common-adapters'
+import {ProgressIndicator, Box} from '../../common-adapters'
 import SearchResultsList from '.'
 import * as SearchGen from '../../actions/search-gen'
 import {branch, compose, renderComponent} from 'recompose'
@@ -40,12 +40,18 @@ const mapDispatchToProps = (dispatch: Dispatch, {searchKey, onClick, disableList
   onMouseOver: id => dispatch(SearchGen.createUpdateSelectedSearchResult({searchKey, id})),
 })
 
+const Progress = ({style}) => (
+  <Box style={style}>
+    <ProgressIndicator style={styleSpinner} />
+  </Box>
+)
+
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   branch(
     // $FlowIssue doesn't like props not in SearcResultsList.Props
     (props: {pending: boolean}) => props.pending,
-    renderComponent(() => <ProgressIndicator style={styleSpinner} />)
+    renderComponent(Progress)
   )
 )(SearchResultsList)
 

@@ -116,6 +116,9 @@ export default compose(
   connect(mapStateToProps, () => ({}), mergeProps),
   lifecycle({
     componentDidUpdate(prevProps) {
+      if (!this.props.message) {
+        return
+      }
       // If our message is the same id but anything else changed then we need to remeasure
       if (
         this.props._measure &&
