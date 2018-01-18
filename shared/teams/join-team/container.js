@@ -1,23 +1,31 @@
 // @flow
 import * as TeamsGen from '../../actions/teams-gen'
 import JoinTeamDialog from '.'
-import {connect} from 'react-redux'
-import {compose, lifecycle, withStateHandlers, withHandlers} from 'recompose'
+import {
+  connect,
+  compose,
+  lifecycle,
+  withStateHandlers,
+  withHandlers,
+  type TypedState,
+  type Dispatch,
+} from '../../util/container'
+import {type RouteProps} from '../../route-tree/render-route'
 import upperFirst from 'lodash/upperFirst'
 
-import type {TypedState} from '../../constants/reducer'
+type OwnProps = RouteProps<*, *>
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = (state: TypedState): * => ({
   errorText: upperFirst(state.chat.teamJoinError),
   success: state.chat.teamJoinSuccess,
   successTeamName: state.chat.teamJoinSuccessTeamName,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}: OwnProps) => ({
   _onJoinTeam: (teamname: string) => {
     dispatch(TeamsGen.createJoinTeam({teamname}))
   },
-  _onSetTeamJoinError: error => {
+  _onSetTeamJoinError: (error: string) => {
     dispatch(TeamsGen.createSetTeamJoinError({error}))
   },
   _onSetTeamJoinSuccess: (success: boolean, teamname: string) => {
@@ -26,13 +34,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   onBack: () => dispatch(navigateUp()),
 })
 
-const mergeProps = (stateProps, dispatchProps) => ({
-  ...stateProps,
-  ...dispatchProps,
-})
-
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(mapStateToProps, mapDispatchToProps),
   withStateHandlers(({name}) => ({name: name || ''}), {
     onNameChange: () => (name: string) => ({name: name.toLowerCase()}),
   }),
