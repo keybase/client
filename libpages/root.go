@@ -49,6 +49,19 @@ func (t RootType) String() string {
 	}
 }
 
+func tlfTypeToPath(t tlf.Type) string {
+	switch t {
+	case tlf.Private:
+		return string(libkbfs.PrivatePathType)
+	case tlf.Public:
+		return string(libkbfs.PublicPathType)
+	case tlf.SingleTeam:
+		return string(libkbfs.SingleTeamPathType)
+	default:
+		return "<unknown TLF type>"
+	}
+}
+
 // Debug tag ID for an individual FS in keybase pages.
 const ctxOpID = "KBP"
 
@@ -120,9 +133,9 @@ func (r *Root) MakeFS(
 		if err != nil {
 			return nil, tlf.ID{}, nil, err
 		}
-		fs, err = libfs.NewFS(fsCtx, kbfsConfig,
-			tlfHandle, fmt.Sprintf(".kbfs_autogit/%s/%s/%s",
-				r.TlfType, r.TlfNameUnparsed, r.PathUnparsed), "",
+		fs, err = libfs.NewFS(fsCtx, kbfsConfig, tlfHandle,
+			fmt.Sprintf(".kbfs_autogit/%s/%s/%s", tlfTypeToPath(r.TlfType),
+				r.TlfNameUnparsed, r.PathUnparsed), "",
 			keybase1.MDPriorityNormal)
 		if err != nil {
 			return nil, tlf.ID{}, nil, err
