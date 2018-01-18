@@ -531,6 +531,11 @@ L:
 		res, irl, err = findConvosWithMembersType(mt)
 		rl = append(rl, irl...)
 		if err != nil || len(res) == 0 {
+			if err != nil {
+				debugger.Debug(ctx, "FindConversations: fail reason: %s mt: %v", err, mt)
+			} else {
+				debugger.Debug(ctx, "FindConversations: fail reason: no convs mt: %v", mt)
+			}
 			var newMT chat1.ConversationMembersType
 			switch mt {
 			case chat1.ConversationMembersType_IMPTEAMUPGRADE:
