@@ -15,7 +15,6 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/teams"
 	"github.com/keybase/client/go/uidmap"
 	context "golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
@@ -1152,21 +1151,13 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	// Form the writers name list, either from the active list + TLF name, or from the
 	// channel information for a team chat
 	switch conversationRemote.GetMembersType() {
-	case chat1.ConversationMembersType_IMPTEAM:
-		teamID, err := tlfIDToTeamdID(conversationLocal.Info.Triple.Tlfid)
-		if err != nil {
-			errMsg := fmt.Sprintf("error parsing impteam TLFID: %v", err.Error())
-			conversationLocal.Error = chat1.NewConversationErrorLocal(
-				errMsg, conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_PERMANENT, nil)
-			return conversationLocal
-		}
+	case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE:
 		ok := true
 		var errMsg string
 		s.Debug(ctx, "localizeConversation: trying to load team for %v chat", conversationLocal.Info.Visibility)
-		iteam, err := teams.Load(ctx, s.G().ExternalG(), keybase1.LoadTeamArg{
-			ID:     teamID,
-			Public: conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC,
-		})
+		iteam, err := LoadTeam(ctx, s.G().ExternalG(), conversationLocal.Info.Triple.Tlfid,
+			conversationRemote.GetMembersType(),
+			conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC, nil)
 		if err != nil {
 			ok = false
 			errMsg = fmt.Sprintf("unable to load iteam: %v", err.Error())

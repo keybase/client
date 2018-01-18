@@ -65,7 +65,8 @@ func (c *CmdChatDeleteHistory) Run() (err error) {
 
 	if c.G().Standalone {
 		switch c.resolvingRequest.MembersType {
-		case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAM:
+		case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAMNATIVE,
+			chat1.ConversationMembersType_IMPTEAMUPGRADE:
 			c.G().StartStandaloneChat()
 		default:
 			err = CantRunInStandaloneError{}
