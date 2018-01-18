@@ -9,7 +9,7 @@ import {Map} from 'immutable'
 import {connect, type TypedState} from '../../../util/container'
 import {getCanPerform} from '../../../constants/teams'
 import {createSelector} from 'reselect'
-import {navigateAppend, navigateTo} from '../../../actions/route-tree'
+import {navigateAppend, navigateTo, navigateUp} from '../../../actions/route-tree'
 import {chatTab, teamsTab} from '../../../constants/tabs'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import * as ChatTypes from '../../../constants/types/rpc-chat-gen'
@@ -85,7 +85,7 @@ const mapStateToProps = (state: TypedState): StateProps => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+const mapDispatchToProps = (dispatch: Dispatch) => ({
   _navToRootChat: () => dispatch(navigateTo([chatTab])),
   _onLeaveConversation: (conversationIDKey: Types.ConversationIDKey) => {
     dispatch(ChatGen.createLeaveConversation({conversationIDKey}))
