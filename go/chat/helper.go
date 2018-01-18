@@ -525,6 +525,7 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 	var irl []chat1.RateLimit
 	attempts := make(map[chat1.ConversationMembersType]bool)
 	mt := membersTypeIn
+L:
 	for {
 		attempts[mt] = true
 		res, irl, err = findConvosWithMembersType(mt)
@@ -546,14 +547,14 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 				}
 			case chat1.ConversationMembersType_KBFS:
 				debugger.Debug(ctx, "FindConversations: failed with KBFS, aborting")
-				break
+				break L
 			}
 			debugger.Debug(ctx,
 				"FindConversations: failing to find anything for %v, trying again for %v", mt, newMT)
 			mt = newMT
 		} else {
 			debugger.Debug(ctx, "FindConversations: success with mt: %v", mt)
-			break
+			break L
 		}
 	}
 	return res, utils.AggRateLimits(rl), err
