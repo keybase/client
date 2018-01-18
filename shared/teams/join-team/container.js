@@ -2,7 +2,7 @@
 import * as TeamsGen from '../../actions/teams-gen'
 import JoinTeamDialog from '.'
 import {connect} from 'react-redux'
-import {compose, lifecycle, withState, withHandlers} from 'recompose'
+import {compose, lifecycle, withStateHandlers, withHandlers} from 'recompose'
 import upperFirst from 'lodash/upperFirst'
 
 import type {TypedState} from '../../constants/reducer'
@@ -28,7 +28,9 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
-  withState('name', 'onNameChange', ''),
+  withStateHandlers(({name}) => ({name: name || ''}), {
+    onNameChange: () => (name: string) => ({name: name.toLowerCase()}),
+  }),
   withHandlers({
     onSubmit: ({name, _onJoinTeam}) => () => _onJoinTeam(name),
   }),
