@@ -18,9 +18,6 @@ const ff: FeatureFlags = {
   impTeamChatEnabled: true,
   newPeopleTab: false,
   plansEnabled: false,
-  tabGitEnabled: true,
-  tabPeopleEnabled: true,
-  teamChatEnabled: true,
 }
 
 const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {

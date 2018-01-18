@@ -9,9 +9,9 @@ import {
   type TypedState,
   connect,
   type MapStateToProps,
-} from '../../util/container'
-import {Avatar, Box, ClickableBox, List, Text, Usernames} from '../../common-adapters/index'
-import {globalColors, globalMargins, globalStyles} from '../../styles'
+} from '../../../../util/container'
+import {Avatar, Box, ClickableBox, List, Text, Usernames} from '../../../../common-adapters/index'
+import {globalColors, globalMargins, globalStyles} from '../../../../styles'
 
 type Props<D: {key: string, selected: boolean}> = {
   rowRenderer: (i: number, d: D) => React$Element<*>,

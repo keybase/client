@@ -138,6 +138,8 @@ export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   withStateHandlers(
     {
+      channelMentionPopupOpen: false,
+      channelMentionFilter: '',
       mentionFilter: '',
       mentionPopupOpen: false,
       text: '',
@@ -146,6 +148,8 @@ export default compose(
       _setText: () => (text: string) => ({text}),
       // setMentionFilter: () => (mentionFilter: string) => ({mentionFilter}),
       // setMentionPopupOpen: () => (mentionPopupOpen: boolean) => ({mentionPopupOpen}),
+      // setChannelMentionPopupOpen // TODO
+      // setChannelMentionFilter // TODO
     }
   ),
   withProps(props => ({

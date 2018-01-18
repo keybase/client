@@ -9,7 +9,8 @@ import chatInfoPanelNotifications from '../chat/conversation/info-panel/notifica
 // import chatList from '../chat/conversation/list/index.stories'
 import chatCreateChannel from '../chat/create-channel/index.stories'
 import chatManageChannels from '../chat/manage-channels/index.stories'
-import chatHud from '../chat/hud/index.stories'
+import chatChannelMentionHud from '../chat/conversation/input-area/channel-mention-hud/index.stories'
+import chatUserMentionHud from '../chat/conversation/input-area/user-mention-hud/index.stories'
 import checkbox from '../common-adapters/checkbox.stories'
 import dropdown from '../common-adapters/dropdown.stories'
 import git from '../git/index.stories'
@@ -30,13 +31,14 @@ const stories = {
   box,
   button,
   buttonBar,
+  chatChannelMentionHud,
   chatCreateChannel,
-  chatHud,
   chatInboxRow,
   chatInfoPanel,
   chatInfoPanelNotifications,
   // chatList,
   chatManageChannels,
+  chatUserMentionHud,
   checkbox,
   dropdown,
   editTeamDescription,

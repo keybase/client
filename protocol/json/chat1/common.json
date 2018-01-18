@@ -490,24 +490,6 @@
           "name": "version"
         },
         {
-          "type": "Expunge",
-          "name": "expunge"
-        },
-        {
-          "type": [
-            null,
-            "RetentionPolicy"
-          ],
-          "name": "convRetention"
-        },
-        {
-          "type": [
-            null,
-            "RetentionPolicy"
-          ],
-          "name": "teamRetention"
-        },
-        {
           "type": [
             null,
             "ConversationFinalizeInfo"
@@ -665,6 +647,24 @@
             "ConversationCreatorInfo"
           ],
           "name": "creatorInfo"
+        },
+        {
+          "type": "Expunge",
+          "name": "expunge"
+        },
+        {
+          "type": [
+            null,
+            "RetentionPolicy"
+          ],
+          "name": "convRetention"
+        },
+        {
+          "type": [
+            null,
+            "RetentionPolicy"
+          ],
+          "name": "teamRetention"
         }
       ]
     },

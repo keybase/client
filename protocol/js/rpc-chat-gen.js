@@ -619,9 +619,11 @@ export type ChatUiChatThreadCachedRpcParam = $ReadOnly<{thread?: ?String, incomi
 
 export type ChatUiChatThreadFullRpcParam = $ReadOnly<{thread: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
+export type ConvRetentionUpdate = $ReadOnly<{inboxVers: InboxVers, convID: ConversationID, policy: RetentionPolicy}>
+
 export type ConvTypingUpdate = $ReadOnly<{convID: ConversationID, typers?: ?Array<TyperInfo>}>
 
-export type Conversation = $ReadOnly<{metadata: ConversationMetadata, readerInfo?: ?ConversationReaderInfo, notifications?: ?ConversationNotificationInfo, maxMsgs?: ?Array<MessageBoxed>, maxMsgSummaries?: ?Array<MessageSummary>, creatorInfo?: ?ConversationCreatorInfo}>
+export type Conversation = $ReadOnly<{metadata: ConversationMetadata, readerInfo?: ?ConversationReaderInfo, notifications?: ?ConversationNotificationInfo, maxMsgs?: ?Array<MessageBoxed>, maxMsgSummaries?: ?Array<MessageSummary>, creatorInfo?: ?ConversationCreatorInfo, expunge: Expunge, convRetention?: ?RetentionPolicy, teamRetention?: ?RetentionPolicy}>
 
 export type ConversationCreatorInfo = $ReadOnly<{ctime: Gregor1.Time, uid: Gregor1.UID}>
 
@@ -675,7 +677,7 @@ export type ConversationMembersType =
   | 1 // TEAM_1
   | 2 // IMPTEAM_2
 
-export type ConversationMetadata = $ReadOnly<{idTriple: ConversationIDTriple, conversationID: ConversationID, visibility: Keybase1.TLFVisibility, status: ConversationStatus, membersType: ConversationMembersType, teamType: TeamType, existence: ConversationExistence, version: ConversationVers, expunge: Expunge, convRetention?: ?RetentionPolicy, teamRetention?: ?RetentionPolicy, finalizeInfo?: ?ConversationFinalizeInfo, supersedes?: ?Array<ConversationMetadata>, supersededBy?: ?Array<ConversationMetadata>, activeList?: ?Array<Gregor1.UID>, allList?: ?Array<Gregor1.UID>, resetList?: ?Array<Gregor1.UID>}>
+export type ConversationMetadata = $ReadOnly<{idTriple: ConversationIDTriple, conversationID: ConversationID, visibility: Keybase1.TLFVisibility, status: ConversationStatus, membersType: ConversationMembersType, teamType: TeamType, existence: ConversationExistence, version: ConversationVers, finalizeInfo?: ?ConversationFinalizeInfo, supersedes?: ?Array<ConversationMetadata>, supersededBy?: ?Array<ConversationMetadata>, activeList?: ?Array<Gregor1.UID>, allList?: ?Array<Gregor1.UID>, resetList?: ?Array<Gregor1.UID>}>
 
 export type ConversationNotificationInfo = $ReadOnly<{channelWide: Boolean, settings: {[key: string]: {[key: string]: Boolean}}}>
 
@@ -1227,6 +1229,8 @@ export type TLFID = Bytes
 export type TLFResolveUpdate = $ReadOnly<{convID: ConversationID, inboxVers: InboxVers}>
 
 export type TeamChannelUpdate = $ReadOnly<{teamID: TLFID}>
+
+export type TeamRetentionUpdate = $ReadOnly<{inboxVers: InboxVers, teamID: Keybase1.TeamID, policy: RetentionPolicy}>
 
 export type TeamType =
   | 0 // NONE_0

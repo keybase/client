@@ -99,7 +99,7 @@ const mapStateToProps = (state: TypedState, {routePath, routeProps}) => {
   // const userInputItemIds = SearchConstants.getUserInputItemIds(state, {searchKey: 'chatSearch'})
 
   // // If it's a multi-user chat that isn't a team, offer to make a new team.
-  // const showTeamOffer = flags.teamChatEnabled && inSearch && userInputItemIds && userInputItemIds.length > 1
+  // const showTeamOffer =  inSearch && userInputItemIds && userInputItemIds.length > 1
 
   // return {
   // showSearchResults: inSearch && !!searchResults,

@@ -94,9 +94,15 @@ func (b *Boxer) detectKBFSPermanentServerError(err error) bool {
 	}
 
 	// Check for team not exist error that is in raw form
-	if aerr, ok := err.(libkb.AppStatusError); ok &&
-		keybase1.StatusCode(aerr.Code) == keybase1.StatusCode_SCTeamNotFound {
-		return true
+	if aerr, ok := err.(libkb.AppStatusError); ok {
+		switch keybase1.StatusCode(aerr.Code) {
+		case keybase1.StatusCode_SCTeamNotFound:
+			return true
+		case keybase1.StatusCode_SCTeamReadError:
+			// These errors get obfuscated by the server on purpose. Just mark this as permanent error
+			// since it likely means the team is in bad shape.
+			return aerr.Error() == "You are not a member of this team (error 2623)"
+		}
 	}
 
 	switch err.(type) {

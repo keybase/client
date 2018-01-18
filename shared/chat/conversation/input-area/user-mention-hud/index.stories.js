@@ -3,9 +3,9 @@ import React from 'react'
 import * as I from 'immutable'
 import {MentionRowRenderer, MentionHud} from '.'
 import {compose, withState} from 'recompose'
-import {Box, Button, Input, ButtonBar} from '../../common-adapters'
-import {storiesOf, action} from '../../stories/storybook'
-import {globalStyles} from '../../styles'
+import {Box, Button, Input, ButtonBar} from '../../../../common-adapters'
+import {storiesOf, action} from '../../../../stories/storybook'
+import {globalStyles} from '../../../../styles'
 
 const dummyStore = {
   getState: () => ({

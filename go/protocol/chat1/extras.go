@@ -794,3 +794,7 @@ func (p RetentionPolicy) Summary() string {
 		return fmt.Sprintf("{%v}", typ)
 	}
 }
+
+func TeamIDToTLFID(teamID keybase1.TeamID) (TLFID, error) {
+	return MakeTLFID(teamID.String())
+}

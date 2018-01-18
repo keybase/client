@@ -10,7 +10,7 @@ import {isAndroid} from '../constants/platform'
 const Meta = ({title, style}: Props) => (
   <Box
     style={{
-      borderRadius: 2,
+      borderRadius: 4,
       paddingLeft: 2,
       paddingRight: 2,
       paddingTop: isAndroid ? 1 : 2,
@@ -24,8 +24,10 @@ const Meta = ({title, style}: Props) => (
       style={{
         color: (style && style.color) || globalColors.white,
         fontSize: 12,
+        fontWeight: '700',
         height: 15,
         lineHeight: 15,
+        alignSelf: 'center',
       }}
     >
       {title && title.toUpperCase()}

@@ -70,7 +70,7 @@ export default (props: Props) => (
       {props.badged && (
         <Badge
           badgeNumber={null}
-          badgeStyle={{marginLeft: globalMargins.tiny, height: 10, minWidth: 10, marginTop: -1}}
+          badgeStyle={{marginLeft: globalMargins.tiny, height: 8, width: 8, minWidth: 8}}
         />
       )}
     </Box>

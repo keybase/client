@@ -4,6 +4,7 @@ import {
   Box,
   Text,
   Icon,
+  Checkbox,
   ClickableBox,
   Input,
   Button,
@@ -17,6 +18,9 @@ import {globalStyles, globalColors, globalMargins, transition, isMobile} from '.
 
 export type Props = {
   canDelete: boolean,
+  canEdit: boolean,
+  channelName: ?string,
+  chatDisabled: boolean,
   devicename: string,
   expanded: boolean,
   lastEditTime: string,
@@ -30,6 +34,8 @@ export type Props = {
   onCopy: () => void,
   onClickDevice: () => void,
   onShowDelete: () => void,
+  onChannelClick: (SyntheticEvent<>) => void,
+  onToggleChatEnabled: () => void,
   onToggleExpand: () => void,
   setTimeout: (() => void, number) => number,
   openUserTracker: (username: string) => void,
@@ -56,6 +62,10 @@ class Row extends React.Component<Props, State> {
     this.props.onCopy()
     this.setState({showingCopy: true})
     this.props.setTimeout(() => this.setState({showingCopy: false}), 1000)
+  }
+
+  _channelNameToString = (channelName: ?string) => {
+    return channelName ? `#${channelName}` : '#general'
   }
 
   render() {
@@ -185,6 +195,37 @@ class Row extends React.Component<Props, State> {
                 <Text type="BodySmall">.</Text>
               </Text>
             </Box>
+            {!!this.props.teamname && (
+              <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginTop: globalMargins.xtiny}}>
+                {this.props.canEdit && (
+                  <Checkbox
+                    checked={!this.props.chatDisabled}
+                    onCheck={this.props.onToggleChatEnabled}
+                    label=""
+                    labelComponent={
+                      <Text type="BodySmall">
+                        Announce pushes in{' '}
+                        <Text
+                          type={this.props.chatDisabled ? 'BodySmall' : 'BodySmallPrimaryLink'}
+                          onClick={this.props.onChannelClick}
+                        >
+                          {this._channelNameToString(this.props.channelName)}
+                        </Text>
+                      </Text>
+                    }
+                  />
+                )}
+                {!this.props.canEdit && (
+                  <Text type="BodySmall">
+                    {this.props.chatDisabled
+                      ? 'Pushes are not announced'
+                      : `Pushes are announced in ${this.props.teamname}${this._channelNameToString(
+                          this.props.channelName
+                        )}`}
+                  </Text>
+                )}
+              </Box>
+            )}
             {isMobile &&
               this.props.canDelete && (
                 <Button

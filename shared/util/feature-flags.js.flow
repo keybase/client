@@ -6,9 +6,6 @@ export type FeatureFlags = {|
   impTeamChatEnabled: boolean,
   newPeopleTab: boolean,
   plansEnabled: boolean,
-  tabGitEnabled: boolean,
-  tabPeopleEnabled: boolean,
-  teamChatEnabled: boolean,
 |}
 
 const ff: FeatureFlags = {
@@ -17,9 +14,6 @@ const ff: FeatureFlags = {
   impTeamChatEnabled: false,
   newPeopleTab: false,
   plansEnabled: false,
-  tabGitEnabled: false,
-  tabPeopleEnabled: false,
-  teamChatEnabled: false,
 }
 
 export default ff

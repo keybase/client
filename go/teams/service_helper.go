@@ -1181,7 +1181,10 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		Public:  false, // assume private team
 	})
 	if err != nil {
-		return ret, err
+		// Note: we eat the error here, assuming it meant this user
+		// is not a member
+		g.Log.CWarningf(ctx, "CanUserPerform team Load failure, continuing: %v)", err)
+		return ret, nil
 	}
 	meUV, err := team.currentUserUV(ctx)
 	if err != nil {

@@ -1,22 +1,15 @@
 // @noflow
+import * as React from 'react'
 import * as Constants2 from '../../../constants/chat2'
 import * as Types from '../../../constants/types/chat2'
 import * as TeamTypes from '../../../constants/types/teams'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import {ConversationInfoPanel, SmallTeamInfoPanel, BigTeamInfoPanel} from '.'
-import {
-  compose,
-  renderComponent,
-  renderNothing,
-  branch,
-  connect,
-  type TypedState,
-} from '../../../util/container'
+import {connect, type TypedState} from '../../../util/container'
 import {getCanPerform} from '../../../constants/teams'
 import {navigateAppend, navigateTo} from '../../../actions/route-tree'
 import {chatTab, teamsTab} from '../../../constants/tabs'
 import {createShowUserProfile} from '../../../actions/profile-gen'
-import flags from '../../../util/feature-flags'
 
 // const getPreviewState = createSelector([Constants.getSelectedInbox], inbox => {
 // return {isPreview: (inbox && inbox.memberStatus) === ChatTypes.commonConversationMemberStatus.preview}
@@ -80,7 +73,6 @@ const mergeProps = (stateProps, dispatchProps) => {
   return {
     ...stateProps,
     teamname,
-    showTeamButton: flags.teamChatEnabled,
     selectedConversationIDKey,
     ...dispatchProps,
     onLeaveConversation: () => {
@@ -105,11 +97,57 @@ const mergeProps = (stateProps, dispatchProps) => {
   }
 }
 
-const ConnectedInfoPanel = compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  branch(props => !props.selectedConversationIDKey, renderNothing),
-  branch(props => props.channelname && !props.smallTeam, renderComponent(BigTeamInfoPanel)),
-  branch(props => !props.channelname && !props.smallTeam, renderComponent(ConversationInfoPanel))
-)(SmallTeamInfoPanel)
+const ConnectedBigTeamInfoPanel = connect(mapStateToProps, mapDispatchToProps, mergeProps)(BigTeamInfoPanel)
+
+const ConnectedSmallTeamInfoPanel = connect(mapStateToProps, mapDispatchToProps, mergeProps)(
+  SmallTeamInfoPanel
+)
+
+const ConnectedConversationInfoPanel = connect(mapStateToProps, mapDispatchToProps, mergeProps)(
+  ConversationInfoPanel
+)
+
+type SelectorProps = {
+  channelname?: ?string,
+  selectedConversationIDKey?: Types.ConversationIDKey,
+  smallTeam?: boolean,
+}
+
+const mapStateToSelectorProps = (state: TypedState): SelectorProps => {
+  const selectedConversationIDKey = Constants2.getSelectedConversation(state)
+  if (!selectedConversationIDKey) {
+    return {}
+  }
+  const meta = Constants2.getMeta(state, selectedConversationIDKey)
+  if (!meta) {
+    return {}
+  }
+
+  return {
+    channelname: meta.channelname,
+    selectedConversationIDKey,
+    smallTeam: meta.teamType !== 'big',
+  }
+}
+
+class InfoPanelSelector extends React.PureComponent<SelectorProps> {
+  render() {
+    if (!this.props.selectedConversationIDKey) {
+      return null
+    }
+
+    if (this.props.smallTeam) {
+      return <ConnectedSmallTeamInfoPanel />
+    }
+
+    if (this.props.channelname) {
+      return <ConnectedBigTeamInfoPanel />
+    }
+
+    return <ConnectedConversationInfoPanel />
+  }
+}
+
+const ConnectedInfoPanel = connect(mapStateToSelectorProps)(InfoPanelSelector)
 
 export default ConnectedInfoPanel

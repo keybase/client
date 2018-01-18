@@ -9,12 +9,13 @@ const Meta = ({title, style}: Props) => (
     type="Header"
     style={{
       color: globalColors.white,
-      borderRadius: 1,
+      borderRadius: 2,
       fontSize: 10,
+      fontWeight: '700',
       height: 11,
       lineHeight: '11px',
-      paddingLeft: 2,
-      paddingRight: 2,
+      paddingLeft: 3,
+      paddingRight: 3,
       alignSelf: 'flex-start',
       textTransform: 'uppercase',
       ...style,

@@ -36,7 +36,7 @@ const mapStateToProps = (state: TypedState): StateProps => {
 
 type DispatchProps = {
   onCreateTeam: () => void,
-  onHideBanner: () => void,
+  onHideChatBanner: () => void,
   onJoinTeam: () => void,
   onManageChat: (teamname: Teamname) => void,
   onOpenFolder: (teamname: Teamname) => void,
@@ -56,7 +56,7 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
       ])
     )
   },
-  onHideBanner: () => dispatch(GregorGen.createInjectItem({category: 'sawChatBanner', body: 'true'})),
+  onHideChatBanner: () => dispatch(GregorGen.createInjectItem({category: 'sawChatBanner', body: 'true'})),
   onJoinTeam: () => {
     dispatch(navigateAppend(['showJoinTeamDialog']))
   },

@@ -4,7 +4,6 @@ import Folders, {type FolderType} from '.'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as KBFSGen from '../actions/kbfs-gen'
 import * as FavoriteGen from '../actions/favorite-gen'
-import flags from '../util/feature-flags'
 import {connect, compose, lifecycle, withProps, type TypedState} from '../util/container'
 import {settingsTab} from '../constants/tabs'
 import {switchTo, navigateAppend, navigateTo} from '../actions/route-tree'
@@ -34,11 +33,7 @@ const mapDispatchToProps = (dispatch: any, {routePath, routeState, setRouteState
   onRekey: path => dispatch(navigateAppend([{props: {path}, selected: 'files'}])),
   onSwitchTab: selected => dispatch(switchTo(routePath.pop().push(selected))),
   onToggleShowIgnored: () => setRouteState({showingIgnored: !routeState.get('showingIgnored')}),
-  ...(flags.teamChatEnabled
-    ? {
-        onBack: () => dispatch(navigateTo([settingsTab], [])),
-      }
-    : {}),
+  onBack: () => dispatch(navigateTo([settingsTab], [])),
 })
 
 const ConnectedFolders = compose(
