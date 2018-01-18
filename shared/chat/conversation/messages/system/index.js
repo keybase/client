@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box, Text, ConnectedUsernames, Icon} from '../../../../common-adapters'
+import {Box, Text, ConnectedUsernames, Icon, TimelineMarker} from '../../../../common-adapters'
 import {EmojiIfExists} from '../../../../common-adapters/markdown.shared'
 import UserNotice from '../../notices/user-notice'
 import {globalStyles, globalColors, globalMargins} from '../../../../styles'
@@ -114,7 +114,12 @@ const AddedToTeamNotice = ({
           .{' '}
           {you === addee && (
             <Text type="BodySmallSemibold">
-              Say hi! <EmojiIfExists style={{display: 'inline-block'}} emojiName=":wave:" size={14} />
+              Say hi!{' '}
+              <EmojiIfExists
+                style={{display: isMobile ? 'flex' : 'inline-block'}}
+                emojiName=":wave:"
+                size={14}
+              />
             </Text>
           )}
         </Text>
@@ -175,7 +180,7 @@ const ComplexTeamNotice = ({channelname, message, info, onManageChannels, you}: 
             </Text>
             <Text type="BodySmallSemibold">
               Notifications will no longer happen for every message. {isMobile ? 'Tap' : 'Click on'} the{' '}
-              <Box style={{display: 'inline-block'}}>
+              <Box style={{display: isMobile ? 'flex' : 'inline-block', height: 11, width: 11}}>
                 <Icon type="iconfont-info" style={{fontSize: 11}} />
               </Box>{' '}
               to configure them.
@@ -260,26 +265,6 @@ const InviteAddedToTeamNotice = ({
 
 type GitPushInfoProps = Props & {info: GitPushInfo}
 
-const circleSize = 8
-const stylesCircleOpen = {
-  border: `solid 2px ${globalColors.black_10}`,
-  borderRadius: circleSize / 2,
-  height: circleSize,
-  width: circleSize,
-}
-const stylesLine = {
-  backgroundColor: globalColors.black_10,
-  width: 2,
-}
-
-const TimelineMarker = ({idx, max}) => (
-  <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', marginRight: globalMargins.xtiny}}>
-    <Box style={{...stylesLine, height: 5, opacity: idx ? 1 : 0}} />
-    <Box style={stylesCircleOpen} />
-    <Box style={{...stylesLine, flex: 1, opacity: idx < max ? 1 : 0}} />
-  </Box>
-)
-
 const GitPushInfoNotice = ({message, info}: GitPushInfoProps) => {
   // There is a bug in the data layer where mergeEntities when it sees dupes of this message will keep on adding to the array
   // Short term fix: clean this up
@@ -316,27 +301,39 @@ const GitPushInfoNotice = ({message, info}: GitPushInfoProps) => {
         <Box style={globalStyles.flexBoxColumn}>
           {refsMap[branchName].map((commit, i) => (
             <Box style={globalStyles.flexBoxRow} key={commit.commitHash}>
-              <TimelineMarker idx={i} max={refsMap[branchName].length - 1} />
-              <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-start'}}>
-                <Text
-                  type="Terminal"
+              <TimelineMarker
+                idx={i}
+                max={refsMap[branchName].length - 1}
+                style={{marginRight: globalMargins.xtiny, ...(isMobile ? {marginTop: -3} : null)}}
+              />
+              <Box style={{...globalStyles.flexBoxRow, flex: 1, alignItems: 'flex-start'}}>
+                <Box
                   style={{
-                    fontSize: 11,
-                    color: globalColors.blue,
+                    display: 'flex',
                     backgroundColor: globalColors.blue3_20,
                     padding: 2,
                     borderRadius: 3,
                     marginRight: globalMargins.xtiny,
                     marginBottom: 1,
                     height: 18,
-                    lineHeight: 1.3,
                   }}
                 >
-                  {commit.commitHash.substr(0, 8)}
-                </Text>
-                <Text type="BodySmall" style={{textAlign: 'left'}} lineClamp={2}>
-                  {commit.message}
-                </Text>
+                  <Text
+                    type="Terminal"
+                    style={{
+                      fontSize: 11,
+                      color: globalColors.blue,
+                      lineHeight: isMobile ? 16 : 1.3,
+                    }}
+                  >
+                    {commit.commitHash.substr(0, 8)}
+                  </Text>
+                </Box>
+                <Box style={{display: 'flex', flex: 1}}>
+                  <Text type="BodySmall" style={{textAlign: 'left'}} lineClamp={2}>
+                    {commit.message}
+                  </Text>
+                </Box>
               </Box>
             </Box>
           ))}

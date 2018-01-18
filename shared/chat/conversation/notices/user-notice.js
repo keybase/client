@@ -44,8 +44,8 @@ const stylesAvatar = {
 const styleBox = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
-  marginLeft: globalMargins.xlarge,
-  marginRight: globalMargins.xlarge,
+  marginLeft: globalMargins.medium,
+  marginRight: globalMargins.medium,
   padding: globalMargins.small,
   paddingBottom: globalMargins.tiny,
   borderRadius: globalMargins.xtiny,
