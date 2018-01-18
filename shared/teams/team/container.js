@@ -48,13 +48,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
     throw new Error('There was a problem loading the team page, please report this error.')
   }
   const memberInfo = state.entities.getIn(['teams', 'teamNameToMembers', teamname], I.Set())
-
-  // We had to request every subteam of the top-level team, rather than just
-  // child subteams of the subteam we care about.  Here's where we fix that up.
-  const subteams = state.entities
-    .getIn(['teams', 'teamNameToSubteams', teamname], I.Set())
-    .filter(team => team.startsWith(teamname + '.'))
-    .sort()
+  const subteams = state.entities.getIn(['teams', 'teamNameToSubteams', teamname], I.Set()).sort()
 
   return {
     _memberInfo: memberInfo,

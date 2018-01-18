@@ -6,6 +6,7 @@ import (
 	"golang.org/x/net/context"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
 	"github.com/stretchr/testify/require"
 )
 
@@ -207,4 +208,70 @@ func TestTeamDuplicateUIDList(t *testing.T) {
 	require.NoError(t, err)
 
 	check(&list)
+}
+
+func TestTeamTree(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+	t.Logf("Signed up ann (%s)", ann.username)
+
+	team := ann.createTeam()
+	t.Logf("Team created (%s)", team)
+
+	TeamNameFromString := func(str string) keybase1.TeamName {
+		ret, err := keybase1.TeamNameFromString(str)
+		require.NoError(t, err)
+		return ret
+	}
+
+	createSubteam := func(parentName, subteamName string) string {
+		subteam, err := teams.CreateSubteam(context.Background(), ann.tc.G, subteamName, TeamNameFromString(parentName))
+		require.NoError(t, err)
+		subteamObj, err := teams.Load(context.Background(), ann.tc.G, keybase1.LoadTeamArg{ID: *subteam})
+		require.NoError(t, err)
+		return subteamObj.Name().String()
+	}
+
+	subTeam1 := createSubteam(team, "staff")
+
+	sub1SubTeam1 := createSubteam(subTeam1, "legal")
+	sub1SubTeam2 := createSubteam(subTeam1, "hr")
+
+	subTeam2 := createSubteam(team, "offtopic")
+
+	sub2SubTeam1 := createSubteam(subTeam2, "games")
+	sub2SubTeam2 := createSubteam(subTeam2, "crypto")
+	sub2SubTeam3 := createSubteam(subTeam2, "cryptocurrency")
+
+	checkTeamTree := func(teamName string, expectedTree ...string) {
+		set := make(map[string]bool)
+		for _, v := range expectedTree {
+			set[v] = false
+		}
+		set[teamName] = false
+
+		tree, err := teams.TeamTree(context.Background(), ann.tc.G, keybase1.TeamTreeArg{Name: TeamNameFromString(teamName)})
+		require.NoError(t, err)
+
+		for _, entry := range tree.Entries {
+			name := entry.Name.String()
+			alreadyFound, exists := set[name]
+			if !exists {
+				t.Fatalf("Found unexpected team %s in tree of %s", name, teamName)
+			} else if alreadyFound {
+				t.Fatalf("Duplicate team %s in tree of %s", name, teamName)
+			}
+			set[name] = true
+		}
+	}
+
+	checkTeamTree(team, subTeam1, subTeam2, sub1SubTeam1, sub1SubTeam2, sub2SubTeam1, sub2SubTeam2, sub2SubTeam3)
+	checkTeamTree(subTeam1, sub1SubTeam1, sub1SubTeam2)
+	checkTeamTree(subTeam2, sub2SubTeam1, sub2SubTeam2, sub2SubTeam3)
+
+	checkTeamTree(sub2SubTeam1)
+	checkTeamTree(sub2SubTeam2)
+	checkTeamTree(sub2SubTeam3)
 }
