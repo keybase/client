@@ -350,9 +350,10 @@
 			"revisionTime": "2016-06-28T16:50:19-07:00"
 		},
 		{
+			"checksumSHA1": "qOau8H3xN9/gTNYeFpzn6EUeYFU=",
 			"path": "github.com/keybase/go-updater/watchdog",
-			"revision": "a05bfa6382513c15afde21392f07617f4ad68de9",
-			"revisionTime": "2016-06-28T16:50:19-07:00"
+			"revision": "2acca6d00b278821df4a39569955d8b42c77b6cc",
+			"revisionTime": "2018-01-18T23:10:18Z"
 		},
 		{
 			"checksumSHA1": "2dhlXqY/z//xieGJNGjMjL4X6Jw=",
