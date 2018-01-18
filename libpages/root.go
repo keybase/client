@@ -11,6 +11,7 @@ import (
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/libfs"
+	"github.com/keybase/kbfs/libgit"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
 	"go.uber.org/zap"
@@ -46,19 +47,6 @@ func (t RootType) String() string {
 		return "git"
 	default:
 		return "unknown"
-	}
-}
-
-func tlfTypeToPath(t tlf.Type) string {
-	switch t {
-	case tlf.Private:
-		return string(libkbfs.PrivatePathType)
-	case tlf.Public:
-		return string(libkbfs.PublicPathType)
-	case tlf.SingleTeam:
-		return string(libkbfs.SingleTeamPathType)
-	default:
-		return "<unknown TLF type>"
 	}
 }
 
@@ -134,7 +122,7 @@ func (r *Root) MakeFS(
 			return nil, tlf.ID{}, nil, err
 		}
 		fs, err = libfs.NewFS(fsCtx, kbfsConfig, tlfHandle,
-			fmt.Sprintf(".kbfs_autogit/%s/%s/%s", tlfTypeToPath(r.TlfType),
+			fmt.Sprintf("%s/%s/%s", libgit.AutogitTLFListDir(r.TlfType),
 				r.TlfNameUnparsed, r.PathUnparsed), "",
 			keybase1.MDPriorityNormal)
 		if err != nil {

@@ -102,9 +102,11 @@ func newRepoNode(
 	return rn
 }
 
-func autogitDstDir(h *libkbfs.TlfHandle) string {
+// AutogitTLFListDir returns `.kbfs_autogit/<tlf_type>` where <tlf_type> is
+// "private", "public", or "team" depending on tlfType.
+func AutogitTLFListDir(tlfType tlf.Type) string {
 	var typeStr string
-	switch h.Type() {
+	switch tlfType {
 	case tlf.Public:
 		typeStr = public
 	case tlf.Private:
@@ -112,9 +114,11 @@ func autogitDstDir(h *libkbfs.TlfHandle) string {
 	case tlf.SingleTeam:
 		typeStr = team
 	}
+	return path.Join(autogitRoot, typeStr)
+}
 
-	return path.Join(
-		autogitRoot, typeStr, string(h.GetCanonicalName()))
+func autogitDstDir(h *libkbfs.TlfHandle) string {
+	return path.Join(AutogitTLFListDir(h.Type()), string(h.GetCanonicalName()))
 }
 
 func (rn *repoNode) dstDir() string {
