@@ -26,8 +26,13 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   onBack: () => dispatch(navigateUp()),
 })
 
+const mergeProps = (stateProps, dispatchProps) => ({
+  ...stateProps,
+  ...dispatchProps,
+})
+
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
   withStateHandlers(({name}) => ({name: name || ''}), {
     onNameChange: () => (name: string) => ({name: name.toLowerCase()}),
   }),
