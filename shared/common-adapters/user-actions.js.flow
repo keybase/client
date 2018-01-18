@@ -10,6 +10,7 @@ export type Props = {
   onFollow: () => void,
   onUnfollow: () => void,
   onAcceptProofs: () => void,
+  waiting: boolean,
 }
 
 export default class UserAction extends Component<Props> {}
