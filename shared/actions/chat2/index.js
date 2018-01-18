@@ -560,7 +560,9 @@ const clearInboxFilter = (action: Chat2Gen.SelectConversationPayload) =>
   Saga.put(Chat2Gen.createSetInboxFilter({filter: ''}))
 
 const exitSearch = (action: Chat2Gen.SelectConversationPayload) =>
-  action.payload.fromUser && action.payload.conversationIDKey && Saga.put(Chat2Gen.createExitSearch())
+  action.payload.fromUser &&
+  action.payload.conversationIDKey &&
+  Saga.put(Chat2Gen.createExitSearch({clear: false}))
 
 const desktopNotify = (action: Chat2Gen.DesktopNotificationPayload, state: TypedState) => {
   const {conversationIDKey, author, body} = action.payload
@@ -741,7 +743,8 @@ const attachmentSend = (action: Chat2Gen.AttachmentWithPreviewSendPayload, state
 }
 
 const startConversation = (action: Chat2Gen.StartConversationPayload, state: TypedState) => {
-  const {participants, tlf /*, forceImmediate */} = action.payload
+  /*, forceImmediate */
+  const {participants, tlf} = action.payload
   const you = state.config.username || ''
 
   let users
@@ -827,17 +830,18 @@ const selectTheNewestConversation = (action: any, state: TypedState) => {
   }
 }
 
-const onExitSearch = (_: any, state: TypedState) => {
-  // const userInputItemIds = SearchConstants.getUserInputItemIds(state, {searchKey: 'chatSearch'})
+const onExitSearch = (action: Chat2Gen.ExitSearchPayload, state: TypedState) => {
+  const {clear} = action.payload
 
   return Saga.sequentially([
     Saga.put(Chat2Gen.createSetSearching({searching: false})),
-    Saga.put(SearchGen.createClearSearchResults({searchKey: 'chatSearch'})),
-    Saga.put(SearchGen.createSetUserInputItems({searchKey: 'chatSearch', searchResults: []})),
-    // Saga.put(ChatGen.createRemoveTempPendingConversations()),
-    // userInputItemIds.length === 0 && !skipSelectPreviousConversation
-    // ? Saga.put(ChatGen.createSelectConversation({conversationIDKey: previousConversation}))
-    // : null,
+    ...(clear
+      ? [
+          Saga.put(SearchGen.createClearSearchResults({searchKey: 'chatSearch'})),
+          Saga.put(SearchGen.createSetUserInputItems({searchKey: 'chatSearch', searchResults: []})),
+          Saga.put(Chat2Gen.createSetPendingConversationUsers({users: []})),
+        ]
+      : []),
   ])
 }
 
@@ -847,7 +851,10 @@ const searchUpdated = (
 ) => {
   const me = state.config.username
   const isSearching = state.chat2.isSearching
-  const userInputItemIds = action.type === Chat2Gen.setSearching ? [] : action.payload.userInputItemIds
+  const userInputItemIds =
+    action.type === Chat2Gen.setSearching
+      ? SearchConstants.getUserInputItemIds(state, {searchKey: 'chatSearch'})
+      : action.payload.userInputItemIds
 
   if (!isSearching || !me) {
     return

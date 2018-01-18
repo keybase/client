@@ -9,7 +9,7 @@ export type _State = {
   beforeSearchSelectedConversation: ?Common.ConversationIDKey, // to reset after a search cancel
   editingMap: I.Map<Common.ConversationIDKey, Message.Ordinal>, // current message being edited
   inboxFilter: string,
-  isSearching: boolean,
+  isSearching: boolean, // we keep one pending row for building a chat.
   loadingMap: I.Map<string, number>, // reasons why we're loading
   messageMap: I.Map<Common.ConversationIDKey, I.Map<Message.Ordinal, Message.Message>>,
   messageOrdinals: I.Map<Common.ConversationIDKey, I.SortedSet<Message.Ordinal>>,

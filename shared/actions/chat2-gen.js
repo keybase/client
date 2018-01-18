@@ -71,7 +71,7 @@ export const createDesktopNotification = (
     body: string,
   }>
 ) => ({error: false, payload, type: desktopNotification})
-export const createExitSearch = () => ({error: false, payload: undefined, type: exitSearch})
+export const createExitSearch = (payload: $ReadOnly<{clear: boolean}>) => ({error: false, payload, type: exitSearch})
 export const createInboxRefresh = (
   payload: $ReadOnly<{
     reason: string,

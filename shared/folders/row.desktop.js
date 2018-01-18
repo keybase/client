@@ -136,7 +136,7 @@ class Row extends React.PureComponent<RowType & Folder> {
       onClick,
       onRekey,
       path,
-      sortName,
+      // sortName,
     } = this.props
     const onOpenClick = event => {
       event.preventDefault()

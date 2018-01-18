@@ -11,7 +11,7 @@ import {
 } from '../../../util/container'
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onExitSearch: () => dispatch(Chat2Gen.createExitSearch()),
+  onExitSearch: () => dispatch(Chat2Gen.createExitSearch({clear: true})),
 })
 
 export default compose(

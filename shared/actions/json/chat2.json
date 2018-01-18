@@ -153,6 +153,7 @@
       "username": "string"
     },
     "exitSearch": {
+      "clear": "boolean"
     },
     "setPendingConversationUsers": {
       "users": "Array<string>"
