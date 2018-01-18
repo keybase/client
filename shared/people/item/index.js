@@ -61,7 +61,15 @@ export default (props: Props) => (
     >
       {props.children}
     </Box>
-    <Box style={{...globalStyles.flexBoxRow, position: 'absolute', alignItems: 'center', right: 8, top: 12}}>
+    <Box
+      style={{
+        ...globalStyles.flexBoxRow,
+        position: 'absolute',
+        alignItems: 'center',
+        right: 8,
+        top: 12,
+      }}
+    >
       {!!props.when && (
         <Text type="BodySmall" style={{}}>
           {formatter.set(moment(props.when).toObject()).fromNow(true)}
@@ -74,6 +82,7 @@ export default (props: Props) => (
             borderRadius: 6,
             height: 8,
             marginLeft: globalMargins.xtiny,
+            marginTop: isMobile ? 3 : 1,
             width: 8,
           }}
         />
