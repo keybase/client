@@ -56,7 +56,10 @@ class Git extends React.Component<Props, State> {
     return (
       <Box style={_gitStyle}>
         <ClickableBox style={_headerStyle} onClick={this._toggleMenu}>
-          <Icon type="iconfont-new" style={{color: globalColors.blue, marginRight: globalMargins.tiny}} />
+          <Icon
+            type="iconfont-new"
+            style={{color: globalColors.blue, marginRight: globalMargins.tiny, fontSize: isMobile ? 20 : 16}}
+          />
           <Text type="BodyBigLink">New encrypted git repository...</Text>
         </ClickableBox>
         <ScrollView>
@@ -90,7 +93,7 @@ class Git extends React.Component<Props, State> {
 const _sectionHeaderStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-  height: 24,
+  height: isMobile ? 32 : 24,
   paddingLeft: globalMargins.tiny,
   marginTop: globalMargins.small,
   width: '100%',
