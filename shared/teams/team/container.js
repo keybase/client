@@ -36,7 +36,6 @@ type StateProps = {
   publicityTeam: boolean,
   sawSubteamsBanner: boolean,
   selectedTab: string,
-  initialSelectedTab: string,
   waitingForSavePublicity: boolean,
   you: ?string,
   yourRole: ?Types.TeamRoleType,
@@ -86,7 +85,6 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
     publicityTeam: state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname, 'team'], false),
     sawSubteamsBanner: state.entities.getIn(['teams', 'sawSubteamsBanner'], false),
     selectedTab: routeState.get('selectedTab') || 'members',
-    initialSelectedTab: routeProps.get('selectedTab'),
     subteams,
     waitingForSavePublicity: anyWaiting(state, `setPublicity:${teamname}`, `getDetails:${teamname}`),
     you: state.config.username,
@@ -293,11 +291,6 @@ export default compose(
       }),
   }),
   lifecycle({
-    componentWillMount: function() {
-      if (this.props.initialSelectedTab) {
-        this.props.setSelectedTab(this.props.initialSelectedTab)
-      }
-    },
     componentDidMount: function() {
       this.props._loadTeam(this.props.name)
     },
