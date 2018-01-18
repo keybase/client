@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Badge, Box, Text} from '../../common-adapters'
+import {Box, Text} from '../../common-adapters'
 import {globalColors, globalStyles, globalMargins} from '../../styles'
 import moment from 'moment'
 import {isMobile} from '../../constants/platform'
@@ -68,9 +68,14 @@ export default (props: Props) => (
         </Text>
       )}
       {props.badged && (
-        <Badge
-          badgeNumber={null}
-          badgeStyle={{marginLeft: globalMargins.tiny, height: 8, width: 8, minWidth: 8}}
+        <Box
+          style={{
+            backgroundColor: globalColors.orange,
+            borderRadius: 6,
+            height: 8,
+            marginLeft: globalMargins.xtiny,
+            width: 8,
+          }}
         />
       )}
     </Box>
