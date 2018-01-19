@@ -272,4 +272,8 @@ protocol remote {
   SetRetentionRes setConvRetention(ConversationID convID, RetentionPolicy policy);
   SetRetentionRes setTeamRetention(keybase1.TeamID teamID, RetentionPolicy policy);
 
+  record UpgradeKBFSToImpteamRes {
+    union { null, RateLimit } rateLimit;
+  }
+  UpgradeKBFSToImpteamRes upgradeKBFSToImpteam(ConversationID convID);
 }

@@ -394,6 +394,20 @@
           "name": "policy"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "KBFSImpteamUpgradeUpdate",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "InboxVers",
+          "name": "inboxVers"
+        }
+      ]
     }
   ],
   "messages": {},

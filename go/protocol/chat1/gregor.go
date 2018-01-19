@@ -366,6 +366,18 @@ func (o TeamRetentionUpdate) DeepCopy() TeamRetentionUpdate {
 	}
 }
 
+type KBFSImpteamUpgradeUpdate struct {
+	ConvID    ConversationID `codec:"convID" json:"convID"`
+	InboxVers InboxVers      `codec:"inboxVers" json:"inboxVers"`
+}
+
+func (o KBFSImpteamUpgradeUpdate) DeepCopy() KBFSImpteamUpgradeUpdate {
+	return KBFSImpteamUpgradeUpdate{
+		ConvID:    o.ConvID.DeepCopy(),
+		InboxVers: o.InboxVers.DeepCopy(),
+	}
+}
+
 type GregorInterface interface {
 }
 
