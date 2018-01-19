@@ -909,7 +909,7 @@ const bootstrapSuccess = () => Saga.put(Chat2Gen.createInboxRefresh({reason: 'bo
 
 const selectTheNewestConversation = (action: any, state: TypedState) => {
   // already something?
-  if (state.chat2.selectedConversation) {
+  if (state.chat2.selectedConversation || !state.chat2.pendingConversationUsers.isEmpty()) {
     return
   }
 
