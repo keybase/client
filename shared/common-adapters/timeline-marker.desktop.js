@@ -3,6 +3,7 @@ import * as React from 'react'
 import type {Props} from './timeline-marker'
 import Box from './box'
 import {globalColors, globalStyles} from '../styles'
+import {timeline_grey} from './timeline-marker.meta'
 
 const TimelineMarker = ({idx, max, type, style}: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', marginRight: 16, ...style}}>
@@ -15,7 +16,7 @@ const TimelineMarker = ({idx, max, type, style}: Props) => (
 const circleSize = 8
 
 const stylesCircleOpen = {
-  border: `solid 2px ${'#D3DCE2'}`,
+  border: `solid 2px ${timeline_grey}`,
   borderRadius: circleSize / 2,
   height: circleSize,
   width: circleSize,
@@ -23,12 +24,12 @@ const stylesCircleOpen = {
 
 const stylesCircleClosed = {
   ...stylesCircleOpen,
-  backgroundColor: '#D3DCE2',
+  backgroundColor: timeline_grey,
   border: `solid 2px ${globalColors.white}`,
 }
 
 const stylesLine = {
-  backgroundColor: '#D3DCE2',
+  backgroundColor: timeline_grey,
   width: 2,
 }
 
