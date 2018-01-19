@@ -22,7 +22,7 @@ func TestObsoletingInvites1(t *testing.T) {
 
 	require.Equal(t, 1, team.NumActiveInvites())
 
-	allInvites := team.GetAllInvites()
+	allInvites := team.GetActiveAndObsoleteInvites()
 	require.Equal(t, 2, len(allInvites))
 
 	hasInvite, err := team.HasActiveInvite(keybase1.TeamInviteName("579651b0d574971040b531b66efbc519%1"), "keybase")

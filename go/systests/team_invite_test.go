@@ -61,7 +61,7 @@ func TestTeamInviteRooter(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, exists)
 	require.Equal(t, 0, t0.NumActiveInvites())
-	require.Equal(t, 0, len(t0.GetAllInvites()))
+	require.Equal(t, 0, len(t0.GetActiveAndObsoleteInvites()))
 }
 
 func TestTeamInviteEmail(t *testing.T) {
@@ -490,7 +490,7 @@ func TestSweepObsoleteKeybaseInvites(t *testing.T) {
 	require.Equal(t, 0, teamObj.NumActiveInvites())
 
 	// ...but one in "all invites".
-	allInvites := teamObj.GetAllInvites()
+	allInvites := teamObj.GetActiveAndObsoleteInvites()
 	require.Equal(t, 1, len(allInvites))
 
 	var invite keybase1.TeamInvite

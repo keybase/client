@@ -765,7 +765,7 @@ func (t *Team) HasActiveInvite(name keybase1.TeamInviteName, typ string) (bool, 
 	return t.chain().HasActiveInvite(name, it)
 }
 
-func (t *Team) GetAllInvites() (ret map[keybase1.TeamInviteID]keybase1.TeamInvite) {
+func (t *Team) GetActiveAndObsoleteInvites() (ret map[keybase1.TeamInviteID]keybase1.TeamInvite) {
 	ret = make(map[keybase1.TeamInviteID]keybase1.TeamInvite)
 	for id, invite := range t.chain().inner.ActiveInvites {
 		ret[id] = invite
@@ -850,7 +850,7 @@ func (t *Team) inviteKeybaseMember(ctx context.Context, uv keybase1.UserVersion,
 	// no hard limit in team player to disallow multiple keybase invites
 	// for the same UID, but there is a soft serverside check when
 	// signature is posted.
-	for inviteID, existingInvite := range t.GetAllInvites() {
+	for inviteID, existingInvite := range t.GetActiveAndObsoleteInvites() {
 		// KeybaseUserVersion checks if invite is KEYBASE and errors
 		// if not, we can blindly call it for all invites, and continue
 		// to next one if we get an error.
