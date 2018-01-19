@@ -1,6 +1,6 @@
 // @flow
 import React, {PureComponent} from 'react'
-import * as Types from '../constants/types/fs'
+import {FolderVisibility} from '../constants/types/fs'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {isMobile} from '../constants/platform'
 import {Box, Button, ClickableBox, Icon, List, Text} from '../common-adapters'
@@ -32,7 +32,23 @@ const rootFolders = [
   'team',
 ]
 
-const FolderHeader = ({title}: Types.FolderHeaderProps) => (
+type FolderHeaderProps = {
+  title: string,
+}
+
+type FileRowProps = {
+  path: string,
+  icon: IconType,
+  showFileData: () => void,
+}
+
+type FolderProps = {
+  path: string,
+  visibility: FolderVisibility,
+  items: Array<string>,
+}
+
+const FolderHeader = ({title}: FolderHeaderProps) => (
   <Box>
     <Box style={{...stylesCommonRow, alignItems: 'center', borderBottomWidth: 0}}>
       <Text type="HeaderBig" style={{padding: globalMargins.xtiny}}>
@@ -43,7 +59,7 @@ const FolderHeader = ({title}: Types.FolderHeaderProps) => (
 )
 
 
-const FileRow = ({path, icon, showFileData}: Types.FileRowProps) => (
+const FileRow = ({path, icon, showFileData}: FileRowProps) => (
   <ClickableBox onClick={showFileData} style={{...stylesCommonRow}}>
     <Box key={path} style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
       <Icon type={icon} style={{marginRight: 16}} />
@@ -56,7 +72,7 @@ const FileRow = ({path, icon, showFileData}: Types.FileRowProps) => (
   </ClickableBox>
 )
 
-class Folder extends PureComponent<Types.FolderProps> {
+class Folder extends PureComponent<FolderProps> {
   _renderRow(index, item) {
     return (
       <FileRow path={item.path} icon={item.icon} showFileData={item.showFileData} />
