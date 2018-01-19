@@ -33,7 +33,9 @@ func LoadTeam(ctx context.Context, g *libkb.GlobalContext, tlfID chat1.TLFID,
 		}
 		return teams.Load(ctx, g, ltarg(teamID))
 	case chat1.ConversationMembersType_IMPTEAMUPGRADE:
-		res, err := g.API.Get(libkb.NewAPIArgWithNetContext(ctx, "team/id"))
+		arg := libkb.NewAPIArgWithNetContext(ctx, "team/id")
+		arg.Args.Add("tlf_id", libkb.S{Val: tlfID.String()})
+		res, err := g.API.Get()
 		if err != nil {
 			return team, err
 		}
