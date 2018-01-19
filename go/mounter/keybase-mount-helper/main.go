@@ -163,7 +163,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Cannot get %s user: %+v\n", kbUsername, err)
 		os.Exit(1)
 	}
-	khUid, err := strconv.Atoi(khUser.Uid)
+	khUID, err := strconv.Atoi(khUser.Uid)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Bad UID for %s user: %+v\n", kbUsername, err)
 		os.Exit(1)
@@ -172,7 +172,7 @@ func main() {
 	// Lock the thread (because SYS_SETUID only sets the UID of the
 	// current OS thread) and switch to the helper user.
 	runtime.LockOSThread()
-	_, _, errNo := syscall.Syscall(syscall.SYS_SETUID, uintptr(khUid), 0, 0)
+	_, _, errNo := syscall.Syscall(syscall.SYS_SETUID, uintptr(khUID), 0, 0)
 	if errNo != 0 {
 		fmt.Fprintf(os.Stderr, "Can't setuid: %+v\n", errNo)
 		os.Exit(1)
