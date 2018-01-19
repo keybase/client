@@ -329,6 +329,7 @@ class ProfileRender extends PureComponent<Props, State> {
                     onFollow={this.props.onFollow}
                     onUnfollow={this.props.onUnfollow}
                     onAcceptProofs={this.props.onAcceptProofs}
+                    waiting={this.props.waiting}
                   />
                 )}
             </Box>

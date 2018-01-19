@@ -194,7 +194,7 @@ function findKeybaseUninstallString(): Promise<string> {
         }
       })
     } catch (err) {
-      logger.info('findKeybaseUninstallString caught', err)
+      logger.error('findKeybaseUninstallString caught', err)
     }
   })
 }
@@ -207,7 +207,8 @@ function installCachedDokan(): Promise<*> {
     modifyCommand =>
       new Promise((resolve, reject) => {
         if (modifyCommand) {
-          logger.info('Invoking repair to add driver: ' + modifyCommand)
+          // use the action logger so it has a chance of making it into the upload
+          logger.action('Invoking repair to add driver: ' + modifyCommand)
           execFile(modifyCommand, [
             '/modify',
             'driver=1',
@@ -216,7 +217,7 @@ function installCachedDokan(): Promise<*> {
           resolve()
         } else {
           const err = new Error('Cannot find Keybase uninstall string')
-          logger.info(err)
+          logger.error('Cannot find Keybase uninstall string')
           reject(err)
         }
       })

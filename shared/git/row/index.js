@@ -70,174 +70,205 @@ class Row extends React.Component<Props, State> {
 
   render() {
     return (
-      <Box
-        style={{
-          ..._rowStyle,
-          ...(this.props.expanded
-            ? {
-                backgroundColor: globalColors.blue4,
-                paddingBottom: isMobile ? globalMargins.tiny : 0,
-              }
-            : {}),
-        }}
-      >
-        <ClickableBox
-          onClick={this.props.onToggleExpand}
-          style={this.props.expanded ? _rowClickStyleExpanded : _rowClickStyle}
-          hoverColor={isMobile ? undefined : globalColors.transparent}
-          underlayColor={globalColors.transparent}
+      <Box>
+        <Box
+          style={{
+            ...(this.props.expanded
+              ? {
+                  height: 6,
+                  backgroundColor: globalColors.blue5,
+                }
+              : {}),
+          }}
+        />
+        <Box
+          style={{
+            ..._rowStyle,
+            ...(this.props.expanded
+              ? {
+                  backgroundColor: globalColors.white,
+                  borderBottomWidth: 1,
+                  borderColor: globalColors.black_05,
+                  borderStyle: 'solid',
+                  borderTopWidth: 1,
+                  paddingBottom: globalMargins.tiny,
+                  paddingTop: globalMargins.xtiny,
+                }
+              : {}),
+          }}
         >
-          <Box style={_rowTopStyle}>
-            <Icon
-              type={this.props.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
-              style={_iconCaretStyle}
-            />
-            <Avatar
-              size={isMobile ? 40 : 24}
-              isTeam={!!this.props.teamname}
-              teamname={this.props.teamname}
-              username={this.props.teamname ? undefined : this.props.you}
-              style={{marginRight: globalMargins.tiny}}
-            />
-            <Text type="BodySemibold" style={{color: globalColors.darkBlue}}>
-              {this.props.teamname ? `${this.props.teamname}/${this.props.name}` : this.props.name}
-            </Text>
-            {this.props.isNew && <Meta title="New" style={_metaStyle} />}
-          </Box>
-        </ClickableBox>
-        {this.props.expanded && (
-          <Box style={_rowBottomStyle}>
-            <Box
-              style={{
-                ...globalStyles.flexBoxRow,
-                alignItems: 'center',
-                position: 'relative',
-              }}
-            >
-              <Text type="Body">Clone:</Text>
-              <Box style={_bubbleStyle}>
-                <Input
-                  small={true}
-                  readonly={true}
-                  value={this.props.url}
-                  onClick={this._inputOnClick}
-                  ref={this._setRef}
-                  style={_inputStyle}
-                  editable={false}
-                  inputStyle={_inputInputStyle}
-                  hideUnderline={true}
-                />
-                <ClickableBox style={_copyStyle} onClick={this._onCopy}>
-                  <Icon
-                    type="iconfont-clipboard"
-                    style={{
-                      color: globalColors.white,
-                      fontSize: isMobile ? 20 : 16,
-                      ...(isMobile ? {} : {hoverColor: globalColors.blue5}),
-                    }}
-                  />
-                </ClickableBox>
-              </Box>
-              {!isMobile &&
-                this.props.canDelete && (
-                  <Button type="Danger" small={true} label="Delete repo" onClick={this.props.onShowDelete} />
-                )}
-              <Box style={{alignSelf: 'flex-start', position: 'relative'}}>
-                <Copied showing={this.state.showingCopy} />
-              </Box>
-            </Box>
-            <Box
-              style={{
-                ...globalStyles.flexBoxRow,
-                alignItems: 'center',
-                alignSelf: 'flex-start',
-                flexWrap: 'wrap',
-                marginBottom: globalMargins.xtiny,
-                marginTop: globalMargins.tiny,
-              }}
-            >
-              <Text type="BodySmall">
-                {`Last push ${this.props.lastEditTime}${
-                  !!this.props.teamname && !!this.props.lastEditUser ? ' by ' : ''
-                }`}
+          <ClickableBox
+            onClick={this.props.onToggleExpand}
+            style={this.props.expanded ? _rowClickStyleExpanded : _rowClickStyle}
+            hoverColor={isMobile ? undefined : globalColors.transparent}
+            underlayColor={globalColors.transparent}
+          >
+            <Box style={_rowTopStyle}>
+              <Icon
+                type={this.props.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
+                style={_iconCaretStyle}
+              />
+              <Avatar
+                size={isMobile ? 40 : 24}
+                isTeam={!!this.props.teamname}
+                teamname={this.props.teamname}
+                username={this.props.teamname ? undefined : this.props.you}
+                style={{marginRight: globalMargins.tiny}}
+              />
+              <Text type="BodySemibold" style={{color: globalColors.darkBlue}}>
+                {this.props.teamname ? `${this.props.teamname}/${this.props.name}` : this.props.name}
               </Text>
-              {!!this.props.teamname &&
-                !!this.props.lastEditUser && (
-                  <Avatar
-                    username={this.props.lastEditUser}
-                    size={isMobile ? 16 : 12}
-                    style={{marginLeft: isMobile ? 0 : 4}}
+              {this.props.isNew && <Meta title="New" style={_metaStyle} />}
+            </Box>
+          </ClickableBox>
+          {this.props.expanded && (
+            <Box style={_rowBottomStyle}>
+              <Box
+                style={{
+                  ...globalStyles.flexBoxRow,
+                  alignItems: 'center',
+                  position: 'relative',
+                }}
+              >
+                <Text type="Body">Clone:</Text>
+                <Box style={_bubbleStyle}>
+                  <Input
+                    small={true}
+                    readonly={true}
+                    value={this.props.url}
+                    onClick={this._inputOnClick}
+                    ref={this._setRef}
+                    style={_inputStyle}
+                    editable={false}
+                    inputStyle={_inputInputStyle}
+                    hideUnderline={true}
                   />
-                )}
-              {!!this.props.teamname &&
-                !!this.props.lastEditUser && (
-                  <Box style={{marginLeft: 2}}>
-                    <Usernames
-                      type="BodySmallSemibold"
-                      underline={true}
-                      colorFollowing={true}
-                      users={[
-                        {following: this.props.lastEditUserFollowing, username: this.props.lastEditUser},
-                      ]}
-                      onUsernameClicked={() => this.props.openUserTracker(this.props.lastEditUser)}
+                  <ClickableBox style={_copyStyle} onClick={this._onCopy}>
+                    <Icon
+                      type="iconfont-clipboard"
+                      style={{
+                        color: globalColors.white,
+                        fontSize: isMobile ? 20 : 16,
+                        ...(isMobile ? {} : {hoverColor: globalColors.blue5}),
+                      }}
                     />
-                  </Box>
-                )}
-              {isMobile && <Text type="BodySmall">. </Text>}
-              <Text type="BodySmall">
+                  </ClickableBox>
+                </Box>
+                {!isMobile &&
+                  this.props.canDelete && (
+                    <Button
+                      type="Danger"
+                      small={true}
+                      label="Delete repo"
+                      onClick={this.props.onShowDelete}
+                    />
+                  )}
+                <Box style={{alignSelf: 'flex-start', position: 'relative'}}>
+                  <Copied showing={this.state.showingCopy} />
+                </Box>
+              </Box>
+              <Box
+                style={{
+                  ...globalStyles.flexBoxRow,
+                  alignItems: 'center',
+                  alignSelf: 'flex-start',
+                  flexWrap: 'wrap',
+                  marginTop: globalMargins.tiny,
+                }}
+              >
                 <Text type="BodySmall">
-                  {isMobile ? 'Signed and encrypted using device' : ', signed and encrypted using device'}
+                  {`Last push ${this.props.lastEditTime}${
+                    !!this.props.teamname && !!this.props.lastEditUser ? ' by ' : ''
+                  }`}
                 </Text>
-                <Text type="BodySmall" style={_deviceStyle} onClick={this.props.onClickDevice}>
-                  {' '}
-                  {this.props.devicename}
+                {!!this.props.teamname &&
+                  !!this.props.lastEditUser && (
+                    <Avatar
+                      username={this.props.lastEditUser}
+                      size={isMobile ? 16 : 12}
+                      style={{marginLeft: isMobile ? 0 : 4}}
+                    />
+                  )}
+                {!!this.props.teamname &&
+                  !!this.props.lastEditUser && (
+                    <Box style={{marginLeft: 2}}>
+                      <Usernames
+                        type="BodySmallSemibold"
+                        underline={true}
+                        colorFollowing={true}
+                        users={[
+                          {following: this.props.lastEditUserFollowing, username: this.props.lastEditUser},
+                        ]}
+                        onUsernameClicked={() => this.props.openUserTracker(this.props.lastEditUser)}
+                      />
+                    </Box>
+                  )}
+                {isMobile && <Text type="BodySmall">. </Text>}
+                <Text type="BodySmall">
+                  <Text type="BodySmall">
+                    {isMobile ? 'Signed and encrypted using device' : ', signed and encrypted using device'}
+                  </Text>
+                  <Text type="BodySmall" style={_deviceStyle} onClick={this.props.onClickDevice}>
+                    {' '}
+                    {this.props.devicename}
+                  </Text>
+                  <Text type="BodySmall">.</Text>
                 </Text>
-                <Text type="BodySmall">.</Text>
-              </Text>
-            </Box>
-            {!!this.props.teamname && (
-              <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginTop: globalMargins.xtiny}}>
-                {this.props.canEdit && (
-                  <Checkbox
-                    checked={!this.props.chatDisabled}
-                    onCheck={this.props.onToggleChatEnabled}
-                    label=""
-                    labelComponent={
-                      <Text type="BodySmall">
-                        Announce pushes in{' '}
-                        <Text
-                          type={this.props.chatDisabled ? 'BodySmall' : 'BodySmallPrimaryLink'}
-                          onClick={this.props.onChannelClick}
-                        >
-                          {this._channelNameToString(this.props.channelName)}
+              </Box>
+              {!!this.props.teamname && (
+                <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+                  {this.props.canEdit && (
+                    <Checkbox
+                      checked={!this.props.chatDisabled}
+                      onCheck={this.props.onToggleChatEnabled}
+                      label=""
+                      labelComponent={
+                        <Text type="BodySmall">
+                          Announce pushes in{' '}
+                          <Text
+                            type={this.props.chatDisabled ? 'BodySmall' : 'BodySmallPrimaryLink'}
+                            onClick={this.props.onChannelClick}
+                          >
+                            {this._channelNameToString(this.props.channelName)}
+                          </Text>
                         </Text>
-                      </Text>
-                    }
+                      }
+                    />
+                  )}
+                  {!this.props.canEdit && (
+                    <Text type="BodySmall">
+                      {this.props.chatDisabled
+                        ? 'Pushes are not announced'
+                        : `Pushes are announced in ${this.props.teamname}${this._channelNameToString(
+                            this.props.channelName
+                          )}`}
+                    </Text>
+                  )}
+                </Box>
+              )}
+              {isMobile &&
+                this.props.canDelete && (
+                  <Button
+                    type="Danger"
+                    small={false}
+                    label="Delete repo"
+                    onClick={this.props.onShowDelete}
+                    style={{marginTop: globalMargins.tiny, alignSelf: 'flex-start'}}
                   />
                 )}
-                {!this.props.canEdit && (
-                  <Text type="BodySmall">
-                    {this.props.chatDisabled
-                      ? 'Pushes are not announced'
-                      : `Pushes are announced in ${this.props.teamname}${this._channelNameToString(
-                          this.props.channelName
-                        )}`}
-                  </Text>
-                )}
-              </Box>
-            )}
-            {isMobile &&
-              this.props.canDelete && (
-                <Button
-                  type="Danger"
-                  small={false}
-                  label="Delete repo"
-                  onClick={this.props.onShowDelete}
-                  style={{marginTop: globalMargins.tiny, alignSelf: 'flex-start'}}
-                />
-              )}
-          </Box>
-        )}
+            </Box>
+          )}
+        </Box>
+        <Box
+          style={{
+            ...(this.props.expanded
+              ? {
+                  height: 6,
+                  backgroundColor: globalColors.blue5,
+                }
+              : {}),
+          }}
+        />
       </Box>
     )
   }
@@ -324,11 +355,11 @@ const _rowBottomStyle = {
 
 const _iconCaretStyle = {
   ...(isMobile
-    ? {}
+    ? {fontSize: 12}
     : {
         display: 'inline-block',
+        fontSize: 8,
       }),
-  fontSize: 12,
   marginBottom: 2,
   marginRight: globalMargins.tiny,
 }
@@ -349,12 +380,7 @@ const _rowTopStyle = {
 const _rowStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'flex-start',
-  borderBottomWidth: 1,
-  borderColor: globalColors.transparent,
-  borderStyle: 'solid',
-  borderTopWidth: 1,
   flexShrink: 0,
-  marginBottom: 1,
   minHeight: globalMargins.large,
   paddingLeft: 0,
   width: '100%',

@@ -12,19 +12,20 @@ function UserActions({
   onFollow,
   onUnfollow,
   onAcceptProofs,
+  waiting,
 }: Props) {
   if (currentlyFollowing) {
     if (trackerState === proofNormal) {
       return (
         <ButtonBar style={style}>
-          <FollowButton following={true} onUnfollow={onUnfollow} />
+          <FollowButton following={true} onUnfollow={onUnfollow} waiting={waiting} />
           <Button type="Primary" label="Start a Chat" onClick={onChat} style={{marginRight: 0}} />
         </ButtonBar>
       )
     } else {
       return (
         <ButtonBar style={style}>
-          <Button type="Secondary" label="Unfollow" onClick={onUnfollow} />
+          <Button type="Secondary" label="Unfollow" onClick={onUnfollow} waiting={waiting} />
           <Button type="PrimaryGreen" label="Accept" onClick={onAcceptProofs} style={{marginRight: 0}} />
         </ButtonBar>
       )
@@ -32,7 +33,7 @@ function UserActions({
   } else {
     return (
       <ButtonBar style={style}>
-        <FollowButton following={false} onFollow={onFollow} />
+        <FollowButton following={false} onFollow={onFollow} waiting={waiting} />
         <Button type="Primary" label="Start a Chat" onClick={onChat} style={{marginRight: 0}} />
       </ButtonBar>
     )

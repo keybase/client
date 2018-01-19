@@ -31581,19 +31581,6 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
   font-weight: 400;
 }
 
-.glamor-18,
-[data-glamor-18] {
-  font-size: 9px;
-  line-height: 8px;
-  color: #ffffff;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 700;
-  flex: 0;
-  -webkit-flex: 0;
-}
-
 <div
   style={
     Object {
@@ -31610,6 +31597,7 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
         Object {
           "backgroundColor": "#ebf5fc",
           "borderBottomColor": "#ffffff",
+          "borderBottomStyle": "solid",
           "borderBottomWidth": 1,
           "display": "flex",
           "flexDirection": "row",
@@ -31865,28 +31853,15 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
         <div
           style={
             Object {
-              "alignItems": "center",
               "backgroundColor": "#ff6f21",
-              "borderRadius": 10,
-              "display": "flex",
-              "flexDirection": "row",
+              "borderRadius": 6,
               "height": 8,
-              "justifyContent": "center",
-              "marginLeft": 8,
-              "marginRight": 8,
-              "minWidth": 8,
-              "paddingLeft": 4,
-              "paddingRight": 5,
+              "marginLeft": 4,
+              "marginTop": 1,
               "width": 8,
             }
           }
-        >
-          <span
-            className="glamor-18"
-            onClick={undefined}
-            title={undefined}
-          />
-        </div>
+        />
       </div>
     </div>
   </div>
@@ -32050,6 +32025,7 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
         Object {
           "backgroundColor": "#ffffff",
           "borderBottomColor": "rgba(0, 0, 0, 0.05)",
+          "borderBottomStyle": "solid",
           "borderBottomWidth": 1,
           "display": "flex",
           "flexDirection": "row",
@@ -32443,19 +32419,6 @@ exports[`Storyshots People/Follow notification Someone followed you 1`] = `
   font-weight: 400;
 }
 
-.glamor-7,
-[data-glamor-7] {
-  font-size: 9px;
-  line-height: 8px;
-  color: #ffffff;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 700;
-  flex: 0;
-  -webkit-flex: 0;
-}
-
 <div
   style={
     Object {
@@ -32472,6 +32435,7 @@ exports[`Storyshots People/Follow notification Someone followed you 1`] = `
         Object {
           "backgroundColor": "#ebf5fc",
           "borderBottomColor": "#ffffff",
+          "borderBottomStyle": "solid",
           "borderBottomWidth": 1,
           "display": "flex",
           "flexDirection": "row",
@@ -32575,28 +32539,15 @@ exports[`Storyshots People/Follow notification Someone followed you 1`] = `
         <div
           style={
             Object {
-              "alignItems": "center",
               "backgroundColor": "#ff6f21",
-              "borderRadius": 10,
-              "display": "flex",
-              "flexDirection": "row",
+              "borderRadius": 6,
               "height": 8,
-              "justifyContent": "center",
-              "marginLeft": 8,
-              "marginRight": 8,
-              "minWidth": 8,
-              "paddingLeft": 4,
-              "paddingRight": 5,
+              "marginLeft": 4,
+              "marginTop": 1,
               "width": 8,
             }
           }
-        >
-          <span
-            className="glamor-7"
-            onClick={undefined}
-            title={undefined}
-          />
-        </div>
+        />
       </div>
     </div>
   </div>
@@ -32711,6 +32662,7 @@ exports[`Storyshots People/Follow notification Someone you follow followed you 1
         Object {
           "backgroundColor": "#ffffff",
           "borderBottomColor": "rgba(0, 0, 0, 0.05)",
+          "borderBottomStyle": "solid",
           "borderBottomWidth": 1,
           "display": "flex",
           "flexDirection": "row",
@@ -32856,19 +32808,6 @@ exports[`Storyshots People/Todos Chat 1`] = `
   font-weight: 400;
 }
 
-.glamor-3,
-[data-glamor-3] {
-  font-size: 9px;
-  line-height: 8px;
-  color: #ffffff;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 700;
-  flex: 0;
-  -webkit-flex: 0;
-}
-
 <div
   style={
     Object {
@@ -32885,6 +32824,7 @@ exports[`Storyshots People/Todos Chat 1`] = `
         Object {
           "backgroundColor": "#ebf5fc",
           "borderBottomColor": "#ffffff",
+          "borderBottomStyle": "solid",
           "borderBottomWidth": 1,
           "display": "flex",
           "flexDirection": "row",
@@ -33019,28 +32959,15 @@ exports[`Storyshots People/Todos Chat 1`] = `
         <div
           style={
             Object {
-              "alignItems": "center",
               "backgroundColor": "#ff6f21",
-              "borderRadius": 10,
-              "display": "flex",
-              "flexDirection": "row",
+              "borderRadius": 6,
               "height": 8,
-              "justifyContent": "center",
-              "marginLeft": 8,
-              "marginRight": 8,
-              "minWidth": 8,
-              "paddingLeft": 4,
-              "paddingRight": 5,
+              "marginLeft": 4,
+              "marginTop": 1,
               "width": 8,
             }
           }
-        >
-          <span
-            className="glamor-3"
-            onClick={undefined}
-            title={undefined}
-          />
-        </div>
+        />
       </div>
     </div>
   </div>
@@ -33074,19 +33001,6 @@ exports[`Storyshots People/Todos Fill out bio 1`] = `
   white-space: pre;
 }
 
-.glamor-2,
-[data-glamor-2] {
-  font-size: 9px;
-  line-height: 8px;
-  color: #ffffff;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 700;
-  flex: 0;
-  -webkit-flex: 0;
-}
-
 <div
   style={
     Object {
@@ -33103,6 +33017,7 @@ exports[`Storyshots People/Todos Fill out bio 1`] = `
         Object {
           "backgroundColor": "#ebf5fc",
           "borderBottomColor": "#ffffff",
+          "borderBottomStyle": "solid",
           "borderBottomWidth": 1,
           "display": "flex",
           "flexDirection": "row",
@@ -33230,28 +33145,15 @@ exports[`Storyshots People/Todos Fill out bio 1`] = `
         <div
           style={
             Object {
-              "alignItems": "center",
               "backgroundColor": "#ff6f21",
-              "borderRadius": 10,
-              "display": "flex",
-              "flexDirection": "row",
+              "borderRadius": 6,
               "height": 8,
-              "justifyContent": "center",
-              "marginLeft": 8,
-              "marginRight": 8,
-              "minWidth": 8,
-              "paddingLeft": 4,
-              "paddingRight": 5,
+              "marginLeft": 4,
+              "marginTop": 1,
               "width": 8,
             }
           }
-        >
-          <span
-            className="glamor-2"
-            onClick={undefined}
-            title={undefined}
-          />
-        </div>
+        />
       </div>
     </div>
   </div>
@@ -33297,19 +33199,6 @@ exports[`Storyshots People/Todos Follow someone 1`] = `
   font-weight: 400;
 }
 
-.glamor-3,
-[data-glamor-3] {
-  font-size: 9px;
-  line-height: 8px;
-  color: #ffffff;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 700;
-  flex: 0;
-  -webkit-flex: 0;
-}
-
 <div
   style={
     Object {
@@ -33326,6 +33215,7 @@ exports[`Storyshots People/Todos Follow someone 1`] = `
         Object {
           "backgroundColor": "#ebf5fc",
           "borderBottomColor": "#ffffff",
+          "borderBottomStyle": "solid",
           "borderBottomWidth": 1,
           "display": "flex",
           "flexDirection": "row",
@@ -33460,28 +33350,15 @@ exports[`Storyshots People/Todos Follow someone 1`] = `
         <div
           style={
             Object {
-              "alignItems": "center",
               "backgroundColor": "#ff6f21",
-              "borderRadius": 10,
-              "display": "flex",
-              "flexDirection": "row",
+              "borderRadius": 6,
               "height": 8,
-              "justifyContent": "center",
-              "marginLeft": 8,
-              "marginRight": 8,
-              "minWidth": 8,
-              "paddingLeft": 4,
-              "paddingRight": 5,
+              "marginLeft": 4,
+              "marginTop": 1,
               "width": 8,
             }
           }
-        >
-          <span
-            className="glamor-3"
-            onClick={undefined}
-            title={undefined}
-          />
-        </div>
+        />
       </div>
     </div>
   </div>
@@ -33527,19 +33404,6 @@ exports[`Storyshots People/Todos Install on phone 1`] = `
   font-weight: 400;
 }
 
-.glamor-3,
-[data-glamor-3] {
-  font-size: 9px;
-  line-height: 8px;
-  color: #ffffff;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 700;
-  flex: 0;
-  -webkit-flex: 0;
-}
-
 <div
   style={
     Object {
@@ -33556,6 +33420,7 @@ exports[`Storyshots People/Todos Install on phone 1`] = `
         Object {
           "backgroundColor": "#ebf5fc",
           "borderBottomColor": "#ffffff",
+          "borderBottomStyle": "solid",
           "borderBottomWidth": 1,
           "display": "flex",
           "flexDirection": "row",
@@ -33690,28 +33555,15 @@ exports[`Storyshots People/Todos Install on phone 1`] = `
         <div
           style={
             Object {
-              "alignItems": "center",
               "backgroundColor": "#ff6f21",
-              "borderRadius": 10,
-              "display": "flex",
-              "flexDirection": "row",
+              "borderRadius": 6,
               "height": 8,
-              "justifyContent": "center",
-              "marginLeft": 8,
-              "marginRight": 8,
-              "minWidth": 8,
-              "paddingLeft": 4,
-              "paddingRight": 5,
+              "marginLeft": 4,
+              "marginTop": 1,
               "width": 8,
             }
           }
-        >
-          <span
-            className="glamor-3"
-            onClick={undefined}
-            title={undefined}
-          />
-        </div>
+        />
       </div>
     </div>
   </div>
@@ -33757,19 +33609,6 @@ exports[`Storyshots People/Todos Make a folder 1`] = `
   font-weight: 400;
 }
 
-.glamor-3,
-[data-glamor-3] {
-  font-size: 9px;
-  line-height: 8px;
-  color: #ffffff;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 700;
-  flex: 0;
-  -webkit-flex: 0;
-}
-
 <div
   style={
     Object {
@@ -33786,6 +33625,7 @@ exports[`Storyshots People/Todos Make a folder 1`] = `
         Object {
           "backgroundColor": "#ebf5fc",
           "borderBottomColor": "#ffffff",
+          "borderBottomStyle": "solid",
           "borderBottomWidth": 1,
           "display": "flex",
           "flexDirection": "row",
@@ -33920,28 +33760,15 @@ exports[`Storyshots People/Todos Make a folder 1`] = `
         <div
           style={
             Object {
-              "alignItems": "center",
               "backgroundColor": "#ff6f21",
-              "borderRadius": 10,
-              "display": "flex",
-              "flexDirection": "row",
+              "borderRadius": 6,
               "height": 8,
-              "justifyContent": "center",
-              "marginLeft": 8,
-              "marginRight": 8,
-              "minWidth": 8,
-              "paddingLeft": 4,
-              "paddingRight": 5,
+              "marginLeft": 4,
+              "marginTop": 1,
               "width": 8,
             }
           }
-        >
-          <span
-            className="glamor-3"
-            onClick={undefined}
-            title={undefined}
-          />
-        </div>
+        />
       </div>
     </div>
   </div>
@@ -33987,19 +33814,6 @@ exports[`Storyshots People/Todos Make a git 1`] = `
   font-weight: 400;
 }
 
-.glamor-3,
-[data-glamor-3] {
-  font-size: 9px;
-  line-height: 8px;
-  color: #ffffff;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 700;
-  flex: 0;
-  -webkit-flex: 0;
-}
-
 <div
   style={
     Object {
@@ -34016,6 +33830,7 @@ exports[`Storyshots People/Todos Make a git 1`] = `
         Object {
           "backgroundColor": "#ebf5fc",
           "borderBottomColor": "#ffffff",
+          "borderBottomStyle": "solid",
           "borderBottomWidth": 1,
           "display": "flex",
           "flexDirection": "row",
@@ -34150,28 +33965,15 @@ exports[`Storyshots People/Todos Make a git 1`] = `
         <div
           style={
             Object {
-              "alignItems": "center",
               "backgroundColor": "#ff6f21",
-              "borderRadius": 10,
-              "display": "flex",
-              "flexDirection": "row",
+              "borderRadius": 6,
               "height": 8,
-              "justifyContent": "center",
-              "marginLeft": 8,
-              "marginRight": 8,
-              "minWidth": 8,
-              "paddingLeft": 4,
-              "paddingRight": 5,
+              "marginLeft": 4,
+              "marginTop": 1,
               "width": 8,
             }
           }
-        >
-          <span
-            className="glamor-3"
-            onClick={undefined}
-            title={undefined}
-          />
-        </div>
+        />
       </div>
     </div>
   </div>
@@ -34205,19 +34007,6 @@ exports[`Storyshots People/Todos Make a paper key 1`] = `
   white-space: pre;
 }
 
-.glamor-2,
-[data-glamor-2] {
-  font-size: 9px;
-  line-height: 8px;
-  color: #ffffff;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 700;
-  flex: 0;
-  -webkit-flex: 0;
-}
-
 <div
   style={
     Object {
@@ -34234,6 +34023,7 @@ exports[`Storyshots People/Todos Make a paper key 1`] = `
         Object {
           "backgroundColor": "#ebf5fc",
           "borderBottomColor": "#ffffff",
+          "borderBottomStyle": "solid",
           "borderBottomWidth": 1,
           "display": "flex",
           "flexDirection": "row",
@@ -34361,28 +34151,15 @@ exports[`Storyshots People/Todos Make a paper key 1`] = `
         <div
           style={
             Object {
-              "alignItems": "center",
               "backgroundColor": "#ff6f21",
-              "borderRadius": 10,
-              "display": "flex",
-              "flexDirection": "row",
+              "borderRadius": 6,
               "height": 8,
-              "justifyContent": "center",
-              "marginLeft": 8,
-              "marginRight": 8,
-              "minWidth": 8,
-              "paddingLeft": 4,
-              "paddingRight": 5,
+              "marginLeft": 4,
+              "marginTop": 1,
               "width": 8,
             }
           }
-        >
-          <span
-            className="glamor-2"
-            onClick={undefined}
-            title={undefined}
-          />
-        </div>
+        />
       </div>
     </div>
   </div>
@@ -34428,19 +34205,6 @@ exports[`Storyshots People/Todos Make a team 1`] = `
   font-weight: 400;
 }
 
-.glamor-3,
-[data-glamor-3] {
-  font-size: 9px;
-  line-height: 8px;
-  color: #ffffff;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 700;
-  flex: 0;
-  -webkit-flex: 0;
-}
-
 <div
   style={
     Object {
@@ -34457,6 +34221,7 @@ exports[`Storyshots People/Todos Make a team 1`] = `
         Object {
           "backgroundColor": "#ebf5fc",
           "borderBottomColor": "#ffffff",
+          "borderBottomStyle": "solid",
           "borderBottomWidth": 1,
           "display": "flex",
           "flexDirection": "row",
@@ -34591,28 +34356,15 @@ exports[`Storyshots People/Todos Make a team 1`] = `
         <div
           style={
             Object {
-              "alignItems": "center",
               "backgroundColor": "#ff6f21",
-              "borderRadius": 10,
-              "display": "flex",
-              "flexDirection": "row",
+              "borderRadius": 6,
               "height": 8,
-              "justifyContent": "center",
-              "marginLeft": 8,
-              "marginRight": 8,
-              "minWidth": 8,
-              "paddingLeft": 4,
-              "paddingRight": 5,
+              "marginLeft": 4,
+              "marginTop": 1,
               "width": 8,
             }
           }
-        >
-          <span
-            className="glamor-3"
-            onClick={undefined}
-            title={undefined}
-          />
-        </div>
+        />
       </div>
     </div>
   </div>
@@ -34658,19 +34410,6 @@ exports[`Storyshots People/Todos Prove something 1`] = `
   font-weight: 400;
 }
 
-.glamor-3,
-[data-glamor-3] {
-  font-size: 9px;
-  line-height: 8px;
-  color: #ffffff;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 700;
-  flex: 0;
-  -webkit-flex: 0;
-}
-
 <div
   style={
     Object {
@@ -34687,6 +34426,7 @@ exports[`Storyshots People/Todos Prove something 1`] = `
         Object {
           "backgroundColor": "#ebf5fc",
           "borderBottomColor": "#ffffff",
+          "borderBottomStyle": "solid",
           "borderBottomWidth": 1,
           "display": "flex",
           "flexDirection": "row",
@@ -34821,28 +34561,15 @@ exports[`Storyshots People/Todos Prove something 1`] = `
         <div
           style={
             Object {
-              "alignItems": "center",
               "backgroundColor": "#ff6f21",
-              "borderRadius": 10,
-              "display": "flex",
-              "flexDirection": "row",
+              "borderRadius": 6,
               "height": 8,
-              "justifyContent": "center",
-              "marginLeft": 8,
-              "marginRight": 8,
-              "minWidth": 8,
-              "paddingLeft": 4,
-              "paddingRight": 5,
+              "marginLeft": 4,
+              "marginTop": 1,
               "width": 8,
             }
           }
-        >
-          <span
-            className="glamor-3"
-            onClick={undefined}
-            title={undefined}
-          />
-        </div>
+        />
       </div>
     </div>
   </div>
@@ -34888,19 +34615,6 @@ exports[`Storyshots People/Todos Set publicity 1`] = `
   font-weight: 400;
 }
 
-.glamor-3,
-[data-glamor-3] {
-  font-size: 9px;
-  line-height: 8px;
-  color: #ffffff;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 700;
-  flex: 0;
-  -webkit-flex: 0;
-}
-
 <div
   style={
     Object {
@@ -34917,6 +34631,7 @@ exports[`Storyshots People/Todos Set publicity 1`] = `
         Object {
           "backgroundColor": "#ebf5fc",
           "borderBottomColor": "#ffffff",
+          "borderBottomStyle": "solid",
           "borderBottomWidth": 1,
           "display": "flex",
           "flexDirection": "row",
@@ -35051,28 +34766,15 @@ exports[`Storyshots People/Todos Set publicity 1`] = `
         <div
           style={
             Object {
-              "alignItems": "center",
               "backgroundColor": "#ff6f21",
-              "borderRadius": 10,
-              "display": "flex",
-              "flexDirection": "row",
+              "borderRadius": 6,
               "height": 8,
-              "justifyContent": "center",
-              "marginLeft": 8,
-              "marginRight": 8,
-              "minWidth": 8,
-              "paddingLeft": 4,
-              "paddingRight": 5,
+              "marginLeft": 4,
+              "marginTop": 1,
               "width": 8,
             }
           }
-        >
-          <span
-            className="glamor-3"
-            onClick={undefined}
-            title={undefined}
-          />
-        </div>
+        />
       </div>
     </div>
   </div>

@@ -35,8 +35,12 @@ func chatSend(ctx context.Context, g *libkb.GlobalContext, c ChatSendArg) error 
 		return err
 	}
 
+	createIfNotExists := true
+	if c.clearHeadline || c.deleteHistory != nil {
+		createIfNotExists = false
+	}
 	conversation, userChosen, err := resolver.Resolve(ctx, c.resolvingRequest, chatConversationResolvingBehavior{
-		CreateIfNotExists: true,
+		CreateIfNotExists: createIfNotExists,
 		MustNotExist:      c.mustNotExist,
 		Interactive:       c.hasTTY,
 		IdentifyBehavior:  keybase1.TLFIdentifyBehavior_CHAT_CLI,

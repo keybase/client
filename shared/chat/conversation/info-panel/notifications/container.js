@@ -95,7 +95,7 @@ export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentDidMount: function() {
-      this.props._resetNotificationSaveState()
+      this.props._resetNotificationSaveState && this.props._resetNotificationSaveState()
     },
   }),
   // $FlowIssue doesn't like dynamic props like we do above
