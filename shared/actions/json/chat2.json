@@ -157,6 +157,13 @@
     },
     "setPendingConversationUsers": {
       "users": "Array<string>"
+    },
+    "sendToPendingConversation": {
+      "users": "Array<string>",
+      "sendingAction": "More.ReturnType<typeof createAttachmentSend> | More.ReturnType<typeof createMessageSend>"
+    },
+    // We've made a new conversation successfully and want to cleanup the pending info now
+    "clearPendingConversation": {
     }
   }
 }

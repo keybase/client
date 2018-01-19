@@ -153,8 +153,6 @@ const messageMapReducer = (messageMap, action) => {
 const messageOrdinalsReducer = (messageOrdinals, action) => {
   // Note: on a delete we leave the ordinals in the list
   switch (action.type) {
-    case Chat2Gen.clearOrdinals:
-      return messageOrdinals.set(action.payload.conversationIDKey, I.SortedSet())
     case Chat2Gen.inboxRefresh:
       return action.payload.clearAllData ? messageOrdinals.clear() : messageOrdinals
     default:
@@ -347,9 +345,34 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         s.set('pendingOutboxToOrdinal', pendingOutboxToOrdinal)
       })
     }
+    case Chat2Gen.clearOrdinals: {
+      return state.withMutations(s => {
+        s.deleteIn(['messageOrdinals', action.payload.conversationIDKey])
+        s.deleteIn(['pendingOutboxToOrdinal', action.payload.conversationIDKey])
+        s.deleteIn(['messageMap', action.payload.conversationIDKey])
+        // s.update('messageOrdinals', messageOrdinals =>
+        // messageOrdinals.set(action.payload.conversationIDKey, I.SortedSet())
+        // )
+        // s.update('pendingOutboxToOrdinal', pendingOutboxToOrdinal =>
+        // pendingOutboxToOrdinal.set(action.payload.conversationIDKey, I.Map())
+        // )
+      })
+    }
+    case Chat2Gen.clearPendingConversation: {
+      return state.withMutations(s => {
+        const conversationIDKey = Types.stringToConversationIDKey('')
+        s.deleteIn(['messageOrdinals', conversationIDKey])
+        s.deleteIn(['pendingOutboxToOrdinal', conversationIDKey])
+        s.deleteIn(['messageMap', conversationIDKey])
+        // s.update('messageOrdinals', messageOrdinals => messageOrdinals.set(conversationIDKey, I.SortedSet()))
+        // s.update('pendingOutboxToOrdinal', pendingOutboxToOrdinal =>
+        // pendingOutboxToOrdinal.set(conversationIDKey, I.Map())
+        // )
+        // s.update('messageMap', messageMap => messageMap.set(conversationIDKey, I.Map()))
+      })
+    }
 
     // metaMap/messageMap/messageOrdinalsList only actions
-    case Chat2Gen.clearOrdinals:
     case Chat2Gen.inboxRefresh:
     case Chat2Gen.messageDelete:
     case Chat2Gen.messageEdit:
@@ -381,6 +404,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.setupChatHandlers:
     case Chat2Gen.startConversation:
     case Chat2Gen.exitSearch:
+    case Chat2Gen.sendToPendingConversation:
       return state
     default:
       // eslint-disable-next-line no-unused-expressions

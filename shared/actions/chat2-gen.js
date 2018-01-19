@@ -15,6 +15,7 @@ export const attachmentSend = 'chat2:attachmentSend'
 export const attachmentWithPreviewSend = 'chat2:attachmentWithPreviewSend'
 export const badgesUpdated = 'chat2:badgesUpdated'
 export const clearOrdinals = 'chat2:clearOrdinals'
+export const clearPendingConversation = 'chat2:clearPendingConversation'
 export const desktopNotification = 'chat2:desktopNotification'
 export const exitSearch = 'chat2:exitSearch'
 export const inboxRefresh = 'chat2:inboxRefresh'
@@ -39,6 +40,7 @@ export const openSelectedFolder = 'chat2:openSelectedFolder'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
 export const selectConversation = 'chat2:selectConversation'
+export const sendToPendingConversation = 'chat2:sendToPendingConversation'
 export const setInboxFilter = 'chat2:setInboxFilter'
 export const setLoading = 'chat2:setLoading'
 export const setPendingConversationUsers = 'chat2:setPendingConversationUsers'
@@ -64,6 +66,7 @@ export const createAttachmentWithPreviewSend = (
 ) => ({error: false, payload, type: attachmentWithPreviewSend})
 export const createBadgesUpdated = (payload: $ReadOnly<{conversations: Array<RPCTypes.BadgeConversationInfo>}>) => ({error: false, payload, type: badgesUpdated})
 export const createClearOrdinals = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: clearOrdinals})
+export const createClearPendingConversation = () => ({error: false, payload: undefined, type: clearPendingConversation})
 export const createDesktopNotification = (
   payload: $ReadOnly<{
     conversationIDKey: Types.ConversationIDKey,
@@ -173,6 +176,12 @@ export const createSelectConversation = (
     fromUser?: boolean,
   }>
 ) => ({error: false, payload, type: selectConversation})
+export const createSendToPendingConversation = (
+  payload: $ReadOnly<{
+    users: Array<string>,
+    sendingAction: More.ReturnType<typeof createAttachmentSend> | More.ReturnType<typeof createMessageSend>,
+  }>
+) => ({error: false, payload, type: sendToPendingConversation})
 export const createSetInboxFilter = (payload: $ReadOnly<{filter: string}>) => ({error: false, payload, type: setInboxFilter})
 export const createSetLoading = (
   payload: $ReadOnly<{
@@ -196,6 +205,7 @@ export type AttachmentSendPayload = More.ReturnType<typeof createAttachmentSend>
 export type AttachmentWithPreviewSendPayload = More.ReturnType<typeof createAttachmentWithPreviewSend>
 export type BadgesUpdatedPayload = More.ReturnType<typeof createBadgesUpdated>
 export type ClearOrdinalsPayload = More.ReturnType<typeof createClearOrdinals>
+export type ClearPendingConversationPayload = More.ReturnType<typeof createClearPendingConversation>
 export type DesktopNotificationPayload = More.ReturnType<typeof createDesktopNotification>
 export type ExitSearchPayload = More.ReturnType<typeof createExitSearch>
 export type InboxRefreshPayload = More.ReturnType<typeof createInboxRefresh>
@@ -220,6 +230,7 @@ export type OpenSelectedFolderPayload = More.ReturnType<typeof createOpenSelecte
 export type ResetChatWithoutThemPayload = More.ReturnType<typeof createResetChatWithoutThem>
 export type ResetLetThemInPayload = More.ReturnType<typeof createResetLetThemIn>
 export type SelectConversationPayload = More.ReturnType<typeof createSelectConversation>
+export type SendToPendingConversationPayload = More.ReturnType<typeof createSendToPendingConversation>
 export type SetInboxFilterPayload = More.ReturnType<typeof createSetInboxFilter>
 export type SetLoadingPayload = More.ReturnType<typeof createSetLoading>
 export type SetPendingConversationUsersPayload = More.ReturnType<typeof createSetPendingConversationUsers>
@@ -234,6 +245,7 @@ export type Actions =
   | More.ReturnType<typeof createAttachmentWithPreviewSend>
   | More.ReturnType<typeof createBadgesUpdated>
   | More.ReturnType<typeof createClearOrdinals>
+  | More.ReturnType<typeof createClearPendingConversation>
   | More.ReturnType<typeof createDesktopNotification>
   | More.ReturnType<typeof createExitSearch>
   | More.ReturnType<typeof createInboxRefresh>
@@ -258,6 +270,7 @@ export type Actions =
   | More.ReturnType<typeof createResetChatWithoutThem>
   | More.ReturnType<typeof createResetLetThemIn>
   | More.ReturnType<typeof createSelectConversation>
+  | More.ReturnType<typeof createSendToPendingConversation>
   | More.ReturnType<typeof createSetInboxFilter>
   | More.ReturnType<typeof createSetLoading>
   | More.ReturnType<typeof createSetPendingConversationUsers>

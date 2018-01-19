@@ -334,7 +334,7 @@ export const makePendingTextMessage = (
   })
 }
 
-export const isOldestOrdinal = (ordinal: Types.Ordinal) => ordinal === 2
+export const isOldestOrdinal = (ordinal: Types.Ordinal) => Types.ordinalToNumber(ordinal) <= 2
 
 // Daemon doens't like ordinals and its not worth finding the last value value so just 'converting it' into a message id
 export const getClientPrev = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {

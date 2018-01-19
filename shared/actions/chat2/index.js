@@ -21,6 +21,7 @@ import {NotifyPopup} from '../../native/notifications'
 import {showMainWindow} from '../platform-specific'
 import {tmpDir} from '../../util/file'
 import {parseFolderNameToUsers} from '../../util/kbfs'
+import flags from '../../util/feature-flags'
 
 // If we're out of date we'll only try and fill a gap of this size, otherwise we throw old messages away
 const largestGapToFillOnSyncCall = 50
@@ -666,13 +667,108 @@ const messageEdit = (action: Chat2Gen.MessageEditPayload, state: TypedState) => 
   }
 }
 
+const sendToPendingConversation = (action: Chat2Gen.SendToPendingConversationPayload, state: TypedState) => {
+  const tlfName = action.payload.users.join(',')
+  const membersType = flags.impTeamChatEnabled
+    ? RPCChatTypes.commonConversationMembersType.impteam
+    : RPCChatTypes.commonConversationMembersType.kbfs
+
+  return Saga.call(RPCChatTypes.localNewConversationLocalRpcPromise, {
+    identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+    membersType,
+    tlfName,
+    tlfVisibility: RPCTypes.commonTLFVisibility.private,
+    topicType: RPCChatTypes.commonTopicType.chat,
+  })
+}
+
+const sendToPendingConversationSuccess = (
+  results: RPCChatTypes.NewConversationLocalRes,
+  action: Chat2Gen.SendToPendingConversationPayload
+) => {
+  const conversationIDKey = Constants.conversationIDToKey(results.conv.info.id)
+  if (!conversationIDKey) {
+    logger.warn("Couldn't make a new conversation?")
+    return
+  }
+
+  // Update conversationIDKey to real one
+  const {sendingAction} = action.payload
+  const updatedSendingAction = {
+    ...sendingAction,
+    payload: {
+      ...sendingAction.payload,
+      conversationIDKey,
+    },
+  }
+
+  // emulate getting an inbox item for the new conversation. This lets us skip having to unbox the inbox item
+  const dummyMeta = Constants.makeConversationMeta({
+    conversationIDKey,
+    participants: I.OrderedSet(action.payload.users),
+    tlfname: action.payload.users.join(','),
+  })
+
+  return Saga.sequentially([
+    // Clear the search
+    Saga.put(Chat2Gen.createExitSearch({clear: true})),
+    // Clear the dummy messages from the pending conversation
+    Saga.put(Chat2Gen.createClearPendingConversation()),
+    // Saga.put(Chat2Gen.createClearOrdinals({conversationIDKey: Types.stringToConversationIDKey('')})),
+    // Emulate us getting an inbox item so we don't have to unbox it before sending
+    Saga.put(Chat2Gen.createMetasReceived({metas: [dummyMeta]})),
+    // Select it
+    Saga.put(Chat2Gen.createSelectConversation({conversationIDKey})),
+    // Post it
+    Saga.put(updatedSendingAction),
+  ])
+}
+
 const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => {
   const {conversationIDKey, text} = action.payload
+  const outboxID = Constants.generateOutboxID()
+
+  // Sending to pending
+  if (!conversationIDKey) {
+    if (state.chat2.pendingConversationUsers.isEmpty()) {
+      logger.warn('Sending to pending w/ no pending?')
+      return
+    }
+    const you = state.config.username
+    if (!you) {
+      logger.warn('Sending to pending while logged out?')
+      return
+    }
+
+    // placeholder then try and make / send
+    return Saga.sequentially([
+      Saga.put(
+        Chat2Gen.createMessagesAdd({
+          context: {type: 'sent'},
+          messages: [
+            Constants.makePendingTextMessage(
+              state,
+              conversationIDKey,
+              text,
+              Types.stringToOutboxID(outboxID.toString('hex') || '') // never null but makes flow happy
+            ),
+          ],
+        })
+      ),
+      Saga.put(
+        Chat2Gen.createSendToPendingConversation({
+          sendingAction: action,
+          users: state.chat2.pendingConversationUsers.concat([you]).toArray(),
+        })
+      ),
+    ])
+  }
+
   const identifyBehavior = RPCTypes.tlfKeysTLFIdentifyBehavior.chatGuiStrict // TODO
+
   const meta = Constants.getMeta(state, conversationIDKey)
   const tlfName = meta.tlfname // TODO non existant convo
   const clientPrev = Constants.getClientPrev(state, conversationIDKey)
-  const outboxID = Constants.generateOutboxID()
 
   // Inject pending message and make the call
   return Saga.sequentially([
@@ -942,6 +1038,12 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(
     [Chat2Gen.setSearching, SearchConstants.isUserInputItemsUpdated('chatSearch')],
     searchUpdated
+  )
+
+  yield Saga.safeTakeEveryPure(
+    Chat2Gen.sendToPendingConversation,
+    sendToPendingConversation,
+    sendToPendingConversationSuccess
   )
 }
 
