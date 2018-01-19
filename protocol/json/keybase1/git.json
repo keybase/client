@@ -100,6 +100,15 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "GitPushType",
+      "symbols": [
+        "DEFAULT_0",
+        "CREATEREPO_1",
+        "DELETEBRANCH_2"
+      ]
+    },
+    {
       "type": "record",
       "name": "GitRefMetadata",
       "fields": [
@@ -117,6 +126,10 @@
         {
           "type": "boolean",
           "name": "moreCommitsAvailable"
+        },
+        {
+          "type": "GitPushType",
+          "name": "pushType"
         }
       ]
     },

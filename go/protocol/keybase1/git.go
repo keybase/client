@@ -133,10 +133,40 @@ func (o GitCommit) DeepCopy() GitCommit {
 	}
 }
 
+type GitPushType int
+
+const (
+	GitPushType_DEFAULT      GitPushType = 0
+	GitPushType_CREATEREPO   GitPushType = 1
+	GitPushType_DELETEBRANCH GitPushType = 2
+)
+
+func (o GitPushType) DeepCopy() GitPushType { return o }
+
+var GitPushTypeMap = map[string]GitPushType{
+	"DEFAULT":      0,
+	"CREATEREPO":   1,
+	"DELETEBRANCH": 2,
+}
+
+var GitPushTypeRevMap = map[GitPushType]string{
+	0: "DEFAULT",
+	1: "CREATEREPO",
+	2: "DELETEBRANCH",
+}
+
+func (e GitPushType) String() string {
+	if v, ok := GitPushTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type GitRefMetadata struct {
 	RefName              string      `codec:"refName" json:"refName"`
 	Commits              []GitCommit `codec:"commits" json:"commits"`
 	MoreCommitsAvailable bool        `codec:"moreCommitsAvailable" json:"moreCommitsAvailable"`
+	PushType             GitPushType `codec:"pushType" json:"pushType"`
 }
 
 func (o GitRefMetadata) DeepCopy() GitRefMetadata {
@@ -154,6 +184,7 @@ func (o GitRefMetadata) DeepCopy() GitRefMetadata {
 			return ret
 		})(o.Commits),
 		MoreCommitsAvailable: o.MoreCommitsAvailable,
+		PushType:             o.PushType.DeepCopy(),
 	}
 }
 
