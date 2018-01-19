@@ -151,6 +151,12 @@ services:
       , case_insensitive: true
       , from: "gist_nw"
       , error: ["TEXT_NOT_FOUND", "Found sig but gist begins with unexpected content"] } },
+    { assert_regex_match: {
+      , pattern: "^.*!\\[image\\]\\(.*\\).*$"
+      , negate : true
+      , case_insensitive: true
+      , from: "gist_nw"
+      , error: ["CONTENT_FAILURE", "Proof gist must not contain images"] } },
   ]]
   hackernews: [[
     # validate url and extract username
