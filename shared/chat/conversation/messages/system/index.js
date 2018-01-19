@@ -5,7 +5,7 @@ import {EmojiIfExists} from '../../../../common-adapters/markdown.shared'
 import UserNotice from '../../notices/user-notice'
 import {globalStyles, globalColors, globalMargins} from '../../../../styles'
 import {formatTimeForMessages} from '../../../../util/timestamp'
-import {isMobile} from '../../../../constants/platform'
+import {isAndroid, isMobile} from '../../../../constants/platform'
 
 import type {
   SystemMessage,
@@ -178,13 +178,21 @@ const ComplexTeamNotice = ({channelname, message, info, onManageChannels, you}: 
             <Text type="BodySmallSemibold" style={{marginRight: globalMargins.tiny}}>
               {'\u2022'}
             </Text>
-            <Text type="BodySmallSemibold">
-              Notifications will no longer happen for every message. {isMobile ? 'Tap' : 'Click on'} the{' '}
-              <Box style={{display: isMobile ? 'flex' : 'inline-block', height: 11, width: 11}}>
-                <Icon type="iconfont-info" style={{fontSize: 11}} />
-              </Box>{' '}
-              to configure them.
-            </Text>
+            {!isAndroid && (
+              <Text type="BodySmallSemibold">
+                Notifications will no longer happen for every message. {isMobile ? 'Tap' : 'Click on'} the{' '}
+                <Box style={{display: isMobile ? 'flex' : 'inline-block', height: 11, width: 11}}>
+                  <Icon type="iconfont-info" style={{fontSize: 11}} />
+                </Box>{' '}
+                to configure them.
+              </Text>
+            )}
+            {isAndroid && (
+              <Text type="BodySmallSemibold">
+                Notifications will no longer happen for every message. Tap the info icon in the top right to
+                configure them.
+              </Text>
+            )}
           </Box>
           <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.tiny}}>
             <Text type="BodySmallSemibold" style={{marginRight: globalMargins.tiny}}>
