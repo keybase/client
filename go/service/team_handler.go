@@ -101,9 +101,6 @@ type abandonMsg struct {
 func (r *teamHandler) abandonTeam(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
 	nm := "team.abandoned"
 	r.G().Log.CDebugf(ctx, "teamHandler: %s received", nm)
-	r.G().Log.CDebugf(ctx, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-	r.G().Log.CDebugf(ctx, "%s json: %s", nm, item.Body().Bytes())
-	r.G().Log.CDebugf(ctx, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
 	var msg abandonMsg
 	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
 		r.G().Log.CDebugf(ctx, "error unmarshaling %s item: %s", nm, err)
@@ -111,12 +108,7 @@ func (r *teamHandler) abandonTeam(ctx context.Context, cli gregor1.IncomingInter
 	}
 	r.G().Log.CDebugf(ctx, "%s unmarshaled: %+v", nm, msg)
 
-	// something like this:
-	/*
-		if err := teams.HandleChangeNotification(ctx, r.G(), rows, changes); err != nil {
-			return err
-		}
-	*/
+	r.G().NotifyRouter.HandleTeamAbandoned(ctx, msg.TeamID)
 
 	r.G().Log.CDebugf(ctx, "dismissing %s", nm)
 	return r.G().GregorDismisser.DismissItem(ctx, cli, item.Metadata().MsgID())
