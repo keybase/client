@@ -105,7 +105,8 @@
       "symbols": [
         "DEFAULT_0",
         "CREATEREPO_1",
-        "DELETEBRANCH_2"
+        "DELETEBRANCH_2",
+        "RENAMEREPO_3"
       ]
     },
     {

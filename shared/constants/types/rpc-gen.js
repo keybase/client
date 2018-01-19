@@ -706,6 +706,7 @@ export const gitGitPushType = {
   default: 0,
   createrepo: 1,
   deletebranch: 2,
+  renamerepo: 3,
 }
 
 export const gitGitRepoResultState = {
@@ -2318,6 +2319,7 @@ export type GitPushType =
   | 0 // DEFAULT_0
   | 1 // CREATEREPO_1
   | 2 // DELETEBRANCH_2
+  | 3 // RENAMEREPO_3
 
 export type GitPutGitMetadataRpcParam = $ReadOnly<{folder: Folder, repoID: RepoID, metadata: GitLocalMetadata, notifyTeam: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 

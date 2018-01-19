@@ -41,7 +41,8 @@ protocol git {
   enum GitPushType {
     DEFAULT_0,
     CREATEREPO_1,
-    DELETEBRANCH_2
+    DELETEBRANCH_2,
+    RENAMEREPO_3
   }
   record GitRefMetadata {
     string refName;    

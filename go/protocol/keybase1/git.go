@@ -139,6 +139,7 @@ const (
 	GitPushType_DEFAULT      GitPushType = 0
 	GitPushType_CREATEREPO   GitPushType = 1
 	GitPushType_DELETEBRANCH GitPushType = 2
+	GitPushType_RENAMEREPO   GitPushType = 3
 )
 
 func (o GitPushType) DeepCopy() GitPushType { return o }
@@ -147,12 +148,14 @@ var GitPushTypeMap = map[string]GitPushType{
 	"DEFAULT":      0,
 	"CREATEREPO":   1,
 	"DELETEBRANCH": 2,
+	"RENAMEREPO":   3,
 }
 
 var GitPushTypeRevMap = map[GitPushType]string{
 	0: "DEFAULT",
 	1: "CREATEREPO",
 	2: "DELETEBRANCH",
+	3: "RENAMEREPO",
 }
 
 func (e GitPushType) String() string {
