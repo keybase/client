@@ -618,6 +618,19 @@ func (u *userPlusDevice) loginAfterResetHelper(puk bool) {
 	require.NoError(t, err, "login after reset")
 }
 
+func (u *userPlusDevice) perUserKeyUpgrade() {
+	t := u.device.tctx.T
+	u.device.tctx.Tp.DisableUpgradePerUserKey = false
+	g := u.device.tctx.G
+	arg := &engine.PerUserKeyUpgradeArgs{}
+	eng := engine.NewPerUserKeyUpgrade(g, arg)
+	ctx := &engine.Context{
+		LogUI: u.tc.G.Log,
+	}
+	err := engine.RunEngine(eng, ctx)
+	require.NoError(t, err, "Run engine.NewPerUserKeyUpgrade")
+}
+
 func kickTeamRekeyd(g *libkb.GlobalContext, t libkb.TestingTB) {
 	apiArg := libkb.APIArg{
 		Endpoint:    "test/accelerate_team_rekeyd",
