@@ -2780,7 +2780,7 @@ export type NotifySessionLoggedInRpcParam = $ReadOnly<{username: String, incomin
 
 export type NotifySessionLoggedOutRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type NotifyTeamImplicitTeamAbandonedRpcParam = $ReadOnly<{teamID: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyTeamTeamAbandonedRpcParam = $ReadOnly<{teamID: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type NotifyTeamTeamChangedByIDRpcParam = $ReadOnly<{teamID: TeamID, latestSeqno: Seqno, implicitTeam: Boolean, changes: TeamChangeSet, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -4121,7 +4121,7 @@ export type IncomingCallMapType = {
   'keybase.1.NotifyTeam.teamChangedByID'?: (params: $ReadOnly<{teamID: TeamID, latestSeqno: Seqno, implicitTeam: Boolean, changes: TeamChangeSet}>, response: CommonResponseHandler) => void,
   'keybase.1.NotifyTeam.teamChangedByName'?: (params: $ReadOnly<{teamName: String, latestSeqno: Seqno, implicitTeam: Boolean, changes: TeamChangeSet}>, response: CommonResponseHandler) => void,
   'keybase.1.NotifyTeam.teamDeleted'?: (params: $ReadOnly<{teamID: TeamID}>, response: CommonResponseHandler) => void,
-  'keybase.1.NotifyTeam.implicitTeamAbandoned'?: (params: $ReadOnly<{teamID: TeamID}>, response: CommonResponseHandler) => void,
+  'keybase.1.NotifyTeam.teamAbandoned'?: (params: $ReadOnly<{teamID: TeamID}>, response: CommonResponseHandler) => void,
   'keybase.1.NotifyTeam.teamExit'?: (params: $ReadOnly<{teamID: TeamID}>, response: CommonResponseHandler) => void,
   'keybase.1.NotifyTracking.trackingChanged'?: (params: $ReadOnly<{uid: UID, username: String, isTracking: Boolean}>) => void,
   'keybase.1.NotifyUsers.userChanged'?: (params: $ReadOnly<{uid: UID}>) => void,

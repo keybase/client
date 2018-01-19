@@ -1168,7 +1168,7 @@ func (n *NotifyRouter) HandleTeamAbandoned(ctx context.Context, teamID keybase1.
 			go func() {
 				(keybase1.NotifyTeamClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).ImplicitTeamAbandoned(context.Background(), teamID)
+				}).TeamAbandoned(context.Background(), teamID)
 				wg.Done()
 			}()
 		}

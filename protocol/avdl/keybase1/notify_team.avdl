@@ -32,7 +32,7 @@ protocol NotifyTeam {
 
   void teamDeleted(TeamID teamID) oneway;
   
-  void implicitTeamAbandoned(TeamID teamID) oneway;
+  void teamAbandoned(TeamID teamID) oneway;
 
   void teamExit(TeamID teamID) oneway;
 }

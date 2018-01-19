@@ -688,7 +688,7 @@ func (n *teamNotifyHandler) TeamExit(ctx context.Context, teamID keybase1.TeamID
 	return nil
 }
 
-func (n *teamNotifyHandler) ImplicitTeamAbandoned(ctx context.Context, teamID keybase1.TeamID) error {
+func (n *teamNotifyHandler) TeamAbandoned(ctx context.Context, teamID keybase1.TeamID) error {
 	n.abandonCh <- teamID
 	return nil
 }

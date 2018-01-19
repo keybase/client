@@ -40,7 +40,7 @@ type TeamDeletedArg struct {
 	TeamID TeamID `codec:"teamID" json:"teamID"`
 }
 
-type ImplicitTeamAbandonedArg struct {
+type TeamAbandonedArg struct {
 	TeamID TeamID `codec:"teamID" json:"teamID"`
 }
 
@@ -52,7 +52,7 @@ type NotifyTeamInterface interface {
 	TeamChangedByID(context.Context, TeamChangedByIDArg) error
 	TeamChangedByName(context.Context, TeamChangedByNameArg) error
 	TeamDeleted(context.Context, TeamID) error
-	ImplicitTeamAbandoned(context.Context, TeamID) error
+	TeamAbandoned(context.Context, TeamID) error
 	TeamExit(context.Context, TeamID) error
 }
 
@@ -108,18 +108,18 @@ func NotifyTeamProtocol(i NotifyTeamInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodNotify,
 			},
-			"implicitTeamAbandoned": {
+			"teamAbandoned": {
 				MakeArg: func() interface{} {
-					ret := make([]ImplicitTeamAbandonedArg, 1)
+					ret := make([]TeamAbandonedArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]ImplicitTeamAbandonedArg)
+					typedArgs, ok := args.(*[]TeamAbandonedArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]ImplicitTeamAbandonedArg)(nil), args)
+						err = rpc.NewTypeError((*[]TeamAbandonedArg)(nil), args)
 						return
 					}
-					err = i.ImplicitTeamAbandoned(ctx, (*typedArgs)[0].TeamID)
+					err = i.TeamAbandoned(ctx, (*typedArgs)[0].TeamID)
 					return
 				},
 				MethodType: rpc.MethodNotify,
@@ -164,9 +164,9 @@ func (c NotifyTeamClient) TeamDeleted(ctx context.Context, teamID TeamID) (err e
 	return
 }
 
-func (c NotifyTeamClient) ImplicitTeamAbandoned(ctx context.Context, teamID TeamID) (err error) {
-	__arg := ImplicitTeamAbandonedArg{TeamID: teamID}
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.implicitTeamAbandoned", []interface{}{__arg})
+func (c NotifyTeamClient) TeamAbandoned(ctx context.Context, teamID TeamID) (err error) {
+	__arg := TeamAbandonedArg{TeamID: teamID}
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamAbandoned", []interface{}{__arg})
 	return
 }
 
