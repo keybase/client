@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Avatar, Box} from '../../../common-adapters'
-import {globalStyles, globalMargins} from '../../../styles'
+import {globalStyles, globalMargins, isMobile} from '../../../styles'
 
 export type Props = {
   bgColor: string,
@@ -44,8 +44,8 @@ const stylesAvatar = {
 const styleBox = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
-  marginLeft: globalMargins.medium,
-  marginRight: globalMargins.medium,
+  marginLeft: isMobile ? globalMargins.medium : globalMargins.xlarge,
+  marginRight: isMobile ? globalMargins.medium : globalMargins.xlarge,
   padding: globalMargins.small,
   paddingBottom: globalMargins.tiny,
   borderRadius: globalMargins.xtiny,

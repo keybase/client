@@ -284,7 +284,7 @@ const GitPushInfoNotice = ({message, info}: GitPushInfoProps) => {
 
   return Object.keys(refsMap).map(branchName => (
     <UserNotice
-      teamname={info.team}
+      username={info.pusher}
       key={branchName}
       style={{marginTop: globalMargins.small}}
       bgColor={globalColors.blue4}
@@ -321,6 +321,7 @@ const GitPushInfoNotice = ({message, info}: GitPushInfoProps) => {
                   <Text
                     type="Terminal"
                     style={{
+                      ...globalStyles.selectable,
                       fontSize: 11,
                       color: globalColors.blue,
                       lineHeight: isMobile ? 16 : 1.3,
@@ -330,7 +331,11 @@ const GitPushInfoNotice = ({message, info}: GitPushInfoProps) => {
                   </Text>
                 </Box>
                 <Box style={{display: 'flex', flex: 1}}>
-                  <Text type="BodySmall" style={{textAlign: 'left'}} lineClamp={2}>
+                  <Text
+                    type="BodySmall"
+                    style={{...globalStyles.selectable, textAlign: 'left'}}
+                    lineClamp={2}
+                  >
                     {commit.message}
                   </Text>
                 </Box>
