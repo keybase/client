@@ -152,8 +152,31 @@ func (tlf *TLF) Attr(ctx context.Context, a *fuse.Attr) error {
 	return dir.Attr(ctx, a)
 }
 
+// tlfLoadavoidingLookupNames specifies a set of directory entry names
+// that should NOT cause a TLF to be fully loaded and identified on a
+// lookup.  If the directory is not yet loaded and one of these names
+// are looked-up, then ENOENT will be returned automatically.  This is
+// to avoid unnecessary loading and tracker popups when listing the
+// folder list directories.  For example, when macOS finder opens
+// `/keybase/private`, it looks up `.localized` in every TLF
+// subdirectory to see if it should translate the TLF folder name or
+// not, which can cause a tracker popup storm (see KBFS-2649).
+var tlfLoadavoidingLookupNames = map[string]bool{
+	".localized": true,
+}
+
 // Lookup implements the fs.NodeRequestLookuper interface for TLF.
 func (tlf *TLF) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (fs.Node, error) {
+	if tlfLoadavoidingLookupNames[req.Name] {
+		dir := tlf.getStoredDir()
+		if dir == nil {
+			tlf.log().CDebugf(
+				ctx, "Avoiding TLF loading for name %s", req.Name)
+			return nil, fuse.ENOENT
+		}
+		dir.Lookup(ctx, req, resp)
+	}
+
 	dir, exitEarly, err := tlf.loadDirAllowNonexistent(ctx)
 	if err != nil {
 		return nil, err
