@@ -11,6 +11,7 @@ function SettingsRender(props: Props) {
       selectedTab={props.selectedTab}
       onTabChange={props.onTabChange}
       onLogout={props.onLogout}
+      badgePushNotification={props.badgePushNotification}
     />
   )
 }

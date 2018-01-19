@@ -87,7 +87,7 @@ export default connect(
   },
   (dispatch: any) => {
     return {
-      onRequestPermissions: () => dispatch(PushGen.createPermissionsRequest()),
+      onRequestPermissions: () => dispatch(PushGen.createPermissionsRequest({})),
       onNoPermissions: () => dispatch(PushGen.createPermissionsNo()),
     }
   }

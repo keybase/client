@@ -19,3 +19,4 @@ declare export function displayNewMessageNotification(
   myMsgID: ?number
 ): void
 declare export function clearAllNotifications(): void
+declare export function openAppSettings(): void

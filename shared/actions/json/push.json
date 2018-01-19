@@ -4,8 +4,13 @@
   ],
   "actions": {
     "configurePush": {},
+    "updatePermissions": {
+        "hasPermissions": "boolean"
+    },
     "permissionsNo": {},
-    "permissionsRequest": {},
+    "permissionsRequest": {
+        "showIOSSettingsOnFail?": "boolean"
+    },
     "permissionsRequesting": {
       "requesting": "boolean"
     },
@@ -29,6 +34,9 @@
     "savePushToken": {},
     "notification": {
       "notification": "Types.PushNotification"
+    },
+    "setCheckOnStart": {
+        "check": "boolean"
     }
   }
 }

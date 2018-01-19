@@ -15,6 +15,7 @@ export type Props = {
   onTabChange: (tab: Tab) => void,
   onLogout: () => void,
   badgeNumbers: {[key: TabConstants.Tab]: number},
+  badgePushNotification: boolean
 }
 
 export default class SettingsNav extends Component<Props> {}

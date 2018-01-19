@@ -19,6 +19,8 @@ export const permissionsRequesting = 'push:permissionsRequesting'
 export const pushToken = 'push:pushToken'
 export const registrationError = 'push:registrationError'
 export const savePushToken = 'push:savePushToken'
+export const setCheckOnStart = 'push:setCheckOnStart'
+export const updatePermissions = 'push:updatePermissions'
 export const updatePushToken = 'push:updatePushToken'
 
 // Action Creators
@@ -27,7 +29,7 @@ export const createError = (payload: $ReadOnly<{error: Error}>) => ({error: fals
 export const createNotification = (payload: $ReadOnly<{notification: Types.PushNotification}>) => ({error: false, payload, type: notification})
 export const createPermissionsNo = () => ({error: false, payload: undefined, type: permissionsNo})
 export const createPermissionsPrompt = (payload: $ReadOnly<{prompt: boolean}>) => ({error: false, payload, type: permissionsPrompt})
-export const createPermissionsRequest = () => ({error: false, payload: undefined, type: permissionsRequest})
+export const createPermissionsRequest = (payload: $ReadOnly<{showIOSSettingsOnFail?: boolean}>) => ({error: false, payload, type: permissionsRequest})
 export const createPermissionsRequesting = (payload: $ReadOnly<{requesting: boolean}>) => ({error: false, payload, type: permissionsRequesting})
 export const createPushToken = (
   payload: $ReadOnly<{
@@ -37,6 +39,8 @@ export const createPushToken = (
 ) => ({error: false, payload, type: pushToken})
 export const createRegistrationError = (payload: $ReadOnly<{error: Error}>) => ({error: false, payload, type: registrationError})
 export const createSavePushToken = () => ({error: false, payload: undefined, type: savePushToken})
+export const createSetCheckOnStart = (payload: $ReadOnly<{check: boolean}>) => ({error: false, payload, type: setCheckOnStart})
+export const createUpdatePermissions = (payload: $ReadOnly<{hasPermissions: boolean}>) => ({error: false, payload, type: updatePermissions})
 export const createUpdatePushToken = (
   payload: $ReadOnly<{
     token: string,
@@ -55,6 +59,8 @@ export type PermissionsRequestingPayload = More.ReturnType<typeof createPermissi
 export type PushTokenPayload = More.ReturnType<typeof createPushToken>
 export type RegistrationErrorPayload = More.ReturnType<typeof createRegistrationError>
 export type SavePushTokenPayload = More.ReturnType<typeof createSavePushToken>
+export type SetCheckOnStartPayload = More.ReturnType<typeof createSetCheckOnStart>
+export type UpdatePermissionsPayload = More.ReturnType<typeof createUpdatePermissions>
 export type UpdatePushTokenPayload = More.ReturnType<typeof createUpdatePushToken>
 
 // All Actions
@@ -70,5 +76,7 @@ export type Actions =
   | More.ReturnType<typeof createPushToken>
   | More.ReturnType<typeof createRegistrationError>
   | More.ReturnType<typeof createSavePushToken>
+  | More.ReturnType<typeof createSetCheckOnStart>
+  | More.ReturnType<typeof createUpdatePermissions>
   | More.ReturnType<typeof createUpdatePushToken>
   | {type: 'common:resetStore', payload: void}

@@ -1,11 +1,13 @@
 // @flow
 import logger from '../logger'
 import * as ChatGen from './chat-gen'
+import * as AppGen from './app-gen'
+import * as SettingsGen from './settings-gen'
 import * as PushGen from './push-gen'
 import * as ChatTypes from '../constants/types/rpc-chat-gen'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import {isMobile} from '../constants/platform'
+import {isMobile, isIOS} from '../constants/platform'
 import {chatTab} from '../constants/tabs'
 import {switchTo} from './route-tree'
 import {createShowUserProfile} from './profile-gen'
@@ -15,6 +17,7 @@ import {
   displayNewMessageNotification,
   clearAllNotifications,
   setNoPushPermissions,
+  openAppSettings,
 } from './platform-specific'
 
 import type {TypedState} from '../constants/reducer'
@@ -30,17 +33,24 @@ function permissionsNoSaga() {
   ])
 }
 
-function* permissionsRequestSaga(): Saga.SagaGenerator<any, any> {
+function* permissionsRequestSaga(action: PushGen.PermissionsRequestPayload): Saga.SagaGenerator<any, any> {
+  let hasPermissions = false
   try {
     yield Saga.put(PushGen.createPermissionsRequesting({requesting: true}))
-
     logger.info('Requesting permissions')
     const permissions = yield Saga.call(requestPushPermissions)
+    hasPermissions = permissions && permissions.badge
+    yield Saga.put(PushGen.createUpdatePermissions({hasPermissions}))
     logger.info('Permissions:', permissions)
-    // TODO(gabriel): Set permissions we have in store, might want it at some point?
+  } catch (e) {
+    yield Saga.put(PushGen.createUpdatePermissions({hasPermissions: false}))
   } finally {
     yield Saga.put(PushGen.createPermissionsRequesting({requesting: false}))
     yield Saga.put(PushGen.createPermissionsPrompt({prompt: false}))
+    if (!hasPermissions && action.payload.showIOSSettingsOnFail && isIOS) {
+      yield Saga.put(PushGen.createSetCheckOnStart({check: true}))
+      yield Saga.call(openAppSettings)
+    }
   }
 }
 
@@ -184,6 +194,27 @@ function* deletePushTokenSaga(): Saga.SagaGenerator<any, any> {
   }
 }
 
+function maybeRecheckSettings(
+  action: AppGen.MobileAppStatePayload | SettingsGen.NotificationsRefreshPayload,
+  state: TypedState
+) {
+  if (!isIOS) {
+    return
+  }
+
+  if (
+    action.type === AppGen.mobileAppState &&
+    (action.payload.nextAppState !== 'active' || !state.push.checkOnStart)
+  ) {
+    return
+  }
+
+  return Saga.sequentially([
+    Saga.put(PushGen.createSetCheckOnStart({check: false})),
+    Saga.put(PushGen.createPermissionsRequest({})),
+  ])
+}
+
 function* pushSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeLatest(PushGen.permissionsRequest, permissionsRequestSaga)
   yield Saga.safeTakeLatestPure(PushGen.permissionsNo, permissionsNoSaga)
@@ -191,6 +222,10 @@ function* pushSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeLatest(PushGen.savePushToken, savePushTokenSaga)
   yield Saga.safeTakeLatest(PushGen.configurePush, configurePushSaga)
   yield Saga.safeTakeEvery(PushGen.notification, pushNotificationSaga)
+  yield Saga.safeTakeEveryPure(
+    [SettingsGen.notificationsRefresh, AppGen.mobileAppState],
+    maybeRecheckSettings
+  )
 }
 
 export default pushSaga

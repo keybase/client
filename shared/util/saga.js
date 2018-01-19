@@ -27,6 +27,7 @@ import {convertToError} from '../util/errors'
 import type {Action} from '../constants/types/flux'
 import type {TypedState} from '../constants/reducer'
 import type {ChannelConfig, ChannelMap, SagaGenerator, Channel} from '../constants/types/saga'
+import type {Pattern} from 'redux-saga'
 
 type SagaMap = {[key: string]: any}
 type Effect = any
@@ -90,7 +91,7 @@ function singleFixedChannelConfig<T>(ks: Array<string>): ChannelConfig<T> {
   }, {})
 }
 
-function safeTakeEvery(pattern: string | Array<any> | Function, worker: Function, ...args: Array<any>) {
+function safeTakeEvery(pattern: Pattern, worker: Function, ...args: Array<any>) {
   const safeTakeEveryWorker = function* safeTakeEveryWorker(...args) {
     try {
       yield call(worker, ...args)
@@ -127,13 +128,14 @@ function* sequentially(effects: Array<any>): Generator<any, Array<any>, any> {
 // i.e. it can return put(someAction). That effectively transforms the input action into another action
 // It can also return all([put(action1), put(action2)]) to dispatch multiple actions
 function safeTakeEveryPure<A, R, FinalAction, FinalActionError>(
-  pattern: string | Array<any> | Function,
+  pattern: Pattern,
   pureWorker: ((action: A, state: TypedState) => any) | ((action: A) => any),
   actionCreatorsWithResult?: ?(result: R, action: A) => FinalAction,
   actionCreatorsWithError?: ?(result: R, action: A) => FinalActionError
 ) {
   return safeTakeEvery(pattern, function* safeTakeEveryPureWorker(action: A) {
     // If the pureWorker fn takes two arguments, let's pass the state
+
     try {
       let result
       if (pureWorker.length === 2) {

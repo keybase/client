@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box, Checkbox, ProgressIndicator, Text} from '../../common-adapters'
+import {Box, Checkbox, ProgressIndicator, Text, Button} from '../../common-adapters'
 import {globalStyles, globalMargins} from '../../styles'
 
 import type {NotificationsSettingsState} from '../../constants/types/settings'
@@ -74,6 +74,9 @@ const Notifications = (props: Props) =>
     </Box>
   ) : (
     <Box style={{...globalStyles.scrollable, flex: 1, padding: globalMargins.small}}>
+      {props.showPushNotificationsButton && (
+        <Button type="Primary" onClick={props.onAcceptPush} label="Turn on push notifications!" />
+      )}
       <Group
         allowEdit={props.allowEdit}
         groupName="email"

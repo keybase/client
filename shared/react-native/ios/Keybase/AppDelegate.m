@@ -129,7 +129,7 @@ const BOOL isDebug = NO;
   //
   // jsCodeLocation = [NSURL URLWithString:@"http://localhost:8081/index.ios.bundle?platform=ios&dev=false"];
   jsCodeLocation = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index.ios" fallbackResource:nil];
-
+ jsCodeLocation = [NSURL URLWithString:@"http://10.0.1.50:8081/index.ios.bundle?platform=ios&dev=true"];
 #ifdef SYSTRACING
   RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self
                                             launchOptions:launchOptions];
