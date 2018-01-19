@@ -211,11 +211,13 @@ func (o MessageSystemCreateTeam) DeepCopy() MessageSystemCreateTeam {
 }
 
 type MessageSystemGitPush struct {
-	Team     string                    `codec:"team" json:"team"`
-	Pusher   string                    `codec:"pusher" json:"pusher"`
-	RepoName string                    `codec:"repoName" json:"repoName"`
-	RepoID   keybase1.RepoID           `codec:"repoID" json:"repoID"`
-	Refs     []keybase1.GitRefMetadata `codec:"refs" json:"refs"`
+	Team             string                    `codec:"team" json:"team"`
+	Pusher           string                    `codec:"pusher" json:"pusher"`
+	RepoName         string                    `codec:"repoName" json:"repoName"`
+	RepoID           keybase1.RepoID           `codec:"repoID" json:"repoID"`
+	Refs             []keybase1.GitRefMetadata `codec:"refs" json:"refs"`
+	PushType         keybase1.GitPushType      `codec:"pushType" json:"pushType"`
+	PreviousRepoName string                    `codec:"previousRepoName" json:"previousRepoName"`
 }
 
 func (o MessageSystemGitPush) DeepCopy() MessageSystemGitPush {
@@ -235,6 +237,8 @@ func (o MessageSystemGitPush) DeepCopy() MessageSystemGitPush {
 			}
 			return ret
 		})(o.Refs),
+		PushType:         o.PushType.DeepCopy(),
+		PreviousRepoName: o.PreviousRepoName,
 	}
 }
 

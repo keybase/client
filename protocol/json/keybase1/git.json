@@ -127,10 +127,6 @@
         {
           "type": "boolean",
           "name": "moreCommitsAvailable"
-        },
-        {
-          "type": "GitPushType",
-          "name": "pushType"
         }
       ]
     },
@@ -148,6 +144,14 @@
             "items": "GitRefMetadata"
           },
           "name": "refs"
+        },
+        {
+          "type": "GitPushType",
+          "name": "pushType"
+        },
+        {
+          "type": "GitRepoName",
+          "name": "previousRepoName"
         }
       ]
     },

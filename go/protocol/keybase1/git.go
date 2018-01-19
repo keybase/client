@@ -169,7 +169,6 @@ type GitRefMetadata struct {
 	RefName              string      `codec:"refName" json:"refName"`
 	Commits              []GitCommit `codec:"commits" json:"commits"`
 	MoreCommitsAvailable bool        `codec:"moreCommitsAvailable" json:"moreCommitsAvailable"`
-	PushType             GitPushType `codec:"pushType" json:"pushType"`
 }
 
 func (o GitRefMetadata) DeepCopy() GitRefMetadata {
@@ -187,13 +186,14 @@ func (o GitRefMetadata) DeepCopy() GitRefMetadata {
 			return ret
 		})(o.Commits),
 		MoreCommitsAvailable: o.MoreCommitsAvailable,
-		PushType:             o.PushType.DeepCopy(),
 	}
 }
 
 type GitLocalMetadata struct {
-	RepoName GitRepoName      `codec:"repoName" json:"repoName"`
-	Refs     []GitRefMetadata `codec:"refs" json:"refs"`
+	RepoName         GitRepoName      `codec:"repoName" json:"repoName"`
+	Refs             []GitRefMetadata `codec:"refs" json:"refs"`
+	PushType         GitPushType      `codec:"pushType" json:"pushType"`
+	PreviousRepoName GitRepoName      `codec:"previousRepoName" json:"previousRepoName"`
 }
 
 func (o GitLocalMetadata) DeepCopy() GitLocalMetadata {
@@ -210,6 +210,8 @@ func (o GitLocalMetadata) DeepCopy() GitLocalMetadata {
 			}
 			return ret
 		})(o.Refs),
+		PushType:         o.PushType.DeepCopy(),
+		PreviousRepoName: o.PreviousRepoName.DeepCopy(),
 	}
 }
 

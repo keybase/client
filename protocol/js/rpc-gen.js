@@ -2307,7 +2307,7 @@ export type GitGetGitMetadataRpcParam = $ReadOnly<{folder: Folder, incomingCallM
 
 export type GitGetTeamRepoSettingsRpcParam = $ReadOnly<{folder: Folder, repoID: RepoID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type GitLocalMetadata = $ReadOnly<{repoName: GitRepoName, refs?: ?Array<GitRefMetadata>}>
+export type GitLocalMetadata = $ReadOnly<{repoName: GitRepoName, refs?: ?Array<GitRefMetadata>, pushType: GitPushType, previousRepoName: GitRepoName}>
 
 export type GitLocalMetadataV1 = $ReadOnly<{repoName: GitRepoName}>
 
@@ -2323,7 +2323,7 @@ export type GitPushType =
 
 export type GitPutGitMetadataRpcParam = $ReadOnly<{folder: Folder, repoID: RepoID, metadata: GitLocalMetadata, notifyTeam: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type GitRefMetadata = $ReadOnly<{refName: String, commits?: ?Array<GitCommit>, moreCommitsAvailable: Boolean, pushType: GitPushType}>
+export type GitRefMetadata = $ReadOnly<{refName: String, commits?: ?Array<GitCommit>, moreCommitsAvailable: Boolean}>
 
 export type GitRepoInfo = $ReadOnly<{folder: Folder, repoID: RepoID, localMetadata: GitLocalMetadata, serverMetadata: GitServerMetadata, repoUrl: String, globalUniqueID: String, canDelete: Boolean, teamRepoSettings?: ?GitTeamRepoSettings}>
 
