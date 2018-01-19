@@ -59,10 +59,10 @@ describe('getProfilePath', () => {
   }
 
   it('Navigates correctly to user profiles', () => {
-    check(noPath, 'ayoubd', 'ayoubd', [peopleTab])
+    check(noPath, 'ayoubd', 'ayoubd', [peopleTab, {selected: 'profile', props: {username: 'ayoubd'}}])
     check(noPath, 'chris', 'ayoubd', [peopleTab, {selected: 'profile', props: {username: 'chris'}}])
 
-    check(baseTab, 'ayoubd', 'ayoubd', [peopleTab])
+    check(baseTab, 'ayoubd', 'ayoubd', [peopleTab, {selected: 'profile', props: {username: 'ayoubd'}}])
     check(baseTab, 'chris', 'ayoubd', [peopleTab, {selected: 'profile', props: {username: 'chris'}}])
 
     check(oneProfile, 'chrisnojima', 'ayoubd', [
