@@ -108,9 +108,11 @@ build_one_architecture() {
 
 export rpm_arch=i386
 export debian_arch=i386
-# On Fedora, it would be more correct to require "libXScrnSaver", which
-# provides libXss.so. Unfortunately that doesn't work on OpenSUSE. This is the
-# most compatible set of dependencies we've found.
+# On Fedora, it would be more correct to require "libXScrnSaver",
+# which provides libXss.so. Unfortunately that doesn't work on
+# OpenSUSE. This is the most compatible set of dependencies we've
+# found.  "initscripts' provides "killall", which is used in
+# run_keybase.
 dependencies="Requires: at, fuse, libXss.so.1, initscripts"
 build_one_architecture
 
