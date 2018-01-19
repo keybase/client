@@ -214,6 +214,7 @@ type MessageSystemGitPush struct {
 	Team     string                    `codec:"team" json:"team"`
 	Pusher   string                    `codec:"pusher" json:"pusher"`
 	RepoName string                    `codec:"repoName" json:"repoName"`
+	RepoID   keybase1.RepoID           `codec:"repoID" json:"repoID"`
 	Refs     []keybase1.GitRefMetadata `codec:"refs" json:"refs"`
 }
 
@@ -222,6 +223,7 @@ func (o MessageSystemGitPush) DeepCopy() MessageSystemGitPush {
 		Team:     o.Team,
 		Pusher:   o.Pusher,
 		RepoName: o.RepoName,
+		RepoID:   o.RepoID.DeepCopy(),
 		Refs: (func(x []keybase1.GitRefMetadata) []keybase1.GitRefMetadata {
 			if x == nil {
 				return nil
