@@ -106,7 +106,7 @@ From inside the Arch docker environment:
     useradd -m strib
     su - strib
     cd /root/client/packaging/linux/arch/
-    KEYBASE_LOCAL_BUILD=1 ./update_aur_packages.sh /root/build
+    ./build_test_package.sh /root/build
     exit  # back to root
     pacman -U --noconfirm  `ls -tr /root/build/arch/keybase-bin/*.xz | tail -1`
     su - strib

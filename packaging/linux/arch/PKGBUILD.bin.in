@@ -18,10 +18,10 @@ depends=(fuse gconf libxss gtk2) # don't change this without changing the SRCINF
 # keybase-release is a deprecated AUR package
 conflicts=(keybase keybase-release keybase-git)
 source_i686=(
-  "${src_prefix}keybase_${deb_pkgver}_i386.deb"
+  "${src_prefix}/keybase_${deb_pkgver}_i386.deb"
 )
 source_x86_64=(
-  "${src_prefix}keybase_${deb_pkgver}_amd64.deb"
+  "${src_prefix}/keybase_${deb_pkgver}_amd64.deb"
 )
 install=keybase.install
 
