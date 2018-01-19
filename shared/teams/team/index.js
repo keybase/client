@@ -327,7 +327,22 @@ const TeamTabs = (props: TeamTabsProps) => {
   }
 
   const selected = tabs.find(tab => tab.key === selectedTab)
-  return <Tabs tabs={tabs} selected={selected} onSelect={onSelect} style={{flexBasis: '100%'}} />
+  return (
+    <Tabs
+      tabs={tabs}
+      selected={selected}
+      onSelect={onSelect}
+      style={{flexBasis: '100%'}}
+      tabStyle={
+        isMobile
+          ? {
+              paddingLeft: globalMargins.tiny,
+              paddingRight: globalMargins.tiny,
+            }
+          : {}
+      }
+    />
+  )
 }
 
 class Team extends React.PureComponent<Props> {
@@ -625,7 +640,7 @@ class Team extends React.PureComponent<Props> {
     }
 
     return (
-      <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1}}>
+      <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, width: '100%'}}>
         {yourOperations.joinTeam && (
           <Box style={stylesAddYourselfBanner}>
             <Text type="BodySemibold" style={stylesAddYourselfBannerText}>
@@ -671,22 +686,8 @@ class Team extends React.PureComponent<Props> {
           {yourOperations.manageMembers && (
             <ButtonBar>
               <Button type="Primary" label="Add people" onClick={onAddPeople} />
-              {!isMobile && (
-                <Button
-                  type="Secondary"
-                  label="Invite by email"
-                  onClick={onInviteByEmail}
-                  style={{marginLeft: globalMargins.tiny}}
-                />
-              )}
-              {isMobile && (
-                <Button
-                  type="Secondary"
-                  label="Invite contacts"
-                  onClick={onInviteByEmail}
-                  style={{marginLeft: globalMargins.tiny}}
-                />
-              )}
+              {!isMobile && <Button type="Secondary" label="Invite by email" onClick={onInviteByEmail} />}
+              {isMobile && <Button type="Secondary" label="Invite contacts" onClick={onInviteByEmail} />}
             </ButtonBar>
           )}
           <Help name={name} />
@@ -710,8 +711,8 @@ const stylesTeamHeader = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
   textAlign: 'center',
-  paddingLeft: globalMargins.medium,
-  paddingRight: globalMargins.medium,
+  paddingLeft: isMobile ? 0 : globalMargins.medium,
+  paddingRight: isMobile ? 0 : globalMargins.medium,
   maxWidth: 560,
 }
 
