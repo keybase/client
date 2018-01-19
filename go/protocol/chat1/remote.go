@@ -746,22 +746,6 @@ func (o SetRetentionRes) DeepCopy() SetRetentionRes {
 	}
 }
 
-type UpgradeKBFSToImpteamRes struct {
-	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
-}
-
-func (o UpgradeKBFSToImpteamRes) DeepCopy() UpgradeKBFSToImpteamRes {
-	return UpgradeKBFSToImpteamRes{
-		RateLimit: (func(x *RateLimit) *RateLimit {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.RateLimit),
-	}
-}
-
 type GetInboxRemoteArg struct {
 	Vers       InboxVers      `codec:"vers" json:"vers"`
 	Query      *GetInboxQuery `codec:"query,omitempty" json:"query,omitempty"`
@@ -975,7 +959,7 @@ type RemoteInterface interface {
 	RemoteNotificationSuccessful(context.Context, RemoteNotificationSuccessfulArg) error
 	SetConvRetention(context.Context, SetConvRetentionArg) (SetRetentionRes, error)
 	SetTeamRetention(context.Context, SetTeamRetentionArg) (SetRetentionRes, error)
-	UpgradeKBFSToImpteam(context.Context, ConversationID) (UpgradeKBFSToImpteamRes, error)
+	UpgradeKBFSToImpteam(context.Context, ConversationID) error
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -1516,7 +1500,7 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]UpgradeKBFSToImpteamArg)(nil), args)
 						return
 					}
-					ret, err = i.UpgradeKBFSToImpteam(ctx, (*typedArgs)[0].ConvID)
+					err = i.UpgradeKBFSToImpteam(ctx, (*typedArgs)[0].ConvID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1705,8 +1689,8 @@ func (c RemoteClient) SetTeamRetention(ctx context.Context, __arg SetTeamRetenti
 	return
 }
 
-func (c RemoteClient) UpgradeKBFSToImpteam(ctx context.Context, convID ConversationID) (res UpgradeKBFSToImpteamRes, err error) {
+func (c RemoteClient) UpgradeKBFSToImpteam(ctx context.Context, convID ConversationID) (err error) {
 	__arg := UpgradeKBFSToImpteamArg{ConvID: convID}
-	err = c.Cli.Call(ctx, "chat.1.remote.upgradeKBFSToImpteam", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "chat.1.remote.upgradeKBFSToImpteam", []interface{}{__arg}, nil)
 	return
 }

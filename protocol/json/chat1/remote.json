@@ -552,19 +552,6 @@
           "name": "rateLimit"
         }
       ]
-    },
-    {
-      "type": "record",
-      "name": "UpgradeKBFSToImpteamRes",
-      "fields": [
-        {
-          "type": [
-            null,
-            "RateLimit"
-          ],
-          "name": "rateLimit"
-        }
-      ]
     }
   ],
   "messages": {
@@ -1079,7 +1066,7 @@
           "type": "ConversationID"
         }
       ],
-      "response": "UpgradeKBFSToImpteamRes"
+      "response": null
     }
   },
   "namespace": "chat.1"
