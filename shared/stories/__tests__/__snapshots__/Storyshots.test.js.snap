@@ -31856,6 +31856,7 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
               "borderRadius": 6,
               "height": 8,
               "marginLeft": 4,
+              "marginTop": 1,
               "width": 8,
             }
           }
@@ -32539,6 +32540,7 @@ exports[`Storyshots People/Follow notification Someone followed you 1`] = `
               "borderRadius": 6,
               "height": 8,
               "marginLeft": 4,
+              "marginTop": 1,
               "width": 8,
             }
           }
@@ -32956,6 +32958,7 @@ exports[`Storyshots People/Todos Chat 1`] = `
               "borderRadius": 6,
               "height": 8,
               "marginLeft": 4,
+              "marginTop": 1,
               "width": 8,
             }
           }
@@ -33140,6 +33143,7 @@ exports[`Storyshots People/Todos Fill out bio 1`] = `
               "borderRadius": 6,
               "height": 8,
               "marginLeft": 4,
+              "marginTop": 1,
               "width": 8,
             }
           }
@@ -33343,6 +33347,7 @@ exports[`Storyshots People/Todos Follow someone 1`] = `
               "borderRadius": 6,
               "height": 8,
               "marginLeft": 4,
+              "marginTop": 1,
               "width": 8,
             }
           }
@@ -33546,6 +33551,7 @@ exports[`Storyshots People/Todos Install on phone 1`] = `
               "borderRadius": 6,
               "height": 8,
               "marginLeft": 4,
+              "marginTop": 1,
               "width": 8,
             }
           }
@@ -33749,6 +33755,7 @@ exports[`Storyshots People/Todos Make a folder 1`] = `
               "borderRadius": 6,
               "height": 8,
               "marginLeft": 4,
+              "marginTop": 1,
               "width": 8,
             }
           }
@@ -33952,6 +33959,7 @@ exports[`Storyshots People/Todos Make a git 1`] = `
               "borderRadius": 6,
               "height": 8,
               "marginLeft": 4,
+              "marginTop": 1,
               "width": 8,
             }
           }
@@ -34136,6 +34144,7 @@ exports[`Storyshots People/Todos Make a paper key 1`] = `
               "borderRadius": 6,
               "height": 8,
               "marginLeft": 4,
+              "marginTop": 1,
               "width": 8,
             }
           }
@@ -34339,6 +34348,7 @@ exports[`Storyshots People/Todos Make a team 1`] = `
               "borderRadius": 6,
               "height": 8,
               "marginLeft": 4,
+              "marginTop": 1,
               "width": 8,
             }
           }
@@ -34542,6 +34552,7 @@ exports[`Storyshots People/Todos Prove something 1`] = `
               "borderRadius": 6,
               "height": 8,
               "marginLeft": 4,
+              "marginTop": 1,
               "width": 8,
             }
           }
@@ -34745,6 +34756,7 @@ exports[`Storyshots People/Todos Set publicity 1`] = `
               "borderRadius": 6,
               "height": 8,
               "marginLeft": 4,
+              "marginTop": 1,
               "width": 8,
             }
           }
