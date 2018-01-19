@@ -104,12 +104,14 @@ func (fod fileOrDir) Stat() (fi os.FileInfo, err error) {
 			fs:   fod.file.fs,
 			ei:   fod.ei,
 			node: fod.file.node,
+			name: fod.file.node.GetBasename(),
 		}, nil
 	} else if fod.dir != nil {
 		return &FileInfo{
 			fs:   fod.dir.fs,
 			ei:   fod.ei,
 			node: fod.dir.node,
+			name: fod.dir.node.GetBasename(),
 		}, nil
 	}
 	return nil, errors.New("invalid fod")
