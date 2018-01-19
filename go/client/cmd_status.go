@@ -180,8 +180,8 @@ func (c *CmdStatus) load() (*fstatus, error) {
 		status.KBFS.Running = true
 		// This just gets the mountpoint from the environment; the
 		// user could have technically passed a different mountpoint
-		// to KBFS on macOS or Linux.  TODO: fetch the actual
-		// mountpoint with a new RPC from KBFS.
+		// to KBFS on macOS or Linux.  TODO(KBFS-2723): fetch the
+		// actual mountpoint with a new RPC from KBFS.
 		mountDir, err := c.G().Env.GetMountDir()
 		if err != nil {
 			return nil, err

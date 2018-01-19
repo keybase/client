@@ -33,6 +33,9 @@ var (
 )
 
 func getDefaultUserMount() string {
+	// On linux, `run_keybase` passes in an explicit mountpoint in
+	// ${XDG_DATA_HOME:-$HOME/.local/share}, so in practice the
+	// default here probably isn't used.
 	return fmt.Sprintf("/run/user/%d/keybase/fs", os.Getuid())
 }
 
@@ -188,7 +191,7 @@ func main() {
 	}
 
 	if !firstMount {
-		fmt.Printf("Your mountpoint is %s; consider `ln -s %s ~/keybase\n",
+		fmt.Printf("Your mountpoint is %s; consider `ln -s %s ~/keybase`\n",
 			fUserMount, fUserMount)
 	}
 }
