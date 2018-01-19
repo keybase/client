@@ -533,12 +533,16 @@ L:
 		rl = append(rl, irl...)
 		if ierr != nil || len(res) == 0 {
 			if ierr != nil {
-				debugger.Debug(ctx, "FindConversations: fail reason: %s mt: %v", err, mt)
+				debugger.Debug(ctx, "FindConversations: fail reason: %s mt: %v", ierr, mt)
 			} else {
 				debugger.Debug(ctx, "FindConversations: fail reason: no convs mt: %v", mt)
 			}
 			var newMT chat1.ConversationMembersType
 			switch mt {
+			case chat1.ConversationMembersType_TEAM:
+				err = ierr
+				debugger.Debug(ctx, "FindConversations: failed with team, aborting")
+				break L
 			case chat1.ConversationMembersType_IMPTEAMUPGRADE:
 				if !attempts[chat1.ConversationMembersType_IMPTEAMNATIVE] {
 					newMT = chat1.ConversationMembersType_IMPTEAMNATIVE
