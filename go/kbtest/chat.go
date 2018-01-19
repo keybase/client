@@ -616,6 +616,10 @@ func (m *ChatRemoteMock) SetAppNotificationSettings(ctx context.Context,
 	return res, errors.New("not implemented")
 }
 
+func (m *ChatRemoteMock) UpgradeKBFSToImpteam(ctx context.Context, convID chat1.ConversationID) error {
+	return errors.New("not implemented")
+}
+
 func (m *ChatRemoteMock) SetGlobalAppNotificationSettings(ctx context.Context,
 	arg chat1.GlobalAppNotificationSettings) error {
 	return errors.New("not implemented")
