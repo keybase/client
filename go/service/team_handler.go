@@ -52,6 +52,8 @@ func (r *teamHandler) Create(ctx context.Context, cli gregor1.IncomingInterface,
 		return true, r.seitanCompletion(ctx, cli, item)
 	case "team.member_out_from_reset":
 		return true, r.memberOutFromReset(ctx, cli, item)
+	case "team.abandoned":
+		return true, r.abandonTeam(ctx, cli, item)
 	default:
 		return false, fmt.Errorf("unknown teamHandler category: %q", category)
 	}
@@ -90,6 +92,34 @@ func (r *teamHandler) memberOutFromReset(ctx context.Context, cli gregor1.Incomi
 
 	r.G().Log.CDebugf(ctx, "%s: cleared UIDMap cache for %s%%%d", nm, msg.ResetUser.Uid, msg.ResetUser.EldestSeqno)
 	return nil
+}
+
+type abandonMsg struct {
+	TeamID keybase1.TeamID `json:"team_id"`
+}
+
+func (r *teamHandler) abandonTeam(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
+	nm := "team.abandoned"
+	r.G().Log.CDebugf(ctx, "teamHandler: %s received", nm)
+	r.G().Log.CDebugf(ctx, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+	r.G().Log.CDebugf(ctx, "%s json: %s", nm, item.Body().Bytes())
+	r.G().Log.CDebugf(ctx, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+	var msg abandonMsg
+	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
+		r.G().Log.CDebugf(ctx, "error unmarshaling %s item: %s", nm, err)
+		return err
+	}
+	r.G().Log.CDebugf(ctx, "%s unmarshaled: %+v", nm, msg)
+
+	// something like this:
+	/*
+		if err := teams.HandleChangeNotification(ctx, r.G(), rows, changes); err != nil {
+			return err
+		}
+	*/
+
+	r.G().Log.CDebugf(ctx, "dismissing %s", nm)
+	return r.G().GregorDismisser.DismissItem(ctx, cli, item.Metadata().MsgID())
 }
 
 func (r *teamHandler) changeTeam(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item, changes keybase1.TeamChangeSet) error {

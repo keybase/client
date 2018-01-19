@@ -81,6 +81,16 @@
       "response": null,
       "oneway": true
     },
+    "implicitTeamAbandoned": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
     "teamExit": {
       "request": [
         {
