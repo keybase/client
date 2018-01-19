@@ -527,11 +527,12 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 	mt := membersTypeIn
 L:
 	for {
+		var ierr error
 		attempts[mt] = true
-		res, irl, err = findConvosWithMembersType(mt)
+		res, irl, ierr = findConvosWithMembersType(mt)
 		rl = append(rl, irl...)
-		if err != nil || len(res) == 0 {
-			if err != nil {
+		if ierr != nil || len(res) == 0 {
+			if ierr != nil {
 				debugger.Debug(ctx, "FindConversations: fail reason: %s mt: %v", err, mt)
 			} else {
 				debugger.Debug(ctx, "FindConversations: fail reason: no convs mt: %v", mt)
@@ -544,14 +545,21 @@ L:
 				} else {
 					newMT = chat1.ConversationMembersType_KBFS
 				}
+				err = ierr
 			case chat1.ConversationMembersType_IMPTEAMNATIVE:
 				if !attempts[chat1.ConversationMembersType_IMPTEAMUPGRADE] {
 					newMT = chat1.ConversationMembersType_IMPTEAMUPGRADE
 				} else {
 					newMT = chat1.ConversationMembersType_KBFS
 				}
+				err = ierr
 			case chat1.ConversationMembersType_KBFS:
 				debugger.Debug(ctx, "FindConversations: failed with KBFS, aborting")
+				// We don't want to return random errors from KBFS if we are falling back to it,
+				// just return no conversatins and call it a day
+				if membersTypeIn == chat1.ConversationMembersType_KBFS {
+					err = ierr
+				}
 				break L
 			}
 			debugger.Debug(ctx,
