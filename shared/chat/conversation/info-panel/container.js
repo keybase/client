@@ -85,7 +85,7 @@ const mapStateToProps = (state: TypedState): StateProps => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+const mapDispatchToProps = (dispatch: Dispatch) => ({
   _navToRootChat: () => dispatch(navigateTo([chatTab])),
   _onLeaveConversation: (conversationIDKey: Types.ConversationIDKey) => {
     dispatch(ChatGen.createLeaveConversation({conversationIDKey}))
@@ -120,14 +120,13 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
     dispatch(navigateAppend([{props: {teamname}, selected: 'reallyLeaveTeam'}])),
   _onViewTeam: (teamname: TeamTypes.Teamname) =>
     dispatch(navigateTo([teamsTab, {props: {teamname: teamname}, selected: 'team'}])),
-  // Used by HeaderHoc.
-  onBack: () => dispatch(navigateUp()),
   onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
 })
 
-const mergeProps = (stateProps, dispatchProps) => ({
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...stateProps,
   ...dispatchProps,
+  ...ownProps,
   onLeaveConversation: () => {
     if (stateProps.selectedConversationIDKey) {
       dispatchProps._navToRootChat()
@@ -165,13 +164,13 @@ const ConnectedConversationInfoPanel = connect(mapStateToProps, mapDispatchToPro
   ConversationInfoPanel
 )
 
-type SelectorProps = {
+type SelectorStateProps = {
   channelname?: ?string,
   selectedConversationIDKey?: Types.ConversationIDKey,
   smallTeam?: boolean,
 }
 
-const mapStateToSelectorProps = (state: TypedState): SelectorProps => {
+const mapStateToSelectorProps = (state: TypedState): SelectorStateProps => {
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
   const inbox = Constants.getSelectedInbox(state)
   if (!selectedConversationIDKey || !inbox) {
@@ -187,6 +186,17 @@ const mapStateToSelectorProps = (state: TypedState): SelectorProps => {
   }
 }
 
+type SelectorDispatchProps = {
+  onBack: () => void,
+}
+
+const mapDispatchToSelectorProps = (dispatch: Dispatch, {navigateUp}): SelectorDispatchProps => ({
+  // Used by HeaderHoc.
+  onBack: () => dispatch(navigateUp()),
+})
+
+type SelectorProps = SelectorStateProps & SelectorDispatchProps
+
 class InfoPanelSelector extends React.PureComponent<SelectorProps> {
   render() {
     if (!this.props.selectedConversationIDKey) {
@@ -194,17 +204,17 @@ class InfoPanelSelector extends React.PureComponent<SelectorProps> {
     }
 
     if (this.props.smallTeam) {
-      return <ConnectedSmallTeamInfoPanel />
+      return <ConnectedSmallTeamInfoPanel onBack={this.props.onBack} />
     }
 
     if (this.props.channelname) {
-      return <ConnectedBigTeamInfoPanel />
+      return <ConnectedBigTeamInfoPanel onBack={this.props.onBack} />
     }
 
-    return <ConnectedConversationInfoPanel />
+    return <ConnectedConversationInfoPanel onBack={this.props.onBack} />
   }
 }
 
-const ConnectedInfoPanel = connect(mapStateToSelectorProps)(InfoPanelSelector)
+const ConnectedInfoPanel = connect(mapStateToSelectorProps, mapDispatchToSelectorProps)(InfoPanelSelector)
 
 export default ConnectedInfoPanel
