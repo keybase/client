@@ -1,7 +1,7 @@
 // @flow
-import * as React from 'react'
+import React, {PureComponent} from 'react'
 import * as Types from '../constants/types/fs'
-import {globalStyles, globalMargins} from '../styles'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 import {isMobile} from '../constants/platform'
 import {Box, Button, ClickableBox, Icon, List, Text} from '../common-adapters'
 import {type IconType} from '../common-adapters/icon'
@@ -48,7 +48,7 @@ const FileRow = ({path, icon, showFileData}: Types.FileRowProps) => (
     <Box key={path} style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
       <Icon type={icon} style={{marginRight: 16}} />
       <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'flex-start'}}>
-        <Text style={{flex: 1}}>
+        <Text type="Body" style={{flex: 1}}>
           {path}
         </Text>
       </Box>
@@ -65,8 +65,8 @@ class Folder extends PureComponent<Types.FolderProps> {
 
   render() {
     const iconTypes : IconType = {
-      folder: isMobile ? 'icon-folder-private-48' : 'icon-folder-private-48',
-      file: isMobile ? 'icon-file-48' : 'icon-file-48',
+      folder: isMobile ? 'icon-folder-private-24' : 'icon-folder-private-24',
+      file: isMobile ? 'icon-file-24' : 'icon-file-24',
     }
     const items = [
       ...this.props.items.map(({name, visibility, type}) => ({
@@ -88,7 +88,7 @@ class Folder extends PureComponent<Types.FolderProps> {
 }
 
 const Fs = () => (
-  <Folder path='' items={rootFolders.map(name => ({name, visibility: name, type: 'folder'}))} />
+  <Folder path='/keybase' items={rootFolders.map(name => ({name, visibility: name, type: 'folder'}))} />
 )
 
 export default Fs
