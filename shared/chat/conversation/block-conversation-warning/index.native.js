@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box, Button, PopupDialog, Text, StandardScreen, ButtonBar} from '../../../common-adapters/index'
+import {Box, Button, PopupDialog, Text, StandardScreen} from '../../../common-adapters/index'
 import {globalMargins, globalStyles, globalColors} from '../../../styles'
 
 import type {Props} from './'
@@ -45,11 +45,21 @@ const _Contents = ({conversationIDKey, onBack, participants, onBlock, onBlockAnd
         </Box>
         <Text type="Body">in the terminal on a desktop computer.</Text>
       </Box>
-      <ButtonBar>
+      <Box style={{...globalStyles.flexBoxColumn, marginTop: globalMargins.medium}}>
         <Button type="Secondary" onClick={onBack} label="No, don't block them" />
-        <Button type="Danger" onClick={onBlock} label="Yes, block them" />
-        <Button type="Danger" onClick={onBlockAndReport} label="Yes, block and report abuse" />
-      </ButtonBar>
+        <Button
+          style={{marginTop: globalMargins.small}}
+          type="Danger"
+          onClick={onBlock}
+          label="Yes, block them"
+        />
+        <Button
+          style={{marginTop: globalMargins.small}}
+          type="Danger"
+          onClick={onBlockAndReport}
+          label="Yes, block and report abuse"
+        />
+      </Box>
     </Box>
   </StandardScreen>
 )
