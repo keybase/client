@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"os"
 	"os/user"
+	"path/filepath"
 	"runtime"
 	"strconv"
 	"syscall"
@@ -33,10 +34,41 @@ var (
 )
 
 func getDefaultUserMount() string {
-	// On linux, `run_keybase` passes in an explicit mountpoint in
-	// ${XDG_DATA_HOME:-$HOME/.local/share}, so in practice the
-	// default here probably isn't used.
-	return fmt.Sprintf("/run/user/%d/keybase/fs", os.Getuid())
+	// Do basically the same thing as libkb.Env.GetMountDir(), but
+	// let's not include that library because it blows up the size of
+	// the keybase-mount-helper binary by 10x.
+	mountDir := os.Getenv("KEYBASE_MOUNTDIR")
+	if len(mountDir) > 0 {
+		return mountDir
+	}
+	runMode := os.Getenv("KEYBASE_RUN_MODE")
+	switch runMode {
+	case "prod":
+		mountDir = "keybase"
+	case "staging":
+		mountDir = "keybase.staging"
+	case "devel":
+		mountDir = "keybase.devel"
+	default:
+		// Prod by default.
+		mountDir = "keybase"
+	}
+
+	home := os.Getenv("HOME")
+
+	switch runtime.GOOS {
+	case "windows":
+		panic("Not supported on Windows")
+	case "darwin":
+		return filepath.Join(
+			home, "Library", "Application Support", mountDir, "fs")
+	default:
+		xdgDataDir := os.Getenv("XDG_DATA_DIR")
+		if len(xdgDataDir) > 0 {
+			return filepath.Join(xdgDataDir, mountDir, "fs")
+		}
+		return filepath.Join(home, ".local", "share", mountDir, "fs")
+	}
 }
 
 func init() {
