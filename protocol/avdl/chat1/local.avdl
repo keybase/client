@@ -65,6 +65,7 @@ protocol local {
     string team;
     string pusher;
     string repoName;
+    keybase1.RepoID repoID;
     array<keybase1.GitRefMetadata> refs;
   }
 
