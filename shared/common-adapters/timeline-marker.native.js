@@ -15,7 +15,7 @@ const TimelineMarker = ({idx, max, type, style}: Props) => (
 const circleSize = 8
 
 const stylesCircleOpen = {
-  borderColor: globalColors.lightGrey2,
+  borderColor: globalColors.black_10,
   borderRadius: circleSize / 2,
   borderWidth: 2,
   height: circleSize,
@@ -24,12 +24,12 @@ const stylesCircleOpen = {
 
 const stylesCircleClosed = {
   ...stylesCircleOpen,
-  backgroundColor: globalColors.lightGrey2,
+  backgroundColor: globalColors.black_10,
   borderColor: globalColors.white,
 }
 
 const stylesLine = {
-  backgroundColor: globalColors.lightGrey2,
+  backgroundColor: globalColors.black_10,
   width: 2,
 }
 
