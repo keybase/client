@@ -33,6 +33,20 @@ var (
 	fUserMount                string
 )
 
+func runModeToKeybase() string {
+	switch os.Getenv("KEYBASE_RUN_MODE") {
+	case "prod":
+		return "keybase"
+	case "staging":
+		return "keybase.staging"
+	case "devel":
+		return "keybase.devel"
+	default:
+		// Prod by default.
+		return "keybase"
+	}
+}
+
 func getDefaultUserMount() string {
 	// Do basically the same thing as libkb.Env.GetMountDir(), but
 	// let's not include that library because it blows up the size of
@@ -41,20 +55,9 @@ func getDefaultUserMount() string {
 	if len(mountDir) > 0 {
 		return mountDir
 	}
-	runMode := os.Getenv("KEYBASE_RUN_MODE")
-	switch runMode {
-	case "prod":
-		mountDir = "keybase"
-	case "staging":
-		mountDir = "keybase.staging"
-	case "devel":
-		mountDir = "keybase.devel"
-	default:
-		// Prod by default.
-		mountDir = "keybase"
-	}
 
 	home := os.Getenv("HOME")
+	mountDir = runModeToKeybase()
 
 	switch runtime.GOOS {
 	case "windows":
@@ -223,7 +226,12 @@ func main() {
 	}
 
 	if !firstMount {
-		fmt.Printf("Your mountpoint is %s; consider `ln -s %s ~/keybase`\n",
-			fUserMount, fUserMount)
+		home := os.Getenv("HOME")
+		suggestedLink := filepath.Join(home, runModeToKeybase())
+		target, err := os.Readlink(suggestedLink)
+		if err != nil || target != fUserMount {
+			fmt.Printf("Your mountpoint is %s; consider `ln -s %s %s`\n",
+				fUserMount, fUserMount, suggestedLink)
+		}
 	}
 }
