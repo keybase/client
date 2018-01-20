@@ -15,6 +15,8 @@ mkdir -p "$runtime_dir"
 startup_token="$runtime_dir/startup_mode"
 mountdir="${XDG_DATA_HOME:-$HOME/.local/share}/keybase/fs"
 export KEYBASE_MOUNTDIR=$mountdir
+# Don't make the mountpoint until after unmounting/killing the
+# previous mount, otherwise `mkdir` will fail.
 
 # NOTE: This logic is duplicated in systemd_linux.go. If you make changes here,
 # keep them in sync.
@@ -94,13 +96,13 @@ kill_all() {
 }
 
 forward_vars() {
-  filename=$1
+  filename="$1"
   vars=("${!2}")
-  cat /dev/null > $filename
+  cat /dev/null > "$filename"
   for varname in "${vars[@]}" ; do
       # Include set-but-empty variables but not unset variables.
       if [ -n "${!varname+x}" ] ; then
-          echo "$varname=${!varname}" >> $filename
+          echo "$varname=${!varname}" >> "$filename"
       fi
   done
 }
@@ -134,17 +136,20 @@ start_systemd() {
   )
   forward_vars "$runtime_dir/keybase.gui.env" forwarded_gui_env_vars[@]
 
-  mkdir -p "$mountdir"
   keybase-mount-helper -user-mount "$mountdir"
 
   forwarded_kbfs_env_vars=(
-      # Needed to determine the mountdir inside the service.
+      # Needed to determine the mountdir inside the service, to set
+      # the mountpoint on the command line.
       KEYBASE_MOUNTDIR
   )
   forward_vars "$runtime_dir/kbfs.env" forwarded_kbfs_env_vars[@]
 
   forwarded_service_env_vars=(
-      # Needed to determine the mountdir inside the service.
+      # Needed to determine the mountdir inside the service, to return
+      # the mountpoint as part of `keybase status`.  TODO(KBFS-2723):
+      # we should be fetching the mountpoint from the kbfs binary if
+      # possible.
       KEYBASE_MOUNTDIR
   )
   forward_vars "$runtime_dir/keybase.env" forwarded_service_env_vars[@]
@@ -162,13 +167,12 @@ start_background() {
   export KEYBASE_DEBUG=1
   logdir="${XDG_CACHE_HOME:-$HOME/.cache}/keybase"
   mkdir -p "$logdir"
-  mkdir -p "$mountdir"
 
   echo Launching keybase service...
   # We set the --auto-forked flag here so that updated clients that try to
   # restart this service will know to re-fork it themselves. That's all it does.
   keybase -d --log-file="$logdir/keybase.service.log" service --auto-forked &>> "$logdir/keybase.start.log" &
-  echo Mounting /keybase...
+  echo Mounting the file system...
   keybase-mount-helper -user-mount "$mountdir"
   kbfsfuse -debug -log-to-file "$mountdir" &>> "$logdir/keybase.start.log" &
   echo Launching Keybase GUI...
@@ -184,7 +188,8 @@ main() {
   # 2) Users have come to expect that run_keybase will restart everything, and
   #    we tell them to do it after updates.
   kill_all
-
+  mkdir -p "$mountdir"
+  
   if wants_systemd ; then
       start_systemd
   else
