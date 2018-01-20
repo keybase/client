@@ -66,7 +66,7 @@ func getDefaultUserMount() string {
 		return filepath.Join(
 			home, "Library", "Application Support", mountDir, "fs")
 	default:
-		xdgDataDir := os.Getenv("XDG_DATA_DIR")
+		xdgDataDir := os.Getenv("XDG_DATA_HOME")
 		if len(xdgDataDir) > 0 {
 			return filepath.Join(xdgDataDir, mountDir, "fs")
 		}
