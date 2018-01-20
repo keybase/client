@@ -43,6 +43,24 @@ func TestTeamTransactions(t *testing.T) {
 	err := tx.Post(context.Background())
 	require.NoError(t, err)
 
+	teamObj = ann.loadTeam(team, true /* admin */)
+	require.Equal(t, 1, teamObj.NumActiveInvites())
+	invites := teamObj.GetActiveAndObsoleteInvites()
+	require.Equal(t, 1, len(invites))
+	for _, invite := range teamObj.GetActiveAndObsoleteInvites() {
+		uv, err := invite.KeybaseUserVersion()
+		require.NoError(t, err)
+		require.EqualValues(t, bob.userVersion(), uv)
+	}
+
+	members, err := teamObj.Members()
+	require.NoError(t, err)
+	require.Equal(t, 1, len(members.Owners))
+	require.Equal(t, 0, len(members.Admins))
+	require.Equal(t, 0, len(members.Writers))
+	require.Equal(t, 1, len(members.Readers))
+	require.EqualValues(t, tracy.userVersion(), members.Readers[0])
+
 	// TRANSACTION 2 - bob gets puk, add bob but not through SBS - we
 	// expect the invite to be sweeped away by this transaction.
 
@@ -59,6 +77,8 @@ func TestTeamTransactions(t *testing.T) {
 	require.NoError(t, err)
 
 	teamObj = ann.loadTeam(team, true /* admin */)
+
+	require.Equal(t, 0, len(teamObj.GetActiveAndObsoleteInvites()))
 }
 
 func TestTeamTxDependency(t *testing.T) {
@@ -82,6 +102,16 @@ func TestTeamTxDependency(t *testing.T) {
 	t.Logf("Team created (%s)", team)
 
 	ann.addTeamMember(team, bob.username, keybase1.TeamRole_WRITER)
+
+	teamObj := ann.loadTeam(team, true /* admin */)
+	members, err := teamObj.Members()
+	require.NoError(t, err)
+	require.Equal(t, 1, len(members.Owners))
+	require.Equal(t, 0, len(members.Admins))
+	require.Equal(t, 0, len(members.Writers))
+	require.Equal(t, 0, len(members.Readers))
+	require.EqualValues(t, ann.userVersion(), members.Owners[0])
+	require.Equal(t, 1, teamObj.NumActiveInvites())
 
 	bob.perUserKeyUpgrade()
 
@@ -111,17 +141,29 @@ func TestTeamTxDependency(t *testing.T) {
 	// read them as pukless. invite signature for bob@keybase would
 	// have a dependency on change_signature sweeping bob.
 
-	teamObj := ann.loadTeam(team, true /* admin */)
+	teamObj = ann.loadTeam(team, true /* admin */)
 
 	tx := teams.CreateAddMemberTx(teamObj)
 	tx.AddMemberTransaction(context.Background(), tracy.username, keybase1.TeamRole_READER)
 	tx.AddMemberTransaction(context.Background(), bob.username, keybase1.TeamRole_WRITER)
 
-	payloads := tx.DebugPayloads()
-	// TODO: this has to pass once this feature actually work.
+	// TODO: this has to pass once this feature is in.
+	// payloads := tx.DebugPayloads()
 	// require.Equal(t, 3, len(payloads))
-	_ = payloads
 
-	err := tx.Post(context.Background())
+	err = tx.Post(context.Background())
 	require.NoError(t, err)
+
+	teamObj = ann.loadTeam(team, true /* admin */)
+	members, err = teamObj.Members()
+	require.NoError(t, err)
+	require.Equal(t, 1, len(members.Owners))
+	require.Equal(t, 0, len(members.Admins))
+	require.Equal(t, 1, len(members.Writers))
+	require.Equal(t, 1, len(members.Readers))
+	require.EqualValues(t, ann.userVersion(), members.Owners[0])
+	require.EqualValues(t, tracy.userVersion(), members.Readers[0])
+	require.EqualValues(t, bob.userVersion(), members.Writers[0])
+	require.Equal(t, 0, teamObj.NumActiveInvites())
+	require.Equal(t, 0, len(teamObj.GetActiveAndObsoleteInvites()))
 }

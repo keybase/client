@@ -50,6 +50,9 @@ func (tx *AddMemberTx) changeMembershipPayload() *keybase1.TeamChangeReq {
 	return ret
 }
 
+// Low-level API: Find the right payload and add/remove
+// membership/invite.
+
 func (tx *AddMemberTx) RemoveMember(uv keybase1.UserVersion) error {
 	payload := tx.changeMembershipPayload()
 	payload.None = append(payload.None, uv)
@@ -127,6 +130,12 @@ func (tx *AddMemberTx) SweepKeybaseInvites(uid keybase1.UID) {
 	}
 }
 
+// High level API:
+
+// AddMemberTransaction will add member by username and role. It
+// checks if given username can become crypto member or a PUKless
+// member. It will also clean up old invites and memberships if
+// necessary.
 func (tx *AddMemberTx) AddMemberTransaction(ctx context.Context, username string, role keybase1.TeamRole) error {
 	team := tx.team
 	g := team.G()
@@ -189,10 +198,7 @@ func (tx *AddMemberTx) AddMemberTransaction(ctx context.Context, username string
 			normalizedUsername, team.Name())}
 	}
 
-	// TODO: Complete invite using curInvite in tx.AddMember branch.
-	// Or decide if we want this - maybe complete_invites should be
-	// reserved for "real" invite resolutions, as in these that come
-	// from SBS handler.
+	// No going back after this point!
 
 	tx.SweepMembers(uv.Uid)        // Sweep all existing crypto members
 	tx.SweepKeybaseInvites(uv.Uid) // Sweep all existing keybase type invites
