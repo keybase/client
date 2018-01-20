@@ -152,7 +152,7 @@ func (tlf *TLF) Attr(ctx context.Context, a *fuse.Attr) error {
 	return dir.Attr(ctx, a)
 }
 
-// tlfLoadavoidingLookupNames specifies a set of directory entry names
+// tlfLoadAvoidingLookupNames specifies a set of directory entry names
 // that should NOT cause a TLF to be fully loaded and identified on a
 // lookup.  If the directory is not yet loaded and one of these names
 // are looked-up, then ENOENT will be returned automatically.  This is
@@ -161,13 +161,13 @@ func (tlf *TLF) Attr(ctx context.Context, a *fuse.Attr) error {
 // `/keybase/private`, it looks up `.localized` in every TLF
 // subdirectory to see if it should translate the TLF folder name or
 // not, which can cause a tracker popup storm (see KBFS-2649).
-var tlfLoadavoidingLookupNames = map[string]bool{
+var tlfLoadAvoidingLookupNames = map[string]bool{
 	".localized": true,
 }
 
 // Lookup implements the fs.NodeRequestLookuper interface for TLF.
 func (tlf *TLF) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (fs.Node, error) {
-	if tlfLoadavoidingLookupNames[req.Name] {
+	if tlfLoadAvoidingLookupNames[req.Name] {
 		dir := tlf.getStoredDir()
 		if dir == nil {
 			tlf.log().CDebugf(
