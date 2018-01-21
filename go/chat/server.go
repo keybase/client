@@ -427,7 +427,7 @@ func (h *Server) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg
 	}
 
 	// Xlate pager control into pagination if given
-	if arg.Query != nil {
+	if arg.Query != nil && arg.Query.MessageIDControl != nil {
 		arg.Pagination = utils.XlateMessageIDControlToPagination(arg.Query.MessageIDControl)
 	}
 
@@ -482,7 +482,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 	}
 
 	// Xlate pager control into pagination if given
-	if arg.Query != nil {
+	if arg.Query != nil && arg.Query.MessageIDControl != nil {
 		pagination = utils.XlateMessageIDControlToPagination(arg.Query.MessageIDControl)
 	}
 
