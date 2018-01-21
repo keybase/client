@@ -13,10 +13,14 @@ import (
 
 func TestConfigV1Default(t *testing.T) {
 	config := DefaultV1()
-	read, list, realm, err := config.GetPermissionsForAnonymous("/")
+	read, list,
+		possibleRead, possibleList,
+		realm, err := config.GetPermissions("/", nil)
 	require.NoError(t, err)
 	require.True(t, read)
 	require.True(t, list)
+	require.True(t, possibleRead)
+	require.True(t, possibleList)
 	require.Equal(t, "/", realm)
 }
 
@@ -89,6 +93,10 @@ func generatePasswordHashForTestOrBust(t *testing.T, password string) []byte {
 	return passwordHash
 }
 
+func stringPtr(str string) *string {
+	return &str
+}
+
 func TestConfigV1Full(t *testing.T) {
 	config := V1{
 		Common: Common{
@@ -130,131 +138,203 @@ func TestConfigV1Full(t *testing.T) {
 	authenticated := config.Authenticate("alice", "12345")
 	require.True(t, authenticated)
 
-	read, list, realm, err := config.GetPermissionsForAnonymous("/")
+	read, list, possibleRead, possibleList,
+		realm, err := config.GetPermissions("/", nil)
 	require.NoError(t, err)
 	require.True(t, read)
 	require.True(t, list)
+	require.True(t, possibleRead)
+	require.True(t, possibleList)
 	require.Equal(t, "/", realm)
-	read, list, realm, err = config.GetPermissionsForUsername("/", "alice")
+	read, list, possibleRead, possibleList,
+		realm, err = config.GetPermissions("/", stringPtr("alice"))
 	require.NoError(t, err)
 	require.True(t, read)
 	require.True(t, list)
+	require.True(t, possibleRead)
+	require.True(t, possibleList)
 	require.Equal(t, "/", realm)
-	read, list, realm, err = config.GetPermissionsForUsername("/", "bob")
+	read, list, possibleRead, possibleList,
+		realm, err = config.GetPermissions("/", stringPtr("bob"))
 	require.NoError(t, err)
 	require.True(t, read)
 	require.True(t, list)
+	require.True(t, possibleRead)
+	require.True(t, possibleList)
 	require.Equal(t, "/", realm)
 
-	read, list, realm, err = config.GetPermissionsForAnonymous("/alice-and-bob")
+	read, list, possibleRead, possibleList,
+		realm, err = config.GetPermissions("/alice-and-bob", nil)
 	require.NoError(t, err)
 	require.False(t, read)
 	require.False(t, list)
+	require.True(t, possibleRead)
+	require.True(t, possibleList)
 	require.Equal(t, "/alice-and-bob", realm)
-	read, list, realm, err = config.GetPermissionsForUsername("/alice-and-bob", "alice")
+	read, list, possibleRead, possibleList,
+		realm, err = config.GetPermissions("/alice-and-bob", stringPtr("alice"))
 	require.NoError(t, err)
 	require.True(t, read)
 	require.True(t, list)
+	require.True(t, possibleRead)
+	require.True(t, possibleList)
 	require.Equal(t, "/alice-and-bob", realm)
-	read, list, realm, err = config.GetPermissionsForUsername("/alice-and-bob", "bob")
+	read, list, possibleRead, possibleList,
+		realm, err = config.GetPermissions("/alice-and-bob", stringPtr("bob"))
 	require.NoError(t, err)
 	require.True(t, read)
 	require.False(t, list)
+	require.True(t, possibleRead)
+	require.True(t, possibleList)
 	require.Equal(t, "/alice-and-bob", realm)
 
-	read, list, realm, err = config.GetPermissionsForAnonymous("/bob")
+	read, list, possibleRead, possibleList,
+		realm, err = config.GetPermissions("/bob", nil)
 	require.NoError(t, err)
 	require.False(t, read)
 	require.False(t, list)
+	require.True(t, possibleRead)
+	require.True(t, possibleList)
 	require.Equal(t, "/bob", realm)
-	read, list, realm, err = config.GetPermissionsForUsername("/bob", "alice")
+	read, list, possibleRead, possibleList,
+		realm, err = config.GetPermissions("/bob", stringPtr("alice"))
 	require.NoError(t, err)
 	require.False(t, read)
 	require.False(t, list)
+	require.True(t, possibleRead)
+	require.True(t, possibleList)
 	require.Equal(t, "/bob", realm)
-	read, list, realm, err = config.GetPermissionsForUsername("/bob", "bob")
+	read, list, possibleRead, possibleList,
+		realm, err = config.GetPermissions("/bob", stringPtr("bob"))
 	require.NoError(t, err)
 	require.True(t, read)
 	require.True(t, list)
+	require.True(t, possibleRead)
+	require.True(t, possibleList)
 	require.Equal(t, "/bob", realm)
 
-	read, list, realm, err = config.GetPermissionsForAnonymous("/public")
+	read, list, possibleRead, possibleList,
+		realm, err = config.GetPermissions("/public", nil)
 	require.NoError(t, err)
 	require.True(t, read)
 	require.True(t, list)
+	require.True(t, possibleRead)
+	require.True(t, possibleList)
 	require.Equal(t, "/public", realm)
-	read, list, realm, err = config.GetPermissionsForUsername("/public", "alice")
+	read, list, possibleRead, possibleList,
+		realm, err = config.GetPermissions("/public", stringPtr("alice"))
 	require.NoError(t, err)
 	require.True(t, read)
 	require.True(t, list)
+	require.True(t, possibleRead)
+	require.True(t, possibleList)
 	require.Equal(t, "/public", realm)
-	read, list, realm, err = config.GetPermissionsForUsername("/public", "bob")
+	read, list, possibleRead, possibleList,
+		realm, err = config.GetPermissions("/public", stringPtr("bob"))
 	require.NoError(t, err)
 	require.True(t, read)
 	require.True(t, list)
+	require.True(t, possibleRead)
+	require.True(t, possibleList)
 	require.Equal(t, "/public", realm)
 
-	read, list, realm, err = config.GetPermissionsForAnonymous("/public/not-really")
+	read, list, possibleRead, possibleList,
+		realm, err = config.GetPermissions("/public/not-really", nil)
 	require.NoError(t, err)
 	require.False(t, read)
 	require.False(t, list)
+	require.True(t, possibleRead)
+	require.True(t, possibleList)
 	require.Equal(t, "/public/not-really", realm)
-	read, list, realm, err = config.GetPermissionsForUsername("/public/not-really", "alice")
+	read, list, possibleRead, possibleList,
+		realm, err = config.GetPermissions("/public/not-really", stringPtr("alice"))
 	require.NoError(t, err)
 	require.True(t, read)
 	require.True(t, list)
+	require.True(t, possibleRead)
+	require.True(t, possibleList)
 	require.Equal(t, "/public/not-really", realm)
-	read, list, realm, err = config.GetPermissionsForUsername("/public/not-really", "bob")
+	read, list, possibleRead, possibleList,
+		realm, err = config.GetPermissions("/public/not-really", stringPtr("bob"))
 	require.NoError(t, err)
 	require.False(t, read)
 	require.False(t, list)
+	require.True(t, possibleRead)
+	require.True(t, possibleList)
 	require.Equal(t, "/public/not-really", realm)
 
-	read, list, realm, err = config.GetPermissionsForAnonymous("/bob/dir")
+	read, list, possibleRead, possibleList,
+		realm, err = config.GetPermissions("/bob/dir", nil)
 	require.NoError(t, err)
 	require.False(t, read)
 	require.False(t, list)
+	require.True(t, possibleRead)
+	require.True(t, possibleList)
 	require.Equal(t, "/bob", realm)
-	read, list, realm, err = config.GetPermissionsForUsername("/bob/dir", "alice")
+	read, list, possibleRead, possibleList,
+		realm, err = config.GetPermissions("/bob/dir", stringPtr("alice"))
 	require.NoError(t, err)
 	require.False(t, read)
 	require.False(t, list)
+	require.True(t, possibleRead)
+	require.True(t, possibleList)
 	require.Equal(t, "/bob", realm)
-	read, list, realm, err = config.GetPermissionsForUsername("/bob/dir", "bob")
+	read, list, possibleRead, possibleList,
+		realm, err = config.GetPermissions("/bob/dir", stringPtr("bob"))
 	require.NoError(t, err)
 	require.True(t, read)
 	require.True(t, list)
+	require.True(t, possibleRead)
+	require.True(t, possibleList)
 	require.Equal(t, "/bob", realm)
 
-	read, list, realm, err = config.GetPermissionsForAnonymous("/bob/dir/sub")
+	read, list, possibleRead, possibleList,
+		realm, err = config.GetPermissions("/bob/dir/sub", nil)
 	require.NoError(t, err)
 	require.False(t, read)
 	require.False(t, list)
+	require.True(t, possibleRead)
+	require.True(t, possibleList)
 	require.Equal(t, "/bob", realm)
-	read, list, realm, err = config.GetPermissionsForUsername("/bob/dir/sub", "alice")
+	read, list, possibleRead, possibleList,
+		realm, err = config.GetPermissions("/bob/dir/sub", stringPtr("alice"))
 	require.NoError(t, err)
 	require.False(t, read)
 	require.False(t, list)
+	require.True(t, possibleRead)
+	require.True(t, possibleList)
 	require.Equal(t, "/bob", realm)
-	read, list, realm, err = config.GetPermissionsForUsername("/bob/dir/sub", "bob")
+	read, list, possibleRead, possibleList,
+		realm, err = config.GetPermissions("/bob/dir/sub", stringPtr("bob"))
 	require.NoError(t, err)
 	require.True(t, read)
 	require.True(t, list)
+	require.True(t, possibleRead)
+	require.True(t, possibleList)
 	require.Equal(t, "/bob", realm)
 
-	read, list, realm, err = config.GetPermissionsForAnonymous("/bob/dir/deep-dir/deep-deep-dir")
+	read, list, possibleRead, possibleList,
+		realm, err = config.GetPermissions("/bob/dir/deep-dir/deep-deep-dir", nil)
 	require.NoError(t, err)
 	require.False(t, read)
 	require.False(t, list)
+	require.False(t, possibleRead)
+	require.False(t, possibleList)
 	require.Equal(t, "/bob/dir/deep-dir/deep-deep-dir", realm)
-	read, list, realm, err = config.GetPermissionsForUsername("/bob/dir/deep-dir/deep-deep-dir", "alice")
+	read, list, possibleRead, possibleList,
+		realm, err = config.GetPermissions("/bob/dir/deep-dir/deep-deep-dir", stringPtr("alice"))
 	require.NoError(t, err)
 	require.False(t, read)
 	require.False(t, list)
+	require.False(t, possibleRead)
+	require.False(t, possibleList)
 	require.Equal(t, "/bob/dir/deep-dir/deep-deep-dir", realm)
-	read, list, realm, err = config.GetPermissionsForUsername("/bob/dir/deep-dir/deep-deep-dir", "bob")
+	read, list, possibleRead, possibleList,
+		realm, err = config.GetPermissions("/bob/dir/deep-dir/deep-deep-dir", stringPtr("bob"))
 	require.NoError(t, err)
 	require.False(t, read)
 	require.False(t, list)
+	require.False(t, possibleRead)
+	require.False(t, possibleList)
 	require.Equal(t, "/bob/dir/deep-dir/deep-deep-dir", realm)
 }

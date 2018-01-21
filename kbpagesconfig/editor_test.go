@@ -97,7 +97,7 @@ func TestEditor(t *testing.T) {
 	require.NoError(t, err)
 	// We don't have any permission set, so we should get the default read,list
 	// for root.
-	read, list, _, err := editor.kbpConfig.GetPermissionsForAnonymous("/")
+	read, list, _, _, _, err := editor.kbpConfig.GetPermissions("/", nil)
 	require.NoError(t, err)
 	require.True(t, read)
 	require.True(t, list)
@@ -109,16 +109,17 @@ func TestEditor(t *testing.T) {
 	// Re-read the config file and make sure the user is gone.
 	editor, err = newKBPConfigEditorWithPrompter(configDir, prompter)
 	require.NoError(t, err)
-	read, list, _, err = editor.kbpConfig.GetPermissionsForAnonymous("/")
+	read, list, _, _, _, err = editor.kbpConfig.GetPermissions("/", nil)
 	require.NoError(t, err)
 	require.True(t, read)
 	require.False(t, list)
 
+	alice := "alice"
 	// grant alice additional permissions
 	editor, err = newKBPConfigEditorWithPrompter(configDir, prompter)
 	require.NoError(t, err)
-	read, list, _, err = editor.kbpConfig.GetPermissionsForUsername(
-		"/", "alice")
+	read, list, _, _, _, err = editor.kbpConfig.GetPermissions(
+		"/", &alice)
 	require.NoError(t, err)
 	require.True(t, read)
 	require.False(t, list)
@@ -130,8 +131,8 @@ func TestEditor(t *testing.T) {
 	// Re-read the config file and make sure the user is gone.
 	editor, err = newKBPConfigEditorWithPrompter(configDir, prompter)
 	require.NoError(t, err)
-	read, list, _, err = editor.kbpConfig.GetPermissionsForUsername(
-		"/", "alice")
+	read, list, _, _, _, err = editor.kbpConfig.GetPermissions(
+		"/", &alice)
 	require.NoError(t, err)
 	require.True(t, read)
 	require.True(t, list)

@@ -203,7 +203,7 @@ func (e *kbpConfigEditor) removeUserFromACL(username string, pathStr string) {
 
 func (e *kbpConfigEditor) getUserOnPath(
 	username string, pathStr string) (read, list bool, err error) {
-	read, list, _, err = e.kbpConfig.GetPermissionsForUsername(
-		pathStr, username)
+	read, list, _, _, _, err = e.kbpConfig.GetPermissions(
+		pathStr, &username)
 	return read, list, err
 }

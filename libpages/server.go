@@ -156,12 +156,17 @@ func (a adaptedLogger) Warning(format string, args ...interface{}) {
 	a.logger.Warn(a.msg, zap.String("desc", fmt.Sprintf(format, args...)))
 }
 
-func (s *Server) handleNeedAuthenticationAndPopulateSRI(
-	w http.ResponseWriter, r *http.Request, realm string,
+func (s *Server) handleUnauthorizedAndPopulateSRI(w http.ResponseWriter,
+	r *http.Request, realm string, authorizationPossible bool,
 	sri *ServedRequestInfo) {
-	w.Header().Set("WWW-Authenticate", fmt.Sprintf("Basic realm=%s", realm))
-	sri.HTTPStatus = http.StatusUnauthorized
-	w.WriteHeader(http.StatusUnauthorized)
+	if authorizationPossible {
+		w.Header().Set("WWW-Authenticate", fmt.Sprintf("Basic realm=%s", realm))
+		sri.HTTPStatus = http.StatusUnauthorized
+		w.WriteHeader(http.StatusUnauthorized)
+	} else {
+		sri.HTTPStatus = http.StatusForbidden
+		w.WriteHeader(http.StatusForbidden)
+	}
 }
 
 func (s *Server) isDirWithNoIndexHTML(
@@ -377,17 +382,14 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var canRead, canList bool
-	var realm string
+	var username *string
 	user, pass, ok := r.BasicAuth()
 	if ok && cfg.Authenticate(user, pass) {
 		sri.Authenticated = true
-		canRead, canList, realm, err = cfg.GetPermissionsForUsername(
-			r.URL.Path, user)
-	} else {
-		canRead, canList, realm, err = cfg.GetPermissionsForAnonymous(
-			r.URL.Path)
+		username = &user
 	}
+	canRead, canList, possibleRead, possibleList,
+		realm, err := cfg.GetPermissions(r.URL.Path, username)
 	if err != nil {
 		s.handleErrorAndPopulateSRI(w, err, sri)
 		return
@@ -404,12 +406,12 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if isListing && !canList {
-		s.handleNeedAuthenticationAndPopulateSRI(w, r, realm, sri)
+		s.handleUnauthorizedAndPopulateSRI(w, r, realm, possibleList, sri)
 		return
 	}
 
 	if !isListing && !canRead {
-		s.handleNeedAuthenticationAndPopulateSRI(w, r, realm, sri)
+		s.handleUnauthorizedAndPopulateSRI(w, r, realm, possibleRead, sri)
 		return
 	}
 

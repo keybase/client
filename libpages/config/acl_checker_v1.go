@@ -44,6 +44,13 @@ type accessControlV1 struct {
 	// for more details. It's a map of username -> permissionsV1.
 	whitelistAdditional map[string]permissionsV1
 	anonymous           permissionsV1
+	// maxPermission stores the most permissive permission that either an
+	// anonymous or an authenticated user can get for this path. Note that this
+	// doesn't necessarily mean there's a user able to get exactly this
+	// permission, since it's possible to have a user with `read` and a user
+	// with `list`, causing maxPermission to be {read: true, list: true} but
+	// never a user getting both.
+	maxPermission permissionsV1
 	// p stores the path (from Config declaration) that an *accessControlV1
 	// object is constructed for. When an *aclCheckerV1 is picked for a path,
 	// the p field can be used as a realm for HTTP Basic Authentication.
@@ -64,6 +71,7 @@ func makeAccessControlV1Internal(
 	if err != nil {
 		return nil, err
 	}
+	ac.maxPermission = ac.anonymous
 	for username, permissions := range a.WhitelistAdditionalPermissions {
 		if _, ok := users[username]; !ok {
 			return nil, ErrUndefinedUsername{username: username}
@@ -71,10 +79,13 @@ func makeAccessControlV1Internal(
 		if ac.whitelistAdditional == nil {
 			ac.whitelistAdditional = make(map[string]permissionsV1)
 		}
-		ac.whitelistAdditional[username], err = parsePermissionsV1(permissions)
+		parsedPermissions, err := parsePermissionsV1(permissions)
 		if err != nil {
 			return nil, err
 		}
+		ac.whitelistAdditional[username] = parsedPermissions
+		ac.maxPermission.read = ac.maxPermission.read || parsedPermissions.read
+		ac.maxPermission.list = ac.maxPermission.list || parsedPermissions.list
 	}
 	return ac, nil
 }
@@ -174,20 +185,20 @@ func (c *aclCheckerV1) getAccessControl(
 // getPermissions returns the permissions that username has on p. This method
 // should only be called on the root aclCheckerV1.
 func (c *aclCheckerV1) getPermissions(p string, username *string) (
-	permissions permissionsV1, effectivePath string) {
+	permissions permissionsV1, max permissionsV1, effectivePath string) {
 	// This is only called on the root aclCheckerV1, and c.ac is always
 	// populated here. So even if no other path shows up in the ACLs, any path
 	// will get root's *accessControlV1 as the last resort.
 	ac := c.getAccessControl(nil, p)
 	permissions = ac.anonymous
 	if ac.whitelistAdditional == nil || username == nil {
-		return permissions, ac.p
+		return permissions, ac.maxPermission, ac.p
 	}
 	if perms, ok := ac.whitelistAdditional[*username]; ok {
 		permissions.read = perms.read || permissions.read
 		permissions.list = perms.list || permissions.list
 	}
-	return permissions, ac.p
+	return permissions, ac.maxPermission, ac.p
 }
 
 // makeACLCheckerV1 makes an *aclCheckerV1 out of user-defined ACLs (acl). It

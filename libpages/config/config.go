@@ -64,9 +64,15 @@ func parseVersion(s string) (Version, error) {
 type Config interface {
 	Version() Version
 	Authenticate(username, password string) bool
-	GetPermissionsForAnonymous(path string) (read, list bool, realm string, err error)
-	GetPermissionsForUsername(
-		path, username string) (read, list bool, realm string, err error)
+	// GetPermissions returns permission info. If username is nil, anonymous
+	// permissions are returned. Otherwise, permissions for *username is
+	// returned. Additionally, "maximum possible permissions" are returned,
+	// which indicates whether a permission (read or list) is possible to be
+	// granted on the path if proper authentication is provided.
+	GetPermissions(path string, username *string) (
+		read, list bool,
+		possibleRead, possibleList bool,
+		realm string, err error)
 
 	Encode(w io.Writer, prettify bool) error
 }

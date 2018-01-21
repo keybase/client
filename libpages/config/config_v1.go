@@ -101,26 +101,17 @@ func (c *V1) Authenticate(username, password string) bool {
 	return bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(password)) == nil
 }
 
-// GetPermissionsForAnonymous implements the Config interface.
-func (c *V1) GetPermissionsForAnonymous(path string) (
-	read, list bool, realm string, err error) {
+// GetPermissions implements the Config interface.
+func (c *V1) GetPermissions(path string, username *string) (
+	read, list bool,
+	possibleRead, possibleList bool,
+	realm string, err error) {
 	if err = c.EnsureInit(); err != nil {
-		return false, false, "", err
+		return false, false, false, false, "", err
 	}
 
-	perms, realm := c.aclChecker.getPermissions(path, nil)
-	return perms.read, perms.list, realm, nil
-}
-
-// GetPermissionsForUsername implements the Config interface.
-func (c *V1) GetPermissionsForUsername(path, username string) (
-	read, list bool, realm string, err error) {
-	if err = c.EnsureInit(); err != nil {
-		return false, false, "", err
-	}
-
-	perms, realm := c.aclChecker.getPermissions(path, &username)
-	return perms.read, perms.list, realm, nil
+	perms, maxPerms, realm := c.aclChecker.getPermissions(path, username)
+	return perms.read, perms.list, maxPerms.read, maxPerms.list, realm, nil
 }
 
 // Encode implements the Config interface.
