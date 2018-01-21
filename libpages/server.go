@@ -64,7 +64,8 @@ type Server struct {
 	config     *ServerConfig
 	kbfsConfig libkbfs.Config
 
-	siteCache *lru.Cache
+	rootLoader RootLoader
+	siteCache  *lru.Cache
 }
 
 func (s *Server) getSite(ctx context.Context, root Root) (st *site, err error) {
@@ -355,7 +356,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Construct a *site from DNS record.
-	root, err := LoadRootFromDNS(s.config.Logger, r.Host)
+	root, err := s.rootLoader.LoadRoot(r.Host)
 	if err != nil {
 		s.handleError(w, err)
 		return
@@ -460,7 +461,7 @@ func (s *Server) allowConnectionTo(ctx context.Context, host string) error {
 	//
 	// TODO: cache the parsed root somewhere so we don't end up doing it twice
 	// for each connection.
-	_, err := LoadRootFromDNS(s.config.Logger, host)
+	_, err := s.rootLoader.LoadRoot(host)
 	if err != nil {
 		return err
 	}
@@ -517,6 +518,7 @@ func ListenAndServe(ctx context.Context,
 	server := &Server{
 		config:     config,
 		kbfsConfig: kbfsConfig,
+		rootLoader: DNSRootLoader{log: config.Logger},
 	}
 	server.siteCache, err = lru.NewWithEvict(fsCacheSize, server.siteCacheEvict)
 	if err != nil {

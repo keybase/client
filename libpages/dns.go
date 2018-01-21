@@ -12,6 +12,20 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+// RootLoader is the interface for loading a site root. This interface exists
+// for instrumenting tests. In real instances, only the DNSRootLoader should be
+// used.
+type RootLoader interface {
+	LoadRoot(domain string) (root Root, err error)
+}
+
+// DNSRootLoader is an implementation of RootLoader loads a root from DNS. This
+// is the RootLoader that should be used in all non-test scenarios. See doc for
+// LoadRoot for more.
+type DNSRootLoader struct {
+	log *zap.Logger
+}
+
 const (
 	keybasePagesPrefix = "kbp="
 )
@@ -36,7 +50,7 @@ func (ErrKeybasePagesRecordTooMany) Error() string {
 
 const kbpRecordPrefix = "_keybase_pages."
 
-// LoadRootFromDNS loads the root path configured for domain, with following
+// LoadRoot loads the root path configured for domain from DNS, with following
 // steps:
 //   1. Construct a domain name by prefixing the `domain` parameter with
 //      "_keybase_pages.". So for example, "static.keybase.io" turns into
@@ -64,7 +78,7 @@ const kbpRecordPrefix = "_keybase_pages."
 // _keybase_pages.song.gao.io       TXT "kbp=/keybase/private/songgao,kb_bot/blah"
 // _keybase_pages.blah.strib.io     TXT "kbp=/keybase/private/strib#kb_bot/blahblahb" "lah/blah/"
 // _keybase_pages.kbp.jzila.com     TXT "kbp=git@keybase:private/jzila,kb_bot/kbp.git"
-func LoadRootFromDNS(log *zap.Logger, domain string) (root Root, err error) {
+func (l DNSRootLoader) LoadRoot(domain string) (root Root, err error) {
 	var rootPath string
 
 	defer func() {
@@ -73,9 +87,9 @@ func LoadRootFromDNS(log *zap.Logger, domain string) (root Root, err error) {
 			zap.String("kbp_record", rootPath),
 		}
 		if err == nil {
-			log.Info("LoadRootFromDNS", zapFields...)
+			l.log.Info("LoadRootFromDNS", zapFields...)
 		} else {
-			log.Warn("LoadRootFromDNS", append(zapFields, zap.Error(err))...)
+			l.log.Warn("LoadRootFromDNS", append(zapFields, zap.Error(err))...)
 		}
 	}()
 
