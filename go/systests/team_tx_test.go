@@ -8,11 +8,9 @@ import (
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
-
-	"github.com/davecgh/go-spew/spew"
 )
 
-func TestTeamTransactions(t *testing.T) {
+func TestTeamTx1(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -71,13 +69,17 @@ func TestTeamTransactions(t *testing.T) {
 	tx = teams.CreateAddMemberTx(teamObj)
 	tx.AddMemberTransaction(context.Background(), bob.username, keybase1.TeamRole_WRITER)
 	tx.RemoveMember(tracy.userVersion())
-	spew.Dump(tx.DebugPayloads())
 
 	err = tx.Post(context.Background())
 	require.NoError(t, err)
 
 	teamObj = ann.loadTeam(team, true /* admin */)
-
+	members, err = teamObj.Members()
+	require.NoError(t, err)
+	require.Equal(t, 1, len(members.Owners))
+	require.Equal(t, 0, len(members.Admins)+len(members.Readers))
+	require.Equal(t, 1, len(members.Writers))
+	require.EqualValues(t, bob.userVersion(), members.Writers[0])
 	require.Equal(t, 0, len(teamObj.GetActiveAndObsoleteInvites()))
 }
 
@@ -107,9 +109,7 @@ func TestTeamTxDependency(t *testing.T) {
 	members, err := teamObj.Members()
 	require.NoError(t, err)
 	require.Equal(t, 1, len(members.Owners))
-	require.Equal(t, 0, len(members.Admins))
-	require.Equal(t, 0, len(members.Writers))
-	require.Equal(t, 0, len(members.Readers))
+	require.Equal(t, 0, len(members.Admins)+len(members.Writers)+len(members.Readers))
 	require.EqualValues(t, ann.userVersion(), members.Owners[0])
 	require.Equal(t, 1, teamObj.NumActiveInvites())
 
@@ -166,4 +166,140 @@ func TestTeamTxDependency(t *testing.T) {
 	require.EqualValues(t, bob.userVersion(), members.Writers[0])
 	require.Equal(t, 0, teamObj.NumActiveInvites())
 	require.Equal(t, 0, len(teamObj.GetActiveAndObsoleteInvites()))
+}
+
+func TestTeamTxSweepMembers(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+	t.Logf("Signed up user ann (%s)", ann.username)
+
+	bob := tt.addUser("bob")
+	t.Logf("Signed up user bob (%s)", bob.username)
+
+	pat := tt.addPuklessUser("pat")
+	t.Logf("Signed up PUKless user pat (%s)", pat.username)
+
+	team := ann.createTeam()
+	t.Logf("Team created (%s)", team)
+
+	ann.addTeamMember(team, bob.username, keybase1.TeamRole_WRITER)
+
+	bob.reset()
+	bob.loginAfterReset()
+
+	t.Logf("Bob (%s) resets and reprovisions, he is now: %v", bob.username, bob.userVersion())
+
+	teamObj := ann.loadTeam(team, true /* admin */)
+	tx := teams.CreateAddMemberTx(teamObj)
+	err := tx.AddMemberTransaction(context.Background(), bob.username, keybase1.TeamRole_READER)
+	require.NoError(t, err)
+	err = tx.Post(context.Background())
+	require.NoError(t, err)
+
+	teamObj = ann.loadTeam(team, true /* admin */)
+	members, err := teamObj.Members()
+	require.NoError(t, err)
+	require.Equal(t, 1, len(members.Owners))
+	require.Equal(t, 1, len(members.Readers))
+	require.Equal(t, 0, len(members.Admins)+len(members.Writers))
+	require.EqualValues(t, ann.userVersion(), members.Owners[0])
+	require.EqualValues(t, bob.userVersion(), members.Readers[0])
+	require.Equal(t, 0, len(teamObj.GetActiveAndObsoleteInvites()))
+}
+
+func TestTeamTxMultipleMembers(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+	t.Logf("Signed up user ann (%s)", ann.username)
+
+	// user 0 - ann, team owner
+	// user 1,2,3 - zzz, normal user
+	// user 4,5,6 - yyy, pukless user
+
+	for i := 0; i < 3; i++ {
+		user := tt.addUser("zzz")
+		t.Logf("Signed up normal user %d (%s, %v)", i, user.username, user.userVersion())
+	}
+
+	for i := 0; i < 3; i++ {
+		user := tt.addPuklessUser("yyy")
+		t.Logf("Signed up pukless user %d (%s, %v)", i, user.username, user.userVersion())
+	}
+
+	team := ann.createTeam()
+	t.Logf("Team created (%s)", team)
+
+	teamObj := ann.loadTeam(team, true /* admin */)
+	tx := teams.CreateAddMemberTx(teamObj)
+	for i := 1; i < 7; i++ {
+		err := tx.AddMemberTransaction(context.Background(), tt.users[i].username, keybase1.TeamRole_WRITER)
+		require.NoError(t, err)
+	}
+	err := tx.Post(context.Background())
+	require.NoError(t, err)
+
+	for i := 4; i <= 5; i++ {
+		user := tt.users[i]
+		user.reset()
+		user.loginAfterReset()
+		t.Logf("Reset pukless user %d (%s, %v)", i, user.username, user.userVersion())
+	}
+
+	teamObj = ann.loadTeam(team, true /* admin */)
+	tx = teams.CreateAddMemberTx(teamObj)
+	for i := 4; i <= 5; i++ {
+		err := tx.AddMemberTransaction(context.Background(), tt.users[i].username, keybase1.TeamRole_WRITER)
+		require.NoError(t, err)
+	}
+	err = tx.Post(context.Background())
+	require.NoError(t, err)
+
+	teamObj = ann.loadTeam(team, true /* admin */)
+	members, err := teamObj.Members()
+	require.NoError(t, err)
+	require.Equal(t, 1, len(members.Owners))
+	require.Equal(t, 5, len(members.Writers))
+	require.Equal(t, 0, len(members.Readers)+len(members.Admins))
+	invites := teamObj.GetActiveAndObsoleteInvites()
+	require.Equal(t, 1, len(invites))
+	for _, invite := range invites {
+		uv, err := invite.KeybaseUserVersion()
+		require.NoError(t, err)
+		require.Equal(t, tt.users[6].userVersion(), uv)
+	}
+}
+
+func TestTeamTxSubteamAdmins(t *testing.T) {
+	// Test if AddMemberTx properly keys implicit admins to implicit
+	// teams.
+
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+	t.Logf("Signed up user ann (%s)", ann.username)
+
+	bob := tt.addUser("bob")
+	t.Logf("Signed up user bob (%s)", bob.username)
+
+	team := ann.createTeam()
+	t.Logf("Team created (%s)", team)
+
+	teamName, err := keybase1.TeamNameFromString(team)
+	require.NoError(t, err)
+	_, err = teams.CreateSubteam(context.Background(), ann.tc.G, "golfers", teamName)
+	require.NoError(t, err)
+	_, err = teams.CreateSubteam(context.Background(), ann.tc.G, "pokerpals", teamName)
+	require.NoError(t, err)
+
+	teamObj := ann.loadTeam(team, true /* admin */)
+	tx := teams.CreateAddMemberTx(teamObj)
+	err = tx.AddMemberTransaction(context.Background(), bob.username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err)
+	err = tx.Post(context.Background())
+	require.NoError(t, err)
 }
