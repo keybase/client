@@ -108,26 +108,21 @@ func (s *Server) siteCacheEvict(_ interface{}, value interface{}) {
 		zap.String("reflect_type", reflect.TypeOf(value).String()))
 }
 
-func (s *Server) handleErrorAndPopulateSRI(
-	w http.ResponseWriter, err error, sri *ServedRequestInfo) {
+func (s *Server) handleError(w http.ResponseWriter, err error) {
 	// TODO: have a nicer error page for configuration errors?
 	switch err.(type) {
 	case nil:
 	case ErrKeybasePagesRecordNotFound, ErrDomainNotAllowedInWhitelist:
-		sri.HTTPStatus = http.StatusServiceUnavailable
 		http.Error(w, err.Error(), http.StatusServiceUnavailable)
 		return
 	case ErrKeybasePagesRecordTooMany, ErrInvalidKeybasePagesRecord:
-		sri.HTTPStatus = http.StatusPreconditionFailed
 		http.Error(w, err.Error(), http.StatusPreconditionFailed)
 		return
 	case config.ErrDuplicateAccessControlPath, config.ErrInvalidPermissions,
 		config.ErrInvalidVersion, config.ErrUndefinedUsername:
-		sri.HTTPStatus = http.StatusPreconditionFailed
 		http.Error(w, "invalid .kbp_config", http.StatusPreconditionFailed)
 		return
 	default:
-		sri.HTTPStatus = http.StatusInternalServerError
 		// Don't write unknown errors in case we leak data unintentionally.
 		http.Error(w, "", http.StatusInternalServerError)
 		return
@@ -156,15 +151,12 @@ func (a adaptedLogger) Warning(format string, args ...interface{}) {
 	a.logger.Warn(a.msg, zap.String("desc", fmt.Sprintf(format, args...)))
 }
 
-func (s *Server) handleUnauthorizedAndPopulateSRI(w http.ResponseWriter,
-	r *http.Request, realm string, authorizationPossible bool,
-	sri *ServedRequestInfo) {
+func (s *Server) handleUnauthorized(w http.ResponseWriter,
+	r *http.Request, realm string, authorizationPossible bool) {
 	if authorizationPossible {
 		w.Header().Set("WWW-Authenticate", fmt.Sprintf("Basic realm=%s", realm))
-		sri.HTTPStatus = http.StatusUnauthorized
 		w.WriteHeader(http.StatusUnauthorized)
 	} else {
-		sri.HTTPStatus = http.StatusForbidden
 		w.WriteHeader(http.StatusForbidden)
 	}
 }
@@ -284,6 +276,36 @@ type ServedRequestInfo struct {
 	InvalidConfig bool
 }
 
+type statusCodePeekingResponseWriter struct {
+	w    http.ResponseWriter
+	code *int
+}
+
+var _ http.ResponseWriter = statusCodePeekingResponseWriter{}
+
+func (w statusCodePeekingResponseWriter) Header() http.Header {
+	return w.w.Header()
+}
+
+func (w statusCodePeekingResponseWriter) WriteHeader(status int) {
+	if *w.code == 0 {
+		*w.code = status
+	}
+	w.w.WriteHeader(status)
+}
+
+func (w statusCodePeekingResponseWriter) Write(data []byte) (int, error) {
+	if *w.code == 0 {
+		*w.code = http.StatusOK
+	}
+	return w.w.Write(data)
+}
+
+func (s *ServedRequestInfo) wrapResponseWriter(
+	w http.ResponseWriter) http.ResponseWriter {
+	return statusCodePeekingResponseWriter{w: w, code: &s.HTTPStatus}
+}
+
 func (s *Server) logRequest(sri *ServedRequestInfo, requestPath string) {
 	s.config.Logger.Info("ReqIn",
 		zap.String("host", sri.Host),
@@ -296,7 +318,6 @@ func (s *Server) logRequest(sri *ServedRequestInfo, requestPath string) {
 		zap.Bool("invalid_config", sri.InvalidConfig),
 	)
 }
-
 func (s *Server) setCommonResponseHeaders(w http.ResponseWriter) {
 	// Enforce XSS protection. References:
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-XSS-Protection
@@ -316,10 +337,8 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	sri := &ServedRequestInfo{
 		Proto: r.Proto,
 		Host:  r.Host,
-		// If we don't end up responding with 200, this field will be
-		// overwritten when writing the header.
-		HTTPStatus: http.StatusOK,
 	}
+	w = sri.wrapResponseWriter(w)
 	if s.config.StatsReporter != nil {
 		defer s.config.StatsReporter.ReportServedRequest(sri)
 	}
@@ -338,7 +357,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Construct a *site from DNS record.
 	root, err := LoadRootFromDNS(s.config.Logger, r.Host)
 	if err != nil {
-		s.handleErrorAndPopulateSRI(w, err, sri)
+		s.handleError(w, err)
 		return
 	}
 	sri.TlfType, sri.RootType = root.TlfType, root.Type
@@ -349,7 +368,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		})
 	st, err := s.getSite(ctx, root)
 	if err != nil {
-		s.handleErrorAndPopulateSRI(w, err, sri)
+		s.handleError(w, err)
 		return
 	}
 	sri.TlfID = st.tlfID
@@ -358,7 +377,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// indicates we are still cloning the assets.
 	shouldShowCloningLandingPage, err := s.shouldShowCloningLandingPage(st)
 	if err != nil {
-		s.handleErrorAndPopulateSRI(w, err, sri)
+		s.handleError(w, err)
 		return
 	}
 	if shouldShowCloningLandingPage {
@@ -378,7 +397,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// User has a .kbp_config file but it's invalid.
 		// TODO: error page to show the error message?
 		sri.InvalidConfig = true
-		s.handleErrorAndPopulateSRI(w, err, sri)
+		s.handleError(w, err)
 		return
 	}
 
@@ -391,7 +410,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	canRead, canList, possibleRead, possibleList,
 		realm, err := cfg.GetPermissions(r.URL.Path, username)
 	if err != nil {
-		s.handleErrorAndPopulateSRI(w, err, sri)
+		s.handleError(w, err)
 		return
 	}
 
@@ -401,17 +420,17 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// way today.
 	isListing, err := s.isDirWithNoIndexHTML(st, r.URL.Path)
 	if err != nil {
-		s.handleErrorAndPopulateSRI(w, err, sri)
+		s.handleError(w, err)
 		return
 	}
 
 	if isListing && !canList {
-		s.handleUnauthorizedAndPopulateSRI(w, r, realm, possibleList, sri)
+		s.handleUnauthorized(w, r, realm, possibleList)
 		return
 	}
 
 	if !isListing && !canRead {
-		s.handleUnauthorizedAndPopulateSRI(w, r, realm, possibleRead, sri)
+		s.handleUnauthorized(w, r, realm, possibleRead)
 		return
 	}
 
