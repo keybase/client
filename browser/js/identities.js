@@ -25,42 +25,42 @@ const identityMatchers = [
   {
     service: "keybase",
     getUsername: function(loc) { return loc.pathname.split('/')[1]; },
-    locationMatches: new RegExp('\.keybase\.(?:io|pub)/([\\w]+)[/]?'),
-    originAndPathMatches: '\.keybase\.(io|pub)/[\\w]+[/]?',
+    locationMatches: new RegExp('\\.keybase\\.(?:io|pub)/([\\w]+)[/]?'),
+    originAndPathMatches: '\\.keybase\\.(io|pub)/[\\w]+[/]?',
     css: ['.profile-heading']
   },
   {
     service: "reddit",
     getUsername: function(loc) { return loc.pathname.split('/')[2]; },
-    locationMatches: new RegExp('\.reddit.com/user/([\\w-]+)[/]?$'),
-    originAndPathMatches: '\.reddit.com/user/[\\w-]+[/]?$',
+    locationMatches: new RegExp('\\.reddit.com/user/([\\w-]+)[/]?$'),
+    originAndPathMatches: '\\.reddit.com/user/[\\w-]+[/]?$',
   },
   {
     service: "twitter",
     getUsername: function(loc) { return loc.pathname.split('/')[1]; },
-    locationMatches: new RegExp('\.twitter\.com/([\\w]+)[/]?$'),
-    originAndPathMatches: '\.twitter\.com/[\\w]+[/]?$',
+    locationMatches: new RegExp('\\.twitter\\.com/([\\w]+)[/]?$'),
+    originAndPathMatches: '\\.twitter\\.com/[\\w]+[/]?$',
     css: ['body.ProfilePage']
   },
   {
     service: "github",
     getUsername: function(loc) { return loc.pathname.split('/')[1]; },
-    locationMatches: new RegExp('\.github\.com/([\\w\-]+)[/]?$'),
-    originAndPathMatches: '\.github\.com/[\\w\-]+[/]?$',
+    locationMatches: new RegExp('\\.github\\.com/([\\w\-]+)[/]?$'),
+    originAndPathMatches: '\\.github\\.com/[\\w\-]+[/]?$',
     css: ['body.page-profile']
   },
   {
     service: "facebook",
     getUsername: function(loc) { return loc.pathname.split('/')[1]; },
-    locationMatches: new RegExp('\.facebook\.com/([\\w\.]+)[/]?$'),
-    originAndPathMatches: '\.facebook\.com/[\\w\.]+[/]?$',
+    locationMatches: new RegExp('\\.facebook\\.com/([\\w\\.]+)[/]?$'),
+    originAndPathMatches: '\\.facebook\\.com/[\\w\\.]+[/]?$',
     css: ['body.timelineLayout']
   },
   {
     service: "hackernews",
     getUsername: function(loc) { return parseLocationQuery(loc.search)["id"]; },
-    locationMatches: new RegExp('news\.ycombinator\.com/user'),
-    originAndPathMatches: 'news\.ycombinator\.com/user',
+    locationMatches: new RegExp('news\\.ycombinator\\.com/user'),
+    originAndPathMatches: 'news\\.ycombinator\\.com/user',
     css: ['html[op="user"]']
   }
 ];
