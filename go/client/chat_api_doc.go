@@ -23,7 +23,7 @@ If you're on the nth page and want to go back, set the previous field instead.
     {"method": "read", "params": {"options": {"channel": {"name": "you,them"}, "pagination": {"previous": "<result.pagination.previous from last reply>", "num": 10}}}}
 
 Send a message:
-    {"method": "send", "params": {"options": {"channel": {"name": "you,them"}, "message": {"body": "is it cold today?"}}}
+    {"method": "send", "params": {"options": {"channel": {"name": "you,them"}, "message": {"body": "is it cold today?"}}}}
 
 Delete a message:
     {"method": "delete", "params": {"options": {"channel": {"name": "you,them"}, "message_id": 314}}}
