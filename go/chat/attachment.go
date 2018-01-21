@@ -202,7 +202,7 @@ func (a *AttachmentStore) uploadAsset(ctx context.Context, task *UploadTask, enc
 // DownloadAsset gets an object from S3 as described in asset.
 func (a *AttachmentStore) DownloadAsset(ctx context.Context, params chat1.S3Params, asset chat1.Asset, w io.Writer, signer s3.Signer, progress ProgressReporter) error {
 	if asset.Key == nil || asset.VerifyKey == nil || asset.EncHash == nil {
-		return fmt.Errorf("unencrypted attachments not supported")
+		return fmt.Errorf("unencrypted attachments not supported: asset: %#v", asset)
 	}
 	region := a.regionFromAsset(asset)
 	b := a.s3Conn(signer, region, params.AccessKey).Bucket(asset.Bucket)
