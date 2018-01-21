@@ -113,13 +113,18 @@ func (s *Server) handleErrorAndPopulateSRI(
 	// TODO: have a nicer error page for configuration errors?
 	switch err.(type) {
 	case nil:
-	case ErrKeybasePagesRecordNotFound:
+	case ErrKeybasePagesRecordNotFound, ErrDomainNotAllowedInWhitelist:
 		sri.HTTPStatus = http.StatusServiceUnavailable
 		http.Error(w, err.Error(), http.StatusServiceUnavailable)
 		return
 	case ErrKeybasePagesRecordTooMany, ErrInvalidKeybasePagesRecord:
 		sri.HTTPStatus = http.StatusPreconditionFailed
 		http.Error(w, err.Error(), http.StatusPreconditionFailed)
+		return
+	case config.ErrDuplicateAccessControlPath, config.ErrInvalidPermissions,
+		config.ErrInvalidVersion, config.ErrUndefinedUsername:
+		sri.HTTPStatus = http.StatusPreconditionFailed
+		http.Error(w, "invalid .kbp_config", http.StatusPreconditionFailed)
 		return
 	default:
 		sri.HTTPStatus = http.StatusInternalServerError
