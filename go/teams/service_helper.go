@@ -217,14 +217,6 @@ func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 			return err
 		}
 
-		// TODO: Recreate this in transactions.go
-		// TODO: Or remove commented code if we don't.
-		// timeoutCtx, timeoutCancel := context.WithTimeout(ctx, 2*time.Second)
-		// if err := tryToCompleteInvites(timeoutCtx, g, t, username, uv, &req); err != nil {
-		// 	g.Log.CWarningf(ctx, "team.AddMember: error during tryToCompleteInvites: %v", err)
-		// }
-		// timeoutCancel()
-
 		tx := CreateAddMemberTx(t)
 		err = tx.AddMemberTransaction(ctx, username, role)
 		if err != nil {
