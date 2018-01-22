@@ -1,20 +1,25 @@
 // All of our identity services and matchers are defined here.
 
+// parseLocationQuery converts URL-encoded parameters into an object. It
+// requires unique keys, will throw an error if there is a duplicate key.
 function parseLocationQuery(s) {
-    if (s.startsWith("?")) s = s.substr(1);
-    if (s == "") return {};
-    const params = {};
-    const parts = s.split('&');
-    for (let i = 0; i < parts.length; i++)
-    {
-        let p = parts[i].split('=', 2);
-        if (p.length == 1) {
-            params[p[0]] = "";
-        } else {
-            params[p[0]] = decodeURIComponent(p[1].replace(/\+/g, " "));
-        }
+  if (s.startsWith("?")) s = s.substr(1);
+  if (s == "") return {};
+  const params = {};
+  const parts = s.split('&');
+  for (let i = 0; i < parts.length; i++) {
+    let p = parts[i].split('=', 2);
+    const key = p[0];
+    if (key in params) {
+      throw new Error('duplicate key in query string: ' + key);
     }
-    return params;
+    if (p.length == 1) {
+      params[key] = "";
+    } else {
+      params[key] = decodeURIComponent(p[1].replace(/\+/g, " "));
+    }
+  }
+  return params;
 }
 
 // identityMatchers is used to generate our declarative page match rules, but also
