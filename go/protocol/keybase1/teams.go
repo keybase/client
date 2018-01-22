@@ -1846,12 +1846,14 @@ type TeamCreateArg struct {
 	SessionID            int    `codec:"sessionID" json:"sessionID"`
 	Name                 string `codec:"name" json:"name"`
 	SendChatNotification bool   `codec:"sendChatNotification" json:"sendChatNotification"`
+	JoinSubteam          bool   `codec:"joinSubteam" json:"joinSubteam"`
 }
 
 type TeamCreateWithSettingsArg struct {
 	SessionID            int          `codec:"sessionID" json:"sessionID"`
 	Name                 string       `codec:"name" json:"name"`
 	SendChatNotification bool         `codec:"sendChatNotification" json:"sendChatNotification"`
+	JoinSubteam          bool         `codec:"joinSubteam" json:"joinSubteam"`
 	Settings             TeamSettings `codec:"settings" json:"settings"`
 }
 

@@ -48,6 +48,7 @@ func (h *TeamsHandler) TeamCreate(ctx context.Context, arg keybase1.TeamCreateAr
 		SessionID:            arg.SessionID,
 		Name:                 arg.Name,
 		SendChatNotification: arg.SendChatNotification,
+		JoinSubteam:          arg.JoinSubteam,
 	}
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return res, err
@@ -82,7 +83,7 @@ func (h *TeamsHandler) TeamCreateWithSettings(ctx context.Context, arg keybase1.
 		}
 		res.TeamID = *teamID
 
-		// join the team temporarily to send the Create message
+		// join the team to send the Create message
 		h.G().Log.CDebugf(ctx, "TeamCreate: joining just-created subteam %s temporarily to set it up", arg.Name)
 		username := h.G().Env.GetUsername().String()
 		_, err = teams.AddMember(ctx, h.G().ExternalG(), teamName.String(), username, keybase1.TeamRole_ADMIN)
@@ -91,12 +92,15 @@ func (h *TeamsHandler) TeamCreateWithSettings(ctx context.Context, arg keybase1.
 			return res, err
 		}
 		res.ChatSent = teams.SendTeamChatCreateMessage(ctx, h.G().ExternalG(), teamName.String(), username)
-		h.G().Log.CDebugf(ctx, "TeamCreate: leaving just-created subteam %s", arg.Name)
-		if err := teams.Leave(ctx, h.G().ExternalG(), teamName.String(), false); err != nil {
-			h.G().Log.CDebugf(ctx, "TeamCreate: error leaving new subteam %s: %s", arg.Name, err)
-			return res, err
+
+		if !arg.JoinSubteam {
+			h.G().Log.CDebugf(ctx, "TeamCreate: leaving just-created subteam %s", arg.Name)
+			if err := teams.Leave(ctx, h.G().ExternalG(), teamName.String(), false); err != nil {
+				h.G().Log.CDebugf(ctx, "TeamCreate: error leaving new subteam %s: %s", arg.Name, err)
+				return res, err
+			}
+			h.G().Log.CDebugf(ctx, "TeamCreate: left just-created subteam %s", arg.Name)
 		}
-		h.G().Log.CDebugf(ctx, "TeamCreate: left just-created subteam %s", arg.Name)
 	} else {
 		teamID, err := teams.CreateRootTeam(ctx, h.G().ExternalG(), teamName.String(), arg.Settings)
 		if err != nil {

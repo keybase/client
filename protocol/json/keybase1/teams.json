@@ -1671,6 +1671,10 @@
         {
           "name": "sendChatNotification",
           "type": "boolean"
+        },
+        {
+          "name": "joinSubteam",
+          "type": "boolean"
         }
       ],
       "response": "TeamCreateResult"
@@ -1687,6 +1691,10 @@
         },
         {
           "name": "sendChatNotification",
+          "type": "boolean"
+        },
+        {
+          "name": "joinSubteam",
           "type": "boolean"
         },
         {
