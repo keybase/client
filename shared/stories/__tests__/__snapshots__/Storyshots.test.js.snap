@@ -47073,6 +47073,11 @@ exports[`Storyshots Teams TeamList 1`] = `
   font-size: 13px;
   line-height: 17px;
   color: rgba(0, 0, 0, 0.75);
+  overflow: hidden;
+  display: -webkit-box;
+  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -47120,8 +47125,8 @@ exports[`Storyshots Teams TeamList 1`] = `
   -webkit-align-self: center;
 }
 
-.glamor-16,
-[data-glamor-16] {
+.glamor-15,
+[data-glamor-15] {
   font-size: 9px;
   line-height: 8px;
   color: #ffffff;
@@ -47220,25 +47225,34 @@ exports[`Storyshots Teams TeamList 1`] = `
               }
             >
               <div
-                onClick={undefined}
                 style={
                   Object {
-                    "height": 32,
-                    "marginLeft": 8,
-                    "maxWidth": 32,
-                    "minHeight": 32,
-                    "minWidth": 32,
+                    "display": "flex",
                     "position": "relative",
-                    "userSelect": "none",
                   }
                 }
               >
                 <div
-                  className="glamor-0"
-                />
-                <div
-                  className="glamor-1"
-                />
+                  onClick={undefined}
+                  style={
+                    Object {
+                      "height": 32,
+                      "marginLeft": 8,
+                      "maxWidth": 32,
+                      "minHeight": 32,
+                      "minWidth": 32,
+                      "position": "relative",
+                      "userSelect": "none",
+                    }
+                  }
+                >
+                  <div
+                    className="glamor-0"
+                  />
+                  <div
+                    className="glamor-1"
+                  />
+                </div>
               </div>
               <div
                 style={
@@ -47387,25 +47401,34 @@ exports[`Storyshots Teams TeamList 1`] = `
               }
             >
               <div
-                onClick={undefined}
                 style={
                   Object {
-                    "height": 32,
-                    "marginLeft": 8,
-                    "maxWidth": 32,
-                    "minHeight": 32,
-                    "minWidth": 32,
+                    "display": "flex",
                     "position": "relative",
-                    "userSelect": "none",
                   }
                 }
               >
                 <div
-                  className="glamor-0"
-                />
-                <div
-                  className="glamor-1"
-                />
+                  onClick={undefined}
+                  style={
+                    Object {
+                      "height": 32,
+                      "marginLeft": 8,
+                      "maxWidth": 32,
+                      "minHeight": 32,
+                      "minWidth": 32,
+                      "position": "relative",
+                      "userSelect": "none",
+                    }
+                  }
+                >
+                  <div
+                    className="glamor-0"
+                  />
+                  <div
+                    className="glamor-1"
+                  />
+                </div>
               </div>
               <div
                 style={
@@ -47561,25 +47584,63 @@ exports[`Storyshots Teams TeamList 1`] = `
               }
             >
               <div
-                onClick={undefined}
                 style={
                   Object {
-                    "height": 32,
-                    "marginLeft": 8,
-                    "maxWidth": 32,
-                    "minHeight": 32,
-                    "minWidth": 32,
+                    "display": "flex",
                     "position": "relative",
-                    "userSelect": "none",
                   }
                 }
               >
                 <div
-                  className="glamor-0"
-                />
+                  onClick={undefined}
+                  style={
+                    Object {
+                      "height": 32,
+                      "marginLeft": 8,
+                      "maxWidth": 32,
+                      "minHeight": 32,
+                      "minWidth": 32,
+                      "position": "relative",
+                      "userSelect": "none",
+                    }
+                  }
+                >
+                  <div
+                    className="glamor-0"
+                  />
+                  <div
+                    className="glamor-1"
+                  />
+                </div>
                 <div
-                  className="glamor-1"
-                />
+                  style={
+                    Object {
+                      "alignItems": "center",
+                      "backgroundColor": "#ff6f21",
+                      "borderRadius": 10,
+                      "display": "flex",
+                      "flexDirection": "row",
+                      "height": 14,
+                      "justifyContent": "center",
+                      "marginLeft": "auto",
+                      "marginRight": 8,
+                      "minWidth": 14,
+                      "paddingLeft": 4,
+                      "paddingRight": 5,
+                      "position": "absolute",
+                      "right": -12,
+                      "top": -4,
+                    }
+                  }
+                >
+                  <span
+                    className="glamor-15"
+                    onClick={undefined}
+                    title={undefined}
+                  >
+                    1
+                  </span>
+                </div>
               </div>
               <div
                 style={
@@ -47607,33 +47668,6 @@ exports[`Storyshots Teams TeamList 1`] = `
                     }
                   }
                 >
-                  <div
-                    style={
-                      Object {
-                        "alignItems": "center",
-                        "backgroundColor": "#ff6f21",
-                        "borderRadius": 10,
-                        "display": "flex",
-                        "flexDirection": "row",
-                        "height": 14,
-                        "justifyContent": "center",
-                        "marginLeft": 0,
-                        "marginRight": 3,
-                        "marginTop": 1,
-                        "minWidth": 14,
-                        "paddingLeft": 4,
-                        "paddingRight": 5,
-                      }
-                    }
-                  >
-                    <span
-                      className="glamor-16"
-                      onClick={undefined}
-                      title={undefined}
-                    >
-                      1
-                    </span>
-                  </div>
                   <span
                     className="glamor-3"
                     onClick={undefined}
