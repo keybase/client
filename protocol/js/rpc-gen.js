@@ -702,6 +702,13 @@ export const gitGitLocalMetadataVersion = {
   v1: 1,
 }
 
+export const gitGitPushType = {
+  default: 0,
+  createrepo: 1,
+  deletebranch: 2,
+  renamerepo: 3,
+}
+
 export const gitGitRepoResultState = {
   err: 0,
   ok: 1,
@@ -2300,13 +2307,19 @@ export type GitGetGitMetadataRpcParam = $ReadOnly<{folder: Folder, incomingCallM
 
 export type GitGetTeamRepoSettingsRpcParam = $ReadOnly<{folder: Folder, repoID: RepoID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type GitLocalMetadata = $ReadOnly<{repoName: GitRepoName, refs?: ?Array<GitRefMetadata>}>
+export type GitLocalMetadata = $ReadOnly<{repoName: GitRepoName, refs?: ?Array<GitRefMetadata>, pushType: GitPushType, previousRepoName: GitRepoName}>
 
 export type GitLocalMetadataV1 = $ReadOnly<{repoName: GitRepoName}>
 
 export type GitLocalMetadataVersion = 1 // V1_1
 
 export type GitLocalMetadataVersioned = {version: 1, v1: ?GitLocalMetadataV1}
+
+export type GitPushType =
+  | 0 // DEFAULT_0
+  | 1 // CREATEREPO_1
+  | 2 // DELETEBRANCH_2
+  | 3 // RENAMEREPO_3
 
 export type GitPutGitMetadataRpcParam = $ReadOnly<{folder: Folder, repoID: RepoID, metadata: GitLocalMetadata, notifyTeam: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 

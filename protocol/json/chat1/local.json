@@ -207,6 +207,14 @@
             "items": "keybase1.GitRefMetadata"
           },
           "name": "refs"
+        },
+        {
+          "type": "keybase1.GitPushType",
+          "name": "pushType"
+        },
+        {
+          "type": "string",
+          "name": "previousRepoName"
         }
       ]
     },
