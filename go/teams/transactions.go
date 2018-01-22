@@ -200,8 +200,20 @@ func (tx *AddMemberTx) AddMemberTransaction(ctx context.Context, username string
 
 	// No going back after this point!
 
-	tx.SweepMembers(uv.Uid)        // Sweep all existing crypto members
-	tx.SweepKeybaseInvites(uv.Uid) // Sweep all existing keybase type invites
+	if team.IsImplicit() {
+		// Separate logic for sweeping in implicit teams, since memberships
+		// there have to be sound for every signature, so we can't post e.g.
+		// one sig that removes UV and another that adds invite.
+
+		if inviteRequired {
+			tx.SweepKeybaseInvites(uv.Uid)
+		} else {
+			tx.SweepMembers(uv.Uid)
+		}
+	} else {
+		tx.SweepMembers(uv.Uid)        // Sweep all existing crypto members
+		tx.SweepKeybaseInvites(uv.Uid) // Sweep all existing keybase type invites
+	}
 
 	if inviteRequired {
 		return tx.CreateInvite(uv, role)
