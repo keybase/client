@@ -209,3 +209,54 @@ func pollForConditionWithTimeout(t *testing.T, timeout time.Duration, descriptio
 		t.Fatalf("timed out waiting for condition: %v", description)
 	}
 }
+
+func trySBSConsolidation(t *testing.T, impteamExpr string) {
+	t.Logf("trySBSConsolidation(%q)", impteamExpr)
+
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+	bob := tt.addUser("bob")
+
+	impteamName := fmt.Sprintf(impteamExpr, ann.username, bob.username, bob.username)
+	teamID, err := ann.lookupImplicitTeam(true /* create */, impteamName, false)
+	require.NoError(t, err)
+
+	t.Logf("Created team %s -> %s", impteamName, teamID)
+
+	bob.proveRooter()
+	t.Logf("Bob (%s) proved rooter", bob.username)
+
+	expectedTeamName := fmt.Sprintf("%v,%v", ann.username, bob.username)
+	pollForConditionWithTimeout(t, 10*time.Second, "team consolidated to ann,bob", func(ctx context.Context) bool {
+		team, err := teams.Load(ctx, ann.tc.G, keybase1.LoadTeamArg{
+			ID:          teamID,
+			ForceRepoll: true,
+		})
+		require.NoError(t, err)
+		displayName, err := team.ImplicitTeamDisplayName(context.Background())
+		t.Logf("Got team back: %s", displayName.String())
+		return displayName.String() == expectedTeamName
+	})
+
+	teamID2, err := ann.lookupImplicitTeam(false /* create */, expectedTeamName, false)
+	require.NoError(t, err)
+	require.Equal(t, teamID, teamID2)
+}
+
+func TestImplicitSBSConsolidation(t *testing.T) {
+	trySBSConsolidation(t, "%v,%v,%v@rooter")
+}
+
+func TestImplicitSBSPromotion(t *testing.T) {
+	trySBSConsolidation(t, "%v,%v@rooter#%v")
+}
+
+func TestImplicitSBSDowngrade(t *testing.T) {
+	// Test "downgrade" case, where it should not downgrade if social
+	// assertion is a reader. Result should still be "ann,bob", not
+	// "ann#bob".
+
+	trySBSConsolidation(t, "%v,%v#%v@rooter")
+}
