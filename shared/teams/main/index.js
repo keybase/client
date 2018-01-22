@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Box, ScrollView} from '../../common-adapters'
-import {globalStyles} from '../../styles'
+import {Box, ProgressIndicator, ScrollView} from '../../common-adapters'
+import {globalMargins, globalStyles, isMobile} from '../../styles'
 import Header from './header'
 import Banner from './banner'
 import BetaNote from './beta-note'
@@ -30,6 +30,16 @@ const Teams = (props: Props) => (
         )}
         <TeamList {...props} />
         <BetaNote {...props} />
+        {isMobile && (
+          <ProgressIndicator
+            style={{
+              alignSelf: 'center',
+              marginBottom: globalMargins.small,
+              opacity: props.loaded ? 0 : 1,
+              width: 20,
+            }}
+          />
+        )}
       </ScrollView>
     </Box>
   </Box>
