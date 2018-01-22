@@ -12,6 +12,7 @@ import {type Teamname} from '../constants/types/teams'
 type StateProps = {
   _teamnames: I.Set<Teamname>,
   _teammembercounts: I.Map<Teamname, number>,
+  _teamresetusers: I.Map<Teamname, I.Set<string>>,
   sawChatBanner: boolean,
   loaded: boolean,
   _newTeams: I.Set<string>,
@@ -24,9 +25,11 @@ const mapStateToProps = (state: TypedState): StateProps => {
   const loaded = state.entities.getIn(['teams', 'loaded'], false)
   const newTeams = state.entities.getIn(['teams', 'newTeams'], I.Set())
   const newTeamRequests = state.entities.getIn(['teams', 'newTeamRequests'], I.List())
+  const teamresetusers = state.entities.getIn(['teams', 'teamNameToResetUsers'], I.Map())
   return {
     _teamnames: teamnames,
     _teammembercounts: teammembercounts,
+    _teamresetusers: teamresetusers,
     sawChatBanner: state.entities.getIn(['teams', 'sawChatBanner'], false),
     loaded,
     _newTeams: newTeams,
@@ -87,6 +90,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
     sawChatBanner: stateProps.sawChatBanner,
     teamnames,
     teammembercounts: stateProps._teammembercounts.toObject(),
+    teamresetusers: stateProps._teamresetusers.toObject(),
     loaded: stateProps.loaded,
     newTeams: stateProps._newTeams.toArray(),
     newTeamRequests: stateProps._newTeamRequests.toArray(),

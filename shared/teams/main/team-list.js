@@ -11,6 +11,7 @@ import {
   ProgressIndicator,
   Meta,
 } from '../../common-adapters'
+import {Set} from 'immutable'
 import {globalMargins, globalStyles, globalColors, isMobile} from '../../styles'
 
 import type {Teamname} from '../../constants/types/teams'
@@ -18,6 +19,7 @@ import type {Teamname} from '../../constants/types/teams'
 export type Props = {
   teamnames: Array<Teamname>,
   teammembercounts: {[string]: number},
+  teamresetusers: {[string]: Set<string>},
   newTeams: Array<Teamname>,
   newTeamRequests: Array<Teamname>,
   onOpenFolder: (teamname: Teamname) => void,
@@ -32,6 +34,7 @@ type RowProps = {
   newRequests: number,
   onOpenFolder: ?() => void,
   onManageChat: ?() => void,
+  resetUserCount?: number,
   onViewTeam: () => void,
 }
 
@@ -50,6 +53,7 @@ const TeamRow = ({
   onOpenFolder,
   onManageChat,
   onViewTeam,
+  resetUserCount,
 }: RowProps) => (
   <Box style={rowStyle}>
     <Box
@@ -70,8 +74,11 @@ const TeamRow = ({
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: globalMargins.small}}>
           <Text type="BodySemibold">{name}</Text>
           <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-            {!!newRequests && (
-              <Badge badgeNumber={newRequests} badgeStyle={{marginLeft: 0, marginRight: 3, marginTop: 1}} />
+            {!!(newRequests + resetUserCount) && (
+              <Badge
+                badgeNumber={newRequests + resetUserCount}
+                badgeStyle={{marginLeft: 0, marginRight: 3, marginTop: 1}}
+              />
             )}
             {isNew && <Meta title="NEW" style={newCharmStyle} />}
             <Text type="BodySmall">{membercount + ' member' + (membercount !== 1 ? 's' : '')}</Text>
@@ -110,6 +117,7 @@ const TeamList = (props: Props) => (
         onOpenFolder={() => props.onOpenFolder(name)}
         onManageChat={() => props.onManageChat(name)}
         onViewTeam={() => props.onViewTeam(name)}
+        resetUserCount={(props.teamresetusers[name] && props.teamresetusers[name].size) || 0}
       />
     ))}
   </Box>

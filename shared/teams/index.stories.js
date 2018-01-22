@@ -24,6 +24,7 @@ const load = () => {
           newTeams={['stripe.usa']}
           newTeamRequests={['techtonica']}
           teammembercounts={teammembercounts}
+          teamresetusers={{}}
           onOpenFolder={action('onOpenFolder')}
           onManageChat={action('onManageChat')}
           onViewTeam={action('onViewTeam')}
