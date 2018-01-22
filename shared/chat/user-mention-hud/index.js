@@ -108,6 +108,18 @@ const mapStateToProps: MapStateToProps<*, *, *> = (state: TypedState, {users, se
       fullName: u.fullName,
       key: u.username,
     }))
+    .concat([
+      {
+        username: 'here',
+        fullName: 'here',
+        key: 'here',
+      },
+      {
+        username: 'channel',
+        fullName: 'channel',
+        key: 'channel',
+      },
+    ])
     .filter(u => {
       return u.username.toLowerCase().indexOf(filter) >= 0 || u.fullName.toLowerCase().indexOf(filter) >= 0
     })
