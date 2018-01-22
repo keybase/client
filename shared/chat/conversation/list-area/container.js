@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as SearchConstants from '../../../constants/search'
+import * as Constants from '../../../constants/chat2'
 import * as TrackerGen from '../../../actions/tracker-gen'
 import Normal from './normal/container'
 import SearchResultsList from '../../../search/results-list/container'
@@ -44,7 +45,9 @@ const searchResultStyle = {...globalStyles.scrollable, flexGrow: 1}
 
 const mapStateToProps = (state: TypedState): * => ({
   showSearchResults:
-    state.chat2.isSearching && !!SearchConstants.getSearchResultIdsArray(state, {searchKey: 'chatSearch'}),
+    state.chat2.pendingSelected &&
+    state.chat2.pendingMode === 'searchingForUsers' &&
+    !!SearchConstants.getSearchResultIdsArray(state, {searchKey: 'chatSearch'}),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

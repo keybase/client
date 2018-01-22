@@ -16,7 +16,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
     _username: state.config.username || '',
     hasBadge: Constants2.getHasBadge(state, _conversationIDKey),
     hasUnread: Constants2.getHasUnread(state, _conversationIDKey),
-    isSelected: !state.chat2.isSearching && Constants2.getIsSelected(state, _conversationIDKey),
+    isSelected: !state.chat2.pendingSelected && Constants2.getIsSelected(state, _conversationIDKey),
     youAreReset,
   }
 }

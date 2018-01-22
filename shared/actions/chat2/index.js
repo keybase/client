@@ -560,10 +560,12 @@ const rpcLoadThreadSuccess = () => {}
 const clearInboxFilter = (action: Chat2Gen.SelectConversationPayload) =>
   Saga.put(Chat2Gen.createSetInboxFilter({filter: ''}))
 
-const exitSearch = (action: Chat2Gen.SelectConversationPayload) =>
-  action.payload.fromUser &&
-  action.payload.conversationIDKey &&
-  Saga.put(Chat2Gen.createExitSearch({clear: false}))
+// const updateSearchState = (action: Chat2Gen.SelectConversationPayload) => {
+// // selected
+// if (action.payload.fromUser && action.payload.conversationIDKey) {
+// return Saga.put(Chat2Gen.createExitSearch({clear: false}))
+// }
+// }
 
 const desktopNotify = (action: Chat2Gen.DesktopNotificationPayload, state: TypedState) => {
   const {conversationIDKey, author, body} = action.payload
@@ -711,7 +713,7 @@ const sendToPendingConversationSuccess = (
 
   return Saga.sequentially([
     // Clear the search
-    Saga.put(Chat2Gen.createExitSearch({clear: true})),
+    Saga.put(Chat2Gen.createExitSearch()),
     // Clear the dummy messages from the pending conversation
     Saga.put(Chat2Gen.createClearPendingConversation()),
     // Saga.put(Chat2Gen.createClearOrdinals({conversationIDKey: Types.stringToConversationIDKey('')})),
@@ -843,7 +845,7 @@ const startConversation = (action: Chat2Gen.StartConversationPayload, state: Typ
   const {participants, tlf} = action.payload
   const you = state.config.username || ''
 
-  let users
+  let users: Array<string> = []
   let conversationIDKey
 
   if (participants) {
@@ -873,36 +875,11 @@ const startConversation = (action: Chat2Gen.StartConversationPayload, state: Typ
     throw new Error('Start conversation called w/ no participants or tlf')
   }
 
-  // Is this an existing conversation?
-  if (!conversationIDKey && users) {
-    const toFind = I.Set(users.concat(you))
-    conversationIDKey = state.chat2.metaMap.findKey(meta =>
-      // Ignore the order of participants
-      meta.participants.toSet().equals(toFind)
-    )
-  }
-
-  if (conversationIDKey) {
-    return Saga.sequentially([
-      Saga.put(
-        Chat2Gen.createSelectConversation({
-          conversationIDKey,
-          fromUser: false,
-        })
-      ),
-      Saga.put(Route.switchTo([chatTab])),
-    ])
-  }
-
-  console.log('aaa TODO make convo', users || '')
-  // TODO make it
-  // TEMP just blank it
-  return Saga.put(
-    Chat2Gen.createSelectConversation({
-      conversationIDKey: Types.stringToConversationIDKey(''),
-      fromUser: false,
-    })
-  )
+  return Saga.sequentially([
+    Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'fixedSetOfUsers'})),
+    Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: false, users})),
+    Saga.put(Route.switchTo([chatTab])),
+  ])
 }
 
 const bootstrapSuccess = () => Saga.put(Chat2Gen.createInboxRefresh({reason: 'bootstrap'}))
@@ -927,51 +904,61 @@ const selectTheNewestConversation = (action: any, state: TypedState) => {
 }
 
 const onExitSearch = (action: Chat2Gen.ExitSearchPayload, state: TypedState) => {
-  const {clear} = action.payload
+  // const {clear} = action.payload
 
   return Saga.sequentially([
-    Saga.put(Chat2Gen.createSetSearching({searching: false})),
-    ...(clear
-      ? [
-          Saga.put(SearchGen.createClearSearchResults({searchKey: 'chatSearch'})),
-          Saga.put(SearchGen.createSetUserInputItems({searchKey: 'chatSearch', searchResults: []})),
-          Saga.put(Chat2Gen.createSetPendingConversationUsers({users: []})),
-        ]
-      : []),
+    // Saga.put(Chat2Gen.createSetSearching({searching: false})),
+    // ...(clear
+    // ? [
+    Saga.put(SearchGen.createClearSearchResults({searchKey: 'chatSearch'})),
+    Saga.put(SearchGen.createSetUserInputItems({searchKey: 'chatSearch', searchResults: []})),
+    Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: true, users: []})),
+    // ]
+    // : []),
   ])
 }
 
 const searchUpdated = (
-  action: Chat2Gen.SetSearchingPayload | SearchGen.UserInputItemsUpdatedPayload,
+  action: Chat2Gen.SetPendingModePayload | SearchGen.UserInputItemsUpdatedPayload,
   state: TypedState
 ) => {
-  const me = state.config.username
-  const isSearching = state.chat2.isSearching
-  const userInputItemIds =
-    action.type === Chat2Gen.setSearching
-      ? SearchConstants.getUserInputItemIds(state, {searchKey: 'chatSearch'})
-      : action.payload.userInputItemIds
-
-  if (!isSearching || !me) {
-    return
+  let users = []
+  if (action.type === Chat2Gen.setPendingMode) {
+    if (action.payload.pendingMode !== 'searchingForUsers') {
+      return
+    }
+  } else {
+    users = action.payload.userInputItemIds || []
   }
 
   return Saga.sequentially([
     Saga.put(SearchGen.createClearSearchResults({searchKey: 'chatSearch'})),
-    Saga.put(
-      Chat2Gen.createSetPendingConversationUsers({
-        users: userInputItemIds,
-      })
-    ),
-    Saga.put(
-      Chat2Gen.createStartConversation({
-        participants: userInputItemIds,
-      })
-    ),
-    ...(userInputItemIds.length
-      ? []
+    ...(users.length
+      ? [
+          Saga.put(
+            Chat2Gen.createSetPendingConversationUsers({
+              fromSearch: true,
+              users,
+            })
+          ),
+        ]
       : [Saga.put(SearchGen.createSearchSuggestions({searchKey: 'chatSearch'}))]),
   ])
+}
+
+const updatePendingSelected = (
+  action: Chat2Gen.SetPendingModePayload | Chat2Gen.SelectConversationPayload,
+  state: TypedState
+) => {
+  let selected
+  if (action.type === Chat2Gen.setPendingMode) {
+    selected = action.payload.pendingMode !== 'none'
+  } else {
+    selected = !action.payload.conversationIDKey
+  }
+  if (selected !== state.chat2.pendingSelected) {
+    return Saga.put(Chat2Gen.createSetPendingSelected({selected}))
+  }
 }
 
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
@@ -1030,13 +1017,15 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.bootstrapSuccess, bootstrapSuccess)
 
   // Search handling
+  // If you select a convo or change modes lets change selected
+  yield Saga.safeTakeEveryPure([Chat2Gen.selectConversation, Chat2Gen.setPendingMode], updatePendingSelected)
   // If we select something exit search
-  yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, exitSearch)
+  // yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, updateSearchState)
   // If search is exited clean stuff up
   yield Saga.safeTakeEveryPure(Chat2Gen.exitSearch, onExitSearch)
   // Update our search items
   yield Saga.safeTakeEveryPure(
-    [Chat2Gen.setSearching, SearchConstants.isUserInputItemsUpdated('chatSearch')],
+    [Chat2Gen.setPendingMode, SearchConstants.isUserInputItemsUpdated('chatSearch')],
     searchUpdated
   )
 

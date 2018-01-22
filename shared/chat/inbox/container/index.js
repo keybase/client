@@ -44,12 +44,12 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeState, setRouteState}) => 
   getTeams: () => dispatch(TeamsGen.createGetTeams()),
   _onHotkey: (cmd: string, focusFilter: () => void) => {
     if (cmd.endsWith('+n')) {
-      dispatch(Chat2Gen.createSetSearching({searching: true}))
+      dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'searchingForUsers'}))
     } else {
       focusFilter()
     }
   },
-  onNewChat: () => dispatch(Chat2Gen.createSetSearching({searching: true})),
+  onNewChat: () => dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'searchingForUsers'})),
   onSelect: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createSelectConversation({conversationIDKey, fromUser: true})),
   onSetFilter: (filter: string) => dispatch(Chat2Gen.createSetInboxFilter({filter})),

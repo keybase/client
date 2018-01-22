@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import * as Chat2Gen from '../actions/chat2-gen'
+// import * as Chat2Gen from '../actions/chat2-gen'
 import UserInput from '../search/user-input/container'
 import SearchResultsList from '../search/results-list/container'
 import {Box, ProgressIndicator, HeaderHoc} from '../common-adapters'
@@ -9,7 +9,7 @@ import {connect} from 'react-redux'
 import {globalMargins, globalStyles, isMobile} from '../styles'
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onExitSearch: () => dispatch(Chat2Gen.createSetSearching({searching: false})),
+  onExitSearch: () => null, // TODOdispatch(Chat2Gen.createSetSearching({searching: false})),
 })
 
 const SearchHeader = props => (

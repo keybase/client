@@ -20,8 +20,8 @@ class HeaderArea extends React.PureComponent<Props> {
   }
 }
 
-const mapStateToProps = (state: TypedState) => ({
-  isSearching: state.chat2.isSearching,
+const mapStateToProps = (state: TypedState): * => ({
+  isSearching: state.chat2.pendingMode === 'searchingForUsers' && state.chat2.pendingSelected,
 })
 
-export default connect(mapStateToProps, () => ({}))(HeaderArea)
+export default connect(mapStateToProps)(HeaderArea)

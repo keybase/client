@@ -30,9 +30,40 @@ class Conversation extends React.PureComponent<SwitchProps> {
 const mapStateToProps = (state: TypedState): * => {
   const conversationIDKey = Constants.getSelectedConversation(state)
 
+  // use this if pendingSelected
+  // const selectConversationForPendingChanges = (
+  // action: Chat2Gen.SetPendingSelectedPayload | Chat2Gen.SetPendingConversationUsersPayload,
+  // state: TypedState
+  // ) => {
+  // let users
+  // if (action.type === Chat2Gen.setPendingSelected) {
+  // users = state.chat2.pendingConversationUsers.toArray()
+  // } else if (action.type === Chat2Gen.setPendingConversationUsers) {
+  // users = action.payload.users
+  // }
+  // const you = state.config.username
+
+  // const toFind = I.Set(users.concat(you))
+  // const conversationIDKey = state.chat2.metaMap.findKey(meta =>
+  // // Ignore the order of participants
+  // meta.participants.toSet().equals(toFind)
+  // )
+
+  // if (conversationIDKey) {
+  // return Saga.sequentially([
+  // Saga.put(
+  // Chat2Gen.createSelectConversation({
+  // conversationIDKey,
+  // fromUser: false,
+  // })
+  // ),
+  // ])
+  // }
+  // }
+
   return {
     showError: conversationIDKey && Constants.getMeta(state, conversationIDKey).trustedState === 'error',
-    showNoConvo: !conversationIDKey && !state.chat2.isSearching,
+    showNoConvo: !conversationIDKey && !state.chat2.pendingSelected,
     showRekey: false, // TODO
   }
 }

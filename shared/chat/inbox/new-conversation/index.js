@@ -4,7 +4,7 @@ import {Box, Text, Icon, ClickableBox} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
 
 type Props = {
-  isSearching: boolean,
+  isSelected: boolean,
   users: Array<string>,
   onClick: () => void,
 }
@@ -51,7 +51,7 @@ class NewConversation extends React.PureComponent<Props> {
   render() {
     return (
       <ClickableBox
-        style={this.props.isSearching ? containerSelectedStyle : containerStyle}
+        style={this.props.isSelected ? containerSelectedStyle : containerStyle}
         onClick={this.props.onClick}
       >
         <Box style={container2Style}>
@@ -65,11 +65,11 @@ class NewConversation extends React.PureComponent<Props> {
             />
           </Box>
           {this.props.users.length ? (
-            <Text style={this.props.isSearching ? textSelectedStyle : textStyle} type="BodySemibold">
+            <Text style={this.props.isSelected ? textSelectedStyle : textStyle} type="BodySemibold">
               {this.props.users.join(',')}
             </Text>
           ) : (
-            <Text style={this.props.isSearching ? textSelectedStyle : textStyle} type="BodySemibold">
+            <Text style={this.props.isSelected ? textSelectedStyle : textStyle} type="BodySemibold">
               New conversation
             </Text>
           )}

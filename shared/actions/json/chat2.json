@@ -10,6 +10,10 @@
       "key": "string",
       "loading": "boolean"
     },
+    // Select the pending conversation conversation
+    "setPendingSelected": {
+      "selected": "boolean"
+    },
     // Select a conversation (or leave nothing selected)
     "selectConversation": {
       "conversationIDKey": "Types.ConversationIDKey",
@@ -101,9 +105,8 @@
     "clearOrdinals": {
       "conversationIDKey": "Types.ConversationIDKey"
     },
-    // Go into a search mode
-    "setSearching": {
-      "searching": "boolean"
+    "setPendingMode": {
+      "pendingMode": "Types.PendingMode"
     },
     // Load some more messages for a conversation
     "loadMoreMessages": {
@@ -152,11 +155,10 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "username": "string"
     },
-    "exitSearch": {
-      "clear": "boolean"
-    },
+    "exitSearch": { },
     "setPendingConversationUsers": {
-      "users": "Array<string>"
+      "users": "Array<string>",
+      "fromSearch": "boolean"
     },
     "sendToPendingConversation": {
       "users": "Array<string>",

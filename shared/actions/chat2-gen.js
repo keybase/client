@@ -44,7 +44,8 @@ export const sendToPendingConversation = 'chat2:sendToPendingConversation'
 export const setInboxFilter = 'chat2:setInboxFilter'
 export const setLoading = 'chat2:setLoading'
 export const setPendingConversationUsers = 'chat2:setPendingConversationUsers'
-export const setSearching = 'chat2:setSearching'
+export const setPendingMode = 'chat2:setPendingMode'
+export const setPendingSelected = 'chat2:setPendingSelected'
 export const setupChatHandlers = 'chat2:setupChatHandlers'
 export const startConversation = 'chat2:startConversation'
 
@@ -74,7 +75,7 @@ export const createDesktopNotification = (
     body: string,
   }>
 ) => ({error: false, payload, type: desktopNotification})
-export const createExitSearch = (payload: $ReadOnly<{clear: boolean}>) => ({error: false, payload, type: exitSearch})
+export const createExitSearch = () => ({error: false, payload: undefined, type: exitSearch})
 export const createInboxRefresh = (
   payload: $ReadOnly<{
     reason: string,
@@ -189,8 +190,14 @@ export const createSetLoading = (
     loading: boolean,
   }>
 ) => ({error: false, payload, type: setLoading})
-export const createSetPendingConversationUsers = (payload: $ReadOnly<{users: Array<string>}>) => ({error: false, payload, type: setPendingConversationUsers})
-export const createSetSearching = (payload: $ReadOnly<{searching: boolean}>) => ({error: false, payload, type: setSearching})
+export const createSetPendingConversationUsers = (
+  payload: $ReadOnly<{
+    users: Array<string>,
+    fromSearch: boolean,
+  }>
+) => ({error: false, payload, type: setPendingConversationUsers})
+export const createSetPendingMode = (payload: $ReadOnly<{pendingMode: Types.PendingMode}>) => ({error: false, payload, type: setPendingMode})
+export const createSetPendingSelected = (payload: $ReadOnly<{selected: boolean}>) => ({error: false, payload, type: setPendingSelected})
 export const createSetupChatHandlers = () => ({error: false, payload: undefined, type: setupChatHandlers})
 export const createStartConversation = (
   payload: $ReadOnly<{
@@ -234,7 +241,8 @@ export type SendToPendingConversationPayload = More.ReturnType<typeof createSend
 export type SetInboxFilterPayload = More.ReturnType<typeof createSetInboxFilter>
 export type SetLoadingPayload = More.ReturnType<typeof createSetLoading>
 export type SetPendingConversationUsersPayload = More.ReturnType<typeof createSetPendingConversationUsers>
-export type SetSearchingPayload = More.ReturnType<typeof createSetSearching>
+export type SetPendingModePayload = More.ReturnType<typeof createSetPendingMode>
+export type SetPendingSelectedPayload = More.ReturnType<typeof createSetPendingSelected>
 export type SetupChatHandlersPayload = More.ReturnType<typeof createSetupChatHandlers>
 export type StartConversationPayload = More.ReturnType<typeof createStartConversation>
 
@@ -274,7 +282,8 @@ export type Actions =
   | More.ReturnType<typeof createSetInboxFilter>
   | More.ReturnType<typeof createSetLoading>
   | More.ReturnType<typeof createSetPendingConversationUsers>
-  | More.ReturnType<typeof createSetSearching>
+  | More.ReturnType<typeof createSetPendingMode>
+  | More.ReturnType<typeof createSetPendingSelected>
   | More.ReturnType<typeof createSetupChatHandlers>
   | More.ReturnType<typeof createStartConversation>
   | {type: 'common:resetStore', payload: void}

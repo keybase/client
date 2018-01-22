@@ -4,12 +4,13 @@ import * as Common from './common'
 import * as Meta from './meta'
 import * as Message from './message'
 
+export type PendingMode = 'none' | 'searchingForUsers' | 'fixedSetOfUsers'
+
 export type _State = {
   badgeMap: I.Map<Common.ConversationIDKey, number>,
   beforeSearchSelectedConversation: ?Common.ConversationIDKey, // to reset after a search cancel
   editingMap: I.Map<Common.ConversationIDKey, Message.Ordinal>, // current message being edited
   inboxFilter: string,
-  isSearching: boolean, // we keep one pending row for building a chat.
   loadingMap: I.Map<string, number>, // reasons why we're loading
   messageMap: I.Map<Common.ConversationIDKey, I.Map<Message.Ordinal, Message.Message>>,
   messageOrdinals: I.Map<Common.ConversationIDKey, I.SortedSet<Message.Ordinal>>,
@@ -19,6 +20,8 @@ export type _State = {
   unreadMap: I.Map<Common.ConversationIDKey, number>,
   pendingOutboxToOrdinal: I.Map<Common.ConversationIDKey, I.Map<Message.OutboxID, Message.Ordinal>>,
   pendingConversationUsers: I.Set<string>,
+  pendingMode: PendingMode,
+  pendingSelected: boolean,
 }
 
 export type State = I.RecordOf<_State>
