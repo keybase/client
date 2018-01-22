@@ -191,6 +191,9 @@ func TestTeamTxSweepMembers(t *testing.T) {
 
 	t.Logf("Bob (%s) resets and reprovisions, he is now: %v", bob.username, bob.userVersion())
 
+	// Wait for CLKR and RotateKey link.
+	ann.waitForRotateByID(ann.loadTeam(team, false /* admin */).ID, keybase1.Seqno(3))
+
 	teamObj := ann.loadTeam(team, true /* admin */)
 	tx := teams.CreateAddMemberTx(teamObj)
 	err := tx.AddMemberTransaction(context.Background(), bob.username, keybase1.TeamRole_READER)
