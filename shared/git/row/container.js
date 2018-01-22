@@ -12,15 +12,25 @@ import {copyToClipboard} from '../../util/clipboard'
 import {usernameSelector} from '../../constants/selectors'
 import openURL from '../../util/open-url'
 import {isMobile} from '../../constants/platform'
+import * as ChatTypes from '../../constants/types/rpc-chat-gen'
+import {getCanPerform} from '../../constants/teams'
+import * as ChatConstants from '../../constants/chat'
 
 const mapStateToProps = (state: TypedState, {id, expanded}) => {
   const git = state.entities.getIn(['git', 'idToInfo', id], Constants.makeGitInfo()).toObject()
+  let admin = false
+  if (git.teamname) {
+    const yourOperations = getCanPerform(state, git.teamname)
+    admin = yourOperations.renameChannel
+  }
   return {
     ...git,
     expanded,
     isNew: state.entities.getIn(['git', 'isNew', id], false),
     lastEditUserFollowing: state.config.following.has(git.lastEditUser),
     you: usernameSelector(state),
+    smallTeam: ChatConstants.getTeamType(state) === ChatTypes.commonTeamType.simple,
+    isAdmin: admin,
   }
 }
 

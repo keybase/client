@@ -29,8 +29,10 @@ export type Props = {
   name: string,
   you: ?string,
   teamname: ?string,
+  isAdmin: boolean,
   url: string,
   isNew: boolean,
+  smallTeam: boolean,
   onCopy: () => void,
   onClickDevice: () => void,
   onShowDelete: () => void,
@@ -223,15 +225,23 @@ class Row extends React.Component<Props, State> {
                       onCheck={this.props.onToggleChatEnabled}
                       label=""
                       labelComponent={
-                        <Text type="BodySmall">
-                          Announce pushes in{' '}
-                          <Text
-                            type={this.props.chatDisabled ? 'BodySmall' : 'BodySmallPrimaryLink'}
-                            onClick={this.props.onChannelClick}
-                          >
-                            {this._channelNameToString(this.props.channelName)}
+                        !this.props.smallTeam ? (
+                          <Text type="BodySmall">
+                            Announce pushes in{' '}
+                            <Text
+                              type={this.props.chatDisabled ? 'BodySmall' : 'BodySmallPrimaryLink'}
+                              onClick={this.props.onChannelClick}
+                            >
+                              {this._channelNameToString(this.props.channelName)}
+                            </Text>
                           </Text>
-                        </Text>
+                        ) : (
+                          <Text type="BodySmall">
+                            {this.props.isAdmin
+                              ? 'Announce pushes in the team conversation'
+                              : 'Pushes will be announced in the team conversation'}
+                          </Text>
+                        )
                       }
                     />
                   )}
