@@ -46917,6 +46917,7 @@ exports[`Storyshots Teams Header 1`] = `
           "flexDirection": "row",
           "height": 48,
           "justifyContent": "center",
+          "position": "relative",
           "width": "100%",
         }
       }
@@ -47160,20 +47161,6 @@ exports[`Storyshots Teams TeamList 1`] = `
           }
         }
       >
-        <img
-          className={undefined}
-          draggable="false"
-          onClick={null}
-          srcSet="icons/icon-progress-grey-static.png 1x, icons/icon-progress-grey-static@2x.png 2x"
-          style={
-            Object {
-              "alignSelf": "center",
-              "userSelect": "none",
-              "width": 20,
-            }
-          }
-          title={undefined}
-        />
         <div
           style={
             Object {
