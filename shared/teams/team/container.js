@@ -25,6 +25,7 @@ type StateProps = {
   _invites: I.Set<Types.InviteInfo>,
   _memberInfo: I.Set<Types.MemberInfo>,
   _requests: I.Set<Types.RequestInfo>,
+  resetUserCount: number,
   _newTeamRequests: I.List<string>,
   ignoreAccessRequests: boolean,
   loading: boolean,
@@ -84,6 +85,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
     you: state.config.username,
     yourRole: Constants.getRole(state, teamname),
     yourOperations: Constants.getCanPerform(state, teamname),
+    resetUserCount: state.entities.getIn(['teams', 'teamNameToResetUsers', teamname], I.Set()).size,
   }
 }
 

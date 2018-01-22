@@ -60,6 +60,7 @@ export type Props = {
   publicitySettingsChanged: boolean,
   publicityTeam: boolean,
   requests: Array<RequestRowProps>,
+  resetUserCount: number,
   sawSubteamsBanner: boolean,
   selectedTab: Types.TabKey,
   showAddYourselfBanner: boolean,
@@ -135,6 +136,7 @@ type TeamTabsProps = {
   name: Types.Teamname,
   newTeamRequests: Array<Types.Teamname>,
   requests: Array<RequestRowProps>,
+  resetUserCount: number,
   loading?: boolean,
   selectedTab?: string,
   setSelectedTab: (?Types.TabKey) => void,
@@ -231,6 +233,7 @@ const TeamTabs = (props: TeamTabsProps) => {
     name,
     newTeamRequests,
     requests,
+    resetUserCount,
     subteams,
     loading = false,
     selectedTab,
@@ -240,15 +243,17 @@ const TeamTabs = (props: TeamTabsProps) => {
   let membersLabel = 'MEMBERS'
   membersLabel += !loading && members.length !== 0 ? ` (${members.length})` : ''
   const tabs = [
-    <Text
-      key="members"
-      type="BodySmallSemibold"
-      style={{
-        color: globalColors.black_75,
-      }}
-    >
-      {membersLabel}
-    </Text>,
+    <Box key="members" style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+      <Text
+        type="BodySmallSemibold"
+        style={{
+          color: globalColors.black_75,
+        }}
+      >
+        {membersLabel}
+      </Text>
+      {!!resetUserCount && <Badge badgeNumber={resetUserCount} badgeStyle={{marginTop: 1, marginLeft: 2}} />}
+    </Box>,
   ]
 
   let requestsBadge = 0
