@@ -57,6 +57,19 @@ var CommitSentinelValue *object.Commit
 // test.
 var repoNameRE = regexp.MustCompile(`^([a-zA-Z0-9][a-zA-Z0-9_\.-]*)$`)
 
+// CommitsByRefName represents a map of reference names to a list of commits.
+type CommitsByRefName map[plumbing.ReferenceName][]*object.Commit
+
+// GitPushType is a libgit export of keybase1.GitPushType.
+type GitPushType keybase1.GitPushType
+
+const (
+	GitPushType_DEFAULT      GitPushType = GitPushType(keybase1.GitPushType_DEFAULT)
+	GitPushType_CREATEREPO   GitPushType = GitPushType(keybase1.GitPushType_CREATEREPO)
+	GitPushType_DELETEBRANCH GitPushType = GitPushType(keybase1.GitPushType_DELETEBRANCH)
+	GitPushType_RENAMEREPO   GitPushType = GitPushType(keybase1.GitPushType_RENAMEREPO)
+)
+
 func checkValidRepoName(repoName string, config libkbfs.Config) bool {
 	return len(repoName) >= 1 &&
 		uint32(len(repoName)) <= config.MaxNameBytes() &&
@@ -191,8 +204,8 @@ func CleanOldDeletedReposTimeLimited(
 // UpdateRepoMD lets the Keybase service know that a repo's MD has
 // been updated.
 func UpdateRepoMD(ctx context.Context, config libkbfs.Config,
-	tlfHandle *libkbfs.TlfHandle, fs billy.Filesystem,
-	commitsByRef map[plumbing.ReferenceName][]*object.Commit) error {
+	tlfHandle *libkbfs.TlfHandle, fs billy.Filesystem, pushType GitPushType,
+	oldRepoName string, commitsByRef CommitsByRefName) error {
 	folder := tlfHandle.ToFavorite().ToKBFolder(false)
 
 	// Get the user-formatted repo name.
@@ -241,8 +254,10 @@ func UpdateRepoMD(ctx context.Context, config libkbfs.Config,
 	err = config.KBPKI().PutGitMetadata(
 		ctx, folder, keybase1.RepoID(c.ID.String()),
 		keybase1.GitLocalMetadata{
-			RepoName: keybase1.GitRepoName(c.Name),
-			Refs:     gitRefMetadata,
+			RepoName:         keybase1.GitRepoName(c.Name),
+			Refs:             gitRefMetadata,
+			PushType:         keybase1.GitPushType(pushType),
+			PreviousRepoName: keybase1.GitRepoName(oldRepoName),
 		})
 	if err != nil {
 		// Just log the put error, it shouldn't block the success of
@@ -381,7 +396,8 @@ func createNewRepoAndID(
 		return NullID, err
 	}
 
-	err = UpdateRepoMD(ctx, config, tlfHandle, fs, nil)
+	err = UpdateRepoMD(
+		ctx, config, tlfHandle, fs, GitPushType_CREATEREPO, "", nil)
 	if err != nil {
 		return NullID, err
 	}
@@ -742,7 +758,10 @@ func RenameRepo(
 		if err != nil {
 			return err
 		}
-		return UpdateRepoMD(ctx, config, tlfHandle, oldRepoFS, nil)
+		// We pass in `oldRepoFS`, which now has the new repo name in its
+		// config.
+		return UpdateRepoMD(ctx, config, tlfHandle, oldRepoFS,
+			GitPushType_RENAMEREPO, oldRepoName, nil)
 	}
 
 	// Does the new repo not exist yet?
@@ -825,7 +844,8 @@ func RenameRepo(
 	if err != nil {
 		return err
 	}
-	return UpdateRepoMD(ctx, config, tlfHandle, newRepoFS, nil)
+	return UpdateRepoMD(ctx, config, tlfHandle, newRepoFS,
+		GitPushType_RENAMEREPO, oldRepoName, nil)
 }
 
 // GCOptions describe options foe garbage collection.
