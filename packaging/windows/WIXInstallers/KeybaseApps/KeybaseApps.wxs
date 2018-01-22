@@ -63,11 +63,9 @@
         <Directory Id="INSTALLFOLDER" Name="Keybase">
         </Directory>
       </Directory>
-      <Directory Id="ProgramMenuFolder">
-        <Directory Id="ApplicationProgramsFolder" Name="Keybase"/>
-      </Directory>
       <Directory Id="StartupFolder" Name="Startup" />
       <Directory Id="SystemFolder" Name="System" />
+      <Directory Id="ProgramMenuFolder" Name="ProgramMenu" />
       <Directory Id="AppDataFolder">
         <Directory Id="ROAMINGINSTALLFOLDER" Name="Keybase">
         </Directory>
@@ -199,17 +197,14 @@
     </ComponentGroup>
   </Fragment>
   <Fragment>
-    <DirectoryRef Id="ApplicationProgramsFolder">
-      <Component Id="GUIShortCutComponent" Guid="{95AB14DC-1529-423E-A20C-C0A8C63AF94E}">
-        <Shortcut Id="GUIShortCut"
-                  Name="Keybase"
-                  Description="Start GUI"
-                  Target="[GuiDir]Keybase.exe"
-                  WorkingDirectory="GuiDir"/>
-        <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
-        <RegistryValue Root="HKCU" Key="Software\Keybase\Keybase" Name="ShortCutGUI" Type="integer" Value="1" KeyPath="yes"/>
-      </Component>
-    </DirectoryRef>      
+    <Component Id="GUIShortCutComponent" Guid="{95AB14DC-1529-423E-A20C-C0A8C63AF94E}" Directory="ProgramMenuFolder">
+      <Shortcut Id="GUIShortCut"
+                Name="Keybase"
+                Description="Start GUI"
+                Target="[GuiDir]Keybase.exe"
+                WorkingDirectory="GuiDir"/>
+      <RegistryValue Root="HKCU" Key="Software\Keybase\Keybase" Name="ShortCutGUI" Type="integer" Value="1" KeyPath="yes"/>
+    </Component>
   </Fragment>
   <Fragment>
     <!-- This has to be run so the repairman can finish moving files before upd.exe is run by watchdog2 -->
