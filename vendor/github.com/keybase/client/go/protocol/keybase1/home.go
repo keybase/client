@@ -195,20 +195,20 @@ func (o HomeScreenTodo) DeepCopy() HomeScreenTodo {
 type HomeScreenPeopleNotificationType int
 
 const (
-	HomeScreenPeopleNotificationType_FOLLOWED       HomeScreenPeopleNotificationType = 0
-	HomeScreenPeopleNotificationType_FOLLOWED_MULTI HomeScreenPeopleNotificationType = 1
+	HomeScreenPeopleNotificationType_FOLLOWED       HomeScreenPeopleNotificationType = 1
+	HomeScreenPeopleNotificationType_FOLLOWED_MULTI HomeScreenPeopleNotificationType = 2
 )
 
 func (o HomeScreenPeopleNotificationType) DeepCopy() HomeScreenPeopleNotificationType { return o }
 
 var HomeScreenPeopleNotificationTypeMap = map[string]HomeScreenPeopleNotificationType{
-	"FOLLOWED":       0,
-	"FOLLOWED_MULTI": 1,
+	"FOLLOWED":       1,
+	"FOLLOWED_MULTI": 2,
 }
 
 var HomeScreenPeopleNotificationTypeRevMap = map[HomeScreenPeopleNotificationType]string{
-	0: "FOLLOWED",
-	1: "FOLLOWED_MULTI",
+	1: "FOLLOWED",
+	2: "FOLLOWED_MULTI",
 }
 
 func (e HomeScreenPeopleNotificationType) String() string {
@@ -219,14 +219,16 @@ func (e HomeScreenPeopleNotificationType) String() string {
 }
 
 type HomeScreenPeopleNotificationFollowed struct {
-	FollowTime Time        `codec:"followTime" json:"followTime"`
-	User       UserSummary `codec:"user" json:"user"`
+	FollowTime   Time        `codec:"followTime" json:"followTime"`
+	FollowedBack bool        `codec:"followedBack" json:"followedBack"`
+	User         UserSummary `codec:"user" json:"user"`
 }
 
 func (o HomeScreenPeopleNotificationFollowed) DeepCopy() HomeScreenPeopleNotificationFollowed {
 	return HomeScreenPeopleNotificationFollowed{
-		FollowTime: o.FollowTime.DeepCopy(),
-		User:       o.User.DeepCopy(),
+		FollowTime:   o.FollowTime.DeepCopy(),
+		FollowedBack: o.FollowedBack,
+		User:         o.User.DeepCopy(),
 	}
 }
 
@@ -381,6 +383,7 @@ func (o HomeUserSummary) DeepCopy() HomeUserSummary {
 type HomeScreen struct {
 	LastViewed        Time              `codec:"lastViewed" json:"lastViewed"`
 	Version           int               `codec:"version" json:"version"`
+	Visits            int               `codec:"visits" json:"visits"`
 	Items             []HomeScreenItem  `codec:"items" json:"items"`
 	FollowSuggestions []HomeUserSummary `codec:"followSuggestions" json:"followSuggestions"`
 }
@@ -389,6 +392,7 @@ func (o HomeScreen) DeepCopy() HomeScreen {
 	return HomeScreen{
 		LastViewed: o.LastViewed.DeepCopy(),
 		Version:    o.Version,
+		Visits:     o.Visits,
 		Items: (func(x []HomeScreenItem) []HomeScreenItem {
 			if x == nil {
 				return nil

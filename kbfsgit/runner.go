@@ -96,7 +96,6 @@ const (
 )
 
 type ctxCommandTagKey int
-type commitsByRefName map[plumbing.ReferenceName][]*gogitobj.Commit
 
 const (
 	ctxCommandIDKey ctxCommandTagKey = iota
@@ -1440,9 +1439,9 @@ func (r *runner) pushAll(ctx context.Context, fs *libfs.FS) (err error) {
 // not in `remoteStorer`.
 func (r *runner) parentCommitsForRef(ctx context.Context,
 	localStorer gogitstor.Storer, remoteStorer gogitstor.Storer,
-	refs map[string]bool) (commitsByRefName, error) {
+	refs map[string]bool) (libgit.CommitsByRefName, error) {
 
-	commitsByRef := make(commitsByRefName, len(refs))
+	commitsByRef := make(libgit.CommitsByRefName, len(refs))
 	haves := make(map[plumbing.Hash]bool)
 
 	for refName := range refs {
@@ -1617,7 +1616,7 @@ func (r *runner) pushSome(
 // option field <why> may be quoted in a C style string if it contains
 // an LF.
 func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
-	commits commitsByRefName, err error) {
+	commits libgit.CommitsByRefName, err error) {
 	repo, fs, err := r.initRepoIfNeeded(ctx, gitCmdPush)
 	if err != nil {
 		return nil, err
@@ -1684,7 +1683,8 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 		_, err = r.output.Write([]byte(result + "\n"))
 	}
 
-	err = libgit.UpdateRepoMD(ctx, r.config, r.h, fs, commits)
+	err = libgit.UpdateRepoMD(ctx, r.config, r.h, fs,
+		keybase1.GitPushType_DEFAULT, "", commits)
 	if err != nil {
 		return nil, err
 	}

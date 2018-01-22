@@ -1019,7 +1019,7 @@ func TestRunnerWithKBFSReset(t *testing.T) {
 }
 
 func testHandlePushBatch(t *testing.T, ctx context.Context,
-	config libkbfs.Config, git, refspec, tlfName string) commitsByRefName {
+	config libkbfs.Config, git, refspec, tlfName string) libgit.CommitsByRefName {
 	var input bytes.Buffer
 	var output bytes.Buffer
 	r, err := newRunner(ctx, config, "origin",
