@@ -151,8 +151,9 @@ services:
       , case_insensitive: true
       , from: "gist_nw"
       , error: ["TEXT_NOT_FOUND", "Found sig but gist begins with unexpected content"] } },
+    # Disallow the two characters ![ which start an image tag
     { assert_regex_match: {
-      , pattern: "^.*!\\[image\\]\\(.*\\).*$"
+      , pattern: "^.*!\\[.*$"
       , negate : true
       , case_insensitive: true
       , from: "gist_nw"
