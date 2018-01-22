@@ -661,20 +661,38 @@ func AcceptInvite(ctx context.Context, g *libkb.GlobalContext, token string) err
 	return err
 }
 
-func ParseAndAcceptSeitanToken(ctx context.Context, g *libkb.GlobalContext, tok string) (wasSeitan bool, err error) {
+func parseAndAcceptSeitanTokenV1(ctx context.Context, g *libkb.GlobalContext, tok string) (wasSeitan bool, err error) {
 	seitan, err := GenerateIKeyFromString(tok)
 	if err != nil {
 		g.Log.CDebugf(ctx, "GenerateIKeyFromString error: %s", err)
 		g.Log.CDebugf(ctx, "returning TeamInviteBadToken instead")
 		return false, libkb.TeamInviteBadTokenError{}
 	}
-	g.Log.CDebugf(ctx, "found seitan token")
 	err = AcceptSeitan(ctx, g, seitan)
-	if err != nil {
-		return true, err
-	}
+	return true, err
+}
 
-	return true, nil
+func parseAndAcceptSeitanTokenV2(ctx context.Context, g *libkb.GlobalContext, tok string) (wasSeitan bool, err error) {
+	seitan, err := GenerateIKeyV2FromString(tok)
+	if err != nil {
+		g.Log.CDebugf(ctx, "GenerateIKeyV2FromString error: %s, tok: %v", err, tok)
+		g.Log.CDebugf(ctx, "returning TeamInviteBadToken instead")
+		return false, libkb.TeamInviteBadTokenError{}
+	}
+	err = AcceptSeitanV2(ctx, g, seitan)
+	return true, err
+
+}
+
+func ParseAndAcceptSeitanToken(ctx context.Context, g *libkb.GlobalContext, tok string) (wasSeitan bool, err error) {
+	wasSeitan, err = parseAndAcceptSeitanTokenV1(ctx, g, tok)
+	if err != nil {
+		wasSeitan, err = parseAndAcceptSeitanTokenV2(ctx, g, tok)
+	}
+	if wasSeitan {
+		g.Log.CDebugf(ctx, "found seitan token")
+	}
+	return true, err
 }
 
 func AcceptSeitan(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKey) error {
@@ -704,6 +722,38 @@ func AcceptSeitan(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKey) 
 	arg := apiArg(ctx, "team/seitan")
 	arg.Args.Add("akey", libkb.S{Val: encoded})
 	arg.Args.Add("now", libkb.S{Val: strconv.FormatInt(unixNow, 10)})
+	arg.Args.Add("invite_id", libkb.S{Val: string(inviteID)})
+	_, err = g.API.Post(arg)
+	return err
+}
+
+func AcceptSeitanV2(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKeyV2) error {
+	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithContext(ctx, g))
+	if err != nil {
+		return err
+	}
+
+	sikey, err := ikey.GenerateSIKey()
+	if err != nil {
+		return err
+	}
+
+	inviteID, err := sikey.GenerateTeamInviteID()
+	if err != nil {
+		return err
+	}
+
+	now := keybase1.ToTime(time.Now())
+	_, encoded, err := sikey.GenerateSignature(me.GetUID(), me.GetCurrentEldestSeqno(), inviteID, now)
+	if err != nil {
+		return err
+	}
+
+	g.Log.CDebugf(ctx, "seitan invite ID: %v", inviteID)
+
+	arg := apiArg(ctx, "team/seitan_v2")
+	arg.Args.Add("sig", libkb.S{Val: encoded})
+	arg.Args.Add("now", libkb.S{Val: strconv.FormatInt(int64(now), 10)})
 	arg.Args.Add("invite_id", libkb.S{Val: string(inviteID)})
 	_, err = g.API.Post(arg)
 	return err
@@ -1128,7 +1178,7 @@ func splitBulk(s string) []string {
 	return split
 }
 
-func CreateSeitanToken(ctx context.Context, g *libkb.GlobalContext, teamname string, role keybase1.TeamRole, label keybase1.SeitanIKeyLabel) (keybase1.SeitanIKey, error) {
+func CreateSeitanToken(ctx context.Context, g *libkb.GlobalContext, teamname string, role keybase1.TeamRole, label keybase1.SeitanKeyLabel) (keybase1.SeitanIKeyV2, error) {
 	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 	if err != nil {
 		return "", err
@@ -1138,7 +1188,7 @@ func CreateSeitanToken(ctx context.Context, g *libkb.GlobalContext, teamname str
 		return "", err
 	}
 
-	return keybase1.SeitanIKey(ikey), err
+	return keybase1.SeitanIKeyV2(ikey), err
 }
 
 // CreateTLF is called by KBFS when a TLF ID is associated with an implicit team.

@@ -44,11 +44,11 @@ func TestSeitanEncryption(t *testing.T) {
 	t.Logf("Invite id is: %s\n", inviteID)
 	require.Equal(t, len(string(inviteID)), 32)
 
-	var labelSms keybase1.SeitanIKeyLabelSms
+	var labelSms keybase1.SeitanKeyLabelSms
 	labelSms.F = "Edwin Powell Hubble"
 	labelSms.N = "+48123ZZ3045"
 
-	label := keybase1.NewSeitanIKeyLabelWithSms(labelSms)
+	label := keybase1.NewSeitanKeyLabelWithSms(labelSms)
 
 	peikey, encoded, err := ikey.GeneratePackedEncryptedIKey(context.TODO(), team, label)
 	require.NoError(t, err)
@@ -64,26 +64,26 @@ func TestSeitanEncryption(t *testing.T) {
 	require.Equal(t, peikey.Version, peikey2.Version)
 	require.Equal(t, peikey.TeamKeyGeneration, peikey2.TeamKeyGeneration)
 	require.Equal(t, peikey.RandomNonce, peikey2.RandomNonce)
-	require.Equal(t, peikey.EncryptedIKeyAndLabel, peikey2.EncryptedIKeyAndLabel)
+	require.Equal(t, peikey.EncryptedKeyAndLabel, peikey2.EncryptedKeyAndLabel)
 
-	ikeyAndLabel, err := peikey.DecryptIKeyAndLabel(context.TODO(), team)
+	keyAndLabel, err := peikey.DecryptKeyAndLabel(context.TODO(), team)
 	require.NoError(t, err)
-	ikeyAndLabelType, err := ikeyAndLabel.V()
+	keyAndLabelType, err := keyAndLabel.V()
 	require.NoError(t, err)
-	require.Equal(t, keybase1.SeitanIKeyAndLabelVersion_V1, ikeyAndLabelType)
-	ikeyAndLabelV1 := ikeyAndLabel.V1()
-	require.EqualValues(t, ikey, ikeyAndLabelV1.I)
+	require.Equal(t, keybase1.SeitanKeyAndLabelVersion_V1, keyAndLabelType)
+	keyAndLabelV1 := keyAndLabel.V1()
+	require.EqualValues(t, ikey, keyAndLabelV1.I)
 
-	label2 := ikeyAndLabelV1.L
+	label2 := keyAndLabelV1.L
 	label2Type, err := label2.T()
 	require.NoError(t, err)
-	require.Equal(t, keybase1.SeitanIKeyLabelType_SMS, label2Type)
+	require.Equal(t, keybase1.SeitanKeyLabelType_SMS, label2Type)
 
 	labelSms2 := label2.Sms()
 	require.Equal(t, labelSms.F, labelSms2.F)
 	require.Equal(t, labelSms.N, labelSms2.N)
 
-	t.Logf("Decrypted ikey is %q\n", ikeyAndLabelV1.I)
+	t.Logf("Decrypted ikey is %q\n", keyAndLabelV1.I)
 
 	_, _, err = sikey.GenerateAcceptanceKey(user.User.GetUID(), user.EldestSeqno, time.Now().Unix())
 	require.NoError(t, err)
@@ -121,14 +121,14 @@ func TestSeitanKnownSamples(t *testing.T) {
 	require.EqualValues(t, 1, peiKey.Version)
 	require.EqualValues(t, 1, peiKey.TeamKeyGeneration)
 
-	ikeyAndLabel, err := peiKey.decryptIKeyAndLabelWithSecretKey(secretKey)
+	keyAndLabel, err := peiKey.decryptKeyAndLabelWithSecretKey(secretKey)
 	require.NoError(t, err) // only encoded map or array can be decoded into a struct
 
-	ikeyAndLabelType, err := ikeyAndLabel.V()
+	keyAndLabelType, err := keyAndLabel.V()
 	require.NoError(t, err)
-	require.Equal(t, keybase1.SeitanIKeyAndLabelVersion_V1, ikeyAndLabelType)
-	ikeyAndLabelV1 := ikeyAndLabel.V1()
-	ikey := SeitanIKey(ikeyAndLabelV1.I)
+	require.Equal(t, keybase1.SeitanKeyAndLabelVersion_V1, keyAndLabelType)
+	keyAndLabelV1 := keyAndLabel.V1()
+	ikey := SeitanIKey(keyAndLabelV1.I)
 
 	require.Equal(t, expectedIKey, ikey)
 
@@ -140,25 +140,25 @@ func TestSeitanKnownSamples(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, expectedInviteID, inviteID)
 
-	label := ikeyAndLabelV1.L
+	label := keyAndLabelV1.L
 	labelType, err := label.T()
 	require.NoError(t, err)
-	require.Equal(t, keybase1.SeitanIKeyLabelType_SMS, labelType)
+	require.Equal(t, keybase1.SeitanKeyLabelType_SMS, labelType)
 
 	labelSms := label.Sms()
 	require.Equal(t, "Edwin Powell Hubble", labelSms.F)
 	require.Equal(t, "+48123ZZ3045", labelSms.N)
 
-	peiKey2, _, err := ikey.generatePackedEncryptedIKeyWithSecretKey(secretKey, keybase1.PerTeamKeyGeneration(1), peiKey.RandomNonce, ikeyAndLabelV1.L)
+	peiKey2, _, err := ikey.generatePackedEncryptedIKeyWithSecretKey(secretKey, keybase1.PerTeamKeyGeneration(1), peiKey.RandomNonce, keyAndLabelV1.L)
 	require.NoError(t, err)
 	require.Equal(t, peiKey.Version, peiKey2.Version)
 	require.Equal(t, peiKey.TeamKeyGeneration, peiKey2.TeamKeyGeneration)
 	require.Equal(t, peiKey.RandomNonce, peiKey2.RandomNonce)
-	require.Equal(t, peiKey.EncryptedIKeyAndLabel, peiKey2.EncryptedIKeyAndLabel)
+	require.Equal(t, peiKey.EncryptedKeyAndLabel, peiKey2.EncryptedKeyAndLabel)
 }
 
 // TestIsSeitanyAndAlphabetCoverage tests two unrelated things at once: (1) that
-// the IsSeitany function correclty identifies Seitan tokens; and (2) that all
+// the IsSeitany function correctly identifies Seitan tokens; and (2) that all
 // letters of the Seitan alphabet are hit by generating a sufficient number of
 // tokens. It would be bad, for instance, if we only hit 10% of the characters.
 func TestIsSeitanyAndAlphabetCoverage(t *testing.T) {

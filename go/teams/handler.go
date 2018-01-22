@@ -401,7 +401,7 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 	return nil
 }
 
-func handleSeitanSingle(ctx context.Context, g *libkb.GlobalContext, team *Team, invite keybase1.TeamInvite, seitan keybase1.TeamSeitanRequest) error {
+func handleSeitanSingle(ctx context.Context, g *libkb.GlobalContext, team *Team, invite keybase1.TeamInvite, seitan keybase1.TeamSeitanRequest) (err error) {
 	category, err := invite.Type.C()
 	if err != nil {
 		return err
@@ -410,29 +410,36 @@ func handleSeitanSingle(ctx context.Context, g *libkb.GlobalContext, team *Team,
 	if category != keybase1.TeamInviteCategory_SEITAN {
 		return fmt.Errorf("HandleTeamSeitan wanted to claim an invite with category %v", category)
 	}
+	err = handleSeitanSingleV1(ctx, g, team, invite, seitan)
+	if err != nil {
+		err = handleSeitanSingleV2(ctx, g, team, invite, seitan)
+	}
+	return err
+}
 
+func handleSeitanSingleV1(ctx context.Context, g *libkb.GlobalContext, team *Team, invite keybase1.TeamInvite, seitan keybase1.TeamSeitanRequest) (err error) {
 	peikey, err := SeitanDecodePEIKey(string(invite.Name))
 	if err != nil {
 		return err
 	}
 
-	ikeyAndLabel, err := peikey.DecryptIKeyAndLabel(ctx, team)
+	keyAndLabel, err := peikey.DecryptKeyAndLabel(ctx, team)
 	if err != nil {
 		return err
 	}
 
 	var ikey SeitanIKey
 
-	version, err := ikeyAndLabel.V()
+	version, err := keyAndLabel.V()
 	if err != nil {
-		return fmt.Errorf("while parsing IKeyAndLabel: %s", err)
+		return fmt.Errorf("while parsing KeyAndLabel: %s", err)
 	}
 
 	switch version {
-	case keybase1.SeitanIKeyAndLabelVersion_V1:
-		ikey = SeitanIKey(ikeyAndLabel.V1().I)
+	case keybase1.SeitanKeyAndLabelVersion_V1:
+		ikey = SeitanIKey(keyAndLabel.V1().I)
 	default:
-		return fmt.Errorf("unknown IKeyAndLabel version: %v", version)
+		return fmt.Errorf("unknown KeyAndLabel version: %v", version)
 	}
 
 	sikey, err := ikey.GenerateSIKey()
@@ -462,6 +469,50 @@ func handleSeitanSingle(ctx context.Context, g *libkb.GlobalContext, team *Team,
 
 	if !libkb.SecureByteArrayEq(akey, decodedAKey) {
 		return fmt.Errorf("did not end up with the same AKey")
+	}
+
+	return nil
+}
+
+func handleSeitanSingleV2(ctx context.Context, g *libkb.GlobalContext, team *Team, invite keybase1.TeamInvite, seitan keybase1.TeamSeitanRequest) (err error) {
+	pepubkey, err := SeitanDecodePEPubKey(string(invite.Name))
+	if err != nil {
+		return err
+	}
+
+	keyAndLabel, err := pepubkey.DecryptKeyAndLabel(ctx, team)
+	if err != nil {
+		return err
+	}
+
+	version, err := keyAndLabel.V()
+	if err != nil {
+		return fmt.Errorf("while parsing KeyAndLabel: %s", err)
+	}
+
+	var pubKey SeitanPubKey
+	switch version {
+	case keybase1.SeitanKeyAndLabelVersion_V2:
+		pubKey, err = ImportSeitanPubKey(keyAndLabel.V2().K)
+		if err != nil {
+			return err
+		}
+	default:
+		return fmt.Errorf("unknown KeyAndLabel version: %v", version)
+	}
+
+	var sig SeitanSig
+	decodedSig, err := base64.StdEncoding.DecodeString(string(seitan.Akey)) // For V2 the server responds with sig in the akey field
+	copy(sig[:], decodedSig[:])
+
+	now := keybase1.Time(seitan.UnixCTime) // For V2 this is ms since the epoch, not seconds
+	msg, err := GenerateSeitanSignatureMessage(seitan.Uid, seitan.EldestSeqno, SCTeamInviteID(seitan.InviteID), now)
+
+	if err != nil {
+		return err
+	}
+	if !VerifySeitanSignatureMessage(pubKey, msg, sig) {
+		return fmt.Errorf("Unable to verify signature: %v", sig)
 	}
 
 	return nil

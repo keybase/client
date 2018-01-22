@@ -385,41 +385,70 @@ func ListSubteamsRecursive(ctx context.Context, g *libkb.GlobalContext, parentTe
 	return res, nil
 }
 
-func AnnotateSeitanInvite(ctx context.Context, team *Team, invite keybase1.TeamInvite) (name keybase1.TeamInviteName, err error) {
+func decryptSeitanInviteV1(ctx context.Context, team *Team, invite keybase1.TeamInvite) (keyAndLabel keybase1.SeitanKeyAndLabel, err error) {
 	peikey, err := SeitanDecodePEIKey(string(invite.Name))
 	if err != nil {
-		return name, err
+		return keyAndLabel, err
 	}
-	ikeyAndLabel, err := peikey.DecryptIKeyAndLabel(ctx, team)
+	keyAndLabel, err = peikey.DecryptKeyAndLabel(ctx, team)
 	if err != nil {
-		return name, err
+		return keyAndLabel, err
 	}
-	version, err := ikeyAndLabel.V()
+	return keyAndLabel, err
+}
+
+func decryptSeitanInviteV2(ctx context.Context, team *Team, invite keybase1.TeamInvite) (keyAndLabel keybase1.SeitanKeyAndLabel, err error) {
+	pepubkey, err := SeitanDecodePEPubKey(string(invite.Name))
 	if err != nil {
-		return name, err
+		return keyAndLabel, err
 	}
-	switch version {
-	case keybase1.SeitanIKeyAndLabelVersion_V1:
-		v1 := ikeyAndLabel.V1()
-		label := v1.L
-		labelType, err := label.T()
+	keyAndLabel, err = pepubkey.DecryptKeyAndLabel(ctx, team)
+	if err != nil {
+		return keyAndLabel, err
+	}
+	return keyAndLabel, err
+}
+func AnnotateSeitanInvite(ctx context.Context, team *Team, invite keybase1.TeamInvite) (name keybase1.TeamInviteName, err error) {
+	keyAndLabel, err := decryptSeitanInviteV1(ctx, team, invite)
+	if err != nil {
+		keyAndLabel, err = decryptSeitanInviteV2(ctx, team, invite)
 		if err != nil {
 			return name, err
 		}
-		switch labelType {
-		case keybase1.SeitanIKeyLabelType_SMS:
-			sms := label.Sms()
-			var smsName string
-			if sms.F != "" && sms.N != "" {
-				smsName = fmt.Sprintf("%s (%s)", sms.F, sms.N)
-			} else if sms.F != "" {
-				smsName = sms.F
-			} else if sms.N != "" {
-				smsName = sms.N
-			}
+	}
 
-			return keybase1.TeamInviteName(smsName), nil
+	version, err := keyAndLabel.V()
+	if err != nil {
+		return name, err
+	}
+	var label keybase1.SeitanKeyLabel
+	switch version {
+	case keybase1.SeitanKeyAndLabelVersion_V1:
+		v1 := keyAndLabel.V1()
+		label = v1.L
+	case keybase1.SeitanKeyAndLabelVersion_V2:
+		v2 := keyAndLabel.V2()
+		label = v2.L
+	default:
+		return "", fmt.Errorf("Unknown version: %v", version)
+	}
+
+	labelType, err := label.T()
+	if err != nil {
+		return name, err
+	}
+	switch labelType {
+	case keybase1.SeitanKeyLabelType_SMS:
+		sms := label.Sms()
+		var smsName string
+		if sms.F != "" && sms.N != "" {
+			smsName = fmt.Sprintf("%s (%s)", sms.F, sms.N)
+		} else if sms.F != "" {
+			smsName = sms.F
+		} else if sms.N != "" {
+			smsName = sms.N
 		}
+		return keybase1.TeamInviteName(smsName), nil
 	}
 
 	return "", nil
