@@ -1822,6 +1822,21 @@ func (t TeamName) Depth() int {
 	return len(t.Parts)
 }
 
+func (t TeamName) IsAncestorOf(other TeamName) bool {
+	depth := t.Depth()
+	if depth >= other.Depth() {
+		return false
+	}
+
+	for i := 0; i < depth; i++ {
+		if !other.Parts[i].Eq(t.Parts[i]) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (t TeamNamePart) Eq(t2 TeamNamePart) bool {
 	return string(t) == string(t2)
 }

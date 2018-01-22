@@ -133,6 +133,38 @@ func (o GitCommit) DeepCopy() GitCommit {
 	}
 }
 
+type GitPushType int
+
+const (
+	GitPushType_DEFAULT      GitPushType = 0
+	GitPushType_CREATEREPO   GitPushType = 1
+	GitPushType_DELETEBRANCH GitPushType = 2
+	GitPushType_RENAMEREPO   GitPushType = 3
+)
+
+func (o GitPushType) DeepCopy() GitPushType { return o }
+
+var GitPushTypeMap = map[string]GitPushType{
+	"DEFAULT":      0,
+	"CREATEREPO":   1,
+	"DELETEBRANCH": 2,
+	"RENAMEREPO":   3,
+}
+
+var GitPushTypeRevMap = map[GitPushType]string{
+	0: "DEFAULT",
+	1: "CREATEREPO",
+	2: "DELETEBRANCH",
+	3: "RENAMEREPO",
+}
+
+func (e GitPushType) String() string {
+	if v, ok := GitPushTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type GitRefMetadata struct {
 	RefName              string      `codec:"refName" json:"refName"`
 	Commits              []GitCommit `codec:"commits" json:"commits"`
@@ -158,8 +190,10 @@ func (o GitRefMetadata) DeepCopy() GitRefMetadata {
 }
 
 type GitLocalMetadata struct {
-	RepoName GitRepoName      `codec:"repoName" json:"repoName"`
-	Refs     []GitRefMetadata `codec:"refs" json:"refs"`
+	RepoName         GitRepoName      `codec:"repoName" json:"repoName"`
+	Refs             []GitRefMetadata `codec:"refs" json:"refs"`
+	PushType         GitPushType      `codec:"pushType" json:"pushType"`
+	PreviousRepoName GitRepoName      `codec:"previousRepoName" json:"previousRepoName"`
 }
 
 func (o GitLocalMetadata) DeepCopy() GitLocalMetadata {
@@ -176,6 +210,8 @@ func (o GitLocalMetadata) DeepCopy() GitLocalMetadata {
 			}
 			return ret
 		})(o.Refs),
+		PushType:         o.PushType.DeepCopy(),
+		PreviousRepoName: o.PreviousRepoName.DeepCopy(),
 	}
 }
 
@@ -300,13 +336,14 @@ func (o GitRepoResult) DeepCopy() GitRepoResult {
 }
 
 type GitRepoInfo struct {
-	Folder         Folder            `codec:"folder" json:"folder"`
-	RepoID         RepoID            `codec:"repoID" json:"repoID"`
-	LocalMetadata  GitLocalMetadata  `codec:"localMetadata" json:"localMetadata"`
-	ServerMetadata GitServerMetadata `codec:"serverMetadata" json:"serverMetadata"`
-	RepoUrl        string            `codec:"repoUrl" json:"repoUrl"`
-	GlobalUniqueID string            `codec:"globalUniqueID" json:"globalUniqueID"`
-	CanDelete      bool              `codec:"canDelete" json:"canDelete"`
+	Folder           Folder               `codec:"folder" json:"folder"`
+	RepoID           RepoID               `codec:"repoID" json:"repoID"`
+	LocalMetadata    GitLocalMetadata     `codec:"localMetadata" json:"localMetadata"`
+	ServerMetadata   GitServerMetadata    `codec:"serverMetadata" json:"serverMetadata"`
+	RepoUrl          string               `codec:"repoUrl" json:"repoUrl"`
+	GlobalUniqueID   string               `codec:"globalUniqueID" json:"globalUniqueID"`
+	CanDelete        bool                 `codec:"canDelete" json:"canDelete"`
+	TeamRepoSettings *GitTeamRepoSettings `codec:"teamRepoSettings,omitempty" json:"teamRepoSettings,omitempty"`
 }
 
 func (o GitRepoInfo) DeepCopy() GitRepoInfo {
@@ -318,6 +355,13 @@ func (o GitRepoInfo) DeepCopy() GitRepoInfo {
 		RepoUrl:        o.RepoUrl,
 		GlobalUniqueID: o.GlobalUniqueID,
 		CanDelete:      o.CanDelete,
+		TeamRepoSettings: (func(x *GitTeamRepoSettings) *GitTeamRepoSettings {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.TeamRepoSettings),
 	}
 }
 
