@@ -13,7 +13,7 @@ import {
 } from '../../util/container'
 import {Avatar, Box, ClickableBox, List, Text, Usernames} from '../../common-adapters/index'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
-import {getSpecialMentions, isSpecialMention} from '../../constants/chat'
+import {getEveryoneMentions, isSpecialMention} from '../../constants/chat'
 
 type Props<D: {key: string, selected: boolean}> = {
   rowRenderer: (i: number, d: D) => React$Element<*>,
@@ -110,7 +110,7 @@ const mapStateToProps: MapStateToProps<*, *, *> = (state: TypedState, {users, se
       key: u.username,
     }))
     .concat(
-      getSpecialMentions().map(u => ({
+      getEveryoneMentions().map(u => ({
         username: u,
         fullName: 'Everyone in this conversation',
         key: u,
