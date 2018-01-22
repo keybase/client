@@ -39,7 +39,7 @@
     switch (_runMode) {
       case KBRunModeProd: {
         self.title = @"Keybase.io";
-        self.mountDir = [KBPath path:@"/keybase" options:0];
+        self.mountDir = [self dataPath:@"fs" options:0];
         self.debugEnabled = YES;
         self.info = @"Uses keybase.io";
         self.image = [NSImage imageNamed:NSImageNameNetwork];
@@ -47,7 +47,7 @@
       }
       case KBRunModeStaging: {
         self.title = @"Staging";
-        self.mountDir = [KBPath path:@"/keybase.staging" options:0];
+        self.mountDir = [self dataPath:@"fs" options:0];
         self.debugEnabled = YES;
         self.info = @"Uses staging server.";
         self.image = [NSImage imageNamed:NSImageNameNetwork];
@@ -55,7 +55,7 @@
       }
       case KBRunModeDevel: {
         self.title = @"Devel";
-        self.mountDir = [KBPath path:@"/keybase.devel" options:0];
+        self.mountDir = [self dataPath:@"fs" options:0];
         self.debugEnabled = YES;
         self.info = @"Uses the local web server.";
         self.image = [NSImage imageNamed:NSImageNameComputer];
