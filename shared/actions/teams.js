@@ -814,6 +814,15 @@ function _badgeAppForTeams(action: TeamsGen.BadgeAppForTeamsPayload, state: Type
   const newTeams = I.Set(action.payload.newTeamNames || [])
   const newTeamRequests = I.List(action.payload.newTeamAccessRequests || [])
 
+  const teamsWithResetUsers = I.List(action.payload.teamsWithResetUsers || [])
+  const teamsWithResetUsersMap = teamsWithResetUsers.reduce((res, entry) => {
+    if (!res[entry.teamname]) {
+      res[entry.teamname] = I.Set()
+    }
+    res[entry.teamname] = res[entry.teamname].add(entry.username)
+    return res
+  }, {})
+
   if (_wasOnTeamsTab && (newTeams.size > 0 || newTeamRequests.size > 0)) {
     // Call getTeams if new teams come in.
     // Covers the case when we're staring at the teams page so
@@ -838,6 +847,7 @@ function _badgeAppForTeams(action: TeamsGen.BadgeAppForTeamsPayload, state: Type
   // if the user wasn't on the teams tab, loads will be triggered by navigation around the app
   actions.push(Saga.put(replaceEntity(['teams'], I.Map([['newTeams', newTeams]]))))
   actions.push(Saga.put(replaceEntity(['teams'], I.Map([['newTeamRequests', newTeamRequests]]))))
+  actions.push(Saga.put(replaceEntity(['teams', 'teamNameToResetUsers'], I.Map(teamsWithResetUsersMap))))
   return Saga.sequentially(actions)
 }
 

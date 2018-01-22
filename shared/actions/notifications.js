@@ -67,6 +67,7 @@ function _onRecievedBadgeState(action: NotificationsGen.ReceivedBadgeStatePayloa
     newGitRepoGlobalUniqueIDs,
     newTeamNames,
     newTeamAccessRequests,
+    teamsWithResetUsers,
   } = action.payload.badgeState
   return Saga.sequentially([
     Saga.put(createBadgeAppForChat({conversations: conversations || []})),
@@ -75,6 +76,7 @@ function _onRecievedBadgeState(action: NotificationsGen.ReceivedBadgeStatePayloa
       TeamsGen.createBadgeAppForTeams({
         newTeamAccessRequests: newTeamAccessRequests || [],
         newTeamNames: newTeamNames || [],
+        teamsWithResetUsers: teamsWithResetUsers || [],
       })
     ),
   ])
