@@ -65,21 +65,25 @@ const TeamRow = ({
       }}
     >
       <ClickableBox style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}} onClick={onViewTeam}>
-        <Avatar
-          size={isMobile ? 48 : 32}
-          teamname={name}
-          isTeam={true}
-          style={{marginLeft: globalMargins.tiny}}
-        />
+        <Box style={{display: 'flex', position: 'relative'}}>
+          <Avatar
+            size={isMobile ? 48 : 32}
+            teamname={name}
+            isTeam={true}
+            style={{marginLeft: globalMargins.tiny}}
+          />
+          {!!(newRequests + resetUserCount) && (
+            <Badge
+              badgeNumber={newRequests + resetUserCount}
+              badgeStyle={{position: 'absolute', top: -4, right: -12}}
+            />
+          )}
+        </Box>
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: globalMargins.small}}>
-          <Text type="BodySemibold">{name}</Text>
+          <Text type="BodySemibold" lineClamp={1}>
+            {name}
+          </Text>
           <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-            {!!(newRequests + resetUserCount) && (
-              <Badge
-                badgeNumber={newRequests + resetUserCount}
-                badgeStyle={{marginLeft: 0, marginRight: 3, marginTop: 1}}
-              />
-            )}
             {isNew && <Meta title="NEW" style={newCharmStyle} />}
             <Text type="BodySmall">{membercount + ' member' + (membercount !== 1 ? 's' : '')}</Text>
           </Box>
