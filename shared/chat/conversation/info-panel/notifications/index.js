@@ -2,8 +2,17 @@
 import * as React from 'react'
 import {Box, Checkbox, Icon, RadioButton, ProgressIndicator, Text} from '../../../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../../styles'
-import {type NotificationSaveState} from '../../../../constants/types/chat'
-import type {Props} from '.'
+import {type NotifyType, type NotificationSaveState} from '../../../../constants/types/chat'
+
+export type Props = {
+  channelWide: boolean,
+  desktop: NotifyType,
+  mobile: NotifyType,
+  saveState: NotificationSaveState,
+  onSetDesktop: NotifyType => void,
+  onSetMobile: NotifyType => void,
+  onToggleChannelWide: () => void,
+}
 
 const SaveStateComponents = (saveState: NotificationSaveState) => {
   switch (saveState) {
