@@ -30,6 +30,7 @@ const Teams = (props: Props) => (
         )}
         <TeamList {...props} />
         <BetaNote {...props} />
+        {/* Put progress indicator in the footer on mobile because it won't fit in the header on small screens */}
         {isMobile && (
           <ProgressIndicator
             style={{
