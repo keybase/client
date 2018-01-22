@@ -6,7 +6,26 @@ import * as ChatGen from '../../../../actions/chat-gen'
 import Notifications from '.'
 import {compose, branch, renderNothing, connect, lifecycle, type TypedState} from '../../../../util/container'
 import {type DeviceType} from '../../../../constants/types/devices'
-import {type StateProps, type DispatchProps} from './container'
+
+type StateProps =
+  | {|
+      channelWide: boolean,
+      conversationIDKey: string,
+      desktop: Types.NotifyType,
+      mobile: Types.NotifyType,
+      saveState: Types.NotificationSaveState,
+    |}
+  | {||}
+
+type DispatchProps = {|
+  _resetNotificationSaveState: (conversationIDKey: Types.ConversationIDKey) => void,
+  onSetNotification: (
+    conversationIDKey: Types.ConversationIDKey,
+    deviceType: DeviceType,
+    notifyType: Types.NotifyType
+  ) => void,
+  onToggleChannelWide: (conversationIDKey: Types.ConversationIDKey) => void,
+|}
 
 const serverStateToProps = (notifications: Types.NotificationsState, type: 'desktop' | 'mobile') => {
   // The server state has independent bool values for atmention/generic,
@@ -102,6 +121,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
 }
 
 export default compose(
+  // $FlowIssue temp
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentDidMount: function() {
