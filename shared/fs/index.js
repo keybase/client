@@ -1,8 +1,7 @@
 // @flow
-import React, {PureComponent} from 'react'
-import {FolderVisibility} from '../constants/types/fs'
-import {globalStyles, globalColors, globalMargins} from '../styles'
-import {isMobile} from '../constants/platform'
+import * as React from 'react'
+import * as Types from '../constants/types/fs'
+import {globalStyles, globalColors, globalMargins, isMobile} from '../styles'
 import {Box, Button, ClickableBox, Icon, List, Text} from '../common-adapters'
 import {type IconType} from '../common-adapters/icon'
 
@@ -26,6 +25,7 @@ const stylesContainer = {
   flex: 1,
 }
 
+// TODO: derive this from the Redux store.
 const rootFolders = [
   'private',
   'public',
@@ -44,7 +44,7 @@ type FileRowProps = {
 
 type FolderProps = {
   path: string,
-  visibility: FolderVisibility,
+  visibility: Types.FolderVisibility,
   items: Array<string>,
 }
 
@@ -58,13 +58,14 @@ const FolderHeader = ({title}: FolderHeaderProps) => (
   </Box>
 )
 
+const FolderBoxStyle = {...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'stretch'}
 
 const FileRow = ({path, icon, showFileData}: FileRowProps) => (
   <ClickableBox onClick={showFileData} style={{...stylesCommonRow}}>
     <Box key={path} style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
-      <Icon type={icon} style={{marginRight: 16}} />
-      <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'flex-start'}}>
-        <Text type="Body" style={{flex: 1}}>
+      <Icon type={icon} style={{marginRight: globalMargins.small}} />
+      <Box style={FolderBoxStyle}>
+        <Text type="Body">
           {path}
         </Text>
       </Box>
@@ -72,39 +73,33 @@ const FileRow = ({path, icon, showFileData}: FileRowProps) => (
   </ClickableBox>
 )
 
-class Folder extends PureComponent<FolderProps> {
-  _renderRow(index, item) {
+const iconTypes : IconType = {
+  folder: isMobile ? 'icon-folder-private-24' : 'icon-folder-private-24',
+  file: isMobile ? 'icon-file-24' : 'icon-file-24',
+}
+
+class Folder extends React.PureComponent<FolderProps> {
+  _renderRow = (index, item) => {
+    const showFileData = () => null
+    const iconType = iconTypes[item.type]
+    const path = this.props.path + '/' + item.key
     return (
-      <FileRow path={item.path} icon={item.icon} showFileData={item.showFileData} />
+      <FileRow path={path} icon={iconType} showFileData={showFileData} />
     )
   }
 
   render() {
-    const iconTypes : IconType = {
-      folder: isMobile ? 'icon-folder-private-24' : 'icon-folder-private-24',
-      file: isMobile ? 'icon-file-24' : 'icon-file-24',
-    }
-    const items = [
-      ...this.props.items.map(({name, visibility, type}) => ({
-        visibility, type,
-        key: name,
-        path: this.props.path + '/' + name,
-        icon: iconTypes[type],
-        // TODO: do something with path
-        showFileData: () => null,
-        })),
-    ]
     return (
       <Box style={stylesContainer}>
         <FolderHeader title="Folders" />
-        <List items={items} renderItem={this._renderRow} />
+        <List items={this.props.items} renderItem={this._renderRow} />
       </Box>
     )
   }
 }
 
 const Fs = () => (
-  <Folder path='/keybase' items={rootFolders.map(name => ({name, visibility: name, type: 'folder'}))} />
+  <Folder path='/keybase' items={rootFolders.map(name => ({key: name, visibility: name, type: 'folder'}))} />
 )
 
 export default Fs
