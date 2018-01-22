@@ -22,7 +22,7 @@
     <Feature Id="ProductFeature" Title="Keybase Application" Level="1">
       <ComponentGroupRef Id="ProductComponents" />
       <ComponentGroupRef Id="GuiComps" />
-      <ComponentGroupRef Id="ApplicationShortcuts" />
+      <ComponentRef Id="GUIShortCutComponent" />
       <ComponentGroupRef Id="StartupShortcuts" />
       <ComponentGroupRef Id="GuiStartMenuTileColors" />
       <ComponentGroupRef Id="BrowserExtensionKbnm" />
@@ -86,7 +86,6 @@
         <RemoveFolder Id="GuiNodeModulesDirRemove" On="uninstall" Directory="GuiNodeModulesDir"/>
         <RemoveFolder Id="GuiRegeditDirRemove" On="uninstall" Directory="GuiRegeditDir"/>
         <RemoveFolder Id="ROAMINGINSTALLFOLDERRemove" On="uninstall" Directory="ROAMINGINSTALLFOLDER"/>
-        <RemoveFolder Id="ApplicationProgramsFolderRemove" On="uninstall" Directory="ApplicationProgramsFolder"/>
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
           <RegistryValue Name="KeybaseExe" Value="1" KeyPath="yes" Type="integer" />
         </RegistryKey>
@@ -199,24 +198,19 @@
 
     </ComponentGroup>
   </Fragment>
-
-  
-
   <Fragment>
-    <ComponentGroup Id="ApplicationShortcuts" Directory="ApplicationProgramsFolder">
-      <Component Id="GUIShortCutComponent" Guid="{034E2E25-3676-4101-87F5-F6E081CA446A}">
+    <DirectoryRef Id="ApplicationProgramsFolder">
+      <Component Id="GUIShortCutComponent" Guid="{95AB14DC-1529-423E-A20C-C0A8C63AF94E}">
         <Shortcut Id="GUIShortCut"
                   Name="Keybase"
                   Description="Start GUI"
                   Target="[GuiDir]Keybase.exe"
                   WorkingDirectory="GuiDir"/>
-        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
-          <RegistryValue Name="ShortCutGUI" Type="integer" Value="1" KeyPath="yes"  />
-        </RegistryKey>
+        <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
+        <RegistryValue Root="HKCU" Key="Software\Keybase\Keybase" Name="ShortCutGUI" Type="integer" Value="1" KeyPath="yes"/>
       </Component>
-    </ComponentGroup>
+    </DirectoryRef>      
   </Fragment>
-
   <Fragment>
     <!-- This has to be run so the repairman can finish moving files before upd.exe is run by watchdog2 -->
     <CustomAction Id="RunMainAppDummyForRepair"
