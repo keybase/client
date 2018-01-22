@@ -319,6 +319,7 @@ func (s *Server) logRequest(sri *ServedRequestInfo, requestPath string) {
 		zap.Bool("invalid_config", sri.InvalidConfig),
 	)
 }
+
 func (s *Server) setCommonResponseHeaders(w http.ResponseWriter) {
 	// Enforce XSS protection. References:
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-XSS-Protection
