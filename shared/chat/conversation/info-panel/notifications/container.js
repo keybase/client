@@ -4,7 +4,7 @@ import * as Constants from '../../../../constants/chat'
 import * as Types from '../../../../constants/types/chat'
 import * as ChatGen from '../../../../actions/chat-gen'
 import Notifications from '.'
-import {compose, branch, renderNothing, connect, lifecycle, type TypedState} from '../../../../util/container'
+import {compose, connect, lifecycle, type TypedState} from '../../../../util/container'
 import {type DeviceType} from '../../../../constants/types/devices'
 
 type StateProps =
@@ -96,7 +96,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
     const {conversationIDKey} = stateProps
     return {
       _resetNotificationSaveState: () => dispatchProps._resetNotificationSaveState(conversationIDKey),
-      conversationIDKey: stateProps.conversationIDKey,
+      hasConversation: !!stateProps.conversationIDKey,
       channelWide: stateProps.channelWide,
       desktop: stateProps.desktop,
       mobile: stateProps.mobile,
@@ -127,6 +127,5 @@ export default compose(
     componentDidMount: function() {
       this.props._resetNotificationSaveState && this.props._resetNotificationSaveState()
     },
-  }),
-  branch(props => !props.conversationIDKey, renderNothing)
+  })
 )(Notifications)
