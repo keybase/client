@@ -1684,7 +1684,7 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 	}
 
 	err = libgit.UpdateRepoMD(ctx, r.config, r.h, fs,
-		libgit.GitPushType_DEFAULT, "", commits)
+		keybase1.GitPushType_DEFAULT, "", commits)
 	if err != nil {
 		return nil, err
 	}
