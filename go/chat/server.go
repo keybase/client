@@ -427,7 +427,7 @@ func (h *Server) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg
 	}
 
 	// Xlate pager control into pagination if given
-	if arg.Query != nil {
+	if arg.Query != nil && arg.Query.MessageIDControl != nil {
 		arg.Pagination = utils.XlateMessageIDControlToPagination(arg.Query.MessageIDControl)
 	}
 
@@ -482,7 +482,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 	}
 
 	// Xlate pager control into pagination if given
-	if arg.Query != nil {
+	if arg.Query != nil && arg.Query.MessageIDControl != nil {
 		pagination = utils.XlateMessageIDControlToPagination(arg.Query.MessageIDControl)
 	}
 
@@ -1676,6 +1676,8 @@ func (h *Server) downloadAttachmentLocal(ctx context.Context, arg downloadAttach
 		return chat1.DownloadAttachmentLocalRes{}, err
 	}
 
+	h.Debug(ctx, "downloadAttachmentLocal: forming attachment message: convID: %s messageID: %d",
+		arg.ConversationID, arg.MessageID)
 	attachment, limits, err := h.attachmentMessage(ctx, arg.ConversationID, arg.MessageID, arg.IdentifyBehavior)
 	if err != nil {
 		return chat1.DownloadAttachmentLocalRes{}, err
@@ -1690,7 +1692,7 @@ func (h *Server) downloadAttachmentLocal(ctx context.Context, arg downloadAttach
 		} else {
 			return chat1.DownloadAttachmentLocalRes{}, errors.New("no preview in attachment")
 		}
-		h.Debug(ctx, "downloading preview attachment asset")
+		h.Debug(ctx, "downloadAttachmentLocal: downloading preview attachment asset")
 	}
 	chatUI.ChatAttachmentDownloadStart(ctx)
 	if err := h.store.DownloadAsset(ctx, params, obj, arg.Sink, h, progress); err != nil {

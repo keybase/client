@@ -135,12 +135,29 @@ services:
     { fetch: {
       , kind: "string"
       , from: "hint_url"
-      , into: "haystack" } },
+      , into: "gist" } },
     # find the sig
     { assert_find_base64: {
       , needle: "sig"
-      , haystack: "haystack" }
-      , error: ["TEXT_NOT_FOUND", "signature not found in body"] },
+      , haystack: "gist" }
+      , error: ["TEXT_NOT_FOUND", "Signature not found in body"] },
+    # make sure gist starts with the expected content
+    # to prevent malicious gists with proofs 'hidden' in them from validating
+    { whitespace_normalize: {
+      , from: "gist"
+      , into: "gist_nw" } },
+    { assert_regex_match: {
+      , pattern: "^((### Verifying myself: I am (https://keybase\\.io)?/%{username_keybase} As part of this verification process, I am signing this object and posting as a gist as github user \\*%{username_service}\\*)|(### Keybase proof I hereby claim: \\* I am %{username_service} on github\\. \\* I am %{username_keybase} \\(https://keybase\\.io/%{username_keybase}\\) on keybase\\.)) .*$"
+      , case_insensitive: true
+      , from: "gist_nw"
+      , error: ["TEXT_NOT_FOUND", "Found sig but gist begins with unexpected content"] } },
+    # Disallow the two characters ![ which start an image tag
+    { assert_regex_match: {
+      , pattern: "^.*!\\[.*$"
+      , negate : true
+      , case_insensitive: true
+      , from: "gist_nw"
+      , error: ["CONTENT_FAILURE", "Proof gist must not contain images"] } },
   ]]
   hackernews: [[
     # validate url and extract username

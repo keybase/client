@@ -100,6 +100,16 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "GitPushType",
+      "symbols": [
+        "DEFAULT_0",
+        "CREATEREPO_1",
+        "DELETEBRANCH_2",
+        "RENAMEREPO_3"
+      ]
+    },
+    {
       "type": "record",
       "name": "GitRefMetadata",
       "fields": [
@@ -134,6 +144,14 @@
             "items": "GitRefMetadata"
           },
           "name": "refs"
+        },
+        {
+          "type": "GitPushType",
+          "name": "pushType"
+        },
+        {
+          "type": "GitRepoName",
+          "name": "previousRepoName"
         }
       ]
     },
