@@ -2,7 +2,7 @@
 import {Component} from 'react'
 import * as Types from '../../../constants/types/chat'
 
-export type Props = {
+export type PreMentionHocProps = {
   channelName: ?string,
   editingMessage: ?Types.Message,
   focusInputCounter: number,
@@ -26,8 +26,9 @@ export type Props = {
   setText: (text: string) => void,
   text: string,
   typing: Array<Types.Username>,
+}
 
-  // Mention HOC props
+export type MentionHocProps = {
   insertMention: (u: string, options?: {notUser: boolean}) => void,
   switchMention: (u: string) => void,
   insertChannelMention: (c: string, options?: {notChannel: boolean}) => void,
@@ -39,5 +40,7 @@ export type Props = {
   downArrowCounter: number,
   pickSelectedCounter: number,
 }
+
+export type Props = PreMentionHocProps & MentionHocProps
 
 export default class Input extends Component<Props> {}

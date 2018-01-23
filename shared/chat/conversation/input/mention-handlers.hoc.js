@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {type Props} from '.'
+import {type PreMentionHocProps, type Props} from '.'
 import logger from '../../../logger'
 
 type MentionHocProps = {
@@ -13,7 +13,7 @@ type MentionHocProps = {
   setMentionFilter: (filter: string) => void,
   setMentionPopupOpen: (setOpen: boolean) => void,
   _inputSetRef: any => void,
-} & Props
+} & PreMentionHocProps
 
 type MentionHocState = {
   upArrowCounter: number,
