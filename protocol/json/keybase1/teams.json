@@ -575,6 +575,20 @@
     },
     {
       "type": "record",
+      "name": "TeamEncryptedKBFSCryptKeys",
+      "fields": [
+        {
+          "type": "PerTeamKeyGeneration",
+          "name": "generation"
+        },
+        {
+          "type": "TeamEncryptedKBFSKeyset",
+          "name": "keyset"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TeamSigChainState",
       "fields": [
         {
@@ -700,7 +714,7 @@
         {
           "type": {
             "type": "map",
-            "values": "TeamEncryptedKBFSKeyset",
+            "values": "TeamEncryptedKBFSCryptKeys",
             "keys": "TeamApplication"
           },
           "name": "tlfCryptKeys"

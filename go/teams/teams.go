@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"sync"
 
 	"github.com/keybase/go-codec/codec"
 
@@ -31,6 +32,9 @@ type Team struct {
 
 	me      *libkb.User
 	rotated bool
+
+	kbfsCryptKeysLock sync.Mutex
+	kbfsCryptKeys     map[keybase1.TeamApplication][]keybase1.CryptKey
 }
 
 func NewTeam(ctx context.Context, g *libkb.GlobalContext, teamData *keybase1.TeamData) *Team {
@@ -38,8 +42,9 @@ func NewTeam(ctx context.Context, g *libkb.GlobalContext, teamData *keybase1.Tea
 	return &Team{
 		Contextified: libkb.NewContextified(g),
 
-		ID:   chain.GetID(),
-		Data: teamData,
+		ID:            chain.GetID(),
+		Data:          teamData,
+		kbfsCryptKeys: make(map[keybase1.TeamApplication][]keybase1.CryptKey),
 	}
 }
 
@@ -77,6 +82,26 @@ func (t *Team) OpenTeamJoinAs() keybase1.TeamRole {
 
 func (t *Team) KBFSTLFID() keybase1.TLFID {
 	return t.chain().inner.TlfID
+}
+
+func (t *Team) KBFSCryptKeys(ctx context.Context, appType keybase1.TeamApplication) (res []keybase1.CryptKey, err error) {
+	t.kbfsCryptKeysLock.Lock()
+	defer t.kbfsCryptKeysLock.Unlock()
+
+	var ok bool
+	if res, ok = t.kbfsCryptKeys[appType]; ok {
+		return res, nil
+	}
+	encryptedCryptKeys, ok := t.chain().inner.TlfCryptKeys[appType]
+	if !ok {
+		return nil, nil
+	}
+
+	key, err := t.ApplicationKeyAtGeneration(appType, encryptedCryptKeys.Generation)
+	if err != nil {
+		return nil, err
+	}
+	return t.unboxKBFSCryptKeys(ctx, key, encryptedCryptKeys.Keyset)
 }
 
 func (t *Team) SharedSecret(ctx context.Context) (ret keybase1.PerTeamKeySeed, err error) {
@@ -1584,6 +1609,12 @@ func (t *Team) marshal(incoming interface{}) ([]byte, error) {
 		return nil, err
 	}
 	return data, nil
+}
+
+func (t *Team) unboxKBFSCryptKeys(ctx context.Context, key keybase1.TeamApplicationKey,
+	encryptedData keybase1.TeamEncryptedKBFSKeyset) ([]keybase1.CryptKey, error) {
+
+	return nil, nil
 }
 
 func (t *Team) boxKBFSCryptKeys(ctx context.Context, key keybase1.TeamApplicationKey,

@@ -207,6 +207,11 @@ protocol teams {
     bytes n;
   }
 
+  record TeamEncryptedKBFSCryptKeys {
+    PerTeamKeyGeneration generation;
+    TeamEncryptedKBFSKeyset keyset;
+  }
+
   // State of a parsed team sigchain.
   // Should be treated as immutable when outside TeamSigChainPlayer.
   // Modified internally to TeamSigChainPlayer.
@@ -274,7 +279,7 @@ protocol teams {
 
     // Information about KBFS TLF crypt keys for the TLF associated with this team. The latest
     // link per app type is what shows up here.
-    map<TeamApplication, TeamEncryptedKBFSKeyset> tlfCryptKeys;
+    map<TeamApplication, TeamEncryptedKBFSCryptKeys> tlfCryptKeys;
   }
 
   // The team got this name at this point in time.
