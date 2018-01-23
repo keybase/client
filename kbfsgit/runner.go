@@ -1448,8 +1448,14 @@ func (r *runner) parentCommitsForRef(ctx context.Context,
 		refName := plumbing.ReferenceName(refspec.Src())
 		ref, err := localStorer.Reference(refName)
 		if err != nil {
-			r.log.CDebugf(ctx, "Error getting reference %s: %+v",
-				refName, err)
+			if refspec.IsDelete() {
+				commitsByRef[refspec.Dst("")] = &libgit.RefData{
+					IsDelete: true,
+				}
+			} else {
+				r.log.CDebugf(ctx, "Error getting reference %s: %+v",
+					refName, err)
+			}
 			continue
 		}
 		hash := ref.Hash()
