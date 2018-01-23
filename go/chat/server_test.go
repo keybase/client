@@ -995,7 +995,6 @@ func TestChatSrvPostLocalAtMention(t *testing.T) {
 
 		created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 			mt, ctc.as(t, users[1]).user())
-		consumeNewMsg(t, listener, chat1.MessageType_JOIN)
 
 		text := fmt.Sprintf("@%s", users[1].Username)
 		mustPostLocalForTest(t, ctc, users[0], created,
@@ -1771,8 +1770,6 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 		case chat1.ConversationMembersType_TEAM:
 			first := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 				mt, ctc.as(t, users[1]).user())
-			consumeNewMsg(t, listener, chat1.MessageType_JOIN)
-			consumeNewMsg(t, listener, chat1.MessageType_JOIN)
 			topicName := "mike"
 			ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(tc.startCtx,
 				chat1.NewConversationLocalArg{
@@ -2430,10 +2427,6 @@ func TestChatSrvTeamChannels(t *testing.T) {
 
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 			mt, ctc.as(t, users[1]).user(), ctc.as(t, users[2]).user())
-		consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
-		consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
-		consumeNewMsg(t, listener1, chat1.MessageType_JOIN)
-		consumeNewMsg(t, listener2, chat1.MessageType_JOIN)
 		t.Logf("first conv: %s", conv.Id)
 
 		t.Logf("create a conversation, and join user 1 into by sending a message")
@@ -3096,8 +3089,6 @@ func TestChatSrvTeamTypeChanged(t *testing.T) {
 
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt,
 			ctc.as(t, users[1]).user())
-		consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
-		consumeNewMsg(t, listener1, chat1.MessageType_JOIN)
 		inboxRes, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxAndUnboxLocal(ctx,
 			chat1.GetInboxAndUnboxLocalArg{
 				Query: &chat1.GetInboxLocalQuery{
@@ -3187,9 +3178,6 @@ func TestChatSrvDeleteConversation(t *testing.T) {
 
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt,
 			ctc.as(t, users[1]).user())
-		consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
-		consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
-		consumeNewMsg(t, listener1, chat1.MessageType_JOIN)
 
 		_, err := ctc.as(t, users[0]).chatLocalHandler().DeleteConversationLocal(ctx,
 			chat1.DeleteConversationLocalArg{
@@ -3385,13 +3373,6 @@ func TestChatSrvUserReset(t *testing.T) {
 
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt,
 			ctc.as(t, users[1]).user(), ctc.as(t, users[2]).user())
-		switch mt {
-		case chat1.ConversationMembersType_TEAM:
-			consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
-			consumeNewMsg(t, listener1, chat1.MessageType_JOIN)
-			consumeNewMsg(t, listener2, chat1.MessageType_JOIN)
-		default:
-		}
 
 		t.Logf("reset user 1")
 		require.NoError(t, ctc.as(t, users[1]).h.G().LoginState().ResetAccount(users[1].Username))
@@ -3575,9 +3556,6 @@ func TestChatSrvTeamChannelNameMentions(t *testing.T) {
 
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt,
 			ctc.as(t, users[1]).user())
-		consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
-		consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
-		consumeNewMsg(t, listener1, chat1.MessageType_JOIN)
 
 		topicNames := []string{"miketime", "random", "hi"}
 		for index, topicName := range topicNames {
