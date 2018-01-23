@@ -41,6 +41,7 @@ type FolderProps = {
   visibility: Types.Visibility,
   items: Array<string>,
   onViewFolder: (p: Path) => void,
+  onViewFile: (p: Path) => void,
 }
 
 const FolderHeader = ({title}: FolderHeaderProps) => (
@@ -78,7 +79,13 @@ const iconTypes : IconType = {
 export class Folder extends React.PureComponent<FolderProps> {
   _renderRow = (index, item) => {
     const iconType = iconTypes[item.type]
-    const showFileData = () => this.props.onViewFolder(item.path)
+    const showFileData = () => {
+      if (item.type == 'folder') {
+        this.props.onViewFolder(item.path)
+      } else {
+        this.props.onViewFile(item.path)
+      }
+    }
     return (
       <FileRow name={item.name} path={item.path} icon={iconType} showFileData={showFileData} />
     )
@@ -94,8 +101,8 @@ export class Folder extends React.PureComponent<FolderProps> {
   }
 }
 
-const Files = ({name, path, visibility, items, onViewFolder}: FolderProps) => (
-  <Folder name={name} path={path} visibility={visibility} items={items} onViewFolder={onViewFolder} />
+const Files = ({name, path, visibility, items, onViewFolder, onViewFile}: FolderProps) => (
+  <Folder name={name} path={path} visibility={visibility} items={items} onViewFolder={onViewFolder} onViewFile={onViewFile} />
 )
 
 export default Files
