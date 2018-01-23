@@ -161,7 +161,3 @@ func (k *KeyFinderImpl) SetNameInfoSourceOverride(ni types.NameInfoSource) {
 func tlfIDToTeamdID(tlfID chat1.TLFID) (keybase1.TeamID, error) {
 	return keybase1.TeamIDFromString(tlfID.String())
 }
-
-func teamIDToTLFID(teamID keybase1.TeamID) (chat1.TLFID, error) {
-	return chat1.MakeTLFID(teamID.String())
-}

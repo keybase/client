@@ -1727,6 +1727,8 @@ type serverChatListener struct {
 	inboxSynced             chan chat1.ChatSyncResult
 }
 
+var _ libkb.NotifyListener = (*serverChatListener)(nil)
+
 func (n *serverChatListener) ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks) {
 	n.identifyUpdate <- update
 }
