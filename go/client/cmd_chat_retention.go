@@ -342,17 +342,24 @@ func (c *CmdChatSetRetention) formatExpire(age gregor1.DurationSec) string {
 	acc, minutes := stage(acc, 60)
 	seconds := acc
 	s := ""
+	appendPlural := func(n int64, name string) {
+		suffix := ""
+		if n != 1 {
+			suffix = "s"
+		}
+		s = fmt.Sprintf("%v %v %v%v", s, n, name, suffix)
+	}
 	if days > 0 {
-		s = fmt.Sprintf("%v days", days)
+		appendPlural(days, "day")
 	}
 	if hours > 0 {
-		s = fmt.Sprintf("%v %v hours", s, hours)
+		appendPlural(hours, "hour")
 	}
 	if minutes > 0 {
-		s = fmt.Sprintf("%v %v minutes", s, minutes)
+		appendPlural(minutes, "minute")
 	}
 	if seconds > 0 {
-		s = fmt.Sprintf("%v %v seconds", s, seconds)
+		appendPlural(seconds, "second")
 	}
 	return strings.TrimSpace(s)
 }
