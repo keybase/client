@@ -1056,9 +1056,11 @@ func TestRunnerHandlePushBatch(t *testing.T) {
 	refDataByName := testHandlePushBatch(t, ctx, config, git,
 		"refs/heads/master:refs/heads/master", "user1")
 	require.Len(t, refDataByName, 1)
-	master := refDataByName["refs/heads/master"].Commits
-	require.Len(t, master, 1)
-	require.Equal(t, "one", strings.TrimSpace(master[0].Message))
+	master := refDataByName["refs/heads/master"]
+	require.False(t, master.IsDelete)
+	commits := master.Commits
+	require.Len(t, commits, 1)
+	require.Equal(t, "one", strings.TrimSpace(commits[0].Message))
 
 	t.Log("Add a commit and push it. We expect the push batch to return " +
 		"one reference with one commit.")
@@ -1066,9 +1068,11 @@ func TestRunnerHandlePushBatch(t *testing.T) {
 	refDataByName = testHandlePushBatch(t, ctx, config, git,
 		"refs/heads/master:refs/heads/master", "user1")
 	require.Len(t, refDataByName, 1)
-	master = refDataByName["refs/heads/master"].Commits
-	require.Len(t, master, 1)
-	require.Equal(t, "two", strings.TrimSpace(master[0].Message))
+	master = refDataByName["refs/heads/master"]
+	require.False(t, master.IsDelete)
+	commits = master.Commits
+	require.Len(t, commits, 1)
+	require.Equal(t, "two", strings.TrimSpace(commits[0].Message))
 
 	t.Log("Add three commits. We expect the push batch to return " +
 		"one reference with three commits. The commits should be ordered " +
@@ -1079,11 +1083,13 @@ func TestRunnerHandlePushBatch(t *testing.T) {
 	refDataByName = testHandlePushBatch(t, ctx, config, git,
 		"refs/heads/master:refs/heads/master", "user1")
 	require.Len(t, refDataByName, 1)
-	master = refDataByName["refs/heads/master"].Commits
-	require.Len(t, master, 3)
-	require.Equal(t, "five", strings.TrimSpace(master[0].Message))
-	require.Equal(t, "four", strings.TrimSpace(master[1].Message))
-	require.Equal(t, "three", strings.TrimSpace(master[2].Message))
+	master = refDataByName["refs/heads/master"]
+	require.False(t, master.IsDelete)
+	commits = master.Commits
+	require.Len(t, commits, 3)
+	require.Equal(t, "five", strings.TrimSpace(commits[0].Message))
+	require.Equal(t, "four", strings.TrimSpace(commits[1].Message))
+	require.Equal(t, "three", strings.TrimSpace(commits[2].Message))
 
 	t.Log("Add more commits than the maximum to visit per ref. " +
 		"Check that a sentinel value was added.")
@@ -1096,15 +1102,17 @@ func TestRunnerHandlePushBatch(t *testing.T) {
 	refDataByName = testHandlePushBatch(t, ctx, config, git,
 		"refs/heads/master:refs/heads/master", "user1")
 	require.Len(t, refDataByName, 1)
-	master = refDataByName["refs/heads/master"].Commits
-	require.Len(t, master, maxCommitsToVisitPerRef)
-	require.Equal(t, libgit.CommitSentinelValue, master[maxCommitsToVisitPerRef-1])
+	master = refDataByName["refs/heads/master"]
+	require.False(t, master.IsDelete)
+	commits = master.Commits
+	require.Len(t, commits, maxCommitsToVisitPerRef)
+	require.Equal(t, libgit.CommitSentinelValue, commits[maxCommitsToVisitPerRef-1])
 
 	t.Log("Push a deletion.")
-	refDataByName := testHandlePushBatch(t, ctx, config, git,
-		"refs/heads/master:", "user1")
+	refDataByName = testHandlePushBatch(t, ctx, config, git,
+		":refs/heads/master", "user1")
 	require.Len(t, refDataByName, 1)
-	master := refDataByName["refs/heads/master"].Commits
-	require.Len(t, master, 0)
+	master = refDataByName["refs/heads/master"]
 	require.True(t, master.IsDelete)
+	require.Len(t, master.Commits, 0)
 }
