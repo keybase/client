@@ -239,15 +239,7 @@ func (e *Env) GetMountDir() (string, error) {
 		func() string { return os.Getenv("KEYBASE_MOUNTDIR") },
 		func() string { return e.GetConfig().GetMountDir() },
 		func() string {
-			switch runtime.GOOS {
-			case "darwin":
-				return filepath.Join(
-					string(filepath.Separator), darwinMountsubdir)
-			case "linux":
-				return filepath.Join(e.GetDataDir(), "fs")
-			default:
-				return ""
-			}
+			return filepath.Join(e.GetDataDir(), "fs")
 		},
 	), nil
 }
