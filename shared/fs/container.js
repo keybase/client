@@ -16,12 +16,19 @@ type DispatchProps = {
   onViewFolder: (path: Types.Path) => void,
 }
 
-const mapStateToProps = (state: TypedState): StateProps => ({
-  you: state.config.username,
-  path: state.fs.path,
-  items: state.fs.pathItems.get(state.fs.path).children,
-  pathItems: state.fs.pathItems,
-})
+const mapStateToProps = (state: TypedState, ownProps): StateProps => {
+  var path = state.fs.defaultPath
+  if (ownProps.routeProps) {
+    path = ownProps.routeProps.get('path', path)
+  }
+  const items = state.fs.pathItems.get(path).children
+  return {
+    you: state.config.username,
+    path: path,
+    items: items,
+    pathItems: state.fs.pathItems,
+  }
+}
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   onViewFolder: (path: Types.Path) => dispatch(navigateAppend([{props: {path}, selected: 'folder'}])),
@@ -40,7 +47,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => ({
       type: item.type,
       visibility: Types.getPathVisibility(path),
     }
-  }),
+  }).toArray(),
   onViewFolder: dispatchProps.onViewFolder,
 })
 
