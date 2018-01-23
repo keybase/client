@@ -580,9 +580,12 @@ func TestImplicitTeamResetAll(t *testing.T) {
 
 	ann := ctx.installKeybaseForUser("ann", 10)
 	ann.signup()
+	ann.registerForNotifications()
 	divDebug(ctx, "Signed up ann (%s)", ann.username)
+
 	bob := ctx.installKeybaseForUser("bob", 10)
 	bob.signup()
+	bob.registerForNotifications()
 	divDebug(ctx, "Signed up bob (%s)", bob.username)
 
 	displayName := strings.Join([]string{ann.username, bob.username}, ",")
@@ -601,6 +604,8 @@ func TestImplicitTeamResetAll(t *testing.T) {
 
 	ann.loginAfterReset(10)
 	divDebug(ctx, "Ann logged in after reset")
+
+	ann.waitForTeamAbandoned(iteam.ID)
 
 	iteam3 := ann.lookupImplicitTeam(true /*create*/, displayName, false /*isPublic*/)
 	require.NotEqual(t, iteam.ID, iteam3.ID, "lookup after resets should return different team")
