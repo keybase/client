@@ -923,7 +923,7 @@ func (t *Team) postTeamInvites(ctx context.Context, invites SCTeamInvites) error
 		return err
 	}
 
-	err = t.precheckLinkToPost(ctx, sigMultiItem)
+	err = t.precheckLinksToPost(ctx, []libkb.SigMultiItem{sigMultiItem})
 	if err != nil {
 		return fmt.Errorf("cannot post link (precheck): %v", err)
 	}
@@ -1042,7 +1042,7 @@ func (t *Team) postChangeItem(ctx context.Context, section SCTeamSection, linkTy
 		return err
 	}
 
-	err = t.precheckLinkToPost(ctx, sigMultiItem)
+	err = t.precheckLinksToPost(ctx, []libkb.SigMultiItem{sigMultiItem})
 	if err != nil {
 		return fmt.Errorf("cannot post link (precheck): %v", err)
 	}
@@ -1451,12 +1451,12 @@ func (t *Team) parseSocial(username string) (typ string, name string, err error)
 	return typ, name, nil
 }
 
-func (t *Team) precheckLinkToPost(ctx context.Context, sigMultiItem libkb.SigMultiItem) (err error) {
+func (t *Team) precheckLinksToPost(ctx context.Context, sigMultiItems []libkb.SigMultiItem) (err error) {
 	uv, err := t.currentUserUV(ctx)
 	if err != nil {
 		return err
 	}
-	return precheckLinkToPost(ctx, t.G(), sigMultiItem, t.chain(), uv)
+	return precheckLinksToPost(ctx, t.G(), sigMultiItems, t.chain(), uv)
 }
 
 // Try to run `post` (expected to post new team sigchain links).

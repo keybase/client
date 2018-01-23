@@ -468,6 +468,11 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 		readySigs = append(readySigs, sigMultiItem)
 	}
 
+	if err := team.precheckLinksToPost(ctx, readySigs); err != nil {
+		g.Log.CDebugf(ctx, "Precheck failed: %v", err)
+		return err
+	}
+
 	payload := libkb.JSONPayload{}
 	payload["sigs"] = readySigs
 	if lease != nil {
@@ -480,5 +485,11 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 		payload["per_team_key"] = secretBoxes
 	}
 
-	return team.postMulti(payload)
+	if err := team.postMulti(payload); err != nil {
+		return err
+	}
+
+	team.notify(ctx, keybase1.TeamChangeSet{MembershipChanged: true})
+
+	return nil
 }
