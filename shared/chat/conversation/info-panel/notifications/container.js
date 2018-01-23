@@ -1,4 +1,5 @@
 // @flow
+import * as React from 'react'
 import logger from '../../../../logger'
 import * as Constants from '../../../../constants/chat'
 import * as Types from '../../../../constants/types/chat'
@@ -94,32 +95,45 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
     dispatch(ChatGen.createToggleChannelWideNotifications({conversationIDKey})),
 })
 
-const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props => {
+type _Props = {
+  props?: Props,
+}
+
+const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): _Props => {
   if (stateProps.props) {
     const props = stateProps.props
     return {
-      hasConversation: true,
-      channelWide: props.channelWide,
-      desktop: props.desktop,
-      mobile: props.mobile,
-      muted: props.muted,
-      resetSaveState: () => dispatchProps._resetSaveState(props.conversationIDKey),
-      saveState: props.saveState,
-      onSetDesktop: (notifyType: Types.NotifyType) => {
-        dispatchProps.onSetNotification(props.conversationIDKey, 'desktop', notifyType)
-      },
-      onSetMobile: (notifyType: Types.NotifyType) => {
-        dispatchProps.onSetNotification(props.conversationIDKey, 'mobile', notifyType)
-      },
-      onToggleChannelWide: () => {
-        dispatchProps.onToggleChannelWide(props.conversationIDKey)
+      props: {
+        channelWide: props.channelWide,
+        desktop: props.desktop,
+        mobile: props.mobile,
+        muted: props.muted,
+        resetSaveState: () => dispatchProps._resetSaveState(props.conversationIDKey),
+        saveState: props.saveState,
+        onSetDesktop: (notifyType: Types.NotifyType) => {
+          dispatchProps.onSetNotification(props.conversationIDKey, 'desktop', notifyType)
+        },
+        onSetMobile: (notifyType: Types.NotifyType) => {
+          dispatchProps.onSetNotification(props.conversationIDKey, 'mobile', notifyType)
+        },
+        onToggleChannelWide: () => {
+          dispatchProps.onToggleChannelWide(props.conversationIDKey)
+        },
       },
     }
   } else {
-    return {
-      hasConversation: false,
-    }
+    return {}
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Notifications)
+class _Notifications extends React.PureComponent<_Props> {
+  render() {
+    if (!this.props.props) {
+      return null
+    }
+
+    return <Notifications {...this.props.props} />
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(_Notifications)
