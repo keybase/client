@@ -201,6 +201,12 @@ protocol teams {
     boolean userActive;
   }
 
+  record TeamEncryptedKBFSKeyset {
+    int v;
+    bytes e;
+    bytes n;
+  }
+
   // State of a parsed team sigchain.
   // Should be treated as immutable when outside TeamSigChainPlayer.
   // Modified internally to TeamSigChainPlayer.
@@ -265,6 +271,10 @@ protocol teams {
     // here, and we are not concerned about historical associations that have been
     // overwritten (for now). An empty TLFID is given by an empty string.
     TLFID tlfID;
+
+    // Information about KBFS TLF crypt keys for the TLF associated with this team. The latest
+    // link per app type is what shows up here.
+    map<TeamApplication, TeamEncryptedKBFSKeyset> tlfCryptKeys;
   }
 
   // The team got this name at this point in time.

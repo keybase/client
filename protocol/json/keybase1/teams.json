@@ -557,6 +557,24 @@
     },
     {
       "type": "record",
+      "name": "TeamEncryptedKBFSKeyset",
+      "fields": [
+        {
+          "type": "int",
+          "name": "v"
+        },
+        {
+          "type": "bytes",
+          "name": "e"
+        },
+        {
+          "type": "bytes",
+          "name": "n"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TeamSigChainState",
       "fields": [
         {
@@ -678,6 +696,14 @@
         {
           "type": "TLFID",
           "name": "tlfID"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "TeamEncryptedKBFSKeyset",
+            "keys": "TeamApplication"
+          },
+          "name": "tlfCryptKeys"
         }
       ]
     },

@@ -1,10 +1,17 @@
 package teams
 
 import (
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 
+	"github.com/keybase/go-codec/codec"
+
+	"golang.org/x/crypto/nacl/secretbox"
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
@@ -1569,8 +1576,110 @@ func isSigOldSeqnoError(err error) bool {
 	return false
 }
 
-func (t *Team) associateTLFID(ctx context.Context, tlfID keybase1.TLFID) (err error) {
-	defer t.G().CTrace(ctx, "Team.associateTLFID", func() error { return err })()
+func (t *Team) marshal(incoming interface{}) ([]byte, error) {
+	var data []byte
+	mh := codec.MsgpackHandle{WriteExt: true}
+	enc := codec.NewEncoderBytes(&data, &mh)
+	if err := enc.Encode(incoming); err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+func (t *Team) boxKBFSCryptKeys(ctx context.Context, key keybase1.TeamApplicationKey,
+	kbfsKeys []keybase1.CryptKey) (string, string, error) {
+
+	marshaledKeys, err := t.marshal(kbfsKeys)
+	if err != nil {
+		return "", "", err
+	}
+
+	var nonce [libkb.NaclDHNonceSize]byte
+	if _, err := rand.Read(nonce[:]); err != nil {
+		return "", "", err
+	}
+
+	var encKey [libkb.NaclSecretBoxKeySize]byte = key.Material()
+	sealed := secretbox.Seal(nil, marshaledKeys, &nonce, &encKey)
+	dat := keybase1.TeamEncryptedKBFSKeyset{
+		V: 1,
+		N: nonce[:],
+		E: sealed,
+	}
+
+	marshaledSealedDat, err := t.marshal(dat)
+	if err != nil {
+		return "", "", err
+	}
+
+	encStr := base64.StdEncoding.EncodeToString(marshaledSealedDat)
+	sbytes := sha256.Sum256([]byte(encStr))
+	hashStr := hex.EncodeToString(sbytes[:])
+	return encStr, hashStr, nil
+}
+
+func (t *Team) AssociateWithTLFKeyset(ctx context.Context, tlfID keybase1.TLFID,
+	cryptKeys []keybase1.CryptKey, appType keybase1.TeamApplication) (err error) {
+	defer t.G().CTrace(ctx, "Team.AssociateWithTLFKeyset", func() error { return err })()
+
+	// If we get no crypt keys, just associate TLF ID and bail
+	if len(cryptKeys) == 0 {
+		t.G().Log.CDebugf(ctx, "AssociateWithTLFKeyset: no crypt keys given, just posting TLF ID")
+		return t.AssociateWithTLFID(ctx, tlfID)
+	}
+
+	teamKeys, err := t.AllApplicationKeys(ctx, appType)
+	if err != nil {
+		return err
+	}
+	if len(teamKeys) == 0 {
+		return errors.New("no team keys for TLF associate")
+	}
+	latestKey := teamKeys[len(teamKeys)-1]
+	encStr, hashStr, err := t.boxKBFSCryptKeys(ctx, latestKey, cryptKeys)
+	if err != nil {
+		return err
+	}
+
+	upgrade := SCTeamKBFSLegacyUpgrade{
+		AppType:          appType,
+		LegacyGeneration: cryptKeys[len(cryptKeys)-1].Generation(),
+		TeamGeneration:   latestKey.Generation(),
+		Keyset:           encStr,
+		KeysetHash:       hashStr,
+	}
+
+	teamSection := SCTeamSection{
+		ID:       SCTeamID(t.ID),
+		Implicit: t.IsImplicit(),
+		Public:   t.IsPublic(),
+		KBFS: &SCTeamKBFS{
+			TLF: &SCTeamKBFSTLF{
+				ID: tlfID,
+			},
+			Upgrade: &upgrade,
+		},
+	}
+
+	mr, err := t.G().MerkleClient.FetchRootFromServer(ctx, libkb.TeamMerkleFreshnessForAdmin)
+	if err != nil {
+		return err
+	}
+	if mr == nil {
+		return errors.New("No merkle root available for KBFS settings update")
+	}
+
+	sigMultiItem, err := t.sigTeamItem(ctx, teamSection, libkb.LinkTypeKBFSSettings, mr)
+	if err != nil {
+		return err
+	}
+
+	payload := t.sigPayload(sigMultiItem, sigPayloadArgs{})
+	return t.postMulti(payload)
+}
+
+func (t *Team) AssociateWithTLFID(ctx context.Context, tlfID keybase1.TLFID) (err error) {
+	defer t.G().CTrace(ctx, "Team.AssociateWithTLFID", func() error { return err })()
 
 	teamSection := SCTeamSection{
 		ID:       SCTeamID(t.ID),

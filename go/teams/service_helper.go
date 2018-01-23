@@ -1156,7 +1156,7 @@ func CreateTLF(ctx context.Context, g *libkb.GlobalContext, arg keybase1.CreateT
 		if !role.IsWriterOrAbove() {
 			return fmt.Errorf("permission denied: need writer access (or above)")
 		}
-		return t.associateTLFID(ctx, arg.TlfID)
+		return t.AssociateWithTLFID(ctx, arg.TlfID)
 	})
 }
 

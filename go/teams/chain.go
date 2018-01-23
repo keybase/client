@@ -1,6 +1,9 @@
 package teams
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"sync"
@@ -9,6 +12,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-codec/codec"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -365,12 +369,6 @@ func (t *TeamSigChainState) getLastSubteamPoint(id keybase1.TeamID) *keybase1.Su
 		return &t.inner.SubteamLog[id][len(t.inner.SubteamLog[id])-1]
 	}
 	return nil
-}
-
-func (t *TeamSigChainState) informKBFSSettings(s SCTeamKBFS) {
-	if s.TLF != nil {
-		t.inner.TlfID = s.TLF.ID
-	}
 }
 
 // Inform the SubteamLog of a subteam name change.
@@ -911,6 +909,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 				StubbedLinks:    make(map[keybase1.Seqno]bool),
 				ActiveInvites:   make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
 				ObsoleteInvites: make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
+				TlfCryptKeys:    make(map[keybase1.TeamApplication]keybase1.TeamEncryptedKBFSKeyset),
 			}}
 
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
@@ -1581,9 +1580,8 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		}
 
 		res.newState = prevState.DeepCopy()
-		res.newState.informKBFSSettings(*team.KBFS)
-
-		return res, nil
+		err = t.parseKBFSTLFUpgrade(team.KBFS, &res.newState)
+		return res, err
 	case "":
 		return res, errors.New("empty body type")
 	default:
@@ -2089,5 +2087,32 @@ func (t *TeamSigChainPlayer) parseTeamSettings(settings *SCTeamSettings, newStat
 		}
 	}
 
+	return nil
+}
+
+func (t *TeamSigChainPlayer) parseKBFSTLFUpgrade(upgrade *SCTeamKBFS, newState *TeamSigChainState) error {
+	if upgrade.TLF != nil {
+		newState.inner.TlfID = upgrade.TLF.ID
+	}
+	if upgrade.Upgrade != nil {
+		// Check hash
+		sbytes := sha256.Sum256([]byte(upgrade.Upgrade.Keyset))
+		if hex.EncodeToString(sbytes[:]) != upgrade.Upgrade.KeysetHash {
+			return errors.New("encrypted keyset does not match hash")
+		}
+
+		packed, err := base64.StdEncoding.DecodeString(upgrade.Upgrade.Keyset)
+		if err != nil {
+			return err
+		}
+		var encryptedKeyset keybase1.TeamEncryptedKBFSKeyset
+		mh := codec.MsgpackHandle{WriteExt: true}
+		decoder := codec.NewDecoderBytes(packed, &mh)
+		if err := decoder.Decode(&encryptedKeyset); err != nil {
+			return err
+		}
+
+		newState.inner.TlfCryptKeys[upgrade.Upgrade.AppType] = encryptedKeyset
+	}
 	return nil
 }
