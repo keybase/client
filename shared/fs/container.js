@@ -7,49 +7,41 @@ import * as Types from '../constants/types/fs'
 
 type StateProps = {
   you: ?string,
-  name: string,
-  path: Types.FolderPath,
-  visibility: Types.FolderVisibility,
-}
-
-const mapStateToProps = (state: TypedState): StateProps => {
-  const you = state.config.username
-  var items = []
-  switch (state.path) {
-    case '/keybase':
-      items = [
-        {key: 'private', visibility: 'private'},
-        {key: 'public', visibility: 'public'},
-        {key: 'team', visibility: 'team'},
-      ]
-    case '/keybase/private':
-      items = [
-        {visibility: 'private', key: you},
-        {visibility: 'private', key: you + ',other'},
-      ]
-    case '/keybase/public':
-      items = [
-        {visibility: 'public', key: you},
-        {visibility: 'public', key: 'other'},
-      ]
-    case '/keybase/private':
-      items = [{visibility: 'team', key: you+'_team'}]
-  }
-  return {
-    you: you,
-    name: state.name,
-    path: state.path,
-    visibility: state.visibility,
-    items: items.map((key, visibility) => ({key, visibility, type: 'folder' })),
-  }
+  path: Types.Path,
+  items: I.List<string>,
+  pathItems: I.Map<Path, PathItem>,
 }
 
 type DispatchProps = {
-  onViewFolder: (path: Types.FolderPath) => void,
+  onViewFolder: (path: Types.Path) => void,
 }
 
-const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
-  onViewFolder: (path: Types.FolderPath) => dispatch(navigateAppend([{props: {path}, selected: 'folder'}])),
+const mapStateToProps = (state: TypedState): StateProps => ({
+  you: state.config.username,
+  path: state.fs.path,
+  items: state.fs.pathItems.get(state.fs.path).children,
+  pathItems: state.fs.pathItems,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(Files)
+const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
+  onViewFolder: (path: Types.Path) => dispatch(navigateAppend([{props: {path}, selected: 'folder'}])),
+})
+
+const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => ({
+  name: Types.getPathName(stateProps.path),
+  path: stateProps.path,
+  visibility: Types.getPathVisibility(stateProps.path),
+  items: stateProps.items.map(name => {
+    const path = Types.pathConcat(stateProps.path, name)
+    const item = stateProps.pathItems.get(path)
+    return {
+      name: name,
+      path: path,
+      type: item.type,
+      visibility: Types.getPathVisibility(path),
+    }
+  }),
+  onViewFolder: dispatchProps.onViewFolder,
+})
+
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Files)

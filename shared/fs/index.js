@@ -30,15 +30,15 @@ type FolderHeaderProps = {
 }
 
 type FileRowProps = {
-  path: Types.FolderPath,
+  path: Types.Path,
   icon: IconType,
   showFileData: () => void,
 }
 
 type FolderProps = {
   name: string,
-  path: Types.FolderPath,
-  visibility: Types.FolderVisibility,
+  path: Types.Path,
+  visibility: Types.Visibility,
   items: Array<string>,
 }
 
@@ -76,11 +76,10 @@ const iconTypes : IconType = {
 
 export class Folder extends React.PureComponent<FolderProps> {
   _renderRow = (index, item) => {
-    const showFileData = () => null
     const iconType = iconTypes[item.type]
-    const path = this.props.path + '/' + item.key
+    const showFileData = () => this.props.showFileData(item.path)
     return (
-      <FileRow name={item.key} path={path} icon={iconType} showFileData={showFileData} />
+      <FileRow name={item.name} path={item.path} icon={iconType} showFileData={showFileData} />
     )
   }
 
