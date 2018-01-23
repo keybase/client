@@ -34,7 +34,7 @@ const SaveStateComponents = (saveState: NotificationSaveState) => {
   }
 }
 
-class Notifications extends React.Component<Props> {
+export class Notifications extends React.Component<Props> {
   componentDidMount() {
     if (!this.props.hasConversation) {
       return
@@ -172,5 +172,3 @@ const styleSaveState = {
   justifyContent: 'center',
   paddingTop: globalMargins.small,
 }
-
-export default Notifications

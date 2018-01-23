@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import {storiesOf, action} from '../../../../stories/storybook'
-import Notifications from './index'
+import {Notifications} from './index'
 
 const load = () => {
   storiesOf('Chat/Conversation/InfoPanelNotifications', module)
