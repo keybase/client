@@ -25,7 +25,8 @@ Build a fresh extension to load into your browsers:
 
 
 ```shell
-$ yarn; make bundle
+$ yarn
+$ make
 ```
 
 ### Chrome Install
