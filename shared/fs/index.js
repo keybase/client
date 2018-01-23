@@ -25,25 +25,19 @@ const stylesContainer = {
   flex: 1,
 }
 
-// TODO: derive this from the Redux store.
-const rootFolders = [
-  'private',
-  'public',
-  'team',
-]
-
 type FolderHeaderProps = {
   title: string,
 }
 
 type FileRowProps = {
-  path: string,
+  path: Types.FolderPath,
   icon: IconType,
   showFileData: () => void,
 }
 
 type FolderProps = {
-  path: string,
+  name: string,
+  path: Types.FolderPath,
   visibility: Types.FolderVisibility,
   items: Array<string>,
 }
@@ -60,46 +54,48 @@ const FolderHeader = ({title}: FolderHeaderProps) => (
 
 const FolderBoxStyle = {...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'stretch'}
 
-const FileRow = ({path, icon, showFileData}: FileRowProps) => (
-  <ClickableBox onClick={showFileData} style={{...stylesCommonRow}}>
-    <Box key={path} style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
-      <Icon type={icon} style={{marginRight: globalMargins.small}} />
-      <Box style={FolderBoxStyle}>
-        <Text type="Body">
-          {path}
-        </Text>
+const FileRow = ({name, path, icon, showFileData}: FileRowProps) => {
+  return (
+    <ClickableBox onClick={showFileData} style={{...stylesCommonRow}}>
+      <Box key={name} style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
+        <Icon type={icon} style={{marginRight: globalMargins.small}} />
+        <Box style={FolderBoxStyle}>
+          <Text type="Body">
+            {name}
+          </Text>
+        </Box>
       </Box>
-    </Box>
-  </ClickableBox>
-)
+    </ClickableBox>
+  )
+}
 
 const iconTypes : IconType = {
   folder: isMobile ? 'icon-folder-private-24' : 'icon-folder-private-24',
   file: isMobile ? 'icon-file-24' : 'icon-file-24',
 }
 
-class Folder extends React.PureComponent<FolderProps> {
+export class Folder extends React.PureComponent<FolderProps> {
   _renderRow = (index, item) => {
     const showFileData = () => null
     const iconType = iconTypes[item.type]
     const path = this.props.path + '/' + item.key
     return (
-      <FileRow path={path} icon={iconType} showFileData={showFileData} />
+      <FileRow name={item.key} path={path} icon={iconType} showFileData={showFileData} />
     )
   }
 
   render() {
     return (
       <Box style={stylesContainer}>
-        <FolderHeader title="Folders" />
+        <FolderHeader title={"Folders: " + this.props.path} />
         <List items={this.props.items} renderItem={this._renderRow} />
       </Box>
     )
   }
 }
 
-const Fs = () => (
-  <Folder path='/keybase' items={rootFolders.map(name => ({key: name, visibility: name, type: 'folder'}))} />
+const Files = ({name, path, visibility, items}: FolderProps) => (
+  <Folder name={name} path={path} visibility={visibility} items={items} />
 )
 
-export default Fs
+export default Files
