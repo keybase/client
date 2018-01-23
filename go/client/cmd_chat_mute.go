@@ -64,6 +64,13 @@ func (c *CmdChatMute) Run() error {
 	if err != nil {
 		return err
 	}
+
+	if c.resolvingRequest.TlfName != "" {
+		if err = annotateResolvingRequest(c.G(), &c.resolvingRequest); err != nil {
+			return err
+		}
+	}
+
 	conversation, _, err := resolver.Resolve(ctx, c.resolvingRequest, chatConversationResolvingBehavior{
 		CreateIfNotExists: false,
 		MustNotExist:      false,
