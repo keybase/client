@@ -23,6 +23,7 @@ import {navigateAppend, navigateUp, navigateTo} from '../../../actions/route-tre
 import throttle from 'lodash/throttle'
 import {createSelector} from 'reselect'
 import {type OwnProps} from './container'
+import mentionHoc from './mention-handlers.hoc'
 
 const conversationStateSelector = (state: TypedState) => {
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
@@ -188,7 +189,7 @@ export default compose(
       inputFocus: props => () => input && input.focus(),
       inputBlur: props => () => input && input.blur(),
       inputSelections: props => () => (input && input.selections()) || {},
-      inputSetRef: props => i => {
+      _inputSetRef: props => i => {
         input = i
       },
       setText: props => (nextText: string) => {
@@ -217,5 +218,6 @@ export default compose(
         this.props.setText(nextProps.defaultText)
       }
     },
-  })
+  }),
+  mentionHoc
 )(Input)

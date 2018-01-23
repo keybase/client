@@ -26,6 +26,18 @@ export type Props = {
   setText: (text: string) => void,
   text: string,
   typing: Array<Types.Username>,
+
+  // Mention HOC props
+  insertMention: (u: string, options?: {notUser: boolean}) => void,
+  switchMention: (u: string) => void,
+  insertChannelMention: (c: string, options?: {notChannel: boolean}) => void,
+  switchChannelMention: (c: string) => void,
+  onKeyDown: (e: SyntheticKeyboardEvent<>) => void,
+  onKeyUp: (e: SyntheticKeyboardEvent<*>) => void,
+  onEnterKeyDown: (e: SyntheticKeyboardEvent<>) => void,
+  upArrowCounter: number,
+  downArrowCounter: number,
+  pickSelectedCounter: number,
 }
 
 export default class Input extends Component<Props> {}

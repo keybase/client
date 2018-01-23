@@ -1,6 +1,5 @@
 // @flow
 /* eslint-env browser */
-import logger from '../../../logger'
 import React, {Component} from 'react'
 import {Box, Icon, Input, Text} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
@@ -30,12 +29,6 @@ type InputProps = {
   setMentionPopupOpen: (setOpen: boolean) => void,
 } & Props
 
-type State = {
-  upArrowCounter: number,
-  downArrowCounter: number,
-  pickSelectedCounter: number,
-}
-
 const MentionCatcher = ({onClick}) => (
   <Box
     onClick={onClick}
@@ -46,19 +39,7 @@ const MentionCatcher = ({onClick}) => (
   />
 )
 
-class ConversationInput extends Component<InputProps, State> {
-  state: State
-  _inputRef: ?any
-
-  constructor() {
-    super()
-    this.state = {
-      upArrowCounter: 0,
-      downArrowCounter: 0,
-      pickSelectedCounter: 0,
-    }
-  }
-
+class ConversationInput extends Component<InputProps, {}> {
   componentDidMount() {
     this._registerBodyEvents(true)
   }
@@ -109,6 +90,11 @@ class ConversationInput extends Component<InputProps, State> {
     this.props.inputFocus()
   }
 
+  _pickerOnClick = emoji => {
+    this._insertEmoji(emoji.colons)
+    this.props.emojiPickerToggle()
+  }
+
   _pickFile = () => {
     const conversationIDKey = this.props.selectedConversationIDKey
     if (!conversationIDKey) {
@@ -133,154 +119,6 @@ class ConversationInput extends Component<InputProps, State> {
     this.props.filePickerSetValue(null)
   }
 
-  _pickerOnClick = emoji => {
-    this._insertEmoji(emoji.colons)
-    this.props.emojiPickerToggle()
-  }
-
-  _triggerUpArrowCounter = () => {
-    this.setState(({upArrowCounter}) => ({upArrowCounter: upArrowCounter + 1}))
-  }
-
-  _triggerDownArrowCounter = () => {
-    this.setState(({downArrowCounter}) => ({downArrowCounter: downArrowCounter + 1}))
-  }
-
-  _triggerPickSelectedCounter = () => {
-    this.setState(({pickSelectedCounter}) => ({pickSelectedCounter: pickSelectedCounter + 1}))
-  }
-
-  _onKeyDown = (e: SyntheticKeyboardEvent<>) => {
-    if (e.key === 'ArrowUp' && !this.props.text) {
-      this.props.onEditLastMessage()
-      return
-    }
-
-    if (this.props.mentionPopupOpen || this.props.channelMentionPopupOpen) {
-      if (e.key === 'Tab') {
-        e.preventDefault()
-        // If you tab with a partial name typed, we pick the selected item
-        if (this.props.mentionFilter.length > 0 || this.props.channelMentionFilter.length > 0) {
-          this._triggerPickSelectedCounter()
-          return
-        }
-        // else we move you up/down
-        if (e.shiftKey) {
-          this._triggerUpArrowCounter()
-        } else {
-          this._triggerDownArrowCounter()
-        }
-        return
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault()
-        this._triggerUpArrowCounter()
-        return
-      } else if (e.key === 'ArrowDown') {
-        e.preventDefault()
-        this._triggerDownArrowCounter()
-        return
-      } else if (['Escape', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-        this.props.setMentionPopupOpen(false)
-        this.props.setChannelMentionPopupOpen(false)
-        return
-      }
-    }
-
-    if (e.key === '@') {
-      this.props.setMentionPopupOpen(true)
-    } else if (e.key === '#') {
-      this.props.setChannelMentionPopupOpen(true)
-    }
-
-    if (this.props.mentionPopupOpen && e.key === 'Backspace') {
-      const lastChar = this.props.text[this.props.text.length - 1]
-      if (lastChar === '@') {
-        this.props.setMentionPopupOpen(false)
-      }
-    }
-    if (this.props.channelMentionPopupOpen && e.key === 'Backspace') {
-      const lastChar = this.props.text[this.props.text.length - 1]
-      if (lastChar === '#') {
-        this.props.setChannelMentionPopupOpen(false)
-      }
-    }
-  }
-
-  _onKeyUp = (e: SyntheticKeyboardEvent<*>) => {
-    // Ignore moving within the list
-    if (this.props.mentionPopupOpen || this.props.channelMentionPopupOpen) {
-      if (['ArrowUp', 'ArrowDown', 'Shift', 'Tab'].includes(e.key)) {
-        // handled above in _onKeyDown
-        return
-      }
-    }
-
-    // Get the word typed so far
-    if (this.props.mentionPopupOpen || this.props.channelMentionPopupOpen || e.key === 'Backspace') {
-      const wordSoFar = this._getWordAtCursor(false)
-      if (wordSoFar && wordSoFar[0] === '@') {
-        !this.props.mentionPopupOpen && this.props.setMentionPopupOpen(true)
-        this.props.setMentionFilter(wordSoFar.substring(1))
-      } else if (wordSoFar && wordSoFar[0] === '#') {
-        !this.props.channelMentionPopupOpen && this.props.setChannelMentionPopupOpen(true)
-        this.props.setChannelMentionFilter(wordSoFar.substring(1))
-      } else {
-        this.props.mentionPopupOpen && this.props.setMentionPopupOpen(false)
-        this.props.channelMentionPopupOpen && this.props.setChannelMentionPopupOpen(false)
-      }
-    }
-  }
-
-  _getWordAtCursor(includeWordAfterCursor: boolean): string {
-    const text = this._inputRef && this._inputRef.getValue()
-    const selections = this._inputRef && this._inputRef.selections()
-    if (text && selections && selections.selectionStart === selections.selectionEnd) {
-      const upToCursor = text.substring(0, selections.selectionStart)
-      const words = upToCursor.split(' ')
-      const lastWord = words[words.length - 1]
-      if (includeWordAfterCursor) {
-        const afterCursor = text.substring(selections.selectionStart)
-        const endOfWordMatchIdx = afterCursor.search(/\s/)
-        return (
-          lastWord + (endOfWordMatchIdx !== -1 ? afterCursor.substring(0, endOfWordMatchIdx) : afterCursor)
-        )
-      } else {
-        return lastWord
-      }
-    }
-
-    return ''
-  }
-
-  _replaceWordAtCursor(newWord: string): void {
-    const selections = this._inputRef && this._inputRef.selections()
-    const word = this._getWordAtCursor(false)
-
-    if (word && selections && selections.selectionStart === selections.selectionEnd) {
-      const startOfWordIdx = selections.selectionStart - word.length
-      if (startOfWordIdx >= 0) {
-        this._inputRef && this._inputRef.replaceText(newWord, startOfWordIdx, selections.selectionStart)
-      }
-    }
-  }
-
-  _onEnterKeyDown = (e: SyntheticKeyboardEvent<>) => {
-    e.preventDefault()
-
-    if (this.props.mentionPopupOpen || this.props.channelMentionPopupOpen) {
-      this._triggerPickSelectedCounter()
-      return
-    }
-    if (this.props.isLoading) {
-      logger.info('Ignoring chat submit while still loading')
-      return
-    }
-    if (this.props.text) {
-      this.props.onPostMessage(this.props.text)
-      this.props.setText('')
-    }
-  }
-
   componentWillReceiveProps(nextProps: Props) {
     if (this.props.text !== nextProps.text) {
       this.props.onUpdateTyping(!!nextProps.text)
@@ -289,43 +127,6 @@ class ConversationInput extends Component<InputProps, State> {
 
   _inputSetRef(r) {
     this.props.inputSetRef(r)
-    this._inputRef = r
-  }
-
-  _insertMention = (u: string, options?: {notUser: boolean}) => {
-    this._replaceWordAtCursor(`@${u} `)
-    this.props.setMentionPopupOpen(false)
-
-    // This happens if you type @notausername<enter>. We've essentially 'picked' nothing and really want to submit
-    // This is a little wonky cause this component doesn't directly know if the list is filtered all the way out
-    if (options && options.notUser) {
-      if (this.props.text) {
-        this.props.onPostMessage(this.props.text)
-        this.props.setText('')
-      }
-    }
-  }
-
-  _switchMention = (u: string) => {
-    this._replaceWordAtCursor(`@${u}`)
-  }
-
-  _insertChannelMention = (c: string, options?: {notChannel: boolean}) => {
-    this._replaceWordAtCursor(`#${c} `)
-    this.props.setChannelMentionPopupOpen(false)
-
-    // This happens if you type #notachannel<enter>. We've essentially 'picked' nothing and really want to submit
-    // This is a little wonky cause this component doesn't directly know if the list is filtered all the way out
-    if (options && options.notChannel) {
-      if (this.props.text) {
-        this.props.onPostMessage(this.props.text)
-        this.props.setText('')
-      }
-    }
-  }
-
-  _switchChannelMention = (c: string) => {
-    this._replaceWordAtCursor(`#${c}`)
   }
 
   render() {
@@ -336,11 +137,11 @@ class ConversationInput extends Component<InputProps, State> {
         )}
         {this.props.mentionPopupOpen && (
           <MentionHud
-            selectDownCounter={this.state.downArrowCounter}
-            selectUpCounter={this.state.upArrowCounter}
-            pickSelectedUserCounter={this.state.pickSelectedCounter}
-            onPickUser={this._insertMention}
-            onSelectUser={this._switchMention}
+            selectDownCounter={this.props.downArrowCounter}
+            selectUpCounter={this.props.upArrowCounter}
+            pickSelectedUserCounter={this.props.pickSelectedCounter}
+            onPickUser={this.props.insertMention}
+            onSelectUser={this.props.switchMention}
             filter={this.props.mentionFilter}
           />
         )}
@@ -349,11 +150,11 @@ class ConversationInput extends Component<InputProps, State> {
         )}
         {this.props.channelMentionPopupOpen && (
           <ChannelMentionHud
-            selectDownCounter={this.state.downArrowCounter}
-            selectUpCounter={this.state.upArrowCounter}
-            pickSelectedChannelCounter={this.state.pickSelectedCounter}
-            onPickChannel={this._insertChannelMention}
-            onSelectChannel={this._switchChannelMention}
+            selectDownCounter={this.props.downArrowCounter}
+            selectUpCounter={this.props.upArrowCounter}
+            pickSelectedChannelCounter={this.props.pickSelectedCounter}
+            onPickChannel={this.props.insertChannelMention}
+            onSelectChannel={this.props.switchChannelMention}
             filter={this.props.channelMentionFilter}
           />
         )}
@@ -378,9 +179,9 @@ class ConversationInput extends Component<InputProps, State> {
             multiline={true}
             rowsMin={1}
             rowsMax={5}
-            onKeyDown={this._onKeyDown}
-            onKeyUp={this._onKeyUp}
-            onEnterKeyDown={this._onEnterKeyDown}
+            onKeyDown={this.props.onKeyDown}
+            onKeyUp={this.props.onKeyUp}
+            onEnterKeyDown={this.props.onEnterKeyDown}
           />
           {this.props.emojiPickerOpen && (
             <EmojiPicker emojiPickerToggle={this.props.emojiPickerToggle} onClick={this._pickerOnClick} />

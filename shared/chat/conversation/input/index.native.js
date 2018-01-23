@@ -174,7 +174,10 @@ const Action = ({text, onSubmit, editingMessage, openFilePicker, isLoading}) =>
       </Text>
     </Box>
   ) : (
-    <Icon onClick={openFilePicker} type="iconfont-camera" style={styleActionButton} />
+    <Box style={styleActionButtonContainer}>
+      <Icon type="iconfont-mention" style={{...styleActionButton, paddingRight: 0}} />
+      <Icon onClick={openFilePicker} type="iconfont-camera" style={styleActionButton} />
+    </Box>
   )
 
 const styleActionText = {
@@ -194,6 +197,11 @@ const styleActionButton = {
   paddingBottom: 2,
   paddingLeft: globalMargins.tiny,
   paddingRight: globalMargins.tiny,
+}
+
+const styleActionButtonContainer = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
 }
 
 const styleInputText = {}
