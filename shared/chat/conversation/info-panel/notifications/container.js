@@ -61,7 +61,7 @@ const mapStateToProps = (state: TypedState): StateProps => {
   const saveState = inbox.get('notificationSaveState')
 
   return {
-    props: {
+    _props: {
       channelWide,
       conversationIDKey,
       desktop,
