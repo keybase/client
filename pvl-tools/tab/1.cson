@@ -322,7 +322,7 @@ services:
       , into: "tweet_contents_nw" } },
     # Strip mentions off the front. Get username and sig.
     { regex_capture: {
-      , pattern: "^ *(?:@[a-zA-Z0-9_-]+\\s*)* *Verifying myself: I am ([A-Za-z0-9_]+) on Keybase\\.io\\. (\\S+) */.*$"
+      , pattern: "^ *(?:@[a-zA-Z0-9_-]+\\s*)* *Verifying myself: I am ([A-Za-z0-9_]+) on (?:https?://)?Keybase\\.io[\\s\\p{Zs}]*\\. (\\S+) */.*$"
       , from: "tweet_contents_nw"
       , into: ["username_from_tweet_contents", "sig_from_tweet_contents"]
       , error: ["DELETED", "Could not find 'Verifying myself: I am %{username_keybase} on Keybase.io. %{sig_id_short}'"] } },
