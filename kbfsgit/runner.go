@@ -1439,20 +1439,20 @@ func (r *runner) pushAll(ctx context.Context, fs *libfs.FS) (err error) {
 // not in `remoteStorer`.
 func (r *runner) parentCommitsForRef(ctx context.Context,
 	localStorer gogitstor.Storer, remoteStorer gogitstor.Storer,
-	refs map[string]bool) (libgit.CommitsByRefName, error) {
+	refs map[gogitcfg.RefSpec]bool) (libgit.RefDataByName, error) {
 
-	commitsByRef := make(libgit.CommitsByRefName, len(refs))
+	commitsByRef := make(libgit.RefDataByName, len(refs))
 	haves := make(map[plumbing.Hash]bool)
 
-	for refName := range refs {
-		ref, err := localStorer.Reference(plumbing.ReferenceName(refName))
+	for refspec := range refs {
+		refName := plumbing.ReferenceName(refspec.Src())
+		ref, err := localStorer.Reference(refName)
 		if err != nil {
 			r.log.CDebugf(ctx, "Error getting reference %s: %+v",
 				refName, err)
 			continue
 		}
 		hash := ref.Hash()
-		refName := ref.Name()
 
 		// Get the HEAD commit for the ref from the local repository.
 		commit, err := gogitobj.GetCommit(localStorer, hash)
@@ -1469,7 +1469,10 @@ func (r *runner) parentCommitsForRef(ctx context.Context,
 		// 3. Run out of commits.
 		walker := gogitobj.NewCommitPreorderIter(commit, haves, nil)
 		toVisit := maxCommitsToVisitPerRef
-		commitsByRef[refName] = make([]*gogitobj.Commit, 0, maxCommitsToVisitPerRef)
+		commitsByRef[refName] = &libgit.RefData{
+			IsDelete: refspec.IsDelete(),
+			Commits:  make([]*gogitobj.Commit, 0, maxCommitsToVisitPerRef),
+		}
 		err = walker.ForEach(func(c *gogitobj.Commit) error {
 			haves[c.Hash] = true
 			toVisit--
@@ -1479,15 +1482,17 @@ func (r *runner) parentCommitsForRef(ctx context.Context,
 			if toVisit == 0 {
 				// Append a sentinel value to communicate that there would be
 				// more commits.
-				commitsByRef[refName] = append(commitsByRef[refName],
-					libgit.CommitSentinelValue)
+				commitsByRef[refName].Commits =
+					append(commitsByRef[refName].Commits,
+						libgit.CommitSentinelValue)
 				return gogitstor.ErrStop
 			}
 			hasEncodedObjectErr := remoteStorer.HasEncodedObject(c.Hash)
 			if hasEncodedObjectErr == nil {
 				return gogitstor.ErrStop
 			}
-			commitsByRef[refName] = append(commitsByRef[refName], c)
+			commitsByRef[refName].Commits =
+				append(commitsByRef[refName].Commits, c)
 			return nil
 		})
 		if err != nil {
@@ -1616,7 +1621,7 @@ func (r *runner) pushSome(
 // option field <why> may be quoted in a C style string if it contains
 // an LF.
 func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
-	commits libgit.CommitsByRefName, err error) {
+	commits libgit.RefDataByName, err error) {
 	repo, fs, err := r.initRepoIfNeeded(ctx, gitCmdPush)
 	if err != nil {
 		return nil, err
@@ -1633,17 +1638,17 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 		return nil, err
 	}
 
-	sources := make(map[string]bool, len(args))
+	refspecs := make(map[gogitcfg.RefSpec]bool, len(args))
 	for _, push := range args {
 		// `canPushAll` already validates the push reference.
 		refspec := gogitcfg.RefSpec(push[0])
-		sources[refspec.Src()] = true
+		refspecs[refspec] = true
 	}
 
 	// Get all commits associated with the refs. This must happen before the
 	// push for us to be able to calculate the difference.
 	commits, err = r.parentCommitsForRef(ctx, localStorer,
-		repo.Storer, sources)
+		repo.Storer, refspecs)
 	if err != nil {
 		return nil, err
 	}

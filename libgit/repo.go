@@ -57,8 +57,14 @@ var CommitSentinelValue *object.Commit
 // test.
 var repoNameRE = regexp.MustCompile(`^([a-zA-Z0-9][a-zA-Z0-9_\.-]*)$`)
 
-// CommitsByRefName represents a map of reference names to a list of commits.
-type CommitsByRefName map[plumbing.ReferenceName][]*object.Commit
+// RefData stores the data for a ref.
+type RefData struct {
+	IsDelete bool
+	Commits  []*object.Commit
+}
+
+// RefDataByName represents a map of reference names to data about that ref.
+type RefDataByName map[plumbing.ReferenceName]*RefData
 
 func checkValidRepoName(repoName string, config libkbfs.Config) bool {
 	return len(repoName) >= 1 &&
@@ -196,7 +202,7 @@ func CleanOldDeletedReposTimeLimited(
 func UpdateRepoMD(ctx context.Context, config libkbfs.Config,
 	tlfHandle *libkbfs.TlfHandle, fs billy.Filesystem,
 	pushType keybase1.GitPushType,
-	oldRepoName string, commitsByRef CommitsByRefName) error {
+	oldRepoName string, refDataByName RefDataByName) error {
 	folder := tlfHandle.ToFavorite().ToKBFolder(false)
 
 	// Get the user-formatted repo name.
@@ -214,11 +220,11 @@ func UpdateRepoMD(ctx context.Context, config libkbfs.Config,
 		return err
 	}
 
-	gitRefMetadata := make([]keybase1.GitRefMetadata, 0, len(commitsByRef))
-	for refName, commits := range commitsByRef {
+	gitRefMetadata := make([]keybase1.GitRefMetadata, 0, len(refDataByName))
+	for refName, refData := range refDataByName {
 		hasMoreCommits := false
-		kbCommits := make([]keybase1.GitCommit, 0, len(commits))
-		for _, c := range commits {
+		kbCommits := make([]keybase1.GitCommit, 0, len(refData.Commits))
+		for _, c := range refData.Commits {
 			if c == CommitSentinelValue {
 				// Accept a sentinel value at the end of the commit list that
 				// indicates that there would have been more commits, but we
@@ -238,6 +244,7 @@ func UpdateRepoMD(ctx context.Context, config libkbfs.Config,
 			RefName:              string(refName),
 			Commits:              kbCommits,
 			MoreCommitsAvailable: hasMoreCommits,
+			IsDelete:             refData.IsDelete,
 		})
 	}
 	log := config.MakeLogger("")

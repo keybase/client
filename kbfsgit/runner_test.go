@@ -1019,7 +1019,7 @@ func TestRunnerWithKBFSReset(t *testing.T) {
 }
 
 func testHandlePushBatch(t *testing.T, ctx context.Context,
-	config libkbfs.Config, git, refspec, tlfName string) libgit.CommitsByRefName {
+	config libkbfs.Config, git, refspec, tlfName string) libgit.RefDataByName {
 	var input bytes.Buffer
 	var output bytes.Buffer
 	r, err := newRunner(ctx, config, "origin",
@@ -1053,20 +1053,20 @@ func TestRunnerHandlePushBatch(t *testing.T) {
 		"We expect this to return no commits, since it should push the " +
 		"whole repository.")
 	makeLocalRepoWithOneFileCustomCommitMsg(t, git, "foo", "hello", "", "one")
-	commits := testHandlePushBatch(t, ctx, config, git,
+	refDataByName := testHandlePushBatch(t, ctx, config, git,
 		"refs/heads/master:refs/heads/master", "user1")
-	require.Len(t, commits, 1)
-	master := commits["refs/heads/master"]
+	require.Len(t, refDataByName, 1)
+	master := refDataByName["refs/heads/master"].Commits
 	require.Len(t, master, 1)
 	require.Equal(t, "one", strings.TrimSpace(master[0].Message))
 
 	t.Log("Add a commit and push it. We expect the push batch to return " +
 		"one reference with one commit.")
 	addOneFileToRepoCustomCommitMsg(t, git, "foo2", "hello2", "two")
-	commits = testHandlePushBatch(t, ctx, config, git,
+	refDataByName = testHandlePushBatch(t, ctx, config, git,
 		"refs/heads/master:refs/heads/master", "user1")
-	require.Len(t, commits, 1)
-	master = commits["refs/heads/master"]
+	require.Len(t, refDataByName, 1)
+	master = refDataByName["refs/heads/master"].Commits
 	require.Len(t, master, 1)
 	require.Equal(t, "two", strings.TrimSpace(master[0].Message))
 
@@ -1076,10 +1076,10 @@ func TestRunnerHandlePushBatch(t *testing.T) {
 	addOneFileToRepoCustomCommitMsg(t, git, "foo3", "hello3", "three")
 	addOneFileToRepoCustomCommitMsg(t, git, "foo4", "hello4", "four")
 	addOneFileToRepoCustomCommitMsg(t, git, "foo5", "hello5", "five")
-	commits = testHandlePushBatch(t, ctx, config, git,
+	refDataByName = testHandlePushBatch(t, ctx, config, git,
 		"refs/heads/master:refs/heads/master", "user1")
-	require.Len(t, commits, 1)
-	master = commits["refs/heads/master"]
+	require.Len(t, refDataByName, 1)
+	master = refDataByName["refs/heads/master"].Commits
 	require.Len(t, master, 3)
 	require.Equal(t, "five", strings.TrimSpace(master[0].Message))
 	require.Equal(t, "four", strings.TrimSpace(master[1].Message))
@@ -1093,10 +1093,18 @@ func TestRunnerHandlePushBatch(t *testing.T) {
 		msg := fmt.Sprintf("commit message %d", i+6)
 		addOneFileToRepoCustomCommitMsg(t, git, filename, content, msg)
 	}
-	commits = testHandlePushBatch(t, ctx, config, git,
+	refDataByName = testHandlePushBatch(t, ctx, config, git,
 		"refs/heads/master:refs/heads/master", "user1")
-	require.Len(t, commits, 1)
-	master = commits["refs/heads/master"]
+	require.Len(t, refDataByName, 1)
+	master = refDataByName["refs/heads/master"].Commits
 	require.Len(t, master, maxCommitsToVisitPerRef)
 	require.Equal(t, libgit.CommitSentinelValue, master[maxCommitsToVisitPerRef-1])
+
+	t.Log("Push a deletion.")
+	refDataByName := testHandlePushBatch(t, ctx, config, git,
+		"refs/heads/master:", "user1")
+	require.Len(t, refDataByName, 1)
+	master := refDataByName["refs/heads/master"].Commits
+	require.Len(t, master, 0)
+	require.True(t, master.IsDelete)
 }
