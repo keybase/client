@@ -8,27 +8,6 @@ import {Notifications, type Props} from '.'
 import {connect, type TypedState} from '../../../../util/container'
 import {type DeviceType} from '../../../../constants/types/devices'
 
-type StateProps = {
-  _props?: {
-    channelWide: boolean,
-    conversationIDKey: string,
-    desktop: Types.NotifyType,
-    mobile: Types.NotifyType,
-    muted: boolean,
-    saveState: Types.NotificationSaveState,
-  },
-}
-
-type DispatchProps = {
-  _resetSaveState: (conversationIDKey: Types.ConversationIDKey) => void,
-  _onSetNotification: (
-    conversationIDKey: Types.ConversationIDKey,
-    deviceType: DeviceType,
-    notifyType: Types.NotifyType
-  ) => void,
-  _onToggleChannelWide: (conversationIDKey: Types.ConversationIDKey) => void,
-}
-
 const serverStateToProps = (notifications: Types.NotificationsState, type: 'desktop' | 'mobile') => {
   // The server state has independent bool values for atmention/generic,
   // but the design has three radio buttons -- atmention, generic, never.
@@ -44,6 +23,19 @@ const serverStateToProps = (notifications: Types.NotificationsState, type: 'desk
     return 'atmention'
   }
   return 'never'
+}
+
+type StateProps = {
+  // Set only when the state has a selected conversation, inbox, and
+  // notifications object.
+  _props?: {
+    channelWide: boolean,
+    conversationIDKey: string,
+    desktop: Types.NotifyType,
+    mobile: Types.NotifyType,
+    muted: boolean,
+    saveState: Types.NotificationSaveState,
+  },
 }
 
 const mapStateToProps = (state: TypedState): StateProps => {
@@ -80,6 +72,16 @@ const mapStateToProps = (state: TypedState): StateProps => {
   }
 }
 
+type DispatchProps = {
+  _resetSaveState: (conversationIDKey: Types.ConversationIDKey) => void,
+  _onSetNotification: (
+    conversationIDKey: Types.ConversationIDKey,
+    deviceType: DeviceType,
+    notifyType: Types.NotifyType
+  ) => void,
+  _onToggleChannelWide: (conversationIDKey: Types.ConversationIDKey) => void,
+}
+
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   _resetSaveState: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(ChatGen.createSetNotificationSaveState({conversationIDKey, saveState: 'unsaved'})),
@@ -96,14 +98,15 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
 })
 
 type _Props = {
-  props?: Props,
+  // Set only when stateProps has _props set.
+  _props?: Props,
 }
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): _Props => {
   if (stateProps._props) {
     const props = stateProps._props
     return {
-      props: {
+      _props: {
         channelWide: props.channelWide,
         desktop: props.desktop,
         mobile: props.mobile,
@@ -128,11 +131,11 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): _Prop
 
 class _Notifications extends React.PureComponent<_Props> {
   render() {
-    if (!this.props.props) {
+    if (!this.props._props) {
       return null
     }
 
-    return <Notifications {...this.props.props} />
+    return <Notifications {...this.props._props} />
   }
 }
 
