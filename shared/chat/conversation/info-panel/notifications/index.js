@@ -4,17 +4,6 @@ import {Box, Checkbox, Icon, RadioButton, ProgressIndicator, Text} from '../../.
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../../styles'
 import {type NotifyType, type NotificationSaveState} from '../../../../constants/types/chat'
 
-export type Props = {
-  channelWide: boolean,
-  desktop: NotifyType,
-  mobile: NotifyType,
-  resetSaveState: () => void,
-  saveState: NotificationSaveState,
-  onSetDesktop: NotifyType => void,
-  onSetMobile: NotifyType => void,
-  onToggleChannelWide: () => void,
-}
-
 const SaveStateComponents = (saveState: NotificationSaveState) => {
   switch (saveState) {
     case 'unsaved':
@@ -29,6 +18,17 @@ const SaveStateComponents = (saveState: NotificationSaveState) => {
         </Text>,
       ]
   }
+}
+
+export type Props = {
+  channelWide: boolean,
+  desktop: NotifyType,
+  mobile: NotifyType,
+  resetSaveState: () => void,
+  saveState: NotificationSaveState,
+  onSetDesktop: NotifyType => void,
+  onSetMobile: NotifyType => void,
+  onToggleChannelWide: () => void,
 }
 
 export class Notifications extends React.Component<Props> {
