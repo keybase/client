@@ -227,6 +227,10 @@ func (d *smuDeviceWrapper) userClient() keybase1.UserClient {
 	return keybase1.UserClient{Cli: d.cli}
 }
 
+func (d *smuDeviceWrapper) ctlClient() keybase1.CtlClient {
+	return keybase1.CtlClient{Cli: d.cli}
+}
+
 func (d *smuDeviceWrapper) rpcClient() rpc.GenericClient {
 	return d.cli
 }
@@ -509,6 +513,13 @@ func (u *smuUser) reset() {
 
 func (u *smuUser) delete() {
 	err := u.primaryDevice().userClient().DeleteUser(context.TODO(), 0)
+	if err != nil {
+		u.ctx.t.Fatal(err)
+	}
+}
+
+func (u *smuUser) dbNuke() {
+	err := u.primaryDevice().ctlClient().DbNuke(context.TODO(), 0)
 	if err != nil {
 		u.ctx.t.Fatal(err)
 	}

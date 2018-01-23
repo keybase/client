@@ -777,3 +777,34 @@ func TestTeamListAfterReset(t *testing.T) {
 	}
 	require.True(t, found, "we found bob (before he found us)")
 }
+
+func TestTeamAfterDeleteUser(t *testing.T) {
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	ann := ctx.installKeybaseForUser("ann", 10)
+	ann.signup()
+	divDebug(ctx, "Signed up ann (%s, %s)", ann.username, ann.uid())
+	bob := ctx.installKeybaseForUser("bob", 10)
+	bob.signup()
+	divDebug(ctx, "Signed up bob (%s, %s)", bob.username, bob.uid())
+
+	team := ann.createTeam([]*smuUser{bob})
+	divDebug(ctx, "team created (%s)", team.name)
+
+	sendChat(team, ann, "0")
+	divDebug(ctx, "Sent chat '0' (%s via %s)", team.name, ann.username)
+
+	ann.delete()
+	divDebug(ctx, "Deleted ann (%s)", ann.username)
+
+	_, err := bob.teamGet(team)
+	require.NoError(t, err)
+
+	bob.dbNuke()
+
+	_, err = bob.teamGet(team)
+	require.NoError(t, err)
+
+	readChats(team, bob, 1)
+}
