@@ -35,7 +35,7 @@ You can add the extension in development mode:
 * Open Chrome to `chrome://extensions/`
 * Make sure "Developer mode" is checked
 * "Load unpacked extension..."
-* Open this directory and unzip the Chrome bundle
+* Open this directory
 
 
 ### Firefox Install
@@ -44,7 +44,7 @@ You can add the extension in development mode:
 
 * Open Firefox to `about:debugging#addons`
 * "Load Temporary Add-on"
-* Open this directory and unzip the Firefox bundle, selecting any file to load
+* Open this directory
   the extension
 * You can ignore the `Reading manifest: Error processing permissions...` error,
   FireFox does not support all the WebExtensions features yet.
