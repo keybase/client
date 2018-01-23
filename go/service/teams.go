@@ -91,6 +91,7 @@ func (h *TeamsHandler) TeamCreateWithSettings(ctx context.Context, arg keybase1.
 			h.G().Log.CDebugf(ctx, "TeamCreate: error adding self to new subteam %s: %s", arg.Name, err)
 			return res, err
 		}
+		res.CreatorAdded = true
 		res.ChatSent = teams.SendTeamChatCreateMessage(ctx, h.G().ExternalG(), teamName.String(), username)
 
 		if !arg.JoinSubteam {
@@ -100,6 +101,7 @@ func (h *TeamsHandler) TeamCreateWithSettings(ctx context.Context, arg keybase1.
 				return res, err
 			}
 			h.G().Log.CDebugf(ctx, "TeamCreate: left just-created subteam %s", arg.Name)
+			res.CreatorAdded = false
 		}
 	} else {
 		teamID, err := teams.CreateRootTeam(ctx, h.G().ExternalG(), teamName.String(), arg.Settings)
