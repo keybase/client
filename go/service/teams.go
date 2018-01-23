@@ -45,10 +45,9 @@ func (h *TeamsHandler) assertLoggedIn(ctx context.Context) error {
 func (h *TeamsHandler) TeamCreate(ctx context.Context, arg keybase1.TeamCreateArg) (res keybase1.TeamCreateResult, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	arg2 := keybase1.TeamCreateWithSettingsArg{
-		SessionID:            arg.SessionID,
-		Name:                 arg.Name,
-		SendChatNotification: arg.SendChatNotification,
-		JoinSubteam:          arg.JoinSubteam,
+		SessionID:   arg.SessionID,
+		Name:        arg.Name,
+		JoinSubteam: arg.JoinSubteam,
 	}
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return res, err

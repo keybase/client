@@ -1669,10 +1669,6 @@
           "type": "string"
         },
         {
-          "name": "sendChatNotification",
-          "type": "boolean"
-        },
-        {
           "name": "joinSubteam",
           "type": "boolean"
         }
@@ -1688,10 +1684,6 @@
         {
           "name": "name",
           "type": "string"
-        },
-        {
-          "name": "sendChatNotification",
-          "type": "boolean"
         },
         {
           "name": "joinSubteam",
