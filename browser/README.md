@@ -2,14 +2,11 @@
 
 **Status**: Beta. Ready for public testing.
 
-Currently focusing on a Chrome extension, but ultimately would like to support
-other browsers too.
-
 
 ## Releasing a new version
 
 There's a handy `Makefile` that will do most of the work (assuming you have
-[jq](https://stedolan.github.io/jq/) installed):
+[jq](https://stedolan.github.io/jq/download) installed):
 
 ```shell
 $ make release
@@ -18,20 +15,54 @@ $ make release
 This will produce a file that looks like `keybase-chrome-1.2.3.zip` (except with
 whatever the current version is set in the `manifest.json`).
 
-Upload that file to the Chrome extension dashboard, hit publish, and we're done.
+Upload that file to the Chrome or Firefox extension dashboard, hit publish, and
+we're done.
 
 
-## Manual Install
+## Manual Install and QA
 
-### Chrome Extension
+Build a fresh extension to load into your browsers:
+
+
+```shell
+$ yarn
+$ make
+```
+
+### Chrome Install
 
 You can add the extension in development mode:
 
 * Open Chrome to `chrome://extensions/`
+* Make sure "Developer mode" is checked
 * "Load unpacked extension..."
 * Open this directory
 
-Navigate to any Reddit thread and you should see "keybase chat reply" buttons.
+
+### Firefox Install
+
+You can add the extension in development mode:
+
+* Open Firefox to `about:debugging#addons`
+* "Load Temporary Add-on"
+* Open this directory
+  the extension
+* You can ignore the `Reading manifest: Error processing permissions...` error,
+  FireFox does not support all the WebExtensions features yet.
+
+### Quick QA Check
+
+Once you have development versions of the extension in your browsers, run
+through the following to quickly QA any changes you have made. Check that the
+button appears and you can chat `joshblum` on :
+
+* [keybase](https://keybase.io/joshblum)
+* [reddit](https://www.reddit.com/user/joshblum)
+* [HN](https://news.ycombinator.com/user?id=josh_blum)
+* [GitHub](https://github.com/joshblum)
+* [Twitter](https://twitter.com/blumua)
+* [Facebook](https://www.facebook.com/josh.blum.92)
+
 
 ### KBNM
 
