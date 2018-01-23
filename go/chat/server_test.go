@@ -1298,14 +1298,6 @@ func TestChatSrvGetThreadLocalMarkAsRead(t *testing.T) {
 		require.NoError(t, err)
 
 		expectedMessages := 4 // 3 messges and 1 TLF
-		switch mt {
-		case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAMNATIVE,
-			chat1.ConversationMembersType_IMPTEAMUPGRADE:
-		case chat1.ConversationMembersType_TEAM:
-			expectedMessages++ // and the join message
-		default:
-			require.Fail(t, "unknown members type: %v", mt)
-		}
 		require.Len(t, tv.Thread.Messages, expectedMessages,
 			"unexpected response from GetThreadLocal . number of messages")
 
@@ -1358,17 +1350,6 @@ func TestChatSrvGracefulUnboxing(t *testing.T) {
 		mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "innocent hello"}))
 		mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "evil hello"}))
 
-		var joinMessage int
-		switch mt {
-		case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAMNATIVE,
-			chat1.ConversationMembersType_IMPTEAMUPGRADE:
-		case chat1.ConversationMembersType_TEAM:
-			consumeNewMsg(t, listener, chat1.MessageType_JOIN)
-			consumeNewMsg(t, listener, chat1.MessageType_JOIN)
-			joinMessage = 1
-		default:
-			t.Fatalf("unknown members type: %v", mt)
-		}
 		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
 		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
 		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
@@ -1391,7 +1372,7 @@ func TestChatSrvGracefulUnboxing(t *testing.T) {
 			t.Fatalf("GetThreadLocal error: %v", err)
 		}
 
-		require.Len(t, tv.Thread.Messages, 3+joinMessage,
+		require.Len(t, tv.Thread.Messages, 3,
 			"unexpected response from GetThreadLocal . number of messages")
 
 		if tv.Thread.Messages[0].IsValid() || len(tv.Thread.Messages[0].Error().ErrMsg) == 0 {
@@ -1446,14 +1427,6 @@ func TestChatSrvGetInboxSummaryForCLILocal(t *testing.T) {
 		}
 		// TODO: fix this when merging master back in... (what?)
 		expectedMessages := 2
-		switch mt {
-		case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAMNATIVE,
-			chat1.ConversationMembersType_IMPTEAMUPGRADE:
-		case chat1.ConversationMembersType_TEAM:
-			expectedMessages++ // the join message
-		default:
-			t.Fatalf("unknown members type: %v", mt)
-		}
 		require.Len(t, res.Conversations[0].MaxMessages, expectedMessages,
 			"unexpected response from GetInboxSummaryForCLILocal . number of messages in the first conversation")
 
@@ -2722,15 +2695,7 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 
 		mustPostLocalForTest(t, ctc, users[1], conv,
 			chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
-		// Get the join messages
-		select {
-		case info := <-listener0.newMessage:
-			require.Equal(t, chat1.MessageType_JOIN, info.Message.GetMessageType())
-			require.False(t, info.DisplayDesktopNotification)
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "no new message event")
-		}
-		consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
+
 		select {
 		case info := <-listener0.newMessage:
 			require.Equal(t, chat1.MessageType_TEXT, info.Message.GetMessageType())
