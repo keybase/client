@@ -111,8 +111,8 @@ func (r *teamHandler) abandonTeam(ctx context.Context, cli gregor1.IncomingInter
 	r.G().NotifyRouter.HandleTeamAbandoned(ctx, msg.TeamID)
 
 	r.G().Log.CDebugf(ctx, "teamHandler.abandonTeam: locally dismissing %s", nm)
-	if err := r.G().GregorDismisser.LocalDismissItem(ctx, cli, item.Metadata().MsgID()); err != nil {
-		r.G().Log.CDebugf(ctx, "teamHandler.abandonTeam: failed to locally dismiss msg %v", nm, item.Metadata().MsgID())
+	if err := r.G().GregorDismisser.LocalDismissItem(ctx, item.Metadata().MsgID()); err != nil {
+		r.G().Log.CDebugf(ctx, "teamHandler.abandonTeam: failed to locally dismiss msg %v", item.Metadata().MsgID())
 	}
 
 	return nil
