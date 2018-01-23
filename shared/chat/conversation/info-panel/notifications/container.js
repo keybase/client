@@ -9,7 +9,7 @@ import {connect, type TypedState} from '../../../../util/container'
 import {type DeviceType} from '../../../../constants/types/devices'
 
 type StateProps = {
-  props?: {
+  _props?: {
     channelWide: boolean,
     conversationIDKey: string,
     desktop: Types.NotifyType,
@@ -19,15 +19,15 @@ type StateProps = {
   },
 }
 
-type DispatchProps = {|
+type DispatchProps = {
   _resetSaveState: (conversationIDKey: Types.ConversationIDKey) => void,
-  onSetNotification: (
+  _onSetNotification: (
     conversationIDKey: Types.ConversationIDKey,
     deviceType: DeviceType,
     notifyType: Types.NotifyType
   ) => void,
-  onToggleChannelWide: (conversationIDKey: Types.ConversationIDKey) => void,
-|}
+  _onToggleChannelWide: (conversationIDKey: Types.ConversationIDKey) => void,
+}
 
 const serverStateToProps = (notifications: Types.NotificationsState, type: 'desktop' | 'mobile') => {
   // The server state has independent bool values for atmention/generic,
@@ -86,12 +86,12 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   _onMuteConversation: (conversationIDKey: Types.ConversationIDKey, muted: boolean) => {
     dispatch(ChatGen.createMuteConversation({conversationIDKey, muted}))
   },
-  onSetNotification: (
+  _onSetNotification: (
     conversationIDKey: Types.ConversationIDKey,
     deviceType: DeviceType,
     notifyType: Types.NotifyType
   ) => dispatch(ChatGen.createSetNotifications({conversationIDKey, deviceType, notifyType})),
-  onToggleChannelWide: (conversationIDKey: Types.ConversationIDKey) =>
+  _onToggleChannelWide: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(ChatGen.createToggleChannelWideNotifications({conversationIDKey})),
 })
 
@@ -100,8 +100,8 @@ type _Props = {
 }
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): _Props => {
-  if (stateProps.props) {
-    const props = stateProps.props
+  if (stateProps._props) {
+    const props = stateProps._props
     return {
       props: {
         channelWide: props.channelWide,
@@ -111,13 +111,13 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): _Prop
         resetSaveState: () => dispatchProps._resetSaveState(props.conversationIDKey),
         saveState: props.saveState,
         onSetDesktop: (notifyType: Types.NotifyType) => {
-          dispatchProps.onSetNotification(props.conversationIDKey, 'desktop', notifyType)
+          dispatchProps._onSetNotification(props.conversationIDKey, 'desktop', notifyType)
         },
         onSetMobile: (notifyType: Types.NotifyType) => {
-          dispatchProps.onSetNotification(props.conversationIDKey, 'mobile', notifyType)
+          dispatchProps._onSetNotification(props.conversationIDKey, 'mobile', notifyType)
         },
         onToggleChannelWide: () => {
-          dispatchProps.onToggleChannelWide(props.conversationIDKey)
+          dispatchProps._onToggleChannelWide(props.conversationIDKey)
         },
       },
     }
