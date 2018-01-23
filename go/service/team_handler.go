@@ -110,8 +110,12 @@ func (r *teamHandler) abandonTeam(ctx context.Context, cli gregor1.IncomingInter
 
 	r.G().NotifyRouter.HandleTeamAbandoned(ctx, msg.TeamID)
 
-	r.G().Log.CDebugf(ctx, "teamHandler.abandonTeam: dismissing %s", nm)
-	return r.G().GregorDismisser.DismissItem(ctx, cli, item.Metadata().MsgID())
+	r.G().Log.CDebugf(ctx, "teamHandler.abandonTeam: locally dismissing %s", nm)
+	if err := r.G().GregorDismisser.LocalDismissItem(ctx, cli, item.Metadata().MsgID()); err != nil {
+		r.G().Log.CDebugf(ctx, "teamHandler.abandonTeam: failed to locally dismiss msg %v", nm, item.Metadata().MsgID())
+	}
+
+	return nil
 }
 
 func (r *teamHandler) changeTeam(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item, changes keybase1.TeamChangeSet) error {
