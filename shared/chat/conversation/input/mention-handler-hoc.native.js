@@ -36,6 +36,8 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
     setMentionPopupOpen = (mentionPopupOpen: boolean) => this.setState({mentionPopupOpen})
     setChannelMentionPopupOpen = (channelMentionPopupOpen: boolean) =>
       this.setState({channelMentionPopupOpen})
+    _setMentionFilter = (mentionFilter: string) => this.setState({mentionFilter})
+    _setChannelMentionFilter = (channelMentionFilter: string) => this.setState({channelMentionFilter})
 
     _triggerPickSelectedCounter = () =>
       this.setState(({pickSelectedCounter}) => ({pickSelectedCounter: pickSelectedCounter + 1}))
@@ -68,9 +70,20 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
       } else {
         // Close popups if word doesn't begin with marker anymore
         if (this.state.mentionPopupOpen && word[0] !== '@') {
+          this._setMentionFilter('')
           this.setMentionPopupOpen(false)
+          return
         } else if (this.state.channelMentionPopupOpen && word[0] !== '#') {
+          this._setChannelMentionFilter('')
           this.setChannelMentionPopupOpen(false)
+          return
+        }
+
+        // we haven't exited a mention, set filters
+        if (this.state.mentionPopupOpen) {
+          this._setMentionFilter(word.substring(1))
+        } else if (this.state.channelMentionPopupOpen) {
+          this._setChannelMentionFilter(word.substring(1))
         }
       }
     }
