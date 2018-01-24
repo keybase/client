@@ -79,8 +79,8 @@ func (t *Team) KBFSTLFID() keybase1.TLFID {
 	return t.chain().inner.TlfID
 }
 
-func (t *Team) KBFSCryptKeys(ctx context.Context, appType keybase1.TeamApplication) (res []keybase1.CryptKey, err error) {
-	return nil, nil
+func (t *Team) KBFSCryptKeys(ctx context.Context, appType keybase1.TeamApplication) []keybase1.CryptKey {
+	return t.Data.TlfCryptKeys[appType]
 }
 
 func (t *Team) SharedSecret(ctx context.Context) (ret keybase1.PerTeamKeySeed, err error) {
@@ -1551,8 +1551,10 @@ func (t *Team) AssociateWithTLFKeyset(ctx context.Context, tlfID keybase1.TLFID,
 	}
 
 	upgrade := SCTeamKBFSLegacyUpgrade{
-		AppType:    appType,
-		KeysetHash: hashStr,
+		AppType:          appType,
+		KeysetHash:       hashStr,
+		LegacyGeneration: cryptKeys[len(cryptKeys)-1].Generation(),
+		TeamGeneration:   latestKey.Generation(),
 	}
 	teamSection := SCTeamSection{
 		ID:       SCTeamID(t.ID),

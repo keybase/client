@@ -574,26 +574,28 @@ func (l *TeamLoader) unboxKBFSCryptKeys(ctx context.Context, key keybase1.TeamAp
 	return cryptKeys, nil
 }
 
-func (l *TeamLoader) addKBFSCryptKeys(ctx context.Context, state *keybase1.TeamData, me keybase1.UserVersion,
-	upgrade keybase1.TeamGetLegacyTLFUpgrade) (*keybase1.TeamData, error) {
+func (l *TeamLoader) addKBFSCryptKeys(ctx context.Context, state *keybase1.TeamData,
+	upgrades []keybase1.TeamGetLegacyTLFUpgrade) (*keybase1.TeamData, error) {
+	m := make(map[keybase1.TeamApplication][]keybase1.CryptKey)
+	for _, upgrade := range upgrades {
+		key, err := ApplicationKeyAtGeneration(state, upgrade.AppType, upgrade.TeamGeneration)
+		if err != nil {
+			return state, err
+		}
 
-	key, err := ApplicationKeyAtGeneration(state, upgrade.AppType, upgrade.TeamGeneration)
-	if err != nil {
-		return state, err
+		keysetHash, ok := state.Chain.TlfLegacyUpgrade[upgrade.AppType]
+		if !ok {
+			return state, errors.New("legacy tlf upgrade payload present without chain link")
+		}
+
+		cryptKeys, err := l.unboxKBFSCryptKeys(ctx, key, keysetHash, upgrade.EncryptedKeyset)
+		if err != nil {
+			return state, err
+		}
+		m[upgrade.AppType] = cryptKeys
 	}
-
-	keysetHash, ok := state.Chain.TlfLegacyUpgrade[upgrade.AppType]
-	if !ok {
-		return state, errors.New("legacy tlf upgrade payload present without chain link")
-	}
-
-	cryptKeys, err := l.unboxKBFSCryptKeys(ctx, key, keysetHash, upgrade.EncryptedKeyset)
-	if err != nil {
-		return state, err
-	}
-
 	ret := state.DeepCopy()
-	ret.TlfCryptKeys[upgrade.AppType] = cryptKeys
+	ret.TlfCryptKeys = m
 	return &ret, nil
 }
 
