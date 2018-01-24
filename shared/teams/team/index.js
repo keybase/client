@@ -598,15 +598,9 @@ class Team extends React.PureComponent<Props> {
                   </Box>
                   <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
                     <Text type="Body">Ignore requests to join this team</Text>
-<<<<<<< HEAD
-                    <Text type="BodySmall">Admins won't be bothered by hordes of fans.</Text>
-||||||| parent of e1ab96553... WIP
-                    <Text type="BodySmall" TEMP="TEMP">Admins won't be bothered by hordes of fans.</Text>
-=======
                     <Text type="BodySmall" TEMP="TEMP">
                       Admins won't be bothered by hordes of fans.
                     </Text>
->>>>>>> e1ab96553... WIP
                   </Box>
                 </Box>
               )}
