@@ -2,6 +2,7 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 /* eslint-disable no-unused-vars,prettier/prettier */
 
+// TEMP
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as More from '../constants/types/more'
