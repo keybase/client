@@ -3,26 +3,23 @@ import * as React from 'react'
 import {type PreMentionHocProps, type Props} from '.'
 import logger from '../../../logger'
 
-type MentionHocProps = {
-  channelMentionFilter: string,
-  channelMentionPopupOpen: boolean,
-  setChannelMentionFilter: (filter: string) => void,
-  setChannelMentionPopupOpen: (setOpen: boolean) => void,
-  mentionFilter: string,
-  mentionPopupOpen: boolean,
-  setMentionFilter: (filter: string) => void,
-  setMentionPopupOpen: (setOpen: boolean) => void,
+type ContainerProps = {
   _inputSetRef: any => void,
+  _onKeyDown: (e: SyntheticKeyboardEvent<>) => void,
 } & PreMentionHocProps
 
 type MentionHocState = {
   upArrowCounter: number,
   downArrowCounter: number,
   pickSelectedCounter: number,
+  mentionFilter: string,
+  channelMentionFilter: string,
+  mentionPopupOpen: boolean,
+  channelMentionPopupOpen: boolean,
 }
 
 const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
-  class MentionHoc extends React.Component<MentionHocProps, MentionHocState> {
+  class MentionHoc extends React.Component<ContainerProps, MentionHocState> {
     state: MentionHocState
     _inputRef: ?any
 
@@ -32,7 +29,27 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
         upArrowCounter: 0,
         downArrowCounter: 0,
         pickSelectedCounter: 0,
+        mentionFilter: '',
+        channelMentionFilter: '',
+        mentionPopupOpen: false,
+        channelMentionPopupOpen: false,
       }
+    }
+
+    _setMentionPopupOpen = (mentionPopupOpen: boolean) => {
+      this.setState({mentionPopupOpen})
+    }
+
+    _setChannelMentionPopupOpen = (channelMentionPopupOpen: boolean) => {
+      this.setState({channelMentionPopupOpen})
+    }
+
+    _setMentionFilter = (mentionFilter: string) => {
+      this.setState({mentionFilter})
+    }
+
+    _setChannelMentionFilter = (channelMentionFilter: string) => {
+      this.setState({channelMentionFilter})
     }
 
     inputSetRef = (input: any) => {
@@ -42,7 +59,7 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
 
     insertMention = (u: string, options?: {notUser: boolean}) => {
       this._replaceWordAtCursor(`@${u} `)
-      this.props.setMentionPopupOpen(false)
+      this._setMentionPopupOpen(false)
 
       // This happens if you type @notausername<enter>. We've essentially 'picked' nothing and really want to submit
       // This is a little wonky cause this component doesn't directly know if the list is filtered all the way out
@@ -60,7 +77,7 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
 
     insertChannelMention = (c: string, options?: {notChannel: boolean}) => {
       this._replaceWordAtCursor(`#${c} `)
-      this.props.setChannelMentionPopupOpen(false)
+      this._setChannelMentionPopupOpen(false)
 
       // This happens if you type #notachannel<enter>. We've essentially 'picked' nothing and really want to submit
       // This is a little wonky cause this component doesn't directly know if the list is filtered all the way out
@@ -89,16 +106,12 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
     }
 
     onKeyDown = (e: SyntheticKeyboardEvent<>) => {
-      if (e.key === 'ArrowUp' && !this.props.text) {
-        this.props.onEditLastMessage()
-        return
-      }
-
-      if (this.props.mentionPopupOpen || this.props.channelMentionPopupOpen) {
+      this.props._onKeyDown(e)
+      if (this.state.mentionPopupOpen || this.state.channelMentionPopupOpen) {
         if (e.key === 'Tab') {
           e.preventDefault()
           // If you tab with a partial name typed, we pick the selected item
-          if (this.props.mentionFilter.length > 0 || this.props.channelMentionFilter.length > 0) {
+          if (this.state.mentionFilter.length > 0 || this.state.channelMentionFilter.length > 0) {
             this._triggerPickSelectedCounter()
             return
           }
@@ -118,35 +131,35 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
           this._triggerDownArrowCounter()
           return
         } else if (['Escape', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-          this.props.setMentionPopupOpen(false)
-          this.props.setChannelMentionPopupOpen(false)
+          this._setMentionPopupOpen(false)
+          this._setChannelMentionPopupOpen(false)
           return
         }
       }
 
       if (e.key === '@') {
-        this.props.setMentionPopupOpen(true)
+        this._setMentionPopupOpen(true)
       } else if (e.key === '#') {
-        this.props.setChannelMentionPopupOpen(true)
+        this._setChannelMentionPopupOpen(true)
       }
 
-      if (this.props.mentionPopupOpen && e.key === 'Backspace') {
+      if (this.state.mentionPopupOpen && e.key === 'Backspace') {
         const lastChar = this.props.text[this.props.text.length - 1]
         if (lastChar === '@') {
-          this.props.setMentionPopupOpen(false)
+          this._setMentionPopupOpen(false)
         }
       }
-      if (this.props.channelMentionPopupOpen && e.key === 'Backspace') {
+      if (this.state.channelMentionPopupOpen && e.key === 'Backspace') {
         const lastChar = this.props.text[this.props.text.length - 1]
         if (lastChar === '#') {
-          this.props.setChannelMentionPopupOpen(false)
+          this._setChannelMentionPopupOpen(false)
         }
       }
     }
 
     onKeyUp = (e: SyntheticKeyboardEvent<*>) => {
       // Ignore moving within the list
-      if (this.props.mentionPopupOpen || this.props.channelMentionPopupOpen) {
+      if (this.state.mentionPopupOpen || this.state.channelMentionPopupOpen) {
         if (['ArrowUp', 'ArrowDown', 'Shift', 'Tab'].includes(e.key)) {
           // handled above in _onKeyDown
           return
@@ -154,17 +167,17 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
       }
 
       // Get the word typed so far
-      if (this.props.mentionPopupOpen || this.props.channelMentionPopupOpen || e.key === 'Backspace') {
+      if (this.state.mentionPopupOpen || this.state.channelMentionPopupOpen || e.key === 'Backspace') {
         const wordSoFar = this._getWordAtCursor(false)
         if (wordSoFar && wordSoFar[0] === '@') {
-          !this.props.mentionPopupOpen && this.props.setMentionPopupOpen(true)
-          this.props.setMentionFilter(wordSoFar.substring(1))
+          !this.state.mentionPopupOpen && this._setMentionPopupOpen(true)
+          this._setMentionFilter(wordSoFar.substring(1))
         } else if (wordSoFar && wordSoFar[0] === '#') {
-          !this.props.channelMentionPopupOpen && this.props.setChannelMentionPopupOpen(true)
-          this.props.setChannelMentionFilter(wordSoFar.substring(1))
+          !this.state.channelMentionPopupOpen && this._setChannelMentionPopupOpen(true)
+          this._setChannelMentionFilter(wordSoFar.substring(1))
         } else {
-          this.props.mentionPopupOpen && this.props.setMentionPopupOpen(false)
-          this.props.channelMentionPopupOpen && this.props.setChannelMentionPopupOpen(false)
+          this.state.mentionPopupOpen && this._setMentionPopupOpen(false)
+          this.state.channelMentionPopupOpen && this._setChannelMentionPopupOpen(false)
         }
       }
     }
@@ -205,7 +218,7 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
     onEnterKeyDown = (e: SyntheticKeyboardEvent<>) => {
       e.preventDefault()
 
-      if (this.props.mentionPopupOpen || this.props.channelMentionPopupOpen) {
+      if (this.state.mentionPopupOpen || this.state.channelMentionPopupOpen) {
         this._triggerPickSelectedCounter()
         return
       }

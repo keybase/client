@@ -14,7 +14,7 @@ import {
   renderComponent,
   renderNothing,
   withHandlers,
-  withState,
+  withStateHandlers,
   lifecycle,
   connect,
   type TypedState,
@@ -173,11 +173,7 @@ export default compose(
   branch(props => props.hasResetUsers, renderNothing),
   // $FlowIssue doesn't like branch
   branch(props => props.isPreview, renderComponent(ChannelPreview)),
-  withState('text', '_setText', props => props.defaultText || ''),
-  withState('mentionPopupOpen', 'setMentionPopupOpen', false),
-  withState('mentionFilter', 'setMentionFilter', ''),
-  withState('channelMentionPopupOpen', 'setChannelMentionPopupOpen', false),
-  withState('channelMentionFilter', 'setChannelMentionFilter', ''),
+  withStateHandlers(props => ({text: props.defaultText}), {_setText: () => (text: string) => ({text})}),
   withHandlers(props => {
     let input
     // mutable value to store the latest text synchronously
@@ -197,6 +193,11 @@ export default compose(
         return props._setText(nextText)
       },
       inputValue: props => () => _syncTextValue || '',
+      _onKeyDown: props => (e: SyntheticKeyboardEvent<>) => {
+        if (e.key === 'ArrowUp' && !props.text) {
+          props.onEditLastMessage()
+        }
+      },
     }
   }),
   lifecycle({
