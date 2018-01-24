@@ -41,6 +41,7 @@ export type MentionHocProps = {
   downArrowCounter?: number,
   // on mobile:
   onChangeText?: (newText: string) => void,
+  onSelectionChange?: ({selectionStart: number, selectionEnd: number}) => void,
 
   onEnterKeyDown: (e: SyntheticKeyboardEvent<>) => void,
   pickSelectedCounter: number,

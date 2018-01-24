@@ -135,6 +135,7 @@ class ConversationInput extends Component<Props> {
               onBlur={this._onBlur}
               onChangeText={this.props.setText}
               ref={this.props.inputSetRef}
+              onSelectionChange={this.props.onSelectionChange}
               small={true}
               style={styleInput}
               value={this.props.text}

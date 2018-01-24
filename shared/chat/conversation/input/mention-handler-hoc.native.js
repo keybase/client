@@ -9,6 +9,7 @@ type MentionHocState = {
   channelMentionFilter: string,
   mentionPopupOpen: boolean,
   channelMentionPopupOpen: boolean,
+  _selection: {selectionStart: number, selectionEnd: number},
 }
 
 const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
@@ -23,6 +24,7 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
         channelMentionFilter: '',
         mentionPopupOpen: false,
         channelMentionPopupOpen: false,
+        _selection: {selectionStart: 0, selectionEnd: 0},
       }
     }
 
@@ -51,6 +53,9 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
 
     insertChannelMention = (c: string) => {}
 
+    onSelectionChange = (_selection: {selectionStart: number, selectionEnd: number}) =>
+      this.setState({_selection})
+
     render = () => (
       <InputComponent
         {...this.props}
@@ -60,6 +65,7 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
         setMentionPopupOpen={this.setMentionPopupOpen}
         setChannelMentionPopupOpen={this.setChannelMentionPopupOpen}
         onEnterKeyDown={this.onEnterKeyDown}
+        onSelectionChange={this.onSelectionChange}
       />
     )
   }
