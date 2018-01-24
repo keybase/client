@@ -58,8 +58,11 @@ class ClickableBox extends React.Component<Props & {children: any}, {mouseDown: 
       <div
         {...otherProps}
         onMouseDown={this._onMouseDown}
-        onMouseEnter={this._onMouseEnter}
-        onMouseLeave={this._onMouseLeave}
+        // Set onMouseEnter/Leave to undefined if the props aren't
+        // set, so that any hover properties of children elements
+        // work.
+        onMouseEnter={this.props.onMouseEnter && this._onMouseEnter}
+        onMouseLeave={this.props.onMouseLeave && this._onMouseLeave}
         onMouseUp={this._onMouseUp}
         onClick={onClick}
         style={{..._containerStyle, ...(onClick ? globalStyles.clickable : null), ...style}}
