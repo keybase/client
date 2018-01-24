@@ -200,7 +200,8 @@ const ChannelMentionHud = InputAccessory(props => (
 const styleMentionHud = {
   borderColor: globalColors.black_20,
   borderTopWidth: 1,
-  height: 220,
+  height: 160,
+  flex: 1,
   width: '100%',
 }
 
