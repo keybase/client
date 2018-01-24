@@ -32,13 +32,13 @@ To run against remote KBFS servers:
   kbfsfuse
     [-runtime-dir=path/to/dir] [-label=label] [-mount-type=default|force|required|none]
 %s
-    %s/path/to/mountpoint
+    %s[/path/to/mountpoint]
 
 To run in a local testing environment:
   kbfsfuse
     [-runtime-dir=path/to/dir] [-label=label] [-mount-type=default|force|required|none]
 %s
-    %s/path/to/mountpoint
+    %s[/path/to/mountpoint]
 
 Defaults:
 %s `
@@ -66,9 +66,19 @@ func start() *libfs.Error {
 		return nil
 	}
 
+	mountDir := ""
 	if len(flag.Args()) < 1 {
-		fmt.Print(getUsageString(ctx))
-		return libfs.InitError("no mount specified")
+		var err error
+		mountDir, err = ctx.GetMountDir()
+		if err != nil {
+			return libfs.InitError(err.Error())
+		}
+		if len(mountDir) == 0 {
+			fmt.Print(getUsageString(ctx))
+			return libfs.InitError("no mount specified")
+		}
+	} else {
+		mountDir = flag.Arg(0)
 	}
 
 	if len(flag.Args()) > 1 {
@@ -91,7 +101,7 @@ func start() *libfs.Error {
 		ForceMount:        *mountType == "force" || *mountType == "required",
 		MountErrorIsFatal: *mountType == "required",
 		SkipMount:         *mountType == "none",
-		MountPoint:        flag.Arg(0),
+		MountPoint:        mountDir,
 	}
 
 	return libfuse.Start(options, ctx)
