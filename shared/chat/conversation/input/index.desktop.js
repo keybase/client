@@ -19,14 +19,6 @@ type InputProps = {
   filePickerOpen: () => void,
   filePickerSetValue: (value: any) => void,
   filePickerSetRef: (r: any) => void,
-  channelMentionFilter: string,
-  channelMentionPopupOpen: boolean,
-  setChannelMentionFilter: (filter: string) => void,
-  setChannelMentionPopupOpen: (setOpen: boolean) => void,
-  mentionFilter: string,
-  mentionPopupOpen: boolean,
-  setMentionFilter: (filter: string) => void,
-  setMentionPopupOpen: (setOpen: boolean) => void,
 } & Props
 
 const MentionCatcher = ({onClick}) => (

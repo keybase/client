@@ -39,6 +39,12 @@ export type MentionHocProps = {
   upArrowCounter: number,
   downArrowCounter: number,
   pickSelectedCounter: number,
+  channelMentionFilter: string,
+  channelMentionPopupOpen: boolean,
+  setChannelMentionPopupOpen: (setOpen: boolean) => void,
+  mentionFilter: string,
+  mentionPopupOpen: boolean,
+  setMentionPopupOpen: (setOpen: boolean) => void,
 }
 
 export type Props = PreMentionHocProps & MentionHocProps

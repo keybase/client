@@ -245,6 +245,8 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
           onKeyDown={this.onKeyDown}
           onKeyUp={this.onKeyUp}
           onEnterKeyDown={this.onEnterKeyDown}
+          setMentionPopupOpen={this._setMentionPopupOpen}
+          setChannelMentionPopupOpen={this._setChannelMentionPopupOpen}
         />
       )
     }
