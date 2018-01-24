@@ -575,15 +575,27 @@
     },
     {
       "type": "record",
-      "name": "TeamEncryptedKBFSCryptKeys",
+      "name": "TeamGetLegacyTLFUpgrade",
       "fields": [
         {
-          "type": "PerTeamKeyGeneration",
-          "name": "generation"
+          "type": "string",
+          "name": "encryptedKeyset",
+          "jsonkey": "encrypted_keyset"
         },
         {
-          "type": "TeamEncryptedKBFSKeyset",
-          "name": "keyset"
+          "type": "PerTeamKeyGeneration",
+          "name": "teamGeneration",
+          "jsonkey": "team_generation"
+        },
+        {
+          "type": "int",
+          "name": "legacyGeneration",
+          "jsonkey": "legacy_generation"
+        },
+        {
+          "type": "TeamApplication",
+          "name": "appType",
+          "jsonkey": "app_type"
         }
       ]
     },
@@ -714,10 +726,10 @@
         {
           "type": {
             "type": "map",
-            "values": "TeamEncryptedKBFSCryptKeys",
+            "values": "string",
             "keys": "TeamApplication"
           },
-          "name": "tlfCryptKeys"
+          "name": "tlfLegacyUpgrade"
         }
       ]
     },

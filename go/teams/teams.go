@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"sync"
 
 	"github.com/keybase/go-codec/codec"
 
@@ -32,9 +31,6 @@ type Team struct {
 
 	me      *libkb.User
 	rotated bool
-
-	kbfsCryptKeysLock sync.Mutex
-	kbfsCryptKeys     map[keybase1.TeamApplication][]keybase1.CryptKey
 }
 
 func NewTeam(ctx context.Context, g *libkb.GlobalContext, teamData *keybase1.TeamData) *Team {
@@ -42,9 +38,8 @@ func NewTeam(ctx context.Context, g *libkb.GlobalContext, teamData *keybase1.Tea
 	return &Team{
 		Contextified: libkb.NewContextified(g),
 
-		ID:            chain.GetID(),
-		Data:          teamData,
-		kbfsCryptKeys: make(map[keybase1.TeamApplication][]keybase1.CryptKey),
+		ID:   chain.GetID(),
+		Data: teamData,
 	}
 }
 
@@ -85,24 +80,7 @@ func (t *Team) KBFSTLFID() keybase1.TLFID {
 }
 
 func (t *Team) KBFSCryptKeys(ctx context.Context, appType keybase1.TeamApplication) (res []keybase1.CryptKey, err error) {
-	t.kbfsCryptKeysLock.Lock()
-	defer t.kbfsCryptKeysLock.Unlock()
-
-	// Check to see if we have already computed this value
-	var ok bool
-	if res, ok = t.kbfsCryptKeys[appType]; ok {
-		return res, nil
-	}
-	encryptedCryptKeys, ok := t.chain().inner.TlfCryptKeys[appType]
-	if !ok {
-		return nil, nil
-	}
-
-	key, err := t.ApplicationKeyAtGeneration(appType, encryptedCryptKeys.Generation)
-	if err != nil {
-		return nil, err
-	}
-	return t.unboxKBFSCryptKeys(ctx, key, encryptedCryptKeys.Keyset)
+	return nil, nil
 }
 
 func (t *Team) SharedSecret(ctx context.Context) (ret keybase1.PerTeamKeySeed, err error) {
@@ -1391,7 +1369,7 @@ type sigPayloadArgs struct {
 	implicitAdminBoxes map[keybase1.TeamID]*PerTeamSharedSecretBoxes
 	lease              *libkb.Lease
 	prePayload         libkb.JSONPayload
-	kbfsTLFKeyset      string
+	legacyTLFUpgrade   *keybase1.TeamGetLegacyTLFUpgrade
 }
 
 func (t *Team) sigPayload(sigMultiItem libkb.SigMultiItem, args sigPayloadArgs) libkb.JSONPayload {
@@ -1410,8 +1388,8 @@ func (t *Team) sigPayload(sigMultiItem libkb.SigMultiItem, args sigPayloadArgs) 
 	if args.lease != nil {
 		payload["downgrade_lease_id"] = args.lease.LeaseID
 	}
-	if args.kbfsTLFKeyset != "" {
-		payload["encrypted_keyset"] = args.kbfsTLFKeyset
+	if args.legacyTLFUpgrade != nil {
+		payload["legacy_tlf_upgrade"] = args.legacyTLFUpgrade
 	}
 
 	if t.G().VDL.DumpPayload() {
@@ -1678,12 +1656,9 @@ func (t *Team) AssociateWithTLFKeyset(ctx context.Context, tlfID keybase1.TLFID,
 	}
 
 	upgrade := SCTeamKBFSLegacyUpgrade{
-		AppType:          appType,
-		LegacyGeneration: cryptKeys[len(cryptKeys)-1].Generation(),
-		TeamGeneration:   latestKey.Generation(),
-		KeysetHash:       hashStr,
+		AppType:    appType,
+		KeysetHash: hashStr,
 	}
-
 	teamSection := SCTeamSection{
 		ID:       SCTeamID(t.ID),
 		Implicit: t.IsImplicit(),
@@ -1692,7 +1667,7 @@ func (t *Team) AssociateWithTLFKeyset(ctx context.Context, tlfID keybase1.TLFID,
 			TLF: &SCTeamKBFSTLF{
 				ID: tlfID,
 			},
-			Upgrade: &upgrade,
+			Keyset: &upgrade,
 		},
 	}
 
@@ -1709,7 +1684,14 @@ func (t *Team) AssociateWithTLFKeyset(ctx context.Context, tlfID keybase1.TLFID,
 		return err
 	}
 
-	payload := t.sigPayload(sigMultiItem, sigPayloadArgs{})
+	payload := t.sigPayload(sigMultiItem, sigPayloadArgs{
+		legacyTLFUpgrade: &keybase1.TeamGetLegacyTLFUpgrade{
+			EncryptedKeyset:  encStr,
+			LegacyGeneration: cryptKeys[len(cryptKeys)-1].Generation(),
+			TeamGeneration:   keybase1.PerTeamKeyGeneration(latestKey.Generation()),
+			AppType:          appType,
+		},
+	})
 	return t.postMulti(payload)
 }
 

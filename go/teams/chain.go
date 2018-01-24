@@ -1,9 +1,6 @@
 package teams
 
 import (
-	"crypto/sha256"
-	"encoding/base64"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"sync"
@@ -12,7 +9,6 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/go-codec/codec"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -899,17 +895,17 @@ func (t *TeamSigChainPlayer) addInnerLink(
 					LastPart: teamName.LastPart(),
 					Seqno:    1,
 				}},
-				LastSeqno:       1,
-				LastLinkID:      link.LinkID().Export(),
-				ParentID:        nil,
-				UserLog:         make(map[keybase1.UserVersion][]keybase1.UserLogPoint),
-				SubteamLog:      make(map[keybase1.TeamID][]keybase1.SubteamLogPoint),
-				PerTeamKeys:     perTeamKeys,
-				LinkIDs:         make(map[keybase1.Seqno]keybase1.LinkID),
-				StubbedLinks:    make(map[keybase1.Seqno]bool),
-				ActiveInvites:   make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
-				ObsoleteInvites: make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
-				TlfCryptKeys:    make(map[keybase1.TeamApplication]keybase1.TeamEncryptedKBFSCryptKeys),
+				LastSeqno:        1,
+				LastLinkID:       link.LinkID().Export(),
+				ParentID:         nil,
+				UserLog:          make(map[keybase1.UserVersion][]keybase1.UserLogPoint),
+				SubteamLog:       make(map[keybase1.TeamID][]keybase1.SubteamLogPoint),
+				PerTeamKeys:      perTeamKeys,
+				LinkIDs:          make(map[keybase1.Seqno]keybase1.LinkID),
+				StubbedLinks:     make(map[keybase1.Seqno]bool),
+				ActiveInvites:    make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
+				ObsoleteInvites:  make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
+				TlfLegacyUpgrade: make(map[keybase1.TeamApplication]string),
 			}}
 
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
@@ -2094,28 +2090,8 @@ func (t *TeamSigChainPlayer) parseKBFSTLFUpgrade(upgrade *SCTeamKBFS, newState *
 	if upgrade.TLF != nil {
 		newState.inner.TlfID = upgrade.TLF.ID
 	}
-	if upgrade.Upgrade != nil {
-		// Check hash
-		sbytes := sha256.Sum256([]byte(upgrade.Upgrade.Keyset))
-		if hex.EncodeToString(sbytes[:]) != upgrade.Upgrade.KeysetHash {
-			return errors.New("encrypted keyset does not match hash")
-		}
-
-		packed, err := base64.StdEncoding.DecodeString(upgrade.Upgrade.Keyset)
-		if err != nil {
-			return err
-		}
-		var encryptedKeyset keybase1.TeamEncryptedKBFSKeyset
-		mh := codec.MsgpackHandle{WriteExt: true}
-		decoder := codec.NewDecoderBytes(packed, &mh)
-		if err := decoder.Decode(&encryptedKeyset); err != nil {
-			return err
-		}
-
-		newState.inner.TlfCryptKeys[upgrade.Upgrade.AppType] = keybase1.TeamEncryptedKBFSCryptKeys{
-			Keyset:     encryptedKeyset,
-			Generation: keybase1.PerTeamKeyGeneration(upgrade.Upgrade.TeamGeneration),
-		}
+	if upgrade.Keyset != nil {
+		newState.inner.TlfLegacyUpgrade[upgrade.Keyset.AppType] = upgrade.Keyset.KeysetHash
 	}
 	return nil
 }

@@ -101,8 +101,8 @@ type SCTeamSettingsOpen struct {
 }
 
 type SCTeamKBFS struct {
-	TLF     *SCTeamKBFSTLF           `json:"tlf,omitempty"`
-	Upgrade *SCTeamKBFSLegacyUpgrade `json:"legacy_upgrade,omitempty"`
+	TLF    *SCTeamKBFSTLF           `json:"tlf,omitempty"`
+	Keyset *SCTeamKBFSLegacyUpgrade `json:"legacy_tlf_upgrade,omitempty"`
 }
 
 type SCTeamKBFSTLF struct {
@@ -110,10 +110,8 @@ type SCTeamKBFSTLF struct {
 }
 
 type SCTeamKBFSLegacyUpgrade struct {
-	TeamGeneration   int                      `json:"team_generation"`
-	LegacyGeneration int                      `json:"legacy_generation"`
-	KeysetHash       string                   `json:"encrypted_keyset_hash"`
-	AppType          keybase1.TeamApplication `json:"app_type"`
+	AppType    keybase1.TeamApplication `json:"app_type"`
+	KeysetHash string                   `json:"encrypted_keyset_hash"`
 }
 
 func (a SCTeamAdmin) SigChainLocation() keybase1.SigChainLocation {
