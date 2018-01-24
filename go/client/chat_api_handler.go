@@ -10,6 +10,7 @@ import (
 	"io"
 	"strings"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"golang.org/x/net/context"
 )
@@ -85,9 +86,12 @@ func (c ChatChannel) Valid() bool {
 	return validTyp
 }
 
-func (c ChatChannel) GetMembersType() chat1.ConversationMembersType {
+func (c ChatChannel) GetMembersType(e *libkb.Env) chat1.ConversationMembersType {
 	if typ, ok := chat1.ConversationMembersTypeMap[strings.ToUpper(c.MembersType)]; ok {
 		return typ
+	}
+	if e.GetChatMemberType() == "impteam" {
+		return chat1.ConversationMembersType_IMPTEAM
 	}
 	return chat1.ConversationMembersType_KBFS
 }

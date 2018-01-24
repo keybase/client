@@ -957,7 +957,7 @@ export type MessageSystemComplexTeam = $ReadOnly<{team: String}>
 
 export type MessageSystemCreateTeam = $ReadOnly<{team: String, creator: String}>
 
-export type MessageSystemGitPush = $ReadOnly<{team: String, pusher: String, repoName: String, repoID: Keybase1.RepoID, refs?: ?Array<Keybase1.GitRefMetadata>}>
+export type MessageSystemGitPush = $ReadOnly<{team: String, pusher: String, repoName: String, repoID: Keybase1.RepoID, refs?: ?Array<Keybase1.GitRefMetadata>, pushType: Keybase1.GitPushType, previousRepoName: String}>
 
 export type MessageSystemInviteAddedToTeam = $ReadOnly<{team: String, inviter: String, invitee: String, adder: String, inviteType: Keybase1.TeamInviteCategory}>
 
