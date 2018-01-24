@@ -88,6 +88,7 @@ func (t *Team) KBFSCryptKeys(ctx context.Context, appType keybase1.TeamApplicati
 	t.kbfsCryptKeysLock.Lock()
 	defer t.kbfsCryptKeysLock.Unlock()
 
+	// Check to see if we have already computed this value
 	var ok bool
 	if res, ok = t.kbfsCryptKeys[appType]; ok {
 		return res, nil
@@ -1390,6 +1391,7 @@ type sigPayloadArgs struct {
 	implicitAdminBoxes map[keybase1.TeamID]*PerTeamSharedSecretBoxes
 	lease              *libkb.Lease
 	prePayload         libkb.JSONPayload
+	kbfsTLFKeyset      string
 }
 
 func (t *Team) sigPayload(sigMultiItem libkb.SigMultiItem, args sigPayloadArgs) libkb.JSONPayload {
@@ -1407,6 +1409,9 @@ func (t *Team) sigPayload(sigMultiItem libkb.SigMultiItem, args sigPayloadArgs) 
 	}
 	if args.lease != nil {
 		payload["downgrade_lease_id"] = args.lease.LeaseID
+	}
+	if args.kbfsTLFKeyset != "" {
+		payload["encrypted_keyset"] = args.kbfsTLFKeyset
 	}
 
 	if t.G().VDL.DumpPayload() {
@@ -1676,7 +1681,6 @@ func (t *Team) AssociateWithTLFKeyset(ctx context.Context, tlfID keybase1.TLFID,
 		AppType:          appType,
 		LegacyGeneration: cryptKeys[len(cryptKeys)-1].Generation(),
 		TeamGeneration:   latestKey.Generation(),
-		Keyset:           encStr,
 		KeysetHash:       hashStr,
 	}
 
