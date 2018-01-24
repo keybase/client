@@ -24,8 +24,10 @@ export type Props = {
   channelWide: boolean,
   desktop: NotifyType,
   mobile: NotifyType,
+  muted: boolean,
   resetSaveState: () => void,
   saveState: NotificationSaveState,
+  onMuteConversation: (muted: boolean) => void,
   onSetDesktop: NotifyType => void,
   onSetMobile: NotifyType => void,
   onToggleChannelWide: () => void,
@@ -41,7 +43,9 @@ export class Notifications extends React.Component<Props> {
       channelWide,
       desktop,
       mobile,
+      muted,
       saveState,
+      onMuteConversation,
       onSetDesktop,
       onSetMobile,
       onToggleChannelWide,
@@ -55,6 +59,29 @@ export class Notifications extends React.Component<Props> {
           paddingRight: globalMargins.small,
         }}
       >
+        <Box
+          style={{
+            ...globalStyles.flexBoxRow,
+            alignItems: 'center',
+            marginBottom: globalMargins.xtiny,
+          }}
+        >
+          <Checkbox
+            checked={muted}
+            disabled={onMuteConversation == null}
+            onCheck={onMuteConversation}
+            label="Mute all notifications"
+          />
+          <Icon
+            type="iconfont-shh"
+            style={{
+              color: globalColors.black_20,
+              marginLeft: globalMargins.xtiny,
+              ...(isMobile ? {fontSize: 24} : {}),
+            }}
+          />
+        </Box>
+
         <Checkbox
           checked={!channelWide}
           label="Ignore @here and @channel mentions"

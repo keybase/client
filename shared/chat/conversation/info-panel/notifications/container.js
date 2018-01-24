@@ -74,6 +74,7 @@ const mapStateToProps = (state: TypedState): StateProps => {
 
 type DispatchProps = {
   _resetSaveState: (conversationIDKey: Types.ConversationIDKey) => void,
+  _onMuteConversation: (conversationIDKey: Types.ConversationIDKey, muted: boolean) => void,
   _onSetNotification: (
     conversationIDKey: Types.ConversationIDKey,
     deviceType: DeviceType,
@@ -113,6 +114,9 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): _Prop
         muted: props.muted,
         resetSaveState: () => dispatchProps._resetSaveState(props.conversationIDKey),
         saveState: props.saveState,
+        onMuteConversation: (muted: boolean) => {
+          dispatchProps._onMuteConversation(props.conversationIDKey, muted)
+        },
         onSetDesktop: (notifyType: Types.NotifyType) => {
           dispatchProps._onSetNotification(props.conversationIDKey, 'desktop', notifyType)
         },
