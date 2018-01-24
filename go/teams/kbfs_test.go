@@ -52,4 +52,14 @@ func TestKBFSUpgradeTeam(t *testing.T) {
 		makeCryptKey(t, 3),
 	}
 	require.NoError(t, team.AssociateWithTLFKeyset(ctx, tlfID, cryptKeys, keybase1.TeamApplication_CHAT))
+
+	team, err = Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
+		ID:          teamID,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+	resKeys := team.KBFSCryptKeys(ctx, keybase1.TeamApplication_CHAT)
+	require.Len(t, resKeys, len(cryptKeys))
+	require.Equal(t, cryptKeys, resKeys)
+	require.Equal(t, tlfID, team.KBFSTLFID())
 }
