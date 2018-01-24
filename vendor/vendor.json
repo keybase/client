@@ -183,10 +183,10 @@
 			"revisionTime": "2017-11-03T20:00:56Z"
 		},
 		{
-			"checksumSHA1": "UY51KX1y9Ze3XWVRWV9Sx5dxhtA=",
+			"checksumSHA1": "sPEKI1+A9D5irQ81H7TxN9gtmA0=",
 			"path": "github.com/keybase/client/go/gregor",
-			"revision": "48d481846d575f64aa78234f99d003b03f3416c0",
-			"revisionTime": "2017-11-03T20:00:56Z"
+			"revision": "f012f6e54068677398909279a20802ce034df7c1",
+			"revisionTime": "2018-01-25T22:56:34Z"
 		},
 		{
 			"checksumSHA1": "lN296i0Z+bfaqv60ppG5VJo63jw=",
@@ -201,10 +201,10 @@
 			"revisionTime": "2017-11-03T20:00:56Z"
 		},
 		{
-			"checksumSHA1": "tZK0lOfBL913SA4v+HPSt82qFPk=",
+			"checksumSHA1": "B/ivCogvAX2K3v3IuDIZIP61FI8=",
 			"path": "github.com/keybase/client/go/libkb",
-			"revision": "3e2c0a458f275240a9f72cac1d4a915bc006f819",
-			"revisionTime": "2017-12-08T18:15:30Z"
+			"revision": "f012f6e54068677398909279a20802ce034df7c1",
+			"revisionTime": "2018-01-25T22:56:34Z"
 		},
 		{
 			"checksumSHA1": "7hmQDQK0qYzI18c7+7n7eWl9JPQ=",
@@ -225,22 +225,22 @@
 			"revisionTime": "2017-11-03T20:00:56Z"
 		},
 		{
-			"checksumSHA1": "Y31ER94BE/oOpeMb2vTtcvFYWuA=",
+			"checksumSHA1": "FpXi0kBumfVg7g69cPakRXeUNbw=",
 			"path": "github.com/keybase/client/go/protocol/chat1",
-			"revision": "48d481846d575f64aa78234f99d003b03f3416c0",
-			"revisionTime": "2017-11-03T20:00:56Z"
+			"revision": "f012f6e54068677398909279a20802ce034df7c1",
+			"revisionTime": "2018-01-25T22:56:34Z"
 		},
 		{
-			"checksumSHA1": "5bcgQfysc1i1CpQILvI44Z34ETM=",
+			"checksumSHA1": "UlwX6qe9qcsS6XoIu/4OjdAEgRk=",
 			"path": "github.com/keybase/client/go/protocol/gregor1",
-			"revision": "48d481846d575f64aa78234f99d003b03f3416c0",
-			"revisionTime": "2017-11-03T20:00:56Z"
+			"revision": "f012f6e54068677398909279a20802ce034df7c1",
+			"revisionTime": "2018-01-25T22:56:34Z"
 		},
 		{
-			"checksumSHA1": "MdaOg/Ws+JTRWug2GPrWiPBJCIg=",
+			"checksumSHA1": "Y0mpxGz6nQON4Hm8LCrqvaGXwLw=",
 			"path": "github.com/keybase/client/go/protocol/keybase1",
-			"revision": "895471bed5130df0e6f845a74813af67298c2b62",
-			"revisionTime": "2018-01-23T18:51:42Z"
+			"revision": "f012f6e54068677398909279a20802ce034df7c1",
+			"revisionTime": "2018-01-25T22:56:34Z"
 		},
 		{
 			"checksumSHA1": "o26ztx0R+4h9il8gTztHccctK+4=",

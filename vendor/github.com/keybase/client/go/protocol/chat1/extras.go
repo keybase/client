@@ -40,6 +40,10 @@ func (id TLFID) Bytes() []byte {
 	return []byte(id)
 }
 
+func (id TLFID) IsNil() bool {
+	return len(id) == 0
+}
+
 func MakeConvID(val string) (ConversationID, error) {
 	return hex.DecodeString(val)
 }
@@ -49,7 +53,7 @@ func (cid ConversationID) String() string {
 }
 
 func (cid ConversationID) IsNil() bool {
-	return len(cid) == 0
+	return len(cid) < DbShortFormLen
 }
 
 func (cid ConversationID) Eq(c ConversationID) bool {
@@ -85,43 +89,72 @@ func (mid MessageID) String() string {
 }
 
 func (t MessageType) String() string {
-	switch t {
-	case MessageType_NONE:
-		return "NONE"
-	case MessageType_TEXT:
-		return "TEXT"
-	case MessageType_ATTACHMENT:
-		return "ATTACHMENT"
-	case MessageType_EDIT:
-		return "EDIT"
-	case MessageType_DELETE:
-		return "DELETE"
-	case MessageType_METADATA:
-		return "METADATA"
-	case MessageType_TLFNAME:
-		return "TLFNAME"
-	case MessageType_ATTACHMENTUPLOADED:
-		return "ATTACHMENTUPLOADED"
-	case MessageType_JOIN:
-		return "JOIN"
-	case MessageType_LEAVE:
-		return "LEAVE"
-	default:
-		return "UNKNOWN"
+	s, ok := MessageTypeRevMap[t]
+	if ok {
+		return s
 	}
+	return "UNKNOWN"
+}
+
+// Message types deletable by a standard DELETE message.
+var deletableMessageTypesByDelete = []MessageType{
+	MessageType_TEXT,
+	MessageType_ATTACHMENT,
+	MessageType_EDIT,
+	MessageType_ATTACHMENTUPLOADED,
+}
+
+// Messages types NOT deletable by a DELETEHISTORY message.
+var nonDeletableMessageTypesByDeleteHistory = []MessageType{
+	MessageType_NONE,
+	MessageType_DELETE,
+	MessageType_METADATA,
+	MessageType_TLFNAME,
+	MessageType_HEADLINE,
+	MessageType_DELETEHISTORY,
+}
+
+func DeletableMessageTypesByDelete() []MessageType {
+	return deletableMessageTypesByDelete
+}
+
+func DeletableMessageTypesByDeleteHistory() (res []MessageType) {
+	banned := make(map[MessageType]bool)
+	for _, mt := range nonDeletableMessageTypesByDeleteHistory {
+		banned[mt] = true
+	}
+	for _, mt := range MessageTypeMap {
+		if !banned[mt] {
+			res = append(res, mt)
+		}
+	}
+	return res
+}
+
+func IsDeletableByDelete(typ MessageType) bool {
+	for _, typ2 := range deletableMessageTypesByDelete {
+		if typ == typ2 {
+			return true
+		}
+	}
+	return false
+}
+
+func IsDeletableByDeleteHistory(typ MessageType) bool {
+	for _, typ2 := range nonDeletableMessageTypesByDeleteHistory {
+		if typ == typ2 {
+			return false
+		}
+	}
+	return true
 }
 
 func (t TopicType) String() string {
-	switch t {
-	case TopicType_NONE:
-		return "NONE"
-	case TopicType_CHAT:
-		return "CHAT"
-	case TopicType_DEV:
-		return "DEV"
-	default:
-		return "UNKNOWN"
+	s, ok := TopicTypeRevMap[t]
+	if ok {
+		return s
 	}
+	return "UNKNOWN"
 }
 
 func (t TopicID) String() string {
@@ -182,6 +215,27 @@ func (m MessageUnboxed) IsValid() bool {
 		return state == MessageUnboxedState_VALID
 	}
 	return false
+}
+
+func (m MessageUnboxedValid) AsDeleteHistory() (res MessageDeleteHistory, err error) {
+	if m.ClientHeader.MessageType != MessageType_DELETEHISTORY {
+		return res, fmt.Errorf("message is %v not %v", m.ClientHeader.MessageType, MessageType_DELETEHISTORY)
+	}
+	if m.MessageBody.IsNil() {
+		return res, fmt.Errorf("missing message body")
+	}
+	btyp, err := m.MessageBody.MessageType()
+	if err != nil {
+		return res, err
+	}
+	if btyp != MessageType_DELETEHISTORY {
+		return res, fmt.Errorf("message has wrong body type: %v", btyp)
+	}
+	return m.MessageBody.Deletehistory(), nil
+}
+
+func (b MessageBody) IsNil() bool {
+	return b == MessageBody{}
 }
 
 func (m UIMessage) IsValid() bool {
@@ -710,4 +764,37 @@ func (p ConversationIDMessageIDPairs) Contains(convID ConversationID) (MessageID
 		}
 	}
 	return MessageID(0), false
+}
+
+func (c ConversationMemberStatus) ToGregorDBString() (string, error) {
+	s, ok := ConversationMemberStatusRevMap[c]
+	if !ok {
+		return "", fmt.Errorf("unrecoginzed ConversationMemberStatus: %v", c)
+	}
+	return strings.ToLower(s), nil
+}
+
+func (c ConversationMemberStatus) ToGregorDBStringAssert() string {
+	s, err := c.ToGregorDBString()
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+func (p RetentionPolicy) Summary() string {
+	typ, err := p.Typ()
+	if err != nil {
+		return "{variant error}"
+	}
+	switch typ {
+	case RetentionPolicyType_EXPIRE:
+		return fmt.Sprintf("{%v age:%v}", typ, p.Expire().Age)
+	default:
+		return fmt.Sprintf("{%v}", typ)
+	}
+}
+
+func TeamIDToTLFID(teamID keybase1.TeamID) (TLFID, error) {
+	return MakeTLFID(teamID.String())
 }

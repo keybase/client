@@ -59,7 +59,7 @@ type InBandMessage interface {
 	MessageWithMetadata
 	ToStateUpdateMessage() StateUpdateMessage
 	ToStateSyncMessage() StateSyncMessage
-	Merge(m1 InBandMessage) error
+	Merge(m1 InBandMessage) (InBandMessage, error)
 }
 
 type StateUpdateMessage interface {
@@ -202,6 +202,15 @@ type StateMachine interface {
 	// How long we lock access to reminders; after this time, it's open to other
 	// consumers.
 	ReminderLockDuration() time.Duration
+
+	// Local dismissals for the device this state machine runs on
+	LocalDismissals(context.Context, UID) ([]MsgID, error)
+
+	// Set local dismissals on the state machine storage to the given list
+	InitLocalDismissals(context.Context, UID, []MsgID) error
+
+	// Consume a local dismissal in state machine storage
+	ConsumeLocalDismissal(context.Context, UID, MsgID) error
 }
 
 type ObjFactory interface {

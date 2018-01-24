@@ -511,6 +511,10 @@ func (e LoginRequiredError) Error() string {
 	return msg
 }
 
+func NewLoginRequiredError(s string) error {
+	return LoginRequiredError{s}
+}
+
 type ReloginRequiredError struct{}
 
 func (e ReloginRequiredError) Error() string {
@@ -1874,7 +1878,7 @@ type ChatClientError struct {
 }
 
 func (e ChatClientError) Error() string {
-	return fmt.Sprintf("error communicating with chat server: %s", e.Msg)
+	return fmt.Sprintf("error from chat server: %s", e.Msg)
 }
 
 //=============================================================================
@@ -2216,3 +2220,51 @@ type NoSpaceOnDeviceError struct {
 func (e NoSpaceOnDeviceError) Error() string {
 	return e.Desc
 }
+
+//=============================================================================
+
+type TeamInviteBadTokenError struct{}
+
+func (e TeamInviteBadTokenError) Error() string {
+	return "invalid team invite token"
+}
+
+//=============================================================================
+
+type TeamInviteTokenReusedError struct{}
+
+func (e TeamInviteTokenReusedError) Error() string {
+	return "team invite token already used"
+}
+
+//=============================================================================
+
+type TeamBadMembershipError struct{}
+
+func (e TeamBadMembershipError) Error() string {
+	return "cannot perform operation because not a member of the team"
+}
+
+//=============================================================================
+
+type TeamProvisionalError struct {
+	CanKey                bool
+	IsPublic              bool
+	PreResolveDisplayName string
+}
+
+func (e TeamProvisionalError) Error() string {
+	ret := "team is provisional"
+	if e.CanKey {
+		ret += ", but the user can key"
+	} else {
+		ret += ", and the user cannot key"
+	}
+	return ret
+}
+
+func NewTeamProvisionalError(canKey bool, isPublic bool, dn string) error {
+	return TeamProvisionalError{canKey, isPublic, dn}
+}
+
+//=============================================================================

@@ -221,27 +221,35 @@ func (e *Env) GetUpdaterConfig() UpdaterConfigReader {
 }
 
 func (e *Env) GetMountDir() (string, error) {
+	var darwinMountsubdir string
 	runMode := e.GetRunMode()
-	if runtime.GOOS == "windows" {
-		return e.GetString(
-			func() string { return e.cmd.GetMountDir() },
-			func() string { return os.Getenv("KEYBASE_MOUNTDIR") },
-			func() string { return e.GetConfig().GetMountDir() },
-		), nil
-	}
 	switch runMode {
 	case DevelRunMode:
-		return "/keybase.devel", nil
-
+		darwinMountsubdir = "keybase.devel"
 	case StagingRunMode:
-		return "/keybase.staging", nil
-
+		darwinMountsubdir = "keybase.staging"
 	case ProductionRunMode:
-		return "/keybase", nil
-
+		darwinMountsubdir = "keybase"
 	default:
 		return "", fmt.Errorf("Invalid run mode: %s", runMode)
 	}
+
+	return e.GetString(
+		func() string { return e.cmd.GetMountDir() },
+		func() string { return os.Getenv("KEYBASE_MOUNTDIR") },
+		func() string { return e.GetConfig().GetMountDir() },
+		func() string {
+			switch runtime.GOOS {
+			case "darwin":
+				return filepath.Join(
+					string(filepath.Separator), darwinMountsubdir)
+			case "linux":
+				return filepath.Join(e.GetDataDir(), "fs")
+			default:
+				return ""
+			}
+		},
+	), nil
 }
 
 func NewEnv(cmd CommandLine, config ConfigReader, getLog LogGetter) *Env {
@@ -284,6 +292,13 @@ func (e *Env) GetRuntimeDir() string {
 	return e.GetString(
 		func() string { return e.Test.RuntimeDir },
 		func() string { return e.HomeFinder.RuntimeDir() },
+	)
+}
+
+func (e *Env) GetInfoDir() string {
+	return e.GetString(
+		func() string { return e.Test.RuntimeDir }, // needed for systests
+		func() string { return e.HomeFinder.InfoDir() },
 	)
 }
 
@@ -564,6 +579,8 @@ func (e *Env) defaultSocketFile() string {
 }
 
 // sandboxSocketFile is socket file location for sandbox (macOS only)
+// Note: this was added for KBFS finder integration, which was never
+// activated.
 func (e *Env) sandboxSocketFile() string {
 	sandboxCacheDir := e.HomeFinder.SandboxCacheDir()
 	if sandboxCacheDir == "" {
@@ -646,7 +663,7 @@ func (e *Env) GetPidFile() (ret string, err error) {
 		func() string { return e.GetConfig().GetPidFile() },
 	)
 	if len(ret) == 0 {
-		ret = filepath.Join(e.GetRuntimeDir(), PIDFile)
+		ret = filepath.Join(e.GetInfoDir(), PIDFile)
 	}
 	return
 }
@@ -1017,12 +1034,11 @@ func (e *Env) GetChatInboxSourceLocalizeThreads() int {
 }
 
 // GetChatMemberType returns the default member type for new conversations.
-// Currently defaults to `kbfs`, but `impteam` will be default in future (and is the default for admins)
 func (e *Env) GetChatMemberType() string {
-	if e.GetFeatureFlags().Admin() {
-		return "impteam"
-	}
-	return "kbfs"
+	return e.GetString(
+		func() string { return os.Getenv("KEYBASE_CHAT_MEMBER_TYPE") },
+		func() string { return "impteam" },
+	)
 }
 
 func (e *Env) GetDeviceID() keybase1.DeviceID {

@@ -124,7 +124,8 @@ const (
 	// By default, only 64 files can be opened.
 	LevelDBNumFiles = 64
 
-	HomeCacheTimeout = (time.Hour - time.Minute)
+	HomeCacheTimeout       = (time.Hour - time.Minute)
+	HomePeopleCacheTimeout = 10 * time.Minute
 )
 
 const RemoteIdentifyUITimeout = 5 * time.Second
@@ -281,6 +282,11 @@ const (
 	SCTeamBanned               = int(keybase1.StatusCode_SCTeamBanned)
 	SCTeamInvalidBan           = int(keybase1.StatusCode_SCTeamInvalidBan)
 	SCNoSpaceOnDevice          = int(keybase1.StatusCode_SCNoSpaceOnDevice)
+	SCTeamInviteBadToken       = int(keybase1.StatusCode_SCTeamInviteBadToken)
+	SCTeamInviteTokenReused    = int(keybase1.StatusCode_SCTeamInviteTokenReused)
+	SCTeamBadMembership        = int(keybase1.StatusCode_SCTeamBadMembership)
+	SCTeamProvisionalCanKey    = int(keybase1.StatusCode_SCTeamProvisionalCanKey)
+	SCTeamProvisionalCannotKey = int(keybase1.StatusCode_SCTeamProvisionalCannotKey)
 )
 
 const (
