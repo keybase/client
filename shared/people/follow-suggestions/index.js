@@ -10,6 +10,8 @@ const connectedUsernamesProps = {
   colorFollowing: true,
   type: 'BodySemibold',
   style: {marginTop: globalMargins.xtiny, display: 'flex'},
+  // TODO: ClickableBox's hover handler is suppressing this. Fix it.
+  underline: true,
 }
 
 export type FollowSuggestion = Types._FollowSuggestion
