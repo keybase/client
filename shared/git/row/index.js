@@ -41,6 +41,7 @@ export type Props = {
   onToggleExpand: () => void,
   setTimeout: (() => void, number) => number,
   openUserTracker: (username: string) => void,
+  onLoad: () => void,
 }
 
 type State = {
@@ -249,9 +250,11 @@ class Row extends React.Component<Props, State> {
                     <Text type="BodySmall">
                       {this.props.chatDisabled
                         ? 'Pushes are not announced'
-                        : `Pushes are announced in ${this.props.teamname}${this._channelNameToString(
-                            this.props.channelName
-                          )}`}
+                        : this.props.smallTeam
+                          ? 'Pushes will be announced in the team conversation'
+                          : `Pushes are announced in ${this.props.teamname}${this._channelNameToString(
+                              this.props.channelName
+                            )}`}
                     </Text>
                   )}
                 </Box>
