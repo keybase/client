@@ -631,6 +631,18 @@ func (u *userPlusDevice) perUserKeyUpgrade() {
 	require.NoError(t, err, "Run engine.NewPerUserKeyUpgrade")
 }
 
+func (u *userPlusDevice) logout() {
+	g := u.device.tctx.G
+
+	ui := genericUI{
+		g: g,
+	}
+	g.SetUI(&ui)
+	logoutCmd := client.NewCmdLogoutRunner(g)
+	err := logoutCmd.Run()
+	require.NoError(u.device.tctx.T, err, "logout")
+}
+
 func kickTeamRekeyd(g *libkb.GlobalContext, t libkb.TestingTB) {
 	apiArg := libkb.APIArg{
 		Endpoint:    "test/accelerate_team_rekeyd",
