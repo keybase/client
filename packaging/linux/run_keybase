@@ -13,8 +13,19 @@ set -e -u -o pipefail
 runtime_dir="${XDG_RUNTIME_DIR:-$HOME/.config}/keybase"
 mkdir -p "$runtime_dir"
 startup_token="$runtime_dir/startup_mode"
-mountdir="${XDG_DATA_HOME:-$HOME/.local/share}/keybase/fs"
+if keybase config get mountdir &> /dev/null ; then
+    mountdir=`keybase config get mountdir 2> /dev/null`
+else
+    # The user has no mountpoint configured yet, so pick a default one
+    # and record the default setting in a separate config field, so
+    # later we can tell whether the user changed it away from the
+    # default or not.
+    mountdir="${XDG_DATA_HOME:-$HOME/.local/share}/keybase/fs"
+    keybase config set mountdir "$mountdir"
+    keybase config set mountdirdefault "$mountdir"
+fi
 export KEYBASE_MOUNTDIR=$mountdir
+
 # Don't make the mountpoint until after unmounting/killing the
 # previous mount, otherwise `mkdir` will fail.
 
@@ -174,7 +185,6 @@ main() {
   #    we tell them to do it after updates.
   kill_all
   mkdir -p "$mountdir"
-  keybase config set mountdir "$mountdir"
 
   if wants_systemd ; then
       start_systemd

@@ -230,8 +230,12 @@ func main() {
 		suggestedLink := filepath.Join(home, runModeToKeybase())
 		target, err := os.Readlink(suggestedLink)
 		if err != nil || target != fUserMount {
-			fmt.Printf("Your mountpoint is %s; consider `ln -s %s %s`\n",
-				fUserMount, fUserMount, suggestedLink)
+			if fUserMount == suggestedLink {
+				fmt.Printf("Your mountpoint is %s\n", fUserMount)
+			} else {
+				fmt.Printf("Your mountpoint is %s; consider `ln -s %s %s`\n",
+					fUserMount, fUserMount, suggestedLink)
+			}
 		}
 	}
 }
