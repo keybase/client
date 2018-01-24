@@ -70,10 +70,11 @@ kill_all() {
   fi
   # In case the package upgrade wasn't able to unmount and remove /keybase
   if fusermount -uz /keybase &> /dev/null ; then
-    # Remove any existing legacy mount.
-    echo Unmounting /keybase and converting to symlink...
-    rmdir /keybase
-    ln -s /opt/keybase/mount-readme /keybase
+    # Remove any existing legacy mount.  This should never happen
+    # because it should have already been done by post_install.sh.
+    # Just in case, let the user know how to fix it.
+    echo Unmounting /keybase.  Run `sudo rmdir /keybase; sudo ln -s /opt/keybase/mount-readme /keybase; sudo chown keybasehelper:keybasehelper /keybase` and then run this command again.
+    exit -1
   fi
   if fusermount -uz $mountdir &> /dev/null ; then
     echo Unmounting $mountdir...
@@ -189,7 +190,8 @@ main() {
   #    we tell them to do it after updates.
   kill_all
   mkdir -p "$mountdir"
-  
+  keybase config set mountdir "$mountdir"
+
   if wants_systemd ; then
       start_systemd
   else

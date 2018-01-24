@@ -17,10 +17,6 @@ setup_arch_build() {
 
     mkdir -p "$build_root/arch"
 
-    ###
-    ### keybase-bin
-    ###
-
     keybase_bin_repo="$build_root/arch/keybase-bin"
     clone_maybe "$git_url" "$keybase_bin_repo"
 

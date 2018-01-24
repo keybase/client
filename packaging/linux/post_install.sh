@@ -24,26 +24,26 @@ if useradd --system -s /bin/false -U -M $khuser &> /dev/null ; then
     echo Created $khuser system user for managing mountpoints.
 fi
 
-chown $khuser:$khuser $khbin
-chmod 4755 $khbin
+chown "$khuser":"$khuser" "$khbin"
+chmod 4755 "$khbin"
 if mkdir $vardir &> /dev/null ; then
-    ln -s $sample $mount1
-    chown -R $khuser:$khuser $vardir
+    ln -s "$sample" "$mount1"
+    chown -R "$khuser":"$khuser" "$vardir"
 fi
 
 currlink=`readlink $rootlink`
 if [ -z "$currlink" ] ; then
-    if fusermount -uz /keybase &> /dev/null ; then
+    if fusermount -uz "$rootlink" &> /dev/null ; then
         # Remove any existing legacy mount.
-        echo Unmounting /keybase...
+        echo Unmounting $rootlink...
         if killall kbfsfuse &> /dev/null ; then
             echo Shutting down kbfsfuse...
         fi
-        rmdir $rootlink
+        rmdir "$rootlink"
         echo You must run run_keybase to restore file system access.
     fi
-    if ln -s $mount1 $rootlink &> /dev/null ; then
-        chown keybasehelper $rootlink
+    if ln -s "$mount1" "$rootlink" &> /dev/null ; then
+        chown "$khuser":"$khuser" "$rootlink"
     fi
 fi
 

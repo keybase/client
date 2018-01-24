@@ -5,7 +5,7 @@
 set -e -u -o pipefail
 
 here="$(dirname "$BASH_SOURCE")"
-. "$here/arch_common.sh"
+source "$here/arch_common.sh"
 
 build_root="$1"
 
