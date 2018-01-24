@@ -32,135 +32,129 @@ export type Props = {
   onToggleChannelWide: () => void,
 }
 
-export class Notifications extends React.Component<Props> {
-  render() {
-    const {
-      channelWide,
-      desktop,
-      mobile,
-      muted,
-      saveState,
-      onMuteConversation,
-      onSetDesktop,
-      onSetMobile,
-      onToggleChannelWide,
-    } = this.props
-
-    return (
-      <Box
+export const Notifications = ({
+  channelWide,
+  desktop,
+  mobile,
+  muted,
+  saveState,
+  onMuteConversation,
+  onSetDesktop,
+  onSetMobile,
+  onToggleChannelWide,
+}: Props) => (
+  <Box
+    style={{
+      ...globalStyles.flexBoxColumn,
+      paddingLeft: globalMargins.small,
+      paddingRight: globalMargins.small,
+    }}
+  >
+    <Box
+      style={{
+        ...globalStyles.flexBoxRow,
+        alignItems: 'center',
+        marginBottom: globalMargins.xtiny,
+      }}
+    >
+      <Checkbox
+        checked={muted}
+        disabled={onMuteConversation == null}
+        onCheck={onMuteConversation}
+        label="Mute all notifications"
+      />
+      <Icon
+        type="iconfont-shh"
         style={{
-          ...globalStyles.flexBoxColumn,
-          paddingLeft: globalMargins.small,
-          paddingRight: globalMargins.small,
+          color: globalColors.black_20,
+          marginLeft: globalMargins.xtiny,
+          ...(isMobile ? {fontSize: 24} : {}),
         }}
-      >
-        <Box
-          style={{
-            ...globalStyles.flexBoxRow,
-            alignItems: 'center',
-            marginBottom: globalMargins.xtiny,
-          }}
-        >
-          <Checkbox
-            checked={muted}
-            disabled={onMuteConversation == null}
-            onCheck={onMuteConversation}
-            label="Mute all notifications"
-          />
-          <Icon
-            type="iconfont-shh"
-            style={{
-              color: globalColors.black_20,
-              marginLeft: globalMargins.xtiny,
-              ...(isMobile ? {fontSize: 24} : {}),
-            }}
-          />
-        </Box>
+      />
+    </Box>
 
-        <Checkbox
-          checked={!channelWide}
-          label="Ignore @here and @channel mentions"
-          onCheck={onToggleChannelWide}
-        />
+    <Checkbox
+      checked={!channelWide}
+      label="Ignore @here and @channel mentions"
+      onCheck={onToggleChannelWide}
+    />
 
-        <Box style={isMobile ? styleHeaderMobile : styleHeader}>
-          <Text type="BodySmallSemibold">Desktop notifications</Text>
-          <Icon
-            style={{
-              fontSize: isMobile ? 20 : 16,
-              paddingLeft: globalMargins.xtiny,
-              color: globalColors.black_20,
-            }}
-            type="iconfont-notifications-desktop"
-          />
-        </Box>
+    <Box style={isMobile ? styleHeaderMobile : styleHeader}>
+      <Text type="BodySmallSemibold">Desktop notifications</Text>
+      <Icon
+        style={{
+          fontSize: isMobile ? 20 : 16,
+          paddingLeft: globalMargins.xtiny,
+          color: globalColors.black_20,
+        }}
+        type="iconfont-notifications-desktop"
+      />
+    </Box>
 
-        <Box style={styleRadioButton}>
-          <RadioButton
-            style={{marginTop: globalMargins.xtiny}}
-            onSelect={() => onSetDesktop('generic')}
-            selected={desktop === 'generic'}
-            label={'On any activity'}
-          />
-        </Box>
-        <Box style={styleRadioButton}>
-          <RadioButton
-            style={{marginTop: globalMargins.xtiny}}
-            onSelect={() => onSetDesktop('atmention')}
-            selected={desktop === 'atmention'}
-            label={'Only when @mentioned'}
-          />
-        </Box>
-        <Box style={styleRadioButton}>
-          <RadioButton
-            style={{marginTop: globalMargins.xtiny}}
-            onSelect={() => onSetDesktop('never')}
-            selected={desktop === 'never'}
-            label={'Never'}
-          />
-        </Box>
+    <Box style={styleRadioButton}>
+      <RadioButton
+        style={{marginTop: globalMargins.xtiny}}
+        onSelect={() => onSetDesktop('generic')}
+        selected={desktop === 'generic'}
+        label={'On any activity'}
+      />
+    </Box>
+    <Box style={styleRadioButton}>
+      <RadioButton
+        style={{marginTop: globalMargins.xtiny}}
+        onSelect={() => onSetDesktop('atmention')}
+        selected={desktop === 'atmention'}
+        label={'Only when @mentioned'}
+      />
+    </Box>
+    <Box style={styleRadioButton}>
+      <RadioButton
+        style={{marginTop: globalMargins.xtiny}}
+        onSelect={() => onSetDesktop('never')}
+        selected={desktop === 'never'}
+        label={'Never'}
+      />
+    </Box>
 
-        <Box style={styleHeader}>
-          <Text type="BodySmallSemibold">Mobile notifications</Text>
-          <Icon
-            style={{
-              fontSize: isMobile ? 20 : 16,
-              paddingLeft: globalMargins.xtiny,
-              color: globalColors.black_20,
-            }}
-            type="iconfont-notifications-mobile"
-          />
-        </Box>
+    <Box style={styleHeader}>
+      <Text type="BodySmallSemibold">Mobile notifications</Text>
+      <Icon
+        style={{
+          fontSize: isMobile ? 20 : 16,
+          paddingLeft: globalMargins.xtiny,
+          color: globalColors.black_20,
+        }}
+        type="iconfont-notifications-mobile"
+      />
+    </Box>
 
-        <Box style={styleRadioButton}>
-          <RadioButton
-            style={{marginTop: globalMargins.xtiny}}
-            onSelect={() => onSetMobile('generic')}
-            selected={mobile === 'generic'}
-            label={'On any activity'}
-          />
-        </Box>
-        <Box style={styleRadioButton}>
-          <RadioButton
-            style={{marginTop: globalMargins.xtiny}}
-            onSelect={() => onSetMobile('atmention')}
-            selected={mobile === 'atmention'}
-            label={'Only when @mentioned'}
-          />
-        </Box>
-        <Box style={styleRadioButton}>
-          <RadioButton
-            style={{marginTop: globalMargins.xtiny}}
-            onSelect={() => onSetMobile('never')}
-            selected={mobile === 'never'}
-            label={'Never'}
-          />
-        </Box>
-        <Box style={styleSaveState}>{SaveStateComponents(saveState)}</Box>
-      </Box>
-    )
-  }
-}
+    <Box style={styleRadioButton}>
+      <RadioButton
+        style={{marginTop: globalMargins.xtiny}}
+        onSelect={() => onSetMobile('generic')}
+        selected={mobile === 'generic'}
+        label={'On any activity'}
+      />
+    </Box>
+    <Box style={styleRadioButton}>
+      <RadioButton
+        style={{marginTop: globalMargins.xtiny}}
+        onSelect={() => onSetMobile('atmention')}
+        selected={mobile === 'atmention'}
+        label={'Only when @mentioned'}
+      />
+    </Box>
+    <Box style={styleRadioButton}>
+      <RadioButton
+        style={{marginTop: globalMargins.xtiny}}
+        onSelect={() => onSetMobile('never')}
+        selected={mobile === 'never'}
+        label={'Never'}
+      />
+    </Box>
+    <Box style={styleSaveState}>{SaveStateComponents(saveState)}</Box>
+  </Box>
+)
 
 const styleHeader = {
   ...globalStyles.flexBoxRow,
