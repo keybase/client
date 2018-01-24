@@ -20,6 +20,7 @@ const connectedUsernamesProps = {
   inline: true,
   colorFollowing: true,
   type: 'BodySmallSemibold',
+  underline: true,
 }
 
 type Props = {
