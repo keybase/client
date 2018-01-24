@@ -184,6 +184,12 @@ func findRoleDowngrade(points []keybase1.UserLogPoint, role keybase1.TeamRole) *
 // If there was, return a PermissionError. If no adminship was found at all, return a PermissionError.
 func (t TeamSigChainState) AssertWasRoleOrAboveAt(uv keybase1.UserVersion,
 	role keybase1.TeamRole, scl keybase1.SigChainLocation) (err error) {
+	mkErr := func(msg string) error {
+		if role.IsOrAbove(keybase1.TeamRole_ADMIN) {
+			return NewAdminPermissionError(t.GetID(), uv, msg)
+		}
+		return NewPermissionError(t.GetID(), uv, msg)
+	}
 	points := t.inner.UserLog[uv]
 	for i := len(points) - 1; i >= 0; i-- {
 		point := points[i]
@@ -192,12 +198,12 @@ func (t TeamSigChainState) AssertWasRoleOrAboveAt(uv keybase1.UserVersion,
 			// But now we reverse and go forward, and check that it wasn't revoked or downgraded.
 			// If so, that's a problem!
 			if right := findRoleDowngrade(points[(i+1):], role); right != nil && right.SigChainLocation.LessThanOrEqualTo(scl) {
-				return NewPermissionError(t.GetID(), uv, fmt.Sprintf("%v permission was downgraded too soon!", role))
+				return mkErr(fmt.Sprintf("%v permission was downgraded too soon!", role))
 			}
 			return nil
 		}
 	}
-	return NewPermissionError(t.GetID(), uv, "not found")
+	return mkErr("not found")
 }
 
 func (t TeamSigChainState) AssertWasReaderAt(uv keybase1.UserVersion, scl keybase1.SigChainLocation) (err error) {
