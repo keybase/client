@@ -47,7 +47,33 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
       }
     }
 
-    onChangeText = (nextText: string) => {}
+    _isPopupOpen = () => this.state.mentionPopupOpen || this.state.channelMentionPopupOpen
+
+    _getWordAtCursor = (text: string) => {
+      const {selectionStart} = this.state._selection
+      const upToCursor = text.substring(0, selectionStart)
+      const words = upToCursor.split(' ')
+      return words[words.length - 1]
+    }
+
+    onChangeText = (nextText: string) => {
+      this.props.setText(nextText)
+      const word = this._getWordAtCursor(nextText)
+      if (!this._isPopupOpen()) {
+        if (word[0] === '@') {
+          this.setMentionPopupOpen(true)
+        } else if (word[0] === '#') {
+          this.setChannelMentionPopupOpen(true)
+        }
+      } else {
+        // Close popups if word doesn't begin with marker anymore
+        if (this.state.mentionPopupOpen && word[0] !== '@') {
+          this.setMentionPopupOpen(false)
+        } else if (this.state.channelMentionPopupOpen && word[0] !== '#') {
+          this.setChannelMentionPopupOpen(false)
+        }
+      }
+    }
 
     insertMention = (u: string) => {}
 
@@ -65,6 +91,7 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
         setMentionPopupOpen={this.setMentionPopupOpen}
         setChannelMentionPopupOpen={this.setChannelMentionPopupOpen}
         onEnterKeyDown={this.onEnterKeyDown}
+        onChangeText={this.onChangeText}
         onSelectionChange={this.onSelectionChange}
       />
     )

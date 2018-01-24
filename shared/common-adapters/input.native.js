@@ -166,7 +166,7 @@ class Input extends Component<Props, State> {
         }
   }
 
-  _onSelectionChange(event: any) {
+  _onSelectionChange = (event: any) => {
     this.setState(
       {
         selections: {

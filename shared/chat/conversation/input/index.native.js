@@ -133,7 +133,7 @@ class ConversationInput extends Component<Props> {
               inputStyle={styleInputText}
               multiline={true}
               onBlur={this._onBlur}
-              onChangeText={this.props.setText}
+              onChangeText={this.props.onChangeText}
               ref={this.props.inputSetRef}
               onSelectionChange={this.props.onSelectionChange}
               small={true}
