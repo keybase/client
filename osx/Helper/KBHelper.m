@@ -90,6 +90,8 @@
     [self moveFromSource:args[@"source"] destination:args[@"destination"] overwriteDestination:YES completion:completion];
   } else if ([method isEqualToString:@"createDirectory"]) {
     [self createDirectory:args[@"directory"] uid:args[@"uid"] gid:args[@"gid"] permissions:args[@"permissions"] excludeFromBackup:[args[@"excludeFromBackup"] boolValue] completion:completion];
+  } else if ([method isEqualToString:@"createFirstLink"]) {
+    [self createFirstLink:args[@"path"] linkPath:args[@"linkPath"] uid:args[@"uid"] gid:args[@"gid"] completion:completion];
   } else if ([method isEqualToString:@"addToPath"]) {
     [self addToPath:args[@"directory"] name:args[@"name"] appName:args[@"appName"] completion:completion];
   } else if ([method isEqualToString:@"removeFromPath"]) {
@@ -148,10 +150,7 @@
   return [NSFileManager.defaultManager destinationOfSymbolicLinkAtPath:linkPath error:nil];
 }
 
-- (BOOL)createLink:(NSString *)path linkPath:(NSString *)linkPath uid:(uid_t)uid gid:(gid_t)gid {
-  if ([NSFileManager.defaultManager fileExistsAtPath:linkPath]) {
-    [NSFileManager.defaultManager removeItemAtPath:linkPath error:nil];
-  }
+- (BOOL)createLinkIfNoLinkExists:(NSString *)path linkPath:(NSString *)linkPath uid:(uid_t)uid gid:(gid_t)gid {
   if ([NSFileManager.defaultManager createSymbolicLinkAtPath:linkPath withDestinationPath:path error:nil]) {
     // setAttributes doesn't work with symlinks, so we have to call lchown() directly
     const char *file = [NSFileManager.defaultManager fileSystemRepresentationWithPath:linkPath];
@@ -160,6 +159,22 @@
     }
   }
   return NO;
+}
+
+- (BOOL)createLink:(NSString *)path linkPath:(NSString *)linkPath uid:(uid_t)uid gid:(gid_t)gid {
+  if ([NSFileManager.defaultManager fileExistsAtPath:linkPath]) {
+    [NSFileManager.defaultManager removeItemAtPath:linkPath error:nil];
+  }
+  return [self createLinkIfNoLinkExists:path linkPath:linkPath uid:uid gid:gid];
+}
+
+
+- (void)createFirstLink:(NSString *)path linkPath:(NSString *)linkPath uid:(uid_t)uid gid:(gid_t)gid completion:(void (^)(NSError *error, id value))completion {
+    if ([self createLinkIfNoLinkExists:path linkPath:linkPath uid:uid gid:gid]) {
+      completion(nil, nil);
+      return;
+    }
+    completion(KBMakeError(-1, @"Error trying to make link"), nil);
 }
 
 - (void)addToPath:(NSString *)directory name:(NSString *)name appName:(NSString *)appName completion:(void (^)(NSError *error, id value))completion {

@@ -52,8 +52,15 @@
 }
 
 - (void)removeMountDir:(NSString *)mountDir completion:(KBCompletion)completion {
-  // Because the mount dir is in the root path, we need the helper tool to remove it, even if owned by the user
-  NSDictionary *params = @{@"path": mountDir};
+  // Because the mount dir is in the root path, we need the helper tool to remove it, even if owned by the user. TODO: only the link needs this, and only if it points to our directory.
+  NSDictionary *params = @{@"path": @"/keybase"};
+  [self.helperTool.helper sendRequest:@"remove" params:@[params] completion:^(NSError *err, id value) {
+    if (err) {
+      completion(err);
+      return;
+    } 
+  }];
+  params = @{@"path": mountDir};
   DDLogDebug(@"Removing mount directory: %@", params);
   [self.helperTool.helper sendRequest:@"remove" params:@[params] completion:^(NSError *err, id value) {
     completion(err);
@@ -66,9 +73,19 @@
   NSNumber *permissions = [NSNumber numberWithShort:0600];
   NSDictionary *params = @{@"directory": self.config.mountDir, @"uid": @(uid), @"gid": @(gid), @"permissions": permissions, @"excludeFromBackup": @(YES)};
   DDLogDebug(@"Creating mount directory: %@", params);
+  // TODO: we don't need to call createDirectory through the helper.
   [self.helperTool.helper sendRequest:@"createDirectory" params:@[params] completion:^(NSError *err, id value) {
-    completion(err);
+    if (err) {
+      completion(err);
+      return;
+    }
   }];
+  params = @{@"path": self.config.mountDir, @"linkPath": @"/keybase", @"uid": @(uid), @"gid": @(gid)};
+  [self.helperTool.helper sendRequest:@"createFirstLink" params:@[params] completion:^(NSError *err, id value) {
+    // Ignore the error, it will be common for everyone but the first user on a machine.  TODO: display something to the user if they don't get /keybase?
+      DDLogDebug(@"Could not create mount link: %@", err);
+  }];
+  completion(nil);
 }
 
 - (void)install:(KBCompletion)completion {
