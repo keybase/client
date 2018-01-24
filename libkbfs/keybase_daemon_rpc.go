@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"os"
+	"runtime"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
@@ -35,6 +36,8 @@ type KeybaseDaemonRPC struct {
 
 	// gitHandler is the git implementation used (if not nil)
 	gitHandler keybase1.KBFSGitInterface
+
+	notifyService keybase1.NotifyServiceInterface
 }
 
 var _ keybase1.NotifySessionInterface = (*KeybaseDaemonRPC)(nil)
@@ -80,6 +83,7 @@ func NewKeybaseDaemonRPC(config Config, kbCtx Context, log logger.Logger,
 		k.keepAliveCancel = cancel
 		go k.keepAliveLoop(ctx)
 	}
+	k.notifyService = newNotifyServiceHandler(config, log)
 
 	return k
 }
@@ -284,6 +288,11 @@ func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 		protocols = append(protocols, k.protocols...)
 	}
 
+	if k.notifyService != nil {
+		k.log.Warning("adding NotifyService protocol")
+		protocols = append(protocols, keybase1.NotifyServiceProtocol(k.notifyService))
+	}
+
 	for _, p := range protocols {
 		err := server.Register(p)
 		if err != nil {
@@ -302,6 +311,7 @@ func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 		Keyfamily:    true,
 		Kbfsrequest:  true,
 		Reachability: true,
+		Service:      true,
 		Team:         true,
 	})
 	if err != nil {
@@ -403,6 +413,8 @@ func (k *KeybaseDaemonRPC) Shutdown() {
 	if k.keepAliveCancel != nil {
 		k.keepAliveCancel()
 	}
+	k.log.Warning("Keybase service shutdown")
+
 }
 
 // TeamExit (does not) implement keybase1.NotifyTeamInterface.
@@ -413,4 +425,24 @@ func (k *KeybaseDaemonRPC) TeamExit(context.Context, keybase1.TeamID) error {
 // TeamAbandoned is a placeholder for the abandoned team notification from the service.
 func (k *KeybaseDaemonRPC) TeamAbandoned(context.Context, keybase1.TeamID) error {
 	return nil
+}
+
+// notifyServiceHandler implements keybase1.NotifyServiceInterface
+type notifyServiceHandler struct {
+	config Config
+	log    logger.Logger
+}
+
+func (s *notifyServiceHandler) Shutdown(_ context.Context) error {
+	s.log.Warning("NotifyService: Shutdown")
+	if runtime.GOOS == "windows" {
+		os.Exit(0)
+	}
+	return nil
+}
+
+// newNotifyServiceHandler makes a new NotifyServiceHandler
+func newNotifyServiceHandler(config Config, log logger.Logger) keybase1.NotifyServiceInterface {
+	s := &notifyServiceHandler{config: config, log: log}
+	return s
 }
