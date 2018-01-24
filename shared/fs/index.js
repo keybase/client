@@ -25,14 +25,21 @@ const stylesContainer = {
   flex: 1,
 }
 
+const iconTypes : IconType = {
+  folder: isMobile ? 'icon-folder-private-24' : 'icon-folder-private-24',
+  file: isMobile ? 'icon-file-24' : 'icon-file-24',
+}
+
 type FolderHeaderProps = {
   title: string,
 }
 
 type FileRowProps = {
+  name: string,
   path: Types.Path,
-  icon: IconType,
-  showFileData: () => void,
+  type: Types.PathType,
+  onViewFolder: (p: Path) => void,
+  onViewFile: (p: Path) => void,
 }
 
 type FolderProps = {
@@ -61,40 +68,23 @@ const FolderHeader = ({title}: FolderHeaderProps) => (
   </Box>
 )
 
-const FileRow = ({name, path, icon, showFileData}: FileRowProps) => {
-  return (
-    <ClickableBox onClick={showFileData} style={{...stylesCommonRow}}>
-      <Box key={name} style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
-        <Icon type={icon} style={{marginRight: globalMargins.small}} />
-        <Box style={FolderBoxStyle}>
-          <Text type="Body">
-            {name}
-          </Text>
-        </Box>
+const FileRow = ({name, path, type, onViewFolder, onViewFile}: FileRowProps) => (
+  <ClickableBox key={name} onClick={type === 'folder' ? onViewFolder(path) : onViewFile(path)} style={{...stylesCommonRow}}>
+    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
+      <Icon type={iconTypes[type]} style={{marginRight: globalMargins.small}} />
+      <Box style={FolderBoxStyle}>
+        <Text type="Body">
+          {name}
+        </Text>
       </Box>
-    </ClickableBox>
-  )
-}
-
-const iconTypes : IconType = {
-  folder: isMobile ? 'icon-folder-private-24' : 'icon-folder-private-24',
-  file: isMobile ? 'icon-file-24' : 'icon-file-24',
-}
+    </Box>
+  </ClickableBox>
+)
 
 export class Files extends React.PureComponent<FolderProps> {
-  _renderRow = (index, item) => {
-    const iconType = iconTypes[item.type]
-    const showFileData = () => {
-      if (item.type == 'folder') {
-        this.props.onViewFolder(item.path)
-      } else {
-        this.props.onViewFile(item.path)
-      }
-    }
-    return (
-      <FileRow name={item.name} path={item.path} icon={iconType} showFileData={showFileData} />
-    )
-  }
+  _renderRow = (index, item) => (
+    <FileRow name={item.name} path={item.path} type={item.type} onViewFolder={this.props.onViewFolder} onViewFile={this.props.onViewFile} />
+  )
 
   render() {
     return (

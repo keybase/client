@@ -2,8 +2,9 @@
 import * as I from 'immutable'
 import * as Types from './types/fs'
 
+export const defaultPath = '/keybase'
+
 export const makeState: I.RecordFactory<Types._State> = I.Record({
-  defaultPath: '/keybase',
   pathItems: I.Map({
     '/keybase': {
       type: 'folder',
