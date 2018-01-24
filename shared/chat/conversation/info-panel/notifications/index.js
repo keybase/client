@@ -82,11 +82,7 @@ export const Notifications = ({
     <Box style={isMobile ? styleHeaderMobile : styleHeader}>
       <Text type="BodySmallSemibold">Desktop notifications</Text>
       <Icon
-        style={{
-          fontSize: isMobile ? 20 : 16,
-          paddingLeft: globalMargins.xtiny,
-          color: globalColors.black_20,
-        }}
+        style={{fontSize: isMobile ? 20 : 16, paddingLeft: globalMargins.xtiny, color: globalColors.black_20}}
         type="iconfont-notifications-desktop"
       />
     </Box>
