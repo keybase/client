@@ -237,6 +237,14 @@
   }
 }
 
+- (NSString *)rootMountSymlink {
+  switch (_runMode) {
+    case KBRunModeDevel: return @"/keybase.devel";
+    case KBRunModeStaging: return @"/keybase.staging";
+    case KBRunModeProd: return @"/keybase";
+  }
+}
+
 - (BOOL)isInApplications:(NSString *)path {
   return [path gh_startsWith:@"/Applications/"];
 }
