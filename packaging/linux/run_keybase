@@ -139,22 +139,6 @@ start_systemd() {
 
   keybase-mount-helper -user-mount "$mountdir"
 
-  forwarded_kbfs_env_vars=(
-      # Needed to determine the mountdir inside the service, to set
-      # the mountpoint on the command line.
-      KEYBASE_MOUNTDIR
-  )
-  forward_vars "$runtime_dir/kbfs.env" forwarded_kbfs_env_vars[@]
-
-  forwarded_service_env_vars=(
-      # Needed to determine the mountdir inside the service, to return
-      # the mountpoint as part of `keybase status`.  TODO(KBFS-2723):
-      # we should be fetching the mountpoint from the kbfs binary if
-      # possible.
-      KEYBASE_MOUNTDIR
-  )
-  forward_vars "$runtime_dir/keybase.env" forwarded_service_env_vars[@]
-
   # The keybase.gui.service unit has keybase.service and kbfs.service as
   # dependencies, so we don't have to list them here. But including them lets
   # us report an error if they fail to start. Also prefer `restart` to `start`
