@@ -143,23 +143,26 @@ func (e ConversationExistence) String() string {
 type ConversationMembersType int
 
 const (
-	ConversationMembersType_KBFS    ConversationMembersType = 0
-	ConversationMembersType_TEAM    ConversationMembersType = 1
-	ConversationMembersType_IMPTEAM ConversationMembersType = 2
+	ConversationMembersType_KBFS           ConversationMembersType = 0
+	ConversationMembersType_TEAM           ConversationMembersType = 1
+	ConversationMembersType_IMPTEAMNATIVE  ConversationMembersType = 2
+	ConversationMembersType_IMPTEAMUPGRADE ConversationMembersType = 3
 )
 
 func (o ConversationMembersType) DeepCopy() ConversationMembersType { return o }
 
 var ConversationMembersTypeMap = map[string]ConversationMembersType{
-	"KBFS":    0,
-	"TEAM":    1,
-	"IMPTEAM": 2,
+	"KBFS":           0,
+	"TEAM":           1,
+	"IMPTEAMNATIVE":  2,
+	"IMPTEAMUPGRADE": 3,
 }
 
 var ConversationMembersTypeRevMap = map[ConversationMembersType]string{
 	0: "KBFS",
 	1: "TEAM",
-	2: "IMPTEAM",
+	2: "IMPTEAMNATIVE",
+	3: "IMPTEAMUPGRADE",
 }
 
 func (e ConversationMembersType) String() string {

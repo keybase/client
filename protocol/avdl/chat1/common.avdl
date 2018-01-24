@@ -25,7 +25,8 @@ protocol common {
   enum ConversationMembersType {
     KBFS_0,
     TEAM_1,
-    IMPTEAM_2
+    IMPTEAMNATIVE_2,
+    IMPTEAMUPGRADE_3
   }
 
   enum SyncInboxResType {

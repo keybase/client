@@ -9,7 +9,6 @@ import (
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/teams"
 	"golang.org/x/net/context"
 )
 
@@ -56,7 +55,7 @@ func (k *KeyFinderImpl) createNameInfoSource(ctx context.Context,
 		return NewKBFSNameInfoSource(k.G())
 	case chat1.ConversationMembersType_TEAM:
 		return NewTeamsNameInfoSource(k.G())
-	case chat1.ConversationMembersType_IMPTEAM:
+	case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE:
 		return NewImplicitTeamsNameInfoSource(k.G())
 	}
 	k.Debug(ctx, "createNameInfoSource: unknown members type, using KBFS: %v", membersType)
@@ -96,22 +95,16 @@ func (k *KeyFinderImpl) Find(ctx context.Context, name string,
 	return nameInfo, nil
 }
 
-// Find keys up-to-date enough for encrypting.
+// FindForEncryption finds keys up-to-date enough for encrypting.
 // Ignores tlfName or teamID based on membersType.
 func (k *KeyFinderImpl) FindForEncryption(ctx context.Context,
 	tlfName string, teamID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool) (res types.NameInfo, err error) {
 
 	switch membersType {
-	case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAM:
-		teamID, err := tlfIDToTeamdID(teamID)
-		if err != nil {
-			return res, err
-		}
-		team, err := teams.Load(ctx, k.G().ExternalG(), keybase1.LoadTeamArg{
-			ID:     teamID,
-			Public: public,
-		})
+	case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAMNATIVE,
+		chat1.ConversationMembersType_IMPTEAMUPGRADE:
+		team, err := LoadTeam(ctx, k.G().ExternalG(), teamID, membersType, public, nil)
 		if err != nil {
 			return res, err
 		}
@@ -125,29 +118,29 @@ func (k *KeyFinderImpl) FindForEncryption(ctx context.Context,
 	}
 }
 
-// Ignores tlfName or teamID based on membersType.
+// FindForDecryption ignores tlfName or teamID based on membersType.
 func (k *KeyFinderImpl) FindForDecryption(ctx context.Context,
 	tlfName string, teamID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
 	keyGeneration int) (res types.NameInfo, err error) {
 
 	switch membersType {
-	case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAM:
-		teamID, err := tlfIDToTeamdID(teamID)
-		if err != nil {
-			return res, err
-		}
+	case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAMNATIVE,
+		chat1.ConversationMembersType_IMPTEAMUPGRADE:
 		var refreshers keybase1.TeamRefreshers
 		if !public {
 			// Only need keys for private teams.
 			refreshers.NeedKeyGeneration = keybase1.PerTeamKeyGeneration(keyGeneration)
 		}
-		team, err := teams.Load(ctx, k.G().ExternalG(), keybase1.LoadTeamArg{
-			ID:         teamID,
-			Public:     public,
-			Refreshers: refreshers,
-			StaleOK:    true,
-		})
+		team, err := LoadTeam(ctx, k.G().ExternalG(), teamID, membersType, public,
+			func(teamID keybase1.TeamID) keybase1.LoadTeamArg {
+				return keybase1.LoadTeamArg{
+					ID:         teamID,
+					Public:     public,
+					Refreshers: refreshers,
+					StaleOK:    true,
+				}
+			})
 		if err != nil {
 			return res, err
 		}

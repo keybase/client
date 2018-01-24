@@ -2578,7 +2578,8 @@ func (h *Server) AddTeamMemberAfterReset(ctx context.Context,
 	}
 	conv := iboxRes.Convs[0]
 	switch conv.Info.MembersType {
-	case chat1.ConversationMembersType_IMPTEAM, chat1.ConversationMembersType_TEAM:
+	case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE,
+		chat1.ConversationMembersType_TEAM:
 		// this is ok for these convs
 	default:
 		return fmt.Errorf("unable to add member back to non team conversation: %v",

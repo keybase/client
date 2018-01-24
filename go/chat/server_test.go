@@ -217,7 +217,7 @@ func runWithMemberTypes(t *testing.T, f func(membersType chat1.ConversationMembe
 	os.Setenv("KEYBASE_FEATURES", "admin")
 	defer os.Setenv("KEYBASE_FEATURES", "")
 	start = time.Now()
-	f(chat1.ConversationMembersType_IMPTEAM)
+	f(chat1.ConversationMembersType_IMPTEAMNATIVE)
 	t.Logf("Implicit Team Stage End: %v", time.Now().Sub(start))
 }
 
@@ -381,7 +381,8 @@ func mustCreateConversationForTestNoAdvanceClock(t *testing.T, ctc *chatTestCont
 	// Create conversation name based on list of users
 	var name string
 	switch membersType {
-	case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAM:
+	case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAMNATIVE,
+		chat1.ConversationMembersType_IMPTEAMUPGRADE:
 		var memberStr []string
 		for _, other := range others {
 			memberStr = append(memberStr, other.Username)
@@ -868,7 +869,8 @@ func TestChatSrvGetInboxAndUnboxLocalTlfName(t *testing.T) {
 
 		var name string
 		switch mt {
-		case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAM:
+		case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAMNATIVE,
+			chat1.ConversationMembersType_IMPTEAMUPGRADE:
 			name = ctc.as(t, users[1]).user().Username + "," + ctc.as(t, users[0]).user().Username // not canonical
 		case chat1.ConversationMembersType_TEAM:
 			name = ctc.teamCache[teamKey(ctc.users())]
@@ -981,7 +983,8 @@ func TestChatSrvPostLocalAtMention(t *testing.T) {
 		users := ctc.users()
 
 		switch mt {
-		case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAM:
+		case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAMNATIVE,
+			chat1.ConversationMembersType_IMPTEAMUPGRADE:
 			return
 		}
 
@@ -1296,7 +1299,8 @@ func TestChatSrvGetThreadLocalMarkAsRead(t *testing.T) {
 
 		expectedMessages := 4 // 3 messges and 1 TLF
 		switch mt {
-		case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAM:
+		case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAMNATIVE,
+			chat1.ConversationMembersType_IMPTEAMUPGRADE:
 		case chat1.ConversationMembersType_TEAM:
 			expectedMessages++ // and the join message
 		default:
@@ -1356,7 +1360,8 @@ func TestChatSrvGracefulUnboxing(t *testing.T) {
 
 		var joinMessage int
 		switch mt {
-		case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAM:
+		case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAMNATIVE,
+			chat1.ConversationMembersType_IMPTEAMUPGRADE:
 		case chat1.ConversationMembersType_TEAM:
 			consumeNewMsg(t, listener, chat1.MessageType_JOIN)
 			consumeNewMsg(t, listener, chat1.MessageType_JOIN)
@@ -1442,7 +1447,8 @@ func TestChatSrvGetInboxSummaryForCLILocal(t *testing.T) {
 		// TODO: fix this when merging master back in... (what?)
 		expectedMessages := 2
 		switch mt {
-		case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAM:
+		case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAMNATIVE,
+			chat1.ConversationMembersType_IMPTEAMUPGRADE:
 		case chat1.ConversationMembersType_TEAM:
 			expectedMessages++ // the join message
 		default:
@@ -2643,21 +2649,15 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		consumeNewMsg(t, listener1, chat1.MessageType_JOIN)
 		consumeNewMsg(t, listener2, chat1.MessageType_JOIN)
 
-		switch mt {
-		case chat1.ConversationMembersType_KBFS:
-		case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAM:
-			t.Logf("u2 gets messages and looks for u1's LEAVE message")
-			tvres, err := ctc.as(t, users[2]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
-				ConversationID: ncres.Conv.GetConvID(),
-				Query: &chat1.GetThreadQuery{
-					MessageTypes: []chat1.MessageType{chat1.MessageType_LEAVE},
-				},
-			})
-			require.NoError(t, err)
-			require.Len(t, tvres.Thread.Messages, 1, "expected number of LEAVE messages")
-		default:
-			t.Fatalf("unknown members type: %v", mt)
-		}
+		t.Logf("u2 gets messages and looks for u1's LEAVE message")
+		tvres, err = ctc.as(t, users[2]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
+			ConversationID: ncres.Conv.GetConvID(),
+			Query: &chat1.GetThreadQuery{
+				MessageTypes: []chat1.MessageType{chat1.MessageType_LEAVE},
+			},
+		})
+		require.NoError(t, err)
+		require.Len(t, tvres.Thread.Messages, 1, "expected number of LEAVE messages")
 
 		t.Logf("u2 leaves and explicitly previews channel")
 		_, err = ctc.as(t, users[2]).chatLocalHandler().LeaveConversationLocal(ctx1,
@@ -2720,19 +2720,13 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 
 		mustPostLocalForTest(t, ctc, users[1], conv,
 			chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
-		switch mt {
-		case chat1.ConversationMembersType_KBFS:
-		case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAM:
-			// Get the join messages
-			select {
-			case info := <-listener0.newMessage:
-				require.Equal(t, chat1.MessageType_JOIN, info.Message.GetMessageType())
-				require.False(t, info.DisplayDesktopNotification)
-			case <-time.After(20 * time.Second):
-				require.Fail(t, "no new message event")
-			}
-		default:
-			t.Fatalf("unknown members type: %v", mt)
+		// Get the join messages
+		select {
+		case info := <-listener0.newMessage:
+			require.Equal(t, chat1.MessageType_JOIN, info.Message.GetMessageType())
+			require.False(t, info.DisplayDesktopNotification)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no new message event")
 		}
 		consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
 		select {
@@ -2989,7 +2983,7 @@ func TestChatSrvUnboxMobilePushNotification(t *testing.T) {
 
 func TestChatSrvImplicitConversation(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
-		if mt != chat1.ConversationMembersType_IMPTEAM {
+		if mt != chat1.ConversationMembersType_IMPTEAMNATIVE {
 			return
 		}
 		ctc := makeChatTestContext(t, "ImplicitConversation", 2)
@@ -3007,7 +3001,7 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 		res, err := ctc.as(t, users[0]).chatLocalHandler().FindConversationsLocal(ctx,
 			chat1.FindConversationsLocalArg{
 				TlfName:          displayName,
-				MembersType:      chat1.ConversationMembersType_IMPTEAM,
+				MembersType:      chat1.ConversationMembersType_IMPTEAMNATIVE,
 				Visibility:       keybase1.TLFVisibility_PRIVATE,
 				TopicType:        chat1.TopicType_CHAT,
 				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
@@ -3021,7 +3015,7 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 				TlfName:          displayName,
 				TlfVisibility:    keybase1.TLFVisibility_PRIVATE,
 				TopicType:        chat1.TopicType_CHAT,
-				MembersType:      chat1.ConversationMembersType_IMPTEAM,
+				MembersType:      chat1.ConversationMembersType_IMPTEAMNATIVE,
 				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 			})
 		require.NoError(t, err)
@@ -3031,7 +3025,8 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 		conv, _, err := GetUnverifiedConv(ctx, tc.Context(), uid, ncres.Conv.Info.Id, false)
 		require.NoError(t, err)
 		require.NotEmpty(t, conv.MaxMsgSummaries, "created conversation does not have a message")
-		require.Equal(t, ncres.Conv.Info.MembersType, chat1.ConversationMembersType_IMPTEAM, "implicit team")
+		require.Equal(t, ncres.Conv.Info.MembersType, chat1.ConversationMembersType_IMPTEAMNATIVE,
+			"implicit team")
 
 		t.Logf("ncres tlf name: %s", ncres.Conv.Info.TlfName)
 
@@ -3085,7 +3080,7 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 		res, err = ctc.as(t, users[1]).chatLocalHandler().FindConversationsLocal(ctx,
 			chat1.FindConversationsLocalArg{
 				TlfName:          displayName,
-				MembersType:      chat1.ConversationMembersType_IMPTEAM,
+				MembersType:      chat1.ConversationMembersType_IMPTEAMNATIVE,
 				Visibility:       keybase1.TLFVisibility_PRIVATE,
 				TopicType:        chat1.TopicType_CHAT,
 				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
@@ -3103,7 +3098,7 @@ func TestChatSrvImpTeamExistingKBFS(t *testing.T) {
 	users := ctc.users()
 
 	c1 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, chat1.ConversationMembersType_KBFS, ctc.as(t, users[1]).user())
-	c2 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, chat1.ConversationMembersType_IMPTEAM, ctc.as(t, users[1]).user())
+	c2 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, chat1.ConversationMembersType_IMPTEAMNATIVE, ctc.as(t, users[1]).user())
 
 	t.Logf("c1: %v c2: %v", c1, c2)
 	if !c2.Id.Eq(c1.Id) {
@@ -3401,7 +3396,8 @@ func TestChatSrvUserReset(t *testing.T) {
 
 		// Only run this test for teams
 		switch mt {
-		case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAM:
+		case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAMNATIVE,
+			chat1.ConversationMembersType_IMPTEAMUPGRADE:
 		default:
 			return
 		}
