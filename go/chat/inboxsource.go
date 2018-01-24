@@ -440,6 +440,16 @@ func (s *RemoteInboxSource) MembershipUpdate(ctx context.Context, uid gregor1.UI
 	return res, err
 }
 
+func (s *RemoteInboxSource) SetConvRetention(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+	convID chat1.ConversationID, policy chat1.RetentionPolicy) (res *chat1.ConversationLocal, err error) {
+	return res, err
+}
+
+func (s *RemoteInboxSource) SetTeamRetention(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+	teamID keybase1.TeamID, policy chat1.RetentionPolicy) (res []chat1.ConversationLocal, err error) {
+	return res, err
+}
+
 type HybridInboxSource struct {
 	globals.Contextified
 	utils.DebugLabeler
@@ -643,6 +653,16 @@ func (s *HybridInboxSource) getConvLocal(ctx context.Context, uid gregor1.UID,
 	return &ib.Convs[0], nil
 }
 
+// Get convs. May return fewer or no conversations.
+func (s *HybridInboxSource) getConvsLocal(ctx context.Context, uid gregor1.UID,
+	convIDs []chat1.ConversationID) ([]chat1.ConversationLocal, error) {
+	// Read back affected conversation so we can send it to the frontend
+	ib, _, err := s.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
+		ConvIDs: convIDs,
+	}, nil)
+	return ib.Convs, err
+}
+
 func (s *HybridInboxSource) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	convID chat1.ConversationID, msg chat1.MessageBoxed, maxMsgs []chat1.MessageSummary) (conv *chat1.ConversationLocal, err error) {
 	defer s.Trace(ctx, func() error { return err }, "NewMessage")()
@@ -806,6 +826,47 @@ func (s *HybridInboxSource) MembershipUpdate(ctx context.Context, uid gregor1.UI
 	}
 
 	return res, nil
+}
+
+func (s *HybridInboxSource) SetConvRetention(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+	convID chat1.ConversationID, policy chat1.RetentionPolicy) (res *chat1.ConversationLocal, err error) {
+	return s.modConversation(ctx, "SetConvRetention", uid, convID, func(ctx context.Context, ib *storage.Inbox) error {
+		return ib.SetConvRetention(ctx, vers, convID, policy)
+	})
+}
+
+func (s *HybridInboxSource) SetTeamRetention(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+	teamID keybase1.TeamID, policy chat1.RetentionPolicy) (convs []chat1.ConversationLocal, err error) {
+	defer s.Trace(ctx, func() error { return err }, "SetTeamRetention")()
+	ib := storage.NewInbox(s.G(), uid)
+	convIDs, cerr := ib.SetTeamRetention(ctx, vers, teamID, policy)
+	if cerr != nil {
+		err = s.handleInboxError(ctx, cerr, uid)
+		return nil, err
+	}
+	if convs, err = s.getConvsLocal(ctx, uid, convIDs); err != nil {
+		s.Debug(ctx, "SetTeamRetention: unable to load conversations: convIDs: %v err: %s",
+			convIDs, err.Error())
+		return nil, nil
+	}
+	return convs, nil
+}
+
+func (s *HybridInboxSource) modConversation(ctx context.Context, debugLabel string, uid gregor1.UID, convID chat1.ConversationID,
+	mod func(context.Context, *storage.Inbox) error) (
+	conv *chat1.ConversationLocal, err error) {
+	defer s.Trace(ctx, func() error { return err }, debugLabel)()
+	ib := storage.NewInbox(s.G(), uid)
+	if cerr := mod(ctx, ib); cerr != nil {
+		err = s.handleInboxError(ctx, cerr, uid)
+		return nil, err
+	}
+	if conv, err = s.getConvLocal(ctx, uid, convID); err != nil {
+		s.Debug(ctx, "%v: unable to load conversation: convID: %s err: %s",
+			debugLabel, convID, err.Error())
+		return nil, nil
+	}
+	return conv, nil
 }
 
 func (s *localizerPipeline) localizeConversationsPipeline(ctx context.Context, uid gregor1.UID,
@@ -1016,6 +1077,9 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 			}
 		}
 	}
+	conversationLocal.Expunge = conversationRemote.Expunge
+	conversationLocal.ConvRetention = conversationRemote.ConvRetention
+	conversationLocal.TeamRetention = conversationRemote.TeamRetention
 
 	if len(conversationRemote.MaxMsgSummaries) == 0 {
 		errMsg := "conversation has an empty MaxMsgSummaries field"

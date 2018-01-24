@@ -9,6 +9,7 @@ protocol gregor {
         string Action;
         InboxVers inboxVers;
         ConversationID convID;
+        union { null, UnreadUpdate } unreadUpdate;
     }
 
     record NewConversationPayload {
@@ -64,6 +65,7 @@ protocol gregor {
         ConversationID convID;
         InboxVers inboxVers;
         ConversationNotificationInfo settings;
+        union { null, UnreadUpdate } unreadUpdate;
     }
 
     record UnreadUpdate {
@@ -111,13 +113,13 @@ protocol gregor {
         TLFID teamID;
     }
 
-    record ConvRetentionUpdate {
+    record SetConvRetentionUpdate {
         InboxVers inboxVers;
         ConversationID convID;
         RetentionPolicy policy;
     }
 
-    record TeamRetentionUpdate {
+    record SetTeamRetentionUpdate {
         InboxVers inboxVers;
         keybase1.TeamID teamID;
         RetentionPolicy policy;
@@ -127,4 +129,5 @@ protocol gregor {
         ConversationID convID;
         InboxVers inboxVers;
     }
+
 }

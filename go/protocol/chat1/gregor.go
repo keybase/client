@@ -10,9 +10,10 @@ import (
 )
 
 type GenericPayload struct {
-	Action    string         `codec:"Action" json:"Action"`
-	InboxVers InboxVers      `codec:"inboxVers" json:"inboxVers"`
-	ConvID    ConversationID `codec:"convID" json:"convID"`
+	Action       string         `codec:"Action" json:"Action"`
+	InboxVers    InboxVers      `codec:"inboxVers" json:"inboxVers"`
+	ConvID       ConversationID `codec:"convID" json:"convID"`
+	UnreadUpdate *UnreadUpdate  `codec:"unreadUpdate,omitempty" json:"unreadUpdate,omitempty"`
 }
 
 func (o GenericPayload) DeepCopy() GenericPayload {
@@ -20,6 +21,13 @@ func (o GenericPayload) DeepCopy() GenericPayload {
 		Action:    o.Action,
 		InboxVers: o.InboxVers.DeepCopy(),
 		ConvID:    o.ConvID.DeepCopy(),
+		UnreadUpdate: (func(x *UnreadUpdate) *UnreadUpdate {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.UnreadUpdate),
 	}
 }
 
@@ -154,10 +162,11 @@ func (o TeamTypePayload) DeepCopy() TeamTypePayload {
 }
 
 type SetAppNotificationSettingsPayload struct {
-	Action    string                       `codec:"Action" json:"Action"`
-	ConvID    ConversationID               `codec:"convID" json:"convID"`
-	InboxVers InboxVers                    `codec:"inboxVers" json:"inboxVers"`
-	Settings  ConversationNotificationInfo `codec:"settings" json:"settings"`
+	Action       string                       `codec:"Action" json:"Action"`
+	ConvID       ConversationID               `codec:"convID" json:"convID"`
+	InboxVers    InboxVers                    `codec:"inboxVers" json:"inboxVers"`
+	Settings     ConversationNotificationInfo `codec:"settings" json:"settings"`
+	UnreadUpdate *UnreadUpdate                `codec:"unreadUpdate,omitempty" json:"unreadUpdate,omitempty"`
 }
 
 func (o SetAppNotificationSettingsPayload) DeepCopy() SetAppNotificationSettingsPayload {
@@ -166,6 +175,13 @@ func (o SetAppNotificationSettingsPayload) DeepCopy() SetAppNotificationSettings
 		ConvID:    o.ConvID.DeepCopy(),
 		InboxVers: o.InboxVers.DeepCopy(),
 		Settings:  o.Settings.DeepCopy(),
+		UnreadUpdate: (func(x *UnreadUpdate) *UnreadUpdate {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.UnreadUpdate),
 	}
 }
 
@@ -338,28 +354,28 @@ func (o TeamChannelUpdate) DeepCopy() TeamChannelUpdate {
 	}
 }
 
-type ConvRetentionUpdate struct {
+type SetConvRetentionUpdate struct {
 	InboxVers InboxVers       `codec:"inboxVers" json:"inboxVers"`
 	ConvID    ConversationID  `codec:"convID" json:"convID"`
 	Policy    RetentionPolicy `codec:"policy" json:"policy"`
 }
 
-func (o ConvRetentionUpdate) DeepCopy() ConvRetentionUpdate {
-	return ConvRetentionUpdate{
+func (o SetConvRetentionUpdate) DeepCopy() SetConvRetentionUpdate {
+	return SetConvRetentionUpdate{
 		InboxVers: o.InboxVers.DeepCopy(),
 		ConvID:    o.ConvID.DeepCopy(),
 		Policy:    o.Policy.DeepCopy(),
 	}
 }
 
-type TeamRetentionUpdate struct {
+type SetTeamRetentionUpdate struct {
 	InboxVers InboxVers       `codec:"inboxVers" json:"inboxVers"`
 	TeamID    keybase1.TeamID `codec:"teamID" json:"teamID"`
 	Policy    RetentionPolicy `codec:"policy" json:"policy"`
 }
 
-func (o TeamRetentionUpdate) DeepCopy() TeamRetentionUpdate {
-	return TeamRetentionUpdate{
+func (o SetTeamRetentionUpdate) DeepCopy() SetTeamRetentionUpdate {
+	return SetTeamRetentionUpdate{
 		InboxVers: o.InboxVers.DeepCopy(),
 		TeamID:    o.TeamID.DeepCopy(),
 		Policy:    o.Policy.DeepCopy(),

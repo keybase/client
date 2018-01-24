@@ -674,6 +674,18 @@ type ChatInboxSyncedArg struct {
 	SyncRes ChatSyncResult `codec:"syncRes" json:"syncRes"`
 }
 
+type ChatSetConvRetentionArg struct {
+	Uid    keybase1.UID   `codec:"uid" json:"uid"`
+	ConvID ConversationID `codec:"convID" json:"convID"`
+	Conv   *InboxUIItem   `codec:"conv,omitempty" json:"conv,omitempty"`
+}
+
+type ChatSetTeamRetentionArg struct {
+	Uid    keybase1.UID    `codec:"uid" json:"uid"`
+	TeamID keybase1.TeamID `codec:"teamID" json:"teamID"`
+	Convs  []InboxUIItem   `codec:"convs" json:"convs"`
+}
+
 type NotifyChatInterface interface {
 	NewChatActivity(context.Context, NewChatActivityArg) error
 	ChatIdentifyUpdate(context.Context, keybase1.CanonicalTLFNameAndIDWithBreaks) error
@@ -687,6 +699,8 @@ type NotifyChatInterface interface {
 	ChatResetConversation(context.Context, ChatResetConversationArg) error
 	ChatInboxSyncStarted(context.Context, keybase1.UID) error
 	ChatInboxSynced(context.Context, ChatInboxSyncedArg) error
+	ChatSetConvRetention(context.Context, ChatSetConvRetentionArg) error
+	ChatSetTeamRetention(context.Context, ChatSetTeamRetentionArg) error
 }
 
 func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
@@ -885,6 +899,38 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodNotify,
 			},
+			"ChatSetConvRetention": {
+				MakeArg: func() interface{} {
+					ret := make([]ChatSetConvRetentionArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChatSetConvRetentionArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChatSetConvRetentionArg)(nil), args)
+						return
+					}
+					err = i.ChatSetConvRetention(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
+			"ChatSetTeamRetention": {
+				MakeArg: func() interface{} {
+					ret := make([]ChatSetTeamRetentionArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChatSetTeamRetentionArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChatSetTeamRetentionArg)(nil), args)
+						return
+					}
+					err = i.ChatSetTeamRetention(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
 		},
 	}
 }
@@ -954,5 +1000,15 @@ func (c NotifyChatClient) ChatInboxSyncStarted(ctx context.Context, uid keybase1
 
 func (c NotifyChatClient) ChatInboxSynced(ctx context.Context, __arg ChatInboxSyncedArg) (err error) {
 	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatInboxSynced", []interface{}{__arg})
+	return
+}
+
+func (c NotifyChatClient) ChatSetConvRetention(ctx context.Context, __arg ChatSetConvRetentionArg) (err error) {
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatSetConvRetention", []interface{}{__arg})
+	return
+}
+
+func (c NotifyChatClient) ChatSetTeamRetention(ctx context.Context, __arg ChatSetTeamRetentionArg) (err error) {
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatSetTeamRetention", []interface{}{__arg})
 	return
 }
