@@ -922,7 +922,7 @@ type SetTeamRetentionArg struct {
 }
 
 type UpgradeKBFSToImpteamArg struct {
-	ConvID ConversationID `codec:"convID" json:"convID"`
+	TlfID TLFID `codec:"tlfID" json:"tlfID"`
 }
 
 type RemoteInterface interface {
@@ -959,7 +959,7 @@ type RemoteInterface interface {
 	RemoteNotificationSuccessful(context.Context, RemoteNotificationSuccessfulArg) error
 	SetConvRetention(context.Context, SetConvRetentionArg) (SetRetentionRes, error)
 	SetTeamRetention(context.Context, SetTeamRetentionArg) (SetRetentionRes, error)
-	UpgradeKBFSToImpteam(context.Context, ConversationID) error
+	UpgradeKBFSToImpteam(context.Context, TLFID) error
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -1500,7 +1500,7 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]UpgradeKBFSToImpteamArg)(nil), args)
 						return
 					}
-					err = i.UpgradeKBFSToImpteam(ctx, (*typedArgs)[0].ConvID)
+					err = i.UpgradeKBFSToImpteam(ctx, (*typedArgs)[0].TlfID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1689,8 +1689,8 @@ func (c RemoteClient) SetTeamRetention(ctx context.Context, __arg SetTeamRetenti
 	return
 }
 
-func (c RemoteClient) UpgradeKBFSToImpteam(ctx context.Context, convID ConversationID) (err error) {
-	__arg := UpgradeKBFSToImpteamArg{ConvID: convID}
+func (c RemoteClient) UpgradeKBFSToImpteam(ctx context.Context, tlfID TLFID) (err error) {
+	__arg := UpgradeKBFSToImpteamArg{TlfID: tlfID}
 	err = c.Cli.Call(ctx, "chat.1.remote.upgradeKBFSToImpteam", []interface{}{__arg}, nil)
 	return
 }

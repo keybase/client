@@ -1062,8 +1062,8 @@
     "upgradeKBFSToImpteam": {
       "request": [
         {
-          "name": "convID",
-          "type": "ConversationID"
+          "name": "tlfID",
+          "type": "TLFID"
         }
       ],
       "response": null

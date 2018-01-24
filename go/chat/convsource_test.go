@@ -325,7 +325,7 @@ func (f failingRemote) SetTeamRetention(ctx context.Context, _ chat1.SetTeamRete
 	return res, errors.New("SetTeamRetention not mocked")
 }
 
-func (f failingRemote) UpgradeKBFSToImpteam(ctx context.Context, convID chat1.ConversationID) error {
+func (f failingRemote) UpgradeKBFSToImpteam(ctx context.Context, tlfID chat1.TLFID) error {
 	require.Fail(f.t, "UpgradeKBFSToImpteam")
 	return nil
 }

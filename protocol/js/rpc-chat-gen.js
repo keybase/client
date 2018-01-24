@@ -1157,7 +1157,7 @@ export type RemoteTlfResolveRpcParam = $ReadOnly<{tlfID: TLFID, resolvedWriters?
 
 export type RemoteUpdateTypingRemoteRpcParam = $ReadOnly<{uid: Gregor1.UID, deviceID: Gregor1.DeviceID, convID: ConversationID, typing: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type RemoteUpgradeKBFSToImpteamRpcParam = $ReadOnly<{convID: ConversationID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteUpgradeKBFSToImpteamRpcParam = $ReadOnly<{tlfID: TLFID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type RemoteUserTypingUpdate = $ReadOnly<{uid: Gregor1.UID, deviceID: Gregor1.DeviceID, convID: ConversationID, typing: Boolean}>
 
