@@ -3529,7 +3529,7 @@ export type TeamChangeSet = $ReadOnly<{membershipChanged: Boolean, keyRotated: B
 
 export type TeamCreateResult = $ReadOnly<{teamID: TeamID, chatSent: Boolean, creatorAdded: Boolean}>
 
-export type TeamData = $ReadOnly<{secretless: Boolean, name: TeamName, chain: TeamSigChainState, perTeamKeySeeds: {[key: string]: PerTeamKeySeedItem}, readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}, latestSeqnoHint: Seqno, cachedAt: Time}>
+export type TeamData = $ReadOnly<{secretless: Boolean, name: TeamName, chain: TeamSigChainState, perTeamKeySeeds: {[key: string]: PerTeamKeySeedItem}, readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}, latestSeqnoHint: Seqno, cachedAt: Time, tlfCryptKeys: {[key: string]: ?Array<CryptKey>}}>
 
 export type TeamDebugRes = $ReadOnly<{chain: TeamSigChainState}>
 

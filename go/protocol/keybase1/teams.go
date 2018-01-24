@@ -504,6 +504,7 @@ type TeamData struct {
 	ReaderKeyMasks  map[TeamApplication]map[PerTeamKeyGeneration]MaskB64 `codec:"readerKeyMasks" json:"readerKeyMasks"`
 	LatestSeqnoHint Seqno                                                `codec:"latestSeqnoHint" json:"latestSeqnoHint"`
 	CachedAt        Time                                                 `codec:"cachedAt" json:"cachedAt"`
+	TlfCryptKeys    map[TeamApplication][]CryptKey                       `codec:"tlfCryptKeys" json:"tlfCryptKeys"`
 }
 
 func (o TeamData) DeepCopy() TeamData {
@@ -548,6 +549,28 @@ func (o TeamData) DeepCopy() TeamData {
 		})(o.ReaderKeyMasks),
 		LatestSeqnoHint: o.LatestSeqnoHint.DeepCopy(),
 		CachedAt:        o.CachedAt.DeepCopy(),
+		TlfCryptKeys: (func(x map[TeamApplication][]CryptKey) map[TeamApplication][]CryptKey {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[TeamApplication][]CryptKey)
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := (func(x []CryptKey) []CryptKey {
+					if x == nil {
+						return nil
+					}
+					var ret []CryptKey
+					for _, v := range x {
+						vCopy := v.DeepCopy()
+						ret = append(ret, vCopy)
+					}
+					return ret
+				})(v)
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.TlfCryptKeys),
 	}
 }
 

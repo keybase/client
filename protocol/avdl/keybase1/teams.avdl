@@ -159,6 +159,9 @@ protocol teams {
 
     // Should only be used by TeamLoader (because it is mutable, not threadsafe to read)
     Time cachedAt;
+
+    // Associated TLF crypt keys
+    map<TeamApplication, array<CryptKey>> tlfCryptKeys;
   }
 
   enum TeamInviteCategory {

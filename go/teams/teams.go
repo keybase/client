@@ -295,15 +295,7 @@ func (t *Team) CurrentSeqno() keybase1.Seqno {
 }
 
 func (t *Team) AllApplicationKeys(ctx context.Context, application keybase1.TeamApplication) (res []keybase1.TeamApplicationKey, err error) {
-	latestGen := t.chain().GetLatestGeneration()
-	for gen := keybase1.PerTeamKeyGeneration(1); gen <= latestGen; gen++ {
-		appKey, err := t.ApplicationKeyAtGeneration(application, gen)
-		if err != nil {
-			return res, err
-		}
-		res = append(res, appKey)
-	}
-	return res, nil
+	return AllApplicationKeys(ctx, t.Data, application, t.chain().GetLatestGeneration())
 }
 
 // ApplicationKey returns the most recent key for an application.
@@ -312,100 +304,9 @@ func (t *Team) ApplicationKey(ctx context.Context, application keybase1.TeamAppl
 	return t.ApplicationKeyAtGeneration(application, latestGen)
 }
 
-func (t *Team) UseRKMForApp(application keybase1.TeamApplication) bool {
-	switch application {
-	case keybase1.TeamApplication_SEITAN_INVITE_TOKEN:
-		// Seitan tokens do not use RKMs because implicit admins have all the privileges of explicit members.
-		return false
-	default:
-		return true
-	}
-}
-
 func (t *Team) ApplicationKeyAtGeneration(
 	application keybase1.TeamApplication, generation keybase1.PerTeamKeyGeneration) (res keybase1.TeamApplicationKey, err error) {
-
-	item, ok := t.Data.PerTeamKeySeeds[generation]
-	if !ok {
-		return res, libkb.NotFoundError{
-			Msg: fmt.Sprintf("no team secret found at generation %v", generation)}
-	}
-
-	var rkm *keybase1.ReaderKeyMask
-	if t.UseRKMForApp(application) {
-		rkmReal, err := t.readerKeyMask(application, generation)
-		if err != nil {
-			return res, err
-		}
-		rkm = &rkmReal
-	} else {
-		var zeroMask [32]byte
-		zeroRKM := keybase1.ReaderKeyMask{
-			Application: application,
-			Generation:  generation,
-			Mask:        zeroMask[:],
-		}
-		rkm = &zeroRKM
-	}
-
-	return t.applicationKeyForMask(*rkm, item.Seed)
-}
-
-func (t *Team) applicationKeyForMask(mask keybase1.ReaderKeyMask, secret keybase1.PerTeamKeySeed) (keybase1.TeamApplicationKey, error) {
-	if secret.IsZero() {
-		return keybase1.TeamApplicationKey{}, errors.New("nil shared secret in Team#applicationKeyForMask")
-	}
-	var derivationString string
-	switch mask.Application {
-	case keybase1.TeamApplication_KBFS:
-		derivationString = libkb.TeamKBFSDerivationString
-	case keybase1.TeamApplication_CHAT:
-		derivationString = libkb.TeamChatDerivationString
-	case keybase1.TeamApplication_SALTPACK:
-		derivationString = libkb.TeamSaltpackDerivationString
-	case keybase1.TeamApplication_GIT_METADATA:
-		derivationString = libkb.TeamGitMetadataDerivationString
-	case keybase1.TeamApplication_SEITAN_INVITE_TOKEN:
-		derivationString = libkb.TeamSeitanTokenDerivationString
-	default:
-		return keybase1.TeamApplicationKey{}, fmt.Errorf("unrecognized application id: %v", mask.Application)
-	}
-
-	key := keybase1.TeamApplicationKey{
-		Application:   mask.Application,
-		KeyGeneration: mask.Generation,
-	}
-
-	if len(mask.Mask) != 32 {
-		return keybase1.TeamApplicationKey{}, fmt.Errorf("mask length: %d, expected 32", len(mask.Mask))
-	}
-
-	secBytes := make([]byte, len(mask.Mask))
-	n := libkb.XORBytes(secBytes, derivedSecret(secret, derivationString), mask.Mask)
-	if n != 32 {
-		return key, errors.New("invalid derived secret xor mask size")
-	}
-	copy(key.Key[:], secBytes)
-
-	return key, nil
-}
-
-func (t *Team) readerKeyMask(
-	application keybase1.TeamApplication, generation keybase1.PerTeamKeyGeneration) (res keybase1.ReaderKeyMask, err error) {
-
-	m2, ok := t.Data.ReaderKeyMasks[application]
-	if !ok {
-		return res, NewKeyMaskNotFoundErrorForApplication(application)
-	}
-	mask, ok := m2[generation]
-	if !ok {
-		return res, NewKeyMaskNotFoundErrorForApplicationAndGeneration(application, generation)
-	}
-	return keybase1.ReaderKeyMask{
-		Application: application,
-		Generation:  generation,
-		Mask:        mask,
-	}, nil
+	return ApplicationKeyAtGeneration(t.Data, application, generation)
 }
 
 func (t *Team) Rotate(ctx context.Context) error {
@@ -1592,12 +1493,6 @@ func (t *Team) marshal(incoming interface{}) ([]byte, error) {
 		return nil, err
 	}
 	return data, nil
-}
-
-func (t *Team) unboxKBFSCryptKeys(ctx context.Context, key keybase1.TeamApplicationKey,
-	encryptedData keybase1.TeamEncryptedKBFSKeyset) ([]keybase1.CryptKey, error) {
-
-	return nil, nil
 }
 
 func (t *Team) boxKBFSCryptKeys(ctx context.Context, key keybase1.TeamApplicationKey,
