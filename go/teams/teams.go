@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"sort"
 
 	"github.com/keybase/go-codec/codec"
 
@@ -1536,6 +1537,11 @@ func (t *Team) AssociateWithTLFKeyset(ctx context.Context, tlfID keybase1.TLFID,
 		t.G().Log.CDebugf(ctx, "AssociateWithTLFKeyset: no crypt keys given, just posting TLF ID")
 		return t.AssociateWithTLFID(ctx, tlfID)
 	}
+
+	// Sort crypt keys by generation (just in case they aren't naturally)
+	sort.Slice(cryptKeys, func(i, j int) bool {
+		return cryptKeys[i].KeyGeneration < cryptKeys[j].KeyGeneration
+	})
 
 	teamKeys, err := t.AllApplicationKeys(ctx, appType)
 	if err != nil {
