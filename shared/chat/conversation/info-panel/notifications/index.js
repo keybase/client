@@ -25,7 +25,6 @@ export type Props = {
   desktop: NotifyType,
   mobile: NotifyType,
   muted: boolean,
-  resetSaveState: () => void,
   saveState: NotificationSaveState,
   onMuteConversation: (muted: boolean) => void,
   onSetDesktop: NotifyType => void,
@@ -34,10 +33,6 @@ export type Props = {
 }
 
 export class Notifications extends React.Component<Props> {
-  componentDidMount() {
-    this.props.resetSaveState()
-  }
-
   render() {
     const {
       channelWide,

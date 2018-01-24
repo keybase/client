@@ -100,7 +100,9 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
 
 type _Props = {
   // Set only when stateProps has _props set.
-  _props?: Props,
+  _props?: Props & {
+    _resetSaveState: () => void,
+  },
 }
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): _Props => {
@@ -108,11 +110,11 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): _Prop
     const props = stateProps._props
     return {
       _props: {
+        _resetSaveState: () => dispatchProps._resetSaveState(props.conversationIDKey),
         channelWide: props.channelWide,
         desktop: props.desktop,
         mobile: props.mobile,
         muted: props.muted,
-        resetSaveState: () => dispatchProps._resetSaveState(props.conversationIDKey),
         saveState: props.saveState,
         onMuteConversation: (muted: boolean) => {
           dispatchProps._onMuteConversation(props.conversationIDKey, muted)
@@ -134,6 +136,14 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): _Prop
 }
 
 class _Notifications extends React.PureComponent<_Props> {
+  componentDidMount() {
+    if (!this.props._props) {
+      return
+    }
+
+    this.props._props._resetSaveState()
+  }
+
   render() {
     if (!this.props._props) {
       return null
