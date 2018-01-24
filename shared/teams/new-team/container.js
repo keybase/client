@@ -1,8 +1,15 @@
 // @flow
 import * as TeamsGen from '../../actions/teams-gen'
 import NewTeamDialog from './'
-import {connect, compose, lifecycle, withState, withHandlers, type TypedState} from '../../util/container'
 // import upperFirst from 'lodash/upperFirst'
+import {
+  connect,
+  compose,
+  lifecycle,
+  withStateHandlers,
+  withHandlers,
+  type TypedState,
+} from '../../util/container'
 
 const mapStateToProps = (state: TypedState) => ({
   errorText: null, // TODO upperFirst(state.chat.teamCreationError),
@@ -30,7 +37,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  withState('name', 'onNameChange', props => props.name || ''),
+  withStateHandlers(({name}) => ({name: name || ''}), {
+    onNameChange: () => (name: string) => ({name: name.toLowerCase()}),
+  }),
   withHandlers({
     onSubmit: ({name, _onCreateNewTeam}) => () => _onCreateNewTeam(name),
   }),

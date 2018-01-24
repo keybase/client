@@ -198,11 +198,23 @@
           "name": "repoName"
         },
         {
+          "type": "keybase1.RepoID",
+          "name": "repoID"
+        },
+        {
           "type": {
             "type": "array",
             "items": "keybase1.GitRefMetadata"
           },
           "name": "refs"
+        },
+        {
+          "type": "keybase1.GitPushType",
+          "name": "pushType"
+        },
+        {
+          "type": "string",
+          "name": "previousRepoName"
         }
       ]
     },

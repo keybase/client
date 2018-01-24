@@ -672,7 +672,7 @@ const messageEdit = (action: Chat2Gen.MessageEditPayload, state: TypedState) => 
 const sendToPendingConversation = (action: Chat2Gen.SendToPendingConversationPayload, state: TypedState) => {
   const tlfName = action.payload.users.join(',')
   const membersType = flags.impTeamChatEnabled
-    ? RPCChatTypes.commonConversationMembersType.impteam
+    ? RPCChatTypes.commonConversationMembersType.impteamnative
     : RPCChatTypes.commonConversationMembersType.kbfs
 
   return Saga.call(RPCChatTypes.localNewConversationLocalRpcPromise, {

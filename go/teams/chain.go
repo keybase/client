@@ -341,10 +341,23 @@ func (t *TeamSigChainState) informNewInvite(i keybase1.TeamInvite) {
 
 func (t *TeamSigChainState) informCanceledInvite(i keybase1.TeamInviteID) {
 	delete(t.inner.ActiveInvites, i)
+	delete(t.inner.ObsoleteInvites, i)
 }
 
 func (t *TeamSigChainState) informCompletedInvite(i keybase1.TeamInviteID) {
 	delete(t.inner.ActiveInvites, i)
+	delete(t.inner.ObsoleteInvites, i)
+}
+
+func (t *TeamSigChainState) findAndObsoleteInviteForUser(uid keybase1.UID) {
+	for id, invite := range t.inner.ActiveInvites {
+		if inviteUv, err := invite.KeybaseUserVersion(); err == nil {
+			if inviteUv.Uid == uid {
+				delete(t.inner.ActiveInvites, id)
+				t.inner.ObsoleteInvites[id] = invite
+			}
+		}
+	}
 }
 
 func (t *TeamSigChainState) getLastSubteamPoint(id keybase1.TeamID) *keybase1.SubteamLogPoint {
@@ -514,6 +527,11 @@ func (t *TeamSigChainState) FindActiveInvite(name keybase1.TeamInviteName, typ k
 func (t *TeamSigChainState) FindActiveInviteByID(id keybase1.TeamInviteID) (keybase1.TeamInvite, bool) {
 	invite, found := t.inner.ActiveInvites[id]
 	return invite, found
+}
+
+func (t TeamSigChainState) IsInviteObsolete(id keybase1.TeamInviteID) bool {
+	_, ok := t.inner.ObsoleteInvites[id]
+	return ok
 }
 
 // Threadsafe handle to a local model of a team sigchain.
@@ -883,15 +901,16 @@ func (t *TeamSigChainPlayer) addInnerLink(
 					LastPart: teamName.LastPart(),
 					Seqno:    1,
 				}},
-				LastSeqno:     1,
-				LastLinkID:    link.LinkID().Export(),
-				ParentID:      nil,
-				UserLog:       make(map[keybase1.UserVersion][]keybase1.UserLogPoint),
-				SubteamLog:    make(map[keybase1.TeamID][]keybase1.SubteamLogPoint),
-				PerTeamKeys:   perTeamKeys,
-				LinkIDs:       make(map[keybase1.Seqno]keybase1.LinkID),
-				StubbedLinks:  make(map[keybase1.Seqno]bool),
-				ActiveInvites: make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
+				LastSeqno:       1,
+				LastLinkID:      link.LinkID().Export(),
+				ParentID:        nil,
+				UserLog:         make(map[keybase1.UserVersion][]keybase1.UserLogPoint),
+				SubteamLog:      make(map[keybase1.TeamID][]keybase1.SubteamLogPoint),
+				PerTeamKeys:     perTeamKeys,
+				LinkIDs:         make(map[keybase1.Seqno]keybase1.LinkID),
+				StubbedLinks:    make(map[keybase1.Seqno]bool),
+				ActiveInvites:   make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
+				ObsoleteInvites: make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
 			}}
 
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
@@ -1050,6 +1069,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
 
 		t.completeInvites(&res.newState, team.CompletedInvites)
+		t.obsoleteInvites(&res.newState, roleUpdates, payload.SignatureMetadata())
 
 		// Note: If someone was removed, the per-team-key should be rotated. This is not checked though.
 
@@ -1272,15 +1292,16 @@ func (t *TeamSigChainPlayer) addInnerLink(
 					LastPart: teamName.LastPart(),
 					Seqno:    1,
 				}},
-				LastSeqno:     1,
-				LastLinkID:    link.LinkID().Export(),
-				ParentID:      &parentID,
-				UserLog:       make(map[keybase1.UserVersion][]keybase1.UserLogPoint),
-				SubteamLog:    make(map[keybase1.TeamID][]keybase1.SubteamLogPoint),
-				PerTeamKeys:   perTeamKeys,
-				LinkIDs:       make(map[keybase1.Seqno]keybase1.LinkID),
-				StubbedLinks:  make(map[keybase1.Seqno]bool),
-				ActiveInvites: make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
+				LastSeqno:       1,
+				LastLinkID:      link.LinkID().Export(),
+				ParentID:        &parentID,
+				UserLog:         make(map[keybase1.UserVersion][]keybase1.UserLogPoint),
+				SubteamLog:      make(map[keybase1.TeamID][]keybase1.SubteamLogPoint),
+				PerTeamKeys:     perTeamKeys,
+				LinkIDs:         make(map[keybase1.Seqno]keybase1.LinkID),
+				StubbedLinks:    make(map[keybase1.Seqno]bool),
+				ActiveInvites:   make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
+				ObsoleteInvites: make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
 			}}
 
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
@@ -1967,6 +1988,18 @@ func (t *TeamSigChainPlayer) updateInvites(stateToUpdate *TeamSigChainState, add
 func (t *TeamSigChainPlayer) completeInvites(stateToUpdate *TeamSigChainState, completed map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm) {
 	for id := range completed {
 		stateToUpdate.informCompletedInvite(id)
+	}
+}
+
+func (t *TeamSigChainPlayer) obsoleteInvites(stateToUpdate *TeamSigChainState, roleUpdates chainRoleUpdates, sigMeta keybase1.SignatureMetadata) {
+	if len(stateToUpdate.inner.ActiveInvites) == 0 {
+		return
+	}
+
+	for _, uvs := range roleUpdates {
+		for _, uv := range uvs {
+			stateToUpdate.findAndObsoleteInviteForUser(uv.Uid)
+		}
 	}
 }
 

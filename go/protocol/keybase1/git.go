@@ -133,10 +133,40 @@ func (o GitCommit) DeepCopy() GitCommit {
 	}
 }
 
+type GitPushType int
+
+const (
+	GitPushType_DEFAULT    GitPushType = 0
+	GitPushType_CREATEREPO GitPushType = 1
+	GitPushType_RENAMEREPO GitPushType = 3
+)
+
+func (o GitPushType) DeepCopy() GitPushType { return o }
+
+var GitPushTypeMap = map[string]GitPushType{
+	"DEFAULT":    0,
+	"CREATEREPO": 1,
+	"RENAMEREPO": 3,
+}
+
+var GitPushTypeRevMap = map[GitPushType]string{
+	0: "DEFAULT",
+	1: "CREATEREPO",
+	3: "RENAMEREPO",
+}
+
+func (e GitPushType) String() string {
+	if v, ok := GitPushTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type GitRefMetadata struct {
 	RefName              string      `codec:"refName" json:"refName"`
 	Commits              []GitCommit `codec:"commits" json:"commits"`
 	MoreCommitsAvailable bool        `codec:"moreCommitsAvailable" json:"moreCommitsAvailable"`
+	IsDelete             bool        `codec:"isDelete" json:"isDelete"`
 }
 
 func (o GitRefMetadata) DeepCopy() GitRefMetadata {
@@ -154,12 +184,15 @@ func (o GitRefMetadata) DeepCopy() GitRefMetadata {
 			return ret
 		})(o.Commits),
 		MoreCommitsAvailable: o.MoreCommitsAvailable,
+		IsDelete:             o.IsDelete,
 	}
 }
 
 type GitLocalMetadata struct {
-	RepoName GitRepoName      `codec:"repoName" json:"repoName"`
-	Refs     []GitRefMetadata `codec:"refs" json:"refs"`
+	RepoName         GitRepoName      `codec:"repoName" json:"repoName"`
+	Refs             []GitRefMetadata `codec:"refs" json:"refs"`
+	PushType         GitPushType      `codec:"pushType" json:"pushType"`
+	PreviousRepoName GitRepoName      `codec:"previousRepoName" json:"previousRepoName"`
 }
 
 func (o GitLocalMetadata) DeepCopy() GitLocalMetadata {
@@ -176,6 +209,8 @@ func (o GitLocalMetadata) DeepCopy() GitLocalMetadata {
 			}
 			return ret
 		})(o.Refs),
+		PushType:         o.PushType.DeepCopy(),
+		PreviousRepoName: o.PreviousRepoName.DeepCopy(),
 	}
 }
 

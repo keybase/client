@@ -72,8 +72,9 @@ type memberOutBody struct {
 }
 
 type homeStateBody struct {
-	Version    int `json:"version"`
-	BadgeCount int `json:"badge_count"`
+	Version        int           `json:"version"`
+	BadgeCount     int           `json:"badge_count"`
+	LastViewedTime keybase1.Time `json:"last_viewed_time"`
 }
 
 // UpdateWithGregor updates the badge state from a gregor state.
@@ -111,10 +112,13 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 				b.log.Warning("BadgeState got bad home.state object; error: %v; on %q", err, string(byt))
 				continue
 			}
-			if hsb == nil || hsb.Version < tmp.Version {
+			sentUp := false
+			if hsb == nil || hsb.Version < tmp.Version || (hsb.Version == tmp.Version && hsb.LastViewedTime < tmp.LastViewedTime) {
 				hsb = &tmp
 				b.state.HomeTodoItems = hsb.BadgeCount
+				sentUp = true
 			}
+			b.log.Debug("incoming home.state (sentUp=%v): %+v", sentUp, tmp)
 		case "tlf":
 			jsw, err := jsonw.Unmarshal(item.Body().Bytes())
 			if err != nil {

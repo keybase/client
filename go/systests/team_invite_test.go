@@ -7,6 +7,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	"github.com/stretchr/testify/require"
@@ -57,13 +58,10 @@ func TestTeamInviteRooter(t *testing.T) {
 
 	// the invite should not be in the active invite map
 	exists, err := t0.HasActiveInvite(keybase1.TeamInviteName(tt.users[1].username), "rooter")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if exists {
-		t.Error("after accepting invite, active invite still exists")
-	}
-	require.Equal(t, 0, t0.NumActiveInvites(), "after accepting invite, active invites still exists")
+	require.NoError(t, err)
+	require.False(t, exists)
+	require.Equal(t, 0, t0.NumActiveInvites())
+	require.Equal(t, 0, len(t0.GetActiveAndObsoleteInvites()))
 }
 
 func TestTeamInviteEmail(t *testing.T) {
@@ -443,4 +441,90 @@ func TestClearSocialInvitesOnAdd(t *testing.T) {
 	hasInv, err = t0.HasActiveInvite(keybase1.TeamInviteName(bobBadRooter), "rooter")
 	require.NoError(t, err)
 	require.True(t, hasInv, "But should not have cleared otherbob...@rooter")
+}
+
+func TestSweepObsoleteKeybaseInvites(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	// Disable gregor in this test so Ann does not immediately add Bob
+	// through SBS handler when bob gets PUK.
+	ann := makeUserStandalone(t, "ann", standaloneUserArgs{
+		disableGregor:            true,
+		suppressTeamChatAnnounce: true,
+	})
+	tt.users = append(tt.users, ann)
+
+	// Get UIDMapper caching out of the equation - assume in real
+	// life, tested actions are spread out in time and caching is not
+	// an issue.
+	ann.tc.G.UIDMapper.SetTestingNoCachingMode(true)
+
+	bob := tt.addPuklessUser("bob")
+	t.Logf("Signed up PUK-less user bob (%s)", bob.username)
+
+	team := ann.createTeam()
+	t.Logf("Team created (%s)", team)
+
+	ann.addTeamMember(team, bob.username, keybase1.TeamRole_WRITER)
+
+	bob.perUserKeyUpgrade()
+	t.Logf("Bob (%s) gets PUK", bob.username)
+
+	// TODO: Once CORE-6905 is done, this will automatically complete
+	// invite, breaking this test. But there are other tests that do
+	// not involve the server to check the same thing:
+	// TestObsoletingInvites*.
+	ann.addTeamMember(team, bob.username, keybase1.TeamRole_WRITER)
+
+	// Bob then leaves team.
+	bob.leave(team)
+
+	teamObj, err := teams.Load(context.Background(), ann.tc.G, keybase1.LoadTeamArg{
+		Name:        team,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+
+	// Invite should be obsolete, so there are 0 active invites...
+	require.Equal(t, 0, teamObj.NumActiveInvites())
+
+	// ...but one in "all invites".
+	allInvites := teamObj.GetActiveAndObsoleteInvites()
+	require.Equal(t, 1, len(allInvites))
+
+	var invite keybase1.TeamInvite
+	for _, invite = range allInvites {
+		break // get the only invite returned
+	}
+	require.Equal(t, bob.userVersion().TeamInviteName(), invite.Name)
+
+	// Simulate SBS message to Ann trying to re-add Bob.
+	sbsMsg := keybase1.TeamSBSMsg{
+		TeamID: teamObj.ID,
+		Score:  0,
+		Invitees: []keybase1.TeamInvitee{
+			keybase1.TeamInvitee{
+				InviteID:    invite.Id,
+				Uid:         bob.uid,
+				EldestSeqno: 1,
+				Role:        keybase1.TeamRole_WRITER,
+			},
+		},
+	}
+
+	err = teams.HandleSBSRequest(context.Background(), ann.tc.G, sbsMsg)
+	require.Error(t, err)
+	require.IsType(t, libkb.NotFoundError{}, err)
+
+	teamObj, err = teams.Load(context.Background(), ann.tc.G, keybase1.LoadTeamArg{
+		Name:        team,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+
+	// Bob should still be out of the team.
+	role, err := teamObj.MemberRole(context.Background(), bob.userVersion())
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_NONE, role)
 }

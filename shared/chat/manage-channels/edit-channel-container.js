@@ -66,6 +66,8 @@ const mergeProps = (stateProps, dispatchProps, {routeState}) => {
       if (newTopic !== stateProps.topic) {
         dispatchProps._updateTopic(newTopic)
       }
+
+      dispatchProps.onCancel() // nav back up
     },
     waitingForSave: stateProps.waitingForSave,
   }

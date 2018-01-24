@@ -31,7 +31,8 @@ export const commonConversationMemberStatus = {
 export const commonConversationMembersType = {
   kbfs: 0,
   team: 1,
-  impteam: 2,
+  impteamnative: 2,
+  impteamupgrade: 3,
 }
 
 export const commonConversationStatus = {
@@ -675,7 +676,8 @@ export type ConversationMemberStatus =
 export type ConversationMembersType =
   | 0 // KBFS_0
   | 1 // TEAM_1
-  | 2 // IMPTEAM_2
+  | 2 // IMPTEAMNATIVE_2
+  | 3 // IMPTEAMUPGRADE_3
 
 export type ConversationMetadata = $ReadOnly<{idTriple: ConversationIDTriple, conversationID: ConversationID, visibility: Keybase1.TLFVisibility, status: ConversationStatus, membersType: ConversationMembersType, teamType: TeamType, existence: ConversationExistence, version: ConversationVers, finalizeInfo?: ?ConversationFinalizeInfo, supersedes?: ?Array<ConversationMetadata>, supersededBy?: ?Array<ConversationMetadata>, activeList?: ?Array<Gregor1.UID>, allList?: ?Array<Gregor1.UID>, resetList?: ?Array<Gregor1.UID>}>
 
@@ -957,7 +959,7 @@ export type MessageSystemComplexTeam = $ReadOnly<{team: String}>
 
 export type MessageSystemCreateTeam = $ReadOnly<{team: String, creator: String}>
 
-export type MessageSystemGitPush = $ReadOnly<{team: String, pusher: String, repoName: String, refs?: ?Array<Keybase1.GitRefMetadata>}>
+export type MessageSystemGitPush = $ReadOnly<{team: String, pusher: String, repoName: String, repoID: Keybase1.RepoID, refs?: ?Array<Keybase1.GitRefMetadata>, pushType: Keybase1.GitPushType, previousRepoName: String}>
 
 export type MessageSystemInviteAddedToTeam = $ReadOnly<{team: String, inviter: String, invitee: String, adder: String, inviteType: Keybase1.TeamInviteCategory}>
 

@@ -413,6 +413,7 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 	oneChatPerTLF *bool) (res []chat1.ConversationLocal, rl []chat1.RateLimit, err error) {
 
 	findConvosWithMembersType := func(membersType chat1.ConversationMembersType) (res []chat1.ConversationLocal, rl []chat1.RateLimit, err error) {
+
 		query := &chat1.GetInboxLocalQuery{
 			Name: &chat1.NameQuery{
 				Name:        tlfName,
@@ -520,24 +521,60 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 		}
 		return res, rl, nil
 	}
-	res, rl, err = findConvosWithMembersType(membersTypeIn)
-	if err != nil || len(res) == 0 {
-		switch membersTypeIn {
-		case chat1.ConversationMembersType_IMPTEAM:
-			// Try again with KBFS
-			debugger.Debug(ctx,
-				"FindConversations: failing to find anything for IMPTEAM, trying again for KBFS")
-			kres, krl, kerr := findConvosWithMembersType(chat1.ConversationMembersType_KBFS)
-			rl = utils.AggRateLimits(append(rl, krl...))
-			if kerr == nil {
-				res = kres
-				err = nil
-				debugger.Debug(ctx,
-					"FindConversations: KBFS pass succeeded without error, returning that result")
+
+	var irl []chat1.RateLimit
+	attempts := make(map[chat1.ConversationMembersType]bool)
+	mt := membersTypeIn
+L:
+	for {
+		var ierr error
+		attempts[mt] = true
+		res, irl, ierr = findConvosWithMembersType(mt)
+		rl = append(rl, irl...)
+		if ierr != nil || len(res) == 0 {
+			if ierr != nil {
+				debugger.Debug(ctx, "FindConversations: fail reason: %s mt: %v", ierr, mt)
+			} else {
+				debugger.Debug(ctx, "FindConversations: fail reason: no convs mt: %v", mt)
 			}
+			var newMT chat1.ConversationMembersType
+			switch mt {
+			case chat1.ConversationMembersType_TEAM:
+				err = ierr
+				debugger.Debug(ctx, "FindConversations: failed with team, aborting")
+				break L
+			case chat1.ConversationMembersType_IMPTEAMUPGRADE:
+				if !attempts[chat1.ConversationMembersType_IMPTEAMNATIVE] {
+					newMT = chat1.ConversationMembersType_IMPTEAMNATIVE
+				} else {
+					newMT = chat1.ConversationMembersType_KBFS
+				}
+				err = ierr
+			case chat1.ConversationMembersType_IMPTEAMNATIVE:
+				if !attempts[chat1.ConversationMembersType_IMPTEAMUPGRADE] {
+					newMT = chat1.ConversationMembersType_IMPTEAMUPGRADE
+				} else {
+					newMT = chat1.ConversationMembersType_KBFS
+				}
+				err = ierr
+			case chat1.ConversationMembersType_KBFS:
+				debugger.Debug(ctx, "FindConversations: failed with KBFS, aborting")
+				// We don't want to return random errors from KBFS if we are falling back to it,
+				// just return no conversatins and call it a day
+				if membersTypeIn == chat1.ConversationMembersType_KBFS {
+					err = ierr
+				}
+				break L
+			}
+			debugger.Debug(ctx,
+				"FindConversations: failing to find anything for %v, trying again for %v", mt, newMT)
+			mt = newMT
+		} else {
+			debugger.Debug(ctx, "FindConversations: success with mt: %v", mt)
+			break L
 		}
 	}
-	return res, rl, err
+	return res, utils.AggRateLimits(rl), err
 }
 
 // Post a join or leave message. Must be called when the user is in the conv.
@@ -726,12 +763,6 @@ type newConversationHelper struct {
 func newNewConversationHelper(g *globals.Context, uid gregor1.UID, tlfName string, topicName *string,
 	topicType chat1.TopicType, membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility,
 	ri func() chat1.RemoteInterface) *newConversationHelper {
-
-	if membersType == chat1.ConversationMembersType_IMPTEAM && g.ExternalG().Env.GetChatMemberType() != "impteam" {
-		g.Log.Debug("### note: impteam mt requested, but feature flagged off, using kbfs")
-		membersType = chat1.ConversationMembersType_KBFS
-	}
-
 	return &newConversationHelper{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "newConversationHelper", false),
@@ -794,7 +825,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 			// let it slide in devel for tests
 			if n.G().ExternalG().Env.GetRunMode() != libkb.DevelRunMode {
 				n.Debug(ctx, "KBFS conversations deprecated; switching membersType from KBFS to IMPTEAM")
-				n.membersType = chat1.ConversationMembersType_IMPTEAM
+				n.membersType = chat1.ConversationMembersType_IMPTEAMNATIVE
 			}
 		}
 	}
@@ -804,7 +835,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	isPublic := n.vis == keybase1.TLFVisibility_PUBLIC
 	info, err := CtxKeyFinder(ctx, n.G()).Find(ctx, n.tlfName, n.membersType, isPublic)
 	if err != nil {
-		if n.membersType != chat1.ConversationMembersType_IMPTEAM {
+		if n.membersType != chat1.ConversationMembersType_IMPTEAMNATIVE {
 			return res, rl, err
 		}
 		if _, ok := err.(teams.TeamDoesNotExistError); !ok {

@@ -16,14 +16,13 @@ const ff: FeatureFlags = {
   admin: false,
   fsEnabled: false,
   impTeamChatEnabled: true,
-  newPeopleTab: false,
+  newPeopleTab: true,
   plansEnabled: false,
 }
 
 const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
   fsEnabled: true,
   impTeamChatEnabled: true,
-  newPeopleTab: true,
 }
 
 // load overrides

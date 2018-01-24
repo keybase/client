@@ -660,6 +660,14 @@
           "name": "activeInvites"
         },
         {
+          "type": {
+            "type": "map",
+            "values": "TeamInvite",
+            "keys": "TeamInviteID"
+          },
+          "name": "obsoleteInvites"
+        },
+        {
           "type": "boolean",
           "name": "open"
         },

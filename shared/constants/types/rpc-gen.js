@@ -702,6 +702,12 @@ export const gitGitLocalMetadataVersion = {
   v1: 1,
 }
 
+export const gitGitPushType = {
+  default: 0,
+  createrepo: 1,
+  renamerepo: 3,
+}
+
 export const gitGitRepoResultState = {
   err: 0,
   ok: 1,
@@ -2300,7 +2306,7 @@ export type GitGetGitMetadataRpcParam = $ReadOnly<{folder: Folder, incomingCallM
 
 export type GitGetTeamRepoSettingsRpcParam = $ReadOnly<{folder: Folder, repoID: RepoID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type GitLocalMetadata = $ReadOnly<{repoName: GitRepoName, refs?: ?Array<GitRefMetadata>}>
+export type GitLocalMetadata = $ReadOnly<{repoName: GitRepoName, refs?: ?Array<GitRefMetadata>, pushType: GitPushType, previousRepoName: GitRepoName}>
 
 export type GitLocalMetadataV1 = $ReadOnly<{repoName: GitRepoName}>
 
@@ -2308,9 +2314,14 @@ export type GitLocalMetadataVersion = 1 // V1_1
 
 export type GitLocalMetadataVersioned = {version: 1, v1: ?GitLocalMetadataV1}
 
+export type GitPushType =
+  | 0 // DEFAULT_0
+  | 1 // CREATEREPO_1
+  | 3 // RENAMEREPO_3
+
 export type GitPutGitMetadataRpcParam = $ReadOnly<{folder: Folder, repoID: RepoID, metadata: GitLocalMetadata, notifyTeam: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type GitRefMetadata = $ReadOnly<{refName: String, commits?: ?Array<GitCommit>, moreCommitsAvailable: Boolean}>
+export type GitRefMetadata = $ReadOnly<{refName: String, commits?: ?Array<GitCommit>, moreCommitsAvailable: Boolean, isDelete: Boolean}>
 
 export type GitRepoInfo = $ReadOnly<{folder: Folder, repoID: RepoID, localMetadata: GitLocalMetadata, serverMetadata: GitServerMetadata, repoUrl: String, globalUniqueID: String, canDelete: Boolean, teamRepoSettings?: ?GitTeamRepoSettings}>
 
@@ -2766,6 +2777,8 @@ export type NotifySessionClientOutOfDateRpcParam = $ReadOnly<{upgradeTo: String,
 export type NotifySessionLoggedInRpcParam = $ReadOnly<{username: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type NotifySessionLoggedOutRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
+export type NotifyTeamTeamAbandonedRpcParam = $ReadOnly<{teamID: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type NotifyTeamTeamChangedByIDRpcParam = $ReadOnly<{teamID: TeamID, latestSeqno: Seqno, implicitTeam: Boolean, changes: TeamChangeSet, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -3601,7 +3614,7 @@ export type TeamSettings = $ReadOnly<{open: Boolean, joinAs: TeamRole}>
 
 export type TeamShowcase = $ReadOnly<{isShowcased: Boolean, description?: ?String, setByUID?: ?UID, anyMemberShowcase: Boolean}>
 
-export type TeamSigChainState = $ReadOnly<{reader: UserVersion, id: TeamID, implicit: Boolean, public: Boolean, rootAncestor: TeamName, nameDepth: Int, nameLog?: ?Array<TeamNameLogPoint>, lastSeqno: Seqno, lastLinkID: LinkID, parentID?: ?TeamID, userLog: {[key: string]: ?Array<UserLogPoint>}, subteamLog: {[key: string]: ?Array<SubteamLogPoint>}, perTeamKeys: {[key: string]: PerTeamKey}, linkIDs: {[key: string]: LinkID}, stubbedLinks: {[key: string]: Boolean}, activeInvites: {[key: string]: TeamInvite}, open: Boolean, openTeamJoinAs: TeamRole, tlfID: TLFID}>
+export type TeamSigChainState = $ReadOnly<{reader: UserVersion, id: TeamID, implicit: Boolean, public: Boolean, rootAncestor: TeamName, nameDepth: Int, nameLog?: ?Array<TeamNameLogPoint>, lastSeqno: Seqno, lastLinkID: LinkID, parentID?: ?TeamID, userLog: {[key: string]: ?Array<UserLogPoint>}, subteamLog: {[key: string]: ?Array<SubteamLogPoint>}, perTeamKeys: {[key: string]: PerTeamKey}, linkIDs: {[key: string]: LinkID}, stubbedLinks: {[key: string]: Boolean}, activeInvites: {[key: string]: TeamInvite}, obsoleteInvites: {[key: string]: TeamInvite}, open: Boolean, openTeamJoinAs: TeamRole, tlfID: TLFID}>
 
 export type TeamTreeEntry = $ReadOnly<{name: TeamName, admin: Boolean}>
 
@@ -4106,6 +4119,7 @@ export type IncomingCallMapType = {
   'keybase.1.NotifyTeam.teamChangedByID'?: (params: $ReadOnly<{teamID: TeamID, latestSeqno: Seqno, implicitTeam: Boolean, changes: TeamChangeSet}>, response: CommonResponseHandler) => void,
   'keybase.1.NotifyTeam.teamChangedByName'?: (params: $ReadOnly<{teamName: String, latestSeqno: Seqno, implicitTeam: Boolean, changes: TeamChangeSet}>, response: CommonResponseHandler) => void,
   'keybase.1.NotifyTeam.teamDeleted'?: (params: $ReadOnly<{teamID: TeamID}>, response: CommonResponseHandler) => void,
+  'keybase.1.NotifyTeam.teamAbandoned'?: (params: $ReadOnly<{teamID: TeamID}>, response: CommonResponseHandler) => void,
   'keybase.1.NotifyTeam.teamExit'?: (params: $ReadOnly<{teamID: TeamID}>, response: CommonResponseHandler) => void,
   'keybase.1.NotifyTracking.trackingChanged'?: (params: $ReadOnly<{uid: UID, username: String, isTracking: Boolean}>) => void,
   'keybase.1.NotifyUsers.userChanged'?: (params: $ReadOnly<{uid: UID}>) => void,

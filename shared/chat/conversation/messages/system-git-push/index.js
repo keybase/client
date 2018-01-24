@@ -18,12 +18,12 @@ const connectedUsernamesProps = {
 
 class GitPush extends React.PureComponent<Props> {
   render() {
-    const {team, timestamp, repo, refs, pusher} = this.props.message
+    const {timestamp, repo, refs, pusher} = this.props.message
     return refs.map(ref => {
       const branchName = ref.refName.split('/')[2]
       return (
         <UserNotice
-          teamname={team}
+          username={pusher}
           key={branchName}
           style={{marginTop: globalMargins.small}}
           bgColor={globalColors.blue4}
@@ -64,6 +64,7 @@ class GitPush extends React.PureComponent<Props> {
                       <Text
                         type="Terminal"
                         style={{
+                          ...globalStyles.selectable,
                           color: globalColors.blue,
                           fontSize: 11,
                           lineHeight: isMobile ? 16 : 1.3,
@@ -73,7 +74,11 @@ class GitPush extends React.PureComponent<Props> {
                       </Text>
                     </Box>
                     <Box style={{display: 'flex', flex: 1}}>
-                      <Text type="BodySmall" style={{textAlign: 'left'}} lineClamp={2}>
+                      <Text
+                        type="BodySmall"
+                        style={{...globalStyles.selectable, textAlign: 'left'}}
+                        lineClamp={2}
+                      >
                         {commit.message}
                       </Text>
                     </Box>

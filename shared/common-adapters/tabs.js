@@ -10,9 +10,10 @@ type Props = {
   selected: React.Node,
   onSelect: (s: React.Node) => any,
   style?: any,
+  tabStyle?: any,
 }
 
-const Tabs = ({tabs, selected, onSelect, style}: Props) => {
+const Tabs = ({tabs, selected, onSelect, style, tabStyle}: Props) => {
   return (
     <Box style={{...containerStyle, ...style}}>
       {tabs.map((t, idx) => {
@@ -28,6 +29,7 @@ const Tabs = ({tabs, selected, onSelect, style}: Props) => {
                   paddingLeft: globalMargins.small,
                   paddingTop: globalMargins.small,
                   paddingRight: globalMargins.small,
+                  ...tabStyle,
                 }}
               >
                 {t}
