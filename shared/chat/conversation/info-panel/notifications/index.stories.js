@@ -11,7 +11,6 @@ const load = () => {
         desktop="atmention"
         mobile="never"
         muted={false}
-        resetSaveState={() => {}}
         saveState="unsaved"
         onMuteConversation={action('onMuteConversation')}
         onSetDesktop={action('onSetDesktop')}
@@ -25,7 +24,6 @@ const load = () => {
         desktop="generic"
         mobile="atmention"
         muted={false}
-        resetSaveState={() => {}}
         saveState="saving"
         onMuteConversation={action('onMuteConversation')}
         onSetDesktop={action('onSetDesktop')}
@@ -39,7 +37,6 @@ const load = () => {
         desktop="generic"
         mobile="atmention"
         muted={false}
-        resetSaveState={() => {}}
         saveState="saved"
         onMuteConversation={action('onMuteConversation')}
         onSetDesktop={action('onSetDesktop')}
