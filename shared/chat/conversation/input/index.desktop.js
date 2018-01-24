@@ -39,7 +39,7 @@ const MentionCatcher = ({onClick}) => (
   />
 )
 
-class ConversationInput extends Component<InputProps, {}> {
+class ConversationInput extends Component<InputProps> {
   componentDidMount() {
     this._registerBodyEvents(true)
   }
