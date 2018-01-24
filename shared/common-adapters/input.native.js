@@ -89,9 +89,7 @@ class Input extends Component<Props, State> {
   }
 
   _onChangeText = (text: string) => {
-    this.setState({value: text || ''})
-
-    this.props.onChangeText && this.props.onChangeText(text || '')
+    this.setState({value: text || ''}, () => this.props.onChangeText && this.props.onChangeText(text || ''))
   }
 
   _inputNode() {
