@@ -3,7 +3,7 @@ import * as React from 'react'
 import {type PreMentionHocProps, type Props} from '.'
 import logger from '../../../logger'
 
-type ContainerProps = {
+type PropsFromContainer = {
   _inputSetRef: any => void,
   _onKeyDown: (e: SyntheticKeyboardEvent<>) => void,
 } & PreMentionHocProps
@@ -19,7 +19,7 @@ type MentionHocState = {
 }
 
 const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
-  class MentionHoc extends React.Component<ContainerProps, MentionHocState> {
+  class MentionHoc extends React.Component<PropsFromContainer, MentionHocState> {
     state: MentionHocState
     _inputRef: ?any
 
