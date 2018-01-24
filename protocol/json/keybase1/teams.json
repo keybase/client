@@ -594,7 +594,7 @@
           "jsonkey": "encrypted_keyset"
         },
         {
-          "type": "PerTeamKeyGeneration",
+          "type": "int",
           "name": "teamGeneration",
           "jsonkey": "team_generation"
         },
@@ -607,6 +607,28 @@
           "type": "TeamApplication",
           "name": "appType",
           "jsonkey": "app_type"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamLegacyTLFUpgradeChainInfo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "keysetHash"
+        },
+        {
+          "type": "int",
+          "name": "teamGeneration"
+        },
+        {
+          "type": "int",
+          "name": "legacyGeneration"
+        },
+        {
+          "type": "TeamApplication",
+          "name": "appType"
         }
       ]
     },
@@ -737,7 +759,7 @@
         {
           "type": {
             "type": "map",
-            "values": "string",
+            "values": "TeamLegacyTLFUpgradeChainInfo",
             "keys": "TeamApplication"
           },
           "name": "tlfLegacyUpgrade"

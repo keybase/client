@@ -3539,7 +3539,7 @@ export type TeamEncryptedKBFSKeyset = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
 
 export type TeamExitRow = $ReadOnly<{id: TeamID}>
 
-export type TeamGetLegacyTLFUpgrade = $ReadOnly<{encryptedKeyset: String, teamGeneration: PerTeamKeyGeneration, legacyGeneration: Int, appType: TeamApplication}>
+export type TeamGetLegacyTLFUpgrade = $ReadOnly<{encryptedKeyset: String, teamGeneration: Int, legacyGeneration: Int, appType: TeamApplication}>
 
 export type TeamID = String
 
@@ -3568,6 +3568,8 @@ export type TeamInviteType = {c: 1, unknown: ?String} | {c: 4, sbs: ?TeamInviteS
 export type TeamInvitee = $ReadOnly<{inviteID: TeamInviteID, uid: UID, eldestSeqno: Seqno, role: TeamRole}>
 
 export type TeamJoinRequest = $ReadOnly<{name: String, username: String}>
+
+export type TeamLegacyTLFUpgradeChainInfo = $ReadOnly<{keysetHash: String, teamGeneration: Int, legacyGeneration: Int, appType: TeamApplication}>
 
 export type TeamList = $ReadOnly<{teams?: ?Array<MemberInfo>}>
 
@@ -3618,7 +3620,7 @@ export type TeamSettings = $ReadOnly<{open: Boolean, joinAs: TeamRole}>
 
 export type TeamShowcase = $ReadOnly<{isShowcased: Boolean, description?: ?String, setByUID?: ?UID, anyMemberShowcase: Boolean}>
 
-export type TeamSigChainState = $ReadOnly<{reader: UserVersion, id: TeamID, implicit: Boolean, public: Boolean, rootAncestor: TeamName, nameDepth: Int, nameLog?: ?Array<TeamNameLogPoint>, lastSeqno: Seqno, lastLinkID: LinkID, parentID?: ?TeamID, userLog: {[key: string]: ?Array<UserLogPoint>}, subteamLog: {[key: string]: ?Array<SubteamLogPoint>}, perTeamKeys: {[key: string]: PerTeamKey}, linkIDs: {[key: string]: LinkID}, stubbedLinks: {[key: string]: Boolean}, activeInvites: {[key: string]: TeamInvite}, obsoleteInvites: {[key: string]: TeamInvite}, open: Boolean, openTeamJoinAs: TeamRole, tlfID: TLFID, tlfLegacyUpgrade: {[key: string]: String}}>
+export type TeamSigChainState = $ReadOnly<{reader: UserVersion, id: TeamID, implicit: Boolean, public: Boolean, rootAncestor: TeamName, nameDepth: Int, nameLog?: ?Array<TeamNameLogPoint>, lastSeqno: Seqno, lastLinkID: LinkID, parentID?: ?TeamID, userLog: {[key: string]: ?Array<UserLogPoint>}, subteamLog: {[key: string]: ?Array<SubteamLogPoint>}, perTeamKeys: {[key: string]: PerTeamKey}, linkIDs: {[key: string]: LinkID}, stubbedLinks: {[key: string]: Boolean}, activeInvites: {[key: string]: TeamInvite}, obsoleteInvites: {[key: string]: TeamInvite}, open: Boolean, openTeamJoinAs: TeamRole, tlfID: TLFID, tlfLegacyUpgrade: {[key: string]: TeamLegacyTLFUpgradeChainInfo}}>
 
 export type TeamTreeEntry = $ReadOnly<{name: TeamName, admin: Boolean}>
 

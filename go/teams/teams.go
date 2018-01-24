@@ -1585,7 +1585,7 @@ func (t *Team) AssociateWithTLFKeyset(ctx context.Context, tlfID keybase1.TLFID,
 		legacyTLFUpgrade: &keybase1.TeamGetLegacyTLFUpgrade{
 			EncryptedKeyset:  encStr,
 			LegacyGeneration: cryptKeys[len(cryptKeys)-1].Generation(),
-			TeamGeneration:   keybase1.PerTeamKeyGeneration(latestKey.Generation()),
+			TeamGeneration:   latestKey.Generation(),
 			AppType:          appType,
 		},
 	})

@@ -905,7 +905,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 				StubbedLinks:     make(map[keybase1.Seqno]bool),
 				ActiveInvites:    make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
 				ObsoleteInvites:  make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
-				TlfLegacyUpgrade: make(map[keybase1.TeamApplication]string),
+				TlfLegacyUpgrade: make(map[keybase1.TeamApplication]keybase1.TeamLegacyTLFUpgradeChainInfo),
 			}}
 
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
@@ -2091,7 +2091,12 @@ func (t *TeamSigChainPlayer) parseKBFSTLFUpgrade(upgrade *SCTeamKBFS, newState *
 		newState.inner.TlfID = upgrade.TLF.ID
 	}
 	if upgrade.Keyset != nil {
-		newState.inner.TlfLegacyUpgrade[upgrade.Keyset.AppType] = upgrade.Keyset.KeysetHash
+		newState.inner.TlfLegacyUpgrade[upgrade.Keyset.AppType] = keybase1.TeamLegacyTLFUpgradeChainInfo{
+			KeysetHash:       upgrade.Keyset.KeysetHash,
+			TeamGeneration:   upgrade.Keyset.TeamGeneration,
+			LegacyGeneration: upgrade.Keyset.LegacyGeneration,
+			AppType:          upgrade.Keyset.AppType,
+		}
 	}
 	return nil
 }
