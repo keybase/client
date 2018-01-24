@@ -3,7 +3,7 @@ import * as I from 'immutable'
 import {connect, type TypedState, type Dispatch} from '../util/container'
 import * as FSGen from '../actions/fs-gen'
 import Files from '.'
-import {navigateAppend} from '../actions/route-tree'
+import {navigateAppend, navigateUp} from '../actions/route-tree'
 import * as Types from '../constants/types/fs'
 
 type StateProps = {
@@ -22,7 +22,7 @@ const mapStateToProps = (state: TypedState, ownProps): StateProps => {
   if (ownProps.routeProps) {
     path = ownProps.routeProps.get('path', path)
   }
-  const items = state.fs.pathItems.get(path).children || I.List([])
+  const items = state.fs.pathItems.get(path).children || I.List()
   return {
     you: state.config.username,
     path: path,
@@ -34,6 +34,7 @@ const mapStateToProps = (state: TypedState, ownProps): StateProps => {
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   onViewFolder: (path: Types.Path) => dispatch(navigateAppend([{props: {path}, selected: 'folder'}])),
   onViewFile: (path: Types.Path) => console.log("Cannot view files yet."),
+  onBack: () => dispatch(navigateUp()),
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => ({

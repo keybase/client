@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Types from '../constants/types/fs'
 import {globalStyles, globalColors, globalMargins, isMobile} from '../styles'
-import {Box, Button, ClickableBox, Icon, List, Text} from '../common-adapters'
+import {Box, BackButton, Button, ClickableBox, Icon, List, Text} from '../common-adapters'
 import {type IconType} from '../common-adapters/icon'
 
 const stylesCommonCore = {
@@ -44,6 +44,13 @@ type FolderProps = {
   onViewFile: (p: Path) => void,
 }
 
+const FolderBoxStyle = {...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'stretch'}
+
+const styleOuterContainer = {
+  position: 'relative',
+  height: '100%',
+}
+
 const FolderHeader = ({title}: FolderHeaderProps) => (
   <Box>
     <Box style={{...stylesCommonRow, alignItems: 'center', borderBottomWidth: 0}}>
@@ -53,8 +60,6 @@ const FolderHeader = ({title}: FolderHeaderProps) => (
     </Box>
   </Box>
 )
-
-const FolderBoxStyle = {...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'stretch'}
 
 const FileRow = ({name, path, icon, showFileData}: FileRowProps) => {
   return (
@@ -76,7 +81,7 @@ const iconTypes : IconType = {
   file: isMobile ? 'icon-file-24' : 'icon-file-24',
 }
 
-export class Folder extends React.PureComponent<FolderProps> {
+export class Files extends React.PureComponent<FolderProps> {
   _renderRow = (index, item) => {
     const iconType = iconTypes[item.type]
     const showFileData = () => {
@@ -93,16 +98,22 @@ export class Folder extends React.PureComponent<FolderProps> {
 
   render() {
     return (
-      <Box style={stylesContainer}>
-        <FolderHeader title={"Folders: " + this.props.path} />
-        <List items={this.props.items} renderItem={this._renderRow} />
+      <Box style={styleOuterContainer}>
+        <Box style={stylesContainer}>
+          {this.props.onBack && this.props.path !== '/keybase' && (
+            <Box style={globalStyles.flexBoxColumn}>
+                <BackButton
+                  onClick={this.props.onBack}
+                  style={{position:'absolute', left: 16, top: 16}}
+                />
+            </Box>
+          )}
+          <FolderHeader title={"Folders: " + this.props.path} />
+          <List items={this.props.items} renderItem={this._renderRow} />
+        </Box>
       </Box>
     )
   }
 }
-
-const Files = ({name, path, visibility, items, onViewFolder, onViewFile}: FolderProps) => (
-  <Folder name={name} path={path} visibility={visibility} items={items} onViewFolder={onViewFolder} onViewFile={onViewFile} />
-)
 
 export default Files
