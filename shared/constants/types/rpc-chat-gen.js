@@ -528,6 +528,10 @@ export const remoteUpdateTypingRemoteRpcChannelMap = (configKeys: Array<string>,
 
 export const remoteUpdateTypingRemoteRpcPromise = (request: RemoteUpdateTypingRemoteRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.updateTypingRemote', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
+export const remoteUpgradeKBFSToImpteamRpcChannelMap = (configKeys: Array<string>, request: RemoteUpgradeKBFSToImpteamRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.upgradeKBFSToImpteam', request)
+
+export const remoteUpgradeKBFSToImpteamRpcPromise = (request: RemoteUpgradeKBFSToImpteamRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.upgradeKBFSToImpteam', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+
 export type AppNotificationSettingLocal = $ReadOnly<{deviceType: Keybase1.DeviceType, kind: NotificationKind, enabled: Boolean}>
 
 export type Asset = $ReadOnly<{filename: String, region: String, endpoint: String, bucket: String, path: String, size: Long, mimeType: String, encHash: Hash, key: Bytes, verifyKey: Bytes, title: String, nonce: Bytes, metadata: AssetMetadata, tag: AssetTag}>
@@ -803,6 +807,8 @@ export type IncomingMessage = $ReadOnly<{message: UIMessage, convID: Conversatio
 export type JoinLeaveConversationLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>}>
 
 export type JoinLeaveConversationRemoteRes = $ReadOnly<{rateLimit?: ?RateLimit}>
+
+export type KBFSImpteamUpgradeUpdate = $ReadOnly<{convID: ConversationID, inboxVers: InboxVers}>
 
 export type LocalAddTeamMemberAfterResetRpcParam = $ReadOnly<{username: String, convID: ConversationID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -1150,6 +1156,8 @@ export type RemoteTlfFinalizeRpcParam = $ReadOnly<{tlfID: TLFID, resetUser: Stri
 export type RemoteTlfResolveRpcParam = $ReadOnly<{tlfID: TLFID, resolvedWriters?: ?Array<Gregor1.UID>, resolvedReaders?: ?Array<Gregor1.UID>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type RemoteUpdateTypingRemoteRpcParam = $ReadOnly<{uid: Gregor1.UID, deviceID: Gregor1.DeviceID, convID: ConversationID, typing: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
+export type RemoteUpgradeKBFSToImpteamRpcParam = $ReadOnly<{tlfID: TLFID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type RemoteUserTypingUpdate = $ReadOnly<{uid: Gregor1.UID, deviceID: Gregor1.DeviceID, convID: ConversationID, typing: Boolean}>
 

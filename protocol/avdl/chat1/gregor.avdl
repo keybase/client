@@ -122,4 +122,9 @@ protocol gregor {
         keybase1.TeamID teamID;
         RetentionPolicy policy;
     }
+
+    record KBFSImpteamUpgradeUpdate {
+        ConversationID convID;
+        InboxVers inboxVers;
+    }
 }
