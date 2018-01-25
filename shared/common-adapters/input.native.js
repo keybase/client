@@ -180,7 +180,7 @@ class Input extends Component<Props, State> {
           selectionEnd: event.nativeEvent.selection.end,
         },
       },
-      () => this.props.onSelectionChange && this.props.onSelectionChange(this.state.selections)
+      () => this.props.onSelectionChange && this.props.onSelectionChange(event)
     )
   }
 

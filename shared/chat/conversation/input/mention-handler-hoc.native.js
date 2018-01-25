@@ -116,11 +116,24 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
     _replaceWordAtCursor = (w: string) => {
       const word = this._getWordAtCursor(this.props.text)
       const ss = this.state._selection.selectionStart
-      this._inputRef && this._inputRef.replaceText(w, ss - word.length, ss)
+
+      // can't use inputRef.replaceText because android custom input
+      // doesn't support it ootb
+      const existingText = this.props.text
+      const nextText = existingText.slice(0, ss - word.length) + w + existingText.slice(ss)
+      this.props.setText(nextText)
     }
 
-    onSelectionChange = (_selection: {selectionStart: number, selectionEnd: number}) =>
-      this.setState({_selection}, () => this.onChangeText(this.props.text))
+    onSelectionChange = (event: any) =>
+      this.setState(
+        {
+          _selection: {
+            selectionStart: event.nativeEvent.selection.start,
+            selectionEnd: event.nativeEvent.selection.end,
+          },
+        },
+        () => this.onChangeText(this.props.text)
+      )
 
     render = () => (
       <InputComponent
