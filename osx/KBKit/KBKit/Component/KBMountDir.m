@@ -54,13 +54,12 @@
 - (void)removeMountDir:(NSString *)mountDir completion:(KBCompletion)completion {
   NSError *err = nil;
   if (![NSFileManager.defaultManager removeItemAtPath:mountDir error:&err]) {
-    completion(err)
+    completion(err);
   }
-  completion(nil)
+  completion(nil);
 }
 
 - (void)createMountDir:(KBCompletion)completion {
-  NSDictionary *params = @{@"directory": self.config.mountDir, @"uid": @(uid), @"gid": @(gid), @"permissions": permissions, @"excludeFromBackup": @(YES)};
   DDLogDebug(@"Creating mount directory: %@", self.config.mountDir);
 
   NSError *err = nil;
@@ -69,7 +68,7 @@
     return;
   }
 
-  NSString *link = [self.config rootMountSymlink]
+  NSString *link = [self.config rootMountSymlink];
   uid_t uid = getuid();
   gid_t gid = getgid();
   params = @{@"path": self.config.mountDir, @"linkPath": link, @"uid": @(uid), @"gid": @(gid)};
