@@ -8,6 +8,81 @@ import {Notifications, type Props} from '.'
 import {connect, type TypedState} from '../../../../util/container'
 import {type DeviceType} from '../../../../constants/types/devices'
 
+type DispatchProps = {
+  _resetSaveState: (conversationIDKey: Types.ConversationIDKey) => void,
+  _onMuteConversation: (conversationIDKey: Types.ConversationIDKey, muted: boolean) => void,
+  _onSetNotification: (
+    conversationIDKey: Types.ConversationIDKey,
+    deviceType: DeviceType,
+    notifyType: Types.NotifyType
+  ) => void,
+  _onToggleChannelWide: (conversationIDKey: Types.ConversationIDKey) => void,
+}
+
+const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
+  _resetSaveState: (conversationIDKey: Types.ConversationIDKey) =>
+    dispatch(ChatGen.createSetNotificationSaveState({conversationIDKey, saveState: 'unsaved'})),
+  _onMuteConversation: (conversationIDKey: Types.ConversationIDKey, muted: boolean) => {
+    dispatch(ChatGen.createMuteConversation({conversationIDKey, muted}))
+  },
+  _onSetNotification: (
+    conversationIDKey: Types.ConversationIDKey,
+    deviceType: DeviceType,
+    notifyType: Types.NotifyType
+  ) => dispatch(ChatGen.createSetNotifications({conversationIDKey, deviceType, notifyType})),
+  _onToggleChannelWide: (conversationIDKey: Types.ConversationIDKey) =>
+    dispatch(ChatGen.createToggleChannelWideNotifications({conversationIDKey})),
+})
+
+type OwnProps = {
+  channelWide: boolean,
+  conversationIDKey: string,
+  desktop: Types.NotifyType,
+  mobile: Types.NotifyType,
+  muted: boolean,
+  saveState: Types.NotificationSaveState,
+}
+
+type _Props = Props & {
+  _resetSaveState: () => void,
+}
+
+const mergeProps = (stateProps: {}, dispatchProps: DispatchProps, ownProps: OwnProps): _Props => {
+  const convKey = ownProps.conversationIDKey
+  return {
+    _resetSaveState: () => dispatchProps._resetSaveState(convKey),
+    channelWide: ownProps.channelWide,
+    desktop: ownProps.desktop,
+    mobile: ownProps.mobile,
+    muted: ownProps.muted,
+    saveState: ownProps.saveState,
+    onMuteConversation: (muted: boolean) => {
+      dispatchProps._onMuteConversation(convKey, muted)
+    },
+    onSetDesktop: (notifyType: Types.NotifyType) => {
+      dispatchProps._onSetNotification(convKey, 'desktop', notifyType)
+    },
+    onSetMobile: (notifyType: Types.NotifyType) => {
+      dispatchProps._onSetNotification(convKey, 'mobile', notifyType)
+    },
+    onToggleChannelWide: () => {
+      dispatchProps._onToggleChannelWide(convKey)
+    },
+  }
+}
+
+class _NotificationsWithConvID extends React.PureComponent<_Props> {
+  componentDidMount() {
+    this.props._resetSaveState()
+  }
+
+  render() {
+    return <Notifications {...this.props} />
+  }
+}
+
+const NotificationsWithConvID = connect(() => ({}), mapDispatchToProps, mergeProps)(_NotificationsWithConvID)
+
 const serverStateToProps = (notifications: Types.NotificationsState, type: 'desktop' | 'mobile') => {
   // The server state has independent bool values for atmention/generic,
   // but the design has three radio buttons -- atmention, generic, never.
@@ -25,17 +100,8 @@ const serverStateToProps = (notifications: Types.NotificationsState, type: 'desk
   return 'never'
 }
 
-type _StateProps = {
-  channelWide: boolean,
-  conversationIDKey: string,
-  desktop: Types.NotifyType,
-  mobile: Types.NotifyType,
-  muted: boolean,
-  saveState: Types.NotificationSaveState,
-}
-
 // Use conversationIDKey as a signal for whether StateProps is empty.
-type StateProps = _StateProps | {conversationIDKey: void}
+type StateProps = OwnProps | {conversationIDKey: void}
 
 const mapStateToProps = (state: TypedState): StateProps => {
   const conversationIDKey = Constants.getSelectedConversation(state)
@@ -66,86 +132,17 @@ const mapStateToProps = (state: TypedState): StateProps => {
     mobile,
     muted,
     saveState,
-  }: _StateProps)
+  }: OwnProps)
 }
 
-type DispatchProps = {
-  _resetSaveState: (conversationIDKey: Types.ConversationIDKey) => void,
-  _onMuteConversation: (conversationIDKey: Types.ConversationIDKey, muted: boolean) => void,
-  _onSetNotification: (
-    conversationIDKey: Types.ConversationIDKey,
-    deviceType: DeviceType,
-    notifyType: Types.NotifyType
-  ) => void,
-  _onToggleChannelWide: (conversationIDKey: Types.ConversationIDKey) => void,
-}
-
-const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
-  _resetSaveState: (conversationIDKey: Types.ConversationIDKey) =>
-    dispatch(ChatGen.createSetNotificationSaveState({conversationIDKey, saveState: 'unsaved'})),
-  _onMuteConversation: (conversationIDKey: Types.ConversationIDKey, muted: boolean) => {
-    dispatch(ChatGen.createMuteConversation({conversationIDKey, muted}))
-  },
-  _onSetNotification: (
-    conversationIDKey: Types.ConversationIDKey,
-    deviceType: DeviceType,
-    notifyType: Types.NotifyType
-  ) => dispatch(ChatGen.createSetNotifications({conversationIDKey, deviceType, notifyType})),
-  _onToggleChannelWide: (conversationIDKey: Types.ConversationIDKey) =>
-    dispatch(ChatGen.createToggleChannelWideNotifications({conversationIDKey})),
-})
-
-// Use _resetSaveState as a signal for whether StateProps is empty.
-type _Props =
-  | (Props & {
-      _resetSaveState: () => void,
-    })
-  | {_resetSaveState: void}
-
-const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): _Props => {
-  if (!stateProps.conversationIDKey) {
-    return {_resetSaveState: undefined}
-  }
-
-  const convKey = stateProps.conversationIDKey
-  return {
-    _resetSaveState: () => dispatchProps._resetSaveState(convKey),
-    channelWide: stateProps.channelWide,
-    desktop: stateProps.desktop,
-    mobile: stateProps.mobile,
-    muted: stateProps.muted,
-    saveState: stateProps.saveState,
-    onMuteConversation: (muted: boolean) => {
-      dispatchProps._onMuteConversation(convKey, muted)
-    },
-    onSetDesktop: (notifyType: Types.NotifyType) => {
-      dispatchProps._onSetNotification(convKey, 'desktop', notifyType)
-    },
-    onSetMobile: (notifyType: Types.NotifyType) => {
-      dispatchProps._onSetNotification(convKey, 'mobile', notifyType)
-    },
-    onToggleChannelWide: () => {
-      dispatchProps._onToggleChannelWide(convKey)
-    },
-  }
-}
-
-class _Notifications extends React.PureComponent<_Props> {
-  componentDidMount() {
-    if (!this.props._resetSaveState) {
-      return
-    }
-
-    this.props._resetSaveState()
-  }
-
+class _MaybeNotifications extends React.PureComponent<StateProps> {
   render() {
-    if (!this.props._resetSaveState) {
+    if (!this.props.conversationID) {
       return null
     }
 
-    return <Notifications {...this.props} />
+    return <NotificationsWithConvID {...this.props} />
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(_Notifications)
+export default connect(mapStateToProps, null, stateProps => stateProps)(_MaybeNotifications)
