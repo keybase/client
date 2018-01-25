@@ -1,20 +1,25 @@
 // All of our identity services and matchers are defined here.
 
+// parseLocationQuery converts URL-encoded parameters into an object. It
+// requires unique keys, will throw an error if there is a duplicate key.
 function parseLocationQuery(s) {
-    if (s.startsWith("?")) s = s.substr(1);
-    if (s == "") return {};
-    const params = {};
-    const parts = s.split('&');
-    for (let i = 0; i < parts.length; i++)
-    {
-        let p = parts[i].split('=', 2);
-        if (p.length == 1) {
-            params[p[0]] = "";
-        } else {
-            params[p[0]] = decodeURIComponent(p[1].replace(/\+/g, " "));
-        }
+  if (s.startsWith("?")) s = s.substr(1);
+  if (s == "") return {};
+  const params = {};
+  const parts = s.split('&');
+  for (let i = 0; i < parts.length; i++) {
+    let p = parts[i].split('=', 2);
+    const key = p[0];
+    if (key in params) {
+      throw new Error('duplicate key in query string: ' + key);
     }
-    return params;
+    if (p.length == 1) {
+      params[key] = "";
+    } else {
+      params[key] = decodeURIComponent(p[1].replace(/\+/g, " "));
+    }
+  }
+  return params;
 }
 
 // identityMatchers is used to generate our declarative page match rules, but also
@@ -25,42 +30,42 @@ const identityMatchers = [
   {
     service: "keybase",
     getUsername: function(loc) { return loc.pathname.split('/')[1]; },
-    locationMatches: new RegExp('\.keybase\.(?:io|pub)/([\\w]+)[/]?'),
-    originAndPathMatches: '\.keybase\.(io|pub)/[\\w]+[/]?',
+    locationMatches: new RegExp('\\.keybase\\.(?:io|pub)/([\\w]+)[/]?'),
+    originAndPathMatches: '\\.keybase\\.(io|pub)/[\\w]+[/]?',
     css: ['.profile-heading']
   },
   {
     service: "reddit",
     getUsername: function(loc) { return loc.pathname.split('/')[2]; },
-    locationMatches: new RegExp('\.reddit.com/user/([\\w-]+)[/]?$'),
-    originAndPathMatches: '\.reddit.com/user/[\\w-]+[/]?$',
+    locationMatches: new RegExp('\\.reddit.com/user/([\\w-]+)[/]?$'),
+    originAndPathMatches: '\\.reddit.com/user/[\\w-]+[/]?$',
   },
   {
     service: "twitter",
     getUsername: function(loc) { return loc.pathname.split('/')[1]; },
-    locationMatches: new RegExp('\.twitter\.com/([\\w]+)[/]?$'),
-    originAndPathMatches: '\.twitter\.com/[\\w]+[/]?$',
+    locationMatches: new RegExp('\\.twitter\\.com/([\\w]+)[/]?$'),
+    originAndPathMatches: '\\.twitter\\.com/[\\w]+[/]?$',
     css: ['body.ProfilePage']
   },
   {
     service: "github",
     getUsername: function(loc) { return loc.pathname.split('/')[1]; },
-    locationMatches: new RegExp('\.github\.com/([\\w\-]+)[/]?$'),
-    originAndPathMatches: '\.github\.com/[\\w\-]+[/]?$',
+    locationMatches: new RegExp('\\.github\\.com/([\\w\-]+)[/]?$'),
+    originAndPathMatches: '\\.github\\.com/[\\w\-]+[/]?$',
     css: ['body.page-profile']
   },
   {
     service: "facebook",
     getUsername: function(loc) { return loc.pathname.split('/')[1]; },
-    locationMatches: new RegExp('\.facebook\.com/([\\w\.]+)[/]?$'),
-    originAndPathMatches: '\.facebook\.com/[\\w\.]+[/]?$',
+    locationMatches: new RegExp('\\.facebook\\.com/([\\w\\.]+)[/]?$'),
+    originAndPathMatches: '\\.facebook\\.com/[\\w\\.]+[/]?$',
     css: ['body.timelineLayout']
   },
   {
     service: "hackernews",
     getUsername: function(loc) { return parseLocationQuery(loc.search)["id"]; },
-    locationMatches: new RegExp('news\.ycombinator\.com/user'),
-    originAndPathMatches: 'news\.ycombinator\.com/user',
+    locationMatches: new RegExp('news\\.ycombinator\\.com/user'),
+    originAndPathMatches: 'news\\.ycombinator\\.com/user',
     css: ['html[op="user"]']
   }
 ];

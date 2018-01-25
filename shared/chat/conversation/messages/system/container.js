@@ -5,7 +5,7 @@ import {AddedToTeamNotice, ComplexTeamNotice, InviteAddedToTeamNotice, GitPushIn
 import {compose, branch, renderComponent, renderNothing} from 'recompose'
 import createCachedSelector from 're-reselect'
 import {connect} from 'react-redux'
-import {navigateAppend, navigateTo} from '../../../../actions/route-tree'
+import {navigateAppend, navigateTo, setRouteState} from '../../../../actions/route-tree'
 import {teamsTab} from '../../../../constants/tabs'
 import {getRole, isAdmin, isOwner} from '../../../../constants/teams'
 import {type TeamRoleType} from '../../../../constants/types/teams'
@@ -30,7 +30,10 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onManageChannels: (teamname: string) => {
     dispatch(navigateAppend([{props: {teamname}, selected: 'manageChannels'}]))
   },
-  onViewTeam: (teamname: string) => dispatch(navigateTo([teamsTab, {props: {teamname}, selected: 'team'}])),
+  onViewTeam: (teamname: string) => {
+    dispatch(setRouteState([teamsTab, 'team'], {selectedTab: 'members'}))
+    dispatch(navigateTo([teamsTab, {props: {teamname}, selected: 'team'}]))
+  },
 })
 
 const mergeProps = (stateProps, dispatchProps) => {

@@ -29,6 +29,13 @@
         {
           "type": "ConversationID",
           "name": "convID"
+        },
+        {
+          "type": [
+            null,
+            "UnreadUpdate"
+          ],
+          "name": "unreadUpdate"
         }
       ]
     },
@@ -205,6 +212,13 @@
         {
           "type": "ConversationNotificationInfo",
           "name": "settings"
+        },
+        {
+          "type": [
+            null,
+            "UnreadUpdate"
+          ],
+          "name": "unreadUpdate"
         }
       ]
     },
@@ -361,7 +375,7 @@
     },
     {
       "type": "record",
-      "name": "ConvRetentionUpdate",
+      "name": "SetConvRetentionUpdate",
       "fields": [
         {
           "type": "InboxVers",
@@ -379,7 +393,7 @@
     },
     {
       "type": "record",
-      "name": "TeamRetentionUpdate",
+      "name": "SetTeamRetentionUpdate",
       "fields": [
         {
           "type": "InboxVers",
@@ -392,6 +406,20 @@
         {
           "type": "RetentionPolicy",
           "name": "policy"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "KBFSImpteamUpgradeUpdate",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "InboxVers",
+          "name": "inboxVers"
         }
       ]
     }

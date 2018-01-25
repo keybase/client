@@ -90,7 +90,7 @@ func (r *chatConversationResolver) completeAndCanonicalizeTLFName(ctx context.Co
 			return fmt.Errorf("failed to open chat conversation: %v", err)
 		}
 		req.ctx.canonicalizedTlfName = string(cname.CanonicalName)
-	case chat1.ConversationMembersType_IMPTEAM:
+	case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE:
 		// Add our name out front
 		if req.Visibility != keybase1.TLFVisibility_PUBLIC {
 			username := r.G.Env.GetUsername()

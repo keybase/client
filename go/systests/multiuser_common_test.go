@@ -31,6 +31,7 @@ type smuUser struct {
 	username       string
 	userInfo       *signupInfo
 	primary        *smuDeviceWrapper
+	notifications  *teamNotifyHandler
 }
 
 type smuContext struct {
@@ -226,8 +227,16 @@ func (d *smuDeviceWrapper) userClient() keybase1.UserClient {
 	return keybase1.UserClient{Cli: d.cli}
 }
 
+func (d *smuDeviceWrapper) ctlClient() keybase1.CtlClient {
+	return keybase1.CtlClient{Cli: d.cli}
+}
+
 func (d *smuDeviceWrapper) rpcClient() rpc.GenericClient {
 	return d.cli
+}
+
+func (d *smuDeviceWrapper) transport() rpc.Transporter {
+	return d.xp
 }
 
 func (d *smuDeviceWrapper) startClient() {
@@ -336,6 +345,35 @@ type smuTeam struct {
 
 type smuImplicitTeam struct {
 	ID keybase1.TeamID
+}
+
+func (u *smuUser) registerForNotifications() {
+	u.notifications = newTeamNotifyHandler()
+	srv := rpc.NewServer(u.primaryDevice().transport(), nil)
+	if err := srv.Register(keybase1.NotifyTeamProtocol(u.notifications)); err != nil {
+		u.ctx.t.Fatal(err)
+	}
+	ncli := keybase1.NotifyCtlClient{Cli: u.primaryDevice().rpcClient()}
+	if err := ncli.SetNotifications(context.TODO(), keybase1.NotificationChannels{Team: true}); err != nil {
+		u.ctx.t.Fatal(err)
+	}
+}
+
+func (u *smuUser) waitForTeamAbandoned(teamID keybase1.TeamID) {
+	// process 10 team rotations or 10s worth of time
+	for i := 0; i < 10; i++ {
+		select {
+		case abandonID := <-u.notifications.abandonCh:
+			u.ctx.t.Logf("team abandon notification received: %v", abandonID)
+			if abandonID.Eq(teamID) {
+				u.ctx.t.Logf("abandon matched!")
+				return
+			}
+			u.ctx.t.Logf("ignoring abandon message (expected teamID = %q)", teamID)
+		case <-time.After(1 * time.Second * libkb.CITimeMultiplier(u.getPrimaryGlobalContext())):
+		}
+	}
+	u.ctx.t.Fatalf("timed out waiting for team abandon %s", teamID)
 }
 
 func (u *smuUser) getTeamsClient() keybase1.TeamsClient {
@@ -475,6 +513,13 @@ func (u *smuUser) reset() {
 
 func (u *smuUser) delete() {
 	err := u.primaryDevice().userClient().DeleteUser(context.TODO(), 0)
+	if err != nil {
+		u.ctx.t.Fatal(err)
+	}
+}
+
+func (u *smuUser) dbNuke() {
+	err := u.primaryDevice().ctlClient().DbNuke(context.TODO(), 0)
 	if err != nil {
 		u.ctx.t.Fatal(err)
 	}
