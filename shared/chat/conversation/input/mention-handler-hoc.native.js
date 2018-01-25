@@ -64,8 +64,10 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
       if (!this._isPopupOpen()) {
         if (word[0] === '@') {
           this.setMentionPopupOpen(true)
+          this._setMentionFilter(word.substring(1))
         } else if (word[0] === '#') {
           this.setChannelMentionPopupOpen(true)
+          this._setChannelMentionFilter(word.substring(1))
         }
       } else {
         // Close popups if word doesn't begin with marker anymore
