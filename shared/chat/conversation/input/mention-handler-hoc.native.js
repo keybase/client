@@ -98,10 +98,20 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
     }
 
     insertMention = (u: string) => {
-      console.log(u)
+      this._replaceWordAtCursor(`@${u} `)
+      this.setMentionPopupOpen(false)
     }
 
-    insertChannelMention = (c: string) => {}
+    insertChannelMention = (c: string) => {
+      this._replaceWordAtCursor(`#${c} `)
+      this.setChannelMentionPopupOpen(false)
+    }
+
+    _replaceWordAtCursor = (w: string) => {
+      const word = this._getWordAtCursor(this.props.text)
+      const ss = this.state._selection.selectionStart
+      this._inputRef && this._inputRef.replaceText(w, ss - word.length, ss)
+    }
 
     onSelectionChange = (_selection: {selectionStart: number, selectionEnd: number}) =>
       this.setState({_selection})
@@ -114,6 +124,7 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
         insertMention={this.insertMention}
         setMentionPopupOpen={this.setMentionPopupOpen}
         setChannelMentionPopupOpen={this.setChannelMentionPopupOpen}
+        inputSetRef={this.inputSetRef}
         onBlur={this.onBlur}
         onFocus={this.onFocus}
         onEnterKeyDown={this.onEnterKeyDown}
