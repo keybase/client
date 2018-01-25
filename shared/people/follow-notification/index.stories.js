@@ -3,15 +3,23 @@ import React from 'react'
 import * as C from '../../constants/people'
 import {Provider} from 'react-redux'
 import {createStore} from 'redux'
-import {Set} from 'immutable'
 import {action, storiesOf} from '../../stories/storybook'
 import FollowNotification, {type Props} from '.'
 import moment from 'moment'
 
 const store = {
-  config: {
-    following: Set(['max', 'cnojima', 'cdixon']),
-    you: 'ayoubd',
+  Usernames: props => {
+    const {usernames} = props
+    const users = usernames.map(username => ({
+      username,
+      following: ['max', 'chrisnojima'].includes(username),
+      you: false,
+    }))
+    return {
+      ...props,
+      users,
+      onUsernameClicked: action('onUsernameClicked'),
+    }
   },
 }
 
