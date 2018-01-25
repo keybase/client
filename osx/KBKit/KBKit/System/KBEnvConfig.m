@@ -9,6 +9,7 @@
 #import "KBEnvConfig.h"
 
 #import "KBDefines.h"
+#import "KBEnvironment.h"
 #import "KBPath.h"
 #import <Tikppa/Tikppa.h>
 
@@ -36,10 +37,16 @@
 - (instancetype)initWithRunMode:(KBRunMode)runMode {
   if ((self = [super init])) {
     _runMode = runMode;
+    NSError *err = nil;
+    NSString *defaultMountDir = [self dataPath:@"fs" options:0];
+    id mountDir = (NSString *)[configValueForKey:@"mountdir" defaultValue:defaultMountDir error:&err];
+    if (err) {
+      mountDir = defaultMountDir;
+    }
     switch (_runMode) {
       case KBRunModeProd: {
         self.title = @"Keybase.io";
-        self.mountDir = [self dataPath:@"fs" options:0];
+        self.mountDir = mountDir;
         self.debugEnabled = YES;
         self.info = @"Uses keybase.io";
         self.image = [NSImage imageNamed:NSImageNameNetwork];
@@ -47,7 +54,7 @@
       }
       case KBRunModeStaging: {
         self.title = @"Staging";
-        self.mountDir = [self dataPath:@"fs" options:0];
+        self.mountDir = mountDir;
         self.debugEnabled = YES;
         self.info = @"Uses staging server.";
         self.image = [NSImage imageNamed:NSImageNameNetwork];
@@ -55,7 +62,7 @@
       }
       case KBRunModeDevel: {
         self.title = @"Devel";
-        self.mountDir = [self dataPath:@"fs" options:0];
+        self.mountDir = mountDir;
         self.debugEnabled = YES;
         self.info = @"Uses the local web server.";
         self.image = [NSImage imageNamed:NSImageNameComputer];
