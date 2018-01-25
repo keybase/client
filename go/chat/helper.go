@@ -371,6 +371,10 @@ func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	if len(inbox.ConvsUnverified) == 0 {
 		return chat1.Conversation{}, ratelim, errGetUnverifiedConvNotFound
 	}
+	if !inbox.ConvsUnverified[0].GetConvID().Eq(convID) {
+		return chat1.Conversation{}, ratelim, fmt.Errorf("GetUnverifiedConv: convID mismatch: %s != %s",
+			inbox.ConvsUnverified[0].GetConvID(), convID)
+	}
 	return inbox.ConvsUnverified[0].Conv, ratelim, nil
 }
 

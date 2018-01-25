@@ -420,6 +420,14 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		s.Debug(ctx, "channel mention: %v", chanMention)
 	}
 
+	// If we are sending a message, and we think the conversation is a KBFS conversation, then set a label
+	// on the client header in case this conversation gets upgrade to impteam.
+	if membersType == chat1.ConversationMembersType_KBFS {
+		s.Debug(ctx, "setting KBFS crypt keys used flag")
+		msg.ClientHeader.KbfsCryptKeysUsed = new(bool)
+		*msg.ClientHeader.KbfsCryptKeysUsed = true
+	}
+
 	// For now, BoxMessage canonicalizes the TLF name. We should try to refactor
 	// it a bit to do it here.
 	boxed, err := s.boxer.BoxMessage(ctx, msg, membersType, skp)

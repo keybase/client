@@ -492,7 +492,7 @@ var maxHolesForPull = 10
 
 func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (thread chat1.ThreadView, rl []*chat1.RateLimit, err error) {
-	defer s.Trace(ctx, func() error { return err }, "Pull")()
+	defer s.Trace(ctx, func() error { return err }, "Pull(%s)", convID)()
 	if convID.IsNil() {
 		return chat1.ThreadView{}, rl, errors.New("HybridConversationSource.Pull called with empty convID")
 	}
@@ -513,8 +513,8 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		if err == nil {
 			// Since we are using the "holey" collector, we need to resolve any placeholder
 			// messages that may have been fetched.
-			s.Debug(ctx, "Pull: cache hit: convID: %s uid: %s holes: %d msgs: %d", convID, uid, rc.Holes(),
-				len(thread.Messages))
+			s.Debug(ctx, "Pull: cache hit: convID: %s uid: %s holes: %d msgs: %d", unboxConv.GetConvID(), uid,
+				rc.Holes(), len(thread.Messages))
 			err = s.resolveHoles(ctx, uid, &thread, conv)
 		}
 		if err == nil {

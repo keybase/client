@@ -301,6 +301,7 @@ protocol common {
     boolean tlfPublic;
     MessageType messageType;
     MessageID supersedes;
+    union { null, boolean } kbfsCryptKeysUsed;
 
     // These 3 fields are hints for the server.
     // They can be derived from the message body, and are not signed.
@@ -334,6 +335,8 @@ protocol common {
     array<MessagePreviousPointer> prev;
     gregor1.UID sender;
     gregor1.DeviceID senderDevice;
+    union { null, boolean } kbfsCryptKeysUsed;
+
     // Latest merkle root when sent.
     // Nil from v1 messages. Non-nil from v2 messages.
     union { null, MerkleRoot } merkleRoot;

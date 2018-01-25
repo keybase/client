@@ -766,6 +766,13 @@
           "name": "supersedes"
         },
         {
+          "type": [
+            null,
+            "boolean"
+          ],
+          "name": "kbfsCryptKeysUsed"
+        },
+        {
           "type": {
             "type": "array",
             "items": "MessageID"
@@ -851,6 +858,13 @@
         {
           "type": "gregor1.DeviceID",
           "name": "senderDevice"
+        },
+        {
+          "type": [
+            null,
+            "boolean"
+          ],
+          "name": "kbfsCryptKeysUsed"
         },
         {
           "type": [
