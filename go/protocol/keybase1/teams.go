@@ -1843,16 +1843,16 @@ func (o TeamDebugRes) DeepCopy() TeamDebugRes {
 }
 
 type TeamCreateArg struct {
-	SessionID            int    `codec:"sessionID" json:"sessionID"`
-	Name                 string `codec:"name" json:"name"`
-	SendChatNotification bool   `codec:"sendChatNotification" json:"sendChatNotification"`
+	SessionID   int    `codec:"sessionID" json:"sessionID"`
+	Name        string `codec:"name" json:"name"`
+	JoinSubteam bool   `codec:"joinSubteam" json:"joinSubteam"`
 }
 
 type TeamCreateWithSettingsArg struct {
-	SessionID            int          `codec:"sessionID" json:"sessionID"`
-	Name                 string       `codec:"name" json:"name"`
-	SendChatNotification bool         `codec:"sendChatNotification" json:"sendChatNotification"`
-	Settings             TeamSettings `codec:"settings" json:"settings"`
+	SessionID   int          `codec:"sessionID" json:"sessionID"`
+	Name        string       `codec:"name" json:"name"`
+	JoinSubteam bool         `codec:"joinSubteam" json:"joinSubteam"`
+	Settings    TeamSettings `codec:"settings" json:"settings"`
 }
 
 type TeamGetArg struct {

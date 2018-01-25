@@ -3657,11 +3657,11 @@ export type TeamsTeamAddMemberRpcParam = $ReadOnly<{name: String, email: String,
 
 export type TeamsTeamChangeMembershipRpcParam = $ReadOnly<{name: String, req: TeamChangeReq, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsTeamCreateRpcParam = $ReadOnly<{name: String, sendChatNotification: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsTeamCreateRpcParam = $ReadOnly<{name: String, joinSubteam: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type TeamsTeamCreateSeitanTokenRpcParam = $ReadOnly<{name: String, role: TeamRole, label: SeitanIKeyLabel, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsTeamCreateWithSettingsRpcParam = $ReadOnly<{name: String, sendChatNotification: Boolean, settings: TeamSettings, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsTeamCreateWithSettingsRpcParam = $ReadOnly<{name: String, joinSubteam: Boolean, settings: TeamSettings, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type TeamsTeamDebugRpcParam = $ReadOnly<{teamID: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 

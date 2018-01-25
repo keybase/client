@@ -587,9 +587,9 @@ protocol teams {
     boolean isMemberShowcased;
   }
 
-  TeamCreateResult teamCreate(int sessionID, string name, boolean sendChatNotification);
+  TeamCreateResult teamCreate(int sessionID, string name, boolean joinSubteam);
 
-  TeamCreateResult teamCreateWithSettings(int sessionID, string name, boolean sendChatNotification, TeamSettings settings);
+  TeamCreateResult teamCreateWithSettings(int sessionID, string name, boolean joinSubteam, TeamSettings settings);
 
   // A user can hope for success if and only if they are a member of the team or an admin of any of its ancestors.
   TeamDetails teamGet(int sessionID, string name, boolean forceRepoll);
