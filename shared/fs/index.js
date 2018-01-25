@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Types from '../constants/types/fs'
 import {globalStyles, globalColors, globalMargins, isMobile} from '../styles'
-import {Box, BackButton, Button, ClickableBox, Icon, List, Text} from '../common-adapters'
+import {Box, BackButton, ClickableBox, Icon, List, Text} from '../common-adapters'
 import {type IconType} from '../common-adapters/icon'
 import {RowConnector} from './row'
 
@@ -33,23 +33,21 @@ type FolderHeaderProps = {
 type FileRowProps = {
   name: string,
   path: Types.Path,
-  type: Types.PathType,
   icon: IconType,
   onOpen: () => void,
 }
 
 type FolderProps = {
-  name: string,
+  items: Array<Types.Path>,
   path: Types.Path,
-  visibility: Types.Visibility,
-  items: Array<string>,
+  onBack: () => void,
 }
 
 const FolderBoxStyle = {...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'stretch'}
 
 const styleOuterContainer = {
-  position: 'relative',
   height: '100%',
+  position: 'relative',
 }
 
 const FolderHeader = ({title}: FolderHeaderProps) => (
@@ -67,9 +65,7 @@ const FileRow = RowConnector(({path, name, icon, onOpen}: FileRowProps) => (
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
       <Icon type={icon} style={{marginRight: globalMargins.small}} />
       <Box style={FolderBoxStyle}>
-        <Text type="Body">
-          {name}
-        </Text>
+        <Text type="Body">{name}</Text>
       </Box>
     </Box>
   </ClickableBox>
@@ -78,17 +74,17 @@ const FileRow = RowConnector(({path, name, icon, onOpen}: FileRowProps) => (
 const Files = ({path, items, onBack}: FolderProps) => (
   <Box style={styleOuterContainer}>
     <Box style={stylesContainer}>
-      {onBack && path !== '/keybase' && (
-        <Box style={globalStyles.flexBoxColumn}>
-            <BackButton
-              onClick={onBack}
-              style={{position:'absolute', left: 16, top: 16}}
-            />
-        </Box>
-      )}
-      <FolderHeader title={"Folders: " + path} />
-      <List items={items}
-        renderItem={(index, item) => (<FileRow key={item} path={item} />)} />
+      {onBack &&
+        Types.pathToString(path) !== '/keybase' && (
+          <Box style={globalStyles.flexBoxColumn}>
+            <BackButton onClick={onBack} style={{left: 16, position: 'absolute', top: 16}} />
+          </Box>
+        )}
+      <FolderHeader title={'Folders: ' + Types.pathToString(path)} />
+      <List
+        items={items}
+        renderItem={(index, item) => <FileRow key={Types.pathToString(item)} path={item} />}
+      />
     </Box>
   </Box>
 )

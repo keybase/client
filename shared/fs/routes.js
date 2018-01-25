@@ -1,7 +1,6 @@
 // @flow
 import * as I from 'immutable'
 import Files from './container'
-import {Folder} from '.'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 
 const folderRoute = makeRouteDefNode({

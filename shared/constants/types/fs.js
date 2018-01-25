@@ -3,14 +3,17 @@ import * as I from 'immutable'
 
 export opaque type Path = ?string
 export type PathType = 'folder' | 'file' | 'symlink' | 'exec'
-export type _PathItem = | {
-  type: 'file' | 'exec' | 'symlink',
-} | {
-  type: 'folder',
+type FolderPathType = 'folder'
+type FilePathType = 'file' | 'symlink' | 'exec'
+export type _FilePathItem = {
+  type: FilePathType,
+}
+export type _FolderPathItem = {
+  type: FolderPathType,
   children: I.List<string>,
 }
-type PathItem = I.RecordOf<_PathItem>
-type PathItems = I.Map<Path, PathItem>
+export type PathItem = I.RecordOf<_FolderPathItem> | I.RecordOf<_FilePathItem>
+export type PathItems = I.Map<Path, PathItem>
 
 export type _State = {
   pathItems: PathItems,
@@ -19,11 +22,25 @@ export type State = I.RecordOf<_State>
 
 export type Visibility = 'private' | 'public' | 'team' | null
 
-export const stringToPath = (s: string): Path => s.indexOf('/keybase') != -1 ? s : null
-export const getPathName = (p: Path): string => p === null ? '' : p.split('/').pop()
+export const stringToPath = (s: string): Path => (s.indexOf('/keybase') !== -1 ? s : null)
+export const pathToString = (p: Path): string => (!p ? '' : p)
+export const getPathName = (p: Path): string => (!p ? '' : p.split('/').pop())
 export const getPathVisibility = (p: Path): Visibility => {
-  if (p === null) return null
-  const pelems = p.split('/')
-  return pelems.length < 3 ? null : pelems[2]
+  if (!p) return null
+  const [, , visibility] = p.split('/')
+  if (!visibility) {
+    return null
+  }
+  switch (visibility) {
+    case 'private':
+    case 'public':
+    case 'team':
+    case null:
+      return visibility
+    default:
+      // eslint-disable-next-line no-unused-expressions
+      ;(visibility: empty) // if you get a flow error here it means there's an visibility you claim to handle but didn't
+      return null
+  }
 }
-export const pathConcat = (p: Path, s: string): Path => p + '/' + s
+export const pathConcat = (p: Path, s: string): Path => stringToPath(pathToString(p) + '/' + s)

@@ -1,9 +1,8 @@
 // @flow
 import * as I from 'immutable'
 import {connect, type TypedState, type Dispatch} from '../util/container'
-import * as FSGen from '../actions/fs-gen'
 import Files from '.'
-import {navigateAppend, navigateUp} from '../actions/route-tree'
+import {navigateUp} from '../actions/route-tree'
 import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
 
@@ -13,18 +12,20 @@ type OwnProps = {
 
 type StateProps = {
   path: Types.Path,
-  items: I.List<string>,
+  items: I.List<Types.Path>,
 }
 
 type DispatchProps = {
-  onBack: () => void | null,
+  onBack: () => void,
 }
 
 const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
-  const path = routeProps.get('path', Constants.defaultPath)
+  const path = Types.stringToPath(routeProps.get('path', Constants.defaultPath))
+  const itemDetail = state.fs.pathItems.get(path)
+  const items = itemDetail && itemDetail.type === 'folder' ? itemDetail.get('children', I.List()) : I.List()
   return {
+    items: items.map(name => Types.pathConcat(path, name)),
     path: path,
-    items: state.fs.getIn(['pathItems', path, 'children'], I.List()).map(name => Types.pathConcat(path, name)),
   }
 }
 
@@ -32,9 +33,9 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onBack: () => dispatch(navigateUp()),
 })
 
-const mergeProps = ({path, items}: StateProps, dispatchProps: DispatchProps) => ({
-  path,
+const mergeProps = ({path, items}: StateProps, dispatchProps: DispatchProps, ownProps) => ({
   items: items.toArray(),
+  path,
   /* TODO: enable these once we need them:
   name: Types.getPathName(stateProps.path),
   visibility: Types.getPathVisibility(stateProps.path),
