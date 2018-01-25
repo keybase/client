@@ -13,6 +13,21 @@ set -e -u -o pipefail
 runtime_dir="${XDG_RUNTIME_DIR:-$HOME/.config}/keybase"
 mkdir -p "$runtime_dir"
 startup_token="$runtime_dir/startup_mode"
+if keybase config get mountdir &> /dev/null ; then
+    mountdir=`keybase config get mountdir 2> /dev/null`
+else
+    # The user has no mountpoint configured yet, so pick a default one
+    # and record the default setting in a separate config field, so
+    # later we can tell whether the user changed it away from the
+    # default or not.
+    mountdir="${XDG_DATA_HOME:-$HOME/.local/share}/keybase/fs"
+    keybase config set mountdir "$mountdir"
+    keybase config set mountdirdefault "$mountdir"
+fi
+export KEYBASE_MOUNTDIR=$mountdir
+
+# Don't make the mountpoint until after unmounting/killing the
+# previous mount, otherwise `mkdir` will fail.
 
 # NOTE: This logic is duplicated in systemd_linux.go. If you make changes here,
 # keep them in sync.
@@ -64,8 +79,16 @@ kill_all() {
   if killall Keybase &> /dev/null ; then
     echo Shutting down Keybase GUI...
   fi
+  # In case the package upgrade wasn't able to unmount and remove /keybase
   if fusermount -uz /keybase &> /dev/null ; then
-    echo Unmounting /keybase...
+    # Remove any existing legacy mount.  This should never happen
+    # because it should have already been done by post_install.sh.
+    # Just in case, let the user know how to fix it.
+    echo Unmounting /keybase.  Run `sudo rmdir /keybase; sudo ln -s /opt/keybase/mount-readme /keybase; sudo chown keybasehelper:keybasehelper /keybase` and then run this command again.
+    exit -1
+  fi
+  if fusermount -uz $mountdir &> /dev/null ; then
+    echo Unmounting $mountdir...
   fi
   if killall kbfsfuse &> /dev/null ; then
     echo Shutting down kbfsfuse...
@@ -84,13 +107,25 @@ kill_all() {
   fi
 }
 
+forward_vars() {
+  filename="$1"
+  vars=("${!2}")
+  cat /dev/null > "$filename"
+  for varname in "${vars[@]}" ; do
+      # Include set-but-empty variables but not unset variables.
+      if [ -n "${!varname+x}" ] ; then
+          echo "$varname=${!varname}" >> "$filename"
+      fi
+  done
+}
+
 start_systemd() {
   echo Starting via systemd.
   # This script is intended to be run after updates, so we need to reload
   # potentially changed unit files.
   systemctl --user daemon-reload
 
-  forwarded_env_vars=(
+  forwarded_gui_env_vars=(
       # The autostart file sets this to "hideWindow" to prevent opening the
       # Keybase main window when the app is autostarted.
       KEYBASE_START_UI
@@ -111,13 +146,9 @@ start_systemd() {
       QT4_IM_MODULE
       XMODIFIERS
   )
-  cat /dev/null > "$runtime_dir/keybase.gui.env"
-  for varname in "${forwarded_env_vars[@]}" ; do
-      # Include set-but-empty variables but not unset variables.
-      if [ -n "${!varname+x}" ] ; then
-          echo "$varname=${!varname}" >> "$runtime_dir/keybase.gui.env"
-      fi
-  done
+  forward_vars "$runtime_dir/keybase.gui.env" forwarded_gui_env_vars[@]
+
+  keybase-mount-helper -user-mount "$mountdir"
 
   # The keybase.gui.service unit has keybase.service and kbfs.service as
   # dependencies, so we don't have to list them here. But including them lets
@@ -137,8 +168,9 @@ start_background() {
   # We set the --auto-forked flag here so that updated clients that try to
   # restart this service will know to re-fork it themselves. That's all it does.
   keybase -d --log-file="$logdir/keybase.service.log" service --auto-forked &>> "$logdir/keybase.start.log" &
-  echo Mounting /keybase...
-  kbfsfuse -debug -log-to-file /keybase &>> "$logdir/keybase.start.log" &
+  echo Mounting the file system...
+  keybase-mount-helper -user-mount "$mountdir"
+  kbfsfuse -debug -log-to-file "$mountdir" &>> "$logdir/keybase.start.log" &
   echo Launching Keybase GUI...
   /opt/keybase/Keybase &>> "$logdir/Keybase.app.log" &
   write_startup_token "background"
@@ -152,6 +184,7 @@ main() {
   # 2) Users have come to expect that run_keybase will restart everything, and
   #    we tell them to do it after updates.
   kill_all
+  mkdir -p "$mountdir"
 
   if wants_systemd ; then
       start_systemd
