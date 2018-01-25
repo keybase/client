@@ -60,24 +60,26 @@
 }
 
 - (void)createMountDir:(KBCompletion)completion {
-  uid_t uid = getuid();
-  gid_t gid = getgid();
-  NSNumber *permissions = [NSNumber numberWithShort:0600];
   NSDictionary *params = @{@"directory": self.config.mountDir, @"uid": @(uid), @"gid": @(gid), @"permissions": permissions, @"excludeFromBackup": @(YES)};
-  DDLogDebug(@"Creating mount directory: %@", params);
-  // TODO: we don't need to call createDirectory through the helper.
-  [self.helperTool.helper sendRequest:@"createDirectory" params:@[params] completion:^(NSError *err, id value) {
-    if (err) {
-      completion(err);
-      return;
-    }
-  }];
+  DDLogDebug(@"Creating mount directory: %@", self.config.mountDir);
+
+  NSError *err = nil;
+  if (![NSFileManager.defaultManager createDirectoryAtPath:self.config.mountDir withIntermediateDirectories:NO attributes:nil error:&err]) {
+    completion(err);
+    return;
+  }
 
   NSString *link = [self.config rootMountSymlink]
+  uid_t uid = getuid();
+  gid_t gid = getgid();
   params = @{@"path": self.config.mountDir, @"linkPath": link, @"uid": @(uid), @"gid": @(gid)};
   [self.helperTool.helper sendRequest:@"createFirstLink" params:@[params] completion:^(NSError *err, id value) {
-    // Ignore the error, it will be common for everyone but the first user on a machine.  TODO: display something to the user if they don't get /keybase?
+    if (err) {
+      // Ignore the error, it will be common for everyone but the first user on a machine.  TODO: display something to the user if they don't get /keybase?
       DDLogDebug(@"Could not create mount link: %@", err);
+    } else {
+      DDLogDebug(@"Created link to mountpoint: %@", params);
+    }
   }];
   completion(nil);
 }
