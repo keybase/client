@@ -511,7 +511,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 				if teamUpdate.LegacyTLFUpgrade != nil {
 					ret, err = l.addKBFSCryptKeys(ctx, ret, teamUpdate.LegacyTLFUpgrade)
 					if err != nil {
-						return nil, fmt.Errorf("loading KBFS crypt kerys: %v", err)
+						return nil, fmt.Errorf("loading KBFS crypt keys: %v", err)
 					}
 				}
 			}

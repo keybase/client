@@ -594,7 +594,7 @@
           "jsonkey": "encrypted_keyset"
         },
         {
-          "type": "int",
+          "type": "PerTeamKeyGeneration",
           "name": "teamGeneration",
           "jsonkey": "team_generation"
         },
@@ -612,14 +612,20 @@
     },
     {
       "type": "record",
+      "name": "TeamEncryptedKBFSKeysetHash",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "TeamLegacyTLFUpgradeChainInfo",
       "fields": [
         {
-          "type": "string",
+          "type": "TeamEncryptedKBFSKeysetHash",
           "name": "keysetHash"
         },
         {
-          "type": "int",
+          "type": "PerTeamKeyGeneration",
           "name": "teamGeneration"
         },
         {

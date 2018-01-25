@@ -532,11 +532,11 @@ func (l *TeamLoader) checkProofs(ctx context.Context,
 }
 
 func (l *TeamLoader) unboxKBFSCryptKeys(ctx context.Context, key keybase1.TeamApplicationKey,
-	keysetHash string, encryptedKeyset string) ([]keybase1.CryptKey, error) {
+	keysetHash keybase1.TeamEncryptedKBFSKeysetHash, encryptedKeyset string) ([]keybase1.CryptKey, error) {
 
 	// Check hash
 	sbytes := sha256.Sum256([]byte(encryptedKeyset))
-	if hex.EncodeToString(sbytes[:]) != keysetHash {
+	if !keysetHash.SecureEqual(keybase1.TeamEncryptedKBFSKeysetHashFromString(hex.EncodeToString(sbytes[:]))) {
 		return nil, errors.New("encrypted TLF upgrade does not match sigchain hash")
 	}
 

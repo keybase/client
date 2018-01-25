@@ -775,32 +775,38 @@ func (o TeamEncryptedKBFSKeyset) DeepCopy() TeamEncryptedKBFSKeyset {
 }
 
 type TeamGetLegacyTLFUpgrade struct {
-	EncryptedKeyset  string          `codec:"encryptedKeyset" json:"encrypted_keyset"`
-	TeamGeneration   int             `codec:"teamGeneration" json:"team_generation"`
-	LegacyGeneration int             `codec:"legacyGeneration" json:"legacy_generation"`
-	AppType          TeamApplication `codec:"appType" json:"app_type"`
+	EncryptedKeyset  string               `codec:"encryptedKeyset" json:"encrypted_keyset"`
+	TeamGeneration   PerTeamKeyGeneration `codec:"teamGeneration" json:"team_generation"`
+	LegacyGeneration int                  `codec:"legacyGeneration" json:"legacy_generation"`
+	AppType          TeamApplication      `codec:"appType" json:"app_type"`
 }
 
 func (o TeamGetLegacyTLFUpgrade) DeepCopy() TeamGetLegacyTLFUpgrade {
 	return TeamGetLegacyTLFUpgrade{
 		EncryptedKeyset:  o.EncryptedKeyset,
-		TeamGeneration:   o.TeamGeneration,
+		TeamGeneration:   o.TeamGeneration.DeepCopy(),
 		LegacyGeneration: o.LegacyGeneration,
 		AppType:          o.AppType.DeepCopy(),
 	}
 }
 
+type TeamEncryptedKBFSKeysetHash string
+
+func (o TeamEncryptedKBFSKeysetHash) DeepCopy() TeamEncryptedKBFSKeysetHash {
+	return o
+}
+
 type TeamLegacyTLFUpgradeChainInfo struct {
-	KeysetHash       string          `codec:"keysetHash" json:"keysetHash"`
-	TeamGeneration   int             `codec:"teamGeneration" json:"teamGeneration"`
-	LegacyGeneration int             `codec:"legacyGeneration" json:"legacyGeneration"`
-	AppType          TeamApplication `codec:"appType" json:"appType"`
+	KeysetHash       TeamEncryptedKBFSKeysetHash `codec:"keysetHash" json:"keysetHash"`
+	TeamGeneration   PerTeamKeyGeneration        `codec:"teamGeneration" json:"teamGeneration"`
+	LegacyGeneration int                         `codec:"legacyGeneration" json:"legacyGeneration"`
+	AppType          TeamApplication             `codec:"appType" json:"appType"`
 }
 
 func (o TeamLegacyTLFUpgradeChainInfo) DeepCopy() TeamLegacyTLFUpgradeChainInfo {
 	return TeamLegacyTLFUpgradeChainInfo{
-		KeysetHash:       o.KeysetHash,
-		TeamGeneration:   o.TeamGeneration,
+		KeysetHash:       o.KeysetHash.DeepCopy(),
+		TeamGeneration:   o.TeamGeneration.DeepCopy(),
 		LegacyGeneration: o.LegacyGeneration,
 		AppType:          o.AppType.DeepCopy(),
 	}

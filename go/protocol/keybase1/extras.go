@@ -2159,3 +2159,19 @@ func RefNames(refs []GitRefMetadata) string {
 	}
 	return strings.Join(names, ", ")
 }
+
+func TeamEncryptedKBFSKeysetHashFromString(s string) TeamEncryptedKBFSKeysetHash {
+	return TeamEncryptedKBFSKeysetHash(s)
+}
+
+func (e TeamEncryptedKBFSKeysetHash) String() string {
+	return string(e)
+}
+
+func (e TeamEncryptedKBFSKeysetHash) Bytes() []byte {
+	return []byte(e.String())
+}
+
+func (e TeamEncryptedKBFSKeysetHash) SecureEqual(l TeamEncryptedKBFSKeysetHash) bool {
+	return hmac.Equal(e.Bytes(), l.Bytes())
+}

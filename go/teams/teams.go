@@ -1558,9 +1558,9 @@ func (t *Team) AssociateWithTLFKeyset(ctx context.Context, tlfID keybase1.TLFID,
 
 	upgrade := SCTeamKBFSLegacyUpgrade{
 		AppType:          appType,
-		KeysetHash:       hashStr,
+		KeysetHash:       keybase1.TeamEncryptedKBFSKeysetHashFromString(hashStr),
 		LegacyGeneration: cryptKeys[len(cryptKeys)-1].Generation(),
-		TeamGeneration:   latestKey.Generation(),
+		TeamGeneration:   latestKey.KeyGeneration,
 	}
 	teamSection := SCTeamSection{
 		ID:       SCTeamID(t.ID),
@@ -1588,7 +1588,7 @@ func (t *Team) AssociateWithTLFKeyset(ctx context.Context, tlfID keybase1.TLFID,
 		legacyTLFUpgrade: &keybase1.TeamGetLegacyTLFUpgrade{
 			EncryptedKeyset:  encStr,
 			LegacyGeneration: cryptKeys[len(cryptKeys)-1].Generation(),
-			TeamGeneration:   latestKey.Generation(),
+			TeamGeneration:   latestKey.KeyGeneration,
 			AppType:          appType,
 		},
 	})

@@ -214,16 +214,19 @@ protocol teams {
     @jsonkey("encrypted_keyset")
     string encryptedKeyset;
     @jsonkey("team_generation")
-    int teamGeneration;
+    PerTeamKeyGeneration teamGeneration;
     @jsonkey("legacy_generation")
     int legacyGeneration;
     @jsonkey("app_type")
     TeamApplication appType;
   }
 
+  @typedef("string")
+  record TeamEncryptedKBFSKeysetHash {}
+
   record TeamLegacyTLFUpgradeChainInfo {
-    string keysetHash;
-    int teamGeneration;
+    TeamEncryptedKBFSKeysetHash keysetHash;
+    PerTeamKeyGeneration teamGeneration;
     int legacyGeneration;
     TeamApplication appType;
   }

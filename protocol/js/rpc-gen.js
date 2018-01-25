@@ -3537,9 +3537,11 @@ export type TeamDetails = $ReadOnly<{members: TeamMembersDetails, keyGeneration:
 
 export type TeamEncryptedKBFSKeyset = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
 
+export type TeamEncryptedKBFSKeysetHash = String
+
 export type TeamExitRow = $ReadOnly<{id: TeamID}>
 
-export type TeamGetLegacyTLFUpgrade = $ReadOnly<{encryptedKeyset: String, teamGeneration: Int, legacyGeneration: Int, appType: TeamApplication}>
+export type TeamGetLegacyTLFUpgrade = $ReadOnly<{encryptedKeyset: String, teamGeneration: PerTeamKeyGeneration, legacyGeneration: Int, appType: TeamApplication}>
 
 export type TeamID = String
 
@@ -3569,7 +3571,7 @@ export type TeamInvitee = $ReadOnly<{inviteID: TeamInviteID, uid: UID, eldestSeq
 
 export type TeamJoinRequest = $ReadOnly<{name: String, username: String}>
 
-export type TeamLegacyTLFUpgradeChainInfo = $ReadOnly<{keysetHash: String, teamGeneration: Int, legacyGeneration: Int, appType: TeamApplication}>
+export type TeamLegacyTLFUpgradeChainInfo = $ReadOnly<{keysetHash: TeamEncryptedKBFSKeysetHash, teamGeneration: PerTeamKeyGeneration, legacyGeneration: Int, appType: TeamApplication}>
 
 export type TeamList = $ReadOnly<{teams?: ?Array<MemberInfo>}>
 
