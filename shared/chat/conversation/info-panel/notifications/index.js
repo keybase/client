@@ -2,8 +2,9 @@
 import * as React from 'react'
 import {Box, Checkbox, Icon, RadioButton, ProgressIndicator, Text} from '../../../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../../styles'
-import {type NotificationSaveState} from '../../../../constants/types/chat'
+// import {type NotificationSaveState} from '../../../../constants/types/chat'
 import type {Props} from '.'
+type NotificationSaveState = any
 
 const SaveStateComponents = (saveState: NotificationSaveState) => {
   switch (saveState) {
