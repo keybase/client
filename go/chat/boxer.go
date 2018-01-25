@@ -256,6 +256,20 @@ func (b *Boxer) checkInvariants(ctx context.Context, convID chat1.ConversationID
 		return NewPermanentUnboxingError(err)
 	}
 
+	// Check that message type on the client header matches the body
+	body := unboxed.MessageBody
+	if !body.IsNil() {
+		bodyTyp, err := body.MessageType()
+		if err != nil {
+			return NewPermanentUnboxingError(err)
+		}
+		if unboxed.ClientHeader.MessageType != bodyTyp {
+			err := fmt.Errorf("client header message type does not match body: %v(header) != %v(body)",
+				unboxed.ClientHeader.MessageType, bodyTyp)
+			return NewPermanentUnboxingError(err)
+		}
+	}
+
 	// Make sure the body hash is unique to this message, and then record it.
 	// This detects attempts by the server to replay a message. Right now we
 	// use a "first writer wins" rule here, though we could also consider a
