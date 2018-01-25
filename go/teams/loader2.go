@@ -1,12 +1,17 @@
 package teams
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
+	"errors"
 	"fmt"
 
+	"golang.org/x/crypto/nacl/secretbox"
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-codec/codec"
 )
 
 // loader2.go contains methods on TeamLoader.
@@ -522,6 +527,84 @@ func (l *TeamLoader) checkProofs(ctx context.Context,
 	// Because the team linkmap in the proof objects is stale.
 	proofSet.SetTeamLinkMap(ctx, state.Chain.Id, state.Chain.LinkIDs)
 	return proofSet.check(ctx, l.world)
+}
+
+func (l *TeamLoader) unboxKBFSCryptKeys(ctx context.Context, key keybase1.TeamApplicationKey,
+	keysetHash keybase1.TeamEncryptedKBFSKeysetHash, encryptedKeyset string) ([]keybase1.CryptKey, error) {
+
+	// Check hash
+	sbytes := sha256.Sum256([]byte(encryptedKeyset))
+	if !keysetHash.SecureEqual(keybase1.TeamEncryptedKBFSKeysetHashFromBytes(sbytes[:])) {
+		return nil, errors.New("encrypted TLF upgrade does not match sigchain hash")
+	}
+
+	// Decode
+	packed, err := base64.StdEncoding.DecodeString(encryptedKeyset)
+	if err != nil {
+		return nil, err
+	}
+	var keysetRecord keybase1.TeamEncryptedKBFSKeyset
+	mh := codec.MsgpackHandle{WriteExt: true}
+	decoder := codec.NewDecoderBytes(packed, &mh)
+	if err = decoder.Decode(&keysetRecord); err != nil {
+		return nil, err
+	}
+
+	// Decrypt
+	var encKey [libkb.NaclSecretBoxKeySize]byte = key.Material()
+	var nonce [libkb.NaclDHNonceSize]byte
+	if len(keysetRecord.N) != libkb.NaclDHNonceSize {
+		return nil, libkb.DecryptBadNonceError{}
+	}
+	copy(nonce[:], keysetRecord.N)
+	plain, ok := secretbox.Open(nil, keysetRecord.E, &nonce, (*[32]byte)(&encKey))
+	if !ok {
+		return nil, libkb.DecryptOpenError{}
+	}
+
+	// Decode again
+	var cryptKeys []keybase1.CryptKey
+	decoder = codec.NewDecoderBytes(plain, &mh)
+	if err = decoder.Decode(&cryptKeys); err != nil {
+		return nil, err
+	}
+
+	return cryptKeys, nil
+}
+
+func (l *TeamLoader) addKBFSCryptKeys(ctx context.Context, state *keybase1.TeamData,
+	upgrades []keybase1.TeamGetLegacyTLFUpgrade) (*keybase1.TeamData, error) {
+	m := make(map[keybase1.TeamApplication][]keybase1.CryptKey)
+	for _, upgrade := range upgrades {
+		key, err := ApplicationKeyAtGeneration(state, upgrade.AppType,
+			keybase1.PerTeamKeyGeneration(upgrade.TeamGeneration))
+		if err != nil {
+			return state, err
+		}
+
+		chainInfo, ok := state.Chain.TlfLegacyUpgrade[upgrade.AppType]
+		if !ok {
+			return state, errors.New("legacy tlf upgrade payload present without chain link")
+		}
+		if chainInfo.TeamGeneration != upgrade.TeamGeneration {
+			return state, fmt.Errorf("legacy tlf upgrade team generation mismatch: %d != %d",
+				chainInfo.TeamGeneration, upgrade.TeamGeneration)
+		}
+
+		cryptKeys, err := l.unboxKBFSCryptKeys(ctx, key, chainInfo.KeysetHash, upgrade.EncryptedKeyset)
+		if err != nil {
+			return state, err
+		}
+		if chainInfo.LegacyGeneration != cryptKeys[len(cryptKeys)-1].KeyGeneration {
+			return state, fmt.Errorf("legacy tlf upgrade legacy generation mismatch: %d != %d",
+				chainInfo.LegacyGeneration, cryptKeys[len(cryptKeys)-1].KeyGeneration)
+		}
+
+		m[upgrade.AppType] = cryptKeys
+	}
+	ret := state.DeepCopy()
+	ret.TlfCryptKeys = m
+	return &ret, nil
 }
 
 // Add data to the state that is not included in the sigchain:

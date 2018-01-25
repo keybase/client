@@ -354,12 +354,6 @@ func (t *TeamSigChainState) getLastSubteamPoint(id keybase1.TeamID) *keybase1.Su
 	return nil
 }
 
-func (t *TeamSigChainState) informKBFSSettings(s SCTeamKBFS) {
-	if s.TLF != nil {
-		t.inner.TlfID = s.TLF.ID
-	}
-}
-
 // Inform the SubteamLog of a subteam name change.
 // Links must be added in order by seqno for each subteam (asserted here).
 // Links for different subteams can interleave.
@@ -888,16 +882,17 @@ func (t *TeamSigChainPlayer) addInnerLink(
 					LastPart: teamName.LastPart(),
 					Seqno:    1,
 				}},
-				LastSeqno:       1,
-				LastLinkID:      link.LinkID().Export(),
-				ParentID:        nil,
-				UserLog:         make(map[keybase1.UserVersion][]keybase1.UserLogPoint),
-				SubteamLog:      make(map[keybase1.TeamID][]keybase1.SubteamLogPoint),
-				PerTeamKeys:     perTeamKeys,
-				LinkIDs:         make(map[keybase1.Seqno]keybase1.LinkID),
-				StubbedLinks:    make(map[keybase1.Seqno]bool),
-				ActiveInvites:   make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
-				ObsoleteInvites: make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
+				LastSeqno:        1,
+				LastLinkID:       link.LinkID().Export(),
+				ParentID:         nil,
+				UserLog:          make(map[keybase1.UserVersion][]keybase1.UserLogPoint),
+				SubteamLog:       make(map[keybase1.TeamID][]keybase1.SubteamLogPoint),
+				PerTeamKeys:      perTeamKeys,
+				LinkIDs:          make(map[keybase1.Seqno]keybase1.LinkID),
+				StubbedLinks:     make(map[keybase1.Seqno]bool),
+				ActiveInvites:    make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
+				ObsoleteInvites:  make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
+				TlfLegacyUpgrade: make(map[keybase1.TeamApplication]keybase1.TeamLegacyTLFUpgradeChainInfo),
 			}}
 
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
@@ -1568,9 +1563,8 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		}
 
 		res.newState = prevState.DeepCopy()
-		res.newState.informKBFSSettings(*team.KBFS)
-
-		return res, nil
+		err = t.parseKBFSTLFUpgrade(team.KBFS, &res.newState)
+		return res, err
 	case "":
 		return res, errors.New("empty body type")
 	default:
@@ -2076,5 +2070,20 @@ func (t *TeamSigChainPlayer) parseTeamSettings(settings *SCTeamSettings, newStat
 		}
 	}
 
+	return nil
+}
+
+func (t *TeamSigChainPlayer) parseKBFSTLFUpgrade(upgrade *SCTeamKBFS, newState *TeamSigChainState) error {
+	if upgrade.TLF != nil {
+		newState.inner.TlfID = upgrade.TLF.ID
+	}
+	if upgrade.Keyset != nil {
+		newState.inner.TlfLegacyUpgrade[upgrade.Keyset.AppType] = keybase1.TeamLegacyTLFUpgradeChainInfo{
+			KeysetHash:       upgrade.Keyset.KeysetHash,
+			TeamGeneration:   upgrade.Keyset.TeamGeneration,
+			LegacyGeneration: upgrade.Keyset.LegacyGeneration,
+			AppType:          upgrade.Keyset.AppType,
+		}
+	}
 	return nil
 }

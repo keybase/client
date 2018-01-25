@@ -430,6 +430,17 @@
         {
           "type": "Time",
           "name": "cachedAt"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": {
+              "type": "array",
+              "items": "CryptKey"
+            },
+            "keys": "TeamApplication"
+          },
+          "name": "tlfCryptKeys"
         }
       ]
     },
@@ -557,6 +568,78 @@
     },
     {
       "type": "record",
+      "name": "TeamEncryptedKBFSKeyset",
+      "fields": [
+        {
+          "type": "int",
+          "name": "v"
+        },
+        {
+          "type": "bytes",
+          "name": "e"
+        },
+        {
+          "type": "bytes",
+          "name": "n"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamGetLegacyTLFUpgrade",
+      "fields": [
+        {
+          "type": "string",
+          "name": "encryptedKeyset",
+          "jsonkey": "encrypted_keyset"
+        },
+        {
+          "type": "PerTeamKeyGeneration",
+          "name": "teamGeneration",
+          "jsonkey": "team_generation"
+        },
+        {
+          "type": "int",
+          "name": "legacyGeneration",
+          "jsonkey": "legacy_generation"
+        },
+        {
+          "type": "TeamApplication",
+          "name": "appType",
+          "jsonkey": "app_type"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamEncryptedKBFSKeysetHash",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "TeamLegacyTLFUpgradeChainInfo",
+      "fields": [
+        {
+          "type": "TeamEncryptedKBFSKeysetHash",
+          "name": "keysetHash"
+        },
+        {
+          "type": "PerTeamKeyGeneration",
+          "name": "teamGeneration"
+        },
+        {
+          "type": "int",
+          "name": "legacyGeneration"
+        },
+        {
+          "type": "TeamApplication",
+          "name": "appType"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TeamSigChainState",
       "fields": [
         {
@@ -678,6 +761,14 @@
         {
           "type": "TLFID",
           "name": "tlfID"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "TeamLegacyTLFUpgradeChainInfo",
+            "keys": "TeamApplication"
+          },
+          "name": "tlfLegacyUpgrade"
         }
       ]
     },

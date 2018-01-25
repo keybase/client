@@ -159,6 +159,9 @@ protocol teams {
 
     // Should only be used by TeamLoader (because it is mutable, not threadsafe to read)
     Time cachedAt;
+
+    // Associated TLF crypt keys
+    map<TeamApplication, array<CryptKey>> tlfCryptKeys;
   }
 
   enum TeamInviteCategory {
@@ -199,6 +202,33 @@ protocol teams {
     string inviterUsername;
     string teamName;
     boolean userActive;
+  }
+
+  record TeamEncryptedKBFSKeyset {
+    int v;
+    bytes e;
+    bytes n;
+  }
+
+  record TeamGetLegacyTLFUpgrade {
+    @jsonkey("encrypted_keyset")
+    string encryptedKeyset;
+    @jsonkey("team_generation")
+    PerTeamKeyGeneration teamGeneration;
+    @jsonkey("legacy_generation")
+    int legacyGeneration;
+    @jsonkey("app_type")
+    TeamApplication appType;
+  }
+
+  @typedef("string")
+  record TeamEncryptedKBFSKeysetHash {}
+
+  record TeamLegacyTLFUpgradeChainInfo {
+    TeamEncryptedKBFSKeysetHash keysetHash;
+    PerTeamKeyGeneration teamGeneration;
+    int legacyGeneration;
+    TeamApplication appType;
   }
 
   // State of a parsed team sigchain.
@@ -265,6 +295,10 @@ protocol teams {
     // here, and we are not concerned about historical associations that have been
     // overwritten (for now). An empty TLFID is given by an empty string.
     TLFID tlfID;
+
+    // Information about KBFS TLF crypt keys for the TLF associated with this team. The latest
+    // link per app type is what shows up here.
+    map<TeamApplication, TeamLegacyTLFUpgradeChainInfo> tlfLegacyUpgrade;
   }
 
   // The team got this name at this point in time.
