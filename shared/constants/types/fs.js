@@ -4,16 +4,16 @@ import * as I from 'immutable'
 export opaque type Path = ?string
 export type PathType = 'folder' | 'file' | 'symlink' | 'exec'
 export type _PathItem = | {
-  type: 'file',
+  type: 'file' | 'exec' | 'symlink',
 } | {
-  type: 'folder' | 'symlink' | 'exec',
+  type: 'folder',
   children: I.List<string>,
 }
 type PathItem = I.RecordOf<_PathItem>
+type PathItems = I.Map<Path, PathItem>
 
 export type _State = {
-  path: Path,
-  pathItems: I.Map<Path, PathItem>,
+  pathItems: PathItems,
 }
 export type State = I.RecordOf<_State>
 

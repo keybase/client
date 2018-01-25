@@ -4,6 +4,7 @@ import * as Types from '../constants/types/fs'
 import {globalStyles, globalColors, globalMargins, isMobile} from '../styles'
 import {Box, BackButton, Button, ClickableBox, Icon, List, Text} from '../common-adapters'
 import {type IconType} from '../common-adapters/icon'
+import {RowConnector} from './row'
 
 const stylesCommonCore = {
   alignItems: 'center',
@@ -25,11 +26,6 @@ const stylesContainer = {
   flex: 1,
 }
 
-const iconTypes : IconType = {
-  folder: isMobile ? 'icon-folder-private-24' : 'icon-folder-private-24',
-  file: isMobile ? 'icon-file-24' : 'icon-file-24',
-}
-
 type FolderHeaderProps = {
   title: string,
 }
@@ -38,8 +34,8 @@ type FileRowProps = {
   name: string,
   path: Types.Path,
   type: Types.PathType,
-  onViewFolder: (p: Path) => void,
-  onViewFile: (p: Path) => void,
+  icon: IconType,
+  onOpen: () => void,
 }
 
 type FolderProps = {
@@ -47,8 +43,6 @@ type FolderProps = {
   path: Types.Path,
   visibility: Types.Visibility,
   items: Array<string>,
-  onViewFolder: (p: Path) => void,
-  onViewFile: (p: Path) => void,
 }
 
 const FolderBoxStyle = {...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'stretch'}
@@ -68,10 +62,10 @@ const FolderHeader = ({title}: FolderHeaderProps) => (
   </Box>
 )
 
-const FileRow = ({name, path, type, onViewFolder, onViewFile}: FileRowProps) => (
-  <ClickableBox key={name} onClick={type === 'folder' ? onViewFolder(path) : onViewFile(path)} style={{...stylesCommonRow}}>
+const FileRow = RowConnector(({path, name, icon, onOpen}: FileRowProps) => (
+  <ClickableBox onClick={onOpen} style={{...stylesCommonRow}}>
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
-      <Icon type={iconTypes[type]} style={{marginRight: globalMargins.small}} />
+      <Icon type={icon} style={{marginRight: globalMargins.small}} />
       <Box style={FolderBoxStyle}>
         <Text type="Body">
           {name}
@@ -79,31 +73,24 @@ const FileRow = ({name, path, type, onViewFolder, onViewFile}: FileRowProps) => 
       </Box>
     </Box>
   </ClickableBox>
-)
+))
 
-export class Files extends React.PureComponent<FolderProps> {
-  _renderRow = (index, item) => (
-    <FileRow name={item.name} path={item.path} type={item.type} onViewFolder={this.props.onViewFolder} onViewFile={this.props.onViewFile} />
-  )
-
-  render() {
-    return (
-      <Box style={styleOuterContainer}>
-        <Box style={stylesContainer}>
-          {this.props.onBack && this.props.path !== '/keybase' && (
-            <Box style={globalStyles.flexBoxColumn}>
-                <BackButton
-                  onClick={this.props.onBack}
-                  style={{position:'absolute', left: 16, top: 16}}
-                />
-            </Box>
-          )}
-          <FolderHeader title={"Folders: " + this.props.path} />
-          <List items={this.props.items} renderItem={this._renderRow} />
+const Files = ({path, items, onBack}: FolderProps) => (
+  <Box style={styleOuterContainer}>
+    <Box style={stylesContainer}>
+      {onBack && path !== '/keybase' && (
+        <Box style={globalStyles.flexBoxColumn}>
+            <BackButton
+              onClick={onBack}
+              style={{position:'absolute', left: 16, top: 16}}
+            />
         </Box>
-      </Box>
-    )
-  }
-}
+      )}
+      <FolderHeader title={"Folders: " + path} />
+      <List items={items}
+        renderItem={(index, item) => (<FileRow key={item} path={item} />)} />
+    </Box>
+  </Box>
+)
 
 export default Files
