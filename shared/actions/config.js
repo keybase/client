@@ -251,8 +251,8 @@ function* _loadAvatars(action: ConfigGen.LoadAvatarsPayload) {
   while (_avatarsToLoad.size > 0) {
     yield Saga.call(Saga.delay, 200)
 
-    const names = _avatarsToLoad.take(maxAvatarsPerLoad).toArray()
-    _avatarsToLoad = _avatarsToLoad.skip(maxAvatarsPerLoad)
+    const names = _avatarsToLoad.takeLast(maxAvatarsPerLoad).toArray()
+    _avatarsToLoad = _avatarsToLoad.skipLast(maxAvatarsPerLoad)
 
     if (names.length) {
       yield Saga.put({
@@ -272,8 +272,8 @@ function* _loadTeamAvatars(action: ConfigGen.LoadTeamAvatarsPayload) {
     // store it and wait, once our timer is up we pull any and run it
     yield Saga.call(Saga.delay, 200)
 
-    const names = _teamAvatarsToLoad.take(maxAvatarsPerLoad).toArray()
-    _teamAvatarsToLoad = _teamAvatarsToLoad.skip(maxAvatarsPerLoad)
+    const names = _teamAvatarsToLoad.takeLast(maxAvatarsPerLoad).toArray()
+    _teamAvatarsToLoad = _teamAvatarsToLoad.skipLast(maxAvatarsPerLoad)
 
     if (names.length) {
       yield Saga.put({

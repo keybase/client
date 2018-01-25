@@ -434,7 +434,7 @@ class Profile extends Component<Props, State> {
           stickySectionHeadersEnabled={true}
           style={{...globalStyles.fullHeight, backgroundColor: trackerStateColors.header.background}}
           ref={this._setRef}
-          initialNumToRender={2}
+          initialNumToRender={0}
           renderSectionHeader={this._renderSections}
           keyExtractor={this._keyExtractor}
           forceRenderProofs={this.props.proofs}

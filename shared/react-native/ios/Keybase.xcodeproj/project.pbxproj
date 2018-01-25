@@ -24,8 +24,8 @@
 		DB2BD1EA1DE7D9A600BB7989 /* libRCTPushNotification.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1CF1DE7D97900BB7989 /* libRCTPushNotification.a */; };
 		DB2BD1EB1DE7D9A600BB7989 /* libRCTSettings.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1D31DE7D97900BB7989 /* libRCTSettings.a */; };
 		DB2BD1EC1DE7D9A600BB7989 /* libRCTText.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1D91DE7D97900BB7989 /* libRCTText.a */; };
-		DB2BD1EE1DE7D9A600BB7989 /* libRCTWebSocket.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1E21DE7D97900BB7989 /* libRCTWebSocket.a */; };
 		DB2BD1EF1DE7D9A600BB7989 /* libReact.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1841DE7D81C00BB7989 /* libReact.a */; };
+		DB37D1FF201A365F00B713E9 /* libRCTWebSocket.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1E21DE7D97900BB7989 /* libRCTWebSocket.a */; };
 		DB6D0B961E5B9ED200410F3C /* libRCTAnimation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB6D0B7A1E5B9EB400410F3C /* libRCTAnimation.a */; };
 		DB7538FD1D776CC400AFA61B /* Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = DB27DE561D747A6C003DE8BC /* Utils.m */; };
 		DB75391B1D776CC400AFA61B /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0044E59C1BCD7CEA008EF7EE /* LaunchScreen.storyboard */; };
@@ -452,6 +452,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DB37D1FF201A365F00B713E9 /* libRCTWebSocket.a in Frameworks */,
 				DBEE30D91FE8551E0020EBA5 /* libRCTContacts.a in Frameworks */,
 				DBEE30D81FE855170020EBA5 /* libRNFetchBlob.a in Frameworks */,
 				DBEE30D71FE8550C0020EBA5 /* libRNImagePicker.a in Frameworks */,
@@ -465,7 +466,6 @@
 				DB2BD1EA1DE7D9A600BB7989 /* libRCTPushNotification.a in Frameworks */,
 				DB2BD1EB1DE7D9A600BB7989 /* libRCTSettings.a in Frameworks */,
 				DB2BD1EC1DE7D9A600BB7989 /* libRCTText.a in Frameworks */,
-				DB2BD1EE1DE7D9A600BB7989 /* libRCTWebSocket.a in Frameworks */,
 				DB2BD1EF1DE7D9A600BB7989 /* libReact.a in Frameworks */,
 				DB0846051BA75DC800F54960 /* keybase.framework in Frameworks */,
 				A9BB30DF1E6A274900E713E5 /* libRCTCameraRoll.a in Frameworks */,

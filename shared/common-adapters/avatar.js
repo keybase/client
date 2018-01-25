@@ -178,7 +178,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     isPlaceholder = false
   }
 
-  if (!url) {
+  if (!url && !stateProps._needAskForData) {
     const placeholder = isTeam ? teamPlaceHolders : avatarPlaceHolders
     url = iconTypeToImgSet(placeholder[String(ownProps.size)], ownProps.size)
     isPlaceholder = true
