@@ -40,6 +40,7 @@ class List extends PureComponent<Props<*>, void> {
             data={this.props.items}
             getItemLayout={this.props.fixedHeight ? this._getItemLayout : undefined}
             keyExtractor={this._keyExtractor}
+            keyboardShouldPersistTaps={this.props.keyboardShouldPersistTaps}
           />
         </View>
       </View>
