@@ -25,34 +25,32 @@ const serverStateToProps = (notifications: Types.NotificationsState, type: 'desk
   return 'never'
 }
 
-type StateProps = {
-  // Set only when the state has a selected conversation, inbox, and
-  // notifications object.
-  _props?: {
-    channelWide: boolean,
-    conversationIDKey: string,
-    desktop: Types.NotifyType,
-    mobile: Types.NotifyType,
-    muted: boolean,
-    saveState: Types.NotificationSaveState,
-  },
+type _StateProps = {
+  channelWide: boolean,
+  conversationIDKey: string,
+  desktop: Types.NotifyType,
+  mobile: Types.NotifyType,
+  muted: boolean,
+  saveState: Types.NotificationSaveState,
 }
+
+type StateProps = _StateProps | {conversationIDKey: void}
 
 const mapStateToProps = (state: TypedState): StateProps => {
   const conversationIDKey = Constants.getSelectedConversation(state)
   if (!conversationIDKey) {
     logger.warn('no selected conversation')
-    return {}
+    return {conversationIDKey: undefined}
   }
   const inbox = Constants.getSelectedInbox(state)
   if (!inbox) {
     logger.warn('no selected inbox')
-    return {}
+    return {conversationIDKey: undefined}
   }
   const notifications = inbox.get('notifications')
   if (!notifications) {
     logger.warn('no notifications')
-    return {}
+    return {conversationIDKey: undefined}
   }
   const desktop = serverStateToProps(notifications, 'desktop')
   const mobile = serverStateToProps(notifications, 'mobile')
@@ -60,16 +58,14 @@ const mapStateToProps = (state: TypedState): StateProps => {
   const {channelWide} = notifications
   const saveState = inbox.get('notificationSaveState')
 
-  return {
-    _props: {
-      channelWide,
-      conversationIDKey,
-      desktop,
-      mobile,
-      muted,
-      saveState,
-    },
-  }
+  return ({
+    channelWide,
+    conversationIDKey,
+    desktop,
+    mobile,
+    muted,
+    saveState,
+  }: _StateProps)
 }
 
 type DispatchProps = {
@@ -106,27 +102,27 @@ type _Props = {
 }
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): _Props => {
-  if (stateProps._props) {
-    const props = stateProps._props
+  if (stateProps.conversationIDKey) {
+    const convKey = stateProps.conversationIDKey
     return {
       _props: {
-        _resetSaveState: () => dispatchProps._resetSaveState(props.conversationIDKey),
-        channelWide: props.channelWide,
-        desktop: props.desktop,
-        mobile: props.mobile,
-        muted: props.muted,
-        saveState: props.saveState,
+        _resetSaveState: () => dispatchProps._resetSaveState(convKey),
+        channelWide: stateProps.channelWide,
+        desktop: stateProps.desktop,
+        mobile: stateProps.mobile,
+        muted: stateProps.muted,
+        saveState: stateProps.saveState,
         onMuteConversation: (muted: boolean) => {
-          dispatchProps._onMuteConversation(props.conversationIDKey, muted)
+          dispatchProps._onMuteConversation(convKey, muted)
         },
         onSetDesktop: (notifyType: Types.NotifyType) => {
-          dispatchProps._onSetNotification(props.conversationIDKey, 'desktop', notifyType)
+          dispatchProps._onSetNotification(convKey, 'desktop', notifyType)
         },
         onSetMobile: (notifyType: Types.NotifyType) => {
-          dispatchProps._onSetNotification(props.conversationIDKey, 'mobile', notifyType)
+          dispatchProps._onSetNotification(convKey, 'mobile', notifyType)
         },
         onToggleChannelWide: () => {
-          dispatchProps._onToggleChannelWide(props.conversationIDKey)
+          dispatchProps._onToggleChannelWide(convKey)
         },
       },
     }
