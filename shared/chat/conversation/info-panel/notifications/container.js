@@ -34,6 +34,7 @@ type _StateProps = {
   saveState: Types.NotificationSaveState,
 }
 
+// Use conversationIDKey as a signal for whether StateProps is empty.
 type StateProps = _StateProps | {conversationIDKey: void}
 
 const mapStateToProps = (state: TypedState): StateProps => {
@@ -94,6 +95,7 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
     dispatch(ChatGen.createToggleChannelWideNotifications({conversationIDKey})),
 })
 
+// Use _resetSaveState as a signal for whether StateProps is empty.
 type _Props =
   | (Props & {
       _resetSaveState: () => void,
@@ -101,30 +103,30 @@ type _Props =
   | {_resetSaveState: void}
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): _Props => {
-  if (stateProps.conversationIDKey) {
-    const convKey = stateProps.conversationIDKey
-    return {
-      _resetSaveState: () => dispatchProps._resetSaveState(convKey),
-      channelWide: stateProps.channelWide,
-      desktop: stateProps.desktop,
-      mobile: stateProps.mobile,
-      muted: stateProps.muted,
-      saveState: stateProps.saveState,
-      onMuteConversation: (muted: boolean) => {
-        dispatchProps._onMuteConversation(convKey, muted)
-      },
-      onSetDesktop: (notifyType: Types.NotifyType) => {
-        dispatchProps._onSetNotification(convKey, 'desktop', notifyType)
-      },
-      onSetMobile: (notifyType: Types.NotifyType) => {
-        dispatchProps._onSetNotification(convKey, 'mobile', notifyType)
-      },
-      onToggleChannelWide: () => {
-        dispatchProps._onToggleChannelWide(convKey)
-      },
-    }
-  } else {
+  if (!stateProps.conversationIDKey) {
     return {_resetSaveState: undefined}
+  }
+
+  const convKey = stateProps.conversationIDKey
+  return {
+    _resetSaveState: () => dispatchProps._resetSaveState(convKey),
+    channelWide: stateProps.channelWide,
+    desktop: stateProps.desktop,
+    mobile: stateProps.mobile,
+    muted: stateProps.muted,
+    saveState: stateProps.saveState,
+    onMuteConversation: (muted: boolean) => {
+      dispatchProps._onMuteConversation(convKey, muted)
+    },
+    onSetDesktop: (notifyType: Types.NotifyType) => {
+      dispatchProps._onSetNotification(convKey, 'desktop', notifyType)
+    },
+    onSetMobile: (notifyType: Types.NotifyType) => {
+      dispatchProps._onSetNotification(convKey, 'mobile', notifyType)
+    },
+    onToggleChannelWide: () => {
+      dispatchProps._onToggleChannelWide(convKey)
+    },
   }
 }
 
