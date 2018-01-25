@@ -94,58 +94,55 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
     dispatch(ChatGen.createToggleChannelWideNotifications({conversationIDKey})),
 })
 
-type _Props = {
-  // Set only when stateProps has _props set.
-  _props?: Props & {
-    _resetSaveState: () => void,
-  },
-}
+type _Props =
+  | (Props & {
+      _resetSaveState: () => void,
+    })
+  | {_resetSaveState: void}
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): _Props => {
   if (stateProps.conversationIDKey) {
     const convKey = stateProps.conversationIDKey
     return {
-      _props: {
-        _resetSaveState: () => dispatchProps._resetSaveState(convKey),
-        channelWide: stateProps.channelWide,
-        desktop: stateProps.desktop,
-        mobile: stateProps.mobile,
-        muted: stateProps.muted,
-        saveState: stateProps.saveState,
-        onMuteConversation: (muted: boolean) => {
-          dispatchProps._onMuteConversation(convKey, muted)
-        },
-        onSetDesktop: (notifyType: Types.NotifyType) => {
-          dispatchProps._onSetNotification(convKey, 'desktop', notifyType)
-        },
-        onSetMobile: (notifyType: Types.NotifyType) => {
-          dispatchProps._onSetNotification(convKey, 'mobile', notifyType)
-        },
-        onToggleChannelWide: () => {
-          dispatchProps._onToggleChannelWide(convKey)
-        },
+      _resetSaveState: () => dispatchProps._resetSaveState(convKey),
+      channelWide: stateProps.channelWide,
+      desktop: stateProps.desktop,
+      mobile: stateProps.mobile,
+      muted: stateProps.muted,
+      saveState: stateProps.saveState,
+      onMuteConversation: (muted: boolean) => {
+        dispatchProps._onMuteConversation(convKey, muted)
+      },
+      onSetDesktop: (notifyType: Types.NotifyType) => {
+        dispatchProps._onSetNotification(convKey, 'desktop', notifyType)
+      },
+      onSetMobile: (notifyType: Types.NotifyType) => {
+        dispatchProps._onSetNotification(convKey, 'mobile', notifyType)
+      },
+      onToggleChannelWide: () => {
+        dispatchProps._onToggleChannelWide(convKey)
       },
     }
   } else {
-    return {}
+    return {_resetSaveState: undefined}
   }
 }
 
 class _Notifications extends React.PureComponent<_Props> {
   componentDidMount() {
-    if (!this.props._props) {
+    if (!this.props._resetSaveState) {
       return
     }
 
-    this.props._props._resetSaveState()
+    this.props._resetSaveState()
   }
 
   render() {
-    if (!this.props._props) {
+    if (!this.props._resetSaveState) {
       return null
     }
 
-    return <Notifications {...this.props._props} />
+    return <Notifications {...this.props} />
   }
 }
 
