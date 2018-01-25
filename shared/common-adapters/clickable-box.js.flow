@@ -3,13 +3,13 @@ import React, {Component} from 'react'
 
 export type Props = {
   className?: ?string,
-  hoverColor?: any,
+  hoverColor?: ?string,
   children?: any,
   style?: ?Object,
   onClick?: ?(event: SyntheticEvent<>) => void,
   onPress?: void,
   onLongPress?: ?(event: SyntheticEvent<>) => void,
-  underlayColor?: any,
+  underlayColor?: ?string,
   onPressIn?: ?() => void,
   onPressOut?: ?() => void,
   feedback?: boolean,
