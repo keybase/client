@@ -1,13 +1,11 @@
 // @flow
 import React from 'react'
 import * as C from '../../constants/people'
-import {Provider} from 'react-redux'
-import {createStore} from 'redux'
-import {action, storiesOf} from '../../stories/storybook'
+import {action, storiesOf, createPropProvider} from '../../stories/storybook'
 import FollowNotification, {type Props} from '.'
 import moment from 'moment'
 
-const store = {
+const provider = createPropProvider({
   Usernames: props => {
     const {usernames} = props
     const users = usernames.map(username => ({
@@ -21,7 +19,7 @@ const store = {
       onUsernameClicked: action('onUsernameClicked'),
     }
   },
-}
+})
 
 const singleFollowProps1: Props = {
   type: 'notification',
@@ -74,7 +72,7 @@ const multiFollowProps2: Props = {
 
 const load = () => {
   storiesOf('People/Follow notification', module)
-    .addDecorator(story => <Provider store={createStore(ignore => store, store)}>{story()}</Provider>)
+    .addDecorator(provider)
     .add('Someone followed you', () => <FollowNotification {...singleFollowProps1} />)
     .add('Someone you follow followed you', () => <FollowNotification {...singleFollowProps2} />)
     .add('A few people followed you', () => <FollowNotification {...multiFollowProps1} />)
