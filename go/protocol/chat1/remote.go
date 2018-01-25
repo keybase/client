@@ -921,6 +921,10 @@ type SetTeamRetentionArg struct {
 	Policy RetentionPolicy `codec:"policy" json:"policy"`
 }
 
+type UpgradeKBFSToImpteamArg struct {
+	TlfID TLFID `codec:"tlfID" json:"tlfID"`
+}
+
 type RemoteInterface interface {
 	GetInboxRemote(context.Context, GetInboxRemoteArg) (GetInboxRemoteRes, error)
 	GetThreadRemote(context.Context, GetThreadRemoteArg) (GetThreadRemoteRes, error)
@@ -955,6 +959,7 @@ type RemoteInterface interface {
 	RemoteNotificationSuccessful(context.Context, RemoteNotificationSuccessfulArg) error
 	SetConvRetention(context.Context, SetConvRetentionArg) (SetRetentionRes, error)
 	SetTeamRetention(context.Context, SetTeamRetentionArg) (SetRetentionRes, error)
+	UpgradeKBFSToImpteam(context.Context, TLFID) error
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -1484,6 +1489,22 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"upgradeKBFSToImpteam": {
+				MakeArg: func() interface{} {
+					ret := make([]UpgradeKBFSToImpteamArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]UpgradeKBFSToImpteamArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]UpgradeKBFSToImpteamArg)(nil), args)
+						return
+					}
+					err = i.UpgradeKBFSToImpteam(ctx, (*typedArgs)[0].TlfID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -1665,5 +1686,11 @@ func (c RemoteClient) SetConvRetention(ctx context.Context, __arg SetConvRetenti
 
 func (c RemoteClient) SetTeamRetention(ctx context.Context, __arg SetTeamRetentionArg) (res SetRetentionRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.remote.setTeamRetention", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) UpgradeKBFSToImpteam(ctx context.Context, tlfID TLFID) (err error) {
+	__arg := UpgradeKBFSToImpteamArg{TlfID: tlfID}
+	err = c.Cli.Call(ctx, "chat.1.remote.upgradeKBFSToImpteam", []interface{}{__arg}, nil)
 	return
 }

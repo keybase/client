@@ -25,7 +25,7 @@ const serverStateToProps = (notifications: Types.NotificationsState, type: 'desk
   return 'never'
 }
 
-const mapStateToProps = (state: TypedState): * => {
+const mapStateToProps = (state: TypedState): StateProps => {
   const conversationIDKey = Constants.getSelectedConversation(state)
   if (!conversationIDKey) {
     logger.warn('no selected conversation')
@@ -43,20 +43,26 @@ const mapStateToProps = (state: TypedState): * => {
   }
   const desktop = serverStateToProps(notifications, 'desktop')
   const mobile = serverStateToProps(notifications, 'mobile')
+  const muted = Constants.getMuted(state)
   const {channelWide} = notifications
+  const saveState = inbox.get('notificationSaveState')
 
   return {
     channelWide,
     conversationIDKey,
     desktop,
     mobile,
-    saveState: inbox.get('notificationSaveState'),
+    muted,
+    saveState,
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _resetNotificationSaveState: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(ChatGen.createSetNotificationSaveState({conversationIDKey, saveState: 'unsaved'})),
+  _onMuteConversation: (conversationIDKey: Types.ConversationIDKey, muted: boolean) => {
+    dispatch(ChatGen.createMuteConversation({conversationIDKey, muted}))
+  },
   onSetNotification: (
     conversationIDKey: Types.ConversationIDKey,
     deviceType: DeviceType,
@@ -75,7 +81,11 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
       channelWide: stateProps.channelWide,
       desktop: stateProps.desktop,
       mobile: stateProps.mobile,
+      muted: stateProps.muted,
       saveState: stateProps.saveState,
+      onMuteConversation: !Constants.isPendingConversationIDKey(conversationIDKey)
+        ? (muted: boolean) => conversationIDKey && dispatchProps._onMuteConversation(conversationIDKey, muted)
+        : null,
       onSetDesktop: (notifyType: Types.NotifyType) => {
         dispatchProps.onSetNotification(conversationIDKey, 'desktop', notifyType)
       },

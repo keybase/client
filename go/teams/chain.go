@@ -156,7 +156,7 @@ func (t TeamSigChainState) assertBecameAdminAt(uv keybase1.UserVersion, scl keyb
 				return ret, NewAdminPermissionError(t.GetID(), uv, "not admin permission")
 			}
 			ret.left = newProofTerm(t.GetID().AsUserOrTeam(), point.SigMeta, linkMap)
-			r := findAdminDowngrade(points[(i + 1):])
+			r := findRoleDowngrade(points[(i+1):], keybase1.TeamRole_ADMIN)
 			if r != nil {
 				tmp := newProofTerm(t.GetID().AsUserOrTeam(), *r, linkMap)
 				ret.right = &tmp
@@ -167,68 +167,55 @@ func (t TeamSigChainState) assertBecameAdminAt(uv keybase1.UserVersion, scl keyb
 	return ret, NewAdminPermissionError(t.GetID(), uv, "not found")
 }
 
-func findAdminDowngrade(points []keybase1.UserLogPoint) *keybase1.SignatureMetadata {
+// Find a point where the role is taken away.
+func findRoleDowngrade(points []keybase1.UserLogPoint, role keybase1.TeamRole) *keybase1.SignatureMetadata {
 	for _, p := range points {
-		if !p.Role.IsAdminOrAbove() {
+		if !p.Role.IsOrAbove(role) {
 			return &p.SigMeta
 		}
 	}
 	return nil
 }
 
-func findReaderDowngrade(points []keybase1.UserLogPoint) *keybase1.SignatureMetadata {
-	for _, p := range points {
-		if !p.Role.IsReaderOrAbove() {
-			return &p.SigMeta
+// AssertWasRoleOrAboveAt asserts that user `uv` had `role` or above on the
+// team at the given SigChainLocation `scl`.
+// We start at the point given, go backwards until we find a promotion,
+// then go forwards to make sure there wasn't a demotion before the specified time.
+// If there was, return a PermissionError. If no adminship was found at all, return a PermissionError.
+func (t TeamSigChainState) AssertWasRoleOrAboveAt(uv keybase1.UserVersion,
+	role keybase1.TeamRole, scl keybase1.SigChainLocation) (err error) {
+	mkErr := func(msg string) error {
+		if role.IsOrAbove(keybase1.TeamRole_ADMIN) {
+			return NewAdminPermissionError(t.GetID(), uv, msg)
+		}
+		return NewPermissionError(t.GetID(), uv, msg)
+	}
+	points := t.inner.UserLog[uv]
+	for i := len(points) - 1; i >= 0; i-- {
+		point := points[i]
+		if point.SigMeta.SigChainLocation.LessThanOrEqualTo(scl) && point.Role.IsOrAbove(role) {
+			// OK great, we found a point with the role in the log that's less than or equal to the given one.
+			// But now we reverse and go forward, and check that it wasn't revoked or downgraded.
+			// If so, that's a problem!
+			if right := findRoleDowngrade(points[(i+1):], role); right != nil && right.SigChainLocation.LessThanOrEqualTo(scl) {
+				return mkErr(fmt.Sprintf("%v permission was downgraded too soon!", role))
+			}
+			return nil
 		}
 	}
-	return nil
+	return mkErr("not found")
 }
 
-// AssertWasReaderAt asserts that user (uv) was a reader or above at the team at the given
-// SigChainLocation (scl). Thus, we start at the point given, go backwards until we find a promotion,
-// the go forwards to make sure there wasn't a demotion before the specified time. If there
-// was, we return a PermissionError. If no adminship was found at all, we return a PermissionError.
-// NOTE: This is a copy-pasta of AssertWasAdminAt, but I became sad about having to factor out
-// the commonality, so decided copy-paste was easiest.
 func (t TeamSigChainState) AssertWasReaderAt(uv keybase1.UserVersion, scl keybase1.SigChainLocation) (err error) {
-	points := t.inner.UserLog[uv]
-	for i := len(points) - 1; i >= 0; i-- {
-		point := points[i]
-		// OK great, we found an admin point in the log that's less than or equal to the
-		// given one
-		if point.SigMeta.SigChainLocation.LessThanOrEqualTo(scl) && point.Role.IsReaderOrAbove() {
-			// But now we reverse and go forward, and check that it wasn't revoked or downgraded.
-			// If so, that's a problem!
-			if right := findReaderDowngrade(points[(i + 1):]); right != nil && right.SigChainLocation.LessThanOrEqualTo(scl) {
-				return NewPermissionError(t.GetID(), uv, "permission was downgraded too soon!")
-			}
-			return nil
-		}
-	}
-	return NewPermissionError(t.GetID(), uv, "not found")
+	return t.AssertWasRoleOrAboveAt(uv, keybase1.TeamRole_READER, scl)
 }
 
-// AssertWasAdminAt asserts that user (uv) was an admin (or owner) at the team at the given
-// SigChainLocation (scl). Thus, we start at the point given, go backwards until we find a promotion,
-// the go forwards to make sure there wasn't a demotion before the specified time. If there
-// was, we return an AdminPermissionError. If no adminship was found at all, we return a AdminPermissionError.
+func (t TeamSigChainState) AssertWasWriterAt(uv keybase1.UserVersion, scl keybase1.SigChainLocation) (err error) {
+	return t.AssertWasRoleOrAboveAt(uv, keybase1.TeamRole_WRITER, scl)
+}
+
 func (t TeamSigChainState) AssertWasAdminAt(uv keybase1.UserVersion, scl keybase1.SigChainLocation) (err error) {
-	points := t.inner.UserLog[uv]
-	for i := len(points) - 1; i >= 0; i-- {
-		point := points[i]
-		// OK great, we found an admin point in the log that's less than or equal to the
-		// given one
-		if point.SigMeta.SigChainLocation.LessThanOrEqualTo(scl) && point.Role.IsAdminOrAbove() {
-			// But now we reverse and go forward, and check that it wasn't revoked or downgraded.
-			// If so, that's a problem!
-			if right := findAdminDowngrade(points[(i + 1):]); right != nil && right.SigChainLocation.LessThanOrEqualTo(scl) {
-				return NewAdminPermissionError(t.GetID(), uv, "admin permission was downgraded too soon!")
-			}
-			return nil
-		}
-	}
-	return NewAdminPermissionError(t.GetID(), uv, "not found")
+	return t.AssertWasRoleOrAboveAt(uv, keybase1.TeamRole_ADMIN, scl)
 }
 
 func (t TeamSigChainState) GetUsersWithRole(role keybase1.TeamRole) (res []keybase1.UserVersion, err error) {
@@ -365,12 +352,6 @@ func (t *TeamSigChainState) getLastSubteamPoint(id keybase1.TeamID) *keybase1.Su
 		return &t.inner.SubteamLog[id][len(t.inner.SubteamLog[id])-1]
 	}
 	return nil
-}
-
-func (t *TeamSigChainState) informKBFSSettings(s SCTeamKBFS) {
-	if s.TLF != nil {
-		t.inner.TlfID = s.TLF.ID
-	}
 }
 
 // Inform the SubteamLog of a subteam name change.
@@ -901,16 +882,17 @@ func (t *TeamSigChainPlayer) addInnerLink(
 					LastPart: teamName.LastPart(),
 					Seqno:    1,
 				}},
-				LastSeqno:       1,
-				LastLinkID:      link.LinkID().Export(),
-				ParentID:        nil,
-				UserLog:         make(map[keybase1.UserVersion][]keybase1.UserLogPoint),
-				SubteamLog:      make(map[keybase1.TeamID][]keybase1.SubteamLogPoint),
-				PerTeamKeys:     perTeamKeys,
-				LinkIDs:         make(map[keybase1.Seqno]keybase1.LinkID),
-				StubbedLinks:    make(map[keybase1.Seqno]bool),
-				ActiveInvites:   make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
-				ObsoleteInvites: make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
+				LastSeqno:        1,
+				LastLinkID:       link.LinkID().Export(),
+				ParentID:         nil,
+				UserLog:          make(map[keybase1.UserVersion][]keybase1.UserLogPoint),
+				SubteamLog:       make(map[keybase1.TeamID][]keybase1.SubteamLogPoint),
+				PerTeamKeys:      perTeamKeys,
+				LinkIDs:          make(map[keybase1.Seqno]keybase1.LinkID),
+				StubbedLinks:     make(map[keybase1.Seqno]bool),
+				ActiveInvites:    make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
+				ObsoleteInvites:  make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
+				TlfLegacyUpgrade: make(map[keybase1.TeamApplication]keybase1.TeamLegacyTLFUpgradeChainInfo),
 			}}
 
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
@@ -1581,9 +1563,8 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		}
 
 		res.newState = prevState.DeepCopy()
-		res.newState.informKBFSSettings(*team.KBFS)
-
-		return res, nil
+		err = t.parseKBFSTLFUpgrade(team.KBFS, &res.newState)
+		return res, err
 	case "":
 		return res, errors.New("empty body type")
 	default:
@@ -2089,5 +2070,20 @@ func (t *TeamSigChainPlayer) parseTeamSettings(settings *SCTeamSettings, newStat
 		}
 	}
 
+	return nil
+}
+
+func (t *TeamSigChainPlayer) parseKBFSTLFUpgrade(upgrade *SCTeamKBFS, newState *TeamSigChainState) error {
+	if upgrade.TLF != nil {
+		newState.inner.TlfID = upgrade.TLF.ID
+	}
+	if upgrade.Keyset != nil {
+		newState.inner.TlfLegacyUpgrade[upgrade.Keyset.AppType] = keybase1.TeamLegacyTLFUpgradeChainInfo{
+			KeysetHash:       upgrade.Keyset.KeysetHash,
+			TeamGeneration:   upgrade.Keyset.TeamGeneration,
+			LegacyGeneration: upgrade.Keyset.LegacyGeneration,
+			AppType:          upgrade.Keyset.AppType,
+		}
+	}
 	return nil
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	context "golang.org/x/net/context"
@@ -41,7 +42,7 @@ func (t *TeamsNameInfoSource) Lookup(ctx context.Context, name string, vis keyba
 }
 
 func teamToNameInfo(ctx context.Context, team *teams.Team, vis keybase1.TLFVisibility) (res types.NameInfo, err error) {
-	res.ID, err = teamIDToTLFID(team.ID)
+	res.ID, err = chat1.TeamIDToTLFID(team.ID)
 	if err != nil {
 		return res, err
 	}
@@ -99,7 +100,7 @@ func (t *ImplicitTeamsNameInfoSource) Lookup(ctx context.Context, name string, v
 	}
 
 	res.CanonicalName = impTeamName.String()
-	res.ID, err = teamIDToTLFID(teamID)
+	res.ID, err = chat1.TeamIDToTLFID(teamID)
 	if err != nil {
 		return res, err
 	}
@@ -165,7 +166,7 @@ func (t *ImplicitTeamsNameInfoSource) lookupInternalName(ctx context.Context, na
 	if err != nil {
 		return res, err
 	}
-	res.ID, err = teamIDToTLFID(teamName.ToTeamID(public))
+	res.ID, err = chat1.TeamIDToTLFID(teamName.ToTeamID(public))
 	if err != nil {
 		return res, err
 	}

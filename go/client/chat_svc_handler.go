@@ -800,7 +800,8 @@ func (c *chatServiceHandler) getExistingConvs(ctx context.Context, id chat1.Conv
 
 	var tlfName string
 	switch channel.GetMembersType(c.G().GetEnv()) {
-	case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAM:
+	case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAMNATIVE,
+		chat1.ConversationMembersType_IMPTEAMUPGRADE:
 		tlfQ := keybase1.TLFQuery{
 			TlfName:          channel.Name,
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,

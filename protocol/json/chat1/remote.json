@@ -1058,6 +1058,15 @@
         }
       ],
       "response": "SetRetentionRes"
+    },
+    "upgradeKBFSToImpteam": {
+      "request": [
+        {
+          "name": "tlfID",
+          "type": "TLFID"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"

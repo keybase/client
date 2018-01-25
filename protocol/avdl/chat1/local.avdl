@@ -478,6 +478,10 @@ protocol local {
     // This field, if null or empty, indicates identify succeeded without any
     // break.
     array<keybase1.TLFIdentifyFailure> identifyFailures;
+
+    Expunge expunge; // The latest history deletion. Defaults to zeroes.
+    union { null, RetentionPolicy } convRetention;
+    union { null, RetentionPolicy } teamRetention;
   }
 
   record NonblockFetchRes {

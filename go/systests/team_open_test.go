@@ -26,8 +26,7 @@ func TestTeamOpenAutoAddMember(t *testing.T) {
 
 	cli := own.teamsClient
 	createRes, err := cli.TeamCreateWithSettings(context.TODO(), keybase1.TeamCreateWithSettingsArg{
-		Name:                 teamName,
-		SendChatNotification: false,
+		Name: teamName,
 		Settings: keybase1.TeamSettings{
 			Open:   true,
 			JoinAs: keybase1.TeamRole_READER,
