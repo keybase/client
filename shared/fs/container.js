@@ -7,6 +7,10 @@ import {navigateAppend, navigateUp} from '../actions/route-tree'
 import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
 
+type OwnProps = {
+  routeProps: I.Map<'path', string>,
+}
+
 type StateProps = {
   path: Types.Path,
   items: I.List<string>,
@@ -16,11 +20,11 @@ type DispatchProps = {
   onBack: () => void | null,
 }
 
-const mapStateToProps = (state: TypedState, ownProps) => {
-  const path = ownProps.routeProps.get('path', Constants.defaultPath)
+const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
+  const path = routeProps.get('path', Constants.defaultPath)
   return {
     path: path,
-    items: state.fs.getIn(['pathItems', path, 'children'], I.List()),
+    items: state.fs.getIn(['pathItems', path, 'children'], I.List()).map(name => Types.pathConcat(path, name)),
   }
 }
 

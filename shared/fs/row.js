@@ -1,6 +1,6 @@
 // @flow
 import * as Types from '../constants/types/fs'
-import {connect, type TypedState} from '../util/container'
+import {connect, type TypedState, type Dispatch} from '../util/container'
 import {isMobile} from '../constants/platform'
 import {navigateAppend} from '../actions/route-tree'
 import {type IconType} from '../common-adapters/icon'
@@ -14,18 +14,18 @@ type StateProps = {
 }
 
 type DispatchProps = {
-  _onOpen: (Types.Path, Types.PathType) => void,
+  _onViewFolder: (Types.Path) => void,
+  _onViewFile: (Types.Path) => void,
 }
 
-const mapStateToProps = (state: TypedState, {path}: OwnProps) => ({
-  type: state.fs.pathItems.getIn([path, 'type']),
+const mapStateToProps = ({fs}: TypedState, {path}: OwnProps) => ({
+  type: fs.pathItems.getIn([path, 'type']),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => {
-  const onViewFolder = (path: Types.Path) => () => dispatch(navigateAppend([{props: {path}, selected: 'folder'}]))
-  const onViewFile = (path: Types.Path) => () => console.log("Cannot view files yet. Requested file: " + path)
   return {
-    _onOpen: (p: Types.Path, t: Types.PathType) => t === 'folder' ? onViewFolder(p): onViewFile(p)
+    _onViewFolder: (path: Types.Path) => dispatch(navigateAppend([{props: {path}, selected: 'folder'}])),
+    _onViewFile: (path: Types.Path) => console.log("Cannot view files yet. Requested file: " + path),
   }
 }
 
@@ -34,11 +34,11 @@ const iconTypes : IconType = {
   file: isMobile ? 'icon-file-24' : 'icon-file-24',
 }
 
-const mergeProps = ({type}: StateProps, {_onOpen}: DispatchProps, {path}: OwnProps) => ({
+const mergeProps = ({type}: StateProps, {_onViewFolder, _onViewFile}: DispatchProps, {path}: OwnProps) => ({
   path,
   name: Types.getPathName(path),
   icon: iconTypes[type],
-  onOpen: () => _onOpen(path, type),
+  onOpen: () => type === 'folder' ? _onViewFolder(path): _onViewFile(path)
 })
 
 const RowConnector = connect(mapStateToProps, mapDispatchToProps, mergeProps)
