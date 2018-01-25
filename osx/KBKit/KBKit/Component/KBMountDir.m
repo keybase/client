@@ -52,25 +52,15 @@
 }
 
 - (void)removeMountDir:(NSString *)mountDir completion:(KBCompletion)completion {
-  // Remove the root link using the helper.
-  NSString *link = [self.config rootMountSymlink];
-  NSDictionary *params = @{@"path": link};
-  DDLogDebug(@"Removing mount link: %@", params);
-  [self.helperTool.helper sendRequest:@"remove" params:@[params] completion:^(NSError *err, id value) {
-    if (err) {
-      // Ignore the error and move on to delete the mount dir.
-      DDLogDebug(@"Could not remove mount link: %@", err);
-    }
-  }];
-
+  // Don't remove the root link, because this gets called every time
+  // the app shuts down (not just when it is uninstalled), and if we
+  // give up /keybase then another user could grab it, leading to
+  // confusion and maybe security concerns for the original user.
   DDLogDebug(@"Removing mount directory: %@", mountDir);
   NSError *err = nil;
   if (![NSFileManager.defaultManager removeItemAtPath:mountDir error:&err]) {
     completion(err);
   }
-
-  // TODO: delete any other mount points for other users as part of
-  // this uninstall?
   completion(nil);
 }
 
