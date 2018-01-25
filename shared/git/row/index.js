@@ -100,6 +100,8 @@ class Row extends React.Component<Props, State> {
           <ClickableBox
             onClick={this.props.onToggleExpand}
             style={this.props.expanded ? _rowClickStyleExpanded : _rowClickStyle}
+            hoverColor={isMobile ? undefined : globalColors.transparent}
+            underlayColor={globalColors.transparent}
           >
             <Box style={_rowTopStyle}>
               <Icon
