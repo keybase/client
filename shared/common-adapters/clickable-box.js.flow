@@ -17,8 +17,6 @@ export type Props = {
   activeOpacity?: number,
   // desktop only
   onMouseOver?: ?(event: SyntheticEvent<>) => void,
-  // You must specify both onMouseEnter and onMouseLeave if you
-  // specify one.
   onMouseEnter?: ?() => void,
   onMouseLeave?: ?() => void,
   onMouseDown?: ?() => void,
