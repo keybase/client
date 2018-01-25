@@ -7,7 +7,7 @@
     "import {type DeviceType} from '../constants/types/devices'",
     "import {type Path} from '../route-tree'"
   ],
-  "actions": { // TEMP
+  "actions": {
     "updateBadging": {
       "conversationIDKey": "Types.ConversationIDKey"
     },
