@@ -182,6 +182,17 @@ func (p *publicUnboxConversationInfo) GetFinalizeInfo() *chat1.ConversationFinal
 	return nil
 }
 
+func (b *Boxer) getEffectiveMembersType(ctx context.Context, boxed chat1.MessageBoxed,
+	convMembersType chat1.ConversationMembersType) chat1.ConversationMembersType {
+	if boxed.ClientHeader.KbfsCryptKeysUsed != nil && *boxed.ClientHeader.KbfsCryptKeysUsed {
+		if convMembersType != chat1.ConversationMembersType_KBFS {
+			b.Debug(ctx, "getEffectiveMembersType: overruling %v conv with KBFS keys", convMembersType)
+		}
+		return chat1.ConversationMembersType_KBFS
+	}
+	return convMembersType
+}
+
 // UnboxMessage unboxes a chat1.MessageBoxed into a chat1.MessageUnboxed. It
 // finds the appropriate keybase1.CryptKey, decrypts the message, and verifies
 // several things:
@@ -220,7 +231,8 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 	}
 
 	var encryptionKey types.CryptKey
-	for _, key := range nameInfo.CryptKeys {
+	keyMembersType := b.getEffectiveMembersType(ctx, boxed, conv.GetMembersType())
+	for _, key := range nameInfo.CryptKeys[keyMembersType] {
 		if key.Generation() == boxed.KeyGeneration {
 			encryptionKey = key
 			break
@@ -1003,7 +1015,7 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
 	if msg.ClientHeader.TlfPublic {
 		encryptionKey = &publicCryptKey
 	} else {
-		for _, key := range nameInfo.CryptKeys {
+		for _, key := range nameInfo.CryptKeys[membersType] {
 			if encryptionKey == nil || key.Generation() > encryptionKey.Generation() {
 				encryptionKey = key
 			}

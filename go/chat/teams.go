@@ -15,6 +15,41 @@ import (
 	context "golang.org/x/net/context"
 )
 
+func addNameInfoCryptKey(ni *types.NameInfo, key types.CryptKey, implicit bool) {
+	if implicit {
+		ni.CryptKeys[chat1.ConversationMembersType_IMPTEAMNATIVE] =
+			append(ni.CryptKeys[chat1.ConversationMembersType_IMPTEAMNATIVE], key)
+		ni.CryptKeys[chat1.ConversationMembersType_IMPTEAMUPGRADE] =
+			append(ni.CryptKeys[chat1.ConversationMembersType_IMPTEAMUPGRADE], key)
+	} else {
+		ni.CryptKeys[chat1.ConversationMembersType_TEAM] =
+			append(ni.CryptKeys[chat1.ConversationMembersType_TEAM], key)
+	}
+}
+
+func addNameInfoTeamKeys(ctx context.Context, ni *types.NameInfo, team *teams.Team,
+	vis keybase1.TLFVisibility) error {
+	if vis == keybase1.TLFVisibility_PRIVATE {
+		chatKeys, err := team.AllApplicationKeys(ctx, keybase1.TeamApplication_CHAT)
+		if err != nil {
+			return err
+		}
+		for _, key := range chatKeys {
+			addNameInfoCryptKey(ni, key, team.IsImplicit())
+		}
+
+		kbfsKeys := team.KBFSCryptKeys(ctx, keybase1.TeamApplication_CHAT)
+		for _, key := range kbfsKeys {
+			ni.CryptKeys[chat1.ConversationMembersType_KBFS] =
+				append(ni.CryptKeys[chat1.ConversationMembersType_KBFS], key)
+		}
+	} else {
+		addNameInfoCryptKey(ni, publicCryptKey, team.IsImplicit())
+		ni.CryptKeys[chat1.ConversationMembersType_KBFS] = []types.CryptKey{publicCryptKey}
+	}
+	return nil
+}
+
 type TeamsNameInfoSource struct {
 	globals.Contextified
 	utils.DebugLabeler
@@ -27,7 +62,7 @@ func NewTeamsNameInfoSource(g *globals.Context) *TeamsNameInfoSource {
 	}
 }
 
-func (t *TeamsNameInfoSource) Lookup(ctx context.Context, name string, vis keybase1.TLFVisibility) (res types.NameInfo, err error) {
+func (t *TeamsNameInfoSource) Lookup(ctx context.Context, name string, vis keybase1.TLFVisibility) (res *types.NameInfo, err error) {
 	defer t.Trace(ctx, func() error { return err }, fmt.Sprintf("Lookup(%s)", name))()
 
 	team, err := teams.Load(ctx, t.G().ExternalG(), keybase1.LoadTeamArg{
@@ -41,7 +76,8 @@ func (t *TeamsNameInfoSource) Lookup(ctx context.Context, name string, vis keyba
 	return teamToNameInfo(ctx, team, vis)
 }
 
-func teamToNameInfo(ctx context.Context, team *teams.Team, vis keybase1.TLFVisibility) (res types.NameInfo, err error) {
+func teamToNameInfo(ctx context.Context, team *teams.Team, vis keybase1.TLFVisibility) (res *types.NameInfo, err error) {
+	res = types.NewNameInfo()
 	res.ID, err = chat1.TeamIDToTLFID(team.ID)
 	if err != nil {
 		return res, err
@@ -54,18 +90,10 @@ func teamToNameInfo(ctx context.Context, team *teams.Team, vis keybase1.TLFVisib
 	} else {
 		res.CanonicalName = team.Name().String()
 	}
+	res.CanonicalName = team.Name().String()
 
-	if vis == keybase1.TLFVisibility_PRIVATE {
-
-		chatKeys, err := team.AllApplicationKeys(ctx, keybase1.TeamApplication_CHAT)
-		if err != nil {
-			return res, err
-		}
-		for _, key := range chatKeys {
-			res.CryptKeys = append(res.CryptKeys, key)
-		}
-	} else {
-		res.CryptKeys = []types.CryptKey{publicCryptKey}
+	if err := addNameInfoTeamKeys(ctx, res, team, vis); err != nil {
+		return res, err
 	}
 	return res, nil
 }
@@ -84,7 +112,7 @@ func NewImplicitTeamsNameInfoSource(g *globals.Context) *ImplicitTeamsNameInfoSo
 	}
 }
 
-func (t *ImplicitTeamsNameInfoSource) Lookup(ctx context.Context, name string, vis keybase1.TLFVisibility) (res types.NameInfo, err error) {
+func (t *ImplicitTeamsNameInfoSource) Lookup(ctx context.Context, name string, vis keybase1.TLFVisibility) (res *types.NameInfo, err error) {
 	// check if name is prefixed
 	if strings.HasPrefix(name, keybase1.ImplicitTeamPrefix) {
 		return t.lookupInternalName(ctx, name, vis)
@@ -100,28 +128,21 @@ func (t *ImplicitTeamsNameInfoSource) Lookup(ctx context.Context, name string, v
 		panic(fmt.Sprintf("implicit team found via LookupImplicitTeam not root team: %s", teamID))
 	}
 
+	res = types.NewNameInfo()
 	res.CanonicalName = impTeamName.String()
 	res.ID, err = chat1.TeamIDToTLFID(teamID)
 	if err != nil {
 		return res, err
 	}
-	if vis == keybase1.TLFVisibility_PRIVATE {
-		team, err := teams.Load(ctx, t.G().ExternalG(), keybase1.LoadTeamArg{
-			ID:     teamID,
-			Public: false,
-		})
-		if err != nil {
-			return res, err
-		}
-		chatKeys, err := team.AllApplicationKeys(ctx, keybase1.TeamApplication_CHAT)
-		if err != nil {
-			return res, err
-		}
-		for _, key := range chatKeys {
-			res.CryptKeys = append(res.CryptKeys, key)
-		}
-	} else {
-		res.CryptKeys = []types.CryptKey{publicCryptKey}
+	team, err := teams.Load(ctx, t.G().ExternalG(), keybase1.LoadTeamArg{
+		ID:     teamID,
+		Public: vis == keybase1.TLFVisibility_PUBLIC,
+	})
+	if err != nil {
+		return res, err
+	}
+	if err := addNameInfoTeamKeys(ctx, res, team, vis); err != nil {
+		return res, err
 	}
 
 	var names []string
@@ -161,34 +182,27 @@ func (t *ImplicitTeamsNameInfoSource) Lookup(ctx context.Context, name string, v
 	return res, nil
 }
 
-func (t *ImplicitTeamsNameInfoSource) lookupInternalName(ctx context.Context, name string, vis keybase1.TLFVisibility) (res types.NameInfo, err error) {
+func (t *ImplicitTeamsNameInfoSource) lookupInternalName(ctx context.Context, name string, vis keybase1.TLFVisibility) (res *types.NameInfo, err error) {
 	public := vis != keybase1.TLFVisibility_PRIVATE
 	teamName, err := keybase1.TeamNameFromString(name)
 	if err != nil {
 		return res, err
 	}
+	res = types.NewNameInfo()
 	res.ID, err = chat1.TeamIDToTLFID(teamName.ToTeamID(public))
 	if err != nil {
 		return res, err
 	}
 	res.CanonicalName = name
-	if public {
-		team, err := teams.Load(ctx, t.G().ExternalG(), keybase1.LoadTeamArg{
-			Name:   name,
-			Public: public,
-		})
-		if err != nil {
-			return res, err
-		}
-		chatKeys, err := team.AllApplicationKeys(ctx, keybase1.TeamApplication_CHAT)
-		if err != nil {
-			return res, err
-		}
-		for _, key := range chatKeys {
-			res.CryptKeys = append(res.CryptKeys, key)
-		}
-	} else {
-		res.CryptKeys = []types.CryptKey{publicCryptKey}
+	team, err := teams.Load(ctx, t.G().ExternalG(), keybase1.LoadTeamArg{
+		Name:   name,
+		Public: public,
+	})
+	if err != nil {
+		return res, err
+	}
+	if err := addNameInfoTeamKeys(ctx, res, team, vis); err != nil {
+		return res, err
 	}
 
 	return res, nil

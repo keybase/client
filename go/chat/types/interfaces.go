@@ -107,7 +107,7 @@ type InboxSource interface {
 		policy chat1.RetentionPolicy) ([]chat1.ConversationLocal, error)
 
 	GetInboxQueryLocalToRemote(ctx context.Context,
-		lquery *chat1.GetInboxLocalQuery) (*chat1.GetInboxQuery, NameInfo, error)
+		lquery *chat1.GetInboxLocalQuery) (*chat1.GetInboxQuery, *NameInfo, error)
 
 	SetRemoteInterface(func() chat1.RemoteInterface)
 }
