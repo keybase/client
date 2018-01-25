@@ -79,8 +79,14 @@
   NSDictionary *params = @{@"path": self.config.mountDir, @"linkPath": link, @"uid": @(uid), @"gid": @(gid)};
   [self.helperTool.helper sendRequest:@"createFirstLink" params:@[params] completion:^(NSError *err, id value) {
     if (err) {
-      // Ignore the error, it will be common for everyone but the first user on a machine.  TODO: display something to the user if they don't get /keybase?
       DDLogDebug(@"Could not create mount link: %@", err);
+
+      // Let the user know they didn't get /keybase.
+      NSAlert *alert = [[NSAlert alloc] init];
+      [alert setMessageText:self.config.mountDir];
+      [alert addButtonWithTitle:@"OK"];
+      [alert setAlertStyle:NSAlertStyleInformational];
+      [alert runModal] // ignore response
     } else {
       DDLogDebug(@"Created link to mountpoint: %@", params);
     }
