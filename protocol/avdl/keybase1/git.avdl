@@ -38,6 +38,12 @@ protocol git {
     Time ctime; // unix time in milliseconds
   }
 
+  enum GitPushType {
+    DEFAULT_0,
+    CREATEREPO_1,
+    DELETEBRANCH_2,
+    RENAMEREPO_3
+  }
   record GitRefMetadata {
     string refName;    
     array<GitCommit> commits;
@@ -52,6 +58,8 @@ protocol git {
   record GitLocalMetadata {
     GitRepoName repoName;
     array<GitRefMetadata> refs;
+    GitPushType pushType;
+    GitRepoName previousRepoName; // filled in for renames
   }
 
   // Additional metadata maintained by the server, returned with query results.
