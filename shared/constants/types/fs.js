@@ -35,8 +35,9 @@ export const getPathVisibility = (p: Path): Visibility => {
     case 'private':
     case 'public':
     case 'team':
-    case null:
       return visibility
+    case null:
+      return null
     default:
       // eslint-disable-next-line no-unused-expressions
       ;(visibility: empty) // if you get a flow error here it means there's an visibility you claim to handle but didn't
