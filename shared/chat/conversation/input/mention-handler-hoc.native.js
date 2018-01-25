@@ -88,7 +88,18 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
       }
     }
 
-    insertMention = (u: string) => {}
+    onBlur = () => {
+      this.state.channelMentionPopupOpen && this.setChannelMentionPopupOpen(false)
+      this.state.mentionPopupOpen && this.setMentionPopupOpen(false)
+    }
+
+    onFocus = () => {
+      this.onChangeText(this.props.text)
+    }
+
+    insertMention = (u: string) => {
+      console.log(u)
+    }
 
     insertChannelMention = (c: string) => {}
 
@@ -103,6 +114,8 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
         insertMention={this.insertMention}
         setMentionPopupOpen={this.setMentionPopupOpen}
         setChannelMentionPopupOpen={this.setChannelMentionPopupOpen}
+        onBlur={this.onBlur}
+        onFocus={this.onFocus}
         onEnterKeyDown={this.onEnterKeyDown}
         onChangeText={this.onChangeText}
         onSelectionChange={this.onSelectionChange}

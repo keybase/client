@@ -47,6 +47,7 @@ class ConversationInput extends Component<Props> {
   }
 
   _onBlur = () => {
+    this.props.onBlur && this.props.onBlur()
     if (this.props.editingMessage) {
       this.props.onShowEditor(null)
       this.props.setText('')
@@ -133,6 +134,7 @@ class ConversationInput extends Component<Props> {
               inputStyle={styleInputText}
               multiline={true}
               onBlur={this._onBlur}
+              onFocus={this.props.onFocus}
               onChangeText={this.props.onChangeText}
               ref={this.props.inputSetRef}
               onSelectionChange={this.props.onSelectionChange}
