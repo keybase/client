@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"time"
 
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 // PDPKA is a "Passphrase-Derived Public Key Authentication". In this case, it's a
