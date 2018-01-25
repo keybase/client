@@ -71,7 +71,7 @@
   NSString *link = [self.config rootMountSymlink];
   uid_t uid = getuid();
   gid_t gid = getgid();
-  params = @{@"path": self.config.mountDir, @"linkPath": link, @"uid": @(uid), @"gid": @(gid)};
+  NSDictionary *params = @{@"path": self.config.mountDir, @"linkPath": link, @"uid": @(uid), @"gid": @(gid)};
   [self.helperTool.helper sendRequest:@"createFirstLink" params:@[params] completion:^(NSError *err, id value) {
     if (err) {
       // Ignore the error, it will be common for everyone but the first user on a machine.  TODO: display something to the user if they don't get /keybase?
