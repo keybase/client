@@ -169,12 +169,14 @@
 }
 
 
-- (void)createFirstLink:(NSString *)path linkPath:(NSString *)linkPath uid:(uid_t)uid gid:(gid_t)gid completion:(void (^)(NSError *error, id value))completion {
-    if ([self createLinkIfNoLinkExists:path linkPath:linkPath uid:uid gid:gid]) {
-      completion(nil, nil);
-      return;
-    }
-    completion(KBMakeError(-1, @"Error trying to make link"), nil);
+- (void)createFirstLink:(NSString *)path linkPath:(NSString *)linkPath uid:(NSNumber *)uid gid:(NSNumber *)gid completion:(void (^)(NSError *error, id value))completion {
+  uid_t uidreal = [uid unsignedIntValue];
+  gid_t gidreal = [gid unsignedIntValue];
+  if ([self createLinkIfNoLinkExists:path linkPath:linkPath uid:uidreal gid:gidreal]) {
+    completion(nil, nil);
+    return;
+  }
+  completion(KBMakeError(-1, @"Error trying to make link"), nil);
 }
 
 - (void)addToPath:(NSString *)directory name:(NSString *)name appName:(NSString *)appName completion:(void (^)(NSError *error, id value))completion {
