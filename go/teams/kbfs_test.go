@@ -38,7 +38,6 @@ func TestKBFSUpgradeTeam(t *testing.T) {
 
 	teamID, _, _, _, err := LookupOrCreateImplicitTeam(ctx, tc.G, user.Username, false)
 	require.NoError(t, err)
-
 	team, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
 		ID: teamID,
 	})
@@ -46,20 +45,35 @@ func TestKBFSUpgradeTeam(t *testing.T) {
 
 	tlfID := makeTLFID(t)
 	t.Logf("TLFID: %s", tlfID)
-	cryptKeys := []keybase1.CryptKey{
-		makeCryptKey(t, 1),
-		makeCryptKey(t, 2),
-		makeCryptKey(t, 3),
-	}
-	require.NoError(t, team.AssociateWithTLFKeyset(ctx, tlfID, cryptKeys, keybase1.TeamApplication_CHAT))
-
+	require.NoError(t, team.AssociateWithTLFID(ctx, tlfID))
 	team, err = Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
 		ID:          teamID,
 		ForceRepoll: true,
 	})
 	require.NoError(t, err)
-	resKeys := team.KBFSCryptKeys(ctx, keybase1.TeamApplication_CHAT)
-	require.Len(t, resKeys, len(cryptKeys))
-	require.Equal(t, cryptKeys, resKeys)
-	require.Equal(t, tlfID, team.KBFSTLFID())
+
+	checkCryptKeys := func(tlfID keybase1.TLFID, cryptKeys []keybase1.CryptKey,
+		appType keybase1.TeamApplication) {
+		team, err = Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
+			ID:          teamID,
+			ForceRepoll: true,
+		})
+		require.NoError(t, err)
+		resKeys := team.KBFSCryptKeys(ctx, appType)
+		require.Len(t, resKeys, len(cryptKeys))
+		require.Equal(t, cryptKeys, resKeys)
+		require.Equal(t, tlfID, team.KBFSTLFID())
+	}
+
+	chatCryptKeys := []keybase1.CryptKey{
+		makeCryptKey(t, 1),
+		makeCryptKey(t, 2),
+		makeCryptKey(t, 3),
+	}
+	require.NoError(t, team.AssociateWithTLFKeyset(ctx, tlfID, chatCryptKeys, keybase1.TeamApplication_CHAT))
+	checkCryptKeys(tlfID, chatCryptKeys, keybase1.TeamApplication_CHAT)
+
+	kbfsCryptKeys := append(chatCryptKeys, makeCryptKey(t, 4))
+	require.NoError(t, team.AssociateWithTLFKeyset(ctx, tlfID, kbfsCryptKeys, keybase1.TeamApplication_KBFS))
+	checkCryptKeys(tlfID, kbfsCryptKeys, keybase1.TeamApplication_KBFS)
 }

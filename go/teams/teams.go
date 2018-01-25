@@ -1534,8 +1534,8 @@ func (t *Team) AssociateWithTLFKeyset(ctx context.Context, tlfID keybase1.TLFID,
 
 	// If we get no crypt keys, just associate TLF ID and bail
 	if len(cryptKeys) == 0 {
-		t.G().Log.CDebugf(ctx, "AssociateWithTLFKeyset: no crypt keys given, just posting TLF ID")
-		return t.AssociateWithTLFID(ctx, tlfID)
+		t.G().Log.CDebugf(ctx, "AssociateWithTLFKeyset: no crypt keys given, aborting")
+		return nil
 	}
 
 	// Sort crypt keys by generation (just in case they aren't naturally)
@@ -1567,9 +1567,6 @@ func (t *Team) AssociateWithTLFKeyset(ctx context.Context, tlfID keybase1.TLFID,
 		Implicit: t.IsImplicit(),
 		Public:   t.IsPublic(),
 		KBFS: &SCTeamKBFS{
-			TLF: &SCTeamKBFSTLF{
-				ID: tlfID,
-			},
 			Keyset: &upgrade,
 		},
 	}
