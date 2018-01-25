@@ -38,7 +38,9 @@
   if ((self = [super init])) {
     _runMode = runMode;
 
-    // Read the mount point from the config file if possible.
+    // Read the mount point from the config file if possible.  NOTE:
+    // if you change this default, you must also change the default
+    // for darwin in the `GetMountDir` function of `libkb/env.go`.
     NSString *defaultMountDir = [self dataPath:@"fs" options:0];
     NSString *mountDir = defaultMountDir;
     NSData *data = [NSData dataWithContentsOfFile:[self dataPath:@"config.json" options:0]];
