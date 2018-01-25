@@ -37,12 +37,22 @@
 - (instancetype)initWithRunMode:(KBRunMode)runMode {
   if ((self = [super init])) {
     _runMode = runMode;
-    NSError *err = nil;
+
+    // Read the mount point from the config file if possible.
     NSString *defaultMountDir = [self dataPath:@"fs" options:0];
-    id mountDir = (NSString *)[configValueForKey:@"mountdir" defaultValue:defaultMountDir error:&err];
-    if (err) {
-      mountDir = defaultMountDir;
+    NSString *mountDir = defaultMountDir;
+    NSData *data = [NSData dataWithContentsOfFile:[self dataPath:@"config.json" options:0]];
+    if (data) {
+      NSError *err = nil;
+      NSDictionary *appConfig = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&err];
+      if (!err) {
+        id obj = [appConfig valueForKeyPath:@"mountdir"];
+        if (obj) {
+          mountDir = (NSString *)obj;
+        }
+      }
     }
+
     switch (_runMode) {
       case KBRunModeProd: {
         self.title = @"Keybase.io";
