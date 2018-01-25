@@ -50,4 +50,4 @@ untyped-import=off
 deprecated-declare-exports=off
 
 [version]
-0.63.1
+0.64.0
