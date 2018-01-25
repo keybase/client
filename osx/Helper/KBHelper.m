@@ -172,6 +172,12 @@
 - (void)createFirstLink:(NSString *)path linkPath:(NSString *)linkPath uid:(NSNumber *)uid gid:(NSNumber *)gid completion:(void (^)(NSError *error, id value))completion {
   uid_t uidreal = [uid unsignedIntValue];
   gid_t gidreal = [gid unsignedIntValue];
+  NSString *resolved = [self resolveLinkPath:linkPath];
+  if (resolved && [resolved isEqualToString:path]) {
+    completion(nil, nil);
+    return;
+  }
+
   if ([self createLinkIfNoLinkExists:path linkPath:linkPath uid:uidreal gid:gidreal]) {
     completion(nil, nil);
     return;
