@@ -2164,6 +2164,10 @@ func TeamEncryptedKBFSKeysetHashFromString(s string) TeamEncryptedKBFSKeysetHash
 	return TeamEncryptedKBFSKeysetHash(s)
 }
 
+func TeamEncryptedKBFSKeysetHashFromBytes(s []byte) TeamEncryptedKBFSKeysetHash {
+	return TeamEncryptedKBFSKeysetHashFromString(hex.EncodeToString(s))
+}
+
 func (e TeamEncryptedKBFSKeysetHash) String() string {
 	return string(e)
 }

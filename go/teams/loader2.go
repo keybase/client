@@ -3,7 +3,6 @@ package teams
 import (
 	"crypto/sha256"
 	"encoding/base64"
-	"encoding/hex"
 	"errors"
 	"fmt"
 
@@ -536,7 +535,7 @@ func (l *TeamLoader) unboxKBFSCryptKeys(ctx context.Context, key keybase1.TeamAp
 
 	// Check hash
 	sbytes := sha256.Sum256([]byte(encryptedKeyset))
-	if !keysetHash.SecureEqual(keybase1.TeamEncryptedKBFSKeysetHashFromString(hex.EncodeToString(sbytes[:]))) {
+	if !keysetHash.SecureEqual(keybase1.TeamEncryptedKBFSKeysetHashFromBytes(sbytes[:])) {
 		return nil, errors.New("encrypted TLF upgrade does not match sigchain hash")
 	}
 

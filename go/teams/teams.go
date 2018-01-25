@@ -4,7 +4,6 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -1497,7 +1496,7 @@ func (t *Team) marshal(incoming interface{}) ([]byte, error) {
 }
 
 func (t *Team) boxKBFSCryptKeys(ctx context.Context, key keybase1.TeamApplicationKey,
-	kbfsKeys []keybase1.CryptKey) (string, string, error) {
+	kbfsKeys []keybase1.CryptKey) (string, keybase1.TeamEncryptedKBFSKeysetHash, error) {
 
 	marshaledKeys, err := t.marshal(kbfsKeys)
 	if err != nil {
@@ -1524,8 +1523,7 @@ func (t *Team) boxKBFSCryptKeys(ctx context.Context, key keybase1.TeamApplicatio
 
 	encStr := base64.StdEncoding.EncodeToString(marshaledSealedDat)
 	sbytes := sha256.Sum256([]byte(encStr))
-	hashStr := hex.EncodeToString(sbytes[:])
-	return encStr, hashStr, nil
+	return encStr, keybase1.TeamEncryptedKBFSKeysetHashFromBytes(sbytes[:]), nil
 }
 
 func (t *Team) AssociateWithTLFKeyset(ctx context.Context, tlfID keybase1.TLFID,
@@ -1551,14 +1549,14 @@ func (t *Team) AssociateWithTLFKeyset(ctx context.Context, tlfID keybase1.TLFID,
 		return errors.New("no team keys for TLF associate")
 	}
 	latestKey := teamKeys[len(teamKeys)-1]
-	encStr, hashStr, err := t.boxKBFSCryptKeys(ctx, latestKey, cryptKeys)
+	encStr, hash, err := t.boxKBFSCryptKeys(ctx, latestKey, cryptKeys)
 	if err != nil {
 		return err
 	}
 
 	upgrade := SCTeamKBFSLegacyUpgrade{
 		AppType:          appType,
-		KeysetHash:       keybase1.TeamEncryptedKBFSKeysetHashFromString(hashStr),
+		KeysetHash:       hash,
 		LegacyGeneration: cryptKeys[len(cryptKeys)-1].Generation(),
 		TeamGeneration:   latestKey.KeyGeneration,
 	}
