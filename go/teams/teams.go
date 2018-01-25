@@ -1,10 +1,17 @@
 package teams
 
 import (
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"sort"
 
+	"github.com/keybase/go-codec/codec"
+
+	"golang.org/x/crypto/nacl/secretbox"
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
@@ -70,6 +77,10 @@ func (t *Team) OpenTeamJoinAs() keybase1.TeamRole {
 
 func (t *Team) KBFSTLFID() keybase1.TLFID {
 	return t.chain().inner.TlfID
+}
+
+func (t *Team) KBFSCryptKeys(ctx context.Context, appType keybase1.TeamApplication) []keybase1.CryptKey {
+	return t.Data.TlfCryptKeys[appType]
 }
 
 func (t *Team) SharedSecret(ctx context.Context) (ret keybase1.PerTeamKeySeed, err error) {
@@ -284,15 +295,7 @@ func (t *Team) CurrentSeqno() keybase1.Seqno {
 }
 
 func (t *Team) AllApplicationKeys(ctx context.Context, application keybase1.TeamApplication) (res []keybase1.TeamApplicationKey, err error) {
-	latestGen := t.chain().GetLatestGeneration()
-	for gen := keybase1.PerTeamKeyGeneration(1); gen <= latestGen; gen++ {
-		appKey, err := t.ApplicationKeyAtGeneration(application, gen)
-		if err != nil {
-			return res, err
-		}
-		res = append(res, appKey)
-	}
-	return res, nil
+	return AllApplicationKeys(ctx, t.Data, application, t.chain().GetLatestGeneration())
 }
 
 // ApplicationKey returns the most recent key for an application.
@@ -301,100 +304,9 @@ func (t *Team) ApplicationKey(ctx context.Context, application keybase1.TeamAppl
 	return t.ApplicationKeyAtGeneration(application, latestGen)
 }
 
-func (t *Team) UseRKMForApp(application keybase1.TeamApplication) bool {
-	switch application {
-	case keybase1.TeamApplication_SEITAN_INVITE_TOKEN:
-		// Seitan tokens do not use RKMs because implicit admins have all the privileges of explicit members.
-		return false
-	default:
-		return true
-	}
-}
-
 func (t *Team) ApplicationKeyAtGeneration(
 	application keybase1.TeamApplication, generation keybase1.PerTeamKeyGeneration) (res keybase1.TeamApplicationKey, err error) {
-
-	item, ok := t.Data.PerTeamKeySeeds[generation]
-	if !ok {
-		return res, libkb.NotFoundError{
-			Msg: fmt.Sprintf("no team secret found at generation %v", generation)}
-	}
-
-	var rkm *keybase1.ReaderKeyMask
-	if t.UseRKMForApp(application) {
-		rkmReal, err := t.readerKeyMask(application, generation)
-		if err != nil {
-			return res, err
-		}
-		rkm = &rkmReal
-	} else {
-		var zeroMask [32]byte
-		zeroRKM := keybase1.ReaderKeyMask{
-			Application: application,
-			Generation:  generation,
-			Mask:        zeroMask[:],
-		}
-		rkm = &zeroRKM
-	}
-
-	return t.applicationKeyForMask(*rkm, item.Seed)
-}
-
-func (t *Team) applicationKeyForMask(mask keybase1.ReaderKeyMask, secret keybase1.PerTeamKeySeed) (keybase1.TeamApplicationKey, error) {
-	if secret.IsZero() {
-		return keybase1.TeamApplicationKey{}, errors.New("nil shared secret in Team#applicationKeyForMask")
-	}
-	var derivationString string
-	switch mask.Application {
-	case keybase1.TeamApplication_KBFS:
-		derivationString = libkb.TeamKBFSDerivationString
-	case keybase1.TeamApplication_CHAT:
-		derivationString = libkb.TeamChatDerivationString
-	case keybase1.TeamApplication_SALTPACK:
-		derivationString = libkb.TeamSaltpackDerivationString
-	case keybase1.TeamApplication_GIT_METADATA:
-		derivationString = libkb.TeamGitMetadataDerivationString
-	case keybase1.TeamApplication_SEITAN_INVITE_TOKEN:
-		derivationString = libkb.TeamSeitanTokenDerivationString
-	default:
-		return keybase1.TeamApplicationKey{}, fmt.Errorf("unrecognized application id: %v", mask.Application)
-	}
-
-	key := keybase1.TeamApplicationKey{
-		Application:   mask.Application,
-		KeyGeneration: mask.Generation,
-	}
-
-	if len(mask.Mask) != 32 {
-		return keybase1.TeamApplicationKey{}, fmt.Errorf("mask length: %d, expected 32", len(mask.Mask))
-	}
-
-	secBytes := make([]byte, len(mask.Mask))
-	n := libkb.XORBytes(secBytes, derivedSecret(secret, derivationString), mask.Mask)
-	if n != 32 {
-		return key, errors.New("invalid derived secret xor mask size")
-	}
-	copy(key.Key[:], secBytes)
-
-	return key, nil
-}
-
-func (t *Team) readerKeyMask(
-	application keybase1.TeamApplication, generation keybase1.PerTeamKeyGeneration) (res keybase1.ReaderKeyMask, err error) {
-
-	m2, ok := t.Data.ReaderKeyMasks[application]
-	if !ok {
-		return res, NewKeyMaskNotFoundErrorForApplication(application)
-	}
-	mask, ok := m2[generation]
-	if !ok {
-		return res, NewKeyMaskNotFoundErrorForApplicationAndGeneration(application, generation)
-	}
-	return keybase1.ReaderKeyMask{
-		Application: application,
-		Generation:  generation,
-		Mask:        mask,
-	}, nil
+	return ApplicationKeyAtGeneration(t.Data, application, generation)
 }
 
 func (t *Team) Rotate(ctx context.Context) error {
@@ -1358,6 +1270,7 @@ type sigPayloadArgs struct {
 	implicitAdminBoxes map[keybase1.TeamID]*PerTeamSharedSecretBoxes
 	lease              *libkb.Lease
 	prePayload         libkb.JSONPayload
+	legacyTLFUpgrade   *keybase1.TeamGetLegacyTLFUpgrade
 }
 
 func (t *Team) sigPayload(sigMultiItem libkb.SigMultiItem, args sigPayloadArgs) libkb.JSONPayload {
@@ -1375,6 +1288,9 @@ func (t *Team) sigPayload(sigMultiItem libkb.SigMultiItem, args sigPayloadArgs) 
 	}
 	if args.lease != nil {
 		payload["downgrade_lease_id"] = args.lease.LeaseID
+	}
+	if args.legacyTLFUpgrade != nil {
+		payload["legacy_tlf_upgrade"] = args.legacyTLFUpgrade
 	}
 
 	if t.G().VDL.DumpPayload() {
@@ -1569,8 +1485,116 @@ func isSigOldSeqnoError(err error) bool {
 	return false
 }
 
-func (t *Team) associateTLFID(ctx context.Context, tlfID keybase1.TLFID) (err error) {
-	defer t.G().CTrace(ctx, "Team.associateTLFID", func() error { return err })()
+func (t *Team) marshal(incoming interface{}) ([]byte, error) {
+	var data []byte
+	mh := codec.MsgpackHandle{WriteExt: true}
+	enc := codec.NewEncoderBytes(&data, &mh)
+	if err := enc.Encode(incoming); err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+func (t *Team) boxKBFSCryptKeys(ctx context.Context, key keybase1.TeamApplicationKey,
+	kbfsKeys []keybase1.CryptKey) (string, keybase1.TeamEncryptedKBFSKeysetHash, error) {
+
+	marshaledKeys, err := t.marshal(kbfsKeys)
+	if err != nil {
+		return "", "", err
+	}
+
+	var nonce [libkb.NaclDHNonceSize]byte
+	if _, err := rand.Read(nonce[:]); err != nil {
+		return "", "", err
+	}
+
+	var encKey [libkb.NaclSecretBoxKeySize]byte = key.Material()
+	sealed := secretbox.Seal(nil, marshaledKeys, &nonce, &encKey)
+	dat := keybase1.TeamEncryptedKBFSKeyset{
+		V: 1,
+		N: nonce[:],
+		E: sealed,
+	}
+
+	marshaledSealedDat, err := t.marshal(dat)
+	if err != nil {
+		return "", "", err
+	}
+
+	encStr := base64.StdEncoding.EncodeToString(marshaledSealedDat)
+	sbytes := sha256.Sum256([]byte(encStr))
+	return encStr, keybase1.TeamEncryptedKBFSKeysetHashFromBytes(sbytes[:]), nil
+}
+
+func (t *Team) AssociateWithTLFKeyset(ctx context.Context, tlfID keybase1.TLFID,
+	cryptKeys []keybase1.CryptKey, appType keybase1.TeamApplication) (err error) {
+	defer t.G().CTrace(ctx, "Team.AssociateWithTLFKeyset", func() error { return err })()
+
+	// If we get no crypt keys, just associate TLF ID and bail
+	if len(cryptKeys) == 0 {
+		t.G().Log.CDebugf(ctx, "AssociateWithTLFKeyset: no crypt keys given, aborting")
+		return nil
+	}
+
+	// Sort crypt keys by generation (just in case they aren't naturally)
+	sort.Slice(cryptKeys, func(i, j int) bool {
+		return cryptKeys[i].KeyGeneration < cryptKeys[j].KeyGeneration
+	})
+
+	teamKeys, err := t.AllApplicationKeys(ctx, appType)
+	if err != nil {
+		return err
+	}
+	if len(teamKeys) == 0 {
+		return errors.New("no team keys for TLF associate")
+	}
+	latestKey := teamKeys[len(teamKeys)-1]
+	encStr, hash, err := t.boxKBFSCryptKeys(ctx, latestKey, cryptKeys)
+	if err != nil {
+		return err
+	}
+
+	upgrade := SCTeamKBFSLegacyUpgrade{
+		AppType:          appType,
+		KeysetHash:       hash,
+		LegacyGeneration: cryptKeys[len(cryptKeys)-1].Generation(),
+		TeamGeneration:   latestKey.KeyGeneration,
+	}
+	teamSection := SCTeamSection{
+		ID:       SCTeamID(t.ID),
+		Implicit: t.IsImplicit(),
+		Public:   t.IsPublic(),
+		KBFS: &SCTeamKBFS{
+			Keyset: &upgrade,
+		},
+	}
+
+	mr, err := t.G().MerkleClient.FetchRootFromServer(ctx, libkb.TeamMerkleFreshnessForAdmin)
+	if err != nil {
+		return err
+	}
+	if mr == nil {
+		return errors.New("No merkle root available for KBFS settings update")
+	}
+
+	sigMultiItem, err := t.sigTeamItem(ctx, teamSection, libkb.LinkTypeKBFSSettings, mr)
+	if err != nil {
+		return err
+	}
+
+	payload := t.sigPayload(sigMultiItem, sigPayloadArgs{
+		legacyTLFUpgrade: &keybase1.TeamGetLegacyTLFUpgrade{
+			EncryptedKeyset:  encStr,
+			LegacyGeneration: cryptKeys[len(cryptKeys)-1].Generation(),
+			TeamGeneration:   latestKey.KeyGeneration,
+			AppType:          appType,
+		},
+	})
+	return t.postMulti(payload)
+}
+
+func (t *Team) AssociateWithTLFID(ctx context.Context, tlfID keybase1.TLFID) (err error) {
+	defer t.G().CTrace(ctx, "Team.AssociateWithTLFID", func() error { return err })()
 
 	teamSection := SCTeamSection{
 		ID:       SCTeamID(t.ID),

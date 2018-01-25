@@ -9,11 +9,13 @@ export type StateProps =
       conversationIDKey: string,
       desktop: Types.NotifyType,
       mobile: Types.NotifyType,
+      muted: boolean,
       saveState: Types.NotificationSaveState,
     |}
   | {||}
 
 export type DispatchProps = {|
+  _onMuteConversation: (conversationIDKey: Types.ConversationIDKey, muted: boolean) => void,
   _resetNotificationSaveState: (conversationIDKey: Types.ConversationIDKey) => void,
   onSetNotification: (
     conversationIDKey: Types.ConversationIDKey,

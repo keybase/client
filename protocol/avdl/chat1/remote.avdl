@@ -272,4 +272,5 @@ protocol remote {
   SetRetentionRes setConvRetention(ConversationID convID, RetentionPolicy policy);
   SetRetentionRes setTeamRetention(keybase1.TeamID teamID, RetentionPolicy policy);
 
+  void upgradeKBFSToImpteam(TLFID tlfID);
 }

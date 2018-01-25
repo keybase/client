@@ -25,9 +25,11 @@ const Notifications = ({
   channelWide,
   desktop,
   mobile,
+  muted,
   saveState,
   onSetDesktop,
   onSetMobile,
+  onMuteConversation,
   onToggleChannelWide,
 }: Props) => (
   <Box
@@ -37,6 +39,29 @@ const Notifications = ({
       paddingRight: globalMargins.small,
     }}
   >
+    <Box
+      style={{
+        ...globalStyles.flexBoxRow,
+        alignItems: 'center',
+        marginBottom: globalMargins.xtiny,
+      }}
+    >
+      <Checkbox
+        checked={muted}
+        disabled={onMuteConversation == null}
+        onCheck={onMuteConversation}
+        label="Mute all notifications"
+      />
+      <Icon
+        type="iconfont-shh"
+        style={{
+          color: globalColors.black_20,
+          marginLeft: globalMargins.xtiny,
+          ...(isMobile ? {fontSize: 24} : {}),
+        }}
+      />
+    </Box>
+
     <Checkbox
       checked={!channelWide}
       label="Ignore @here and @channel mentions"
