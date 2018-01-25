@@ -6,8 +6,6 @@ import {amIFollowing} from '../../../constants/selectors'
 import {TeamRequestRow} from '.'
 import {navigateAppend} from '../../../actions/route-tree'
 import {createShowUserProfile} from '../../../actions/profile-gen'
-import {createGetProfile} from '../../../actions/tracker-gen'
-import {isMobile} from '../../../constants/platform'
 import {connect, type TypedState} from '../../../util/container'
 
 type OwnProps = {
@@ -33,11 +31,7 @@ type DispatchProps = {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
-  onOpenProfile: (username: string) => {
-    isMobile
-      ? dispatch(createShowUserProfile({username}))
-      : dispatch(createGetProfile({username, ignoreCache: true, forceDisplay: true}))
-  },
+  onOpenProfile: (username: string) => dispatch(createShowUserProfile({username})),
   _onAccept: (name: string, username: string) =>
     dispatch(
       navigateAppend([

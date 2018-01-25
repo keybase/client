@@ -11,8 +11,10 @@ const mapStateToProps = (state: TypedState) => ({
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onManageChannels: (teamname: string) =>
     dispatch(RouteTree.navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
-  _onViewTeam: (teamname: string) =>
-    dispatch(RouteTree.navigateTo([teamsTab, {props: {teamname}, selected: 'team'}])),
+  _onViewTeam: (teamname: string) => {
+    dispatch(RouteTree.setRouteState([teamsTab, 'team'], {selectedTab: 'members'}))
+    dispatch(RouteTree.navigateTo([teamsTab, {props: {teamname}, selected: 'team'}]))
+  },
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({

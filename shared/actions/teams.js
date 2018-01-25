@@ -35,7 +35,7 @@ const _createNewTeam = function*(action: TeamsGen.CreateNewTeamPayload) {
   try {
     yield Saga.call(RPCTypes.teamsTeamCreateRpcPromise, {
       name: teamname,
-      sendChatNotification: true,
+      joinSubteam: false,
     })
 
     // Dismiss the create team dialog.
@@ -269,7 +269,7 @@ const _createNewTeamFromConversation = function*(
     try {
       const createRes = yield Saga.call(RPCTypes.teamsTeamCreateRpcPromise, {
         name: teamname,
-        sendChatNotification: true,
+        joinSubteam: false,
       })
       for (const username of participants.toArray()) {
         if (!createRes.creatorAdded || username !== me) {

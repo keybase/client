@@ -779,6 +779,7 @@ func TestTeamListAfterReset(t *testing.T) {
 }
 
 func TestTeamAfterDeleteUser(t *testing.T) {
+	t.Skip()
 	ctx := newSMUContext(t)
 	defer ctx.cleanup()
 

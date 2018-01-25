@@ -470,9 +470,10 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed,
 			Sender:       hp.Sender,
 			SenderDevice: hp.SenderDevice,
 			// MerkleRoot is not expected to be in any v1 messages. Ignore it.
-			MerkleRoot: nil,
-			OutboxID:   hp.OutboxID,
-			OutboxInfo: hp.OutboxInfo,
+			MerkleRoot:        nil,
+			OutboxID:          hp.OutboxID,
+			OutboxInfo:        hp.OutboxInfo,
+			KbfsCryptKeysUsed: hp.KbfsCryptKeysUsed,
 		}
 	default:
 		return nil,
@@ -685,16 +686,17 @@ func (b *Boxer) unversionHeaderMBV2(ctx context.Context, headerVersioned chat1.H
 				NewPermanentUnboxingError(fmt.Errorf("HeaderSignature non-nil in MBV2"))
 		}
 		return chat1.MessageClientHeaderVerified{
-			Conv:         hp.Conv,
-			TlfName:      hp.TlfName,
-			TlfPublic:    hp.TlfPublic,
-			MessageType:  hp.MessageType,
-			Prev:         hp.Prev,
-			Sender:       hp.Sender,
-			SenderDevice: hp.SenderDevice,
-			MerkleRoot:   hp.MerkleRoot,
-			OutboxID:     hp.OutboxID,
-			OutboxInfo:   hp.OutboxInfo,
+			Conv:              hp.Conv,
+			TlfName:           hp.TlfName,
+			TlfPublic:         hp.TlfPublic,
+			MessageType:       hp.MessageType,
+			Prev:              hp.Prev,
+			Sender:            hp.Sender,
+			SenderDevice:      hp.SenderDevice,
+			MerkleRoot:        hp.MerkleRoot,
+			OutboxID:          hp.OutboxID,
+			OutboxInfo:        hp.OutboxInfo,
+			KbfsCryptKeysUsed: hp.KbfsCryptKeysUsed,
 		}, hp.BodyHash, nil
 	default:
 		return chat1.MessageClientHeaderVerified{}, nil,
@@ -1116,17 +1118,18 @@ func (b *Boxer) boxV1(messagePlaintext chat1.MessagePlaintext, key types.CryptKe
 
 	// create the v1 header, adding hash
 	header := chat1.HeaderPlaintextV1{
-		Conv:         messagePlaintext.ClientHeader.Conv,
-		TlfName:      messagePlaintext.ClientHeader.TlfName,
-		TlfPublic:    messagePlaintext.ClientHeader.TlfPublic,
-		MessageType:  messagePlaintext.ClientHeader.MessageType,
-		Prev:         messagePlaintext.ClientHeader.Prev,
-		Sender:       messagePlaintext.ClientHeader.Sender,
-		SenderDevice: messagePlaintext.ClientHeader.SenderDevice,
-		MerkleRoot:   nil, // MerkleRoot cannot be sent in MBv1 messages
-		BodyHash:     bodyHash[:],
-		OutboxInfo:   messagePlaintext.ClientHeader.OutboxInfo,
-		OutboxID:     messagePlaintext.ClientHeader.OutboxID,
+		Conv:              messagePlaintext.ClientHeader.Conv,
+		TlfName:           messagePlaintext.ClientHeader.TlfName,
+		TlfPublic:         messagePlaintext.ClientHeader.TlfPublic,
+		MessageType:       messagePlaintext.ClientHeader.MessageType,
+		Prev:              messagePlaintext.ClientHeader.Prev,
+		Sender:            messagePlaintext.ClientHeader.Sender,
+		SenderDevice:      messagePlaintext.ClientHeader.SenderDevice,
+		MerkleRoot:        nil, // MerkleRoot cannot be sent in MBv1 messages
+		BodyHash:          bodyHash[:],
+		OutboxInfo:        messagePlaintext.ClientHeader.OutboxInfo,
+		OutboxID:          messagePlaintext.ClientHeader.OutboxID,
+		KbfsCryptKeysUsed: messagePlaintext.ClientHeader.KbfsCryptKeysUsed,
 	}
 
 	// sign the header and insert the signature
@@ -1182,17 +1185,18 @@ func (b *Boxer) boxV2(messagePlaintext chat1.MessagePlaintext, baseEncryptionKey
 
 	// create the v1 header, adding hash
 	headerVersioned := chat1.NewHeaderPlaintextWithV1(chat1.HeaderPlaintextV1{
-		Conv:         messagePlaintext.ClientHeader.Conv,
-		TlfName:      messagePlaintext.ClientHeader.TlfName,
-		TlfPublic:    messagePlaintext.ClientHeader.TlfPublic,
-		MessageType:  messagePlaintext.ClientHeader.MessageType,
-		Prev:         messagePlaintext.ClientHeader.Prev,
-		Sender:       messagePlaintext.ClientHeader.Sender,
-		SenderDevice: messagePlaintext.ClientHeader.SenderDevice,
-		BodyHash:     bodyHash,
-		MerkleRoot:   messagePlaintext.ClientHeader.MerkleRoot,
-		OutboxInfo:   messagePlaintext.ClientHeader.OutboxInfo,
-		OutboxID:     messagePlaintext.ClientHeader.OutboxID,
+		Conv:              messagePlaintext.ClientHeader.Conv,
+		TlfName:           messagePlaintext.ClientHeader.TlfName,
+		TlfPublic:         messagePlaintext.ClientHeader.TlfPublic,
+		MessageType:       messagePlaintext.ClientHeader.MessageType,
+		Prev:              messagePlaintext.ClientHeader.Prev,
+		Sender:            messagePlaintext.ClientHeader.Sender,
+		SenderDevice:      messagePlaintext.ClientHeader.SenderDevice,
+		BodyHash:          bodyHash,
+		MerkleRoot:        messagePlaintext.ClientHeader.MerkleRoot,
+		OutboxInfo:        messagePlaintext.ClientHeader.OutboxInfo,
+		OutboxID:          messagePlaintext.ClientHeader.OutboxID,
+		KbfsCryptKeysUsed: messagePlaintext.ClientHeader.KbfsCryptKeysUsed,
 		// In MessageBoxed.V2 HeaderSignature is nil.
 		HeaderSignature: nil,
 	})
@@ -1540,7 +1544,7 @@ func (b *Boxer) compareHeadersMBV1(ctx context.Context, hServer chat1.MessageCli
 		return NewPermanentUnboxingError(NewHeaderMismatchError("MessageType"))
 	}
 
-	// Note: Supersedes, Deletes, and DeleteHistory are not checked because they are not
+	// Note: Supersedes, Deletes, and some other fields are not checked because they are not
 	//       part of MessageClientHeaderVerified.
 
 	// Prev

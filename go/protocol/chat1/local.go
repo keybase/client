@@ -1327,18 +1327,19 @@ func (o HeaderPlaintextUnsupported) DeepCopy() HeaderPlaintextUnsupported {
 }
 
 type HeaderPlaintextV1 struct {
-	Conv            ConversationIDTriple     `codec:"conv" json:"conv"`
-	TlfName         string                   `codec:"tlfName" json:"tlfName"`
-	TlfPublic       bool                     `codec:"tlfPublic" json:"tlfPublic"`
-	MessageType     MessageType              `codec:"messageType" json:"messageType"`
-	Prev            []MessagePreviousPointer `codec:"prev" json:"prev"`
-	Sender          gregor1.UID              `codec:"sender" json:"sender"`
-	SenderDevice    gregor1.DeviceID         `codec:"senderDevice" json:"senderDevice"`
-	BodyHash        Hash                     `codec:"bodyHash" json:"bodyHash"`
-	OutboxInfo      *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
-	OutboxID        *OutboxID                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
-	HeaderSignature *SignatureInfo           `codec:"headerSignature,omitempty" json:"headerSignature,omitempty"`
-	MerkleRoot      *MerkleRoot              `codec:"merkleRoot,omitempty" json:"merkleRoot,omitempty"`
+	Conv              ConversationIDTriple     `codec:"conv" json:"conv"`
+	TlfName           string                   `codec:"tlfName" json:"tlfName"`
+	TlfPublic         bool                     `codec:"tlfPublic" json:"tlfPublic"`
+	MessageType       MessageType              `codec:"messageType" json:"messageType"`
+	Prev              []MessagePreviousPointer `codec:"prev" json:"prev"`
+	Sender            gregor1.UID              `codec:"sender" json:"sender"`
+	SenderDevice      gregor1.DeviceID         `codec:"senderDevice" json:"senderDevice"`
+	KbfsCryptKeysUsed *bool                    `codec:"kbfsCryptKeysUsed,omitempty" json:"kbfsCryptKeysUsed,omitempty"`
+	BodyHash          Hash                     `codec:"bodyHash" json:"bodyHash"`
+	OutboxInfo        *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
+	OutboxID          *OutboxID                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
+	HeaderSignature   *SignatureInfo           `codec:"headerSignature,omitempty" json:"headerSignature,omitempty"`
+	MerkleRoot        *MerkleRoot              `codec:"merkleRoot,omitempty" json:"merkleRoot,omitempty"`
 }
 
 func (o HeaderPlaintextV1) DeepCopy() HeaderPlaintextV1 {
@@ -1360,7 +1361,14 @@ func (o HeaderPlaintextV1) DeepCopy() HeaderPlaintextV1 {
 		})(o.Prev),
 		Sender:       o.Sender.DeepCopy(),
 		SenderDevice: o.SenderDevice.DeepCopy(),
-		BodyHash:     o.BodyHash.DeepCopy(),
+		KbfsCryptKeysUsed: (func(x *bool) *bool {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.KbfsCryptKeysUsed),
+		BodyHash: o.BodyHash.DeepCopy(),
 		OutboxInfo: (func(x *OutboxInfo) *OutboxInfo {
 			if x == nil {
 				return nil
@@ -2609,6 +2617,9 @@ type ConversationLocal struct {
 	MaxMessages      []MessageUnboxed              `codec:"maxMessages" json:"maxMessages"`
 	IsEmpty          bool                          `codec:"isEmpty" json:"isEmpty"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+	Expunge          Expunge                       `codec:"expunge" json:"expunge"`
+	ConvRetention    *RetentionPolicy              `codec:"convRetention,omitempty" json:"convRetention,omitempty"`
+	TeamRetention    *RetentionPolicy              `codec:"teamRetention,omitempty" json:"teamRetention,omitempty"`
 }
 
 func (o ConversationLocal) DeepCopy() ConversationLocal {
@@ -2681,6 +2692,21 @@ func (o ConversationLocal) DeepCopy() ConversationLocal {
 			}
 			return ret
 		})(o.IdentifyFailures),
+		Expunge: o.Expunge.DeepCopy(),
+		ConvRetention: (func(x *RetentionPolicy) *RetentionPolicy {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ConvRetention),
+		TeamRetention: (func(x *RetentionPolicy) *RetentionPolicy {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.TeamRetention),
 	}
 }
 

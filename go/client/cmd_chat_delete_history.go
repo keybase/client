@@ -185,7 +185,7 @@ func (c *CmdChatDeleteHistory) chatSendDeleteHistory(ctx context.Context) error 
 		promptText = fmt.Sprintf("Permanently delete all chat messages in [%s] older than %v?\nHit Enter, or Ctrl-C to cancel.",
 			conversationInfo.TlfName, c.ageDesc)
 	}
-	_, err = c.G().UI.GetTerminalUI().Prompt(PromptDescriptorEnterChatMessage, promptText)
+	_, err = c.G().UI.GetTerminalUI().Prompt(PromptDescriptorChatDeleteHistory, promptText)
 	if err != nil {
 		return err
 	}

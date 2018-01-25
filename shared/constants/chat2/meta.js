@@ -45,7 +45,8 @@ export const unverifiedInboxUIItemToConversationMeta = (
   // We only treat implied adhoc teams as having resetParticipants
   const resetParticipants = I.Set(
     i.localMetadata &&
-    i.membersType === RPCChatTypes.commonConversationMembersType.impteam &&
+    (i.membersType === RPCChatTypes.commonConversationMembersType.impteamnative ||
+      i.membersType === RPCChatTypes.commonConversationMembersType.impteamupgrade) &&
     i.localMetadata.resetParticipants
       ? i.localMetadata.resetParticipants
       : []
@@ -158,7 +159,9 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
 
   // We only treat implied adhoc teams as having resetParticipants
   const resetParticipants = I.Set(
-    i.membersType === RPCChatTypes.commonConversationMembersType.impteam && i.resetParticipants
+    (i.membersType === RPCChatTypes.commonConversationMembersType.impteamnative ||
+      i.membersType === RPCChatTypes.commonConversationMembersType.impteamupgrade) &&
+    i.resetParticipants
       ? i.resetParticipants
       : []
   )

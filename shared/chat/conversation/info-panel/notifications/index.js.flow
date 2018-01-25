@@ -3,13 +3,15 @@
 // import {type NotifyType, type NotificationSaveState} from '../../../../constants/types/chat'
 
 // export type Props = {
-  // channelWide: boolean,
-  // desktop: NotifyType,
-  // mobile: NotifyType,
-  // saveState: NotificationSaveState,
-  // onSetDesktop: NotifyType => void,
-  // onSetMobile: NotifyType => void,
-  // onToggleChannelWide: () => void,
+// channelWide: boolean,
+// desktop: NotifyType,
+// mobile: NotifyType,
+// muted: boolean,
+// saveState: NotificationSaveState,
+// onSetDesktop: NotifyType => void,
+// onSetMobile: NotifyType => void,
+// onMuteConversation: (muted: boolean) => void,
+// onToggleChannelWide: () => void,
 // }
 
 // export default class Notifications extends Component<Props> {}

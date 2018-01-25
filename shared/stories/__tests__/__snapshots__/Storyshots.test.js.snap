@@ -421,560 +421,6 @@ exports[`Storyshots Chat/Channel Heads up Display Mention Row 1`] = `
 </div>
 `;
 
-exports[`Storyshots Chat/Conversation/InfoPanel Mute row (big) 1`] = `
-.glamor-0,
-[data-glamor-0] {
-  color: #ffffff;
-}
-
-.glamor-1,
-[data-glamor-1] {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
-}
-
-.glamor-2,
-[data-glamor-2] {
-  color: rgba(0, 0, 0, 0.20);
-}
-
-<div
-  style={
-    Object {
-      "flex": 1,
-      "overflow": "auto",
-    }
-  }
->
-  <div
-    style={undefined}
-  >
-    <div
-      style={
-        Object {
-          "alignItems": "center",
-          "display": "flex",
-          "flexDirection": "row",
-          "marginBottom": 4,
-          "marginLeft": 16,
-        }
-      }
-    >
-      <div
-        onClick={[Function]}
-        style={
-          Object {
-            "alignItems": "flex-start",
-            "cursor": "pointer",
-            "display": "flex",
-            "flexDirection": "row",
-          }
-        }
-      >
-        <div
-          style={
-            Object {
-              "backgroundColor": "inherit",
-              "border": "solid 1px rgba(0, 0, 0, 0.20)",
-              "borderRadius": 2,
-              "height": 13,
-              "marginRight": 8,
-              "marginTop": 2,
-              "opacity": 1,
-              "position": "relative",
-              "transition": "background 0.1s ease-out",
-              "width": 13,
-            }
-          }
-        >
-          <div>
-            <span
-              className="glamor-0"
-              onClick={null}
-              onMouseEnter={undefined}
-              onMouseLeave={undefined}
-              style={
-                Object {
-                  "WebkitFontSmoothing": "antialiased",
-                  "fontFamily": "kb",
-                  "fontSize": 9,
-                  "fontStyle": "normal",
-                  "fontVariant": "normal",
-                  "fontWeight": "normal",
-                  "left": 1,
-                  "lineHeight": 1,
-                  "opacity": 0,
-                  "position": "absolute",
-                  "speak": "none",
-                  "textTransform": "none",
-                  "top": 1,
-                  "transition": "opacity 0.1s ease-out",
-                  "userSelect": "none",
-                }
-              }
-            >
-              
-            </span>
-          </div>
-        </div>
-        <span
-          className="glamor-1"
-          onClick={undefined}
-          title={undefined}
-        >
-          Mute channel
-        </span>
-      </div>
-      <div>
-        <span
-          className="glamor-2"
-          onClick={null}
-          onMouseEnter={undefined}
-          onMouseLeave={undefined}
-          style={
-            Object {
-              "WebkitFontSmoothing": "antialiased",
-              "fontFamily": "kb",
-              "fontSize": 16,
-              "fontStyle": "normal",
-              "fontVariant": "normal",
-              "fontWeight": "normal",
-              "lineHeight": 1,
-              "marginLeft": 4,
-              "speak": "none",
-              "textTransform": "none",
-              "userSelect": "none",
-            }
-          }
-        >
-          
-        </span>
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Chat/Conversation/InfoPanel Mute row (big, muted) 1`] = `
-.glamor-0,
-[data-glamor-0] {
-  color: #ffffff;
-}
-
-.glamor-1,
-[data-glamor-1] {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
-}
-
-.glamor-2,
-[data-glamor-2] {
-  color: rgba(0, 0, 0, 0.20);
-}
-
-<div
-  style={
-    Object {
-      "flex": 1,
-      "overflow": "auto",
-    }
-  }
->
-  <div
-    style={undefined}
-  >
-    <div
-      style={
-        Object {
-          "alignItems": "center",
-          "display": "flex",
-          "flexDirection": "row",
-          "marginBottom": 4,
-          "marginLeft": 16,
-        }
-      }
-    >
-      <div
-        onClick={[Function]}
-        style={
-          Object {
-            "alignItems": "flex-start",
-            "cursor": "pointer",
-            "display": "flex",
-            "flexDirection": "row",
-          }
-        }
-      >
-        <div
-          style={
-            Object {
-              "backgroundColor": "#33a0ff",
-              "border": "solid 1px #33a0ff",
-              "borderRadius": 2,
-              "height": 13,
-              "marginRight": 8,
-              "marginTop": 2,
-              "opacity": 1,
-              "position": "relative",
-              "transition": "background 0.1s ease-out",
-              "width": 13,
-            }
-          }
-        >
-          <div>
-            <span
-              className="glamor-0"
-              onClick={null}
-              onMouseEnter={undefined}
-              onMouseLeave={undefined}
-              style={
-                Object {
-                  "WebkitFontSmoothing": "antialiased",
-                  "fontFamily": "kb",
-                  "fontSize": 9,
-                  "fontStyle": "normal",
-                  "fontVariant": "normal",
-                  "fontWeight": "normal",
-                  "left": 1,
-                  "lineHeight": 1,
-                  "position": "absolute",
-                  "speak": "none",
-                  "textTransform": "none",
-                  "top": 1,
-                  "transition": "opacity 0.1s ease-out",
-                  "userSelect": "none",
-                }
-              }
-            >
-              
-            </span>
-          </div>
-        </div>
-        <span
-          className="glamor-1"
-          onClick={undefined}
-          title={undefined}
-        >
-          Mute channel
-        </span>
-      </div>
-      <div>
-        <span
-          className="glamor-2"
-          onClick={null}
-          onMouseEnter={undefined}
-          onMouseLeave={undefined}
-          style={
-            Object {
-              "WebkitFontSmoothing": "antialiased",
-              "fontFamily": "kb",
-              "fontSize": 16,
-              "fontStyle": "normal",
-              "fontVariant": "normal",
-              "fontWeight": "normal",
-              "lineHeight": 1,
-              "marginLeft": 4,
-              "speak": "none",
-              "textTransform": "none",
-              "userSelect": "none",
-            }
-          }
-        >
-          
-        </span>
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Chat/Conversation/InfoPanel Mute row (small) 1`] = `
-.glamor-0,
-[data-glamor-0] {
-  color: #ffffff;
-}
-
-.glamor-1,
-[data-glamor-1] {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
-}
-
-.glamor-2,
-[data-glamor-2] {
-  color: rgba(0, 0, 0, 0.20);
-}
-
-<div
-  style={
-    Object {
-      "flex": 1,
-      "overflow": "auto",
-    }
-  }
->
-  <div
-    style={undefined}
-  >
-    <div
-      style={
-        Object {
-          "alignItems": "center",
-          "display": "flex",
-          "flexDirection": "row",
-          "marginBottom": 4,
-          "marginLeft": 16,
-        }
-      }
-    >
-      <div
-        onClick={[Function]}
-        style={
-          Object {
-            "alignItems": "flex-start",
-            "cursor": "pointer",
-            "display": "flex",
-            "flexDirection": "row",
-          }
-        }
-      >
-        <div
-          style={
-            Object {
-              "backgroundColor": "inherit",
-              "border": "solid 1px rgba(0, 0, 0, 0.20)",
-              "borderRadius": 2,
-              "height": 13,
-              "marginRight": 8,
-              "marginTop": 2,
-              "opacity": 1,
-              "position": "relative",
-              "transition": "background 0.1s ease-out",
-              "width": 13,
-            }
-          }
-        >
-          <div>
-            <span
-              className="glamor-0"
-              onClick={null}
-              onMouseEnter={undefined}
-              onMouseLeave={undefined}
-              style={
-                Object {
-                  "WebkitFontSmoothing": "antialiased",
-                  "fontFamily": "kb",
-                  "fontSize": 9,
-                  "fontStyle": "normal",
-                  "fontVariant": "normal",
-                  "fontWeight": "normal",
-                  "left": 1,
-                  "lineHeight": 1,
-                  "opacity": 0,
-                  "position": "absolute",
-                  "speak": "none",
-                  "textTransform": "none",
-                  "top": 1,
-                  "transition": "opacity 0.1s ease-out",
-                  "userSelect": "none",
-                }
-              }
-            >
-              
-            </span>
-          </div>
-        </div>
-        <span
-          className="glamor-1"
-          onClick={undefined}
-          title={undefined}
-        >
-          Mute notifications
-        </span>
-      </div>
-      <div>
-        <span
-          className="glamor-2"
-          onClick={null}
-          onMouseEnter={undefined}
-          onMouseLeave={undefined}
-          style={
-            Object {
-              "WebkitFontSmoothing": "antialiased",
-              "fontFamily": "kb",
-              "fontSize": 16,
-              "fontStyle": "normal",
-              "fontVariant": "normal",
-              "fontWeight": "normal",
-              "lineHeight": 1,
-              "marginLeft": 4,
-              "speak": "none",
-              "textTransform": "none",
-              "userSelect": "none",
-            }
-          }
-        >
-          
-        </span>
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Chat/Conversation/InfoPanel Mute row (small, muted) 1`] = `
-.glamor-0,
-[data-glamor-0] {
-  color: #ffffff;
-}
-
-.glamor-1,
-[data-glamor-1] {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
-}
-
-.glamor-2,
-[data-glamor-2] {
-  color: rgba(0, 0, 0, 0.20);
-}
-
-<div
-  style={
-    Object {
-      "flex": 1,
-      "overflow": "auto",
-    }
-  }
->
-  <div
-    style={undefined}
-  >
-    <div
-      style={
-        Object {
-          "alignItems": "center",
-          "display": "flex",
-          "flexDirection": "row",
-          "marginBottom": 4,
-          "marginLeft": 16,
-        }
-      }
-    >
-      <div
-        onClick={[Function]}
-        style={
-          Object {
-            "alignItems": "flex-start",
-            "cursor": "pointer",
-            "display": "flex",
-            "flexDirection": "row",
-          }
-        }
-      >
-        <div
-          style={
-            Object {
-              "backgroundColor": "#33a0ff",
-              "border": "solid 1px #33a0ff",
-              "borderRadius": 2,
-              "height": 13,
-              "marginRight": 8,
-              "marginTop": 2,
-              "opacity": 1,
-              "position": "relative",
-              "transition": "background 0.1s ease-out",
-              "width": 13,
-            }
-          }
-        >
-          <div>
-            <span
-              className="glamor-0"
-              onClick={null}
-              onMouseEnter={undefined}
-              onMouseLeave={undefined}
-              style={
-                Object {
-                  "WebkitFontSmoothing": "antialiased",
-                  "fontFamily": "kb",
-                  "fontSize": 9,
-                  "fontStyle": "normal",
-                  "fontVariant": "normal",
-                  "fontWeight": "normal",
-                  "left": 1,
-                  "lineHeight": 1,
-                  "position": "absolute",
-                  "speak": "none",
-                  "textTransform": "none",
-                  "top": 1,
-                  "transition": "opacity 0.1s ease-out",
-                  "userSelect": "none",
-                }
-              }
-            >
-              
-            </span>
-          </div>
-        </div>
-        <span
-          className="glamor-1"
-          onClick={undefined}
-          title={undefined}
-        >
-          Mute notifications
-        </span>
-      </div>
-      <div>
-        <span
-          className="glamor-2"
-          onClick={null}
-          onMouseEnter={undefined}
-          onMouseLeave={undefined}
-          style={
-            Object {
-              "WebkitFontSmoothing": "antialiased",
-              "fontFamily": "kb",
-              "fontSize": 16,
-              "fontStyle": "normal",
-              "fontVariant": "normal",
-              "fontWeight": "normal",
-              "lineHeight": 1,
-              "marginLeft": 4,
-              "speak": "none",
-              "textTransform": "none",
-              "userSelect": "none",
-            }
-          }
-        >
-          
-        </span>
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
 exports[`Storyshots Chat/Conversation/InfoPanel Participants (with add button) 1`] = `
 .glamor-0,
 [data-glamor-0] {
@@ -1972,6 +1418,11 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
 
 .glamor-2,
 [data-glamor-2] {
+  color: rgba(0, 0, 0, 0.20);
+}
+
+.glamor-5,
+[data-glamor-5] {
   font-size: 11px;
   line-height: 15px;
   color: rgba(0, 0, 0, 0.40);
@@ -1981,13 +1432,8 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
   font-weight: 600;
 }
 
-.glamor-3,
-[data-glamor-3] {
-  color: rgba(0, 0, 0, 0.20);
-}
-
-.glamor-4,
-[data-glamor-4] {
+.glamor-7,
+[data-glamor-7] {
   transition: background 0.1s ease-out;
   border-radius: 100%;
   height: 14px;
@@ -2002,13 +1448,13 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
   -moz-transition: background 0.1s ease-out;
 }
 
-.glamor-4:hover,
-[data-glamor-4]:hover {
+.glamor-7:hover,
+[data-glamor-7]:hover {
   border: solid 1px #33a0ff;
 }
 
-.glamor-6,
-[data-glamor-6] {
+.glamor-9,
+[data-glamor-9] {
   transition: background 0.1s ease-out;
   border-radius: 100%;
   height: 14px;
@@ -2022,18 +1468,18 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
   -moz-transition: background 0.1s ease-out;
 }
 
-.glamor-6:hover,
-[data-glamor-6]:hover {
+.glamor-9:hover,
+[data-glamor-9]:hover {
   border: solid 1px #33a0ff;
 }
 
-.glamor-18,
-[data-glamor-18] {
+.glamor-21,
+[data-glamor-21] {
   color: #3dcc8e;
 }
 
-.glamor-19,
-[data-glamor-19] {
+.glamor-22,
+[data-glamor-22] {
   font-size: 11px;
   line-height: 15px;
   color: #3dcc8e;
@@ -2064,6 +1510,107 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
         }
       }
     >
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "marginBottom": 4,
+          }
+        }
+      >
+        <div
+          onClick={[Function]}
+          style={
+            Object {
+              "alignItems": "flex-start",
+              "cursor": "pointer",
+              "display": "flex",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "backgroundColor": "inherit",
+                "border": "solid 1px rgba(0, 0, 0, 0.20)",
+                "borderRadius": 2,
+                "height": 13,
+                "marginRight": 8,
+                "marginTop": 2,
+                "opacity": 1,
+                "position": "relative",
+                "transition": "background 0.1s ease-out",
+                "width": 13,
+              }
+            }
+          >
+            <div>
+              <span
+                className="glamor-0"
+                onClick={null}
+                onMouseEnter={undefined}
+                onMouseLeave={undefined}
+                style={
+                  Object {
+                    "WebkitFontSmoothing": "antialiased",
+                    "fontFamily": "kb",
+                    "fontSize": 9,
+                    "fontStyle": "normal",
+                    "fontVariant": "normal",
+                    "fontWeight": "normal",
+                    "left": 1,
+                    "lineHeight": 1,
+                    "opacity": 0,
+                    "position": "absolute",
+                    "speak": "none",
+                    "textTransform": "none",
+                    "top": 1,
+                    "transition": "opacity 0.1s ease-out",
+                    "userSelect": "none",
+                  }
+                }
+              >
+                
+              </span>
+            </div>
+          </div>
+          <span
+            className="glamor-1"
+            onClick={undefined}
+            title={undefined}
+          >
+            Mute all notifications
+          </span>
+        </div>
+        <div>
+          <span
+            className="glamor-2"
+            onClick={null}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
+            style={
+              Object {
+                "WebkitFontSmoothing": "antialiased",
+                "fontFamily": "kb",
+                "fontSize": 16,
+                "fontStyle": "normal",
+                "fontVariant": "normal",
+                "fontWeight": "normal",
+                "lineHeight": 1,
+                "marginLeft": 4,
+                "speak": "none",
+                "textTransform": "none",
+                "userSelect": "none",
+              }
+            }
+          >
+            
+          </span>
+        </div>
+      </div>
       <div
         onClick={[Function]}
         style={
@@ -2139,7 +1686,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
         }
       >
         <span
-          className="glamor-2"
+          className="glamor-5"
           onClick={undefined}
           title={undefined}
         >
@@ -2147,7 +1694,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
         </span>
         <div>
           <span
-            className="glamor-3"
+            className="glamor-2"
             onClick={null}
             onMouseEnter={undefined}
             onMouseLeave={undefined}
@@ -2193,7 +1740,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
           }
         >
           <div
-            className="glamor-4"
+            className="glamor-7"
           >
             <div
               style={
@@ -2241,7 +1788,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
           }
         >
           <div
-            className="glamor-6"
+            className="glamor-9"
           >
             <div
               style={
@@ -2289,7 +1836,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
           }
         >
           <div
-            className="glamor-6"
+            className="glamor-9"
           >
             <div
               style={
@@ -2325,7 +1872,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
         }
       >
         <span
-          className="glamor-2"
+          className="glamor-5"
           onClick={undefined}
           title={undefined}
         >
@@ -2333,7 +1880,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
         </span>
         <div>
           <span
-            className="glamor-3"
+            className="glamor-2"
             onClick={null}
             onMouseEnter={undefined}
             onMouseLeave={undefined}
@@ -2379,7 +1926,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
           }
         >
           <div
-            className="glamor-6"
+            className="glamor-9"
           >
             <div
               style={
@@ -2427,7 +1974,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
           }
         >
           <div
-            className="glamor-4"
+            className="glamor-7"
           >
             <div
               style={
@@ -2475,7 +2022,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
           }
         >
           <div
-            className="glamor-6"
+            className="glamor-9"
           >
             <div
               style={
@@ -2514,7 +2061,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
       >
         <div>
           <span
-            className="glamor-18"
+            className="glamor-21"
             onClick={null}
             onMouseEnter={undefined}
             onMouseLeave={undefined}
@@ -2537,7 +2084,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
           </span>
         </div>
         <span
-          className="glamor-19"
+          className="glamor-22"
           onClick={undefined}
           title={undefined}
         >
@@ -2568,6 +2115,11 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
 
 .glamor-2,
 [data-glamor-2] {
+  color: rgba(0, 0, 0, 0.20);
+}
+
+.glamor-5,
+[data-glamor-5] {
   font-size: 11px;
   line-height: 15px;
   color: rgba(0, 0, 0, 0.40);
@@ -2577,13 +2129,8 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
   font-weight: 600;
 }
 
-.glamor-3,
-[data-glamor-3] {
-  color: rgba(0, 0, 0, 0.20);
-}
-
-.glamor-4,
-[data-glamor-4] {
+.glamor-7,
+[data-glamor-7] {
   transition: background 0.1s ease-out;
   border-radius: 100%;
   height: 14px;
@@ -2598,13 +2145,13 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
   -moz-transition: background 0.1s ease-out;
 }
 
-.glamor-4:hover,
-[data-glamor-4]:hover {
+.glamor-7:hover,
+[data-glamor-7]:hover {
   border: solid 1px #33a0ff;
 }
 
-.glamor-6,
-[data-glamor-6] {
+.glamor-9,
+[data-glamor-9] {
   transition: background 0.1s ease-out;
   border-radius: 100%;
   height: 14px;
@@ -2618,8 +2165,8 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
   -moz-transition: background 0.1s ease-out;
 }
 
-.glamor-6:hover,
-[data-glamor-6]:hover {
+.glamor-9:hover,
+[data-glamor-9]:hover {
   border: solid 1px #33a0ff;
 }
 
@@ -2644,6 +2191,107 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
         }
       }
     >
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "marginBottom": 4,
+          }
+        }
+      >
+        <div
+          onClick={[Function]}
+          style={
+            Object {
+              "alignItems": "flex-start",
+              "cursor": "pointer",
+              "display": "flex",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "backgroundColor": "inherit",
+                "border": "solid 1px rgba(0, 0, 0, 0.20)",
+                "borderRadius": 2,
+                "height": 13,
+                "marginRight": 8,
+                "marginTop": 2,
+                "opacity": 1,
+                "position": "relative",
+                "transition": "background 0.1s ease-out",
+                "width": 13,
+              }
+            }
+          >
+            <div>
+              <span
+                className="glamor-0"
+                onClick={null}
+                onMouseEnter={undefined}
+                onMouseLeave={undefined}
+                style={
+                  Object {
+                    "WebkitFontSmoothing": "antialiased",
+                    "fontFamily": "kb",
+                    "fontSize": 9,
+                    "fontStyle": "normal",
+                    "fontVariant": "normal",
+                    "fontWeight": "normal",
+                    "left": 1,
+                    "lineHeight": 1,
+                    "opacity": 0,
+                    "position": "absolute",
+                    "speak": "none",
+                    "textTransform": "none",
+                    "top": 1,
+                    "transition": "opacity 0.1s ease-out",
+                    "userSelect": "none",
+                  }
+                }
+              >
+                
+              </span>
+            </div>
+          </div>
+          <span
+            className="glamor-1"
+            onClick={undefined}
+            title={undefined}
+          >
+            Mute all notifications
+          </span>
+        </div>
+        <div>
+          <span
+            className="glamor-2"
+            onClick={null}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
+            style={
+              Object {
+                "WebkitFontSmoothing": "antialiased",
+                "fontFamily": "kb",
+                "fontSize": 16,
+                "fontStyle": "normal",
+                "fontVariant": "normal",
+                "fontWeight": "normal",
+                "lineHeight": 1,
+                "marginLeft": 4,
+                "speak": "none",
+                "textTransform": "none",
+                "userSelect": "none",
+              }
+            }
+          >
+            
+          </span>
+        </div>
+      </div>
       <div
         onClick={[Function]}
         style={
@@ -2719,7 +2367,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
         }
       >
         <span
-          className="glamor-2"
+          className="glamor-5"
           onClick={undefined}
           title={undefined}
         >
@@ -2727,7 +2375,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
         </span>
         <div>
           <span
-            className="glamor-3"
+            className="glamor-2"
             onClick={null}
             onMouseEnter={undefined}
             onMouseLeave={undefined}
@@ -2773,7 +2421,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
           }
         >
           <div
-            className="glamor-4"
+            className="glamor-7"
           >
             <div
               style={
@@ -2821,7 +2469,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
           }
         >
           <div
-            className="glamor-6"
+            className="glamor-9"
           >
             <div
               style={
@@ -2869,7 +2517,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
           }
         >
           <div
-            className="glamor-6"
+            className="glamor-9"
           >
             <div
               style={
@@ -2905,7 +2553,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
         }
       >
         <span
-          className="glamor-2"
+          className="glamor-5"
           onClick={undefined}
           title={undefined}
         >
@@ -2913,7 +2561,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
         </span>
         <div>
           <span
-            className="glamor-3"
+            className="glamor-2"
             onClick={null}
             onMouseEnter={undefined}
             onMouseLeave={undefined}
@@ -2959,7 +2607,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
           }
         >
           <div
-            className="glamor-6"
+            className="glamor-9"
           >
             <div
               style={
@@ -3007,7 +2655,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
           }
         >
           <div
-            className="glamor-4"
+            className="glamor-7"
           >
             <div
               style={
@@ -3055,7 +2703,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
           }
         >
           <div
-            className="glamor-6"
+            className="glamor-9"
           >
             <div
               style={
@@ -3131,6 +2779,11 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
 
 .glamor-2,
 [data-glamor-2] {
+  color: rgba(0, 0, 0, 0.20);
+}
+
+.glamor-5,
+[data-glamor-5] {
   font-size: 11px;
   line-height: 15px;
   color: rgba(0, 0, 0, 0.40);
@@ -3140,13 +2793,8 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
   font-weight: 600;
 }
 
-.glamor-3,
-[data-glamor-3] {
-  color: rgba(0, 0, 0, 0.20);
-}
-
-.glamor-4,
-[data-glamor-4] {
+.glamor-7,
+[data-glamor-7] {
   transition: background 0.1s ease-out;
   border-radius: 100%;
   height: 14px;
@@ -3160,13 +2808,13 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
   -moz-transition: background 0.1s ease-out;
 }
 
-.glamor-4:hover,
-[data-glamor-4]:hover {
+.glamor-7:hover,
+[data-glamor-7]:hover {
   border: solid 1px #33a0ff;
 }
 
-.glamor-6,
-[data-glamor-6] {
+.glamor-9,
+[data-glamor-9] {
   transition: background 0.1s ease-out;
   border-radius: 100%;
   height: 14px;
@@ -3181,8 +2829,8 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
   -moz-transition: background 0.1s ease-out;
 }
 
-.glamor-6:hover,
-[data-glamor-6]:hover {
+.glamor-9:hover,
+[data-glamor-9]:hover {
   border: solid 1px #33a0ff;
 }
 
@@ -3207,6 +2855,107 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
         }
       }
     >
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "marginBottom": 4,
+          }
+        }
+      >
+        <div
+          onClick={[Function]}
+          style={
+            Object {
+              "alignItems": "flex-start",
+              "cursor": "pointer",
+              "display": "flex",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "backgroundColor": "inherit",
+                "border": "solid 1px rgba(0, 0, 0, 0.20)",
+                "borderRadius": 2,
+                "height": 13,
+                "marginRight": 8,
+                "marginTop": 2,
+                "opacity": 1,
+                "position": "relative",
+                "transition": "background 0.1s ease-out",
+                "width": 13,
+              }
+            }
+          >
+            <div>
+              <span
+                className="glamor-0"
+                onClick={null}
+                onMouseEnter={undefined}
+                onMouseLeave={undefined}
+                style={
+                  Object {
+                    "WebkitFontSmoothing": "antialiased",
+                    "fontFamily": "kb",
+                    "fontSize": 9,
+                    "fontStyle": "normal",
+                    "fontVariant": "normal",
+                    "fontWeight": "normal",
+                    "left": 1,
+                    "lineHeight": 1,
+                    "opacity": 0,
+                    "position": "absolute",
+                    "speak": "none",
+                    "textTransform": "none",
+                    "top": 1,
+                    "transition": "opacity 0.1s ease-out",
+                    "userSelect": "none",
+                  }
+                }
+              >
+                
+              </span>
+            </div>
+          </div>
+          <span
+            className="glamor-1"
+            onClick={undefined}
+            title={undefined}
+          >
+            Mute all notifications
+          </span>
+        </div>
+        <div>
+          <span
+            className="glamor-2"
+            onClick={null}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
+            style={
+              Object {
+                "WebkitFontSmoothing": "antialiased",
+                "fontFamily": "kb",
+                "fontSize": 16,
+                "fontStyle": "normal",
+                "fontVariant": "normal",
+                "fontWeight": "normal",
+                "lineHeight": 1,
+                "marginLeft": 4,
+                "speak": "none",
+                "textTransform": "none",
+                "userSelect": "none",
+              }
+            }
+          >
+            
+          </span>
+        </div>
+      </div>
       <div
         onClick={[Function]}
         style={
@@ -3281,7 +3030,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
         }
       >
         <span
-          className="glamor-2"
+          className="glamor-5"
           onClick={undefined}
           title={undefined}
         >
@@ -3289,7 +3038,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
         </span>
         <div>
           <span
-            className="glamor-3"
+            className="glamor-2"
             onClick={null}
             onMouseEnter={undefined}
             onMouseLeave={undefined}
@@ -3335,7 +3084,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
           }
         >
           <div
-            className="glamor-4"
+            className="glamor-7"
           >
             <div
               style={
@@ -3383,7 +3132,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
           }
         >
           <div
-            className="glamor-6"
+            className="glamor-9"
           >
             <div
               style={
@@ -3431,7 +3180,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
           }
         >
           <div
-            className="glamor-4"
+            className="glamor-7"
           >
             <div
               style={
@@ -3467,7 +3216,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
         }
       >
         <span
-          className="glamor-2"
+          className="glamor-5"
           onClick={undefined}
           title={undefined}
         >
@@ -3475,7 +3224,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
         </span>
         <div>
           <span
-            className="glamor-3"
+            className="glamor-2"
             onClick={null}
             onMouseEnter={undefined}
             onMouseLeave={undefined}
@@ -3521,7 +3270,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
           }
         >
           <div
-            className="glamor-4"
+            className="glamor-7"
           >
             <div
               style={
@@ -3569,7 +3318,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
           }
         >
           <div
-            className="glamor-4"
+            className="glamor-7"
           >
             <div
               style={
@@ -3617,7 +3366,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
           }
         >
           <div
-            className="glamor-6"
+            className="glamor-9"
           >
             <div
               style={
