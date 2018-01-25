@@ -15,6 +15,7 @@
       "type": "enum",
       "name": "TLFIdentifyBehavior",
       "symbols": [
+        "UNSET_0",
         "CHAT_CLI_1",
         "CHAT_GUI_2",
         "CHAT_GUI_STRICT_3",
@@ -23,7 +24,8 @@
         "CHAT_SKIP_6",
         "SALTPACK_7",
         "CLI_8",
-        "DEFAULT_KBFS_9"
+        "GUI_9",
+        "DEFAULT_KBFS_10"
       ]
     },
     {
