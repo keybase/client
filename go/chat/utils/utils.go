@@ -885,7 +885,17 @@ func PresentMessageUnboxed(ctx context.Context, rawMsg chat1.MessageUnboxed, uid
 
 		// Get channel name mentions (only frontend really cares about these, so just get it here)
 		var channelNameMentions []types.ConvIDAndTopicName
-		switch rawMsg.GetMessageType() {
+		var bodyTyp chat1.MessageType
+		if bodyIsDeleted {
+			bodyTyp = rawMsg.GetMessageType()
+		} else {
+			body := rawMsg.Valid().MessageBody
+			bodyTyp, err = body.MessageType()
+			if err != nil {
+				return miscErr(err)
+			}
+		}
+		switch bodyTyp {
 		case chat1.MessageType_TEXT:
 			if bodyIsDeleted {
 				return miscErr(fmt.Errorf("unexpected deleted message"))
