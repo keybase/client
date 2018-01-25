@@ -1,8 +1,8 @@
 // @noflow
 import logger from '../../../../logger'
-import * as Constants from '../../../../constants/chat'
-import * as Types from '../../../../constants/types/chat'
-import * as ChatGen from '../../../../actions/chat-gen'
+import * as Constants from '../../../../constants/chat2'
+import * as Types from '../../../../constants/types/chat2'
+import * as ChatGen from '../../../../actions/chat2-gen'
 import Notifications from '.'
 import {compose, branch, renderNothing, connect, lifecycle, type TypedState} from '../../../../util/container'
 import {type DeviceType} from '../../../../constants/types/devices'
