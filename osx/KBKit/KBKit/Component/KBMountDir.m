@@ -8,6 +8,7 @@
 
 #import "KBMountDir.h"
 #import "KBInstaller.h"
+#import "KBWorkspace.h"
 #import "KBSharedFileList.h"
 
 @interface KBMountDir ()
@@ -80,13 +81,24 @@
   [self.helperTool.helper sendRequest:@"createFirstLink" params:@[params] completion:^(NSError *err, id value) {
     if (err) {
       DDLogDebug(@"Could not create mount link: %@", err);
+      NSUserDefaults *userDefaults = [KBWorkspace userDefaults];
 
-      // Let the user know they didn't get /keybase.
-      NSAlert *alert = [[NSAlert alloc] init];
-      [alert setMessageText:self.config.mountDir];
-      [alert addButtonWithTitle:@"OK"];
-      [alert setAlertStyle:NSAlertStyleInformational];
-      [alert runModal] // ignore response
+      NSString *suppressionKey = @"NotFirstMountSuppression";
+      if ([userDefaults boolForKey:suppressionKey]) {
+	DDLogDebug(@"Alert suppressed");
+      } else {
+        // Let the user know they didn't get /keybase.
+        NSAlert *alert = [[NSAlert alloc] init];
+        [alert setMessageText:[NSString stringWithFormat:@"Your Keybase file system will be available in the Finder at %@.", self.config.mountDir]];
+        [alert addButtonWithTitle:@"OK"];
+        [alert setAlertStyle:NSAlertStyleInformational];
+        alert.showsSuppressionButton = YES;
+        [alert runModal]; // ignore response
+        if (alert.suppressionButton.state == NSOnState) {
+          [userDefaults setBool:YES forKey:suppressionKey];
+          [userDefaults synchronize];
+        }
+      }
     } else {
       DDLogDebug(@"Created link to mountpoint: %@", params);
     }
