@@ -150,8 +150,10 @@ class ConversationInput extends Component<Props> {
               autoFocus={false}
               autoGrow={true}
               style={styleInput}
-              onChangeText={this.props.setText}
+              onChangeText={this.props.onChangeText}
               onBlur={this._onBlur}
+              onFocus={this.props.onFocus}
+              onSelectionChange={this.props.onSelectionChange}
               placeholder="Write a message"
               underlineColorAndroid={globalColors.transparent}
               multiline={true}
