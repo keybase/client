@@ -3,7 +3,6 @@ import React, {Component} from 'react'
 
 export type Props = {
   className?: ?string,
-  hoverColor?: ?string,
   children?: any,
   style?: ?Object,
   onClick?: ?(event: SyntheticEvent<>) => void,
@@ -16,6 +15,7 @@ export type Props = {
   // mobile only
   activeOpacity?: number,
   // desktop only
+  hoverColor?: ?string,
   onMouseOver?: ?(event: SyntheticEvent<>) => void,
   onMouseEnter?: ?() => void,
   onMouseLeave?: ?() => void,
