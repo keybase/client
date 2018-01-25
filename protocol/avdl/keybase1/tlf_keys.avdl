@@ -7,7 +7,6 @@ protocol tlfKeys {
   import idl "identify.avdl";
 
   enum TLFIdentifyBehavior {
-    DEFAULT_KBFS_0,
     CHAT_CLI_1,
     CHAT_GUI_2,
     CHAT_GUI_STRICT_3,
@@ -15,7 +14,8 @@ protocol tlfKeys {
     KBFS_QR_5,
     CHAT_SKIP_6,
     SALTPACK_7,
-    CLI_8
+    CLI_8,
+    DEFAULT_KBFS_9
   }
 
   @typedef("string")
