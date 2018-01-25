@@ -61,7 +61,8 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
     onChangeText = (nextText: string) => {
       this.props.setText(nextText)
       const word = this._getWordAtCursor(nextText)
-      if (!this._isPopupOpen()) {
+      const selection = this.state._selection
+      if (!this._isPopupOpen() && selection.selectionStart === selection.selectionEnd) {
         if (word[0] === '@') {
           this.setMentionPopupOpen(true)
           this._setMentionFilter(word.substring(1))
@@ -69,6 +70,11 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
           this.setChannelMentionPopupOpen(true)
           this._setChannelMentionFilter(word.substring(1))
         }
+      } else if (selection.selectionStart !== selection.selectionEnd) {
+        this.state.mentionPopupOpen && this.setMentionPopupOpen(false) && this._setMentionFilter('')
+        this.state.channelMentionPopupOpen &&
+          this.setChannelMentionPopupOpen(false) &&
+          this._setChannelMentionFilter('')
       } else {
         // Close popups if word doesn't begin with marker anymore
         if (this.state.mentionPopupOpen && word[0] !== '@') {
@@ -101,12 +107,10 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
 
     insertMention = (u: string) => {
       this._replaceWordAtCursor(`@${u} `)
-      this.setMentionPopupOpen(false)
     }
 
     insertChannelMention = (c: string) => {
       this._replaceWordAtCursor(`#${c} `)
-      this.setChannelMentionPopupOpen(false)
     }
 
     _replaceWordAtCursor = (w: string) => {
@@ -116,7 +120,7 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
     }
 
     onSelectionChange = (_selection: {selectionStart: number, selectionEnd: number}) =>
-      this.setState({_selection})
+      this.setState({_selection}, () => this.onChangeText(this.props.text))
 
     render = () => (
       <InputComponent
