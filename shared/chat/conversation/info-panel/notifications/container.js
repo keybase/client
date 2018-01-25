@@ -47,7 +47,7 @@ type _Props = Props & {
   _resetSaveState: () => void,
 }
 
-const mergeProps = (stateProps: {}, dispatchProps: DispatchProps, ownProps: OwnProps): _Props => {
+const mergeProps = (_, dispatchProps: DispatchProps, ownProps: OwnProps): _Props => {
   const convKey = ownProps.conversationIDKey
   return {
     _resetSaveState: () => dispatchProps._resetSaveState(convKey),
