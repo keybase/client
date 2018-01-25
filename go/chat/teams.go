@@ -56,6 +56,7 @@ func teamToNameInfo(ctx context.Context, team *teams.Team, vis keybase1.TLFVisib
 	}
 
 	if vis == keybase1.TLFVisibility_PRIVATE {
+
 		chatKeys, err := team.AllApplicationKeys(ctx, keybase1.TeamApplication_CHAT)
 		if err != nil {
 			return res, err

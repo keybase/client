@@ -14,9 +14,9 @@ import (
 
 // KeyFinder remembers results from previous calls to CryptKeys().
 type KeyFinder interface {
-	Find(ctx context.Context, name string, membersType chat1.ConversationMembersType, public bool) (types.NameInfo, error)
-	FindForEncryption(ctx context.Context, tlfName string, teamID chat1.TLFID, membersType chat1.ConversationMembersType, public bool) (types.NameInfo, error)
-	FindForDecryption(ctx context.Context, tlfName string, teamID chat1.TLFID, membersType chat1.ConversationMembersType, public bool, keyGeneration int) (types.NameInfo, error)
+	Find(ctx context.Context, name string, membersType chat1.ConversationMembersType, public bool) (*types.NameInfo, error)
+	FindForEncryption(ctx context.Context, tlfName string, teamID chat1.TLFID, membersType chat1.ConversationMembersType, public bool) (*types.NameInfo, error)
+	FindForDecryption(ctx context.Context, tlfName string, teamID chat1.TLFID, membersType chat1.ConversationMembersType, public bool, keyGeneration int) (*types.NameInfo, error)
 	SetNameInfoSourceOverride(types.NameInfoSource)
 }
 
@@ -25,7 +25,7 @@ type KeyFinderImpl struct {
 	utils.DebugLabeler
 	sync.Mutex
 
-	keys map[string]types.NameInfo
+	keys map[string]*types.NameInfo
 
 	// Testing
 	testingNameInfoSource types.NameInfoSource
@@ -36,7 +36,7 @@ func NewKeyFinder(g *globals.Context) KeyFinder {
 	return &KeyFinderImpl{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "KeyFinder", false),
-		keys:         make(map[string]types.NameInfo),
+		keys:         make(map[string]*types.NameInfo),
 	}
 }
 
@@ -65,7 +65,7 @@ func (k *KeyFinderImpl) createNameInfoSource(ctx context.Context,
 // Find finds keybase1.TLFCryptKeys for tlfName, checking for existing
 // results.
 func (k *KeyFinderImpl) Find(ctx context.Context, name string,
-	membersType chat1.ConversationMembersType, public bool) (types.NameInfo, error) {
+	membersType chat1.ConversationMembersType, public bool) (*types.NameInfo, error) {
 
 	ckey := k.cacheKey(name, membersType, public)
 	k.Lock()
@@ -82,10 +82,10 @@ func (k *KeyFinderImpl) Find(ctx context.Context, name string,
 	nameSource := k.createNameInfoSource(ctx, membersType)
 	nameInfo, err := nameSource.Lookup(ctx, name, vis)
 	if err != nil {
-		return types.NameInfo{}, err
+		return nil, err
 	}
 	if public {
-		nameInfo.CryptKeys = append(nameInfo.CryptKeys, publicCryptKey)
+		nameInfo.CryptKeys[membersType] = append(nameInfo.CryptKeys[membersType], publicCryptKey)
 	}
 
 	k.Lock()
@@ -99,7 +99,7 @@ func (k *KeyFinderImpl) Find(ctx context.Context, name string,
 // Ignores tlfName or teamID based on membersType.
 func (k *KeyFinderImpl) FindForEncryption(ctx context.Context,
 	tlfName string, teamID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool) (res types.NameInfo, err error) {
+	membersType chat1.ConversationMembersType, public bool) (res *types.NameInfo, err error) {
 
 	switch membersType {
 	case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAMNATIVE,
@@ -122,7 +122,7 @@ func (k *KeyFinderImpl) FindForEncryption(ctx context.Context,
 func (k *KeyFinderImpl) FindForDecryption(ctx context.Context,
 	tlfName string, teamID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
-	keyGeneration int) (res types.NameInfo, err error) {
+	keyGeneration int) (res *types.NameInfo, err error) {
 
 	switch membersType {
 	case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAMNATIVE,
