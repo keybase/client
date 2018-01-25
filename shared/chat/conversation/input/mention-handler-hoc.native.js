@@ -105,6 +105,11 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
       this.onChangeText(this.props.text)
     }
 
+    insertMentionMarker = () => {
+      this._replaceWordAtCursor('@')
+      this._inputRef && this._inputRef.focus()
+    }
+
     insertMention = (u: string) => {
       this._replaceWordAtCursor(`@${u} `)
     }
@@ -144,6 +149,7 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
         setMentionPopupOpen={this.setMentionPopupOpen}
         setChannelMentionPopupOpen={this.setChannelMentionPopupOpen}
         inputSetRef={this.inputSetRef}
+        insertMentionMarker={this.insertMentionMarker}
         onBlur={this.onBlur}
         onFocus={this.onFocus}
         onEnterKeyDown={this.onEnterKeyDown}

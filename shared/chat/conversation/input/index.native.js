@@ -172,6 +172,7 @@ class ConversationInput extends Component<Props> {
             editingMessage={this.props.editingMessage}
             openFilePicker={this._openFilePicker}
             isLoading={this.props.isLoading}
+            insertMentionMarker={this.props.insertMentionMarker}
           />
         </Box>
       </Box>
@@ -225,7 +226,7 @@ const Typing = ({typing}) => (
   </Box>
 )
 
-const Action = ({text, onSubmit, editingMessage, openFilePicker, isLoading}) =>
+const Action = ({text, onSubmit, editingMessage, openFilePicker, insertMentionMarker, isLoading}) =>
   text ? (
     <Box style={styleActionText}>
       <Text type="BodyBigLink" style={{...(isLoading ? {color: globalColors.grey} : {})}} onClick={onSubmit}>
@@ -234,7 +235,11 @@ const Action = ({text, onSubmit, editingMessage, openFilePicker, isLoading}) =>
     </Box>
   ) : (
     <Box style={styleActionButtonContainer}>
-      <Icon type="iconfont-mention" style={{...styleActionButton, paddingRight: 0}} />
+      <Icon
+        onClick={insertMentionMarker}
+        type="iconfont-mention"
+        style={{...styleActionButton, paddingRight: 0}}
+      />
       <Icon onClick={openFilePicker} type="iconfont-camera" style={styleActionButton} />
     </Box>
   )
