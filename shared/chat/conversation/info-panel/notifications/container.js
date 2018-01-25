@@ -71,7 +71,7 @@ const mergeProps = (_, dispatchProps: DispatchProps, ownProps: OwnProps): _Props
   }
 }
 
-class _NotificationsWithConvID extends React.PureComponent<_Props> {
+class _NotificationsWithKey extends React.PureComponent<_Props> {
   componentDidMount() {
     this.props._resetSaveState()
   }
@@ -81,7 +81,7 @@ class _NotificationsWithConvID extends React.PureComponent<_Props> {
   }
 }
 
-const NotificationsWithConvID = connect(() => ({}), mapDispatchToProps, mergeProps)(_NotificationsWithConvID)
+const NotificationsWithKey = connect(() => ({}), mapDispatchToProps, mergeProps)(_NotificationsWithKey)
 
 const serverStateToProps = (notifications: Types.NotificationsState, type: 'desktop' | 'mobile') => {
   // The server state has independent bool values for atmention/generic,
@@ -141,7 +141,7 @@ class _MaybeNotifications extends React.PureComponent<StateProps> {
       return null
     }
 
-    return <NotificationsWithConvID {...this.props} />
+    return <NotificationsWithKey {...this.props} />
   }
 }
 
