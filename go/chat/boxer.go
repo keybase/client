@@ -470,9 +470,10 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed,
 			Sender:       hp.Sender,
 			SenderDevice: hp.SenderDevice,
 			// MerkleRoot is not expected to be in any v1 messages. Ignore it.
-			MerkleRoot: nil,
-			OutboxID:   hp.OutboxID,
-			OutboxInfo: hp.OutboxInfo,
+			MerkleRoot:        nil,
+			OutboxID:          hp.OutboxID,
+			OutboxInfo:        hp.OutboxInfo,
+			KbfsCryptKeysUsed: hp.KbfsCryptKeysUsed,
 		}
 	default:
 		return nil,
@@ -685,16 +686,17 @@ func (b *Boxer) unversionHeaderMBV2(ctx context.Context, headerVersioned chat1.H
 				NewPermanentUnboxingError(fmt.Errorf("HeaderSignature non-nil in MBV2"))
 		}
 		return chat1.MessageClientHeaderVerified{
-			Conv:         hp.Conv,
-			TlfName:      hp.TlfName,
-			TlfPublic:    hp.TlfPublic,
-			MessageType:  hp.MessageType,
-			Prev:         hp.Prev,
-			Sender:       hp.Sender,
-			SenderDevice: hp.SenderDevice,
-			MerkleRoot:   hp.MerkleRoot,
-			OutboxID:     hp.OutboxID,
-			OutboxInfo:   hp.OutboxInfo,
+			Conv:              hp.Conv,
+			TlfName:           hp.TlfName,
+			TlfPublic:         hp.TlfPublic,
+			MessageType:       hp.MessageType,
+			Prev:              hp.Prev,
+			Sender:            hp.Sender,
+			SenderDevice:      hp.SenderDevice,
+			MerkleRoot:        hp.MerkleRoot,
+			OutboxID:          hp.OutboxID,
+			OutboxInfo:        hp.OutboxInfo,
+			KbfsCryptKeysUsed: hp.KbfsCryptKeysUsed,
 		}, hp.BodyHash, nil
 	default:
 		return chat1.MessageClientHeaderVerified{}, nil,

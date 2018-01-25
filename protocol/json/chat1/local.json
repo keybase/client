@@ -746,6 +746,13 @@
           "name": "senderDevice"
         },
         {
+          "type": [
+            null,
+            "boolean"
+          ],
+          "name": "kbfsCryptKeysUsed"
+        },
+        {
           "type": "Hash",
           "name": "bodyHash"
         },
