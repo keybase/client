@@ -13,7 +13,7 @@ const devicesProps: Props = {
   ],
   onToggleShowRevoked: action('onToggleShowRevoked'),
   showingRevoked: false,
-  revokedDeviceIDs: [],
+  revokedDeviceIDs: ['4', '5'].map(stringToDeviceID),
   showMenu: action('showMenu'),
   hideMenu: action('hideMenu'),
   showingMenu: false,
@@ -22,9 +22,15 @@ const devicesProps: Props = {
 const provider = createPropProvider({
   DeviceRow: (props: {deviceID: string}) => ({
     isCurrentDevice: props.deviceID === '1',
-    name: {'1': 'laptop', '2': 'phone', '3': 'hello robot'}[props.deviceID],
+    name: {'1': 'laptop', '2': 'phone', '3': 'hello robot', '4': 'dog party', '5': 'desktop'}[props.deviceID],
     isRevoked: !['1', '2', '3'].includes(props.deviceID),
-    icon: {'1': 'icon-computer-48', '2': 'icon-phone-48', '3': 'icon-paper-key-48'}[props.deviceID],
+    icon: {
+      '1': 'icon-computer-48',
+      '2': 'icon-phone-48',
+      '3': 'icon-paper-key-48',
+      '4': 'icon-paper-key-48',
+      '5': 'icon-computer-48',
+    }[props.deviceID],
     showExistingDevicePage: action('onShowExistingDevicePage'),
   }),
 })
@@ -32,7 +38,8 @@ const provider = createPropProvider({
 const load = () => {
   storiesOf('Devices', module)
     .addDecorator(provider)
-    .add('Simple', () => <Devices {...devicesProps} />)
+    .add('Only active', () => <Devices {...devicesProps} />)
+    .add('Showing revoked', () => <Devices {...devicesProps} showingRevoked={true} />)
 }
 
 export default load
