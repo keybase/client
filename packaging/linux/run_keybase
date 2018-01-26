@@ -14,7 +14,7 @@ runtime_dir="${XDG_RUNTIME_DIR:-$HOME/.config}/keybase"
 mkdir -p "$runtime_dir"
 startup_token="$runtime_dir/startup_mode"
 if keybase config get mountdir &> /dev/null ; then
-    mountdir=`keybase config get mountdir 2> /dev/null`
+    mountdir=`keybase config get mountdir 2> /dev/null | sed -e s/\"//g`
 else
     # The user has no mountpoint configured yet, so pick a default one
     # and record the default setting in a separate config field, so
