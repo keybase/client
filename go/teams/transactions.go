@@ -109,6 +109,8 @@ func (tx *AddMemberTx) CreateInvite(uv keybase1.UserVersion, role keybase1.TeamR
 	return nil
 }
 
+// SweepMembers will queue "removes" for all cryptomembers with given
+// UID.
 func (tx *AddMemberTx) SweepMembers(uid keybase1.UID) {
 	team := tx.team
 	for chainUv := range team.chain().inner.UserLog {
@@ -118,6 +120,8 @@ func (tx *AddMemberTx) SweepMembers(uid keybase1.UID) {
 	}
 }
 
+// SweepKeybaseInvites will queue "cancels" for all keybase-type
+// invites (PUKless members) for given UID.
 func (tx *AddMemberTx) SweepKeybaseInvites(uid keybase1.UID) {
 	team := tx.team
 	for _, invite := range team.chain().inner.ActiveInvites {
@@ -193,7 +197,7 @@ func (tx *AddMemberTx) AddMemberTransaction(ctx context.Context, username string
 		curInvite = nil
 	}
 	if curInvite != nil && inviteRequired {
-		return libkb.ExistsError{Msg: fmt.Sprintf("user %s is already a pukless member of team %q",
+		return libkb.ExistsError{Msg: fmt.Sprintf("user %s is already invited to team %q",
 			normalizedUsername, team.Name())}
 	}
 
