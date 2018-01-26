@@ -5,7 +5,6 @@ import * as NotificationsGen from '../actions/notifications-gen'
 import * as Tabs from '../constants/tabs'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import {isMobile} from '../constants/platform'
-import flags from '../util/feature-flags'
 
 const initialState: Types.State = Constants.makeState()
 
