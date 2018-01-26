@@ -1,25 +1,12 @@
 // @flow
 import React from 'react'
 import * as C from '../../constants/people'
-import {action, storiesOf, createPropProvider} from '../../stories/storybook'
+import {action, storiesOf} from '../../stories/storybook'
+import * as PropProviders from '../../stories/prop-providers'
 import FollowNotification, {type Props} from '.'
 import moment from 'moment'
 
-const provider = createPropProvider({
-  Usernames: props => {
-    const {usernames} = props
-    const users = usernames.map(username => ({
-      username,
-      following: ['max', 'chrisnojima'].includes(username),
-      you: false,
-    }))
-    return {
-      ...props,
-      users,
-      onUsernameClicked: action('onUsernameClicked'),
-    }
-  },
-})
+const provider = PropProviders.Usernames(['max', 'chrisnojima'], 'ayoubd')
 
 const singleFollowProps1: Props = {
   type: 'notification',
