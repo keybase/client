@@ -7,7 +7,17 @@ const _infect = () => {
   const selectorDelegatorFactory = (dispatch, options) => {
     const name = options.wrappedComponentName
     return (state, ownProps) => {
-      return state[name](ownProps)
+      try {
+        const viewProps = state[name](ownProps)
+        return viewProps
+      } catch (err) {
+        throw new Error(
+          `In calling propSelector for ${options.wrappedComponentName}: 
+          Your propProvider is probably missing a key for this connected component. See shared/storybook/README.md for more details.
+
+          ${err.toString()}`
+        )
+      }
     }
   }
   const connect = (_, __, ___) => connectAdvanced(selectorDelegatorFactory)
