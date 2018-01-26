@@ -90,23 +90,10 @@ function _open(openPath: string): Promise<*> {
         if (!shell.showItemInFolder(openPath)) {
           reject(new Error(`Unable to open item in folder: ${openPath}`))
         }
+        resolve()
       }
-
-      resolve()
     })
   })
-}
-
-function openInDefault(openPath: string): Promise<*> {
-  logger.info('openInDefault:', openPath)
-  // Path resolve removes any ..
-  let goodPath = path.resolve(openPath)
-  // Paths MUST start with defaultKBFSPath
-  if (!goodPath.startsWith(Constants.defaultKBFSPath)) {
-    throw new Error(`openInDefault requires ${Constants.defaultKBFSPath} prefix: ${goodPath}`)
-  }
-
-  return _open(goodPath)
 }
 
 function* fuseStatusSaga(): Saga.SagaGenerator<any, any> {
@@ -245,19 +232,11 @@ function waitForMount(attempt: number): Promise<*> {
   })
 }
 
-function openDefaultPath(): Promise<*> {
-  return openInDefault(Constants.defaultKBFSPath)
-}
-
-// Wait for /keybase to exist with files in it and then opens in Finder
-function waitForMountAndOpen(): Promise<*> {
-  return waitForMount(0).then(openDefaultPath)
-}
-
 function* waitForMountAndOpenSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.put(KBFSGen.createOpenDefaultPath({opening: true}))
   try {
-    yield Saga.call(waitForMountAndOpen)
+    yield Saga.call(waitForMount, 0)
+    yield* openWithCurrentMountDir(Constants.defaultKBFSPath)
   } finally {
     yield Saga.put(KBFSGen.createOpenDefaultPath({opening: false}))
   }
@@ -283,22 +262,21 @@ function uninstallKBFSSagaSuccess(result: RPCTypes.UninstallResult) {
   return Saga.put(KBFSGen.createUninstallKBFSResult({result}))
 }
 
-function* openInWindows(openPath: string): Saga.SagaGenerator<any, any> {
+function* openWithCurrentMountDir(openPath: string): Saga.SagaGenerator<any, any> {
+  const goodPath = path.normalize(openPath)
   if (!openPath.startsWith(Constants.defaultKBFSPath)) {
-    throw new Error(`openInWindows requires ${Constants.defaultKBFSPath} prefix: ${openPath}`)
+    throw new Error(`openWithCurrentMountDir requires ${Constants.defaultKBFSPath} prefix: ${openPath}`)
   }
-  let goodPath = openPath.slice(Constants.defaultKBFSPath.length)
 
-  const state: TypedState = yield Saga.select()
-  let kbfsPath = state.config.kbfsPath
+  // turns '/keybase/private/alice' to 'private/alice'
+  const subPath = goodPath
+    .split(path.sep)
+    .slice(2)
+    .join(path.sep)
+
+  let kbfsPath = yield Saga.select(state => state.config.kbfsPath)
 
   if (!kbfsPath) {
-    throw new Error('No kbfsPath')
-  }
-
-  // On windows the path isn't /keybase
-  if (kbfsPath === Constants.defaultKBFSPath) {
-    // Get current mount
     kbfsPath = yield Saga.call(RPCTypes.kbfsMountGetCurrentMountDirRpcPromise)
 
     if (!kbfsPath) {
@@ -308,14 +286,14 @@ function* openInWindows(openPath: string): Saga.SagaGenerator<any, any> {
     yield Saga.put(ConfigGen.createChangeKBFSPath({kbfsPath}))
   }
 
-  goodPath = path.resolve(kbfsPath, goodPath)
+  const resolvedPath = path.resolve(kbfsPath, subPath)
   // Check to make sure our resolved path starts with the kbfsPath
   // i.e. (not opening a folder outside kbfs)
-  if (!goodPath.startsWith(kbfsPath)) {
-    throw new Error(`openInWindows requires ${kbfsPath} prefix: ${goodPath}`)
+  if (!resolvedPath.startsWith(kbfsPath)) {
+    throw new Error(`openWithCurrentMountDir requires ${kbfsPath} prefix: ${goodPath}`)
   }
 
-  yield Saga.call(_open, goodPath)
+  yield Saga.call(_open, resolvedPath)
 }
 
 function* openSaga(action: KBFSGen.OpenPayload): Saga.SagaGenerator<any, any> {
@@ -325,11 +303,7 @@ function* openSaga(action: KBFSGen.OpenPayload): Saga.SagaGenerator<any, any> {
 
   if (isLinux || enabled) {
     logger.info('openInKBFS:', openPath)
-    if (isWindows) {
-      yield* openInWindows(openPath)
-    } else {
-      yield Saga.call(openInDefault, openPath)
-    }
+    yield* openWithCurrentMountDir(openPath)
   } else {
     yield Saga.put(navigateTo([], [folderTab]))
     yield Saga.put(switchTo([folderTab]))
