@@ -32,16 +32,8 @@ const identityMatchers = [
     getUsername: function(loc) { return loc.pathname.split('/')[1]; },
     locationMatches: new RegExp('\\.keybase\\.io/([\\w]+)[/]?'),
     originAndPathMatches: 'keybase\\.io/[\\w]+[/]?',
-    hostEquals: ['keybase.io', 'keybase.pub'],
+    hostEquals: ['keybase.io'],
     css: ['.profile-heading']
-  },
-  {
-    service: "keybasepub",
-    getUsername: function(loc) { return loc.pathname.split('/')[1]; },
-    locationMatches: new RegExp('\\.keybase\\.pub/([\\w]+)[/]?'),
-    originAndPathMatches: 'keybase\\.pub/[\\w]+[/]?',
-    hostEquals: ['keybase.pub'],
-    css: ['.face-card']
   },
   {
     service: "reddit",
@@ -152,8 +144,6 @@ User.prototype.href = function(service) {
   switch (service) {
     case "keybase":
       return `https://keybase.io/${name}`;
-    case "keybasepub":
-      return `https://keybase.pub/${name}`;
     case "reddit":
       return `https://www.reddit.com/user/${name}`;
     case "twitter":
