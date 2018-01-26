@@ -1192,6 +1192,12 @@ func (c AppConfig) GetChatInboxSourceLocalizeThreads() (int, bool) {
 	return c.ChatInboxSourceLocalizeThreads, true
 }
 
+// Default is 500, compacted size of each file is 2MB, so turning
+// this down on mobile to reduce mem usage.
+func (c AppConfig) GetLevelDBNumFiles() (int, bool) {
+	return 50, true
+}
+
 func (e *Env) GetUpdatePreferenceAuto() (bool, bool) {
 	return e.GetConfig().GetUpdatePreferenceAuto()
 }
