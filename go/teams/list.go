@@ -385,36 +385,14 @@ func ListSubteamsRecursive(ctx context.Context, g *libkb.GlobalContext, parentTe
 	return res, nil
 }
 
-func decryptSeitanInviteV1(ctx context.Context, team *Team, invite keybase1.TeamInvite) (keyAndLabel keybase1.SeitanKeyAndLabel, err error) {
-	peikey, err := SeitanDecodePEIKey(string(invite.Name))
-	if err != nil {
-		return keyAndLabel, err
-	}
-	keyAndLabel, err = peikey.DecryptKeyAndLabel(ctx, team)
-	if err != nil {
-		return keyAndLabel, err
-	}
-	return keyAndLabel, err
-}
-
-func decryptSeitanInviteV2(ctx context.Context, team *Team, invite keybase1.TeamInvite) (keyAndLabel keybase1.SeitanKeyAndLabel, err error) {
-	pepubkey, err := SeitanDecodePEPubKey(string(invite.Name))
-	if err != nil {
-		return keyAndLabel, err
-	}
-	keyAndLabel, err = pepubkey.DecryptKeyAndLabel(ctx, team)
-	if err != nil {
-		return keyAndLabel, err
-	}
-	return keyAndLabel, err
-}
 func AnnotateSeitanInvite(ctx context.Context, team *Team, invite keybase1.TeamInvite) (name keybase1.TeamInviteName, err error) {
-	keyAndLabel, err := decryptSeitanInviteV1(ctx, team, invite)
+	pkey, err := SeitanDecodePKey(string(invite.Name))
 	if err != nil {
-		keyAndLabel, err = decryptSeitanInviteV2(ctx, team, invite)
-		if err != nil {
-			return name, err
-		}
+		return name, err
+	}
+	keyAndLabel, err := pkey.DecryptKeyAndLabel(ctx, team)
+	if err != nil {
+		return name, err
 	}
 
 	version, err := keyAndLabel.V()

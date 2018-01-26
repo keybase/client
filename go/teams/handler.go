@@ -410,25 +410,16 @@ func handleSeitanSingle(ctx context.Context, g *libkb.GlobalContext, team *Team,
 	if category != keybase1.TeamInviteCategory_SEITAN {
 		return fmt.Errorf("HandleTeamSeitan wanted to claim an invite with category %v", category)
 	}
-	err = handleSeitanSingleV1(ctx, g, team, invite, seitan)
-	if err != nil {
-		err = handleSeitanSingleV2(ctx, g, team, invite, seitan)
-	}
-	return err
-}
 
-func handleSeitanSingleV1(ctx context.Context, g *libkb.GlobalContext, team *Team, invite keybase1.TeamInvite, seitan keybase1.TeamSeitanRequest) (err error) {
-	peikey, err := SeitanDecodePEIKey(string(invite.Name))
+	pkey, err := SeitanDecodePKey(string(invite.Name))
 	if err != nil {
 		return err
 	}
 
-	keyAndLabel, err := peikey.DecryptKeyAndLabel(ctx, team)
+	keyAndLabel, err := pkey.DecryptKeyAndLabel(ctx, team)
 	if err != nil {
 		return err
 	}
-
-	var ikey SeitanIKey
 
 	version, err := keyAndLabel.V()
 	if err != nil {
@@ -437,11 +428,18 @@ func handleSeitanSingleV1(ctx context.Context, g *libkb.GlobalContext, team *Tea
 
 	switch version {
 	case keybase1.SeitanKeyAndLabelVersion_V1:
-		ikey = SeitanIKey(keyAndLabel.V1().I)
+		err = handleSeitanSingleV1(keyAndLabel.V1().I, invite, seitan)
+	case keybase1.SeitanKeyAndLabelVersion_V2:
+		err = handleSeitanSingleV2(keyAndLabel.V2().K, invite, seitan)
 	default:
 		return fmt.Errorf("unknown KeyAndLabel version: %v", version)
 	}
 
+	return err
+}
+
+func handleSeitanSingleV1(key keybase1.SeitanIKey, invite keybase1.TeamInvite, seitan keybase1.TeamSeitanRequest) (err error) {
+	ikey := SeitanIKey(key)
 	sikey, err := ikey.GenerateSIKey()
 	if err != nil {
 		return err
@@ -474,31 +472,10 @@ func handleSeitanSingleV1(ctx context.Context, g *libkb.GlobalContext, team *Tea
 	return nil
 }
 
-func handleSeitanSingleV2(ctx context.Context, g *libkb.GlobalContext, team *Team, invite keybase1.TeamInvite, seitan keybase1.TeamSeitanRequest) (err error) {
-	pepubkey, err := SeitanDecodePEPubKey(string(invite.Name))
+func handleSeitanSingleV2(key keybase1.SeitanPubKey, invite keybase1.TeamInvite, seitan keybase1.TeamSeitanRequest) (err error) {
+	pubKey, err := ImportSeitanPubKey(key)
 	if err != nil {
 		return err
-	}
-
-	keyAndLabel, err := pepubkey.DecryptKeyAndLabel(ctx, team)
-	if err != nil {
-		return err
-	}
-
-	version, err := keyAndLabel.V()
-	if err != nil {
-		return fmt.Errorf("while parsing KeyAndLabel: %s", err)
-	}
-
-	var pubKey SeitanPubKey
-	switch version {
-	case keybase1.SeitanKeyAndLabelVersion_V2:
-		pubKey, err = ImportSeitanPubKey(keyAndLabel.V2().K)
-		if err != nil {
-			return err
-		}
-	default:
-		return fmt.Errorf("unknown KeyAndLabel version: %v", version)
 	}
 
 	var sig SeitanSig

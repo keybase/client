@@ -54,23 +54,23 @@ func TestSeitanV2Encryption(t *testing.T) {
 
 	expectedLabel := keybase1.NewSeitanKeyLabelWithSms(expectedLabelSms)
 
-	pepubkey, encoded, err := ikey.GeneratePackedEncryptedKey(context.TODO(), team, expectedLabel)
+	pkey, encoded, err := ikey.GeneratePackedEncryptedKey(context.TODO(), team, expectedLabel)
 	require.NoError(t, err)
-	require.EqualValues(t, pepubkey.Version, 2)
-	require.EqualValues(t, pepubkey.TeamKeyGeneration, 1)
-	require.NotZero(tc.T, pepubkey.RandomNonce)
+	require.EqualValues(t, pkey.Version, 2)
+	require.EqualValues(t, pkey.TeamKeyGeneration, 1)
+	require.NotZero(tc.T, pkey.RandomNonce)
 
-	t.Logf("Encrypted ikey with gen: %d\n", pepubkey.TeamKeyGeneration)
+	t.Logf("Encrypted ikey with gen: %d\n", pkey.TeamKeyGeneration)
 	t.Logf("Armored output: %s\n", encoded)
 
-	expectedPepubkey, err := SeitanDecodePEPubKey(encoded)
+	expectedPKey, err := SeitanDecodePKey(encoded)
 	require.NoError(t, err)
-	require.Equal(t, expectedPepubkey.Version, pepubkey.Version)
-	require.Equal(t, expectedPepubkey.TeamKeyGeneration, pepubkey.TeamKeyGeneration)
-	require.Equal(t, expectedPepubkey.RandomNonce, pepubkey.RandomNonce)
-	require.Equal(t, expectedPepubkey.EncryptedKeyAndLabel, pepubkey.EncryptedKeyAndLabel)
+	require.Equal(t, expectedPKey.Version, pkey.Version)
+	require.Equal(t, expectedPKey.TeamKeyGeneration, pkey.TeamKeyGeneration)
+	require.Equal(t, expectedPKey.RandomNonce, pkey.RandomNonce)
+	require.Equal(t, expectedPKey.EncryptedKeyAndLabel, pkey.EncryptedKeyAndLabel)
 
-	keyAndLabel, err := pepubkey.DecryptKeyAndLabel(context.TODO(), team)
+	keyAndLabel, err := pkey.DecryptKeyAndLabel(context.TODO(), team)
 	require.NoError(t, err)
 	keyAndLabelType, err := keyAndLabel.V()
 	require.NoError(t, err)
@@ -113,7 +113,7 @@ func TestSeitanV2KnownSamples(t *testing.T) {
 	// ikey: 4uywza+b3cga7rd6yc
 	// sikey: Il9ZFgI1yP2b6Hvt53jWIoo8sDre3puyNH8b2es9TTQ=
 	// inviteID: 6303ec43bd61d21edb95a433faf06227
-	// pepubkey: lAIBxBgxk+0rwtlCacCIzNK8apyoiiN69+tTU1HEgze4fphJmImUv7wFm54ioO9dB876yLUciHsuUItYXH1cSq6cShz2HrjVCSUQCJVxDNQwb3A6x2zv6/mrbUselphhjzxrJFGb6mS7N0cA3cYfdk+WByNEUOVqi6qwzgvAYuwEqM1sAYYb+NgrLEH5+4Tlr5mcWfAtLynLngX3Z4Ef4Mf1
+	// pkey: lAIBxBgxk+0rwtlCacCIzNK8apyoiiN69+tTU1HEgze4fphJmImUv7wFm54ioO9dB876yLUciHsuUItYXH1cSq6cShz2HrjVCSUQCJVxDNQwb3A6x2zv6/mrbUselphhjzxrJFGb6mS7N0cA3cYfdk+WByNEUOVqi6qwzgvAYuwEqM1sAYYb+NgrLEH5+4Tlr5mcWfAtLynLngX3Z4Ef4Mf1
 	// label: {"sms":{"f":"Alice","n":"111-555-222"},"t":1}
 
 	var expectedSIKey SeitanSIKeyV2
@@ -123,7 +123,7 @@ func TestSeitanV2KnownSamples(t *testing.T) {
 	var secretKey keybase1.Bytes32
 	copy(secretKey[:], fromB64("GBsy8q2vgQ6jEHmQZiNJcxvgxVNlG4IsxKf/zcxtJIA="))
 
-	pepubkeyBase64 := "lAIBxBgxk+0rwtlCacCIzNK8apyoiiN69+tTU1HEgze4fphJmImUv7wFm54ioO9dB876yLUciHsuUItYXH1cSq6cShz2HrjVCSUQCJVxDNQwb3A6x2zv6/mrbUselphhjzxrJFGb6mS7N0cA3cYfdk+WByNEUOVqi6qwzgvAYuwEqM1sAYYb+NgrLEH5+4Tlr5mcWfAtLynLngX3Z4Ef4Mf1"
+	pkeyBase64 := "lAIBxBgxk+0rwtlCacCIzNK8apyoiiN69+tTU1HEgze4fphJmImUv7wFm54ioO9dB876yLUciHsuUItYXH1cSq6cShz2HrjVCSUQCJVxDNQwb3A6x2zv6/mrbUselphhjzxrJFGb6mS7N0cA3cYfdk+WByNEUOVqi6qwzgvAYuwEqM1sAYYb+NgrLEH5+4Tlr5mcWfAtLynLngX3Z4Ef4Mf1"
 
 	ikey := SeitanIKeyV2("4uywza+b3cga7rd6yc")
 	sikey, err := ikey.GenerateSIKey()
@@ -137,12 +137,12 @@ func TestSeitanV2KnownSamples(t *testing.T) {
 	keyPair, err := sikey.generateKeyPair()
 	require.NoError(t, err)
 
-	expectedPepubkey, err := SeitanDecodePEPubKey(pepubkeyBase64)
+	expectedPKey, err := SeitanDecodePKey(pkeyBase64)
 	require.NoError(t, err)
-	require.EqualValues(t, 2, expectedPepubkey.Version)
-	require.EqualValues(t, 1, expectedPepubkey.TeamKeyGeneration)
+	require.EqualValues(t, 2, expectedPKey.Version)
+	require.EqualValues(t, 1, expectedPKey.TeamKeyGeneration)
 
-	keyAndLabel, err := expectedPepubkey.decryptKeyAndLabelWithSecretKey(secretKey)
+	keyAndLabel, err := expectedPKey.decryptKeyAndLabelWithSecretKey(secretKey)
 	require.NoError(t, err) // only encoded map or array can be decoded into a struct
 
 	keyAndLabelVersion, err := keyAndLabel.V()
@@ -162,51 +162,49 @@ func TestSeitanV2KnownSamples(t *testing.T) {
 	require.Equal(t, "Alice", labelSms.F)
 	require.Equal(t, "111-555-222", labelSms.N)
 
-	pepubkey, _, err := ikey.generatePackedEncryptedKeyWithSecretKey(secretKey, keybase1.PerTeamKeyGeneration(1), expectedPepubkey.RandomNonce, keyAndLabelV2.L)
+	pkey, _, err := ikey.generatePackedEncryptedKeyWithSecretKey(secretKey, keybase1.PerTeamKeyGeneration(1), expectedPKey.RandomNonce, keyAndLabelV2.L)
 	require.NoError(t, err)
-	require.Equal(t, expectedPepubkey.Version, pepubkey.Version)
-	require.Equal(t, expectedPepubkey.TeamKeyGeneration, pepubkey.TeamKeyGeneration)
-	require.Equal(t, expectedPepubkey.RandomNonce, pepubkey.RandomNonce)
-	require.Equal(t, expectedPepubkey.EncryptedKeyAndLabel, pepubkey.EncryptedKeyAndLabel)
+	require.Equal(t, expectedPKey.Version, pkey.Version)
+	require.Equal(t, expectedPKey.TeamKeyGeneration, pkey.TeamKeyGeneration)
+	require.Equal(t, expectedPKey.RandomNonce, pkey.RandomNonce)
+	require.Equal(t, expectedPKey.EncryptedKeyAndLabel, pkey.EncryptedKeyAndLabel)
 }
 
 // TestIsSeitanyAndAlphabetCoverage tests two unrelated things at once: (1) that
 // the IsSeitany function correctly identifies Seitan tokens; and (2) that all
 // letters of the Seitan alphabet are hit by generating a sufficient number of
 // tokens. It would be bad, for instance, if we only hit 10% of the characters.
-func TestIsSeitanyV2AndAlphabetCoverage(t *testing.T) {
+func TestIsSeitanyAndAlphabetCoverage(t *testing.T) {
 
-	coverage := make(map[byte]bool)
+	ikeyV1Gen := func() (s string, err error) {
+		ikey, err := GenerateIKey()
+		return ikey.String(), err
+	}
 
-	for i := 0; i < 100; i++ {
+	ikeyV2Gen := func() (s string, err error) {
 		ikey, err := GenerateIKeyV2()
-		require.NoError(t, err)
-		s := ikey.String()
-		require.True(t, IsSeitanyV2(s))
-		require.True(t, IsSeitanyV2(s[2:10]))
-		require.True(t, IsSeitanyV2(s[3:13]))
-		for _, b := range []byte(s) {
-			coverage[b] = true
+		return ikey.String(), err
+	}
+
+	verifyCoverage := func(ikeyGen func() (s string, err error)) {
+		coverage := make(map[byte]bool)
+		for i := 0; i < 100; i++ {
+			s, err := ikeyGen()
+			require.NoError(t, err)
+			require.True(t, IsSeitany(s))
+			require.True(t, IsSeitany(s[2:10]))
+			require.True(t, IsSeitany(s[3:13]))
+			for _, b := range []byte(s) {
+				coverage[b] = true
+			}
+		}
+
+		// This test can fail with probability 1-(29/30)^(1800), which is
+		// approximately (1 - 2^-88)
+		for _, b := range []byte(KBase30EncodeStd) {
+			require.True(t, coverage[b], "covered all chars")
 		}
 	}
-
-	// This test can fail with probability 1-(29/30)^(1800), which is approximately (1 - 2^-88)
-	for _, b := range []byte(KBase30EncodeStd) {
-		require.True(t, coverage[b], "covered all chars")
-	}
-}
-
-func TestIsSeitanyV2NoMatches(t *testing.T) {
-	var noMatches = []string{
-		"team.aaa.bb.cc",
-		"aanbbjejjeff",
-		"a+b",
-		"aaa+b",
-		"+",
-		"+++",
-		"chia_public",
-	}
-	for _, s := range noMatches {
-		require.False(t, IsSeitanyV2(s), "not seitany")
-	}
+	verifyCoverage(ikeyV1Gen)
+	verifyCoverage(ikeyV2Gen)
 }
