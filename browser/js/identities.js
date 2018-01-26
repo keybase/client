@@ -30,8 +30,8 @@ const identityMatchers = [
   {
     service: "keybase",
     getUsername: function(loc) { return loc.pathname.split('/')[1]; },
-    locationMatches: new RegExp('\\.keybase\\.(?:io|pub)/([\\w]+)[/]?'),
-    originAndPathMatches: 'keybase\\.(io|pub)/[\\w]+[/]?',
+    locationMatches: new RegExp('\\.keybase\\.io/([\\w]+)[/]?'),
+    originAndPathMatches: 'keybase\\.io/[\\w]+[/]?',
     hostEquals: ['keybase.io', 'keybase.pub'],
     css: ['.profile-heading']
   },
