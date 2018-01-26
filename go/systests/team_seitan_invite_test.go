@@ -15,13 +15,13 @@ import (
 )
 
 func TestTeamInviteSeitanHappy(t *testing.T) {
-	testTeamInviteSeitanHappy(t, false, true /* seitanV1 */)
-	testTeamInviteSeitanHappy(t, false, false /* seitanV1 */)
+	testTeamInviteSeitanHappy(t, false /* implicitAdmin */, true /* seitanV1 */)
+	testTeamInviteSeitanHappy(t, false /* implicitAdmin */, false /* seitanV1 */)
 }
 
 func TestTeamInviteSeitanHappyImplicitAdmin(t *testing.T) {
-	testTeamInviteSeitanHappy(t, true, true /* seitanV1 */)
-	testTeamInviteSeitanHappy(t, true, false /* seitanV1 */)
+	testTeamInviteSeitanHappy(t, true /* implicitAdmin */, true /* seitanV1 */)
+	testTeamInviteSeitanHappy(t, true /* implicitAdmin */, false /* seitanV1 */)
 }
 
 func testTeamInviteSeitanHappy(t *testing.T, implicitAdmin bool, seitanV1 bool) {
@@ -81,7 +81,7 @@ func testTeamInviteSeitanHappy(t *testing.T, implicitAdmin bool, seitanV1 bool) 
 	}
 
 	err := roo.teamsClient.TeamAcceptInvite(context.TODO(), keybase1.TeamAcceptInviteArg{
-		Token: string(token),
+		Token: token,
 	})
 	require.NoError(t, err)
 
