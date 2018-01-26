@@ -6,7 +6,7 @@ import * as PropProviders from '../../stories/prop-providers'
 import FollowNotification, {type Props} from '.'
 import moment from 'moment'
 
-const provider = PropProviders.Usernames(['max', 'chrisnojima'], 'ayoubd')
+const provider = PropProviders.compose(PropProviders.Usernames(['max', 'chrisnojima'], 'ayoubd'))
 
 const singleFollowProps1: Props = {
   type: 'notification',
