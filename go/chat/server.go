@@ -2515,7 +2515,7 @@ func (h *Server) UnboxMobilePushNotification(ctx context.Context, arg chat1.Unbo
 
 	if msgUnboxed.IsValid() && msgUnboxed.GetMessageType() == chat1.MessageType_TEXT {
 		res = h.formatPushText(ctx, uid, convID, arg.MembersType, msgUnboxed)
-		h.Debug(ctx, "UnboxMobilePushNotification: successful unbox: %s", res)
+		h.Debug(ctx, "UnboxMobilePushNotification: successful unbox")
 		return res, nil
 	}
 
