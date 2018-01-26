@@ -270,11 +270,12 @@ function* openWithCurrentMountDir(openPath: string): Saga.SagaGenerator<any, any
 
   // turns '/keybase/private/alice' to 'private/alice'
   const subPath = goodPath
-    .split(path.sep)
+    .split('/')
     .slice(2)
     .join(path.sep)
 
-  let kbfsPath = yield Saga.select(state => state.config.kbfsPath)
+  const state: TypedState = yield Saga.select()
+  let {config: {kbfsPath}} = state
 
   if (!kbfsPath) {
     kbfsPath = yield Saga.call(RPCTypes.kbfsMountGetCurrentMountDirRpcPromise)
