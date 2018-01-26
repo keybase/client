@@ -14,6 +14,7 @@ import {
   Box,
   ClickableBox,
   Icon,
+  Meta,
   PlatformIcon,
   PopupMenu,
   NativeSectionList,
@@ -255,6 +256,7 @@ class Profile extends Component<Props, State> {
                       <Text style={{color: globalColors.black_75}} type="BodySemiboldLink">
                         {team.fqName}
                       </Text>
+                      {team.open && <Meta style={styleMeta} title="OPEN" />}
                     </Box>
                   </ClickableBox>
                 ))}
@@ -571,6 +573,14 @@ const styleFolderIcon = {
   marginRight: globalMargins.tiny,
   textAlign: 'center',
   color: globalColors.black_75,
+}
+
+const styleMeta = {
+  alignSelf: 'center',
+  backgroundColor: globalColors.green,
+  borderRadius: 1,
+  marginLeft: globalMargins.xtiny,
+  marginTop: 2,
 }
 
 const styleSearchContainer = {

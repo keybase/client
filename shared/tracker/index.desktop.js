@@ -2,7 +2,7 @@
 import React, {PureComponent} from 'react'
 import Header from './header.render.desktop'
 import Action, {calcFooterHeight} from './action.render.desktop'
-import {Avatar, Box, Text, UserProofs, UserBio} from '../common-adapters'
+import {Avatar, Box, Meta, Text, UserBio, UserProofs} from '../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../styles'
 import {ModalPositionRelative} from '../common-adapters/relative-popup-hoc.desktop'
 import TeamInfo from '../profile/showcased-team-info'
@@ -33,7 +33,7 @@ export default class TrackerRender extends PureComponent<RenderProps> {
 
     if (this.props.errorMessage != null) {
       return (
-        <div style={styles.container}>
+        <div style={styleContainer}>
           <TrackerError
             errorMessage={this.props.errorMessage}
             onRetry={this.props.onRetry}
@@ -48,10 +48,10 @@ export default class TrackerRender extends PureComponent<RenderProps> {
     // It's positioned absolute because we want the background transparency.
     // So we use the existing paddingBottom and add the height of the footer
     const footerHeight = calcFooterHeight(this.props.loggedIn)
-    const calculatedPadding = styles.content.paddingBottom + footerHeight
+    const calculatedPadding = styleContent.paddingBottom + footerHeight
     const ModalPopupComponent = ModalPositionRelative(TeamInfo)
     return (
-      <div style={styles.container}>
+      <div style={styleContainer}>
         <Header
           reason={this.props.reason}
           onClose={this.props.onClose}
@@ -60,7 +60,7 @@ export default class TrackerRender extends PureComponent<RenderProps> {
           loggedIn={this.props.loggedIn}
         />
         <div
-          style={{...styles.content, paddingBottom: calculatedPadding}}
+          style={{...styleContent, paddingBottom: calculatedPadding}}
           className="hide-scrollbar scroll-container"
         >
           <UserBio
@@ -152,6 +152,7 @@ export default class TrackerRender extends PureComponent<RenderProps> {
                       <Text style={{color: globalColors.black_75}} type="BodySmallSemiboldInlineLink">
                         {team.fqName}
                       </Text>
+                      {team.open && <Meta title="OPEN" style={styleMeta} />}
                     </Box>
                   </Box>
                 ))}
@@ -177,7 +178,7 @@ export default class TrackerRender extends PureComponent<RenderProps> {
             currentlyFollowing={this.props.currentlyFollowing}
           />
         </div>
-        <div style={styles.footer}>
+        <div style={styleFooter}>
           {!this.props.loading &&
             this.props.actionBarReady && (
               <Action
@@ -202,24 +203,32 @@ export default class TrackerRender extends PureComponent<RenderProps> {
   }
 }
 
-const styles = {
-  container: {
-    ...globalStyles.flexBoxColumn,
-    width: 320,
-    height: 470,
-    position: 'relative',
-  },
-  content: {
-    overflowY: 'auto',
-    overflowX: 'hidden',
-    // This value is added to the footer height to set the actual paddingBottom
-    paddingBottom: 12,
-    zIndex: 1,
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-  },
+const styleContainer = {
+  ...globalStyles.flexBoxColumn,
+  width: 320,
+  height: 470,
+  position: 'relative',
+}
+
+const styleContent = {
+  overflowY: 'auto',
+  overflowX: 'hidden',
+  // This value is added to the footer height to set the actual paddingBottom
+  paddingBottom: 12,
+  zIndex: 1,
+}
+
+const styleFooter = {
+  position: 'absolute',
+  bottom: 0,
+  left: 0,
+  right: 0,
+}
+
+const styleMeta = {
+  alignSelf: 'center',
+  backgroundColor: globalColors.green,
+  borderRadius: 1,
+  marginLeft: globalMargins.xtiny,
+  marginTop: 2,
 }
