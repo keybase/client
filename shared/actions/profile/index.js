@@ -16,7 +16,6 @@ import {navigateTo, navigateUp} from '../../actions/route-tree'
 import {loginTab, peopleTab} from '../../constants/tabs'
 import {pgpSaga} from './pgp'
 import {proofsSaga} from './proofs'
-import flags from '../../util/feature-flags'
 
 import type {TypedState} from '../../constants/reducer'
 
