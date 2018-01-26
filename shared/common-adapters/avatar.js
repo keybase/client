@@ -153,10 +153,7 @@ const _reallyAskForUserData = debounce(() => {
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _askForTeamUserData: (teamname: string) =>
     dispatch(ConfigGen.createLoadTeamAvatars({teamnames: [teamname]})),
-  _askForUserData: (username: string) => {
-    console._log('aaa', username)
-    return _askForUserDataQueueUp(username, dispatch)
-  },
+  _askForUserData: (username: string) => _askForUserDataQueueUp(username, dispatch),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
@@ -225,7 +222,6 @@ const real = compose(
   lifecycle({
     componentWillMount() {
       const _timeoutID = setTimeout(() => {
-        console._log('aaa mount timeout', this.props._name)
         // Still looking at the same user?
         if (this.state._mounted && this.props._name === this.state._name) {
           if (this.props._askForUserData) {
@@ -234,10 +230,8 @@ const real = compose(
         }
       }, 700)
       this.setState({_mounted: true, _name: this.props._name, _timeoutID})
-      console._log('aaa mount', this.props._name)
     },
     componentWillUnmount() {
-      console._log('aaa UNmount', this.props._name)
       if (this.state._timeoutID) {
         clearTimeout(this.state._timeoutID)
       }
