@@ -11,6 +11,7 @@ const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
 
 const makeFile: I.RecordFactory<Types._FilePathItem> = I.Record({
   type: 'file',
+  isExec: false,
 })
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({

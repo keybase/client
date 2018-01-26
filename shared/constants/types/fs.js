@@ -2,21 +2,40 @@
 import * as I from 'immutable'
 
 export opaque type Path = ?string
-export type FolderPathType = 'folder'
-export type FilePathType = 'file' | 'symlink' | 'exec'
-export opaque type PathType = FolderPathType | FilePathType
-export type _FilePathItem = {
-  type: FilePathType,
-}
+
+export type PathType = 'folder' | 'file' | 'symlink' | 'exec' | 'unknown'
+
 export type _FolderPathItem = {
-  type: FolderPathType,
+  type: 'folder',
   children: I.List<string>,
 }
-export type PathItem = I.RecordOf<_FolderPathItem> | I.RecordOf<_FilePathItem>
-export type PathItems = I.Map<Path, PathItem>
+export type FolderPathItem = I.RecordOf<_FolderPathItem>
+
+export type _SymlinkPathItem = {
+  type: 'symlink',
+  linkTarget: Path,
+}
+export type SymlinkPathItem = I.RecordOf<_SymlinkPathItem>
+
+export type _FilePathItem = {
+  type: 'file',
+}
+export type FilePathItem = I.RecordOf<_FilePathItem>
+
+export type _ExecPathItem = {
+  type: 'exec',
+}
+export type ExecPathItem = I.RecordOf<_ExecPathItem>
+
+export type _UnknownPathItem = {
+  type: 'unknown',
+}
+export type UnknownPathItem = I.RecordOf<_UnknownPathItem>
+
+export type PathItems = FolderPathItem | SymlinkPathItem | FilePathItem | ExecPathItem | UnknownPathItem
 
 export type _State = {
-  pathItems: PathItems,
+  pathItems: I.Map<Path, PathItems>,
 }
 export type State = I.RecordOf<_State>
 
@@ -46,6 +65,7 @@ export const stringToPathType = (s: string): PathType => {
     case 'file':
     case 'symlink':
     case 'exec':
+    case 'unknown':
       return s
     default:
       // We don't do a flow check here because by now flow knows that we can't
