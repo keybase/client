@@ -3,7 +3,7 @@ import {action, createPropProvider} from './storybook'
 
 /**
  * Compose prop factories into a single provider
- * @param {*} providers An array of objects of the form { DisplayName: Function(ownProps) }
+ * @param {Array<SelectorMap>} providers An array of objects of the form { DisplayName: Function(ownProps) }
  *                      that are combined in the output
  * @returns a <Provider /> that can be used in a storybook `addDecorator` to provide viewProps
  *          for connected child components

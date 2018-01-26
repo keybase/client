@@ -6,6 +6,14 @@ import {type SelectorMap} from './storybook'
 import {Text, Box} from '../common-adapters'
 import {globalColors, globalStyles} from '../styles'
 
+/**
+ * Creates a provider using a faux store of closures that compute derived viewProps
+ * @param {SelectorMap} map an object of the form {DisplayName: Function(ownProps)} with
+ *                          each closure returning the derived viewProps for the connected component
+ * @returns {React.Node} a <Provider /> that creates a store from the supplied map of closures.
+ *                       The Provider will ignore all dispatched actions. It also wraps the component
+ *                       tree in an <ErrorBoundary /> that adds auxiliary info in case of an error.
+ */
 const createPropProvider = (map: SelectorMap) => (story: () => React.Node) => (
   <Provider store={createStore(state => state, map)}>
     <StorybookErrorBoundary children={story()} />
