@@ -46,7 +46,7 @@ setup_arch_build() {
         | sed "s/@@PKGVER@@/$pkgver/g" \
         | sed "s/@@SUM_i686@@/$sum_i386/g" \
         | sed "s/@@SUM_x86_64@@/$sum_amd64/g" \
-        | sed "s/@@SRC_PREFIX@@/$src_prefix/g" \
+        | sed "s|@@SRC_PREFIX@@|$src_prefix|g" \
               > "$keybase_bin_repo/PKGBUILD"
 
     cat "$here/DOT_SRCINFO.bin.in" \
@@ -54,6 +54,6 @@ setup_arch_build() {
         | sed "s/@@DEBVER@@/$debver/g" \
         | sed "s/@@SUM_i686@@/$sum_i386/g" \
         | sed "s/@@SUM_x86_64@@/$sum_amd64/g" \
-        | sed "s/@@SRC_PREFIX@@/$src_prefix/g" \
+        | sed "s|@@SRC_PREFIX@@|$src_prefix|g" \
               > "$keybase_bin_repo/.SRCINFO"
 }
