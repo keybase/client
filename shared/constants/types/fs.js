@@ -27,10 +27,10 @@ export type _UnknownPathItem = {
 }
 export type UnknownPathItem = I.RecordOf<_UnknownPathItem>
 
-export type PathItems = FolderPathItem | SymlinkPathItem | FilePathItem | UnknownPathItem
+export type PathItem = FolderPathItem | SymlinkPathItem | FilePathItem | UnknownPathItem
 
 export type _State = {
-  pathItems: I.Map<Path, PathItems>,
+  pathItems: I.Map<Path, PathItem>,
 }
 export type State = I.RecordOf<_State>
 
