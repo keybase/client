@@ -206,12 +206,12 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 		return &signer, nil
 	}
 
-	var isWriterOrAbove bool
+	var isReaderOrAbove bool
 	if !link.outerLink.LinkType.RequiresAdminPermission() {
-		err = l.verifyExplicitPermission(ctx, state, link, signerUV, keybase1.TeamRole_WRITER)
-		isWriterOrAbove = (err == nil)
+		err = l.verifyWriterOrReaderPermissions(ctx, state, link, signerUV)
+		isReaderOrAbove = (err == nil)
 	}
-	if link.outerLink.LinkType.RequiresAdminPermission() || !isWriterOrAbove {
+	if link.outerLink.LinkType.RequiresAdminPermission() || !isReaderOrAbove {
 		// Check for admin permissions if they are not an on-chain reader/writer
 		// because they might be an implicit admin.
 		// Reassigns signer, might set implicitAdmin.
@@ -220,9 +220,10 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 	return &signer, err
 }
 
-func (l *TeamLoader) verifyExplicitPermission(ctx context.Context, state *keybase1.TeamData,
-	link *chainLinkUnpacked, uv keybase1.UserVersion, atOrAbove keybase1.TeamRole) error {
-	return (TeamSigChainState{state.Chain}).AssertWasRoleOrAboveAt(uv, atOrAbove, link.SigChainLocation())
+func (l *TeamLoader) verifyWriterOrReaderPermissions(ctx context.Context,
+	state *keybase1.TeamData, link *chainLinkUnpacked, uv keybase1.UserVersion) error {
+
+	return (TeamSigChainState{state.Chain}).AssertWasReaderAt(uv, link.SigChainLocation())
 }
 
 // Does not return a full TeamData because it might get a subteam-reader version.
