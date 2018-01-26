@@ -28,6 +28,12 @@ export type PreMentionHocProps = {
   typing: Array<Types.Username>,
 }
 
+export type MentionHocCounters = {
+  upArrowCounter: number,
+  downArrowCounter: number,
+  pickSelectedCounter: number,
+}
+
 export type MentionHocProps = {
   insertMention: (u: string, options?: {notUser: boolean}) => void,
   switchMention: (u: string) => void,
@@ -36,16 +42,13 @@ export type MentionHocProps = {
   onKeyDown: (e: SyntheticKeyboardEvent<>) => void,
   onKeyUp: (e: SyntheticKeyboardEvent<*>) => void,
   onEnterKeyDown: (e: SyntheticKeyboardEvent<>) => void,
-  upArrowCounter: number,
-  downArrowCounter: number,
-  pickSelectedCounter: number,
   channelMentionFilter: string,
   channelMentionPopupOpen: boolean,
   setChannelMentionPopupOpen: (setOpen: boolean) => void,
   mentionFilter: string,
   mentionPopupOpen: boolean,
   setMentionPopupOpen: (setOpen: boolean) => void,
-}
+} & MentionHocCounters
 
 export type Props = PreMentionHocProps & MentionHocProps
 

@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {type PreMentionHocProps, type Props} from '.'
+import type {PreMentionHocProps, Props, MentionHocCounters} from '.'
 import logger from '../../../logger'
 
 type PropsFromContainer = {
@@ -9,14 +9,11 @@ type PropsFromContainer = {
 } & PreMentionHocProps
 
 type MentionHocState = {
-  upArrowCounter: number,
-  downArrowCounter: number,
-  pickSelectedCounter: number,
   mentionFilter: string,
   channelMentionFilter: string,
   mentionPopupOpen: boolean,
   channelMentionPopupOpen: boolean,
-}
+} & MentionHocCounters
 
 const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
   class MentionHoc extends React.Component<PropsFromContainer, MentionHocState> {
