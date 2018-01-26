@@ -202,6 +202,75 @@ func TestCopyToLocal(t *testing.T) {
 	assert.True(t, exists, "File copy destination must exist")
 }
 
+func TestCopyRecursive(t *testing.T) {
+	ctx := context.Background()
+	sfs := newSimpleFS(libkbfs.MakeTestConfigOrBust(t, "jdoe"))
+	defer closeSimpleFS(ctx, t, sfs)
+
+	// make a temp local dest directory + files we will clean up later
+	tempdir, err := ioutil.TempDir("", "simpleFstest")
+	require.NoError(t, err)
+	defer os.RemoveAll(tempdir)
+
+	// Make local starting directory.
+	err = os.Mkdir(filepath.Join(tempdir, "testdir"), 0700)
+	require.NoError(t, err)
+	err = ioutil.WriteFile(
+		filepath.Join(tempdir, "testdir", "test1.txt"), []byte("foo"), 0600)
+	require.NoError(t, err)
+	err = ioutil.WriteFile(
+		filepath.Join(tempdir, "testdir", "test2.txt"), []byte("bar"), 0600)
+	require.NoError(t, err)
+	path1 := keybase1.NewPathWithLocal(filepath.Join(tempdir, "testdir"))
+	path2 := keybase1.NewPathWithKbfs(`/private/jdoe/testdir`)
+
+	opid, err := sfs.SimpleFSMakeOpid(ctx)
+	require.NoError(t, err)
+
+	// Copy it into KBFS.
+	err = sfs.SimpleFSCopyRecursive(ctx, keybase1.SimpleFSCopyRecursiveArg{
+		OpID: opid,
+		Src:  path1,
+		Dest: path2,
+	})
+	require.NoError(t, err)
+	checkPendingOp(
+		ctx, t, sfs, opid, keybase1.AsyncOps_COPY, path1, path2, true)
+	err = sfs.SimpleFSWait(ctx, opid)
+	require.NoError(t, err)
+
+	require.Equal(t, "foo",
+		string(readRemoteFile(ctx, t, sfs, pathAppend(path2, "test1.txt"))))
+	require.Equal(t, "bar",
+		string(readRemoteFile(ctx, t, sfs, pathAppend(path2, "test2.txt"))))
+
+	// Copy it back.
+	tempdir2, err := ioutil.TempDir("", "simpleFstest")
+	require.NoError(t, err)
+	defer os.RemoveAll(tempdir2)
+	path3 := keybase1.NewPathWithLocal(filepath.Join(tempdir2, "testdir"))
+	opid2, err := sfs.SimpleFSMakeOpid(ctx)
+	require.NoError(t, err)
+	err = sfs.SimpleFSCopyRecursive(ctx, keybase1.SimpleFSCopyRecursiveArg{
+		OpID: opid2,
+		Src:  path2,
+		Dest: path3,
+	})
+	require.NoError(t, err)
+	checkPendingOp(
+		ctx, t, sfs, opid2, keybase1.AsyncOps_COPY, path2, path3, true)
+	err = sfs.SimpleFSWait(ctx, opid2)
+	require.NoError(t, err)
+	dataFoo, err := ioutil.ReadFile(
+		filepath.Join(tempdir2, "testdir", "test1.txt"))
+	require.NoError(t, err)
+	require.Equal(t, "foo", string(dataFoo))
+	dataBar, err := ioutil.ReadFile(
+		filepath.Join(tempdir2, "testdir", "test2.txt"))
+	require.NoError(t, err)
+	require.Equal(t, "bar", string(dataBar))
+}
+
 func TestCopyToRemote(t *testing.T) {
 	ctx := context.Background()
 	sfs := newSimpleFS(libkbfs.MakeTestConfigOrBust(t, "jdoe"))

@@ -851,12 +851,13 @@ func (k *SimpleFS) pathIO(ctx context.Context, path keybase1.Path,
 		if flags&keybase1.OpenFlags_REPLACE != 0 {
 			cflags |= os.O_TRUNC
 		}
-		var f *os.File
 		if (cflags&os.O_CREATE != 0) && (flags&keybase1.OpenFlags_DIRECTORY != 0) {
-			// Return value is ignored.
+			// Return value is ignored in case the directory already
+			// exists.
 			os.Mkdir(path.Local(), 0755)
+			return &localIO{nil, keybase1.DirentType_DIR}, nil
 		}
-		f, err = os.OpenFile(path.Local(), cflags, 0644)
+		f, err := os.OpenFile(path.Local(), cflags, 0644)
 		k.log.CDebugf(ctx, "Local open %q -> %v,%v", path.Local(), f, err)
 		if err != nil {
 			return nil, err
