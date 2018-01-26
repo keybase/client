@@ -218,7 +218,7 @@ func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 		}
 
 		tx := CreateAddMemberTx(t)
-		err = tx.AddMemberTransaction(ctx, username, role)
+		err = tx.AddMemberTransaction(ctx, resolvedUsername.String(), role)
 		if err != nil {
 			return err
 		}
