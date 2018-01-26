@@ -276,4 +276,3 @@ const mock = compose(
 )(Render)
 
 export default (isTesting ? mock : real)
-// export default () => null
