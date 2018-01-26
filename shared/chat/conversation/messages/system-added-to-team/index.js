@@ -19,6 +19,7 @@ const connectedUsernamesProps = {
   colorFollowing: true,
   inline: true,
   type: 'BodySmallSemibold',
+  underline: true,
 }
 
 class AddedToTeam extends React.PureComponent<Props> {

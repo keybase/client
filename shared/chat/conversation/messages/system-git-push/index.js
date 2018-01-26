@@ -14,6 +14,7 @@ const connectedUsernamesProps = {
   colorFollowing: true,
   inline: true,
   type: 'BodySmallSemibold',
+  underline: true,
 }
 
 class GitPush extends React.PureComponent<Props> {

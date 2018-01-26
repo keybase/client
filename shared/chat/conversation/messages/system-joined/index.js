@@ -34,6 +34,7 @@ class Joined extends React.PureComponent<Props> {
               type="BodySmallSemibold"
               onUsernameClicked={onUsernameClicked}
               colorFollowing={true}
+              underline={true}
               usernames={[author]}
             />
           )}{' '}

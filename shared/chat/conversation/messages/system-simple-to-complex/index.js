@@ -28,6 +28,7 @@ class ComplexTeamNotice extends React.PureComponent<Props> {
           inline={true}
           type="BodySmallSemibold"
           colorFollowing={true}
+          underline={true}
           usernames={[author]}
         />
       )

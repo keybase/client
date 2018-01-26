@@ -2,9 +2,9 @@
 import * as React from 'react'
 import {Box, Checkbox, Icon, RadioButton, ProgressIndicator, Text} from '../../../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../../styles'
-// import {type NotificationSaveState} from '../../../../constants/types/chat'
-import type {Props} from '.'
-type NotificationSaveState = any
+// import {type NotifyType, type NotificationSaveState} from '../../../../constants/types/chat'
+type NotifyType = any // TEMP
+type NotificationSaveState = any // TEMP
 
 const SaveStateComponents = (saveState: NotificationSaveState) => {
   switch (saveState) {
@@ -22,15 +22,27 @@ const SaveStateComponents = (saveState: NotificationSaveState) => {
   }
 }
 
-const Notifications = ({
+export type Props = {
+  channelWide: boolean,
+  desktop: NotifyType,
+  mobile: NotifyType,
+  muted: boolean,
+  saveState: NotificationSaveState,
+  onMuteConversation: (muted: boolean) => void,
+  onSetDesktop: NotifyType => void,
+  onSetMobile: NotifyType => void,
+  onToggleChannelWide: () => void,
+}
+
+export const Notifications = ({
   channelWide,
   desktop,
   mobile,
   muted,
   saveState,
+  onMuteConversation,
   onSetDesktop,
   onSetMobile,
-  onMuteConversation,
   onToggleChannelWide,
 }: Props) => (
   <Box
@@ -160,5 +172,3 @@ const styleSaveState = {
   justifyContent: 'center',
   paddingTop: globalMargins.small,
 }
-
-export default Notifications
