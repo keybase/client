@@ -22,17 +22,12 @@ export type _FilePathItem = {
 }
 export type FilePathItem = I.RecordOf<_FilePathItem>
 
-export type _ExecPathItem = {
-  type: 'exec',
-}
-export type ExecPathItem = I.RecordOf<_ExecPathItem>
-
 export type _UnknownPathItem = {
   type: 'unknown',
 }
 export type UnknownPathItem = I.RecordOf<_UnknownPathItem>
 
-export type PathItems = FolderPathItem | SymlinkPathItem | FilePathItem | ExecPathItem | UnknownPathItem
+export type PathItems = FolderPathItem | SymlinkPathItem | FilePathItem | UnknownPathItem
 
 export type _State = {
   pathItems: I.Map<Path, PathItems>,
