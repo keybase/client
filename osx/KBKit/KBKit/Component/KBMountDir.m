@@ -89,7 +89,7 @@
       } else {
         // Let the user know they didn't get /keybase.
         NSAlert *alert = [[NSAlert alloc] init];
-        [alert setMessageText:[NSString stringWithFormat:@"Your Keybase file system will be available in the Finder at %@.", self.config.mountDir]];
+        [alert setMessageText:[NSString stringWithFormat:@"Success! Your Keybase file system is located at %@.", self.config.mountDir]];
         [alert addButtonWithTitle:@"OK"];
         [alert setAlertStyle:NSAlertStyleInformational];
         alert.showsSuppressionButton = YES;
