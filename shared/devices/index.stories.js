@@ -23,8 +23,8 @@ const provider = createPropProvider({
   DeviceRow: (props: {deviceID: string}) => ({
     isCurrentDevice: props.deviceID === '1',
     name: {'1': 'laptop', '2': 'phone', '3': 'hello robot'}[props.deviceID],
-    isRevoked: false,
-    icon: 'icon-paper-key-48',
+    isRevoked: !['1', '2', '3'].includes(props.deviceID),
+    icon: {'1': 'icon-computer-48', '2': 'icon-phone-48', '3': 'icon-paper-key-48'}[props.deviceID],
     showExistingDevicePage: action('onShowExistingDevicePage'),
   }),
 })
