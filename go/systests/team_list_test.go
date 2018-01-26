@@ -138,6 +138,53 @@ func TestTeamList(t *testing.T) {
 	check(&list)
 }
 
+func TestTeamListOpenTeams(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+	t.Logf("Signed up ann (%s)", ann.username)
+
+	team1 := ann.createTeam()
+	t.Logf("Team 1 created (%s)", team1)
+
+	team2 := ann.createTeam()
+	t.Logf("Team 2 created (%s)", team2)
+
+	ann.teamSetSettings(team2, keybase1.TeamSettings{
+		Open:   true,
+		JoinAs: keybase1.TeamRole_WRITER,
+	})
+
+	check := func(list *keybase1.AnnotatedTeamList) {
+		require.Equal(t, 2, len(list.Teams))
+		require.Equal(t, 0, len(list.AnnotatedActiveInvites))
+		for _, teamInfo := range list.Teams {
+			if teamInfo.FqName == team1 {
+				require.False(t, teamInfo.IsOpenTeam)
+			} else if teamInfo.FqName == team2 {
+				require.True(t, teamInfo.IsOpenTeam)
+			} else {
+				t.Fatalf("Unexpected team name %v", teamInfo)
+			}
+
+			require.Equal(t, 1, teamInfo.MemberCount)
+		}
+	}
+
+	teamCli := ann.teamsClient
+
+	list, err := teamCli.TeamListVerified(context.Background(), keybase1.TeamListVerifiedArg{})
+	require.NoError(t, err)
+
+	check(&list)
+
+	list, err = teamCli.TeamListUnverified(context.Background(), keybase1.TeamListUnverifiedArg{})
+	require.NoError(t, err)
+
+	check(&list)
+}
+
 func TestTeamDuplicateUIDList(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
