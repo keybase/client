@@ -52,13 +52,7 @@ type DispatchProps = {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateAppend, navigateUp}): DispatchProps => ({
-  onOpenProfile: () => {
-    isMobile
-      ? dispatch(createShowUserProfile({username: routeProps.get('username')}))
-      : dispatch(
-          createGetProfile({username: routeProps.get('username'), ignoreCache: true, forceDisplay: true})
-        )
-  },
+  onOpenProfile: () => dispatch(createShowUserProfile({username: routeProps.get('username')})),
   _onEditMembership: (name: string, username: string) =>
     dispatch(
       navigateAppend([
