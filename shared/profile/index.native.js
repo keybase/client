@@ -439,6 +439,7 @@ class Profile extends Component<Props, State> {
           keyExtractor={this._keyExtractor}
           forceRenderProofs={this.props.proofs}
           forceRenderBio={this.props.userInfo}
+          windowSize={3}
           sections={[
             {
               renderItem: this._renderProfile,
