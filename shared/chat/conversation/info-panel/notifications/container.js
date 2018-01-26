@@ -4,19 +4,52 @@ import logger from '../../../../logger'
 import * as Constants from '../../../../constants/chat'
 import * as Types from '../../../../constants/types/chat'
 import * as ChatGen from '../../../../actions/chat-gen'
-import {Notifications, type Props} from '.'
-import {connect, type TypedState} from '../../../../util/container'
+import {Notifications} from '.'
+import {compose, connect, type TypedState, lifecycle, type Dispatch} from '../../../../util/container'
 import {type DeviceType} from '../../../../constants/types/devices'
 
+type StateProps = {
+  channelWide: boolean,
+  desktop: Types.NotifyType,
+  mobile: Types.NotifyType,
+  muted: boolean,
+  saveState: Types.NotificationSaveState,
+}
+
 type DispatchProps = {
-  _resetSaveState: (conversationIDKey: Types.ConversationIDKey) => void,
-  _onMuteConversation: (conversationIDKey: Types.ConversationIDKey, muted: boolean) => void,
+  _resetSaveState: (conversationIDKey: Types.ConversationIDKey) => any,
+  _onMuteConversation: (conversationIDKey: Types.ConversationIDKey, muted: boolean) => any,
   _onSetNotification: (
     conversationIDKey: Types.ConversationIDKey,
     deviceType: DeviceType,
     notifyType: Types.NotifyType
-  ) => void,
-  _onToggleChannelWide: (conversationIDKey: Types.ConversationIDKey) => void,
+  ) => any,
+  _onToggleChannelWide: (conversationIDKey: Types.ConversationIDKey) => any,
+}
+
+type OwnProps = {
+  conversationIDKey: Types.ConversationIDKey,
+}
+
+const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => {
+  const inbox = Constants.getSelectedInbox(state)
+  if (!inbox) throw new Error('Impossible')
+  const notifications = inbox.get('notifications')
+  if (!notifications) throw new Error('Impossible')
+  const desktop = serverStateToProps(notifications, 'desktop')
+  const mobile = serverStateToProps(notifications, 'mobile')
+  const muted = Constants.getMuted(state)
+  const {channelWide} = notifications
+  const saveState = inbox.get('notificationSaveState')
+
+  return {
+    channelWide,
+    conversationIDKey,
+    desktop,
+    mobile,
+    muted,
+    saveState,
+  }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
@@ -34,28 +67,15 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
     dispatch(ChatGen.createToggleChannelWideNotifications({conversationIDKey})),
 })
 
-type OwnProps = {
-  channelWide: boolean,
-  conversationIDKey: string,
-  desktop: Types.NotifyType,
-  mobile: Types.NotifyType,
-  muted: boolean,
-  saveState: Types.NotificationSaveState,
-}
-
-type _Props = Props & {
-  _resetSaveState: () => void,
-}
-
-const mergeProps = (_, dispatchProps: DispatchProps, ownProps: OwnProps): _Props => {
+const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => {
   const convKey = ownProps.conversationIDKey
   return {
     _resetSaveState: () => dispatchProps._resetSaveState(convKey),
-    channelWide: ownProps.channelWide,
-    desktop: ownProps.desktop,
-    mobile: ownProps.mobile,
-    muted: ownProps.muted,
-    saveState: ownProps.saveState,
+    channelWide: stateProps.channelWide,
+    desktop: stateProps.desktop,
+    mobile: stateProps.mobile,
+    muted: stateProps.muted,
+    saveState: stateProps.saveState,
     onMuteConversation: (muted: boolean) => {
       dispatchProps._onMuteConversation(convKey, muted)
     },
@@ -71,17 +91,14 @@ const mergeProps = (_, dispatchProps: DispatchProps, ownProps: OwnProps): _Props
   }
 }
 
-class _NotificationsWithKey extends React.PureComponent<_Props> {
-  componentDidMount() {
-    this.props._resetSaveState()
-  }
-
-  render() {
-    return <Notifications {...this.props} />
-  }
-}
-
-const NotificationsWithKey = connect(() => ({}), mapDispatchToProps, mergeProps)(_NotificationsWithKey)
+const ConnectedNotifications = compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  lifecycle({
+    componentDidMount() {
+      this.props._resetSaveState()
+    },
+  })
+)(Notifications)
 
 const serverStateToProps = (notifications: Types.NotificationsState, type: 'desktop' | 'mobile') => {
   // The server state has independent bool values for atmention/generic,
@@ -100,49 +117,22 @@ const serverStateToProps = (notifications: Types.NotificationsState, type: 'desk
   return 'never'
 }
 
-// Use conversationIDKey as a signal for whether StateProps is empty.
-type StateProps = OwnProps | {conversationIDKey: void}
+const OnlyValidConversations = ({conversationIDKey}) =>
+  conversationIDKey && <ConnectedNotifications conversationIDKey={conversationIDKey} />
 
-const mapStateToProps = (state: TypedState): StateProps => {
+const mapStateToPropsOnlyValid = (state: TypedState): * => {
   const conversationIDKey = Constants.getSelectedConversation(state)
-  if (!conversationIDKey) {
-    logger.warn('no selected conversation')
-    return {conversationIDKey: undefined}
-  }
   const inbox = Constants.getSelectedInbox(state)
   if (!inbox) {
     logger.warn('no selected inbox')
-    return {conversationIDKey: undefined}
+    return {conversationIDKey: null}
   }
   const notifications = inbox.get('notifications')
   if (!notifications) {
     logger.warn('no notifications')
-    return {conversationIDKey: undefined}
+    return {conversationIDKey: null}
   }
-  const desktop = serverStateToProps(notifications, 'desktop')
-  const mobile = serverStateToProps(notifications, 'mobile')
-  const muted = Constants.getMuted(state)
-  const {channelWide} = notifications
-  const saveState = inbox.get('notificationSaveState')
-
-  return ({
-    channelWide,
-    conversationIDKey,
-    desktop,
-    mobile,
-    muted,
-    saveState,
-  }: OwnProps)
+  return {conversationIDKey}
 }
 
-class _MaybeNotifications extends React.PureComponent<StateProps> {
-  render() {
-    if (!this.props.conversationID) {
-      return null
-    }
-
-    return <NotificationsWithKey {...this.props} />
-  }
-}
-
-export default connect(mapStateToProps, null, stateProps => stateProps)(_MaybeNotifications)
+export default connect(mapStateToPropsOnlyValid)(OnlyValidConversations)
