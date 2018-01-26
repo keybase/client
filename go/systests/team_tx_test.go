@@ -65,10 +65,8 @@ func TestTeamTx1(t *testing.T) {
 	bob.perUserKeyUpgrade()
 
 	teamObj = ann.loadTeam(team, true /* admin */)
-
 	tx = teams.CreateAddMemberTx(teamObj)
 	tx.AddMemberTransaction(context.Background(), bob.username, keybase1.TeamRole_WRITER)
-	tx.RemoveMember(tracy.userVersion())
 
 	err = tx.Post(context.Background())
 	require.NoError(t, err)
@@ -77,7 +75,8 @@ func TestTeamTx1(t *testing.T) {
 	members, err = teamObj.Members()
 	require.NoError(t, err)
 	require.Equal(t, 1, len(members.Owners))
-	require.Equal(t, 0, len(members.Admins)+len(members.Readers))
+	require.Equal(t, 0, len(members.Admins))
+	require.Equal(t, 1, len(members.Readers))
 	require.Equal(t, 1, len(members.Writers))
 	require.EqualValues(t, bob.userVersion(), members.Writers[0])
 	require.Equal(t, 0, len(teamObj.GetActiveAndObsoleteInvites()))

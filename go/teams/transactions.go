@@ -50,22 +50,19 @@ func (tx *AddMemberTx) changeMembershipPayload() *keybase1.TeamChangeReq {
 	return ret
 }
 
-// Low-level API: Find the right payload and add/remove
-// membership/invite.
-
-func (tx *AddMemberTx) RemoveMember(uv keybase1.UserVersion) error {
+func (tx *AddMemberTx) removeMember(uv keybase1.UserVersion) error {
 	payload := tx.changeMembershipPayload()
 	payload.None = append(payload.None, uv)
 	return nil
 }
 
-func (tx *AddMemberTx) AddMember(uv keybase1.UserVersion, role keybase1.TeamRole) error {
+func (tx *AddMemberTx) addMember(uv keybase1.UserVersion, role keybase1.TeamRole) error {
 	payload := tx.changeMembershipPayload()
 	payload.AddUVWithRole(uv, role)
 	return nil
 }
 
-func (tx *AddMemberTx) CancelInvite(id keybase1.TeamInviteID) error {
+func (tx *AddMemberTx) cancelInvite(id keybase1.TeamInviteID) error {
 	payload := tx.invitePayload()
 	if payload.Cancel == nil {
 		payload.Cancel = &[]SCTeamInviteID{SCTeamInviteID(id)}
@@ -85,7 +82,7 @@ func appendToInviteList(inv SCTeamInvite, list *[]SCTeamInvite) *[]SCTeamInvite 
 	return &tmp
 }
 
-func (tx *AddMemberTx) CreateInvite(uv keybase1.UserVersion, role keybase1.TeamRole) error {
+func (tx *AddMemberTx) createInvite(uv keybase1.UserVersion, role keybase1.TeamRole) error {
 	payload := tx.invitePayload()
 
 	invite := SCTeamInvite{
@@ -111,29 +108,27 @@ func (tx *AddMemberTx) CreateInvite(uv keybase1.UserVersion, role keybase1.TeamR
 
 // SweepMembers will queue "removes" for all cryptomembers with given
 // UID.
-func (tx *AddMemberTx) SweepMembers(uid keybase1.UID) {
+func (tx *AddMemberTx) sweepMembers(uid keybase1.UID) {
 	team := tx.team
 	for chainUv := range team.chain().inner.UserLog {
 		if chainUv.Uid == uid && team.chain().getUserRole(chainUv) != keybase1.TeamRole_NONE {
-			tx.RemoveMember(chainUv)
+			tx.removeMember(chainUv)
 		}
 	}
 }
 
 // SweepKeybaseInvites will queue "cancels" for all keybase-type
 // invites (PUKless members) for given UID.
-func (tx *AddMemberTx) SweepKeybaseInvites(uid keybase1.UID) {
+func (tx *AddMemberTx) sweepKeybaseInvites(uid keybase1.UID) {
 	team := tx.team
 	for _, invite := range team.chain().inner.ActiveInvites {
 		if inviteUv, err := invite.KeybaseUserVersion(); err == nil {
 			if inviteUv.Uid == uid {
-				tx.CancelInvite(invite.Id)
+				tx.cancelInvite(invite.Id)
 			}
 		}
 	}
 }
-
-// High level API:
 
 // AddMemberTransaction will add member by username and role. It
 // checks if given username can become crypto member or a PUKless
@@ -209,19 +204,19 @@ func (tx *AddMemberTx) AddMemberTransaction(ctx context.Context, username string
 		// one sig that removes UV and another that adds invite.
 
 		if inviteRequired {
-			tx.SweepKeybaseInvites(uv.Uid)
+			tx.sweepKeybaseInvites(uv.Uid)
 		} else {
-			tx.SweepMembers(uv.Uid)
+			tx.sweepMembers(uv.Uid)
 		}
 	} else {
-		tx.SweepMembers(uv.Uid)        // Sweep all existing crypto members
-		tx.SweepKeybaseInvites(uv.Uid) // Sweep all existing keybase type invites
+		tx.sweepMembers(uv.Uid)        // Sweep all existing crypto members
+		tx.sweepKeybaseInvites(uv.Uid) // Sweep all existing keybase type invites
 	}
 
 	if inviteRequired {
-		return tx.CreateInvite(uv, role)
+		return tx.createInvite(uv, role)
 	}
-	return tx.AddMember(uv, role)
+	return tx.addMember(uv, role)
 }
 
 func (tx *AddMemberTx) CompleteSocialInvitesFor(ctx context.Context, uv keybase1.UserVersion, username string) error {

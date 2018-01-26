@@ -478,12 +478,11 @@ func TestSweepObsoleteKeybaseInvites(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	// Use a raw tx.AddMember to add bob without sweeping his keybase
+	// Use ChangeMembership to add bob without sweeping his keybase
 	// invite.
-	tx := teams.CreateAddMemberTx(teamObj)
-	err = tx.AddMember(bob.userVersion(), keybase1.TeamRole_WRITER)
-	require.NoError(t, err)
-	err = tx.Post(context.Background())
+	err = teamObj.ChangeMembership(context.Background(), keybase1.TeamChangeReq{
+		Writers: []keybase1.UserVersion{bob.userVersion()},
+	})
 	require.NoError(t, err)
 
 	// Bob then leaves team.
