@@ -32180,123 +32180,147 @@ exports[`Storyshots People/Follow notification Someone followed you 1`] = `
     style={undefined}
   >
     <div
+      onClick={[Function]}
+      onMouseDown={[Function]}
+      onMouseEnter={undefined}
+      onMouseLeave={undefined}
+      onMouseUp={[Function]}
       style={
         Object {
-          "backgroundColor": "#ebf5fc",
-          "borderBottomColor": "#ffffff",
-          "borderBottomStyle": "solid",
-          "borderBottomWidth": 1,
+          "alignItems": "stretch",
+          "borderRadius": 0,
+          "cursor": "pointer",
           "display": "flex",
-          "flexDirection": "row",
-          "paddingBottom": 8,
-          "paddingLeft": 12,
-          "paddingTop": 8,
+          "flexDirection": "column",
+          "height": undefined,
+          "lineHeight": 0,
+          "minWidth": undefined,
           "position": "relative",
+          "textAlign": "left",
+          "transform": "none",
+          "transition": "none",
         }
       }
     >
       <div
         style={
           Object {
-            "marginRight": 20,
-            "width": 32,
+            "backgroundColor": "#ebf5fc",
+            "borderBottomColor": "#ffffff",
+            "borderBottomStyle": "solid",
+            "borderBottomWidth": 1,
+            "display": "flex",
+            "flexDirection": "row",
+            "paddingBottom": 8,
+            "paddingLeft": 12,
+            "paddingTop": 8,
+            "position": "relative",
           }
         }
       >
         <div
-          onClick={[Function]}
           style={
             Object {
-              "cursor": "pointer",
-              "height": 32,
-              "maxWidth": 32,
-              "minHeight": 32,
-              "minWidth": 32,
-              "position": "relative",
-              "userSelect": "none",
+              "marginRight": 20,
+              "width": 32,
             }
           }
         >
           <div
-            className="glamor-0"
-          />
-          <div
-            className="glamor-1"
-          />
+            onClick={[Function]}
+            style={
+              Object {
+                "cursor": "pointer",
+                "height": 32,
+                "maxWidth": 32,
+                "minHeight": 32,
+                "minWidth": 32,
+                "position": "relative",
+                "userSelect": "none",
+              }
+            }
+          >
+            <div
+              className="glamor-0"
+            />
+            <div
+              className="glamor-1"
+            />
+          </div>
         </div>
-      </div>
-      <div
-        style={
-          Object {
-            "display": "flex",
-            "flexDirection": "column",
-            "justifyContent": "center",
-            "overflow": "hidden",
-            "paddingRight": 80,
-            "position": "relative",
-            "width": "auto",
+        <div
+          style={
+            Object {
+              "display": "flex",
+              "flexDirection": "column",
+              "justifyContent": "center",
+              "overflow": "hidden",
+              "paddingRight": 80,
+              "position": "relative",
+              "width": "auto",
+            }
           }
-        }
-      >
-        <span
-          className="glamor-5"
-          onClick={undefined}
-          title={undefined}
         >
           <span
-            className="glamor-4"
+            className="glamor-5"
             onClick={undefined}
             title={undefined}
           >
             <span
-              className="glamor-3"
+              className="glamor-4"
               onClick={undefined}
               title={undefined}
             >
               <span
-                className="glamor-2 hover-underline"
-                onClick={[Function]}
+                className="glamor-3"
+                onClick={undefined}
                 title={undefined}
               >
-                mmaxim
+                <span
+                  className="glamor-2 hover-underline"
+                  onClick={[Function]}
+                  title={undefined}
+                >
+                  mmaxim
+                </span>
               </span>
             </span>
+             
+            followed you.
           </span>
-           
-          followed you.
-        </span>
-      </div>
-      <div
-        style={
-          Object {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "row",
-            "position": "absolute",
-            "right": 8,
-            "top": 12,
-          }
-        }
-      >
-        <span
-          className="glamor-6"
-          onClick={undefined}
-          title={undefined}
-        >
-          now
-        </span>
+        </div>
         <div
           style={
             Object {
-              "backgroundColor": "#ff6f21",
-              "borderRadius": 6,
-              "height": 8,
-              "marginLeft": 4,
-              "marginTop": 1,
-              "width": 8,
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "position": "absolute",
+              "right": 8,
+              "top": 12,
             }
           }
-        />
+        >
+          <span
+            className="glamor-6"
+            onClick={undefined}
+            title={undefined}
+          >
+            now
+          </span>
+          <div
+            style={
+              Object {
+                "backgroundColor": "#ff6f21",
+                "borderRadius": 6,
+                "height": 8,
+                "marginLeft": 4,
+                "marginTop": 1,
+                "width": 8,
+              }
+            }
+          />
+        </div>
       </div>
     </div>
   </div>
@@ -32407,111 +32431,135 @@ exports[`Storyshots People/Follow notification Someone you follow followed you 1
     style={undefined}
   >
     <div
+      onClick={[Function]}
+      onMouseDown={[Function]}
+      onMouseEnter={undefined}
+      onMouseLeave={undefined}
+      onMouseUp={[Function]}
       style={
         Object {
-          "backgroundColor": "#ffffff",
-          "borderBottomColor": "rgba(0, 0, 0, 0.05)",
-          "borderBottomStyle": "solid",
-          "borderBottomWidth": 1,
+          "alignItems": "stretch",
+          "borderRadius": 0,
+          "cursor": "pointer",
           "display": "flex",
-          "flexDirection": "row",
-          "paddingBottom": 8,
-          "paddingLeft": 12,
-          "paddingTop": 8,
+          "flexDirection": "column",
+          "height": undefined,
+          "lineHeight": 0,
+          "minWidth": undefined,
           "position": "relative",
+          "textAlign": "left",
+          "transform": "none",
+          "transition": "none",
         }
       }
     >
       <div
         style={
           Object {
-            "marginRight": 20,
-            "width": 32,
+            "backgroundColor": "#ffffff",
+            "borderBottomColor": "rgba(0, 0, 0, 0.05)",
+            "borderBottomStyle": "solid",
+            "borderBottomWidth": 1,
+            "display": "flex",
+            "flexDirection": "row",
+            "paddingBottom": 8,
+            "paddingLeft": 12,
+            "paddingTop": 8,
+            "position": "relative",
           }
         }
       >
         <div
-          onClick={[Function]}
           style={
             Object {
-              "cursor": "pointer",
-              "height": 32,
-              "maxWidth": 32,
-              "minHeight": 32,
-              "minWidth": 32,
-              "position": "relative",
-              "userSelect": "none",
+              "marginRight": 20,
+              "width": 32,
             }
           }
         >
           <div
-            className="glamor-0"
-          />
-          <div
-            className="glamor-1"
-          />
+            onClick={[Function]}
+            style={
+              Object {
+                "cursor": "pointer",
+                "height": 32,
+                "maxWidth": 32,
+                "minHeight": 32,
+                "minWidth": 32,
+                "position": "relative",
+                "userSelect": "none",
+              }
+            }
+          >
+            <div
+              className="glamor-0"
+            />
+            <div
+              className="glamor-1"
+            />
+          </div>
         </div>
-      </div>
-      <div
-        style={
-          Object {
-            "display": "flex",
-            "flexDirection": "column",
-            "justifyContent": "center",
-            "overflow": "hidden",
-            "paddingRight": 80,
-            "position": "relative",
-            "width": "auto",
+        <div
+          style={
+            Object {
+              "display": "flex",
+              "flexDirection": "column",
+              "justifyContent": "center",
+              "overflow": "hidden",
+              "paddingRight": 80,
+              "position": "relative",
+              "width": "auto",
+            }
           }
-        }
-      >
-        <span
-          className="glamor-5"
-          onClick={undefined}
-          title={undefined}
         >
           <span
-            className="glamor-4"
+            className="glamor-5"
             onClick={undefined}
             title={undefined}
           >
             <span
-              className="glamor-3"
+              className="glamor-4"
               onClick={undefined}
               title={undefined}
             >
               <span
-                className="glamor-2 hover-underline"
-                onClick={[Function]}
+                className="glamor-3"
+                onClick={undefined}
                 title={undefined}
               >
-                max
+                <span
+                  className="glamor-2 hover-underline"
+                  onClick={[Function]}
+                  title={undefined}
+                >
+                  max
+                </span>
               </span>
             </span>
+             
+            followed you.
           </span>
-           
-          followed you.
-        </span>
-      </div>
-      <div
-        style={
-          Object {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "row",
-            "position": "absolute",
-            "right": 8,
-            "top": 12,
+        </div>
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "position": "absolute",
+              "right": 8,
+              "top": 12,
+            }
           }
-        }
-      >
-        <span
-          className="glamor-6"
-          onClick={undefined}
-          title={undefined}
         >
-          3d
-        </span>
+          <span
+            className="glamor-6"
+            onClick={undefined}
+            title={undefined}
+          >
+            3d
+          </span>
+        </div>
       </div>
     </div>
   </div>
