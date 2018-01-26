@@ -19,7 +19,7 @@ RCT_EXPORT_MODULE(Storybook);
 - (NSDictionary *)constantsToExport
 {
   // Set this to true to enable storybook mode
-  return @{@"isStorybook": @false};
+  return @{@"isStorybook": @true};
 }
 
 @end
