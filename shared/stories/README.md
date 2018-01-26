@@ -32,6 +32,6 @@ The patched `connect` will ignore anything defined in `(mapStateToProps, mapDisp
 In stories with connected children, a `<Provider />` will need to wrap the top level (via `addDecorator`) and contain this map. For convenience, `createPropProvider` is exported from `./stories` that creates a `<Provider />` from a map. `./prop-providers` contains some common prop factory creators, as well as a `compose` function to combine multiple maps into a single `<Provider />`. See `devices/index.stories.js` for a sample implementation.
 
 ### Display names
-Making a prop factory requires knowing the display name of the connected component(s), which is generally the variable name of the component. Sometimes the display name fails to get piped through to the connector, in which case a `setDisplayName(n)` will need to be chained _immediately after_ the relevant connect call via recompose. Then the prop factory can be defined under key `n`.
+Making a prop factory requires knowing the display name of the connected component(s), which is generally the variable name of the component. Sometimes the display name fails to get piped through to the connector, in which case a `setDisplayName(n)` will need to be chained _immediately after_ the relevant connect call via recompose. Then the prop factory can be defined under `n`.
 
 [1]: https://github.com/storybooks/storybook/tree/master/addons/storyshots
