@@ -54,7 +54,7 @@ func TestSeitanV2Encryption(t *testing.T) {
 
 	expectedLabel := keybase1.NewSeitanKeyLabelWithSms(expectedLabelSms)
 
-	pkey, encoded, err := ikey.GeneratePackedEncryptedKey(context.TODO(), team, expectedLabel)
+	pkey, encoded, err := sikey.GeneratePackedEncryptedKey(context.TODO(), team, expectedLabel)
 	require.NoError(t, err)
 	require.EqualValues(t, pkey.Version, 2)
 	require.EqualValues(t, pkey.TeamKeyGeneration, 1)
@@ -162,7 +162,7 @@ func TestSeitanV2KnownSamples(t *testing.T) {
 	require.Equal(t, "Alice", labelSms.F)
 	require.Equal(t, "111-555-222", labelSms.N)
 
-	pkey, _, err := ikey.generatePackedEncryptedKeyWithSecretKey(secretKey, keybase1.PerTeamKeyGeneration(1), expectedPKey.RandomNonce, keyAndLabelV2.L)
+	pkey, _, err := sikey.generatePackedEncryptedKeyWithSecretKey(secretKey, keybase1.PerTeamKeyGeneration(1), expectedPKey.RandomNonce, keyAndLabelV2.L)
 	require.NoError(t, err)
 	require.Equal(t, expectedPKey.Version, pkey.Version)
 	require.Equal(t, expectedPKey.TeamKeyGeneration, pkey.TeamKeyGeneration)

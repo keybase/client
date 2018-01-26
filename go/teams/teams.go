@@ -838,7 +838,7 @@ func (t *Team) InviteSeitan(ctx context.Context, role keybase1.TeamRole, label k
 		return ikey, err
 	}
 
-	_, encoded, err := ikey.GeneratePackedEncryptedKey(ctx, t, label)
+	_, encoded, err := sikey.GeneratePackedEncryptedKey(ctx, t, label)
 	if err != nil {
 		return ikey, err
 	}

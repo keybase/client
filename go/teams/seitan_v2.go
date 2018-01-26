@@ -113,12 +113,7 @@ func (sikey SeitanSIKeyV2) generateKeyPair() (key libkb.NaclSigningKeyPair, err 
 	return key, nil
 }
 
-func (ikey SeitanIKeyV2) generatePackedEncryptedKeyWithSecretKey(secretKey keybase1.Bytes32, gen keybase1.PerTeamKeyGeneration, nonce keybase1.BoxNonce, label keybase1.SeitanKeyLabel) (pkey SeitanPKey, encoded string, err error) {
-
-	sikey, err := ikey.GenerateSIKey()
-	if err != nil {
-		return pkey, encoded, err
-	}
+func (sikey SeitanSIKeyV2) generatePackedEncryptedKeyWithSecretKey(secretKey keybase1.Bytes32, gen keybase1.PerTeamKeyGeneration, nonce keybase1.BoxNonce, label keybase1.SeitanKeyLabel) (pkey SeitanPKey, encoded string, err error) {
 
 	keyPair, err := sikey.generateKeyPair()
 	if err != nil {
@@ -137,7 +132,7 @@ func (ikey SeitanIKeyV2) generatePackedEncryptedKeyWithSecretKey(secretKey keyba
 	return packAndEncryptKeyWithSecretKey(secretKey, gen, nonce, packedKeyAndLabel, version)
 }
 
-func (ikey SeitanIKeyV2) GeneratePackedEncryptedKey(ctx context.Context, team *Team, label keybase1.SeitanKeyLabel) (pkey SeitanPKey, encoded string, err error) {
+func (sikey SeitanSIKeyV2) GeneratePackedEncryptedKey(ctx context.Context, team *Team, label keybase1.SeitanKeyLabel) (pkey SeitanPKey, encoded string, err error) {
 	appKey, err := team.SeitanInviteTokenKeyLatest(ctx)
 	if err != nil {
 		return pkey, encoded, err
@@ -148,7 +143,7 @@ func (ikey SeitanIKeyV2) GeneratePackedEncryptedKey(ctx context.Context, team *T
 		return pkey, encoded, err
 	}
 
-	return ikey.generatePackedEncryptedKeyWithSecretKey(appKey.Key, appKey.KeyGeneration, nonce, label)
+	return sikey.generatePackedEncryptedKeyWithSecretKey(appKey.Key, appKey.KeyGeneration, nonce, label)
 }
 
 // "Signature"
