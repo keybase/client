@@ -405,6 +405,10 @@ func TimeFromSeconds(seconds int64) Time {
 	return Time(seconds * 1000)
 }
 
+func TimeFromMilliseconds(ms int64) Time {
+	return Time(ms)
+}
+
 func (t Time) IsZero() bool        { return t == 0 }
 func (t Time) After(t2 Time) bool  { return t > t2 }
 func (t Time) Before(t2 Time) bool { return t < t2 }

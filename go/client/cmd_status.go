@@ -79,6 +79,7 @@ type fstatus struct {
 		Running bool
 		Pid     string
 		Log     string
+		Mount   string
 	}
 	Desktop struct {
 		Version string
@@ -177,6 +178,15 @@ func (c *CmdStatus) load() (*fstatus, error) {
 	if kbfs := getFirstClient(extStatus.Clients, keybase1.ClientType_KBFS); kbfs != nil {
 		status.KBFS.Version = kbfs.Version
 		status.KBFS.Running = true
+		// This just gets the mountpoint from the environment; the
+		// user could have technically passed a different mountpoint
+		// to KBFS on macOS or Linux.  TODO(KBFS-2723): fetch the
+		// actual mountpoint with a new RPC from KBFS.
+		mountDir, err := c.G().Env.GetMountDir()
+		if err != nil {
+			return nil, err
+		}
+		status.KBFS.Mount = mountDir
 	} else {
 		kbfsVersion, err := install.KBFSBundleVersion(c.G(), "")
 		if err == nil {
@@ -271,6 +281,7 @@ func (c *CmdStatus) outputTerminal(status *fstatus) error {
 	dui.Printf("    status:    %s\n", BoolString(status.KBFS.Running, "running", "not running"))
 	dui.Printf("    version:   %s\n", status.KBFS.Version)
 	dui.Printf("    log:       %s\n", status.KBFS.Log)
+	dui.Printf("    mount:     %s\n", status.KBFS.Mount)
 	dui.Printf("\nService:\n")
 	dui.Printf("    status:    %s\n", BoolString(status.Service.Running, "running", "not running"))
 	dui.Printf("    version:   %s\n", status.Service.Version)
