@@ -156,7 +156,7 @@ function _outputInstructionsActionLink(
 function _backToProfile() {
   return Saga.sequentially([
     Saga.put(TrackerGen.createGetMyProfile({})),
-    Saga.put(navigateTo(flags.newPeopleTab ? ['profile'] : [], [peopleTab])),
+    Saga.put(navigateTo(['profile'], [peopleTab])),
   ])
 }
 
