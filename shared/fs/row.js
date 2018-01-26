@@ -18,7 +18,7 @@ type DispatchProps = {
 }
 
 const mapStateToProps = ({fs}: TypedState, {path}: OwnProps) => ({
-  type: fs.pathItems.getIn([path, 'type']),
+  type: Types.stringToPathType(fs.pathItems.getIn([path, 'type'], '')),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => {
@@ -35,7 +35,7 @@ const mergeProps = ({type}: StateProps, {_onViewFolder, _onViewFile}: DispatchPr
     file: isMobile ? 'icon-file-24' : 'icon-file-24',
     folder: isMobile ? 'icon-folder-private-24' : 'icon-folder-private-24',
     symlink: isMobile ? 'icon-file-24' : 'icon-file-24',
-  }[type]
+  }[Types.pathTypeToString(type)]
 
   return {
     icon,

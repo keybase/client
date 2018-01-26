@@ -2,9 +2,9 @@
 import * as I from 'immutable'
 
 export opaque type Path = ?string
-export type PathType = 'folder' | 'file' | 'symlink' | 'exec'
-type FolderPathType = 'folder'
-type FilePathType = 'file' | 'symlink' | 'exec'
+export type FolderPathType = 'folder'
+export type FilePathType = 'file' | 'symlink' | 'exec'
+export opaque type PathType = FolderPathType | FilePathType
 export type _FilePathItem = {
   type: FilePathType,
 }
@@ -28,20 +28,30 @@ export const getPathName = (p: Path): string => (!p ? '' : p.split('/').pop())
 export const getPathVisibility = (p: Path): Visibility => {
   if (!p) return null
   const [, , visibility] = p.split('/')
-  if (!visibility) {
-    return null
-  }
+  if (!visibility) return null
   switch (visibility) {
     case 'private':
     case 'public':
     case 'team':
       return visibility
-    case null:
-      return null
     default:
-      // eslint-disable-next-line no-unused-expressions
-      ;(visibility: empty) // if you get a flow error here it means there's an visibility you claim to handle but didn't
+      // We don't do a flow check here because by now flow knows that we can't
+      // be an empty string, so asserting empty will always fail.
       return null
   }
 }
+export const stringToPathType = (s: string): PathType => {
+  switch (s) {
+    case 'folder':
+    case 'file':
+    case 'symlink':
+    case 'exec':
+      return s
+    default:
+      // We don't do a flow check here because by now flow knows that we can't
+      // be an empty string, so asserting empty will always fail.
+      throw new Error('Invalid path type')
+  }
+}
+export const pathTypeToString = (p: PathType): string => p
 export const pathConcat = (p: Path, s: string): Path => stringToPath(pathToString(p) + '/' + s)
