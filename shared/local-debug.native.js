@@ -10,10 +10,10 @@ import noop from 'lodash/noop'
 const nativeBridge = NativeModules.KeybaseEngine || {test: 'fallback'}
 
 // Uncomment this to disable yellowboxes
-// console.disableYellowBox = true
+console.disableYellowBox = true
 
 // Set this to true if you want to turn off most console logging so you can profile easier
-const PERF = false
+const PERF = true
 
 let config = {
   enableActionLogging: true, // Log actions to the log

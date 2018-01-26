@@ -477,6 +477,7 @@ const UserEntry = ({onClick, username, fullname, followsYou, following}) => (
         username={username}
         followsYou={followsYou}
         following={following}
+        skipBackgroundAfterLoaded={true}
       />
       <Text type="BodySemibold" style={userEntryUsernameStyle(following)}>
         {username}

@@ -153,7 +153,10 @@ const _reallyAskForUserData = debounce(() => {
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _askForTeamUserData: (teamname: string) =>
     dispatch(ConfigGen.createLoadTeamAvatars({teamnames: [teamname]})),
-  _askForUserData: (username: string) => _askForUserDataQueueUp(username, dispatch),
+  _askForUserData: (username: string) => {
+    console._log('aaa', username)
+    return _askForUserDataQueueUp(username, dispatch)
+  },
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
@@ -209,6 +212,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onClick: ownProps.onClick,
     opacity: ownProps.opacity,
     size: ownProps.size,
+    skipBackground: ownProps.skipBackground,
+    skipBackgroundAfterLoaded: ownProps.skipBackgroundAfterLoaded,
     style,
     url,
   }
@@ -219,18 +224,24 @@ const real = compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentWillMount() {
-      this.setState({_mounted: true, _name: this.props._name})
-      setTimeout(() => {
+      const _timeoutID = setTimeout(() => {
+        console._log('aaa mount timeout', this.props._name)
         // Still looking at the same user?
         if (this.state._mounted && this.props._name === this.state._name) {
           if (this.props._askForUserData) {
             this.props._askForUserData()
           }
         }
-      }, 300)
+      }, 700)
+      this.setState({_mounted: true, _name: this.props._name, _timeoutID})
+      console._log('aaa mount', this.props._name)
     },
     componentWillUnmount() {
-      this.setState({_mounted: false, _name: null})
+      console._log('aaa UNmount', this.props._name)
+      if (this.state._timeoutID) {
+        clearTimeout(this.state._timeoutID)
+      }
+      this.setState({_mounted: false, _name: null, _timeoutID: 0})
     },
   })
 )(Render)
@@ -270,4 +281,5 @@ const mock = compose(
   })
 )(Render)
 
-export default (isTesting ? mock : real)
+// export default (isTesting ? mock : real)
+export default () => null
