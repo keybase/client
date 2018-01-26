@@ -13,19 +13,16 @@ import {usernameSelector} from '../../constants/selectors'
 import openURL from '../../util/open-url'
 import {isMobile} from '../../constants/platform'
 import {getCanPerform} from '../../constants/teams'
-import * as I from 'immutable'
 import * as TeamsGen from '../../actions/teams-gen'
 
-const mapStateToProps = (state: TypedState, {id, expanded}) => {
+const mapStateToProps = (state: TypedState, {id, expanded, channelName, bigTeam}) => {
   const git = state.entities.getIn(['git', 'idToInfo', id], Constants.makeGitInfo()).toObject()
   let admin = false
-  let _convIDs = I.Set()
   if (git.teamname) {
     const yourOperations = getCanPerform(state, git.teamname)
     admin = yourOperations.renameChannel
-    _convIDs = state.entities.getIn(['teams', 'teamNameToConvIDs', git.teamname], I.Set())
   }
-  const _channelInfo = state.entities.getIn(['teams', 'convIDToChannelInfo'], I.Map())
+
   return {
     ...git,
     expanded,
@@ -33,12 +30,11 @@ const mapStateToProps = (state: TypedState, {id, expanded}) => {
     lastEditUserFollowing: state.config.following.has(git.lastEditUser),
     you: usernameSelector(state),
     isAdmin: admin,
-    _convIDs,
-    _channelInfo,
+    bigTeam,
   }
 }
 
-const mapDispatchToProps = (dispatch: any, ownProps) => ({
+const mapDispatchToProps = (dispatch: any) => ({
   openUserTracker: (username: string) => dispatch(createGetProfile({username, forceDisplay: true})),
   _setDisableChat: (disabled: boolean, repoID: string, teamname: string) =>
     dispatch(createSetTeamRepoSettings({chatDisabled: disabled, repoID, teamname, channelName: null})),
@@ -53,18 +49,8 @@ const mapDispatchToProps = (dispatch: any, ownProps) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const convIDs = stateProps._convIDs.toArray()
-  // Without the .filter we get a bunch of intermediate arrays of [undefined, undefined, ...] leading
-  // to React key prop errors
-  const channelNames = convIDs.reduce((result: Array<string>, id: string) => {
-    const channelname = stateProps._channelInfo.get(id, {}).channelname
-    !!channelname && result.push(channelname)
-    return result
-  }, [])
   return {
     ...stateProps,
-    ...dispatchProps,
-    ...ownProps,
     canEdit: stateProps.canDelete && !!stateProps.teamname,
     onClickDevice: () => {
       stateProps.lastEditUser && openURL(`https://keybase.io/${stateProps.lastEditUser}/devices`)
@@ -81,15 +67,14 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onToggleChatEnabled: () =>
       dispatchProps._setDisableChat(!stateProps.chatDisabled, stateProps.repoID, stateProps.teamname),
     onToggleExpand: () => {
-      if (stateProps.teamname) dispatchProps._onLoadChannels(stateProps.team)
       ownProps.onToggleExpand(stateProps.id)
     },
-    smallTeam: !!stateProps.teamname && channelNames.length <= 1,
   }
 }
 
 const ConnectedRow: Class<
   React.Component<{
+    bigTeam: boolean,
     id: string,
     expanded: boolean,
     onShowDelete: (id: string) => void,
