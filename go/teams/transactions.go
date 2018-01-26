@@ -134,10 +134,11 @@ func (tx *AddMemberTx) sweepKeybaseInvites(uid keybase1.UID) {
 // checks if given username can become crypto member or a PUKless
 // member. It will also clean up old invites and memberships if
 // necessary.
-func (tx *AddMemberTx) AddMemberTransaction(ctx context.Context, username string, role keybase1.TeamRole) error {
+func (tx *AddMemberTx) AddMemberTransaction(ctx context.Context, username string, role keybase1.TeamRole) (err error) {
 	team := tx.team
 	g := team.G()
 
+	defer g.CTrace(ctx, fmt.Sprintf("AddMemberTx.AddMemberTransaction(%s,%v)", username, role), func() error { return err })()
 	g.Log.CDebugf(ctx, "AddMemberTransaction(%s, %v) to team %q", username, role, team.Name())
 
 	inviteRequired := false
@@ -219,10 +220,11 @@ func (tx *AddMemberTx) AddMemberTransaction(ctx context.Context, username string
 	return tx.addMember(uv, role)
 }
 
-func (tx *AddMemberTx) CompleteSocialInvitesFor(ctx context.Context, uv keybase1.UserVersion, username string) error {
+func (tx *AddMemberTx) CompleteSocialInvitesFor(ctx context.Context, uv keybase1.UserVersion, username string) (err error) {
 	team := tx.team
 	g := team.G()
 
+	defer g.CTrace(ctx, fmt.Sprintf("AddMemberTx.CompleteSocialInvitesFor(%v,%s)", uv, username), func() error { return err })()
 	if team.NumActiveInvites() == 0 {
 		g.Log.CDebugf(ctx, "CompleteSocialInvitesFor: no active invites in team")
 		return nil
@@ -328,14 +330,14 @@ func (tx *AddMemberTx) CompleteSocialInvitesFor(ctx context.Context, uv keybase1
 }
 
 func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
-	if len(tx.payloads) == 0 {
-		return errors.New("there are no signatures to post")
-	}
-
 	team := tx.team
 	g := team.G()
 
 	defer g.CTrace(ctx, "AddMemberTx.Post", func() error { return err })()
+	if len(tx.payloads) == 0 {
+		return errors.New("there are no signatures to post")
+	}
+
 	g.Log.CDebugf(ctx, "AddMemberTx: Attempting to post %d signatures", len(tx.payloads))
 
 	// Initialize key manager.
