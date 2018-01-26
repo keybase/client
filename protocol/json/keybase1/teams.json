@@ -2226,6 +2226,27 @@
       ],
       "response": "SeitanIKeyV2"
     },
+    "teamCreateSeitanTokenV1": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "role",
+          "type": "TeamRole"
+        },
+        {
+          "name": "label",
+          "type": "SeitanKeyLabel"
+        }
+      ],
+      "response": "SeitanIKey"
+    },
     "teamAddEmailsBulk": {
       "request": [
         {

@@ -2157,6 +2157,13 @@ type TeamCreateSeitanTokenArg struct {
 	Label     SeitanKeyLabel `codec:"label" json:"label"`
 }
 
+type TeamCreateSeitanTokenV1Arg struct {
+	SessionID int            `codec:"sessionID" json:"sessionID"`
+	Name      string         `codec:"name" json:"name"`
+	Role      TeamRole       `codec:"role" json:"role"`
+	Label     SeitanKeyLabel `codec:"label" json:"label"`
+}
+
 type TeamAddEmailsBulkArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
 	Name      string   `codec:"name" json:"name"`
@@ -2257,6 +2264,7 @@ type TeamsInterface interface {
 	TeamDelete(context.Context, TeamDeleteArg) error
 	TeamSetSettings(context.Context, TeamSetSettingsArg) error
 	TeamCreateSeitanToken(context.Context, TeamCreateSeitanTokenArg) (SeitanIKeyV2, error)
+	TeamCreateSeitanTokenV1(context.Context, TeamCreateSeitanTokenV1Arg) (SeitanIKey, error)
 	TeamAddEmailsBulk(context.Context, TeamAddEmailsBulkArg) (BulkRes, error)
 	LookupImplicitTeam(context.Context, LookupImplicitTeamArg) (LookupImplicitTeamRes, error)
 	LookupOrCreateImplicitTeam(context.Context, LookupOrCreateImplicitTeamArg) (LookupImplicitTeamRes, error)
@@ -2665,6 +2673,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"teamCreateSeitanTokenV1": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamCreateSeitanTokenV1Arg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamCreateSeitanTokenV1Arg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamCreateSeitanTokenV1Arg)(nil), args)
+						return
+					}
+					ret, err = i.TeamCreateSeitanTokenV1(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"teamAddEmailsBulk": {
 				MakeArg: func() interface{} {
 					ret := make([]TeamAddEmailsBulkArg, 1)
@@ -3031,6 +3055,11 @@ func (c TeamsClient) TeamSetSettings(ctx context.Context, __arg TeamSetSettingsA
 
 func (c TeamsClient) TeamCreateSeitanToken(ctx context.Context, __arg TeamCreateSeitanTokenArg) (res SeitanIKeyV2, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateSeitanToken", []interface{}{__arg}, &res)
+	return
+}
+
+func (c TeamsClient) TeamCreateSeitanTokenV1(ctx context.Context, __arg TeamCreateSeitanTokenV1Arg) (res SeitanIKey, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateSeitanTokenV1", []interface{}{__arg}, &res)
 	return
 }
 

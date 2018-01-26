@@ -15,14 +15,16 @@ import (
 )
 
 func TestTeamInviteSeitanHappy(t *testing.T) {
-	testTeamInviteSeitanHappy(t, false)
+	testTeamInviteSeitanHappy(t, false, true /* seitanV1 */)
+	testTeamInviteSeitanHappy(t, false, false /* seitanV1 */)
 }
 
 func TestTeamInviteSeitanHappyImplicitAdmin(t *testing.T) {
-	testTeamInviteSeitanHappy(t, true)
+	testTeamInviteSeitanHappy(t, true, true /* seitanV1 */)
+	testTeamInviteSeitanHappy(t, true, false /* seitanV1 */)
 }
 
-func testTeamInviteSeitanHappy(t *testing.T, implicitAdmin bool) {
+func testTeamInviteSeitanHappy(t *testing.T, implicitAdmin bool, seitanV1 bool) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -47,12 +49,24 @@ func testTeamInviteSeitanHappy(t *testing.T, implicitAdmin bool) {
 		F: "bugs",
 		N: "0000",
 	})
-	token, err := own.teamsClient.TeamCreateSeitanToken(context.TODO(), keybase1.TeamCreateSeitanTokenArg{
-		Name:  teamName.String(),
-		Role:  keybase1.TeamRole_WRITER,
-		Label: label,
-	})
-	require.NoError(t, err)
+	var token string
+	if seitanV1 {
+		ikey, err := own.teamsClient.TeamCreateSeitanTokenV1(context.TODO(), keybase1.TeamCreateSeitanTokenV1Arg{
+			Name:  teamName.String(),
+			Role:  keybase1.TeamRole_WRITER,
+			Label: label,
+		})
+		token = string(ikey)
+		require.NoError(t, err)
+	} else {
+		ikey, err := own.teamsClient.TeamCreateSeitanToken(context.TODO(), keybase1.TeamCreateSeitanTokenArg{
+			Name:  teamName.String(),
+			Role:  keybase1.TeamRole_WRITER,
+			Label: label,
+		})
+		token = string(ikey)
+		require.NoError(t, err)
+	}
 
 	t.Logf("Created token %q", token)
 
@@ -66,7 +80,7 @@ func testTeamInviteSeitanHappy(t *testing.T, implicitAdmin bool) {
 		require.Equal(t, keybase1.TeamInviteName("bugs (0000)"), invite.Name)
 	}
 
-	err = roo.teamsClient.TeamAcceptInvite(context.TODO(), keybase1.TeamAcceptInviteArg{
+	err := roo.teamsClient.TeamAcceptInvite(context.TODO(), keybase1.TeamAcceptInviteArg{
 		Token: string(token),
 	})
 	require.NoError(t, err)
@@ -160,7 +174,7 @@ func TestTeamInviteSeitanFailures(t *testing.T) {
 	require.Equal(t, keybase1.TeamRole_NONE, role, "user role")
 }
 
-func TestTeamCreateSeitanAndCancel(t *testing.T) {
+func testTeamCreateSeitanAndCancel(t *testing.T, seitanV1 bool) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -173,12 +187,22 @@ func TestTeamCreateSeitanAndCancel(t *testing.T) {
 	var labelSms keybase1.SeitanKeyLabelSms
 	labelSms.F = "Patricia S. Goldman-Rakic"
 	labelSms.N = "+481II222333"
+	label := keybase1.NewSeitanKeyLabelWithSms(labelSms)
 
-	_, err := own.teamsClient.TeamCreateSeitanToken(context.TODO(), keybase1.TeamCreateSeitanTokenArg{
-		Name:  teamName.String(),
-		Role:  keybase1.TeamRole_WRITER,
-		Label: keybase1.NewSeitanKeyLabelWithSms(labelSms),
-	})
+	var err error
+	if seitanV1 {
+		_, err = own.teamsClient.TeamCreateSeitanTokenV1(context.TODO(), keybase1.TeamCreateSeitanTokenV1Arg{
+			Name:  teamName.String(),
+			Role:  keybase1.TeamRole_WRITER,
+			Label: label,
+		})
+	} else {
+		_, err = own.teamsClient.TeamCreateSeitanToken(context.TODO(), keybase1.TeamCreateSeitanTokenArg{
+			Name:  teamName.String(),
+			Role:  keybase1.TeamRole_WRITER,
+			Label: label,
+		})
+	}
 	require.NoError(t, err)
 
 	t.Logf("Created Seitan token")
@@ -223,4 +247,9 @@ func TestTeamCreateSeitanAndCancel(t *testing.T) {
 	t0, err := teams.GetTeamByNameForTest(context.TODO(), own.tc.G, teamName.String(), false /* public */, true /* needAdmin */)
 	require.NoError(t, err)
 	require.Equal(t, 0, t0.NumActiveInvites())
+}
+
+func TestTeamCreateSeitanAndCancel(t *testing.T) {
+	testTeamCreateSeitanAndCancel(t, true /* seitanV1 */)
+	testTeamCreateSeitanAndCancel(t, false /* seitanV1 */)
 }

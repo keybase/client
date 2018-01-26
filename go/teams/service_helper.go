@@ -1191,6 +1191,19 @@ func CreateSeitanToken(ctx context.Context, g *libkb.GlobalContext, teamname str
 	return keybase1.SeitanIKeyV2(ikey), err
 }
 
+func CreateSeitanTokenV1(ctx context.Context, g *libkb.GlobalContext, teamname string, role keybase1.TeamRole, label keybase1.SeitanKeyLabel) (keybase1.SeitanIKey, error) {
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+	if err != nil {
+		return "", err
+	}
+	ikey, err := t.InviteSeitanV1(ctx, role, label)
+	if err != nil {
+		return "", err
+	}
+
+	return keybase1.SeitanIKey(ikey), err
+}
+
 // CreateTLF is called by KBFS when a TLF ID is associated with an implicit team.
 // Should work on either named or implicit teams.
 func CreateTLF(ctx context.Context, g *libkb.GlobalContext, arg keybase1.CreateTLFArg) (err error) {
