@@ -114,8 +114,8 @@ exports[`Storyshots Chat/Channel Heads up Display Mention Hud 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -170,8 +170,8 @@ exports[`Storyshots Chat/Channel Heads up Display Mention Hud 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -311,8 +311,8 @@ exports[`Storyshots Chat/Channel Heads up Display Mention Row 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseOver={[Function]}
         onMouseUp={[Function]}
         style={
@@ -347,8 +347,8 @@ exports[`Storyshots Chat/Channel Heads up Display Mention Row 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseOver={[Function]}
         onMouseUp={[Function]}
         style={
@@ -383,8 +383,8 @@ exports[`Storyshots Chat/Channel Heads up Display Mention Row 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseOver={[Function]}
         onMouseUp={[Function]}
         style={
@@ -414,560 +414,6 @@ exports[`Storyshots Chat/Channel Heads up Display Mention Row 1`] = `
         >
           #
           baz
-        </span>
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Chat/Conversation/InfoPanel Mute row (big) 1`] = `
-.glamor-0,
-[data-glamor-0] {
-  color: #ffffff;
-}
-
-.glamor-1,
-[data-glamor-1] {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
-}
-
-.glamor-2,
-[data-glamor-2] {
-  color: rgba(0, 0, 0, 0.20);
-}
-
-<div
-  style={
-    Object {
-      "flex": 1,
-      "overflow": "auto",
-    }
-  }
->
-  <div
-    style={undefined}
-  >
-    <div
-      style={
-        Object {
-          "alignItems": "center",
-          "display": "flex",
-          "flexDirection": "row",
-          "marginBottom": 4,
-          "marginLeft": 16,
-        }
-      }
-    >
-      <div
-        onClick={[Function]}
-        style={
-          Object {
-            "alignItems": "flex-start",
-            "cursor": "pointer",
-            "display": "flex",
-            "flexDirection": "row",
-          }
-        }
-      >
-        <div
-          style={
-            Object {
-              "backgroundColor": "inherit",
-              "border": "solid 1px rgba(0, 0, 0, 0.20)",
-              "borderRadius": 2,
-              "height": 13,
-              "marginRight": 8,
-              "marginTop": 2,
-              "opacity": 1,
-              "position": "relative",
-              "transition": "background 0.1s ease-out",
-              "width": 13,
-            }
-          }
-        >
-          <div>
-            <span
-              className="glamor-0"
-              onClick={null}
-              onMouseEnter={undefined}
-              onMouseLeave={undefined}
-              style={
-                Object {
-                  "WebkitFontSmoothing": "antialiased",
-                  "fontFamily": "kb",
-                  "fontSize": 9,
-                  "fontStyle": "normal",
-                  "fontVariant": "normal",
-                  "fontWeight": "normal",
-                  "left": 1,
-                  "lineHeight": 1,
-                  "opacity": 0,
-                  "position": "absolute",
-                  "speak": "none",
-                  "textTransform": "none",
-                  "top": 1,
-                  "transition": "opacity 0.1s ease-out",
-                  "userSelect": "none",
-                }
-              }
-            >
-              
-            </span>
-          </div>
-        </div>
-        <span
-          className="glamor-1"
-          onClick={undefined}
-          title={undefined}
-        >
-          Mute channel
-        </span>
-      </div>
-      <div>
-        <span
-          className="glamor-2"
-          onClick={null}
-          onMouseEnter={undefined}
-          onMouseLeave={undefined}
-          style={
-            Object {
-              "WebkitFontSmoothing": "antialiased",
-              "fontFamily": "kb",
-              "fontSize": 16,
-              "fontStyle": "normal",
-              "fontVariant": "normal",
-              "fontWeight": "normal",
-              "lineHeight": 1,
-              "marginLeft": 4,
-              "speak": "none",
-              "textTransform": "none",
-              "userSelect": "none",
-            }
-          }
-        >
-          
-        </span>
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Chat/Conversation/InfoPanel Mute row (big, muted) 1`] = `
-.glamor-0,
-[data-glamor-0] {
-  color: #ffffff;
-}
-
-.glamor-1,
-[data-glamor-1] {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
-}
-
-.glamor-2,
-[data-glamor-2] {
-  color: rgba(0, 0, 0, 0.20);
-}
-
-<div
-  style={
-    Object {
-      "flex": 1,
-      "overflow": "auto",
-    }
-  }
->
-  <div
-    style={undefined}
-  >
-    <div
-      style={
-        Object {
-          "alignItems": "center",
-          "display": "flex",
-          "flexDirection": "row",
-          "marginBottom": 4,
-          "marginLeft": 16,
-        }
-      }
-    >
-      <div
-        onClick={[Function]}
-        style={
-          Object {
-            "alignItems": "flex-start",
-            "cursor": "pointer",
-            "display": "flex",
-            "flexDirection": "row",
-          }
-        }
-      >
-        <div
-          style={
-            Object {
-              "backgroundColor": "#33a0ff",
-              "border": "solid 1px #33a0ff",
-              "borderRadius": 2,
-              "height": 13,
-              "marginRight": 8,
-              "marginTop": 2,
-              "opacity": 1,
-              "position": "relative",
-              "transition": "background 0.1s ease-out",
-              "width": 13,
-            }
-          }
-        >
-          <div>
-            <span
-              className="glamor-0"
-              onClick={null}
-              onMouseEnter={undefined}
-              onMouseLeave={undefined}
-              style={
-                Object {
-                  "WebkitFontSmoothing": "antialiased",
-                  "fontFamily": "kb",
-                  "fontSize": 9,
-                  "fontStyle": "normal",
-                  "fontVariant": "normal",
-                  "fontWeight": "normal",
-                  "left": 1,
-                  "lineHeight": 1,
-                  "position": "absolute",
-                  "speak": "none",
-                  "textTransform": "none",
-                  "top": 1,
-                  "transition": "opacity 0.1s ease-out",
-                  "userSelect": "none",
-                }
-              }
-            >
-              
-            </span>
-          </div>
-        </div>
-        <span
-          className="glamor-1"
-          onClick={undefined}
-          title={undefined}
-        >
-          Mute channel
-        </span>
-      </div>
-      <div>
-        <span
-          className="glamor-2"
-          onClick={null}
-          onMouseEnter={undefined}
-          onMouseLeave={undefined}
-          style={
-            Object {
-              "WebkitFontSmoothing": "antialiased",
-              "fontFamily": "kb",
-              "fontSize": 16,
-              "fontStyle": "normal",
-              "fontVariant": "normal",
-              "fontWeight": "normal",
-              "lineHeight": 1,
-              "marginLeft": 4,
-              "speak": "none",
-              "textTransform": "none",
-              "userSelect": "none",
-            }
-          }
-        >
-          
-        </span>
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Chat/Conversation/InfoPanel Mute row (small) 1`] = `
-.glamor-0,
-[data-glamor-0] {
-  color: #ffffff;
-}
-
-.glamor-1,
-[data-glamor-1] {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
-}
-
-.glamor-2,
-[data-glamor-2] {
-  color: rgba(0, 0, 0, 0.20);
-}
-
-<div
-  style={
-    Object {
-      "flex": 1,
-      "overflow": "auto",
-    }
-  }
->
-  <div
-    style={undefined}
-  >
-    <div
-      style={
-        Object {
-          "alignItems": "center",
-          "display": "flex",
-          "flexDirection": "row",
-          "marginBottom": 4,
-          "marginLeft": 16,
-        }
-      }
-    >
-      <div
-        onClick={[Function]}
-        style={
-          Object {
-            "alignItems": "flex-start",
-            "cursor": "pointer",
-            "display": "flex",
-            "flexDirection": "row",
-          }
-        }
-      >
-        <div
-          style={
-            Object {
-              "backgroundColor": "inherit",
-              "border": "solid 1px rgba(0, 0, 0, 0.20)",
-              "borderRadius": 2,
-              "height": 13,
-              "marginRight": 8,
-              "marginTop": 2,
-              "opacity": 1,
-              "position": "relative",
-              "transition": "background 0.1s ease-out",
-              "width": 13,
-            }
-          }
-        >
-          <div>
-            <span
-              className="glamor-0"
-              onClick={null}
-              onMouseEnter={undefined}
-              onMouseLeave={undefined}
-              style={
-                Object {
-                  "WebkitFontSmoothing": "antialiased",
-                  "fontFamily": "kb",
-                  "fontSize": 9,
-                  "fontStyle": "normal",
-                  "fontVariant": "normal",
-                  "fontWeight": "normal",
-                  "left": 1,
-                  "lineHeight": 1,
-                  "opacity": 0,
-                  "position": "absolute",
-                  "speak": "none",
-                  "textTransform": "none",
-                  "top": 1,
-                  "transition": "opacity 0.1s ease-out",
-                  "userSelect": "none",
-                }
-              }
-            >
-              
-            </span>
-          </div>
-        </div>
-        <span
-          className="glamor-1"
-          onClick={undefined}
-          title={undefined}
-        >
-          Mute notifications
-        </span>
-      </div>
-      <div>
-        <span
-          className="glamor-2"
-          onClick={null}
-          onMouseEnter={undefined}
-          onMouseLeave={undefined}
-          style={
-            Object {
-              "WebkitFontSmoothing": "antialiased",
-              "fontFamily": "kb",
-              "fontSize": 16,
-              "fontStyle": "normal",
-              "fontVariant": "normal",
-              "fontWeight": "normal",
-              "lineHeight": 1,
-              "marginLeft": 4,
-              "speak": "none",
-              "textTransform": "none",
-              "userSelect": "none",
-            }
-          }
-        >
-          
-        </span>
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Chat/Conversation/InfoPanel Mute row (small, muted) 1`] = `
-.glamor-0,
-[data-glamor-0] {
-  color: #ffffff;
-}
-
-.glamor-1,
-[data-glamor-1] {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
-}
-
-.glamor-2,
-[data-glamor-2] {
-  color: rgba(0, 0, 0, 0.20);
-}
-
-<div
-  style={
-    Object {
-      "flex": 1,
-      "overflow": "auto",
-    }
-  }
->
-  <div
-    style={undefined}
-  >
-    <div
-      style={
-        Object {
-          "alignItems": "center",
-          "display": "flex",
-          "flexDirection": "row",
-          "marginBottom": 4,
-          "marginLeft": 16,
-        }
-      }
-    >
-      <div
-        onClick={[Function]}
-        style={
-          Object {
-            "alignItems": "flex-start",
-            "cursor": "pointer",
-            "display": "flex",
-            "flexDirection": "row",
-          }
-        }
-      >
-        <div
-          style={
-            Object {
-              "backgroundColor": "#33a0ff",
-              "border": "solid 1px #33a0ff",
-              "borderRadius": 2,
-              "height": 13,
-              "marginRight": 8,
-              "marginTop": 2,
-              "opacity": 1,
-              "position": "relative",
-              "transition": "background 0.1s ease-out",
-              "width": 13,
-            }
-          }
-        >
-          <div>
-            <span
-              className="glamor-0"
-              onClick={null}
-              onMouseEnter={undefined}
-              onMouseLeave={undefined}
-              style={
-                Object {
-                  "WebkitFontSmoothing": "antialiased",
-                  "fontFamily": "kb",
-                  "fontSize": 9,
-                  "fontStyle": "normal",
-                  "fontVariant": "normal",
-                  "fontWeight": "normal",
-                  "left": 1,
-                  "lineHeight": 1,
-                  "position": "absolute",
-                  "speak": "none",
-                  "textTransform": "none",
-                  "top": 1,
-                  "transition": "opacity 0.1s ease-out",
-                  "userSelect": "none",
-                }
-              }
-            >
-              
-            </span>
-          </div>
-        </div>
-        <span
-          className="glamor-1"
-          onClick={undefined}
-          title={undefined}
-        >
-          Mute notifications
-        </span>
-      </div>
-      <div>
-        <span
-          className="glamor-2"
-          onClick={null}
-          onMouseEnter={undefined}
-          onMouseLeave={undefined}
-          style={
-            Object {
-              "WebkitFontSmoothing": "antialiased",
-              "fontFamily": "kb",
-              "fontSize": 16,
-              "fontStyle": "normal",
-              "fontVariant": "normal",
-              "fontWeight": "normal",
-              "lineHeight": 1,
-              "marginLeft": 4,
-              "speak": "none",
-              "textTransform": "none",
-              "userSelect": "none",
-            }
-          }
-        >
-          
         </span>
       </div>
     </div>
@@ -1125,8 +571,8 @@ exports[`Storyshots Chat/Conversation/InfoPanel Participants (with add button) 1
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -1240,8 +686,8 @@ exports[`Storyshots Chat/Conversation/InfoPanel Participants (with add button) 1
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -1355,8 +801,8 @@ exports[`Storyshots Chat/Conversation/InfoPanel Participants (with add button) 1
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -1614,8 +1060,8 @@ exports[`Storyshots Chat/Conversation/InfoPanel Participants 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -1729,8 +1175,8 @@ exports[`Storyshots Chat/Conversation/InfoPanel Participants 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -1844,8 +1290,8 @@ exports[`Storyshots Chat/Conversation/InfoPanel Participants 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -1972,6 +1418,11 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
 
 .glamor-2,
 [data-glamor-2] {
+  color: rgba(0, 0, 0, 0.20);
+}
+
+.glamor-5,
+[data-glamor-5] {
   font-size: 11px;
   line-height: 15px;
   color: rgba(0, 0, 0, 0.40);
@@ -1981,13 +1432,8 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
   font-weight: 600;
 }
 
-.glamor-3,
-[data-glamor-3] {
-  color: rgba(0, 0, 0, 0.20);
-}
-
-.glamor-4,
-[data-glamor-4] {
+.glamor-7,
+[data-glamor-7] {
   transition: background 0.1s ease-out;
   border-radius: 100%;
   height: 14px;
@@ -2002,13 +1448,13 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
   -moz-transition: background 0.1s ease-out;
 }
 
-.glamor-4:hover,
-[data-glamor-4]:hover {
+.glamor-7:hover,
+[data-glamor-7]:hover {
   border: solid 1px #33a0ff;
 }
 
-.glamor-6,
-[data-glamor-6] {
+.glamor-9,
+[data-glamor-9] {
   transition: background 0.1s ease-out;
   border-radius: 100%;
   height: 14px;
@@ -2022,18 +1468,18 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
   -moz-transition: background 0.1s ease-out;
 }
 
-.glamor-6:hover,
-[data-glamor-6]:hover {
+.glamor-9:hover,
+[data-glamor-9]:hover {
   border: solid 1px #33a0ff;
 }
 
-.glamor-18,
-[data-glamor-18] {
+.glamor-21,
+[data-glamor-21] {
   color: #3dcc8e;
 }
 
-.glamor-19,
-[data-glamor-19] {
+.glamor-22,
+[data-glamor-22] {
   font-size: 11px;
   line-height: 15px;
   color: #3dcc8e;
@@ -2064,6 +1510,107 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
         }
       }
     >
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "marginBottom": 4,
+          }
+        }
+      >
+        <div
+          onClick={[Function]}
+          style={
+            Object {
+              "alignItems": "flex-start",
+              "cursor": "pointer",
+              "display": "flex",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "backgroundColor": "inherit",
+                "border": "solid 1px rgba(0, 0, 0, 0.20)",
+                "borderRadius": 2,
+                "height": 13,
+                "marginRight": 8,
+                "marginTop": 2,
+                "opacity": 1,
+                "position": "relative",
+                "transition": "background 0.1s ease-out",
+                "width": 13,
+              }
+            }
+          >
+            <div>
+              <span
+                className="glamor-0"
+                onClick={null}
+                onMouseEnter={undefined}
+                onMouseLeave={undefined}
+                style={
+                  Object {
+                    "WebkitFontSmoothing": "antialiased",
+                    "fontFamily": "kb",
+                    "fontSize": 9,
+                    "fontStyle": "normal",
+                    "fontVariant": "normal",
+                    "fontWeight": "normal",
+                    "left": 1,
+                    "lineHeight": 1,
+                    "opacity": 0,
+                    "position": "absolute",
+                    "speak": "none",
+                    "textTransform": "none",
+                    "top": 1,
+                    "transition": "opacity 0.1s ease-out",
+                    "userSelect": "none",
+                  }
+                }
+              >
+                
+              </span>
+            </div>
+          </div>
+          <span
+            className="glamor-1"
+            onClick={undefined}
+            title={undefined}
+          >
+            Mute all notifications
+          </span>
+        </div>
+        <div>
+          <span
+            className="glamor-2"
+            onClick={null}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
+            style={
+              Object {
+                "WebkitFontSmoothing": "antialiased",
+                "fontFamily": "kb",
+                "fontSize": 16,
+                "fontStyle": "normal",
+                "fontVariant": "normal",
+                "fontWeight": "normal",
+                "lineHeight": 1,
+                "marginLeft": 4,
+                "speak": "none",
+                "textTransform": "none",
+                "userSelect": "none",
+              }
+            }
+          >
+            
+          </span>
+        </div>
+      </div>
       <div
         onClick={[Function]}
         style={
@@ -2139,7 +1686,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
         }
       >
         <span
-          className="glamor-2"
+          className="glamor-5"
           onClick={undefined}
           title={undefined}
         >
@@ -2147,7 +1694,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
         </span>
         <div>
           <span
-            className="glamor-3"
+            className="glamor-2"
             onClick={null}
             onMouseEnter={undefined}
             onMouseLeave={undefined}
@@ -2193,7 +1740,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
           }
         >
           <div
-            className="glamor-4"
+            className="glamor-7"
           >
             <div
               style={
@@ -2241,7 +1788,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
           }
         >
           <div
-            className="glamor-6"
+            className="glamor-9"
           >
             <div
               style={
@@ -2289,7 +1836,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
           }
         >
           <div
-            className="glamor-6"
+            className="glamor-9"
           >
             <div
               style={
@@ -2325,7 +1872,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
         }
       >
         <span
-          className="glamor-2"
+          className="glamor-5"
           onClick={undefined}
           title={undefined}
         >
@@ -2333,7 +1880,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
         </span>
         <div>
           <span
-            className="glamor-3"
+            className="glamor-2"
             onClick={null}
             onMouseEnter={undefined}
             onMouseLeave={undefined}
@@ -2379,7 +1926,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
           }
         >
           <div
-            className="glamor-6"
+            className="glamor-9"
           >
             <div
               style={
@@ -2427,7 +1974,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
           }
         >
           <div
-            className="glamor-4"
+            className="glamor-7"
           >
             <div
               style={
@@ -2475,7 +2022,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
           }
         >
           <div
-            className="glamor-6"
+            className="glamor-9"
           >
             <div
               style={
@@ -2514,7 +2061,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
       >
         <div>
           <span
-            className="glamor-18"
+            className="glamor-21"
             onClick={null}
             onMouseEnter={undefined}
             onMouseLeave={undefined}
@@ -2537,7 +2084,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
           </span>
         </div>
         <span
-          className="glamor-19"
+          className="glamor-22"
           onClick={undefined}
           title={undefined}
         >
@@ -2568,6 +2115,11 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
 
 .glamor-2,
 [data-glamor-2] {
+  color: rgba(0, 0, 0, 0.20);
+}
+
+.glamor-5,
+[data-glamor-5] {
   font-size: 11px;
   line-height: 15px;
   color: rgba(0, 0, 0, 0.40);
@@ -2577,13 +2129,8 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
   font-weight: 600;
 }
 
-.glamor-3,
-[data-glamor-3] {
-  color: rgba(0, 0, 0, 0.20);
-}
-
-.glamor-4,
-[data-glamor-4] {
+.glamor-7,
+[data-glamor-7] {
   transition: background 0.1s ease-out;
   border-radius: 100%;
   height: 14px;
@@ -2598,13 +2145,13 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
   -moz-transition: background 0.1s ease-out;
 }
 
-.glamor-4:hover,
-[data-glamor-4]:hover {
+.glamor-7:hover,
+[data-glamor-7]:hover {
   border: solid 1px #33a0ff;
 }
 
-.glamor-6,
-[data-glamor-6] {
+.glamor-9,
+[data-glamor-9] {
   transition: background 0.1s ease-out;
   border-radius: 100%;
   height: 14px;
@@ -2618,8 +2165,8 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
   -moz-transition: background 0.1s ease-out;
 }
 
-.glamor-6:hover,
-[data-glamor-6]:hover {
+.glamor-9:hover,
+[data-glamor-9]:hover {
   border: solid 1px #33a0ff;
 }
 
@@ -2644,6 +2191,107 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
         }
       }
     >
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "marginBottom": 4,
+          }
+        }
+      >
+        <div
+          onClick={[Function]}
+          style={
+            Object {
+              "alignItems": "flex-start",
+              "cursor": "pointer",
+              "display": "flex",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "backgroundColor": "inherit",
+                "border": "solid 1px rgba(0, 0, 0, 0.20)",
+                "borderRadius": 2,
+                "height": 13,
+                "marginRight": 8,
+                "marginTop": 2,
+                "opacity": 1,
+                "position": "relative",
+                "transition": "background 0.1s ease-out",
+                "width": 13,
+              }
+            }
+          >
+            <div>
+              <span
+                className="glamor-0"
+                onClick={null}
+                onMouseEnter={undefined}
+                onMouseLeave={undefined}
+                style={
+                  Object {
+                    "WebkitFontSmoothing": "antialiased",
+                    "fontFamily": "kb",
+                    "fontSize": 9,
+                    "fontStyle": "normal",
+                    "fontVariant": "normal",
+                    "fontWeight": "normal",
+                    "left": 1,
+                    "lineHeight": 1,
+                    "opacity": 0,
+                    "position": "absolute",
+                    "speak": "none",
+                    "textTransform": "none",
+                    "top": 1,
+                    "transition": "opacity 0.1s ease-out",
+                    "userSelect": "none",
+                  }
+                }
+              >
+                
+              </span>
+            </div>
+          </div>
+          <span
+            className="glamor-1"
+            onClick={undefined}
+            title={undefined}
+          >
+            Mute all notifications
+          </span>
+        </div>
+        <div>
+          <span
+            className="glamor-2"
+            onClick={null}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
+            style={
+              Object {
+                "WebkitFontSmoothing": "antialiased",
+                "fontFamily": "kb",
+                "fontSize": 16,
+                "fontStyle": "normal",
+                "fontVariant": "normal",
+                "fontWeight": "normal",
+                "lineHeight": 1,
+                "marginLeft": 4,
+                "speak": "none",
+                "textTransform": "none",
+                "userSelect": "none",
+              }
+            }
+          >
+            
+          </span>
+        </div>
+      </div>
       <div
         onClick={[Function]}
         style={
@@ -2719,7 +2367,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
         }
       >
         <span
-          className="glamor-2"
+          className="glamor-5"
           onClick={undefined}
           title={undefined}
         >
@@ -2727,7 +2375,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
         </span>
         <div>
           <span
-            className="glamor-3"
+            className="glamor-2"
             onClick={null}
             onMouseEnter={undefined}
             onMouseLeave={undefined}
@@ -2773,7 +2421,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
           }
         >
           <div
-            className="glamor-4"
+            className="glamor-7"
           >
             <div
               style={
@@ -2821,7 +2469,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
           }
         >
           <div
-            className="glamor-6"
+            className="glamor-9"
           >
             <div
               style={
@@ -2869,7 +2517,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
           }
         >
           <div
-            className="glamor-6"
+            className="glamor-9"
           >
             <div
               style={
@@ -2905,7 +2553,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
         }
       >
         <span
-          className="glamor-2"
+          className="glamor-5"
           onClick={undefined}
           title={undefined}
         >
@@ -2913,7 +2561,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
         </span>
         <div>
           <span
-            className="glamor-3"
+            className="glamor-2"
             onClick={null}
             onMouseEnter={undefined}
             onMouseLeave={undefined}
@@ -2959,7 +2607,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
           }
         >
           <div
-            className="glamor-6"
+            className="glamor-9"
           >
             <div
               style={
@@ -3007,7 +2655,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
           }
         >
           <div
-            className="glamor-4"
+            className="glamor-7"
           >
             <div
               style={
@@ -3055,7 +2703,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
           }
         >
           <div
-            className="glamor-6"
+            className="glamor-9"
           >
             <div
               style={
@@ -3131,6 +2779,11 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
 
 .glamor-2,
 [data-glamor-2] {
+  color: rgba(0, 0, 0, 0.20);
+}
+
+.glamor-5,
+[data-glamor-5] {
   font-size: 11px;
   line-height: 15px;
   color: rgba(0, 0, 0, 0.40);
@@ -3140,13 +2793,8 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
   font-weight: 600;
 }
 
-.glamor-3,
-[data-glamor-3] {
-  color: rgba(0, 0, 0, 0.20);
-}
-
-.glamor-4,
-[data-glamor-4] {
+.glamor-7,
+[data-glamor-7] {
   transition: background 0.1s ease-out;
   border-radius: 100%;
   height: 14px;
@@ -3160,13 +2808,13 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
   -moz-transition: background 0.1s ease-out;
 }
 
-.glamor-4:hover,
-[data-glamor-4]:hover {
+.glamor-7:hover,
+[data-glamor-7]:hover {
   border: solid 1px #33a0ff;
 }
 
-.glamor-6,
-[data-glamor-6] {
+.glamor-9,
+[data-glamor-9] {
   transition: background 0.1s ease-out;
   border-radius: 100%;
   height: 14px;
@@ -3181,8 +2829,8 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
   -moz-transition: background 0.1s ease-out;
 }
 
-.glamor-6:hover,
-[data-glamor-6]:hover {
+.glamor-9:hover,
+[data-glamor-9]:hover {
   border: solid 1px #33a0ff;
 }
 
@@ -3207,6 +2855,107 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
         }
       }
     >
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "marginBottom": 4,
+          }
+        }
+      >
+        <div
+          onClick={[Function]}
+          style={
+            Object {
+              "alignItems": "flex-start",
+              "cursor": "pointer",
+              "display": "flex",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "backgroundColor": "inherit",
+                "border": "solid 1px rgba(0, 0, 0, 0.20)",
+                "borderRadius": 2,
+                "height": 13,
+                "marginRight": 8,
+                "marginTop": 2,
+                "opacity": 1,
+                "position": "relative",
+                "transition": "background 0.1s ease-out",
+                "width": 13,
+              }
+            }
+          >
+            <div>
+              <span
+                className="glamor-0"
+                onClick={null}
+                onMouseEnter={undefined}
+                onMouseLeave={undefined}
+                style={
+                  Object {
+                    "WebkitFontSmoothing": "antialiased",
+                    "fontFamily": "kb",
+                    "fontSize": 9,
+                    "fontStyle": "normal",
+                    "fontVariant": "normal",
+                    "fontWeight": "normal",
+                    "left": 1,
+                    "lineHeight": 1,
+                    "opacity": 0,
+                    "position": "absolute",
+                    "speak": "none",
+                    "textTransform": "none",
+                    "top": 1,
+                    "transition": "opacity 0.1s ease-out",
+                    "userSelect": "none",
+                  }
+                }
+              >
+                
+              </span>
+            </div>
+          </div>
+          <span
+            className="glamor-1"
+            onClick={undefined}
+            title={undefined}
+          >
+            Mute all notifications
+          </span>
+        </div>
+        <div>
+          <span
+            className="glamor-2"
+            onClick={null}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
+            style={
+              Object {
+                "WebkitFontSmoothing": "antialiased",
+                "fontFamily": "kb",
+                "fontSize": 16,
+                "fontStyle": "normal",
+                "fontVariant": "normal",
+                "fontWeight": "normal",
+                "lineHeight": 1,
+                "marginLeft": 4,
+                "speak": "none",
+                "textTransform": "none",
+                "userSelect": "none",
+              }
+            }
+          >
+            
+          </span>
+        </div>
+      </div>
       <div
         onClick={[Function]}
         style={
@@ -3281,7 +3030,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
         }
       >
         <span
-          className="glamor-2"
+          className="glamor-5"
           onClick={undefined}
           title={undefined}
         >
@@ -3289,7 +3038,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
         </span>
         <div>
           <span
-            className="glamor-3"
+            className="glamor-2"
             onClick={null}
             onMouseEnter={undefined}
             onMouseLeave={undefined}
@@ -3335,7 +3084,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
           }
         >
           <div
-            className="glamor-4"
+            className="glamor-7"
           >
             <div
               style={
@@ -3383,7 +3132,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
           }
         >
           <div
-            className="glamor-6"
+            className="glamor-9"
           >
             <div
               style={
@@ -3431,7 +3180,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
           }
         >
           <div
-            className="glamor-4"
+            className="glamor-7"
           >
             <div
               style={
@@ -3467,7 +3216,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
         }
       >
         <span
-          className="glamor-2"
+          className="glamor-5"
           onClick={undefined}
           title={undefined}
         >
@@ -3475,7 +3224,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
         </span>
         <div>
           <span
-            className="glamor-3"
+            className="glamor-2"
             onClick={null}
             onMouseEnter={undefined}
             onMouseLeave={undefined}
@@ -3521,7 +3270,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
           }
         >
           <div
-            className="glamor-4"
+            className="glamor-7"
           >
             <div
               style={
@@ -3569,7 +3318,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
           }
         >
           <div
-            className="glamor-4"
+            className="glamor-7"
           >
             <div
               style={
@@ -3617,7 +3366,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
           }
         >
           <div
-            className="glamor-6"
+            className="glamor-9"
           >
             <div
               style={
@@ -3773,8 +3522,8 @@ exports[`Storyshots Chat/Heads up Display Mention Hud 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -3829,8 +3578,8 @@ exports[`Storyshots Chat/Heads up Display Mention Hud 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -4045,8 +3794,8 @@ exports[`Storyshots Chat/Heads up Display Mention Row 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseOver={[Function]}
         onMouseUp={[Function]}
         style={
@@ -4119,8 +3868,8 @@ exports[`Storyshots Chat/Heads up Display Mention Row 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseOver={[Function]}
         onMouseUp={[Function]}
         style={
@@ -4193,8 +3942,8 @@ exports[`Storyshots Chat/Heads up Display Mention Row 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseOver={[Function]}
         onMouseUp={[Function]}
         style={
@@ -4411,8 +4160,8 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -4601,8 +4350,8 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -4754,8 +4503,8 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -4881,8 +4630,8 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -4971,8 +4720,8 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -5061,8 +4810,8 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -5151,8 +4900,8 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -5422,8 +5171,8 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -5625,8 +5374,8 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -5865,8 +5614,8 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -6296,8 +6045,8 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -6360,8 +6109,8 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -6424,8 +6173,8 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -6488,8 +6237,8 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -6623,8 +6372,8 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -6688,8 +6437,8 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -6752,8 +6501,8 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -6830,8 +6579,8 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -7552,8 +7301,8 @@ exports[`Storyshots Chat/Teams CreateChannel 1`] = `
                 <div
                   onClick={[Function]}
                   onMouseDown={[Function]}
-                  onMouseEnter={[Function]}
-                  onMouseLeave={[Function]}
+                  onMouseEnter={undefined}
+                  onMouseLeave={undefined}
                   onMouseUp={[Function]}
                   style={
                     Object {
@@ -7608,8 +7357,8 @@ exports[`Storyshots Chat/Teams CreateChannel 1`] = `
                 <div
                   onClick={[Function]}
                   onMouseDown={[Function]}
-                  onMouseEnter={[Function]}
-                  onMouseLeave={[Function]}
+                  onMouseEnter={undefined}
+                  onMouseLeave={undefined}
                   onMouseUp={[Function]}
                   style={
                     Object {
@@ -8058,8 +7807,8 @@ exports[`Storyshots Chat/Teams EditChannel - general 1`] = `
             <div
               onClick={[Function]}
               onMouseDown={[Function]}
-              onMouseEnter={[Function]}
-              onMouseLeave={[Function]}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
               onMouseUp={[Function]}
               style={
                 Object {
@@ -8114,8 +7863,8 @@ exports[`Storyshots Chat/Teams EditChannel - general 1`] = `
             <div
               onClick={null}
               onMouseDown={[Function]}
-              onMouseEnter={[Function]}
-              onMouseLeave={[Function]}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
               onMouseUp={[Function]}
               style={
                 Object {
@@ -8541,8 +8290,8 @@ exports[`Storyshots Chat/Teams EditChannel 1`] = `
             <div
               onClick={[Function]}
               onMouseDown={[Function]}
-              onMouseEnter={[Function]}
-              onMouseLeave={[Function]}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
               onMouseUp={[Function]}
               style={
                 Object {
@@ -8597,8 +8346,8 @@ exports[`Storyshots Chat/Teams EditChannel 1`] = `
             <div
               onClick={null}
               onMouseDown={[Function]}
-              onMouseEnter={[Function]}
-              onMouseLeave={[Function]}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
               onMouseUp={[Function]}
               style={
                 Object {
@@ -10000,8 +9749,8 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                   <div
                     onClick={[Function]}
                     onMouseDown={[Function]}
-                    onMouseEnter={[Function]}
-                    onMouseLeave={[Function]}
+                    onMouseEnter={undefined}
+                    onMouseLeave={undefined}
                     onMouseUp={[Function]}
                     style={
                       Object {
@@ -10056,8 +9805,8 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                   <div
                     onClick={[Function]}
                     onMouseDown={[Function]}
-                    onMouseEnter={[Function]}
-                    onMouseLeave={[Function]}
+                    onMouseEnter={undefined}
+                    onMouseLeave={undefined}
                     onMouseUp={[Function]}
                     style={
                       Object {
@@ -11811,8 +11560,8 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                   <div
                     onClick={[Function]}
                     onMouseDown={[Function]}
-                    onMouseEnter={[Function]}
-                    onMouseLeave={[Function]}
+                    onMouseEnter={undefined}
+                    onMouseLeave={undefined}
                     onMouseUp={[Function]}
                     style={
                       Object {
@@ -11867,8 +11616,8 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                   <div
                     onClick={null}
                     onMouseDown={[Function]}
-                    onMouseEnter={[Function]}
-                    onMouseLeave={[Function]}
+                    onMouseEnter={undefined}
+                    onMouseLeave={undefined}
                     onMouseUp={[Function]}
                     style={
                       Object {
@@ -14764,8 +14513,8 @@ exports[`Storyshots Common Button 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -14820,8 +14569,8 @@ exports[`Storyshots Common Button 1`] = `
           <div
             onClick={null}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -14887,8 +14636,8 @@ exports[`Storyshots Common Button 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -14943,8 +14692,8 @@ exports[`Storyshots Common Button 1`] = `
           <div
             onClick={null}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -15010,8 +14759,8 @@ exports[`Storyshots Common Button 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -15066,8 +14815,8 @@ exports[`Storyshots Common Button 1`] = `
           <div
             onClick={null}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -15133,8 +14882,8 @@ exports[`Storyshots Common Button 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -15189,8 +14938,8 @@ exports[`Storyshots Common Button 1`] = `
           <div
             onClick={null}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -15256,8 +15005,8 @@ exports[`Storyshots Common Button 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -15315,8 +15064,8 @@ exports[`Storyshots Common Button 1`] = `
           <div
             onClick={null}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -15379,8 +15128,8 @@ exports[`Storyshots Common Button 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -15434,8 +15183,8 @@ exports[`Storyshots Common Button 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -15489,8 +15238,8 @@ exports[`Storyshots Common Button 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -15544,8 +15293,8 @@ exports[`Storyshots Common Button 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -15599,8 +15348,8 @@ exports[`Storyshots Common Button 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -15747,8 +15496,8 @@ exports[`Storyshots Common ButtonBar 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -15811,8 +15560,8 @@ exports[`Storyshots Common ButtonBar 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -15867,8 +15616,8 @@ exports[`Storyshots Common ButtonBar 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -15937,8 +15686,8 @@ exports[`Storyshots Common ButtonBar 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -16015,8 +15764,8 @@ exports[`Storyshots Common ButtonBar 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -16071,8 +15820,8 @@ exports[`Storyshots Common ButtonBar 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -16143,8 +15892,8 @@ exports[`Storyshots Common ButtonBar 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -16207,8 +15956,8 @@ exports[`Storyshots Common ButtonBar 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -16271,8 +16020,8 @@ exports[`Storyshots Common ButtonBar 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -16335,8 +16084,8 @@ exports[`Storyshots Common ButtonBar 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -16391,8 +16140,8 @@ exports[`Storyshots Common ButtonBar 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -16461,8 +16210,8 @@ exports[`Storyshots Common ButtonBar 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -26320,8 +26069,8 @@ exports[`Storyshots Edit team description Description changed 1`] = `
                 <div
                   onClick={[Function]}
                   onMouseDown={[Function]}
-                  onMouseEnter={[Function]}
-                  onMouseLeave={[Function]}
+                  onMouseEnter={undefined}
+                  onMouseLeave={undefined}
                   onMouseUp={[Function]}
                   style={
                     Object {
@@ -26376,8 +26125,8 @@ exports[`Storyshots Edit team description Description changed 1`] = `
                 <div
                   onClick={[Function]}
                   onMouseDown={[Function]}
-                  onMouseEnter={[Function]}
-                  onMouseLeave={[Function]}
+                  onMouseEnter={undefined}
+                  onMouseLeave={undefined}
                   onMouseUp={[Function]}
                   style={
                     Object {
@@ -26751,8 +26500,8 @@ exports[`Storyshots Edit team description Description unchanged 1`] = `
                 <div
                   onClick={[Function]}
                   onMouseDown={[Function]}
-                  onMouseEnter={[Function]}
-                  onMouseLeave={[Function]}
+                  onMouseEnter={undefined}
+                  onMouseLeave={undefined}
                   onMouseUp={[Function]}
                   style={
                     Object {
@@ -26807,8 +26556,8 @@ exports[`Storyshots Edit team description Description unchanged 1`] = `
                 <div
                   onClick={null}
                   onMouseDown={[Function]}
-                  onMouseEnter={[Function]}
-                  onMouseLeave={[Function]}
+                  onMouseEnter={undefined}
+                  onMouseLeave={undefined}
                   onMouseUp={[Function]}
                   style={
                     Object {
@@ -26958,8 +26707,8 @@ exports[`Storyshots FS Root 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -27014,8 +26763,8 @@ exports[`Storyshots FS Root 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -27102,8 +26851,8 @@ exports[`Storyshots FS Root 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -27158,8 +26907,8 @@ exports[`Storyshots FS Root 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -27247,8 +26996,8 @@ exports[`Storyshots FS Root 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -27303,8 +27052,8 @@ exports[`Storyshots FS Root 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -27611,8 +27360,8 @@ exports[`Storyshots Git DeleteRepo 1`] = `
               <div
                 onClick={[Function]}
                 onMouseDown={[Function]}
-                onMouseEnter={[Function]}
-                onMouseLeave={[Function]}
+                onMouseEnter={undefined}
+                onMouseLeave={undefined}
                 onMouseUp={[Function]}
                 style={
                   Object {
@@ -27660,8 +27409,8 @@ exports[`Storyshots Git DeleteRepo 1`] = `
               <div
                 onClick={null}
                 onMouseDown={[Function]}
-                onMouseEnter={[Function]}
-                onMouseLeave={[Function]}
+                onMouseEnter={undefined}
+                onMouseLeave={undefined}
                 onMouseUp={[Function]}
                 style={
                   Object {
@@ -28100,8 +27849,8 @@ exports[`Storyshots Git DeleteTeamRepo 1`] = `
               <div
                 onClick={[Function]}
                 onMouseDown={[Function]}
-                onMouseEnter={[Function]}
-                onMouseLeave={[Function]}
+                onMouseEnter={undefined}
+                onMouseLeave={undefined}
                 onMouseUp={[Function]}
                 style={
                   Object {
@@ -28149,8 +27898,8 @@ exports[`Storyshots Git DeleteTeamRepo 1`] = `
               <div
                 onClick={null}
                 onMouseDown={[Function]}
-                onMouseEnter={[Function]}
-                onMouseLeave={[Function]}
+                onMouseEnter={undefined}
+                onMouseLeave={undefined}
                 onMouseUp={[Function]}
                 style={
                   Object {
@@ -28412,8 +28161,8 @@ exports[`Storyshots Git NewPersonalRepo 1`] = `
               <div
                 onClick={[Function]}
                 onMouseDown={[Function]}
-                onMouseEnter={[Function]}
-                onMouseLeave={[Function]}
+                onMouseEnter={undefined}
+                onMouseLeave={undefined}
                 onMouseUp={[Function]}
                 style={
                   Object {
@@ -28461,8 +28210,8 @@ exports[`Storyshots Git NewPersonalRepo 1`] = `
               <div
                 onClick={null}
                 onMouseDown={[Function]}
-                onMouseEnter={[Function]}
-                onMouseLeave={[Function]}
+                onMouseEnter={undefined}
+                onMouseLeave={undefined}
                 onMouseUp={[Function]}
                 style={
                   Object {
@@ -28917,8 +28666,8 @@ exports[`Storyshots Git NewTeamRepo 1`] = `
               <div
                 onClick={[Function]}
                 onMouseDown={[Function]}
-                onMouseEnter={[Function]}
-                onMouseLeave={[Function]}
+                onMouseEnter={undefined}
+                onMouseLeave={undefined}
                 onMouseUp={[Function]}
                 style={
                   Object {
@@ -28966,8 +28715,8 @@ exports[`Storyshots Git NewTeamRepo 1`] = `
               <div
                 onClick={null}
                 onMouseDown={[Function]}
-                onMouseEnter={[Function]}
-                onMouseLeave={[Function]}
+                onMouseEnter={undefined}
+                onMouseLeave={undefined}
                 onMouseUp={[Function]}
                 style={
                   Object {
@@ -29197,8 +28946,8 @@ exports[`Storyshots People/Follow Suggestions One 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -29266,7 +29015,7 @@ exports[`Storyshots People/Follow Suggestions One 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-3 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -29459,8 +29208,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -29528,7 +29277,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-3 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -29547,8 +29296,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -29616,7 +29365,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-9"
+                  className="glamor-9 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -29635,8 +29384,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -29689,7 +29438,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-3 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -29708,8 +29457,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -29777,7 +29526,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-3 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -29796,8 +29545,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -29865,7 +29614,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-3 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -29884,8 +29633,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -29953,7 +29702,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-3 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -29972,8 +29721,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -30041,7 +29790,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-3 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -30060,8 +29809,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -30129,7 +29878,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-3 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -30148,8 +29897,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -30217,7 +29966,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-3 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -30236,8 +29985,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -30290,7 +30039,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-3 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -30309,8 +30058,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -30378,7 +30127,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-3 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -30397,8 +30146,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -30466,7 +30215,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-3 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -30485,8 +30234,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -30554,7 +30303,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-3 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -30573,8 +30322,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -30642,7 +30391,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-3 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -30835,8 +30584,8 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -30904,7 +30653,7 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-3 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -30923,8 +30672,8 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -30992,7 +30741,7 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-9"
+                  className="glamor-9 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -31011,8 +30760,8 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -31065,7 +30814,7 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-3 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -31084,8 +30833,8 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -31153,7 +30902,7 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-3 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -31172,8 +30921,8 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -31241,7 +30990,7 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-3 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -31260,8 +31009,8 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -31329,7 +31078,7 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-3 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -31348,8 +31097,8 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -31417,7 +31166,7 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-3 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -31689,7 +31438,7 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
               title={undefined}
             >
               <span
-                className="glamor-1"
+                className="glamor-1 hover-underline"
                 onClick={[Function]}
                 title={undefined}
               >
@@ -31710,7 +31459,7 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
               title={undefined}
             >
               <span
-                className="glamor-4"
+                className="glamor-4 hover-underline"
                 onClick={[Function]}
                 title={undefined}
               >
@@ -31732,7 +31481,7 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
             >
               and 
               <span
-                className="glamor-4"
+                className="glamor-4 hover-underline"
                 onClick={[Function]}
                 title={undefined}
               >
@@ -32117,7 +31866,7 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
               title={undefined}
             >
               <span
-                className="glamor-1"
+                className="glamor-1 hover-underline"
                 onClick={[Function]}
                 title={undefined}
               >
@@ -32138,7 +31887,7 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
               title={undefined}
             >
               <span
-                className="glamor-4"
+                className="glamor-4 hover-underline"
                 onClick={[Function]}
                 title={undefined}
               >
@@ -32159,7 +31908,7 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
               title={undefined}
             >
               <span
-                className="glamor-4"
+                className="glamor-4 hover-underline"
                 onClick={[Function]}
                 title={undefined}
               >
@@ -32180,7 +31929,7 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
               title={undefined}
             >
               <span
-                className="glamor-4"
+                className="glamor-4 hover-underline"
                 onClick={[Function]}
                 title={undefined}
               >
@@ -32505,7 +32254,7 @@ exports[`Storyshots People/Follow notification Someone followed you 1`] = `
               title={undefined}
             >
               <span
-                className="glamor-2"
+                className="glamor-2 hover-underline"
                 onClick={[Function]}
                 title={undefined}
               >
@@ -32732,7 +32481,7 @@ exports[`Storyshots People/Follow notification Someone you follow followed you 1
               title={undefined}
             >
               <span
-                className="glamor-2"
+                className="glamor-2 hover-underline"
                 onClick={[Function]}
                 title={undefined}
               >
@@ -32889,8 +32638,8 @@ exports[`Storyshots People/Todos Chat 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -33082,8 +32831,8 @@ exports[`Storyshots People/Todos Fill out bio 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -33280,8 +33029,8 @@ exports[`Storyshots People/Todos Follow someone 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -33485,8 +33234,8 @@ exports[`Storyshots People/Todos Install on phone 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -33690,8 +33439,8 @@ exports[`Storyshots People/Todos Make a folder 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -33895,8 +33644,8 @@ exports[`Storyshots People/Todos Make a git 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -34088,8 +33837,8 @@ exports[`Storyshots People/Todos Make a paper key 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -34286,8 +34035,8 @@ exports[`Storyshots People/Todos Make a team 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -34491,8 +34240,8 @@ exports[`Storyshots People/Todos Prove something 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -34696,8 +34445,8 @@ exports[`Storyshots People/Todos Set publicity 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -44000,8 +43749,8 @@ exports[`Storyshots Team Roles ConfirmAdmin 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -44056,8 +43805,8 @@ exports[`Storyshots Team Roles ConfirmAdmin 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -44629,8 +44378,8 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -44685,8 +44434,8 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -45334,8 +45083,8 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -45390,8 +45139,8 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -45995,8 +45744,8 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -46051,8 +45800,8 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -46717,8 +46466,8 @@ exports[`Storyshots Team Roles Picker 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -46924,8 +46673,8 @@ exports[`Storyshots Teams Header 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -46981,8 +46730,8 @@ exports[`Storyshots Teams Header 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -47198,8 +46947,8 @@ exports[`Storyshots Teams TeamList 1`] = `
             <div
               onClick={[Function]}
               onMouseDown={[Function]}
-              onMouseEnter={[Function]}
-              onMouseLeave={[Function]}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
               onMouseUp={[Function]}
               style={
                 Object {
@@ -47365,8 +47114,8 @@ exports[`Storyshots Teams TeamList 1`] = `
             <div
               onClick={[Function]}
               onMouseDown={[Function]}
-              onMouseEnter={[Function]}
-              onMouseLeave={[Function]}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
               onMouseUp={[Function]}
               style={
                 Object {
@@ -47539,8 +47288,8 @@ exports[`Storyshots Teams TeamList 1`] = `
             <div
               onClick={[Function]}
               onMouseDown={[Function]}
-              onMouseEnter={[Function]}
-              onMouseLeave={[Function]}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
               onMouseUp={[Function]}
               style={
                 Object {

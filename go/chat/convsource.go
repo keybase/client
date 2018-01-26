@@ -15,7 +15,6 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/teams"
 	context "golang.org/x/net/context"
 )
 
@@ -396,17 +395,11 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, conv types.U
 			case chat1.ConversationMembersType_TEAM:
 				// early out of team convs
 				return nil
-			case chat1.ConversationMembersType_IMPTEAM:
+			case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE:
 				s.Debug(ctx, "identifyTLF: implicit team TLF, looking up display name for %s", tlfName)
 				tlfID := msg.Valid().ClientHeader.Conv.Tlfid
-				teamID, err := keybase1.TeamIDFromString(tlfID.String())
-				if err != nil {
-					return err
-				}
-				team, err := teams.Load(ctx, s.G().ExternalG(), keybase1.LoadTeamArg{
-					ID:     teamID,
-					Public: msg.Valid().ClientHeader.TlfPublic,
-				})
+				team, err := LoadTeam(ctx, s.G().ExternalG(), tlfID, conv.GetMembersType(),
+					msg.Valid().ClientHeader.TlfPublic, nil)
 				if err != nil {
 					return err
 				}
@@ -499,7 +492,7 @@ var maxHolesForPull = 10
 
 func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (thread chat1.ThreadView, rl []*chat1.RateLimit, err error) {
-	defer s.Trace(ctx, func() error { return err }, "Pull")()
+	defer s.Trace(ctx, func() error { return err }, "Pull(%s)", convID)()
 	if convID.IsNil() {
 		return chat1.ThreadView{}, rl, errors.New("HybridConversationSource.Pull called with empty convID")
 	}
@@ -520,8 +513,8 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		if err == nil {
 			// Since we are using the "holey" collector, we need to resolve any placeholder
 			// messages that may have been fetched.
-			s.Debug(ctx, "Pull: cache hit: convID: %s uid: %s holes: %d msgs: %d", convID, uid, rc.Holes(),
-				len(thread.Messages))
+			s.Debug(ctx, "Pull: cache hit: convID: %s uid: %s holes: %d msgs: %d", unboxConv.GetConvID(), uid,
+				rc.Holes(), len(thread.Messages))
 			err = s.resolveHoles(ctx, uid, &thread, conv)
 		}
 		if err == nil {

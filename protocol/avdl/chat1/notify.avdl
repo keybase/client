@@ -154,4 +154,12 @@ protocol NotifyChat {
   @lint("ignore")
   void ChatInboxSynced(keybase1.UID uid, ChatSyncResult syncRes);
 
+  @notify("")
+  @lint("ignore")
+  void ChatSetConvRetention(keybase1.UID uid, ConversationID convID, union { null, InboxUIItem } conv);
+
+  @notify("")
+  @lint("ignore")
+  void ChatSetTeamRetention(keybase1.UID uid, keybase1.TeamID teamID, array<InboxUIItem> convs);
+
 }

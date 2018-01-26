@@ -44,7 +44,7 @@ function* startNewConversation(
     return [null, null]
   }
   const membersType = flags.impTeamChatEnabled
-    ? RPCChatTypes.commonConversationMembersType.impteam
+    ? RPCChatTypes.commonConversationMembersType.impteamnative
     : RPCChatTypes.commonConversationMembersType.kbfs
   const result = yield call(RPCChatTypes.localNewConversationLocalRpcPromise, {
     identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,

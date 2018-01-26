@@ -143,23 +143,26 @@ func (e ConversationExistence) String() string {
 type ConversationMembersType int
 
 const (
-	ConversationMembersType_KBFS    ConversationMembersType = 0
-	ConversationMembersType_TEAM    ConversationMembersType = 1
-	ConversationMembersType_IMPTEAM ConversationMembersType = 2
+	ConversationMembersType_KBFS           ConversationMembersType = 0
+	ConversationMembersType_TEAM           ConversationMembersType = 1
+	ConversationMembersType_IMPTEAMNATIVE  ConversationMembersType = 2
+	ConversationMembersType_IMPTEAMUPGRADE ConversationMembersType = 3
 )
 
 func (o ConversationMembersType) DeepCopy() ConversationMembersType { return o }
 
 var ConversationMembersTypeMap = map[string]ConversationMembersType{
-	"KBFS":    0,
-	"TEAM":    1,
-	"IMPTEAM": 2,
+	"KBFS":           0,
+	"TEAM":           1,
+	"IMPTEAMNATIVE":  2,
+	"IMPTEAMUPGRADE": 3,
 }
 
 var ConversationMembersTypeRevMap = map[ConversationMembersType]string{
 	0: "KBFS",
 	1: "TEAM",
-	2: "IMPTEAM",
+	2: "IMPTEAMNATIVE",
+	3: "IMPTEAMUPGRADE",
 }
 
 func (e ConversationMembersType) String() string {
@@ -1000,19 +1003,20 @@ func (o OutboxInfo) DeepCopy() OutboxInfo {
 }
 
 type MessageClientHeader struct {
-	Conv          ConversationIDTriple     `codec:"conv" json:"conv"`
-	TlfName       string                   `codec:"tlfName" json:"tlfName"`
-	TlfPublic     bool                     `codec:"tlfPublic" json:"tlfPublic"`
-	MessageType   MessageType              `codec:"messageType" json:"messageType"`
-	Supersedes    MessageID                `codec:"supersedes" json:"supersedes"`
-	Deletes       []MessageID              `codec:"deletes" json:"deletes"`
-	Prev          []MessagePreviousPointer `codec:"prev" json:"prev"`
-	DeleteHistory *MessageDeleteHistory    `codec:"deleteHistory,omitempty" json:"deleteHistory,omitempty"`
-	Sender        gregor1.UID              `codec:"sender" json:"sender"`
-	SenderDevice  gregor1.DeviceID         `codec:"senderDevice" json:"senderDevice"`
-	MerkleRoot    *MerkleRoot              `codec:"merkleRoot,omitempty" json:"merkleRoot,omitempty"`
-	OutboxID      *OutboxID                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
-	OutboxInfo    *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
+	Conv              ConversationIDTriple     `codec:"conv" json:"conv"`
+	TlfName           string                   `codec:"tlfName" json:"tlfName"`
+	TlfPublic         bool                     `codec:"tlfPublic" json:"tlfPublic"`
+	MessageType       MessageType              `codec:"messageType" json:"messageType"`
+	Supersedes        MessageID                `codec:"supersedes" json:"supersedes"`
+	KbfsCryptKeysUsed *bool                    `codec:"kbfsCryptKeysUsed,omitempty" json:"kbfsCryptKeysUsed,omitempty"`
+	Deletes           []MessageID              `codec:"deletes" json:"deletes"`
+	Prev              []MessagePreviousPointer `codec:"prev" json:"prev"`
+	DeleteHistory     *MessageDeleteHistory    `codec:"deleteHistory,omitempty" json:"deleteHistory,omitempty"`
+	Sender            gregor1.UID              `codec:"sender" json:"sender"`
+	SenderDevice      gregor1.DeviceID         `codec:"senderDevice" json:"senderDevice"`
+	MerkleRoot        *MerkleRoot              `codec:"merkleRoot,omitempty" json:"merkleRoot,omitempty"`
+	OutboxID          *OutboxID                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
+	OutboxInfo        *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
 }
 
 func (o MessageClientHeader) DeepCopy() MessageClientHeader {
@@ -1022,6 +1026,13 @@ func (o MessageClientHeader) DeepCopy() MessageClientHeader {
 		TlfPublic:   o.TlfPublic,
 		MessageType: o.MessageType.DeepCopy(),
 		Supersedes:  o.Supersedes.DeepCopy(),
+		KbfsCryptKeysUsed: (func(x *bool) *bool {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.KbfsCryptKeysUsed),
 		Deletes: (func(x []MessageID) []MessageID {
 			if x == nil {
 				return nil
@@ -1078,16 +1089,17 @@ func (o MessageClientHeader) DeepCopy() MessageClientHeader {
 }
 
 type MessageClientHeaderVerified struct {
-	Conv         ConversationIDTriple     `codec:"conv" json:"conv"`
-	TlfName      string                   `codec:"tlfName" json:"tlfName"`
-	TlfPublic    bool                     `codec:"tlfPublic" json:"tlfPublic"`
-	MessageType  MessageType              `codec:"messageType" json:"messageType"`
-	Prev         []MessagePreviousPointer `codec:"prev" json:"prev"`
-	Sender       gregor1.UID              `codec:"sender" json:"sender"`
-	SenderDevice gregor1.DeviceID         `codec:"senderDevice" json:"senderDevice"`
-	MerkleRoot   *MerkleRoot              `codec:"merkleRoot,omitempty" json:"merkleRoot,omitempty"`
-	OutboxID     *OutboxID                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
-	OutboxInfo   *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
+	Conv              ConversationIDTriple     `codec:"conv" json:"conv"`
+	TlfName           string                   `codec:"tlfName" json:"tlfName"`
+	TlfPublic         bool                     `codec:"tlfPublic" json:"tlfPublic"`
+	MessageType       MessageType              `codec:"messageType" json:"messageType"`
+	Prev              []MessagePreviousPointer `codec:"prev" json:"prev"`
+	Sender            gregor1.UID              `codec:"sender" json:"sender"`
+	SenderDevice      gregor1.DeviceID         `codec:"senderDevice" json:"senderDevice"`
+	KbfsCryptKeysUsed *bool                    `codec:"kbfsCryptKeysUsed,omitempty" json:"kbfsCryptKeysUsed,omitempty"`
+	MerkleRoot        *MerkleRoot              `codec:"merkleRoot,omitempty" json:"merkleRoot,omitempty"`
+	OutboxID          *OutboxID                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
+	OutboxInfo        *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
 }
 
 func (o MessageClientHeaderVerified) DeepCopy() MessageClientHeaderVerified {
@@ -1109,6 +1121,13 @@ func (o MessageClientHeaderVerified) DeepCopy() MessageClientHeaderVerified {
 		})(o.Prev),
 		Sender:       o.Sender.DeepCopy(),
 		SenderDevice: o.SenderDevice.DeepCopy(),
+		KbfsCryptKeysUsed: (func(x *bool) *bool {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.KbfsCryptKeysUsed),
 		MerkleRoot: (func(x *MerkleRoot) *MerkleRoot {
 			if x == nil {
 				return nil

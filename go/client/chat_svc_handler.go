@@ -175,6 +175,11 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 			continue
 		}
 
+		// skip any PLACEHOLDER or OUTBOX messages
+		if st != chat1.MessageUnboxedState_VALID {
+			continue
+		}
+
 		mv := m.Valid()
 
 		if mv.ClientHeader.MessageType == chat1.MessageType_TLFNAME {
@@ -800,7 +805,8 @@ func (c *chatServiceHandler) getExistingConvs(ctx context.Context, id chat1.Conv
 
 	var tlfName string
 	switch channel.GetMembersType(c.G().GetEnv()) {
-	case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAM:
+	case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAMNATIVE,
+		chat1.ConversationMembersType_IMPTEAMUPGRADE:
 		tlfQ := keybase1.TLFQuery{
 			TlfName:          channel.Name,
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,

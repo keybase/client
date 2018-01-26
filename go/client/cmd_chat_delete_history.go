@@ -65,7 +65,8 @@ func (c *CmdChatDeleteHistory) Run() (err error) {
 
 	if c.G().Standalone {
 		switch c.resolvingRequest.MembersType {
-		case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAM:
+		case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAMNATIVE,
+			chat1.ConversationMembersType_IMPTEAMUPGRADE:
 			c.G().StartStandaloneChat()
 		default:
 			err = CantRunInStandaloneError{}
@@ -184,7 +185,7 @@ func (c *CmdChatDeleteHistory) chatSendDeleteHistory(ctx context.Context) error 
 		promptText = fmt.Sprintf("Permanently delete all chat messages in [%s] older than %v?\nHit Enter, or Ctrl-C to cancel.",
 			conversationInfo.TlfName, c.ageDesc)
 	}
-	_, err = c.G().UI.GetTerminalUI().Prompt(PromptDescriptorEnterChatMessage, promptText)
+	_, err = c.G().UI.GetTerminalUI().Prompt(PromptDescriptorChatDeleteHistory, promptText)
 	if err != nil {
 		return err
 	}

@@ -221,27 +221,35 @@ func (e *Env) GetUpdaterConfig() UpdaterConfigReader {
 }
 
 func (e *Env) GetMountDir() (string, error) {
+	var darwinMountsubdir string
 	runMode := e.GetRunMode()
-	if runtime.GOOS == "windows" {
-		return e.GetString(
-			func() string { return e.cmd.GetMountDir() },
-			func() string { return os.Getenv("KEYBASE_MOUNTDIR") },
-			func() string { return e.GetConfig().GetMountDir() },
-		), nil
-	}
 	switch runMode {
 	case DevelRunMode:
-		return "/keybase.devel", nil
-
+		darwinMountsubdir = "keybase.devel"
 	case StagingRunMode:
-		return "/keybase.staging", nil
-
+		darwinMountsubdir = "keybase.staging"
 	case ProductionRunMode:
-		return "/keybase", nil
-
+		darwinMountsubdir = "keybase"
 	default:
 		return "", fmt.Errorf("Invalid run mode: %s", runMode)
 	}
+
+	return e.GetString(
+		func() string { return e.cmd.GetMountDir() },
+		func() string { return os.Getenv("KEYBASE_MOUNTDIR") },
+		func() string { return e.GetConfig().GetMountDir() },
+		func() string {
+			switch runtime.GOOS {
+			case "darwin":
+				return filepath.Join(
+					string(filepath.Separator), darwinMountsubdir)
+			case "linux":
+				return filepath.Join(e.GetDataDir(), "fs")
+			default:
+				return ""
+			}
+		},
+	), nil
 }
 
 func NewEnv(cmd CommandLine, config ConfigReader, getLog LogGetter) *Env {
