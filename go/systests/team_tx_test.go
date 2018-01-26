@@ -277,8 +277,8 @@ func TestTeamTxMultipleMembers(t *testing.T) {
 }
 
 func TestTeamTxSubteamAdmins(t *testing.T) {
-	// Test if AddMemberTx properly keys implicit admins to implicit
-	// teams.
+	// Test if AddMemberTx properly keys implicit admins to teams
+	// through the use of 'implicit_team_keys'.
 
 	tt := newTeamTester(t)
 	defer tt.cleanup()

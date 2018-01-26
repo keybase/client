@@ -15,7 +15,7 @@ import (
 
 type AddMemberTx struct {
 	team     *Team
-	payloads []interface{}
+	payloads []interface{} // *SCTeamInvites or *keybase1.TeamChangeReq
 }
 
 func CreateAddMemberTx(t *Team) *AddMemberTx {
@@ -78,11 +78,10 @@ func (tx *AddMemberTx) CancelInvite(id keybase1.TeamInviteID) error {
 
 func appendToInviteList(inv SCTeamInvite, list *[]SCTeamInvite) *[]SCTeamInvite {
 	var tmp []SCTeamInvite
-	if list == nil {
-		tmp = []SCTeamInvite{inv}
-	} else {
-		tmp = append(*list, inv)
+	if list != nil {
+		tmp = *list
 	}
+	tmp = append(tmp, inv)
 	return &tmp
 }
 
@@ -452,6 +451,8 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 			linkType = libkb.LinkTypeChangeMembership
 		case *SCTeamInvites:
 			linkType = libkb.LinkTypeInvite
+		default:
+			return fmt.Errorf("Unhandled case in AddMemberTx.Post, unknown type: %T", tx.payloads[i])
 		}
 
 		sigMultiItem, linkID, err := team.sigTeamItemRaw(ctx, section, linkType,
