@@ -9,7 +9,7 @@ import {branch} from 'recompose'
 
 import type {MenuItem} from '../common-adapters/popup-menu.js'
 
-type Props = {
+export type Props = {
   deviceIDs: Array<Types.DeviceID>,
   menuItems: Array<MenuItem | 'Divider' | null>,
   onToggleShowRevoked: () => void,
