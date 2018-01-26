@@ -31,27 +31,39 @@ const identityMatchers = [
     service: "keybase",
     getUsername: function(loc) { return loc.pathname.split('/')[1]; },
     locationMatches: new RegExp('\\.keybase\\.(?:io|pub)/([\\w]+)[/]?'),
-    originAndPathMatches: '\\.keybase\\.(io|pub)/[\\w]+[/]?',
+    originAndPathMatches: 'keybase\\.(io|pub)/[\\w]+[/]?',
+    hostEquals: ['keybase.io', 'keybase.pub'],
     css: ['.profile-heading']
+  },
+  {
+    service: "keybasepub",
+    getUsername: function(loc) { return loc.pathname.split('/')[1]; },
+    locationMatches: new RegExp('\\.keybase\\.pub/([\\w]+)[/]?'),
+    originAndPathMatches: 'keybase\\.pub/[\\w]+[/]?',
+    hostEquals: ['keybase.pub'],
+    css: ['.face-card']
   },
   {
     service: "reddit",
     getUsername: function(loc) { return loc.pathname.split('/')[2]; },
-    locationMatches: new RegExp('\\.reddit.com/user/([\\w-]+)[/]?$'),
-    originAndPathMatches: '\\.reddit.com/user/[\\w-]+[/]?$',
+    locationMatches: new RegExp('\\.reddit\\.com/user/([\\w-]+)[/]?$'),
+    originAndPathMatches: '\\.reddit\\.com/user/[\\w-]+[/]?$',
+    hostEquals: ['www.reddit.com', 'reddit.com']
   },
   {
     service: "twitter",
     getUsername: function(loc) { return loc.pathname.split('/')[1]; },
     locationMatches: new RegExp('\\.twitter\\.com/([\\w]+)[/]?$'),
-    originAndPathMatches: '\\.twitter\\.com/[\\w]+[/]?$',
+    originAndPathMatches: 'twitter\\.com/[\\w]+[/]?$',
+    hostEquals: ['twitter.com'],
     css: ['body.ProfilePage']
   },
   {
     service: "github",
     getUsername: function(loc) { return loc.pathname.split('/')[1]; },
     locationMatches: new RegExp('\\.github\\.com/([\\w\-]+)[/]?$'),
-    originAndPathMatches: '\\.github\\.com/[\\w\-]+[/]?$',
+    originAndPathMatches: 'github\\.com/[\\w\-]+[/]?$',
+    hostEquals: ['github.com'],
     css: ['body.page-profile']
   },
   {
@@ -59,6 +71,7 @@ const identityMatchers = [
     getUsername: function(loc) { return loc.pathname.split('/')[1]; },
     locationMatches: new RegExp('\\.facebook\\.com/([\\w\\.]+)[/]?$'),
     originAndPathMatches: '\\.facebook\\.com/[\\w\\.]+[/]?$',
+    hostEquals: ['facebook.com', 'www.facebook.com'],
     css: ['body.timelineLayout']
   },
   {
@@ -66,6 +79,7 @@ const identityMatchers = [
     getUsername: function(loc) { return parseLocationQuery(loc.search)["id"]; },
     locationMatches: new RegExp('news\\.ycombinator\\.com/user'),
     originAndPathMatches: 'news\\.ycombinator\\.com/user',
+    hostEquals: ['news.ycombinator.com'],
     css: ['html[op="user"]']
   }
 ];
@@ -80,7 +94,9 @@ function matchService(loc, doc, forceService) {
   for (const m of identityMatchers) {
     if (forceService !== undefined && forceService !== m.service) continue;
 
-    const matched = url.match(m.locationMatches);
+    const matched = m.hostEquals.some(function(hostName) {
+      return hostName === loc.hostname
+    }) && url.match(m.locationMatches);
     if (!matched) continue;
 
     const username = safeHTML(m.getUsername(loc));
@@ -136,6 +152,8 @@ User.prototype.href = function(service) {
   switch (service) {
     case "keybase":
       return `https://keybase.io/${name}`;
+    case "keybasepub":
+      return `https://keybase.pub/${name}`;
     case "reddit":
       return `https://www.reddit.com/user/${name}`;
     case "twitter":

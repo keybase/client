@@ -42,7 +42,14 @@ const profileInject = {
       wrapper.insertBefore(button, lastButton);
     }
   },
+  "keybasepub": function keybasepubInjectProfile(user) {
+    // keybase.pub
+    const container = document.querySelector(".face-card .username-cell");
+    if (!container) return;
 
+    const button = renderProfileChatButton(user);
+    container.insertBefore(button, container.firstChild);
+  },
   "facebook": function facebookInjectProfile(user) {
     const container = document.querySelector("#fbProfileCover .actions");
     if (!container) return;
