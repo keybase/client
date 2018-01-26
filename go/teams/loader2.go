@@ -206,24 +206,45 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 		return &signer, nil
 	}
 
-	var isReaderOrAbove bool
-	if !link.outerLink.LinkType.RequiresAdminPermission() {
-		err = l.verifyWriterOrReaderPermissions(ctx, state, link, signerUV)
-		isReaderOrAbove = (err == nil)
-	}
-	if link.outerLink.LinkType.RequiresAdminPermission() || !isReaderOrAbove {
+	minRole := link.outerLink.LinkType.RequiresAtLeastRole()
+	// Note: If minRole is OWNER it will be treated as ADMIN here (weaker check).
+	l.G().Log.CDebugf(ctx, "verifyLink minRole:%v", minRole)
+
+	switch minRole {
+	case keybase1.TeamRole_NONE:
+		// Anyone can make this link. These didn't exist at the time.
+		return &signer, nil
+	case keybase1.TeamRole_READER:
+		err = l.verifyExplicitPermission(ctx, state, link, signerUV, keybase1.TeamRole_READER)
+		if err == nil {
+			return &signer, err
+		}
+		l.G().Log.CDebugf(ctx, "verifyLink: not a %v: %v", keybase1.TeamRole_READER, err)
+		// Fall through to a higher role check
+		fallthrough
+	case keybase1.TeamRole_WRITER:
+		err = l.verifyExplicitPermission(ctx, state, link, signerUV, keybase1.TeamRole_WRITER)
+		if err == nil {
+			return &signer, err
+		}
+		l.G().Log.CDebugf(ctx, "verifyLink: not a %v: %v", keybase1.TeamRole_WRITER, err)
+		// Fall through to a higher role check
+		fallthrough
+	case keybase1.TeamRole_OWNER, keybase1.TeamRole_ADMIN:
 		// Check for admin permissions if they are not an on-chain reader/writer
 		// because they might be an implicit admin.
 		// Reassigns signer, might set implicitAdmin.
 		signer, err = l.verifyAdminPermissions(ctx, state, me, link, readSubteamID, signerUV, proofSet)
+		l.G().Log.CDebugf(ctx, "verifyLink: not a %v: %v", minRole, err)
+		return &signer, err
+	default:
+		return nil, fmt.Errorf("unrecognized role %v required for link", minRole)
 	}
-	return &signer, err
 }
 
-func (l *TeamLoader) verifyWriterOrReaderPermissions(ctx context.Context,
-	state *keybase1.TeamData, link *chainLinkUnpacked, uv keybase1.UserVersion) error {
-
-	return (TeamSigChainState{state.Chain}).AssertWasReaderAt(uv, link.SigChainLocation())
+func (l *TeamLoader) verifyExplicitPermission(ctx context.Context, state *keybase1.TeamData,
+	link *chainLinkUnpacked, uv keybase1.UserVersion, atOrAbove keybase1.TeamRole) error {
+	return (TeamSigChainState{state.Chain}).AssertWasRoleOrAboveAt(uv, atOrAbove, link.SigChainLocation())
 }
 
 // Does not return a full TeamData because it might get a subteam-reader version.
@@ -274,6 +295,8 @@ func (l *TeamLoader) addProofsForAdminPermission(ctx context.Context, t keybase1
 	}
 }
 
+// Verify that a user has admin permissions.
+// Because this uses the proofSet, if it is called may return success and fail later.
 func (l *TeamLoader) verifyAdminPermissions(ctx context.Context,
 	state *keybase1.TeamData, me keybase1.UserVersion, link *chainLinkUnpacked, readSubteamID keybase1.TeamID,
 	uv keybase1.UserVersion, proofSet *proofSetT) (signerX, error) {
