@@ -504,6 +504,7 @@ type TeamData struct {
 	ReaderKeyMasks  map[TeamApplication]map[PerTeamKeyGeneration]MaskB64 `codec:"readerKeyMasks" json:"readerKeyMasks"`
 	LatestSeqnoHint Seqno                                                `codec:"latestSeqnoHint" json:"latestSeqnoHint"`
 	CachedAt        Time                                                 `codec:"cachedAt" json:"cachedAt"`
+	TlfCryptKeys    map[TeamApplication][]CryptKey                       `codec:"tlfCryptKeys" json:"tlfCryptKeys"`
 }
 
 func (o TeamData) DeepCopy() TeamData {
@@ -548,6 +549,28 @@ func (o TeamData) DeepCopy() TeamData {
 		})(o.ReaderKeyMasks),
 		LatestSeqnoHint: o.LatestSeqnoHint.DeepCopy(),
 		CachedAt:        o.CachedAt.DeepCopy(),
+		TlfCryptKeys: (func(x map[TeamApplication][]CryptKey) map[TeamApplication][]CryptKey {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[TeamApplication][]CryptKey)
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := (func(x []CryptKey) []CryptKey {
+					if x == nil {
+						return nil
+					}
+					var ret []CryptKey
+					for _, v := range x {
+						vCopy := v.DeepCopy()
+						ret = append(ret, vCopy)
+					}
+					return ret
+				})(v)
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.TlfCryptKeys),
 	}
 }
 
@@ -727,27 +750,90 @@ func (o AnnotatedTeamInvite) DeepCopy() AnnotatedTeamInvite {
 	}
 }
 
+type TeamEncryptedKBFSKeyset struct {
+	V int    `codec:"v" json:"v"`
+	E []byte `codec:"e" json:"e"`
+	N []byte `codec:"n" json:"n"`
+}
+
+func (o TeamEncryptedKBFSKeyset) DeepCopy() TeamEncryptedKBFSKeyset {
+	return TeamEncryptedKBFSKeyset{
+		V: o.V,
+		E: (func(x []byte) []byte {
+			if x == nil {
+				return nil
+			}
+			return append([]byte{}, x...)
+		})(o.E),
+		N: (func(x []byte) []byte {
+			if x == nil {
+				return nil
+			}
+			return append([]byte{}, x...)
+		})(o.N),
+	}
+}
+
+type TeamGetLegacyTLFUpgrade struct {
+	EncryptedKeyset  string               `codec:"encryptedKeyset" json:"encrypted_keyset"`
+	TeamGeneration   PerTeamKeyGeneration `codec:"teamGeneration" json:"team_generation"`
+	LegacyGeneration int                  `codec:"legacyGeneration" json:"legacy_generation"`
+	AppType          TeamApplication      `codec:"appType" json:"app_type"`
+}
+
+func (o TeamGetLegacyTLFUpgrade) DeepCopy() TeamGetLegacyTLFUpgrade {
+	return TeamGetLegacyTLFUpgrade{
+		EncryptedKeyset:  o.EncryptedKeyset,
+		TeamGeneration:   o.TeamGeneration.DeepCopy(),
+		LegacyGeneration: o.LegacyGeneration,
+		AppType:          o.AppType.DeepCopy(),
+	}
+}
+
+type TeamEncryptedKBFSKeysetHash string
+
+func (o TeamEncryptedKBFSKeysetHash) DeepCopy() TeamEncryptedKBFSKeysetHash {
+	return o
+}
+
+type TeamLegacyTLFUpgradeChainInfo struct {
+	KeysetHash       TeamEncryptedKBFSKeysetHash `codec:"keysetHash" json:"keysetHash"`
+	TeamGeneration   PerTeamKeyGeneration        `codec:"teamGeneration" json:"teamGeneration"`
+	LegacyGeneration int                         `codec:"legacyGeneration" json:"legacyGeneration"`
+	AppType          TeamApplication             `codec:"appType" json:"appType"`
+}
+
+func (o TeamLegacyTLFUpgradeChainInfo) DeepCopy() TeamLegacyTLFUpgradeChainInfo {
+	return TeamLegacyTLFUpgradeChainInfo{
+		KeysetHash:       o.KeysetHash.DeepCopy(),
+		TeamGeneration:   o.TeamGeneration.DeepCopy(),
+		LegacyGeneration: o.LegacyGeneration,
+		AppType:          o.AppType.DeepCopy(),
+	}
+}
+
 type TeamSigChainState struct {
-	Reader          UserVersion                         `codec:"reader" json:"reader"`
-	Id              TeamID                              `codec:"id" json:"id"`
-	Implicit        bool                                `codec:"implicit" json:"implicit"`
-	Public          bool                                `codec:"public" json:"public"`
-	RootAncestor    TeamName                            `codec:"rootAncestor" json:"rootAncestor"`
-	NameDepth       int                                 `codec:"nameDepth" json:"nameDepth"`
-	NameLog         []TeamNameLogPoint                  `codec:"nameLog" json:"nameLog"`
-	LastSeqno       Seqno                               `codec:"lastSeqno" json:"lastSeqno"`
-	LastLinkID      LinkID                              `codec:"lastLinkID" json:"lastLinkID"`
-	ParentID        *TeamID                             `codec:"parentID,omitempty" json:"parentID,omitempty"`
-	UserLog         map[UserVersion][]UserLogPoint      `codec:"userLog" json:"userLog"`
-	SubteamLog      map[TeamID][]SubteamLogPoint        `codec:"subteamLog" json:"subteamLog"`
-	PerTeamKeys     map[PerTeamKeyGeneration]PerTeamKey `codec:"perTeamKeys" json:"perTeamKeys"`
-	LinkIDs         map[Seqno]LinkID                    `codec:"linkIDs" json:"linkIDs"`
-	StubbedLinks    map[Seqno]bool                      `codec:"stubbedLinks" json:"stubbedLinks"`
-	ActiveInvites   map[TeamInviteID]TeamInvite         `codec:"activeInvites" json:"activeInvites"`
-	ObsoleteInvites map[TeamInviteID]TeamInvite         `codec:"obsoleteInvites" json:"obsoleteInvites"`
-	Open            bool                                `codec:"open" json:"open"`
-	OpenTeamJoinAs  TeamRole                            `codec:"openTeamJoinAs" json:"openTeamJoinAs"`
-	TlfID           TLFID                               `codec:"tlfID" json:"tlfID"`
+	Reader           UserVersion                                       `codec:"reader" json:"reader"`
+	Id               TeamID                                            `codec:"id" json:"id"`
+	Implicit         bool                                              `codec:"implicit" json:"implicit"`
+	Public           bool                                              `codec:"public" json:"public"`
+	RootAncestor     TeamName                                          `codec:"rootAncestor" json:"rootAncestor"`
+	NameDepth        int                                               `codec:"nameDepth" json:"nameDepth"`
+	NameLog          []TeamNameLogPoint                                `codec:"nameLog" json:"nameLog"`
+	LastSeqno        Seqno                                             `codec:"lastSeqno" json:"lastSeqno"`
+	LastLinkID       LinkID                                            `codec:"lastLinkID" json:"lastLinkID"`
+	ParentID         *TeamID                                           `codec:"parentID,omitempty" json:"parentID,omitempty"`
+	UserLog          map[UserVersion][]UserLogPoint                    `codec:"userLog" json:"userLog"`
+	SubteamLog       map[TeamID][]SubteamLogPoint                      `codec:"subteamLog" json:"subteamLog"`
+	PerTeamKeys      map[PerTeamKeyGeneration]PerTeamKey               `codec:"perTeamKeys" json:"perTeamKeys"`
+	LinkIDs          map[Seqno]LinkID                                  `codec:"linkIDs" json:"linkIDs"`
+	StubbedLinks     map[Seqno]bool                                    `codec:"stubbedLinks" json:"stubbedLinks"`
+	ActiveInvites    map[TeamInviteID]TeamInvite                       `codec:"activeInvites" json:"activeInvites"`
+	ObsoleteInvites  map[TeamInviteID]TeamInvite                       `codec:"obsoleteInvites" json:"obsoleteInvites"`
+	Open             bool                                              `codec:"open" json:"open"`
+	OpenTeamJoinAs   TeamRole                                          `codec:"openTeamJoinAs" json:"openTeamJoinAs"`
+	TlfID            TLFID                                             `codec:"tlfID" json:"tlfID"`
+	TlfLegacyUpgrade map[TeamApplication]TeamLegacyTLFUpgradeChainInfo `codec:"tlfLegacyUpgrade" json:"tlfLegacyUpgrade"`
 }
 
 func (o TeamSigChainState) DeepCopy() TeamSigChainState {
@@ -885,6 +971,18 @@ func (o TeamSigChainState) DeepCopy() TeamSigChainState {
 		Open:           o.Open,
 		OpenTeamJoinAs: o.OpenTeamJoinAs.DeepCopy(),
 		TlfID:          o.TlfID.DeepCopy(),
+		TlfLegacyUpgrade: (func(x map[TeamApplication]TeamLegacyTLFUpgradeChainInfo) map[TeamApplication]TeamLegacyTLFUpgradeChainInfo {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[TeamApplication]TeamLegacyTLFUpgradeChainInfo)
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.TlfLegacyUpgrade),
 	}
 }
 
@@ -1843,16 +1941,16 @@ func (o TeamDebugRes) DeepCopy() TeamDebugRes {
 }
 
 type TeamCreateArg struct {
-	SessionID            int    `codec:"sessionID" json:"sessionID"`
-	Name                 string `codec:"name" json:"name"`
-	SendChatNotification bool   `codec:"sendChatNotification" json:"sendChatNotification"`
+	SessionID   int    `codec:"sessionID" json:"sessionID"`
+	Name        string `codec:"name" json:"name"`
+	JoinSubteam bool   `codec:"joinSubteam" json:"joinSubteam"`
 }
 
 type TeamCreateWithSettingsArg struct {
-	SessionID            int          `codec:"sessionID" json:"sessionID"`
-	Name                 string       `codec:"name" json:"name"`
-	SendChatNotification bool         `codec:"sendChatNotification" json:"sendChatNotification"`
-	Settings             TeamSettings `codec:"settings" json:"settings"`
+	SessionID   int          `codec:"sessionID" json:"sessionID"`
+	Name        string       `codec:"name" json:"name"`
+	JoinSubteam bool         `codec:"joinSubteam" json:"joinSubteam"`
+	Settings    TeamSettings `codec:"settings" json:"settings"`
 }
 
 type TeamGetArg struct {

@@ -1,22 +1,12 @@
 // @flow
 import * as React from 'react'
-import {
-  Avatar,
-  Box,
-  Button,
-  ButtonBar,
-  Checkbox,
-  ClickableBox,
-  Divider,
-  HeaderHoc,
-  Icon,
-  List,
-  ScrollView,
-  Text,
-} from '../../../common-adapters'
+import {Box, Button, Divider, HeaderHoc, List, ScrollView, Text} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
+import {SmallTeamHeader, BigTeamHeader} from './header'
 import Notifications from './notifications/container'
 import Participants, {Participant} from './participants'
+import {ManageTeam} from './manage-team'
+import {TurnIntoTeam} from './turn-into-team'
 
 const border = `1px solid ${globalColors.black_05}`
 const scrollViewStyle = {
@@ -35,38 +25,6 @@ const contentContainerStyle = {
   alignItems: 'stretch',
   paddingBottom: globalMargins.medium,
 }
-
-type MuteRowProps = {
-  muted: boolean,
-  onMute: (muted: boolean) => void,
-  label: string,
-}
-
-const MuteRow = (props: MuteRowProps) => (
-  <Box
-    style={{
-      ...globalStyles.flexBoxRow,
-      alignItems: 'center',
-      marginBottom: globalMargins.xtiny,
-      marginLeft: globalMargins.small,
-    }}
-  >
-    <Checkbox
-      checked={props.muted}
-      disabled={props.onMute == null}
-      onCheck={props.onMute}
-      label={props.label}
-    />
-    <Icon
-      type="iconfont-shh"
-      style={{
-        color: globalColors.black_20,
-        marginLeft: globalMargins.xtiny,
-        ...(isMobile ? {fontSize: 24} : {}),
-      }}
-    />
-  </Box>
-)
 
 type infoPanelProps = {
   admin: boolean,
@@ -94,26 +52,9 @@ const _ConversationInfoPanel = (props: ConversationInfoPanelProps) => (
 
     <Divider style={{marginBottom: 20, marginTop: 10}} />
 
-    <ButtonBar>
-      <Button type="Primary" small={true} label="Turn into team" onClick={props.onShowNewTeamDialog} />
-    </ButtonBar>
-
-    <Text
-      style={{
-        alignSelf: 'center',
-        marginLeft: globalMargins.small,
-        marginRight: globalMargins.small,
-        marginTop: globalMargins.tiny,
-        textAlign: 'center',
-      }}
-      type="BodySmall"
-    >
-      You'll be able to add and delete members as you wish.
-    </Text>
+    <TurnIntoTeam onClick={props.onShowNewTeamDialog} />
 
     <Divider style={styleDivider} />
-
-    <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute entire conversation" />
 
     <Notifications />
 
@@ -148,29 +89,13 @@ type SmallTeamInfoPanelProps = infoPanelProps & {
 
 const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
   <ScrollView style={scrollViewStyle} contentContainerStyle={contentContainerStyle}>
-    <ClickableBox
-      style={{
-        ...globalStyles.flexBoxRow,
-        alignItems: 'center',
-        marginLeft: globalMargins.small,
-        marginTop: globalMargins.small,
-      }}
+    <SmallTeamHeader
+      teamname={props.teamname}
+      participantCount={props.participants.length}
       onClick={props.onViewTeam}
-    >
-      <Avatar size={isMobile ? 48 : 32} teamname={props.teamname} isTeam={true} />
-      <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: globalMargins.small}}>
-        <Text type="BodySemibold">{props.teamname}</Text>
-        <Box style={globalStyles.flexBoxRow}>
-          <Text type="BodySmall">
-            {props.participants.length.toString() + ' member' + (props.participants.length !== 1 ? 's' : '')}
-          </Text>
-        </Box>
-      </Box>
-    </ClickableBox>
+    />
 
     <Divider style={{marginBottom: 20, marginTop: 20}} />
-
-    <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute all notifications" />
 
     <Notifications />
     {/* <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'flex-end'}}>
@@ -183,16 +108,14 @@ const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
       </ClickableBox>
     </Box> */}
     <Divider style={styleDivider} />
-    <Box style={{...globalStyles.flexBoxRow, marginRight: globalMargins.small}}>
-      <Text style={{flex: 1, paddingLeft: globalMargins.small}} type="BodySmallSemibold">
-        In this team ({props.participants.length.toString()})
-      </Text>
-      {props.admin && (
-        <Text type="BodySmallPrimaryLink" onClick={props.onViewTeam}>
-          Manage
-        </Text>
-      )}
-    </Box>
+
+    <ManageTeam
+      canManage={props.admin}
+      label="In this team"
+      participantCount={props.participants.length}
+      onClick={props.onViewTeam}
+    />
+
     <Participants participants={props.participants} onShowProfile={props.onShowProfile} />
   </ScrollView>
 )
@@ -231,24 +154,15 @@ const _renderBigTeamRow = (i: number, props: BigTeamRow) => {
     case 'header':
       return (
         <Box key={props.key} style={{...globalStyles.flexBoxColumn, alignItems: 'stretch'}}>
-          <Text style={{alignSelf: 'center', marginTop: globalMargins.medium}} type="BodyBig">
-            #{props.channelname}
-          </Text>
-
-          <ClickableBox
-            style={{...globalStyles.flexBoxRow, alignSelf: 'center', alignItems: 'center'}}
+          <BigTeamHeader
+            channelname={props.channelname}
+            teamname={props.teamname}
             onClick={props.onViewTeam}
-          >
-            <Avatar teamname={props.teamname} size={12} />
-            <Text type="BodySmallSemibold" style={{marginLeft: globalMargins.xtiny}}>
-              {props.teamname}
-            </Text>
-          </ClickableBox>
+          />
 
           {!props.isPreview && (
             <Box>
               <Divider style={styleDivider} />
-              <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute entire channel" />
               <Notifications />
             </Box>
           )}
@@ -277,17 +191,13 @@ const _renderBigTeamRow = (i: number, props: BigTeamRow) => {
           )}
 
           <Divider style={styleDivider} />
-          <Box style={{...globalStyles.flexBoxRow, marginRight: globalMargins.small}}>
-            <Text style={{flex: 1, paddingLeft: globalMargins.small}} type="BodySmallSemibold">
-              In this channel ({props.participants.length.toString()})
-            </Text>
-            {props.admin &&
-              props.channelname === 'general' && (
-                <Text type="BodySmallPrimaryLink" onClick={props.onViewTeam}>
-                  Manage
-                </Text>
-              )}
-          </Box>
+
+          <ManageTeam
+            canManage={props.admin && props.channelname === 'general'}
+            label="In this channel"
+            participantCount={props.participants.length}
+            onClick={props.onViewTeam}
+          />
         </Box>
       )
     case 'participant':
@@ -346,4 +256,4 @@ const styleDivider = {
   marginTop: globalMargins.small,
 }
 
-export {ConversationInfoPanel, SmallTeamInfoPanel, BigTeamInfoPanel, MuteRow}
+export {ConversationInfoPanel, SmallTeamInfoPanel, BigTeamInfoPanel}

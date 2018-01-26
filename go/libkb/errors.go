@@ -1878,7 +1878,7 @@ type ChatClientError struct {
 }
 
 func (e ChatClientError) Error() string {
-	return fmt.Sprintf("error communicating with chat server: %s", e.Msg)
+	return fmt.Sprintf("error from chat server: %s", e.Msg)
 }
 
 //=============================================================================

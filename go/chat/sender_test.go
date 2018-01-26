@@ -100,15 +100,20 @@ func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActi
 }
 
 func newConvTriple(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext, username string) chat1.ConversationIDTriple {
-	nameInfo, err := CtxKeyFinder(ctx, tc.Context()).Find(ctx, username,
-		chat1.ConversationMembersType_KBFS, false)
+	return newConvTripleWithMembersType(ctx, t, tc, username, chat1.ConversationMembersType_KBFS)
+}
+
+func newConvTripleWithMembersType(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext,
+	username string, membersType chat1.ConversationMembersType) chat1.ConversationIDTriple {
+	nameInfo, err := CtxKeyFinder(ctx, tc.Context()).Find(ctx, username, membersType, false)
+	require.NoError(t, err)
+	topicID, err := utils.NewChatTopicID()
 	require.NoError(t, err)
 	trip := chat1.ConversationIDTriple{
 		Tlfid:     nameInfo.ID,
 		TopicType: chat1.TopicType_CHAT,
-		TopicID:   []byte{0},
+		TopicID:   chat1.TopicID(topicID),
 	}
-
 	return trip
 }
 
@@ -836,6 +841,50 @@ func TestAtMentionsEdit(t *testing.T) {
 	require.NoError(t, err)
 	require.Zero(t, len(atMentions))
 	require.Equal(t, chat1.ChannelMention_ALL, chanMention)
+}
+
+func TestKBFSCryptKeysBit(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		ctx, world, ri, _, blockingSender, _ := setupTest(t, 1)
+		defer world.Cleanup()
+
+		u := world.GetUsers()[0]
+		uid := u.User.GetUID().ToBytes()
+		tc := userTc(t, world, u)
+		var name string
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+			name = createTeam(tc.TestContext)
+		default:
+			name = u.Username
+		}
+
+		conv := newBlankConvWithMembersType(ctx, t, tc, uid, ri, blockingSender, name, mt)
+		_, _, _, err := blockingSender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Conv:        conv.Metadata.IdTriple,
+				Sender:      uid,
+				TlfName:     name,
+				MessageType: chat1.MessageType_TEXT,
+			},
+			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: "foo"}),
+		}, 0, nil)
+		require.NoError(t, err)
+		tv, _, err := tc.ChatG.ConvSource.Pull(ctx, conv.GetConvID(), uid, &chat1.GetThreadQuery{
+			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+		}, nil)
+		require.NoError(t, err)
+		require.Len(t, tv.Messages, 1)
+		msg := tv.Messages[0]
+
+		switch mt {
+		case chat1.ConversationMembersType_KBFS:
+			require.NotNil(t, msg.Valid().ClientHeader.KbfsCryptKeysUsed)
+			require.True(t, *msg.Valid().ClientHeader.KbfsCryptKeysUsed)
+		default:
+			require.Nil(t, msg.Valid().ClientHeader.KbfsCryptKeysUsed)
+		}
+	})
 }
 
 func TestPrevPointerAddition(t *testing.T) {

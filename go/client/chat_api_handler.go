@@ -91,7 +91,7 @@ func (c ChatChannel) GetMembersType(e *libkb.Env) chat1.ConversationMembersType 
 		return typ
 	}
 	if e.GetChatMemberType() == "impteam" {
-		return chat1.ConversationMembersType_IMPTEAM
+		return chat1.ConversationMembersType_IMPTEAMNATIVE
 	}
 	return chat1.ConversationMembersType_KBFS
 }

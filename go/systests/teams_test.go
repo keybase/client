@@ -660,12 +660,14 @@ func GetTeamForTestByID(ctx context.Context, g *libkb.GlobalContext, id keybase1
 }
 
 type teamNotifyHandler struct {
-	changeCh chan keybase1.TeamChangedByIDArg
+	changeCh  chan keybase1.TeamChangedByIDArg
+	abandonCh chan keybase1.TeamID
 }
 
 func newTeamNotifyHandler() *teamNotifyHandler {
 	return &teamNotifyHandler{
-		changeCh: make(chan keybase1.TeamChangedByIDArg, 1),
+		changeCh:  make(chan keybase1.TeamChangedByIDArg, 1),
+		abandonCh: make(chan keybase1.TeamID, 10),
 	}
 }
 
@@ -683,6 +685,11 @@ func (n *teamNotifyHandler) TeamDeleted(ctx context.Context, teamID keybase1.Tea
 }
 
 func (n *teamNotifyHandler) TeamExit(ctx context.Context, teamID keybase1.TeamID) error {
+	return nil
+}
+
+func (n *teamNotifyHandler) TeamAbandoned(ctx context.Context, teamID keybase1.TeamID) error {
+	n.abandonCh <- teamID
 	return nil
 }
 

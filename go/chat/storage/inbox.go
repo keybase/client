@@ -737,6 +737,22 @@ func (i *Inbox) getConv(convID chat1.ConversationID, convs []types.RemoteConvers
 	return index, &convs[index]
 }
 
+// Return pointers into `convs` for the convs belonging to `teamID`.
+func (i *Inbox) getConvsForTeam(ctx context.Context, teamID keybase1.TeamID, convs []types.RemoteConversation) (res []*types.RemoteConversation) {
+	tlfID, err := chat1.TeamIDToTLFID(teamID)
+	if err != nil {
+		i.Debug(ctx, "getConvsForTeam: teamIDToTLFID failed: %v", err)
+		return nil
+	}
+	for i, _ := range convs {
+		conv := &convs[i]
+		if conv.Conv.GetMembersType() == chat1.ConversationMembersType_TEAM && conv.Conv.Metadata.IdTriple.Tlfid.Eq(tlfID) {
+			res = append(res, conv)
+		}
+	}
+	return res
+}
+
 func (i *Inbox) promoteWriter(ctx context.Context, sender gregor1.UID, writers []gregor1.UID) []gregor1.UID {
 	res := make([]gregor1.UID, len(writers))
 	copy(res, writers)
@@ -967,6 +983,80 @@ func (i *Inbox) SetAppNotificationSettings(ctx context.Context, vers chat1.Inbox
 	// Write out to disk
 	ibox.InboxVersion = vers
 	return i.writeDiskInbox(ctx, ibox)
+}
+
+func (i *Inbox) SetConvRetention(ctx context.Context, vers chat1.InboxVers,
+	convID chat1.ConversationID, policy chat1.RetentionPolicy) (err Error) {
+	locks.Inbox.Lock()
+	defer locks.Inbox.Unlock()
+	defer i.Trace(ctx, func() error { return err }, "SetConvRetention")()
+	defer i.maybeNukeFn(func() Error { return err }, i.dbKey())
+
+	i.Debug(ctx, "SetConvRetention: vers: %d convID: %s", vers, convID)
+	ibox, err := i.readDiskInbox(ctx)
+	if err != nil {
+		if _, ok := err.(MissError); !ok {
+			return nil
+		}
+		return err
+	}
+	// Check inbox versions, make sure it makes sense (clear otherwise)
+	var cont bool
+	if vers, cont, err = i.handleVersion(ctx, ibox.InboxVersion, vers); !cont {
+		return err
+	}
+
+	// Find conversation
+	_, conv := i.getConv(convID, ibox.Conversations)
+	if conv == nil {
+		i.Debug(ctx, "SetConvRetention: no conversation found: convID: %s, clearing", convID)
+		return i.Clear(ctx)
+	}
+	conv.Conv.ConvRetention = &policy
+	conv.Conv.Metadata.Version = vers.ToConvVers()
+
+	// Write out to disk
+	ibox.InboxVersion = vers
+	return i.writeDiskInbox(ctx, ibox)
+}
+
+// Update any local conversations with this team ID.
+func (i *Inbox) SetTeamRetention(ctx context.Context, vers chat1.InboxVers,
+	teamID keybase1.TeamID, policy chat1.RetentionPolicy) (res []chat1.ConversationID, err Error) {
+	locks.Inbox.Lock()
+	defer locks.Inbox.Unlock()
+	defer i.Trace(ctx, func() error { return err }, "SetTeamRetention")()
+	defer i.maybeNukeFn(func() Error { return err }, i.dbKey())
+
+	i.Debug(ctx, "SetTeamRetention: vers: %d teamID: %s", vers, teamID)
+	ibox, err := i.readDiskInbox(ctx)
+	if err != nil {
+		if _, ok := err.(MissError); !ok {
+			return res, nil
+		}
+		return res, err
+	}
+	// Check inbox versions, make sure it makes sense (clear otherwise)
+	var cont bool
+	if vers, cont, err = i.handleVersion(ctx, ibox.InboxVersion, vers); !cont {
+		return res, err
+	}
+
+	// Update conversations
+	convs := i.getConvsForTeam(ctx, teamID, ibox.Conversations)
+	if len(convs) == 0 {
+		return res, nil
+	}
+	for _, conv := range convs {
+		conv.Conv.TeamRetention = &policy
+		conv.Conv.Metadata.Version = vers.ToConvVers()
+		res = append(res, conv.Conv.GetConvID())
+	}
+
+	// Write out to disk
+	ibox.InboxVersion = vers
+	err = i.writeDiskInbox(ctx, ibox)
+	return res, err
 }
 
 func (i *Inbox) TeamTypeChanged(ctx context.Context, vers chat1.InboxVers,

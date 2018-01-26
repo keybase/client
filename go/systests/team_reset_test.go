@@ -580,9 +580,12 @@ func TestImplicitTeamResetAll(t *testing.T) {
 
 	ann := ctx.installKeybaseForUser("ann", 10)
 	ann.signup()
+	ann.registerForNotifications()
 	divDebug(ctx, "Signed up ann (%s)", ann.username)
+
 	bob := ctx.installKeybaseForUser("bob", 10)
 	bob.signup()
+	bob.registerForNotifications()
 	divDebug(ctx, "Signed up bob (%s)", bob.username)
 
 	displayName := strings.Join([]string{ann.username, bob.username}, ",")
@@ -601,6 +604,8 @@ func TestImplicitTeamResetAll(t *testing.T) {
 
 	ann.loginAfterReset(10)
 	divDebug(ctx, "Ann logged in after reset")
+
+	ann.waitForTeamAbandoned(iteam.ID)
 
 	iteam3 := ann.lookupImplicitTeam(true /*create*/, displayName, false /*isPublic*/)
 	require.NotEqual(t, iteam.ID, iteam3.ID, "lookup after resets should return different team")
@@ -771,4 +776,36 @@ func TestTeamListAfterReset(t *testing.T) {
 		}
 	}
 	require.True(t, found, "we found bob (before he found us)")
+}
+
+func TestTeamAfterDeleteUser(t *testing.T) {
+	t.Skip()
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	ann := ctx.installKeybaseForUser("ann", 10)
+	ann.signup()
+	divDebug(ctx, "Signed up ann (%s, %s)", ann.username, ann.uid())
+	bob := ctx.installKeybaseForUser("bob", 10)
+	bob.signup()
+	divDebug(ctx, "Signed up bob (%s, %s)", bob.username, bob.uid())
+
+	team := ann.createTeam([]*smuUser{bob})
+	divDebug(ctx, "team created (%s)", team.name)
+
+	sendChat(team, ann, "0")
+	divDebug(ctx, "Sent chat '0' (%s via %s)", team.name, ann.username)
+
+	ann.delete()
+	divDebug(ctx, "Deleted ann (%s)", ann.username)
+
+	_, err := bob.teamGet(team)
+	require.NoError(t, err)
+
+	bob.dbNuke()
+
+	_, err = bob.teamGet(team)
+	require.NoError(t, err)
+
+	readChats(team, bob, 1)
 }
