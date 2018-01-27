@@ -17,13 +17,22 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func closeSimpleFS(ctx context.Context, t *testing.T, fs *SimpleFS) {
-	err := fs.config.Shutdown(ctx)
+	// Sync in-memory data to disk before shutting down and flushing
+	// the journal.
+	ctx, err := fs.startOpWrapContext(ctx)
+	require.NoError(t, err)
+	remoteFS, _, err := fs.getFS(ctx, keybase1.NewPathWithKbfs("/private/jdoe"))
+	require.NoError(t, err)
+	err = remoteFS.(*libfs.FS).SyncAll()
+	require.NoError(t, err)
+	err = fs.config.Shutdown(ctx)
 	require.NoError(t, err)
 }
 
@@ -395,9 +404,19 @@ func readRemoteFile(ctx context.Context, t *testing.T, sfs *SimpleFS, path keyba
 	data, err := sfs.SimpleFSRead(ctx, keybase1.SimpleFSReadArg{
 		OpID:   opid,
 		Offset: 0,
+		Size:   de.Size * 2, // Check that reading past the end works.
+	})
+	require.NoError(t, err)
+	require.Len(t, data.Data, de.Size)
+
+	// Starting the read past the end shouldn't matter either.
+	dataPastEnd, err := sfs.SimpleFSRead(ctx, keybase1.SimpleFSReadArg{
+		OpID:   opid,
+		Offset: int64(de.Size),
 		Size:   de.Size,
 	})
 	require.NoError(t, err)
+	require.Len(t, dataPastEnd.Data, 0)
 
 	return data.Data
 }
