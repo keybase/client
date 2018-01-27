@@ -5,8 +5,6 @@ import * as Types from '../constants/types/config'
 import * as Constants from '../constants/config'
 import * as ConfigGen from '../actions/config-gen'
 import * as AppGen from '../actions/app-gen'
-import isEmpty from 'lodash/isEmpty'
-import pickBy from 'lodash/pickBy'
 
 const initialState = Constants.makeState()
 
