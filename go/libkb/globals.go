@@ -403,6 +403,20 @@ func (g *GlobalContext) ConfigureAPI() error {
 }
 
 func (g *GlobalContext) configureMemCachesLocked() {
+	// shutdown any existing ones
+	if g.TrackCache != nil {
+		g.TrackCache.Shutdown()
+	}
+	if g.Identify2Cache != nil {
+		g.Identify2Cache.Shutdown()
+	}
+	if g.LinkCache != nil {
+		g.LinkCache.Shutdown()
+	}
+	if g.CardCache != nil {
+		g.CardCache.Shutdown()
+	}
+
 	g.Resolver.EnableCaching()
 	g.TrackCache = NewTrackCache()
 	g.Identify2Cache = NewIdentify2Cache(g.Env.GetUserCacheMaxAge())
