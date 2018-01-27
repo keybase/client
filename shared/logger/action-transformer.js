@@ -145,7 +145,6 @@ const actionTransformMap: {[key: string]: ActionTransformer<*, *>} = {
   'entity:subtract': entityTransformer,
   _loadAvatarHelper: nullTransform,
   [ChatGen.clearRekey]: nullTransform,
-  [ConfigGen.clearAvatarCache]: nullTransform,
   [ConfigGen.loadAvatars]: nullTransform,
   [ConfigGen.loadTeamAvatars]: nullTransform,
   [ConfigGen.loadedAvatars]: nullTransform,
