@@ -16,7 +16,6 @@ export const bootstrapRetry = 'config:bootstrapRetry'
 export const bootstrapStatusLoaded = 'config:bootstrapStatusLoaded'
 export const bootstrapSuccess = 'config:bootstrapSuccess'
 export const changeKBFSPath = 'config:changeKBFSPath'
-export const clearAvatarCache = 'config:clearAvatarCache'
 export const clearRouteState = 'config:clearRouteState'
 export const configLoaded = 'config:configLoaded'
 export const daemonError = 'config:daemonError'
@@ -53,7 +52,6 @@ export const createBootstrapStatusLoaded = (
 ) => ({error: false, payload, type: bootstrapStatusLoaded})
 export const createBootstrapSuccess = () => ({error: false, payload: undefined, type: bootstrapSuccess})
 export const createChangeKBFSPath = (payload: $ReadOnly<{kbfsPath: string}>) => ({error: false, payload, type: changeKBFSPath})
-export const createClearAvatarCache = () => ({error: false, payload: undefined, type: clearAvatarCache})
 export const createClearRouteState = () => ({error: false, payload: undefined, type: clearRouteState})
 export const createConfigLoaded = (payload: $ReadOnly<{config: RPCTypes.Config}>) => ({error: false, payload, type: configLoaded})
 export const createDaemonError = (payload: $ReadOnly<{daemonError: ?Error}>) => ({error: false, payload, type: daemonError})
@@ -89,7 +87,6 @@ export type BootstrapRetryPayload = More.ReturnType<typeof createBootstrapRetry>
 export type BootstrapStatusLoadedPayload = More.ReturnType<typeof createBootstrapStatusLoaded>
 export type BootstrapSuccessPayload = More.ReturnType<typeof createBootstrapSuccess>
 export type ChangeKBFSPathPayload = More.ReturnType<typeof createChangeKBFSPath>
-export type ClearAvatarCachePayload = More.ReturnType<typeof createClearAvatarCache>
 export type ClearRouteStatePayload = More.ReturnType<typeof createClearRouteState>
 export type ConfigLoadedPayload = More.ReturnType<typeof createConfigLoaded>
 export type DaemonErrorPayload = More.ReturnType<typeof createDaemonError>
@@ -117,7 +114,6 @@ export type Actions =
   | More.ReturnType<typeof createBootstrapStatusLoaded>
   | More.ReturnType<typeof createBootstrapSuccess>
   | More.ReturnType<typeof createChangeKBFSPath>
-  | More.ReturnType<typeof createClearAvatarCache>
   | More.ReturnType<typeof createClearRouteState>
   | More.ReturnType<typeof createConfigLoaded>
   | More.ReturnType<typeof createDaemonError>
