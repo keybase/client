@@ -254,6 +254,13 @@ func Reset() error {
 	return nil
 }
 
+// ForceGC Forces a gc
+func ForceGC() {
+	fmt.Printf("Starting force gc")
+	runtime.GC()
+	fmt.Printf("Done force gc")
+}
+
 // Version returns semantic version string
 func Version() string {
 	return libkb.VersionString()
