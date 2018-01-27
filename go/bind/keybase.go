@@ -256,9 +256,13 @@ func Reset() error {
 
 // ForceGC Forces a gc
 func ForceGC() {
-	fmt.Printf("Starting force gc")
+	fmt.Printf("Flushing global caches\n")
+	kbCtx.FlushCaches()
+	fmt.Printf("Done flushing global caches\n")
+
+	fmt.Printf("Starting force gc\n")
 	runtime.GC()
-	fmt.Printf("Done force gc")
+	fmt.Printf("Done force gc\n")
 }
 
 // Version returns semantic version string
