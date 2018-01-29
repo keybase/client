@@ -54,7 +54,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
     ),
   onToggleChatEnabled: () =>
     dispatchProps._setDisableChat(!stateProps.chatDisabled, stateProps.repoID, stateProps.teamname),
-  onToggleExpand: () => ownProps.onToggleExpand(stateProps.id),
+  onToggleExpand: () => ownProps.onToggleExpand(stateProps.repoID),
 })
 
 const ConnectedRow: Class<

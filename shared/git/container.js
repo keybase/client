@@ -21,8 +21,8 @@ const getRepos = createSelector([Constants.getIdToGit], (git: ?I.Map<string, Typ
   const [personals, teams] = partition(git.valueSeq().toArray(), g => !g.teamname)
 
   return {
-    personals: sortRepos(personals).map(g => g.id),
-    teams: sortRepos(teams).map(g => g.id),
+    personals: sortRepos(personals).map(g => g.repoID),
+    teams: sortRepos(teams).map(g => g.repoID),
   }
 })
 
