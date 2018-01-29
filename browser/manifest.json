@@ -33,8 +33,7 @@
         "https://www.facebook.com/*",
         "https://github.com/*",
         "https://news.ycombinator.com/user*",
-        "https://keybase.io/*",
-        "https://keybase.pub/*"
+        "https://keybase.io/*"
       ],
       "js": [
         "js/bundle.js",
