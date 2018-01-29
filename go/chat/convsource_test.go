@@ -355,9 +355,9 @@ func (f failingTlf) CompleteAndCanonicalizePrivateTlfName(context.Context, strin
 	return keybase1.CanonicalTLFNameAndIDWithBreaks{}, nil
 }
 
-func (f failingTlf) Lookup(context.Context, string, keybase1.TLFVisibility) (types.NameInfo, error) {
+func (f failingTlf) Lookup(context.Context, string, keybase1.TLFVisibility) (*types.NameInfo, error) {
 	require.Fail(f.t, "Lookup call")
-	return types.NameInfo{}, nil
+	return nil, nil
 }
 
 type failingUpak struct {

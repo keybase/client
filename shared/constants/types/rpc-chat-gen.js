@@ -357,6 +357,10 @@ export const localUpdateTypingRpcChannelMap = (configKeys: Array<string>, reques
 
 export const localUpdateTypingRpcPromise = (request: LocalUpdateTypingRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.updateTyping', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
+export const localUpgradeKBFSConversationToImpteamRpcChannelMap = (configKeys: Array<string>, request: LocalUpgradeKBFSConversationToImpteamRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.upgradeKBFSConversationToImpteam', request)
+
+export const localUpgradeKBFSConversationToImpteamRpcPromise = (request: LocalUpgradeKBFSConversationToImpteamRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.upgradeKBFSConversationToImpteam', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+
 export const notifyChatChatActivityType = {
   reserved: 0,
   incomingMessage: 1,
@@ -901,6 +905,8 @@ export type LocalSource = $ReadOnly<{source: Keybase1.Stream, filename: String, 
 export type LocalUnboxMobilePushNotificationRpcParam = $ReadOnly<{payload: String, convID: String, membersType: ConversationMembersType, pushIDs?: ?Array<String>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LocalUpdateTypingRpcParam = $ReadOnly<{conversationID: ConversationID, typing: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
+export type LocalUpgradeKBFSConversationToImpteamRpcParam = $ReadOnly<{convID: ConversationID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type MakePreviewRes = $ReadOnly<{mimeType: String, filename?: ?String, metadata?: ?AssetMetadata, baseMetadata?: ?AssetMetadata}>
 

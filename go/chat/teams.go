@@ -90,7 +90,6 @@ func teamToNameInfo(ctx context.Context, team *teams.Team, vis keybase1.TLFVisib
 	} else {
 		res.CanonicalName = team.Name().String()
 	}
-	res.CanonicalName = team.Name().String()
 
 	if err := addNameInfoTeamKeys(ctx, res, team, vis); err != nil {
 		return res, err
