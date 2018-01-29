@@ -55,7 +55,6 @@ const actionTransformMap: {[key: string]: ActionTransformer<*, *>} = {
   'entity:replace': entityTransformer,
   'entity:subtract': entityTransformer,
   _loadAvatarHelper: nullTransform,
-  [ConfigGen.clearAvatarCache]: nullTransform,
   [ConfigGen.loadAvatars]: nullTransform,
   [ConfigGen.loadTeamAvatars]: nullTransform,
   [ConfigGen.loadedAvatars]: nullTransform,
