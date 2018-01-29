@@ -52,7 +52,7 @@ func (ErrKeybasePagesRecordTooMany) Error() string {
 // locate the root of these Keybase pages. We have 2 records since some
 // registrars don't support underscores in the middle of a domain. This order
 // must remain fixed since it reflects the order the strings are evaluated in.
-var kbpRecordPrefixes []string = []string{"_keybase_pages.", "_keybasepages."}
+var kbpRecordPrefixes = []string{"_keybase_pages.", "_keybasepages."}
 
 // LoadRoot loads the root path configured for domain from DNS, with following
 // steps:
