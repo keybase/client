@@ -16,7 +16,7 @@ import (
 type KeyFinder interface {
 	Find(ctx context.Context, name string, membersType chat1.ConversationMembersType, public bool) (*types.NameInfo, error)
 	FindForEncryption(ctx context.Context, tlfName string, teamID chat1.TLFID, membersType chat1.ConversationMembersType, public bool) (*types.NameInfo, error)
-	FindForDecryption(ctx context.Context, tlfName string, teamID chat1.TLFID, membersType chat1.ConversationMembersType, public bool, keyGeneration int) (*types.NameInfo, error)
+	FindForDecryption(ctx context.Context, tlfName string, teamID chat1.TLFID, membersType chat1.ConversationMembersType, public bool, keyGeneration int, kbfsEncrypted bool) (*types.NameInfo, error)
 	SetNameInfoSourceOverride(types.NameInfoSource)
 }
 
@@ -122,7 +122,7 @@ func (k *KeyFinderImpl) FindForEncryption(ctx context.Context,
 func (k *KeyFinderImpl) FindForDecryption(ctx context.Context,
 	tlfName string, teamID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
-	keyGeneration int) (res *types.NameInfo, err error) {
+	keyGeneration int, kbfsEncrypted bool) (res *types.NameInfo, err error) {
 
 	switch membersType {
 	case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAMNATIVE,
@@ -130,7 +130,14 @@ func (k *KeyFinderImpl) FindForDecryption(ctx context.Context,
 		var refreshers keybase1.TeamRefreshers
 		if !public {
 			// Only need keys for private teams.
-			refreshers.NeedKeyGeneration = keybase1.PerTeamKeyGeneration(keyGeneration)
+			if !kbfsEncrypted {
+				refreshers.NeedKeyGeneration = keybase1.PerTeamKeyGeneration(keyGeneration)
+			} else {
+				refreshers.NeedKBFSKeyGeneration = keybase1.TeamKBFSKeyRefresher{
+					Generation: keyGeneration,
+					AppType:    keybase1.TeamApplication_CHAT,
+				}
+			}
 		}
 		team, err := LoadTeam(ctx, k.G().ExternalG(), teamID, membersType, public,
 			func(teamID keybase1.TeamID) keybase1.LoadTeamArg {

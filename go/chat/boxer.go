@@ -184,7 +184,7 @@ func (p *publicUnboxConversationInfo) GetFinalizeInfo() *chat1.ConversationFinal
 
 func (b *Boxer) getEffectiveMembersType(ctx context.Context, boxed chat1.MessageBoxed,
 	convMembersType chat1.ConversationMembersType) chat1.ConversationMembersType {
-	if boxed.ClientHeader.KbfsCryptKeysUsed != nil && *boxed.ClientHeader.KbfsCryptKeysUsed {
+	if boxed.KBFSEncrypted() {
 		if convMembersType != chat1.ConversationMembersType_KBFS {
 			b.Debug(ctx, "getEffectiveMembersType: overruling %v conv with KBFS keys", convMembersType)
 		}
@@ -220,7 +220,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 	tlfName := boxed.ClientHeader.TLFNameExpanded(conv.GetFinalizeInfo())
 	nameInfo, err := CtxKeyFinder(ctx, b.G()).FindForDecryption(ctx,
 		tlfName, boxed.ClientHeader.Conv.Tlfid, conv.GetMembersType(),
-		boxed.ClientHeader.TlfPublic, boxed.KeyGeneration)
+		boxed.ClientHeader.TlfPublic, boxed.KeyGeneration, boxed.KBFSEncrypted())
 	if err != nil {
 		// Check to see if this is a permanent error from the server
 		if b.detectKBFSPermanentServerError(err) {
