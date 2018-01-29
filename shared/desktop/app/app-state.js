@@ -115,7 +115,8 @@ export default class AppState {
   }
 
   checkOpenAtLogin() {
-    if (!this.state.openAtLogin) {
+    const isWindows = process.platform === 'win32'
+    if (!this.state.openAtLogin && !isWindows) {
       console.log('Skip setting login item due to user pref')
       return
     }
@@ -134,6 +135,7 @@ export default class AppState {
       return
     }
     const isDarwin = process.platform === 'darwin'
+    const isWindows = process.platform === 'win32'
     // Electron has a bug where setting this to false fails!
     // https://github.com/electron/electron/issues/10880
     if (isDarwin) {
@@ -152,20 +154,20 @@ export default class AppState {
       } catch (e) {
         console.log('Error setting apple startup prefs: ', e)
       }
-    } else {
+    } else if (isWindows) {
       app.setLoginItemSettings({openAtLogin: !!this.state.openAtLogin})
-      const linkpath = '%APPDATA%/Microsoft/Windows/Start Menu/Programs/Keybase.lnk'
+      const linkpath = path.join(process.env.APPDATA, 'Microsoft\\Windows\\Start Menu\\Programs\\Startup\\GUIStartup.lnk')
       if (this.state.openAtLogin) {
         if (!fs.existsSync(linkpath)) {
           var ws = require('windows-shortcuts')
 
-          ws.create(linkpath, '%LOCALAPPDATA%/Keybase/gui/Keybase.exe')
+          ws.create(linkpath, path.join(process.env.LOCALAPPDATA, 'Keybase\\gui\\Keybase.exe'))
         }
       } else {
         if (fs.existsSync(linkpath)) {
           fs.unlink(linkpath, err => {
             if (err) {
-              console.log('An error ocurred updating the file' + err.message)
+              console.log('An error ocurred unlinking the shortcut' + err.message)
             }
           })
         } else {
