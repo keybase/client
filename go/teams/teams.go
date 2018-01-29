@@ -1843,6 +1843,14 @@ func UpgradeTLFIDToImpteam(ctx context.Context, g *libkb.GlobalContext, tlfName 
 		}
 	}
 
+	// Reload the team
+	if team, err = Load(ctx, g, keybase1.LoadTeamArg{
+		ID:          team.ID,
+		ForceRepoll: true,
+	}); err != nil {
+		return err
+	}
+
 	// Post the crypt keys
 	return team.AssociateWithTLFKeyset(ctx, tlfID, cryptKeys, appType)
 }

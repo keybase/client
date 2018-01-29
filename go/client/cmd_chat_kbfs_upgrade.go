@@ -19,7 +19,6 @@ type CmdChatKBFSUpgrade struct {
 func newCmdChatKBFSUpgrade(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "kbfs-upgrade",
-		Usage:        "Upgrade a KBFS conversation",
 		ArgumentHelp: "[<conversation>]",
 		Action: func(c *cli.Context) {
 			cmd := &CmdChatKBFSUpgrade{Contextified: libkb.NewContextified(g)}
@@ -32,14 +31,10 @@ func newCmdChatKBFSUpgrade(cl *libcmdline.CommandLine, g *libkb.GlobalContext) c
 func (c *CmdChatKBFSUpgrade) ParseArgv(ctx *cli.Context) error {
 	var err error
 
-	if len(ctx.Args()) > 1 {
-		return fmt.Errorf("too many arguments")
+	if len(ctx.Args()) != 1 {
+		return fmt.Errorf("wrong number of arguments")
 	}
-
-	tlfName := ""
-	if len(ctx.Args()) == 1 {
-		tlfName = ctx.Args()[0]
-	}
+	tlfName := ctx.Args()[0]
 
 	c.resolvingRequest, err = parseConversationResolvingRequest(ctx, tlfName)
 	if err != nil {

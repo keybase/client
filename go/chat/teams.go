@@ -224,7 +224,9 @@ func LoadTeam(ctx context.Context, g *libkb.GlobalContext, tlfID chat1.TLFID,
 		return teams.Load(ctx, g, ltarg(teamID))
 	case chat1.ConversationMembersType_IMPTEAMUPGRADE:
 		arg := libkb.NewAPIArgWithNetContext(ctx, "team/id")
+		arg.Args = libkb.NewHTTPArgs()
 		arg.Args.Add("tlf_id", libkb.S{Val: tlfID.String()})
+		arg.SessionType = libkb.APISessionTypeREQUIRED
 		res, err := g.API.Get(arg)
 		if err != nil {
 			return team, err

@@ -222,6 +222,7 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 			Prev:          prev,
 			Unread:        unread,
 			RevokedDevice: mv.SenderDeviceRevokedAt != nil,
+			KBFSEncrypted: mv.ClientHeader.KbfsCryptKeysUsed != nil && *mv.ClientHeader.KbfsCryptKeysUsed,
 		}
 
 		msg.Content = c.convertMsgBody(mv.MessageBody)
@@ -996,6 +997,7 @@ type MsgSummary struct {
 	Unread        bool                           `json:"unread"`
 	RevokedDevice bool                           `json:"revoked_device,omitempty"`
 	Offline       bool                           `json:"offline,omitempty"`
+	KBFSEncrypted bool                           `json:"kbfs_encrypted,omitempty"`
 }
 
 // Message contains eiter a MsgSummary or an Error.  Used for JSON output.
