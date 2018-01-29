@@ -48,7 +48,7 @@ func (ErrKeybasePagesRecordTooMany) Error() string {
 	return "more than 1 TXT record are found for " + keybasePagesPrefix
 }
 
-const kbpRecordPrefix = "_keybase_pages."
+var kbpRecordPrefixes []string = []string{"_keybase_pages.", "_keybasepages."}
 
 // LoadRoot loads the root path configured for domain from DNS, with following
 // steps:
@@ -93,7 +93,14 @@ func (l DNSRootLoader) LoadRoot(domain string) (root Root, err error) {
 		}
 	}()
 
-	txtRecords, err := net.LookupTXT(kbpRecordPrefix + domain)
+	// Check all possible kbp record prefixes.
+	var txtRecords []string
+	for _, kbpRecordPrefix := range kbpRecordPrefixes {
+		txtRecords, err = net.LookupTXT(kbpRecordPrefix + domain)
+		if err == nil {
+			break
+		}
+	}
 	if err != nil {
 		return Root{}, err
 	}
