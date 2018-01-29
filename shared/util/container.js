@@ -23,6 +23,7 @@ export {
   withProps,
   mapProps,
   withPropsOnChange,
+  setDisplayName,
 } from 'recompose'
 export {default as createCachedSelector} from 're-reselect'
 export {default as pausableConnect} from './pausable-connect'

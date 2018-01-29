@@ -7,6 +7,7 @@ import {
   withPropsOnChange,
   type TypedState,
   connect,
+  setDisplayName,
   type MapStateToProps,
 } from '../../util/container'
 import {Box, ClickableBox, List, Text} from '../../common-adapters/index'
@@ -85,6 +86,7 @@ const mapStateToProps: MapStateToProps<*, *, *> = (state: TypedState, {channels,
 const MentionHud: Class<React.Component<MentionHudProps, void>> = compose(
   withState('selectedIndex', 'setSelectedIndex', 0),
   connect(mapStateToProps),
+  setDisplayName('ChannelMentionHud'),
   lifecycle({
     componentWillReceiveProps: function(nextProps) {
       if (nextProps.data.length === 0) {

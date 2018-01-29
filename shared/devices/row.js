@@ -1,6 +1,6 @@
 // @flow
 import * as Types from '../constants/types/devices'
-import {connect, type TypedState} from '../util/container'
+import {connect, compose, type TypedState, setDisplayName} from '../util/container'
 import {isMobile} from '../constants/platform'
 import {navigateAppend} from '../actions/route-tree'
 import {type IconType} from '../common-adapters/icon'
@@ -40,5 +40,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   showExistingDevicePage: () => dispatchProps._showExistingDevicePage(ownProps.deviceID),
 })
 
-const RowConnector = connect(mapStateToProps, mapDispatchToProps, mergeProps)
+const RowConnector = compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  setDisplayName('DeviceRow')
+)
 export {RowConnector}
