@@ -32,12 +32,12 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(navigateAppend([{props: {teamname}, selected: 'manageChannels'}]))
   },
   onViewTeam: (teamname: string) => {
-    dispatch(setRouteState([teamsTab, 'team'], {selectedTab: 'members'}))
     dispatch(navigateTo([teamsTab, {props: {teamname}, selected: 'team'}]))
+    dispatch(setRouteState([teamsTab, 'team'], {selectedTab: 'members'}))
   },
   onViewGitRepo: (repoID: string) => {
-    dispatch(setRouteState([gitTab], {expandedSet: Set([repoID])}))
     dispatch(navigateTo([gitTab]))
+    dispatch(setRouteState([gitTab], {expandedSet: Set([repoID])}))
   },
 })
 
