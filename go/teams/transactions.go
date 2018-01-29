@@ -430,13 +430,17 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 
 	if perTeamKeySection != nil {
 		// We have a new per team key, find first TeamChangeReq
-		// section created and add perTeamKeySection.
-		// TODO: Should it be the first ChangeMembership sig or the last?
+		// section that removes users and add it there.
+		found := false
 		for i, v := range tx.payloads {
-			if _, ok := v.(*keybase1.TeamChangeReq); ok {
+			if req, ok := v.(*keybase1.TeamChangeReq); ok && len(req.None) > 0 {
 				sections[i].PerTeamKey = perTeamKeySection
+				found = true
 				break
 			}
+		}
+		if !found {
+			return fmt.Errorf("AddMemberTx.Post got a PerTeamKey but couldn't find a link with None to attach it")
 		}
 	}
 
