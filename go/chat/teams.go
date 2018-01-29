@@ -120,24 +120,17 @@ func (t *ImplicitTeamsNameInfoSource) Lookup(ctx context.Context, name string, v
 	res = types.NewNameInfo()
 
 	// Always create here to simulate behavior of GetTLFCryptKeys
-	teamID, _, impTeamName, _, err := teams.LookupOrCreateImplicitTeam(ctx, t.G().ExternalG(), name,
+	team, _, impTeamName, err := teams.LookupOrCreateImplicitTeam(ctx, t.G().ExternalG(), name,
 		vis == keybase1.TLFVisibility_PUBLIC)
 	if err != nil {
 		return res, err
 	}
-	if !teamID.IsRootTeam() {
-		panic(fmt.Sprintf("implicit team found via LookupImplicitTeam not root team: %s", teamID))
+	if !team.ID.IsRootTeam() {
+		panic(fmt.Sprintf("implicit team found via LookupImplicitTeam not root team: %s", team.ID))
 	}
 
 	res.CanonicalName = impTeamName.String()
-	res.ID, err = chat1.TeamIDToTLFID(teamID)
-	if err != nil {
-		return res, err
-	}
-	team, err := teams.Load(ctx, t.G().ExternalG(), keybase1.LoadTeamArg{
-		ID:     teamID,
-		Public: vis == keybase1.TLFVisibility_PUBLIC,
-	})
+	res.ID, err = chat1.TeamIDToTLFID(team.ID)
 	if err != nil {
 		return res, err
 	}

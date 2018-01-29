@@ -1821,3 +1821,28 @@ func (t *Team) refreshUIDMapper(ctx context.Context, g *libkb.GlobalContext) {
 		}
 	}
 }
+
+func UpgradeTLFIDToImpteam(ctx context.Context, g *libkb.GlobalContext, tlfName string, tlfID keybase1.TLFID,
+	public bool, appType keybase1.TeamApplication, cryptKeys []keybase1.CryptKey) (err error) {
+	defer g.CTrace(ctx, fmt.Sprintf("UpgradeTLFIDToImpteam(%s)", tlfID), func() error { return err })()
+
+	var team *Team
+	if team, _, _, err = LookupOrCreateImplicitTeam(ctx, g, tlfName, public); err != nil {
+		return err
+	}
+
+	// Associate the imp team with the TLF ID
+	if team.KBFSTLFID().IsNil() {
+		if err = team.AssociateWithTLFID(ctx, tlfID); err != nil {
+			return err
+		}
+	} else {
+		if team.KBFSTLFID().String() != tlfID.String() {
+			return fmt.Errorf("implicit team already associated with different TLF ID: teamID: %s tlfID: %s",
+				team.ID, tlfID)
+		}
+	}
+
+	// Post the crypt keys
+	return team.AssociateWithTLFKeyset(ctx, tlfID, cryptKeys, appType)
+}
