@@ -1,4 +1,5 @@
 // @flow
+import * as Constants from '../../../constants/chat2'
 import * as Types from '../../../constants/types/chat2'
 import * as Inbox from '..'
 import * as Chat2Gen from '../../../actions/chat2-gen'
@@ -12,7 +13,7 @@ const mapStateToProps = (state: TypedState, {routeState}) => {
   const filter = state.chat2.inboxFilter
   const smallTeamsExpanded = routeState.get('smallTeamsExpanded')
   const rowMetadata = filter ? filteredRowData(state) : normalRowData(state, smallTeamsExpanded)
-  const _selectedConversationIDKey = state.chat2.selectedConversation
+  const _selectedConversationIDKey = Constants.getSelectedConversation(state)
 
   return {
     ...rowMetadata,

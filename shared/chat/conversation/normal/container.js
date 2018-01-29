@@ -1,7 +1,7 @@
 // @flow
 // import * as React from 'react'
 import * as TrackerGen from '../../../actions/tracker-gen'
-import * as Constants from '../../../constants/chat2'
+// import * as Constants from '../../../constants/chat2'
 // import * as Types from '../../constants/types/chat2'
 // import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 // import * as SearchConstants from '../../constants/search'
@@ -50,8 +50,7 @@ import {
 // onShowTrackerInSearch: (id: string) => void,
 // |}
 
-const mapStateToProps = (state: TypedState, {routePath, routeProps}) => {
-  const conversationIDKey = Constants.getSelectedConversation(state)
+const mapStateToProps = (state: TypedState, {routePath, routeProps, conversationIDKey}) => {
   return {conversationIDKey}
   // const routeState = Constants.getSelectedRouteState(state)
 

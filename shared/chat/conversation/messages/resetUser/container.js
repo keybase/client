@@ -7,8 +7,7 @@ import * as Types from '../../../../constants/types/chat2'
 import ResetUser from '.'
 import {compose, connect, type TypedState, type Dispatch} from '../../../../util/container'
 
-const mapStateToProps = (state: TypedState, {messageKey}): * => {
-  const conversationIDKey = Constants.getSelectedConversation(state)
+const mapStateToProps = (state: TypedState, {messageKey, conversationIDKey}): * => {
   const meta = Constants.getMeta(state, conversationIDKey)
   const username = meta.resetParticipants.first() || ''
   const nonResetUsers = meta.participants.subtract(meta.resetParticipants)

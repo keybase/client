@@ -5,6 +5,7 @@ import * as Types from '../../../constants/types/chat2'
 
 export type Props = {
   // showLoader: boolean,
+  conversationIDKey: Types.ConversationIDKey,
   focusInputCounter: number,
   listScrollDownCounter: number,
   // onAttach: (inputs: Array<Types.AttachmentInput>) => void,
@@ -14,7 +15,6 @@ export type Props = {
   onScrollDown: () => void,
   // onOpenInfoPanelMobile: () => void,
   // rekeyInfo: ?Types.RekeyInfo,
-  conversationIDKey: Types.ConversationIDKey,
   // threadLoadedOffline: boolean,
   // inSearch: boolean,
   // onExitSearch: () => void,

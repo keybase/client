@@ -716,6 +716,8 @@ const sendToPendingConversationSuccess = (
     Saga.put(Chat2Gen.createExitSearch()),
     // Clear the dummy messages from the pending conversation
     Saga.put(Chat2Gen.createClearPendingConversation()),
+    // Exit pending mode
+    Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
     // Saga.put(Chat2Gen.createClearOrdinals({conversationIDKey: Types.stringToConversationIDKey('')})),
     // Emulate us getting an inbox item so we don't have to unbox it before sending
     Saga.put(Chat2Gen.createMetasReceived({metas: [dummyMeta]})),
@@ -766,6 +768,14 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
     ])
   }
 
+  // Did we search for an existing conversation? if so exit it
+  const exitSearch = state.chat2.pendingSelected
+    ? [
+        Saga.put(Chat2Gen.createSelectConversation({conversationIDKey})),
+        Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
+      ]
+    : []
+
   const identifyBehavior = RPCTypes.tlfKeysTLFIdentifyBehavior.chatGuiStrict // TODO
 
   const meta = Constants.getMeta(state, conversationIDKey)
@@ -796,6 +806,7 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
       tlfName,
       tlfPublic: false,
     }),
+    ...exitSearch,
   ])
 }
 
@@ -886,7 +897,7 @@ const bootstrapSuccess = () => Saga.put(Chat2Gen.createInboxRefresh({reason: 'bo
 
 const selectTheNewestConversation = (action: any, state: TypedState) => {
   // already something?
-  if (state.chat2.selectedConversation || !state.chat2.pendingConversationUsers.isEmpty()) {
+  if (Constants.getSelectedConversation(state) || !state.chat2.pendingConversationUsers.isEmpty()) {
     return
   }
 

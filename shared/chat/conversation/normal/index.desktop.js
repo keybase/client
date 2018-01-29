@@ -137,9 +137,14 @@ class Conversation extends React.PureComponent<Props, State> {
         <ListArea
           listScrollDownCounter={this.props.listScrollDownCounter}
           onFocusInput={this.props.onFocusInput}
+          conversationIDKey={this.props.conversationIDKey}
         />
         <Banner />
-        <InputArea focusInputCounter={this.props.focusInputCounter} onScrollDown={this.props.onScrollDown} />
+        <InputArea
+          focusInputCounter={this.props.focusInputCounter}
+          onScrollDown={this.props.onScrollDown}
+          conversationIDKey={this.props.conversationIDKey}
+        />
         {this.state.infoPanelOpen && <InfoPaneWrapper onToggle={this._onToggleInfoPanel} />}
         {this.state.showDropOverlay && <DropOverlay onDragLeave={this._onDragLeave} onDrop={this._onDrop} />}
       </Box>

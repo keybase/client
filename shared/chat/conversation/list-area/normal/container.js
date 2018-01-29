@@ -185,11 +185,10 @@ import {connect, type TypedState, type Dispatch} from '../../../../util/containe
 // }
 
 // export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps))(ListComponent)
-const mapStateToProps = (state: TypedState) => {
-  const _selectedConversation = Constants2.getSelectedConversation(state)
+const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   return {
-    _selectedConversation,
-    messageOrdinals: Constants2.getMessageOrdinals(state, _selectedConversation),
+    conversationIDKey,
+    messageOrdinals: Constants2.getMessageOrdinals(state, conversationIDKey),
   }
 }
 
@@ -199,8 +198,9 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  conversationIDKey: stateProps.conversationIDKey,
   loadMoreMessages: () => {
-    stateProps._selectedConversation && dispatchProps._loadMoreMessages(stateProps._selectedConversation)
+    stateProps.conversationIDKey && dispatchProps._loadMoreMessages(stateProps.conversationIDKey)
   },
   messageOrdinals: stateProps.messageOrdinals.toList(),
   onFocusInput: ownProps.onFocusInput,

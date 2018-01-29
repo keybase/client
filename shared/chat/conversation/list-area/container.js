@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as SearchConstants from '../../../constants/search'
-import * as Constants from '../../../constants/chat2'
+import * as Types from '../../../constants/types/chat2'
 import * as TrackerGen from '../../../actions/tracker-gen'
 import Normal from './normal/container'
 import SearchResultsList from '../../../search/results-list/container'
@@ -10,6 +10,7 @@ import {globalStyles} from '../../../styles'
 /* ProgressIndicator, */
 
 type Props = {
+  conversationIDKey: Types.ConversationIDKey,
   listScrollDownCounter: number,
   onFocusInput: () => void,
   onShowTracker: (user: string) => void,
@@ -35,6 +36,7 @@ class ListArea extends React.PureComponent<Props> {
         <Normal
           listScrollDownCounter={this.props.listScrollDownCounter}
           onFocusInput={this.props.onFocusInput}
+          conversationIDKey={this.props.conversationIDKey}
         />
       )
     }

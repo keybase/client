@@ -4,12 +4,11 @@ import * as Types from '../../../../constants/types/chat2'
 import ChannelPreview from '.'
 import {connect, type TypedState, type Dispatch} from '../../../../util/container'
 
-const mapStateToProps = (state: TypedState) => {
-  const _selectedConversationIDKey = Constants.getSelectedConversation(state)
-  const _meta = Constants.getMeta(state, _selectedConversationIDKey)
+const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
+  const _meta = Constants.getMeta(state, conversationIDKey)
   return {
+    _conversationIDKey: conversationIDKey,
     _meta,
-    _selectedConversationIDKey,
   }
 }
 
@@ -28,9 +27,9 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   channelname: stateProps._meta.channelname,
-  onJoinChannel: () => dispatchProps._onJoinChannel(stateProps._selectedConversationIDKey),
+  onJoinChannel: () => dispatchProps._onJoinChannel(stateProps._conversationIDKey),
   onLeaveChannel: () =>
-    dispatchProps._onLeaveChannel(stateProps._selectedConversationIDKey, stateProps._meta.teamname),
+    dispatchProps._onLeaveChannel(stateProps._conversationIDKey, stateProps._meta.teamname),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(ChannelPreview)

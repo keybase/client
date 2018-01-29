@@ -27,20 +27,19 @@ type OwnProps = {
 // We used to store this in the route state but thats so complicated. We just want a map of id => text if we haven't sent
 const unsentText = {}
 
-const mapStateToProps = (state: TypedState) => {
-  const _conversationIDKey = Constants.getSelectedConversation(state)
-  const editingOrdinal = Constants.getEditingOrdinal(state, _conversationIDKey)
+const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
+  const editingOrdinal = Constants.getEditingOrdinal(state, conversationIDKey)
   const _editingMessage = editingOrdinal
-    ? Constants.getMessageMap(state, _conversationIDKey).get(editingOrdinal)
+    ? Constants.getMessageMap(state, conversationIDKey).get(editingOrdinal)
     : null
   const _you = state.config.username || ''
 
   return {
-    _you,
-    _conversationIDKey,
+    _conversationIDKey: conversationIDKey,
     _editingMessage,
-    _meta: Constants.getMeta(state, _conversationIDKey),
-    typing: Constants.getTyping(state, _conversationIDKey),
+    _meta: Constants.getMeta(state, conversationIDKey),
+    _you,
+    typing: Constants.getTyping(state, conversationIDKey),
   }
 }
 

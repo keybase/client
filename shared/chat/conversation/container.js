@@ -1,12 +1,15 @@
 // @flow
+import * as I from 'immutable'
 import * as React from 'react'
 import * as Constants from '../../constants/chat2'
+import * as Types from '../../constants/types/chat2'
 import {connect, type TypedState} from '../../util/container'
 import Normal from './normal/container'
 import NoConversation from './no-conversation'
 import Error from './error/container'
 
 type SwitchProps = {
+  conversationIDKey: Types.ConversationIDKey,
   showError: boolean,
   showNoConvo: boolean,
   showRekey: boolean,
@@ -21,51 +24,55 @@ class Conversation extends React.PureComponent<SwitchProps> {
     // return <Rekey />
     // }
     if (this.props.showError) {
-      return <Error />
+      return this.props.conversationIDKey && <Error conversationIDKey={this.props.conversationIDKey} />
     }
-    return <Normal />
+    return <Normal conversationIDKey={this.props.conversationIDKey} />
   }
 }
 
 const mapStateToProps = (state: TypedState): * => {
-  const conversationIDKey = Constants.getSelectedConversation(state)
+  let _conversationIDKey
+  let _pendingConversationUsers
 
-  // use this if pendingSelected
-  // const selectConversationForPendingChanges = (
-  // action: Chat2Gen.SetPendingSelectedPayload | Chat2Gen.SetPendingConversationUsersPayload,
-  // state: TypedState
-  // ) => {
-  // let users
-  // if (action.type === Chat2Gen.setPendingSelected) {
-  // users = state.chat2.pendingConversationUsers.toArray()
-  // } else if (action.type === Chat2Gen.setPendingConversationUsers) {
-  // users = action.payload.users
-  // }
-  // const you = state.config.username
-
-  // const toFind = I.Set(users.concat(you))
-  // const conversationIDKey = state.chat2.metaMap.findKey(meta =>
-  // // Ignore the order of participants
-  // meta.participants.toSet().equals(toFind)
-  // )
-
-  // if (conversationIDKey) {
-  // return Saga.sequentially([
-  // Saga.put(
-  // Chat2Gen.createSelectConversation({
-  // conversationIDKey,
-  // fromUser: false,
-  // })
-  // ),
-  // ])
-  // }
-  // }
+  if (state.chat2.pendingSelected) {
+    _pendingConversationUsers = state.chat2.pendingConversationUsers
+  } else {
+    _conversationIDKey = Constants.getSelectedConversation(state)
+  }
 
   return {
-    showError: conversationIDKey && Constants.getMeta(state, conversationIDKey).trustedState === 'error',
-    showNoConvo: !conversationIDKey && !state.chat2.pendingSelected,
+    _conversationIDKey,
+    _metaMap: state.chat2.metaMap,
+    _pendingConversationUsers,
+    _you: state.config.username || '',
+  }
+}
+
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  let showError = false
+  let showNoConvo = false
+  let conversationIDKey = stateProps._conversationIDKey
+
+  if (conversationIDKey) {
+    showError = stateProps._metaMap.getIn([conversationIDKey, 'trustedState']) === 'error'
+  } else if (stateProps._pendingConversationUsers) {
+    // Find an existing
+    const toFind = I.Set(stateProps._pendingConversationUsers.concat([stateProps._you]))
+    conversationIDKey =
+      stateProps._metaMap.findKey(meta =>
+        // Ignore the order of participants
+        meta.participants.toSet().equals(toFind)
+      ) || ''
+  } else {
+    showNoConvo = true
+  }
+
+  return {
+    conversationIDKey: conversationIDKey || Types.stringToConversationIDKey(''), // we pass down conversationIDKey so this can be calculated once and also this lets us have chat things in other contexts so we can theoretically show multiple chats at the same time (like in a modal)
+    showError,
+    showNoConvo,
     showRekey: false, // TODO
   }
 }
 
-export default connect(mapStateToProps)(Conversation)
+export default connect(mapStateToProps, () => ({}), mergeProps)(Conversation)

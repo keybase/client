@@ -77,8 +77,7 @@ class MessageFactory extends React.PureComponent<Props> {
   }
 }
 
-const mapStateToProps = (state: TypedState, {ordinal, previous}) => {
-  const conversationIDKey = Constants2.getSelectedConversation(state)
+const mapStateToProps = (state: TypedState, {ordinal, previous, conversationIDKey}) => {
   const messageMap = Constants2.getMessageMap(state, conversationIDKey)
   const message = messageMap.get(ordinal)
   return {
@@ -95,7 +94,7 @@ const mapStateToProps = (state: TypedState, {ordinal, previous}) => {
 const getRouteState = (state: TypedState) => state.routeTree.routeState
 
 const messageActionMessage = createSelector(
-  [getRouteState, Constants2.getSelectedConversation],
+  [getRouteState, (_, conversationIDKey) => conversationIDKey],
   (routeState, conversationIDKey) =>
     RouteTree.getPathProps(routeState, [chatTab, conversationIDKey, 'messageAction']).getIn([
       2,

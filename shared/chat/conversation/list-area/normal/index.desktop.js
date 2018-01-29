@@ -146,7 +146,12 @@ class BaseList extends React.Component<Props, State> {
         rowIndex={index}
       >
         <div style={style}>
-          <Message ordinal={ordinal} previous={prevOrdinal} measure={this._measure} />
+          <Message
+            ordinal={ordinal}
+            previous={prevOrdinal}
+            measure={this._measure}
+            conversationIDKey={this.props.conversationIDKey}
+          />
         </div>
       </Virtualized.CellMeasurer>
     )
