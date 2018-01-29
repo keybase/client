@@ -154,6 +154,24 @@ export default class AppState {
       }
     } else {
       app.setLoginItemSettings({openAtLogin: !!this.state.openAtLogin})
+      const linkpath = '%APPDATA%/Microsoft/Windows/Start Menu/Programs/Keybase.lnk'
+      if (this.state.openAtLogin) {
+        if (!fs.existsSync(linkpath)) {
+          var ws = require('windows-shortcuts')
+
+          ws.create(linkpath, '%LOCALAPPDATA%/Keybase/gui/Keybase.exe')
+        }
+      } else {
+        if (fs.existsSync(linkpath)) {
+          fs.unlink(linkpath, err => {
+            if (err) {
+              console.log('An error ocurred updating the file' + err.message)
+            }
+          })
+        } else {
+          console.log("Keybase.lnk file doesn't exist, cannot delete")
+        }
+      }
     }
   }
 
