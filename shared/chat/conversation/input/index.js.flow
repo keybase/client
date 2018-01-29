@@ -44,6 +44,7 @@ export type MentionHocProps = {
   onSelectionChange?: ({selectionStart: number, selectionEnd: number}) => void,
   onBlur?: () => void,
   onFocus?: () => void,
+  insertMentionMarker?: () => void,
 
   onEnterKeyDown: (e: SyntheticKeyboardEvent<>) => void,
   pickSelectedCounter: number,

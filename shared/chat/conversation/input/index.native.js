@@ -150,8 +150,10 @@ class ConversationInput extends Component<Props> {
               autoFocus={false}
               autoGrow={true}
               style={styleInput}
-              onChangeText={this.props.setText}
+              onChangeText={this.props.onChangeText}
               onBlur={this._onBlur}
+              onFocus={this.props.onFocus}
+              onSelectionChange={this.props.onSelectionChange}
               placeholder="Write a message"
               underlineColorAndroid={globalColors.transparent}
               multiline={true}
@@ -170,6 +172,7 @@ class ConversationInput extends Component<Props> {
             editingMessage={this.props.editingMessage}
             openFilePicker={this._openFilePicker}
             isLoading={this.props.isLoading}
+            insertMentionMarker={this.props.insertMentionMarker}
           />
         </Box>
       </Box>
@@ -223,7 +226,7 @@ const Typing = ({typing}) => (
   </Box>
 )
 
-const Action = ({text, onSubmit, editingMessage, openFilePicker, isLoading}) =>
+const Action = ({text, onSubmit, editingMessage, openFilePicker, insertMentionMarker, isLoading}) =>
   text ? (
     <Box style={styleActionText}>
       <Text type="BodyBigLink" style={{...(isLoading ? {color: globalColors.grey} : {})}} onClick={onSubmit}>
@@ -232,7 +235,11 @@ const Action = ({text, onSubmit, editingMessage, openFilePicker, isLoading}) =>
     </Box>
   ) : (
     <Box style={styleActionButtonContainer}>
-      <Icon type="iconfont-mention" style={{...styleActionButton, paddingRight: 0}} />
+      <Icon
+        onClick={insertMentionMarker}
+        type="iconfont-mention"
+        style={{...styleActionButton, paddingRight: 0}}
+      />
       <Icon onClick={openFilePicker} type="iconfont-camera" style={styleActionButton} />
     </Box>
   )
