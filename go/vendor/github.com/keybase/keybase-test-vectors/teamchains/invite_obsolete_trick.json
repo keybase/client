@@ -1,0 +1,381 @@
+{
+    "log": [
+        "user:herb key:default",
+        "user:basil key:default",
+        "link team:cabal type:root",
+        "link team:cabal type:invite",
+        "link team:cabal type:change_membership",
+        "link team:cabal type:leave",
+        "link team:cabal type:change_membership"
+    ],
+    "teams": {
+        "cabal": {
+            "id": "2123209b98b16083c69c91152b861724",
+            "links": [
+                {
+                    "seqno": 1,
+                    "sig": "g6Rib2R5hqhkZXRhY2hlZMOpaGFzaF90eXBlCqNrZXnEIwEgEmDPFbgK6vLCw2Lw3oi7xAJy1TTReblMBFel5YT80YYKp3BheWxvYWTEKZcCAcDEIAhnDDOkRgSGhMqlyKY6K9aEsgS8eZFMpEriE5KRm+5zIQHCo3NpZ8RAY+JIrNDhACaAURT4t21f5RcPFPELFidomDSqicU6Tq1sidwKxbif6hrYfvH9JzoeukB/DzJ9B8jxGytXccrnAahzaWdfdHlwZSCjdGFnzQICp3ZlcnNpb24B",
+                    "payload_json": "{\"body\":{\"key\":{\"kid\":\"01201260cf15b80aeaf2c2c362f0de88bbc40272d534d179b94c0457a5e584fcd1860a\",\"uid\":\"25852c87d6e47fb8d7d55400be9c7a19\",\"username\":\"herb\"},\"merkle_root\":{\"ctime\":1500570001,\"hash\":\"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\",\"hash_meta\":\"cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd1000\",\"seqno\":8001},\"team\":{\"id\":\"2123209b98b16083c69c91152b861724\",\"members\":{\"owner\":[\"25852c87d6e47fb8d7d55400be9c7a19\"]},\"name\":\"cabal\",\"per_team_key\":{\"encryption_kid\":\"01216ff492dd6da213b41d22145fed9f0469f7495fd0357beed7ce6b5e5ff060257f0a\",\"generation\":1,\"reverse_sig\":\"g6Rib2R5hqhkZXRhY2hlZMOpaGFzaF90eXBlCqNrZXnEIwEgvIANd4/2v9aWET2qsFioMEZS/OMmqEJmQ7qSg+HlrI4Kp3BheWxvYWTFA3N7ImJvZHkiOnsia2V5Ijp7ImtpZCI6IjAxMjAxMjYwY2YxNWI4MGFlYWYyYzJjMzYyZjBkZTg4YmJjNDAyNzJkNTM0ZDE3OWI5NGMwNDU3YTVlNTg0ZmNkMTg2MGEiLCJ1aWQiOiIyNTg1MmM4N2Q2ZTQ3ZmI4ZDdkNTU0MDBiZTljN2ExOSIsInVzZXJuYW1lIjoiaGVyYiJ9LCJtZXJrbGVfcm9vdCI6eyJjdGltZSI6MTUwMDU3MDAwMSwiaGFzaCI6ImZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmIiwiaGFzaF9tZXRhIjoiY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkMTAwMCIsInNlcW5vIjo4MDAxfSwidGVhbSI6eyJpZCI6IjIxMjMyMDliOThiMTYwODNjNjljOTExNTJiODYxNzI0IiwibWVtYmVycyI6eyJvd25lciI6WyIyNTg1MmM4N2Q2ZTQ3ZmI4ZDdkNTU0MDBiZTljN2ExOSJdfSwibmFtZSI6ImNhYmFsIiwicGVyX3RlYW1fa2V5Ijp7ImVuY3J5cHRpb25fa2lkIjoiMDEyMTZmZjQ5MmRkNmRhMjEzYjQxZDIyMTQ1ZmVkOWYwNDY5Zjc0OTVmZDAzNTdiZWVkN2NlNmI1ZTVmZjA2MDI1N2YwYSIsImdlbmVyYXRpb24iOjEsInJldmVyc2Vfc2lnIjpudWxsLCJzaWduaW5nX2tpZCI6IjAxMjBiYzgwMGQ3NzhmZjZiZmQ2OTYxMTNkYWFiMDU4YTgzMDQ2NTJmY2UzMjZhODQyNjY0M2JhOTI4M2UxZTVhYzhlMGEifX0sInR5cGUiOiJ0ZWFtLnJvb3QiLCJ2ZXJzaW9uIjoyfSwiY3RpbWUiOjE1MTU2MDczNTUsImV4cGlyZV9pbiI6MTU3NjgwMDAwLCJzZXFfdHlwZSI6MSwic2Vxbm8iOjEsInRhZyI6InNpZ25hdHVyZSJ9o3NpZ8RA9QkjWv5PVq/mw/7IUvXKrV4k2uZymIMfU1lXeZcyjDOIOpyTeYXQc+R6739Qp7bXsJOo570mjEbJzWJJ93aJBqhzaWdfdHlwZSCjdGFnzQICp3ZlcnNpb24B\",\"signing_kid\":\"0120bc800d778ff6bfd696113daab058a8304652fce326a8426643ba9283e1e5ac8e0a\"}},\"type\":\"team.root\",\"version\":2},\"ctime\":1515607355,\"expire_in\":157680000,\"seq_type\":1,\"seqno\":1,\"tag\":\"signature\"}",
+                    "uid": "25852c87d6e47fb8d7d55400be9c7a19",
+                    "version": 2,
+                    "debug_payload": {
+                        "seqno": 1,
+                        "ctime": 1515607355,
+                        "tag": "signature",
+                        "expire_in": 157680000,
+                        "body": {
+                            "version": 2,
+                            "type": "team.root",
+                            "key": {
+                                "username": "herb",
+                                "uid": "25852c87d6e47fb8d7d55400be9c7a19",
+                                "kid": "01201260cf15b80aeaf2c2c362f0de88bbc40272d534d179b94c0457a5e584fcd1860a"
+                            },
+                            "merkle_root": {
+                                "ctime": 1500570001,
+                                "hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+                                "hash_meta": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd1000",
+                                "seqno": 8001
+                            },
+                            "team": {
+                                "id": "2123209b98b16083c69c91152b861724",
+                                "name": "cabal",
+                                "members": {
+                                    "owner": [
+                                        "25852c87d6e47fb8d7d55400be9c7a19"
+                                    ]
+                                },
+                                "per_team_key": {
+                                    "reverse_sig": "g6Rib2R5hqhkZXRhY2hlZMOpaGFzaF90eXBlCqNrZXnEIwEgvIANd4/2v9aWET2qsFioMEZS/OMmqEJmQ7qSg+HlrI4Kp3BheWxvYWTFA3N7ImJvZHkiOnsia2V5Ijp7ImtpZCI6IjAxMjAxMjYwY2YxNWI4MGFlYWYyYzJjMzYyZjBkZTg4YmJjNDAyNzJkNTM0ZDE3OWI5NGMwNDU3YTVlNTg0ZmNkMTg2MGEiLCJ1aWQiOiIyNTg1MmM4N2Q2ZTQ3ZmI4ZDdkNTU0MDBiZTljN2ExOSIsInVzZXJuYW1lIjoiaGVyYiJ9LCJtZXJrbGVfcm9vdCI6eyJjdGltZSI6MTUwMDU3MDAwMSwiaGFzaCI6ImZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmIiwiaGFzaF9tZXRhIjoiY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkMTAwMCIsInNlcW5vIjo4MDAxfSwidGVhbSI6eyJpZCI6IjIxMjMyMDliOThiMTYwODNjNjljOTExNTJiODYxNzI0IiwibWVtYmVycyI6eyJvd25lciI6WyIyNTg1MmM4N2Q2ZTQ3ZmI4ZDdkNTU0MDBiZTljN2ExOSJdfSwibmFtZSI6ImNhYmFsIiwicGVyX3RlYW1fa2V5Ijp7ImVuY3J5cHRpb25fa2lkIjoiMDEyMTZmZjQ5MmRkNmRhMjEzYjQxZDIyMTQ1ZmVkOWYwNDY5Zjc0OTVmZDAzNTdiZWVkN2NlNmI1ZTVmZjA2MDI1N2YwYSIsImdlbmVyYXRpb24iOjEsInJldmVyc2Vfc2lnIjpudWxsLCJzaWduaW5nX2tpZCI6IjAxMjBiYzgwMGQ3NzhmZjZiZmQ2OTYxMTNkYWFiMDU4YTgzMDQ2NTJmY2UzMjZhODQyNjY0M2JhOTI4M2UxZTVhYzhlMGEifX0sInR5cGUiOiJ0ZWFtLnJvb3QiLCJ2ZXJzaW9uIjoyfSwiY3RpbWUiOjE1MTU2MDczNTUsImV4cGlyZV9pbiI6MTU3NjgwMDAwLCJzZXFfdHlwZSI6MSwic2Vxbm8iOjEsInRhZyI6InNpZ25hdHVyZSJ9o3NpZ8RA9QkjWv5PVq/mw/7IUvXKrV4k2uZymIMfU1lXeZcyjDOIOpyTeYXQc+R6739Qp7bXsJOo570mjEbJzWJJ93aJBqhzaWdfdHlwZSCjdGFnzQICp3ZlcnNpb24B",
+                                    "generation": 1,
+                                    "encryption_kid": "01216ff492dd6da213b41d22145fed9f0469f7495fd0357beed7ce6b5e5ff060257f0a",
+                                    "signing_kid": "0120bc800d778ff6bfd696113daab058a8304652fce326a8426643ba9283e1e5ac8e0a"
+                                }
+                            }
+                        },
+                        "seq_type": 1
+                    },
+                    "debug_link_id": "ada9236024ad56893272e70d1c3b8d581dfccafe70da6c5f759b5d6ac3beab9f"
+                },
+                {
+                    "seqno": 2,
+                    "sig": "g6Rib2R5hqhkZXRhY2hlZMOpaGFzaF90eXBlCqNrZXnEIwEgEmDPFbgK6vLCw2Lw3oi7xAJy1TTReblMBFel5YT80YYKp3BheWxvYWTESpcCAsQgrakjYCStVokycucNHDuNWB38yv5w2mxfdZtdasO+q5/EIN2tQO8nkpRIWFDHGYkoPCmzhl5XoVeHn+qpwa6mCq3oKAHCo3NpZ8RA8Rn9dRaur5zaTLgnqCWSJ01mV6tOVLjSN1BxYLS/Rq8bsgl5QiWB6y+91VikjyscufN0qnFXLzGjpCoaHUVBC6hzaWdfdHlwZSCjdGFnzQICp3ZlcnNpb24B",
+                    "payload_json": "{\"body\":{\"key\":{\"kid\":\"01201260cf15b80aeaf2c2c362f0de88bbc40272d534d179b94c0457a5e584fcd1860a\",\"uid\":\"25852c87d6e47fb8d7d55400be9c7a19\",\"username\":\"herb\"},\"merkle_root\":{\"ctime\":1500570001,\"hash\":\"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\",\"hash_meta\":\"cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd2000\",\"seqno\":8001},\"team\":{\"id\":\"2123209b98b16083c69c91152b861724\",\"invites\":{\"writer\":[{\"id\":\"54eafff3400b5bcd8b40bff3d225ab27\",\"name\":\"579651b0d574971040b531b66efbc519%1\",\"type\":\"keybase\"}]}},\"type\":\"team.invite\",\"version\":2},\"ctime\":1515607355,\"expire_in\":157680000,\"prev\":\"ada9236024ad56893272e70d1c3b8d581dfccafe70da6c5f759b5d6ac3beab9f\",\"seq_type\":1,\"seqno\":2,\"tag\":\"signature\"}",
+                    "uid": "25852c87d6e47fb8d7d55400be9c7a19",
+                    "version": 2,
+                    "debug_payload": {
+                        "seqno": 2,
+                        "prev": "ada9236024ad56893272e70d1c3b8d581dfccafe70da6c5f759b5d6ac3beab9f",
+                        "ctime": 1515607355,
+                        "tag": "signature",
+                        "expire_in": 157680000,
+                        "body": {
+                            "version": 2,
+                            "type": "team.invite",
+                            "key": {
+                                "username": "herb",
+                                "uid": "25852c87d6e47fb8d7d55400be9c7a19",
+                                "kid": "01201260cf15b80aeaf2c2c362f0de88bbc40272d534d179b94c0457a5e584fcd1860a"
+                            },
+                            "merkle_root": {
+                                "ctime": 1500570001,
+                                "hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+                                "hash_meta": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd2000",
+                                "seqno": 8001
+                            },
+                            "team": {
+                                "id": "2123209b98b16083c69c91152b861724",
+                                "invites": {
+                                    "writer": [
+                                        {
+                                            "id": "54eafff3400b5bcd8b40bff3d225ab27",
+                                            "name": "579651b0d574971040b531b66efbc519%1",
+                                            "type": "keybase"
+                                        }
+                                    ]
+                                }
+                            }
+                        },
+                        "seq_type": 1
+                    },
+                    "debug_link_id": "2ffab23d6202d44460ef75601ef67539d43211da621243dd5f1bad9fe35d0a6e"
+                },
+                {
+                    "seqno": 3,
+                    "sig": "g6Rib2R5hqhkZXRhY2hlZMOpaGFzaF90eXBlCqNrZXnEIwEgEmDPFbgK6vLCw2Lw3oi7xAJy1TTReblMBFel5YT80YYKp3BheWxvYWTESpcCA8QgL/qyPWIC1ERg73VgHvZ1OdQyEdpiEkPdXxutn+NdCm7EIDOeDkNuDZUIK6AZwfHRwlwCqncfeWOsFtttiC14U+/wIwHCo3NpZ8RAcGEYu/G2p7+I/MX6d25Y6rQfhYlDseGz5RF1yz8IQs6UROZC7CVaf+iam5G65RFRnpc/V6CCIhFPV3E3/YuIBKhzaWdfdHlwZSCjdGFnzQICp3ZlcnNpb24B",
+                    "payload_json": "{\"body\":{\"key\":{\"kid\":\"01201260cf15b80aeaf2c2c362f0de88bbc40272d534d179b94c0457a5e584fcd1860a\",\"uid\":\"25852c87d6e47fb8d7d55400be9c7a19\",\"username\":\"herb\"},\"merkle_root\":{\"ctime\":1500570001,\"hash\":\"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\",\"hash_meta\":\"cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd3000\",\"seqno\":8001},\"team\":{\"id\":\"2123209b98b16083c69c91152b861724\",\"members\":{\"writer\":[\"579651b0d574971040b531b66efbc519\"]}},\"type\":\"team.change_membership\",\"version\":2},\"ctime\":1515607355,\"expire_in\":157680000,\"prev\":\"2ffab23d6202d44460ef75601ef67539d43211da621243dd5f1bad9fe35d0a6e\",\"seq_type\":1,\"seqno\":3,\"tag\":\"signature\"}",
+                    "uid": "25852c87d6e47fb8d7d55400be9c7a19",
+                    "version": 2,
+                    "debug_payload": {
+                        "seqno": 3,
+                        "prev": "2ffab23d6202d44460ef75601ef67539d43211da621243dd5f1bad9fe35d0a6e",
+                        "ctime": 1515607355,
+                        "tag": "signature",
+                        "expire_in": 157680000,
+                        "body": {
+                            "version": 2,
+                            "type": "team.change_membership",
+                            "key": {
+                                "username": "herb",
+                                "uid": "25852c87d6e47fb8d7d55400be9c7a19",
+                                "kid": "01201260cf15b80aeaf2c2c362f0de88bbc40272d534d179b94c0457a5e584fcd1860a"
+                            },
+                            "merkle_root": {
+                                "ctime": 1500570001,
+                                "hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+                                "hash_meta": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd3000",
+                                "seqno": 8001
+                            },
+                            "team": {
+                                "id": "2123209b98b16083c69c91152b861724",
+                                "members": {
+                                    "writer": [
+                                        "579651b0d574971040b531b66efbc519"
+                                    ]
+                                }
+                            }
+                        },
+                        "seq_type": 1
+                    },
+                    "debug_link_id": "2cfb22ca11e048f7625eeddc1f048036cd577c88218dd372c24662d5dc3047d2"
+                },
+                {
+                    "seqno": 4,
+                    "sig": "g6Rib2R5hqhkZXRhY2hlZMOpaGFzaF90eXBlCqNrZXnEIwEgx/Xzc1XM1LS+giV1hEq3kDxjqbgxv9MMlA0B8Ss5qkcKp3BheWxvYWTESpcCBMQgLPsiyhHgSPdiXu3cHwSANs1XfIghjdNywkZi1dwwR9LEINje8OJd6v8uocP3sHKaLP4C1xVHXfDgxNweHHUvmxG5JQHCo3NpZ8RABgOqIyubr//V8z6lL18bFCFxsUxrHLFrsj4YEMBDsevGkEn0NVujnGhFUh8Z6s+YmcIW9ptkzDBlUN8SkDQOC6hzaWdfdHlwZSCjdGFnzQICp3ZlcnNpb24B",
+                    "payload_json": "{\"body\":{\"key\":{\"kid\":\"0120c7f5f37355ccd4b4be822575844ab7903c63a9b831bfd30c940d01f12b39aa470a\",\"uid\":\"579651b0d574971040b531b66efbc519\",\"username\":\"basil\"},\"merkle_root\":{\"ctime\":1500570001,\"hash\":\"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\",\"hash_meta\":\"cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd4000\",\"seqno\":8001},\"team\":{\"id\":\"2123209b98b16083c69c91152b861724\"},\"type\":\"team.leave\",\"version\":2},\"ctime\":1515607355,\"expire_in\":157680000,\"prev\":\"2cfb22ca11e048f7625eeddc1f048036cd577c88218dd372c24662d5dc3047d2\",\"seq_type\":1,\"seqno\":4,\"tag\":\"signature\"}",
+                    "uid": "579651b0d574971040b531b66efbc519",
+                    "version": 2,
+                    "debug_payload": {
+                        "seqno": 4,
+                        "prev": "2cfb22ca11e048f7625eeddc1f048036cd577c88218dd372c24662d5dc3047d2",
+                        "ctime": 1515607355,
+                        "tag": "signature",
+                        "expire_in": 157680000,
+                        "body": {
+                            "version": 2,
+                            "type": "team.leave",
+                            "key": {
+                                "username": "basil",
+                                "uid": "579651b0d574971040b531b66efbc519",
+                                "kid": "0120c7f5f37355ccd4b4be822575844ab7903c63a9b831bfd30c940d01f12b39aa470a"
+                            },
+                            "merkle_root": {
+                                "ctime": 1500570001,
+                                "hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+                                "hash_meta": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd4000",
+                                "seqno": 8001
+                            },
+                            "team": {
+                                "id": "2123209b98b16083c69c91152b861724"
+                            }
+                        },
+                        "seq_type": 1
+                    },
+                    "debug_link_id": "91c3ccbcab1a926c2a5984ed1eeb50987b7fbc49ab9bf496cc93bd6a0e24ac50"
+                },
+                {
+                    "seqno": 5,
+                    "sig": "g6Rib2R5hqhkZXRhY2hlZMOpaGFzaF90eXBlCqNrZXnEIwEgEmDPFbgK6vLCw2Lw3oi7xAJy1TTReblMBFel5YT80YYKp3BheWxvYWTESpcCBcQgkcPMvKsakmwqWYTtHutQmHt/vEmrm/SWzJO9ag4krFDEIF7O+kYwAv0k9znRT8qbA/F4Ps4qJPqvZAVWAEi/q6s/IwHCo3NpZ8RAkVLhYh1x5M8FtvyrFjH0Wt5SAH1bQp6aq2cxZJUyuFqfgtZ2hpTSKogXr1GQ3OK0h7eMrgG7slht6v3oolsECqhzaWdfdHlwZSCjdGFnzQICp3ZlcnNpb24B",
+                    "payload_json": "{\"body\":{\"key\":{\"kid\":\"01201260cf15b80aeaf2c2c362f0de88bbc40272d534d179b94c0457a5e584fcd1860a\",\"uid\":\"25852c87d6e47fb8d7d55400be9c7a19\",\"username\":\"herb\"},\"merkle_root\":{\"ctime\":1500570001,\"hash\":\"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\",\"hash_meta\":\"cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd5000\",\"seqno\":8001},\"team\":{\"completed_invites\":{\"54eafff3400b5bcd8b40bff3d225ab27\":\"579651b0d574971040b531b66efbc519\"},\"id\":\"2123209b98b16083c69c91152b861724\",\"members\":{\"writer\":[\"579651b0d574971040b531b66efbc519\"]}},\"type\":\"team.change_membership\",\"version\":2},\"ctime\":1515607355,\"expire_in\":157680000,\"prev\":\"91c3ccbcab1a926c2a5984ed1eeb50987b7fbc49ab9bf496cc93bd6a0e24ac50\",\"seq_type\":1,\"seqno\":5,\"tag\":\"signature\"}",
+                    "uid": "25852c87d6e47fb8d7d55400be9c7a19",
+                    "version": 2,
+                    "debug_payload": {
+                        "seqno": 5,
+                        "prev": "91c3ccbcab1a926c2a5984ed1eeb50987b7fbc49ab9bf496cc93bd6a0e24ac50",
+                        "ctime": 1515607355,
+                        "tag": "signature",
+                        "expire_in": 157680000,
+                        "body": {
+                            "version": 2,
+                            "type": "team.change_membership",
+                            "key": {
+                                "username": "herb",
+                                "uid": "25852c87d6e47fb8d7d55400be9c7a19",
+                                "kid": "01201260cf15b80aeaf2c2c362f0de88bbc40272d534d179b94c0457a5e584fcd1860a"
+                            },
+                            "merkle_root": {
+                                "ctime": 1500570001,
+                                "hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+                                "hash_meta": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd5000",
+                                "seqno": 8001
+                            },
+                            "team": {
+                                "id": "2123209b98b16083c69c91152b861724",
+                                "members": {
+                                    "writer": [
+                                        "579651b0d574971040b531b66efbc519"
+                                    ]
+                                },
+                                "completed_invites": {
+                                    "54eafff3400b5bcd8b40bff3d225ab27": "579651b0d574971040b531b66efbc519"
+                                }
+                            }
+                        },
+                        "seq_type": 1
+                    },
+                    "debug_link_id": "93a66ae28d0612734c6764d5e2475196bad2cc81ef571aaa4d42ea06c780a501"
+                }
+            ],
+            "team_key_boxes": [
+                {
+                    "seqno": 1,
+                    "box": {
+                        "nonce": "W+rT3NNui23V3QU9cpWeEpFFvRkAAAAB",
+                        "sender_kid": "012192b181dd77c93ceb4dcfd773c846f0a51cd04ee2c18a6d7f84e0c43217a7a54c0a",
+                        "generation": 1,
+                        "ctext": "WbcvE7g3d7ZcdQzKfpWq3J+t7DHUJ5L9sOv3L/JvadArE9Wdik4921SqVQCa2uKE",
+                        "per_user_key_seqno": 1
+                    },
+                    "prev": null
+                }
+            ],
+            "debug_tk_secs": [
+                [
+                    "96ae34bcc20c1c1922dbd1ab374a396e0f13cbb85634a5495993f41de616cf9f"
+                ]
+            ],
+            "debug_tk_sig_kids": [
+                [
+                    "0120bc800d778ff6bfd696113daab058a8304652fce326a8426643ba9283e1e5ac8e0a"
+                ]
+            ]
+        }
+    },
+    "users": {
+        "herb": {
+            "uid": "25852c87d6e47fb8d7d55400be9c7a19",
+            "eldest_seqno": 1,
+            "puk_secrets": {
+                "1": "3759ea1c8527a0ecca7be3a447fa35a5ed64969e1651b4c1825dac09b5b6fb42"
+            },
+            "link_map": {
+                "1": "efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefe0"
+            },
+            "debug_puk_enc_kid": "012192b181dd77c93ceb4dcfd773c846f0a51cd04ee2c18a6d7f84e0c43217a7a54c0a"
+        },
+        "basil": {
+            "uid": "579651b0d574971040b531b66efbc519",
+            "eldest_seqno": 1,
+            "puk_secrets": {
+                "1": "2f93d1fb90f25614da0ca264f42c8da61ee41a9a8ea549e35285906a185b79e9"
+            },
+            "link_map": {
+                "1": "efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefe1"
+            },
+            "debug_puk_enc_kid": "0121f087facd497c93cd138bcd6145910da8d2828d173f3f558c063a68e5ce40d6060a"
+        }
+    },
+    "key_owners": {
+        "01201260cf15b80aeaf2c2c362f0de88bbc40272d534d179b94c0457a5e584fcd1860a": "herb",
+        "0120c7f5f37355ccd4b4be822575844ab7903c63a9b831bfd30c940d01f12b39aa470a": "basil"
+    },
+    "key_pubkeyv2nacls": {
+        "01201260cf15b80aeaf2c2c362f0de88bbc40272d534d179b94c0457a5e584fcd1860a": {
+            "deviceType": "desktop",
+            "deviceDescription": "home thing",
+            "deviceID": "fbd762facdfad44709aef63a9a8cdf18",
+            "base": {
+                "eTime": 2005146762000,
+                "cTime": 1500570762000,
+                "isEldest": true,
+                "isSibkey": true,
+                "kid": "01201260cf15b80aeaf2c2c362f0de88bbc40272d534d179b94c0457a5e584fcd1860a",
+                "provisioning": {
+                    "sigChainLocation": {
+                        "seqno": 1,
+                        "seqType": 1
+                    },
+                    "signingKID": "01201260cf15b80aeaf2c2c362f0de88bbc40272d534d179b94c0457a5e584fcd1860a",
+                    "time": 0,
+                    "firstAppearedUnverified": 0,
+                    "prevMerkleRootSigned": {
+                        "hashMeta": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdc500",
+                        "seqno": 0
+                    }
+                }
+            }
+        },
+        "0120c7f5f37355ccd4b4be822575844ab7903c63a9b831bfd30c940d01f12b39aa470a": {
+            "deviceType": "desktop",
+            "deviceDescription": "home thing",
+            "deviceID": "fbd762facdfad44709aef63a9a8cdf18",
+            "base": {
+                "eTime": 2005146762000,
+                "cTime": 1500570762000,
+                "isEldest": true,
+                "isSibkey": true,
+                "kid": "0120c7f5f37355ccd4b4be822575844ab7903c63a9b831bfd30c940d01f12b39aa470a",
+                "provisioning": {
+                    "sigChainLocation": {
+                        "seqno": 1,
+                        "seqType": 1
+                    },
+                    "signingKID": "0120c7f5f37355ccd4b4be822575844ab7903c63a9b831bfd30c940d01f12b39aa470a",
+                    "time": 0,
+                    "firstAppearedUnverified": 0,
+                    "prevMerkleRootSigned": {
+                        "hashMeta": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdc500",
+                        "seqno": 0
+                    }
+                }
+            }
+        }
+    },
+    "team_merkle": {
+        "2123209b98b16083c69c91152b861724": {
+            "seqno": 5,
+            "link_id": "93a66ae28d0612734c6764d5e2475196bad2cc81ef571aaa4d42ea06c780a501"
+        },
+        "2123209b98b16083c69c91152b861724-seqno:1": {
+            "seqno": 1,
+            "link_id": "ada9236024ad56893272e70d1c3b8d581dfccafe70da6c5f759b5d6ac3beab9f"
+        },
+        "2123209b98b16083c69c91152b861724-seqno:2": {
+            "seqno": 2,
+            "link_id": "2ffab23d6202d44460ef75601ef67539d43211da621243dd5f1bad9fe35d0a6e"
+        },
+        "2123209b98b16083c69c91152b861724-seqno:3": {
+            "seqno": 3,
+            "link_id": "2cfb22ca11e048f7625eeddc1f048036cd577c88218dd372c24662d5dc3047d2"
+        },
+        "2123209b98b16083c69c91152b861724-seqno:4": {
+            "seqno": 4,
+            "link_id": "91c3ccbcab1a926c2a5984ed1eeb50987b7fbc49ab9bf496cc93bd6a0e24ac50"
+        },
+        "2123209b98b16083c69c91152b861724-seqno:5": {
+            "seqno": 5,
+            "link_id": "93a66ae28d0612734c6764d5e2475196bad2cc81ef571aaa4d42ea06c780a501"
+        }
+    },
+    "merkle_triples": {
+        "25852c87d6e47fb8d7d55400be9c7a19-cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd1000": {
+            "seqno": 1,
+            "id": "efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefe0"
+        },
+        "25852c87d6e47fb8d7d55400be9c7a19-cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd2000": {
+            "seqno": 1,
+            "id": "efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefe0"
+        },
+        "25852c87d6e47fb8d7d55400be9c7a19-cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd3000": {
+            "seqno": 1,
+            "id": "efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefe0"
+        },
+        "579651b0d574971040b531b66efbc519-cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd4000": {
+            "seqno": 1,
+            "id": "efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefe1"
+        },
+        "25852c87d6e47fb8d7d55400be9c7a19-cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd5000": {
+            "seqno": 1,
+            "id": "efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefe0"
+        }
+    },
+    "sessions": [
+        {
+            "loads": [
+                {
+                    "error": false
+                }
+            ]
+        }
+    ]
+}

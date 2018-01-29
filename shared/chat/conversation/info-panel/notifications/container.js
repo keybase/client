@@ -1,12 +1,12 @@
 // @flow
+import * as React from 'react'
 import logger from '../../../../logger'
 import * as Constants from '../../../../constants/chat'
 import * as Types from '../../../../constants/types/chat'
 import * as ChatGen from '../../../../actions/chat-gen'
-import Notifications from '.'
-import {compose, branch, renderNothing, connect, lifecycle, type TypedState} from '../../../../util/container'
+import {Notifications, type Props} from '.'
+import {connect, type TypedState} from '../../../../util/container'
 import {type DeviceType} from '../../../../constants/types/devices'
-import {type StateProps, type DispatchProps} from './container'
 
 const serverStateToProps = (notifications: Types.NotificationsState, type: 'desktop' | 'mobile') => {
   // The server state has independent bool values for atmention/generic,
@@ -25,79 +25,127 @@ const serverStateToProps = (notifications: Types.NotificationsState, type: 'desk
   return 'never'
 }
 
-const mapStateToProps = (state: TypedState): * => {
+type _StateProps = {
+  channelWide: boolean,
+  conversationIDKey: string,
+  desktop: Types.NotifyType,
+  mobile: Types.NotifyType,
+  muted: boolean,
+  saveState: Types.NotificationSaveState,
+}
+
+// Use conversationIDKey as a signal for whether StateProps is empty.
+type StateProps = _StateProps | {conversationIDKey: void}
+
+const mapStateToProps = (state: TypedState): StateProps => {
   const conversationIDKey = Constants.getSelectedConversation(state)
   if (!conversationIDKey) {
     logger.warn('no selected conversation')
-    return {}
+    return {conversationIDKey: undefined}
   }
   const inbox = Constants.getSelectedInbox(state)
   if (!inbox) {
     logger.warn('no selected inbox')
-    return {}
+    return {conversationIDKey: undefined}
   }
   const notifications = inbox.get('notifications')
   if (!notifications) {
     logger.warn('no notifications')
-    return {}
+    return {conversationIDKey: undefined}
   }
   const desktop = serverStateToProps(notifications, 'desktop')
   const mobile = serverStateToProps(notifications, 'mobile')
+  const muted = Constants.getMuted(state)
   const {channelWide} = notifications
+  const saveState = inbox.get('notificationSaveState')
 
-  return {
+  return ({
     channelWide,
     conversationIDKey,
     desktop,
     mobile,
-    saveState: inbox.get('notificationSaveState'),
-  }
+    muted,
+    saveState,
+  }: _StateProps)
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _resetNotificationSaveState: (conversationIDKey: Types.ConversationIDKey) =>
+type DispatchProps = {
+  _resetSaveState: (conversationIDKey: Types.ConversationIDKey) => void,
+  _onMuteConversation: (conversationIDKey: Types.ConversationIDKey, muted: boolean) => void,
+  _onSetNotification: (
+    conversationIDKey: Types.ConversationIDKey,
+    deviceType: DeviceType,
+    notifyType: Types.NotifyType
+  ) => void,
+  _onToggleChannelWide: (conversationIDKey: Types.ConversationIDKey) => void,
+}
+
+const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
+  _resetSaveState: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(ChatGen.createSetNotificationSaveState({conversationIDKey, saveState: 'unsaved'})),
-  onSetNotification: (
+  _onMuteConversation: (conversationIDKey: Types.ConversationIDKey, muted: boolean) => {
+    dispatch(ChatGen.createMuteConversation({conversationIDKey, muted}))
+  },
+  _onSetNotification: (
     conversationIDKey: Types.ConversationIDKey,
     deviceType: DeviceType,
     notifyType: Types.NotifyType
   ) => dispatch(ChatGen.createSetNotifications({conversationIDKey, deviceType, notifyType})),
-  onToggleChannelWide: (conversationIDKey: Types.ConversationIDKey) =>
+  _onToggleChannelWide: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(ChatGen.createToggleChannelWideNotifications({conversationIDKey})),
 })
 
-const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
-  if (stateProps.conversationIDKey) {
-    const {conversationIDKey} = stateProps
-    return {
-      _resetNotificationSaveState: () => dispatchProps._resetNotificationSaveState(conversationIDKey),
-      conversationIDKey: stateProps.conversationIDKey,
-      channelWide: stateProps.channelWide,
-      desktop: stateProps.desktop,
-      mobile: stateProps.mobile,
-      saveState: stateProps.saveState,
-      onSetDesktop: (notifyType: Types.NotifyType) => {
-        dispatchProps.onSetNotification(conversationIDKey, 'desktop', notifyType)
-      },
-      onSetMobile: (notifyType: Types.NotifyType) => {
-        dispatchProps.onSetNotification(conversationIDKey, 'mobile', notifyType)
-      },
-      onToggleChannelWide: () => {
-        dispatchProps.onToggleChannelWide(conversationIDKey)
-      },
-    }
-  } else {
-    return {}
+// Use _resetSaveState as a signal for whether StateProps is empty.
+type _Props =
+  | (Props & {
+      _resetSaveState: () => void,
+    })
+  | {_resetSaveState: void}
+
+const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): _Props => {
+  if (!stateProps.conversationIDKey) {
+    return {_resetSaveState: undefined}
+  }
+
+  const convKey = stateProps.conversationIDKey
+  return {
+    _resetSaveState: () => dispatchProps._resetSaveState(convKey),
+    channelWide: stateProps.channelWide,
+    desktop: stateProps.desktop,
+    mobile: stateProps.mobile,
+    muted: stateProps.muted,
+    saveState: stateProps.saveState,
+    onMuteConversation: (muted: boolean) => {
+      dispatchProps._onMuteConversation(convKey, muted)
+    },
+    onSetDesktop: (notifyType: Types.NotifyType) => {
+      dispatchProps._onSetNotification(convKey, 'desktop', notifyType)
+    },
+    onSetMobile: (notifyType: Types.NotifyType) => {
+      dispatchProps._onSetNotification(convKey, 'mobile', notifyType)
+    },
+    onToggleChannelWide: () => {
+      dispatchProps._onToggleChannelWide(convKey)
+    },
   }
 }
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  lifecycle({
-    componentDidMount: function() {
-      this.props._resetNotificationSaveState()
-    },
-  }),
-  // $FlowIssue doesn't like dynamic props like we do above
-  branch(props => !props.conversationIDKey, renderNothing)
-)(Notifications)
+class _Notifications extends React.PureComponent<_Props> {
+  componentDidMount() {
+    if (!this.props._resetSaveState) {
+      return
+    }
+
+    this.props._resetSaveState()
+  }
+
+  render() {
+    if (!this.props._resetSaveState) {
+      return null
+    }
+
+    return <Notifications {...this.props} />
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(_Notifications)

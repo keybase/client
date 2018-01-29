@@ -175,6 +175,11 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 			continue
 		}
 
+		// skip any PLACEHOLDER or OUTBOX messages
+		if st != chat1.MessageUnboxedState_VALID {
+			continue
+		}
+
 		mv := m.Valid()
 
 		if mv.ClientHeader.MessageType == chat1.MessageType_TLFNAME {
@@ -742,7 +747,7 @@ func (c *chatServiceHandler) makePostHeader(ctx context.Context, arg sendArgV1, 
 			TopicName:        topicName,
 			TopicType:        tt,
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-			MembersType:      arg.channel.GetMembersType(),
+			MembersType:      arg.channel.GetMembersType(c.G().GetEnv()),
 		})
 		if err != nil {
 			return nil, err
@@ -799,7 +804,9 @@ func (c *chatServiceHandler) getExistingConvs(ctx context.Context, id chat1.Conv
 	}
 
 	var tlfName string
-	if channel.GetMembersType() == chat1.ConversationMembersType_KBFS {
+	switch channel.GetMembersType(c.G().GetEnv()) {
+	case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAMNATIVE,
+		chat1.ConversationMembersType_IMPTEAMUPGRADE:
 		tlfQ := keybase1.TLFQuery{
 			TlfName:          channel.Name,
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
@@ -817,7 +824,7 @@ func (c *chatServiceHandler) getExistingConvs(ctx context.Context, id chat1.Conv
 			}
 			tlfName = cname.CanonicalName.String()
 		}
-	} else {
+	default:
 		tlfName = channel.Name
 	}
 
@@ -832,7 +839,7 @@ func (c *chatServiceHandler) getExistingConvs(ctx context.Context, id chat1.Conv
 
 	findRes, err := client.FindConversationsLocal(ctx, chat1.FindConversationsLocalArg{
 		TlfName:          tlfName,
-		MembersType:      channel.GetMembersType(),
+		MembersType:      channel.GetMembersType(c.G().GetEnv()),
 		Visibility:       vis,
 		TopicType:        tt,
 		TopicName:        channel.TopicName,

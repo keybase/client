@@ -4,6 +4,7 @@ import * as PeopleGen from '../../actions/people-gen'
 import * as Types from '../../constants/types/people'
 import * as Tabs from '../../constants/tabs'
 import * as SettingsTabs from '../../constants/settings'
+import {todoTypes} from '../../constants/people'
 import {connect, branch, compose, renderNothing} from '../../util/container'
 import {type TypedState} from '../../constants/reducer'
 import {createGetMyProfile} from '../../actions/tracker-gen'
@@ -149,15 +150,16 @@ const teamShowcaseConnector = connect(
 )
 
 export default compose(
-  branch(props => props.todoType === 'bio', bioConnector),
-  branch(props => props.todoType === 'proof', proofConnector),
-  branch(props => props.todoType === 'device', deviceConnector),
-  branch(props => props.todoType === 'follow', followConnector),
-  branch(props => props.todoType === 'chat', chatConnector),
-  branch(props => props.todoType === 'paperkey', paperKeyConnector),
-  branch(props => props.todoType === 'team', teamConnector),
-  branch(props => props.todoType === 'folder', folderConnector),
-  branch(props => props.todoType === 'gitrepo', gitRepoConnector),
-  branch(props => props.todoType === 'teamshowcase', teamShowcaseConnector),
+  // TODO maybe have an object
+  branch(props => props.todoType === todoTypes.bio, bioConnector),
+  branch(props => props.todoType === todoTypes.proof, proofConnector),
+  branch(props => props.todoType === todoTypes.device, deviceConnector),
+  branch(props => props.todoType === todoTypes.follow, followConnector),
+  branch(props => props.todoType === todoTypes.chat, chatConnector),
+  branch(props => props.todoType === todoTypes.paperkey, paperKeyConnector),
+  branch(props => props.todoType === todoTypes.team, teamConnector),
+  branch(props => props.todoType === todoTypes.folder, folderConnector),
+  branch(props => props.todoType === todoTypes.gitRepo, gitRepoConnector),
+  branch(props => props.todoType === todoTypes.teamShowcase, teamShowcaseConnector),
   branch(props => !props.onConfirm, renderNothing)
 )(Task)

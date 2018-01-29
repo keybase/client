@@ -100,6 +100,15 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "GitPushType",
+      "symbols": [
+        "DEFAULT_0",
+        "CREATEREPO_1",
+        "RENAMEREPO_3"
+      ]
+    },
+    {
       "type": "record",
       "name": "GitRefMetadata",
       "fields": [
@@ -117,6 +126,10 @@
         {
           "type": "boolean",
           "name": "moreCommitsAvailable"
+        },
+        {
+          "type": "boolean",
+          "name": "isDelete"
         }
       ]
     },
@@ -134,6 +147,14 @@
             "items": "GitRefMetadata"
           },
           "name": "refs"
+        },
+        {
+          "type": "GitPushType",
+          "name": "pushType"
+        },
+        {
+          "type": "GitRepoName",
+          "name": "previousRepoName"
         }
       ]
     },

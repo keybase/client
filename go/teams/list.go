@@ -656,10 +656,6 @@ func parseInvitesNoAnnotate(ctx context.Context, g *libkb.GlobalContext, team *T
 }
 
 func TeamTree(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamTreeArg) (res keybase1.TeamTreeResult, err error) {
-	if !arg.Name.IsRootTeam() {
-		return res, fmt.Errorf("cannot get tree of non-root team")
-	}
-
 	serverList, err := getTeamsListFromServer(ctx, g, "", false /* all */, false /* countMembers */)
 	if err != nil {
 		return res, err
@@ -676,7 +672,7 @@ func TeamTree(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamTree
 		if err != nil {
 			return res, err
 		}
-		if !serverName.RootAncestorName().Eq(arg.Name) {
+		if !arg.Name.IsAncestorOf(serverName) && !arg.Name.Eq(serverName) {
 			// Skip those not in this tree.
 			continue
 		}
@@ -715,7 +711,7 @@ func TeamTree(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamTree
 				}
 			}
 			name, err = name.Parent()
-			if err != nil {
+			if err != nil || (!arg.Name.IsAncestorOf(name) && !arg.Name.Eq(name)) {
 				break
 			}
 		}

@@ -12,17 +12,17 @@ import {peopleTab} from '../constants/tabs'
 import {type TypedState} from '../constants/reducer'
 import {createDecrementWaiting, createIncrementWaiting} from '../actions/waiting-gen'
 import {getPath} from '../route-tree'
-import flags from '../util/feature-flags'
 
 const _getPeopleData = function(action: PeopleGen.GetPeopleDataPayload, state: TypedState) {
   return Saga.sequentially([
     Saga.put(createIncrementWaiting({key: Constants.getPeopleDataWaitingKey})),
     Saga.call(RPCTypes.homeHomeGetScreenRpcPromise, {
-      markViewed: flags.newPeopleTab ? action.payload.markViewed : false,
+      markViewed: action.payload.markViewed,
       numFollowSuggestionsWanted: action.payload.numFollowSuggestionsWanted,
     }),
     Saga.identity(state.config.following),
     Saga.identity(state.config.followers),
+    Saga.put(createDecrementWaiting({key: Constants.getPeopleDataWaitingKey})),
   ])
 }
 
@@ -60,18 +60,15 @@ const _processPeopleData = function(fromGetPeopleData: any[]) {
       }, I.List())) ||
     I.List()
 
-  return Saga.all([
-    Saga.put(
-      PeopleGen.createPeopleDataProcessed({
-        oldItems,
-        newItems,
-        lastViewed: new Date(data.lastViewed),
-        followSuggestions,
-        version: data.version,
-      })
-    ),
-    Saga.put(createDecrementWaiting({key: Constants.getPeopleDataWaitingKey})),
-  ])
+  return Saga.put(
+    PeopleGen.createPeopleDataProcessed({
+      oldItems,
+      newItems,
+      lastViewed: new Date(data.lastViewed),
+      followSuggestions,
+      version: data.version,
+    })
+  )
 }
 
 const _markViewed = (action: PeopleGen.MarkViewedPayload) =>
@@ -92,9 +89,15 @@ const _skipTodo = (action: PeopleGen.SkipTodoPayload) => {
   ])
 }
 
-let _wasOnPeopleTab = false
+let _wasOnPeopleTab = true
 const _setupPeopleHandlers = () => {
   return Saga.put((dispatch: Dispatch) => {
+    engine().listenOnConnect('registerHomeUI', () => {
+      RPCTypes.delegateUiCtlRegisterHomeUIRpcPromise()
+        .then(() => console.log('Registered home UI'))
+        .catch(error => console.warn('Error in registering home UI:', error))
+    })
+
     engine().setIncomingHandler('keybase.1.homeUI.homeUIRefresh', (args: {||}) => {
       if (_wasOnPeopleTab) {
         dispatch(
@@ -128,7 +131,7 @@ const _onTabChange = (action: RouteTypes.SwitchTo, state: TypedState) => {
 }
 
 const peopleSaga = function*(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeLatestPure(PeopleGen.getPeopleData, _getPeopleData, _processPeopleData, () =>
+  yield Saga.safeTakeEveryPure(PeopleGen.getPeopleData, _getPeopleData, _processPeopleData, () =>
     // TODO replace this with engine handling once that lands
     Saga.put(createDecrementWaiting({key: Constants.getPeopleDataWaitingKey}))
   )

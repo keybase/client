@@ -618,6 +618,19 @@ func (u *userPlusDevice) loginAfterResetHelper(puk bool) {
 	require.NoError(t, err, "login after reset")
 }
 
+func (u *userPlusDevice) perUserKeyUpgrade() {
+	t := u.device.tctx.T
+	u.device.tctx.Tp.DisableUpgradePerUserKey = false
+	g := u.device.tctx.G
+	arg := &engine.PerUserKeyUpgradeArgs{}
+	eng := engine.NewPerUserKeyUpgrade(g, arg)
+	ctx := &engine.Context{
+		LogUI: u.tc.G.Log,
+	}
+	err := engine.RunEngine(eng, ctx)
+	require.NoError(t, err, "Run engine.NewPerUserKeyUpgrade")
+}
+
 func kickTeamRekeyd(g *libkb.GlobalContext, t libkb.TestingTB) {
 	apiArg := libkb.APIArg{
 		Endpoint:    "test/accelerate_team_rekeyd",
@@ -647,12 +660,14 @@ func GetTeamForTestByID(ctx context.Context, g *libkb.GlobalContext, id keybase1
 }
 
 type teamNotifyHandler struct {
-	changeCh chan keybase1.TeamChangedByIDArg
+	changeCh  chan keybase1.TeamChangedByIDArg
+	abandonCh chan keybase1.TeamID
 }
 
 func newTeamNotifyHandler() *teamNotifyHandler {
 	return &teamNotifyHandler{
-		changeCh: make(chan keybase1.TeamChangedByIDArg, 1),
+		changeCh:  make(chan keybase1.TeamChangedByIDArg, 1),
+		abandonCh: make(chan keybase1.TeamID, 10),
 	}
 }
 
@@ -670,6 +685,11 @@ func (n *teamNotifyHandler) TeamDeleted(ctx context.Context, teamID keybase1.Tea
 }
 
 func (n *teamNotifyHandler) TeamExit(ctx context.Context, teamID keybase1.TeamID) error {
+	return nil
+}
+
+func (n *teamNotifyHandler) TeamAbandoned(ctx context.Context, teamID keybase1.TeamID) error {
+	n.abandonCh <- teamID
 	return nil
 }
 
@@ -1041,5 +1061,23 @@ func TestTeamCanUserPerform(t *testing.T) {
 
 	// Invalid team for pam
 	_, err = teams.CanUserPerform(context.TODO(), pam.tc.G, subteam)
-	require.Error(t, err)
+
+	// Non-membership shouldn't be an error
+	donny := tt.addUser("donny")
+	donnyPerms, err := teams.CanUserPerform(context.TODO(), donny.tc.G, team)
+	require.NoError(t, err, "non-member canUserPerform")
+
+	// Make sure a non-member can't do stuff
+	require.False(t, donnyPerms.ManageMembers)
+	require.False(t, donnyPerms.ManageSubteams)
+	require.False(t, donnyPerms.CreateChannel)
+	require.False(t, donnyPerms.DeleteChannel)
+	require.False(t, donnyPerms.RenameChannel)
+	require.False(t, donnyPerms.EditChannelDescription)
+	require.False(t, donnyPerms.SetTeamShowcase)
+	require.False(t, donnyPerms.SetMemberShowcase)
+	require.False(t, donnyPerms.ChangeOpenTeam)
+	require.False(t, donnyPerms.ListFirst)
+	// TBD: require.True(t, donnyPerms.JoinTeam)
+	require.False(t, donnyPerms.SetPublicityAny)
 }

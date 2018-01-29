@@ -22,7 +22,6 @@ import {
 } from '../../util/container'
 import ConversationError from './error/conversation-error'
 import {type Props} from '.'
-import flags from '../../util/feature-flags'
 
 type StateProps = {|
   finalizeInfo: ?Types.FinalizeInfo,
@@ -99,7 +98,7 @@ const mapStateToProps = (state: TypedState, {routePath, routeProps}): StateProps
   const userInputItemIds = SearchConstants.getUserInputItemIds(state, {searchKey: 'chatSearch'})
 
   // If it's a multi-user chat that isn't a team, offer to make a new team.
-  const showTeamOffer = flags.teamChatEnabled && inSearch && userInputItemIds && userInputItemIds.length > 1
+  const showTeamOffer = inSearch && userInputItemIds && userInputItemIds.length > 1
 
   return {
     showSearchResults: inSearch && !!searchResults,

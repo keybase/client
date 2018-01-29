@@ -10,6 +10,7 @@ const colors = {
   black_75: 'rgba(0, 0, 0, 0.75)',
   blue2: '#66b8ff',
   blue3: '#a8d7ff',
+  blue3_20: 'rgba(168, 215, 255, 0.2)',
   blue3_40: 'rgba(168, 215, 255, 0.4)',
   blue3_60: 'rgba(168, 215, 255, 0.6)',
   blue4: '#ebf5fc',

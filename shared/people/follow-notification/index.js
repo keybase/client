@@ -11,6 +11,7 @@ const connectedUsernamesProps = {
   inline: true,
   colorFollowing: true,
   type: 'BodySemibold',
+  underline: true,
 }
 
 export type NewFollow = Types.FollowedNotification
@@ -79,7 +80,12 @@ export const MultiFollowNotification = (props: Props) => {
           >
             <Meta
               title={`+${props.newFollows.length + (props.numAdditional || 0)}`}
-              style={{backgroundColor: globalColors.blue, alignSelf: 'center'}}
+              style={{
+                alignSelf: 'center',
+                backgroundColor: globalColors.blue,
+                minWidth: isMobile ? 24 : 16,
+                textAlign: 'center',
+              }}
             />
           </Box>
         </Box>
@@ -99,7 +105,7 @@ export const MultiFollowNotification = (props: Props) => {
         following you.
       </Text>
       <ScrollView
-        {...(isMobile ? {horizontal: true} : {})} // Causes error on desktop
+        {...(isMobile ? {horizontal: true, alwaysBounceHorizontal: false} : {})} // Causes error on desktop
         contentContainerStyle={{
           ...globalStyles.flexBoxRow,
           ...(isMobile

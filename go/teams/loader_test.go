@@ -752,3 +752,41 @@ func TestInflateAfterPermissionsChange(t *testing.T) {
 	})
 	require.NoError(t, err, "load team lair")
 }
+
+// Test loading a team where a rotate_key was signed by implicit-admin + explicit-reader
+func TestRotateSubteamByExplicitReader(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	t.Logf("U0 creates fennel_network")
+	rootName, _ := createTeam2(*tcs[0])
+
+	t.Logf("U0 adds U1 to the root")
+	_, err := AddMember(context.Background(), tcs[0].G, rootName.String(), fus[1].Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err)
+
+	t.Logf("U0 creates fennel_network.sub1")
+	subteamID, err := CreateSubteam(context.Background(), tcs[0].G, "sub1", rootName)
+	require.NoError(t, err)
+	subteamName, err := rootName.Append("sub1")
+	require.NoError(t, err)
+
+	t.Logf("U0 adds both users to the subteam as readers")
+	for i := range tcs {
+		_, err := AddMember(context.Background(), tcs[0].G, subteamName.String(), fus[i].Username, keybase1.TeamRole_READER)
+		require.NoError(t, err)
+	}
+
+	t.Logf("U0 rotates the subteam")
+	err = RotateKey(context.Background(), tcs[0].G, *subteamID)
+	require.NoError(t, err)
+
+	t.Logf("Both users can still load the team")
+	for i := range tcs {
+		_, err = Load(context.Background(), tcs[i].G, keybase1.LoadTeamArg{
+			ID:          *subteamID,
+			ForceRepoll: true,
+		})
+		require.NoError(t, err, "load as %v", i)
+	}
+}

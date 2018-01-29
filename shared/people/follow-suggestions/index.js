@@ -10,6 +10,7 @@ const connectedUsernamesProps = {
   colorFollowing: true,
   type: 'BodySemibold',
   style: {marginTop: globalMargins.xtiny, display: 'flex'},
+  underline: true,
 }
 
 export type FollowSuggestion = Types._FollowSuggestion
@@ -21,10 +22,22 @@ export type Props = {
 
 const Suggestion = (props: Types._FollowSuggestion & {onClickUser: () => void}) => (
   <ClickableBox
-    style={{...globalStyles.flexBoxColumn, flexShrink: 0, width: 112, height: 106, alignItems: 'center'}}
+    style={{
+      ...globalStyles.flexBoxColumn,
+      flexShrink: 0,
+      width: 112,
+      height: 106,
+      alignItems: 'center',
+    }}
     onClick={props.onClickUser}
   >
-    <Avatar username={props.username} size={64} followsYou={props.followsMe} following={props.iFollow} />
+    <Avatar
+      username={props.username}
+      size={64}
+      followsYou={props.followsMe}
+      following={props.iFollow}
+      style={{marginBottom: globalMargins.xtiny}}
+    />
     <ConnectedUsernames
       {...connectedUsernamesProps}
       usernames={[props.username]}
@@ -32,8 +45,8 @@ const Suggestion = (props: Types._FollowSuggestion & {onClickUser: () => void}) 
       inline={true}
       containerStyle={{textAlign: 'center'}}
       style={{
-        paddingLeft: 10,
-        paddingRight: 10,
+        paddingLeft: globalMargins.tiny,
+        paddingRight: globalMargins.tiny,
       }}
     />
     {!!props.fullName && (
@@ -50,16 +63,14 @@ export default (props: Props) => (
       ...globalStyles.flexBoxColumn,
       position: 'relative',
       paddingTop: globalMargins.tiny,
-      paddingLeft: 12,
-      paddingRight: 12,
       paddingBottom: globalMargins.tiny,
     }}
   >
-    <Text type="BodySmallSemibold" style={{marginBottom: globalMargins.tiny}}>
+    <Text type="BodySmallSemibold" style={{marginBottom: globalMargins.tiny, marginLeft: globalMargins.tiny}}>
       Consider following...
     </Text>
     <ScrollView
-      {...(isMobile ? {horizontal: true} : {})} // Causes error on desktop
+      {...(isMobile ? {horizontal: true, alwaysBounceHorizontal: false} : {})} // Causes error on desktop
       contentContainerStyle={{
         ...globalStyles.flexBoxRow,
         ...(isMobile

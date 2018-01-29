@@ -28,7 +28,7 @@ const TeamInfo = (props: Props) => (
       {props.openTeam && 'OPEN '}TEAM
     </Text>
 
-    <Text type="BodySmall">{props.memberCount} members</Text>
+    <Text type="BodySmall">{props.memberCount + ' member' + (props.memberCount !== 1 ? 's' : '')}</Text>
 
     <Text type={isMobile ? 'Body' : 'BodySmall'} style={styleDescription}>
       {props.description}

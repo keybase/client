@@ -5,9 +5,6 @@ import * as I from 'immutable'
 import type {PropsPath} from '../../../route-tree/index'
 import {peopleTab} from '../../../constants/tabs'
 
-// These tests are for navigation with newPeopleTab: false
-// when the new people tab is going to be released these
-// expectedPaths must change to reflect the new root behavior
 describe('getProfilePath', () => {
   const state = {
     entities: {
@@ -59,10 +56,10 @@ describe('getProfilePath', () => {
   }
 
   it('Navigates correctly to user profiles', () => {
-    check(noPath, 'ayoubd', 'ayoubd', [peopleTab])
+    check(noPath, 'ayoubd', 'ayoubd', [peopleTab, {selected: 'profile', props: {username: 'ayoubd'}}])
     check(noPath, 'chris', 'ayoubd', [peopleTab, {selected: 'profile', props: {username: 'chris'}}])
 
-    check(baseTab, 'ayoubd', 'ayoubd', [peopleTab])
+    check(baseTab, 'ayoubd', 'ayoubd', [peopleTab, {selected: 'profile', props: {username: 'ayoubd'}}])
     check(baseTab, 'chris', 'ayoubd', [peopleTab, {selected: 'profile', props: {username: 'chris'}}])
 
     check(oneProfile, 'chrisnojima', 'ayoubd', [

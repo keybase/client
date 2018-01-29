@@ -31,6 +31,16 @@
     },
     "handleIncomingGregor": {
       "messages": "Array<RPCTypesGregor.OutOfBandMessage>"
+    },
+    "setTeamRepoSettings": {
+      "chatDisabled": "boolean",
+      "channelName": "?string",
+      "teamname": "string",
+      "repoID": "string"
+    },
+    "loadGitRepo": {
+      "username": "?string",
+      "teamname": "?string"
     }
   }
 }

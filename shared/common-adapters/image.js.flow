@@ -1,0 +1,8 @@
+// @flow
+
+export type Props = {
+  src: string,
+  style?: any,
+}
+
+export default function(props: Props) {}

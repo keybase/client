@@ -72,14 +72,19 @@ type TestCaseLoad struct {
 	ThenGetKey  int    `json:"then_get_key"`
 }
 
-func TestUnits(t *testing.T) {
-	t.Logf("running units")
+func getTeamchainJsonDir(t *testing.T) string {
 	cwd, err := os.Getwd()
 	require.NoError(t, err)
 	jsonDir := filepath.Join(cwd, "../vendor/github.com/keybase/keybase-test-vectors/teamchains")
 	if os.Getenv("KEYBASE_TEAM_TEST_NOVENDOR") == "1" {
 		jsonDir = filepath.Join(cwd, "../../../keybase-test-vectors/teamchains")
 	}
+	return jsonDir
+}
+
+func TestUnits(t *testing.T) {
+	t.Logf("running units")
+	jsonDir := getTeamchainJsonDir(t)
 	files, err := ioutil.ReadDir(jsonDir)
 	require.NoError(t, err)
 	selectUnit := os.Getenv("KEYBASE_TEAM_TEST_SELECT")
@@ -103,7 +108,7 @@ func TestUnits(t *testing.T) {
 	}
 }
 
-func runUnitFile(t *testing.T, jsonPath string) {
+func runUnitFile(t *testing.T, jsonPath string) *Team {
 	fileName := filepath.Base(jsonPath)
 	t.Logf("reading test json file: %v", fileName)
 	data, err := ioutil.ReadFile(jsonPath)
@@ -112,10 +117,15 @@ func runUnitFile(t *testing.T, jsonPath string) {
 	err = json.Unmarshal(data, &unit)
 	require.NoError(t, err, "reading unit file json")
 	unit.FileName = fileName
-	runUnit(t, unit)
+	return runUnit(t, unit)
 }
 
-func runUnit(t *testing.T, unit TestCase) {
+func runUnitFromFilename(t *testing.T, filename string) *Team {
+	jsonDir := getTeamchainJsonDir(t)
+	return runUnitFile(t, filepath.Join(jsonDir, filename))
+}
+
+func runUnit(t *testing.T, unit TestCase) (lastLoadRet *Team) {
 	t.Logf("starting unit: %v", unit.FileName)
 	defer t.Logf("exit unit: %v", unit.FileName)
 
@@ -197,8 +207,11 @@ func runUnit(t *testing.T, unit TestCase) {
 					require.Equal(t, loadSpec.ErrorType, reflect.TypeOf(err).Name(), "unexpected error type [%T]", err)
 				}
 			}
+
+			lastLoadRet = team
 		}
 	}
 
 	require.False(t, unit.Todo, "test marked as TODO")
+	return lastLoadRet
 }

@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import {storiesOf, action} from '../../../../stories/storybook'
-import Notifications from './index'
+import {Notifications} from './index'
 
 const load = () => {
   storiesOf('Chat/Conversation/InfoPanelNotifications', module)
@@ -10,7 +10,9 @@ const load = () => {
         channelWide={false}
         desktop="atmention"
         mobile="never"
+        muted={false}
         saveState="unsaved"
+        onMuteConversation={action('onMuteConversation')}
         onSetDesktop={action('onSetDesktop')}
         onSetMobile={action('onSetMobile')}
         onToggleChannelWide={action('onToggleChannelwide')}
@@ -21,7 +23,9 @@ const load = () => {
         channelWide={true}
         desktop="generic"
         mobile="atmention"
+        muted={false}
         saveState="saving"
+        onMuteConversation={action('onMuteConversation')}
         onSetDesktop={action('onSetDesktop')}
         onSetMobile={action('onSetMobile')}
         onToggleChannelWide={action('onToggleChannelwide')}
@@ -32,7 +36,9 @@ const load = () => {
         channelWide={true}
         desktop="generic"
         mobile="atmention"
+        muted={false}
         saveState="saved"
+        onMuteConversation={action('onMuteConversation')}
         onSetDesktop={action('onSetDesktop')}
         onSetMobile={action('onSetMobile')}
         onToggleChannelWide={action('onToggleChannelwide')}

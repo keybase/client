@@ -175,6 +175,8 @@ export default compose(
   withState('text', '_setText', props => props.defaultText || ''),
   withState('mentionPopupOpen', 'setMentionPopupOpen', false),
   withState('mentionFilter', 'setMentionFilter', ''),
+  withState('channelMentionPopupOpen', 'setChannelMentionPopupOpen', false),
+  withState('channelMentionFilter', 'setChannelMentionFilter', ''),
   withHandlers(props => {
     let input
     // mutable value to store the latest text synchronously

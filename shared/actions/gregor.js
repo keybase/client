@@ -52,7 +52,6 @@ function registerReachability() {
           // without re-bootstrapping. Originally we used to do this on HTML5
           // 'online' event, but reachability is more precise.
           dispatch(ConfigGen.createBootstrap({isReconnect: true}))
-          dispatch(ConfigGen.createClearAvatarCache())
         }
       }
     })
@@ -123,11 +122,16 @@ function* handleTLFUpdate(items: Array<Types.NonNullGregorItem>): SagaGenerator<
   }
 }
 
-function* handleChatBanner(items: Array<Types.NonNullGregorItem>): SagaGenerator<any, any> {
+function* handleIntroBanners(items: Array<Types.NonNullGregorItem>): SagaGenerator<any, any> {
   const sawChatBanner = items.find(i => i.item && i.item.category === 'sawChatBanner')
+  const sawSubteamsBanner = items.find(i => i.item && i.item.category === 'sawSubteamsBanner')
   if (sawChatBanner) {
     // TODO move this to teams eventually
     yield Saga.put(replaceEntity(['teams'], I.Map([['sawChatBanner', true]])))
+  }
+  if (sawSubteamsBanner) {
+    // TODO move this to teams eventually
+    yield Saga.put(replaceEntity(['teams'], I.Map([['sawSubteamsBanner', true]])))
   }
 }
 
@@ -141,7 +145,7 @@ function _handlePushState(pushAction: GregorGen.PushStatePayload) {
 
     return Saga.sequentially([
       Saga.call(handleTLFUpdate, nonNullItems),
-      Saga.call(handleChatBanner, nonNullItems),
+      Saga.call(handleIntroBanners, nonNullItems),
     ])
   } else {
     logger.debug('Error in gregor pushState', pushAction.payload)

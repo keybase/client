@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Badge, Box, Text} from '../../common-adapters'
+import {Box, Text} from '../../common-adapters'
 import {globalColors, globalStyles, globalMargins} from '../../styles'
 import moment from 'moment'
 import {isMobile} from '../../constants/platform'
@@ -46,6 +46,7 @@ export default (props: Props) => (
       position: 'relative',
       borderBottomWidth: 1,
       borderBottomColor: props.badged ? globalColors.white : globalColors.black_05,
+      borderBottomStyle: 'solid',
     }}
   >
     <Box style={{marginRight: 20, width: isMobile ? 48 : 32}}>{props.icon}</Box>
@@ -61,16 +62,30 @@ export default (props: Props) => (
     >
       {props.children}
     </Box>
-    <Box style={{...globalStyles.flexBoxRow, position: 'absolute', alignItems: 'center', right: 8, top: 12}}>
+    <Box
+      style={{
+        ...globalStyles.flexBoxRow,
+        position: 'absolute',
+        alignItems: 'center',
+        right: 8,
+        top: 12,
+      }}
+    >
       {!!props.when && (
         <Text type="BodySmall" style={{}}>
           {formatter.set(moment(props.when).toObject()).fromNow(true)}
         </Text>
       )}
       {props.badged && (
-        <Badge
-          badgeNumber={null}
-          badgeStyle={{marginLeft: globalMargins.tiny, height: 10, minWidth: 10, marginTop: -1}}
+        <Box
+          style={{
+            backgroundColor: globalColors.orange,
+            borderRadius: 6,
+            height: 8,
+            marginLeft: globalMargins.xtiny,
+            marginTop: isMobile ? 3 : 1,
+            width: 8,
+          }}
         />
       )}
     </Box>

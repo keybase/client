@@ -159,6 +159,8 @@ type InboxUIItem struct {
 	CreatorInfo       *ConversationCreatorInfoLocal `codec:"creatorInfo,omitempty" json:"creatorInfo,omitempty"`
 	Version           ConversationVers              `codec:"version" json:"version"`
 	MaxMsgID          MessageID                     `codec:"maxMsgID" json:"maxMsgID"`
+	ConvRetention     *RetentionPolicy              `codec:"convRetention,omitempty" json:"convRetention,omitempty"`
+	TeamRetention     *RetentionPolicy              `codec:"teamRetention,omitempty" json:"teamRetention,omitempty"`
 	FinalizeInfo      *ConversationFinalizeInfo     `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
 	Supersedes        []ConversationMetadata        `codec:"supersedes" json:"supersedes"`
 	SupersededBy      []ConversationMetadata        `codec:"supersededBy" json:"supersededBy"`
@@ -228,6 +230,20 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 		})(o.CreatorInfo),
 		Version:  o.Version.DeepCopy(),
 		MaxMsgID: o.MaxMsgID.DeepCopy(),
+		ConvRetention: (func(x *RetentionPolicy) *RetentionPolicy {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ConvRetention),
+		TeamRetention: (func(x *RetentionPolicy) *RetentionPolicy {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.TeamRetention),
 		FinalizeInfo: (func(x *ConversationFinalizeInfo) *ConversationFinalizeInfo {
 			if x == nil {
 				return nil
