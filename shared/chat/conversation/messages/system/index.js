@@ -30,6 +30,7 @@ type Props = {
   message: SystemMessage,
   onManageChannels: (teamname: string) => void,
   onViewTeam: (teamname: string) => void,
+  onViewGitRepo: (repoID: string) => void,
   teamname: string,
   you: string,
 }
@@ -274,7 +275,7 @@ const InviteAddedToTeamNotice = ({
 
 type GitPushInfoProps = Props & {info: GitPushInfo}
 
-const GitPushInfoNotice = ({message, info}: GitPushInfoProps) => {
+const GitPushInfoNotice = ({message, info, onViewGitRepo}: GitPushInfoProps) => {
   // There is a bug in the data layer where mergeEntities when it sees dupes of this message will keep on adding to the array
   // Short term fix: clean this up
 
@@ -305,7 +306,11 @@ const GitPushInfoNotice = ({message, info}: GitPushInfoProps) => {
         <Text type="BodySmallSemibold" style={{textAlign: 'center', marginBottom: globalMargins.xtiny}}>
           <ConnectedUsernames {...connectedUsernamesProps} usernames={[info.pusher]} /> pushed{' '}
           {refsMap[branchName].length} {`commit${refsMap[branchName].length !== 1 ? 's' : ''}`} to{' '}
-          {`${info.repo}/${branchName}`}:
+          <Text
+            type="BodySmallSemibold"
+            style={info.repoID ? {color: globalColors.black_75} : undefined}
+            onClick={info.repoID ? () => onViewGitRepo(info.repoID) : undefined}
+          >{`${info.repo}/${branchName}`}</Text>:
         </Text>
         <Box style={globalStyles.flexBoxColumn}>
           {refsMap[branchName].map((commit, i) => (
