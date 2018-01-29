@@ -132,7 +132,11 @@ class Conversation extends React.PureComponent<Props, State> {
         onPaste={this._onPaste}
       >
         {this.props.threadLoadedOffline && <Offline />}
-        <HeaderArea onToggleInfoPanel={this._onToggleInfoPanel} infoPanelOpen={this.state.infoPanelOpen} />
+        <HeaderArea
+          onToggleInfoPanel={this._onToggleInfoPanel}
+          infoPanelOpen={this.state.infoPanelOpen}
+          conversationIDKey={this.props.conversationIDKey}
+        />
         {this.props.showLoader && <LoadingLine />}
         <ListArea
           listScrollDownCounter={this.props.listScrollDownCounter}

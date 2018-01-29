@@ -15,11 +15,16 @@ import {
 import {createShowUserProfile} from '../../../../actions/profile-gen'
 import {chatTab} from '../../../../constants/tabs'
 
-const mapStateToProps = (state: TypedState, {infoPanelOpen}) => {
-  const conversationIDKey = Constants2.getSelectedConversation(state)
+const mapStateToProps = (state: TypedState, {infoPanelOpen, conversationIDKey}) => {
   const meta = Constants2.getMeta(state, conversationIDKey)
+  let _participants
+  if (state.chat2.pendingSelected) {
+    _participants = state.chat2.pendingConversationUsers.toSet()
+  } else {
+    _participants = meta.teamname ? I.Set() : meta.participants
+  }
   return {
-    _participants: meta.teamname ? I.Set() : meta.participants,
+    _participants,
     badgeNumber: state.notifications.getIn(['navBadges', chatTab]),
     canOpenInfoPanel: true, //! Constants.isPendingConversationIDKey(Constants.getSelectedConversation(state) || ''),
     channelName: meta.channelname,
