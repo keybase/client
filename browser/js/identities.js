@@ -22,10 +22,33 @@ function parseLocationQuery(s) {
   return params;
 }
 
-// identityMatchers is used to generate our declarative page match rules, but also
-// used to check for matches at runtime. Unfortunately, these mechanisms use different
-// implementations of regular expressions (re2 vs javascript's regexp) so there's
-// some redundancy but at least it's all in one place? :D
+// identityMatchers is used to generate our declarative page match rules, but
+// also used to check for matches at runtime for each `service` that we
+// support. They have the following schema:
+// {
+//  "service": Service name, if you add one here update `profileInject` in
+//  `identities.js` and `User.prototype.href to fully register it.
+//
+//  "getUsername": Function to parse the username from the browser
+//  `location` object.
+//
+//  "locationMatches": A regular expression used to match a page within the
+//  service (i.e. news.ycombinator.com/user?id=username matches but not
+//  news.ycombinator.com/newest).
+//
+//  "originAndPathMatches": A re2 style regex used to match a page within
+//  the service for declarativeContent matching
+//  (https://developer.chrome.com/extensions/declarativeContent).
+//
+//  "hostEquals": Used to match that the host is the host we want to run on
+//  (preventing any regex trickery for `locationMatches` or
+//  `originAndPathMatches`).
+//
+//  "css": (optional) CSS selector which must be present for declarativeContent
+//  or the chat button to be injected.
+//
+// }
+//
 const identityMatchers = [
   {
     service: "keybase",
