@@ -30,14 +30,23 @@ export type PreMentionHocProps = {
 
 export type MentionHocProps = {
   insertMention: (u: string, options?: {notUser: boolean}) => void,
-  switchMention: (u: string) => void,
   insertChannelMention: (c: string, options?: {notChannel: boolean}) => void,
-  switchChannelMention: (c: string) => void,
-  onKeyDown: (e: SyntheticKeyboardEvent<>) => void,
-  onKeyUp: (e: SyntheticKeyboardEvent<*>) => void,
+
+  // on desktop:
+  onKeyDown?: (e: SyntheticKeyboardEvent<>) => void,
+  onKeyUp?: (e: SyntheticKeyboardEvent<*>) => void,
+  switchMention?: (u: string) => void,
+  switchChannelMention?: (c: string) => void,
+  upArrowCounter?: number,
+  downArrowCounter?: number,
+  // on mobile:
+  onChangeText?: (newText: string) => void,
+  onSelectionChange?: ({selectionStart: number, selectionEnd: number}) => void,
+  onBlur?: () => void,
+  onFocus?: () => void,
+  insertMentionMarker?: () => void,
+
   onEnterKeyDown: (e: SyntheticKeyboardEvent<>) => void,
-  upArrowCounter: number,
-  downArrowCounter: number,
   pickSelectedCounter: number,
   channelMentionFilter: string,
   channelMentionPopupOpen: boolean,

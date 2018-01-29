@@ -23,7 +23,7 @@ import {navigateAppend, navigateUp, navigateTo} from '../../../actions/route-tre
 import throttle from 'lodash/throttle'
 import {createSelector} from 'reselect'
 import {type OwnProps} from './container'
-import mentionHoc from './mention-handlers.hoc'
+import mentionHoc from './mention-handler-hoc'
 
 const conversationStateSelector = (state: TypedState) => {
   const selectedConversationIDKey = Constants.getSelectedConversation(state)

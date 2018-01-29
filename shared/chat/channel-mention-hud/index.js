@@ -10,7 +10,7 @@ import {
   type MapStateToProps,
 } from '../../util/container'
 import {Box, ClickableBox, List, Text} from '../../common-adapters/index'
-import {globalColors, globalMargins, globalStyles} from '../../styles'
+import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
 
 type Props<D: {channelName: string, selected: boolean}> = {
   rowRenderer: (i: number, d: D) => React$Element<*>,
@@ -34,7 +34,7 @@ const MentionRowRenderer = ({channelName, selected, onClick, onHover}: MentionDa
       alignItems: 'center',
       paddingLeft: globalMargins.tiny,
       paddingRight: globalMargins.tiny,
-      backgroundColor: selected ? globalColors.blue4 : undefined,
+      backgroundColor: selected && !isMobile ? globalColors.blue4 : undefined,
     }}
     onClick={onClick}
     onMouseOver={onHover}
@@ -50,7 +50,13 @@ const MentionRowRenderer = ({channelName, selected, onClick, onHover}: MentionDa
 const Hud = ({style, data, rowRenderer, selectedIndex}: Props<*>) =>
   data.length ? (
     <Box style={{...hudStyle, ...style}}>
-      <List items={data} renderItem={rowRenderer} selectedIndex={selectedIndex} fixedHeight={40} />
+      <List
+        items={data}
+        renderItem={rowRenderer}
+        selectedIndex={selectedIndex}
+        fixedHeight={40}
+        keyboardShouldPersistTaps="always"
+      />
     </Box>
   ) : null
 

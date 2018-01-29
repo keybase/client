@@ -1,12 +1,8 @@
 // @flow
 import * as React from 'react'
-import {type PreMentionHocProps, type Props} from '.'
+import {type Props} from '.'
+import {type PropsFromContainer} from './mention-handler-hoc'
 import logger from '../../../logger'
-
-type PropsFromContainer = {
-  _inputSetRef: any => void,
-  _onKeyDown: (e: SyntheticKeyboardEvent<>) => void,
-} & PreMentionHocProps
 
 type MentionHocState = {
   upArrowCounter: number,

@@ -7,6 +7,8 @@ import React, {Component} from 'react'
 import {Box, Icon, Input, Text} from '../../../common-adapters'
 import {globalMargins, globalStyles, globalColors} from '../../../styles'
 import {isIOS} from '../../../constants/platform'
+import ConnectedMentionHud from '../../user-mention-hud/mention-hud-container'
+import ConnectedChannelMentionHud from '../../channel-mention-hud/mention-hud-container'
 
 import type {AttachmentInput} from '../../../constants/types/chat'
 import type {Props} from '.'
@@ -45,6 +47,7 @@ class ConversationInput extends Component<Props> {
   }
 
   _onBlur = () => {
+    this.props.onBlur && this.props.onBlur()
     if (this.props.editingMessage) {
       this.props.onShowEditor(null)
       this.props.setText('')
@@ -99,55 +102,112 @@ class ConversationInput extends Component<Props> {
     const multilineOpts = isIOS ? {rowsMax: 3, rowsMin: 1} : {rowsMax: 2, rowsMin: 2}
 
     return (
-      <Box style={styleContainer}>
-        {isIOS ? (
-          <Input
-            autoCorrect={true}
-            autoCapitalize="sentences"
-            autoFocus={false}
-            hideUnderline={true}
-            hintText="Write a message"
-            inputStyle={styleInputText}
-            multiline={true}
-            onBlur={this._onBlur}
-            onChangeText={this.props.setText}
-            ref={this.props.inputSetRef}
-            small={true}
-            style={styleInput}
-            value={this.props.text}
-            {...multilineOpts}
-          />
-        ) : (
-          <CustomTextInput
-            autoCorrect={true}
-            autoCapitalize="sentences"
-            autoFocus={false}
-            autoGrow={true}
-            style={styleInput}
-            onChangeText={this.props.setText}
-            onBlur={this._onBlur}
-            placeholder="Write a message"
-            underlineColorAndroid={globalColors.transparent}
-            multiline={true}
-            maxHeight={80}
-            numberOfLines={1}
-            minHeight={40}
-            defaultValue={this.props.text || undefined}
-            ref={this.props.inputSetRef}
-            blurOnSubmit={false}
+      <Box>
+        {this.props.mentionPopupOpen && (
+          <MentionHud
+            selectDownCounter={this.props.downArrowCounter}
+            selectUpCounter={this.props.upArrowCounter}
+            pickSelectedUserCounter={this.props.pickSelectedCounter}
+            onPickUser={this.props.insertMention}
+            onSelectUser={this.props.insertMention}
+            filter={this.props.mentionFilter}
           />
         )}
-        {this.props.typing.length > 0 && <Typing typing={this.props.typing} />}
-        <Action
-          text={this.props.text}
-          onSubmit={this._onSubmit}
-          editingMessage={this.props.editingMessage}
-          openFilePicker={this._openFilePicker}
-          isLoading={this.props.isLoading}
-        />
+        {this.props.channelMentionPopupOpen && (
+          <ChannelMentionHud
+            selectDownCounter={this.props.downArrowCounter}
+            selectUpCounter={this.props.upArrowCounter}
+            pickSelectedChannelCounter={this.props.pickSelectedCounter}
+            onPickChannel={this.props.insertChannelMention}
+            onSelectChannel={this.props.insertChannelMention}
+            filter={this.props.channelMentionFilter}
+          />
+        )}
+        <Box style={styleContainer}>
+          {isIOS ? (
+            <Input
+              autoCorrect={true}
+              autoCapitalize="sentences"
+              autoFocus={false}
+              hideUnderline={true}
+              hintText="Write a message"
+              inputStyle={styleInputText}
+              multiline={true}
+              onBlur={this._onBlur}
+              onFocus={this.props.onFocus}
+              onChangeText={this.props.onChangeText}
+              ref={this.props.inputSetRef}
+              onSelectionChange={this.props.onSelectionChange}
+              small={true}
+              style={styleInput}
+              value={this.props.text}
+              {...multilineOpts}
+            />
+          ) : (
+            <CustomTextInput
+              autoCorrect={true}
+              autoCapitalize="sentences"
+              autoFocus={false}
+              autoGrow={true}
+              style={styleInput}
+              onChangeText={this.props.onChangeText}
+              onBlur={this._onBlur}
+              onFocus={this.props.onFocus}
+              onSelectionChange={this.props.onSelectionChange}
+              placeholder="Write a message"
+              underlineColorAndroid={globalColors.transparent}
+              multiline={true}
+              maxHeight={80}
+              numberOfLines={1}
+              minHeight={40}
+              defaultValue={this.props.text || undefined}
+              ref={this.props.inputSetRef}
+              blurOnSubmit={false}
+            />
+          )}
+          {this.props.typing.length > 0 && <Typing typing={this.props.typing} />}
+          <Action
+            text={this.props.text}
+            onSubmit={this._onSubmit}
+            editingMessage={this.props.editingMessage}
+            openFilePicker={this._openFilePicker}
+            isLoading={this.props.isLoading}
+            insertMentionMarker={this.props.insertMentionMarker}
+          />
+        </Box>
       </Box>
     )
   }
+}
+
+const InputAccessory = Component => props => (
+  <Box style={{position: 'relative', width: '100%'}}>
+    <Box
+      style={{
+        bottom: 1,
+        display: 'flex',
+        left: 0,
+        position: 'absolute',
+        right: 0,
+      }}
+    >
+      <Component {...props} />
+    </Box>
+  </Box>
+)
+
+const MentionHud = InputAccessory(props => <ConnectedMentionHud style={styleMentionHud} {...props} />)
+
+const ChannelMentionHud = InputAccessory(props => (
+  <ConnectedChannelMentionHud style={styleMentionHud} {...props} />
+))
+
+const styleMentionHud = {
+  borderColor: globalColors.black_20,
+  borderTopWidth: 1,
+  height: 160,
+  flex: 1,
+  width: '100%',
 }
 
 const Typing = ({typing}) => (
@@ -166,7 +226,7 @@ const Typing = ({typing}) => (
   </Box>
 )
 
-const Action = ({text, onSubmit, editingMessage, openFilePicker, isLoading}) =>
+const Action = ({text, onSubmit, editingMessage, openFilePicker, insertMentionMarker, isLoading}) =>
   text ? (
     <Box style={styleActionText}>
       <Text type="BodyBigLink" style={{...(isLoading ? {color: globalColors.grey} : {})}} onClick={onSubmit}>
@@ -175,7 +235,11 @@ const Action = ({text, onSubmit, editingMessage, openFilePicker, isLoading}) =>
     </Box>
   ) : (
     <Box style={styleActionButtonContainer}>
-      <Icon type="iconfont-mention" style={{...styleActionButton, paddingRight: 0}} />
+      <Icon
+        onClick={insertMentionMarker}
+        type="iconfont-mention"
+        style={{...styleActionButton, paddingRight: 0}}
+      />
       <Icon onClick={openFilePicker} type="iconfont-camera" style={styleActionButton} />
     </Box>
   )
