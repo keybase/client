@@ -1,6 +1,7 @@
 // @noflow
 import * as I from 'immutable'
-import * as Constants2 from '../../../../constants/chat2'
+import * as Types from '../../../../constants/types/chat2'
+import * as Constants from '../../../../constants/chat2'
 import * as RouteTree from '../../../../actions/route-tree'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import {ChannelHeader, UsernameHeader} from '.'
@@ -16,7 +17,7 @@ import {createShowUserProfile} from '../../../../actions/profile-gen'
 import {chatTab} from '../../../../constants/tabs'
 
 const mapStateToProps = (state: TypedState, {infoPanelOpen, conversationIDKey}) => {
-  const meta = Constants2.getMeta(state, conversationIDKey)
+  const meta = Constants.getMeta(state, conversationIDKey)
   let _participants
   if (state.chat2.pendingSelected) {
     _participants = state.chat2.pendingConversationUsers.toSet()
@@ -24,6 +25,7 @@ const mapStateToProps = (state: TypedState, {infoPanelOpen, conversationIDKey}) 
     _participants = meta.teamname ? I.Set() : meta.participants
   }
   return {
+    _conversationIDKey: conversationIDKey,
     _participants,
     badgeNumber: state.notifications.getIn(['navBadges', chatTab]),
     canOpenInfoPanel: true, //! Constants.isPendingConversationIDKey(Constants.getSelectedConversation(state) || ''),
@@ -36,8 +38,9 @@ const mapStateToProps = (state: TypedState, {infoPanelOpen, conversationIDKey}) 
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {onToggleInfoPanel}) => ({
+  _onOpenFolder: (conversationIDKey: Types.ConversationIDKey) =>
+    dispatch(Chat2Gen.createOpenFolder({conversationIDKey})),
   onBack: () => dispatch(RouteTree.navigateUp()),
-  onOpenFolder: () => dispatch(Chat2Gen.createOpenSelectedFolder()),
   onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
   onToggleInfoPanel,
 })
@@ -49,7 +52,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   infoPanelOpen: stateProps.infoPanelOpen,
   muted: stateProps.muted,
   onBack: dispatchProps.onBack,
-  onOpenFolder: dispatchProps.onOpenFolder,
+  onOpenFolder: () => dispatchProps._onOpenFolder(stateProps._conversationIDKey),
   onShowProfile: dispatchProps.onShowProfile,
   onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
   participants: stateProps._participants.toArray(),

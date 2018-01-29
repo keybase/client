@@ -36,7 +36,7 @@ export const metaRequestTrusted = 'chat2:metaRequestTrusted'
 export const metaRequestingTrusted = 'chat2:metaRequestingTrusted'
 export const metasReceived = 'chat2:metasReceived'
 export const muteConversation = 'chat2:muteConversation'
-export const openSelectedFolder = 'chat2:openSelectedFolder'
+export const openFolder = 'chat2:openFolder'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
 export const selectConversation = 'chat2:selectConversation'
@@ -158,7 +158,7 @@ export const createMuteConversation = (
     muted: boolean,
   }>
 ) => ({error: false, payload, type: muteConversation})
-export const createOpenSelectedFolder = () => ({error: false, payload: undefined, type: openSelectedFolder})
+export const createOpenFolder = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: openFolder})
 export const createResetChatWithoutThem = (
   payload: $ReadOnly<{
     conversationIDKey: Types.ConversationIDKey,
@@ -233,7 +233,7 @@ export type MetaRequestTrustedPayload = More.ReturnType<typeof createMetaRequest
 export type MetaRequestingTrustedPayload = More.ReturnType<typeof createMetaRequestingTrusted>
 export type MetasReceivedPayload = More.ReturnType<typeof createMetasReceived>
 export type MuteConversationPayload = More.ReturnType<typeof createMuteConversation>
-export type OpenSelectedFolderPayload = More.ReturnType<typeof createOpenSelectedFolder>
+export type OpenFolderPayload = More.ReturnType<typeof createOpenFolder>
 export type ResetChatWithoutThemPayload = More.ReturnType<typeof createResetChatWithoutThem>
 export type ResetLetThemInPayload = More.ReturnType<typeof createResetLetThemIn>
 export type SelectConversationPayload = More.ReturnType<typeof createSelectConversation>
@@ -274,7 +274,7 @@ export type Actions =
   | More.ReturnType<typeof createMetaRequestingTrusted>
   | More.ReturnType<typeof createMetasReceived>
   | More.ReturnType<typeof createMuteConversation>
-  | More.ReturnType<typeof createOpenSelectedFolder>
+  | More.ReturnType<typeof createOpenFolder>
   | More.ReturnType<typeof createResetChatWithoutThem>
   | More.ReturnType<typeof createResetLetThemIn>
   | More.ReturnType<typeof createSelectConversation>

@@ -2,6 +2,7 @@
 import * as Chat2Gen from '../chat2-gen'
 import * as SearchGen from '../search-gen'
 import * as ConfigGen from '../config-gen'
+import * as KBFSGen from '../kbfs-gen'
 import * as Constants from '../../constants/chat2'
 import * as SearchConstants from '../../constants/search'
 import * as EngineRpc from '../../constants/engine'
@@ -20,6 +21,7 @@ import {isMobile} from '../../constants/platform'
 import {NotifyPopup} from '../../native/notifications'
 import {showMainWindow} from '../platform-specific'
 import {tmpDir} from '../../util/file'
+import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import flags from '../../util/feature-flags'
 
@@ -929,6 +931,15 @@ const onExitSearch = (action: Chat2Gen.ExitSearchPayload, state: TypedState) => 
   ])
 }
 
+const openFolder = (action: Chat2Gen.OpenFolderPayload, state: TypedState) => {
+  const meta = Constants.getMeta(state, action.payload.conversationIDKey)
+  const path =
+    meta.teamType !== 'adhoc'
+      ? teamFolder(meta.teamname)
+      : privateFolderWithUsers(meta.participants.toArray())
+  return Saga.put(KBFSGen.createOpen({path}))
+}
+
 const searchUpdated = (
   action: Chat2Gen.SetPendingModePayload | SearchGen.UserInputItemsUpdatedPayload,
   state: TypedState
@@ -1019,6 +1030,8 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
 
   // Anything that means we should try and select
   yield Saga.safeTakeEveryPure([Chat2Gen.metasReceived], selectTheNewestConversation)
+
+  yield Saga.safeTakeEveryPure(Chat2Gen.openFolder, openFolder)
 
   if (!isMobile) {
     yield Saga.safeTakeEveryPure(Chat2Gen.desktopNotification, desktopNotify)

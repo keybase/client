@@ -145,7 +145,8 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "muted": "boolean"
     },
-    "openSelectedFolder": {
+    "openFolder": {
+      "conversationIDKey": "Types.ConversationIDKey",
     },
     "resetChatWithoutThem": {
       "conversationIDKey": "Types.ConversationIDKey",

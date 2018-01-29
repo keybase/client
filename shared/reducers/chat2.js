@@ -400,7 +400,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.metaNeedsUpdating:
     case Chat2Gen.metaRequestTrusted:
     case Chat2Gen.muteConversation:
-    case Chat2Gen.openSelectedFolder:
+    case Chat2Gen.openFolder:
     case Chat2Gen.resetChatWithoutThem:
     case Chat2Gen.resetLetThemIn:
     case Chat2Gen.setupChatHandlers:
