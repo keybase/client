@@ -106,7 +106,7 @@ func (tx *AddMemberTx) createInvite(uv keybase1.UserVersion, role keybase1.TeamR
 	return nil
 }
 
-// SweepMembers will queue "removes" for all cryptomembers with given
+// sweepMembers will queue "removes" for all cryptomembers with given
 // UID.
 func (tx *AddMemberTx) sweepMembers(uid keybase1.UID) {
 	team := tx.team
@@ -117,7 +117,7 @@ func (tx *AddMemberTx) sweepMembers(uid keybase1.UID) {
 	}
 }
 
-// SweepKeybaseInvites will queue "cancels" for all keybase-type
+// sweepKeybaseInvites will queue "cancels" for all keybase-type
 // invites (PUKless members) for given UID.
 func (tx *AddMemberTx) sweepKeybaseInvites(uid keybase1.UID) {
 	team := tx.team
@@ -130,20 +130,20 @@ func (tx *AddMemberTx) sweepKeybaseInvites(uid keybase1.UID) {
 	}
 }
 
-// AddMemberTransaction will add member by username and role. It
+// AddMemberByUsername will add member by username and role. It
 // checks if given username can become crypto member or a PUKless
 // member. It will also clean up old invites and memberships if
 // necessary.
-func (tx *AddMemberTx) AddMemberTransaction(ctx context.Context, username string, role keybase1.TeamRole) (err error) {
+func (tx *AddMemberTx) AddMemberByUsername(ctx context.Context, username string, role keybase1.TeamRole) (err error) {
 	team := tx.team
 	g := team.G()
 
-	defer g.CTrace(ctx, fmt.Sprintf("AddMemberTx.AddMemberTransaction(%s,%v)", username, role), func() error { return err })()
-	g.Log.CDebugf(ctx, "AddMemberTransaction(%s, %v) to team %q", username, role, team.Name())
+	defer g.CTrace(ctx, fmt.Sprintf("AddMemberTx.AddMemberByUsername(%s,%v)", username, role), func() error { return err })()
+	g.Log.CDebugf(ctx, "AddMemberByUsername(%s, %v) to team %q", username, role, team.Name())
 
 	inviteRequired := false
 	normalizedUsername, uv, err := loadUserVersionPlusByUsername(ctx, g, username)
-	g.Log.CDebugf(ctx, "AddMemberTransaction: loaded user %q -> (%q, %v, %v)", username, normalizedUsername, uv, err)
+	g.Log.CDebugf(ctx, "AddMemberByUsername: loaded user %q -> (%q, %v, %v)", username, normalizedUsername, uv, err)
 	if err != nil {
 		if err == errInviteRequired {
 			inviteRequired = true

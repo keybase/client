@@ -35,8 +35,8 @@ func TestTeamTx1(t *testing.T) {
 	teamObj := ann.loadTeam(team, true /* admin */)
 
 	tx := teams.CreateAddMemberTx(teamObj)
-	tx.AddMemberTransaction(context.Background(), bob.username, keybase1.TeamRole_WRITER)
-	tx.AddMemberTransaction(context.Background(), tracy.username, keybase1.TeamRole_READER)
+	tx.AddMemberByUsername(context.Background(), bob.username, keybase1.TeamRole_WRITER)
+	tx.AddMemberByUsername(context.Background(), tracy.username, keybase1.TeamRole_READER)
 
 	err := tx.Post(context.Background())
 	require.NoError(t, err)
@@ -66,7 +66,7 @@ func TestTeamTx1(t *testing.T) {
 
 	teamObj = ann.loadTeam(team, true /* admin */)
 	tx = teams.CreateAddMemberTx(teamObj)
-	tx.AddMemberTransaction(context.Background(), bob.username, keybase1.TeamRole_WRITER)
+	tx.AddMemberByUsername(context.Background(), bob.username, keybase1.TeamRole_WRITER)
 
 	err = tx.Post(context.Background())
 	require.NoError(t, err)
@@ -143,8 +143,8 @@ func TestTeamTxDependency(t *testing.T) {
 	teamObj = ann.loadTeam(team, true /* admin */)
 
 	tx := teams.CreateAddMemberTx(teamObj)
-	tx.AddMemberTransaction(context.Background(), tracy.username, keybase1.TeamRole_READER)
-	tx.AddMemberTransaction(context.Background(), bob.username, keybase1.TeamRole_WRITER)
+	tx.AddMemberByUsername(context.Background(), tracy.username, keybase1.TeamRole_READER)
+	tx.AddMemberByUsername(context.Background(), bob.username, keybase1.TeamRole_WRITER)
 
 	// TODO: this has to pass once this feature is in.
 	// payloads := tx.DebugPayloads()
@@ -195,7 +195,7 @@ func TestTeamTxSweepMembers(t *testing.T) {
 
 	teamObj := ann.loadTeam(team, true /* admin */)
 	tx := teams.CreateAddMemberTx(teamObj)
-	err := tx.AddMemberTransaction(context.Background(), bob.username, keybase1.TeamRole_READER)
+	err := tx.AddMemberByUsername(context.Background(), bob.username, keybase1.TeamRole_READER)
 	require.NoError(t, err)
 	err = tx.Post(context.Background())
 	require.NoError(t, err)
@@ -238,7 +238,7 @@ func TestTeamTxMultipleMembers(t *testing.T) {
 	teamObj := ann.loadTeam(team, true /* admin */)
 	tx := teams.CreateAddMemberTx(teamObj)
 	for i := 1; i < 7; i++ {
-		err := tx.AddMemberTransaction(context.Background(), tt.users[i].username, keybase1.TeamRole_WRITER)
+		err := tx.AddMemberByUsername(context.Background(), tt.users[i].username, keybase1.TeamRole_WRITER)
 		require.NoError(t, err)
 	}
 	err := tx.Post(context.Background())
@@ -254,7 +254,7 @@ func TestTeamTxMultipleMembers(t *testing.T) {
 	teamObj = ann.loadTeam(team, true /* admin */)
 	tx = teams.CreateAddMemberTx(teamObj)
 	for i := 4; i <= 5; i++ {
-		err := tx.AddMemberTransaction(context.Background(), tt.users[i].username, keybase1.TeamRole_WRITER)
+		err := tx.AddMemberByUsername(context.Background(), tt.users[i].username, keybase1.TeamRole_WRITER)
 		require.NoError(t, err)
 	}
 	err = tx.Post(context.Background())
@@ -300,7 +300,7 @@ func TestTeamTxSubteamAdmins(t *testing.T) {
 
 	teamObj := ann.loadTeam(team, true /* admin */)
 	tx := teams.CreateAddMemberTx(teamObj)
-	err = tx.AddMemberTransaction(context.Background(), bob.username, keybase1.TeamRole_ADMIN)
+	err = tx.AddMemberByUsername(context.Background(), bob.username, keybase1.TeamRole_ADMIN)
 	require.NoError(t, err)
 	err = tx.Post(context.Background())
 	require.NoError(t, err)
