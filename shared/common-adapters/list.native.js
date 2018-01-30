@@ -34,12 +34,15 @@ class List extends PureComponent<Props<*>, void> {
           ...this.props.style,
         }}
       >
+        {/* need windowSize so iphone 6 doesn't have OOM issues */}
         <View style={globalStyles.fillAbsolute}>
           <FlatList
             renderItem={this._itemRender}
             data={this.props.items}
             getItemLayout={this.props.fixedHeight ? this._getItemLayout : undefined}
             keyExtractor={this._keyExtractor}
+            windowSize={this.props.windowSize || 10}
+            debug={false /* set to true to debug the list */}
           />
         </View>
       </View>

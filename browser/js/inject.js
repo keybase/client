@@ -42,7 +42,6 @@ const profileInject = {
       wrapper.insertBefore(button, lastButton);
     }
   },
-
   "facebook": function facebookInjectProfile(user) {
     const container = document.querySelector("#fbProfileCover .actions");
     if (!container) return;

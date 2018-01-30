@@ -787,6 +787,6 @@ func TestRotateSubteamByExplicitReader(t *testing.T) {
 			ID:          *subteamID,
 			ForceRepoll: true,
 		})
-		require.NoError(t, err)
+		require.NoError(t, err, "load as %v", i)
 	}
 }

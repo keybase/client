@@ -56,7 +56,7 @@ Once you have development versions of the extension in your browsers, run
 through the following to quickly QA any changes you have made. Check that the
 button appears and you can chat `joshblum` on :
 
-* [keybase](https://keybase.io/joshblum)
+* [keybase.io](https://keybase.io/joshblum)
 * [reddit](https://www.reddit.com/user/joshblum)
 * [HN](https://news.ycombinator.com/user?id=josh_blum)
 * [GitHub](https://github.com/joshblum)

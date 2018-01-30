@@ -16,7 +16,6 @@ const ff: FeatureFlags = {
   admin: false,
   fsEnabled: false,
   impTeamChatEnabled: true,
-  newPeopleTab: true,
   plansEnabled: false,
 }
 

@@ -123,6 +123,7 @@ func (l *LevelDb) doWhileOpenAndNukeIfCorrupted(action func() error) (err error)
 			l.G().Log.Debug("+ LevelDb.open")
 			fn := l.GetFilename()
 			l.G().Log.Debug("| Opening LevelDB for local cache: %v %s", l, fn)
+			l.G().Log.Debug("| Opening LevelDB options: %+v", l.Opts())
 			l.db, err = leveldb.OpenFile(fn, l.Opts())
 			if err != nil {
 				if _, ok := err.(*errors.ErrCorrupted); ok {
