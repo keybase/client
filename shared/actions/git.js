@@ -34,7 +34,7 @@ function* _loadGit(action: GitGen.LoadGitPayload): Saga.SagaGenerator<any, any> 
           continue
         }
         const teamname = r.folder.folderType === RPCTypes.favoriteFolderType.team ? r.folder.name : null
-        idToInfo[r.repoID] = Constants.makeGitInfo({
+        idToInfo[r.globalUniqueID] = Constants.makeGitInfo({
           canDelete: r.canDelete,
           devicename: r.serverMetadata.lastModifyingDeviceName,
           id: r.globalUniqueID,
