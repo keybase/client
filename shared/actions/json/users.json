@@ -1,0 +1,10 @@
+{
+  "prelude": [
+  ],
+  "actions": {
+    "updateBrokenState": {
+      "newlyBroken": "Array<string>",
+      "newlyFixed": "Array<string>",
+    }
+  }
+}
