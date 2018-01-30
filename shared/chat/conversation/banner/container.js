@@ -28,8 +28,10 @@ class BannerContainer extends React.PureComponent<Props> {
 
 const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   const _meta = Constants.getMeta(state, conversationIDKey)
+  const _users = state.users
   return {
     _meta,
+    _users,
   }
 }
 
@@ -40,11 +42,12 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const brokenMap = {}
   let type
   let users
 
-  const broken = stateProps._meta.participants.filter(p => brokenMap[p])
+  const broken = stateProps._meta.participants.filter(p =>
+    stateProps._users.users.getIn([p, 'broken'], false)
+  )
   if (!broken.isEmpty()) {
     type = 'broken'
     users = broken.toArray()
