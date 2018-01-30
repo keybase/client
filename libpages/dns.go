@@ -48,13 +48,18 @@ func (ErrKeybasePagesRecordTooMany) Error() string {
 	return "more than 1 TXT record are found for " + keybasePagesPrefix
 }
 
-const kbpRecordPrefix = "_keybase_pages."
+// kbpRecordPrefixes specifies the TXT record prefixes that we look at to
+// locate the root of these Keybase pages. We have 2 records since some
+// registrars don't support underscores in the middle of a domain. This order
+// must remain fixed since it reflects the order the strings are evaluated in.
+var kbpRecordPrefixes = []string{"_keybase_pages.", "_keybasepages."}
 
 // LoadRoot loads the root path configured for domain from DNS, with following
 // steps:
 //   1. Construct a domain name by prefixing the `domain` parameter with
-//      "_keybase_pages.". So for example, "static.keybase.io" turns into
-//      "_keybase_pages.static.keybase.io".
+//      "_keybase_pages." or "_keybasepages". So for example,
+//      "static.keybase.io" turns into "_keybase_pages.static.keybase.io" or
+//      "_keybasepages.static.keybase.io".
 //   2. Load TXT record(s) from the domain constructed in step 1, and look for
 //      one starting with "kbp=". If exactly one exists, parse it into a `Root`
 //      and return it.
@@ -64,7 +69,8 @@ const kbpRecordPrefix = "_keybase_pages."
 // found, an ErrKeybasePagesRecordNotFound{} is returned. In case user has some
 // configuration that requires other records that we can't foresee for now,
 // other records (TXT or not) can co-exist with the "kbp=" record (as long as
-// no CNAME record exists on the "_keybase_pages." prefixed domain of course).
+// no CNAME record exists on the "_keybase_pages." or "_keybasepages." prefixed
+// domain of course).
 //
 // If the given domain is invalid, it would cause the domain name constructed
 // in step will be invalid too, which causes Go's DNS resolver to return a
@@ -93,7 +99,14 @@ func (l DNSRootLoader) LoadRoot(domain string) (root Root, err error) {
 		}
 	}()
 
-	txtRecords, err := net.LookupTXT(kbpRecordPrefix + domain)
+	// Check all possible kbp record prefixes.
+	var txtRecords []string
+	for _, kbpRecordPrefix := range kbpRecordPrefixes {
+		txtRecords, err = net.LookupTXT(kbpRecordPrefix + domain)
+		if err == nil {
+			break
+		}
+	}
 	if err != nil {
 		return Root{}, err
 	}
