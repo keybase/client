@@ -21,6 +21,7 @@ import settings from './settings'
 import signup from './signup'
 import tracker from './tracker'
 import unlockFolders from './unlock-folders'
+import users from './users'
 import waiting from './waiting'
 import {combineReducers} from 'redux'
 import {resetStore} from '../constants/common.js'
@@ -50,6 +51,7 @@ const reducers = {
   signup,
   tracker,
   unlockFolders,
+  users,
   waiting,
 }
 

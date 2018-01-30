@@ -1,5 +1,0 @@
-// @flow
-import {Component} from 'react'
-export type OwnProps = {}
-
-export default class BannerContainer extends Component<OwnProps> {}

@@ -143,7 +143,7 @@ class Conversation extends React.PureComponent<Props, State> {
           onFocusInput={this.props.onFocusInput}
           conversationIDKey={this.props.conversationIDKey}
         />
-        <Banner />
+        <Banner conversationIDKey={this.props.conversationIDKey} />
         <InputArea
           focusInputCounter={this.props.focusInputCounter}
           onScrollDown={this.props.onScrollDown}

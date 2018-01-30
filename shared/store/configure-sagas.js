@@ -16,6 +16,7 @@ import routeSaga from '../actions/route-tree'
 import searchSaga from '../actions/search'
 import settingsSaga from '../actions/settings'
 import trackerSaga from '../actions/tracker'
+import usersSaga from '../actions/users'
 import unlockFoldersSaga from '../actions/unlock-folders'
 import pushSaga from '../actions/push'
 import {fork} from 'redux-saga/effects'
@@ -48,6 +49,7 @@ function* mainSaga(): SagaGenerator<any, any> {
   yield fork(trackerSaga)
   yield fork(teamsSaga)
   yield fork(unlockFoldersSaga)
+  yield fork(usersSaga)
   yield fork(gitSaga)
   yield fork(peopleSaga)
 }

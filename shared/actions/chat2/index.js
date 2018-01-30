@@ -3,6 +3,7 @@ import * as Chat2Gen from '../chat2-gen'
 import * as SearchGen from '../search-gen'
 import * as ConfigGen from '../config-gen'
 import * as KBFSGen from '../kbfs-gen'
+import * as UsersGen from '../users-gen'
 import * as Constants from '../../constants/chat2'
 import * as SearchConstants from '../../constants/search'
 import * as EngineRpc from '../../constants/engine'
@@ -397,6 +398,31 @@ const setupChatHandlers = () => {
   engine().setIncomingActionCreators('chat.1.NotifyChat.ChatInboxSyncStarted', () => [
     Chat2Gen.createSetLoading({key: 'inboxSyncStarted', loading: true}),
   ])
+
+  engine().setIncomingActionCreators('chat.1.NotifyChat.ChatInboxStale', () => [
+    Chat2Gen.createInboxRefresh({reason: 'inbox stale'}),
+  ])
+
+  engine().setIncomingActionCreators(
+    'chat.1.NotifyChat.ChatIdentifyUpdate',
+    ({update}: RPCChatTypes.NotifyChatChatIdentifyUpdateRpcParam) => {
+      const usernames = update.CanonicalName.split(',')
+      const broken = (update.breaks.breaks || []).map(b => b.user.username)
+
+      const newlyBroken = []
+      const newlyFixed = []
+
+      usernames.forEach(name => {
+        if (broken.includes(name)) {
+          newlyBroken.push(name)
+        } else {
+          newlyFixed.push(name)
+        }
+      })
+
+      return [UsersGen.createUpdateBrokenState({newlyBroken, newlyFixed})]
+    }
+  )
 }
 
 const navigateToThread = (action: Chat2Gen.SelectConversationPayload) => {

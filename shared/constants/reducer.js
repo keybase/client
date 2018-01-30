@@ -19,6 +19,7 @@ import type {State as Settings} from '../constants/types/settings'
 import type {State as Signup} from '../constants/types/signup'
 import type {State as Tracker} from '../constants/types/tracker'
 import type {State as UnlockFolders} from '../constants/types/unlock-folders'
+import type {State as Users} from '../constants/types/users'
 import type {State as Waiting} from '../constants/types/waiting'
 import type {State as People} from '../constants/types/people'
 
@@ -44,5 +45,6 @@ export type TypedState = $ReadOnly<{|
   signup: Signup,
   tracker: Tracker,
   unlockFolders: UnlockFolders,
+  users: Users,
   waiting: Waiting,
 |}>

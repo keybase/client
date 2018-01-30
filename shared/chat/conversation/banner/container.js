@@ -1,61 +1,68 @@
 // @flow
-// import * as Constants from '../../../constants/chat2'
+import * as React from 'react'
+import * as Constants from '../../../constants/chat2'
 import {BrokenTrackerBanner, InviteBanner} from '.'
-import {
-  compose,
-  branch,
-  renderNothing,
-  renderComponent,
-  connect,
-  type TypedState,
-} from '../../../util/container'
-// import {createSelector} from 'reselect'
+import {connect, type TypedState} from '../../../util/container'
 import {createGetProfile} from '../../../actions/tracker-gen'
 import {isMobile} from '../../../constants/platform'
 import {createShowUserProfile} from '../../../actions/profile-gen'
-import {Box} from '../../../common-adapters'
 
-// const getBannerMessage = createSelector(
-// [Constants.getYou, Constants.getParticipants, Constants.getMetaDataMap],
-// (you, participants, metaDataMap) => {
-// const brokenUsers = Constants.getBrokenUsers(participants, you, metaDataMap)
-// if (brokenUsers.length) {
-// return {
-// type: 'BrokenTracker',
-// users: brokenUsers,
-// }
-// }
+type Props = {
+  type: 'invite' | 'none' | 'broken',
+  onClick: (username: string) => void,
+  users: Array<string>,
+}
 
-// const sbsUsers = participants.filter(p => p.includes('@'))
-// if (sbsUsers.length) {
-// return {
-// type: 'Invite',
-// users: sbsUsers,
-// }
-// }
+class BannerContainer extends React.PureComponent<Props> {
+  render() {
+    switch (this.props.type) {
+      case 'invite':
+        return <InviteBanner users={this.props.users} />
+      case 'broken':
+        return <BrokenTrackerBanner onClick={this.props.onClick} users={this.props.users} />
+      case 'none':
+        return null
+    }
+  }
+}
 
-// return null
-// }
-// )
-
-const mapStateToProps = (state: TypedState) => ({
-  // TODO
-  // ...getBannerMessage(state),
-})
+const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
+  const _meta = Constants.getMeta(state, conversationIDKey)
+  return {
+    _meta,
+  }
+}
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onClick: (username: string) => {
-    isMobile
-      ? dispatch(createShowUserProfile({username}))
-      : dispatch(createGetProfile({username, ignoreCache: true, forceDisplay: true}))
-  },
+  onClick: isMobile
+    ? (username: string) => dispatch(createShowUserProfile({username}))
+    : (username: string) => dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username})),
 })
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
-  branch(props => !props, renderNothing),
-  // $FlowIssue gets very confused here
-  branch(({type}) => type === 'Invite', renderComponent(InviteBanner)),
-  // $FlowIssue gets very confused here
-  branch(({type}) => type === 'BrokenTracker', renderComponent(BrokenTrackerBanner), renderNothing)
-)(Box)
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  const brokenMap = {}
+  let type
+  let users
+
+  const broken = stateProps._meta.participants.filter(p => brokenMap[p])
+  if (!broken.isEmpty()) {
+    type = 'broken'
+    users = broken.toArray()
+  } else {
+    const toInvite = stateProps._meta.participants.filter(p => p.includes('@'))
+    if (!toInvite.isEmpty()) {
+      type = 'invite'
+      users = toInvite.toArray()
+    } else {
+      type = 'none'
+    }
+  }
+
+  return {
+    onClick: dispatchProps.onClick,
+    type,
+    users: users || [],
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(BannerContainer)
