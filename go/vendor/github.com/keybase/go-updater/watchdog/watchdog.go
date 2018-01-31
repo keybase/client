@@ -19,6 +19,9 @@ const (
 	ExitOnNone ExitOn = ""
 	// ExitOnSuccess means the program should only restart if errored
 	ExitOnSuccess ExitOn = "success"
+	// ExitAllOnSuccess means the program should only restart if errored,
+	// otherwise exit this watchdog. Intended for Windows
+	ExitAllOnSuccess ExitOn = "all"
 )
 
 // Program is a program at path with arguments
@@ -79,6 +82,10 @@ func watchProgram(program Program, restartDelay time.Duration, log Log) {
 			if program.ExitOn == ExitOnSuccess {
 				log.Infof("Program configured to exit on success, not restarting")
 				break
+			} else if program.ExitOn == ExitAllOnSuccess {
+				log.Infof("Program configured to exit on success, exiting")
+				// presumably the other wathches are sleeping anyway
+				os.Exit(0)
 			}
 		}
 		log.Infof("Program ran for %s", time.Since(start))
