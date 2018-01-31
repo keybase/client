@@ -175,6 +175,11 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 			continue
 		}
 
+		// skip any PLACEHOLDER or OUTBOX messages
+		if st != chat1.MessageUnboxedState_VALID {
+			continue
+		}
+
 		mv := m.Valid()
 
 		if mv.ClientHeader.MessageType == chat1.MessageType_TLFNAME {

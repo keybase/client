@@ -238,6 +238,7 @@ protocol local {
     array<MessagePreviousPointer> prev;
     gregor1.UID sender;
     gregor1.DeviceID senderDevice;
+    union { null, boolean } kbfsCryptKeysUsed;
 
     // MessageBoxed.V1: Hash of the encrypted body ciphertext.
     // MessageBoxed.V2: Hash of encrypted body (.v || .n || .e)

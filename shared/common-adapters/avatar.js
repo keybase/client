@@ -178,7 +178,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     isPlaceholder = false
   }
 
-  if (!url) {
+  if (!url && !stateProps._needAskForData) {
     const placeholder = isTeam ? teamPlaceHolders : avatarPlaceHolders
     url = iconTypeToImgSet(placeholder[String(ownProps.size)], ownProps.size)
     isPlaceholder = true
@@ -209,6 +209,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onClick: ownProps.onClick,
     opacity: ownProps.opacity,
     size: ownProps.size,
+    skipBackground: ownProps.skipBackground,
+    skipBackgroundAfterLoaded: ownProps.skipBackgroundAfterLoaded,
     style,
     url,
   }
@@ -219,18 +221,21 @@ const real = compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentWillMount() {
-      this.setState({_mounted: true, _name: this.props._name})
-      setTimeout(() => {
+      const _timeoutID = setTimeout(() => {
         // Still looking at the same user?
         if (this.state._mounted && this.props._name === this.state._name) {
           if (this.props._askForUserData) {
             this.props._askForUserData()
           }
         }
-      }, 300)
+      }, 700)
+      this.setState({_mounted: true, _name: this.props._name, _timeoutID})
     },
     componentWillUnmount() {
-      this.setState({_mounted: false, _name: null})
+      if (this.state._timeoutID) {
+        clearTimeout(this.state._timeoutID)
+      }
+      this.setState({_mounted: false, _name: null, _timeoutID: 0})
     },
   })
 )(Render)

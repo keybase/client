@@ -15,7 +15,9 @@ const teammembercounts = {
 
 const load = () => {
   storiesOf('Teams', module)
-    .add('Header', () => <Header onCreateTeam={action('onCreateTeam')} onJoinTeam={action('onJoinTeam')} />)
+    .add('Header', () => (
+      <Header onCreateTeam={action('onCreateTeam')} onJoinTeam={action('onJoinTeam')} loaded={true} />
+    ))
     .add('BetaNote', () => <BetaNote onReadMore={action('onReadMore')} />)
     .add('TeamList', () => (
       <Box style={{maxWidth: 320}}>

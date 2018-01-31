@@ -10,7 +10,7 @@ import '../desktop/renderer/style.css'
 
 const load = () => {
   addDecorator(story => (
-    <ScrollView key="scrollview" style={{flex: 1}}>
+    <ScrollView key="scrollview" style={{flex: 1}} contentContainerStyle={{height: '100%'}}>
       {story()}
     </ScrollView>
   ))
