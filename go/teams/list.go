@@ -197,6 +197,7 @@ func ListTeamsVerified(ctx context.Context, g *libkb.GlobalContext, arg keybase1
 			UserID:         memberInfo.UserID,
 			Role:           memberInfo.Role, // memberInfo.Role has been verified during getTeamForMember
 			IsImplicitTeam: team.IsImplicit(),
+			IsOpenTeam:     team.IsOpen(),
 			Implicit:       memberInfo.Implicit, // This part is still server trust
 			Username:       queryUsername.String(),
 			FullName:       queryFullName,
