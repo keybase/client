@@ -5,7 +5,15 @@ import pickBy from 'lodash/pickBy'
 import debounce from 'lodash/debounce'
 import {iconTypeToImgSet, urlsToImgSet, type IconType} from './icon'
 import {isTesting} from '../local-debug'
-import {connect, type TypedState, lifecycle, compose, withProps} from '../util/container'
+import {
+  connect,
+  type TypedState,
+  lifecycle,
+  compose,
+  withProps,
+  withHandlers,
+  withStateHandlers,
+} from '../util/container'
 import {globalStyles} from '../styles'
 import * as ConfigGen from '../actions/config-gen'
 import type {Props, AvatarSize} from './avatar'
@@ -219,23 +227,44 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 export type {AvatarSize}
 const real = compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  withStateHandlers(
+    {_mounted: false, _stateName: '', _timeoutID: 0},
+    {
+      setMounted: () => (name: string, timeoutID: number) => ({
+        _mounted: true,
+        _stateName: name,
+        _timeoutID: timeoutID,
+      }),
+      setUnmounted: () => () => ({_mounted: false, _stateName: '', _timeoutID: 0}),
+    }
+  ),
+  withHandlers({
+    _maybeLoadUserData: props => () => {
+      // Still looking at the same user?
+      if (props._mounted && props._askForUserData) {
+        props._askForUserData()
+      }
+    },
+  }),
   lifecycle({
     componentWillMount() {
       const _timeoutID = setTimeout(() => {
-        // Still looking at the same user?
-        if (this.state._mounted && this.props._name === this.state._name) {
-          if (this.props._askForUserData) {
-            this.props._askForUserData()
-          }
+        if (this.props._name === this.props._stateName) {
+          this.props._maybeLoadUserData()
         }
       }, 700)
-      this.setState({_mounted: true, _name: this.props._name, _timeoutID})
+      this.props.setMounted(this.props._name, _timeoutID)
+    },
+    componentWillReceiveProps(nextProps) {
+      if (this.props._name !== nextProps._name) {
+        this.props._maybeLoadUserData()
+      }
     },
     componentWillUnmount() {
-      if (this.state._timeoutID) {
-        clearTimeout(this.state._timeoutID)
+      if (this.props._timeoutID) {
+        clearTimeout(this.props._timeoutID)
       }
-      this.setState({_mounted: false, _name: null, _timeoutID: 0})
+      this.props.setUnmounted()
     },
   })
 )(Render)
