@@ -5,6 +5,7 @@ import {kbfsNotification} from '../util/kbfs-notifications'
 import {remote} from 'electron'
 import {writeLogLinesToFile} from '../util/forward-logs'
 import logger from '../logger'
+import {isWindows} from '../constants/platform'
 
 // TODO(mm) Move these to their own actions
 export default function(
@@ -27,9 +28,11 @@ export default function(
       })
     },
     'keybase.1.NotifyService.shutdown': () => {
-      // console.log('Quitting due to service shutdown')
-      // App quiting will call ctl stop, which will stop the service
-      // remote.app.quit()
+      if (isWindows) {
+        console.log('Quitting due to service shutdown')
+        // Quit just the app, not the service
+        remote.app.quit(true)
+      }
     },
     'keybase.1.NotifySession.clientOutOfDate': ({upgradeTo, upgradeURI, upgradeMsg}) => {
       const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
