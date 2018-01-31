@@ -101,6 +101,7 @@ type InboxSource interface {
 		resets []chat1.ConversationMember, previews []chat1.ConversationID) (MembershipUpdateRes, error)
 	TeamTypeChanged(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
 		teamType chat1.TeamType) (*chat1.ConversationLocal, error)
+	UpgradeKBFSToImpteam(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID) (*chat1.ConversationLocal, error)
 	SetConvRetention(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
 		policy chat1.RetentionPolicy) (*chat1.ConversationLocal, error)
 	SetTeamRetention(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, teamID keybase1.TeamID,

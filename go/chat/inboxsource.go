@@ -450,6 +450,16 @@ func (s *RemoteInboxSource) SetTeamRetention(ctx context.Context, uid gregor1.UI
 	return res, err
 }
 
+func (s *RemoteInboxSource) TeamTypeChanged(ctx context.Context, uid gregor1.UID,
+	vers chat1.InboxVers, convID chat1.ConversationID, teamType chat1.TeamType) (conv *chat1.ConversationLocal, err error) {
+	return conv, err
+}
+
+func (s *RemoteInboxSource) UpdateKBFSToImpteam(ctx context.Context, uid gregor1.UID,
+	vers chat1.InboxVers, convID chat1.ConversationID) (conv *chat1.ConversationLocal, err error) {
+	return conv, err
+}
+
 type HybridInboxSource struct {
 	globals.Contextified
 	utils.DebugLabeler
@@ -739,6 +749,23 @@ func (s *HybridInboxSource) TeamTypeChanged(ctx context.Context, uid gregor1.UID
 	}
 	if conv, err = s.getConvLocal(ctx, uid, convID); err != nil {
 		s.Debug(ctx, "TeamTypeChanged: unable to load conversation: convID: %s err: %s",
+			convID, err.Error())
+		return nil, nil
+	}
+	return conv, nil
+}
+
+func (s *HybridInboxSource) UpgradeKBFSToImpteam(ctx context.Context, uid gregor1.UID,
+	vers chat1.InboxVers, convID chat1.ConversationID) (conv *chat1.ConversationLocal, err error) {
+	defer s.Trace(ctx, func() error { return err }, "UpgradeKBFSToImpteam")()
+
+	ib := storage.NewInbox(s.G(), uid)
+	if cerr := ib.UpgradeKBFSToImpteam(ctx, vers, convID); cerr != nil {
+		err = s.handleInboxError(ctx, cerr, uid)
+		return nil, err
+	}
+	if conv, err = s.getConvLocal(ctx, uid, convID); err != nil {
+		s.Debug(ctx, "UpgradeKBFSToImpteam: unable to load conversation: convID: %s err: %s",
 			convID, err.Error())
 		return nil, nil
 	}
