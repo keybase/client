@@ -625,6 +625,7 @@ func TestTeamRemoveAfterReset(t *testing.T) {
 	divDebug(ctx, "Signed up bob (%s)", bob.username)
 	joe := ctx.installKeybaseForUser("joe", 10)
 	joe.signup()
+	divDebug(ctx, "Signed up joe (%s)", joe.username)
 
 	team := ann.createTeam([]*smuUser{bob, joe})
 	divDebug(ctx, "team created (%s)", team.name)
