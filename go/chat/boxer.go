@@ -1013,7 +1013,6 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
 	if err != nil {
 		return nil, NewBoxingCryptKeysError(err)
 	}
-	b.Debug(ctx, "IMPTEAM: boxing for %v", membersType)
 	msg.ClientHeader.TlfName = nameInfo.CanonicalName
 	if msg.ClientHeader.TlfPublic {
 		encryptionKey = &publicCryptKey
