@@ -182,6 +182,7 @@
     "file-loader": "1.1.5",
     "flow-bin": "0.64.0",
     "fs-extra": "4.0.2",
+    "glow": "1.1.0",
     "jest": "21.2.1",
     "jest-glamor-react": "3.2.2",
     "json5": "0.5.1",

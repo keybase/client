@@ -70,13 +70,10 @@ class BaseList extends React.Component<Props, State> {
   }
 
   componentWillReceiveProps(nextProps: Props) {
-    // if (
-    // this.props.selectedConversation !== nextProps.selectedConversation // ||
-    // // this.props.listScrollDownCounter !== nextProps.listScrollDownCounter
-    // ) {
-    // this._cellCache.clearAll()
-    // this.setState({isLockedToBottom: true})
-    // }
+    if (this.props.conversationIDKey !== nextProps.conversationIDKey) {
+      this._cellCache.clearAll()
+      this.setState({isLockedToBottom: true})
+    }
 
     if (this.props.messageOrdinals.size !== nextProps.messageOrdinals.size) {
       if (this.props.messageOrdinals.size > 1 && this._lastRowIdx !== -1) {
@@ -199,6 +196,7 @@ class BaseList extends React.Component<Props, State> {
           <Virtualized.AutoSizer onResize={this._onResize}>
             {({height, width}) => (
               <Virtualized.List
+                conversationIDKey={this.props.conversationIDKey}
                 listRerender={this.state.listRerender}
                 columnWidth={width}
                 deferredMeasurementCache={this._cellCache}
