@@ -186,10 +186,6 @@ func (b *Boxer) getEffectiveMembersType(ctx context.Context, boxed chat1.Message
 	convMembersType chat1.ConversationMembersType) chat1.ConversationMembersType {
 	switch convMembersType {
 	case chat1.ConversationMembersType_IMPTEAMUPGRADE:
-		b.Debug(ctx, "IMPTEAM: getEffectiveMembersType: kbfs bit: %v", boxed.ClientHeader.KbfsCryptKeysUsed)
-		if boxed.ClientHeader.KbfsCryptKeysUsed != nil {
-			b.Debug(ctx, "IMPTEAM getEffectiveMembersType: kbfs bit: %v", *boxed.ClientHeader.KbfsCryptKeysUsed)
-		}
 		if boxed.KBFSEncrypted() {
 			b.Debug(ctx, "getEffectiveMembersType: overruling %v conv with KBFS keys", convMembersType)
 			return chat1.ConversationMembersType_KBFS
