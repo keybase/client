@@ -1719,7 +1719,7 @@ export const tlfKeysGetTLFCryptKeysRpcChannelMap = (configKeys: Array<string>, r
 export const tlfKeysGetTLFCryptKeysRpcPromise = (request: TlfKeysGetTLFCryptKeysRpcParam): Promise<TlfKeysGetTLFCryptKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.tlfKeys.getTLFCryptKeys', request, (error: RPCError, result: TlfKeysGetTLFCryptKeysResult) => (error ? reject(error) : resolve(result))))
 
 export const tlfKeysTLFIdentifyBehavior = {
-  defaultKbfs: 0,
+  unset: 0,
   chatCli: 1,
   chatGui: 2,
   chatGuiStrict: 3,
@@ -1728,6 +1728,8 @@ export const tlfKeysTLFIdentifyBehavior = {
   chatSkip: 6,
   saltpack: 7,
   cli: 8,
+  gui: 9,
+  defaultKbfs: 10,
 }
 
 export const tlfPublicCanonicalTLFNameAndIDRpcChannelMap = (configKeys: Array<string>, request: TlfPublicCanonicalTLFNameAndIDRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.tlf.publicCanonicalTLFNameAndID', request)
@@ -3483,7 +3485,7 @@ export type TLFBreak = $ReadOnly<{breaks?: ?Array<TLFIdentifyFailure>}>
 export type TLFID = String
 
 export type TLFIdentifyBehavior =
-  | 0 // DEFAULT_KBFS_0
+  | 0 // UNSET_0
   | 1 // CHAT_CLI_1
   | 2 // CHAT_GUI_2
   | 3 // CHAT_GUI_STRICT_3
@@ -3492,6 +3494,8 @@ export type TLFIdentifyBehavior =
   | 6 // CHAT_SKIP_6
   | 7 // SALTPACK_7
   | 8 // CLI_8
+  | 9 // GUI_9
+  | 10 // DEFAULT_KBFS_10
 
 export type TLFIdentifyFailure = $ReadOnly<{user: User, breaks?: ?IdentifyTrackBreaks}>
 
