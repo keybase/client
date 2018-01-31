@@ -115,11 +115,6 @@ export default class AppState {
   }
 
   checkOpenAtLogin() {
-    const isWindows = process.platform === 'win32'
-    if (!this.state.openAtLogin && !isWindows) {
-      console.log('Skip setting login item due to user pref')
-      return
-    }
     if (__DEV__) {
       console.log('Skip setting login item due to dev env')
       return
@@ -134,6 +129,7 @@ export default class AppState {
       console.log('Skipping auto login state change due to dev env. ')
       return
     }
+
     const isDarwin = process.platform === 'darwin'
     const isWindows = process.platform === 'win32'
     // Electron has a bug where setting this to false fails!
@@ -143,12 +139,19 @@ export default class AppState {
       try {
         const appName = __DEV__ ? 'Electron' : 'Keybase'
         const command = this.state.openAtLogin
-          ? `tell application "System Events" to make login item at end with properties {path:"${appBundlePath() ||
-              ''}", hidden:false, name:"${appName}"}`
+          ? `tell application "System Events" to list login item "${appName}"}`
           : `tell application "System Events" to delete login item "${appName}"`
         applescript.execString(command, (err, result) => {
           if (err) {
-            console.log(`apple script error: ${err}, ${result}`)
+            if (this.state.openAtLogin) {
+              applescript.execString(
+                `tell application "System Events" to make login item at end with properties {path:"${appBundlePath() ||
+                  ''}", hidden:false, name:"${appName}"}`,
+                (err, result) => {
+                  console.log(`apple script error: ${err}, ${result}`)
+                }
+              )
+            } else console.log(`apple script error: ${err}, ${result}`)
           }
         })
       } catch (e) {
