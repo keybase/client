@@ -10,6 +10,9 @@ import {navigateAppend, navigateTo, setRouteState} from '../../../../actions/rou
 import {teamsTab} from '../../../../constants/tabs'
 import {getRole, isAdmin, isOwner} from '../../../../constants/teams'
 import {type TeamRoleType} from '../../../../constants/types/teams'
+import {isMobile} from '../../../../constants/platform'
+import {createShowUserProfile} from '../../../../actions/profile-gen'
+import {createGetProfile} from '../../../../actions/tracker-gen.js'
 
 import type {TypedState} from '../../../../constants/reducer'
 import type {OwnProps} from './container'
@@ -38,6 +41,10 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onViewGitRepo: (repoID: string, teamname: string) => {
     dispatch(GitGen.createNavigateToTeamRepo({repoID, teamname}))
   },
+  onClickUserAvatar: (username: string) =>
+    isMobile
+      ? dispatch(createShowUserProfile({username}))
+      : dispatch(createGetProfile({username, ignoreCache: true, forceDisplay: true})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {

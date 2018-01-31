@@ -28,6 +28,7 @@ type Props = {
   channelname: string,
   isBigTeam: boolean,
   message: SystemMessage,
+  onClickUserAvatar: (username: string) => void,
   onManageChannels: (teamname: string) => void,
   onViewTeam: (teamname: string) => void,
   onViewGitRepo: (repoID: string, teamname: string) => void,
@@ -43,6 +44,7 @@ const AddedToTeamNotice = ({
   isBigTeam,
   message,
   info,
+  onClickUserAvatar,
   onManageChannels,
   onViewTeam,
   you,
@@ -95,6 +97,7 @@ const AddedToTeamNotice = ({
       style={{marginTop: globalMargins.small}}
       username={you !== addee ? addee : undefined}
       teamname={you === addee ? team : undefined}
+      onClickAvatar={you !== addee ? () => onClickUserAvatar(addee) : () => onViewTeam(team)}
       bgColor={globalColors.blue4}
     >
       {you === addee && (
@@ -133,7 +136,14 @@ const AddedToTeamNotice = ({
 
 type ComplexTeamProps = Props & {info: SimpleToComplexTeamInfo}
 
-const ComplexTeamNotice = ({channelname, message, info, onManageChannels, you}: ComplexTeamProps) => {
+const ComplexTeamNotice = ({
+  channelname,
+  message,
+  info,
+  onManageChannels,
+  onViewTeam,
+  you,
+}: ComplexTeamProps) => {
   const teamname = info.team
   const authorComponent =
     message.author === you ? (
@@ -152,6 +162,7 @@ const ComplexTeamNotice = ({channelname, message, info, onManageChannels, you}: 
       style={{marginTop: globalMargins.small}}
       teamname={teamname || ''}
       bgColor={globalColors.blue4}
+      onClickAvatar={() => onViewTeam(teamname)}
     >
       <Text
         type="BodySmallSemibold"
@@ -223,7 +234,9 @@ const InviteAddedToTeamNotice = ({
   channelname,
   message,
   info,
+  onClickUserAvatar,
   onManageChannels,
+  onViewTeam,
   you,
 }: InviteAddedToTeamProps) => {
   const {team, inviter, invitee, adder, inviteType} = info
@@ -261,6 +274,7 @@ const InviteAddedToTeamNotice = ({
       username={invitee === you ? undefined : invitee}
       teamname={invitee === you ? team : undefined}
       bgColor={globalColors.blue4}
+      onClickAvatar={invitee === you ? () => onViewTeam(team) : () => onClickUserAvatar(invitee)}
     >
       {you === invitee && (
         <Icon type="icon-team-sparkles-48-40" style={{marginTop: -36, width: 48, height: 40}} />
@@ -275,7 +289,7 @@ const InviteAddedToTeamNotice = ({
 
 type GitPushInfoProps = Props & {info: GitPushInfo}
 
-const GitPushInfoNotice = ({message, info, onViewGitRepo}: GitPushInfoProps) => {
+const GitPushInfoNotice = ({message, info, onClickUserAvatar, onViewGitRepo}: GitPushInfoProps) => {
   // There is a bug in the data layer where mergeEntities when it sees dupes of this message will keep on adding to the array
   // Short term fix: clean this up
 
@@ -298,6 +312,7 @@ const GitPushInfoNotice = ({message, info, onViewGitRepo}: GitPushInfoProps) => 
       key={branchName}
       style={{marginTop: globalMargins.small}}
       bgColor={globalColors.blue4}
+      onClickAvatar={() => onClickUserAvatar(info.pusher)}
     >
       <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
         {formatTimeForMessages(message.timestamp)}
