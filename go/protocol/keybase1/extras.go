@@ -1058,8 +1058,6 @@ func (t TLFID) ToBytes() []byte {
 
 func (b TLFIdentifyBehavior) AlwaysRunIdentify() bool {
 	switch b {
-	case TLFIdentifyBehavior_UNSET:
-		panic("identify behavior unset")
 	case TLFIdentifyBehavior_CHAT_CLI,
 		TLFIdentifyBehavior_CHAT_GUI,
 		TLFIdentifyBehavior_CHAT_GUI_STRICT,
@@ -1072,8 +1070,6 @@ func (b TLFIdentifyBehavior) AlwaysRunIdentify() bool {
 
 func (b TLFIdentifyBehavior) CanUseUntrackedFastPath() bool {
 	switch b {
-	case TLFIdentifyBehavior_UNSET:
-		panic("identify behavior unset")
 	case TLFIdentifyBehavior_CHAT_GUI,
 		TLFIdentifyBehavior_CHAT_GUI_STRICT,
 		TLFIdentifyBehavior_SALTPACK:
@@ -1087,8 +1083,6 @@ func (b TLFIdentifyBehavior) CanUseUntrackedFastPath() bool {
 
 func (b TLFIdentifyBehavior) WarningInsteadOfErrorOnBrokenTracks() bool {
 	switch b {
-	case TLFIdentifyBehavior_UNSET:
-		panic("identify behavior unset")
 	case TLFIdentifyBehavior_CHAT_GUI:
 		// The chat GUI (in non-strict mode) is specifically exempted from broken
 		// track errors, because people need to be able to use it to ask each other
@@ -1102,8 +1096,6 @@ func (b TLFIdentifyBehavior) WarningInsteadOfErrorOnBrokenTracks() bool {
 // All of the chat modes want to prevent tracker popups.
 func (b TLFIdentifyBehavior) ShouldSuppressTrackerPopups() bool {
 	switch b {
-	case TLFIdentifyBehavior_UNSET:
-		panic("identify behavior unset")
 	case TLFIdentifyBehavior_CHAT_GUI,
 		TLFIdentifyBehavior_CHAT_GUI_STRICT,
 		TLFIdentifyBehavior_CHAT_CLI,
@@ -1125,8 +1117,6 @@ func (b TLFIdentifyBehavior) ShouldSuppressTrackerPopups() bool {
 // identify modes that yield true.
 func (b TLFIdentifyBehavior) SkipExternalChecks() bool {
 	switch b {
-	case TLFIdentifyBehavior_UNSET:
-		panic("identify behavior unset")
 	case TLFIdentifyBehavior_KBFS_QR,
 		TLFIdentifyBehavior_KBFS_REKEY:
 		return true
