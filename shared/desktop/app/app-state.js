@@ -156,11 +156,15 @@ export default class AppState {
       }
     } else if (isWindows) {
       app.setLoginItemSettings({openAtLogin: !!this.state.openAtLogin})
-      const linkpath = path.join(process.env.APPDATA, 'Microsoft\\Windows\\Start Menu\\Programs\\Startup\\GUIStartup.lnk')
+      // $FlowIssue
+      const linkpath = path.join(
+        process.env.APPDATA,
+        'Microsoft\\Windows\\Start Menu\\Programs\\Startup\\GUIStartup.lnk'
+      )
       if (this.state.openAtLogin) {
         if (!fs.existsSync(linkpath)) {
           var ws = require('windows-shortcuts')
-
+          // $FlowIssue
           ws.create(linkpath, path.join(process.env.LOCALAPPDATA, 'Keybase\\gui\\Keybase.exe'))
         }
       } else {
