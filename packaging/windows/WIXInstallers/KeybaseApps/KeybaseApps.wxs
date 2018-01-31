@@ -31,14 +31,11 @@
 
     <InstallExecuteSequence>
       <InstallValidate Suppress="yes">FAKE_PROPERTY</InstallValidate>
-      <Custom Action="StopUpdater" Before="InstallValidate"><![CDATA[Installed]]></Custom>
-      <!-- These roaming actions are temporary, while we switch from appdata to localappdata. -->
-      <Custom Action="StopUpdaterRoaming" Before="InstallValidate"><![CDATA[Installed]]></Custom>
-      <Custom Action="StopMainAppRoaming" Before="StopGUI"><![CDATA[Installed]]></Custom>
-      <Custom Action="StopMainApp" Before="StopGUI"><![CDATA[Installed]]></Custom>
+      <Custom Action="StopMainApp" Before="StopUpdater"><![CDATA[Installed]]></Custom>
+      <Custom Action="StopUpdater" Before="StopGUI"><![CDATA[Installed]]></Custom>
       <Custom Action="RemoveBrowserExtension" Before="InstallValidate"><![CDATA[Installed]]></Custom>
+      <!-- StopGUI is legacy and to be removed after enough people are updated -->
       <Custom Action="StopGUI" Before="InstallValidate"><![CDATA[Installed]]></Custom>
-      <Custom Action="RunMainAppDummyForRepair" Before="RunMainApp"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
       <Custom Action="RunMainApp" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
       <Custom Action="RunGUI" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
       <Custom Action="AddBrowserExtension" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
@@ -65,11 +62,6 @@
       </Directory>
       <Directory Id="StartupFolder" Name="Startup" />
       <Directory Id="SystemFolder" Name="System" />
-      <Directory Id="ProgramMenuFolder" Name="ProgramMenu" />
-      <Directory Id="AppDataFolder">
-        <Directory Id="ROAMINGINSTALLFOLDER" Name="Keybase">
-        </Directory>
-      </Directory>
     </Directory>
   </Fragment>
   
@@ -83,7 +75,7 @@
         <RemoveFolder Id="GuiResourcesDirRemove" On="uninstall" Directory="GuiResourcesDir"/>
         <RemoveFolder Id="GuiNodeModulesDirRemove" On="uninstall" Directory="GuiNodeModulesDir"/>
         <RemoveFolder Id="GuiRegeditDirRemove" On="uninstall" Directory="GuiRegeditDir"/>
-        <RemoveFolder Id="ROAMINGINSTALLFOLDERRemove" On="uninstall" Directory="ROAMINGINSTALLFOLDER"/>
+        <RemoveFolder Id="ApplicationProgramsFolderRemove" On="uninstall" Directory="ApplicationProgramsFolder"/>
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
           <RegistryValue Name="KeybaseExe" Value="1" KeyPath="yes" Type="integer" />
         </RegistryKey>
@@ -207,14 +199,6 @@
     </Component>
   </Fragment>
   <Fragment>
-    <!-- This has to be run so the repairman can finish moving files before upd.exe is run by watchdog2 -->
-    <CustomAction Id="RunMainAppDummyForRepair"
-              Directory="INSTALLFOLDER"
-              ExeCommand="[INSTALLFOLDER]keybaserq.exe -wait &quot;[INSTALLFOLDER]keybase.exe&quot; --standalone ping"
-              Execute="commit"
-              Return="ignore"/>
-  </Fragment>
-  <Fragment>
     <CustomAction Id="RunMainApp"
               Directory="INSTALLFOLDER"
               ExeCommand="[INSTALLFOLDER]keybaserq.exe &quot;[INSTALLFOLDER]keybase.exe&quot; ctl watchdog2"
@@ -232,20 +216,6 @@
     <CustomAction Id="StopUpdater"
               Directory="INSTALLFOLDER"
               ExeCommand="[INSTALLFOLDER]keybaserq.exe -wait [WindowsFolder]\System32\taskkill.exe /F /IM upd.exe"
-              Execute="immediate"
-              Return="ignore"/>
-  </Fragment>
-  <Fragment>
-    <CustomAction Id="StopMainAppRoaming"
-              Directory="ROAMINGINSTALLFOLDER"
-              ExeCommand="[ROAMINGINSTALLFOLDER]keybaserq.exe -wait &quot;[ROAMINGINSTALLFOLDER]keybase.exe&quot; ctl stop --kill-kbfs"
-              Execute="immediate"
-              Return="ignore"/>
-  </Fragment>
-  <Fragment>
-    <CustomAction Id="StopUpdaterRoaming"
-              Directory="ROAMINGINSTALLFOLDER"
-              ExeCommand="[ROAMINGINSTALLFOLDER]keybaserq.exe -wait [WindowsFolder]\System32\taskkill.exe /F /IM upd.exe"
               Execute="immediate"
               Return="ignore"/>
   </Fragment>
