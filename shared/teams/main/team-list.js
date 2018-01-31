@@ -42,10 +42,16 @@ const newCharmStyle = {
   alignSelf: 'center',
 }
 
+const openCharmStyle = {
+  ...newCharmStyle,
+  backgroundColor: globalColors.green,
+}
+
 const TeamRow = ({
   name,
   membercount,
   isNew,
+  isOpen,
   newRequests,
   onOpenFolder,
   onManageChat,
@@ -74,6 +80,7 @@ const TeamRow = ({
               <Badge badgeNumber={newRequests} badgeStyle={{marginLeft: 0, marginRight: 3, marginTop: 1}} />
             )}
             {isNew && <Meta title="NEW" style={newCharmStyle} />}
+            {isOpen && <Meta title="OPEN" style={openCharmStyle} />}
             <Text type="BodySmall">{membercount + ' member' + (membercount !== 1 ? 's' : '')}</Text>
           </Box>
         </Box>
@@ -105,6 +112,7 @@ const TeamList = (props: Props) => (
         key={name}
         name={name}
         isNew={props.newTeams.includes(name)}
+        isOpen={props.teamNameToIsOpen[name]}
         newRequests={props.newTeamRequests.filter(team => team === name).length}
         membercount={props.teammembercounts[name]}
         onOpenFolder={() => props.onOpenFolder(name)}
