@@ -425,12 +425,6 @@ const setupChatHandlers = () => {
   )
 }
 
-// const navigateToThread = (action: Chat2Gen.SelectConversationPayload) => {
-// const {conversationIDKey} = action.payload
-// logger.info(`selectConversation: selecting: ${Types.conversationIDKeyToString(conversationIDKey)}`)
-// return Saga.put(Route.navigateTo([conversationIDKey].filter(Boolean), [chatTab]))
-// }
-
 const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType).reduce((arr, key) => {
   switch (key) {
     case 'edit': // daemon filters this out for us so we can ignore
@@ -1049,7 +1043,6 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.attachmentWithPreviewSend, attachmentSend)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.setupChatHandlers, setupChatHandlers)
-  // yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, navigateToThread)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, clearInboxFilter)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.startConversation, startConversation)
@@ -1069,8 +1062,6 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Search handling
   // If you select a convo or change modes lets change selected
   yield Saga.safeTakeEveryPure([Chat2Gen.selectConversation, Chat2Gen.setPendingMode], updatePendingSelected)
-  // If we select something exit search
-  // yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, updateSearchState)
   // If search is exited clean stuff up
   yield Saga.safeTakeEveryPure(Chat2Gen.exitSearch, onExitSearch)
   // Update our search items
