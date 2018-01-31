@@ -1,11 +1,12 @@
 // @flow
 import React from 'react'
 import {MentionHud} from '.'
-// import {createSelector} from 'reselect'
-import {connect, type MapStateToProps} from 'react-redux'
-// import {getGeneralChannelOfSelectedInbox} from '../../constants/chat'
+import {connect} from '../../../../util/container'
+import * as Constants from '../../../../constants/chat2'
+import * as Types from '../../../../constants/types/chat2'
 
 type ConnectedMentionHudProps = {
+  conversationIDKey: Types.ConversationIDKey,
   onPickUser: (user: string) => void,
   onSelectUser: (user: string) => void,
   selectUpCounter: number,
@@ -16,11 +17,11 @@ type ConnectedMentionHudProps = {
 }
 
 // const fullNameSelector = createSelector(
-// getGeneralChannelOfSelectedInbox,
+// Constants.getGeneralChannelOfSelectedInbox,
 // inbox => (inbox ? inbox.get('fullNames') : null)
 // )
 // const participantsSelector = createSelector(
-// getGeneralChannelOfSelectedInbox,
+// Constants.getGeneralChannelOfSelectedInbox,
 // inbox => (inbox ? inbox.get('participants') : null)
 // )
 
@@ -34,10 +35,12 @@ type ConnectedMentionHudProps = {
 // : []
 // })
 
-const mapStateToProps: MapStateToProps<*, *, *> = (state, {filter}) => {
+const mapStateToProps = (state, {filter, conversationIDKey}): * => {
+  const meta = Constants.getMeta(state, conversationIDKey)
   return {
-    users: [], // TODO userSelector(state),
+    conversationIDKey,
     filter: filter.toLowerCase(),
+    users: meta.participants.map(p => ({fullName: '', username: p})).toArray(),
   }
 }
 

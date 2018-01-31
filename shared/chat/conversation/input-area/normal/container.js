@@ -17,6 +17,7 @@ import {
 } from '../../../../util/container'
 // import throttle from 'lodash/throttle'
 import {chatTab} from '../../../../constants/tabs'
+import mentionHoc from '../mention-handler-hoc'
 import type {TypedState, Dispatch} from '../../../../util/container'
 
 type OwnProps = {
@@ -35,7 +36,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   const _you = state.config.username || ''
 
   return {
-    _conversationIDKey: conversationIDKey,
+    conversationIDKey,
     _editingMessage,
     _meta: Constants.getMeta(state, conversationIDKey),
     _you,
@@ -92,7 +93,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   // const wrappedTyping = throttle(updateTyping, 5000)
 
   return {
-    _conversationIDKey: stateProps._conversationIDKey,
+    conversationIDKey: stateProps.conversationIDKey,
     _editingMessage: stateProps._editingMessage,
     // ...stateProps,
     // ...dispatchProps,
@@ -107,12 +108,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     typing: stateProps.typing,
     // onAttach: (inputs: Array<any [> Types.AttachmentInput <]>) =>
     // dispatchProps.onAttach(stateProps.selectedConversationIDKey, inputs),
-    onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps._conversationIDKey, stateProps._you),
+    onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
     _onSubmit: (text: string) => {
       if (stateProps._editingMessage) {
         dispatchProps._onEditMessage(stateProps._editingMessage, text)
       } else {
-        dispatchProps._onPostMessage(stateProps._conversationIDKey, text)
+        dispatchProps._onPostMessage(stateProps.conversationIDKey, text)
       }
       ownProps.onScrollDown()
     },
@@ -125,37 +126,22 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
       // wrappedTyping(typing)
       // }
     },
-    onJoinChannel: () => dispatchProps.onJoinChannel(stateProps._conversationIDKey),
+    onJoinChannel: () => dispatchProps.onJoinChannel(stateProps.conversationIDKey),
     onLeaveChannel: () => {
-      dispatchProps.onLeaveChannel(stateProps._conversationIDKey, stateProps._meta.teamname)
+      dispatchProps.onLeaveChannel(stateProps.conversationIDKey, stateProps._meta.teamname)
     },
-    onCancelEditing: () => dispatchProps._onCancelEditing(stateProps._conversationIDKey),
+    onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
   }
 }
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  withStateHandlers(
-    {
-      channelMentionPopupOpen: false,
-      channelMentionFilter: '',
-      mentionFilter: '',
-      mentionPopupOpen: false,
-      text: '',
-    },
-    {
-      _setText: () => (text: string) => ({text}),
-      // setMentionFilter: () => (mentionFilter: string) => ({mentionFilter}),
-      // setMentionPopupOpen: () => (mentionPopupOpen: boolean) => ({mentionPopupOpen}),
-      // setChannelMentionPopupOpen // TODO
-      // setChannelMentionFilter // TODO
-    }
-  ),
+  withStateHandlers({text: ''}, {_setText: () => (text: string) => ({text})}),
   withProps(props => ({
     setText: (text: string, skipUnsentSaving?: boolean) => {
       props._setText(text)
       if (!skipUnsentSaving) {
-        unsentText[Types.conversationIDKeyToString(props._conversationIDKey)] = text
+        unsentText[Types.conversationIDKeyToString(props.conversationIDKey)] = text
       }
     },
   })),
@@ -172,7 +158,12 @@ export default compose(
       inputFocus: props => () => input && input.focus(),
       inputGetRef: props => () => input,
       inputSelections: props => () => (input && input.selections()) || {},
-      inputSetRef: props => i => (input = i),
+      _inputSetRef: props => i => (input = i),
+      _onKeyDown: props => (e: SyntheticKeyboardEvent<>) => {
+        if (e.key === 'ArrowUp' && !props.text) {
+          props.onEditLastMessage()
+        }
+      },
     }
   }),
   lifecycle({
@@ -195,8 +186,8 @@ export default compose(
         setImmediate(() => {
           i && i.select()
         })
-      } else if (this.props._conversationIDKey !== nextProps._conversationIDKey) {
-        const text = unsentText[Types.conversationIDKeyToString(nextProps._conversationIDKey)] || ''
+      } else if (this.props.conversationIDKey !== nextProps.conversationIDKey) {
+        const text = unsentText[Types.conversationIDKeyToString(nextProps.conversationIDKey)] || ''
         this.props.setText(text, true)
       }
 
@@ -204,5 +195,6 @@ export default compose(
         this.props.inputFocus()
       }
     },
-  })
+  }),
+  mentionHoc
 )(Input)

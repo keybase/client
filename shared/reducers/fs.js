@@ -9,10 +9,8 @@ export default function(state: Types.State = initialState, action: FSGen.Actions
   switch (action.type) {
     case FSGen.resetStore:
       return initialState
-    case FSGen.increaseCount: {
-      const {amount = 1} = action.payload
-      return state.withMutations(s => s.set('counter', state.counter + amount))
-    }
+    case FSGen.increaseCount:
+      return state
     default:
       // eslint-disable-next-line no-unused-expressions
       ;(action: empty) // if you get a flow error here it means there's an action you claim to handle but didn't

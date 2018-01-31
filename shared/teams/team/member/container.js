@@ -7,8 +7,6 @@ import {connect} from 'react-redux'
 import {compose} from 'recompose'
 import {HeaderHoc} from '../../../common-adapters'
 import {createShowUserProfile} from '../../../actions/profile-gen'
-import {createGetProfile} from '../../../actions/tracker-gen'
-import {isMobile} from '../../../constants/platform'
 import {TeamMember} from '.'
 import {type TypedState} from '../../../constants/reducer'
 import {getCanPerform} from '../../../constants/teams'
@@ -52,13 +50,7 @@ type DispatchProps = {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateAppend, navigateUp}): DispatchProps => ({
-  onOpenProfile: () => {
-    isMobile
-      ? dispatch(createShowUserProfile({username: routeProps.get('username')}))
-      : dispatch(
-          createGetProfile({username: routeProps.get('username'), ignoreCache: true, forceDisplay: true})
-        )
-  },
+  onOpenProfile: () => dispatch(createShowUserProfile({username: routeProps.get('username')})),
   _onEditMembership: (name: string, username: string) =>
     dispatch(
       navigateAppend([
