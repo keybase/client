@@ -1,19 +1,12 @@
 // @noflow
 import React from 'react'
 import * as C from '../../constants/people'
-import {Provider} from 'react-redux'
-import {createStore} from 'redux'
-import {Set} from 'immutable'
 import {action, storiesOf} from '../../stories/storybook'
+import * as PropProviders from '../../stories/prop-providers'
 import FollowNotification, {type Props} from '.'
 import moment from 'moment'
 
-const store = {
-  config: {
-    following: Set(['max', 'cnojima', 'cdixon']),
-    you: 'ayoubd',
-  },
-}
+const provider = PropProviders.compose(PropProviders.Usernames(['max', 'chrisnojima'], 'ayoubd'))
 
 const singleFollowProps1: Props = {
   type: 'notification',
@@ -66,7 +59,7 @@ const multiFollowProps2: Props = {
 
 const load = () => {
   storiesOf('People/Follow notification', module)
-    .addDecorator(story => <Provider store={createStore(ignore => store, store)}>{story()}</Provider>)
+    .addDecorator(provider)
     .add('Someone followed you', () => <FollowNotification {...singleFollowProps1} />)
     .add('Someone you follow followed you', () => <FollowNotification {...singleFollowProps2} />)
     .add('A few people followed you', () => <FollowNotification {...multiFollowProps1} />)
