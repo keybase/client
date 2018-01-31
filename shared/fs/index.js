@@ -53,7 +53,7 @@ const styleOuterContainer = {
 const FolderHeader = ({title}: FolderHeaderProps) => (
   <Box>
     <Box style={{...stylesCommonRow, alignItems: 'center', borderBottomWidth: 0}}>
-      <Text type="HeaderBig" style={{padding: globalMargins.xtiny}}>
+      <Text type="BodyBig" style={{padding: globalMargins.xtiny}}>
         {title}
       </Text>
     </Box>

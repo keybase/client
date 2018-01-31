@@ -3,23 +3,29 @@ import * as I from 'immutable'
 
 export opaque type Path = ?string
 
-export type PathType = 'folder' | 'file' | 'symlink' | 'exec' | 'unknown'
+export type PathType = 'folder' | 'file' | 'symlink' | 'unknown'
+
+export type PathItemMetadata = {
+  lastModifiedTimestamp: number,
+  size: number,
+  lastWriter: string,
+}
 
 export type _FolderPathItem = {
   type: 'folder',
   children: I.List<string>,
-}
+} & PathItemMetadata
 export type FolderPathItem = I.RecordOf<_FolderPathItem>
 
 export type _SymlinkPathItem = {
   type: 'symlink',
   linkTarget: Path,
-}
+} & PathItemMetadata
 export type SymlinkPathItem = I.RecordOf<_SymlinkPathItem>
 
 export type _FilePathItem = {
   type: 'file',
-}
+} & PathItemMetadata
 export type FilePathItem = I.RecordOf<_FilePathItem>
 
 export type _UnknownPathItem = {
@@ -59,7 +65,6 @@ export const stringToPathType = (s: string): PathType => {
     case 'folder':
     case 'file':
     case 'symlink':
-    case 'exec':
     case 'unknown':
       return s
     default:
