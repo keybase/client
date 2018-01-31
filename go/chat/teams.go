@@ -101,13 +101,15 @@ type ImplicitTeamsNameInfoSource struct {
 	globals.Contextified
 	utils.DebugLabeler
 	*NameIdentifier
+	lookupUpgraded bool
 }
 
-func NewImplicitTeamsNameInfoSource(g *globals.Context) *ImplicitTeamsNameInfoSource {
+func NewImplicitTeamsNameInfoSource(g *globals.Context, lookupUpgraded bool) *ImplicitTeamsNameInfoSource {
 	return &ImplicitTeamsNameInfoSource{
 		Contextified:   globals.NewContextified(g),
 		DebugLabeler:   utils.NewDebugLabeler(g.GetLog(), "ImplicitTeamsNameInfoSource", false),
 		NameIdentifier: NewNameIdentifier(g),
+		lookupUpgraded: lookupUpgraded,
 	}
 }
 
@@ -129,9 +131,13 @@ func (t *ImplicitTeamsNameInfoSource) Lookup(ctx context.Context, name string, v
 	}
 
 	res.CanonicalName = impTeamName.String()
-	res.ID, err = chat1.TeamIDToTLFID(team.ID)
-	if err != nil {
-		return res, err
+	if t.lookupUpgraded {
+		res.ID = chat1.TLFID(team.KBFSTLFID().ToBytes())
+	} else {
+		res.ID, err = chat1.TeamIDToTLFID(team.ID)
+		if err != nil {
+			return res, err
+		}
 	}
 	if err := addNameInfoTeamKeys(ctx, res, team, vis); err != nil {
 		return res, err

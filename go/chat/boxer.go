@@ -184,11 +184,16 @@ func (p *publicUnboxConversationInfo) GetFinalizeInfo() *chat1.ConversationFinal
 
 func (b *Boxer) getEffectiveMembersType(ctx context.Context, boxed chat1.MessageBoxed,
 	convMembersType chat1.ConversationMembersType) chat1.ConversationMembersType {
-	if boxed.KBFSEncrypted() {
-		if convMembersType != chat1.ConversationMembersType_KBFS {
-			b.Debug(ctx, "getEffectiveMembersType: overruling %v conv with KBFS keys", convMembersType)
+	switch convMembersType {
+	case chat1.ConversationMembersType_IMPTEAMUPGRADE:
+		b.Debug(ctx, "IMPTEAM: getEffectiveMembersType: kbfs bit: %v", boxed.ClientHeader.KbfsCryptKeysUsed)
+		if boxed.ClientHeader.KbfsCryptKeysUsed != nil {
+			b.Debug(ctx, "IMPTEAM getEffectiveMembersType: kbfs bit: %v", *boxed.ClientHeader.KbfsCryptKeysUsed)
 		}
-		return chat1.ConversationMembersType_KBFS
+		if boxed.KBFSEncrypted() {
+			b.Debug(ctx, "getEffectiveMembersType: overruling %v conv with KBFS keys", convMembersType)
+			return chat1.ConversationMembersType_KBFS
+		}
 	}
 	return convMembersType
 }
@@ -216,11 +221,13 @@ func (b *Boxer) getEffectiveMembersType(ctx context.Context, boxed chat1.Message
 // whereas temporary errors are transient failures.
 func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv unboxConversationInfo) (m chat1.MessageUnboxed, uberr UnboxingError) {
 	b.Debug(ctx, "+ UnboxMessage for convID %s msg_id %s", conv.GetConvID().String(), boxed.GetMessageID().String())
-	defer b.Debug(ctx, "- UnboxMessage for convID %s msg_id %s -> %s", conv.GetConvID().String(), boxed.GetMessageID().String(), libkb.ErrToOk(uberr))
+	defer b.Debug(ctx, "- UnboxMessage for convID %s msg_id %s -> %s", conv.GetConvID().String(),
+		boxed.GetMessageID().String(), libkb.ErrToOk(uberr))
 	tlfName := boxed.ClientHeader.TLFNameExpanded(conv.GetFinalizeInfo())
+	keyMembersType := b.getEffectiveMembersType(ctx, boxed, conv.GetMembersType())
 	nameInfo, err := CtxKeyFinder(ctx, b.G()).FindForDecryption(ctx,
 		tlfName, boxed.ClientHeader.Conv.Tlfid, conv.GetMembersType(),
-		boxed.ClientHeader.TlfPublic, boxed.KeyGeneration, boxed.KBFSEncrypted())
+		boxed.ClientHeader.TlfPublic, boxed.KeyGeneration, keyMembersType == chat1.ConversationMembersType_KBFS)
 	if err != nil {
 		// Check to see if this is a permanent error from the server
 		if b.detectKBFSPermanentServerError(err) {
@@ -231,7 +238,6 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 	}
 
 	var encryptionKey types.CryptKey
-	keyMembersType := b.getEffectiveMembersType(ctx, boxed, conv.GetMembersType())
 	for _, key := range nameInfo.CryptKeys[keyMembersType] {
 		if key.Generation() == boxed.KeyGeneration {
 			encryptionKey = key
@@ -1011,6 +1017,7 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
 	if err != nil {
 		return nil, NewBoxingCryptKeysError(err)
 	}
+	b.Debug(ctx, "IMPTEAM: boxing for %v", membersType)
 	msg.ClientHeader.TlfName = nameInfo.CanonicalName
 	if msg.ClientHeader.TlfPublic {
 		encryptionKey = &publicCryptKey
