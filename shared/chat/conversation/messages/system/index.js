@@ -30,7 +30,7 @@ type Props = {
   message: SystemMessage,
   onManageChannels: (teamname: string) => void,
   onViewTeam: (teamname: string) => void,
-  onViewGitRepo: (repoID: string) => void,
+  onViewGitRepo: (repoID: string, teamname: string) => void,
   teamname: string,
   you: string,
 }
@@ -309,7 +309,7 @@ const GitPushInfoNotice = ({message, info, onViewGitRepo}: GitPushInfoProps) => 
           <Text
             type="BodySmallSemibold"
             style={info.repoID ? {color: globalColors.black_75} : undefined}
-            onClick={info.repoID ? () => onViewGitRepo(info.repoID) : undefined}
+            onClick={info.repoID ? () => onViewGitRepo(info.repoID, info.team) : undefined}
           >{`${info.repo}/${branchName}`}</Text>:
         </Text>
         <Box style={globalStyles.flexBoxColumn}>

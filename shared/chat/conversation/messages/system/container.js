@@ -1,13 +1,13 @@
 // @flow
 import * as Constants from '../../../../constants/chat'
 import * as Types from '../../../../constants/types/chat'
-import {Set} from 'immutable'
+import * as GitGen from '../../../../actions/git-gen'
 import {AddedToTeamNotice, ComplexTeamNotice, InviteAddedToTeamNotice, GitPushInfoNotice} from '.'
 import {compose, branch, renderComponent, renderNothing} from 'recompose'
 import createCachedSelector from 're-reselect'
 import {connect} from 'react-redux'
 import {navigateAppend, navigateTo, setRouteState} from '../../../../actions/route-tree'
-import {teamsTab, gitTab} from '../../../../constants/tabs'
+import {teamsTab} from '../../../../constants/tabs'
 import {getRole, isAdmin, isOwner} from '../../../../constants/teams'
 import {type TeamRoleType} from '../../../../constants/types/teams'
 
@@ -35,9 +35,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(navigateTo([teamsTab, {props: {teamname}, selected: 'team'}]))
     dispatch(setRouteState([teamsTab, 'team'], {selectedTab: 'members'}))
   },
-  onViewGitRepo: (repoID: string) => {
-    dispatch(navigateTo([gitTab]))
-    dispatch(setRouteState([gitTab], {expandedSet: Set([repoID])}))
+  onViewGitRepo: (repoID: string, teamname: string) => {
+    dispatch(GitGen.createNavigateToTeamRepo({repoID, teamname}))
   },
 })
 

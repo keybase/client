@@ -10,9 +10,11 @@ import * as RouteTreeConstants from '../constants/route-tree'
 import * as Saga from '../util/saga'
 import * as SettingsConstants from '../constants/settings'
 import * as Tabs from '../constants/tabs'
+import * as Types from '../constants/types/git'
 import moment from 'moment'
 import {isMobile} from '../constants/platform'
-import {navigateTo} from './route-tree'
+import {navigateTo, setRouteState} from './route-tree'
+import type {TypedState} from '../util/container'
 
 // TODO refactor into pure function & reuse _processGitRepo
 function* _loadGit(action: GitGen.LoadGitPayload): Saga.SagaGenerator<any, any> {
@@ -234,6 +236,28 @@ function _handleIncomingGregor(action: GitGen.HandleIncomingGregorPayload) {
   }
 }
 
+function _navigateToTeamRepo(action: GitGen.NavigateToTeamRepoPayload) {
+  return Saga.sequentially([
+    Saga.call(_loadGit, GitGen.createLoadGit()),
+    Saga.identity(action),
+    // This needs to be a select so we get the store post-loadGit
+    Saga.select((state: TypedState) => state.entities.getIn(['git', 'idToInfo'])),
+  ])
+}
+
+function _processNavigateToTeamRepo(results: any[]) {
+  const {teamname, repoID} = (results[1]: GitGen.NavigateToTeamRepoPayload).payload
+  const idToInfo: I.Map<string, Types.GitInfo> = results[2]
+  const repo = idToInfo.find(val => val.repoID === repoID && val.teamname === teamname)
+  if (!repo) {
+    return
+  }
+  return Saga.sequentially([
+    Saga.put(navigateTo([Tabs.gitTab])),
+    Saga.put(setRouteState([Tabs.gitTab], {expandedSet: I.Set([repo.id])})),
+  ])
+}
+
 function* gitSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeLatest(GitGen.loadGit, _loadGit)
   yield Saga.safeTakeEveryPure(GitGen.createPersonalRepo, _createPersonalRepo)
@@ -247,6 +271,7 @@ function* gitSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(RouteTreeConstants.switchTo, _onTabChange)
   yield Saga.safeTakeEveryPure(GitGen.setTeamRepoSettings, _setTeamRepoSettings)
   yield Saga.safeTakeEveryPure(GitGen.loadGitRepo, _loadGitRepo, _processGitRepo)
+  yield Saga.safeTakeEveryPure(GitGen.navigateToTeamRepo, _navigateToTeamRepo, _processNavigateToTeamRepo)
 }
 
 export default gitSaga
