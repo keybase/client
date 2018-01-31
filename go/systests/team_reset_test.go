@@ -623,8 +623,10 @@ func TestTeamRemoveAfterReset(t *testing.T) {
 	bob := ctx.installKeybaseForUser("bob", 10)
 	bob.signup()
 	divDebug(ctx, "Signed up bob (%s)", bob.username)
+	joe := ctx.installKeybaseForUser("joe", 10)
+	joe.signup()
 
-	team := ann.createTeam([]*smuUser{bob})
+	team := ann.createTeam([]*smuUser{bob, joe})
 	divDebug(ctx, "team created (%s)", team.name)
 
 	bob.reset()
@@ -633,12 +635,21 @@ func TestTeamRemoveAfterReset(t *testing.T) {
 	bob.loginAfterReset(10)
 	divDebug(ctx, "Bob logged in after reset")
 
+	joe.reset()
+	divDebug(ctx, "Reset joe (%s), not re-provisioning though!", joe.username)
+
 	ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2), nil)
 
 	cli := ann.getTeamsClient()
 	err := cli.TeamRemoveMember(context.TODO(), keybase1.TeamRemoveMemberArg{
 		Name:     team.name,
 		Username: bob.username,
+	})
+	require.NoError(t, err)
+
+	err = cli.TeamRemoveMember(context.TODO(), keybase1.TeamRemoveMemberArg{
+		Name:     team.name,
+		Username: joe.username,
 	})
 	require.NoError(t, err)
 
