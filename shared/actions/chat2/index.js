@@ -425,11 +425,11 @@ const setupChatHandlers = () => {
   )
 }
 
-const navigateToThread = (action: Chat2Gen.SelectConversationPayload) => {
-  const {conversationIDKey} = action.payload
-  logger.info(`selectConversation: selecting: ${Types.conversationIDKeyToString(conversationIDKey)}`)
-  return Saga.put(Route.navigateTo([conversationIDKey].filter(Boolean), [chatTab]))
-}
+// const navigateToThread = (action: Chat2Gen.SelectConversationPayload) => {
+// const {conversationIDKey} = action.payload
+// logger.info(`selectConversation: selecting: ${Types.conversationIDKeyToString(conversationIDKey)}`)
+// return Saga.put(Route.navigateTo([conversationIDKey].filter(Boolean), [chatTab]))
+// }
 
 const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType).reduce((arr, key) => {
   switch (key) {
@@ -1049,7 +1049,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.attachmentWithPreviewSend, attachmentSend)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.setupChatHandlers, setupChatHandlers)
-  yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, navigateToThread)
+  // yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, navigateToThread)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, clearInboxFilter)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.startConversation, startConversation)
