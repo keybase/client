@@ -3789,7 +3789,6 @@ exports[`Storyshots Chat/Heads up Display Mention Row 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 600;
-  margin-left: 16px;
   text-decoration: inherit;
 }
 
@@ -3874,6 +3873,13 @@ exports[`Storyshots Chat/Heads up Display Mention Row 1`] = `
             className="glamor-1"
           />
         </div>
+        <div
+          style={
+            Object {
+              "width": 16,
+            }
+          }
+        />
         <span
           className="glamor-4"
           onClick={undefined}
@@ -3948,6 +3954,13 @@ exports[`Storyshots Chat/Heads up Display Mention Row 1`] = `
             className="glamor-1"
           />
         </div>
+        <div
+          style={
+            Object {
+              "width": 16,
+            }
+          }
+        />
         <span
           className="glamor-4"
           onClick={undefined}
@@ -4022,6 +4035,13 @@ exports[`Storyshots Chat/Heads up Display Mention Row 1`] = `
             className="glamor-1"
           />
         </div>
+        <div
+          style={
+            Object {
+              "width": 16,
+            }
+          }
+        />
         <span
           className="glamor-4"
           onClick={undefined}
