@@ -167,6 +167,15 @@ func CanonicalTlfNameForTest(tlfName string) keybase1.CanonicalTlfName {
 	return keybase1.CanonicalTlfName(strings.Join(names, ","))
 }
 
+func (m TlfMock) newTLFID() chat1.TLFID {
+	suffix := byte(0x29)
+	idBytes, err := libkb.RandBytesWithSuffix(16, suffix)
+	if err != nil {
+		panic("RandBytes failed: " + err.Error())
+	}
+	return chat1.TLFID(idBytes)
+}
+
 func (m TlfMock) getTlfID(cname keybase1.CanonicalTlfName) (keybase1.TLFID, error) {
 	tlfID, ok := m.world.tlfs[cname]
 	if !ok {
@@ -175,7 +184,7 @@ func (m TlfMock) getTlfID(cname keybase1.CanonicalTlfName) (keybase1.TLFID, erro
 				return "", fmt.Errorf("user %s not found", n)
 			}
 		}
-		tlfID = mustGetRandBytesWithControlledFirstByte(16, byte(len(m.world.tlfs)+1))
+		tlfID = m.newTLFID()
 		m.world.tlfs[cname] = tlfID
 		m.world.tlfKeys[cname] = mustGetRandCryptKeys(byte(len(m.world.tlfKeys) + 1))
 	}

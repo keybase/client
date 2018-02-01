@@ -1437,7 +1437,7 @@ func (k *KeyFinderMock) FindForEncryption(ctx context.Context,
 func (k *KeyFinderMock) FindForDecryption(ctx context.Context,
 	tlfName string, teamID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
-	keyGeneration int) (res *types.NameInfo, err error) {
+	keyGeneration int, kbfsEncrypted bool) (res *types.NameInfo, err error) {
 	return k.Find(ctx, tlfName, membersType, public)
 }
 
