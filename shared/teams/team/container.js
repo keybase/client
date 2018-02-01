@@ -19,11 +19,8 @@ import {navigateAppend} from '../../actions/route-tree'
 import {createShowUserProfile} from '../../actions/profile-gen'
 import openURL from '../../util/open-url'
 
-const order = {owner: 0, admin: 1, writer: 2, reader: 3}
-
 type StateProps = {
   _invites: I.Set<Types.InviteInfo>,
-  _memberInfo: I.Set<Types.MemberInfo>,
   _requests: I.Set<Types.RequestInfo>,
   _newTeamRequests: I.List<string>,
   ignoreAccessRequests: boolean,
@@ -47,11 +44,9 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
   if (!teamname) {
     throw new Error('There was a problem loading the team page, please report this error.')
   }
-  const memberInfo = state.entities.getIn(['teams', 'teamNameToMembers', teamname], I.Set())
   const subteams = state.entities.getIn(['teams', 'teamNameToSubteams', teamname], I.Set()).sort()
 
   return {
-    _memberInfo: memberInfo,
     _requests: state.entities.getIn(['teams', 'teamNameToRequests', teamname], I.Set()),
     _invites: state.entities.getIn(['teams', 'teamNameToInvites', teamname], I.Set()),
     description: state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname, 'description'], ''),
@@ -158,34 +153,6 @@ const mapDispatchToProps = (
   },
 })
 
-const getOrderedMemberArray = (
-  memberInfo: I.Set<Types.MemberInfo>,
-  you: ?string,
-  listYouFirst: boolean
-): Array<Types.MemberInfo> => {
-  let youInfo
-  let info = memberInfo
-  if (you && !listYouFirst) {
-    youInfo = memberInfo.find(member => member.username === you)
-    if (youInfo) {
-      info = memberInfo.delete(youInfo)
-    }
-  }
-  let returnArray = info
-    .toArray()
-    .sort(
-      (a, b) =>
-        !a.type || !b.type || a.type === b.type
-          ? a.username.localeCompare(b.username)
-          : order[a.type] - order[b.type]
-    )
-
-  if (youInfo) {
-    returnArray.unshift(youInfo)
-  }
-  return returnArray
-}
-
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const onAddPeople = () => dispatchProps._onAddPeople(stateProps.name)
   const onInviteByEmail = () => dispatchProps._onInviteByEmail(stateProps.name)
@@ -227,7 +194,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     customComponent,
     headerStyle: {borderBottomWidth: 0},
     invites: stateProps._invites.toJS(),
-    members: getOrderedMemberArray(stateProps._memberInfo, you, yourOperations.listFirst),
     requests: stateProps._requests.toJS(),
     newTeamRequests: stateProps._newTeamRequests.toArray(),
     onAddPeople,

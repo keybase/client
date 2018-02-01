@@ -19,8 +19,8 @@ import {
   ScrollView,
 } from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors, isMobile} from '../../styles'
+import Members from './members/container'
 import TeamInviteRow from './invite-row/container'
-import TeamMemberRow from './member-row/container'
 import TeamRequestRow from './request-row/container'
 import TeamSubteamRow from './subteam-row/container'
 import SubteamBanner from './subteam-banner'
@@ -38,7 +38,6 @@ export type Props = {
   isTeamOpen: boolean,
   newTeamRequests: Array<Types.Teamname>,
   loading: boolean,
-  members: Array<MemberRowProps>,
   memberCount: number,
   name: Types.Teamname,
   onAddPeople: () => void,
@@ -131,7 +130,7 @@ const Help = isMobile
 type TeamTabsProps = {
   admin: boolean,
   invites: Array<InviteRowProps>,
-  members: Array<MemberRowProps>,
+  memberCount: number,
   name: Types.Teamname,
   newTeamRequests: Array<Types.Teamname>,
   requests: Array<RequestRowProps>,
@@ -227,7 +226,7 @@ const TeamTabs = (props: TeamTabsProps) => {
   const {
     admin,
     invites,
-    members,
+    memberCount,
     name,
     newTeamRequests,
     requests,
@@ -238,7 +237,7 @@ const TeamTabs = (props: TeamTabsProps) => {
     yourOperations,
   } = props
   let membersLabel = 'MEMBERS'
-  membersLabel += !loading && members.length !== 0 ? ` (${members.length})` : ''
+  membersLabel += !loading && memberCount !== 0 ? ` (${memberCount})` : ''
   const tabs = [
     <Text
       key="members"
@@ -352,7 +351,6 @@ class Team extends React.PureComponent<Props> {
       ignoreAccessRequests,
       invites,
       name,
-      members,
       requests,
       showMenu,
       setShowMenu,
@@ -389,14 +387,6 @@ class Team extends React.PureComponent<Props> {
     } = this.props
 
     const teamname = name
-    // massage data for rowrenderers
-    const memberProps = members.map(member => ({
-      fullName: member.fullName,
-      username: member.username,
-      teamname,
-      active: member.active,
-      key: member.username + member.active.toString(),
-    }))
     const requestProps = requests.map(req => ({
       key: req.username,
       teamname,
@@ -424,15 +414,7 @@ class Team extends React.PureComponent<Props> {
 
     let contents
     if (selectedTab === 'members') {
-      contents = (members.length !== 0 || !loading) && (
-        <List
-          keyProperty="key"
-          items={memberProps}
-          fixedHeight={48}
-          renderItem={TeamMemberRow}
-          style={{alignSelf: 'stretch'}}
-        />
-      )
+      contents = <Members teamname={teamname} />
     } else if (selectedTab === 'subteams') {
       const noSubteams = subteams.isEmpty()
       const subTeamsItems = [
