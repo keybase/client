@@ -267,6 +267,22 @@ func (sc *SigChain) LoadFromServer(ctx context.Context, t *MerkleTriple, selfUID
 			sc.G().Log.CDebugf(ctx, "| Setting isOwnNewLinkFromServer=true for seqno %d", link.GetSeqno())
 			link.isOwnNewLinkFromServer = true
 		}
+
+		// skip track links
+		var linkType string
+		link.payloadJSON.AtPath("body.type").GetStringVoid(&linkType, &err)
+		if err == nil {
+			if linkType == "track" {
+				sc.G().Log.CDebugf(ctx, "ZZZ skipping server track link %s", link.id)
+				link.clear()
+			} else if linkType == "untrack" {
+				sc.G().Log.CDebugf(ctx, "ZZZ skipping server untrack link")
+				link.clear()
+			} else {
+				sc.G().Log.CDebugf(ctx, "ZZZ server link type: %s", linkType)
+			}
+		}
+
 		links = append(links, link)
 		if !foundTail && t != nil {
 			if foundTail, err = link.checkAgainstMerkleTree(t); err != nil {
@@ -306,7 +322,7 @@ func (sc *SigChain) getFirstSeqno() (ret keybase1.Seqno) {
 }
 
 func (sc *SigChain) VerifyChain(ctx context.Context) (err error) {
-	sc.G().Log.CDebugf(ctx, "+ SigChain#VerifyChain(): skipping")
+	sc.G().Log.CDebugf(ctx, "ZZZ SigChain#VerifyChain(): skipping")
 	return nil
 	sc.G().Log.CDebugf(ctx, "+ SigChain#VerifyChain()")
 	defer func() {
@@ -949,24 +965,20 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 			return nil
 		}
 
-		/*
-			var linkType string
-			prevLink.payloadJSON.AtPath("body.type").GetStringVoid(&linkType, &err)
-			if err == nil {
+		var linkType string
+		prevLink.payloadJSON.AtPath("body.type").GetStringVoid(&linkType, &err)
+		if err == nil {
 
-				if linkType == "track" {
-					l.G().Log.CDebugf(l.ctx, "skipping track link %s", prevLink.id)
-					currentLink = prevLink
-					continue
-				}
-				if linkType == "untrack" {
-					l.G().Log.CDebugf(l.ctx, "skipping untrack link")
-					currentLink = prevLink
-					continue
-				}
-				l.G().Log.CDebugf(l.ctx, "link type: %s", linkType)
+			if linkType == "track" {
+				l.G().Log.CDebugf(l.ctx, "ZZZ skipping track link %s", prevLink.id)
+				prevLink.clear()
+			} else if linkType == "untrack" {
+				l.G().Log.CDebugf(l.ctx, "ZZZ skipping untrack link")
+				prevLink.clear()
+			} else {
+				l.G().Log.CDebugf(l.ctx, "ZZZ link type: %s", linkType)
 			}
-		*/
+		}
 
 		links = append(links, prevLink)
 		if l.currentSubchainStart == 0 && isSubchainStart(currentLink, prevLink) {

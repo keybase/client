@@ -1133,3 +1133,12 @@ func (c ChainLink) NeedsSignature() bool {
 	}
 	return c.unpacked.outerLinkV2.LinkType.NeedsSignature()
 }
+
+// experiment to clear out some data in track links
+func (c *ChainLink) clear() {
+	if c.unpacked != nil {
+		c.unpacked.payloadJSONStr = ""
+		c.unpacked.sig = ""
+	}
+	c.payloadJSON = nil
+}
