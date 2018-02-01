@@ -669,6 +669,16 @@ const clearMessageSetEditing = (action: Chat2Gen.MessageEditPayload) =>
     })
   )
 
+const getIdentifyBehavior = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
+  const participants = Constants.getMeta(state, conversationIDKey).participants
+  const hasBroken = participants.some(p => state.users.infoMap.getIn([p, 'broken']))
+  // We send a flag to the daemon depending on if we know about a broken user or not. If not it'll check before sending and show
+  // the red banner
+  return hasBroken
+    ? RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui
+    : RPCTypes.tlfKeysTLFIdentifyBehavior.chatGuiStrict
+}
+
 const messageEdit = (action: Chat2Gen.MessageEditPayload, state: TypedState) => {
   const {conversationIDKey, text, ordinal} = action.payload
   const message = Constants.getMessageMap(state, conversationIDKey).get(ordinal)
@@ -683,7 +693,6 @@ const messageEdit = (action: Chat2Gen.MessageEditPayload, state: TypedState) => 
       return
     }
 
-    const identifyBehavior = RPCTypes.tlfKeysTLFIdentifyBehavior.chatGuiStrict // TODO
     const meta = Constants.getMeta(state, conversationIDKey)
     const tlfName = meta.tlfname // TODO non existant convo
     const clientPrev = Constants.getClientPrev(state, conversationIDKey)
@@ -695,7 +704,7 @@ const messageEdit = (action: Chat2Gen.MessageEditPayload, state: TypedState) => 
       body: text.stringValue(),
       clientPrev,
       conversationID: Types.keyToConversationID(conversationIDKey),
-      identifyBehavior,
+      identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
       outboxID,
       supersedes,
       tlfName,
@@ -820,8 +829,6 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
       ]
     : []
 
-  const identifyBehavior = RPCTypes.tlfKeysTLFIdentifyBehavior.chatGuiStrict // TODO
-
   const meta = Constants.getMeta(state, conversationIDKey)
   const tlfName = meta.tlfname // TODO non existant convo
   const clientPrev = Constants.getClientPrev(state, conversationIDKey)
@@ -845,7 +852,7 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
       body: text.stringValue(),
       clientPrev,
       conversationID: Types.keyToConversationID(conversationIDKey),
-      identifyBehavior,
+      identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
       outboxID,
       tlfName,
       tlfPublic: false,
@@ -877,7 +884,6 @@ const attachmentPreviewCreateSuccess = (
 const attachmentSend = (action: Chat2Gen.AttachmentWithPreviewSendPayload, state: TypedState) => {
   // TODO
   // const {conversationIDKey, preview, filename, title} = action.payload
-  // const identifyBehavior = RPCTypes.tlfKeysTLFIdentifyBehavior.chatGuiStrict // TODO
   // const meta = Constants.getMeta(state, conversationIDKey)
   // const tlfName = meta.tlfname // TODO non existant convo
   // // TODO be able to send this
