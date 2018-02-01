@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {List} from '../../../common-adapters'
-import MemberRow from '../member-row/container'
+import MemberRow from './member-row/container'
 
 export type Props = {
   members: Array<{

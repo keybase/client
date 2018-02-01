@@ -10,11 +10,11 @@ import {
   Icon,
   Usernames,
   Meta,
-} from '../../../common-adapters'
-import {globalMargins, globalStyles, globalColors, isMobile} from '../../../styles'
-import {roleIconColorMap} from '../../role-picker/index.meta'
-import {typeToLabel} from '../../../constants/teams'
-import {type TypeMap} from '../../../constants/types/teams'
+} from '../../../../common-adapters'
+import {globalMargins, globalStyles, globalColors, isMobile} from '../../../../styles'
+import {roleIconColorMap} from '../../../role-picker/index.meta'
+import {typeToLabel} from '../../../../constants/teams'
+import {type TypeMap} from '../../../../constants/types/teams'
 
 export type Props = {
   active: boolean,
