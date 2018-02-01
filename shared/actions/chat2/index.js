@@ -273,6 +273,8 @@ const onErrorMessage = (outboxRecords: Array<RPCChatTypes.OutboxRecord>) => {
     if (s.state === 1) {
       const error = s.error
       if (error && error.typ) {
+        // This is temp until fixed by CORE-7112. We get this error but not the call to let us show the red banner
+        let tempForceRedBox
         let reason
         switch (error.typ) {
           case RPCChatTypes.localOutboxErrorType.misc:
@@ -283,6 +285,8 @@ const onErrorMessage = (outboxRecords: Array<RPCChatTypes.OutboxRecord>) => {
             break
           case RPCChatTypes.localOutboxErrorType.identify:
             reason = 'proofs failed for recipient user'
+            const match = error.message && error.message.match(/"(.*)"/)
+            tempForceRedBox = match && match[1]
             break
           case RPCChatTypes.localOutboxErrorType.toolong:
             reason = 'message is too long'
@@ -293,6 +297,9 @@ const onErrorMessage = (outboxRecords: Array<RPCChatTypes.OutboxRecord>) => {
         const conversationIDKey = Constants.conversationIDToKey(outboxRecord.convID)
         const outboxID = Constants.rpcOutboxIDToOutboxID(outboxRecord.outboxID)
         arr.push(Chat2Gen.createMessageErrored({conversationIDKey, outboxID, reason}))
+        if (tempForceRedBox) {
+          arr.push(UsersGen.createUpdateBrokenState({newlyBroken: [tempForceRedBox], newlyFixed: []}))
+        }
       }
     }
     return arr
