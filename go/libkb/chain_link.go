@@ -968,15 +968,9 @@ func (c *ChainLink) GetSigchainV2Type() (SigchainV2Type, error) {
 func (c *ChainLink) checkServerSignatureMetadata(ckf ComputedKeyFamily) (ret keybase1.KID, err error) {
 	var serverKID, linkKID, verifyKID keybase1.KID
 
-	/*
-		if jw := c.packed.AtKey("kid"); !jw.IsNil() {
-			serverKID, err = GetKID(jw)
-			if err != nil {
-				return ret, err
-			}
-		}
-	*/
-
+	// PC: i'm not sure what exactly this was trying to do since
+	// c.packed.kid can only be equal to c.unpacked.kid at this point.
+	// The following two lines result in the least changes below:
 	serverKID = c.unpacked.kid
 	linkKID = c.unpacked.kid
 
