@@ -1882,7 +1882,7 @@ export type AccountPassphrasePromptRpcParam = $ReadOnly<{guiArg: GUIEntryArg, in
 
 export type AccountResetAccountRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type AnnotatedMemberInfo = $ReadOnly<{userID: UID, teamID: TeamID, username: String, fullName: String, fqName: String, isImplicitTeam: Boolean, role: TeamRole, implicit?: ?ImplicitRole, needsPUK: Boolean, memberCount: Int, eldestSeqno: Seqno, active: Boolean}>
+export type AnnotatedMemberInfo = $ReadOnly<{userID: UID, teamID: TeamID, username: String, fullName: String, fqName: String, isImplicitTeam: Boolean, isOpenTeam: Boolean, role: TeamRole, implicit?: ?ImplicitRole, needsPUK: Boolean, memberCount: Int, eldestSeqno: Seqno, active: Boolean}>
 
 export type AnnotatedTeamInvite = $ReadOnly<{role: TeamRole, id: TeamInviteID, type: TeamInviteType, name: TeamInviteName, uv: UserVersion, inviter: UserVersion, inviterUsername: String, teamName: String, userActive: Boolean}>
 
@@ -2660,7 +2660,7 @@ export type MDPriority = Int
 
 export type MaskB64 = Bytes
 
-export type MemberInfo = $ReadOnly<{userID: UID, teamID: TeamID, fqName: String, isImplicitTeam: Boolean, role: TeamRole, implicit?: ?ImplicitRole, memberCount: Int}>
+export type MemberInfo = $ReadOnly<{userID: UID, teamID: TeamID, fqName: String, isImplicitTeam: Boolean, isOpenTeam: Boolean, role: TeamRole, implicit?: ?ImplicitRole, memberCount: Int}>
 
 export type MerkleGetCurrentMerkleRootRpcParam = $ReadOnly<{freshnessMsec: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 

@@ -530,6 +530,8 @@ protocol teams {
     string fqName;
     @jsonkey("is_implicit_team")
     boolean isImplicitTeam;
+    @jsonkey("is_open_team")
+    boolean isOpenTeam;
     TeamRole role;
     union{null, ImplicitRole} implicit;
     @jsonkey("member_count")
@@ -552,6 +554,8 @@ protocol teams {
     string fqName;
     @jsonkey("is_implicit_team")
     boolean isImplicitTeam;
+    @jsonkey("is_open_team")
+    boolean isOpenTeam;
     TeamRole role;
     union{null, ImplicitRole} implicit;
     @lint("ignore")
