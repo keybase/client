@@ -16,8 +16,7 @@ const stylesCommonCore = {
 const stylesCommonRow = {
   ...globalStyles.flexBoxRow,
   ...stylesCommonCore,
-  minHeight: isMobile ? 64 : 48,
-  padding: 8,
+  minHeight: isMobile ? 64 : 40,
 }
 
 const stylesContainer = {
@@ -43,7 +42,9 @@ type FolderProps = {
   onBack: () => void,
 }
 
-const FolderBoxStyle = {...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'stretch'}
+const folderBoxStyle = {...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'stretch'}
+
+const folderHeaderStyle = {...stylesCommonRow, alignItems: 'center', borderBottomWidth: 0}
 
 const styleOuterContainer = {
   height: '100%',
@@ -52,10 +53,8 @@ const styleOuterContainer = {
 
 const FolderHeader = ({title}: FolderHeaderProps) => (
   <Box>
-    <Box style={{...stylesCommonRow, alignItems: 'center', borderBottomWidth: 0}}>
-      <Text type="BodyBig" style={{padding: globalMargins.xtiny}}>
-        {title}
-      </Text>
+    <Box style={{...folderHeaderStyle}}>
+      <Text type="BodyBig">{title}</Text>
     </Box>
   </Box>
 )
@@ -64,29 +63,35 @@ const FileRow = RowConnector(({path, name, icon, onOpen}: FileRowProps) => (
   <ClickableBox onClick={onOpen} style={{...stylesCommonRow}}>
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
       <Icon type={icon} style={{marginRight: globalMargins.small}} />
-      <Box style={FolderBoxStyle}>
+      <Box style={folderBoxStyle}>
         <Text type="Body">{name}</Text>
       </Box>
     </Box>
   </ClickableBox>
 ))
 
-const Files = ({path, items, onBack}: FolderProps) => (
-  <Box style={styleOuterContainer}>
-    <Box style={stylesContainer}>
-      {onBack &&
-        Types.pathToString(path) !== '/keybase' && (
-          <Box style={globalStyles.flexBoxColumn}>
-            <BackButton onClick={onBack} style={{left: 16, position: 'absolute', top: 16}} />
-          </Box>
-        )}
-      <FolderHeader title={'Folders: ' + Types.pathToString(path)} />
-      <List
-        items={items}
-        renderItem={(index, item) => <FileRow key={Types.pathToString(item)} path={item} />}
-      />
-    </Box>
-  </Box>
-)
+class Files extends React.PureComponent<FolderProps> {
+  _renderRow = (index, item) => <FileRow key={Types.pathToString(item)} path={item} />
+
+  render() {
+    const onBack = this.props.onBack
+    const path = this.props.path
+    const items = this.props.items
+    return (
+      <Box style={styleOuterContainer}>
+        <Box style={stylesContainer}>
+          {onBack &&
+            Types.pathToString(path) !== '/keybase' && (
+              <Box style={globalStyles.flexBoxColumn}>
+                <BackButton onClick={onBack} style={{left: 16, position: 'absolute', top: 16}} />
+              </Box>
+            )}
+          <FolderHeader title={'Folders: ' + Types.pathToString(path)} />
+          <List items={items} renderItem={this._renderRow} />
+        </Box>
+      </Box>
+    )
+  }
+}
 
 export default Files
