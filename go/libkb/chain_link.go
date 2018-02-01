@@ -489,8 +489,12 @@ func (tmp *ChainLinkUnpacked) unpackPayloadJSON(payloadJSON *jsonw.Wrapper, payl
 }
 
 func (c *ChainLink) UnpackLocal(payloadJSON *jsonw.Wrapper) (err error) {
+	payloadStr, err := payloadJSON.Marshal()
+	if err != nil {
+		return err
+	}
 	tmp := ChainLinkUnpacked{}
-	err = tmp.unpackPayloadJSON(payloadJSON, "")
+	err = tmp.unpackPayloadJSON(payloadJSON, string(payloadStr))
 	if err == nil {
 		c.unpacked = &tmp
 	}
