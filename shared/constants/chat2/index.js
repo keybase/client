@@ -11,6 +11,12 @@ export const conversationIDToKey = (conversationID: RPCChatTypes.ConversationID)
 export const keyToConversationID = (key: Types.ConversationIDKey): RPCChatTypes.ConversationID =>
   Buffer.from(Types.conversationIDKeyToString(key), 'hex')
 
+export const rpcOutboxIDToOutboxID = (outboxID: RPCChatTypes.OutboxID): Types.OutboxID =>
+  Types.stringToOutboxID(outboxID.toString('hex'))
+
+export const outboxIDToRpcOutboxID = (outboxID: Types.OutboxID): RPCChatTypes.OutboxID =>
+  Buffer.from(Types.outboxIDToString(outboxID), 'hex')
+
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   badgeMap: I.Map(),
   beforeSearchSelectedConversation: null,

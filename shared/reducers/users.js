@@ -13,13 +13,13 @@ const reducer = (state: Types.State = initialState, action: UsersGen.Actions): T
     case UsersGen.updateBrokenState: {
       const {newlyBroken, newlyFixed} = action.payload
 
-      return state.update('users', users =>
-        users.withMutations(us => {
+      return state.update('infoMap', map =>
+        map.withMutations(m => {
           newlyFixed.forEach(user => {
-            us.update(user, info => (info || blankUserInfo).set('broken', false))
+            m.update(user, info => (info || blankUserInfo).set('broken', false))
           })
           newlyBroken.forEach(user => {
-            us.update(user, info => (info || blankUserInfo).set('broken', true))
+            m.update(user, info => (info || blankUserInfo).set('broken', true))
           })
         })
       )

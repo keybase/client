@@ -1,46 +1,46 @@
 // @flow
+import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Constants from '../../../../constants/chat2'
+import * as ProfileGen from '../../../../actions/profile-gen'
+import * as Route from '../../../../actions/route-tree'
+import * as TrackerGen from '../../../../actions/tracker-gen'
 import * as Types from '../../../../constants/types/chat2'
 import Wrapper from '.'
 import {connect, type TypedState} from '../../../../util/container'
-import {createGetProfile} from '../../../../actions/tracker-gen'
-import {createShowUserProfile} from '../../../../actions/profile-gen'
 import {formatTimeForMessages} from '../../../../util/timestamp'
 import {isMobile} from '../../../../constants/platform'
-import {navigateAppend} from '../../../../actions/route-tree'
 
 const howLongBetweenTimestampsMs = 1000 * 60 * 15
 
 const mapStateToProps = (state: TypedState, {message, previous, innerClass, isSelected, isEditing}) => {
   const isYou = state.config.username === message.author
   const isFollowing = state.config.following.has(message.author)
-  // TODO
-  // const isBroken = Constants.getMetaDataMap(state).getIn([author, 'brokenTracker'], false)
+  const isBroken = state.users.infoMap.getIn([message.author, 'broken'], false)
 
   return {
     innerClass,
+    isBroken,
     isEditing,
     isFollowing,
     isSelected,
     isYou,
     message,
     previous,
-    // isBroken,
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   // _onRetryAttachment: (message: Types.AttachmentMessage) =>
   // dispatch(ChatGen.createRetryAttachment({message})),
-  // _onRetryText: (conversationIDKey: Types.ConversationIDKey, outboxIDKey: Types.OutboxIDKey) =>
-  // dispatch(ChatGen.createRetryMessage({conversationIDKey, outboxIDKey})),
   _onAuthorClick: (username: string) =>
     isMobile
-      ? dispatch(createShowUserProfile({username}))
-      : dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username})),
+      ? dispatch(ProfileGen.createShowUserProfile({username}))
+      : dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username})),
+  _onRetry: (conversationIDKey: Types.ConversationIDKey, outboxID: Types.OutboxID) =>
+    dispatch(Chat2Gen.createMessageRetry({conversationIDKey, outboxID})),
   _onShowMenu: (targetRect: ?ClientRect, message: Types.Message) =>
     dispatch(
-      navigateAppend([
+      Route.navigateAppend([
         {
           props: {message, position: 'bottom left', targetRect},
           selected: 'messageAction',
@@ -134,12 +134,15 @@ const mergeProps = (stateProps, dispatchProps) => {
     }
   }
 
+  const failureDescription =
+    message.type === 'text' || message.type === 'attachment' ? message.errorReason : null
+
   return {
     author: message.author,
-    failureDescription: null,
+    failureDescription,
     includeHeader,
     innerClass: stateProps.innerClass,
-    isBroken: false, // TODO stateProps.isBroken,
+    isBroken: stateProps.isBroken,
     isEdited: message.hasBeenEdited,
     isEditing: stateProps.isEditing,
     isFirstNewMessage: false, //  TODO
@@ -150,6 +153,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     loadMoreType,
     message,
     onAuthorClick: () => dispatchProps._onAuthorClick(message.author),
+    onRetry: () => dispatchProps._onRetry(message.conversationIDKey, message.outboxID),
     onShowMenu: (clientRect: ?ClientRect) => dispatchProps._onShowMenu(clientRect, message),
     timestamp,
   }

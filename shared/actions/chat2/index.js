@@ -267,6 +267,40 @@ const chatActivityToMetasAction = (payload: ?{+conv?: ?RPCChatTypes.InboxUIItem}
   return meta ? [Chat2Gen.createMetasReceived({metas: [meta]})] : []
 }
 
+const onErrorMessage = (outboxRecords: Array<RPCChatTypes.OutboxRecord>) => {
+  const actions = outboxRecords.reduce((arr, outboxRecord) => {
+    const s = outboxRecord.state
+    if (s.state === 1) {
+      const error = s.error
+      if (error && error.typ) {
+        let reason
+        switch (error.typ) {
+          case RPCChatTypes.localOutboxErrorType.misc:
+            reason = 'unknown error'
+            break
+          case RPCChatTypes.localOutboxErrorType.offline:
+            reason = 'disconnected from chat server'
+            break
+          case RPCChatTypes.localOutboxErrorType.identify:
+            reason = 'proofs failed for recipient user'
+            break
+          case RPCChatTypes.localOutboxErrorType.toolong:
+            reason = 'message is too long'
+            break
+          default:
+            reason = `unknown error type ${error.typ || ''}`
+        }
+        const conversationIDKey = Constants.conversationIDToKey(outboxRecord.convID)
+        const outboxID = Constants.rpcOutboxIDToOutboxID(outboxRecord.outboxID)
+        arr.push(Chat2Gen.createMessageErrored({conversationIDKey, outboxID, reason}))
+      }
+    }
+    return arr
+  }, [])
+
+  return actions
+}
+
 const setupChatHandlers = () => {
   engine().setIncomingActionCreators(
     'chat.1.NotifyChat.NewChatActivity',
@@ -281,37 +315,12 @@ const setupChatHandlers = () => {
           return chatActivityToMetasAction(activity.readMessage)
         case RPCChatTypes.notifyChatChatActivityType.newConversation:
           return chatActivityToMetasAction(activity.newConversation)
-        case RPCChatTypes.notifyChatChatActivityType.failedMessage:
-          return null
-        // TODO old code for ref
-        // const failedMessage: ?RPCChatTypes.FailedMessageInfo = action.payload.activity.failedMessage
-        // if (failedMessage && failedMessage.outboxRecords) {
-        // for (const outboxRecord of failedMessage.outboxRecords) {
-        // const conversationIDKey = Constants.conversationIDToKey(outboxRecord.convID)
-        // const outboxID = outboxRecord.outboxID && Constants.outboxIDToKey(outboxRecord.outboxID)
-        // const errTyp = outboxRecord.state.error.typ
-        // const failureDescription = _decodeFailureDescription(errTyp)
-        // const isConversationLoaded = yield Saga.select(Shared.conversationStateSelector, conversationIDKey)
-        // if (!isConversationLoaded) return
-
-        // const pendingMessage = yield Saga.select(_messageOutboxIDSelector, conversationIDKey, outboxID)
-        // if (pendingMessage) {
-        // yield Saga.put(
-        // ChatGen.createUpdateTempMessage({
-        // conversationIDKey,
-        // message: {
-        // ...pendingMessage,
-        // failureDescription,
-        // messageState: 'failed',
-        // },
-        // outboxIDKey: outboxID,
-        // })
-        // )
-        // } else {
-        // throw new Error("Pending message wasn't found!")
-        // }
-        // }
-        // }
+        case RPCChatTypes.notifyChatChatActivityType.failedMessage: {
+          const failedMessage: ?RPCChatTypes.FailedMessageInfo = activity.failedMessage
+          return failedMessage && failedMessage.outboxRecords
+            ? onErrorMessage(failedMessage.outboxRecords)
+            : null
+        }
         case RPCChatTypes.notifyChatChatActivityType.membersUpdate:
           const convID = activity.membersUpdate && activity.membersUpdate.convID
           return convID
@@ -750,6 +759,13 @@ const sendToPendingConversationSuccess = (
   ])
 }
 
+const messageRetry = (action: Chat2Gen.MessageRetryPayload, state: TypedState) => {
+  const {outboxID} = action.payload
+  return Saga.call(RPCChatTypes.localRetryPostRpcPromise, {
+    outboxID: Constants.outboxIDToRpcOutboxID(outboxID),
+  })
+}
+
 const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => {
   const {conversationIDKey, text} = action.payload
   const outboxID = Constants.generateOutboxID()
@@ -1028,6 +1044,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     rpcLoadThreadSuccess
   )
 
+  yield Saga.safeTakeEveryPure(Chat2Gen.messageRetry, messageRetry)
   yield Saga.safeTakeEveryPure(Chat2Gen.messageSend, messageSend)
   yield Saga.safeTakeEveryPure(Chat2Gen.messageEdit, messageEdit)
   yield Saga.safeTakeEveryPure(Chat2Gen.messageEdit, clearMessageSetEditing)

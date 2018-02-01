@@ -24,6 +24,7 @@ const makeMessageCommon = {
   deviceName: '',
   deviceRevokedAt: null,
   deviceType: 'mobile',
+  errorReason: null,
   hasBeenEdited: false,
   outboxID: Types.stringToOutboxID(''),
 }

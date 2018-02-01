@@ -73,6 +73,12 @@
       "context": "{type: 'sent'} | {type: 'incoming'} | {type: 'threadLoad', conversationIDKey: Types.ConversationIDKey}", // because we clicked on a conversation for the very first time?
       "messages": "Array<Types.Message>"
     },
+    // Got an error sending a message
+    "messageErrored": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "reason": "string",
+      "outboxID": "Types.OutboxID",
+    },
     // Start editing a message / or edit the last message / or clear editing
     "messageSetEditing": {
       "conversationIDKey": "Types.ConversationIDKey",
@@ -122,6 +128,11 @@
     "messageSend": {
       "conversationIDKey": "Types.ConversationIDKey",
       "text": "HiddenString"
+    },
+    // Resend a message
+    "messageRetry": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "outboxID": "Types.OutboxID",
     },
     // User sends an attachment
     "attachmentSend": {

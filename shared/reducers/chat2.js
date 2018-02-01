@@ -360,6 +360,48 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         // )
       })
     }
+    case Chat2Gen.messageRetry: {
+      const {conversationIDKey, outboxID} = action.payload
+      const ordinal = state.pendingOutboxToOrdinal.getIn([conversationIDKey, outboxID])
+      if (!ordinal) {
+        return state
+      }
+      return state.set(
+        'messageMap',
+        state.messageMap.updateIn([conversationIDKey, ordinal], message => {
+          if (message) {
+            if (message.type === 'text') {
+              return message.set('errorReason', null).set('localState', 'pending')
+            }
+            if (message.type === 'attachment') {
+              return message.set('errorReason', null).set('localState', 'pending')
+            }
+          }
+          return message
+        })
+      )
+    }
+    case Chat2Gen.messageErrored: {
+      const {conversationIDKey, outboxID, reason} = action.payload
+      const ordinal = state.pendingOutboxToOrdinal.getIn([conversationIDKey, outboxID])
+      if (!ordinal) {
+        return state
+      }
+      return state.set(
+        'messageMap',
+        state.messageMap.updateIn([conversationIDKey, ordinal], message => {
+          if (message) {
+            if (message.type === 'text') {
+              return message.set('errorReason', reason).set('localState', null)
+            }
+            if (message.type === 'attachment') {
+              return message.set('errorReason', reason).set('localState', null)
+            }
+          }
+          return message
+        })
+      )
+    }
     case Chat2Gen.clearPendingConversation: {
       return state.withMutations(s => {
         const conversationIDKey = Types.stringToConversationIDKey('')

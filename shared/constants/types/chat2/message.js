@@ -15,9 +15,10 @@ export const ordinalToNumber = (o: Ordinal): number => o
 
 export opaque type OutboxID: string = string
 export const stringToOutboxID = (s: string): OutboxID => s
+export const outboxIDToString = (o: OutboxID): string => o
 
 // Bookkeep us trying to do these operations
-type LocalState = null | 'deleting' | 'editing' | 'error' | 'pending'
+type LocalState = null | 'deleting' | 'editing' | 'pending'
 
 type ChannelMention = 'none' | 'all' | 'here'
 
@@ -32,6 +33,7 @@ export type _MessageDeleted = {
   deviceRevokedAt: ?number,
   deviceType: DeviceType,
   hasBeenEdited: boolean,
+  errorReason: ?string,
   id: MessageID,
   ordinal: Ordinal,
   outboxID: ?OutboxID,
@@ -46,6 +48,7 @@ export type _MessageText = {
   deviceName: string,
   deviceRevokedAt: ?number,
   deviceType: DeviceType,
+  errorReason: ?string,
   hasBeenEdited: boolean,
   id: MessageID,
   localState: LocalState,
@@ -68,6 +71,7 @@ export type _MessageAttachment = {
   deviceName: string,
   deviceRevokedAt: ?number,
   deviceType: DeviceType,
+  errorReason: ?string,
   // durationMs: number,
   // filename: ?string,
   hasBeenEdited: boolean,
@@ -83,17 +87,6 @@ export type _MessageAttachment = {
   type: 'attachment',
 }
 export type MessageAttachment = I.RecordOf<_MessageAttachment>
-
-export type _MessageError = {
-  author: string,
-  conversationIDKey: Common.ConversationIDKey,
-  id: MessageID,
-  ordinal: Ordinal,
-  reason: string,
-  timestamp: number,
-  type: 'error',
-}
-export type MessageError = I.RecordOf<_MessageError>
 
 export type _MessageSystemInviteAccepted = {
   adder: string,
@@ -183,7 +176,6 @@ export type MessageSystemText = I.RecordOf<_MessageSystemText>
 export type Message =
   | MessageAttachment
   | MessageDeleted
-  | MessageError
   | MessageSystemAddedToTeam
   | MessageSystemGitPush
   | MessageSystemInviteAccepted

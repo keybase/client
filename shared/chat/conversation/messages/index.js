@@ -3,7 +3,7 @@ import * as Constants2 from '../../../constants/chat2'
 import * as React from 'react'
 import * as RouteTree from '../../../route-tree'
 import * as Types2 from '../../../constants/types/chat2'
-import Error from './error/container'
+// import Error from './error/container'
 import SystemAddedToTeam from './system-added-to-team/container'
 import SystemGitPush from './system-git-push/container'
 import SystemInviteAccepted from './system-invite-accepted/container'
@@ -65,8 +65,8 @@ class MessageFactory extends React.PureComponent<Props> {
         return <SystemText message={this.props.message} />
       case 'systemLeft':
         return <SystemLeft message={this.props.message} />
-      case 'error':
-        return <Error message={this.props.message} />
+      // case 'error':
+      // return <Error message={this.props.message} />
       case 'deleted':
         return null
       default:

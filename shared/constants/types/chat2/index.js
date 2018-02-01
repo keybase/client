@@ -30,7 +30,6 @@ export type {ConversationMeta, MetaTrustedState} from './meta'
 export type {
   Message,
   MessageAttachment,
-  MessageError,
   MessageSystemAddedToTeam,
   MessageSystemGitPush,
   MessageSystemInviteAccepted,
@@ -44,5 +43,5 @@ export type {
 } from './message'
 export type {ConversationIDKey} from './common'
 
-export {stringToOutboxID, numberToMessageID, numberToOrdinal, ordinalToNumber} from './message'
+export {outboxIDToString, stringToOutboxID, numberToMessageID, numberToOrdinal, ordinalToNumber} from './message'
 export {stringToConversationIDKey, conversationIDKeyToString} from './common'

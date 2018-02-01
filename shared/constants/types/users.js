@@ -8,7 +8,7 @@ export type _UserInfo = {
 type UserInfo = I.RecordOf<_UserInfo>
 
 export type _State = {
-  users: I.Map<string, UserInfo>,
+  infoMap: I.Map<string, UserInfo>,
 }
 
 export type State = I.RecordOf<_State>

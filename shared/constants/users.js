@@ -7,5 +7,5 @@ export const makeUserInfo: I.RecordFactory<Types._UserInfo> = I.Record({
 })
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
-  users: I.Map(),
+  infoMap: I.Map(),
 })

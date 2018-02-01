@@ -46,7 +46,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   let users
 
   const broken = stateProps._meta.participants.filter(p =>
-    stateProps._users.users.getIn([p, 'broken'], false)
+    stateProps._users.infoMap.getIn([p, 'broken'], false)
   )
   if (!broken.isEmpty()) {
     type = 'broken'
