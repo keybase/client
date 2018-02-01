@@ -200,9 +200,9 @@ type ChainLink struct {
 	dirty           bool
 
 	// packed      *jsonw.Wrapper
-	payloadJSON *jsonw.Wrapper
-	unpacked    *ChainLinkUnpacked
-	cki         *ComputedKeyInfos
+	// payloadJSON *jsonw.Wrapper
+	unpacked *ChainLinkUnpacked
+	cki      *ComputedKeyInfos
 
 	typed                  TypedChainLink
 	isOwnNewLinkFromServer bool
@@ -286,14 +286,12 @@ func (c *ChainLink) GetUID() keybase1.UID {
 }
 
 func (c *ChainLink) GetPayloadJSON() *jsonw.Wrapper {
-	return c.payloadJSON
-	/*
-		payloadJSON, err := jsonw.Unmarshal([]byte(c.unpacked.payloadJSONStr))
-		if err != nil {
-			return nil
-		}
-		return payloadJSON
-	*/
+	// return c.payloadJSON
+	payloadJSON, err := jsonw.Unmarshal([]byte(c.unpacked.payloadJSONStr))
+	if err != nil {
+		return nil
+	}
+	return payloadJSON
 }
 
 func (c *ChainLink) ToSigChainLocation() keybase1.SigChainLocation {
@@ -580,7 +578,7 @@ func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID, packed *jsonw.Wra
 		if err := tmp.unpackPayloadJSON(payloadJSON, payloadJSONStr); err != nil {
 			return err
 		}
-		c.payloadJSON = payloadJSON
+		// c.payloadJSON = payloadJSON
 	}
 
 	var sigKID, serverKID, payloadKID keybase1.KID
