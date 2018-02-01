@@ -175,6 +175,19 @@ func TestLoaderKeyGen(t *testing.T) {
 	require.Len(t, team.ReaderKeyMasks[keybase1.TeamApplication_KBFS], 4, "number of kbfs rkms")
 }
 
+func TestLoaderKBFSKeyGen(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	// Require that a team is at this KBFS key generation
+	requireGen := func(team *keybase1.TeamData, generation int) {
+		require.NotNil(t, team)
+		keys, ok := team.TlfCryptKeys[keybase1.TeamApplication_CHAT]
+		require.True(t, ok)
+		require.True(t, keys[len(keys)-1].KeyGeneration >= generation)
+	}
+}
+
 // Test loading a team with WantMembers set.
 func TestLoaderWantMembers(t *testing.T) {
 	fus, tcs, cleanup := setupNTests(t, 4)
