@@ -199,10 +199,10 @@ type ChainLink struct {
 	unsigned        bool
 	dirty           bool
 
-	packed      *jsonw.Wrapper
-	payloadJSON *jsonw.Wrapper
-	unpacked    *ChainLinkUnpacked
-	cki         *ComputedKeyInfos
+	packed *jsonw.Wrapper
+	// payloadJSON *jsonw.Wrapper
+	unpacked *ChainLinkUnpacked
+	cki      *ComputedKeyInfos
 
 	typed                  TypedChainLink
 	isOwnNewLinkFromServer bool
@@ -286,7 +286,11 @@ func (c *ChainLink) GetUID() keybase1.UID {
 }
 
 func (c *ChainLink) GetPayloadJSON() *jsonw.Wrapper {
-	return c.payloadJSON
+	payloadJSON, err := jsonw.Unmarshal([]byte(c.unpacked.payloadJSONStr))
+	if err != nil {
+		return nil
+	}
+	return payloadJSON
 }
 
 func (c *ChainLink) ToSigChainLocation() keybase1.SigChainLocation {
@@ -332,7 +336,7 @@ func (c *ChainLink) GetMerkleSeqno() keybase1.Seqno {
 	if c.IsStubbed() {
 		return 0
 	}
-	i, err := c.payloadJSON.AtPath("body.merkle_root.seqno").GetInt()
+	i, err := c.GetPayloadJSON().AtPath("body.merkle_root.seqno").GetInt()
 	if err != nil {
 		i = 0
 	}
@@ -343,7 +347,7 @@ func (c *ChainLink) GetMerkleHashMeta() (keybase1.HashMeta, error) {
 	if c.IsStubbed() {
 		return nil, nil
 	}
-	s, err := c.payloadJSON.AtPath("body.merkle_root.hash_meta").GetString()
+	s, err := c.GetPayloadJSON().AtPath("body.merkle_root.hash_meta").GetString()
 	if err != nil {
 		return nil, nil
 	}
@@ -359,7 +363,7 @@ func (c *ChainLink) GetRevocations() []keybase1.SigID {
 		return nil
 	}
 	var ret []keybase1.SigID
-	jw := c.payloadJSON.AtKey("body").AtKey("revoke")
+	jw := c.GetPayloadJSON().AtKey("body").AtKey("revoke")
 	s, err := GetSigID(jw.AtKey("sig_id"), true)
 	if err == nil {
 		ret = append(ret, s)
@@ -382,7 +386,7 @@ func (c *ChainLink) GetRevokeKids() []keybase1.KID {
 		return nil
 	}
 	var ret []keybase1.KID
-	jw := c.payloadJSON.AtKey("body").AtKey("revoke")
+	jw := c.GetPayloadJSON().AtKey("body").AtKey("revoke")
 	if jw.IsNil() {
 		return nil
 	}
@@ -479,9 +483,9 @@ func (tmp *ChainLinkUnpacked) unpackPayloadJSON(payloadJSON *jsonw.Wrapper, payl
 	return
 }
 
-func (c *ChainLink) UnpackLocal() (err error) {
+func (c *ChainLink) UnpackLocal(payloadJSON *jsonw.Wrapper) (err error) {
 	tmp := ChainLinkUnpacked{}
-	err = tmp.unpackPayloadJSON(c.payloadJSON, "")
+	err = tmp.unpackPayloadJSON(payloadJSON, "")
 	if err == nil {
 		c.unpacked = &tmp
 	}
@@ -573,7 +577,7 @@ func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID) (err error) {
 		if err := tmp.unpackPayloadJSON(payloadJSON, payloadJSONStr); err != nil {
 			return err
 		}
-		c.payloadJSON = payloadJSON
+		// c.payloadJSON = payloadJSON
 	}
 
 	var sigKID, serverKID, payloadKID keybase1.KID
