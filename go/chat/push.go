@@ -783,6 +783,8 @@ func (g *PushHandler) UpgradeKBFSToImpteam(ctx context.Context, m gregor.OutOfBa
 			return err
 		}
 
+		g.G().NotifyRouter.HandleChatKBFSToImpteamUpgrade(ctx, keybase1.UID(uid.String()), update.ConvID)
+
 		return nil
 	}(bctx)
 

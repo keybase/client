@@ -578,6 +578,21 @@
       "response": null,
       "notify": "",
       "lint": "ignore"
+    },
+    "ChatKBFSToImpteamUpgrade": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "keybase1.UID"
+        },
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": null,
+      "notify": "",
+      "lint": "ignore"
     }
   },
   "namespace": "chat.1"

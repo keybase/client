@@ -686,6 +686,11 @@ type ChatSetTeamRetentionArg struct {
 	Convs  []InboxUIItem   `codec:"convs" json:"convs"`
 }
 
+type ChatKBFSToImpteamUpgradeArg struct {
+	Uid    keybase1.UID   `codec:"uid" json:"uid"`
+	ConvID ConversationID `codec:"convID" json:"convID"`
+}
+
 type NotifyChatInterface interface {
 	NewChatActivity(context.Context, NewChatActivityArg) error
 	ChatIdentifyUpdate(context.Context, keybase1.CanonicalTLFNameAndIDWithBreaks) error
@@ -701,6 +706,7 @@ type NotifyChatInterface interface {
 	ChatInboxSynced(context.Context, ChatInboxSyncedArg) error
 	ChatSetConvRetention(context.Context, ChatSetConvRetentionArg) error
 	ChatSetTeamRetention(context.Context, ChatSetTeamRetentionArg) error
+	ChatKBFSToImpteamUpgrade(context.Context, ChatKBFSToImpteamUpgradeArg) error
 }
 
 func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
@@ -931,6 +937,22 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodNotify,
 			},
+			"ChatKBFSToImpteamUpgrade": {
+				MakeArg: func() interface{} {
+					ret := make([]ChatKBFSToImpteamUpgradeArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChatKBFSToImpteamUpgradeArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChatKBFSToImpteamUpgradeArg)(nil), args)
+						return
+					}
+					err = i.ChatKBFSToImpteamUpgrade(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
 		},
 	}
 }
@@ -1010,5 +1032,10 @@ func (c NotifyChatClient) ChatSetConvRetention(ctx context.Context, __arg ChatSe
 
 func (c NotifyChatClient) ChatSetTeamRetention(ctx context.Context, __arg ChatSetTeamRetentionArg) (err error) {
 	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatSetTeamRetention", []interface{}{__arg})
+	return
+}
+
+func (c NotifyChatClient) ChatKBFSToImpteamUpgrade(ctx context.Context, __arg ChatKBFSToImpteamUpgradeArg) (err error) {
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatKBFSToImpteamUpgrade", []interface{}{__arg})
 	return
 }

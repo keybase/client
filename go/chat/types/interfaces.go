@@ -164,6 +164,7 @@ type PushHandler interface {
 	Typing(context.Context, gregor.OutOfBandMessage) error
 	MembershipUpdate(context.Context, gregor.OutOfBandMessage) error
 	HandleOobm(context.Context, gregor.OutOfBandMessage) (bool, error)
+	UpgradeKBFSToImpteam(ctx context.Context, m gregor.OutOfBandMessage) error
 }
 
 type AppState interface {
