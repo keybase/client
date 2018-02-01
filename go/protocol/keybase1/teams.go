@@ -1420,12 +1420,25 @@ func (o TeamSeitanMsg) DeepCopy() TeamSeitanMsg {
 	}
 }
 
+type TeamKBFSKeyRefresher struct {
+	Generation int             `codec:"generation" json:"generation"`
+	AppType    TeamApplication `codec:"appType" json:"appType"`
+}
+
+func (o TeamKBFSKeyRefresher) DeepCopy() TeamKBFSKeyRefresher {
+	return TeamKBFSKeyRefresher{
+		Generation: o.Generation,
+		AppType:    o.AppType.DeepCopy(),
+	}
+}
+
 // * TeamRefreshData are needed or wanted data requirements that, if unmet, will cause
 // * a refresh of the cache.
 type TeamRefreshers struct {
-	NeedKeyGeneration PerTeamKeyGeneration `codec:"needKeyGeneration" json:"needKeyGeneration"`
-	WantMembers       []UserVersion        `codec:"wantMembers" json:"wantMembers"`
-	WantMembersRole   TeamRole             `codec:"wantMembersRole" json:"wantMembersRole"`
+	NeedKeyGeneration     PerTeamKeyGeneration `codec:"needKeyGeneration" json:"needKeyGeneration"`
+	WantMembers           []UserVersion        `codec:"wantMembers" json:"wantMembers"`
+	WantMembersRole       TeamRole             `codec:"wantMembersRole" json:"wantMembersRole"`
+	NeedKBFSKeyGeneration TeamKBFSKeyRefresher `codec:"needKBFSKeyGeneration" json:"needKBFSKeyGeneration"`
 }
 
 func (o TeamRefreshers) DeepCopy() TeamRefreshers {
@@ -1442,7 +1455,8 @@ func (o TeamRefreshers) DeepCopy() TeamRefreshers {
 			}
 			return ret
 		})(o.WantMembers),
-		WantMembersRole: o.WantMembersRole.DeepCopy(),
+		WantMembersRole:       o.WantMembersRole.DeepCopy(),
+		NeedKBFSKeyGeneration: o.NeedKBFSKeyGeneration.DeepCopy(),
 	}
 }
 
@@ -1489,7 +1503,6 @@ type MemberInfo struct {
 	TeamID         TeamID        `codec:"teamID" json:"team_id"`
 	FqName         string        `codec:"fqName" json:"fq_name"`
 	IsImplicitTeam bool          `codec:"isImplicitTeam" json:"is_implicit_team"`
-	IsOpenTeam     bool          `codec:"isOpenTeam" json:"is_open_team"`
 	Role           TeamRole      `codec:"role" json:"role"`
 	Implicit       *ImplicitRole `codec:"implicit,omitempty" json:"implicit,omitempty"`
 	MemberCount    int           `codec:"memberCount" json:"member_count"`
@@ -1501,7 +1514,6 @@ func (o MemberInfo) DeepCopy() MemberInfo {
 		TeamID:         o.TeamID.DeepCopy(),
 		FqName:         o.FqName,
 		IsImplicitTeam: o.IsImplicitTeam,
-		IsOpenTeam:     o.IsOpenTeam,
 		Role:           o.Role.DeepCopy(),
 		Implicit: (func(x *ImplicitRole) *ImplicitRole {
 			if x == nil {
@@ -1541,7 +1553,6 @@ type AnnotatedMemberInfo struct {
 	FullName       string        `codec:"fullName" json:"full_name"`
 	FqName         string        `codec:"fqName" json:"fq_name"`
 	IsImplicitTeam bool          `codec:"isImplicitTeam" json:"is_implicit_team"`
-	IsOpenTeam     bool          `codec:"isOpenTeam" json:"is_open_team"`
 	Role           TeamRole      `codec:"role" json:"role"`
 	Implicit       *ImplicitRole `codec:"implicit,omitempty" json:"implicit,omitempty"`
 	NeedsPUK       bool          `codec:"needsPUK" json:"needsPUK"`
@@ -1558,7 +1569,6 @@ func (o AnnotatedMemberInfo) DeepCopy() AnnotatedMemberInfo {
 		FullName:       o.FullName,
 		FqName:         o.FqName,
 		IsImplicitTeam: o.IsImplicitTeam,
-		IsOpenTeam:     o.IsOpenTeam,
 		Role:           o.Role.DeepCopy(),
 		Implicit: (func(x *ImplicitRole) *ImplicitRole {
 			if x == nil {

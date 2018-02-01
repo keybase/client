@@ -1882,7 +1882,7 @@ export type AccountPassphrasePromptRpcParam = $ReadOnly<{guiArg: GUIEntryArg, in
 
 export type AccountResetAccountRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type AnnotatedMemberInfo = $ReadOnly<{userID: UID, teamID: TeamID, username: String, fullName: String, fqName: String, isImplicitTeam: Boolean, isOpenTeam: Boolean, role: TeamRole, implicit?: ?ImplicitRole, needsPUK: Boolean, memberCount: Int, eldestSeqno: Seqno, active: Boolean}>
+export type AnnotatedMemberInfo = $ReadOnly<{userID: UID, teamID: TeamID, username: String, fullName: String, fqName: String, isImplicitTeam: Boolean, role: TeamRole, implicit?: ?ImplicitRole, needsPUK: Boolean, memberCount: Int, eldestSeqno: Seqno, active: Boolean}>
 
 export type AnnotatedTeamInvite = $ReadOnly<{role: TeamRole, id: TeamInviteID, type: TeamInviteType, name: TeamInviteName, uv: UserVersion, inviter: UserVersion, inviterUsername: String, teamName: String, userActive: Boolean}>
 
@@ -2660,7 +2660,7 @@ export type MDPriority = Int
 
 export type MaskB64 = Bytes
 
-export type MemberInfo = $ReadOnly<{userID: UID, teamID: TeamID, fqName: String, isImplicitTeam: Boolean, isOpenTeam: Boolean, role: TeamRole, implicit?: ?ImplicitRole, memberCount: Int}>
+export type MemberInfo = $ReadOnly<{userID: UID, teamID: TeamID, fqName: String, isImplicitTeam: Boolean, role: TeamRole, implicit?: ?ImplicitRole, memberCount: Int}>
 
 export type MerkleGetCurrentMerkleRootRpcParam = $ReadOnly<{freshnessMsec: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -3575,6 +3575,8 @@ export type TeamInvitee = $ReadOnly<{inviteID: TeamInviteID, uid: UID, eldestSeq
 
 export type TeamJoinRequest = $ReadOnly<{name: String, username: String}>
 
+export type TeamKBFSKeyRefresher = $ReadOnly<{generation: Int, appType: TeamApplication}>
+
 export type TeamLegacyTLFUpgradeChainInfo = $ReadOnly<{keysetHash: TeamEncryptedKBFSKeysetHash, teamGeneration: PerTeamKeyGeneration, legacyGeneration: Int, appType: TeamApplication}>
 
 export type TeamList = $ReadOnly<{teams?: ?Array<MemberInfo>}>
@@ -3603,7 +3605,7 @@ export type TeamOperation = $ReadOnly<{manageMembers: Boolean, manageSubteams: B
 
 export type TeamPlusApplicationKeys = $ReadOnly<{id: TeamID, name: String, implicit: Boolean, public: Boolean, application: TeamApplication, writers?: ?Array<UserVersion>, onlyReaders?: ?Array<UserVersion>, applicationKeys?: ?Array<TeamApplicationKey>}>
 
-export type TeamRefreshers = $ReadOnly<{needKeyGeneration: PerTeamKeyGeneration, wantMembers?: ?Array<UserVersion>, wantMembersRole: TeamRole}>
+export type TeamRefreshers = $ReadOnly<{needKeyGeneration: PerTeamKeyGeneration, wantMembers?: ?Array<UserVersion>, wantMembersRole: TeamRole, needKBFSKeyGeneration: TeamKBFSKeyRefresher}>
 
 export type TeamRequestAccessResult = $ReadOnly<{open: Boolean}>
 

@@ -1167,6 +1167,20 @@
     },
     {
       "type": "record",
+      "name": "TeamKBFSKeyRefresher",
+      "fields": [
+        {
+          "type": "int",
+          "name": "generation"
+        },
+        {
+          "type": "TeamApplication",
+          "name": "appType"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TeamRefreshers",
       "fields": [
         {
@@ -1183,6 +1197,10 @@
         {
           "type": "TeamRole",
           "name": "wantMembersRole"
+        },
+        {
+          "type": "TeamKBFSKeyRefresher",
+          "name": "needKBFSKeyGeneration"
         }
       ],
       "doc": "* TeamRefreshData are needed or wanted data requirements that, if unmet, will cause\n   * a refresh of the cache."
@@ -1269,11 +1287,6 @@
           "jsonkey": "is_implicit_team"
         },
         {
-          "type": "boolean",
-          "name": "isOpenTeam",
-          "jsonkey": "is_open_team"
-        },
-        {
           "type": "TeamRole",
           "name": "role"
         },
@@ -1336,11 +1349,6 @@
           "type": "boolean",
           "name": "isImplicitTeam",
           "jsonkey": "is_implicit_team"
-        },
-        {
-          "type": "boolean",
-          "name": "isOpenTeam",
-          "jsonkey": "is_open_team"
         },
         {
           "type": "TeamRole",
