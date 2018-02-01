@@ -5,6 +5,8 @@ import type {ConversationIDKey} from './chat'
 
 export type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner'
 
+export type TeamOperations = RPCTypes.TeamOperation
+
 export type PublicitySettings = {
   ignoreAccessRequests: boolean,
   openTeam: boolean,
