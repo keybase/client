@@ -306,6 +306,8 @@ func (sc *SigChain) getFirstSeqno() (ret keybase1.Seqno) {
 }
 
 func (sc *SigChain) VerifyChain(ctx context.Context) (err error) {
+	sc.G().Log.CDebugf(ctx, "+ SigChain#VerifyChain(): skipping")
+	return nil
 	sc.G().Log.CDebugf(ctx, "+ SigChain#VerifyChain()")
 	defer func() {
 		sc.G().Log.CDebugf(ctx, "- SigChain#VerifyChain() -> %s", ErrToOk(err))
@@ -946,6 +948,26 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 			l.G().Log.CDebugf(l.ctx, "tried to load previous link ID %s, but link not found", currentLink.GetPrev())
 			return nil
 		}
+
+		/*
+			var linkType string
+			prevLink.payloadJSON.AtPath("body.type").GetStringVoid(&linkType, &err)
+			if err == nil {
+
+				if linkType == "track" {
+					l.G().Log.CDebugf(l.ctx, "skipping track link %s", prevLink.id)
+					currentLink = prevLink
+					continue
+				}
+				if linkType == "untrack" {
+					l.G().Log.CDebugf(l.ctx, "skipping untrack link")
+					currentLink = prevLink
+					continue
+				}
+				l.G().Log.CDebugf(l.ctx, "link type: %s", linkType)
+			}
+		*/
+
 		links = append(links, prevLink)
 		if l.currentSubchainStart == 0 && isSubchainStart(currentLink, prevLink) {
 			l.currentSubchainStart = currentLink.GetSeqno()
