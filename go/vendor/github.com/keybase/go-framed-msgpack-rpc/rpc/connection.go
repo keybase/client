@@ -333,6 +333,8 @@ type ConnectionOpts struct {
 	DialerTimeout time.Duration
 }
 
+// NewTLSConnectionWithLogrus is like NewTLSConnection, but with a logrus
+// logger.
 func NewTLSConnectionWithLogrus(
 	srvRemote Remote,
 	rootCerts []byte,
@@ -343,11 +345,12 @@ func NewTLSConnectionWithLogrus(
 	opts ConnectionOpts,
 ) *Connection {
 	transport := &ConnectionTransportTLS{
-		rootCerts:  rootCerts,
-		srvRemote:  srvRemote,
-		logFactory: logFactory,
-		wef:        opts.WrapErrorFunc,
-		log:        newConnectionLogLogrus(logrusLogger, "conn_tspt"),
+		rootCerts:     rootCerts,
+		srvRemote:     srvRemote,
+		logFactory:    logFactory,
+		wef:           opts.WrapErrorFunc,
+		dialerTimeout: opts.DialerTimeout,
+		log:           newConnectionLogLogrus(logrusLogger, "conn_tspt"),
 	}
 	connLog := newConnectionLogLogrus(logrusLogger, "conn")
 	return newConnectionWithTransportAndProtocolsWithLog(
@@ -362,15 +365,16 @@ func NewTLSConnection(
 	errorUnwrapper ErrorUnwrapper,
 	handler ConnectionHandler,
 	logFactory LogFactory,
-	logOutput LogOutput,
+	logOutput LogOutputWithDepthAdder,
 	opts ConnectionOpts,
 ) *Connection {
 	transport := &ConnectionTransportTLS{
-		rootCerts:  rootCerts,
-		srvRemote:  srvRemote,
-		logFactory: logFactory,
-		wef:        opts.WrapErrorFunc,
-		log:        newConnectionLogUnstructured(logOutput, "CONNTSPT"),
+		rootCerts:     rootCerts,
+		srvRemote:     srvRemote,
+		logFactory:    logFactory,
+		wef:           opts.WrapErrorFunc,
+		dialerTimeout: opts.DialerTimeout,
+		log:           newConnectionLogUnstructured(logOutput, "CONNTSPT"),
 	}
 	return newConnectionWithTransportAndProtocols(handler, transport, errorUnwrapper, logOutput, opts)
 }
@@ -383,7 +387,7 @@ func NewTLSConnectionWithTLSConfig(
 	errorUnwrapper ErrorUnwrapper,
 	handler ConnectionHandler,
 	logFactory LogFactory,
-	logOutput LogOutput,
+	logOutput LogOutputWithDepthAdder,
 	opts ConnectionOpts,
 ) *Connection {
 	transport := &ConnectionTransportTLS{
@@ -403,7 +407,7 @@ func NewConnectionWithTransport(
 	handler ConnectionHandler,
 	transport ConnectionTransport,
 	errorUnwrapper ErrorUnwrapper,
-	logOutput LogOutput,
+	logOutput LogOutputWithDepthAdder,
 	opts ConnectionOpts,
 ) *Connection {
 	return newConnectionWithTransportAndProtocols(handler, transport, errorUnwrapper, logOutput, opts)
@@ -449,7 +453,7 @@ func newConnectionWithTransportAndProtocolsWithLog(handler ConnectionHandler,
 
 func newConnectionWithTransportAndProtocols(handler ConnectionHandler,
 	transport ConnectionTransport, errorUnwrapper ErrorUnwrapper,
-	log LogOutput, opts ConnectionOpts) *Connection {
+	log LogOutputWithDepthAdder, opts ConnectionOpts) *Connection {
 	return newConnectionWithTransportAndProtocolsWithLog(
 		handler, transport, errorUnwrapper,
 		newConnectionLogUnstructured(log, "CONN "+handler.HandlerName()), opts)
