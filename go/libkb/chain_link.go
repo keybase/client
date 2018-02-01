@@ -284,7 +284,7 @@ func (c *ChainLink) GetUID() keybase1.UID {
 	return c.unpacked.uid
 }
 
-func (c *ChainLink) GetPayloadJSON() *jsonw.Wrapper {
+func (c *ChainLink) UnmarshalPayloadJSON() *jsonw.Wrapper {
 	payloadJSON, err := jsonw.Unmarshal([]byte(c.unpacked.payloadJSONStr))
 	if err != nil {
 		return nil
@@ -335,7 +335,7 @@ func (c *ChainLink) GetMerkleSeqno() keybase1.Seqno {
 	if c.IsStubbed() {
 		return 0
 	}
-	i, err := c.GetPayloadJSON().AtPath("body.merkle_root.seqno").GetInt()
+	i, err := c.UnmarshalPayloadJSON().AtPath("body.merkle_root.seqno").GetInt()
 	if err != nil {
 		i = 0
 	}
@@ -346,7 +346,7 @@ func (c *ChainLink) GetMerkleHashMeta() (keybase1.HashMeta, error) {
 	if c.IsStubbed() {
 		return nil, nil
 	}
-	s, err := c.GetPayloadJSON().AtPath("body.merkle_root.hash_meta").GetString()
+	s, err := c.UnmarshalPayloadJSON().AtPath("body.merkle_root.hash_meta").GetString()
 	if err != nil {
 		return nil, nil
 	}
@@ -362,7 +362,7 @@ func (c *ChainLink) GetRevocations() []keybase1.SigID {
 		return nil
 	}
 	var ret []keybase1.SigID
-	jw := c.GetPayloadJSON().AtKey("body").AtKey("revoke")
+	jw := c.UnmarshalPayloadJSON().AtKey("body").AtKey("revoke")
 	s, err := GetSigID(jw.AtKey("sig_id"), true)
 	if err == nil {
 		ret = append(ret, s)
@@ -385,7 +385,7 @@ func (c *ChainLink) GetRevokeKids() []keybase1.KID {
 		return nil
 	}
 	var ret []keybase1.KID
-	jw := c.GetPayloadJSON().AtKey("body").AtKey("revoke")
+	jw := c.UnmarshalPayloadJSON().AtKey("body").AtKey("revoke")
 	if jw.IsNil() {
 		return nil
 	}
@@ -958,7 +958,7 @@ func (c *ChainLink) HasRevocations() bool {
 }
 
 func (c *ChainLink) GetSigchainV2Type() (SigchainV2Type, error) {
-	t, err := c.GetPayloadJSON().AtPath("body.type").GetString()
+	t, err := c.UnmarshalPayloadJSON().AtPath("body.type").GetString()
 	if err != nil {
 		return SigchainV2TypeNone, err
 	}

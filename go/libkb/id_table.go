@@ -106,7 +106,7 @@ func (g *GenericChainLink) GetUID() keybase1.UID {
 func (g *GenericChainLink) GetDevice() *Device { return nil }
 
 func (g *GenericChainLink) extractPGPFullHash(loc string) string {
-	if jw := g.GetPayloadJSON().AtPath("body." + loc + ".full_hash"); !jw.IsNil() {
+	if jw := g.UnmarshalPayloadJSON().AtPath("body." + loc + ".full_hash"); !jw.IsNil() {
 		if ret, err := jw.GetString(); err == nil {
 			return ret
 		}
@@ -372,7 +372,7 @@ func ParseServiceBlock(jw *jsonw.Wrapper, pt keybase1.ProofType) (sb *ServiceBlo
 
 // To be used for signatures in a user's signature chain.
 func ParseWebServiceBinding(base GenericChainLink) (ret RemoteProofChainLink, e error) {
-	jw := base.GetPayloadJSON().AtKey("body").AtKey("service")
+	jw := base.UnmarshalPayloadJSON().AtKey("body").AtKey("service")
 	sptf := base.unpacked.proofText
 
 	if jw.IsNil() {
@@ -413,7 +413,7 @@ func (l TrackChainLink) IsRemote() bool {
 }
 
 func ParseTrackChainLink(b GenericChainLink) (ret *TrackChainLink, err error) {
-	payload := b.GetPayloadJSON()
+	payload := b.UnmarshalPayloadJSON()
 	var tmp string
 	tmp, err = payload.AtPath("body.track.basics.username").GetString()
 	if err != nil {
@@ -478,7 +478,7 @@ func (l *TrackChainLink) GetTrackedKeys() ([]TrackedKey, error) {
 
 	var res []TrackedKey
 
-	pgpKeysJSON := l.GetPayloadJSON().AtPath("body.track.pgp_keys")
+	pgpKeysJSON := l.UnmarshalPayloadJSON().AtPath("body.track.pgp_keys")
 	if !pgpKeysJSON.IsNil() {
 		n, err := pgpKeysJSON.Len()
 		if err != nil {
@@ -500,7 +500,7 @@ func (l *TrackChainLink) GetTrackedKeys() ([]TrackedKey, error) {
 }
 
 func (l *TrackChainLink) GetEldestKID() (kid keybase1.KID, err error) {
-	keyJSON := l.GetPayloadJSON().AtPath("body.track.key")
+	keyJSON := l.UnmarshalPayloadJSON().AtPath("body.track.key")
 	if keyJSON.IsNil() {
 		return kid, nil
 	}
@@ -512,11 +512,11 @@ func (l *TrackChainLink) GetEldestKID() (kid keybase1.KID, err error) {
 }
 
 func (l *TrackChainLink) GetTrackedUID() (keybase1.UID, error) {
-	return GetUID(l.GetPayloadJSON().AtPath("body.track.id"))
+	return GetUID(l.UnmarshalPayloadJSON().AtPath("body.track.id"))
 }
 
 func (l *TrackChainLink) GetTrackedUsername() (NormalizedUsername, error) {
-	tmp, err := l.GetPayloadJSON().AtPath("body.track.basics.username").GetString()
+	tmp, err := l.UnmarshalPayloadJSON().AtPath("body.track.basics.username").GetString()
 	if err != nil {
 		return NormalizedUsername(""), nil
 	}
@@ -528,7 +528,7 @@ func (l *TrackChainLink) IsRevoked() bool {
 }
 
 func (l *TrackChainLink) RemoteKeyProofs() *jsonw.Wrapper {
-	return l.GetPayloadJSON().AtPath("body.track.remote_proofs")
+	return l.UnmarshalPayloadJSON().AtPath("body.track.remote_proofs")
 }
 
 func (l *TrackChainLink) ToServiceBlocks() (ret []*ServiceBlock) {
@@ -605,7 +605,7 @@ func ParseEldestChainLink(b GenericChainLink) (ret *EldestChainLink, err error) 
 	var kid keybase1.KID
 	var device *Device
 
-	payload := b.GetPayloadJSON()
+	payload := b.UnmarshalPayloadJSON()
 	if kid, err = GetKID(payload.AtPath("body.key.kid")); err != nil {
 		err = ChainLinkError{fmt.Sprintf("Bad eldest statement @%s: %s", b.ToDebugString(), err)}
 		return
@@ -649,7 +649,7 @@ func ParseSibkeyChainLink(b GenericChainLink) (ret *SibkeyChainLink, err error) 
 	var kid keybase1.KID
 	var device *Device
 
-	payload := b.GetPayloadJSON()
+	payload := b.UnmarshalPayloadJSON()
 	if kid, err = GetKID(payload.AtPath("body.sibkey.kid")); err != nil {
 		err = ChainLinkError{fmt.Sprintf("Bad sibkey statement @%s: %s", b.ToDebugString(), err)}
 		return
@@ -702,7 +702,7 @@ func (s *SibkeyChainLink) VerifyReverseSig(ckf ComputedKeyFamily) (err error) {
 		return err
 	}
 
-	return VerifyReverseSig(s.G(), key, "body.sibkey.reverse_sig", s.GetPayloadJSON(), s.reverseSig)
+	return VerifyReverseSig(s.G(), key, "body.sibkey.reverse_sig", s.UnmarshalPayloadJSON(), s.reverseSig)
 }
 
 //
@@ -717,7 +717,7 @@ type SubkeyChainLink struct {
 
 func ParseSubkeyChainLink(b GenericChainLink) (ret *SubkeyChainLink, err error) {
 	var kid, pkid keybase1.KID
-	payload := b.GetPayloadJSON()
+	payload := b.UnmarshalPayloadJSON()
 	if kid, err = GetKID(payload.AtPath("body.subkey.kid")); err != nil {
 		err = ChainLinkError{fmt.Sprintf("Can't get KID for subkey @%s: %s", b.ToDebugString(), err)}
 	} else if pkid, err = GetKID(payload.AtPath("body.subkey.parent_kid")); err != nil {
@@ -757,7 +757,7 @@ func ParsePerUserKeyChainLink(b GenericChainLink) (ret *PerUserKeyChainLink, err
 	var sigKID, encKID keybase1.KID
 	var g int
 	var reverseSig string
-	section := b.GetPayloadJSON().AtPath("body.per_user_key")
+	section := b.UnmarshalPayloadJSON().AtPath("body.per_user_key")
 	if sigKID, err = GetKID(section.AtKey("signing_kid")); err != nil {
 		err = ChainLinkError{fmt.Sprintf("Can't get signing KID for per_user_secret: @%s: %s", b.ToDebugString(), err)}
 	} else if encKID, err = GetKID(section.AtKey("encryption_kid")); err != nil {
@@ -805,7 +805,7 @@ func (s *PerUserKeyChainLink) VerifyReverseSig(_ ComputedKeyFamily) (err error) 
 		return fmt.Errorf("Invalid per-user signing KID: %s", s.sigKID)
 	}
 
-	return VerifyReverseSig(s.G(), key, "body.per_user_key.reverse_sig", s.GetPayloadJSON(), s.reverseSig)
+	return VerifyReverseSig(s.G(), key, "body.per_user_key.reverse_sig", s.UnmarshalPayloadJSON(), s.reverseSig)
 }
 
 //
@@ -826,7 +826,7 @@ type PGPUpdateChainLink struct {
 func ParsePGPUpdateChainLink(b GenericChainLink) (ret *PGPUpdateChainLink, err error) {
 	var kid keybase1.KID
 
-	pgpUpdate := b.GetPayloadJSON().AtPath("body.pgp_update")
+	pgpUpdate := b.UnmarshalPayloadJSON().AtPath("body.pgp_update")
 
 	if pgpUpdate.IsNil() {
 		err = ChainLinkError{fmt.Sprintf("missing pgp_update section @%s", b.ToDebugString())}
@@ -865,7 +865,7 @@ type DeviceChainLink struct {
 
 func ParseDeviceChainLink(b GenericChainLink) (ret *DeviceChainLink, err error) {
 	var dobj *Device
-	if dobj, err = ParseDevice(b.GetPayloadJSON().AtPath("body.device"), b.GetCTime()); err != nil {
+	if dobj, err = ParseDevice(b.UnmarshalPayloadJSON().AtPath("body.device"), b.GetCTime()); err != nil {
 	} else {
 		ret = &DeviceChainLink{b, dobj}
 	}
@@ -888,7 +888,7 @@ type UntrackChainLink struct {
 
 func ParseUntrackChainLink(b GenericChainLink) (ret *UntrackChainLink, err error) {
 	var tmp string
-	payload := b.GetPayloadJSON()
+	payload := b.UnmarshalPayloadJSON()
 	tmp, err = payload.AtPath("body.untrack.basics.username").GetString()
 	if err != nil {
 		err = fmt.Errorf("Bad track statement @%s: %s", b.ToDebugString(), err)
@@ -951,7 +951,7 @@ func (c CryptocurrencyChainLink) GetAddress() string {
 func ParseCryptocurrencyChainLink(b GenericChainLink) (
 	cl *CryptocurrencyChainLink, err error) {
 
-	jw := b.GetPayloadJSON().AtPath("body.cryptocurrency")
+	jw := b.UnmarshalPayloadJSON().AtPath("body.cryptocurrency")
 	var styp, addr string
 	var pkhash []byte
 
@@ -1003,7 +1003,7 @@ type RevokeChainLink struct {
 
 func ParseRevokeChainLink(b GenericChainLink) (ret *RevokeChainLink, err error) {
 	var device *Device
-	if jw := b.GetPayloadJSON().AtPath("body.device"); !jw.IsNil() {
+	if jw := b.UnmarshalPayloadJSON().AtPath("body.device"); !jw.IsNil() {
 		if device, err = ParseDevice(jw, b.GetCTime()); err != nil {
 			return
 		}
@@ -1078,7 +1078,7 @@ func (s *SelfSigChainLink) ComputeTrackDiff(tl *TrackLookup) TrackDiff { return 
 func (s *SelfSigChainLink) GetProofType() keybase1.ProofType { return keybase1.ProofType_KEYBASE }
 
 func (s *SelfSigChainLink) ParseDevice() (err error) {
-	if jw := s.GetPayloadJSON().AtPath("body.device"); !jw.IsNil() {
+	if jw := s.UnmarshalPayloadJSON().AtPath("body.device"); !jw.IsNil() {
 		s.device, err = ParseDevice(jw, s.GetCTime())
 	}
 	return err
@@ -1147,7 +1147,7 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 
 	base := GenericChainLink{cl}
 
-	s, err := cl.GetPayloadJSON().AtKey("body").AtKey("type").GetString()
+	s, err := cl.UnmarshalPayloadJSON().AtKey("body").AtKey("type").GetString()
 	if len(s) == 0 || err != nil {
 		err = fmt.Errorf("No type in signature @%s", base.ToDebugString())
 	} else {
