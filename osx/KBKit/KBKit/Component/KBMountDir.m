@@ -85,7 +85,7 @@
 
       NSString *suppressionKey = @"NotFirstMountSuppression";
       if ([userDefaults boolForKey:suppressionKey]) {
-	DDLogDebug(@"Alert suppressed");
+        DDLogDebug(@"Alert suppressed");
       } else {
         // Let the user know they didn't get /keybase.
         NSAlert *alert = [[NSAlert alloc] init];
