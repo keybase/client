@@ -413,15 +413,16 @@ func (l TrackChainLink) IsRemote() bool {
 }
 
 func ParseTrackChainLink(b GenericChainLink) (ret *TrackChainLink, err error) {
+	payload := b.GetPayloadJSON()
 	var tmp string
-	tmp, err = b.GetPayloadJSON().AtPath("body.track.basics.username").GetString()
+	tmp, err = payload.AtPath("body.track.basics.username").GetString()
 	if err != nil {
 		err = fmt.Errorf("Bad track statement @%s: %s", b.ToDebugString(), err)
 		return
 	}
 	whomUsername := NewNormalizedUsername(tmp)
 
-	whomUID, err := GetUID(b.GetPayloadJSON().AtPath("body.track.id"))
+	whomUID, err := GetUID(payload.AtPath("body.track.id"))
 	if err != nil {
 		err = fmt.Errorf("Bad track statement @%s: %s", b.ToDebugString(), err)
 		return
@@ -604,12 +605,13 @@ func ParseEldestChainLink(b GenericChainLink) (ret *EldestChainLink, err error) 
 	var kid keybase1.KID
 	var device *Device
 
-	if kid, err = GetKID(b.GetPayloadJSON().AtPath("body.key.kid")); err != nil {
+	payload := b.GetPayloadJSON()
+	if kid, err = GetKID(payload.AtPath("body.key.kid")); err != nil {
 		err = ChainLinkError{fmt.Sprintf("Bad eldest statement @%s: %s", b.ToDebugString(), err)}
 		return
 	}
 
-	if jw := b.GetPayloadJSON().AtPath("body.device"); !jw.IsNil() {
+	if jw := payload.AtPath("body.device"); !jw.IsNil() {
 		if device, err = ParseDevice(jw, b.GetCTime()); err != nil {
 			return
 		}
@@ -647,19 +649,20 @@ func ParseSibkeyChainLink(b GenericChainLink) (ret *SibkeyChainLink, err error) 
 	var kid keybase1.KID
 	var device *Device
 
-	if kid, err = GetKID(b.GetPayloadJSON().AtPath("body.sibkey.kid")); err != nil {
+	payload := b.GetPayloadJSON()
+	if kid, err = GetKID(payload.AtPath("body.sibkey.kid")); err != nil {
 		err = ChainLinkError{fmt.Sprintf("Bad sibkey statement @%s: %s", b.ToDebugString(), err)}
 		return
 	}
 
 	var rs string
-	if rs, err = b.GetPayloadJSON().AtPath("body.sibkey.reverse_sig").GetString(); err != nil {
+	if rs, err = payload.AtPath("body.sibkey.reverse_sig").GetString(); err != nil {
 		err = ChainLinkError{fmt.Sprintf("Missing reverse_sig in sibkey delegation: @%s: %s",
 			b.ToDebugString(), err)}
 		return
 	}
 
-	if jw := b.GetPayloadJSON().AtPath("body.device"); !jw.IsNil() {
+	if jw := payload.AtPath("body.device"); !jw.IsNil() {
 		if device, err = ParseDevice(jw, b.GetCTime()); err != nil {
 			return
 		}
@@ -714,9 +717,10 @@ type SubkeyChainLink struct {
 
 func ParseSubkeyChainLink(b GenericChainLink) (ret *SubkeyChainLink, err error) {
 	var kid, pkid keybase1.KID
-	if kid, err = GetKID(b.GetPayloadJSON().AtPath("body.subkey.kid")); err != nil {
+	payload := b.GetPayloadJSON()
+	if kid, err = GetKID(payload.AtPath("body.subkey.kid")); err != nil {
 		err = ChainLinkError{fmt.Sprintf("Can't get KID for subkey @%s: %s", b.ToDebugString(), err)}
-	} else if pkid, err = GetKID(b.GetPayloadJSON().AtPath("body.subkey.parent_kid")); err != nil {
+	} else if pkid, err = GetKID(payload.AtPath("body.subkey.parent_kid")); err != nil {
 		err = ChainLinkError{fmt.Sprintf("Can't get parent_kid for subkey @%s: %s", b.ToDebugString(), err)}
 	} else {
 		ret = &SubkeyChainLink{b, kid, pkid}
@@ -884,14 +888,15 @@ type UntrackChainLink struct {
 
 func ParseUntrackChainLink(b GenericChainLink) (ret *UntrackChainLink, err error) {
 	var tmp string
-	tmp, err = b.GetPayloadJSON().AtPath("body.untrack.basics.username").GetString()
+	payload := b.GetPayloadJSON()
+	tmp, err = payload.AtPath("body.untrack.basics.username").GetString()
 	if err != nil {
 		err = fmt.Errorf("Bad track statement @%s: %s", b.ToDebugString(), err)
 		return
 	}
 	whomUsername := NewNormalizedUsername(tmp)
 
-	whomUID, err := GetUID(b.GetPayloadJSON().AtPath("body.untrack.id"))
+	whomUID, err := GetUID(payload.AtPath("body.untrack.id"))
 	if err != nil {
 		err = fmt.Errorf("Bad track statement @%s: %s", b.ToDebugString(), err)
 		return
