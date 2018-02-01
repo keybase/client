@@ -11,6 +11,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
+	"runtime/debug"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-crypto/ed25519"
@@ -659,6 +660,9 @@ func SigAssertKbPayload(armored string, expected []byte) (sigID keybase1.SigID, 
 		return nilSigID, err
 	}
 	if !FastByteArrayEq(expected, payload) {
+		debug.PrintStack()
+		fmt.Printf("ZZZ expected payload: %s\n", string(expected))
+		fmt.Printf("ZZZ actual payload: %s\n", string(payload))
 		return nilSigID, BadSigError{"wrong payload"}
 	}
 	return sigID, nil

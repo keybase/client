@@ -90,7 +90,6 @@ type ChainLinkUnpacked struct {
 	seqno                              keybase1.Seqno
 	seqType                            keybase1.SeqType
 	ignoreIfUnsupported                bool
-	payloadJSONStr                     string
 	ctime, etime                       int64
 	pgpFingerprint                     *PGPFingerprint
 	kid                                keybase1.KID
@@ -105,6 +104,7 @@ type ChainLinkUnpacked struct {
 	sigVersion                         int
 	stubbed                            bool
 	firstAppearedMerkleSeqnoUnverified keybase1.Seqno
+	payloadHash                        [sha256.Size]byte
 }
 
 // A template for some of the reasons in badChainLinks below.
@@ -304,8 +304,28 @@ func (c *ChainLink) Pack() error {
 		p.SetKey("s2", jsonw.NewString(c.unpacked.outerLinkV2.EncodeStubbed()))
 	} else {
 
+		var payloadJSONStr string
+		if c.packed != nil {
+			fmt.Printf("using packed payload_json\n")
+			if jw := c.packed.AtKey("payload_json"); !jw.IsNil() {
+				var err error
+				payloadJSONStr, err = jw.GetString()
+				if err != nil {
+					return err
+				}
+			}
+		}
+		if payloadJSONStr == "" {
+			fmt.Printf("nil packed\n")
+			payloadJSONBytes, err := c.payloadJSON.Marshal()
+			if err != nil {
+				return err
+			}
+			payloadJSONStr = string(payloadJSONBytes)
+		}
+
 		// Store the original JSON string so its order is preserved
-		p.SetKey("payload_json", jsonw.NewString(c.unpacked.payloadJSONStr))
+		p.SetKey("payload_json", jsonw.NewString(payloadJSONStr))
 		p.SetKey("sig", jsonw.NewString(c.unpacked.sig))
 		p.SetKey("sig_id", jsonw.NewString(string(c.unpacked.sigID)))
 		p.SetKey("kid", c.unpacked.kid.ToJsonw())
@@ -420,7 +440,7 @@ func (c *ChainLink) checkAgainstMerkleTree(t *MerkleTriple) (found bool, err err
 	return
 }
 
-func (tmp *ChainLinkUnpacked) unpackPayloadJSON(payloadJSON *jsonw.Wrapper, payloadJSONStr string) (err error) {
+func (tmp *ChainLinkUnpacked) unpackPayloadJSON(payloadJSON *jsonw.Wrapper /*, payloadJSONStr string */) (err error) {
 	var sq int64
 	var e2 error
 
@@ -474,14 +494,14 @@ func (tmp *ChainLinkUnpacked) unpackPayloadJSON(payloadJSON *jsonw.Wrapper, payl
 
 	tmp.seqno = keybase1.Seqno(sq)
 	tmp.etime = tmp.ctime + ei
-	tmp.payloadJSONStr = payloadJSONStr
+	// tmp.payloadJSONStr = payloadJSONStr
 
 	return
 }
 
 func (c *ChainLink) UnpackLocal() (err error) {
 	tmp := ChainLinkUnpacked{}
-	err = tmp.unpackPayloadJSON(c.payloadJSON, "")
+	err = tmp.unpackPayloadJSON(c.payloadJSON /*, "" */)
 	if err == nil {
 		c.unpacked = &tmp
 	}
@@ -570,10 +590,12 @@ func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID) (err error) {
 		if err != nil {
 			return err
 		}
-		if err := tmp.unpackPayloadJSON(payloadJSON, payloadJSONStr); err != nil {
+		if err := tmp.unpackPayloadJSON(payloadJSON); err != nil {
 			return err
 		}
 		c.payloadJSON = payloadJSON
+
+		tmp.payloadHash = sha256.Sum256([]byte(payloadJSONStr))
 	}
 
 	var sigKID, serverKID, payloadKID keybase1.KID
@@ -688,11 +710,17 @@ func ComputeLinkID(d []byte) LinkID {
 }
 
 func (c *ChainLink) getPayloadHash() LinkID {
-	if c.unpacked == nil || c.unpacked.payloadJSONStr == "" {
+	/*
+		if c.unpacked == nil || c.unpacked.payloadJSONStr == "" {
+			return nil
+		}
+		h := sha256.Sum256([]byte(c.unpacked.payloadJSONStr))
+		return h[:]
+	*/
+	if c.unpacked == nil {
 		return nil
 	}
-	h := sha256.Sum256([]byte(c.unpacked.payloadJSONStr))
-	return h[:]
+	return c.unpacked.payloadHash[:]
 }
 
 func (c *ChainLink) verifyHashV2() error {
@@ -727,12 +755,18 @@ func (c *ChainLink) verifyHashV1() error {
 // getFixedPayload usually just returns c.unpacked.payloadJSONstr, but sometimes
 // it adds extra whitespace to work around server-side bugs.
 func (c ChainLink) getFixedPayload() []byte {
-	ret := c.unpacked.payloadJSONStr
+	// ret := c.unpacked.payloadJSONStr
+	ret, err := c.payloadJSON.Marshal()
+	if err != nil {
+		c.G().Log.Debug("error getting string rep of payloadJSON on link %q: %s", c.unpacked.sigID, err)
+		return nil
+	}
 	if s, ok := badWhitespaceChainLinks[c.unpacked.sigID]; ok {
 		c.G().Log.Debug("Fixing payload by adding newline on link '%s': %s", c.unpacked.sigID, s)
-		ret += "\n"
+		ret = append(ret, '\n')
 	}
-	return []byte(ret)
+	// return []byte(ret)
+	return ret
 }
 
 func (c *ChainLink) getSigPayload() ([]byte, error) {
