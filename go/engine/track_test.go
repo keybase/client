@@ -326,7 +326,8 @@ func TestIdentifyTrackRaceDetection(t *testing.T) {
 			// is delivered to the UI before we return. Otherwise, the
 			// following call to track might happen before the token
 			// is known.
-			AlwaysBlock: true,
+			AlwaysBlock:      true,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 		}
 		eng := NewResolveThenIdentify2(tc.G, iarg)
 		ctx := Context{IdentifyUI: fui}

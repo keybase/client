@@ -408,10 +408,11 @@ func mustCreateConversationForTestNoAdvanceClock(t *testing.T, ctc *chatTestCont
 	tc := ctc.as(t, creator)
 	ncres, err := tc.chatLocalHandler().NewConversationLocal(tc.startCtx,
 		chat1.NewConversationLocalArg{
-			TlfName:       name,
-			TopicType:     topicType,
-			TlfVisibility: visibility,
-			MembersType:   membersType,
+			TlfName:          name,
+			TopicType:        topicType,
+			TlfVisibility:    visibility,
+			MembersType:      membersType,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		})
 	if err != nil {
 		t.Fatalf("NewConversationLocal error: %v\n", err)
@@ -445,6 +446,7 @@ func postLocalForTestNoAdvanceClock(t *testing.T, ctc *chatTestContext, asUser *
 			},
 			MessageBody: msg,
 		},
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})
 }
 
@@ -537,11 +539,12 @@ func TestChatSrvNewConversationMultiTeam(t *testing.T) {
 		tc := ctc.as(t, users[0])
 		topicName := "MIKETIME"
 		arg := chat1.NewConversationLocalArg{
-			TlfName:       conv.TlfName,
-			TopicName:     &topicName,
-			TopicType:     chat1.TopicType_CHAT,
-			TlfVisibility: keybase1.TLFVisibility_PRIVATE,
-			MembersType:   mt,
+			TlfName:          conv.TlfName,
+			TopicName:        &topicName,
+			TopicType:        chat1.TopicType_CHAT,
+			TlfVisibility:    keybase1.TLFVisibility_PRIVATE,
+			MembersType:      mt,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		}
 		ncres, err := tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
 		switch mt {
@@ -594,6 +597,7 @@ func TestChatSrvGetInboxAndUnboxLocal(t *testing.T) {
 			Query: &chat1.GetInboxLocalQuery{
 				ConvIDs: []chat1.ConversationID{created.Id},
 			},
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		})
 		if err != nil {
 			t.Fatalf("GetInboxAndUnboxLocal error: %v", err)
@@ -648,11 +652,12 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 				topicName := fmt.Sprintf("%d", i+1)
 				ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
 					chat1.NewConversationLocalArg{
-						TlfName:       firstConv.TlfName,
-						TopicName:     &topicName,
-						TopicType:     chat1.TopicType_CHAT,
-						TlfVisibility: keybase1.TLFVisibility_PRIVATE,
-						MembersType:   chat1.ConversationMembersType_TEAM,
+						TlfName:          firstConv.TlfName,
+						TopicName:        &topicName,
+						TopicType:        chat1.TopicType_CHAT,
+						TlfVisibility:    keybase1.TLFVisibility_PRIVATE,
+						MembersType:      chat1.ConversationMembersType_TEAM,
+						IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 					})
 				require.NoError(t, err)
 				created = ncres.Conv.Info
@@ -821,6 +826,7 @@ func TestChatSrvGetInboxNonblock(t *testing.T) {
 						Body: "HI",
 					}),
 				},
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 			})
 			require.NoError(t, err)
 		}
@@ -888,6 +894,7 @@ func TestChatSrvGetInboxAndUnboxLocalTlfName(t *testing.T) {
 				},
 				TlfVisibility: &visibility,
 			},
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		})
 		require.NoError(t, err)
 		conversations := gilres.Conversations
@@ -1026,6 +1033,7 @@ func TestChatSrvPostLocalAtMention(t *testing.T) {
 					Body: "HI",
 				}),
 			},
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		})
 		require.NoError(t, err)
 		consumeNewMsg(t, listener, chat1.MessageType_TEXT)

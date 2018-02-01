@@ -5,8 +5,6 @@ import * as Types from '../constants/types/config'
 import * as Constants from '../constants/config'
 import * as ConfigGen from '../actions/config-gen'
 import * as AppGen from '../actions/app-gen'
-import isEmpty from 'lodash/isEmpty'
-import pickBy from 'lodash/pickBy'
 
 const initialState = Constants.makeState()
 
@@ -82,17 +80,6 @@ export default function(
         .set('appFocusedCount', state.appFocusedCount + 1)
     case AppGen.changedActive:
       return state.set('userActive', action.payload.userActive)
-    case ConfigGen.clearAvatarCache: {
-      const old = state.avatars
-      const goodAvatars = pickBy(old, value => !isEmpty(value))
-
-      if (Object.keys(old).length === Object.keys(goodAvatars).length) {
-        return state
-      } else {
-        // Something errored?
-        return state.set('avatars', goodAvatars)
-      }
-    }
     case ConfigGen.loadedAvatars: {
       const {nameToUrlMap} = action.payload
       return state.set('avatars', {

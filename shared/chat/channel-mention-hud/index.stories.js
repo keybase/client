@@ -4,19 +4,22 @@ import * as I from 'immutable'
 import {MentionRowRenderer, MentionHud} from '.'
 import {compose, withState} from 'recompose'
 import {Box, Button, Input, ButtonBar} from '../../common-adapters'
-import {storiesOf, action} from '../../stories/storybook'
+import {createPropProvider, storiesOf, action} from '../../stories/storybook'
 import {globalStyles} from '../../styles'
 
-const dummyStore = {
-  getState: () => ({
-    config: {
-      following: I.Set(),
-      username: 'chris',
-    },
+const provider = createPropProvider({
+  ChannelMentionHud: props => ({
+    ...props,
+    following: I.Set(),
+    you: 'chris',
+    data: props.channels
+      ? Object.keys(props.channels)
+          .filter(c => c.toLowerCase().indexOf(props.filter) >= 0)
+          .sort()
+          .map((c, i) => ({channelName: c, selected: i === props.selectedIndex}))
+      : {},
   }),
-  subscribe: (...args) => {},
-  dispatch: (...args) => {},
-}
+})
 
 const UpDownFilterHoc = compose(
   withState('upCounter', 'setUpCounter', 0),
@@ -36,6 +39,7 @@ const UpDownFilterHoc = compose(
 
 const load = () => {
   storiesOf('Chat/Channel Heads up Display', module)
+    .addDecorator(provider)
     .add('Mention Row', () => (
       <Box style={{width: 240}}>
         <MentionRowRenderer
@@ -73,7 +77,6 @@ const load = () => {
             pickSelectedUserCounter={0}
             filter={filter}
             style={{flex: 1}}
-            store={dummyStore}
           />
         </Box>
       ))

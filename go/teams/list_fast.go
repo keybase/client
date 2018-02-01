@@ -73,6 +73,7 @@ func ListTeamsUnverified(ctx context.Context, g *libkb.GlobalContext, arg keybas
 			UserID:         memberInfo.UserID,
 			Role:           memberInfo.Role,
 			IsImplicitTeam: memberInfo.IsImplicitTeam,
+			IsOpenTeam:     memberInfo.IsOpenTeam,
 			Implicit:       memberInfo.Implicit,
 			Username:       queryUsername.String(),
 			FullName:       queryFullName,

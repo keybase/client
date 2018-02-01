@@ -8,10 +8,11 @@ import {
   withPropsOnChange,
   type TypedState,
   connect,
+  setDisplayName,
   type MapStateToProps,
 } from '../../util/container'
 import {Avatar, Box, ClickableBox, List, Text, Usernames} from '../../common-adapters/index'
-import {globalColors, globalMargins, globalStyles} from '../../styles'
+import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
 
 type Props<D: {key: string, selected: boolean}> = {
   rowRenderer: (i: number, d: D) => React$Element<*>,
@@ -46,17 +47,19 @@ const MentionRowRenderer = ({
       alignItems: 'center',
       paddingLeft: globalMargins.tiny,
       paddingRight: globalMargins.tiny,
-      backgroundColor: selected ? globalColors.blue4 : undefined,
+      backgroundColor: selected && !isMobile ? globalColors.blue4 : undefined,
     }}
     onClick={onClick}
     onMouseOver={onHover}
   >
     <Avatar username={username} size={32} />
+
+    <Box style={{width: globalMargins.small}} />
+
     <Usernames
       type="BodySemibold"
       colorFollowing={true}
       users={[{you: you === username, username, following: following.has(username)}]}
-      style={{marginLeft: globalMargins.small}}
     />
     <Text type="Body" style={{marginLeft: globalMargins.tiny}}>
       {fullName}
@@ -69,7 +72,13 @@ const MentionRowRenderer = ({
 const Hud = ({style, data, rowRenderer, selectedIndex}: Props<*>) =>
   data.length ? (
     <Box style={{...hudStyle, ...style}}>
-      <List items={data} renderItem={rowRenderer} selectedIndex={selectedIndex} fixedHeight={40} />
+      <List
+        items={data}
+        renderItem={rowRenderer}
+        selectedIndex={selectedIndex}
+        fixedHeight={40}
+        keyboardShouldPersistTaps="always"
+      />
     </Box>
   ) : null
 
@@ -108,6 +117,7 @@ const mapStateToProps: MapStateToProps<*, *, *> = (state: TypedState, {users, se
 const MentionHud: Class<React.Component<MentionHudProps, void>> = compose(
   withState('selectedIndex', 'setSelectedIndex', 0),
   connect(mapStateToProps),
+  setDisplayName('MentionHud'),
   lifecycle({
     componentWillReceiveProps: function(nextProps) {
       if (nextProps.data.length === 0) {

@@ -2,7 +2,16 @@
 import React from 'react'
 import PeopleItem from '../item'
 import * as Types from '../../constants/types/people'
-import {Avatar, Box, ConnectedUsernames, Icon, Meta, ScrollView, Text} from '../../common-adapters'
+import {
+  Avatar,
+  Box,
+  ClickableBox,
+  ConnectedUsernames,
+  Icon,
+  Meta,
+  ScrollView,
+  Text,
+} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {isMobile} from '../../constants/platform'
 
@@ -31,23 +40,25 @@ export const FollowNotification = (props: Props) => {
   }
   const username = props.newFollows[0].username
   return (
-    <PeopleItem
-      badged={props.badged}
-      icon={
-        <Avatar username={username} onClick={() => props.onClickUser(username)} size={isMobile ? 48 : 32} />
-      }
-      when={props.notificationTime}
-      contentStyle={{justifyContent: 'center'}}
-    >
-      <Text type="Body" style={{marginTop: 2}}>
-        <ConnectedUsernames
-          {...connectedUsernamesProps}
-          usernames={[username]}
-          onUsernameClicked={props.onClickUser}
-        />{' '}
-        followed you.
-      </Text>
-    </PeopleItem>
+    <ClickableBox onClick={() => props.onClickUser(username)}>
+      <PeopleItem
+        badged={props.badged}
+        icon={
+          <Avatar username={username} onClick={() => props.onClickUser(username)} size={isMobile ? 48 : 32} />
+        }
+        when={props.notificationTime}
+        contentStyle={{justifyContent: 'center'}}
+      >
+        <Text type="Body" style={{marginTop: 2}}>
+          <ConnectedUsernames
+            {...connectedUsernamesProps}
+            usernames={[username]}
+            onUsernameClicked={props.onClickUser}
+          />{' '}
+          followed you.
+        </Text>
+      </PeopleItem>
+    </ClickableBox>
   )
 }
 
