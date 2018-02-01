@@ -1,4 +1,5 @@
 // @flow
+import * as RPCChatTypes from '../rpc-chat-gen'
 import * as I from 'immutable'
 import * as Common from './common'
 import * as Meta from './meta'
@@ -26,6 +27,18 @@ export type _State = {
 
 export type State = I.RecordOf<_State>
 
+export const conversationIDToKey = (conversationID: RPCChatTypes.ConversationID): Common.ConversationIDKey =>
+  Common.stringToConversationIDKey(conversationID.toString('hex'))
+
+export const keyToConversationID = (key: Common.ConversationIDKey): RPCChatTypes.ConversationID =>
+  Buffer.from(Common.conversationIDKeyToString(key), 'hex')
+
+export const rpcOutboxIDToOutboxID = (outboxID: RPCChatTypes.OutboxID): Message.OutboxID =>
+  Message.stringToOutboxID(outboxID.toString('hex'))
+
+export const outboxIDToRpcOutboxID = (outboxID: Message.OutboxID): RPCChatTypes.OutboxID =>
+  Buffer.from(Message.outboxIDToString(outboxID), 'hex')
+
 export type {ConversationMeta, MetaTrustedState} from './meta'
 export type {
   Message,
@@ -43,5 +56,11 @@ export type {
 } from './message'
 export type {ConversationIDKey} from './common'
 
-export {outboxIDToString, stringToOutboxID, numberToMessageID, numberToOrdinal, ordinalToNumber} from './message'
+export {
+  outboxIDToString,
+  stringToOutboxID,
+  numberToMessageID,
+  numberToOrdinal,
+  ordinalToNumber,
+} from './message'
 export {stringToConversationIDKey, conversationIDKeyToString} from './common'

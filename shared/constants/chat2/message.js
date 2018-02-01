@@ -220,90 +220,166 @@ const uiMessageToSystemMessage = (minimum, body): ?Types.Message => {
   }
 }
 
+const validUIMessagetoMessage = (
+  conversationIDKey: Types.ConversationIDKey,
+  uiMessage: RPCChatTypes.UIMessage,
+  m: RPCChatTypes.UIMessageValid
+) => {
+  const minimum = {
+    author: m.senderUsername,
+    conversationIDKey,
+    id: Types.numberToMessageID(m.messageID),
+    ordinal: Types.numberToOrdinal(m.messageID),
+    timestamp: m.ctime,
+  }
+  const common = {
+    ...minimum,
+    deviceName: m.senderDeviceName,
+    deviceRevokedAt: m.senderDeviceRevokedAt,
+    deviceType: DeviceTypes.stringToDeviceType(m.senderDeviceType),
+    hasBeenEdited: m.superseded,
+    outboxID: m.outboxID ? Types.stringToOutboxID(m.outboxID) : null,
+  }
+
+  switch (m.messageBody.messageType) {
+    case RPCChatTypes.commonMessageType.text:
+      const rawText: string = (m.messageBody.text && m.messageBody.text.body) || ''
+      return makeMessageText({
+        ...common,
+        mentionsAt: I.Set(m.atMentions || []),
+        mentionsChannel: channelMentionToMentionsChannel(m.channelMention),
+        text: new HiddenString(rawText),
+      })
+    case RPCChatTypes.commonMessageType.attachment: {
+      // const attachment = m.messageBody.attachment || {}
+      // const {filename, title, mimeType, metadata} = attachment.object
+      // const metadataVideo =
+      // metadata.assetType === RPCChatTypes.localAssetMetadataType.video ? metadata.video : null
+      // const metadataImage =
+      // metadata.assetType === RPCChatTypes.localAssetMetadataType.image ? metadata.image : null
+      // const attachmentType = mimeType.indexOf('image') === 0 ? 'image' : 'other'
+      // const {width, height} = metadataVideo || metadataImage || {height: 0, width: 0}
+      // const {width: previewWidth = 0, height: previewHeight = 0} = clampAttachmentPreviewSize(width, height)
+      // const durationMs = (metadataVideo && metadataVideo.durationMs) || 0
+      // const percentUploaded = 0 // TODO
+
+      return makeMessageAttachment({
+        ...common,
+        // attachmentType,
+        // durationMs,
+        // filename,
+        // percentUploaded,
+        // previewHeight,
+        // previewWidth,
+        // title,
+      })
+    }
+    case RPCChatTypes.commonMessageType.join:
+      return makeMessageSystemJoined(minimum)
+    case RPCChatTypes.commonMessageType.leave:
+      return makeMessageSystemLeft(minimum)
+    case RPCChatTypes.commonMessageType.system:
+      return m.messageBody.system ? uiMessageToSystemMessage(minimum, m.messageBody.system) : null
+    case RPCChatTypes.commonMessageType.none:
+      return null
+    case RPCChatTypes.commonMessageType.edit:
+      return null
+    case RPCChatTypes.commonMessageType.delete:
+      return null
+    case RPCChatTypes.commonMessageType.metadata:
+      return null
+    case RPCChatTypes.commonMessageType.tlfname:
+      return null
+    case RPCChatTypes.commonMessageType.headline:
+      return null
+    case RPCChatTypes.commonMessageType.attachmentuploaded:
+      return null
+    case RPCChatTypes.commonMessageType.deletehistory:
+      return null
+    default:
+      // eslint-disable-next-line no-unused-expressions
+      ;(m.messageBody.messageType: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
+      return null
+  }
+}
+
+export const rpcErrorToString = (error: RPCChatTypes.OutboxStateError) => {
+  switch (error.typ) {
+    case RPCChatTypes.localOutboxErrorType.misc:
+      return 'unknown error'
+    case RPCChatTypes.localOutboxErrorType.offline:
+      return 'disconnected from chat server'
+    case RPCChatTypes.localOutboxErrorType.identify:
+      return 'proofs failed for recipient user'
+    case RPCChatTypes.localOutboxErrorType.toolong:
+      return 'message is too long'
+    default:
+      return `unknown error type ${error.typ || ''} ${error.message || ''}`
+  }
+}
+
+const outboxUIMessagetoMessage = (
+  conversationIDKey: Types.ConversationIDKey,
+  uiMessage: RPCChatTypes.UIMessage,
+  o: RPCChatTypes.UIMessageOutbox,
+  you: string,
+  yourDevice: string
+) => {
+  const errorReason =
+    o.state && o.state.state === RPCChatTypes.localOutboxStateType.error && o.state.error
+      ? rpcErrorToString(o.state.error)
+      : null
+
+  return makeMessageText({
+    author: you,
+    conversationIDKey,
+    deviceName: yourDevice,
+    deviceType: isMobile ? 'mobile' : 'desktop',
+    errorReason,
+    ordinal: Types.numberToOrdinal(o.ordinal),
+    outboxID: Types.stringToOutboxID(o.outboxID),
+    text: new HiddenString(o.body),
+    timestamp: o.ctime,
+  })
+}
+
+const errorUIMessagetoMessage = (
+  conversationIDKey: Types.ConversationIDKey,
+  uiMessage: RPCChatTypes.UIMessage,
+  o: RPCChatTypes.MessageUnboxedError
+) => {
+  return null
+}
+
 export const uiMessageToMessage = (
   conversationIDKey: Types.ConversationIDKey,
-  uiMessage: RPCChatTypes.UIMessage
+  uiMessage: RPCChatTypes.UIMessage,
+  you: string,
+  yourDevice: string
 ): ?Types.Message => {
-  if (uiMessage.state === RPCChatTypes.chatUiMessageUnboxedState.valid && uiMessage.valid) {
-    const m: RPCChatTypes.UIMessageValid = uiMessage.valid
-    const minimum = {
-      author: m.senderUsername,
-      conversationIDKey,
-      id: Types.numberToMessageID(m.messageID),
-      ordinal: Types.numberToOrdinal(m.messageID),
-      timestamp: m.ctime,
-    }
-    const common = {
-      ...minimum,
-      deviceName: m.senderDeviceName,
-      deviceRevokedAt: m.senderDeviceRevokedAt,
-      deviceType: DeviceTypes.stringToDeviceType(m.senderDeviceType),
-      hasBeenEdited: m.superseded,
-      outboxID: m.outboxID ? Types.stringToOutboxID(m.outboxID) : null,
-    }
-
-    switch (m.messageBody.messageType) {
-      case RPCChatTypes.commonMessageType.text:
-        const rawText: string = (m.messageBody.text && m.messageBody.text.body) || ''
-        return makeMessageText({
-          ...common,
-          mentionsAt: I.Set(m.atMentions || []),
-          mentionsChannel: channelMentionToMentionsChannel(m.channelMention),
-          text: new HiddenString(rawText),
-        })
-      case RPCChatTypes.commonMessageType.attachment: {
-        // const attachment = m.messageBody.attachment || {}
-        // const {filename, title, mimeType, metadata} = attachment.object
-        // const metadataVideo =
-        // metadata.assetType === RPCChatTypes.localAssetMetadataType.video ? metadata.video : null
-        // const metadataImage =
-        // metadata.assetType === RPCChatTypes.localAssetMetadataType.image ? metadata.image : null
-        // const attachmentType = mimeType.indexOf('image') === 0 ? 'image' : 'other'
-        // const {width, height} = metadataVideo || metadataImage || {height: 0, width: 0}
-        // const {width: previewWidth = 0, height: previewHeight = 0} = clampAttachmentPreviewSize(width, height)
-        // const durationMs = (metadataVideo && metadataVideo.durationMs) || 0
-        // const percentUploaded = 0 // TODO
-
-        return makeMessageAttachment({
-          ...common,
-          // attachmentType,
-          // durationMs,
-          // filename,
-          // percentUploaded,
-          // previewHeight,
-          // previewWidth,
-          // title,
-        })
+  switch (uiMessage.state) {
+    case RPCChatTypes.chatUiMessageUnboxedState.valid:
+      if (uiMessage.valid) {
+        return validUIMessagetoMessage(conversationIDKey, uiMessage, uiMessage.valid)
       }
-      case RPCChatTypes.commonMessageType.join:
-        return makeMessageSystemJoined(minimum)
-      case RPCChatTypes.commonMessageType.leave:
-        return makeMessageSystemLeft(minimum)
-      case RPCChatTypes.commonMessageType.system:
-        return m.messageBody.system ? uiMessageToSystemMessage(minimum, m.messageBody.system) : null
-      case RPCChatTypes.commonMessageType.none:
-        return null
-      case RPCChatTypes.commonMessageType.edit:
-        return null
-      case RPCChatTypes.commonMessageType.delete:
-        return null
-      case RPCChatTypes.commonMessageType.metadata:
-        return null
-      case RPCChatTypes.commonMessageType.tlfname:
-        return null
-      case RPCChatTypes.commonMessageType.headline:
-        return null
-      case RPCChatTypes.commonMessageType.attachmentuploaded:
-        return null
-      case RPCChatTypes.commonMessageType.deletehistory:
-        return null
-      default:
-        // eslint-disable-next-line no-unused-expressions
-        ;(m.messageBody.messageType: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
-        return null
-    }
+      break
+    case RPCChatTypes.chatUiMessageUnboxedState.error:
+      if (uiMessage.error) {
+        return errorUIMessagetoMessage(conversationIDKey, uiMessage, uiMessage.error)
+      }
+      break
+    case RPCChatTypes.chatUiMessageUnboxedState.outbox:
+      if (uiMessage.outbox) {
+        return outboxUIMessagetoMessage(conversationIDKey, uiMessage, uiMessage.outbox, you, yourDevice)
+      }
+      break
+    case RPCChatTypes.chatUiMessageUnboxedState.placeholder:
+      return null
+    default:
+      // eslint-disable-next-line no-unused-expressions
+      ;(uiMessage.state: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
+      return null
   }
-  return null
 }
 
 function nextFractionalOrdinal(ord: Types.Ordinal): Types.Ordinal {

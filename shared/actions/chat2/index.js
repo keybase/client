@@ -181,7 +181,7 @@ const rpcMetaRequest = (
     const state: TypedState = yield Saga.select()
     yield Saga.put(
       Chat2Gen.createMetaReceivedError({
-        conversationIDKey: Constants.conversationIDToKey(convID),
+        conversationIDKey: Types.conversationIDToKey(convID),
         error,
         username: state.config.username || '',
       })
@@ -200,7 +200,7 @@ const rpcMetaRequest = (
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
       query: {
         ...inboxQuery,
-        convIDs: conversationIDKeys.map(Constants.keyToConversationID),
+        convIDs: conversationIDKeys.map(Types.keyToConversationID),
       },
       skipUnverified: false,
     },
@@ -222,8 +222,13 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
   const actions = []
 
   if (convID && cMsg) {
-    const conversationIDKey = Constants.conversationIDToKey(convID)
-    const message = Constants.uiMessageToMessage(conversationIDKey, cMsg)
+    const conversationIDKey = Types.conversationIDToKey(convID)
+    const message = Constants.uiMessageToMessage(
+      conversationIDKey,
+      cMsg,
+      state.config.username || '',
+      state.config.deviceName || ''
+    )
     if (message) {
       // visible type
       actions.push(Chat2Gen.createMessagesAdd({context: {type: 'incoming'}, messages: [message]}))
@@ -274,28 +279,15 @@ const onErrorMessage = (outboxRecords: Array<RPCChatTypes.OutboxRecord>) => {
       const error = s.error
       if (error && error.typ) {
         // This is temp until fixed by CORE-7112. We get this error but not the call to let us show the red banner
+        const reason = Constants.rpcErrorToString(error)
         let tempForceRedBox
-        let reason
-        switch (error.typ) {
-          case RPCChatTypes.localOutboxErrorType.misc:
-            reason = 'unknown error'
-            break
-          case RPCChatTypes.localOutboxErrorType.offline:
-            reason = 'disconnected from chat server'
-            break
-          case RPCChatTypes.localOutboxErrorType.identify:
-            reason = 'proofs failed for recipient user'
-            const match = error.message && error.message.match(/"(.*)"/)
-            tempForceRedBox = match && match[1]
-            break
-          case RPCChatTypes.localOutboxErrorType.toolong:
-            reason = 'message is too long'
-            break
-          default:
-            reason = `unknown error type ${error.typ || ''}`
+        if (error.typ === RPCChatTypes.localOutboxErrorType.identify) {
+          const match = error.message && error.message.match(/"(.*)"/)
+          tempForceRedBox = match && match[1]
         }
-        const conversationIDKey = Constants.conversationIDToKey(outboxRecord.convID)
-        const outboxID = Constants.rpcOutboxIDToOutboxID(outboxRecord.outboxID)
+
+        const conversationIDKey = Types.conversationIDToKey(outboxRecord.convID)
+        const outboxID = Types.rpcOutboxIDToOutboxID(outboxRecord.outboxID)
         arr.push(Chat2Gen.createMessageErrored({conversationIDKey, outboxID, reason}))
         if (tempForceRedBox) {
           arr.push(UsersGen.createUpdateBrokenState({newlyBroken: [tempForceRedBox], newlyFixed: []}))
@@ -333,7 +325,7 @@ const setupChatHandlers = () => {
           return convID
             ? [
                 Chat2Gen.createMetaRequestTrusted({
-                  conversationIDKeys: [Constants.conversationIDToKey(convID)],
+                  conversationIDKeys: [Types.conversationIDToKey(convID)],
                 }),
               ]
             : null
@@ -342,7 +334,7 @@ const setupChatHandlers = () => {
           // if (action.payload.activity && action.payload.activity.setAppNotificationSettings) {
           // const {convID, settings} = action.payload.activity.setAppNotificationSettings
           // if (convID && settings) {
-          // const conversationIDKey = Constants.conversationIDToKey(convID)
+          // const conversationIDKey = Types.conversationIDToKey(convID)
           // const notifications = parseNotifications(settings)
           // if (notifications) {
           // yield Saga.put(
@@ -366,7 +358,7 @@ const setupChatHandlers = () => {
   engine().setIncomingActionCreators(
     'chat.1.NotifyChat.ChatTLFFinalize',
     ({convID}: {convID: RPCChatTypes.ConversationID}) => [
-      Chat2Gen.createMetaRequestTrusted({conversationIDKeys: [Constants.conversationIDToKey(convID)]}),
+      Chat2Gen.createMetaRequestTrusted({conversationIDKeys: [Types.conversationIDToKey(convID)]}),
     ]
   )
 
@@ -466,7 +458,7 @@ const rpcLoadThread = (
     return
   }
 
-  const conversationID = Constants.keyToConversationID(conversationIDKey)
+  const conversationID = Types.keyToConversationID(conversationIDKey)
   if (!conversationID) {
     logger.info('Load thread bail: invalid conversationIDKey')
     return
@@ -541,7 +533,14 @@ const rpcLoadThread = (
       const uiMessages: RPCChatTypes.UIMessages = JSON.parse(thread)
 
       const messages = (uiMessages.messages || []).reduce((arr, m) => {
-        const message = conversationIDKey ? Constants.uiMessageToMessage(conversationIDKey, m) : null
+        const message = conversationIDKey
+          ? Constants.uiMessageToMessage(
+              conversationIDKey,
+              m,
+              state.config.username || '',
+              state.config.deviceName || ''
+            )
+          : null
         if (message) {
           arr.push(message)
         }
@@ -653,7 +652,7 @@ const messageDelete = (action: Chat2Gen.MessageDeletePayload, state: TypedState)
 
   return Saga.call(RPCChatTypes.localPostDeleteNonblockRpcPromise, {
     clientPrev: 0,
-    conversationID: Constants.keyToConversationID(conversationIDKey),
+    conversationID: Types.keyToConversationID(conversationIDKey),
     identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
     outboxID: null,
     supersedes: Types.ordinalToNumber(message.ordinal),
@@ -695,7 +694,7 @@ const messageEdit = (action: Chat2Gen.MessageEditPayload, state: TypedState) => 
     return Saga.call(RPCChatTypes.localPostEditNonblockRpcPromise, {
       body: text.stringValue(),
       clientPrev,
-      conversationID: Constants.keyToConversationID(conversationIDKey),
+      conversationID: Types.keyToConversationID(conversationIDKey),
       identifyBehavior,
       outboxID,
       supersedes,
@@ -726,7 +725,7 @@ const sendToPendingConversationSuccess = (
   results: RPCChatTypes.NewConversationLocalRes,
   action: Chat2Gen.SendToPendingConversationPayload
 ) => {
-  const conversationIDKey = Constants.conversationIDToKey(results.conv.info.id)
+  const conversationIDKey = Types.conversationIDToKey(results.conv.info.id)
   if (!conversationIDKey) {
     logger.warn("Couldn't make a new conversation?")
     return
@@ -769,7 +768,7 @@ const sendToPendingConversationSuccess = (
 const messageRetry = (action: Chat2Gen.MessageRetryPayload, state: TypedState) => {
   const {outboxID} = action.payload
   return Saga.call(RPCChatTypes.localRetryPostRpcPromise, {
-    outboxID: Constants.outboxIDToRpcOutboxID(outboxID),
+    outboxID: Types.outboxIDToRpcOutboxID(outboxID),
   })
 }
 
@@ -845,7 +844,7 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
     Saga.call(RPCChatTypes.localPostTextNonblockRpcPromise, {
       body: text.stringValue(),
       clientPrev,
-      conversationID: Constants.keyToConversationID(conversationIDKey),
+      conversationID: Types.keyToConversationID(conversationIDKey),
       identifyBehavior,
       outboxID,
       tlfName,
@@ -885,7 +884,7 @@ const attachmentSend = (action: Chat2Gen.AttachmentWithPreviewSendPayload, state
   // // const outboxID = Constants.generateOutboxID()
   // const param = {
   // attachment: {filename},
-  // conversationID: Constants.keyToConversationID(conversationIDKey),
+  // conversationID: Types.keyToConversationID(conversationIDKey),
   // identifyBehavior,
   // metadata: null,
   // preview,
@@ -902,7 +901,8 @@ const startConversation = (action: Chat2Gen.StartConversationPayload, state: Typ
   const you = state.config.username || ''
 
   let users: Array<string> = []
-  let conversationIDKey
+  // TODO chat from team folder TODO
+  // let conversationIDKey
 
   if (participants) {
     users = participants
@@ -917,7 +917,7 @@ const startConversation = (action: Chat2Gen.StartConversationPayload, state: Typ
         // Actually a team
         const meta = state.chat2.metaMap.find(meta => meta.teamname === names)
         if (meta) {
-          conversationIDKey = meta.conversationIDKey
+          // conversationIDKey = meta.conversationIDKey
         } else {
           throw new Error('Start conversation called w/ bad team tlf')
         }

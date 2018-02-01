@@ -542,7 +542,7 @@ const _saveChannelMembership = function(action: TeamsGen.SaveChannelMembershipPa
       })
     }
     const convID =
-      channelnameToConvID[channelname] && ChatConstants.keyToConversationID(channelnameToConvID[channelname])
+      channelnameToConvID[channelname] && ChatTypes.keyToConversationID(channelnameToConvID[channelname])
     if (convID) {
       // $FlowIssue doens't like callAndWrap
       return Saga.callAndWrap(RPCChatTypes.localLeaveConversationLocalRpcPromise, {
@@ -588,7 +588,7 @@ function* _createChannel(action: TeamsGen.CreateChannelPayload) {
     })
 
     // No error if we get here.
-    const newConversationIDKey = result ? ChatConstants.conversationIDToKey(result.conv.info.id) : null
+    const newConversationIDKey = result ? ChatTypes.conversationIDToKey(result.conv.info.id) : null
     if (!newConversationIDKey) {
       logger.warn('No convoid from newConvoRPC')
       return null
@@ -744,7 +744,7 @@ function _updateTopic(action: TeamsGen.UpdateTopicPayload, state: TypedState) {
   const teamname = Constants.getTeamNameFromConvID(state, conversationIDKey) || ''
   const waitingKey = {key: `updateTopic:${conversationIDKey}`}
   const param = {
-    conversationID: ChatConstants.keyToConversationID(conversationIDKey),
+    conversationID: ChatTypes.keyToConversationID(conversationIDKey),
     tlfName: teamname,
     tlfPublic: false,
     headline: newTopic,
@@ -769,7 +769,7 @@ function _updateChannelname(action: TeamsGen.UpdateChannelNamePayload, state: Ty
   const waitingKey = {key: `updateChannelName:${conversationIDKey}`}
   const param = {
     channelName: newChannelName,
-    conversationID: ChatConstants.keyToConversationID(conversationIDKey),
+    conversationID: ChatTypes.keyToConversationID(conversationIDKey),
     tlfName: teamname,
     tlfPublic: false,
     identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
@@ -796,7 +796,7 @@ function _deleteChannelConfirmed(action: TeamsGen.DeleteChannelConfirmedPayload,
     return
   }
   const param = {
-    convID: ChatConstants.keyToConversationID(conversationIDKey),
+    convID: ChatTypes.keyToConversationID(conversationIDKey),
     channelName,
     confirmed: true,
   }

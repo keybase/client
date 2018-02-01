@@ -194,13 +194,13 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.badgesUpdated: {
       const badgeMap = I.Map(
         action.payload.conversations.map(({convID, badgeCounts}) => [
-          Constants.conversationIDToKey(convID),
+          Types.conversationIDToKey(convID),
           badgeCounts[badgeKey] || 0,
         ])
       )
       const unreadMap = I.Map(
         action.payload.conversations.map(({convID, unreadMessages}) => [
-          Constants.conversationIDToKey(convID),
+          Types.conversationIDToKey(convID),
           unreadMessages,
         ])
       )
@@ -249,8 +249,8 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       // Update our pending mapping
       let pendingOutboxToOrdinal = state.pendingOutboxToOrdinal
 
-      // We're sending a message, add it to the map
-      if (context.type === 'sent') {
+      // We're sending a message or loading a thread, add it to the map
+      if (context.type === 'sent' || context.type === 'threadLoad') {
         pendingOutboxToOrdinal = pendingOutboxToOrdinal.withMutations(
           (map: I.Map<Types.ConversationIDKey, I.Map<Types.OutboxID, Types.Ordinal>>) =>
             updatedMessages.forEach(message => {
@@ -260,37 +260,32 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
             })
         )
       } else {
-        // We got messages, see if we should remove it from the map and update the message
-        pendingOutboxToOrdinal = pendingOutboxToOrdinal.withMutations(
-          (map: I.Map<Types.ConversationIDKey, I.Map<Types.OutboxID, Types.Ordinal>>) =>
-            (updatedMessages = updatedMessages.map(message => {
-              if (!(message.type === 'text' || message.type === 'attachment')) {
+        // We got messages, see if we should update our ordinals to use the pending ones
+        updatedMessages = updatedMessages.map(message => {
+          if (!(message.type === 'text' || message.type === 'attachment')) {
+            return message
+          }
+          const existingOrdinal = message.outboxID
+            ? pendingOutboxToOrdinal.getIn([message.conversationIDKey, message.outboxID])
+            : null
+          // Was pending?
+          if (existingOrdinal && message.outboxID) {
+            // We keep the original ordinal we created always so that mapping is fixed
+            // This is required to help flow not confuse itself...
+            switch (message.type) {
+              case 'text':
+                return message.set('ordinal', existingOrdinal)
+              case 'attachment':
+                return message.set('ordinal', existingOrdinal)
+              case 'deleted':
+                return message.set('ordinal', existingOrdinal)
+              default:
                 return message
-              }
-              const existingOrdinal = message.outboxID
-                ? map.getIn([message.conversationIDKey, message.outboxID])
-                : null
-              // Was pending?
-              if (existingOrdinal && message.outboxID) {
-                // We get 2 incoming calls when a pending goes to real. If we clean up the map then we lose the bookkeeping so lets just keep it
-                // map.deleteIn([message.conversationIDKey, message.outboxID])
-                // We keep the original ordinal we created always so that mapping is fixed
-                // This is required to help flow not confuse itself...
-                switch (message.type) {
-                  case 'text':
-                    return message.set('ordinal', existingOrdinal)
-                  case 'attachment':
-                    return message.set('ordinal', existingOrdinal)
-                  case 'deleted':
-                    return message.set('ordinal', existingOrdinal)
-                  default:
-                    return message
-                }
-              } else {
-                return message
-              }
-            }))
-        )
+            }
+          } else {
+            return message
+          }
+        })
       }
 
       // Update our ordinals list
