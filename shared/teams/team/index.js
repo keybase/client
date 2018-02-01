@@ -452,7 +452,6 @@ class Team extends React.PureComponent<Props> {
       contents = !loading && (
         <List
           items={subTeamsItems}
-          fixedHeight={48}
           keyProperty="key"
           renderItem={subTeamsRow}
           style={{alignSelf: 'stretch'}}
