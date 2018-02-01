@@ -15,8 +15,12 @@ src_prefix="https://s3.amazonaws.com/prerelease.keybase.io/linux_binaries/deb"
 setup_arch_build $build_root $git_url $src_prefix
 keybase_bin_repo="$build_root/arch/keybase-bin"
 
-echo Pushing keybase-bin...
-git -C "$keybase_bin_repo" push origin master
+if git -C "$keybase_bin_repo" commit -am "version bump" ; then
+  echo Pushing keybase-bin...
+  git -C "$keybase_bin_repo" push origin master
+else
+  echo No changes in keybase-bin. Skipping push.
+fi
 
 # We used to also update the keybase-git package here, but apparently that was
 # against AUR policy.

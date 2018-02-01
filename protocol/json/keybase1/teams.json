@@ -1269,6 +1269,11 @@
           "jsonkey": "is_implicit_team"
         },
         {
+          "type": "boolean",
+          "name": "isOpenTeam",
+          "jsonkey": "is_open_team"
+        },
+        {
           "type": "TeamRole",
           "name": "role"
         },
@@ -1331,6 +1336,11 @@
           "type": "boolean",
           "name": "isImplicitTeam",
           "jsonkey": "is_implicit_team"
+        },
+        {
+          "type": "boolean",
+          "name": "isOpenTeam",
+          "jsonkey": "is_open_team"
         },
         {
           "type": "TeamRole",

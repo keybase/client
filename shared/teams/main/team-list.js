@@ -1,16 +1,6 @@
 // @flow
 import * as React from 'react'
-import {
-  ClickableBox,
-  Icon,
-  Avatar,
-  Badge,
-  Box,
-  Divider,
-  Text,
-  ProgressIndicator,
-  Meta,
-} from '../../common-adapters'
+import {ClickableBox, Icon, Avatar, Badge, Box, Divider, Text, Meta} from '../../common-adapters'
 import {globalMargins, globalStyles, globalColors, isMobile} from '../../styles'
 
 import type {Teamname} from '../../constants/types/teams'
@@ -47,6 +37,7 @@ const openCharmStyle = {
   backgroundColor: globalColors.green,
   borderRadius: 1,
   marginLeft: 4,
+  marginTop: 2,
 }
 
 const TeamRow = ({
@@ -110,7 +101,6 @@ const TeamList = (props: Props) => (
       width: '100%',
     }}
   >
-    {!props.loaded && <ProgressIndicator style={{alignSelf: 'center', width: 20}} />}
     {props.teamnames.map((name, index, arr) => (
       <TeamRow
         key={name}

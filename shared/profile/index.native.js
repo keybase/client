@@ -436,11 +436,12 @@ class Profile extends Component<Props, State> {
           stickySectionHeadersEnabled={true}
           style={{...globalStyles.fullHeight, backgroundColor: trackerStateColors.header.background}}
           ref={this._setRef}
-          initialNumToRender={2}
+          initialNumToRender={0}
           renderSectionHeader={this._renderSections}
           keyExtractor={this._keyExtractor}
           forceRenderProofs={this.props.proofs}
           forceRenderBio={this.props.userInfo}
+          windowSize={3}
           sections={[
             {
               renderItem: this._renderProfile,
@@ -479,6 +480,7 @@ const UserEntry = ({onClick, username, fullname, followsYou, following}) => (
         username={username}
         followsYou={followsYou}
         following={following}
+        skipBackgroundAfterLoaded={true}
       />
       <Text type="BodySemibold" style={userEntryUsernameStyle(following)}>
         {username}

@@ -88,17 +88,20 @@ func (t SigchainV2Type) IsSupportedTeamType() bool {
 	}
 }
 
-func (t SigchainV2Type) RequiresAdminPermission() bool {
+func (t SigchainV2Type) RequiresAtLeastRole() keybase1.TeamRole {
 	if !t.IsSupportedTeamType() {
-		return false
+		// Links from the future require a bare minimum.
+		// They should be checked later by a code update that busts the cache.
+		return keybase1.TeamRole_READER
 	}
 	switch t {
 	case SigchainV2TypeTeamRoot,
-		SigchainV2TypeTeamRotateKey,
 		SigchainV2TypeTeamLeave:
-		return false
+		return keybase1.TeamRole_READER
+	case SigchainV2TypeTeamRotateKey:
+		return keybase1.TeamRole_WRITER
 	default:
-		return true
+		return keybase1.TeamRole_ADMIN
 	}
 }
 

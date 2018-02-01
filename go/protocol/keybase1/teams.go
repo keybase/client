@@ -1489,6 +1489,7 @@ type MemberInfo struct {
 	TeamID         TeamID        `codec:"teamID" json:"team_id"`
 	FqName         string        `codec:"fqName" json:"fq_name"`
 	IsImplicitTeam bool          `codec:"isImplicitTeam" json:"is_implicit_team"`
+	IsOpenTeam     bool          `codec:"isOpenTeam" json:"is_open_team"`
 	Role           TeamRole      `codec:"role" json:"role"`
 	Implicit       *ImplicitRole `codec:"implicit,omitempty" json:"implicit,omitempty"`
 	MemberCount    int           `codec:"memberCount" json:"member_count"`
@@ -1500,6 +1501,7 @@ func (o MemberInfo) DeepCopy() MemberInfo {
 		TeamID:         o.TeamID.DeepCopy(),
 		FqName:         o.FqName,
 		IsImplicitTeam: o.IsImplicitTeam,
+		IsOpenTeam:     o.IsOpenTeam,
 		Role:           o.Role.DeepCopy(),
 		Implicit: (func(x *ImplicitRole) *ImplicitRole {
 			if x == nil {
@@ -1539,6 +1541,7 @@ type AnnotatedMemberInfo struct {
 	FullName       string        `codec:"fullName" json:"full_name"`
 	FqName         string        `codec:"fqName" json:"fq_name"`
 	IsImplicitTeam bool          `codec:"isImplicitTeam" json:"is_implicit_team"`
+	IsOpenTeam     bool          `codec:"isOpenTeam" json:"is_open_team"`
 	Role           TeamRole      `codec:"role" json:"role"`
 	Implicit       *ImplicitRole `codec:"implicit,omitempty" json:"implicit,omitempty"`
 	NeedsPUK       bool          `codec:"needsPUK" json:"needsPUK"`
@@ -1555,6 +1558,7 @@ func (o AnnotatedMemberInfo) DeepCopy() AnnotatedMemberInfo {
 		FullName:       o.FullName,
 		FqName:         o.FqName,
 		IsImplicitTeam: o.IsImplicitTeam,
+		IsOpenTeam:     o.IsOpenTeam,
 		Role:           o.Role.DeepCopy(),
 		Implicit: (func(x *ImplicitRole) *ImplicitRole {
 			if x == nil {
