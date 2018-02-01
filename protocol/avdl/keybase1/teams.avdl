@@ -460,6 +460,11 @@ protocol teams {
     array<TeamSeitanRequest> seitans;
   }
 
+  record TeamKBFSKeyRefresher {
+    int generation;
+    TeamApplication appType;
+  }
+
   /**
    * TeamRefreshData are needed or wanted data requirements that, if unmet, will cause
    * a refresh of the cache.
@@ -477,6 +482,8 @@ protocol teams {
     // The minimum role each of wantMembers must have in order to avoid a refresh.
     // The default value is WRITER. So if the role is NONE, it will act like WRITER.
     TeamRole wantMembersRole;
+    // Express that we need KBFS crypt keys on the team at a certain generation
+    TeamKBFSKeyRefresher needKBFSKeyGeneration;
   }
 
   record LoadTeamArg {
