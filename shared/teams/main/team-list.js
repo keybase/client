@@ -43,8 +43,10 @@ const newCharmStyle = {
 }
 
 const openCharmStyle = {
-  ...newCharmStyle,
+  alignSelf: 'center',
   backgroundColor: globalColors.green,
+  borderRadius: 1,
+  marginLeft: 4,
 }
 
 const TeamRow = ({
@@ -74,13 +76,15 @@ const TeamRow = ({
           style={{marginLeft: globalMargins.tiny}}
         />
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: globalMargins.small}}>
-          <Text type="BodySemibold">{name}</Text>
+          <Box style={globalStyles.flexBoxRow}>
+            <Text type="BodySemibold">{name}</Text>
+            {isOpen && <Meta title="OPEN" style={openCharmStyle} />}
+          </Box>
           <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
             {!!newRequests && (
               <Badge badgeNumber={newRequests} badgeStyle={{marginLeft: 0, marginRight: 3, marginTop: 1}} />
             )}
             {isNew && <Meta title="NEW" style={newCharmStyle} />}
-            {isOpen && <Meta title="OPEN" style={openCharmStyle} />}
             <Text type="BodySmall">{membercount + ' member' + (membercount !== 1 ? 's' : '')}</Text>
           </Box>
         </Box>
