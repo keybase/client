@@ -374,12 +374,15 @@ func ParseServiceBlock(jw *jsonw.Wrapper, pt keybase1.ProofType) (sb *ServiceBlo
 func ParseWebServiceBinding(base GenericChainLink) (ret RemoteProofChainLink, e error) {
 	jw := base.GetPayloadJSON().AtKey("body").AtKey("service")
 
-	var sptf string
-	ptf := base.packed.AtKey("proof_text_full")
-	if !ptf.IsNil() {
-		// TODO: add test that returning on err here is ok:
-		sptf, _ = ptf.GetString()
-	}
+	/*
+		var sptf string
+		ptf := base.packed.AtKey("proof_text_full")
+		if !ptf.IsNil() {
+			// TODO: add test that returning on err here is ok:
+			sptf, _ = ptf.GetString()
+		}
+	*/
+	sptf := base.unpacked.proofText
 
 	if jw.IsNil() {
 		ret, e = ParseSelfSigChainLink(base)
