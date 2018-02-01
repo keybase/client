@@ -690,7 +690,7 @@ func (l *TeamLoader) load2CheckReturn(ctx context.Context, arg load2ArgT, res *k
 			return err
 		}
 	}
-	if arg.needKeyGeneration > 0 {
+	if arg.needKBFSKeyGeneration.Generation > 0 {
 		err := l.satisfiesNeedsKBFSKeyGeneration(ctx, arg.needKBFSKeyGeneration, res)
 		if err != nil {
 			return err
@@ -817,7 +817,7 @@ func (l *TeamLoader) isImplicitAdminOf(ctx context.Context, teamID keybase1.Team
 	return false, nil
 }
 
-func (t *TeamLoader) satisfiesNeedsKBFSKeyGeneration(ctx context.Context,
+func (l *TeamLoader) satisfiesNeedsKBFSKeyGeneration(ctx context.Context,
 	kbfs keybase1.TeamKBFSKeyRefresher, state *keybase1.TeamData) error {
 	if kbfs.Generation == 0 {
 		return nil
