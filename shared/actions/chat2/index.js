@@ -449,14 +449,32 @@ const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType).reduc
 }, [])
 
 const rpcLoadThread = (
-  action: Chat2Gen.SelectConversationPayload | Chat2Gen.LoadMoreMessagesPayload,
+  action:
+    | Chat2Gen.SelectConversationPayload
+    | Chat2Gen.LoadMoreMessagesPayload
+    | Chat2Gen.SetPendingConversationUsersPayload,
   state: TypedState
 ) => {
-  const conversationIDKey = action.payload.conversationIDKey
-  if (!conversationIDKey) {
+  let key = null
+
+  if (action.type === Chat2Gen.setPendingConversationUsers) {
+    if (state.chat2.pendingSelected) {
+      const toFind = I.Set(action.payload.users.concat([state.config.username]))
+      key = state.chat2.metaMap.findKey(meta =>
+        // Ignore the order of participants
+        meta.participants.toSet().equals(toFind)
+      )
+    }
+  } else {
+    key = action.payload.conversationIDKey
+  }
+
+  if (!key) {
     logger.info('Load thread bail: no conversationIDKey')
     return
   }
+
+  const conversationIDKey = key
 
   const conversationID = Types.keyToConversationID(conversationIDKey)
   if (!conversationID) {
@@ -471,6 +489,7 @@ const rpcLoadThread = (
   const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
   const actions = []
   switch (action.type) {
+    case Chat2Gen.setPendingConversationUsers: // fallthrough . basically the same as selecting
     case Chat2Gen.selectConversation:
       // When we just select a conversation we can be in the following states
       // 1. We have no messages at all yet (not unboxed)
@@ -1052,7 +1071,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
 
   // Load the selected thread
   yield Saga.safeTakeEveryPure(
-    [Chat2Gen.selectConversation, Chat2Gen.loadMoreMessages],
+    [Chat2Gen.selectConversation, Chat2Gen.loadMoreMessages, Chat2Gen.setPendingConversationUsers],
     rpcLoadThread,
     rpcLoadThreadSuccess
   )

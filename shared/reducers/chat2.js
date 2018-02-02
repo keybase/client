@@ -102,9 +102,10 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
       if (!message) {
         return messageMap
       }
-      const existingOrdinal = message.outboxID
-        ? pendingOutboxToOrdinal.getIn([message.conversationIDKey, message.outboxID])
-        : null
+      const existingOrdinal =
+        (message.type === 'text' || message.type === 'attachment') && message.outboxID
+          ? pendingOutboxToOrdinal.getIn([message.conversationIDKey, message.outboxID])
+          : null
 
       // Updated all messages (real ordinal and fake one)
       const ordinals = [ordinal, ...(existingOrdinal ? [existingOrdinal] : [])]
