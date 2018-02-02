@@ -12,6 +12,7 @@ import (
 
 	"github.com/keybase/backoff"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/kbfs/kbfscrypto"
@@ -150,7 +151,8 @@ func (md *MDServerRemote) initNewConnection() {
 	md.conn = rpc.NewTLSConnection(md.mdSrvRemote, kbfscrypto.GetRootCerts(
 		md.mdSrvRemote.Peek(), libkb.GetBundledCAsFromHost),
 		kbfsmd.ServerErrorUnwrapper{}, md, md.rpcLogFactory,
-		md.config.MakeLogger(""), md.connOpts)
+		logger.LogOutputWithDepthAdder{Logger: md.config.MakeLogger("")},
+		md.connOpts)
 	md.client = keybase1.MetadataClient{Cli: md.conn.GetClient()}
 }
 

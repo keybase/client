@@ -9,6 +9,7 @@ import (
 
 	"github.com/keybase/backoff"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
@@ -24,8 +25,9 @@ func NewSharedKeybaseConnection(kbCtx Context, config Config,
 		TagsFunc:         libkb.LogTagsFromContext,
 		ReconnectBackoff: func() backoff.BackOff { return constBackoff },
 	}
-	return rpc.NewConnectionWithTransport(handler, transport,
-		libkb.ErrorUnwrapper{}, config.MakeLogger(""), opts)
+	return rpc.NewConnectionWithTransport(
+		handler, transport, libkb.ErrorUnwrapper{},
+		logger.LogOutputWithDepthAdder{Logger: config.MakeLogger("")}, opts)
 }
 
 // SharedKeybaseTransport is a ConnectionTransport implementation that
