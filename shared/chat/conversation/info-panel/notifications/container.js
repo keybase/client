@@ -17,14 +17,14 @@ type StateProps = {
 }
 
 type DispatchProps = {
-  _resetSaveState: (conversationIDKey: Types.ConversationIDKey) => any,
-  _onMuteConversation: (conversationIDKey: Types.ConversationIDKey, muted: boolean) => any,
+  _resetSaveState: (conversationIDKey: Types.ConversationIDKey) => ?Promise<*>,
+  _onMuteConversation: (conversationIDKey: Types.ConversationIDKey, muted: boolean) => ?Promise<*>,
   _onSetNotification: (
     conversationIDKey: Types.ConversationIDKey,
     deviceType: DeviceType,
     notifyType: Types.NotifyType
-  ) => any,
-  _onToggleChannelWide: (conversationIDKey: Types.ConversationIDKey) => any,
+  ) => ?Promise<*>,
+  _onToggleChannelWide: (conversationIDKey: Types.ConversationIDKey) => ?Promise<*>,
 }
 
 type OwnProps = {
@@ -72,9 +72,8 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => {
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   _resetSaveState: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(ChatGen.createSetNotificationSaveState({conversationIDKey, saveState: 'unsaved'})),
-  _onMuteConversation: (conversationIDKey: Types.ConversationIDKey, muted: boolean) => {
-    dispatch(ChatGen.createMuteConversation({conversationIDKey, muted}))
-  },
+  _onMuteConversation: (conversationIDKey: Types.ConversationIDKey, muted: boolean) =>
+    dispatch(ChatGen.createMuteConversation({conversationIDKey, muted})),
   _onSetNotification: (
     conversationIDKey: Types.ConversationIDKey,
     deviceType: DeviceType,
