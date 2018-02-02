@@ -149,14 +149,15 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 	ret, err := l.load2(ctx, load2ArgT{
 		teamID: teamID,
 
-		needAdmin:         lArg.NeedAdmin,
-		needKeyGeneration: lArg.Refreshers.NeedKeyGeneration,
-		wantMembers:       mungedWantMembers,
-		wantMembersRole:   lArg.Refreshers.WantMembersRole,
-		forceFullReload:   lArg.ForceFullReload,
-		forceRepoll:       mungedForceRepoll,
-		staleOK:           lArg.StaleOK,
-		public:            lArg.Public,
+		needAdmin:             lArg.NeedAdmin,
+		needKeyGeneration:     lArg.Refreshers.NeedKeyGeneration,
+		needKBFSKeyGeneration: lArg.Refreshers.NeedKBFSKeyGeneration,
+		wantMembers:           mungedWantMembers,
+		wantMembersRole:       lArg.Refreshers.WantMembersRole,
+		forceFullReload:       lArg.ForceFullReload,
+		forceRepoll:           mungedForceRepoll,
+		staleOK:               lArg.StaleOK,
+		public:                lArg.Public,
 
 		needSeqnos:    nil,
 		readSubteamID: nil,
@@ -215,8 +216,9 @@ type load2ArgT struct {
 
 	reason string // optional tag for debugging why this load is happening
 
-	needAdmin         bool
-	needKeyGeneration keybase1.PerTeamKeyGeneration
+	needAdmin             bool
+	needKeyGeneration     keybase1.PerTeamKeyGeneration
+	needKBFSKeyGeneration keybase1.TeamKBFSKeyRefresher
 	// wantMembers here is different from wantMembers on LoadTeamArg:
 	// The EldestSeqno's should not be 0.
 	wantMembers     []keybase1.UserVersion
@@ -392,6 +394,10 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		}
 		if err := l.satisfiesNeedKeyGeneration(ctx, arg.needKeyGeneration, ret); err != nil {
 			l.G().Log.CDebugf(ctx, "TeamLoader fetching: NeedKeyGeneration: %v", err)
+			fetchLinksAndOrSecrets = true
+		}
+		if err := l.satisfiesNeedsKBFSKeyGeneration(ctx, arg.needKBFSKeyGeneration, ret); err != nil {
+			l.G().Log.CDebugf(ctx, "TeamLoader fetching: KBFSNeedKeyGeneration: %v", err)
 			fetchLinksAndOrSecrets = true
 		}
 		if arg.readSubteamID == nil {
@@ -622,6 +628,11 @@ func (l *TeamLoader) load2DecideRepoll(ctx context.Context, arg load2ArgT, fromC
 			repoll = true
 		}
 	}
+	if arg.needKBFSKeyGeneration.Generation > 0 {
+		if l.satisfiesNeedsKBFSKeyGeneration(ctx, arg.needKBFSKeyGeneration, fromCache) != nil {
+			repoll = true
+		}
+	}
 
 	// Repoll because it might help get the wanted members
 	if len(arg.wantMembers) > 0 {
@@ -675,6 +686,12 @@ func (l *TeamLoader) load2CheckReturn(ctx context.Context, arg load2ArgT, res *k
 	// Repoll to get a new key generation
 	if arg.needKeyGeneration > 0 {
 		err := l.satisfiesNeedKeyGeneration(ctx, arg.needKeyGeneration, res)
+		if err != nil {
+			return err
+		}
+	}
+	if arg.needKBFSKeyGeneration.Generation > 0 {
+		err := l.satisfiesNeedsKBFSKeyGeneration(ctx, arg.needKBFSKeyGeneration, res)
 		if err != nil {
 			return err
 		}
@@ -798,6 +815,25 @@ func (l *TeamLoader) isImplicitAdminOf(ctx context.Context, teamID keybase1.Team
 	}
 
 	return false, nil
+}
+
+func (l *TeamLoader) satisfiesNeedsKBFSKeyGeneration(ctx context.Context,
+	kbfs keybase1.TeamKBFSKeyRefresher, state *keybase1.TeamData) error {
+	if kbfs.Generation == 0 {
+		return nil
+	}
+	if state == nil {
+		return fmt.Errorf("nil team does not contain KBFS key generation: %#v", kbfs)
+	}
+
+	gen, err := TeamSigChainState{inner: state.Chain}.GetLatestKBFSGeneration(kbfs.AppType)
+	if err != nil {
+		return err
+	}
+	if kbfs.Generation > gen {
+		return fmt.Errorf("KBFS key generation too low: %v < %v", gen, kbfs.Generation)
+	}
+	return nil
 }
 
 // Whether the snapshot has loaded at least up to the key generation and has the secret.

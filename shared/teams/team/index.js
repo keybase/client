@@ -145,7 +145,6 @@ type TeamTabsProps = {
 
 const SubteamsIntro = ({row}) => (
   <SubteamBanner
-    key={row.key}
     onHideSubteamsBanner={row.onHideSubteamsBanner}
     onReadMore={row.onReadMore}
     teamname={row.teamname}
@@ -153,14 +152,13 @@ const SubteamsIntro = ({row}) => (
 )
 
 const SubteamRow = ({row}) => (
-  <Box key={row.teamname + 'row'}>
+  <Box>
     <TeamSubteamRow teamname={row.teamname} />
   </Box>
 )
 
 const AddSubTeam = ({row}) => (
   <Box
-    key="addSubteam"
     style={{
       ...globalStyles.flexBoxRow,
       alignItems: 'center',
@@ -184,7 +182,6 @@ const AddSubTeam = ({row}) => (
 
 const NoSubteams = ({row}) => (
   <Box
-    key="noSubteams"
     style={{
       ...globalStyles.flexBoxRow,
       alignItems: 'center',
@@ -203,13 +200,13 @@ const NoSubteams = ({row}) => (
 const subTeamsRow = (index, row) => {
   switch (row.type) {
     case 'intro':
-      return <SubteamsIntro row={row} />
+      return <SubteamsIntro key={row.key} row={row} />
     case 'addSubteam':
-      return <AddSubTeam row={row} />
+      return <AddSubTeam key={row.key} row={row} />
     case 'noSubteams':
-      return <NoSubteams row={row} />
+      return <NoSubteams key={row.key} row={row} />
     default:
-      return <SubteamRow row={row} />
+      return <SubteamRow key={row.key} row={row} />
   }
 }
 
@@ -456,7 +453,6 @@ class Team extends React.PureComponent<Props> {
       contents = !loading && (
         <List
           items={subTeamsItems}
-          fixedHeight={48}
           keyProperty="key"
           renderItem={subTeamsRow}
           style={{alignSelf: 'stretch'}}
