@@ -3229,6 +3229,15 @@
         }
       ],
       "response": null
+    },
+    "upgradeKBFSConversationToImpteam": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"

@@ -181,7 +181,7 @@ func (b *NonblockingLocalizer) Name() string {
 }
 
 func filterConvLocals(convLocals []chat1.ConversationLocal, rquery *chat1.GetInboxQuery,
-	query *chat1.GetInboxLocalQuery, nameInfo types.NameInfo) (res []chat1.ConversationLocal, err error) {
+	query *chat1.GetInboxLocalQuery, nameInfo *types.NameInfo) (res []chat1.ConversationLocal, err error) {
 
 	for _, convLocal := range convLocals {
 
@@ -259,7 +259,7 @@ func (b *baseInboxSource) SetRemoteInterface(ri func() chat1.RemoteInterface) {
 }
 
 func (b *baseInboxSource) GetInboxQueryLocalToRemote(ctx context.Context,
-	lquery *chat1.GetInboxLocalQuery) (rquery *chat1.GetInboxQuery, info types.NameInfo, err error) {
+	lquery *chat1.GetInboxLocalQuery) (rquery *chat1.GetInboxQuery, info *types.NameInfo, err error) {
 
 	if lquery == nil {
 		return nil, info, nil
@@ -313,9 +313,9 @@ func (b *baseInboxSource) IsMember(ctx context.Context, uid gregor1.UID, convID 
 }
 
 func GetInboxQueryNameInfo(ctx context.Context, g *globals.Context,
-	lquery *chat1.GetInboxLocalQuery) (types.NameInfo, error) {
+	lquery *chat1.GetInboxLocalQuery) (*types.NameInfo, error) {
 	if lquery.Name == nil || len(lquery.Name.Name) == 0 {
-		return types.NameInfo{}, nil
+		return nil, nil
 	}
 	return CtxKeyFinder(ctx, g).Find(ctx, lquery.Name.Name, lquery.Name.MembersType,
 		lquery.Visibility() == keybase1.TLFVisibility_PUBLIC)
@@ -448,6 +448,16 @@ func (s *RemoteInboxSource) SetConvRetention(ctx context.Context, uid gregor1.UI
 func (s *RemoteInboxSource) SetTeamRetention(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	teamID keybase1.TeamID, policy chat1.RetentionPolicy) (res []chat1.ConversationLocal, err error) {
 	return res, err
+}
+
+func (s *RemoteInboxSource) TeamTypeChanged(ctx context.Context, uid gregor1.UID,
+	vers chat1.InboxVers, convID chat1.ConversationID, teamType chat1.TeamType) (conv *chat1.ConversationLocal, err error) {
+	return conv, err
+}
+
+func (s *RemoteInboxSource) UpdateKBFSToImpteam(ctx context.Context, uid gregor1.UID,
+	vers chat1.InboxVers, convID chat1.ConversationID) (conv *chat1.ConversationLocal, err error) {
+	return conv, err
 }
 
 type HybridInboxSource struct {
@@ -739,6 +749,23 @@ func (s *HybridInboxSource) TeamTypeChanged(ctx context.Context, uid gregor1.UID
 	}
 	if conv, err = s.getConvLocal(ctx, uid, convID); err != nil {
 		s.Debug(ctx, "TeamTypeChanged: unable to load conversation: convID: %s err: %s",
+			convID, err.Error())
+		return nil, nil
+	}
+	return conv, nil
+}
+
+func (s *HybridInboxSource) UpgradeKBFSToImpteam(ctx context.Context, uid gregor1.UID,
+	vers chat1.InboxVers, convID chat1.ConversationID) (conv *chat1.ConversationLocal, err error) {
+	defer s.Trace(ctx, func() error { return err }, "UpgradeKBFSToImpteam")()
+
+	ib := storage.NewInbox(s.G(), uid)
+	if cerr := ib.UpgradeKBFSToImpteam(ctx, vers, convID); cerr != nil {
+		err = s.handleInboxError(ctx, cerr, uid)
+		return nil, err
+	}
+	if conv, err = s.getConvLocal(ctx, uid, convID); err != nil {
+		s.Debug(ctx, "UpgradeKBFSToImpteam: unable to load conversation: convID: %s err: %s",
 			convID, err.Error())
 		return nil, nil
 	}

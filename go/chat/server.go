@@ -2609,3 +2609,47 @@ func (h *Server) SetTeamRetentionLocal(ctx context.Context, arg chat1.SetTeamRet
 	})
 	return err
 }
+
+func (h *Server) UpgradeKBFSConversationToImpteam(ctx context.Context, convID chat1.ConversationID) (err error) {
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "UpgradeKBFSConversationToImpteam(%s)", convID)()
+	if err = h.assertLoggedIn(ctx); err != nil {
+		return err
+	}
+	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
+
+	ibox, _, err := h.G().InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
+		ConvIDs: []chat1.ConversationID{convID},
+	}, nil)
+	if err != nil {
+		return err
+	}
+	if len(ibox.Convs) == 0 {
+		return errors.New("no conversation found")
+	}
+	conv := ibox.Convs[0]
+	if conv.GetMembersType() != chat1.ConversationMembersType_KBFS {
+		return fmt.Errorf("cannot upgrade %v conversation", conv.GetMembersType())
+	}
+
+	var cryptKeys []keybase1.CryptKey
+	tlfID := conv.Info.Triple.Tlfid
+	tlfName := conv.Info.TlfName
+	public := conv.Info.Visibility == keybase1.TLFVisibility_PUBLIC
+	ni, err := CtxKeyFinder(ctx, h.G()).Find(ctx, tlfName, conv.GetMembersType(), public)
+	if err != nil {
+		return err
+	}
+	for _, key := range ni.CryptKeys[chat1.ConversationMembersType_KBFS] {
+		cryptKeys = append(cryptKeys, keybase1.CryptKey{
+			KeyGeneration: key.Generation(),
+			Key:           key.Material(),
+		})
+	}
+	tlfName = ni.CanonicalName
+	h.Debug(ctx, "UpgradeKBFSConversationToImpteam: upgrading: TlfName: %s TLFID: %s public: %v keys: %d",
+		tlfName, tlfID, public, len(cryptKeys))
+
+	return teams.UpgradeTLFIDToImpteam(ctx, h.G().ExternalG(), tlfName, keybase1.TLFID(tlfID.String()),
+		public, keybase1.TeamApplication_CHAT, cryptKeys)
+}

@@ -1707,6 +1707,7 @@ type serverChatListener struct {
 	identifyUpdate          chan keybase1.CanonicalTLFNameAndIDWithBreaks
 	teamType                chan chat1.TeamTypeInfo
 	inboxSynced             chan chat1.ChatSyncResult
+	kbfsUpgrade             chan chat1.ConversationID
 }
 
 var _ libkb.NotifyListener = (*serverChatListener)(nil)
@@ -1745,6 +1746,9 @@ func (n *serverChatListener) ChatLeftConversation(uid keybase1.UID, convID chat1
 func (n *serverChatListener) ChatResetConversation(uid keybase1.UID, convID chat1.ConversationID) {
 	n.resetConv <- convID
 }
+func (n *serverChatListener) ChatKBFSToImpteamUpgrade(uid keybase1.UID, convID chat1.ConversationID) {
+	n.kbfsUpgrade <- convID
+}
 
 func newServerChatListener() *serverChatListener {
 	return &serverChatListener{
@@ -1759,6 +1763,7 @@ func newServerChatListener() *serverChatListener {
 		identifyUpdate:          make(chan keybase1.CanonicalTLFNameAndIDWithBreaks, 100),
 		teamType:                make(chan chat1.TeamTypeInfo, 100),
 		inboxSynced:             make(chan chat1.ChatSyncResult, 100),
+		kbfsUpgrade:             make(chan chat1.ConversationID, 100),
 	}
 }
 
