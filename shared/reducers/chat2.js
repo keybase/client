@@ -9,25 +9,6 @@ import {isMobile} from '../constants/platform'
 
 const initialState: Types.State = Constants.makeState()
 
-// For a single conversation
-// function conversationReducer(c: Types.Conversation, action: Chat2Gen.Actions): Types.Conversation {
-// switch (action.type) {
-// case Chat2Gen.inboxRefresh:
-// case Chat2Gen.inboxUtrustedLoaded:
-// case Chat2Gen.resetStore:
-// return state
-// default:
-// // eslint-disable-next-line no-unused-expressions
-// (action: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
-// return state
-// }
-// }
-
-// When dealing with pending messages, when they come back in we keep our existing ordinal vs using the one that comes
-// over the wire. Some calls (like edit) give us the messageid but we don't have all these reverse maps in the store.
-// So... instead we keep a little map here outside of redux to help find this mapping.
-// const messageIDToOrdinal: {[id: string]: Types.Ordinal} = {}
-
 const metaMapReducer = (metaMap, action) => {
   switch (action.type) {
     case Chat2Gen.metaRequestingTrusted:
@@ -129,8 +110,6 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
       const ordinals = [ordinal, ...(existingOrdinal ? [existingOrdinal] : [])]
 
       let editedMap = messageMap
-      // const {conversationIDKey, messageID, text} = action.payload
-      // const ordinal = messageIDToOrdinal[String(messageID)] || Types.numberToOrdinal(messageID || 0)
       ordinals.forEach(o => {
         editedMap = o
           ? editedMap.updateIn(
@@ -269,42 +248,8 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.messagesAdd: {
       const {messages, context} = action.payload
 
-      // let updatedMessages = messages
-
       // Update our pending mapping
       let pendingOutboxToOrdinal = state.pendingOutboxToOrdinal
-
-      // We got messages, its possible the ordinal we had previously was replaced by actually sending.
-      // We keep the ordinal mapping the same and update the message so our existing list and order is maintained
-      // updatedMessages.forEach(message => {
-      // if (!(message.type === 'text' || message.type === 'attachment')) {
-      // return message
-      // }
-      // const existingOrdinal = message.outboxID
-      // ? pendingOutboxToOrdinal.getIn([message.conversationIDKey, message.outboxID])
-      // : null
-      // if (existingOrdinal) {
-      // }
-      // Was pending?
-      // if (existingOrdinal && message.outboxID) {
-      // // We keep the original ordinal we created always so that mapping is fixed
-      // // but we want to be able to map back and forth
-      // // messageIDToOrdinal[String(message.id)] = existingOrdinal
-      // switch (message.type) {
-      // case 'text':
-      // return message.set('ordinal', existingOrdinal)
-      // case 'attachment':
-      // return message.set('ordinal', existingOrdinal)
-      // case 'deleted':
-      // return message.set('ordinal', existingOrdinal)
-      // default:
-      // return message
-      // }
-      // } else {
-      // return message
-      // }
-      // })
-      // }
 
       // Update our ordinals list
       // First build a map of conversationIDKey to Set of ordinals (eliminates dupes)
@@ -402,12 +347,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         s.deleteIn(['messageOrdinals', action.payload.conversationIDKey])
         s.deleteIn(['pendingOutboxToOrdinal', action.payload.conversationIDKey])
         s.deleteIn(['messageMap', action.payload.conversationIDKey])
-        // s.update('messageOrdinals', messageOrdinals =>
-        // messageOrdinals.set(action.payload.conversationIDKey, I.SortedSet())
-        // )
-        // s.update('pendingOutboxToOrdinal', pendingOutboxToOrdinal =>
-        // pendingOutboxToOrdinal.set(action.payload.conversationIDKey, I.Map())
-        // )
       })
     }
     case Chat2Gen.messageRetry: {
@@ -458,11 +397,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         s.deleteIn(['messageOrdinals', conversationIDKey])
         s.deleteIn(['pendingOutboxToOrdinal', conversationIDKey])
         s.deleteIn(['messageMap', conversationIDKey])
-        // s.update('messageOrdinals', messageOrdinals => messageOrdinals.set(conversationIDKey, I.SortedSet()))
-        // s.update('pendingOutboxToOrdinal', pendingOutboxToOrdinal =>
-        // pendingOutboxToOrdinal.set(conversationIDKey, I.Map())
-        // )
-        // s.update('messageMap', messageMap => messageMap.set(conversationIDKey, I.Map()))
       })
     }
 
