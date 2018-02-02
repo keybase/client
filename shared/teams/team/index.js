@@ -8,10 +8,8 @@ import {
   Box,
   Button,
   ButtonBar,
-  ClickableBox,
   Text,
   Tabs,
-  List,
   Icon,
   PopupMenu,
   ProgressIndicator,
@@ -20,10 +18,8 @@ import {globalStyles, globalMargins, globalColors, isMobile} from '../../styles'
 import Members from './members/container'
 import Settings from './settings/container'
 import RequestsAndInvites from './invites/container'
-import TeamSubteamRow from './subteam-row/container'
-import SubteamBanner from './subteam-banner'
+import Subteams from './subteams/container'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as I from 'immutable'
 
 export type Props = {
   description: string,
@@ -33,22 +29,19 @@ export type Props = {
   name: Types.Teamname,
   numInvites: number,
   numRequests: number,
+  numSubteams: number,
   onAddPeople: () => void,
   onAddSelf: () => void,
+  onCreateSubteam: () => void,
   onInviteByEmail: () => void,
   setSelectedTab: (t: ?Types.TabKey) => void,
-  onCreateSubteam: () => void,
   onEditDescription: () => void,
-  onHideSubteamsBanner: () => void,
   onLeaveTeam: () => void,
   onManageChat: () => void,
-  onReadMoreAboutSubteams: () => void,
-  sawSubteamsBanner: boolean,
   selectedTab: Types.TabKey,
   showAddYourselfBanner: boolean,
   showMenu: boolean,
   setShowMenu: (s: boolean) => void,
-  subteams: I.List<Types.Teamname>,
   you: string,
   yourRole: ?Types.TeamRoleType,
   yourOperations: RPCTypes.TeamOperation,
@@ -93,81 +86,11 @@ type TeamTabsProps = {
   newTeamRequests: Array<Types.Teamname>,
   numInvites: number,
   numRequests: number,
+  numSubteams: number,
   loading?: boolean,
   selectedTab?: string,
   setSelectedTab: (?Types.TabKey) => void,
-  subteams: I.List<Types.Teamname>,
   yourOperations: RPCTypes.TeamOperation,
-}
-
-const SubteamsIntro = ({row}) => (
-  <SubteamBanner
-    key={row.key}
-    onHideSubteamsBanner={row.onHideSubteamsBanner}
-    onReadMore={row.onReadMore}
-    teamname={row.teamname}
-  />
-)
-
-const SubteamRow = ({row}) => (
-  <Box key={row.teamname + 'row'}>
-    <TeamSubteamRow teamname={row.teamname} />
-  </Box>
-)
-
-const AddSubTeam = ({row}) => (
-  <Box
-    key="addSubteam"
-    style={{
-      ...globalStyles.flexBoxRow,
-      alignItems: 'center',
-      flexShrink: 0,
-      height: globalMargins.medium,
-      padding: globalMargins.medium,
-      width: '100%',
-    }}
-  >
-    <ClickableBox
-      onClick={row.onCreateSubteam}
-      style={{...globalStyles.flexBoxRow, flexGrow: 1, justifyContent: 'center', alignItems: 'center'}}
-    >
-      <Icon type="iconfont-new" style={{color: globalColors.blue}} />
-      <Text type="BodyBigLink" style={{padding: globalMargins.xtiny}}>
-        Create subteam
-      </Text>
-    </ClickableBox>
-  </Box>
-)
-
-const NoSubteams = ({row}) => (
-  <Box
-    key="noSubteams"
-    style={{
-      ...globalStyles.flexBoxRow,
-      alignItems: 'center',
-      flexShrink: 0,
-      height: globalMargins.medium,
-      padding: globalMargins.tiny,
-      width: '100%',
-    }}
-  >
-    <Box style={{...globalStyles.flexBoxRow, flexGrow: 1, justifyContent: 'center', alignItems: 'center'}}>
-      <Text type="BodySmall">This team has no subteams.</Text>
-    </Box>
-  </Box>
-)
-
-const subTeamsRow = (index, row) => {
-  switch (row.type) {
-    case 'intro':
-      return <SubteamsIntro row={row} />
-    case 'addSubteam':
-      return <AddSubTeam row={row} />
-    case 'noSubteams':
-      return <NoSubteams row={row} />
-    default:
-      return <SubteamRow row={row} />
-  }
 }
 
 const TeamTabs = (props: TeamTabsProps) => {
@@ -178,7 +101,7 @@ const TeamTabs = (props: TeamTabsProps) => {
     name,
     newTeamRequests,
     numRequests,
-    subteams,
+    numSubteams,
     loading = false,
     selectedTab,
     setSelectedTab,
@@ -226,8 +149,8 @@ const TeamTabs = (props: TeamTabsProps) => {
   }
 
   let subteamsLabel = 'SUBTEAMS'
-  subteamsLabel += !loading && subteams.count() !== 0 ? ` (${subteams.count()})` : ''
-  if (subteams.count() > 0 || yourOperations.manageSubteams) {
+  subteamsLabel += !loading && numSubteams !== 0 ? ` (${numSubteams})` : ''
+  if (numSubteams > 0 || yourOperations.manageSubteams) {
     tabs.push(
       <Text
         key="subteams"
@@ -308,11 +231,7 @@ class Team extends React.PureComponent<Props> {
       selectedTab,
       loading,
       memberCount,
-      onHideSubteamsBanner,
       onManageChat,
-      onReadMoreAboutSubteams,
-      sawSubteamsBanner,
-      subteams,
       yourRole,
       yourOperations,
     } = this.props
@@ -323,33 +242,7 @@ class Team extends React.PureComponent<Props> {
     if (selectedTab === 'members') {
       contents = <Members teamname={teamname} />
     } else if (selectedTab === 'subteams') {
-      const noSubteams = subteams.isEmpty()
-      const subTeamsItems = [
-        ...(!sawSubteamsBanner
-          ? [
-              {
-                key: 'intro',
-                teamname,
-                type: 'intro',
-                onHideSubteamsBanner,
-                onReadMore: onReadMoreAboutSubteams,
-              },
-            ]
-          : []),
-        ...(yourOperations.manageSubteams ? [{key: 'addSubteam', type: 'addSubteam', onCreateSubteam}] : []),
-        ...subteams.map(subteam => ({key: subteam, teamname: subteam, type: 'subteam'})),
-        ...(noSubteams ? [{key: 'noSubteams', type: 'noSubteams'}] : []),
-      ]
-
-      contents = !loading && (
-        <List
-          items={subTeamsItems}
-          fixedHeight={48}
-          keyProperty="key"
-          renderItem={subTeamsRow}
-          style={{alignSelf: 'stretch'}}
-        />
-      )
+      contents = <Subteams teamname={teamname} />
     } else if (selectedTab === 'invites') {
       contents = <RequestsAndInvites teamname={teamname} />
     } else if (selectedTab === 'publicity') {

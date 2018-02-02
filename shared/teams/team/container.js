@@ -1,9 +1,7 @@
 // @flow
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
-import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as TeamsGen from '../../actions/teams-gen'
-import * as GregorGen from '../../actions/gregor-gen'
 import * as SearchGen from '../../actions/search-gen'
 import * as I from 'immutable'
 import * as KBFSGen from '../../actions/kbfs-gen'
@@ -16,19 +14,18 @@ import {createGetProfile} from '../../actions/tracker-gen'
 import {isMobile} from '../../constants/platform'
 import {navigateAppend} from '../../actions/route-tree'
 import {createShowUserProfile} from '../../actions/profile-gen'
-import openURL from '../../util/open-url'
 
 type StateProps = {
   _invites: I.Set<Types.InviteInfo>,
   _requests: I.Set<Types.RequestInfo>,
+  _subteams: I.Set<Types.Teamname>,
   _newTeamRequests: I.List<string>,
   loading: boolean,
   name: Types.Teamname,
-  sawSubteamsBanner: boolean,
   selectedTab: string,
   you: ?string,
   yourRole: ?Types.TeamRoleType,
-  yourOperations: RPCTypes.TeamOperation,
+  yourOperations: Types.TeamOperations,
 }
 
 const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProps => {
@@ -36,7 +33,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
   if (!teamname) {
     throw new Error('There was a problem loading the team page, please report this error.')
   }
-  const subteams = state.entities.getIn(['teams', 'teamNameToSubteams', teamname], I.Set()).sort()
+  const _subteams = state.entities.getIn(['teams', 'teamNameToSubteams', teamname], I.Set()).sort()
 
   return {
     _requests: state.entities.getIn(['teams', 'teamNameToRequests', teamname], I.Set()),
@@ -46,9 +43,8 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
     loading: state.entities.getIn(['teams', 'teamNameToLoading', teamname], true),
     memberCount: state.entities.getIn(['teams', 'teammembercounts', teamname], 0),
     name: teamname,
-    sawSubteamsBanner: state.entities.getIn(['teams', 'sawSubteamsBanner'], false),
     selectedTab: routeState.get('selectedTab') || 'members',
-    subteams,
+    _subteams,
     you: state.config.username,
     yourRole: Constants.getRole(state, teamname),
     yourOperations: Constants.getCanPerform(state, teamname),
@@ -63,6 +59,7 @@ type DispatchProps = {
   _onInviteByEmail: (teamname: Types.Teamname) => void,
   _onManageChat: (teamname: Types.Teamname) => void,
   _onLeaveTeam: (teamname: Types.Teamname) => void,
+  onCreateSubteam: () => void,
   setSelectedTab: (tab: string) => void,
   onBack: () => void,
   _onEditDescription: () => void,
@@ -81,8 +78,6 @@ const mapDispatchToProps = (
       dispatch(SearchGen.createAddResultsToUserInput({searchKey: 'addToTeamSearch', searchResults: [you]}))
     }
   },
-  _onCreateSubteam: (teamname: Types.Teamname) =>
-    dispatch(navigateAppend([{props: {name: `${teamname}.`}, selected: 'showNewTeamDialog'}])),
   _onInviteByEmail: (teamname: Types.Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'inviteByEmail'}])),
   _onLeaveTeam: (teamname: Types.Teamname) =>
@@ -91,6 +86,10 @@ const mapDispatchToProps = (
     dispatch(navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
   _onOpenFolder: (teamname: Types.Teamname) =>
     dispatch(KBFSGen.createOpen({path: `/keybase/team/${teamname}`})),
+  onCreateSubteam: () =>
+    dispatch(
+      navigateAppend([{props: {name: `${routeProps.get('teamname')}.`}, selected: 'showNewTeamDialog'}])
+    ),
   onUsernameClick: (username: string) => {
     isMobile
       ? dispatch(createShowUserProfile({username}))
@@ -102,11 +101,6 @@ const mapDispatchToProps = (
     dispatch(
       navigateAppend([{props: {teamname: routeProps.get('teamname')}, selected: 'editTeamDescription'}])
     ),
-  onHideSubteamsBanner: () =>
-    dispatch(GregorGen.createInjectItem({body: 'true', category: 'sawSubteamsBanner'})),
-  onReadMoreAboutSubteams: () => {
-    openURL('https://keybase.io/docs/teams/design')
-  },
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
@@ -116,7 +110,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const onManageChat = () => dispatchProps._onManageChat(stateProps.name)
   const onLeaveTeam = () => dispatchProps._onLeaveTeam(stateProps.name)
   const onEditDescription = () => dispatchProps._onEditDescription()
-  const onCreateSubteam = () => dispatchProps._onCreateSubteam(stateProps.name)
 
   const you = stateProps.you
   const yourOperations = stateProps.yourOperations
@@ -140,11 +133,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     headerStyle: {borderBottomWidth: 0},
     numInvites: stateProps._invites.size,
     numRequests: stateProps._requests.size,
+    numSubteams: stateProps._subteams.size,
     newTeamRequests: stateProps._newTeamRequests.toArray(),
     onAddPeople,
     onAddSelf,
     onInviteByEmail,
-    onCreateSubteam,
     onLeaveTeam,
     onManageChat,
     onOpenFolder,
