@@ -662,9 +662,9 @@ func AcceptInvite(ctx context.Context, g *libkb.GlobalContext, token string) err
 }
 
 func parseAndAcceptSeitanTokenV1(ctx context.Context, g *libkb.GlobalContext, tok string) (wasSeitan bool, err error) {
-	seitan, err := GenerateIKeyFromString(tok)
+	seitan, err := ParseIKeyFromString(tok)
 	if err != nil {
-		g.Log.CDebugf(ctx, "GenerateIKeyFromString error: %s", err)
+		g.Log.CDebugf(ctx, "ParseIKeyFromString error: %s", err)
 		g.Log.CDebugf(ctx, "returning TeamInviteBadToken instead")
 		return false, libkb.TeamInviteBadTokenError{}
 	}
@@ -673,9 +673,9 @@ func parseAndAcceptSeitanTokenV1(ctx context.Context, g *libkb.GlobalContext, to
 }
 
 func parseAndAcceptSeitanTokenV2(ctx context.Context, g *libkb.GlobalContext, tok string) (wasSeitan bool, err error) {
-	seitan, err := GenerateIKeyV2FromString(tok)
+	seitan, err := ParseIKeyV2FromString(tok)
 	if err != nil {
-		g.Log.CDebugf(ctx, "GenerateIKeyV2FromString error: %s", err)
+		g.Log.CDebugf(ctx, "ParseIKeyV2FromString error: %s", err)
 		g.Log.CDebugf(ctx, "returning TeamInviteBadToken instead")
 		return false, libkb.TeamInviteBadTokenError{}
 	}
@@ -685,12 +685,18 @@ func parseAndAcceptSeitanTokenV2(ctx context.Context, g *libkb.GlobalContext, to
 }
 
 func ParseAndAcceptSeitanToken(ctx context.Context, g *libkb.GlobalContext, tok string) (wasSeitan bool, err error) {
-	wasSeitan, err = parseAndAcceptSeitanTokenV1(ctx, g, tok)
+	seitanVersion, err := ParseSeitanVersion(tok)
 	if err != nil {
-		wasSeitan, err = parseAndAcceptSeitanTokenV2(ctx, g, tok)
+		return wasSeitan, err
 	}
-	if wasSeitan {
-		g.Log.CDebugf(ctx, "found seitan token")
+	switch seitanVersion {
+	case SeitanVersion1:
+		wasSeitan, err = parseAndAcceptSeitanTokenV1(ctx, g, tok)
+	case SeitanVersion2:
+		wasSeitan, err = parseAndAcceptSeitanTokenV2(ctx, g, tok)
+	default:
+		wasSeitan = false
+		err = errors.New("Invalid SeitanVersion")
 	}
 	return wasSeitan, err
 }

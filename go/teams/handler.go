@@ -488,8 +488,9 @@ func handleSeitanSingleV2(key keybase1.SeitanPubKey, invite keybase1.TeamInvite,
 	if err != nil {
 		return err
 	}
-	if !VerifySeitanSignatureMessage(pubKey, msg, sig) {
-		return fmt.Errorf("Unable to verify signature: %v", sig)
+	err = VerifySeitanSignatureMessage(pubKey, msg, sig)
+	if err != nil {
+		return err
 	}
 
 	return nil

@@ -2,6 +2,7 @@ package teams
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -17,12 +18,33 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
+const SeitanVersion2 = 2
+
 // Seitan tokens v2 have a '+' as the sixth character. We use this
 // to distinguish from email invite tokens (and team names).
 const seitanEncodedIKeyV2PlusOffset = 6
 
 // "Invite Key Version 2"
 type SeitanIKeyV2 string
+
+// IsSeitany is a very conservative check of whether a given string looks
+// like a Seitan token. We want to err on the side of considering strings
+// Seitan tokens, since we don't mistakenly want to send botched Seitan
+// tokens to the server.
+func IsSeitany(s string) bool {
+	return len(s) > seitanEncodedIKeyV2PlusOffset && strings.IndexByte(s, '+') > 1
+}
+
+func ParseSeitanVersion(s string) (version SeitanVersion, err error) {
+	if !IsSeitany(s) {
+		return version, errors.New("Invalid token, not seitany")
+	} else if s[seitanEncodedIKeyPlusOffset] == '+' {
+		return SeitanVersion1, nil
+	} else if s[seitanEncodedIKeyV2PlusOffset] == '+' {
+		return SeitanVersion2, nil
+	}
+	return version, errors.New("Invalid token, invalid '+' position")
+}
 
 func GenerateIKeyV2() (ikey SeitanIKeyV2, err error) {
 	str, err := generateIKey(seitanEncodedIKeyV2PlusOffset)
@@ -32,12 +54,12 @@ func GenerateIKeyV2() (ikey SeitanIKeyV2, err error) {
 	return SeitanIKeyV2(str), err
 }
 
-// GenerateIKeyV2FromString safely creates SeitanIKey value from
+// ParseIKeyV2FromString safely creates SeitanIKey value from
 // plaintext string. Only format is checked - any 18-character token
 // with '+' character at position 6 can be "Invite Key". Alphabet is
 // not checked, as it is only a hint for token generation and it can
 // change over time, but we assume that token length stays the same.
-func GenerateIKeyV2FromString(token string) (ikey SeitanIKeyV2, err error) {
+func ParseIKeyV2FromString(token string) (ikey SeitanIKeyV2, err error) {
 	if len(token) != SeitanEncodedIKeyLength {
 		return ikey, fmt.Errorf("invalid token length: expected %d characters, got %d", SeitanEncodedIKeyLength, len(token))
 	}
@@ -66,13 +88,13 @@ func (ikey SeitanIKeyV2) GenerateSIKey() (sikey SeitanSIKeyV2, err error) {
 
 func (sikey SeitanSIKeyV2) GenerateTeamInviteID() (id SCTeamInviteID, err error) {
 	type InviteStagePayload struct {
-		Stage   string `codec:"stage" json:"stage"`
-		Version int    `codec:"version" json:"version"`
+		Stage   string        `codec:"stage" json:"stage"`
+		Version SeitanVersion `codec:"version" json:"version"`
 	}
 
 	payload, err := libkb.MsgpackEncode(InviteStagePayload{
 		Stage:   "invite_id",
-		Version: 2,
+		Version: SeitanVersion2,
 	})
 	if err != nil {
 		return id, err
@@ -82,13 +104,13 @@ func (sikey SeitanSIKeyV2) GenerateTeamInviteID() (id SCTeamInviteID, err error)
 
 func (sikey SeitanSIKeyV2) generateKeyPair() (key libkb.NaclSigningKeyPair, err error) {
 	type PrivateKeySeedPayload struct {
-		Stage   string `codec:"stage" json:"stage"`
-		Version int    `codec:"version" json:"version"`
+		Stage   string        `codec:"stage" json:"stage"`
+		Version SeitanVersion `codec:"version" json:"version"`
 	}
 
 	payload, err := libkb.MsgpackEncode(PrivateKeySeedPayload{
 		Stage:   "eddsa",
-		Version: 2,
+		Version: SeitanVersion2,
 	})
 	if err != nil {
 		return key, err
@@ -128,8 +150,7 @@ func (sikey SeitanSIKeyV2) generatePackedEncryptedKeyWithSecretKey(secretKey key
 	if err != nil {
 		return pkey, encoded, err
 	}
-	version := uint(2)
-	return packAndEncryptKeyWithSecretKey(secretKey, gen, nonce, packedKeyAndLabel, version)
+	return packAndEncryptKeyWithSecretKey(secretKey, gen, nonce, packedKeyAndLabel, SeitanVersion2)
 }
 
 func (sikey SeitanSIKeyV2) GeneratePackedEncryptedKey(ctx context.Context, team *Team, label keybase1.SeitanKeyLabel) (pkey SeitanPKey, encoded string, err error) {
@@ -157,12 +178,12 @@ func GenerateSeitanSignatureMessage(uid keybase1.UID, eldestSeqno keybase1.Seqno
 		EldestSeqno keybase1.Seqno `codec:"eldest_seqno" json:"eldest_seqno"`
 		CTime       keybase1.Time  `codec:"ctime" json:"ctime"`
 		InviteID    SCTeamInviteID `codec:"invite_id" json:"invite_id"`
-		Version     int            `codec:"version" json:"version"`
+		Version     SeitanVersion  `codec:"version" json:"version"`
 	}
 
 	payload, err = libkb.MsgpackEncode(SigPayload{
 		Stage:       "accept",
-		Version:     2,
+		Version:     SeitanVersion2,
 		InviteID:    inviteID,
 		UID:         uid,
 		EldestSeqno: eldestSeqno,
@@ -171,9 +192,13 @@ func GenerateSeitanSignatureMessage(uid keybase1.UID, eldestSeqno keybase1.Seqno
 	return payload, err
 }
 
-func VerifySeitanSignatureMessage(pubKey SeitanPubKey, msg []byte, sig SeitanSig) bool {
+func VerifySeitanSignatureMessage(pubKey SeitanPubKey, msg []byte, sig SeitanSig) error {
 	naclsig := libkb.NaclSignature(sig)
-	return libkb.NaclSigningKeyPublic(pubKey).Verify(msg, &naclsig)
+	valid := libkb.NaclSigningKeyPublic(pubKey).Verify(msg, &naclsig)
+	if !valid {
+		return libkb.KeyCannotVerifyError{}
+	}
+	return nil
 }
 
 func ImportSeitanPubKey(keyString keybase1.SeitanPubKey) (pubKey SeitanPubKey, err error) {

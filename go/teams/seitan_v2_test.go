@@ -96,7 +96,7 @@ func TestSeitanV2Encryption(t *testing.T) {
 	sig, _, err := sikey.GenerateSignature(uid, user.EldestSeqno, inviteID, ctime)
 	require.NoError(t, err)
 
-	require.True(t, VerifySeitanSignatureMessage(SeitanPubKey(keyPair.Public), msg, sig))
+	require.NoError(t, VerifySeitanSignatureMessage(SeitanPubKey(keyPair.Public), msg, sig))
 }
 
 // TestSeitanV2KnownSamples runs offline seitan crypto chain using known

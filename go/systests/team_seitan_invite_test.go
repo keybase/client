@@ -33,7 +33,7 @@ func TestTeamInviteSeitanFailures(t *testing.T) {
 
 	// Generate invitation id, but make AKey with different IKey.
 	// Simulate "replay attack" or similar.
-	ikey, err := teams.GenerateIKeyFromString(string(token))
+	ikey, err := teams.ParseIKeyFromString(string(token))
 	require.NoError(t, err)
 	sikey, err := ikey.GenerateSIKey()
 	require.NoError(t, err)

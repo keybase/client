@@ -35,14 +35,18 @@ const seitanEncodedIKeyPlusOffset = 5
 const KBase30EncodeStd = "abcdefghjkmnpqrsuvwxyz23456789"
 const base30BitMask = byte(0x1f)
 
+type SeitanVersion uint
+
+const SeitanVersion1 = 1
+
 // "Invite Key"
 type SeitanIKey string
 
-// "Packed Encrypted Invite Key" All following 3 structs should be considered
-// one. When any changes, version has to be bumped up.
+// "Seitan Packed Encrypted Key" All following 3 structs should be considered one.
+// When any changes, version has to be bumped up.
 type SeitanPKey struct {
 	_struct              bool `codec:",toarray"`
-	Version              uint
+	Version              SeitanVersion
 	TeamKeyGeneration    keybase1.PerTeamKeyGeneration
 	RandomNonce          keybase1.BoxNonce
 	EncryptedKeyAndLabel []byte // keybase1.SeitanKeyAndLabel MsgPacked and encrypted
@@ -72,7 +76,7 @@ func generateIKey(plusOffset int) (str string, err error) {
 		} else {
 			b, err := randEncodingByte()
 			if err != nil {
-				return string(buf), err
+				return "", err
 			}
 			buf = append(buf, b)
 		}
@@ -86,14 +90,6 @@ func GenerateIKey() (ikey SeitanIKey, err error) {
 		return ikey, err
 	}
 	return SeitanIKey(str), err
-}
-
-// IsSeitany is a very conservative check of whether a given string looks
-// like a Seitan token. We want to err on the side of considering strings
-// Seitan tokens, since we don't mistakenly want to send botched Seitan
-// tokens to the server.
-func IsSeitany(s string) bool {
-	return len(s) > seitanEncodedIKeyPlusOffset && strings.IndexByte(s, '+') > 1
 }
 
 var tokenPasteRegexp = regexp.MustCompile(`token\: [a-z0-9+]{16,18}`)
@@ -114,12 +110,12 @@ func ParseSeitanTokenFromPaste(token string) (string, bool) {
 	return token, false
 }
 
-// GenerateIKeyFromString safely creates SeitanIKey value from
+// ParseIKeyFromString safely creates SeitanIKey value from
 // plaintext string. Only format is checked - any 18-character token
 // with '+' character at position 5 can be "Invite Key". Alphabet is
 // not checked, as it is only a hint for token generation and it can
 // change over time, but we assume that token length stays the same.
-func GenerateIKeyFromString(token string) (ikey SeitanIKey, err error) {
+func ParseIKeyFromString(token string) (ikey SeitanIKey, err error) {
 	if len(token) != SeitanEncodedIKeyLength {
 		return ikey, fmt.Errorf("invalid token length: expected %d characters, got %d", SeitanEncodedIKeyLength, len(token))
 	}
@@ -185,7 +181,7 @@ func (sikey SeitanSIKey) GenerateTeamInviteID() (id SCTeamInviteID, err error) {
 	return generateTeamInviteID(sikey[:], payload)
 }
 
-func packAndEncryptKeyWithSecretKey(secretKey keybase1.Bytes32, gen keybase1.PerTeamKeyGeneration, nonce keybase1.BoxNonce, packedKeyAndLabel []byte, version uint) (pkey SeitanPKey, encoded string, err error) {
+func packAndEncryptKeyWithSecretKey(secretKey keybase1.Bytes32, gen keybase1.PerTeamKeyGeneration, nonce keybase1.BoxNonce, packedKeyAndLabel []byte, version SeitanVersion) (pkey SeitanPKey, encoded string, err error) {
 	var encKey [libkb.NaclSecretBoxKeySize]byte = secretKey
 	var naclNonce [libkb.NaclDHNonceSize]byte = nonce
 	encryptedKeyAndLabel := secretbox.Seal(nil, []byte(packedKeyAndLabel), &naclNonce, &encKey)
@@ -215,8 +211,7 @@ func (ikey SeitanIKey) generatePackedEncryptedKeyWithSecretKey(secretKey keybase
 	if err != nil {
 		return pkey, encoded, err
 	}
-	version := uint(1)
-	return packAndEncryptKeyWithSecretKey(secretKey, gen, nonce, packedKeyAndLabel, version)
+	return packAndEncryptKeyWithSecretKey(secretKey, gen, nonce, packedKeyAndLabel, SeitanVersion1)
 }
 
 func (ikey SeitanIKey) GeneratePackedEncryptedKey(ctx context.Context, team *Team, label keybase1.SeitanKeyLabel) (pkey SeitanPKey, encoded string, err error) {
