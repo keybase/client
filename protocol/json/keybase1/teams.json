@@ -2224,9 +2224,9 @@
           "type": "SeitanKeyLabel"
         }
       ],
-      "response": "SeitanIKeyV2"
+      "response": "SeitanIKey"
     },
-    "teamCreateSeitanTokenV1": {
+    "teamCreateSeitanTokenV2": {
       "request": [
         {
           "name": "sessionID",
@@ -2245,7 +2245,7 @@
           "type": "SeitanKeyLabel"
         }
       ],
-      "response": "SeitanIKey"
+      "response": "SeitanIKeyV2"
     },
     "teamAddEmailsBulk": {
       "request": [

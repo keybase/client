@@ -1590,9 +1590,9 @@ export const teamsTeamCreateSeitanTokenRpcChannelMap = (configKeys: Array<string
 
 export const teamsTeamCreateSeitanTokenRpcPromise = (request: TeamsTeamCreateSeitanTokenRpcParam): Promise<TeamsTeamCreateSeitanTokenResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamCreateSeitanToken', request, (error: RPCError, result: TeamsTeamCreateSeitanTokenResult) => (error ? reject(error) : resolve(result))))
 
-export const teamsTeamCreateSeitanTokenV1RpcChannelMap = (configKeys: Array<string>, request: TeamsTeamCreateSeitanTokenV1RpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamCreateSeitanTokenV1', request)
+export const teamsTeamCreateSeitanTokenV2RpcChannelMap = (configKeys: Array<string>, request: TeamsTeamCreateSeitanTokenV2RpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamCreateSeitanTokenV2', request)
 
-export const teamsTeamCreateSeitanTokenV1RpcPromise = (request: TeamsTeamCreateSeitanTokenV1RpcParam): Promise<TeamsTeamCreateSeitanTokenV1Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamCreateSeitanTokenV1', request, (error: RPCError, result: TeamsTeamCreateSeitanTokenV1Result) => (error ? reject(error) : resolve(result))))
+export const teamsTeamCreateSeitanTokenV2RpcPromise = (request: TeamsTeamCreateSeitanTokenV2RpcParam): Promise<TeamsTeamCreateSeitanTokenV2Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamCreateSeitanTokenV2', request, (error: RPCError, result: TeamsTeamCreateSeitanTokenV2Result) => (error ? reject(error) : resolve(result))))
 
 export const teamsTeamCreateWithSettingsRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamCreateWithSettingsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamCreateWithSettings', request)
 
@@ -3688,7 +3688,7 @@ export type TeamsTeamCreateRpcParam = $ReadOnly<{name: String, joinSubteam: Bool
 
 export type TeamsTeamCreateSeitanTokenRpcParam = $ReadOnly<{name: String, role: TeamRole, label: SeitanKeyLabel, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsTeamCreateSeitanTokenV1RpcParam = $ReadOnly<{name: String, role: TeamRole, label: SeitanKeyLabel, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsTeamCreateSeitanTokenV2RpcParam = $ReadOnly<{name: String, role: TeamRole, label: SeitanKeyLabel, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type TeamsTeamCreateWithSettingsRpcParam = $ReadOnly<{name: String, joinSubteam: Boolean, settings: TeamSettings, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -4056,8 +4056,8 @@ type TeamsTeamAcceptInviteOrRequestAccessResult = TeamAcceptOrRequestResult
 type TeamsTeamAddEmailsBulkResult = BulkRes
 type TeamsTeamAddMemberResult = TeamAddMemberResult
 type TeamsTeamCreateResult = TeamCreateResult
-type TeamsTeamCreateSeitanTokenResult = SeitanIKeyV2
-type TeamsTeamCreateSeitanTokenV1Result = SeitanIKey
+type TeamsTeamCreateSeitanTokenResult = SeitanIKey
+type TeamsTeamCreateSeitanTokenV2Result = SeitanIKeyV2
 type TeamsTeamCreateWithSettingsResult = TeamCreateResult
 type TeamsTeamDebugResult = TeamDebugRes
 type TeamsTeamGetResult = TeamDetails

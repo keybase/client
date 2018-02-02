@@ -675,7 +675,7 @@ func parseAndAcceptSeitanTokenV1(ctx context.Context, g *libkb.GlobalContext, to
 func parseAndAcceptSeitanTokenV2(ctx context.Context, g *libkb.GlobalContext, tok string) (wasSeitan bool, err error) {
 	seitan, err := GenerateIKeyV2FromString(tok)
 	if err != nil {
-		g.Log.CDebugf(ctx, "GenerateIKeyV2FromString error: %s, tok: %v", err, tok)
+		g.Log.CDebugf(ctx, "GenerateIKeyV2FromString error: %s", err)
 		g.Log.CDebugf(ctx, "returning TeamInviteBadToken instead")
 		return false, libkb.TeamInviteBadTokenError{}
 	}
@@ -692,7 +692,7 @@ func ParseAndAcceptSeitanToken(ctx context.Context, g *libkb.GlobalContext, tok 
 	if wasSeitan {
 		g.Log.CDebugf(ctx, "found seitan token")
 	}
-	return true, err
+	return wasSeitan, err
 }
 
 func AcceptSeitan(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKey) error {
@@ -1178,7 +1178,7 @@ func splitBulk(s string) []string {
 	return split
 }
 
-func CreateSeitanToken(ctx context.Context, g *libkb.GlobalContext, teamname string, role keybase1.TeamRole, label keybase1.SeitanKeyLabel) (keybase1.SeitanIKeyV2, error) {
+func CreateSeitanToken(ctx context.Context, g *libkb.GlobalContext, teamname string, role keybase1.TeamRole, label keybase1.SeitanKeyLabel) (keybase1.SeitanIKey, error) {
 	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 	if err != nil {
 		return "", err
@@ -1188,20 +1188,20 @@ func CreateSeitanToken(ctx context.Context, g *libkb.GlobalContext, teamname str
 		return "", err
 	}
 
-	return keybase1.SeitanIKeyV2(ikey), err
+	return keybase1.SeitanIKey(ikey), err
 }
 
-func CreateSeitanTokenV1(ctx context.Context, g *libkb.GlobalContext, teamname string, role keybase1.TeamRole, label keybase1.SeitanKeyLabel) (keybase1.SeitanIKey, error) {
+func CreateSeitanTokenV2(ctx context.Context, g *libkb.GlobalContext, teamname string, role keybase1.TeamRole, label keybase1.SeitanKeyLabel) (keybase1.SeitanIKeyV2, error) {
 	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 	if err != nil {
 		return "", err
 	}
-	ikey, err := t.InviteSeitanV1(ctx, role, label)
+	ikey, err := t.InviteSeitanV2(ctx, role, label)
 	if err != nil {
 		return "", err
 	}
 
-	return keybase1.SeitanIKey(ikey), err
+	return keybase1.SeitanIKeyV2(ikey), err
 }
 
 // CreateTLF is called by KBFS when a TLF ID is associated with an implicit team.

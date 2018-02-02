@@ -713,9 +713,9 @@ protocol teams {
 
   void teamSetSettings(int sessionID, string name, TeamSettings settings);
 
-  SeitanIKeyV2 teamCreateSeitanToken(int sessionID, string name, TeamRole role, SeitanKeyLabel label);
+  SeitanIKey teamCreateSeitanToken(int sessionID, string name, TeamRole role, SeitanKeyLabel label);
 
-  SeitanIKey teamCreateSeitanTokenV1(int sessionID, string name, TeamRole role, SeitanKeyLabel label);
+  SeitanIKeyV2 teamCreateSeitanTokenV2(int sessionID, string name, TeamRole role, SeitanKeyLabel label);
 
   record BulkRes {
     array<string> invited;
