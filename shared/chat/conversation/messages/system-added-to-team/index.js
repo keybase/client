@@ -9,8 +9,9 @@ import {formatTimeForMessages} from '../../../../util/timestamp'
 
 type Props = {
   message: Types.MessageSystemAddedToTeam,
+  onClickUserAvatar: (username: string) => void,
   onManageChannels: () => void,
-  onViewTeam: () => void,
+  onViewTeam: (team: string) => void,
   you: string,
 }
 
@@ -47,13 +48,21 @@ class AddedToTeam extends React.PureComponent<Props> {
       )
     } else if (isAdmin) {
       manageComponent = (
-        <Text onClick={onViewTeam} type="BodySmallSemiboldInlineLink" style={{color: globalColors.blue}}>
+        <Text
+          onClick={() => onViewTeam(team)}
+          type="BodySmallSemiboldInlineLink"
+          style={{color: globalColors.blue}}
+        >
           Manage members
         </Text>
       )
     } else {
       manageComponent = (
-        <Text onClick={onViewTeam} type="BodySmallSemiboldInlineLink" style={{color: globalColors.blue}}>
+        <Text
+          onClick={() => onViewTeam(team)}
+          type="BodySmallSemiboldInlineLink"
+          style={{color: globalColors.blue}}
+        >
           See all members
         </Text>
       )
@@ -65,6 +74,11 @@ class AddedToTeam extends React.PureComponent<Props> {
         username={you !== addee ? addee : undefined}
         teamname={you === addee ? team : undefined}
         bgColor={globalColors.blue4}
+        onClickAvatar={
+          you !== addee
+            ? () => this.props.onClickUserAvatar(addee)
+            : () => onViewTeam(this.props.message.team)
+        }
       >
         {you === addee && (
           <Icon type="icon-team-sparkles-48-40" style={{height: 40, marginTop: -36, width: 48}} />

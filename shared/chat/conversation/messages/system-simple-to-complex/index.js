@@ -10,6 +10,7 @@ import {isAndroid} from '../../../../constants/platform'
 type Props = {
   message: Types.MessageSystemSimpleToComplex,
   onManageChannels: () => void,
+  onViewTeam: (teamname: string) => void,
   you: string,
 }
 
@@ -18,7 +19,7 @@ const bullet = '\u2022'
 class ComplexTeamNotice extends React.PureComponent<Props> {
   render() {
     const {team, author, timestamp} = this.props.message
-    const {you, onManageChannels} = this.props
+    const {you, onManageChannels, onViewTeam} = this.props
     const authorComponent =
       author === you ? (
         'You'
@@ -33,7 +34,12 @@ class ComplexTeamNotice extends React.PureComponent<Props> {
         />
       )
     return (
-      <UserNotice style={{marginTop: globalMargins.small}} teamname={team || ''} bgColor={globalColors.blue4}>
+      <UserNotice
+        style={{marginTop: globalMargins.small}}
+        teamname={team || ''}
+        bgColor={globalColors.blue4}
+        onClickAvatar={() => onViewTeam(team)}
+      >
         <Text
           type="BodySmallSemibold"
           backgroundMode="Announcements"

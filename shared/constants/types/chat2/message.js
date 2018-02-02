@@ -125,6 +125,7 @@ export type _MessageSystemGitPush = {
   pusher: string,
   refs: Array<RPCTypes.GitRefMetadata>,
   repo: string,
+  repoID: string,
   team: string,
   timestamp: number,
   type: 'systemGitPush',

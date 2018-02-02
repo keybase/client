@@ -10,6 +10,8 @@ import {isMobile} from '../../../../constants/platform'
 
 type Props = {
   message: Types.MessageSystemInviteAccepted,
+  onClickUserAvatar: (username: string) => void,
+  onViewTeam: (team: string) => void,
   you: string,
 }
 
@@ -55,6 +57,9 @@ class InviteAddedToTeamNotice extends React.PureComponent<Props> {
         username={invitee === you ? undefined : invitee}
         teamname={invitee === you ? team : undefined}
         bgColor={globalColors.blue4}
+        onClickAvatar={
+          invitee === you ? () => this.props.onViewTeam(team) : () => this.props.onClickUserAvatar(invitee)
+        }
       >
         {you === invitee && (
           <Icon type="icon-team-sparkles-48-40" style={{height: 40, marginTop: -36, width: 48}} />

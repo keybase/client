@@ -8,6 +8,8 @@ import {formatTimeForMessages} from '../../../../util/timestamp'
 
 type Props = {
   message: Types.MessageSystemGitPush,
+  onClickUserAvatar: (username: string) => void,
+  onViewGitRepo: (repoID: string, teamname: string) => void,
 }
 const connectedUsernamesProps = {
   clickable: true,
@@ -19,7 +21,7 @@ const connectedUsernamesProps = {
 
 class GitPush extends React.PureComponent<Props> {
   render() {
-    const {timestamp, repo, refs, pusher} = this.props.message
+    const {timestamp, repo, repoID, refs, pusher, team} = this.props.message
     return refs.map(ref => {
       const branchName = ref.refName.split('/')[2]
       return (
@@ -28,6 +30,7 @@ class GitPush extends React.PureComponent<Props> {
           key={branchName}
           style={{marginTop: globalMargins.small}}
           bgColor={globalColors.blue4}
+          onClickAvatar={() => this.props.onClickUserAvatar(pusher)}
         >
           <Text
             type="BodySmallSemibold"
@@ -40,7 +43,12 @@ class GitPush extends React.PureComponent<Props> {
             <Text type="BodySmallSemibold" style={{marginBottom: globalMargins.xtiny, textAlign: 'center'}}>
               <ConnectedUsernames {...connectedUsernamesProps} usernames={[pusher]} /> pushed{' '}
               {!!ref.commits && ref.commits.length}{' '}
-              {`commit${!!ref.commits && ref.commits.length !== 1 ? 's' : ''}`} to {`${repo}/${branchName}`}:
+              {`commit${!!ref.commits && ref.commits.length !== 1 ? 's' : ''}`} to
+              <Text
+                type="BodySmallSemibold"
+                style={repoID ? {color: globalColors.black_75} : undefined}
+                onClick={repoID ? () => this.props.onViewGitRepo(repoID, team) : undefined}
+              >{`${repo}/${branchName}`}</Text>:
             </Text>
             <Box style={globalStyles.flexBoxColumn}>
               {(ref.commits || []).map((commit, i) => (

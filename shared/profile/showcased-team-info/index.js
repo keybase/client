@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, Button, Text, Usernames} from '../../common-adapters'
-import {globalStyles, globalMargins, isMobile} from '../../styles'
+import {Avatar, Box, Button, Meta, Text, Usernames} from '../../common-adapters'
+import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
 import PopupMenu, {ModalLessPopupMenu} from '../../common-adapters/popup-menu'
 import type {Props} from '.'
 
@@ -24,9 +24,12 @@ const TeamInfo = (props: Props) => (
     </Box>
     <Text type="Header">{props.teamname}</Text>
 
-    <Text type="BodySmall" style={{textTransform: 'uppercase'}}>
-      {props.openTeam && 'OPEN '}TEAM
-    </Text>
+    <Box style={globalStyles.flexBoxRow}>
+      <Text type="BodySmall" style={{textTransform: 'uppercase'}}>
+        TEAM
+      </Text>
+      {props.openTeam && <Meta title="OPEN" style={styleMeta} />}
+    </Box>
 
     <Text type="BodySmall">{props.memberCount + ' member' + (props.memberCount !== 1 ? 's' : '')}</Text>
 
@@ -113,6 +116,14 @@ const styleInnerWrap = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   marginLeft: 2,
+}
+
+const styleMeta = {
+  alignSelf: 'center',
+  backgroundColor: globalColors.green,
+  borderRadius: 1,
+  marginLeft: globalMargins.xtiny,
+  marginTop: 2,
 }
 
 const styleWrap = {
