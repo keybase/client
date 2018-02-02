@@ -12,6 +12,11 @@ const teammembercounts = {
   'stripe.usa': 1,
   techtonica: 0,
 }
+const teamNameToIsOpen = {
+  stripe: true,
+  'stripe.usa': false,
+  techtonica: true,
+}
 
 const load = () => {
   storiesOf('Teams', module)
@@ -23,7 +28,7 @@ const load = () => {
       <Box style={{maxWidth: 320}}>
         <TeamList
           teamnames={teamnames}
-          teamNameToIsOpen={{}}
+          teamNameToIsOpen={teamNameToIsOpen}
           newTeams={['stripe.usa']}
           newTeamRequests={['techtonica']}
           teammembercounts={teammembercounts}
