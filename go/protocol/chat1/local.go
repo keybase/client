@@ -3902,7 +3902,8 @@ type CancelPostArg struct {
 }
 
 type RetryPostArg struct {
-	OutboxID OutboxID `codec:"outboxID" json:"outboxID"`
+	OutboxID         OutboxID                      `codec:"outboxID" json:"outboxID"`
+	IdentifyBehavior *keybase1.TLFIdentifyBehavior `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
 }
 
 type MarkAsReadLocalArg struct {
@@ -4026,7 +4027,7 @@ type LocalInterface interface {
 	DownloadFileAttachmentLocal(context.Context, DownloadFileAttachmentLocalArg) (DownloadAttachmentLocalRes, error)
 	MakePreview(context.Context, MakePreviewArg) (MakePreviewRes, error)
 	CancelPost(context.Context, OutboxID) error
-	RetryPost(context.Context, OutboxID) error
+	RetryPost(context.Context, RetryPostArg) error
 	MarkAsReadLocal(context.Context, MarkAsReadLocalArg) (MarkAsReadLocalRes, error)
 	FindConversationsLocal(context.Context, FindConversationsLocalArg) (FindConversationsLocalRes, error)
 	UpdateTyping(context.Context, UpdateTypingArg) error
@@ -4504,7 +4505,7 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]RetryPostArg)(nil), args)
 						return
 					}
-					err = i.RetryPost(ctx, (*typedArgs)[0].OutboxID)
+					err = i.RetryPost(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4927,8 +4928,7 @@ func (c LocalClient) CancelPost(ctx context.Context, outboxID OutboxID) (err err
 	return
 }
 
-func (c LocalClient) RetryPost(ctx context.Context, outboxID OutboxID) (err error) {
-	__arg := RetryPostArg{OutboxID: outboxID}
+func (c LocalClient) RetryPost(ctx context.Context, __arg RetryPostArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.RetryPost", []interface{}{__arg}, nil)
 	return
 }

@@ -1724,7 +1724,7 @@ func (h *Server) CancelPost(ctx context.Context, outboxID chat1.OutboxID) (err e
 	return outbox.RemoveMessage(ctx, outboxID)
 }
 
-func (h *Server) RetryPost(ctx context.Context, outboxID chat1.OutboxID) (err error) {
+func (h *Server) RetryPost(ctx context.Context, arg chat1.RetryPostArg) (err error) {
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "RetryPost")()
 	if err = h.assertLoggedIn(ctx); err != nil {
@@ -1734,7 +1734,7 @@ func (h *Server) RetryPost(ctx context.Context, outboxID chat1.OutboxID) (err er
 	// Mark as retry in the outbox
 	uid := h.G().Env.GetUID()
 	outbox := storage.NewOutbox(h.G(), uid.ToBytes())
-	if err = outbox.RetryMessage(ctx, outboxID); err != nil {
+	if err = outbox.RetryMessage(ctx, arg.OutboxID, arg.IdentifyBehavior); err != nil {
 		return err
 	}
 
