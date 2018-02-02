@@ -31,6 +31,23 @@ type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
 }
 
+const serverStateToProps = (notifications: Types.NotificationsState, type: 'desktop' | 'mobile') => {
+  // The server state has independent bool values for atmention/generic,
+  // but the design has three radio buttons -- atmention, generic, never.
+  // So:
+  //  - generic: true,  atmention: true  = generic
+  //  - generic: false, atmention: true  = atmention
+  //  - generic: true,  atmention: false = generic
+  //  - generic: false, atmention: false = never
+  if (notifications[type] && notifications[type].generic) {
+    return 'generic'
+  }
+  if (notifications[type] && notifications[type].atmention) {
+    return 'atmention'
+  }
+  return 'never'
+}
+
 const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => {
   const inbox = Constants.getSelectedInbox(state)
   if (!inbox) throw new Error('Impossible')
@@ -99,23 +116,6 @@ const ConnectedNotifications = compose(
     },
   })
 )(Notifications)
-
-const serverStateToProps = (notifications: Types.NotificationsState, type: 'desktop' | 'mobile') => {
-  // The server state has independent bool values for atmention/generic,
-  // but the design has three radio buttons -- atmention, generic, never.
-  // So:
-  //  - generic: true,  atmention: true  = generic
-  //  - generic: false, atmention: true  = atmention
-  //  - generic: true,  atmention: false = generic
-  //  - generic: false, atmention: false = never
-  if (notifications[type] && notifications[type].generic) {
-    return 'generic'
-  }
-  if (notifications[type] && notifications[type].atmention) {
-    return 'atmention'
-  }
-  return 'never'
-}
 
 const OnlyValidConversations = ({conversationIDKey}) =>
   conversationIDKey && <ConnectedNotifications conversationIDKey={conversationIDKey} />
