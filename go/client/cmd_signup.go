@@ -437,7 +437,8 @@ func (s *CmdSignup) postInviteRequest() (err error) {
 	}
 	err = s.scli.InviteRequest(context.TODO(), rarg)
 	if err == nil {
-		s.G().Log.Info("Success! You're on our list, thanks for your interest.")
+		s.G().UI.GetDumbOutputUI().Printf(
+			"Success! You're on our list, thanks for your interest.\n")
 	}
 	return
 }

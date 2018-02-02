@@ -49,9 +49,10 @@ func (p *CmdProve) ParseArgv(ctx *cli.Context) error {
 }
 
 func (p *CmdProve) fileOutputHook(txt string) (err error) {
-	p.G().Log.Info("Writing proof to file '" + p.output + "'...")
+	dui := p.G().UI.GetDumbOutputUI()
+	dui.Printf("Writing proof to file '%s'...\n", p.output)
 	err = ioutil.WriteFile(p.output, []byte(txt), os.FileMode(0644))
-	p.G().Log.Info("Written.")
+	dui.Printf("Written.\n")
 	return
 }
 

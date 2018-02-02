@@ -94,6 +94,14 @@ func (t TeamSigChainState) GetLatestGeneration() keybase1.PerTeamKeyGeneration {
 	return keybase1.PerTeamKeyGeneration(len(t.inner.PerTeamKeys))
 }
 
+func (t TeamSigChainState) GetLatestKBFSGeneration(appType keybase1.TeamApplication) (int, error) {
+	info, ok := t.inner.TlfLegacyUpgrade[appType]
+	if !ok {
+		return 0, errors.New("no KBFS keys available")
+	}
+	return info.LegacyGeneration, nil
+}
+
 func (t TeamSigChainState) GetUserRole(user keybase1.UserVersion) (keybase1.TeamRole, error) {
 	return t.getUserRole(user), nil
 }

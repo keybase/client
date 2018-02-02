@@ -1420,12 +1420,25 @@ func (o TeamSeitanMsg) DeepCopy() TeamSeitanMsg {
 	}
 }
 
+type TeamKBFSKeyRefresher struct {
+	Generation int             `codec:"generation" json:"generation"`
+	AppType    TeamApplication `codec:"appType" json:"appType"`
+}
+
+func (o TeamKBFSKeyRefresher) DeepCopy() TeamKBFSKeyRefresher {
+	return TeamKBFSKeyRefresher{
+		Generation: o.Generation,
+		AppType:    o.AppType.DeepCopy(),
+	}
+}
+
 // * TeamRefreshData are needed or wanted data requirements that, if unmet, will cause
 // * a refresh of the cache.
 type TeamRefreshers struct {
-	NeedKeyGeneration PerTeamKeyGeneration `codec:"needKeyGeneration" json:"needKeyGeneration"`
-	WantMembers       []UserVersion        `codec:"wantMembers" json:"wantMembers"`
-	WantMembersRole   TeamRole             `codec:"wantMembersRole" json:"wantMembersRole"`
+	NeedKeyGeneration     PerTeamKeyGeneration `codec:"needKeyGeneration" json:"needKeyGeneration"`
+	WantMembers           []UserVersion        `codec:"wantMembers" json:"wantMembers"`
+	WantMembersRole       TeamRole             `codec:"wantMembersRole" json:"wantMembersRole"`
+	NeedKBFSKeyGeneration TeamKBFSKeyRefresher `codec:"needKBFSKeyGeneration" json:"needKBFSKeyGeneration"`
 }
 
 func (o TeamRefreshers) DeepCopy() TeamRefreshers {
@@ -1442,7 +1455,8 @@ func (o TeamRefreshers) DeepCopy() TeamRefreshers {
 			}
 			return ret
 		})(o.WantMembers),
-		WantMembersRole: o.WantMembersRole.DeepCopy(),
+		WantMembersRole:       o.WantMembersRole.DeepCopy(),
+		NeedKBFSKeyGeneration: o.NeedKBFSKeyGeneration.DeepCopy(),
 	}
 }
 
