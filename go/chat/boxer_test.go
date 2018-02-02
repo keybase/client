@@ -8,8 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/teams"
-
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 
@@ -328,85 +326,6 @@ func TestChatMessageMismatchMessageType(t *testing.T) {
 		require.NoError(t, err)
 		require.False(t, decmsg.IsValid())
 	})
-}
-
-func TestChatKBFSUpgradeMixed(t *testing.T) {
-	tc, boxer := setupChatTest(t, "unbox")
-	defer tc.Cleanup()
-
-	world := NewChatMockWorld(t, "unbox", 4)
-	u := world.GetUsers()[0]
-	tc = world.Tcs[u.Username]
-	uid := u.User.GetUID().ToBytes()
-	tlf := kbtest.NewTlfMock(world)
-	ctx := newTestContextWithTlfMock(tc, tlf)
-
-	cres, err := tlf.CryptKeys(ctx, u.Username)
-	require.NoError(t, err)
-	tlfID := cres.NameIDBreaks.TlfID
-
-	yesKBFS := new(bool)
-	*yesKBFS = false
-	noKBFS := new(bool)
-	*noKBFS = true
-	header := chat1.MessageClientHeader{
-		Conv: chat1.ConversationIDTriple{
-			Tlfid: tlfID.ToBytes(),
-		},
-		Sender:            uid,
-		TlfPublic:         false,
-		TlfName:           u.Username,
-		MessageType:       chat1.MessageType_TEXT,
-		KbfsCryptKeysUsed: yesKBFS,
-	}
-	kbfsPlain := textMsgWithHeader(t, "kbfs", header)
-	signKP := getSigningKeyPairForTest(t, tc, u)
-	kbfsBoxed, err := boxer.BoxMessage(ctx, kbfsPlain, chat1.ConversationMembersType_KBFS, signKP)
-	require.NoError(t, err)
-	require.NotNil(t, kbfsBoxed)
-	kbfsBoxed.ServerHeader = &chat1.MessageServerHeader{
-		Ctime:     gregor1.ToTime(time.Now()),
-		MessageID: 1,
-	}
-
-	require.NoError(t, teams.UpgradeTLFIDToImpteam(ctx, tc.G, u.Username, tlfID, false,
-		keybase1.TeamApplication_CHAT, cres.CryptKeys))
-
-	header = chat1.MessageClientHeader{
-		Conv: chat1.ConversationIDTriple{
-			Tlfid: tlfID.ToBytes(),
-		},
-		Sender:            uid,
-		TlfPublic:         false,
-		TlfName:           u.Username,
-		MessageType:       chat1.MessageType_TEXT,
-		KbfsCryptKeysUsed: noKBFS,
-	}
-	teamPlain := textMsgWithHeader(t, "team", header)
-	teamBoxed, err := boxer.BoxMessage(ctx, teamPlain, chat1.ConversationMembersType_IMPTEAMUPGRADE, signKP)
-	require.NoError(t, err)
-	require.NotNil(t, teamBoxed)
-	teamBoxed.ServerHeader = &chat1.MessageServerHeader{
-		Ctime:     gregor1.ToTime(time.Now()),
-		MessageID: 2,
-	}
-
-	convID := header.Conv.ToConversationID([2]byte{0, 0})
-	conv := chat1.Conversation{
-		Metadata: chat1.ConversationMetadata{
-			ConversationID: convID,
-			MembersType:    chat1.ConversationMembersType_IMPTEAMUPGRADE,
-			IdTriple: chat1.ConversationIDTriple{
-				Tlfid: tlfID.ToBytes(),
-			},
-		},
-	}
-
-	unboxed, err := boxer.UnboxMessages(ctx, []chat1.MessageBoxed{*teamBoxed, *kbfsBoxed}, conv)
-	require.NoError(t, err)
-	for _, u := range unboxed {
-		require.True(t, u.IsValid())
-	}
 }
 
 func TestChatMessageUnboxInvalidBodyHash(t *testing.T) {
