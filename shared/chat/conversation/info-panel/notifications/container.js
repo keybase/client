@@ -121,6 +121,9 @@ const OnlyValidConversations = ({conversationIDKey}) =>
 
 const mapStateToPropsOnlyValid = (state: TypedState): * => {
   const conversationIDKey = Constants.getSelectedConversation(state)
+  if (!conversationIDKey) {
+    return {conversationIDKey: null}
+  }
   const inbox = Constants.getSelectedInbox(state)
   if (!inbox) {
     logger.warn('no selected inbox')
