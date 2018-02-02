@@ -16,6 +16,7 @@ type StateProps = {
   loaded: boolean,
   _newTeams: I.Set<string>,
   _newTeamRequests: I.List<string>,
+  _teamNameToIsOpen: I.Map<Teamname, boolean>,
 }
 
 const mapStateToProps = (state: TypedState): StateProps => {

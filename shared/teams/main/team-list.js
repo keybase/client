@@ -8,6 +8,7 @@ import type {Teamname} from '../../constants/types/teams'
 export type Props = {
   teamnames: Array<Teamname>,
   teammembercounts: {[string]: number},
+  teamNameToIsOpen: {[string]: boolean},
   newTeams: Array<Teamname>,
   newTeamRequests: Array<Teamname>,
   onOpenFolder: (teamname: Teamname) => void,
@@ -19,6 +20,7 @@ type RowProps = {
   name: Teamname,
   membercount: number,
   isNew: boolean,
+  isOpen: boolean,
   newRequests: number,
   onOpenFolder: ?() => void,
   onManageChat: ?() => void,
