@@ -84,16 +84,12 @@ func (b *CancellableRandomTimer) Start(maxWait time.Duration) time.Duration {
 	f := newFireOnce()
 	b.swap(f).fire()
 
-	// Avoid dividing by zero if maxWait is zero.
-	var waitDur time.Duration
-	if maxWait != 0 {
-		var buf [8]byte
-		if _, err := rand.Read(buf[:]); err != nil {
-			panic(err)
-		}
-		buf[0] &= 127 // clear the high bit, because casting to time.Duration makes it signed
-		waitDur = time.Duration(binary.BigEndian.Uint64(buf[:])) % maxWait
+	var buf [8]byte
+	if _, err := rand.Read(buf[:]); err != nil {
+		panic(err)
 	}
+	buf[0] &= 127 // so it's always positive
+	waitDur := time.Duration(binary.BigEndian.Uint64(buf[:])) % maxWait
 	time.AfterFunc(waitDur, f.fire)
 	return waitDur
 }
