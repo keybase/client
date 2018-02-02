@@ -6,12 +6,10 @@ export opaque type Path = ?string
 export type PathType = 'folder' | 'file' | 'symlink' | 'unknown'
 
 export type PathItemMetadata = {
-  /*
-  lastModifiedTimestamp: ?number,
-  size: ?number,
-  lastWriter: ?string,
+  lastModifiedTimestamp?: number,
+  size?: number,
+  lastWriter?: string,
   progress: number,
-  */
 }
 
 export type _FolderPathItem = {
