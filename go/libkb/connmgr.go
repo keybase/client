@@ -42,6 +42,9 @@ type lookupByClientTypeObj struct {
 // true to keep going and false to stop.
 type ApplyFn func(i ConnectionID, xp rpc.Transporter) bool
 
+// LabelCb is a callback to be run when a client connections and labels itself.
+type LabelCb func(typ keybase1.ClientType)
+
 type rpcConnection struct {
 	transporter rpc.Transporter
 	details     *keybase1.ClientDetails
@@ -50,8 +53,9 @@ type rpcConnection struct {
 // ConnectionManager manages all connections active for a given service.
 // It can be called from multiple goroutines.
 type ConnectionManager struct {
-	nxt    ConnectionID
-	lookup map[ConnectionID](*rpcConnection)
+	nxt      ConnectionID
+	lookup   map[ConnectionID](*rpcConnection)
+	labelCbs []LabelCb
 
 	addConnectionCh      chan *addConnectionObj
 	lookupConnectionCh   chan *lookupConnectionObj
@@ -61,6 +65,7 @@ type ConnectionManager struct {
 	labelConnectionCh    chan labelConnectionObj
 	listAllCh            chan chan<- []keybase1.ClientDetails
 	lookupByClientTypeCh chan *lookupByClientTypeObj
+	labelCbCh            chan LabelCb
 }
 
 // AddConnection adds a new connection to the table of Connection object, with a
@@ -108,6 +113,10 @@ func (c *ConnectionManager) Label(id ConnectionID, d keybase1.ClientDetails) err
 	retCh := make(chan error)
 	c.labelConnectionCh <- labelConnectionObj{id: id, details: d, ch: retCh}
 	return <-retCh
+}
+
+func (c *ConnectionManager) RegisterLabelCallback(f LabelCb) {
+	c.labelCbCh <- f
 }
 
 func (c *ConnectionManager) hasClientType(clientType keybase1.ClientType) bool {
@@ -182,6 +191,10 @@ func (c *ConnectionManager) run() {
 			} else {
 				err = NotFoundError{Msg: fmt.Sprintf("connection %d not found", id)}
 			}
+			// Hit all the callbacks with the client type
+			for _, l := range c.labelCbs {
+				l(labelConnectionObj.details.ClientType)
+			}
 			labelConnectionObj.ch <- err
 		case retCh := <-c.listAllCh:
 			retCh <- c.listAllLabeledConnections()
@@ -200,6 +213,8 @@ func (c *ConnectionManager) run() {
 					break
 				}
 			}
+		case f := <-c.labelCbCh:
+			c.labelCbs = append(c.labelCbs, f)
 		}
 	}
 }
@@ -224,6 +239,7 @@ func NewConnectionManager() *ConnectionManager {
 		listAllCh:            make(chan chan<- []keybase1.ClientDetails),
 		shutdownCh:           make(chan struct{}),
 		lookupByClientTypeCh: make(chan *lookupByClientTypeObj),
+		labelCbCh:            make(chan LabelCb, 10),
 	}
 	go ret.run()
 	return ret
