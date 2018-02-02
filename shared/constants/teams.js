@@ -54,6 +54,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   teamAccessRequestsPending: I.Set(),
   teamNameToConvIDs: I.Map(),
   teamNameToInvites: I.Map(),
+  teamNameToIsOpen: I.Map(),
   teamNameToLoadingInvites: I.Map(),
   teamNameToLoading: I.Map(),
   teamNameToMemberUsernames: I.Map(),
