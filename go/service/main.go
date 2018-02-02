@@ -1059,6 +1059,13 @@ func (d *Service) stopProfile() {
 		d.G().Log.Warning("could not write memory profile: %s", err)
 	}
 	d.G().Log.Debug("wrote memory profile %s", mem)
+
+	var mems runtime.MemStats
+	runtime.ReadMemStats(&mems)
+	d.G().Log.Debug("runtime mem alloc:   %v", mems.Alloc)
+	d.G().Log.Debug("runtime total alloc: %v", mems.TotalAlloc)
+	d.G().Log.Debug("runtime heap alloc:  %v", mems.HeapAlloc)
+	d.G().Log.Debug("runtime heap sys:    %v", mems.HeapSys)
 }
 
 func (d *Service) StartStandaloneChat(g *libkb.GlobalContext) error {

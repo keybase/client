@@ -1172,13 +1172,10 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	preload = l.AccessPreload()
 
 	if !preload {
-		// XXX temporary for testing
-		/*
-			stage("LoadLinksFromStorage")
-			if err = l.LoadLinksFromStorage(); err != nil {
-				return nil, err
-			}
-		*/
+		stage("LoadLinksFromStorage")
+		if err = l.LoadLinksFromStorage(); err != nil {
+			return nil, err
+		}
 	}
 
 	stage("MakeSigChain")
