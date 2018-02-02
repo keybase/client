@@ -285,11 +285,13 @@ func (c *ChainLink) GetUID() keybase1.UID {
 }
 
 func (c *ChainLink) UnmarshalPayloadJSON() *jsonw.Wrapper {
-	payloadJSON, err := jsonw.Unmarshal([]byte(c.unpacked.payloadJSONStr))
+	jw, err := c.G().PayloadCache.GetOrPrime(c)
 	if err != nil {
+		// Any unmarshal error here would already have
+		// happened in Unpack
 		return nil
 	}
-	return payloadJSON
+	return jw
 }
 
 func (c *ChainLink) ToSigChainLocation() keybase1.SigChainLocation {

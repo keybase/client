@@ -42,6 +42,7 @@ func (n NullConfiguration) GetLinkCacheSize() (int, bool)                       
 func (n NullConfiguration) GetLinkCacheCleanDur() (time.Duration, bool)                    { return 0, false }
 func (n NullConfiguration) GetUPAKCacheSize() (int, bool)                                  { return 0, false }
 func (n NullConfiguration) GetUIDMapFullNameCacheSize() (int, bool)                        { return 0, false }
+func (n NullConfiguration) GetPayloadCacheSize() (int, bool)                               { return 0, false }
 func (n NullConfiguration) GetMerkleKIDs() []string                                        { return nil }
 func (n NullConfiguration) GetCodeSigningKIDs() []string                                   { return nil }
 func (n NullConfiguration) GetPinentry() string                                            { return "" }
@@ -832,6 +833,14 @@ func (e *Env) GetLinkCacheCleanDur() time.Duration {
 	return e.GetDuration(LinkCacheCleanDur,
 		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_LINK_CACHE_CLEAN_DUR") },
 		e.GetConfig().GetLinkCacheCleanDur,
+	)
+}
+
+func (e *Env) GetPayloadCacheSize() int {
+	return e.GetInt(PayloadCacheSize,
+		e.cmd.GetPayloadCacheSize,
+		func() (int, bool) { return e.getEnvInt("KEYBASE_PAYLOAD_CACHE_SIZE") },
+		e.GetConfig().GetPayloadCacheSize,
 	)
 }
 
