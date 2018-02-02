@@ -387,8 +387,7 @@ func (j *OpCanceler) Cancel() error {
 			}
 			j.G().Log.Error("Error cancelling FS operation %s: %s", opidString, err)
 		} else {
-			j.G().UI.GetDumbOutputUI().Printf(
-				"Cancelled FS operation %s\n", opidString)
+			j.G().Log.Info("Cancelled FS operation %s", opidString)
 		}
 	}
 	return cancelError

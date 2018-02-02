@@ -51,7 +51,6 @@ type IdentifyUI struct {
 }
 
 func (ui BaseIdentifyUI) Start(username string, reason keybase1.IdentifyReason, forceDisplay bool) error {
-	dui := ui.G().UI.GetDumbOutputUI()
 	msg := "Identifying "
 	switch reason.Type {
 	case keybase1.IdentifyReasonType_TRACK:
@@ -59,11 +58,10 @@ func (ui BaseIdentifyUI) Start(username string, reason keybase1.IdentifyReason, 
 	case keybase1.IdentifyReasonType_ENCRYPT:
 		msg = "Identifying recipient "
 	case keybase1.IdentifyReasonType_DECRYPT:
-		dui.Printf(
-			"Message authored by %s; identifying...\n", ColorString(ui.G(), "bold", username))
+		ui.G().Log.Info("Message authored by " + ColorString(ui.G(), "bold", username) + "; identifying...")
 		return nil
 	}
-	dui.Printf(msg + ColorString(ui.G(), "bold", username) + "\n")
+	ui.G().Log.Info(msg + ColorString(ui.G(), "bold", username))
 	return nil
 }
 
@@ -187,7 +185,6 @@ func (ui IdentifyTrackUI) confirmFailedTrackProofs(o *keybase1.IdentifyOutcome) 
 func (ui IdentifyTrackUI) Confirm(o *keybase1.IdentifyOutcome) (result keybase1.ConfirmResult, err error) {
 	var prompt string
 	username := o.Username
-	dui := ui.G().UI.GetDumbOutputUI()
 
 	// Whether we used a tracking statement when checking the identity
 	// this time...
@@ -212,7 +209,7 @@ func (ui IdentifyTrackUI) Confirm(o *keybase1.IdentifyOutcome) (result keybase1.
 			" is still valid; update it to reflect new proofs?"
 		promptDefault = libkb.PromptDefaultYes
 	case keybase1.TrackStatus_UPDATE_OK:
-		dui.Printf("Your view is up-to-date\n")
+		ui.G().Log.Info("Your view is up-to-date")
 		trackChanged = false
 	case keybase1.TrackStatus_NEW_ZERO_PROOFS:
 		prompt = "We found an account for " + username +
@@ -240,7 +237,7 @@ func (ui IdentifyTrackUI) Confirm(o *keybase1.IdentifyOutcome) (result keybase1.
 	if o.TrackOptions.BypassConfirm && promptDefault == libkb.PromptDefaultYes {
 		result.IdentityConfirmed = true
 		result.AutoConfirmed = true
-		dui.Printf("Identity auto-confirmed via command-line flag\n")
+		ui.G().Log.Info("Identity auto-confirmed via command-line flag")
 	} else {
 		if result.IdentityConfirmed, err = ui.parent.PromptYesNo(PromptDescriptorTrackAction, prompt, promptDefault); err != nil {
 			return
@@ -256,7 +253,7 @@ func (ui IdentifyTrackUI) Confirm(o *keybase1.IdentifyOutcome) (result keybase1.
 		if o.TrackOptions.BypassConfirm {
 			result.RemoteConfirmed = true
 			result.AutoConfirmed = true
-			dui.Printf("User auto-remote-followed via command-line flag\n")
+			ui.G().Log.Info("User auto-remote-followed via command-line flag")
 			return
 		}
 		prompt = "Publicly follow?"

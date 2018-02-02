@@ -14,7 +14,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/teams"
 
 	"encoding/base64"
@@ -2423,13 +2422,12 @@ func (h *Server) sendRemoteNotificationSuccessful(ctx context.Context, pushIDs [
 		}
 		conn = rpc.NewTLSConnection(rpc.NewFixedRemote(uri.HostPort),
 			[]byte(rawCA), libkb.NewContextifiedErrorUnwrapper(h.G().ExternalG()),
-			&remoteNotificationSuccessHandler{}, libkb.NewRPCLogFactory(h.G().ExternalG()),
-			logger.LogOutputWithDepthAdder{Logger: h.G().Log}, rpc.ConnectionOpts{})
+			&remoteNotificationSuccessHandler{}, libkb.NewRPCLogFactory(h.G().ExternalG()), h.G().Log,
+			rpc.ConnectionOpts{})
 	} else {
 		t := rpc.NewConnectionTransport(uri, nil, libkb.MakeWrapError(h.G().ExternalG()))
 		conn = rpc.NewConnectionWithTransport(&remoteNotificationSuccessHandler{}, t,
-			libkb.NewContextifiedErrorUnwrapper(h.G().ExternalG()),
-			logger.LogOutputWithDepthAdder{Logger: h.G().Log}, rpc.ConnectionOpts{})
+			libkb.NewContextifiedErrorUnwrapper(h.G().ExternalG()), h.G().Log, rpc.ConnectionOpts{})
 	}
 	defer conn.Shutdown()
 
