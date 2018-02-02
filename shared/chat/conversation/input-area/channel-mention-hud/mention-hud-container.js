@@ -1,41 +1,28 @@
-// @noflow
-// import React from 'react'
-// import {MentionHud} from '.'
-// import {createSelector} from '../../util/container'
-// import {connect, type MapStateToProps} from 'react-redux'
-// import {getTeamName} from '../../constants/chat'
-// import {getTeamToChannel} from '../inbox/container'
-// import * as ChatTypes from '../../constants/types/chat'
+// @flow
+import {MentionHud} from '.'
+import {connect, type TypedState} from '../../../../util/container'
+import * as Constants from '../../../../constants/chat2'
 
-// type ConnectedMentionHudProps = {
-// onPickChannel: (user: string) => void,
-// onSelectChannel: (user: string) => void,
-// selectUpCounter: number,
-// selectDownCounter: number,
-// pickSelectedChannelCounter: number,
-// filter: string,
-// style?: Object,
-// }
+const mapStateToProps = (state: TypedState, {filter, conversationIDKey}) => {
+  const meta = Constants.getMeta(state, conversationIDKey)
+  return {
+    _metaMap: state.chat2.metaMap,
+    _teamname: meta.teamname,
+  }
+}
 
-// const channelSelector = createSelector(
-// [getTeamName, getTeamToChannel],
-// (
-// teamname: any,
-// teamsToChannels
-// ): {
-// [channelname: string]: ChatTypes.ConversationIDKey,
-// } => (teamname ? teamsToChannels[teamname] : {})
-// )
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  const channels = stateProps._metaMap.reduce((arr, meta) => {
+    if (meta.teamname === stateProps._teamname) {
+      arr.push(meta.channelname)
+    }
+    return arr
+  }, [])
+  return {
+    ...ownProps,
+    channels,
+    filter: ownProps.filter.toLowerCase(),
+  }
+}
 
-// const mapStateToProps: MapStateToProps<*, *, *> = (state, {filter}) => {
-// return {
-// channels: channelSelector(state),
-// filter: filter.toLowerCase(),
-// }
-// }
-
-// const ConnectedMentionHud: Class<React.Component<ConnectedMentionHudProps, void>> = connect(mapStateToProps)(
-// MentionHud
-// )
-
-export default () => null
+export default connect(mapStateToProps, () => ({}), mergeProps)(MentionHud)

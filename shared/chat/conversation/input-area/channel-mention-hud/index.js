@@ -2,13 +2,11 @@
 import React from 'react'
 import {
   compose,
-  withState,
   lifecycle,
-  withPropsOnChange,
-  type TypedState,
-  connect,
   setDisplayName,
-  type MapStateToProps,
+  withProps,
+  withPropsOnChange,
+  withStateHandlers,
 } from '../../../../util/container'
 import {Box, ClickableBox, List, Text} from '../../../../common-adapters/index'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../../styles'
@@ -66,32 +64,26 @@ const hudStyle = {
   backgroundColor: globalColors.white,
 }
 
-type MentionHudProps = {
-  channels: Array<{channelName: string}>,
-  onPickChannel: (user: string) => void,
-  onSelectChannel: (user: string) => void,
-  pickSelectedChannelCounter: number,
-  selectUpCounter: number,
-  selectDownCounter: number,
-  filter: string,
-  style?: ?Object,
-}
-
-// TODO figure typing out
-const mapStateToProps: MapStateToProps<*, *, *> = (state: TypedState, {channels, selectedIndex, filter}) => ({
-  data: channels
-    ? Object.keys(channels)
-        .filter(c => c.toLowerCase().indexOf(filter) >= 0)
-        .sort()
-        .map((c, i) => ({channelName: c, selected: i === selectedIndex}))
-    : {},
-})
-
 // TODO share this connector with user-mention-hud?
-// $FlowIssue is confused
-const MentionHud: Class<React.Component<MentionHudProps, void>> = compose(
-  withState('selectedIndex', 'setSelectedIndex', 0),
-  connect(mapStateToProps),
+const MentionHud = compose(
+  withStateHandlers(
+    {selectedIndex: 0},
+    {
+      setSelectedIndex: () => (selectedIndex: number) => ({selectedIndex}),
+    }
+  ),
+  withProps(props => ({
+    data: props.channels
+      ? // $FlowIssue TODO fix this up
+        props.channels
+          .reduce((arr, c) => {
+            c.toLowerCase().indexOf(props.filter) >= 0 && arr.push(c)
+            return arr
+          }, [])
+          .sort()
+          .map((c, i) => ({channelName: c, selected: i === props.selectedIndex}))
+      : {},
+  })),
   setDisplayName('ChannelMentionHud'),
   lifecycle({
     componentWillReceiveProps: function(nextProps) {
