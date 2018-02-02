@@ -192,8 +192,8 @@ func (c *ConnectionManager) run() {
 				err = NotFoundError{Msg: fmt.Sprintf("connection %d not found", id)}
 			}
 			// Hit all the callbacks with the client type
-			for _, l := range c.labelCbs {
-				l(labelConnectionObj.details.ClientType)
+			for _, lloop := range c.labelCbs {
+				go func(l LabelCb) { l(labelConnectionObj.details.ClientType) }(lloop)
 			}
 			labelConnectionObj.ch <- err
 		case retCh := <-c.listAllCh:
