@@ -113,6 +113,8 @@ const (
 	UIDMapFullNameCacheSize           = 100000
 	ImplicitTeamConflictInfoCacheSize = 10000
 
+	PayloadCacheSize = 1000
+
 	SigShortIDBytes  = 27
 	LocalTrackMaxAge = 48 * time.Hour
 

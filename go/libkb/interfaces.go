@@ -81,6 +81,7 @@ type configGetter interface {
 	GetFeatureFlags() (FeatureFlags, error)
 	GetLevelDBNumFiles() (int, bool)
 	GetChatInboxSourceLocalizeThreads() (int, bool)
+	GetPayloadCacheSize() (int, bool)
 }
 
 type CommandLine interface {
