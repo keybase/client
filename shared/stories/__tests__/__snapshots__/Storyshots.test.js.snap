@@ -47384,6 +47384,27 @@ exports[`Storyshots Teams TeamList 1`] = `
 
 .glamor-3,
 [data-glamor-3] {
+  font-size: 10px;
+  line-height: 11px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 700;
+  border-radius: 1px;
+  height: 11px;
+  padding-left: 3px;
+  padding-right: 3px;
+  align-self: center;
+  text-transform: uppercase;
+  background-color: #3dcc8e;
+  margin-left: 4px;
+  margin-top: 2px;
+  -webkit-align-self: center;
+}
+
+.glamor-4,
+[data-glamor-4] {
   font-size: 11px;
   line-height: 15px;
   color: rgba(0, 0, 0, 0.40);
@@ -47393,18 +47414,18 @@ exports[`Storyshots Teams TeamList 1`] = `
   font-weight: 400;
 }
 
-.glamor-4,
-[data-glamor-4] {
+.glamor-5,
+[data-glamor-5] {
   color: rgba(0, 0, 0, 0.40);
 }
 
-.glamor-4:hover,
-[data-glamor-4]:hover {
+.glamor-5:hover,
+[data-glamor-5]:hover {
   color: rgba(0, 0, 0, 0.75);
 }
 
-.glamor-9,
-[data-glamor-9] {
+.glamor-10,
+[data-glamor-10] {
   font-size: 10px;
   line-height: 11px;
   color: #ffffff;
@@ -47423,8 +47444,8 @@ exports[`Storyshots Teams TeamList 1`] = `
   -webkit-align-self: center;
 }
 
-.glamor-16,
-[data-glamor-16] {
+.glamor-18,
+[data-glamor-18] {
   font-size: 9px;
   line-height: 8px;
   color: #ffffff;
@@ -47543,13 +47564,29 @@ exports[`Storyshots Teams TeamList 1`] = `
                   }
                 }
               >
-                <span
-                  className="glamor-2"
-                  onClick={undefined}
-                  title={undefined}
+                <div
+                  style={
+                    Object {
+                      "display": "flex",
+                      "flexDirection": "row",
+                    }
+                  }
                 >
-                  stripe
-                </span>
+                  <span
+                    className="glamor-2"
+                    onClick={undefined}
+                    title={undefined}
+                  >
+                    stripe
+                  </span>
+                  <span
+                    className="glamor-3"
+                    onClick={undefined}
+                    title={undefined}
+                  >
+                    OPEN
+                  </span>
+                </div>
                 <div
                   style={
                     Object {
@@ -47560,7 +47597,7 @@ exports[`Storyshots Teams TeamList 1`] = `
                   }
                 >
                   <span
-                    className="glamor-3"
+                    className="glamor-4"
                     onClick={undefined}
                     title={undefined}
                   >
@@ -47571,7 +47608,7 @@ exports[`Storyshots Teams TeamList 1`] = `
             </div>
             <div>
               <span
-                className="glamor-4"
+                className="glamor-5"
                 onClick={[Function]}
                 onMouseEnter={undefined}
                 onMouseLeave={undefined}
@@ -47596,7 +47633,7 @@ exports[`Storyshots Teams TeamList 1`] = `
             </div>
             <div>
               <span
-                className="glamor-4"
+                className="glamor-5"
                 onClick={[Function]}
                 onMouseEnter={undefined}
                 onMouseLeave={undefined}
@@ -47710,13 +47747,22 @@ exports[`Storyshots Teams TeamList 1`] = `
                   }
                 }
               >
-                <span
-                  className="glamor-2"
-                  onClick={undefined}
-                  title={undefined}
+                <div
+                  style={
+                    Object {
+                      "display": "flex",
+                      "flexDirection": "row",
+                    }
+                  }
                 >
-                  stripe.usa
-                </span>
+                  <span
+                    className="glamor-2"
+                    onClick={undefined}
+                    title={undefined}
+                  >
+                    stripe.usa
+                  </span>
+                </div>
                 <div
                   style={
                     Object {
@@ -47727,14 +47773,14 @@ exports[`Storyshots Teams TeamList 1`] = `
                   }
                 >
                   <span
-                    className="glamor-9"
+                    className="glamor-10"
                     onClick={undefined}
                     title={undefined}
                   >
                     NEW
                   </span>
                   <span
-                    className="glamor-3"
+                    className="glamor-4"
                     onClick={undefined}
                     title={undefined}
                   >
@@ -47745,7 +47791,7 @@ exports[`Storyshots Teams TeamList 1`] = `
             </div>
             <div>
               <span
-                className="glamor-4"
+                className="glamor-5"
                 onClick={[Function]}
                 onMouseEnter={undefined}
                 onMouseLeave={undefined}
@@ -47770,7 +47816,7 @@ exports[`Storyshots Teams TeamList 1`] = `
             </div>
             <div>
               <span
-                className="glamor-4"
+                className="glamor-5"
                 onClick={[Function]}
                 onMouseEnter={undefined}
                 onMouseLeave={undefined}
@@ -47884,13 +47930,29 @@ exports[`Storyshots Teams TeamList 1`] = `
                   }
                 }
               >
-                <span
-                  className="glamor-2"
-                  onClick={undefined}
-                  title={undefined}
+                <div
+                  style={
+                    Object {
+                      "display": "flex",
+                      "flexDirection": "row",
+                    }
+                  }
                 >
-                  techtonica
-                </span>
+                  <span
+                    className="glamor-2"
+                    onClick={undefined}
+                    title={undefined}
+                  >
+                    techtonica
+                  </span>
+                  <span
+                    className="glamor-3"
+                    onClick={undefined}
+                    title={undefined}
+                  >
+                    OPEN
+                  </span>
+                </div>
                 <div
                   style={
                     Object {
@@ -47920,7 +47982,7 @@ exports[`Storyshots Teams TeamList 1`] = `
                     }
                   >
                     <span
-                      className="glamor-16"
+                      className="glamor-18"
                       onClick={undefined}
                       title={undefined}
                     >
@@ -47928,7 +47990,7 @@ exports[`Storyshots Teams TeamList 1`] = `
                     </span>
                   </div>
                   <span
-                    className="glamor-3"
+                    className="glamor-4"
                     onClick={undefined}
                     title={undefined}
                   >
@@ -47939,7 +48001,7 @@ exports[`Storyshots Teams TeamList 1`] = `
             </div>
             <div>
               <span
-                className="glamor-4"
+                className="glamor-5"
                 onClick={[Function]}
                 onMouseEnter={undefined}
                 onMouseLeave={undefined}
@@ -47964,7 +48026,7 @@ exports[`Storyshots Teams TeamList 1`] = `
             </div>
             <div>
               <span
-                className="glamor-4"
+                className="glamor-5"
                 onClick={[Function]}
                 onMouseEnter={undefined}
                 onMouseLeave={undefined}
