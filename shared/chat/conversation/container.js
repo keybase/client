@@ -56,13 +56,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   if (conversationIDKey) {
     showError = stateProps._metaMap.getIn([conversationIDKey, 'trustedState']) === 'error'
   } else if (stateProps._pendingConversationUsers) {
-    // Find an existing
-    const toFind = I.Set(stateProps._pendingConversationUsers.concat([stateProps._you]))
-    conversationIDKey =
-      stateProps._metaMap.findKey(meta =>
-        // Ignore the order of participants
-        meta.participants.toSet().equals(toFind)
-      ) || ''
+    conversationIDKey = Constants.getExistingConversationWithUsers(
+      stateProps._pendingConversationUsers,
+      stateProps._you,
+      stateProps._metaMap
+    )
   } else {
     showNoConvo = true
   }

@@ -41,6 +41,14 @@ export const getEditingOrdinal = (state: TypedState, id: Types.ConversationIDKey
 export const getTyping = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.typingMap.get(id, I.Set())
 export const generateOutboxID = () => Buffer.from([...Array(8)].map(() => Math.floor(Math.random() * 256)))
+export const getExistingConversationWithUsers = (
+  users: I.Set<string>,
+  you: string,
+  metaMap: I.Map<Types.ConversationIDKey, Types.ConversationMeta>
+) => {
+  const toFind = I.Set(users.concat([you]))
+  return metaMap.findKey(meta => meta.participants.toSet().equals(toFind)) || ''
+}
 
 export {
   getConversationIDKeyMetasToLoad,

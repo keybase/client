@@ -926,8 +926,7 @@ const startConversation = (action: Chat2Gen.StartConversationPayload, state: Typ
   const you = state.config.username || ''
 
   let users: Array<string> = []
-  // TODO chat from team folder TODO
-  // let conversationIDKey
+  let conversationIDKey
 
   if (participants) {
     users = participants
@@ -937,12 +936,20 @@ const startConversation = (action: Chat2Gen.StartConversationPayload, state: Typ
       const [, , type, names] = parts
       if (type === 'private' || type === 'public') {
         // allow talking to yourself
-        users = names === you ? [you] : parseFolderNameToUsers('', names).map(u => u.username)
+        users =
+          names === you
+            ? [you]
+            : parseFolderNameToUsers('', names)
+                .map(u => u.username)
+                .filter(u => u !== you)
+        conversationIDKey = Constants.getExistingConversationWithUsers(I.Set(users), you, state.chat2.metaMap)
       } else if (type === 'team') {
-        // Actually a team
-        const meta = state.chat2.metaMap.find(meta => meta.teamname === names)
+        // Actually a team, find general channel
+        const meta = state.chat2.metaMap.find(
+          meta => meta.teamname === names && meta.channelname === 'general'
+        )
         if (meta) {
-          // conversationIDKey = meta.conversationIDKey
+          conversationIDKey = meta.conversationIDKey
         } else {
           throw new Error('Start conversation called w/ bad team tlf')
         }
@@ -954,6 +961,14 @@ const startConversation = (action: Chat2Gen.StartConversationPayload, state: Typ
     }
   } else {
     throw new Error('Start conversation called w/ no participants or tlf')
+  }
+
+  // There is an existing conversation
+  if (conversationIDKey) {
+    return Saga.sequentially([
+      Saga.put(Chat2Gen.createSelectConversation({conversationIDKey})),
+      Saga.put(Route.switchTo([chatTab])),
+    ])
   }
 
   return Saga.sequentially([
