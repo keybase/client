@@ -19,24 +19,20 @@ import {
 import {globalStyles, globalMargins, globalColors, isMobile} from '../../styles'
 import Members from './members/container'
 import Settings from './settings/container'
-import TeamInviteRow from './invite-row/container'
-import TeamRequestRow from './request-row/container'
+import RequestsAndInvites from './invites/container'
 import TeamSubteamRow from './subteam-row/container'
 import SubteamBanner from './subteam-banner'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as I from 'immutable'
 
-export type MemberRowProps = Types.MemberInfo
-type InviteRowProps = Types.InviteInfo
-type RequestRowProps = Types.RequestInfo
-
 export type Props = {
   description: string,
-  invites: Array<InviteRowProps>,
   newTeamRequests: Array<Types.Teamname>,
   loading: boolean,
   memberCount: number,
   name: Types.Teamname,
+  numInvites: number,
+  numRequests: number,
   onAddPeople: () => void,
   onAddSelf: () => void,
   onInviteByEmail: () => void,
@@ -47,7 +43,6 @@ export type Props = {
   onLeaveTeam: () => void,
   onManageChat: () => void,
   onReadMoreAboutSubteams: () => void,
-  requests: Array<RequestRowProps>,
   sawSubteamsBanner: boolean,
   selectedTab: Types.TabKey,
   showAddYourselfBanner: boolean,
@@ -58,25 +53,6 @@ export type Props = {
   yourRole: ?Types.TeamRoleType,
   yourOperations: RPCTypes.TeamOperation,
 }
-
-const TeamDividerRow = (index, {key}) => (
-  <Box
-    style={{
-      ...globalStyles.flexBoxRow,
-      alignItems: 'center',
-      flexShrink: 0,
-      height: globalMargins.medium,
-      padding: globalMargins.tiny,
-      width: '100%',
-    }}
-  >
-    <Box style={{...globalStyles.flexBoxRow, flexGrow: 1}}>
-      <Text style={{color: globalColors.black_40}} type="BodySmall">
-        {key}
-      </Text>
-    </Box>
-  </Box>
-)
 
 const Help = isMobile
   ? () => null
@@ -112,11 +88,11 @@ const Help = isMobile
 
 type TeamTabsProps = {
   admin: boolean,
-  invites: Array<InviteRowProps>,
   memberCount: number,
   name: Types.Teamname,
   newTeamRequests: Array<Types.Teamname>,
-  requests: Array<RequestRowProps>,
+  numInvites: number,
+  numRequests: number,
   loading?: boolean,
   selectedTab?: string,
   setSelectedTab: (?Types.TabKey) => void,
@@ -194,25 +170,14 @@ const subTeamsRow = (index, row) => {
   }
 }
 
-const TeamRequestOrDividerOrInviteRow = (index, row) => {
-  switch (row.type) {
-    case 'request':
-      return TeamRequestRow(index, row)
-    case 'invite':
-      return TeamInviteRow(index, row)
-    default:
-      return TeamDividerRow(index, row)
-  }
-}
-
 const TeamTabs = (props: TeamTabsProps) => {
   const {
     admin,
-    invites,
+    numInvites,
     memberCount,
     name,
     newTeamRequests,
-    requests,
+    numRequests,
     subteams,
     loading = false,
     selectedTab,
@@ -238,13 +203,13 @@ const TeamTabs = (props: TeamTabsProps) => {
     // Use min here so we never show a badge number > the (X) number of requests we have
     requestsBadge = Math.min(
       newTeamRequests.reduce((count, team) => (team === name ? count + 1 : count), 0),
-      requests.length
+      numRequests
     )
   }
 
   if (admin) {
     let invitesLabel = 'INVITES'
-    invitesLabel += !loading && invites.length !== 0 ? ` (${invites.length})` : ''
+    invitesLabel += !loading && numInvites + numRequests !== 0 ? ` (${numInvites + numRequests})` : ''
     tabs.push(
       <Box key="invites" style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
         <Text
@@ -331,9 +296,7 @@ class Team extends React.PureComponent<Props> {
   render() {
     const {
       description,
-      invites,
       name,
-      requests,
       showMenu,
       setShowMenu,
       onAddPeople,
@@ -355,30 +318,6 @@ class Team extends React.PureComponent<Props> {
     } = this.props
 
     const teamname = name
-    const requestProps = requests.map(req => ({
-      key: req.username,
-      teamname,
-      type: 'request',
-      username: req.username,
-    }))
-    const inviteProps = invites.map(invite => {
-      let inviteInfo
-      if (invite.name) {
-        inviteInfo = {name: invite.name}
-      } else if (invite.email) {
-        inviteInfo = {email: invite.email}
-      } else if (invite.username) {
-        inviteInfo = {username: invite.username}
-      }
-      return {
-        ...inviteInfo,
-        teamname,
-        username: invite.username,
-        id: invite.id,
-        type: 'invite',
-        key: invite.id,
-      }
-    })
 
     let contents
     if (selectedTab === 'members') {
@@ -412,36 +351,7 @@ class Team extends React.PureComponent<Props> {
         />
       )
     } else if (selectedTab === 'invites') {
-      // Show requests first, then invites.
-      const requestsAndInvites =
-        requestProps.length > 0
-          ? [
-              {key: 'Requests', type: 'divider'},
-              ...requestProps,
-              {key: 'Invites', type: 'divider'},
-              ...inviteProps,
-            ]
-          : [...requestProps, ...inviteProps]
-      if (requestsAndInvites.length === 0) {
-        contents = (
-          <Text
-            type="BodySmall"
-            style={{color: globalColors.black_40, marginTop: globalMargins.xlarge, textAlign: 'center'}}
-          >
-            This team has no pending invites.
-          </Text>
-        )
-      } else {
-        contents = !loading && (
-          <List
-            items={requestsAndInvites}
-            fixedHeight={48}
-            keyProperty="key"
-            renderItem={TeamRequestOrDividerOrInviteRow}
-            style={{alignSelf: 'stretch'}}
-          />
-        )
-      }
+      contents = <RequestsAndInvites teamname={teamname} />
     } else if (selectedTab === 'publicity') {
       contents = <Settings teamname={teamname} />
     }
