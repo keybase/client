@@ -6,12 +6,12 @@ export const defaultPath = '/keybase'
 
 const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
   children: I.List(),
-  progress: Types.PendingPathMetadataProgress,
+  progress: 'pending',
   type: 'folder',
 })
 
 const makeFile: I.RecordFactory<Types._FilePathItem> = I.Record({
-  progress: Types.PendingPathMetadataProgress,
+  progress: 'pending',
   type: 'file',
 })
 

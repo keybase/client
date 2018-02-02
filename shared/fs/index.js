@@ -53,14 +53,14 @@ const styleOuterContainer = {
 
 const FolderHeader = ({title}: FolderHeaderProps) => (
   <Box>
-    <Box style={{...folderHeaderStyle}}>
+    <Box style={folderHeaderStyle}>
       <Text type="BodyBig">{title}</Text>
     </Box>
   </Box>
 )
 
 const FileRow = RowConnector(({path, name, icon, onOpen}: FileRowProps) => (
-  <ClickableBox onClick={onOpen} style={{...stylesCommonRow}}>
+  <ClickableBox onClick={onOpen} style={stylesCommonRow}>
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
       <Icon type={icon} style={{marginRight: globalMargins.small}} />
       <Box style={folderBoxStyle}>
@@ -74,9 +74,7 @@ class Files extends React.PureComponent<FolderProps> {
   _renderRow = (index, item) => <FileRow key={Types.pathToString(item)} path={item} />
 
   render() {
-    const onBack = this.props.onBack
-    const path = this.props.path
-    const items = this.props.items
+    const {onBack, path, items} = this.props
     return (
       <Box style={styleOuterContainer}>
         <Box style={stylesContainer}>
