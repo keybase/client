@@ -187,7 +187,10 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 		if currentRole.IsOrAbove(invite.Role) {
 			if team.IsImplicit() {
 				g.Log.CDebugf(ctx, "This is implicit team SBS resolution, mooting invite.")
-				return mootInviteID(ctx, team, invite.Id, uv)
+				req := keybase1.TeamChangeReq{}
+				req.CompletedInvites = make(SCMapInviteIDToUV)
+				req.CompletedInvites[invite.Id] = uv.PercentForm()
+				return team.ChangeMembership(ctx, req)
 			}
 
 			g.Log.CDebugf(ctx, "User already has same or higher role, canceling invite.")
@@ -199,7 +202,7 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 			g.Log.CDebugf(ctx, "Failed to compute reqForRole for %+v, role=%s", uv, invite.Role)
 			return err
 		}
-		req.CompletedInvites = make(map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm)
+		req.CompletedInvites = make(SCMapInviteIDToUV)
 		req.CompletedInvites[invite.Id] = uv.PercentForm()
 
 		// Check to see if the user is already in the team with a lower eldest seqno, if so, we need

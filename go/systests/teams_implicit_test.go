@@ -253,7 +253,7 @@ func TestImplicitSBSPromotion(t *testing.T) {
 	trySBSConsolidation(t, "%v,%v@rooter#%v")
 }
 
-func TestImplicitSBSDowngrade(t *testing.T) {
+func TestImplicitSBSConsolidation2(t *testing.T) {
 	// Test "downgrade" case, where it should not downgrade if social
 	// assertion is a reader. Result should still be "ann,bob", not
 	// "ann#bob".

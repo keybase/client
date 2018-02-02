@@ -1116,15 +1116,6 @@ func removeInviteID(ctx context.Context, team *Team, invID keybase1.TeamInviteID
 	return team.postTeamInvites(ctx, invites)
 }
 
-func mootInviteID(ctx context.Context, team *Team, invID keybase1.TeamInviteID, uv keybase1.UserVersion) error {
-	mootMap := make(SCMapInviteIDToUV)
-	mootMap[invID] = uv.PercentForm()
-	req := keybase1.TeamChangeReq{
-		CompletedInvites: mootMap,
-	}
-	return team.ChangeMembership(ctx, req)
-}
-
 // splitBulk splits on newline or comma.
 func splitBulk(s string) []string {
 	f := func(c rune) bool {
