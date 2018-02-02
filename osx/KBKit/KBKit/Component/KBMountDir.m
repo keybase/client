@@ -8,7 +8,6 @@
 
 #import "KBMountDir.h"
 #import "KBInstaller.h"
-#import "KBWorkspace.h"
 #import "KBSharedFileList.h"
 
 @interface KBMountDir ()
@@ -53,57 +52,23 @@
 }
 
 - (void)removeMountDir:(NSString *)mountDir completion:(KBCompletion)completion {
-  // Don't remove the root link, because this gets called every time
-  // the app shuts down (not just when it is uninstalled), and if we
-  // give up /keybase then another user could grab it, leading to
-  // confusion and maybe security concerns for the original user.
-  DDLogDebug(@"Removing mount directory: %@", mountDir);
-  NSError *err = nil;
-  if (![NSFileManager.defaultManager removeItemAtPath:mountDir error:&err]) {
+  // Because the mount dir is in the root path, we need the helper tool to remove it, even if owned by the user
+  NSDictionary *params = @{@"path": mountDir};
+  DDLogDebug(@"Removing mount directory: %@", params);
+  [self.helperTool.helper sendRequest:@"remove" params:@[params] completion:^(NSError *err, id value) {
     completion(err);
-  }
-  completion(nil);
+  }];
 }
 
 - (void)createMountDir:(KBCompletion)completion {
-  DDLogDebug(@"Creating mount directory: %@", self.config.mountDir);
-
-  NSError *err = nil;
-  if (![NSFileManager.defaultManager createDirectoryAtPath:self.config.mountDir withIntermediateDirectories:NO attributes:nil error:&err]) {
-    completion(err);
-    return;
-  }
-
-  NSString *link = [self.config rootMountSymlink];
   uid_t uid = getuid();
   gid_t gid = getgid();
-  NSDictionary *params = @{@"path": self.config.mountDir, @"linkPath": link, @"uid": @(uid), @"gid": @(gid)};
-  [self.helperTool.helper sendRequest:@"createFirstLink" params:@[params] completion:^(NSError *err, id value) {
-    if (err) {
-      DDLogDebug(@"Could not create mount link: %@", err);
-      NSUserDefaults *userDefaults = [KBWorkspace userDefaults];
-
-      NSString *suppressionKey = @"NotFirstMountSuppression";
-      if ([userDefaults boolForKey:suppressionKey]) {
-        DDLogDebug(@"Alert suppressed");
-      } else {
-        // Let the user know they didn't get /keybase.
-        NSAlert *alert = [[NSAlert alloc] init];
-        [alert setMessageText:[NSString stringWithFormat:@"Success! Your Keybase file system is located at %@.", self.config.mountDir]];
-        [alert addButtonWithTitle:@"OK"];
-        [alert setAlertStyle:NSAlertStyleInformational];
-        alert.showsSuppressionButton = YES;
-        [alert runModal]; // ignore response
-        if (alert.suppressionButton.state == NSOnState) {
-          [userDefaults setBool:YES forKey:suppressionKey];
-          [userDefaults synchronize];
-        }
-      }
-    } else {
-      DDLogDebug(@"Created link to mountpoint: %@", params);
-    }
+  NSNumber *permissions = [NSNumber numberWithShort:0600];
+  NSDictionary *params = @{@"directory": self.config.mountDir, @"uid": @(uid), @"gid": @(gid), @"permissions": permissions, @"excludeFromBackup": @(YES)};
+  DDLogDebug(@"Creating mount directory: %@", params);
+  [self.helperTool.helper sendRequest:@"createDirectory" params:@[params] completion:^(NSError *err, id value) {
+    completion(err);
   }];
-  completion(nil);
 }
 
 - (void)install:(KBCompletion)completion {
