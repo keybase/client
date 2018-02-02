@@ -1469,9 +1469,7 @@ func (g *gregorHandler) connectTLS() error {
 		// want to penalize mobile, which tears down its connection frequently.
 	}
 	g.conn = rpc.NewTLSConnection(rpc.NewFixedRemote(uri.HostPort),
-		[]byte(rawCA), libkb.NewContextifiedErrorUnwrapper(g.G().ExternalG()),
-		g, libkb.NewRPCLogFactory(g.G().ExternalG()),
-		logger.LogOutputWithDepthAdder{Logger: g.G().Log}, opts)
+		[]byte(rawCA), libkb.NewContextifiedErrorUnwrapper(g.G().ExternalG()), g, libkb.NewRPCLogFactory(g.G().ExternalG()), g.G().Log, opts)
 
 	// The client we get here will reconnect to gregord on disconnect if necessary.
 	// We should grab it here instead of in OnConnect, since the connection is not
@@ -1509,9 +1507,7 @@ func (g *gregorHandler) connectNoTLS() error {
 		// We deliberately avoid ForceInitialBackoff here, becuase we don't
 		// want to penalize mobile, which tears down its connection frequently.
 	}
-	g.conn = rpc.NewConnectionWithTransport(g, t,
-		libkb.NewContextifiedErrorUnwrapper(g.G().ExternalG()),
-		logger.LogOutputWithDepthAdder{Logger: g.G().Log}, opts)
+	g.conn = rpc.NewConnectionWithTransport(g, t, libkb.NewContextifiedErrorUnwrapper(g.G().ExternalG()), g.G().Log, opts)
 
 	g.cli = WrapGenericClientWithTimeout(g.conn.GetClient(), GregorRequestTimeout,
 		chat.ErrChatServerTimeout)
