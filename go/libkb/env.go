@@ -221,12 +221,33 @@ func (e *Env) GetUpdaterConfig() UpdaterConfigReader {
 }
 
 func (e *Env) GetMountDir() (string, error) {
+	var darwinMountsubdir string
+	runMode := e.GetRunMode()
+	switch runMode {
+	case DevelRunMode:
+		darwinMountsubdir = "keybase.devel"
+	case StagingRunMode:
+		darwinMountsubdir = "keybase.staging"
+	case ProductionRunMode:
+		darwinMountsubdir = "keybase"
+	default:
+		return "", fmt.Errorf("Invalid run mode: %s", runMode)
+	}
+
 	return e.GetString(
 		func() string { return e.cmd.GetMountDir() },
 		func() string { return os.Getenv("KEYBASE_MOUNTDIR") },
 		func() string { return e.GetConfig().GetMountDir() },
 		func() string {
-			return filepath.Join(e.GetDataDir(), "fs")
+			switch runtime.GOOS {
+			case "darwin":
+				return filepath.Join(
+					string(filepath.Separator), darwinMountsubdir)
+			case "linux":
+				return filepath.Join(e.GetDataDir(), "fs")
+			default:
+				return ""
+			}
 		},
 	), nil
 }
