@@ -1,6 +1,6 @@
-// @noflow
+// @flow
 import * as React from 'react'
-import type {ChannelMention, ChannelNameMentions, Mentions} from '../constants/types/chat2'
+import type {MentionsAt, MentionsChannel, MentionsChannelName} from '../constants/types/chat2'
 
 type MarkdownComponentType =
   | 'inline-code'
@@ -22,9 +22,9 @@ export type MarkdownCreateComponent = (
 ) => ?React.Node
 
 export type MarkdownMeta = {
-  mentions: Mentions,
-  channelMention: ChannelMention,
-  channelNameMentions: ChannelNameMentions,
+  mentionsAt: MentionsAt,
+  mentionsChannelName: MentionsChannelName,
+  mentionsChannel: MentionsChannel,
 }
 
 export type Props = {

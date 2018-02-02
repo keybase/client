@@ -1,4 +1,4 @@
-// @noflow
+// @flow
 import logger from '../logger'
 import React, {PureComponent} from 'react'
 import Emoji from './emoji'
@@ -41,20 +41,20 @@ function processAST(ast, createComponent) {
 }
 
 function isValidMention(meta: ?MarkdownMeta, mention: string): boolean {
-  if (!meta || !meta.mentions || !meta.channelMention) {
+  if (!meta || !meta.mentionsAt || !meta.mentionsChannel) {
     return false
   }
-  const {channelMention, mentions} = meta
-  if (channelMention === 'None' && mentions.length === 0) {
+  const {mentionsChannel, mentionsAt} = meta
+  if (mentionsChannel === 'None' && mentionsAt.length === 0) {
     return false
   }
 
   // TODO: Allow uppercase in mentions, and just normalize.
-  return mention === 'here' || mention === 'channel' || mentions.has(mention)
+  return mention === 'here' || mention === 'channel' || mentionsAt.has(mention)
 }
 
 function channelNameToConvID(meta: ?MarkdownMeta, channel: string): ?ConversationIDKey {
-  return meta && meta.channelNameMentions && meta.channelNameMentions.get(channel)
+  return meta && meta.mentionsChannelName && meta.mentionsChannelName.get(channel)
 }
 
 export function parseMarkdown(
@@ -70,8 +70,8 @@ export function parseMarkdown(
   try {
     return processAST(
       parser.parse(markdown || '', {
-        isValidMention: (mention: string) => isValidMention(meta, mention),
         channelNameToConvID: (channel: string) => channelNameToConvID(meta, channel),
+        isValidMention: (mention: string) => isValidMention(meta, mention),
       }),
       markdownCreateComponent
     )

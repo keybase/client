@@ -20,7 +20,9 @@ export const outboxIDToString = (o: OutboxID): string => o
 // Bookkeep us trying to do these operations
 type LocalState = null | 'deleting' | 'editing' | 'pending'
 
-type ChannelMention = 'none' | 'all' | 'here'
+export type MentionsAt = I.Set<string>
+export type MentionsChannel = 'none' | 'all' | 'here'
+export type MentionsChannelName = I.Map<string, Common.ConversationIDKey>
 
 // Message types have a lot of copy and paste. Originally I had this split out but this
 // causes flow to get confused or makes the error messages a million times harder to understand
@@ -52,8 +54,9 @@ export type _MessageText = {
   hasBeenEdited: boolean,
   id: MessageID,
   localState: LocalState,
-  mentionsAt: I.Set<string>,
-  mentionsChannel: ChannelMention,
+  mentionsAt: MentionsAt,
+  mentionsChannel: MentionsChannel,
+  mentionsChannelName: MentionsChannelName,
   ordinal: Ordinal,
   outboxID: ?OutboxID,
   text: HiddenString,

@@ -1,4 +1,4 @@
-// @noflow
+// @flow
 import React, {PureComponent} from 'react'
 import Text from './text'
 import * as Types from '../constants/types/chat2'

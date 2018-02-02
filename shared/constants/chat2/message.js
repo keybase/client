@@ -39,6 +39,7 @@ export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Rec
   localState: null,
   mentionsAt: I.Set(),
   mentionsChannel: 'none',
+  mentionsChannelName: I.Map(),
   text: new HiddenString(''),
   type: 'text',
 })
@@ -248,6 +249,9 @@ const validUIMessagetoMessage = (
         ...common,
         mentionsAt: I.Set(m.atMentions || []),
         mentionsChannel: channelMentionToMentionsChannel(m.channelMention),
+        mentionsChannelName: I.Map(
+          (m.channelNameMentions || []).map(men => [men.name, Types.stringToConversationIDKey(men.convID)])
+        ),
         text: new HiddenString(rawText),
       })
     case RPCChatTypes.commonMessageType.attachment: {

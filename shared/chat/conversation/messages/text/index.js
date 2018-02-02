@@ -1,4 +1,4 @@
-// @noflow
+// @flow
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import {Markdown} from '../../../../common-adapters'
@@ -8,15 +8,15 @@ export type Props = {
   text: string,
   type: 'error' | 'pending' | 'sent',
   isEditing: boolean,
-  mentions: Types.Mentions,
-  channelMention: Types.ChannelMention,
-  channelNameMentions: Types.ChannelNameMentions,
+  mentionsAt: Types.MentionsAt,
+  mentionsChannel: Types.MentionsChannel,
+  mentionsChannelName: Types.MentionsChannelName,
 }
 
-const MessageText = ({text, type, isEditing, mentions, channelMention, channelNameMentions}: Props) => (
+const MessageText = ({text, type, isEditing, mentionsAt, mentionsChannel, mentionsChannelName}: Props) => (
   <Markdown
     style={getStyle(type, isEditing)}
-    meta={{mentions, channelMention, channelNameMentions}}
+    meta={{mentionsAt, mentionsChannel, mentionsChannelName}}
     allowFontScaling={true}
   >
     {text}

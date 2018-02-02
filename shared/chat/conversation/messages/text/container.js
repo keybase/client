@@ -51,10 +51,10 @@ import {mapProps} from '../../../../util/container'
 // )(TextMessage)
 //
 export default mapProps(props => ({
-  channelMention: 'None', // TODO
-  channelNameMentions: I.Map(),
   isEditing: props.isEditing,
-  mentions: I.Set(),
+  mentionsAt: props.message.mentionsAt,
+  mentionsChannel: props.message.mentionsChannel,
+  mentionsChannelName: props.message.mentionsChannelName,
   text: props.message.text.stringValue(),
   type:
     props.message.localState === 'error' ? 'error' : props.message.localState === null ? 'sent' : 'pending',
