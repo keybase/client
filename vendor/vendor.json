@@ -207,10 +207,10 @@
 			"revisionTime": "2018-01-25T22:56:34Z"
 		},
 		{
-			"checksumSHA1": "7hmQDQK0qYzI18c7+7n7eWl9JPQ=",
+			"checksumSHA1": "We41C5G+PT2fzjs1TRz1rqZCP6Q=",
 			"path": "github.com/keybase/client/go/logger",
-			"revision": "513fccf49f70997f54ae9e4d4d5fa06a29131d6e",
-			"revisionTime": "2017-11-18T00:41:55Z"
+			"revision": "f31378fe17b17d98eb09438aee2596ff3c18aeaa",
+			"revisionTime": "2018-02-08T00:18:36Z"
 		},
 		{
 			"checksumSHA1": "MSUVOprNOaMz1XmrRCNMTj0m5eU=",
@@ -365,10 +365,10 @@
 			"revisionTime": "2017-11-30T13:45:51Z"
 		},
 		{
-			"checksumSHA1": "ub85JBvVGqt8k0uYhH4n0JmeOaA=",
+			"checksumSHA1": "ZnAvhum5nZfQmxQgbVAcVFePehM=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc",
-			"revision": "7aa85fb3f2e5b0c8ebfa508b2ed361cd3e6f629b",
-			"revisionTime": "2017-12-05T16:38:33Z"
+			"revision": "d5c3e33aacf1bccedc64b0a3965736e1f261bcdb",
+			"revisionTime": "2018-02-05T22:52:15Z"
 		},
 		{
 			"checksumSHA1": "RLs8GIV4e+D350pyzZh5RC3mgQg=",
