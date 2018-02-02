@@ -55,6 +55,7 @@ const rpcInboxRefresh = (action: Chat2Gen.InboxRefreshPayload, state: TypedState
         const metas = items
           .map(item => Constants.unverifiedInboxUIItemToConversationMeta(item, username))
           .filter(Boolean)
+
         yield Saga.put(Chat2Gen.createMetasReceived({metas}))
         return EngineRpc.rpcResult()
       },
@@ -175,6 +176,7 @@ const rpcMetaRequest = (
         })
       )
     }
+    yield Saga.put(UsersGen.createUpdateFullnames({usernameToFullname: inboxUIItem.fullNames}))
     return EngineRpc.rpcResult()
   }
   const onFailed = function*({convID, error}: RPCChatTypes.ChatUiChatInboxFailedRpcParam) {
@@ -269,7 +271,10 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
 
 const chatActivityToMetasAction = (payload: ?{+conv?: ?RPCChatTypes.InboxUIItem}) => {
   const meta = payload && payload.conv && Constants.inboxUIItemToConversationMeta(payload.conv)
-  return meta ? [Chat2Gen.createMetasReceived({metas: [meta]})] : []
+  const usernameToFullname = (payload && payload.conv && payload.conv.fullNames) || {}
+  return meta
+    ? [Chat2Gen.createMetasReceived({metas: [meta]}), UsersGen.createUpdateFullnames({usernameToFullname})]
+    : []
 }
 
 const onErrorMessage = (outboxRecords: Array<RPCChatTypes.OutboxRecord>) => {

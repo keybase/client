@@ -16,36 +16,26 @@ type ConnectedMentionHudProps = {
   style?: Object,
 }
 
-// const fullNameSelector = createSelector(
-// Constants.getGeneralChannelOfSelectedInbox,
-// inbox => (inbox ? inbox.get('fullNames') : null)
-// )
-// const participantsSelector = createSelector(
-// Constants.getGeneralChannelOfSelectedInbox,
-// inbox => (inbox ? inbox.get('participants') : null)
-// )
+const mapStateToProps = (state, {filter, conversationIDKey}): * => ({
+  _filter: filter,
+  _infoMap: state.users.infoMap,
+  _participants: Constants.getMeta(state, conversationIDKey).participants,
+  conversationIDKey,
+})
 
-// const userSelector = createSelector(fullNameSelector, participantsSelector, (fullNames, participants) => {
-// return participants
-// ? participants.reduce((res, username) => {
-// const fullName = fullNames ? fullNames.get(username) : ''
-// res.push({fullName: fullName || '', username})
-// return res
-// }, [])
-// : []
-// })
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  ...ownProps,
+  conversationIDKey: stateProps.conversationIDKey,
+  filter: stateProps._filter.toLowerCase(),
+  users: stateProps._participants
+    .map(p => ({fullName: stateProps._infoMap.getIn([p, 'fullname'], ''), username: p}))
+    .toArray(),
+})
 
-const mapStateToProps = (state, {filter, conversationIDKey}): * => {
-  const meta = Constants.getMeta(state, conversationIDKey)
-  return {
-    conversationIDKey,
-    filter: filter.toLowerCase(),
-    users: meta.participants.map(p => ({fullName: '', username: p})).toArray(),
-  }
-}
-
-const ConnectedMentionHud: Class<React.Component<ConnectedMentionHudProps, void>> = connect(mapStateToProps)(
-  MentionHud
-)
+const ConnectedMentionHud: Class<React.Component<ConnectedMentionHudProps, void>> = connect(
+  mapStateToProps,
+  () => ({}),
+  mergeProps
+)(MentionHud)
 
 export default ConnectedMentionHud

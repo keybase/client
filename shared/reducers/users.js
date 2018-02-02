@@ -10,6 +10,17 @@ const reducer = (state: Types.State = initialState, action: UsersGen.Actions): T
   switch (action.type) {
     case UsersGen.resetStore:
       return initialState
+    case UsersGen.updateFullnames: {
+      return state.update('infoMap', map =>
+        map.withMutations(m => {
+          Object.keys(action.payload.usernameToFullname).forEach(username => {
+            m.update(username, info =>
+              (info || blankUserInfo).set('fullname', action.payload.usernameToFullname[username])
+            )
+          })
+        })
+      )
+    }
     case UsersGen.updateBrokenState: {
       const {newlyBroken, newlyFixed} = action.payload
 

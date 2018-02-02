@@ -4,6 +4,7 @@ import * as I from 'immutable'
 
 export type _UserInfo = {
   broken: boolean,
+  fullname: string,
 }
 type UserInfo = I.RecordOf<_UserInfo>
 
