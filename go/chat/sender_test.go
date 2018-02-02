@@ -877,12 +877,12 @@ func TestKBFSCryptKeysBit(t *testing.T) {
 		require.Len(t, tv.Messages, 1)
 		msg := tv.Messages[0]
 
+		require.NotNil(t, msg.Valid().ClientHeader.KbfsCryptKeysUsed)
 		switch mt {
 		case chat1.ConversationMembersType_KBFS:
-			require.NotNil(t, msg.Valid().ClientHeader.KbfsCryptKeysUsed)
 			require.True(t, *msg.Valid().ClientHeader.KbfsCryptKeysUsed)
 		default:
-			require.Nil(t, msg.Valid().ClientHeader.KbfsCryptKeysUsed)
+			require.False(t, *msg.Valid().ClientHeader.KbfsCryptKeysUsed)
 		}
 	})
 }
