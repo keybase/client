@@ -61,6 +61,7 @@ export const TeamMember = (props: Props) => {
           }}
         >
           <Avatar
+            onClick={onOpenProfile}
             style={{marginRight: globalMargins.tiny, alignSelf: 'center'}}
             username={user.username}
             following={following}
@@ -94,7 +95,7 @@ export const TeamMember = (props: Props) => {
           type="HeaderBig"
           colorFollowing={!(you && you.username === user.username)} // De-colorize if this is own member page
           users={[{username: user.username, following}]}
-          onUsernameClicked={() => onOpenProfile()}
+          onUsernameClicked={onOpenProfile}
         />
         <Text type="BodySmall">
           {user.type} in {teamname}

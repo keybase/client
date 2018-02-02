@@ -249,7 +249,8 @@ func TestIdentify2WithUIDWithoutTrack(t *testing.T) {
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.Services = i
 	arg := &keybase1.Identify2Arg{
-		Uid: tracyUID,
+		Uid:              tracyUID,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 	}
 	eng := NewIdentify2WithUID(tc.G, arg)
 	ctx := Context{IdentifyUI: i}
@@ -285,7 +286,8 @@ func TestIdentify2WithUIDWithTrack(t *testing.T) {
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.Services = i
 	arg := &keybase1.Identify2Arg{
-		Uid: tracyUID,
+		Uid:              tracyUID,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 	}
 	eng := NewIdentify2WithUID(tc.G, arg)
 
@@ -311,8 +313,9 @@ func TestIdentify2WithUIDWithTrackAndSuppress(t *testing.T) {
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.Services = i
 	arg := &keybase1.Identify2Arg{
-		Uid:           tracyUID,
-		CanSuppressUI: true,
+		Uid:              tracyUID,
+		CanSuppressUI:    true,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 	}
 	eng := NewIdentify2WithUID(tc.G, arg)
 
@@ -367,8 +370,9 @@ func identify2WithUIDWithBrokenTrackMakeEngine(t *testing.T, arg *keybase1.Ident
 
 func testIdentify2WithUIDWithBrokenTrack(t *testing.T, suppress bool) {
 	arg := &keybase1.Identify2Arg{
-		Uid:           tracyUID,
-		CanSuppressUI: suppress,
+		Uid:              tracyUID,
+		CanSuppressUI:    suppress,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 	}
 	waiter, err := identify2WithUIDWithBrokenTrackMakeEngine(t, arg)
 
@@ -485,7 +489,7 @@ func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 	runStandard := func() {
 		// Now run the engine again, but in normal mode, and check that we don't hit
 		// the cached broken gy.
-		eng := NewIdentify2WithUID(tc.G, &keybase1.Identify2Arg{Uid: tracyUID})
+		eng := NewIdentify2WithUID(tc.G, &keybase1.Identify2Arg{Uid: tracyUID, IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI})
 
 		eng.testArgs = &Identify2WithUIDTestArgs{
 			noMe:  true,
@@ -558,8 +562,9 @@ func TestIdentify2WithUIDWithAssertion(t *testing.T) {
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.Services = i
 	arg := &keybase1.Identify2Arg{
-		Uid:           tracyUID,
-		UserAssertion: "tacovontaco@twitter",
+		Uid:              tracyUID,
+		UserAssertion:    "tacovontaco@twitter",
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 	}
 	eng := NewIdentify2WithUID(tc.G, arg)
 
@@ -583,8 +588,9 @@ func TestIdentify2WithUIDWithAssertions(t *testing.T) {
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.Services = i
 	arg := &keybase1.Identify2Arg{
-		Uid:           tracyUID,
-		UserAssertion: "tacovontaco@twitter+t_tracy@rooter",
+		Uid:              tracyUID,
+		UserAssertion:    "tacovontaco@twitter+t_tracy@rooter",
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 	}
 	eng := NewIdentify2WithUID(tc.G, arg)
 
@@ -608,8 +614,9 @@ func TestIdentify2WithUIDWithNonExistentAssertion(t *testing.T) {
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.Services = i
 	arg := &keybase1.Identify2Arg{
-		Uid:           tracyUID,
-		UserAssertion: "beyonce@twitter",
+		Uid:              tracyUID,
+		UserAssertion:    "beyonce@twitter",
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 	}
 	eng := NewIdentify2WithUID(tc.G, arg)
 
@@ -650,8 +657,9 @@ func TestIdentify2WithUIDWithFailedAssertion(t *testing.T) {
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.Services = i
 	arg := &keybase1.Identify2Arg{
-		Uid:           tracyUID,
-		UserAssertion: "tacovontaco@twitter",
+		Uid:              tracyUID,
+		UserAssertion:    "tacovontaco@twitter",
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 	}
 	eng := NewIdentify2WithUID(tc.G, arg)
 
@@ -701,8 +709,9 @@ func TestIdentify2WithUIDWithFailedAncillaryAssertion(t *testing.T) {
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.Services = i
 	arg := &keybase1.Identify2Arg{
-		Uid:           tracyUID,
-		UserAssertion: "tacoplusplus@github+t_tracy@rooter",
+		Uid:              tracyUID,
+		UserAssertion:    "tacoplusplus@github+t_tracy@rooter",
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 	}
 	eng := NewIdentify2WithUID(tc.G, arg)
 
@@ -753,7 +762,8 @@ func TestIdentify2WithUIDCache(t *testing.T) {
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.Services = i
 	arg := &keybase1.Identify2Arg{
-		Uid: tracyUID,
+		Uid:              tracyUID,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 	}
 	run := func() {
 		eng := NewIdentify2WithUID(tc.G, arg)
@@ -825,7 +835,8 @@ func TestIdentify2WithUIDLocalAssertions(t *testing.T) {
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.Services = i
 	arg := &keybase1.Identify2Arg{
-		Uid: tracyUID,
+		Uid:              tracyUID,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 	}
 
 	run := func() {
@@ -904,7 +915,8 @@ func TestResolveAndIdentify2WithUIDWithAssertions(t *testing.T) {
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.Services = i
 	arg := &keybase1.Identify2Arg{
-		UserAssertion: "tacovontaco@twitter+t_tracy@rooter",
+		UserAssertion:    "tacovontaco@twitter+t_tracy@rooter",
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 	}
 	eng := NewResolveThenIdentify2(tc.G, arg)
 	eng.testArgs = &Identify2WithUIDTestArgs{
@@ -929,7 +941,8 @@ func TestIdentify2NoSigchain(t *testing.T) {
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.Services = i
 	arg := &keybase1.Identify2Arg{
-		UserAssertion: u,
+		UserAssertion:    u,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 	}
 	eng := NewResolveThenIdentify2(tc.G, arg)
 	ctx := Context{IdentifyUI: i}
@@ -963,7 +976,8 @@ func TestIdentifyAfterDbNuke(t *testing.T) {
 
 		i := newIdentify2WithUIDTester(tc.G)
 		arg := &keybase1.Identify2Arg{
-			Uid: aliceUID,
+			Uid:              aliceUID,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 		}
 		eng := NewIdentify2WithUID(tc.G, arg)
 		eng.testArgs = &Identify2WithUIDTestArgs{

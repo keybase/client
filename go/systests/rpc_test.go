@@ -266,6 +266,14 @@ func testConfig(t *testing.T, g *libkb.GlobalContext) {
 	}
 }
 
+func idLiteArg(id keybase1.UserOrTeamID, assertion string) keybase1.IdentifyLiteArg {
+	return keybase1.IdentifyLiteArg{
+		Id:               id,
+		Assertion:        assertion,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+	}
+}
+
 func TestIdentifyLite(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
@@ -317,7 +325,7 @@ func TestIdentifyLite(t *testing.T) {
 		},
 	}
 	for _, unit := range units {
-		res, err := cli.IdentifyLite(context.Background(), keybase1.IdentifyLiteArg{Assertion: unit.assertion})
+		res, err := cli.IdentifyLite(context.Background(), idLiteArg("", unit.assertion))
 		require.NoError(t, err, "IdentifyLite (%s) failed", unit.assertion)
 
 		if len(unit.resID) > 0 {
@@ -332,23 +340,23 @@ func TestIdentifyLite(t *testing.T) {
 	// test identify by assertion and id
 	assertions := []string{"team:" + teamName, "tid:" + team.ID.String()}
 	for _, assertion := range assertions {
-		_, err := cli.IdentifyLite(context.Background(), keybase1.IdentifyLiteArg{Id: team.ID.AsUserOrTeam(), Assertion: assertion})
+		_, err := cli.IdentifyLite(context.Background(), idLiteArg(team.ID.AsUserOrTeam(), assertion))
 		require.NoError(t, err, "IdentifyLite by assertion and id (%s)", assertion)
 	}
 
 	// test identify by id only
-	_, err = cli.IdentifyLite(context.Background(), keybase1.IdentifyLiteArg{Id: team.ID.AsUserOrTeam()})
+	_, err = cli.IdentifyLite(context.Background(), idLiteArg(team.ID.AsUserOrTeam(), ""))
 	require.NoError(t, err, "IdentifyLite id only")
 
 	// test invalid user format
-	_, err = cli.IdentifyLite(context.Background(), keybase1.IdentifyLiteArg{Assertion: "__t_alice"})
+	_, err = cli.IdentifyLite(context.Background(), idLiteArg("", "__t_alice"))
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "bad keybase username")
 
 	// test team read error
 	assertions = []string{"team:jwkj22111z"}
 	for _, assertion := range assertions {
-		_, err := cli.IdentifyLite(context.Background(), keybase1.IdentifyLiteArg{Assertion: assertion})
+		_, err := cli.IdentifyLite(context.Background(), idLiteArg("", assertion))
 		aerr, ok := err.(libkb.AppStatusError)
 		if ok {
 			if aerr.Code != libkb.SCTeamNotFound {
@@ -363,7 +371,7 @@ func TestIdentifyLite(t *testing.T) {
 	// test not found assertions
 	assertions = []string{"t_weriojweroi"}
 	for _, assertion := range assertions {
-		_, err := cli.IdentifyLite(context.Background(), keybase1.IdentifyLiteArg{Assertion: assertion})
+		_, err := cli.IdentifyLite(context.Background(), idLiteArg("", assertion))
 		if _, ok := err.(libkb.NotFoundError); !ok {
 			t.Fatalf("assertion %s, error: %s (%T), expected libkb.NotFoundError", assertion, err, err)
 		}

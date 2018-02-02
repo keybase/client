@@ -556,7 +556,9 @@ func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 			return err
 		}
 
-		if inviteRequired {
+		if inviteRequired && !uv.Uid.Exists() {
+			// This branch only handles social invites. Keybase-type
+			// invites are handled by next removeMemberInvite call below.
 			return removeMemberInvite(ctx, g, t, username, uv)
 		}
 
