@@ -11,6 +11,11 @@ import {type TypedState} from './reducer'
 
 export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner']
 
+// Waiting keys
+// Add granularity as necessary
+export const teamWaitingKey = (teamname: string) => `team:${teamname}`
+export const settingsWaitingKey = (teamname: string) => `teamSettings:${teamname}`
+
 export const makeChannelInfo: I.RecordFactory<Types._ChannelInfo> = I.Record({
   channelname: null,
   description: null,
@@ -56,7 +61,6 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   teamNameToInvites: I.Map(),
   teamNameToIsOpen: I.Map(),
   teamNameToLoadingInvites: I.Map(),
-  teamNameToLoading: I.Map(),
   teamNameToMemberUsernames: I.Map(),
   teamNameToMembers: I.Map(),
   teamNameToRequests: I.Map(),
