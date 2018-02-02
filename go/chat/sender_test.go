@@ -637,11 +637,12 @@ func TestDisconnectedFailure(t *testing.T) {
 	<-tc.ChatG.MessageDeliverer.Stop(ctx)
 	tc.ChatG.MessageDeliverer.(*Deliverer).SetSender(baseSender)
 	outbox := storage.NewOutbox(tc.Context(), u.User.GetUID().ToBytes())
+	outbox.SetClock(cl)
 	for _, obid := range obids {
 		require.NoError(t, outbox.RetryMessage(ctx, obid))
 	}
-	tc.ChatG.MessageDeliverer.Connected(ctx)
 	tc.ChatG.MessageDeliverer.Start(ctx, u.User.GetUID().ToBytes())
+	tc.ChatG.MessageDeliverer.Connected(ctx)
 
 	for {
 		select {
