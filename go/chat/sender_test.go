@@ -519,6 +519,22 @@ func TestOutboxItemExpiration(t *testing.T) {
 		require.Fail(t, "no incoming message")
 	default:
 	}
+
+	outbox := storage.NewOutbox(tc.Context(), uid)
+	outbox.SetClock(cl)
+	require.NoError(t, outbox.RetryMessage(ctx, obid))
+	tc.ChatG.MessageDeliverer.ForceDeliverLoop(ctx)
+	select {
+	case i := <-listener.incoming:
+		require.Equal(t, 1, i)
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no success")
+	}
+	select {
+	case <-listener.failing:
+		require.Fail(t, "no failing message")
+	default:
+	}
 }
 
 func TestDisconnectedFailure(t *testing.T) {
