@@ -10,6 +10,7 @@
 #import "KBInstaller.h"
 #import "KBWorkspace.h"
 #import "KBSharedFileList.h"
+#import "KBTask.h"
 
 @interface KBMountDir ()
 @property KBHelperTool *helperTool;
@@ -75,6 +76,26 @@
   }
 
   NSString *link = [self.config rootMountSymlink];
+  // If /keybase exists and is not yet a symlink, force an unmount and
+  // remove it.
+  NSDictionary *attributes = [NSFileManager.defaultManager attributesOfItemAtPath:link error:nil];
+  if (attributes && ![attributes[NSFileType] isEqual:NSFileTypeSymbolicLink]) {
+    DDLogDebug(@"Going to unmount root non-link: %@", link);
+    [KBTask execute:@"/sbin/umount" args:@[link] timeout:KBDefaultTaskTimeout completion:^(NSError *err, NSData *outData, NSData *errData) {
+      if (err) {
+        DDLogDebug(@"Couldn't unmount root non-link: %@ %@ %@", err, outData, errData);
+      }
+    }];
+
+    DDLogDebug(@"Going to remove root non-link: %@", link);
+    NSDictionary *params = @{@"path": link};
+    [self.helperTool.helper sendRequest:@"remove" params:@[params] completion:^(NSError *err, id value) {
+      if (err) {
+        DDLogDebug(@"Couldn't remove root non-link: %@", err);
+      }
+    }];
+  }
+
   uid_t uid = getuid();
   gid_t gid = getgid();
   NSDictionary *params = @{@"path": self.config.mountDir, @"linkPath": link, @"uid": @(uid), @"gid": @(gid)};
