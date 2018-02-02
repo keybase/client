@@ -1147,15 +1147,19 @@ func (c ChainLink) NeedsSignature() bool {
 	return c.unpacked.outerLinkV2.LinkType.NeedsSignature()
 }
 
-// MaybeClean
-func (c *ChainLink) MaybeCleanSig() {
+// MaybeDropSig will erase c.unpacked.sig if it is a track link
+// with no revocations.  It should not be called on tail links.
+func (c *ChainLink) MaybeDropSig() {
 	if LinkType(c.unpacked.typ) != LinkTypeTrack {
 		return
 	}
 	if c.HasRevocations() {
 		return
 	}
-	c.G().Log.Debug("ChainLink: dropping sig on link %x (type %s)", c.unpacked.payloadHash, c.unpacked.typ)
-	c.unpacked.sig = ""
-	c.unpacked.sigDropped = true
+	// verify it first
+	if err := c.VerifyLink(); err == nil {
+		c.G().Log.Debug("ChainLink: dropping sig on link %d [%x] (type %s)", c.unpacked.seqno, c.unpacked.payloadHash, c.unpacked.typ)
+		c.unpacked.sig = ""
+		c.unpacked.sigDropped = true
+	}
 }
