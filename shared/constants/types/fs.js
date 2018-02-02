@@ -5,11 +5,16 @@ export opaque type Path = ?string
 
 export type PathType = 'folder' | 'file' | 'symlink' | 'unknown'
 
+type pendingPathMetadataProgressType = 1
+type loadedPathMetadataProgressType = 2
+export const PendingPathMetadataProgress = 1
+export const LoadedPathMetadataProgress = 2
+
 export type PathItemMetadata = {
   lastModifiedTimestamp?: number,
   size?: number,
   lastWriter?: string,
-  progress: number,
+  progress: pendingPathMetadataProgressType | loadedPathMetadataProgressType,
 }
 
 export type _FolderPathItem = {
