@@ -274,8 +274,10 @@ func (sc *SigChain) LoadFromServer(ctx context.Context, t *MerkleTriple, selfUID
 			}
 		}
 
-		// it's not the tail, so it's ok to check if the sig can be dropped
-		link.MaybeCleanSig()
+		if !foundTail {
+			// it's not the tail, so it's ok to check if the sig can be dropped
+			link.MaybeDropSig()
+		}
 
 		tail = link
 	}
@@ -950,6 +952,10 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 			l.G().Log.CDebugf(l.ctx, "tried to load previous link ID %s, but link not found", currentLink.GetPrev())
 			return nil
 		}
+
+		// not the tail link, so ok to check if the sig can be dropped
+		prevLink.MaybeDropSig()
+
 		links = append(links, prevLink)
 		if l.currentSubchainStart == 0 && isSubchainStart(currentLink, prevLink) {
 			l.currentSubchainStart = currentLink.GetSeqno()
@@ -1166,10 +1172,13 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	preload = l.AccessPreload()
 
 	if !preload {
-		stage("LoadLinksFromStorage")
-		if err = l.LoadLinksFromStorage(); err != nil {
-			return nil, err
-		}
+		// XXX temporary for testing
+		/*
+			stage("LoadLinksFromStorage")
+			if err = l.LoadLinksFromStorage(); err != nil {
+				return nil, err
+			}
+		*/
 	}
 
 	stage("MakeSigChain")
