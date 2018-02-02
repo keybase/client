@@ -326,8 +326,6 @@ func (c *ChainLink) Pack() (*jsonw.Wrapper, error) {
 		p.SetKey("computed_key_infos", jsonw.NewWrapper(*c.cki))
 	}
 
-	// c.packed = p
-
 	return p, nil
 }
 
