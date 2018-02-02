@@ -519,6 +519,22 @@ func TestOutboxItemExpiration(t *testing.T) {
 		require.Fail(t, "no incoming message")
 	default:
 	}
+
+	outbox := storage.NewOutbox(tc.Context(), uid)
+	outbox.SetClock(cl)
+	require.NoError(t, outbox.RetryMessage(ctx, obid))
+	tc.ChatG.MessageDeliverer.ForceDeliverLoop(ctx)
+	select {
+	case i := <-listener.incoming:
+		require.Equal(t, 1, i)
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no success")
+	}
+	select {
+	case <-listener.failing:
+		require.Fail(t, "no failing message")
+	default:
+	}
 }
 
 func TestDisconnectedFailure(t *testing.T) {
@@ -621,11 +637,12 @@ func TestDisconnectedFailure(t *testing.T) {
 	<-tc.ChatG.MessageDeliverer.Stop(ctx)
 	tc.ChatG.MessageDeliverer.(*Deliverer).SetSender(baseSender)
 	outbox := storage.NewOutbox(tc.Context(), u.User.GetUID().ToBytes())
+	outbox.SetClock(cl)
 	for _, obid := range obids {
 		require.NoError(t, outbox.RetryMessage(ctx, obid))
 	}
-	tc.ChatG.MessageDeliverer.Connected(ctx)
 	tc.ChatG.MessageDeliverer.Start(ctx, u.User.GetUID().ToBytes())
+	tc.ChatG.MessageDeliverer.Connected(ctx)
 
 	for {
 		select {
