@@ -1158,8 +1158,10 @@ func (c *ChainLink) MaybeDropSig() {
 	}
 	// verify it first
 	if err := c.VerifyLink(); err == nil {
-		c.G().Log.Debug("ChainLink: dropping sig on link %d [%x] (type %s)", c.unpacked.seqno, c.unpacked.payloadHash, c.unpacked.typ)
-		c.unpacked.sig = ""
-		c.unpacked.sigDropped = true
+		if _, err = c.Store(c.G()); err == nil {
+			c.G().Log.Debug("ChainLink: dropping sig on link %d [%x] (type %s)", c.unpacked.seqno, c.unpacked.payloadHash, c.unpacked.typ)
+			c.unpacked.sig = ""
+			c.unpacked.sigDropped = true
+		}
 	}
 }
