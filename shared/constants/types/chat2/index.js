@@ -41,6 +41,7 @@ export const outboxIDToRpcOutboxID = (outboxID: Message.OutboxID): RPCChatTypes.
 
 export type {ConversationMeta, MetaTrustedState} from './meta'
 export type {
+  AttachmentType,
   MentionsAt,
   MentionsChannel,
   MentionsChannelName,

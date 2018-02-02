@@ -17,9 +17,6 @@ export opaque type OutboxID: string = string
 export const stringToOutboxID = (s: string): OutboxID => s
 export const outboxIDToString = (o: OutboxID): string => o
 
-// Bookkeep us trying to do these operations
-type LocalState = null | 'deleting' | 'editing' | 'pending'
-
 export type MentionsAt = I.Set<string>
 export type MentionsChannel = 'none' | 'all' | 'here'
 export type MentionsChannelName = I.Map<string, Common.ConversationIDKey>
@@ -53,7 +50,7 @@ export type _MessageText = {
   errorReason: ?string,
   hasBeenEdited: boolean,
   id: MessageID,
-  localState: LocalState,
+  submitState: null | 'deleting' | 'editing' | 'pending',
   mentionsAt: MentionsAt,
   mentionsChannel: MentionsChannel,
   mentionsChannelName: MentionsChannelName,
@@ -65,28 +62,32 @@ export type _MessageText = {
 }
 export type MessageText = I.RecordOf<_MessageText>
 
-// type AttachmentType = 'image' | 'other'
+export type AttachmentType = 'image' | 'file'
 
 export type _MessageAttachment = {
-  // attachmentType: AttachmentType,
+  attachmentType: AttachmentType,
   author: string,
   conversationIDKey: Common.ConversationIDKey,
+  deviceFilePath: string,
+  devicePreviewPath: string,
   deviceName: string,
   deviceRevokedAt: ?number,
   deviceType: DeviceType,
   errorReason: ?string,
   // durationMs: number,
-  // filename: ?string,
+  filename: string,
   hasBeenEdited: boolean,
   id: MessageID,
-  localState: LocalState,
   ordinal: Ordinal,
   outboxID: ?OutboxID,
   // percentUploaded: number,
   // previewHeight: number,
   // previewWidth: number,
+  submitState: null | 'deleting' | 'pending',
   timestamp: number,
-  // title: string,
+  title: string,
+  transferProgress: number, // 0-1
+  transferState: 'uploading' | 'downloading' | null,
   type: 'attachment',
 }
 export type MessageAttachment = I.RecordOf<_MessageAttachment>

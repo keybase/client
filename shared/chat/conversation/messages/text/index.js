@@ -43,13 +43,14 @@ const editingStyle = {
 
 const sentStyle = {
   ...globalStyles.selectable,
-  flex: 1,
+  width: '100%',
   ...(isMobile
     ? {
         color: globalColors.black_75,
       }
     : {
         whiteSpace: 'pre-wrap',
+        wordBreak: 'break-word',
       }),
 }
 

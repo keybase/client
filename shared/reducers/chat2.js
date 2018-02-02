@@ -90,7 +90,7 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
         [action.payload.conversationIDKey, action.payload.ordinal],
         message =>
           message && message.type === 'text'
-            ? message.set('localState', action.type === Chat2Gen.messageDelete ? 'deleting' : 'editing')
+            ? message.set('submitState', action.type === Chat2Gen.messageDelete ? 'deleting' : 'editing')
             : message
       )
     case Chat2Gen.inboxRefresh:
@@ -121,7 +121,7 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
                   : message.withMutations(m => {
                       m.set('text', text)
                       m.set('hasBeenEdited', true)
-                      m.set('localState', null)
+                      m.set('submitState', null)
                     })
             )
           : editedMap
@@ -361,10 +361,10 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         state.messageMap.updateIn([conversationIDKey, ordinal], message => {
           if (message) {
             if (message.type === 'text') {
-              return message.set('errorReason', null).set('localState', 'pending')
+              return message.set('errorReason', null).set('submitState', 'pending')
             }
             if (message.type === 'attachment') {
-              return message.set('errorReason', null).set('localState', 'pending')
+              return message.set('errorReason', null).set('submitState', 'pending')
             }
           }
           return message
@@ -382,10 +382,10 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         state.messageMap.updateIn([conversationIDKey, ordinal], message => {
           if (message) {
             if (message.type === 'text') {
-              return message.set('errorReason', reason).set('localState', null)
+              return message.set('errorReason', reason).set('submitState', null)
             }
             if (message.type === 'attachment') {
-              return message.set('errorReason', reason).set('localState', null)
+              return message.set('errorReason', reason).set('submitState', null)
             }
           }
           return message

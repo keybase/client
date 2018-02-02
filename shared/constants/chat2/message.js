@@ -36,7 +36,7 @@ export const makeMessageDeleted: I.RecordFactory<MessageTypes._MessageDeleted> =
 
 export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Record({
   ...makeMessageCommon,
-  localState: null,
+  submitState: null,
   mentionsAt: I.Set(),
   mentionsChannel: 'none',
   mentionsChannelName: I.Map(),
@@ -46,14 +46,18 @@ export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Rec
 
 export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachment> = I.Record({
   ...makeMessageCommon,
-  // attachmentType: 'other',
   // durationMs: 0,
-  // filename: null,
-  localState: null,
   // percentUploaded: 0,
   // previewHeight: 0,
   // previewWidth: 0,
-  // title: '',
+  attachmentType: 'file',
+  deviceFilePath: '',
+  devicePreviewPath: '',
+  filename: '',
+  title: '',
+  transferProgress: 0,
+  submitState: null,
+  transferState: null,
   type: 'attachment',
 })
 
@@ -240,7 +244,6 @@ const validUIMessagetoMessage = (
     deviceName: m.senderDeviceName,
     deviceRevokedAt: m.senderDeviceRevokedAt,
     deviceType: DeviceTypes.stringToDeviceType(m.senderDeviceType),
-    hasBeenEdited: m.superseded,
     outboxID: m.outboxID ? Types.stringToOutboxID(m.outboxID) : null,
   }
 
@@ -249,6 +252,7 @@ const validUIMessagetoMessage = (
       const rawText: string = (m.messageBody.text && m.messageBody.text.body) || ''
       return makeMessageText({
         ...common,
+        hasBeenEdited: m.superseded,
         mentionsAt: I.Set(m.atMentions || []),
         mentionsChannel: channelMentionToMentionsChannel(m.channelMention),
         mentionsChannelName: I.Map(
@@ -257,13 +261,14 @@ const validUIMessagetoMessage = (
         text: new HiddenString(rawText),
       })
     case RPCChatTypes.commonMessageType.attachment: {
-      // const attachment = m.messageBody.attachment || {}
+      const attachment = m.messageBody.attachment || {}
+      const {filename, mimeType, title} = attachment.object
       // const {filename, title, mimeType, metadata} = attachment.object
       // const metadataVideo =
       // metadata.assetType === RPCChatTypes.localAssetMetadataType.video ? metadata.video : null
       // const metadataImage =
       // metadata.assetType === RPCChatTypes.localAssetMetadataType.image ? metadata.image : null
-      // const attachmentType = mimeType.indexOf('image') === 0 ? 'image' : 'other'
+      const attachmentType = mimeType.indexOf('image/') === 0 ? 'image' : 'file'
       // const {width, height} = metadataVideo || metadataImage || {height: 0, width: 0}
       // const {width: previewWidth = 0, height: previewHeight = 0} = clampAttachmentPreviewSize(width, height)
       // const durationMs = (metadataVideo && metadataVideo.durationMs) || 0
@@ -271,13 +276,13 @@ const validUIMessagetoMessage = (
 
       return makeMessageAttachment({
         ...common,
-        // attachmentType,
+        attachmentType,
         // durationMs,
-        // filename,
+        filename,
         // percentUploaded,
         // previewHeight,
         // previewWidth,
-        // title,
+        title,
       })
     }
     case RPCChatTypes.commonMessageType.join:
@@ -409,7 +414,7 @@ export const makePendingTextMessage = (
     deviceName: '',
     deviceType: isMobile ? 'mobile' : 'desktop',
     id: Types.numberToMessageID(0),
-    localState: 'pending',
+    submitState: 'pending',
     ordinal,
     outboxID,
     text,
