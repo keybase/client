@@ -19,6 +19,7 @@ type CmdChatKBFSUpgrade struct {
 func newCmdChatKBFSUpgrade(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "kbfs-upgrade",
+		Usage:        "upgrade a conversation from KBFS to implicit team backed",
 		ArgumentHelp: "[<conversation>]",
 		Action: func(c *cli.Context) {
 			cmd := &CmdChatKBFSUpgrade{Contextified: libkb.NewContextified(g)}
