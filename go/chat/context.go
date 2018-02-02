@@ -31,6 +31,9 @@ type identModeData struct {
 
 func IdentifyModeCtx(ctx context.Context, mode keybase1.TLFIdentifyBehavior,
 	breaks *[]keybase1.TLFIdentifyFailure) context.Context {
+	if mode == keybase1.TLFIdentifyBehavior_UNSET {
+		mode = keybase1.TLFIdentifyBehavior_CHAT_CLI
+	}
 	return context.WithValue(ctx, identModeKey, identModeData{mode: mode, breaks: breaks})
 }
 

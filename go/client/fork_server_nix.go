@@ -31,7 +31,7 @@ func spawnServer(g *libkb.GlobalContext, cl libkb.CommandLine, forkType keybase1
 	// you can either do `keybase --run-mode=prod service` manually, or you can
 	// add a systemd override file (see https://askubuntu.com/q/659267/73244).
 	if g.Env.WantsSystemd() {
-		g.Log.Info("Starting keybase.service.")
+		g.UI.GetDumbOutputUI().Printf("Starting keybase.service.\n")
 		// Prefer "restart" to "start" so that we don't race against shutdown.
 		startCmd := exec.Command("systemctl", "--user", "restart", "keybase.service")
 		startCmd.Stdout = os.Stderr
@@ -75,7 +75,7 @@ func spawnServer(g *libkb.GlobalContext, cl libkb.CommandLine, forkType keybase1
 	if err != nil {
 		err = fmt.Errorf("Error in ForkExec: %s", err)
 	} else {
-		g.Log.Info("Forking background server with pid=%d", pid)
+		g.UI.GetDumbOutputUI().Printf("Forking background server with pid=%d\n", pid)
 	}
 	return
 }

@@ -303,7 +303,7 @@ func configureLogging(g *libkb.GlobalContext, cl *libcmdline.CommandLine) error 
 		return err
 	}
 
-	logLevel := keybase1.LogLevel_INFO
+	logLevel := keybase1.LogLevel_NOTICE
 	if g.Env.GetDebug() {
 		logLevel = keybase1.LogLevel_DEBUG
 	}

@@ -28,8 +28,8 @@ func (c *CmdWatchdog2) ParseArgv(ctx *cli.Context) error {
 
 // Run watchdog
 func (c *CmdWatchdog2) Run() error {
-	env, log := c.G().Env, c.G().Log
-	log.Info("Starting watchdog")
+	env, dui := c.G().Env, c.G().UI.GetDumbOutputUI()
+	dui.Printf("Starting watchdog\n")
 	runMode := env.GetRunMode()
 	if runMode != libkb.ProductionRunMode {
 		return fmt.Errorf("Watchdog is only supported in production")

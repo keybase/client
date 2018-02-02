@@ -80,7 +80,8 @@ func TestAccountDeleteIdentify(t *testing.T) {
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.Services = i
 	arg := &keybase1.Identify2Arg{
-		Uid: u.GetUID(),
+		Uid:              u.GetUID(),
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 	}
 	ieng := NewIdentify2WithUID(tc.G, arg)
 	ictx := &Context{IdentifyUI: i}

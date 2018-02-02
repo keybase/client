@@ -88,7 +88,8 @@ func (e *DeviceKeyfinder) identifyUser(ctx *Context, user string) error {
 		Reason: keybase1.IdentifyReason{
 			Type: keybase1.IdentifyReasonType_ENCRYPT,
 		},
-		AlwaysBlock: true,
+		AlwaysBlock:      true,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 	}
 	eng := NewResolveThenIdentify2(e.G(), &arg)
 	if err := RunEngine(eng, ctx); err != nil {
