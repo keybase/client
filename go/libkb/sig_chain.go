@@ -273,6 +273,10 @@ func (sc *SigChain) LoadFromServer(ctx context.Context, t *MerkleTriple, selfUID
 				return
 			}
 		}
+
+		// it's not the tail, so it's ok to check if the sig can be dropped
+		link.MaybeCleanSig()
+
 		tail = link
 	}
 

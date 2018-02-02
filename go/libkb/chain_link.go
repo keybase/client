@@ -6,6 +6,7 @@ package libkb
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"time"
 
@@ -106,6 +107,7 @@ type ChainLinkUnpacked struct {
 	stubbed                            bool
 	firstAppearedMerkleSeqnoUnverified keybase1.Seqno
 	payloadHash                        []byte
+	sigDropped                         bool
 }
 
 // A template for some of the reasons in badChainLinks below.
@@ -851,6 +853,10 @@ func (c *ChainLink) VerifySigWithKeyFamily(ckf ComputedKeyFamily) (err error) {
 		return ChainLinkError{"cannot verify signature -- none available; is this a stubbed out link?"}
 	}
 
+	if c.unpacked != nil && c.unpacked.sigDropped {
+		return ChainLinkError{"cannot verify signature -- none available; sig dropped intentionally."}
+	}
+
 	verifyKID, err = c.checkServerSignatureMetadata(ckf)
 	if err != nil {
 		return err
@@ -962,11 +968,10 @@ func (c *ChainLink) HasRevocations() bool {
 }
 
 func (c *ChainLink) GetSigchainV2Type() (SigchainV2Type, error) {
-	t, err := c.UnmarshalPayloadJSON().AtPath("body.type").GetString()
-	if err != nil {
-		return SigchainV2TypeNone, err
+	if c.unpacked == nil || c.unpacked.typ == "" {
+		return SigchainV2TypeNone, errors.New("chain link not unpacked")
 	}
-	return SigchainV2TypeFromV1TypeAndRevocations(t, c.HasRevocations())
+	return SigchainV2TypeFromV1TypeAndRevocations(c.unpacked.typ, c.HasRevocations())
 }
 
 func (c *ChainLink) checkServerSignatureMetadata(ckf ComputedKeyFamily) (ret keybase1.KID, err error) {
@@ -1140,4 +1145,17 @@ func (c ChainLink) NeedsSignature() bool {
 		return true
 	}
 	return c.unpacked.outerLinkV2.LinkType.NeedsSignature()
+}
+
+// MaybeClean
+func (c *ChainLink) MaybeCleanSig() {
+	if LinkType(c.unpacked.typ) != LinkTypeTrack {
+		return
+	}
+	if c.HasRevocations() {
+		return
+	}
+	c.G().Log.Debug("ChainLink: dropping sig on link %x (type %s)", c.unpacked.payloadHash, c.unpacked.typ)
+	c.unpacked.sig = ""
+	c.unpacked.sigDropped = true
 }
