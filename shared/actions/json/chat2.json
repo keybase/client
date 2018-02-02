@@ -95,6 +95,7 @@
     "messageWasEdited": {
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal",
+      /* "messageID": "RPCChatTypes.MessageID", */
       "text": "HiddenString"
     },
     // Mark a message as deleted
