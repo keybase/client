@@ -2,8 +2,8 @@
 import * as React from 'react'
 import {Box, List, Text} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
-import InviteRow from '../invite-row/container'
-import RequestRow from '../request-row/container'
+import InviteRow from './invite-row/container'
+import RequestRow from './request-row/container'
 
 export type Props = {
   requestsAndInvites: any[],
@@ -11,6 +11,7 @@ export type Props = {
 
 const DividerRow = (index, {key}) => (
   <Box
+    key={key}
     style={{
       ...globalStyles.flexBoxRow,
       alignItems: 'center',
