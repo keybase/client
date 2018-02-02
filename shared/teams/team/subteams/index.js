@@ -4,8 +4,8 @@ import * as I from 'immutable'
 import * as Types from '../../../constants/types/teams'
 import {Box, ClickableBox, Icon, List, Text} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
-import TeamSubteamRow from '../subteam-row/container'
-import SubteamBanner from '../subteam-banner'
+import TeamSubteamRow from './subteam-row/container'
+import SubteamBanner from './subteam-banner'
 
 export type Props = {
   onCreateSubteam: () => void,
