@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"time"
 
+	"golang.org/x/net/context"
+
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -897,6 +899,9 @@ func ImportLinkFromServer(g *GlobalContext, parent *SigChain, jw *jsonw.Wrapper,
 	if err = ret.Unpack(false, selfUID, jw); err != nil {
 		return nil, err
 	}
+
+	// put in g.LinkCache here?
+
 	return ret, nil
 }
 
@@ -1149,19 +1154,15 @@ func (c ChainLink) NeedsSignature() bool {
 
 // MaybeDropSig will erase c.unpacked.sig if it is a track link
 // with no revocations.  It should not be called on tail links.
-func (c *ChainLink) MaybeDropSig() {
+func (c *ChainLink) MaybeDropSig(ctx context.Context) {
 	if LinkType(c.unpacked.typ) != LinkTypeTrack {
 		return
 	}
 	if c.HasRevocations() {
 		return
 	}
-	// verify it first
-	if err := c.VerifyLink(); err == nil {
-		if _, err = c.Store(c.G()); err == nil {
-			c.G().Log.Debug("ChainLink: dropping sig on link %d [%x] (type %s)", c.unpacked.seqno, c.unpacked.payloadHash, c.unpacked.typ)
-			c.unpacked.sig = ""
-			c.unpacked.sigDropped = true
-		}
-	}
+
+	c.G().Log.CDebugf(ctx, "ChainLink: dropping sig on link %d [%x] (type %s)", c.unpacked.seqno, c.unpacked.payloadHash, c.unpacked.typ)
+	c.unpacked.sig = ""
+	c.unpacked.sigDropped = true
 }

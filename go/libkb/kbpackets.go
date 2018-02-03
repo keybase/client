@@ -137,9 +137,8 @@ func (p KeybasePackets) EncodeTo(w io.Writer) error {
 }
 
 func MsgpackDecode(dst interface{}, src []byte) (err error) {
-	buf := bytes.NewBuffer(src)
 	ch := codecHandle()
-	return codec.NewDecoder(buf, ch).Decode(dst)
+	return codec.NewDecoderBytes(src, ch).Decode(dst)
 }
 
 func MsgpackEncode(src interface{}) (dst []byte, err error) {
@@ -221,11 +220,6 @@ func (p *KeybasePacket) unmarshalBinary(data []byte) error {
 	// Ideally this should be done at a lower level, like MsgpackDecodeAll, but
 	// our msgpack library doesn't sort maps the way we expect. See
 	// https://github.com/ugorji/go/issues/103
-	var reencoded []byte
-	if err := codec.NewEncoderBytes(&reencoded, ch).Encode(p); err != nil {
-		return err
-	}
-
 	if reencoded, err := p.Encode(); err != nil {
 		return err
 	} else if !bytes.Equal(reencoded, data) {
