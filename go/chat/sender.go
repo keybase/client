@@ -706,6 +706,8 @@ func NewDeliverer(g *globals.Context, sender types.Sender) *Deliverer {
 		return nil
 	})
 
+	d.identNotifier.ResetOnGUIConnect()
+
 	return d
 }
 
