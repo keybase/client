@@ -969,7 +969,13 @@ func (c *ChainLink) verifyLinkV2() error {
 }
 
 func (c *ChainLink) HasRevocations() bool {
-	return len(c.GetRevocations())+len(c.GetRevokeKids()) > 0
+	if len(c.GetRevocations()) > 0 {
+		return true
+	}
+	if len(c.GetRevokeKids()) > 0 {
+		return true
+	}
+	return false
 }
 
 func (c *ChainLink) GetSigchainV2Type() (SigchainV2Type, error) {

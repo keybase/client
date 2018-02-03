@@ -13,8 +13,12 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
+
+var uid = flag.String("uid", "", "uid of sigchain owner")
+var username = flag.String("username", "", "username of sigchain owner")
 
 func errout(msg string) {
 	fmt.Fprintf(os.Stderr, msg+"\n")
@@ -86,13 +90,21 @@ func main() {
 	g.ConfigureCaches()
 
 	sc = &libkb.SigChain{Contextified: libkb.NewContextified(g)}
-	sc.SetUIDUsername("2c7529821178c708bf6dd6bbb5c6b500", "chip")
+	sc.SetUIDUsername(keybase1.UID(*uid), *username)
 	_, err = sc.LoadServerBody(context.Background(), jw, 0, nil, "")
 	if err != nil {
 		errout(err.Error())
 	}
 
 	if err = sc.VerifyChain(context.Background()); err != nil {
+		errout(err.Error())
+	}
+
+	if err = sc.Store(context.Background()); err != nil {
+		errout(err.Error())
+	}
+
+	if err = sc.Clean(context.Background()); err != nil {
 		errout(err.Error())
 	}
 

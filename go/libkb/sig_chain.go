@@ -10,6 +10,7 @@ import (
 	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	jsonw "github.com/keybase/go-jsonw"
 	"golang.org/x/net/context"
 )
 
@@ -242,7 +243,12 @@ func (sc *SigChain) LoadFromServer(ctx context.Context, t *MerkleTriple, selfUID
 		return
 	}
 
-	v := res.Body.AtKey("sigs")
+	return sc.LoadServerBody(ctx, res.Body, low, t, selfUID)
+}
+
+func (sc *SigChain) LoadServerBody(ctx context.Context, body *jsonw.Wrapper, low keybase1.Seqno, t *MerkleTriple, selfUID keybase1.UID) (dirtyTail *MerkleTriple, err error) {
+	v := body.AtKey("sigs")
+
 	var lim int
 	if lim, err = v.Len(); err != nil {
 		return
@@ -297,6 +303,11 @@ func (sc *SigChain) LoadFromServer(ctx context.Context, t *MerkleTriple, selfUID
 
 	sc.chainLinks = append(sc.chainLinks, links...)
 	return
+}
+
+func (sc *SigChain) SetUIDUsername(uid keybase1.UID, username string) {
+	sc.uid = uid
+	sc.username = NewNormalizedUsername(username)
 }
 
 func (sc *SigChain) getFirstSeqno() (ret keybase1.Seqno) {
