@@ -274,11 +274,6 @@ func (sc *SigChain) LoadFromServer(ctx context.Context, t *MerkleTriple, selfUID
 			}
 		}
 
-		if !foundTail {
-			// it's not the tail, so it's ok to check if the sig can be dropped
-			link.MaybeDropSig()
-		}
-
 		tail = link
 	}
 
@@ -410,6 +405,17 @@ func (sc *SigChain) Store(ctx context.Context) (err error) {
 		if didStore, err = link.Store(sc.G()); err != nil || !didStore {
 			return
 		}
+	}
+	return nil
+}
+
+// Clean will remove any unnecessary memory consumed by
+// links. It should only be called after the chain has
+// been verified and stored.
+func (sc *SigChain) Clean(ctx context.Context) error {
+	// skip the tail (len - 2)
+	for i := len(sc.chainLinks) - 2; i >= 0; i-- {
+		sc.chainLinks[i].MaybeDropSig(ctx)
 	}
 	return nil
 }
@@ -953,9 +959,6 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 			return nil
 		}
 
-		// not the tail link, so ok to check if the sig can be dropped
-		prevLink.MaybeDropSig()
-
 		links = append(links, prevLink)
 		if l.currentSubchainStart == 0 && isSubchainStart(currentLink, prevLink) {
 			l.currentSubchainStart = currentLink.GetSeqno()
@@ -1239,6 +1242,10 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	stage("Store")
 	if err = l.Store(); err != nil {
 		l.G().Log.CDebugf(l.ctx, "| continuing past error storing chain: %s", err)
+	}
+	stage("Clean")
+	if err = l.chain.Clean(l.ctx); err != nil {
+		l.G().Log.CDebugf(l.ctx, "| continuing past error cleaning chain: %s", err)
 	}
 
 	return ret, nil
