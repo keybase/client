@@ -522,7 +522,7 @@ func TestOutboxItemExpiration(t *testing.T) {
 
 	outbox := storage.NewOutbox(tc.Context(), uid)
 	outbox.SetClock(cl)
-	require.NoError(t, outbox.RetryMessage(ctx, obid))
+	require.NoError(t, outbox.RetryMessage(ctx, obid, nil))
 	tc.ChatG.MessageDeliverer.ForceDeliverLoop(ctx)
 	select {
 	case i := <-listener.incoming:
