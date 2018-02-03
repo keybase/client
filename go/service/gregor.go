@@ -1511,10 +1511,7 @@ func (g *gregorHandler) connectNoTLS() error {
 	}
 	g.conn = rpc.NewConnectionWithTransport(g, t,
 		libkb.NewContextifiedErrorUnwrapper(g.G().ExternalG()),
-		logger.LogOutputWithDepthAdder{
-			Logger: logger.LogOutputWithDebugAndInfoGuards{
-				Logger: g.G().Log,
-			}}, opts)
+		logger.MakeLogOutputWithShiftAndDepthAdder(g.G().Log), opts)
 
 	g.cli = WrapGenericClientWithTimeout(g.conn.GetClient(), GregorRequestTimeout,
 		chat.ErrChatServerTimeout)
