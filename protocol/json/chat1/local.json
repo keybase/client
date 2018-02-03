@@ -2973,6 +2973,13 @@
         {
           "name": "outboxID",
           "type": "OutboxID"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "keybase1.TLFIdentifyBehavior"
+          ]
         }
       ],
       "response": null,

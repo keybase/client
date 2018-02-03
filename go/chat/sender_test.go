@@ -522,7 +522,7 @@ func TestOutboxItemExpiration(t *testing.T) {
 
 	outbox := storage.NewOutbox(tc.Context(), uid)
 	outbox.SetClock(cl)
-	require.NoError(t, outbox.RetryMessage(ctx, obid))
+	require.NoError(t, outbox.RetryMessage(ctx, obid, nil))
 	tc.ChatG.MessageDeliverer.ForceDeliverLoop(ctx)
 	select {
 	case i := <-listener.incoming:
@@ -639,7 +639,7 @@ func TestDisconnectedFailure(t *testing.T) {
 	outbox := storage.NewOutbox(tc.Context(), u.User.GetUID().ToBytes())
 	outbox.SetClock(cl)
 	for _, obid := range obids {
-		require.NoError(t, outbox.RetryMessage(ctx, obid))
+		require.NoError(t, outbox.RetryMessage(ctx, obid, nil))
 	}
 	tc.ChatG.MessageDeliverer.Start(ctx, u.User.GetUID().ToBytes())
 	tc.ChatG.MessageDeliverer.Connected(ctx)

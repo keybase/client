@@ -714,7 +714,7 @@ protocol local {
   @lint("ignore")
   void CancelPost(OutboxID outboxID);
   @lint("ignore")
-  void RetryPost(OutboxID outboxID);
+  void RetryPost(OutboxID outboxID, union { null, keybase1.TLFIdentifyBehavior } identifyBehavior);
 
   record MarkAsReadLocalRes {
      boolean offline;
