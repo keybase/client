@@ -19,8 +19,9 @@ import (
 	"sync"
 	"syscall"
 
-	"golang.org/x/sys/windows"
 	"unsafe"
+
+	"golang.org/x/sys/windows"
 )
 
 var (
@@ -284,7 +285,9 @@ func SaveConsoleMode() error {
 // RestoreConsoleMode restores the current text attributes from a global,
 // in case nonstandard colors are expected.
 func RestoreConsoleMode() {
-	setConsoleTextAttribute(os.Stdout.Fd(), consoleMode)
+	if consoleMode != 0 {
+		setConsoleTextAttribute(os.Stdout.Fd(), consoleMode)
+	}
 }
 
 // checkError evaluates the results of a Windows API call and returns the error if it failed.
