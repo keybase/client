@@ -27050,14 +27050,13 @@ exports[`Storyshots Edit team description Description unchanged 1`] = `
 exports[`Storyshots Files Root 1`] = `
 .glamor-0,
 [data-glamor-0] {
-  font-size: 24px;
-  line-height: 28px;
+  font-size: 14px;
+  line-height: 18px;
   color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 700;
-  padding: 4px;
+  font-weight: 600;
 }
 
 .glamor-1,
@@ -27127,8 +27126,7 @@ exports[`Storyshots Files Root 1`] = `
                   "display": "flex",
                   "flexDirection": "row",
                   "justifyContent": "center",
-                  "minHeight": 48,
-                  "padding": 8,
+                  "minHeight": 40,
                 }
               }
             >
@@ -27257,8 +27255,7 @@ exports[`Storyshots Files Root 1`] = `
                   "display": "flex",
                   "flexDirection": "row",
                   "justifyContent": "center",
-                  "minHeight": 48,
-                  "padding": 8,
+                  "minHeight": 40,
                 }
               }
             >
@@ -27387,8 +27384,7 @@ exports[`Storyshots Files Root 1`] = `
                   "display": "flex",
                   "flexDirection": "row",
                   "justifyContent": "center",
-                  "minHeight": 48,
-                  "padding": 8,
+                  "minHeight": 40,
                 }
               }
             >
