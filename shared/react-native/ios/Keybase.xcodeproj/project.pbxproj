@@ -1465,8 +1465,6 @@
 					"$(inherited)",
 					"-ObjC",
 					"-lc++",
-					"-Xlinker",
-					"-no_branch_islands",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios;
 				PRODUCT_NAME = Keybase;
@@ -1475,6 +1473,7 @@
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = 1;
+				VALID_ARCHS = "arm64 armv7s";
 			};
 			name = Debug;
 		};
@@ -1515,8 +1514,6 @@
 					"$(inherited)",
 					"-ObjC",
 					"-lc++",
-					"-Xlinker",
-					"-no_branch_islands",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios;
 				PRODUCT_NAME = Keybase;
@@ -1524,6 +1521,7 @@
 				SWIFT_OBJC_BRIDGING_HEADER = "Keybase/Keybase-Bridging-Header.h";
 				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = 1;
+				VALID_ARCHS = "arm64 armv7s";
 			};
 			name = Release;
 		};
