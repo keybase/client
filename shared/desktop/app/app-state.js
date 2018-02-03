@@ -120,6 +120,10 @@ export default class AppState {
     this.setOSLoginState()
   }
 
+  getDarwinAppName() {
+    return __DEV__ ? 'Electron Helper' : 'Keybase'
+  }
+
   setOSLoginState() {
     if (__DEV__) {
       console.log('Skipping auto login state change due to dev env. ')
@@ -140,16 +144,18 @@ export default class AppState {
 
   setDarwinLoginState() {
     const applescript = require('applescript')
-    this.checkMultiDarwinLoginItems()
+
     try {
-      const appName = __DEV__ ? 'Electron Helper' : 'Keybase'
-      const command = this.state.openAtLogin
-        ? `tell application "System Events" to get the name of login item "${appName}"`
-        : `tell application "System Events" to delete login item "${appName}"`
-      applescript.execString(command, (err, result) => {
-        if (err) {
-          // eat the error here if changing from off to on
-          if (this.state.openAtLogin) {
+      this.checkMultiDarwinLoginItems()
+      const appName = this.getDarwinAppName()
+      if (this.state.openAtLogin) {
+        applescript.execString(
+          `tell application "System Events" to get the name of login item "${appName}"`,
+          (err, result) => {
+            if (!err) {
+              // our login item is there, nothing to do
+              return
+            }
             applescript.execString(
               `tell application "System Events" to make login item at end with properties {path:"${appBundlePath() ||
                 ''}", hidden:false, name:"${appName}"}`,
@@ -159,9 +165,18 @@ export default class AppState {
                 }
               }
             )
-          } else console.log(`apple script error: ${err}, ${result}`)
-        }
-      })
+          }
+        )
+      } else {
+        applescript.execString(
+          `tell application "System Events" to delete login item "${appName}"`,
+          (err, result) => {
+            if (err) {
+              console.log(`apple script error removing login item: ${err}, ${result}`)
+            }
+          }
+        )
+      }
     } catch (e) {
       console.log('Error setting apple startup prefs: ', e)
     }
@@ -170,43 +185,42 @@ export default class AppState {
   // Remove all our entries but one to repair a previous bug. Can eventually be removed.
   checkMultiDarwinLoginItems() {
     const applescript = require('applescript')
-    const appName = __DEV__ ? 'Electron Helper' : 'Keybase'
-    try {
-      applescript.execString(
-        `tell application "System Events" to get the name of every login item`,
-        (err, result) => {
-          if (err) {
-            console.log(`Error getting every login item: ${err}, ${result}`)
-          } else {
-            var foundApp = false
-            for (var loginItem in result) {
-              if (result[loginItem] === appName) {
-                if (!foundApp) {
-                  foundApp = true
-                  continue
-                }
-                console.log('login items: deleting ', appName)
-                applescript.execString(
-                  `tell application "System Events" to delete login item "${appName}"`,
-                  (err, result) => {
-                    if (err) {
-                      console.log(`apple script error deleting multi login items: ${err}, ${result}`)
-                    }
-                  }
-                )
-              }
+    const appName = this.getDarwinAppName()
+
+    applescript.execString(
+      `tell application "System Events" to get the name of every login item`,
+      (err, result) => {
+        if (err) {
+          console.log(`Error getting every login item: ${err}, ${result}`)
+          return
+        }
+        var foundApp = false
+        for (var loginItem in result) {
+          if (result[loginItem] === appName) {
+            if (!foundApp) {
+              foundApp = true
+              continue
             }
+            console.log('login items: deleting ', appName)
+            applescript.execString(
+              `tell application "System Events" to delete login item "${appName}"`,
+              (err, result) => {
+                if (err) {
+                  console.log(`apple script error deleting multi login items: ${err}, ${result}`)
+                }
+              }
+            )
           }
         }
-      )
-    } catch (e) {
-      console.log('Error setting apple startup prefs: ', e)
-    }
+      }
+    )
   }
 
   setWinLoginState() {
     app.setLoginItemSettings({openAtLogin: !!this.state.openAtLogin})
-    // $FlowIssue
+    if (!process.env.APPDATA) {
+      throw new Error('APPDATA unexpectedly empty')
+    }
     const linkpath = path.join(
       process.env.APPDATA,
       'Microsoft\\Windows\\Start Menu\\Programs\\Startup\\GUIStartup.lnk'
@@ -221,7 +235,7 @@ export default class AppState {
       if (fs.existsSync(linkpath)) {
         fs.unlink(linkpath, err => {
           if (err) {
-            console.log('An error ocurred unlinking the shortcut' + err.message)
+            console.log('An error occurred unlinking the shortcut ' + err.message)
           }
         })
       } else {
