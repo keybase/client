@@ -361,6 +361,32 @@ func (c *ChainLink) GetMerkleHashMeta() (keybase1.HashMeta, error) {
 	return ret, nil
 }
 
+func (c *ChainLink) HasRevocations() bool {
+	if c.IsStubbed() {
+		return false
+	}
+	jw := c.UnmarshalPayloadJSON().AtKey("body").AtKey("revoke")
+	_, err := GetSigID(jw.AtKey("sig_id"), true)
+	if err == nil {
+		return true
+	}
+	v := jw.AtKey("sig_ids")
+	var l int
+	l, err = v.Len()
+	if err == nil && l > 0 {
+		return true
+	}
+	_, err = GetKID(jw.AtKey("kid"))
+	if err == nil {
+		return true
+	}
+	v = jw.AtKey("kids")
+	l, err = v.Len()
+	if err == nil && l > 0 {
+		return true
+	}
+	return false
+}
 func (c *ChainLink) GetRevocations() []keybase1.SigID {
 	if c.IsStubbed() {
 		return nil
@@ -966,16 +992,6 @@ func (c *ChainLink) verifyLinkV2() error {
 	}
 
 	return c.verifyPayloadV2()
-}
-
-func (c *ChainLink) HasRevocations() bool {
-	if len(c.GetRevocations()) > 0 {
-		return true
-	}
-	if len(c.GetRevokeKids()) > 0 {
-		return true
-	}
-	return false
 }
 
 func (c *ChainLink) GetSigchainV2Type() (SigchainV2Type, error) {
