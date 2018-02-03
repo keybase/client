@@ -702,6 +702,12 @@ export const gitGitLocalMetadataVersion = {
   v1: 1,
 }
 
+export const gitGitPushType = {
+  default: 0,
+  createrepo: 1,
+  renamerepo: 3,
+}
+
 export const gitGitRepoResultState = {
   err: 0,
   ok: 1,
@@ -1713,7 +1719,7 @@ export const tlfKeysGetTLFCryptKeysRpcChannelMap = (configKeys: Array<string>, r
 export const tlfKeysGetTLFCryptKeysRpcPromise = (request: TlfKeysGetTLFCryptKeysRpcParam): Promise<TlfKeysGetTLFCryptKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.tlfKeys.getTLFCryptKeys', request, (error: RPCError, result: TlfKeysGetTLFCryptKeysResult) => (error ? reject(error) : resolve(result))))
 
 export const tlfKeysTLFIdentifyBehavior = {
-  defaultKbfs: 0,
+  unset: 0,
   chatCli: 1,
   chatGui: 2,
   chatGuiStrict: 3,
@@ -1721,6 +1727,9 @@ export const tlfKeysTLFIdentifyBehavior = {
   kbfsQr: 5,
   chatSkip: 6,
   saltpack: 7,
+  cli: 8,
+  gui: 9,
+  defaultKbfs: 10,
 }
 
 export const tlfPublicCanonicalTLFNameAndIDRpcChannelMap = (configKeys: Array<string>, request: TlfPublicCanonicalTLFNameAndIDRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.tlf.publicCanonicalTLFNameAndID', request)
@@ -1873,7 +1882,7 @@ export type AccountPassphrasePromptRpcParam = $ReadOnly<{guiArg: GUIEntryArg, in
 
 export type AccountResetAccountRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type AnnotatedMemberInfo = $ReadOnly<{userID: UID, teamID: TeamID, username: String, fullName: String, fqName: String, isImplicitTeam: Boolean, role: TeamRole, implicit?: ?ImplicitRole, needsPUK: Boolean, memberCount: Int, eldestSeqno: Seqno, active: Boolean}>
+export type AnnotatedMemberInfo = $ReadOnly<{userID: UID, teamID: TeamID, username: String, fullName: String, fqName: String, isImplicitTeam: Boolean, isOpenTeam: Boolean, role: TeamRole, implicit?: ?ImplicitRole, needsPUK: Boolean, memberCount: Int, eldestSeqno: Seqno, active: Boolean}>
 
 export type AnnotatedTeamInvite = $ReadOnly<{role: TeamRole, id: TeamInviteID, type: TeamInviteType, name: TeamInviteName, uv: UserVersion, inviter: UserVersion, inviterUsername: String, teamName: String, userActive: Boolean}>
 
@@ -2299,7 +2308,7 @@ export type GitGetGitMetadataRpcParam = $ReadOnly<{folder: Folder, incomingCallM
 
 export type GitGetTeamRepoSettingsRpcParam = $ReadOnly<{folder: Folder, repoID: RepoID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type GitLocalMetadata = $ReadOnly<{repoName: GitRepoName, refs?: ?Array<GitRefMetadata>}>
+export type GitLocalMetadata = $ReadOnly<{repoName: GitRepoName, refs?: ?Array<GitRefMetadata>, pushType: GitPushType, previousRepoName: GitRepoName}>
 
 export type GitLocalMetadataV1 = $ReadOnly<{repoName: GitRepoName}>
 
@@ -2307,9 +2316,14 @@ export type GitLocalMetadataVersion = 1 // V1_1
 
 export type GitLocalMetadataVersioned = {version: 1, v1: ?GitLocalMetadataV1}
 
+export type GitPushType =
+  | 0 // DEFAULT_0
+  | 1 // CREATEREPO_1
+  | 3 // RENAMEREPO_3
+
 export type GitPutGitMetadataRpcParam = $ReadOnly<{folder: Folder, repoID: RepoID, metadata: GitLocalMetadata, notifyTeam: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type GitRefMetadata = $ReadOnly<{refName: String, commits?: ?Array<GitCommit>, moreCommitsAvailable: Boolean}>
+export type GitRefMetadata = $ReadOnly<{refName: String, commits?: ?Array<GitCommit>, moreCommitsAvailable: Boolean, isDelete: Boolean}>
 
 export type GitRepoInfo = $ReadOnly<{folder: Folder, repoID: RepoID, localMetadata: GitLocalMetadata, serverMetadata: GitServerMetadata, repoUrl: String, globalUniqueID: String, canDelete: Boolean, teamRepoSettings?: ?GitTeamRepoSettings}>
 
@@ -2646,7 +2660,7 @@ export type MDPriority = Int
 
 export type MaskB64 = Bytes
 
-export type MemberInfo = $ReadOnly<{userID: UID, teamID: TeamID, fqName: String, isImplicitTeam: Boolean, role: TeamRole, implicit?: ?ImplicitRole, memberCount: Int}>
+export type MemberInfo = $ReadOnly<{userID: UID, teamID: TeamID, fqName: String, isImplicitTeam: Boolean, isOpenTeam: Boolean, role: TeamRole, implicit?: ?ImplicitRole, memberCount: Int}>
 
 export type MerkleGetCurrentMerkleRootRpcParam = $ReadOnly<{freshnessMsec: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -2765,6 +2779,8 @@ export type NotifySessionClientOutOfDateRpcParam = $ReadOnly<{upgradeTo: String,
 export type NotifySessionLoggedInRpcParam = $ReadOnly<{username: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type NotifySessionLoggedOutRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
+export type NotifyTeamTeamAbandonedRpcParam = $ReadOnly<{teamID: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type NotifyTeamTeamChangedByIDRpcParam = $ReadOnly<{teamID: TeamID, latestSeqno: Seqno, implicitTeam: Boolean, changes: TeamChangeSet, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -3469,7 +3485,7 @@ export type TLFBreak = $ReadOnly<{breaks?: ?Array<TLFIdentifyFailure>}>
 export type TLFID = String
 
 export type TLFIdentifyBehavior =
-  | 0 // DEFAULT_KBFS_0
+  | 0 // UNSET_0
   | 1 // CHAT_CLI_1
   | 2 // CHAT_GUI_2
   | 3 // CHAT_GUI_STRICT_3
@@ -3477,6 +3493,9 @@ export type TLFIdentifyBehavior =
   | 5 // KBFS_QR_5
   | 6 // CHAT_SKIP_6
   | 7 // SALTPACK_7
+  | 8 // CLI_8
+  | 9 // GUI_9
+  | 10 // DEFAULT_KBFS_10
 
 export type TLFIdentifyFailure = $ReadOnly<{user: User, breaks?: ?IdentifyTrackBreaks}>
 
@@ -3514,13 +3533,19 @@ export type TeamChangeSet = $ReadOnly<{membershipChanged: Boolean, keyRotated: B
 
 export type TeamCreateResult = $ReadOnly<{teamID: TeamID, chatSent: Boolean, creatorAdded: Boolean}>
 
-export type TeamData = $ReadOnly<{secretless: Boolean, name: TeamName, chain: TeamSigChainState, perTeamKeySeeds: {[key: string]: PerTeamKeySeedItem}, readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}, latestSeqnoHint: Seqno, cachedAt: Time}>
+export type TeamData = $ReadOnly<{secretless: Boolean, name: TeamName, chain: TeamSigChainState, perTeamKeySeeds: {[key: string]: PerTeamKeySeedItem}, readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}, latestSeqnoHint: Seqno, cachedAt: Time, tlfCryptKeys: {[key: string]: ?Array<CryptKey>}}>
 
 export type TeamDebugRes = $ReadOnly<{chain: TeamSigChainState}>
 
 export type TeamDetails = $ReadOnly<{members: TeamMembersDetails, keyGeneration: PerTeamKeyGeneration, annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite}, settings: TeamSettings, showcase: TeamShowcase}>
 
+export type TeamEncryptedKBFSKeyset = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
+
+export type TeamEncryptedKBFSKeysetHash = String
+
 export type TeamExitRow = $ReadOnly<{id: TeamID}>
+
+export type TeamGetLegacyTLFUpgrade = $ReadOnly<{encryptedKeyset: String, teamGeneration: PerTeamKeyGeneration, legacyGeneration: Int, appType: TeamApplication}>
 
 export type TeamID = String
 
@@ -3550,6 +3575,10 @@ export type TeamInvitee = $ReadOnly<{inviteID: TeamInviteID, uid: UID, eldestSeq
 
 export type TeamJoinRequest = $ReadOnly<{name: String, username: String}>
 
+export type TeamKBFSKeyRefresher = $ReadOnly<{generation: Int, appType: TeamApplication}>
+
+export type TeamLegacyTLFUpgradeChainInfo = $ReadOnly<{keysetHash: TeamEncryptedKBFSKeysetHash, teamGeneration: PerTeamKeyGeneration, legacyGeneration: Int, appType: TeamApplication}>
+
 export type TeamList = $ReadOnly<{teams?: ?Array<MemberInfo>}>
 
 export type TeamMember = $ReadOnly<{uid: UID, role: TeamRole, eldestSeqno: Seqno, userEldestSeqno: Seqno}>
@@ -3576,7 +3605,7 @@ export type TeamOperation = $ReadOnly<{manageMembers: Boolean, manageSubteams: B
 
 export type TeamPlusApplicationKeys = $ReadOnly<{id: TeamID, name: String, implicit: Boolean, public: Boolean, application: TeamApplication, writers?: ?Array<UserVersion>, onlyReaders?: ?Array<UserVersion>, applicationKeys?: ?Array<TeamApplicationKey>}>
 
-export type TeamRefreshers = $ReadOnly<{needKeyGeneration: PerTeamKeyGeneration, wantMembers?: ?Array<UserVersion>, wantMembersRole: TeamRole}>
+export type TeamRefreshers = $ReadOnly<{needKeyGeneration: PerTeamKeyGeneration, wantMembers?: ?Array<UserVersion>, wantMembersRole: TeamRole, needKBFSKeyGeneration: TeamKBFSKeyRefresher}>
 
 export type TeamRequestAccessResult = $ReadOnly<{open: Boolean}>
 
@@ -3599,7 +3628,7 @@ export type TeamSettings = $ReadOnly<{open: Boolean, joinAs: TeamRole}>
 
 export type TeamShowcase = $ReadOnly<{isShowcased: Boolean, description?: ?String, setByUID?: ?UID, anyMemberShowcase: Boolean}>
 
-export type TeamSigChainState = $ReadOnly<{reader: UserVersion, id: TeamID, implicit: Boolean, public: Boolean, rootAncestor: TeamName, nameDepth: Int, nameLog?: ?Array<TeamNameLogPoint>, lastSeqno: Seqno, lastLinkID: LinkID, parentID?: ?TeamID, userLog: {[key: string]: ?Array<UserLogPoint>}, subteamLog: {[key: string]: ?Array<SubteamLogPoint>}, perTeamKeys: {[key: string]: PerTeamKey}, linkIDs: {[key: string]: LinkID}, stubbedLinks: {[key: string]: Boolean}, activeInvites: {[key: string]: TeamInvite}, open: Boolean, openTeamJoinAs: TeamRole, tlfID: TLFID}>
+export type TeamSigChainState = $ReadOnly<{reader: UserVersion, id: TeamID, implicit: Boolean, public: Boolean, rootAncestor: TeamName, nameDepth: Int, nameLog?: ?Array<TeamNameLogPoint>, lastSeqno: Seqno, lastLinkID: LinkID, parentID?: ?TeamID, userLog: {[key: string]: ?Array<UserLogPoint>}, subteamLog: {[key: string]: ?Array<SubteamLogPoint>}, perTeamKeys: {[key: string]: PerTeamKey}, linkIDs: {[key: string]: LinkID}, stubbedLinks: {[key: string]: Boolean}, activeInvites: {[key: string]: TeamInvite}, obsoleteInvites: {[key: string]: TeamInvite}, open: Boolean, openTeamJoinAs: TeamRole, tlfID: TLFID, tlfLegacyUpgrade: {[key: string]: TeamLegacyTLFUpgradeChainInfo}}>
 
 export type TeamTreeEntry = $ReadOnly<{name: TeamName, admin: Boolean}>
 
@@ -3642,11 +3671,11 @@ export type TeamsTeamAddMemberRpcParam = $ReadOnly<{name: String, email: String,
 
 export type TeamsTeamChangeMembershipRpcParam = $ReadOnly<{name: String, req: TeamChangeReq, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsTeamCreateRpcParam = $ReadOnly<{name: String, sendChatNotification: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsTeamCreateRpcParam = $ReadOnly<{name: String, joinSubteam: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type TeamsTeamCreateSeitanTokenRpcParam = $ReadOnly<{name: String, role: TeamRole, label: SeitanIKeyLabel, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsTeamCreateWithSettingsRpcParam = $ReadOnly<{name: String, sendChatNotification: Boolean, settings: TeamSettings, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsTeamCreateWithSettingsRpcParam = $ReadOnly<{name: String, joinSubteam: Boolean, settings: TeamSettings, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type TeamsTeamDebugRpcParam = $ReadOnly<{teamID: TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -4104,6 +4133,7 @@ export type IncomingCallMapType = {
   'keybase.1.NotifyTeam.teamChangedByID'?: (params: $ReadOnly<{teamID: TeamID, latestSeqno: Seqno, implicitTeam: Boolean, changes: TeamChangeSet}>, response: CommonResponseHandler) => void,
   'keybase.1.NotifyTeam.teamChangedByName'?: (params: $ReadOnly<{teamName: String, latestSeqno: Seqno, implicitTeam: Boolean, changes: TeamChangeSet}>, response: CommonResponseHandler) => void,
   'keybase.1.NotifyTeam.teamDeleted'?: (params: $ReadOnly<{teamID: TeamID}>, response: CommonResponseHandler) => void,
+  'keybase.1.NotifyTeam.teamAbandoned'?: (params: $ReadOnly<{teamID: TeamID}>, response: CommonResponseHandler) => void,
   'keybase.1.NotifyTeam.teamExit'?: (params: $ReadOnly<{teamID: TeamID}>, response: CommonResponseHandler) => void,
   'keybase.1.NotifyTracking.trackingChanged'?: (params: $ReadOnly<{uid: UID, username: String, isTracking: Boolean}>) => void,
   'keybase.1.NotifyUsers.userChanged'?: (params: $ReadOnly<{uid: UID}>) => void,

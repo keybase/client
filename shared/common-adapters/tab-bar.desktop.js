@@ -118,11 +118,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
         {badgeNumber > 0 && (
           <Box style={{width: 0, display: 'flex'}}>
             <Box style={styleBadgeAvatar}>
-              <Badge
-                badgeNumber={badgeNumber}
-                badgeStyle={{marginLeft: 0, marginRight: 0}}
-                outlineColor={globalColors.darkBlue2}
-              />
+              <Badge badgeNumber={badgeNumber} badgeStyle={{marginLeft: 0, marginRight: 0}} />
             </Box>
           </Box>
         )}
@@ -162,7 +158,6 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
               <Badge
                 badgeNumber={badgeNumber}
                 badgeStyle={{marginLeft: 0, marginRight: globalMargins.tiny}}
-                outlineColor={globalColors.darkBlue2}
               />
             </Box>
           )}
@@ -182,7 +177,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
 
   _renderIcon(color: string, badgeNumber: number) {
     if (this.props.source.type !== 'icon') return // needed to make flow happy
-    const backgroundColor = this.props.selected ? globalColors.darkBlue4 : globalColors.midnightBlue
+    const backgroundColor = this.props.selected ? globalColors.darkBlue4 : globalColors.darkBlue3
     return (
       <Box
         style={{...stylesTabBarButtonIcon, backgroundColor, ...this.props.style}}
@@ -329,14 +324,14 @@ const stylesNavText = {
 
 const styleBadgeAvatar = {
   position: 'absolute',
-  left: 45,
-  top: 0,
+  left: 46,
+  top: 4,
 }
 
 const styleBadgeNav = {
   position: 'absolute',
-  left: 45,
-  top: 4,
+  left: 46,
+  top: 5,
 }
 
 const styleBadgeIcon = {

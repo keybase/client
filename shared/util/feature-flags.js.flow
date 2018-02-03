@@ -4,22 +4,14 @@ export type FeatureFlags = {|
   admin: boolean,
   fsEnabled: boolean,
   impTeamChatEnabled: boolean,
-  newPeopleTab: boolean,
   plansEnabled: boolean,
-  tabGitEnabled: boolean,
-  tabPeopleEnabled: boolean,
-  teamChatEnabled: boolean,
 |}
 
 const ff: FeatureFlags = {
   admin: false,
   fsEnabled: false,
   impTeamChatEnabled: false,
-  newPeopleTab: false,
   plansEnabled: false,
-  tabGitEnabled: false,
-  tabPeopleEnabled: false,
-  teamChatEnabled: false,
 }
 
 export default ff

@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box} from '../../../common-adapters'
-import {globalStyles, globalMargins} from '../../../styles'
+import {Avatar, Box, ClickableBox} from '../../../common-adapters'
+import {globalStyles, globalMargins, isMobile} from '../../../styles'
 
 export type Props = {
   bgColor: string,
@@ -9,16 +9,17 @@ export type Props = {
   teamname?: string,
   children?: React.Node,
   style?: ?Object,
+  onClickAvatar?: () => void,
 }
 
 const AVATAR_SIZE = 24
 
-const UserNotice = ({bgColor, username, teamname, children, style}: Props) => (
+const UserNotice = ({bgColor, username, teamname, children, style, onClickAvatar}: Props) => (
   <Box style={{...styleOuterBox, ...style}}>
     {(username || teamname) && (
-      <Box style={stylesAvatarWrapper(AVATAR_SIZE)}>
+      <ClickableBox style={stylesAvatarWrapper(AVATAR_SIZE)} onClick={onClickAvatar}>
         <Avatar size={AVATAR_SIZE} {...(username ? {username} : {teamname})} style={stylesAvatar} />
-      </Box>
+      </ClickableBox>
     )}
     <Box style={{...styleBox, backgroundColor: bgColor}}>{children}</Box>
   </Box>
@@ -44,8 +45,8 @@ const stylesAvatar = {
 const styleBox = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
-  marginLeft: globalMargins.xlarge,
-  marginRight: globalMargins.xlarge,
+  marginLeft: isMobile ? globalMargins.medium : globalMargins.xlarge,
+  marginRight: isMobile ? globalMargins.medium : globalMargins.xlarge,
   padding: globalMargins.small,
   paddingBottom: globalMargins.tiny,
   borderRadius: globalMargins.xtiny,

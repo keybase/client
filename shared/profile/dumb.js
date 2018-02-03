@@ -271,6 +271,7 @@ const propsBase: RenderProps = {
   onClickFollowing: () => console.log('on click following'),
   onSearch: () => console.log('on search'),
   onClickShowcased: () => console.log('on click showcased'),
+  waiting: false,
 }
 
 const bioEditFns = {

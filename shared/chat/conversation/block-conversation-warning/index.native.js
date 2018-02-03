@@ -20,7 +20,7 @@ const _Contents = ({conversationIDKey, onBack, participants, onBlock, onBlockAnd
         paddingTop: 5,
       }}
     >
-      <Box style={{paddingLeft: globalMargins.medium, paddingRight: globalMargins.medium}}>
+      <Box style={{padding: globalMargins.medium}}>
         <Text
           type="Header"
           style={{alignSelf: 'center'}}
@@ -45,7 +45,7 @@ const _Contents = ({conversationIDKey, onBack, participants, onBlock, onBlockAnd
         </Box>
         <Text type="Body">in the terminal on a desktop computer.</Text>
       </Box>
-      <ButtonBar>
+      <ButtonBar direction="column">
         <Button type="Secondary" onClick={onBack} label="No, don't block them" />
         <Button type="Danger" onClick={onBlock} label="Yes, block them" />
         <Button type="Danger" onClick={onBlockAndReport} label="Yes, block and report abuse" />

@@ -47,7 +47,8 @@ func textMsg(t *testing.T, text string, mbVersion chat1.MessageBoxedVersion) cha
 
 func textMsgWithSender(t *testing.T, text string, uid gregor1.UID, mbVersion chat1.MessageBoxedVersion) chat1.MessagePlaintext {
 	header := chat1.MessageClientHeader{
-		Sender: uid,
+		Sender:      uid,
+		MessageType: chat1.MessageType_TEXT,
 	}
 	switch mbVersion {
 	case chat1.MessageBoxedVersion_V2:
@@ -283,6 +284,47 @@ func TestChatMessageInvalidBodyHash(t *testing.T) {
 		if _, ok := ierr.Inner().(BodyHashInvalid); !ok {
 			t.Fatalf("unexpected error for invalid body hash: %s", ierr)
 		}
+	})
+}
+
+func TestChatMessageMismatchMessageType(t *testing.T) {
+	doWithMBVersions(func(mbVersion chat1.MessageBoxedVersion) {
+		tc, boxer := setupChatTest(t, "unbox")
+		defer tc.Cleanup()
+
+		world := NewChatMockWorld(t, "unbox", 4)
+		u := world.GetUsers()[0]
+		tc = world.Tcs[u.Username]
+		uid := u.User.GetUID().ToBytes()
+		tlf := kbtest.NewTlfMock(world)
+		ctx := newTestContextWithTlfMock(tc, tlf)
+
+		header := chat1.MessageClientHeader{
+			Sender:      uid,
+			TlfPublic:   false,
+			TlfName:     u.Username,
+			MessageType: chat1.MessageType_TEXT,
+		}
+		msg := textMsgWithHeader(t, "MIKE", header)
+		msg.MessageBody = chat1.NewMessageBodyWithEdit(chat1.MessageEdit{})
+
+		signKP := getSigningKeyPairForTest(t, tc, u)
+		boxer.boxWithVersion = mbVersion
+		boxed, err := boxer.BoxMessage(ctx, msg, chat1.ConversationMembersType_KBFS, signKP)
+		require.NoError(t, err)
+		boxed.ServerHeader = &chat1.MessageServerHeader{
+			Ctime: gregor1.ToTime(time.Now()),
+		}
+
+		convID := header.Conv.ToConversationID([2]byte{0, 0})
+		conv := chat1.Conversation{
+			Metadata: chat1.ConversationMetadata{
+				ConversationID: convID,
+			},
+		}
+		decmsg, err := boxer.UnboxMessage(ctx, *boxed, conv)
+		require.NoError(t, err)
+		require.False(t, decmsg.IsValid())
 	})
 }
 
@@ -610,9 +652,10 @@ func TestChatMessagePublic(t *testing.T) {
 		ctx := newTestContextWithTlfMock(tc, tlf)
 
 		header := chat1.MessageClientHeader{
-			Sender:    uid,
-			TlfPublic: true,
-			TlfName:   u.Username,
+			Sender:      uid,
+			TlfPublic:   true,
+			TlfName:     u.Username,
+			MessageType: chat1.MessageType_TEXT,
 		}
 		msg := textMsgWithHeader(t, text, header)
 
@@ -1377,23 +1420,24 @@ func NewKeyFinderMock(cryptKeys []keybase1.CryptKey) KeyFinder {
 }
 
 func (k *KeyFinderMock) Find(ctx context.Context, tlfName string,
-	membersType chat1.ConversationMembersType, tlfPublic bool) (res types.NameInfo, err error) {
+	membersType chat1.ConversationMembersType, tlfPublic bool) (res *types.NameInfo, err error) {
+	res = types.NewNameInfo()
 	for _, key := range k.cryptKeys {
-		res.CryptKeys = append(res.CryptKeys, key)
+		res.CryptKeys[membersType] = append(res.CryptKeys[membersType], key)
 	}
 	return res, nil
 }
 
 func (k *KeyFinderMock) FindForEncryption(ctx context.Context,
 	tlfName string, teamID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool) (res types.NameInfo, err error) {
+	membersType chat1.ConversationMembersType, public bool) (res *types.NameInfo, err error) {
 	return k.Find(ctx, tlfName, membersType, public)
 }
 
 func (k *KeyFinderMock) FindForDecryption(ctx context.Context,
 	tlfName string, teamID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
-	keyGeneration int) (res types.NameInfo, err error) {
+	keyGeneration int, kbfsEncrypted bool) (res *types.NameInfo, err error) {
 	return k.Find(ctx, tlfName, membersType, public)
 }
 

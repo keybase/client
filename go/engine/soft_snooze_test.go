@@ -75,8 +75,9 @@ func TestSoftSnooze(t *testing.T) {
 	idUI := &FakeIdentifyUI{}
 	username := "t_tracy"
 	arg := &keybase1.Identify2Arg{
-		UserAssertion: username,
-		NeedProofSet:  true,
+		UserAssertion:    username,
+		NeedProofSet:     true,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 	}
 	ctx := &Context{
 		LogUI:      tc.G.UI.GetLogUI(),

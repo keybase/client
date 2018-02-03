@@ -1,3 +1,4 @@
+import '../dev/storybook-connect'
 import {configure} from '@storybook/react'
 import load from '../stories'
 import 'babel-polyfill'

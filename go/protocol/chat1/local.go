@@ -211,10 +211,13 @@ func (o MessageSystemCreateTeam) DeepCopy() MessageSystemCreateTeam {
 }
 
 type MessageSystemGitPush struct {
-	Team     string                    `codec:"team" json:"team"`
-	Pusher   string                    `codec:"pusher" json:"pusher"`
-	RepoName string                    `codec:"repoName" json:"repoName"`
-	Refs     []keybase1.GitRefMetadata `codec:"refs" json:"refs"`
+	Team             string                    `codec:"team" json:"team"`
+	Pusher           string                    `codec:"pusher" json:"pusher"`
+	RepoName         string                    `codec:"repoName" json:"repoName"`
+	RepoID           keybase1.RepoID           `codec:"repoID" json:"repoID"`
+	Refs             []keybase1.GitRefMetadata `codec:"refs" json:"refs"`
+	PushType         keybase1.GitPushType      `codec:"pushType" json:"pushType"`
+	PreviousRepoName string                    `codec:"previousRepoName" json:"previousRepoName"`
 }
 
 func (o MessageSystemGitPush) DeepCopy() MessageSystemGitPush {
@@ -222,6 +225,7 @@ func (o MessageSystemGitPush) DeepCopy() MessageSystemGitPush {
 		Team:     o.Team,
 		Pusher:   o.Pusher,
 		RepoName: o.RepoName,
+		RepoID:   o.RepoID.DeepCopy(),
 		Refs: (func(x []keybase1.GitRefMetadata) []keybase1.GitRefMetadata {
 			if x == nil {
 				return nil
@@ -233,6 +237,8 @@ func (o MessageSystemGitPush) DeepCopy() MessageSystemGitPush {
 			}
 			return ret
 		})(o.Refs),
+		PushType:         o.PushType.DeepCopy(),
+		PreviousRepoName: o.PreviousRepoName,
 	}
 }
 
@@ -1321,18 +1327,19 @@ func (o HeaderPlaintextUnsupported) DeepCopy() HeaderPlaintextUnsupported {
 }
 
 type HeaderPlaintextV1 struct {
-	Conv            ConversationIDTriple     `codec:"conv" json:"conv"`
-	TlfName         string                   `codec:"tlfName" json:"tlfName"`
-	TlfPublic       bool                     `codec:"tlfPublic" json:"tlfPublic"`
-	MessageType     MessageType              `codec:"messageType" json:"messageType"`
-	Prev            []MessagePreviousPointer `codec:"prev" json:"prev"`
-	Sender          gregor1.UID              `codec:"sender" json:"sender"`
-	SenderDevice    gregor1.DeviceID         `codec:"senderDevice" json:"senderDevice"`
-	BodyHash        Hash                     `codec:"bodyHash" json:"bodyHash"`
-	OutboxInfo      *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
-	OutboxID        *OutboxID                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
-	HeaderSignature *SignatureInfo           `codec:"headerSignature,omitempty" json:"headerSignature,omitempty"`
-	MerkleRoot      *MerkleRoot              `codec:"merkleRoot,omitempty" json:"merkleRoot,omitempty"`
+	Conv              ConversationIDTriple     `codec:"conv" json:"conv"`
+	TlfName           string                   `codec:"tlfName" json:"tlfName"`
+	TlfPublic         bool                     `codec:"tlfPublic" json:"tlfPublic"`
+	MessageType       MessageType              `codec:"messageType" json:"messageType"`
+	Prev              []MessagePreviousPointer `codec:"prev" json:"prev"`
+	Sender            gregor1.UID              `codec:"sender" json:"sender"`
+	SenderDevice      gregor1.DeviceID         `codec:"senderDevice" json:"senderDevice"`
+	KbfsCryptKeysUsed *bool                    `codec:"kbfsCryptKeysUsed,omitempty" json:"kbfsCryptKeysUsed,omitempty"`
+	BodyHash          Hash                     `codec:"bodyHash" json:"bodyHash"`
+	OutboxInfo        *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
+	OutboxID          *OutboxID                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
+	HeaderSignature   *SignatureInfo           `codec:"headerSignature,omitempty" json:"headerSignature,omitempty"`
+	MerkleRoot        *MerkleRoot              `codec:"merkleRoot,omitempty" json:"merkleRoot,omitempty"`
 }
 
 func (o HeaderPlaintextV1) DeepCopy() HeaderPlaintextV1 {
@@ -1354,7 +1361,14 @@ func (o HeaderPlaintextV1) DeepCopy() HeaderPlaintextV1 {
 		})(o.Prev),
 		Sender:       o.Sender.DeepCopy(),
 		SenderDevice: o.SenderDevice.DeepCopy(),
-		BodyHash:     o.BodyHash.DeepCopy(),
+		KbfsCryptKeysUsed: (func(x *bool) *bool {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.KbfsCryptKeysUsed),
+		BodyHash: o.BodyHash.DeepCopy(),
 		OutboxInfo: (func(x *OutboxInfo) *OutboxInfo {
 			if x == nil {
 				return nil
@@ -2603,6 +2617,9 @@ type ConversationLocal struct {
 	MaxMessages      []MessageUnboxed              `codec:"maxMessages" json:"maxMessages"`
 	IsEmpty          bool                          `codec:"isEmpty" json:"isEmpty"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+	Expunge          Expunge                       `codec:"expunge" json:"expunge"`
+	ConvRetention    *RetentionPolicy              `codec:"convRetention,omitempty" json:"convRetention,omitempty"`
+	TeamRetention    *RetentionPolicy              `codec:"teamRetention,omitempty" json:"teamRetention,omitempty"`
 }
 
 func (o ConversationLocal) DeepCopy() ConversationLocal {
@@ -2675,6 +2692,21 @@ func (o ConversationLocal) DeepCopy() ConversationLocal {
 			}
 			return ret
 		})(o.IdentifyFailures),
+		Expunge: o.Expunge.DeepCopy(),
+		ConvRetention: (func(x *RetentionPolicy) *RetentionPolicy {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ConvRetention),
+		TeamRetention: (func(x *RetentionPolicy) *RetentionPolicy {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.TeamRetention),
 	}
 }
 
@@ -3951,6 +3983,20 @@ type AddTeamMemberAfterResetArg struct {
 	ConvID   ConversationID `codec:"convID" json:"convID"`
 }
 
+type SetConvRetentionLocalArg struct {
+	ConvID ConversationID  `codec:"convID" json:"convID"`
+	Policy RetentionPolicy `codec:"policy" json:"policy"`
+}
+
+type SetTeamRetentionLocalArg struct {
+	TeamID keybase1.TeamID `codec:"teamID" json:"teamID"`
+	Policy RetentionPolicy `codec:"policy" json:"policy"`
+}
+
+type UpgradeKBFSConversationToImpteamArg struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
@@ -3995,6 +4041,9 @@ type LocalInterface interface {
 	GetGlobalAppNotificationSettingsLocal(context.Context) (GlobalAppNotificationSettings, error)
 	UnboxMobilePushNotification(context.Context, UnboxMobilePushNotificationArg) (string, error)
 	AddTeamMemberAfterReset(context.Context, AddTeamMemberAfterResetArg) error
+	SetConvRetentionLocal(context.Context, SetConvRetentionLocalArg) error
+	SetTeamRetentionLocal(context.Context, SetTeamRetentionLocalArg) error
+	UpgradeKBFSConversationToImpteam(context.Context, ConversationID) error
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -4679,6 +4728,54 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"setConvRetentionLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]SetConvRetentionLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SetConvRetentionLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SetConvRetentionLocalArg)(nil), args)
+						return
+					}
+					err = i.SetConvRetentionLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"setTeamRetentionLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]SetTeamRetentionLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SetTeamRetentionLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SetTeamRetentionLocalArg)(nil), args)
+						return
+					}
+					err = i.SetTeamRetentionLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"upgradeKBFSConversationToImpteam": {
+				MakeArg: func() interface{} {
+					ret := make([]UpgradeKBFSConversationToImpteamArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]UpgradeKBFSConversationToImpteamArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]UpgradeKBFSConversationToImpteamArg)(nil), args)
+						return
+					}
+					err = i.UpgradeKBFSConversationToImpteam(ctx, (*typedArgs)[0].ConvID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -4907,5 +5004,21 @@ func (c LocalClient) UnboxMobilePushNotification(ctx context.Context, __arg Unbo
 
 func (c LocalClient) AddTeamMemberAfterReset(ctx context.Context, __arg AddTeamMemberAfterResetArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.addTeamMemberAfterReset", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) SetConvRetentionLocal(ctx context.Context, __arg SetConvRetentionLocalArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.setConvRetentionLocal", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) SetTeamRetentionLocal(ctx context.Context, __arg SetTeamRetentionLocalArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.setTeamRetentionLocal", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) UpgradeKBFSConversationToImpteam(ctx context.Context, convID ConversationID) (err error) {
+	__arg := UpgradeKBFSConversationToImpteamArg{ConvID: convID}
+	err = c.Cli.Call(ctx, "chat.1.local.upgradeKBFSConversationToImpteam", []interface{}{__arg}, nil)
 	return
 }

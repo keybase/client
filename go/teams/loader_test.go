@@ -175,6 +175,48 @@ func TestLoaderKeyGen(t *testing.T) {
 	require.Len(t, team.ReaderKeyMasks[keybase1.TeamApplication_KBFS], 4, "number of kbfs rkms")
 }
 
+func TestLoaderKBFSKeyGen(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	// Require that a team is at this KBFS key generation
+	requireGen := func(team *keybase1.TeamData, generation int) {
+		require.NotNil(t, team)
+		keys, ok := team.TlfCryptKeys[keybase1.TeamApplication_CHAT]
+		require.True(t, ok)
+		require.True(t, keys[len(keys)-1].KeyGeneration >= generation)
+	}
+
+	displayName := fus[0].Username + "," + fus[1].Username
+	team, _, _, err := LookupOrCreateImplicitTeam(context.TODO(), tcs[0].G, displayName, false)
+	require.NoError(t, err)
+
+	tlfID := newImplicitTLFID(false)
+	cryptKeys := []keybase1.CryptKey{keybase1.CryptKey{
+		KeyGeneration: 1,
+	}, keybase1.CryptKey{
+		KeyGeneration: 2,
+	}}
+	require.NoError(t, team.AssociateWithTLFKeyset(context.TODO(), tlfID, cryptKeys,
+		keybase1.TeamApplication_CHAT))
+	team, err = Load(context.TODO(), tcs[0].G, keybase1.LoadTeamArg{
+		ID: team.ID,
+	})
+	require.NoError(t, err)
+	require.Zero(t, len(team.KBFSCryptKeys(context.TODO(), keybase1.TeamApplication_CHAT)))
+	team, err = Load(context.TODO(), tcs[0].G, keybase1.LoadTeamArg{
+		ID: team.ID,
+		Refreshers: keybase1.TeamRefreshers{
+			NeedKBFSKeyGeneration: keybase1.TeamKBFSKeyRefresher{
+				Generation: 2,
+				AppType:    keybase1.TeamApplication_CHAT,
+			},
+		},
+	})
+	require.NoError(t, err)
+	requireGen(team.Data, 2)
+}
+
 // Test loading a team with WantMembers set.
 func TestLoaderWantMembers(t *testing.T) {
 	fus, tcs, cleanup := setupNTests(t, 4)
@@ -751,4 +793,42 @@ func TestInflateAfterPermissionsChange(t *testing.T) {
 		ForceRepoll: true,
 	})
 	require.NoError(t, err, "load team lair")
+}
+
+// Test loading a team where a rotate_key was signed by implicit-admin + explicit-reader
+func TestRotateSubteamByExplicitReader(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	t.Logf("U0 creates fennel_network")
+	rootName, _ := createTeam2(*tcs[0])
+
+	t.Logf("U0 adds U1 to the root")
+	_, err := AddMember(context.Background(), tcs[0].G, rootName.String(), fus[1].Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err)
+
+	t.Logf("U0 creates fennel_network.sub1")
+	subteamID, err := CreateSubteam(context.Background(), tcs[0].G, "sub1", rootName)
+	require.NoError(t, err)
+	subteamName, err := rootName.Append("sub1")
+	require.NoError(t, err)
+
+	t.Logf("U0 adds both users to the subteam as readers")
+	for i := range tcs {
+		_, err := AddMember(context.Background(), tcs[0].G, subteamName.String(), fus[i].Username, keybase1.TeamRole_READER)
+		require.NoError(t, err)
+	}
+
+	t.Logf("U0 rotates the subteam")
+	err = RotateKey(context.Background(), tcs[0].G, *subteamID)
+	require.NoError(t, err)
+
+	t.Logf("Both users can still load the team")
+	for i := range tcs {
+		_, err = Load(context.Background(), tcs[i].G, keybase1.LoadTeamArg{
+			ID:          *subteamID,
+			ForceRepoll: true,
+		})
+		require.NoError(t, err, "load as %v", i)
+	}
 }

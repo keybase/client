@@ -75,6 +75,7 @@ type GlobalContext struct {
 	CardCache      *UserCardCache  // cache of keybase1.UserCard objects
 	fullSelfer     FullSelfer      // a loader that gets the full self object
 	pvlSource      PvlSource       // a cache and fetcher for pvl
+	PayloadCache   *PayloadCache   // cache of ChainLink payload json wrappers
 
 	GpgClient        *GpgCLI        // A standard GPG-client (optional)
 	ShutdownHooks    []ShutdownHook // on shutdown, fire these...
@@ -128,8 +129,6 @@ type GlobalContext struct {
 	// It is threadsafe to call methods on ActiveDevice which will always be non-nil.
 	// But don't access its members directly.
 	ActiveDevice *ActiveDevice
-
-	IdentifyUILimiter *BurstLimiter
 
 	NetContext context.Context
 }
@@ -214,7 +213,6 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.ConnectivityMonitor = NullConnectivityMonitor{}
 	g.localSigchainGuard = NewLocalSigchainGuard(g)
 	g.AppState = NewAppState(g)
-	g.IdentifyUILimiter = NewBurstLimiter(g, identifyUIBurstSize, identifyUIRateDuration)
 	return g
 }
 
@@ -406,6 +404,20 @@ func (g *GlobalContext) ConfigureAPI() error {
 }
 
 func (g *GlobalContext) configureMemCachesLocked() {
+	// shutdown any existing ones
+	if g.TrackCache != nil {
+		g.TrackCache.Shutdown()
+	}
+	if g.Identify2Cache != nil {
+		g.Identify2Cache.Shutdown()
+	}
+	if g.LinkCache != nil {
+		g.LinkCache.Shutdown()
+	}
+	if g.CardCache != nil {
+		g.CardCache.Shutdown()
+	}
+
 	g.Resolver.EnableCaching()
 	g.TrackCache = NewTrackCache()
 	g.Identify2Cache = NewIdentify2Cache(g.Env.GetUserCacheMaxAge())
@@ -419,6 +431,7 @@ func (g *GlobalContext) configureMemCachesLocked() {
 	g.Log.Debug("made a new full self cache")
 	g.upakLoader = NewCachedUPAKLoader(g, CachedUserTimeout)
 	g.Log.Debug("made a new cached UPAK loader (timeout=%v)", CachedUserTimeout)
+	g.PayloadCache = NewPayloadCache(g, g.Env.GetPayloadCacheSize())
 }
 
 func (g *GlobalContext) ConfigureMemCaches() {
@@ -432,6 +445,10 @@ func (g *GlobalContext) ConfigureCaches() error {
 	defer g.cacheMu.Unlock()
 	g.configureMemCachesLocked()
 	return g.configureDiskCachesLocked()
+}
+
+func (g *GlobalContext) FlushCaches() {
+	g.ConfigureMemCaches()
 }
 
 func (g *GlobalContext) configureDiskCachesLocked() error {
@@ -559,9 +576,6 @@ func (g *GlobalContext) Shutdown() error {
 		}
 		if g.Resolver != nil {
 			g.Resolver.Shutdown()
-		}
-		if g.IdentifyUILimiter != nil {
-			g.IdentifyUILimiter.Stop()
 		}
 
 		for _, hook := range g.ShutdownHooks {

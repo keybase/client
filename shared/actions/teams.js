@@ -35,7 +35,7 @@ const _createNewTeam = function*(action: TeamsGen.CreateNewTeamPayload) {
   try {
     yield Saga.call(RPCTypes.teamsTeamCreateRpcPromise, {
       name: teamname,
-      sendChatNotification: true,
+      joinSubteam: false,
     })
 
     // Dismiss the create team dialog.
@@ -266,7 +266,7 @@ const _createNewTeamFromConversation = function*(
     try {
       const createRes = yield Saga.call(RPCTypes.teamsTeamCreateRpcPromise, {
         name: teamname,
-        sendChatNotification: true,
+        joinSubteam: false,
       })
       for (const username of participants.toArray()) {
         if (!createRes.creatorAdded || username !== me) {
@@ -279,7 +279,8 @@ const _createNewTeamFromConversation = function*(
           })
         }
       }
-      yield Saga.put(ChatGen.createSelectConversation({conversationIDKey: null}))
+      yield Saga.put(ChatGen.createExitSearch({skipSelectPreviousConversation: true}))
+      yield Saga.put(ChatGen.createOpenTeamConversation({teamname, channelname: 'general'}))
     } catch (error) {
       yield Saga.put(TeamsGen.createSetTeamCreationError({error: error.desc}))
     } finally {
@@ -373,13 +374,11 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
       }
     )
 
-    // Get the subteam map for this team.  TeamTree only accepts a top-level
-    // team, not a subteam, so we'll call it for the team and filter out
-    // any subteams we don't care about later.
+    // Get the subteam map for this team.
     const teamTree = yield Saga.call(RPCTypes.teamsTeamTreeRpcPromise, {
-      name: {parts: [teamname.split('.')[0]]},
+      name: {parts: teamname.split('.')},
     })
-    const subteams = teamTree.entries.map(team => team.name.parts.join('.'))
+    const subteams = teamTree.entries.map(team => team.name.parts.join('.')).filter(team => team !== teamname)
     const state: TypedState = yield Saga.select()
     const yourOperations = Constants.getCanPerform(state, teamname)
 
@@ -445,11 +444,10 @@ function _getChannels(action: TeamsGen.GetChannelsPayload) {
   ])
 }
 
-function _afterGetChannels([results, teamname, waitingKey]: [
-  RPCChatTypes.GetTLFConversationsLocalRes,
-  string,
-  {|key: string|},
-]) {
+function _afterGetChannels(fromGetChannels: any[]) {
+  const results: RPCChatTypes.GetTLFConversationsLocalRes = fromGetChannels[0]
+  const teamname: string = fromGetChannels[1]
+  const waitingKey: {|key: string|} = fromGetChannels[2]
   const convIDs = []
   const convIDToChannelInfo = {}
 
@@ -488,10 +486,12 @@ const _getTeams = function*(action: TeamsGen.GetTeamsPayload): Saga.SagaGenerato
     const teamnames = []
     const teammembercounts = {}
     const teamNameToRole = {}
+    const teamNameToIsOpen = {}
     teams.forEach(team => {
       teamnames.push(team.fqName)
       teammembercounts[team.fqName] = team.memberCount
       teamNameToRole[team.fqName] = Constants.teamRoleByEnum[team.role]
+      teamNameToIsOpen[team.fqName] = team.isOpenTeam
     })
 
     yield Saga.put(
@@ -500,6 +500,7 @@ const _getTeams = function*(action: TeamsGen.GetTeamsPayload): Saga.SagaGenerato
         I.Map({
           teamnames: I.Set(teamnames),
           teammembercounts: I.Map(teammembercounts),
+          teamNameToIsOpen: I.Map(teamNameToIsOpen),
           teamNameToRole: I.Map(teamNameToRole),
         })
       )

@@ -430,6 +430,17 @@
         {
           "type": "Time",
           "name": "cachedAt"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": {
+              "type": "array",
+              "items": "CryptKey"
+            },
+            "keys": "TeamApplication"
+          },
+          "name": "tlfCryptKeys"
         }
       ]
     },
@@ -557,6 +568,78 @@
     },
     {
       "type": "record",
+      "name": "TeamEncryptedKBFSKeyset",
+      "fields": [
+        {
+          "type": "int",
+          "name": "v"
+        },
+        {
+          "type": "bytes",
+          "name": "e"
+        },
+        {
+          "type": "bytes",
+          "name": "n"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamGetLegacyTLFUpgrade",
+      "fields": [
+        {
+          "type": "string",
+          "name": "encryptedKeyset",
+          "jsonkey": "encrypted_keyset"
+        },
+        {
+          "type": "PerTeamKeyGeneration",
+          "name": "teamGeneration",
+          "jsonkey": "team_generation"
+        },
+        {
+          "type": "int",
+          "name": "legacyGeneration",
+          "jsonkey": "legacy_generation"
+        },
+        {
+          "type": "TeamApplication",
+          "name": "appType",
+          "jsonkey": "app_type"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamEncryptedKBFSKeysetHash",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "TeamLegacyTLFUpgradeChainInfo",
+      "fields": [
+        {
+          "type": "TeamEncryptedKBFSKeysetHash",
+          "name": "keysetHash"
+        },
+        {
+          "type": "PerTeamKeyGeneration",
+          "name": "teamGeneration"
+        },
+        {
+          "type": "int",
+          "name": "legacyGeneration"
+        },
+        {
+          "type": "TeamApplication",
+          "name": "appType"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TeamSigChainState",
       "fields": [
         {
@@ -660,6 +743,14 @@
           "name": "activeInvites"
         },
         {
+          "type": {
+            "type": "map",
+            "values": "TeamInvite",
+            "keys": "TeamInviteID"
+          },
+          "name": "obsoleteInvites"
+        },
+        {
           "type": "boolean",
           "name": "open"
         },
@@ -670,6 +761,14 @@
         {
           "type": "TLFID",
           "name": "tlfID"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "TeamLegacyTLFUpgradeChainInfo",
+            "keys": "TeamApplication"
+          },
+          "name": "tlfLegacyUpgrade"
         }
       ]
     },
@@ -1068,6 +1167,20 @@
     },
     {
       "type": "record",
+      "name": "TeamKBFSKeyRefresher",
+      "fields": [
+        {
+          "type": "int",
+          "name": "generation"
+        },
+        {
+          "type": "TeamApplication",
+          "name": "appType"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TeamRefreshers",
       "fields": [
         {
@@ -1084,6 +1197,10 @@
         {
           "type": "TeamRole",
           "name": "wantMembersRole"
+        },
+        {
+          "type": "TeamKBFSKeyRefresher",
+          "name": "needKBFSKeyGeneration"
         }
       ],
       "doc": "* TeamRefreshData are needed or wanted data requirements that, if unmet, will cause\n   * a refresh of the cache."
@@ -1170,6 +1287,11 @@
           "jsonkey": "is_implicit_team"
         },
         {
+          "type": "boolean",
+          "name": "isOpenTeam",
+          "jsonkey": "is_open_team"
+        },
+        {
           "type": "TeamRole",
           "name": "role"
         },
@@ -1232,6 +1354,11 @@
           "type": "boolean",
           "name": "isImplicitTeam",
           "jsonkey": "is_implicit_team"
+        },
+        {
+          "type": "boolean",
+          "name": "isOpenTeam",
+          "jsonkey": "is_open_team"
         },
         {
           "type": "TeamRole",
@@ -1661,7 +1788,7 @@
           "type": "string"
         },
         {
-          "name": "sendChatNotification",
+          "name": "joinSubteam",
           "type": "boolean"
         }
       ],
@@ -1678,7 +1805,7 @@
           "type": "string"
         },
         {
-          "name": "sendChatNotification",
+          "name": "joinSubteam",
           "type": "boolean"
         },
         {

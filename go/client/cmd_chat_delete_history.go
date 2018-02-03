@@ -23,6 +23,7 @@ type CmdChatDeleteHistory struct {
 	libkb.Contextified
 	resolvingRequest chatConversationResolvingRequest
 	age              gregor1.DurationSec
+	ageDesc          string
 	hasTTY           bool
 }
 
@@ -64,7 +65,8 @@ func (c *CmdChatDeleteHistory) Run() (err error) {
 
 	if c.G().Standalone {
 		switch c.resolvingRequest.MembersType {
-		case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAM:
+		case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAMNATIVE,
+			chat1.ConversationMembersType_IMPTEAMUPGRADE:
 			c.G().StartStandaloneChat()
 		default:
 			err = CantRunInStandaloneError{}
@@ -88,7 +90,7 @@ func (c *CmdChatDeleteHistory) ParseArgv(ctx *cli.Context) (err error) {
 	}
 
 	if timeStr := ctx.String("age"); len(timeStr) > 0 {
-		c.age, err = c.parseAge(timeStr)
+		c.age, c.ageDesc, err = c.parseAge(timeStr)
 		if err != nil {
 			return err
 		}
@@ -104,35 +106,51 @@ func (c *CmdChatDeleteHistory) GetUsage() libkb.Usage {
 	}
 }
 
-func (c *CmdChatDeleteHistory) parseAge(s string) (gregor1.DurationSec, error) {
+// Returns a duration and english string like "2 days".
+func (c *CmdChatDeleteHistory) parseAge(s string) (gregor1.DurationSec, string, error) {
 	generalErr := fmt.Errorf("duration must be an integer and suffix [s,h,d,w,m] like: 10d")
 	if len(s) < 2 {
-		return 0, generalErr
+		return 0, "", generalErr
 	}
 	factor := time.Second
+	unitName := ""
 	switch s[len(s)-1] {
 	case 's':
 		factor = time.Second
-	case 'm':
-		factor = time.Minute
+		unitName = "second"
 	case 'h':
 		factor = time.Hour
+		unitName = "hour"
 	case 'd':
 		factor = 24 * time.Hour
+		unitName = "day"
 	case 'w':
 		factor = 7 * 24 * time.Hour
+		unitName = "week"
+	case 'm':
+		factor = 30 * 24 * time.Hour
+		unitName = "month"
 	default:
-		return 0, generalErr
+		return 0, "", generalErr
 	}
 	base, err := strconv.Atoi(s[:len(s)-1])
 	if err != nil {
-		return 0, generalErr
+		return 0, "", generalErr
 	}
 	if base < 0 {
-		return 0, fmt.Errorf("age cannot be negative")
+		return 0, "", fmt.Errorf("age cannot be negative")
 	}
 	d := time.Duration(base) * factor
-	return gregor1.DurationSec(d.Seconds()), nil
+	if unitName == "month" {
+		base *= 30
+		unitName = "day"
+	}
+	plural := "s"
+	if base == 1 {
+		plural = ""
+	}
+	desc := fmt.Sprintf("%v %v%v", base, unitName, plural)
+	return gregor1.DurationSec(d.Seconds()), desc, nil
 }
 
 // Like chatSend but uses PostDeleteHistoryByAge.
@@ -161,9 +179,13 @@ func (c *CmdChatDeleteHistory) chatSendDeleteHistory(ctx context.Context) error 
 		Age:              c.age,
 	}
 
-	// Always ask for confirmation for this destructive operation.
-	promptText := fmt.Sprintf("Delete history of [%s]? Hit Enter, or Ctrl-C to cancel.", conversationInfo.TlfName)
-	_, err = c.G().UI.GetTerminalUI().Prompt(PromptDescriptorEnterChatMessage, promptText)
+	// Ask for confirmation on this destructive operation.
+	promptText := fmt.Sprintf("Permanently delete ALL chat history of [%s]?\nHit Enter, or Ctrl-C to cancel.", conversationInfo.TlfName)
+	if c.age != gregor1.DurationSec(0) {
+		promptText = fmt.Sprintf("Permanently delete all chat messages in [%s] older than %v?\nHit Enter, or Ctrl-C to cancel.",
+			conversationInfo.TlfName, c.ageDesc)
+	}
+	_, err = c.G().UI.GetTerminalUI().Prompt(PromptDescriptorChatDeleteHistory, promptText)
 	if err != nil {
 		return err
 	}

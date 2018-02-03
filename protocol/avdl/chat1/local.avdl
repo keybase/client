@@ -65,7 +65,10 @@ protocol local {
     string team;
     string pusher;
     string repoName;
+    keybase1.RepoID repoID;
     array<keybase1.GitRefMetadata> refs;
+    keybase1.GitPushType pushType;
+    string previousRepoName;
   }
 
   variant MessageSystem switch (MessageSystemType systemType) {
@@ -235,6 +238,7 @@ protocol local {
     array<MessagePreviousPointer> prev;
     gregor1.UID sender;
     gregor1.DeviceID senderDevice;
+    union { null, boolean } kbfsCryptKeysUsed;
 
     // MessageBoxed.V1: Hash of the encrypted body ciphertext.
     // MessageBoxed.V2: Hash of encrypted body (.v || .n || .e)
@@ -475,6 +479,10 @@ protocol local {
     // This field, if null or empty, indicates identify succeeded without any
     // break.
     array<keybase1.TLFIdentifyFailure> identifyFailures;
+
+    Expunge expunge; // The latest history deletion. Defaults to zeroes.
+    union { null, RetentionPolicy } convRetention;
+    union { null, RetentionPolicy } teamRetention;
   }
 
   record NonblockFetchRes {
@@ -770,4 +778,8 @@ protocol local {
   // Convenience interface for adding someone back to a reset team convo
   void addTeamMemberAfterReset(string username, ConversationID convID);
 
+  void setConvRetentionLocal(ConversationID convID, RetentionPolicy policy);
+  void setTeamRetentionLocal(keybase1.TeamID teamID, RetentionPolicy policy);
+
+  void upgradeKBFSConversationToImpteam(ConversationID convID);
 }

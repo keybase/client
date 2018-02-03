@@ -113,6 +113,8 @@ const (
 	UIDMapFullNameCacheSize           = 100000
 	ImplicitTeamConflictInfoCacheSize = 10000
 
+	PayloadCacheSize = 1000
+
 	SigShortIDBytes  = 27
 	LocalTrackMaxAge = 48 * time.Hour
 
@@ -124,7 +126,8 @@ const (
 	// By default, only 64 files can be opened.
 	LevelDBNumFiles = 64
 
-	HomeCacheTimeout = (time.Hour - time.Minute)
+	HomeCacheTimeout       = (time.Hour - time.Minute)
+	HomePeopleCacheTimeout = 10 * time.Minute
 )
 
 const RemoteIdentifyUITimeout = 5 * time.Second
@@ -647,7 +650,3 @@ const (
 )
 
 const CurrentGitMetadataEncryptionVersion = 1
-
-// limit the number of tracker popups to 5 per hour
-const identifyUIBurstSize = 5
-const identifyUIRateDuration = 12 * time.Minute

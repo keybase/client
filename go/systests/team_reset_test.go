@@ -573,6 +573,45 @@ func TestImplicitTeamUserReset(t *testing.T) {
 	require.Equal(t, role, keybase1.TeamRole_OWNER)
 }
 
+// ann and bob both reset
+func TestImplicitTeamResetAll(t *testing.T) {
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	ann := ctx.installKeybaseForUser("ann", 10)
+	ann.signup()
+	ann.registerForNotifications()
+	divDebug(ctx, "Signed up ann (%s)", ann.username)
+
+	bob := ctx.installKeybaseForUser("bob", 10)
+	bob.signup()
+	bob.registerForNotifications()
+	divDebug(ctx, "Signed up bob (%s)", bob.username)
+
+	displayName := strings.Join([]string{ann.username, bob.username}, ",")
+	iteam := ann.lookupImplicitTeam(true /*create*/, displayName, false /*isPublic*/)
+	divDebug(ctx, "team created (%s)", iteam.ID)
+
+	iteam2 := ann.lookupImplicitTeam(false /*create*/, displayName, false /*isPublic*/)
+	require.Equal(t, iteam.ID, iteam2.ID, "second lookup should return same team")
+	divDebug(ctx, "team looked up before reset")
+
+	bob.reset()
+	divDebug(ctx, "Reset bob (%s)", bob.username)
+
+	ann.reset()
+	divDebug(ctx, "Reset ann (%s)", ann.username)
+
+	ann.loginAfterReset(10)
+	divDebug(ctx, "Ann logged in after reset")
+
+	ann.waitForTeamAbandoned(iteam.ID)
+
+	iteam3 := ann.lookupImplicitTeam(true /*create*/, displayName, false /*isPublic*/)
+	require.NotEqual(t, iteam.ID, iteam3.ID, "lookup after resets should return different team")
+	divDebug(ctx, "team looked up after resets")
+}
+
 // Remove a member who was in a team and reset.
 func TestTeamRemoveAfterReset(t *testing.T) {
 	ctx := newSMUContext(t)
@@ -584,8 +623,11 @@ func TestTeamRemoveAfterReset(t *testing.T) {
 	bob := ctx.installKeybaseForUser("bob", 10)
 	bob.signup()
 	divDebug(ctx, "Signed up bob (%s)", bob.username)
+	joe := ctx.installKeybaseForUser("joe", 10)
+	joe.signup()
+	divDebug(ctx, "Signed up joe (%s)", joe.username)
 
-	team := ann.createTeam([]*smuUser{bob})
+	team := ann.createTeam([]*smuUser{bob, joe})
 	divDebug(ctx, "team created (%s)", team.name)
 
 	bob.reset()
@@ -594,12 +636,21 @@ func TestTeamRemoveAfterReset(t *testing.T) {
 	bob.loginAfterReset(10)
 	divDebug(ctx, "Bob logged in after reset")
 
+	joe.reset()
+	divDebug(ctx, "Reset joe (%s), not re-provisioning though!", joe.username)
+
 	ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2), nil)
 
 	cli := ann.getTeamsClient()
 	err := cli.TeamRemoveMember(context.TODO(), keybase1.TeamRemoveMemberArg{
 		Name:     team.name,
 		Username: bob.username,
+	})
+	require.NoError(t, err)
+
+	err = cli.TeamRemoveMember(context.TODO(), keybase1.TeamRemoveMemberArg{
+		Name:     team.name,
+		Username: joe.username,
 	})
 	require.NoError(t, err)
 
@@ -737,4 +788,36 @@ func TestTeamListAfterReset(t *testing.T) {
 		}
 	}
 	require.True(t, found, "we found bob (before he found us)")
+}
+
+func TestTeamAfterDeleteUser(t *testing.T) {
+	t.Skip()
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	ann := ctx.installKeybaseForUser("ann", 10)
+	ann.signup()
+	divDebug(ctx, "Signed up ann (%s, %s)", ann.username, ann.uid())
+	bob := ctx.installKeybaseForUser("bob", 10)
+	bob.signup()
+	divDebug(ctx, "Signed up bob (%s, %s)", bob.username, bob.uid())
+
+	team := ann.createTeam([]*smuUser{bob})
+	divDebug(ctx, "team created (%s)", team.name)
+
+	sendChat(team, ann, "0")
+	divDebug(ctx, "Sent chat '0' (%s via %s)", team.name, ann.username)
+
+	ann.delete()
+	divDebug(ctx, "Deleted ann (%s)", ann.username)
+
+	_, err := bob.teamGet(team)
+	require.NoError(t, err)
+
+	bob.dbNuke()
+
+	_, err = bob.teamGet(team)
+	require.NoError(t, err)
+
+	readChats(team, bob, 1)
 }

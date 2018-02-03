@@ -5,6 +5,10 @@
 import * as I from 'immutable'
 import * as RouteTreeConstants from '../constants/route-tree'
 import * as ChatGen from '../actions/chat-gen'
+import * as AppGen from '../actions/app-gen'
+import * as ConfigGen from '../actions/config-gen'
+import * as GregorGen from '../actions/gregor-gen'
+import * as EngineGen from '../actions/engine-gen'
 import type {TypedState} from '../constants/reducer'
 import {getPath} from '../route-tree'
 import * as Entity from '../constants/types/entities'
@@ -12,7 +16,12 @@ import * as Entity from '../constants/types/entities'
 type ActionTransformer<P, A: {type: string, payload: P}> = (
   a: A,
   state: TypedState
-) => {type: string, payload?: Object}
+) => ?{type: string, payload?: Object}
+
+// If you use nullTransform it'll not be logged at all
+const nullTransform: ActionTransformer<*, *> = action => {
+  return null
+}
 
 const pathActionTransformer: ActionTransformer<*, *> = (action, oldState) => {
   const prevPath = oldState.routeTree ? getPath(oldState.routeTree.routeState) : I.List()
@@ -134,6 +143,15 @@ const actionTransformMap: {[key: string]: ActionTransformer<*, *>} = {
   'entity:merge': entityTransformer,
   'entity:replace': entityTransformer,
   'entity:subtract': entityTransformer,
+  _loadAvatarHelper: nullTransform,
+  [ChatGen.clearRekey]: nullTransform,
+  [ConfigGen.loadAvatars]: nullTransform,
+  [ConfigGen.loadTeamAvatars]: nullTransform,
+  [ConfigGen.loadedAvatars]: nullTransform,
+  [ConfigGen.persistRouteState]: nullTransform,
+  [EngineGen.waitingForRpc]: nullTransform,
+  [GregorGen.pushOOBM]: nullTransform,
+  [AppGen.changedFocus]: nullTransform,
 }
 
 const transformActionForLog: ActionTransformer<*, *> = (action, state) =>

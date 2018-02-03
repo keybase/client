@@ -316,7 +316,9 @@ func (o *Outbox) RetryMessage(ctx context.Context, obid chat1.OutboxID) error {
 	var recs []chat1.OutboxRecord
 	for _, obr := range obox.Records {
 		if obr.OutboxID.Eq(&obid) {
+			o.Debug(ctx, "resetting send information on obid: %s", obid)
 			obr.State = chat1.NewOutboxStateWithSending(0)
+			obr.Ctime = gregor1.ToTime(o.clock.Now())
 		}
 		recs = append(recs, obr)
 	}

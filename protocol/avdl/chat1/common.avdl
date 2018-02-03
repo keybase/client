@@ -25,7 +25,8 @@ protocol common {
   enum ConversationMembersType {
     KBFS_0,
     TEAM_1,
-    IMPTEAM_2
+    IMPTEAMNATIVE_2,
+    IMPTEAMUPGRADE_3
   }
 
   enum SyncInboxResType {
@@ -188,6 +189,14 @@ protocol common {
     string newTLFName;
   }
 
+  record Expunge {
+    // Delete upto this message ID (exclusive)
+    MessageID upto;
+    // The message that justifies this deletion.
+    // Can point to a DeleteHistory message or be 0 in the case of a retention sweep.
+    MessageID basis;
+  }
+
   record ConversationMetadata  {
     ConversationIDTriple idTriple;
     ConversationID conversationID;
@@ -249,6 +258,10 @@ protocol common {
 
     // creator info for the conversation
     union { null, ConversationCreatorInfo } creatorInfo;
+
+    Expunge expunge; // The latest history deletion. Defaults to zeroes.
+    union { null, RetentionPolicy } convRetention;
+    union { null, RetentionPolicy } teamRetention;
   }
 
   record MessageSummary {
@@ -288,6 +301,7 @@ protocol common {
     boolean tlfPublic;
     MessageType messageType;
     MessageID supersedes;
+    union { null, boolean } kbfsCryptKeysUsed;
 
     // These 3 fields are hints for the server.
     // They can be derived from the message body, and are not signed.
@@ -321,6 +335,8 @@ protocol common {
     array<MessagePreviousPointer> prev;
     gregor1.UID sender;
     gregor1.DeviceID senderDevice;
+    union { null, boolean } kbfsCryptKeysUsed;
+
     // Latest merkle root when sent.
     // Nil from v1 messages. Non-nil from v2 messages.
     union { null, MerkleRoot } merkleRoot;
@@ -376,4 +392,27 @@ protocol common {
     case VERSIONHIT: void;
     case FULL: InboxViewFull;
   }
+
+  enum RetentionPolicyType {
+    NONE_0,
+    RETAIN_1, // Keep messages forever
+    EXPIRE_2, // Delete afer a while
+    INHERIT_3 // Use the team's policy
+  }
+
+  variant RetentionPolicy switch (RetentionPolicyType typ){
+    case RETAIN: RpRetain;
+    case EXPIRE: RpExpire;
+    case INHERIT: RpInherit;
+  }
+
+  record RpRetain {}
+
+  record RpExpire {
+    // Delete messages older than this.
+    gregor1.DurationSec age;
+  }
+
+  record RpInherit {}
+
 }

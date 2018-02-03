@@ -9,7 +9,7 @@ import {branch} from 'recompose'
 
 import type {MenuItem} from '../common-adapters/popup-menu.js'
 
-type Props = {
+export type Props = {
   deviceIDs: Array<Types.DeviceID>,
   menuItems: Array<MenuItem | 'Divider' | null>,
   onToggleShowRevoked: () => void,
@@ -21,9 +21,12 @@ type Props = {
   waiting: boolean,
 }
 
-const DeviceHeader = ({onAddNew}) => (
+const DeviceHeader = ({onAddNew, waiting}) => (
   <ClickableBox onClick={onAddNew}>
     <Box style={{...stylesCommonRow, alignItems: 'center', borderBottomWidth: 0}}>
+      {waiting && (
+        <ProgressIndicator style={{position: 'absolute', width: 20, top: isMobile ? 22 : 14, left: 12}} />
+      )}
       <Icon type="iconfont-new" style={{color: globalColors.blue}} />
       <Text type="BodyBigLink" style={{padding: globalMargins.xtiny}}>
         Add new...
@@ -100,12 +103,7 @@ class Devices extends PureComponent<Props> {
 
     return (
       <Box style={stylesContainer}>
-        {this.props.waiting && (
-          <Box style={{...globalStyles.flexBoxRow, height: 64, justifyContent: 'center'}}>
-            <ProgressIndicator style={{alignSelf: 'center', width: 24}} />
-          </Box>
-        )}
-        <DeviceHeader onAddNew={this.props.showMenu} />
+        <DeviceHeader onAddNew={this.props.showMenu} waiting={this.props.waiting} />
         <List items={items} renderItem={this._renderRow} />
         {this.props.showingMenu && (
           <OLDPopupMenu style={stylesPopup} items={this.props.menuItems} onHidden={this.props.hideMenu} />

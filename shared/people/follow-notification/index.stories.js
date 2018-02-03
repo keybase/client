@@ -1,25 +1,19 @@
 // @flow
 import React from 'react'
 import * as C from '../../constants/people'
-import {Provider} from 'react-redux'
-import {createStore} from 'redux'
-import {Set} from 'immutable'
-import {storiesOf} from '../../stories/storybook'
+import {action, storiesOf} from '../../stories/storybook'
+import * as PropProviders from '../../stories/prop-providers'
 import FollowNotification, {type Props} from '.'
 import moment from 'moment'
 
-const store = {
-  config: {
-    following: Set(['max', 'cnojima', 'cdixon']),
-    you: 'ayoubd',
-  },
-}
+const provider = PropProviders.compose(PropProviders.Usernames(['max', 'chrisnojima'], 'ayoubd'))
 
 const singleFollowProps1: Props = {
   type: 'notification',
   newFollows: [C.makeFollowedNotification({username: 'mmaxim'})],
   badged: true,
   notificationTime: new Date(),
+  onClickUser: action('onClickUser'),
 }
 
 const singleFollowProps2: Props = {
@@ -29,6 +23,7 @@ const singleFollowProps2: Props = {
   notificationTime: moment()
     .subtract(3, 'days')
     .toDate(),
+  onClickUser: action('onClickUser'),
 }
 
 const multiFollowProps1: Props = {
@@ -43,6 +38,7 @@ const multiFollowProps1: Props = {
     .subtract(3, 'weeks')
     .toDate(),
   numAdditional: 0,
+  onClickUser: action('onClickUser'),
 }
 
 const multiFollowProps2: Props = {
@@ -58,11 +54,12 @@ const multiFollowProps2: Props = {
     .subtract(3, 'months')
     .toDate(),
   numAdditional: 5,
+  onClickUser: action('onClickUser'),
 }
 
 const load = () => {
   storiesOf('People/Follow notification', module)
-    .addDecorator(story => <Provider store={createStore(ignore => store, store)}>{story()}</Provider>)
+    .addDecorator(provider)
     .add('Someone followed you', () => <FollowNotification {...singleFollowProps1} />)
     .add('Someone you follow followed you', () => <FollowNotification {...singleFollowProps2} />)
     .add('A few people followed you', () => <FollowNotification {...multiFollowProps1} />)

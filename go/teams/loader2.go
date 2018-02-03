@@ -1,12 +1,17 @@
 package teams
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
+	"errors"
 	"fmt"
 
+	"golang.org/x/crypto/nacl/secretbox"
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-codec/codec"
 )
 
 // loader2.go contains methods on TeamLoader.
@@ -201,24 +206,45 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 		return &signer, nil
 	}
 
-	var isReaderOrAbove bool
-	if !link.outerLink.LinkType.RequiresAdminPermission() {
-		err = l.verifyWriterOrReaderPermissions(ctx, state, link, signerUV)
-		isReaderOrAbove = (err == nil)
-	}
-	if link.outerLink.LinkType.RequiresAdminPermission() || !isReaderOrAbove {
+	minRole := link.outerLink.LinkType.RequiresAtLeastRole()
+	// Note: If minRole is OWNER it will be treated as ADMIN here (weaker check).
+	l.G().Log.CDebugf(ctx, "verifyLink minRole:%v", minRole)
+
+	switch minRole {
+	case keybase1.TeamRole_NONE:
+		// Anyone can make this link. These didn't exist at the time.
+		return &signer, nil
+	case keybase1.TeamRole_READER:
+		err = l.verifyExplicitPermission(ctx, state, link, signerUV, keybase1.TeamRole_READER)
+		if err == nil {
+			return &signer, err
+		}
+		l.G().Log.CDebugf(ctx, "verifyLink: not a %v: %v", keybase1.TeamRole_READER, err)
+		// Fall through to a higher role check
+		fallthrough
+	case keybase1.TeamRole_WRITER:
+		err = l.verifyExplicitPermission(ctx, state, link, signerUV, keybase1.TeamRole_WRITER)
+		if err == nil {
+			return &signer, err
+		}
+		l.G().Log.CDebugf(ctx, "verifyLink: not a %v: %v", keybase1.TeamRole_WRITER, err)
+		// Fall through to a higher role check
+		fallthrough
+	case keybase1.TeamRole_OWNER, keybase1.TeamRole_ADMIN:
 		// Check for admin permissions if they are not an on-chain reader/writer
 		// because they might be an implicit admin.
 		// Reassigns signer, might set implicitAdmin.
 		signer, err = l.verifyAdminPermissions(ctx, state, me, link, readSubteamID, signerUV, proofSet)
+		l.G().Log.CDebugf(ctx, "verifyLink: not a %v: %v", minRole, err)
+		return &signer, err
+	default:
+		return nil, fmt.Errorf("unrecognized role %v required for link", minRole)
 	}
-	return &signer, err
 }
 
-func (l *TeamLoader) verifyWriterOrReaderPermissions(ctx context.Context,
-	state *keybase1.TeamData, link *chainLinkUnpacked, uv keybase1.UserVersion) error {
-
-	return (TeamSigChainState{state.Chain}).AssertWasReaderAt(uv, link.SigChainLocation())
+func (l *TeamLoader) verifyExplicitPermission(ctx context.Context, state *keybase1.TeamData,
+	link *chainLinkUnpacked, uv keybase1.UserVersion, atOrAbove keybase1.TeamRole) error {
+	return (TeamSigChainState{state.Chain}).AssertWasRoleOrAboveAt(uv, atOrAbove, link.SigChainLocation())
 }
 
 // Does not return a full TeamData because it might get a subteam-reader version.
@@ -269,6 +295,8 @@ func (l *TeamLoader) addProofsForAdminPermission(ctx context.Context, t keybase1
 	}
 }
 
+// Verify that a user has admin permissions.
+// Because this uses the proofSet, if it is called may return success and fail later.
 func (l *TeamLoader) verifyAdminPermissions(ctx context.Context,
 	state *keybase1.TeamData, me keybase1.UserVersion, link *chainLinkUnpacked, readSubteamID keybase1.TeamID,
 	uv keybase1.UserVersion, proofSet *proofSetT) (signerX, error) {
@@ -523,6 +551,84 @@ func (l *TeamLoader) checkProofs(ctx context.Context,
 	// Because the team linkmap in the proof objects is stale.
 	proofSet.SetTeamLinkMap(ctx, state.Chain.Id, state.Chain.LinkIDs)
 	return proofSet.check(ctx, l.world)
+}
+
+func (l *TeamLoader) unboxKBFSCryptKeys(ctx context.Context, key keybase1.TeamApplicationKey,
+	keysetHash keybase1.TeamEncryptedKBFSKeysetHash, encryptedKeyset string) ([]keybase1.CryptKey, error) {
+
+	// Check hash
+	sbytes := sha256.Sum256([]byte(encryptedKeyset))
+	if !keysetHash.SecureEqual(keybase1.TeamEncryptedKBFSKeysetHashFromBytes(sbytes[:])) {
+		return nil, errors.New("encrypted TLF upgrade does not match sigchain hash")
+	}
+
+	// Decode
+	packed, err := base64.StdEncoding.DecodeString(encryptedKeyset)
+	if err != nil {
+		return nil, err
+	}
+	var keysetRecord keybase1.TeamEncryptedKBFSKeyset
+	mh := codec.MsgpackHandle{WriteExt: true}
+	decoder := codec.NewDecoderBytes(packed, &mh)
+	if err = decoder.Decode(&keysetRecord); err != nil {
+		return nil, err
+	}
+
+	// Decrypt
+	var encKey [libkb.NaclSecretBoxKeySize]byte = key.Material()
+	var nonce [libkb.NaclDHNonceSize]byte
+	if len(keysetRecord.N) != libkb.NaclDHNonceSize {
+		return nil, libkb.DecryptBadNonceError{}
+	}
+	copy(nonce[:], keysetRecord.N)
+	plain, ok := secretbox.Open(nil, keysetRecord.E, &nonce, (*[32]byte)(&encKey))
+	if !ok {
+		return nil, libkb.DecryptOpenError{}
+	}
+
+	// Decode again
+	var cryptKeys []keybase1.CryptKey
+	decoder = codec.NewDecoderBytes(plain, &mh)
+	if err = decoder.Decode(&cryptKeys); err != nil {
+		return nil, err
+	}
+
+	return cryptKeys, nil
+}
+
+func (l *TeamLoader) addKBFSCryptKeys(ctx context.Context, state *keybase1.TeamData,
+	upgrades []keybase1.TeamGetLegacyTLFUpgrade) (*keybase1.TeamData, error) {
+	m := make(map[keybase1.TeamApplication][]keybase1.CryptKey)
+	for _, upgrade := range upgrades {
+		key, err := ApplicationKeyAtGeneration(state, upgrade.AppType,
+			keybase1.PerTeamKeyGeneration(upgrade.TeamGeneration))
+		if err != nil {
+			return state, err
+		}
+
+		chainInfo, ok := state.Chain.TlfLegacyUpgrade[upgrade.AppType]
+		if !ok {
+			return state, errors.New("legacy tlf upgrade payload present without chain link")
+		}
+		if chainInfo.TeamGeneration != upgrade.TeamGeneration {
+			return state, fmt.Errorf("legacy tlf upgrade team generation mismatch: %d != %d",
+				chainInfo.TeamGeneration, upgrade.TeamGeneration)
+		}
+
+		cryptKeys, err := l.unboxKBFSCryptKeys(ctx, key, chainInfo.KeysetHash, upgrade.EncryptedKeyset)
+		if err != nil {
+			return state, err
+		}
+		if chainInfo.LegacyGeneration != cryptKeys[len(cryptKeys)-1].KeyGeneration {
+			return state, fmt.Errorf("legacy tlf upgrade legacy generation mismatch: %d != %d",
+				chainInfo.LegacyGeneration, cryptKeys[len(cryptKeys)-1].KeyGeneration)
+		}
+
+		m[upgrade.AppType] = cryptKeys
+	}
+	ret := state.DeepCopy()
+	ret.TlfCryptKeys = m
+	return &ret, nil
 }
 
 // Add data to the state that is not included in the sigchain:

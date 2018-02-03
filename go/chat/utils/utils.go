@@ -415,8 +415,9 @@ func (d DebugLabeler) Debug(ctx context.Context, msg string, args ...interface{}
 	}
 }
 
-func (d DebugLabeler) Trace(ctx context.Context, f func() error, msg string) func() {
+func (d DebugLabeler) Trace(ctx context.Context, f func() error, format string, args ...interface{}) func() {
 	if d.showLog() {
+		msg := fmt.Sprintf(format, args...)
 		start := time.Now()
 		d.log.CDebugf(ctx, "++Chat: + %s: %s", d.label, msg)
 		return func() {
@@ -827,6 +828,8 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal) (res chat1.InboxU
 	res.TeamType = rawConv.Info.TeamType
 	res.Version = rawConv.Info.Version
 	res.MaxMsgID = rawConv.ReaderInfo.MaxMsgid
+	res.ConvRetention = rawConv.ConvRetention
+	res.TeamRetention = rawConv.TeamRetention
 	return res
 }
 

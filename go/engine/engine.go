@@ -104,6 +104,7 @@ func delegateUIs(e Engine, ctx *Context) error {
 		} else if ui != nil {
 			e.G().Log.Debug("using delegated identify UI for engine %q", e.Name())
 			ctx.IdentifyUI = ui
+			ctx.IdentifyUIIsDelegated = true
 		}
 	}
 

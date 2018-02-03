@@ -3,6 +3,7 @@ import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as TeamsGen from '../../actions/teams-gen'
+import * as GregorGen from '../../actions/gregor-gen'
 import * as SearchGen from '../../actions/search-gen'
 import * as I from 'immutable'
 import * as KBFSGen from '../../actions/kbfs-gen'
@@ -33,6 +34,7 @@ type StateProps = {
   publicityAnyMember: boolean,
   publicityMember: boolean,
   publicityTeam: boolean,
+  sawSubteamsBanner: boolean,
   selectedTab: string,
   waitingForSavePublicity: boolean,
   you: ?string,
@@ -46,12 +48,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
     throw new Error('There was a problem loading the team page, please report this error.')
   }
   const memberInfo = state.entities.getIn(['teams', 'teamNameToMembers', teamname], I.Set())
-
-  // We had to request every subteam of the top-level team, rather than just
-  // child subteams of the subteam we care about.  Here's where we fix that up.
-  const subteams = state.entities
-    .getIn(['teams', 'teamNameToSubteams', teamname], I.Set())
-    .filter(team => team.startsWith(teamname + '.'))
+  const subteams = state.entities.getIn(['teams', 'teamNameToSubteams', teamname], I.Set()).sort()
 
   return {
     _memberInfo: memberInfo,
@@ -80,6 +77,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
       false
     ),
     publicityTeam: state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname, 'team'], false),
+    sawSubteamsBanner: state.entities.getIn(['teams', 'sawSubteamsBanner'], false),
     selectedTab: routeState.get('selectedTab') || 'members',
     subteams,
     waitingForSavePublicity: anyWaiting(state, `setPublicity:${teamname}`, `getDetails:${teamname}`),
@@ -153,6 +151,8 @@ const mapDispatchToProps = (
   },
   _savePublicity: (teamname: Types.Teamname, settings: Types.PublicitySettings) =>
     dispatch(TeamsGen.createSetPublicity({teamname, settings})),
+  onHideSubteamsBanner: () =>
+    dispatch(GregorGen.createInjectItem({body: 'true', category: 'sawSubteamsBanner'})),
   onReadMoreAboutSubteams: () => {
     openURL('https://keybase.io/docs/teams/design')
   },
@@ -209,6 +209,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       onOpenFolder={onOpenFolder}
       onManageChat={onManageChat}
       onShowMenu={() => ownProps.setShowMenu(true)}
+      canManageChat={yourOperations.leaveTeam}
     />
   )
   const publicitySettingsChanged =
@@ -234,6 +235,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onInviteByEmail,
     onCreateSubteam,
     onLeaveTeam,
+    onManageChat,
     onOpenFolder,
     onEditDescription,
     onSetOpenTeamRole,

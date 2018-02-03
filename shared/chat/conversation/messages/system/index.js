@@ -1,11 +1,11 @@
 // @flow
 import * as React from 'react'
-import {Box, Text, ConnectedUsernames, Icon} from '../../../../common-adapters'
+import {Box, Text, ConnectedUsernames, Icon, TimelineMarker} from '../../../../common-adapters'
 import {EmojiIfExists} from '../../../../common-adapters/markdown.shared'
 import UserNotice from '../../notices/user-notice'
 import {globalStyles, globalColors, globalMargins} from '../../../../styles'
 import {formatTimeForMessages} from '../../../../util/timestamp'
-import {isMobile} from '../../../../constants/platform'
+import {isAndroid, isMobile} from '../../../../constants/platform'
 
 import type {
   SystemMessage,
@@ -20,6 +20,7 @@ const connectedUsernamesProps = {
   inline: true,
   colorFollowing: true,
   type: 'BodySmallSemibold',
+  underline: true,
 }
 
 type Props = {
@@ -27,8 +28,10 @@ type Props = {
   channelname: string,
   isBigTeam: boolean,
   message: SystemMessage,
+  onClickUserAvatar: (username: string) => void,
   onManageChannels: (teamname: string) => void,
   onViewTeam: (teamname: string) => void,
+  onViewGitRepo: (repoID: string, teamname: string) => void,
   teamname: string,
   you: string,
 }
@@ -41,6 +44,7 @@ const AddedToTeamNotice = ({
   isBigTeam,
   message,
   info,
+  onClickUserAvatar,
   onManageChannels,
   onViewTeam,
   you,
@@ -93,6 +97,7 @@ const AddedToTeamNotice = ({
       style={{marginTop: globalMargins.small}}
       username={you !== addee ? addee : undefined}
       teamname={you === addee ? team : undefined}
+      onClickAvatar={you !== addee ? () => onClickUserAvatar(addee) : () => onViewTeam(team)}
       bgColor={globalColors.blue4}
     >
       {you === addee && (
@@ -114,7 +119,12 @@ const AddedToTeamNotice = ({
           .{' '}
           {you === addee && (
             <Text type="BodySmallSemibold">
-              Say hi! <EmojiIfExists style={{display: 'inline-block'}} emojiName=":wave:" size={14} />
+              Say hi!{' '}
+              <EmojiIfExists
+                style={{display: isMobile ? 'flex' : 'inline-block'}}
+                emojiName=":wave:"
+                size={14}
+              />
             </Text>
           )}
         </Text>
@@ -126,7 +136,14 @@ const AddedToTeamNotice = ({
 
 type ComplexTeamProps = Props & {info: SimpleToComplexTeamInfo}
 
-const ComplexTeamNotice = ({channelname, message, info, onManageChannels, you}: ComplexTeamProps) => {
+const ComplexTeamNotice = ({
+  channelname,
+  message,
+  info,
+  onManageChannels,
+  onViewTeam,
+  you,
+}: ComplexTeamProps) => {
   const teamname = info.team
   const authorComponent =
     message.author === you ? (
@@ -145,6 +162,7 @@ const ComplexTeamNotice = ({channelname, message, info, onManageChannels, you}: 
       style={{marginTop: globalMargins.small}}
       teamname={teamname || ''}
       bgColor={globalColors.blue4}
+      onClickAvatar={() => onViewTeam(teamname)}
     >
       <Text
         type="BodySmallSemibold"
@@ -173,13 +191,21 @@ const ComplexTeamNotice = ({channelname, message, info, onManageChannels, you}: 
             <Text type="BodySmallSemibold" style={{marginRight: globalMargins.tiny}}>
               {'\u2022'}
             </Text>
-            <Text type="BodySmallSemibold">
-              Notifications will no longer happen for every message. {isMobile ? 'Tap' : 'Click on'} the{' '}
-              <Box style={{display: 'inline-block'}}>
-                <Icon type="iconfont-info" style={{fontSize: 11}} />
-              </Box>{' '}
-              to configure them.
-            </Text>
+            {!isAndroid && (
+              <Text type="BodySmallSemibold">
+                Notifications will no longer happen for every message. {isMobile ? 'Tap' : 'Click on'} the{' '}
+                <Box style={{display: isMobile ? 'flex' : 'inline-block', height: 11, width: 11}}>
+                  <Icon type="iconfont-info" style={{fontSize: 11}} />
+                </Box>{' '}
+                to configure them.
+              </Text>
+            )}
+            {isAndroid && (
+              <Text type="BodySmallSemibold">
+                Notifications will no longer happen for every message. Tap the info icon in the top right to
+                configure them.
+              </Text>
+            )}
           </Box>
           <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.tiny}}>
             <Text type="BodySmallSemibold" style={{marginRight: globalMargins.tiny}}>
@@ -208,7 +234,9 @@ const InviteAddedToTeamNotice = ({
   channelname,
   message,
   info,
+  onClickUserAvatar,
   onManageChannels,
+  onViewTeam,
   you,
 }: InviteAddedToTeamProps) => {
   const {team, inviter, invitee, adder, inviteType} = info
@@ -246,6 +274,7 @@ const InviteAddedToTeamNotice = ({
       username={invitee === you ? undefined : invitee}
       teamname={invitee === you ? team : undefined}
       bgColor={globalColors.blue4}
+      onClickAvatar={invitee === you ? () => onViewTeam(team) : () => onClickUserAvatar(invitee)}
     >
       {you === invitee && (
         <Icon type="icon-team-sparkles-48-40" style={{marginTop: -36, width: 48, height: 40}} />
@@ -260,31 +289,92 @@ const InviteAddedToTeamNotice = ({
 
 type GitPushInfoProps = Props & {info: GitPushInfo}
 
-const GitPushInfoNotice = ({message, info}: GitPushInfoProps) => {
-  return (
-    <UserNotice teamname={info.team} style={{marginTop: globalMargins.small}} bgColor={globalColors.blue4}>
+const GitPushInfoNotice = ({message, info, onClickUserAvatar, onViewGitRepo}: GitPushInfoProps) => {
+  // There is a bug in the data layer where mergeEntities when it sees dupes of this message will keep on adding to the array
+  // Short term fix: clean this up
+
+  const refsMap = (info.refs || []).reduce((map, ref) => {
+    ;(ref.commits || []).forEach(commit => {
+      const name = ref.refName.split('/')[2]
+      if (!map[name]) {
+        map[name] = []
+      }
+      if (!map[name].find(c => c.commitHash === commit.commitHash)) {
+        map[name].push(commit)
+      }
+    })
+    return map
+  }, {})
+
+  return Object.keys(refsMap).map(branchName => (
+    <UserNotice
+      username={info.pusher}
+      key={branchName}
+      style={{marginTop: globalMargins.small}}
+      bgColor={globalColors.blue4}
+      onClickAvatar={() => onClickUserAvatar(info.pusher)}
+    >
       <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
         {formatTimeForMessages(message.timestamp)}
       </Text>
-      <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-        <Text type="BodySmallSemibold" style={{textAlign: 'center'}}>
-          {info.pusher} just pushed commits to the {info.repo} repo.
+      <Box style={globalStyles.flexBoxColumn}>
+        <Text type="BodySmallSemibold" style={{textAlign: 'center', marginBottom: globalMargins.xtiny}}>
+          <ConnectedUsernames {...connectedUsernamesProps} usernames={[info.pusher]} /> pushed{' '}
+          {refsMap[branchName].length} {`commit${refsMap[branchName].length !== 1 ? 's' : ''}`} to{' '}
+          <Text
+            type="BodySmallSemibold"
+            style={info.repoID ? {color: globalColors.black_75} : undefined}
+            onClick={info.repoID ? () => onViewGitRepo(info.repoID, info.team) : undefined}
+          >{`${info.repo}/${branchName}`}</Text>:
         </Text>
-        {(info.refs || []).map(ref => (
-          <Box style={globalStyles.flexBoxColumn} key={ref.refName}>
-            <Text type="Header" style={{textAlign: 'left'}}>
-              {ref.refName}
-            </Text>
-            {(ref.commits || []).map(commit => (
-              <Text type="BodySmall" style={{textAlign: 'left'}} key={commit.commitHash}>
-                {commit.commitHash} {commit.message}
-              </Text>
-            ))}
-          </Box>
-        ))}
+        <Box style={globalStyles.flexBoxColumn}>
+          {refsMap[branchName].map((commit, i) => (
+            <Box style={globalStyles.flexBoxRow} key={commit.commitHash}>
+              <TimelineMarker
+                idx={i}
+                max={refsMap[branchName].length - 1}
+                style={{marginRight: globalMargins.xtiny, ...(isMobile ? {marginTop: -3} : null)}}
+              />
+              <Box style={{...globalStyles.flexBoxRow, flex: 1, alignItems: 'flex-start'}}>
+                <Box
+                  style={{
+                    display: 'flex',
+                    backgroundColor: globalColors.blue3_20,
+                    padding: 2,
+                    borderRadius: 3,
+                    marginRight: globalMargins.xtiny,
+                    marginBottom: 1,
+                    height: 18,
+                  }}
+                >
+                  <Text
+                    type="Terminal"
+                    style={{
+                      ...globalStyles.selectable,
+                      fontSize: 11,
+                      color: globalColors.blue,
+                      lineHeight: isMobile ? 16 : 1.3,
+                    }}
+                  >
+                    {commit.commitHash.substr(0, 8)}
+                  </Text>
+                </Box>
+                <Box style={{display: 'flex', flex: 1}}>
+                  <Text
+                    type="BodySmall"
+                    style={{...globalStyles.selectable, textAlign: 'left'}}
+                    lineClamp={2}
+                  >
+                    {commit.message}
+                  </Text>
+                </Box>
+              </Box>
+            </Box>
+          ))}
+        </Box>
       </Box>
     </UserNotice>
-  )
+  ))
 }
 
 export {AddedToTeamNotice, ComplexTeamNotice, InviteAddedToTeamNotice, GitPushInfoNotice}

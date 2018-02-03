@@ -495,10 +495,6 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				}}
 				g.G().Syncer.SendChatStaleNotifications(ctx, m.UID().Bytes(), supdate, true)
 			}
-
-			if g.badger != nil && nm.UnreadUpdate != nil {
-				g.badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
-			}
 		case types.ActionReadMessage:
 			var nm chat1.ReadMessagePayload
 			err = dec.Decode(&nm)
@@ -519,10 +515,6 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				ConvID: nm.ConvID,
 				Conv:   g.presentUIItem(conv),
 			})
-
-			if g.badger != nil && nm.UnreadUpdate != nil {
-				g.badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
-			}
 		case types.ActionSetStatus:
 			var nm chat1.SetStatusPayload
 			err = dec.Decode(&nm)
@@ -542,10 +534,6 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				Status: nm.Status,
 				Conv:   g.presentUIItem(conv),
 			})
-
-			if g.badger != nil && nm.UnreadUpdate != nil {
-				g.badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
-			}
 		case types.ActionSetAppNotificationSettings:
 			var nm chat1.SetAppNotificationSettingsPayload
 			err = dec.Decode(&nm)
@@ -598,11 +586,6 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			activity = chat1.NewChatActivityWithNewConversation(chat1.NewConversationInfo{
 				Conv: *g.presentUIItem(conv),
 			})
-
-			if g.badger != nil && nm.UnreadUpdate != nil {
-				g.badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
-			}
-
 		case types.ActionTeamType:
 			var nm chat1.TeamTypePayload
 			err = dec.Decode(&nm)
@@ -621,12 +604,11 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				TeamType: nm.TeamType,
 				Conv:     g.presentUIItem(conv),
 			})
-
-			if g.badger != nil && nm.UnreadUpdate != nil {
-				g.badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
-			}
 		default:
 			g.Debug(ctx, "unhandled chat.activity action %q", action)
+		}
+		if g.badger != nil && gm.UnreadUpdate != nil {
+			g.badger.PushChatUpdate(*gm.UnreadUpdate, gm.InboxVers)
 		}
 		g.notifyNewChatActivity(ctx, m.UID(), convID, conv, &activity)
 	}(bctx)
@@ -767,6 +749,48 @@ func (g *PushHandler) Typing(ctx context.Context, m gregor.OutOfBandMessage) (er
 	return nil
 }
 
+func (g *PushHandler) UpgradeKBFSToImpteam(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
+		g.identNotifier)
+	defer g.Trace(ctx, func() error { return err }, "UpgradeKBFSToImpteam")()
+	if m.Body() == nil {
+		return errors.New("gregor handler for upgrade KBFS: nil message body")
+	}
+
+	var update chat1.KBFSImpteamUpgradeUpdate
+	reader := bytes.NewReader(m.Body().Bytes())
+	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
+	err = dec.Decode(&update)
+	if err != nil {
+		return err
+	}
+	uid := gregor1.UID(m.UID().Bytes())
+
+	// Order updates based on inbox version of the update from the server
+	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
+	bctx := BackgroundContext(ctx, g.G())
+	go func(ctx context.Context) (err error) {
+		defer g.Trace(ctx, func() error { return err }, "UpgradeKBFSToImpteam(goroutine)")()
+		<-cb
+		g.Lock()
+		defer g.Unlock()
+		defer g.orderer.CompleteTurn(ctx, uid, update.InboxVers)
+
+		if _, err = g.G().InboxSource.UpgradeKBFSToImpteam(ctx, uid, update.InboxVers,
+			update.ConvID); err != nil {
+			g.Debug(ctx, "UpgradeKBFSToImpteam: failed to update KBFS upgrade: %s", err)
+			return err
+		}
+
+		g.G().NotifyRouter.HandleChatKBFSToImpteamUpgrade(ctx, keybase1.UID(uid.String()), update.ConvID)
+
+		return nil
+	}(bctx)
+
+	return nil
+}
+
 func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
@@ -861,6 +885,125 @@ func (g *PushHandler) TeamChannels(ctx context.Context, m gregor.OutOfBandMessag
 	return nil
 }
 
+func (g *PushHandler) SetConvRetention(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
+		g.identNotifier)
+	defer g.Trace(ctx, func() error { return err }, "SetConvRetention")()
+	if m.Body() == nil {
+		return errors.New("gregor handler for SetConvRetention update: nil message body")
+	}
+
+	var update chat1.SetConvRetentionUpdate
+	reader := bytes.NewReader(m.Body().Bytes())
+	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
+	err = dec.Decode(&update)
+	if err != nil {
+		return err
+	}
+	uid := gregor1.UID(m.UID().Bytes())
+
+	// Order updates based on inbox version of the update from the server
+	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
+	bctx := BackgroundContext(ctx, g.G())
+	go func(ctx context.Context) {
+		defer g.Trace(ctx, func() error { return err }, "SetConvRetention(goroutine)")()
+		<-cb
+		g.Lock()
+		defer g.Unlock()
+		defer g.orderer.CompleteTurn(ctx, uid, update.InboxVers)
+
+		// Update inbox
+		conv, err := g.G().InboxSource.SetConvRetention(ctx, m.UID().Bytes(), update.InboxVers,
+			update.ConvID, update.Policy)
+		if err != nil {
+			g.Debug(ctx, "SetConvRetention: unable to update inbox: %s", err.Error())
+			return
+		}
+		if conv == nil {
+			return
+		}
+		// Send notify for each conversation ID
+		if conv.GetTopicType() == chat1.TopicType_CHAT {
+			if g.shouldSendNotifications() {
+				g.G().NotifyRouter.HandleChatSetConvRetention(ctx, keybase1.UID(uid.String()),
+					conv.GetConvID(), g.presentUIItem(conv))
+			} else {
+				supdate := []chat1.ConversationStaleUpdate{chat1.ConversationStaleUpdate{
+					ConvID:     conv.GetConvID(),
+					UpdateType: chat1.StaleUpdateType_CLEAR,
+				}}
+				g.G().Syncer.SendChatStaleNotifications(ctx, uid, supdate, false)
+			}
+		}
+	}(bctx)
+
+	return nil
+}
+
+func (g *PushHandler) SetTeamRetention(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
+		g.identNotifier)
+	defer g.Trace(ctx, func() error { return err }, "SetTeamRetention")()
+	if m.Body() == nil {
+		return errors.New("gregor handler for SetTeamRetention update: nil message body")
+	}
+
+	var update chat1.SetTeamRetentionUpdate
+	reader := bytes.NewReader(m.Body().Bytes())
+	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
+	err = dec.Decode(&update)
+	if err != nil {
+		return err
+	}
+	uid := gregor1.UID(m.UID().Bytes())
+
+	// Order updates based on inbox version of the update from the server
+	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
+	bctx := BackgroundContext(ctx, g.G())
+	go func(ctx context.Context) {
+		defer g.Trace(ctx, func() error { return err }, "SetTeamRetention(goroutine)")()
+		<-cb
+		g.Lock()
+		defer g.Unlock()
+		defer g.orderer.CompleteTurn(ctx, uid, update.InboxVers)
+
+		// Update inbox
+		var convs []chat1.ConversationLocal
+		if convs, err = g.G().InboxSource.SetTeamRetention(ctx, m.UID().Bytes(), update.InboxVers,
+			update.TeamID, update.Policy); err != nil {
+			g.Debug(ctx, "SetTeamRetention: unable to update inbox: %s", err.Error())
+			return
+		}
+		if len(convs) == 0 {
+			g.Debug(ctx, "SetTeamRetention: no local convs affected")
+			return
+		}
+		// Send notify for each conversation ID
+		var convUIItems []chat1.InboxUIItem
+		var staleUpdates []chat1.ConversationStaleUpdate
+		for _, conv := range convs {
+			if conv.GetTopicType() == chat1.TopicType_CHAT {
+				convUIItems = append(convUIItems, *g.presentUIItem(&conv))
+				staleUpdates = append(staleUpdates, chat1.ConversationStaleUpdate{
+					ConvID:     conv.GetConvID(),
+					UpdateType: chat1.StaleUpdateType_CLEAR,
+				})
+			}
+		}
+
+		if g.shouldSendNotifications() {
+			g.G().NotifyRouter.HandleChatSetTeamRetention(ctx, keybase1.UID(uid.String()), update.TeamID, convUIItems)
+		} else {
+			g.G().Syncer.SendChatStaleNotifications(ctx, uid, staleUpdates, false)
+		}
+
+	}(bctx)
+
+	return nil
+}
+
 func (g *PushHandler) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessage) (bool, error) {
 	if obm.System() == nil {
 		return false, errors.New("nil system in out of band message")
@@ -879,6 +1022,12 @@ func (g *PushHandler) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessag
 		return true, g.MembershipUpdate(ctx, obm)
 	case types.PushTeamChannels:
 		return true, g.TeamChannels(ctx, obm)
+	case types.PushConvRetention:
+		return true, g.SetConvRetention(ctx, obm)
+	case types.PushTeamRetention:
+		return true, g.SetTeamRetention(ctx, obm)
+	case types.PushKBFSUpgrade:
+		return true, g.UpgradeKBFSToImpteam(ctx, obm)
 	}
 
 	return false, nil

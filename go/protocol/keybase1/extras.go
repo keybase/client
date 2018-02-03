@@ -1822,6 +1822,21 @@ func (t TeamName) Depth() int {
 	return len(t.Parts)
 }
 
+func (t TeamName) IsAncestorOf(other TeamName) bool {
+	depth := t.Depth()
+	if depth >= other.Depth() {
+		return false
+	}
+
+	for i := 0; i < depth; i++ {
+		if !other.Parts[i].Eq(t.Parts[i]) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (t TeamNamePart) Eq(t2 TeamNamePart) bool {
 	return string(t) == string(t2)
 }
@@ -2145,7 +2160,22 @@ func RefNames(refs []GitRefMetadata) string {
 	return strings.Join(names, ", ")
 }
 
-// Is the reason for this identify a UI profile load?
-func (r IdentifyReason) IsUIProfile() bool {
-	return r.Type == IdentifyReasonType_ID && r.Reason == "@@UI-PROFILE"
+func TeamEncryptedKBFSKeysetHashFromString(s string) TeamEncryptedKBFSKeysetHash {
+	return TeamEncryptedKBFSKeysetHash(s)
+}
+
+func TeamEncryptedKBFSKeysetHashFromBytes(s []byte) TeamEncryptedKBFSKeysetHash {
+	return TeamEncryptedKBFSKeysetHashFromString(hex.EncodeToString(s))
+}
+
+func (e TeamEncryptedKBFSKeysetHash) String() string {
+	return string(e)
+}
+
+func (e TeamEncryptedKBFSKeysetHash) Bytes() []byte {
+	return []byte(e.String())
+}
+
+func (e TeamEncryptedKBFSKeysetHash) SecureEqual(l TeamEncryptedKBFSKeysetHash) bool {
+	return hmac.Equal(e.Bytes(), l.Bytes())
 }

@@ -556,7 +556,9 @@ func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 			return err
 		}
 
-		if inviteRequired {
+		if inviteRequired && !uv.Uid.Exists() {
+			// This branch only handles social invites. Keybase-type
+			// invites are handled by next removeMemberInvite call below.
 			return removeMemberInvite(ctx, g, t, username, uv)
 		}
 
@@ -1156,7 +1158,7 @@ func CreateTLF(ctx context.Context, g *libkb.GlobalContext, arg keybase1.CreateT
 		if !role.IsWriterOrAbove() {
 			return fmt.Errorf("permission denied: need writer access (or above)")
 		}
-		return t.associateTLFID(ctx, arg.TlfID)
+		return t.AssociateWithTLFID(ctx, arg.TlfID)
 	})
 }
 
@@ -1181,7 +1183,10 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		Public:  false, // assume private team
 	})
 	if err != nil {
-		return ret, err
+		// Note: we eat the error here, assuming it meant this user
+		// is not a member
+		g.Log.CWarningf(ctx, "CanUserPerform team Load failure, continuing: %v)", err)
+		return ret, nil
 	}
 	meUV, err := team.currentUserUV(ctx)
 	if err != nil {

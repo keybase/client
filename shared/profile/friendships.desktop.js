@@ -44,7 +44,7 @@ class UserEntry extends PureComponent<UserEntryProps> {
           followsYou={followsYou}
           following={following}
         />
-        <Text type="BodySemibold" style={userEntryUsernameStyle(following)}>
+        <Text type="BodySemibold" className="hover-underline" style={userEntryUsernameStyle(following)}>
           {username}
         </Text>
         <Text type="BodySmall" style={userEntryFullnameStyle}>

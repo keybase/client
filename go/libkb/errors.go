@@ -1878,7 +1878,7 @@ type ChatClientError struct {
 }
 
 func (e ChatClientError) Error() string {
-	return fmt.Sprintf("error communicating with chat server: %s", e.Msg)
+	return fmt.Sprintf("error from chat server: %s", e.Msg)
 }
 
 //=============================================================================
@@ -2268,9 +2268,3 @@ func NewTeamProvisionalError(canKey bool, isPublic bool, dn string) error {
 }
 
 //=============================================================================
-
-type IdentifyRateLimitError struct{}
-
-func (e IdentifyRateLimitError) Error() string {
-	return "Exceeded identify UI rate limit: cannot run identify ui calls at this time"
-}

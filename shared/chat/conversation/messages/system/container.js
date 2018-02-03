@@ -1,14 +1,18 @@
 // @flow
 import * as Constants from '../../../../constants/chat'
 import * as Types from '../../../../constants/types/chat'
+import * as GitGen from '../../../../actions/git-gen'
 import {AddedToTeamNotice, ComplexTeamNotice, InviteAddedToTeamNotice, GitPushInfoNotice} from '.'
 import {compose, branch, renderComponent, renderNothing} from 'recompose'
 import createCachedSelector from 're-reselect'
 import {connect} from 'react-redux'
-import {navigateAppend, navigateTo} from '../../../../actions/route-tree'
+import {navigateAppend, navigateTo, setRouteState} from '../../../../actions/route-tree'
 import {teamsTab} from '../../../../constants/tabs'
 import {getRole, isAdmin, isOwner} from '../../../../constants/teams'
 import {type TeamRoleType} from '../../../../constants/types/teams'
+import {isMobile} from '../../../../constants/platform'
+import {createShowUserProfile} from '../../../../actions/profile-gen'
+import {createGetProfile} from '../../../../actions/tracker-gen.js'
 
 import type {TypedState} from '../../../../constants/reducer'
 import type {OwnProps} from './container'
@@ -30,7 +34,17 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onManageChannels: (teamname: string) => {
     dispatch(navigateAppend([{props: {teamname}, selected: 'manageChannels'}]))
   },
-  onViewTeam: (teamname: string) => dispatch(navigateTo([teamsTab, {props: {teamname}, selected: 'team'}])),
+  onViewTeam: (teamname: string) => {
+    dispatch(navigateTo([teamsTab, {props: {teamname}, selected: 'team'}]))
+    dispatch(setRouteState([teamsTab, 'team'], {selectedTab: 'members'}))
+  },
+  onViewGitRepo: (repoID: string, teamname: string) => {
+    dispatch(GitGen.createNavigateToTeamRepo({repoID, teamname}))
+  },
+  onClickUserAvatar: (username: string) =>
+    isMobile
+      ? dispatch(createShowUserProfile({username}))
+      : dispatch(createGetProfile({username, ignoreCache: true, forceDisplay: true})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {

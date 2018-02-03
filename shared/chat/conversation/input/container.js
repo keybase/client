@@ -14,7 +14,7 @@ import {
   renderComponent,
   renderNothing,
   withHandlers,
-  withState,
+  withStateHandlers,
   lifecycle,
   connect,
   type TypedState,
@@ -23,6 +23,7 @@ import {navigateAppend, navigateUp, navigateTo} from '../../../actions/route-tre
 import throttle from 'lodash/throttle'
 import {createSelector} from 'reselect'
 import {type OwnProps} from './container'
+import mentionHoc from './mention-handler-hoc'
 
 const conversationStateSelector = (state: TypedState) => {
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
@@ -172,9 +173,7 @@ export default compose(
   branch(props => props.hasResetUsers, renderNothing),
   // $FlowIssue doesn't like branch
   branch(props => props.isPreview, renderComponent(ChannelPreview)),
-  withState('text', '_setText', props => props.defaultText || ''),
-  withState('mentionPopupOpen', 'setMentionPopupOpen', false),
-  withState('mentionFilter', 'setMentionFilter', ''),
+  withStateHandlers(props => ({text: props.defaultText}), {_setText: () => (text: string) => ({text})}),
   withHandlers(props => {
     let input
     // mutable value to store the latest text synchronously
@@ -186,7 +185,7 @@ export default compose(
       inputFocus: props => () => input && input.focus(),
       inputBlur: props => () => input && input.blur(),
       inputSelections: props => () => (input && input.selections()) || {},
-      inputSetRef: props => i => {
+      _inputSetRef: props => i => {
         input = i
       },
       setText: props => (nextText: string) => {
@@ -194,6 +193,11 @@ export default compose(
         return props._setText(nextText)
       },
       inputValue: props => () => _syncTextValue || '',
+      _onKeyDown: props => (e: SyntheticKeyboardEvent<>) => {
+        if (e.key === 'ArrowUp' && !props.text) {
+          props.onEditLastMessage()
+        }
+      },
     }
   }),
   lifecycle({
@@ -215,5 +219,6 @@ export default compose(
         this.props.setText(nextProps.defaultText)
       }
     },
-  })
+  }),
+  mentionHoc
 )(Input)

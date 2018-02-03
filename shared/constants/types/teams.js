@@ -63,6 +63,7 @@ export type _SubteamInfo = {
   key: string,
   members: number,
   onCreateSubteam: ?(e: SyntheticEvent<>) => void,
+  onHideSubteamsBanner: () => void,
   onReadMore: () => void,
   teamname: string,
   type: 'addSubteam' | 'intro' | 'noSubteams' | 'subteam',
@@ -79,6 +80,7 @@ export type TypeMap = {
 export type _State = {
   convIDToChannelInfo: I.Map<ConversationIDKey, ChannelInfo>,
   sawChatBanner: boolean,
+  sawSubteamsBanner: boolean,
   teamAccessRequestsPending: I.Set<Teamname>,
   teamNameToConvIDs: I.Map<Teamname, I.Set<ConversationIDKey>>,
   teamNameToInvites: I.Map<
@@ -93,6 +95,7 @@ export type _State = {
       }>
     >
   >,
+  teamNameToIsOpen: I.Map<Teamname, boolean>,
   teamNameToLoadingInvites: I.Map<Teamname, I.Map<string, boolean>>,
   teamNameToMembers: I.Map<Teamname, I.Set<MemberInfo>>,
   teamNameToMemberUsernames: I.Map<Teamname, I.Set<string>>,

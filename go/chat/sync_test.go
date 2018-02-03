@@ -14,9 +14,16 @@ import (
 	"golang.org/x/net/context"
 )
 
-func newBlankConv(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext, uid gregor1.UID,
-	ri chat1.RemoteInterface, sender types.Sender, tlfName string) chat1.Conversation {
-	trip := newConvTriple(ctx, t, tc, tlfName)
+func newBlankConv(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext,
+	uid gregor1.UID, ri chat1.RemoteInterface, sender types.Sender, tlfName string) chat1.Conversation {
+	return newBlankConvWithMembersType(ctx, t, tc, uid, ri, sender, tlfName,
+		chat1.ConversationMembersType_KBFS)
+}
+
+func newBlankConvWithMembersType(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext,
+	uid gregor1.UID, ri chat1.RemoteInterface, sender types.Sender, tlfName string,
+	membersType chat1.ConversationMembersType) chat1.Conversation {
+	trip := newConvTripleWithMembersType(ctx, t, tc, tlfName, membersType)
 	firstMessagePlaintext := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        trip,
@@ -26,12 +33,12 @@ func newBlankConv(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext,
 		},
 		MessageBody: chat1.MessageBody{},
 	}
-	firstMessageBoxed, _, _, _, _, err := sender.Prepare(ctx, firstMessagePlaintext,
-		chat1.ConversationMembersType_KBFS, nil)
+	firstMessageBoxed, _, _, _, _, err := sender.Prepare(ctx, firstMessagePlaintext, membersType, nil)
 	require.NoError(t, err)
 	res, err := ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
-		IdTriple:   trip,
-		TLFMessage: *firstMessageBoxed,
+		IdTriple:    trip,
+		TLFMessage:  *firstMessageBoxed,
+		MembersType: membersType,
 	})
 	require.NoError(t, err)
 

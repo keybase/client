@@ -25,7 +25,7 @@ type CryptKey interface {
 }
 
 type NameInfoSource interface {
-	Lookup(ctx context.Context, name string, vis keybase1.TLFVisibility) (NameInfo, error)
+	Lookup(ctx context.Context, name string, vis keybase1.TLFVisibility) (*NameInfo, error)
 }
 
 type UnboxConversationInfo interface {
@@ -101,9 +101,14 @@ type InboxSource interface {
 		resets []chat1.ConversationMember, previews []chat1.ConversationID) (MembershipUpdateRes, error)
 	TeamTypeChanged(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
 		teamType chat1.TeamType) (*chat1.ConversationLocal, error)
+	UpgradeKBFSToImpteam(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID) (*chat1.ConversationLocal, error)
+	SetConvRetention(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
+		policy chat1.RetentionPolicy) (*chat1.ConversationLocal, error)
+	SetTeamRetention(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, teamID keybase1.TeamID,
+		policy chat1.RetentionPolicy) ([]chat1.ConversationLocal, error)
 
 	GetInboxQueryLocalToRemote(ctx context.Context,
-		lquery *chat1.GetInboxLocalQuery) (*chat1.GetInboxQuery, NameInfo, error)
+		lquery *chat1.GetInboxLocalQuery) (*chat1.GetInboxQuery, *NameInfo, error)
 
 	SetRemoteInterface(func() chat1.RemoteInterface)
 }
@@ -159,6 +164,7 @@ type PushHandler interface {
 	Typing(context.Context, gregor.OutOfBandMessage) error
 	MembershipUpdate(context.Context, gregor.OutOfBandMessage) error
 	HandleOobm(context.Context, gregor.OutOfBandMessage) (bool, error)
+	UpgradeKBFSToImpteam(ctx context.Context, m gregor.OutOfBandMessage) error
 }
 
 type AppState interface {

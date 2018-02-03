@@ -34,7 +34,10 @@ function MissingProofRow({missingProof}: {missingProof: MissingProof}): React.No
           </Text>
         </Box>
       </Box>
-      <Icon type={'iconfont-proof-placeholder'} style={{...styleStatusIcon, color: globalColors.black_10}} />
+      <Icon
+        type={'iconfont-proof-placeholder'}
+        style={{...styleStatusIcon, color: globalColors.black_10, fontSize: 20}}
+      />
     </Box>
   )
 }
@@ -119,7 +122,7 @@ class ProofRow extends React.PureComponent<ProofRowProps, ProofRowState> {
         </Box>
         <Box style={styleProofMenuButton} onClick={() => onClickStatus(proof)}>
           {proofStatusIconType && (
-            <Icon type={proofStatusIconType} style={{color: shared.proofColor(proof, true)}} />
+            <Icon type={proofStatusIconType} style={{fontSize: 20, color: shared.proofColor(proof, true)}} />
           )}
           {hasMenu && (
             <Icon
@@ -149,7 +152,7 @@ function LoadingProofRow({textBlockWidth}: {textBlockWidth: number}) {
         </Box>
       </Box>
       <Icon
-        style={{...styleStatusIcon, color: globalStyles.loadingTextStyle.backgroundColor}}
+        style={{...styleStatusIcon, color: globalStyles.loadingTextStyle.backgroundColor, fontSize: 20}}
         type={'iconfont-proof-placeholder'}
       />
     </Box>

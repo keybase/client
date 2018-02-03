@@ -484,7 +484,7 @@ const getGeneralChannelOfSelectedInbox = createSelector(
 
 const getMuted = createSelector(
   [getSelectedInbox],
-  selectedInbox => selectedInbox && selectedInbox.get('status') === 'muted'
+  selectedInbox => !!selectedInbox && selectedInbox.get('status') === 'muted'
 )
 
 const getChannelName = createSelector(

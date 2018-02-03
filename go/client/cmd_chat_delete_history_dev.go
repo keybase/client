@@ -62,7 +62,8 @@ func (c *CmdChatDeleteHistoryDev) Run() (err error) {
 
 	if c.G().Standalone {
 		switch c.resolvingRequest.MembersType {
-		case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAM:
+		case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAMNATIVE,
+			chat1.ConversationMembersType_IMPTEAMUPGRADE:
 			c.G().StartStandaloneChat()
 		default:
 			err = CantRunInStandaloneError{}
@@ -96,7 +97,6 @@ func (c *CmdChatDeleteHistoryDev) ParseArgv(ctx *cli.Context) (err error) {
 	// Send a normal message.
 	upto := ctx.Int("upto")
 	if upto == 0 {
-		cli.ShowCommandHelp(ctx, "delete-history-dev")
 		return fmt.Errorf("upto must be > 0")
 	}
 	c.upto = chat1.MessageID(upto)

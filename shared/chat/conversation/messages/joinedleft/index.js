@@ -41,6 +41,7 @@ const JoinedLeftNotice = ({
           type="BodySmallSemibold"
           onUsernameClicked={onUsernameClicked}
           colorFollowing={true}
+          underline={true}
           users={[{username: message.author, following, you: you === message.author}]}
         />
       )}{' '}

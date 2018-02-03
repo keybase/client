@@ -70,7 +70,7 @@ const AddPeople = (props: Props) => (
         }}
       >
         <Text type="Body">Add these members to {props.name} as:</Text>
-        <ClickableBox onClick={() => props.onOpenRolePicker()}>
+        <ClickableBox onClick={() => props.onOpenRolePicker()} underlayColor="rgba(0, 0, 0, 0)">
           <Dropdown
             items={_makeDropdownItems()}
             selected={_makeDropdownItem(props.role)}
@@ -82,7 +82,7 @@ const AddPeople = (props: Props) => (
           />
         </ClickableBox>
         <Button
-          label="Invite"
+          label="Add"
           onClick={props.isEmpty ? undefined : props.onAddPeople}
           disabled={props.isEmpty}
           style={{margin: globalMargins.tiny}}

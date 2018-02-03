@@ -60,6 +60,8 @@ type Server struct {
 	cachedThreadDelay *time.Duration
 }
 
+var _ chat1.LocalInterface = (*Server)(nil)
+
 func NewServer(g *globals.Context, store *AttachmentStore, serverConn ServerConnection,
 	uiSource UISource) *Server {
 	return &Server{
@@ -425,7 +427,7 @@ func (h *Server) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg
 	}
 
 	// Xlate pager control into pagination if given
-	if arg.Query != nil {
+	if arg.Query != nil && arg.Query.MessageIDControl != nil {
 		arg.Pagination = utils.XlateMessageIDControlToPagination(arg.Query.MessageIDControl)
 	}
 
@@ -480,7 +482,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 	}
 
 	// Xlate pager control into pagination if given
-	if arg.Query != nil {
+	if arg.Query != nil && arg.Query.MessageIDControl != nil {
 		pagination = utils.XlateMessageIDControlToPagination(arg.Query.MessageIDControl)
 	}
 
@@ -1674,6 +1676,8 @@ func (h *Server) downloadAttachmentLocal(ctx context.Context, arg downloadAttach
 		return chat1.DownloadAttachmentLocalRes{}, err
 	}
 
+	h.Debug(ctx, "downloadAttachmentLocal: forming attachment message: convID: %s messageID: %d",
+		arg.ConversationID, arg.MessageID)
 	attachment, limits, err := h.attachmentMessage(ctx, arg.ConversationID, arg.MessageID, arg.IdentifyBehavior)
 	if err != nil {
 		return chat1.DownloadAttachmentLocalRes{}, err
@@ -1688,7 +1692,7 @@ func (h *Server) downloadAttachmentLocal(ctx context.Context, arg downloadAttach
 		} else {
 			return chat1.DownloadAttachmentLocalRes{}, errors.New("no preview in attachment")
 		}
-		h.Debug(ctx, "downloading preview attachment asset")
+		h.Debug(ctx, "downloadAttachmentLocal: downloading preview attachment asset")
 	}
 	chatUI.ChatAttachmentDownloadStart(ctx)
 	if err := h.store.DownloadAsset(ctx, params, obj, arg.Sink, h, progress); err != nil {
@@ -2511,7 +2515,7 @@ func (h *Server) UnboxMobilePushNotification(ctx context.Context, arg chat1.Unbo
 
 	if msgUnboxed.IsValid() && msgUnboxed.GetMessageType() == chat1.MessageType_TEXT {
 		res = h.formatPushText(ctx, uid, convID, arg.MembersType, msgUnboxed)
-		h.Debug(ctx, "UnboxMobilePushNotification: successful unbox: %s", res)
+		h.Debug(ctx, "UnboxMobilePushNotification: successful unbox")
 		return res, nil
 	}
 
@@ -2574,7 +2578,8 @@ func (h *Server) AddTeamMemberAfterReset(ctx context.Context,
 	}
 	conv := iboxRes.Convs[0]
 	switch conv.Info.MembersType {
-	case chat1.ConversationMembersType_IMPTEAM, chat1.ConversationMembersType_TEAM:
+	case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE,
+		chat1.ConversationMembersType_TEAM:
 		// this is ok for these convs
 	default:
 		return fmt.Errorf("unable to add member back to non team conversation: %v",
@@ -2583,4 +2588,66 @@ func (h *Server) AddTeamMemberAfterReset(ctx context.Context,
 
 	teamID := keybase1.TeamID(conv.Info.Triple.Tlfid.String())
 	return teams.ReAddMemberAfterReset(ctx, h.G().ExternalG(), teamID, arg.Username)
+}
+
+func (h *Server) SetConvRetentionLocal(ctx context.Context, arg chat1.SetConvRetentionLocalArg) (err error) {
+	defer h.Trace(ctx, func() error { return err }, "SetConvRetention(%v, %v)", arg.ConvID, arg.Policy.Summary())()
+	_, err = h.remoteClient().SetConvRetention(ctx, chat1.SetConvRetentionArg{
+		ConvID: arg.ConvID,
+		Policy: arg.Policy,
+	})
+	return err
+}
+
+func (h *Server) SetTeamRetentionLocal(ctx context.Context, arg chat1.SetTeamRetentionLocalArg) (err error) {
+	defer h.Trace(ctx, func() error { return err }, "SetTeamRetention(%v, %v)", arg.TeamID, arg.Policy.Summary())()
+	_, err = h.remoteClient().SetTeamRetention(ctx, chat1.SetTeamRetentionArg{
+		TeamID: arg.TeamID,
+		Policy: arg.Policy,
+	})
+	return err
+}
+
+func (h *Server) UpgradeKBFSConversationToImpteam(ctx context.Context, convID chat1.ConversationID) (err error) {
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "UpgradeKBFSConversationToImpteam(%s)", convID)()
+	if err = h.assertLoggedIn(ctx); err != nil {
+		return err
+	}
+	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
+
+	ibox, _, err := h.G().InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
+		ConvIDs: []chat1.ConversationID{convID},
+	}, nil)
+	if err != nil {
+		return err
+	}
+	if len(ibox.Convs) == 0 {
+		return errors.New("no conversation found")
+	}
+	conv := ibox.Convs[0]
+	if conv.GetMembersType() != chat1.ConversationMembersType_KBFS {
+		return fmt.Errorf("cannot upgrade %v conversation", conv.GetMembersType())
+	}
+
+	var cryptKeys []keybase1.CryptKey
+	tlfID := conv.Info.Triple.Tlfid
+	tlfName := conv.Info.TlfName
+	public := conv.Info.Visibility == keybase1.TLFVisibility_PUBLIC
+	ni, err := CtxKeyFinder(ctx, h.G()).Find(ctx, tlfName, conv.GetMembersType(), public)
+	if err != nil {
+		return err
+	}
+	for _, key := range ni.CryptKeys[chat1.ConversationMembersType_KBFS] {
+		cryptKeys = append(cryptKeys, keybase1.CryptKey{
+			KeyGeneration: key.Generation(),
+			Key:           key.Material(),
+		})
+	}
+	tlfName = ni.CanonicalName
+	h.Debug(ctx, "UpgradeKBFSConversationToImpteam: upgrading: TlfName: %s TLFID: %s public: %v keys: %d",
+		tlfName, tlfID, public, len(cryptKeys))
+
+	return teams.UpgradeTLFIDToImpteam(ctx, h.G().ExternalG(), tlfName, keybase1.TLFID(tlfID.String()),
+		public, keybase1.TeamApplication_CHAT, cryptKeys)
 }

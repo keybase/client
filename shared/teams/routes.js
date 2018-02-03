@@ -64,6 +64,42 @@ const showNewTeamDialog = {
   tags: makeLeafTags({layerOnTop: !isMobile}),
 }
 
+const teamRoute = makeRouteDefNode({
+  children: {
+    ...makeManageChannels,
+    controlledRolePicker,
+    rolePicker,
+    reallyLeaveTeam,
+    reallyRemoveMember,
+    showNewTeamDialog,
+    team: () => teamRoute,
+    member: {
+      children: {
+        rolePicker,
+        reallyLeaveTeam,
+        reallyRemoveMember,
+      },
+      component: Member,
+    },
+    addPeople: {
+      children: {controlledRolePicker},
+      component: AddPeopleDialog,
+      tags: makeLeafTags({layerOnTop: !isMobile}),
+    },
+    inviteByEmail: {
+      children: {controlledRolePicker},
+      component: InviteByEmailDialog,
+      tags: makeLeafTags({layerOnTop: !isMobile}),
+    },
+    editTeamDescription: {
+      children: {},
+      component: MaybePopupHoc(true)(EditTeamDescription),
+      tags: makeLeafTags({layerOnTop: !isMobile}),
+    },
+  },
+  component: Team,
+})
+
 const routeTree = makeRouteDefNode({
   children: {
     ...makeManageChannels,
@@ -73,40 +109,7 @@ const routeTree = makeRouteDefNode({
       component: JoinTeamDialog,
       tags: makeLeafTags({layerOnTop: !isMobile}),
     },
-    team: {
-      children: {
-        ...makeManageChannels,
-        controlledRolePicker,
-        rolePicker,
-        reallyLeaveTeam,
-        reallyRemoveMember,
-        showNewTeamDialog,
-        member: {
-          children: {
-            rolePicker,
-            reallyLeaveTeam,
-            reallyRemoveMember,
-          },
-          component: Member,
-        },
-        addPeople: {
-          children: {controlledRolePicker},
-          component: AddPeopleDialog,
-          tags: makeLeafTags({layerOnTop: !isMobile}),
-        },
-        inviteByEmail: {
-          children: {controlledRolePicker},
-          component: InviteByEmailDialog,
-          tags: makeLeafTags({layerOnTop: !isMobile}),
-        },
-        editTeamDescription: {
-          children: {},
-          component: MaybePopupHoc(true)(EditTeamDescription),
-          tags: makeLeafTags({layerOnTop: !isMobile}),
-        },
-      },
-      component: Team,
-    },
+    team: teamRoute,
   },
   component: TeamsContainer,
   tags: makeLeafTags({title: 'Teams'}),

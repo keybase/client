@@ -9,6 +9,7 @@ import {
   Avatar,
   Box,
   Icon,
+  Meta,
   PlatformIcon,
   PopupMenu,
   Text,
@@ -329,6 +330,7 @@ class ProfileRender extends PureComponent<Props, State> {
                     onFollow={this.props.onFollow}
                     onUnfollow={this.props.onUnfollow}
                     onAcceptProofs={this.props.onAcceptProofs}
+                    waiting={this.props.waiting}
                   />
                 )}
             </Box>
@@ -360,6 +362,7 @@ class ProfileRender extends PureComponent<Props, State> {
                             <Text style={{color: globalColors.black_75}} type="BodySemiboldLink">
                               {team.fqName}
                             </Text>
+                            {team.open && <Meta style={styleMeta} title="OPEN" />}
                           </Box>
                         </Box>
                       ))}
@@ -465,7 +468,6 @@ const styleBioColumn = {
 
 const styleActions = {
   ...globalStyles.flexBoxRow,
-  marginTop: globalMargins.small,
 }
 
 const styleProofColumn = {
@@ -505,6 +507,14 @@ const styleFolderIcon = {
   textAlign: 'center',
 }
 
+const styleMeta = {
+  alignSelf: 'center',
+  backgroundColor: globalColors.green,
+  borderRadius: 1,
+  marginLeft: globalMargins.xtiny,
+  marginTop: 2,
+}
+
 const styleFriendships = {
   marginTop: globalMargins.large,
 }
@@ -521,11 +531,11 @@ const styleSearchContainer = {
   ...globalStyles.clickable,
   alignItems: 'center',
   alignSelf: 'center',
-  backgroundColor: globalColors.white_20,
+  backgroundColor: globalColors.black_10,
   borderRadius: 100,
   justifyContent: 'center',
   minHeight: 24,
-  minWidth: 273,
+  minWidth: 240,
   position: 'absolute',
   top: 12,
   zIndex: SEARCH_CONTAINER_ZINDEX,
@@ -533,7 +543,6 @@ const styleSearchContainer = {
 
 const styleSearch = {
   color: globalColors.white_75,
-  fontSize: 12,
   padding: 3,
 }
 

@@ -14,6 +14,7 @@ type State = {
   focused: boolean,
   height: ?number,
   value: string,
+  selections: {selectionStart: number, selectionEnd: number},
 }
 
 class Input extends Component<Props, State> {
@@ -27,6 +28,7 @@ class Input extends Component<Props, State> {
       focused: false,
       height: null,
       value: props.value || '',
+      selections: {selectionStart: 0, selectionEnd: 0},
     }
   }
 
@@ -86,10 +88,14 @@ class Input extends Component<Props, State> {
     this._onChangeText('')
   }
 
-  _onChangeText = (text: string) => {
-    this.setState({value: text || ''})
+  replaceText(text: string, startIdx: number, endIdx: number) {
+    const existingText = this.state.value
+    const nextText = existingText.slice(0, startIdx) + text + existingText.slice(endIdx)
+    this._onChangeText(nextText)
+  }
 
-    this.props.onChangeText && this.props.onChangeText(text || '')
+  _onChangeText = (text: string) => {
+    this.setState({value: text || ''}, () => this.props.onChangeText && this.props.onChangeText(text || ''))
   }
 
   _inputNode() {
@@ -166,6 +172,21 @@ class Input extends Component<Props, State> {
         }
   }
 
+  _onSelectionChange = (event: any) => {
+    this.setState({
+      selections: {
+        selectionStart: event.nativeEvent.selection.start,
+        selectionEnd: event.nativeEvent.selection.end,
+      },
+    })
+    this.props.onSelectionChange && this.props.onSelectionChange(event)
+  }
+
+  // WARNING may not be up to date in time sensitive situations
+  selections() {
+    return this.state.selections
+  }
+
   render() {
     const underlineColor = this._underlineColor()
     const lineHeight = this._lineHeight()
@@ -224,6 +245,7 @@ class Input extends Component<Props, State> {
       onChangeText: this._onChangeText,
       onFocus: this._onFocus,
       onKeyDown: this._onKeyDown,
+      onSelectionChange: this._onSelectionChange,
       onSubmitEditing: this.props.onEnterKeyDown,
       onEndEditing: this.props.onEndEditing,
       placeholder: this.props.hintText,

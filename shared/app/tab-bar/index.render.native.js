@@ -2,7 +2,6 @@
 import * as Tabs from '../../constants/tabs'
 import * as React from 'react'
 import {Box} from '../../common-adapters'
-import flags from '../../util/feature-flags'
 import {TabBarButton} from '../../common-adapters/tab-bar'
 import {globalStyles, globalColors} from '../../styles'
 import {isIPhoneX} from '../../constants/platform'
@@ -17,12 +16,7 @@ const _icons = {
   [Tabs.teamsTab]: 'iconfont-nav-teams',
 }
 
-const _tabs = [
-  Tabs.peopleTab,
-  Tabs.chatTab,
-  ...(flags.teamChatEnabled ? [Tabs.teamsTab] : [Tabs.folderTab]),
-  Tabs.settingsTab,
-].filter(Boolean)
+const _tabs = [Tabs.peopleTab, Tabs.chatTab, Tabs.teamsTab, Tabs.settingsTab].filter(Boolean)
 
 const TabBarRender = ({selectedTab, onTabClick, badgeNumbers}: Props) => (
   <Box style={stylesTabBar}>
@@ -42,7 +36,7 @@ const TabBarRender = ({selectedTab, onTabClick, badgeNumbers}: Props) => (
 )
 
 const _iconStyle = {
-  color: globalColors.blue3_40,
+  color: globalColors.blue3_60,
   fontSize: 32,
 }
 const _selectedIconStyle = {

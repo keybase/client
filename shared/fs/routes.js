@@ -1,13 +1,22 @@
 // @flow
 import * as I from 'immutable'
-import MainPage from './container.js'
+import Files from './container'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 
+const folderRoute = makeRouteDefNode({
+  children: {
+    folder: () => folderRoute,
+  },
+  component: Files,
+})
+
 const routeTree = makeRouteDefNode({
-  children: {},
-  component: MainPage,
+  children: {
+    folder: folderRoute,
+  },
+  component: Files,
   initialState: {expandedSet: I.Set()},
-  tags: makeLeafTags({title: 'Fs'}),
+  tags: makeLeafTags({title: 'Files'}),
 })
 
 export default routeTree

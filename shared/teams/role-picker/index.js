@@ -50,32 +50,33 @@ const makeRoleOption = (
       ...globalStyles.flexBoxRow,
       alignItems: 'center',
       backgroundColor: selected === role ? globalColors.blue : globalColors.white,
+      minWidth: 480,
       padding: globalMargins.tiny,
-      paddingLeft: globalMargins.tiny,
-      paddingRight: globalMargins.tiny,
+      paddingLeft: globalMargins.small,
+      paddingRight: globalMargins.large,
     }}
     onClick={() => setSelected(role)}
   >
-    <Icon type="iconfont-check" style={{alignSelf: 'center', color: globalColors.white, fontSize: 24}} />
-    <Box style={{...globalStyles.flexBoxColumn, paddingLeft: globalMargins.tiny}}>
+    <Icon type="iconfont-check" style={{alignSelf: 'center', color: globalColors.white}} />
+    <Box style={{...globalStyles.flexBoxColumn, paddingLeft: globalMargins.small}}>
       <Box style={globalStyles.flexBoxRow}>
         {!!roleIconMap[role] && (
           <Icon
             type={roleIconMap[role]}
             style={{
-              color: roleIconColorMap[role],
+              color: selected === role ? globalColors.white : roleIconColorMap[role],
               fontSize: 16,
-              marginRight: globalMargins.tiny,
+              marginRight: globalMargins.xtiny,
             }}
           />
         )}
-        <Text style={{color: selected === role ? globalColors.white : globalColors.black}} type="Header">
+        <Text style={{color: selected === role ? globalColors.white : globalColors.black_75}} type="BodyBig">
           {typeToLabel[role]}
         </Text>
       </Box>
       <Text
         style={{color: selected === role ? globalColors.white : globalColors.black_40, width: 267}}
-        type="BodySmallSemibold"
+        type="BodySmall"
       >
         {role && roleDescMap[role]}
       </Text>
@@ -102,12 +103,13 @@ export const RoleOptions = ({
     style={{
       ...globalStyles.flexBoxColumn,
       alignItems: 'center',
-      paddingTop: globalMargins.xtiny,
-      paddingBottom: globalMargins.xtiny,
+      minWidth: 480,
+      paddingTop: globalMargins.small,
+      paddingBottom: globalMargins.tiny,
     }}
   >
     <Box style={{marginTop: globalMargins.small, marginBottom: globalMargins.small}}>
-      <Text type="Header">{username ? `Select a role for ${username}` : 'Select a role'}</Text>
+      <Text type="Header">{username ? `Select a role for ${username}:` : 'Select a role:'}</Text>
     </Box>
     {allowOwner && makeRoleOption('owner', selectedRole, setSelectedRole)}
     {allowAdmin && makeRoleOption('admin', selectedRole, setSelectedRole)}
@@ -144,7 +146,7 @@ const PermissionRow = (props: {can: boolean, permission: string}) => (
       type={props.can ? 'iconfont-check' : 'iconfont-close'}
       style={{color: props.can ? globalColors.green : globalColors.red, alignSelf: 'center'}}
     />
-    <Text type="BodySemibold" style={{marginLeft: globalMargins.tiny}}>
+    <Text type="Body" style={{marginLeft: globalMargins.tiny}}>
       {props.permission}
     </Text>
   </Box>
@@ -175,7 +177,6 @@ export const RoleConfirm = ({
 
   // Setup icon sizing
   const avatarSize = isMobile ? 64 : 48
-  const iconSize = isMobile ? 28 : 20
 
   return (
     <Box
@@ -183,6 +184,7 @@ export const RoleConfirm = ({
         ...globalStyles.flexBoxColumn,
         alignItems: 'center',
         flex: 1,
+        minWidth: 480,
         paddingTop: globalMargins.xtiny,
         paddingBottom: globalMargins.xtiny,
       }}
@@ -198,14 +200,6 @@ export const RoleConfirm = ({
           style={{marginRight: globalMargins.tiny, alignSelf: 'center'}}
           username={username}
           size={avatarSize}
-        />
-        <Icon
-          type={roleIconMap[selectedRole] || 'iconfont-close'}
-          style={{
-            fontSize: iconSize,
-            margin: globalMargins.tiny,
-            alignSelf: 'center',
-          }}
         />
         <Avatar
           style={{marginLeft: globalMargins.tiny, alignSelf: 'center'}}

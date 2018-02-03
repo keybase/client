@@ -6,6 +6,7 @@ import (
 	"golang.org/x/net/context"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
 	"github.com/stretchr/testify/require"
 )
 
@@ -137,11 +138,56 @@ func TestTeamList(t *testing.T) {
 	check(&list)
 }
 
+func TestTeamListOpenTeams(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+	t.Logf("Signed up ann (%s)", ann.username)
+
+	team1 := ann.createTeam()
+	t.Logf("Team 1 created (%s)", team1)
+
+	team2 := ann.createTeam()
+	t.Logf("Team 2 created (%s)", team2)
+
+	ann.teamSetSettings(team2, keybase1.TeamSettings{
+		Open:   true,
+		JoinAs: keybase1.TeamRole_WRITER,
+	})
+
+	check := func(list *keybase1.AnnotatedTeamList) {
+		require.Equal(t, 2, len(list.Teams))
+		require.Equal(t, 0, len(list.AnnotatedActiveInvites))
+		for _, teamInfo := range list.Teams {
+			if teamInfo.FqName == team1 {
+				require.False(t, teamInfo.IsOpenTeam)
+			} else if teamInfo.FqName == team2 {
+				require.True(t, teamInfo.IsOpenTeam)
+			} else {
+				t.Fatalf("Unexpected team name %v", teamInfo)
+			}
+
+			require.Equal(t, 1, teamInfo.MemberCount)
+		}
+	}
+
+	teamCli := ann.teamsClient
+
+	list, err := teamCli.TeamListVerified(context.Background(), keybase1.TeamListVerifiedArg{})
+	require.NoError(t, err)
+
+	check(&list)
+
+	list, err = teamCli.TeamListUnverified(context.Background(), keybase1.TeamListUnverifiedArg{})
+	require.NoError(t, err)
+
+	check(&list)
+}
+
 func TestTeamDuplicateUIDList(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
-	ctx := newSMUContext(t)
-	defer ctx.cleanup()
 
 	ann := tt.addUser("ann")
 	t.Logf("Signed up ann (%s)", ann.username)
@@ -167,7 +213,6 @@ func TestTeamDuplicateUIDList(t *testing.T) {
 	ann.addTeamMember(team, bob.username, keybase1.TeamRole_WRITER)
 
 	teamCli := ann.teamsClient
-	t.Logf("teamcli is %v", teamCli)
 	details, err := teamCli.TeamGet(context.TODO(), keybase1.TeamGetArg{
 		Name:        team,
 		ForceRepoll: true,
@@ -207,4 +252,70 @@ func TestTeamDuplicateUIDList(t *testing.T) {
 	require.NoError(t, err)
 
 	check(&list)
+}
+
+func TestTeamTree(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+	t.Logf("Signed up ann (%s)", ann.username)
+
+	team := ann.createTeam()
+	t.Logf("Team created (%s)", team)
+
+	TeamNameFromString := func(str string) keybase1.TeamName {
+		ret, err := keybase1.TeamNameFromString(str)
+		require.NoError(t, err)
+		return ret
+	}
+
+	createSubteam := func(parentName, subteamName string) string {
+		subteam, err := teams.CreateSubteam(context.Background(), ann.tc.G, subteamName, TeamNameFromString(parentName))
+		require.NoError(t, err)
+		subteamObj, err := teams.Load(context.Background(), ann.tc.G, keybase1.LoadTeamArg{ID: *subteam})
+		require.NoError(t, err)
+		return subteamObj.Name().String()
+	}
+
+	subTeam1 := createSubteam(team, "staff")
+
+	sub1SubTeam1 := createSubteam(subTeam1, "legal")
+	sub1SubTeam2 := createSubteam(subTeam1, "hr")
+
+	subTeam2 := createSubteam(team, "offtopic")
+
+	sub2SubTeam1 := createSubteam(subTeam2, "games")
+	sub2SubTeam2 := createSubteam(subTeam2, "crypto")
+	sub2SubTeam3 := createSubteam(subTeam2, "cryptocurrency")
+
+	checkTeamTree := func(teamName string, expectedTree ...string) {
+		set := make(map[string]bool)
+		for _, v := range expectedTree {
+			set[v] = false
+		}
+		set[teamName] = false
+
+		tree, err := teams.TeamTree(context.Background(), ann.tc.G, keybase1.TeamTreeArg{Name: TeamNameFromString(teamName)})
+		require.NoError(t, err)
+
+		for _, entry := range tree.Entries {
+			name := entry.Name.String()
+			alreadyFound, exists := set[name]
+			if !exists {
+				t.Fatalf("Found unexpected team %s in tree of %s", name, teamName)
+			} else if alreadyFound {
+				t.Fatalf("Duplicate team %s in tree of %s", name, teamName)
+			}
+			set[name] = true
+		}
+	}
+
+	checkTeamTree(team, subTeam1, subTeam2, sub1SubTeam1, sub1SubTeam2, sub2SubTeam1, sub2SubTeam2, sub2SubTeam3)
+	checkTeamTree(subTeam1, sub1SubTeam1, sub1SubTeam2)
+	checkTeamTree(subTeam2, sub2SubTeam1, sub2SubTeam2, sub2SubTeam3)
+
+	checkTeamTree(sub2SubTeam1)
+	checkTeamTree(sub2SubTeam2)
+	checkTeamTree(sub2SubTeam3)
 }

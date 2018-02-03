@@ -1,6 +1,13 @@
 // @flow
 import React, {Component} from 'react'
-import {Box, Icon, Text, ProgressIndicator, NativeImage} from '../../../common-adapters/index.native'
+import {
+  Box,
+  Icon,
+  ScrollView,
+  Text,
+  ProgressIndicator,
+  NativeImage,
+} from '../../../common-adapters/index.native'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import {formatTimeForPopup} from '../../../util/timestamp'
 import {isIPhoneX} from '../../../constants/platform'
@@ -25,10 +32,22 @@ class AutoMaxSizeImage extends Component<any, {width: number, height: number}> {
 
   render() {
     return (
-      <NativeImage
-        {...this.props}
-        style={{...this.props.style, maxHeight: this.state.height, maxWidth: this.state.width}}
-      />
+      <ScrollView
+        minimumZoomScale={1}
+        // maximumZoomScale arbitrarily set to 10 here.
+        // In the future we could set it to max(imageHeight / contentHeight, imageWidth / contentWidth)
+        maximumZoomScale={10}
+        scrollsToTop={false}
+        indicatorStyle="white"
+        alwaysBounceVertical={false}
+        contentContainerStyle={{flex: 1, position: 'relative'}}
+        style={{position: 'relative', overflow: 'hidden', width: '100%', height: '100%'}}
+      >
+        <NativeImage
+          {...this.props}
+          style={{flex: 1, resizeMode: 'contain', maxHeight: this.state.height, maxWidth: this.state.width}}
+        />
+      </ScrollView>
     )
   }
 }
@@ -43,12 +62,7 @@ const AttachmentView = ({
   path: ?string,
 }) => (
   <Box style={{...globalStyles.flexBoxCenter, flex: 1}}>
-    {!!path && (
-      <AutoMaxSizeImage
-        source={{uri: `file://${path}`}}
-        style={{flex: 1, width: '100%', height: '100%', resizeMode: 'contain', position: 'relative'}}
-      />
-    )}
+    {!!path && <AutoMaxSizeImage source={{uri: `file://${path}`}} />}
     {!path && <ProgressIndicator style={{width: 48}} white={true} />}
   </Box>
 )

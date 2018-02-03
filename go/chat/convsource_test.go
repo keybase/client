@@ -160,6 +160,8 @@ func newFailingRemote(t *testing.T) failingRemote {
 	}
 }
 
+var _ chat1.RemoteInterface = (*failingRemote)(nil)
+
 func (f failingRemote) GetInboxRemote(context.Context, chat1.GetInboxRemoteArg) (chat1.GetInboxRemoteRes, error) {
 	require.Fail(f.t, "GetInboxRemote call")
 	return chat1.GetInboxRemoteRes{}, nil
@@ -313,6 +315,21 @@ func (f failingRemote) GetGlobalAppNotificationSettings(ctx context.Context) (ch
 	return chat1.GlobalAppNotificationSettings{}, nil
 }
 
+func (f failingRemote) SetConvRetention(ctx context.Context, _ chat1.SetConvRetentionArg) (res chat1.SetRetentionRes, err error) {
+	require.Fail(f.t, "SetConvRetention")
+	return res, errors.New("SetConvRetention not mocked")
+}
+
+func (f failingRemote) SetTeamRetention(ctx context.Context, _ chat1.SetTeamRetentionArg) (res chat1.SetRetentionRes, err error) {
+	require.Fail(f.t, "SetTeamRetention")
+	return res, errors.New("SetTeamRetention not mocked")
+}
+
+func (f failingRemote) UpgradeKBFSToImpteam(ctx context.Context, tlfID chat1.TLFID) error {
+	require.Fail(f.t, "UpgradeKBFSToImpteam")
+	return nil
+}
+
 type failingTlf struct {
 	t *testing.T
 }
@@ -338,9 +355,9 @@ func (f failingTlf) CompleteAndCanonicalizePrivateTlfName(context.Context, strin
 	return keybase1.CanonicalTLFNameAndIDWithBreaks{}, nil
 }
 
-func (f failingTlf) Lookup(context.Context, string, keybase1.TLFVisibility) (types.NameInfo, error) {
+func (f failingTlf) Lookup(context.Context, string, keybase1.TLFVisibility) (*types.NameInfo, error) {
 	require.Fail(f.t, "Lookup call")
-	return types.NameInfo{}, nil
+	return nil, nil
 }
 
 type failingUpak struct {

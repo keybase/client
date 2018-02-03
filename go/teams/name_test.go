@@ -67,3 +67,22 @@ func TestParseImplicitTeamBackingName(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, string(name.Parts[0]), "__keybase_implicit_team__0123456789abcdef0123456789abcdef")
 }
+
+func TestIsAncestorOf(t *testing.T) {
+	test := func(a, b string) bool {
+		aName, err := keybase1.TeamNameFromString(a)
+		require.NoError(t, err)
+		bName, err := keybase1.TeamNameFromString(b)
+		require.NoError(t, err)
+		return aName.IsAncestorOf(bName)
+	}
+
+	require.True(t, test("aaa", "aaa.bbb"))
+	require.True(t, test("aaa", "aaa.bbb.ccc"))
+	require.False(t, test("ccc", "aaa.bbb"))
+
+	require.True(t, test("aaa.bbb", "aaa.bbb.ccc"))
+
+	require.False(t, test("aaa.bbb.ccc", "aaa.bbb.ccc"))
+	require.False(t, test("aaa.bbb.ccc", "aaa.bbb"))
+}

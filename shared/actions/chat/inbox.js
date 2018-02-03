@@ -233,7 +233,10 @@ function* _processConversation(c: RPCChatTypes.InboxUIItem): Generator<any, void
   const conversationIDKey = c.convID
 
   // Update reset participants (only implicit teams)
-  if (c.membersType === RPCChatTypes.commonConversationMembersType.impteam) {
+  if (
+    c.membersType === RPCChatTypes.commonConversationMembersType.impteamnative ||
+    c.membersType === RPCChatTypes.commonConversationMembersType.impteamupgrade
+  ) {
     yield Saga.put(
       ChatGen.createUpdateResetParticipants({
         conversationIDKey,
@@ -398,13 +401,27 @@ function* _chatInboxFailedSubSaga(params: RPCChatTypes.ChatUiChatInboxFailedRpcP
   const conversationIDKey = Constants.conversationIDToKey(convID)
 
   // Valid inbox item for rekey errors only
+  let teamname = null
+  if (error.remoteConv.metadata.membersType === RPCChatTypes.commonConversationMembersType.team) {
+    teamname = error.unverifiedTLFName
+  }
+  const notifications = error.remoteConv.notifications && parseNotifications(error.remoteConv.notifications)
   const conversation = Constants.makeInboxState({
     conversationIDKey,
     participants: error.rekeyInfo
       ? I.List([].concat(error.rekeyInfo.writerNames, error.rekeyInfo.readerNames).filter(Boolean))
       : I.List(error.unverifiedTLFName.split(',')),
-    status: 'unfiled',
     time: error.remoteConv.readerInfo ? error.remoteConv.readerInfo.mtime : 0,
+    membersType: error.remoteConv.metadata.membersType,
+    teamType: error.remoteConv.metadata.teamType,
+    memberStatus: error.remoteConv.readerInfo
+      ? error.remoteConv.readerInfo.status
+      : RPCChatTypes.commonConversationMemberStatus.active,
+    status: Constants.ConversationStatusByEnum[error.remoteConv.metadata.status],
+    version: error.remoteConv.metadata.version,
+    name: error.unverifiedTLFName,
+    notifications,
+    teamname,
   })
 
   yield Saga.put(

@@ -14,6 +14,7 @@ import {
   Box,
   ClickableBox,
   Icon,
+  Meta,
   PlatformIcon,
   PopupMenu,
   NativeSectionList,
@@ -223,6 +224,7 @@ class Profile extends Component<Props, State> {
               onFollow={this.props.onFollow}
               onUnfollow={this.props.onUnfollow}
               onAcceptProofs={this.props.onAcceptProofs}
+              waiting={this.props.waiting}
             />
           )}
         <Box
@@ -254,6 +256,7 @@ class Profile extends Component<Props, State> {
                       <Text style={{color: globalColors.black_75}} type="BodySemiboldLink">
                         {team.fqName}
                       </Text>
+                      {team.open && <Meta style={styleMeta} title="OPEN" />}
                     </Box>
                   </ClickableBox>
                 ))}
@@ -433,11 +436,12 @@ class Profile extends Component<Props, State> {
           stickySectionHeadersEnabled={true}
           style={{...globalStyles.fullHeight, backgroundColor: trackerStateColors.header.background}}
           ref={this._setRef}
-          initialNumToRender={2}
+          initialNumToRender={0}
           renderSectionHeader={this._renderSections}
           keyExtractor={this._keyExtractor}
           forceRenderProofs={this.props.proofs}
           forceRenderBio={this.props.userInfo}
+          windowSize={3}
           sections={[
             {
               renderItem: this._renderProfile,
@@ -476,6 +480,7 @@ const UserEntry = ({onClick, username, fullname, followsYou, following}) => (
         username={username}
         followsYou={followsYou}
         following={following}
+        skipBackgroundAfterLoaded={true}
       />
       <Text type="BodySemibold" style={userEntryUsernameStyle(following)}>
         {username}
@@ -572,19 +577,26 @@ const styleFolderIcon = {
   color: globalColors.black_75,
 }
 
+const styleMeta = {
+  alignSelf: 'center',
+  backgroundColor: globalColors.green,
+  borderRadius: 1,
+  marginLeft: globalMargins.xtiny,
+  marginTop: 2,
+}
+
 const styleSearchContainer = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-  backgroundColor: globalColors.white_20,
+  backgroundColor: globalColors.black_10,
   borderRadius: 100,
   justifyContent: 'center',
   minHeight: 32,
-  minWidth: 233,
+  minWidth: 200,
 }
 
 const styleSearch = {
   color: globalColors.white_75,
-  fontSize: 12,
   padding: globalMargins.xtiny,
 }
 

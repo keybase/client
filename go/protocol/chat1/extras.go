@@ -40,6 +40,10 @@ func (id TLFID) Bytes() []byte {
 	return []byte(id)
 }
 
+func (id TLFID) IsNil() bool {
+	return len(id) == 0
+}
+
 func MakeConvID(val string) (ConversationID, error) {
 	return hex.DecodeString(val)
 }
@@ -300,6 +304,10 @@ func (m MessageBoxed) Summary() MessageSummary {
 		s.Ctime = m.ServerHeader.Ctime
 	}
 	return s
+}
+
+func (m MessageBoxed) KBFSEncrypted() bool {
+	return m.ClientHeader.KbfsCryptKeysUsed == nil || *m.ClientHeader.KbfsCryptKeysUsed
 }
 
 var ConversationStatusGregorMap = map[ConversationStatus]string{
@@ -776,4 +784,21 @@ func (c ConversationMemberStatus) ToGregorDBStringAssert() string {
 		panic(err)
 	}
 	return s
+}
+
+func (p RetentionPolicy) Summary() string {
+	typ, err := p.Typ()
+	if err != nil {
+		return "{variant error}"
+	}
+	switch typ {
+	case RetentionPolicyType_EXPIRE:
+		return fmt.Sprintf("{%v age:%v}", typ, p.Expire().Age)
+	default:
+		return fmt.Sprintf("{%v}", typ)
+	}
+}
+
+func TeamIDToTLFID(teamID keybase1.TeamID) (TLFID, error) {
+	return MakeTLFID(teamID.String())
 }

@@ -5,7 +5,15 @@ import pickBy from 'lodash/pickBy'
 import debounce from 'lodash/debounce'
 import {iconTypeToImgSet, urlsToImgSet, type IconType} from './icon'
 import {isTesting} from '../local-debug'
-import {connect, type TypedState, lifecycle, compose, withProps} from '../util/container'
+import {
+  connect,
+  type TypedState,
+  lifecycle,
+  compose,
+  withProps,
+  withHandlers,
+  withStateHandlers,
+} from '../util/container'
 import {globalStyles} from '../styles'
 import * as ConfigGen from '../actions/config-gen'
 import type {Props, AvatarSize} from './avatar'
@@ -178,7 +186,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     isPlaceholder = false
   }
 
-  if (!url) {
+  if (!url && !stateProps._needAskForData) {
     const placeholder = isTeam ? teamPlaceHolders : avatarPlaceHolders
     url = iconTypeToImgSet(placeholder[String(ownProps.size)], ownProps.size)
     isPlaceholder = true
@@ -209,6 +217,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onClick: ownProps.onClick,
     opacity: ownProps.opacity,
     size: ownProps.size,
+    skipBackground: ownProps.skipBackground,
+    skipBackgroundAfterLoaded: ownProps.skipBackgroundAfterLoaded,
     style,
     url,
   }
@@ -217,20 +227,44 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 export type {AvatarSize}
 const real = compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  withStateHandlers(
+    {_mounted: false, _stateName: '', _timeoutID: 0},
+    {
+      setMounted: () => (name: string, timeoutID: number) => ({
+        _mounted: true,
+        _stateName: name,
+        _timeoutID: timeoutID,
+      }),
+      setUnmounted: () => () => ({_mounted: false, _stateName: '', _timeoutID: 0}),
+    }
+  ),
+  withHandlers({
+    _maybeLoadUserData: props => () => {
+      // Still looking at the same user?
+      if (props._mounted && props._askForUserData) {
+        props._askForUserData()
+      }
+    },
+  }),
   lifecycle({
     componentWillMount() {
-      this.setState({_mounted: true, _name: this.props._name})
-      setTimeout(() => {
-        // Still looking at the same user?
-        if (this.state._mounted && this.props._name === this.state._name) {
-          if (this.props._askForUserData) {
-            this.props._askForUserData()
-          }
+      const _timeoutID = setTimeout(() => {
+        if (this.props._name === this.props._stateName) {
+          this.props._maybeLoadUserData()
         }
-      }, 300)
+      }, 700)
+      this.props.setMounted(this.props._name, _timeoutID)
+    },
+    componentWillReceiveProps(nextProps) {
+      if (this.props._name !== nextProps._name) {
+        this.props._maybeLoadUserData()
+      }
     },
     componentWillUnmount() {
-      this.setState({_mounted: false, _name: null})
+      if (this.props._timeoutID) {
+        clearTimeout(this.props._timeoutID)
+      }
+      this.props.setUnmounted()
     },
   })
 )(Render)

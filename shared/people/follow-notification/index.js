@@ -2,7 +2,16 @@
 import React from 'react'
 import PeopleItem from '../item'
 import * as Types from '../../constants/types/people'
-import {Avatar, Box, ConnectedUsernames, Icon, Meta, ScrollView, Text} from '../../common-adapters'
+import {
+  Avatar,
+  Box,
+  ClickableBox,
+  ConnectedUsernames,
+  Icon,
+  Meta,
+  ScrollView,
+  Text,
+} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {isMobile} from '../../constants/platform'
 
@@ -11,11 +20,12 @@ const connectedUsernamesProps = {
   inline: true,
   colorFollowing: true,
   type: 'BodySemibold',
+  underline: true,
 }
 
 export type NewFollow = Types.FollowedNotification
 
-export type Props = Types._FollowedNotificationItem
+export type Props = Types._FollowedNotificationItem & {onClickUser: (username: string) => void}
 
 export default (props: Props) => {
   if (props.newFollows.length === 1) {
@@ -30,16 +40,25 @@ export const FollowNotification = (props: Props) => {
   }
   const username = props.newFollows[0].username
   return (
-    <PeopleItem
-      badged={props.badged}
-      icon={<Avatar username={username} size={isMobile ? 48 : 32} />}
-      when={props.notificationTime}
-      contentStyle={{justifyContent: 'center'}}
-    >
-      <Text type="Body" style={{marginTop: 2}}>
-        <ConnectedUsernames {...connectedUsernamesProps} usernames={[username]} /> followed you.
-      </Text>
-    </PeopleItem>
+    <ClickableBox onClick={() => props.onClickUser(username)}>
+      <PeopleItem
+        badged={props.badged}
+        icon={
+          <Avatar username={username} onClick={() => props.onClickUser(username)} size={isMobile ? 48 : 32} />
+        }
+        when={props.notificationTime}
+        contentStyle={{justifyContent: 'center'}}
+      >
+        <Text type="Body" style={{marginTop: 2}}>
+          <ConnectedUsernames
+            {...connectedUsernamesProps}
+            usernames={[username]}
+            onUsernameClicked={props.onClickUser}
+          />{' '}
+          followed you.
+        </Text>
+      </PeopleItem>
+    </ClickableBox>
   )
 }
 
@@ -72,13 +91,17 @@ export const MultiFollowNotification = (props: Props) => {
           >
             <Meta
               title={`+${props.newFollows.length + (props.numAdditional || 0)}`}
-              style={{backgroundColor: globalColors.blue_60, alignSelf: 'center'}}
+              style={{
+                alignSelf: 'center',
+                backgroundColor: globalColors.blue,
+                minWidth: isMobile ? 24 : 16,
+                textAlign: 'center',
+              }}
             />
           </Box>
         </Box>
       }
       when={props.notificationTime}
-      contentStyle={isMobile ? null : {paddingBottom: 32}}
     >
       <Text type="Body" style={{marginTop: 2, marginBottom: globalMargins.xtiny}}>
         <ConnectedUsernames
@@ -87,28 +110,28 @@ export const MultiFollowNotification = (props: Props) => {
           showAnd={!props.numAdditional}
           {...connectedUsernamesProps}
           usernames={usernames}
+          onUsernameClicked={props.onClickUser}
         />
         {!!props.numAdditional && props.numAdditional > 0 && ` and ${props.numAdditional} others `} started
         following you.
       </Text>
       <ScrollView
-        {...(isMobile ? {horizontal: true} : {})} // Causes error on desktop
-        contentContainerStyle={globalStyles.flexBoxRow}
-        style={{
+        {...(isMobile ? {horizontal: true, alwaysBounceHorizontal: false} : {})} // Causes error on desktop
+        contentContainerStyle={{
           ...globalStyles.flexBoxRow,
-          overflow: 'scroll',
           ...(isMobile
             ? null
-            : {
-                position: 'absolute',
-                bottom: 0,
-                left: 0,
-                width: '100%',
-              }),
+            : {...globalStyles.flexBoxRow, width: '100%', height: 32, flexWrap: 'wrap', overflow: 'hidden'}),
         }}
       >
         {usernames.map(username => (
-          <Avatar username={username} size={32} key={username} style={{marginRight: globalMargins.xtiny}} />
+          <Avatar
+            onClick={() => props.onClickUser(username)}
+            username={username}
+            size={32}
+            key={username}
+            style={{marginRight: globalMargins.xtiny}}
+          />
         ))}
       </ScrollView>
     </PeopleItem>

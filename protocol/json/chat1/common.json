@@ -98,7 +98,8 @@
       "symbols": [
         "KBFS_0",
         "TEAM_1",
-        "IMPTEAM_2"
+        "IMPTEAMNATIVE_2",
+        "IMPTEAMUPGRADE_3"
       ]
     },
     {
@@ -441,6 +442,20 @@
     },
     {
       "type": "record",
+      "name": "Expunge",
+      "fields": [
+        {
+          "type": "MessageID",
+          "name": "upto"
+        },
+        {
+          "type": "MessageID",
+          "name": "basis"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ConversationMetadata",
       "fields": [
         {
@@ -633,6 +648,24 @@
             "ConversationCreatorInfo"
           ],
           "name": "creatorInfo"
+        },
+        {
+          "type": "Expunge",
+          "name": "expunge"
+        },
+        {
+          "type": [
+            null,
+            "RetentionPolicy"
+          ],
+          "name": "convRetention"
+        },
+        {
+          "type": [
+            null,
+            "RetentionPolicy"
+          ],
+          "name": "teamRetention"
         }
       ]
     },
@@ -733,6 +766,13 @@
           "name": "supersedes"
         },
         {
+          "type": [
+            null,
+            "boolean"
+          ],
+          "name": "kbfsCryptKeysUsed"
+        },
+        {
           "type": {
             "type": "array",
             "items": "MessageID"
@@ -818,6 +858,13 @@
         {
           "type": "gregor1.DeviceID",
           "name": "senderDevice"
+        },
+        {
+          "type": [
+            null,
+            "boolean"
+          ],
+          "name": "kbfsCryptKeysUsed"
         },
         {
           "type": [
@@ -983,6 +1030,67 @@
           "body": "InboxViewFull"
         }
       ]
+    },
+    {
+      "type": "enum",
+      "name": "RetentionPolicyType",
+      "symbols": [
+        "NONE_0",
+        "RETAIN_1",
+        "EXPIRE_2",
+        "INHERIT_3"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "RetentionPolicy",
+      "switch": {
+        "type": "RetentionPolicyType",
+        "name": "typ"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "RETAIN",
+            "def": false
+          },
+          "body": "RpRetain"
+        },
+        {
+          "label": {
+            "name": "EXPIRE",
+            "def": false
+          },
+          "body": "RpExpire"
+        },
+        {
+          "label": {
+            "name": "INHERIT",
+            "def": false
+          },
+          "body": "RpInherit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "RpRetain",
+      "fields": []
+    },
+    {
+      "type": "record",
+      "name": "RpExpire",
+      "fields": [
+        {
+          "type": "gregor1.DurationSec",
+          "name": "age"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "RpInherit",
+      "fields": []
     }
   ],
   "messages": {},
