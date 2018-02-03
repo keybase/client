@@ -110,6 +110,7 @@ type ChainLinkUnpacked struct {
 	firstAppearedMerkleSeqnoUnverified keybase1.Seqno
 	payloadHash                        []byte
 	sigDropped                         bool
+	hasRevocations                     bool
 }
 
 // A template for some of the reasons in badChainLinks below.
@@ -365,7 +366,14 @@ func (c *ChainLink) HasRevocations() bool {
 	if c.IsStubbed() {
 		return false
 	}
-	jw := c.UnmarshalPayloadJSON().AtKey("body").AtKey("revoke")
+	if c.unpacked != nil {
+		return c.unpacked.hasRevocations
+	}
+	return false
+}
+
+func (tmp *ChainLinkUnpacked) HasRevocations(payload *jsonw.Wrapper) bool {
+	jw := payload.AtKey("body").AtKey("revoke")
 	_, err := GetSigID(jw.AtKey("sig_id"), true)
 	if err == nil {
 		return true
@@ -483,6 +491,10 @@ func (tmp *ChainLinkUnpacked) unpackPayloadJSON(payloadJSON *jsonw.Wrapper, payl
 	payloadJSON.AtKey("ctime").GetInt64Void(&tmp.ctime, &err)
 
 	payloadJSON.AtKey("seqno").GetInt64Void(&sq, &err)
+
+	if tmp.HasRevocations(payloadJSON) {
+		tmp.hasRevocations = true
+	}
 
 	// Assume public unless its a number
 	tmp.seqType = keybase1.SeqType_PUBLIC
