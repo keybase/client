@@ -1207,6 +1207,12 @@ func (c AppConfig) GetLevelDBNumFiles() (int, bool) {
 	return 50, true
 }
 
+// Default is 0x10000 (65,536).  Turning down on mobile to
+// reduce memory usage.
+func (c AppConfig) GetLinkCacheSize() (int, bool) {
+	return 1000, true
+}
+
 func (e *Env) GetUpdatePreferenceAuto() (bool, bool) {
 	return e.GetConfig().GetUpdatePreferenceAuto()
 }
