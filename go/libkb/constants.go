@@ -106,7 +106,7 @@ const (
 	// could be stale.
 	CachedUserTimeout = 10 * time.Minute
 
-	LinkCacheSize     = 0x10000
+	LinkCacheSize     = 4000
 	LinkCacheCleanDur = 1 * time.Minute
 
 	UPAKCacheSize                     = 2000
