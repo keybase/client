@@ -195,10 +195,7 @@ func PingGregor(g *libkb.GlobalContext) error {
 	}
 	connection := rpc.NewConnectionWithTransport(rpcHandler, transport,
 		keybase1.ErrorUnwrapper{},
-		logger.LogOutputWithDepthAdder{
-			Logger: logger.LogOutputWithDebugAndInfoGuards{
-				Logger: g.Log,
-			}}, opts)
+		logger.LogOutputWithDepthAdder{Logger: g.Log}, opts)
 	select {
 	case err := <-rpcHandler.pingErrors:
 		pingError = fmt.Errorf("Gregor ping FAILED: %s", err.Error())
