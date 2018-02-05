@@ -47,6 +47,13 @@ class Feedback extends Component<Props> {
     this._scroll = r
   }
 
+  componentDidUpdate(prevProps: Props) {
+    if (this.props.sendError && this.props.sendError !== prevProps.sendError && this._scroll) {
+      // Scroll down so that the user sees the error.
+      this._scroll && this._scroll.scrollTo({x: 0, y: 300, animated: true})
+    }
+  }
+
   render() {
     const {
       showSuccessBanner,
