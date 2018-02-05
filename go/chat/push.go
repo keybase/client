@@ -608,6 +608,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			})
 		default:
 			g.Debug(ctx, "unhandled chat.activity action %q", action)
+			return
 		}
 		if g.badger != nil && gm.UnreadUpdate != nil {
 			g.badger.PushChatUpdate(*gm.UnreadUpdate, gm.InboxVers)
