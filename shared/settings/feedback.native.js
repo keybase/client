@@ -118,23 +118,21 @@ class Feedback extends Component<Props> {
               </Text>
             </Box>
           </Box>
+          <ButtonBar>
+            <Button label="Send" type="Primary" onClick={this._onSubmit} waiting={sending} />
+          </ButtonBar>
           {sendError && (
-            <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.small}}>
-              <Text type="BodySmall">Error details</Text>
+            <Box style={{...globalStyles.flexBoxColumn, marginTop: globalMargins.small}}>
+              <Text type="BodySmall">Could not send log</Text>
               <Text type="BodySmall" style={{...globalStyles.selectable, margin: 10}}>{`${sendError.name}: ${
                 sendError.message
               }`}</Text>
               <Text type="BodySmall" style={{marginTop: 20}}>
                 Stack trace
               </Text>
-              <NativeScrollView>
-                <Text type="BodySmall">{sendError.stack}</Text>
-              </NativeScrollView>
+              <Text type="BodySmall">{sendError.stack}</Text>
             </Box>
           )}
-          <ButtonBar>
-            <Button label="Send" type="Primary" onClick={this._onSubmit} waiting={sending} />
-          </ButtonBar>
         </Box>
       </NativeScrollView>
     )
