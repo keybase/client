@@ -16,6 +16,7 @@ import {chatTab, loginTab, peopleTab, folderTab, settingsTab, type Tab} from '..
 import {compose} from 'recompose'
 import {connect, type TypedState} from '../util/container'
 import {globalColors, globalStyles, statusBarHeight} from '../styles/index.native'
+import {statusBarSize} from '../styles/status-bar'
 import * as I from 'immutable'
 import {isIOS, isIPhoneX} from '../constants/platform'
 import {navigateTo, navigateUp, switchTo} from '../actions/route-tree'
@@ -203,7 +204,11 @@ class MainNavStack extends Component<any, any> {
     )
     return (
       <Box style={globalStyles.fullHeight}>
-        <NativeKeyboardAvoidingView style={_keyboardStyle} behavior={isIOS ? 'padding' : undefined}>
+        <NativeKeyboardAvoidingView
+          style={_keyboardStyle}
+          behavior={isIOS ? 'padding' : undefined}
+          keyboardVerticalOffset={isIOS ? statusBarSize.currentOffset : undefined}
+        >
           {content}
         </NativeKeyboardAvoidingView>
       </Box>

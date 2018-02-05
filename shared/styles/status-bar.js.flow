@@ -1,0 +1,31 @@
+// @flow
+
+declare class StatusBarSize {
+  currentHeight: number;
+
+  /**
+   * (iOS only)
+   * Register the status bar height listener
+   */
+  registerListener: () => void;
+
+  /**
+   * (iOS only)
+   * Remove the status bar height listener
+   */
+  removeListener: () => void;
+
+  /**
+   * Get current status bar height
+   * (set by listener on iOS, set via NativeStatusBar on Android)
+   */
+  currentHeight: () => number;
+
+  /**
+   * Returns currentStatusBarHeight - normalStatusBarHeight
+   * (always 0 on android)
+   */
+  currentOffset: number;
+}
+
+declare export var statusBarSize: StatusBarSize
