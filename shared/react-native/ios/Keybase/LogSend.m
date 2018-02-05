@@ -21,7 +21,8 @@ RCT_REMAP_METHOD(logSend,
   if (err == nil) {
     resolve(logId);
   } else {
-    reject(@"log_send_err", @"Error in sending log", err);
+    // Leave message nil so that err's message is used.
+    reject(@"log_send_err", nil, err);
   }
 }
 
