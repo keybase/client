@@ -774,6 +774,7 @@ protocol teams {
     boolean setPublicityAny;
     boolean listFirst;
     boolean changeTarsDisabled;
+    boolean deleteChatHistory;
   }
 
   TeamOperation canUserPerform(string name);

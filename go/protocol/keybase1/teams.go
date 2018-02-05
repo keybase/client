@@ -1927,6 +1927,7 @@ type TeamOperation struct {
 	SetPublicityAny        bool `codec:"setPublicityAny" json:"setPublicityAny"`
 	ListFirst              bool `codec:"listFirst" json:"listFirst"`
 	ChangeTarsDisabled     bool `codec:"changeTarsDisabled" json:"changeTarsDisabled"`
+	DeleteChatHistory      bool `codec:"deleteChatHistory" json:"deleteChatHistory"`
 }
 
 func (o TeamOperation) DeepCopy() TeamOperation {
@@ -1945,6 +1946,7 @@ func (o TeamOperation) DeepCopy() TeamOperation {
 		SetPublicityAny:        o.SetPublicityAny,
 		ListFirst:              o.ListFirst,
 		ChangeTarsDisabled:     o.ChangeTarsDisabled,
+		DeleteChatHistory:      o.DeleteChatHistory,
 	}
 }
 
