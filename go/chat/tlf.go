@@ -46,11 +46,14 @@ func (t *KBFSNameInfoSource) tlfKeysClient() (*keybase1.TlfKeysClient, error) {
 	}, nil
 }
 
-func (t *KBFSNameInfoSource) Lookup(ctx context.Context, tlfName string,
-	visibility keybase1.TLFVisibility) (res *types.NameInfo, err error) {
+func (t *KBFSNameInfoSource) Lookup(ctx context.Context, tlfName string, public bool) (res *types.NameInfo, err error) {
 	defer t.Trace(ctx, func() error { return err }, fmt.Sprintf("Lookup(%s)", tlfName))()
 	var lastErr error
 	res = types.NewNameInfo()
+	visibility := keybase1.TLFVisibility_PRIVATE
+	if public {
+		visibility = keybase1.TLFVisibility_PUBLIC
+	}
 	for i := 0; i < 5; i++ {
 		if visibility == keybase1.TLFVisibility_PUBLIC {
 			var pres keybase1.CanonicalTLFNameAndIDWithBreaks
@@ -83,6 +86,17 @@ func (t *KBFSNameInfoSource) Lookup(ctx context.Context, tlfName string,
 	}
 
 	return res, lastErr
+}
+
+func (t *KBFSNameInfoSource) EncryptionKeys(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool) (*types.NameInfo, error) {
+	return t.Lookup(ctx, tlfName, public)
+}
+
+func (t *KBFSNameInfoSource) DecryptionKeys(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool,
+	keyGeneration int, kbfsEncrypted bool) (*types.NameInfo, error) {
+	return t.Lookup(ctx, tlfName, public)
 }
 
 func (t *KBFSNameInfoSource) CryptKeys(ctx context.Context, tlfName string) (res keybase1.GetTLFCryptKeysRes, ferr error) {

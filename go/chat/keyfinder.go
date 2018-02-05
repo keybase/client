@@ -15,8 +15,11 @@ import (
 // KeyFinder remembers results from previous calls to CryptKeys().
 type KeyFinder interface {
 	Find(ctx context.Context, name string, membersType chat1.ConversationMembersType, public bool) (*types.NameInfo, error)
-	FindForEncryption(ctx context.Context, tlfName string, teamID chat1.TLFID, membersType chat1.ConversationMembersType, public bool) (*types.NameInfo, error)
-	FindForDecryption(ctx context.Context, tlfName string, teamID chat1.TLFID, membersType chat1.ConversationMembersType, public bool, keyGeneration int, kbfsEncrypted bool) (*types.NameInfo, error)
+	FindForEncryption(ctx context.Context, tlfName string, teamID chat1.TLFID,
+		membersType chat1.ConversationMembersType, public bool) (*types.NameInfo, error)
+	FindForDecryption(ctx context.Context, tlfName string, teamID chat1.TLFID,
+		membersType chat1.ConversationMembersType, public bool, keyGeneration int,
+		kbfsEncrypted bool) (*types.NameInfo, error)
 	SetNameInfoSourceOverride(types.NameInfoSource)
 }
 
@@ -44,6 +47,17 @@ func (k *KeyFinderImpl) cacheKey(name string, membersType chat1.ConversationMemb
 	return fmt.Sprintf("%s|%v|%v", name, membersType, public)
 }
 
+func (k *KeyFinderImpl) encCacheKey(name string, tlfID chat1.TLFID, membersType chat1.ConversationMembersType,
+	public bool) string {
+	return fmt.Sprintf("_enc:%s|%s|%v|%v", name, tlfID, membersType, public)
+}
+
+func (k *KeyFinderImpl) decCacheKey(name string, tlfID chat1.TLFID, membersType chat1.ConversationMembersType,
+	public bool, keyGeneration int, kbfsEncrypted bool) string {
+	return fmt.Sprintf("_dec:%s|%s|%v|%v|%d|%v", name, tlfID, membersType, public, keyGeneration,
+		kbfsEncrypted)
+}
+
 func (k *KeyFinderImpl) createNameInfoSource(ctx context.Context,
 	membersType chat1.ConversationMembersType) types.NameInfoSource {
 	if k.testingNameInfoSource != nil {
@@ -64,103 +78,96 @@ func (k *KeyFinderImpl) createNameInfoSource(ctx context.Context,
 	return NewKBFSNameInfoSource(k.G())
 }
 
+func (k *KeyFinderImpl) lookupKey(key string) (*types.NameInfo, bool) {
+	k.Lock()
+	defer k.Unlock()
+	existing, ok := k.keys[key]
+	return existing, ok
+}
+
+func (k *KeyFinderImpl) writeKey(key string, v *types.NameInfo) {
+	k.Lock()
+	defer k.Unlock()
+	k.keys[key] = v
+}
+
 // Find finds keybase1.TLFCryptKeys for tlfName, checking for existing
 // results.
 func (k *KeyFinderImpl) Find(ctx context.Context, name string,
-	membersType chat1.ConversationMembersType, public bool) (*types.NameInfo, error) {
+	membersType chat1.ConversationMembersType, public bool) (res *types.NameInfo, err error) {
 
 	ckey := k.cacheKey(name, membersType, public)
-	k.Lock()
-	existing, ok := k.keys[ckey]
-	k.Unlock()
+	existing, ok := k.lookupKey(ckey)
 	if ok {
 		return existing, nil
 	}
+	defer func() {
+		if err != nil {
+			k.writeKey(ckey, res)
+		}
+	}()
 
-	vis := keybase1.TLFVisibility_PRIVATE
-	if public {
-		vis = keybase1.TLFVisibility_PUBLIC
-	}
-	nameSource := k.createNameInfoSource(ctx, membersType)
-	nameInfo, err := nameSource.Lookup(ctx, name, vis)
+	res, err = k.createNameInfoSource(ctx, membersType).Lookup(ctx, name, public)
 	if err != nil {
 		return nil, err
 	}
 	if public {
-		nameInfo.CryptKeys[membersType] = append(nameInfo.CryptKeys[membersType], publicCryptKey)
+		res.CryptKeys[membersType] = append(res.CryptKeys[membersType], publicCryptKey)
 	}
-
-	k.Lock()
-	k.keys[ckey] = nameInfo
-	k.Unlock()
-
-	return nameInfo, nil
+	return res, nil
 }
 
 // FindForEncryption finds keys up-to-date enough for encrypting.
 // Ignores tlfName or teamID based on membersType.
-func (k *KeyFinderImpl) FindForEncryption(ctx context.Context,
-	tlfName string, teamID chat1.TLFID,
+func (k *KeyFinderImpl) FindForEncryption(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool) (res *types.NameInfo, err error) {
 
-	switch membersType {
-	case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAMNATIVE,
-		chat1.ConversationMembersType_IMPTEAMUPGRADE:
-		team, err := LoadTeam(ctx, k.G().ExternalG(), teamID, membersType, public, nil)
-		if err != nil {
-			return res, err
-		}
-		vis := keybase1.TLFVisibility_PRIVATE
-		if public {
-			vis = keybase1.TLFVisibility_PUBLIC
-		}
-		return teamToNameInfo(ctx, team, vis)
-	default:
-		return k.Find(ctx, tlfName, membersType, public)
+	ckey := k.encCacheKey(tlfName, tlfID, membersType, public)
+	existing, ok := k.lookupKey(ckey)
+	if ok {
+		return existing, nil
 	}
+	defer func() {
+		if err != nil {
+			k.writeKey(ckey, res)
+		}
+	}()
+
+	if res, err = k.createNameInfoSource(ctx, membersType).EncryptionKeys(ctx, tlfName, tlfID,
+		membersType, public); err != nil {
+		return nil, err
+	}
+	if public {
+		res.CryptKeys[membersType] = append(res.CryptKeys[membersType], publicCryptKey)
+	}
+	return res, nil
 }
 
 // FindForDecryption ignores tlfName or teamID based on membersType.
 func (k *KeyFinderImpl) FindForDecryption(ctx context.Context,
-	tlfName string, teamID chat1.TLFID,
+	tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
 	keyGeneration int, kbfsEncrypted bool) (res *types.NameInfo, err error) {
 
-	switch membersType {
-	case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAMNATIVE,
-		chat1.ConversationMembersType_IMPTEAMUPGRADE:
-		var refreshers keybase1.TeamRefreshers
-		if !public {
-			// Only need keys for private teams.
-			if !kbfsEncrypted {
-				refreshers.NeedKeyGeneration = keybase1.PerTeamKeyGeneration(keyGeneration)
-			} else {
-				refreshers.NeedKBFSKeyGeneration = keybase1.TeamKBFSKeyRefresher{
-					Generation: keyGeneration,
-					AppType:    keybase1.TeamApplication_CHAT,
-				}
-			}
-		}
-		team, err := LoadTeam(ctx, k.G().ExternalG(), teamID, membersType, public,
-			func(teamID keybase1.TeamID) keybase1.LoadTeamArg {
-				return keybase1.LoadTeamArg{
-					ID:         teamID,
-					Public:     public,
-					Refreshers: refreshers,
-					StaleOK:    true,
-				}
-			})
-		if err != nil {
-			return res, err
-		}
-		vis := keybase1.TLFVisibility_PRIVATE
-		if public {
-			vis = keybase1.TLFVisibility_PUBLIC
-		}
-		return teamToNameInfo(ctx, team, vis)
-	default:
-		return k.Find(ctx, tlfName, membersType, public)
+	ckey := k.decCacheKey(tlfName, tlfID, membersType, public, keyGeneration, kbfsEncrypted)
+	existing, ok := k.lookupKey(ckey)
+	if ok {
+		return existing, nil
 	}
+	defer func() {
+		if err != nil {
+			k.writeKey(ckey, res)
+		}
+	}()
+
+	if res, err = k.createNameInfoSource(ctx, membersType).DecryptionKeys(ctx, tlfName, tlfID,
+		membersType, public, keyGeneration, kbfsEncrypted); err != nil {
+		return nil, err
+	}
+	if public {
+		res.CryptKeys[membersType] = append(res.CryptKeys[membersType], publicCryptKey)
+	}
+	return res, nil
 }
 
 func (k *KeyFinderImpl) SetNameInfoSourceOverride(ni types.NameInfoSource) {

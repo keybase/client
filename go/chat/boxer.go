@@ -232,9 +232,9 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 		// transient error. Rekey errors come through here
 		return chat1.MessageUnboxed{}, NewTransientUnboxingError(err)
 	}
-
 	var encryptionKey types.CryptKey
-	for _, key := range nameInfo.CryptKeys[keyMembersType] {
+	keys := nameInfo.CryptKeys[keyMembersType]
+	for _, key := range keys {
 		if key.Generation() == boxed.KeyGeneration {
 			encryptionKey = key
 			break
@@ -242,7 +242,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 	}
 
 	if encryptionKey == nil {
-		err := fmt.Errorf("no key found for generation %d (%d keys checked)", boxed.KeyGeneration, len(nameInfo.CryptKeys))
+		err := fmt.Errorf("no key found for generation %d (%d keys checked)", boxed.KeyGeneration, len(keys))
 		return chat1.MessageUnboxed{}, NewTransientUnboxingError(err)
 	}
 
