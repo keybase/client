@@ -17,14 +17,14 @@ type StateProps = {
 }
 
 type DispatchProps = {
-  _resetSaveState: (conversationIDKey: Types.ConversationIDKey) => ?Promise<*>,
-  _onMuteConversation: (conversationIDKey: Types.ConversationIDKey, muted: boolean) => ?Promise<*>,
+  _resetSaveState: (conversationIDKey: Types.ConversationIDKey) => void,
+  _onMuteConversation: (conversationIDKey: Types.ConversationIDKey, muted: boolean) => void,
   _onSetNotification: (
     conversationIDKey: Types.ConversationIDKey,
     deviceType: DeviceType,
     notifyType: Types.NotifyType
-  ) => ?Promise<*>,
-  _onToggleChannelWide: (conversationIDKey: Types.ConversationIDKey) => ?Promise<*>,
+  ) => void,
+  _onToggleChannelWide: (conversationIDKey: Types.ConversationIDKey) => void,
 }
 
 type OwnProps = {
@@ -50,6 +50,8 @@ const serverStateToProps = (notifications: Types.NotificationsState, type: 'desk
 
 const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => {
   const inbox = Constants.getSelectedInbox(state)
+  // mapStateToPropsOnlyValid should filter this case (and the null
+  // notifications case) out.
   if (!inbox) throw new Error('Impossible')
   const notifications = inbox.get('notifications')
   if (!notifications) throw new Error('Impossible')
@@ -70,17 +72,22 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
-  _resetSaveState: (conversationIDKey: Types.ConversationIDKey) =>
-    dispatch(ChatGen.createSetNotificationSaveState({conversationIDKey, saveState: 'unsaved'})),
-  _onMuteConversation: (conversationIDKey: Types.ConversationIDKey, muted: boolean) =>
-    dispatch(ChatGen.createMuteConversation({conversationIDKey, muted})),
+  _resetSaveState: (conversationIDKey: Types.ConversationIDKey) => {
+    dispatch(ChatGen.createSetNotificationSaveState({conversationIDKey, saveState: 'unsaved'}))
+  },
+  _onMuteConversation: (conversationIDKey: Types.ConversationIDKey, muted: boolean) => {
+    dispatch(ChatGen.createMuteConversation({conversationIDKey, muted}))
+  },
   _onSetNotification: (
     conversationIDKey: Types.ConversationIDKey,
     deviceType: DeviceType,
     notifyType: Types.NotifyType
-  ) => dispatch(ChatGen.createSetNotifications({conversationIDKey, deviceType, notifyType})),
-  _onToggleChannelWide: (conversationIDKey: Types.ConversationIDKey) =>
-    dispatch(ChatGen.createToggleChannelWideNotifications({conversationIDKey})),
+  ) => {
+    dispatch(ChatGen.createSetNotifications({conversationIDKey, deviceType, notifyType}))
+  },
+  _onToggleChannelWide: (conversationIDKey: Types.ConversationIDKey) => {
+    dispatch(ChatGen.createToggleChannelWideNotifications({conversationIDKey}))
+  },
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => {
