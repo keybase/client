@@ -3,7 +3,7 @@ import CardStackTransitioner from 'react-navigation/src/views/CardStack/CardStac
 import GlobalError from './global-errors/container'
 import Offline from '../offline'
 import React, {Component} from 'react'
-import {EmitterListener} from 'react-native'
+import {type EmitterListener} from 'react-native'
 import TabBar from './tab-bar/container'
 import {
   Box,
