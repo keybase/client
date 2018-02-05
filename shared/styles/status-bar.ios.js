@@ -1,6 +1,11 @@
 // @flow
-import {StatusBarIOS} from 'react-native'
+import {StatusBarIOS, NativeModules} from 'react-native'
+const {StatusBarManager} = NativeModules
 
-const addSizeListener = (cb: Function) => StatusBarIOS.addListener('statusBarFrameWillChange', cb)
+const addSizeListener = (cb: Function) => {
+  // gcall with initial value
+  StatusBarManager.getHeight(cb)
+  return StatusBarIOS.addListener('statusBarFrameWillChange', statusBarData => cb(statusBarData.frame))
+}
 
 export {addSizeListener}

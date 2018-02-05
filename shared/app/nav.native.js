@@ -174,7 +174,7 @@ class MainNavStack extends Component<any, any> {
   }
 
   statusBarListener = (frameData: any) => {
-    this.setState({verticalOffset: frameData.frame.height - 20})
+    this.setState({verticalOffset: frameData.height - 20})
   }
 
   componentWillReceiveProps() {
