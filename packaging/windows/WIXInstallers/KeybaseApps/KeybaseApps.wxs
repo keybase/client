@@ -62,6 +62,7 @@
       </Directory>
       <Directory Id="StartupFolder" Name="Startup" />
       <Directory Id="SystemFolder" Name="System" />
+      <Directory Id="ProgramMenuFolder" Name="ProgramMenu" />
     </Directory>
   </Fragment>
   
@@ -75,7 +76,6 @@
         <RemoveFolder Id="GuiResourcesDirRemove" On="uninstall" Directory="GuiResourcesDir"/>
         <RemoveFolder Id="GuiNodeModulesDirRemove" On="uninstall" Directory="GuiNodeModulesDir"/>
         <RemoveFolder Id="GuiRegeditDirRemove" On="uninstall" Directory="GuiRegeditDir"/>
-        <RemoveFolder Id="ApplicationProgramsFolderRemove" On="uninstall" Directory="ApplicationProgramsFolder"/>
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
           <RegistryValue Name="KeybaseExe" Value="1" KeyPath="yes" Type="integer" />
         </RegistryKey>
