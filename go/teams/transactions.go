@@ -130,6 +130,20 @@ func (tx *AddMemberTx) sweepKeybaseInvites(uid keybase1.UID) {
 	}
 }
 
+func (tx *AddMemberTx) findChangeReqForUV(uv keybase1.UserVersion) *keybase1.TeamChangeReq {
+	for _, v := range tx.payloads {
+		if req, ok := v.(*keybase1.TeamChangeReq); ok {
+			for _, x := range req.GetAllAdds() {
+				if x.Eq(uv) {
+					return req
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
 // AddMemberByUsername will add member by username and role. It
 // checks if given username can become crypto member or a PUKless
 // member. It will also clean up old invites and memberships if
@@ -227,23 +241,7 @@ func (tx *AddMemberTx) CompleteSocialInvitesFor(ctx context.Context, uv keybase1
 	}
 
 	// Find the right payload first
-	var payload *keybase1.TeamChangeReq
-	for _, v := range tx.payloads {
-		if req, ok := v.(*keybase1.TeamChangeReq); ok {
-			found := false
-			for _, x := range req.GetAllAdds() {
-				if x.Eq(uv) {
-					found = true
-					break
-				}
-			}
-			if found {
-				payload = req
-				break
-			}
-		}
-	}
-
+	payload := tx.findChangeReqForUV(uv)
 	if payload == nil {
 		return fmt.Errorf("could not find uv %v in transaction", uv)
 	}
