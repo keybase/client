@@ -117,8 +117,8 @@ class BaseList extends React.Component<Props, State> {
 
   _measure = ordinal => {
     // TODO find index
-    this._cellCache.clearAll()
-    this._list && this._list.Grid && this._list.recomputeRowHeights(0)
+    // this._cellCache.clearAll()
+    // this._list && this._list.Grid && this._list.recomputeRowHeights(0)
   }
 
   _rowRenderer = ({index, isScrolling, isVisible, key, parent, style}) => {
@@ -142,14 +142,16 @@ class BaseList extends React.Component<Props, State> {
         parent={parent}
         rowIndex={index}
       >
-        <div style={style}>
-          <Message
-            ordinal={ordinal}
-            previous={prevOrdinal}
-            measure={this._measure}
-            conversationIDKey={this.props.conversationIDKey}
-          />
-        </div>
+        {({measure}) => (
+          <div style={style}>
+            <Message
+              ordinal={ordinal}
+              previous={prevOrdinal}
+              measure={measure}
+              conversationIDKey={this.props.conversationIDKey}
+            />
+          </div>
+        )}
       </Virtualized.CellMeasurer>
     )
   }

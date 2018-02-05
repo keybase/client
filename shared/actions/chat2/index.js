@@ -21,7 +21,7 @@ import {chatTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {NotifyPopup} from '../../native/notifications'
 import {showMainWindow} from '../platform-specific'
-import {tmpDir} from '../../util/file'
+import {tmpDir, tmpFile, stat} from '../../util/file'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import flags from '../../util/feature-flags'
@@ -217,9 +217,6 @@ const rpcMetaRequest = (
 }
 
 const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedState) => {
-  // TODO from thread-content:
-  // convert outbox to regular?
-  // mark as read
   const {message: cMsg, convID, displayDesktopNotification, conv} = incoming
   const actions = []
 
@@ -616,17 +613,8 @@ const rpcLoadThread = (
   return Saga.sequentially(actions)
 }
 
-const rpcLoadThreadSuccess = () => {}
-
 const clearInboxFilter = (action: Chat2Gen.SelectConversationPayload) =>
   Saga.put(Chat2Gen.createSetInboxFilter({filter: ''}))
-
-// const updateSearchState = (action: Chat2Gen.SelectConversationPayload) => {
-// // selected
-// if (action.payload.fromUser && action.payload.conversationIDKey) {
-// return Saga.put(Chat2Gen.createExitSearch({clear: false}))
-// }
-// }
 
 const desktopNotify = (action: Chat2Gen.DesktopNotificationPayload, state: TypedState) => {
   const {conversationIDKey, author, body} = action.payload
@@ -886,44 +874,44 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
 }
 
 // First we make a preview
-const attachmentPreviewCreate = (action: Chat2Gen.AttachmentSendPayload, state: TypedState) => {
-  const param: RPCChatTypes.LocalMakePreviewRpcParam = {
-    attachment: {filename: action.payload.filename},
-    outputDir: tmpDir(),
-  }
-  return Saga.call(RPCChatTypes.localMakePreviewRpcPromise, param)
-}
+// const attachmentPreviewCreate = (action: Chat2Gen.AttachmentSendPayload, state: TypedState) => {
+// const param: RPCChatTypes.LocalMakePreviewRpcParam = {
+// attachment: {filename: action.payload.filename},
+// outputDir: tmpDir(),
+// }
+// return Saga.call(RPCChatTypes.localMakePreviewRpcPromise, param)
+// }
 
-const attachmentPreviewCreateSuccess = (
-  preview: RPCChatTypes.MakePreviewRes,
-  action: Chat2Gen.AttachmentSendPayload
-) =>
-  Saga.put(
-    Chat2Gen.createAttachmentWithPreviewSend({
-      ...action.payload,
-      preview,
-    })
-  )
+// const attachmentPreviewCreateSuccess = (
+// preview: RPCChatTypes.MakePreviewRes,
+// action: Chat2Gen.AttachmentSendPayload
+// ) =>
+// Saga.put(
+// Chat2Gen.createAttachmentWithPreviewSend({
+// ...action.payload,
+// preview,
+// })
+// )
 
-const attachmentSend = (action: Chat2Gen.AttachmentWithPreviewSendPayload, state: TypedState) => {
-  // TODO
-  // const {conversationIDKey, preview, filename, title} = action.payload
-  // const meta = Constants.getMeta(state, conversationIDKey)
-  // const tlfName = meta.tlfname // TODO non existant convo
-  // // TODO be able to send this
-  // // const outboxID = Constants.generateOutboxID()
-  // const param = {
-  // attachment: {filename},
-  // conversationID: Types.keyToConversationID(conversationIDKey),
-  // identifyBehavior,
-  // metadata: null,
-  // preview,
-  // title,
-  // tlfName,
-  // visibility: RPCTypes.commonTLFVisibility.private,
-  // }
-  // export type LocalPostAttachmentLocalRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, visibility: Keybase1.TLFVisibility, attachment: LocalSource, preview?: ?MakePreviewRes, title: String, metadata: Bytes, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
-}
+// const attachmentSend = (action: Chat2Gen.AttachmentWithPreviewSendPayload, state: TypedState) => {
+// TODO
+// const {conversationIDKey, preview, filename, title} = action.payload
+// const meta = Constants.getMeta(state, conversationIDKey)
+// const tlfName = meta.tlfname // TODO non existant convo
+// // TODO be able to send this
+// // const outboxID = Constants.generateOutboxID()
+// const param = {
+// attachment: {filename},
+// conversationID: Types.keyToConversationID(conversationIDKey),
+// identifyBehavior,
+// metadata: null,
+// preview,
+// title,
+// tlfName,
+// visibility: RPCTypes.commonTLFVisibility.private,
+// }
+// export type LocalPostAttachmentLocalRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, visibility: Keybase1.TLFVisibility, attachment: LocalSource, preview?: ?MakePreviewRes, title: String, metadata: Bytes, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+// }
 
 const startConversation = (action: Chat2Gen.StartConversationPayload, state: TypedState) => {
   /*, forceImmediate */
@@ -1005,17 +993,10 @@ const selectTheNewestConversation = (action: any, state: TypedState) => {
 }
 
 const onExitSearch = (action: Chat2Gen.ExitSearchPayload, state: TypedState) => {
-  // const {clear} = action.payload
-
   return Saga.sequentially([
-    // Saga.put(Chat2Gen.createSetSearching({searching: false})),
-    // ...(clear
-    // ? [
     Saga.put(SearchGen.createClearSearchResults({searchKey: 'chatSearch'})),
     Saga.put(SearchGen.createSetUserInputItems({searchKey: 'chatSearch', searchResults: []})),
     Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: true, users: []})),
-    // ]
-    // : []),
   ])
 }
 
@@ -1044,14 +1025,7 @@ const searchUpdated = (
   return Saga.sequentially([
     Saga.put(SearchGen.createClearSearchResults({searchKey: 'chatSearch'})),
     ...(users.length
-      ? [
-          Saga.put(
-            Chat2Gen.createSetPendingConversationUsers({
-              fromSearch: true,
-              users,
-            })
-          ),
-        ]
+      ? [Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: true, users}))]
       : [Saga.put(SearchGen.createSearchSuggestions({searchKey: 'chatSearch'}))]),
   ])
 }
@@ -1068,6 +1042,110 @@ const updatePendingSelected = (
   }
   if (selected !== state.chat2.pendingSelected) {
     return Saga.put(Chat2Gen.createSetPendingSelected({selected}))
+  }
+}
+
+// We keep a set of attachment previews to load
+let attachmentPreviewQueue = []
+const queueAttachmentPreviewToRequest = (
+  action: Chat2Gen.AttachmentPreviewNeedsUpdatingPayload,
+  state: TypedState
+) => {
+  const {conversationIDKey, ordinal} = action.payload
+  attachmentPreviewQueue.push({conversationIDKey, ordinal})
+  return Saga.put(Chat2Gen.createAttachmentPreviewHandleQueue())
+}
+
+// Watch the attachment queue and take one item. Choose the last items first since they're likely still visible
+const requestAttachmentPreview = (
+  action: Chat2Gen.AttachmentPreviewHandleQueuePayload,
+  state: TypedState
+) => {
+  if (!attachmentPreviewQueue.length) {
+    return
+  }
+
+  const toLoad = attachmentPreviewQueue.pop()
+  const toLoadActions = [Saga.put(Chat2Gen.createAttachmenPreviewLoad(toLoad))]
+  const loadSomeMoreActions = attachmentPreviewQueue.length
+    ? [Saga.put(Chat2Gen.createAttachmentPreviewHandleQueue())]
+    : []
+  const delayBeforeLoadingMoreActions =
+    toLoadActions.length && loadSomeMoreActions.length ? [Saga.call(Saga.delay, 100)] : []
+
+  const nextActions = [...toLoadActions, ...delayBeforeLoadingMoreActions, ...loadSomeMoreActions]
+
+  if (nextActions.length) {
+    return Saga.sequentially(nextActions)
+  }
+}
+
+function* attachmentPreviewLoad(action: Chat2Gen.AttachmenPreviewLoadPayload) {
+  const {conversationIDKey, ordinal} = action.payload
+  const state: TypedState = yield Saga.select()
+  const message = Constants.getMessageMap(state, conversationIDKey).get(ordinal)
+
+  if (!message || message.type !== 'attachment') {
+    console.log('Bailing on unknown attachmentPreviewLoad', conversationIDKey, ordinal)
+    return
+  }
+
+  // done or in progress? bail
+  if (message.devicePreviewPath || message.transferState === 'downloading') {
+    console.log('Bailing on attachmentPreviewLoad', conversationIDKey, ordinal)
+    return
+  }
+
+  const filename = tmpFile(`kbchat-${conversationIDKey}-${Types.ordinalToNumber(ordinal)}.preview`)
+  console.log('aaa', filename)
+  // TODO reducer set downloading and percent
+  Saga.put(Chat2Gen.createAttachmenPreviewLoading({conversationIDKey, ordinal, ratio: 0}))
+  try {
+    const fileStat = yield Saga.call(stat, filename)
+    // already loaded?
+    if (fileStat.size > 0) {
+      yield Saga.put(Chat2Gen.createAttachmenPreviewLoaded({conversationIDKey, ordinal, path: filename}))
+      return
+    }
+  } catch (_) {}
+
+  // Start downloading
+  let lastRatioSent = 0
+  const downloadFileRpc = new EngineRpc.EngineRpcCall(
+    {
+      'chat.1.chatUi.chatAttachmentDownloadDone': EngineRpc.passthroughResponseSaga,
+      'chat.1.chatUi.chatAttachmentDownloadProgress': function*({bytesComplete, bytesTotal}) {
+        const ratio = bytesComplete / bytesTotal
+        // Don't spam ourselves with updates
+        if (ratio - lastRatioSent > 0.05) {
+          lastRatioSent = ratio
+          yield Saga.put(Chat2Gen.createAttachmenPreviewLoading({conversationIDKey, ordinal, ratio}))
+        }
+        return EngineRpc.rpcResult()
+      },
+      'chat.1.chatUi.chatAttachmentDownloadStart': EngineRpc.passthroughResponseSaga,
+    },
+    RPCChatTypes.localDownloadFileAttachmentLocalRpcChannelMap,
+    filename,
+    {
+      conversationID: Types.keyToConversationID(conversationIDKey),
+      filename,
+      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+      messageID: Types.ordinalToNumber(ordinal),
+      preview: true,
+    }
+  )
+
+  try {
+    const result = yield Saga.call(downloadFileRpc.run)
+    if (EngineRpc.isFinished(result)) {
+      yield Saga.put(Chat2Gen.createAttachmenPreviewLoaded({conversationIDKey, ordinal, path: filename}))
+    } else {
+      yield Saga.put(Chat2Gen.createAttachmenPreviewLoadedError({conversationIDKey, ordinal}))
+    }
+  } catch (err) {
+    logger.warn('attachment failed to load:', err)
+    yield Saga.put(Chat2Gen.createAttachmenPreviewLoadedError({conversationIDKey, ordinal}))
   }
 }
 
@@ -1092,8 +1170,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Load the selected thread
   yield Saga.safeTakeEveryPure(
     [Chat2Gen.selectConversation, Chat2Gen.loadMoreMessages, Chat2Gen.setPendingConversationUsers],
-    rpcLoadThread,
-    rpcLoadThreadSuccess
+    rpcLoadThread
   )
 
   yield Saga.safeTakeEveryPure(Chat2Gen.messageRetry, messageRetry)
@@ -1103,13 +1180,13 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.messageDelete, messageDelete)
 
   // First we make a preview, then we post it
-  yield Saga.safeTakeEveryPure(
-    Chat2Gen.attachmentSend,
-    attachmentPreviewCreate,
-    attachmentPreviewCreateSuccess
-  )
-  // We got the preview made so do the real upload
-  yield Saga.safeTakeEveryPure(Chat2Gen.attachmentWithPreviewSend, attachmentSend)
+  // yield Saga.safeTakeEveryPure(
+  // Chat2Gen.attachmentSend,
+  // attachmentPreviewCreate,
+  // attachmentPreviewCreateSuccess
+  // )
+  // // We got the preview made so do the real upload
+  // yield Saga.safeTakeEveryPure(Chat2Gen.attachmentWithPreviewSend, attachmentSend)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.setupChatHandlers, setupChatHandlers)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, clearInboxFilter)
@@ -1144,6 +1221,17 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     sendToPendingConversation,
     sendToPendingConversationSuccess
   )
+
+  // We've scrolled some new attachment rows into view, queue them up
+  yield Saga.safeTakeEveryPure(Chat2Gen.attachmentPreviewNeedsUpdating, queueAttachmentPreviewToRequest)
+  // We have some items in the queue to process
+  yield Saga.safeTakeEveryPure(Chat2Gen.attachmentPreviewHandleQueue, requestAttachmentPreview)
+  // Actually load preview. Spawn so we can handle multiple in parallel
+  yield Saga.safeTakeEvery(Chat2Gen.attachmenPreviewLoad, function*(
+    action: Chat2Gen.AttachmenPreviewLoadPayload
+  ) {
+    yield Saga.spawn(attachmentPreviewLoad, action)
+  })
 }
 
 export default chat2Saga

@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
-import {NativeImage, NativeDimensions} from '../../../../common-adapters/native-wrappers.native'
+import {NativeImage, NativeDimensions} from '../../../../../common-adapters/native-wrappers.native'
 
-import type {ImageRenderProps} from './image'
+import type {ImageRenderProps} from './image-render'
 
 export function ImageRender({style, src}: ImageRenderProps) {
   const source = typeof src === 'string' ? {uri: 'file://' + src} : src

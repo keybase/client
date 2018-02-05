@@ -179,6 +179,31 @@
     },
     // We've made a new conversation successfully and want to cleanup the pending info now
     "clearPendingConversation": {
+    },
+    // We want to ensure we have an attachment preview
+    "attachmentPreviewNeedsUpdating": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
+    },
+    // Internal action: pull more attachment previews from the queue to request
+    "attachmentPreviewHandleQueue": { },
+    "attachmenPreviewLoad": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal",
+    },
+    "attachmenPreviewLoading": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal",
+      "ratio": "number" // 0-1
+    },
+    "attachmenPreviewLoaded": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal",
+      "path": "string",
+      "canError": {
+        "conversationIDKey": "Types.ConversationIDKey",
+        "ordinal": "Types.Ordinal",
+      }
     }
   }
 }

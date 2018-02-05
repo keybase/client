@@ -6,5 +6,5 @@ export type ImageRenderProps = {
   style: Object,
 }
 
-declare export class ImageRender extends React.Component<ImageRenderProps > {}
+declare export class ImageRender extends React.Component<ImageRenderProps> {}
 declare export function imgMaxWidth(): number

@@ -11,6 +11,11 @@ import HiddenString from '../util/hidden-string'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of chat2 but is handled by every reducer
+export const attachmenPreviewLoad = 'chat2:attachmenPreviewLoad'
+export const attachmenPreviewLoaded = 'chat2:attachmenPreviewLoaded'
+export const attachmenPreviewLoading = 'chat2:attachmenPreviewLoading'
+export const attachmentPreviewHandleQueue = 'chat2:attachmentPreviewHandleQueue'
+export const attachmentPreviewNeedsUpdating = 'chat2:attachmentPreviewNeedsUpdating'
 export const attachmentSend = 'chat2:attachmentSend'
 export const attachmentWithPreviewSend = 'chat2:attachmentWithPreviewSend'
 export const badgesUpdated = 'chat2:badgesUpdated'
@@ -52,6 +57,39 @@ export const setupChatHandlers = 'chat2:setupChatHandlers'
 export const startConversation = 'chat2:startConversation'
 
 // Action Creators
+export const createAttachmenPreviewLoad = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    ordinal: Types.Ordinal,
+  }>
+) => ({error: false, payload, type: attachmenPreviewLoad})
+export const createAttachmenPreviewLoaded = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    ordinal: Types.Ordinal,
+    path: string,
+  }>
+) => ({error: false, payload, type: attachmenPreviewLoaded})
+export const createAttachmenPreviewLoadedError = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    ordinal: Types.Ordinal,
+  }>
+) => ({error: true, payload, type: attachmenPreviewLoaded})
+export const createAttachmenPreviewLoading = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    ordinal: Types.Ordinal,
+    ratio: number,
+  }>
+) => ({error: false, payload, type: attachmenPreviewLoading})
+export const createAttachmentPreviewHandleQueue = () => ({error: false, payload: undefined, type: attachmentPreviewHandleQueue})
+export const createAttachmentPreviewNeedsUpdating = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    ordinal: Types.Ordinal,
+  }>
+) => ({error: false, payload, type: attachmentPreviewNeedsUpdating})
 export const createAttachmentSend = (
   payload: $ReadOnly<{
     conversationIDKey: Types.ConversationIDKey,
@@ -223,6 +261,11 @@ export const createStartConversation = (
 ) => ({error: false, payload, type: startConversation})
 
 // Action Payloads
+export type AttachmenPreviewLoadPayload = More.ReturnType<typeof createAttachmenPreviewLoad>
+export type AttachmenPreviewLoadedPayload = More.ReturnType<typeof createAttachmenPreviewLoaded>
+export type AttachmenPreviewLoadingPayload = More.ReturnType<typeof createAttachmenPreviewLoading>
+export type AttachmentPreviewHandleQueuePayload = More.ReturnType<typeof createAttachmentPreviewHandleQueue>
+export type AttachmentPreviewNeedsUpdatingPayload = More.ReturnType<typeof createAttachmentPreviewNeedsUpdating>
 export type AttachmentSendPayload = More.ReturnType<typeof createAttachmentSend>
 export type AttachmentWithPreviewSendPayload = More.ReturnType<typeof createAttachmentWithPreviewSend>
 export type BadgesUpdatedPayload = More.ReturnType<typeof createBadgesUpdated>
@@ -266,6 +309,12 @@ export type StartConversationPayload = More.ReturnType<typeof createStartConvers
 // All Actions
 // prettier-ignore
 export type Actions =
+  | More.ReturnType<typeof createAttachmenPreviewLoad>
+  | More.ReturnType<typeof createAttachmenPreviewLoaded>
+  | More.ReturnType<typeof createAttachmenPreviewLoadedError>
+  | More.ReturnType<typeof createAttachmenPreviewLoading>
+  | More.ReturnType<typeof createAttachmentPreviewHandleQueue>
+  | More.ReturnType<typeof createAttachmentPreviewNeedsUpdating>
   | More.ReturnType<typeof createAttachmentSend>
   | More.ReturnType<typeof createAttachmentWithPreviewSend>
   | More.ReturnType<typeof createBadgesUpdated>

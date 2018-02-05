@@ -48,15 +48,15 @@ export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachm
   ...makeMessageCommon,
   // durationMs: 0,
   // percentUploaded: 0,
-  // previewHeight: 0,
-  // previewWidth: 0,
   attachmentType: 'file',
   deviceFilePath: '',
   devicePreviewPath: '',
   filename: '',
+  previewHeight: 0,
+  previewWidth: 0,
+  submitState: null,
   title: '',
   transferProgress: 0,
-  submitState: null,
   transferState: null,
   type: 'attachment',
 })
@@ -263,6 +263,21 @@ const validUIMessagetoMessage = (
     case RPCChatTypes.commonMessageType.attachment: {
       const attachment = m.messageBody.attachment || {}
       const {filename, mimeType, title} = attachment.object
+      let previewHeight = 0
+      let previewWidth = 0
+      const preview =
+        attachment.preview || (attachment.previews && attachment.previews.length && attachment.previews[1])
+      if (
+        preview &&
+        preview.metadata &&
+        preview.metadata.assetType === RPCChatTypes.localAssetMetadataType.image &&
+        preview.metadata.image
+      ) {
+        // We get this as a @2x
+        previewHeight = preview.metadata.image.height / 2 || 0
+        previewWidth = preview.metadata.image.width / 2 || 0
+      }
+
       // const {filename, title, mimeType, metadata} = attachment.object
       // const metadataVideo =
       // metadata.assetType === RPCChatTypes.localAssetMetadataType.video ? metadata.video : null
@@ -280,8 +295,8 @@ const validUIMessagetoMessage = (
         // durationMs,
         filename,
         // percentUploaded,
-        // previewHeight,
-        // previewWidth,
+        previewHeight,
+        previewWidth,
         title,
       })
     }
