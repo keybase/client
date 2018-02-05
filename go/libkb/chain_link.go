@@ -4,7 +4,6 @@
 package libkb
 
 import (
-	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -1189,27 +1188,4 @@ func (c *ChainLink) MaybeDropSig(ctx context.Context) {
 	c.G().Log.CDebugf(ctx, "ChainLink: dropping sig on link %d [%x] (type %s)", c.unpacked.seqno, c.unpacked.payloadHash, c.unpacked.typ)
 	c.unpacked.sig = ""
 	c.unpacked.sigDropped = true
-}
-
-func GetNullString(data []byte, keys ...string) (val string, err error) {
-	v, t, _, e := jsonparser.Get(data, keys...)
-
-	if e != nil {
-		return "", e
-	}
-
-	if t == jsonparser.Null {
-		return "", nil
-	}
-
-	if t != jsonparser.String {
-		return "", fmt.Errorf("Value is not a string: %s", string(v))
-	}
-
-	// If no escapes return raw content
-	if bytes.IndexByte(v, '\\') == -1 {
-		return string(v), nil
-	}
-
-	return jsonparser.ParseString(v)
 }
