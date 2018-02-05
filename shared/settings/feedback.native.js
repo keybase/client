@@ -35,7 +35,7 @@ type Props = {
 }
 
 class Feedback extends Component<Props> {
-  _scroll: any
+  _scroll: ?NativeScrollView
 
   _onSubmit = () => {
     NativeKeyboard.dismiss()
