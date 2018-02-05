@@ -296,9 +296,9 @@ func TestIdentifyLite(t *testing.T) {
 
 	t.Logf("make an implicit team")
 	iTeamCreateName := strings.Join([]string{tt.users[0].username, "bob@github"}, ",")
-	iTeamID, _, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamCreateName, false /*isPublic*/)
+	iTeam, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamCreateName, false /*isPublic*/)
 	require.NoError(t, err)
-	iTeamImpName := getTeamName(iTeamID)
+	iTeamImpName := getTeamName(iTeam.ID)
 	require.True(t, iTeamImpName.IsImplicit())
 	require.NoError(t, err)
 
@@ -405,9 +405,9 @@ func TestResolveIdentifyImplicitTeamWithSocial(t *testing.T) {
 	iTeamNameSorted := strings.Join([]string{tt.users[0].username, "bob@github", wong.username}, ",")
 
 	t.Logf("make an implicit team")
-	iTeamID, _, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate, false /*isPublic*/)
+	iTeam, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate, false /*isPublic*/)
 	require.NoError(t, err)
-	iTeamImpName := getTeamName(iTeamID)
+	iTeamImpName := getTeamName(iTeam.ID)
 	require.True(t, iTeamImpName.IsImplicit())
 
 	cli, err := client.GetIdentifyClient(g)
@@ -423,7 +423,7 @@ func TestResolveIdentifyImplicitTeamWithSocial(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.Equal(t, res.DisplayName, iTeamNameSorted)
-	require.Equal(t, res.TeamID, iTeamID)
+	require.Equal(t, res.TeamID, iTeam.ID)
 	require.True(t, compareUserVersionSets([]keybase1.UserVersion{tt.users[0].userVersion(), wong.userVersion()}, res.Writers))
 	require.Nil(t, res.TrackBreaks, "track breaks")
 }
@@ -445,7 +445,7 @@ func TestResolveIdentifyImplicitTeamWithReaders(t *testing.T) {
 	iTeamNameLookup := tt.users[0].username + "#" + strings.Join([]string{"bob@github", wong.username + "@rooter"}, ",")
 
 	t.Logf("make an implicit team")
-	iTeamID, _, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate, false /*isPublic*/)
+	iTeam, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate, false /*isPublic*/)
 	require.NoError(t, err)
 
 	cli, err := client.GetIdentifyClient(g)
@@ -462,7 +462,7 @@ func TestResolveIdentifyImplicitTeamWithReaders(t *testing.T) {
 	})
 	require.NoError(t, err, "%v %v", err, spew.Sdump(res))
 	require.Equal(t, res.DisplayName, iTeamNameCreate)
-	require.Equal(t, res.TeamID, iTeamID)
+	require.Equal(t, res.TeamID, iTeam.ID)
 	require.Equal(t, []keybase1.UserVersion{tt.users[0].userVersion()}, res.Writers)
 	require.Nil(t, res.TrackBreaks, "track breaks")
 
@@ -498,7 +498,7 @@ func TestResolveIdentifyImplicitTeamWithDuplicates(t *testing.T) {
 	iTeamNameLookup3 := strings.Join([]string{alice.username, bob.username + "@rooter"}, ",") + "#" + bob.username
 
 	t.Logf("make an implicit team")
-	iTeamID, _, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate, false /*isPublic*/)
+	iTeam, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate, false /*isPublic*/)
 	require.NoError(t, err)
 
 	bob.proveRooter()
@@ -517,7 +517,7 @@ func TestResolveIdentifyImplicitTeamWithDuplicates(t *testing.T) {
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_DEFAULT_KBFS,
 		})
 		require.NoError(t, err, "%v %v", err, spew.Sdump(res))
-		require.Equal(t, res.TeamID, iTeamID)
+		require.Equal(t, res.TeamID, iTeam.ID)
 		require.Equal(t, res.DisplayName, iTeamNameCreate)
 		require.True(t, compareUserVersionSets([]keybase1.UserVersion{alice.userVersion(), bob.userVersion()}, res.Writers))
 		require.Nil(t, res.TrackBreaks, "track breaks")
@@ -559,16 +559,16 @@ func TestResolveIdentifyImplicitTeamWithConflict(t *testing.T) {
 	iTeamNameCreate2 := strings.Join([]string{tt.users[0].username, wong.username + "@rooter"}, ",")
 
 	t.Logf("make the teams")
-	iTeamID1, _, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate1, false /*isPublic*/)
+	iTeam1, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate1, false /*isPublic*/)
 	require.NoError(t, err)
-	iTeamID2, _, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate2, false /*isPublic*/)
+	iTeam2, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate2, false /*isPublic*/)
 	require.NoError(t, err)
-	require.NotEqual(t, iTeamID1, iTeamID2)
-	t.Logf("t1: %v", iTeamID1)
-	t.Logf("t2: %v", iTeamID2)
+	require.NotEqual(t, iTeam1.ID, iTeam2.ID)
+	t.Logf("t1: %v", iTeam1.ID)
+	t.Logf("t2: %v", iTeam2.ID)
 
-	doubleTestResolveImplicitTeam(t, g, iTeamID1, false, keybase1.Seqno(0))
-	doubleTestResolveImplicitTeam(t, g, iTeamID2, false, keybase1.Seqno(0))
+	doubleTestResolveImplicitTeam(t, g, iTeam1.ID, false, keybase1.Seqno(0))
+	doubleTestResolveImplicitTeam(t, g, iTeam2.ID, false, keybase1.Seqno(0))
 
 	getTeamSeqno := func(teamID keybase1.TeamID) keybase1.Seqno {
 		team, err := teams.Load(context.Background(), g, keybase1.LoadTeamArg{
@@ -578,12 +578,12 @@ func TestResolveIdentifyImplicitTeamWithConflict(t *testing.T) {
 		return team.CurrentSeqno()
 	}
 
-	expectedSeqno := getTeamSeqno(iTeamID2) + 1
+	expectedSeqno := getTeamSeqno(iTeam2.ID) + 1
 
 	t.Logf("prove to create the conflict")
 	wong.proveRooter()
 
-	tt.users[0].waitForTeamChangedGregor(iTeamID2, expectedSeqno)
+	tt.users[0].waitForTeamChangedGregor(iTeam2.ID, expectedSeqno)
 
 	cli, err := client.GetIdentifyClient(g)
 	require.NoError(t, err, "failed to get new identifyclient")
@@ -601,7 +601,7 @@ func TestResolveIdentifyImplicitTeamWithConflict(t *testing.T) {
 	})
 	require.NoError(t, err, "%v %v", err, spew.Sdump(res))
 	require.Equal(t, res.DisplayName, iTeamNameCreate1)
-	require.Equal(t, res.TeamID, iTeamID1)
+	require.Equal(t, res.TeamID, iTeam1.ID)
 	require.True(t, compareUserVersionSets([]keybase1.UserVersion{tt.users[0].userVersion(), wong.userVersion()}, res.Writers))
 	require.Nil(t, res.TrackBreaks, "track breaks")
 
@@ -616,14 +616,14 @@ func TestResolveIdentifyImplicitTeamWithConflict(t *testing.T) {
 	})
 	require.NoError(t, err, "%v %v", err, spew.Sdump(res))
 	require.Equal(t, res.DisplayName, iTeamNameCreate1)
-	require.Equal(t, res.TeamID, iTeamID1)
+	require.Equal(t, res.TeamID, iTeam1.ID)
 	require.True(t, compareUserVersionSets([]keybase1.UserVersion{tt.users[0].userVersion(), wong.userVersion()}, res.Writers))
 	require.Nil(t, res.TrackBreaks, "track breaks")
 
 	t.Logf("find out the conflict suffix")
-	iTeamIDxx, _, _, _, conflicts, err := teams.LookupImplicitTeamAndConflicts(context.TODO(), g, iTeamNameCreate1, false /*isPublic*/)
+	iTeamxx, _, _, conflicts, err := teams.LookupImplicitTeamAndConflicts(context.TODO(), g, iTeamNameCreate1, false /*isPublic*/)
 	require.NoError(t, err)
-	require.Equal(t, iTeamIDxx, iTeamID1)
+	require.Equal(t, iTeamxx.ID, iTeam1.ID)
 	require.Len(t, conflicts, 1)
 
 	t.Logf("get the conflict loser")
@@ -637,12 +637,12 @@ func TestResolveIdentifyImplicitTeamWithConflict(t *testing.T) {
 	})
 	require.NoError(t, err, "%v %v", err, spew.Sdump(res))
 	require.Equal(t, res.DisplayName, iTeamNameCreate1+" "+libkb.FormatImplicitTeamDisplayNameSuffix(conflicts[0]))
-	require.Equal(t, res.TeamID, iTeamID2)
+	require.Equal(t, res.TeamID, iTeam2.ID)
 	require.True(t, compareUserVersionSets([]keybase1.UserVersion{tt.users[0].userVersion(), wong.userVersion()}, res.Writers))
 	require.Nil(t, res.TrackBreaks, "track breaks")
 
-	testResolveImplicitTeam(t, g, iTeamID1, false, keybase1.Seqno(0))
-	testResolveImplicitTeam(t, g, iTeamID2, false, keybase1.Seqno(1))
+	testResolveImplicitTeam(t, g, iTeam1.ID, false, keybase1.Seqno(0))
+	testResolveImplicitTeam(t, g, iTeam2.ID, false, keybase1.Seqno(1))
 
 }
 
@@ -659,7 +659,7 @@ func TestResolveIdentifyImplicitTeamWithIdentifyFailures(t *testing.T) {
 	iTeamNameCreate := strings.Join([]string{tt.users[0].username, wong.username}, ",")
 
 	t.Logf("make an implicit team")
-	iTeamID, _, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate, false /*isPublic*/)
+	iTeam, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate, false /*isPublic*/)
 	require.NoError(t, err)
 
 	cli, err := client.GetIdentifyClient(g)
@@ -680,7 +680,7 @@ func TestResolveIdentifyImplicitTeamWithIdentifyFailures(t *testing.T) {
 	require.Error(t, err)
 	require.IsType(t, libkb.IdentifiesFailedError{}, err, "%v", err)
 	require.Equal(t, res.DisplayName, iTeamNameCreate)
-	require.Equal(t, res.TeamID, iTeamID)
+	require.Equal(t, res.TeamID, iTeam.ID)
 	require.True(t, compareUserVersionSets([]keybase1.UserVersion{tt.users[0].userVersion(), wong.userVersion()}, res.Writers))
 	require.Nil(t, res.TrackBreaks, "expect no track breaks")
 
@@ -708,7 +708,7 @@ func TestResolveIdentifyImplicitTeamWithIdentifyFailures(t *testing.T) {
 	require.Error(t, err)
 	require.IsType(t, libkb.IdentifiesFailedError{}, err, "%v", err)
 	require.Equal(t, res.DisplayName, iTeamNameCreate)
-	require.Equal(t, res.TeamID, iTeamID)
+	require.Equal(t, res.TeamID, iTeam.ID)
 	require.True(t, compareUserVersionSets([]keybase1.UserVersion{tt.users[0].userVersion(), wong.userVersion()}, res.Writers))
 	require.Nil(t, res.TrackBreaks) // counter-intuitively, there are no track breaks when the error is fatal in this mode.
 
@@ -725,7 +725,7 @@ func TestResolveIdentifyImplicitTeamWithIdentifyFailures(t *testing.T) {
 	require.Error(t, err)
 	require.IsType(t, libkb.IdentifiesFailedError{}, err, "%v", err)
 	require.Equal(t, res.DisplayName, iTeamNameCreate)
-	require.Equal(t, res.TeamID, iTeamID)
+	require.Equal(t, res.TeamID, iTeam.ID)
 	require.True(t, compareUserVersionSets([]keybase1.UserVersion{tt.users[0].userVersion(), wong.userVersion()}, res.Writers))
 	// In this mode, in addition to the error TrackBreaks is filled.
 	require.NotNil(t, res.TrackBreaks)

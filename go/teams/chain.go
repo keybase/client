@@ -994,6 +994,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			// Check that the invites being completed are all active.
 			// For non-implicit teams we are more lenient, but here we need the counts to match up.
 			invitees := make(map[keybase1.UID]bool)
+			parsedCompletedInvites := make(map[keybase1.TeamInviteID]keybase1.UserVersion)
 			for inviteID, invitee := range team.CompletedInvites {
 				_, ok := prevState.inner.ActiveInvites[inviteID]
 				if !ok {
@@ -1005,6 +1006,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 					return res, err
 				}
 				invitees[uv.Uid] = true
+				parsedCompletedInvites[inviteID] = uv
 			}
 			nCompleted := len(team.CompletedInvites)
 
@@ -1022,6 +1024,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 				removals[uv.Uid] = removal{uv: uv}
 			}
 			var nCompletedExpected int
+			additions := make(map[keybase1.UID]bool)
 			// Every addition must either be paired with a removal or resolve an invite.
 			for _, uv := range append(roleUpdates[keybase1.TeamRole_OWNER], roleUpdates[keybase1.TeamRole_READER]...) {
 				removal, ok := removals[uv.Uid]
@@ -1036,16 +1039,29 @@ func (t *TeamSigChainPlayer) addInnerLink(
 						// If we are removing someone that is also a completed invite, then it must
 						// be replacing a reset user with a new version. Expect an invite in this case.
 						nCompletedExpected++
+						additions[uv.Uid] = true
 					}
 				} else {
 					// This is a new user, so must be a completed invite.
 					nCompletedExpected++
+					additions[uv.Uid] = true
 				}
 			}
 			// All removals must have come with successor.
 			for _, r := range removals {
 				if !r.satisfied {
 					return res, NewImplicitTeamOperationError("removal without addition for %v", r.uv)
+				}
+			}
+			// Completed invites that do not bring in new members mean
+			// SBS consolidations.
+			for _, uv := range parsedCompletedInvites {
+				_, ok := additions[uv.Uid]
+				if !ok {
+					if prevState.getUserRole(uv) == keybase1.TeamRole_NONE {
+						return res, NewImplicitTeamOperationError("trying to moot invite but there is no member for %v", uv)
+					}
+					nCompleted--
 				}
 			}
 			// The number of completed invites must match.

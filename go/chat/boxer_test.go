@@ -1420,23 +1420,24 @@ func NewKeyFinderMock(cryptKeys []keybase1.CryptKey) KeyFinder {
 }
 
 func (k *KeyFinderMock) Find(ctx context.Context, tlfName string,
-	membersType chat1.ConversationMembersType, tlfPublic bool) (res types.NameInfo, err error) {
+	membersType chat1.ConversationMembersType, tlfPublic bool) (res *types.NameInfo, err error) {
+	res = types.NewNameInfo()
 	for _, key := range k.cryptKeys {
-		res.CryptKeys = append(res.CryptKeys, key)
+		res.CryptKeys[membersType] = append(res.CryptKeys[membersType], key)
 	}
 	return res, nil
 }
 
 func (k *KeyFinderMock) FindForEncryption(ctx context.Context,
 	tlfName string, teamID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool) (res types.NameInfo, err error) {
+	membersType chat1.ConversationMembersType, public bool) (res *types.NameInfo, err error) {
 	return k.Find(ctx, tlfName, membersType, public)
 }
 
 func (k *KeyFinderMock) FindForDecryption(ctx context.Context,
 	tlfName string, teamID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
-	keyGeneration int) (res types.NameInfo, err error) {
+	keyGeneration int, kbfsEncrypted bool) (res *types.NameInfo, err error) {
 	return k.Find(ctx, tlfName, membersType, public)
 }
 

@@ -641,8 +641,16 @@ function _unboxedToMessage(
                 const team = body.gitpush ? body.gitpush.team : '???'
                 const pusher = body.gitpush ? body.gitpush.pusher : '???'
                 const repo = body.gitpush ? body.gitpush.repoName : '???'
+                const repoID = body.gitpush ? body.gitpush.repoID : '???'
                 messageText = `${pusher} pushed to ${team} team repo ${repo}.`
-                info = {team, pusher, repo, refs: body.gitpush ? body.gitpush.refs : [], type: 'gitPush'}
+                info = {
+                  team,
+                  pusher,
+                  repo,
+                  repoID,
+                  refs: body.gitpush ? body.gitpush.refs : [],
+                  type: 'gitPush',
+                }
                 break
               }
             }

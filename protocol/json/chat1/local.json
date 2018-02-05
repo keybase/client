@@ -2973,6 +2973,13 @@
         {
           "name": "outboxID",
           "type": "OutboxID"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "keybase1.TLFIdentifyBehavior"
+          ]
         }
       ],
       "response": null,
@@ -3226,6 +3233,15 @@
         {
           "name": "policy",
           "type": "RetentionPolicy"
+        }
+      ],
+      "response": null
+    },
+    "upgradeKBFSConversationToImpteam": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
         }
       ],
       "response": null

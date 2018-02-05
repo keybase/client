@@ -193,16 +193,15 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamHelper(ctx context.Context,
 	}
 	h.G().Log.CDebugf(ctx, "ResolveIdentifyImplicitTeam looking up:'%v'", lookupNameStr)
 
-	var teamID keybase1.TeamID
+	var team *teams.Team
 	var impName keybase1.ImplicitTeamDisplayName
-	var tlfID keybase1.TLFID
 	// Lookup*ImplicitTeam is responsible for making sure the returned team has the members from lookupName.
 	// Duplicates are also handled by Lookup*. So we might end up doing extra identifies of duplicates out here.
 	// (Duplicates e.g. "me,chris,chris", "me,chris#chris", "me,chris@rooter#chris")
 	if arg.Create {
-		teamID, _, impName, tlfID, err = teams.LookupOrCreateImplicitTeam(ctx, h.G(), lookupNameStr, arg.IsPublic)
+		team, _, impName, err = teams.LookupOrCreateImplicitTeam(ctx, h.G(), lookupNameStr, arg.IsPublic)
 	} else {
-		teamID, _, impName, tlfID, err = teams.LookupImplicitTeam(ctx, h.G(), lookupNameStr, arg.IsPublic)
+		team, _, impName, err = teams.LookupImplicitTeam(ctx, h.G(), lookupNameStr, arg.IsPublic)
 	}
 	if err != nil {
 		return res, err
@@ -227,15 +226,6 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamHelper(ctx context.Context,
 		return res, err
 	}
 
-	team, err := teams.Load(ctx, h.G(), keybase1.LoadTeamArg{
-		ID:          teamID,
-		Public:      arg.IsPublic,
-		ForceRepoll: true,
-	})
-	if err != nil {
-		return res, err
-	}
-
 	writers, err := team.UsersWithRoleOrAbove(keybase1.TeamRole_WRITER)
 	if err != nil {
 		return res, err
@@ -244,10 +234,10 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamHelper(ctx context.Context,
 	// Populate the result. It may get returned together with an identify error.
 	res = keybase1.ResolveIdentifyImplicitTeamRes{
 		DisplayName: displayNameKBFS,
-		TeamID:      teamID,
+		TeamID:      team.ID,
 		Writers:     writers,
 		TrackBreaks: nil,
-		FolderID:    tlfID,
+		FolderID:    team.KBFSTLFID(),
 	}
 
 	if arg.DoIdentifies {

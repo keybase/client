@@ -9,6 +9,7 @@ import {
   Avatar,
   Box,
   Icon,
+  Meta,
   PlatformIcon,
   PopupMenu,
   Text,
@@ -361,6 +362,7 @@ class ProfileRender extends PureComponent<Props, State> {
                             <Text style={{color: globalColors.black_75}} type="BodySemiboldLink">
                               {team.fqName}
                             </Text>
+                            {team.open && <Meta style={styleMeta} title="OPEN" />}
                           </Box>
                         </Box>
                       ))}
@@ -503,6 +505,14 @@ const styleFolderIcon = {
   width: 16,
   height: 16,
   textAlign: 'center',
+}
+
+const styleMeta = {
+  alignSelf: 'center',
+  backgroundColor: globalColors.green,
+  borderRadius: 1,
+  marginLeft: globalMargins.xtiny,
+  marginTop: 2,
 }
 
 const styleFriendships = {

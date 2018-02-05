@@ -1032,6 +1032,14 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 	section.CompletedInvites = req.CompletedInvites
 	section.Implicit = t.IsImplicit()
 	section.Public = t.IsPublic()
+
+	if len(section.CompletedInvites) > 0 && section.Members == nil {
+		// Just mooted invites is fine - if TeamChangeReq is empty,
+		// changeMembershipSection returned nil members. But we need
+		// empty Members in order to have a valid link.
+		section.Members = &SCTeamMembers{}
+	}
+
 	return section, secretBoxes, implicitAdminBoxes, memSet, nil
 }
 
@@ -1820,4 +1828,37 @@ func (t *Team) refreshUIDMapper(ctx context.Context, g *libkb.GlobalContext) {
 			g.UIDMapper.InformOfEldestSeqno(ctx, g, uv)
 		}
 	}
+}
+
+func UpgradeTLFIDToImpteam(ctx context.Context, g *libkb.GlobalContext, tlfName string, tlfID keybase1.TLFID,
+	public bool, appType keybase1.TeamApplication, cryptKeys []keybase1.CryptKey) (err error) {
+	defer g.CTrace(ctx, fmt.Sprintf("UpgradeTLFIDToImpteam(%s)", tlfID), func() error { return err })()
+
+	var team *Team
+	if team, _, _, err = LookupOrCreateImplicitTeam(ctx, g, tlfName, public); err != nil {
+		return err
+	}
+
+	// Associate the imp team with the TLF ID
+	if team.KBFSTLFID().IsNil() {
+		if err = team.AssociateWithTLFID(ctx, tlfID); err != nil {
+			return err
+		}
+	} else {
+		if team.KBFSTLFID().String() != tlfID.String() {
+			return fmt.Errorf("implicit team already associated with different TLF ID: teamID: %s tlfID: %s",
+				team.ID, tlfID)
+		}
+	}
+
+	// Reload the team
+	if team, err = Load(ctx, g, keybase1.LoadTeamArg{
+		ID:          team.ID,
+		ForceRepoll: true,
+	}); err != nil {
+		return err
+	}
+
+	// Post the crypt keys
+	return team.AssociateWithTLFKeyset(ctx, tlfID, cryptKeys, appType)
 }

@@ -8,6 +8,7 @@ import type {Teamname} from '../../constants/types/teams'
 export type Props = {
   teamnames: Array<Teamname>,
   teammembercounts: {[string]: number},
+  teamNameToIsOpen: {[string]: boolean},
   newTeams: Array<Teamname>,
   newTeamRequests: Array<Teamname>,
   onOpenFolder: (teamname: Teamname) => void,
@@ -19,6 +20,7 @@ type RowProps = {
   name: Teamname,
   membercount: number,
   isNew: boolean,
+  isOpen: boolean,
   newRequests: number,
   onOpenFolder: ?() => void,
   onManageChat: ?() => void,
@@ -32,10 +34,19 @@ const newCharmStyle = {
   alignSelf: 'center',
 }
 
+const openCharmStyle = {
+  alignSelf: 'center',
+  backgroundColor: globalColors.green,
+  borderRadius: 1,
+  marginLeft: 4,
+  marginTop: 2,
+}
+
 const TeamRow = ({
   name,
   membercount,
   isNew,
+  isOpen,
   newRequests,
   onOpenFolder,
   onManageChat,
@@ -58,7 +69,10 @@ const TeamRow = ({
           style={{marginLeft: globalMargins.tiny}}
         />
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: globalMargins.small}}>
-          <Text type="BodySemibold">{name}</Text>
+          <Box style={globalStyles.flexBoxRow}>
+            <Text type="BodySemibold">{name}</Text>
+            {isOpen && <Meta title="OPEN" style={openCharmStyle} />}
+          </Box>
           <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
             {!!newRequests && (
               <Badge badgeNumber={newRequests} badgeStyle={{marginLeft: 0, marginRight: 3, marginTop: 1}} />
@@ -94,6 +108,7 @@ const TeamList = (props: Props) => (
         key={name}
         name={name}
         isNew={props.newTeams.includes(name)}
+        isOpen={props.teamNameToIsOpen[name]}
         newRequests={props.newTeamRequests.filter(team => team === name).length}
         membercount={props.teammembercounts[name]}
         onOpenFolder={() => props.onOpenFolder(name)}

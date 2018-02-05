@@ -414,8 +414,8 @@ func localTrackChainLinkFor(tracker, trackee keybase1.UID, localExpires bool, g 
 		return
 	}
 
-	cl := &ChainLink{Contextified: NewContextified(g), payloadJSON: obj, unsigned: true}
-	if err = cl.UnpackLocal(); err != nil {
+	cl := &ChainLink{Contextified: NewContextified(g), unsigned: true}
+	if err = cl.UnpackLocal(obj); err != nil {
 		g.Log.Debug("| unpack failed -> %s", err)
 		return
 	}

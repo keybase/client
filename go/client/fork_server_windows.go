@@ -63,7 +63,7 @@ func spawnServer(g *libkb.GlobalContext, cl libkb.CommandLine, forkType keybase1
 	if err != nil {
 		err = fmt.Errorf("Error in StartProcess: %s", err)
 	} else {
-		g.UI.GetDumbOutputUI().Printf("Starting background server with pid=%d\n", pid)
+		g.Log.Info("Starting background server with pid=%d", pid)
 	}
 	return
 }

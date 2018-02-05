@@ -750,7 +750,25 @@ func TestInboxServerVersion(t *testing.T) {
 	require.Equal(t, 5, idata.ServerVersion)
 }
 
-func TestMembershipUpdate(t *testing.T) {
+func TestInboxKBFSUpgrade(t *testing.T) {
+	_, inbox, _ := setupInboxTest(t, "kbfs")
+	numConvs := 10
+	var convs []types.RemoteConversation
+	for i := numConvs - 1; i >= 0; i-- {
+		convs = append(convs, makeConvo(gregor1.Time(i), 1, 1))
+	}
+	conv := convs[5]
+	require.Equal(t, chat1.ConversationMembersType_KBFS, conv.Conv.GetMembersType())
+	require.NoError(t, inbox.Merge(context.TODO(), 1, utils.PluckConvs(convs), nil, nil))
+	require.NoError(t, inbox.UpgradeKBFSToImpteam(context.TODO(), 2, conv.GetConvID()))
+	_, res, _, err := inbox.Read(context.TODO(), nil, nil)
+	require.NoError(t, err)
+	require.Equal(t, len(convs), len(res), "length")
+	require.Equal(t, conv.GetConvID(), res[5].GetConvID(), "id")
+	require.Equal(t, chat1.ConversationMembersType_IMPTEAMUPGRADE, res[5].Conv.Metadata.MembersType)
+}
+
+func TestInboxMembershipUpdate(t *testing.T) {
 	ctc, inbox, uid := setupInboxTest(t, "membership")
 
 	u2, err := kbtest.CreateAndSignupFakeUser("ib", ctc.G)
