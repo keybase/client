@@ -2955,11 +2955,34 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 
 		users := ctc.users()
 		displayName := users[0].Username + "," + users[1].Username
-
-		listener := newServerChatListener()
-		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener)
-
 		tc := ctc.world.Tcs[users[0].Username]
+
+		listener0 := newServerChatListener()
+		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener0)
+		listener1 := newServerChatListener()
+		ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener1)
+
+		consumeIdentify := func(ctx context.Context, listener *serverChatListener, ref string,
+			tlfID chat1.TLFID) {
+			// check identify updates
+			var update keybase1.CanonicalTLFNameAndIDWithBreaks
+			select {
+			case update = <-listener.identifyUpdate:
+				t.Logf("identify update: %+v", update)
+			case <-time.After(2 * time.Second):
+				require.Fail(t, "no identify")
+			}
+			if ref != "" {
+				require.EqualValues(t, update.CanonicalName, ref)
+			}
+			if !tlfID.IsNil() {
+				require.Equal(t, tlfID, chat1.TLFID(update.TlfID.ToBytes()))
+			}
+			require.Empty(t, update.Breaks.Breaks)
+			CtxIdentifyNotifier(ctx).Reset()
+			CtxKeyFinder(ctx, tc.Context()).Reset()
+		}
+
 		ctx := ctc.as(t, users[0]).startCtx
 		res, err := ctc.as(t, users[0]).chatLocalHandler().FindConversationsLocal(ctx,
 			chat1.FindConversationsLocalArg{
@@ -2971,6 +2994,7 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 			})
 		require.NoError(t, err)
 		require.Equal(t, 0, len(res.Conversations), "conv found")
+		consumeIdentify(ctx, listener0, "", nil)
 
 		// create a new conversation
 		ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
@@ -2982,8 +3006,8 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 			})
 		require.NoError(t, err)
+		consumeIdentify(ctx, listener0, ncres.Conv.Info.TlfName, ncres.Conv.Info.Triple.Tlfid)
 
-		ctx = ctc.as(t, users[0]).startCtx
 		uid := users[0].User.GetUID().ToBytes()
 		conv, _, err := GetUnverifiedConv(ctx, tc.Context(), uid, ncres.Conv.Info.Id, false)
 		require.NoError(t, err)
@@ -3008,17 +3032,7 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 			},
 		})
 		require.NoError(t, err)
-
-		// check identify updates
-		var update keybase1.CanonicalTLFNameAndIDWithBreaks
-		select {
-		case update = <-listener.identifyUpdate:
-			t.Logf("identify update: %+v", update)
-		case <-time.After(20 * time.Second):
-			t.Fatal("timed out waiting for identify update")
-		}
-		require.EqualValues(t, update.CanonicalName, ncres.Conv.Info.TlfName)
-		require.Empty(t, update.Breaks.Breaks)
+		consumeIdentify(ctx, listener0, ncres.Conv.Info.TlfName, ncres.Conv.Info.Triple.Tlfid)
 
 		// user 1 sends a message to conv
 		ctx = ctc.as(t, users[1]).startCtx
@@ -3036,6 +3050,7 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 			},
 		})
 		require.NoError(t, err)
+		consumeIdentify(ctx, listener1, ncres.Conv.Info.TlfName, ncres.Conv.Info.Triple.Tlfid)
 
 		// user 1 finds the conversation
 		tc = ctc.world.Tcs[users[1].Username]
@@ -3050,6 +3065,7 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 			})
 		require.NoError(t, err)
 		require.Equal(t, 1, len(res.Conversations), "no convs found")
+		consumeIdentify(ctx, listener1, ncres.Conv.Info.TlfName, ncres.Conv.Info.Triple.Tlfid)
 	})
 }
 

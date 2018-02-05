@@ -412,8 +412,7 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, conv types.U
 
 			s.Debug(ctx, "identifyTLF: identifying from msg ID: %d names: %v convID: %s",
 				msg.GetMessageID(), names, conv.GetConvID())
-			_, err := NewNameIdentifier(s.G()).Identify(ctx, names, !msg.Valid().ClientHeader.TlfPublic,
-				idMode)
+			_, err := NewNameIdentifier(s.G()).Identify(ctx, names, !msg.Valid().ClientHeader.TlfPublic)
 			if err != nil {
 				s.Debug(ctx, "identifyTLF: failure: name: %s convID: %s err: %s", tlfName, conv.GetConvID(),
 					err)

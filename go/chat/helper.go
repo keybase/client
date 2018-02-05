@@ -550,17 +550,17 @@ L:
 			case chat1.ConversationMembersType_IMPTEAMUPGRADE:
 				if !attempts[chat1.ConversationMembersType_IMPTEAMNATIVE] {
 					newMT = chat1.ConversationMembersType_IMPTEAMNATIVE
+					err = ierr
 				} else {
 					newMT = chat1.ConversationMembersType_KBFS
 				}
-				err = ierr
 			case chat1.ConversationMembersType_IMPTEAMNATIVE:
 				if !attempts[chat1.ConversationMembersType_IMPTEAMUPGRADE] {
 					newMT = chat1.ConversationMembersType_IMPTEAMUPGRADE
+					err = ierr
 				} else {
 					newMT = chat1.ConversationMembersType_KBFS
 				}
-				err = ierr
 			case chat1.ConversationMembersType_KBFS:
 				debugger.Debug(ctx, "FindConversations: failed with KBFS, aborting")
 				// We don't want to return random errors from KBFS if we are falling back to it,

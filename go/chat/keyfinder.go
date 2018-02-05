@@ -20,6 +20,7 @@ type KeyFinder interface {
 	FindForDecryption(ctx context.Context, tlfName string, teamID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool, keyGeneration int,
 		kbfsEncrypted bool) (*types.NameInfo, error)
+	Reset()
 	SetNameInfoSourceOverride(types.NameInfoSource)
 }
 
@@ -41,6 +42,10 @@ func NewKeyFinder(g *globals.Context) KeyFinder {
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "KeyFinder", false),
 		keys:         make(map[string]*types.NameInfo),
 	}
+}
+
+func (k *KeyFinderImpl) Reset() {
+	k.keys = make(map[string]*types.NameInfo)
 }
 
 func (k *KeyFinderImpl) cacheKey(name string, membersType chat1.ConversationMembersType, public bool) string {

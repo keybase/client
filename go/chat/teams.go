@@ -167,28 +167,14 @@ func (t *ImplicitTeamsNameInfoSource) identify(ctx context.Context, tlfID chat1.
 	names = append(names, impTeamName.Readers.KeybaseUsers...)
 
 	// identify the members in the conversation
-	identBehavior, breaks, ok := IdentifyMode(ctx)
+	identBehavior, _, ok := IdentifyMode(ctx)
 	if !ok {
 		return res, errors.New("invalid context with no chat metadata")
 	}
-	ib, err := t.Identify(ctx, names, true, identBehavior)
+	res, err = t.Identify(ctx, names, true)
 	if err != nil {
 		return res, err
 	}
-	// use id breaks calculated by Identify
-	res = ib
-
-	if in := CtxIdentifyNotifier(ctx); in != nil {
-		update := keybase1.CanonicalTLFNameAndIDWithBreaks{
-			TlfID:         keybase1.TLFID(tlfID.String()),
-			CanonicalName: keybase1.CanonicalTlfName(impTeamName.String()),
-			Breaks: keybase1.TLFBreak{
-				Breaks: res,
-			},
-		}
-		in.Send(update)
-	}
-	*breaks = appendBreaks(*breaks, res)
 
 	// GUI Strict mode errors are swallowed earlier, return an error now (key is that it is
 	// after send to IdentifyNotifier)
@@ -203,6 +189,9 @@ func (t *ImplicitTeamsNameInfoSource) makeNameInfo(ctx context.Context, team *te
 	tlfID chat1.TLFID, impTeamName keybase1.ImplicitTeamDisplayName, public bool) (res *types.NameInfo, err error) {
 	res = types.NewNameInfo()
 	res.ID = tlfID
+	if res.ID.IsNil() {
+		return res, errors.New("blank TLF ID given")
+	}
 	res.CanonicalName = impTeamName.String()
 	if res.CryptKeys, err = getTeamKeys(ctx, team, public); err != nil {
 		return res, err
@@ -268,12 +257,10 @@ func (t *ImplicitTeamsNameInfoSource) DecryptionKeys(ctx context.Context, name s
 	if err != nil {
 		return res, err
 	}
-	// Identify before returning any information
 	impTeamName, err := team.ImplicitTeamDisplayName(ctx)
 	if err != nil {
 		return res, err
 	}
-
 	return t.makeNameInfo(ctx, team, teamID, impTeamName, public)
 }
 

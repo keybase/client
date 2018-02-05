@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 
 	"golang.org/x/sync/errgroup"
@@ -214,16 +215,30 @@ func (h *IdentifyChangedHandler) HandleUserChanged(uid keybase1.UID) (err error)
 
 type NameIdentifier struct {
 	globals.Contextified
+	utils.DebugLabeler
 }
 
 func NewNameIdentifier(g *globals.Context) *NameIdentifier {
 	return &NameIdentifier{
 		Contextified: globals.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "NameIdentifier", false),
 	}
 }
 
-func (t *NameIdentifier) Identify(ctx context.Context, names []string, private bool,
-	identBehavior keybase1.TLFIdentifyBehavior) ([]keybase1.TLFIdentifyFailure, error) {
+func (t *NameIdentifier) Identify(ctx context.Context, names []string, private bool) (res []keybase1.TLFIdentifyFailure, err error) {
+	idNotifier := CtxIdentifyNotifier(ctx)
+	identBehavior, breaks, ok := IdentifyMode(ctx)
+	if !ok {
+		return res, fmt.Errorf("invalid context with no chat metadata")
+	}
+	defer t.Trace(ctx, func() error { return err },
+		fmt.Sprintf("Identify(names=%s,mode=%v)", strings.Join(names, ","), identBehavior))()
+
+	if identBehavior == keybase1.TLFIdentifyBehavior_CHAT_SKIP {
+		t.Debug(ctx, "SKIP behavior found, not running identify")
+		return nil, nil
+	}
+
 	// need new context as errgroup will cancel it.
 	group, ectx := errgroup.WithContext(BackgroundContext(ctx, t.G()))
 	assertions := make(chan string)
@@ -266,15 +281,22 @@ func (t *NameIdentifier) Identify(ctx context.Context, names []string, private b
 		group.Wait()
 		close(fails)
 	}()
-
-	var res []keybase1.TLFIdentifyFailure
 	for f := range fails {
 		res = append(res, f)
 	}
-
 	if err := group.Wait(); err != nil {
 		return nil, err
 	}
+
+	if idNotifier != nil {
+		idNotifier.Send(keybase1.CanonicalTLFNameAndIDWithBreaks{
+			Breaks: keybase1.TLFBreak{
+				Breaks: res,
+			},
+		})
+	}
+	*breaks = appendBreaks(*breaks, res)
+
 	return res, nil
 }
 

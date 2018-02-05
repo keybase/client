@@ -100,8 +100,7 @@ func (t *KBFSNameInfoSource) DecryptionKeys(ctx context.Context, tlfName string,
 }
 
 func (t *KBFSNameInfoSource) CryptKeys(ctx context.Context, tlfName string) (res keybase1.GetTLFCryptKeysRes, ferr error) {
-	idNotifier := CtxIdentifyNotifier(ctx)
-	identBehavior, breaks, ok := IdentifyMode(ctx)
+	identBehavior, _, ok := IdentifyMode(ctx)
 	if !ok {
 		return res, fmt.Errorf("invalid context with no chat metadata")
 	}
@@ -121,17 +120,13 @@ func (t *KBFSNameInfoSource) CryptKeys(ctx context.Context, tlfName string) (res
 	group, ectx := errgroup.WithContext(BackgroundContext(ctx, t.G()))
 
 	var ib []keybase1.TLFIdentifyFailure
-	runIdentify := (identBehavior != keybase1.TLFIdentifyBehavior_CHAT_SKIP)
-	if runIdentify {
+	group.Go(func() error {
 		t.Debug(ectx, "CryptKeys: running identify")
-		group.Go(func() error {
-			var err error
-			names := utils.SplitTLFName(tlfName)
-			ib, err = t.Identify(ectx, names, true, identBehavior)
-			return err
-		})
-	}
-
+		var err error
+		names := utils.SplitTLFName(tlfName)
+		ib, err = t.Identify(ectx, names, true)
+		return err
+	})
 	group.Go(func() error {
 		t.Debug(ectx, "CryptKeys: running GetTLFCryptKeys on KFBS daemon")
 		tlfClient, err := t.tlfKeysClient()
@@ -158,15 +153,6 @@ func (t *KBFSNameInfoSource) CryptKeys(ctx context.Context, tlfName string) (res
 		return keybase1.GetTLFCryptKeysRes{}, err
 	}
 
-	// use id breaks calculated by Identify
-	if runIdentify {
-		res.NameIDBreaks.Breaks.Breaks = ib
-		if idNotifier != nil {
-			idNotifier.Send(res.NameIDBreaks)
-		}
-		*breaks = appendBreaks(*breaks, res.NameIDBreaks.Breaks.Breaks)
-	}
-
 	// GUI Strict mode errors are swallowed earlier, return an error now (key is that it is
 	// after send to IdentifyNotifier)
 	if identBehavior == keybase1.TLFIdentifyBehavior_CHAT_GUI_STRICT &&
@@ -178,8 +164,7 @@ func (t *KBFSNameInfoSource) CryptKeys(ctx context.Context, tlfName string) (res
 }
 
 func (t *KBFSNameInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tlfName string) (res keybase1.CanonicalTLFNameAndIDWithBreaks, ferr error) {
-	idNotifier := CtxIdentifyNotifier(ctx)
-	identBehavior, breaks, ok := IdentifyMode(ctx)
+	identBehavior, _, ok := IdentifyMode(ctx)
 	if !ok {
 		return res, fmt.Errorf("invalid context with no chat metadata")
 	}
@@ -194,16 +179,9 @@ func (t *KBFSNameInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tl
 		group.Go(func() error {
 			var err error
 			names := utils.SplitTLFName(tlfName)
-			ib, err = t.Identify(ectx, names, false, identBehavior)
+			ib, err = t.Identify(ectx, names, false)
 			return err
 		})
-
-		// use id breaks calculated by Identify
-		res.Breaks.Breaks = ib
-		if idNotifier != nil {
-			idNotifier.Send(res)
-		}
-		*breaks = appendBreaks(*breaks, res.Breaks.Breaks)
 	}
 
 	group.Go(func() error {
