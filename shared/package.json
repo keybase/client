@@ -202,6 +202,7 @@
     "webpack-merge": "4.1.1"
   },
   "optionalDependencies": {
-    "regedit": "2.2.7"
+    "regedit": "2.2.7",
+    "windows-shortcuts": "^0.1.6"
   }
 }
