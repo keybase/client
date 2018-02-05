@@ -28,15 +28,14 @@ const AttachmentPopup = (props: Props) => {
             }}
           />
         </Box>
-        {props.deviceFilePath ||
-          (props.devicePreviewPath && (
-            <Box style={props.isZoomed ? styleContentsZoom : styleContentsFit} onClick={props.onToggleZoom}>
-              <img
-                src={props.deviceFilePath || props.devicePreviewPath}
-                style={props.isZoomed ? styleImageZoom : styleImageFit}
-              />
-            </Box>
-          ))}
+        {(props.deviceFilePath || props.devicePreviewPath) && (
+          <Box style={props.isZoomed ? styleContentsZoom : styleContentsFit} onClick={props.onToggleZoom}>
+            <img
+              src={props.deviceFilePath || props.devicePreviewPath}
+              style={props.isZoomed ? styleImageZoom : styleImageFit}
+            />
+          </Box>
+        )}
         <Box style={headerFooterStyle}>
           {props.onDownloadAttachment && (
             <Text

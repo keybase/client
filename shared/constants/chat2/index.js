@@ -62,10 +62,11 @@ export {
 } from './meta'
 
 export {
-  makeMessageDeleted,
-  uiMessageToMessage,
+  getClientPrev,
   isOldestOrdinal,
+  makeMessageAttachment,
+  makeMessageDeleted,
   makePendingTextMessage,
   rpcErrorToString,
-  getClientPrev,
+  uiMessageToMessage,
 } from './message'

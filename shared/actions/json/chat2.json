@@ -181,28 +181,33 @@
     "clearPendingConversation": {
     },
     // We want to ensure we have an attachment preview
-    "attachmentPreviewNeedsUpdating": {
+    "attachmentNeedsUpdating": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal"
+      "ordinal": "Types.Ordinal",
+      "isPreview": "boolean"
     },
     // Internal action: pull more attachment previews from the queue to request
-    "attachmentPreviewHandleQueue": { },
-    "attachmenPreviewLoad": {
+    "attachmentHandleQueue": { },
+    "attachmenLoad": {
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal",
+      "isPreview": "boolean"
     },
-    "attachmenPreviewLoading": {
+    "attachmenLoading": {
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal",
-      "ratio": "number" // 0-1
+      "ratio": "number", // 0-1
+      "isPreview": "boolean",
     },
-    "attachmenPreviewLoaded": {
+    "attachmenLoaded": {
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal",
       "path": "string",
+      "isPreview": "boolean",
       "canError": {
         "conversationIDKey": "Types.ConversationIDKey",
         "ordinal": "Types.Ordinal",
+        "isPreview": "boolean",
       }
     }
   }

@@ -21,7 +21,7 @@ import {chatTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {NotifyPopup} from '../../native/notifications'
 import {showMainWindow} from '../platform-specific'
-import {tmpDir, tmpFile, stat} from '../../util/file'
+import {tmpFile, stat} from '../../util/file'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import flags from '../../util/feature-flags'
@@ -1046,30 +1046,22 @@ const updatePendingSelected = (
 }
 
 // We keep a set of attachment previews to load
-let attachmentPreviewQueue = []
-const queueAttachmentPreviewToRequest = (
-  action: Chat2Gen.AttachmentPreviewNeedsUpdatingPayload,
-  state: TypedState
-) => {
-  const {conversationIDKey, ordinal} = action.payload
-  attachmentPreviewQueue.push({conversationIDKey, ordinal})
-  return Saga.put(Chat2Gen.createAttachmentPreviewHandleQueue())
+let attachmentQueue = []
+const queueAttachmentToRequest = (action: Chat2Gen.AttachmentNeedsUpdatingPayload, state: TypedState) => {
+  const {conversationIDKey, ordinal, isPreview} = action.payload
+  attachmentQueue.push({conversationIDKey, ordinal, isPreview})
+  return Saga.put(Chat2Gen.createAttachmentHandleQueue())
 }
 
 // Watch the attachment queue and take one item. Choose the last items first since they're likely still visible
-const requestAttachmentPreview = (
-  action: Chat2Gen.AttachmentPreviewHandleQueuePayload,
-  state: TypedState
-) => {
-  if (!attachmentPreviewQueue.length) {
+const requestAttachment = (action: Chat2Gen.AttachmentHandleQueuePayload, state: TypedState) => {
+  if (!attachmentQueue.length) {
     return
   }
 
-  const toLoad = attachmentPreviewQueue.pop()
-  const toLoadActions = [Saga.put(Chat2Gen.createAttachmenPreviewLoad(toLoad))]
-  const loadSomeMoreActions = attachmentPreviewQueue.length
-    ? [Saga.put(Chat2Gen.createAttachmentPreviewHandleQueue())]
-    : []
+  const toLoad = attachmentQueue.pop()
+  const toLoadActions = [Saga.put(Chat2Gen.createAttachmenLoad(toLoad))]
+  const loadSomeMoreActions = attachmentQueue.length ? [Saga.put(Chat2Gen.createAttachmentHandleQueue())] : []
   const delayBeforeLoadingMoreActions =
     toLoadActions.length && loadSomeMoreActions.length ? [Saga.call(Saga.delay, 100)] : []
 
@@ -1080,31 +1072,39 @@ const requestAttachmentPreview = (
   }
 }
 
-function* attachmentPreviewLoad(action: Chat2Gen.AttachmenPreviewLoadPayload) {
-  const {conversationIDKey, ordinal} = action.payload
+function* attachmentLoad(action: Chat2Gen.AttachmenLoadPayload) {
+  const {conversationIDKey, ordinal, isPreview} = action.payload
   const state: TypedState = yield Saga.select()
   const message = Constants.getMessageMap(state, conversationIDKey).get(ordinal)
 
   if (!message || message.type !== 'attachment') {
-    console.log('Bailing on unknown attachmentPreviewLoad', conversationIDKey, ordinal)
+    console.log('Bailing on unknown attachmentLoad', conversationIDKey, ordinal)
     return
   }
 
   // done or in progress? bail
-  if (message.devicePreviewPath || message.transferState === 'downloading') {
-    console.log('Bailing on attachmentPreviewLoad', conversationIDKey, ordinal)
-    return
+  if (isPreview) {
+    if (message.devicePreviewPath || message.previewTransferState === 'downloading') {
+      console.log('Bailing on attachmentLoad', conversationIDKey, ordinal, isPreview)
+      return
+    }
+  } else {
+    if (message.deviceFilePath || message.transferState === 'downloading') {
+      console.log('Bailing on attachmentLoad', conversationIDKey, ordinal, isPreview)
+      return
+    }
   }
 
-  const filename = tmpFile(`kbchat-${conversationIDKey}-${Types.ordinalToNumber(ordinal)}.preview`)
-  console.log('aaa', filename)
-  // TODO reducer set downloading and percent
-  Saga.put(Chat2Gen.createAttachmenPreviewLoading({conversationIDKey, ordinal, ratio: 0}))
+  const filename = tmpFile(
+    `kbchat-${conversationIDKey}-${Types.ordinalToNumber(ordinal)}.${isPreview ? 'preview' : 'download'}`
+  )
+
+  Saga.put(Chat2Gen.createAttachmenLoading({conversationIDKey, ordinal, isPreview, ratio: 0}))
   try {
     const fileStat = yield Saga.call(stat, filename)
     // already loaded?
     if (fileStat.size > 0) {
-      yield Saga.put(Chat2Gen.createAttachmenPreviewLoaded({conversationIDKey, ordinal, path: filename}))
+      yield Saga.put(Chat2Gen.createAttachmenLoaded({conversationIDKey, ordinal, isPreview, path: filename}))
       return
     }
   } catch (_) {}
@@ -1114,15 +1114,18 @@ function* attachmentPreviewLoad(action: Chat2Gen.AttachmenPreviewLoadPayload) {
   const downloadFileRpc = new EngineRpc.EngineRpcCall(
     {
       'chat.1.chatUi.chatAttachmentDownloadDone': EngineRpc.passthroughResponseSaga,
-      'chat.1.chatUi.chatAttachmentDownloadProgress': function*({bytesComplete, bytesTotal}) {
-        const ratio = bytesComplete / bytesTotal
-        // Don't spam ourselves with updates
-        if (ratio - lastRatioSent > 0.05) {
-          lastRatioSent = ratio
-          yield Saga.put(Chat2Gen.createAttachmenPreviewLoading({conversationIDKey, ordinal, ratio}))
-        }
-        return EngineRpc.rpcResult()
-      },
+      // Progress on download, not preview
+      'chat.1.chatUi.chatAttachmentDownloadProgress': isPreview
+        ? EngineRpc.passthroughResponseSaga
+        : function*({bytesComplete, bytesTotal}) {
+            const ratio = bytesComplete / bytesTotal
+            // Don't spam ourselves with updates
+            if (ratio - lastRatioSent > 0.05) {
+              lastRatioSent = ratio
+              yield Saga.put(Chat2Gen.createAttachmenLoading({conversationIDKey, ordinal, isPreview, ratio}))
+            }
+            return EngineRpc.rpcResult()
+          },
       'chat.1.chatUi.chatAttachmentDownloadStart': EngineRpc.passthroughResponseSaga,
     },
     RPCChatTypes.localDownloadFileAttachmentLocalRpcChannelMap,
@@ -1132,20 +1135,20 @@ function* attachmentPreviewLoad(action: Chat2Gen.AttachmenPreviewLoadPayload) {
       filename,
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
       messageID: Types.ordinalToNumber(ordinal),
-      preview: true,
+      preview: isPreview,
     }
   )
 
   try {
     const result = yield Saga.call(downloadFileRpc.run)
     if (EngineRpc.isFinished(result)) {
-      yield Saga.put(Chat2Gen.createAttachmenPreviewLoaded({conversationIDKey, ordinal, path: filename}))
+      yield Saga.put(Chat2Gen.createAttachmenLoaded({conversationIDKey, ordinal, isPreview, path: filename}))
     } else {
-      yield Saga.put(Chat2Gen.createAttachmenPreviewLoadedError({conversationIDKey, ordinal}))
+      yield Saga.put(Chat2Gen.createAttachmenLoadedError({conversationIDKey, ordinal, isPreview}))
     }
   } catch (err) {
     logger.warn('attachment failed to load:', err)
-    yield Saga.put(Chat2Gen.createAttachmenPreviewLoadedError({conversationIDKey, ordinal}))
+    yield Saga.put(Chat2Gen.createAttachmenLoadedError({conversationIDKey, ordinal, isPreview}))
   }
 }
 
@@ -1223,14 +1226,12 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   )
 
   // We've scrolled some new attachment rows into view, queue them up
-  yield Saga.safeTakeEveryPure(Chat2Gen.attachmentPreviewNeedsUpdating, queueAttachmentPreviewToRequest)
+  yield Saga.safeTakeEveryPure(Chat2Gen.attachmentNeedsUpdating, queueAttachmentToRequest)
   // We have some items in the queue to process
-  yield Saga.safeTakeEveryPure(Chat2Gen.attachmentPreviewHandleQueue, requestAttachmentPreview)
-  // Actually load preview. Spawn so we can handle multiple in parallel
-  yield Saga.safeTakeEvery(Chat2Gen.attachmenPreviewLoad, function*(
-    action: Chat2Gen.AttachmenPreviewLoadPayload
-  ) {
-    yield Saga.spawn(attachmentPreviewLoad, action)
+  yield Saga.safeTakeEveryPure(Chat2Gen.attachmentHandleQueue, requestAttachment)
+  // Actually load. Spawn so we can handle multiple in parallel
+  yield Saga.safeTakeEvery(Chat2Gen.attachmenLoad, function*(action: Chat2Gen.AttachmenLoadPayload) {
+    yield Saga.spawn(attachmentLoad, action)
   })
 }
 

@@ -86,8 +86,9 @@ export type _MessageAttachment = {
   submitState: null | 'deleting' | 'pending',
   timestamp: number,
   title: string,
-  transferProgress: number, // 0-1
-  transferState: 'uploading' | 'downloading' | null,
+  transferProgress: number, // 0-1 // only for the file
+  transferState: 'uploading' | 'downloading' | null, // only for file
+  previewTransferState: 'downloading' | null, // only for preview
   type: 'attachment',
 }
 export type MessageAttachment = I.RecordOf<_MessageAttachment>
