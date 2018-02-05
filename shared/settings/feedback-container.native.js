@@ -28,6 +28,7 @@ type State = {
   sentFeedback: boolean,
   feedback: ?string,
   sending: boolean,
+  sendError: string,
 }
 
 class FeedbackContainer extends Component<{status: string} & TimerProps, State> {
@@ -37,6 +38,7 @@ class FeedbackContainer extends Component<{status: string} & TimerProps, State> 
     sentFeedback: false,
     feedback: null,
     sending: false,
+    sendError: '',
   }
 
   _onChangeFeedback = feedback => {
