@@ -130,7 +130,7 @@ func TestTeamTxDependency(t *testing.T) {
 	// Adding bob as a crypto member should not mutate change_membership 1.,
 	// but instead create new change_membership.
 
-	// As of 16.01.2018 this is just future proofing teamtx code -
+	// As of 2018.01.16 this is just future proofing teamtx code -
 	// server wouldn't have cared if we added duplicate bob when
 	// invite was still active. But we may flip the switch in the
 	// future.
@@ -146,12 +146,15 @@ func TestTeamTxDependency(t *testing.T) {
 	tx.AddMemberByUsername(context.Background(), tracy.username, keybase1.TeamRole_READER)
 	tx.AddMemberByUsername(context.Background(), bob.username, keybase1.TeamRole_WRITER)
 
-	// TODO: this has to pass once this feature is in.
+	// TODO: this has to pass once this feature is in. See ticket CORE-7147.
 	// payloads := tx.DebugPayloads()
 	// require.Equal(t, 3, len(payloads))
 
 	err = tx.Post(context.Background())
 	require.NoError(t, err)
+
+	// State is still fine even without ordering, because nor server
+	// neither team player cares about that.
 
 	teamObj = ann.loadTeam(team, true /* admin */)
 	members, err = teamObj.Members()
