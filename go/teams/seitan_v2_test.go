@@ -90,13 +90,81 @@ func TestSeitanV2Encryption(t *testing.T) {
 	t.Logf("Decrypted pubKey is %q\n", keyAndLabelV2.K)
 
 	uid := user.User.GetUID()
+	eldestSeqno := user.EldestSeqno
 	ctime := keybase1.ToTime(time.Now())
-	msg, err := GenerateSeitanSignatureMessage(uid, user.EldestSeqno, inviteID, ctime)
+	msg, err := GenerateSeitanSignatureMessage(uid, eldestSeqno, inviteID, ctime)
 	require.NoError(t, err)
-	sig, _, err := sikey.GenerateSignature(uid, user.EldestSeqno, inviteID, ctime)
+	sig, _, err := sikey.GenerateSignature(uid, eldestSeqno, inviteID, ctime)
 	require.NoError(t, err)
 
 	require.NoError(t, VerifySeitanSignatureMessage(SeitanPubKey(keyPair.Public), msg, sig))
+}
+
+func TestSeitanBadSignatures(t *testing.T) {
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	user, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+
+	ikey1, err := GenerateIKeyV2()
+	require.NoError(t, err)
+
+	sikey1, err := ikey1.GenerateSIKey()
+	require.NoError(t, err)
+
+	inviteID1, err := sikey1.GenerateTeamInviteID()
+	require.NoError(t, err)
+
+	keyPair1, err := sikey1.generateKeyPair()
+	require.NoError(t, err)
+
+	uid := user.User.GetUID()
+	eldestSeqno := user.EldestSeqno
+	ctime := keybase1.ToTime(time.Now())
+	sig, _, err := sikey1.GenerateSignature(uid, eldestSeqno, inviteID1, ctime)
+	require.NoError(t, err)
+
+	// Check signature verification failure for using the wrong sikey
+	ikey2, err := GenerateIKeyV2()
+	require.NoError(t, err)
+
+	sikey2, err := ikey2.GenerateSIKey()
+	require.NoError(t, err)
+
+	keyPair2, err := sikey2.generateKeyPair()
+	require.NoError(t, err)
+
+	msg, err := GenerateSeitanSignatureMessage(uid, eldestSeqno, inviteID1, ctime)
+	require.NoError(t, err)
+	require.Error(t, VerifySeitanSignatureMessage(SeitanPubKey(keyPair2.Public), msg, sig))
+
+	type Badmsg struct {
+		msg []byte
+		err error
+	}
+	badMsgs := make([]Badmsg, 4)
+
+	// Check signature verification failure for a bad uid
+	msgBadUid, errBadUid := GenerateSeitanSignatureMessage(uid+"a", eldestSeqno, inviteID1, ctime)
+	badMsgs = append(badMsgs, Badmsg{msgBadUid, errBadUid})
+
+	// Check signature verification failure for a bad EldestSeqno
+	msgBadEldest, errBadEldest := GenerateSeitanSignatureMessage(uid, eldestSeqno+1, inviteID1, ctime)
+	badMsgs = append(badMsgs, Badmsg{msgBadEldest, errBadEldest})
+
+	// Check signature verification failure for a bad InviteID
+	msgBadInviteID, errBadInviteID := GenerateSeitanSignatureMessage(uid, eldestSeqno, inviteID1+"a", ctime)
+	badMsgs = append(badMsgs, Badmsg{msgBadInviteID, errBadInviteID})
+
+	// Check signature verification failure for a bad ctime
+	msgBadCTime, errBadCTime := GenerateSeitanSignatureMessage(uid, eldestSeqno, inviteID1, ctime+1)
+	badMsgs = append(badMsgs, Badmsg{msgBadCTime, errBadCTime})
+
+	for _, bad := range badMsgs {
+		require.NoError(t, bad.err)
+		require.Error(t, VerifySeitanSignatureMessage(SeitanPubKey(keyPair1.Public), bad.msg, sig))
+	}
+
 }
 
 // TestSeitanV2KnownSamples runs offline seitan crypto chain using known
