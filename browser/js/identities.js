@@ -40,7 +40,9 @@ function parseLocationQuery(s) {
 //  the service for declarativeContent matching
 //  (https://developer.chrome.com/extensions/declarativeContent).
 //
-//  "hostEquals": Used to match that the host is the host we want to run on
+//  "subdomains": Subdomains that the host is considered valid on.
+//
+//  "host": Used to match that the host is the host we want to run on
 //  (preventing any regex trickery for `pathMatches` or
 //  `originAndPathMatches`).
 //
@@ -55,22 +57,27 @@ const identityMatchers = [
     getUsername: function(loc) { return loc.pathname.split('/')[1]; },
     pathMatches: new RegExp('^([\\w]+)[/]?'),
     originAndPathMatches: '^https://keybase\\.io/[\\w]+[/]?',
-    hostEquals: ['keybase.io'],
+    subdomains: [],
+    host: 'keybase.io',
     css: ['.profile-heading']
   },
   {
     service: "reddit",
     getUsername: function(loc) { return loc.pathname.split('/')[2]; },
     pathMatches: new RegExp('^/user/([\\w-]+)[/]?$'),
-    originAndPathMatches: '^https://(www)?\\.reddit\\.com/user/[\\w-]+[/]?$',
-    hostEquals: ['www.reddit.com', 'reddit.com']
+    originAndPathMatches: '^https://[\\w.-]*?\\.reddit\\.com/user/[\\w-]+[/]?$',
+    subdomains: ['np', 'ssl', 'blog', 'fr', 'pay', 'es', 'en-us', 'en', 'ru',
+      'us', 'de', 'dd', 'no', 'pt', 'ww', 'ss', '4x', 'sv', 'nl', 'hw', 'hr',
+      'www'],
+    host: 'reddit.com'
   },
   {
     service: "twitter",
     getUsername: function(loc) { return loc.pathname.split('/')[1]; },
     pathMatches: new RegExp('^/([\\w]+)[/]?$'),
-    originAndPathMatches: '^https://[\\w.-]*?twitter\\.com/[\\w]+[/]?$',
-    hostEquals: ['twitter.com'],
+    originAndPathMatches: '^https://twitter\\.com/[\\w]+[/]?$',
+    subdomains: [],
+    host: 'twitter.com',
     css: ['body.ProfilePage']
   },
   {
@@ -78,7 +85,8 @@ const identityMatchers = [
     getUsername: function(loc) { return loc.pathname.split('/')[1]; },
     pathMatches: new RegExp('^/([\\w\-]+)[/]?$'),
     originAndPathMatches: '^https://github\\.com/[\\w\-]+[/]?$',
-    hostEquals: ['github.com'],
+    subdomains: [],
+    host: 'github.com',
     css: ['body.page-profile']
   },
   {
@@ -86,7 +94,8 @@ const identityMatchers = [
     getUsername: function(loc) { return loc.pathname.split('/')[1]; },
     pathMatches: new RegExp('^/([\\w\\.]+)[/]?$'),
     originAndPathMatches: '^https://(www)?\\.facebook\\.com/[\\w\\.]+[/]?$',
-    hostEquals: ['facebook.com', 'www.facebook.com'],
+    subdomains: ['www'],
+    host: 'facebook.com',
     css: ['body.timelineLayout']
   },
   {
@@ -94,10 +103,19 @@ const identityMatchers = [
     getUsername: function(loc) { return parseLocationQuery(loc.search)["id"]; },
     pathMatches: new RegExp('^/user'),
     originAndPathMatches: '^https://news\\.ycombinator\\.com/user',
-    hostEquals: ['news.ycombinator.com'],
+    subdomains: [],
+    host: 'news.ycombinator.com',
     css: ['html[op="user"]']
   }
 ];
+
+function getServiceHosts(service) {
+  hosts = [service.host]
+  for (const subdomain of service.subdomains) {
+    hosts.push(subdomain + '.' + service.host)
+  }
+  return hosts
+}
 
 // Match a window.location and document against a service profile and return
 // a User instance. Will skip matching CSS if no document is provided.
@@ -106,7 +124,7 @@ function matchService(loc, doc, forceService) {
   for (const m of identityMatchers) {
     if (forceService !== undefined && forceService !== m.service) continue;
 
-    const matched = m.hostEquals.some(function(hostName) {
+    const matched = getServiceHosts(m).some(function(hostName) {
       return hostName === loc.hostname
     }) && loc.pathname.match(m.pathMatches);
     if (!matched) continue;
