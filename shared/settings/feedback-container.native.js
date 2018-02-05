@@ -2,7 +2,7 @@
 import logger from '../logger'
 import React, {Component} from 'react'
 import {HeaderHoc, HOCTimers} from '../common-adapters'
-import Feedback from './feedback'
+import Feedback from './feedback.native'
 import logSend from '../native/log-send'
 import {compose, withState, withHandlers, connect, type TypedState} from '../util/container'
 import {

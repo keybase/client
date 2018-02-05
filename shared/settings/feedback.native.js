@@ -14,7 +14,15 @@ import {
   NativeKeyboard,
 } from '../common-adapters/index.native'
 
-import type {Props} from './feedback'
+type Props = {
+  onSendFeedbackContained: () => void,
+  showSuccessBanner: boolean,
+  sendLogs: boolean,
+  feedback: ?string,
+  sending: boolean,
+  onChangeSendLogs: (nextValue: boolean) => void,
+  onChangeFeedback: (nextValue: ?string) => void,
+}
 
 class Feedback extends Component<Props> {
   _scroll: any
