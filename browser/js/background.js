@@ -79,7 +79,7 @@ function generateConditions(matchers)  {
   // Generate pageMatchRules conditions
   const conditions = [];
   for (const m of matchers) {
-    for (const hostName of m.hostEquals) {
+    for (const hostName of getServiceHosts(m)) {
       const cond = {
         pageUrl: { originAndPathMatches: m.originAndPathMatches, hostEquals: hostName},
       };
