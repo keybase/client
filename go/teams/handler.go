@@ -480,9 +480,15 @@ func handleSeitanSingleV2(key keybase1.SeitanPubKey, invite keybase1.TeamInvite,
 
 	var sig SeitanSig
 	decodedSig, err := base64.StdEncoding.DecodeString(string(seitan.Akey)) // For V2 the server responds with sig in the akey field
+	if len(sig) != len(decodedSig) {
+		return errors.New("Signature length verification failed (seitan)")
+	}
 	copy(sig[:], decodedSig[:])
 
 	now := keybase1.Time(seitan.UnixCTime) // For V2 this is ms since the epoch, not seconds
+	// NOTE: Since we are re-serializing the values from seitan here to
+	// generate the message, if we want to change the fields present in the
+	// signature in the future, old clients will not be compatible.
 	msg, err := GenerateSeitanSignatureMessage(seitan.Uid, seitan.EldestSeqno, SCTeamInviteID(seitan.InviteID), now)
 
 	if err != nil {
