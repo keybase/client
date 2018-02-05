@@ -69,10 +69,9 @@ func (c *CmdLogSend) Run() error {
 	c.G().Log.Debug("attempting retrieval of keybase service status")
 	var statusJSON string
 	statusCmd := &CmdStatus{Contextified: libkb.NewContextified(c.G())}
-	dui := c.G().UI.GetDumbOutputUI()
 	status, err := statusCmd.load()
 	if err != nil {
-		dui.Printf("ignoring error getting keybase status: %s\n", err)
+		c.G().Log.Info("ignoring error getting keybase status: %s", err)
 		// pid will be -1 if not found here
 		pid, err2 := getPid(c.G())
 		if err2 == nil {
@@ -87,7 +86,7 @@ func (c *CmdLogSend) Run() error {
 	} else {
 		json, err := json.Marshal(status)
 		if err != nil {
-			dui.Printf("ignoring status json marshal error: %s\n", err)
+			c.G().Log.Info("ignoring status json marshal error: %s", err)
 			statusJSON = c.errJSON(err)
 		} else {
 			statusJSON = string(json)
@@ -96,7 +95,7 @@ func (c *CmdLogSend) Run() error {
 
 	err = c.pokeUI()
 	if err != nil {
-		dui.Printf("ignoring UI logs: %s\n", err)
+		c.G().Log.Info("ignoring UI logs: %s", err)
 	}
 
 	logs := c.logFiles(status)

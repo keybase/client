@@ -51,6 +51,7 @@ func NewBackgroundConvLoader(g *globals.Context) *BackgroundConvLoader {
 		stop:          make(chan bool),
 		identNotifier: NewIdentifyNotifier(g),
 	}
+	b.identNotifier.ResetOnGUIConnect()
 
 	b.newQueue()
 

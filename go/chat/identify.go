@@ -36,6 +36,19 @@ func NewIdentifyNotifier(g *globals.Context) *IdentifyNotifier {
 	}
 }
 
+func (i *IdentifyNotifier) ResetOnGUIConnect() {
+	i.G().ConnectionManager.RegisterLabelCallback(func(typ keybase1.ClientType) {
+		switch typ {
+		case keybase1.ClientType_GUI_HELPER, keybase1.ClientType_GUI_MAIN:
+			i.Reset()
+		}
+	})
+}
+
+func (i *IdentifyNotifier) Reset() {
+	i.identCache = make(map[string]keybase1.CanonicalTLFNameAndIDWithBreaks)
+}
+
 func (i *IdentifyNotifier) Send(update keybase1.CanonicalTLFNameAndIDWithBreaks) {
 
 	// Send to storage as well (charge forward on error)

@@ -486,10 +486,12 @@ const _getTeams = function*(action: TeamsGen.GetTeamsPayload): Saga.SagaGenerato
     const teamnames = []
     const teammembercounts = {}
     const teamNameToRole = {}
+    const teamNameToIsOpen = {}
     teams.forEach(team => {
       teamnames.push(team.fqName)
       teammembercounts[team.fqName] = team.memberCount
       teamNameToRole[team.fqName] = Constants.teamRoleByEnum[team.role]
+      teamNameToIsOpen[team.fqName] = team.isOpenTeam
     })
 
     yield Saga.put(
@@ -498,6 +500,7 @@ const _getTeams = function*(action: TeamsGen.GetTeamsPayload): Saga.SagaGenerato
         I.Map({
           teamnames: I.Set(teamnames),
           teammembercounts: I.Map(teammembercounts),
+          teamNameToIsOpen: I.Map(teamNameToIsOpen),
           teamNameToRole: I.Map(teamNameToRole),
         })
       )

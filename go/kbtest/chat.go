@@ -167,6 +167,15 @@ func CanonicalTlfNameForTest(tlfName string) keybase1.CanonicalTlfName {
 	return keybase1.CanonicalTlfName(strings.Join(names, ","))
 }
 
+func (m TlfMock) newTLFID() chat1.TLFID {
+	suffix := byte(0x29)
+	idBytes, err := libkb.RandBytesWithSuffix(16, suffix)
+	if err != nil {
+		panic("RandBytes failed: " + err.Error())
+	}
+	return chat1.TLFID(idBytes)
+}
+
 func (m TlfMock) getTlfID(cname keybase1.CanonicalTlfName) (keybase1.TLFID, error) {
 	tlfID, ok := m.world.tlfs[cname]
 	if !ok {
@@ -175,15 +184,16 @@ func (m TlfMock) getTlfID(cname keybase1.CanonicalTlfName) (keybase1.TLFID, erro
 				return "", fmt.Errorf("user %s not found", n)
 			}
 		}
-		tlfID = mustGetRandBytesWithControlledFirstByte(16, byte(len(m.world.tlfs)+1))
+		tlfID = m.newTLFID()
 		m.world.tlfs[cname] = tlfID
 		m.world.tlfKeys[cname] = mustGetRandCryptKeys(byte(len(m.world.tlfKeys) + 1))
 	}
 	return keybase1.TLFID(hex.EncodeToString([]byte(tlfID))), nil
 }
 
-func (m TlfMock) Lookup(ctx context.Context, tlfName string, vis keybase1.TLFVisibility) (res types.NameInfo, err error) {
+func (m TlfMock) Lookup(ctx context.Context, tlfName string, vis keybase1.TLFVisibility) (res *types.NameInfo, err error) {
 	var tlfID keybase1.TLFID
+	res = types.NewNameInfo()
 	name := CanonicalTlfNameForTest(tlfName)
 	res.CanonicalName = name.String()
 	if tlfID, err = m.getTlfID(name); err != nil {
@@ -196,7 +206,8 @@ func (m TlfMock) Lookup(ctx context.Context, tlfName string, vis keybase1.TLFVis
 			return res, err
 		}
 		for _, key := range cres.CryptKeys {
-			res.CryptKeys = append(res.CryptKeys, key)
+			res.CryptKeys[chat1.ConversationMembersType_KBFS] =
+				append(res.CryptKeys[chat1.ConversationMembersType_KBFS], key)
 		}
 	}
 	return res, nil

@@ -33,10 +33,10 @@ func createRootTeam(tc libkb.TestContext) keybase1.TeamID {
 
 func createImplicitTeam(tc libkb.TestContext, public bool) keybase1.TeamID {
 	u, err := kbtest.CreateAndSignupFakeUser("c", tc.G)
-	teamID, _, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), tc.G, u.Username, public)
+	team, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), tc.G, u.Username, public)
 	require.NoError(tc.T, err)
-	require.Equal(tc.T, public, teamID.IsPublic())
-	return teamID
+	require.Equal(tc.T, public, team.ID.IsPublic())
+	return team.ID
 }
 
 func setupBox(t *testing.T) (libkb.TestContext, *Crypto, keybase1.TeamIDWithVisibility, *keybase1.EncryptedGitMetadata) {

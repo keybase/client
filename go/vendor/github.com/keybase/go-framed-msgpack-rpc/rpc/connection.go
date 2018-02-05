@@ -4,9 +4,11 @@
 package rpc
 
 import (
+	"crypto/rand"
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
+	"fmt"
 	"io"
 	"net"
 	"sync"
@@ -202,9 +204,7 @@ func (ct *ConnectionTransportTLS) Dial(ctx context.Context) (
 			config = &tls.Config{ServerName: host}
 		}
 
-		ct.log.Info("%s %s",
-			logField{key: msgKey, value: "Dialing"},
-			logField{key: "remote-addr", value: addr})
+		ct.log.Debug("Dialing %s", addr)
 		// connect
 		dialer := net.Dialer{
 			Timeout:   ct.dialerTimeout,
@@ -223,14 +223,12 @@ func (ct *ConnectionTransportTLS) Dial(ctx context.Context) (
 			resinit.ResInitIfDNSError(err)
 			return err
 		}
-		ct.log.Info("baseConn: %s; Calling %s",
-			logField{key: "local-addr", value: baseConn.LocalAddr()},
-			logField{key: msgKey, value: "Handshake"})
+		ct.log.Debug("baseConn: %s; Calling Handshake", baseConn.LocalAddr())
 		conn = tls.Client(baseConn, config)
 		if err := conn.(*tls.Conn).Handshake(); err != nil {
 			return err
 		}
-		ct.log.Info("%s", logField{key: msgKey, value: "Handshaken"})
+		ct.log.Debug("Handshaken")
 
 		// Disable SIGPIPE on platforms that require it (Darwin). See sigpipe_bsd.go.
 		return DisableSigPipe(baseConn)
@@ -276,6 +274,23 @@ func (ct *ConnectionTransportTLS) Close() {
 }
 
 type LogTagsFromContext func(ctx context.Context) (map[interface{}]string, bool)
+
+type connectionLog struct {
+	LogOutput
+	logPrefix string
+}
+
+func (l *connectionLog) Warning(format string, params ...interface{}) {
+	l.LogOutput.Warning("(%s) %s", l.logPrefix, fmt.Sprintf(format, params...))
+}
+
+func (l *connectionLog) Debug(format string, params ...interface{}) {
+	l.LogOutput.Debug("(%s) %s", l.logPrefix, fmt.Sprintf(format, params...))
+}
+
+func (l *connectionLog) Info(format string, params ...interface{}) {
+	l.LogOutput.Info("(%s) %s", l.logPrefix, fmt.Sprintf(format, params...))
+}
 
 // Connection encapsulates all client connection handling.
 type Connection struct {
@@ -333,30 +348,6 @@ type ConnectionOpts struct {
 	DialerTimeout time.Duration
 }
 
-// NewTLSConnectionWithLogrus is like NewTLSConnection, but with a logrus
-// logger.
-func NewTLSConnectionWithLogrus(
-	srvRemote Remote,
-	rootCerts []byte,
-	errorUnwrapper ErrorUnwrapper,
-	handler ConnectionHandler,
-	logFactory LogFactory,
-	logrusLogger LogrusLogger,
-	opts ConnectionOpts,
-) *Connection {
-	transport := &ConnectionTransportTLS{
-		rootCerts:     rootCerts,
-		srvRemote:     srvRemote,
-		logFactory:    logFactory,
-		wef:           opts.WrapErrorFunc,
-		dialerTimeout: opts.DialerTimeout,
-		log:           newConnectionLogLogrus(logrusLogger, "conn_tspt"),
-	}
-	connLog := newConnectionLogLogrus(logrusLogger, "conn")
-	return newConnectionWithTransportAndProtocolsWithLog(
-		handler, transport, errorUnwrapper, connLog, opts)
-}
-
 // NewTLSConnection returns a connection that tries to connect to the
 // given server address with TLS.
 func NewTLSConnection(
@@ -365,16 +356,18 @@ func NewTLSConnection(
 	errorUnwrapper ErrorUnwrapper,
 	handler ConnectionHandler,
 	logFactory LogFactory,
-	logOutput LogOutputWithDepthAdder,
+	logOutput LogOutput,
 	opts ConnectionOpts,
 ) *Connection {
 	transport := &ConnectionTransportTLS{
-		rootCerts:     rootCerts,
-		srvRemote:     srvRemote,
-		logFactory:    logFactory,
-		wef:           opts.WrapErrorFunc,
-		dialerTimeout: opts.DialerTimeout,
-		log:           newConnectionLogUnstructured(logOutput, "CONNTSPT"),
+		rootCerts:  rootCerts,
+		srvRemote:  srvRemote,
+		logFactory: logFactory,
+		wef:        opts.WrapErrorFunc,
+		log: connectionLog{
+			LogOutput: logOutput,
+			logPrefix: "CONNTSPT",
+		},
 	}
 	return newConnectionWithTransportAndProtocols(handler, transport, errorUnwrapper, logOutput, opts)
 }
@@ -387,7 +380,7 @@ func NewTLSConnectionWithTLSConfig(
 	errorUnwrapper ErrorUnwrapper,
 	handler ConnectionHandler,
 	logFactory LogFactory,
-	logOutput LogOutputWithDepthAdder,
+	logOutput LogOutput,
 	opts ConnectionOpts,
 ) *Connection {
 	transport := &ConnectionTransportTLS{
@@ -396,7 +389,10 @@ func NewTLSConnectionWithTLSConfig(
 		logFactory:    logFactory,
 		wef:           opts.WrapErrorFunc,
 		dialerTimeout: opts.DialerTimeout,
-		log:           newConnectionLogUnstructured(logOutput, "CONNTSPT"),
+		log: connectionLog{
+			LogOutput: logOutput,
+			logPrefix: "CONNTSPT",
+		},
 	}
 	return newConnectionWithTransportAndProtocols(handler, transport, errorUnwrapper, logOutput, opts)
 }
@@ -407,15 +403,15 @@ func NewConnectionWithTransport(
 	handler ConnectionHandler,
 	transport ConnectionTransport,
 	errorUnwrapper ErrorUnwrapper,
-	logOutput LogOutputWithDepthAdder,
+	logOutput LogOutput,
 	opts ConnectionOpts,
 ) *Connection {
 	return newConnectionWithTransportAndProtocols(handler, transport, errorUnwrapper, logOutput, opts)
 }
 
-func newConnectionWithTransportAndProtocolsWithLog(handler ConnectionHandler,
+func newConnectionWithTransportAndProtocols(handler ConnectionHandler,
 	transport ConnectionTransport, errorUnwrapper ErrorUnwrapper,
-	log connectionLog, opts ConnectionOpts) *Connection {
+	log LogOutput, opts ConnectionOpts) *Connection {
 	// use exponential backoffs by default which never give up on reconnecting
 	defaultBackoff := func() backoff.BackOff {
 		b := backoff.NewExponentialBackOff()
@@ -431,6 +427,10 @@ func newConnectionWithTransportAndProtocolsWithLog(handler ConnectionHandler,
 	if commandBackoff == nil {
 		commandBackoff = defaultBackoff
 	}
+	randBytes := make([]byte, 4)
+	rand.Read(randBytes)
+	connectionPrefix := fmt.Sprintf("CONN %s %x", handler.HandlerName(),
+		randBytes)
 	connection := &Connection{
 		handler:                       handler,
 		transport:                     transport,
@@ -438,9 +438,12 @@ func newConnectionWithTransportAndProtocolsWithLog(handler ConnectionHandler,
 		reconnectBackoff:              reconnectBackoff,
 		doCommandBackoff:              commandBackoff,
 		initialReconnectBackoffWindow: opts.InitialReconnectBackoffWindow,
-		wef:               opts.WrapErrorFunc,
-		tagsFunc:          opts.TagsFunc,
-		log:               log,
+		wef:      opts.WrapErrorFunc,
+		tagsFunc: opts.TagsFunc,
+		log: connectionLog{
+			LogOutput: log,
+			logPrefix: connectionPrefix,
+		},
 		protocols:         opts.Protocols,
 		reconnectedBefore: opts.ForceInitialBackoff,
 	}
@@ -451,25 +454,14 @@ func newConnectionWithTransportAndProtocolsWithLog(handler ConnectionHandler,
 	return connection
 }
 
-func newConnectionWithTransportAndProtocols(handler ConnectionHandler,
-	transport ConnectionTransport, errorUnwrapper ErrorUnwrapper,
-	log LogOutputWithDepthAdder, opts ConnectionOpts) *Connection {
-	return newConnectionWithTransportAndProtocolsWithLog(
-		handler, transport, errorUnwrapper,
-		newConnectionLogUnstructured(log, "CONN "+handler.HandlerName()), opts)
-}
-
 // connect performs the actual connect() and rpc setup.
 func (c *Connection) connect(ctx context.Context) error {
-	c.log.Info("Connection: %s",
-		logField{key: msgKey, value: "dialing transport"})
+	c.log.Debug("Connection: dialing transport")
 
 	// connect
 	transport, err := c.transport.Dial(ctx)
 	if err != nil {
-		c.log.Warning("Connection: error %s: %s",
-			logField{key: msgKey, value: "dialing transport"},
-			logField{key: "error", value: err})
+		c.log.Warning("Connection: error dialing transport: %s", err)
 		return err
 	}
 
@@ -483,9 +475,7 @@ func (c *Connection) connect(ctx context.Context) error {
 	// call the connect handler
 	err = c.handler.OnConnect(ctx, c, client, server)
 	if err != nil {
-		c.log.Warning("Connection: error calling %s handler: %s",
-			logField{key: msgKey, value: "OnConnect"},
-			logField{key: "error", value: err})
+		c.log.Warning("Connection: error calling OnConnect handler: %s", err)
 		return err
 	}
 
@@ -498,7 +488,7 @@ func (c *Connection) connect(ctx context.Context) error {
 	c.server = server
 	c.transport.Finalize()
 
-	c.log.Info("Connection: %s", logField{key: msgKey, value: "connected"})
+	c.log.Debug("Connection: connected")
 	return nil
 }
 
@@ -568,9 +558,7 @@ func (c *Connection) waitForConnection(
 	if !wait {
 		return nil
 	}
-	c.log.Info("Connection: %s; status: %d",
-		logField{key: msgKey, value: "waitForConnection"},
-		logField{key: "disconnectStatus", value: disconnectStatus})
+	c.log.Debug("Connection: waitForConnection; status: %d", disconnectStatus)
 	select {
 	case <-ctx.Done():
 		// caller canceled
@@ -611,8 +599,7 @@ func (c *Connection) IsConnected() bool {
 func (c *Connection) getReconnectChanLocked() (
 	reconnectChan chan struct{}, disconnectStatus DisconnectStatus,
 	reconnectErrPtr *error) {
-	c.log.Info("Connection: %s",
-		logField{key: msgKey, value: "getReconnectChan"})
+	c.log.Debug("Connection: getReconnectChan")
 	if c.reconnectChan == nil {
 		var ctx context.Context
 		// for canceling the reconnect loop via Shutdown()
@@ -650,11 +637,9 @@ func (c *Connection) doReconnect(ctx context.Context, disconnectStatus Disconnec
 	if c.initialReconnectBackoffWindow != nil &&
 		disconnectStatus == StartingNonFirstConnection {
 		waitDur := c.randomTimer.Start(c.initialReconnectBackoffWindow())
-		c.log.Info("starting random %s: %s",
-			logField{key: msgKey, value: "backoff"},
-			logField{key: "duration", value: waitDur})
+		c.log.Debug("starting random backoff: %s", waitDur)
 		c.randomTimer.Wait()
-		c.log.Info("%s!", logField{key: msgKey, value: "backoff done"})
+		c.log.Debug("backoff done!")
 	}
 	err := backoff.RetryNotify(func() error {
 		// try to connect

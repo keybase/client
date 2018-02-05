@@ -3902,7 +3902,8 @@ type CancelPostArg struct {
 }
 
 type RetryPostArg struct {
-	OutboxID OutboxID `codec:"outboxID" json:"outboxID"`
+	OutboxID         OutboxID                      `codec:"outboxID" json:"outboxID"`
+	IdentifyBehavior *keybase1.TLFIdentifyBehavior `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
 }
 
 type MarkAsReadLocalArg struct {
@@ -3993,6 +3994,10 @@ type SetTeamRetentionLocalArg struct {
 	Policy RetentionPolicy `codec:"policy" json:"policy"`
 }
 
+type UpgradeKBFSConversationToImpteamArg struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
@@ -4022,7 +4027,7 @@ type LocalInterface interface {
 	DownloadFileAttachmentLocal(context.Context, DownloadFileAttachmentLocalArg) (DownloadAttachmentLocalRes, error)
 	MakePreview(context.Context, MakePreviewArg) (MakePreviewRes, error)
 	CancelPost(context.Context, OutboxID) error
-	RetryPost(context.Context, OutboxID) error
+	RetryPost(context.Context, RetryPostArg) error
 	MarkAsReadLocal(context.Context, MarkAsReadLocalArg) (MarkAsReadLocalRes, error)
 	FindConversationsLocal(context.Context, FindConversationsLocalArg) (FindConversationsLocalRes, error)
 	UpdateTyping(context.Context, UpdateTypingArg) error
@@ -4039,6 +4044,7 @@ type LocalInterface interface {
 	AddTeamMemberAfterReset(context.Context, AddTeamMemberAfterResetArg) error
 	SetConvRetentionLocal(context.Context, SetConvRetentionLocalArg) error
 	SetTeamRetentionLocal(context.Context, SetTeamRetentionLocalArg) error
+	UpgradeKBFSConversationToImpteam(context.Context, ConversationID) error
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -4499,7 +4505,7 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]RetryPostArg)(nil), args)
 						return
 					}
-					err = i.RetryPost(ctx, (*typedArgs)[0].OutboxID)
+					err = i.RetryPost(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4755,6 +4761,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"upgradeKBFSConversationToImpteam": {
+				MakeArg: func() interface{} {
+					ret := make([]UpgradeKBFSConversationToImpteamArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]UpgradeKBFSConversationToImpteamArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]UpgradeKBFSConversationToImpteamArg)(nil), args)
+						return
+					}
+					err = i.UpgradeKBFSConversationToImpteam(ctx, (*typedArgs)[0].ConvID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -4906,8 +4928,7 @@ func (c LocalClient) CancelPost(ctx context.Context, outboxID OutboxID) (err err
 	return
 }
 
-func (c LocalClient) RetryPost(ctx context.Context, outboxID OutboxID) (err error) {
-	__arg := RetryPostArg{OutboxID: outboxID}
+func (c LocalClient) RetryPost(ctx context.Context, __arg RetryPostArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.RetryPost", []interface{}{__arg}, nil)
 	return
 }
@@ -4993,5 +5014,11 @@ func (c LocalClient) SetConvRetentionLocal(ctx context.Context, __arg SetConvRet
 
 func (c LocalClient) SetTeamRetentionLocal(ctx context.Context, __arg SetTeamRetentionLocalArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.setTeamRetentionLocal", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) UpgradeKBFSConversationToImpteam(ctx context.Context, convID ConversationID) (err error) {
+	__arg := UpgradeKBFSConversationToImpteamArg{ConvID: convID}
+	err = c.Cli.Call(ctx, "chat.1.local.upgradeKBFSConversationToImpteam", []interface{}{__arg}, nil)
 	return
 }

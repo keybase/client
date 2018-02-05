@@ -188,11 +188,7 @@ func TestLoaderKBFSKeyGen(t *testing.T) {
 	}
 
 	displayName := fus[0].Username + "," + fus[1].Username
-	teamID, _, _, _, err := LookupOrCreateImplicitTeam(context.TODO(), tcs[0].G, displayName, false)
-	require.NoError(t, err)
-	team, err := Load(context.TODO(), tcs[0].G, keybase1.LoadTeamArg{
-		ID: teamID,
-	})
+	team, _, _, err := LookupOrCreateImplicitTeam(context.TODO(), tcs[0].G, displayName, false)
 	require.NoError(t, err)
 
 	tlfID := newImplicitTLFID(false)
@@ -204,12 +200,12 @@ func TestLoaderKBFSKeyGen(t *testing.T) {
 	require.NoError(t, team.AssociateWithTLFKeyset(context.TODO(), tlfID, cryptKeys,
 		keybase1.TeamApplication_CHAT))
 	team, err = Load(context.TODO(), tcs[0].G, keybase1.LoadTeamArg{
-		ID: teamID,
+		ID: team.ID,
 	})
 	require.NoError(t, err)
 	require.Zero(t, len(team.KBFSCryptKeys(context.TODO(), keybase1.TeamApplication_CHAT)))
 	team, err = Load(context.TODO(), tcs[0].G, keybase1.LoadTeamArg{
-		ID: teamID,
+		ID: team.ID,
 		Refreshers: keybase1.TeamRefreshers{
 			NeedKBFSKeyGeneration: keybase1.TeamKBFSKeyRefresher{
 				Generation: 2,

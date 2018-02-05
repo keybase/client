@@ -42,6 +42,7 @@ func (n NullConfiguration) GetLinkCacheSize() (int, bool)                       
 func (n NullConfiguration) GetLinkCacheCleanDur() (time.Duration, bool)                    { return 0, false }
 func (n NullConfiguration) GetUPAKCacheSize() (int, bool)                                  { return 0, false }
 func (n NullConfiguration) GetUIDMapFullNameCacheSize() (int, bool)                        { return 0, false }
+func (n NullConfiguration) GetPayloadCacheSize() (int, bool)                               { return 0, false }
 func (n NullConfiguration) GetMerkleKIDs() []string                                        { return nil }
 func (n NullConfiguration) GetCodeSigningKIDs() []string                                   { return nil }
 func (n NullConfiguration) GetPinentry() string                                            { return "" }
@@ -835,6 +836,14 @@ func (e *Env) GetLinkCacheCleanDur() time.Duration {
 	)
 }
 
+func (e *Env) GetPayloadCacheSize() int {
+	return e.GetInt(PayloadCacheSize,
+		e.cmd.GetPayloadCacheSize,
+		func() (int, bool) { return e.getEnvInt("KEYBASE_PAYLOAD_CACHE_SIZE") },
+		e.GetConfig().GetPayloadCacheSize,
+	)
+}
+
 func (e *Env) GetEmailOrUsername() string {
 	un := e.GetUsername().String()
 	if len(un) > 0 {
@@ -1196,6 +1205,12 @@ func (c AppConfig) GetChatInboxSourceLocalizeThreads() (int, bool) {
 // this down on mobile to reduce mem usage.
 func (c AppConfig) GetLevelDBNumFiles() (int, bool) {
 	return 50, true
+}
+
+// Default is 0x10000 (65,536).  Turning down on mobile to
+// reduce memory usage.
+func (c AppConfig) GetLinkCacheSize() (int, bool) {
+	return 1000, true
 }
 
 func (e *Env) GetUpdatePreferenceAuto() (bool, bool) {

@@ -519,6 +519,22 @@ func TestOutboxItemExpiration(t *testing.T) {
 		require.Fail(t, "no incoming message")
 	default:
 	}
+
+	outbox := storage.NewOutbox(tc.Context(), uid)
+	outbox.SetClock(cl)
+	require.NoError(t, outbox.RetryMessage(ctx, obid, nil))
+	tc.ChatG.MessageDeliverer.ForceDeliverLoop(ctx)
+	select {
+	case i := <-listener.incoming:
+		require.Equal(t, 1, i)
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no success")
+	}
+	select {
+	case <-listener.failing:
+		require.Fail(t, "no failing message")
+	default:
+	}
 }
 
 func TestDisconnectedFailure(t *testing.T) {
@@ -621,11 +637,12 @@ func TestDisconnectedFailure(t *testing.T) {
 	<-tc.ChatG.MessageDeliverer.Stop(ctx)
 	tc.ChatG.MessageDeliverer.(*Deliverer).SetSender(baseSender)
 	outbox := storage.NewOutbox(tc.Context(), u.User.GetUID().ToBytes())
+	outbox.SetClock(cl)
 	for _, obid := range obids {
-		require.NoError(t, outbox.RetryMessage(ctx, obid))
+		require.NoError(t, outbox.RetryMessage(ctx, obid, nil))
 	}
-	tc.ChatG.MessageDeliverer.Connected(ctx)
 	tc.ChatG.MessageDeliverer.Start(ctx, u.User.GetUID().ToBytes())
+	tc.ChatG.MessageDeliverer.Connected(ctx)
 
 	for {
 		select {
@@ -877,12 +894,12 @@ func TestKBFSCryptKeysBit(t *testing.T) {
 		require.Len(t, tv.Messages, 1)
 		msg := tv.Messages[0]
 
+		require.NotNil(t, msg.Valid().ClientHeader.KbfsCryptKeysUsed)
 		switch mt {
 		case chat1.ConversationMembersType_KBFS:
-			require.NotNil(t, msg.Valid().ClientHeader.KbfsCryptKeysUsed)
 			require.True(t, *msg.Valid().ClientHeader.KbfsCryptKeysUsed)
 		default:
-			require.Nil(t, msg.Valid().ClientHeader.KbfsCryptKeysUsed)
+			require.False(t, *msg.Valid().ClientHeader.KbfsCryptKeysUsed)
 		}
 	})
 }

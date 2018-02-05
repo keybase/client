@@ -10,13 +10,14 @@ import {
   ButtonBar,
   Checkbox,
   ClickableBox,
-  Text,
-  Tabs,
-  List,
+  Meta,
   Icon,
+  List,
   PopupMenu,
   ProgressIndicator,
   ScrollView,
+  Text,
+  Tabs,
 } from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors, isMobile} from '../../styles'
 import TeamInviteRow from './invite-row/container'
@@ -658,7 +659,10 @@ class Team extends React.PureComponent<Props> {
           <Text type="HeaderBig" style={{...globalStyles.selectable, marginTop: globalMargins.tiny}}>
             {name}
           </Text>
-          <Text type="BodySmall">TEAM</Text>
+          <Box style={globalStyles.flexBoxRow}>
+            <Text type="BodySmall">TEAM</Text>
+            {openTeam && <Meta style={stylesMeta} title="OPEN" />}
+          </Box>
           <Text type="BodySmall">
             {memberCount + ' member' + (memberCount !== 1 ? 's' : '')} •{' '}
             {yourRole && Constants.typeToLabel[yourRole]}
@@ -724,6 +728,14 @@ const stylesAddYourselfBanner = {
   paddingLeft: globalMargins.medium,
   paddingRight: globalMargins.medium,
   paddingTop: globalMargins.tiny,
+}
+
+const stylesMeta = {
+  alignSelf: 'center',
+  backgroundColor: globalColors.green,
+  borderRadius: 1,
+  marginLeft: globalMargins.tiny,
+  marginTop: 1,
 }
 
 const stylesAddYourselfBannerText = {

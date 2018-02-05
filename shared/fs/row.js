@@ -29,7 +29,6 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 })
 
 const iconMap = {
-  exec: isMobile ? 'icon-file-24' : 'icon-file-24',
   file: isMobile ? 'icon-file-24' : 'icon-file-24',
   folder: isMobile ? 'icon-folder-private-24' : 'icon-folder-private-24',
   symlink: isMobile ? 'icon-file-24' : 'icon-file-24',

@@ -75,6 +75,7 @@ type GlobalContext struct {
 	CardCache      *UserCardCache  // cache of keybase1.UserCard objects
 	fullSelfer     FullSelfer      // a loader that gets the full self object
 	pvlSource      PvlSource       // a cache and fetcher for pvl
+	PayloadCache   *PayloadCache   // cache of ChainLink payload json wrappers
 
 	GpgClient        *GpgCLI        // A standard GPG-client (optional)
 	ShutdownHooks    []ShutdownHook // on shutdown, fire these...
@@ -430,6 +431,7 @@ func (g *GlobalContext) configureMemCachesLocked() {
 	g.Log.Debug("made a new full self cache")
 	g.upakLoader = NewCachedUPAKLoader(g, CachedUserTimeout)
 	g.Log.Debug("made a new cached UPAK loader (timeout=%v)", CachedUserTimeout)
+	g.PayloadCache = NewPayloadCache(g, g.Env.GetPayloadCacheSize())
 }
 
 func (g *GlobalContext) ConfigureMemCaches() {
