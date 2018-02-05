@@ -413,30 +413,45 @@ protocol teams {
   @typedef("string")
   record SeitanIKey {}
 
-  enum SeitanIKeyAndLabelVersion {
-    V1_1
+  @typedef("KID")
+  record SeitanPubKey {}
+
+  // The secret shared with the recipient.
+  // With this information one can accept an invite.
+  @typedef("string")
+  record SeitanIKeyV2 {}
+
+  enum SeitanKeyAndLabelVersion {
+    V1_1,
+    V2_2
   }
 
-  variant SeitanIKeyAndLabel switch (SeitanIKeyAndLabelVersion v) {
-    case V1: SeitanIKeyAndLabelVersion1;
+  variant SeitanKeyAndLabel switch (SeitanKeyAndLabelVersion v) {
+    case V1: SeitanKeyAndLabelVersion1;
+    case V2: SeitanKeyAndLabelVersion2;
     default: void;
   }
 
-  record SeitanIKeyAndLabelVersion1 {
+  record SeitanKeyAndLabelVersion1 {
     SeitanIKey i;
-    SeitanIKeyLabel l;
+    SeitanKeyLabel l;
   }
 
-  enum SeitanIKeyLabelType {
+  record SeitanKeyAndLabelVersion2 {
+    SeitanPubKey k;
+    SeitanKeyLabel l;
+  }
+
+  enum SeitanKeyLabelType {
     SMS_1
   }
 
-  variant SeitanIKeyLabel switch (SeitanIKeyLabelType t) {
-    case SMS: SeitanIKeyLabelSms;
+  variant SeitanKeyLabel switch (SeitanKeyLabelType t) {
+    case SMS: SeitanKeyLabelSms;
     default: void;
   }
 
-  record SeitanIKeyLabelSms {
+  record SeitanKeyLabelSms {
     string f; // FullName
     string n; // Number
   }
@@ -698,7 +713,9 @@ protocol teams {
 
   void teamSetSettings(int sessionID, string name, TeamSettings settings);
 
-  SeitanIKey teamCreateSeitanToken(int sessionID, string name, TeamRole role, SeitanIKeyLabel label);
+  SeitanIKey teamCreateSeitanToken(int sessionID, string name, TeamRole role, SeitanKeyLabel label);
+
+  SeitanIKeyV2 teamCreateSeitanTokenV2(int sessionID, string name, TeamRole role, SeitanKeyLabel label);
 
   record BulkRes {
     array<string> invited;

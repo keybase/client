@@ -1026,17 +1026,30 @@
       "typedef": "string"
     },
     {
+      "type": "record",
+      "name": "SeitanPubKey",
+      "fields": [],
+      "typedef": "KID"
+    },
+    {
+      "type": "record",
+      "name": "SeitanIKeyV2",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
       "type": "enum",
-      "name": "SeitanIKeyAndLabelVersion",
+      "name": "SeitanKeyAndLabelVersion",
       "symbols": [
-        "V1_1"
+        "V1_1",
+        "V2_2"
       ]
     },
     {
       "type": "variant",
-      "name": "SeitanIKeyAndLabel",
+      "name": "SeitanKeyAndLabel",
       "switch": {
-        "type": "SeitanIKeyAndLabelVersion",
+        "type": "SeitanKeyAndLabelVersion",
         "name": "v"
       },
       "cases": [
@@ -1045,7 +1058,14 @@
             "name": "V1",
             "def": false
           },
-          "body": "SeitanIKeyAndLabelVersion1"
+          "body": "SeitanKeyAndLabelVersion1"
+        },
+        {
+          "label": {
+            "name": "V2",
+            "def": false
+          },
+          "body": "SeitanKeyAndLabelVersion2"
         },
         {
           "label": {
@@ -1057,30 +1077,44 @@
     },
     {
       "type": "record",
-      "name": "SeitanIKeyAndLabelVersion1",
+      "name": "SeitanKeyAndLabelVersion1",
       "fields": [
         {
           "type": "SeitanIKey",
           "name": "i"
         },
         {
-          "type": "SeitanIKeyLabel",
+          "type": "SeitanKeyLabel",
+          "name": "l"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SeitanKeyAndLabelVersion2",
+      "fields": [
+        {
+          "type": "SeitanPubKey",
+          "name": "k"
+        },
+        {
+          "type": "SeitanKeyLabel",
           "name": "l"
         }
       ]
     },
     {
       "type": "enum",
-      "name": "SeitanIKeyLabelType",
+      "name": "SeitanKeyLabelType",
       "symbols": [
         "SMS_1"
       ]
     },
     {
       "type": "variant",
-      "name": "SeitanIKeyLabel",
+      "name": "SeitanKeyLabel",
       "switch": {
-        "type": "SeitanIKeyLabelType",
+        "type": "SeitanKeyLabelType",
         "name": "t"
       },
       "cases": [
@@ -1089,7 +1123,7 @@
             "name": "SMS",
             "def": false
           },
-          "body": "SeitanIKeyLabelSms"
+          "body": "SeitanKeyLabelSms"
         },
         {
           "label": {
@@ -1101,7 +1135,7 @@
     },
     {
       "type": "record",
-      "name": "SeitanIKeyLabelSms",
+      "name": "SeitanKeyLabelSms",
       "fields": [
         {
           "type": "string",
@@ -2187,10 +2221,31 @@
         },
         {
           "name": "label",
-          "type": "SeitanIKeyLabel"
+          "type": "SeitanKeyLabel"
         }
       ],
       "response": "SeitanIKey"
+    },
+    "teamCreateSeitanTokenV2": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "role",
+          "type": "TeamRole"
+        },
+        {
+          "name": "label",
+          "type": "SeitanKeyLabel"
+        }
+      ],
+      "response": "SeitanIKeyV2"
     },
     "teamAddEmailsBulk": {
       "request": [

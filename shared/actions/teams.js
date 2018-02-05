@@ -215,7 +215,7 @@ const _inviteToTeamByPhone = function*(action: TeamsGen.InviteToTeamByPhonePaylo
   const seitan = yield Saga.call(RPCTypes.teamsTeamCreateSeitanTokenRpcPromise, {
     name: teamname,
     role: (!!role && RPCTypes.teamsTeamRole[role]) || 0,
-    label: {t: 1, sms: ({f: fullName || '', n: phoneNumber}: RPCTypes.SeitanIKeyLabelSms)},
+    label: {t: 1, sms: ({f: fullName || '', n: phoneNumber}: RPCTypes.SeitanKeyLabelSms)},
   })
 
   /* Open SMS */

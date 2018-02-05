@@ -820,7 +820,7 @@ func (t *Team) inviteSBSMember(ctx context.Context, username string, role keybas
 	return keybase1.TeamAddMemberResult{Invited: true}, nil
 }
 
-func (t *Team) InviteSeitan(ctx context.Context, role keybase1.TeamRole, label keybase1.SeitanIKeyLabel) (ikey SeitanIKey, err error) {
+func (t *Team) InviteSeitan(ctx context.Context, role keybase1.TeamRole, label keybase1.SeitanKeyLabel) (ikey SeitanIKey, err error) {
 	t.G().Log.Debug("team %s invite seitan %v", t.Name(), role)
 
 	ikey, err = GenerateIKey()
@@ -838,7 +838,43 @@ func (t *Team) InviteSeitan(ctx context.Context, role keybase1.TeamRole, label k
 		return ikey, err
 	}
 
-	_, encoded, err := ikey.GeneratePackedEncryptedIKey(ctx, t, label)
+	_, encoded, err := ikey.GeneratePackedEncryptedKey(ctx, t, label)
+	if err != nil {
+		return ikey, err
+	}
+
+	invite := SCTeamInvite{
+		Type: "seitan_invite_token",
+		Name: keybase1.TeamInviteName(encoded),
+		ID:   inviteID,
+	}
+
+	if err := t.postInvite(ctx, invite, role); err != nil {
+		return ikey, err
+	}
+
+	return ikey, err
+}
+
+func (t *Team) InviteSeitanV2(ctx context.Context, role keybase1.TeamRole, label keybase1.SeitanKeyLabel) (ikey SeitanIKeyV2, err error) {
+	t.G().Log.Debug("team %s invite seitan %v", t.Name(), role)
+
+	ikey, err = GenerateIKeyV2()
+	if err != nil {
+		return ikey, err
+	}
+
+	sikey, err := ikey.GenerateSIKey()
+	if err != nil {
+		return ikey, err
+	}
+
+	inviteID, err := sikey.GenerateTeamInviteID()
+	if err != nil {
+		return ikey, err
+	}
+
+	_, encoded, err := sikey.GeneratePackedEncryptedKey(ctx, t, label)
 	if err != nil {
 		return ikey, err
 	}
