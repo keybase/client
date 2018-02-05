@@ -106,12 +106,12 @@ func (tx *AddMemberTx) createInvite(uv keybase1.UserVersion, role keybase1.TeamR
 	return nil
 }
 
-// sweepMembers will queue "removes" for all cryptomembers with given
+// sweepCryptoMembers will queue "removes" for all cryptomembers with given
 // UID.
-func (tx *AddMemberTx) sweepMembers(uid keybase1.UID) {
+func (tx *AddMemberTx) sweepCryptoMembers(uid keybase1.UID) {
 	team := tx.team
 	for chainUv := range team.chain().inner.UserLog {
-		if chainUv.Uid == uid && team.chain().getUserRole(chainUv) != keybase1.TeamRole_NONE {
+		if chainUv.Uid.Equal(uid) && team.chain().getUserRole(chainUv) != keybase1.TeamRole_NONE {
 			tx.removeMember(chainUv)
 		}
 	}
@@ -123,7 +123,7 @@ func (tx *AddMemberTx) sweepKeybaseInvites(uid keybase1.UID) {
 	team := tx.team
 	for _, invite := range team.chain().inner.ActiveInvites {
 		if inviteUv, err := invite.KeybaseUserVersion(); err == nil {
-			if inviteUv.Uid == uid {
+			if inviteUv.Uid.Equal(uid) {
 				tx.cancelInvite(invite.Id)
 			}
 		}
@@ -138,19 +138,15 @@ func (tx *AddMemberTx) AddMemberByUsername(ctx context.Context, username string,
 	team := tx.team
 	g := team.G()
 
-	defer g.CTrace(ctx, fmt.Sprintf("AddMemberTx.AddMemberByUsername(%s,%v)", username, role), func() error { return err })()
-	g.Log.CDebugf(ctx, "AddMemberByUsername(%s, %v) to team %q", username, role, team.Name())
+	defer g.CTrace(ctx, fmt.Sprintf("AddMemberTx.AddMemberByUsername(%s,%v) to team %q", username, role, team.Name()), func() error { return err })()
 
-	inviteRequired := false
-	normalizedUsername, uv, err := loadUserVersionPlusByUsername(ctx, g, username)
+	normalizedUsername, uv, hasPUK, err := loadUserVersionAndPUKedByUsername(ctx, g, username)
 	g.Log.CDebugf(ctx, "AddMemberByUsername: loaded user %q -> (%q, %v, %v)", username, normalizedUsername, uv, err)
 	if err != nil {
-		if err == errInviteRequired {
-			inviteRequired = true
-			g.Log.CDebugf(ctx, "Invite required for %v", uv)
-		} else {
-			return err
-		}
+		return err
+	}
+	if !hasPUK {
+		g.Log.CDebugf(ctx, "Invite required for %v", uv)
 	}
 
 	// Do not do partial updates here. If error is returned, it is
@@ -164,22 +160,21 @@ func (tx *AddMemberTx) AddMemberByUsername(ctx context.Context, username string,
 	}
 
 	if team.IsMember(ctx, uv) {
-		if inviteRequired {
-			return fmt.Errorf("user is already member but we got errInviteRequired")
+		if !hasPUK {
+			return fmt.Errorf("user is already member they don't have a PUK")
 		}
 		return libkb.ExistsError{Msg: fmt.Sprintf("user %s is already a member of team %q",
 			normalizedUsername, team.Name())}
 	}
 
-	existingUV, err := team.UserVersionByUID(ctx, uv.Uid)
-	if err == nil {
+	if existingUV, err := team.UserVersionByUID(ctx, uv.Uid); err == nil {
 		// TODO: Might be able to collapse the two assertions together - the one
 		// above with team.IsMember and this one which checking Uid/Eldest.
 
 		// There is an edge case where user is in the middle of
 		// resetting (after reset, before provisioning) and has
 		// EldestSeqno=0.
-		if !inviteRequired && existingUV.EldestSeqno > uv.EldestSeqno {
+		if hasPUK && existingUV.EldestSeqno > uv.EldestSeqno {
 			return fmt.Errorf("newer version of user %s (uid:%s) already exists in the team %q (%v > %v)",
 				normalizedUsername, uv.Uid, team.Name(), existingUV.EldestSeqno, uv.EldestSeqno)
 		}
@@ -191,8 +186,9 @@ func (tx *AddMemberTx) AddMemberByUsername(ctx context.Context, username string,
 			return err
 		}
 		curInvite = nil
+		err = nil
 	}
-	if curInvite != nil && inviteRequired {
+	if curInvite != nil && !hasPUK {
 		return libkb.ExistsError{Msg: fmt.Sprintf("user %s is already invited to team %q",
 			normalizedUsername, team.Name())}
 	}
@@ -201,20 +197,20 @@ func (tx *AddMemberTx) AddMemberByUsername(ctx context.Context, username string,
 
 	if team.IsImplicit() {
 		// Separate logic for sweeping in implicit teams, since memberships
-		// there have to be sound for every signature, so we can't post e.g.
+		// there have to be "constant" at every signature, so we can't post e.g.
 		// one sig that removes UV and another that adds invite.
 
-		if inviteRequired {
+		if !hasPUK {
 			tx.sweepKeybaseInvites(uv.Uid)
 		} else {
-			tx.sweepMembers(uv.Uid)
+			tx.sweepCryptoMembers(uv.Uid)
 		}
 	} else {
-		tx.sweepMembers(uv.Uid)        // Sweep all existing crypto members
+		tx.sweepCryptoMembers(uv.Uid)  // Sweep all existing crypto members
 		tx.sweepKeybaseInvites(uv.Uid) // Sweep all existing keybase type invites
 	}
 
-	if inviteRequired {
+	if !hasPUK {
 		return tx.createInvite(uv, role)
 	}
 	return tx.addMember(uv, role)
@@ -409,6 +405,9 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 	var lease *libkb.Lease
 
 	downgrades, err := team.getDowngradedUsers(ctx, memSet)
+	if err != nil {
+		return err
+	}
 	if len(downgrades) != 0 {
 		lease, merkleRoot, err = libkb.RequestDowngradeLeaseByTeam(ctx, g, team.ID, downgrades)
 		if err != nil {

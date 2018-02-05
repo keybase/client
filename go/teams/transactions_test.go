@@ -12,7 +12,7 @@ import (
 )
 
 func TestTransactions1(t *testing.T) {
-	tc, _, other, _, name := memberSetupMultiple(t)
+	tc, owner, other, _, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
 	team, err := Load(context.Background(), tc.G, keybase1.LoadTeamArg{
@@ -41,6 +41,24 @@ func TestTransactions1(t *testing.T) {
 
 	err = tx.Post(context.Background())
 	require.NoError(t, err)
+
+	team, err = Load(context.Background(), tc.G, keybase1.LoadTeamArg{
+		Name:        name,
+		NeedAdmin:   true,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+
+	members, err := team.Members()
+	require.NoError(t, err)
+	require.Equal(t, 1, len(members.Owners))
+	require.Equal(t, owner.GetUserVersion(), members.Owners[0])
+	require.Equal(t, 0, len(members.Admins))
+	require.Equal(t, 1, len(members.Writers))
+	require.Equal(t, 0, len(members.Readers))
+
+	invites := team.GetActiveAndObsoleteInvites()
+	require.Equal(t, 2, len(invites))
 }
 
 func TestTransactionRotateKey(t *testing.T) {

@@ -655,6 +655,21 @@ func loadUserVersionPlusByUsername(ctx context.Context, g *libkb.GlobalContext, 
 	return res.GetNormalizedUsername(), uv, nil
 }
 
+func loadUserVersionAndPUKedByUsername(ctx context.Context, g *libkb.GlobalContext, username string) (uname libkb.NormalizedUsername, uv keybase1.UserVersion, hasPUK bool, err error) {
+	uname, uv, err = loadUserVersionPlusByUsername(ctx, g, username)
+	if err == nil {
+		hasPUK = true
+	} else {
+		if err == errInviteRequired {
+			err = nil
+			hasPUK = false
+		} else {
+			return "", keybase1.UserVersion{}, false, err
+		}
+	}
+	return uname, uv, hasPUK, nil
+}
+
 func loadUserVersionByUsername(ctx context.Context, g *libkb.GlobalContext, username string) (keybase1.UserVersion, error) {
 	res := g.Resolver.ResolveWithBody(username)
 	if res.GetError() != nil {
