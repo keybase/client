@@ -90,6 +90,12 @@
 			"revisionTime": "2015-06-20T10:58:49+02:00"
 		},
 		{
+			"checksumSHA1": "aoxx8YjlpunfhKBTyZKjOH55G10=",
+			"path": "github.com/buger/jsonparser",
+			"revision": "4be68c93a24430ddf9c33d1380b7042fd3a13424",
+			"revisionTime": "2018-01-31T12:31:42Z"
+		},
+		{
 			"checksumSHA1": "RBwpnMpfQt7Jo7YWrRph0Vwe+f0=",
 			"path": "github.com/coreos/go-systemd/activation",
 			"revision": "d2196463941895ee908e13531a23a39feb9e1243",
