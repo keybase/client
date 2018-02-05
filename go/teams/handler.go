@@ -185,6 +185,14 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 		}
 
 		if currentRole.IsOrAbove(invite.Role) {
+			if team.IsImplicit() {
+				g.Log.CDebugf(ctx, "This is implicit team SBS resolution, mooting invite.")
+				req := keybase1.TeamChangeReq{}
+				req.CompletedInvites = make(SCMapInviteIDToUV)
+				req.CompletedInvites[invite.Id] = uv.PercentForm()
+				return team.ChangeMembership(ctx, req)
+			}
+
 			g.Log.CDebugf(ctx, "User already has same or higher role, canceling invite.")
 			return removeInviteID(ctx, team, invite.Id)
 		}
@@ -194,7 +202,7 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 			g.Log.CDebugf(ctx, "Failed to compute reqForRole for %+v, role=%s", uv, invite.Role)
 			return err
 		}
-		req.CompletedInvites = make(map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm)
+		req.CompletedInvites = make(SCMapInviteIDToUV)
 		req.CompletedInvites[invite.Id] = uv.PercentForm()
 
 		// Check to see if the user is already in the team with a lower eldest seqno, if so, we need
@@ -205,10 +213,12 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 				return fmt.Errorf("newer version of user %s already exists in team %q (%v > %v)",
 					verifiedInvitee.Uid, team.Name(), existingUV.EldestSeqno,
 					verifiedInvitee.EldestSeqno)
+			} else if existingUV.EldestSeqno < verifiedInvitee.EldestSeqno {
+				g.Log.CDebugf(ctx, "removing old version of user: %s (%v -> %v)", verifiedInvitee.Uid,
+					existingUV.EldestSeqno, verifiedInvitee.EldestSeqno)
+				req.None = []keybase1.UserVersion{existingUV}
 			}
-			g.Log.CDebugf(ctx, "removing old version of user: %s (%v -> %v)", verifiedInvitee.Uid,
-				existingUV.EldestSeqno, verifiedInvitee.EldestSeqno)
-			req.None = []keybase1.UserVersion{existingUV}
+			// If EldestSeqnos are equal - it means it's an SBS promotion.
 		}
 
 		g.Log.CDebugf(ctx, "checks passed, proceeding with team.ChangeMembership, req = %+v", req)

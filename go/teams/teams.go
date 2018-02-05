@@ -1032,6 +1032,14 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 	section.CompletedInvites = req.CompletedInvites
 	section.Implicit = t.IsImplicit()
 	section.Public = t.IsPublic()
+
+	if len(section.CompletedInvites) > 0 && section.Members == nil {
+		// Just mooted invites is fine - if TeamChangeReq is empty,
+		// changeMembershipSection returned nil members. But we need
+		// empty Members in order to have a valid link.
+		section.Members = &SCTeamMembers{}
+	}
+
 	return section, secretBoxes, implicitAdminBoxes, memSet, nil
 }
 
