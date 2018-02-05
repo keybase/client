@@ -28,7 +28,7 @@ type State = {
   sentFeedback: boolean,
   feedback: ?string,
   sending: boolean,
-  sendError: string,
+  sendError: ?Error,
 }
 
 class FeedbackContainer extends Component<{status: string} & TimerProps, State> {
@@ -38,11 +38,11 @@ class FeedbackContainer extends Component<{status: string} & TimerProps, State> 
     sentFeedback: false,
     feedback: null,
     sending: false,
-    sendError: '',
+    sendError: null,
   }
 
   _onChangeFeedback = feedback => {
-    this.setState({feedback})
+    this.setState(state => ({...state, feedback}))
   }
 
   _dumpLogs = () => logger.dump().then(writeLogLinesToFile)
@@ -56,7 +56,7 @@ class FeedbackContainer extends Component<{status: string} & TimerProps, State> 
   }
 
   _onSendFeedback = (feedback, sendLogs) => {
-    this.setState({sending: true, sentFeedback: false})
+    this.setState(state => ({...state, sending: true, sentFeedback: false}))
 
     this.props.setTimeout(() => {
       const maybeDump = sendLogs ? this._dumpLogs() : Promise.resolve('')
@@ -70,20 +70,24 @@ class FeedbackContainer extends Component<{status: string} & TimerProps, State> 
         .then(logSendId => {
           logger.info('logSendId is', logSendId)
           if (this.mounted) {
-            this.setState({
+            this.setState(state => ({
+              ...state,
               sentFeedback: true,
               feedback: null,
               sending: false,
-            })
+              sendError: null,
+            }))
           }
         })
         .catch(err => {
           logger.warn('err in sending logs', err)
           if (this.mounted) {
-            this.setState({
+            this.setState(state => ({
+              ...state,
               sentFeedback: false,
               sending: false,
-            })
+              sendError: err,
+            }))
           }
         })
     }, 0)
