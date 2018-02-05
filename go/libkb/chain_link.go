@@ -316,7 +316,6 @@ func (c *ChainLink) Pack() (*jsonw.Wrapper, error) {
 	if c.IsStubbed() {
 		p.SetKey("s2", jsonw.NewString(c.unpacked.outerLinkV2.EncodeStubbed()))
 	} else {
-
 		// Store the original JSON string so its order is preserved
 		p.SetKey("payload_json", jsonw.NewString(string(c.unpacked.payload)))
 		p.SetKey("sig", jsonw.NewString(c.unpacked.sig))
@@ -605,7 +604,7 @@ func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID, packed []byte) er
 	}
 
 	if data, _, _, err := jsonparser.Get(packed, "payload_json"); err == nil {
-		sdata, err := strconv.Unquote(fmt.Sprintf(`"%s"`, string(data)))
+		sdata, err := strconv.Unquote(`"` + string(data) + `"`)
 		if err != nil {
 			return err
 		}
@@ -763,12 +762,11 @@ func (c *ChainLink) verifyHashV1() error {
 // getFixedPayload usually just returns c.unpacked.payload, but sometimes
 // it adds extra whitespace to work around server-side bugs.
 func (c ChainLink) getFixedPayload() []byte {
-	ret := string(c.unpacked.payload)
 	if s, ok := badWhitespaceChainLinks[c.unpacked.sigID]; ok {
 		c.G().Log.Debug("Fixing payload by adding newline on link '%s': %s", c.unpacked.sigID, s)
-		ret += "\n"
+		return append(c.unpacked.payload, '\n')
 	}
-	return []byte(ret)
+	return c.unpacked.payload
 }
 
 func (c *ChainLink) getSigPayload() ([]byte, error) {
