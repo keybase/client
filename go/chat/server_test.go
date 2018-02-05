@@ -2962,8 +2962,7 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 		listener1 := newServerChatListener()
 		ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener1)
 
-		consumeIdentify := func(ctx context.Context, listener *serverChatListener, ref string,
-			tlfID chat1.TLFID) {
+		consumeIdentify := func(ctx context.Context, listener *serverChatListener) {
 			// check identify updates
 			var update keybase1.CanonicalTLFNameAndIDWithBreaks
 			select {
@@ -2971,12 +2970,6 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 				t.Logf("identify update: %+v", update)
 			case <-time.After(2 * time.Second):
 				require.Fail(t, "no identify")
-			}
-			if ref != "" {
-				require.EqualValues(t, update.CanonicalName, ref)
-			}
-			if !tlfID.IsNil() {
-				require.Equal(t, tlfID, chat1.TLFID(update.TlfID.ToBytes()))
 			}
 			require.Empty(t, update.Breaks.Breaks)
 			CtxIdentifyNotifier(ctx).Reset()
@@ -2994,7 +2987,7 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 			})
 		require.NoError(t, err)
 		require.Equal(t, 0, len(res.Conversations), "conv found")
-		consumeIdentify(ctx, listener0, "", nil)
+		consumeIdentify(ctx, listener0)
 
 		// create a new conversation
 		ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
@@ -3006,7 +2999,7 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 			})
 		require.NoError(t, err)
-		consumeIdentify(ctx, listener0, ncres.Conv.Info.TlfName, ncres.Conv.Info.Triple.Tlfid)
+		consumeIdentify(ctx, listener0)
 
 		uid := users[0].User.GetUID().ToBytes()
 		conv, _, err := GetUnverifiedConv(ctx, tc.Context(), uid, ncres.Conv.Info.Id, false)
@@ -3032,7 +3025,7 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 			},
 		})
 		require.NoError(t, err)
-		consumeIdentify(ctx, listener0, ncres.Conv.Info.TlfName, ncres.Conv.Info.Triple.Tlfid)
+		consumeIdentify(ctx, listener0)
 
 		// user 1 sends a message to conv
 		ctx = ctc.as(t, users[1]).startCtx
@@ -3050,7 +3043,7 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 			},
 		})
 		require.NoError(t, err)
-		consumeIdentify(ctx, listener1, ncres.Conv.Info.TlfName, ncres.Conv.Info.Triple.Tlfid)
+		consumeIdentify(ctx, listener1)
 
 		// user 1 finds the conversation
 		tc = ctc.world.Tcs[users[1].Username]
@@ -3065,7 +3058,7 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 			})
 		require.NoError(t, err)
 		require.Equal(t, 1, len(res.Conversations), "no convs found")
-		consumeIdentify(ctx, listener1, ncres.Conv.Info.TlfName, ncres.Conv.Info.Triple.Tlfid)
+		consumeIdentify(ctx, listener1)
 	})
 }
 
