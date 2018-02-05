@@ -14,6 +14,15 @@ import {
   NativeKeyboard,
 } from '../common-adapters/index.native'
 
+const getOtherErrorInfo = (err: Error) => {
+  const info = {}
+  for (const k in err) info[k] = (err: Object)[k]
+  delete info.name
+  delete info.message
+  delete info.stack
+  return info
+}
+
 type Props = {
   onSendFeedbackContained: () => void,
   showSuccessBanner: boolean,
@@ -124,11 +133,18 @@ class Feedback extends Component<Props> {
           {sendError && (
             <Box style={{...globalStyles.flexBoxColumn, marginTop: globalMargins.small}}>
               <Text type="BodyError">Could not send log</Text>
-              <Text type="BodySmall" style={{...globalStyles.selectable, margin: 10}}>{`${sendError.name}: ${
-                sendError.message
-              }`}</Text>
-              <Text type="BodySmallSemibold">Stack trace</Text>
-              <Text type="BodySmall">{sendError.stack}</Text>
+              <Text
+                type="BodySmall"
+                style={{...globalStyles.selectable, marginTop: 10, marginBottom: 10}}
+              >{`${sendError.name}: ${sendError.message}`}</Text>
+              <Text type="BodySmallSemibold">Stack</Text>
+              <Text type="BodySmall" style={{...globalStyles.selectable, marginTop: 10, marginBottom: 10}}>
+                {sendError.stack}
+              </Text>
+              <Text type="BodySmallSemibold">Error dump</Text>
+              <Text type="BodySmall" style={{...globalStyles.selectable, marginTop: 10, marginBottom: 10}}>
+                {JSON.stringify(getOtherErrorInfo(sendError), null, 2)}
+              </Text>
             </Box>
           )}
         </Box>
