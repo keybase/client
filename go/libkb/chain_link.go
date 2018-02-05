@@ -522,14 +522,9 @@ func (tmp *ChainLinkUnpacked) unpackPayloadJSON(payload []byte) error {
 	return nil
 }
 
-// XXX fix this too
-func (c *ChainLink) UnpackLocal(payloadJSON *jsonw.Wrapper) (err error) {
-	payloadStr, err := payloadJSON.Marshal()
-	if err != nil {
-		return err
-	}
+func (c *ChainLink) UnpackLocal(payload []byte) (err error) {
 	tmp := ChainLinkUnpacked{}
-	err = tmp.unpackPayloadJSON([]byte(payloadStr))
+	err = tmp.unpackPayloadJSON(payload)
 	if err == nil {
 		c.unpacked = &tmp
 	}
@@ -676,7 +671,7 @@ func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID, packed []byte) er
 
 	// only unpack the proof_text_full if owner of this link
 	if tmp.uid.Equal(selfUID) {
-		if pt, err := jsonparser.GetString(packed, "proof_text_full"); err != nil {
+		if pt, err := jsonparser.GetString(packed, "proof_text_full"); err == nil {
 			tmp.proofText = pt
 		}
 	}

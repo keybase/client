@@ -14,11 +14,7 @@ import (
 )
 
 func importTrackingLink(t *testing.T, g *libkb.GlobalContext) *libkb.TrackChainLink {
-	jw, err := jsonw.Unmarshal([]byte(trackingServerReply))
-	if err != nil {
-		t.Fatal(err)
-	}
-	cl, err := libkb.ImportLinkFromServer(g, nil, jw, trackingUID)
+	cl, err := libkb.ImportLinkFromServer(g, nil, []byte(trackingServerReply), trackingUID)
 	if err != nil {
 		t.Fatal(err)
 	}
