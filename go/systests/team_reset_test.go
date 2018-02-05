@@ -165,11 +165,15 @@ func TestTeamDelete(t *testing.T) {
 	divDebug(ctx, "Cam sent a chat")
 	readChats(team, bob, 2)
 
-	// XXX this assertion currently fails
-	// bob.assertMemberInactive(team, ann)
+	// Disable UIDMapper cache to be able to see current state of
+	// Active/Inactive for members.
+	bob.setUIDMapperNoCachingMode(true)
+	cam.setUIDMapperNoCachingMode(true)
+
+	bob.assertMemberInactive(team, ann)
 	bob.assertMemberActive(team, cam)
-	// XXX this assertion currently fails
-	// cam.assertMemberInactive(team, ann)
+
+	cam.assertMemberInactive(team, ann)
 	cam.assertMemberActive(team, bob)
 }
 
@@ -190,12 +194,8 @@ func TestTeamReset(t *testing.T) {
 	// Note that ann (the admin) has a UIDMapper that should get pubsub updates
 	// since she is an admin for the team in question. cam won't get those
 	// pubsub updates
-	users := []*smuUser{bob, cam}
-	for _, user := range users {
-		for _, device := range user.devices {
-			device.tctx.G.UIDMapper.SetTestingNoCachingMode(true)
-		}
-	}
+	bob.setUIDMapperNoCachingMode(true)
+	cam.setUIDMapperNoCachingMode(true)
 
 	team := ann.createTeam([]*smuUser{bob, cam})
 	divDebug(ctx, "team created (%s)", team.name)
@@ -661,6 +661,77 @@ func TestTeamRemoveAfterReset(t *testing.T) {
 	require.Equal(t, role, keybase1.TeamRole_NONE)
 }
 
+func TestTeamRemoveMemberAfterDelete(t *testing.T) {
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	ann := ctx.installKeybaseForUser("ann", 10)
+	ann.signup()
+	divDebug(ctx, "Signed up ann (%s)", ann.username)
+	bob := ctx.installKeybaseForUser("bob", 10)
+	bob.signup()
+	divDebug(ctx, "Signed up bob (%s)", bob.username)
+
+	team := ann.createTeam([]*smuUser{bob})
+	divDebug(ctx, "team created (%s)", team.name)
+
+	bob.delete()
+	divDebug(ctx, "Bob deleted (%s)", bob.username)
+
+	ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2), nil)
+
+	// bob stays in multiple caches (UPAK, resolver etc.) so it's
+	// easier to just nuke to observe "user deleted" errors.
+	ann.dbNuke()
+
+	cli := ann.getTeamsClient()
+	err := cli.TeamRemoveMember(context.Background(), keybase1.TeamRemoveMemberArg{
+		Name:     team.name,
+		Username: bob.username,
+	})
+	require.NoError(t, err)
+
+	t.Logf("Calling TeamGet")
+
+	details, err := cli.TeamGet(context.Background(), keybase1.TeamGetArg{
+		Name:        team.name,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+
+	require.Equal(t, 1, len(details.Members.Owners))
+	require.Equal(t, ann.username, details.Members.Owners[0].Username)
+	require.Equal(t, 0, len(details.Members.Admins))
+	require.Equal(t, 0, len(details.Members.Writers))
+	require.Equal(t, 0, len(details.Members.Readers))
+}
+
+func TestTeamTryAddDeletedUser(t *testing.T) {
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	ann := ctx.installKeybaseForUser("ann", 10)
+	ann.signup()
+	divDebug(ctx, "Signed up ann (%s)", ann.username)
+
+	bob := ctx.installKeybaseForUser("bob", 10)
+	bob.signup()
+	divDebug(ctx, "Signed up bob (%s)", bob.username)
+	bob.delete()
+	divDebug(ctx, "Bob deleted (%s)", bob.username)
+
+	cli := ann.getTeamsClient()
+	team := ann.createTeam([]*smuUser{})
+	divDebug(ctx, "team created (%s)", team.name)
+
+	_, err := cli.TeamAddMember(context.Background(), keybase1.TeamAddMemberArg{
+		Name:     team.name,
+		Username: bob.username,
+		Role:     keybase1.TeamRole_READER,
+	})
+	require.Error(t, err)
+}
+
 // Add a member after reset in a normal (non-implicit) team
 func TestTeamReAddAfterReset(t *testing.T) {
 	ctx := newSMUContext(t)
@@ -718,11 +789,8 @@ func TestTeamOpenReset(t *testing.T) {
 	bob.signup()
 	divDebug(ctx, "Signed up bob (%s)", bob.username)
 
-	for _, user := range []*smuUser{ann, bob} {
-		for _, device := range user.devices {
-			device.tctx.G.UIDMapper.SetTestingNoCachingMode(true)
-		}
-	}
+	ann.setUIDMapperNoCachingMode(true)
+	bob.setUIDMapperNoCachingMode(true)
 
 	team := ann.createTeam([]*smuUser{bob})
 	divDebug(ctx, "team created (%s)", team.name)
@@ -792,7 +860,6 @@ func TestTeamListAfterReset(t *testing.T) {
 }
 
 func TestTeamAfterDeleteUser(t *testing.T) {
-	t.Skip()
 	ctx := newSMUContext(t)
 	defer ctx.cleanup()
 
