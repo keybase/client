@@ -32,7 +32,7 @@ function parseLocationQuery(s) {
 //  "getUsername": Function to parse the username from the browser
 //  `location` object.
 //
-//  "locationMatches": A regular expression used to match a page within the
+//  "pathMatches": A regular expression used to match the pathname  within the
 //  service (i.e. news.ycombinator.com/user?id=username matches but not
 //  news.ycombinator.com/newest).
 //
@@ -41,7 +41,7 @@ function parseLocationQuery(s) {
 //  (https://developer.chrome.com/extensions/declarativeContent).
 //
 //  "hostEquals": Used to match that the host is the host we want to run on
-//  (preventing any regex trickery for `locationMatches` or
+//  (preventing any regex trickery for `pathMatches` or
 //  `originAndPathMatches`).
 //
 //  "css": (optional) CSS selector which must be present for declarativeContent
@@ -53,47 +53,47 @@ const identityMatchers = [
   {
     service: "keybase",
     getUsername: function(loc) { return loc.pathname.split('/')[1]; },
-    locationMatches: new RegExp('\\.keybase\\.io/([\\w]+)[/]?'),
-    originAndPathMatches: 'keybase\\.io/[\\w]+[/]?',
+    pathMatches: new RegExp('^([\\w]+)[/]?'),
+    originAndPathMatches: '^https://keybase\\.io/[\\w]+[/]?',
     hostEquals: ['keybase.io'],
     css: ['.profile-heading']
   },
   {
     service: "reddit",
     getUsername: function(loc) { return loc.pathname.split('/')[2]; },
-    locationMatches: new RegExp('\\.reddit\\.com/user/([\\w-]+)[/]?$'),
-    originAndPathMatches: '\\.reddit\\.com/user/[\\w-]+[/]?$',
+    pathMatches: new RegExp('^/user/([\\w-]+)[/]?$'),
+    originAndPathMatches: '^https://(www)?\\.reddit\\.com/user/[\\w-]+[/]?$',
     hostEquals: ['www.reddit.com', 'reddit.com']
   },
   {
     service: "twitter",
     getUsername: function(loc) { return loc.pathname.split('/')[1]; },
-    locationMatches: new RegExp('\\.twitter\\.com/([\\w]+)[/]?$'),
-    originAndPathMatches: 'twitter\\.com/[\\w]+[/]?$',
+    pathMatches: new RegExp('^/([\\w]+)[/]?$'),
+    originAndPathMatches: '^https://[\\w.-]*?twitter\\.com/[\\w]+[/]?$',
     hostEquals: ['twitter.com'],
     css: ['body.ProfilePage']
   },
   {
     service: "github",
     getUsername: function(loc) { return loc.pathname.split('/')[1]; },
-    locationMatches: new RegExp('\\.github\\.com/([\\w\-]+)[/]?$'),
-    originAndPathMatches: 'github\\.com/[\\w\-]+[/]?$',
+    pathMatches: new RegExp('^/([\\w\-]+)[/]?$'),
+    originAndPathMatches: '^https://github\\.com/[\\w\-]+[/]?$',
     hostEquals: ['github.com'],
     css: ['body.page-profile']
   },
   {
     service: "facebook",
     getUsername: function(loc) { return loc.pathname.split('/')[1]; },
-    locationMatches: new RegExp('\\.facebook\\.com/([\\w\\.]+)[/]?$'),
-    originAndPathMatches: '\\.facebook\\.com/[\\w\\.]+[/]?$',
+    pathMatches: new RegExp('^/([\\w\\.]+)[/]?$'),
+    originAndPathMatches: '^https://(www)?\\.facebook\\.com/[\\w\\.]+[/]?$',
     hostEquals: ['facebook.com', 'www.facebook.com'],
     css: ['body.timelineLayout']
   },
   {
     service: "hackernews",
     getUsername: function(loc) { return parseLocationQuery(loc.search)["id"]; },
-    locationMatches: new RegExp('news\\.ycombinator\\.com/user'),
-    originAndPathMatches: 'news\\.ycombinator\\.com/user',
+    pathMatches: new RegExp('^/user'),
+    originAndPathMatches: '^https://news\\.ycombinator\\.com/user',
     hostEquals: ['news.ycombinator.com'],
     css: ['html[op="user"]']
   }
@@ -102,16 +102,13 @@ const identityMatchers = [
 // Match a window.location and document against a service profile and return
 // a User instance. Will skip matching CSS if no document is provided.
 function matchService(loc, doc, forceService) {
-  // Prefix the url with a period if there is no subdomain.
-  const hasSubdomain = loc.hostname.indexOf(".") !== loc.hostname.lastIndexOf(".");
-  const url = (!hasSubdomain && ".") + loc.hostname + loc.pathname;
 
   for (const m of identityMatchers) {
     if (forceService !== undefined && forceService !== m.service) continue;
 
     const matched = m.hostEquals.some(function(hostName) {
       return hostName === loc.hostname
-    }) && url.match(m.locationMatches);
+    }) && loc.pathname.match(m.pathMatches);
     if (!matched) continue;
 
     const username = safeHTML(m.getUsername(loc));
