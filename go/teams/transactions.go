@@ -373,11 +373,7 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 				return err
 			}
 
-			// TODO: Instead of loading members twice, have a "append"
-			// function in memberSet.
-			if err := memSet.loadMembers(ctx, g, *payload, true /* forcePoll */); err != nil {
-				return err
-			}
+			memSet.appendMemberSet(payloadMemberSet)
 
 			section.Members, err = payloadMemberSet.Section()
 			if err != nil {
