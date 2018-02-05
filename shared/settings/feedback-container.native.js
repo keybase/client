@@ -101,6 +101,7 @@ class FeedbackContainer extends Component<{status: string} & TimerProps, State> 
         onChangeFeedback={this._onChangeFeedback}
         feedback={this.state.feedback}
         sending={this.state.sending}
+        sendError={this.state.sendError}
       />
     )
   }

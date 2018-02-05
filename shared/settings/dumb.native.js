@@ -36,6 +36,7 @@ const feedbackCommon = {
   showSuccessBanner: false,
   sendLogs: true,
   sending: false,
+  sendError: null,
   feedback: null,
   onChangeFeedback: () => {},
   onChangeSendLogs: () => {},

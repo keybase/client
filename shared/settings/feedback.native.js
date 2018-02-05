@@ -20,6 +20,7 @@ type Props = {
   sendLogs: boolean,
   feedback: ?string,
   sending: boolean,
+  sendError: ?Error,
   onChangeSendLogs: (nextValue: boolean) => void,
   onChangeFeedback: (nextValue: ?string) => void,
 }
@@ -38,7 +39,15 @@ class Feedback extends Component<Props> {
   }
 
   render() {
-    const {showSuccessBanner, sendLogs, onChangeSendLogs, feedback, onChangeFeedback, sending} = this.props
+    const {
+      showSuccessBanner,
+      sendLogs,
+      onChangeSendLogs,
+      feedback,
+      onChangeFeedback,
+      sending,
+      sendError,
+    } = this.props
     return (
       <NativeScrollView style={{...globalStyles.flexBoxColumn, flexGrow: 1}} ref={this._setScrollRef}>
         <Box
@@ -109,6 +118,20 @@ class Feedback extends Component<Props> {
               </Text>
             </Box>
           </Box>
+          {sendError && (
+            <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.small}}>
+              <Text type="BodySmall">Error details</Text>
+              <Text type="BodySmall" style={{...globalStyles.selectable, margin: 10}}>{`${sendError.name}: ${
+                sendError.message
+              }`}</Text>
+              <Text type="BodySmall" style={{marginTop: 20}}>
+                Stack trace
+              </Text>
+              <NativeScrollView>
+                <Text type="BodySmall">{sendError.stack}</Text>
+              </NativeScrollView>
+            </Box>
+          )}
           <ButtonBar>
             <Button label="Send" type="Primary" onClick={this._onSubmit} waiting={sending} />
           </ButtonBar>
