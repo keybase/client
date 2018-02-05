@@ -3,6 +3,7 @@ import CardStackTransitioner from 'react-navigation/src/views/CardStack/CardStac
 import GlobalError from './global-errors/container'
 import Offline from '../offline'
 import React, {Component} from 'react'
+import {EmitterListener} from 'react-native'
 import TabBar from './tab-bar/container'
 import {
   Box,
@@ -16,7 +17,7 @@ import {chatTab, loginTab, peopleTab, folderTab, settingsTab, type Tab} from '..
 import {compose} from 'recompose'
 import {connect, type TypedState} from '../util/container'
 import {globalColors, globalStyles, statusBarHeight} from '../styles/index.native'
-import {statusBarSize} from '../styles/status-bar'
+import {addSizeListener} from '../styles/status-bar'
 import * as I from 'immutable'
 import {isIOS, isIPhoneX} from '../constants/platform'
 import {navigateTo, navigateUp, switchTo} from '../actions/route-tree'
@@ -158,8 +159,22 @@ const tabIsCached = {
 }
 
 class MainNavStack extends Component<any, any> {
+  _listener: EmitterListener
   state = {
     stackCache: I.Map(),
+    verticalOffset: 0,
+  }
+
+  componentWillMount() {
+    this._listener = addSizeListener(this.statusBarListener)
+  }
+
+  componentWillUnmount() {
+    this._listener && this._listener.remove()
+  }
+
+  statusBarListener = (frameData: any) => {
+    this.setState({verticalOffset: frameData.frame.height - 20})
   }
 
   componentWillReceiveProps() {
@@ -207,7 +222,7 @@ class MainNavStack extends Component<any, any> {
         <NativeKeyboardAvoidingView
           style={_keyboardStyle}
           behavior={isIOS ? 'padding' : undefined}
-          keyboardVerticalOffset={isIOS ? statusBarSize.currentOffset : undefined}
+          keyboardVerticalOffset={this.state.verticalOffset}
         >
           {content}
         </NativeKeyboardAvoidingView>

@@ -1,14 +1,7 @@
 // @flow
-import {StatusBar} from 'react-native'
 
-class StatusBarSize {
-  // $FlowIssue
-  get currentHeight() {
-    return StatusBar.currentHeight
-  }
-  currentOffset = 0
-}
+const addSizeListener = (cb: any) => ({
+  remove: () => {},
+})
 
-const statusBarSize = new StatusBarSize()
-
-export {statusBarSize}
+export {addSizeListener}
