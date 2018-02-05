@@ -14,7 +14,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
-	jsonw "github.com/keybase/go-jsonw"
 )
 
 var uid = flag.String("uid", "", "uid of sigchain owner")
@@ -80,31 +79,25 @@ func main() {
 	flag.Parse()
 	raw := read()
 
-	jw, err := jsonw.Unmarshal(raw)
-	if err != nil {
-		errout(err.Error())
-	}
-
 	g := libkb.NewGlobalContext().Init()
 	g.Log = logger.New("sc")
 	g.ConfigureCaches()
 
 	sc = &libkb.SigChain{Contextified: libkb.NewContextified(g)}
 	sc.SetUIDUsername(keybase1.UID(*uid), *username)
-	_, err = sc.LoadServerBody(context.Background(), jw, 0, nil, "")
-	if err != nil {
+	if _, err := sc.LoadServerBody(context.Background(), raw, 0, nil, ""); err != nil {
 		errout(err.Error())
 	}
 
-	if err = sc.VerifyChain(context.Background()); err != nil {
+	if err := sc.VerifyChain(context.Background()); err != nil {
 		errout(err.Error())
 	}
 
-	if err = sc.Store(context.Background()); err != nil {
+	if err := sc.Store(context.Background()); err != nil {
 		errout(err.Error())
 	}
 
-	if err = sc.Clean(context.Background()); err != nil {
+	if err := sc.Clean(context.Background()); err != nil {
 		errout(err.Error())
 	}
 

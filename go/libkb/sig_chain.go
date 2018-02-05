@@ -7,10 +7,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"time"
 
+	"github.com/buger/jsonparser"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	jsonw "github.com/keybase/go-jsonw"
 	"golang.org/x/net/context"
 )
 
@@ -227,7 +228,7 @@ func (sc *SigChain) LoadFromServer(ctx context.Context, t *MerkleTriple, selfUID
 	sc.G().Log.CDebugf(ctx, "+ Load SigChain from server (uid=%s, low=%d)", sc.uid, low)
 	defer func() { sc.G().Log.CDebugf(ctx, "- Loaded SigChain -> %s", ErrToOk(err)) }()
 
-	res, err := sc.G().API.Get(APIArg{
+	resp, finisher, err := sc.G().API.GetResp(APIArg{
 		Endpoint:    "sig/get",
 		SessionType: APISessionTypeNONE,
 		Args: HTTPArgs{
@@ -238,36 +239,34 @@ func (sc *SigChain) LoadFromServer(ctx context.Context, t *MerkleTriple, selfUID
 		},
 		NetContext: ctx,
 	})
-
 	if err != nil {
 		return
 	}
-
-	return sc.LoadServerBody(ctx, res.Body, low, t, selfUID)
-}
-
-func (sc *SigChain) LoadServerBody(ctx context.Context, body *jsonw.Wrapper, low keybase1.Seqno, t *MerkleTriple, selfUID keybase1.UID) (dirtyTail *MerkleTriple, err error) {
-	v := body.AtKey("sigs")
-
-	var lim int
-	if lim, err = v.Len(); err != nil {
-		return
+	if finisher != nil {
+		defer finisher()
 	}
 
-	foundTail := false
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	return sc.LoadServerBody(ctx, body, low, t, selfUID)
+}
 
-	sc.G().Log.CDebugf(ctx, "| Got back %d new entries", lim)
+func (sc *SigChain) LoadServerBody(ctx context.Context, body []byte, low keybase1.Seqno, t *MerkleTriple, selfUID keybase1.UID) (dirtyTail *MerkleTriple, err error) {
+	foundTail := false
 
 	var links ChainLinks
 	var tail *ChainLink
 
-	for i := 0; i < lim; i++ {
+	jsonparser.ArrayEach(body, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+
 		var link *ChainLink
-		if link, err = ImportLinkFromServer(sc.G(), sc, v.AtIndex(i), selfUID); err != nil {
+		if link, err = ImportLinkFromServer(sc.G(), sc, value, selfUID); err != nil {
 			return
 		}
 		if link.GetSeqno() <= low {
-			continue
+			return
 		}
 		if selfUID.Equal(link.GetUID()) {
 			sc.G().Log.CDebugf(ctx, "| Setting isOwnNewLinkFromServer=true for seqno %d", link.GetSeqno())
@@ -281,7 +280,7 @@ func (sc *SigChain) LoadServerBody(ctx context.Context, body *jsonw.Wrapper, low
 		}
 
 		tail = link
-	}
+	}, "sigs")
 
 	if t != nil && !foundTail {
 		err = NewServerChainError("Failed to reach (%s, %d) in server response",
