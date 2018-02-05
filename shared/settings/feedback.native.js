@@ -123,13 +123,11 @@ class Feedback extends Component<Props> {
           </ButtonBar>
           {sendError && (
             <Box style={{...globalStyles.flexBoxColumn, marginTop: globalMargins.small}}>
-              <Text type="BodySmall">Could not send log</Text>
+              <Text type="BodyError">Could not send log</Text>
               <Text type="BodySmall" style={{...globalStyles.selectable, margin: 10}}>{`${sendError.name}: ${
                 sendError.message
               }`}</Text>
-              <Text type="BodySmall" style={{marginTop: 20}}>
-                Stack trace
-              </Text>
+              <Text type="BodySmallSemibold">Stack trace</Text>
               <Text type="BodySmall">{sendError.stack}</Text>
             </Box>
           )}
