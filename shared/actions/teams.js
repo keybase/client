@@ -692,6 +692,7 @@ const _setPublicity = function(action: TeamsGen.SetPublicityPayload, state: Type
     Saga.put(createIncrementWaiting(waitingKey)),
     Saga.identity(
       Saga.all([
+        // TODO delete this getDetails call when CORE-7125 is finished
         Saga.put(TeamsGen.createGetDetails({teamname})),
         Saga.put(createDecrementWaiting(waitingKey)),
       ])
