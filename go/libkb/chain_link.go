@@ -4,11 +4,13 @@
 package libkb
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
 	"golang.org/x/net/context"
@@ -431,6 +433,7 @@ func (c *ChainLink) checkAgainstMerkleTree(t *MerkleTriple) (found bool, err err
 		return false, ChainLinkError{"cannot check stubbed link against the merkle tree"}
 	}
 	found = false
+	c.G().Log.Debug("CHAINLINK SEQNO: %v", c.GetSeqno())
 	if t != nil && c.GetSeqno() == t.Seqno {
 		c.G().Log.Debug("| Found chain tail advertised in Merkle tree @%d", int(t.Seqno))
 		found = true
@@ -442,7 +445,6 @@ func (c *ChainLink) checkAgainstMerkleTree(t *MerkleTriple) (found bool, err err
 }
 
 func (tmp *ChainLinkUnpacked) unpackPayloadJSON(payload []byte) error {
-
 	if s, err := jsonparser.GetString(payload, "body", "key", "fingerprint"); err == nil {
 		if tmp.pgpFingerprint, err = PGPFingerprintFromHex(s); err != nil {
 			return err
@@ -469,13 +471,11 @@ func (tmp *ChainLinkUnpacked) unpackPayloadJSON(payload []byte) error {
 		return err
 	}
 
-	prev, err := jsonparser.GetString(payload, "prev")
-	if err != nil {
-		return err
-	}
-	tmp.prev, err = LinkIDFromHex(prev)
-	if err != nil {
-		return err
+	if prev, err := jsonparser.GetString(payload, "prev"); err == nil {
+		tmp.prev, err = LinkIDFromHex(prev)
+		if err != nil {
+			return err
+		}
 	}
 
 	tmp.typ, err = jsonparser.GetString(payload, "body", "type")
@@ -611,22 +611,13 @@ func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID, packed []byte) er
 	}
 
 	if data, _, _, err := jsonparser.Get(packed, "payload_json"); err == nil {
-		/*
-			XXX why?
-				sdata, err := strconv.Unquote(fmt.Sprintf(`"%s"`, string(data)))
-				if err != nil {
-					return err
-				}
-		*/
+		sdata, err := strconv.Unquote(fmt.Sprintf(`"%s"`, string(data)))
+		if err != nil {
+			return err
+		}
 
-		/*
-			payloadJSON, err := jsonw.Unmarshal([]byte(payloadJSONStr))
-			if err != nil {
-				return err
-			}
-		*/
-		// if err := tmp.unpackPayloadJSON(payloadJSON, payloadJSONStr); err != nil {
-		if err := tmp.unpackPayloadJSON(data); err != nil {
+		if err := tmp.unpackPayloadJSON([]byte(sdata)); err != nil {
+			c.G().Log.Debug("unpack payload json err: %s", err)
 			return err
 		}
 	}
@@ -686,9 +677,8 @@ func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID, packed []byte) er
 
 	// only unpack the proof_text_full if owner of this link
 	if tmp.uid.Equal(selfUID) {
-		tmp.proofText, err = jsonparser.GetString(packed, "proof_text_full")
-		if err != nil {
-			return err
+		if pt, err := jsonparser.GetString(packed, "proof_text_full"); err != nil {
+			tmp.proofText = pt
 		}
 	}
 
@@ -934,6 +924,7 @@ func ImportLinkFromServer(g *GlobalContext, parent *SigChain, data []byte, selfU
 	}
 	ret = NewChainLink(g, parent, id)
 	if err = ret.Unpack(false, selfUID, data); err != nil {
+		g.Log.Debug("Unpack error: %s", err)
 		return nil, err
 	}
 
@@ -1198,4 +1189,27 @@ func (c *ChainLink) MaybeDropSig(ctx context.Context) {
 	c.G().Log.CDebugf(ctx, "ChainLink: dropping sig on link %d [%x] (type %s)", c.unpacked.seqno, c.unpacked.payloadHash, c.unpacked.typ)
 	c.unpacked.sig = ""
 	c.unpacked.sigDropped = true
+}
+
+func GetNullString(data []byte, keys ...string) (val string, err error) {
+	v, t, _, e := jsonparser.Get(data, keys...)
+
+	if e != nil {
+		return "", e
+	}
+
+	if t == jsonparser.Null {
+		return "", nil
+	}
+
+	if t != jsonparser.String {
+		return "", fmt.Errorf("Value is not a string: %s", string(v))
+	}
+
+	// If no escapes return raw content
+	if bytes.IndexByte(v, '\\') == -1 {
+		return string(v), nil
+	}
+
+	return jsonparser.ParseString(v)
 }

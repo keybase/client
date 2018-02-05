@@ -263,6 +263,7 @@ func (sc *SigChain) LoadServerBody(ctx context.Context, body []byte, low keybase
 
 		var link *ChainLink
 		if link, err = ImportLinkFromServer(sc.G(), sc, value, selfUID); err != nil {
+			sc.G().Log.Debug("ImportLinkFromServer error: %s", err)
 			return
 		}
 		if link.GetSeqno() <= low {
