@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/mail"
-	"strconv"
 	"strings"
 	"time"
 
@@ -702,7 +701,7 @@ func ParseAndAcceptSeitanToken(ctx context.Context, g *libkb.GlobalContext, tok 
 }
 
 func AcceptSeitan(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKey) error {
-	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithContext(ctx, g))
+	uv, err := getCurrentUserUV(ctx, g)
 	if err != nil {
 		return err
 	}
@@ -718,7 +717,7 @@ func AcceptSeitan(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKey) 
 	}
 
 	unixNow := time.Now().Unix()
-	_, encoded, err := sikey.GenerateAcceptanceKey(me.GetUID(), me.GetCurrentEldestSeqno(), unixNow)
+	_, encoded, err := sikey.GenerateAcceptanceKey(uv.Uid, uv.EldestSeqno, unixNow)
 	if err != nil {
 		return err
 	}
@@ -727,14 +726,14 @@ func AcceptSeitan(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKey) 
 
 	arg := apiArg(ctx, "team/seitan")
 	arg.Args.Add("akey", libkb.S{Val: encoded})
-	arg.Args.Add("now", libkb.S{Val: strconv.FormatInt(unixNow, 10)})
+	arg.Args.Add("now", libkb.HTTPTime{Val: keybase1.Time(unixNow)})
 	arg.Args.Add("invite_id", libkb.S{Val: string(inviteID)})
 	_, err = g.API.Post(arg)
 	return err
 }
 
 func AcceptSeitanV2(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKeyV2) error {
-	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithContext(ctx, g))
+	uv, err := getCurrentUserUV(ctx, g)
 	if err != nil {
 		return err
 	}
@@ -750,7 +749,7 @@ func AcceptSeitanV2(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKey
 	}
 
 	now := keybase1.ToTime(time.Now())
-	_, encoded, err := sikey.GenerateSignature(me.GetUID(), me.GetCurrentEldestSeqno(), inviteID, now)
+	_, encoded, err := sikey.GenerateSignature(uv.Uid, uv.EldestSeqno, inviteID, now)
 	if err != nil {
 		return err
 	}
@@ -759,7 +758,7 @@ func AcceptSeitanV2(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKey
 
 	arg := apiArg(ctx, "team/seitan_v2")
 	arg.Args.Add("sig", libkb.S{Val: encoded})
-	arg.Args.Add("now", libkb.S{Val: strconv.FormatInt(int64(now), 10)})
+	arg.Args.Add("now", libkb.HTTPTime{Val: now})
 	arg.Args.Add("invite_id", libkb.S{Val: string(inviteID)})
 	_, err = g.API.Post(arg)
 	return err

@@ -18,8 +18,6 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-const SeitanVersion2 = 2
-
 // Seitan tokens v2 have a '+' as the sixth character. We use this
 // to distinguish from email invite tokens (and team names).
 const seitanEncodedIKeyV2PlusOffset = 6

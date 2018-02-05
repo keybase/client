@@ -37,7 +37,10 @@ const base30BitMask = byte(0x1f)
 
 type SeitanVersion uint
 
-const SeitanVersion1 = 1
+const (
+	SeitanVersion1 SeitanVersion = 1
+	SeitanVersion2 SeitanVersion = 2
+)
 
 // "Invite Key"
 type SeitanIKey string
