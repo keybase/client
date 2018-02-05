@@ -458,10 +458,6 @@ func makeSigchainV2OuterSig(
 		return sig, linkID, err
 	}
 
-	// TODO: The plan here was to return OuterLinkV2WithMetadata, so
-	// caller can have more insight into what link has been created,
-	// but that struct seems internal (all fields but one are hidden),
-	// so for now it returns sig, linkid, err.
 	linkID = libkb.ComputeLinkID(encodedOuterLink)
 	return sig, linkID, nil
 }
