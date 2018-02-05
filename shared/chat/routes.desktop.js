@@ -8,7 +8,7 @@ import AttachmentInputPopup from './conversation/attachment-input/container'
 import BlockConversationWarning from './conversation/block-conversation-warning/container'
 import NewTeamDialogFromChat from './new-team-dialog-container.js'
 import ManageChannels from './manage-channels/container'
-import {ConnectedMessageAction} from './conversation/messages/popup.desktop'
+import MessageAction from './conversation/messages/message-popup'
 import EditChannel from './manage-channels/edit-channel-container'
 import CreateChannel from './create-channel/container'
 import Render from './render.desktop'
@@ -21,7 +21,12 @@ const conversationRoute = makeRouteDefNode({
     attachment: {
       component: AttachmentPopup,
       tags: makeLeafTags({layerOnTop: true}),
-      children: {},
+      children: {
+        messageAction: {
+          component: RelativePopupHoc(MessageAction),
+          tags: makeLeafTags({layerOnTop: true}),
+        },
+      },
     },
     attachmentInput: {
       component: AttachmentInputPopup,
@@ -34,7 +39,7 @@ const conversationRoute = makeRouteDefNode({
       children: {},
     },
     messageAction: {
-      component: RelativePopupHoc(ConnectedMessageAction),
+      component: RelativePopupHoc(MessageAction),
       tags: makeLeafTags({layerOnTop: true}),
     },
     showNewTeamDialog: {

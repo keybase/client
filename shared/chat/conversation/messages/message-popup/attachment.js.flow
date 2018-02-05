@@ -1,0 +1,18 @@
+// @flow
+import * as React from 'react'
+import * as Types from '../../../../constants/types/chat2'
+
+export type OwnProps = {
+  message: Types.MessageAttachment,
+  onClosePopup: () => void,
+}
+
+export type Props = {
+  message: Types.MessageAttachment,
+  onDelete: ?() => void,
+  onHidden: () => void,
+  style?: Object,
+  yourMessage: boolean,
+}
+
+declare export default class AttachmentPopupMenu extends React.Component<OwnProps> {}

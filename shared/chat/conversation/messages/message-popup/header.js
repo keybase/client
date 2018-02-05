@@ -1,11 +1,11 @@
 // @flow
 import * as React from 'react'
-import {Box, Icon, Text} from '../../../common-adapters'
-import {PopupHeaderText} from '../../../common-adapters/popup-menu'
-import {globalStyles, globalMargins, globalColors, isMobile} from '../../../styles'
-import {formatTimeForPopup, formatTimeForRevoked} from '../../../util/timestamp'
-import type {MessageText, MessageAttachment} from '../../../constants/types/chat2'
-import type {IconType} from '../../../common-adapters/icon'
+import {Box, Icon, Text} from '../../../../common-adapters'
+import {PopupHeaderText} from '../../../../common-adapters/popup-menu'
+import {globalStyles, globalMargins, globalColors, isMobile} from '../../../../styles'
+import {formatTimeForPopup, formatTimeForRevoked} from '../../../../util/timestamp'
+import type {MessageText, MessageAttachment} from '../../../../constants/types/chat2'
+import type {IconType} from '../../../../common-adapters/icon'
 
 const iconNameForDeviceType = isMobile
   ? (deviceType: string, isRevoked: boolean): IconType => {

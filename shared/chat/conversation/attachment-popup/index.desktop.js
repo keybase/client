@@ -1,172 +1,102 @@
-// @noflow TEMP
+// @flow
 import * as React from 'react'
 import {Box, Icon, Text, PopupDialog, ProgressIndicator} from '../../../common-adapters/index'
-import {AttachmentPopupMenu} from '../messages/popup.desktop'
-import {ProgressBar as AttachmentProgressBar, ImageIcon as AttachmentStatusIcon} from '../messages/attachment'
+// import {AttachmentPopupMenu} from '../messages/popup.desktop'
+// import {ProgressBar as AttachmentProgressBar, ImageIcon as AttachmentStatusIcon} from '../messages/attachment'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
-import {fileUIName} from '../../../constants/platform'
+// import {fileUIName} from '../../../constants/platform'
 
 import type {Props} from '.'
 // import type {LocalMessageState} from '../../../constants/types/chat'
+//
 
-// const AttachmentStatusFooter = ({
-// localMessageState,
-// onDownloadAttachment,
-// onOpenInFileUI,
-// }: {
-// localMessageState: LocalMessageState,
-// onDownloadAttachment: () => void,
-// onOpenInFileUI: () => void,
-// }) => {
-// const {downloadProgress, savedPath} = localMessageState
+const AttachmentPopup = (props: Props) => {
+  return (
+    <PopupDialog onClose={props.onClose} fill={true}>
+      <Box style={containerStyle}>
+        <Box style={headerFooterStyle}>
+          <Text type="BodySemibold" style={{color: globalColors.black_75, flex: 1}}>
+            {props.title}
+          </Text>
+          {!props.deviceFilePath && <ProgressIndicator style={{width: 24}} />}
+          <Icon
+            type="iconfont-ellipsis"
+            style={{color: globalColors.black_40, cursor: 'pointer', marginLeft: globalMargins.tiny}}
+            onClick={event => {
+              const node = event.target instanceof window.HTMLElement ? event.target : null
+              props.onShowMenu(node ? node.getBoundingClientRect() : null)
+            }}
+          />
+        </Box>
+        {props.deviceFilePath ||
+          (props.devicePreviewPath && (
+            <Box style={props.isZoomed ? styleContentsZoom : styleContentsFit} onClick={props.onToggleZoom}>
+              <img
+                src={props.deviceFilePath || props.devicePreviewPath}
+                style={props.isZoomed ? styleImageZoom : styleImageFit}
+              />
+            </Box>
+          ))}
+        <Box style={headerFooterStyle}>
+          {props.onDownloadAttachment && (
+            <Text
+              type="BodySmall"
+              style={{color: globalColors.black_60, cursor: 'pointer'}}
+              onClick={props.onDownloadAttachment}
+            >
+              Download
+            </Text>
+          )}
+        </Box>
+      </Box>
+    </PopupDialog>
+  )
+}
 
-// let contents
-// if (savedPath === false && downloadProgress !== null) {
-// contents = <AttachmentProgressBar text="Downloading" progress={downloadProgress} />
-// } else if (savedPath) {
-// contents = (
-// <Text type="BodySmallPrimaryLink" style={{cursor: 'pointer'}} onClick={onOpenInFileUI}>
-// Show in {fileUIName}
-// </Text>
-// )
-// } else {
-// contents = (
-// <Text
-// type="BodySmall"
-// style={{color: globalColors.black_60, cursor: 'pointer'}}
-// onClick={onDownloadAttachment}
-// >
-// Download
-// </Text>
-// )
-// }
+const containerStyle = {
+  ...globalStyles.flexBoxColumn,
+  height: '100%',
+  width: '100%',
+}
 
-// return <Box style={styleHeaderFooter}>{contents}</Box>
-// }
+const headerFooterStyle = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  height: 32,
+  paddingLeft: globalMargins.tiny,
+  paddingRight: globalMargins.tiny,
+  width: '100%',
+}
 
-// const AttachmentView = ({
-// isZoomed,
-// onToggleZoom,
-// messageState,
-// path,
-// }: {
-// isZoomed: boolean,
-// onToggleZoom: () => void,
-// path: ?string,
-// }) => {
-// if (path) {
-// return (
-// <Box style={isZoomed ? styleContentsZoom : styleContentsFit} onClick={onToggleZoom}>
-// <img src={path} style={isZoomed ? styleImageZoom : styleImageFit} />
-// </Box>
-// )
-// } else {
-// return (
-// <Box style={styleContentsCenter}>
-// <ProgressIndicator style={{width: 48}} />
-// </Box>
-// )
-// }
-// }
+const styleContentsFit = {
+  ...globalStyles.flexBoxRow,
+  flex: 1,
+}
 
-// const AttachmentPopup = ({
-// message,
-// localMessageState,
-// detailsPopupShowing,
-// isZoomed,
-// onCloseDetailsPopup,
-// onClose,
-// onDownloadAttachment,
-// onDeleteMessage,
-// onOpenDetailsPopup,
-// onToggleZoom,
-// onOpenInFileUI,
-// you,
-// }: Props) => {
-// const {savedPath, downloadProgress, downloadedPath} = localMessageState
-// let statusIcon
-// if (savedPath || (savedPath === false && downloadProgress !== null)) {
-// statusIcon = (
-// <AttachmentStatusIcon
-// style={{position: 'absolute', bottom: -3, right: -3}}
-// type={savedPath ? 'Downloaded' : 'Downloading'}
-// />
-// )
-// }
+const progressContainerStyle = {
+  ...styleContentsFit,
+  alignItems: 'center',
+  justifyContent: 'center',
+}
 
-// return (
-// <PopupDialog onClose={onClose} fill={true}>
-// {detailsPopupShowing && (
-// <AttachmentPopupMenu
-// you={you}
-// message={message}
-// localMessageState={localMessageState}
-// onDeleteMessage={onDeleteMessage}
-// onDownloadAttachment={onDownloadAttachment}
-// onOpenInFileUI={onOpenInFileUI}
-// onHidden={onCloseDetailsPopup}
-// style={{position: 'absolute', top: 28, right: globalMargins.xtiny}}
-// />
-// )}
-// <Box style={styleHeaderFooter}>
-// <Text type="BodySemibold" style={{color: globalColors.black_75, flex: 1}}>
-// {message.title}
-// </Text>
-// <Icon
-// type="iconfont-ellipsis"
-// style={{color: globalColors.black_40, cursor: 'pointer'}}
-// onClick={detailsPopupShowing ? onCloseDetailsPopup : onOpenDetailsPopup}
-// />
-// </Box>
-// <AttachmentView isZoomed={isZoomed} onToggleZoom={onToggleZoom} path={downloadedPath} />
-// <AttachmentStatusFooter
-// localMessageState={localMessageState}
-// onDownloadAttachment={onDownloadAttachment}
-// onOpenInFileUI={onOpenInFileUI}
-// />
-// {statusIcon}
-// </PopupDialog>
-// )
-// }
+const styleContentsZoom = {
+  display: 'block',
+  flex: 1,
+  overflow: 'auto',
+}
 
-// const styleHeaderFooter = {
-// ...globalStyles.flexBoxRow,
-// alignItems: 'center',
-// flexShrink: 0,
-// height: 32,
-// marginLeft: globalMargins.tiny,
-// marginRight: globalMargins.tiny,
-// }
+const styleImageFit = {
+  cursor: 'zoom-in',
+  display: 'block',
+  objectFit: 'scale-down',
+  width: '100%',
+}
 
-// const styleContentsFit = {
-// ...globalStyles.flexBoxRow,
-// flex: 1,
-// }
+const styleImageZoom = {
+  cursor: 'zoom-out',
+  display: 'block',
+  minHeight: '100%',
+  minWidth: '100%',
+}
 
-// const styleContentsCenter = {
-// ...styleContentsFit,
-// alignItems: 'center',
-// justifyContent: 'center',
-// }
-
-// const styleContentsZoom = {
-// display: 'block',
-// flex: 1,
-// overflow: 'auto',
-// }
-
-// const styleImageFit = {
-// cursor: 'zoom-in',
-// display: 'block',
-// objectFit: 'scale-down',
-// width: '100%',
-// }
-
-// const styleImageZoom = {
-// cursor: 'zoom-out',
-// display: 'block',
-// minHeight: '100%',
-// minWidth: '100%',
-// }
-
-// export default AttachmentPopup
+export default AttachmentPopup

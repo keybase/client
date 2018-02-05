@@ -49,6 +49,7 @@ class ImageAttachment extends React.PureComponent<Props> {
 const imageContainerStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'flex-start',
+  padding: globalMargins.xtiny,
   width: '100%',
 }
 
