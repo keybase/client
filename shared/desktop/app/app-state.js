@@ -221,15 +221,18 @@ export default class AppState {
     if (!process.env.APPDATA) {
       throw new Error('APPDATA unexpectedly empty')
     }
+    const appDataPath = '' + process.env.APPDATA
     const linkpath = path.join(
-      process.env.APPDATA,
+      appDataPath,
       'Microsoft\\Windows\\Start Menu\\Programs\\Startup\\GUIStartup.lnk'
     )
     if (this.state.openAtLogin) {
       if (!fs.existsSync(linkpath)) {
         var ws = require('windows-shortcuts')
-        // $FlowIssue
-        ws.create(linkpath, path.join(process.env.LOCALAPPDATA, 'Keybase\\gui\\Keybase.exe'))
+        if (!process.env.APPDATA) {
+          throw new Error('APPDATA unexpectedly empty')
+        }
+        ws.create(linkpath, path.join(appDataPath, 'Keybase\\gui\\Keybase.exe'))
       }
     } else {
       if (fs.existsSync(linkpath)) {
