@@ -28,6 +28,7 @@ func addNameInfoCryptKey(keys types.AllCryptKeys, key types.CryptKey, implicit b
 }
 
 func getTeamKeys(ctx context.Context, team *teams.Team, public bool) (res types.AllCryptKeys, err error) {
+	res = types.NewAllCryptKeys()
 	if !public {
 		chatKeys, err := team.AllApplicationKeys(ctx, keybase1.TeamApplication_CHAT)
 		if err != nil {

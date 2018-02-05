@@ -102,7 +102,7 @@ func (k *KeyFinderImpl) Find(ctx context.Context, name string,
 		return existing, nil
 	}
 	defer func() {
-		if err != nil {
+		if err == nil {
 			k.writeKey(ckey, res)
 		}
 	}()
@@ -128,7 +128,7 @@ func (k *KeyFinderImpl) FindForEncryption(ctx context.Context, tlfName string, t
 		return existing, nil
 	}
 	defer func() {
-		if err != nil {
+		if err == nil {
 			k.writeKey(ckey, res)
 		}
 	}()
@@ -155,7 +155,7 @@ func (k *KeyFinderImpl) FindForDecryption(ctx context.Context,
 		return existing, nil
 	}
 	defer func() {
-		if err != nil {
+		if err == nil {
 			k.writeKey(ckey, res)
 		}
 	}()
