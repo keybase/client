@@ -446,6 +446,8 @@ func TestLoadAfterAcctResetCORE6943(t *testing.T) {
 	t.Logf("create new user")
 	fu := CreateAndSignupFakeUser(tc, "res")
 
+	trackAlice(tc, fu)
+
 	loadUpak := func() (*keybase1.UserPlusAllKeys, error) {
 		t.Logf("loadUpak: using username:%+v", fu.Username)
 		loadArg := libkb.NewLoadUserArg(tc.G).WithUID(fu.UID()).WithPublicKeyOptional().WithNetContext(context.TODO()).WithStaleOK(false)
