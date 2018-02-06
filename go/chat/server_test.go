@@ -2989,6 +2989,7 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 0, len(res.Conversations), "conv found")
 		consumeIdentify(ctx, listener0)
+		consumeIdentify(ctx, listener0)
 
 		// create a new conversation
 		ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
@@ -3026,7 +3027,9 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 			},
 		})
 		require.NoError(t, err)
-		consumeIdentify(ctx, listener0)
+		consumeIdentify(ctx, listener0) // Pull
+		consumeIdentify(ctx, listener0) // EncryptionKeys
+		consumeIdentify(ctx, listener0) // DecryptionKeys
 
 		// user 1 sends a message to conv
 		ctx = ctc.as(t, users[1]).startCtx
@@ -3065,8 +3068,6 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 		select {
 		case <-listener0.identifyUpdate:
 			require.Fail(t, "leftover identifies 0")
-		case <-listener1.identifyUpdate:
-			require.Fail(t, "leftover identifies 1")
 		default:
 		}
 	})

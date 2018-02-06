@@ -14,7 +14,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
-	"github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
 )
 
@@ -372,20 +371,15 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, conv types.U
 		return nil
 	}
 
-	idMode, _, haveMode := IdentifyMode(ctx)
 	for _, msg := range msgs {
 		if msg.IsValid() {
 
-			// Early out if we are in GUI mode and don't have any breaks stored
+			// Early out if we have stored a clean identify at some point
 			idBroken := s.storage.IsTLFIdentifyBroken(ctx, msg.Valid().ClientHeader.Conv.Tlfid)
-			if haveMode && idMode == keybase1.TLFIdentifyBehavior_CHAT_GUI && !idBroken {
+			if !idBroken {
 				s.Debug(ctx, "identifyTLF: not performing identify because we stored a clean identify")
 				return nil
 			}
-			if !haveMode {
-				idMode = keybase1.TLFIdentifyBehavior_CHAT_GUI
-			}
-
 			tlfName := msg.Valid().ClientHeader.TLFNameExpanded(conv.GetFinalizeInfo())
 
 			var names []string
