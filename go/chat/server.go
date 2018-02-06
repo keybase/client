@@ -52,7 +52,7 @@ type Server struct {
 	uiSource      UISource
 	boxer         *Boxer
 	store         *AttachmentStore
-	identNotifier *IdentifyNotifier
+	identNotifier types.IdentifyNotifier
 
 	// Only for testing
 	rc                chat1.RemoteInterface
@@ -71,7 +71,7 @@ func NewServer(g *globals.Context, store *AttachmentStore, serverConn ServerConn
 		uiSource:      uiSource,
 		store:         store,
 		boxer:         NewBoxer(g),
-		identNotifier: NewIdentifyNotifier(g),
+		identNotifier: NewCachingIdentifyNotifier(g),
 	}
 }
 

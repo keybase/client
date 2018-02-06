@@ -186,3 +186,9 @@ type TeamChannelSource interface {
 	GetChannelsTopicName(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType) ([]ConvIDAndTopicName, []chat1.RateLimit, error)
 	ChannelsChanged(context.Context, chat1.TLFID)
 }
+
+type IdentifyNotifier interface {
+	Reset()
+	ResetOnGUIConnect()
+	Send(ctx context.Context, update keybase1.CanonicalTLFNameAndIDWithBreaks)
+}

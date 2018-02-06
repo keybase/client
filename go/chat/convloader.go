@@ -35,7 +35,7 @@ type BackgroundConvLoader struct {
 	started       bool
 	queue         chan clTask
 	stop          chan bool
-	identNotifier *IdentifyNotifier
+	identNotifier types.IdentifyNotifier
 
 	// for testing, make this and can check conv load successes
 	loads                 chan chat1.ConversationID
@@ -49,7 +49,7 @@ func NewBackgroundConvLoader(g *globals.Context) *BackgroundConvLoader {
 		Contextified:  globals.NewContextified(g),
 		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "BackgroundConvLoader", false),
 		stop:          make(chan bool),
-		identNotifier: NewIdentifyNotifier(g),
+		identNotifier: NewCachingIdentifyNotifier(g),
 	}
 	b.identNotifier.ResetOnGUIConnect()
 

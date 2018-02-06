@@ -640,7 +640,7 @@ func TestConversationLocking(t *testing.T) {
 	t.Logf("Trace 1 can get multiple locks")
 	var breaks []keybase1.TLFIdentifyFailure
 	ctx = Context(context.TODO(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI, &breaks,
-		NewIdentifyNotifier(tc.Context()))
+		NewCachingIdentifyNotifier(tc.Context()))
 	acquires := 5
 	for i := 0; i < acquires; i++ {
 		timedAcquire(ctx, uid, conv.GetConvID())
@@ -652,7 +652,7 @@ func TestConversationLocking(t *testing.T) {
 
 	t.Logf("Trace 2 properly blocked by Trace 1")
 	ctx2 := Context(context.TODO(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI,
-		&breaks, NewIdentifyNotifier(tc.Context()))
+		&breaks, NewCachingIdentifyNotifier(tc.Context()))
 	blockCb := make(chan struct{})
 	hcs.lockTab.blockCb = &blockCb
 	cb := make(chan struct{})

@@ -19,31 +19,57 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-type IdentifyNotifier struct {
+type DummyIdentifyNotifier struct{}
+
+func (d DummyIdentifyNotifier) Reset()             {}
+func (d DummyIdentifyNotifier) ResetOnGUIConnect() {}
+func (d DummyIdentifyNotifier) Send(ctx context.Context, update keybase1.CanonicalTLFNameAndIDWithBreaks) {
+}
+
+type SimpleIdentifyNotifier struct {
+	globals.Contextified
+	utils.DebugLabeler
+	storage *storage.Storage
+}
+
+func NewSimpleIdentifyNotifier(g *globals.Context) *SimpleIdentifyNotifier {
+	return &SimpleIdentifyNotifier{
+		Contextified: globals.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "SimpleIdentifyNotifier", false),
+		storage:      storage.New(g),
+	}
+}
+
+func (d *SimpleIdentifyNotifier) Reset()             {}
+func (d *SimpleIdentifyNotifier) ResetOnGUIConnect() {}
+
+func (d *SimpleIdentifyNotifier) Send(ctx context.Context, update keybase1.CanonicalTLFNameAndIDWithBreaks) {
+	// Send to storage as well (charge forward on error)
+	if err := d.storage.UpdateTLFIdentifyBreak(ctx, update.TlfID.ToBytes(), update.Breaks.Breaks); err != nil {
+		d.Debug(ctx, "failed to update storage with TLF identify info: %s", err.Error())
+	}
+	d.G().NotifyRouter.HandleChatIdentifyUpdate(ctx, update)
+}
+
+type CachingIdentifyNotifier struct {
 	globals.Contextified
 	utils.DebugLabeler
 
 	sync.RWMutex
 	storage    *storage.Storage
 	identCache map[string]keybase1.CanonicalTLFNameAndIDWithBreaks
-	caching    bool
 }
 
-func NewIdentifyNotifier(g *globals.Context) *IdentifyNotifier {
-	return &IdentifyNotifier{
+func NewCachingIdentifyNotifier(g *globals.Context) *CachingIdentifyNotifier {
+	return &CachingIdentifyNotifier{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "IdentifyNotifier", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "CachingIdentifyNotifier", false),
 		identCache:   make(map[string]keybase1.CanonicalTLFNameAndIDWithBreaks),
 		storage:      storage.New(g),
-		caching:      true,
 	}
 }
 
-func (i *IdentifyNotifier) DisableCaching() {
-	i.caching = false
-}
-
-func (i *IdentifyNotifier) ResetOnGUIConnect() {
+func (i *CachingIdentifyNotifier) ResetOnGUIConnect() {
 	i.G().ConnectionManager.RegisterLabelCallback(func(typ keybase1.ClientType) {
 		switch typ {
 		case keybase1.ClientType_GUI_HELPER, keybase1.ClientType_GUI_MAIN:
@@ -52,11 +78,11 @@ func (i *IdentifyNotifier) ResetOnGUIConnect() {
 	})
 }
 
-func (i *IdentifyNotifier) Reset() {
+func (i *CachingIdentifyNotifier) Reset() {
 	i.identCache = make(map[string]keybase1.CanonicalTLFNameAndIDWithBreaks)
 }
 
-func (i *IdentifyNotifier) Send(ctx context.Context, update keybase1.CanonicalTLFNameAndIDWithBreaks) {
+func (i *CachingIdentifyNotifier) Send(ctx context.Context, update keybase1.CanonicalTLFNameAndIDWithBreaks) {
 
 	// Send to storage as well (charge forward on error)
 	if err := i.storage.UpdateTLFIdentifyBreak(ctx, update.TlfID.ToBytes(), update.Breaks.Breaks); err != nil {
@@ -65,23 +91,19 @@ func (i *IdentifyNotifier) Send(ctx context.Context, update keybase1.CanonicalTL
 
 	// Send notification to GUI about identify status
 	tlfName := update.CanonicalName.String()
-	if i.caching {
-		i.RLock()
-		stored, ok := i.identCache[tlfName]
-		i.RUnlock()
-		if ok {
-			// We have the exact update stored, don't send it again
-			if stored.Eq(update) {
-				i.Debug(ctx, "hit cache, not sending notify: %s", tlfName)
-				return
-			}
+	i.RLock()
+	stored, ok := i.identCache[tlfName]
+	i.RUnlock()
+	if ok {
+		// We have the exact update stored, don't send it again
+		if stored.Eq(update) {
+			i.Debug(ctx, "hit cache, not sending notify: %s", tlfName)
+			return
 		}
-		i.Lock()
-		i.identCache[tlfName] = update
-		i.Unlock()
-	} else {
-		i.Debug(ctx, "skipping cache, disabled")
 	}
+	i.Lock()
+	i.identCache[tlfName] = update
+	i.Unlock()
 
 	i.Debug(ctx, "cache miss, sending notify: %s dat: %v", tlfName, update)
 	i.G().NotifyRouter.HandleChatIdentifyUpdate(ctx, update)
@@ -135,7 +157,7 @@ func (h *IdentifyChangedHandler) getTLFtoCrypt(ctx context.Context, uid gregor1.
 }
 
 func (h *IdentifyChangedHandler) BackgroundIdentifyChanged(ctx context.Context, job engine.IdentifyJob) {
-	notifier := NewIdentifyNotifier(h.G())
+	notifier := NewCachingIdentifyNotifier(h.G())
 
 	// Get username
 	uid := job.UID()
@@ -192,7 +214,7 @@ func (h *IdentifyChangedHandler) HandleUserChanged(uid keybase1.UID) (err error)
 	// Make a new chat context
 	var breaks []keybase1.TLFIdentifyFailure
 	ident := keybase1.TLFIdentifyBehavior_CHAT_GUI
-	notifier := NewIdentifyNotifier(h.G())
+	notifier := NewCachingIdentifyNotifier(h.G())
 	ctx := Context(context.Background(), h.G(), ident, &breaks, notifier)
 
 	// Find a TLF name from the local inbox that includes the user sent to us
@@ -234,14 +256,16 @@ func NewNameIdentifier(g *globals.Context) *NameIdentifier {
 	}
 }
 
-func (t *NameIdentifier) Identify(ctx context.Context, names []string, private bool) (res []keybase1.TLFIdentifyFailure, err error) {
+func (t *NameIdentifier) Identify(ctx context.Context, names []string, private bool,
+	getTLFID func() keybase1.TLFID, getCanonicalName func() keybase1.CanonicalTlfName) (res []keybase1.TLFIdentifyFailure, err error) {
 	idNotifier := CtxIdentifyNotifier(ctx)
 	identBehavior, breaks, ok := IdentifyMode(ctx)
 	if !ok {
 		return res, fmt.Errorf("invalid context with no chat metadata")
 	}
 	defer t.Trace(ctx, func() error { return err },
-		fmt.Sprintf("Identify(names=%s,mode=%v)", strings.Join(names, ","), identBehavior))()
+		fmt.Sprintf("Identify(names=%s,mode=%v,uid=%s)", strings.Join(names, ","), identBehavior,
+			t.G().GetEnv().GetUsername()))()
 
 	if identBehavior == keybase1.TLFIdentifyBehavior_CHAT_SKIP {
 		t.Debug(ctx, "SKIP behavior found, not running identify")
@@ -303,6 +327,8 @@ func (t *NameIdentifier) Identify(ctx context.Context, names []string, private b
 			Breaks: keybase1.TLFBreak{
 				Breaks: res,
 			},
+			TlfID:         getTLFID(),
+			CanonicalName: getCanonicalName(),
 		})
 	}
 	*breaks = appendBreaks(*breaks, res)

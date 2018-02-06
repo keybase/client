@@ -120,14 +120,25 @@ func (t *KBFSNameInfoSource) CryptKeys(ctx context.Context, tlfName string) (res
 	group, ectx := errgroup.WithContext(BackgroundContext(ctx, t.G()))
 
 	var ib []keybase1.TLFIdentifyFailure
+	doneCh := make(chan struct{})
 	group.Go(func() error {
 		t.Debug(ectx, "CryptKeys: running identify")
 		var err error
 		names := utils.SplitTLFName(tlfName)
-		ib, err = t.Identify(ectx, names, true)
+		ib, err = t.Identify(ectx, names, true,
+			func() keybase1.TLFID {
+				<-doneCh
+				return res.NameIDBreaks.TlfID
+			},
+			func() keybase1.CanonicalTlfName {
+				<-doneCh
+				return res.NameIDBreaks.CanonicalName
+			},
+		)
 		return err
 	})
 	group.Go(func() error {
+		defer close(doneCh)
 		t.Debug(ectx, "CryptKeys: running GetTLFCryptKeys on KFBS daemon")
 		tlfClient, err := t.tlfKeysClient()
 		if err != nil {
@@ -175,16 +186,27 @@ func (t *KBFSNameInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tl
 	group, ectx := errgroup.WithContext(BackgroundContext(ctx, t.G()))
 
 	var ib []keybase1.TLFIdentifyFailure
+	doneCh := make(chan struct{})
 	if identBehavior != keybase1.TLFIdentifyBehavior_CHAT_SKIP {
 		group.Go(func() error {
 			var err error
 			names := utils.SplitTLFName(tlfName)
-			ib, err = t.Identify(ectx, names, false)
+			ib, err = t.Identify(ectx, names, false,
+				func() keybase1.TLFID {
+					<-doneCh
+					return res.TlfID
+				},
+				func() keybase1.CanonicalTlfName {
+					<-doneCh
+					return res.CanonicalName
+				},
+			)
 			return err
 		})
 	}
 
 	group.Go(func() error {
+		defer close(doneCh)
 		tlfClient, err := t.tlfKeysClient()
 		if err != nil {
 			return err

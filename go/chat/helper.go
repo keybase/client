@@ -189,7 +189,7 @@ func (s *sendHelper) SendText(ctx context.Context, text string) error {
 }
 
 func (s *sendHelper) SendBody(ctx context.Context, body chat1.MessageBody, mtype chat1.MessageType) error {
-	ctx = Context(ctx, s.G(), s.ident, nil, NewIdentifyNotifier(s.G()))
+	ctx = Context(ctx, s.G(), s.ident, nil, NewCachingIdentifyNotifier(s.G()))
 	if err := s.nameInfo(ctx); err != nil {
 		return err
 	}
@@ -353,7 +353,7 @@ func (r *recentConversationParticipants) get(ctx context.Context, myUID gregor1.
 }
 
 func RecentConversationParticipants(ctx context.Context, g *globals.Context, myUID gregor1.UID) ([]gregor1.UID, error) {
-	ctx = Context(ctx, g, keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, NewIdentifyNotifier(g))
+	ctx = Context(ctx, g, keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, NewCachingIdentifyNotifier(g))
 	return newRecentConversationParticipants(g).get(ctx, myUID)
 }
 

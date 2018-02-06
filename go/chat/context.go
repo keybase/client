@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -56,14 +57,18 @@ func CtxKeyFinder(ctx context.Context, g *globals.Context) KeyFinder {
 	return NewKeyFinder(g)
 }
 
-func CtxIdentifyNotifier(ctx context.Context) *IdentifyNotifier {
-	var in *IdentifyNotifier
+func CtxIdentifyNotifier(ctx context.Context) types.IdentifyNotifier {
+	var in types.IdentifyNotifier
 	var ok bool
 	val := ctx.Value(inKey)
-	if in, ok = val.(*IdentifyNotifier); ok {
+	if in, ok = val.(types.IdentifyNotifier); ok {
 		return in
 	}
 	return nil
+}
+
+func CtxModifyIdentifyNotifier(ctx context.Context, notifier types.IdentifyNotifier) context.Context {
+	return context.WithValue(ctx, inKey, notifier)
 }
 
 func CtxTrace(ctx context.Context) (string, bool) {
@@ -96,7 +101,7 @@ func CtxAddLogTags(ctx context.Context, env appTypeSource) context.Context {
 }
 
 func Context(ctx context.Context, g *globals.Context, mode keybase1.TLFIdentifyBehavior,
-	breaks *[]keybase1.TLFIdentifyFailure, notifier *IdentifyNotifier) context.Context {
+	breaks *[]keybase1.TLFIdentifyFailure, notifier types.IdentifyNotifier) context.Context {
 	if breaks == nil {
 		breaks = new([]keybase1.TLFIdentifyFailure)
 	}
@@ -106,7 +111,7 @@ func Context(ctx context.Context, g *globals.Context, mode keybase1.TLFIdentifyB
 		res = context.WithValue(res, kfKey, NewKeyFinder(g))
 	}
 	val = res.Value(inKey)
-	if _, ok := val.(*IdentifyNotifier); !ok {
+	if _, ok := val.(types.IdentifyNotifier); !ok {
 		res = context.WithValue(res, inKey, notifier)
 	}
 	res = CtxAddLogTags(res, g.GetEnv())

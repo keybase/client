@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
 )
 
@@ -383,6 +384,7 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, conv types.U
 			tlfName := msg.Valid().ClientHeader.TLFNameExpanded(conv.GetFinalizeInfo())
 
 			var names []string
+			tlfID := msg.Valid().ClientHeader.Conv.Tlfid
 			switch conv.GetMembersType() {
 			case chat1.ConversationMembersType_KBFS:
 				names = utils.SplitTLFName(tlfName)
@@ -406,7 +408,13 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, conv types.U
 
 			s.Debug(ctx, "identifyTLF: identifying from msg ID: %d names: %v convID: %s",
 				msg.GetMessageID(), names, conv.GetConvID())
-			_, err := NewNameIdentifier(s.G()).Identify(ctx, names, !msg.Valid().ClientHeader.TlfPublic)
+			_, err := NewNameIdentifier(s.G()).Identify(ctx, names, !msg.Valid().ClientHeader.TlfPublic,
+				func() keybase1.TLFID {
+					return keybase1.TLFID(tlfID.String())
+				},
+				func() keybase1.CanonicalTlfName {
+					return keybase1.CanonicalTlfName(tlfName)
+				})
 			if err != nil {
 				s.Debug(ctx, "identifyTLF: failure: name: %s convID: %s err: %s", tlfName, conv.GetConvID(),
 					err)

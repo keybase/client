@@ -134,7 +134,7 @@ func (g *gregorTestConnection) HandlerName() string {
 
 func newTestContext(tc *kbtest.ChatTestContext) context.Context {
 	return Context(context.Background(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI,
-		nil, NewIdentifyNotifier(tc.Context()))
+		nil, NewCachingIdentifyNotifier(tc.Context()))
 }
 
 func newTestContextWithTlfMock(tc *kbtest.ChatTestContext, tlfMock types.NameInfoSource) context.Context {
@@ -2956,6 +2956,7 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 		users := ctc.users()
 		displayName := users[0].Username + "," + users[1].Username
 		tc := ctc.world.Tcs[users[0].Username]
+		tc1 := ctc.world.Tcs[users[0].Username]
 
 		listener0 := newServerChatListener()
 		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener0)
@@ -2977,7 +2978,10 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 		}
 
 		ctx := ctc.as(t, users[0]).startCtx
-		CtxIdentifyNotifier(ctx).DisableCaching()
+		CtxModifyIdentifyNotifier(ctx, NewSimpleIdentifyNotifier(tc.Context()))
+		tc.Context().PushHandler.(*PushHandler).identNotifier = DummyIdentifyNotifier{}
+		tc1.Context().PushHandler.(*PushHandler).identNotifier = DummyIdentifyNotifier{}
+
 		res, err := ctc.as(t, users[0]).chatLocalHandler().FindConversationsLocal(ctx,
 			chat1.FindConversationsLocalArg{
 				TlfName:          displayName,
@@ -3001,6 +3005,7 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 			})
 		require.NoError(t, err)
+		consumeIdentify(ctx, listener0)
 		consumeIdentify(ctx, listener0)
 
 		uid := users[0].User.GetUID().ToBytes()
@@ -3027,9 +3032,7 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 			},
 		})
 		require.NoError(t, err)
-		consumeIdentify(ctx, listener0) // Pull
 		consumeIdentify(ctx, listener0) // EncryptionKeys
-		consumeIdentify(ctx, listener0) // DecryptionKeys
 
 		// user 1 sends a message to conv
 		ctx = ctc.as(t, users[1]).startCtx
@@ -3063,11 +3066,14 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 1, len(res.Conversations), "no convs found")
 		consumeIdentify(ctx, listener1)
+		consumeIdentify(ctx, listener1)
 
 		// Check to see if we accounted for all identifies
 		select {
 		case <-listener0.identifyUpdate:
 			require.Fail(t, "leftover identifies 0")
+		case <-listener1.identifyUpdate:
+			require.Fail(t, "leftover identifies 1")
 		default:
 		}
 	})

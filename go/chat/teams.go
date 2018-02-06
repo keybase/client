@@ -171,7 +171,13 @@ func (t *ImplicitTeamsNameInfoSource) identify(ctx context.Context, tlfID chat1.
 	if !ok {
 		return res, errors.New("invalid context with no chat metadata")
 	}
-	res, err = t.Identify(ctx, names, true)
+	res, err = t.Identify(ctx, names, true,
+		func() keybase1.TLFID {
+			return keybase1.TLFID(tlfID.String())
+		},
+		func() keybase1.CanonicalTlfName {
+			return keybase1.CanonicalTlfName(impTeamName.String())
+		})
 	if err != nil {
 		return res, err
 	}
