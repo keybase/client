@@ -408,14 +408,14 @@ func localTrackChainLinkFor(tracker, trackee keybase1.UID, localExpires bool, g 
 		g.Log.Debug("| DB lookup failed")
 		return nil, err
 	}
-	if data == nil {
+	if data == nil || len(data) == 0 {
 		g.Log.Debug("| No local track found")
 		return nil, nil
 	}
 
 	cl := &ChainLink{Contextified: NewContextified(g), unsigned: true}
 	if err = cl.UnpackLocal(data); err != nil {
-		g.Log.Debug("| unpack failed -> %s", err)
+		g.Log.Debug("| unpack local failed -> %s", err)
 		return nil, err
 	}
 
