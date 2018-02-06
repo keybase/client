@@ -209,19 +209,15 @@ func (tx *AddMemberTx) AddMemberByUsername(ctx context.Context, username string,
 
 	// No going back after this point!
 
-	if team.IsImplicit() {
-		// Separate logic for sweeping in implicit teams, since memberships
-		// there have to be "constant" at every signature, so we can't post e.g.
-		// one sig that removes UV and another that adds invite.
+	// Separate logic for sweeping in implicit teams, since memberships
+	// there have to be "constant" at every signature, so we can't post e.g.
+	// one sig that removes UV and another that adds invite.
 
-		if !hasPUK {
-			tx.sweepKeybaseInvites(uv.Uid)
-		} else {
-			tx.sweepCryptoMembers(uv.Uid)
-		}
-	} else {
-		tx.sweepCryptoMembers(uv.Uid)  // Sweep all existing crypto members
-		tx.sweepKeybaseInvites(uv.Uid) // Sweep all existing keybase type invites
+	if !team.IsImplicit() || !hasPUK {
+		tx.sweepKeybaseInvites(uv.Uid)
+	}
+	if !team.IsImplicit() || hasPUK {
+		tx.sweepCryptoMembers(uv.Uid)
 	}
 
 	if !hasPUK {
