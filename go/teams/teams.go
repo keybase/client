@@ -959,7 +959,7 @@ func (t *Team) postTeamInvites(ctx context.Context, invites SCTeamInvites) error
 		return err
 	}
 
-	err = t.precheckLinkToPost(ctx, sigMultiItem)
+	err = t.precheckLinksToPost(ctx, []libkb.SigMultiItem{sigMultiItem})
 	if err != nil {
 		return fmt.Errorf("cannot post link (precheck): %v", err)
 	}
@@ -1086,7 +1086,7 @@ func (t *Team) postChangeItem(ctx context.Context, section SCTeamSection, linkTy
 		return err
 	}
 
-	err = t.precheckLinkToPost(ctx, sigMultiItem)
+	err = t.precheckLinksToPost(ctx, []libkb.SigMultiItem{sigMultiItem})
 	if err != nil {
 		return fmt.Errorf("cannot post link (precheck): %v", err)
 	}
@@ -1142,22 +1142,30 @@ func usesPerTeamKeys(linkType libkb.LinkType) bool {
 }
 
 func (t *Team) sigTeamItem(ctx context.Context, section SCTeamSection, linkType libkb.LinkType, merkleRoot *libkb.MerkleRoot) (libkb.SigMultiItem, error) {
+	nextSeqno := t.NextSeqno()
+	lastLinkID := t.chain().GetLatestLinkID()
+
+	sig, _, err := t.sigTeamItemRaw(ctx, section, linkType, nextSeqno, lastLinkID, merkleRoot)
+	return sig, err
+}
+
+func (t *Team) sigTeamItemRaw(ctx context.Context, section SCTeamSection, linkType libkb.LinkType, nextSeqno keybase1.Seqno, lastLinkID keybase1.LinkID, merkleRoot *libkb.MerkleRoot) (libkb.SigMultiItem, keybase1.LinkID, error) {
 	me, err := t.loadMe(ctx)
 	if err != nil {
-		return libkb.SigMultiItem{}, err
+		return libkb.SigMultiItem{}, "", err
 	}
 	deviceSigningKey, err := t.G().ActiveDevice.SigningKey()
 	if err != nil {
-		return libkb.SigMultiItem{}, err
+		return libkb.SigMultiItem{}, "", err
 	}
-	latestLinkID, err := libkb.ImportLinkID(t.chain().GetLatestLinkID())
+	latestLinkID, err := libkb.ImportLinkID(lastLinkID)
 	if err != nil {
-		return libkb.SigMultiItem{}, err
+		return libkb.SigMultiItem{}, "", err
 	}
 
-	sig, err := ChangeSig(me, latestLinkID, t.NextSeqno(), deviceSigningKey, section, linkType, merkleRoot)
+	sig, err := ChangeSig(me, latestLinkID, nextSeqno, deviceSigningKey, section, linkType, merkleRoot)
 	if err != nil {
-		return libkb.SigMultiItem{}, err
+		return libkb.SigMultiItem{}, "", err
 	}
 
 	var signingKey libkb.NaclSigningKeyPair
@@ -1165,11 +1173,11 @@ func (t *Team) sigTeamItem(ctx context.Context, section SCTeamSection, linkType 
 	if usesPerTeamKeys(linkType) {
 		signingKey, err = t.keyManager.SigningKey()
 		if err != nil {
-			return libkb.SigMultiItem{}, err
+			return libkb.SigMultiItem{}, "", err
 		}
 		encryptionKey, err = t.keyManager.EncryptionKey()
 		if err != nil {
-			return libkb.SigMultiItem{}, err
+			return libkb.SigMultiItem{}, "", err
 		}
 		if section.PerTeamKey != nil {
 			// need a reverse sig
@@ -1178,7 +1186,7 @@ func (t *Team) sigTeamItem(ctx context.Context, section SCTeamSection, linkType 
 			sig.SetValueAtPath("body.team.per_team_key.reverse_sig", jsonw.NewNil())
 			reverseSig, _, _, err := libkb.SignJSON(sig, signingKey)
 			if err != nil {
-				return libkb.SigMultiItem{}, err
+				return libkb.SigMultiItem{}, "", err
 			}
 			sig.SetValueAtPath("body.team.per_team_key.reverse_sig", jsonw.NewString(reverseSig))
 		}
@@ -1188,12 +1196,12 @@ func (t *Team) sigTeamItem(ctx context.Context, section SCTeamSection, linkType 
 
 	sigJSON, err := sig.Marshal()
 	if err != nil {
-		return libkb.SigMultiItem{}, err
+		return libkb.SigMultiItem{}, "", err
 	}
-	v2Sig, err := makeSigchainV2OuterSig(
+	v2Sig, newLinkID, err := makeSigchainV2OuterSig(
 		deviceSigningKey,
 		linkType,
-		t.NextSeqno(),
+		nextSeqno,
 		sigJSON,
 		latestLinkID,
 		false, /* hasRevokes */
@@ -1201,7 +1209,7 @@ func (t *Team) sigTeamItem(ctx context.Context, section SCTeamSection, linkType 
 		false, /* ignoreIfUnsupported */
 	)
 	if err != nil {
-		return libkb.SigMultiItem{}, err
+		return libkb.SigMultiItem{}, "", err
 	}
 
 	sigMultiItem := libkb.SigMultiItem{
@@ -1218,7 +1226,8 @@ func (t *Team) sigTeamItem(ctx context.Context, section SCTeamSection, linkType 
 			Signing:    signingKey.GetKID(),
 		}
 	}
-	return sigMultiItem, nil
+
+	return sigMultiItem, keybase1.LinkID(newLinkID.String()), nil
 }
 
 func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet) (*PerTeamSharedSecretBoxes, map[keybase1.TeamID]*PerTeamSharedSecretBoxes, *SCPerTeamKey, error) {
@@ -1486,12 +1495,12 @@ func (t *Team) parseSocial(username string) (typ string, name string, err error)
 	return typ, name, nil
 }
 
-func (t *Team) precheckLinkToPost(ctx context.Context, sigMultiItem libkb.SigMultiItem) (err error) {
+func (t *Team) precheckLinksToPost(ctx context.Context, sigMultiItems []libkb.SigMultiItem) (err error) {
 	uv, err := t.currentUserUV(ctx)
 	if err != nil {
 		return err
 	}
-	return precheckLinkToPost(ctx, t.G(), sigMultiItem, t.chain(), uv)
+	return precheckLinksToPost(ctx, t.G(), sigMultiItems, t.chain(), uv)
 }
 
 // Try to run `post` (expected to post new team sigchain links).
