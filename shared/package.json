@@ -117,7 +117,7 @@
     "react": "16.2.0",
     "react-dom": "16.2.0",
     "react-list": "0.8.8",
-    "react-native": "0.51.0",
+    "react-native": "0.53.0",
     "react-native-camera": "0.10.0",
     "react-native-contacts": "git://github.com/Clarizen/react-native-contacts#c0881ed6077c29e5d08442aec24439d5f4db8f81",
     "react-native-fetch-blob": "0.10.8",
