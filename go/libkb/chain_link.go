@@ -12,8 +12,6 @@ import (
 	"strconv"
 	"time"
 
-	"golang.org/x/net/context"
-
 	"github.com/buger/jsonparser"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
@@ -1165,19 +1163,4 @@ func (c ChainLink) NeedsSignature() bool {
 		return true
 	}
 	return c.unpacked.outerLinkV2.LinkType.NeedsSignature()
-}
-
-// MaybeDropSig will erase c.unpacked.sig if it is a track link
-// with no revocations.  It should not be called on tail links.
-func (c *ChainLink) MaybeDropSig(ctx context.Context) {
-	if LinkType(c.unpacked.typ) != LinkTypeTrack {
-		return
-	}
-	if c.HasRevocations() {
-		return
-	}
-
-	c.G().Log.CDebugf(ctx, "ChainLink: dropping sig on link %d [%x] (type %s)", c.unpacked.seqno, c.unpacked.payloadHash, c.unpacked.typ)
-	c.unpacked.sig = ""
-	c.unpacked.sigDropped = true
 }

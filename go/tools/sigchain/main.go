@@ -10,6 +10,7 @@ import (
 	"os"
 	"runtime"
 	"runtime/pprof"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -83,6 +84,8 @@ func main() {
 	g.Log = logger.New("sc")
 	g.ConfigureCaches()
 
+	start := time.Now()
+
 	sc = &libkb.SigChain{Contextified: libkb.NewContextified(g)}
 	sc.SetUIDUsername(keybase1.UID(*uid), *username)
 	if _, err := sc.LoadServerBody(context.Background(), raw, 0, nil, ""); err != nil {
@@ -97,9 +100,8 @@ func main() {
 		errout(err.Error())
 	}
 
-	if err := sc.Clean(context.Background()); err != nil {
-		errout(err.Error())
-	}
+	elapsed := time.Since(start)
+	fmt.Printf("sig chain load time: %s\n", elapsed)
 
 	memstats()
 	memprof()
