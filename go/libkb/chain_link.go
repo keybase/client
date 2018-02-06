@@ -431,7 +431,6 @@ func (c *ChainLink) checkAgainstMerkleTree(t *MerkleTriple) (found bool, err err
 		return false, ChainLinkError{"cannot check stubbed link against the merkle tree"}
 	}
 	found = false
-	c.G().Log.Debug("CHAINLINK SEQNO: %v", c.GetSeqno())
 	if t != nil && c.GetSeqno() == t.Seqno {
 		c.G().Log.Debug("| Found chain tail advertised in Merkle tree @%d", int(t.Seqno))
 		found = true
