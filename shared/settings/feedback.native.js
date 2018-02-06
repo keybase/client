@@ -14,10 +14,28 @@ import {
   NativeKeyboard,
 } from '../common-adapters/index.native'
 
-import type {Props} from './feedback'
+const getOtherErrorInfo = (err: Error) => {
+  const info = {}
+  for (const k in err) info[k] = (err: Object)[k]
+  delete info.name
+  delete info.message
+  delete info.stack
+  return info
+}
+
+type Props = {
+  onSendFeedbackContained: () => void,
+  showSuccessBanner: boolean,
+  sendLogs: boolean,
+  feedback: ?string,
+  sending: boolean,
+  sendError: ?Error,
+  onChangeSendLogs: (nextValue: boolean) => void,
+  onChangeFeedback: (nextValue: ?string) => void,
+}
 
 class Feedback extends Component<Props> {
-  _scroll: any
+  _scroll: ?NativeScrollView
 
   _onSubmit = () => {
     NativeKeyboard.dismiss()
@@ -29,8 +47,23 @@ class Feedback extends Component<Props> {
     this._scroll = r
   }
 
+  componentDidUpdate(prevProps: Props) {
+    if (this.props.sendError && this.props.sendError !== prevProps.sendError && this._scroll) {
+      // Scroll down so that the user sees the error.
+      this._scroll && this._scroll.scrollTo({x: 0, y: 300, animated: true})
+    }
+  }
+
   render() {
-    const {showSuccessBanner, sendLogs, onChangeSendLogs, feedback, onChangeFeedback, sending} = this.props
+    const {
+      showSuccessBanner,
+      sendLogs,
+      onChangeSendLogs,
+      feedback,
+      onChangeFeedback,
+      sending,
+      sendError,
+    } = this.props
     return (
       <NativeScrollView style={{...globalStyles.flexBoxColumn, flexGrow: 1}} ref={this._setScrollRef}>
         <Box
@@ -104,6 +137,23 @@ class Feedback extends Component<Props> {
           <ButtonBar>
             <Button label="Send" type="Primary" onClick={this._onSubmit} waiting={sending} />
           </ButtonBar>
+          {sendError && (
+            <Box style={{...globalStyles.flexBoxColumn, marginTop: globalMargins.small}}>
+              <Text type="BodyError">Could not send log</Text>
+              <Text
+                type="BodySmall"
+                style={{...globalStyles.selectable, marginTop: 10, marginBottom: 10}}
+              >{`${sendError.name}: ${sendError.message}`}</Text>
+              <Text type="BodySmallSemibold">Stack</Text>
+              <Text type="BodySmall" style={{...globalStyles.selectable, marginTop: 10, marginBottom: 10}}>
+                {sendError.stack}
+              </Text>
+              <Text type="BodySmallSemibold">Error dump</Text>
+              <Text type="BodySmall" style={{...globalStyles.selectable, marginTop: 10, marginBottom: 10}}>
+                {JSON.stringify(getOtherErrorInfo(sendError), null, 2)}
+              </Text>
+            </Box>
+          )}
         </Box>
       </NativeScrollView>
     )
