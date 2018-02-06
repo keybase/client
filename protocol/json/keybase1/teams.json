@@ -1796,6 +1796,10 @@
         {
           "type": "boolean",
           "name": "changeTarsDisabled"
+        },
+        {
+          "type": "boolean",
+          "name": "deleteChatHistory"
         }
       ]
     },

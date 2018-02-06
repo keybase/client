@@ -977,6 +977,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, annPerms.JoinTeam)
 	require.True(t, annPerms.SetPublicityAny)
 	require.True(t, annPerms.ChangeTarsDisabled)
+	require.True(t, annPerms.DeleteChatHistory)
 
 	require.True(t, bobPerms.ManageMembers)
 	require.True(t, bobPerms.ManageSubteams)
@@ -992,6 +993,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, bobPerms.JoinTeam)
 	require.True(t, bobPerms.SetPublicityAny)
 	require.True(t, bobPerms.ChangeTarsDisabled)
+	require.True(t, bobPerms.DeleteChatHistory)
 
 	// Some ops are fine for writers
 	require.False(t, pamPerms.ManageMembers)
@@ -1008,6 +1010,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, pamPerms.JoinTeam)
 	require.False(t, pamPerms.SetPublicityAny)
 	require.False(t, pamPerms.ChangeTarsDisabled)
+	require.False(t, pamPerms.DeleteChatHistory)
 
 	// Only SetMemberShowcase (by default) and LeaveTeam is available for readers
 	require.False(t, eddPerms.ManageMembers)
@@ -1024,6 +1027,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, eddPerms.JoinTeam)
 	require.False(t, eddPerms.SetPublicityAny)
 	require.False(t, eddPerms.ChangeTarsDisabled)
+	require.False(t, eddPerms.DeleteChatHistory)
 
 	annPerms = callCanPerform(ann, subteam)
 	bobPerms = callCanPerform(bob, subteam)
@@ -1041,8 +1045,8 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.True(t, annPerms.ListFirst)
 	require.True(t, annPerms.JoinTeam)
 	require.True(t, annPerms.SetPublicityAny)
-
 	require.True(t, annPerms.ChangeTarsDisabled)
+	require.False(t, annPerms.DeleteChatHistory)
 
 	require.True(t, bobPerms.ManageMembers)
 	require.True(t, bobPerms.ManageSubteams)
@@ -1054,10 +1058,11 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, bobPerms.SetMemberShowcase)
 	require.True(t, bobPerms.ChangeOpenTeam)
 	require.False(t, bobPerms.LeaveTeam) // not a member of the subteam
-	require.True(t, annPerms.ListFirst)
-	require.True(t, annPerms.JoinTeam)
-	require.True(t, annPerms.SetPublicityAny)
-	require.True(t, annPerms.ChangeTarsDisabled)
+	require.True(t, bobPerms.ListFirst)
+	require.True(t, bobPerms.JoinTeam)
+	require.True(t, bobPerms.SetPublicityAny)
+	require.True(t, bobPerms.ChangeTarsDisabled)
+	require.False(t, bobPerms.DeleteChatHistory)
 
 	// Invalid team for pam
 	_, err = teams.CanUserPerform(context.TODO(), pam.tc.G, subteam)
@@ -1080,4 +1085,5 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, donnyPerms.ListFirst)
 	// TBD: require.True(t, donnyPerms.JoinTeam)
 	require.False(t, donnyPerms.SetPublicityAny)
+	require.False(t, donnyPerms.DeleteChatHistory)
 }
