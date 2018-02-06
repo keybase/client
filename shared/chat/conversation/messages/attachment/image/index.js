@@ -25,6 +25,12 @@ class ImageAttachment extends React.PureComponent<Props> {
     }
   }
 
+  componentWillReceiveProps(nextProps: Props) {
+    if (nextProps.loadPreview && !this.props.loadPreview) {
+      nextProps.loadPreview()
+    }
+  }
+
   render() {
     return (
       <ClickableBox style={imageContainerStyle} onClick={this.props.onClick}>

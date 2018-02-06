@@ -4,6 +4,7 @@ import * as Types from '../../../../constants/types/chat2'
 
 export type OwnProps = {
   message: Types.MessageAttachment,
+  navUpOnDelete?: boolean,
   onClosePopup: () => void,
 }
 

@@ -16,7 +16,7 @@ class FileAttachment extends React.PureComponent<Props> {
     return (
       <ClickableBox style={fileContainerStyle} onClick={this.props.onClick}>
         <Icon type={iconType} style={iconStyle} />
-        <Text type="BodySemibold">{message.title || message.filename}</Text>
+        <Text type="BodySemibold">{message.title || message.fileName}</Text>
       </ClickableBox>
     )
   }

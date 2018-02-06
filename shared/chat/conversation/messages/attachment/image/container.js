@@ -53,9 +53,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     arrowColor,
     height: message.previewHeight,
     isPreviewLoaded: !!message.devicePreviewPath,
-    loadPreview: message.devicePreviewPath
-      ? undefined
-      : () => dispatchProps._loadPreview(ownProps.message.conversationIDKey, ownProps.message.ordinal),
+    loadPreview:
+      message.devicePreviewPath || !message.fileName // already have preview or is this a placeholder?
+        ? undefined
+        : () => dispatchProps._loadPreview(ownProps.message.conversationIDKey, ownProps.message.ordinal),
     message: ownProps.message,
     onClick: () => dispatchProps._onClick(ownProps.message),
     onShowInFinder:
@@ -65,7 +66,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     path: message.devicePreviewPath,
     progress: message.transferProgress,
     progressLabel,
-    title: message.title || message.filename,
+    title: message.title || message.fileName,
     width: message.previewWidth,
   }
 }

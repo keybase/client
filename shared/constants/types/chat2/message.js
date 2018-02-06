@@ -76,7 +76,8 @@ export type _MessageAttachment = {
   downloadPath: ?string, // string if downloaded
   errorReason: ?string,
   // durationMs: number,
-  filename: string,
+  fileName: string,
+  fileSize: number,
   hasBeenEdited: boolean,
   id: MessageID,
   ordinal: Ordinal,

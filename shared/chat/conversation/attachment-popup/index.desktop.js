@@ -1,13 +1,9 @@
 // @flow
 import * as React from 'react'
-import {Box, Icon, Text, PopupDialog, ProgressIndicator} from '../../../common-adapters/index'
-// import {AttachmentPopupMenu} from '../messages/popup.desktop'
-// import {ProgressBar as AttachmentProgressBar, ImageIcon as AttachmentStatusIcon} from '../messages/attachment'
+import {Box, Icon, Text, PopupDialog, ProgressBar} from '../../../common-adapters/index'
 import {globalColors, globalMargins, globalStyles, fileUIName} from '../../../styles'
 
 import type {Props} from '.'
-// import type {LocalMessageState} from '../../../constants/types/chat'
-//
 
 const AttachmentPopup = (props: Props) => {
   return (
@@ -17,7 +13,6 @@ const AttachmentPopup = (props: Props) => {
           <Text type="BodySemibold" style={{color: globalColors.black_75, flex: 1}}>
             {props.title}
           </Text>
-          {props.isLoading && <ProgressIndicator style={{width: 24}} />}
           <Icon
             type="iconfont-ellipsis"
             style={{color: globalColors.black_40, cursor: 'pointer', marginLeft: globalMargins.tiny}}
@@ -33,15 +28,22 @@ const AttachmentPopup = (props: Props) => {
           </Box>
         )}
         <Box style={headerFooterStyle}>
-          {props.onDownloadAttachment && (
-            <Text
-              type="BodySmall"
-              style={{color: globalColors.black_60, cursor: 'pointer'}}
-              onClick={props.onDownloadAttachment}
-            >
-              Download
+          {!!props.progressLabel && (
+            <Text type="BodySmall" style={{color: globalColors.black_60, marginRight: globalMargins.tiny}}>
+              {props.progressLabel}
             </Text>
           )}
+          {!!props.progressLabel && <ProgressBar ratio={props.progress} />}
+          {!props.progressLabel &&
+            props.onDownloadAttachment && (
+              <Text
+                type="BodySmall"
+                style={{color: globalColors.black_60, cursor: 'pointer'}}
+                onClick={props.onDownloadAttachment}
+              >
+                Download
+              </Text>
+            )}
           {props.onShowInFinder && (
             <Text
               type="BodySmall"

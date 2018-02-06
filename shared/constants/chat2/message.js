@@ -36,10 +36,10 @@ export const makeMessageDeleted: I.RecordFactory<MessageTypes._MessageDeleted> =
 
 export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Record({
   ...makeMessageCommon,
-  submitState: null,
   mentionsAt: I.Set(),
   mentionsChannel: 'none',
   mentionsChannelName: I.Map(),
+  submitState: null,
   text: new HiddenString(''),
   type: 'text',
 })
@@ -52,7 +52,8 @@ export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachm
   deviceFilePath: '',
   devicePreviewPath: '',
   downloadPath: null,
-  filename: '',
+  fileName: '',
+  fileSize: 0,
   previewHeight: 0,
   previewTransferState: null,
   previewWidth: 0,
@@ -262,41 +263,64 @@ const validUIMessagetoMessage = (
         ),
         text: new HiddenString(rawText),
       })
+    case RPCChatTypes.commonMessageType.attachmentuploaded: // fallthrough
     case RPCChatTypes.commonMessageType.attachment: {
-      const attachment = m.messageBody.attachment || {}
-      const {filename, mimeType, title} = attachment.object
+      // On thread load only get attachment (with data)
+      // On incoming messages we get attach (no data), then attachment uploaded (with data). Because of this
+      // when we get the attachmentuploaded incoming we'll replace the old one so the placeholder is replaced
+      let attachment = {}
+      let preview: ?RPCChatTypes.Asset
+
+      if (m.messageBody.messageType === RPCChatTypes.commonMessageType.attachment) {
+        attachment = m.messageBody.attachment || {}
+        preview =
+          attachment.preview ||
+          (attachment.previews && attachment.previews.length ? attachment.previews[0] : null)
+      } else if (m.messageBody.messageType === RPCChatTypes.commonMessageType.attachmentuploaded) {
+        attachment = m.messageBody.attachmentuploaded || {}
+        preview = attachment.previews && attachment.previews.length ? attachment.previews[0] : null
+      }
+      const {filename, title, size} = attachment.object
       let previewHeight = 0
       let previewWidth = 0
-      const preview =
-        attachment.preview || (attachment.previews && attachment.previews.length && attachment.previews[1])
-      if (
-        preview &&
-        preview.metadata &&
-        preview.metadata.assetType === RPCChatTypes.localAssetMetadataType.image &&
-        preview.metadata.image
-      ) {
-        // We get this as a @2x
-        previewHeight = preview.metadata.image.height / 2 || 0
-        previewWidth = preview.metadata.image.width / 2 || 0
+      let attachmentType = 'file'
+
+      if (preview && preview.metadata) {
+        if (
+          preview.metadata.assetType === RPCChatTypes.localAssetMetadataType.image &&
+          preview.metadata.image
+        ) {
+          // We get this as a @2x
+          previewHeight = preview.metadata.image.height / 2 || 0
+          previewWidth = preview.metadata.image.width / 2 || 0
+          attachmentType = 'image'
+        } else if (
+          preview.metadata.assetType === RPCChatTypes.localAssetMetadataType.video &&
+          preview.metadata.video
+        ) {
+          previewHeight = preview.metadata.video.height / 2 || 0
+          previewWidth = preview.metadata.video.width / 2 || 0
+          attachmentType = 'image'
+        }
       }
 
-      // const {filename, title, mimeType, metadata} = attachment.object
-      // const metadataVideo =
-      // metadata.assetType === RPCChatTypes.localAssetMetadataType.video ? metadata.video : null
-      // const metadataImage =
-      // metadata.assetType === RPCChatTypes.localAssetMetadataType.image ? metadata.image : null
-      const attachmentType = mimeType.indexOf('image/') === 0 ? 'image' : 'file'
-      // const {width, height} = metadataVideo || metadataImage || {height: 0, width: 0}
-      // const {width: previewWidth = 0, height: previewHeight = 0} = clampAttachmentPreviewSize(width, height)
-      // const durationMs = (metadataVideo && metadataVideo.durationMs) || 0
-      // const percentUploaded = 0 // TODO
+      // attachmentuploaded is basically an 'edit' of an attatchment w/ no data
+      const ordinal =
+        m.messageBody.messageType === RPCChatTypes.commonMessageType.attachmentuploaded &&
+        m.messageBody.attachmentuploaded &&
+        m.messageBody.attachmentuploaded.messageID
+          ? Types.numberToOrdinal(m.messageBody.attachmentuploaded.messageID)
+          : common.ordinal
 
+      // make placeholders not have an id so we can override it correctly
+      const id = filename ? common.id : Types.numberToMessageID(0)
       return makeMessageAttachment({
         ...common,
         attachmentType,
-        // durationMs,
-        filename,
-        // percentUploaded,
+        fileName: filename,
+        fileSize: size,
+        id,
+        ordinal,
         previewHeight,
         previewWidth,
         title,

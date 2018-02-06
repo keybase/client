@@ -6,7 +6,6 @@ import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as KBFSGen from '../../../actions/kbfs-gen'
 import RenderAttachmentPopup from './'
 import {compose, withStateHandlers, connect, type TypedState, type Dispatch} from '../../../util/container'
-// import {lookupMessageProps} from '../../shared'
 import {type RouteProps} from '../../../route-tree/render-route'
 
 type OwnProps = RouteProps<{conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal}, {}>
@@ -19,7 +18,6 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const message = Constants.getMessageMap(state, conversationIDKey).get(ordinal, blankMessage)
   return {
     _message: message.type === 'attachment' ? message : blankMessage,
-    // you: state.config.username,
   }
 }
 
@@ -37,15 +35,14 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, navigateAppend}: Ow
   },
   _onShowMenu: (message: Types.MessageAttachment, targetRect: ?ClientRect) => {
     dispatch(
-      navigateAppend([{props: {message, position: 'bottom left', targetRect}, selected: 'messageAction'}])
+      navigateAppend([
+        {
+          props: {message, position: 'bottom left', targetRect, navUpOnDelete: true},
+          selected: 'messageAction',
+        },
+      ])
     )
   },
-  // deleteMessage: message => dispatch(ChatGen.createDeleteMessage({message})),
-  // if (!message.messageID || !message.filename) {
-  // throw new Error('Cannot download attachment with missing messageID or filename')
-  // }
-  // dispatch(ChatGen.createSaveAttachment({messageKey: message.key}))
-  // },
   onClose: () => {
     dispatch(navigateUp())
   },
@@ -56,10 +53,8 @@ const mergeProps = (
   dispatchProps: More.ReturnType<typeof mapDispatchToProps>,
   ownProps: OwnProps
 ) => {
-  // const {message, localMessageState} = stateProps
   const message = stateProps._message
   return {
-    isLoading: !message.deviceFilePath,
     onClose: dispatchProps.onClose,
     onDownloadAttachment: message.downloadPath
       ? undefined
@@ -67,16 +62,9 @@ const mergeProps = (
     onShowInFinder: message.downloadPath ? () => dispatchProps._onShowInFinder(message) : undefined,
     onShowMenu: (targetRect: ?ClientRect) => dispatchProps._onShowMenu(message, targetRect),
     path: message.deviceFilePath || message.devicePreviewPath,
+    progress: message.transferProgress,
+    progressLabel: message.deviceFilePath ? undefined : 'Loading',
     title: message.title,
-    // ...stateProps,
-    // ...dispatchProps,
-    // onDeleteMessage: () => {
-    // dispatchProps.deleteMessage(message)
-    // dispatchProps.onClose()
-    // },
-    // onMessageAction: () => dispatchProps._onMessageAction(message),
-    // onDownloadAttachment: () => dispatchProps.onDownloadAttachment(message),
-    // onOpenInFileUI: () => dispatchProps.onOpenInFileUI(localMessageState.savedPath),
   }
 }
 
