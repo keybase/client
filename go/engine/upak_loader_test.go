@@ -484,4 +484,9 @@ func TestLoadAfterAcctResetCORE6943(t *testing.T) {
 	if err != nil {
 		t.Fatal("Failed to load a UID/KID combo from first incarnation")
 	}
+
+	_, err = loadUpak()
+	if err != nil {
+		t.Fatalf("Failed to load user: %+v", err)
+	}
 }
