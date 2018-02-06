@@ -72,13 +72,6 @@ export const createAttachmentDownloaded = (
     path: string,
   }>
 ) => ({error: false, payload, type: attachmentDownloaded})
-export const createAttachmentDownloadedError = (
-  payload: $ReadOnly<{
-    conversationIDKey: Types.ConversationIDKey,
-    ordinal: Types.Ordinal,
-    error: Error,
-  }>
-) => ({error: true, payload, type: attachmentDownloaded})
 export const createAttachmentHandleQueue = () => ({error: false, payload: undefined, type: attachmentHandleQueue})
 export const createAttachmentLoad = (
   payload: $ReadOnly<{
@@ -340,7 +333,6 @@ export type StartConversationPayload = More.ReturnType<typeof createStartConvers
 export type Actions =
   | More.ReturnType<typeof createAttachmentDownload>
   | More.ReturnType<typeof createAttachmentDownloaded>
-  | More.ReturnType<typeof createAttachmentDownloadedError>
   | More.ReturnType<typeof createAttachmentHandleQueue>
   | More.ReturnType<typeof createAttachmentLoad>
   | More.ReturnType<typeof createAttachmentLoaded>

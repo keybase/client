@@ -59,10 +59,12 @@ const mergeProps = (
   // const {message, localMessageState} = stateProps
   const message = stateProps._message
   return {
-    isLoadidng: !message.deviceFilePath,
+    isLoading: !message.deviceFilePath,
     onClose: dispatchProps.onClose,
-    onDownloadAttachment: message.downloadPath ? null : () => dispatchProps._onDownloadAttachment(message),
-    onShowInFinder: message.downloadPath ? () => dispatchProps._onShowInFinder(message) : null,
+    onDownloadAttachment: message.downloadPath
+      ? undefined
+      : () => dispatchProps._onDownloadAttachment(message),
+    onShowInFinder: message.downloadPath ? () => dispatchProps._onShowInFinder(message) : undefined,
     onShowMenu: (targetRect: ?ClientRect) => dispatchProps._onShowMenu(message, targetRect),
     path: message.deviceFilePath || message.devicePreviewPath,
     title: message.title,

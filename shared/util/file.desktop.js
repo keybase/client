@@ -70,9 +70,23 @@ function mkdirp(target) {
   }, initDir)
 }
 
-function copy(from: string, to: string) {
-  mkdirp(path.dirname(to))
-  fs.writeFileSync(to, fs.readFileSync(from))
+function copy(from: string, to: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    mkdirp(path.dirname(to))
+    fs.readFile(from, (err, data) => {
+      if (err) {
+        reject()
+      } else {
+        fs.writeFile(to, data, err => {
+          if (err) {
+            reject()
+          } else {
+            resolve()
+          }
+        })
+      }
+    })
+  })
 }
 
 function unlink(filepath: string): Promise<void> {

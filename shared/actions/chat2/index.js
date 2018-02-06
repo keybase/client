@@ -21,7 +21,7 @@ import {chatTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {NotifyPopup} from '../../native/notifications'
 import {showMainWindow} from '../platform-specific'
-import {tmpFile, stat, downloadFilePathNoSearch} from '../../util/file'
+import {tmpFile, stat, downloadFilePathNoSearch, downloadFilePath, copy} from '../../util/file'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import flags from '../../util/feature-flags'
@@ -1170,6 +1170,51 @@ function* attachmentLoad(action: Chat2Gen.AttachmentLoadPayload) {
   }
 }
 
+function* attachmentDownload(action: Chat2Gen.AttachmentDownloadPayload) {
+  const {conversationIDKey, ordinal} = action.payload
+  const state: TypedState = yield Saga.select()
+  let message = Constants.getMessageMap(state, conversationIDKey).get(ordinal)
+
+  if (!message || message.type !== 'attachment') {
+    throw new Error('Trying to download missing / incorrect message?')
+  }
+
+  // already downloaded?
+  if (message.downloadPath) {
+    logger.warn('Attachment already downloaded')
+    return
+  }
+
+  // Have we downloaded it to cache yet?
+  if (!message.deviceFilePath) {
+    yield Saga.call(
+      attachmentLoad,
+      Chat2Gen.createAttachmentLoad({
+        conversationIDKey,
+        isPreview: false,
+        ordinal,
+      })
+    )
+    const state: TypedState = yield Saga.select()
+    message = Constants.getMessageMap(state, conversationIDKey).get(ordinal)
+    if (!message || message.type !== 'attachment' || !message.deviceFilePath) {
+      logger.warn("Attachment can't downloaded")
+      throw new Error('Error downloading attachment')
+    }
+  }
+
+  // Copy it over
+  const destPath = yield Saga.call(downloadFilePath, message.filename)
+  yield Saga.call(copy, message.deviceFilePath, destPath)
+  yield Saga.put(
+    Chat2Gen.createAttachmentDownloaded({
+      conversationIDKey,
+      ordinal,
+      path: destPath,
+    })
+  )
+}
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Refresh the inbox
   yield Saga.safeTakeEveryPure(
@@ -1251,6 +1296,8 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(Chat2Gen.attachmentLoad, function*(action: Chat2Gen.AttachmentLoadPayload) {
     yield Saga.spawn(attachmentLoad, action)
   })
+
+  yield Saga.safeTakeEvery(Chat2Gen.attachmentDownload, attachmentDownload)
 }
 
 export default chat2Saga

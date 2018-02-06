@@ -218,11 +218,6 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal",
       "path": "string",
-      "canError": {
-        "conversationIDKey": "Types.ConversationIDKey",
-        "ordinal": "Types.Ordinal",
-        "error": "Error"
-      }
     }
   }
 }
