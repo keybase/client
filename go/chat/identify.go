@@ -321,6 +321,7 @@ func (t *NameIdentifier) Identify(ctx context.Context, names []string, private b
 		return nil, err
 	}
 
+	// Run the updates through the identify notifier
 	if idNotifier != nil {
 		t.Debug(ctx, "sending update through ident notifier: %d breaks", len(res))
 		idNotifier.Send(ctx, keybase1.CanonicalTLFNameAndIDWithBreaks{

@@ -550,6 +550,7 @@ L:
 			case chat1.ConversationMembersType_IMPTEAMUPGRADE:
 				if !attempts[chat1.ConversationMembersType_IMPTEAMNATIVE] {
 					newMT = chat1.ConversationMembersType_IMPTEAMNATIVE
+					// Only set the error if the members type is the same as what was passed in
 					err = ierr
 				} else {
 					newMT = chat1.ConversationMembersType_KBFS
@@ -557,6 +558,7 @@ L:
 			case chat1.ConversationMembersType_IMPTEAMNATIVE:
 				if !attempts[chat1.ConversationMembersType_IMPTEAMUPGRADE] {
 					newMT = chat1.ConversationMembersType_IMPTEAMUPGRADE
+					// Only set the error if the members type is the same as what was passed in
 					err = ierr
 				} else {
 					newMT = chat1.ConversationMembersType_KBFS
