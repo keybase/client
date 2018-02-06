@@ -2969,7 +2969,7 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 			select {
 			case update = <-listener.identifyUpdate:
 				t.Logf("identify update: %+v", update)
-			case <-time.After(2 * time.Second):
+			case <-time.After(20 * time.Second):
 				require.Fail(t, "no identify")
 			}
 			require.Empty(t, update.Breaks.Breaks)
