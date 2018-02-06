@@ -202,4 +202,4 @@ export {
   transitionColor,
   windowStyle,
 }
-export {isMobile} from '../constants/platform'
+export {isMobile, fileUIName} from '../constants/platform'

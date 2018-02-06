@@ -10,6 +10,8 @@ export type OwnProps = {
 export type Props = {
   message: Types.MessageAttachment,
   onDelete: ?() => void,
+  onDownload: ?() => void,
+  onShowInFinder: ?() => void,
   onHidden: () => void,
   style?: Object,
   yourMessage: boolean,

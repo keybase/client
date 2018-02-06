@@ -1,22 +1,36 @@
 // @flow
-import * as React from 'react'
-import {ModalLessPopupMenu as PopupMenu} from '../../../../common-adapters/popup-menu.desktop'
-import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import {connect, type TypedState, type Dispatch} from '../../../../util/container'
+import * as KBFSGen from '../../../../actions/kbfs-gen'
+import * as React from 'react'
+import * as Types from '../../../../constants/types/chat2'
 import MessagePopupHeader from './header'
 import type {OwnProps, Props} from './attachment'
+import {ModalLessPopupMenu as PopupMenu} from '../../../../common-adapters/popup-menu.desktop'
+import {connect, type TypedState, type Dispatch} from '../../../../util/container'
+import {fileUIName, isMobile} from '../../../../styles'
 
 const mapStateToProps = (state: TypedState) => ({_you: state.config.username})
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _onDelete: (message: Types.Message) =>
+  _onDelete: (message: Types.Message) => {
     dispatch(
       Chat2Gen.createMessageDelete({
         conversationIDKey: message.conversationIDKey,
         ordinal: message.ordinal,
       })
-    ),
+    )
+  },
+  _onDownload: (message: Types.MessageAttachment) => {
+    dispatch(
+      Chat2Gen.createAttachmentDownload({
+        conversationIDKey: message.conversationIDKey,
+        ordinal: message.ordinal,
+      })
+    )
+  },
+  _onShowInFinder: (message: Types.MessageAttachment) => {
+    message.downloadPath && dispatch(KBFSGen.createOpenInFileUI({path: message.downloadPath}))
+  },
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
@@ -25,23 +39,19 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   return {
     message,
     onDelete: yourMessage ? () => dispatchProps._onDelete(message) : null,
+    onDownload: !isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : null,
     onHidden: () => ownProps.onClosePopup(),
+    onShowInFinder:
+      !isMobile && message.downloadPath ? () => dispatchProps._onShowInFinder(message) : undefined,
     yourMessage,
   }
 }
 
 const AttachmentPopupMenu = (props: Props) => {
-  // let downloadItem = null
-  // if (message.messageState === 'placeholder') {
-  // downloadItem = {disabled: true, title: `${message.author} is uploading…`}
-  // } else if (!localMessageState.savedPath && message.messageID) {
-  // downloadItem = {onClick: onDownloadAttachment, title: 'Download'}
-  // }
-
   const items = [
     'Divider',
-    // localMessageState.savedPath ? {onClick: onOpenInFileUI, title: `Show in ${fileUIName}`} : null,
-    // downloadItem,
+    ...(props.onShowInFinder ? [{onClick: props.onShowInFinder, title: `Show in ${fileUIName}`}] : []),
+    ...(props.onDownload ? [{onClick: props.onDownload, title: 'Download'}] : []),
     ...(props.yourMessage
       ? [
           {
@@ -65,6 +75,7 @@ const AttachmentPopupMenu = (props: Props) => {
       header={header}
       items={items}
       onHidden={props.onHidden}
+      closeOnClick={true}
       style={{...stylePopup, ...props.style}}
     />
   )

@@ -146,4 +146,4 @@ export {
   styleSheetCreate,
   transition,
 }
-export {isMobile} from '../constants/platform'
+export {isMobile, fileUIName} from '../constants/platform'

@@ -1,8 +1,9 @@
 // @flow
 import * as Types from '../../../../../constants/types/chat2'
+import * as KBFSGen from '../../../../../actions/kbfs-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Route from '../../../../../actions/route-tree'
-import {connect, type TypedState, type Dispatch} from '../../../../../util/container'
+import {connect, type TypedState, type Dispatch, isMobile} from '../../../../../util/container'
 import ImageAttachment from '.'
 
 const mapStateToProps = (state: TypedState) => ({})
@@ -33,12 +34,19 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       ])
     )
   },
+  _onShowInFinder: (message: Types.MessageAttachment) => {
+    message.downloadPath && dispatch(KBFSGen.createOpenInFileUI({path: message.downloadPath}))
+  },
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   loadPreview: () => dispatchProps._loadPreview(ownProps.message.conversationIDKey, ownProps.message.ordinal),
   message: ownProps.message,
   onClick: () => dispatchProps._onClick(ownProps.message),
+  onShowInFinder:
+    !isMobile && ownProps.message.downloadPath
+      ? () => dispatchProps._onShowInFinder(ownProps.message)
+      : undefined,
 })
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(ImageAttachment)

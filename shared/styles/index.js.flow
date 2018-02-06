@@ -14,6 +14,7 @@ declare export var globalMargins: {
   large: number,
   xlarge: number,
 }
+declare export var fileUIName: string
 declare export var statusBarHeight: number
 declare export var hairlineWidth: number
 declare export function backgroundURL(...path: Array<string>): string
