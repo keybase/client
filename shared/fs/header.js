@@ -2,7 +2,8 @@
 import * as React from 'react'
 import * as Types from '../constants/types/fs'
 import {globalStyles, globalColors, globalMargins, isMobile} from '../styles'
-import {Box, Icon, Text} from '../common-adapters'
+import {Box, ClickableBox, Icon, Text} from '../common-adapters'
+import {FolderHeaderBreadcrumbConnector} from './header-container'
 
 type FolderHeaderProps = {
   path: Types.Path,
@@ -33,7 +34,6 @@ const folderBreadcrumbStyle = {
   ...globalStyles.flexBoxRow,
   paddingLeft: 0,
   paddingRight: 0,
-  alignItems: 'end',
 }
 
 const rootHeaderContent = (
@@ -51,6 +51,13 @@ type FolderBreadcrumbProps = {
   totalCrumbs: number,
   visibility: Types.Visibility,
   item: string,
+  path: Types.Path,
+}
+
+type FolderBreadcrumbConnectedProps = {
+  visibility: Types.Visibility,
+  item: string,
+  onOpen: () => void,
 }
 
 const headerPathStyleParent = {color: globalColors.black_60}
@@ -60,7 +67,19 @@ const iconStyle = {
   marginRight: globalMargins.xtiny,
 }
 
-const FolderHeaderBreadcrumb = ({index, totalCrumbs, visibility, item}: FolderBreadcrumbProps) => {
+const FolderHeaderBreadcrumb = FolderHeaderBreadcrumbConnector(
+  ({visibility, item, onOpen}: FolderBreadcrumbConnectedProps) => {
+    return (
+      <ClickableBox onClick={onOpen}>
+        <Text type="BodySmallSemibold" style={headerPathStyleParent}>
+          {item}
+        </Text>
+      </ClickableBox>
+    )
+  }
+)
+
+const FolderHeaderRow = ({index, totalCrumbs, visibility, item, path}: FolderBreadcrumbProps) => {
   let separator = <Icon type="iconfont-back" style={iconStyle} />
   if (index === 0) {
     separator = null
@@ -76,9 +95,7 @@ const FolderHeaderBreadcrumb = ({index, totalCrumbs, visibility, item}: FolderBr
     return (
       <Box style={folderBreadcrumbStyle}>
         {separator}
-        <Text type="BodySmallSemibold" style={headerPathStyleParent}>
-          {item}
-        </Text>
+        <FolderHeaderBreadcrumb visibility={visibility} item={item} path={path} />
       </Box>
     )
   }
@@ -110,15 +127,22 @@ class FolderHeader extends React.Component<FolderHeaderProps, FolderHeaderState>
         const visibility = Types.getPathVisibility(this.props.path)
         return (
           <Box style={folderHeaderStyleTree}>
-            {this.state.pathElems.map((elem, index, pathElems) => (
-              <FolderHeaderBreadcrumb
-                key={index}
-                index={index}
-                visibility={visibility}
-                item={elem}
-                totalCrumbs={pathElems.length}
-              />
-            ))}
+            {this.state.pathElems.map((elem, index, pathElems) => {
+              // TODO: make this more efficient, currently it's doing repeated
+              // work for each item.
+              const pelems = pathElems.slice(0, index + 1)
+              const path = Types.stringToPath('/' + pelems.join('/'))
+              return (
+                <FolderHeaderRow
+                  key={index}
+                  index={index}
+                  visibility={visibility}
+                  item={elem}
+                  totalCrumbs={pathElems.length}
+                  path={path}
+                />
+              )
+            })}
           </Box>
         )
       default:
