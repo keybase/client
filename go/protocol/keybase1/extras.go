@@ -2145,6 +2145,14 @@ func (req *TeamChangeReq) AddUVWithRole(uv UserVersion, role TeamRole) error {
 	return nil
 }
 
+func (req *TeamChangeReq) GetAllAdds() (ret []UserVersion) {
+	ret = append(ret, req.Readers...)
+	ret = append(ret, req.Writers...)
+	ret = append(ret, req.Admins...)
+	ret = append(ret, req.Owners...)
+	return ret
+}
+
 func TotalNumberOfCommits(refs []GitRefMetadata) (total int) {
 	for _, ref := range refs {
 		total += len(ref.Commits)
