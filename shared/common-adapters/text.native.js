@@ -81,6 +81,7 @@ class Text extends Component<Props> {
         ref={ref => {
           this._nativeText = ref
         }}
+        selectable={this.props.selectable}
         style={style}
         {...lineClamp(this.props.lineClamp)}
         onPress={this.props.onClick || (this.props.onClickURL ? this._urlClick : undefined)}
