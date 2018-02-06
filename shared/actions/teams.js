@@ -116,7 +116,7 @@ const _inviteByEmail = function*(action: TeamsGen.InviteToTeamByEmailPayload) {
       throw new Error(`Unable to parse email addresses: ${res.malformed.join('; ')}`)
     }
   } finally {
-    // TODO handle error, but for now make sure loading is unset
+    // TODO handle error
     yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
     yield Saga.put(replaceEntity(['teams', 'teamNameToLoadingInvites', teamname], I.Map([[invitees, false]])))
   }
@@ -134,7 +134,7 @@ const _addToTeam = function*(action: TeamsGen.AddToTeamPayload) {
       sendChatNotification,
     })
   } finally {
-    // TODO handle error, but for now make sure loading is unset
+    // TODO handle error
     yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   }
 }
