@@ -2956,7 +2956,7 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 		users := ctc.users()
 		displayName := users[0].Username + "," + users[1].Username
 		tc := ctc.world.Tcs[users[0].Username]
-		tc1 := ctc.world.Tcs[users[0].Username]
+		tc1 := ctc.world.Tcs[users[1].Username]
 
 		listener0 := newServerChatListener()
 		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener0)
@@ -2978,7 +2978,7 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 		}
 
 		ctx := ctc.as(t, users[0]).startCtx
-		CtxModifyIdentifyNotifier(ctx, NewSimpleIdentifyNotifier(tc.Context()))
+		ctx = CtxModifyIdentifyNotifier(ctx, NewSimpleIdentifyNotifier(tc.Context()))
 		tc.Context().PushHandler.(*PushHandler).identNotifier = DummyIdentifyNotifier{}
 		tc1.Context().PushHandler.(*PushHandler).identNotifier = DummyIdentifyNotifier{}
 
@@ -2992,8 +2992,8 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 			})
 		require.NoError(t, err)
 		require.Equal(t, 0, len(res.Conversations), "conv found")
-		consumeIdentify(ctx, listener0)
-		consumeIdentify(ctx, listener0)
+		consumeIdentify(ctx, listener0) // impteam
+		consumeIdentify(ctx, listener0) // kbfs
 
 		// create a new conversation
 		ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
@@ -3005,8 +3005,9 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 			})
 		require.NoError(t, err)
-		consumeIdentify(ctx, listener0)
-		consumeIdentify(ctx, listener0)
+		consumeIdentify(ctx, listener0) //impteam
+		consumeIdentify(ctx, listener0) //kbfs
+		consumeIdentify(ctx, listener0) //encrypt for first message
 
 		uid := users[0].User.GetUID().ToBytes()
 		conv, _, err := GetUnverifiedConv(ctx, tc.Context(), uid, ncres.Conv.Info.Id, false)
@@ -3033,9 +3034,11 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 		})
 		require.NoError(t, err)
 		consumeIdentify(ctx, listener0) // EncryptionKeys
+		consumeIdentify(ctx, listener0) // DecryptionKeys
 
 		// user 1 sends a message to conv
 		ctx = ctc.as(t, users[1]).startCtx
+		ctx = CtxModifyIdentifyNotifier(ctx, NewSimpleIdentifyNotifier(tc1.Context()))
 		_, err = ctc.as(t, users[1]).chatLocalHandler().PostLocal(ctx, chat1.PostLocalArg{
 			ConversationID: ncres.Conv.Info.Id,
 			Msg: chat1.MessagePlaintext{
@@ -3050,11 +3053,10 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 			},
 		})
 		require.NoError(t, err)
-		consumeIdentify(ctx, listener1)
+		consumeIdentify(ctx, listener1) // EncryptionKeys
+		consumeIdentify(ctx, listener1) // DecryptionKeys
 
 		// user 1 finds the conversation
-		tc = ctc.world.Tcs[users[1].Username]
-		ctx = ctc.as(t, users[1]).startCtx
 		res, err = ctc.as(t, users[1]).chatLocalHandler().FindConversationsLocal(ctx,
 			chat1.FindConversationsLocalArg{
 				TlfName:          displayName,
@@ -3065,8 +3067,7 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 			})
 		require.NoError(t, err)
 		require.Equal(t, 1, len(res.Conversations), "no convs found")
-		consumeIdentify(ctx, listener1)
-		consumeIdentify(ctx, listener1)
+		consumeIdentify(ctx, listener1) //impteam
 
 		// Check to see if we accounted for all identifies
 		select {
