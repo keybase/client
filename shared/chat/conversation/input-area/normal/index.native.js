@@ -196,7 +196,9 @@ const InputAccessory = Component => props => (
   </Box>
 )
 
-const MentionHud = InputAccessory(props => <ConnectedMentionHud style={styleMentionHud} {...props} conversationIDKey={this.props.conversationIDKey} />)
+const MentionHud = InputAccessory(props => (
+  <ConnectedMentionHud style={styleMentionHud} {...props} conversationIDKey={this.props.conversationIDKey} />
+))
 
 const ChannelMentionHud = InputAccessory(props => (
   <ConnectedChannelMentionHud style={styleMentionHud} {...props} />

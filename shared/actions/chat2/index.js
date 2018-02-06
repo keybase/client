@@ -21,7 +21,7 @@ import {chatTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {NotifyPopup} from '../../native/notifications'
 import {showMainWindow} from '../platform-specific'
-import {tmpFile, stat} from '../../util/file'
+import {tmpFile, stat, downloadFilePathNoSearch} from '../../util/file'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import flags from '../../util/feature-flags'
@@ -1060,7 +1060,7 @@ const requestAttachment = (action: Chat2Gen.AttachmentHandleQueuePayload, state:
   }
 
   const toLoad = attachmentQueue.pop()
-  const toLoadActions = [Saga.put(Chat2Gen.createAttachmenLoad(toLoad))]
+  const toLoadActions = [Saga.put(Chat2Gen.createAttachmentLoad(toLoad))]
   const loadSomeMoreActions = attachmentQueue.length ? [Saga.put(Chat2Gen.createAttachmentHandleQueue())] : []
   const delayBeforeLoadingMoreActions =
     toLoadActions.length && loadSomeMoreActions.length ? [Saga.call(Saga.delay, 100)] : []
@@ -1072,7 +1072,7 @@ const requestAttachment = (action: Chat2Gen.AttachmentHandleQueuePayload, state:
   }
 }
 
-function* attachmentLoad(action: Chat2Gen.AttachmenLoadPayload) {
+function* attachmentLoad(action: Chat2Gen.AttachmentLoadPayload) {
   const {conversationIDKey, ordinal, isPreview} = action.payload
   const state: TypedState = yield Saga.select()
   const message = Constants.getMessageMap(state, conversationIDKey).get(ordinal)
@@ -1099,15 +1099,27 @@ function* attachmentLoad(action: Chat2Gen.AttachmenLoadPayload) {
     `kbchat-${conversationIDKey}-${Types.ordinalToNumber(ordinal)}.${isPreview ? 'preview' : 'download'}`
   )
 
-  Saga.put(Chat2Gen.createAttachmenLoading({conversationIDKey, ordinal, isPreview, ratio: 0}))
+  Saga.put(Chat2Gen.createAttachmentLoading({conversationIDKey, isPreview, ordinal, ratio: 0}))
   try {
     const fileStat = yield Saga.call(stat, filename)
     // already loaded?
     if (fileStat.size > 0) {
-      yield Saga.put(Chat2Gen.createAttachmenLoaded({conversationIDKey, ordinal, isPreview, path: filename}))
+      yield Saga.put(Chat2Gen.createAttachmentLoaded({conversationIDKey, isPreview, ordinal, path: filename}))
       return
     }
   } catch (_) {}
+
+  // If we're loading the preview lets see if we downloaded previously once so show in finder / download state is correct
+  if (isPreview && !message.downloadPath) {
+    try {
+      const downloadPath = downloadFilePathNoSearch(message.filename)
+      const fileStat = yield Saga.call(stat, downloadPath)
+      // already exists?
+      if (fileStat.size > 0) {
+        yield Saga.put(Chat2Gen.createAttachmentDownloaded({conversationIDKey, ordinal, path: downloadPath}))
+      }
+    } catch (_) {}
+  }
 
   // Start downloading
   let lastRatioSent = 0
@@ -1122,7 +1134,7 @@ function* attachmentLoad(action: Chat2Gen.AttachmenLoadPayload) {
             // Don't spam ourselves with updates
             if (ratio - lastRatioSent > 0.05) {
               lastRatioSent = ratio
-              yield Saga.put(Chat2Gen.createAttachmenLoading({conversationIDKey, ordinal, isPreview, ratio}))
+              yield Saga.put(Chat2Gen.createAttachmentLoading({conversationIDKey, isPreview, ordinal, ratio}))
             }
             return EngineRpc.rpcResult()
           },
@@ -1142,13 +1154,13 @@ function* attachmentLoad(action: Chat2Gen.AttachmenLoadPayload) {
   try {
     const result = yield Saga.call(downloadFileRpc.run)
     if (EngineRpc.isFinished(result)) {
-      yield Saga.put(Chat2Gen.createAttachmenLoaded({conversationIDKey, ordinal, isPreview, path: filename}))
+      yield Saga.put(Chat2Gen.createAttachmentLoaded({conversationIDKey, isPreview, ordinal, path: filename}))
     } else {
-      yield Saga.put(Chat2Gen.createAttachmenLoadedError({conversationIDKey, ordinal, isPreview}))
+      yield Saga.put(Chat2Gen.createAttachmentLoadedError({conversationIDKey, isPreview, ordinal}))
     }
   } catch (err) {
     logger.warn('attachment failed to load:', err)
-    yield Saga.put(Chat2Gen.createAttachmenLoadedError({conversationIDKey, ordinal, isPreview}))
+    yield Saga.put(Chat2Gen.createAttachmentLoadedError({conversationIDKey, isPreview, ordinal}))
   }
 }
 
@@ -1230,7 +1242,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // We have some items in the queue to process
   yield Saga.safeTakeEveryPure(Chat2Gen.attachmentHandleQueue, requestAttachment)
   // Actually load. Spawn so we can handle multiple in parallel
-  yield Saga.safeTakeEvery(Chat2Gen.attachmenLoad, function*(action: Chat2Gen.AttachmenLoadPayload) {
+  yield Saga.safeTakeEvery(Chat2Gen.attachmentLoad, function*(action: Chat2Gen.AttachmentLoadPayload) {
     yield Saga.spawn(attachmentLoad, action)
   })
 }

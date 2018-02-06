@@ -44,7 +44,7 @@ type Props = {
   children?: React.Node,
   className?: string,
   lineClamp?: number,
-  onClick?: ?(e: SyntheticEvent<>) => void,
+  onClick?: ?(e: SyntheticEvent<>) => void | ?() => void,
   onClickURL?: ?string,
   onPress?: void,
   onLongPress?: () => void,
@@ -65,7 +65,7 @@ type MetaType = {
 }
 
 declare class Text extends React.Component<Props> {
-  highlightText: () => void
+  highlightText: () => void;
 }
 declare function getStyle(
   type: TextType,

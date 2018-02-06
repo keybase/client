@@ -31,6 +31,10 @@ function tmpRandFile(suffix: string): Promise<string> {
 // TODO make this a user setting
 const downloadFolder = __STORYBOOK__ ? '' : path.join(os.homedir(), 'Downloads')
 
+function downloadFilePathNoSearch(filename: string): string {
+  return path.join(downloadFolder, filename)
+}
+
 function downloadFilePath(suffix: string): Promise<string> {
   return findAvailableFilename(exists, path.join(downloadFolder, suffix))
 }
@@ -93,4 +97,5 @@ export {
   tmpRandFile,
   unlink,
   writeStream,
+  downloadFilePathNoSearch,
 }

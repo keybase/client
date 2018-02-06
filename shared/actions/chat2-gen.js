@@ -11,10 +11,12 @@ import HiddenString from '../util/hidden-string'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of chat2 but is handled by every reducer
-export const attachmenLoad = 'chat2:attachmenLoad'
-export const attachmenLoaded = 'chat2:attachmenLoaded'
-export const attachmenLoading = 'chat2:attachmenLoading'
+export const attachmentDownload = 'chat2:attachmentDownload'
+export const attachmentDownloaded = 'chat2:attachmentDownloaded'
 export const attachmentHandleQueue = 'chat2:attachmentHandleQueue'
+export const attachmentLoad = 'chat2:attachmentLoad'
+export const attachmentLoaded = 'chat2:attachmentLoaded'
+export const attachmentLoading = 'chat2:attachmentLoading'
 export const attachmentNeedsUpdating = 'chat2:attachmentNeedsUpdating'
 export const attachmentSend = 'chat2:attachmentSend'
 export const attachmentWithPreviewSend = 'chat2:attachmentWithPreviewSend'
@@ -57,37 +59,57 @@ export const setupChatHandlers = 'chat2:setupChatHandlers'
 export const startConversation = 'chat2:startConversation'
 
 // Action Creators
-export const createAttachmenLoad = (
+export const createAttachmentDownload = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    ordinal: Types.Ordinal,
+  }>
+) => ({error: false, payload, type: attachmentDownload})
+export const createAttachmentDownloaded = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    ordinal: Types.Ordinal,
+    path: string,
+  }>
+) => ({error: false, payload, type: attachmentDownloaded})
+export const createAttachmentDownloadedError = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    ordinal: Types.Ordinal,
+    error: Error,
+  }>
+) => ({error: true, payload, type: attachmentDownloaded})
+export const createAttachmentHandleQueue = () => ({error: false, payload: undefined, type: attachmentHandleQueue})
+export const createAttachmentLoad = (
   payload: $ReadOnly<{
     conversationIDKey: Types.ConversationIDKey,
     ordinal: Types.Ordinal,
     isPreview: boolean,
   }>
-) => ({error: false, payload, type: attachmenLoad})
-export const createAttachmenLoaded = (
+) => ({error: false, payload, type: attachmentLoad})
+export const createAttachmentLoaded = (
   payload: $ReadOnly<{
     conversationIDKey: Types.ConversationIDKey,
     ordinal: Types.Ordinal,
     path: string,
     isPreview: boolean,
   }>
-) => ({error: false, payload, type: attachmenLoaded})
-export const createAttachmenLoadedError = (
+) => ({error: false, payload, type: attachmentLoaded})
+export const createAttachmentLoadedError = (
   payload: $ReadOnly<{
     conversationIDKey: Types.ConversationIDKey,
     ordinal: Types.Ordinal,
     isPreview: boolean,
   }>
-) => ({error: true, payload, type: attachmenLoaded})
-export const createAttachmenLoading = (
+) => ({error: true, payload, type: attachmentLoaded})
+export const createAttachmentLoading = (
   payload: $ReadOnly<{
     conversationIDKey: Types.ConversationIDKey,
     ordinal: Types.Ordinal,
     ratio: number,
     isPreview: boolean,
   }>
-) => ({error: false, payload, type: attachmenLoading})
-export const createAttachmentHandleQueue = () => ({error: false, payload: undefined, type: attachmentHandleQueue})
+) => ({error: false, payload, type: attachmentLoading})
 export const createAttachmentNeedsUpdating = (
   payload: $ReadOnly<{
     conversationIDKey: Types.ConversationIDKey,
@@ -266,10 +288,12 @@ export const createStartConversation = (
 ) => ({error: false, payload, type: startConversation})
 
 // Action Payloads
-export type AttachmenLoadPayload = More.ReturnType<typeof createAttachmenLoad>
-export type AttachmenLoadedPayload = More.ReturnType<typeof createAttachmenLoaded>
-export type AttachmenLoadingPayload = More.ReturnType<typeof createAttachmenLoading>
+export type AttachmentDownloadPayload = More.ReturnType<typeof createAttachmentDownload>
+export type AttachmentDownloadedPayload = More.ReturnType<typeof createAttachmentDownloaded>
 export type AttachmentHandleQueuePayload = More.ReturnType<typeof createAttachmentHandleQueue>
+export type AttachmentLoadPayload = More.ReturnType<typeof createAttachmentLoad>
+export type AttachmentLoadedPayload = More.ReturnType<typeof createAttachmentLoaded>
+export type AttachmentLoadingPayload = More.ReturnType<typeof createAttachmentLoading>
 export type AttachmentNeedsUpdatingPayload = More.ReturnType<typeof createAttachmentNeedsUpdating>
 export type AttachmentSendPayload = More.ReturnType<typeof createAttachmentSend>
 export type AttachmentWithPreviewSendPayload = More.ReturnType<typeof createAttachmentWithPreviewSend>
@@ -314,11 +338,14 @@ export type StartConversationPayload = More.ReturnType<typeof createStartConvers
 // All Actions
 // prettier-ignore
 export type Actions =
-  | More.ReturnType<typeof createAttachmenLoad>
-  | More.ReturnType<typeof createAttachmenLoaded>
-  | More.ReturnType<typeof createAttachmenLoadedError>
-  | More.ReturnType<typeof createAttachmenLoading>
+  | More.ReturnType<typeof createAttachmentDownload>
+  | More.ReturnType<typeof createAttachmentDownloaded>
+  | More.ReturnType<typeof createAttachmentDownloadedError>
   | More.ReturnType<typeof createAttachmentHandleQueue>
+  | More.ReturnType<typeof createAttachmentLoad>
+  | More.ReturnType<typeof createAttachmentLoaded>
+  | More.ReturnType<typeof createAttachmentLoadedError>
+  | More.ReturnType<typeof createAttachmentLoading>
   | More.ReturnType<typeof createAttachmentNeedsUpdating>
   | More.ReturnType<typeof createAttachmentSend>
   | More.ReturnType<typeof createAttachmentWithPreviewSend>

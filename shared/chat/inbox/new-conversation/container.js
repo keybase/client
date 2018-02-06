@@ -2,7 +2,6 @@
 import * as React from 'react'
 import * as I from 'immutable'
 import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as Constants from '../../../constants/chat2'
 import {connect, type TypedState, type Dispatch} from '../../../util/container'
 import NewConversation from '.'
 

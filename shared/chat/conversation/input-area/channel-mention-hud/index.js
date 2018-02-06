@@ -72,10 +72,9 @@ const MentionHud = compose(
       setSelectedIndex: () => (selectedIndex: number) => ({selectedIndex}),
     }
   ),
-  withProps(props => ({
+  withProps((props: {channels: Array<string>, filter: string, selectedIndex: number}) => ({
     data: props.channels
-      ? // $FlowIssue TODO fix this up
-        props.channels
+      ? props.channels
           .reduce((arr, c) => {
             c.toLowerCase().indexOf(props.filter) >= 0 && arr.push(c)
             return arr

@@ -12,6 +12,10 @@ function tmpFile(suffix: string): string {
   return `${tmpDir()}/${suffix}`
 }
 
+function downloadFilePathNoSearch(filename: string): string {
+  return `${tmpDir()}/${filename}`
+}
+
 function downloadFilePath(suffix: string): Promise<string> {
   return findAvailableFilename(exists, `${tmpDir()}/${suffix}`)
 }
@@ -38,4 +42,4 @@ function unlink(filepath: string): Promise<void> {
 
 const cachesDirectoryPath = tmpDir()
 
-export {cachesDirectoryPath, copy, exists, downloadFilePath, stat, tmpDir, tmpFile, unlink, writeStream}
+export {cachesDirectoryPath, copy, exists, downloadFilePath, stat, tmpDir, tmpFile, unlink, writeStream, downloadFilePathNoSearch}

@@ -149,7 +149,7 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
         })
       )
     }
-    case Chat2Gen.attachmenLoading:
+    case Chat2Gen.attachmentLoading:
       return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
         if (!message || message.type !== 'attachment') {
           return message
@@ -158,7 +158,7 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
           ? message.set('previewTransferState', 'downloading')
           : message.set('transferProgress', action.payload.ratio).set('transferState', 'downloading')
       })
-    case Chat2Gen.attachmenLoaded:
+    case Chat2Gen.attachmentLoaded:
       return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
         if (!message || message.type !== 'attachment') {
           return message
@@ -431,8 +431,8 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.metaReceivedError:
     case Chat2Gen.metaRequestingTrusted:
     case Chat2Gen.metasReceived:
-    case Chat2Gen.attachmenLoading:
-    case Chat2Gen.attachmenLoaded:
+    case Chat2Gen.attachmentLoading:
+    case Chat2Gen.attachmentLoaded:
       return state.withMutations(s => {
         s.set('metaMap', metaMapReducer(state.metaMap, action))
         s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))
@@ -459,7 +459,8 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.sendToPendingConversation:
     case Chat2Gen.attachmentNeedsUpdating:
     case Chat2Gen.attachmentHandleQueue:
-    case Chat2Gen.attachmenLoad:
+    case Chat2Gen.attachmentLoad:
+    case Chat2Gen.attachmentDownload:
       return state
     default:
       // eslint-disable-next-line no-unused-expressions

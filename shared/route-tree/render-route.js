@@ -53,7 +53,7 @@ export type RouteProps<P, S> = {
 
   // Navigation if your path hasn't changed underneath you
   navigateUp: () => Action,
-  navigateAppend: () => Action,
+  navigateAppend: (...Array<any>) => Action,
 }
 
 type RenderRouteNodeProps<S> = {

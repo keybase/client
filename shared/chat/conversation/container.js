@@ -1,5 +1,4 @@
 // @flow
-import * as I from 'immutable'
 import * as React from 'react'
 import * as Constants from '../../constants/chat2'
 import * as Types from '../../constants/types/chat2'

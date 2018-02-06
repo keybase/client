@@ -7,7 +7,8 @@ export type StatResult = {
 
 declare function tmpDir(): string
 declare function tmpFile(suffix: string): string
-declare function downloadFilePath(filename: string): Promise<string>
+declare function downloadFilePath(filename: string): Promise<string> // searches for one
+declare function downloadFilePathNoSearch(filename: string): string // no search, just build the path
 declare function copy(from: string, to: string): void
 declare function exists(filename: string): Promise<boolean>
 declare function stat(filename: string): Promise<StatResult>

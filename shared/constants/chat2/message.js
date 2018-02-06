@@ -51,6 +51,7 @@ export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachm
   attachmentType: 'file',
   deviceFilePath: '',
   devicePreviewPath: '',
+  downloadPath: null,
   filename: '',
   previewHeight: 0,
   previewTransferState: null,

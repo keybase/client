@@ -73,6 +73,7 @@ export type _MessageAttachment = {
   deviceName: string,
   deviceRevokedAt: ?number,
   deviceType: DeviceType,
+  downloadPath: ?string, // string if downloaded
   errorReason: ?string,
   // durationMs: number,
   filename: string,
