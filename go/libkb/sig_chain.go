@@ -420,17 +420,6 @@ func (sc *SigChain) Store(ctx context.Context) (err error) {
 	return nil
 }
 
-// Clean will remove any unnecessary memory consumed by
-// links. It should only be called after the chain has
-// been verified and stored.
-func (sc *SigChain) Clean(ctx context.Context) error {
-	// skip the tail (len - 2)
-	for i := len(sc.chainLinks) - 2; i >= 0; i-- {
-		sc.chainLinks[i].MaybeDropSig(ctx)
-	}
-	return nil
-}
-
 // Some users (6) managed to reuse eldest keys after a sigchain reset, without
 // using the "eldest" link type, before the server prohibited this. To clients,
 // that means their chains don't appear to reset. We hardcode these cases.
@@ -1253,10 +1242,6 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	stage("Store")
 	if err = l.Store(); err != nil {
 		l.G().Log.CDebugf(l.ctx, "| continuing past error storing chain: %s", err)
-	}
-	stage("Clean")
-	if err = l.chain.Clean(l.ctx); err != nil {
-		l.G().Log.CDebugf(l.ctx, "| continuing past error cleaning chain: %s", err)
 	}
 
 	return ret, nil
