@@ -1100,12 +1100,13 @@ function* attachmentLoad(action: Chat2Gen.AttachmentLoadPayload) {
   )
 
   Saga.put(Chat2Gen.createAttachmentLoading({conversationIDKey, isPreview, ordinal, ratio: 0}))
+  let alreadyLoaded = false
   try {
     const fileStat = yield Saga.call(stat, filename)
     // already loaded?
     if (fileStat.size > 0) {
       yield Saga.put(Chat2Gen.createAttachmentLoaded({conversationIDKey, isPreview, ordinal, path: filename}))
-      return
+      alreadyLoaded = true
     }
   } catch (_) {}
 
@@ -1119,6 +1120,11 @@ function* attachmentLoad(action: Chat2Gen.AttachmentLoadPayload) {
         yield Saga.put(Chat2Gen.createAttachmentDownloaded({conversationIDKey, ordinal, path: downloadPath}))
       }
     } catch (_) {}
+  }
+
+  // We already loaded this file so lets bail
+  if (alreadyLoaded) {
+    return
   }
 
   // Start downloading

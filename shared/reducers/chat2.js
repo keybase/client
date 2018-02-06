@@ -171,6 +171,14 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
               .set('transferState', null)
               .set('deviceFilePath', path)
       })
+    case Chat2Gen.attachmentDownloaded:
+      return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
+        if (!message || message.type !== 'attachment') {
+          return message
+        }
+        const path = action.error ? '' : action.payload.path
+        return message.set('downloadPath', path)
+      })
     default:
       return messageMap
   }
@@ -433,6 +441,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.metasReceived:
     case Chat2Gen.attachmentLoading:
     case Chat2Gen.attachmentLoaded:
+    case Chat2Gen.attachmentDownloaded:
       return state.withMutations(s => {
         s.set('metaMap', metaMapReducer(state.metaMap, action))
         s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))

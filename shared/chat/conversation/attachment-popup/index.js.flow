@@ -4,14 +4,15 @@ import * as React from 'react'
 
 export type Props = {
   path: string,
-  deviceFilePath: string,
-  devicePreviewPath: string,
+  // deviceFilePath: string,
+  // devicePreviewPath: string,
   title: string,
   // you: string,
   // message: Types.MessageAttachment,
   // localMessageState: LocalMessageState,
   // detailsPopupShowing: boolean,
   isZoomed: boolean,
+  isLoading: boolean,
   // onCloseDetailsPopup: () => void,
   onClose: () => void,
   onDownloadAttachment: ?() => void,

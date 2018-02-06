@@ -4,7 +4,7 @@ import {Box, Icon, Text, PopupDialog, ProgressIndicator} from '../../../common-a
 // import {AttachmentPopupMenu} from '../messages/popup.desktop'
 // import {ProgressBar as AttachmentProgressBar, ImageIcon as AttachmentStatusIcon} from '../messages/attachment'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
-// import {fileUIName} from '../../../constants/platform'
+import {fileUIName} from '../../../constants/platform'
 
 import type {Props} from '.'
 // import type {LocalMessageState} from '../../../constants/types/chat'
@@ -18,7 +18,7 @@ const AttachmentPopup = (props: Props) => {
           <Text type="BodySemibold" style={{color: globalColors.black_75, flex: 1}}>
             {props.title}
           </Text>
-          {!props.deviceFilePath && <ProgressIndicator style={{width: 24}} />}
+          {props.isLoading && <ProgressIndicator style={{width: 24}} />}
           <Icon
             type="iconfont-ellipsis"
             style={{color: globalColors.black_40, cursor: 'pointer', marginLeft: globalMargins.tiny}}
@@ -28,12 +28,9 @@ const AttachmentPopup = (props: Props) => {
             }}
           />
         </Box>
-        {(props.deviceFilePath || props.devicePreviewPath) && (
+        {props.path && (
           <Box style={props.isZoomed ? styleContentsZoom : styleContentsFit} onClick={props.onToggleZoom}>
-            <img
-              src={props.deviceFilePath || props.devicePreviewPath}
-              style={props.isZoomed ? styleImageZoom : styleImageFit}
-            />
+            <img src={props.path} style={props.isZoomed ? styleImageZoom : styleImageFit} />
           </Box>
         )}
         <Box style={headerFooterStyle}>
@@ -44,6 +41,15 @@ const AttachmentPopup = (props: Props) => {
               onClick={props.onDownloadAttachment}
             >
               Download
+            </Text>
+          )}
+          {props.onShowInFinder && (
+            <Text
+              type="BodySmall"
+              style={{color: globalColors.black_60, cursor: 'pointer'}}
+              onClick={props.onShowInFinder}
+            >
+              Show in {fileUIName}
             </Text>
           )}
         </Box>
