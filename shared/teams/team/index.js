@@ -118,8 +118,8 @@ const Help = isMobile
         </Text>
         <Text
           type="TerminalInline"
+          selectable={true}
           style={{
-            ...globalStyles.selectable,
             marginLeft: globalMargins.xtiny,
             marginTop: globalMargins.xtiny,
           }}
