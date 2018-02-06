@@ -317,6 +317,10 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		return nil, err
 	}
 
+	if ret.status == keybase1.StatusCode_SCDeleted {
+		return nil, DeletedError{}
+	}
+
 	ret.sigHints = sigHints
 
 	// Match the returned User object to the Merkle tree. Also make sure
