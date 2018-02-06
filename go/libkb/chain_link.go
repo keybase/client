@@ -112,6 +112,8 @@ type ChainLinkUnpacked struct {
 	payloadHash                        []byte
 	sigDropped                         bool
 	hasRevocations                     bool
+	merkleSeqno                        keybase1.Seqno
+	merkleHashMeta                     keybase1.HashMeta
 }
 
 // A template for some of the reasons in badChainLinks below.
@@ -314,13 +316,9 @@ func (c *ChainLink) Pack() (*jsonw.Wrapper, error) {
 	if c.IsStubbed() {
 		p.SetKey("s2", jsonw.NewString(c.unpacked.outerLinkV2.EncodeStubbed()))
 	} else {
-		if c.sigVerified {
+		if c.sigVerified && c.unpacked.sigVersion == 2 {
 			// Store the original JSON string so its order is preserved
-			payload, err := c.unpacked.SigPayload()
-			if err != nil {
-				return nil, err
-			}
-			p.SetKey("payload_json", jsonw.NewString(string(payload)))
+			p.SetKey("payload_json", jsonw.NewString(string(c.unpacked.payloadV2)))
 		}
 		p.SetKey("sig", jsonw.NewString(c.unpacked.sig))
 		p.SetKey("sig_id", jsonw.NewString(string(c.unpacked.sigID)))
@@ -342,40 +340,18 @@ func (c *ChainLink) Pack() (*jsonw.Wrapper, error) {
 	return p, nil
 }
 
-// XXX move this to unpacked?
 func (c *ChainLink) GetMerkleSeqno() keybase1.Seqno {
 	if c.IsStubbed() {
 		return 0
 	}
-	payload, err := c.unpacked.SigPayload()
-	if err != nil {
-		return 0
-	}
-	i, err := jsonparser.GetInt(payload, "body", "merkle_root", "seqno")
-	if err != nil {
-		i = 0
-	}
-	return keybase1.Seqno(i)
+	return c.unpacked.merkleSeqno
 }
 
-// XXX move this to unpacked?
 func (c *ChainLink) GetMerkleHashMeta() (keybase1.HashMeta, error) {
 	if c.IsStubbed() {
 		return nil, nil
 	}
-	payload, err := c.unpacked.SigPayload()
-	if err != nil {
-		return nil, err
-	}
-	s, err := jsonparser.GetString(payload, "body", "merkle_root", "hash_meta")
-	if err != nil {
-		return nil, nil
-	}
-	ret, err := keybase1.HashMetaFromString(s)
-	if err != nil {
-		return nil, err
-	}
-	return ret, nil
+	return c.unpacked.merkleHashMeta, nil
 }
 
 func (c *ChainLink) HasRevocations() bool {
@@ -404,7 +380,6 @@ func (tmp *ChainLinkUnpacked) HasRevocations(payload []byte) bool {
 	return false
 }
 
-// XXX pass in payload?
 func (c *ChainLink) GetRevocations() []keybase1.SigID {
 	if c.IsStubbed() {
 		return nil
@@ -429,7 +404,6 @@ func (c *ChainLink) GetRevocations() []keybase1.SigID {
 	return ret
 }
 
-// XXX pass in payload?
 func (c *ChainLink) GetRevokeKids() []keybase1.KID {
 	if c.IsStubbed() {
 		return nil
@@ -530,6 +504,17 @@ func (tmp *ChainLinkUnpacked) unpackPayloadJSON(payload []byte) error {
 	tmp.ignoreIfUnsupported = false
 	if ignore, err := jsonparser.GetBoolean(payload, "ignore_if_unsupported"); err == nil {
 		tmp.ignoreIfUnsupported = ignore
+	}
+
+	if i, err := jsonparser.GetInt(payload, "body", "merkle_root", "seqno"); err == nil {
+		tmp.merkleSeqno = keybase1.Seqno(i)
+	}
+
+	if s, err := jsonparser.GetString(payload, "body", "merkle_root", "hash_meta"); err == nil {
+		tmp.merkleHashMeta, err = keybase1.HashMetaFromString(s)
+		if err != nil {
+			return err
+		}
 	}
 
 	ei, err := jsonparser.GetInt(payload, "expire_in")
