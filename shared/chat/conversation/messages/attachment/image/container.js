@@ -4,6 +4,7 @@ import * as KBFSGen from '../../../../../actions/kbfs-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Route from '../../../../../actions/route-tree'
 import {connect, type TypedState, type Dispatch, isMobile} from '../../../../../util/container'
+import {globalColors} from '../../../../../styles'
 import ImageAttachment from '.'
 
 const mapStateToProps = (state: TypedState) => ({})
@@ -39,14 +40,34 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  loadPreview: () => dispatchProps._loadPreview(ownProps.message.conversationIDKey, ownProps.message.ordinal),
-  message: ownProps.message,
-  onClick: () => dispatchProps._onClick(ownProps.message),
-  onShowInFinder:
-    !isMobile && ownProps.message.downloadPath
-      ? () => dispatchProps._onShowInFinder(ownProps.message)
-      : undefined,
-})
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  const {message} = ownProps
+  const arrowColor = message.downloadPath
+    ? globalColors.green
+    : message.transferState === 'downloading' ? globalColors.blue : null
+  const progressLabel =
+    message.transferState === 'downloading'
+      ? 'Downloading'
+      : message.transferState === 'uploading' ? 'Encrypting' : null
+  return {
+    arrowColor,
+    height: message.previewHeight,
+    isPreviewLoaded: !!message.devicePreviewPath,
+    loadPreview: message.devicePreviewPath
+      ? undefined
+      : () => dispatchProps._loadPreview(ownProps.message.conversationIDKey, ownProps.message.ordinal),
+    message: ownProps.message,
+    onClick: () => dispatchProps._onClick(ownProps.message),
+    onShowInFinder:
+      !isMobile && ownProps.message.downloadPath
+        ? () => dispatchProps._onShowInFinder(ownProps.message)
+        : undefined,
+    path: message.devicePreviewPath,
+    progress: message.transferProgress,
+    progressLabel,
+    title: message.title || message.filename,
+    width: message.previewWidth,
+  }
+}
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(ImageAttachment)

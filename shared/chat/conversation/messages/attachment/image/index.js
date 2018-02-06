@@ -1,52 +1,65 @@
 // @flow
 import * as React from 'react'
-import * as Types from '../../../../../constants/types/chat2'
-import {Box, Text, ClickableBox, Icon} from '../../../../../common-adapters'
+import {Box, Text, ClickableBox, Icon, ProgressBar} from '../../../../../common-adapters'
 import {globalStyles, globalMargins, globalColors, fileUIName} from '../../../../../styles'
 import {ImageRender} from './image-render'
 
 type Props = {
-  loadPreview: () => void,
-  message: Types.MessageAttachment,
+  arrowColor: ?string,
+  height: number,
+  isPreviewLoaded: boolean,
+  loadPreview: ?() => void,
   onClick: () => void,
   onShowInFinder: ?() => void,
+  path: ?string,
+  title: string,
+  width: number,
+  progress: number,
+  progressLabel: ?string,
 }
 
 class ImageAttachment extends React.PureComponent<Props> {
   componentWillMount() {
-    if (!this.props.message.devicePreviewPath) {
+    if (this.props.loadPreview) {
       this.props.loadPreview()
     }
   }
 
   render() {
-    const {message} = this.props
     return (
       <ClickableBox style={imageContainerStyle} onClick={this.props.onClick}>
-        <Text type="BodySemibold">{message.title || message.filename}</Text>
+        <Text type="BodySemibold">{this.props.title}</Text>
         <Box
           style={{
-            ...(message.devicePreviewPath ? loadedStyle : loadingStyle),
-            height: this.props.message.previewHeight,
-            width: this.props.message.previewWidth,
+            ...(this.props.isPreviewLoaded ? loadedStyle : loadingStyle),
+            height: this.props.height,
+            width: this.props.width,
           }}
         >
-          {message.devicePreviewPath && (
+          {this.props.path && (
             <ImageRender
-              src={message.devicePreviewPath}
+              src={this.props.path}
               style={{
                 ...imageStyle,
-                height: this.props.message.previewHeight,
-                width: this.props.message.previewWidth,
+                height: this.props.height,
+                width: this.props.width,
               }}
             />
           )}
-          {this.props.onShowInFinder && (
+          {this.props.arrowColor && (
             <Box style={downloadedIconWrapperStyle}>
-              <Icon type="iconfont-import" style={{color: globalColors.green, maxHeight: 14}} />
+              <Icon type="iconfont-import" style={{color: this.props.arrowColor, maxHeight: 14}} />
             </Box>
           )}
         </Box>
+        {this.props.progressLabel && (
+          <Box style={progressContainerStyle}>
+            <Text type={'BodySmall'} style={progressLabelStyle}>
+              {this.props.progressLabel}
+            </Text>
+            <ProgressBar ratio={this.props.progress} />
+          </Box>
+        )}
         {this.props.onShowInFinder && (
           <Text type="BodySmallPrimaryLink" onClick={this.props.onShowInFinder} style={linkStyle}>
             Show in {fileUIName}
@@ -57,6 +70,11 @@ class ImageAttachment extends React.PureComponent<Props> {
   }
 }
 
+const progressLabelStyle = {
+  color: globalColors.black_40,
+  marginRight: globalMargins.tiny,
+}
+
 const downloadedIconWrapperStyle = {
   ...globalStyles.flexBoxCenter,
   backgroundColor: globalColors.white,
@@ -65,6 +83,11 @@ const downloadedIconWrapperStyle = {
   padding: 3,
   position: 'absolute',
   right: 0,
+}
+
+const progressContainerStyle = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
 }
 
 const imageContainerStyle = {
