@@ -174,7 +174,11 @@ class MainNavStack extends Component<any, any> {
   }
 
   statusBarListener = (frameData: any) => {
-    this.setState({verticalOffset: frameData.height - 20})
+    // the iPhone X has default status bar height of 45px
+    // and it doesn't increase in height like earlier devices.
+    // (so this should always be 0 on an iPhone X, but this should still
+    // be correct if it expands)
+    this.setState({verticalOffset: frameData.height - (isIPhoneX ? 45 : 20)})
   }
 
   componentWillReceiveProps() {
@@ -222,6 +226,11 @@ class MainNavStack extends Component<any, any> {
         <NativeKeyboardAvoidingView
           style={_keyboardStyle}
           behavior={isIOS ? 'padding' : undefined}
+          /** TODO get rid of this once a better fix exists
+           * keyboardVerticalOffset is to work around a bug in KeyboardAvoidingView
+           * when the in-call status bar is active. See https://github.com/facebook/react-native/issues/17862
+           * We need to account for the extra offset made by the larger in call status bar (on pre-iPhone X devices).
+           */
           keyboardVerticalOffset={this.state.verticalOffset}
         >
           {content}
