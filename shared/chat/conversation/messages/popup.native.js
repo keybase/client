@@ -10,7 +10,7 @@ import {isIOS} from '../../../constants/platform'
 import {type RouteProps} from '../../../route-tree/render-route'
 import {type TextProps, type AttachmentProps} from './popup'
 
-function _textMessagePopupHelper({message, type, onDeleteMessage, onHidden, onShowEditor, you}: TextProps) {
+function _textMessagePopupHelper({message, type, onDeleteMessage, onDeleteMessageHistory, onHidden, onShowEditor, you}: TextProps) {
   const edit =
     message.author === you
       ? [
@@ -97,9 +97,18 @@ function MessagePopup(props: TextProps | AttachmentProps) {
       onClick: () => {
         onDeleteMessage(message)
       },
+      subTitle: 'Deletes this message for everyone'
       title: 'Delete',
     })
   }
+  items.push({
+    danger: true,
+    onClick: () => {
+      onDeleteMessageHistory(message)
+    },
+    subTitle: 'Deletes all messages before this one for everyone'
+    title: 'Delete up to here'
+  })
 
   const menuProps = {
     header: {

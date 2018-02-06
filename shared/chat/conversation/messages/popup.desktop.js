@@ -6,6 +6,7 @@ import {textMessageEditable} from '../../../constants/chat'
 import * as Types from '../../../constants/types/chat'
 import * as ChatGen from '../../../actions/chat-gen'
 import * as KBFSGen from '../../../actions/kbfs-gen'
+import {navigateAppend} from '../../../actions/route-tree'
 import {fileUIName} from '../../../constants/platform'
 import {connect} from 'react-redux'
 import {branch, renderComponent} from 'recompose'
@@ -20,7 +21,8 @@ const stylePopup = {
   width: 196,
 }
 
-const TextPopupMenu = ({message, onShowEditor, onDeleteMessage, onHidden, style, you}: TextProps) => {
+const TextPopupMenu = ({message, onShowEditor, onDeleteMessage, onDeleteMessageHistory, onHidden, style, you}: TextProps) => {
+  console.warn(message)
   let items = []
   if (message.author === you) {
     if (!message.senderDeviceRevokedAt) {
@@ -36,10 +38,17 @@ const TextPopupMenu = ({message, onShowEditor, onDeleteMessage, onHidden, style,
     items.push({
       danger: true,
       onClick: () => onDeleteMessage(message),
-      subTitle: 'Deletes for everyone',
+      subTitle: 'Deletes this message for everyone',
       title: 'Delete',
     })
   }
+  items.push('Divider')
+  items.push({
+    danger: true,
+    onClick: () => onDeleteMessageHistory(message),
+    subTitle: 'Deletes all messages before this one for everyone',
+    title: 'Delete up to here',
+  })
   const header = {
     title: 'header',
     view: <MessagePopupHeader message={message} isLast={!items.length} />,
@@ -51,6 +60,7 @@ const AttachmentPopupMenu = ({
   message,
   localMessageState,
   onDeleteMessage,
+  onDeleteMessageHistory,
   onOpenInFileUI,
   onDownloadAttachment,
   onHidden,
@@ -73,10 +83,17 @@ const AttachmentPopupMenu = ({
     items.push({
       danger: true,
       onClick: () => onDeleteMessage(message),
-      subTitle: 'Deletes for everyone',
+      subTitle: 'Deletes this message for everyone',
       title: 'Delete',
     })
   }
+  items.push('Divider')
+  items.push({
+    danger: true,
+    onClick: () => onDeleteMessageHistory(message),
+    subTitle: 'Deletes all messages before this one for everyone',
+    title: 'Delete up to here',
+  })
   const header = {
     title: 'header',
     view: <MessagePopupHeader message={message} />,
@@ -91,7 +108,7 @@ type ConnectedTextMessageProps = {
   }>,
 }
 
-// $FlowIssue doen'st like routeProps here
+// $FlowIssue doesn't like routeProps here
 const mapStateToProps = ({config: {username}}: TypedState, {routeProps}) => ({
   you: username,
   message: routeProps.get('message'),
@@ -99,10 +116,16 @@ const mapStateToProps = ({config: {username}}: TypedState, {routeProps}) => ({
 
 const mapDispatchToTextProps = (
   dispatch,
-  {routeProps, navigateUp}: ConnectedTextMessageProps & {navigateUp: () => any}
+  {navigateUp, routeProps}: ConnectedTextMessageProps & {navigateUp: () => any}
 ) => ({
   onDeleteMessage: (message: Types.Message) =>
     dispatch(ChatGen.createDeleteMessage({message: routeProps.get('message')})),
+  onDeleteMessageHistory: message => {
+    console.warn('calling up')
+    dispatch(navigateUp())
+    console.warn('calling append')
+    dispatch(navigateAppend([{props: {message}, selected: 'deleteHistoryWarning'}]))
+  },
   onShowEditor: () => {
     dispatch(navigateUp())
     routeProps.get('onShowEditor')()
@@ -119,7 +142,7 @@ type ConnectedAttachmentMessageProps = {
   }>,
 }
 
-const mapDispatchToAttachmentProps = (dispatch, {routeProps}: ConnectedAttachmentMessageProps) => {
+const mapDispatchToAttachmentProps = (dispatch, {navigateAppend, routeProps}: ConnectedAttachmentMessageProps) => {
   const localMessageState = routeProps.get('localMessageState')
   const message = routeProps.get('message')
   const {savedPath} = localMessageState
@@ -129,6 +152,9 @@ const mapDispatchToAttachmentProps = (dispatch, {routeProps}: ConnectedAttachmen
     onDownloadAttachment: () => dispatch(ChatGen.createSaveAttachment({messageKey})),
     onDeleteMessage: (message: Types.Message) =>
       dispatch(ChatGen.createDeleteMessage({message: routeProps.get('message')})),
+    onDeleteMessageHistory: message => {
+      dispatch(navigateAppend([{props: {message}, selected: 'deleteHistoryWarning'}]))
+    },
     onHidden: () => {},
     localMessageState,
   }
