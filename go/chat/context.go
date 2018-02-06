@@ -105,7 +105,10 @@ func Context(ctx context.Context, g *globals.Context, mode keybase1.TLFIdentifyB
 	if _, ok := val.(KeyFinder); !ok {
 		res = context.WithValue(res, kfKey, NewKeyFinder(g))
 	}
-	res = context.WithValue(res, inKey, notifier)
+	val = res.Value(inKey)
+	if _, ok := val.(*IdentifyNotifier); !ok {
+		res = context.WithValue(res, inKey, notifier)
+	}
 	res = CtxAddLogTags(res, g.GetEnv())
 	return res
 }

@@ -26,6 +26,7 @@ type IdentifyNotifier struct {
 	sync.RWMutex
 	storage    *storage.Storage
 	identCache map[string]keybase1.CanonicalTLFNameAndIDWithBreaks
+	caching    bool
 }
 
 func NewIdentifyNotifier(g *globals.Context) *IdentifyNotifier {
@@ -34,7 +35,12 @@ func NewIdentifyNotifier(g *globals.Context) *IdentifyNotifier {
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "IdentifyNotifier", false),
 		identCache:   make(map[string]keybase1.CanonicalTLFNameAndIDWithBreaks),
 		storage:      storage.New(g),
+		caching:      true,
 	}
+}
+
+func (i *IdentifyNotifier) DisableCaching() {
+	i.caching = false
 }
 
 func (i *IdentifyNotifier) ResetOnGUIConnect() {
@@ -50,32 +56,35 @@ func (i *IdentifyNotifier) Reset() {
 	i.identCache = make(map[string]keybase1.CanonicalTLFNameAndIDWithBreaks)
 }
 
-func (i *IdentifyNotifier) Send(update keybase1.CanonicalTLFNameAndIDWithBreaks) {
+func (i *IdentifyNotifier) Send(ctx context.Context, update keybase1.CanonicalTLFNameAndIDWithBreaks) {
 
 	// Send to storage as well (charge forward on error)
-	if err := i.storage.UpdateTLFIdentifyBreak(context.Background(), update.TlfID.ToBytes(), update.Breaks.Breaks); err != nil {
-		i.Debug(context.Background(), "failed to update storage with TLF identify info: %s", err.Error())
+	if err := i.storage.UpdateTLFIdentifyBreak(ctx, update.TlfID.ToBytes(), update.Breaks.Breaks); err != nil {
+		i.Debug(ctx, "failed to update storage with TLF identify info: %s", err.Error())
 	}
 
 	// Send notification to GUI about identify status
-	i.RLock()
 	tlfName := update.CanonicalName.String()
-	stored, ok := i.identCache[tlfName]
-	i.RUnlock()
-	if ok {
-		// We have the exact update stored, don't send it again
-		if stored.Eq(update) {
-			i.Debug(context.Background(), "hit cache, not sending notify: %s", tlfName)
-			return
+	if i.caching {
+		i.RLock()
+		stored, ok := i.identCache[tlfName]
+		i.RUnlock()
+		if ok {
+			// We have the exact update stored, don't send it again
+			if stored.Eq(update) {
+				i.Debug(ctx, "hit cache, not sending notify: %s", tlfName)
+				return
+			}
 		}
+		i.Lock()
+		i.identCache[tlfName] = update
+		i.Unlock()
+	} else {
+		i.Debug(ctx, "skipping cache, disabled")
 	}
 
-	i.Lock()
-	i.identCache[tlfName] = update
-	i.Unlock()
-
-	i.Debug(context.Background(), "cache miss, sending notify: %s dat: %v", tlfName, update)
-	i.G().NotifyRouter.HandleChatIdentifyUpdate(context.Background(), update)
+	i.Debug(ctx, "cache miss, sending notify: %s dat: %v", tlfName, update)
+	i.G().NotifyRouter.HandleChatIdentifyUpdate(ctx, update)
 }
 
 type IdentifyChangedHandler struct {
@@ -167,7 +176,7 @@ func (h *IdentifyChangedHandler) BackgroundIdentifyChanged(ctx context.Context, 
 	}
 
 	// Fire away!
-	notifier.Send(notifyPayload)
+	notifier.Send(ctx, notifyPayload)
 }
 
 func (h *IdentifyChangedHandler) HandleUserChanged(uid keybase1.UID) (err error) {
@@ -290,7 +299,7 @@ func (t *NameIdentifier) Identify(ctx context.Context, names []string, private b
 
 	if idNotifier != nil {
 		t.Debug(ctx, "sending update through ident notifier: %d breaks", len(res))
-		idNotifier.Send(keybase1.CanonicalTLFNameAndIDWithBreaks{
+		idNotifier.Send(ctx, keybase1.CanonicalTLFNameAndIDWithBreaks{
 			Breaks: keybase1.TLFBreak{
 				Breaks: res,
 			},

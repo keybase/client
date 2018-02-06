@@ -2977,6 +2977,7 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 		}
 
 		ctx := ctc.as(t, users[0]).startCtx
+		CtxIdentifyNotifier(ctx).DisableCaching()
 		res, err := ctc.as(t, users[0]).chatLocalHandler().FindConversationsLocal(ctx,
 			chat1.FindConversationsLocalArg{
 				TlfName:          displayName,
@@ -3059,6 +3060,15 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 1, len(res.Conversations), "no convs found")
 		consumeIdentify(ctx, listener1)
+
+		// Check to see if we accounted for all identifies
+		select {
+		case <-listener0.identifyUpdate:
+			require.Fail(t, "leftover identifies 0")
+		case <-listener1.identifyUpdate:
+			require.Fail(t, "leftover identifies 1")
+		default:
+		}
 	})
 }
 
