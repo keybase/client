@@ -5,6 +5,7 @@ package client
 
 import (
 	"context"
+	"errors"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -32,7 +33,7 @@ func newCmdTeamGenerateSeitan(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 		Flags: []cli.Flag{
 			cli.StringFlag{
 				Name:  "r, role",
-				Usage: "team role (owner, admin, writer, reader) [required]",
+				Usage: "team role (admin, writer, reader) [required]",
 			},
 			cli.StringFlag{
 				Name:  "fullname",
@@ -61,6 +62,9 @@ func (c *CmdTeamGenerateSeitan) ParseArgv(ctx *cli.Context) error {
 	c.Role, err = ParseRole(ctx)
 	if err != nil {
 		return err
+	}
+	if c.Role == keybase1.TeamRole_OWNER {
+		return errors.New("invalid team role, please use admin, writer, or reader")
 	}
 
 	c.FullName = ctx.String("fullname")
