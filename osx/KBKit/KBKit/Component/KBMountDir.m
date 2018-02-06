@@ -8,7 +8,9 @@
 
 #import "KBMountDir.h"
 #import "KBInstaller.h"
+#import "KBWorkspace.h"
 #import "KBSharedFileList.h"
+#import "KBTask.h"
 
 @interface KBMountDir ()
 @property KBHelperTool *helperTool;
@@ -52,23 +54,24 @@
 }
 
 - (void)removeMountDir:(NSString *)mountDir completion:(KBCompletion)completion {
-  // Because the mount dir is in the root path, we need the helper tool to remove it, even if owned by the user
-  NSDictionary *params = @{@"path": mountDir};
-  DDLogDebug(@"Removing mount directory: %@", params);
-  [self.helperTool.helper sendRequest:@"remove" params:@[params] completion:^(NSError *err, id value) {
+  DDLogDebug(@"Removing mount directory: %@", mountDir);
+  NSError *err = nil;
+  if (![NSFileManager.defaultManager removeItemAtPath:mountDir error:&err]) {
     completion(err);
-  }];
+  }
+  completion(nil);
 }
 
 - (void)createMountDir:(KBCompletion)completion {
-  uid_t uid = getuid();
-  gid_t gid = getgid();
-  NSNumber *permissions = [NSNumber numberWithShort:0600];
-  NSDictionary *params = @{@"directory": self.config.mountDir, @"uid": @(uid), @"gid": @(gid), @"permissions": permissions, @"excludeFromBackup": @(YES)};
-  DDLogDebug(@"Creating mount directory: %@", params);
-  [self.helperTool.helper sendRequest:@"createDirectory" params:@[params] completion:^(NSError *err, id value) {
+  DDLogDebug(@"Creating mount directory: %@", self.config.mountDir);
+
+  NSError *err = nil;
+  if (![NSFileManager.defaultManager createDirectoryAtPath:self.config.mountDir withIntermediateDirectories:NO attributes:nil error:&err]) {
     completion(err);
-  }];
+    return;
+  }
+
+  completion(nil);
 }
 
 - (void)install:(KBCompletion)completion {

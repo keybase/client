@@ -74,6 +74,26 @@
   va_end(args);
 }
 
+- (void)doInstallAlert:(KBSemVersion *)bundleVersion runningVersion:(KBSemVersion *)runningVersion {
+  if ([runningVersion.version length] == 0) {
+    // No need to show anything if the user is explicitly choosing to install
+    // and just clicked on something.
+    return;
+  }
+
+  NSString *alertText = @"Keybase is about to upgrade the Keybase file system, allowing end-to-end encrypted files from right inside your Finder.";
+  NSString *infoText = @"";
+  if ([bundleVersion isOrderedSame:[KBSemVersion version:@"1.0.31"]]) {
+    alertText = @"New Keybase feature: multiple users in macOS";
+    infoText = @"Previously, only one user of this computer could find their Keybase files at /keybase. With this update, /keybase will now support multiple users on the same computer by redirecting to keybase/ in your home directory, where most apps put files.\n\nYou may need to enter your password for this update.";  }
+  NSAlert *alert = [[NSAlert alloc] init];
+  [alert setMessageText:alertText];
+  [alert setInformativeText:infoText];
+  [alert addButtonWithTitle:@"Got it!"];
+  [alert setAlertStyle:NSAlertStyleInformational];
+  [alert runModal]; // ignore response
+}
+
 - (void)refreshComponent:(KBRefreshComponentCompletion)completion {
   GHODictionary *info = [GHODictionary dictionary];
   KBSemVersion *bundleVersion = [self bundleVersion];
@@ -96,6 +116,7 @@
       if ([bundleVersion isGreaterThan:runningVersion]) {
         if (bundleVersion) info[@"Bundle Version"] = [bundleVersion description];
         self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled installAction:KBRInstallActionUpgrade info:info error:nil];
+        [self doInstallAlert:bundleVersion runningVersion:runningVersion];
         completion(self.componentStatus);
       } else {
         self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled installAction:KBRInstallActionNone info:info error:nil];
