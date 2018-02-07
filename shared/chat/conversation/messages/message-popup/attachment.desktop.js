@@ -4,6 +4,7 @@ import * as KBFSGen from '../../../../actions/kbfs-gen'
 import * as Route from '../../../../actions/route-tree'
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
+import {chatTab} from '../../../../constants/tabs'
 import MessagePopupHeader from './header'
 import type {OwnProps, Props} from './attachment'
 import {ModalLessPopupMenu as PopupMenu} from '../../../../common-adapters/popup-menu.desktop'
@@ -13,16 +14,14 @@ import {fileUIName, isMobile} from '../../../../styles'
 const mapStateToProps = (state: TypedState) => ({_you: state.config.username})
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _onDelete: (message: Types.Message, navUpOnDelete: boolean) => {
+  _onDelete: (message: Types.Message) => {
     dispatch(
       Chat2Gen.createMessageDelete({
         conversationIDKey: message.conversationIDKey,
         ordinal: message.ordinal,
       })
     )
-    if (navUpOnDelete) {
-      dispatch(Route.navigateUp())
-    }
+    dispatch(Route.navigateTo([{selected: null, props: {}}], [chatTab]))
   },
   _onDownload: (message: Types.MessageAttachment) => {
     dispatch(
@@ -42,7 +41,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const yourMessage = message.author === stateProps._you
   return {
     message,
-    onDelete: yourMessage ? () => dispatchProps._onDelete(message, !!ownProps.navUpOnDelete) : null,
+    onDelete: yourMessage ? () => dispatchProps._onDelete(message) : null,
     onDownload: !isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : null,
     onHidden: () => ownProps.onClosePopup(),
     onShowInFinder:

@@ -37,7 +37,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, navigateAppend}: Ow
     dispatch(
       navigateAppend([
         {
-          props: {message, position: 'bottom left', targetRect, navUpOnDelete: true},
+          props: {message, position: 'bottom left', targetRect},
           selected: 'messageAction',
         },
       ])

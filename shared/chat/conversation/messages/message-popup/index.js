@@ -16,7 +16,10 @@ class MessageAction extends React.PureComponent<Props> {
     return message.type === 'text' ? (
       <TextMessage message={message} onClosePopup={this.props.onClosePopup} />
     ) : (
-      <AttachmentMessage message={message} onClosePopup={this.props.onClosePopup} />
+      <AttachmentMessage
+        message={message}
+        onClosePopup={this.props.onClosePopup}
+      />
     )
   }
 }
