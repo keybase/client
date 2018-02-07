@@ -19,11 +19,13 @@ type keyfinderKey int
 type identifyNotifierKey int
 type chatTrace int
 type identifyModeKey int
+type upakfinderKey int
 
 var kfKey keyfinderKey
 var inKey identifyNotifierKey
 var chatTraceKey chatTrace
 var identModeKey identifyModeKey
+var upKey upakfinderKey
 
 type identModeData struct {
 	mode   keybase1.TLFIdentifyBehavior
@@ -65,6 +67,16 @@ func CtxIdentifyNotifier(ctx context.Context) types.IdentifyNotifier {
 		return in
 	}
 	return nil
+}
+
+func CtxUPAKFinder(ctx context.Context, g *globals.Context) types.UPAKFinder {
+	var up types.UPAKFinder
+	var ok bool
+	val := ctx.Value(upKey)
+	if up, ok = val.(types.UPAKFinder); ok {
+		return up
+	}
+	return NewCachingUPAKFinder(g)
 }
 
 func CtxModifyIdentifyNotifier(ctx context.Context, notifier types.IdentifyNotifier) context.Context {
@@ -114,6 +126,10 @@ func Context(ctx context.Context, g *globals.Context, mode keybase1.TLFIdentifyB
 	if _, ok := val.(types.IdentifyNotifier); !ok {
 		res = context.WithValue(res, inKey, notifier)
 	}
+	val = res.Value(upKey)
+	if _, ok := val.(types.UPAKFinder); !ok {
+		res = context.WithValue(res, upKey, NewCachingUPAKFinder(g))
+	}
 	res = CtxAddLogTags(res, g.GetEnv())
 	return res
 }
@@ -133,6 +149,7 @@ func BackgroundContext(sourceCtx context.Context, g *globals.Context) context.Co
 	}
 
 	rctx = context.WithValue(rctx, kfKey, CtxKeyFinder(sourceCtx, g))
+	rctx = context.WithValue(rctx, upKey, CtxUPAKFinder(sourceCtx, g))
 	rctx = context.WithValue(rctx, inKey, in)
 
 	return rctx
