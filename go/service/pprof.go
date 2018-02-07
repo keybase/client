@@ -63,7 +63,7 @@ func (c *PprofHandler) Trace(_ context.Context, arg keybase1.TraceArg) (err erro
 		return err
 	}
 
-	c.G().Log.Info("Tracing to %s for %f seconds", traceFile, traceDurationSeconds)
+	c.G().Log.Info("Tracing to %s for %f second(s)", traceFile, traceDurationSeconds)
 
 	go func() {
 		time.Sleep(time.Duration(float64(traceDurationSeconds) * float64(time.Second)))
