@@ -88,25 +88,12 @@ class ConversationInput extends Component<InputProps> {
   }
 
   _pickFile = () => {
-    // const conversationIDKey = this.props.selectedConversationIDKey
-    // if (!conversationIDKey) {
-    // throw new Error('No conversation')
-    // }
-    // const files = this.props.filePickerFiles()
-    // if (files.length <= 0) {
-    // return
-    // }
-    // const inputs = Array.prototype.map.call(files, file => {
-    // const {path, name, type} = file
-    // return {
-    // conversationIDKey,
-    // filename: path,
-    // title: name,
-    // type: type.indexOf('image') >= 0 ? 'Image' : 'Other',
-    // }
-    // })
-    // this.props.onAttach(inputs)
-    // this.props.filePickerSetValue(null)
+    const fileList = this.props.filePickerFiles()
+    const paths = fileList.length ? Array.prototype.map.call(fileList, f => f.path) : []
+    if (paths) {
+      this.props.onAttach(paths)
+    }
+    this.props.filePickerSetValue(null)
   }
 
   componentWillReceiveProps(nextProps: Props) {
@@ -115,9 +102,6 @@ class ConversationInput extends Component<InputProps> {
     // }
   }
 
-  // _inputSetRef(r) {
-  // this.props.inputSetRef(r)
-  // }
   _mentionCatcherClick = () => {
     this.props.setMentionPopupOpen(false)
   }

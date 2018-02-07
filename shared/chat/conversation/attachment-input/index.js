@@ -1,76 +1,118 @@
-// @noflow
-import React, {Component} from 'react'
+// @flow
+import * as React from 'react'
 import {Box, Button, Icon, Image, Input, PopupDialog, Text, ButtonBar} from '../../../common-adapters/index'
 import {globalColors, globalStyles, isMobile} from '../../../styles'
 import {isIPhoneX} from '../../../constants/platform'
 
-type Props = {}
-type State = {
-  index: number,
-  title: string,
+export type PathToInfo = {
+  [path: string]: {
+    type: 'image' | 'file',
+    title: string,
+    filename: string,
+  },
 }
 
-class RenderAttachmentInput extends Component<Props, State> {
+type Props = {
+  pathToInfo: PathToInfo,
+  onClose: () => void,
+  onSubmit: (pathToInfo: PathToInfo) => void,
+}
+type State = {
+  index: number,
+  pathToInfo: PathToInfo,
+}
+
+class RenderAttachmentInput extends React.Component<Props, State> {
   state: State
+  _input: ?Input
 
   constructor(props: Props) {
     super(props)
     this.state = {
       index: 0,
-      title: (props.inputs.length > 0 && props.inputs[0].title) || '',
+      pathToInfo: props.pathToInfo,
     }
   }
 
-  _onSelect = () => {
-    const close = this.state.index === this.props.inputs.length - 1
-    this.props.onSelect(this.props.inputs[this.state.index], this.state.title, close)
-    if (!close) {
-      const nextIndex = this.state.index + 1
-      this.setState({
-        index: nextIndex,
-        title: this.props.inputs[nextIndex].title,
-      })
+  _onNext = () => {
+    const paths = Object.keys(this.state.pathToInfo)
+    const path = paths[this.state.index]
+    const info = this.state.pathToInfo[path]
+    if (!info) return
+
+    const nextIndex = this.state.index + 1
+
+    // done
+    if (nextIndex === paths.length) {
+      this.props.onSubmit(this.state.pathToInfo)
+    } else {
+      // go to next
+      this.setState({index: nextIndex})
     }
   }
 
-  _updateTitle = title => {
-    this.setState({title})
+  _updateTitle = (title: string) => {
+    this.setState(state => {
+      const paths = Object.keys(this.state.pathToInfo)
+      const path = paths[this.state.index]
+
+      return {
+        pathToInfo: {
+          ...state.pathToInfo,
+          [path]: {
+            ...state.pathToInfo[path],
+            title,
+          },
+        },
+      }
+    })
   }
+
+  componentDidUpdate(prevProps: Props, prevState: State) {
+    if (prevState.index !== this.state.index) {
+      this._input && this._input.select()
+    }
+  }
+
+  componentDidMount() {
+    this._input && this._input.select()
+  }
+
+  _setRef = input => (this._input = input)
 
   render() {
-    const input = this.props.inputs[this.state.index]
-    const count = this.props.inputs.length
-    const currentTitle = (input && input.title) || ''
-    const currentPath = (input && input.filename) || ''
-    const isImage = !!input && input.type === 'Image'
+    const paths = Object.keys(this.state.pathToInfo)
+    const path = paths[this.state.index]
+    const info = this.state.pathToInfo[path]
+    if (!info) return null
 
     return (
       <PopupDialog onClose={this.props.onClose} styleContainer={isIPhoneX ? {marginTop: 30} : undefined}>
         <Box style={isMobile ? stylesMobile : stylesDesktop}>
-          {!isImage && <Icon type="icon-file-uploading-48" />}
-          {isImage && (
-            <Image
-              src={currentPath}
-              // resize dynamically on desktop, crop to 150x150 on mobile
-              style={isMobile ? {width: 150, height: 150} : {maxHeight: '70%', maxWidth: '70%'}}
-            />
-          )}
-          {count > 0 && (
+          <Box style={{...globalStyles.flexBoxCenter, height: 150, width: 150}}>
+            {info.type === 'image' ? (
+              <Image src={path} style={{maxHeight: '100%', maxWidth: '100%'}} />
+            ) : (
+              <Icon type="icon-file-uploading-48" />
+            )}
+          </Box>
+          {paths.length > 0 && (
             <Text type="BodySmall" style={{color: globalColors.black_40, marginTop: 5}}>
-              {currentTitle} ({this.state.index + 1} of {count})
+              {info.filename} ({this.state.index + 1} of {paths.length})
             </Text>
           )}
           <Input
             style={isMobile ? stylesInputMobile : stylesInputDesktop}
             autoFocus={true}
             floatingHintTextOverride="Title"
-            value={this.state.title}
-            onEnterKeyDown={this._onSelect}
+            value={info.title}
+            onEnterKeyDown={this._onNext}
+            ref={this._setRef}
             onChangeText={this._updateTitle}
           />
           <ButtonBar style={{flexShrink: 0}}>
             <Button type="Secondary" onClick={this.props.onClose} label="Cancel" />
-            <Button type="Primary" onClick={this._onSelect} label="Send" />
+            <Button type="Primary" onClick={this._onNext} label="Send" />
           </ButtonBar>
         </Box>
       </PopupDialog>
@@ -90,9 +132,9 @@ const stylesDesktop = {
 }
 
 const stylesInputDesktop = {
+  flexShrink: 0,
   marginTop: 70,
   width: 460,
-  flexShrink: 0,
 }
 
 const stylesMobile = {

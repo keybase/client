@@ -455,9 +455,9 @@ export const makePendingTextMessage = (
     deviceName: '',
     deviceType: isMobile ? 'mobile' : 'desktop',
     id: Types.numberToMessageID(0),
-    submitState: 'pending',
     ordinal,
     outboxID,
+    submitState: 'pending',
     text,
     timestamp: Date.now(),
   })
@@ -471,3 +471,6 @@ export const getClientPrev = (state: TypedState, conversationIDKey: Types.Conver
     state.chat2.messageOrdinals.get(conversationIDKey, I.SortedSet()).last() || Types.numberToOrdinal(0)
   return Math.floor(Types.ordinalToNumber(lastOrdinal))
 }
+
+const imageFileNameRegex = /[^/]+\.(jpg|png|gif|jpeg|bmp)$/
+export const pathToAttachmentType = (path: string) => (imageFileNameRegex.test(path) ? 'image' : 'file')

@@ -21,7 +21,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
         ordinal: message.ordinal,
       })
     )
-    dispatch(Route.navigateTo([{selected: null, props: {}}], [chatTab]))
+    dispatch(Route.navigateTo([{props: {}, selected: null}], [chatTab]))
   },
   _onDownload: (message: Types.MessageAttachment) => {
     dispatch(

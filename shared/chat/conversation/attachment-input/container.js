@@ -1,40 +1,50 @@
 // @flow
-// import RenderAttachmentInput from './'
-// import {connect, type TypedState} from '../../../util/container'
-// import {navigateUp} from '../../../actions/route-tree'
-// import {type RouteProps} from '../../../route-tree/render-route'
-// import {type AttachmentInput} from '../../../constants/types/chat'
-// import {createSelectAttachment} from '../../../actions/chat-gen'
+import * as Chat2Gen from '../../../actions/chat2-gen'
+import * as Constants from '../../../constants/chat2'
+import * as Types from '../../../constants/types/chat2'
+import RenderAttachmentInput from './'
+import {connect, type TypedState, type Dispatch} from '../../../util/container'
+import {isWindows} from '../../../constants/platform'
+import {navigateUp} from '../../../actions/route-tree'
+import {type RouteProps} from '../../../route-tree/render-route'
+import type {PathToInfo} from '.'
 
-// type OwnProps = RouteProps<
-// {
-// inputs: Array<AttachmentInput>,
-// },
-// {}
-// >
+type OwnProps = RouteProps<{paths: Array<string>, conversationIDKey: Types.ConversationIDKey}, {}>
 
-// export default connect(
-// (state: TypedState, {routeProps}: OwnProps) => {
-// const inputs = routeProps.get('inputs')
-// return {
-// inputs,
-// }
-// },
-// (dispatch: Dispatch) => ({
-// onClose: () => dispatch(navigateUp()),
-// onSelect: (input: AttachmentInput, title: string, close: boolean) => {
-// if (close) {
-// dispatch(navigateUp())
-// }
-// const newInput = {
-// conversationIDKey: input.conversationIDKey,
-// filename: input.filename,
-// title,
-// type: input.type,
-// }
-// dispatch(createSelectAttachment({input: newInput}))
-// },
-// })
-// )(RenderAttachmentInput)
-const TEMP = () => null
-export default TEMP // TODO
+const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => ({
+  _conversationIDKey: routeProps.get('conversationIDKey'),
+  paths: routeProps.get('paths'),
+})
+
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  _onSubmit: (conversationIDKey: Types.ConversationIDKey, pathToInfo: PathToInfo) => {
+    Object.keys(pathToInfo).forEach(path => {
+      dispatch(
+        Chat2Gen.createAttachmentUpload({
+          conversationIDKey,
+          path,
+          title: pathToInfo[path].title,
+        })
+      )
+    })
+    dispatch(navigateUp())
+  },
+  onClose: () => dispatch(navigateUp()),
+})
+
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  onClose: dispatchProps.onClose,
+  onSubmit: (pathToInfo: PathToInfo) => dispatchProps._onSubmit(stateProps._conversationIDKey, pathToInfo),
+  pathToInfo: stateProps.paths.reduce((map, path) => {
+    const parts = path.split(isWindows ? '\\' : '/')
+    const filename = parts[parts.length - 1]
+    map[path] = {
+      filename,
+      title: filename,
+      type: Constants.pathToAttachmentType(path),
+    }
+    return map
+  }, {}),
+})
+
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(RenderAttachmentInput)

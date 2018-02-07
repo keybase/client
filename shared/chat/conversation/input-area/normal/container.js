@@ -13,9 +13,7 @@ import {
   withProps,
   lifecycle,
   connect,
-  // isMobile,
 } from '../../../../util/container'
-// import throttle from 'lodash/throttle'
 import {chatTab} from '../../../../constants/tabs'
 import mentionHoc from '../mention-handler-hoc'
 import type {TypedState, Dispatch} from '../../../../util/container'
@@ -36,21 +34,19 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   const _you = state.config.username || ''
 
   return {
-    conversationIDKey,
     _editingMessage,
     _meta: Constants.getMeta(state, conversationIDKey),
     _you,
+    conversationIDKey,
     typing: Constants.getTyping(state, conversationIDKey),
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch): * => ({
-  // onAttach: (selectedConversation, inputs: Array<any [> Types.AttachmentInput <]>) =>
-  // dispatch(
-  // RouteTree.navigateAppend([
-  // {props: {conversationIDKey: selectedConversation, inputs}, selected: 'attachmentInput'},
-  // ])
-  // ),
+  _onAttach: (conversationIDKey: Types.ConversationIDKey, paths: Array<string>) =>
+    dispatch(RouteTree.navigateAppend([{props: {conversationIDKey, paths}, selected: 'attachmentInput'}])),
+  _onCancelEditing: (conversationIDKey: Types.ConversationIDKey) =>
+    dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null})),
   _onEditLastMessage: (conversationIDKey: Types.ConversationIDKey, you: string) =>
     dispatch(
       Chat2Gen.createMessageSetEditing({
@@ -69,10 +65,6 @@ const mapDispatchToProps = (dispatch: Dispatch): * => ({
     ),
   _onPostMessage: (conversationIDKey: Types.ConversationIDKey, text: string) =>
     dispatch(Chat2Gen.createMessageSend({conversationIDKey, text: new HiddenString(text)})),
-  // onShowEditor: (message: Types.Message) => {
-  // TODO
-  // dispatch(ChatGen.createShowEditor({message}))
-  // },
   _onStoreInputText: (conversationIDKey: Types.ConversationIDKey, inputText: string) =>
     dispatch(
       RouteTree.setRouteState(I.List([chatTab, conversationIDKey]), {inputText: new HiddenString(inputText)})
@@ -80,35 +72,11 @@ const mapDispatchToProps = (dispatch: Dispatch): * => ({
   _onUpdateTyping: (conversationIDKey: Types.ConversationIDKey, typing: boolean) => {
     // dispatch(ChatGen.createUpdateTyping({conversationIDKey, typing})),
   },
-  _onCancelEditing: (conversationIDKey: Types.ConversationIDKey) =>
-    dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
-  // const updateTyping = (typing: boolean) => {
-  // if (stateProps.selectedConversationIDKey) {
-  // dispatchProps.onUpdateTyping(stateProps.selectedConversationIDKey, typing)
-  // }
-  // }
-  // const wrappedTyping = throttle(updateTyping, 5000)
-
   return {
-    conversationIDKey: stateProps.conversationIDKey,
     _editingMessage: stateProps._editingMessage,
-    // ...stateProps,
-    // ...dispatchProps,
-    // ...ownProps,
-    isEditing: !!stateProps._editingMessage,
-    channelName: stateProps._meta.channelname,
-    focusInputCounter: ownProps.focusInputCounter,
-    // hasResetUsers: !stateProps._meta.resetParticipants.isEmpty(),
-    isLoading: false,
-    // isPreview: false, // TODO
-    // teamname: stateProps._meta.teamname,
-    typing: stateProps.typing,
-    // onAttach: (inputs: Array<any [> Types.AttachmentInput <]>) =>
-    // dispatchProps.onAttach(stateProps.selectedConversationIDKey, inputs),
-    onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
     _onSubmit: (text: string) => {
       if (stateProps._editingMessage) {
         dispatchProps._onEditMessage(stateProps._editingMessage, text)
@@ -117,20 +85,20 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
       }
       ownProps.onScrollDown()
     },
-    onUpdateTyping: (typing: boolean) => {
-      // if (!typing) {
-      // // Update the not-typing status immediately, even if we're throttled.
-      // wrappedTyping.cancel()
-      // updateTyping(typing)
-      // } else {
-      // wrappedTyping(typing)
-      // }
-    },
+    channelName: stateProps._meta.channelname,
+    conversationIDKey: stateProps.conversationIDKey,
+    focusInputCounter: ownProps.focusInputCounter,
+    isEditing: !!stateProps._editingMessage,
+    isLoading: false,
+    onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
+    onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
+    onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
     onJoinChannel: () => dispatchProps.onJoinChannel(stateProps.conversationIDKey),
     onLeaveChannel: () => {
       dispatchProps.onLeaveChannel(stateProps.conversationIDKey, stateProps._meta.teamname)
     },
-    onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
+    onUpdateTyping: (typing: boolean) => {},
+    typing: stateProps.typing,
   }
 }
 
@@ -154,16 +122,16 @@ export default compose(
   withHandlers(props => {
     let input
     return {
-      inputBlur: props => () => input && input.blur(),
-      inputFocus: props => () => input && input.focus(),
-      inputGetRef: props => () => input,
-      inputSelections: props => () => (input && input.selections()) || {},
       _inputSetRef: props => i => (input = i),
       _onKeyDown: props => (e: SyntheticKeyboardEvent<>) => {
         if (e.key === 'ArrowUp' && !props.text) {
           props.onEditLastMessage()
         }
       },
+      inputBlur: props => () => input && input.blur(),
+      inputFocus: props => () => input && input.focus(),
+      inputGetRef: props => () => input,
+      inputSelections: props => () => (input && input.selections()) || {},
     }
   }),
   lifecycle({

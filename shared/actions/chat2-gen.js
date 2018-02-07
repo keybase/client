@@ -19,6 +19,7 @@ export const attachmentLoaded = 'chat2:attachmentLoaded'
 export const attachmentLoading = 'chat2:attachmentLoading'
 export const attachmentNeedsUpdating = 'chat2:attachmentNeedsUpdating'
 export const attachmentSend = 'chat2:attachmentSend'
+export const attachmentUpload = 'chat2:attachmentUpload'
 export const attachmentWithPreviewSend = 'chat2:attachmentWithPreviewSend'
 export const badgesUpdated = 'chat2:badgesUpdated'
 export const clearOrdinals = 'chat2:clearOrdinals'
@@ -117,6 +118,13 @@ export const createAttachmentSend = (
     title: string,
   }>
 ) => ({error: false, payload, type: attachmentSend})
+export const createAttachmentUpload = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    path: string,
+    title: string,
+  }>
+) => ({error: false, payload, type: attachmentUpload})
 export const createAttachmentWithPreviewSend = (
   payload: $ReadOnly<{
     conversationIDKey: Types.ConversationIDKey,
@@ -289,6 +297,7 @@ export type AttachmentLoadedPayload = More.ReturnType<typeof createAttachmentLoa
 export type AttachmentLoadingPayload = More.ReturnType<typeof createAttachmentLoading>
 export type AttachmentNeedsUpdatingPayload = More.ReturnType<typeof createAttachmentNeedsUpdating>
 export type AttachmentSendPayload = More.ReturnType<typeof createAttachmentSend>
+export type AttachmentUploadPayload = More.ReturnType<typeof createAttachmentUpload>
 export type AttachmentWithPreviewSendPayload = More.ReturnType<typeof createAttachmentWithPreviewSend>
 export type BadgesUpdatedPayload = More.ReturnType<typeof createBadgesUpdated>
 export type ClearOrdinalsPayload = More.ReturnType<typeof createClearOrdinals>
@@ -340,6 +349,7 @@ export type Actions =
   | More.ReturnType<typeof createAttachmentLoading>
   | More.ReturnType<typeof createAttachmentNeedsUpdating>
   | More.ReturnType<typeof createAttachmentSend>
+  | More.ReturnType<typeof createAttachmentUpload>
   | More.ReturnType<typeof createAttachmentWithPreviewSend>
   | More.ReturnType<typeof createBadgesUpdated>
   | More.ReturnType<typeof createClearOrdinals>

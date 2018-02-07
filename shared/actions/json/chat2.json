@@ -218,6 +218,11 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal",
       "path": "string",
+    },
+    "attachmentUpload": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "path": "string",
+      "title": "string",
     }
   }
 }
