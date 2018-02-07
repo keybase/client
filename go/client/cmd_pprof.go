@@ -5,6 +5,7 @@ package client
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/keybase/cli"
@@ -28,7 +29,7 @@ func (c *CmdPprofTrace) ParseArgv(ctx *cli.Context) error {
 	c.traceFile = args.First()
 	c.traceDuration = ctx.Duration("duration")
 	if c.traceDuration <= 0 {
-		c.traceDuration = 5.0
+		return fmt.Errorf("Invalid duration %s", c.traceDuration)
 	}
 	return nil
 }
