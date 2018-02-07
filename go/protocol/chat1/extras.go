@@ -217,7 +217,7 @@ func (m MessageUnboxed) IsValid() bool {
 	return false
 }
 
-// Whether the message is all of:
+// IsValidFull returns whether the message is all of:
 // 1. Valid
 // 2. Has a non-deleted body with a type matching the header
 //    (TLFNAME is an exception as it has no body)
