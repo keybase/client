@@ -67,7 +67,7 @@
       "allow": "boolean"
     },
     "trace": {
-      "duration": "number",
+      "durationSeconds": "number",
     },
     "waitingForResponse": {
       "waiting": "boolean"

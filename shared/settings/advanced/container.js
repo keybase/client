@@ -1,9 +1,10 @@
 // @flow
 import * as ConfigGen from '../../actions/config-gen'
+import {createTrace} from '../../actions/settings-gen'
 import {navigateAppend, navigateUp} from '../../actions/route-tree'
 import {HeaderHoc} from '../../common-adapters'
 import {compose} from 'recompose'
-import DBNuke from './index'
+import Advanced from './index'
 import {connect, type TypedState} from '../../util/container'
 
 const mapStateToProps = (state: TypedState) => ({
@@ -17,8 +18,12 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onDBNuke: () => {
     dispatch(navigateAppend(['dbNukeConfirm']))
   },
+  onTrace: () => {
+    const durationSeconds = 5
+    dispatch(createTrace({durationSeconds}))
+  },
   onSetOpenAtLogin: (open: boolean) => dispatch(ConfigGen.createSetOpenAtLogin({open, writeFile: true})),
 })
 
-const connectedDBNuke = compose(connect(mapStateToProps, mapDispatchToProps), HeaderHoc)(DBNuke)
-export default connectedDBNuke
+const connectedAdvanced = compose(connect(mapStateToProps, mapDispatchToProps), HeaderHoc)(Advanced)
+export default connectedAdvanced

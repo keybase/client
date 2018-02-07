@@ -349,10 +349,10 @@ function _deleteAccountForeverSaga(action: SettingsGen.DeleteAccountForeverPaylo
 const _loadSettings = () => Saga.call(RPCTypes.userLoadMySettingsRpcPromise)
 const _loadSettingsSuccess = emailState => Saga.put(SettingsGen.createLoadedSettings({emailState}))
 
-const _traceSaga = () =>
+const _traceSaga = (action: SettingsGen.TracePayload) =>
   Saga.call(RPCTypes.pprofTraceRpcPromise, {
     traceFile: `${cachesDirectoryPath}/Keybase/trace.out`,
-    traceDurationSeconds: 30,
+    traceDurationSeconds: action.payload.durationSeconds,
   })
 
 function* settingsSaga(): Saga.SagaGenerator<any, any> {

@@ -78,7 +78,7 @@ export const createOnUpdatePGPSettings = () => ({error: false, payload: undefine
 export const createOnUpdatePassphraseError = (payload: $ReadOnly<{error: Error}>) => ({error: false, payload, type: onUpdatePassphraseError})
 export const createOnUpdatedPGPSettings = (payload: $ReadOnly<{hasKeys: boolean}>) => ({error: false, payload, type: onUpdatedPGPSettings})
 export const createSetAllowDeleteAccount = (payload: $ReadOnly<{allow: boolean}>) => ({error: false, payload, type: setAllowDeleteAccount})
-export const createTrace = (payload: $ReadOnly<{duration: number}>) => ({error: false, payload, type: trace})
+export const createTrace = (payload: $ReadOnly<{durationSeconds: number}>) => ({error: false, payload, type: trace})
 export const createWaitingForResponse = (payload: $ReadOnly<{waiting: boolean}>) => ({error: false, payload, type: waitingForResponse})
 
 // Action Payloads
