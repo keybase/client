@@ -62,15 +62,13 @@ function Developer(props: Props) {
         onClick={props.onDBNuke}
       />
       <Box style={{flex: 1}} />
-      {isMobile && (
-        <Button
-          style={{marginTop: globalMargins.small}}
-          type="Danger"
-          label="Trace (30s)"
-          onClick={props.onTrace}
-        />
-      )}
-      {isMobile && <Box style={{flex: 1}} />}
+      <Button
+        style={{marginTop: globalMargins.small}}
+        type="Danger"
+        label="Trace (30s)"
+        onClick={props.onTrace}
+      />
+      <Box style={{flex: 1}} />
     </Box>
   )
 }
