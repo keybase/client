@@ -88,7 +88,7 @@ test:
     # - cp -r android/app/build/outputs/androidTest-results/* $CIRCLE_TEST_REPORTS
     # Build a debug version of the app
     - yarn global add react-native-cli
-    - react-native bundle --verbose --platform android --dev false --entry-file index.android.js --bundle-output $HOME/client/shared/react-native/android/app/build/intermediates/assets/releaseUnsigned/index.android.bundle --assets-dest $HOME/client/shared/react-native/android/app/build/intermediates/res/merged/releaseUnsigned
+    # - react-native bundle --verbose --platform android --dev false --entry-file index.android.js --bundle-output $HOME/client/shared/react-native/android/app/build/intermediates/assets/releaseUnsigned/index.android.bundle --assets-dest $HOME/client/shared/react-native/android/app/build/intermediates/res/merged/releaseUnsigned
     - (cd react-native/android && ./gradlew assembleReleaseUnsigned)
     # Upload it to appetize
     # And grep so we only reveal the public url in the CI logs
