@@ -88,6 +88,8 @@ const util = {
   scrollable: {
     overflowY: 'auto',
   },
+  // TODO: Get rid of this in favor of the selectable property of Text, since
+  // native doesn't have this style.
   selectable: {
     userSelect: 'text',
     cursor: 'text',

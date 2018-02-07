@@ -349,8 +349,8 @@ const GitPushInfoNotice = ({message, info, onClickUserAvatar, onViewGitRepo}: Gi
                 >
                   <Text
                     type="Terminal"
+                    selectable={true}
                     style={{
-                      ...globalStyles.selectable,
                       fontSize: 11,
                       color: globalColors.blue,
                       lineHeight: isMobile ? 16 : 1.3,
@@ -360,11 +360,7 @@ const GitPushInfoNotice = ({message, info, onClickUserAvatar, onViewGitRepo}: Gi
                   </Text>
                 </Box>
                 <Box style={{display: 'flex', flex: 1}}>
-                  <Text
-                    type="BodySmall"
-                    style={{...globalStyles.selectable, textAlign: 'left'}}
-                    lineClamp={2}
-                  >
+                  <Text type="BodySmall" selectable={true} style={{textAlign: 'left'}} lineClamp={2}>
                     {commit.message}
                   </Text>
                 </Box>
