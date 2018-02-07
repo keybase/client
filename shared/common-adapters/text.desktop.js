@@ -56,7 +56,13 @@ class Text extends Component<Props> {
 
   render() {
     const Span = glamorous.span(
-      getStyle(this.props.type, this.props.backgroundMode, this.props.lineClamp, !!this.props.onClick),
+      getStyle(
+        this.props.type,
+        this.props.backgroundMode,
+        this.props.lineClamp,
+        !!this.props.onClick,
+        this.props.selectable
+      ),
       this.props.style
     )
 
@@ -77,7 +83,8 @@ function getStyle(
   type: TextType,
   backgroundMode?: Background = 'Normal',
   lineClampNum?: ?number,
-  clickable?: ?boolean
+  clickable?: ?boolean,
+  selectable: ?boolean
 ) {
   const meta = metaData[type]
   const sizeStyle = fontSizeToSizeStyle(meta.fontSize)
@@ -85,6 +92,7 @@ function getStyle(
   const cursorStyle = meta.isLink ? {cursor: 'pointer'} : null
   const lineClampStyle = lineClampNum ? lineClamp(lineClampNum) : null
   const clickableStyle = clickable ? globalStyles.clickable : null
+  const selectableStyle = selectable ? globalStyles.selectable : null
   const textDecoration = meta.isLink && backgroundMode !== 'Normal' ? {textDecoration: 'underline'} : null
 
   return {
@@ -93,6 +101,7 @@ function getStyle(
     ...cursorStyle,
     ...lineClampStyle,
     ...clickableStyle,
+    ...selectableStyle,
     ...textDecoration,
     ...meta.styleOverride,
   }

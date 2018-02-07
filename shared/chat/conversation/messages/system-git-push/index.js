@@ -72,8 +72,8 @@ class GitPush extends React.PureComponent<Props> {
                     >
                       <Text
                         type="Terminal"
+                        selectable={true}
                         style={{
-                          ...globalStyles.selectable,
                           color: globalColors.blue,
                           fontSize: 11,
                           lineHeight: isMobile ? 16 : 1.3,
@@ -83,11 +83,7 @@ class GitPush extends React.PureComponent<Props> {
                       </Text>
                     </Box>
                     <Box style={{display: 'flex', flex: 1}}>
-                      <Text
-                        type="BodySmall"
-                        style={{...globalStyles.selectable, textAlign: 'left'}}
-                        lineClamp={2}
-                      >
+                      <Text type="BodySmall" selectable={true} style={{textAlign: 'left'}} lineClamp={2}>
                         {commit.message}
                       </Text>
                     </Box>

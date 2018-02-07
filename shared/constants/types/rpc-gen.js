@@ -1220,6 +1220,10 @@ export const pgpSignMode = {
   clear: 2,
 }
 
+export const pprofTraceRpcChannelMap = (configKeys: Array<string>, request: PprofTraceRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pprof.trace', request)
+
+export const pprofTraceRpcPromise = (request: PprofTraceRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pprof.trace', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+
 export const processFileType = {
   unknown: 0,
   directory: 1,
@@ -2915,6 +2919,8 @@ export type Pics = $ReadOnly<{square40: String, square200: String, square360: St
 export type PingResponse = $ReadOnly<{timestamp: Time}>
 
 export type PlatformInfo = $ReadOnly<{os: String, osVersion: String, arch: String, goVersion: String}>
+
+export type PprofTraceRpcParam = $ReadOnly<{traceFile: String, traceDurationSeconds: DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type ProblemSet = $ReadOnly<{user: User, kid: KID, tlfs?: ?Array<ProblemTLF>}>
 

@@ -140,16 +140,15 @@ class Feedback extends Component<Props> {
           {sendError && (
             <Box style={{...globalStyles.flexBoxColumn, marginTop: globalMargins.small}}>
               <Text type="BodyError">Could not send log</Text>
-              <Text
-                type="BodySmall"
-                style={{...globalStyles.selectable, marginTop: 10, marginBottom: 10}}
-              >{`${sendError.name}: ${sendError.message}`}</Text>
+              <Text type="BodySmall" selectable={true} style={{marginTop: 10, marginBottom: 10}}>{`${
+                sendError.name
+              }: ${sendError.message}`}</Text>
               <Text type="BodySmallSemibold">Stack</Text>
-              <Text type="BodySmall" style={{...globalStyles.selectable, marginTop: 10, marginBottom: 10}}>
+              <Text type="BodySmall" selectable={true} style={{marginTop: 10, marginBottom: 10}}>
                 {sendError.stack}
               </Text>
               <Text type="BodySmallSemibold">Error dump</Text>
-              <Text type="BodySmall" style={{...globalStyles.selectable, marginTop: 10, marginBottom: 10}}>
+              <Text type="BodySmall" selectable={true} style={{marginTop: 10, marginBottom: 10}}>
                 {JSON.stringify(getOtherErrorInfo(sendError), null, 2)}
               </Text>
             </Box>
