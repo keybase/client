@@ -12,10 +12,13 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"sort"
+	"sync"
 	"time"
 
 	"golang.org/x/crypto/nacl/secretbox"
 	"golang.org/x/net/context"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/signencrypt"
@@ -966,14 +969,41 @@ func (b *Boxer) getAtMentionInfo(ctx context.Context, tlfID chat1.TLFID,
 
 func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed, conv unboxConversationInfo) (unboxed []chat1.MessageUnboxed, err error) {
 	defer b.Trace(ctx, func() error { return err }, "UnboxMessages(%s)", conv.GetConvID())()
-	for _, msg := range boxed {
-		decmsg, err := b.UnboxMessage(ctx, msg, conv)
-		if err != nil {
-			return unboxed, err
+
+	boxCh := make(chan chat1.MessageBoxed)
+	eg, ctx := errgroup.WithContext(BackgroundContext(ctx, b.G()))
+	eg.Go(func() error {
+		defer close(boxCh)
+		for _, msg := range boxed {
+			select {
+			case boxCh <- msg:
+			case <-ctx.Done():
+				return ctx.Err()
+			}
 		}
-		unboxed = append(unboxed, decmsg)
+		return nil
+	})
+	var resLock sync.Mutex
+	numUnboxThreads := 2
+	for i := 0; i < numUnboxThreads; i++ {
+		eg.Go(func() error {
+			for msg := range boxCh {
+				decmsg, err := b.UnboxMessage(ctx, msg, conv)
+				if err != nil {
+					return err
+				}
+				resLock.Lock()
+				unboxed = append(unboxed, decmsg)
+				resLock.Unlock()
+			}
+			return nil
+		})
 	}
 
+	if err := eg.Wait(); err != nil {
+		return unboxed, err
+	}
+	sort.Sort(utils.ByMsgUnboxedMsgID(unboxed))
 	return unboxed, nil
 }
 

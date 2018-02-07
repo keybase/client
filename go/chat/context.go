@@ -149,6 +149,7 @@ func BackgroundContext(sourceCtx context.Context, g *globals.Context) context.Co
 	}
 
 	rctx = context.WithValue(rctx, kfKey, CtxKeyFinder(sourceCtx, g))
+	rctx = context.WithValue(rctx, upKey, CtxUPAKFinder(sourceCtx, g))
 	rctx = context.WithValue(rctx, inKey, in)
 
 	return rctx
