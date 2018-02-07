@@ -61,7 +61,6 @@ function Developer(props: Props) {
         label="DB Nuke"
         onClick={props.onDBNuke}
       />
-      <Box style={{flex: 1}} />
       <Button
         style={{marginTop: globalMargins.small}}
         type="Danger"
