@@ -477,7 +477,7 @@ func Install(context Context, binPath string, sourcePath string, components []st
 		if err != nil {
 			log.Errorf("Error installing Helper: %s", err)
 		}
-		if cr.Status.ExitCode == installHelperExitCodeAuthCanceled {
+		if cr.ExitCode == installHelperExitCodeAuthCanceled {
 			// Exiting early if the user canceled authorization.
 			return newInstallResult(componentResults)
 		}
