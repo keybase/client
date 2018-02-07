@@ -12,6 +12,7 @@ import trim from 'lodash/trim'
 import {delay} from 'redux-saga'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
 import {type TypedState} from '../constants/reducer'
+import {cachesDirectoryPath} from '../util/file'
 
 function* _onUpdatePGPSettings(): Saga.SagaGenerator<any, any> {
   try {
@@ -348,6 +349,12 @@ function _deleteAccountForeverSaga(action: SettingsGen.DeleteAccountForeverPaylo
 const _loadSettings = () => Saga.call(RPCTypes.userLoadMySettingsRpcPromise)
 const _loadSettingsSuccess = emailState => Saga.put(SettingsGen.createLoadedSettings({emailState}))
 
+const _traceSaga = () =>
+  Saga.call(RPCTypes.pprofTraceRpcPromise, {
+    traceFile: `${cachesDirectoryPath}/Keybase/trace.out`,
+    traceDurationSeconds: 30,
+  })
+
 function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(SettingsGen.invitesReclaim, _reclaimInviteSaga)
   yield Saga.safeTakeLatest(SettingsGen.invitesRefresh, _refreshInvitesSaga)
@@ -360,6 +367,7 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(SettingsGen.onSubmitNewEmail, _onSubmitNewEmail)
   yield Saga.safeTakeEvery(SettingsGen.onSubmitNewPassphrase, _onSubmitNewPassphrase)
   yield Saga.safeTakeEvery(SettingsGen.onUpdatePGPSettings, _onUpdatePGPSettings)
+  yield Saga.safeTakeLatestPure(SettingsGen.trace, _traceSaga)
 }
 
 export default settingsSaga
