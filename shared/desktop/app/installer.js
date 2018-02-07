@@ -106,7 +106,7 @@ function checkErrors(result: InstallResult): CheckErrorsResult {
           // This will occur if they started install and didn't allow the extension in >= 10.13, and then restarted the app.
           // The app will deal with this scenario in the folders tab, so we can ignore this specific error here.
         }
-      } else if (cr.name === 'helper') && (cr.exitCode === ExitCodeAuthCanceledError) {
+      } else if ((cr.name === 'helper') && (cr.exitCode === ExitCodeAuthCanceledError)) {
         // Consider this a FUSE error for the purpose of showing it to the user.
         hasFUSEError = true
         errors.push(
