@@ -21,7 +21,7 @@ class SuccessRender extends Component<Props, State> {
   render() {
     const contents = this.props.paperkey ? (
       <Box style={stylesPaperKeyContainer}>
-        <Text type="Header" style={stylesPaperkey}>
+        <Text type="Header" selectable={true} style={stylesPaperkey}>
           {this.props.paperkey.stringValue()}
         </Text>
         <Icon type="icon-paper-key-corner" style={stylesPaperCorner} />
@@ -98,7 +98,6 @@ const stylesCheck = {
 }
 const stylesPaperkey = {
   ...getStyle('Header', 'Normal'),
-  ...globalStyles.selectable,
   ...globalStyles.fontTerminal,
   color: globalColors.darkBlue,
   display: 'inline-block',
