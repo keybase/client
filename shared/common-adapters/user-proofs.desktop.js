@@ -318,7 +318,6 @@ const styleProofNameLabelContainer = {
 }
 
 const styleProofName = {
-  ...globalStyles.selectable,
   ...globalStyles.clickable,
   display: 'inline-block',
   wordBreak: 'break-all',
