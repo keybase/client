@@ -148,15 +148,9 @@
           <RegistryValue Name="ShortCutStartUp" Type="integer" Value="1" KeyPath="yes"  />
         </RegistryKey>
       </Component>
-      <Component Id="GUIShortCutStartUpComponent" Guid="{4AC98412-7636-4727-AB39-44A98E25249A}">
-        <Shortcut Id="GUIShortCutStartUp" Name="GUIStartup"
-                  Description="Start GUI at boot"
-                  Target="[INSTALLFOLDER]keybaserq.exe"
-                  Arguments="&quot;[GuiDir]Keybase.exe&quot;"
-                  WorkingDirectory="GuiDir"/>
-        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
-          <RegistryValue Name="ShortCutStartUpGUI" Type="integer" Value="1" KeyPath="yes"  />
-        </RegistryKey>
+      <Component Id="GUIShortCutStartUpComponent" Guid="804f1054-a702-47f2-8da2-17ab4ea67877">
+        <CreateFolder />
+        <RemoveFile Id="RemoveGUIStartupLink" Directory="StartupFolder" Name="GUIStartup.lnk" On="uninstall" />
       </Component>
     </ComponentGroup>    
   </Fragment>

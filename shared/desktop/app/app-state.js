@@ -136,6 +136,7 @@ export default class AppState {
     // Electron has a bug where app.setLoginItemSettings() to false fails!
     // https://github.com/electron/electron/issues/10880
     if (isDarwin) {
+      // app.setLoginItemSettings({openAtLogin: !!this.state.openAtLogin})
       this.setDarwinLoginState()
     } else if (isWindows) {
       this.setWinLoginState()
@@ -217,7 +218,8 @@ export default class AppState {
   }
 
   setWinLoginState() {
-    app.setLoginItemSettings({openAtLogin: !!this.state.openAtLogin})
+    // Note that setLoginItemSettings uses the registry. We use a .lnk file
+    // because it is easier for the installer to remove on uninstall.
     if (!process.env.APPDATA) {
       throw new Error('APPDATA unexpectedly empty')
     }
