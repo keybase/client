@@ -92,7 +92,12 @@ function getStyle(
   const cursorStyle = meta.isLink ? {cursor: 'pointer'} : null
   const lineClampStyle = lineClampNum ? lineClamp(lineClampNum) : null
   const clickableStyle = clickable ? globalStyles.clickable : null
-  const selectableStyle = selectable ? globalStyles.selectable : null
+  const selectableStyle = selectable
+    ? {
+        userSelect: 'text',
+        cursor: 'text',
+      }
+    : null
   const textDecoration = meta.isLink && backgroundMode !== 'Normal' ? {textDecoration: 'underline'} : null
 
   return {

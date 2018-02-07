@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat'
 import {Markdown} from '../../../../common-adapters'
-import {globalStyles, globalColors, isMobile} from '../../../../styles'
+import {globalColors, isMobile} from '../../../../styles'
 
 export type Props = {
   text: string,
@@ -47,8 +47,11 @@ const sentStyle = {
         color: globalColors.black_75,
       }
     : {
-        ...globalStyles.selectable,
         whiteSpace: 'pre-wrap',
+        // Make text selectable. On mobile we implement that
+        // differently.
+        userSelect: 'text',
+        cursor: 'text',
       }),
 }
 
