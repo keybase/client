@@ -29,7 +29,7 @@ function MissingProofRow({missingProof}: {missingProof: MissingProof}): React.No
       </Box>
       <Box style={styleProofNameSection}>
         <Box style={styleProofNameLabelContainer}>
-          <Text className="user-proof-row__name" type="Body" style={styleProofName}>
+          <Text className="user-proof-row__name" type="Body" selectable={true} style={styleProofName}>
             {missingProof.message}
           </Text>
         </Box>
@@ -93,6 +93,7 @@ class ProofRow extends React.PureComponent<ProofRowProps, ProofRowState> {
               className="hover-underline-container"
               type="Body"
               onClick={() => onClickProfile(proof)}
+              selectable={true}
               style={styleProofName}
             >
               <Text
@@ -101,7 +102,6 @@ class ProofRow extends React.PureComponent<ProofRowProps, ProofRowState> {
                 className="hover-underline"
                 style={{
                   ...shared.proofNameStyle(proof),
-                  ...globalStyles.selectable,
                   ...globalStyles.clickable,
                 }}
               >
