@@ -21,7 +21,7 @@ import {chatTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {NotifyPopup} from '../../native/notifications'
 import {showMainWindow} from '../platform-specific'
-import {tmpFile, stat, downloadFilePathNoSearch, downloadFilePath, copy} from '../../util/file'
+import {tmpDir, tmpFile, stat, downloadFilePathNoSearch, downloadFilePath, copy} from '../../util/file'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import flags from '../../util/feature-flags'
@@ -704,7 +704,7 @@ const messageEdit = (action: Chat2Gen.MessageEditPayload, state: TypedState) => 
     }
 
     const meta = Constants.getMeta(state, conversationIDKey)
-    const tlfName = meta.tlfname // TODO non existant convo
+    const tlfName = meta.tlfname
     const clientPrev = Constants.getClientPrev(state, conversationIDKey)
     const outboxID = Constants.generateOutboxID()
     const supersedes = message.id
@@ -1217,6 +1217,72 @@ function* attachmentDownload(action: Chat2Gen.AttachmentDownloadPayload) {
   )
 }
 
+function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
+  const {conversationIDKey, path, title} = action.payload
+
+  // Make the preview
+  const preview = yield Saga.call(RPCChatTypes.localMakePreviewRpcPromise, {
+    attachment: {filename: path},
+    outputDir: tmpDir(),
+  })
+
+  const state: TypedState = yield Saga.select()
+  const meta = state.chat2.metaMap.get(conversationIDKey)
+  if (!meta) {
+    logger.warn('Missing meta for attachment upload', conversationIDKey)
+    return
+  }
+
+  // TODO asking patric about sending this intead of handling it
+  let ordinal = 0
+  let lastRatioSent = 0
+
+  const postAttachment = new EngineRpc.EngineRpcCall(
+    {
+      'chat.1.chatUi.chatAttachmentUploadOutboxID': function*({outboxID}) {
+        return EngineRpc.rpcResult()
+      },
+      'chat.1.chatUi.chatAttachmentUploadStart': EngineRpc.passthroughResponseSaga,
+      'chat.1.chatUi.chatAttachmentPreviewUploadStart': EngineRpc.passthroughResponseSaga,
+      'chat.1.chatUi.chatAttachmentUploadProgress': function*({bytesComplete, bytesTotal}) {
+        const ratio = bytesComplete / bytesTotal
+        // Don't spam ourselves with updates
+        if (ratio - lastRatioSent > 0.05) {
+          lastRatioSent = ratio
+          yield Saga.put(Chat2Gen.createAttachmentUploading({conversationIDKey, ordinal, ratio}))
+        }
+        return EngineRpc.rpcResult()
+      },
+      'chat.1.chatUi.chatAttachmentUploadDone': EngineRpc.passthroughResponseSaga,
+      'chat.1.chatUi.chatAttachmentPreviewUploadDone': EngineRpc.passthroughResponseSaga,
+    },
+    RPCChatTypes.localPostFileAttachmentLocalRpcChannelMap,
+    `localPostFileAttachmentLocal-${conversationIDKey}-${path}`,
+    {
+      attachment: {filename: path},
+      conversationID: Types.keyToConversationID(conversationIDKey),
+      identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
+      metadata: null,
+      preview,
+      title,
+      tlfName: meta.name,
+      visibility: RPCTypes.commonTLFVisibility.private,
+    }
+  )
+
+  try {
+    const result = yield Saga.call(postAttachment.run)
+    if (EngineRpc.isFinished(result)) {
+      if (result.error) {
+      }
+    } else {
+      logger.warn('Upload Attachment Failed')
+    }
+  } catch (_) {
+    logger.warn('Upload Attachment Failed')
+  }
+}
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Refresh the inbox
   yield Saga.safeTakeEveryPure(
@@ -1300,6 +1366,10 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   })
 
   yield Saga.safeTakeEvery(Chat2Gen.attachmentDownload, attachmentDownload)
+
+  yield Saga.safeTakeEvery(Chat2Gen.attachmentUpload, function*(action: Chat2Gen.AttachmentUploadPayload) {
+    yield Saga.spawn(attachmentUpload, action)
+  })
 }
 
 export default chat2Saga
