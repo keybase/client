@@ -316,7 +316,7 @@ func (c *ChainLink) Pack() (*jsonw.Wrapper, error) {
 	if c.IsStubbed() {
 		p.SetKey("s2", jsonw.NewString(c.unpacked.outerLinkV2.EncodeStubbed()))
 	} else {
-		if c.sigVerified && c.unpacked.sigVersion == 2 {
+		if c.unpacked.sigVersion == 2 {
 			// Store the original JSON string so its order is preserved
 			p.SetKey("payload_json", jsonw.NewString(string(c.unpacked.payloadV2)))
 		}
