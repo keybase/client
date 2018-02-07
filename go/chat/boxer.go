@@ -888,7 +888,7 @@ func (b *Boxer) UnboxThread(ctx context.Context, boxed chat1.ThreadViewBoxed, co
 }
 
 func (b *Boxer) getUsernameAndDevice(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (string, string, string, error) {
-	nun, devName, devType, err := b.G().GetUPAKLoader().LookupUsernameAndDevice(ctx, uid, deviceID)
+	nun, devName, devType, err := CtxUPAKFinder(ctx, b.G()).LookupUsernameAndDevice(ctx, uid, deviceID)
 	if err != nil {
 		return "", "", "", err
 	}
@@ -1481,7 +1481,7 @@ func (b *Boxer) ValidSenderKey(ctx context.Context, sender gregor1.UID, key []by
 	kid := keybase1.KIDFromSlice(key)
 	ctime2 := gregor1.FromTime(ctime)
 
-	cachedUserLoader := b.G().GetUPAKLoader()
+	cachedUserLoader := CtxUPAKFinder(ctx, b.G())
 	if cachedUserLoader == nil {
 		return false, false, nil, NewTransientUnboxingError(fmt.Errorf("no CachedUserLoader available in context"))
 	}

@@ -22,7 +22,7 @@ type checkKidStoredRes struct {
 	deleted   bool
 }
 
-type UPAKFinder struct {
+type CachingUPAKFinder struct {
 	globals.Contextified
 	utils.DebugLabeler
 
@@ -32,31 +32,31 @@ type UPAKFinder struct {
 	checkKidCache map[string]checkKidStoredRes
 }
 
-func NewUPAKFinder(g *globals.Context) *UPAKFinder {
-	return &UPAKFinder{
+func NewCachingUPAKFinder(g *globals.Context) *CachingUPAKFinder {
+	return &CachingUPAKFinder{
 		Contextified:  globals.NewContextified(g),
-		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "UPAKFinder", false),
+		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "CachingUPAKFinder", false),
 		udCache:       make(map[string]udStoredRes),
 		checkKidCache: make(map[string]checkKidStoredRes),
 	}
 }
 
-func (u *UPAKFinder) udKey(uid keybase1.UID, deviceID keybase1.DeviceID) string {
+func (u *CachingUPAKFinder) udKey(uid keybase1.UID, deviceID keybase1.DeviceID) string {
 	return fmt.Sprintf("ud:%s:%s", uid, deviceID)
 }
 
-func (u *UPAKFinder) checkKidKey(uid keybase1.UID, kid keybase1.KID) string {
+func (u *CachingUPAKFinder) checkKidKey(uid keybase1.UID, kid keybase1.KID) string {
 	return fmt.Sprintf("ck:%s:%s", uid, kid)
 }
 
-func (u *UPAKFinder) lookupUDKey(key string) (udStoredRes, bool) {
+func (u *CachingUPAKFinder) lookupUDKey(key string) (udStoredRes, bool) {
 	u.udLock.RLock()
 	defer u.udLock.RUnlock()
 	existing, ok := u.udCache[key]
 	return existing, ok
 }
 
-func (u *UPAKFinder) writeUDKey(key string, username libkb.NormalizedUsername, deviceName, deviceType string) {
+func (u *CachingUPAKFinder) writeUDKey(key string, username libkb.NormalizedUsername, deviceName, deviceType string) {
 	u.udLock.Lock()
 	defer u.udLock.Unlock()
 	u.udCache[key] = udStoredRes{
@@ -66,14 +66,14 @@ func (u *UPAKFinder) writeUDKey(key string, username libkb.NormalizedUsername, d
 	}
 }
 
-func (u *UPAKFinder) lookupCheckKidKey(key string) (checkKidStoredRes, bool) {
+func (u *CachingUPAKFinder) lookupCheckKidKey(key string) (checkKidStoredRes, bool) {
 	u.checkKidLock.RLock()
 	defer u.checkKidLock.RUnlock()
 	existing, ok := u.checkKidCache[key]
 	return existing, ok
 }
 
-func (u *UPAKFinder) writeCheckKidKey(key string, found bool, revokedAt *keybase1.KeybaseTime,
+func (u *CachingUPAKFinder) writeCheckKidKey(key string, found bool, revokedAt *keybase1.KeybaseTime,
 	deleted bool) {
 	u.checkKidLock.Lock()
 	defer u.checkKidLock.Unlock()
@@ -84,7 +84,7 @@ func (u *UPAKFinder) writeCheckKidKey(key string, found bool, revokedAt *keybase
 	}
 }
 
-func (u *UPAKFinder) LookupUsernameAndDevice(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (username libkb.NormalizedUsername, deviceName string, deviceType string, err error) {
+func (u *CachingUPAKFinder) LookupUsernameAndDevice(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (username libkb.NormalizedUsername, deviceName string, deviceType string, err error) {
 	defer u.Trace(ctx, func() error { return err }, "LookupUsernameAndDevice")()
 	key := u.udKey(uid, deviceID)
 	existing, ok := u.lookupUDKey(key)
@@ -99,7 +99,7 @@ func (u *UPAKFinder) LookupUsernameAndDevice(ctx context.Context, uid keybase1.U
 	return u.G().GetUPAKLoader().LookupUsernameAndDevice(ctx, uid, deviceID)
 }
 
-func (u *UPAKFinder) CheckKIDForUID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool, err error) {
+func (u *CachingUPAKFinder) CheckKIDForUID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool, err error) {
 	defer u.Trace(ctx, func() error { return err }, "CheckKIDForUID")()
 	key := u.checkKidKey(uid, kid)
 	existing, ok := u.lookupCheckKidKey(key)
