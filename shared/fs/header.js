@@ -79,7 +79,7 @@ const FolderHeaderBreadcrumb = FolderHeaderBreadcrumbConnector(
   }
 )
 
-const FolderHeaderRow = ({index, totalCrumbs, visibility, item, path}: FolderBreadcrumbProps) => {
+const FolderHeaderItem = ({index, totalCrumbs, visibility, item, path}: FolderBreadcrumbProps) => {
   let separator = <Icon type="iconfont-back" style={iconStyle} />
   if (index === 0) {
     separator = null
@@ -133,7 +133,7 @@ class FolderHeader extends React.Component<FolderHeaderProps, FolderHeaderState>
               const pelems = pathElems.slice(0, index + 1)
               const path = Types.stringToPath('/' + pelems.join('/'))
               return (
-                <FolderHeaderRow
+                <FolderHeaderItem
                   key={index}
                   index={index}
                   visibility={visibility}
