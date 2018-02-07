@@ -23,7 +23,8 @@ function* deleteMessageHistory(action: ChatGen.DeleteMessagePayload): SagaGenera
 
   const attrs = Constants.splitMessageIDKey(message.key)
   const conversationIDKey: Types.ConversationIDKey = attrs.conversationIDKey
-  const messageID: Types.ParsedMessageID = Constants.parseMessageID(attrs.messageID)
+  const parsedMessageID: Types.ParsedMessageID = Constants.parseMessageID(attrs.messageID)
+  const upto = parsedMessageID.msgID
 
   const state: TypedState = yield Saga.select()
   const inboxConvo = Constants.getInbox(state, conversationIDKey)
@@ -46,9 +47,9 @@ function* deleteMessageHistory(action: ChatGen.DeleteMessagePayload): SagaGenera
     identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
     tlfName,
     tlfPublic: false,
-    upto: messageID,
+    upto,
   }
-  yield Saga.call(RPCChatTypes.localPostDeleteHistoryUpto, param)
+  yield Saga.call(RPCChatTypes.localPostDeleteHistoryUptoRpcPromise, param)
 }
 
 function* deleteMessage(action: ChatGen.DeleteMessagePayload): SagaGenerator<any, any> {

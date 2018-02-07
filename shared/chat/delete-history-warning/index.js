@@ -7,7 +7,7 @@ type Props = {
 
 }
 
-const DeleteHistoryWarning = ({errorText, name, onNameChange, onSubmit, pending}: Props) => (
+const DeleteHistoryWarning = ({errorText, name, onDeleteHistory}: Props) => (
   <Box
     style={{
       ...globalStyles.flexBoxColumn,
@@ -17,21 +17,13 @@ const DeleteHistoryWarning = ({errorText, name, onNameChange, onSubmit, pending}
       backgroundColor: globalColors.white,
     }}
   >
-    <Input
-      autoFocus={true}
-      hintText="Name your team"
-      value={name}
-      onChangeText={onNameChange}
-      onEnterKeyDown={onSubmit}
-      disabled={pending}
-    />
+    <Text type="Body">Are you sure?</Text>
     <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.xlarge}}>
       <Button
         type="Primary"
         style={{marginLeft: globalMargins.tiny}}
-        onClick={onSubmit}
-        label="Create team"
-        disabled={pending}
+        onClick={onDeleteHistory}
+        label="Yes"
       />
     </Box>
   </Box>

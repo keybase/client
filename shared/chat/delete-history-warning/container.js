@@ -11,7 +11,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
   onClose: () => dispatch(navigateUp()),
-  onDeleteMessageHistory: () => {
+  onDeleteHistory: () => {
     dispatch(ChatGen.createDeleteMessageHistory({message: routeProps.get('message')}))
   },
 })

@@ -7,6 +7,8 @@ import MessagePopupHeader from './popup-header'
 import {NativeClipboard, PopupMenu} from '../../../common-adapters/index.native'
 import {connect, type TypedState} from '../../../util/container'
 import {isIOS} from '../../../constants/platform'
+import {navigateAppend} from '../../../actions/route-tree'
+
 import {type RouteProps} from '../../../route-tree/render-route'
 import {type TextProps, type AttachmentProps} from './popup'
 
@@ -65,7 +67,7 @@ function _attachmentMessagePopupHelper({
 }
 
 function MessagePopup(props: TextProps | AttachmentProps) {
-  const {message, onDeleteMessage, onHidden, you} = props
+  const {message, onDeleteMessage, onDeleteMessageHistory, onHidden, you} = props
   if (message.type !== 'Text' && message.type !== 'Attachment') return null
 
   let items = []
@@ -97,7 +99,6 @@ function MessagePopup(props: TextProps | AttachmentProps) {
       onClick: () => {
         onDeleteMessage(message)
       },
-      subTitle: 'Deletes this message for everyone'
       title: 'Delete',
     })
   }
@@ -106,8 +107,7 @@ function MessagePopup(props: TextProps | AttachmentProps) {
     onClick: () => {
       onDeleteMessageHistory(message)
     },
-    subTitle: 'Deletes all messages before this one for everyone'
-    title: 'Delete up to here'
+    title: 'Delete all messages before this one',
   })
 
   const menuProps = {
@@ -143,6 +143,12 @@ export default connect(
   (dispatch: Dispatch, {routeProps, navigateUp}: OwnProps) => ({
     onDeleteMessage: (message: Types.ServerMessage) => {
       dispatch(ChatGen.createDeleteMessage({message}))
+    },
+    onDeleteMessageHistory: message => {
+      console.warn('calling up')
+      dispatch(navigateUp())
+      console.warn('calling append')
+      dispatch(navigateAppend([{props: {message}, selected: 'deleteHistoryWarning'}]))
     },
     onHidden: () => dispatch(navigateUp()),
     onShowEditor: () => dispatch(ChatGen.createShowEditor({message: routeProps.get('message')})),
