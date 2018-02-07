@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Types from '../constants/types/fs'
 import {globalStyles, globalColors, globalMargins, isMobile} from '../styles'
-import {Box, ClickableBox, Icon, Text} from '../common-adapters'
+import {Avatar, Box, ClickableBox, Icon, Text} from '../common-adapters'
 import {FolderHeaderBreadcrumbConnector} from './header-container'
 
 type FolderHeaderProps = {
@@ -32,6 +32,7 @@ const folderHeaderStyleTree = {
 
 const folderBreadcrumbStyle = {
   ...globalStyles.flexBoxRow,
+  alignItems: 'center',
   paddingLeft: 0,
   paddingRight: 0,
 }
@@ -67,6 +68,10 @@ const iconStyle = {
   marginRight: globalMargins.xtiny,
 }
 
+const styleTeamAvatar = {
+  marginRight: globalMargins.xtiny,
+}
+
 const FolderHeaderBreadcrumb = FolderHeaderBreadcrumbConnector(
   ({visibility, item, onOpen}: FolderBreadcrumbConnectedProps) => {
     return (
@@ -88,6 +93,8 @@ const FolderHeaderItem = ({index, totalCrumbs, visibility, item, path}: FolderBr
     return (
       <Box style={folderBreadcrumbStyle}>
         {separator}
+        {visibility === 'team' &&
+          index === 2 && <Avatar size={12} teamname={item} isTeam={true} style={styleTeamAvatar} />}
         <Text type="BodyBig">{item}</Text>
       </Box>
     )
@@ -95,6 +102,8 @@ const FolderHeaderItem = ({index, totalCrumbs, visibility, item, path}: FolderBr
     return (
       <Box style={folderBreadcrumbStyle}>
         {separator}
+        {visibility === 'team' &&
+          index === 2 && <Avatar size={12} teamname={item} isTeam={true} style={styleTeamAvatar} />}
         <FolderHeaderBreadcrumb visibility={visibility} item={item} path={path} />
       </Box>
     )
