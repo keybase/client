@@ -15,8 +15,8 @@ machine:
     GOPATH: $HOME/go-path
     PATH: $GOROOT/bin:$PATH
     # Limit memory usage of gradle
-    _JAVA_OPTIONS: "-Xms512m -Xmx2g"
-    GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2g -XX:+HeapDumpOnOutOfMemoryError"'
+    _JAVA_OPTIONS: "-Xms512m -Xmx1024m"
+    GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx1024m -XX:+HeapDumpOnOutOfMemoryError"'
     REACT_NATIVE_MAX_WORKERS: 1
     # Some node dependencies break without this
     CXX: g++-4.8
@@ -71,11 +71,6 @@ dependencies:
     - yarn run rn-gobuild-android
     - ls -la $GOPATH/src/github.com/keybase/client/shared/react-native/android/keybaselib/keybaselib.aar
 test:
-  pre:
-    - sudo apt-key adv --fetch-keys http://dl.yarnpkg.com/debian/pubkey.gpg
-    - echo "deb http://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-    - sudo apt-get update -qq
-    - sudo apt-get install -y -qq yarn=1.0.2-1
   override:
     # TODO(mm) uncomment these device tests (see todo above)
     # wait for it to have booted
@@ -87,8 +82,6 @@ test:
     # copy the test results to the test results directory.
     # - cp -r android/app/build/outputs/androidTest-results/* $CIRCLE_TEST_REPORTS
     # Build a debug version of the app
-    - yarn global add react-native-cli
-    # - react-native bundle --verbose --platform android --dev false --entry-file index.android.js --bundle-output $HOME/client/shared/react-native/android/app/build/intermediates/assets/releaseUnsigned/index.android.bundle --assets-dest $HOME/client/shared/react-native/android/app/build/intermediates/res/merged/releaseUnsigned
     - (cd react-native/android && ./gradlew assembleReleaseUnsigned)
     # Upload it to appetize
     # And grep so we only reveal the public url in the CI logs
