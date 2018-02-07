@@ -70,6 +70,10 @@ type MessageDeliverer interface {
 	ForceDeliverLoop(ctx context.Context)
 }
 
+type Searcher interface {
+	Search(ctx context.Context, chatUI libkb.ChatUI, conversationID chat1.ConversationID, query string, maxHits int, maxMessages int) (rlimits []chat1.RateLimit, err error)
+}
+
 type Sender interface {
 	Send(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext,
 		clientPrev chat1.MessageID, outboxID *chat1.OutboxID) (chat1.OutboxID, *chat1.MessageBoxed, *chat1.RateLimit, error)

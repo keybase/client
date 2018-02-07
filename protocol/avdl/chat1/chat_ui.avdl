@@ -142,6 +142,8 @@ protocol chatUi {
 
   void chatThreadCached(int sessionID, union { null, string } thread) oneway;
   void chatThreadFull(int sessionID, string thread) oneway;
+  void chatSearchHit(int sessionID, UIMessage prevMessage, UIMessage hitMessage, UIMessage nextMessage, array<string> hits) oneway;
+  void chatSearchDone(int sessionID, int numHits) oneway;
 
   boolean chatConfirmChannelDelete(int sessionID, string channel);
 }

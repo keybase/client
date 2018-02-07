@@ -679,6 +679,49 @@
       "response": null,
       "oneway": true
     },
+    "chatSearchHit": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "prevMessage",
+          "type": "UIMessage"
+        },
+        {
+          "name": "hitMessage",
+          "type": "UIMessage"
+        },
+        {
+          "name": "nextMessage",
+          "type": "UIMessage"
+        },
+        {
+          "name": "hits",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
+    "chatSearchDone": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "numHits",
+          "type": "int"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
     "chatConfirmChannelDelete": {
       "request": [
         {

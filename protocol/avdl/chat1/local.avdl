@@ -782,4 +782,11 @@ protocol local {
   void setTeamRetentionLocal(keybase1.TeamID teamID, RetentionPolicy policy);
 
   void upgradeKBFSConversationToImpteam(ConversationID convID);
+
+  record GetSearchResultsRes {
+    array<RateLimit> rateLimits;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
+  }
+
+  GetSearchResultsRes getSearchResults(int sessionID, ConversationID conversationID, string query, int maxHits, int maxMessages, keybase1.TLFIdentifyBehavior identifyBehavior);
 }

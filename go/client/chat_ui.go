@@ -6,6 +6,7 @@ package client
 import (
 	"fmt"
 	"strings"
+	"sync"
 
 	"golang.org/x/net/context"
 
@@ -18,6 +19,7 @@ type ChatUI struct {
 	terminal            libkb.TerminalUI
 	noOutput            bool
 	lastPercentReported int
+	searchMutex         sync.Mutex
 }
 
 func (c *ChatUI) ChatAttachmentUploadOutboxID(context.Context, chat1.ChatAttachmentUploadOutboxIDArg) error {
@@ -134,4 +136,57 @@ func (c *ChatUI) ChatConfirmChannelDelete(ctx context.Context, arg chat1.ChatCon
 		return false, err
 	}
 	return strings.TrimSpace(response) == confirm, nil
+}
+
+func (c *ChatUI) ChatSearchHit(ctx context.Context, arg chat1.ChatSearchHitArg) error {
+	// We don't want results written out of order
+	c.searchMutex.Lock()
+	defer c.searchMutex.Unlock()
+	if c.noOutput {
+		return nil
+	}
+	const maxContext = 100 // Only show the first 100 chars of the context messages
+	getContext := func(uiMsg chat1.UIMessage) string {
+		if uiMsg.IsValid() && uiMsg.GetMessageType() == chat1.MessageType_TEXT {
+			msgBody := uiMsg.Valid().MessageBody.Text().Body
+			sliceIdx := len(msgBody) - maxContext
+			if sliceIdx < 0 {
+				sliceIdx = 0
+			}
+			return msgBody[sliceIdx:] + "\n"
+		}
+		return ""
+	}
+
+	highlightHits := func(uiMsg chat1.UIMessage, hits []string) string {
+		if uiMsg.IsValid() && uiMsg.GetMessageType() == chat1.MessageType_TEXT {
+			msgBody := uiMsg.Valid().MessageBody.Text().Body
+			var hitText string
+			for _, hit := range hits {
+				hitText = strings.Replace(msgBody, hit, ColorString(c.G(), "red", hit), -1)
+			}
+
+			return hitText
+		}
+		return ""
+	}
+	hitText := highlightHits(arg.HitMessage, arg.Hits)
+	if hitText != "" {
+		w := c.terminal.ErrorWriter()
+		fmt.Fprintf(w, getContext(arg.PrevMessage))
+		fmt.Fprintln(w, hitText)
+		fmt.Fprintf(w, getContext(arg.NextMessage))
+		fmt.Fprintln(w, "")
+	}
+	return nil
+}
+
+func (c *ChatUI) ChatSearchDone(ctx context.Context, arg chat1.ChatSearchDoneArg) error {
+	if c.noOutput {
+		return nil
+	}
+	w := c.terminal.ErrorWriter()
+	fmt.Fprintf(w, "Search complete. Found %d results.", arg.NumHits)
+	fmt.Fprintln(w, "")
+	return nil
 }

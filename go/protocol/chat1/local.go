@@ -3682,6 +3682,38 @@ func (o AppNotificationSettingLocal) DeepCopy() AppNotificationSettingLocal {
 	}
 }
 
+type GetSearchResultsRes struct {
+	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+}
+
+func (o GetSearchResultsRes) DeepCopy() GetSearchResultsRes {
+	return GetSearchResultsRes{
+		RateLimits: (func(x []RateLimit) []RateLimit {
+			if x == nil {
+				return nil
+			}
+			var ret []RateLimit
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.RateLimits),
+		IdentifyFailures: (func(x []keybase1.TLFIdentifyFailure) []keybase1.TLFIdentifyFailure {
+			if x == nil {
+				return nil
+			}
+			var ret []keybase1.TLFIdentifyFailure
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.IdentifyFailures),
+	}
+}
+
 type GetThreadLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Query            *GetThreadQuery              `codec:"query,omitempty" json:"query,omitempty"`
@@ -3998,6 +4030,15 @@ type UpgradeKBFSConversationToImpteamArg struct {
 	ConvID ConversationID `codec:"convID" json:"convID"`
 }
 
+type GetSearchResultsArg struct {
+	SessionID        int                          `codec:"sessionID" json:"sessionID"`
+	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
+	Query            string                       `codec:"query" json:"query"`
+	MaxHits          int                          `codec:"maxHits" json:"maxHits"`
+	MaxMessages      int                          `codec:"maxMessages" json:"maxMessages"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
@@ -4045,6 +4086,7 @@ type LocalInterface interface {
 	SetConvRetentionLocal(context.Context, SetConvRetentionLocalArg) error
 	SetTeamRetentionLocal(context.Context, SetTeamRetentionLocalArg) error
 	UpgradeKBFSConversationToImpteam(context.Context, ConversationID) error
+	GetSearchResults(context.Context, GetSearchResultsArg) (GetSearchResultsRes, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -4777,6 +4819,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"getSearchResults": {
+				MakeArg: func() interface{} {
+					ret := make([]GetSearchResultsArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetSearchResultsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetSearchResultsArg)(nil), args)
+						return
+					}
+					ret, err = i.GetSearchResults(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -5020,5 +5078,10 @@ func (c LocalClient) SetTeamRetentionLocal(ctx context.Context, __arg SetTeamRet
 func (c LocalClient) UpgradeKBFSConversationToImpteam(ctx context.Context, convID ConversationID) (err error) {
 	__arg := UpgradeKBFSConversationToImpteamArg{ConvID: convID}
 	err = c.Cli.Call(ctx, "chat.1.local.upgradeKBFSConversationToImpteam", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) GetSearchResults(ctx context.Context, __arg GetSearchResultsArg) (res GetSearchResultsRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getSearchResults", []interface{}{__arg}, &res)
 	return
 }

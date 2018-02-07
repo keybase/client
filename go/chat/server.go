@@ -2653,3 +2653,22 @@ func (h *Server) UpgradeKBFSConversationToImpteam(ctx context.Context, convID ch
 	return teams.UpgradeTLFIDToImpteam(ctx, h.G().ExternalG(), tlfName, keybase1.TLFID(tlfID.String()),
 		public, keybase1.TeamApplication_CHAT, cryptKeys)
 }
+
+func (h *Server) GetSearchResults(ctx context.Context, arg chat1.GetSearchResultsArg) (res chat1.GetSearchResultsRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "GetSearchResults")()
+	if err = h.assertLoggedIn(ctx); err != nil {
+		return res, err
+	}
+
+	chatUI := h.getChatUI(arg.SessionID)
+	rlimits, err := h.G().Searcher.Search(ctx, chatUI, arg.ConversationID, arg.Query, arg.MaxHits, arg.MaxMessages)
+	if err != nil {
+		return res, err
+	}
+	return chat1.GetSearchResultsRes{
+		RateLimits:       rlimits,
+		IdentifyFailures: identBreaks,
+	}, nil
+}

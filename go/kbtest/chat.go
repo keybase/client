@@ -944,3 +944,11 @@ func (c *ChatUI) ChatThreadFull(ctx context.Context, arg chat1.ChatThreadFullArg
 func (c *ChatUI) ChatConfirmChannelDelete(ctx context.Context, arg chat1.ChatConfirmChannelDeleteArg) (bool, error) {
 	return true, nil
 }
+
+func (c *ChatUI) ChatSearchHit(ctx context.Context, arg chat1.ChatSearchHitArg) error {
+	return nil
+}
+
+func (c *ChatUI) ChatSearchDone(ctx context.Context, arg chat1.ChatSearchDoneArg) error {
+	return nil
+}

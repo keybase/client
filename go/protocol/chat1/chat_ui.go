@@ -668,6 +668,19 @@ type ChatThreadFullArg struct {
 	Thread    string `codec:"thread" json:"thread"`
 }
 
+type ChatSearchHitArg struct {
+	SessionID   int       `codec:"sessionID" json:"sessionID"`
+	PrevMessage UIMessage `codec:"prevMessage" json:"prevMessage"`
+	HitMessage  UIMessage `codec:"hitMessage" json:"hitMessage"`
+	NextMessage UIMessage `codec:"nextMessage" json:"nextMessage"`
+	Hits        []string  `codec:"hits" json:"hits"`
+}
+
+type ChatSearchDoneArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+	NumHits   int `codec:"numHits" json:"numHits"`
+}
+
 type ChatConfirmChannelDeleteArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Channel   string `codec:"channel" json:"channel"`
@@ -688,6 +701,8 @@ type ChatUiInterface interface {
 	ChatInboxFailed(context.Context, ChatInboxFailedArg) error
 	ChatThreadCached(context.Context, ChatThreadCachedArg) error
 	ChatThreadFull(context.Context, ChatThreadFullArg) error
+	ChatSearchHit(context.Context, ChatSearchHitArg) error
+	ChatSearchDone(context.Context, ChatSearchDoneArg) error
 	ChatConfirmChannelDelete(context.Context, ChatConfirmChannelDeleteArg) (bool, error)
 }
 
@@ -919,6 +934,38 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodNotify,
 			},
+			"chatSearchHit": {
+				MakeArg: func() interface{} {
+					ret := make([]ChatSearchHitArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChatSearchHitArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChatSearchHitArg)(nil), args)
+						return
+					}
+					err = i.ChatSearchHit(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
+			"chatSearchDone": {
+				MakeArg: func() interface{} {
+					ret := make([]ChatSearchDoneArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChatSearchDoneArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChatSearchDoneArg)(nil), args)
+						return
+					}
+					err = i.ChatSearchDone(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
 			"chatConfirmChannelDelete": {
 				MakeArg: func() interface{} {
 					ret := make([]ChatConfirmChannelDeleteArg, 1)
@@ -1014,6 +1061,16 @@ func (c ChatUiClient) ChatThreadCached(ctx context.Context, __arg ChatThreadCach
 
 func (c ChatUiClient) ChatThreadFull(ctx context.Context, __arg ChatThreadFullArg) (err error) {
 	err = c.Cli.Notify(ctx, "chat.1.chatUi.chatThreadFull", []interface{}{__arg})
+	return
+}
+
+func (c ChatUiClient) ChatSearchHit(ctx context.Context, __arg ChatSearchHitArg) (err error) {
+	err = c.Cli.Notify(ctx, "chat.1.chatUi.chatSearchHit", []interface{}{__arg})
+	return
+}
+
+func (c ChatUiClient) ChatSearchDone(ctx context.Context, __arg ChatSearchDoneArg) (err error) {
+	err = c.Cli.Notify(ctx, "chat.1.chatUi.chatSearchDone", []interface{}{__arg})
 	return
 }
 
