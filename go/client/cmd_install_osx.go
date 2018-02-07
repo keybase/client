@@ -154,7 +154,7 @@ func exitOnError(result keybase1.InstallResult) {
 	}
 	for _, r := range result.ComponentResults {
 		if r.Status.Code != 0 {
-			os.Exit(2)
+			os.Exit(r.Status.Code)
 		}
 	}
 }
@@ -357,5 +357,6 @@ func (v *cmdInstallAuto) Run() error {
 		}
 		fmt.Fprintf(os.Stdout, "%s\n", out)
 	}
+	exitOnError(result)
 	return nil
 }

@@ -47,6 +47,9 @@ const (
 	BrewKBFSLabel ServiceLabel = "homebrew.mxcl.kbfs"
 	// UnknownLabel is an empty/unknown label
 	UnknownLabel ServiceLabel = ""
+
+	// See osx/Installer/Installer.m : KBExitAuthCanceledError
+	installHelperExitCodeAuthCanceled = 6
 )
 
 // KeybaseServiceStatus returns service status for Keybase service
@@ -469,9 +472,14 @@ func Install(context Context, binPath string, sourcePath string, components []st
 
 	if libkb.IsIn(string(ComponentNameHelper), components, false) {
 		err = libnativeinstaller.InstallHelper(context.GetRunMode(), log)
-		componentResults = append(componentResults, componentResult(string(ComponentNameHelper), err))
+		cr := componentResult(string(ComponentNameHelper), err)
+		componentResults = append(componentResults, cr)
 		if err != nil {
 			log.Errorf("Error installing Helper: %s", err)
+		}
+		if cr.Status.ExitCode == installHelperExitCodeAuthCanceled {
+			// Exiting early if the user canceled authorization.
+			return newInstallResult(componentResults)
 		}
 	}
 
