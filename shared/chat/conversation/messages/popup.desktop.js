@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as I from 'immutable'
 import {ModalLessPopupMenu as PopupMenu} from '../../../common-adapters/popup-menu.desktop'
 import {textMessageEditable} from '../../../constants/chat'
+import {getCanPerform, getTeamNameFromConvID} from '../../../constants/teams'
 import * as Types from '../../../constants/types/chat'
 import * as ChatGen from '../../../actions/chat-gen'
 import * as KBFSGen from '../../../actions/kbfs-gen'
@@ -21,7 +22,7 @@ const stylePopup = {
   width: 196,
 }
 
-const TextPopupMenu = ({message, onShowEditor, onDeleteMessage, onDeleteMessageHistory, onHidden, style, you}: TextProps) => {
+const TextPopupMenu = ({canDeleteHistory, message, onShowEditor, onDeleteMessage, onDeleteMessageHistory, onHidden, style, you}: TextProps) => {
   console.warn(message)
   let items = []
   if (message.author === you) {
@@ -42,13 +43,15 @@ const TextPopupMenu = ({message, onShowEditor, onDeleteMessage, onDeleteMessageH
       title: 'Delete',
     })
   }
-  items.push('Divider')
-  items.push({
-    danger: true,
-    onClick: () => onDeleteMessageHistory(message),
-    subTitle: 'Deletes all messages before this one for everyone',
-    title: 'Delete up to here',
-  })
+  if (canDeleteHistory) {
+    items.push('Divider')
+    items.push({
+      danger: true,
+      onClick: () => onDeleteMessageHistory(message),
+      subTitle: 'Deletes all messages before this one for everyone',
+      title: 'Delete up to here',
+    })
+  }
   const header = {
     title: 'header',
     view: <MessagePopupHeader message={message} isLast={!items.length} />,
@@ -109,10 +112,23 @@ type ConnectedTextMessageProps = {
 }
 
 // $FlowIssue doesn't like routeProps here
-const mapStateToProps = ({config: {username}}: TypedState, {routeProps}) => ({
-  you: username,
-  message: routeProps.get('message'),
-})
+const mapStateToProps = (state: TypedState, {routeProps}) => {
+  // Find out whether we're allowed to delete chat history. If we're
+  // on a team, use canUserPerform, else assume we can.
+  const message = routeProps.get('message')
+  console.warn('message is', message)
+  console.warn(message.conversationIDKey)
+  const teamname = getTeamNameFromConvID(state, message.conversationIDKey)
+  console.warn(teamname)
+  const yourOperations = getCanPerform(state, teamname)
+  const canDeleteHistory = teamname ? yourOperations.deleteChatHistory : true
+  console.warn(teamname, yourOperations.deleteChatHistory, canDeleteHistory)
+  return {
+    canDeleteHistory,
+    message,
+    you: state.config.username,
+  }
+}
 
 const mapDispatchToTextProps = (
   dispatch,
