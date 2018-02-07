@@ -126,6 +126,17 @@
 }
 
 - (AuthorizationRef)authorization:(NSError **)error {
+  NSString *alertText = @"Keybase needs to upgrade its open-source file system drivers.  Please provide your password at the secure password prompt when requested.";
+  KBSemVersion *bundleVersion = [self bundleVersion];
+  if ([bundleVersion isOrderedSame:[KBSemVersion version:@"1.0.30"]]) {
+    alertText = @"New Keybase feature: multiple users in macOS\n\nThe Keybase file system (KBFS) has been mounted at /keybase.  This doesn't work for multiple users, so we're moving things around.  You'll now have a mountpoint in your home directory.  Follow the new \"Favorite\" in Finder to get to it. The first local user to run the Keybase user will also have a link to it from the old /keybase location.";
+  }
+  NSAlert *alert = [[NSAlert alloc] init];
+  [alert setMessageText:alertText];
+  [alert addButtonWithTitle:@"OK"];
+  [alert setAlertStyle:NSAlertStyleInformational];
+  [alert runModal]; // ignore response
+
   AuthorizationRef authRef;
   OSStatus createStatus = AuthorizationCreate(NULL, NULL, 0, &authRef);
   if (createStatus != errAuthorizationSuccess) {
