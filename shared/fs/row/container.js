@@ -5,6 +5,8 @@ import * as FSGen from '../../actions/fs-gen'
 import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../util/container'
 import {navigateAppend} from '../../actions/route-tree'
 import {Row} from './row'
+import * as Constants from '../constants/fs'
+import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../util/container'
 
 type OwnProps = {
   path: Types.Path,
@@ -26,8 +28,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     if (type === 'folder') {
       dispatch(navigateAppend([{props: {path}, selected: 'folder'}]))
     } else {
-      dispatch(FSGen.createDownload({path}))
-      console.log('Cannot view files yet. Requested file: ' + Types.pathToString(path))
+//      dispatch(FsGen.createDownload({path}))
+      dispatch(navigateAppend([{props: {path}, selected: 'preview'}]))
     }
   },
   _openInFileUI: (path: Types.Path) => dispatch(FSGen.createOpenInFileUI({path: Types.pathToString(path)})),

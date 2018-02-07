@@ -4,6 +4,7 @@ import * as Types from '../constants/types/fs'
 import {action, storiesOf, createPropProvider} from '../stories/storybook'
 import {globalColors} from '../styles'
 import Files from '.'
+import FilePreview from './filepreview'
 
 const provider = createPropProvider({
   FileRow: ({path}: {path: Types.Path}) => ({
@@ -46,6 +47,8 @@ const provider = createPropProvider({
   }),
 })
 
+const previewPathName = '/keybase/private/foo/bar.img'
+
 const load = () => {
   storiesOf('Files', module)
     .addDecorator(provider)
@@ -58,6 +61,18 @@ const load = () => {
           Types.stringToPath('/keybase/public'),
           Types.stringToPath('/keybase/team'),
         ]}
+      />
+    ))
+    .add('Preview', () => (
+      <FilePreview
+        path={Types.stringToPath(previewPathName)}
+        meta={{
+          name: previewPathName,
+          lastModifiedTimestamp: 1518029754000,
+          size: 15000,
+          lastWriter: 'foobar',
+          progress: 'pending',
+        }}
       />
     ))
 }
