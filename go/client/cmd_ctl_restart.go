@@ -58,11 +58,10 @@ func (s *CmdCtlRestart) Run() error {
 	// If the watchdog started this process, it will do the restarting.
 	// Otherwise we have to.
 	if config.ForkType != keybase1.ForkType_WATCHDOG {
-		dui := s.G().UI.GetDumbOutputUI()
 		// Wait a few seconds before the server stops
-		dui.Printf("Delaying for shutdown...\n")
+		s.G().Log.Info("Delaying for shutdown...")
 		time.Sleep(2 * time.Second)
-		dui.Printf("Restart\n")
+		s.G().Log.Info("Restart")
 		_, err = ForkServer(s.G(), s.G().Env.GetCommandLine(), config.ForkType)
 	}
 	return err

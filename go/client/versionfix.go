@@ -177,7 +177,7 @@ func FixVersionClash(g *libkb.GlobalContext, cl libkb.CommandLine) (err error) {
 	time.Sleep(1 * time.Second)
 
 	if serviceConfig.ForkType == keybase1.ForkType_AUTO || serviceConfig.ForkType == keybase1.ForkType_SYSTEMD {
-		g.UI.GetDumbOutputUI().Printf("Restarting service...\n")
+		g.Log.Info("Restarting service...")
 		_, err = AutoForkServer(g, cl)
 	}
 

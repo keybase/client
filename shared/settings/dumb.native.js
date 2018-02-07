@@ -1,7 +1,7 @@
 // @flow
 import About from './about'
 import SettingsNav from './nav'
-import Feedback from './feedback'
+import Feedback from './feedback.native'
 import * as settingsConstants from '../constants/settings'
 
 import type {DumbComponentMap} from '../constants/types/more'
@@ -36,6 +36,7 @@ const feedbackCommon = {
   showSuccessBanner: false,
   sendLogs: true,
   sending: false,
+  sendError: null,
   feedback: null,
   onChangeFeedback: () => {},
   onChangeSendLogs: () => {},

@@ -185,6 +185,14 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 		}
 
 		if currentRole.IsOrAbove(invite.Role) {
+			if team.IsImplicit() {
+				g.Log.CDebugf(ctx, "This is implicit team SBS resolution, mooting invite.")
+				req := keybase1.TeamChangeReq{}
+				req.CompletedInvites = make(SCMapInviteIDToUV)
+				req.CompletedInvites[invite.Id] = uv.PercentForm()
+				return team.ChangeMembership(ctx, req)
+			}
+
 			g.Log.CDebugf(ctx, "User already has same or higher role, canceling invite.")
 			return removeInviteID(ctx, team, invite.Id)
 		}
@@ -194,7 +202,7 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 			g.Log.CDebugf(ctx, "Failed to compute reqForRole for %+v, role=%s", uv, invite.Role)
 			return err
 		}
-		req.CompletedInvites = make(map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm)
+		req.CompletedInvites = make(SCMapInviteIDToUV)
 		req.CompletedInvites[invite.Id] = uv.PercentForm()
 
 		// Check to see if the user is already in the team with a lower eldest seqno, if so, we need
@@ -205,10 +213,12 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 				return fmt.Errorf("newer version of user %s already exists in team %q (%v > %v)",
 					verifiedInvitee.Uid, team.Name(), existingUV.EldestSeqno,
 					verifiedInvitee.EldestSeqno)
+			} else if existingUV.EldestSeqno < verifiedInvitee.EldestSeqno {
+				g.Log.CDebugf(ctx, "removing old version of user: %s (%v -> %v)", verifiedInvitee.Uid,
+					existingUV.EldestSeqno, verifiedInvitee.EldestSeqno)
+				req.None = []keybase1.UserVersion{existingUV}
 			}
-			g.Log.CDebugf(ctx, "removing old version of user: %s (%v -> %v)", verifiedInvitee.Uid,
-				existingUV.EldestSeqno, verifiedInvitee.EldestSeqno)
-			req.None = []keybase1.UserVersion{existingUV}
+			// If EldestSeqnos are equal - it means it's an SBS promotion.
 		}
 
 		g.Log.CDebugf(ctx, "checks passed, proceeding with team.ChangeMembership, req = %+v", req)
@@ -391,7 +401,7 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 	return nil
 }
 
-func handleSeitanSingle(ctx context.Context, g *libkb.GlobalContext, team *Team, invite keybase1.TeamInvite, seitan keybase1.TeamSeitanRequest) error {
+func handleSeitanSingle(ctx context.Context, g *libkb.GlobalContext, team *Team, invite keybase1.TeamInvite, seitan keybase1.TeamSeitanRequest) (err error) {
 	category, err := invite.Type.C()
 	if err != nil {
 		return err
@@ -401,30 +411,35 @@ func handleSeitanSingle(ctx context.Context, g *libkb.GlobalContext, team *Team,
 		return fmt.Errorf("HandleTeamSeitan wanted to claim an invite with category %v", category)
 	}
 
-	peikey, err := SeitanDecodePEIKey(string(invite.Name))
+	pkey, err := SeitanDecodePKey(string(invite.Name))
 	if err != nil {
 		return err
 	}
 
-	ikeyAndLabel, err := peikey.DecryptIKeyAndLabel(ctx, team)
+	keyAndLabel, err := pkey.DecryptKeyAndLabel(ctx, team)
 	if err != nil {
 		return err
 	}
 
-	var ikey SeitanIKey
-
-	version, err := ikeyAndLabel.V()
+	version, err := keyAndLabel.V()
 	if err != nil {
-		return fmt.Errorf("while parsing IKeyAndLabel: %s", err)
+		return fmt.Errorf("while parsing KeyAndLabel: %s", err)
 	}
 
 	switch version {
-	case keybase1.SeitanIKeyAndLabelVersion_V1:
-		ikey = SeitanIKey(ikeyAndLabel.V1().I)
+	case keybase1.SeitanKeyAndLabelVersion_V1:
+		err = handleSeitanSingleV1(keyAndLabel.V1().I, invite, seitan)
+	case keybase1.SeitanKeyAndLabelVersion_V2:
+		err = handleSeitanSingleV2(keyAndLabel.V2().K, invite, seitan)
 	default:
-		return fmt.Errorf("unknown IKeyAndLabel version: %v", version)
+		return fmt.Errorf("unknown KeyAndLabel version: %v", version)
 	}
 
+	return err
+}
+
+func handleSeitanSingleV1(key keybase1.SeitanIKey, invite keybase1.TeamInvite, seitan keybase1.TeamSeitanRequest) (err error) {
+	ikey := SeitanIKey(key)
 	sikey, err := ikey.GenerateSIKey()
 	if err != nil {
 		return err
@@ -452,6 +467,36 @@ func handleSeitanSingle(ctx context.Context, g *libkb.GlobalContext, team *Team,
 
 	if !libkb.SecureByteArrayEq(akey, decodedAKey) {
 		return fmt.Errorf("did not end up with the same AKey")
+	}
+
+	return nil
+}
+
+func handleSeitanSingleV2(key keybase1.SeitanPubKey, invite keybase1.TeamInvite, seitan keybase1.TeamSeitanRequest) (err error) {
+	pubKey, err := ImportSeitanPubKey(key)
+	if err != nil {
+		return err
+	}
+
+	var sig SeitanSig
+	decodedSig, err := base64.StdEncoding.DecodeString(string(seitan.Akey)) // For V2 the server responds with sig in the akey field
+	if len(sig) != len(decodedSig) {
+		return errors.New("Signature length verification failed (seitan)")
+	}
+	copy(sig[:], decodedSig[:])
+
+	now := keybase1.Time(seitan.UnixCTime) // For V2 this is ms since the epoch, not seconds
+	// NOTE: Since we are re-serializing the values from seitan here to
+	// generate the message, if we want to change the fields present in the
+	// signature in the future, old clients will not be compatible.
+	msg, err := GenerateSeitanSignatureMessage(seitan.Uid, seitan.EldestSeqno, SCTeamInviteID(seitan.InviteID), now)
+
+	if err != nil {
+		return err
+	}
+	err = VerifySeitanSignatureMessage(pubKey, msg, sig)
+	if err != nil {
+		return err
 	}
 
 	return nil

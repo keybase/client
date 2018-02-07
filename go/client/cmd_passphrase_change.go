@@ -52,7 +52,7 @@ func (c *CmdPassphraseChange) Run() error {
 		return err
 	}
 
-	c.G().UI.GetDumbOutputUI().Printf("Passphrase changed.\n")
+	c.G().Log.Info("Passphrase changed.")
 	return nil
 }
 

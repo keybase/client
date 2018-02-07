@@ -23,11 +23,21 @@ var PushKBFSUpgrade = "chat.kbfsupgrade"
 var PushConvRetention = "chat.convretention"
 var PushTeamRetention = "chat.teamretention"
 
+func NewAllCryptKeys() AllCryptKeys {
+	return make(AllCryptKeys)
+}
+
 type NameInfo struct {
 	ID               chat1.TLFID
 	CanonicalName    string
 	IdentifyFailures []keybase1.TLFIdentifyFailure
-	CryptKeys        []CryptKey
+	CryptKeys        map[chat1.ConversationMembersType][]CryptKey
+}
+
+func NewNameInfo() *NameInfo {
+	return &NameInfo{
+		CryptKeys: make(map[chat1.ConversationMembersType][]CryptKey),
+	}
 }
 
 type MembershipUpdateRes struct {

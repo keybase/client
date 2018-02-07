@@ -89,12 +89,12 @@ func (t *TeamerImpl) lookupOrCreateImplicitTeam(ctx context.Context, folder keyb
 
 	isPublic := !folder.Private
 
-	teamID, _, _, _, err := teams.LookupOrCreateImplicitTeam(ctx, t.G(), lookupName, isPublic)
+	team, _, _, err := teams.LookupOrCreateImplicitTeam(ctx, t.G(), lookupName, isPublic)
 	if err != nil {
 		return res, err
 	}
 	return keybase1.TeamIDWithVisibility{
-		TeamID:     teamID,
+		TeamID:     team.ID,
 		Visibility: visibility,
 	}, nil
 }

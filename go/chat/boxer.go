@@ -182,6 +182,18 @@ func (p *publicUnboxConversationInfo) GetFinalizeInfo() *chat1.ConversationFinal
 	return nil
 }
 
+func (b *Boxer) getEffectiveMembersType(ctx context.Context, boxed chat1.MessageBoxed,
+	convMembersType chat1.ConversationMembersType) chat1.ConversationMembersType {
+	switch convMembersType {
+	case chat1.ConversationMembersType_IMPTEAMUPGRADE:
+		if boxed.KBFSEncrypted() {
+			b.Debug(ctx, "getEffectiveMembersType: overruling %v conv with KBFS keys", convMembersType)
+			return chat1.ConversationMembersType_KBFS
+		}
+	}
+	return convMembersType
+}
+
 // UnboxMessage unboxes a chat1.MessageBoxed into a chat1.MessageUnboxed. It
 // finds the appropriate keybase1.CryptKey, decrypts the message, and verifies
 // several things:
@@ -205,11 +217,13 @@ func (p *publicUnboxConversationInfo) GetFinalizeInfo() *chat1.ConversationFinal
 // whereas temporary errors are transient failures.
 func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv unboxConversationInfo) (m chat1.MessageUnboxed, uberr UnboxingError) {
 	b.Debug(ctx, "+ UnboxMessage for convID %s msg_id %s", conv.GetConvID().String(), boxed.GetMessageID().String())
-	defer b.Debug(ctx, "- UnboxMessage for convID %s msg_id %s -> %s", conv.GetConvID().String(), boxed.GetMessageID().String(), libkb.ErrToOk(uberr))
+	defer b.Debug(ctx, "- UnboxMessage for convID %s msg_id %s -> %s", conv.GetConvID().String(),
+		boxed.GetMessageID().String(), libkb.ErrToOk(uberr))
 	tlfName := boxed.ClientHeader.TLFNameExpanded(conv.GetFinalizeInfo())
+	keyMembersType := b.getEffectiveMembersType(ctx, boxed, conv.GetMembersType())
 	nameInfo, err := CtxKeyFinder(ctx, b.G()).FindForDecryption(ctx,
 		tlfName, boxed.ClientHeader.Conv.Tlfid, conv.GetMembersType(),
-		boxed.ClientHeader.TlfPublic, boxed.KeyGeneration)
+		boxed.ClientHeader.TlfPublic, boxed.KeyGeneration, keyMembersType == chat1.ConversationMembersType_KBFS)
 	if err != nil {
 		// Check to see if this is a permanent error from the server
 		if b.detectKBFSPermanentServerError(err) {
@@ -218,9 +232,9 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 		// transient error. Rekey errors come through here
 		return chat1.MessageUnboxed{}, NewTransientUnboxingError(err)
 	}
-
 	var encryptionKey types.CryptKey
-	for _, key := range nameInfo.CryptKeys {
+	keys := nameInfo.CryptKeys[keyMembersType]
+	for _, key := range keys {
 		if key.Generation() == boxed.KeyGeneration {
 			encryptionKey = key
 			break
@@ -228,7 +242,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 	}
 
 	if encryptionKey == nil {
-		err := fmt.Errorf("no key found for generation %d (%d keys checked)", boxed.KeyGeneration, len(nameInfo.CryptKeys))
+		err := fmt.Errorf("no key found for generation %d (%d keys checked)", boxed.KeyGeneration, len(keys))
 		return chat1.MessageUnboxed{}, NewTransientUnboxingError(err)
 	}
 
@@ -1003,7 +1017,7 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
 	if msg.ClientHeader.TlfPublic {
 		encryptionKey = &publicCryptKey
 	} else {
-		for _, key := range nameInfo.CryptKeys {
+		for _, key := range nameInfo.CryptKeys[membersType] {
 			if encryptionKey == nil || key.Generation() > encryptionKey.Generation() {
 				encryptionKey = key
 			}

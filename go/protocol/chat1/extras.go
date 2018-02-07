@@ -306,6 +306,10 @@ func (m MessageBoxed) Summary() MessageSummary {
 	return s
 }
 
+func (m MessageBoxed) KBFSEncrypted() bool {
+	return m.ClientHeader.KbfsCryptKeysUsed == nil || *m.ClientHeader.KbfsCryptKeysUsed
+}
+
 var ConversationStatusGregorMap = map[ConversationStatus]string{
 	ConversationStatus_UNFILED:  "unfiled",
 	ConversationStatus_FAVORITE: "favorite",

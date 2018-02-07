@@ -162,4 +162,8 @@ protocol NotifyChat {
   @lint("ignore")
   void ChatSetTeamRetention(keybase1.UID uid, keybase1.TeamID teamID, array<InboxUIItem> convs);
 
+  @notify("")
+  @lint("ignore")
+  void ChatKBFSToImpteamUpgrade(keybase1.UID uid, ConversationID convID);
+
 }

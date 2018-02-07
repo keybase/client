@@ -61,7 +61,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
       ['teams', 'teamNameToPublicitySettings', teamname, 'ignoreAccessRequests'],
       false
     ),
-    loading: state.entities.getIn(['teams', 'teamNameToLoading', teamname], true),
+    loading: anyWaiting(state, Constants.teamWaitingKey(teamname)),
     memberCount: state.entities.getIn(['teams', 'teammembercounts', teamname], 0),
     name: teamname,
     openTeamRole:
@@ -80,7 +80,11 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
     sawSubteamsBanner: state.entities.getIn(['teams', 'sawSubteamsBanner'], false),
     selectedTab: routeState.get('selectedTab') || 'members',
     subteams,
-    waitingForSavePublicity: anyWaiting(state, `setPublicity:${teamname}`, `getDetails:${teamname}`),
+    waitingForSavePublicity: anyWaiting(
+      state,
+      Constants.settingsWaitingKey(teamname),
+      Constants.teamWaitingKey(teamname)
+    ),
     you: state.config.username,
     yourRole: Constants.getRole(state, teamname),
     yourOperations: Constants.getCanPerform(state, teamname),

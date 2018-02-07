@@ -36,6 +36,18 @@ func newMemberSetChange(ctx context.Context, g *libkb.GlobalContext, req keybase
 	return set, nil
 }
 
+func (m *memberSet) appendMemberSet(other *memberSet) {
+	m.Owners = append(m.Owners, other.Owners...)
+	m.Admins = append(m.Admins, other.Admins...)
+	m.Writers = append(m.Writers, other.Writers...)
+	m.Readers = append(m.Readers, other.Readers...)
+	m.None = append(m.None, other.None...)
+
+	for k, v := range other.recipients {
+		m.recipients[k] = v
+	}
+}
+
 func (m *memberSet) nonAdmins() []member {
 	var ret []member
 	ret = append(ret, m.Readers...)

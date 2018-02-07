@@ -1204,47 +1204,68 @@ func (o SeitanIKey) DeepCopy() SeitanIKey {
 	return o
 }
 
-type SeitanIKeyAndLabelVersion int
+type SeitanPubKey KID
+
+func (o SeitanPubKey) DeepCopy() SeitanPubKey {
+	return o.DeepCopy()
+}
+
+type SeitanIKeyV2 string
+
+func (o SeitanIKeyV2) DeepCopy() SeitanIKeyV2 {
+	return o
+}
+
+type SeitanKeyAndLabelVersion int
 
 const (
-	SeitanIKeyAndLabelVersion_V1 SeitanIKeyAndLabelVersion = 1
+	SeitanKeyAndLabelVersion_V1 SeitanKeyAndLabelVersion = 1
+	SeitanKeyAndLabelVersion_V2 SeitanKeyAndLabelVersion = 2
 )
 
-func (o SeitanIKeyAndLabelVersion) DeepCopy() SeitanIKeyAndLabelVersion { return o }
+func (o SeitanKeyAndLabelVersion) DeepCopy() SeitanKeyAndLabelVersion { return o }
 
-var SeitanIKeyAndLabelVersionMap = map[string]SeitanIKeyAndLabelVersion{
+var SeitanKeyAndLabelVersionMap = map[string]SeitanKeyAndLabelVersion{
 	"V1": 1,
+	"V2": 2,
 }
 
-var SeitanIKeyAndLabelVersionRevMap = map[SeitanIKeyAndLabelVersion]string{
+var SeitanKeyAndLabelVersionRevMap = map[SeitanKeyAndLabelVersion]string{
 	1: "V1",
+	2: "V2",
 }
 
-func (e SeitanIKeyAndLabelVersion) String() string {
-	if v, ok := SeitanIKeyAndLabelVersionRevMap[e]; ok {
+func (e SeitanKeyAndLabelVersion) String() string {
+	if v, ok := SeitanKeyAndLabelVersionRevMap[e]; ok {
 		return v
 	}
 	return ""
 }
 
-type SeitanIKeyAndLabel struct {
-	V__  SeitanIKeyAndLabelVersion   `codec:"v" json:"v"`
-	V1__ *SeitanIKeyAndLabelVersion1 `codec:"v1,omitempty" json:"v1,omitempty"`
+type SeitanKeyAndLabel struct {
+	V__  SeitanKeyAndLabelVersion   `codec:"v" json:"v"`
+	V1__ *SeitanKeyAndLabelVersion1 `codec:"v1,omitempty" json:"v1,omitempty"`
+	V2__ *SeitanKeyAndLabelVersion2 `codec:"v2,omitempty" json:"v2,omitempty"`
 }
 
-func (o *SeitanIKeyAndLabel) V() (ret SeitanIKeyAndLabelVersion, err error) {
+func (o *SeitanKeyAndLabel) V() (ret SeitanKeyAndLabelVersion, err error) {
 	switch o.V__ {
-	case SeitanIKeyAndLabelVersion_V1:
+	case SeitanKeyAndLabelVersion_V1:
 		if o.V1__ == nil {
 			err = errors.New("unexpected nil value for V1__")
+			return ret, err
+		}
+	case SeitanKeyAndLabelVersion_V2:
+		if o.V2__ == nil {
+			err = errors.New("unexpected nil value for V2__")
 			return ret, err
 		}
 	}
 	return o.V__, nil
 }
 
-func (o SeitanIKeyAndLabel) V1() (res SeitanIKeyAndLabelVersion1) {
-	if o.V__ != SeitanIKeyAndLabelVersion_V1 {
+func (o SeitanKeyAndLabel) V1() (res SeitanKeyAndLabelVersion1) {
+	if o.V__ != SeitanKeyAndLabelVersion_V1 {
 		panic("wrong case accessed")
 	}
 	if o.V1__ == nil {
@@ -1253,75 +1274,111 @@ func (o SeitanIKeyAndLabel) V1() (res SeitanIKeyAndLabelVersion1) {
 	return *o.V1__
 }
 
-func NewSeitanIKeyAndLabelWithV1(v SeitanIKeyAndLabelVersion1) SeitanIKeyAndLabel {
-	return SeitanIKeyAndLabel{
-		V__:  SeitanIKeyAndLabelVersion_V1,
+func (o SeitanKeyAndLabel) V2() (res SeitanKeyAndLabelVersion2) {
+	if o.V__ != SeitanKeyAndLabelVersion_V2 {
+		panic("wrong case accessed")
+	}
+	if o.V2__ == nil {
+		return
+	}
+	return *o.V2__
+}
+
+func NewSeitanKeyAndLabelWithV1(v SeitanKeyAndLabelVersion1) SeitanKeyAndLabel {
+	return SeitanKeyAndLabel{
+		V__:  SeitanKeyAndLabelVersion_V1,
 		V1__: &v,
 	}
 }
 
-func NewSeitanIKeyAndLabelDefault(v SeitanIKeyAndLabelVersion) SeitanIKeyAndLabel {
-	return SeitanIKeyAndLabel{
+func NewSeitanKeyAndLabelWithV2(v SeitanKeyAndLabelVersion2) SeitanKeyAndLabel {
+	return SeitanKeyAndLabel{
+		V__:  SeitanKeyAndLabelVersion_V2,
+		V2__: &v,
+	}
+}
+
+func NewSeitanKeyAndLabelDefault(v SeitanKeyAndLabelVersion) SeitanKeyAndLabel {
+	return SeitanKeyAndLabel{
 		V__: v,
 	}
 }
 
-func (o SeitanIKeyAndLabel) DeepCopy() SeitanIKeyAndLabel {
-	return SeitanIKeyAndLabel{
+func (o SeitanKeyAndLabel) DeepCopy() SeitanKeyAndLabel {
+	return SeitanKeyAndLabel{
 		V__: o.V__.DeepCopy(),
-		V1__: (func(x *SeitanIKeyAndLabelVersion1) *SeitanIKeyAndLabelVersion1 {
+		V1__: (func(x *SeitanKeyAndLabelVersion1) *SeitanKeyAndLabelVersion1 {
 			if x == nil {
 				return nil
 			}
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.V1__),
+		V2__: (func(x *SeitanKeyAndLabelVersion2) *SeitanKeyAndLabelVersion2 {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.V2__),
 	}
 }
 
-type SeitanIKeyAndLabelVersion1 struct {
-	I SeitanIKey      `codec:"i" json:"i"`
-	L SeitanIKeyLabel `codec:"l" json:"l"`
+type SeitanKeyAndLabelVersion1 struct {
+	I SeitanIKey     `codec:"i" json:"i"`
+	L SeitanKeyLabel `codec:"l" json:"l"`
 }
 
-func (o SeitanIKeyAndLabelVersion1) DeepCopy() SeitanIKeyAndLabelVersion1 {
-	return SeitanIKeyAndLabelVersion1{
+func (o SeitanKeyAndLabelVersion1) DeepCopy() SeitanKeyAndLabelVersion1 {
+	return SeitanKeyAndLabelVersion1{
 		I: o.I.DeepCopy(),
 		L: o.L.DeepCopy(),
 	}
 }
 
-type SeitanIKeyLabelType int
+type SeitanKeyAndLabelVersion2 struct {
+	K SeitanPubKey   `codec:"k" json:"k"`
+	L SeitanKeyLabel `codec:"l" json:"l"`
+}
+
+func (o SeitanKeyAndLabelVersion2) DeepCopy() SeitanKeyAndLabelVersion2 {
+	return SeitanKeyAndLabelVersion2{
+		K: o.K.DeepCopy(),
+		L: o.L.DeepCopy(),
+	}
+}
+
+type SeitanKeyLabelType int
 
 const (
-	SeitanIKeyLabelType_SMS SeitanIKeyLabelType = 1
+	SeitanKeyLabelType_SMS SeitanKeyLabelType = 1
 )
 
-func (o SeitanIKeyLabelType) DeepCopy() SeitanIKeyLabelType { return o }
+func (o SeitanKeyLabelType) DeepCopy() SeitanKeyLabelType { return o }
 
-var SeitanIKeyLabelTypeMap = map[string]SeitanIKeyLabelType{
+var SeitanKeyLabelTypeMap = map[string]SeitanKeyLabelType{
 	"SMS": 1,
 }
 
-var SeitanIKeyLabelTypeRevMap = map[SeitanIKeyLabelType]string{
+var SeitanKeyLabelTypeRevMap = map[SeitanKeyLabelType]string{
 	1: "SMS",
 }
 
-func (e SeitanIKeyLabelType) String() string {
-	if v, ok := SeitanIKeyLabelTypeRevMap[e]; ok {
+func (e SeitanKeyLabelType) String() string {
+	if v, ok := SeitanKeyLabelTypeRevMap[e]; ok {
 		return v
 	}
 	return ""
 }
 
-type SeitanIKeyLabel struct {
-	T__   SeitanIKeyLabelType `codec:"t" json:"t"`
-	Sms__ *SeitanIKeyLabelSms `codec:"sms,omitempty" json:"sms,omitempty"`
+type SeitanKeyLabel struct {
+	T__   SeitanKeyLabelType `codec:"t" json:"t"`
+	Sms__ *SeitanKeyLabelSms `codec:"sms,omitempty" json:"sms,omitempty"`
 }
 
-func (o *SeitanIKeyLabel) T() (ret SeitanIKeyLabelType, err error) {
+func (o *SeitanKeyLabel) T() (ret SeitanKeyLabelType, err error) {
 	switch o.T__ {
-	case SeitanIKeyLabelType_SMS:
+	case SeitanKeyLabelType_SMS:
 		if o.Sms__ == nil {
 			err = errors.New("unexpected nil value for Sms__")
 			return ret, err
@@ -1330,8 +1387,8 @@ func (o *SeitanIKeyLabel) T() (ret SeitanIKeyLabelType, err error) {
 	return o.T__, nil
 }
 
-func (o SeitanIKeyLabel) Sms() (res SeitanIKeyLabelSms) {
-	if o.T__ != SeitanIKeyLabelType_SMS {
+func (o SeitanKeyLabel) Sms() (res SeitanKeyLabelSms) {
+	if o.T__ != SeitanKeyLabelType_SMS {
 		panic("wrong case accessed")
 	}
 	if o.Sms__ == nil {
@@ -1340,23 +1397,23 @@ func (o SeitanIKeyLabel) Sms() (res SeitanIKeyLabelSms) {
 	return *o.Sms__
 }
 
-func NewSeitanIKeyLabelWithSms(v SeitanIKeyLabelSms) SeitanIKeyLabel {
-	return SeitanIKeyLabel{
-		T__:   SeitanIKeyLabelType_SMS,
+func NewSeitanKeyLabelWithSms(v SeitanKeyLabelSms) SeitanKeyLabel {
+	return SeitanKeyLabel{
+		T__:   SeitanKeyLabelType_SMS,
 		Sms__: &v,
 	}
 }
 
-func NewSeitanIKeyLabelDefault(t SeitanIKeyLabelType) SeitanIKeyLabel {
-	return SeitanIKeyLabel{
+func NewSeitanKeyLabelDefault(t SeitanKeyLabelType) SeitanKeyLabel {
+	return SeitanKeyLabel{
 		T__: t,
 	}
 }
 
-func (o SeitanIKeyLabel) DeepCopy() SeitanIKeyLabel {
-	return SeitanIKeyLabel{
+func (o SeitanKeyLabel) DeepCopy() SeitanKeyLabel {
+	return SeitanKeyLabel{
 		T__: o.T__.DeepCopy(),
-		Sms__: (func(x *SeitanIKeyLabelSms) *SeitanIKeyLabelSms {
+		Sms__: (func(x *SeitanKeyLabelSms) *SeitanKeyLabelSms {
 			if x == nil {
 				return nil
 			}
@@ -1366,13 +1423,13 @@ func (o SeitanIKeyLabel) DeepCopy() SeitanIKeyLabel {
 	}
 }
 
-type SeitanIKeyLabelSms struct {
+type SeitanKeyLabelSms struct {
 	F string `codec:"f" json:"f"`
 	N string `codec:"n" json:"n"`
 }
 
-func (o SeitanIKeyLabelSms) DeepCopy() SeitanIKeyLabelSms {
-	return SeitanIKeyLabelSms{
+func (o SeitanKeyLabelSms) DeepCopy() SeitanKeyLabelSms {
+	return SeitanKeyLabelSms{
 		F: o.F,
 		N: o.N,
 	}
@@ -1927,6 +1984,7 @@ type TeamOperation struct {
 	SetPublicityAny        bool `codec:"setPublicityAny" json:"setPublicityAny"`
 	ListFirst              bool `codec:"listFirst" json:"listFirst"`
 	ChangeTarsDisabled     bool `codec:"changeTarsDisabled" json:"changeTarsDisabled"`
+	DeleteChatHistory      bool `codec:"deleteChatHistory" json:"deleteChatHistory"`
 }
 
 func (o TeamOperation) DeepCopy() TeamOperation {
@@ -1945,6 +2003,7 @@ func (o TeamOperation) DeepCopy() TeamOperation {
 		SetPublicityAny:        o.SetPublicityAny,
 		ListFirst:              o.ListFirst,
 		ChangeTarsDisabled:     o.ChangeTarsDisabled,
+		DeleteChatHistory:      o.DeleteChatHistory,
 	}
 }
 
@@ -2094,10 +2153,17 @@ type TeamSetSettingsArg struct {
 }
 
 type TeamCreateSeitanTokenArg struct {
-	SessionID int             `codec:"sessionID" json:"sessionID"`
-	Name      string          `codec:"name" json:"name"`
-	Role      TeamRole        `codec:"role" json:"role"`
-	Label     SeitanIKeyLabel `codec:"label" json:"label"`
+	SessionID int            `codec:"sessionID" json:"sessionID"`
+	Name      string         `codec:"name" json:"name"`
+	Role      TeamRole       `codec:"role" json:"role"`
+	Label     SeitanKeyLabel `codec:"label" json:"label"`
+}
+
+type TeamCreateSeitanTokenV2Arg struct {
+	SessionID int            `codec:"sessionID" json:"sessionID"`
+	Name      string         `codec:"name" json:"name"`
+	Role      TeamRole       `codec:"role" json:"role"`
+	Label     SeitanKeyLabel `codec:"label" json:"label"`
 }
 
 type TeamAddEmailsBulkArg struct {
@@ -2200,6 +2266,7 @@ type TeamsInterface interface {
 	TeamDelete(context.Context, TeamDeleteArg) error
 	TeamSetSettings(context.Context, TeamSetSettingsArg) error
 	TeamCreateSeitanToken(context.Context, TeamCreateSeitanTokenArg) (SeitanIKey, error)
+	TeamCreateSeitanTokenV2(context.Context, TeamCreateSeitanTokenV2Arg) (SeitanIKeyV2, error)
 	TeamAddEmailsBulk(context.Context, TeamAddEmailsBulkArg) (BulkRes, error)
 	LookupImplicitTeam(context.Context, LookupImplicitTeamArg) (LookupImplicitTeamRes, error)
 	LookupOrCreateImplicitTeam(context.Context, LookupOrCreateImplicitTeamArg) (LookupImplicitTeamRes, error)
@@ -2608,6 +2675,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"teamCreateSeitanTokenV2": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamCreateSeitanTokenV2Arg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamCreateSeitanTokenV2Arg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamCreateSeitanTokenV2Arg)(nil), args)
+						return
+					}
+					ret, err = i.TeamCreateSeitanTokenV2(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"teamAddEmailsBulk": {
 				MakeArg: func() interface{} {
 					ret := make([]TeamAddEmailsBulkArg, 1)
@@ -2974,6 +3057,11 @@ func (c TeamsClient) TeamSetSettings(ctx context.Context, __arg TeamSetSettingsA
 
 func (c TeamsClient) TeamCreateSeitanToken(ctx context.Context, __arg TeamCreateSeitanTokenArg) (res SeitanIKey, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateSeitanToken", []interface{}{__arg}, &res)
+	return
+}
+
+func (c TeamsClient) TeamCreateSeitanTokenV2(ctx context.Context, __arg TeamCreateSeitanTokenV2Arg) (res SeitanIKeyV2, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateSeitanTokenV2", []interface{}{__arg}, &res)
 	return
 }
 

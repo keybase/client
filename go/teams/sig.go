@@ -250,29 +250,15 @@ func seqTypeForTeamPublicness(public bool) keybase1.SeqType {
 
 func precheckLinkToPost(ctx context.Context, g *libkb.GlobalContext,
 	sigMultiItem libkb.SigMultiItem, state *TeamSigChainState, me keybase1.UserVersion) (err error) {
+	return precheckLinksToPost(ctx, g, []libkb.SigMultiItem{sigMultiItem}, state, me)
+}
 
-	defer g.CTraceTimed(ctx, "precheckLinkToPost", func() error { return err })()
+func precheckLinksToPost(ctx context.Context, g *libkb.GlobalContext,
+	sigMultiItems []libkb.SigMultiItem, state *TeamSigChainState, me keybase1.UserVersion) (err error) {
 
-	outerLink, err := libkb.DecodeOuterLinkV2(sigMultiItem.Sig)
-	if err != nil {
-		return fmt.Errorf("unpack outer: %v", err)
-	}
+	defer g.CTraceTimed(ctx, "precheckLinksToPost", func() error { return err })()
 
-	link1 := SCChainLink{
-		Seqno:   outerLink.Seqno,
-		Sig:     sigMultiItem.Sig,
-		Payload: sigMultiItem.SigInner,
-		UID:     me.Uid,
-		Version: 2,
-	}
-	link2, err := unpackChainLink(&link1)
-	if err != nil {
-		return fmt.Errorf("unpack link: %v", err)
-	}
-
-	if link2.isStubbed() {
-		return fmt.Errorf("link missing inner")
-	}
+	var player *TeamSigChainPlayer
 	isAdmin := true
 	if state != nil {
 		role, err := state.GetUserRole(me)
@@ -282,7 +268,6 @@ func precheckLinkToPost(ctx context.Context, g *libkb.GlobalContext,
 		isAdmin = role.IsAdminOrAbove()
 	}
 
-	var player *TeamSigChainPlayer
 	if state == nil {
 		player = NewTeamSigChainPlayer(g, me)
 	} else {
@@ -293,5 +278,34 @@ func precheckLinkToPost(ctx context.Context, g *libkb.GlobalContext,
 		signer:        me,
 		implicitAdmin: !isAdmin,
 	}
-	return player.AppendChainLink(ctx, link2, &signer)
+
+	for _, sigItem := range sigMultiItems {
+		outerLink, err := libkb.DecodeOuterLinkV2(sigItem.Sig)
+		if err != nil {
+			return fmt.Errorf("unpack outer: %v", err)
+		}
+
+		link1 := SCChainLink{
+			Seqno:   outerLink.Seqno,
+			Sig:     sigItem.Sig,
+			Payload: sigItem.SigInner,
+			UID:     me.Uid,
+			Version: 2,
+		}
+		link2, err := unpackChainLink(&link1)
+		if err != nil {
+			return fmt.Errorf("unpack link: %v", err)
+		}
+
+		if link2.isStubbed() {
+			return fmt.Errorf("link missing inner")
+		}
+
+		err = player.AppendChainLink(ctx, link2, &signer)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

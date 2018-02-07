@@ -173,19 +173,21 @@ type PushHandler struct {
 	sync.Mutex
 
 	badger        *badges.Badger
-	identNotifier *IdentifyNotifier
+	identNotifier types.IdentifyNotifier
 	orderer       *gregorMessageOrderer
 	typingMonitor *TypingMonitor
 }
 
 func NewPushHandler(g *globals.Context) *PushHandler {
-	return &PushHandler{
+	p := &PushHandler{
 		Contextified:  globals.NewContextified(g),
 		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "PushHandler", false),
-		identNotifier: NewIdentifyNotifier(g),
+		identNotifier: NewCachingIdentifyNotifier(g),
 		orderer:       newGregorMessageOrderer(g),
 		typingMonitor: NewTypingMonitor(g),
 	}
+	p.identNotifier.ResetOnGUIConnect()
+	return p
 }
 
 func (g *PushHandler) SetBadger(badger *badges.Badger) {
@@ -749,6 +751,48 @@ func (g *PushHandler) Typing(ctx context.Context, m gregor.OutOfBandMessage) (er
 	return nil
 }
 
+func (g *PushHandler) UpgradeKBFSToImpteam(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
+		g.identNotifier)
+	defer g.Trace(ctx, func() error { return err }, "UpgradeKBFSToImpteam")()
+	if m.Body() == nil {
+		return errors.New("gregor handler for upgrade KBFS: nil message body")
+	}
+
+	var update chat1.KBFSImpteamUpgradeUpdate
+	reader := bytes.NewReader(m.Body().Bytes())
+	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
+	err = dec.Decode(&update)
+	if err != nil {
+		return err
+	}
+	uid := gregor1.UID(m.UID().Bytes())
+
+	// Order updates based on inbox version of the update from the server
+	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
+	bctx := BackgroundContext(ctx, g.G())
+	go func(ctx context.Context) (err error) {
+		defer g.Trace(ctx, func() error { return err }, "UpgradeKBFSToImpteam(goroutine)")()
+		<-cb
+		g.Lock()
+		defer g.Unlock()
+		defer g.orderer.CompleteTurn(ctx, uid, update.InboxVers)
+
+		if _, err = g.G().InboxSource.UpgradeKBFSToImpteam(ctx, uid, update.InboxVers,
+			update.ConvID); err != nil {
+			g.Debug(ctx, "UpgradeKBFSToImpteam: failed to update KBFS upgrade: %s", err)
+			return err
+		}
+
+		g.G().NotifyRouter.HandleChatKBFSToImpteamUpgrade(ctx, keybase1.UID(uid.String()), update.ConvID)
+
+		return nil
+	}(bctx)
+
+	return nil
+}
+
 func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
@@ -984,6 +1028,8 @@ func (g *PushHandler) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessag
 		return true, g.SetConvRetention(ctx, obm)
 	case types.PushTeamRetention:
 		return true, g.SetTeamRetention(ctx, obm)
+	case types.PushKBFSUpgrade:
+		return true, g.UpgradeKBFSToImpteam(ctx, obm)
 	}
 
 	return false, nil
