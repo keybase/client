@@ -111,7 +111,7 @@
         // Let the user know they didn't get /keybase.
         NSAlert *alert = [[NSAlert alloc] init];
         [alert setMessageText:[NSString stringWithFormat:@"Success! Your Keybase file system is located at %@.", self.config.mountDir]];
-        [alert addButtonWithTitle:@"OK"];
+        [alert addButtonWithTitle:@"Got it!"];
         [alert setAlertStyle:NSAlertStyleInformational];
         alert.showsSuppressionButton = YES;
         [alert runModal]; // ignore response
