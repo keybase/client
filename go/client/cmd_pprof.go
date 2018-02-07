@@ -5,6 +5,7 @@ package client
 
 import (
 	"errors"
+	"time"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -15,8 +16,8 @@ import (
 
 type CmdPprofTrace struct {
 	libkb.Contextified
-	traceFile            string
-	traceDurationSeconds float64
+	traceFile     string
+	traceDuration time.Duration
 }
 
 func (c *CmdPprofTrace) ParseArgv(ctx *cli.Context) error {
@@ -25,9 +26,9 @@ func (c *CmdPprofTrace) ParseArgv(ctx *cli.Context) error {
 		return errors.New("Trace needs a single file path")
 	}
 	c.traceFile = args.First()
-	c.traceDurationSeconds = ctx.Float64("duration")
-	if c.traceDurationSeconds <= 0 {
-		c.traceDurationSeconds = 5.0
+	c.traceDuration = ctx.Duration("duration")
+	if c.traceDuration <= 0 {
+		c.traceDuration = 5.0
 	}
 	return nil
 }
@@ -43,7 +44,7 @@ func (c *CmdPprofTrace) Run() error {
 	return cli.Trace(context.TODO(), keybase1.TraceArg{
 		SessionID:            0,
 		TraceFile:            c.traceFile,
-		TraceDurationSeconds: keybase1.DurationSec(c.traceDurationSeconds),
+		TraceDurationSeconds: keybase1.DurationSec(float64(c.traceDuration) / float64(time.Second)),
 	})
 }
 
@@ -58,7 +59,8 @@ func NewCmdPprofTrace(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 		Flags: []cli.Flag{
 			cli.DurationFlag{
 				Name:  "duration, d",
-				Usage: "Number of seconds to run the trace (default 5s).",
+				Value: 5 * time.Second,
+				Usage: "How long to run the trace.",
 			},
 		},
 	}
