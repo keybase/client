@@ -163,6 +163,7 @@ func (t *KBFSNameInfoSource) CryptKeys(ctx context.Context, tlfName string) (res
 	if err := group.Wait(); err != nil {
 		return keybase1.GetTLFCryptKeysRes{}, err
 	}
+	res.NameIDBreaks.Breaks.Breaks = ib
 
 	// GUI Strict mode errors are swallowed earlier, return an error now (key is that it is
 	// after send to IdentifyNotifier)
@@ -230,6 +231,7 @@ func (t *KBFSNameInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tl
 	if err := group.Wait(); err != nil {
 		return keybase1.CanonicalTLFNameAndIDWithBreaks{}, err
 	}
+	res.Breaks.Breaks = ib
 
 	// GUI Strict mode errors are swallowed earlier, return an error now (key is that it is
 	// after send to IdentifyNotifier)
