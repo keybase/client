@@ -7,6 +7,7 @@ type Props = {
   openAtLogin: boolean,
   onSetOpenAtLogin: (open: boolean) => void,
   onDBNuke: () => void,
+  onTrace: () => void,
   onBack: () => void,
 }
 
@@ -33,11 +34,11 @@ const Advanced = (props: Props) => (
         />
       </Box>
     )}
-    <DBNuke {...props} />
+    <Developer {...props} />
   </Box>
 )
 
-function DBNuke(props: Props) {
+function Developer(props: Props) {
   return (
     <Box
       style={{
@@ -61,6 +62,15 @@ function DBNuke(props: Props) {
         onClick={props.onDBNuke}
       />
       <Box style={{flex: 1}} />
+      {isMobile && (
+        <Button
+          style={{marginTop: globalMargins.small}}
+          type="Danger"
+          label="Trace (30s)"
+          onClick={props.onTrace}
+        />
+      )}
+      {isMobile && <Box style={{flex: 1}} />}
     </Box>
   )
 }
