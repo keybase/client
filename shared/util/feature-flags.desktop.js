@@ -14,12 +14,14 @@ const featureOn = (key: $Keys<FeatureFlags>) => features.includes(key)
 
 const ff: FeatureFlags = {
   admin: false,
+  deleteChatHistoy: false,
   fsEnabled: false,
   impTeamChatEnabled: true,
   plansEnabled: false,
 }
 
 const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
+  deleteChatHistory: true,
   fsEnabled: true,
   impTeamChatEnabled: true,
 }

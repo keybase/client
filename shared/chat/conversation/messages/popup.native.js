@@ -145,9 +145,7 @@ export default connect(
       dispatch(ChatGen.createDeleteMessage({message}))
     },
     onDeleteMessageHistory: message => {
-      console.warn('calling up')
       dispatch(navigateUp())
-      console.warn('calling append')
       dispatch(navigateAppend([{props: {message}, selected: 'deleteHistoryWarning'}]))
     },
     onHidden: () => dispatch(navigateUp()),

@@ -2,6 +2,7 @@
 
 export type FeatureFlags = {|
   admin: boolean,
+  deleteChatHistory: boolean,
   fsEnabled: boolean,
   impTeamChatEnabled: boolean,
   plansEnabled: boolean,
@@ -9,6 +10,7 @@ export type FeatureFlags = {|
 
 const ff: FeatureFlags = {
   admin: false,
+  deleteChatHistory: false,
   fsEnabled: false,
   impTeamChatEnabled: false,
   plansEnabled: false,
