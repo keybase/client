@@ -40,6 +40,11 @@ func handleQuickVersion() bool {
 	return false
 }
 
+func keybaseExit(exitCode int) {
+    logger.RestoreConsoleMode()
+ 	os.Exit(exitCode)
+}
+
 func main() {
 	err := libkb.SaferDLLLoading()
 
@@ -89,8 +94,7 @@ func main() {
 		}
 	}
 	if g.ExitCode != keybase1.ExitCode_OK {
-		logger.RestoreConsoleMode()
-		os.Exit(int(g.ExitCode))
+		keybaseExit(int(g.ExitCode))
 	}
 }
 
@@ -104,8 +108,7 @@ func warnNonProd(log logger.Logger, e *libkb.Env) {
 func checkSystemUser(log logger.Logger) {
 	if isAdminUser, match, _ := libkb.IsSystemAdminUser(); isAdminUser {
 		log.Errorf("Oops, you are trying to run as an admin user (%s). This isn't supported.", match)
-		logger.RestoreConsoleMode()
-		os.Exit(int(keybase1.ExitCode_NOTOK))
+		keybaseExit(int(keybase1.ExitCode_NOTOK))
 	}
 }
 
@@ -362,8 +365,7 @@ func HandleSignals(g *libkb.GlobalContext) {
 			g.Log.Debug("calling shutdown")
 			g.Shutdown()
 			g.Log.Error("interrupted")
-			logger.RestoreConsoleMode()
-			os.Exit(3)
+			keybaseExit(3)
 		}
 	}
 }
