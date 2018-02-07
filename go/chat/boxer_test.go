@@ -1419,6 +1419,8 @@ func NewKeyFinderMock(cryptKeys []keybase1.CryptKey) KeyFinder {
 	return &KeyFinderMock{cryptKeys}
 }
 
+func (k *KeyFinderMock) Reset() {}
+
 func (k *KeyFinderMock) Find(ctx context.Context, tlfName string,
 	membersType chat1.ConversationMembersType, tlfPublic bool) (res *types.NameInfo, err error) {
 	res = types.NewNameInfo()
