@@ -57,7 +57,7 @@ class StorybookErrorBoundary extends React.Component<
               whiteSpace: 'pre-line',
             }}
           >
-            <Text type="Terminal" backgroundMode="Terminal" style={globalStyles.selectable}>
+            <Text type="Terminal" backgroundMode="Terminal" selectable={true}>
               {this.state.error && this.state.error.toString()}
               {this.state.info && this.state.info.componentStack}
             </Text>
