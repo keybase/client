@@ -216,9 +216,8 @@ func (b *Boxer) getEffectiveMembersType(ctx context.Context, boxed chat1.Message
 // Permanent errors can be cached and must be treated as a value to deal with,
 // whereas temporary errors are transient failures.
 func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv unboxConversationInfo) (m chat1.MessageUnboxed, uberr UnboxingError) {
-	b.Debug(ctx, "+ UnboxMessage for convID %s msg_id %s", conv.GetConvID().String(), boxed.GetMessageID().String())
-	defer b.Debug(ctx, "- UnboxMessage for convID %s msg_id %s -> %s", conv.GetConvID().String(),
-		boxed.GetMessageID().String(), libkb.ErrToOk(uberr))
+	defer b.Trace(ctx, func() error { return uberr }, "UnboxMessage(%s, %d)", conv.GetConvID(),
+		boxed.GetMessageID())()
 	tlfName := boxed.ClientHeader.TLFNameExpanded(conv.GetFinalizeInfo())
 	keyMembersType := b.getEffectiveMembersType(ctx, boxed, conv.GetMembersType())
 	nameInfo, err := CtxKeyFinder(ctx, b.G()).FindForDecryption(ctx,
@@ -966,6 +965,7 @@ func (b *Boxer) getAtMentionInfo(ctx context.Context, tlfID chat1.TLFID,
 }
 
 func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed, conv unboxConversationInfo) (unboxed []chat1.MessageUnboxed, err error) {
+	defer b.Trace(ctx, func() error { return err }, "UnboxMessages(%s)", conv.GetConvID())()
 	for _, msg := range boxed {
 		decmsg, err := b.UnboxMessage(ctx, msg, conv)
 		if err != nil {
@@ -998,7 +998,8 @@ func (b *Boxer) latestMerkleRoot(ctx context.Context) (*chat1.MerkleRoot, error)
 // finds the most recent key for the TLF.
 func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
 	membersType chat1.ConversationMembersType,
-	signingKeyPair libkb.NaclSigningKeyPair) (*chat1.MessageBoxed, error) {
+	signingKeyPair libkb.NaclSigningKeyPair) (res *chat1.MessageBoxed, err error) {
+	defer b.Trace(ctx, func() error { return err }, "BoxMessage")()
 	tlfName := msg.ClientHeader.TlfName
 	var encryptionKey types.CryptKey
 

@@ -3,6 +3,7 @@ package libkb
 import (
 	"errors"
 	"fmt"
+	"runtime/debug"
 	"time"
 
 	lru "github.com/hashicorp/golang-lru"
@@ -246,6 +247,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 
 	defer g.CVTrace(ctx, VLog0, culDebug(arg.uid), func() error { return err })()
 
+	debug.PrintStack()
 	if arg.uid.IsNil() {
 		if len(arg.name) == 0 {
 			return nil, nil, errors.New("need a UID or username to load UPAK from loader")
