@@ -110,7 +110,6 @@ type ChainLinkUnpacked struct {
 	stubbed                            bool
 	firstAppearedMerkleSeqnoUnverified keybase1.Seqno
 	payloadHash                        []byte
-	sigDropped                         bool
 	hasRevocations                     bool
 	merkleSeqno                        keybase1.Seqno
 	merkleHashMeta                     keybase1.HashMeta
@@ -941,10 +940,6 @@ func (c *ChainLink) VerifySigWithKeyFamily(ckf ComputedKeyFamily) (err error) {
 
 	if c.IsStubbed() {
 		return ChainLinkError{"cannot verify signature -- none available; is this a stubbed out link?"}
-	}
-
-	if c.unpacked != nil && c.unpacked.sigDropped {
-		return ChainLinkError{"cannot verify signature -- none available; sig dropped intentionally."}
 	}
 
 	verifyKID, err = c.checkServerSignatureMetadata(ckf)
