@@ -638,6 +638,7 @@ func TestTeamRemoveAfterReset(t *testing.T) {
 	joe.reset()
 	divDebug(ctx, "Reset joe (%s), not re-provisioning though!", joe.username)
 
+	kickTeamRekeyd(ann.getPrimaryGlobalContext(), t)
 	ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2), nil)
 
 	cli := ann.getTeamsClient()
@@ -683,6 +684,7 @@ func TestTeamReAddAfterReset(t *testing.T) {
 	bob.loginAfterReset(10)
 	divDebug(ctx, "Bob logged in after reset")
 
+	kickTeamRekeyd(ann.getPrimaryGlobalContext(), t)
 	ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2), nil)
 
 	cli := ann.getTeamsClient()
