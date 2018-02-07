@@ -430,7 +430,10 @@ type messageView struct {
 }
 
 func formatSystemMessage(body chat1.MessageSystem) string {
-	typ, _ := body.SystemType()
+	typ, err := body.SystemType()
+	if err != nil {
+		return "<unknown system message>"
+	}
 	switch typ {
 	case chat1.MessageSystemType_ADDEDTOTEAM:
 		return fmt.Sprintf("[Added @%s to the team]", body.Addedtoteam().Addee)
