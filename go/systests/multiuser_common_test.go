@@ -401,6 +401,7 @@ func (u *smuUser) pollForMembershipUpdate(team smuTeam, kg keybase1.PerTeamKeyGe
 		}
 		i++
 		u.ctx.log.Debug("in pollForMembershipUpdate: iter=%d; missed it, now waiting for %s (latest details.KG = %d; poller=%v)", i, wait, details.KeyGeneration, (poller != nil))
+		kickTeamRekeyd(u.getPrimaryGlobalContext(), u.ctx.t)
 		time.Sleep(wait)
 		totalWait += wait
 		wait = wait * 2
