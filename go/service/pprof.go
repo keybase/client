@@ -32,7 +32,7 @@ func NewPprofHandler(xp rpc.Transporter, g *libkb.GlobalContext) *PprofHandler {
 func (c *PprofHandler) Trace(_ context.Context, arg keybase1.TraceArg) (err error) {
 	sessionID := arg.SessionID
 	traceFile := arg.TraceFile
-	traceDurationSeconds := arg.TraceDurationSeconds
+	traceDurationSeconds := float64(arg.TraceDurationSeconds)
 
 	ctx := engine.Context{
 		LogUI:     c.getLogUI(sessionID),
@@ -66,7 +66,7 @@ func (c *PprofHandler) Trace(_ context.Context, arg keybase1.TraceArg) (err erro
 	c.G().Log.Info("Tracing to %s for %f second(s)", traceFile, traceDurationSeconds)
 
 	go func() {
-		time.Sleep(time.Duration(float64(traceDurationSeconds) * float64(time.Second)))
+		time.Sleep(time.Duration(traceDurationSeconds * float64(time.Second)))
 		trace.Stop()
 		close(f)
 		c.G().Log.Info("Tracing to %s done", traceFile)
