@@ -136,7 +136,6 @@ export default class AppState {
     // Electron has a bug where app.setLoginItemSettings() to false fails!
     // https://github.com/electron/electron/issues/10880
     if (isDarwin) {
-      // app.setLoginItemSettings({openAtLogin: !!this.state.openAtLogin})
       this.setDarwinLoginState()
     } else if (isWindows) {
       this.setWinLoginState()
