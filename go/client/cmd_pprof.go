@@ -52,7 +52,7 @@ func NewCmdPprofTrace(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 	return cli.Command{
 		Name:         "trace",
 		ArgumentHelp: "/path/to/trace.out",
-		Usage:        "Run an execution trace",
+		Usage:        "Run an execution trace asynchronously.",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdPprofTraceRunner(g), "trace", c)
 		},
