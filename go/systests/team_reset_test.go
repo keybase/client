@@ -53,12 +53,11 @@ func readChatsWithErrorAndDevice(team smuTeam, u *smuUser, dev *smuDeviceWrapper
 			return messages, nil
 		}
 
-		if err != nil && !strings.Contains(err.Error(), "KBFS client not found") {
-			// Only retry on KBFS errors
-			return messages, err
+		if err != nil {
+			u.ctx.t.Logf("readChatsWithError failure: %s", err.Error())
 		}
 
-		u.ctx.t.Logf("readChatsWithError polling for KBFS")
+		u.ctx.t.Logf("readChatsWithError trying again")
 		time.Sleep(wait)
 		totalWait += wait
 	}

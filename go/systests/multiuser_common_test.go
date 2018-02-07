@@ -381,7 +381,7 @@ func (u *smuUser) getTeamsClient() keybase1.TeamsClient {
 }
 
 func (u *smuUser) pollForMembershipUpdate(team smuTeam, kg keybase1.PerTeamKeyGeneration, poller func(d keybase1.TeamDetails) bool) keybase1.TeamDetails {
-	wait := 10 * time.Millisecond
+	wait := 100 * time.Millisecond
 	var totalWait time.Duration
 	i := 0
 	for {
