@@ -94,6 +94,7 @@ type ChainLinkUnpacked struct {
 	seqno                              keybase1.Seqno
 	seqType                            keybase1.SeqType
 	ignoreIfUnsupported                bool
+	payloadLocal                       []byte // local track payloads
 	payloadV2                          []byte
 	ctime, etime                       int64
 	pgpFingerprint                     *PGPFingerprint
@@ -384,7 +385,7 @@ func (c *ChainLink) GetRevocations() []keybase1.SigID {
 	if c.IsStubbed() {
 		return nil
 	}
-	payload, err := c.unpacked.SigPayload()
+	payload, err := c.unpacked.Payload()
 	if err != nil {
 		return nil
 	}
@@ -409,7 +410,7 @@ func (c *ChainLink) GetRevokeKids() []keybase1.KID {
 		return nil
 	}
 
-	payload, err := c.unpacked.SigPayload()
+	payload, err := c.unpacked.Payload()
 	if err != nil {
 		return nil
 	}
@@ -537,6 +538,7 @@ func (c *ChainLink) UnpackLocal(payload []byte) (err error) {
 	tmp := ChainLinkUnpacked{}
 	err = tmp.unpackPayloadJSON(payload)
 	if err == nil {
+		tmp.payloadLocal = payload
 		c.unpacked = &tmp
 	}
 	return
@@ -618,7 +620,7 @@ func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID, packed []byte) er
 	var payload []byte
 	if trusted {
 		// use payload from sig
-		payload, err = tmp.SigPayload()
+		payload, err = tmp.Payload()
 		if err != nil {
 			return err
 		}
@@ -638,7 +640,7 @@ func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID, packed []byte) er
 
 		if tmp.sigVersion == 1 {
 			// check that payload_json matches payload in sig
-			sigPayload, err := tmp.SigPayload()
+			sigPayload, err := tmp.Payload()
 			if err != nil {
 				return err
 			}
@@ -741,12 +743,20 @@ func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID, packed []byte) er
 	return nil
 }
 
-func (tmp *ChainLinkUnpacked) SigPayload() ([]byte, error) {
+func (tmp *ChainLinkUnpacked) Payload() ([]byte, error) {
+	// local track payloads are stored in ChainLinkUnpacked.
+	// if anything there, use it:
+	if len(tmp.payloadLocal) > 0 {
+		return tmp.payloadLocal, nil
+	}
+
 	switch tmp.sigVersion {
 	case 1:
+		// v1 links have the payload inside the sig
 		sigPayload, _, _, err := SigExtractPayloadAndKID(tmp.sig)
 		return sigPayload, err
 	case 2:
+		// v2 links have the payload in ChainLinkUnpacked
 		return tmp.payloadV2, nil
 	default:
 		return nil, ChainLinkError{msg: fmt.Sprintf("unexpected signature version: %d", tmp.sigVersion)}
@@ -816,10 +826,10 @@ func (c *ChainLink) verifyHashV1() error {
 	return nil
 }
 
-// getFixedPayload usually just returns c.unpacked.SigPayload(), but sometimes
+// getFixedPayload usually just returns c.unpacked.Payload(), but sometimes
 // it adds extra whitespace to work around server-side bugs.
 func (c ChainLink) getFixedPayload() []byte {
-	payload, err := c.unpacked.SigPayload()
+	payload, err := c.unpacked.Payload()
 	if err != nil {
 		return nil
 	}
