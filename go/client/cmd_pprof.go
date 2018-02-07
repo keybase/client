@@ -26,6 +26,9 @@ func (c *CmdPprofTrace) ParseArgv(ctx *cli.Context) error {
 	}
 	c.traceFile = args.First()
 	c.traceDurationSeconds = ctx.Float64("duration")
+	if c.traceDurationSeconds <= 0 {
+		c.traceDurationSeconds = 5.0
+	}
 	return nil
 }
 
@@ -55,7 +58,7 @@ func NewCmdPprofTrace(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 		Flags: []cli.Flag{
 			cli.DurationFlag{
 				Name:  "duration, d",
-				Usage: "Number of seconds to run the trace.",
+				Usage: "Number of seconds to run the trace (default 5s).",
 			},
 		},
 	}
