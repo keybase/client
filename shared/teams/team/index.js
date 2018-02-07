@@ -588,7 +588,7 @@ class Team extends React.PureComponent<Props> {
                   </Box>
                 </Box>
               )}
-              {yourOperations.changeTarsDisabled && (
+              {!openTeam && yourOperations.changeTarsDisabled && (
                 <Box style={stylesSettingsTabRow}>
                   <Box style={stylesPublicitySettingsBox}>
                     <Checkbox checked={ignoreAccessRequests} label="" onCheck={setIgnoreAccessRequests} />
