@@ -66,6 +66,7 @@
     "setAllowDeleteAccount": {
       "allow": "boolean"
     },
+    "trace": {},
     "waitingForResponse": {
       "waiting": "boolean"
     }
