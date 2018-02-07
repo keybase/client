@@ -8,10 +8,10 @@
 package engine
 
 import (
-	"testing"
-
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"golang.org/x/net/context"
+	"testing"
 )
 
 func TestAccountDelete(t *testing.T) {
@@ -26,7 +26,27 @@ func TestAccountDelete(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc.G, fu.Username))
+	_, res, err := tc.G.Resolver.ResolveUser(context.TODO(), fu.Username)
+	if err != nil {
+		t.Fatalf("got an error, but didn't expect one: %v", err)
+	}
+	err = res.GetError()
+	if err != nil {
+		t.Fatal("Did not expect a result back from the resolver")
+	}
+	if !res.GetDeleted() {
+		t.Fatal("expected to get a deleted user")
+	}
+	tmp := res.FailOnDeleted()
+	err = tmp.GetError()
+	if err == nil {
+		t.Fatal("expected a failure on deletion")
+	}
+	if _, ok := err.(libkb.DeletedError); !ok {
+		t.Fatal("expected a libkb.DeletedError")
+	}
+
+	_, err = libkb.LoadUser(libkb.NewLoadUserByNameArg(tc.G, fu.Username))
 	if err == nil {
 		t.Fatal("no error loading deleted user")
 	}
