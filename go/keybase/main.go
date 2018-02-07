@@ -41,8 +41,8 @@ func handleQuickVersion() bool {
 }
 
 func keybaseExit(exitCode int) {
-    logger.RestoreConsoleMode()
- 	os.Exit(exitCode)
+	logger.RestoreConsoleMode()
+	os.Exit(exitCode)
 }
 
 func main() {
