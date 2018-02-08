@@ -72,6 +72,10 @@ func (cid ConversationID) DbShortForm() []byte {
 	return cid[:DbShortFormLen]
 }
 
+func (cid ConversationID) DbShortFormString() string {
+	return hex.EncodeToString(cid.DbShortForm())
+}
+
 func MakeTLFID(val string) (TLFID, error) {
 	return hex.DecodeString(val)
 }
