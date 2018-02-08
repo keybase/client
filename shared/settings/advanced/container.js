@@ -3,12 +3,14 @@ import * as ConfigGen from '../../actions/config-gen'
 import {createTrace} from '../../actions/settings-gen'
 import {navigateAppend, navigateUp} from '../../actions/route-tree'
 import {HeaderHoc} from '../../common-adapters'
+import * as Constants from '../../constants/settings'
 import {compose} from 'recompose'
 import Advanced from './index'
 import {connect, type TypedState} from '../../util/container'
 
 const mapStateToProps = (state: TypedState) => ({
   openAtLogin: state.config.openAtLogin,
+  traceInProgress: Constants.traceInProgress(state),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

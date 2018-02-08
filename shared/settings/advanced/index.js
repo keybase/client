@@ -9,6 +9,7 @@ type Props = {
   onDBNuke: () => void,
   onTrace: (durationSeconds: number) => void,
   onBack: () => void,
+  traceInProgress: boolean,
 }
 
 const Advanced = (props: Props) => (
@@ -40,31 +41,20 @@ const Advanced = (props: Props) => (
 
 type TraceButtonProps = {
   durationSeconds: number,
+  traceInProgress: boolean,
   onTrace: (durationSeconds: number) => void,
 }
 
-type TraceButtonState = {
-  enabled: boolean,
-}
-
-class TraceButton extends React.Component<TraceButtonProps, TraceButtonState> {
-  state = {
-    enabled: true,
-  }
-
+class TraceButton extends React.Component<TraceButtonProps> {
   _onClick = () => {
-    this.setState({enabled: false})
     this.props.onTrace(this.props.durationSeconds)
-    setTimeout(() => {
-      this.setState({enabled: true})
-    }, this.props.durationSeconds * 1000)
   }
 
   render() {
     const label = `Trace (${this.props.durationSeconds}s)`
     return (
       <Button
-        disabled={!this.state.enabled}
+        disabled={this.props.traceInProgress}
         style={{marginTop: globalMargins.small}}
         type="Danger"
         label={label}
@@ -97,7 +87,7 @@ function Developer(props: Props) {
         label="DB Nuke"
         onClick={props.onDBNuke}
       />
-      <TraceButton durationSeconds={30} onTrace={props.onTrace} />
+      <TraceButton durationSeconds={30} onTrace={props.onTrace} traceInProgress={props.traceInProgress} />
       <Box style={{flex: 1}} />
     </Box>
   )
