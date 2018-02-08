@@ -47,6 +47,22 @@ class PanZoomCalculator {
     }
   }
 
+  updateTouches = (touches: Touch[]) => {
+    for (const touch of touches) {
+      if (this.initialTouch1 && this.initialTouch1.identifier === touch.identifier) {
+        this.touch1 = touch
+      } else if (this.initialTouch2 && this.initialTouch2.identifier === touch.identifier) {
+        this.touch2 = touch
+      } else if (!this.initialTouch1) {
+        this.initialTouch1 = touch
+        this.touch1 = touch
+      } else if (!this.initialTouch2) {
+        this.initialTouch2 = touch
+        this.touch2 = touch
+      }
+    }
+  }
+
   panOffset = (): {x: number, y: number} => {
     let deltaX1: number = 0
     let deltaX2: number = 0
@@ -101,10 +117,8 @@ class ZoomableBox extends React.Component<Props, State> {
       onMoveShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponderCapture: () => true,
       onPanResponderGrant: (evt, gestureState) => {
-        for (const touch of evt.nativeEvent.changedTouches) {
-          // $FlowIssue conversion from native type to our type
-          this._panZoomCalculator.addTouch(touch)
-        }
+        // $FlowIssue conversion from native type to our type
+        this._panZoomCalculator.updateTouches(evt.nativeEvent.touches)
       },
       onPanResponderMove: (evt, gestureState) => {
         // magic happens here
@@ -130,14 +144,12 @@ class ZoomableBox extends React.Component<Props, State> {
         //   )
         // )
 
-        for (const touch of evt.nativeEvent.changedTouches) {
-          // $FlowIssue conversion from native type to our type
-          this._panZoomCalculator.updateTouch(touch)
-          const panOffset = this._panZoomCalculator.panOffset()
-          this.setState({
-            panOffset,
-          })
-        }
+        // $FlowIssue conversion from native type to our type
+        this._panZoomCalculator.updateTouches(evt.nativeEvent.touches)
+        const panOffset = this._panZoomCalculator.panOffset()
+        this.setState({
+          panOffset,
+        })
       },
       onPanResponderRelease: (evt, gestureState) => {
         this.setState({
