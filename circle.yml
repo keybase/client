@@ -15,8 +15,8 @@ machine:
     GOPATH: $HOME/go-path
     PATH: $GOROOT/bin:$PATH
     # Limit memory usage of gradle
-    _JAVA_OPTIONS: "-Xms512m -Xmx1024g"
-    GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx1024g -XX:+HeapDumpOnOutOfMemoryError"'
+    _JAVA_OPTIONS: "-Xms512m -Xmx1024m"
+    GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx1024m -XX:+HeapDumpOnOutOfMemoryError"'
     REACT_NATIVE_MAX_WORKERS: 1
     # Some node dependencies break without this
     CXX: g++-4.8
@@ -72,7 +72,7 @@ dependencies:
     - ls -la $GOPATH/src/github.com/keybase/client/shared/react-native/android/keybaselib/keybaselib.aar
 test:
   pre:
-    - mkdir -p react-native/android/app/build/intermediates/assets/releaseUnsigned/
+    - mkdir -p react-native/android/app/build/intermediates/assets/releaseUnsigned
     - mkdir -p react-native/android/app/build/intermediates/res/merged/releaseUnsigned
   override:
     # TODO(mm) uncomment these device tests (see todo above)
