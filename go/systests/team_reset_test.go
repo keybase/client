@@ -749,13 +749,13 @@ func TestTeamReAddAfterReset(t *testing.T) {
 
 	sendChat(team, ann, "0")
 
+	kickTeamRekeyd(ann.getPrimaryGlobalContext(), t)
 	bob.reset()
 	divDebug(ctx, "Reset bob (%s)", bob.username)
 
 	bob.loginAfterReset(10)
 	divDebug(ctx, "Bob logged in after reset")
 
-	kickTeamRekeyd(ann.getPrimaryGlobalContext(), t)
 	ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2), nil)
 
 	cli := ann.getTeamsClient()
@@ -876,7 +876,11 @@ func TestTeamAfterDeleteUser(t *testing.T) {
 	sendChat(team, ann, "0")
 	divDebug(ctx, "Sent chat '0' (%s via %s)", team.name, ann.username)
 
+	kickTeamRekeyd(ann.getPrimaryGlobalContext(), t)
 	ann.delete()
+
+	bob.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2), nil)
+
 	divDebug(ctx, "Deleted ann (%s)", ann.username)
 
 	_, err := bob.teamGet(team)
