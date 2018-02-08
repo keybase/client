@@ -173,19 +173,21 @@ type PushHandler struct {
 	sync.Mutex
 
 	badger        *badges.Badger
-	identNotifier *IdentifyNotifier
+	identNotifier types.IdentifyNotifier
 	orderer       *gregorMessageOrderer
 	typingMonitor *TypingMonitor
 }
 
 func NewPushHandler(g *globals.Context) *PushHandler {
-	return &PushHandler{
+	p := &PushHandler{
 		Contextified:  globals.NewContextified(g),
 		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "PushHandler", false),
-		identNotifier: NewIdentifyNotifier(g),
+		identNotifier: NewCachingIdentifyNotifier(g),
 		orderer:       newGregorMessageOrderer(g),
 		typingMonitor: NewTypingMonitor(g),
 	}
+	p.identNotifier.ResetOnGUIConnect()
+	return p
 }
 
 func (g *PushHandler) SetBadger(badger *badges.Badger) {

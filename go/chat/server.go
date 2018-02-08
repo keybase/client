@@ -14,6 +14,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/teams"
 
 	"encoding/base64"
@@ -52,7 +53,7 @@ type Server struct {
 	uiSource      UISource
 	boxer         *Boxer
 	store         *AttachmentStore
-	identNotifier *IdentifyNotifier
+	identNotifier types.IdentifyNotifier
 
 	// Only for testing
 	rc                chat1.RemoteInterface
@@ -71,7 +72,7 @@ func NewServer(g *globals.Context, store *AttachmentStore, serverConn ServerConn
 		uiSource:      uiSource,
 		store:         store,
 		boxer:         NewBoxer(g),
-		identNotifier: NewIdentifyNotifier(g),
+		identNotifier: NewCachingIdentifyNotifier(g),
 	}
 }
 
@@ -1724,7 +1725,7 @@ func (h *Server) CancelPost(ctx context.Context, outboxID chat1.OutboxID) (err e
 	return outbox.RemoveMessage(ctx, outboxID)
 }
 
-func (h *Server) RetryPost(ctx context.Context, outboxID chat1.OutboxID) (err error) {
+func (h *Server) RetryPost(ctx context.Context, arg chat1.RetryPostArg) (err error) {
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "RetryPost")()
 	if err = h.assertLoggedIn(ctx); err != nil {
@@ -1734,7 +1735,7 @@ func (h *Server) RetryPost(ctx context.Context, outboxID chat1.OutboxID) (err er
 	// Mark as retry in the outbox
 	uid := h.G().Env.GetUID()
 	outbox := storage.NewOutbox(h.G(), uid.ToBytes())
-	if err = outbox.RetryMessage(ctx, outboxID); err != nil {
+	if err = outbox.RetryMessage(ctx, arg.OutboxID, arg.IdentifyBehavior); err != nil {
 		return err
 	}
 
@@ -2422,12 +2423,13 @@ func (h *Server) sendRemoteNotificationSuccessful(ctx context.Context, pushIDs [
 		}
 		conn = rpc.NewTLSConnection(rpc.NewFixedRemote(uri.HostPort),
 			[]byte(rawCA), libkb.NewContextifiedErrorUnwrapper(h.G().ExternalG()),
-			&remoteNotificationSuccessHandler{}, libkb.NewRPCLogFactory(h.G().ExternalG()), h.G().Log,
-			rpc.ConnectionOpts{})
+			&remoteNotificationSuccessHandler{}, libkb.NewRPCLogFactory(h.G().ExternalG()),
+			logger.LogOutputWithDepthAdder{Logger: h.G().Log}, rpc.ConnectionOpts{})
 	} else {
 		t := rpc.NewConnectionTransport(uri, nil, libkb.MakeWrapError(h.G().ExternalG()))
 		conn = rpc.NewConnectionWithTransport(&remoteNotificationSuccessHandler{}, t,
-			libkb.NewContextifiedErrorUnwrapper(h.G().ExternalG()), h.G().Log, rpc.ConnectionOpts{})
+			libkb.NewContextifiedErrorUnwrapper(h.G().ExternalG()),
+			logger.LogOutputWithDepthAdder{Logger: h.G().Log}, rpc.ConnectionOpts{})
 	}
 	defer conn.Shutdown()
 

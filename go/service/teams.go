@@ -377,6 +377,14 @@ func (h *TeamsHandler) TeamCreateSeitanToken(ctx context.Context, arg keybase1.T
 	return teams.CreateSeitanToken(ctx, h.G().ExternalG(), arg.Name, arg.Role, arg.Label)
 }
 
+func (h *TeamsHandler) TeamCreateSeitanTokenV2(ctx context.Context, arg keybase1.TeamCreateSeitanTokenV2Arg) (token keybase1.SeitanIKeyV2, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return "", err
+	}
+	return teams.CreateSeitanTokenV2(ctx, h.G().ExternalG(), arg.Name, arg.Role, arg.Label)
+}
+
 func (h *TeamsHandler) GetTeamRootID(ctx context.Context, id keybase1.TeamID) (keybase1.TeamID, error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	return teams.GetRootID(ctx, h.G().ExternalG(), id)

@@ -85,7 +85,7 @@ const _leaveTeam = function(action: TeamsGen.LeaveTeamPayload) {
 
 const _addPeopleToTeam = function*(action: TeamsGen.AddPeopleToTeamPayload) {
   const {role, teamname, sendChatNotification} = action.payload
-  yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
+  yield Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   const state: TypedState = yield Saga.select()
   const ids = SearchConstants.getUserInputItemIds(state, {searchKey: 'addToTeamSearch'})
   for (const id of ids) {
@@ -97,12 +97,12 @@ const _addPeopleToTeam = function*(action: TeamsGen.AddPeopleToTeamPayload) {
       sendChatNotification,
     })
   }
-  yield Saga.put((dispatch: Dispatch) => dispatch(TeamsGen.createGetDetails({teamname}))) // getDetails will unset loading
+  yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
 }
 
 const _inviteByEmail = function*(action: TeamsGen.InviteToTeamByEmailPayload) {
   const {invitees, role, teamname} = action.payload
-  yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
+  yield Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   yield Saga.put(
     replaceEntity(['teams', 'teamNameToLoadingInvites'], I.Map([[teamname, I.Map([[invitees, true]])]]))
   )
@@ -116,15 +116,15 @@ const _inviteByEmail = function*(action: TeamsGen.InviteToTeamByEmailPayload) {
       throw new Error(`Unable to parse email addresses: ${res.malformed.join('; ')}`)
     }
   } finally {
-    // TODO handle error, but for now make sure loading is unset
-    yield Saga.put((dispatch: Dispatch) => dispatch(TeamsGen.createGetDetails({teamname}))) // getDetails will unset loading
+    // TODO handle error
+    yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
     yield Saga.put(replaceEntity(['teams', 'teamNameToLoadingInvites', teamname], I.Map([[invitees, false]])))
   }
 }
 
 const _addToTeam = function*(action: TeamsGen.AddToTeamPayload) {
   const {teamname, email, username, role, sendChatNotification} = action.payload
-  yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
+  yield Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   try {
     yield Saga.call(RPCTypes.teamsTeamAddMemberRpcPromise, {
       name: teamname,
@@ -134,27 +134,29 @@ const _addToTeam = function*(action: TeamsGen.AddToTeamPayload) {
       sendChatNotification,
     })
   } finally {
-    // TODO handle error, but for now make sure loading is unset
-    yield Saga.put((dispatch: Dispatch) => dispatch(TeamsGen.createGetDetails({teamname}))) // getDetails will unset loading
+    // TODO handle error
+    yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   }
 }
 
 const _editDescription = function*(action: TeamsGen.EditTeamDescriptionPayload) {
   const {teamname, description} = action.payload
-  yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
+  yield Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   try {
     yield Saga.call(RPCTypes.teamsSetTeamShowcaseRpcPromise, {
       description,
       name: teamname,
     })
   } finally {
-    yield Saga.put((dispatch: Dispatch) => dispatch(TeamsGen.createGetDetails({teamname}))) // getDetails will unset loading
+    yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
+    // TODO We don't get a team changed notification for this. Delete this call when CORE-7125 is finished.
+    yield Saga.put((dispatch: Dispatch) => dispatch(TeamsGen.createGetDetails({teamname})))
   }
 }
 
 const _editMembership = function*(action: TeamsGen.EditMembershipPayload) {
   const {teamname, username, role} = action.payload
-  yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
+  yield Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   try {
     yield Saga.call(RPCTypes.teamsTeamEditMemberRpcPromise, {
       name: teamname,
@@ -162,7 +164,7 @@ const _editMembership = function*(action: TeamsGen.EditMembershipPayload) {
       role: role ? RPCTypes.teamsTeamRole[role] : RPCTypes.teamsTeamRole.none,
     })
   } finally {
-    yield Saga.put((dispatch: Dispatch) => dispatch(TeamsGen.createGetDetails({teamname}))) // getDetails will unset loading
+    yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   }
 }
 
@@ -183,11 +185,11 @@ const _removeMemberOrPendingInvite = function*(action: TeamsGen.RemoveMemberOrPe
     throw new Error(errMsg)
   }
 
-  yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
+  yield Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   try {
     yield Saga.call(RPCTypes.teamsTeamRemoveMemberRpcPromise, {email, name: teamname, username, inviteID})
   } finally {
-    yield Saga.put((dispatch: Dispatch) => dispatch(TeamsGen.createGetDetails({teamname}))) // getDetails will unset loading
+    yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
     yield Saga.put(
       replaceEntity(
         ['teams', 'teamNameToLoadingInvites'],
@@ -215,7 +217,7 @@ const _inviteToTeamByPhone = function*(action: TeamsGen.InviteToTeamByPhonePaylo
   const seitan = yield Saga.call(RPCTypes.teamsTeamCreateSeitanTokenRpcPromise, {
     name: teamname,
     role: (!!role && RPCTypes.teamsTeamRole[role]) || 0,
-    label: {t: 1, sms: ({f: fullName || '', n: phoneNumber}: RPCTypes.SeitanIKeyLabelSms)},
+    label: {t: 1, sms: ({f: fullName || '', n: phoneNumber}: RPCTypes.SeitanKeyLabelSms)},
   })
 
   /* Open SMS */
@@ -227,7 +229,7 @@ const _inviteToTeamByPhone = function*(action: TeamsGen.InviteToTeamByPhonePaylo
 
 const _ignoreRequest = function*(action: TeamsGen.IgnoreRequestPayload) {
   const {teamname, username} = action.payload
-  yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
+  yield Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   try {
     yield Saga.call(RPCTypes.teamsTeamIgnoreRequestRpcPromise, {
       name: teamname,
@@ -235,6 +237,8 @@ const _ignoreRequest = function*(action: TeamsGen.IgnoreRequestPayload) {
     })
   } finally {
     // TODO handle error, but for now make sure loading is unset
+    yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
+    // TODO get rid of this once core sends us a notification for this (CORE-7125)
     yield Saga.put((dispatch: Dispatch) => dispatch(TeamsGen.createGetDetails({teamname}))) // getDetails will unset loading
   }
 }
@@ -291,11 +295,8 @@ const _createNewTeamFromConversation = function*(
 
 const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGenerator<any, any> {
   const teamname = action.payload.teamname
-  const waitingKey = {key: `getDetails:${teamname}`}
-  // TODO completely replace teamNameToLoading with createIncrementWaiting?
-  yield Saga.put(createIncrementWaiting(waitingKey))
+  yield Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   yield Saga.put(TeamsGen.createGetTeamOperations({teamname}))
-  yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
   try {
     const unsafeDetails: RPCTypes.TeamDetails = yield Saga.call(RPCTypes.teamsTeamGetRpcPromise, {
       forceRepoll: false,
@@ -408,8 +409,7 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
       Saga.put(replaceEntity(['teams', 'teamNameToSubteams'], I.Map([[teamname, I.Set(subteams)]]))),
     ])
   } finally {
-    yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, false]])))
-    yield Saga.put(createDecrementWaiting(waitingKey))
+    yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   }
 }
 
@@ -418,14 +418,14 @@ const _getTeamOperations = function*(
 ): Saga.SagaGenerator<any, any> {
   const teamname = action.payload.teamname
 
-  yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
+  yield Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   try {
     const teamOperation = yield Saga.call(RPCTypes.teamsCanUserPerformRpcPromise, {
       name: teamname,
     })
     yield Saga.put(replaceEntity(['teams', 'teamNameToCanPerform'], I.Map({[teamname]: teamOperation})))
   } finally {
-    yield Saga.put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, false]])))
+    yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   }
 }
 
@@ -614,13 +614,13 @@ function* _createChannel(action: TeamsGen.CreateChannelPayload) {
     yield Saga.put(ChatGen.createSelectConversation({conversationIDKey: newConversationIDKey}))
     yield Saga.put(navigateTo([chatTab]))
   } catch (error) {
-    yield Saga.put(TeamsGen.createSetTeamCreationError({error: error.desc}))
+    yield Saga.put(TeamsGen.createSetChannelCreationError({error: error.desc}))
   }
 }
 
 const _setPublicity = function(action: TeamsGen.SetPublicityPayload, state: TypedState) {
   const {teamname, settings} = action.payload
-  const waitingKey = {key: `setPublicity:${teamname}`}
+  const waitingKey = {key: Constants.settingsWaitingKey(teamname)}
   const teamSettings = state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname], {
     open: false,
     joinAs: RPCTypes.teamsTeamRole['reader'],
@@ -692,6 +692,7 @@ const _setPublicity = function(action: TeamsGen.SetPublicityPayload, state: Type
     Saga.put(createIncrementWaiting(waitingKey)),
     Saga.identity(
       Saga.all([
+        // TODO delete this getDetails call when CORE-7125 is finished
         Saga.put(TeamsGen.createGetDetails({teamname})),
         Saga.put(createDecrementWaiting(waitingKey)),
       ])

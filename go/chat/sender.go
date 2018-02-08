@@ -674,7 +674,7 @@ type Deliverer struct {
 
 	sender        types.Sender
 	outbox        *storage.Outbox
-	identNotifier *IdentifyNotifier
+	identNotifier types.IdentifyNotifier
 	shutdownCh    chan chan struct{}
 	msgSentCh     chan struct{}
 	reconnectCh   chan struct{}
@@ -697,7 +697,7 @@ func NewDeliverer(g *globals.Context, sender types.Sender) *Deliverer {
 		msgSentCh:     make(chan struct{}, 100),
 		reconnectCh:   make(chan struct{}, 100),
 		sender:        sender,
-		identNotifier: NewIdentifyNotifier(g),
+		identNotifier: NewCachingIdentifyNotifier(g),
 		clock:         clockwork.NewRealClock(),
 	}
 
@@ -705,6 +705,8 @@ func NewDeliverer(g *globals.Context, sender types.Sender) *Deliverer {
 		d.Stop(context.Background())
 		return nil
 	})
+
+	d.identNotifier.ResetOnGUIConnect()
 
 	return d
 }

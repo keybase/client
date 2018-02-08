@@ -9,7 +9,8 @@ import {createShowUserProfile} from '../../../actions/profile-gen'
 import {createStartConversation} from '../../../actions/chat-gen'
 import {TeamMember} from '.'
 import {type TypedState} from '../../../constants/reducer'
-import {getCanPerform} from '../../../constants/teams'
+import {getCanPerform, teamWaitingKey} from '../../../constants/teams'
+import {anyWaiting} from '../../../constants/waiting'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 
 type StateProps = {
@@ -29,7 +30,7 @@ const mapStateToProps = (state: TypedState, {routeProps}): StateProps => {
 
   return {
     teamname: teamname,
-    loading: state.entities.getIn(['teams', 'teamNameToLoading', teamname], true),
+    loading: anyWaiting(state, teamWaitingKey(teamname)),
     following: amIFollowing(state, username),
     follower: amIBeingFollowed(state, username),
     yourOperations: getCanPerform(state, teamname),

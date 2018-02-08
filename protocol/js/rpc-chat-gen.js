@@ -888,7 +888,7 @@ export type LocalPostTextNonblockRpcParam = $ReadOnly<{conversationID: Conversat
 
 export type LocalPreviewConversationByIDLocalRpcParam = $ReadOnly<{convID: ConversationID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LocalRetryPostRpcParam = $ReadOnly<{outboxID: OutboxID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalRetryPostRpcParam = $ReadOnly<{outboxID: OutboxID, identifyBehavior?: ?Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LocalSetAppNotificationSettingsLocalRpcParam = $ReadOnly<{convID: ConversationID, channelWide: Boolean, settings?: ?Array<AppNotificationSettingLocal>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 

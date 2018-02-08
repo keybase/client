@@ -110,18 +110,20 @@ class BioRender extends Component<Props> {
           <Box style={{...stylesContent, ...globalStyles.fadeOpacity, opacity: loading ? 0 : 1}}>
             <Text
               type="HeaderBig"
+              selectable={true}
               style={{...stylesUsername, color: trackerStateColors.username}}
               onClick={() => this.props.onClickAvatar(username)}
             >
               {username}
             </Text>
-            <Text type="BodyBig" style={stylesFullname} {...nameTweaks}>
+            <Text type="BodyBig" selectable={true} style={stylesFullname} {...nameTweaks}>
               {userInfo.fullname}
             </Text>
             {!userInfo.fullname &&
               editFns && (
                 <Text
                   type="BodySemibold"
+                  selectable={true}
                   style={{...stylesFullname, color: globalColors.black_20}}
                   {...nameTweaks}
                 >
@@ -152,6 +154,7 @@ class BioRender extends Component<Props> {
             {userInfo.bio && (
               <Text
                 type={this.props.type === 'Profile' ? 'Body' : 'BodySmall'}
+                selectable={true}
                 style={{...stylesBio, ...stylesBioType[this.props.type]}}
                 {...bioLineClamp}
                 {...bioTweaks}
@@ -164,6 +167,7 @@ class BioRender extends Component<Props> {
                 <Text
                   type={this.props.type === 'Profile' ? 'Body' : 'BodySmall'}
                   onClick={editFns.onBioEdit}
+                  selectable={true}
                   style={{...stylesBio, ...stylesBioType[this.props.type], color: globalColors.black_20}}
                   {...bioTweaks}
                   {...bioLineClamp}
@@ -173,7 +177,13 @@ class BioRender extends Component<Props> {
               )}
 
             {userInfo.location && (
-              <Text type="BodySmall" style={stylesLocation} {...locationLineClamp} {...locationTweaks}>
+              <Text
+                type="BodySmall"
+                selectable={true}
+                style={stylesLocation}
+                {...locationLineClamp}
+                {...locationTweaks}
+              >
                 {userInfo.location}
               </Text>
             )}
@@ -181,6 +191,7 @@ class BioRender extends Component<Props> {
               editFns && (
                 <Text
                   type="BodySmall"
+                  selectable={true}
                   style={{...stylesLocation, color: globalColors.black_20}}
                   {...locationLineClamp}
                   {...locationTweaks}
@@ -230,11 +241,9 @@ const stylesContent = {
   zIndex: 1,
 }
 const stylesUsername = {
-  ...globalStyles.selectable,
   marginTop: 7,
 }
 const stylesFullname = {
-  ...globalStyles.selectable,
   textAlign: 'center',
   color: globalColors.black_75,
 }
@@ -243,7 +252,6 @@ const stylesFollowLabel = {
   textTransform: 'uppercase',
 }
 const stylesBio = {
-  ...globalStyles.selectable,
   paddingLeft: 30,
   paddingRight: 30,
   textAlign: 'center',
@@ -255,7 +263,6 @@ const stylesBioType = {
   Tracker: {},
 }
 const stylesLocation = {
-  ...globalStyles.selectable,
   paddingLeft: 30,
   paddingRight: 30,
   textAlign: 'center',

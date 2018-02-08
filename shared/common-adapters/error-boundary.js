@@ -40,7 +40,6 @@ const detailContainerStyle = {
 }
 
 const detailStyle = {
-  ...globalStyles.selectable,
   whiteSpace: 'pre',
 }
 
@@ -63,7 +62,7 @@ const Fallback = ({closeOnClick, info: {name, message, stack, componentStack}}: 
               padding: 10,
             }}
           >
-            <Text type="Terminal" backgroundMode="Terminal" style={globalStyles.selectable}>
+            <Text type="Terminal" backgroundMode="Terminal" selectable={true}>
               keybase log send
             </Text>
           </Box>
@@ -71,12 +70,12 @@ const Fallback = ({closeOnClick, info: {name, message, stack, componentStack}}: 
         <Text type="BodySmall" style={detailHeaderStyle}>
           Error details
         </Text>
-        <Text type="BodySmall" style={{...globalStyles.selectable, margin: 10}}>{`${name}: ${message}`}</Text>
+        <Text type="BodySmall" selectable={true} style={{margin: 10}}>{`${name}: ${message}`}</Text>
         <Text type="BodySmall" style={{marginTop: 20}}>
           Stack trace
         </Text>
         <ScrollView style={detailContainerStyle}>
-          <Text type="BodySmall" style={detailStyle}>
+          <Text type="BodySmall" selectable={true} style={detailStyle}>
             {stack}
           </Text>
         </ScrollView>
@@ -85,7 +84,7 @@ const Fallback = ({closeOnClick, info: {name, message, stack, componentStack}}: 
           Component stack trace
         </Text>
         <ScrollView style={detailContainerStyle}>
-          <Text type="BodySmall" style={detailStyle}>
+          <Text type="BodySmall" selectable={true} style={detailStyle}>
             {componentStack}
           </Text>
         </ScrollView>

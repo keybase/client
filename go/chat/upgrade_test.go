@@ -52,6 +52,8 @@ func TestChatKBFSUpgradeMixed(t *testing.T) {
 	require.NoError(t, teams.UpgradeTLFIDToImpteam(ctx, tc.G, u.Username, tlfID, false,
 		keybase1.TeamApplication_CHAT, cres.CryptKeys))
 
+	conv.Metadata.MembersType = chat1.ConversationMembersType_IMPTEAMUPGRADE
+	CtxKeyFinder(ctx, tc.Context()).SetNameInfoSourceOverride(nil)
 	header = chat1.MessageClientHeader{
 		TlfPublic:   false,
 		TlfName:     u.Username,
@@ -67,7 +69,6 @@ func TestChatKBFSUpgradeMixed(t *testing.T) {
 		MessageID: 3,
 	}
 
-	conv.Metadata.MembersType = chat1.ConversationMembersType_IMPTEAMUPGRADE
 	unboxed, err := boxer.UnboxMessages(ctx, []chat1.MessageBoxed{*teamBoxed, *kbfsBoxed}, conv)
 	require.NoError(t, err)
 	require.Len(t, unboxed, 2)
