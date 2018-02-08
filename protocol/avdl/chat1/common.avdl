@@ -16,6 +16,11 @@ protocol common {
   @typedef("bytes")  record OutboxID {}
   @typedef("bytes")  record TopicNameState {}
 
+  record InboxVersInfo {
+    gregor1.UID uid;
+    InboxVers vers;
+  }
+
   enum ConversationExistence {
     ACTIVE_0,
     ARCHIVED_1,

@@ -22,6 +22,7 @@ const (
 	ChatActivityType_MEMBERS_UPDATE                ChatActivityType = 6
 	ChatActivityType_SET_APP_NOTIFICATION_SETTINGS ChatActivityType = 7
 	ChatActivityType_TEAMTYPE                      ChatActivityType = 8
+	ChatActivityType_EXPUNGE                       ChatActivityType = 9
 )
 
 func (o ChatActivityType) DeepCopy() ChatActivityType { return o }
@@ -36,6 +37,7 @@ var ChatActivityTypeMap = map[string]ChatActivityType{
 	"MEMBERS_UPDATE":                6,
 	"SET_APP_NOTIFICATION_SETTINGS": 7,
 	"TEAMTYPE":                      8,
+	"EXPUNGE":                       9,
 }
 
 var ChatActivityTypeRevMap = map[ChatActivityType]string{
@@ -48,6 +50,7 @@ var ChatActivityTypeRevMap = map[ChatActivityType]string{
 	6: "MEMBERS_UPDATE",
 	7: "SET_APP_NOTIFICATION_SETTINGS",
 	8: "TEAMTYPE",
+	9: "EXPUNGE",
 }
 
 func (e ChatActivityType) String() string {
@@ -203,6 +206,26 @@ func (o TeamTypeInfo) DeepCopy() TeamTypeInfo {
 	}
 }
 
+type ExpungeInfo struct {
+	ConvID  ConversationID `codec:"convID" json:"convID"`
+	Expunge Expunge        `codec:"expunge" json:"expunge"`
+	Conv    *InboxUIItem   `codec:"conv,omitempty" json:"conv,omitempty"`
+}
+
+func (o ExpungeInfo) DeepCopy() ExpungeInfo {
+	return ExpungeInfo{
+		ConvID:  o.ConvID.DeepCopy(),
+		Expunge: o.Expunge.DeepCopy(),
+		Conv: (func(x *InboxUIItem) *InboxUIItem {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Conv),
+	}
+}
+
 type ChatActivity struct {
 	ActivityType__               ChatActivityType                `codec:"activityType" json:"activityType"`
 	IncomingMessage__            *IncomingMessage                `codec:"incomingMessage,omitempty" json:"incomingMessage,omitempty"`
@@ -213,6 +236,7 @@ type ChatActivity struct {
 	MembersUpdate__              *MembersUpdateInfo              `codec:"membersUpdate,omitempty" json:"membersUpdate,omitempty"`
 	SetAppNotificationSettings__ *SetAppNotificationSettingsInfo `codec:"setAppNotificationSettings,omitempty" json:"setAppNotificationSettings,omitempty"`
 	Teamtype__                   *TeamTypeInfo                   `codec:"teamtype,omitempty" json:"teamtype,omitempty"`
+	Expunge__                    *ExpungeInfo                    `codec:"expunge,omitempty" json:"expunge,omitempty"`
 }
 
 func (o *ChatActivity) ActivityType() (ret ChatActivityType, err error) {
@@ -255,6 +279,11 @@ func (o *ChatActivity) ActivityType() (ret ChatActivityType, err error) {
 	case ChatActivityType_TEAMTYPE:
 		if o.Teamtype__ == nil {
 			err = errors.New("unexpected nil value for Teamtype__")
+			return ret, err
+		}
+	case ChatActivityType_EXPUNGE:
+		if o.Expunge__ == nil {
+			err = errors.New("unexpected nil value for Expunge__")
 			return ret, err
 		}
 	}
@@ -341,6 +370,16 @@ func (o ChatActivity) Teamtype() (res TeamTypeInfo) {
 	return *o.Teamtype__
 }
 
+func (o ChatActivity) Expunge() (res ExpungeInfo) {
+	if o.ActivityType__ != ChatActivityType_EXPUNGE {
+		panic("wrong case accessed")
+	}
+	if o.Expunge__ == nil {
+		return
+	}
+	return *o.Expunge__
+}
+
 func NewChatActivityWithIncomingMessage(v IncomingMessage) ChatActivity {
 	return ChatActivity{
 		ActivityType__:    ChatActivityType_INCOMING_MESSAGE,
@@ -394,6 +433,13 @@ func NewChatActivityWithTeamtype(v TeamTypeInfo) ChatActivity {
 	return ChatActivity{
 		ActivityType__: ChatActivityType_TEAMTYPE,
 		Teamtype__:     &v,
+	}
+}
+
+func NewChatActivityWithExpunge(v ExpungeInfo) ChatActivity {
+	return ChatActivity{
+		ActivityType__: ChatActivityType_EXPUNGE,
+		Expunge__:      &v,
 	}
 }
 
@@ -456,6 +502,13 @@ func (o ChatActivity) DeepCopy() ChatActivity {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Teamtype__),
+		Expunge__: (func(x *ExpungeInfo) *ExpungeInfo {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Expunge__),
 	}
 }
 

@@ -84,6 +84,20 @@
       "typedef": "bytes"
     },
     {
+      "type": "record",
+      "name": "InboxVersInfo",
+      "fields": [
+        {
+          "type": "gregor1.UID",
+          "name": "uid"
+        },
+        {
+          "type": "InboxVers",
+          "name": "vers"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "ConversationExistence",
       "symbols": [
