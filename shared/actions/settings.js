@@ -12,7 +12,7 @@ import trim from 'lodash/trim'
 import {delay} from 'redux-saga'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
 import {type TypedState} from '../constants/reducer'
-import {cachesDirectoryPath} from '../util/file'
+import {traceFileName} from '../constants/platform'
 
 function* _onUpdatePGPSettings(): Saga.SagaGenerator<any, any> {
   try {
@@ -351,7 +351,9 @@ const _loadSettingsSuccess = emailState => Saga.put(SettingsGen.createLoadedSett
 
 const _traceSaga = (action: SettingsGen.TracePayload) =>
   Saga.call(RPCTypes.pprofTraceRpcPromise, {
-    traceFile: `${cachesDirectoryPath}/Keybase/trace.out`,
+    // TODO: Make the go side ensure that the directory exists.
+    // TODO: Include any trace output in a log send.
+    traceFile: traceFileName(),
     traceDurationSeconds: action.payload.durationSeconds,
   })
 

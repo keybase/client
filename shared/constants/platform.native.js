@@ -52,6 +52,10 @@ function logFileName(): string {
   return _logPath
 }
 
+function traceFileName(): string {
+  return `${_dir}/trace.out`
+}
+
 export {
   appVersionCode,
   appVersionName,
@@ -73,4 +77,5 @@ export {
   version,
   logFileName,
   logFileDir,
+  traceFileName,
 }
