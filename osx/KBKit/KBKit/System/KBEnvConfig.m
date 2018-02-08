@@ -41,10 +41,7 @@
     // Read the mount point from the config file if possible.  NOTE:
     // if you change this default, you must also change the default
     // for darwin in the `GetMountDir` function of `libkb/env.go`.
-    NSString *defaultMountDir = [self dataPath:@"fs" options:0];
-    if ([self isHomeDirSet]) {
-      defaultMountDir = [self homePath:@[[self appName] lowercaseString] options:0]
-    }
+    NSString *defaultMountDir = [self homePath:[[self appName] lowercaseString] options:0];
     NSString *mountDir = defaultMountDir;
     NSData *data = [NSData dataWithContentsOfFile:[self dataPath:@"config.json" options:0]];
     if (data) {
