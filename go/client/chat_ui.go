@@ -145,15 +145,10 @@ func (c *ChatUI) ChatSearchHit(ctx context.Context, arg chat1.ChatSearchHitArg) 
 	if c.noOutput {
 		return nil
 	}
-	const maxContext = 100 // Only show the first 100 chars of the context messages
 	getContext := func(uiMsg chat1.UIMessage) string {
 		if uiMsg.IsValid() && uiMsg.GetMessageType() == chat1.MessageType_TEXT {
 			msgBody := uiMsg.Valid().MessageBody.Text().Body
-			sliceIdx := len(msgBody) - maxContext
-			if sliceIdx < 0 {
-				sliceIdx = 0
-			}
-			return msgBody[sliceIdx:] + "\n"
+			return msgBody[:] + "\n"
 		}
 		return ""
 	}
@@ -182,6 +177,9 @@ func (c *ChatUI) ChatSearchHit(ctx context.Context, arg chat1.ChatSearchHitArg) 
 }
 
 func (c *ChatUI) ChatSearchDone(ctx context.Context, arg chat1.ChatSearchDoneArg) error {
+	// We don't want results written out of order
+	c.searchMutex.Lock()
+	defer c.searchMutex.Unlock()
 	if c.noOutput {
 		return nil
 	}

@@ -42,7 +42,6 @@ func (s *Searcher) Search(ctx context.Context, chatUI libkb.ChatUI, conversation
 	numHits := 0
 	numMessages := 0
 	getPresentMsg := func(msg chat1.MessageUnboxed) chat1.UIMessage {
-		// TODO check uid and channel source used
 		return utils.PresentMessageUnboxed(ctx, msg, uid, s.G().TeamChannelSource)
 	}
 	for !pagination.Last && numHits < maxHits && numMessages < maxMessages {
@@ -63,6 +62,9 @@ func (s *Searcher) Search(ctx context.Context, chatUI libkb.ChatUI, conversation
 					numHits++
 					if i+1 < len(thread.Messages) {
 						prev = thread.Messages[i+1]
+					} else {
+						// Clear prev
+						prev = chat1.MessageUnboxed{}
 					}
 					// Stream search hits back to the UI
 					chatUI.ChatSearchHit(ctx, chat1.ChatSearchHitArg{
