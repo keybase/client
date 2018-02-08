@@ -15,8 +15,8 @@ machine:
     GOPATH: $HOME/go-path
     PATH: $GOROOT/bin:$PATH
     # Limit memory usage of gradle
-    _JAVA_OPTIONS: "-Xms512m -Xmx2g"
-    GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2g -XX:+HeapDumpOnOutOfMemoryError"'
+    _JAVA_OPTIONS: "-Xms512m -Xmx1024g"
+    GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx1024g -XX:+HeapDumpOnOutOfMemoryError"'
     REACT_NATIVE_MAX_WORKERS: 1
     # Some node dependencies break without this
     CXX: g++-4.8
@@ -68,8 +68,8 @@ dependencies:
     - yarn global add react-native-cli
     - mkdir -p $GOPATH/src/github.com/keybase
     - ln -s $HOME/client $GOPATH/src/github.com/keybase/client
-    # - yarn run rn-gobuild-android
-    # - ls -la $GOPATH/src/github.com/keybase/client/shared/react-native/android/keybaselib/keybaselib.aar
+    - yarn run rn-gobuild-android
+    - ls -la $GOPATH/src/github.com/keybase/client/shared/react-native/android/keybaselib/keybaselib.aar
 test:
   pre:
     - mkdir -p react-native/android/app/build/intermediates/assets/releaseUnsigned/
@@ -86,13 +86,18 @@ test:
     # - cp -r android/app/build/outputs/androidTest-results/* $CIRCLE_TEST_REPORTS
     # Build a debug version of the app
     # Bundle JS separately because doing it in the gradle build is buggy
-    - react-native bundle --verbose --platform android --dev false --entry-file index.android.js --bundle-output react-native/android/app/build/intermediates/assets/releaseUnsigned/index.android.bundle --assets-dest react-native/android/app/build/intermediates/res/merged/releaseUnsigned
-        # environment:
-        #   PATH: $HOME/.yarn/bin:$PATH
+    - react-native bundle --verbose --platform android --dev false --entry-file index.android.js --bundle-output react-native/android/app/build/intermediates/assets/releaseUnsigned/index.android.bundle --assets-dest react-native/android/app/build/intermediates/res/merged/releaseUnsigned:
+        environment:
+          PATH: $HOME/.yarn/bin:$PATH
     # Build app
     - ./gradlew assembleReleaseUnsigned -x bundleReleaseUnsignedJsAndAssets:
         pwd:
           react-native/android
     # Upload it to appetize
     # And grep so we only reveal the public url in the CI logs
-    - PLATFORM=android PLATFORM_BUILD_PATH="react-native/android/app/build/outputs/apk/app-releaseUnsigned.apk" S3_URL="s3://kb-appbuilds/" BUILD_URL="https://s3-us-west-2.amazonaws.com/kb-appbuilds/" ./react-native/uploadApp.sh | grep -Eo "\"publicURL\":\"[^\"]*\"|APK_URL:.*$"
+    - ./react-native/uploadApp.sh | grep -Eo "\"publicURL\":\"[^\"]*\"|APK_URL:.*$":
+        environment:
+          PLATFORM: android
+          PLATFORM_BUILD_PATH: "react-native/android/app/build/outputs/apk/app-releaseUnsigned.apk"
+          S3_URL: "s3://kb-appbuilds/"
+          BUILD_URL: "https://s3-us-west-2.amazonaws.com/kb-appbuilds/"
