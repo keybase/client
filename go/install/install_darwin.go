@@ -481,6 +481,14 @@ func Install(context Context, binPath string, sourcePath string, components []st
 		if cr.ExitCode == installHelperExitCodeAuthCanceled {
 			log.Debug("Auth canceled; uninstalling mountdir and fuse")
 			helperCanceled = true
+			mountDir, err = context.GetMountDir()
+			if err == nil {
+				err = UninstallKBFS(context, mountDir, true, log)
+			}
+			if err != nil {
+				log.Errorf("Error uninstalling KBFS: %s", err)
+			}
+
 			err = libnativeinstaller.UninstallMountDir(
 				context.GetRunMode(), log)
 			if err != nil {
@@ -488,7 +496,7 @@ func Install(context Context, binPath string, sourcePath string, components []st
 			}
 			err = libnativeinstaller.UninstallFuse(context.GetRunMode(), log)
 			if err != nil {
-				log.Errorf("Error uninstalling mount directory: %s", err)
+				log.Errorf("Error uninstalling FUSE: %s", err)
 			}
 		}
 	}
@@ -809,16 +817,7 @@ func UninstallKBFSOnStop(context Context, log Log) error {
 	return nil
 }
 
-// UninstallKBFS uninstalls all KBFS services, unmounts and optionally removes the mount directory
-func UninstallKBFS(context Context, mountDir string, forceUnmount bool, log Log) error {
-	err := UninstallKBFSServices(context, log)
-	if err != nil {
-		return err
-	}
-
-	if _, serr := os.Stat(mountDir); os.IsNotExist(serr) {
-		return nil
-	}
+func unmount(mountDir string, log Log) error {
 	log.Debug("Checking if mounted: %s", mountDir)
 	mounted, err := mounter.IsMounted(mountDir, log)
 	if err != nil {
@@ -837,6 +836,37 @@ func UninstallKBFS(context Context, mountDir string, forceUnmount bool, log Log)
 	}
 	if !empty {
 		return fmt.Errorf("Mount has files after unmounting: %s", mountDir)
+	}
+	return nil
+}
+
+// UninstallKBFS uninstalls all KBFS services, unmounts and optionally removes the mount directory
+func UninstallKBFS(context Context, mountDir string, forceUnmount bool, log Log) error {
+	err := UninstallKBFSServices(context, log)
+	if err != nil {
+		return err
+	}
+
+	if _, serr := os.Stat(mountDir); os.IsNotExist(serr) {
+		return nil
+	}
+	err = unmount(mountDir, log)
+	if err != nil {
+		return err
+	}
+	// For older systems, check `/keybase` too, just in case.
+	var oldMountDir string
+	switch context.GetRunMode() {
+	case libkb.ProductionRunMode:
+		oldMountDir = "/keybase"
+	case libkb.StagingRunMode:
+		oldMountDir = "/keybase.staging"
+	default:
+		oldMountDir = "/keybase.devel"
+	}
+	err = unmount(oldMountDir, log)
+	if err != nil {
+		log.Debug("Error unmounting old mount dir %s: %v", oldMountDir, err)
 	}
 
 	return nil
