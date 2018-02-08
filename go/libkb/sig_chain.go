@@ -290,7 +290,7 @@ func (sc *SigChain) LoadServerBody(ctx context.Context, body []byte, low keybase
 	if t != nil && !foundTail {
 		err = NewServerChainError("Failed to reach (%s, %d) in server response",
 			t.LinkID, int(t.Seqno))
-		return
+		return nil, err
 	}
 
 	if tail != nil {
@@ -306,7 +306,7 @@ func (sc *SigChain) LoadServerBody(ctx context.Context, body []byte, low keybase
 	}
 
 	sc.chainLinks = append(sc.chainLinks, links...)
-	return
+	return dirtyTail, nil
 }
 
 func (sc *SigChain) SetUIDUsername(uid keybase1.UID, username string) {
