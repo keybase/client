@@ -79,14 +79,4 @@ function writeStream(filepath: string, encoding: string, append?: boolean): Prom
   return Promise.reject(new Error('not implemented'))
 }
 
-export {
-  copy,
-  downloadFilePath,
-  exists,
-  stat,
-  tmpDir,
-  tmpFile,
-  tmpRandFile,
-  unlink,
-  writeStream,
-}
+export {copy, downloadFilePath, exists, stat, tmpDir, tmpFile, tmpRandFile, unlink, writeStream}
