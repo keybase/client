@@ -36,18 +36,13 @@ func TestKBFSUpgradeTeam(t *testing.T) {
 	user, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
 
-	teamID, _, _, _, err := LookupOrCreateImplicitTeam(ctx, tc.G, user.Username, false)
+	team, _, _, err := LookupOrCreateImplicitTeam(ctx, tc.G, user.Username, false)
 	require.NoError(t, err)
-	team, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
-		ID: teamID,
-	})
-	require.NoError(t, err)
-
 	tlfID := makeTLFID(t)
 	t.Logf("TLFID: %s", tlfID)
 	require.NoError(t, team.AssociateWithTLFID(ctx, tlfID))
 	team, err = Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
-		ID:          teamID,
+		ID:          team.ID,
 		ForceRepoll: true,
 	})
 	require.NoError(t, err)
@@ -55,7 +50,7 @@ func TestKBFSUpgradeTeam(t *testing.T) {
 	checkCryptKeys := func(tlfID keybase1.TLFID, cryptKeys []keybase1.CryptKey,
 		appType keybase1.TeamApplication) {
 		team, err = Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
-			ID:          teamID,
+			ID:          team.ID,
 			ForceRepoll: true,
 		})
 		require.NoError(t, err)

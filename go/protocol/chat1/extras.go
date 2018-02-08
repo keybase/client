@@ -217,6 +217,35 @@ func (m MessageUnboxed) IsValid() bool {
 	return false
 }
 
+// IsValidFull returns whether the message is all of:
+// 1. Valid
+// 2. Has a non-deleted body with a type matching the header
+//    (TLFNAME is an exception as it has no body)
+// 3. Supersededby == 0
+func (m MessageUnboxed) IsValidFull() bool {
+	if !m.IsValid() {
+		return false
+	}
+	valid := m.Valid()
+	if valid.ServerHeader.SupersededBy != 0 {
+		// Message marked as superseded
+		return false
+	}
+	headerType := valid.ClientHeader.MessageType
+	switch headerType {
+	case MessageType_NONE:
+		return false
+	case MessageType_TLFNAME:
+		// Skip body check
+		return true
+	}
+	bodyType, err := valid.MessageBody.MessageType()
+	if err != nil {
+		return false
+	}
+	return bodyType == headerType
+}
+
 func (m MessageUnboxedValid) AsDeleteHistory() (res MessageDeleteHistory, err error) {
 	if m.ClientHeader.MessageType != MessageType_DELETEHISTORY {
 		return res, fmt.Errorf("message is %v not %v", m.ClientHeader.MessageType, MessageType_DELETEHISTORY)
@@ -304,6 +333,10 @@ func (m MessageBoxed) Summary() MessageSummary {
 		s.Ctime = m.ServerHeader.Ctime
 	}
 	return s
+}
+
+func (m MessageBoxed) KBFSEncrypted() bool {
+	return m.ClientHeader.KbfsCryptKeysUsed == nil || *m.ClientHeader.KbfsCryptKeysUsed
 }
 
 var ConversationStatusGregorMap = map[ConversationStatus]string{

@@ -42,6 +42,7 @@ func (n NullConfiguration) GetLinkCacheSize() (int, bool)                       
 func (n NullConfiguration) GetLinkCacheCleanDur() (time.Duration, bool)                    { return 0, false }
 func (n NullConfiguration) GetUPAKCacheSize() (int, bool)                                  { return 0, false }
 func (n NullConfiguration) GetUIDMapFullNameCacheSize() (int, bool)                        { return 0, false }
+func (n NullConfiguration) GetPayloadCacheSize() (int, bool)                               { return 0, false }
 func (n NullConfiguration) GetMerkleKIDs() []string                                        { return nil }
 func (n NullConfiguration) GetCodeSigningKIDs() []string                                   { return nil }
 func (n NullConfiguration) GetPinentry() string                                            { return "" }
@@ -221,33 +222,12 @@ func (e *Env) GetUpdaterConfig() UpdaterConfigReader {
 }
 
 func (e *Env) GetMountDir() (string, error) {
-	var darwinMountsubdir string
-	runMode := e.GetRunMode()
-	switch runMode {
-	case DevelRunMode:
-		darwinMountsubdir = "keybase.devel"
-	case StagingRunMode:
-		darwinMountsubdir = "keybase.staging"
-	case ProductionRunMode:
-		darwinMountsubdir = "keybase"
-	default:
-		return "", fmt.Errorf("Invalid run mode: %s", runMode)
-	}
-
 	return e.GetString(
 		func() string { return e.cmd.GetMountDir() },
 		func() string { return os.Getenv("KEYBASE_MOUNTDIR") },
 		func() string { return e.GetConfig().GetMountDir() },
 		func() string {
-			switch runtime.GOOS {
-			case "darwin":
-				return filepath.Join(
-					string(filepath.Separator), darwinMountsubdir)
-			case "linux":
-				return filepath.Join(e.GetDataDir(), "fs")
-			default:
-				return ""
-			}
+			return filepath.Join(e.GetDataDir(), "fs")
 		},
 	), nil
 }
@@ -835,6 +815,14 @@ func (e *Env) GetLinkCacheCleanDur() time.Duration {
 	)
 }
 
+func (e *Env) GetPayloadCacheSize() int {
+	return e.GetInt(PayloadCacheSize,
+		e.cmd.GetPayloadCacheSize,
+		func() (int, bool) { return e.getEnvInt("KEYBASE_PAYLOAD_CACHE_SIZE") },
+		e.GetConfig().GetPayloadCacheSize,
+	)
+}
+
 func (e *Env) GetEmailOrUsername() string {
 	un := e.GetUsername().String()
 	if len(un) > 0 {
@@ -1196,6 +1184,11 @@ func (c AppConfig) GetChatInboxSourceLocalizeThreads() (int, bool) {
 // this down on mobile to reduce mem usage.
 func (c AppConfig) GetLevelDBNumFiles() (int, bool) {
 	return 50, true
+}
+
+// Default is 4000. Turning down on mobile to reduce memory usage.
+func (c AppConfig) GetLinkCacheSize() (int, bool) {
+	return 1000, true
 }
 
 func (e *Env) GetUpdatePreferenceAuto() (bool, bool) {

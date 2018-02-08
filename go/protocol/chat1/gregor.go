@@ -185,6 +185,42 @@ func (o SetAppNotificationSettingsPayload) DeepCopy() SetAppNotificationSettings
 	}
 }
 
+type ExpungePayload struct {
+	Action       string           `codec:"Action" json:"Action"`
+	ConvID       ConversationID   `codec:"convID" json:"convID"`
+	InboxVers    InboxVers        `codec:"inboxVers" json:"inboxVers"`
+	Expunge      Expunge          `codec:"expunge" json:"expunge"`
+	MaxMsgs      []MessageSummary `codec:"maxMsgs" json:"maxMsgs"`
+	UnreadUpdate *UnreadUpdate    `codec:"unreadUpdate,omitempty" json:"unreadUpdate,omitempty"`
+}
+
+func (o ExpungePayload) DeepCopy() ExpungePayload {
+	return ExpungePayload{
+		Action:    o.Action,
+		ConvID:    o.ConvID.DeepCopy(),
+		InboxVers: o.InboxVers.DeepCopy(),
+		Expunge:   o.Expunge.DeepCopy(),
+		MaxMsgs: (func(x []MessageSummary) []MessageSummary {
+			if x == nil {
+				return nil
+			}
+			var ret []MessageSummary
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.MaxMsgs),
+		UnreadUpdate: (func(x *UnreadUpdate) *UnreadUpdate {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.UnreadUpdate),
+	}
+}
+
 type UnreadUpdate struct {
 	ConvID                  ConversationID              `codec:"convID" json:"convID"`
 	UnreadMessages          int                         `codec:"unreadMessages" json:"unreadMessages"`

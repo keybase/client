@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/mail"
-	"strconv"
 	"strings"
 	"time"
 
@@ -189,78 +188,6 @@ func getUserProofs(ctx context.Context, g *libkb.GlobalContext, username string)
 	return eng.GetProofSet(), nil
 }
 
-func tryToCompleteInvites(ctx context.Context, g *libkb.GlobalContext, team *Team, username string, uv keybase1.UserVersion, req *keybase1.TeamChangeReq) error {
-	if team.NumActiveInvites() == 0 {
-		return nil
-	}
-
-	proofs, err := getUserProofs(ctx, g, username)
-	if err != nil {
-		return err
-	}
-
-	actx := g.MakeAssertionContext()
-
-	var completedInvites = map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm{}
-
-	for i, invite := range team.chain().inner.ActiveInvites {
-		g.Log.CDebugf(ctx, "tryToCompleteInvites invite %q %+v", i, invite)
-		ityp, err := invite.Type.String()
-		if err != nil {
-			return err
-		}
-		category, err := invite.Type.C()
-		if err != nil {
-			return err
-		}
-
-		if category != keybase1.TeamInviteCategory_SBS {
-			continue
-		}
-
-		proofsWithType := proofs.Get([]string{ityp})
-
-		var proof *libkb.Proof
-		for _, p := range proofsWithType {
-			if p.Value == string(invite.Name) {
-				proof = &p
-				break
-			}
-		}
-
-		if proof == nil {
-			continue
-		}
-
-		assertionStr := fmt.Sprintf("%s@%s", string(invite.Name), ityp)
-		g.Log.CDebugf(ctx, "Found proof in user's ProofSet: key: %s value: %q; invite proof is %s", proof.Key, proof.Value, assertionStr)
-
-		resolveResult := g.Resolver.ResolveFullExpressionNeedUsername(ctx, assertionStr)
-		g.Log.CDebugf(ctx, "Resolve result is: %+v", resolveResult)
-		if resolveResult.GetError() != nil || resolveResult.GetUID() != uv.Uid {
-			// Cannot resolve invitation or it does not match user
-			continue
-		}
-
-		parsedAssertion, err := libkb.AssertionParseAndOnly(actx, assertionStr)
-		if err != nil {
-			return err
-		}
-
-		resolvedAssertion := libkb.ResolvedAssertion{
-			UID:           uv.Uid,
-			Assertion:     parsedAssertion,
-			ResolveResult: resolveResult,
-		}
-		if err := verifyResolveResult(ctx, g, resolvedAssertion); err == nil {
-			completedInvites[invite.Id] = uv.PercentForm()
-		}
-	}
-
-	req.CompletedInvites = completedInvites
-	return nil
-}
-
 func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, username string, role keybase1.TeamRole) (res keybase1.TeamAddMemberResult, err error) {
 	var inviteRequired bool
 	resolvedUsername, uv, err := loadUserVersionPlusByUsername(ctx, g, username)
@@ -283,46 +210,34 @@ func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 			return err
 		}
 
-		if inviteRequired {
+		if inviteRequired && !uv.Uid.Exists() {
+			// Handle social invites without transactions.
 			res, err = t.InviteMember(ctx, username, role, resolvedUsername, uv)
 			return err
 		}
 
-		if t.IsMember(ctx, uv) {
-			showUsername := fmt.Sprintf("%q", resolvedUsername.String())
-			if username != resolvedUsername.String() {
-				showUsername = fmt.Sprintf("%q (%s)", username, resolvedUsername.String())
-			}
-			return libkb.ExistsError{Msg: fmt.Sprintf("user %s is already a member of team %q", showUsername,
-				t.Name())}
-		}
-		req, err := reqFromRole(uv, role)
+		tx := CreateAddMemberTx(t)
+		err = tx.AddMemberByUsername(ctx, resolvedUsername.String(), role)
 		if err != nil {
 			return err
 		}
-		existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
-		if err == nil {
-			g.Log.CDebugf(ctx, "found existing UV %v", existingUV.PercentForm())
-			// Case where same UV (uid+seqno) already exists is covered by
-			// `t.IsMember` check above. This only checks if there is a reset
-			// member in the team to automatically remove them (so AddMember
-			// can function as a Re-Add).
-			// Case where uv.EldestSeqno=0 is covered by errInviteRequired above.
-			if existingUV.EldestSeqno > uv.EldestSeqno {
-				return fmt.Errorf("newer version of user %q already exists in team %q (%v > %v)", resolvedUsername, t.Name(), existingUV.EldestSeqno, uv.EldestSeqno)
-			}
-			req.None = []keybase1.UserVersion{existingUV}
-		}
+
 		timeoutCtx, timeoutCancel := context.WithTimeout(ctx, 2*time.Second)
-		if err := tryToCompleteInvites(timeoutCtx, g, t, username, uv, &req); err != nil {
-			g.Log.CWarningf(ctx, "team.AddMember: error during tryToCompleteInvites: %v", err)
+		if err := tx.CompleteSocialInvitesFor(timeoutCtx, uv, username); err != nil {
+			g.Log.CWarningf(ctx, "Failed in CompleteSocialInvitesFor, no invites will be cleared. Err was: %v", err)
 		}
 		timeoutCancel()
-		if err := t.ChangeMembership(ctx, req); err != nil {
+
+		err = tx.Post(ctx)
+		if err != nil {
 			return err
 		}
+
 		// return value assign to escape closure
-		res = keybase1.TeamAddMemberResult{User: &keybase1.User{Uid: uv.Uid, Username: resolvedUsername.String()}}
+		res = keybase1.TeamAddMemberResult{
+			User:    &keybase1.User{Uid: uv.Uid, Username: resolvedUsername.String()},
+			Invited: inviteRequired,
+		}
 		return nil
 	})
 	return res, err
@@ -661,24 +576,48 @@ func AcceptInvite(ctx context.Context, g *libkb.GlobalContext, token string) err
 	return err
 }
 
-func ParseAndAcceptSeitanToken(ctx context.Context, g *libkb.GlobalContext, tok string) (wasSeitan bool, err error) {
-	seitan, err := GenerateIKeyFromString(tok)
+func parseAndAcceptSeitanTokenV1(ctx context.Context, g *libkb.GlobalContext, tok string) (wasSeitan bool, err error) {
+	seitan, err := ParseIKeyFromString(tok)
 	if err != nil {
-		g.Log.CDebugf(ctx, "GenerateIKeyFromString error: %s", err)
+		g.Log.CDebugf(ctx, "ParseIKeyFromString error: %s", err)
 		g.Log.CDebugf(ctx, "returning TeamInviteBadToken instead")
 		return false, libkb.TeamInviteBadTokenError{}
 	}
-	g.Log.CDebugf(ctx, "found seitan token")
 	err = AcceptSeitan(ctx, g, seitan)
-	if err != nil {
-		return true, err
-	}
+	return true, err
+}
 
-	return true, nil
+func parseAndAcceptSeitanTokenV2(ctx context.Context, g *libkb.GlobalContext, tok string) (wasSeitan bool, err error) {
+	seitan, err := ParseIKeyV2FromString(tok)
+	if err != nil {
+		g.Log.CDebugf(ctx, "ParseIKeyV2FromString error: %s", err)
+		g.Log.CDebugf(ctx, "returning TeamInviteBadToken instead")
+		return false, libkb.TeamInviteBadTokenError{}
+	}
+	err = AcceptSeitanV2(ctx, g, seitan)
+	return true, err
+
+}
+
+func ParseAndAcceptSeitanToken(ctx context.Context, g *libkb.GlobalContext, tok string) (wasSeitan bool, err error) {
+	seitanVersion, err := ParseSeitanVersion(tok)
+	if err != nil {
+		return wasSeitan, err
+	}
+	switch seitanVersion {
+	case SeitanVersion1:
+		wasSeitan, err = parseAndAcceptSeitanTokenV1(ctx, g, tok)
+	case SeitanVersion2:
+		wasSeitan, err = parseAndAcceptSeitanTokenV2(ctx, g, tok)
+	default:
+		wasSeitan = false
+		err = errors.New("Invalid SeitanVersion")
+	}
+	return wasSeitan, err
 }
 
 func AcceptSeitan(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKey) error {
-	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithContext(ctx, g))
+	uv, err := getCurrentUserUV(ctx, g)
 	if err != nil {
 		return err
 	}
@@ -694,7 +633,7 @@ func AcceptSeitan(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKey) 
 	}
 
 	unixNow := time.Now().Unix()
-	_, encoded, err := sikey.GenerateAcceptanceKey(me.GetUID(), me.GetCurrentEldestSeqno(), unixNow)
+	_, encoded, err := sikey.GenerateAcceptanceKey(uv.Uid, uv.EldestSeqno, unixNow)
 	if err != nil {
 		return err
 	}
@@ -703,7 +642,39 @@ func AcceptSeitan(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKey) 
 
 	arg := apiArg(ctx, "team/seitan")
 	arg.Args.Add("akey", libkb.S{Val: encoded})
-	arg.Args.Add("now", libkb.S{Val: strconv.FormatInt(unixNow, 10)})
+	arg.Args.Add("now", libkb.HTTPTime{Val: keybase1.Time(unixNow)})
+	arg.Args.Add("invite_id", libkb.S{Val: string(inviteID)})
+	_, err = g.API.Post(arg)
+	return err
+}
+
+func AcceptSeitanV2(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKeyV2) error {
+	uv, err := getCurrentUserUV(ctx, g)
+	if err != nil {
+		return err
+	}
+
+	sikey, err := ikey.GenerateSIKey()
+	if err != nil {
+		return err
+	}
+
+	inviteID, err := sikey.GenerateTeamInviteID()
+	if err != nil {
+		return err
+	}
+
+	now := keybase1.ToTime(time.Now())
+	_, encoded, err := sikey.GenerateSignature(uv.Uid, uv.EldestSeqno, inviteID, now)
+	if err != nil {
+		return err
+	}
+
+	g.Log.CDebugf(ctx, "seitan invite ID: %v", inviteID)
+
+	arg := apiArg(ctx, "team/seitan_v2")
+	arg.Args.Add("sig", libkb.S{Val: encoded})
+	arg.Args.Add("now", libkb.HTTPTime{Val: now})
 	arg.Args.Add("invite_id", libkb.S{Val: string(inviteID)})
 	_, err = g.API.Post(arg)
 	return err
@@ -739,6 +710,21 @@ func loadUserVersionPlusByUsername(ctx context.Context, g *libkb.GlobalContext, 
 		return res.GetNormalizedUsername(), uv, err
 	}
 	return res.GetNormalizedUsername(), uv, nil
+}
+
+func loadUserVersionAndPUKedByUsername(ctx context.Context, g *libkb.GlobalContext, username string) (uname libkb.NormalizedUsername, uv keybase1.UserVersion, hasPUK bool, err error) {
+	uname, uv, err = loadUserVersionPlusByUsername(ctx, g, username)
+	if err == nil {
+		hasPUK = true
+	} else {
+		if err == errInviteRequired {
+			err = nil
+			hasPUK = false
+		} else {
+			return "", keybase1.UserVersion{}, false, err
+		}
+	}
+	return uname, uv, hasPUK, nil
 }
 
 func loadUserVersionByUsername(ctx context.Context, g *libkb.GlobalContext, username string) (keybase1.UserVersion, error) {
@@ -1128,7 +1114,7 @@ func splitBulk(s string) []string {
 	return split
 }
 
-func CreateSeitanToken(ctx context.Context, g *libkb.GlobalContext, teamname string, role keybase1.TeamRole, label keybase1.SeitanIKeyLabel) (keybase1.SeitanIKey, error) {
+func CreateSeitanToken(ctx context.Context, g *libkb.GlobalContext, teamname string, role keybase1.TeamRole, label keybase1.SeitanKeyLabel) (keybase1.SeitanIKey, error) {
 	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 	if err != nil {
 		return "", err
@@ -1139,6 +1125,19 @@ func CreateSeitanToken(ctx context.Context, g *libkb.GlobalContext, teamname str
 	}
 
 	return keybase1.SeitanIKey(ikey), err
+}
+
+func CreateSeitanTokenV2(ctx context.Context, g *libkb.GlobalContext, teamname string, role keybase1.TeamRole, label keybase1.SeitanKeyLabel) (keybase1.SeitanIKeyV2, error) {
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+	if err != nil {
+		return "", err
+	}
+	ikey, err := t.InviteSeitanV2(ctx, role, label)
+	if err != nil {
+		return "", err
+	}
+
+	return keybase1.SeitanIKeyV2(ikey), err
 }
 
 // CreateTLF is called by KBFS when a TLF ID is associated with an implicit team.
@@ -1301,6 +1300,7 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 	ret.DeleteChannel = admin
 	ret.RenameChannel = admin
 	ret.EditChannelDescription = admin
+	ret.DeleteChatHistory = admin
 
 	return ret, err
 }

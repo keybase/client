@@ -98,7 +98,7 @@ class CodePage extends Component<Props> {
   renderShowText() {
     return (
       <Box style={stylesShowText}>
-        <Text type="Terminal" style={stylesTextCode}>
+        <Text type="Terminal" selectable={true} style={stylesTextCode}>
           {this.props.textCode}
         </Text>
       </Box>
@@ -347,7 +347,6 @@ const stylesShowText = {
 }
 
 const stylesTextCode = {
-  ...globalStyles.selectable,
   ...globalStyles.fontTerminalSemibold,
   paddingTop: globalMargins.tiny,
   fontSize: 19,

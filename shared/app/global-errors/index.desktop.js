@@ -123,7 +123,7 @@ class GlobalError extends Component<Props, State> {
             <Icon type="iconfont-close" onClick={onDismiss} style={{color: globalColors.white_75}} />
           )}
         </Box>
-        <Text type="BodyBig" style={detailStyle}>
+        <Text type="BodyBig" selectable={true} style={detailStyle}>
           {details}
         </Text>
       </Box>
@@ -167,7 +167,6 @@ const summaryRowErrorStyle = {
 }
 
 const detailStyle = {
-  ...globalStyles.selectable,
   backgroundColor: globalColors.black_75,
   color: globalColors.white_75,
   padding: 8,

@@ -68,6 +68,16 @@ protocol gregor {
         union { null, UnreadUpdate } unreadUpdate;
     }
 
+    record ExpungePayload {
+        @lint("ignore")
+        string Action;
+        ConversationID convID;
+        InboxVers inboxVers;
+        Expunge expunge;
+        array<MessageSummary> maxMsgs;
+        union { null, UnreadUpdate } unreadUpdate;
+    }
+
     record UnreadUpdate {
         ConversationID convID;
         // The count of unread messages to display

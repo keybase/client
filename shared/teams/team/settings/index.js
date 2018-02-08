@@ -220,21 +220,22 @@ export class Settings extends React.Component<Props, State> {
                 </Box>
               </Box>
             )}
-            {this.props.yourOperations.changeTarsDisabled && (
-              <Box style={stylesSettingsTabRow}>
-                <Box style={stylesPublicitySettingsBox}>
-                  <Checkbox
-                    checked={this.state.newIgnoreAccessRequests}
-                    label=""
-                    onCheck={this.setSettings('newIgnoreAccessRequests')}
-                  />
+            {!this.state.newOpenTeam &&
+              this.props.yourOperations.changeTarsDisabled && (
+                <Box style={stylesSettingsTabRow}>
+                  <Box style={stylesPublicitySettingsBox}>
+                    <Checkbox
+                      checked={this.state.newIgnoreAccessRequests}
+                      label=""
+                      onCheck={this.setSettings('newIgnoreAccessRequests')}
+                    />
+                  </Box>
+                  <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
+                    <Text type="Body">Ignore requests to join this team</Text>
+                    <Text type="BodySmall">Admins won't be bothered by hordes of fans.</Text>
+                  </Box>
                 </Box>
-                <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
-                  <Text type="Body">Ignore requests to join this team</Text>
-                  <Text type="BodySmall">Admins won't be bothered by hordes of fans.</Text>
-                </Box>
-              </Box>
-            )}
+              )}
           </Box>
         )}
 

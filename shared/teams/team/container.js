@@ -14,6 +14,7 @@ import {createGetProfile} from '../../actions/tracker-gen'
 import {isMobile} from '../../constants/platform'
 import {navigateAppend} from '../../actions/route-tree'
 import {createShowUserProfile} from '../../actions/profile-gen'
+import {anyWaiting} from '../../constants/waiting'
 
 type StateProps = {
   _invites: I.Set<Types.InviteInfo>,
@@ -22,6 +23,7 @@ type StateProps = {
   _newTeamRequests: I.List<string>,
   loading: boolean,
   name: Types.Teamname,
+  openTeam: boolean,
   selectedTab: string,
   you: ?string,
   yourRole: ?Types.TeamRoleType,
@@ -40,11 +42,21 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
     _invites: state.entities.getIn(['teams', 'teamNameToInvites', teamname], I.Set()),
     description: state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname, 'description'], ''),
     _newTeamRequests: state.entities.getIn(['teams', 'newTeamRequests'], I.List()),
-    loading: state.entities.getIn(['teams', 'teamNameToLoading', teamname], true),
+    ignoreAccessRequests: state.entities.getIn(
+      ['teams', 'teamNameToPublicitySettings', teamname, 'ignoreAccessRequests'],
+      false
+    ),
+    loading: anyWaiting(state, Constants.teamWaitingKey(teamname)),
     memberCount: state.entities.getIn(['teams', 'teammembercounts', teamname], 0),
     name: teamname,
+    openTeam: state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname], {open: false}).open,
     selectedTab: routeState.get('selectedTab') || 'members',
     _subteams,
+    waitingForSavePublicity: anyWaiting(
+      state,
+      Constants.settingsWaitingKey(teamname),
+      Constants.teamWaitingKey(teamname)
+    ),
     you: state.config.username,
     yourRole: Constants.getRole(state, teamname),
     yourOperations: Constants.getCanPerform(state, teamname),

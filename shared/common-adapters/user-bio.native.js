@@ -111,13 +111,14 @@ class BioRender extends Component<Props> {
         <Box style={stylesContent}>
           <Text
             type="HeaderBig"
+            selectable={true}
             style={{...stylesUsername, color: trackerStateColors.username}}
             onClick={() => this.props.onClickAvatar(username)}
           >
             {username}
           </Text>
           {!!userInfo.fullname && (
-            <Text type="BodySemibold" style={stylesFullname}>
+            <Text type="BodySemibold" selectable={true} style={stylesFullname}>
               {userInfo.fullname}
             </Text>
           )}
@@ -144,6 +145,7 @@ class BioRender extends Component<Props> {
           {!!userInfo.bio && (
             <Text
               type={this.props.type === 'Profile' ? 'Body' : 'BodySmall'}
+              selectable={true}
               style={stylesBio}
               {...bioLineClamp}
             >
@@ -151,7 +153,7 @@ class BioRender extends Component<Props> {
             </Text>
           )}
           {!!userInfo.location && (
-            <Text type="BodySmall" style={stylesLocation} {...locationLineClamp}>
+            <Text type="BodySmall" selectable={true} style={stylesLocation} {...locationLineClamp}>
               {userInfo.location}
             </Text>
           )}
@@ -193,11 +195,9 @@ const stylesContent = {
   paddingRight: globalMargins.medium,
 }
 const stylesUsername = {
-  ...globalStyles.selectable,
   marginTop: globalMargins.tiny,
 }
 const stylesFullname = {
-  ...globalStyles.selectable,
   textAlign: 'center',
   color: globalColors.black_75,
 }
@@ -221,12 +221,10 @@ const stylesFollowingCount = {
   ...globalStyles.fontBold,
 }
 const stylesBio = {
-  ...globalStyles.selectable,
   textAlign: 'center',
   color: globalColors.black_75,
 }
 const stylesLocation = {
-  ...globalStyles.selectable,
   textAlign: 'center',
   marginTop: globalMargins.xtiny,
 }

@@ -22,7 +22,6 @@
     <Feature Id="ProductFeature" Title="Keybase Application" Level="1">
       <ComponentGroupRef Id="ProductComponents" />
       <ComponentGroupRef Id="GuiComps" />
-      <ComponentRef Id="GUIShortCutComponent" />
       <ComponentGroupRef Id="StartupShortcuts" />
       <ComponentGroupRef Id="GuiStartMenuTileColors" />
       <ComponentGroupRef Id="BrowserExtensionKbnm" />
@@ -62,6 +61,7 @@
       </Directory>
       <Directory Id="StartupFolder" Name="Startup" />
       <Directory Id="SystemFolder" Name="System" />
+      <Directory Id="ProgramMenuFolder" Name="ProgramMenu" />
     </Directory>
   </Fragment>
   
@@ -75,7 +75,6 @@
         <RemoveFolder Id="GuiResourcesDirRemove" On="uninstall" Directory="GuiResourcesDir"/>
         <RemoveFolder Id="GuiNodeModulesDirRemove" On="uninstall" Directory="GuiNodeModulesDir"/>
         <RemoveFolder Id="GuiRegeditDirRemove" On="uninstall" Directory="GuiRegeditDir"/>
-        <RemoveFolder Id="ApplicationProgramsFolderRemove" On="uninstall" Directory="ApplicationProgramsFolder"/>
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
           <RegistryValue Name="KeybaseExe" Value="1" KeyPath="yes" Type="integer" />
         </RegistryKey>
@@ -149,15 +148,9 @@
           <RegistryValue Name="ShortCutStartUp" Type="integer" Value="1" KeyPath="yes"  />
         </RegistryKey>
       </Component>
-      <Component Id="GUIShortCutStartUpComponent" Guid="{4AC98412-7636-4727-AB39-44A98E25249A}">
-        <Shortcut Id="GUIShortCutStartUp" Name="GUIStartup"
-                  Description="Start GUI at boot"
-                  Target="[INSTALLFOLDER]keybaserq.exe"
-                  Arguments="&quot;[GuiDir]Keybase.exe&quot;"
-                  WorkingDirectory="GuiDir"/>
-        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
-          <RegistryValue Name="ShortCutStartUpGUI" Type="integer" Value="1" KeyPath="yes"  />
-        </RegistryKey>
+      <Component Id="GUIShortCutStartUpComponent" Guid="804f1054-a702-47f2-8da2-17ab4ea67877">
+        <CreateFolder />
+        <RemoveFile Id="RemoveGUIStartupLink" Directory="StartupFolder" Name="GUIStartup.lnk" On="uninstall" />
       </Component>
     </ComponentGroup>    
   </Fragment>
@@ -187,16 +180,6 @@
       </Component>
 
     </ComponentGroup>
-  </Fragment>
-  <Fragment>
-    <Component Id="GUIShortCutComponent" Guid="{95AB14DC-1529-423E-A20C-C0A8C63AF94E}" Directory="ProgramMenuFolder">
-      <Shortcut Id="GUIShortCut"
-                Name="Keybase"
-                Description="Start GUI"
-                Target="[GuiDir]Keybase.exe"
-                WorkingDirectory="GuiDir"/>
-      <RegistryValue Root="HKCU" Key="Software\Keybase\Keybase" Name="ShortCutGUI" Type="integer" Value="1" KeyPath="yes"/>
-    </Component>
   </Fragment>
   <Fragment>
     <CustomAction Id="RunMainApp"

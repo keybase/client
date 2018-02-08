@@ -37,8 +37,7 @@ func (v *CmdPing) Run() error {
 	if err != nil {
 		return err
 	}
-	v.G().UI.GetDumbOutputUI().Printf(
-		"API Server at %s is up\n", v.G().Env.GetServerURI())
+	v.G().Log.Info(fmt.Sprintf("API Server at %s is up", v.G().Env.GetServerURI()))
 
 	return nil
 }

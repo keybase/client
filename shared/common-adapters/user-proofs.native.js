@@ -30,7 +30,7 @@ function MissingProofRow({missingProof, style}: {missingProof: MissingProof, sty
         </Box>
         <Box style={styleProofNameSection}>
           <Box style={styleProofNameLabelContainer}>
-            <Text type="Body" style={{...styleProofName, color: missingColor}}>
+            <Text type="Body" selectable={true} style={{...styleProofName, color: missingColor}}>
               {missingProof.message}
             </Text>
           </Box>
@@ -73,7 +73,7 @@ function ProofRow({proof, onClickStatus, onClickProfile, hasMenu, style}: ProofR
       </Box>
       <Box style={styleProofNameSection}>
         <Box style={styleProofNameLabelContainer}>
-          <Text type="Body" onClick={() => onClickProfile(proof)} style={styleProofName}>
+          <Text type="Body" onClick={() => onClickProfile(proof)} selectable={true} style={styleProofName}>
             <Text type="Body" style={shared.proofNameStyle(proof)}>
               {proof.name}
             </Text>

@@ -73,8 +73,7 @@ write_startup_token() {
 }
 
 # This works no matter how the services were started, because our
-# Restart=on-failure configuration won't restart after SIGTERM. However, the
-# systemd-to-systemd case shouldn't call it.
+# Restart=on-failure configuration won't restart after SIGTERM.
 kill_all() {
   if killall Keybase &> /dev/null ; then
     echo Shutting down Keybase GUI...

@@ -8,11 +8,12 @@ import {
   Box,
   Button,
   ButtonBar,
-  Text,
-  Tabs,
+  Meta,
   Icon,
   PopupMenu,
   ProgressIndicator,
+  Text,
+  Tabs,
 } from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors, isMobile} from '../../styles'
 import Members from './members/container'
@@ -38,6 +39,7 @@ export type Props = {
   onEditDescription: () => void,
   onLeaveTeam: () => void,
   onManageChat: () => void,
+  openTeam: boolean,
   selectedTab: Types.TabKey,
   showAddYourselfBanner: boolean,
   showMenu: boolean,
@@ -68,8 +70,8 @@ const Help = isMobile
         </Text>
         <Text
           type="TerminalInline"
+          selectable={true}
           style={{
-            ...globalStyles.selectable,
             marginLeft: globalMargins.xtiny,
             marginTop: globalMargins.xtiny,
           }}
@@ -232,6 +234,7 @@ class Team extends React.PureComponent<Props> {
       loading,
       memberCount,
       onManageChat,
+      openTeam,
       yourRole,
       yourOperations,
     } = this.props
@@ -283,10 +286,13 @@ class Team extends React.PureComponent<Props> {
         )}
         <Box style={stylesTeamHeader}>
           <Avatar isTeam={true} teamname={name} size={64} />
-          <Text type="HeaderBig" style={{...globalStyles.selectable, marginTop: globalMargins.tiny}}>
+          <Text type="HeaderBig" selectable={true} style={{marginTop: globalMargins.tiny}}>
             {name}
           </Text>
-          <Text type="BodySmall">TEAM</Text>
+          <Box style={globalStyles.flexBoxRow}>
+            <Text type="BodySmall">TEAM</Text>
+            {openTeam && <Meta style={stylesMeta} title="OPEN" />}
+          </Box>
           <Text type="BodySmall">
             {memberCount + ' member' + (memberCount !== 1 ? 's' : '')} •{' '}
             {yourRole && Constants.typeToLabel[yourRole]}
@@ -352,6 +358,14 @@ const stylesAddYourselfBanner = {
   paddingLeft: globalMargins.medium,
   paddingRight: globalMargins.medium,
   paddingTop: globalMargins.tiny,
+}
+
+const stylesMeta = {
+  alignSelf: 'center',
+  backgroundColor: globalColors.green,
+  borderRadius: 1,
+  marginLeft: globalMargins.tiny,
+  marginTop: 1,
 }
 
 const stylesAddYourselfBannerText = {

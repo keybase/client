@@ -422,10 +422,12 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 
 	// If we are sending a message, and we think the conversation is a KBFS conversation, then set a label
 	// on the client header in case this conversation gets upgrade to impteam.
+	msg.ClientHeader.KbfsCryptKeysUsed = new(bool)
 	if membersType == chat1.ConversationMembersType_KBFS {
 		s.Debug(ctx, "setting KBFS crypt keys used flag")
-		msg.ClientHeader.KbfsCryptKeysUsed = new(bool)
 		*msg.ClientHeader.KbfsCryptKeysUsed = true
+	} else {
+		*msg.ClientHeader.KbfsCryptKeysUsed = false
 	}
 
 	// For now, BoxMessage canonicalizes the TLF name. We should try to refactor
@@ -672,7 +674,7 @@ type Deliverer struct {
 
 	sender        types.Sender
 	outbox        *storage.Outbox
-	identNotifier *IdentifyNotifier
+	identNotifier types.IdentifyNotifier
 	shutdownCh    chan chan struct{}
 	msgSentCh     chan struct{}
 	reconnectCh   chan struct{}
@@ -695,7 +697,7 @@ func NewDeliverer(g *globals.Context, sender types.Sender) *Deliverer {
 		msgSentCh:     make(chan struct{}, 100),
 		reconnectCh:   make(chan struct{}, 100),
 		sender:        sender,
-		identNotifier: NewIdentifyNotifier(g),
+		identNotifier: NewCachingIdentifyNotifier(g),
 		clock:         clockwork.NewRealClock(),
 	}
 
@@ -703,6 +705,8 @@ func NewDeliverer(g *globals.Context, sender types.Sender) *Deliverer {
 		d.Stop(context.Background())
 		return nil
 	})
+
+	d.identNotifier.ResetOnGUIConnect()
 
 	return d
 }

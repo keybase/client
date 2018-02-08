@@ -179,7 +179,7 @@ function PendingURLContent({invite}: {invite: PendingInvite}) {
           marginTop: 3,
         }}
       />
-      <Text type="Body" style={{...globalStyles.selectable, color: globalColors.blue}}>
+      <Text type="Body" selectable={true} style={{color: globalColors.blue}}>
         {invite.url}
       </Text>
     </Box>

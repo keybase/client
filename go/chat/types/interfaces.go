@@ -2,6 +2,7 @@ package types
 
 import (
 	"github.com/keybase/client/go/gregor"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -24,8 +25,15 @@ type CryptKey interface {
 	Generation() int
 }
 
+type AllCryptKeys map[chat1.ConversationMembersType][]CryptKey
+
 type NameInfoSource interface {
-	Lookup(ctx context.Context, name string, vis keybase1.TLFVisibility) (NameInfo, error)
+	Lookup(ctx context.Context, name string, public bool) (*NameInfo, error)
+	EncryptionKeys(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+		membersType chat1.ConversationMembersType, public bool) (*NameInfo, error)
+	DecryptionKeys(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+		membersType chat1.ConversationMembersType, public bool,
+		keyGeneration int, kbfsEncrypted bool) (*NameInfo, error)
 }
 
 type UnboxConversationInfo interface {
@@ -101,13 +109,14 @@ type InboxSource interface {
 		resets []chat1.ConversationMember, previews []chat1.ConversationID) (MembershipUpdateRes, error)
 	TeamTypeChanged(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
 		teamType chat1.TeamType) (*chat1.ConversationLocal, error)
+	UpgradeKBFSToImpteam(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID) (*chat1.ConversationLocal, error)
 	SetConvRetention(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
 		policy chat1.RetentionPolicy) (*chat1.ConversationLocal, error)
 	SetTeamRetention(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, teamID keybase1.TeamID,
 		policy chat1.RetentionPolicy) ([]chat1.ConversationLocal, error)
 
 	GetInboxQueryLocalToRemote(ctx context.Context,
-		lquery *chat1.GetInboxLocalQuery) (*chat1.GetInboxQuery, NameInfo, error)
+		lquery *chat1.GetInboxLocalQuery) (*chat1.GetInboxQuery, *NameInfo, error)
 
 	SetRemoteInterface(func() chat1.RemoteInterface)
 }
@@ -163,6 +172,7 @@ type PushHandler interface {
 	Typing(context.Context, gregor.OutOfBandMessage) error
 	MembershipUpdate(context.Context, gregor.OutOfBandMessage) error
 	HandleOobm(context.Context, gregor.OutOfBandMessage) (bool, error)
+	UpgradeKBFSToImpteam(ctx context.Context, m gregor.OutOfBandMessage) error
 }
 
 type AppState interface {
@@ -176,4 +186,14 @@ type TeamChannelSource interface {
 	GetChannelsFull(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType) ([]chat1.ConversationLocal, []chat1.RateLimit, error)
 	GetChannelsTopicName(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType) ([]ConvIDAndTopicName, []chat1.RateLimit, error)
 	ChannelsChanged(context.Context, chat1.TLFID)
+}
+
+type IdentifyNotifier interface {
+	Reset()
+	ResetOnGUIConnect()
+	Send(ctx context.Context, update keybase1.CanonicalTLFNameAndIDWithBreaks)
+}
+type UPAKFinder interface {
+	LookupUsernameAndDevice(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (username libkb.NormalizedUsername, deviceName string, deviceType string, err error)
+	CheckKIDForUID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool, err error)
 }

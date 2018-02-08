@@ -372,23 +372,19 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, conv types.U
 		return nil
 	}
 
-	idMode, _, haveMode := IdentifyMode(ctx)
 	for _, msg := range msgs {
 		if msg.IsValid() {
 
-			// Early out if we are in GUI mode and don't have any breaks stored
+			// Early out if we have stored a clean identify at some point
 			idBroken := s.storage.IsTLFIdentifyBroken(ctx, msg.Valid().ClientHeader.Conv.Tlfid)
-			if haveMode && idMode == keybase1.TLFIdentifyBehavior_CHAT_GUI && !idBroken {
+			if !idBroken {
 				s.Debug(ctx, "identifyTLF: not performing identify because we stored a clean identify")
 				return nil
 			}
-			if !haveMode {
-				idMode = keybase1.TLFIdentifyBehavior_CHAT_GUI
-			}
-
 			tlfName := msg.Valid().ClientHeader.TLFNameExpanded(conv.GetFinalizeInfo())
 
 			var names []string
+			tlfID := msg.Valid().ClientHeader.Conv.Tlfid
 			switch conv.GetMembersType() {
 			case chat1.ConversationMembersType_KBFS:
 				names = utils.SplitTLFName(tlfName)
@@ -413,7 +409,12 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, conv types.U
 			s.Debug(ctx, "identifyTLF: identifying from msg ID: %d names: %v convID: %s",
 				msg.GetMessageID(), names, conv.GetConvID())
 			_, err := NewNameIdentifier(s.G()).Identify(ctx, names, !msg.Valid().ClientHeader.TlfPublic,
-				idMode)
+				func() keybase1.TLFID {
+					return keybase1.TLFID(tlfID.String())
+				},
+				func() keybase1.CanonicalTlfName {
+					return keybase1.CanonicalTlfName(tlfName)
+				})
 			if err != nil {
 				s.Debug(ctx, "identifyTLF: failure: name: %s convID: %s err: %s", tlfName, conv.GetConvID(),
 					err)

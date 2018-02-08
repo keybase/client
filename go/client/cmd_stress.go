@@ -117,9 +117,7 @@ func (c *CmdStress) signup(cli *rpc.Client) (username, passphrase string, err er
 	}
 	c.passphrase = hex.EncodeToString(buf)
 
-	dui := c.G().UI.GetDumbOutputUI()
-
-	dui.Printf("username: %q, email: %q, passphrase: %q\n", username, email, c.passphrase)
+	c.G().Log.Info("username: %q, email: %q, passphrase: %q", username, email, c.passphrase)
 
 	scli := keybase1.SignupClient{Cli: cli}
 	res, err := scli.Signup(context.TODO(), keybase1.SignupArg{
@@ -132,7 +130,7 @@ func (c *CmdStress) signup(cli *rpc.Client) (username, passphrase string, err er
 	if err != nil {
 		return "", "", err
 	}
-	dui.Printf("signup res: %+v\n", res)
+	c.G().Log.Info("signup res: %+v", res)
 	return
 }
 

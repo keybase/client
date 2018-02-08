@@ -1220,6 +1220,10 @@ export const pgpSignMode = {
   clear: 2,
 }
 
+export const pprofTraceRpcChannelMap = (configKeys: Array<string>, request: PprofTraceRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pprof.trace', request)
+
+export const pprofTraceRpcPromise = (request: PprofTraceRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pprof.trace', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+
 export const processFileType = {
   unknown: 0,
   directory: 1,
@@ -1533,11 +1537,12 @@ export const teamsLookupOrCreateImplicitTeamRpcChannelMap = (configKeys: Array<s
 
 export const teamsLookupOrCreateImplicitTeamRpcPromise = (request: TeamsLookupOrCreateImplicitTeamRpcParam): Promise<TeamsLookupOrCreateImplicitTeamResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.lookupOrCreateImplicitTeam', request, (error: RPCError, result: TeamsLookupOrCreateImplicitTeamResult) => (error ? reject(error) : resolve(result))))
 
-export const teamsSeitanIKeyAndLabelVersion = {
+export const teamsSeitanKeyAndLabelVersion = {
   v1: 1,
+  v2: 2,
 }
 
-export const teamsSeitanIKeyLabelType = {
+export const teamsSeitanKeyLabelType = {
   sms: 1,
 }
 
@@ -1588,6 +1593,10 @@ export const teamsTeamCreateRpcPromise = (request: TeamsTeamCreateRpcParam): Pro
 export const teamsTeamCreateSeitanTokenRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamCreateSeitanTokenRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamCreateSeitanToken', request)
 
 export const teamsTeamCreateSeitanTokenRpcPromise = (request: TeamsTeamCreateSeitanTokenRpcParam): Promise<TeamsTeamCreateSeitanTokenResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamCreateSeitanToken', request, (error: RPCError, result: TeamsTeamCreateSeitanTokenResult) => (error ? reject(error) : resolve(result))))
+
+export const teamsTeamCreateSeitanTokenV2RpcChannelMap = (configKeys: Array<string>, request: TeamsTeamCreateSeitanTokenV2RpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamCreateSeitanTokenV2', request)
+
+export const teamsTeamCreateSeitanTokenV2RpcPromise = (request: TeamsTeamCreateSeitanTokenV2RpcParam): Promise<TeamsTeamCreateSeitanTokenV2Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamCreateSeitanTokenV2', request, (error: RPCError, result: TeamsTeamCreateSeitanTokenV2Result) => (error ? reject(error) : resolve(result))))
 
 export const teamsTeamCreateWithSettingsRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamCreateWithSettingsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamCreateWithSettings', request)
 
@@ -2911,6 +2920,8 @@ export type PingResponse = $ReadOnly<{timestamp: Time}>
 
 export type PlatformInfo = $ReadOnly<{os: String, osVersion: String, arch: String, goVersion: String}>
 
+export type PprofTraceRpcParam = $ReadOnly<{traceFile: String, traceDurationSeconds: DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
 export type ProblemSet = $ReadOnly<{user: User, kid: KID, tlfs?: ?Array<ProblemTLF>}>
 
 export type ProblemSetDevices = $ReadOnly<{problemSet: ProblemSet, devices?: ?Array<Device>}>
@@ -3198,17 +3209,25 @@ export type SeitanAKey = String
 
 export type SeitanIKey = String
 
-export type SeitanIKeyAndLabel = {v: 1, v1: ?SeitanIKeyAndLabelVersion1} | {v: any}
+export type SeitanIKeyV2 = String
 
-export type SeitanIKeyAndLabelVersion = 1 // V1_1
+export type SeitanKeyAndLabel = {v: 1, v1: ?SeitanKeyAndLabelVersion1} | {v: 2, v2: ?SeitanKeyAndLabelVersion2} | {v: any}
 
-export type SeitanIKeyAndLabelVersion1 = $ReadOnly<{i: SeitanIKey, l: SeitanIKeyLabel}>
+export type SeitanKeyAndLabelVersion =
+  | 1 // V1_1
+  | 2 // V2_2
 
-export type SeitanIKeyLabel = {t: 1, sms: ?SeitanIKeyLabelSms} | {t: any}
+export type SeitanKeyAndLabelVersion1 = $ReadOnly<{i: SeitanIKey, l: SeitanKeyLabel}>
 
-export type SeitanIKeyLabelSms = $ReadOnly<{f: String, n: String}>
+export type SeitanKeyAndLabelVersion2 = $ReadOnly<{k: SeitanPubKey, l: SeitanKeyLabel}>
 
-export type SeitanIKeyLabelType = 1 // SMS_1
+export type SeitanKeyLabel = {t: 1, sms: ?SeitanKeyLabelSms} | {t: any}
+
+export type SeitanKeyLabelSms = $ReadOnly<{f: String, n: String}>
+
+export type SeitanKeyLabelType = 1 // SMS_1
+
+export type SeitanPubKey = KID
 
 export type SelectKeyRes = $ReadOnly<{keyID: String, doSecretPush: Boolean}>
 
@@ -3601,7 +3620,7 @@ export type TeamNamePart = String
 
 export type TeamOpenReqMsg = $ReadOnly<{teamID: TeamID, tars?: ?Array<TeamAccessRequest>}>
 
-export type TeamOperation = $ReadOnly<{manageMembers: Boolean, manageSubteams: Boolean, createChannel: Boolean, deleteChannel: Boolean, renameChannel: Boolean, editChannelDescription: Boolean, setTeamShowcase: Boolean, setMemberShowcase: Boolean, changeOpenTeam: Boolean, leaveTeam: Boolean, joinTeam: Boolean, setPublicityAny: Boolean, listFirst: Boolean, changeTarsDisabled: Boolean}>
+export type TeamOperation = $ReadOnly<{manageMembers: Boolean, manageSubteams: Boolean, createChannel: Boolean, deleteChannel: Boolean, renameChannel: Boolean, editChannelDescription: Boolean, setTeamShowcase: Boolean, setMemberShowcase: Boolean, changeOpenTeam: Boolean, leaveTeam: Boolean, joinTeam: Boolean, setPublicityAny: Boolean, listFirst: Boolean, changeTarsDisabled: Boolean, deleteChatHistory: Boolean}>
 
 export type TeamPlusApplicationKeys = $ReadOnly<{id: TeamID, name: String, implicit: Boolean, public: Boolean, application: TeamApplication, writers?: ?Array<UserVersion>, onlyReaders?: ?Array<UserVersion>, applicationKeys?: ?Array<TeamApplicationKey>}>
 
@@ -3673,7 +3692,9 @@ export type TeamsTeamChangeMembershipRpcParam = $ReadOnly<{name: String, req: Te
 
 export type TeamsTeamCreateRpcParam = $ReadOnly<{name: String, joinSubteam: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsTeamCreateSeitanTokenRpcParam = $ReadOnly<{name: String, role: TeamRole, label: SeitanIKeyLabel, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsTeamCreateSeitanTokenRpcParam = $ReadOnly<{name: String, role: TeamRole, label: SeitanKeyLabel, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
+export type TeamsTeamCreateSeitanTokenV2RpcParam = $ReadOnly<{name: String, role: TeamRole, label: SeitanKeyLabel, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type TeamsTeamCreateWithSettingsRpcParam = $ReadOnly<{name: String, joinSubteam: Boolean, settings: TeamSettings, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -4042,6 +4063,7 @@ type TeamsTeamAddEmailsBulkResult = BulkRes
 type TeamsTeamAddMemberResult = TeamAddMemberResult
 type TeamsTeamCreateResult = TeamCreateResult
 type TeamsTeamCreateSeitanTokenResult = SeitanIKey
+type TeamsTeamCreateSeitanTokenV2Result = SeitanIKeyV2
 type TeamsTeamCreateWithSettingsResult = TeamCreateResult
 type TeamsTeamDebugResult = TeamDebugRes
 type TeamsTeamGetResult = TeamDetails
