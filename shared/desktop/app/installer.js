@@ -110,7 +110,7 @@ function checkErrors(result: InstallResult): CheckErrorsResult {
         // Consider this a FUSE error for the purpose of showing it to the user.
         hasFUSEError = true
         errors.push(
-          `Installation was canceled; The file system will not be available until the authorization is granted.`
+          `Installation was canceled. The file system will not be available until authorization is granted.`
         )
       } else if (cr.name === 'cli') {
         hasCLIError = true
