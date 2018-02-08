@@ -39,7 +39,7 @@ const _Contents = ({conversationIDKey, onBack, participants, onBlock, onBlockAnd
             padding: globalMargins.tiny,
           }}
         >
-          <Text type="Terminal" style={{...globalStyles.selectable, alignSelf: 'center'}}>
+          <Text type="Terminal" selectable={true} style={{alignSelf: 'center'}}>
             keybase chat hide -u {participants}
           </Text>
         </Box>

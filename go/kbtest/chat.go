@@ -191,7 +191,7 @@ func (m TlfMock) getTlfID(cname keybase1.CanonicalTlfName) (keybase1.TLFID, erro
 	return keybase1.TLFID(hex.EncodeToString([]byte(tlfID))), nil
 }
 
-func (m TlfMock) Lookup(ctx context.Context, tlfName string, vis keybase1.TLFVisibility) (res *types.NameInfo, err error) {
+func (m TlfMock) Lookup(ctx context.Context, tlfName string, public bool) (res *types.NameInfo, err error) {
 	var tlfID keybase1.TLFID
 	res = types.NewNameInfo()
 	name := CanonicalTlfNameForTest(tlfName)
@@ -200,6 +200,10 @@ func (m TlfMock) Lookup(ctx context.Context, tlfName string, vis keybase1.TLFVis
 		return res, err
 	}
 	res.ID = tlfID.ToBytes()
+	vis := keybase1.TLFVisibility_PRIVATE
+	if public {
+		vis = keybase1.TLFVisibility_PUBLIC
+	}
 	if vis == keybase1.TLFVisibility_PRIVATE {
 		cres, err := m.CryptKeys(ctx, tlfName)
 		if err != nil {
@@ -211,6 +215,17 @@ func (m TlfMock) Lookup(ctx context.Context, tlfName string, vis keybase1.TLFVis
 		}
 	}
 	return res, nil
+}
+
+func (m TlfMock) EncryptionKeys(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool) (*types.NameInfo, error) {
+	return m.Lookup(ctx, tlfName, public)
+}
+
+func (m TlfMock) DecryptionKeys(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool,
+	keyGeneration int, kbfsEncrypted bool) (*types.NameInfo, error) {
+	return m.Lookup(ctx, tlfName, public)
 }
 
 func (m TlfMock) CryptKeys(ctx context.Context, tlfName string) (res keybase1.GetTLFCryptKeysRes, err error) {

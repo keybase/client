@@ -53,12 +53,11 @@ func readChatsWithErrorAndDevice(team smuTeam, u *smuUser, dev *smuDeviceWrapper
 			return messages, nil
 		}
 
-		if err != nil && !strings.Contains(err.Error(), "KBFS client not found") {
-			// Only retry on KBFS errors
-			return messages, err
+		if err != nil {
+			u.ctx.t.Logf("readChatsWithError failure: %s", err.Error())
 		}
 
-		u.ctx.t.Logf("readChatsWithError polling for KBFS")
+		u.ctx.t.Logf("readChatsWithError trying again")
 		time.Sleep(wait)
 		totalWait += wait
 	}
@@ -639,6 +638,7 @@ func TestTeamRemoveAfterReset(t *testing.T) {
 	joe.reset()
 	divDebug(ctx, "Reset joe (%s), not re-provisioning though!", joe.username)
 
+	kickTeamRekeyd(ann.getPrimaryGlobalContext(), t)
 	ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2), nil)
 
 	cli := ann.getTeamsClient()
@@ -684,6 +684,7 @@ func TestTeamReAddAfterReset(t *testing.T) {
 	bob.loginAfterReset(10)
 	divDebug(ctx, "Bob logged in after reset")
 
+	kickTeamRekeyd(ann.getPrimaryGlobalContext(), t)
 	ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2), nil)
 
 	cli := ann.getTeamsClient()

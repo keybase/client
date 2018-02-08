@@ -189,7 +189,7 @@ func (s *sendHelper) SendText(ctx context.Context, text string) error {
 }
 
 func (s *sendHelper) SendBody(ctx context.Context, body chat1.MessageBody, mtype chat1.MessageType) error {
-	ctx = Context(ctx, s.G(), s.ident, nil, NewIdentifyNotifier(s.G()))
+	ctx = Context(ctx, s.G(), s.ident, nil, NewCachingIdentifyNotifier(s.G()))
 	if err := s.nameInfo(ctx); err != nil {
 		return err
 	}
@@ -353,7 +353,7 @@ func (r *recentConversationParticipants) get(ctx context.Context, myUID gregor1.
 }
 
 func RecentConversationParticipants(ctx context.Context, g *globals.Context, myUID gregor1.UID) ([]gregor1.UID, error) {
-	ctx = Context(ctx, g, keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, NewIdentifyNotifier(g))
+	ctx = Context(ctx, g, keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, NewCachingIdentifyNotifier(g))
 	return newRecentConversationParticipants(g).get(ctx, myUID)
 }
 
@@ -550,17 +550,19 @@ L:
 			case chat1.ConversationMembersType_IMPTEAMUPGRADE:
 				if !attempts[chat1.ConversationMembersType_IMPTEAMNATIVE] {
 					newMT = chat1.ConversationMembersType_IMPTEAMNATIVE
+					// Only set the error if the members type is the same as what was passed in
+					err = ierr
 				} else {
 					newMT = chat1.ConversationMembersType_KBFS
 				}
-				err = ierr
 			case chat1.ConversationMembersType_IMPTEAMNATIVE:
 				if !attempts[chat1.ConversationMembersType_IMPTEAMUPGRADE] {
 					newMT = chat1.ConversationMembersType_IMPTEAMUPGRADE
+					// Only set the error if the members type is the same as what was passed in
+					err = ierr
 				} else {
 					newMT = chat1.ConversationMembersType_KBFS
 				}
-				err = ierr
 			case chat1.ConversationMembersType_KBFS:
 				debugger.Debug(ctx, "FindConversations: failed with KBFS, aborting")
 				// We don't want to return random errors from KBFS if we are falling back to it,

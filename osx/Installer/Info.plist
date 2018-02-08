@@ -15,19 +15,19 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.1.59</string>
+	<string>1.1.60</string>
 	<key>CFBundleSignature</key>
 	<string>KEYB</string>
 	<key>CFBundleVersion</key>
-	<string>1.1.59</string>
+	<string>1.1.60</string>
 	<key>KBFuseBuild</key>
 	<string>3.6.3</string>
 	<key>KBFuseVersion</key>
 	<string>3.6.3</string>
 	<key>KBHelperBuild</key>
-	<string>1.0.29</string>
+	<string>1.0.30</string>
 	<key>KBHelperVersion</key>
-	<string>1.0.29</string>
+	<string>1.0.30</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
 	<key>LSUIElement</key>

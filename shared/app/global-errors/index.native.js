@@ -116,7 +116,7 @@ class GlobalError extends Component<Props, State> {
           </Box>
         </NativeTouchableWithoutFeedback>
         <NativeScrollView>
-          <Text type="BodySmall" style={detailStyle}>
+          <Text type="BodySmall" selectable={true} style={detailStyle}>
             {this.props.error && this.props.error.message}
             {'\n\n'}
             {details}
@@ -149,7 +149,6 @@ const summaryRowStyle = {
 }
 
 const detailStyle = {
-  ...globalStyles.selectable,
   color: globalColors.white_75,
   fontSize: 13,
   lineHeight: 17,
