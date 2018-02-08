@@ -38,6 +38,25 @@ const Advanced = (props: Props) => (
   </Box>
 )
 
+type TraceButtonProps = {
+  durationSeconds: number,
+  onTrace: (durationSeconds: number) => void,
+}
+
+class TraceButton extends React.Component<TraceButtonProps> {
+  render() {
+    const label = `Trace (${this.props.durationSeconds}s)`
+    return (
+      <Button
+        style={{marginTop: globalMargins.small}}
+        type="Danger"
+        label={label}
+        onClick={() => this.props.onTrace(this.props.durationSeconds)}
+      />
+    )
+  }
+}
+
 function Developer(props: Props) {
   return (
     <Box
@@ -61,12 +80,7 @@ function Developer(props: Props) {
         label="DB Nuke"
         onClick={props.onDBNuke}
       />
-      <Button
-        style={{marginTop: globalMargins.small}}
-        type="Danger"
-        label="Trace (30s)"
-        onClick={() => props.onTrace(30)}
-      />
+      <TraceButton durationSeconds={30} onTrace={props.onTrace} />
       <Box style={{flex: 1}} />
     </Box>
   )
