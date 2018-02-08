@@ -259,6 +259,8 @@ func (sc *SigChain) LoadServerBody(ctx context.Context, body []byte, low keybase
 	var links ChainLinks
 	var tail *ChainLink
 
+	numEntries := 0
+
 	jsonparser.ArrayEach(body, func(value []byte, dataType jsonparser.ValueType, offset int, inErr error) {
 
 		var link *ChainLink
@@ -281,11 +283,14 @@ func (sc *SigChain) LoadServerBody(ctx context.Context, body []byte, low keybase
 		}
 
 		tail = link
+		numEntries++
 	}, "sigs")
 
 	if err != nil {
 		return nil, err
 	}
+
+	sc.G().Log.CDebugf(ctx, "| Got back %d new entries", numEntries)
 
 	if t != nil && !foundTail {
 		err = NewServerChainError("Failed to reach (%s, %d) in server response",
