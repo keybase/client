@@ -476,7 +476,7 @@ func Install(context Context, binPath string, sourcePath string, components []st
 		cr := componentResult(string(ComponentNameHelper), err)
 		componentResults = append(componentResults, cr)
 		if err != nil {
-			log.Errorf("Error installing Helper: %T %d %T %d", err, err, err.(*exec.ExitError).Sys().(syscall.WaitStatus), cr.ExitCode, cr.ExitCode, installHelperExitCodeAuthCanceled, installHelperExitCodeAuthCanceled)
+			log.Errorf("Error installing Helper: %v", err)
 		}
 		if cr.ExitCode == installHelperExitCodeAuthCanceled {
 			log.Debug("Auth canceled; uninstalling mountdir and fuse")
@@ -819,6 +819,10 @@ func UninstallKBFSOnStop(context Context, log Log) error {
 
 func unmount(mountDir string, forceUnmount bool, log Log) error {
 	log.Debug("Checking if mounted: %s", mountDir)
+	if _, serr := os.Stat(mountDir); os.IsNotExist(serr) {
+		return nil
+	}
+
 	mounted, err := mounter.IsMounted(mountDir, log)
 	if err != nil {
 		return err
@@ -847,9 +851,6 @@ func UninstallKBFS(context Context, mountDir string, forceUnmount bool, log Log)
 		return err
 	}
 
-	if _, serr := os.Stat(mountDir); os.IsNotExist(serr) {
-		return nil
-	}
 	err = unmount(mountDir, forceUnmount, log)
 	if err != nil {
 		return err
