@@ -871,46 +871,6 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
   ])
 }
 
-// First we make a preview
-// const attachmentPreviewCreate = (action: Chat2Gen.AttachmentSendPayload, state: TypedState) => {
-// const param: RPCChatTypes.LocalMakePreviewRpcParam = {
-// attachment: {filename: action.payload.filename},
-// outputDir: tmpDir(),
-// }
-// return Saga.call(RPCChatTypes.localMakePreviewRpcPromise, param)
-// }
-
-// const attachmentPreviewCreateSuccess = (
-// preview: RPCChatTypes.MakePreviewRes,
-// action: Chat2Gen.AttachmentSendPayload
-// ) =>
-// Saga.put(
-// Chat2Gen.createAttachmentWithPreviewSend({
-// ...action.payload,
-// preview,
-// })
-// )
-
-// const attachmentSend = (action: Chat2Gen.AttachmentWithPreviewSendPayload, state: TypedState) => {
-// TODO
-// const {conversationIDKey, preview, filename, title} = action.payload
-// const meta = Constants.getMeta(state, conversationIDKey)
-// const tlfName = meta.tlfname // TODO non existant convo
-// // TODO be able to send this
-// // const outboxID = Constants.generateOutboxID()
-// const param = {
-// attachment: {filename},
-// conversationID: Types.keyToConversationID(conversationIDKey),
-// identifyBehavior,
-// metadata: null,
-// preview,
-// title,
-// tlfName,
-// visibility: RPCTypes.commonTLFVisibility.private,
-// }
-// export type LocalPostAttachmentLocalRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, visibility: Keybase1.TLFVisibility, attachment: LocalSource, preview?: ?MakePreviewRes, title: String, metadata: Bytes, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
-// }
-
 const startConversation = (action: Chat2Gen.StartConversationPayload, state: TypedState) => {
   /*, forceImmediate */
   const {participants, tlf} = action.payload
@@ -1221,10 +1181,13 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
   const {conversationIDKey, path, title} = action.payload
 
   // Make the preview
-  const preview = yield Saga.call(RPCChatTypes.localMakePreviewRpcPromise, {
-    attachment: {filename: path},
-    outputDir: tmpDir(),
-  })
+  const preview: ?RPCChatTypes.MakePreviewRes = yield Saga.call(
+    RPCChatTypes.localMakePreviewRpcPromise,
+    ({
+      attachment: {filename: path},
+      outputDir: tmpDir(),
+    }: RPCChatTypes.LocalMakePreviewRpcParam)
+  )
 
   const state: TypedState = yield Saga.select()
   const meta = state.chat2.metaMap.get(conversationIDKey)
@@ -1233,28 +1196,53 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
     return
   }
 
-  // TODO asking patric about sending this intead of handling it
-  let ordinal = 0
+  // const attachmentType = Constants.pathToAttachmentType(path)
+
+  // TODO asking patrick about sending this ahead of time (like text) instead of handling it in the flow
+  let ordinal
+  let outboxID
   let lastRatioSent = 0
 
   const postAttachment = new EngineRpc.EngineRpcCall(
     {
-      'chat.1.chatUi.chatAttachmentUploadOutboxID': function*({outboxID}) {
+      'chat.1.chatUi.chatAttachmentPreviewUploadDone': EngineRpc.passthroughResponseSaga,
+      'chat.1.chatUi.chatAttachmentPreviewUploadStart': EngineRpc.passthroughResponseSaga,
+      'chat.1.chatUi.chatAttachmentUploadDone': EngineRpc.passthroughResponseSaga,
+      'chat.1.chatUi.chatAttachmentUploadOutboxID': function*(param) {
+        outboxID = Types.stringToOutboxID(param.outboxID.toString('hex') || '') // never null but makes flow happy
+        // const message = Constants.makePendingAttachmentMessage(
+        // state,
+        // conversationIDKey,
+        // attachmentType,
+        // title,
+        // preview.filename,
+        // Types.stringToOutboxID(outboxID.toString('hex') || '') // never null but makes flow happy
+        // )
+        // ordinal = message.ordinal
+        // yield Saga.put(
+        // Chat2Gen.createMessagesAdd({
+        // context: {type: 'sent'},
+        // messages: [message],
+        // })
+        // )
+        //
+        // ordinal =
         return EngineRpc.rpcResult()
       },
-      'chat.1.chatUi.chatAttachmentUploadStart': EngineRpc.passthroughResponseSaga,
-      'chat.1.chatUi.chatAttachmentPreviewUploadStart': EngineRpc.passthroughResponseSaga,
       'chat.1.chatUi.chatAttachmentUploadProgress': function*({bytesComplete, bytesTotal}) {
         const ratio = bytesComplete / bytesTotal
+        if (!ordinal && outboxID) {
+          const state: TypedState = yield Saga.select()
+          ordinal = state.chat2.pendingOutboxToOrdinal.getIn([conversationIDKey, outboxID])
+        }
         // Don't spam ourselves with updates
-        if (ratio - lastRatioSent > 0.05) {
+        if (ordinal && ratio - lastRatioSent > 0.05) {
           lastRatioSent = ratio
           yield Saga.put(Chat2Gen.createAttachmentUploading({conversationIDKey, ordinal, ratio}))
         }
         return EngineRpc.rpcResult()
       },
-      'chat.1.chatUi.chatAttachmentUploadDone': EngineRpc.passthroughResponseSaga,
-      'chat.1.chatUi.chatAttachmentPreviewUploadDone': EngineRpc.passthroughResponseSaga,
+      'chat.1.chatUi.chatAttachmentUploadStart': EngineRpc.passthroughResponseSaga,
     },
     RPCChatTypes.localPostFileAttachmentLocalRpcChannelMap,
     `localPostFileAttachmentLocal-${conversationIDKey}-${path}`,
@@ -1265,7 +1253,7 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
       metadata: null,
       preview,
       title,
-      tlfName: meta.name,
+      tlfName: meta.tlfname,
       visibility: RPCTypes.commonTLFVisibility.private,
     }
   )
@@ -1274,6 +1262,9 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
     const result = yield Saga.call(postAttachment.run)
     if (EngineRpc.isFinished(result)) {
       if (result.error) {
+        // TODO better error
+        logger.warn('Upload Attachment Failed')
+      } else {
       }
     } else {
       logger.warn('Upload Attachment Failed')
@@ -1312,15 +1303,6 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.messageEdit, messageEdit)
   yield Saga.safeTakeEveryPure(Chat2Gen.messageEdit, clearMessageSetEditing)
   yield Saga.safeTakeEveryPure(Chat2Gen.messageDelete, messageDelete)
-
-  // First we make a preview, then we post it
-  // yield Saga.safeTakeEveryPure(
-  // Chat2Gen.attachmentSend,
-  // attachmentPreviewCreate,
-  // attachmentPreviewCreateSuccess
-  // )
-  // // We got the preview made so do the real upload
-  // yield Saga.safeTakeEveryPure(Chat2Gen.attachmentWithPreviewSend, attachmentSend)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.setupChatHandlers, setupChatHandlers)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, clearInboxFilter)

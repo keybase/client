@@ -135,18 +135,6 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "outboxID": "Types.OutboxID",
     },
-    // User sends an attachment
-    "attachmentSend": {
-      "conversationIDKey": "Types.ConversationIDKey",
-      "filename": "string",
-      "title": "string"
-    },
-    "attachmentWithPreviewSend": {
-      "conversationIDKey": "Types.ConversationIDKey",
-      "filename": "string",
-      "title": "string",
-      "preview": "RPCChatTypes.MakePreviewRes"
-    },
     "joinConversation": {
       "conversationIDKey": "Types.ConversationIDKey",
     },
@@ -175,7 +163,7 @@
     },
     "sendToPendingConversation": {
       "users": "Array<string>",
-      "sendingAction": "More.ReturnType<typeof createAttachmentSend> | More.ReturnType<typeof createMessageSend>"
+      "sendingAction": "More.ReturnType<typeof createMessageSend>"
     },
     // We've made a new conversation successfully and want to cleanup the pending info now
     "clearPendingConversation": {

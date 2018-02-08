@@ -277,86 +277,134 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       })
     case Chat2Gen.messagesAdd: {
       const {messages, context} = action.payload
+      // When we get a new message we need to
+      // 1. Group them by conversation id for later processing
+      // 2. Update our mapping of outboxIDs to ordinals
+      // 3. Manage ordinals and ids. Because we have pending conversations and attachment placeholders we need to ensure the ordinals we first
+      // see a message with stay with the message. This makes things a lot simpler for the list and ui side so our thread view can just be a
+      // static list of ordinals, and the row renderer just maps from the ordinal to the message through the messageMap
+      // 4. Replace any messages we should, otherwise ignore dupes
 
-      // Update our pending mapping
+      // Step 2. Add any sent to our outbox map
       let pendingOutboxToOrdinal = state.pendingOutboxToOrdinal
-
-      // Update our ordinals list
-      // First build a map of conversationIDKey to Set of ordinals (eliminates dupes)
-      const idToMessages = messages.reduce((map, m) => {
-        // If we have an ordinal for this already ignore it
-        if (m.type === 'text' || m.type === 'attachment') {
-          const existingOrdinal = m.outboxID
-            ? pendingOutboxToOrdinal.getIn([m.conversationIDKey, m.outboxID])
-            : null
-          if (existingOrdinal) {
-            return map
-          }
-        }
-        const conversationIDKey = Types.conversationIDKeyToString(m.conversationIDKey)
-        const set = (map[conversationIDKey] = map[conversationIDKey] || new Set()) // note: NOT immutable
-        set.add(m.ordinal)
-        return map
-      }, {})
-
       // We're sending a message or loading a thread, add it to the map if its pending
       if (context.type === 'sent' || context.type === 'threadLoad') {
         pendingOutboxToOrdinal = pendingOutboxToOrdinal.withMutations(
           (map: I.Map<Types.ConversationIDKey, I.Map<Types.OutboxID, Types.Ordinal>>) =>
             messages.forEach(message => {
               if (message.type === 'attachment' || message.type === 'text') {
-                if (!message.id) {
-                  message.outboxID &&
-                    map.setIn([message.conversationIDKey, message.outboxID], message.ordinal)
+                // no id and it has an outboxid is a new thing we're sending
+                if (!message.id && message.outboxID) {
+                  map.setIn([message.conversationIDKey, message.outboxID], message.ordinal)
                 }
               }
             })
         )
       }
 
-      // Create a map of conversationIDKey to Sorted list of ordinals
+      // Step 3. Add new ordinals
       const messageOrdinals = state.messageOrdinals.withMutations(
         (map: I.Map<Types.ConversationIDKey, I.SortedSet<Types.Ordinal>>) =>
-          Object.keys(idToMessages).forEach(conversationIDKey =>
+          messages.forEach(message => {
+            const conversationIDKey = message.conversationIDKey
+            let ordinal
+            if (message.type === 'attachment' || message.type === 'text') {
+              // The outbox id is either directly on the message or on attachment upload we point to the message but don't have the
+              // outbox id directly so we see if we can get it from the existing placeholder
+              let outboxID = message.outboxID
+              if (!outboxID) {
+                const m = state.messageMap.getIn([conversationIDKey, message.ordinal])
+                if (m && (m.type === 'text' || m.type === 'attachment')) {
+                  outboxID = m.outboxID
+                }
+              }
+              if (outboxID) {
+                ordinal = pendingOutboxToOrdinal.getIn([conversationIDKey, outboxID])
+              }
+            }
+            ordinal = ordinal || message.ordinal
             map.update(
               Types.stringToConversationIDKey(conversationIDKey),
               I.SortedSet(),
-              (set: I.SortedSet<Types.Ordinal>) => set.concat(idToMessages[conversationIDKey])
+              (set: I.SortedSet<Types.Ordinal>) => set.concat([ordinal])
             )
-          )
+          })
       )
 
+      // Update messageMap. We allow multiple ids to map to the same object so any
+      // ordinal or resolved ordinal will work (2.001 and 3 will point to the same object after sending)
       const messageMap = state.messageMap.withMutations(
         (map: I.Map<Types.ConversationIDKey, I.Map<Types.Ordinal, Types.Message>>) =>
           messages.forEach(message => {
-            // Keep old messages unless we got a valid id
-            map.updateIn([message.conversationIDKey, message.ordinal], old => {
-              if (old) {
-                // Our old one was pending
-                if (!old.id && message.id) {
-                  return message
-                }
-                // Keep old messages otherwise
-                return old
-              }
-              // A new message
-              return message
-            })
+            const conversationIDKey = message.conversationIDKey
+            const old = state.messageMap.getIn([conversationIDKey, message.ordinal])
 
-            // If the message was pending and we have an ordinal already, lets keep the map to it
-            if (message.type === 'text' || message.type === 'attachment') {
-              const existingOrdinal = message.outboxID
-                ? pendingOutboxToOrdinal.getIn([message.conversationIDKey, message.outboxID])
-                : null
-              if (existingOrdinal) {
-                const m = map.getIn([message.conversationIDKey, message.ordinal])
-                if (m) {
-                  map.setIn([message.conversationIDKey, existingOrdinal], m)
+            let pendingOrdinal
+            if (message.type === 'attachment' || message.type === 'text') {
+              let outboxID = message.outboxID
+              if (!outboxID) {
+                if (old && (old.type === 'attachment' || old.type === 'text')) {
+                  outboxID = old.outboxID
                 }
+              }
+              // The ordinal we made up while sending
+              if (outboxID) {
+                pendingOrdinal = pendingOutboxToOrdinal.getIn([conversationIDKey, outboxID])
               }
             }
+            const messageOrdinal = message.ordinal
+            const messageIDAsOrdinal = message.id
+            const ordinals: Array<Types.Ordinal> = [
+              ...(pendingOrdinal ? [pendingOrdinal] : []),
+              ...(messageOrdinal ? [messageOrdinal] : []),
+              ...(messageIDAsOrdinal ? [Types.numberToOrdinal(messageIDAsOrdinal)] : []),
+            ]
+
+            // Set the ordinal on the message itself to the pending one, if it exists
+            let updatedMessage = message
+            if (pendingOrdinal) {
+              // duped to help flow
+              if (message.type === 'attachment') {
+                updatedMessage = message.set('ordinal', pendingOrdinal)
+              }
+              if (message.type === 'text') {
+                updatedMessage = message.set('ordinal', pendingOrdinal)
+              }
+            }
+
+            ordinals.forEach(ordinal => {
+              map.setIn([message.conversationIDKey, ordinal], updatedMessage)
+            })
           })
       )
+
+      // Step 1. Grouping messages
+      // const idToMessages = messages.reduce((map, m) => {
+      // // If we have an ordinal for this already ignore it
+      // const conversationIDKey = Types.conversationIDKeyToString(m.conversationIDKey)
+      // const set = (map[conversationIDKey] = map[conversationIDKey] || new Set()) // note: NOT immutable
+      // set.add(m.ordinal)
+      // return map
+      // }, {})
+
+      //
+      // Object.keys(idToMessages).forEach(conversationIDKey => {
+      // const set = idToMessages[conversationIDKey]
+      // set.forEach()
+
+      // })
+
+      // Create a map of conversationIDKey to Sorted list of ordinals
+      // const messageOrdinals = state.messageOrdinals.withMutations(
+      // (map: I.Map<Types.ConversationIDKey, I.SortedSet<Types.Ordinal>>) =>
+      // Object.keys(idToMessages).forEach(conversationIDKey =>
+      // map.update(
+      // Types.stringToConversationIDKey(conversationIDKey),
+      // I.SortedSet(),
+      // (set: I.SortedSet<Types.Ordinal>) => set.concat(idToMessages[conversationIDKey])
+      // )
+      // )
+      // )
 
       const metaMap =
         context.type === 'threadLoad' && state.metaMap.get(context.conversationIDKey)
@@ -448,8 +496,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         s.set('messageOrdinals', messageOrdinalsReducer(state.messageOrdinals, action))
       })
     // Saga only actions
-    case Chat2Gen.attachmentSend:
-    case Chat2Gen.attachmentWithPreviewSend:
     case Chat2Gen.desktopNotification:
     case Chat2Gen.joinConversation:
     case Chat2Gen.leaveConversation:
@@ -471,6 +517,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.attachmentLoad:
     case Chat2Gen.attachmentDownload:
     case Chat2Gen.attachmentUpload:
+    case Chat2Gen.attachmentUploading:
       return state
     default:
       // eslint-disable-next-line no-unused-expressions

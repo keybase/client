@@ -7,7 +7,7 @@ import * as RPCTypes from '../types/rpc-gen'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as Types from '../types/chat2'
 import HiddenString from '../../util/hidden-string'
-// import clamp from 'lodash/clamp'
+import clamp from 'lodash/clamp'
 import {isMobile} from '../platform'
 import type {TypedState} from '../reducer'
 
@@ -46,8 +46,6 @@ export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Rec
 
 export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachment> = I.Record({
   ...makeMessageCommon,
-  // durationMs: 0,
-  // percentUploaded: 0,
   attachmentType: 'file',
   deviceFilePath: '',
   devicePreviewPath: '',
@@ -128,18 +126,6 @@ const channelMentionToMentionsChannel = (channelMention: RPCChatTypes.ChannelMen
       return 'none'
   }
 }
-
-// const maxAttachmentPreviewSize = 320
-// const clampAttachmentPreviewSize = (width: number, height: number) =>
-// height > width
-// ? {
-// height: clamp(height || 0, 0, maxAttachmentPreviewSize),
-// width: clamp(height || 0, 0, maxAttachmentPreviewSize) * width / (height || 1),
-// }
-// : {
-// height: clamp(width || 0, 0, maxAttachmentPreviewSize) * height / (width || 1),
-// width: clamp(width || 0, 0, maxAttachmentPreviewSize),
-// }
 
 const uiMessageToSystemMessage = (minimum, body): ?Types.Message => {
   switch (body.systemType) {
@@ -230,6 +216,18 @@ const uiMessageToSystemMessage = (minimum, body): ?Types.Message => {
   }
 }
 
+const maxAttachmentPreviewSize = 320
+const clampAttachmentPreviewSize = ({width = 0, height = 0}) =>
+  height > width
+    ? {
+        height: clamp(height || 0, 0, maxAttachmentPreviewSize),
+        width: clamp(height || 0, 0, maxAttachmentPreviewSize) * width / (height || 1),
+      }
+    : {
+        height: clamp(width || 0, 0, maxAttachmentPreviewSize) * height / (width || 1),
+        width: clamp(width || 0, 0, maxAttachmentPreviewSize),
+      }
+
 const validUIMessagetoMessage = (
   conversationIDKey: Types.ConversationIDKey,
   uiMessage: RPCChatTypes.UIMessage,
@@ -265,9 +263,11 @@ const validUIMessagetoMessage = (
       })
     case RPCChatTypes.commonMessageType.attachmentuploaded: // fallthrough
     case RPCChatTypes.commonMessageType.attachment: {
-      // On thread load only get attachment (with data)
-      // On incoming messages we get attach (no data), then attachment uploaded (with data). Because of this
-      // when we get the attachmentuploaded incoming we'll replace the old one so the placeholder is replaced
+      // The attachment flow is currently pretty complicated. We'll have core do more of this so it'll be simpler but for now
+      // 1. On thread load we only get attachment type. It'll have full data
+      // 2. On incoming we get attachment first (placeholder), then we get the full data (attachmentuploaded)
+      // 3. When we send we place a pending attachment, then get the real attachment then attachmentuploaded
+      // We treat all these like a pending text, so any data-less thing will have no message id and map to the same ordinal
       let attachment = {}
       let preview: ?RPCChatTypes.Asset
 
@@ -290,21 +290,22 @@ const validUIMessagetoMessage = (
           preview.metadata.assetType === RPCChatTypes.localAssetMetadataType.image &&
           preview.metadata.image
         ) {
-          // We get this as a @2x
-          previewHeight = preview.metadata.image.height / 2 || 0
-          previewWidth = preview.metadata.image.width / 2 || 0
+          const wh = clampAttachmentPreviewSize(preview.metadata.image)
+          previewHeight = wh.height
+          previewWidth = wh.width
           attachmentType = 'image'
         } else if (
           preview.metadata.assetType === RPCChatTypes.localAssetMetadataType.video &&
           preview.metadata.video
         ) {
-          previewHeight = preview.metadata.video.height / 2 || 0
-          previewWidth = preview.metadata.video.width / 2 || 0
+          const wh = clampAttachmentPreviewSize(preview.metadata.video)
+          previewHeight = wh.height
+          previewWidth = wh.width
           attachmentType = 'image'
         }
       }
 
-      // attachmentuploaded is basically an 'edit' of an attatchment w/ no data
+      // attachmentuploaded is basically an 'edit' of an attachment w/ no data
       const ordinal =
         m.messageBody.messageType === RPCChatTypes.commonMessageType.attachmentuploaded &&
         m.messageBody.attachmentuploaded &&
@@ -344,13 +345,11 @@ const validUIMessagetoMessage = (
       return null
     case RPCChatTypes.commonMessageType.headline:
       return null
-    case RPCChatTypes.commonMessageType.attachmentuploaded:
-      return null
     case RPCChatTypes.commonMessageType.deletehistory:
       return null
     default:
-      // eslint-disable-next-line no-unused-expressions
-      ;(m.messageBody.messageType: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
+      // normally we'd have this but flow gets confused about the fallthrough
+      // ;(m.messageBody.messageType: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
       return null
   }
 }
@@ -460,6 +459,34 @@ export const makePendingTextMessage = (
     submitState: 'pending',
     text,
     timestamp: Date.now(),
+  })
+}
+
+export const makePendingAttachmentMessage = (
+  state: TypedState,
+  conversationIDKey: Types.ConversationIDKey,
+  attachmentType: Types.AttachmentType,
+  title: string,
+  devicePreviewPath: string,
+  outboxID: Types.OutboxID
+) => {
+  const lastOrindal =
+    state.chat2.messageOrdinals.get(conversationIDKey, I.List()).last() || Types.numberToOrdinal(0)
+  const ordinal = nextFractionalOrdinal(lastOrindal)
+
+  return makeMessageAttachment({
+    attachmentType,
+    author: state.config.username || '',
+    conversationIDKey,
+    deviceName: '',
+    devicePreviewPath,
+    deviceType: isMobile ? 'mobile' : 'desktop',
+    id: Types.numberToMessageID(0),
+    ordinal,
+    outboxID,
+    submitState: 'pending',
+    timestamp: Date.now(),
+    title,
   })
 }
 

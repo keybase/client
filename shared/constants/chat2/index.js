@@ -66,8 +66,9 @@ export {
   isOldestOrdinal,
   makeMessageAttachment,
   makeMessageDeleted,
+  makePendingAttachmentMessage,
   makePendingTextMessage,
+  pathToAttachmentType,
   rpcErrorToString,
   uiMessageToMessage,
-  pathToAttachmentType,
 } from './message'

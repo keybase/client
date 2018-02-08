@@ -18,10 +18,8 @@ export const attachmentLoad = 'chat2:attachmentLoad'
 export const attachmentLoaded = 'chat2:attachmentLoaded'
 export const attachmentLoading = 'chat2:attachmentLoading'
 export const attachmentNeedsUpdating = 'chat2:attachmentNeedsUpdating'
-export const attachmentSend = 'chat2:attachmentSend'
 export const attachmentUpload = 'chat2:attachmentUpload'
 export const attachmentUploading = 'chat2:attachmentUploading'
-export const attachmentWithPreviewSend = 'chat2:attachmentWithPreviewSend'
 export const badgesUpdated = 'chat2:badgesUpdated'
 export const clearOrdinals = 'chat2:clearOrdinals'
 export const clearPendingConversation = 'chat2:clearPendingConversation'
@@ -112,13 +110,6 @@ export const createAttachmentNeedsUpdating = (
     isPreview: boolean,
   }>
 ) => ({error: false, payload, type: attachmentNeedsUpdating})
-export const createAttachmentSend = (
-  payload: $ReadOnly<{
-    conversationIDKey: Types.ConversationIDKey,
-    filename: string,
-    title: string,
-  }>
-) => ({error: false, payload, type: attachmentSend})
 export const createAttachmentUpload = (
   payload: $ReadOnly<{
     conversationIDKey: Types.ConversationIDKey,
@@ -133,14 +124,6 @@ export const createAttachmentUploading = (
     ratio: number,
   }>
 ) => ({error: false, payload, type: attachmentUploading})
-export const createAttachmentWithPreviewSend = (
-  payload: $ReadOnly<{
-    conversationIDKey: Types.ConversationIDKey,
-    filename: string,
-    title: string,
-    preview: RPCChatTypes.MakePreviewRes,
-  }>
-) => ({error: false, payload, type: attachmentWithPreviewSend})
 export const createBadgesUpdated = (payload: $ReadOnly<{conversations: Array<RPCTypes.BadgeConversationInfo>}>) => ({error: false, payload, type: badgesUpdated})
 export const createClearOrdinals = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: clearOrdinals})
 export const createClearPendingConversation = () => ({error: false, payload: undefined, type: clearPendingConversation})
@@ -269,7 +252,7 @@ export const createSelectConversation = (
 export const createSendToPendingConversation = (
   payload: $ReadOnly<{
     users: Array<string>,
-    sendingAction: More.ReturnType<typeof createAttachmentSend> | More.ReturnType<typeof createMessageSend>,
+    sendingAction: More.ReturnType<typeof createMessageSend>,
   }>
 ) => ({error: false, payload, type: sendToPendingConversation})
 export const createSetInboxFilter = (payload: $ReadOnly<{filter: string}>) => ({error: false, payload, type: setInboxFilter})
@@ -304,10 +287,8 @@ export type AttachmentLoadPayload = More.ReturnType<typeof createAttachmentLoad>
 export type AttachmentLoadedPayload = More.ReturnType<typeof createAttachmentLoaded>
 export type AttachmentLoadingPayload = More.ReturnType<typeof createAttachmentLoading>
 export type AttachmentNeedsUpdatingPayload = More.ReturnType<typeof createAttachmentNeedsUpdating>
-export type AttachmentSendPayload = More.ReturnType<typeof createAttachmentSend>
 export type AttachmentUploadPayload = More.ReturnType<typeof createAttachmentUpload>
 export type AttachmentUploadingPayload = More.ReturnType<typeof createAttachmentUploading>
-export type AttachmentWithPreviewSendPayload = More.ReturnType<typeof createAttachmentWithPreviewSend>
 export type BadgesUpdatedPayload = More.ReturnType<typeof createBadgesUpdated>
 export type ClearOrdinalsPayload = More.ReturnType<typeof createClearOrdinals>
 export type ClearPendingConversationPayload = More.ReturnType<typeof createClearPendingConversation>
@@ -357,10 +338,8 @@ export type Actions =
   | More.ReturnType<typeof createAttachmentLoadedError>
   | More.ReturnType<typeof createAttachmentLoading>
   | More.ReturnType<typeof createAttachmentNeedsUpdating>
-  | More.ReturnType<typeof createAttachmentSend>
   | More.ReturnType<typeof createAttachmentUpload>
   | More.ReturnType<typeof createAttachmentUploading>
-  | More.ReturnType<typeof createAttachmentWithPreviewSend>
   | More.ReturnType<typeof createBadgesUpdated>
   | More.ReturnType<typeof createClearOrdinals>
   | More.ReturnType<typeof createClearPendingConversation>
