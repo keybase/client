@@ -10,10 +10,11 @@ type FolderHeaderProps = {
     name: string,
     path: Types.Path,
   }>,
+  isTeamPath: boolean,
   onOpenBreadcrumb: (path: Types.Path) => void,
 }
 
-const FolderHeader = HeaderConnector(({items, onOpenBreadcrumb}: FolderHeaderProps) => (
+const FolderHeader = HeaderConnector(({items, isTeamPath, onOpenBreadcrumb}: FolderHeaderProps) => (
   <Box>
     {items.length === 1 ? (
       <Box style={folderHeaderStyleRoot}>
@@ -26,9 +27,7 @@ const FolderHeader = HeaderConnector(({items, onOpenBreadcrumb}: FolderHeaderPro
             <Box key={Types.pathToString(i.path)} style={folderBreadcrumbStyle}>
               {idx !== 0 && <Icon type="iconfont-back" style={iconStyle} />}
               {idx === 2 &&
-                i.name === 'team' && (
-                  <Avatar size={12} teamname={i.name} isTeam={true} style={styleTeamAvatar} />
-                )}
+                isTeamPath && <Avatar size={12} teamname={i.name} isTeam={true} style={styleTeamAvatar} />}
               {idx === items.length - 1 ? (
                 <Text type="BodyBig">{i.name}</Text>
               ) : (

@@ -9,8 +9,10 @@ type OwnProps = {
 
 const mapStateToProps = (state: TypedState, {path}: OwnProps) => {
   let acc = Types.stringToPath('/')
+  const elems = Types.getPathElements(path)
   return {
-    items: Types.getPathElements(path).map(e => {
+    isTeamPath: elems.length >= 2 && elems[1] === 'team',
+    items: elems.map(e => {
       acc = Types.pathConcat(acc, e)
       return {
         name: e,
