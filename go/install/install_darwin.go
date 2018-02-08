@@ -476,7 +476,7 @@ func Install(context Context, binPath string, sourcePath string, components []st
 		cr := componentResult(string(ComponentNameHelper), err)
 		componentResults = append(componentResults, cr)
 		if err != nil {
-			log.Errorf("Error installing Helper: %s %T %#v", err, err, err)
+			log.Errorf("Error installing Helper: %s %T %#v %d", err, err, err.(*exec.ExitError).Sys().(syscall.WaitStatus), cr.ExitCode)
 		}
 		if cr.ExitCode == installHelperExitCodeAuthCanceled {
 			log.Debug("Auth canceled; uninstalling mountdir and fuse")
