@@ -43,15 +43,32 @@ type TraceButtonProps = {
   onTrace: (durationSeconds: number) => void,
 }
 
-class TraceButton extends React.Component<TraceButtonProps> {
+type TraceButtonState = {
+  enabled: boolean,
+}
+
+class TraceButton extends React.Component<TraceButtonProps, TraceButtonState> {
+  state = {
+    enabled: true,
+  }
+
+  _onClick = () => {
+    this.setState({enabled: false})
+    this.props.onTrace(this.props.durationSeconds)
+    setTimeout(() => {
+      this.setState({enabled: true})
+    }, this.props.durationSeconds * 1000)
+  }
+
   render() {
     const label = `Trace (${this.props.durationSeconds}s)`
     return (
       <Button
+        disabled={!this.state.enabled}
         style={{marginTop: globalMargins.small}}
         type="Danger"
         label={label}
-        onClick={() => this.props.onTrace(this.props.durationSeconds)}
+        onClick={this._onClick}
       />
     )
   }
