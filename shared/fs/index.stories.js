@@ -1,7 +1,6 @@
 // @flow
 import React from 'react'
 import * as Types from '../constants/types/fs'
-import {Box} from '../common-adapters'
 import {action, storiesOf, createPropProvider} from '../stories/storybook'
 import Files from '.'
 
@@ -16,17 +15,26 @@ const provider = createPropProvider({
     ],
     onOpenBreadcrumb: action('onOpenBreadcrumb'),
   }),
+  FileRow: ({path}: {path: Types.Path}) => ({
+    icon: 'icon-folder-private-24',
+    name: Types.getPathName(path),
+    path,
+    onOpen: () => {},
+  }),
 })
 
 const load = () => {
   storiesOf('Files', module)
     .addDecorator(provider)
     .add('Root', () => (
-      <Box style={{width: '100%'}}>
-        <Files path={Types.stringToPath('/keybase')} items={[]} onBack={() => {}} />
-        <Files path={Types.stringToPath('/keybase/private')} items={[]} onBack={() => {}} />
-        <Files path={Types.stringToPath('/keybase/public')} items={[]} onBack={() => {}} />
-      </Box>
+      <Files
+        path={Types.stringToPath('/keybase')}
+        items={[
+          Types.stringToPath('/keybase/private'),
+          Types.stringToPath('/keybase/public'),
+          Types.stringToPath('/keybase/team'),
+        ]}
+      />
     ))
 }
 

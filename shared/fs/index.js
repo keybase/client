@@ -4,7 +4,7 @@ import * as Types from '../constants/types/fs'
 import {globalStyles, globalColors, globalMargins, isMobile} from '../styles'
 import {Box, ClickableBox, Icon, List, Text} from '../common-adapters'
 import {type IconType} from '../common-adapters/icon'
-import {RowConnector} from './row'
+import RowConnector from './row'
 import FolderHeader from './header'
 
 const stylesCommonRow = {

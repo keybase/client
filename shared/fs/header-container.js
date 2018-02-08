@@ -1,6 +1,6 @@
 // @flow
 import * as Types from '../constants/types/fs'
-import {connect, type Dispatch} from '../util/container'
+import {compose, connect, setDisplayName, type Dispatch} from '../util/container'
 import {navigateAppend} from '../actions/route-tree'
 
 type OwnProps = {
@@ -29,4 +29,7 @@ const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  setDisplayName('FolderHeader')
+)

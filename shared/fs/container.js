@@ -1,6 +1,6 @@
 // @flow
 import * as I from 'immutable'
-import {connect, type TypedState, type Dispatch} from '../util/container'
+import {compose, connect, type TypedState, setDisplayName, type Dispatch} from '../util/container'
 import Files from '.'
 import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
@@ -38,4 +38,6 @@ const mergeProps = ({path, items}: StateProps, dispatchProps: DispatchProps, own
   ...dispatchProps,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Files)
+export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('Files'))(
+  Files
+)
