@@ -7,11 +7,21 @@ type OwnProps = {
   path: Types.Path,
 }
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ownProps
+const mapStateToProps = (state: TypedState, {path}: OwnProps) => {
+  let acc = Types.stringToPath('/')
+  return {
+    items: Types.getPathElements(path).map(e => {
+      acc = Types.pathConcat(acc, e)
+      return {
+        name: e,
+        path: acc,
+      }
+    }),
+  }
+}
 
-const mapDispatchToProps = (dispatch: Dispatch, {path}: OwnProps) => ({
-  onOpen: () => dispatch(navigateAppend([{props: {path}, selected: 'folder'}])),
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  onOpenBreadcrumb: (path: Types.Path) => dispatch(navigateAppend([{props: {path}, selected: 'folder'}])),
 })
 
-const FolderHeaderBreadcrumbConnector = connect(mapStateToProps, mapDispatchToProps)
-export {FolderHeaderBreadcrumbConnector}
+export default connect(mapStateToProps, mapDispatchToProps)
