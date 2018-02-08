@@ -49,7 +49,7 @@ const (
 	UnknownLabel ServiceLabel = ""
 
 	// See osx/Installer/Installer.m : KBExitAuthCanceledError
-	installHelperExitCodeAuthCanceled = 6
+	installHelperExitCodeAuthCanceled int = 6
 )
 
 // KeybaseServiceStatus returns service status for Keybase service
@@ -476,7 +476,7 @@ func Install(context Context, binPath string, sourcePath string, components []st
 		cr := componentResult(string(ComponentNameHelper), err)
 		componentResults = append(componentResults, cr)
 		if err != nil {
-			log.Errorf("Error installing Helper: %s %T %#v %d", err, err, err.(*exec.ExitError).Sys().(syscall.WaitStatus), cr.ExitCode)
+			log.Errorf("Error installing Helper: %T %d %T %d", err, err, err.(*exec.ExitError).Sys().(syscall.WaitStatus), cr.ExitCode, cr.ExitCode, installHelperExitCodeAuthCanceled, installHelperExitCodeAuthCanceled)
 		}
 		if cr.ExitCode == installHelperExitCodeAuthCanceled {
 			log.Debug("Auth canceled; uninstalling mountdir and fuse")
