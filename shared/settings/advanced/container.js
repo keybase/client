@@ -18,8 +18,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onDBNuke: () => {
     dispatch(navigateAppend(['dbNukeConfirm']))
   },
-  onTrace: () => {
-    const durationSeconds = 30
+  onTrace: (durationSeconds: number) => {
     dispatch(createTrace({durationSeconds}))
   },
   onSetOpenAtLogin: (open: boolean) => dispatch(ConfigGen.createSetOpenAtLogin({open, writeFile: true})),

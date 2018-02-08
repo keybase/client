@@ -7,7 +7,7 @@ type Props = {
   openAtLogin: boolean,
   onSetOpenAtLogin: (open: boolean) => void,
   onDBNuke: () => void,
-  onTrace: () => void,
+  onTrace: (durationSeconds: number) => void,
   onBack: () => void,
 }
 
@@ -65,7 +65,7 @@ function Developer(props: Props) {
         style={{marginTop: globalMargins.small}}
         type="Danger"
         label="Trace (30s)"
-        onClick={props.onTrace}
+        onClick={() => props.onTrace(30)}
       />
       <Box style={{flex: 1}} />
     </Box>
