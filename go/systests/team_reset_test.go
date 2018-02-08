@@ -143,14 +143,15 @@ func TestTeamDelete(t *testing.T) {
 	readChats(team, bob, 1)
 	divDebug(ctx, "Ann and bob can read")
 
+	// just one person needs to do this before ann deletes, so her
+	// deletion will immediately fall into accelerated rekeyd.
+	kickTeamRekeyd(bob.getPrimaryGlobalContext(), t)
+
 	ann.delete()
 	divDebug(ctx, "Ann deleted her account")
 	divDebug(ctx, "ann uid: %s", ann.uid())
 	divDebug(ctx, "bob uid: %s", bob.uid())
 	divDebug(ctx, "cam uid: %s", cam.uid())
-
-	// just one person needs to do this
-	kickTeamRekeyd(bob.getPrimaryGlobalContext(), t)
 
 	// bob and cam should see the key get rotated after ann deletes
 	bob.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2), nil)
@@ -797,10 +798,9 @@ func TestTeamOpenReset(t *testing.T) {
 	ann.openTeam(team, keybase1.TeamRole_WRITER)
 	ann.assertMemberActive(team, bob)
 
+	kickTeamRekeyd(ann.getPrimaryGlobalContext(), t)
 	bob.reset()
 	divDebug(ctx, "Reset bob (%s)", bob.username)
-
-	kickTeamRekeyd(ann.getPrimaryGlobalContext(), t)
 
 	details := ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2), nil)
 	t.Logf("details from poll: %+v", details)
