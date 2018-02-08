@@ -122,14 +122,27 @@ function findCacheRoot(): string {
   throw new Error(`Unknown platform ${process.platform}`)
 }
 
+function logDir(): string {
+  switch (process.platform) {
+    case 'darwin':
+      return `${getenv('HOME', '')}/Library/Logs`
+    case 'linux':
+      const linuxDefaultRoot = `${getenv('HOME', '')}/.local/share`
+      return `${getenv('XDG_DATA_HOME', linuxDefaultRoot)}/${envedPathLinux[runMode]}`
+    case 'win32':
+      return `${getenv('LOCALAPPDATA', '')}\\${envedPathWin32[runMode]}`
+  }
+  throw new Error(`Unknown platform ${process.platform}`)
+}
+
 function logFileName(): string {
   switch (process.platform) {
     case 'darwin':
-      return `${getenv('HOME', '')}/Library/Logs/${envedPathOSX[runMode]}.app.log`
+      return `${logDir()}/${envedPathOSX[runMode]}.app.log`
     case 'linux':
       return '' // linux is '' because we can redirect stdout
     case 'win32':
-      return `${getenv('LOCALAPPDATA', '')}\\${envedPathWin32[runMode]}\\keybase.app.log`
+      return `${logDir()}\\keybase.app.log`
   }
   throw new Error(`Unknown platform ${process.platform}`)
 }
@@ -137,12 +150,11 @@ function logFileName(): string {
 const jsonDebugFileName = (function() {
   switch (process.platform) {
     case 'darwin':
-      return `${getenv('HOME', '')}/Library/Logs/${envedPathOSX[runMode]}.app.debug`
+      return `${logDir()}/${envedPathOSX[runMode]}.app.debug`
     case 'linux':
-      const linuxDefaultRoot = `${getenv('HOME', '')}/.local/share`
-      return `${getenv('XDG_DATA_HOME', linuxDefaultRoot)}/${envedPathLinux[runMode]}/keybase.app.debug`
+      return `${logDir()}/keybase.app.debug`
     case 'win32':
-      return `${getenv('LOCALAPPDATA', '')}\\${envedPathWin32[runMode]}\\keybase.app.debug`
+      return `${logDir()}\\keybase.app.debug`
   }
   throw new Error(`Unknown platform ${process.platform}`)
 })()
