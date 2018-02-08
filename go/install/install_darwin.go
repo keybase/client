@@ -481,7 +481,7 @@ func Install(context Context, binPath string, sourcePath string, components []st
 		if cr.ExitCode == installHelperExitCodeAuthCanceled {
 			log.Debug("Auth canceled; uninstalling mountdir and fuse")
 			helperCanceled = true
-			mountDir, err = context.GetMountDir()
+			mountDir, err := context.GetMountDir()
 			if err == nil {
 				err = UninstallKBFS(context, mountDir, true, log)
 			}
@@ -817,7 +817,7 @@ func UninstallKBFSOnStop(context Context, log Log) error {
 	return nil
 }
 
-func unmount(mountDir string, log Log) error {
+func unmount(mountDir string, forceUnmount bool, log Log) error {
 	log.Debug("Checking if mounted: %s", mountDir)
 	mounted, err := mounter.IsMounted(mountDir, log)
 	if err != nil {
@@ -850,7 +850,7 @@ func UninstallKBFS(context Context, mountDir string, forceUnmount bool, log Log)
 	if _, serr := os.Stat(mountDir); os.IsNotExist(serr) {
 		return nil
 	}
-	err = unmount(mountDir, log)
+	err = unmount(mountDir, forceUnmount, log)
 	if err != nil {
 		return err
 	}
@@ -864,7 +864,7 @@ func UninstallKBFS(context Context, mountDir string, forceUnmount bool, log Log)
 	default:
 		oldMountDir = "/keybase.devel"
 	}
-	err = unmount(oldMountDir, log)
+	err = unmount(oldMountDir, forceUnmount, log)
 	if err != nil {
 		log.Debug("Error unmounting old mount dir %s: %v", oldMountDir, err)
 	}
