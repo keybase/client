@@ -227,7 +227,7 @@ func (e *Env) GetMountDir() (string, error) {
 		func() string { return os.Getenv("KEYBASE_MOUNTDIR") },
 		func() string { return e.GetConfig().GetMountDir() },
 		func() string {
-			switch e.GetRunMode() {
+			switch runtime.GOOS {
 			case "darwin":
 				return filepath.Join(e.GetHome(), "keybase")
 			case "linux":
