@@ -27050,30 +27050,28 @@ exports[`Storyshots Edit team description Description unchanged 1`] = `
 exports[`Storyshots Files Root 1`] = `
 .glamor-0,
 [data-glamor-0] {
-  font-size: 14px;
-  line-height: 18px;
-  color: rgba(0, 0, 0, 0.75);
+  font-size: 13px;
+  line-height: 20px;
+  color: #000000;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
+  font-family: Source Code Pro;
+  margin-bottom: 8px;
 }
 
 .glamor-1,
 [data-glamor-1] {
-  color: rgba(0, 0, 0, 0.40);
-}
-
-.glamor-2,
-[data-glamor-2] {
   font-size: 13px;
-  line-height: 17px;
-  color: #33a0ff;
-  cursor: pointer;
+  line-height: 20px;
+  color: #a8d7ff;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
+  font-family: Source Code Pro;
+  user-select: text;
+  cursor: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
 }
 
 <div
@@ -27094,340 +27092,58 @@ exports[`Storyshots Files Root 1`] = `
     <div
       style={
         Object {
-          "width": "100%",
+          "borderColor": "rgba(255,0,0,0.75)",
+          "borderStyle": "solid",
+          "borderWidth": 2,
+          "display": "flex",
+          "flexDirection": "column",
+          "padding": 10,
         }
       }
     >
+      <span
+        className="glamor-0"
+        onClick={undefined}
+        title={undefined}
+      >
+        🛑 An error occurred in a connected child component. Did you supply all props the child expects?
+      </span>
       <div
         style={
           Object {
-            "height": "100%",
-            "position": "relative",
+            "backgroundColor": "#003563",
+            "borderRadius": 4,
+            "display": "flex",
+            "flexDirection": "column",
+            "padding": 10,
+            "whiteSpace": "pre-line",
           }
         }
       >
-        <div
-          style={
-            Object {
-              "display": "flex",
-              "flex": 1,
-              "flexDirection": "column",
-              "height": "100%",
-            }
-          }
+        <span
+          className="glamor-1"
+          onClick={undefined}
+          title={undefined}
         >
-          <div>
-            <div
-              style={
-                Object {
-                  "alignItems": "center",
-                  "borderBottomColor": "rgba(0, 0, 0, 0.05)",
-                  "borderBottomWidth": 0,
-                  "display": "flex",
-                  "flexDirection": "row",
-                  "justifyContent": "center",
-                  "minHeight": 40,
-                }
-              }
-            >
-              <span
-                className="glamor-0"
-                onClick={undefined}
-                title={undefined}
-              >
-                Folders: /keybase
-              </span>
-            </div>
-          </div>
-          <div
-            style={
-              Object {
-                "flexGrow": 1,
-                "position": "relative",
-              }
-            }
-          >
-            <div
-              style={
-                Object {
-                  "bottom": 0,
-                  "left": 0,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
-            >
-              <div
-                style={
-                  Object {
-                    "height": "100%",
-                    "overflowY": "auto",
-                    "width": "100%",
-                  }
-                }
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-      <div
-        style={
-          Object {
-            "height": "100%",
-            "position": "relative",
-          }
-        }
-      >
-        <div
-          style={
-            Object {
-              "display": "flex",
-              "flex": 1,
-              "flexDirection": "column",
-              "height": "100%",
-            }
-          }
-        >
-          <div
-            style={
-              Object {
-                "display": "flex",
-                "flexDirection": "column",
-              }
-            }
-          >
-            <div
-              onClick={[Function]}
-              style={
-                Object {
-                  "alignItems": "center",
-                  "cursor": "pointer",
-                  "display": "flex",
-                  "flexDirection": "row",
-                  "left": 16,
-                  "position": "absolute",
-                  "top": 16,
-                }
-              }
-            >
-              <div>
-                <span
-                  className="glamor-1"
-                  onClick={null}
-                  onMouseEnter={undefined}
-                  onMouseLeave={undefined}
-                  style={
-                    Object {
-                      "WebkitFontSmoothing": "antialiased",
-                      "fontFamily": "kb",
-                      "fontSize": 16,
-                      "fontStyle": "normal",
-                      "fontVariant": "normal",
-                      "fontWeight": "normal",
-                      "lineHeight": 1,
-                      "marginRight": 6,
-                      "speak": "none",
-                      "textTransform": "none",
-                      "userSelect": "none",
-                    }
-                  }
-                >
-                  
-                </span>
-              </div>
-              <span
-                className="glamor-2"
-                onClick={[Function]}
-                title={undefined}
-              >
-                Back
-              </span>
-            </div>
-          </div>
-          <div>
-            <div
-              style={
-                Object {
-                  "alignItems": "center",
-                  "borderBottomColor": "rgba(0, 0, 0, 0.05)",
-                  "borderBottomWidth": 0,
-                  "display": "flex",
-                  "flexDirection": "row",
-                  "justifyContent": "center",
-                  "minHeight": 40,
-                }
-              }
-            >
-              <span
-                className="glamor-0"
-                onClick={undefined}
-                title={undefined}
-              >
-                Folders: /keybase/private
-              </span>
-            </div>
-          </div>
-          <div
-            style={
-              Object {
-                "flexGrow": 1,
-                "position": "relative",
-              }
-            }
-          >
-            <div
-              style={
-                Object {
-                  "bottom": 0,
-                  "left": 0,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
-            >
-              <div
-                style={
-                  Object {
-                    "height": "100%",
-                    "overflowY": "auto",
-                    "width": "100%",
-                  }
-                }
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-      <div
-        style={
-          Object {
-            "height": "100%",
-            "position": "relative",
-          }
-        }
-      >
-        <div
-          style={
-            Object {
-              "display": "flex",
-              "flex": 1,
-              "flexDirection": "column",
-              "height": "100%",
-            }
-          }
-        >
-          <div
-            style={
-              Object {
-                "display": "flex",
-                "flexDirection": "column",
-              }
-            }
-          >
-            <div
-              onClick={[Function]}
-              style={
-                Object {
-                  "alignItems": "center",
-                  "cursor": "pointer",
-                  "display": "flex",
-                  "flexDirection": "row",
-                  "left": 16,
-                  "position": "absolute",
-                  "top": 16,
-                }
-              }
-            >
-              <div>
-                <span
-                  className="glamor-1"
-                  onClick={null}
-                  onMouseEnter={undefined}
-                  onMouseLeave={undefined}
-                  style={
-                    Object {
-                      "WebkitFontSmoothing": "antialiased",
-                      "fontFamily": "kb",
-                      "fontSize": 16,
-                      "fontStyle": "normal",
-                      "fontVariant": "normal",
-                      "fontWeight": "normal",
-                      "lineHeight": 1,
-                      "marginRight": 6,
-                      "speak": "none",
-                      "textTransform": "none",
-                      "userSelect": "none",
-                    }
-                  }
-                >
-                  
-                </span>
-              </div>
-              <span
-                className="glamor-2"
-                onClick={[Function]}
-                title={undefined}
-              >
-                Back
-              </span>
-            </div>
-          </div>
-          <div>
-            <div
-              style={
-                Object {
-                  "alignItems": "center",
-                  "borderBottomColor": "rgba(0, 0, 0, 0.05)",
-                  "borderBottomWidth": 0,
-                  "display": "flex",
-                  "flexDirection": "row",
-                  "justifyContent": "center",
-                  "minHeight": 40,
-                }
-              }
-            >
-              <span
-                className="glamor-0"
-                onClick={undefined}
-                title={undefined}
-              >
-                Folders: /keybase/public
-              </span>
-            </div>
-          </div>
-          <div
-            style={
-              Object {
-                "flexGrow": 1,
-                "position": "relative",
-              }
-            }
-          >
-            <div
-              style={
-                Object {
-                  "bottom": 0,
-                  "left": 0,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
-            >
-              <div
-                style={
-                  Object {
-                    "height": "100%",
-                    "overflowY": "auto",
-                    "width": "100%",
-                  }
-                }
-              />
-            </div>
-          </div>
-        </div>
+          Error: In calling propSelector for Component: 
+          Your propProvider is probably missing a key for this connected component. See shared/storybook/README.md for more details.
+
+          TypeError: state[name] is not a function
+          
+    in ConnectAdvanced(Component) (created by Files)
+    in div (created by Box)
+    in Box (created by Files)
+    in div (created by Box)
+    in Box (created by Files)
+    in Files
+    in div (created by Box)
+    in Box
+    in StorybookErrorBoundary
+    in Provider
+    in div (created by ScrollView)
+    in div (created by ScrollView)
+    in ScrollView
+        </span>
       </div>
     </div>
   </div>
