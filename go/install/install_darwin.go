@@ -470,6 +470,7 @@ func Install(context Context, binPath string, sourcePath string, components []st
 		}
 	}
 
+	helperCanceled := false
 	if libkb.IsIn(string(ComponentNameHelper), components, false) {
 		err = libnativeinstaller.InstallHelper(context.GetRunMode(), log)
 		cr := componentResult(string(ComponentNameHelper), err)
@@ -478,12 +479,22 @@ func Install(context Context, binPath string, sourcePath string, components []st
 			log.Errorf("Error installing Helper: %s", err)
 		}
 		if cr.ExitCode == installHelperExitCodeAuthCanceled {
-			// Exiting early if the user canceled authorization.
-			return newInstallResult(componentResults)
+			log.Debug("Auth canceled; uninstalling mountdir and fuse")
+			helperCanceled = true
+			err = libnativeinstaller.UninstallMountDir(
+				context.GetRunMode(), log)
+			if err != nil {
+				log.Errorf("Error uninstalling mount directory: %s", err)
+			}
+			err = libnativeinstaller.UninstallFuse(context.GetRunMode(), log)
+			if err != nil {
+				log.Errorf("Error uninstalling mount directory: %s", err)
+			}
 		}
 	}
 
-	if libkb.IsIn(string(ComponentNameFuse), components, false) {
+	if !helperCanceled &&
+		libkb.IsIn(string(ComponentNameFuse), components, false) {
 		err = libnativeinstaller.InstallFuse(context.GetRunMode(), log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameFuse), err))
 		if err != nil {
@@ -491,7 +502,8 @@ func Install(context Context, binPath string, sourcePath string, components []st
 		}
 	}
 
-	if libkb.IsIn(string(ComponentNameMountDir), components, false) {
+	if !helperCanceled &&
+		libkb.IsIn(string(ComponentNameMountDir), components, false) {
 		err = libnativeinstaller.InstallMountDir(context.GetRunMode(), log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameMountDir), err))
 		if err != nil {
