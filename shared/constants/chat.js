@@ -738,9 +738,7 @@ const makeConversationMessages = I.Record({
 
 const inviteCategoryEnumToName = invert(RPCTypes.teamsTeamInviteCategory)
 
-const getEveryoneMentions = () => ['here', 'channel', 'everyone']
-
-const isSpecialMention = (s: string) => getEveryoneMentions().includes(s)
+const isSpecialMention = (s: string) => ['here', 'channel', 'everyone'].includes(s)
 
 export {
   getBrokenUsers,
@@ -804,6 +802,5 @@ export {
   nextFractionalOrdinal,
   emptyConversationMessages,
   inviteCategoryEnumToName,
-  getEveryoneMentions,
   isSpecialMention,
 }
