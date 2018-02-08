@@ -848,7 +848,8 @@ func unmount(mountDir string, forceUnmount bool, log Log) error {
 func UninstallKBFS(context Context, mountDir string, forceUnmount bool, log Log) error {
 	err := UninstallKBFSServices(context, log)
 	if err != nil {
-		return err
+		log.Warning("Couldn't stop KBFS: %+v", err)
+		//return err
 	}
 
 	err = unmount(mountDir, forceUnmount, log)
