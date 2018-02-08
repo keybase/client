@@ -43,7 +43,7 @@
     // for darwin in the `GetMountDir` function of `libkb/env.go`.
     NSString *defaultMountDir = [self dataPath:@"fs" options:0];
     if ([self isHomeDirSet]) {
-      defaultMountDir = [self homePath:@"fs" options:0]
+      defaultMountDir = [self homePath:@[[self appName] lowercaseString] options:0]
     }
     NSString *mountDir = defaultMountDir;
     NSData *data = [NSData dataWithContentsOfFile:[self dataPath:@"config.json" options:0]];

@@ -849,7 +849,10 @@ func UninstallKBFS(context Context, mountDir string, forceUnmount bool, log Log)
 	err := UninstallKBFSServices(context, log)
 	if err != nil {
 		log.Warning("Couldn't stop KBFS: %+v", err)
-		//return err
+		// Continue despite the error, since the uninstall doesn't
+		// seem to be resilient against the "fallback" PID getting out
+		// of sync with the true KBFS PID.  TODO: fix the fallback PID
+		// logic?
 	}
 
 	err = unmount(mountDir, forceUnmount, log)
