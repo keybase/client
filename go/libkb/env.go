@@ -227,7 +227,14 @@ func (e *Env) GetMountDir() (string, error) {
 		func() string { return os.Getenv("KEYBASE_MOUNTDIR") },
 		func() string { return e.GetConfig().GetMountDir() },
 		func() string {
-			return filepath.Join(e.GetDataDir(), "fs")
+			switch e.GetRunMode() {
+			case "darwin":
+				return filepath.Join(e.GetHome(), "keybase")
+			case "linux":
+				return filepath.Join(e.GetDataDir(), "fs")
+			default:
+				return filepath.Join(e.GetDataDir(), "fs")
+			}
 		},
 	), nil
 }
