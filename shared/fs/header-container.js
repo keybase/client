@@ -10,7 +10,8 @@ type OwnProps = {
 const mapStateToProps = () => ({})
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onOpenBreadcrumb: (path: Types.Path) => dispatch(navigateAppend([{props: {path}, selected: 'folder'}])),
+  onOpenBreadcrumb: (path: string) =>
+    dispatch(navigateAppend([{props: {path: Types.stringToPath(path)}, selected: 'folder'}])),
 })
 
 const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => {
@@ -23,7 +24,7 @@ const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => {
       acc = Types.pathConcat(acc, e)
       return {
         name: e,
-        path: acc,
+        path: Types.pathToString(acc),
       }
     }),
   }

@@ -1,6 +1,5 @@
 // @flow
 import * as React from 'react'
-import * as Types from '../constants/types/fs'
 import {globalStyles, globalColors, globalMargins, isMobile} from '../styles'
 import {Avatar, Box, ClickableBox, Icon, Text} from '../common-adapters'
 import HeaderConnector from './header-container'
@@ -8,10 +7,10 @@ import HeaderConnector from './header-container'
 type FolderHeaderProps = {
   items: Array<{
     name: string,
-    path: Types.Path,
+    path: string,
   }>,
   isTeamPath: boolean,
-  onOpenBreadcrumb: (path: Types.Path) => void,
+  onOpenBreadcrumb: (path: string) => void,
 }
 
 const FolderHeader = HeaderConnector(({items, isTeamPath, onOpenBreadcrumb}: FolderHeaderProps) => (
@@ -24,7 +23,7 @@ const FolderHeader = HeaderConnector(({items, isTeamPath, onOpenBreadcrumb}: Fol
       <Box style={folderHeaderStyleTree}>
         {items.length < 4 &&
           items.map((i, idx) => (
-            <Box key={Types.pathToString(i.path)} style={folderBreadcrumbStyle}>
+            <Box key={i.path} style={folderBreadcrumbStyle}>
               {idx !== 0 && <Icon type="iconfont-back" style={iconStyle} />}
               {idx === 2 &&
                 isTeamPath && <Avatar size={12} teamname={i.name} isTeam={true} style={styleTeamAvatar} />}
