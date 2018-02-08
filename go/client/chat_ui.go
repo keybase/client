@@ -148,7 +148,7 @@ func (c *ChatUI) ChatSearchHit(ctx context.Context, arg chat1.ChatSearchHitArg) 
 	getContext := func(uiMsg chat1.UIMessage) string {
 		if uiMsg.IsValid() && uiMsg.GetMessageType() == chat1.MessageType_TEXT {
 			msgBody := uiMsg.Valid().MessageBody.Text().Body
-			return msgBody[:] + "\n"
+			return msgBody + "\n"
 		}
 		return ""
 	}

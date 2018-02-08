@@ -109,12 +109,13 @@ func (c *CmdChatSearch) Run() (err error) {
 	}
 	conversationInfo := conversation.Info
 
-	var arg chat1.GetSearchResultsArg
-	arg.ConversationID = conversationInfo.Id
-	arg.IdentifyBehavior = keybase1.TLFIdentifyBehavior_CHAT_CLI
-	arg.Query = c.query
-	arg.MaxHits = c.maxHits
-	arg.MaxMessages = c.maxMessages
+	arg := chat1.GetSearchResultsArg{
+		ConversationID:   conversationInfo.Id,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		Query:            c.query,
+		MaxHits:          c.maxHits,
+		MaxMessages:      c.maxMessages,
+	}
 
 	// TODO Use rate limits and identifyfailures?
 	_, err = resolver.ChatClient.GetSearchResults(ctx, arg)
