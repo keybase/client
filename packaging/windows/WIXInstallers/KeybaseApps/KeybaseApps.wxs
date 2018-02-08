@@ -30,11 +30,11 @@
 
     <InstallExecuteSequence>
       <InstallValidate Suppress="yes">FAKE_PROPERTY</InstallValidate>
-      <Custom Action="StopMainApp" Before="StopUpdater"><![CDATA[Installed]]></Custom>
-      <Custom Action="StopUpdater" Before="StopGUI"><![CDATA[Installed]]></Custom>
-      <Custom Action="RemoveBrowserExtension" Before="InstallValidate"><![CDATA[Installed]]></Custom>
+      <Custom Action="StopMainApp" Before="StopUpdater"><![CDATA[Installed OR WIX_UPGRADE_DETECTED]]></Custom>
+      <Custom Action="StopUpdater" Before="StopGUI"><![CDATA[Installed OR WIX_UPGRADE_DETECTED]]></Custom>
+      <Custom Action="RemoveBrowserExtension" Before="InstallValidate"><![CDATA[Installed OR WIX_UPGRADE_DETECTED]]></Custom>
       <!-- StopGUI is legacy and to be removed after enough people are updated -->
-      <Custom Action="StopGUI" Before="InstallValidate"><![CDATA[Installed]]></Custom>
+      <Custom Action="StopGUI" Before="InstallValidate"><![CDATA[Installed OR WIX_UPGRADE_DETECTED]]></Custom>
       <Custom Action="RunMainApp" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
       <Custom Action="RunGUI" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
       <Custom Action="AddBrowserExtension" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
