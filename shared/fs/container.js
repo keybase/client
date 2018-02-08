@@ -1,8 +1,7 @@
 // @flow
 import * as I from 'immutable'
-import {connect, type TypedState, type Dispatch} from '../util/container'
+import {compose, connect, type TypedState, setDisplayName, type Dispatch} from '../util/container'
 import Files from '.'
-import {navigateUp} from '../actions/route-tree'
 import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
 
@@ -15,9 +14,7 @@ type StateProps = {
   items: I.List<Types.Path>,
 }
 
-type DispatchProps = {
-  onBack: () => void,
-}
+type DispatchProps = {}
 
 const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
   const path = Types.stringToPath(routeProps.get('path', Constants.defaultPath))
@@ -29,9 +26,7 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onBack: () => dispatch(navigateUp()),
-})
+const mapDispatchToProps = (dispatch: Dispatch) => ({})
 
 const mergeProps = ({path, items}: StateProps, dispatchProps: DispatchProps, ownProps) => ({
   items: items.toArray(),
@@ -43,4 +38,6 @@ const mergeProps = ({path, items}: StateProps, dispatchProps: DispatchProps, own
   ...dispatchProps,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Files)
+export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('Files'))(
+  Files
+)

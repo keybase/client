@@ -43,9 +43,10 @@ export type State = I.RecordOf<_State>
 
 export type Visibility = 'private' | 'public' | 'team' | null
 
-export const stringToPath = (s: string): Path => (s.indexOf('/keybase') !== -1 ? s : null)
+export const stringToPath = (s: string): Path => (s.indexOf('/') === 0 ? s : null)
 export const pathToString = (p: Path): string => (!p ? '' : p)
 export const getPathName = (p: Path): string => (!p ? '' : p.split('/').pop())
+export const getPathElements = (p: Path): Array<string> => (!p ? [] : p.split('/').slice(1))
 export const getPathVisibility = (p: Path): Visibility => {
   if (!p) return null
   const [, , visibility] = p.split('/')
@@ -75,4 +76,5 @@ export const stringToPathType = (s: string): PathType => {
   }
 }
 export const pathTypeToString = (p: PathType): string => p
-export const pathConcat = (p: Path, s: string): Path => stringToPath(pathToString(p) + '/' + s)
+export const pathConcat = (p: Path, s: string): Path =>
+  p === '/' ? stringToPath('/' + s) : stringToPath(pathToString(p) + '/' + s)
