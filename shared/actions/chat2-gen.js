@@ -186,7 +186,7 @@ export const createMessageSetEditing = (
 export const createMessageWasEdited = (
   payload: $ReadOnly<{
     conversationIDKey: Types.ConversationIDKey,
-    ordinal: Types.Ordinal,
+    messageID: RPCChatTypes.MessageID,
     text: HiddenString,
   }>
 ) => ({error: false, payload, type: messageWasEdited})
@@ -199,7 +199,7 @@ export const createMessagesAdd = (
 export const createMessagesWereDeleted = (
   payload: $ReadOnly<{
     conversationIDKey: Types.ConversationIDKey,
-    ordinals: Array<Types.Ordinal>,
+    messageIDs: Array<RPCChatTypes.MessageID>,
   }>
 ) => ({error: false, payload, type: messagesWereDeleted})
 export const createMetaHandleQueue = () => ({error: false, payload: undefined, type: metaHandleQueue})

@@ -9,6 +9,11 @@ import type {DeviceType} from '../devices'
 export opaque type MessageID: number = number
 export const numberToMessageID = (n: number): MessageID => n
 
+// An ordinal is an id we use on the gui side to manage the ordering of messages. From the serverside the ordering is controlled
+// by the message id. When we send things we want it to be in an order that is static from our perspective so we make essentially
+// a fake messageid (usually adding .001 plus the last ordinal we've seen). We use this ordinal as the keys to most of our maps
+// This makes the thread list have a static list of ordinals
+// We do need the messageid since thats the 'real' id and a parameter to rpc calls (like edit and delete)
 export opaque type Ordinal = number
 export const numberToOrdinal = (n: number): Ordinal => n
 export const ordinalToNumber = (o: Ordinal): number => o

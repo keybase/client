@@ -306,21 +306,19 @@ const validUIMessagetoMessage = (
       }
 
       // attachmentuploaded is basically an 'edit' of an attachment w/ no data
-      const ordinal =
+      let ordinal = common.ordinal
+      if (
         m.messageBody.messageType === RPCChatTypes.commonMessageType.attachmentuploaded &&
-        m.messageBody.attachmentuploaded &&
-        m.messageBody.attachmentuploaded.messageID
-          ? Types.numberToOrdinal(m.messageBody.attachmentuploaded.messageID)
-          : common.ordinal
+        m.messageBody.attachmentuploaded
+      ) {
+        ordinal = Types.numberToOrdinal(m.messageBody.attachmentuploaded.messageID)
+      }
 
-      // make placeholders not have an id so we can override it correctly
-      const id = filename ? common.id : Types.numberToMessageID(0)
       return makeMessageAttachment({
         ...common,
         attachmentType,
         fileName: filename,
         fileSize: size,
-        id,
         ordinal,
         previewHeight,
         previewWidth,

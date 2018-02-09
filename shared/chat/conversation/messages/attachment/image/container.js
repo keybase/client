@@ -66,7 +66,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     path: message.devicePreviewPath,
     progress: message.transferProgress,
     progressLabel,
-    title: message.title || message.fileName,
+    title:
+      (message.title || message.fileName) +
+      ' ordinal:' +
+      Types.ordinalToNumber(message.ordinal) +
+      ' id: ' +
+      message.id,
     width: message.previewWidth,
   }
 }

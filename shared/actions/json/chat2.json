@@ -94,14 +94,13 @@
     // Update a message which changed
     "messageWasEdited": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal",
-      /* "messageID": "RPCChatTypes.MessageID", */
+      "messageID": "RPCChatTypes.MessageID",
       "text": "HiddenString"
     },
     // Mark a message as deleted
     "messagesWereDeleted": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "ordinals": "Array<Types.Ordinal>"
+      "messageIDs": "Array<RPCChatTypes.MessageID>"
     },
     // Delete a message
     "messageDelete": {

@@ -247,14 +247,16 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
         case RPCChatTypes.commonMessageType.edit:
           if (body.edit) {
             const text = new HiddenString(body.edit.body || '')
-            const ordinal = Types.numberToOrdinal(body.edit.messageID)
-            actions.push(Chat2Gen.createMessageWasEdited({conversationIDKey, ordinal, text}))
+            actions.push(
+              Chat2Gen.createMessageWasEdited({conversationIDKey, messageID: body.edit.messageID, text})
+            )
           }
           break
         case RPCChatTypes.commonMessageType.delete:
           if (body.delete && body.delete.messageIDs) {
-            const ordinals = body.delete.messageIDs.map(Types.numberToOrdinal)
-            actions.push(Chat2Gen.createMessagesWereDeleted({conversationIDKey, ordinals}))
+            actions.push(
+              Chat2Gen.createMessagesWereDeleted({conversationIDKey, messageIDs: body.delete.messageIDs})
+            )
           }
           break
       }
@@ -1114,7 +1116,7 @@ function* attachmentLoad(action: Chat2Gen.AttachmentLoadPayload) {
       conversationID: Types.keyToConversationID(conversationIDKey),
       filename: fileName,
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-      messageID: Types.ordinalToNumber(ordinal),
+      messageID: message.id,
       preview: isPreview,
     }
   )
@@ -1196,11 +1198,11 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
     return
   }
 
-  // const attachmentType = Constants.pathToAttachmentType(path)
+  const attachmentType = Constants.pathToAttachmentType(path)
 
   // TODO asking patrick about sending this ahead of time (like text) instead of handling it in the flow
   let ordinal
-  let outboxID
+  // let outboxID
   let lastRatioSent = 0
 
   const postAttachment = new EngineRpc.EngineRpcCall(
@@ -1208,33 +1210,31 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
       'chat.1.chatUi.chatAttachmentPreviewUploadDone': EngineRpc.passthroughResponseSaga,
       'chat.1.chatUi.chatAttachmentPreviewUploadStart': EngineRpc.passthroughResponseSaga,
       'chat.1.chatUi.chatAttachmentUploadDone': EngineRpc.passthroughResponseSaga,
-      'chat.1.chatUi.chatAttachmentUploadOutboxID': function*(param) {
-        outboxID = Types.stringToOutboxID(param.outboxID.toString('hex') || '') // never null but makes flow happy
-        // const message = Constants.makePendingAttachmentMessage(
-        // state,
-        // conversationIDKey,
-        // attachmentType,
-        // title,
-        // preview.filename,
-        // Types.stringToOutboxID(outboxID.toString('hex') || '') // never null but makes flow happy
-        // )
-        // ordinal = message.ordinal
-        // yield Saga.put(
-        // Chat2Gen.createMessagesAdd({
-        // context: {type: 'sent'},
-        // messages: [message],
-        // })
-        // )
-        //
-        // ordinal =
+      'chat.1.chatUi.chatAttachmentUploadOutboxID': function*({outboxID}) {
+        // outboxID = Types.stringToOutboxID(param.outboxID.toString('hex') || '') // never null but makes flow happy
+        const message = Constants.makePendingAttachmentMessage(
+          state,
+          conversationIDKey,
+          attachmentType,
+          title,
+          (preview && preview.filename) || '',
+          Types.stringToOutboxID(outboxID.toString('hex') || '') // never null but makes flow happy
+        )
+        ordinal = message.ordinal
+        yield Saga.put(
+          Chat2Gen.createMessagesAdd({
+            context: {type: 'sent'},
+            messages: [message],
+          })
+        )
         return EngineRpc.rpcResult()
       },
       'chat.1.chatUi.chatAttachmentUploadProgress': function*({bytesComplete, bytesTotal}) {
         const ratio = bytesComplete / bytesTotal
-        if (!ordinal && outboxID) {
-          const state: TypedState = yield Saga.select()
-          ordinal = state.chat2.pendingOutboxToOrdinal.getIn([conversationIDKey, outboxID])
-        }
+        // if (!ordinal && outboxID) {
+        // const state: TypedState = yield Saga.select()
+        // ordinal = state.chat2.pendingOutboxToOrdinal.getIn([conversationIDKey, outboxID])
+        // }
         // Don't spam ourselves with updates
         if (ordinal && ratio - lastRatioSent > 0.05) {
           lastRatioSent = ratio
@@ -1342,16 +1342,9 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.attachmentNeedsUpdating, queueAttachmentToRequest)
   // We have some items in the queue to process
   yield Saga.safeTakeEveryPure(Chat2Gen.attachmentHandleQueue, requestAttachment)
-  // Actually load. Spawn so we can handle multiple in parallel
-  yield Saga.safeTakeEvery(Chat2Gen.attachmentLoad, function*(action: Chat2Gen.AttachmentLoadPayload) {
-    yield Saga.spawn(attachmentLoad, action)
-  })
-
+  yield Saga.safeTakeEvery(Chat2Gen.attachmentLoad, attachmentLoad)
   yield Saga.safeTakeEvery(Chat2Gen.attachmentDownload, attachmentDownload)
-
-  yield Saga.safeTakeEvery(Chat2Gen.attachmentUpload, function*(action: Chat2Gen.AttachmentUploadPayload) {
-    yield Saga.spawn(attachmentUpload, action)
-  })
+  yield Saga.safeTakeEvery(Chat2Gen.attachmentUpload, attachmentUpload)
 }
 
 export default chat2Saga
