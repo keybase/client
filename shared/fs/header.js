@@ -21,7 +21,7 @@ const FolderHeader = HeaderConnector(({items, isTeamPath, onOpenBreadcrumb}: Fol
       </Box>
     ) : (
       <Box style={folderHeaderStyleTree}>
-        {items.length < 4 &&
+        {items.length < 10 &&
           items.map((i, idx) => (
             <Box key={i.path} style={folderBreadcrumbStyle}>
               {idx !== 0 && <Icon type="iconfont-back" style={iconStyle} />}
