@@ -1,6 +1,8 @@
 package types
 
 import (
+	"regexp"
+
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -71,7 +73,7 @@ type MessageDeliverer interface {
 }
 
 type Searcher interface {
-	Search(ctx context.Context, chatUI libkb.ChatUI, conversationID chat1.ConversationID, query string, maxHits int, maxMessages int) (rlimits []chat1.RateLimit, err error)
+	SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchHit, conversationID chat1.ConversationID, re *regexp.Regexp, maxHits int, maxMessages int) (hits []chat1.ChatSearchHit, rlimits []chat1.RateLimit, err error)
 }
 
 type Sender interface {

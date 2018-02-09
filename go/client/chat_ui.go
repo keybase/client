@@ -6,7 +6,6 @@ package client
 import (
 	"fmt"
 	"strings"
-	"sync"
 
 	"golang.org/x/net/context"
 
@@ -19,7 +18,6 @@ type ChatUI struct {
 	terminal            libkb.TerminalUI
 	noOutput            bool
 	lastPercentReported int
-	searchMutex         sync.Mutex
 }
 
 func (c *ChatUI) ChatAttachmentUploadOutboxID(context.Context, chat1.ChatAttachmentUploadOutboxIDArg) error {
@@ -139,22 +137,20 @@ func (c *ChatUI) ChatConfirmChannelDelete(ctx context.Context, arg chat1.ChatCon
 }
 
 func (c *ChatUI) ChatSearchHit(ctx context.Context, arg chat1.ChatSearchHitArg) error {
-	// We don't want results written out of order
-	c.searchMutex.Lock()
-	defer c.searchMutex.Unlock()
 	if c.noOutput {
 		return nil
 	}
-	getContext := func(uiMsg chat1.UIMessage) string {
-		if uiMsg.IsValid() && uiMsg.GetMessageType() == chat1.MessageType_TEXT {
+	searchHit := arg.SearchHit
+	getContext := func(uiMsg *chat1.UIMessage) string {
+		if uiMsg != nil && uiMsg.IsValid() && uiMsg.GetMessageType() == chat1.MessageType_TEXT {
 			msgBody := uiMsg.Valid().MessageBody.Text().Body
 			return msgBody + "\n"
 		}
 		return ""
 	}
 
-	highlightHits := func(uiMsg chat1.UIMessage, hits []string) string {
-		if uiMsg.IsValid() && uiMsg.GetMessageType() == chat1.MessageType_TEXT {
+	highlightHits := func(uiMsg *chat1.UIMessage, hits []string) string {
+		if uiMsg != nil && uiMsg.IsValid() && uiMsg.GetMessageType() == chat1.MessageType_TEXT {
 			msgBody := uiMsg.Valid().MessageBody.Text().Body
 			var hitText string
 			for _, hit := range hits {
@@ -165,21 +161,18 @@ func (c *ChatUI) ChatSearchHit(ctx context.Context, arg chat1.ChatSearchHitArg) 
 		}
 		return ""
 	}
-	hitText := highlightHits(arg.HitMessage, arg.Hits)
+	hitText := highlightHits(searchHit.HitMessage, searchHit.Matches)
 	if hitText != "" {
 		w := c.terminal.ErrorWriter()
-		fmt.Fprintf(w, getContext(arg.PrevMessage))
+		fmt.Fprintf(w, getContext(searchHit.PrevMessage))
 		fmt.Fprintln(w, hitText)
-		fmt.Fprintf(w, getContext(arg.NextMessage))
+		fmt.Fprintf(w, getContext(searchHit.NextMessage))
 		fmt.Fprintln(w, "")
 	}
 	return nil
 }
 
 func (c *ChatUI) ChatSearchDone(ctx context.Context, arg chat1.ChatSearchDoneArg) error {
-	// We don't want results written out of order
-	c.searchMutex.Lock()
-	defer c.searchMutex.Unlock()
 	if c.noOutput {
 		return nil
 	}

@@ -3633,9 +3633,9 @@ func TestChatSrvTeamChannelNameMentions(t *testing.T) {
 	})
 }
 
-func TestChatSrvGetSearchResults(t *testing.T) {
+func TestChatSrvGetSearchRegexp(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
-		ctc := makeChatTestContext(t, "GetSearchResults", 2)
+		ctc := makeChatTestContext(t, "GetSearchRegexp", 2)
 		defer ctc.cleanup()
 		users := ctc.users()
 
@@ -3656,30 +3656,33 @@ func TestChatSrvGetSearchResults(t *testing.T) {
 			return int(res.MessageID)
 		}
 
-		verifySearchHits := func(prevMessageID int, hitMessageID int, nextMessageID int, hits []string) {
-			select {
-			case searchHit := <-searchHitCb:
+		verifyHit := func(prevMessageID int, hitMessageID int, nextMessageID int, matches []string, searchHit chat1.ChatSearchHit) {
+			_verifyHit := func(searchHit chat1.ChatSearchHit) {
 				if prevMessageID == nullMessageID {
-					require.Equal(t, searchHit.PrevMessage, chat1.UIMessage{})
+					require.Nil(t, searchHit.PrevMessage)
 				} else {
 					require.True(t, searchHit.PrevMessage.IsValid())
 					require.EqualValues(t, searchHit.PrevMessage.Valid().MessageID, prevMessageID)
 				}
 				require.EqualValues(t, searchHit.HitMessage.Valid().MessageID, hitMessageID)
-				require.Equal(t, searchHit.Hits, hits)
+				require.Equal(t, searchHit.Matches, matches)
 
 				if nextMessageID == nullMessageID {
-					require.Equal(t, searchHit.NextMessage, chat1.UIMessage{})
+					require.Nil(t, searchHit.NextMessage)
 				} else {
 					require.True(t, searchHit.NextMessage.IsValid())
 					require.EqualValues(t, searchHit.NextMessage.Valid().MessageID, nextMessageID)
 				}
+
+			}
+			_verifyHit(searchHit)
+			select {
+			case searchHitArg := <-searchHitCb:
+				_verifyHit(searchHitArg.SearchHit)
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no search result received")
 			}
-
 		}
-
 		verifySearchDone := func(numHits int) {
 			select {
 			case searchDone := <-searchDoneCb:
@@ -3689,14 +3692,15 @@ func TestChatSrvGetSearchResults(t *testing.T) {
 			}
 		}
 
-		search := func(query string, maxHits int, maxMessages int) {
-			_, err := tc.chatLocalHandler().GetSearchResults(tc.startCtx, chat1.GetSearchResultsArg{
+		search := func(query string, maxHits int, maxMessages int) chat1.GetSearchRegexpRes {
+			res, err := tc.chatLocalHandler().GetSearchRegexp(tc.startCtx, chat1.GetSearchRegexpArg{
 				ConversationID: conv.Id,
 				Query:          query,
 				MaxHits:        maxHits,
 				MaxMessages:    maxMessages,
 			})
 			require.NoError(t, err)
+			return res
 		}
 
 		maxHits := 1
@@ -3705,34 +3709,39 @@ func TestChatSrvGetSearchResults(t *testing.T) {
 		query := "hi"
 		msgBody := "hi"
 		messageID := sendMessage(msgBody)
-		search(query, maxHits, maxMessages)
-		verifySearchHits(nullMessageID, messageID, nullMessageID, []string{query})
+		res := search(query, maxHits, maxMessages)
+		require.Equal(t, len(res.Hits), 1)
+		verifyHit(nullMessageID, messageID, nullMessageID, []string{query}, res.Hits[0])
 		verifySearchDone(1)
 
 		// Test basic no results
 		query = "hey"
-		search(query, maxHits, maxMessages)
+		res = search(query, maxHits, maxMessages)
+		require.Equal(t, len(res.Hits), 0)
 		verifySearchDone(0)
 
 		// Test maxHits
 		maxHits = 1
 		query = "hi"
 		messageID1 := sendMessage(msgBody)
-		search(query, maxHits, maxMessages)
-		verifySearchHits(messageID, messageID1, nullMessageID, []string{query})
+		res = search(query, maxHits, maxMessages)
+		require.Equal(t, len(res.Hits), 1)
+		verifyHit(messageID, messageID1, nullMessageID, []string{query}, res.Hits[0])
 		verifySearchDone(1)
 
 		maxHits = 5
-		search(query, maxHits, maxMessages)
-		verifySearchHits(messageID, messageID1, nullMessageID, []string{query})
-		verifySearchHits(nullMessageID, messageID, messageID1, []string{query})
+		res = search(query, maxHits, maxMessages)
+		require.Equal(t, len(res.Hits), 2)
+		verifyHit(messageID, messageID1, nullMessageID, []string{query}, res.Hits[0])
+		verifyHit(nullMessageID, messageID, messageID1, []string{query}, res.Hits[1])
 		verifySearchDone(2)
 
 		messageID2 := sendMessage(msgBody)
-		search(query, maxHits, maxMessages)
-		verifySearchHits(messageID1, messageID2, nullMessageID, []string{query})
-		verifySearchHits(messageID, messageID1, messageID2, []string{query})
-		verifySearchHits(nullMessageID, messageID, messageID1, []string{query})
+		res = search(query, maxHits, maxMessages)
+		require.Equal(t, len(res.Hits), 3)
+		verifyHit(messageID1, messageID2, nullMessageID, []string{query}, res.Hits[0])
+		verifyHit(messageID, messageID1, messageID2, []string{query}, res.Hits[1])
+		verifyHit(nullMessageID, messageID, messageID1, []string{query}, res.Hits[2])
 		verifySearchDone(3)
 
 		// Test regex functionality
@@ -3742,12 +3751,14 @@ func TestChatSrvGetSearchResults(t *testing.T) {
 			sendMessage("h" + string(char))
 		}
 		maxHits = len(lowercase)
-		search(query, maxHits, maxMessages)
+		res = search(query, maxHits, maxMessages)
+		require.Equal(t, len(res.Hits), maxHits)
 		verifySearchDone(maxHits)
 
 		// Test maxMessages
 		maxMessages = 2
-		search(query, maxHits, maxMessages)
+		res = search(query, maxHits, maxMessages)
+		require.Equal(t, len(res.Hits), maxMessages)
 		verifySearchDone(maxMessages)
 	})
 }

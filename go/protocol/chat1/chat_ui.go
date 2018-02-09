@@ -598,6 +598,50 @@ func (o UIMessages) DeepCopy() UIMessages {
 	}
 }
 
+type ChatSearchHit struct {
+	PrevMessage *UIMessage `codec:"prevMessage,omitempty" json:"prevMessage,omitempty"`
+	HitMessage  *UIMessage `codec:"hitMessage,omitempty" json:"hitMessage,omitempty"`
+	NextMessage *UIMessage `codec:"nextMessage,omitempty" json:"nextMessage,omitempty"`
+	Matches     []string   `codec:"matches" json:"matches"`
+}
+
+func (o ChatSearchHit) DeepCopy() ChatSearchHit {
+	return ChatSearchHit{
+		PrevMessage: (func(x *UIMessage) *UIMessage {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.PrevMessage),
+		HitMessage: (func(x *UIMessage) *UIMessage {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.HitMessage),
+		NextMessage: (func(x *UIMessage) *UIMessage {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.NextMessage),
+		Matches: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			var ret []string
+			for _, v := range x {
+				vCopy := v
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Matches),
+	}
+}
+
 type ChatAttachmentUploadOutboxIDArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
 	OutboxID  OutboxID `codec:"outboxID" json:"outboxID"`
@@ -669,11 +713,8 @@ type ChatThreadFullArg struct {
 }
 
 type ChatSearchHitArg struct {
-	SessionID   int       `codec:"sessionID" json:"sessionID"`
-	PrevMessage UIMessage `codec:"prevMessage" json:"prevMessage"`
-	HitMessage  UIMessage `codec:"hitMessage" json:"hitMessage"`
-	NextMessage UIMessage `codec:"nextMessage" json:"nextMessage"`
-	Hits        []string  `codec:"hits" json:"hits"`
+	SessionID int           `codec:"sessionID" json:"sessionID"`
+	SearchHit ChatSearchHit `codec:"searchHit" json:"searchHit"`
 }
 
 type ChatSearchDoneArg struct {
@@ -948,7 +989,7 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 					err = i.ChatSearchHit(ctx, (*typedArgs)[0])
 					return
 				},
-				MethodType: rpc.MethodNotify,
+				MethodType: rpc.MethodCall,
 			},
 			"chatSearchDone": {
 				MakeArg: func() interface{} {
@@ -964,7 +1005,7 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 					err = i.ChatSearchDone(ctx, (*typedArgs)[0])
 					return
 				},
-				MethodType: rpc.MethodNotify,
+				MethodType: rpc.MethodCall,
 			},
 			"chatConfirmChannelDelete": {
 				MakeArg: func() interface{} {
@@ -1065,12 +1106,12 @@ func (c ChatUiClient) ChatThreadFull(ctx context.Context, __arg ChatThreadFullAr
 }
 
 func (c ChatUiClient) ChatSearchHit(ctx context.Context, __arg ChatSearchHitArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.chatUi.chatSearchHit", []interface{}{__arg})
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchHit", []interface{}{__arg}, nil)
 	return
 }
 
 func (c ChatUiClient) ChatSearchDone(ctx context.Context, __arg ChatSearchDoneArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.chatUi.chatSearchDone", []interface{}{__arg})
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchDone", []interface{}{__arg}, nil)
 	return
 }
 

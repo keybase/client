@@ -14,6 +14,10 @@
     {
       "path": "common.avdl",
       "type": "idl"
+    },
+    {
+      "path": "chat_ui.avdl",
+      "type": "idl"
     }
   ],
   "types": [
@@ -2221,8 +2225,15 @@
     },
     {
       "type": "record",
-      "name": "GetSearchResultsRes",
+      "name": "GetSearchRegexpRes",
       "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ChatSearchHit"
+          },
+          "name": "hits"
+        },
         {
           "type": {
             "type": "array",
@@ -3266,7 +3277,7 @@
       ],
       "response": null
     },
-    "getSearchResults": {
+    "getSearchRegexp": {
       "request": [
         {
           "name": "sessionID",
@@ -3293,7 +3304,7 @@
           "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
-      "response": "GetSearchResultsRes"
+      "response": "GetSearchRegexpRes"
     }
   },
   "namespace": "chat.1"

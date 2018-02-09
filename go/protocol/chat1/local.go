@@ -3682,13 +3682,25 @@ func (o AppNotificationSettingLocal) DeepCopy() AppNotificationSettingLocal {
 	}
 }
 
-type GetSearchResultsRes struct {
+type GetSearchRegexpRes struct {
+	Hits             []ChatSearchHit               `codec:"hits" json:"hits"`
 	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
 
-func (o GetSearchResultsRes) DeepCopy() GetSearchResultsRes {
-	return GetSearchResultsRes{
+func (o GetSearchRegexpRes) DeepCopy() GetSearchRegexpRes {
+	return GetSearchRegexpRes{
+		Hits: (func(x []ChatSearchHit) []ChatSearchHit {
+			if x == nil {
+				return nil
+			}
+			var ret []ChatSearchHit
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Hits),
 		RateLimits: (func(x []RateLimit) []RateLimit {
 			if x == nil {
 				return nil
@@ -4030,7 +4042,7 @@ type UpgradeKBFSConversationToImpteamArg struct {
 	ConvID ConversationID `codec:"convID" json:"convID"`
 }
 
-type GetSearchResultsArg struct {
+type GetSearchRegexpArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Query            string                       `codec:"query" json:"query"`
@@ -4086,7 +4098,7 @@ type LocalInterface interface {
 	SetConvRetentionLocal(context.Context, SetConvRetentionLocalArg) error
 	SetTeamRetentionLocal(context.Context, SetTeamRetentionLocalArg) error
 	UpgradeKBFSConversationToImpteam(context.Context, ConversationID) error
-	GetSearchResults(context.Context, GetSearchResultsArg) (GetSearchResultsRes, error)
+	GetSearchRegexp(context.Context, GetSearchRegexpArg) (GetSearchRegexpRes, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -4819,18 +4831,18 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"getSearchResults": {
+			"getSearchRegexp": {
 				MakeArg: func() interface{} {
-					ret := make([]GetSearchResultsArg, 1)
+					ret := make([]GetSearchRegexpArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]GetSearchResultsArg)
+					typedArgs, ok := args.(*[]GetSearchRegexpArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]GetSearchResultsArg)(nil), args)
+						err = rpc.NewTypeError((*[]GetSearchRegexpArg)(nil), args)
 						return
 					}
-					ret, err = i.GetSearchResults(ctx, (*typedArgs)[0])
+					ret, err = i.GetSearchRegexp(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -5081,7 +5093,7 @@ func (c LocalClient) UpgradeKBFSConversationToImpteam(ctx context.Context, convI
 	return
 }
 
-func (c LocalClient) GetSearchResults(ctx context.Context, __arg GetSearchResultsArg) (res GetSearchResultsRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.getSearchResults", []interface{}{__arg}, &res)
+func (c LocalClient) GetSearchRegexp(ctx context.Context, __arg GetSearchRegexpArg) (res GetSearchRegexpRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getSearchRegexp", []interface{}{__arg}, &res)
 	return
 }

@@ -1,5 +1,4 @@
-@namespace("chat.1")
-protocol common {
+@namespace("chat.1") protocol common {
 
   import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
   import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;

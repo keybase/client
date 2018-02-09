@@ -485,6 +485,40 @@
           "name": "pagination"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "ChatSearchHit",
+      "fields": [
+        {
+          "type": [
+            null,
+            "UIMessage"
+          ],
+          "name": "prevMessage"
+        },
+        {
+          "type": [
+            null,
+            "UIMessage"
+          ],
+          "name": "hitMessage"
+        },
+        {
+          "type": [
+            null,
+            "UIMessage"
+          ],
+          "name": "nextMessage"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "matches"
+        }
+      ]
     }
   ],
   "messages": {
@@ -686,27 +720,11 @@
           "type": "int"
         },
         {
-          "name": "prevMessage",
-          "type": "UIMessage"
-        },
-        {
-          "name": "hitMessage",
-          "type": "UIMessage"
-        },
-        {
-          "name": "nextMessage",
-          "type": "UIMessage"
-        },
-        {
-          "name": "hits",
-          "type": {
-            "type": "array",
-            "items": "string"
-          }
+          "name": "searchHit",
+          "type": "ChatSearchHit"
         }
       ],
-      "response": null,
-      "oneway": true
+      "response": null
     },
     "chatSearchDone": {
       "request": [
@@ -719,8 +737,7 @@
           "type": "int"
         }
       ],
-      "response": null,
-      "oneway": true
+      "response": null
     },
     "chatConfirmChannelDelete": {
       "request": [
