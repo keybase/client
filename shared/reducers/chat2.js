@@ -31,6 +31,24 @@ const messageIDToOrdinal = (messageMap, pendingOutboxToOrdinal, conversationIDKe
   return null
 }
 
+const upgradeMessage = (old: Types.Message, m: Types.Message) => {
+  if (old.type === 'text' && m.type === 'text') {
+    // $ForceType
+    return m.withMutations((ret: Types.MessageText) => {
+      ret.set('ordinal', old.ordinal)
+    })
+  }
+  if (old.type === 'attachment' && m.type === 'attachment') {
+    // $ForceType
+    return m.withMutations((ret: Types.MessageAttachment) => {
+      ret.set('ordinal', old.ordinal)
+      ret.set('deviceFilePath', old.deviceFilePath)
+      ret.set('devicePreviewPath', old.devicePreviewPath)
+    })
+  }
+  return m
+}
+
 const metaMapReducer = (metaMap, action) => {
   switch (action.type) {
     case Chat2Gen.metaRequestingTrusted:
@@ -117,6 +135,17 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
       )
     case Chat2Gen.inboxRefresh:
       return action.payload.clearAllData ? messageMap.clear() : messageMap
+    case Chat2Gen.messageAttachmentUploaded: {
+      const {conversationIDKey, message, placeholderID} = action.payload
+      const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, conversationIDKey, placeholderID)
+      if (!ordinal) {
+        return messageMap
+      }
+      return messageMap.updateIn(
+        [conversationIDKey, ordinal],
+        old => (old ? upgradeMessage(old, message) : message)
+      )
+    }
     case Chat2Gen.messageWasEdited: {
       const {conversationIDKey, messageID, text} = action.payload
 
@@ -125,35 +154,17 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
         return messageMap
       }
 
-      const message = messageMap.getIn([conversationIDKey, ordinal])
-      if (!message) {
-        return messageMap
-      }
-      const existingOrdinal =
-        (message.type === 'text' || message.type === 'attachment') && message.outboxID
-          ? pendingOutboxToOrdinal.getIn([message.conversationIDKey, message.outboxID])
-          : null
-
-      // Updated all messages (real ordinal and fake one)
-      const ordinals = [ordinal, ...(existingOrdinal ? [existingOrdinal] : [])]
-
-      let editedMap = messageMap
-      ordinals.forEach(o => {
-        editedMap = o
-          ? editedMap.updateIn(
-              [conversationIDKey, o],
-              message =>
-                !message || message.type !== 'text'
-                  ? message
-                  : message.withMutations(m => {
-                      m.set('text', text)
-                      m.set('hasBeenEdited', true)
-                      m.set('submitState', null)
-                    })
-            )
-          : editedMap
-      })
-      return editedMap
+      return messageMap.updateIn(
+        [conversationIDKey, ordinal],
+        message =>
+          !message || message.type !== 'text'
+            ? message
+            : message.withMutations(m => {
+                m.set('text', text)
+                m.set('hasBeenEdited', true)
+                m.set('submitState', null)
+              })
+      )
     }
     case Chat2Gen.messagesWereDeleted: {
       const {conversationIDKey, messageIDs} = action.payload
@@ -366,6 +377,8 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
           console.log('aaa find old pending', m.ordinal, pendingOrdinal)
           return state.messageMap.getIn([conversationIDKey, pendingOrdinal])
         }
+        // Kind of a
+
         console.log('aaa find old fail', m.ordinal)
         return null
       }
@@ -394,23 +407,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
           })
         }
       )
-
-      // TODO move up
-      const upgradeMessage = (old: Types.Message, m: Types.Message) => {
-        if (old.type === 'text' && m.type === 'text') {
-          // $ForceType
-          return m.withMutations((ret: Types.MessageText) => {
-            ret.set('ordinal', old.ordinal)
-          })
-        }
-        if (old.type === 'attachment' && m.type === 'attachment') {
-          // $ForceType
-          return m.withMutations((ret: Types.MessageAttachment) => {
-            ret.set('ordinal', old.ordinal)
-          })
-        }
-        return m
-      }
 
       const messageMap = state.messageMap.withMutations(
         (map: I.Map<Types.ConversationIDKey, I.Map<Types.Ordinal, Types.Message>>) => {
@@ -702,6 +698,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.messageDelete:
     case Chat2Gen.messageEdit:
     case Chat2Gen.messageWasEdited:
+    case Chat2Gen.messageAttachmentUploaded:
     case Chat2Gen.messagesWereDeleted:
     case Chat2Gen.metaReceivedError:
     case Chat2Gen.metaRequestingTrusted:

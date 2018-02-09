@@ -305,21 +305,11 @@ const validUIMessagetoMessage = (
         }
       }
 
-      // attachmentuploaded is basically an 'edit' of an attachment w/ no data
-      let ordinal = common.ordinal
-      if (
-        m.messageBody.messageType === RPCChatTypes.commonMessageType.attachmentuploaded &&
-        m.messageBody.attachmentuploaded
-      ) {
-        ordinal = Types.numberToOrdinal(m.messageBody.attachmentuploaded.messageID)
-      }
-
       return makeMessageAttachment({
         ...common,
         attachmentType,
         fileName: filename,
         fileSize: size,
-        ordinal,
         previewHeight,
         previewWidth,
         title,

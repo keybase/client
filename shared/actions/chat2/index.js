@@ -229,16 +229,33 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
       state.config.deviceName || ''
     )
     if (message) {
-      // visible type
-      actions.push(Chat2Gen.createMessagesAdd({context: {type: 'incoming'}, messages: [message]}))
-      if (!isMobile && displayDesktopNotification && conv && conv.snippet) {
+      // is attachment upload? special case , act like an edit
+      if (
+        cMsg.state === RPCChatTypes.chatUiMessageUnboxedState.valid &&
+        cMsg.valid &&
+        cMsg.valid.messageBody.messageType === RPCChatTypes.commonMessageType.attachmentuploaded &&
+        cMsg.valid.messageBody.attachmentuploaded &&
+        message.type === 'attachment'
+      ) {
         actions.push(
-          Chat2Gen.createDesktopNotification({
-            author: message.author,
-            body: conv.snippet,
+          Chat2Gen.createMessageAttachmentUploaded({
             conversationIDKey,
+            message,
+            placeholderID: cMsg.valid.messageBody.attachmentuploaded.messageID,
           })
         )
+      } else {
+        // visible type
+        actions.push(Chat2Gen.createMessagesAdd({context: {type: 'incoming'}, messages: [message]}))
+        if (!isMobile && displayDesktopNotification && conv && conv.snippet) {
+          actions.push(
+            Chat2Gen.createDesktopNotification({
+              author: message.author,
+              body: conv.snippet,
+              conversationIDKey,
+            })
+          )
+        }
       }
     } else if (cMsg.state === RPCChatTypes.chatUiMessageUnboxedState.valid && cMsg.valid) {
       const body = cMsg.valid.messageBody
@@ -648,7 +665,7 @@ const desktopNotify = (action: Chat2Gen.DesktopNotificationPayload, state: Typed
 
 const messageDelete = (action: Chat2Gen.MessageDeletePayload, state: TypedState) => {
   const {conversationIDKey, ordinal} = action.payload
-  const message = Constants.getMessageMap(state, conversationIDKey).get(ordinal)
+  const message = state.chat2.messageMap.getIn([conversationIDKey, ordinal])
   if (!message || (message.type !== 'text' && message.type !== 'attachment')) {
     logger.warn('Deleting non-existant or, non-text non-attachment message')
     logger.debug('Deleting invalid message:', message)
@@ -667,7 +684,7 @@ const messageDelete = (action: Chat2Gen.MessageDeletePayload, state: TypedState)
     conversationID: Types.keyToConversationID(conversationIDKey),
     identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
     outboxID: null,
-    supersedes: Types.ordinalToNumber(message.ordinal),
+    supersedes: Types.ordinalToNumber(message.id),
     tlfName: meta.tlfname,
     tlfPublic: false,
   })

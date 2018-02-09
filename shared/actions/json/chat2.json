@@ -216,5 +216,10 @@
       "ordinal": "Types.Ordinal",
       "ratio": "number", // 0-1
     },
+    "messageAttachmentUploaded": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "placeholderID": "RPCChatTypes.MessageID",
+      "message": "Types.MessageAttachment",
+    },
   }
 }
