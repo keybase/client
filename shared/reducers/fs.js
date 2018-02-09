@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 import * as FSGen from '../actions/fs-gen'
 import * as Constants from '../constants/fs'
 import * as Types from '../constants/types/fs'
@@ -11,6 +12,10 @@ export default function(state: Types.State = initialState, action: FSGen.Actions
       return initialState
     case FSGen.increaseCount:
       return state
+    case FSGen.folderListLoaded:
+      return state.setIn(
+        ['pathItems'],
+        I.merge(state.pathItems, action.payload.pathItems))
     default:
       // eslint-disable-next-line no-unused-expressions
       ;(action: empty) // if you get a flow error here it means there's an action you claim to handle but didn't

@@ -1,16 +1,20 @@
 // @flow
 import * as I from 'immutable'
 import * as Types from './types/fs'
+import {Buffer} from 'buffer'
+import uuidv1 from 'uuid/v1'
+import * as FsGen from "../actions/fs-gen"
+import { type Dispatch } from '../util/container'
 
 export const defaultPath = '/keybase'
 
-const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
+export const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
   children: I.List(),
   progress: 'pending',
   type: 'folder',
 })
 
-const makeFile: I.RecordFactory<Types._FilePathItem> = I.Record({
+export const makeFile: I.RecordFactory<Types._FilePathItem> = I.Record({
   progress: 'pending',
   type: 'file',
 })
@@ -25,56 +29,23 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
     ],
     [
       Types.stringToPath('/keybase/private'),
-      makeFolder({
-        children: I.List(['foo', 'foo,bar']),
-      }),
+      makeFolder(),
     ],
     [
       Types.stringToPath('/keybase/public'),
-      makeFolder({
-        children: I.List(['foo', 'bar']),
-      }),
+      makeFolder(),
     ],
     [
       Types.stringToPath('/keybase/team'),
-      makeFolder({
-        children: I.List(['foobar']),
-      }),
+      makeFolder(),
     ],
-    [
-      Types.stringToPath('/keybase/private/foo'),
-      makeFolder({
-        children: I.List(['foo.priv']),
-      }),
-    ],
-    [
-      Types.stringToPath('/keybase/private/foo,bar'),
-      makeFolder({
-        children: I.List(['foo.bar.priv']),
-      }),
-    ],
-    [
-      Types.stringToPath('/keybase/public/foo'),
-      makeFolder({
-        children: I.List(['foo.pub']),
-      }),
-    ],
-    [
-      Types.stringToPath('/keybase/public/bar'),
-      makeFolder({
-        children: I.List(['bar.pub']),
-      }),
-    ],
-    [
-      Types.stringToPath('/keybase/team/foobar'),
-      makeFolder({
-        children: I.List(['foobar.team']),
-      }),
-    ],
-    [Types.stringToPath('/keybase/private/foo/foo.priv'), makeFile()],
-    [Types.stringToPath('/keybase/private/foo,bar/foo.bar.priv'), makeFile()],
-    [Types.stringToPath('/keybase/public/foo/foo.pub'), makeFile()],
-    [Types.stringToPath('/keybase/public/bar/bar.pub'), makeFile()],
-    [Types.stringToPath('/keybase/team/foobar/foobar.team'), makeFile()],
   ]),
 })
+
+export const makeUUID = () => uuidv1(null, Buffer.alloc(16), 0)
+export const wrapOpID = (actionCreator, payload) => actionCreator({
+  opID: makeUUID(),
+  ...payload
+})
+export const dispatchFolderListLoad = (dispatch: Dispatch, path: string) =>
+  dispatch(wrapOpID(FsGen.createFolderListLoad, { path: path }))

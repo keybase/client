@@ -1,10 +1,17 @@
 // @flow
 import * as I from 'immutable'
-import {connect, type TypedState, type Dispatch} from '../util/container'
+import {
+  compose,
+  lifecycle,
+  connect,
+  type TypedState,
+  type Dispatch,
+} from '../util/container'
 import Files from '.'
 import {navigateUp} from '../actions/route-tree'
 import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
+import * as FsGen from "../actions/fs-gen"
 
 type OwnProps = {
   routeProps: I.Map<'path', string>,
@@ -31,6 +38,7 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onBack: () => dispatch(navigateUp()),
+  _loadFolderList: (path) => Constants.dispatchFolderListLoad(dispatch, Types.stringToPath(path)),
 })
 
 const mergeProps = ({path, items}: StateProps, dispatchProps: DispatchProps, ownProps) => ({
@@ -43,4 +51,11 @@ const mergeProps = ({path, items}: StateProps, dispatchProps: DispatchProps, own
   ...dispatchProps,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Files)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  lifecycle({
+    componentWillMount() {
+      this.props._loadFolderList(this.props.path);
+    },
+  }),
+)(Files)
