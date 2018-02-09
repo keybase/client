@@ -45,11 +45,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  withStateHandlers(({name}) => ({name: name || ''}), {
-    onNameChange: () => (name: string) => ({name: name.toLowerCase()}),
-  }),
-  withStateHandlers(({joinSubteam}) => ({joinSubteam: false}), {
+  withStateHandlers(({joinSubteam, name}) => ({joinSubteam: false, name: name || ''}), {
     onJoinSubteamChange: () => (checked: boolean) => ({joinSubteam: checked}),
+    onNameChange: () => (name: string) => ({name: name.toLowerCase()}),
   }),
   withHandlers({
     onSubmit: ({joinSubteam, name, _onCreateNewTeam}) => () => _onCreateNewTeam(joinSubteam, name),
