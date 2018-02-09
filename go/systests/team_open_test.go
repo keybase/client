@@ -37,11 +37,11 @@ func TestTeamOpenAutoAddMember(t *testing.T) {
 
 	t.Logf("Open team name is %q", teamName)
 
+	roo.kickTeamRekeyd()
 	ret, err := roo.teamsClient.TeamRequestAccess(context.TODO(), keybase1.TeamRequestAccessArg{Name: teamName})
 	require.NoError(t, err)
 	require.Equal(t, true, ret.Open)
 
-	own.kickTeamRekeyd()
 	own.waitForTeamChangedGregor(teamID, keybase1.Seqno(2))
 
 	teamObj, err := teams.Load(context.TODO(), own.tc.G, keybase1.LoadTeamArg{
@@ -124,11 +124,13 @@ func TestOpenSubteamAdd(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, subteamObj.IsOpen(), true)
 
+	// Kick rekeyd so team request notifications come quicker.
+	roo.kickTeamRekeyd()
+
 	// User requesting access
 	subteamNameStr := subteamObj.Name().String()
 	roo.teamsClient.TeamRequestAccess(context.TODO(), keybase1.TeamRequestAccessArg{Name: subteamNameStr})
 
-	own.kickTeamRekeyd()
 	own.waitForTeamChangedGregor(*subteam, keybase1.Seqno(3))
 
 	subteamObj, err = teams.Load(context.TODO(), own.tc.G, keybase1.LoadTeamArg{
@@ -162,10 +164,11 @@ func TestTeamOpenMultipleTars(t *testing.T) {
 	err := teams.ChangeTeamSettings(context.TODO(), own.tc.G, teamName.String(), keybase1.TeamSettings{Open: true, JoinAs: keybase1.TeamRole_READER})
 	require.NoError(t, err)
 
+	tar3.kickTeamRekeyd()
+
 	// tar3 requests, but rekeyd will grab all requests
 	tar3.teamsClient.TeamRequestAccess(context.TODO(), keybase1.TeamRequestAccessArg{Name: teamName.String()})
 
-	own.kickTeamRekeyd()
 	own.waitForTeamChangedGregor(teamID, keybase1.Seqno(3))
 
 	teamObj, err := teams.Load(context.TODO(), own.tc.G, keybase1.LoadTeamArg{
@@ -233,10 +236,10 @@ func TestTeamOpenPuklessRequest(t *testing.T) {
 	err := teams.ChangeTeamSettings(context.TODO(), own.tc.G, team, keybase1.TeamSettings{Open: true, JoinAs: keybase1.TeamRole_READER})
 	require.NoError(t, err)
 
+	bob.kickTeamRekeyd()
 	_, err = bob.teamsClient.TeamRequestAccess(context.TODO(), keybase1.TeamRequestAccessArg{Name: team})
 	require.NoError(t, err)
 
-	own.kickTeamRekeyd()
 	own.pollForTeamSeqnoLink(team, keybase1.Seqno(3))
 
 	teamObj, err := teams.Load(context.TODO(), own.tc.G, keybase1.LoadTeamArg{
