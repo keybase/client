@@ -32,7 +32,8 @@
       <InstallValidate Suppress="yes">FAKE_PROPERTY</InstallValidate>
       <Custom Action="StopMainApp" Before="StopUpdater"><![CDATA[Installed OR WIX_UPGRADE_DETECTED]]></Custom>
       <Custom Action="StopUpdater" Before="StopGUI"><![CDATA[Installed OR WIX_UPGRADE_DETECTED]]></Custom>
-      <Custom Action="RemoveBrowserExtension" Before="InstallValidate"><![CDATA[Installed OR WIX_UPGRADE_DETECTED]]></Custom>
+      <Custom Action="RemoveBrowserExtension" Before="InstallValidate"><![CDATA[Installed]]></Custom>
+      <Custom Action="RemoveGUIShortcut" Before="InstallValidate"><![CDATA[REMOVE ~= "ALL" AND NOT WIX_UPGRADE_DETECTED]]></Custom>
       <!-- StopGUI is legacy and to be removed after enough people are updated -->
       <Custom Action="StopGUI" Before="InstallValidate"><![CDATA[Installed OR WIX_UPGRADE_DETECTED]]></Custom>
       <Custom Action="RunMainApp" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
@@ -80,6 +81,13 @@
         </RegistryKey>
         <File Id="keybase.exe" Source="$(env.GOPATH)\src\github.com\keybase\client\go\keybase\keybase.exe" Checksum="yes"/>
 			</Component>
+      <Component Id="GUIRunOnce">
+        <RegistryKey
+          Key="SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce"
+          Root="HKCU">
+          <RegistryValue Name="electron.app.Keybase" Type="string" Value="[GuiDir]Keybase.exe" />
+        </RegistryKey>
+      </Component>
       <Component Id="keybaserq.exe" Guid="{4A8A451F-973A-4E59-AC42-A8A9878FC94B}">
         <CreateFolder />
         <RemoveFolder Id="RemoveMyKeybaseRQ" On="uninstall" />
@@ -231,4 +239,18 @@
               Execute="immediate"
               Return="ignore"/>
   </Fragment>
+  <Fragment>
+    <CustomAction Id="RemoveGUIShortcut"
+                  Script="vbscript">
+      <![CDATA[
+        const HKLM = &H80000002
+        strComputer = "."
+        Set oReg=GetObject("winmgmts:{impersonationLevel=impersonate}!\\" & strComputer & "\root\default:StdRegProv")
+        strKeyPath = "SOFTWARE\Microsoft\Windows\CurrentVersion\Run"
+        strValueName = "electron.app.Keybase"
+        oReg.DeleteValue HKLM,strKeyPath,strValueName
+      ]]>
+    </CustomAction>
+  </Fragment>  
+
 </Wix>
