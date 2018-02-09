@@ -82,11 +82,14 @@
   }
 
   NSString *alertText = @"Keybase is about to upgrade the Keybase file system, allowing end-to-end encrypted files from right inside your Finder.";
+  NSString *infoText = @"";
   if ([bundleVersion isOrderedSame:[KBSemVersion version:@"1.0.30"]]) {
-    alertText = @"New Keybase feature: multiple users in macOS\n\nThe Keybase file system (KBFS) has been mounted at /keybase.  This doesn't work for multiple users, so we're moving things around.  You'll now have a unique mountpoint in your home directory.  Follow the new \"Favorite\" in Finder to get to it. The first local user to run Keybase will also have a link to it from the old /keybase location.\n\nPlease provide your password at the secure prompt when requested to unlock this new, open-source-powered feature!";
+    alertText = @"New Keybase feature: multiple users in macOS";
+    infoText = @"The Keybase file system (KBFS) has been mounted at /keybase.  This doesn't work for multiple users, so we're moving things around.  You'll now have a unique mountpoint in your home directory.  Follow the new \"Favorite\" in Finder to get to it. The first local user to run Keybase will also have a link to it from the old /keybase location.\n\nPlease provide your password at the secure prompt when requested to unlock this new, open-source-powered feature!";
   }
   NSAlert *alert = [[NSAlert alloc] init];
   [alert setMessageText:alertText];
+  [alert setInformativeText:infoText];
   [alert addButtonWithTitle:@"Got it!"];
   [alert setAlertStyle:NSAlertStyleInformational];
   [alert runModal]; // ignore response
