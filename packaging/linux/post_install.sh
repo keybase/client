@@ -41,8 +41,12 @@ if [ -z "$currlink" ] ; then
         fi
         echo You must run run_keybase to restore file system access.
     fi
-    if rmdir "$rootlink" &> /dev/null ; then
-        echo Replacing old $rootlink directory.
+    if [ -d "$rootlink" ] ; then
+        if rmdir "$rootlink" &> /dev/null ; then
+            echo Replacing old $rootlink directory.
+        else
+            echo WARNING: $rootlink access will not be available, because $rootlink is not empty.
+        fi
     fi
     if ln -s -T "$mount1" "$rootlink" &> /dev/null ; then
         chown "$khuser":"$khuser" "$rootlink"
