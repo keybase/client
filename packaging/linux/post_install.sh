@@ -44,7 +44,7 @@ if [ -z "$currlink" ] ; then
     if rmdir "$rootlink" &> /dev/null ; then
         echo Replacing old $rootlink directory.
     fi
-    if ln -s "$mount1" "$rootlink" &> /dev/null ; then
+    if ln -s -T "$mount1" "$rootlink" &> /dev/null ; then
         chown "$khuser":"$khuser" "$rootlink"
     fi
 fi
