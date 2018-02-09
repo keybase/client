@@ -337,7 +337,10 @@ func newCmdInstallAutoRunner(g *libkb.GlobalContext) *cmdInstallAuto {
 }
 
 func (v *cmdInstallAuto) GetUsage() libkb.Usage {
-	return libkb.Usage{}
+	return libkb.Usage{
+		// For getting the mount directory.
+		Config: true,
+	}
 }
 
 func (v *cmdInstallAuto) ParseArgv(ctx *cli.Context) error {

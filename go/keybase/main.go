@@ -57,10 +57,6 @@ func main() {
 	g := libkb.NewGlobalContext()
 	g.Init()
 
-	// Some commands, e.g. the OSX install commands, need direct
-	// access to config variables.
-	g.ConfigureConfig()
-
 	// Don't abort here. This should not happen on any known version of Windows, but
 	// new MS platforms may create regressions.
 	if err != nil {
