@@ -5,11 +5,12 @@ import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as Types from '../constants/types/fs'
-import * as Path from 'path'
+import {posix as Path} from 'path'
 
 import type {SagaGenerator} from '../constants/types/saga'
 
-export const fsPathToRpcPathString = (p: Types.Path): string => Types.pathToString(p).substring('/keybase'.length)
+export const fsPathToRpcPathString = (p: Types.Path): string =>
+  Types.pathToString(p).substring('/keybase'.length)
 
 function* folderList(action: FsGen.FolderListLoadPayload): SagaGenerator<any, any> {
   if (action.payload.path === '/keybase') {
