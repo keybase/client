@@ -9,6 +9,7 @@ import {
   withHandlers,
   type TypedState,
 } from '../../util/container'
+import {validTeamname, baseTeamname} from '../../constants/teamname'
 import upperFirst from 'lodash/upperFirst'
 
 const mapStateToProps = (state: TypedState) => ({
@@ -17,11 +18,11 @@ const mapStateToProps = (state: TypedState) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath}) => ({
-  _onCreateNewTeam: (teamname: string) => {
+  _onCreateNewTeam: (joinSubteam: boolean, teamname: string) => {
     const rootPath = routePath.take(1)
     const sourceSubPath = routePath.rest()
     const destSubPath = sourceSubPath.butLast()
-    dispatch(TeamsGen.createCreateNewTeam({teamname, rootPath, sourceSubPath, destSubPath}))
+    dispatch(TeamsGen.createCreateNewTeam({destSubPath, joinSubteam, rootPath, sourceSubPath, teamname}))
   },
   _onSetTeamCreationError: (error: string) => {
     dispatch(TeamsGen.createSetTeamCreationError({error}))
@@ -29,19 +30,29 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath}) => ({
   onBack: () => dispatch(navigateUp()),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  ...stateProps,
-  ...dispatchProps,
-  name: ownProps.routeProps.get('name'),
-})
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  const name = ownProps.routeProps.get('name')
+  const baseTeam = name && baseTeamname(name)
+  const isSubteam = baseTeam && validTeamname(baseTeam)
+  return {
+    ...stateProps,
+    ...dispatchProps,
+    baseTeam,
+    isSubteam,
+    name,
+  }
+}
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   withStateHandlers(({name}) => ({name: name || ''}), {
     onNameChange: () => (name: string) => ({name: name.toLowerCase()}),
   }),
+  withStateHandlers(({joinSubteam}) => ({joinSubteam: false}), {
+    onJoinSubteamChange: () => (checked: boolean) => ({joinSubteam: checked}),
+  }),
   withHandlers({
-    onSubmit: ({name, _onCreateNewTeam}) => () => _onCreateNewTeam(name),
+    onSubmit: ({joinSubteam, name, _onCreateNewTeam}) => () => _onCreateNewTeam(joinSubteam, name),
   }),
   lifecycle({
     componentDidMount: function() {
