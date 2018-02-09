@@ -1,16 +1,11 @@
 // @flow
 // An infinite scrolling chat list. Using react-virtualized which doesn't really handle this case out of the box.
-// import * as Constants from '../../../constants/chat'
-// import * as Types from '../../../constants/types/chat2'
 import * as Virtualized from 'react-virtualized'
-// import EditPopup from '../edit-popup.desktop'
 import * as React from 'react'
-// import ReactDOM from 'react-dom'
 import Message from '../../messages'
 import {ErrorBoundary} from '../../../../common-adapters'
 import clipboard from '../../../../desktop/clipboard'
 import debounce from 'lodash/debounce'
-// import {findDOMNode} from '../../../util/dom'
 import {globalColors, globalStyles} from '../../../../styles'
 
 import type {Props} from '.'
@@ -18,19 +13,11 @@ import type {Props} from '.'
 type State = {
   isLockedToBottom: boolean,
   listRerender: number,
-  // selectedMessageKey: ?Types.MessageKey,
 }
 
 const lockedToBottomSlop = 20
-// const listBottomMargin = 10
 
-// const DivRow = glamorous.div({
-// ':last-child': {
-// paddingBottom: listBottomMargin,
-// },
-// })
-
-class BaseList extends React.Component<Props, State> {
+class Thread extends React.Component<Props, State> {
   _cellCache = new Virtualized.CellMeasurerCache({
     fixedWidth: true,
     keyMapper: (rowIndex: number) => this.props.messageOrdinals.get(rowIndex),
@@ -46,16 +33,6 @@ class BaseList extends React.Component<Props, State> {
     selectedMessageKey: null,
   }
 
-  // _onShowMenu = () => {
-  // throw new Error('_onShowMenu Implemented in PopupEnabledList')
-  // }
-  // _onShowEditor = () => {
-  // throw new Error('_onShowEditor Implemented in PopupEnabledList')
-  // }
-  // _onEditLastMessage = () => {
-  // throw new Error('_onEditLastMessage Implemented in PopupEnabledList')
-  // }
-
   componentDidUpdate(prevProps: Props, prevState: State) {
     // Force a rerender if we passed a row to scroll to. If it's kept around the virutal list gets confused so we only want it to render once basically
     if (this._keepIdxVisible !== -1) {
@@ -63,10 +40,6 @@ class BaseList extends React.Component<Props, State> {
       this._keepIdxVisible = -1
     }
     this._lastRowIdx = -1 // always reset this to be safe
-
-    // if (this.props.editLastMessageCounter !== prevProps.editLastMessageCounter) {
-    // this._onEditLastMessage()
-    // }
   }
 
   componentWillReceiveProps(nextProps: Props) {
@@ -115,25 +88,9 @@ class BaseList extends React.Component<Props, State> {
     }
   }
 
-  _measure = ordinal => {
-    // TODO find index
-    // this._cellCache.clearAll()
-    // this._list && this._list.Grid && this._list.recomputeRowHeights(0)
-  }
-
   _rowRenderer = ({index, isScrolling, isVisible, key, parent, style}) => {
     const ordinal = this.props.messageOrdinals.get(index)
     const prevOrdinal = index > 0 ? this.props.messageOrdinals.get(index - 1) : null
-    // const isSelected = false // messageKey === this.state.selectedMessageKey
-    // {({measure}) => (
-    // const message = messageFactory(
-    // ordinal,
-    // prevOrdinal,
-    // this._onAction,
-    // this._onShowEditor,
-    // isSelected,
-    // measure
-    // )
     return (
       <Virtualized.CellMeasurer
         cache={this._cellCache}
@@ -177,20 +134,9 @@ class BaseList extends React.Component<Props, State> {
   }
 
   render() {
-    // if (!this.props.validated) {
-    // return (
-    // <div style={{alignItems: 'center', display: 'flex', flex: 1, justifyContent: 'center'}}>
-    // <Icon type="icon-securing-266" style={{alignSelf: 'flex-start'}} />
-    // </div>
-    // )
-    // }
-
     const rowCount = this.props.messageOrdinals.size
     const scrollToIndex = this.state.isLockedToBottom ? rowCount - 1 : this._keepIdxVisible
 
-    // We pass additional props (listRerender, selectedMessageKey) to Virtualized.List so we can force re-rendering automatically
-    // messageKeys={this.props.messageKeys}
-    // selectedMessageKey={this.state.selectedMessageKey}
     return (
       <ErrorBoundary>
         <div style={containerStyle} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>
@@ -246,136 +192,6 @@ const realCSS = `
 }
 `
 
-// Adds in popup handling
-class PopupEnabledList extends BaseList {
-  _keepIdxVisible: number = -1
-  _list: any
-
-  // _hidePopup = () => {
-  // ReactDOM.unmountComponentAtNode(document.getElementById('popupContainer'))
-  // this.setState({selectedMessageKey: null})
-  // }
-  // _domNodeToRect(element) {
-  // if (!document.body) {
-  // throw new Error('Body not ready')
-  // }
-  // const bodyRect = document.body.getBoundingClientRect()
-  // const elemRect = element.getBoundingClientRect()
-
-  // return {
-  // height: elemRect.height,
-  // left: elemRect.left - bodyRect.left,
-  // top: elemRect.top - bodyRect.top,
-  // width: elemRect.width,
-  // }
-  // }
-
-  // How this works is kinda crappy. We have to plumb through this key => message helper and all this DOM stuff just to support this
-  // _onEditLastMessage = () => {
-  // let tuple: ?[number, Types.MessageKey, Types.TextMessage]
-  // this.props.messageKeys.findLastEntry((v, k) => {
-  // const m = this.props.getMessageFromMessageKey(v)
-  // if (m && m.type === 'Text' && m.author === this.props.you) {
-  // tuple = [k, v, m]
-  // return true
-  // }
-  // return false
-  // })
-  // if (!tuple) {
-  // return
-  // }
-  // const [idx, messageKey, message] = tuple
-  // if (!Constants.textMessageEditable(message)) {
-  // return
-  // }
-  // this._keepIdxVisible = idx
-  // this.setState(prevState => ({listRerender: prevState.listRerender + 1}))
-  // const listNode = ReactDOM.findDOMNode(this._list)
-  // if (!(listNode instanceof window.Element)) {
-  // return
-  // }
-  // const messageNodes = listNode.querySelectorAll(`[data-message-key="${messageKey}"]`)
-  // if (!messageNodes) {
-  // return
-  // }
-  // const messageNode = messageNodes[0]
-  // if (!messageNode) {
-  // return
-  // }
-  // this._showEditor(message, this._domNodeToRect(messageNode))
-  // }
-
-  // message: Types.TextMessage, messageRect: any
-  // _showEditor = () => {
-  // const popupComponent = (
-  // <EditPopup
-  // messageRect={messageRect}
-  // onClose={this._hidePopup}
-  // message={message.message.stringValue()}
-  // onSubmit={text => {
-  // this.props.onEditMessage(message, text)
-  // }}
-  // />
-  // )
-  // // Have to do this cause it's triggered from a popup that we're reusing else we'll get unmounted
-  // setImmediate(() => {
-  // const container = document.getElementById('popupContainer')
-  // // FIXME: this is the right way to render portals retaining context for now, though it will change in the future.
-  // ReactDOM.unstable_renderSubtreeIntoContainer(this, popupComponent, container)
-  // })
-  // }
-
-  // _findMessageFromDOMNode(start: any): any {
-  // const node = findDOMNode(start, '.message')
-  // if (node) return node
-
-  // // If not found, try to find it in the message-wrapper
-  // const wrapper = findDOMNode(start, '.message-wrapper')
-  // if (wrapper) {
-  // const messageNodes = wrapper.getElementsByClassName('message')
-  // if (messageNodes.length > 0) return messageNodes[0]
-  // }
-
-  // return null
-  // }
-
-  // message: Types.ServerMessage,
-  // localMessageState: Types.LocalMessageState,
-  // event: SyntheticEvent<>
-  // _onShowMenu = () => {
-  // if (message.type === 'Text' || message.type === 'Attachment') {
-  // this.setState({selectedMessageKey: message.key})
-  // const node = event.target instanceof window.HTMLElement ? event.target : null
-  // const messageNode = this._findMessageFromDOMNode(event.target)
-  // const messageRect = messageNode && this._domNodeToRect(messageNode)
-  // this.props.onMessageAction(
-  // message,
-  // localMessageState,
-  // () => {
-  // if (message.type === 'Text') {
-  // this._showEditor(message, messageRect)
-  // }
-  // },
-  // () => {
-  // this.setState({selectedMessageKey: null})
-  // },
-  // node && node.getBoundingClientRect()
-  // )
-  // }
-  // }
-
-  // message: Types.Message, event: SyntheticEvent<>
-  // _onShowEditor = () => {
-  // if (message.type === 'Text') {
-  // const messageNode = this._findMessageFromDOMNode(event.target)
-  // const messageRect = messageNode && this._domNodeToRect(messageNode)
-  // if (messageRect) {
-  // this._showEditor(message, messageRect)
-  // }
-  // }
-  // }
-}
-
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
   contain: 'strict',
@@ -388,4 +204,4 @@ const listStyle = {
   overflowX: 'hidden',
 }
 
-export default PopupEnabledList
+export default Thread
