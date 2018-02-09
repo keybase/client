@@ -1,4 +1,5 @@
 // @flow
+import * as Types from '../../../constants/types/chat2'
 import * as TrackerGen from '../../../actions/tracker-gen'
 import * as RouteTree from '../../../actions/route-tree'
 import Normal from '.'

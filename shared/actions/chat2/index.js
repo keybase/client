@@ -684,7 +684,7 @@ const messageDelete = (action: Chat2Gen.MessageDeletePayload, state: TypedState)
     conversationID: Types.keyToConversationID(conversationIDKey),
     identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
     outboxID: null,
-    supersedes: Types.ordinalToNumber(message.id),
+    supersedes: message.id,
     tlfName: meta.tlfname,
     tlfPublic: false,
   })
@@ -1198,6 +1198,28 @@ function* attachmentDownload(action: Chat2Gen.AttachmentDownloadPayload) {
 
 function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
   const {conversationIDKey, path, title} = action.payload
+  const state: TypedState = yield Saga.select()
+
+  // Sending to pending
+  if (!conversationIDKey) {
+    if (state.chat2.pendingConversationUsers.isEmpty()) {
+      logger.warn('Sending to pending w/ no pending?')
+      return
+    }
+    const you = state.config.username
+    if (!you) {
+      logger.warn('Sending to pending while logged out?')
+      return
+    }
+
+    yield Saga.put(
+      Chat2Gen.createSendToPendingConversation({
+        sendingAction: action,
+        users: state.chat2.pendingConversationUsers.concat([you]).toArray(),
+      })
+    )
+    return
+  }
 
   // Make the preview
   const preview: ?RPCChatTypes.MakePreviewRes = yield Saga.call(
@@ -1208,7 +1230,6 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
     }: RPCChatTypes.LocalMakePreviewRpcParam)
   )
 
-  const state: TypedState = yield Saga.select()
   const meta = state.chat2.metaMap.get(conversationIDKey)
   if (!meta) {
     logger.warn('Missing meta for attachment upload', conversationIDKey)

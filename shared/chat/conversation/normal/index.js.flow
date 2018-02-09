@@ -1,31 +1,15 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
-// import {type PropsPath} from '../../../route-tree'
 
 export type Props = {
-  // showLoader: boolean,
   conversationIDKey: Types.ConversationIDKey,
   focusInputCounter: number,
   listScrollDownCounter: number,
-  // onAttach: (inputs: Array<Types.AttachmentInput>) => void,
-  // onBack: () => void,
-  // onEditLastMessage: () => void,
+  onAttach: (paths: Array<string>) => void,
   onFocusInput: () => void,
   onScrollDown: () => void,
-  // onOpenInfoPanelMobile: () => void,
-  // rekeyInfo: ?Types.RekeyInfo,
-  // threadLoadedOffline: boolean,
-  // inSearch: boolean,
-  // onExitSearch: () => void,
   onShowTracker: (username: string) => void,
-  // conversationIsError: boolean,
-  // conversationErrorText: string,
-  // chatText: string,
-  // setChatText: (nextText: string) => void,
-  // showTeamOffer: boolean,
-  // previousPath: ?PropsPath<*>,
-  // youAreReset: boolean,
 }
 
 export default class Conversation extends React.Component<Props> {}

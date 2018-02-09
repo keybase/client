@@ -260,7 +260,7 @@ export const createSelectConversation = (
 export const createSendToPendingConversation = (
   payload: $ReadOnly<{
     users: Array<string>,
-    sendingAction: More.ReturnType<typeof createMessageSend>,
+    sendingAction: More.ReturnType<typeof createMessageSend> | More.ReturnType<typeof createAttachmentUpload>,
   }>
 ) => ({error: false, payload, type: sendToPendingConversation})
 export const createSetInboxFilter = (payload: $ReadOnly<{filter: string}>) => ({error: false, payload, type: setInboxFilter})
