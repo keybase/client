@@ -371,6 +371,7 @@ export const notifyChatChatActivityType = {
   membersUpdate: 6,
   setAppNotificationSettings: 7,
   teamtype: 8,
+  expunge: 9,
 }
 
 export const notifyChatStaleUpdateType = {
@@ -581,7 +582,7 @@ export type ChannelMention =
   | 1 // ALL_1
   | 2 // HERE_2
 
-export type ChatActivity = {activityType: 1, incomingMessage: ?IncomingMessage} | {activityType: 2, readMessage: ?ReadMessageInfo} | {activityType: 3, newConversation: ?NewConversationInfo} | {activityType: 4, setStatus: ?SetStatusInfo} | {activityType: 5, failedMessage: ?FailedMessageInfo} | {activityType: 6, membersUpdate: ?MembersUpdateInfo} | {activityType: 7, setAppNotificationSettings: ?SetAppNotificationSettingsInfo} | {activityType: 8, teamtype: ?TeamTypeInfo}
+export type ChatActivity = {activityType: 1, incomingMessage: ?IncomingMessage} | {activityType: 2, readMessage: ?ReadMessageInfo} | {activityType: 3, newConversation: ?NewConversationInfo} | {activityType: 4, setStatus: ?SetStatusInfo} | {activityType: 5, failedMessage: ?FailedMessageInfo} | {activityType: 6, membersUpdate: ?MembersUpdateInfo} | {activityType: 7, setAppNotificationSettings: ?SetAppNotificationSettingsInfo} | {activityType: 8, teamtype: ?TeamTypeInfo} | {activityType: 9, expunge: ?ExpungeInfo}
 
 export type ChatActivityType =
   | 0 // RESERVED_0
@@ -593,6 +594,7 @@ export type ChatActivityType =
   | 6 // MEMBERS_UPDATE_6
   | 7 // SET_APP_NOTIFICATION_SETTINGS_7
   | 8 // TEAMTYPE_8
+  | 9 // EXPUNGE_9
 
 export type ChatSyncIncrementalInfo = $ReadOnly<{items?: ?Array<UnverifiedInboxUIItem>}>
 
@@ -715,6 +717,10 @@ export type EncryptedData = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
 
 export type Expunge = $ReadOnly<{upto: MessageID, basis: MessageID}>
 
+export type ExpungeInfo = $ReadOnly<{convID: ConversationID, expunge: Expunge, conv?: ?InboxUIItem}>
+
+export type ExpungePayload = $ReadOnly<{Action: String, convID: ConversationID, inboxVers: InboxVers, expunge: Expunge, maxMsgs?: ?Array<MessageSummary>, unreadUpdate?: ?UnreadUpdate}>
+
 export type FailedMessageInfo = $ReadOnly<{outboxRecords?: ?Array<OutboxRecord>}>
 
 export type FindConversationsLocalRes = $ReadOnly<{conversations?: ?Array<ConversationLocal>, offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
@@ -799,6 +805,8 @@ export type InboxUIItem = $ReadOnly<{convID: String, isEmpty: Boolean, name: Str
 export type InboxUIItems = $ReadOnly<{items?: ?Array<InboxUIItem>, pagination?: ?UIPagination, offline: Boolean}>
 
 export type InboxVers = Uint64
+
+export type InboxVersInfo = $ReadOnly<{uid: Gregor1.UID, vers: InboxVers}>
 
 export type InboxView = {rtype: 0} | {rtype: 1, full: ?InboxViewFull}
 

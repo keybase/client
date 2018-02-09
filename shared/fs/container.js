@@ -2,13 +2,13 @@
 import * as I from 'immutable'
 import {
   compose,
-  lifecycle,
   connect,
-  type TypedState,
+  lifecycle,
+  setDisplayName,
   type Dispatch,
+  type TypedState,
 } from '../util/container'
 import Files from '.'
-import {navigateUp} from '../actions/route-tree'
 import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
 import * as FsGen from "../actions/fs-gen"
@@ -22,9 +22,7 @@ type StateProps = {
   items: I.List<Types.Path>,
 }
 
-type DispatchProps = {
-  onBack: () => void,
-}
+type DispatchProps = {}
 
 const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
   const path = Types.stringToPath(routeProps.get('path', Constants.defaultPath))
@@ -37,7 +35,6 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onBack: () => dispatch(navigateUp()),
   _loadFolderList: (path) => Constants.dispatchFolderListLoad(dispatch, Types.stringToPath(path)),
 })
 
@@ -58,4 +55,5 @@ export default compose(
       this.props._loadFolderList(this.props.path);
     },
   }),
+  setDisplayName('Files'),
 )(Files)

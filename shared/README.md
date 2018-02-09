@@ -214,3 +214,11 @@ We have some custom forks of dependencies. This is usually a temporary fix and i
 - react-native-push-notification
   - 1 liner to add RN 0.47 support
 
+
+### Updating `react-native`
+
+Take a look at [this repo](https://github.com/ncuillery/rn-diff), which contains branches for every version of react native. For example, this URL
+
+ `https://github.com/ncuillery/rn-diff/compare/rn-0.51.0...rn-0.53.0` 
+ 
+ generates the diff between RN versions in a bare RN app. Use this to figure out if any configuration changes are needed. If the target version isn't in `rn-diff` yet, there'll usually be a fork that has it.

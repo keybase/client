@@ -52,7 +52,7 @@ project.ext.react = [
         // date; if you have any other folders that you want to ignore for performance reasons (gradle
         // indexes the entire tree), add them here. Alternatively, if you have JS files in android/
         // for example, you might want to remove it from here.
-        inputExcludes: ["android/**", "ios/**"]
+        inputExcludes: ["android/**", "ios/**", "__test__/**", "__tests__/**", "**/*.desktop.js", "**/*.ios.js", "**/*.js.flow"]
 ]
 
 apply from: "react.gradle"

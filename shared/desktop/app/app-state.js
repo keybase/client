@@ -217,7 +217,8 @@ export default class AppState {
   }
 
   setWinLoginState() {
-    app.setLoginItemSettings({openAtLogin: !!this.state.openAtLogin})
+    // Note that setLoginItemSettings uses the registry. We use a .lnk file
+    // because it is easier for the installer to remove on uninstall.
     if (!process.env.APPDATA) {
       throw new Error('APPDATA unexpectedly empty')
     }

@@ -72,6 +72,10 @@ func (cid ConversationID) DbShortForm() []byte {
 	return cid[:DbShortFormLen]
 }
 
+func (cid ConversationID) DbShortFormString() string {
+	return hex.EncodeToString(cid.DbShortForm())
+}
+
 func MakeTLFID(val string) (TLFID, error) {
 	return hex.DecodeString(val)
 }
@@ -215,6 +219,35 @@ func (m MessageUnboxed) IsValid() bool {
 		return state == MessageUnboxedState_VALID
 	}
 	return false
+}
+
+// IsValidFull returns whether the message is all of:
+// 1. Valid
+// 2. Has a non-deleted body with a type matching the header
+//    (TLFNAME is an exception as it has no body)
+// 3. Supersededby == 0
+func (m MessageUnboxed) IsValidFull() bool {
+	if !m.IsValid() {
+		return false
+	}
+	valid := m.Valid()
+	if valid.ServerHeader.SupersededBy != 0 {
+		// Message marked as superseded
+		return false
+	}
+	headerType := valid.ClientHeader.MessageType
+	switch headerType {
+	case MessageType_NONE:
+		return false
+	case MessageType_TLFNAME:
+		// Skip body check
+		return true
+	}
+	bodyType, err := valid.MessageBody.MessageType()
+	if err != nil {
+		return false
+	}
+	return bodyType == headerType
 }
 
 func (m MessageUnboxedValid) AsDeleteHistory() (res MessageDeleteHistory, err error) {
