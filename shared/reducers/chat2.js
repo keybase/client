@@ -13,13 +13,13 @@ const initialState: Types.State = Constants.makeState()
 const messageIDToOrdinal = (messageMap, pendingOutboxToOrdinal, conversationIDKey, messageID) => {
   // A message we didn't send in this session?
   let m = messageMap.getIn([conversationIDKey, Types.numberToOrdinal(messageID)])
-  if (m && m.id === messageID) {
+  if (m && m.id && m.id === messageID) {
     return m.ordinal
   }
   // Search through our sent messages
   const pendingOrdinal = pendingOutboxToOrdinal.get(conversationIDKey, I.Map()).find(o => {
     m = messageMap.getIn([conversationIDKey, o])
-    if (m && m.id === messageID) {
+    if (m && m.id && m.id === messageID) {
       return true
     }
   })
@@ -167,10 +167,28 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
       )
     }
     case Chat2Gen.messagesWereDeleted: {
-      const {conversationIDKey, messageIDs} = action.payload
+      const {conversationIDKey, messageIDs = [], ordinals = []} = action.payload
+
+      const updateMap = (m, ordinal) => {
+        m.update(ordinal, message => {
+          if (!message) {
+            return message
+          }
+          return Constants.makeMessageDeleted({
+            author: message.author,
+            conversationIDKey: message.conversationIDKey,
+            id: message.id,
+            ordinal: message.ordinal,
+            timestamp: message.timestamp,
+          })
+        })
+      }
 
       return messageMap.update(conversationIDKey, I.Map(), (map: I.Map<Types.Ordinal, Types.Message>) =>
         map.withMutations(m => {
+          ordinals.forEach(ordinal => {
+            updateMap(m, ordinal)
+          })
           messageIDs.forEach(messageID => {
             const ordinal = messageIDToOrdinal(
               messageMap,
@@ -182,18 +200,7 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
               return
             }
 
-            m.update(ordinal, message => {
-              if (!message) {
-                return message
-              }
-              return Constants.makeMessageDeleted({
-                author: message.author,
-                conversationIDKey: message.conversationIDKey,
-                id: message.id,
-                ordinal: message.ordinal,
-                timestamp: message.timestamp,
-              })
-            })
+            updateMap(m, ordinal)
           })
         })
       )

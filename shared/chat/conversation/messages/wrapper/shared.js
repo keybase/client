@@ -50,7 +50,7 @@ const EditedMark = () => (
   </Text>
 )
 
-const Failure = ({failureDescription, onShowEditor, onRetry}) => {
+const Failure = ({failureDescription, onEdit, onRetry}) => {
   const error = `Failed to send${failureDescription ? ` -  ${failureDescription}` : ''}. `
   const resolveByEdit = failureDescription === 'message is too long'
   return (
@@ -63,7 +63,7 @@ const Failure = ({failureDescription, onShowEditor, onRetry}) => {
         {error}
       </Text>
       {resolveByEdit && (
-        <Text type="BodySmall" style={_failStyleUnderline} onClick={onShowEditor}>
+        <Text type="BodySmall" style={_failStyleUnderline} onClick={onEdit}>
           Edit
         </Text>
       )}
@@ -116,7 +116,7 @@ const MessageWrapper = (props: Props) => (
             <Failure
               failureDescription={props.failureDescription}
               onRetry={props.onRetry}
-              onShowEditor={props.onShowEditor}
+              onEdit={props.onEdit}
             />
           )}
         </Box>

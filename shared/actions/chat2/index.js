@@ -294,7 +294,7 @@ const chatActivityToMetasAction = (payload: ?{+conv?: ?RPCChatTypes.InboxUIItem}
 const onErrorMessage = (outboxRecords: Array<RPCChatTypes.OutboxRecord>) => {
   const actions = outboxRecords.reduce((arr, outboxRecord) => {
     const s = outboxRecord.state
-    if (s.state === 1) {
+    if (s.state === RPCChatTypes.localOutboxStateType.error) {
       const error = s.error
       if (error && error.typ) {
         // This is temp until fixed by CORE-7112. We get this error but not the call to let us show the red banner
@@ -679,15 +679,25 @@ const messageDelete = (action: Chat2Gen.MessageDeletePayload, state: TypedState)
     return
   }
 
-  return Saga.call(RPCChatTypes.localPostDeleteNonblockRpcPromise, {
-    clientPrev: 0,
-    conversationID: Types.keyToConversationID(conversationIDKey),
-    identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-    outboxID: null,
-    supersedes: message.id,
-    tlfName: meta.tlfname,
-    tlfPublic: false,
-  })
+  // We have to cancel pending messages
+  if (!message.id) {
+    return Saga.sequentially([
+      Saga.call(RPCChatTypes.localCancelPostRpcPromise, {
+        outboxID: Types.outboxIDToRpcOutboxID(message.outboxID),
+      }),
+      Saga.put(Chat2Gen.createMessagesWereDeleted({conversationIDKey, ordinals: [message.ordinal]})),
+    ])
+  } else {
+    return Saga.call(RPCChatTypes.localPostDeleteNonblockRpcPromise, {
+      clientPrev: 0,
+      conversationID: Types.keyToConversationID(conversationIDKey),
+      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+      outboxID: null,
+      supersedes: message.id,
+      tlfName: meta.tlfname,
+      tlfPublic: false,
+    })
+  }
 }
 
 const clearMessageSetEditing = (action: Chat2Gen.MessageEditPayload) =>
@@ -725,20 +735,31 @@ const messageEdit = (action: Chat2Gen.MessageEditPayload, state: TypedState) => 
     const meta = Constants.getMeta(state, conversationIDKey)
     const tlfName = meta.tlfname
     const clientPrev = Constants.getClientPrev(state, conversationIDKey)
-    const outboxID = Constants.generateOutboxID()
-    const supersedes = message.id
+    // Editing a normal message
+    if (message.id) {
+      const supersedes = message.id
+      const outboxID = Constants.generateOutboxID()
 
-    // Inject pending message and make the call
-    return Saga.call(RPCChatTypes.localPostEditNonblockRpcPromise, {
-      body: text.stringValue(),
-      clientPrev,
-      conversationID: Types.keyToConversationID(conversationIDKey),
-      identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
-      outboxID,
-      supersedes,
-      tlfName,
-      tlfPublic: false,
-    })
+      return Saga.call(RPCChatTypes.localPostEditNonblockRpcPromise, {
+        body: text.stringValue(),
+        clientPrev,
+        conversationID: Types.keyToConversationID(conversationIDKey),
+        identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
+        outboxID,
+        supersedes,
+        tlfName,
+        tlfPublic: false,
+      })
+    } else {
+      // Pending messages need to be cancelled and resent
+      return Saga.sequentially([
+        Saga.call(RPCChatTypes.localCancelPostRpcPromise, {
+          outboxID: Types.outboxIDToRpcOutboxID(message.outboxID),
+        }),
+        Saga.put(Chat2Gen.createMessagesWereDeleted({conversationIDKey, ordinals: [message.ordinal]})),
+        Saga.put(Chat2Gen.createMessageSend({conversationIDKey, text})),
+      ])
+    }
   } else {
     logger.warn('Editing non-text message')
   }

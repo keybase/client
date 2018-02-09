@@ -207,7 +207,8 @@ export const createMessagesAdd = (
 export const createMessagesWereDeleted = (
   payload: $ReadOnly<{
     conversationIDKey: Types.ConversationIDKey,
-    messageIDs: Array<RPCChatTypes.MessageID>,
+    messageIDs?: Array<RPCChatTypes.MessageID>,
+    ordinals?: Array<Types.Ordinal>,
   }>
 ) => ({error: false, payload, type: messagesWereDeleted})
 export const createMetaHandleQueue = () => ({error: false, payload: undefined, type: metaHandleQueue})

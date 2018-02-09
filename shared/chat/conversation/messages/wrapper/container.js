@@ -30,12 +30,12 @@ const mapStateToProps = (state: TypedState, {message, previous, innerClass, isSe
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  // _onRetryAttachment: (message: Types.AttachmentMessage) =>
-  // dispatch(ChatGen.createRetryAttachment({message})),
   _onAuthorClick: (username: string) =>
     isMobile
       ? dispatch(ProfileGen.createShowUserProfile({username}))
       : dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username})),
+  _onEdit: (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
+    dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal})),
   _onRetry: (conversationIDKey: Types.ConversationIDKey, outboxID: Types.OutboxID) =>
     dispatch(Chat2Gen.createMessageRetry({conversationIDKey, outboxID})),
   _onShowMenu: (targetRect: ?ClientRect, message: Types.Message) =>
@@ -50,66 +50,6 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps) => {
-  // const message = stateProps._message
-  // const prevMessage = stateProps._prevMessage
-  // const conversationState = stateProps._conversationState
-
-  // const isEdited = message.type === 'Text' && stateProps._editedCount > 0
-  // const isRevoked = !!message.senderDeviceRevokedAt
-  // const failureDescription = message.messageState === 'failed' ? message.failureDescription : null
-
-  // const isFirstNewMessage = !!(
-  // conversationState &&
-  // message &&
-  // message.messageID &&
-  // conversationState.get('firstNewMessageID') === message.messageID
-  // )
-
-  // const skipMsgHeader = prevMessage && prevMessage.type === 'Text' && prevMessage.author === message.author
-
-  // const firstMessageEver = !prevMessage
-  // const firstVisibleMessage = prevMessage && Constants.messageKeyValue(prevMessage.key) === '1'
-
-  // const oldEnough =
-  // prevMessage &&
-  // prevMessage.timestamp &&
-  // message.timestamp &&
-  // message.timestamp - prevMessage.timestamp > Constants.howLongBetweenTimestampsMs
-  // const timestamp =
-  // firstMessageEver || firstVisibleMessage || oldEnough ? formatTimeForMessages(message.timestamp) : null
-  // const includeHeader = isFirstNewMessage || !skipMsgHeader || !!timestamp
-
-  // return {
-  // _editedCount: stateProps._editedCount,
-  // _localMessageState: stateProps._localMessageState,
-  // _message: stateProps._message,
-  // _onAction: ownProps.onAction,
-  // _onShowEditor: ownProps.onShowEditor,
-  // _onUsernameClick: dispatchProps._onUsernameClick,
-  // author: stateProps.author,
-  // failureDescription,
-  // includeHeader,
-  // innerClass: ownProps.innerClass,
-  // isBroken: stateProps.isBroken,
-  // isEdited,
-  // isEditing: stateProps.isEditing,
-  // isFirstNewMessage,
-  // isFollowing: stateProps.isFollowing,
-  // isRevoked,
-  // isSelected: ownProps.isSelected,
-  // isYou: stateProps.isYou,
-  // messageKey: ownProps.messageKey,
-  // onRetry: () => {
-  // if (stateProps._message.type === 'Attachment') {
-  // dispatchProps._onRetryAttachment(stateProps._message)
-  // } else if (stateProps._selectedConversationIDKey && stateProps._message.outboxID) {
-  // dispatchProps._onRetryText(stateProps._selectedConversationIDKey, stateProps._message.outboxID)
-  // }
-  // },
-  // timestamp,
-  // }
-  //
-  //
   const {message, previous} = stateProps
 
   const continuingTextBlock =
@@ -153,17 +93,11 @@ const mergeProps = (stateProps, dispatchProps) => {
     loadMoreType,
     message,
     onAuthorClick: () => dispatchProps._onAuthorClick(message.author),
+    onEdit: () => dispatchProps._onEdit(message.conversationIDKey, message.ordinal),
     onRetry: () => dispatchProps._onRetry(message.conversationIDKey, message.outboxID),
     onShowMenu: (clientRect: ?ClientRect) => dispatchProps._onShowMenu(clientRect, message),
     timestamp,
   }
 }
 
-// $FlowIssue TODO cleanup
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Wrapper)
-// withHandlers({
-// onAction: props => event => props._onAction(props._message, props._localMessageState, event),
-// onShowEditor: props => event => props._onShowEditor(props._message, event),
-// onClick: props => () => props._onUsernameClick(props.author),
-// }),
-// )(Wrapper)

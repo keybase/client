@@ -345,7 +345,7 @@ const validUIMessagetoMessage = (
 export const rpcErrorToString = (error: RPCChatTypes.OutboxStateError) => {
   switch (error.typ) {
     case RPCChatTypes.localOutboxErrorType.misc:
-      return 'unknown error'
+      return error.message || 'unknown error'
     case RPCChatTypes.localOutboxErrorType.offline:
       return 'disconnected from chat server'
     case RPCChatTypes.localOutboxErrorType.identify:
