@@ -2,6 +2,7 @@
 import * as I from 'immutable'
 import {compose, connect, lifecycle, setDisplayName, type Dispatch, type TypedState} from '../util/container'
 import Files from '.'
+import * as FsGen from '../actions/fs-gen'
 import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
 
@@ -20,18 +21,15 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
   const path = Types.stringToPath(routeProps.get('path', Constants.defaultPath))
   const itemDetail = state.fs.pathItems.get(path)
   const items = itemDetail && itemDetail.type === 'folder' ? itemDetail.get('children', I.List()) : I.List()
-  return {
-    items: items.map(name => Types.pathConcat(path, name)),
-    path: path,
-  }
+  return {items, path}
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _loadFolderList: path => Constants.dispatchFolderListLoad(dispatch, Types.stringToPath(path)),
+  _loadFolderList: (path: Types.Path) => dispatch(FsGen.createFolderListLoad({path})),
 })
 
 const mergeProps = ({path, items}: StateProps, dispatchProps: DispatchProps, ownProps) => ({
-  items: items.toArray(),
+  items: items.map(name => Types.pathConcat(path, name)).toArray(),
   path,
   /* TODO: enable these once we need them:
   name: Types.getPathName(stateProps.path),

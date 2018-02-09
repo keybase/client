@@ -1,10 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import * as Types from './types/fs'
-import {Buffer} from 'buffer'
 import uuidv1 from 'uuid/v1'
-import * as FsGen from '../actions/fs-gen'
-import {type Dispatch} from '../util/container'
 
 export const defaultPath = '/keybase'
 
@@ -34,10 +31,5 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
 })
 
 export const makeUUID = () => uuidv1(null, Buffer.alloc(16), 0)
-export const wrapOpID = (actionCreator: Function, payload: any) =>
-  actionCreator({
-    opID: makeUUID(),
-    ...payload,
-  })
-export const dispatchFolderListLoad = (dispatch: Dispatch, path: Types.Path) =>
-  dispatch(wrapOpID(FsGen.createFolderListLoad, {path: path}))
+export const fsPathToRpcPathString = (p: Types.Path): string =>
+  Types.pathToString(p).substring('/keybase'.length)

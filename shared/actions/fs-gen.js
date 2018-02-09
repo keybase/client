@@ -13,12 +13,7 @@ export const folderListLoad = 'fs:folderListLoad'
 export const folderListLoaded = 'fs:folderListLoaded'
 
 // Action Creators
-export const createFolderListLoad = (
-  payload: $ReadOnly<{
-    path: Types.Path,
-    opID: string,
-  }>
-) => ({error: false, payload, type: folderListLoad})
+export const createFolderListLoad = (payload: $ReadOnly<{path: Types.Path}>) => ({error: false, payload, type: folderListLoad})
 export const createFolderListLoaded = (payload: $ReadOnly<{pathItems: I.Map<Types.Path, Types.PathItem>}>) => ({error: false, payload, type: folderListLoaded})
 
 // Action Payloads

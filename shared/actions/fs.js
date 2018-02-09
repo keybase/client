@@ -5,39 +5,32 @@ import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as Types from '../constants/types/fs'
-import {posix as Path} from 'path'
+import {posix} from 'path'
 
-import type {SagaGenerator} from '../constants/types/saga'
-
-export const fsPathToRpcPathString = (p: Types.Path): string =>
-  Types.pathToString(p).substring('/keybase'.length)
-
-function* folderList(action: FsGen.FolderListLoadPayload): SagaGenerator<any, any> {
+function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<any, any> {
   if (action.payload.path === '/keybase') {
     yield Saga.cancel()
     return
   }
 
+  const opID = Constants.makeUUID()
+  const rootPath = action.payload.path
+
   yield Saga.call(RPCTypes.SimpleFSSimpleFSListRpcPromise, {
-    opID: action.payload.opID,
+    opID,
     path: {
       PathType: 1,
-      kbfs: fsPathToRpcPathString(action.payload.path),
+      kbfs: Constants.fsPathToRpcPathString(rootPath),
     },
   })
 
-  yield Saga.call(RPCTypes.SimpleFSSimpleFSWaitRpcPromise, {
-    opID: action.payload.opID,
-  })
+  yield Saga.call(RPCTypes.SimpleFSSimpleFSWaitRpcPromise, {opID})
 
-  const result = yield Saga.call(RPCTypes.SimpleFSSimpleFSReadListRpcPromise, {
-    opID: action.payload.opID,
-  })
+  const result = yield Saga.call(RPCTypes.SimpleFSSimpleFSReadListRpcPromise, {opID})
 
-  const rootPath = action.payload.path
   const direntToPathAndPathItem = (d: RPCTypes.Dirent) => [
-    Path.join(Types.pathToString(rootPath), d.name),
-    d.direntType === 1 /* DIR_1 */ ? Constants.makeFolder() : Constants.makeFile(),
+    posix.join(Types.pathToString(rootPath), d.name),
+    d.direntType === RPCTypes.simpleFSDirentType.dir ? Constants.makeFolder() : Constants.makeFile(),
   ]
 
   const pathItems: I.Map<Types.Path, Types.PathItem> = I.Map(

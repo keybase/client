@@ -11,7 +11,7 @@ export default function(state: Types.State = initialState, action: FSGen.Actions
     case FSGen.resetStore:
       return initialState
     case FSGen.folderListLoaded:
-      return state.setIn(['pathItems'], I.merge(state.pathItems, action.payload.pathItems))
+      return state.mergeIn(['pathItems'], action.payload.pathItems)
     case FSGen.folderListLoad:
       return state
     default:
