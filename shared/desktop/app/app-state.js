@@ -82,12 +82,11 @@ export default class AppState {
     })
 
     ipcMain.on('setAppState', (event, data) => {
-      let openAtLogin = this.state.openAtLogin
       this.state = {
         ...this.state,
         ...data,
       }
-      this.saveState({openAtLoginChanged: openAtLogin !== this.state.openAtLogin})
+      this.saveState()
     })
 
     this._loadStateSync()
@@ -100,7 +99,7 @@ export default class AppState {
   // > Note that it is unsafe to use fs.writeFile multiple times on the same file without waiting for the callback.
   //
   // It's hard to reproduce, but I have seen cases where this app-state.json file gets messed up.
-  saveState(arg) {
+  saveState() {
     try {
       let configPath = this.config.path
       let stateToSave = this.state
@@ -108,9 +107,8 @@ export default class AppState {
     } catch (err) {
       console.log(`Error saving file: ${err}`)
     }
-    let options = arg || {}
 
-    if (options.openAtLoginChanged) {
+    if (app.getLoginItemSettings().openAtLogin !== this.state.openAtLogin) {
       console.log(`Login item settings changed! now ${this.state.openAtLogin ? 'true' : 'false'}`)
       this.setOSLoginState()
     }
