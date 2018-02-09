@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"runtime/debug"
 	"runtime/trace"
 	"sync"
 	"time"
@@ -261,7 +262,7 @@ func ForceGC() {
 	fmt.Printf("Done flushing global caches\n")
 
 	fmt.Printf("Starting force gc\n")
-	runtime.GC()
+	debug.FreeOSMemory()
 	fmt.Printf("Done force gc\n")
 }
 

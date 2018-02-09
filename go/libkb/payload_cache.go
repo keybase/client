@@ -29,7 +29,11 @@ func (p *PayloadCache) GetOrPrime(link *ChainLink) (*jsonw.Wrapper, error) {
 	// check if failed to create cache in NewPayloadCache
 	if p.cache == nil {
 		p.G().Log.Debug("PayloadCache no LRU, unmarshal for %x", link.unpacked.payloadHash)
-		return jsonw.Unmarshal([]byte(link.unpacked.payloadJSONStr))
+		payload, err := link.unpacked.Payload()
+		if err != nil {
+			return nil, err
+		}
+		return jsonw.Unmarshal(payload)
 	}
 
 	key := hex.EncodeToString(link.unpacked.payloadHash)
@@ -42,7 +46,12 @@ func (p *PayloadCache) GetOrPrime(link *ChainLink) (*jsonw.Wrapper, error) {
 		}
 	}
 
-	jw, err := jsonw.Unmarshal([]byte(link.unpacked.payloadJSONStr))
+	payload, err := link.unpacked.Payload()
+	if err != nil {
+		return nil, err
+	}
+
+	jw, err := jsonw.Unmarshal(payload)
 	if err != nil {
 		return nil, err
 	}
