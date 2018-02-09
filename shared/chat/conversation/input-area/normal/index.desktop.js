@@ -89,7 +89,7 @@ class ConversationInput extends Component<InputProps> {
 
   _pickFile = () => {
     const fileList = this.props.filePickerFiles()
-    const paths = fileList.length ? Array.prototype.map.call(fileList, f => f.path) : []
+    const paths = fileList.length ? Array.prototype.map.call(fileList, f => f.path).filter(Boolean) : []
     if (paths) {
       this.props.onAttach(paths)
     }

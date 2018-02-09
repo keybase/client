@@ -7,9 +7,7 @@ import ListArea from '../list-area/container'
 import InfoPanel from '../info-panel/container'
 import {Box, Icon, LoadingLine, Text} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
-// import {readImageFromClipboard} from '../../../util/clipboard.desktop'
-// import CreateTeamHeader from '../create-team-header/container'
-// import YouAreReset from '../you-are-reset'
+import {readImageFromClipboard} from '../../../util/clipboard.desktop'
 
 import type {Props} from '.'
 
@@ -55,9 +53,18 @@ const InfoPaneWrapper = ({onToggle}) => (
 )
 
 class Conversation extends React.PureComponent<Props, State> {
+  _mounted = false
   state = {
     infoPanelOpen: false,
     showDropOverlay: false,
+  }
+
+  componentWillUnmount() {
+    this._mounted = false
+  }
+
+  componentDidMount() {
+    this._mounted = true
   }
 
   componentWillReceiveProps(nextProps: Props) {
@@ -65,58 +72,47 @@ class Conversation extends React.PureComponent<Props, State> {
     if (convoChanged) {
       this.setState({infoPanelOpen: false})
     }
-
-    // const inSearchChanged = this.props.inSearch !== nextProps.inSearch
-    // if ((convoChanged || inSearchChanged) && !nextProps.inSearch && !nextProps.inboxFilter) {
-    // this.props.onFocusInput()
-    // }
   }
 
   _onDrop = e => {
-    // const fileList = e.dataTransfer.files
-    // if (!this.props.conversationIDKey) throw new Error('No conversation')
-    // const conversationIDKey = this.props.conversationIDKey
-    // // FileList, not an array
-    // const inputs = Array.prototype.map.call(fileList, file => ({
-    // conversationIDKey,
-    // filename: file.path,
-    // title: file.name,
-    // type: file.type,
-    // }))
-    // TODO
-    // this.props.onAttach(inputs)
-    // this.setState({showDropOverlay: false})
+    if (!this._validDrag(e)) {
+      return
+    }
+    const fileList = e.dataTransfer.files
+    const paths = fileList.length ? Array.prototype.map.call(fileList, f => f.path) : []
+    if (paths) {
+      this.props.onAttach(paths)
+    }
+    this.setState({showDropOverlay: false})
   }
 
-  _onDragEnter = e => {
-    // e.dataTransfer.effectAllowed = 'copy'
-    // this.setState({showDropOverlay: true})
+  _validDrag = e => Array.prototype.map.call(e.dataTransfer.types, t => t).includes('Files')
+
+  _onDragOver = e => {
+    if (this._validDrag(e)) {
+      e.dataTransfer.dropEffect = 'copy'
+      this.setState({showDropOverlay: true})
+    } else {
+      e.dataTransfer.dropEffect = 'none'
+    }
   }
 
   _onDragLeave = e => {
-    // this.setState({showDropOverlay: false})
+    this.setState({showDropOverlay: false})
   }
 
   _onPaste = e => {
-    // TODO: Should we read/save the clipboard data on the main thread?
-    // readImageFromClipboard(e, () => {
-    // this.setState({showDropOverlay: true})
-    // }).then(clipboardData => {
-    // this.setState({showDropOverlay: false})
-    // if (!this.props.conversationIDKey) throw new Error('No conversation')
-    // if (clipboardData) {
-    // const {path, title} = clipboardData
-    // // TODO
-    // // this.props.onAttach([
-    // // {
-    // // conversationIDKey: this.props.conversationIDKey,
-    // // filename: path,
-    // // title,
-    // // type: 'Image',
-    // // },
-    // // ])
-    // }
-    // })
+    readImageFromClipboard(e, () => {
+      this._mounted && this.setState({showDropOverlay: true})
+    }).then(clipboardData => {
+      this._mounted && this.setState({showDropOverlay: false})
+      if (clipboardData) {
+        const {path} = clipboardData
+        if (path) {
+          this.props.onAttach([path])
+        }
+      }
+    })
   }
 
   _onToggleInfoPanel = () => {
@@ -128,7 +124,7 @@ class Conversation extends React.PureComponent<Props, State> {
       <Box
         className="conversation"
         style={containerStyle}
-        onDragEnter={this._onDragEnter}
+        onDragOver={this._onDragOver}
         onPaste={this._onPaste}
       >
         {this.props.threadLoadedOffline && <Offline />}
@@ -174,11 +170,5 @@ const dropOverlayStyle = {
   right: 0,
   top: 0,
 }
-
-// const styleSpinner = {
-// alignSelf: 'center',
-// marginTop: globalMargins.small,
-// width: 24,
-// }
 
 export default Conversation
