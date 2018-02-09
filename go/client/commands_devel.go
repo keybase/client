@@ -40,6 +40,7 @@ func getBuildSpecificChatCommands(cl *libcmdline.CommandLine, g *libkb.GlobalCon
 	return []cli.Command{
 		newCmdChatDeleteHistoryDev(cl, g),
 		newCmdChatSetRetention(cl, g),
+		newCmdChatSetRetentionDev(cl, g),
 		newCmdChatKBFSUpgrade(cl, g),
 	}
 }

@@ -463,6 +463,9 @@ func FilterByType(msgs []chat1.MessageUnboxed, query *chat1.GetThreadQuery, incl
 
 // GetSupersedes must be called with a valid msg
 func GetSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, error) {
+	if !msg.IsValidFull() {
+		return nil, fmt.Errorf("GetSupersedes called with invalid message: %v", msg.GetMessageID())
+	}
 	body := msg.Valid().MessageBody
 	typ, err := body.MessageType()
 	if err != nil {
@@ -688,7 +691,7 @@ func PickLatestMessageUnboxed(conv chat1.ConversationLocal, typs []chat1.Message
 	var msgs []chat1.MessageUnboxed
 	for _, typ := range typs {
 		msg, err := conv.GetMaxMessage(typ)
-		if err == nil && msg.IsValid() {
+		if err == nil && msg.IsValidFull() {
 			msgs = append(msgs, msg)
 		}
 	}
@@ -754,6 +757,9 @@ func systemMessageSnippet(msg chat1.MessageSystem) string {
 }
 
 func GetMsgSnippet(msg chat1.MessageUnboxed) string {
+	if !msg.IsValidFull() {
+		return ""
+	}
 	switch msg.GetMessageType() {
 	case chat1.MessageType_TEXT:
 		return msg.Valid().MessageBody.Text().Body
@@ -883,41 +889,38 @@ func PresentMessageUnboxed(ctx context.Context, rawMsg chat1.MessageUnboxed, uid
 
 	switch state {
 	case chat1.MessageUnboxedState_VALID:
-		bodyIsDeleted := rawMsg.Valid().MessageBody.IsNil()
+		if !rawMsg.IsValidFull() {
+			return miscErr(fmt.Errorf("unexpected deleted %v message", strings.ToLower(rawMsg.GetMessageType().String())))
+		}
+		valid := rawMsg.Valid()
 
 		// Get channel name mentions (only frontend really cares about these, so just get it here)
 		var channelNameMentions []types.ConvIDAndTopicName
 		switch rawMsg.GetMessageType() {
 		case chat1.MessageType_TEXT:
-			if bodyIsDeleted {
-				return miscErr(fmt.Errorf("unexpected deleted message"))
-			}
-			channelNameMentions = ParseChannelNameMentions(ctx, rawMsg.Valid().MessageBody.Text().Body, uid,
-				rawMsg.Valid().ClientHeader.Conv.Tlfid, tcs)
+			channelNameMentions = ParseChannelNameMentions(ctx, valid.MessageBody.Text().Body, uid,
+				valid.ClientHeader.Conv.Tlfid, tcs)
 		case chat1.MessageType_EDIT:
-			if bodyIsDeleted {
-				return miscErr(fmt.Errorf("unexpected deleted edit"))
-			}
-			channelNameMentions = ParseChannelNameMentions(ctx, rawMsg.Valid().MessageBody.Edit().Body, uid,
-				rawMsg.Valid().ClientHeader.Conv.Tlfid, tcs)
+			channelNameMentions = ParseChannelNameMentions(ctx, valid.MessageBody.Edit().Body, uid,
+				valid.ClientHeader.Conv.Tlfid, tcs)
 		}
 		var strOutboxID *string
-		if rawMsg.Valid().ClientHeader.OutboxID != nil {
-			so := rawMsg.Valid().ClientHeader.OutboxID.String()
+		if valid.ClientHeader.OutboxID != nil {
+			so := valid.ClientHeader.OutboxID.String()
 			strOutboxID = &so
 		}
 		res = chat1.NewUIMessageWithValid(chat1.UIMessageValid{
 			MessageID:             rawMsg.GetMessageID(),
-			Ctime:                 rawMsg.Valid().ServerHeader.Ctime,
+			Ctime:                 valid.ServerHeader.Ctime,
 			OutboxID:              strOutboxID,
-			MessageBody:           rawMsg.Valid().MessageBody,
-			SenderUsername:        rawMsg.Valid().SenderUsername,
-			SenderDeviceName:      rawMsg.Valid().SenderDeviceName,
-			SenderDeviceType:      rawMsg.Valid().SenderDeviceType,
-			SenderDeviceRevokedAt: rawMsg.Valid().SenderDeviceRevokedAt,
-			Superseded:            rawMsg.Valid().ServerHeader.SupersededBy != 0,
-			AtMentions:            rawMsg.Valid().AtMentionUsernames,
-			ChannelMention:        rawMsg.Valid().ChannelMention,
+			MessageBody:           valid.MessageBody,
+			SenderUsername:        valid.SenderUsername,
+			SenderDeviceName:      valid.SenderDeviceName,
+			SenderDeviceType:      valid.SenderDeviceType,
+			SenderDeviceRevokedAt: valid.SenderDeviceRevokedAt,
+			Superseded:            valid.ServerHeader.SupersededBy != 0,
+			AtMentions:            valid.AtMentionUsernames,
+			ChannelMention:        valid.ChannelMention,
 			ChannelNameMentions:   presentChannelNameMentions(ctx, channelNameMentions),
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
@@ -1042,7 +1045,7 @@ func GetTopicName(conv chat1.ConversationLocal) string {
 	if err != nil {
 		return ""
 	}
-	if !maxTopicMsg.IsValid() {
+	if !maxTopicMsg.IsValidFull() {
 		return ""
 	}
 	return maxTopicMsg.Valid().MessageBody.Metadata().ConversationTitle
@@ -1053,7 +1056,7 @@ func GetHeadline(conv chat1.ConversationLocal) string {
 	if err != nil {
 		return ""
 	}
-	if !maxTopicMsg.IsValid() {
+	if !maxTopicMsg.IsValidFull() {
 		return ""
 	}
 	return maxTopicMsg.Valid().MessageBody.Headline().Headline

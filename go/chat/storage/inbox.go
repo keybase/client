@@ -985,6 +985,53 @@ func (i *Inbox) SetAppNotificationSettings(ctx context.Context, vers chat1.Inbox
 	return i.writeDiskInbox(ctx, ibox)
 }
 
+// Mark the expunge on the stored inbox
+// Does not delete any messages. Relies on separate server mechanism to delete clear max messages.
+func (i *Inbox) Expunge(ctx context.Context, vers chat1.InboxVers,
+	convID chat1.ConversationID, expunge chat1.Expunge, maxMsgs []chat1.MessageSummary) (err Error) {
+	locks.Inbox.Lock()
+	defer locks.Inbox.Unlock()
+	defer i.Trace(ctx, func() error { return err }, "Expunge")()
+	defer i.maybeNukeFn(func() Error { return err }, i.dbKey())
+
+	i.Debug(ctx, "Expunge: vers: %d convID: %s", vers, convID)
+	ibox, err := i.readDiskInbox(ctx)
+	if err != nil {
+		if _, ok := err.(MissError); !ok {
+			return nil
+		}
+		return err
+	}
+	// Check inbox versions, make sure it makes sense (clear otherwise)
+	var cont bool
+	if vers, cont, err = i.handleVersion(ctx, ibox.InboxVersion, vers); !cont {
+		return err
+	}
+
+	// Find conversation
+	_, conv := i.getConv(convID, ibox.Conversations)
+	if conv == nil {
+		i.Debug(ctx, "Expunge: no conversation found: convID: %s, clearing", convID)
+		return i.Clear(ctx)
+	}
+	conv.Conv.Expunge = expunge
+	conv.Conv.Metadata.Version = vers.ToConvVers()
+
+	if len(maxMsgs) == 0 {
+		// Expunge notifications should always come with max msgs.
+		i.Debug(ctx, "Expunge: returning fake version mismatch error because of missing maxMsgs: vers: %d",
+			vers)
+		return NewVersionMismatchError(ibox.InboxVersion, vers)
+	} else {
+		i.Debug(ctx, "Expunge: setting max messages from server payload")
+		conv.Conv.MaxMsgSummaries = maxMsgs
+	}
+
+	// Write out to disk
+	ibox.InboxVersion = vers
+	return i.writeDiskInbox(ctx, ibox)
+}
+
 func (i *Inbox) SetConvRetention(ctx context.Context, vers chat1.InboxVers,
 	convID chat1.ConversationID, policy chat1.RetentionPolicy) (err Error) {
 	locks.Inbox.Lock()
@@ -1201,6 +1248,12 @@ func (i *Inbox) ServerVersion(ctx context.Context) (vers int, err Error) {
 type InboxSyncRes struct {
 	TeamTypeChanged    bool
 	MembersTypeChanged []chat1.ConversationID
+	Expunges           []InboxSyncResExpunge
+}
+
+type InboxSyncResExpunge struct {
+	ConvID  chat1.ConversationID
+	Expunge chat1.Expunge
 }
 
 func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Conversation) (res InboxSyncRes, err Error) {
@@ -1224,14 +1277,23 @@ func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Co
 	}
 	for index, conv := range ibox.Conversations {
 		if newConv, ok := convMap[conv.GetConvID().String()]; ok {
-			if ibox.Conversations[index].Conv.Metadata.TeamType != newConv.Metadata.TeamType {
+			oldConv := ibox.Conversations[index].Conv
+			if oldConv.Metadata.TeamType != newConv.Metadata.TeamType {
 				// Changing the team type might be hard for clients of the inbox system to process,
 				// so call it out so they can know a hard update happened here.
 				res.TeamTypeChanged = true
 			}
-			if ibox.Conversations[index].Conv.Metadata.MembersType != newConv.Metadata.MembersType {
+			if oldConv.Metadata.MembersType != newConv.Metadata.MembersType {
 				res.MembersTypeChanged = append(res.MembersTypeChanged,
-					ibox.Conversations[index].Conv.GetConvID())
+					oldConv.GetConvID())
+			}
+			if oldConv.Expunge != newConv.Expunge {
+				// The earliest point in non-deleted history has moved up.
+				// Point it out so that convsource can get updated.
+				res.Expunges = append(res.Expunges, InboxSyncResExpunge{
+					ConvID:  newConv.Metadata.ConversationID,
+					Expunge: newConv.Expunge,
+				})
 			}
 			ibox.Conversations[index].Conv = newConv
 			delete(convMap, conv.GetConvID().String())

@@ -416,3 +416,68 @@ func TestSyncerAppState(t *testing.T) {
 		require.Fail(t, "no inbox stale message")
 	}
 }
+
+// Test that we miss an Expunge and then get it in an incremental sync,
+// the messages get deleted.
+func TestSyncerRetentionExpunge(t *testing.T) {
+	ctx, world, ri2, _, sender, list := setupTest(t, 2)
+	defer world.Cleanup()
+
+	ri := ri2.(*kbtest.ChatRemoteMock)
+	u := world.GetUsers()[0]
+	u1 := world.GetUsers()[1]
+	uid := u.User.GetUID().ToBytes()
+	tc := world.Tcs[u.Username]
+	syncer := NewSyncer(tc.Context())
+	syncer.isConnected = true
+	ibox := storage.NewInbox(tc.Context(), uid)
+	store := storage.New(tc.Context())
+
+	mconv := newConv(ctx, t, tc, uid, ri, sender, u.Username+","+u1.Username)
+
+	t.Logf("test incremental")
+	_, _, cerr := tc.ChatG.ConvSource.Pull(ctx, mconv.GetConvID(), uid, nil, nil)
+	require.NoError(t, cerr)
+	_, _, serr := tc.ChatG.InboxSource.Read(ctx, uid, nil, true, nil, nil)
+	require.NoError(t, serr)
+	_, iconvs, err := ibox.ReadAll(ctx)
+	require.NoError(t, err)
+	require.Len(t, iconvs, 1)
+	ri.SyncInboxFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
+		mconv.Expunge = chat1.Expunge{Upto: 12}
+		return chat1.NewSyncInboxResWithIncremental(chat1.SyncIncrementalRes{
+			Vers:  100,
+			Convs: []chat1.Conversation{mconv},
+		}), nil
+	}
+	doSync(t, syncer, ri, uid)
+	select {
+	case sres := <-list.inboxSynced:
+		typ, err := sres.SyncType()
+		require.NoError(t, err)
+		require.Equal(t, chat1.SyncInboxResType_INCREMENTAL, typ)
+		updates := sres.Incremental().Items
+		require.Equal(t, 1, len(updates))
+		require.Equal(t, mconv.GetConvID().String(), updates[0].ConvID)
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no threads stale received")
+	}
+	select {
+	case cid := <-list.bgConvLoads:
+		require.Equal(t, mconv.GetConvID(), cid)
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no background conv loaded")
+	}
+	_, iconvs, err = ibox.ReadAll(context.TODO())
+	require.NoError(t, err)
+	require.Len(t, iconvs, 1)
+	require.Equal(t, chat1.Expunge{Upto: 12}, iconvs[0].Conv.Expunge)
+	thread, cerr := store.Fetch(context.TODO(), mconv, uid, nil, nil, nil)
+	require.NoError(t, cerr)
+	require.True(t, len(thread.Messages) > 1)
+	for i, m := range thread.Messages {
+		t.Logf("message %v", i)
+		require.True(t, m.IsValid())
+		require.True(t, m.Valid().MessageBody.IsNil(), "remaining messages should have no body")
+	}
+}

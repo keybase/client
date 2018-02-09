@@ -4,6 +4,8 @@
 package chat
 
 import (
+	"crypto/rand"
+	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -359,7 +361,7 @@ func (c *chatTestContext) users() (users []*kbtest.FakeUser) {
 func mustCreatePublicConversationForTest(t *testing.T, ctc *chatTestContext, creator *kbtest.FakeUser,
 	topicType chat1.TopicType, membersType chat1.ConversationMembersType, others ...*kbtest.FakeUser) (created chat1.ConversationInfoLocal) {
 	created = mustCreateConversationForTestNoAdvanceClock(t, ctc, creator, topicType,
-		keybase1.TLFVisibility_PUBLIC, membersType, others...)
+		nil, keybase1.TLFVisibility_PUBLIC, membersType, others...)
 	ctc.advanceFakeClock(time.Second)
 	return created
 }
@@ -367,13 +369,22 @@ func mustCreatePublicConversationForTest(t *testing.T, ctc *chatTestContext, cre
 func mustCreateConversationForTest(t *testing.T, ctc *chatTestContext, creator *kbtest.FakeUser,
 	topicType chat1.TopicType, membersType chat1.ConversationMembersType, others ...*kbtest.FakeUser) (created chat1.ConversationInfoLocal) {
 	created = mustCreateConversationForTestNoAdvanceClock(t, ctc, creator, topicType,
-		keybase1.TLFVisibility_PRIVATE, membersType, others...)
+		nil, keybase1.TLFVisibility_PRIVATE, membersType, others...)
+	ctc.advanceFakeClock(time.Second)
+	return created
+}
+
+func mustCreateChannelForTest(t *testing.T, ctc *chatTestContext, creator *kbtest.FakeUser,
+	topicType chat1.TopicType, topicName *string, membersType chat1.ConversationMembersType,
+	others ...*kbtest.FakeUser) (created chat1.ConversationInfoLocal) {
+	created = mustCreateConversationForTestNoAdvanceClock(t, ctc, creator, topicType,
+		topicName, keybase1.TLFVisibility_PRIVATE, membersType, others...)
 	ctc.advanceFakeClock(time.Second)
 	return created
 }
 
 func mustCreateConversationForTestNoAdvanceClock(t *testing.T, ctc *chatTestContext,
-	creator *kbtest.FakeUser, topicType chat1.TopicType, visibility keybase1.TLFVisibility,
+	creator *kbtest.FakeUser, topicType chat1.TopicType, topicName *string, visibility keybase1.TLFVisibility,
 	membersType chat1.ConversationMembersType, others ...*kbtest.FakeUser) (created chat1.ConversationInfoLocal) {
 	var err error
 
@@ -413,12 +424,13 @@ func mustCreateConversationForTestNoAdvanceClock(t *testing.T, ctc *chatTestCont
 		chat1.NewConversationLocalArg{
 			TlfName:          name,
 			TopicType:        topicType,
+			TopicName:        topicName,
 			TlfVisibility:    visibility,
 			MembersType:      membersType,
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		})
 	if err != nil {
-		t.Fatalf("NewConversationLocal error: %v\n", err)
+		require.FailNow(t, fmt.Sprintf("NewConversationLocal error: %v\n", err))
 	}
 
 	// Set initial active list
@@ -466,6 +478,71 @@ func mustPostLocalForTestNoAdvanceClock(t *testing.T, ctc *chatTestContext, asUs
 func mustPostLocalForTest(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) {
 	mustPostLocalForTestNoAdvanceClock(t, ctc, asUser, conv, msg)
 	ctc.advanceFakeClock(time.Second)
+}
+
+func mustSetConvRetentionPolicy(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser,
+	convID chat1.ConversationID, policy chat1.RetentionPolicy, sweepChannel uint64) {
+	tc := ctc.as(t, asUser)
+	// Use the remote version instead of the local version in order to have access to sweepChannel.
+	_, err := tc.ri.SetConvRetention(tc.startCtx, chat1.SetConvRetentionArg{
+		ConvID:       convID,
+		Policy:       policy,
+		SweepChannel: sweepChannel,
+	})
+	require.NoError(t, err)
+}
+
+func mustSetTeamRetentionPolicy(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser,
+	teamID keybase1.TeamID, policy chat1.RetentionPolicy, sweepChannel uint64) {
+	tc := ctc.as(t, asUser)
+	// Use the remote version instead of the local version in order to have access to sweepChannel.
+	_, err := tc.ri.SetTeamRetention(tc.startCtx, chat1.SetTeamRetentionArg{
+		TeamID:       teamID,
+		Policy:       policy,
+		SweepChannel: sweepChannel,
+	})
+	require.NoError(t, err)
+}
+
+func mustJoinConversationByID(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, convID chat1.ConversationID) {
+	tc := ctc.as(t, asUser)
+	_, err := tc.chatLocalHandler().JoinConversationByIDLocal(tc.startCtx, convID)
+	require.NoError(t, err)
+}
+
+// Make chatsweeperd run a particular conversation until messages are deleted.
+// Does not need to run as a particular user, that's just an easy way to get a remote client.
+func sweepPollForDeletion(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, convID chat1.ConversationID) {
+	t.Logf("sweepPollForDeletion(convID: %v)", convID)
+	tc := ctc.as(t, asUser)
+	maxTime := 5 * time.Second
+	afterCh := time.After(maxTime)
+	var foundTaskCount int
+	for i := 0; ; i++ {
+		res, err := tc.ri.RetentionSweepConv(tc.startCtx, convID)
+		require.NoError(t, err)
+		if res.FoundTask {
+			foundTaskCount++
+		}
+		if res.DeletedMessages {
+			return
+		}
+		time.Sleep(10 * time.Millisecond)
+		select {
+		case <-afterCh:
+			require.FailNow(t, fmt.Sprintf("no messages deleted after %v runs, %v hit, %v", i, foundTaskCount, maxTime))
+		default:
+		}
+	}
+}
+
+// Sweep a conv and assert that no deletion occurred
+func sweepNoDeletion(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, convID chat1.ConversationID) {
+	t.Logf("sweepNoDeletion(convID: %v)", convID)
+	tc := ctc.as(t, asUser)
+	res, err := tc.ri.RetentionSweepConv(tc.startCtx, convID)
+	require.NoError(t, err)
+	require.False(t, res.DeletedMessages, "messages deleted")
 }
 
 func TestChatSrvNewConversationLocal(t *testing.T) {
@@ -1696,18 +1773,24 @@ func TestChatSrvGap(t *testing.T) {
 
 type serverChatListener struct {
 	libkb.NoopNotifyListener
+
+	// ChatActivity channels
 	newMessage              chan chat1.IncomingMessage
-	threadsStale            chan []chat1.ConversationStaleUpdate
-	inboxStale              chan struct{}
-	joinedConv              chan chat1.InboxUIItem
-	leftConv                chan chat1.ConversationID
-	resetConv               chan chat1.ConversationID
 	membersUpdate           chan chat1.MembersUpdateInfo
 	appNotificationSettings chan chat1.SetAppNotificationSettingsInfo
-	identifyUpdate          chan keybase1.CanonicalTLFNameAndIDWithBreaks
 	teamType                chan chat1.TeamTypeInfo
-	inboxSynced             chan chat1.ChatSyncResult
-	kbfsUpgrade             chan chat1.ConversationID
+	expunge                 chan chat1.ExpungeInfo
+
+	threadsStale     chan []chat1.ConversationStaleUpdate
+	inboxStale       chan struct{}
+	joinedConv       chan chat1.InboxUIItem
+	leftConv         chan chat1.ConversationID
+	resetConv        chan chat1.ConversationID
+	identifyUpdate   chan keybase1.CanonicalTLFNameAndIDWithBreaks
+	inboxSynced      chan chat1.ChatSyncResult
+	setConvRetention chan chat1.ConversationID
+	setTeamRetention chan keybase1.TeamID
+	kbfsUpgrade      chan chat1.ConversationID
 }
 
 var _ libkb.NotifyListener = (*serverChatListener)(nil)
@@ -1735,6 +1818,8 @@ func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.Ch
 		n.appNotificationSettings <- activity.SetAppNotificationSettings()
 	case chat1.ChatActivityType_TEAMTYPE:
 		n.teamType <- activity.Teamtype()
+	case chat1.ChatActivityType_EXPUNGE:
+		n.expunge <- activity.Expunge()
 	}
 }
 func (n *serverChatListener) ChatJoinedConversation(uid keybase1.UID, conv chat1.InboxUIItem) {
@@ -1746,24 +1831,34 @@ func (n *serverChatListener) ChatLeftConversation(uid keybase1.UID, convID chat1
 func (n *serverChatListener) ChatResetConversation(uid keybase1.UID, convID chat1.ConversationID) {
 	n.resetConv <- convID
 }
+func (n *serverChatListener) ChatSetConvRetention(uid keybase1.UID, convID chat1.ConversationID) {
+	n.setConvRetention <- convID
+}
+func (n *serverChatListener) ChatSetTeamRetention(uid keybase1.UID, teamID keybase1.TeamID) {
+	n.setTeamRetention <- teamID
+}
 func (n *serverChatListener) ChatKBFSToImpteamUpgrade(uid keybase1.UID, convID chat1.ConversationID) {
 	n.kbfsUpgrade <- convID
 }
-
 func newServerChatListener() *serverChatListener {
+	buf := 100
 	return &serverChatListener{
-		newMessage:              make(chan chat1.IncomingMessage, 100),
-		threadsStale:            make(chan []chat1.ConversationStaleUpdate, 100),
-		inboxStale:              make(chan struct{}, 100),
-		joinedConv:              make(chan chat1.InboxUIItem, 100),
-		leftConv:                make(chan chat1.ConversationID, 100),
-		resetConv:               make(chan chat1.ConversationID, 100),
-		membersUpdate:           make(chan chat1.MembersUpdateInfo, 100),
-		appNotificationSettings: make(chan chat1.SetAppNotificationSettingsInfo, 100),
-		identifyUpdate:          make(chan keybase1.CanonicalTLFNameAndIDWithBreaks, 100),
-		teamType:                make(chan chat1.TeamTypeInfo, 100),
-		inboxSynced:             make(chan chat1.ChatSyncResult, 100),
-		kbfsUpgrade:             make(chan chat1.ConversationID, 100),
+		newMessage:              make(chan chat1.IncomingMessage, buf),
+		membersUpdate:           make(chan chat1.MembersUpdateInfo, buf),
+		appNotificationSettings: make(chan chat1.SetAppNotificationSettingsInfo, buf),
+		teamType:                make(chan chat1.TeamTypeInfo, buf),
+		expunge:                 make(chan chat1.ExpungeInfo, buf),
+
+		threadsStale:     make(chan []chat1.ConversationStaleUpdate, buf),
+		inboxStale:       make(chan struct{}, buf),
+		joinedConv:       make(chan chat1.InboxUIItem, buf),
+		leftConv:         make(chan chat1.ConversationID, buf),
+		resetConv:        make(chan chat1.ConversationID, buf),
+		identifyUpdate:   make(chan keybase1.CanonicalTLFNameAndIDWithBreaks, buf),
+		inboxSynced:      make(chan chat1.ChatSyncResult, buf),
+		setConvRetention: make(chan chat1.ConversationID, buf),
+		setTeamRetention: make(chan keybase1.TeamID, buf),
+		kbfsUpgrade:      make(chan chat1.ConversationID, buf),
 	}
 }
 
@@ -2475,12 +2570,40 @@ func TestChatSrvMakePreview(t *testing.T) {
 	}
 }
 
+func inMessageTypes(x chat1.MessageType, ys []chat1.MessageType) bool {
+	for _, y := range ys {
+		if x == y {
+			return true
+		}
+	}
+	return false
+}
+
 func consumeNewMsg(t *testing.T, listener *serverChatListener, typ chat1.MessageType) {
-	select {
-	case msg := <-listener.newMessage:
-		require.Equal(t, typ, msg.Message.GetMessageType())
-	case <-time.After(20 * time.Second):
-		require.Fail(t, "failed to get new message notification")
+	consumeNewMsgWhileIgnoring(t, listener, typ, nil)
+}
+
+func consumeNewMsgWhileIgnoring(t *testing.T, listener *serverChatListener, typ chat1.MessageType, ignoreTypes []chat1.MessageType) {
+	require.False(t, inMessageTypes(typ, ignoreTypes), "can't ignore the hunted")
+	timeoutCh := time.After(20 * time.Second)
+	for {
+		select {
+		case msg := <-listener.newMessage:
+			rtyp := msg.Message.GetMessageType()
+			ignore := inMessageTypes(rtyp, ignoreTypes)
+			ignoredStr := ""
+			if ignore {
+				ignoredStr = " (ignored)"
+			}
+			t.Logf("consumed newMessage: %v%v", msg.Message.GetMessageType(), ignoredStr)
+			if !ignore {
+				require.Equal(t, typ, msg.Message.GetMessageType())
+				return
+			}
+		case <-timeoutCh:
+			require.Fail(t, "failed to get newMessage notification: %v", typ)
+			return
+		}
 	}
 }
 
@@ -2513,6 +2636,36 @@ func consumeLeaveConv(t *testing.T, listener *serverChatListener) {
 	case <-listener.leftConv:
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "failed to get leave conv notification")
+	}
+}
+
+func consumeSetConvRetention(t *testing.T, listener *serverChatListener) chat1.ConversationID {
+	select {
+	case x := <-listener.setConvRetention:
+		return x
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "failed to get setConvRetention notification")
+		return chat1.ConversationID{}
+	}
+}
+
+func consumeSetTeamRetention(t *testing.T, listener *serverChatListener) (res keybase1.TeamID) {
+	select {
+	case x := <-listener.setTeamRetention:
+		return x
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "failed to get setTeamRetention notification")
+		return res
+	}
+}
+
+func consumeExpunge(t *testing.T, listener *serverChatListener) chat1.ExpungeInfo {
+	select {
+	case x := <-listener.expunge:
+		return x
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "failed to get expunge notification")
+		return chat1.ExpungeInfo{}
 	}
 }
 
@@ -2891,6 +3044,145 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 		validateDisplayAtMention("here")
 	})
 
+}
+
+func TestChatSrvRetentionSweepConv(t *testing.T) {
+	sweepChannel := randSweepChannel()
+	t.Logf("sweepChannel: %v", sweepChannel)
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_KBFS:
+			t.Logf("skipping kbfs stage")
+			return
+		}
+
+		ctc := makeChatTestContext(t, "TestChatSrvRetention", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+		ctx := ctc.as(t, users[0]).startCtx
+
+		listener := newServerChatListener()
+		ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener)
+
+		created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+			mt, ctc.as(t, users[1]).user())
+
+		mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
+
+		p1 := chat1.NewRetentionPolicyWithExpire(chat1.RpExpire{Age: gregor1.DurationSec(1)})
+		mustSetConvRetentionPolicy(t, ctc, users[0], created.Id, p1, sweepChannel)
+		require.True(t, consumeSetConvRetention(t, listener).Eq(created.Id))
+
+		mustPostLocalForTest(t, ctc, users[1], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
+
+		// This will take at least 1 second. For the deletable message to get old enough.
+		sweepPollForDeletion(t, ctc, users[1], created.Id)
+
+		expungeInfo := consumeExpunge(t, listener)
+		require.True(t, expungeInfo.ConvID.Eq(created.Id))
+		require.Equal(t, chat1.Expunge{Upto: 4}, expungeInfo.Expunge)
+
+		tvres, err := ctc.as(t, users[1]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{ConversationID: created.Id})
+		require.NoError(t, err)
+		require.Len(t, tvres.Thread.Messages, 1, "the TEXTs should be deleted")
+	})
+}
+
+func TestChatSrvRetentionSweepTeam(t *testing.T) {
+	sweepChannel := randSweepChannel()
+	t.Logf("sweepChannel: %v", sweepChannel)
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+		default:
+			t.Logf("skipping %v stage", mt)
+			return
+		}
+
+		ctc := makeChatTestContext(t, "TestChatSrvTeamRetention", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+		ctx := ctc.as(t, users[0]).startCtx
+
+		for i, u := range users {
+			t.Logf("user[%v] %v %v", i, u.Username, u.User.GetUID())
+		}
+
+		listener := newServerChatListener()
+		ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener)
+
+		// 3 convs
+		// convA: inherit team expire policy (default)
+		// convB: expire policy
+		// convC: retain policy
+		var convs []chat1.ConversationInfoLocal
+		for i := 0; i < 3; i++ {
+			t.Logf("creating conv %v", i)
+			var topicName *string
+			if i > 0 {
+				s := fmt.Sprintf("regarding-%v-gons", i)
+				topicName = &s
+			}
+			conv := mustCreateChannelForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+				topicName, mt, ctc.as(t, users[1]).user())
+			convs = append(convs, conv)
+			if i > 0 {
+				mustJoinConversationByID(t, ctc, users[1], conv.Id)
+				consumeJoinConv(t, listener)
+			}
+		}
+		convA := convs[0]
+		convB := convs[1]
+		convC := convs[2]
+		teamID := tlfIDToTeamIDForce(t, convA.Triple.Tlfid)
+
+		teamPolicy := chat1.NewRetentionPolicyWithExpire(chat1.RpExpire{Age: gregor1.DurationSec(1)})
+		convExpirePolicy := chat1.NewRetentionPolicyWithExpire(chat1.RpExpire{Age: gregor1.DurationSec(1)})
+		convRetainPolicy := chat1.NewRetentionPolicyWithRetain(chat1.RpRetain{})
+
+		for i, conv := range convs {
+			t.Logf("conv (%v/%v) %v in team %v", i+1, len(convs), conv.Id, tlfIDToTeamIDForce(t, conv.Triple.Tlfid))
+			mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+
+			ignoreTypes := []chat1.MessageType{chat1.MessageType_SYSTEM, chat1.MessageType_JOIN}
+			consumeNewMsgWhileIgnoring(t, listener, chat1.MessageType_TEXT, ignoreTypes)
+		}
+
+		mustSetConvRetentionPolicy(t, ctc, users[0], convB.Id, convExpirePolicy, sweepChannel)
+		require.True(t, consumeSetConvRetention(t, listener).Eq(convB.Id))
+		mustSetTeamRetentionPolicy(t, ctc, users[0], teamID, teamPolicy, sweepChannel)
+		require.True(t, consumeSetTeamRetention(t, listener).Eq(teamID))
+		mustSetConvRetentionPolicy(t, ctc, users[0], convC.Id, convRetainPolicy, sweepChannel)
+		require.True(t, consumeSetConvRetention(t, listener).Eq(convC.Id))
+
+		// This will take at least 1 second.
+		sweepPollForDeletion(t, ctc, users[0], convB.Id)
+		sweepPollForDeletion(t, ctc, users[0], convA.Id)
+		sweepNoDeletion(t, ctc, users[0], convC.Id)
+
+		checkThread := func(convID chat1.ConversationID, expectDeleted bool) {
+			tvres, err := ctc.as(t, users[1]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{ConversationID: convID})
+			require.NoError(t, err)
+			var nText int
+			for _, msg := range tvres.Thread.Messages {
+				require.True(t, msg.IsValidFull())
+				if msg.GetMessageType() == chat1.MessageType_TEXT {
+					nText++
+				}
+			}
+			if expectDeleted {
+				require.Equal(t, 0, nText)
+			} else {
+				require.Equal(t, 1, nText)
+			}
+		}
+
+		checkThread(convA.Id, true)
+		checkThread(convB.Id, true)
+		checkThread(convC.Id, false)
+	})
 }
 
 func TestChatSrvTopicNameState(t *testing.T) {
@@ -3901,4 +4193,26 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 		})
 		require.Error(t, err)
 	})
+}
+
+func randSweepChannel() uint64 {
+	for {
+		buf := make([]byte, 8)
+		_, err := rand.Read(buf)
+		if err != nil {
+			panic(err)
+		}
+		x := binary.LittleEndian.Uint64(buf)
+		// sql driver doesn't support all the bits
+		// https://golang.org/src/database/sql/driver/types.go#L265
+		if x < 1<<63 {
+			return x
+		}
+	}
+}
+
+func tlfIDToTeamIDForce(t *testing.T, tlfID chat1.TLFID) keybase1.TeamID {
+	res, err := keybase1.TeamIDFromString(tlfID.String())
+	require.NoError(t, err)
+	return res
 }

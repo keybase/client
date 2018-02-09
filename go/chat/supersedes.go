@@ -16,18 +16,6 @@ type supersedesTransform interface {
 		conv types.UnboxConversationInfo, uid gregor1.UID, originalMsgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error)
 }
 
-type nullSupersedesTransform struct {
-}
-
-func (t nullSupersedesTransform) Run(ctx context.Context,
-	conv chat1.Conversation, uid gregor1.UID, originalMsgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error) {
-	return originalMsgs, nil
-}
-
-func newNullSupersedesTransform() nullSupersedesTransform {
-	return nullSupersedesTransform{}
-}
-
 type getMessagesFunc func(context.Context, types.UnboxConversationInfo, gregor1.UID, []chat1.MessageID) ([]chat1.MessageUnboxed, error)
 
 type basicSupersedesTransform struct {
@@ -36,6 +24,8 @@ type basicSupersedesTransform struct {
 
 	messagesFunc getMessagesFunc
 }
+
+var _ supersedesTransform = (*basicSupersedesTransform)(nil)
 
 func newBasicSupersedesTransform(g *globals.Context) *basicSupersedesTransform {
 	return &basicSupersedesTransform{
@@ -119,7 +109,7 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 
 	// MessageIDs that supersede
 	var superMsgIDs []chat1.MessageID
-	// Map from MessageIDs to their superseder messages
+	// Map from a MessageID to the message that supersedes it
 	smap := make(map[chat1.MessageID]chat1.MessageUnboxed)
 
 	// Collect all superseder messages for messages in the current thread view
@@ -131,31 +121,29 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 			}
 		}
 	}
-	if len(superMsgIDs) == 0 {
-		return originalMsgs, nil
-	}
-
-	var deleteHistoryUpto chat1.MessageID
 
 	// Get superseding messages
-	msgs, err := t.messagesFunc(ctx, conv, uid, superMsgIDs)
-	if err != nil {
-		return nil, err
-	}
-	for _, m := range msgs {
-		if m.IsValid() {
-			supers, err := utils.GetSupersedes(m)
-			if err != nil {
-				continue
-			}
-			for _, super := range supers {
-				smap[super] = m
-			}
+	var deleteHistoryUpto chat1.MessageID
+	if len(superMsgIDs) > 0 {
+		msgs, err := t.messagesFunc(ctx, conv, uid, superMsgIDs)
+		if err != nil {
+			return nil, err
+		}
+		for _, m := range msgs {
+			if m.IsValid() {
+				supers, err := utils.GetSupersedes(m)
+				if err != nil {
+					continue
+				}
+				for _, super := range supers {
+					smap[super] = m
+				}
 
-			delh, err := m.Valid().AsDeleteHistory()
-			if err == nil {
-				if delh.Upto > deleteHistoryUpto {
-					deleteHistoryUpto = delh.Upto
+				delh, err := m.Valid().AsDeleteHistory()
+				if err == nil {
+					if delh.Upto > deleteHistoryUpto {
+						deleteHistoryUpto = delh.Upto
+					}
 				}
 			}
 		}
@@ -163,25 +151,29 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 
 	// Run through all messages and transform superseded messages into final state
 	var newMsgs []chat1.MessageUnboxed
-	for _, msg := range originalMsgs {
+	for i, msg := range originalMsgs {
 		if msg.IsValid() {
-			// Hide messages which are or should have been deleted by a DeleteHistory.
-			if msg.GetMessageID() < deleteHistoryUpto && chat1.IsDeletableByDeleteHistory(msg.GetMessageType()) {
-				continue
-			}
-
+			newMsg := &originalMsgs[i]
 			// If the message is superseded, then transform it and add that
 			if superMsg, ok := smap[msg.GetMessageID()]; ok {
 				t.Debug(ctx, "transforming: msgID: %d superMsgID: %d", msg.GetMessageID(),
 					superMsg.GetMessageID())
-				newMsg := t.transform(ctx, msg, superMsg)
-				if newMsg != nil {
-					// Might be a delete, so check if transform returned anything
-					newMsgs = append(newMsgs, *newMsg)
-				}
-			} else {
-				newMsgs = append(newMsgs, msg)
+				newMsg = t.transform(ctx, msg, superMsg)
 			}
+			if newMsg == nil {
+				// Transform might return nil in case of a delete.
+				continue
+			}
+			if newMsg.GetMessageID() < deleteHistoryUpto && chat1.IsDeletableByDeleteHistory(newMsg.GetMessageType()) {
+				// Hide messages which are or should have been deleted by a DeleteHistory.
+				continue
+			}
+			if !newMsg.IsValidFull() {
+				// Drop the message. It has been deleted locally but not superseded by anything.
+				// Could be a delete-history or retention expunge.
+				continue
+			}
+			newMsgs = append(newMsgs, *newMsg)
 		} else {
 			newMsgs = append(newMsgs, msg)
 		}

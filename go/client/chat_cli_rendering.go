@@ -154,7 +154,7 @@ func (v conversationListView) without(g *libkb.GlobalContext, slice []string, el
 	return res
 }
 
-func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, showDeviceName bool) error {
+func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, showDeviceName bool) (err error) {
 	if len(v) == 0 {
 		return nil
 	}
@@ -232,20 +232,15 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 				msg = &mCopy
 			}
 		}
-		if msg == nil {
-			// Make a fake error in case we have a non-empty thread with no visible message
-			errMsg := chat1.NewMessageUnboxedWithError(chat1.MessageUnboxedError{
-				ErrMsg:      "<no snippet available>",
-				MessageID:   0,
-				MessageType: chat1.MessageType_TEXT,
-			})
-			msg = &errMsg
-			unread = ""
-		}
+		mv := newMessageViewNoMessages()
+		if msg != nil {
+			mv, err = newMessageView(g, conv.Info.Id, *msg)
+			if err != nil {
+				g.Log.Error("Message render error: %s", err)
+			}
 
-		mv, err := newMessageView(g, conv.Info.Id, *msg)
-		if err != nil {
-			g.Log.Error("Message render error: %s", err)
+		} else {
+			unread = ""
 		}
 
 		var authorAndTime string
@@ -454,7 +449,6 @@ func formatSystemMessage(body chat1.MessageSystem) string {
 }
 
 func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.ConversationID, m chat1.MessageUnboxedValid) (mv messageView, err error) {
-
 	mv.MessageID = m.ServerHeader.MessageID
 	mv.FromRevokedDevice = m.SenderDeviceRevokedAt != nil
 
@@ -468,6 +462,7 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 	case chat1.MessageType_NONE:
 		// NONE is what you get when a message has been deleted.
 		mv.Renderable = true
+		mv.Body = "[deleted]"
 	case chat1.MessageType_TEXT:
 		mv.Renderable = true
 		mv.Body = body.Text().Body
@@ -600,30 +595,39 @@ func newMessageViewError(g *libkb.GlobalContext, conversationID chat1.Conversati
 		critVersion = true
 		fallthrough
 	case chat1.MessageUnboxedErrorType_BADVERSION:
-		mv.Body = fmt.Sprintf("<<chat read error: invalid message version (critical: %v)>>", critVersion)
+		mv.Body = fmt.Sprintf("<chat read error: invalid message version (critical: %v)>", critVersion)
 	default:
-		mv.Body = fmt.Sprintf("<<chat read error: %s>>", m.ErrMsg)
+		mv.Body = fmt.Sprintf("<chat read error: %s>", m.ErrMsg)
 	}
 
 	return mv, nil
 }
 
+func newMessageViewNoMessages() (mv messageView) {
+	return messageView{
+		Renderable: true,
+		Body:       "<no messages>",
+	}
+}
+
 // newMessageView extracts from a message the parts for display
 // It may fetch the superseding message. So that for example a TEXT message will show its EDIT text.
 func newMessageView(g *libkb.GlobalContext, conversationID chat1.ConversationID, m chat1.MessageUnboxed) (mv messageView, err error) {
-
-	st, err := m.State()
+	state, err := m.State()
 	if err != nil {
 		return mv, fmt.Errorf("unexpected empty message")
 	}
-
-	if st == chat1.MessageUnboxedState_ERROR {
+	switch state {
+	case chat1.MessageUnboxedState_ERROR:
 		return newMessageViewError(g, conversationID, m.Error())
-	}
-	if st == chat1.MessageUnboxedState_OUTBOX {
+	case chat1.MessageUnboxedState_OUTBOX:
 		return newMessageViewOutbox(g, conversationID, m.Outbox())
+	case chat1.MessageUnboxedState_VALID:
+		return newMessageViewValid(g, conversationID, m.Valid())
+	default:
+		return mv, fmt.Errorf("unexpected message state: %v", state)
 	}
-	return newMessageViewValid(g, conversationID, m.Valid())
+
 }
 
 func shortDurationFromNow(t time.Time) string {

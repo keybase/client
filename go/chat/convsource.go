@@ -196,6 +196,11 @@ func (s *RemoteConversationSource) GetMessagesWithRemotes(ctx context.Context,
 	return s.boxer.UnboxMessages(ctx, msgs, conv)
 }
 
+func (s *RemoteConversationSource) Expunge(ctx context.Context,
+	convID chat1.ConversationID, uid gregor1.UID, expunge chat1.Expunge) error {
+	return nil
+}
+
 type conversationLock struct {
 	refs, shares int
 	trace        string
@@ -883,6 +888,30 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 
 	sort.Sort(ByMsgID(res))
 	return res, nil
+}
+
+// Expunge from storage and maybe notify the gui of staleness
+func (s *HybridConversationSource) Expunge(ctx context.Context,
+	convID chat1.ConversationID, uid gregor1.UID, expunge chat1.Expunge) (err error) {
+	defer s.Trace(ctx, func() error { return err }, "Expunge")()
+	s.Debug(ctx, "Expunge: convID: %s uid: %s upto: %v", convID, uid, expunge.Upto)
+
+	// @@@ TODO Is this apt to deadlock? Callstack Syncer.sync->HybridConversationSource.Expunge->Syncer.SendChatStaleNotifications
+	s.lockTab.Acquire(ctx, uid, convID)
+	defer s.lockTab.Release(ctx, uid, convID)
+
+	mergeRes, err := s.storage.Expunge(ctx, convID, uid, expunge)
+	if err != nil {
+		return err
+	}
+	if mergeRes.DeletedHistory {
+		supdate := []chat1.ConversationStaleUpdate{chat1.ConversationStaleUpdate{
+			ConvID:     convID,
+			UpdateType: chat1.StaleUpdateType_CLEAR,
+		}}
+		s.G().Syncer.SendChatStaleNotifications(ctx, uid, supdate, false)
+	}
+	return nil
 }
 
 // Merge with storage and maybe notify the gui of staleness

@@ -548,6 +548,136 @@ func TestStorageDeleteHistory(t *testing.T) {
 	assertStateAllowHoles(msgK.GetMessageID())
 }
 
+func TestStorageExpunge(t *testing.T) {
+	// Uses this conversation:
+	// A start                            <not deletable>
+	// B text
+	// C text <----\        edited by E
+	// D headline  |                      <not deletable>
+	// E edit -----^        edits C
+	// F text <---\         deleted by G
+	// G delete --^    ___  deletes F     <not deletable>
+	// H text           |
+	// I delete-history ^ upto H
+
+	_, storage, uid := setupStorageTest(t, "delh")
+
+	convID := makeConvID()
+	msgA := makeMsgWithType(1, chat1.MessageType_TLFNAME)
+	msgB := makeText(2, "some text")
+	msgC := makeText(3, "some text")
+	msgD := makeHeadlineMessage(4)
+	msgE := makeEdit(5, msgC.GetMessageID())
+	msgF := makeText(6, "some text")
+	msgG := makeDelete(7, msgF.GetMessageID(), nil)
+	msgH := makeText(8, "some text")
+	msgI := makeDeleteHistory(9, msgH.GetMessageID())
+
+	type expectedM struct {
+		Name         string // letter label
+		MsgID        chat1.MessageID
+		BodyPresent  bool
+		SupersededBy chat1.MessageID
+	}
+	dontCare := chat1.MessageID(12341234)
+
+	var expectedState []expectedM // expectations sorted by ID ascending
+	setExpected := func(name string, msg chat1.MessageUnboxed, bodyPresent bool, supersededBy chat1.MessageID) {
+		xset := expectedM{name, msg.GetMessageID(), bodyPresent, supersededBy}
+		var found bool
+		for i, x := range expectedState {
+			if x.Name == name {
+				found = true
+				expectedState[i] = xset
+			}
+		}
+		if !found {
+			expectedState = append(expectedState, xset)
+		}
+		sort.Slice(expectedState, func(i, j int) bool {
+			return expectedState[i].MsgID < expectedState[j].MsgID
+		})
+	}
+	assertState := func(maxMsgID chat1.MessageID) {
+		var rc ResultCollector
+		res, err := storage.Fetch(context.Background(), makeConversationAt(convID, maxMsgID), uid, rc, nil, nil)
+		require.NoError(t, err)
+		if len(res.Messages) != len(expectedState) {
+			t.Logf("wrong number of messages")
+			for _, m := range res.Messages {
+				t.Logf("msgid:%v type:%v", m.GetMessageID(), m.GetMessageType())
+			}
+			require.Equal(t, len(expectedState), len(res.Messages), "wrong number of messages")
+		}
+		for i, x := range expectedState {
+			t.Logf("[%v] checking msgID:%v supersededBy:%v", x.Name, x.MsgID, x.SupersededBy)
+			m := res.Messages[len(res.Messages)-1-i]
+			require.True(t, m.IsValid(), "[%v] message should be valid", x.Name)
+			require.Equal(t, x.MsgID, m.Valid().ServerHeader.MessageID, "[%v] message ID", x.Name)
+			if m.GetMessageType() != chat1.MessageType_TLFNAME {
+				if !x.BodyPresent && x.SupersededBy == 0 {
+					t.Fatalf("You expected the body to be deleted but the message not to be superseded. Are you sure?")
+				}
+			}
+			if x.SupersededBy != dontCare {
+				require.Equal(t, x.SupersededBy, m.Valid().ServerHeader.SupersededBy, "[%v] superseded by", x.Name)
+			}
+			if x.BodyPresent {
+				require.False(t, m.Valid().MessageBody.IsNil(), "[%v] message body should not be deleted", x.Name)
+			} else {
+				require.True(t, m.Valid().MessageBody.IsNil(), "[%v] message body should be deleted", x.Name)
+			}
+		}
+	}
+	merge := func(msgsUnsorted []chat1.MessageUnboxed, expectedDeletedHistory bool) {
+		res := mustMerge(t, storage, convID, uid, sortMessagesDesc(msgsUnsorted))
+		require.Equal(t, expectedDeletedHistory, res.DeletedHistory, "deleted history merge response")
+		t.Logf("merge complete")
+	}
+	expunge := func(upto chat1.MessageID, expectedDeletedHistory bool) {
+		res, err := storage.Expunge(context.Background(), convID, uid, chat1.Expunge{Upto: upto})
+		require.NoError(t, err)
+		require.Equal(t, expectedDeletedHistory, res.DeletedHistory, "deleted history in expunge result")
+	}
+
+	t.Logf("initial merge")
+	// merge with no delh messages
+	merge([]chat1.MessageUnboxed{msgA, msgB, msgC, msgD, msgE, msgF, msgG}, false)
+	setExpected("A", msgA, false, 0) // TLFNAME messages have no body
+	setExpected("B", msgB, true, 0)
+	setExpected("C", msgC, true, msgE.GetMessageID())
+	setExpected("D", msgD, true, 0)
+	setExpected("E", msgE, true, 0)
+	setExpected("F", msgF, false, msgG.GetMessageID())
+	setExpected("G", msgG, true, 0)
+	assertState(msgG.GetMessageID())
+
+	t.Logf("expunge up to E")
+	setExpected("B", msgB, false, dontCare)
+	setExpected("C", msgC, false, dontCare)
+	expunge(msgE.GetMessageID(), true)
+	assertState(msgG.GetMessageID())
+
+	t.Logf("expunge with no effect")
+	expunge(msgE.GetMessageID(), false)
+
+	t.Logf("another expunge with no effect")
+	expunge(msgC.GetMessageID(), false)
+
+	t.Logf("merge first delh")
+	// merge with one delh
+	merge([]chat1.MessageUnboxed{msgH, msgI}, true)
+	setExpected("E", msgE, false, msgI.GetMessageID())
+	setExpected("F", msgF, false, msgG.GetMessageID())
+	setExpected("H", msgH, true, 0) // after the cutoff
+	setExpected("I", msgI, true, 0)
+	assertState(msgI.GetMessageID())
+
+	t.Logf("expunge the rest")
+	setExpected("H", msgH, false, dontCare) // after the cutoff
+	expunge(msgI.GetMessageID()+12, true)
+}
+
 func TestStorageMiss(t *testing.T) {
 	_, storage, uid := setupStorageTest(t, "miss")
 
