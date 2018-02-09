@@ -27115,6 +27115,32 @@ exports[`Storyshots Files Root 1`] = `
             </span>
           </div>
         </div>
+        <div>
+          <div
+            style={
+              Object {
+                "backgroundColor": "rgba(0, 0, 0, 0.05)",
+                "flex": 1,
+                "maxHeight": 1,
+                "minHeight": 1,
+              }
+            }
+          />
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "backgroundColor": "#F8FAFD",
+                "borderTopColor": "rgba(0, 0, 0, 0.05)",
+                "borderTopWidth": 1,
+                "display": "flex",
+                "flexDirection": "row",
+                "justifyContent": "start",
+                "minHeight": 24,
+              }
+            }
+          />
+        </div>
         <div
           style={
             Object {
