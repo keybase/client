@@ -588,17 +588,18 @@ class Team extends React.PureComponent<Props> {
                   </Box>
                 </Box>
               )}
-              {yourOperations.changeTarsDisabled && (
-                <Box style={stylesSettingsTabRow}>
-                  <Box style={stylesPublicitySettingsBox}>
-                    <Checkbox checked={ignoreAccessRequests} label="" onCheck={setIgnoreAccessRequests} />
+              {!openTeam &&
+                yourOperations.changeTarsDisabled && (
+                  <Box style={stylesSettingsTabRow}>
+                    <Box style={stylesPublicitySettingsBox}>
+                      <Checkbox checked={ignoreAccessRequests} label="" onCheck={setIgnoreAccessRequests} />
+                    </Box>
+                    <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
+                      <Text type="Body">Ignore requests to join this team</Text>
+                      <Text type="BodySmall">Admins won't be bothered by hordes of fans.</Text>
+                    </Box>
                   </Box>
-                  <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
-                    <Text type="Body">Ignore requests to join this team</Text>
-                    <Text type="BodySmall">Admins won't be bothered by hordes of fans.</Text>
-                  </Box>
-                </Box>
-              )}
+                )}
             </Box>
           )}
 
@@ -656,7 +657,7 @@ class Team extends React.PureComponent<Props> {
         )}
         <Box style={stylesTeamHeader}>
           <Avatar isTeam={true} teamname={name} size={64} />
-          <Text type="HeaderBig" style={{...globalStyles.selectable, marginTop: globalMargins.tiny}}>
+          <Text type="HeaderBig" selectable={true} style={{marginTop: globalMargins.tiny}}>
             {name}
           </Text>
           <Box style={globalStyles.flexBoxRow}>

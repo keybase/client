@@ -618,7 +618,7 @@ function* _createChannel(action: TeamsGen.CreateChannelPayload) {
     yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey: newConversationIDKey}))
     yield Saga.put(navigateTo([chatTab]))
   } catch (error) {
-    yield Saga.put(TeamsGen.createSetTeamCreationError({error: error.desc}))
+    yield Saga.put(TeamsGen.createSetChannelCreationError({error: error.desc}))
   }
 }
 

@@ -4,6 +4,7 @@ import React, {PureComponent} from 'react'
 import Emoji from './emoji'
 import Text from './text'
 import {type ConversationIDKey} from '../constants/types/chat2'
+import {isSpecialMention} from '../constants/chat2'
 import parser, {emojiIndexByName, isPlainText} from '../markdown/parser'
 
 import type {Props as EmojiProps} from './emoji'
@@ -50,7 +51,7 @@ function isValidMention(meta: ?MarkdownMeta, mention: string): boolean {
   }
 
   // TODO: Allow uppercase in mentions, and just normalize.
-  return mention === 'here' || mention === 'channel' || mentionsAt.has(mention)
+  return isSpecialMention(mention) || mentionsAt.has(mention)
 }
 
 function channelNameToConvID(meta: ?MarkdownMeta, channel: string): ?ConversationIDKey {

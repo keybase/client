@@ -42,9 +42,8 @@ class InviteAddedToTeamNotice extends React.PureComponent<Props> {
         <Text type="BodySmallSemibold" style={{textAlign: 'center'}}>
           <ConnectedUsernames {...connectedUsernamesProps} usernames={[invitee]} /> just joined {team}.{' '}
           {you === inviter ? 'You invited them' : 'They were invited by '}
-          {you !== inviter && (
-            <ConnectedUsernames {...connectedUsernamesProps} usernames={[inviter]} />
-          )} via {inviteType}
+          {you !== inviter && <ConnectedUsernames {...connectedUsernamesProps} usernames={[inviter]} />}
+          {inviteType === 'seitan' ? '' : ' via ' + inviteType}
           , and they were just now auto-added to the team sigchain by{' '}
           {you === adder ? 'you' : <ConnectedUsernames {...connectedUsernamesProps} usernames={[adder]} />}
           , the first available admin.

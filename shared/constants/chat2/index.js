@@ -64,6 +64,7 @@ export {
 export {
   getClientPrev,
   isOldestOrdinal,
+  isSpecialMention,
   makeMessageAttachment,
   makeMessageDeleted,
   makePendingAttachmentMessage,

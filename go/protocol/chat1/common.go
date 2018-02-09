@@ -111,6 +111,18 @@ func (o TopicNameState) DeepCopy() TopicNameState {
 	})(o)
 }
 
+type InboxVersInfo struct {
+	Uid  gregor1.UID `codec:"uid" json:"uid"`
+	Vers InboxVers   `codec:"vers" json:"vers"`
+}
+
+func (o InboxVersInfo) DeepCopy() InboxVersInfo {
+	return InboxVersInfo{
+		Uid:  o.Uid.DeepCopy(),
+		Vers: o.Vers.DeepCopy(),
+	}
+}
+
 type ConversationExistence int
 
 const (

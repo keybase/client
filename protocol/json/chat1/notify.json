@@ -20,7 +20,8 @@
         "FAILED_MESSAGE_5",
         "MEMBERS_UPDATE_6",
         "SET_APP_NOTIFICATION_SETTINGS_7",
-        "TEAMTYPE_8"
+        "TEAMTYPE_8",
+        "EXPUNGE_9"
       ]
     },
     {
@@ -174,6 +175,27 @@
       ]
     },
     {
+      "type": "record",
+      "name": "ExpungeInfo",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "Expunge",
+          "name": "expunge"
+        },
+        {
+          "type": [
+            null,
+            "InboxUIItem"
+          ],
+          "name": "conv"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "ChatActivity",
       "switch": {
@@ -236,6 +258,13 @@
             "def": false
           },
           "body": "TeamTypeInfo"
+        },
+        {
+          "label": {
+            "name": "EXPUNGE",
+            "def": false
+          },
+          "body": "ExpungeInfo"
         }
       ]
     },

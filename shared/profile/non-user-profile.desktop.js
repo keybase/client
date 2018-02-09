@@ -25,12 +25,12 @@ const NonUserRender = (props: Props) => (
           <Avatar url={props.avatar} size={AVATAR_SIZE} />
           <Box style={styleUsernameRow}>
             <Icon type={platformToLogo24(props.serviceName)} />
-            <Text type="HeaderBig" style={styleUsername}>
+            <Text type="HeaderBig" selectable={true} style={styleUsername}>
               {props.username}
             </Text>
           </Box>
           {props.fullname && (
-            <Text type="BodySemibold" style={styleFullname}>
+            <Text type="BodySemibold" selectable={true} style={styleFullname}>
               {props.fullname}
             </Text>
           )}
@@ -104,12 +104,10 @@ const styleUsernameRow = {
 }
 
 const styleUsername = {
-  ...globalStyles.selectable,
   marginLeft: globalMargins.xtiny,
 }
 
 const styleFullname = {
-  ...globalStyles.selectable,
   color: globalColors.black_75,
   marginTop: 2,
 }

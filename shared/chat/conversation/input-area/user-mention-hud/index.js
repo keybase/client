@@ -13,6 +13,7 @@ import {
 } from '../../../../util/container'
 import {Avatar, Box, ClickableBox, List, Text, Usernames} from '../../../../common-adapters/index'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../../styles'
+import {isSpecialMention} from '../../../../constants/chat2'
 
 type Props<D: {key: string, selected: boolean}> = {
   rowRenderer: (i: number, d: D) => React$Element<*>,
@@ -52,7 +53,7 @@ const MentionRowRenderer = ({
     onClick={onClick}
     onMouseOver={onHover}
   >
-    <Avatar username={username} size={32} />
+    {!isSpecialMention(username) && <Avatar username={username} size={32} />}
 
     <Box style={{width: globalMargins.small}} />
 
@@ -108,6 +109,11 @@ const mapStateToProps: MapStateToProps<*, *, *> = (state: TypedState, {users, se
       fullName: u.fullName,
       key: u.username,
     }))
+    .concat({
+      username: 'channel',
+      fullName: 'Everyone in this channel',
+      key: 'channel',
+    })
     .filter(u => {
       return u.username.toLowerCase().indexOf(filter) >= 0 || u.fullName.toLowerCase().indexOf(filter) >= 0
     })

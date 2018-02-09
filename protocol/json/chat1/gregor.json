@@ -224,6 +224,43 @@
     },
     {
       "type": "record",
+      "name": "ExpungePayload",
+      "fields": [
+        {
+          "type": "string",
+          "name": "Action",
+          "lint": "ignore"
+        },
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "InboxVers",
+          "name": "inboxVers"
+        },
+        {
+          "type": "Expunge",
+          "name": "expunge"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "MessageSummary"
+          },
+          "name": "maxMsgs"
+        },
+        {
+          "type": [
+            null,
+            "UnreadUpdate"
+          ],
+          "name": "unreadUpdate"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UnreadUpdate",
       "fields": [
         {

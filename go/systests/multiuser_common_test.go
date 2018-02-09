@@ -530,6 +530,10 @@ func (u *smuUser) getPrimaryGlobalContext() *libkb.GlobalContext {
 	return u.primaryDevice().tctx.G
 }
 
+func (u *smuUser) setUIDMapperNoCachingMode(enabled bool) {
+	u.getPrimaryGlobalContext().UIDMapper.SetTestingNoCachingMode(enabled)
+}
+
 func (u *smuUser) loginAfterReset(numClones int) *smuDeviceWrapper {
 	return u.loginAfterResetHelper(numClones, true)
 }
@@ -604,22 +608,14 @@ func (u *smuUser) isMemberActive(team smuTeam, user *smuUser) (bool, error) {
 
 func (u *smuUser) assertMemberActive(team smuTeam, user *smuUser) {
 	active, err := u.isMemberActive(team, user)
-	if err != nil {
-		u.ctx.t.Fatalf("assertMemberActive error: %s", err)
-	}
-	if !active {
-		u.ctx.t.Errorf("user %s not active (expected active)", user.username)
-	}
+	require.NoError(u.ctx.t, err, "assertMemberInactive error: %s", err)
+	require.True(u.ctx.t, active, "user %s is inactive (expected active)", user.username)
 }
 
 func (u *smuUser) assertMemberInactive(team smuTeam, user *smuUser) {
 	active, err := u.isMemberActive(team, user)
-	if err != nil {
-		u.ctx.t.Fatalf("assertMemberInactive error: %s", err)
-	}
-	if active {
-		u.ctx.t.Errorf("user %s is active (expected inactive)", user.username)
-	}
+	require.NoError(u.ctx.t, err, "assertMemberInactive error: %s", err)
+	require.False(u.ctx.t, active, "user %s is active (expected inactive)", user.username)
 }
 
 func (u *smuUser) uid() keybase1.UID {

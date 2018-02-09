@@ -489,3 +489,4 @@ export const getClientPrev = (state: TypedState, conversationIDKey: Types.Conver
 
 const imageFileNameRegex = /[^/]+\.(jpg|png|gif|jpeg|bmp)$/
 export const pathToAttachmentType = (path: string) => (imageFileNameRegex.test(path) ? 'image' : 'file')
+export const isSpecialMention = (s: string) => ['here', 'channel', 'everyone'].includes(s)

@@ -13,7 +13,8 @@ protocol NotifyChat {
     FAILED_MESSAGE_5,
     MEMBERS_UPDATE_6,
     SET_APP_NOTIFICATION_SETTINGS_7,
-    TEAMTYPE_8
+    TEAMTYPE_8,
+    EXPUNGE_9
   }
 
   record IncomingMessage {
@@ -61,6 +62,12 @@ protocol NotifyChat {
     union { null, InboxUIItem } conv;
   }
 
+  record ExpungeInfo {
+    ConversationID convID;
+    Expunge expunge;
+    union { null, InboxUIItem } conv;
+  }
+
   variant ChatActivity switch (ChatActivityType activityType) {
     case INCOMING_MESSAGE: IncomingMessage;
     case READ_MESSAGE: ReadMessageInfo;
@@ -70,6 +77,7 @@ protocol NotifyChat {
     case MEMBERS_UPDATE: MembersUpdateInfo;
     case SET_APP_NOTIFICATION_SETTINGS: SetAppNotificationSettingsInfo;
     case TEAMTYPE: TeamTypeInfo;
+    case EXPUNGE: ExpungeInfo;
   }
 
   record TyperInfo {

@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"runtime"
+	"runtime/debug"
 	"runtime/pprof"
 	"syscall"
 	"time"
@@ -38,6 +39,11 @@ func handleQuickVersion() bool {
 		return true
 	}
 	return false
+}
+
+func keybaseExit(exitCode int) {
+	logger.RestoreConsoleMode()
+	os.Exit(exitCode)
 }
 
 func main() {
@@ -89,7 +95,7 @@ func main() {
 		}
 	}
 	if g.ExitCode != keybase1.ExitCode_OK {
-		os.Exit(int(g.ExitCode))
+		keybaseExit(int(g.ExitCode))
 	}
 }
 
@@ -103,7 +109,7 @@ func warnNonProd(log logger.Logger, e *libkb.Env) {
 func checkSystemUser(log logger.Logger) {
 	if isAdminUser, match, _ := libkb.IsSystemAdminUser(); isAdminUser {
 		log.Errorf("Oops, you are trying to run as an admin user (%s). This isn't supported.", match)
-		os.Exit(int(keybase1.ExitCode_NOTOK))
+		keybaseExit(int(keybase1.ExitCode_NOTOK))
 	}
 }
 
@@ -360,7 +366,7 @@ func HandleSignals(g *libkb.GlobalContext) {
 			g.Log.Debug("calling shutdown")
 			g.Shutdown()
 			g.Log.Error("interrupted")
-			os.Exit(3)
+			keybaseExit(3)
 		}
 	}
 }
@@ -399,6 +405,8 @@ func startProfile(g *libkb.GlobalContext) {
 				g.Log.Debug("could not create memory profile: ", err)
 				continue
 			}
+
+			debug.FreeOSMemory()
 			runtime.GC() // get up-to-date statistics
 			if err := pprof.WriteHeapProfile(f); err != nil {
 				g.Log.Debug("could not write memory profile: ", err)
@@ -406,6 +414,13 @@ func startProfile(g *libkb.GlobalContext) {
 			}
 			f.Close()
 			g.Log.Debug("wrote periodic memory profile to %s", f.Name())
+
+			var mems runtime.MemStats
+			runtime.ReadMemStats(&mems)
+			g.Log.Debug("runtime mem alloc:   %v", mems.Alloc)
+			g.Log.Debug("runtime total alloc: %v", mems.TotalAlloc)
+			g.Log.Debug("runtime heap alloc:  %v", mems.HeapAlloc)
+			g.Log.Debug("runtime heap sys:    %v", mems.HeapSys)
 		}
 	}()
 }
