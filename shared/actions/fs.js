@@ -7,7 +7,9 @@ import * as Saga from '../util/saga'
 import * as Types from '../constants/types/fs'
 import * as Path from 'path'
 
-const fsPathToRpcPath = (p: Types.Path) => p.substring('/keybase'.length)
+import type {SagaGenerator} from '../constants/types/saga'
+
+export const fsPathToRpcPathString = (p: Types.Path): string => Types.pathToString(p).substring('/keybase'.length)
 
 function* folderList(action: FsGen.FolderListLoadPayload): SagaGenerator<any, any> {
   if (action.payload.path === '/keybase') {
@@ -19,7 +21,7 @@ function* folderList(action: FsGen.FolderListLoadPayload): SagaGenerator<any, an
     opID: action.payload.opID,
     path: {
       PathType: 1,
-      kbfs: fsPathToRpcPath(action.payload.path),
+      kbfs: fsPathToRpcPathString(action.payload.path),
     },
   })
 
@@ -32,7 +34,7 @@ function* folderList(action: FsGen.FolderListLoadPayload): SagaGenerator<any, an
   })
 
   const rootPath = action.payload.path
-  const direntToPathAndPathItem = (d: FsGen.Dirent) => [
+  const direntToPathAndPathItem = (d: RPCTypes.Dirent) => [
     Path.join(Types.pathToString(rootPath), d.name),
     d.direntType === 1 /* DIR_1 */ ? Constants.makeFolder() : Constants.makeFile(),
   ]
