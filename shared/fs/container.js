@@ -1,17 +1,9 @@
 // @flow
 import * as I from 'immutable'
-import {
-  compose,
-  connect,
-  lifecycle,
-  setDisplayName,
-  type Dispatch,
-  type TypedState,
-} from '../util/container'
+import {compose, connect, lifecycle, setDisplayName, type Dispatch, type TypedState} from '../util/container'
 import Files from '.'
 import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
-import * as FsGen from "../actions/fs-gen"
 
 type OwnProps = {
   routeProps: I.Map<'path', string>,
@@ -35,7 +27,7 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _loadFolderList: (path) => Constants.dispatchFolderListLoad(dispatch, Types.stringToPath(path)),
+  _loadFolderList: path => Constants.dispatchFolderListLoad(dispatch, Types.stringToPath(path)),
 })
 
 const mergeProps = ({path, items}: StateProps, dispatchProps: DispatchProps, ownProps) => ({
@@ -52,8 +44,8 @@ export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentWillMount() {
-      this.props._loadFolderList(this.props.path);
+      this.props._loadFolderList(this.props.path)
     },
   }),
-  setDisplayName('Files'),
+  setDisplayName('Files')
 )(Files)

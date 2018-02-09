@@ -138,7 +138,8 @@
     "tlds": "^1.199.0",
     "typedarray-to-buffer": "3.1.2",
     "url-parse": "^1.2.0",
-    "util": "0.10.3"
+    "util": "0.10.3",
+    "uuid": "^3.0.0"
   },
   "devDependencies": {
     "@storybook/addon-storyshots": "3.2.17",
