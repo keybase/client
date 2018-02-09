@@ -251,6 +251,7 @@ func (s *Syncer) handleMembersTypeChanged(ctx context.Context, uid gregor1.UID,
 	convIDs []chat1.ConversationID) {
 	// Clear caches from members type changed convos
 	for _, convID := range convIDs {
+		s.Debug(ctx, "handleMembersTypeChanged: clearing message cache: %s", convID)
 		s.G().ConvSource.Clear(convID, uid)
 	}
 }
