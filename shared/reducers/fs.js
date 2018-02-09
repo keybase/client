@@ -1,5 +1,4 @@
 // @flow
-import * as I from 'immutable'
 import * as FSGen from '../actions/fs-gen'
 import * as Constants from '../constants/fs'
 import * as Types from '../constants/types/fs'

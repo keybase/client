@@ -5,6 +5,7 @@ import Files from '.'
 import * as FsGen from '../actions/fs-gen'
 import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
+import * as FsPath from '../constants/fs-path'
 
 type OwnProps = {
   routeProps: I.Map<'path', string>,
@@ -29,7 +30,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 })
 
 const mergeProps = ({path, items}: StateProps, dispatchProps: DispatchProps, ownProps) => ({
-  items: items.map(name => Types.pathConcat(path, name)).toArray(),
+  items: items.map(name => FsPath.join(path, name)).toArray(),
   path,
   /* TODO: enable these once we need them:
   name: Types.getPathName(stateProps.path),
