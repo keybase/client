@@ -56,6 +56,7 @@ func main() {
 
 	g := libkb.NewGlobalContext()
 	g.Init()
+	g.ConfigureConfig()
 
 	// Don't abort here. This should not happen on any known version of Windows, but
 	// new MS platforms may create regressions.
