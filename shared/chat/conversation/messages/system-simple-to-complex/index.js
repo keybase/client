@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
-import UserNotice from '../../notices/user-notice'
+import UserNotice from '../user-notice'
 import {Box, Text, ConnectedUsernames, Icon} from '../../../../common-adapters'
 import {globalStyles, globalColors, globalMargins, isMobile} from '../../../../styles'
 import {formatTimeForMessages} from '../../../../util/timestamp'

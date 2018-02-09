@@ -2,11 +2,11 @@
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 
-export type Props = {|
+export type Props = {
   author: string,
   failureDescription: ?string,
   includeHeader: boolean,
-  innerClass: React.Component<*>,
+  innerClass: React.ComponentType<*>,
   isBroken: boolean,
   isEdited: boolean,
   isEditing: boolean,
@@ -17,11 +17,11 @@ export type Props = {|
   isYou: boolean,
   loadMoreType: null | 'moreToLoad' | 'noMoreToLoad',
   message: Types.Message,
-  onShowMenu: (event: SyntheticEvent<>) => void,
+  onShowMenu: any => void, // weak typing cause we swap out how this works on mobile/desktop
   onRetry: () => void,
   onEdit: () => void,
   onAuthorClick: () => void,
   timestamp: ?string,
-|}
+}
 
 export default class Wrapper extends React.Component<Props> {}

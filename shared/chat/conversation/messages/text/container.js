@@ -12,11 +12,6 @@ export default mapProps((props: Props) => ({
   mentionsAt: props.message.mentionsAt,
   mentionsChannel: props.message.mentionsChannel,
   mentionsChannelName: props.message.mentionsChannelName,
-  text:
-    props.message.text.stringValue() +
-    ' ordinal:' +
-    Types.ordinalToNumber(props.message.ordinal) +
-    ' id: ' +
-    props.message.id,
+  text: props.message.text.stringValue() /* +    ' ordinal:' +    Types.ordinalToNumber(props.message.ordinal) +    ' id: ' +    props.message.id */,
   type: props.message.errorReason ? 'error' : props.message.submitState === null ? 'sent' : 'pending',
 }))(TextMessage)

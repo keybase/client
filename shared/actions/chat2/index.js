@@ -681,12 +681,16 @@ const messageDelete = (action: Chat2Gen.MessageDeletePayload, state: TypedState)
 
   // We have to cancel pending messages
   if (!message.id) {
-    return Saga.sequentially([
-      Saga.call(RPCChatTypes.localCancelPostRpcPromise, {
-        outboxID: Types.outboxIDToRpcOutboxID(message.outboxID),
-      }),
-      Saga.put(Chat2Gen.createMessagesWereDeleted({conversationIDKey, ordinals: [message.ordinal]})),
-    ])
+    if (message.outboxID) {
+      return Saga.sequentially([
+        Saga.call(RPCChatTypes.localCancelPostRpcPromise, {
+          outboxID: Types.outboxIDToRpcOutboxID(message.outboxID),
+        }),
+        Saga.put(Chat2Gen.createMessagesWereDeleted({conversationIDKey, ordinals: [message.ordinal]})),
+      ])
+    } else {
+      logger.warn('Delete of no message id and no outboxid')
+    }
   } else {
     return Saga.call(RPCChatTypes.localPostDeleteNonblockRpcPromise, {
       clientPrev: 0,
@@ -752,13 +756,17 @@ const messageEdit = (action: Chat2Gen.MessageEditPayload, state: TypedState) => 
       })
     } else {
       // Pending messages need to be cancelled and resent
-      return Saga.sequentially([
-        Saga.call(RPCChatTypes.localCancelPostRpcPromise, {
-          outboxID: Types.outboxIDToRpcOutboxID(message.outboxID),
-        }),
-        Saga.put(Chat2Gen.createMessagesWereDeleted({conversationIDKey, ordinals: [message.ordinal]})),
-        Saga.put(Chat2Gen.createMessageSend({conversationIDKey, text})),
-      ])
+      if (message.outboxID) {
+        return Saga.sequentially([
+          Saga.call(RPCChatTypes.localCancelPostRpcPromise, {
+            outboxID: Types.outboxIDToRpcOutboxID(message.outboxID),
+          }),
+          Saga.put(Chat2Gen.createMessagesWereDeleted({conversationIDKey, ordinals: [message.ordinal]})),
+          Saga.put(Chat2Gen.createMessageSend({conversationIDKey, text})),
+        ])
+      } else {
+        logger.warn('Editing no id and no outboxid')
+      }
     }
   } else {
     logger.warn('Editing non-text message')

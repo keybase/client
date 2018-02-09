@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import {Text} from '../../../../common-adapters'
-import UserNotice from '../../notices/user-notice'
+import UserNotice from '../user-notice'
 import {globalColors, globalMargins} from '../../../../styles'
 import {formatTimeForMessages} from '../../../../util/timestamp'
 

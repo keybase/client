@@ -105,7 +105,6 @@ const MessageWrapper = (props: Props) => (
           )}
           <Box style={_textContainerStyle} className="message">
             <Box style={_flexOneColumn}>
-              {/* $FlowIssue */}
               <props.innerClass message={props.message} isEditing={props.isEditing} />
               {props.isEdited && <EditedMark />}
             </Box>

@@ -42,4 +42,15 @@ function unlink(filepath: string): Promise<void> {
 
 const cachesDirectoryPath = tmpDir()
 
-export {cachesDirectoryPath, copy, exists, downloadFilePath, stat, tmpDir, tmpFile, unlink, writeStream, downloadFilePathNoSearch}
+export {
+  cachesDirectoryPath,
+  copy,
+  exists,
+  downloadFilePath,
+  stat,
+  tmpDir,
+  tmpFile,
+  unlink,
+  writeStream,
+  downloadFilePathNoSearch,
+}

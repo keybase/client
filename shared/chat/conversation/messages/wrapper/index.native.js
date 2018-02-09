@@ -17,7 +17,6 @@ const NativeWrapper = (props: Props) => (
     onPress={dismissKeyboard}
   >
     <Box>
-      {/* $FlowIssue */}
       <Wrapper {...props} />
     </Box>
   </NativeTouchableHighlight>

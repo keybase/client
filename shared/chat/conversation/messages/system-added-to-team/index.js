@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
-import UserNotice from '../../notices/user-notice'
+import UserNotice from '../user-notice'
 import {Box, Text, Icon, ConnectedUsernames} from '../../../../common-adapters'
 import {EmojiIfExists} from '../../../../common-adapters/markdown.shared'
 import {globalStyles, globalColors, globalMargins} from '../../../../styles'
