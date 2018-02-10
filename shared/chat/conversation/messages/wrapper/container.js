@@ -16,8 +16,14 @@ const mapStateToProps = (state: TypedState, {message, previous, innerClass, isSe
   const isYou = state.config.username === message.author
   const isFollowing = state.config.following.has(message.author)
   const isBroken = state.users.infoMap.getIn([message.author, 'broken'], false)
+  let hasOlderResetConversation
+  if (!previous) {
+    const meta = Constants.getMeta(state, message.conversationIDKey)
+    hasOlderResetConversation = !!meta.supersedes
+  }
 
   return {
+    hasOlderResetConversation,
     innerClass,
     isBroken,
     isEditing,
@@ -80,6 +86,7 @@ const mergeProps = (stateProps, dispatchProps) => {
   return {
     author: message.author,
     failureDescription,
+    hasOlderResetConversation: stateProps.hasOlderResetConversation,
     includeHeader,
     innerClass: stateProps.innerClass,
     isBroken: stateProps.isBroken,

@@ -2,6 +2,7 @@
 import * as React from 'react'
 import {Avatar, Icon, Text, Box} from '../../../../common-adapters'
 import {globalStyles, globalMargins, globalColors, isMobile} from '../../../../styles'
+import ProfileResetNotice from '../system-profile-reset-notice/container'
 import Timestamp from './timestamp'
 import LoadMore from './load-more'
 
@@ -78,6 +79,9 @@ const Failure = ({failureDescription, onEdit, onRetry}) => {
 
 const MessageWrapper = (props: Props) => (
   <Box style={props.includeHeader ? _containerWithHeaderStyle : _containerNoHeaderStyle}>
+    {props.hasOlderResetConversation && (
+      <ProfileResetNotice conversationIDKey={props.message.conversationIDKey} />
+    )}
     {props.loadMoreType && <LoadMore type={props.loadMoreType} />}
     {props.timestamp && <Timestamp timestamp={props.timestamp} />}
     <Box

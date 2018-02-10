@@ -4,7 +4,10 @@ import {Text} from '../../../../common-adapters'
 import UserNotice from '../user-notice'
 import {globalColors} from '../../../../styles'
 
-import type {Props} from '.'
+type Props = {
+  username: string,
+  onOpenOlderConversation: () => void,
+}
 
 const ProfileResetNotice = ({username, onOpenOlderConversation}: Props) => (
   <UserNotice username={username} bgColor={globalColors.blue4}>

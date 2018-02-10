@@ -6,19 +6,11 @@ import ProfileResetNotice from '.'
 import {connect, type TypedState} from '../../../../util/container'
 import {type StateProps, type DispatchProps} from './container'
 
-const mapStateToProps = (state: TypedState) => {
-  const selectedConversationIDKey = Constants.getSelectedConversation(state)
-  if (!selectedConversationIDKey) {
-    throw new Error('no selected conversation')
-  }
-  const supersedes = null // TODO Constants.convSupersedesInfo(selectedConversationIDKey, state.chat)
-  if (!supersedes) {
-    throw new Error('Missing supersedes')
-  }
-
+const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
+  const meta = Constants.getMeta(state, conversationIDKey)
   return {
-    prevConversationIDKey: supersedes.conversationIDKey,
-    username: supersedes.finalizeInfo.resetUser,
+    prevConversationIDKey: meta.supersedes,
+    username: meta.supersedesCausedBy,
   }
 }
 

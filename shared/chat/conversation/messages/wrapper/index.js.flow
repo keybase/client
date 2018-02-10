@@ -16,6 +16,7 @@ export type Props = {
   isSelected: boolean,
   isYou: boolean,
   loadMoreType: null | 'moreToLoad' | 'noMoreToLoad',
+  hasOlderResetConversation: boolean,
   message: Types.Message,
   onShowMenu: any => void, // weak typing cause we swap out how this works on mobile/desktop
   onRetry: () => void,

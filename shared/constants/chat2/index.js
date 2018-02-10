@@ -4,6 +4,32 @@ import * as Types from '../types/chat2'
 import type {TypedState} from '../reducer'
 import {makeConversationMeta} from './meta'
 
+// TEMP
+if (__DEV__) {
+  console.warn('DEBUG DUMP CHAT ENABLED-\n-\n-\n-\n-\n-\n-\n-\n-\n-\n-\n-\n-\n')
+  window.DEBUGDumpChat = (c: string) => {
+    console.log(
+      'messageMap',
+      window.DEBUGStore.getState()
+        .chat2.messageMap.get(c)
+        .toJS()
+    )
+    console.log(
+      'messageOrdinals',
+      window.DEBUGStore.getState()
+        .chat2.messageOrdinals.get(c)
+        .toJS()
+    )
+    console.log(
+      'metaMap',
+      window.DEBUGStore.getState()
+        .chat2.metaMap.get(c)
+        .toJS()
+    )
+  }
+}
+// TEMP
+
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   badgeMap: I.Map(),
   beforeSearchSelectedConversation: null,
