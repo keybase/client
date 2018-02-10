@@ -27,7 +27,7 @@ platform :ios do
   lane :beta do
   version = get_version_number
     increment_build_number({
-      build_number: latest_testflight_build_number(version: version) + 1
+      build_number: latest_testflight_build_number(version: version) + 2
     })
 
     # match(type: "appstore") # more information: https://codesigning.guide
