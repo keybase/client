@@ -428,7 +428,11 @@ func InstallAuto(context Context, binPath string, sourcePath string, timeout tim
 		}
 	}
 
-	return Install(context, binPath, sourcePath, components, false, timeout, log)
+	// A force unmount is needed to change from one mountpoint to another
+        // if the mount is in use after an upgrade, and install-auto is
+        // invoked from the updater.
+	forceUnmount := true
+	return Install(context, binPath, sourcePath, components, forceUnmount, timeout, log)
 }
 
 // Install installs specified components
