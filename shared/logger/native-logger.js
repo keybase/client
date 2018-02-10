@@ -1,7 +1,11 @@
 // @flow
 import {log, dump} from '../native/logger'
-import type {Logger, LogLine, LogLevel} from './types'
+import type {Logger, LogLine, LogLevel, Timestamp} from './types'
 import {toStringForLog} from '../util/string'
+
+const dumpLine = (timestamp: Timestamp, toLog: string) => {
+  return JSON.stringify([timestamp, toLog])
+}
 
 const parseLine = (l: string): LogLine => {
   try {
@@ -36,7 +40,7 @@ class NativeLogger implements Logger {
 
   log = (...s: Array<any>) => {
     const toLog = s.map(toStringForLog).join(' ')
-    log(this._tagPrefix, JSON.stringify([Date.now(), toLog]))
+    log(this._tagPrefix, dumpLine(Date.now(), toLog))
   }
 
   dump(levelPrefix: LogLevel) {
@@ -54,4 +58,5 @@ class NativeLogger implements Logger {
   }
 }
 
+export {dumpLine, parseLine}
 export default NativeLogger
