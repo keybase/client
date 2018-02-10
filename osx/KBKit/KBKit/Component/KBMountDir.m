@@ -81,7 +81,7 @@
   NSDictionary *attributes = [NSFileManager.defaultManager attributesOfItemAtPath:link error:nil];
   if (attributes && ![attributes[NSFileType] isEqual:NSFileTypeSymbolicLink]) {
     DDLogDebug(@"Going to unmount root non-link: %@", link);
-    [KBTask execute:@"/sbin/umount" args:@[link] timeout:KBDefaultTaskTimeout completion:^(NSError *err, NSData *outData, NSData *errData) {
+    [KBTask execute:@"/usr/sbin/diskutil" args:@[@"unmountDisk", @"force", link] timeout:KBDefaultTaskTimeout completion:^(NSError *err, NSData *outData, NSData *errData) {
       if (err) {
         DDLogDebug(@"Couldn't unmount root non-link: %@ %@ %@", err, outData, errData);
       }
