@@ -30,7 +30,7 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
 
   const direntToPathAndPathItem = (d: RPCTypes.Dirent) => [
     FsPath.join(Types.pathToString(rootPath), d.name),
-    d.direntType === 1 /* RPCTypes.simpleFSDirentType.dir */ ? Constants.makeFolder() : Constants.makeFile(),
+    d.direntType === RPCTypes.simpleFSDirentType.dir ? Constants.makeFolder() : Constants.makeFile(),
   ]
 
   const pathItems: I.Map<Types.Path, Types.PathItem> = I.Map(
