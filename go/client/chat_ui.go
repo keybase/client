@@ -11,6 +11,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 )
 
 type ChatUI struct {
@@ -141,10 +142,16 @@ func (c *ChatUI) ChatSearchHit(ctx context.Context, arg chat1.ChatSearchHitArg) 
 		return nil
 	}
 	searchHit := arg.SearchHit
+	getMsgPrefix := func(uiMsg *chat1.UIMessage) string {
+		m := uiMsg.Valid()
+		t := gregor1.FromTime(m.Ctime)
+		return fmt.Sprintf("[%s %s] ", m.SenderUsername, shortDurationFromNow(t))
+	}
+
 	getContext := func(uiMsg *chat1.UIMessage) string {
 		if uiMsg != nil && uiMsg.IsValid() && uiMsg.GetMessageType() == chat1.MessageType_TEXT {
 			msgBody := uiMsg.Valid().MessageBody.Text().Body
-			return msgBody + "\n"
+			return getMsgPrefix(uiMsg) + msgBody + "\n"
 		}
 		return ""
 	}
@@ -156,11 +163,13 @@ func (c *ChatUI) ChatSearchHit(ctx context.Context, arg chat1.ChatSearchHitArg) 
 			for _, hit := range hits {
 				hitText = strings.Replace(msgBody, hit, ColorString(c.G(), "red", hit), -1)
 			}
-
-			return hitText
+			return getMsgPrefix(uiMsg) + hitText
 		}
 		return ""
 	}
+
+	// TODO: This should really use chat_cli_rendering.messageView, but we need
+	// to refactor for UIMessage
 	hitText := highlightHits(searchHit.HitMessage, searchHit.Matches)
 	if hitText != "" {
 		w := c.terminal.ErrorWriter()
