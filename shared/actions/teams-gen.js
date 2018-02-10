@@ -77,6 +77,7 @@ export const createCreateChannel = (
 ) => ({error: false, payload, type: createChannel})
 export const createCreateNewTeam = (
   payload: $ReadOnly<{
+    joinSubteam: boolean,
     teamname: string,
     rootPath: I.List<string>,
     sourceSubPath: I.List<string>,
