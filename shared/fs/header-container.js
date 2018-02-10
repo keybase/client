@@ -17,16 +17,25 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => {
   let acc = Types.stringToPath('/')
   const elems = Types.getPathElements(path)
+  const items = elems.map((e, i) => {
+    acc = Types.pathConcat(acc, e)
+    return {
+      idx: i,
+      name: e,
+      path: Types.pathToString(acc),
+    }
+  })
+  let breadcrumbItems = items
+  let dropdownItems = []
+  if (items.length > 3) {
+    dropdownItems = items.slice(0, items.length - 2)
+    breadcrumbItems = items.slice(items.length - 2)
+  }
   return {
     ...dispatchProps,
+    breadcrumbItems: breadcrumbItems,
+    dropdownItems: dropdownItems,
     isTeamPath: elems.length >= 2 && elems[1] === 'team',
-    items: elems.map(e => {
-      acc = Types.pathConcat(acc, e)
-      return {
-        name: e,
-        path: Types.pathToString(acc),
-      }
-    }),
   }
 }
 

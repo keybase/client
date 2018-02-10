@@ -5,29 +5,33 @@ import {Avatar, Box, ClickableBox, Icon, Text} from '../common-adapters'
 import HeaderConnector from './header-container'
 
 type FolderHeaderProps = {
-  items: Array<{
-    name: string,
-    path: string,
-  }>,
+  breadcrumbItems: Array<Types.PathBreadcrumItem>,
+  dropdownItems: Array<Types.PathBreadcrumItem>,
   isTeamPath: boolean,
   onOpenBreadcrumb: (path: string) => void,
 }
 
-const FolderHeader = HeaderConnector(({items, isTeamPath, onOpenBreadcrumb}: FolderHeaderProps) => (
-  <Box>
-    {items.length === 1 ? (
-      <Box style={folderHeaderStyleRoot}>
-        <Text type="BodyBig">Keybase Files</Text>
-      </Box>
-    ) : (
-      <Box style={folderHeaderStyleTree}>
-        {items.length < 10 &&
-          items.map((i, idx) => (
+const FolderHeader = HeaderConnector(
+  ({dropdownItems, breadcrumbItems, isTeamPath, onOpenBreadcrumb}: FolderHeaderProps) => (
+    <Box>
+      {breadcrumbItems.length === 1 ? (
+        <Box style={folderHeaderStyleRoot}>
+          <Text type="BodyBig">Keybase Files</Text>
+        </Box>
+      ) : (
+        <Box style={folderHeaderStyleTree}>
+          {dropdownItems.length > 0 && (
+            <Box>
+              <Icon type="iconfont-folder-private" style={iconStyle} />
+              <Icon type="iconfont-back" style={iconStyle} />
+            </Box>
+          )}
+          {breadcrumbItems.map(i => (
             <Box key={i.path} style={folderBreadcrumbStyle}>
-              {idx !== 0 && <Icon type="iconfont-back" style={iconStyle} />}
-              {idx === 2 &&
+              {i.idx !== 0 && <Icon type="iconfont-back" style={iconStyle} />}
+              {i.idx === 2 &&
                 isTeamPath && <Avatar size={12} teamname={i.name} isTeam={true} style={styleTeamAvatar} />}
-              {idx === items.length - 1 ? (
+              {i.idx === breadcrumbItems.length - 1 ? (
                 <Text type="BodyBig">{i.name}</Text>
               ) : (
                 <ClickableBox onClick={() => onOpenBreadcrumb(i.path)}>
@@ -38,10 +42,11 @@ const FolderHeader = HeaderConnector(({items, isTeamPath, onOpenBreadcrumb}: Fol
               )}
             </Box>
           ))}
-      </Box>
-    )}
-  </Box>
-))
+        </Box>
+      )}
+    </Box>
+  )
+)
 
 const stylesCommonRow = {
   ...globalStyles.flexBoxRow,
