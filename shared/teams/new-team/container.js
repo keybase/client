@@ -11,7 +11,6 @@ import {
   type TypedState,
 } from '../../util/container'
 import {validTeamname, baseTeamname} from '../../constants/teamname'
-import upperFirst from 'lodash/upperFirst'
 
 const mapStateToProps = (state: TypedState) => ({
   errorText: null, // TODO upperFirst(state.chat.teamCreationError),
