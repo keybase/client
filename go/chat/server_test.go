@@ -3711,7 +3711,7 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 		messageID := sendMessage(msgBody)
 		res := search(query, maxHits, maxMessages)
 		require.Equal(t, len(res.Hits), 1)
-		verifyHit(nullMessageID, messageID, nullMessageID, []string{query}, res.Hits[0])
+		verifyHit(nullMessageID, messageID, nullMessageID, []string{msgBody}, res.Hits[0])
 		verifySearchDone(1)
 
 		// Test basic no results
@@ -3726,31 +3726,45 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 		messageID1 := sendMessage(msgBody)
 		res = search(query, maxHits, maxMessages)
 		require.Equal(t, len(res.Hits), 1)
-		verifyHit(messageID, messageID1, nullMessageID, []string{query}, res.Hits[0])
+		verifyHit(messageID, messageID1, nullMessageID, []string{msgBody}, res.Hits[0])
 		verifySearchDone(1)
 
 		maxHits = 5
 		res = search(query, maxHits, maxMessages)
 		require.Equal(t, len(res.Hits), 2)
-		verifyHit(messageID, messageID1, nullMessageID, []string{query}, res.Hits[0])
-		verifyHit(nullMessageID, messageID, messageID1, []string{query}, res.Hits[1])
+		verifyHit(messageID, messageID1, nullMessageID, []string{msgBody}, res.Hits[0])
+		verifyHit(nullMessageID, messageID, messageID1, []string{msgBody}, res.Hits[1])
 		verifySearchDone(2)
 
 		messageID2 := sendMessage(msgBody)
 		res = search(query, maxHits, maxMessages)
 		require.Equal(t, len(res.Hits), 3)
-		verifyHit(messageID1, messageID2, nullMessageID, []string{query}, res.Hits[0])
-		verifyHit(messageID, messageID1, messageID2, []string{query}, res.Hits[1])
-		verifyHit(nullMessageID, messageID, messageID1, []string{query}, res.Hits[2])
+		verifyHit(messageID1, messageID2, nullMessageID, []string{msgBody}, res.Hits[0])
+		verifyHit(messageID, messageID1, messageID2, []string{msgBody}, res.Hits[1])
+		verifyHit(nullMessageID, messageID, messageID1, []string{msgBody}, res.Hits[2])
 		verifySearchDone(3)
+
+		// Test utf8
+		msgBody = `约书亚和约翰屌爆了`
+		query = `约.*`
+		messageID3 := sendMessage(msgBody)
+		res = search(query, maxHits, maxMessages)
+		require.Equal(t, len(res.Hits), 1)
+		verifyHit(messageID2, messageID3, nullMessageID, []string{msgBody}, res.Hits[0])
+		verifySearchDone(1)
 
 		// Test regex functionality
 		query = "h.*"
 		lowercase := "abcdefghijklmnopqrstuvwxyz"
 		for _, char := range lowercase {
-			sendMessage("h" + string(char))
+			sendMessage("h." + string(char))
 		}
 		maxHits = len(lowercase)
+		res = search(query, maxHits, maxMessages)
+		require.Equal(t, len(res.Hits), maxHits)
+		verifySearchDone(maxHits)
+
+		query = `h\..*`
 		res = search(query, maxHits, maxMessages)
 		require.Equal(t, len(res.Hits), maxHits)
 		verifySearchDone(maxHits)
