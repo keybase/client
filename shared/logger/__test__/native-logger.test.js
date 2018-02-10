@@ -35,6 +35,15 @@ describe('parseLine', () => {
     }
   })
 
+  it('parse empty', () => {
+    {
+      const ts = Date.now()
+      const [ts2, logLine2] = parseLine(`[${ts}, ""]`)
+      expect(ts2).toEqual(ts)
+      expect(logLine2).toEqual('')
+    }
+  })
+
   it('parse truncated', () => {
     const ts = Date.now()
     const logLine = 'test log line'
