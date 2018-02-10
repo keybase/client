@@ -280,14 +280,14 @@ func (d *smuDeviceWrapper) loadEncryptionKIDs() (devices []keybase1.KID, backups
 }
 
 func (u *smuUser) signup() {
-	u.signupHelper(true)
+	u.signupHelper(true, false)
 }
 
 func (u *smuUser) signupNoPUK() {
-	u.signupHelper(false)
+	u.signupHelper(false, false)
 }
 
-func (u *smuUser) signupHelper(puk bool) {
+func (u *smuUser) signupHelper(puk, paper bool) {
 	ctx := u.ctx
 	userInfo := randomUser(u.usernamePrefix)
 	u.userInfo = userInfo
@@ -301,7 +301,7 @@ func (u *smuUser) signupHelper(puk bool) {
 	}
 	g.SetUI(&signupUI)
 	signup := client.NewCmdSignupRunner(g)
-	signup.SetTest()
+	signup.SetTestWithPaper(paper)
 	if err := signup.Run(); err != nil {
 		ctx.t.Fatal(err)
 	}
@@ -312,13 +312,15 @@ func (u *smuUser) signupHelper(puk bool) {
 	if len(devices) != 1 {
 		ctx.t.Fatalf("Expected 1 device back; got %d", len(devices))
 	}
-	if len(backups) != 1 {
-		ctx.t.Fatalf("Expected 1 backup back; got %d", len(backups))
-	}
 	dw.deviceKey.KID = devices[0]
-	backupKey = backups[0]
-	backupKey.secret = signupUI.info.displayedPaperKey
-	u.backupKeys = append(u.backupKeys, backupKey)
+	if paper {
+		if len(backups) != 1 {
+			ctx.t.Fatalf("Expected 1 backup back; got %d", len(backups))
+		}
+		backupKey = backups[0]
+		backupKey.secret = signupUI.info.displayedPaperKey
+		u.backupKeys = append(u.backupKeys, backupKey)
+	}
 
 	// Reconfigure config subsystem in Primary Global Context and also
 	// in all clones. This has to be done after signup because the

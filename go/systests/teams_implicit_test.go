@@ -30,7 +30,7 @@ func testImplicitTeamRotateOnRevoke(t *testing.T, public bool) {
 	defer tt.cleanup()
 
 	alice := tt.addUser("alice")
-	bob := tt.addUser("bob")
+	bob := tt.addUserWithPaper("bob")
 
 	iTeamName := strings.Join([]string{alice.username, bob.username}, ",")
 

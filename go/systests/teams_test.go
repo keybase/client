@@ -72,7 +72,7 @@ func TestTeamRotateOnRevoke(t *testing.T) {
 	defer tt.cleanup()
 
 	tt.addUser("onr")
-	tt.addUser("wtr")
+	tt.addUserWithPaper("wtr")
 
 	teamID, teamName := tt.users[0].createTeam2()
 	tt.users[0].addTeamMember(teamName.String(), tt.users[1].username, keybase1.TeamRole_WRITER)
@@ -120,15 +120,15 @@ func newTeamTester(t *testing.T) *teamTester {
 }
 
 func (tt *teamTester) addUser(pre string) *userPlusDevice {
-	return tt.addUserHelper(pre, true, true)
-}
-
-func (tt *teamTester) addUserNoPaper(pre string) *userPlusDevice {
 	return tt.addUserHelper(pre, true, false)
 }
 
+func (tt *teamTester) addUserWithPaper(pre string) *userPlusDevice {
+	return tt.addUserHelper(pre, true, true)
+}
+
 func (tt *teamTester) addPuklessUser(pre string) *userPlusDevice {
-	return tt.addUserHelper(pre, false, true)
+	return tt.addUserHelper(pre, false, false)
 }
 
 func installInsecureTriplesec(g *libkb.GlobalContext) {
@@ -572,6 +572,8 @@ func (u *userPlusDevice) provisionNewDevice() *deviceWrapper {
 	device := &deviceWrapper{tctx: tc}
 	device.start(0)
 
+	require.NotNil(t, u.backupKey, "Add user with paper key to use provisionNewDevice")
+
 	// ui for provisioning
 	ui := &rekeyProvisionUI{username: u.username, backupKey: u.backupKey}
 	{
@@ -757,7 +759,7 @@ func TestTeamSignedByRevokedDevice(t *testing.T) {
 	defer tt.cleanup()
 
 	// the signer
-	alice := tt.addUser("alice")
+	alice := tt.addUserWithPaper("alice")
 
 	// the loader
 	bob := tt.addUser("bob")
@@ -825,7 +827,7 @@ func TestTeamSignedByRevokedDevice2(t *testing.T) {
 	defer tt.cleanup()
 
 	// the signer
-	alice := tt.addUser("alice")
+	alice := tt.addUserWithPaper("alice")
 	aliced2 := alice.provisionNewDevice()
 
 	// the loader
