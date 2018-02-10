@@ -450,6 +450,23 @@ const setupChatHandlers = () => {
       return [UsersGen.createUpdateBrokenState({newlyBroken, newlyFixed})]
     }
   )
+
+  engine().setIncomingActionCreators(
+    'chat.1.NotifyChat.ChatTypingUpdate',
+    ({typingUpdates}: RPCChatTypes.NotifyChatChatTypingUpdateRpcParam) => {
+      if (!typingUpdates) {
+        return null
+      } else {
+        const conversationToTypers = I.Map(
+          typingUpdates.reduce((arr, u) => {
+            arr.push([Types.conversationIDToKey(u.convID), I.Set((u.typers || []).map(t => t.username))])
+            return arr
+          }, [])
+        )
+        return [Chat2Gen.createUpdateTypers({conversationToTypers})]
+      }
+    }
+  )
 }
 
 const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType).reduce((arr, key) => {

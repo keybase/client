@@ -513,6 +513,10 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       })
     }
 
+    case Chat2Gen.updateTypers: {
+      return state.set('typingMap', action.payload.conversationToTypers)
+    }
+
     // metaMap/messageMap/messageOrdinalsList only actions
     case Chat2Gen.inboxRefresh:
     case Chat2Gen.messageDelete:

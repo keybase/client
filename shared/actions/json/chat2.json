@@ -222,5 +222,8 @@
       "placeholderID": "RPCChatTypes.MessageID",
       "message": "Types.MessageAttachment",
     },
+    "updateTypers": {
+      "conversationToTypers": "I.Map<Types.ConversationIDKey, I.Set<string>>"
+    }
   }
 }
