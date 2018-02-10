@@ -21,24 +21,28 @@ const FolderHeader = HeaderConnector(
       ) : (
         <Box style={folderHeaderStyleTree}>
           {dropdownItems.length > 0 && (
-            <Box>
-              <Icon type="iconfont-folder-private" style={iconStyle} />
+            <Box style={folderBreadcrumbStyle}>
+              <Box style={styleBreadcrumbDropdownIconBox}>
+                <Icon type="iconfont-folder-private" style={styleBreadcrumbDropdownIcon} />
+              </Box>
               <Icon type="iconfont-back" style={iconStyle} />
             </Box>
           )}
-          {breadcrumbItems.map(i => (
+          {breadcrumbItems.map((i, idx) => (
             <Box key={i.path} style={folderBreadcrumbStyle}>
-              {i.idx !== 0 && <Icon type="iconfont-back" style={iconStyle} />}
               {i.idx === 2 &&
                 isTeamPath && <Avatar size={12} teamname={i.name} isTeam={true} style={styleTeamAvatar} />}
-              {i.idx === breadcrumbItems.length - 1 ? (
+              {idx === breadcrumbItems.length - 1 ? (
                 <Text type="BodyBig">{i.name}</Text>
               ) : (
-                <ClickableBox onClick={() => onOpenBreadcrumb(i.path)}>
-                  <Text type="BodySmallSemibold" style={styleParentBreadcrumb}>
-                    {i.name}
-                  </Text>
-                </ClickableBox>
+                <Box style={folderBreadcrumbStyle}>
+                  <ClickableBox onClick={() => onOpenBreadcrumb(i.path)}>
+                    <Text type="BodySmallSemibold" style={styleParentBreadcrumb}>
+                      {i.name}
+                    </Text>
+                  </ClickableBox>
+                  <Icon type="iconfont-back" style={iconStyle} />
+                </Box>
               )}
             </Box>
           ))}
@@ -82,6 +86,15 @@ const iconStyle = {
   fontSize: 11,
   marginLeft: globalMargins.xtiny,
   marginRight: globalMargins.xtiny,
+}
+
+const styleBreadcrumbDropdownIcon = {
+  ...iconStyle,
+  fontSize: 15,
+}
+
+const styleBreadcrumbDropdownIconBox = {
+  marginTop: globalMargins.xtiny,
 }
 
 const styleTeamAvatar = {
