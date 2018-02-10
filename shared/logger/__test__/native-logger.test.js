@@ -11,4 +11,44 @@ describe('parseLine', () => {
     expect(ts2).toEqual(ts)
     expect(logLine2).toEqual(logLine)
   })
+
+  it('parse with whitespace', () => {
+    const ts = Date.now()
+    const logLine = 'test log line'
+
+    {
+      const [ts2, logLine2] = parseLine(`[${ts}, "${logLine}"]`)
+      expect(ts2).toEqual(ts)
+      expect(logLine2).toEqual(logLine)
+    }
+
+    {
+      const [ts2, logLine2] = parseLine(` [  ${ts}  ,  "${logLine}" ]`)
+      expect(ts2).toEqual(ts)
+      expect(logLine2).toEqual(logLine)
+    }
+
+    {
+      const [ts2, logLine2] = parseLine(`[${ts},"${logLine}"]`)
+      expect(ts2).toEqual(ts)
+      expect(logLine2).toEqual(logLine)
+    }
+  })
+
+  it('parse truncated', () => {
+    const ts = Date.now()
+    const logLine = 'test log line'
+
+    {
+      const [ts2, logLine2] = parseLine(`[${ts}, "${logLine}"`)
+      expect(ts2).toEqual(ts)
+      expect(logLine2).toEqual(logLine)
+    }
+
+    {
+      const [ts2, logLine2] = parseLine(`[${ts}, "${logLine}`)
+      expect(ts2).toEqual(ts)
+      expect(logLine2).toEqual(logLine)
+    }
+  })
 })
