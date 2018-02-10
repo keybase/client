@@ -7,26 +7,23 @@ const dumpLine = (timestamp: Timestamp, toLog: string) => {
   return JSON.stringify([timestamp, toLog])
 }
 
+// HACK: Match a stringified array with a number and a
+// possibly-truncated string.
+const lineRegex = /^[^0-9]*([0-9]+)[^"]*"(.*?)(?:"\s*\]?\s*)?$/
+
 const parseLine = (l: string): LogLine => {
-  try {
-    const [ts, logLine] = JSON.parse(l)
-    return [ts, logLine]
-  } catch (e) {
-    if (!(e instanceof SyntaxError)) {
-      return [0, 'Unparseable log line: ' + l]
-    }
+  const matches = l.match(lineRegex)
+  if (!matches) {
+    return [0, 'Unparseable log line: ' + l]
   }
 
-  // HACK: Could be a truncated line, so try and fix it up.
-  //
-  // Remove this code once we're sure that most old log lines have
-  // been aged out, and remove the SyntaxError type condition above.
-  try {
-    const [ts, logLine] = JSON.parse(l + '"]')
-    return [ts, 'Fixed up log line: ' + logLine]
-  } catch (e) {
-    return [0, 'Unparseable log line, even with fixup: ' + l]
+  let ts = parseInt(matches[1], 10)
+  // Shouldn't happen, but just in case.
+  if (Number.isNaN(ts)) {
+    ts = 0
   }
+
+  return [ts, matches[2]]
 }
 
 let tagPrefix = 0
