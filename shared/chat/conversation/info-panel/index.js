@@ -129,8 +129,6 @@ type BigTeamInfoPanelProps = infoPanelProps & {
   isPreview: boolean,
 }
 
-type RowType = 'header' | 'participant'
-
 type HeaderRow = BigTeamInfoPanelProps & {
   type: 'header',
   key: 'HEADER',
@@ -150,6 +148,8 @@ type ParticipantRow = {
 }
 
 type BigTeamRow = HeaderRow | ParticipantRow
+type RowType = $PropertyType<BigTeamRow, 'type'>
+
 // For virtualizing big team participants list
 const _renderBigTeamRow = (i: number, props: BigTeamRow) => {
   switch (props.type) {
