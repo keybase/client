@@ -7,7 +7,7 @@ import {isWindows} from '../../constants/platform'
 import {
   ExitCodeFuseKextError,
   ExitCodeFuseKextPermissionError,
-    ExitCodeAuthCanceledError,
+  ExitCodeAuthCanceledError,
 } from '../../constants/favorite'
 import UserData from './user-data'
 
