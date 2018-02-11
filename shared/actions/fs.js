@@ -39,6 +39,7 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
         rootPath,
         Constants.makeFolder({
           children: I.List(result.entries.map(d => d.name)),
+          progress: 'loaded',
         }),
       ],
     ])

@@ -29,6 +29,7 @@ const load = () => {
     .add('Root', () => (
       <Files
         path={Types.stringToPath('/keybase')}
+        progress="pending"
         items={[
           Types.stringToPath('/keybase/private'),
           Types.stringToPath('/keybase/public'),

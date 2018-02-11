@@ -17,11 +17,13 @@ export const makeFile: I.RecordFactory<Types._FilePathItem> = I.Record({
 })
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
+  // TODO: move all these to RPC
   pathItems: I.Map([
     [
       Types.stringToPath('/keybase'),
       makeFolder({
         children: I.List(['private', 'public', 'team']),
+        progress: 'loaded',
       }),
     ],
     [Types.stringToPath('/keybase/private'), makeFolder()],

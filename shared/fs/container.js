@@ -14,6 +14,7 @@ type OwnProps = {
 type StateProps = {
   path: Types.Path,
   items: I.List<Types.Path>,
+  progress: Types.ProgressType,
 }
 
 type DispatchProps = {}
@@ -22,15 +23,17 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
   const path = Types.stringToPath(routeProps.get('path', Constants.defaultPath))
   const itemDetail = state.fs.pathItems.get(path)
   const items = itemDetail && itemDetail.type === 'folder' ? itemDetail.get('children', I.List()) : I.List()
-  return {items, path}
+  const progress: Types.ProgressType = itemDetail ? itemDetail.progress : 'pending'
+  return {items, path, progress}
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _loadFolderList: (path: Types.Path) => dispatch(FsGen.createFolderListLoad({path})),
 })
 
-const mergeProps = ({path, items}: StateProps, dispatchProps: DispatchProps, ownProps) => ({
+const mergeProps = ({path, items, progress}: StateProps, dispatchProps: DispatchProps, ownProps) => ({
   items: items.map(name => FsPath.join(path, name)).toArray(),
+  progress,
   path,
   /* TODO: enable these once we need them:
   name: Types.getPathName(stateProps.path),
