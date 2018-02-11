@@ -129,6 +129,8 @@ type BigTeamInfoPanelProps = infoPanelProps & {
   isPreview: boolean,
 }
 
+type RowType = 'header' | 'participant'
+
 type HeaderRow = BigTeamInfoPanelProps & {
   type: 'header',
   key: 'HEADER',
@@ -210,7 +212,7 @@ const _renderBigTeamRow = (i: number, props: BigTeamRow) => {
   }
 }
 
-const typeSizeEstimator = (type: 'header' | 'participant'): number => {
+const typeSizeEstimator = (type: RowType): number => {
   switch (type) {
     case 'header':
       return 469 // estimate based on size of header in non-admin non-preview mode
