@@ -4,7 +4,7 @@ import {Box, Button, Divider, HeaderHoc, List, Text} from '../../../common-adapt
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
 import {SmallTeamHeader, BigTeamHeader} from './header'
 import Notifications from './notifications/container'
-import {Participant} from './participants'
+import {Participant} from './participant'
 import {ManageTeam} from './manage-team'
 import {TurnIntoTeam} from './turn-into-team'
 
