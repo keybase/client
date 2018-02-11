@@ -75,29 +75,10 @@ type SmallTeamInfoPanelProps = infoPanelProps & {
   teamname: string,
 }
 
-const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
-  <ScrollView style={scrollViewStyle} contentContainerStyle={contentContainerStyle}>
-    <SmallTeamHeader
-      teamname={props.teamname}
-      participantCount={props.participants.length}
-      onClick={props.onViewTeam}
-    />
-
-    <Divider style={{marginBottom: 20, marginTop: 20}} />
-
-    <Notifications />
-    <Divider style={styleDivider} />
-
-    <ManageTeam
-      canManage={props.admin}
-      label="In this team"
-      participantCount={props.participants.length}
-      onClick={props.onViewTeam}
-    />
-
-    <Participants participants={props.participants} onShowProfile={props.onShowProfile} />
-  </ScrollView>
-)
+type SmallHeaderRow = SmallTeamInfoPanelProps & {
+  type: 'small header',
+  key: 'SMALL HEADER',
+}
 
 type BigTeamInfoPanelProps = infoPanelProps & {
   onLeaveConversation: () => void,
@@ -108,9 +89,9 @@ type BigTeamInfoPanelProps = infoPanelProps & {
   isPreview: boolean,
 }
 
-type HeaderRow = BigTeamInfoPanelProps & {
-  type: 'header',
-  key: 'HEADER',
+type BigHeaderRow = BigTeamInfoPanelProps & {
+  type: 'big header',
+  key: 'BIG HEADER',
 }
 
 type ParticipantRow = {
@@ -126,13 +107,35 @@ type ParticipantRow = {
   key: string,
 }
 
-type BigTeamRow = HeaderRow | ParticipantRow
-type RowType = $PropertyType<BigTeamRow, 'type'>
+type TeamRow = SmallHeaderRow | BigHeaderRow | ParticipantRow
+type RowType = $PropertyType<TeamRow, 'type'>
 
-// For virtualizing big team participants list
-const _renderBigTeamRow = (i: number, props: BigTeamRow) => {
+const _renderTeamRow = (i: number, props: TeamRow) => {
   switch (props.type) {
-    case 'header':
+    case 'small header':
+      return (
+        <Box key={props.key} style={{...globalStyles.flexBoxColumn, alignItems: 'stretch'}}>
+          <SmallTeamHeader
+            teamname={props.teamname}
+            participantCount={props.participants.length}
+            onClick={props.onViewTeam}
+          />
+
+          <Divider style={{marginBottom: 20, marginTop: 20}} />
+
+          <Notifications />
+          <Divider style={styleDivider} />
+
+          <ManageTeam
+            canManage={props.admin}
+            label="In this team"
+            participantCount={props.participants.length}
+            onClick={props.onViewTeam}
+          />
+        </Box>
+      )
+
+    case 'big header':
       return (
         <Box key={props.key} style={{...globalStyles.flexBoxColumn, alignItems: 'stretch'}}>
           <BigTeamHeader
@@ -193,7 +196,10 @@ const _renderBigTeamRow = (i: number, props: BigTeamRow) => {
 
 const typeSizeEstimator = (type: RowType): number => {
   switch (type) {
-    case 'header':
+    case 'small header':
+      return 200
+
+    case 'big header':
       return 469 // estimate based on size of header in non-admin non-preview mode
     case 'participant':
       return 56
@@ -203,12 +209,12 @@ const typeSizeEstimator = (type: RowType): number => {
   }
 }
 
-const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => {
-  const rows: Array<BigTeamRow> = [
+const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => {
+  const rows: Array<TeamRow> = [
     {
       ...props,
-      type: 'header',
-      key: 'HEADER',
+      type: 'small header',
+      key: 'SMALL HEADER',
     },
   ]
   props.participants.forEach(participant =>
@@ -224,7 +230,39 @@ const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => {
   return (
     <List
       items={rows}
-      renderItem={_renderBigTeamRow}
+      renderItem={_renderTeamRow}
+      keyProperty="key"
+      style={{
+        ...contentContainerStyle,
+        ...scrollViewStyle,
+      }}
+      itemSizeEstimator={rowSizeEstimator}
+    />
+  )
+}
+
+const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => {
+  const rows: Array<TeamRow> = [
+    {
+      ...props,
+      type: 'big header',
+      key: 'BIG HEADER',
+    },
+  ]
+  props.participants.forEach(participant =>
+    rows.push({
+      onShowProfile: props.onShowProfile,
+      type: 'participant',
+      participant,
+      key: participant.username,
+    })
+  )
+
+  const rowSizeEstimator = index => typeSizeEstimator(rows[index].type)
+  return (
+    <List
+      items={rows}
+      renderItem={_renderTeamRow}
       keyProperty="key"
       style={{
         ...contentContainerStyle,
