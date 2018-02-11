@@ -153,6 +153,9 @@ func exitOnError(result keybase1.InstallResult) {
 		os.Exit(1)
 	}
 	for _, r := range result.ComponentResults {
+		if r.ExitCode != 0 {
+			os.Exit(r.ExitCode)
+		}
 		if r.Status.Code != 0 {
 			os.Exit(2)
 		}
@@ -334,7 +337,10 @@ func newCmdInstallAutoRunner(g *libkb.GlobalContext) *cmdInstallAuto {
 }
 
 func (v *cmdInstallAuto) GetUsage() libkb.Usage {
-	return libkb.Usage{}
+	return libkb.Usage{
+		// For getting the mount directory.
+		Config: true,
+	}
 }
 
 func (v *cmdInstallAuto) ParseArgv(ctx *cli.Context) error {

@@ -227,7 +227,23 @@ func (e *Env) GetMountDir() (string, error) {
 		func() string { return os.Getenv("KEYBASE_MOUNTDIR") },
 		func() string { return e.GetConfig().GetMountDir() },
 		func() string {
-			return filepath.Join(e.GetDataDir(), "fs")
+			switch runtime.GOOS {
+			case "darwin":
+				switch e.GetRunMode() {
+				case DevelRunMode:
+					return "keybase.devel"
+				case StagingRunMode:
+					return "keybase.staging"
+				case ProductionRunMode:
+					return "keybase"
+				default:
+					panic("Invalid run mode")
+				}
+			case "linux":
+				return filepath.Join(e.GetDataDir(), "fs")
+			default:
+				return filepath.Join(e.GetDataDir(), "fs")
+			}
 		},
 	), nil
 }
