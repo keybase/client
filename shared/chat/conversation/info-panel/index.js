@@ -207,10 +207,9 @@ const _renderBigTeamRow = (i: number, props: BigTeamRow) => {
   }
 }
 
-const _rowSizeEstimator = (index, cache: {[index: number]: number}) => {
-  // Cache is an array of [index]: height
+const _rowSizeEstimator = index => {
   if (index === 0) {
-    return cache[0] || 429 // estimate based on size of header in non-admin non-preview mode
+    return 469 // estimate based on size of header in non-admin non-preview mode
   }
   return 56
 }
