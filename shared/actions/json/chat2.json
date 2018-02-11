@@ -217,13 +217,20 @@
       "ordinal": "Types.Ordinal",
       "ratio": "number", // 0-1
     },
+    // We got an uploaded attachment, while online this is like an edit of the placeholder
     "messageAttachmentUploaded": {
       "conversationIDKey": "Types.ConversationIDKey",
       "placeholderID": "RPCChatTypes.MessageID",
       "message": "Types.MessageAttachment",
     },
+    // Incoming typers
     "updateTypers": {
       "conversationToTypers": "I.Map<Types.ConversationIDKey, I.Set<string>>"
+    },
+    // We are typing
+    "sendTyping": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "typing": "boolean"
     }
   }
 }

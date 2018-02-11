@@ -558,6 +558,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.attachmentDownload:
     case Chat2Gen.attachmentUpload:
     case Chat2Gen.attachmentUploading:
+    case Chat2Gen.sendTyping:
       return state
     default:
       // eslint-disable-next-line no-unused-expressions

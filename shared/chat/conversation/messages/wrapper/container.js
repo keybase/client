@@ -12,7 +12,7 @@ import {isMobile} from '../../../../constants/platform'
 
 const howLongBetweenTimestampsMs = 1000 * 60 * 15
 
-const mapStateToProps = (state: TypedState, {message, previous, innerClass, isSelected, isEditing}) => {
+const mapStateToProps = (state: TypedState, {message, previous, innerClass, isSelected, isEditing}): * => {
   const isYou = state.config.username === message.author
   const isFollowing = state.config.following.has(message.author)
   const isBroken = state.users.infoMap.getIn([message.author, 'broken'], false)

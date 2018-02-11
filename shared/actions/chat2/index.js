@@ -1358,6 +1358,14 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
   }
 }
 
+const sendTyping = (action: Chat2Gen.SendTypingPayload) => {
+  const {conversationIDKey, typing} = action.payload
+  return Saga.call(RPCChatTypes.localUpdateTypingRpcPromise, {
+    conversationID: Types.keyToConversationID(conversationIDKey),
+    typing,
+  })
+}
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Refresh the inbox
   yield Saga.safeTakeEveryPure(
@@ -1429,6 +1437,8 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(Chat2Gen.attachmentLoad, attachmentLoad)
   yield Saga.safeTakeEvery(Chat2Gen.attachmentDownload, attachmentDownload)
   yield Saga.safeTakeEvery(Chat2Gen.attachmentUpload, attachmentUpload)
+
+  yield Saga.safeTakeEveryPure(Chat2Gen.sendTyping, sendTyping)
 }
 
 export default chat2Saga

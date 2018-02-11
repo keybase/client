@@ -14,6 +14,7 @@ import {
   lifecycle,
   connect,
 } from '../../../../util/container'
+import throttle from 'lodash/throttle'
 import {chatTab} from '../../../../constants/tabs'
 import mentionHoc from '../mention-handler-hoc'
 import type {TypedState, Dispatch} from '../../../../util/container'
@@ -69,9 +70,9 @@ const mapDispatchToProps = (dispatch: Dispatch): * => ({
     dispatch(
       RouteTree.setRouteState(I.List([chatTab, conversationIDKey]), {inputText: new HiddenString(inputText)})
     ),
-  _onUpdateTyping: (conversationIDKey: Types.ConversationIDKey, typing: boolean) => {
-    // dispatch(ChatGen.createUpdateTyping({conversationIDKey, typing})),
-  },
+  _sendTyping: (conversationIDKey: Types.ConversationIDKey, typing: boolean) =>
+    // only valid conversations
+    conversationIDKey && dispatch(Chat2Gen.createSendTyping({conversationIDKey, typing})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
@@ -97,11 +98,15 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onLeaveChannel: () => {
       dispatchProps.onLeaveChannel(stateProps.conversationIDKey, stateProps._meta.teamname)
     },
-    onUpdateTyping: (typing: boolean) => {},
+    sendTyping: (typing: boolean) => dispatchProps._sendTyping(stateProps.conversationIDKey, typing),
     typing: stateProps.typing,
   }
 }
 
+// Standalone throttled function to ensure we never accidentally recreate it and break the throttling
+const throttled = throttle((f, param) => f(param), 1000)
+
+// todo plumb throttled call to send
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   withStateHandlers({text: ''}, {_setText: () => (text: string) => ({text})}),
@@ -111,6 +116,8 @@ export default compose(
       if (!skipUnsentSaving) {
         unsentText[Types.conversationIDKeyToString(props.conversationIDKey)] = text
       }
+
+      throttled(props.sendTyping, !!text)
     },
   })),
   withProps(props => ({
