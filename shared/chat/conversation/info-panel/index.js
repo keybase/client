@@ -204,14 +204,10 @@ const _renderBigTeamRow = (i: number, props: BigTeamRow) => {
       return (
         <Participant key={props.key} participant={props.participant} onShowProfile={props.onShowProfile} />
       )
-  }
-}
 
-const _rowSizeEstimator = index => {
-  if (index === 0) {
-    return 469 // estimate based on size of header in non-admin non-preview mode
+    default:
+      throw new Error('Unexpected type ' + props.type)
   }
-  return 56
 }
 
 const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => {
@@ -231,6 +227,19 @@ const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => {
     })
   )
 
+  const rowSizeEstimator = index => {
+    const type = rows[index].type
+    switch (type) {
+      case 'header':
+        return 469 // estimate based on size of header in non-admin non-preview mode
+      case 'participant':
+        return 56
+
+      default:
+        throw new Error('Unexpected type ' + type)
+    }
+  }
+
   return (
     <List
       items={rows}
@@ -240,7 +249,7 @@ const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => {
         ...contentContainerStyle,
         ...scrollViewStyle,
       }}
-      itemSizeEstimator={_rowSizeEstimator}
+      itemSizeEstimator={rowSizeEstimator}
     />
   )
 }
