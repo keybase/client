@@ -197,7 +197,7 @@ const _renderTeamRow = (i: number, props: TeamRow) => {
 const typeSizeEstimator = (type: RowType): number => {
   switch (type) {
     case 'small header':
-      return 200
+      return 407
 
     case 'big header':
       return 469 // estimate based on size of header in non-admin non-preview mode
