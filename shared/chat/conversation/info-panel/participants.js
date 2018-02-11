@@ -3,27 +3,6 @@ import * as React from 'react'
 import {Box, ClickableBox, Avatar, Text, Usernames} from '../../../common-adapters'
 import {globalStyles, globalMargins, isMobile} from '../../../styles'
 
-type Props = {
-  onShowProfile: (user: string) => void,
-  participants: Array<{
-    username: string,
-    following: boolean,
-    fullname: string,
-    broken: boolean,
-    isYou: boolean,
-  }>,
-}
-
-const Participants = ({participants, onShowProfile}: Props) => (
-  <Box style={{...globalStyles.flexBoxColumn, paddingTop: globalMargins.tiny}}>
-    {participants.map(participant => {
-      return (
-        <Participant key={participant.username} participant={participant} onShowProfile={onShowProfile} />
-      )
-    })}
-  </Box>
-)
-
 type ParticipantProps = {
   onShowProfile: (user: string) => void,
   participant: {
@@ -78,4 +57,3 @@ const rowStyleMobile = {
   minHeight: 56,
 }
 export {Participant}
-export default Participants

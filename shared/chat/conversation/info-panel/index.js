@@ -1,10 +1,10 @@
 // @flow
 import * as React from 'react'
-import {Box, Button, Divider, HeaderHoc, List, ScrollView, Text} from '../../../common-adapters'
+import {Box, Button, Divider, HeaderHoc, List, Text} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
 import {SmallTeamHeader, BigTeamHeader} from './header'
 import Notifications from './notifications/container'
-import Participants, {Participant} from './participants'
+import {Participant} from './participants'
 import {ManageTeam} from './manage-team'
 import {TurnIntoTeam} from './turn-into-team'
 
@@ -46,28 +46,10 @@ type ConversationInfoPanelProps = infoPanelProps & {
   onShowNewTeamDialog: () => void,
 }
 
-const _ConversationInfoPanel = (props: ConversationInfoPanelProps) => (
-  <ScrollView style={scrollViewStyle} contentContainerStyle={contentContainerStyle}>
-    <Participants participants={props.participants} onShowProfile={props.onShowProfile} />
-
-    <Divider style={{marginBottom: 20, marginTop: 10}} />
-
-    <TurnIntoTeam onClick={props.onShowNewTeamDialog} />
-
-    <Divider style={styleDivider} />
-
-    <Notifications />
-
-    <Divider style={styleDivider} />
-
-    <Button
-      type="Danger"
-      small={true}
-      label="Block this conversation"
-      onClick={props.onShowBlockConversationDialog}
-    />
-  </ScrollView>
-)
+type ConversationFooterRow = ConversationInfoPanelProps & {
+  type: 'conversation footer',
+  key: 'CONVERSATION FOOTER',
+}
 
 type SmallTeamInfoPanelProps = infoPanelProps & {
   onLeaveTeam: () => void,
@@ -107,11 +89,33 @@ type ParticipantRow = {
   key: string,
 }
 
-type TeamRow = SmallHeaderRow | BigHeaderRow | ParticipantRow
+type TeamRow = ConversationFooterRow | SmallHeaderRow | BigHeaderRow | ParticipantRow
 type RowType = $PropertyType<TeamRow, 'type'>
 
 const _renderTeamRow = (i: number, props: TeamRow) => {
   switch (props.type) {
+    case 'conversation footer':
+      return (
+        <Box key={props.key} style={{...globalStyles.flexBoxColumn, alignItems: 'stretch'}}>
+          <Divider style={{marginBottom: 20, marginTop: 10}} />
+
+          <TurnIntoTeam onClick={props.onShowNewTeamDialog} />
+
+          <Divider style={styleDivider} />
+
+          <Notifications />
+
+          <Divider style={styleDivider} />
+
+          <Button
+            type="Danger"
+            small={true}
+            label="Block this conversation"
+            onClick={props.onShowBlockConversationDialog}
+          />
+        </Box>
+      )
+
     case 'small header':
       return (
         <Box key={props.key} style={{...globalStyles.flexBoxColumn, alignItems: 'stretch'}}>
@@ -196,6 +200,9 @@ const _renderTeamRow = (i: number, props: TeamRow) => {
 
 const typeSizeEstimator = (type: RowType): number => {
   switch (type) {
+    case 'conversation footer':
+      return 482
+
     case 'small header':
       return 407
 
@@ -207,6 +214,38 @@ const typeSizeEstimator = (type: RowType): number => {
     default:
       throw new Error('Unexpected type ' + type)
   }
+}
+
+const _ConversationInfoPanel = (props: ConversationInfoPanelProps) => {
+  const rows: Array<TeamRow> = []
+  props.participants.forEach(participant =>
+    rows.push({
+      onShowProfile: props.onShowProfile,
+      type: 'participant',
+      participant,
+      key: participant.username,
+    })
+  )
+
+  rows.push({
+    ...props,
+    type: 'conversation footer',
+    key: 'CONVERSATION FOOTER',
+  })
+
+  const rowSizeEstimator = index => typeSizeEstimator(rows[index].type)
+  return (
+    <List
+      items={rows}
+      renderItem={_renderTeamRow}
+      keyProperty="key"
+      style={{
+        ...contentContainerStyle,
+        ...scrollViewStyle,
+      }}
+      itemSizeEstimator={rowSizeEstimator}
+    />
+  )
 }
 
 const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => {

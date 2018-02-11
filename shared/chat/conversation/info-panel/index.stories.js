@@ -2,7 +2,7 @@
 import React from 'react'
 import {storiesOf, action} from '../../../stories/storybook'
 import {Box} from '../../../common-adapters'
-import Participants from './participants'
+import {Participant} from './participants'
 
 const participants: Array<{
   username: string,
@@ -35,17 +35,11 @@ const participants: Array<{
 ]
 
 const load = () => {
-  storiesOf('Chat/Conversation/InfoPanel', module)
-    .add('Participants', () => (
-      <Box style={{maxWidth: 320}}>
-        <Participants onShowProfile={action('onShowProfile')} participants={participants} />
-      </Box>
-    ))
-    .add('Participants (with add button)', () => (
-      <Box style={{maxWidth: 320}}>
-        <Participants onShowProfile={action('onShowProfile')} participants={participants} />
-      </Box>
-    ))
+  storiesOf('Chat/Conversation/InfoPanel', module).add('Participant', () => (
+    <Box style={{maxWidth: 320}}>
+      <Participant onShowProfile={action('onShowProfile')} participant={participants[0]} />
+    </Box>
+  ))
 }
 
 export default load
