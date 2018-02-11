@@ -85,7 +85,7 @@
   NSString *infoText = @"";
   if ([bundleVersion isOrderedSame:[KBSemVersion version:@"1.0.30"]]) {
     alertText = @"New Keybase feature: multiple users in macOS";
-    infoText = @"The Keybase file system (KBFS) has been mounted at /keybase.  This doesn't work for multiple users, so we're moving things around.  You'll now have a unique mountpoint in your home directory.  Follow the new \"Favorite\" in Finder to get to it. The first local user to run Keybase will also have a link to it from the old /keybase location.\n\nPlease provide your password at the secure prompt when requested to unlock this new, open-source-powered feature!";
+    infoText = @"Previously, your Keybase files could be found at /keybase. We're moving them to keybase/ in your own home folder, where most apps put documents. This is more secure and flexible. If you're the only Keybase user on this computer, the old directory will also continue to work.\n\nYou may need to enter your password for this update.";
   }
   NSAlert *alert = [[NSAlert alloc] init];
   [alert setMessageText:alertText];
