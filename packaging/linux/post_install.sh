@@ -39,10 +39,16 @@ if [ -z "$currlink" ] ; then
         if killall kbfsfuse &> /dev/null ; then
             echo Shutting down kbfsfuse...
         fi
-        rmdir "$rootlink"
         echo You must run run_keybase to restore file system access.
     fi
-    if ln -s "$mount1" "$rootlink" &> /dev/null ; then
+    if [ -d "$rootlink" ] ; then
+        if rmdir "$rootlink" &> /dev/null ; then
+            echo Replacing old $rootlink directory.
+        else
+            echo WARNING: $rootlink access will not be available, because $rootlink is not empty.
+        fi
+    fi
+    if ln -s -T "$mount1" "$rootlink" &> /dev/null ; then
         chown "$khuser":"$khuser" "$rootlink"
     fi
 fi

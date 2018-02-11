@@ -630,6 +630,7 @@ func TestTeamRemoveAfterReset(t *testing.T) {
 	team := ann.createTeam([]*smuUser{bob, joe})
 	divDebug(ctx, "team created (%s)", team.name)
 
+	kickTeamRekeyd(ann.getPrimaryGlobalContext(), t)
 	bob.reset()
 	divDebug(ctx, "Reset bob (%s)", bob.username)
 
@@ -639,7 +640,6 @@ func TestTeamRemoveAfterReset(t *testing.T) {
 	joe.reset()
 	divDebug(ctx, "Reset joe (%s), not re-provisioning though!", joe.username)
 
-	kickTeamRekeyd(ann.getPrimaryGlobalContext(), t)
 	ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2), nil)
 
 	cli := ann.getTeamsClient()

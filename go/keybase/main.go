@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"runtime"
+	"runtime/debug"
 	"runtime/pprof"
 	"syscall"
 	"time"
@@ -404,6 +405,8 @@ func startProfile(g *libkb.GlobalContext) {
 				g.Log.Debug("could not create memory profile: ", err)
 				continue
 			}
+
+			debug.FreeOSMemory()
 			runtime.GC() // get up-to-date statistics
 			if err := pprof.WriteHeapProfile(f); err != nil {
 				g.Log.Debug("could not write memory profile: ", err)
@@ -411,6 +414,13 @@ func startProfile(g *libkb.GlobalContext) {
 			}
 			f.Close()
 			g.Log.Debug("wrote periodic memory profile to %s", f.Name())
+
+			var mems runtime.MemStats
+			runtime.ReadMemStats(&mems)
+			g.Log.Debug("runtime mem alloc:   %v", mems.Alloc)
+			g.Log.Debug("runtime total alloc: %v", mems.TotalAlloc)
+			g.Log.Debug("runtime heap alloc:  %v", mems.HeapAlloc)
+			g.Log.Debug("runtime heap sys:    %v", mems.HeapSys)
 		}
 	}()
 }

@@ -2,12 +2,16 @@
 import * as React from 'react'
 
 export type Props = {
+  baseTeam: string,
   errorText: string,
-  pending: boolean,
+  isSubteam: boolean,
+  joinSubteam: boolean,
   name: string,
   onBack: () => void,
+  onJoinSubteamChange: () => void,
   onNameChange: () => void,
   onSubmit: () => void,
+  pending: boolean,
 }
 
 export default class NewTeamDialog extends React.Component<Props> {}
