@@ -229,7 +229,16 @@ func (e *Env) GetMountDir() (string, error) {
 		func() string {
 			switch runtime.GOOS {
 			case "darwin":
-				return filepath.Join(e.GetHome(), "keybase")
+				switch e.GetRunMode() {
+				case DevelRunMode:
+					return "keybase.devel"
+				case StagingRunMode:
+					return "keybase.staging"
+				case ProductionRunMode:
+					return "keybase"
+				default:
+					panic("Invalid run mode")
+				}
 			case "linux":
 				return filepath.Join(e.GetDataDir(), "fs")
 			default:
