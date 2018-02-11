@@ -30,31 +30,70 @@ import (
 
 // ServerConfig holds configuration parameters for Server.
 type ServerConfig struct {
-	DomainWhitelist  []string
+	// If DomainWhitelist is non-nil and non-empty, only domains in the
+	// whitelist are served and others are blocked.
+	DomainWhitelist []string
+	// If DomainBlacklist is non-nil and non-empty, domains in the blacklist
+	// and all subdomains under them are blocked. When a domain is present in
+	// both blacklist and whitelist, the domain is blocked.
+	DomainBlacklist  []string
 	UseStaging       bool
 	Logger           *zap.Logger
 	UseDiskCertCache bool
 	StatsReporter    StatsReporter
 
-	domainWhitelistOnce sync.Once
-	domainWhitelist     map[string]bool
+	domainListsOnce sync.Once
+	domainWhitelist map[string]bool
+	domainBlacklist []string
 }
 
-func (c *ServerConfig) allowedByDomainWhiteList(domain string) bool {
-	c.domainWhitelistOnce.Do(func() {
+// ErrDomainBlockedInBlacklist is returned when the server is configured
+// with a domain whitelist, and we receive a HTTP request that was sent to a
+// domain that's not in the whitelist.
+type ErrDomainBlockedInBlacklist struct{}
+
+// Error implements the error interface.
+func (ErrDomainBlockedInBlacklist) Error() string {
+	return "a blacklist is configured and the given domain is in the list"
+}
+
+// ErrDomainNotAllowedInWhitelist is returned when the server is configured
+// with a domain whitelist, and we receive a HTTP request that was sent to a
+// domain that's not in the whitelist.
+type ErrDomainNotAllowedInWhitelist struct{}
+
+// Error implements the error interface.
+func (ErrDomainNotAllowedInWhitelist) Error() string {
+	return "a whitelist is configured and the given domain is not in the list"
+}
+
+func (c *ServerConfig) checkDomainLists(domain string) error {
+	c.domainListsOnce.Do(func() {
 		if len(c.DomainWhitelist) > 0 {
 			c.domainWhitelist = make(map[string]bool, len(c.DomainWhitelist))
 			for _, d := range c.DomainWhitelist {
-				c.domainWhitelist[d] = true
+				c.domainWhitelist[strings.ToLower(strings.TrimSpace(d))] = true
+			}
+		}
+		if len(c.DomainBlacklist) > 0 {
+			c.domainBlacklist = make([]string, len(c.DomainBlacklist))
+			for i, d := range c.DomainBlacklist {
+				c.domainBlacklist[i] = strings.ToLower(strings.TrimSpace(d))
 			}
 		}
 	})
-	if c.domainWhitelist != nil {
-		return c.domainWhitelist[domain]
+
+	for _, blocked := range c.domainBlacklist {
+		if strings.HasSuffix(domain, blocked) {
+			return ErrDomainBlockedInBlacklist{}
+		}
+	}
+	if c.domainWhitelist != nil && !c.domainWhitelist[domain] {
+		return ErrDomainNotAllowedInWhitelist{}
 	}
 
 	// No domainWhitelist; allow everything!
-	return true
+	return nil
 }
 
 const fsCacheSize = 2 << 15
@@ -114,7 +153,8 @@ func (s *Server) handleError(w http.ResponseWriter, err error) {
 	// TODO: have a nicer error page for configuration errors?
 	switch err.(type) {
 	case nil:
-	case ErrKeybasePagesRecordNotFound, ErrDomainNotAllowedInWhitelist:
+	case ErrKeybasePagesRecordNotFound,
+		ErrDomainNotAllowedInWhitelist, ErrDomainBlockedInBlacklist:
 		http.Error(w, err.Error(), http.StatusServiceUnavailable)
 		return
 	case ErrKeybasePagesRecordTooMany, ErrInvalidKeybasePagesRecord:
@@ -347,6 +387,11 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	defer s.logRequest(sri, r.URL.Path)
 
+	if err := s.config.checkDomainLists(r.Host); err != nil {
+		s.handleError(w, err)
+		return
+	}
+
 	s.setCommonResponseHeaders(w)
 
 	// Don't serve the config file itself.
@@ -440,20 +485,12 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	http.FileServer(st.getHTTPFileSystem(ctx)).ServeHTTP(w, r)
 }
 
-// ErrDomainNotAllowedInWhitelist is returned when the server is configured
-// with a domain whitelist, and we receive a HTTP request that was sent to a
-// domain that's not in the whitelist.
-type ErrDomainNotAllowedInWhitelist struct{}
-
-// Error implements the error interface.
-func (ErrDomainNotAllowedInWhitelist) Error() string {
-	return "a whitelist is configured and the given domain is not in the list"
-}
-
-// allowConnection is used as a HostPolicy in autocert package.
-func (s *Server) allowConnectionTo(ctx context.Context, host string) error {
-	if !s.config.allowedByDomainWhiteList(host) {
-		return ErrDomainNotAllowedInWhitelist{}
+// allowDomain is used to determine whether a given domain should be
+// served. It's also used as a HostPolicy in autocert package.
+func (s *Server) allowDomain(ctx context.Context, host string) (err error) {
+	host = strings.ToLower(strings.TrimSpace(host))
+	if err = s.config.checkDomainLists(host); err != nil {
+		return err
 	}
 
 	// DoS protection: look up kbp TXT record before attempting ACME cert
@@ -463,8 +500,7 @@ func (s *Server) allowConnectionTo(ctx context.Context, host string) error {
 	//
 	// TODO: cache the parsed root somewhere so we don't end up doing it twice
 	// for each connection.
-	_, err := s.rootLoader.LoadRoot(host)
-	if err != nil {
+	if _, err = s.rootLoader.LoadRoot(host); err != nil {
 		return err
 	}
 
@@ -528,7 +564,7 @@ func ListenAndServe(ctx context.Context,
 	}
 
 	manager, err := makeACMEManager(
-		config.UseStaging, config.UseDiskCertCache, server.allowConnectionTo)
+		config.UseStaging, config.UseDiskCertCache, server.allowDomain)
 	if err != nil {
 		return err
 	}

@@ -8,6 +8,7 @@ import (
 	"context"
 	"flag"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/keybase/kbfs/env"
@@ -25,6 +26,7 @@ var (
 	fKBFSLogFile   string
 	fStathatEZKey  string
 	fStathatPrefix string
+	fBlacklist     string
 )
 
 func init() {
@@ -36,6 +38,8 @@ func init() {
 		"stathat EZ key for reporting stats to stathat; empty disables stathat")
 	flag.StringVar(&fStathatPrefix, "stathat-prefix", "kbp -",
 		"prefix to stathat statnames")
+	flag.StringVar(&fBlacklist, "blacklist", "",
+		"a comma-separated list of domains to block")
 }
 
 func newLogger(isCLI bool) (*zap.Logger, error) {
@@ -75,6 +79,16 @@ func newLogger(isCLI bool) (*zap.Logger, error) {
 	}
 
 	return loggerConfig.Build()
+}
+
+func removeEmpty(strs []string) (ret []string) {
+	ret = make([]string, 0, len(strs))
+	for _, str := range strs {
+		if len(str) > 0 {
+			ret = append(ret, str)
+		}
+	}
+	return ret
 }
 
 const autoGitNumWorkers = 10
@@ -139,6 +153,7 @@ func main() {
 	}
 
 	serverConfig := &libpages.ServerConfig{
+		DomainBlacklist:  removeEmpty(strings.Split(fBlacklist, ",")),
 		UseStaging:       !fProd,
 		Logger:           logger,
 		UseDiskCertCache: fDiskCertCache,
