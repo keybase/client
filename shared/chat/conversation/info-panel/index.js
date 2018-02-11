@@ -75,18 +75,6 @@ type SmallTeamInfoPanelProps = infoPanelProps & {
   teamname: string,
 }
 
-// TODO put leave team button back in once bugs are fixed
-// const headerButtonBoxStyle = {
-//   ...globalStyles.flexBoxRow,
-//   alignItems: 'center',
-//   alignSelf: 'center',
-// }
-
-// const createIconStyle = {
-//   color: globalColors.red,
-//   fontSize: isMobile ? 20 : 16,
-// }
-
 const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
   <ScrollView style={scrollViewStyle} contentContainerStyle={contentContainerStyle}>
     <SmallTeamHeader
@@ -98,15 +86,6 @@ const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
     <Divider style={{marginBottom: 20, marginTop: 20}} />
 
     <Notifications />
-    {/* <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'flex-end'}}>
-      <Divider style={styleDivider} />
-      <ClickableBox onClick={props.onLeaveTeam} style={headerButtonBoxStyle}>
-        <Icon type="iconfont-team-leave" style={createIconStyle} />
-        <Text type="BodyBigLink" style={{margin: globalMargins.xtiny, color: globalColors.red}}>
-          Leave team
-        </Text>
-      </ClickableBox>
-    </Box> */}
     <Divider style={styleDivider} />
 
     <ManageTeam
