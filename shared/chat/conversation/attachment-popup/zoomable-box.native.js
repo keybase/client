@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box, NativePanResponder} from '../../../common-adapters/index.native'
+import clamp from 'lodash/clamp'
 
 type Touch = {
   identifier: number,
@@ -30,6 +31,8 @@ class PanZoomCalculator {
   touch2: ?Touch = null
   gestureState: ?GestureState = null
 
+  _scaleOffset: number = 1
+
   addTouch = (touch: Touch) => {
     if (this.touch1 === null) {
       this.initialTouch1 = touch
@@ -45,6 +48,7 @@ class PanZoomCalculator {
     this.touch1 = null
     this.initialTouch2 = null
     this.touch2 = null
+    this._scaleOffset = 1
   }
 
   // TODO fix this
@@ -86,28 +90,50 @@ class PanZoomCalculator {
     }
     return {x: 0, y: 0}
   }
+
+  distance = (a: Touch, b: Touch): number => {
+    return Math.sqrt(Math.pow(a.pageX - b.pageX, 2) + Math.pow(a.pageY - b.pageY, 2))
+  }
+
+  scaleOffset = (): number => {
+    if (this.touch1 && this.initialTouch1 && this.touch2 && this.initialTouch2) {
+      const initialDistance = this.distance(this.initialTouch1, this.initialTouch2)
+      // $FlowFixMe flow loses the refinement
+      const currentDistance = this.distance(this.touch1, this.touch2)
+      this._scaleOffset = currentDistance / initialDistance
+    }
+    return this._scaleOffset
+  }
 }
 
 // TODO react `View` props
-export type Props = any
+export type Props = {
+  maxZoom: number,
+  style?: any,
+}
 
 type State = {
   currentGesture: ?number,
-  scale: number,
   pan: {x: number, y: number},
   panOffset: {x: number, y: number},
+  scale: number,
+  scaleOffset: number,
   translateX: number,
   translateY: number,
 }
 
 class ZoomableBox extends React.Component<Props, State> {
+  static defaultProps = {
+    maxZoom: 3,
+  }
   _panResponder: NativePanResponder
   _panZoomCalculator: PanZoomCalculator = new PanZoomCalculator()
   state = {
     currentGesture: null,
-    scale: 2,
     pan: {x: 0, y: 0},
     panOffset: {x: 0, y: 0},
+    scale: 1,
+    scaleOffset: 1,
     translateX: 0,
     translateY: 0,
   }
@@ -119,59 +145,41 @@ class ZoomableBox extends React.Component<Props, State> {
       onMoveShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponderCapture: () => true,
       onPanResponderGrant: (evt, gestureState) => {
-        // $FlowIssue conversion from native type to our type
         this._panZoomCalculator.updateTouches(evt.nativeEvent.touches)
         this._panZoomCalculator.updateGestureState(gestureState)
       },
       onPanResponderMove: (evt, gestureState) => {
-        // magic happens here
-        console.log(evt, gestureState)
-        // console.log(
-        //   JSON.stringify(
-        //     evt.nativeEvent.touches,
-        //     [
-        //       'identifier',
-        //       'locationX',
-        //       'locationY',
-        //       'pageX',
-        //       'pageY',
-        //       'target',
-        //       'timestamp',
-        //       0,
-        //       1,
-        //       2,
-        //       3,
-        //       4,
-        //       5,
-        //     ],
-        //     2
-        //   )
-        // )
-
-        // $FlowIssue conversion from native type to our type
         this._panZoomCalculator.updateTouches(evt.nativeEvent.touches)
         this._panZoomCalculator.updateGestureState(gestureState)
         const panOffset = this._panZoomCalculator.panOffset()
+        const scaleOffset = this._panZoomCalculator.scaleOffset()
         this.setState({
           panOffset,
+          scaleOffset,
         })
       },
       onPanResponderRelease: (evt, gestureState) => {
         this.setState({
           pan: {
-            x: this.state.pan.x + this.state.panOffset.x,
-            y: this.state.pan.y + this.state.panOffset.y,
+            x: this.panX(),
+            y: this.panY(),
           },
           panOffset: {
             x: 0,
             y: 0,
           },
+          scale: this.scale(),
+          scaleOffset: 1,
         })
         this._panZoomCalculator.releaseTouches()
         this._panZoomCalculator.releaseGestureState()
       },
     })
   }
+
+  scale = () => clamp(this.state.scale * this.state.scaleOffset, 1, this.props.maxZoom)
+  panX = () => this.state.pan.x + this.state.panOffset.x
+  panY = () => this.state.pan.y + this.state.panOffset.y
 
   render() {
     return (
@@ -182,9 +190,9 @@ class ZoomableBox extends React.Component<Props, State> {
           ...this.props.style,
           position: 'absolute',
           transform: [
-            {scale: this.state.scale},
-            {translateX: (this.state.pan.x + this.state.panOffset.x) / this.state.scale},
-            {translateY: (this.state.pan.y + this.state.panOffset.y) / this.state.scale},
+            {scale: this.scale()},
+            {translateX: this.panX() / this.scale()},
+            {translateY: this.panY() / this.scale()},
           ],
         }}
       />
