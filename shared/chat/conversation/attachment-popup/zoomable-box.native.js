@@ -24,6 +24,10 @@ type GestureState = {
   numberActiveTouches: number,
 }
 
+const distance = (a: Touch, b: Touch): number => {
+  return Math.sqrt(Math.pow(a.pageX - b.pageX, 2) + Math.pow(a.pageY - b.pageY, 2))
+}
+
 class PanZoomCalculator {
   initialTouch1: ?Touch = null
   touch1: ?Touch = null
@@ -32,16 +36,6 @@ class PanZoomCalculator {
   gestureState: ?GestureState = null
 
   _scaleOffset: number = 1
-
-  addTouch = (touch: Touch) => {
-    if (this.touch1 === null) {
-      this.initialTouch1 = touch
-      this.touch1 = touch
-    } else if (this.touch2 === null) {
-      this.initialTouch2 = touch
-      this.touch2 = touch
-    }
-  }
 
   releaseTouches = () => {
     this.initialTouch1 = null
@@ -76,12 +70,12 @@ class PanZoomCalculator {
     }
   }
 
-  updateGestureState = (gestureState: GestureState) => {
-    this.gestureState = gestureState
-  }
-
   releaseGestureState = () => {
     this.gestureState = null
+  }
+
+  updateGestureState = (gestureState: GestureState) => {
+    this.gestureState = gestureState
   }
 
   panOffset = (): {x: number, y: number} => {
@@ -91,23 +85,20 @@ class PanZoomCalculator {
     return {x: 0, y: 0}
   }
 
-  distance = (a: Touch, b: Touch): number => {
-    return Math.sqrt(Math.pow(a.pageX - b.pageX, 2) + Math.pow(a.pageY - b.pageY, 2))
-  }
-
   scaleOffset = (): number => {
     if (this.touch1 && this.initialTouch1 && this.touch2 && this.initialTouch2) {
-      const initialDistance = this.distance(this.initialTouch1, this.initialTouch2)
-      // $FlowFixMe flow loses the refinement
-      const currentDistance = this.distance(this.touch1, this.touch2)
+      const initialDistance = distance(this.initialTouch1, this.initialTouch2)
+      // $FlowIssue loses the refinement
+      const currentDistance = distance(this.touch1, this.touch2)
       this._scaleOffset = currentDistance / initialDistance
     }
     return this._scaleOffset
   }
 }
 
-// TODO react `View` props
-export type Props = {
+// TODO type this better (extend react `View` props)
+// for now this is what `Box` does
+export type Props = any & {
   maxZoom: number,
   style?: any,
 }
