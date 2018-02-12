@@ -1,49 +1,31 @@
-// @noflow
+// @flow
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import OldProfileResetNotice from '.'
-import {List} from 'immutable'
-import {compose, branch, renderNothing, connect, type TypedState} from '../../../../util/container'
-import {type StateProps, type DispatchProps} from './container'
+import {connect, type TypedState} from '../../../../util/container'
 
-const mapStateToProps = (state: TypedState) => {
-  const selectedConversationIDKey = Constants.getSelectedConversation(state)
-  if (!selectedConversationIDKey) {
-    // $FlowIssue this isn't typesafe
-    return {}
-  }
-  const finalizeInfo = null // TODO state.chat.finalizedState.get(selectedConversationIDKey)
-  const _supersededBy = null // TODO Constants.convSupersededByInfo(selectedConversationIDKey, state.chat)
-  const selected = Constants.getInbox(state, selectedConversationIDKey)
-  const _participants = selected ? selected.participants : List()
-
+const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
+  const meta = Constants.getMeta(state, conversationIDKey)
   return {
-    _participants,
-    _supersededBy,
-    username: finalizeInfo ? finalizeInfo.resetUser : '',
+    _participants: meta.participants,
+    nextConversationIDKey: meta.supersededBy,
+    username: meta.supersededByCausedBy || '',
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onOpenConversation: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createSelectConversation({conversationIDKey})),
-  startConversation: (users: Array<string>) =>
-    dispatch(Chat2Gen.createStartConversation({participants: users, forceImmediate: true})),
+  startConversation: (participants: Array<string>) =>
+    dispatch(Chat2Gen.createStartConversation({forceImmediate: true, participants})),
 })
 
-const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => ({
-  onOpenNewerConversation: stateProps._supersededBy
-    ? () => {
-        stateProps._supersededBy &&
-          stateProps._supersededBy.conversationIDKey &&
-          dispatchProps.onOpenConversation(stateProps._supersededBy.conversationIDKey)
-      }
+const mergeProps = (stateProps, dispatchProps) => ({
+  onOpenNewerConversation: stateProps.nextConversationIDKey
+    ? () => dispatchProps.onOpenConversation(stateProps.nextConversationIDKey)
     : () => dispatchProps.startConversation(stateProps._participants.toArray()),
   username: stateProps.username,
 })
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  branch(props => !props.username, renderNothing)
-)(OldProfileResetNotice)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(OldProfileResetNotice)

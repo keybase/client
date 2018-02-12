@@ -7,10 +7,11 @@ import {connect, type TypedState, type Dispatch} from '../../../../util/containe
 
 const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   const meta = Constants.getMeta(state, conversationIDKey)
+  const hasExtraRow = !meta.resetParticipants.isEmpty() || !!meta.supersededByCausedBy
   return {
     conversationIDKey,
+    hasExtraRow,
     messageOrdinals: Constants.getMessageOrdinals(state, conversationIDKey),
-    hasExtraRow: !meta.resetParticipants.isEmpty(),
   }
 }
 

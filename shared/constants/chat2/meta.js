@@ -10,7 +10,7 @@ import {globalColors, isMobile} from '../../styles'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {toByteArray} from 'base64-js'
 
-const IGNORE_UNTRUSTED_CACHE = false
+const IGNORE_UNTRUSTED_CACHE = true
 IGNORE_UNTRUSTED_CACHE && console.log('aaa NOJIMA skipping locametadata')
 
 const conversationMemberStatusToMembershipType = (m: RPCChatTypes.ConversationMemberStatus) => {
