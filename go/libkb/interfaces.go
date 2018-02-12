@@ -367,6 +367,8 @@ type ChatUI interface {
 	ChatThreadCached(context.Context, chat1.ChatThreadCachedArg) error
 	ChatThreadFull(context.Context, chat1.ChatThreadFullArg) error
 	ChatConfirmChannelDelete(context.Context, chat1.ChatConfirmChannelDeleteArg) (bool, error)
+	ChatSearchHit(context.Context, chat1.ChatSearchHitArg) error
+	ChatSearchDone(context.Context, chat1.ChatSearchDoneArg) error
 }
 
 type PromptDefault int

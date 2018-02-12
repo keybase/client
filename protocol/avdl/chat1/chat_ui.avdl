@@ -145,5 +145,15 @@ protocol chatUi {
   void chatThreadCached(int sessionID, union { null, string } thread) oneway;
   void chatThreadFull(int sessionID, string thread) oneway;
 
+  record ChatSearchHit {
+    union{ null, UIMessage } prevMessage;
+    union{ null, UIMessage } hitMessage;
+    union{ null, UIMessage } nextMessage;
+    array<string>  matches;
+  }
+
+  void chatSearchHit(int sessionID, ChatSearchHit searchHit);
+  void chatSearchDone(int sessionID, int numHits);
+
   boolean chatConfirmChannelDelete(int sessionID, string channel);
 }
