@@ -305,6 +305,67 @@ func TestSyncerAdHocFullReload(t *testing.T) {
 	}
 }
 
+func TestSyncerMembersTypeChaned(t *testing.T) {
+	ctx, world, ri2, _, sender, list := setupTest(t, 1)
+	defer world.Cleanup()
+
+	ri := ri2.(*kbtest.ChatRemoteMock)
+	u := world.GetUsers()[0]
+	tc := world.Tcs[u.Username]
+	syncer := NewSyncer(tc.Context())
+	syncer.isConnected = true
+	uid := gregor1.UID(u.User.GetUID().ToBytes())
+
+	conv := newConv(ctx, t, tc, uid, ri, sender, u.Username)
+	t.Logf("convID: %s", conv.GetConvID())
+	convID := conv.GetConvID()
+
+	_, msg, _, err := sender.Send(ctx, convID, chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        conv.Metadata.IdTriple,
+			Sender:      uid,
+			TlfName:     u.Username,
+			TlfPublic:   false,
+			MessageType: chat1.MessageType_TEXT,
+		},
+		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: "hi",
+		}),
+	}, 0, nil)
+	require.NoError(t, err)
+	s := storage.New(tc.Context())
+	storedMsgs, err := s.FetchMessages(ctx, convID, uid, []chat1.MessageID{msg.GetMessageID()})
+	require.NoError(t, err)
+	require.Len(t, storedMsgs, 1)
+	require.NotNil(t, storedMsgs[0])
+	require.Equal(t, msg.GetMessageID(), storedMsgs[0].GetMessageID())
+
+	ri.SyncInboxFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
+		conv.Metadata.MembersType = chat1.ConversationMembersType_IMPTEAMUPGRADE
+		return chat1.NewSyncInboxResWithIncremental(chat1.SyncIncrementalRes{
+			Vers:  100,
+			Convs: []chat1.Conversation{conv},
+		}), nil
+	}
+	doSync(t, syncer, ri, uid)
+	select {
+	case sres := <-list.inboxSynced:
+		typ, err := sres.SyncType()
+		require.NoError(t, err)
+		require.Equal(t, chat1.SyncInboxResType_INCREMENTAL, typ)
+		require.Equal(t, convID.String(), sres.Incremental().Items[0].ConvID)
+		require.Equal(t, chat1.ConversationMembersType_IMPTEAMUPGRADE,
+			sres.Incremental().Items[0].MembersType)
+		storedMsgs, err = s.FetchMessages(ctx, convID, uid, []chat1.MessageID{msg.GetMessageID()})
+		require.NoError(t, err)
+		require.Len(t, storedMsgs, 1)
+		require.Nil(t, storedMsgs[0])
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no inbox synced received")
+	}
+
+}
+
 func TestSyncerAppState(t *testing.T) {
 	ctx, world, ri2, _, sender, list := setupTest(t, 1)
 	defer world.Cleanup()
