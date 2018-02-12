@@ -74,6 +74,27 @@
   va_end(args);
 }
 
+- (void)doInstallAlert:(KBSemVersion *)bundleVersion runningVersion:(KBSemVersion *)runningVersion {
+  if ([runningVersion.version length] == 0) {
+    // No need to show anything if the user is explicitly choosing to install
+    // and just clicked on something.
+    return;
+  }
+
+  NSString *alertText = @"Keybase is about to upgrade the Keybase file system, allowing end-to-end encrypted files from right inside your Finder.";
+  NSString *infoText = @"";
+  if ([bundleVersion isOrderedSame:[KBSemVersion version:@"1.0.30"]]) {
+    alertText = @"New Keybase feature: multiple users in macOS";
+    infoText = @"Previously, your Keybase files could be found at /keybase. We're moving them to keybase/ in your own home folder, where most apps put documents. This is more secure and flexible. If you're the only Keybase user on this computer, the old directory will also continue to work.\n\nYou may need to enter your password for this update.";
+  }
+  NSAlert *alert = [[NSAlert alloc] init];
+  [alert setMessageText:alertText];
+  [alert setInformativeText:infoText];
+  [alert addButtonWithTitle:@"Got it!"];
+  [alert setAlertStyle:NSAlertStyleInformational];
+  [alert runModal]; // ignore response
+}
+
 - (void)refreshComponent:(KBRefreshComponentCompletion)completion {
   GHODictionary *info = [GHODictionary dictionary];
   KBSemVersion *bundleVersion = [self bundleVersion];
@@ -96,6 +117,7 @@
       if ([bundleVersion isGreaterThan:runningVersion]) {
         if (bundleVersion) info[@"Bundle Version"] = [bundleVersion description];
         self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled installAction:KBRInstallActionUpgrade info:info error:nil];
+        [self doInstallAlert:bundleVersion runningVersion:runningVersion];
         completion(self.componentStatus);
       } else {
         self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled installAction:KBRInstallActionNone info:info error:nil];
