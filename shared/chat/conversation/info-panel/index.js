@@ -25,6 +25,7 @@ const listStyle = {
 }
 
 type infoPanelProps = {
+  isPreview: boolean,
   admin: boolean,
   muted: boolean,
   teamname: string,
@@ -36,6 +37,8 @@ type infoPanelProps = {
     isYou: boolean,
   }>,
 
+  // Used by HeaderHoc.
+  onBack: () => void,
   onMuteConversation: (muted: boolean) => void,
   onShowBlockConversationDialog: () => void,
   onShowNewTeamDialog: () => void,
@@ -47,7 +50,6 @@ type infoPanelProps = {
   channelname: string,
   onJoinChannel: () => void,
   onViewTeam: () => void,
-  isPreview: boolean,
 }
 
 type ConversationInfoPanelProps = infoPanelProps
