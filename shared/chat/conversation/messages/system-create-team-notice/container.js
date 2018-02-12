@@ -1,5 +1,5 @@
 // @noflow
-import * as Constants2 from '../../../../constants/chat2'
+import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import CreateTeamNotice from '.'
 import {connect, type TypedState} from '../../../../util/container'
@@ -7,7 +7,7 @@ import {navigateAppend} from '../../../../actions/route-tree'
 import {type StateProps, type DispatchProps} from './container'
 
 const mapStateToProps = (state: TypedState) => {
-  const selectedConversationIDKey = Constants2.getSelectedConversation(state)
+  const selectedConversationIDKey = Constants.getSelectedConversation(state)
   if (!selectedConversationIDKey) {
     throw new Error('no selected conversation')
   }

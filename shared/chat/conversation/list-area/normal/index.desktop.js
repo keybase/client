@@ -134,7 +134,7 @@ class Thread extends React.Component<Props, State> {
   }
 
   render() {
-    const rowCount = this.props.messageOrdinals.size
+    const rowCount = this.props.messageOrdinals.size + (this.props.hasExtraRow ? 1 : 0)
     const scrollToIndex = this.state.isLockedToBottom ? rowCount - 1 : this._keepIdxVisible
 
     return (

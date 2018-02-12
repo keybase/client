@@ -1,6 +1,6 @@
 // @noflow
 import * as React from 'react'
-import * as Constants2 from '../../../constants/chat2'
+import * as Constants from '../../../constants/chat2'
 import * as Types from '../../../constants/types/chat2'
 import * as TeamTypes from '../../../constants/types/teams'
 import * as Chat2Gen from '../../../actions/chat2-gen'
@@ -16,11 +16,11 @@ import {createShowUserProfile} from '../../../actions/profile-gen'
 // })
 
 const mapStateToProps = (state: TypedState) => {
-  const selectedConversationIDKey = Constants2.getSelectedConversation(state)
+  const selectedConversationIDKey = Constants.getSelectedConversation(state)
   if (!selectedConversationIDKey) {
     return {}
   }
-  const _meta = Constants2.getMeta(state, selectedConversationIDKey)
+  const _meta = Constants.getMeta(state, selectedConversationIDKey)
 
   return {
     _meta,
@@ -112,11 +112,11 @@ type SelectorStateProps = {
 }
 
 const mapStateToSelectorProps = (state: TypedState): SelectorStateProps => {
-  const selectedConversationIDKey = Constants2.getSelectedConversation(state)
+  const selectedConversationIDKey = Constants.getSelectedConversation(state)
   if (!selectedConversationIDKey) {
     return {}
   }
-  const meta = Constants2.getMeta(state, selectedConversationIDKey)
+  const meta = Constants.getMeta(state, selectedConversationIDKey)
   if (!meta) {
     return {}
   }

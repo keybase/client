@@ -6,21 +6,9 @@ import * as Types from '../../../../constants/types/chat2'
 export type Props = {|
   conversationIDKey: Types.ConversationIDKey,
   messageOrdinals: I.List<Types.Ordinal>,
-  // editLastMessageCounter: number,
-  // listScrollDownCounter: number,
-  // onDeleteMessage: (message: Types.Message) => void,
-  // onEditMessage: (message: Types.Message, body: string) => void,
+  hasExtraRow: boolean, // render one more item that's special
   onFocusInput: () => void,
-  // onDownloadAttachment: (messageKey: Types.MessageKey) => void,
   loadMoreMessages: () => void,
-  // onShowMenu: (message: Types.Message, targetRect?: ?ClientRect) => void,
-  // onOpenInFileUI: (filename: string) => void,
-  // getMessageFromMessageKey: (messageKey: Types.MessageKey) => ?Types.Message,
-  // selectedConversation: Types.ConversationIDKey,
-  // validated: boolean,
-  // you: string,
 |}
 
-export default class ConversationList extends React.Component<Props> {
-  // onEditLastMessage: () => void
-}
+export default class ConversationList extends React.Component<Props> {}

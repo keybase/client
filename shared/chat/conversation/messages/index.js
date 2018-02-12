@@ -1,9 +1,9 @@
 // @flow
-import * as Constants2 from '../../../constants/chat2'
+import * as Constants from '../../../constants/chat2'
 import * as React from 'react'
 import * as RouteTree from '../../../route-tree'
-import * as Types2 from '../../../constants/types/chat2'
-// import Error from './error/container'
+import * as Types from '../../../constants/types/chat2'
+import ResetUser from './reset-user/container'
 import SystemAddedToTeam from './system-added-to-team/container'
 import SystemGitPush from './system-git-push/container'
 import SystemInviteAccepted from './system-invite-accepted/container'
@@ -18,14 +18,18 @@ import {chatTab} from '../../../constants/tabs'
 import {connect, compose, lifecycle, type TypedState, createSelector} from '../../../util/container'
 
 type Props = {
-  message: Types2.Message,
-  previous: ?Types2.Message,
+  message: Types.Message,
+  previous: ?Types.Message,
   isEditing: boolean,
   isSelected: boolean,
+  showResetParticipants: ?Types.ConversationIDKey,
 }
 
 class MessageFactory extends React.PureComponent<Props> {
   render() {
+    if (this.props.showResetParticipants) {
+      return <ResetUser conversationIDKey={this.props.showResetParticipants} />
+    }
     if (!this.props.message) {
       return null
     }
@@ -78,16 +82,22 @@ class MessageFactory extends React.PureComponent<Props> {
 }
 
 const mapStateToProps = (state: TypedState, {ordinal, previous, conversationIDKey}) => {
-  const messageMap = Constants2.getMessageMap(state, conversationIDKey)
+  const messageMap = Constants.getMessageMap(state, conversationIDKey)
   const message = messageMap.get(ordinal)
+  let showResetParticipants = null
+  if (!message) {
+    const meta = Constants.getMeta(state, conversationIDKey)
+    showResetParticipants = meta && !meta.resetParticipants.isEmpty() ? conversationIDKey : null
+  }
   return {
     isEditing:
       message &&
       conversationIDKey &&
-      Constants2.getEditingOrdinal(state, conversationIDKey) === message.ordinal,
+      Constants.getEditingOrdinal(state, conversationIDKey) === message.ordinal,
     isSelected: messageActionMessage(state, conversationIDKey) === message,
     message,
     previous: previous ? messageMap.get(previous) : null,
+    showResetParticipants,
   }
 }
 
@@ -109,6 +119,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   isSelected: stateProps.isSelected,
   message: stateProps.message,
   previous: stateProps.previous,
+  showResetParticipants: stateProps.showResetParticipants,
 })
 
 export default compose(

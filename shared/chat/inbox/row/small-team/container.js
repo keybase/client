@@ -1,6 +1,6 @@
 // @flow
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as Constants2 from '../../../../constants/chat2'
+import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import {SmallTeam} from '.'
 import {connect, type TypedState, type Dispatch} from '../../../../util/container'
@@ -12,11 +12,11 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const youAreReset = false // Constants.isResetConversationIDKey(state, _conversationIDKey)
 
   return {
-    _meta: Constants2.getMeta(state, _conversationIDKey),
+    _meta: Constants.getMeta(state, _conversationIDKey),
     _username: state.config.username || '',
-    hasBadge: Constants2.getHasBadge(state, _conversationIDKey),
-    hasUnread: Constants2.getHasUnread(state, _conversationIDKey),
-    isSelected: !state.chat2.pendingSelected && Constants2.getIsSelected(state, _conversationIDKey),
+    hasBadge: Constants.getHasBadge(state, _conversationIDKey),
+    hasUnread: Constants.getHasUnread(state, _conversationIDKey),
+    isSelected: !state.chat2.pendingSelected && Constants.getIsSelected(state, _conversationIDKey),
     youAreReset,
   }
 }
@@ -29,7 +29,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}: OwnProps) =
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const isSelected = stateProps.isSelected
   const hasUnread = stateProps.hasUnread
-  const styles = Constants2.getRowStyles(stateProps._meta, isSelected, hasUnread)
+  const styles = Constants.getRowStyles(stateProps._meta, isSelected, hasUnread)
   const participantNeedToRekey = stateProps._meta.rekeyers.size > 0
   const youNeedToRekey = !participantNeedToRekey && stateProps._meta.rekeyers.has(stateProps._username)
 
@@ -42,12 +42,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     isSelected,
     onSelectConversation: dispatchProps.onSelectConversation,
     participantNeedToRekey,
-    participants: Constants2.getRowParticipants(stateProps._meta, stateProps._username).toArray(),
+    participants: Constants.getRowParticipants(stateProps._meta, stateProps._username).toArray(),
     showBold: styles.showBold,
     snippet: stateProps._meta.snippet,
     subColor: styles.subColor,
     teamname: stateProps._meta.teamname,
-    timestamp: Constants2.timestampToString(stateProps._meta),
+    timestamp: Constants.timestampToString(stateProps._meta),
     usernameColor: styles.usernameColor,
     youAreReset: stateProps.youAreReset,
     youNeedToRekey,
