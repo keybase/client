@@ -4,6 +4,7 @@ protocol local {
   import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
   import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
   import idl "common.avdl";
+  import idl "chat_ui.avdl";
 
   record MessageText {
     string body;
@@ -782,4 +783,12 @@ protocol local {
   void setTeamRetentionLocal(keybase1.TeamID teamID, RetentionPolicy policy);
 
   void upgradeKBFSConversationToImpteam(ConversationID convID);
+
+  record GetSearchRegexpRes {
+    array<ChatSearchHit> hits;
+    array<RateLimit> rateLimits;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
+  }
+
+  GetSearchRegexpRes getSearchRegexp(int sessionID, ConversationID conversationID, string query, int maxHits, int maxMessages, keybase1.TLFIdentifyBehavior identifyBehavior);
 }

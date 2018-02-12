@@ -47,6 +47,9 @@ const (
 	BrewKBFSLabel ServiceLabel = "homebrew.mxcl.kbfs"
 	// UnknownLabel is an empty/unknown label
 	UnknownLabel ServiceLabel = ""
+
+	// See osx/Installer/Installer.m : KBExitAuthCanceledError
+	installHelperExitCodeAuthCanceled int = 6
 )
 
 // KeybaseServiceStatus returns service status for Keybase service
@@ -425,7 +428,11 @@ func InstallAuto(context Context, binPath string, sourcePath string, timeout tim
 		}
 	}
 
-	return Install(context, binPath, sourcePath, components, false, timeout, log)
+	// A force unmount is needed to change from one mountpoint to another
+	// if the mount is in use after an upgrade, and install-auto is
+	// invoked from the updater.
+	forceUnmount := true
+	return Install(context, binPath, sourcePath, components, forceUnmount, timeout, log)
 }
 
 // Install installs specified components
@@ -467,15 +474,39 @@ func Install(context Context, binPath string, sourcePath string, components []st
 		}
 	}
 
+	helperCanceled := false
 	if libkb.IsIn(string(ComponentNameHelper), components, false) {
 		err = libnativeinstaller.InstallHelper(context.GetRunMode(), log)
-		componentResults = append(componentResults, componentResult(string(ComponentNameHelper), err))
+		cr := componentResult(string(ComponentNameHelper), err)
+		componentResults = append(componentResults, cr)
 		if err != nil {
-			log.Errorf("Error installing Helper: %s", err)
+			log.Errorf("Error installing Helper: %v", err)
+		}
+		if cr.ExitCode == installHelperExitCodeAuthCanceled {
+			log.Debug("Auth canceled; uninstalling mountdir and fuse")
+			helperCanceled = true
+			mountDir, err := context.GetMountDir()
+			if err == nil {
+				err = UninstallKBFS(context, mountDir, true, log)
+			}
+			if err != nil {
+				log.Errorf("Error uninstalling KBFS: %s", err)
+			}
+
+			err = libnativeinstaller.UninstallMountDir(
+				context.GetRunMode(), log)
+			if err != nil {
+				log.Errorf("Error uninstalling mount directory: %s", err)
+			}
+			err = libnativeinstaller.UninstallFuse(context.GetRunMode(), log)
+			if err != nil {
+				log.Errorf("Error uninstalling FUSE: %s", err)
+			}
 		}
 	}
 
-	if libkb.IsIn(string(ComponentNameFuse), components, false) {
+	if !helperCanceled &&
+		libkb.IsIn(string(ComponentNameFuse), components, false) {
 		err = libnativeinstaller.InstallFuse(context.GetRunMode(), log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameFuse), err))
 		if err != nil {
@@ -483,7 +514,8 @@ func Install(context Context, binPath string, sourcePath string, components []st
 		}
 	}
 
-	if libkb.IsIn(string(ComponentNameMountDir), components, false) {
+	if !helperCanceled &&
+		libkb.IsIn(string(ComponentNameMountDir), components, false) {
 		err = libnativeinstaller.InstallMountDir(context.GetRunMode(), log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameMountDir), err))
 		if err != nil {
@@ -789,17 +821,12 @@ func UninstallKBFSOnStop(context Context, log Log) error {
 	return nil
 }
 
-// UninstallKBFS uninstalls all KBFS services, unmounts and optionally removes the mount directory
-func UninstallKBFS(context Context, mountDir string, forceUnmount bool, log Log) error {
-	err := UninstallKBFSServices(context, log)
-	if err != nil {
-		return err
-	}
-
+func unmount(mountDir string, forceUnmount bool, log Log) error {
+	log.Debug("Checking if mounted: %s", mountDir)
 	if _, serr := os.Stat(mountDir); os.IsNotExist(serr) {
 		return nil
 	}
-	log.Debug("Checking if mounted: %s", mountDir)
+
 	mounted, err := mounter.IsMounted(mountDir, log)
 	if err != nil {
 		return err
@@ -817,6 +844,38 @@ func UninstallKBFS(context Context, mountDir string, forceUnmount bool, log Log)
 	}
 	if !empty {
 		return fmt.Errorf("Mount has files after unmounting: %s", mountDir)
+	}
+	return nil
+}
+
+// UninstallKBFS uninstalls all KBFS services, unmounts and optionally removes the mount directory
+func UninstallKBFS(context Context, mountDir string, forceUnmount bool, log Log) error {
+	err := UninstallKBFSServices(context, log)
+	if err != nil {
+		log.Warning("Couldn't stop KBFS: %+v", err)
+		// Continue despite the error, since the uninstall doesn't
+		// seem to be resilient against the "fallback" PID getting out
+		// of sync with the true KBFS PID.  TODO: fix the fallback PID
+		// logic?
+	}
+
+	err = unmount(mountDir, forceUnmount, log)
+	if err != nil {
+		return err
+	}
+	// For older systems, check `/keybase` too, just in case.
+	var oldMountDir string
+	switch context.GetRunMode() {
+	case libkb.ProductionRunMode:
+		oldMountDir = "/keybase"
+	case libkb.StagingRunMode:
+		oldMountDir = "/keybase.staging"
+	default:
+		oldMountDir = "/keybase.devel"
+	}
+	err = unmount(oldMountDir, forceUnmount, log)
+	if err != nil {
+		log.Debug("Error unmounting old mount dir %s: %v", oldMountDir, err)
 	}
 
 	return nil

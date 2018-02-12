@@ -642,6 +642,10 @@ func (m *ChatRemoteMock) SetAppNotificationSettings(ctx context.Context,
 	return res, errors.New("not implemented")
 }
 
+func (m *ChatRemoteMock) RetentionSweepConv(ctx context.Context, convID chat1.ConversationID) (res chat1.SweepRes, err error) {
+	return res, errors.New("not implemented")
+}
+
 func (m *ChatRemoteMock) UpgradeKBFSToImpteam(ctx context.Context, tlfID chat1.TLFID) error {
 	return errors.New("not implemented")
 }
@@ -832,15 +836,23 @@ type NonblockThreadResult struct {
 	Full   bool
 }
 
-type ChatUI struct {
-	inboxCb  chan NonblockInboxResult
-	threadCb chan NonblockThreadResult
+type NonblockSearchResult struct {
+	chat1.ChatSearchHitArg
 }
 
-func NewChatUI(inboxCb chan NonblockInboxResult, threadCb chan NonblockThreadResult) *ChatUI {
+type ChatUI struct {
+	inboxCb      chan NonblockInboxResult
+	threadCb     chan NonblockThreadResult
+	searchHitCb  chan chat1.ChatSearchHitArg
+	searchDoneCb chan chat1.ChatSearchDoneArg
+}
+
+func NewChatUI(inboxCb chan NonblockInboxResult, threadCb chan NonblockThreadResult, searchHitCb chan chat1.ChatSearchHitArg, searchDoneCb chan chat1.ChatSearchDoneArg) *ChatUI {
 	return &ChatUI{
-		inboxCb:  inboxCb,
-		threadCb: threadCb,
+		inboxCb:      inboxCb,
+		threadCb:     threadCb,
+		searchHitCb:  searchHitCb,
+		searchDoneCb: searchDoneCb,
 	}
 }
 
@@ -943,4 +955,14 @@ func (c *ChatUI) ChatThreadFull(ctx context.Context, arg chat1.ChatThreadFullArg
 
 func (c *ChatUI) ChatConfirmChannelDelete(ctx context.Context, arg chat1.ChatConfirmChannelDeleteArg) (bool, error) {
 	return true, nil
+}
+
+func (c *ChatUI) ChatSearchHit(ctx context.Context, arg chat1.ChatSearchHitArg) error {
+	c.searchHitCb <- arg
+	return nil
+}
+
+func (c *ChatUI) ChatSearchDone(ctx context.Context, arg chat1.ChatSearchDoneArg) error {
+	c.searchDoneCb <- arg
+	return nil
 }

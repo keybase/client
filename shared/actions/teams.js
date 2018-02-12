@@ -29,13 +29,13 @@ import {convertToError} from '../util/errors'
 import type {TypedState} from '../constants/reducer'
 
 const _createNewTeam = function*(action: TeamsGen.CreateNewTeamPayload) {
-  const {teamname, rootPath, sourceSubPath, destSubPath} = action.payload
+  const {destSubPath, joinSubteam, rootPath, sourceSubPath, teamname} = action.payload
   yield Saga.put(TeamsGen.createSetTeamCreationError({error: ''}))
   yield Saga.put(TeamsGen.createSetTeamCreationPending({pending: true}))
   try {
     yield Saga.call(RPCTypes.teamsTeamCreateRpcPromise, {
+      joinSubteam,
       name: teamname,
-      joinSubteam: false,
     })
 
     // Dismiss the create team dialog.

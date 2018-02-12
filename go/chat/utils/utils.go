@@ -778,6 +778,8 @@ func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.Unverifie
 	res.TeamType = rawConv.Metadata.TeamType
 	res.Version = rawConv.Metadata.Version
 	res.MaxMsgID = rawConv.ReaderInfo.MaxMsgid
+	res.Supersedes = rawConv.Metadata.Supersedes
+	res.SupersededBy = rawConv.Metadata.SupersededBy
 	if rc.LocalMetadata != nil {
 		res.LocalMetadata = &chat1.UnverifiedInboxUIItemMetadata{
 			ChannelName:       rc.LocalMetadata.TopicName,

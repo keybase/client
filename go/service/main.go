@@ -343,6 +343,7 @@ func (d *Service) createChatModules() {
 	g.InboxSource = chat.NewInboxSource(g, g.Env.GetInboxSourceType(), ri)
 	g.ConvSource = chat.NewConversationSource(g, g.Env.GetConvSourceType(),
 		boxer, storage.New(g), ri)
+	g.Searcher = chat.NewSearcher(g)
 	g.ServerCacheVersions = storage.NewServerVersions(g)
 
 	// Syncer and retriers

@@ -72,7 +72,7 @@ type CallError struct {
 	Data    interface{} `json:"data,omitempty"`
 }
 
-// Reply is returned with the results of procressing a Call.
+// Reply is returned with the results of processing a Call.
 type Reply struct {
 	Jsonrpc string      `json:"jsonrpc,omitempty"`
 	ID      int         `json:"id,omitempty"`

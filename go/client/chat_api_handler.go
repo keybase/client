@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"regexp"
 	"strings"
 
 	"github.com/keybase/client/go/libkb"
@@ -16,15 +17,16 @@ import (
 )
 
 const (
-	methodList      = "list"
-	methodRead      = "read"
-	methodSend      = "send"
-	methodEdit      = "edit"
-	methodDelete    = "delete"
-	methodAttach    = "attach"
-	methodDownload  = "download"
-	methodSetStatus = "setstatus"
-	methodMark      = "mark"
+	methodList         = "list"
+	methodRead         = "read"
+	methodSend         = "send"
+	methodEdit         = "edit"
+	methodDelete       = "delete"
+	methodAttach       = "attach"
+	methodDownload     = "download"
+	methodSetStatus    = "setstatus"
+	methodMark         = "mark"
+	methodSearchRegexp = "searchregexp"
 )
 
 type RateLimit struct {
@@ -49,6 +51,7 @@ type ChatAPIHandler interface {
 	DownloadV1(context.Context, Call, io.Writer) error
 	SetStatusV1(context.Context, Call, io.Writer) error
 	MarkV1(context.Context, Call, io.Writer) error
+	SearchRegexpV1(context.Context, Call, io.Writer) error
 }
 
 // ChatAPI implements ChatAPIHandler and contains a ChatServiceHandler
@@ -263,6 +266,27 @@ func (o markOptionsV1) Check() error {
 	return checkChannelConv(methodMark, o.Channel, o.ConversationID)
 }
 
+type searchOptionsV1 struct {
+	Channel        ChatChannel
+	ConversationID string `json:"conversation_id"`
+	Query          string `json:"query"`
+	MaxHits        int    `json:"max_hits"`
+	MaxMessages    int    `json:"max_messages"`
+}
+
+func (o searchOptionsV1) Check() error {
+	if err := checkChannelConv(methodSearchRegexp, o.Channel, o.ConversationID); err != nil {
+		return err
+	}
+	if o.Query == "" {
+		return errors.New("query required")
+	}
+	if _, err := regexp.Compile(o.Query); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (a *ChatAPI) ListV1(ctx context.Context, c Call, w io.Writer) error {
 	var opts listOptionsV1
 	// Options are optional for list
@@ -414,6 +438,23 @@ func (a *ChatAPI) MarkV1(ctx context.Context, c Call, w io.Writer) error {
 	// opts are valid for mark v1
 
 	return a.encodeReply(c, a.svcHandler.MarkV1(ctx, opts), w)
+}
+
+func (a *ChatAPI) SearchRegexpV1(ctx context.Context, c Call, w io.Writer) error {
+	if len(c.Params.Options) == 0 {
+		return ErrInvalidOptions{version: 1, method: methodSearchRegexp, err: errors.New("empty options")}
+	}
+	var opts searchOptionsV1
+	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
+		return err
+	}
+	if err := opts.Check(); err != nil {
+		return err
+	}
+
+	// opts are valid for search v1
+
+	return a.encodeReply(c, a.svcHandler.SearchRegexpV1(ctx, opts), w)
 }
 
 func (a *ChatAPI) encodeReply(call Call, reply Reply, w io.Writer) error {

@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -2652,4 +2653,45 @@ func (h *Server) UpgradeKBFSConversationToImpteam(ctx context.Context, convID ch
 
 	return teams.UpgradeTLFIDToImpteam(ctx, h.G().ExternalG(), tlfName, keybase1.TLFID(tlfID.String()),
 		public, keybase1.TeamApplication_CHAT, cryptKeys)
+}
+
+func (h *Server) GetSearchRegexp(ctx context.Context, arg chat1.GetSearchRegexpArg) (res chat1.GetSearchRegexpRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "GetSearchRegexp")()
+	if err = h.assertLoggedIn(ctx); err != nil {
+		return res, err
+	}
+
+	re, err := regexp.Compile(arg.Query)
+	if err != nil {
+		return res, err
+	}
+
+	chatUI := h.getChatUI(arg.SessionID)
+	uiCh := make(chan chat1.ChatSearchHit)
+	go func() {
+		numHits := 0
+		for searchHit := range uiCh {
+			chatUI.ChatSearchHit(ctx, chat1.ChatSearchHitArg{
+				SessionID: arg.SessionID,
+				SearchHit: searchHit,
+			})
+			numHits++
+		}
+		chatUI.ChatSearchDone(ctx, chat1.ChatSearchDoneArg{
+			SessionID: arg.SessionID,
+			NumHits:   numHits,
+		})
+	}()
+
+	hits, rlimits, err := h.G().Searcher.SearchRegexp(ctx, uiCh, arg.ConversationID, re, arg.MaxHits, arg.MaxMessages)
+	if err != nil {
+		return res, err
+	}
+	return chat1.GetSearchRegexpRes{
+		Hits:             hits,
+		RateLimits:       rlimits,
+		IdentifyFailures: identBreaks,
+	}, nil
 }

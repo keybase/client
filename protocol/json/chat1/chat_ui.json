@@ -124,6 +124,20 @@
             "UnverifiedInboxUIItemMetadata"
           ],
           "name": "localMetadata"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationMetadata"
+          },
+          "name": "supersedes"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationMetadata"
+          },
+          "name": "supersededBy"
         }
       ]
     },
@@ -485,6 +499,40 @@
           "name": "pagination"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "ChatSearchHit",
+      "fields": [
+        {
+          "type": [
+            null,
+            "UIMessage"
+          ],
+          "name": "prevMessage"
+        },
+        {
+          "type": [
+            null,
+            "UIMessage"
+          ],
+          "name": "hitMessage"
+        },
+        {
+          "type": [
+            null,
+            "UIMessage"
+          ],
+          "name": "nextMessage"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "matches"
+        }
+      ]
     }
   ],
   "messages": {
@@ -678,6 +726,32 @@
       ],
       "response": null,
       "oneway": true
+    },
+    "chatSearchHit": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "searchHit",
+          "type": "ChatSearchHit"
+        }
+      ],
+      "response": null
+    },
+    "chatSearchDone": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "numHits",
+          "type": "int"
+        }
+      ],
+      "response": null
     },
     "chatConfirmChannelDelete": {
       "request": [

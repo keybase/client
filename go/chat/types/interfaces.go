@@ -1,6 +1,8 @@
 package types
 
 import (
+	"regexp"
+
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -68,6 +70,10 @@ type MessageDeliverer interface {
 	Queue(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext,
 		outboxID *chat1.OutboxID, identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.OutboxRecord, error)
 	ForceDeliverLoop(ctx context.Context)
+}
+
+type Searcher interface {
+	SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchHit, conversationID chat1.ConversationID, re *regexp.Regexp, maxHits int, maxMessages int) (hits []chat1.ChatSearchHit, rlimits []chat1.RateLimit, err error)
 }
 
 type Sender interface {
