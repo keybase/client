@@ -47,6 +47,14 @@ class PanZoomCalculator {
 
   // TODO fix this
   updateTouches = (touches: Touch[]) => {
+    if (touches.length < 2) {
+      this.touch2 = null
+      this.initialTouch2 = null
+    }
+    if (touches.length < 1) {
+      this.touch1 = null
+      this.initialTouch1 = null
+    }
     for (const touch of touches) {
       if (this.initialTouch1 && this.initialTouch1.identifier === touch.identifier) {
         this.touch1 = touch
@@ -59,14 +67,6 @@ class PanZoomCalculator {
         this.initialTouch2 = touch
         this.touch2 = touch
       }
-    }
-    if (touches.length < 2) {
-      this.touch2 = null
-      this.initialTouch2 = null
-    }
-    if (touches.length < 1) {
-      this.touch1 = null
-      this.initialTouch1 = null
     }
   }
 
