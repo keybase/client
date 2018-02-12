@@ -46,7 +46,7 @@ const getPreviewState = createSelector([Constants.getSelectedInbox], inbox => {
 type StateProps = {
   isPreview: boolean,
   admin: boolean,
-  channelname?: ?string,
+  channelname: ?string,
   muted: boolean,
   participants: Array<{
     username: string,
@@ -55,7 +55,7 @@ type StateProps = {
     broken: boolean,
   }>,
   selectedConversationIDKey: Types.ConversationIDKey,
-  teamname?: ?string,
+  teamname: ?string,
 }
 
 const mapStateToProps = (state: TypedState): StateProps => {
