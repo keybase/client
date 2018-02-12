@@ -199,6 +199,8 @@ const _renderTeamRow = (i: number, props: TeamRow) => {
 }
 
 const typeSizeEstimator = (type: RowType): number => {
+  // The sizes below are retrieved by using the React DevTools
+  // inspector on the appropriate components, including margins.
   switch (type) {
     case 'conversation footer':
       return 444
