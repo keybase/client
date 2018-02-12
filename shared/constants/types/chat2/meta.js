@@ -3,6 +3,7 @@
 import * as I from 'immutable'
 import * as RPCChatTypes from '../rpc-chat-gen'
 import * as Common from './common'
+import type {Ordinal} from './message'
 
 type MembershipType = 'active' | 'youArePreviewing' | 'youAreReset'
 type TeamType = 'small' | 'big' | 'adhoc'
@@ -18,6 +19,7 @@ export type _ConversationMeta = {
   isMuted: boolean,
   membershipType: MembershipType,
   notificationSettings: ?RPCChatTypes.ConversationNotificationInfo,
+  orangeLineOrdinal: ?Ordinal,
   participants: I.OrderedSet<string>,
   rekeyers: I.Set<string>,
   resetParticipants: I.Set<string>,

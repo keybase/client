@@ -16,11 +16,9 @@ const mapStateToProps = (state: TypedState, {message, previous, innerClass, isSe
   const isYou = state.config.username === message.author
   const isFollowing = state.config.following.has(message.author)
   const isBroken = state.users.infoMap.getIn([message.author, 'broken'], false)
-  let hasOlderResetConversation
-  if (!previous) {
-    const meta = Constants.getMeta(state, message.conversationIDKey)
-    hasOlderResetConversation = !!meta.supersedes
-  }
+  const meta = Constants.getMeta(state, message.conversationIDKey)
+  const hasOlderResetConversation = previous ? false : !!meta.supersedes
+  const orangeLineAbove = !!previous && meta.orangeLineOrdinal === previous.ordinal
 
   return {
     hasOlderResetConversation,
@@ -31,6 +29,7 @@ const mapStateToProps = (state: TypedState, {message, previous, innerClass, isSe
     isSelected,
     isYou,
     message,
+    orangeLineAbove,
     previous,
   }
 }
@@ -69,7 +68,8 @@ const mergeProps = (stateProps, dispatchProps) => {
     message.timestamp &&
     message.timestamp - previous.timestamp > howLongBetweenTimestampsMs
 
-  const timestamp = !previous || oldEnough ? formatTimeForMessages(message.timestamp) : null
+  const timestamp =
+    stateProps.orangeLineAbove || !previous || oldEnough ? formatTimeForMessages(message.timestamp) : null
   const includeHeader = !previous || !continuingTextBlock || !!timestamp
   let loadMoreType = null
   if (!previous) {
@@ -103,6 +103,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     onEdit: () => dispatchProps._onEdit(message.conversationIDKey, message.ordinal),
     onRetry: () => dispatchProps._onRetry(message.conversationIDKey, message.outboxID),
     onShowMenu: (clientRect: ?ClientRect) => dispatchProps._onShowMenu(clientRect, message),
+    orangeLineAbove: stateProps.orangeLineAbove,
     timestamp,
   }
 }

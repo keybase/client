@@ -22,6 +22,7 @@ export type Props = {
   onRetry: () => void,
   onEdit: () => void,
   onAuthorClick: () => void,
+  orangeLineAbove: boolean,
   timestamp: ?string,
 }
 

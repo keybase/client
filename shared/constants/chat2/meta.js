@@ -140,6 +140,7 @@ export const updateMeta = (
     m.set('participants', participants)
     m.set('rekeyers', rekeyers)
     m.set('resetParticipants', resetParticipants)
+    m.set('orangeLineOrdinal', old.orangeLineOrdinal)
   })
 }
 
@@ -207,6 +208,7 @@ export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record
   isMuted: false,
   membershipType: 'active',
   notificationSettings: null,
+  orangeLineOrdinal: null,
   participants: I.OrderedSet(),
   rekeyers: I.Set(),
   resetParticipants: I.Set(),

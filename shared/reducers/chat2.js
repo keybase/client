@@ -286,7 +286,22 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         }
       })
     case Chat2Gen.selectConversation:
-      return state.set('selectedConversation', action.payload.conversationIDKey)
+      return state.withMutations(s => {
+        // Update the orange line on the previous conversation
+        if (state.selectedConversation) {
+          s.updateIn(
+            ['metaMap', state.selectedConversation],
+            meta =>
+              meta
+                ? meta.set(
+                    'orangeLineOrdinal',
+                    state.messageOrdinals.get(state.selectedConversation, I.Set()).last()
+                  )
+                : meta
+          )
+        }
+        s.set('selectedConversation', action.payload.conversationIDKey)
+      })
     case Chat2Gen.setInboxFilter:
       return state.set('inboxFilter', action.payload.filter)
     case Chat2Gen.setPendingSelected:
@@ -447,7 +462,9 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       const metaMap =
         context.type === 'threadLoad' && state.metaMap.get(context.conversationIDKey)
           ? state.metaMap.update(context.conversationIDKey, (meta: Types.ConversationMeta) =>
-              meta.set('hasLoadedThread', true)
+              meta
+                .set('hasLoadedThread', true)
+                .set('orangeLineOrdinal', messageOrdinals.get(context.conversationIDKey, I.Set()).last())
             )
           : state.metaMap
 

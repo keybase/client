@@ -79,6 +79,7 @@ const Failure = ({failureDescription, onEdit, onRetry}) => {
 
 const MessageWrapper = (props: Props) => (
   <Box style={props.includeHeader ? _containerWithHeaderStyle : _containerNoHeaderStyle}>
+    {props.orangeLineAbove && <Box style={orangeLineStyle} />}
     {props.hasOlderResetConversation && (
       <ProfileResetNotice conversationIDKey={props.message.conversationIDKey} />
     )}
@@ -212,6 +213,11 @@ const _failStyleUnderline = {
 const _failStyleFace = {
   ..._failStyle,
   fontSize: 9,
+}
+const orangeLineStyle = {
+  height: 1,
+  widht: '100%',
+  backgroundColor: globalColors.orange,
 }
 
 export default MessageWrapper
