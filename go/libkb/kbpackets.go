@@ -201,19 +201,25 @@ func (p *KeybasePacket) unpackBody(ch *codec.MsgpackHandle) error {
 		// We can't use this SKB until it's been SetContext'ed
 		body = NewSKB()
 	case TagSignature:
-		sig := mb["sig"].([]byte)
 		si := &NaclSigInfo{
-			Kid:     keybase1.BinaryKID(mb["key"].([]uint8)),
-			Payload: mb["payload"].([]byte),
-			// Sig:      NaclSignature(sig),
+			Kid:      keybase1.BinaryKID(mb["key"].([]byte)),
+			Payload:  mb["payload"].([]byte),
 			SigType:  int(mb["sig_type"].(int64)),
 			HashType: int(mb["hash_type"].(int64)),
 			Detached: mb["detached"].(bool),
-			Version:  int(mb["version"].(int64)),
-			Prefix:   mb["prefix"].(SignaturePrefix),
 		}
-		copy(si.Sig[:], sig)
-		body = si
+
+		if sig, ok := mb["sig"].([]byte); ok {
+			copy(si.Sig[:], sig)
+		}
+		if v, ok := mb["version"].(int64); ok {
+			si.Version = int(v)
+		}
+		if p, ok := mb["prefix"].(SignaturePrefix); ok {
+			si.Prefix = p
+		}
+
+		p.Body = si
 		skipEncode = true
 	case TagEncryption:
 		body = &NaclEncryptionInfo{}
@@ -229,9 +235,8 @@ func (p *KeybasePacket) unpackBody(ch *codec.MsgpackHandle) error {
 		if err := MsgpackDecodeAll(encoded, ch, body); err != nil {
 			return err
 		}
+		p.Body = body
 	}
-
-	p.Body = body
 
 	return nil
 }
