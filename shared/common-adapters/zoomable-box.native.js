@@ -46,7 +46,6 @@ class PanZoomCalculator {
     this._scaleOffset = 1
   }
 
-  // TODO fix this
   updateTouches = (touches: Touch[]) => {
     if (touches.length < 2) {
       this.touch2 = null
