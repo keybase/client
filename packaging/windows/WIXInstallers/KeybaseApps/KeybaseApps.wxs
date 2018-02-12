@@ -34,7 +34,7 @@
       <Custom Action="StopMainApp" Before="StopUpdater"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
       <Custom Action="StopUpdater" Before="StopGUI"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
       <Custom Action="RemoveBrowserExtension" Before="InstallValidate"><![CDATA[Installed]]></Custom>
-      <Custom Action="RemoveGUIShortcut" Before="InstallValidate"><![CDATA[REMOVE ~= "ALL" AND NOT UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
+      <Custom Action="RemoveGUIStartupShortcut" Before="InstallValidate"><![CDATA[REMOVE ~= "ALL" AND NOT (UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED)]]></Custom>
       <!-- StopGUI is legacy and to be removed after enough people are updated -->
       <Custom Action="StopGUI" Before="InstallValidate"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
       <Custom Action="RunMainApp" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
@@ -241,7 +241,7 @@
               Return="ignore"/>
   </Fragment>
   <Fragment>
-    <CustomAction Id="RemoveGUIShortcut"
+    <CustomAction Id="RemoveGUIStartupShortcut"
                   Script="vbscript">
       <![CDATA[
         const HKCU = &H80000001

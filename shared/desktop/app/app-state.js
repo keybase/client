@@ -125,10 +125,10 @@ export default class AppState {
   }
 
   setOSLoginState() {
-/*     if (__DEV__) {
+    if (__DEV__) {
       console.log('Skipping auto login state change due to dev env. ')
       return
-    } */
+    }
     // Comment this out if you want to test auto login stuff
 
     const isDarwin = process.platform === 'darwin'
