@@ -38,6 +38,7 @@ type FileRowProps = {
 type FolderProps = {
   items: Array<Types.Path>,
   path: Types.Path,
+  progress: 'pending' | 'loaded',
 }
 
 const folderBoxStyle = {...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'stretch'}
@@ -63,17 +64,42 @@ const FileRow = RowConnector(({path, name, icon, onOpen}: FileRowProps) => (
   </Box>
 ))
 
+const rowPlaceholderIcon = isMobile ? 'icon-folder-private-24' : 'icon-folder-private-24'
+const placeholderTextStyle = {
+  width: '256px',
+  backgroundColor: 'lightGrey',
+  height: '16px',
+  marginTop: '4px',
+}
+const FileRowPlaceholder = () => (
+  <Box style={stylesCommonRow}>
+    <Box style={stylesRowBox}>
+      <Icon type={rowPlaceholderIcon} style={iconStyle} />
+      <Box style={folderBoxStyle}>
+        <Box style={placeholderTextStyle} />
+      </Box>
+    </Box>
+  </Box>
+)
+
 class Files extends React.PureComponent<FolderProps> {
   _renderRow = (index, item) => <FileRow key={Types.pathToString(item)} path={item} />
+  _renderRowPlaceholder = () => <FileRowPlaceholder />
 
   render() {
-    const {path, items} = this.props
+    const {path, items, progress} = this.props
+    const list =
+      progress === 'pending' ? (
+        <List items={[null, null, null]} renderItem={this._renderRowPlaceholder} />
+      ) : (
+        <List items={items} renderItem={this._renderRow} />
+      )
     return (
       <Box style={styleOuterContainer}>
         <Box style={stylesContainer}>
           <FolderHeader path={path} />
           <SortBar />
-          <List items={items} renderItem={this._renderRow} />
+          {list}
         </Box>
       </Box>
     )

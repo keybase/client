@@ -4,12 +4,13 @@ import * as I from 'immutable'
 export opaque type Path = ?string
 
 export type PathType = 'folder' | 'file' | 'symlink' | 'unknown'
+export type ProgressType = 'pending' | 'loaded'
 
 export type PathItemMetadata = {
   lastModifiedTimestamp?: number,
   size?: number,
   lastWriter?: string,
-  progress: 'pending' | 'loaded',
+  progress: ProgressType,
 }
 
 export type _FolderPathItem = {
@@ -31,7 +32,7 @@ export type FilePathItem = I.RecordOf<_FilePathItem>
 
 export type _UnknownPathItem = {
   type: 'unknown',
-}
+} & PathItemMetadata
 export type UnknownPathItem = I.RecordOf<_UnknownPathItem>
 
 export type PathItem = FolderPathItem | SymlinkPathItem | FilePathItem | UnknownPathItem
