@@ -305,7 +305,7 @@ func TestSyncerAdHocFullReload(t *testing.T) {
 	}
 }
 
-func TestSyncerMembersTypeChaned(t *testing.T) {
+func TestSyncerMembersTypeChanged(t *testing.T) {
 	ctx, world, ri2, _, sender, list := setupTest(t, 1)
 	defer world.Cleanup()
 
