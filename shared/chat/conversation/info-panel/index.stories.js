@@ -15,7 +15,7 @@ const participant = {
 const load = () => {
   storiesOf('Chat/Conversation/InfoPanel', module).add('Participant', () => (
     <Box style={{maxWidth: 320}}>
-      <Participant onShowProfile={action('onShowProfile')} participant={participant} />
+      <Participant onShowProfile={action('onShowProfile')} {...participant} />
     </Box>
   ))
 }

@@ -82,13 +82,11 @@ type BigHeaderRow = {
 
 type ParticipantRow = {
   type: 'participant',
-  participant: {
-    username: string,
-    following: boolean,
-    fullname: string,
-    broken: boolean,
-    isYou: boolean,
-  },
+  username: string,
+  following: boolean,
+  fullname: string,
+  broken: boolean,
+  isYou: boolean,
   onShowProfile: string => void,
   key: string,
 }
@@ -193,9 +191,7 @@ const _renderTeamRow = (i: number, props: TeamRow) => {
         </Box>
       )
     case 'participant':
-      return (
-        <Participant key={props.key} participant={props.participant} onShowProfile={props.onShowProfile} />
-      )
+      return <Participant key={props.key} {...props} />
 
     default:
       throw new Error('Unexpected type ' + props.type)
@@ -224,9 +220,9 @@ const typeSizeEstimator = (type: RowType): number => {
 
 const _InfoPanel = (props: InfoPanelProps) => {
   const participants: Array<ParticipantRow> = props.participants.map(participant => ({
+    ...participant,
     onShowProfile: props.onShowProfile,
     type: 'participant',
-    participant,
     key: participant.username,
   }))
 
