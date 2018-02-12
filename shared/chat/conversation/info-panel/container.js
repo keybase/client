@@ -4,7 +4,7 @@ import * as Constants from '../../../constants/chat'
 import * as Types from '../../../constants/types/chat'
 import * as TeamTypes from '../../../constants/types/teams'
 import * as ChatGen from '../../../actions/chat-gen'
-import {ConversationInfoPanel, SmallTeamInfoPanel, BigTeamInfoPanel} from '.'
+import {InfoPanel} from '.'
 import {Map} from 'immutable'
 import {connect, type TypedState} from '../../../util/container'
 import {getCanPerform} from '../../../constants/teams'
@@ -55,6 +55,7 @@ type StateProps = {
     broken: boolean,
   }>,
   selectedConversationIDKey: Types.ConversationIDKey,
+  smallTeam: boolean,
   teamname: ?string,
 }
 
@@ -73,6 +74,8 @@ const mapStateToProps = (state: TypedState): StateProps => {
     admin = yourOperations.renameChannel
   }
 
+  const smallTeam = Constants.getTeamType(state) === ChatTypes.commonTeamType.simple
+
   return {
     ...getPreviewState(state),
     admin,
@@ -81,6 +84,7 @@ const mapStateToProps = (state: TypedState): StateProps => {
     participants: getParticipants(state),
     selectedConversationIDKey,
     teamname,
+    smallTeam,
   }
 }
 
@@ -153,35 +157,21 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onViewTeam: () => dispatchProps._onViewTeam(stateProps.teamname),
 })
 
-const ConnectedBigTeamInfoPanel = connect(mapStateToProps, mapDispatchToProps, mergeProps)(BigTeamInfoPanel)
-
-const ConnectedSmallTeamInfoPanel = connect(mapStateToProps, mapDispatchToProps, mergeProps)(
-  SmallTeamInfoPanel
-)
-
-const ConnectedConversationInfoPanel = connect(mapStateToProps, mapDispatchToProps, mergeProps)(
-  ConversationInfoPanel
-)
+const ConnectedInfoPanel = connect(mapStateToProps, mapDispatchToProps, mergeProps)(InfoPanel)
 
 type SelectorStateProps = {
-  channelname?: ?string,
-  selectedConversationIDKey?: Types.ConversationIDKey,
-  smallTeam?: boolean,
+  selectedConversationIDKey: ?Types.ConversationIDKey,
 }
 
 const mapStateToSelectorProps = (state: TypedState): SelectorStateProps => {
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
   const inbox = Constants.getSelectedInbox(state)
   if (!selectedConversationIDKey || !inbox) {
-    return {}
+    return {selectedConversationIDKey: null}
   }
-  const channelname = inbox.get('channelname')
-  const smallTeam = Constants.getTeamType(state) === ChatTypes.commonTeamType.simple
 
   return {
-    channelname,
     selectedConversationIDKey,
-    smallTeam,
   }
 }
 
@@ -202,18 +192,8 @@ class InfoPanelSelector extends React.PureComponent<SelectorProps> {
       return null
     }
 
-    if (this.props.smallTeam) {
-      return <ConnectedSmallTeamInfoPanel onBack={this.props.onBack} />
-    }
-
-    if (this.props.channelname) {
-      return <ConnectedBigTeamInfoPanel onBack={this.props.onBack} />
-    }
-
-    return <ConnectedConversationInfoPanel onBack={this.props.onBack} />
+    return <ConnectedInfoPanel onBack={this.props.onBack} />
   }
 }
 
-const ConnectedInfoPanel = connect(mapStateToSelectorProps, mapDispatchToSelectorProps)(InfoPanelSelector)
-
-export default ConnectedInfoPanel
+export default connect(mapStateToSelectorProps, mapDispatchToSelectorProps)(InfoPanelSelector)

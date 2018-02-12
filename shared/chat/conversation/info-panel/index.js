@@ -24,11 +24,12 @@ const listStyle = {
       }),
 }
 
-type infoPanelProps = {
+type InfoPanelProps = {
   isPreview: boolean,
   admin: boolean,
   muted: boolean,
   teamname: string,
+  smallTeam: boolean,
   participants: Array<{
     username: string,
     following: boolean,
@@ -52,21 +53,21 @@ type infoPanelProps = {
   onViewTeam: () => void,
 }
 
-type ConversationInfoPanelProps = infoPanelProps
+type ConversationInfoPanelProps = InfoPanelProps
 
 type ConversationFooterRow = ConversationInfoPanelProps & {
   type: 'conversation footer',
   key: 'CONVERSATION FOOTER',
 }
 
-type SmallTeamInfoPanelProps = infoPanelProps
+type SmallTeamInfoPanelProps = InfoPanelProps
 
 type SmallHeaderRow = SmallTeamInfoPanelProps & {
   type: 'small header',
   key: 'SMALL HEADER',
 }
 
-type BigTeamInfoPanelProps = infoPanelProps
+type BigTeamInfoPanelProps = InfoPanelProps
 
 type BigHeaderRow = BigTeamInfoPanelProps & {
   type: 'big header',
@@ -215,103 +216,98 @@ const typeSizeEstimator = (type: RowType): number => {
   }
 }
 
-const _ConversationInfoPanel = (props: ConversationInfoPanelProps) => {
-  const rows: Array<TeamRow> = []
-  props.participants.forEach(participant =>
-    rows.push({
-      onShowProfile: props.onShowProfile,
-      type: 'participant',
-      participant,
-      key: participant.username,
-    })
-  )
+const _InfoPanel = (props: InfoPanelProps) => {
+  if (props.smallTeam) {
+    const rows: Array<TeamRow> = [
+      ({
+        ...props,
+        type: 'small header',
+        key: 'SMALL HEADER',
+      }: SmallHeaderRow),
+    ]
+    props.participants.forEach(participant =>
+      rows.push({
+        onShowProfile: props.onShowProfile,
+        type: 'participant',
+        participant,
+        key: participant.username,
+      })
+    )
 
-  rows.push(
-    ({
-      ...props,
-      type: 'conversation footer',
-      key: 'CONVERSATION FOOTER',
-    }: ConversationFooterRow)
-  )
+    const rowSizeEstimator = index => typeSizeEstimator(rows[index].type)
+    return (
+      <List
+        items={rows}
+        renderItem={_renderTeamRow}
+        keyProperty="key"
+        style={listStyle}
+        itemSizeEstimator={rowSizeEstimator}
+      />
+    )
+  } else if (props.channelname) {
+    const rows: Array<TeamRow> = [
+      ({
+        ...props,
+        type: 'big header',
+        key: 'BIG HEADER',
+      }: BigHeaderRow),
+    ]
+    props.participants.forEach(participant =>
+      rows.push({
+        onShowProfile: props.onShowProfile,
+        type: 'participant',
+        participant,
+        key: participant.username,
+      })
+    )
 
-  const rowSizeEstimator = index => typeSizeEstimator(rows[index].type)
-  return (
-    <List
-      items={rows}
-      renderItem={_renderTeamRow}
-      keyProperty="key"
-      style={listStyle}
-      itemSizeEstimator={rowSizeEstimator}
-    />
-  )
+    const rowSizeEstimator = index => typeSizeEstimator(rows[index].type)
+    return (
+      <List
+        items={rows}
+        renderItem={_renderTeamRow}
+        keyProperty="key"
+        style={listStyle}
+        itemSizeEstimator={rowSizeEstimator}
+      />
+    )
+  } else {
+    const rows: Array<TeamRow> = []
+    props.participants.forEach(participant =>
+      rows.push({
+        onShowProfile: props.onShowProfile,
+        type: 'participant',
+        participant,
+        key: participant.username,
+      })
+    )
+
+    rows.push(
+      ({
+        ...props,
+        type: 'conversation footer',
+        key: 'CONVERSATION FOOTER',
+      }: ConversationFooterRow)
+    )
+
+    const rowSizeEstimator = index => typeSizeEstimator(rows[index].type)
+    return (
+      <List
+        items={rows}
+        renderItem={_renderTeamRow}
+        keyProperty="key"
+        style={listStyle}
+        itemSizeEstimator={rowSizeEstimator}
+      />
+    )
+  }
 }
 
-const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => {
-  const rows: Array<TeamRow> = [
-    ({
-      ...props,
-      type: 'small header',
-      key: 'SMALL HEADER',
-    }: SmallHeaderRow),
-  ]
-  props.participants.forEach(participant =>
-    rows.push({
-      onShowProfile: props.onShowProfile,
-      type: 'participant',
-      participant,
-      key: participant.username,
-    })
-  )
-
-  const rowSizeEstimator = index => typeSizeEstimator(rows[index].type)
-  return (
-    <List
-      items={rows}
-      renderItem={_renderTeamRow}
-      keyProperty="key"
-      style={listStyle}
-      itemSizeEstimator={rowSizeEstimator}
-    />
-  )
-}
-
-const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => {
-  const rows: Array<TeamRow> = [
-    ({
-      ...props,
-      type: 'big header',
-      key: 'BIG HEADER',
-    }: BigHeaderRow),
-  ]
-  props.participants.forEach(participant =>
-    rows.push({
-      onShowProfile: props.onShowProfile,
-      type: 'participant',
-      participant,
-      key: participant.username,
-    })
-  )
-
-  const rowSizeEstimator = index => typeSizeEstimator(rows[index].type)
-  return (
-    <List
-      items={rows}
-      renderItem={_renderTeamRow}
-      keyProperty="key"
-      style={listStyle}
-      itemSizeEstimator={rowSizeEstimator}
-    />
-  )
-}
-
-const wrap = x => (isMobile ? HeaderHoc(x) : x)
-const ConversationInfoPanel = wrap(_ConversationInfoPanel)
-const SmallTeamInfoPanel = wrap(_SmallTeamInfoPanel)
-const BigTeamInfoPanel = wrap(_BigTeamInfoPanel)
+const InfoPanel = isMobile ? HeaderHoc(_InfoPanel) : _InfoPanel
 
 const styleDivider = {
   marginBottom: globalMargins.small,
   marginTop: globalMargins.small,
 }
 
-export {ConversationInfoPanel, SmallTeamInfoPanel, BigTeamInfoPanel}
+export {InfoPanel}
