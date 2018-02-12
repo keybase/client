@@ -97,7 +97,7 @@ const _renderTeamRow = (i: number, props: TeamRow) => {
     case 'conversation footer':
       return (
         <Box key={props.key} style={{...globalStyles.flexBoxColumn, alignItems: 'stretch'}}>
-          <Divider style={{marginBottom: 20, marginTop: 10}} />
+          <Divider style={{marginBottom: 10, marginTop: 10}} />
 
           <TurnIntoTeam onClick={props.onShowNewTeamDialog} />
 
