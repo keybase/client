@@ -249,12 +249,7 @@ export const createMuteConversation = (
   }>
 ) => ({error: false, payload, type: muteConversation})
 export const createOpenFolder = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: openFolder})
-export const createResetChatWithoutThem = (
-  payload: $ReadOnly<{
-    conversationIDKey: Types.ConversationIDKey,
-    username: string,
-  }>
-) => ({error: false, payload, type: resetChatWithoutThem})
+export const createResetChatWithoutThem = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: resetChatWithoutThem})
 export const createResetLetThemIn = (
   payload: $ReadOnly<{
     conversationIDKey: Types.ConversationIDKey,

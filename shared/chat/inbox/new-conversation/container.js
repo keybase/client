@@ -14,16 +14,10 @@ type Props = {
 
 const mapStateToProps = (state: TypedState): * => {
   const users = state.chat2.pendingConversationUsers
-  // const selectedConversation = Constants.getSelectedConversation(state)
-  // let isSelected = selectedConversation === Constants.pendingConversation
-  // // also selected if the current convo is the same people as the search
-  // if (!isSelected) {
-  // const meta = Constants.getMeta(state, selectedConversation)
-  // const you = state.config.username
-  // isSelected = meta.participants.toSet().equals(users.concat([you]))
-  // }
+  const _you = state.config.username
 
   return {
+    _you,
     isSelected: state.chat2.pendingSelected,
     shouldShow: state.chat2.pendingMode !== 'none',
     users,
@@ -32,6 +26,13 @@ const mapStateToProps = (state: TypedState): * => {
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onClick: () => dispatch(Chat2Gen.createSetPendingSelected({selected: true})),
+})
+
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  isSelected: stateProps.isSelected,
+  onClick: dispatchProps.onClick,
+  shouldShow: stateProps.shouldShow,
+  users: stateProps.users.subtract([stateProps._you]),
 })
 
 class NewChooser extends React.PureComponent<Props> {
@@ -48,4 +49,4 @@ class NewChooser extends React.PureComponent<Props> {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(NewChooser)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(NewChooser)

@@ -150,7 +150,6 @@
     },
     "resetChatWithoutThem": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "username": "string"
     },
     "resetLetThemIn": {
       "conversationIDKey": "Types.ConversationIDKey",

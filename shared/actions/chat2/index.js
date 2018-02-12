@@ -345,6 +345,7 @@ const setupChatHandlers = () => {
             ? [
                 Chat2Gen.createMetaRequestTrusted({
                   conversationIDKeys: [Types.conversationIDToKey(convID)],
+                  force: true,
                 }),
               ]
             : null
@@ -1361,6 +1362,23 @@ const sendTyping = (action: Chat2Gen.SendTypingPayload) => {
   })
 }
 
+const resetChatWithoutThem = (action: Chat2Gen.ResetChatWithoutThemPayload, state: TypedState) => {
+  const {conversationIDKey} = action.payload
+  const meta = Constants.getMeta(state, conversationIDKey)
+  const goodParticipants = meta.participants.subtract(meta.resetParticipants)
+  return Saga.put(
+    Chat2Gen.createStartConversation({
+      participants: goodParticipants.toArray(),
+    })
+  )
+}
+
+const resetLetThemIn = (action: Chat2Gen.ResetLetThemInPayload) =>
+  Saga.call(RPCChatTypes.localAddTeamMemberAfterResetRpcPromise, {
+    convID: Types.keyToConversationID(action.payload.conversationIDKey),
+    username: action.payload.username,
+  })
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Refresh the inbox
   yield Saga.safeTakeEveryPure(
@@ -1434,6 +1452,8 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(Chat2Gen.attachmentUpload, attachmentUpload)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.sendTyping, sendTyping)
+  yield Saga.safeTakeEveryPure(Chat2Gen.resetChatWithoutThem, resetChatWithoutThem)
+  yield Saga.safeTakeEveryPure(Chat2Gen.resetLetThemIn, resetLetThemIn)
 }
 
 export default chat2Saga
