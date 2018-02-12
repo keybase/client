@@ -27,7 +27,6 @@ const listStyle = {
 type InfoPanelProps = {
   isPreview: boolean,
   admin: boolean,
-  muted: boolean,
   teamname: string,
   channelname: string,
   smallTeam: boolean,

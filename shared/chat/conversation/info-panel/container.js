@@ -47,7 +47,6 @@ type StateProps = {
   isPreview: boolean,
   admin: boolean,
   channelname: ?string,
-  muted: boolean,
   participants: Array<{
     username: string,
     following: boolean,
@@ -80,7 +79,6 @@ const mapStateToProps = (state: TypedState): StateProps => {
     ...getPreviewState(state),
     admin,
     channelname,
-    muted: Constants.getMuted(state),
     participants: getParticipants(state),
     selectedConversationIDKey,
     teamname,
