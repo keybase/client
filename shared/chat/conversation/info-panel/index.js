@@ -53,25 +53,32 @@ type InfoPanelProps = {
   onViewTeam: () => void,
 }
 
-type ConversationInfoPanelProps = InfoPanelProps
-
-type ConversationFooterRow = ConversationInfoPanelProps & {
+type ConversationFooterRow = {
   type: 'conversation footer',
   key: 'CONVERSATION FOOTER',
+  onShowBlockConversationDialog: () => void,
+  onShowNewTeamDialog: () => void,
 }
 
-type SmallTeamInfoPanelProps = InfoPanelProps
-
-type SmallHeaderRow = SmallTeamInfoPanelProps & {
+type SmallHeaderRow = {
   type: 'small header',
   key: 'SMALL HEADER',
+  admin: boolean,
+  teamname: string,
+  participantCount: number,
+  onViewTeam: () => void,
 }
 
-type BigTeamInfoPanelProps = InfoPanelProps
-
-type BigHeaderRow = BigTeamInfoPanelProps & {
+type BigHeaderRow = {
   type: 'big header',
   key: 'BIG HEADER',
+  admin: boolean,
+  teamname: string,
+  channelname: string,
+  participantCount: number,
+  onViewTeam: () => void,
+  onJoinChannel: () => void,
+  onLeaveConversation: () => void,
 }
 
 type ParticipantRow = {
@@ -119,7 +126,7 @@ const _renderTeamRow = (i: number, props: TeamRow) => {
         <Box key={props.key} style={{...globalStyles.flexBoxColumn, alignItems: 'stretch'}}>
           <SmallTeamHeader
             teamname={props.teamname}
-            participantCount={props.participants.length}
+            participantCount={props.participantCount}
             onClick={props.onViewTeam}
           />
 
@@ -131,7 +138,7 @@ const _renderTeamRow = (i: number, props: TeamRow) => {
           <ManageTeam
             canManage={props.admin}
             label="In this team"
-            participantCount={props.participants.length}
+            participantCount={props.participantCount}
             onClick={props.onViewTeam}
           />
         </Box>
@@ -181,7 +188,7 @@ const _renderTeamRow = (i: number, props: TeamRow) => {
           <ManageTeam
             canManage={props.admin && props.channelname === 'general'}
             label="In this channel"
-            participantCount={props.participants.length}
+            participantCount={props.participantCount}
             onClick={props.onViewTeam}
           />
         </Box>
@@ -224,6 +231,8 @@ const _InfoPanel = (props: InfoPanelProps) => {
     key: participant.username,
   }))
 
+  const participantCount = participants.length
+
   let rows: Array<TeamRow>
   if (props.smallTeam) {
     rows = [
@@ -231,6 +240,7 @@ const _InfoPanel = (props: InfoPanelProps) => {
         ...props,
         type: 'small header',
         key: 'SMALL HEADER',
+        participantCount,
       }: SmallHeaderRow),
     ].concat(participants)
   } else if (props.channelname) {
@@ -239,6 +249,7 @@ const _InfoPanel = (props: InfoPanelProps) => {
         ...props,
         type: 'big header',
         key: 'BIG HEADER',
+        participantCount,
       }: BigHeaderRow),
     ].concat(participants)
   } else {
