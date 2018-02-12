@@ -63,6 +63,15 @@ export const unverifiedInboxUIItemToConversationMeta = (
       ? i.localMetadata.channelName
       : ''
 
+  const {
+    conversationIDKey: supersededBy,
+    username: supersededByCausedBy,
+  } = conversationMetadataToMetaSupersedeInfo(i.supersededBy)
+  const {
+    conversationIDKey: supersedes,
+    username: supersedesCausedBy,
+  } = conversationMetadataToMetaSupersedeInfo(i.supersedes)
+
   const teamname = i.membersType === RPCChatTypes.commonConversationMembersType.team ? i.name : ''
 
   return makeConversationMeta({
@@ -75,8 +84,10 @@ export const unverifiedInboxUIItemToConversationMeta = (
     participants,
     resetParticipants,
     snippet: i.localMetadata ? i.localMetadata.snippet : '',
-    supersededBy: null,
-    supersedes: null,
+    supersededBy: supersededBy ? Types.stringToConversationIDKey(supersededBy) : null,
+    supersededByCausedBy,
+    supersedes: supersedes ? Types.stringToConversationIDKey(supersedes) : null,
+    supersedesCausedBy,
     teamType: getTeamType(i),
     teamname,
     timestamp: i.time,
