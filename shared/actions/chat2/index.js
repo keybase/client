@@ -633,7 +633,7 @@ const rpcLoadThread = (
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
       query: {
         disableResolveSupersedes: false,
-        markAsRead: true,
+        markAsRead: false,
         messageIDControl: {
           num,
           pivot,
