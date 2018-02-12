@@ -40,7 +40,6 @@ type InfoPanelProps = {
 
   // Used by HeaderHoc.
   onBack: () => void,
-  onMuteConversation: (muted: boolean) => void,
   onShowBlockConversationDialog: () => void,
   onShowNewTeamDialog: () => void,
   onShowProfile: (username: string) => void,

@@ -96,9 +96,6 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onJoinChannel: (conversationIDKey: Types.ConversationIDKey) => {
     dispatch(ChatGen.createJoinConversation({conversationIDKey}))
   },
-  _onMuteConversation: (conversationIDKey: Types.ConversationIDKey, muted: boolean) => {
-    dispatch(ChatGen.createMuteConversation({conversationIDKey, muted}))
-  },
   _onShowBlockConversationDialog: (conversationIDKey, participants) => {
     dispatch(
       navigateAppend([
@@ -135,9 +132,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
     dispatchProps._onLeaveConversation(stateProps.selectedConversationIDKey)
   },
   onJoinChannel: () => dispatchProps._onJoinChannel(stateProps.selectedConversationIDKey),
-  onMuteConversation: !Constants.isPendingConversationIDKey(stateProps.selectedConversationIDKey)
-    ? (muted: boolean) => dispatchProps._onMuteConversation(stateProps.selectedConversationIDKey, muted)
-    : null,
   onShowBlockConversationDialog: () =>
     dispatchProps._onShowBlockConversationDialog(
       stateProps.selectedConversationIDKey,
