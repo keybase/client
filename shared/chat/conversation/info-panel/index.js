@@ -201,7 +201,7 @@ const _renderTeamRow = (i: number, props: TeamRow) => {
 const typeSizeEstimator = (type: RowType): number => {
   switch (type) {
     case 'conversation footer':
-      return 482
+      return 444
 
     case 'small header':
       return 407
