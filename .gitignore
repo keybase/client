@@ -13,6 +13,7 @@ kbpagesconfig/kbpagesconfig
 kbpagesconfig/kbpagesconfig.test
 libpages/config/config.test
 libpages/libpages.test
+libpages/mime/builder/node_modules
 *.test
 
 **/vim-go-test-compile

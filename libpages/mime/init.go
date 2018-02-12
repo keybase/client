@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
+// This file is auto-generated and should not be edited by hand.
+
 package mime
 
 import "mime"

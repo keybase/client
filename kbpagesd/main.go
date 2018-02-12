@@ -38,6 +38,9 @@ func init() {
 		"stathat EZ key for reporting stats to stathat; empty disables stathat")
 	flag.StringVar(&fStathatPrefix, "stathat-prefix", "kbp -",
 		"prefix to stathat statnames")
+	// TODO: hook up support in kbpagesd.
+	// TODO: when we make kbpagesd horizontally scalable, blacklist and
+	// whitelist should be dynamically configurable.
 	flag.StringVar(&fBlacklist, "blacklist", "",
 		"a comma-separated list of domains to block")
 }

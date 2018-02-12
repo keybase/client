@@ -123,6 +123,7 @@ function printGo(types) {
   process.stdout.write(`// Copyright 2018 Keybase Inc. All rights reserved.\n`)
   process.stdout.write(`// Use of this source code is governed by a BSD\n`)
   process.stdout.write(`// license that can be found in the LICENSE file.\n\n`)
+  process.stdout.write(`// This file is auto-generated and should not be edited by hand.\n\n`)
   process.stdout.write(`package mime\n\n`)
   process.stdout.write(`import "mime"\n\n`)
   process.stdout.write(`func init() {\n`)

@@ -48,8 +48,8 @@ type ServerConfig struct {
 }
 
 // ErrDomainBlockedInBlacklist is returned when the server is configured
-// with a domain whitelist, and we receive a HTTP request that was sent to a
-// domain that's not in the whitelist.
+// with a domain blacklist, and we receive a HTTP request that was sent to a
+// domain that's in the blacklist.
 type ErrDomainBlockedInBlacklist struct{}
 
 // Error implements the error interface.
@@ -88,7 +88,7 @@ func (c *ServerConfig) checkDomainLists(domain string) error {
 			return ErrDomainBlockedInBlacklist{}
 		}
 	}
-	if c.domainWhitelist != nil && !c.domainWhitelist[domain] {
+	if len(c.domainWhitelist) > 0 && !c.domainWhitelist[domain] {
 		return ErrDomainNotAllowedInWhitelist{}
 	}
 
