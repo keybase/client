@@ -94,7 +94,7 @@ func (s *Searcher) SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchH
 		}
 	}
 	if uiCh != nil {
-		uiCh <- chat1.ChatSearchHit{}
+		close(uiCh)
 	}
 	return hits, utils.AggRateLimitsP(rlimitsp), nil
 }
