@@ -9,10 +9,10 @@ type OwnProps = {conversationIDKey: Types.ConversationIDKey}
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const _conversationIDKey = ownProps.conversationIDKey
-  const youAreReset = false // Constants.isResetConversationIDKey(state, _conversationIDKey)
-
+  const _meta = Constants.getMeta(state, _conversationIDKey)
+  const youAreReset = _meta.membershipType === 'youAreReset'
   return {
-    _meta: Constants.getMeta(state, _conversationIDKey),
+    _meta,
     _username: state.config.username || '',
     hasBadge: Constants.getHasBadge(state, _conversationIDKey),
     hasUnread: Constants.getHasUnread(state, _conversationIDKey),
