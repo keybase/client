@@ -40,7 +40,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     hasUnread,
     isMuted: stateProps._meta.isMuted,
     isSelected,
-    onSelectConversation: dispatchProps.onSelectConversation,
+    onSelectConversation: isSelected ? () => {} : dispatchProps.onSelectConversation,
     participantNeedToRekey,
     participants: Constants.getRowParticipants(stateProps._meta, stateProps._username).toArray(),
     showBold: styles.showBold,
