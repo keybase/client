@@ -19,6 +19,7 @@ export const attachmentLoaded = 'chat2:attachmentLoaded'
 export const attachmentLoading = 'chat2:attachmentLoading'
 export const attachmentNeedsUpdating = 'chat2:attachmentNeedsUpdating'
 export const attachmentUpload = 'chat2:attachmentUpload'
+export const attachmentUploaded = 'chat2:attachmentUploaded'
 export const attachmentUploading = 'chat2:attachmentUploading'
 export const badgesUpdated = 'chat2:badgesUpdated'
 export const clearOrdinals = 'chat2:clearOrdinals'
@@ -120,6 +121,12 @@ export const createAttachmentUpload = (
     title: string,
   }>
 ) => ({error: false, payload, type: attachmentUpload})
+export const createAttachmentUploaded = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    ordinal: Types.Ordinal,
+  }>
+) => ({error: false, payload, type: attachmentUploaded})
 export const createAttachmentUploading = (
   payload: $ReadOnly<{
     conversationIDKey: Types.ConversationIDKey,
@@ -306,6 +313,7 @@ export type AttachmentLoadedPayload = More.ReturnType<typeof createAttachmentLoa
 export type AttachmentLoadingPayload = More.ReturnType<typeof createAttachmentLoading>
 export type AttachmentNeedsUpdatingPayload = More.ReturnType<typeof createAttachmentNeedsUpdating>
 export type AttachmentUploadPayload = More.ReturnType<typeof createAttachmentUpload>
+export type AttachmentUploadedPayload = More.ReturnType<typeof createAttachmentUploaded>
 export type AttachmentUploadingPayload = More.ReturnType<typeof createAttachmentUploading>
 export type BadgesUpdatedPayload = More.ReturnType<typeof createBadgesUpdated>
 export type ClearOrdinalsPayload = More.ReturnType<typeof createClearOrdinals>
@@ -360,6 +368,7 @@ export type Actions =
   | More.ReturnType<typeof createAttachmentLoading>
   | More.ReturnType<typeof createAttachmentNeedsUpdating>
   | More.ReturnType<typeof createAttachmentUpload>
+  | More.ReturnType<typeof createAttachmentUploaded>
   | More.ReturnType<typeof createAttachmentUploading>
   | More.ReturnType<typeof createBadgesUpdated>
   | More.ReturnType<typeof createClearOrdinals>

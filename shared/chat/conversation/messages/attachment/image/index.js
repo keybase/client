@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box, Text, ClickableBox, Icon, ProgressBar} from '../../../../../common-adapters'
-import {globalStyles, globalMargins, globalColors, fileUIName} from '../../../../../styles'
+import {globalStyles, globalMargins, globalColors, fileUIName, isMobile} from '../../../../../styles'
 import {ImageRender} from './image-render'
 
 type Props = {
@@ -34,7 +34,7 @@ class ImageAttachment extends React.PureComponent<Props> {
   render() {
     return (
       <ClickableBox style={imageContainerStyle} onClick={this.props.onClick}>
-        <Text type="BodySemibold">
+        <Text type="BodySemibold" style={titleStyle}>
           {this.props.title} {this.props.path}
         </Text>
         <Box
@@ -76,6 +76,14 @@ class ImageAttachment extends React.PureComponent<Props> {
       </ClickableBox>
     )
   }
+}
+
+const titleStyle = {
+  ...(isMobile
+    ? {}
+    : {
+        wordBreak: 'break-word',
+      }),
 }
 
 const progressLabelStyle = {

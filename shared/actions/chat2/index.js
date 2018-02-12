@@ -1284,9 +1284,7 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
 
   const attachmentType = Constants.pathToAttachmentType(path)
 
-  // TODO asking patrick about sending this ahead of time (like text) instead of handling it in the flow
   let ordinal
-  // let outboxID
   let lastRatioSent = 0
 
   const postAttachment = new EngineRpc.EngineRpcCall(
@@ -1295,7 +1293,6 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
       'chat.1.chatUi.chatAttachmentPreviewUploadStart': EngineRpc.passthroughResponseSaga,
       'chat.1.chatUi.chatAttachmentUploadDone': EngineRpc.passthroughResponseSaga,
       'chat.1.chatUi.chatAttachmentUploadOutboxID': function*({outboxID}) {
-        // outboxID = Types.stringToOutboxID(param.outboxID.toString('hex') || '') // never null but makes flow happy
         const message = Constants.makePendingAttachmentMessage(
           state,
           conversationIDKey,
@@ -1311,14 +1308,11 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
             messages: [message],
           })
         )
+        yield Saga.put(Chat2Gen.createAttachmentUploading({conversationIDKey, ordinal, ratio: 0.01}))
         return EngineRpc.rpcResult()
       },
       'chat.1.chatUi.chatAttachmentUploadProgress': function*({bytesComplete, bytesTotal}) {
         const ratio = bytesComplete / bytesTotal
-        // if (!ordinal && outboxID) {
-        // const state: TypedState = yield Saga.select()
-        // ordinal = state.chat2.pendingOutboxToOrdinal.getIn([conversationIDKey, outboxID])
-        // }
         // Don't spam ourselves with updates
         if (ordinal && ratio - lastRatioSent > 0.05) {
           lastRatioSent = ratio
@@ -1349,6 +1343,7 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
         // TODO better error
         logger.warn('Upload Attachment Failed')
       } else {
+        yield Saga.put(Chat2Gen.createAttachmentUploaded({conversationIDKey, ordinal}))
       }
     } else {
       logger.warn('Upload Attachment Failed')
