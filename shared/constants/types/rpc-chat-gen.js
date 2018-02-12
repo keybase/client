@@ -1306,7 +1306,7 @@ export type UnreadUpdate = $ReadOnly<{convID: ConversationID, unreadMessages: In
 
 export type UnreadUpdateFull = $ReadOnly<{ignore: Boolean, inboxVers: InboxVers, inboxSyncStatus: SyncInboxResType, updates?: ?Array<UnreadUpdate>}>
 
-export type UnverifiedInboxUIItem = $ReadOnly<{convID: String, name: String, visibility: Keybase1.TLFVisibility, status: ConversationStatus, membersType: ConversationMembersType, memberStatus: ConversationMemberStatus, teamType: TeamType, notifications?: ?ConversationNotificationInfo, time: Gregor1.Time, version: ConversationVers, maxMsgID: MessageID, localMetadata?: ?UnverifiedInboxUIItemMetadata}>
+export type UnverifiedInboxUIItem = $ReadOnly<{convID: String, name: String, visibility: Keybase1.TLFVisibility, status: ConversationStatus, membersType: ConversationMembersType, memberStatus: ConversationMemberStatus, teamType: TeamType, notifications?: ?ConversationNotificationInfo, time: Gregor1.Time, version: ConversationVers, maxMsgID: MessageID, localMetadata?: ?UnverifiedInboxUIItemMetadata, supersedes?: ?Array<ConversationMetadata>, supersededBy?: ?Array<ConversationMetadata>}>
 
 export type UnverifiedInboxUIItemMetadata = $ReadOnly<{channelName: String, headline: String, snippet: String, writerNames?: ?Array<String>, resetParticipants?: ?Array<String>}>
 
