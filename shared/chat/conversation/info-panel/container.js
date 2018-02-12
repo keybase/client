@@ -116,8 +116,6 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       ])
     )
   },
-  _onLeaveTeam: (teamname: TeamTypes.Teamname) =>
-    dispatch(navigateAppend([{props: {teamname}, selected: 'reallyLeaveTeam'}])),
   _onViewTeam: (teamname: TeamTypes.Teamname) =>
     dispatch(navigateTo([teamsTab, {props: {teamname: teamname}, selected: 'team'}])),
   onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
@@ -140,7 +138,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onShowNewTeamDialog: () => {
     dispatchProps._onShowNewTeamDialog(stateProps.selectedConversationIDKey)
   },
-  onLeaveTeam: () => dispatchProps._onLeaveTeam(stateProps.teamname),
   onViewTeam: () => dispatchProps._onViewTeam(stateProps.teamname),
 })
 

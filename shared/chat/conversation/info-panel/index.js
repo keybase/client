@@ -29,6 +29,7 @@ type InfoPanelProps = {
   admin: boolean,
   muted: boolean,
   teamname: string,
+  channelname: string,
   smallTeam: boolean,
   participants: Array<{
     username: string,
@@ -40,16 +41,15 @@ type InfoPanelProps = {
 
   // Used by HeaderHoc.
   onBack: () => void,
+
   onShowBlockConversationDialog: () => void,
   onShowNewTeamDialog: () => void,
+
   onShowProfile: (username: string) => void,
-  onToggleInfoPanel: () => void,
-  onLeaveTeam: () => void,
+
   onViewTeam: () => void,
   onLeaveConversation: () => void,
-  channelname: string,
   onJoinChannel: () => void,
-  onViewTeam: () => void,
 }
 
 type ConversationFooterRow = {
