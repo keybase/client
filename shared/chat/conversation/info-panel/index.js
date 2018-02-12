@@ -47,7 +47,6 @@ type infoPanelProps = {
   channelname: string,
   onJoinChannel: () => void,
   onViewTeam: () => void,
-  teamname: string,
   isPreview: boolean,
 }
 
