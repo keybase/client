@@ -44,18 +44,17 @@ const getPreviewState = createSelector([Constants.getSelectedInbox], inbox => {
 })
 
 type StateProps = {
-  isPreview?: boolean,
-  admin?: boolean,
+  isPreview: boolean,
+  admin: boolean,
   channelname?: ?string,
-  muted?: ?boolean,
-  participants?: Array<{
+  muted: boolean,
+  participants: Array<{
     username: string,
     following: boolean,
     fullname: string,
     broken: boolean,
   }>,
-  selectedConversationIDKey?: Types.ConversationIDKey,
-  showTeamButton?: boolean,
+  selectedConversationIDKey: Types.ConversationIDKey,
   teamname?: ?string,
 }
 
@@ -63,7 +62,7 @@ const mapStateToProps = (state: TypedState): StateProps => {
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
   const inbox = Constants.getSelectedInbox(state)
   if (!selectedConversationIDKey || !inbox) {
-    return {}
+    throw new Error('Impossible')
   }
   const channelname = inbox.get('channelname')
   const teamname = inbox.get('teamname')
