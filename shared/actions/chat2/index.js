@@ -653,18 +653,12 @@ const clearInboxFilter = (action: Chat2Gen.SelectConversationPayload) =>
 
 const desktopNotify = (action: Chat2Gen.DesktopNotificationPayload, state: TypedState) => {
   const {conversationIDKey, author, body} = action.payload
-  const selectedConversationIDKey = Constants.getSelectedConversation(state)
-  const appFocused = state.config.appFocused
-  const chatTabSelected = state.routeTree.getIn(['routeState', 'selected']) === chatTab
   const metaMap = state.chat2.metaMap
 
   if (
-    !appFocused || // app not foxued?
-    !chatTabSelected || // not looking at the chat tab?
-    (conversationIDKey !== selectedConversationIDKey && // not looking at it currently?
-      !metaMap.getIn([conversationIDKey, 'isMuted']))
+    !Constants.isUserActivelyLookingAtThisThread(state, conversationIDKey) &&
+    !metaMap.getIn([conversationIDKey, 'isMuted']) // ignore muted convos
   ) {
-    // ignore muted convos
     logger.info('Sending Chat notification')
     return Saga.put((dispatch: Dispatch) => {
       NotifyPopup(author, {body}, -1, author, () => {
@@ -1379,6 +1373,56 @@ const resetLetThemIn = (action: Chat2Gen.ResetLetThemInPayload) =>
     username: action.payload.username,
   })
 
+// Keep track of the mark as read's we've already sent
+const lastMarkAsRead = {}
+const markThreadAsRead = (action: Chat2Gen.MessagesAddPayload, state: TypedState) => {
+  const {messages, context} = action.payload
+  if (context.type === 'sent') {
+    return
+  }
+  const you = state.config.username
+  const convIDToMaxMessageID = messages.reduce((map, m) => {
+    // Ignore your own messages
+    if (m.author === you) {
+      return map
+    }
+    const s = Types.conversationIDKeyToString(m.conversationIDKey)
+    const max = Math.max(map[s] || 0, m.id)
+    if (max) {
+      map[s] = max
+    }
+    return map
+  }, {})
+
+  let actions
+  Object.keys(convIDToMaxMessageID).some(s => {
+    const conversationIDKey = Types.stringToConversationIDKey(s)
+    if (Constants.isUserActivelyLookingAtThisThread(state, conversationIDKey)) {
+      const msgID = convIDToMaxMessageID[s]
+      if (!lastMarkAsRead[s]) {
+        lastMarkAsRead[s] = 0
+      }
+
+      if (lastMarkAsRead[s] >= msgID) {
+        console.log('aaa marking read bail on already marked', s, ': ', msgID)
+        return
+      } else {
+        lastMarkAsRead[s] = msgID
+      }
+
+      console.log('aaa marking read', s, ': ', msgID)
+      // actions = [
+      // Saga.call(RPCChatTypes.localMarkAsReadLocalRpcPromise, {
+      // conversationID: Types.keyToConversationID(conversationIDKey),
+      // msgID,
+      // }),
+      // ]
+      return true
+    }
+  })
+  return actions
+}
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Refresh the inbox
   yield Saga.safeTakeEveryPure(
@@ -1454,6 +1498,8 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.sendTyping, sendTyping)
   yield Saga.safeTakeEveryPure(Chat2Gen.resetChatWithoutThem, resetChatWithoutThem)
   yield Saga.safeTakeEveryPure(Chat2Gen.resetLetThemIn, resetLetThemIn)
+
+  yield Saga.safeTakeEveryPure(Chat2Gen.messagesAdd, markThreadAsRead)
 }
 
 export default chat2Saga

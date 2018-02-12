@@ -1,6 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import * as Types from '../types/chat2'
+import {chatTab} from '../tabs'
 import type {TypedState} from '../reducer'
 import {makeConversationMeta} from './meta'
 
@@ -74,6 +75,20 @@ export const getExistingConversationWithUsers = (
 ) => {
   const toFind = I.Set(users.concat([you]))
   return metaMap.findKey(meta => meta.participants.toSet().equals(toFind)) || ''
+}
+export const isUserActivelyLookingAtThisThread = (
+  state: TypedState,
+  conversationIDKey: Types.ConversationIDKey
+) => {
+  const selectedConversationIDKey = getSelectedConversation(state)
+  const appFocused = state.config.appFocused
+  const chatTabSelected = state.routeTree.getIn(['routeState', 'selected']) === chatTab
+
+  return (
+    appFocused && // app focused?
+    chatTabSelected && // looking at the chat tab?
+    conversationIDKey === selectedConversationIDKey // looking at the selected thread?
+  )
 }
 
 export {
