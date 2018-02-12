@@ -33,8 +33,7 @@ const getParticipants = createSelector(
         following,
         fullname,
         meta,
-        // TODO: Fix
-        isYou: false,
+        isYou: username === you,
         username,
       }
     })
