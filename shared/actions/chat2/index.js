@@ -1426,81 +1426,10 @@ const markThreadAsRead = (
   }
 
   console.log('aaa marking read', s, ': ', message.id)
-  // [
-  // Saga.call(RPCChatTypes.localMarkAsReadLocalRpcPromise, {
-  // conversationID: Types.keyToConversationID(conversationIDKey),
-  // msgID,
-  // }),
-  // ]
-
-  // let messages
-  // if (action.type === Chat2Gen.messagesAdd) {
-  // if (action.payload.context.type === 'sent') {
-  // console.log('aaa marking read bail on us sending')
-  // return
-  // }
-  // messages = action.payload.messages
-  // } else if (action.type === Chat2Gen.selectConversation) {
-  // const {conversationIDKey, fromUser} = action.payload
-  // if (!fromUser) {
-  // console.log('aaa marking read bail on non-user selecting')
-  // return
-  // }
-  // const mmap = Constants.getMessageMap(state, conversationIDKey)
-  // const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
-  // if (ordinals.size) {
-  // const message = mmap.get(ordinals.last())
-  // if (message) {
-  // messages = [message]
-  // }
-  // }
-  // }
-
-  // if (!messages) {
-  // console.log('aaa marking read bail on no messages')
-  // return
-  // }
-  // const you = state.config.username
-  // const convIDToMaxMessageID = messages.reduce((map, m) => {
-  // // Ignore your own messages
-  // if (m.author === you) {
-  // return map
-  // }
-  // const s = Types.conversationIDKeyToString(m.conversationIDKey)
-  // const max = Math.max(map[s] || 0, m.id)
-  // if (max) {
-  // map[s] = max
-  // }
-  // return map
-  // }, {})
-
-  // let actions
-  // Object.keys(convIDToMaxMessageID).some(s => {
-  // const conversationIDKey = Types.stringToConversationIDKey(s)
-  // if (Constants.isUserActivelyLookingAtThisThread(state, conversationIDKey)) {
-  // const msgID = convIDToMaxMessageID[s]
-  // if (!lastMarkAsRead[s]) {
-  // lastMarkAsRead[s] = 0
-  // }
-
-  // if (lastMarkAsRead[s] >= msgID) {
-  // console.log('aaa marking read bail on already marked', s, ': ', msgID)
-  // return
-  // } else {
-  // lastMarkAsRead[s] = msgID
-  // }
-
-  // console.log('aaa marking read', s, ': ', msgID)
-  // // actions = [
-  // // Saga.call(RPCChatTypes.localMarkAsReadLocalRpcPromise, {
-  // // conversationID: Types.keyToConversationID(conversationIDKey),
-  // // msgID,
-  // // }),
-  // // ]
-  // return true
-  // }
-  // })
-  // return actions
+  return Saga.call(RPCChatTypes.localMarkAsReadLocalRpcPromise, {
+    conversationID: Types.keyToConversationID(conversationIDKey),
+    msgID: message.id,
+  })
 }
 
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
