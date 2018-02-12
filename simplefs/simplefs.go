@@ -98,6 +98,12 @@ func (k *SimpleFS) SimpleFSList(ctx context.Context, arg keybase1.SimpleFSListAr
 
 		rawPath := arg.Path.Kbfs()
 		switch {
+		case rawPath == "/":
+			children = map[string]libkbfs.EntryInfo{
+				"private": libkbfs.EntryInfo{Type: libkbfs.Dir},
+				"public":  libkbfs.EntryInfo{Type: libkbfs.Dir},
+				"team":    libkbfs.EntryInfo{Type: libkbfs.Dir},
+			}
 		case rawPath == `/public`:
 			children, err = k.favoriteList(ctx, arg.Path, tlf.Public)
 		case rawPath == `/private`:
