@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box, Button, Divider, HeaderHoc, List, Text} from '../../../common-adapters'
+import {type Props as HeaderHocProps} from '../../../common-adapters/header-hoc'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
 import {SmallTeamHeader, BigTeamHeader} from './header'
 import Notifications from './notifications/container'
@@ -27,8 +28,8 @@ const listStyle = {
 type InfoPanelProps = {
   isPreview: boolean,
   admin: boolean,
-  teamname: string,
-  channelname: string,
+  teamname: ?string,
+  channelname: ?string,
   smallTeam: boolean,
   participants: Array<{
     username: string,
@@ -49,7 +50,7 @@ type InfoPanelProps = {
   onViewTeam: () => void,
   onLeaveConversation: () => void,
   onJoinChannel: () => void,
-}
+} & HeaderHocProps
 
 type ConversationFooterRow = {
   type: 'conversation footer',
@@ -235,19 +236,28 @@ const _InfoPanel = (props: InfoPanelProps) => {
   if (props.smallTeam) {
     rows = [
       ({
-        ...props,
         type: 'small header',
         key: 'SMALL HEADER',
+        admin: props.admin,
+        // TODO: Fix
+        teamname: props.teamname || '',
         participantCount,
+        onViewTeam: props.onViewTeam,
       }: SmallHeaderRow),
     ].concat(participants)
   } else if (props.channelname) {
     rows = [
       ({
-        ...props,
         type: 'big header',
         key: 'BIG HEADER',
+        admin: props.admin,
+        // TODO: Fix
+        teamname: props.teamname || '',
+        channelname: props.channelname || '',
         participantCount,
+        onJoinChannel: props.onJoinChannel,
+        onLeaveConversation: props.onLeaveConversation,
+        onViewTeam: props.onViewTeam,
       }: BigHeaderRow),
     ].concat(participants)
   } else {
@@ -279,4 +289,5 @@ const styleDivider = {
   marginTop: globalMargins.small,
 }
 
+export type {InfoPanelProps}
 export {InfoPanel}

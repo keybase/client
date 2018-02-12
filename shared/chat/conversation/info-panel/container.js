@@ -4,7 +4,7 @@ import * as Constants from '../../../constants/chat'
 import * as Types from '../../../constants/types/chat'
 import * as TeamTypes from '../../../constants/types/teams'
 import * as ChatGen from '../../../actions/chat-gen'
-import {InfoPanel} from '.'
+import {InfoPanel, type InfoPanelProps} from '.'
 import {Map} from 'immutable'
 import {connect, type TypedState} from '../../../util/container'
 import {getCanPerform} from '../../../constants/teams'
@@ -33,6 +33,8 @@ const getParticipants = createSelector(
         following,
         fullname,
         meta,
+        // TODO: Fix
+        isYou: false,
         username,
       }
     })
@@ -119,7 +121,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, ownProps): InfoPanelProps => ({
   ...stateProps,
   ...dispatchProps,
   ...ownProps,
