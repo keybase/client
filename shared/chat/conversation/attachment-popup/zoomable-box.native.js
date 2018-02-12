@@ -10,11 +10,25 @@ type Touch = {
   pageY: number,
 }
 
+type GestureState = {
+  stateID: number,
+  moveX: number,
+  moveY: number,
+  x0: number,
+  y0: number,
+  dx: number,
+  dy: number,
+  vx: number,
+  vy: number,
+  numberActiveTouches: number,
+}
+
 class PanZoomCalculator {
   initialTouch1: ?Touch = null
   touch1: ?Touch = null
   initialTouch2: ?Touch = null
   touch2: ?Touch = null
+  gestureState: ?GestureState = null
 
   addTouch = (touch: Touch) => {
     if (this.touch1 === null) {
@@ -33,20 +47,7 @@ class PanZoomCalculator {
     this.touch2 = null
   }
 
-  updateTouch = (touch: Touch) => {
-    if (this.initialTouch1 && this.initialTouch1.identifier === touch.identifier) {
-      this.touch1 = touch
-      return
-    } else if (this.initialTouch2 && this.initialTouch2.identifier === touch.identifier) {
-      this.touch2 = touch
-      return
-    }
-    if (!this.touch2) {
-      this.initialTouch2 = touch
-      this.touch2 = touch
-    }
-  }
-
+  // TODO fix this
   updateTouches = (touches: Touch[]) => {
     for (const touch of touches) {
       if (this.initialTouch1 && this.initialTouch1.identifier === touch.identifier) {
@@ -61,26 +62,27 @@ class PanZoomCalculator {
         this.touch2 = touch
       }
     }
+    if (touches.length < 2) {
+      this.touch2 = null
+      this.initialTouch2 = null
+    }
+    if (touches.length < 1) {
+      this.touch1 = null
+      this.initialTouch1 = null
+    }
+  }
+
+  updateGestureState = (gestureState: GestureState) => {
+    this.gestureState = gestureState
+  }
+
+  releaseGestureState = () => {
+    this.gestureState = null
   }
 
   panOffset = (): {x: number, y: number} => {
-    let deltaX1: number = 0
-    let deltaX2: number = 0
-    let deltaY1: number = 0
-    let deltaY2: number = 0
-    if (this.touch1 && this.initialTouch1) {
-      deltaX1 = this.touch1.pageX - this.initialTouch1.pageX
-      deltaY1 = this.touch1.pageY - this.initialTouch1.pageY
-    }
-    if (this.touch2 && this.initialTouch2) {
-      deltaX2 = this.touch2.pageX - this.initialTouch2.pageX
-      deltaY2 = this.touch2.pageY - this.initialTouch2.pageY
-    }
-    if (this.touch1 && !this.touch2) {
-      return {x: deltaX1, y: deltaY1}
-    }
-    if (this.touch1 && this.touch2) {
-      return {x: (deltaX1 + deltaX2) / 2, y: (deltaY1 + deltaY2) / 2}
+    if (this.gestureState) {
+      return {x: this.gestureState.dx, y: this.gestureState.dy}
     }
     return {x: 0, y: 0}
   }
@@ -119,9 +121,11 @@ class ZoomableBox extends React.Component<Props, State> {
       onPanResponderGrant: (evt, gestureState) => {
         // $FlowIssue conversion from native type to our type
         this._panZoomCalculator.updateTouches(evt.nativeEvent.touches)
+        this._panZoomCalculator.updateGestureState(gestureState)
       },
       onPanResponderMove: (evt, gestureState) => {
         // magic happens here
+        console.log(evt, gestureState)
         // console.log(
         //   JSON.stringify(
         //     evt.nativeEvent.touches,
@@ -146,6 +150,7 @@ class ZoomableBox extends React.Component<Props, State> {
 
         // $FlowIssue conversion from native type to our type
         this._panZoomCalculator.updateTouches(evt.nativeEvent.touches)
+        this._panZoomCalculator.updateGestureState(gestureState)
         const panOffset = this._panZoomCalculator.panOffset()
         this.setState({
           panOffset,
@@ -163,6 +168,7 @@ class ZoomableBox extends React.Component<Props, State> {
           },
         })
         this._panZoomCalculator.releaseTouches()
+        this._panZoomCalculator.releaseGestureState()
       },
     })
   }
@@ -175,12 +181,10 @@ class ZoomableBox extends React.Component<Props, State> {
         style={{
           ...this.props.style,
           position: 'absolute',
-          left: this.state.pan.x + this.state.panOffset.x,
-          top: this.state.pan.y + this.state.panOffset.y,
           transform: [
             {scale: this.state.scale},
-            // {translateX: this.state.pan.x + this.state.panOffset.x},
-            // {translateY: this.state.pan.y + this.state.panOffset.y},
+            {translateX: (this.state.pan.x + this.state.panOffset.x) / this.state.scale},
+            {translateY: (this.state.pan.y + this.state.panOffset.y) / this.state.scale},
           ],
         }}
       />
