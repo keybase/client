@@ -113,7 +113,8 @@ export type Props = {
 }
 
 type State = {
-  currentGesture: ?number,
+  layoutHeight: number,
+  layoutWidth: number,
   pan: {x: number, y: number},
   panOffset: {x: number, y: number},
   scale: number,
@@ -129,7 +130,8 @@ class ZoomableBox extends React.Component<Props, State> {
   _panResponder: NativePanResponder
   _panZoomCalculator: PanZoomCalculator = new PanZoomCalculator()
   state = {
-    currentGesture: null,
+    layoutHeight: 0,
+    layoutWidth: 0,
     pan: {x: 0, y: 0},
     panOffset: {x: 0, y: 0},
     scale: 1,
@@ -177,15 +179,33 @@ class ZoomableBox extends React.Component<Props, State> {
     })
   }
 
+  _onLayout = evt => {
+    this.setState({
+      layoutHeight: evt.nativeEvent.layout.height,
+      layoutWidth: evt.nativeEvent.layout.width,
+    })
+  }
+
   scale = () => clamp(this.state.scale * this.state.scaleOffset, 1, this.props.maxZoom)
-  panX = () => this.state.pan.x + this.state.panOffset.x
-  panY = () => this.state.pan.y + this.state.panOffset.y
+  panX = () =>
+    clamp(
+      this.state.pan.x + this.state.panOffset.x,
+      (1 - this.scale()) * this.state.layoutWidth / 2,
+      (this.scale() - 1) * this.state.layoutWidth / 2
+    )
+  panY = () =>
+    clamp(
+      this.state.pan.y + this.state.panOffset.y,
+      (1 - this.scale()) * this.state.layoutHeight / 2,
+      (this.scale() - 1) * this.state.layoutHeight / 2
+    )
 
   render() {
     return (
       <Box
         {...this.props}
         {...this._panResponder.panHandlers}
+        onLayout={this._onLayout}
         style={{
           ...this.props.style,
           position: 'absolute',
