@@ -4,6 +4,8 @@ import * as Types from '../types/chat2'
 import {chatTab} from '../tabs'
 import type {TypedState} from '../reducer'
 import {makeConversationMeta} from './meta'
+import {getPath} from '../../route-tree'
+import {isMobile} from '../platform'
 
 // TEMP
 if (__DEV__) {
@@ -82,11 +84,18 @@ export const isUserActivelyLookingAtThisThread = (
 ) => {
   const selectedConversationIDKey = getSelectedConversation(state)
   const appFocused = state.config.appFocused
-  const chatTabSelected = state.routeTree.getIn(['routeState', 'selected']) === chatTab
+  // const chatTabSelected = state.routeTree.getIn(['routeState', 'selected']) === chatTab
+  const routePath = getPath(state.routeTree.routeState)
+  let chatThreadSelected = false
+  if (isMobile) {
+    console.log('aaa TODO only if in a thread view')
+  } else {
+    chatThreadSelected = routePath.size >= 1 && routePath.get(0) === chatTab
+  }
 
   return (
     appFocused && // app focused?
-    chatTabSelected && // looking at the chat tab?
+    chatThreadSelected && // looking at the chat tab?
     conversationIDKey === selectedConversationIDKey // looking at the selected thread?
   )
 }

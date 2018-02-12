@@ -7,7 +7,6 @@ import Normal from './normal/container'
 import SearchResultsList from '../../../search/results-list/container'
 import {connect, type TypedState, type Dispatch} from '../../../util/container'
 import {globalStyles} from '../../../styles'
-/* ProgressIndicator, */
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey,
@@ -19,10 +18,6 @@ type Props = {
 
 class ListArea extends React.PureComponent<Props> {
   render() {
-    // if (this.props.showSearchPending) {
-    // list = <ProgressIndicator style={styleSpinner} />
-    // } else if (this.props.youAreReset) {
-    // list = <YouAreReset />
     if (this.props.showSearchResults) {
       return (
         <SearchResultsList

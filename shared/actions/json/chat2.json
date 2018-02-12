@@ -234,6 +234,11 @@
     "sendTyping": {
       "conversationIDKey": "Types.ConversationIDKey",
       "typing": "boolean"
+    },
+    // On startup we're automatically loading a thread sometimes. When we first view it we should
+    // go through our marking as read logic
+    "markInitiallyLoadedThreadAsRead": {
+      "conversationIDKey": "Types.ConversationIDKey",
     }
   }
 }

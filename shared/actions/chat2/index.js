@@ -1375,52 +1375,132 @@ const resetLetThemIn = (action: Chat2Gen.ResetLetThemInPayload) =>
 
 // Keep track of the mark as read's we've already sent
 const lastMarkAsRead = {}
-const markThreadAsRead = (action: Chat2Gen.MessagesAddPayload, state: TypedState) => {
-  const {messages, context} = action.payload
-  if (context.type === 'sent') {
+const markThreadAsRead = (
+  action:
+    | Chat2Gen.SelectConversationPayload
+    | Chat2Gen.MessagesAddPayload
+    | Chat2Gen.MarkInitiallyLoadedThreadAsReadPayload,
+  state: TypedState
+) => {
+  if (action.type === Chat2Gen.selectConversation) {
+    if (!action.payload.fromUser) {
+      console.log('aaa marking read bail on non-user selecting')
+      return
+    }
+  }
+
+  const conversationIDKey = Constants.getSelectedConversation(state)
+
+  if (action.type === Chat2Gen.markInitiallyLoadedThreadAsRead) {
+    if (action.payload.conversationIDKey !== conversationIDKey) {
+      console.log('aaa marking read bail on not looking at this thread anymore?')
+      return
+    }
+  }
+
+  if (!Constants.isUserActivelyLookingAtThisThread(state, conversationIDKey)) {
+    console.log('aaa marking read bail on not looking at this thread')
     return
   }
-  const you = state.config.username
-  const convIDToMaxMessageID = messages.reduce((map, m) => {
-    // Ignore your own messages
-    if (m.author === you) {
-      return map
-    }
-    const s = Types.conversationIDKeyToString(m.conversationIDKey)
-    const max = Math.max(map[s] || 0, m.id)
-    if (max) {
-      map[s] = max
-    }
-    return map
-  }, {})
 
-  let actions
-  Object.keys(convIDToMaxMessageID).some(s => {
-    const conversationIDKey = Types.stringToConversationIDKey(s)
-    if (Constants.isUserActivelyLookingAtThisThread(state, conversationIDKey)) {
-      const msgID = convIDToMaxMessageID[s]
-      if (!lastMarkAsRead[s]) {
-        lastMarkAsRead[s] = 0
-      }
+  const mmap = Constants.getMessageMap(state, conversationIDKey)
+  const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
+  const ordinal = ordinals.findLast(o => mmap.getIn([o, 'id']))
+  const message = mmap.get(ordinal)
 
-      if (lastMarkAsRead[s] >= msgID) {
-        console.log('aaa marking read bail on already marked', s, ': ', msgID)
-        return
-      } else {
-        lastMarkAsRead[s] = msgID
-      }
+  if (!message) {
+    console.log('aaa marking read bail on no messages')
+    return
+  }
 
-      console.log('aaa marking read', s, ': ', msgID)
-      // actions = [
-      // Saga.call(RPCChatTypes.localMarkAsReadLocalRpcPromise, {
-      // conversationID: Types.keyToConversationID(conversationIDKey),
-      // msgID,
-      // }),
-      // ]
-      return true
-    }
-  })
-  return actions
+  const s = Types.conversationIDKeyToString(conversationIDKey)
+  if (!lastMarkAsRead[s]) {
+    lastMarkAsRead[s] = 0
+  }
+
+  if (lastMarkAsRead[s] >= message.id) {
+    console.log('aaa marking read bail on already marked', s, ': ', message.id)
+    return
+  } else {
+    lastMarkAsRead[s] = message.id
+  }
+
+  console.log('aaa marking read', s, ': ', message.id)
+  // [
+  // Saga.call(RPCChatTypes.localMarkAsReadLocalRpcPromise, {
+  // conversationID: Types.keyToConversationID(conversationIDKey),
+  // msgID,
+  // }),
+  // ]
+
+  // let messages
+  // if (action.type === Chat2Gen.messagesAdd) {
+  // if (action.payload.context.type === 'sent') {
+  // console.log('aaa marking read bail on us sending')
+  // return
+  // }
+  // messages = action.payload.messages
+  // } else if (action.type === Chat2Gen.selectConversation) {
+  // const {conversationIDKey, fromUser} = action.payload
+  // if (!fromUser) {
+  // console.log('aaa marking read bail on non-user selecting')
+  // return
+  // }
+  // const mmap = Constants.getMessageMap(state, conversationIDKey)
+  // const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
+  // if (ordinals.size) {
+  // const message = mmap.get(ordinals.last())
+  // if (message) {
+  // messages = [message]
+  // }
+  // }
+  // }
+
+  // if (!messages) {
+  // console.log('aaa marking read bail on no messages')
+  // return
+  // }
+  // const you = state.config.username
+  // const convIDToMaxMessageID = messages.reduce((map, m) => {
+  // // Ignore your own messages
+  // if (m.author === you) {
+  // return map
+  // }
+  // const s = Types.conversationIDKeyToString(m.conversationIDKey)
+  // const max = Math.max(map[s] || 0, m.id)
+  // if (max) {
+  // map[s] = max
+  // }
+  // return map
+  // }, {})
+
+  // let actions
+  // Object.keys(convIDToMaxMessageID).some(s => {
+  // const conversationIDKey = Types.stringToConversationIDKey(s)
+  // if (Constants.isUserActivelyLookingAtThisThread(state, conversationIDKey)) {
+  // const msgID = convIDToMaxMessageID[s]
+  // if (!lastMarkAsRead[s]) {
+  // lastMarkAsRead[s] = 0
+  // }
+
+  // if (lastMarkAsRead[s] >= msgID) {
+  // console.log('aaa marking read bail on already marked', s, ': ', msgID)
+  // return
+  // } else {
+  // lastMarkAsRead[s] = msgID
+  // }
+
+  // console.log('aaa marking read', s, ': ', msgID)
+  // // actions = [
+  // // Saga.call(RPCChatTypes.localMarkAsReadLocalRpcPromise, {
+  // // conversationID: Types.keyToConversationID(conversationIDKey),
+  // // msgID,
+  // // }),
+  // // ]
+  // return true
+  // }
+  // })
+  // return actions
 }
 
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
@@ -1499,7 +1579,10 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.resetChatWithoutThem, resetChatWithoutThem)
   yield Saga.safeTakeEveryPure(Chat2Gen.resetLetThemIn, resetLetThemIn)
 
-  yield Saga.safeTakeEveryPure(Chat2Gen.messagesAdd, markThreadAsRead)
+  yield Saga.safeTakeEveryPure(
+    [Chat2Gen.messagesAdd, Chat2Gen.selectConversation, Chat2Gen.markInitiallyLoadedThreadAsRead],
+    markThreadAsRead
+  )
 }
 
 export default chat2Saga
