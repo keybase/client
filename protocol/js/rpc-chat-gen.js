@@ -475,6 +475,10 @@ export const remoteRemoteNotificationSuccessfulRpcChannelMap = (configKeys: Arra
 
 export const remoteRemoteNotificationSuccessfulRpcPromise = (request: RemoteRemoteNotificationSuccessfulRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.remoteNotificationSuccessful', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
+export const remoteRetentionSweepConvRpcChannelMap = (configKeys: Array<string>, request: RemoteRetentionSweepConvRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.retentionSweepConv', request)
+
+export const remoteRetentionSweepConvRpcPromise = (request: RemoteRetentionSweepConvRpcParam): Promise<RemoteRetentionSweepConvResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.retentionSweepConv', request, (error: RPCError, result: RemoteRetentionSweepConvResult) => (error ? reject(error) : resolve(result))))
+
 export const remoteS3SignRpcChannelMap = (configKeys: Array<string>, request: RemoteS3SignRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.s3Sign', request)
 
 export const remoteS3SignRpcPromise = (request: RemoteS3SignRpcParam): Promise<RemoteS3SignResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.s3Sign', request, (error: RPCError, result: RemoteS3SignResult) => (error ? reject(error) : resolve(result))))
@@ -1151,17 +1155,19 @@ export type RemotePublishSetConversationStatusRpcParam = $ReadOnly<{uid: Gregor1
 
 export type RemoteRemoteNotificationSuccessfulRpcParam = $ReadOnly<{authToken: Gregor1.SessionToken, companionPushIDs?: ?Array<String>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
+export type RemoteRetentionSweepConvRpcParam = $ReadOnly<{convID: ConversationID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
 export type RemoteS3SignRpcParam = $ReadOnly<{version: Int, payload: Bytes, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type RemoteSetAppNotificationSettingsRpcParam = $ReadOnly<{convID: ConversationID, settings: ConversationNotificationInfo, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type RemoteSetConvRetentionRpcParam = $ReadOnly<{convID: ConversationID, policy: RetentionPolicy, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteSetConvRetentionRpcParam = $ReadOnly<{convID: ConversationID, policy: RetentionPolicy, sweepChannel: Uint64, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type RemoteSetConversationStatusRpcParam = $ReadOnly<{conversationID: ConversationID, status: ConversationStatus, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type RemoteSetGlobalAppNotificationSettingsRpcParam = $ReadOnly<{settings: GlobalAppNotificationSettings, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type RemoteSetTeamRetentionRpcParam = $ReadOnly<{teamID: Keybase1.TeamID, policy: RetentionPolicy, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteSetTeamRetentionRpcParam = $ReadOnly<{teamID: Keybase1.TeamID, policy: RetentionPolicy, sweepChannel: Uint64, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type RemoteSyncAllRpcParam = $ReadOnly<{uid: Gregor1.UID, deviceID: Gregor1.DeviceID, session: Gregor1.SessionToken, inboxVers: InboxVers, ctime: Gregor1.Time, fresh: Boolean, protVers: SyncAllProtVers, hostName: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -1228,6 +1234,8 @@ export type SignatureInfo = $ReadOnly<{v: Int, s: Bytes, k: Bytes}>
 export type StaleUpdateType =
   | 0 // CLEAR_0
   | 1 // NEWACTIVITY_1
+
+export type SweepRes = $ReadOnly<{foundTask: Boolean, deletedMessages: Boolean}>
 
 export type SyncAllNotificationRes = {typ: 0, state: ?Gregor1.State} | {typ: 1, incremental: ?Gregor1.SyncResult}
 
@@ -1370,6 +1378,7 @@ type RemoteNewConversationRemote2Result = NewConversationRemoteRes
 type RemoteNewConversationRemoteResult = NewConversationRemoteRes
 type RemotePostRemoteResult = PostRemoteRes
 type RemotePreviewConversationResult = JoinLeaveConversationRemoteRes
+type RemoteRetentionSweepConvResult = SweepRes
 type RemoteS3SignResult = Bytes
 type RemoteSetAppNotificationSettingsResult = SetAppNotificationSettingsRes
 type RemoteSetConvRetentionResult = SetRetentionRes
