@@ -93,17 +93,17 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onLeaveConversation: (conversationIDKey: Types.ConversationIDKey) => {
     dispatch(ChatGen.createLeaveConversation({conversationIDKey}))
   },
-  _onJoinChannel: (selectedConversation: Types.ConversationIDKey) => {
-    dispatch(ChatGen.createJoinConversation({conversationIDKey: selectedConversation}))
+  _onJoinChannel: (conversationIDKey: Types.ConversationIDKey) => {
+    dispatch(ChatGen.createJoinConversation({conversationIDKey}))
   },
   _onMuteConversation: (conversationIDKey: Types.ConversationIDKey, muted: boolean) => {
     dispatch(ChatGen.createMuteConversation({conversationIDKey, muted}))
   },
-  _onShowBlockConversationDialog: (selectedConversation, participants) => {
+  _onShowBlockConversationDialog: (conversationIDKey, participants) => {
     dispatch(
       navigateAppend([
         {
-          props: {conversationIDKey: selectedConversation, participants},
+          props: {conversationIDKey, participants},
           selected: 'showBlockConversationDialog',
         },
       ])
@@ -131,27 +131,20 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...dispatchProps,
   ...ownProps,
   onLeaveConversation: () => {
-    if (stateProps.selectedConversationIDKey) {
-      dispatchProps._navToRootChat()
-      dispatchProps._onLeaveConversation(stateProps.selectedConversationIDKey)
-    }
+    dispatchProps._navToRootChat()
+    dispatchProps._onLeaveConversation(stateProps.selectedConversationIDKey)
   },
   onJoinChannel: () => dispatchProps._onJoinChannel(stateProps.selectedConversationIDKey),
-  onMuteConversation:
-    stateProps.selectedConversationIDKey &&
-    !Constants.isPendingConversationIDKey(stateProps.selectedConversationIDKey)
-      ? (muted: boolean) =>
-          stateProps.selectedConversationIDKey &&
-          dispatchProps._onMuteConversation(stateProps.selectedConversationIDKey, muted)
-      : null,
+  onMuteConversation: !Constants.isPendingConversationIDKey(stateProps.selectedConversationIDKey)
+    ? (muted: boolean) => dispatchProps._onMuteConversation(stateProps.selectedConversationIDKey, muted)
+    : null,
   onShowBlockConversationDialog: () =>
     dispatchProps._onShowBlockConversationDialog(
       stateProps.selectedConversationIDKey,
       (stateProps.participants || []).map(p => p.username).join(',')
     ),
   onShowNewTeamDialog: () => {
-    stateProps.selectedConversationIDKey &&
-      dispatchProps._onShowNewTeamDialog(stateProps.selectedConversationIDKey)
+    dispatchProps._onShowNewTeamDialog(stateProps.selectedConversationIDKey)
   },
   onLeaveTeam: () => dispatchProps._onLeaveTeam(stateProps.teamname),
   onViewTeam: () => dispatchProps._onViewTeam(stateProps.teamname),
