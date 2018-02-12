@@ -7,11 +7,11 @@ import {
   Text,
   ProgressIndicator,
   NativeImage,
+  ZoomableBox,
 } from '../../../common-adapters/index.native'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import {formatTimeForPopup} from '../../../util/timestamp'
 import {isAndroid, isIPhoneX} from '../../../constants/platform'
-import {ZoomableBox} from './zoomable-box'
 
 import type {Props} from './'
 

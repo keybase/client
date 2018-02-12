@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Box, NativePanResponder} from '../../../common-adapters/index.native'
+import {PanResponder as NativePanResponder} from 'react-native'
+import Box from './box'
 import clamp from 'lodash/clamp'
 
 type Touch = {
