@@ -33,6 +33,8 @@ protocol chatUi {
     ConversationVers version;
     MessageID maxMsgID;
     union { null , UnverifiedInboxUIItemMetadata } localMetadata;
+    array<ConversationMetadata> supersedes;
+    array<ConversationMetadata> supersededBy;
   }
 
   record UnverifiedInboxUIItems {

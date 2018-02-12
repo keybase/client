@@ -124,6 +124,20 @@
             "UnverifiedInboxUIItemMetadata"
           ],
           "name": "localMetadata"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationMetadata"
+          },
+          "name": "supersedes"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationMetadata"
+          },
+          "name": "supersededBy"
         }
       ]
     },
