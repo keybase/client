@@ -14,6 +14,7 @@ import (
 
 func setupTest(t libkb.TestingTB, nm string) *libkb.TestContext {
 	tc := externalstest.SetupTest(t, nm, 2)
+	installInsecureTriplesec(tc.G)
 	tc.SetRuntimeDir(filepath.Join(tc.Tp.Home, "run"))
 	if err := tc.G.ConfigureSocketInfo(); err != nil {
 		t.Fatal(err)
