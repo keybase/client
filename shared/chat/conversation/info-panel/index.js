@@ -9,7 +9,10 @@ import {ManageTeam} from './manage-team'
 import {TurnIntoTeam} from './turn-into-team'
 
 const border = `1px solid ${globalColors.black_05}`
-const scrollViewStyle = {
+const listStyle = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'stretch',
+  paddingBottom: globalMargins.medium,
   flex: 1,
   ...(isMobile
     ? {}
@@ -19,11 +22,6 @@ const scrollViewStyle = {
         borderRight: border,
         marginTop: -1 /* Necessary fix: adds 1px at the top so we hide the gray divider */,
       }),
-}
-const contentContainerStyle = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'stretch',
-  paddingBottom: globalMargins.medium,
 }
 
 type infoPanelProps = {
@@ -241,10 +239,7 @@ const _ConversationInfoPanel = (props: ConversationInfoPanelProps) => {
       items={rows}
       renderItem={_renderTeamRow}
       keyProperty="key"
-      style={{
-        ...contentContainerStyle,
-        ...scrollViewStyle,
-      }}
+      style={listStyle}
       itemSizeEstimator={rowSizeEstimator}
     />
   )
@@ -273,10 +268,7 @@ const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => {
       items={rows}
       renderItem={_renderTeamRow}
       keyProperty="key"
-      style={{
-        ...contentContainerStyle,
-        ...scrollViewStyle,
-      }}
+      style={listStyle}
       itemSizeEstimator={rowSizeEstimator}
     />
   )
@@ -305,10 +297,7 @@ const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => {
       items={rows}
       renderItem={_renderTeamRow}
       keyProperty="key"
-      style={{
-        ...contentContainerStyle,
-        ...scrollViewStyle,
-      }}
+      style={listStyle}
       itemSizeEstimator={rowSizeEstimator}
     />
   )
