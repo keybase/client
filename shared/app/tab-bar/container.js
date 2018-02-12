@@ -64,7 +64,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeSelected, routePath}) => (
 })
 
 const mergeProps = (stateProps, dispatchProps, {routeSelected}) => ({
-  badgeNumbers: stateProps._badgeNumbers.toObject,
+  badgeNumbers: stateProps._badgeNumbers.toObject(),
   onTabClick: (tab: Tab) => dispatchProps._onTabClick(tab, stateProps.username),
   selectedTab: routeSelected,
   username: stateProps.username || '',
