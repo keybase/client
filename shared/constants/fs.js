@@ -18,20 +18,9 @@ export const makeFile: I.RecordFactory<Types._FilePathItem> = I.Record({
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   // TODO: move all these to RPC
-  pathItems: I.Map([
-    [
-      Types.stringToPath('/keybase'),
-      makeFolder({
-        children: I.List(['private', 'public', 'team']),
-        progress: 'loaded',
-      }),
-    ],
-    [Types.stringToPath('/keybase/private'), makeFolder()],
-    [Types.stringToPath('/keybase/public'), makeFolder()],
-    [Types.stringToPath('/keybase/team'), makeFolder()],
-  ]),
+  pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder({progress: 'pending'})]]),
 })
 
 export const makeUUID = () => uuidv1(null, Buffer.alloc(16), 0)
 export const fsPathToRpcPathString = (p: Types.Path): string =>
-  Types.pathToString(p).substring('/keybase'.length)
+  Types.pathToString(p).substring('/keybase'.length) || '/'

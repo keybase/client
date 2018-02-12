@@ -5,21 +5,15 @@ import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as Types from '../constants/types/fs'
-import * as FsPath from '../constants/fs-path'
 
 function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<any, any> {
-  if (action.payload.path === '/keybase') {
-    yield Saga.cancel()
-    return
-  }
-
   const opID = Constants.makeUUID()
   const rootPath = action.payload.path
 
   yield Saga.call(RPCTypes.SimpleFSSimpleFSListRpcPromise, {
     opID,
     path: {
-      PathType: 1,
+      PathType: RPCTypes.simpleFSPathType.kbfs,
       kbfs: Constants.fsPathToRpcPathString(rootPath),
     },
   })
@@ -29,7 +23,7 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
   const result = yield Saga.call(RPCTypes.SimpleFSSimpleFSReadListRpcPromise, {opID})
 
   const direntToPathAndPathItem = (d: RPCTypes.Dirent) => [
-    FsPath.join(Types.pathToString(rootPath), d.name),
+    Types.pathConcat(rootPath, d.name),
     d.direntType === RPCTypes.simpleFSDirentType.dir ? Constants.makeFolder() : Constants.makeFile(),
   ]
 
