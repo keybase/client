@@ -1342,7 +1342,7 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
       if (result.error) {
         // TODO better error
         logger.warn('Upload Attachment Failed')
-      } else {
+      } else if (ordinal) {
         yield Saga.put(Chat2Gen.createAttachmentUploaded({conversationIDKey, ordinal}))
       }
     } else {
