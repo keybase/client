@@ -2670,7 +2670,6 @@ func (h *Server) GetSearchRegexp(ctx context.Context, arg chat1.GetSearchRegexpA
 
 	chatUI := h.getChatUI(arg.SessionID)
 	uiCh := make(chan chat1.ChatSearchHit)
-	numHits := 0
 	ch := make(chan struct{})
 	go func() {
 		for searchHit := range uiCh {
@@ -2678,7 +2677,6 @@ func (h *Server) GetSearchRegexp(ctx context.Context, arg chat1.GetSearchRegexpA
 				SessionID: arg.SessionID,
 				SearchHit: searchHit,
 			})
-			numHits++
 		}
 		close(ch)
 	}()
@@ -2691,7 +2689,7 @@ func (h *Server) GetSearchRegexp(ctx context.Context, arg chat1.GetSearchRegexpA
 	<-ch
 	chatUI.ChatSearchDone(ctx, chat1.ChatSearchDoneArg{
 		SessionID: arg.SessionID,
-		NumHits:   numHits,
+		NumHits:   len(hits),
 	})
 	return chat1.GetSearchRegexpRes{
 		Hits:             hits,
