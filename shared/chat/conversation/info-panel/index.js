@@ -217,90 +217,50 @@ const typeSizeEstimator = (type: RowType): number => {
 }
 
 const _InfoPanel = (props: InfoPanelProps) => {
+  const participants: Array<ParticipantRow> = props.participants.map(participant => ({
+    onShowProfile: props.onShowProfile,
+    type: 'participant',
+    participant,
+    key: participant.username,
+  }))
+
+  let rows: Array<TeamRow>
   if (props.smallTeam) {
-    const rows: Array<TeamRow> = [
+    rows = [
       ({
         ...props,
         type: 'small header',
         key: 'SMALL HEADER',
       }: SmallHeaderRow),
-    ]
-    props.participants.forEach(participant =>
-      rows.push({
-        onShowProfile: props.onShowProfile,
-        type: 'participant',
-        participant,
-        key: participant.username,
-      })
-    )
-
-    const rowSizeEstimator = index => typeSizeEstimator(rows[index].type)
-    return (
-      <List
-        items={rows}
-        renderItem={_renderTeamRow}
-        keyProperty="key"
-        style={listStyle}
-        itemSizeEstimator={rowSizeEstimator}
-      />
-    )
+    ].concat(participants)
   } else if (props.channelname) {
-    const rows: Array<TeamRow> = [
+    rows = [
       ({
         ...props,
         type: 'big header',
         key: 'BIG HEADER',
       }: BigHeaderRow),
-    ]
-    props.participants.forEach(participant =>
-      rows.push({
-        onShowProfile: props.onShowProfile,
-        type: 'participant',
-        participant,
-        key: participant.username,
-      })
-    )
-
-    const rowSizeEstimator = index => typeSizeEstimator(rows[index].type)
-    return (
-      <List
-        items={rows}
-        renderItem={_renderTeamRow}
-        keyProperty="key"
-        style={listStyle}
-        itemSizeEstimator={rowSizeEstimator}
-      />
-    )
+    ].concat(participants)
   } else {
-    const rows: Array<TeamRow> = []
-    props.participants.forEach(participant =>
-      rows.push({
-        onShowProfile: props.onShowProfile,
-        type: 'participant',
-        participant,
-        key: participant.username,
-      })
-    )
-
-    rows.push(
+    rows = participants.concat(
       ({
         ...props,
         type: 'conversation footer',
         key: 'CONVERSATION FOOTER',
       }: ConversationFooterRow)
     )
-
-    const rowSizeEstimator = index => typeSizeEstimator(rows[index].type)
-    return (
-      <List
-        items={rows}
-        renderItem={_renderTeamRow}
-        keyProperty="key"
-        style={listStyle}
-        itemSizeEstimator={rowSizeEstimator}
-      />
-    )
   }
+
+  const rowSizeEstimator = index => typeSizeEstimator(rows[index].type)
+  return (
+    <List
+      items={rows}
+      renderItem={_renderTeamRow}
+      keyProperty="key"
+      style={listStyle}
+      itemSizeEstimator={rowSizeEstimator}
+    />
+  )
 }
 
 const InfoPanel = isMobile ? HeaderHoc(_InfoPanel) : _InfoPanel
