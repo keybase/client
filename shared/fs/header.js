@@ -5,8 +5,8 @@ import {Avatar, Box, ClickableBox, Icon, Text} from '../common-adapters'
 import HeaderConnector from './header-container'
 
 type FolderHeaderProps = {
-  breadcrumbItems: Array<Types.PathBreadcrumItem>,
-  dropdownItems: Array<Types.PathBreadcrumItem>,
+  breadcrumbItems: Array<Types.PathBreadcrumbItem>,
+  dropdownItems: Array<Types.PathBreadcrumbItem>,
   isTeamPath: boolean,
   onOpenBreadcrumb: (path: string) => void,
 }
