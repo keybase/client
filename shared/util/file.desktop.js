@@ -75,22 +75,8 @@ function unlink(filepath: string): Promise<void> {
   return new Promise((resolve, reject) => fs.unlink(filepath, () => resolve()))
 }
 
-// TODO implemented for mobile, not here
-const cachesDirectoryPath = ''
-
 function writeStream(filepath: string, encoding: string, append?: boolean): Promise<*> {
   return Promise.reject(new Error('not implemented'))
 }
 
-export {
-  cachesDirectoryPath,
-  copy,
-  downloadFilePath,
-  exists,
-  stat,
-  tmpDir,
-  tmpFile,
-  tmpRandFile,
-  unlink,
-  writeStream,
-}
+export {copy, downloadFilePath, exists, stat, tmpDir, tmpFile, tmpRandFile, unlink, writeStream}
