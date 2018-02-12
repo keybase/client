@@ -27,9 +27,7 @@ const listStyle = {
 type infoPanelProps = {
   admin: boolean,
   muted: boolean,
-  onMuteConversation: (muted: boolean) => void,
-  onShowProfile: (username: string) => void,
-  onToggleInfoPanel: () => void,
+  teamname: string,
   participants: Array<{
     username: string,
     following: boolean,
@@ -37,30 +35,14 @@ type infoPanelProps = {
     broken: boolean,
     isYou: boolean,
   }>,
-}
 
-type ConversationInfoPanelProps = infoPanelProps & {
+  onMuteConversation: (muted: boolean) => void,
   onShowBlockConversationDialog: () => void,
   onShowNewTeamDialog: () => void,
-}
-
-type ConversationFooterRow = ConversationInfoPanelProps & {
-  type: 'conversation footer',
-  key: 'CONVERSATION FOOTER',
-}
-
-type SmallTeamInfoPanelProps = infoPanelProps & {
+  onShowProfile: (username: string) => void,
+  onToggleInfoPanel: () => void,
   onLeaveTeam: () => void,
   onViewTeam: () => void,
-  teamname: string,
-}
-
-type SmallHeaderRow = SmallTeamInfoPanelProps & {
-  type: 'small header',
-  key: 'SMALL HEADER',
-}
-
-type BigTeamInfoPanelProps = infoPanelProps & {
   onLeaveConversation: () => void,
   channelname: string,
   onJoinChannel: () => void,
@@ -68,6 +50,22 @@ type BigTeamInfoPanelProps = infoPanelProps & {
   teamname: string,
   isPreview: boolean,
 }
+
+type ConversationInfoPanelProps = infoPanelProps
+
+type ConversationFooterRow = ConversationInfoPanelProps & {
+  type: 'conversation footer',
+  key: 'CONVERSATION FOOTER',
+}
+
+type SmallTeamInfoPanelProps = infoPanelProps
+
+type SmallHeaderRow = SmallTeamInfoPanelProps & {
+  type: 'small header',
+  key: 'SMALL HEADER',
+}
+
+type BigTeamInfoPanelProps = infoPanelProps
 
 type BigHeaderRow = BigTeamInfoPanelProps & {
   type: 'big header',
@@ -227,11 +225,13 @@ const _ConversationInfoPanel = (props: ConversationInfoPanelProps) => {
     })
   )
 
-  rows.push({
-    ...props,
-    type: 'conversation footer',
-    key: 'CONVERSATION FOOTER',
-  })
+  rows.push(
+    ({
+      ...props,
+      type: 'conversation footer',
+      key: 'CONVERSATION FOOTER',
+    }: ConversationFooterRow)
+  )
 
   const rowSizeEstimator = index => typeSizeEstimator(rows[index].type)
   return (
@@ -247,11 +247,11 @@ const _ConversationInfoPanel = (props: ConversationInfoPanelProps) => {
 
 const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => {
   const rows: Array<TeamRow> = [
-    {
+    ({
       ...props,
       type: 'small header',
       key: 'SMALL HEADER',
-    },
+    }: SmallHeaderRow),
   ]
   props.participants.forEach(participant =>
     rows.push({
@@ -276,11 +276,11 @@ const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => {
 
 const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => {
   const rows: Array<TeamRow> = [
-    {
+    ({
       ...props,
       type: 'big header',
       key: 'BIG HEADER',
-    },
+    }: BigHeaderRow),
   ]
   props.participants.forEach(participant =>
     rows.push({
