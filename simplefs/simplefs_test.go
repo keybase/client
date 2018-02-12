@@ -10,6 +10,8 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"sort"
+	"strings"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -108,11 +110,49 @@ func TestList(t *testing.T) {
 	sfs := newSimpleFS(libkbfs.MakeTestConfigOrBust(t, "jdoe"))
 	defer closeSimpleFS(ctx, t, sfs)
 
+	pathRoot := keybase1.NewPathWithKbfs(`/`)
+	opid, err := sfs.SimpleFSMakeOpid(ctx)
+	require.NoError(t, err)
+	err = sfs.SimpleFSList(ctx, keybase1.SimpleFSListArg{
+		OpID: opid,
+		Path: pathRoot,
+	})
+	require.NoError(t, err)
+	checkPendingOp(ctx, t, sfs, opid, keybase1.AsyncOps_LIST, pathRoot, keybase1.Path{}, true)
+	err = sfs.SimpleFSWait(ctx, opid)
+	require.NoError(t, err)
+	listResult, err := sfs.SimpleFSReadList(ctx, opid)
+	require.NoError(t, err)
+	assert.Len(t, listResult.Entries, 3, "Expected 3 directory entries in listing")
+	sort.Slice(listResult.Entries, func(i, j int) bool {
+		return strings.Compare(listResult.Entries[i].Name,
+			listResult.Entries[j].Name) < 0
+	})
+	require.Equal(t, listResult.Entries[0].Name, "private")
+	require.Equal(t, listResult.Entries[1].Name, "public")
+	require.Equal(t, listResult.Entries[2].Name, "team")
+
+	pathPrivate := keybase1.NewPathWithKbfs(`/private`)
+	opid, err = sfs.SimpleFSMakeOpid(ctx)
+	require.NoError(t, err)
+	err = sfs.SimpleFSList(ctx, keybase1.SimpleFSListArg{
+		OpID: opid,
+		Path: pathPrivate,
+	})
+	require.NoError(t, err)
+	checkPendingOp(ctx, t, sfs, opid, keybase1.AsyncOps_LIST, pathPrivate, keybase1.Path{}, true)
+	err = sfs.SimpleFSWait(ctx, opid)
+	require.NoError(t, err)
+	listResult, err = sfs.SimpleFSReadList(ctx, opid)
+	require.NoError(t, err)
+	assert.Len(t, listResult.Entries, 1, "Expected 1 directory entries in listing")
+	require.Equal(t, listResult.Entries[0].Name, "jdoe")
+
 	// make a temp remote directory + files we will clean up later
 	path1 := keybase1.NewPathWithKbfs(`/private/jdoe`)
 	writeRemoteFile(ctx, t, sfs, pathAppend(path1, `test1.txt`), []byte(`foo`))
 	writeRemoteFile(ctx, t, sfs, pathAppend(path1, `test2.txt`), []byte(`foo`))
-	opid, err := sfs.SimpleFSMakeOpid(ctx)
+	opid, err = sfs.SimpleFSMakeOpid(ctx)
 	require.NoError(t, err)
 
 	err = sfs.SimpleFSList(ctx, keybase1.SimpleFSListArg{
@@ -125,7 +165,7 @@ func TestList(t *testing.T) {
 	err = sfs.SimpleFSWait(ctx, opid)
 	require.NoError(t, err)
 
-	listResult, err := sfs.SimpleFSReadList(ctx, opid)
+	listResult, err = sfs.SimpleFSReadList(ctx, opid)
 	require.NoError(t, err)
 
 	assert.Len(t, listResult.Entries, 2, "Expected 2 directory entries in listing")
