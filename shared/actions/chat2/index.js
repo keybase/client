@@ -1384,7 +1384,7 @@ const markThreadAsRead = (
 ) => {
   if (action.type === Chat2Gen.selectConversation) {
     if (!action.payload.fromUser) {
-      console.log('aaa marking read bail on non-user selecting')
+      logger.info('marking read bail on non-user selecting')
       return
     }
   }
@@ -1393,13 +1393,13 @@ const markThreadAsRead = (
 
   if (action.type === Chat2Gen.markInitiallyLoadedThreadAsRead) {
     if (action.payload.conversationIDKey !== conversationIDKey) {
-      console.log('aaa marking read bail on not looking at this thread anymore?')
+      logger.info('marking read bail on not looking at this thread anymore?')
       return
     }
   }
 
   if (!Constants.isUserActivelyLookingAtThisThread(state, conversationIDKey)) {
-    console.log('aaa marking read bail on not looking at this thread')
+    logger.info('marking read bail on not looking at this thread')
     return
   }
 
@@ -1409,7 +1409,7 @@ const markThreadAsRead = (
   const message = mmap.get(ordinal)
 
   if (!message) {
-    console.log('aaa marking read bail on no messages')
+    logger.info('marking read bail on no messages')
     return
   }
 
@@ -1419,13 +1419,12 @@ const markThreadAsRead = (
   }
 
   if (lastMarkAsRead[s] >= message.id) {
-    console.log('aaa marking read bail on already marked', s, ': ', message.id)
+    // We've told server about newer messages
     return
   } else {
     lastMarkAsRead[s] = message.id
   }
 
-  console.log('aaa marking read', s, ': ', message.id)
   return Saga.call(RPCChatTypes.localMarkAsReadLocalRpcPromise, {
     conversationID: Types.keyToConversationID(conversationIDKey),
     msgID: message.id,
