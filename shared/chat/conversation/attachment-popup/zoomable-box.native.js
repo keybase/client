@@ -160,7 +160,9 @@ class ZoomableBox extends React.Component<Props, State> {
           scaleOffset,
         })
       },
+      onPanResponderTerminationRequest: () => true,
       onPanResponderRelease: (evt, gestureState) => {
+        // Gesture completed successfully
         this.setState({
           pan: {
             x: this.panX(),
@@ -176,6 +178,19 @@ class ZoomableBox extends React.Component<Props, State> {
         this._panZoomCalculator.releaseTouches()
         this._panZoomCalculator.releaseGestureState()
       },
+      onPanResponderTerminate: (evt, gestureState) => {
+        // Gesture cancelled
+        this.setState({
+          panOffset: {
+            x: 0,
+            y: 0,
+          },
+          scaleOffset: 1,
+        })
+        this._panZoomCalculator.releaseTouches()
+        this._panZoomCalculator.releaseGestureState()
+      },
+      onShouldBlockNativeResponder: () => true,
     })
   }
 
