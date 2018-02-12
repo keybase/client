@@ -5,7 +5,7 @@ import {globalMargins} from '../../../styles'
 
 const TurnIntoTeam = ({onClick}: {onClick: () => void}) => {
   return [
-    <ButtonBar key="turnIntoTeamButtonBar">
+    <ButtonBar key="turnIntoTeamButtonBar" small={true}>
       <Button type="Primary" small={true} label="Turn into team" onClick={onClick} />
     </ButtonBar>,
     <Text
@@ -14,7 +14,6 @@ const TurnIntoTeam = ({onClick}: {onClick: () => void}) => {
         alignSelf: 'center',
         marginLeft: globalMargins.small,
         marginRight: globalMargins.small,
-        marginTop: globalMargins.tiny,
         textAlign: 'center',
       }}
       type="BodySmall"

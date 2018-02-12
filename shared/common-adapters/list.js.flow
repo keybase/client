@@ -8,7 +8,7 @@ export type Props<Item> = {
   renderItem: (index: number, item: Item) => React.Node,
   keyProperty?: string, // if passed uses item[keyProperty] for the item keys (does nothing on desktop)
   selectedIndex?: number, // TODO work on mobile
-  itemSizeEstimator?: (index: number, cache: any) => number, // Desktop only
+  itemSizeEstimator?: (index: number, cache: {[index: number]: number}) => number, // Desktop only
   keyboardShouldPersistTaps?: 'never' | 'always' | 'handled', // mobile only
   windowSize?: number, // Mobile only, has a non-RN default
 }
