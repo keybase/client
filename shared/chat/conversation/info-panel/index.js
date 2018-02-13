@@ -230,33 +230,37 @@ const _InfoPanel = (props: InfoPanelProps) => {
   const participantCount = participants.length
 
   let rows: Array<TeamRow>
-  if (props.smallTeam) {
-    rows = [
-      ({
-        type: 'small header',
-        key: 'SMALL HEADER',
-        admin: props.admin,
-        // TODO: Fix
-        teamname: props.teamname || '',
-        participantCount,
-        onViewTeam: props.onViewTeam,
-      }: SmallHeaderRow),
-    ].concat(participants)
-  } else if (props.channelname) {
-    rows = [
-      ({
-        type: 'big header',
-        key: 'BIG HEADER',
-        admin: props.admin,
-        // TODO: Fix
-        teamname: props.teamname || '',
-        channelname: props.channelname || '',
-        participantCount,
-        onJoinChannel: props.onJoinChannel,
-        onLeaveConversation: props.onLeaveConversation,
-        onViewTeam: props.onViewTeam,
-      }: BigHeaderRow),
-    ].concat(participants)
+  if (props.teamname && props.channelname) {
+    if (props.smallTeam) {
+      rows = [
+        ({
+          type: 'small header',
+          key: 'SMALL HEADER',
+
+          teamname: props.teamname,
+          admin: props.admin,
+          participantCount,
+
+          onViewTeam: props.onViewTeam,
+        }: SmallHeaderRow),
+      ].concat(participants)
+    } else {
+      rows = [
+        ({
+          type: 'big header',
+          key: 'BIG HEADER',
+
+          teamname: props.teamname,
+          channelname: props.channelname,
+          admin: props.admin,
+          participantCount,
+
+          onViewTeam: props.onViewTeam,
+          onJoinChannel: props.onJoinChannel,
+          onLeaveConversation: props.onLeaveConversation,
+        }: BigHeaderRow),
+      ].concat(participants)
+    }
   } else {
     rows = participants.concat(
       ({
