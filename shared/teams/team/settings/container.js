@@ -42,7 +42,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       navigateAppend([
         {
           props: {
-            onComplete: (role: Types.TeamRoleType) => setNewOpenTeamRole(role),
+            onComplete: setNewOpenTeamRole,
             selectedRole: newOpenTeamRole,
             allowOwner: false,
             allowAdmin: false,
