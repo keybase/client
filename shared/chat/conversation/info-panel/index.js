@@ -65,6 +65,11 @@ type DividerRow = {
   marginBottom?: number,
 }
 
+const getDividerStyle = (row: DividerRow) => ({
+  marginBottom: 'marginBottom' in row ? row.marginBottom : globalMargins.small,
+  marginTop: 'marginTop' in row ? row.marginTop : globalMargins.small,
+})
+
 type NotificationsRow = {
   type: 'notifications',
 }
@@ -112,7 +117,7 @@ type LeaveChannelRow = {
   onLeaveConversation: () => void,
 }
 
-type TeamRow =
+type Row =
   | ParticipantRow
   | DividerRow
   | NotificationsRow
@@ -123,29 +128,20 @@ type TeamRow =
   | BigTeamHeaderRow
   | JoinChannelRow
   | LeaveChannelRow
-type RowType = $PropertyType<TeamRow, 'type'>
 
-const _renderTeamRow = (i: number, props: TeamRow) => {
-  switch (props.type) {
+const _renderRow = (i: number, row: Row) => {
+  switch (row.type) {
     case 'participant':
-      return <Participant key={props.key} {...props} />
+      return <Participant key={row.key} {...row} />
 
     case 'divider':
-      return (
-        <Divider
-          key={props.key}
-          style={{
-            marginBottom: 'marginBottom' in props ? props.marginBottom : globalMargins.small,
-            marginTop: 'marginTop' in props ? props.marginTop : globalMargins.small,
-          }}
-        />
-      )
+      return <Divider key={row.key} style={getDividerStyle(row)} />
 
     case 'notifications':
       return <Notifications key="notifications" />
 
     case 'turn into team':
-      return <TurnIntoTeam key="turn into team" onClick={props.onShowNewTeamDialog} />
+      return <TurnIntoTeam key="turn into team" onClick={row.onShowNewTeamDialog} />
 
     case 'block this conversation':
       return (
@@ -154,7 +150,7 @@ const _renderTeamRow = (i: number, props: TeamRow) => {
             type="Danger"
             small={true}
             label="Block this conversation"
-            onClick={props.onShowBlockConversationDialog}
+            onClick={row.onShowBlockConversationDialog}
           />
         </ButtonBar>
       )
@@ -163,10 +159,10 @@ const _renderTeamRow = (i: number, props: TeamRow) => {
       return (
         <ManageTeam
           key="manage team"
-          canManage={props.canManage}
-          label={props.label}
-          participantCount={props.participantCount}
-          onClick={props.onViewTeam}
+          canManage={row.canManage}
+          label={row.label}
+          participantCount={row.participantCount}
+          onClick={row.onViewTeam}
         />
       )
 
@@ -174,9 +170,9 @@ const _renderTeamRow = (i: number, props: TeamRow) => {
       return (
         <SmallTeamHeader
           key="small team header"
-          teamname={props.teamname}
-          participantCount={props.participantCount}
-          onClick={props.onViewTeam}
+          teamname={row.teamname}
+          participantCount={row.participantCount}
+          onClick={row.onViewTeam}
         />
       )
 
@@ -184,9 +180,9 @@ const _renderTeamRow = (i: number, props: TeamRow) => {
       return (
         <BigTeamHeader
           key="big team header"
-          channelname={props.channelname}
-          teamname={props.teamname}
-          onClick={props.onViewTeam}
+          channelname={row.channelname}
+          teamname={row.teamname}
+          onClick={row.onViewTeam}
         />
       )
 
@@ -198,14 +194,14 @@ const _renderTeamRow = (i: number, props: TeamRow) => {
             label="Join channel"
             style={{marginRight: globalMargins.xtiny}}
             small={true}
-            onClick={props.onJoinChannel}
+            onClick={row.onJoinChannel}
           />
           <Text
             key="anyone can join"
             type="BodySmall"
             style={{textAlign: 'center', marginTop: globalMargins.xtiny}}
           >
-            Anyone in {props.teamname} can join.
+            Anyone in {row.teamname} can join.
           </Text>
         </Box>
       )
@@ -213,25 +209,25 @@ const _renderTeamRow = (i: number, props: TeamRow) => {
     case 'leave channel':
       return (
         <ButtonBar key="leave channel" small={true}>
-          <Button type="Danger" small={true} label="Leave channel" onClick={props.onLeaveConversation} />
+          <Button type="Danger" small={true} label="Leave channel" onClick={row.onLeaveConversation} />
         </ButtonBar>
       )
 
     default:
-      throw new Error('Unexpected type ' + props.type)
+      throw new Error('Unexpected type ' + row.type)
   }
 }
 
-const typeSizeEstimator = (type: RowType): number => {
+const typeSizeEstimator = (row: Row): number => {
   // The sizes below are retrieved by using the React DevTools
   // inspector on the appropriate components, including margins.
-  switch (type) {
+  switch (row.type) {
     case 'participant':
       return 56
 
     case 'divider':
-      // estimate based on default values.
-      return 1 + 2 * globalMargins.small
+      const style = getDividerStyle(row)
+      return 1 + style.marginTop + style.marginBottom
 
     case 'notifications':
       return 270
@@ -258,7 +254,7 @@ const typeSizeEstimator = (type: RowType): number => {
       return 44
 
     default:
-      throw new Error('Unexpected type ' + type)
+      throw new Error('Unexpected type ' + row.type)
   }
 }
 
@@ -273,9 +269,10 @@ const _InfoPanel = (props: InfoPanelProps) => {
 
   const participantCount = participants.length
 
-  let rows: Array<TeamRow>
+  let rows: Array<Row>
   if (props.teamname && props.channelname) {
-    let headerRows: Array<TeamRow>
+    // Real type is Row except for ParticipantRow.
+    let headerRows: Array<Row>
     if (props.smallTeam) {
       // Small team.
       headerRows = [
@@ -402,11 +399,11 @@ const _InfoPanel = (props: InfoPanelProps) => {
     ])
   }
 
-  const rowSizeEstimator = index => typeSizeEstimator(rows[index].type)
+  const rowSizeEstimator = index => typeSizeEstimator(rows[index])
   return (
     <List
       items={rows}
-      renderItem={_renderTeamRow}
+      renderItem={_renderRow}
       keyProperty="key"
       style={listStyle}
       itemSizeEstimator={rowSizeEstimator}
