@@ -318,6 +318,7 @@ const _InfoPanel = (props: InfoPanelProps) => {
         participantCount,
         onViewTeam: props.onViewTeam,
       }
+
       if (props.isPreview) {
         // Big team, preview.
         headerRows = [
