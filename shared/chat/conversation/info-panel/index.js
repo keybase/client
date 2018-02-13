@@ -275,8 +275,10 @@ const _InfoPanel = (props: InfoPanelProps) => {
 
   let rows: Array<TeamRow>
   if (props.teamname && props.channelname) {
+    let headerRows: Array<TeamRow>
     if (props.smallTeam) {
-      rows = [
+      // Small team.
+      headerRows = [
         {
           type: 'small team header',
           teamname: props.teamname,
@@ -303,16 +305,26 @@ const _InfoPanel = (props: InfoPanelProps) => {
           participantCount,
           onViewTeam: props.onViewTeam,
         },
-      ].concat(participants)
+      ]
     } else {
+      // Big team.
+      const headerRow = {
+        type: 'big team header',
+        teamname: props.teamname,
+        channelname: props.channelname,
+        onViewTeam: props.onViewTeam,
+      }
+      const manageTeamRow = {
+        type: 'manage team',
+        canManage: props.admin && props.channelname === 'general',
+        label: 'In this channel',
+        participantCount,
+        onViewTeam: props.onViewTeam,
+      }
       if (props.isPreview) {
-        rows = [
-          {
-            type: 'big team header',
-            teamname: props.teamname,
-            channelname: props.channelname,
-            onViewTeam: props.onViewTeam,
-          },
+        // Big team, preview.
+        headerRows = [
+          headerRow,
           {
             type: 'divider',
             key: 'divider 1',
@@ -326,22 +338,12 @@ const _InfoPanel = (props: InfoPanelProps) => {
             type: 'divider',
             key: 'divider 2',
           },
-          {
-            type: 'manage team',
-            canManage: props.admin && props.channelname === 'general',
-            label: 'In this channel',
-            participantCount,
-            onViewTeam: props.onViewTeam,
-          },
-        ].concat(participants)
+          manageTeamRow,
+        ]
       } else {
-        rows = [
-          {
-            type: 'big team header',
-            teamname: props.teamname,
-            channelname: props.channelname,
-            onViewTeam: props.onViewTeam,
-          },
+        // Big team, no preview.
+        headerRows = [
+          headerRow,
           {
             type: 'divider',
             key: 'divider 1',
@@ -363,17 +365,13 @@ const _InfoPanel = (props: InfoPanelProps) => {
             key: 'divider 3',
             marginTop: globalMargins.tiny,
           },
-          {
-            type: 'manage team',
-            canManage: props.admin && props.channelname === 'general',
-            label: 'In this channel',
-            participantCount,
-            onViewTeam: props.onViewTeam,
-          },
-        ].concat(participants)
+          manageTeamRow,
+        ]
       }
     }
+    rows = headerRows.concat(participants)
   } else {
+    // Conversation.
     rows = participants.concat([
       {
         type: 'divider',
