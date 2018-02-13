@@ -29,6 +29,8 @@ const mergeProps = (stateProps, dispatchProps, {teamname}: OwnProps) => {
       inviteInfo = {email: invite.email}
     } else if (invite.username) {
       inviteInfo = {username: invite.username}
+    } else {
+      console.warn(`Could not find name, email, or username in invite with ID ${invite.id}`)
     }
     return {
       ...inviteInfo,
