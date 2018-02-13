@@ -223,7 +223,7 @@ const typeSizeEstimator = (row: Row): number => {
       return 270
 
     case 'turn into team':
-      return 44 + 15
+      return 47
 
     case 'block this conversation':
       return 44
