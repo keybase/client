@@ -75,8 +75,7 @@ export class Settings extends React.Component<Props, State> {
     })
   }
 
-  setSettings = (key: $Keys<State>) => (newSetting: *) => {
-    // $FlowIssue with TeamRoleType not being a boolean
+  setBoolSettings = (key: $Keys<State>) => (newSetting: boolean) => {
     this.setState({[key]: newSetting}, this.setPublicitySettingsChanged)
   }
 
@@ -104,7 +103,9 @@ export class Settings extends React.Component<Props, State> {
   }
 
   onSetOpenTeamRole = () => {
-    this.props.setOpenTeamRole(this.state.newOpenTeamRole, this.setSettings('newOpenTeamRole'))
+    this.props.setOpenTeamRole(this.state.newOpenTeamRole, newOpenTeamRole =>
+      this.setState({newOpenTeamRole})
+    )
   }
 
   render() {
@@ -129,7 +130,7 @@ export class Settings extends React.Component<Props, State> {
               checked={this.state.newPublicityMember}
               disabled={!this.props.yourOperations.setMemberShowcase}
               label=""
-              onCheck={this.setSettings('newPublicityMember')}
+              onCheck={this.setBoolSettings('newPublicityMember')}
               style={{paddingRight: globalMargins.xtiny}}
             />
           </Box>
@@ -165,7 +166,7 @@ export class Settings extends React.Component<Props, State> {
                   <Checkbox
                     checked={this.state.newPublicityAnyMember}
                     label=""
-                    onCheck={this.setSettings('newPublicityAnyMember')}
+                    onCheck={this.setBoolSettings('newPublicityAnyMember')}
                   />
                 </Box>
                 <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
@@ -180,7 +181,7 @@ export class Settings extends React.Component<Props, State> {
                   <Checkbox
                     checked={this.state.newPublicityTeam}
                     label=""
-                    onCheck={this.setSettings('newPublicityTeam')}
+                    onCheck={this.setBoolSettings('newPublicityTeam')}
                   />
                 </Box>
                 <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
@@ -200,7 +201,7 @@ export class Settings extends React.Component<Props, State> {
                   <Checkbox
                     checked={this.state.newOpenTeam}
                     label=""
-                    onCheck={this.setSettings('newOpenTeam')}
+                    onCheck={this.setBoolSettings('newOpenTeam')}
                   />
                 </Box>
                 <Box
@@ -227,7 +228,7 @@ export class Settings extends React.Component<Props, State> {
                     <Checkbox
                       checked={this.state.newIgnoreAccessRequests}
                       label=""
-                      onCheck={this.setSettings('newIgnoreAccessRequests')}
+                      onCheck={this.setBoolSettings('newIgnoreAccessRequests')}
                     />
                   </Box>
                   <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
