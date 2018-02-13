@@ -7,6 +7,30 @@ export type OwnProps = {
   teamname: string,
 }
 
+type Request = {
+  type: 'request',
+  key: string,
+  teamname: string,
+  username: string,
+}
+
+type Invite = {
+  type: 'invite',
+  email?: string,
+  name?: string,
+  key: string,
+  id: string,
+  username: string,
+  teamname: string,
+}
+
+type Divider = {
+  type: 'divider',
+  key: 'Invites' | 'Requests',
+}
+
+export type RequestOrInvite = Request | Invite | Divider
+
 const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => ({
   _invites: state.entities.getIn(['teams', 'teamNameToInvites', teamname], I.Set()),
   _requests: state.entities.getIn(['teams', 'teamNameToRequests', teamname], I.Set()),
@@ -32,14 +56,14 @@ const mergeProps = (stateProps, dispatchProps, {teamname}: OwnProps) => {
     } else {
       console.warn(`Could not find name, email, or username in invite with ID ${invite.id}`)
     }
-    return {
+    return ({
       ...inviteInfo,
       teamname,
       username: invite.username,
       id: invite.id,
       type: 'invite',
       key: invite.id,
-    }
+    }: Invite)
   })
   let requestsAndInvites = []
   if (requestProps.length > 0) {

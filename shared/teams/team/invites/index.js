@@ -4,9 +4,10 @@ import {Box, List, Text} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import InviteRow from './invite-row/container'
 import RequestRow from './request-row/container'
+import type {RequestOrInvite} from './container'
 
 export type Props = {
-  requestsAndInvites: any[],
+  requestsAndInvites: RequestOrInvite[],
 }
 
 const DividerRow = (index, {key}) => (

@@ -12,7 +12,7 @@ type OwnProps = {
   id: string,
   name?: string,
   teamname: string,
-  username?: string,
+  username: string,
 }
 
 type StateProps = {
