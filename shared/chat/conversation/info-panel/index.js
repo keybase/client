@@ -188,7 +188,7 @@ const _renderRow = (i: number, row: Row) => {
       )
 
     case 'join channel':
-      return <JoinChannel teamname={row.teamname} onClick={row.onJoinChannel} />
+      return <JoinChannel key="join channel" teamname={row.teamname} onClick={row.onJoinChannel} />
 
     case 'leave channel':
       return (
