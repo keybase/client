@@ -678,7 +678,7 @@ protocol local {
   }
 
   // Post an attachment from stream source to conversationID.
-  PostLocalRes postAttachmentLocal(int sessionID, ConversationID conversationID, string tlfName, keybase1.TLFVisibility visibility, LocalSource attachment, union { null, MakePreviewRes} preview, string title, bytes metadata, keybase1.TLFIdentifyBehavior identifyBehavior);
+  PostLocalRes postAttachmentLocal(int sessionID, ConversationID conversationID, string tlfName, keybase1.TLFVisibility visibility, LocalSource attachment, union { null, MakePreviewRes} preview, string title, bytes metadata, keybase1.TLFIdentifyBehavior identifyBehavior, union { null, OutboxID } outboxID);
 
   // LocalFileSource is a file attachment source.  Filename must be readable
   // by the service for the duration of the attachment upload.
@@ -687,7 +687,7 @@ protocol local {
   }
 
   // Post an attachment from file source to conversationID.
-  PostLocalRes postFileAttachmentLocal(int sessionID, ConversationID conversationID, string tlfName, keybase1.TLFVisibility visibility, LocalFileSource attachment, union { null, MakePreviewRes } preview, string title, bytes metadata, keybase1.TLFIdentifyBehavior identifyBehavior);
+  PostLocalRes postFileAttachmentLocal(int sessionID, ConversationID conversationID, string tlfName, keybase1.TLFVisibility visibility, LocalFileSource attachment, union { null, MakePreviewRes } preview, string title, bytes metadata, keybase1.TLFIdentifyBehavior identifyBehavior, union { null, OutboxID } outboxID);
 
   record DownloadAttachmentLocalRes {
     boolean offline;

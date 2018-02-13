@@ -3903,6 +3903,7 @@ type PostAttachmentLocalArg struct {
 	Title            string                       `codec:"title" json:"title"`
 	Metadata         []byte                       `codec:"metadata" json:"metadata"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+	OutboxID         *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 }
 
 type PostFileAttachmentLocalArg struct {
@@ -3915,6 +3916,7 @@ type PostFileAttachmentLocalArg struct {
 	Title            string                       `codec:"title" json:"title"`
 	Metadata         []byte                       `codec:"metadata" json:"metadata"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+	OutboxID         *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 }
 
 type DownloadAttachmentLocalArg struct {
