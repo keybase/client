@@ -1,7 +1,7 @@
 // @flow
-import * as Types from '../constants/types/fs'
-import {compose, connect, setDisplayName, type Dispatch} from '../util/container'
-import {navigateAppend} from '../actions/route-tree'
+import * as Types from '../../constants/types/fs'
+import {compose, connect, setDisplayName, type Dispatch} from '../../util/container'
+import {navigateAppend} from '../../actions/route-tree'
 
 type OwnProps = {
   path: Types.Path,

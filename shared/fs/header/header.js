@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
-import * as Types from '../constants/types/fs'
-import {globalStyles, globalColors, globalMargins, isMobile} from '../styles'
-import {Avatar, Box, ClickableBox, Icon, Text} from '../common-adapters'
+import * as Types from '../../constants/types/fs'
+import {globalStyles, globalColors, globalMargins, isMobile} from '../../styles'
+import {Avatar, Box, ClickableBox, Icon, Text} from '../../common-adapters'
 import HeaderConnector from './header-container'
 
 type FolderHeaderProps = {
