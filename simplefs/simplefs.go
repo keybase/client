@@ -241,6 +241,50 @@ func (k *SimpleFS) setResult(opid keybase1.OpID, val interface{}) {
 	k.lock.Unlock()
 }
 
+func (k *SimpleFS) startOp(ctx context.Context, opid keybase1.OpID,
+	desc keybase1.OpDescription) (context.Context, error) {
+	ctx = k.makeContext(ctx)
+	ctx, cancel := context.WithCancel(ctx)
+	k.lock.Lock()
+	k.inProgress[opid] = &inprogress{desc, cancel, make(chan error, 1)}
+	k.lock.Unlock()
+	// ignore error, this is just for logging.
+	descBS, _ := json.Marshal(desc)
+	k.log.CDebugf(ctx, "start %X %s", opid, descBS)
+	return k.startOpWrapContext(ctx)
+}
+
+func (k *SimpleFS) doneOp(ctx context.Context, opid keybase1.OpID, err error) {
+	k.lock.Lock()
+	w, ok := k.inProgress[opid]
+	k.lock.Unlock()
+	if ok {
+		w.done <- err
+		close(w.done)
+	}
+	k.log.CDebugf(ctx, "done op %X, status=%v", opid, err)
+	if ctx != nil {
+		libkbfs.CleanupCancellationDelayer(ctx)
+	}
+}
+
+func (k *SimpleFS) startAsync(
+	ctx context.Context, opid keybase1.OpID, desc keybase1.OpDescription,
+	callback func(context.Context) error) error {
+	ctxAsync, e0 := k.startOp(context.Background(), opid, desc)
+	if e0 != nil {
+		return e0
+	}
+	// Bind the old context to the new context, for debugging purposes.
+	k.log.CDebugf(ctx, "Launching new async operation with SFSID=%s",
+		ctxAsync.Value(ctxIDKey))
+	go func() (err error) {
+		defer func() { k.doneOp(ctxAsync, opid, err) }()
+		return callback(ctxAsync)
+	}()
+	return nil
+}
+
 // SimpleFSList - Begin list of items in directory at path
 // Retrieve results with readList()
 // Cannot be a single file to get flags/status,
@@ -538,6 +582,18 @@ func (k *SimpleFS) SimpleFSMove(ctx context.Context, arg keybase1.SimpleFSMoveAr
 		}
 		return err
 	})
+}
+
+func (k *SimpleFS) startSyncOp(ctx context.Context, name string, logarg interface{}) (context.Context, error) {
+	ctx = k.makeContext(ctx)
+	k.log.CDebugf(ctx, "start sync %s %v", name, logarg)
+	return k.startOpWrapContext(ctx)
+}
+func (k *SimpleFS) startOpWrapContext(outer context.Context) (context.Context, error) {
+	return libkbfs.NewContextWithCancellationDelayer(libkbfs.NewContextReplayable(
+		outer, func(c context.Context) context.Context {
+			return c
+		}))
 }
 
 func (k *SimpleFS) doneSyncOp(ctx context.Context, err error) {
@@ -920,59 +976,4 @@ func (k *SimpleFS) SimpleFSWait(ctx context.Context, opid keybase1.OpID) error {
 		return errNoResult
 	}
 	return err
-}
-
-func (k *SimpleFS) doneOp(ctx context.Context, opid keybase1.OpID, err error) {
-	k.lock.Lock()
-	w, ok := k.inProgress[opid]
-	k.lock.Unlock()
-	if ok {
-		w.done <- err
-		close(w.done)
-	}
-	k.log.CDebugf(ctx, "done op %X, status=%v", opid, err)
-	if ctx != nil {
-		libkbfs.CleanupCancellationDelayer(ctx)
-	}
-}
-
-func (k *SimpleFS) startAsync(
-	ctx context.Context, opid keybase1.OpID, desc keybase1.OpDescription,
-	callback func(context.Context) error) error {
-	ctxAsync, e0 := k.startOp(context.Background(), opid, desc)
-	if e0 != nil {
-		return e0
-	}
-	// Bind the old context to the new context, for debugging purposes.
-	k.log.CDebugf(ctx, "Launching new async operation with SFSID=%s",
-		ctxAsync.Value(ctxIDKey))
-	go func() (err error) {
-		defer func() { k.doneOp(ctxAsync, opid, err) }()
-		return callback(ctxAsync)
-	}()
-	return nil
-}
-
-func (k *SimpleFS) startOp(ctx context.Context, opid keybase1.OpID,
-	desc keybase1.OpDescription) (context.Context, error) {
-	ctx = k.makeContext(ctx)
-	ctx, cancel := context.WithCancel(ctx)
-	k.lock.Lock()
-	k.inProgress[opid] = &inprogress{desc, cancel, make(chan error, 1)}
-	k.lock.Unlock()
-	// ignore error, this is just for logging.
-	descBS, _ := json.Marshal(desc)
-	k.log.CDebugf(ctx, "start %X %s", opid, descBS)
-	return k.startOpWrapContext(ctx)
-}
-func (k *SimpleFS) startSyncOp(ctx context.Context, name string, logarg interface{}) (context.Context, error) {
-	ctx = k.makeContext(ctx)
-	k.log.CDebugf(ctx, "start sync %s %v", name, logarg)
-	return k.startOpWrapContext(ctx)
-}
-func (k *SimpleFS) startOpWrapContext(outer context.Context) (context.Context, error) {
-	return libkbfs.NewContextWithCancellationDelayer(libkbfs.NewContextReplayable(
-		outer, func(c context.Context) context.Context {
-			return c
-		}))
 }
