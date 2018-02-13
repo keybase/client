@@ -86,8 +86,9 @@ type BigHeaderRow = {
 
 type ParticipantRow = ParticipantInfo & {
   type: 'participant',
-  onShowProfile: string => void,
   key: string,
+
+  onShowProfile: string => void,
 }
 
 type TeamRow = ConversationFooterRow | SmallHeaderRow | BigHeaderRow | ParticipantRow
@@ -219,10 +220,11 @@ const typeSizeEstimator = (type: RowType): number => {
 
 const _InfoPanel = (props: InfoPanelProps) => {
   const participants: Array<ParticipantRow> = props.participants.map(participant => ({
-    ...participant,
-    onShowProfile: props.onShowProfile,
     type: 'participant',
     key: participant.username,
+
+    ...participant,
+    onShowProfile: props.onShowProfile,
   }))
 
   const participantCount = participants.length
