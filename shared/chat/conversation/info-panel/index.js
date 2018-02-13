@@ -84,13 +84,8 @@ type BigHeaderRow = {
   onJoinChannel: () => void,
 }
 
-type ParticipantRow = {
+type ParticipantRow = ParticipantInfo & {
   type: 'participant',
-  username: string,
-  following: boolean,
-  fullname: string,
-  broken: boolean,
-  isYou: boolean,
   onShowProfile: string => void,
   key: string,
 }
