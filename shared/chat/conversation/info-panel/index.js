@@ -1,11 +1,12 @@
 // @flow
 import * as React from 'react'
-import {Box, Button, ButtonBar, Divider, HeaderHoc, List, Text} from '../../../common-adapters'
+import {Button, ButtonBar, Divider, HeaderHoc, List} from '../../../common-adapters'
 import {type Props as HeaderHocProps} from '../../../common-adapters/header-hoc'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
 import {SmallTeamHeader, BigTeamHeader} from './header'
 import Notifications from './notifications/container'
 import {Participant, type ParticipantInfo} from './participant'
+import {JoinChannel} from './join-channel'
 import {ManageTeam} from './manage-team'
 import {TurnIntoTeam} from './turn-into-team'
 
@@ -187,18 +188,7 @@ const _renderRow = (i: number, row: Row) => {
       )
 
     case 'join channel':
-      return (
-        <Box key="join channel" style={{...globalStyles.flexBoxColumn}}>
-          <Button type="Primary" label="Join channel" small={true} onClick={row.onJoinChannel} />
-          <Text
-            key="anyone can join"
-            type="BodySmall"
-            style={{textAlign: 'center', marginTop: globalMargins.xtiny}}
-          >
-            Anyone in {row.teamname} can join.
-          </Text>
-        </Box>
-      )
+      return <JoinChannel teamname={row.teamname} onClick={row.onJoinChannel} />
 
     case 'leave channel':
       return (

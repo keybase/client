@@ -3,13 +3,13 @@ import * as React from 'react'
 import {ButtonBar, Button, Text} from '../../../common-adapters'
 import {globalMargins} from '../../../styles'
 
-const TurnIntoTeam = (props: {onClick: () => void}) => {
+const JoinChannel = (props: {teamname: string, onClick: () => void}) => {
   return [
-    <ButtonBar key="turnIntoTeamButtonBar" small={true}>
-      <Button type="Primary" small={true} label="Turn into team" onClick={props.onClick} />
+    <ButtonBar key="joinChannelButtonBar" small={true}>
+      <Button type="Primary" small={true} label="Join channel" onClick={props.onClick} />
     </ButtonBar>,
     <Text
-      key="turnIntoTeamText"
+      key="joinChannelText"
       style={{
         alignSelf: 'center',
         marginLeft: globalMargins.small,
@@ -18,9 +18,9 @@ const TurnIntoTeam = (props: {onClick: () => void}) => {
       }}
       type="BodySmall"
     >
-      You'll be able to add and delete members as you wish.
+      Anyone in {props.teamname} can join.
     </Text>,
   ]
 }
 
-export {TurnIntoTeam}
+export {JoinChannel}
