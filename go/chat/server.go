@@ -1791,11 +1791,10 @@ func (h *Server) Sign(payload []byte) ([]byte, error) {
 func (h *Server) postAttachmentPlaceholder(ctx context.Context, arg postAttachmentArg) (chat1.PostLocalRes, error) {
 	if arg.OutboxID == nil {
 		// generate outbox id
-		rbs, err := libkb.RandBytes(8)
+		obid, err := storage.NewOutboxID()
 		if err != nil {
 			return chat1.PostLocalRes{}, err
 		}
-		obid := chat1.OutboxID(rbs)
 
 		chatUI := h.getChatUI(arg.SessionID)
 		chatUI.ChatAttachmentUploadOutboxID(ctx, chat1.ChatAttachmentUploadOutboxIDArg{SessionID: arg.SessionID, OutboxID: obid})
