@@ -75,11 +75,11 @@ function copy(from: string, to: string): Promise<void> {
     mkdirp(path.dirname(to))
     fs.readFile(from, (err, data) => {
       if (err) {
-        reject()
+        reject(err)
       } else {
         fs.writeFile(to, data, err => {
           if (err) {
-            reject()
+            reject(err)
           } else {
             resolve()
           }

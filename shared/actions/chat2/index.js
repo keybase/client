@@ -1403,10 +1403,16 @@ const markThreadAsRead = (
     return
   }
 
-  const mmap = Constants.getMessageMap(state, conversationIDKey)
-  const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
-  const ordinal = ordinals.findLast(o => mmap.getIn([o, 'id']))
-  const message = mmap.get(ordinal)
+  let message
+  const mmap = state.chat2.messageMap.get(conversationIDKey)
+  if (mmap) {
+    const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
+    const ordinal = ordinals.findLast(o => {
+      const m = mmap.get(o)
+      return m && !!m.id
+    })
+    message = mmap.get(ordinal)
+  }
 
   if (!message) {
     logger.info('marking read bail on no messages')

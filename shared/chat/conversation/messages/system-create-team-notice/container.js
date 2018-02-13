@@ -1,10 +1,9 @@
-// @noflow
+// @flow
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import CreateTeamNotice from '.'
 import {connect, type TypedState} from '../../../../util/container'
 import {navigateAppend} from '../../../../actions/route-tree'
-import {type StateProps, type DispatchProps} from './container'
 
 const mapStateToProps = (state: TypedState) => {
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
@@ -30,7 +29,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   },
 })
 
-const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => ({
+const mergeProps = (stateProps, dispatchProps) => ({
   onShowNewTeamDialog: () => dispatchProps._onShowNewTeamDialog(stateProps.selectedConversationIDKey),
 })
 
