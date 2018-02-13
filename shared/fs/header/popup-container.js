@@ -11,10 +11,12 @@ const mapStateToProps = (stateProps: TypedState, {routeProps}: OwnProps) => ({
   isTeamPath: routeProps.get('isTeamPath'),
   items: routeProps.get('items'),
   onOpenBreadcrumb: routeProps.get('onOpenBreadcrumb'),
+  routeProps,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
   onClose: dispatch(navigateUp()),
+  routeProps,
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(DropdownPopupMenu)

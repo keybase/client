@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
-import {ModalLessPopupMenu as PopupMenu} from '../../common-adapters/popup-menu.desktop'
+import {ModalLessPopupMenu} from '../../common-adapters/popup-menu.desktop'
 
 type PopupMenuProps = {
   items: Array<Types.PathBreadcrumbItem>,
@@ -14,5 +14,5 @@ export const DropdownPopupMenu = ({items, isTeamPath, onOpenBreadcrumb}: PopupMe
     onClick: () => onOpenBreadcrumb(i.path),
     title: i.name,
   }))
-  return <PopupMenu items={popupItems} onHidden={() => {}} />
+  return <ModalLessPopupMenu items={popupItems} onHidden={() => {}} />
 }
