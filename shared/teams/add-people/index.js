@@ -108,7 +108,7 @@ const AddPeople = (props: Props) => (
           searchKey={'addToTeamSearch'}
         />
       </Box>
-      <Box style={{...globalStyles.scrollable, flex: 1, height: 500}}>
+      <Box style={{...globalStyles.scrollable, flex: 1}}>
         {props.showSearchPending ? (
           <ProgressIndicator style={{width: 24}} />
         ) : (
@@ -116,6 +116,7 @@ const AddPeople = (props: Props) => (
             searchKey={'addToTeamSearch'}
             disableIfInTeamName={props.name}
             style={{flexGrow: 1, height: 500}}
+            keyboardDismissMode="on-drag"
           />
         )}
       </Box>
