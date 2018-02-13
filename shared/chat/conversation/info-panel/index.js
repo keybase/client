@@ -1,13 +1,13 @@
 // @flow
 import * as React from 'react'
-import {Button, ButtonBar, Divider, HeaderHoc, List} from '../../../common-adapters'
+import {Divider, HeaderHoc, List} from '../../../common-adapters'
 import {type Props as HeaderHocProps} from '../../../common-adapters/header-hoc'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
 import {SmallTeamHeader, BigTeamHeader} from './header'
 import Notifications from './notifications/container'
 import {Participant, type ParticipantInfo} from './participant'
 import {ManageTeam} from './manage-team'
-import {CaptionedButton} from './button-utils'
+import {CaptionedButton, DangerButton} from './button-utils'
 
 const border = `1px solid ${globalColors.black_05}`
 const listStyle = {
@@ -152,14 +152,11 @@ const _renderRow = (i: number, row: Row) => {
 
     case 'block this conversation':
       return (
-        <ButtonBar key="block this conversation" small={true}>
-          <Button
-            type="Danger"
-            small={true}
-            label="Block this conversation"
-            onClick={row.onShowBlockConversationDialog}
-          />
-        </ButtonBar>
+        <DangerButton
+          key="block this conversation"
+          label="Block this conversation"
+          onClick={row.onShowBlockConversationDialog}
+        />
       )
 
     case 'manage team':
@@ -204,11 +201,7 @@ const _renderRow = (i: number, row: Row) => {
       )
 
     case 'leave channel':
-      return (
-        <ButtonBar key="leave channel" small={true}>
-          <Button type="Danger" small={true} label="Leave channel" onClick={row.onLeaveConversation} />
-        </ButtonBar>
-      )
+      return <DangerButton key="leave channel" label="Leave channel" onClick={row.onLeaveConversation} />
 
     default:
       throw new Error('Unexpected type ' + row.type)

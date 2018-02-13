@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box, Button, Text} from '../../../common-adapters'
+import {Box, Button, ButtonBar, Text} from '../../../common-adapters'
 import {globalMargins, globalStyles} from '../../../styles'
 
 const CaptionedButton = (props: {label: string, caption: string, onClick: () => void}) => (
@@ -18,4 +18,10 @@ const CaptionedButton = (props: {label: string, caption: string, onClick: () => 
   </Box>
 )
 
-export {CaptionedButton}
+const DangerButton = (props: {label: string, onClick: () => void}) => (
+  <ButtonBar key="leave channel" small={true}>
+    <Button type="Danger" small={true} label={props.label} onClick={props.onClick} />
+  </ButtonBar>
+)
+
+export {CaptionedButton, DangerButton}
