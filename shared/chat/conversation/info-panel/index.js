@@ -6,9 +6,8 @@ import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styl
 import {SmallTeamHeader, BigTeamHeader} from './header'
 import Notifications from './notifications/container'
 import {Participant, type ParticipantInfo} from './participant'
-import {JoinChannel} from './join-channel'
 import {ManageTeam} from './manage-team'
-import {TurnIntoTeam} from './turn-into-team'
+import {CaptionedButton} from './button-utils'
 
 const border = `1px solid ${globalColors.black_05}`
 const listStyle = {
@@ -142,7 +141,14 @@ const _renderRow = (i: number, row: Row) => {
       return <Notifications key="notifications" />
 
     case 'turn into team':
-      return <TurnIntoTeam key="turn into team" onClick={row.onShowNewTeamDialog} />
+      return (
+        <CaptionedButton
+          caption="You'll be able to add and delete members as you wish."
+          key="turn into team"
+          label="Turn into team"
+          onClick={row.onShowNewTeamDialog}
+        />
+      )
 
     case 'block this conversation':
       return (
@@ -188,7 +194,14 @@ const _renderRow = (i: number, row: Row) => {
       )
 
     case 'join channel':
-      return <JoinChannel key="join channel" teamname={row.teamname} onClick={row.onJoinChannel} />
+      return (
+        <CaptionedButton
+          caption={`Anyone in ${row.teamname} can join`}
+          key="join channel"
+          label="Join channel"
+          onClick={row.onJoinChannel}
+        />
+      )
 
     case 'leave channel':
       return (
