@@ -56,17 +56,6 @@ type InfoPanelProps = {
   onJoinChannel: () => void,
 } & HeaderHocProps
 
-type SmallHeaderRow = {
-  type: 'small header',
-  key: 'SMALL HEADER',
-
-  teamname: string,
-  admin: boolean,
-  participantCount: number,
-
-  onViewTeam: () => void,
-}
-
 type BigHeaderRow = {
   type: 'big header',
   key: 'BIG HEADER',
@@ -110,14 +99,29 @@ type BlockThisConversationRow = {
   onShowBlockConversationDialog: () => void,
 }
 
+type SmallTeamHeaderRow = {
+  type: 'small team header',
+  teamname: string,
+  participantCount: number,
+  onViewTeam: () => void,
+}
+
+type ManageTeamRow = {
+  type: 'manage team',
+  canManage: boolean,
+  participantCount: number,
+  onViewTeam: () => void,
+}
+
 type TeamRow =
-  | SmallHeaderRow
   | BigHeaderRow
   | ParticipantRow
   | DividerRow
   | TurnIntoTeamRow
   | NotificationsRow
   | BlockThisConversationRow
+  | SmallTeamHeaderRow
+  | ManageTeamRow
 type RowType = $PropertyType<TeamRow, 'type'>
 
 const _renderTeamRow = (i: number, props: TeamRow) => {
@@ -151,27 +155,23 @@ const _renderTeamRow = (i: number, props: TeamRow) => {
         </ButtonBar>
       )
 
-    case 'small header':
+    case 'small team header':
       return (
-        <Box key={props.key} style={{...globalStyles.flexBoxColumn, alignItems: 'stretch'}}>
-          <SmallTeamHeader
-            teamname={props.teamname}
-            participantCount={props.participantCount}
-            onClick={props.onViewTeam}
-          />
+        <SmallTeamHeader
+          teamname={props.teamname}
+          participantCount={props.participantCount}
+          onClick={props.onViewTeam}
+        />
+      )
 
-          <Divider style={{marginBottom: 20, marginTop: 20}} />
-
-          <Notifications />
-          <Divider style={dividerStyle} />
-
-          <ManageTeam
-            canManage={props.admin}
-            label="In this team"
-            participantCount={props.participantCount}
-            onClick={props.onViewTeam}
-          />
-        </Box>
+    case 'manage team':
+      return (
+        <ManageTeam
+          canManage={props.canManage}
+          label="In this team"
+          participantCount={props.participantCount}
+          onClick={props.onViewTeam}
+        />
       )
 
     case 'big header':
@@ -248,8 +248,11 @@ const typeSizeEstimator = (type: RowType): number => {
     case 'block this conversation':
       return 44
 
-    case 'small header':
-      return 407
+    case 'small team header':
+      return 32
+
+    case 'manage team':
+      return 15
 
     case 'big header':
       return 469 // estimate based on size of header in non-admin non-preview mode
@@ -277,13 +280,28 @@ const _InfoPanel = (props: InfoPanelProps) => {
     if (props.smallTeam) {
       rows = [
         {
-          type: 'small header',
-          key: 'SMALL HEADER',
-
+          type: 'small team header',
           teamname: props.teamname,
-          admin: props.admin,
           participantCount,
-
+          onViewTeam: props.onViewTeam,
+        },
+        {
+          type: 'divider',
+          key: 'divider 1',
+          marginBottom: 20,
+          marginTop: 20,
+        },
+        {
+          type: 'notifications',
+        },
+        {
+          type: 'divider',
+          key: 'divider 2',
+        },
+        {
+          type: 'manage team',
+          canManage: props.admin,
+          participantCount,
           onViewTeam: props.onViewTeam,
         },
       ].concat(participants)
