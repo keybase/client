@@ -191,6 +191,7 @@ type TeamChannelSource interface {
 
 	GetChannelsFull(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType) ([]chat1.ConversationLocal, []chat1.RateLimit, error)
 	GetChannelsTopicName(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType) ([]ConvIDAndTopicName, []chat1.RateLimit, error)
+	GetChannelTopicName(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType, chat1.ConversationID) (string, []chat1.RateLimit, error)
 	ChannelsChanged(context.Context, chat1.TLFID)
 }
 

@@ -122,6 +122,7 @@ func getMetadataInner(ctx context.Context, g *libkb.GlobalContext, folder *keyba
 			if firstErr == nil {
 				firstErr = err
 			}
+			g.Log.CDebugf(ctx, "git.getMetadataInner error (team:%v, repo:%v): %v", responseRepo.TeamID, responseRepo.RepoID, err)
 			resultList = append(resultList, keybase1.NewGitRepoResultWithErr(err.Error()))
 		} else {
 			if !skip {
@@ -265,7 +266,7 @@ func getMetadataInnerSingle(ctx context.Context, g *libkb.GlobalContext,
 
 	var settings *keybase1.GitTeamRepoSettings
 	if repoFolder.FolderType == keybase1.FolderType_TEAM {
-		pset, err := convertTeamRepoSettings(ctx, g, responseRepo.ChatConvID, responseRepo.ChatDisabled)
+		pset, err := convertTeamRepoSettings(ctx, g, responseRepo.TeamID, responseRepo.ChatConvID, responseRepo.ChatDisabled)
 		if err != nil {
 			return nil, false, err
 		}

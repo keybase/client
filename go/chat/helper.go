@@ -150,6 +150,17 @@ func (h *Helper) FindConversationsByID(ctx context.Context, convIDs []chat1.Conv
 	return inbox.Convs, nil
 }
 
+func (h *Helper) GetChannelTopicName(ctx context.Context, tlfID chat1.TLFID,
+	topicType chat1.TopicType, convID chat1.ConversationID) (topicName string, err error) {
+	kuid, err := CurrentUID(h.G())
+	if err != nil {
+		return topicName, err
+	}
+	uid := gregor1.UID(kuid.ToBytes())
+	topicName, _, err = h.G().TeamChannelSource.GetChannelTopicName(ctx, uid, tlfID, topicType, convID)
+	return topicName, err
+}
+
 type sendHelper struct {
 	utils.DebugLabeler
 
