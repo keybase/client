@@ -135,8 +135,8 @@ const _renderTeamRow = (i: number, props: TeamRow) => {
         <Divider
           key={props.key}
           style={{
-            marginBottom: props.marginBottom || globalMargins.small,
-            marginTop: props.marginTop || globalMargins.small,
+            marginBottom: 'marginBottom' in props ? props.marginBottom : globalMargins.small,
+            marginTop: 'marginTop' in props ? props.marginTop : globalMargins.small,
           }}
         />
       )
@@ -226,36 +226,36 @@ const typeSizeEstimator = (type: RowType): number => {
   // The sizes below are retrieved by using the React DevTools
   // inspector on the appropriate components, including margins.
   switch (type) {
+    case 'participant':
+      return 56
+
     case 'divider':
       // estimate based on default values.
       return 1 + 2 * globalMargins.small
 
-    case 'turn into team':
-      return 44 + 15
-
     case 'notifications':
       return 270
+
+    case 'turn into team':
+      return 44 + 15
 
     case 'block this conversation':
       return 44
 
-    case 'small team header':
-      return 32
-
     case 'manage team':
       return 15
 
+    case 'small team header':
+      return 32
+
     case 'big team header':
-      return 1
+      return 57
 
     case 'join channel':
-      return 1
+      return 47
 
     case 'leave channel':
-      return 1
-
-    case 'participant':
-      return 56
+      return 44
 
     default:
       throw new Error('Unexpected type ' + type)
