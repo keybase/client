@@ -65,13 +65,13 @@ type DividerRow = {
   marginBottom?: number,
 }
 
+type NotificationsRow = {
+  type: 'notifications',
+}
+
 type TurnIntoTeamRow = {
   type: 'turn into team',
   onShowNewTeamDialog: () => void,
-}
-
-type NotificationsRow = {
-  type: 'notifications',
 }
 
 type BlockThisConversationRow = {
@@ -79,17 +79,17 @@ type BlockThisConversationRow = {
   onShowBlockConversationDialog: () => void,
 }
 
-type SmallTeamHeaderRow = {
-  type: 'small team header',
-  teamname: string,
-  participantCount: number,
-  onViewTeam: () => void,
-}
-
 type ManageTeamRow = {
   type: 'manage team',
   canManage: boolean,
   label: string,
+  participantCount: number,
+  onViewTeam: () => void,
+}
+
+type SmallTeamHeaderRow = {
+  type: 'small team header',
+  teamname: string,
   participantCount: number,
   onViewTeam: () => void,
 }
@@ -115,11 +115,11 @@ type LeaveChannelRow = {
 type TeamRow =
   | ParticipantRow
   | DividerRow
-  | TurnIntoTeamRow
   | NotificationsRow
+  | TurnIntoTeamRow
   | BlockThisConversationRow
-  | SmallTeamHeaderRow
   | ManageTeamRow
+  | SmallTeamHeaderRow
   | BigTeamHeaderRow
   | JoinChannelRow
   | LeaveChannelRow
@@ -127,6 +127,9 @@ type RowType = $PropertyType<TeamRow, 'type'>
 
 const _renderTeamRow = (i: number, props: TeamRow) => {
   switch (props.type) {
+    case 'participant':
+      return <Participant key={props.key} {...props} />
+
     case 'divider':
       return (
         <Divider
@@ -138,11 +141,11 @@ const _renderTeamRow = (i: number, props: TeamRow) => {
         />
       )
 
-    case 'turn into team':
-      return <TurnIntoTeam key="turn into team" onClick={props.onShowNewTeamDialog} />
-
     case 'notifications':
       return <Notifications key="notifications" />
+
+    case 'turn into team':
+      return <TurnIntoTeam key="turn into team" onClick={props.onShowNewTeamDialog} />
 
     case 'block this conversation':
       return (
@@ -156,22 +159,22 @@ const _renderTeamRow = (i: number, props: TeamRow) => {
         </ButtonBar>
       )
 
-    case 'small team header':
-      return (
-        <SmallTeamHeader
-          key="small team header"
-          teamname={props.teamname}
-          participantCount={props.participantCount}
-          onClick={props.onViewTeam}
-        />
-      )
-
     case 'manage team':
       return (
         <ManageTeam
           key="manage team"
           canManage={props.canManage}
           label={props.label}
+          participantCount={props.participantCount}
+          onClick={props.onViewTeam}
+        />
+      )
+
+    case 'small team header':
+      return (
+        <SmallTeamHeader
+          key="small team header"
+          teamname={props.teamname}
           participantCount={props.participantCount}
           onClick={props.onViewTeam}
         />
@@ -213,9 +216,6 @@ const _renderTeamRow = (i: number, props: TeamRow) => {
           <Button type="Danger" small={true} label="Leave channel" onClick={props.onLeaveConversation} />
         </ButtonBar>
       )
-
-    case 'participant':
-      return <Participant key={props.key} {...props} />
 
     default:
       throw new Error('Unexpected type ' + props.type)
