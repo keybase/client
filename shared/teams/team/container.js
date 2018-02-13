@@ -49,7 +49,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
     loading: anyWaiting(state, Constants.teamWaitingKey(teamname)),
     memberCount: state.entities.getIn(['teams', 'teammembercounts', teamname], 0),
     name: teamname,
-    openTeam: state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname], {open: false}).open,
+    openTeam: state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname, 'open'], false),
     selectedTab: routeState.get('selectedTab') || 'members',
     _subteams,
     waitingForSavePublicity: anyWaiting(

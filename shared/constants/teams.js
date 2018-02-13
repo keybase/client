@@ -51,6 +51,11 @@ export const typeToLabel: Types.TypeMap = {
   writer: 'Writer',
 }
 
+export const makeTeamSettings: I.RecordFactory<Types._TeamSettings> = I.Record({
+  open: false,
+  joinAs: 1,
+})
+
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   convIDToChannelInfo: I.Map(),
   loaded: false,
