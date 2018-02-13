@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box, Button, Divider, HeaderHoc, List, Text} from '../../../common-adapters'
+import {Box, Button, ButtonBar, Divider, HeaderHoc, List, Text} from '../../../common-adapters'
 import {type Props as HeaderHocProps} from '../../../common-adapters/header-hoc'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
 import {SmallTeamHeader, BigTeamHeader} from './header'
@@ -44,7 +44,7 @@ type InfoPanelProps = {
   // Used by Participant.
   onShowProfile: (username: string) => void,
 
-  // Used by ConversationFooterRow.
+  // Used by the conversation case.
   onShowBlockConversationDialog: () => void,
   onShowNewTeamDialog: () => void,
 
@@ -55,14 +55,6 @@ type InfoPanelProps = {
   onLeaveConversation: () => void,
   onJoinChannel: () => void,
 } & HeaderHocProps
-
-type ConversationFooterRow = {
-  type: 'conversation footer',
-  key: 'CONVERSATION FOOTER',
-
-  onShowBlockConversationDialog: () => void,
-  onShowNewTeamDialog: () => void,
-}
 
 type SmallHeaderRow = {
   type: 'small header',
@@ -97,31 +89,66 @@ type ParticipantRow = ParticipantInfo & {
   onShowProfile: string => void,
 }
 
-type TeamRow = ConversationFooterRow | SmallHeaderRow | BigHeaderRow | ParticipantRow
+type DividerRow = {
+  type: 'divider',
+  key: string,
+  marginTop?: number,
+  marginBottom?: number,
+}
+
+type TurnIntoTeamRow = {
+  type: 'turn into team',
+  onShowNewTeamDialog: () => void,
+}
+
+type NotificationsRow = {
+  type: 'notifications',
+}
+
+type BlockThisConversationRow = {
+  type: 'block this conversation',
+  onShowBlockConversationDialog: () => void,
+}
+
+type TeamRow =
+  | SmallHeaderRow
+  | BigHeaderRow
+  | ParticipantRow
+  | DividerRow
+  | TurnIntoTeamRow
+  | NotificationsRow
+  | BlockThisConversationRow
 type RowType = $PropertyType<TeamRow, 'type'>
 
 const _renderTeamRow = (i: number, props: TeamRow) => {
   switch (props.type) {
-    case 'conversation footer':
+    case 'divider':
       return (
-        <Box key={props.key} style={{...globalStyles.flexBoxColumn, alignItems: 'stretch'}}>
-          <Divider style={{marginBottom: 10, marginTop: 10}} />
+        <Divider
+          key={props.key}
+          style={{
+            marginBottom: props.marginBottom || globalMargins.small,
+            marginTop: props.marginTop || globalMargins.small,
+          }}
+        />
+      )
 
-          <TurnIntoTeam onClick={props.onShowNewTeamDialog} />
+    case 'turn into team':
+      return <TurnIntoTeam key="turn into team" onClick={props.onShowNewTeamDialog} />
 
-          <Divider style={dividerStyle} />
+    case 'notifications':
+      return <Notifications key="notifications" />
 
-          <Notifications />
-
-          <Divider style={dividerStyle} />
-
+    case 'block this conversation':
+      return (
+        <ButtonBar key="block this conversation" small={true}>
           <Button
             type="Danger"
             small={true}
             label="Block this conversation"
             onClick={props.onShowBlockConversationDialog}
           />
-        </Box>
+        </ButtonBar>
       )
 
     case 'small header':
@@ -208,8 +235,18 @@ const typeSizeEstimator = (type: RowType): number => {
   // The sizes below are retrieved by using the React DevTools
   // inspector on the appropriate components, including margins.
   switch (type) {
-    case 'conversation footer':
-      return 444
+    case 'divider':
+      // estimate based on default values.
+      return 1 + 2 * globalMargins.small
+
+    case 'turn into team':
+      return 44 + 15
+
+    case 'notifications':
+      return 270
+
+    case 'block this conversation':
+      return 44
 
     case 'small header':
       return 407
@@ -269,13 +306,34 @@ const _InfoPanel = (props: InfoPanelProps) => {
       ].concat(participants)
     }
   } else {
-    rows = participants.concat({
-      type: 'conversation footer',
-      key: 'CONVERSATION FOOTER',
-
-      onShowBlockConversationDialog: props.onShowBlockConversationDialog,
-      onShowNewTeamDialog: props.onShowNewTeamDialog,
-    })
+    rows = participants.concat([
+      {
+        type: 'divider',
+        key: 'divider 1',
+        marginBottom: 10,
+        marginTop: 10,
+      },
+      {
+        type: 'turn into team',
+        onShowNewTeamDialog: props.onShowNewTeamDialog,
+      },
+      {
+        type: 'divider',
+        key: 'divider 2',
+      },
+      {
+        type: 'notifications',
+      },
+      {
+        type: 'divider',
+        key: 'divider 3',
+        marginBottom: 10,
+      },
+      {
+        type: 'block this conversation',
+        onShowBlockConversationDialog: props.onShowBlockConversationDialog,
+      },
+    ])
   }
 
   const rowSizeEstimator = index => typeSizeEstimator(rows[index].type)
