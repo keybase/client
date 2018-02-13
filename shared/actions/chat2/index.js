@@ -1279,33 +1279,31 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
 
   const attachmentType = Constants.pathToAttachmentType(path)
 
-  let ordinal
-  let lastRatioSent = 0
+  const outboxID = Constants.generateOutboxID()
+  const message = Constants.makePendingAttachmentMessage(
+    state,
+    conversationIDKey,
+    attachmentType,
+    title,
+    (preview && preview.filename) || '',
+    Types.stringToOutboxID(outboxID.toString('hex') || '') // never null but makes flow happy
+  )
+  const ordinal = message.ordinal
+  yield Saga.put(
+    Chat2Gen.createMessagesAdd({
+      context: {type: 'sent'},
+      messages: [message],
+    })
+  )
+  yield Saga.put(Chat2Gen.createAttachmentUploading({conversationIDKey, ordinal, ratio: 0.01}))
 
+  let lastRatioSent = 0
   const postAttachment = new EngineRpc.EngineRpcCall(
     {
       'chat.1.chatUi.chatAttachmentPreviewUploadDone': EngineRpc.passthroughResponseSaga,
       'chat.1.chatUi.chatAttachmentPreviewUploadStart': EngineRpc.passthroughResponseSaga,
       'chat.1.chatUi.chatAttachmentUploadDone': EngineRpc.passthroughResponseSaga,
-      'chat.1.chatUi.chatAttachmentUploadOutboxID': function*({outboxID}) {
-        const message = Constants.makePendingAttachmentMessage(
-          state,
-          conversationIDKey,
-          attachmentType,
-          title,
-          (preview && preview.filename) || '',
-          Types.stringToOutboxID(outboxID.toString('hex') || '') // never null but makes flow happy
-        )
-        ordinal = message.ordinal
-        yield Saga.put(
-          Chat2Gen.createMessagesAdd({
-            context: {type: 'sent'},
-            messages: [message],
-          })
-        )
-        yield Saga.put(Chat2Gen.createAttachmentUploading({conversationIDKey, ordinal, ratio: 0.01}))
-        return EngineRpc.rpcResult()
-      },
+      'chat.1.chatUi.chatAttachmentUploadOutboxID': EngineRpc.passthroughResponseSaga,
       'chat.1.chatUi.chatAttachmentUploadProgress': function*({bytesComplete, bytesTotal}) {
         const ratio = bytesComplete / bytesTotal
         // Don't spam ourselves with updates
@@ -1324,7 +1322,7 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
       conversationID: Types.keyToConversationID(conversationIDKey),
       identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
       metadata: null,
-      preview,
+      outboxID,
       title,
       tlfName: meta.tlfname,
       visibility: RPCTypes.commonTLFVisibility.private,
