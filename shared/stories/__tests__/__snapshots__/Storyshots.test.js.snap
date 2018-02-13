@@ -8076,6 +8076,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                               "width": 16,
                             }
                           }
+                          title="Leaving the general channel is disabled"
                         >
                           <div
                             onClick={[Function]}
@@ -8083,7 +8084,6 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                               Object {
                                 "alignItems": "flex-start",
                                 "alignSelf": "flex-start",
-                                "cursor": "pointer",
                                 "display": "flex",
                                 "flexDirection": "row",
                                 "marginRight": 0,
@@ -8099,7 +8099,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                                   "height": 13,
                                   "marginRight": 8,
                                   "marginTop": 2,
-                                  "opacity": 1,
+                                  "opacity": 0.4,
                                   "position": "relative",
                                   "transition": "background 0.1s ease-out",
                                   "width": 13,
@@ -8215,6 +8215,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                               "width": 16,
                             }
                           }
+                          title={undefined}
                         >
                           <div
                             onClick={[Function]}
@@ -8354,6 +8355,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                               "width": 16,
                             }
                           }
+                          title={undefined}
                         >
                           <div
                             onClick={[Function]}
@@ -8494,6 +8496,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                               "width": 16,
                             }
                           }
+                          title={undefined}
                         >
                           <div
                             onClick={[Function]}
@@ -8634,6 +8637,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                               "width": 16,
                             }
                           }
+                          title={undefined}
                         >
                           <div
                             onClick={[Function]}
@@ -8774,6 +8778,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                               "width": 16,
                             }
                           }
+                          title={undefined}
                         >
                           <div
                             onClick={[Function]}
@@ -8913,6 +8918,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                               "width": 16,
                             }
                           }
+                          title={undefined}
                         >
                           <div
                             onClick={[Function]}
@@ -9569,6 +9575,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                               "width": 16,
                             }
                           }
+                          title="Leaving the general channel is disabled"
                         >
                           <div
                             onClick={[Function]}
@@ -9576,7 +9583,6 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                               Object {
                                 "alignItems": "flex-start",
                                 "alignSelf": "flex-start",
-                                "cursor": "pointer",
                                 "display": "flex",
                                 "flexDirection": "row",
                                 "marginRight": 0,
@@ -9592,7 +9598,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                                   "height": 13,
                                   "marginRight": 8,
                                   "marginTop": 2,
-                                  "opacity": 1,
+                                  "opacity": 0.4,
                                   "position": "relative",
                                   "transition": "background 0.1s ease-out",
                                   "width": 13,
@@ -9754,6 +9760,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                               "width": 16,
                             }
                           }
+                          title={undefined}
                         >
                           <div
                             onClick={[Function]}
@@ -9939,6 +9946,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                               "width": 16,
                             }
                           }
+                          title={undefined}
                         >
                           <div
                             onClick={[Function]}
@@ -10125,6 +10133,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                               "width": 16,
                             }
                           }
+                          title={undefined}
                         >
                           <div
                             onClick={[Function]}
@@ -10311,6 +10320,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                               "width": 16,
                             }
                           }
+                          title={undefined}
                         >
                           <div
                             onClick={[Function]}
@@ -10497,6 +10507,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                               "width": 16,
                             }
                           }
+                          title={undefined}
                         >
                           <div
                             onClick={[Function]}
@@ -10682,6 +10693,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                               "width": 16,
                             }
                           }
+                          title={undefined}
                         >
                           <div
                             onClick={[Function]}
