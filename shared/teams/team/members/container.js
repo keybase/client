@@ -24,14 +24,24 @@ const getOrderedMemberArray = (
       info = memberInfo.delete(youInfo)
     }
   }
-  let returnArray = info
-    .toArray()
-    .sort(
-      (a, b) =>
-        !a.type || !b.type || a.type === b.type
-          ? a.username.localeCompare(b.username)
-          : order[a.type] - order[b.type]
-    )
+  let returnArray = info.toArray().sort((a, b) => {
+    if (!a.type) {
+      if (!b.type) {
+        // both have no type, compare usernames
+        return a.username.localeCompare(b.username)
+      }
+      // b has a type, should go first
+      return 1
+    } else if (!b.type) {
+      // a has a type, should go first
+      return -1
+    } else if (a.type === b.type) {
+      // they have equal types, compare usernames
+      return a.username.localeCompare(b.username)
+    }
+    // they have different types, higher goes first
+    return order[a.type] - order[b.type]
+  })
 
   if (youInfo) {
     returnArray.unshift(youInfo)
