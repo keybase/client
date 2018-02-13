@@ -196,7 +196,7 @@ const _renderRow = (i: number, row: Row) => {
     case 'join channel':
       return (
         <CaptionedButton
-          caption={`Anyone in ${row.teamname} can join`}
+          caption={`Anyone in ${row.teamname} can join.`}
           key="join channel"
           label="Join channel"
           onClick={row.onJoinChannel}
