@@ -206,15 +206,13 @@ const _renderTeamRow = (i: number, props: TeamRow) => {
     case 'join channel':
       return (
         <Box key="join channel" style={{...globalStyles.flexBoxColumn}}>
-          <Box key="join channel" style={{...globalStyles.flexBoxRow, justifyContent: 'center'}}>
-            <Button
-              type="Primary"
-              label="Join channel"
-              style={{marginRight: globalMargins.xtiny}}
-              small={true}
-              onClick={props.onJoinChannel}
-            />
-          </Box>
+          <Button
+            type="Primary"
+            label="Join channel"
+            style={{marginRight: globalMargins.xtiny}}
+            small={true}
+            onClick={props.onJoinChannel}
+          />
           <Text
             key="anyone can join"
             type="BodySmall"
@@ -227,9 +225,9 @@ const _renderTeamRow = (i: number, props: TeamRow) => {
 
     case 'leave channel':
       return (
-        <Box key="leave channel" style={{...globalStyles.flexBoxRow, justifyContent: 'center'}}>
+        <ButtonBar key="leave channel" small={true}>
           <Button type="Danger" small={true} label="Leave channel" onClick={props.onLeaveConversation} />
-        </Box>
+        </ButtonBar>
       )
 
     case 'participant':
@@ -372,6 +370,7 @@ const _InfoPanel = (props: InfoPanelProps) => {
           {
             type: 'divider',
             key: 'divider 2',
+            marginBottom: globalMargins.tiny,
           },
           {
             type: 'leave channel',
@@ -380,6 +379,7 @@ const _InfoPanel = (props: InfoPanelProps) => {
           {
             type: 'divider',
             key: 'divider 3',
+            marginTop: globalMargins.tiny,
           },
           {
             type: 'manage team',
