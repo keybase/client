@@ -270,7 +270,8 @@ func TestCopyRecursive(t *testing.T) {
 	err = ioutil.WriteFile(
 		filepath.Join(tempdir, "testdir", "test2.txt"), []byte("bar"), 0600)
 	require.NoError(t, err)
-	path1 := keybase1.NewPathWithLocal(filepath.Join(tempdir, "testdir"))
+	path1 := keybase1.NewPathWithLocal(
+		filepath.ToSlash(filepath.Join(tempdir, "testdir")))
 	path2 := keybase1.NewPathWithKbfs(`/private/jdoe/testdir`)
 
 	opid, err := sfs.SimpleFSMakeOpid(ctx)
@@ -297,7 +298,8 @@ func TestCopyRecursive(t *testing.T) {
 	tempdir2, err := ioutil.TempDir("", "simpleFstest")
 	require.NoError(t, err)
 	defer os.RemoveAll(tempdir2)
-	path3 := keybase1.NewPathWithLocal(filepath.Join(tempdir2, "testdir"))
+	path3 := keybase1.NewPathWithLocal(
+		filepath.ToSlash(filepath.Join(tempdir2, "testdir")))
 	opid2, err := sfs.SimpleFSMakeOpid(ctx)
 	require.NoError(t, err)
 	err = sfs.SimpleFSCopyRecursive(ctx, keybase1.SimpleFSCopyRecursiveArg{
@@ -340,7 +342,8 @@ func TestCopyToRemote(t *testing.T) {
 	opid, err := sfs.SimpleFSMakeOpid(ctx)
 	require.NoError(t, err)
 
-	srcPath := keybase1.NewPathWithLocal(filepath.Join(path1.Local(), "test1.txt"))
+	srcPath := keybase1.NewPathWithLocal(
+		filepath.ToSlash(filepath.Join(path1.Local(), "test1.txt")))
 	destPath := pathAppend(path2, "test1.txt")
 	err = sfs.SimpleFSCopy(ctx, keybase1.SimpleFSCopyArg{
 		OpID: opid,
