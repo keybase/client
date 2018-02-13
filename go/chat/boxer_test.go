@@ -5,6 +5,7 @@ package chat
 
 import (
 	"crypto/sha256"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -45,10 +46,10 @@ func textMsg(t *testing.T, text string, mbVersion chat1.MessageBoxedVersion) cha
 	return textMsgWithSender(t, text, gregor1.UID(uid), mbVersion)
 }
 
-func textMsgWithSender(t *testing.T, text string, uid gregor1.UID, mbVersion chat1.MessageBoxedVersion) chat1.MessagePlaintext {
+func msgHeader(uid gregor1.UID, mbVersion chat1.MessageBoxedVersion, typ chat1.MessageType) chat1.MessageClientHeader {
 	header := chat1.MessageClientHeader{
 		Sender:      uid,
-		MessageType: chat1.MessageType_TEXT,
+		MessageType: typ,
 	}
 	switch mbVersion {
 	case chat1.MessageBoxedVersion_V2:
@@ -57,6 +58,11 @@ func textMsgWithSender(t *testing.T, text string, uid gregor1.UID, mbVersion cha
 			Hash:  []byte{123, 117, 0, 99, 99, 79, 223, 37, 180, 168, 111, 107, 210, 227, 128, 35, 47, 158, 221, 210, 151, 242, 182, 199, 50, 29, 236, 93, 106, 149, 133, 221, 156, 216, 167, 79, 91, 28, 9, 196, 107, 173, 61, 248, 123, 97, 101, 34, 7, 15, 30, 80, 246, 162, 198, 12, 20, 19, 130, 151, 45, 2, 130, 170},
 		}
 	}
+	return header
+}
+
+func textMsgWithSender(t *testing.T, text string, uid gregor1.UID, mbVersion chat1.MessageBoxedVersion) chat1.MessagePlaintext {
+	header := msgHeader(uid, mbVersion, chat1.MessageType_TEXT)
 	return textMsgWithHeader(t, text, header)
 }
 
@@ -138,6 +144,12 @@ func doWithMBVersions(f func(chat1.MessageBoxedVersion)) {
 	f(chat1.MessageBoxedVersion_V2)
 }
 
+func doWithMessageTypes(f func(chat1.MessageType)) {
+	f(chat1.MessageType_TEXT)
+	f(chat1.MessageType_ATTACHMENT)
+	f(chat1.MessageType_ATTACHMENTUPLOADED)
+}
+
 func TestChatMessageBox(t *testing.T) {
 	doWithMBVersions(func(mbVersion chat1.MessageBoxedVersion) {
 		key := cryptKey(t)
@@ -156,49 +168,78 @@ func TestChatMessageBox(t *testing.T) {
 }
 
 func TestChatMessageUnbox(t *testing.T) {
-	doWithMBVersions(func(mbVersion chat1.MessageBoxedVersion) {
-		key := cryptKey(t)
-		text := "hi"
-		tc, boxer := setupChatTest(t, "unbox")
-		defer tc.Cleanup()
+	doWithMessageTypes(func(typ chat1.MessageType) {
+		doWithMBVersions(func(mbVersion chat1.MessageBoxedVersion) {
+			key := cryptKey(t)
+			text := "hi"
+			filename := "../bash_profile"
+			asset := chat1.Asset{Filename: filename}
+			tc, boxer := setupChatTest(t, "unbox")
+			defer tc.Cleanup()
 
-		// need a real user
-		u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
-		if err != nil {
-			t.Fatal(err)
-		}
-		msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()), mbVersion)
-		outboxID := chat1.OutboxID{0xdc, 0x74, 0x6, 0x5d, 0xf9, 0x5f, 0x1c, 0x48}
-		msg.ClientHeader.OutboxID = &outboxID
+			// need a real user
+			u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
+			if err != nil {
+				t.Fatal(err)
+			}
+			var msg chat1.MessagePlaintext
+			uid := gregor1.UID(u.User.GetUID().ToBytes())
+			header := msgHeader(uid, mbVersion, typ)
+			switch typ {
+			case chat1.MessageType_TEXT:
+				msg = textMsgWithHeader(t, text, header)
+			case chat1.MessageType_ATTACHMENT:
+				msg = chat1.MessagePlaintext{
+					ClientHeader: header,
+					MessageBody: chat1.NewMessageBodyWithAttachment(chat1.MessageAttachment{
+						Object: asset,
+					}),
+				}
+			case chat1.MessageType_ATTACHMENTUPLOADED:
+				msg = chat1.MessagePlaintext{
+					ClientHeader: header,
+					MessageBody: chat1.NewMessageBodyWithAttachmentuploaded(chat1.MessageAttachmentUploaded{
+						Object: asset,
+					}),
+				}
+			}
+			outboxID := chat1.OutboxID{0xdc, 0x74, 0x6, 0x5d, 0xf9, 0x5f, 0x1c, 0x48}
+			msg.ClientHeader.OutboxID = &outboxID
 
-		signKP := getSigningKeyPairForTest(t, tc, u)
+			signKP := getSigningKeyPairForTest(t, tc, u)
 
-		boxed, err := boxer.box(context.TODO(), msg, key, signKP, mbVersion)
-		require.NoError(t, err)
-		boxed = remarshalBoxed(t, *boxed)
+			boxed, err := boxer.box(context.TODO(), msg, key, signKP, mbVersion)
+			require.NoError(t, err)
+			boxed = remarshalBoxed(t, *boxed)
 
-		if boxed.ClientHeader.OutboxID == msg.ClientHeader.OutboxID {
-			t.Fatalf("defective test: %+v   ==   %+v", boxed.ClientHeader.OutboxID, msg.ClientHeader.OutboxID)
-		}
+			if boxed.ClientHeader.OutboxID == msg.ClientHeader.OutboxID {
+				t.Fatalf("defective test: %+v   ==   %+v", boxed.ClientHeader.OutboxID, msg.ClientHeader.OutboxID)
+			}
 
-		// need to give it a server header...
-		boxed.ServerHeader = &chat1.MessageServerHeader{
-			Ctime: gregor1.ToTime(time.Now()),
-		}
+			// need to give it a server header...
+			boxed.ServerHeader = &chat1.MessageServerHeader{
+				Ctime: gregor1.ToTime(time.Now()),
+			}
 
-		unboxed, err := boxer.unbox(context.TODO(), *boxed, chat1.ConversationMembersType_KBFS, key)
-		if err != nil {
-			t.Fatal(err)
-		}
-		body := unboxed.MessageBody
-		if typ, _ := body.MessageType(); typ != chat1.MessageType_TEXT {
-			t.Errorf("body type: %d, expected %d", typ, chat1.MessageType_TEXT)
-		}
-		if body.Text().Body != text {
-			t.Errorf("body text: %q, expected %q", body.Text().Body, text)
-		}
-		require.Nil(t, unboxed.SenderDeviceRevokedAt, "message should not be from revoked device")
-		require.NotNil(t, unboxed.BodyHash)
+			unboxed, err := boxer.unbox(context.TODO(), *boxed, chat1.ConversationMembersType_KBFS, key)
+			if err != nil {
+				t.Fatal(err)
+			}
+			body := unboxed.MessageBody
+			unboxedTyp, _ := body.MessageType()
+			require.Equal(t, unboxedTyp, typ)
+			switch typ {
+			case chat1.MessageType_TEXT:
+				require.Equal(t, body.Text().Body, text)
+			case chat1.MessageType_ATTACHMENT:
+				require.Equal(t, body.Attachment().Object.Filename, filepath.Base(filename))
+			case chat1.MessageType_ATTACHMENTUPLOADED:
+				require.Equal(t, body.Attachmentuploaded().Object.Filename, filepath.Base(filename))
+			}
+			require.Nil(t, unboxed.SenderDeviceRevokedAt, "message should not be from revoked device")
+			require.NotNil(t, unboxed.BodyHash)
+		})
+
 	})
 }
 
