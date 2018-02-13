@@ -19,7 +19,7 @@ const CaptionedButton = (props: {label: string, caption: string, onClick: () => 
 )
 
 const DangerButton = (props: {label: string, onClick: () => void}) => (
-  <ButtonBar key="leave channel" small={true}>
+  <ButtonBar small={true}>
     <Button type="Danger" small={true} label={props.label} onClick={props.onClick} />
   </ButtonBar>
 )

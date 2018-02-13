@@ -132,10 +132,10 @@ type Row =
 const _renderRow = (i: number, row: Row) => {
   switch (row.type) {
     case 'participant':
-      return <Participant key={row.key} {...row} />
+      return <Participant key={`participant ${row.key}`} {...row} />
 
     case 'divider':
-      return <Divider key={row.key} style={getDividerStyle(row)} />
+      return <Divider key={`divider ${row.key}`} style={getDividerStyle(row)} />
 
     case 'notifications':
       return <Notifications key="notifications" />
@@ -275,7 +275,7 @@ const _InfoPanel = (props: InfoPanelProps) => {
         },
         {
           type: 'divider',
-          key: 'divider 1',
+          key: '1',
           marginBottom: 20,
           marginTop: 20,
         },
@@ -284,7 +284,7 @@ const _InfoPanel = (props: InfoPanelProps) => {
         },
         {
           type: 'divider',
-          key: 'divider 2',
+          key: '2',
         },
         {
           type: 'manage team',
@@ -316,7 +316,7 @@ const _InfoPanel = (props: InfoPanelProps) => {
           headerRow,
           {
             type: 'divider',
-            key: 'divider 1',
+            key: '1',
           },
           {
             type: 'join channel',
@@ -325,7 +325,7 @@ const _InfoPanel = (props: InfoPanelProps) => {
           },
           {
             type: 'divider',
-            key: 'divider 2',
+            key: '2',
           },
           manageTeamRow,
         ]
@@ -335,14 +335,14 @@ const _InfoPanel = (props: InfoPanelProps) => {
           headerRow,
           {
             type: 'divider',
-            key: 'divider 1',
+            key: '1',
           },
           {
             type: 'notifications',
           },
           {
             type: 'divider',
-            key: 'divider 2',
+            key: '2',
             marginBottom: globalMargins.tiny,
           },
           {
@@ -351,7 +351,7 @@ const _InfoPanel = (props: InfoPanelProps) => {
           },
           {
             type: 'divider',
-            key: 'divider 3',
+            key: '3',
             marginTop: globalMargins.tiny,
           },
           manageTeamRow,
@@ -364,7 +364,7 @@ const _InfoPanel = (props: InfoPanelProps) => {
     rows = participants.concat([
       {
         type: 'divider',
-        key: 'divider 1',
+        key: '1',
         marginBottom: 10,
         marginTop: 10,
       },
@@ -374,14 +374,14 @@ const _InfoPanel = (props: InfoPanelProps) => {
       },
       {
         type: 'divider',
-        key: 'divider 2',
+        key: '2',
       },
       {
         type: 'notifications',
       },
       {
         type: 'divider',
-        key: 'divider 3',
+        key: '3',
         marginBottom: 10,
       },
       {
