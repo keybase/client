@@ -1,79 +1,59 @@
-// @noflow
-// import * as Types from '../../../constants/types/chat'
-// import ParticipantRekey, {type Props as ParticipantRekeyProps} from './participant-rekey'
-// import YouRekey, {type Props as YouRekeyProps} from './you-rekey'
-// import {
-// compose,
-// branch,
-// renderComponent,
-// renderNothing,
-// connect,
-// type TypedState,
-// } from '../../../util/container'
-// import {navigateAppend, navigateUp} from '../../../actions/route-tree'
-// import {createShowUserProfile} from '../../../actions/profile-gen'
-// import {createOpenPopup} from '../../../actions/unlock-folders-gen'
+// @flow
+import * as React from 'react'
+import * as Constants from '../../../constants/chat2'
+import ParticipantRekey from './participant-rekey'
+import YouRekey from './you-rekey'
+import {connect, type TypedState} from '../../../util/container'
+import {navigateAppend, navigateUp} from '../../../actions/route-tree'
+import {createShowUserProfile} from '../../../actions/profile-gen'
+import {createOpenPopup} from '../../../actions/unlock-folders-gen'
 
-// type Props = ParticipantRekeyProps & YouRekeyProps
+type Props = {
+  onBack: () => void,
+  onEnterPaperkey: () => void,
+  onRekey: () => void,
+  onShowProfile: (username: string) => void,
+  rekeyers: Array<string>,
+  youRekey: boolean,
+}
 
-// type OwnProps = {
-// selectedConversationIDKey: ?Types.ConversationIDKey,
-// }
+const mapStateToProps = (state: TypedState, {conversationIDKey}): * => ({
+  _you: state.config.username || '',
+  rekeyers: Constants.getMeta(state, conversationIDKey).rekeyers,
+})
 
-// type StateProps = {
-// rekeyInfo: ?Types.RekeyInfo,
-// selectedConversationIDKey: ?Types.ConversationIDKey,
-// }
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  onBack: () => dispatch(navigateUp()),
+  onEnterPaperkey: () => dispatch(navigateAppend(['enterPaperkey'])),
+  onRekey: () => dispatch(createOpenPopup()),
+  onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
+})
 
-// type DispatchProps = {
-// onBack: () => void,
-// onEnterPaperkey: () => void,
-// onRekey: () => void,
-// onShowProfile: (username: string) => void,
-// }
+const mergeProps = (stateProps, dispatchProps) => ({
+  onBack: dispatchProps.onBack,
+  onEnterPaperkey: dispatchProps.onEnterPaperkey,
+  onRekey: dispatchProps.onRekey,
+  onShowProfile: dispatchProps.onShowProfile,
+  rekeyers: stateProps.rekeyers.toArray(),
+  youRekey: stateProps.rekeyers.has(stateProps._you),
+})
 
-// const mapStateToProps = (state: TypedState, {selectedConversationIDKey}: OwnProps): StateProps => {
-// let rekeyInfo = null
+class Rekey extends React.PureComponent<Props> {
+  render() {
+    return this.props.youRekey ? (
+      <YouRekey
+        onEnterPaperkey={this.props.onEnterPaperkey}
+        onBack={this.props.onBack}
+        onRekey={this.props.onRekey}
+      />
+    ) : (
+      <ParticipantRekey
+        rekeyers={this.props.rekeyers}
+        onShowProfile={this.props.onShowProfile}
+        onBack={this.props.onBack}
+      />
+    )
+  }
+}
 
-// // TODO
-// // if (selectedConversationIDKey !== Constants.nothingSelected && selectedConversationIDKey) {
-// // rekeyInfo = state.chat.rekeyInfos.get(selectedConversationIDKey)
-// // }
-
-// return {
-// rekeyInfo,
-// selectedConversationIDKey,
-// }
-// }
-
-// const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
-// onBack: () => dispatch(navigateUp()),
-// onEnterPaperkey: () => dispatch(navigateAppend(['enterPaperkey'])),
-// onRekey: () => dispatch(createOpenPopup()),
-// onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
-// })
-
-// const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props => ({
-// onBack: dispatchProps.onBack,
-// onEnterPaperkey: dispatchProps.onEnterPaperkey,
-// onRekey: dispatchProps.onRekey,
-// onShowProfile: dispatchProps.onShowProfile,
-// rekeyInfo: stateProps.rekeyInfo,
-// selectedConversationIDKey: stateProps.selectedConversationIDKey,
-// })
-
-// const Impossible = () => null
-
-// export default compose(
-// connect(mapStateToProps, mapDispatchToProps, mergeProps),
-// branch(
-// props => !!props.rekeyInfo && !!props.rekeyInfo.get('youCanRekey'),
-// // $FlowIssue doesn't like sending onEnterPaperkey into it cause it doens't use it
-// renderComponent(YouRekey)
-// ),
-// branch(
-// props => !!props.rekeyInfo && !!props.rekeyInfo.get('rekeyParticipants').count(),
-// renderComponent(ParticipantRekey)
-// ),
-// renderNothing
-// )(Impossible)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Rekey)

@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 import * as React from 'react'
 import * as Constants from '../../constants/chat2'
 import * as Types from '../../constants/types/chat2'
@@ -7,10 +8,11 @@ import Normal from './normal/container'
 import NoConversation from './no-conversation'
 import Error from './error/container'
 import YouAreReset from './you-are-reset'
+import Rekey from './rekey/container'
 
 type SwitchProps = {
   conversationIDKey: Types.ConversationIDKey,
-  type: 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal',
+  type: 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal' | 'rekey',
 }
 
 class Conversation extends React.PureComponent<SwitchProps> {
@@ -24,8 +26,8 @@ class Conversation extends React.PureComponent<SwitchProps> {
         return <Normal conversationIDKey={this.props.conversationIDKey} />
       case 'youAreReset':
         return <YouAreReset />
-      case 'rekey': // maybe not impl this
-        return <NoConversation />
+      case 'rekey':
+        return <Rekey conversationIDKey={this.props.conversationIDKey} />
       default:
         // eslint-disable-next-line no-unused-expressions
         ;(this.props.type: empty) // if you get a flow error here it means there's a missing case
@@ -61,6 +63,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       type = 'error'
     } else if (stateProps._metaMap.getIn([conversationIDKey, 'membershipType']) === 'youAreReset') {
       type = 'youAreReset'
+    } else if (stateProps._metaMap.getIn([conversationIDKey, 'rekeyers'], I.Set()).size > 0) {
+      type = 'rekey'
     } else {
       type = 'normal'
     }

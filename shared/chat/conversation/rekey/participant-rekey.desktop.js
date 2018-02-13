@@ -1,4 +1,4 @@
-// @noflow
+// @flow
 import * as React from 'react'
 import {Box, Avatar, Usernames, Text} from '../../../common-adapters'
 import {globalColors, globalStyles} from '../../../styles'
@@ -17,7 +17,7 @@ const Row = ({username, onUsernameClicked}) => (
   </Box>
 )
 
-const ParticipantRekey = ({rekeyInfo, onShowProfile: onUsernameClicked}: Props) => {
+const ParticipantRekey = ({rekeyers, onShowProfile: onUsernameClicked}: Props) => {
   return (
     <Box style={containerStyle}>
       <Box style={{...globalStyles.flexBoxRow, backgroundColor: globalColors.red, justifyContent: 'center'}}>
@@ -39,12 +39,9 @@ const ParticipantRekey = ({rekeyInfo, onShowProfile: onUsernameClicked}: Props) 
         }}
       >
         <Box>
-          {rekeyInfo &&
-            rekeyInfo
-              .get('rekeyParticipants')
-              .map(username => (
-                <Row key={username} username={username} onUsernameClicked={onUsernameClicked} />
-              ))}
+          {rekeyers.map(username => (
+            <Row key={username} username={username} onUsernameClicked={onUsernameClicked} />
+          ))}
         </Box>
       </Box>
     </Box>

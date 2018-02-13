@@ -1,9 +1,8 @@
-// @noflow
+// @flow
 import {Component} from 'react'
-// import type {RekeyInfo} from '../../../constants/types/chat'
 
 export type Props = {
-  rekeyInfo: ?RekeyInfo,
+  rekeyers: Array<string>,
   onShowProfile: (username: string) => void,
   onBack: () => void,
 }
