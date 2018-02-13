@@ -238,7 +238,7 @@ const _InfoPanel = (props: InfoPanelProps) => {
   if (props.teamname && props.channelname) {
     if (props.smallTeam) {
       rows = [
-        ({
+        {
           type: 'small header',
           key: 'SMALL HEADER',
 
@@ -247,11 +247,11 @@ const _InfoPanel = (props: InfoPanelProps) => {
           participantCount,
 
           onViewTeam: props.onViewTeam,
-        }: SmallHeaderRow),
+        },
       ].concat(participants)
     } else {
       rows = [
-        ({
+        {
           type: 'big header',
           key: 'BIG HEADER',
 
@@ -263,17 +263,15 @@ const _InfoPanel = (props: InfoPanelProps) => {
           onViewTeam: props.onViewTeam,
           onJoinChannel: props.onJoinChannel,
           onLeaveConversation: props.onLeaveConversation,
-        }: BigHeaderRow),
+        },
       ].concat(participants)
     }
   } else {
-    rows = participants.concat(
-      ({
-        ...props,
-        type: 'conversation footer',
-        key: 'CONVERSATION FOOTER',
-      }: ConversationFooterRow)
-    )
+    rows = participants.concat({
+      ...props,
+      type: 'conversation footer',
+      key: 'CONVERSATION FOOTER',
+    })
   }
 
   const rowSizeEstimator = index => typeSizeEstimator(rows[index].type)
