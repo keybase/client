@@ -3,21 +3,19 @@ import * as React from 'react'
 import {Box, ClickableBox, Avatar, Text, Usernames} from '../../../common-adapters'
 import {globalStyles, globalMargins, isMobile} from '../../../styles'
 
-type ParticipantProps = {
-  onShowProfile: (user: string) => void,
-  participant: {
-    username: string,
-    following: boolean,
-    fullname: string,
-    broken: boolean,
-    isYou: boolean,
-  },
+type ParticipantInfo = {
+  username: string,
+  following: boolean,
+  fullname: string,
+  broken: boolean,
+  isYou: boolean,
 }
 
-const Participant = ({
-  participant: {username, following, fullname, broken, isYou},
-  onShowProfile,
-}: ParticipantProps) => (
+type ParticipantProps = ParticipantInfo & {
+  onShowProfile: (user: string) => void,
+}
+
+const Participant = ({username, following, fullname, broken, isYou, onShowProfile}: ParticipantProps) => (
   <Box style={{...globalStyles.flexBoxColumn, paddingTop: globalMargins.tiny}}>
     <ClickableBox key={username} onClick={() => onShowProfile(username)}>
       <Box style={isMobile ? rowStyleMobile : rowStyle}>
@@ -56,4 +54,5 @@ const rowStyleMobile = {
   ...rowStyle,
   minHeight: 56,
 }
+export type {ParticipantInfo}
 export {Participant}
