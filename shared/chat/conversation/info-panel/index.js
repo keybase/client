@@ -264,7 +264,8 @@ const _InfoPanel = (props: InfoPanelProps) => {
   const participantCount = participants.length
 
   let rows: Array<Row>
-  if (props.teamname && props.channelname) {
+  const {teamname, channelname, onViewTeam} = props
+  if (teamname && channelname) {
     // Real type is Row except for ParticipantRow.
     let headerRows: Array<Row>
     if (props.smallTeam) {
@@ -272,9 +273,9 @@ const _InfoPanel = (props: InfoPanelProps) => {
       headerRows = [
         {
           type: 'small team header',
-          teamname: props.teamname,
+          teamname,
           participantCount,
-          onViewTeam: props.onViewTeam,
+          onViewTeam,
         },
         {
           type: 'divider',
@@ -294,23 +295,23 @@ const _InfoPanel = (props: InfoPanelProps) => {
           canManage: props.admin,
           label: 'In this team',
           participantCount,
-          onViewTeam: props.onViewTeam,
+          onViewTeam: onViewTeam,
         },
       ]
     } else {
       // Big team.
       const headerRow = {
         type: 'big team header',
-        teamname: props.teamname,
-        channelname: props.channelname,
-        onViewTeam: props.onViewTeam,
+        teamname,
+        channelname,
+        onViewTeam,
       }
       const manageTeamRow = {
         type: 'manage team',
-        canManage: props.admin && props.channelname === 'general',
+        canManage: props.admin && channelname === 'general',
         label: 'In this channel',
         participantCount,
-        onViewTeam: props.onViewTeam,
+        onViewTeam,
       }
 
       if (props.isPreview) {
@@ -323,7 +324,7 @@ const _InfoPanel = (props: InfoPanelProps) => {
           },
           {
             type: 'join channel',
-            teamname: props.teamname,
+            teamname,
             onJoinChannel: props.onJoinChannel,
           },
           {
