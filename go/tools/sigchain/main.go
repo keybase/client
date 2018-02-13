@@ -19,6 +19,7 @@ import (
 
 var uid = flag.String("uid", "", "uid of sigchain owner")
 var username = flag.String("username", "", "username of sigchain owner")
+var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 
 func errout(msg string) {
 	fmt.Fprintf(os.Stderr, msg+"\n")
@@ -84,24 +85,36 @@ func main() {
 	g.Log = logger.New("sc")
 	g.ConfigureCaches()
 
-	start := time.Now()
+	iterations := 1
+	if *cpuprofile != "" {
+		f, err := os.Create(*cpuprofile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
 
-	sc = &libkb.SigChain{Contextified: libkb.NewContextified(g)}
-	sc.SetUIDUsername(keybase1.UID(*uid), *username)
-	if _, err := sc.LoadServerBody(context.Background(), raw, 0, nil, ""); err != nil {
-		errout(err.Error())
+		iterations = 10
 	}
 
-	if err := sc.VerifyChain(context.Background()); err != nil {
-		errout(err.Error())
-	}
+	for i := 0; i < iterations; i++ {
+		start := time.Now()
+		sc = &libkb.SigChain{Contextified: libkb.NewContextified(g)}
+		sc.SetUIDUsername(keybase1.UID(*uid), *username)
+		if _, err := sc.LoadServerBody(context.Background(), raw, 0, nil, ""); err != nil {
+			errout(err.Error())
+		}
 
-	if err := sc.Store(context.Background()); err != nil {
-		errout(err.Error())
-	}
+		if err := sc.VerifyChain(context.Background()); err != nil {
+			errout(err.Error())
+		}
 
-	elapsed := time.Since(start)
-	fmt.Printf("sig chain load time: %s\n", elapsed)
+		if err := sc.Store(context.Background()); err != nil {
+			errout(err.Error())
+		}
+		elapsed := time.Since(start)
+		fmt.Printf("sig chain load time: %s\n", elapsed)
+	}
 
 	memstats()
 	memprof()

@@ -204,13 +204,15 @@ func (p *KeybasePacket) unpackBody(ch *codec.MsgpackHandle) error {
 		si := &NaclSigInfo{
 			Kid:      keybase1.BinaryKID(mb["key"].([]byte)),
 			Payload:  mb["payload"].([]byte),
-			SigType:  int(mb["sig_type"].(int64)),
 			HashType: int(mb["hash_type"].(int64)),
 			Detached: mb["detached"].(bool),
 		}
 
 		if sig, ok := mb["sig"].([]byte); ok {
 			copy(si.Sig[:], sig)
+		}
+		if st, ok := mb["sig_type"].(int64); ok {
+			si.SigType = int(st)
 		}
 		if v, ok := mb["version"].(int64); ok {
 			si.Version = int(v)
