@@ -58,7 +58,7 @@ export function stat(filepath: string): Promise<StatResult> {
   })
 }
 
-export function mkdirp(target) {
+export function mkdirp(target: string) {
   const initDir = path.isAbsolute(target) ? path.sep : ''
   target.split(path.sep).reduce((parentDir, childDir) => {
     const curDir = path.resolve(parentDir, childDir)
