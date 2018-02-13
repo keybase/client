@@ -25,6 +25,11 @@ const listStyle = {
       }),
 }
 
+const dividerStyle = {
+  marginBottom: globalMargins.small,
+  marginTop: globalMargins.small,
+}
+
 type InfoPanelProps = {
   participants: Array<ParticipantInfo>,
   isPreview: boolean,
@@ -103,11 +108,11 @@ const _renderTeamRow = (i: number, props: TeamRow) => {
 
           <TurnIntoTeam onClick={props.onShowNewTeamDialog} />
 
-          <Divider style={styleDivider} />
+          <Divider style={dividerStyle} />
 
           <Notifications />
 
-          <Divider style={styleDivider} />
+          <Divider style={dividerStyle} />
 
           <Button
             type="Danger"
@@ -130,7 +135,7 @@ const _renderTeamRow = (i: number, props: TeamRow) => {
           <Divider style={{marginBottom: 20, marginTop: 20}} />
 
           <Notifications />
-          <Divider style={styleDivider} />
+          <Divider style={dividerStyle} />
 
           <ManageTeam
             canManage={props.admin}
@@ -152,12 +157,12 @@ const _renderTeamRow = (i: number, props: TeamRow) => {
 
           {!props.isPreview && (
             <Box>
-              <Divider style={styleDivider} />
+              <Divider style={dividerStyle} />
               <Notifications />
             </Box>
           )}
 
-          <Divider style={styleDivider} />
+          <Divider style={dividerStyle} />
 
           <Box style={{...globalStyles.flexBoxRow, justifyContent: 'center'}}>
             {props.isPreview && (
@@ -180,7 +185,7 @@ const _renderTeamRow = (i: number, props: TeamRow) => {
             </Text>
           )}
 
-          <Divider style={styleDivider} />
+          <Divider style={dividerStyle} />
 
           <ManageTeam
             canManage={props.admin && props.channelname === 'general'}
@@ -284,11 +289,6 @@ const _InfoPanel = (props: InfoPanelProps) => {
 }
 
 const InfoPanel = isMobile ? HeaderHoc(_InfoPanel) : _InfoPanel
-
-const styleDivider = {
-  marginBottom: globalMargins.small,
-  marginTop: globalMargins.small,
-}
 
 export type {InfoPanelProps}
 export {InfoPanel}
