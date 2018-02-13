@@ -5,7 +5,7 @@ import {type Props as HeaderHocProps} from '../../../common-adapters/header-hoc'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
 import {SmallTeamHeader, BigTeamHeader} from './header'
 import Notifications from './notifications/container'
-import {Participant} from './participant'
+import {Participant, type ParticipantInfo} from './participant'
 import {ManageTeam} from './manage-team'
 import {TurnIntoTeam} from './turn-into-team'
 
@@ -26,28 +26,27 @@ const listStyle = {
 }
 
 type InfoPanelProps = {
+  participants: Array<ParticipantInfo>,
   isPreview: boolean,
-  admin: boolean,
   teamname: ?string,
   channelname: ?string,
   smallTeam: boolean,
-  participants: Array<{
-    username: string,
-    following: boolean,
-    fullname: string,
-    broken: boolean,
-    isYou: boolean,
-  }>,
+  admin: boolean,
 
   // Used by HeaderHoc.
   onBack: () => void,
 
+  // Used by Participant.
+  onShowProfile: (username: string) => void,
+
+  // Used by ConversationFooterRow.
   onShowBlockConversationDialog: () => void,
   onShowNewTeamDialog: () => void,
 
-  onShowProfile: (username: string) => void,
-
+  // Used by {Small,Big}HeaderRow.
   onViewTeam: () => void,
+
+  // Used by BigHeaderRow.
   onLeaveConversation: () => void,
   onJoinChannel: () => void,
 } & HeaderHocProps
@@ -55,6 +54,7 @@ type InfoPanelProps = {
 type ConversationFooterRow = {
   type: 'conversation footer',
   key: 'CONVERSATION FOOTER',
+
   onShowBlockConversationDialog: () => void,
   onShowNewTeamDialog: () => void,
 }
@@ -62,22 +62,26 @@ type ConversationFooterRow = {
 type SmallHeaderRow = {
   type: 'small header',
   key: 'SMALL HEADER',
-  admin: boolean,
+
   teamname: string,
+  admin: boolean,
   participantCount: number,
+
   onViewTeam: () => void,
 }
 
 type BigHeaderRow = {
   type: 'big header',
   key: 'BIG HEADER',
-  admin: boolean,
+
   teamname: string,
   channelname: string,
+  admin: boolean,
   participantCount: number,
+
   onViewTeam: () => void,
-  onJoinChannel: () => void,
   onLeaveConversation: () => void,
+  onJoinChannel: () => void,
 }
 
 type ParticipantRow = {

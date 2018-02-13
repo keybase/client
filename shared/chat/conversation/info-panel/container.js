@@ -5,6 +5,7 @@ import * as Types from '../../../constants/types/chat'
 import * as TeamTypes from '../../../constants/types/teams'
 import * as ChatGen from '../../../actions/chat-gen'
 import {InfoPanel, type InfoPanelProps} from '.'
+import {type ParticipantInfo} from './participant'
 import {Map} from 'immutable'
 import {connect, type TypedState} from '../../../util/container'
 import {getCanPerform} from '../../../constants/teams'
@@ -45,18 +46,13 @@ const getPreviewState = createSelector([Constants.getSelectedInbox], inbox => {
 })
 
 type StateProps = {
-  isPreview: boolean,
-  admin: boolean,
-  channelname: ?string,
-  participants: Array<{
-    username: string,
-    following: boolean,
-    fullname: string,
-    broken: boolean,
-  }>,
   selectedConversationIDKey: Types.ConversationIDKey,
-  smallTeam: boolean,
+  participants: Array<ParticipantInfo>,
+  isPreview: boolean,
   teamname: ?string,
+  channelname: ?string,
+  smallTeam: boolean,
+  admin: boolean,
 }
 
 const mapStateToProps = (state: TypedState): StateProps => {
@@ -77,13 +73,13 @@ const mapStateToProps = (state: TypedState): StateProps => {
   const smallTeam = Constants.getTeamType(state) === ChatTypes.commonTeamType.simple
 
   return {
-    ...getPreviewState(state),
-    admin,
-    channelname,
-    participants: getParticipants(state),
     selectedConversationIDKey,
+    participants: getParticipants(state),
+    ...getPreviewState(state),
     teamname,
+    channelname,
     smallTeam,
+    admin,
   }
 }
 
@@ -122,13 +118,11 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps): InfoPanelProps => ({
   ...stateProps,
-  ...dispatchProps,
-  ...ownProps,
-  onLeaveConversation: () => {
-    dispatchProps._navToRootChat()
-    dispatchProps._onLeaveConversation(stateProps.selectedConversationIDKey)
-  },
-  onJoinChannel: () => dispatchProps._onJoinChannel(stateProps.selectedConversationIDKey),
+
+  onBack: ownProps.onBack,
+
+  onShowProfile: dispatchProps.onShowProfile,
+
   onShowBlockConversationDialog: () =>
     dispatchProps._onShowBlockConversationDialog(
       stateProps.selectedConversationIDKey,
@@ -137,7 +131,14 @@ const mergeProps = (stateProps, dispatchProps, ownProps): InfoPanelProps => ({
   onShowNewTeamDialog: () => {
     dispatchProps._onShowNewTeamDialog(stateProps.selectedConversationIDKey)
   },
+
   onViewTeam: () => dispatchProps._onViewTeam(stateProps.teamname),
+
+  onLeaveConversation: () => {
+    dispatchProps._navToRootChat()
+    dispatchProps._onLeaveConversation(stateProps.selectedConversationIDKey)
+  },
+  onJoinChannel: () => dispatchProps._onJoinChannel(stateProps.selectedConversationIDKey),
 })
 
 const ConnectedInfoPanel = connect(mapStateToProps, mapDispatchToProps, mergeProps)(InfoPanel)
