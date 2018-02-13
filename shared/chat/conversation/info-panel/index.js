@@ -117,17 +117,23 @@ type LeaveChannelRow = {
   onLeaveConversation: () => void,
 }
 
+// All the row types that can appear in a small or big team header.
+type TeamHeaderRow =
+  | DividerRow
+  | NotificationsRow
+  | ManageTeamRow
+  | SmallTeamHeaderRow
+  | BigTeamHeaderRow
+  | JoinChannelRow
+  | LeaveChannelRow
+
 type Row =
   | ParticipantRow
   | DividerRow
   | NotificationsRow
   | TurnIntoTeamRow
   | BlockThisConversationRow
-  | ManageTeamRow
-  | SmallTeamHeaderRow
-  | BigTeamHeaderRow
-  | JoinChannelRow
-  | LeaveChannelRow
+  | TeamHeaderRow
 
 const _renderRow = (i: number, row: Row) => {
   switch (row.type) {
@@ -262,8 +268,7 @@ const _InfoPanel = (props: InfoPanelProps) => {
   let rows: Array<Row>
   const {teamname, channelname, onViewTeam} = props
   if (teamname && channelname) {
-    // Real type is Row except for ParticipantRow.
-    let headerRows: Array<Row>
+    let headerRows: Array<TeamHeaderRow>
     if (props.smallTeam) {
       // Small team.
       headerRows = [
