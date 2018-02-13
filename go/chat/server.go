@@ -1223,6 +1223,7 @@ func (h *Server) PostAttachmentLocal(ctx context.Context, arg chat1.PostAttachme
 		Title:            arg.Title,
 		Metadata:         arg.Metadata,
 		IdentifyBehavior: arg.IdentifyBehavior,
+		OutboxID:         arg.OutboxID,
 	}
 	defer parg.Attachment.Close()
 
@@ -1262,6 +1263,7 @@ func (h *Server) PostFileAttachmentLocal(ctx context.Context, arg chat1.PostFile
 		Title:            arg.Title,
 		Metadata:         arg.Metadata,
 		IdentifyBehavior: arg.IdentifyBehavior,
+		OutboxID:         arg.OutboxID,
 	}
 	asrc, err := newFileSource(arg.Attachment)
 	if err != nil {
@@ -1311,6 +1313,7 @@ type postAttachmentArg struct {
 	Title            string
 	Metadata         []byte
 	IdentifyBehavior keybase1.TLFIdentifyBehavior
+	OutboxID         *chat1.OutboxID
 }
 
 func (h *Server) postAttachmentLocal(ctx context.Context, arg postAttachmentArg) (res chat1.PostLocalRes, err error) {
@@ -1582,7 +1585,7 @@ func (h *Server) postAttachmentLocalInOrder(ctx context.Context, arg postAttachm
 		uploaded.Previews = []chat1.Asset{*preview}
 	}
 
-	// edit the placeholder  attachment message with the asset information
+	// edit the placeholder attachment message with the asset information
 	postArg := chat1.PostLocalArg{
 		ConversationID: arg.ConversationID,
 		Msg: chat1.MessagePlaintext{
@@ -1786,14 +1789,18 @@ func (h *Server) Sign(payload []byte) ([]byte, error) {
 }
 
 func (h *Server) postAttachmentPlaceholder(ctx context.Context, arg postAttachmentArg) (chat1.PostLocalRes, error) {
-	// generate outbox id
-	rbs, err := libkb.RandBytes(8)
-	if err != nil {
-		return chat1.PostLocalRes{}, err
+	if arg.OutboxID == nil {
+		// generate outbox id
+		obid, err := storage.NewOutboxID()
+		if err != nil {
+			return chat1.PostLocalRes{}, err
+		}
+
+		chatUI := h.getChatUI(arg.SessionID)
+		chatUI.ChatAttachmentUploadOutboxID(ctx, chat1.ChatAttachmentUploadOutboxIDArg{SessionID: arg.SessionID, OutboxID: obid})
+
+		arg.OutboxID = &obid
 	}
-	obid := chat1.OutboxID(rbs)
-	chatUI := h.getChatUI(arg.SessionID)
-	chatUI.ChatAttachmentUploadOutboxID(ctx, chat1.ChatAttachmentUploadOutboxIDArg{SessionID: arg.SessionID, OutboxID: obid})
 
 	attachment := chat1.MessageAttachment{
 		Metadata: arg.Metadata,
@@ -1817,7 +1824,7 @@ func (h *Server) postAttachmentPlaceholder(ctx context.Context, arg postAttachme
 				TlfName:     arg.TlfName,
 				TlfPublic:   arg.Visibility == keybase1.TLFVisibility_PUBLIC,
 				MessageType: chat1.MessageType_ATTACHMENT,
-				OutboxID:    &obid,
+				OutboxID:    arg.OutboxID,
 			},
 			MessageBody: chat1.NewMessageBodyWithAttachment(attachment),
 		},
