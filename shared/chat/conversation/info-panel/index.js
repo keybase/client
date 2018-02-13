@@ -189,13 +189,7 @@ const _renderRow = (i: number, row: Row) => {
     case 'join channel':
       return (
         <Box key="join channel" style={{...globalStyles.flexBoxColumn}}>
-          <Button
-            type="Primary"
-            label="Join channel"
-            style={{marginRight: globalMargins.xtiny}}
-            small={true}
-            onClick={row.onJoinChannel}
-          />
+          <Button type="Primary" label="Join channel" small={true} onClick={row.onJoinChannel} />
           <Text
             key="anyone can join"
             type="BodySmall"
