@@ -1,6 +1,6 @@
 // @flow
 import {Dimensions, Platform, NativeModules} from 'react-native'
-import {cachesDirectoryPath} from '../util/file'
+import {cachesDirectoryPath} from '../util/file.native'
 
 // Modules from the native part of the code. Differently named on android/ios
 const nativeBridge = NativeModules.KeybaseEngine ||
@@ -52,6 +52,10 @@ function logFileName(): string {
   return _logPath
 }
 
+function traceFileName(): string {
+  return `${_dir}/trace.out`
+}
+
 export {
   appVersionCode,
   appVersionName,
@@ -73,4 +77,5 @@ export {
   version,
   logFileName,
   logFileDir,
+  traceFileName,
 }

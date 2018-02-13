@@ -99,9 +99,11 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
     mobile: stateProps.mobile,
     muted: stateProps.muted,
     saveState: stateProps.saveState,
-    onMuteConversation: (muted: boolean) => {
-      dispatchProps._onMuteConversation(convKey, muted)
-    },
+    onMuteConversation: !Constants.isPendingConversationIDKey(convKey)
+      ? (muted: boolean) => {
+          dispatchProps._onMuteConversation(convKey, muted)
+        }
+      : null,
     onSetDesktop: (notifyType: Types.NotifyType) => {
       dispatchProps._onSetNotification(convKey, 'desktop', notifyType)
     },

@@ -54,4 +54,7 @@ Send a message to a public channel:
 
 Mute a conversation:
     {"method": "setstatus", "params": {"options": {"channel": {"name": "you,them"}, "status": "muted"}}}
+
+Search conversation with a regex:
+    {"method": "searchregexp", "params": {"options": {"channel": {"name": "you,them"}, "query": "a.*"}}}
 `

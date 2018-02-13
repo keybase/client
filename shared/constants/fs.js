@@ -1,80 +1,26 @@
 // @flow
 import * as I from 'immutable'
 import * as Types from './types/fs'
+import uuidv1 from 'uuid/v1'
 
 export const defaultPath = '/keybase'
 
-const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
+export const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
   children: I.List(),
   progress: 'pending',
   type: 'folder',
 })
 
-const makeFile: I.RecordFactory<Types._FilePathItem> = I.Record({
+export const makeFile: I.RecordFactory<Types._FilePathItem> = I.Record({
   progress: 'pending',
   type: 'file',
 })
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
-  pathItems: I.Map([
-    [
-      Types.stringToPath('/keybase'),
-      makeFolder({
-        children: I.List(['private', 'public', 'team']),
-      }),
-    ],
-    [
-      Types.stringToPath('/keybase/private'),
-      makeFolder({
-        children: I.List(['foo', 'foo,bar']),
-      }),
-    ],
-    [
-      Types.stringToPath('/keybase/public'),
-      makeFolder({
-        children: I.List(['foo', 'bar']),
-      }),
-    ],
-    [
-      Types.stringToPath('/keybase/team'),
-      makeFolder({
-        children: I.List(['foobar']),
-      }),
-    ],
-    [
-      Types.stringToPath('/keybase/private/foo'),
-      makeFolder({
-        children: I.List(['foo.priv']),
-      }),
-    ],
-    [
-      Types.stringToPath('/keybase/private/foo,bar'),
-      makeFolder({
-        children: I.List(['foo.bar.priv']),
-      }),
-    ],
-    [
-      Types.stringToPath('/keybase/public/foo'),
-      makeFolder({
-        children: I.List(['foo.pub']),
-      }),
-    ],
-    [
-      Types.stringToPath('/keybase/public/bar'),
-      makeFolder({
-        children: I.List(['bar.pub']),
-      }),
-    ],
-    [
-      Types.stringToPath('/keybase/team/foobar'),
-      makeFolder({
-        children: I.List(['foobar.team']),
-      }),
-    ],
-    [Types.stringToPath('/keybase/private/foo/foo.priv'), makeFile()],
-    [Types.stringToPath('/keybase/private/foo,bar/foo.bar.priv'), makeFile()],
-    [Types.stringToPath('/keybase/public/foo/foo.pub'), makeFile()],
-    [Types.stringToPath('/keybase/public/bar/bar.pub'), makeFile()],
-    [Types.stringToPath('/keybase/team/foobar/foobar.team'), makeFile()],
-  ]),
+  // TODO: move all these to RPC
+  pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder({progress: 'pending'})]]),
 })
+
+export const makeUUID = () => uuidv1(null, Buffer.alloc(16), 0)
+export const fsPathToRpcPathString = (p: Types.Path): string =>
+  Types.pathToString(p).substring('/keybase'.length) || '/'

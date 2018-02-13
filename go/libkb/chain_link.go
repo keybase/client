@@ -317,10 +317,13 @@ func (c *ChainLink) Pack() (*jsonw.Wrapper, error) {
 	if c.IsStubbed() {
 		p.SetKey("s2", jsonw.NewString(c.unpacked.outerLinkV2.EncodeStubbed()))
 	} else {
+		// store the payload for v2 links and local tracks
 		if c.unpacked.sigVersion == 2 {
-			// Store the original JSON string so its order is preserved
 			p.SetKey("payload_json", jsonw.NewString(string(c.unpacked.payloadV2)))
+		} else if len(c.unpacked.payloadLocal) > 0 {
+			p.SetKey("payload_json", jsonw.NewString(string(c.unpacked.payloadLocal)))
 		}
+
 		p.SetKey("sig", jsonw.NewString(c.unpacked.sig))
 		p.SetKey("sig_id", jsonw.NewString(string(c.unpacked.sigID)))
 		p.SetKey("kid", c.unpacked.kid.ToJsonw())

@@ -14,5 +14,3 @@ declare export function exists(filename: string): Promise<boolean>
 declare export function stat(filename: string): Promise<StatResult>
 declare export function writeStream(filepath: string, encoding: string, append?: boolean): Promise<*>
 declare export function unlink(filepath: string): Promise<void>
-
-declare export var cachesDirectoryPath: string
