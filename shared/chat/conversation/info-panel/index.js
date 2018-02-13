@@ -268,9 +268,11 @@ const _InfoPanel = (props: InfoPanelProps) => {
     }
   } else {
     rows = participants.concat({
-      ...props,
       type: 'conversation footer',
       key: 'CONVERSATION FOOTER',
+
+      onShowBlockConversationDialog: props.onShowBlockConversationDialog,
+      onShowNewTeamDialog: props.onShowNewTeamDialog,
     })
   }
 
