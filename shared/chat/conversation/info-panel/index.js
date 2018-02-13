@@ -39,32 +39,17 @@ type InfoPanelProps = {
   // Used by Participant.
   onShowProfile: (username: string) => void,
 
-  // Used by the conversation case.
+  // Used for conversations.
   onShowBlockConversationDialog: () => void,
   onShowNewTeamDialog: () => void,
 
-  // Used by {Small,Big}HeaderRow.
+  // Used for small and big teams.
   onViewTeam: () => void,
 
-  // Used by BigHeaderRow.
+  // Used for big teams.
   onLeaveConversation: () => void,
   onJoinChannel: () => void,
 } & HeaderHocProps
-
-type BigHeaderRow = {
-  type: 'big header',
-  key: 'BIG HEADER',
-
-  isPreview: boolean,
-  teamname: string,
-  channelname: string,
-  admin: boolean,
-  participantCount: number,
-
-  onViewTeam: () => void,
-  onLeaveConversation: () => void,
-  onJoinChannel: () => void,
-}
 
 type ParticipantRow = ParticipantInfo & {
   type: 'participant',
@@ -128,7 +113,6 @@ type LeaveChannelRow = {
 }
 
 type TeamRow =
-  | BigHeaderRow
   | ParticipantRow
   | DividerRow
   | TurnIntoTeamRow
@@ -270,8 +254,6 @@ const typeSizeEstimator = (type: RowType): number => {
     case 'leave channel':
       return 1
 
-    case 'big header':
-      return 469 // estimate based on size of header in non-admin non-preview mode
     case 'participant':
       return 56
 
