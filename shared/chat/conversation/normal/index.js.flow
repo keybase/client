@@ -10,6 +10,7 @@ export type Props = {
   onFocusInput: () => void,
   onScrollDown: () => void,
   onShowTracker: (username: string) => void,
+  onOpenInfoPanelMobile: () => void,
 }
 
 export default class Conversation extends React.Component<Props> {}

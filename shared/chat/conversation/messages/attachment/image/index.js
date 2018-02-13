@@ -44,7 +44,7 @@ class ImageAttachment extends React.PureComponent<Props> {
             width: this.props.width,
           }}
         >
-          {this.props.path && (
+          {!!this.props.path && (
             <ImageRender
               src={this.props.path}
               style={{
@@ -54,13 +54,13 @@ class ImageAttachment extends React.PureComponent<Props> {
               }}
             />
           )}
-          {this.props.arrowColor && (
+          {!!this.props.arrowColor && (
             <Box style={downloadedIconWrapperStyle}>
               <Icon type="iconfont-import" style={{color: this.props.arrowColor, maxHeight: 14}} />
             </Box>
           )}
         </Box>
-        {this.props.progressLabel && (
+        {!!this.props.progressLabel && (
           <Box style={progressContainerStyle}>
             <Text type={'BodySmall'} style={progressLabelStyle}>
               {this.props.progressLabel}

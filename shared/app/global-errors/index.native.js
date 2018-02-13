@@ -8,8 +8,7 @@ import {
   NativeScrollView,
   NativeTouchableWithoutFeedback,
 } from '../../common-adapters/index.native'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
-import {isIPhoneX} from '../../constants/platform'
+import {globalStyles, globalColors, globalMargins, isIPhoneX} from '../../styles'
 
 import type {Props} from './index'
 

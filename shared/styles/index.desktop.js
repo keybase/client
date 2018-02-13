@@ -198,4 +198,4 @@ export {
   transitionColor,
   windowStyle,
 }
-export {isMobile, fileUIName} from '../constants/platform'
+export {isMobile, fileUIName, isIPhoneX} from '../constants/platform'

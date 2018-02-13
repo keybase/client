@@ -49,6 +49,7 @@ export type Props = {
     | 'twitter'
     | 'web-search',
   returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send',
+  selectTextOnFocus?: boolean,
 }
 
 declare export default class Input extends Component<Props> {

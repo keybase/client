@@ -8,9 +8,8 @@ import {
   ProgressIndicator,
   NativeImage,
 } from '../../../common-adapters/index.native'
-import {globalColors, globalMargins, globalStyles} from '../../../styles'
+import {globalColors, globalMargins, globalStyles, isIPhoneX} from '../../../styles'
 import {formatTimeForPopup} from '../../../util/timestamp'
-import {isIPhoneX} from '../../../constants/platform'
 
 import type {Props} from './'
 

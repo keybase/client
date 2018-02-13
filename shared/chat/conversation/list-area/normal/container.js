@@ -3,7 +3,14 @@ import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import ListComponent from '.'
-import {connect, type TypedState, type Dispatch, compose, lifecycle} from '../../../../util/container'
+import {
+  connect,
+  type TypedState,
+  type Dispatch,
+  compose,
+  lifecycle,
+  isMobile,
+} from '../../../../util/container'
 
 const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   const meta = Constants.getMeta(state, conversationIDKey)
@@ -31,7 +38,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   },
   markInitiallyLoadedThreadAsRead: () =>
     dispatchProps._markInitiallyLoadedThreadAsRead(stateProps.conversationIDKey),
-  messageOrdinals: stateProps.messageOrdinals.toList(),
+  messageOrdinals: isMobile
+    ? stateProps.messageOrdinals.toList().reverse()
+    : stateProps.messageOrdinals.toList(),
   onFocusInput: ownProps.onFocusInput,
 })
 

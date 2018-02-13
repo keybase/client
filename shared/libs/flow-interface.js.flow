@@ -1,4 +1,7 @@
 /*eslint-disable */
+declare module 'react-native-image-picker' {
+  declare var exports: any
+}
 declare module 'react-hot-loader' {
   declare var exports: any
 }

@@ -27,6 +27,7 @@ import {
   TouchableWithoutFeedback as NativeTouchableWithoutFeedback,
   TouchableHighlight as NativeTouchableHighlight,
   TouchableOpacity as NativeTouchableOpacity,
+  VirtualizedList as NativeVirtualizedList,
   WebView as NativeWebView,
 } from 'react-native'
 import ScrollView from './scroll-view.native'
@@ -50,6 +51,7 @@ export {
   NativePicker,
   NativeRefreshControl,
   NativeSafeAreaView,
+  NativeVirtualizedList,
   ScrollView as NativeScrollView,
   NativeSectionList,
   NativeStyleSheet,

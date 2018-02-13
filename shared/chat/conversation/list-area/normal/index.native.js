@@ -1,106 +1,62 @@
-// @noflow // TEMP
-// import * as Types from '../../../constants/types/chat'
-// import React, {Component} from 'react'
-// import {withPropsOnChange} from 'recompose'
-// import messageFactory from '../messages'
-// import {
-// Box,
-// NativeScrollView,
-// NativeKeyboard,
-// NativeFlatList,
-// ErrorBoundary,
-// } from '../../../common-adapters/index.native'
-// import {globalStyles} from '../../../styles'
+// @flow
+import * as React from 'react'
+import * as Types from '../../../../constants/types/chat2'
+import Message from '../../messages'
+import {Box, NativeVirtualizedList, ErrorBoundary} from '../../../../common-adapters/index.native'
 
-// import type {Props} from '.'
+import type {Props} from '.'
 
-// class ConversationList extends Component<Props> {
-// _scrollRef: ?any
+const blankOrdinal = Types.numberToOrdinal(0)
 
-// _onAction = (message: Types.ServerMessage) => {
-// NativeKeyboard.dismiss()
-// this.props.onMessageAction(message)
-// }
+class ConversationList extends React.PureComponent<Props> {
+  _renderItem = ({index}) => {
+    const i = this.props.hasExtraRow ? index - 1 : index
+    const ordinal = i < 0 ? blankOrdinal : this.props.messageOrdinals.get(i, blankOrdinal)
+    const prevOrdinal = this.props.messageOrdinals.get(i + 1, blankOrdinal)
+    return (
+      <Message
+        ordinal={ordinal}
+        previous={prevOrdinal}
+        conversationIDKey={this.props.conversationIDKey}
+        measure={null}
+      />
+    )
+  }
+  _getItem = (messageOrdinals, index) => messageOrdinals.get(index)
+  _getItemCount = messageOrdinals => messageOrdinals.size + (this.props.hasExtraRow ? 1 : 0)
+  _keyExtractor = ordinal => ordinal
 
-// // This is handled slightly differently on mobile, leave this blank
-// _onShowEditor = () => {}
+  // Don't load if we have no messages in there. This happens a lot when we're dealing with stale messages
+  _onEndReached = () => {
+    if (this.props.messageOrdinals.size > 1) {
+      this.props.loadMoreMessages()
+    }
+  }
 
-// // This is handled slightly differently on mobile, leave this blank
-// _measure = () => {}
+  render() {
+    return (
+      <ErrorBoundary>
+        <Box style={containerStyle}>
+          <NativeVirtualizedList
+            data={this.props.messageOrdinals}
+            inverted={true}
+            getItem={this._getItem}
+            getItemCount={this._getItemCount}
+            renderItem={this._renderItem}
+            onEndReached={this._onEndReached}
+            onEndReachedThreshold={0}
+            keyExtractor={this._keyExtractor}
+            // Limit the number of pages rendered ahead of time (which also limits attachment previews loaded)
+            windowSize={5}
+          />
+        </Box>
+      </ErrorBoundary>
+    )
+  }
+}
 
-// _renderItem = ({item: messageKey, index}) => {
-// const prevMessageKey = this.props.messageKeys.get(index + 1) // adding instead of subtracting because of reversed index
-// const isSelected = false
-// return (
-// // We have to invert transform the message or else it will look flipped
-// <Box style={verticallyInvertedStyle}>
-// {messageFactory(
-// messageKey,
-// prevMessageKey,
-// this._onAction,
-// this._onShowEditor,
-// isSelected,
-// this._measure
-// )}
-// </Box>
-// )
-// }
+const containerStyle = {
+  flex: 1,
+}
 
-// _keyExtractor = messageKey => messageKey
-
-// // Don't load if we have no messages in there. This happens a lot when we're dealing with stale messages
-// _onEndReached = () => {
-// if (this.props.messageKeys.count() > 1) {
-// this.props.onLoadMoreMessages()
-// }
-// }
-
-// componentDidUpdate(prevProps: Props) {
-// // TODO do we need this? I think the list may work how we want w/o this
-// if (this.props.listScrollDownCounter !== prevProps.listScrollDownCounter && this._scrollRef) {
-// this._scrollRef.scrollTo({animated: false, y: 0})
-// }
-// }
-
-// _renderScrollComponent = props => (
-// <NativeScrollView
-// {...props}
-// ref={this._captureScrollRef}
-// style={[verticallyInvertedStyle, props.style]}
-// />
-// )
-
-// _captureScrollRef = r => {
-// this._scrollRef = r
-// }
-
-// render() {
-// return (
-// <ErrorBoundary>
-// <Box style={globalStyles.fillAbsolute}>
-// <NativeFlatList
-// data={this.props.messageKeys.toArray()}
-// renderItem={this._renderItem}
-// renderScrollComponent={this._renderScrollComponent}
-// onEndReached={this._onEndReached}
-// onEndReachedThreshold={0}
-// keyExtractor={this._keyExtractor}
-// // Limit the number of pages rendered ahead of time (which also limits attachment previews loaded)
-// windowSize={5}
-// />
-// </Box>
-// </ErrorBoundary>
-// )
-// }
-// }
-
-// const verticallyInvertedStyle = {
-// transform: [{scaleY: -1}],
-// }
-
-// // Reverse the order of messageKeys to compensate for vertically reversed display
-// const withReversedMessageKeys = withPropsOnChange(['messageKeys'], ({messageKeys}) => ({
-// messageKeys: messageKeys.reverse(),
-// }))
-
-// export default withReversedMessageKeys(ConversationList)
+export default ConversationList

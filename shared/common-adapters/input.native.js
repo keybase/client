@@ -98,20 +98,17 @@ class Input extends Component<Props, State> {
     this.setState({value: text || ''}, () => this.props.onChangeText && this.props.onChangeText(text || ''))
   }
 
-  _inputNode() {
-    return this._input
-  }
-
   focus() {
-    this._input && this._inputNode().focus()
+    this._input && this._input.focus()
   }
 
   select() {
-    this._input && this._inputNode().select()
+    // Apparently this doens't work on mobile?
+    // this._input && this._input.select()
   }
 
   blur() {
-    this._input && this._inputNode().blur()
+    this._input && this._input.blur()
   }
 
   _onKeyDown = (e: SyntheticKeyboardEvent<>) => {

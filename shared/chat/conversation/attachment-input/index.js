@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box, Button, Icon, Image, Input, PopupDialog, Text, ButtonBar} from '../../../common-adapters/index'
-import {globalColors, globalStyles, isMobile} from '../../../styles'
-import {isIPhoneX} from '../../../constants/platform'
+import {globalColors, globalStyles, isMobile, isIPhoneX} from '../../../styles'
 
 export type PathToInfo = {
   [path: string]: {
@@ -91,7 +90,10 @@ class RenderAttachmentInput extends React.Component<Props, State> {
         <Box style={isMobile ? stylesMobile : stylesDesktop}>
           <Box style={{...globalStyles.flexBoxCenter, height: 150, width: 150}}>
             {info.type === 'image' ? (
-              <Image src={path} style={{maxHeight: '100%', maxWidth: '100%'}} />
+              <Image
+                src={path}
+                style={isMobile ? {height: 150, width: 150} : {maxHeight: '100%', maxWidth: '100%'}}
+              />
             ) : (
               <Icon type="icon-file-uploading-48" />
             )}
@@ -109,6 +111,7 @@ class RenderAttachmentInput extends React.Component<Props, State> {
             onEnterKeyDown={this._onNext}
             ref={this._setRef}
             onChangeText={this._updateTitle}
+            selectTextOnFocus={true}
           />
           <ButtonBar style={{flexShrink: 0}}>
             <Button type="Secondary" onClick={this.props.onClose} label="Cancel" />

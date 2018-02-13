@@ -34,5 +34,6 @@ declare export function glamorous(
 ): (...styles: Array<any>) => any // React.Component<P>
 
 declare export var isMobile: boolean
+declare export var isIPhoneX: boolean
 
 declare export var backgroundModeToColor: {[key: Background]: string}

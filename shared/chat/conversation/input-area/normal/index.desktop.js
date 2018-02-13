@@ -96,12 +96,6 @@ class ConversationInput extends Component<InputProps> {
     this.props.filePickerSetValue(null)
   }
 
-  componentWillReceiveProps(nextProps: Props) {
-    // if (this.props.text !== nextProps.text) {
-    // this.props.onUpdateTyping(!!nextProps.text)
-    // }
-  }
-
   _mentionCatcherClick = () => {
     this.props.setMentionPopupOpen(false)
   }

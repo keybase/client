@@ -1,58 +1,56 @@
-// @noflow
+// @flow
 /* eslint-env browser */
-import logger from '../../../logger'
-// $FlowIssue can't find this
+// import logger from '../../../../logger'
 import {showImagePicker} from 'react-native-image-picker'
 import React, {Component} from 'react'
-import {Box, Icon, Input, Text} from '../../../common-adapters'
-import {globalMargins, globalStyles, globalColors} from '../../../styles'
-import {isIOS} from '../../../constants/platform'
-import ConnectedMentionHud from '../../user-mention-hud/mention-hud-container'
-import ConnectedChannelMentionHud from '../../channel-mention-hud/mention-hud-container'
+import {Box, Icon, Input, Text} from '../../../../common-adapters'
+import {globalMargins, globalStyles, globalColors} from '../../../../styles'
+import {isIOS} from '../../../../constants/platform'
+import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
+import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
 
-import type {AttachmentInput} from '../../../constants/types/chat'
 import type {Props} from '.'
 
 let CustomTextInput
 
 // NEVER load this on ios, it kills it
 if (!isIOS) {
-  CustomTextInput = require('../../../common-adapters/custom-input.native')
+  CustomTextInput = require('../../../../common-adapters/custom-input.native')
 }
 
 // TODO we don't autocorrect the last word on submit. We had a solution using blur but this also dismisses they keyboard each time
 // See if there's a better workaround later
 
 class ConversationInput extends Component<Props> {
-  _setEditing(props: Props) {
-    if (!props.editingMessage || props.editingMessage.type !== 'Text') {
-      return
-    }
+  // _setEditing(props: Props) {
+  // if (!props.editingMessage || props.editingMessage.type !== 'Text') {
+  // return
+  // }
 
-    this.props.setText(props.editingMessage.message.stringValue())
-    this.props.inputFocus()
-  }
+  // this.props.setText(props.editingMessage.message.stringValue())
+  // this.props.inputFocus()
+  // }
 
-  componentWillReceiveProps(nextProps: Props) {
-    if (this.props.editingMessage !== nextProps.editingMessage) {
-      this._setEditing(nextProps)
-    }
-    if (this.props.text !== nextProps.text) {
-      this.props.onUpdateTyping(!!nextProps.text)
-    }
-  }
+  // componentWillReceiveProps(nextProps: Props) {
+  // if (this.props.editingMessage !== nextProps.editingMessage) {
+  // this._setEditing(nextProps)
+  // }
+  // if (this.props.text !== nextProps.text) {
+  // this.props.onUpdateTyping(!!nextProps.text)
+  // }
+  // }
 
-  componentDidMount() {
-    this._setEditing(this.props)
-  }
+  // componentDidMount() {
+  // this._setEditing(this.props)
+  // }
 
-  _onBlur = () => {
-    this.props.onBlur && this.props.onBlur()
-    if (this.props.editingMessage) {
-      this.props.onShowEditor(null)
-      this.props.setText('')
-    }
-  }
+  // _onBlur = () => {
+  // this.props.onBlur && this.props.onBlur()
+  // if (this.props.isEditing) {
+  // // this.props.onShowEditor(null)
+  // this.props.setText('')
+  // }
+  // }
 
   _openFilePicker = () => {
     showImagePicker({}, response => {
@@ -64,37 +62,14 @@ class ConversationInput extends Component<Props> {
         throw new Error(response.error)
       }
       const filename = isIOS ? response.uri.replace('file://', '') : response.path
-      const conversationIDKey = this.props.selectedConversationIDKey
-      if (!response.didCancel && conversationIDKey) {
-        const input: AttachmentInput = {
-          conversationIDKey,
-          filename: filename || '',
-          title: response.fileName || '',
-          type: 'Image',
-        }
-        this.props.onAttach([input])
+      if (!response.didCancel && this.props.conversationIDKey) {
+        this.props.onAttach([filename])
       }
     })
   }
 
   _onSubmit = () => {
-    const text = this.props.text
-    if (!text) {
-      return
-    }
-
-    if (this.props.isLoading) {
-      logger.info('Ignoring chat submit while still loading')
-      return
-    }
-
-    this.props.setText('')
-    this.props.inputClear()
-    if (this.props.editingMessage) {
-      this.props.onEditMessage(this.props.editingMessage, text)
-    } else {
-      this.props.onPostMessage(text)
-    }
+    this.props.onSubmit(this.props.text)
   }
 
   render() {
@@ -105,6 +80,7 @@ class ConversationInput extends Component<Props> {
       <Box>
         {this.props.mentionPopupOpen && (
           <MentionHud
+            conversationIDKey={this.props.conversationIDKey}
             selectDownCounter={this.props.downArrowCounter}
             selectUpCounter={this.props.upArrowCounter}
             pickSelectedUserCounter={this.props.pickSelectedCounter}
@@ -115,6 +91,7 @@ class ConversationInput extends Component<Props> {
         )}
         {this.props.channelMentionPopupOpen && (
           <ChannelMentionHud
+            conversationIDKey={this.props.conversationIDKey}
             selectDownCounter={this.props.downArrowCounter}
             selectUpCounter={this.props.upArrowCounter}
             pickSelectedChannelCounter={this.props.pickSelectedCounter}
@@ -133,7 +110,6 @@ class ConversationInput extends Component<Props> {
               hintText="Write a message"
               inputStyle={styleInputText}
               multiline={true}
-              onBlur={this._onBlur}
               onFocus={this.props.onFocus}
               onChangeText={this.props.onChangeText}
               ref={this.props.inputSetRef}
@@ -151,7 +127,6 @@ class ConversationInput extends Component<Props> {
               autoGrow={true}
               style={styleInput}
               onChangeText={this.props.onChangeText}
-              onBlur={this._onBlur}
               onFocus={this.props.onFocus}
               onSelectionChange={this.props.onSelectionChange}
               placeholder="Write a message"
@@ -165,11 +140,11 @@ class ConversationInput extends Component<Props> {
               blurOnSubmit={false}
             />
           )}
-          {this.props.typing.length > 0 && <Typing typing={this.props.typing} />}
+          {this.props.typing.size > 0 && <Typing />}
           <Action
             text={this.props.text}
             onSubmit={this._onSubmit}
-            editingMessage={this.props.editingMessage}
+            isEditing={this.props.isEditing}
             openFilePicker={this._openFilePicker}
             isLoading={this.props.isLoading}
             insertMentionMarker={this.props.insertMentionMarker}
@@ -197,7 +172,7 @@ const InputAccessory = Component => props => (
 )
 
 const MentionHud = InputAccessory(props => (
-  <ConnectedMentionHud style={styleMentionHud} {...props} conversationIDKey={this.props.conversationIDKey} />
+  <ConnectedMentionHud style={styleMentionHud} {...props} conversationIDKey={props.conversationIDKey} />
 ))
 
 const ChannelMentionHud = InputAccessory(props => (
@@ -212,7 +187,7 @@ const styleMentionHud = {
   width: '100%',
 }
 
-const Typing = ({typing}) => (
+const Typing = () => (
   <Box
     style={{
       ...globalStyles.flexBoxRow,
@@ -228,20 +203,16 @@ const Typing = ({typing}) => (
   </Box>
 )
 
-const Action = ({text, onSubmit, editingMessage, openFilePicker, insertMentionMarker, isLoading}) =>
+const Action = ({text, onSubmit, isEditing, openFilePicker, insertMentionMarker, isLoading}) =>
   text ? (
     <Box style={styleActionText}>
-      <Text type="BodyBigLink" style={{...(isLoading ? {color: globalColors.grey} : {})}} onClick={onSubmit}>
-        {editingMessage ? 'Save' : 'Send'}
+      <Text type="BodyBigLink" style={isLoading ? {color: globalColors.grey} : null} onClick={onSubmit}>
+        {isEditing ? 'Save' : 'Send'}
       </Text>
     </Box>
   ) : (
     <Box style={styleActionButtonContainer}>
-      <Icon
-        onClick={insertMentionMarker}
-        type="iconfont-mention"
-        style={{...styleActionButton, paddingRight: 0}}
-      />
+      <Icon onClick={insertMentionMarker} type="iconfont-mention" style={mentionMarkerStyle} />
       <Icon onClick={openFilePicker} type="iconfont-camera" style={styleActionButton} />
     </Box>
   )
@@ -264,6 +235,8 @@ const styleActionButton = {
   paddingLeft: globalMargins.tiny,
   paddingRight: globalMargins.tiny,
 }
+
+const mentionMarkerStyle = {...styleActionButton, paddingRight: 0}
 
 const styleActionButtonContainer = {
   ...globalStyles.flexBoxRow,

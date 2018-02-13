@@ -91,9 +91,13 @@ class Inbox extends React.PureComponent<Props, State> {
   }
 
   _askForUnboxing = (rows: Array<RowItem>) => {
-    const toUnbox = rows.filter(r => r.type === 'small' && r.conversationIDKey)
-    // $FlowIssue doesn't understand that we filtered out the nulls
-    this.props.onUntrustedInboxVisible(toUnbox.map(r => r.conversationIDKey))
+    const toUnbox = rows.reduce((arr, r) => {
+      if (r.type === 'small' && r.conversationIDKey) {
+        arr.push(r.conversationIDKey)
+      }
+      return arr
+    }, [])
+    this.props.onUntrustedInboxVisible(toUnbox)
   }
 
   _onViewChanged = data => {
@@ -134,11 +138,11 @@ class Inbox extends React.PureComponent<Props, State> {
     }
   }, 1000)
 
-  componentDidMount() {
-    if (this.props.rows.length) {
-      this._askForUnboxing(this.props.rows.slice(0, 30))
-    }
-  }
+  // componentDidMount() {
+  // if (this.props.rows.length) {
+  // this._askForUnboxing(this.props.rows.slice(0, 30))
+  // }
+  // }
 
   _maxVisible = Math.ceil(NativeDimensions.get('window').height / 64)
 

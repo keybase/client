@@ -1,9 +1,10 @@
 // @flow
 import * as Chat2Gen from '../../../../actions/chat2-gen'
+import * as Route from '../../../../actions/route-tree'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import {SmallTeam} from '.'
-import {connect, type TypedState, type Dispatch} from '../../../../util/container'
+import {connect, type TypedState, type Dispatch, isMobile} from '../../../../util/container'
 
 type OwnProps = {conversationIDKey: Types.ConversationIDKey}
 
@@ -16,14 +17,19 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
     _username: state.config.username || '',
     hasBadge: Constants.getHasBadge(state, _conversationIDKey),
     hasUnread: Constants.getHasUnread(state, _conversationIDKey),
-    isSelected: !state.chat2.pendingSelected && Constants.getIsSelected(state, _conversationIDKey),
+    isSelected:
+      !isMobile && !state.chat2.pendingSelected && Constants.getIsSelected(state, _conversationIDKey),
     youAreReset,
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}: OwnProps) => ({
-  onSelectConversation: () =>
-    dispatch(Chat2Gen.createSelectConversation({conversationIDKey, fromUser: true})),
+  onSelectConversation: () => {
+    dispatch(Chat2Gen.createSelectConversation({conversationIDKey, fromUser: true}))
+    if (isMobile) {
+      dispatch(Route.navigateAppend(['conversation']))
+    }
+  },
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {

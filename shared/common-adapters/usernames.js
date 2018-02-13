@@ -56,7 +56,12 @@ function usernameText({
             <Text
               type={type}
               backgroundMode={backgroundMode}
-              style={{...style, color: commaColor, marginRight: 1, textDecoration: 'none'}}
+              style={{
+                ...style,
+                color: commaColor,
+                marginRight: 1,
+                ...(isMobile ? {} : {textDecoration: 'none'}),
+              }}
             >
               ,
             </Text>
