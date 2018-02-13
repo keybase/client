@@ -19,7 +19,7 @@ import {type TeamRoleType} from '../../constants/types/teams'
 
 const MaybePopup = isMobile
   ? (props: {onClose: () => void, children: React.Node}) => (
-      <Box style={{height: '100%', width: '100%'}} children={props.children} />
+      <Box style={{flexGrow: 1, width: '100%'}} children={props.children} />
     )
   : (props: {onClose: () => void, children: React.Node}) => (
       <PopupDialog
@@ -61,7 +61,7 @@ const _makeDropdownItems = () => teamRoleTypes.map(item => _makeDropdownItem(ite
 
 const AddPeople = (props: Props) => (
   <MaybePopup onClose={props.onClose}>
-    <Box style={{...globalStyles.flexBoxColumn}}>
+    <Box style={{...globalStyles.flexBoxColumn, flexGrow: 1}}>
       <Box
         style={{
           ...(isMobile ? globalStyles.flexBoxColumn : globalStyles.flexBoxRow),
@@ -115,7 +115,7 @@ const AddPeople = (props: Props) => (
           <SearchResultsList
             searchKey={'addToTeamSearch'}
             disableIfInTeamName={props.name}
-            style={{flexGrow: 1, height: 500}}
+            style={isMobile ? {position: 'absolute', top: 0, bottom: 0, right: 0, left: 0} : {height: 500}}
             keyboardDismissMode="on-drag"
           />
         )}
