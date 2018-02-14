@@ -4,7 +4,7 @@ import * as Types from '../../../../constants/types/chat2'
 import UserNotice from '../user-notice'
 import {Box, Text, Icon, ConnectedUsernames} from '../../../../common-adapters'
 import {EmojiIfExists} from '../../../../common-adapters/markdown.shared'
-import {globalStyles, globalColors, globalMargins} from '../../../../styles'
+import {globalStyles, globalColors, globalMargins, isMobile} from '../../../../styles'
 import {formatTimeForMessages} from '../../../../util/timestamp'
 
 type Props = {
@@ -99,7 +99,12 @@ class AddedToTeam extends React.PureComponent<Props> {
             .{' '}
             {you === addee && (
               <Text type="BodySmallSemibold">
-                Say hi! <EmojiIfExists style={{display: 'inline-block'}} emojiName=":wave:" size={14} />
+                Say hi!{' '}
+                <EmojiIfExists
+                  style={isMobile ? {display: 'inline-block'} : null}
+                  emojiName=":wave:"
+                  size={14}
+                />
               </Text>
             )}
           </Text>
