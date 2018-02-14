@@ -1,7 +1,8 @@
 // @flow
 import * as Types from '../../constants/types/fs'
 import {compose, connect, setDisplayName, type Dispatch} from '../../util/container'
-import {navigateAppend} from '../../actions/route-tree'
+import {fsTab} from '../../constants/tabs'
+import {navigateAppend, navigateTo} from '../../actions/route-tree'
 
 type OwnProps = {
   path: Types.Path,
@@ -11,7 +12,7 @@ const mapStateToProps = () => ({})
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onOpenBreadcrumb: (path: string) =>
-    dispatch(navigateAppend([{props: {path: Types.stringToPath(path)}, selected: 'folder'}])),
+    dispatch(navigateTo([fsTab, {props: {path: Types.stringToPath(path)}, selected: 'folder'}])),
   onOpenBreadcrumbDropdown: (
     dropdownItems: Array<Types.PathBreadcrumbItem>,
     isTeamPath: boolean,

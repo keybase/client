@@ -11,9 +11,6 @@ const folderRoute = makeRouteDefNode({
     breadcrumbAction: {
       component: RelativePopupHoc(ConnectedDropdownPopupMenu),
       tags: makeLeafTags({layerOnTop: true}),
-      children: {
-        folder: () => folderRoute,
-      },
     },
   },
   component: Files,
