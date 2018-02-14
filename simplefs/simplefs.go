@@ -112,8 +112,8 @@ func (k *SimpleFS) makeContext(ctx context.Context) context.Context {
 	return libkbfs.CtxWithRandomIDReplayable(ctx, ctxIDKey, ctxOpID, k.log)
 }
 
-// remotePath decodes a remote path for us.
-func remotePath(path keybase1.Path) (
+// remoteTlfAndPath decodes a remote path for us.
+func remoteTlfAndPath(path keybase1.Path) (
 	t tlf.Type, tlfName, middlePath, finalElem string, err error) {
 	pt, err := path.PathType()
 	if err != nil {
@@ -122,8 +122,8 @@ func remotePath(path keybase1.Path) (
 	if pt != keybase1.PathType_KBFS {
 		return tlf.Private, "", "", "", errOnlyRemotePathSupported
 	}
-	raw := path.Kbfs()
-	if raw != `` && raw[0] == '/' {
+	raw := stdpath.Clean(path.Kbfs())
+	if stdpath.IsAbs(raw) {
 		raw = raw[1:]
 	}
 	ps := strings.Split(raw, `/`)
@@ -154,7 +154,7 @@ func (k *SimpleFS) getFS(ctx context.Context, path keybase1.Path) (
 	}
 	switch pt {
 	case keybase1.PathType_KBFS:
-		t, tlfName, restOfPath, finalElem, err := remotePath(path)
+		t, tlfName, restOfPath, finalElem, err := remoteTlfAndPath(path)
 		if err != nil {
 			return nil, "", err
 		}
@@ -255,9 +255,9 @@ func (k *SimpleFS) startOp(ctx context.Context, opid keybase1.OpID,
 }
 
 func (k *SimpleFS) doneOp(ctx context.Context, opid keybase1.OpID, err error) {
-	k.lock.Lock()
+	k.lock.RLock()
 	w, ok := k.inProgress[opid]
-	k.lock.Unlock()
+	k.lock.RUnlock()
 	if ok {
 		w.done <- err
 		close(w.done)
@@ -296,7 +296,7 @@ func (k *SimpleFS) SimpleFSList(ctx context.Context, arg keybase1.SimpleFSListAr
 		}), func(ctx context.Context) (err error) {
 		var res []keybase1.Dirent
 
-		rawPath := arg.Path.Kbfs()
+		rawPath := stdpath.Clean(arg.Path.Kbfs())
 		switch {
 		case rawPath == "/":
 			res = []keybase1.Dirent{
@@ -380,11 +380,10 @@ func (k *SimpleFS) SimpleFSListRecursive(ctx context.Context, arg keybase1.Simpl
 			for _, fi := range fis {
 				var de keybase1.Dirent
 				setStat(&de, fi)
-				name := stdpath.Join(path, fi.Name())
-				de.Name = name
+				de.Name = fi.Name()
 				des = append(des, de)
 				if fi.IsDir() {
-					paths = append(paths, name)
+					paths = append(paths, stdpath.Join(path, fi.Name()))
 				}
 			}
 		}
@@ -488,10 +487,10 @@ type pathPair struct {
 
 func pathAppend(p keybase1.Path, leaf string) keybase1.Path {
 	if p.Local__ != nil {
-		var s = *p.Local__ + "/" + leaf
+		var s = stdpath.Join(*p.Local__, leaf)
 		p.Local__ = &s
 	} else if p.Kbfs__ != nil {
-		var s = *p.Kbfs__ + "/" + leaf
+		var s = stdpath.Join(*p.Kbfs__, leaf)
 		p.Kbfs__ = &s
 	}
 	return p
@@ -613,7 +612,7 @@ func (k *SimpleFS) SimpleFSRename(ctx context.Context, arg keybase1.SimpleFSRena
 	defer func() { k.doneSyncOp(ctx, err) }()
 
 	// Get root FS, to be shared by both src and dst.
-	t, tlfName, restOfSrcPath, finalSrcElem, err := remotePath(arg.Src)
+	t, tlfName, restOfSrcPath, finalSrcElem, err := remoteTlfAndPath(arg.Src)
 	if err != nil {
 		return err
 	}
@@ -629,7 +628,8 @@ func (k *SimpleFS) SimpleFSRename(ctx context.Context, arg keybase1.SimpleFSRena
 	}
 
 	// Make sure src and dst share the same TLF.
-	tDst, tlfNameDst, restOfDstPath, finalDstElem, err := remotePath(arg.Dest)
+	tDst, tlfNameDst, restOfDstPath, finalDstElem, err :=
+		remoteTlfAndPath(arg.Dest)
 	if err != nil {
 		return err
 	}
@@ -638,8 +638,8 @@ func (k *SimpleFS) SimpleFSRename(ctx context.Context, arg keybase1.SimpleFSRena
 	}
 
 	err = fs.Rename(
-		fs.Join(restOfSrcPath, finalSrcElem),
-		fs.Join(restOfDstPath, finalDstElem))
+		stdpath.Join(restOfSrcPath, finalSrcElem),
+		stdpath.Join(restOfDstPath, finalDstElem))
 	return err
 }
 
