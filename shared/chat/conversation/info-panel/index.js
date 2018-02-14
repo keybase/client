@@ -135,7 +135,7 @@ type Row =
   | BlockThisConversationRow
   | TeamHeaderRow
 
-const _renderRow = (i: number, row: Row) => {
+const _renderRow = (i: number, row: Row): React.Node => {
   switch (row.type) {
     case 'participant':
       return <Participant key={`participant ${row.key}`} {...row} />
@@ -210,7 +210,9 @@ const _renderRow = (i: number, row: Row) => {
       return <DangerButton key="leave channel" label="Leave channel" onClick={row.onLeaveConversation} />
 
     default:
-      throw new Error('Unexpected type ' + row.type)
+      // eslint-disable-next-line no-unused-expressions
+      ;(row.type: empty)
+      throw new Error(`Impossible case encountered: ${row.type}`)
   }
 }
 
@@ -250,7 +252,9 @@ const typeSizeEstimator = (row: Row): number => {
       return 44
 
     default:
-      throw new Error('Unexpected type ' + row.type)
+      // eslint-disable-next-line no-unused-expressions
+      ;(row.type: empty)
+      throw new Error(`Impossible case encountered: ${row.type}`)
   }
 }
 
