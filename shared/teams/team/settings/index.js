@@ -240,7 +240,6 @@ export class Settings extends React.Component<Props, State> {
         contentContainerStyle={{padding: globalMargins.medium}}
       >
         <SetMemberShowcase {...this.props} {...this.state} setBoolSettings={this.setBoolSettings} />
-
         {(this.props.yourOperations.changeOpenTeam ||
           this.props.yourOperations.setTeamShowcase ||
           this.props.yourOperations.setPublicityAny) && (
@@ -248,22 +247,17 @@ export class Settings extends React.Component<Props, State> {
             <Box style={stylesSettingsTabRow}>
               <Text type="Header">Team</Text>
             </Box>
-
             <PublicityAnyMember {...this.props} {...this.state} setBoolSettings={this.setBoolSettings} />
-
             <PublicityTeam {...this.props} {...this.state} setBoolSettings={this.setBoolSettings} />
-
             <OpenTeam
               {...this.props}
               {...this.state}
               setBoolSettings={this.setBoolSettings}
               onSetOpenTeamRole={this.onSetOpenTeamRole}
             />
-
             <IgnoreAccessRequests {...this.props} {...this.state} setBoolSettings={this.setBoolSettings} />
           </Box>
         )}
-
         <Box
           style={{
             ...stylesSettingsTabRow,
