@@ -12,7 +12,15 @@ import {navigateAppend} from '../../../actions/route-tree'
 import {type RouteProps} from '../../../route-tree/render-route'
 import {type TextProps, type AttachmentProps} from './popup'
 
-function _textMessagePopupHelper({message, type, onDeleteMessage, onDeleteMessageHistory, onHidden, onShowEditor, you}: TextProps) {
+function _textMessagePopupHelper({
+  message,
+  type,
+  onDeleteMessage,
+  onDeleteMessageHistory,
+  onHidden,
+  onShowEditor,
+  you,
+}: TextProps) {
   const edit =
     message.author === you
       ? [
@@ -96,17 +104,13 @@ function MessagePopup(props: TextProps | AttachmentProps) {
   if (message.author === you) {
     items.push({
       danger: true,
-      onClick: () => {
-        onDeleteMessage(message)
-      },
+      onClick: () => onDeleteMessage(message),
       title: 'Delete',
     })
   }
   items.push({
     danger: true,
-    onClick: () => {
-      onDeleteMessageHistory(message)
-    },
+    onClick: () => onDeleteMessageHistory && onDeleteMessageHistory(message),
     title: 'Delete all messages before this one',
   })
 

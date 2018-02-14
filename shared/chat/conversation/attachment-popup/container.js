@@ -35,8 +35,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, navigateAppend}) =>
   _onMessageAction: (message: Types.ServerMessage) =>
     dispatch(navigateAppend([{props: {message}, selected: 'messageAction'}])),
   deleteMessage: message => dispatch(ChatGen.createDeleteMessage({message})),
-  deleteMessageHistory: message =>
-    dispatch(navigateAppend([{props: {message}, selected: 'deleteHistoryWarning'}])),
   onClose: () => dispatch(navigateUp()),
   onDownloadAttachment: (message: Types.AttachmentMessage) => {
     if (!message.messageID || !message.filename) {
@@ -54,10 +52,6 @@ const mergeProps = (stateProps, dispatchProps) => {
     ...dispatchProps,
     onDeleteMessage: () => {
       dispatchProps.deleteMessage(message)
-      dispatchProps.onClose()
-    },
-    onDeleteMessageHistory: () => {
-      dispatchProps.deleteMessageHistory(message)
       dispatchProps.onClose()
     },
     onMessageAction: () => dispatchProps._onMessageAction(message),

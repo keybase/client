@@ -1,13 +1,16 @@
 // @flow
 import React from 'react'
-import {Box, Button, HeaderHoc, Input, PopupDialog, Text, ScrollView} from '../../common-adapters'
+import {Box, Button, HeaderHoc, Text} from '../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
 
 type Props = {
-
+  errorText: string,
+  name: string,
+  onDeleteHistory: () => void,
+  timestamp: string,
 }
 
-const DeleteHistoryWarning = ({errorText, name, onDeleteHistory}: Props) => (
+const DeleteHistoryWarning = ({errorText, name, timestamp, onDeleteHistory}: Props) => (
   <Box
     style={{
       ...globalStyles.flexBoxColumn,
@@ -17,27 +20,12 @@ const DeleteHistoryWarning = ({errorText, name, onDeleteHistory}: Props) => (
       backgroundColor: globalColors.white,
     }}
   >
-    <Text type="Body">Are you sure?</Text>
+    <Text type="Body">Are you sure you want to delete all messages before {timestamp} for everyone?</Text>
     <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.xlarge}}>
-      <Button
-        type="Primary"
-        style={{marginLeft: globalMargins.tiny}}
-        onClick={onDeleteHistory}
-        label="Yes"
-      />
+      <Button type="Danger" style={{marginLeft: globalMargins.tiny}} onClick={onDeleteHistory} label="Yes" />
     </Box>
   </Box>
 )
-
-const styleContainer = {
-  ...globalStyles.flexBoxCenter,
-  ...(isMobile ? {} : {cursor: 'default'}),
-  minHeight: 40,
-  paddingLeft: globalMargins.medium,
-  paddingRight: globalMargins.medium,
-  borderTopLeftRadius: isMobile ? 0 : 4,
-  borderTopRightRadius: isMobile ? 0 : 4,
-}
 
 const stylePadding = isMobile
   ? {

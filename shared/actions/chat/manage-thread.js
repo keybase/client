@@ -110,7 +110,8 @@ function* _selectConversation(action: ChatGen.SelectConversationPayload): Saga.S
   const inbox = Constants.getInbox(state, conversationIDKey)
   const inSearch = state.chat.get('inSearch')
   if (inbox) {
-    if (!inbox.teamname) {
+    const teamname = inbox.teamname
+    if (!teamname) {
       const participants = inbox.get('participants').toArray()
       yield Saga.put(ChatGen.createUpdateMetadata({users: participants}))
       // Update search but don't update the filter
@@ -128,12 +129,9 @@ function* _selectConversation(action: ChatGen.SelectConversationPayload): Saga.S
       // the canUserPerform state for that team, get it now so that
       // the message action popup knows what we can do.
       const state = yield Saga.select()
-      const canPerform = state.entities.getIn(['teams', 'teamNameToCanPerform', inbox.teamname], null)
+      const canPerform = state.entities.getIn(['teams', 'teamNameToCanPerform', teamname], null)
       if (!canPerform) {
-        console.warn("Don't have canPerform for", inbox.teamname)
-        yield Saga.put(TeamsGen.createGetTeamOperations({teamname: inbox.teamname}))
-      } else {
-        console.warn("Have canPerform already")
+        yield Saga.put(TeamsGen.createGetTeamOperations({teamname}))
       }
     }
   }

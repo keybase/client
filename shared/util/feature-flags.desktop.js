@@ -14,7 +14,7 @@ const featureOn = (key: $Keys<FeatureFlags>) => features.includes(key)
 
 const ff: FeatureFlags = {
   admin: false,
-  deleteChatHistoy: false,
+  deleteChatHistory: false,
   fsEnabled: false,
   impTeamChatEnabled: true,
   plansEnabled: false,

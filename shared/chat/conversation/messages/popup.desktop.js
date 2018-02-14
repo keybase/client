@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as I from 'immutable'
 import {ModalLessPopupMenu as PopupMenu} from '../../../common-adapters/popup-menu.desktop'
 import {textMessageEditable} from '../../../constants/chat'
-import {getCanPerform, getTeamNameFromConvID} from '../../../constants/teams'
+import {getCanPerform} from '../../../constants/teams'
 import * as Types from '../../../constants/types/chat'
 import * as ChatGen from '../../../actions/chat-gen'
 import * as KBFSGen from '../../../actions/kbfs-gen'
@@ -22,7 +22,16 @@ const stylePopup = {
   width: 196,
 }
 
-const TextPopupMenu = ({canDeleteHistory, message, onShowEditor, onDeleteMessage, onDeleteMessageHistory, onHidden, style, you}: TextProps) => {
+const TextPopupMenu = ({
+  canDeleteHistory,
+  message,
+  onShowEditor,
+  onDeleteMessage,
+  onDeleteMessageHistory,
+  onHidden,
+  style,
+  you,
+}: TextProps) => {
   console.warn(message)
   let items = []
   if (message.author === you) {
@@ -47,7 +56,7 @@ const TextPopupMenu = ({canDeleteHistory, message, onShowEditor, onDeleteMessage
     items.push('Divider')
     items.push({
       danger: true,
-      onClick: () => onDeleteMessageHistory(message),
+      onClick: () => onDeleteMessageHistory && onDeleteMessageHistory(message),
       subTitle: 'Deletes all messages before this one for everyone',
       title: 'Delete up to here',
     })
@@ -60,6 +69,7 @@ const TextPopupMenu = ({canDeleteHistory, message, onShowEditor, onDeleteMessage
 }
 
 const AttachmentPopupMenu = ({
+  canDeleteHistory,
   message,
   localMessageState,
   onDeleteMessage,
@@ -90,13 +100,15 @@ const AttachmentPopupMenu = ({
       title: 'Delete',
     })
   }
-  items.push('Divider')
-  items.push({
-    danger: true,
-    onClick: () => onDeleteMessageHistory(message),
-    subTitle: 'Deletes all messages before this one for everyone',
-    title: 'Delete up to here',
-  })
+  if (canDeleteHistory) {
+    items.push('Divider')
+    items.push({
+      danger: true,
+      onClick: () => onDeleteMessageHistory && onDeleteMessageHistory(message),
+      subTitle: 'Deletes all messages before this one for everyone',
+      title: 'Delete up to here',
+    })
+  }
   const header = {
     title: 'header',
     view: <MessagePopupHeader message={message} />,
@@ -154,7 +166,10 @@ type ConnectedAttachmentMessageProps = {
   }>,
 }
 
-const mapDispatchToAttachmentProps = (dispatch, {navigateAppend, routeProps}: ConnectedAttachmentMessageProps) => {
+const mapDispatchToAttachmentProps = (
+  dispatch,
+  {navigateUp, routeProps}: ConnectedAttachmentMessageProps & {navigateUp: () => any}
+) => {
   const localMessageState = routeProps.get('localMessageState')
   const message = routeProps.get('message')
   const {savedPath} = localMessageState
@@ -165,6 +180,7 @@ const mapDispatchToAttachmentProps = (dispatch, {navigateAppend, routeProps}: Co
     onDeleteMessage: (message: Types.Message) =>
       dispatch(ChatGen.createDeleteMessage({message: routeProps.get('message')})),
     onDeleteMessageHistory: message => {
+      dispatch(navigateUp())
       dispatch(navigateAppend([{props: {message}, selected: 'deleteHistoryWarning'}]))
     },
     onHidden: () => {},
