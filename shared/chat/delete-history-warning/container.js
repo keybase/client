@@ -15,6 +15,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
+  onBack: () => dispatch(navigateUp()),
   onClose: () => dispatch(navigateUp()),
   onDeleteHistory: () => {
     dispatch(ChatGen.createDeleteMessageHistory({message: routeProps.get('message')}))
@@ -24,6 +25,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
 const mergeProps = (stateProps, dispatchProps) => ({
   ...stateProps,
   ...dispatchProps,
+  title: 'Delete message history',
 })
 
 export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps))(DeleteHistoryWarning)
