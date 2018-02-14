@@ -1,10 +1,10 @@
 // @flow
 import * as ProfileGen from '../actions/profile-gen'
 import PostProof from './post-proof'
-import {connect, type TypedState} from '../util/container'
+import {compose, connect, lifecycle, withStateHandlers, type TypedState} from '../util/container'
 import {type ProvablePlatformsType} from '../constants/types/more'
 
-const mapStateToProps = (state: TypedState) => {
+const mapStateToProps = (state: TypedState, {onAllowProofCheck}) => {
   const profile = state.profile
 
   if (
@@ -36,4 +36,17 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   proofAction: () => dispatch(ProfileGen.createOutputInstructionsActionLink()),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(PostProof)
+export default compose(
+  withStateHandlers(({allowProofCheck: boolean}) => ({allowProofCheck: true}), {
+    onAllowProofCheck: () => (allowProofCheck: boolean) => ({allowProofCheck}),
+  }),
+  connect(mapStateToProps, mapDispatchToProps),
+  lifecycle({
+    componentWillMount: function() {
+      // Facebook proof checking gets enabled after they click continue.
+      if (this.props.platform === 'facebook') {
+        this.props.onAllowProofCheck(false)
+      }
+    },
+  })
+)(PostProof)
