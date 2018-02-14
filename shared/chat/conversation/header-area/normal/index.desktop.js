@@ -90,7 +90,9 @@ const UsernameHeader = ({
 const containerStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-  borderBottom: `solid 1px ${globalColors.black_05}`,
+  borderBottomColor: globalColors.black_05,
+  borderBottomWidth: 1,
+  borderStyle: 'solid',
   justifyContent: 'center',
   minHeight: 32,
   padding: globalMargins.tiny,

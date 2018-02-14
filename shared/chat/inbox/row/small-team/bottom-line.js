@@ -150,9 +150,13 @@ const resetStyle = {
 const noWrapStyle = {
   display: 'block',
   overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
   width: '100%',
+  ...(isMobile
+    ? {}
+    : {
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+      }),
 }
 
 const mobileBottomLineCommon = {

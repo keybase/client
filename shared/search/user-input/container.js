@@ -28,10 +28,10 @@ const UserInputWithServiceFilter = props => (
   <Box
     style={{
       ...globalStyles.flexBoxColumn,
-      paddingLeft: globalMargins.tiny,
       borderBottomColor: globalColors.black_05,
       borderBottomWidth: 1,
-      borderBottom: `1px solid ${globalColors.black_05}`,
+      borderStyle: 'solid',
+      paddingLeft: globalMargins.tiny,
     }}
   >
     <UserInput

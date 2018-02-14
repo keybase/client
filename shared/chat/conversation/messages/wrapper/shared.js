@@ -215,9 +215,9 @@ const _failStyleFace = {
   fontSize: 9,
 }
 const orangeLineStyle = {
-  height: 1,
-  widht: '100%',
   backgroundColor: globalColors.orange,
+  height: 1,
+  width: '100%',
 }
 
 export default MessageWrapper

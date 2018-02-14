@@ -4,7 +4,7 @@ import * as Types from '../../../constants/types/chat2'
 import * as Inbox from '..'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as TeamsGen from '../../../actions/teams-gen'
-import {connect, compose, lifecycle, withStateHandlers, withProps} from '../../../util/container'
+import {connect, compose, lifecycle, withStateHandlers, withProps, isMobile} from '../../../util/container'
 import type {TypedState, Dispatch} from '../../../util/container'
 import normalRowData from './normal'
 import filteredRowData from './filtered'
@@ -50,7 +50,12 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeState, setRouteState, navi
       focusFilter()
     }
   },
-  onNewChat: () => dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'searchingForUsers'})),
+  onNewChat: () => {
+    dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'searchingForUsers'}))
+    if (isMobile) {
+      dispatch(navigateAppend(['conversation']))
+    }
+  },
   // onSelect: (conversationIDKey: Types.ConversationIDKey) => {
   // dispatch(Chat2Gen.createSelectConversation({conversationIDKey, fromUser: true}))
   // if (isMobile) {
