@@ -231,11 +231,11 @@ func (e *Env) GetMountDir() (string, error) {
 			case "darwin":
 				switch e.GetRunMode() {
 				case DevelRunMode:
-					return filepath.Join(e.GetHome(), "keybase.devel")
+					return "keybase.devel"
 				case StagingRunMode:
-					return filepath.Join(e.GetHome(), "keybase.staging")
+					return "keybase.staging"
 				case ProductionRunMode:
-					return filepath.Join(e.GetHome(), "keybase")
+					return "keybase"
 				default:
 					panic("Invalid run mode")
 				}
