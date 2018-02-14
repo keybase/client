@@ -127,7 +127,7 @@ function* _generatePgpSaga(): Saga.SagaGenerator<any, any> {
     const {response: finishedResponse} = yield generatePgpKeyChanMap.take('keybase.1.pgpUi.finished')
     yield Saga.call([finishedResponse, finishedResponse.result])
 
-    yield Saga.put(navigateTo([], [peopleTab]))
+    yield Saga.put(navigateTo([peopleTab, 'profile']))
   } catch (e) {
     generatePgpKeyChanMap.close()
     logger.info('error in generating pgp key', e)
