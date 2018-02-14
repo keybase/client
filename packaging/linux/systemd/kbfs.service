@@ -6,11 +6,10 @@ Wants=keybase.service
 # "notify" means we promise to call SdNotify() at the end of startup.
 Type=notify
 # Forcibly unmount /keybase in case there's anything there. The "-" prefix
-# means that error codes from this command are ignored. We use /usr/bin/env
-# because some systems put fusermount in /bin and others put it in /usr/bin.
-# Without this line, `systemctl --user restart kbfs.service` will hit mount
-# failures if there are any running shells cd'd into a Keybase folder.
-ExecStartPre=-/usr/bin/bash -c '/usr/bin/env fusermount -uz `keybase config get mountdir`'
+# means that error codes from this command are ignored. Without this line,
+# `systemctl --user restart kbfs.service` will hit mount failures if there
+# are any running shells cd'd into a Keybase folder.
+ExecStartPre=-/bin/sh -c 'fusermount -uz "$(keybase config get mountdir|sed s/\x5c"//g)"'
 ExecStart=/usr/bin/kbfsfuse -debug -log-to-file
 Restart=on-failure
 
