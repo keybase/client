@@ -750,9 +750,9 @@ func (k *SimpleFS) startReadWriteOp(ctx context.Context, opid keybase1.OpID, des
 }
 
 func (k *SimpleFS) doneReadWriteOp(ctx context.Context, opID keybase1.OpID, err error) {
-	k.lock.RLock()
+	k.lock.Lock()
 	delete(k.inProgress, opID)
-	k.lock.RUnlock()
+	k.lock.Unlock()
 	k.log.CDebugf(ctx, "doneReadWriteOp, status=%v", err)
 	if ctx != nil {
 		libkbfs.CleanupCancellationDelayer(ctx)
