@@ -3,11 +3,29 @@ import React from 'react'
 import {storiesOf, action, createPropProvider} from '../../../stories/storybook'
 import {Box} from '../../../common-adapters'
 import {globalStyles} from '../../../styles'
-import {InfoPanel} from '.'
+import {InfoPanel, type InfoPanelProps} from '.'
 import {type ParticipantInfo} from './participant'
+import {type Props as NotificationProps} from './notifications'
 
 const unexpected = (name: string) => () => {
   throw new Error(`unexpected ${name}`)
+}
+
+const onlyValidConversationsProps = {
+  conversationIDKey: 'fake key',
+}
+
+const notificationProps: NotificationProps = {
+  _resetSaveState: () => ({}),
+  channelWide: false,
+  desktop: 'atmention',
+  mobile: 'never',
+  muted: false,
+  saveState: 'unsaved',
+  onMuteConversation: action('onMuteConversation'),
+  onSetDesktop: action('onSetDesktop'),
+  onSetMobile: action('onSetMobile'),
+  onToggleChannelWide: action('onToggleChannelwide'),
 }
 
 const participants: Array<ParticipantInfo> = [
@@ -58,22 +76,10 @@ const conversationProps = {
 }
 
 const provider = createPropProvider({
-  InfoPanel: () => conversationProps,
-  OnlyValidConversations: () => ({
-    conversationIDKey: 'fake key',
-  }),
-  'lifecycle(Component)': () => ({
-    _resetSaveState: () => ({}),
-    channelWide: false,
-    desktop: 'atmention',
-    mobile: 'never',
-    muted: false,
-    saveState: 'unsaved',
-    onMuteConversation: action('onMuteConversation'),
-    onSetDesktop: action('onSetDesktop'),
-    onSetMobile: action('onSetMobile'),
-    onToggleChannelWide: action('onToggleChannelwide'),
-  }),
+  InfoPanel: (props: InfoPanelProps) => props,
+  OnlyValidConversations: () => onlyValidConversationsProps,
+  // This is what ends up as the display name for Notifications.
+  'lifecycle(Component)': () => notificationProps,
 })
 
 const load = () => {
