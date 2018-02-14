@@ -24,7 +24,7 @@ class ConversationList extends React.PureComponent<Props> {
   }
   _getItem = (messageOrdinals, index) => messageOrdinals.get(index)
   _getItemCount = messageOrdinals => messageOrdinals.size + (this.props.hasExtraRow ? 1 : 0)
-  _keyExtractor = ordinal => ordinal
+  _keyExtractor = ordinal => String(ordinal)
 
   // Don't load if we have no messages in there. This happens a lot when we're dealing with stale messages
   _onEndReached = () => {
