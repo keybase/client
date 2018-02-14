@@ -244,6 +244,9 @@
     // go through our marking as read logic
     "markInitiallyLoadedThreadAsRead": {
       "conversationIDKey": "Types.ConversationIDKey",
+    },
+    "markConversationsStale": {
+      "conversationIDKeys": "Array<Types.ConversationIDKey>",
     }
   }
 }

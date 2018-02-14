@@ -51,6 +51,15 @@ const upgradeMessage = (old: Types.Message, m: Types.Message) => {
 
 const metaMapReducer = (metaMap, action) => {
   switch (action.type) {
+    // case Chat2Gen.markConversationsStale:
+    // return metaMap.withMutations(map => {
+    // action.payload.conversationIDKeys.forEach(conversationIDKey => {
+    // map.update(
+    // conversationIDKey,
+    // meta => (meta ? meta.set('trustedState', 'untrusted').set('hasLoadedThread', false) : meta)
+    // )
+    // })
+    // })
     case Chat2Gen.metaRequestingTrusted:
       return metaMap.withMutations(map =>
         (action.payload.force
@@ -124,6 +133,8 @@ const metaMapReducer = (metaMap, action) => {
 
 const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
   switch (action.type) {
+    case Chat2Gen.markConversationsStale:
+      return messageMap.deleteAll(action.payload.conversationIDKeys)
     case Chat2Gen.messageEdit: // fallthrough
     case Chat2Gen.messageDelete:
       return messageMap.updateIn(
@@ -259,6 +270,8 @@ const messageOrdinalsReducer = (messageOrdinals, action) => {
   switch (action.type) {
     case Chat2Gen.inboxRefresh:
       return action.payload.clearAllData ? messageOrdinals.clear() : messageOrdinals
+    case Chat2Gen.markConversationsStale:
+      return messageOrdinals.deleteAll(action.payload.conversationIDKeys)
     default:
       return messageOrdinals
   }
@@ -558,6 +571,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.attachmentUploaded:
     case Chat2Gen.attachmentLoaded:
     case Chat2Gen.attachmentDownloaded:
+    case Chat2Gen.markConversationsStale:
       return state.withMutations(s => {
         s.set('metaMap', metaMapReducer(state.metaMap, action))
         s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))

@@ -30,6 +30,7 @@ export const inboxRefresh = 'chat2:inboxRefresh'
 export const joinConversation = 'chat2:joinConversation'
 export const leaveConversation = 'chat2:leaveConversation'
 export const loadMoreMessages = 'chat2:loadMoreMessages'
+export const markConversationsStale = 'chat2:markConversationsStale'
 export const markInitiallyLoadedThreadAsRead = 'chat2:markInitiallyLoadedThreadAsRead'
 export const messageAttachmentUploaded = 'chat2:messageAttachmentUploaded'
 export const messageDelete = 'chat2:messageDelete'
@@ -156,6 +157,7 @@ export const createInboxRefresh = (
 export const createJoinConversation = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: joinConversation})
 export const createLeaveConversation = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: leaveConversation})
 export const createLoadMoreMessages = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: loadMoreMessages})
+export const createMarkConversationsStale = (payload: $ReadOnly<{conversationIDKeys: Array<Types.ConversationIDKey>}>) => ({error: false, payload, type: markConversationsStale})
 export const createMarkInitiallyLoadedThreadAsRead = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: markInitiallyLoadedThreadAsRead})
 export const createMessageAttachmentUploaded = (
   payload: $ReadOnly<{
@@ -328,6 +330,7 @@ export type InboxRefreshPayload = More.ReturnType<typeof createInboxRefresh>
 export type JoinConversationPayload = More.ReturnType<typeof createJoinConversation>
 export type LeaveConversationPayload = More.ReturnType<typeof createLeaveConversation>
 export type LoadMoreMessagesPayload = More.ReturnType<typeof createLoadMoreMessages>
+export type MarkConversationsStalePayload = More.ReturnType<typeof createMarkConversationsStale>
 export type MarkInitiallyLoadedThreadAsReadPayload = More.ReturnType<typeof createMarkInitiallyLoadedThreadAsRead>
 export type MessageAttachmentUploadedPayload = More.ReturnType<typeof createMessageAttachmentUploaded>
 export type MessageDeleteHistoryPayload = More.ReturnType<typeof createMessageDeleteHistory>
@@ -385,6 +388,7 @@ export type Actions =
   | More.ReturnType<typeof createJoinConversation>
   | More.ReturnType<typeof createLeaveConversation>
   | More.ReturnType<typeof createLoadMoreMessages>
+  | More.ReturnType<typeof createMarkConversationsStale>
   | More.ReturnType<typeof createMarkInitiallyLoadedThreadAsRead>
   | More.ReturnType<typeof createMessageAttachmentUploaded>
   | More.ReturnType<typeof createMessageDelete>

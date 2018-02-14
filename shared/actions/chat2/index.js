@@ -481,6 +481,23 @@ const setupChatHandlers = () => {
       }
     }
   )
+
+  engine().setIncomingActionCreators(
+    'chat.1.NotifyChat.ChatThreadsStale',
+    ({updates}: RPCChatTypes.NotifyChatChatThreadsStaleRpcParam) => {
+      let added = false
+      const conversationIDKeys = (updates || []).reduce((arr, u) => {
+        if (u.updateType === RPCChatTypes.notifyChatStaleUpdateType.clear) {
+          arr.push(Types.conversationIDToKey(u.convID))
+          added = true
+        }
+        return arr
+      }, [])
+      if (added) {
+        return [Chat2Gen.createMarkConversationsStale({conversationIDKeys})]
+      }
+    }
+  )
 }
 
 const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType).reduce((arr, key) => {
@@ -502,7 +519,8 @@ const rpcLoadThread = (
   action:
     | Chat2Gen.SelectConversationPayload
     | Chat2Gen.LoadMoreMessagesPayload
-    | Chat2Gen.SetPendingConversationUsersPayload,
+    | Chat2Gen.SetPendingConversationUsersPayload
+    | Chat2Gen.MarkConversationsStalePayload,
   state: TypedState
 ) => {
   let key = null
@@ -514,6 +532,12 @@ const rpcLoadThread = (
         // Ignore the order of participants
         meta.participants.toSet().equals(toFind)
       )
+    }
+  } else if (action.type === Chat2Gen.markConversationsStale) {
+    key = Constants.getSelectedConversation(state)
+    // not mentioned?
+    if (action.payload.conversationIDKeys.indexOf(key) === -1) {
+      return
     }
   } else {
     key = action.payload.conversationIDKey
@@ -539,6 +563,12 @@ const rpcLoadThread = (
   const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
   const actions = []
   switch (action.type) {
+    case Chat2Gen.markConversationsStale:
+      // act like case 1
+      recent = false
+      pivot = null
+      num = numMessagesOnInitialLoad
+      break
     case Chat2Gen.setPendingConversationUsers: // fallthrough . basically the same as selecting
     case Chat2Gen.selectConversation:
       // When we just select a conversation we can be in the following states
@@ -1504,7 +1534,12 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
 
   // Load the selected thread
   yield Saga.safeTakeEveryPure(
-    [Chat2Gen.selectConversation, Chat2Gen.loadMoreMessages, Chat2Gen.setPendingConversationUsers],
+    [
+      Chat2Gen.selectConversation,
+      Chat2Gen.loadMoreMessages,
+      Chat2Gen.setPendingConversationUsers,
+      Chat2Gen.markConversationsStale,
+    ],
     rpcLoadThread
   )
 
