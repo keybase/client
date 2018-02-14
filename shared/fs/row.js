@@ -38,10 +38,12 @@ const mergeProps = ({type, path}, {_onOpen}: DispatchProps) => {
   const icon: IconType = iconMap[Types.pathTypeToString(type)]
 
   return {
+    elems: Types.getPathElements(path),
     icon,
     name: Types.getPathName(path),
     onOpen: () => _onOpen(type, path),
     path,
+    visibility: Types.getPathVisibility(path),
   }
 }
 
