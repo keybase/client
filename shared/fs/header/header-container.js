@@ -15,12 +15,15 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onOpenBreadcrumbDropdown: (
     dropdownItems: Array<Types.PathBreadcrumbItem>,
     isTeamPath: boolean,
-    onOpenBreadcrumb: (path: string) => void
+    onOpenBreadcrumb: (path: string) => void,
+    targetRect: ?ClientRect
   ) =>
     dispatch(
       navigateAppend([
         {
           props: {
+            targetRect,
+            position: 'top right',
             isTeamPath,
             items: dropdownItems,
             onOpenBreadcrumb,
@@ -45,7 +48,7 @@ const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => {
   let breadcrumbItems = items
   let dropdownItems = []
   if (items.length > 3) {
-    dropdownItems = items.slice(0, items.length - 2)
+    dropdownItems = items.slice(0, items.length - 2).reverse()
     breadcrumbItems = items.slice(items.length - 2)
   }
   return {

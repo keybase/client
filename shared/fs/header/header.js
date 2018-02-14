@@ -13,7 +13,8 @@ type FolderHeaderProps = {
   onOpenBreadcrumbDropdown: (
     dropdownItems: Array<Types.PathBreadcrumbItem>,
     isTeamPath: boolean,
-    onOpenBreadcrumb: (path: string) => void
+    onOpenBreadcrumb: (path: string) => void,
+    targetRect: ?ClientRect
   ) => void,
 }
 
@@ -36,7 +37,11 @@ const FolderHeader = HeaderConnector(
             <Box style={folderBreadcrumbStyle}>
               <ClickableBox
                 style={styleBreadcrumbDropdownIconBox}
-                onClick={() => onOpenBreadcrumbDropdown(dropdownItems, isTeamPath, onOpenBreadcrumb)}
+                onClick={evt => {
+                  const node = evt.target instanceof window.HTMLElement ? evt.target : null
+                  const rect = node ? node.getBoundingClientRect() : null
+                  onOpenBreadcrumbDropdown(dropdownItems, isTeamPath, onOpenBreadcrumb, rect)
+                }}
               >
                 <Icon type="iconfont-folder-private" style={styleBreadcrumbDropdownIcon} />
               </ClickableBox>
@@ -48,7 +53,7 @@ const FolderHeader = HeaderConnector(
               {i.idx === 2 &&
                 isTeamPath && <Avatar size={12} teamname={i.name} isTeam={true} style={styleTeamAvatar} />}
               {idx === breadcrumbItems.length - 1 ? (
-                <Text type="BodyBig">{i.name}</Text>
+                <Text type="BodyBig" style={styleTailBreadcrumb}>{i.name}</Text>
               ) : (
                 <Box style={folderBreadcrumbStyle}>
                   <ClickableBox onClick={() => onOpenBreadcrumb(i.path)}>
@@ -95,7 +100,14 @@ const folderBreadcrumbStyle = {
   paddingRight: 0,
 }
 
-const styleParentBreadcrumb = {color: globalColors.black_60}
+const styleParentBreadcrumb = {
+  color: globalColors.black_60,
+  paddingBottom: 2,
+}
+
+const styleTailBreadcrumb = {
+  paddingBottom: 2,
+}
 
 const iconStyle = {
   fontSize: 11,
@@ -106,10 +118,12 @@ const iconStyle = {
 const styleBreadcrumbDropdownIcon = {
   ...iconStyle,
   fontSize: 15,
+  marginLeft: 0,
+  paddingLeft: globalMargins.xtiny,
 }
 
 const styleBreadcrumbDropdownIconBox = {
-  marginTop: globalMargins.xtiny,
+  marginTop: 2,
 }
 
 const styleTeamAvatar = {

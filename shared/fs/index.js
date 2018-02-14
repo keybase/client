@@ -84,7 +84,7 @@ const FileRowPlaceholder = () => (
 
 class Files extends React.PureComponent<FolderProps> {
   _renderRow = (index, item) => <FileRow key={Types.pathToString(item)} path={item} />
-  _renderRowPlaceholder = () => <FileRowPlaceholder />
+  _renderRowPlaceholder = index => <FileRowPlaceholder key={index} />
 
   render() {
     const {path, items, progress} = this.props
