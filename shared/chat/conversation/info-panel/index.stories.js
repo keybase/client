@@ -85,11 +85,10 @@ const provider = createPropProvider({
 const load = () => {
   storiesOf('Chat/Conversation/InfoPanel', module)
     .addDecorator(provider)
-    .add('Conversation', () => (
-      <Box style={{...globalStyles.flexBoxColumn, height: 400, width: 320}}>
-        <InfoPanel {...commonProps} {...conversationProps} />
-      </Box>
+    .addDecorator(story => (
+      <Box style={{...globalStyles.flexBoxColumn, height: 400, width: 320}}>{story()}</Box>
     ))
+    .add('Conversation', () => <InfoPanel {...commonProps} {...conversationProps} />)
 }
 
 export default load
