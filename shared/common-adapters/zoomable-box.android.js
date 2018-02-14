@@ -3,6 +3,7 @@ import * as React from 'react'
 import {PanResponder as NativePanResponder} from 'react-native'
 import Box from './box'
 import clamp from 'lodash/clamp'
+import type {Props} from './zoomable-box'
 
 type Touch = {
   identifier: number,
@@ -94,13 +95,6 @@ class PanZoomCalculator {
     }
     return this._scaleOffset
   }
-}
-
-// TODO type this better (extend react `View` props)
-// for now this is what `Box` does
-export type Props = any & {
-  maxZoom: number,
-  style?: any,
 }
 
 type State = {

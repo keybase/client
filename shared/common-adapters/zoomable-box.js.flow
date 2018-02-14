@@ -1,2 +1,11 @@
 // @flow
-export * from './zoomable-box.native'
+import * as React from 'react'
+
+// TODO type this better (extend react `View` props)
+// for now this is what `Box` does
+export type Props = any & {
+  maxZoom?: number,
+  style?: any,
+}
+
+export class ZoomableBox extends React.Component<Props> {}
