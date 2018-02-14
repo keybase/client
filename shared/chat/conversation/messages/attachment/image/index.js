@@ -35,7 +35,7 @@ class ImageAttachment extends React.PureComponent<Props> {
     return (
       <ClickableBox style={imageContainerStyle} onClick={this.props.onClick}>
         <Text type="BodySemibold" style={titleStyle}>
-          {this.props.title} {this.props.path}
+          {this.props.title}
         </Text>
         <Box
           style={{
