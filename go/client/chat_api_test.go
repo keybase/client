@@ -121,7 +121,7 @@ func (c *chatEcho) MarkV1(context.Context, markOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 
-func (c *chatEcho) SearchRegexpV1(context.Context, searchOptionsV1) Reply {
+func (c *chatEcho) SearchRegexpV1(context.Context, searchRegexpOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 

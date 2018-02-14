@@ -10,6 +10,7 @@ export type OwnProps = {
 export type Props = {
   message: Types.MessageText,
   onDelete: ?() => void,
+  onDeleteMessageHistory: ?() => void,
   onEdit: ?() => void,
   onHidden: () => void,
   showDivider: boolean,

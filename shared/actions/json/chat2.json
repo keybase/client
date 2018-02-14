@@ -108,6 +108,11 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal"
     },
+    // Deletes a message and above
+    "messageDeleteHistory": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
+    },
     // Clear our knowledge of which messages are in a thread, used when a stale gap is too big
     "clearOrdinals": {
       "conversationIDKey": "Types.ConversationIDKey"

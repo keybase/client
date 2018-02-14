@@ -866,7 +866,7 @@ export type LocalGetInboxSummaryForCLILocalRpcParam = $ReadOnly<{query: GetInbox
 
 export type LocalGetMessagesLocalRpcParam = $ReadOnly<{conversationID: ConversationID, messageIDs?: ?Array<MessageID>, disableResolveSupersedes: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LocalGetSearchRegexpRpcParam = $ReadOnly<{conversationID: ConversationID, query: String, maxHits: Int, maxMessages: Int, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalGetSearchRegexpRpcParam = $ReadOnly<{conversationID: ConversationID, query: String, isRegex: Boolean, maxHits: Int, maxMessages: Int, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LocalGetTLFConversationsLocalRpcParam = $ReadOnly<{tlfName: String, topicType: TopicType, membersType: ConversationMembersType, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 

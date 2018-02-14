@@ -17,6 +17,7 @@ import Render from './render'
 import {MaybePopupHoc} from '../common-adapters'
 import {isMobile} from '../constants/platform'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
+import DeleteHistoryWarning from './delete-history-warning/container'
 
 const conversationRoute = makeRouteDefNode({
   component: Conversation,
@@ -61,9 +62,15 @@ const conversationRoute = makeRouteDefNode({
       tags: makeLeafTags({layerOnTop: true}),
       children: {},
     },
+    deleteHistoryWarning: {
+      component: DeleteHistoryWarning,
+      tags: makeLeafTags({layerOnTop: false}),
+      children: {},
+    },
     messageAction: {
       component: RelativePopupHoc(MessageAction),
       tags: makeLeafTags({layerOnTop: true}),
+      children: {},
     },
     showNewTeamDialog: {
       component: NewTeamDialogFromChat,

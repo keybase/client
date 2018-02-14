@@ -2,6 +2,7 @@
 import * as Chat2Gen from '../chat2-gen'
 import * as SearchGen from '../search-gen'
 import * as ConfigGen from '../config-gen'
+import * as TeamsGen from '../teams-gen'
 import * as KBFSGen from '../kbfs-gen'
 import * as UsersGen from '../users-gen'
 import * as Constants from '../../constants/chat2'
@@ -1447,6 +1448,42 @@ const markThreadAsRead = (
   })
 }
 
+const deleteMessageHistory = (action: Chat2Gen.MessageDeletePayload, state: TypedState) => {
+  const {conversationIDKey, ordinal} = action.payload
+  const meta = Constants.getMeta(state, conversationIDKey)
+  const message = Constants.getMessageMap(state, conversationIDKey).get(ordinal)
+  if (!message) {
+    throw new Error('Deleting message history with no message?')
+  }
+
+  if (!meta.tlfname) {
+    logger.warn('Deleting message history for non-existent TLF:')
+    return
+  }
+
+  const param: RPCChatTypes.LocalPostDeleteHistoryUptoRpcParam = {
+    conversationID: Types.keyToConversationID(conversationIDKey),
+    identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+    tlfName: meta.tlfname,
+    tlfPublic: false,
+    upto: message.id,
+  }
+  return Saga.call(RPCChatTypes.localPostDeleteHistoryUptoRpcPromise, param)
+}
+
+const loadCanUserPerform = (action: Chat2Gen.SelectConversationPayload, state: TypedState) => {
+  const {conversationIDKey} = action.payload
+  const meta = Constants.getMeta(state, conversationIDKey)
+  const teamname = meta.teamname
+  if (!teamname) {
+    return
+  }
+  const canPerform = state.entities.getIn(['teams', 'teamNameToCanPerform', teamname], null)
+  if (!canPerform) {
+    return Saga.put(TeamsGen.createGetTeamOperations({teamname}))
+  }
+}
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Refresh the inbox
   yield Saga.safeTakeEveryPure(
@@ -1476,9 +1513,11 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.messageEdit, messageEdit)
   yield Saga.safeTakeEveryPure(Chat2Gen.messageEdit, clearMessageSetEditing)
   yield Saga.safeTakeEveryPure(Chat2Gen.messageDelete, messageDelete)
+  yield Saga.safeTakeEveryPure(Chat2Gen.messageDeleteHistory, deleteMessageHistory)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.setupChatHandlers, setupChatHandlers)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, clearInboxFilter)
+  yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, loadCanUserPerform)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.startConversation, startConversation)
 

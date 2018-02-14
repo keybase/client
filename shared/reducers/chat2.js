@@ -464,14 +464,14 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
           : state.metaMap
 
       // console.log(
-        // 'aaa redu: metamap',
-        // metaMap.toJS(),
-        // '\nmessagemap',
-        // messageMap.toJS(),
-        // '\nmessageOrdinals',
-        // messageOrdinals.toJS(),
-        // '\npendingoutbox',
-        // pendingOutboxToOrdinal.toJS()
+      // 'aaa redu: metamap',
+      // metaMap.toJS(),
+      // '\nmessagemap',
+      // messageMap.toJS(),
+      // '\nmessageOrdinals',
+      // messageOrdinals.toJS(),
+      // '\npendingoutbox',
+      // pendingOutboxToOrdinal.toJS()
       // )
 
       return state.withMutations(s => {
@@ -564,10 +564,18 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         s.set('messageOrdinals', messageOrdinalsReducer(state.messageOrdinals, action))
       })
     // Saga only actions
+    case Chat2Gen.attachmentDownload:
+    case Chat2Gen.attachmentHandleQueue:
+    case Chat2Gen.attachmentLoad:
+    case Chat2Gen.attachmentNeedsUpdating:
+    case Chat2Gen.attachmentUpload:
     case Chat2Gen.desktopNotification:
+    case Chat2Gen.exitSearch:
     case Chat2Gen.joinConversation:
     case Chat2Gen.leaveConversation:
     case Chat2Gen.loadMoreMessages:
+    case Chat2Gen.markInitiallyLoadedThreadAsRead:
+    case Chat2Gen.messageDeleteHistory:
     case Chat2Gen.messageSend:
     case Chat2Gen.metaHandleQueue:
     case Chat2Gen.metaNeedsUpdating:
@@ -576,17 +584,10 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.openFolder:
     case Chat2Gen.resetChatWithoutThem:
     case Chat2Gen.resetLetThemIn:
+    case Chat2Gen.sendToPendingConversation:
+    case Chat2Gen.sendTyping:
     case Chat2Gen.setupChatHandlers:
     case Chat2Gen.startConversation:
-    case Chat2Gen.exitSearch:
-    case Chat2Gen.sendToPendingConversation:
-    case Chat2Gen.attachmentNeedsUpdating:
-    case Chat2Gen.attachmentHandleQueue:
-    case Chat2Gen.attachmentLoad:
-    case Chat2Gen.attachmentDownload:
-    case Chat2Gen.attachmentUpload:
-    case Chat2Gen.sendTyping:
-    case Chat2Gen.markInitiallyLoadedThreadAsRead:
       return state
     default:
       // eslint-disable-next-line no-unused-expressions

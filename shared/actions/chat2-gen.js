@@ -33,6 +33,7 @@ export const loadMoreMessages = 'chat2:loadMoreMessages'
 export const markInitiallyLoadedThreadAsRead = 'chat2:markInitiallyLoadedThreadAsRead'
 export const messageAttachmentUploaded = 'chat2:messageAttachmentUploaded'
 export const messageDelete = 'chat2:messageDelete'
+export const messageDeleteHistory = 'chat2:messageDeleteHistory'
 export const messageEdit = 'chat2:messageEdit'
 export const messageErrored = 'chat2:messageErrored'
 export const messageRetry = 'chat2:messageRetry'
@@ -169,6 +170,12 @@ export const createMessageDelete = (
     ordinal: Types.Ordinal,
   }>
 ) => ({error: false, payload, type: messageDelete})
+export const createMessageDeleteHistory = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    ordinal: Types.Ordinal,
+  }>
+) => ({error: false, payload, type: messageDeleteHistory})
 export const createMessageEdit = (
   payload: $ReadOnly<{
     conversationIDKey: Types.ConversationIDKey,
@@ -323,6 +330,7 @@ export type LeaveConversationPayload = More.ReturnType<typeof createLeaveConvers
 export type LoadMoreMessagesPayload = More.ReturnType<typeof createLoadMoreMessages>
 export type MarkInitiallyLoadedThreadAsReadPayload = More.ReturnType<typeof createMarkInitiallyLoadedThreadAsRead>
 export type MessageAttachmentUploadedPayload = More.ReturnType<typeof createMessageAttachmentUploaded>
+export type MessageDeleteHistoryPayload = More.ReturnType<typeof createMessageDeleteHistory>
 export type MessageDeletePayload = More.ReturnType<typeof createMessageDelete>
 export type MessageEditPayload = More.ReturnType<typeof createMessageEdit>
 export type MessageErroredPayload = More.ReturnType<typeof createMessageErrored>
@@ -380,6 +388,7 @@ export type Actions =
   | More.ReturnType<typeof createMarkInitiallyLoadedThreadAsRead>
   | More.ReturnType<typeof createMessageAttachmentUploaded>
   | More.ReturnType<typeof createMessageDelete>
+  | More.ReturnType<typeof createMessageDeleteHistory>
   | More.ReturnType<typeof createMessageEdit>
   | More.ReturnType<typeof createMessageErrored>
   | More.ReturnType<typeof createMessageRetry>

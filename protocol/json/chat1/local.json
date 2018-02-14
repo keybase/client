@@ -3306,6 +3306,10 @@
           "type": "string"
         },
         {
+          "name": "isRegex",
+          "type": "boolean"
+        },
+        {
           "name": "maxHits",
           "type": "int"
         },

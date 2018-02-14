@@ -3,52 +3,15 @@ import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as KBFSGen from '../../../../actions/kbfs-gen'
 import * as Route from '../../../../actions/route-tree'
 import * as React from 'react'
+import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
+import {getCanPerform} from '../../../../constants/teams'
 import {chatTab} from '../../../../constants/tabs'
 import MessagePopupHeader from './header'
 import type {OwnProps, Props} from './attachment'
 import {ModalLessPopupMenu as PopupMenu} from '../../../../common-adapters/popup-menu.desktop'
 import {connect, type TypedState, type Dispatch} from '../../../../util/container'
 import {fileUIName, isMobile} from '../../../../styles'
-
-const mapStateToProps = (state: TypedState) => ({_you: state.config.username})
-
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _onDelete: (message: Types.Message) => {
-    dispatch(
-      Chat2Gen.createMessageDelete({
-        conversationIDKey: message.conversationIDKey,
-        ordinal: message.ordinal,
-      })
-    )
-    dispatch(Route.navigateTo([{props: {}, selected: null}], [chatTab]))
-  },
-  _onDownload: (message: Types.MessageAttachment) => {
-    dispatch(
-      Chat2Gen.createAttachmentDownload({
-        conversationIDKey: message.conversationIDKey,
-        ordinal: message.ordinal,
-      })
-    )
-  },
-  _onShowInFinder: (message: Types.MessageAttachment) => {
-    message.downloadPath && dispatch(KBFSGen.createOpenInFileUI({path: message.downloadPath}))
-  },
-})
-
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
-  const message = ownProps.message
-  const yourMessage = message.author === stateProps._you
-  return {
-    message,
-    onDelete: yourMessage ? () => dispatchProps._onDelete(message) : null,
-    onDownload: !isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : null,
-    onHidden: () => ownProps.onClosePopup(),
-    onShowInFinder:
-      !isMobile && message.downloadPath ? () => dispatchProps._onShowInFinder(message) : undefined,
-    yourMessage,
-  }
-}
 
 const AttachmentPopupMenu = (props: Props) => {
   const items = [
@@ -59,9 +22,18 @@ const AttachmentPopupMenu = (props: Props) => {
       ? [
           {
             danger: true,
+            disabled: !props.onDelete,
             onClick: props.onDelete,
             subTitle: 'Deletes for everyone',
             title: 'Delete',
+          },
+          'Divider',
+          {
+            danger: true,
+            disabled: !props.onDeleteMessageHistory,
+            onClick: props.onDeleteMessageHistory,
+            subTitle: 'Deletes all messages before this one for everyone',
+            title: 'Delete up to here',
           },
         ]
       : []),
@@ -82,6 +54,60 @@ const AttachmentPopupMenu = (props: Props) => {
       style={{...stylePopup, ...props.style}}
     />
   )
+}
+const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+  const message = ownProps.message
+  const meta = Constants.getMeta(state, message.conversationIDKey)
+  const yourOperations = getCanPerform(state, meta.teamname)
+  const _canDeleteHistory = yourOperations && yourOperations.deleteChatHistory
+  return {
+    _canDeleteHistory,
+    _you: state.config.username,
+  }
+}
+
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  _onDelete: (message: Types.Message) => {
+    dispatch(
+      Chat2Gen.createMessageDelete({
+        conversationIDKey: message.conversationIDKey,
+        ordinal: message.ordinal,
+      })
+    )
+    dispatch(Route.navigateTo([{props: {}, selected: null}], [chatTab]))
+  },
+  _onDeleteMessageHistory: (message: Types.Message) => {
+    dispatch(Route.navigateUp())
+    dispatch(Route.navigateAppend([{props: {message}, selected: 'deleteHistoryWarning'}]))
+  },
+  _onDownload: (message: Types.MessageAttachment) => {
+    dispatch(
+      Chat2Gen.createAttachmentDownload({
+        conversationIDKey: message.conversationIDKey,
+        ordinal: message.ordinal,
+      })
+    )
+  },
+  _onShowInFinder: (message: Types.MessageAttachment) => {
+    message.downloadPath && dispatch(KBFSGen.createOpenInFileUI({path: message.downloadPath}))
+  },
+})
+
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
+  const message = ownProps.message
+  const yourMessage = message.author === stateProps._you
+  return {
+    message,
+    onDelete: yourMessage ? () => dispatchProps._onDelete(message) : null,
+    onDeleteMessageHistory: stateProps._canDeleteHistory
+      ? () => dispatchProps._onDeleteMessageHistory(message)
+      : null,
+    onDownload: !isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : null,
+    onHidden: () => ownProps.onClosePopup(),
+    onShowInFinder:
+      !isMobile && message.downloadPath ? () => dispatchProps._onShowInFinder(message) : undefined,
+    yourMessage,
+  }
 }
 
 const stylePopup = {

@@ -6,6 +6,7 @@ import type {SearchResultId} from '../../constants/types/search'
 export type Props = {
   style?: any,
   items: Array<SearchResultId>,
+  keyboardDismissMode?: 'none' | 'on-drag',
   onClick: (id: SearchResultId) => void,
   onMouseOver?: (id: SearchResultId) => void,
   onShowTracker?: (id: SearchResultId) => void,

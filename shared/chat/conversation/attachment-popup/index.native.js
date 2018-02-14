@@ -86,7 +86,7 @@ const AttachmentPopup = (props: Props) => {
       <Icon
         type="iconfont-ellipsis"
         style={{...styleHeaderFooter, color: globalColors.white}}
-        onClick={props.onShowMenu}
+        onClick={() => props.onShowMenu(null)}
       />
     </Box>
   )

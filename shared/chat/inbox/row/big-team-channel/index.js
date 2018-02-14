@@ -17,7 +17,7 @@ type Props = {
 class BigTeamChannel extends PureComponent<Props> {
   render() {
     return (
-      <ClickableBox onClick={this.props.onSelectConversation} feedback={false}>
+      <ClickableBox onClick={this.props.onSelectConversation}>
         <Box style={channelRowContainerStyle}>
           <Box style={this.props.isSelected ? selectedChannelBackgroundStyle : channelBackgroundStyle}>
             <Text
