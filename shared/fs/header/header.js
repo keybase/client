@@ -10,10 +10,21 @@ type FolderHeaderProps = {
   dropdownItems: Array<Types.PathBreadcrumbItem>,
   isTeamPath: boolean,
   onOpenBreadcrumb: (path: string) => void,
+  onOpenBreadcrumbDropdown: (
+    dropdownItems: Array<Types.PathBreadcrumbItem>,
+    isTeamPath: boolean,
+    onOpenBreadcrumb: (path: string) => void
+  ) => void,
 }
 
 const FolderHeader = HeaderConnector(
-  ({dropdownItems, breadcrumbItems, isTeamPath, onOpenBreadcrumb}: FolderHeaderProps) => (
+  ({
+    dropdownItems,
+    breadcrumbItems,
+    isTeamPath,
+    onOpenBreadcrumb,
+    onOpenBreadcrumbDropdown,
+  }: FolderHeaderProps) => (
     <Box>
       {breadcrumbItems.length === 1 ? (
         <Box style={folderHeaderStyleRoot}>
@@ -23,9 +34,12 @@ const FolderHeader = HeaderConnector(
         <Box style={folderHeaderStyleTree}>
           {dropdownItems.length > 0 && (
             <Box style={folderBreadcrumbStyle}>
-              <Box style={styleBreadcrumbDropdownIconBox}>
+              <ClickableBox
+                style={styleBreadcrumbDropdownIconBox}
+                onClick={() => onOpenBreadcrumbDropdown(dropdownItems, isTeamPath, onOpenBreadcrumb)}
+              >
                 <Icon type="iconfont-folder-private" style={styleBreadcrumbDropdownIcon} />
-              </Box>
+              </ClickableBox>
               <Icon type="iconfont-back" style={iconStyle} />
             </Box>
           )}

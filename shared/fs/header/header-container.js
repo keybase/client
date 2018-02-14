@@ -12,6 +12,23 @@ const mapStateToProps = () => ({})
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onOpenBreadcrumb: (path: string) =>
     dispatch(navigateAppend([{props: {path: Types.stringToPath(path)}, selected: 'folder'}])),
+  onOpenBreadcrumbDropdown: (
+    dropdownItems: Array<Types.PathBreadcrumbItem>,
+    isTeamPath: boolean,
+    onOpenBreadcrumb: (path: string) => void
+  ) =>
+    dispatch(
+      navigateAppend([
+        {
+          props: {
+            isTeamPath,
+            items: dropdownItems,
+            onOpenBreadcrumb,
+          },
+          selected: 'breadcrumbAction',
+        },
+      ])
+    ),
 })
 
 const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => {
