@@ -43,7 +43,6 @@ const mergeProps = ({type, path}, {_onOpen}: DispatchProps) => {
     name: Types.getPathName(path),
     onOpen: () => _onOpen(type, path),
     path,
-    visibility: Types.getPathVisibility(path),
   }
 }
 
