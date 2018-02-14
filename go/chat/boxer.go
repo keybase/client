@@ -12,7 +12,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"path/filepath"
 	"sort"
 	"sync"
 	"time"
@@ -534,11 +533,6 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed,
 		}
 	}
 
-	ierr = b.sanitizeAttachmentFilename(body)
-	if ierr != nil {
-		return nil, ierr
-	}
-
 	// Get at mention usernames
 	atMentions, atMentionUsernames, chanMention :=
 		b.getAtMentionInfo(ctx, clientHeader.Conv.Tlfid, membersType, body)
@@ -663,11 +657,6 @@ func (b *Boxer) unboxV2(ctx context.Context, boxed chat1.MessageBoxed,
 		}
 	}
 
-	ierr = b.sanitizeAttachmentFilename(body)
-	if ierr != nil {
-		return nil, ierr
-	}
-
 	// Compute the header hash
 	headerHash, ierr := b.makeHeaderHash(ctx, boxed.HeaderCiphertext.AsSignEncrypted())
 	if ierr != nil {
@@ -751,23 +740,6 @@ func (b *Boxer) unversionBody(ctx context.Context, bodyVersioned chat1.BodyPlain
 			NewPermanentUnboxingError(NewBodyVersionError(bodyVersion,
 				b.bodyUnsupported(ctx, bodyVersion, bodyVersioned)))
 	}
-}
-
-func (b *Boxer) sanitizeAttachmentFilename(body chat1.MessageBody) UnboxingError {
-	typ, err := body.MessageType()
-	if err != nil {
-		return NewPermanentUnboxingError(err)
-	}
-	switch typ {
-	case chat1.MessageType_ATTACHMENT:
-		body.Attachment__.Object.Filename = filepath.Base(body.Attachment__.Object.Filename)
-	case chat1.MessageType_ATTACHMENTUPLOADED:
-		body.Attachmentuploaded__.Object.Filename = filepath.Base(body.Attachmentuploaded__.Object.Filename)
-	default:
-		return nil
-
-	}
-	return nil
 }
 
 func (b *Boxer) verifyBodyHash(ctx context.Context, bodyEncrypted chat1.EncryptedData, bodyHashSigned []byte) UnboxingError {

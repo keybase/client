@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
@@ -906,11 +907,16 @@ func PresentMessageUnboxed(ctx context.Context, rawMsg chat1.MessageUnboxed, uid
 			so := rawMsg.Valid().ClientHeader.OutboxID.String()
 			strOutboxID = &so
 		}
+		body := rawMsg.Valid().MessageBody
+		err := sanitizeAttachmentFilename(body)
+		if err != nil {
+			return miscErr(err)
+		}
 		res = chat1.NewUIMessageWithValid(chat1.UIMessageValid{
 			MessageID:             rawMsg.GetMessageID(),
 			Ctime:                 rawMsg.Valid().ServerHeader.Ctime,
 			OutboxID:              strOutboxID,
-			MessageBody:           rawMsg.Valid().MessageBody,
+			MessageBody:           body,
 			SenderUsername:        rawMsg.Valid().SenderUsername,
 			SenderDeviceName:      rawMsg.Valid().SenderDeviceName,
 			SenderDeviceType:      rawMsg.Valid().SenderDeviceType,
@@ -943,6 +949,23 @@ func PresentMessageUnboxed(ctx context.Context, rawMsg chat1.MessageUnboxed, uid
 		res = chat1.NewUIMessageWithPlaceholder(rawMsg.Placeholder())
 	}
 	return res
+}
+
+func sanitizeAttachmentFilename(body chat1.MessageBody) error {
+	typ, err := body.MessageType()
+	if err != nil {
+		return err
+	}
+	switch typ {
+	case chat1.MessageType_ATTACHMENT:
+		body.Attachment__.Object.Filename = filepath.Base(body.Attachment__.Object.Filename)
+	case chat1.MessageType_ATTACHMENTUPLOADED:
+		body.Attachmentuploaded__.Object.Filename = filepath.Base(body.Attachmentuploaded__.Object.Filename)
+	default:
+		return nil
+
+	}
+	return nil
 }
 
 func PresentPagination(p *chat1.Pagination) (res *chat1.UIPagination) {
