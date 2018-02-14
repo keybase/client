@@ -13,6 +13,8 @@ export default function(state: Types.State = initialState, action: FSGen.Actions
       return state.mergeIn(['pathItems'], action.payload.pathItems)
     case FSGen.folderListLoad:
       return state
+    case FSGen.sortSetting:
+      return state.setIn(['pathUserSettings', action.payload.path, 'sort'], action.payload.sortSetting)
     default:
       // eslint-disable-next-line no-unused-expressions
       ;(action: empty) // if you get a flow error here it means there's an action you claim to handle but didn't

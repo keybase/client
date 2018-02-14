@@ -6,7 +6,7 @@ import {Box, ClickableBox, Icon, List, Text, Divider} from '../common-adapters'
 import {type IconType} from '../common-adapters/icon'
 import RowConnector from './row'
 import FolderHeader from './header'
-import SortBar from './sortbar'
+import {SortBar, type OnSortSettingChange} from './sortbar'
 
 const stylesCommonRow = {
   ...globalStyles.flexBoxRow,
@@ -39,6 +39,8 @@ type FolderProps = {
   items: Array<Types.Path>,
   path: Types.Path,
   progress: 'pending' | 'loaded',
+  onSortSettingChange: OnSortSettingChange,
+  sortSetting: Types._SortSetting,
 }
 
 const folderBoxStyle = {...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'stretch'}
@@ -98,7 +100,10 @@ class Files extends React.PureComponent<FolderProps> {
       <Box style={styleOuterContainer}>
         <Box style={stylesContainer}>
           <FolderHeader path={path} />
-          <SortBar />
+          <SortBar
+            onSortSettingChange={this.props.onSortSettingChange}
+            sortSetting={this.props.sortSetting}
+          />
           {list}
         </Box>
       </Box>

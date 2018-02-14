@@ -29,12 +29,17 @@ const load = () => {
     .add('Root', () => (
       <Files
         path={Types.stringToPath('/keybase')}
-        progress="pending"
+        progress="loaded"
         items={[
           Types.stringToPath('/keybase/private'),
           Types.stringToPath('/keybase/public'),
           Types.stringToPath('/keybase/team'),
         ]}
+        onSortSettingChange={(setting: Types._SortSetting) => {}}
+        sortSetting={{
+          sortBy: 'name',
+          sortOrder: 'asc',
+        }}
       />
     ))
 }

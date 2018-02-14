@@ -12,28 +12,46 @@ type OwnProps = {
 
 type StateProps = {
   path: Types.Path,
-  items: I.List<Types.Path>,
+  items: I.List<Types.PathItem>,
   progress: Types.ProgressType,
+  sortSetting: Types.SortSetting,
 }
 
-type DispatchProps = {}
+type DispatchProps = {
+  _sortSettingChangeFactory: (path: Types.Path) => (setting: Types._SortSetting) => void,
+}
 
 const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
   const path = Types.stringToPath(routeProps.get('path', Constants.defaultPath))
+  const sortSetting = state.fs.pathUserSettings.get(path, Constants.makePathUserSetting()).get('sort')
   const itemDetail = state.fs.pathItems.get(path)
-  const items = itemDetail && itemDetail.type === 'folder' ? itemDetail.get('children', I.List()) : I.List()
+  const itemNames =
+    itemDetail && itemDetail.type === 'folder' ? itemDetail.get('children', I.List()) : I.List()
+  const items: I.List<Types.PathItem> = itemNames
+    .map(name => Types.pathConcat(path, name))
+    .map(p => state.fs.pathItems.get(p, Constants.makeUnknownPathItem())) // provide an unknown default to make flow happy
   const progress: Types.ProgressType = itemDetail ? itemDetail.progress : 'pending'
-  return {items, path, progress}
+  return {items, path, progress, sortSetting}
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _loadFolderList: (path: Types.Path) => dispatch(FsGen.createFolderListLoad({path})),
+  _sortSettingChangeFactory: (path: Types.Path) => (setting: Types.SortSetting) =>
+    dispatch(FsGen.createSortSetting({path: path, sortSetting: Constants.makeSortSetting(setting)})),
 })
 
-const mergeProps = ({path, items, progress}: StateProps, dispatchProps: DispatchProps, ownProps) => ({
-  items: items.map(name => Types.pathConcat(path, Types.pathToString(name))).toArray(),
+const mergeProps = (
+  {path, items, progress, sortSetting}: StateProps,
+  {_sortSettingChangeFactory, ...dispatchProps}: DispatchProps,
+  ownProps
+) => ({
+  items: Constants.sortPathItems(items, sortSetting)
+    .map(({name}) => Types.pathConcat(path, name))
+    .toArray(),
   progress,
   path,
+  sortSetting,
+  onSortSettingChange: _sortSettingChangeFactory(path),
   /* TODO: enable these once we need them:
   name: Types.getPathName(stateProps.path),
   visibility: Types.getPathVisibility(stateProps.path),
