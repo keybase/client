@@ -26394,7 +26394,65 @@ exports[`Storyshots Files Root 1`] = `
                 "minHeight": 24,
               }
             }
-          />
+          >
+            Super Ugly Temporary SortBar:
+            <div
+              onClick={[Function]}
+              onMouseDown={[Function]}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              onMouseUp={[Function]}
+              style={
+                Object {
+                  "alignItems": "stretch",
+                  "borderRadius": 0,
+                  "color": "red",
+                  "cursor": "pointer",
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "height": undefined,
+                  "lineHeight": 0,
+                  "marginLeft": "8px",
+                  "minWidth": undefined,
+                  "position": "relative",
+                  "textAlign": "left",
+                  "transform": "none",
+                  "transition": "none",
+                }
+              }
+            >
+              Click to change sort-order: 
+              asc
+            </div>
+            <div
+              onClick={[Function]}
+              onMouseDown={[Function]}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              onMouseUp={[Function]}
+              style={
+                Object {
+                  "alignItems": "stretch",
+                  "borderRadius": 0,
+                  "color": "blue",
+                  "cursor": "pointer",
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "height": undefined,
+                  "lineHeight": 0,
+                  "marginLeft": "8px",
+                  "minWidth": undefined,
+                  "position": "relative",
+                  "textAlign": "left",
+                  "transform": "none",
+                  "transition": "none",
+                }
+              }
+            >
+              Click to change sort-by: 
+              name
+            </div>
+          </div>
         </div>
         <div
           style={
