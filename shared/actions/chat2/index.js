@@ -178,13 +178,17 @@ const rpcMetaRequest = (
     }
     const state: TypedState = yield Saga.select()
     const infoMap = state.users.infoMap
+    let added = false
     const usernameToFullname = Object.keys(inboxUIItem.fullNames).reduce((map, username) => {
       if (!infoMap.get(username)) {
+        added = true
         map[username] = inboxUIItem.fullNames[username]
       }
       return map
     }, {})
-    yield Saga.put(UsersGen.createUpdateFullnames({usernameToFullname}))
+    if (added) {
+      yield Saga.put(UsersGen.createUpdateFullnames({usernameToFullname}))
+    }
     return EngineRpc.rpcResult()
   }
   const onFailed = function*({convID, error}: RPCChatTypes.ChatUiChatInboxFailedRpcParam) {
