@@ -63,6 +63,7 @@ const commonProps = {
 }
 
 const conversationProps = {
+  ...commonProps,
   isPreview: false,
   teamname: null,
   channelname: null,
@@ -78,19 +79,52 @@ const conversationProps = {
   onJoinChannel: unexpected('onJoinChannel'),
 }
 
-const smallTeamProps = {
-  isPreview: false,
+const teamCommonProps = {
+  ...commonProps,
   teamname: 'someteam',
   channelname: 'somechannel',
-  smallTeam: true,
-  admin: false,
 
   onShowBlockConversationDialog: unexpected('onShowBlockConversationDialog'),
   onShowNewTeamDialog: unexpected('onShowNewTeamDialog'),
 
   onViewTeam: action('onViewTeam'),
+}
+
+const smallTeamProps = {
+  ...teamCommonProps,
+  isPreview: false,
+  smallTeam: true,
+  admin: false,
 
   onLeaveConversation: unexpected('onLeaveConversation'),
+  onJoinChannel: unexpected('onJoinChannel'),
+}
+
+const bigTeamCommonProps = {
+  ...teamCommonProps,
+  smallTeam: false,
+  admin: false,
+}
+
+const bigTeamPreviewProps = {
+  ...bigTeamCommonProps,
+  isPreview: true,
+  channelname: 'somechannel',
+  smallTeam: false,
+  admin: false,
+
+  onLeaveConversation: unexpected('onLeaveConversation'),
+  onJoinChannel: action('onJoinChannel'),
+}
+
+const bigTeamNoPreviewProps = {
+  ...bigTeamCommonProps,
+  isPreview: false,
+  channelname: 'somechannel',
+  smallTeam: false,
+  admin: false,
+
+  onLeaveConversation: action('onLeaveConversation'),
   onJoinChannel: unexpected('onJoinChannel'),
 }
 
@@ -98,10 +132,12 @@ const load = () => {
   storiesOf('Chat/Conversation/InfoPanel', module)
     .addDecorator(provider)
     .addDecorator(story => (
-      <Box style={{...globalStyles.flexBoxColumn, height: 400, width: 320}}>{story()}</Box>
+      <Box style={{...globalStyles.flexBoxColumn, height: 500, width: 320}}>{story()}</Box>
     ))
-    .add('Conversation', () => <InfoPanel {...commonProps} {...conversationProps} />)
-    .add('Small team', () => <InfoPanel {...commonProps} {...smallTeamProps} />)
+    .add('Conversation', () => <InfoPanel {...conversationProps} />)
+    .add('Small team', () => <InfoPanel {...smallTeamProps} />)
+    .add('Big team preview', () => <InfoPanel {...bigTeamPreviewProps} />)
+    .add('Big team no preview', () => <InfoPanel {...bigTeamNoPreviewProps} />)
 }
 
 export default load
