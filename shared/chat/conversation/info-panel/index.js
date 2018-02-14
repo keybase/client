@@ -79,6 +79,7 @@ type BigHeaderRow = {
   type: 'big header',
   key: 'BIG HEADER',
 
+  isPreview: boolean,
   teamname: string,
   channelname: string,
   admin: boolean,
@@ -255,6 +256,7 @@ const _InfoPanel = (props: InfoPanelProps) => {
           type: 'big header',
           key: 'BIG HEADER',
 
+          isPreview: props.isPreview,
           teamname: props.teamname,
           channelname: props.channelname,
           admin: props.admin,
