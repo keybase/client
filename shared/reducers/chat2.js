@@ -51,15 +51,6 @@ const upgradeMessage = (old: Types.Message, m: Types.Message) => {
 
 const metaMapReducer = (metaMap, action) => {
   switch (action.type) {
-    // case Chat2Gen.markConversationsStale:
-    // return metaMap.withMutations(map => {
-    // action.payload.conversationIDKeys.forEach(conversationIDKey => {
-    // map.update(
-    // conversationIDKey,
-    // meta => (meta ? meta.set('trustedState', 'untrusted').set('hasLoadedThread', false) : meta)
-    // )
-    // })
-    // })
     case Chat2Gen.metaRequestingTrusted:
       return metaMap.withMutations(map =>
         (action.payload.force
