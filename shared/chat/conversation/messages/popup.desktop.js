@@ -32,7 +32,6 @@ const TextPopupMenu = ({
   style,
   you,
 }: TextProps) => {
-  console.warn(message)
   let items = []
   if (message.author === you) {
     if (!message.senderDeviceRevokedAt) {
