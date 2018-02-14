@@ -5,7 +5,7 @@ import * as ProfileGen from '../profile-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
 import {isValidEmail, isValidName} from '../../util/simple-validators'
-import {navigateTo, navigateAppend} from '../../actions/route-tree'
+import {navigateTo} from '../../actions/route-tree'
 import {peopleTab} from '../../constants/tabs'
 import type {TypedState} from '../../constants/reducer'
 
