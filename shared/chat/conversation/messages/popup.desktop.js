@@ -116,13 +116,11 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   // Find out whether we're allowed to delete chat history. If we're
   // on a team, use canUserPerform, else assume we can.
   const message = routeProps.get('message')
-  console.warn('message is', message)
-  console.warn(message.conversationIDKey)
-  const teamname = getTeamNameFromConvID(state, message.conversationIDKey)
-  console.warn(teamname)
+  const {conversationIDKey} = message
+  const inbox = state.chat.inbox.get(conversationIDKey)
+  const teamname = inbox && inbox.get('teamname')
   const yourOperations = getCanPerform(state, teamname)
   const canDeleteHistory = teamname ? yourOperations.deleteChatHistory : true
-  console.warn(teamname, yourOperations.deleteChatHistory, canDeleteHistory)
   return {
     canDeleteHistory,
     message,

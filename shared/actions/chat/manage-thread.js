@@ -5,6 +5,7 @@ import logger from '../../logger'
 import * as ChatTypes from '../../constants/types/rpc-chat-gen'
 import * as Constants from '../../constants/chat'
 import * as ChatGen from '../../actions/chat-gen'
+import * as TeamsGen from '../../actions/teams-gen'
 import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
@@ -108,18 +109,32 @@ function* _selectConversation(action: ChatGen.SelectConversationPayload): Saga.S
 
   const inbox = Constants.getInbox(state, conversationIDKey)
   const inSearch = state.chat.get('inSearch')
-  if (inbox && !inbox.teamname) {
-    const participants = inbox.get('participants').toArray()
-    yield Saga.put(ChatGen.createUpdateMetadata({users: participants}))
-    // Update search but don't update the filter
-    if (inSearch) {
-      const me = Selectors.usernameSelector(state)
-      yield Saga.put(
-        SearchGen.createSetUserInputItems({
-          searchKey: 'chatSearch',
-          searchResults: participants.filter(u => u !== me),
-        })
-      )
+  if (inbox) {
+    if (!inbox.teamname) {
+      const participants = inbox.get('participants').toArray()
+      yield Saga.put(ChatGen.createUpdateMetadata({users: participants}))
+      // Update search but don't update the filter
+      if (inSearch) {
+        const me = Selectors.usernameSelector(state)
+        yield Saga.put(
+          SearchGen.createSetUserInputItems({
+            searchKey: 'chatSearch',
+            searchResults: participants.filter(u => u !== me),
+          })
+        )
+      }
+    } else {
+      // If we're entering a convo in a team and we don't already know
+      // the canUserPerform state for that team, get it now so that
+      // the message action popup knows what we can do.
+      const state = yield Saga.select()
+      const canPerform = state.entities.getIn(['teams', 'teamNameToCanPerform', inbox.teamname], null)
+      if (!canPerform) {
+        console.warn("Don't have canPerform for", inbox.teamname)
+        yield Saga.put(TeamsGen.createGetTeamOperations({teamname: inbox.teamname}))
+      } else {
+        console.warn("Have canPerform already")
+      }
     }
   }
 
