@@ -30,8 +30,7 @@ const notificationProps: NotificationProps = {
 const provider = createPropProvider({
   InfoPanel: (props: InfoPanelProps) => props,
   OnlyValidConversations: () => onlyValidConversationsProps,
-  // This is what ends up as the display name for Notifications.
-  'lifecycle(Component)': () => notificationProps,
+  LifecycleNotifications: () => notificationProps,
 })
 
 const commonProps = {
