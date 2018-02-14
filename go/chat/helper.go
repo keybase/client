@@ -150,13 +150,39 @@ func (h *Helper) FindConversationsByID(ctx context.Context, convIDs []chat1.Conv
 	return inbox.Convs, nil
 }
 
-func (h *Helper) GetChannelTopicName(ctx context.Context, tlfID chat1.TLFID,
+// GetChannelTopicName gets the name of a team channel even if it's not in the inbox.
+func (h *Helper) GetChannelTopicName(ctx context.Context, teamID keybase1.TeamID,
 	topicType chat1.TopicType, convID chat1.ConversationID) (topicName string, err error) {
+	defer h.Trace(ctx, func() error { return err }, "ChatHelper.GetChannelTopicName")()
+	h.Debug(ctx, "for teamID:%v convID:%v", teamID.String(), convID.String())
 	kuid, err := CurrentUID(h.G())
 	if err != nil {
 		return topicName, err
 	}
 	uid := gregor1.UID(kuid.ToBytes())
+	tlfID, err := chat1.TeamIDToTLFID(teamID)
+	if err != nil {
+		return topicName, err
+	}
+
+	// First try the inbox
+	query := &chat1.GetInboxLocalQuery{
+		ConvIDs:   []chat1.ConversationID{convID},
+		TopicType: &topicType,
+	}
+	inbox, _, err := h.G().InboxSource.Read(ctx, uid, nil, true, query, nil)
+	if err != nil {
+		return topicName, err
+	}
+	h.Debug(ctx, "found inbox convs: %v", len(inbox.Convs))
+	for _, conv := range inbox.Convs {
+		if conv.GetConvID().Eq(convID) && conv.GetMembersType() == chat1.ConversationMembersType_TEAM {
+			return utils.GetTopicName(conv), nil
+		}
+	}
+
+	// Fallback to TeamChannelSource
+	h.Debug(ctx, "using TeamChannelSource")
 	topicName, _, err = h.G().TeamChannelSource.GetChannelTopicName(ctx, uid, tlfID, topicType, convID)
 	return topicName, err
 }

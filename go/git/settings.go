@@ -40,10 +40,6 @@ func GetTeamRepoSettings(ctx context.Context, g *libkb.GlobalContext, arg keybas
 
 func convertTeamRepoSettings(ctx context.Context, g *libkb.GlobalContext,
 	teamID keybase1.TeamID, chatConvID string, chatDisabled bool) (keybase1.GitTeamRepoSettings, error) {
-	tlfID, err := chat1.TeamIDToTLFID(teamID)
-	if err != nil {
-		return keybase1.GitTeamRepoSettings{}, err
-	}
 	settings := keybase1.GitTeamRepoSettings{
 		ChatDisabled: chatDisabled,
 	}
@@ -58,7 +54,7 @@ func convertTeamRepoSettings(ctx context.Context, g *libkb.GlobalContext,
 			if err != nil {
 				return keybase1.GitTeamRepoSettings{}, err
 			}
-			channelName, err := g.ChatHelper.GetChannelTopicName(ctx, tlfID,
+			channelName, err := g.ChatHelper.GetChannelTopicName(ctx, teamID,
 				chat1.TopicType_CHAT, convID)
 			if err != nil {
 				return keybase1.GitTeamRepoSettings{}, err
