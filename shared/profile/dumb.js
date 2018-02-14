@@ -571,10 +571,14 @@ const dumbRevoke: DumbComponentMap<Revoke> = {
 }
 
 const postProofBase = {
+  allowProofCheck: true,
   platformUserName: 'awendland',
   onCancelText: 'Cancel',
   onCancel: () => {
     console.log('PostProof: onCancel clicked')
+  },
+  onAllowProofCheck: () => {
+    console.log('PostProof: onAllowProofCheck clicked')
   },
   onComplete: () => {
     console.log('PostProof: onComplete clicked')
