@@ -21,9 +21,9 @@ function DumbSheet(props) {
 
 export default connect(
   (state: any) => ({
-    dumbIndex: state.dev.debugConfig.dumbIndex,
-    dumbFilter: state.dev.debugConfig.dumbFilter,
-    dumbFullscreen: state.dev.debugConfig.dumbFullscreen,
+    dumbIndex: state.dev.dumbIndex,
+    dumbFilter: state.dev.dumbFilter,
+    dumbFullscreen: state.dev.dumbFullscreen,
   }),
   (dispatch: any) => ({
     onBack: () => dispatch(navigateUp()),

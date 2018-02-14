@@ -399,7 +399,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
           // and we know about it
           const ordinal = state.pendingOutboxToOrdinal.getIn([conversationIDKey, m.outboxID])
           if (ordinal) {
-            console.log('aaa find old', m.ordinal, ordinal)
             return state.messageMap.getIn([conversationIDKey, ordinal])
           }
         }
@@ -410,12 +409,8 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
           m.id
         )
         if (pendingOrdinal) {
-          console.log('aaa find old pending', m.ordinal, pendingOrdinal)
           return state.messageMap.getIn([conversationIDKey, pendingOrdinal])
         }
-        // Kind of a
-
-        console.log('aaa find old fail', m.ordinal)
         return null
       }
 
@@ -468,16 +463,16 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
             )
           : state.metaMap
 
-      console.log(
-        'aaa redu: metamap',
-        metaMap.toJS(),
-        '\nmessagemap',
-        messageMap.toJS(),
-        '\nmessageOrdinals',
-        messageOrdinals.toJS(),
-        '\npendingoutbox',
-        pendingOutboxToOrdinal.toJS()
-      )
+      // console.log(
+        // 'aaa redu: metamap',
+        // metaMap.toJS(),
+        // '\nmessagemap',
+        // messageMap.toJS(),
+        // '\nmessageOrdinals',
+        // messageOrdinals.toJS(),
+        // '\npendingoutbox',
+        // pendingOutboxToOrdinal.toJS()
+      // )
 
       return state.withMutations(s => {
         s.set('metaMap', metaMap)

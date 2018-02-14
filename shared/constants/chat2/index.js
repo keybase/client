@@ -88,7 +88,8 @@ export const isUserActivelyLookingAtThisThread = (
   const routePath = getPath(state.routeTree.routeState)
   let chatThreadSelected = false
   if (isMobile) {
-    console.log('aaa TODO only if in a thread view')
+    chatThreadSelected =
+      routePath.size === 2 && routePath.get(0) === chatTab && routePath.get(1) === 'conversation'
   } else {
     chatThreadSelected = routePath.size >= 1 && routePath.get(0) === chatTab
   }

@@ -138,12 +138,6 @@ class Inbox extends React.PureComponent<Props, State> {
     }
   }, 1000)
 
-  // componentDidMount() {
-  // if (this.props.rows.length) {
-  // this._askForUnboxing(this.props.rows.slice(0, 30))
-  // }
-  // }
-
   _maxVisible = Math.ceil(NativeDimensions.get('window').height / 64)
 
   _setRef = r => {
@@ -157,7 +151,6 @@ class Inbox extends React.PureComponent<Props, State> {
     small: globalMargins.xlarge,
   }
 
-  // This is an under documented api to help optimize the FlatList's layout. see https://github.com/facebook/react-native/blob/v0.50.0-rc.0/Libraries/Lists/FlatList.js#L118
   _getItemLayout = (data, index) => {
     // We cache the divider location so we can divide the list into small and large. We can calculate the small cause they're all
     // the same height. We iterate over the big since that list is small and we don't know the number of channels easily
@@ -199,7 +192,6 @@ class Inbox extends React.PureComponent<Props, State> {
                 onSetFilter={this.props.onSetFilter}
               />
             }
-            loading={this.props.isLoading /* force loading to update */}
             data={this.props.rows}
             keyExtractor={this._keyExtractor}
             renderItem={this._renderItem}

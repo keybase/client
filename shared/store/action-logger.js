@@ -4,7 +4,7 @@ import logger from '../logger'
 
 export const actionLogger = (store: any) => (next: any) => (action: any) => {
   try {
-    const output = action // TEMP transformActionForLog(action, store.getState())
+    const output = transformActionForLog(action, store.getState())
     if (output) {
       const log1 = [`type: ${action.type}: `, output]
       logger.action(...log1)

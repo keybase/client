@@ -141,7 +141,7 @@ class BottomLine extends PureComponent<Props> {
 }
 
 const resetStyle = {
-  ...(isMobile ? {} : {display: 'block'}),
+  ...(isMobile ? {marginTop: 6} : {display: 'block'}),
   alignSelf: 'center',
   backgroundColor: globalColors.red,
   marginRight: 6,

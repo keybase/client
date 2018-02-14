@@ -10,22 +10,33 @@ type Props = {
   toggle: () => void,
 }
 
-const Divider = ({badgeCount, hiddenCount, style, toggle}: Props) => (
-  <Box style={{..._toggleContainer, ...style}}>
-    <ClickableBox onClick={toggle} style={_toggleButtonStyle} className="toggleButtonClass">
-      <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
-        {hiddenCount > 0 ? `+${hiddenCount} more` : 'Show less'}
-      </Text>
-      {hiddenCount > 0 && badgeCount > 0 && <Badge badgeStyle={_badgeToggleStyle} badgeNumber={badgeCount} />}
-    </ClickableBox>
-  </Box>
-)
+class Divider extends React.PureComponent<Props> {
+  render() {
+    return (
+      <Box style={this.props.style ? {..._toggleContainer, ...this.props.style} : _toggleContainer}>
+        <ClickableBox onClick={this.props.toggle} className="toggleButtonClass" style={_toggleButtonStyle}>
+          <Text type="BodySmallSemibold" style={_textStyle}>
+            {this.props.hiddenCount > 0 ? `+${this.props.hiddenCount} more` : 'Show less'}
+          </Text>
+          {this.props.hiddenCount > 0 &&
+            this.props.badgeCount > 0 && (
+              <Badge badgeStyle={_badgeToggleStyle} badgeNumber={this.props.badgeCount} />
+            )}
+        </ClickableBox>
+        <Box style={_dividerStyle} />
+      </Box>
+    )
+  }
+}
 
+const _textStyle = {
+  color: globalColors.black_60,
+}
 const _toggleButtonStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   alignSelf: 'center',
-  backgroundColor: globalColors.black_05,
+  backgroundColor: globalColors.black_05_on_white,
   borderRadius: 19,
   height: isMobile ? 28 : 20,
   marginBottom: isMobile ? 16 : 8,
@@ -39,11 +50,14 @@ const _badgeStyle = {
   position: 'relative',
 }
 
+const _dividerStyle = {
+  backgroundColor: globalColors.black_05_on_white,
+  height: 1,
+  width: '100%',
+}
+
 const _toggleContainer = {
   ...globalStyles.flexBoxColumn,
-  borderBottomColor: globalColors.black_05,
-  borderBottomWidth: 1,
-  borderStyle: 'solid',
   height: isMobile ? 56 : 40,
   justifyContent: 'center',
 }

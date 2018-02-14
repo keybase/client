@@ -17,7 +17,7 @@ type Props = {
 class BigTeamChannel extends PureComponent<Props> {
   render() {
     return (
-      <ClickableBox onClick={this.props.onSelectConversation}>
+      <ClickableBox onClick={this.props.onSelectConversation} feedback={false}>
         <Box style={channelRowContainerStyle}>
           <Box style={this.props.isSelected ? selectedChannelBackgroundStyle : channelBackgroundStyle}>
             <Text
@@ -45,7 +45,7 @@ const textStyleError = {
   color: globalColors.red,
 }
 const textStylePlain = {
-  color: globalColors.black_75,
+  color: globalColors.black_75_on_white,
 }
 const textStylePlainBold = {
   ...textStylePlain,
@@ -116,8 +116,6 @@ const channelBackgroundStyle = {
   ...globalStyles.flexBoxRow,
   ...(isMobile ? globalStyles.fillAbsolute : {width: '100%'}),
   alignItems: 'center',
-  borderBottomLeftRadius: 2,
-  borderTopLeftRadius: 2,
   marginLeft: globalMargins.medium,
   paddingLeft: globalMargins.tiny,
   paddingRight: globalMargins.tiny,
