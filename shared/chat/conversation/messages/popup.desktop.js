@@ -3,9 +3,11 @@ import * as React from 'react'
 import * as I from 'immutable'
 import {ModalLessPopupMenu as PopupMenu} from '../../../common-adapters/popup-menu.desktop'
 import {textMessageEditable} from '../../../constants/chat'
+import {getCanPerform} from '../../../constants/teams'
 import * as Types from '../../../constants/types/chat'
 import * as ChatGen from '../../../actions/chat-gen'
 import * as KBFSGen from '../../../actions/kbfs-gen'
+import {navigateAppend} from '../../../actions/route-tree'
 import {fileUIName} from '../../../constants/platform'
 import {connect} from 'react-redux'
 import {branch, renderComponent} from 'recompose'
@@ -20,7 +22,16 @@ const stylePopup = {
   width: 196,
 }
 
-const TextPopupMenu = ({message, onShowEditor, onDeleteMessage, onHidden, style, you}: TextProps) => {
+const TextPopupMenu = ({
+  canDeleteHistory,
+  message,
+  onShowEditor,
+  onDeleteMessage,
+  onDeleteMessageHistory,
+  onHidden,
+  style,
+  you,
+}: TextProps) => {
   let items = []
   if (message.author === you) {
     if (!message.senderDeviceRevokedAt) {
@@ -36,8 +47,17 @@ const TextPopupMenu = ({message, onShowEditor, onDeleteMessage, onHidden, style,
     items.push({
       danger: true,
       onClick: () => onDeleteMessage(message),
-      subTitle: 'Deletes for everyone',
+      subTitle: 'Deletes this message for everyone',
       title: 'Delete',
+    })
+  }
+  if (canDeleteHistory) {
+    items.push('Divider')
+    items.push({
+      danger: true,
+      onClick: () => onDeleteMessageHistory && onDeleteMessageHistory(message),
+      subTitle: 'Deletes all messages before this one for everyone',
+      title: 'Delete up to here',
     })
   }
   const header = {
@@ -48,9 +68,11 @@ const TextPopupMenu = ({message, onShowEditor, onDeleteMessage, onHidden, style,
 }
 
 const AttachmentPopupMenu = ({
+  canDeleteHistory,
   message,
   localMessageState,
   onDeleteMessage,
+  onDeleteMessageHistory,
   onOpenInFileUI,
   onDownloadAttachment,
   onHidden,
@@ -73,8 +95,17 @@ const AttachmentPopupMenu = ({
     items.push({
       danger: true,
       onClick: () => onDeleteMessage(message),
-      subTitle: 'Deletes for everyone',
+      subTitle: 'Deletes this message for everyone',
       title: 'Delete',
+    })
+  }
+  if (canDeleteHistory) {
+    items.push('Divider')
+    items.push({
+      danger: true,
+      onClick: () => onDeleteMessageHistory && onDeleteMessageHistory(message),
+      subTitle: 'Deletes all messages before this one for everyone',
+      title: 'Delete up to here',
     })
   }
   const header = {
@@ -91,18 +122,33 @@ type ConnectedTextMessageProps = {
   }>,
 }
 
-// $FlowIssue doen'st like routeProps here
-const mapStateToProps = ({config: {username}}: TypedState, {routeProps}) => ({
-  you: username,
-  message: routeProps.get('message'),
-})
+// $FlowIssue doesn't like routeProps here
+const mapStateToProps = (state: TypedState, {routeProps}) => {
+  // Find out whether we're allowed to delete chat history. If we're
+  // on a team, use canUserPerform, else assume we can.
+  const message = routeProps.get('message')
+  const {conversationIDKey} = message
+  const inbox = state.chat.inbox.get(conversationIDKey)
+  const teamname = inbox && inbox.get('teamname')
+  const yourOperations = getCanPerform(state, teamname)
+  const canDeleteHistory = teamname ? yourOperations.deleteChatHistory : true
+  return {
+    canDeleteHistory,
+    message,
+    you: state.config.username,
+  }
+}
 
 const mapDispatchToTextProps = (
   dispatch,
-  {routeProps, navigateUp}: ConnectedTextMessageProps & {navigateUp: () => any}
+  {navigateUp, routeProps}: ConnectedTextMessageProps & {navigateUp: () => any}
 ) => ({
   onDeleteMessage: (message: Types.Message) =>
     dispatch(ChatGen.createDeleteMessage({message: routeProps.get('message')})),
+  onDeleteMessageHistory: message => {
+    dispatch(navigateUp())
+    dispatch(navigateAppend([{props: {message}, selected: 'deleteHistoryWarning'}]))
+  },
   onShowEditor: () => {
     dispatch(navigateUp())
     routeProps.get('onShowEditor')()
@@ -119,7 +165,10 @@ type ConnectedAttachmentMessageProps = {
   }>,
 }
 
-const mapDispatchToAttachmentProps = (dispatch, {routeProps}: ConnectedAttachmentMessageProps) => {
+const mapDispatchToAttachmentProps = (
+  dispatch,
+  {navigateUp, routeProps}: ConnectedAttachmentMessageProps & {navigateUp: () => any}
+) => {
   const localMessageState = routeProps.get('localMessageState')
   const message = routeProps.get('message')
   const {savedPath} = localMessageState
@@ -129,6 +178,10 @@ const mapDispatchToAttachmentProps = (dispatch, {routeProps}: ConnectedAttachmen
     onDownloadAttachment: () => dispatch(ChatGen.createSaveAttachment({messageKey})),
     onDeleteMessage: (message: Types.Message) =>
       dispatch(ChatGen.createDeleteMessage({message: routeProps.get('message')})),
+    onDeleteMessageHistory: message => {
+      dispatch(navigateUp())
+      dispatch(navigateAppend([{props: {message}, selected: 'deleteHistoryWarning'}]))
+    },
     onHidden: () => {},
     localMessageState,
   }

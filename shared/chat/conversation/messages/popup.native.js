@@ -7,10 +7,20 @@ import MessagePopupHeader from './popup-header'
 import {NativeClipboard, PopupMenu} from '../../../common-adapters/index.native'
 import {connect, type TypedState} from '../../../util/container'
 import {isIOS} from '../../../constants/platform'
+import {navigateAppend} from '../../../actions/route-tree'
+
 import {type RouteProps} from '../../../route-tree/render-route'
 import {type TextProps, type AttachmentProps} from './popup'
 
-function _textMessagePopupHelper({message, type, onDeleteMessage, onHidden, onShowEditor, you}: TextProps) {
+function _textMessagePopupHelper({
+  message,
+  type,
+  onDeleteMessage,
+  onDeleteMessageHistory,
+  onHidden,
+  onShowEditor,
+  you,
+}: TextProps) {
   const edit =
     message.author === you
       ? [
@@ -65,7 +75,7 @@ function _attachmentMessagePopupHelper({
 }
 
 function MessagePopup(props: TextProps | AttachmentProps) {
-  const {message, onDeleteMessage, onHidden, you} = props
+  const {message, onDeleteMessage, onDeleteMessageHistory, onHidden, you} = props
   if (message.type !== 'Text' && message.type !== 'Attachment') return null
 
   let items = []
@@ -94,12 +104,15 @@ function MessagePopup(props: TextProps | AttachmentProps) {
   if (message.author === you) {
     items.push({
       danger: true,
-      onClick: () => {
-        onDeleteMessage(message)
-      },
+      onClick: () => onDeleteMessage(message),
       title: 'Delete',
     })
   }
+  items.push({
+    danger: true,
+    onClick: () => onDeleteMessageHistory && onDeleteMessageHistory(message),
+    title: 'Delete all messages before this one',
+  })
 
   const menuProps = {
     header: {
@@ -134,6 +147,10 @@ export default connect(
   (dispatch: Dispatch, {routeProps, navigateUp}: OwnProps) => ({
     onDeleteMessage: (message: Types.ServerMessage) => {
       dispatch(ChatGen.createDeleteMessage({message}))
+    },
+    onDeleteMessageHistory: message => {
+      dispatch(navigateUp())
+      dispatch(navigateAppend([{props: {message}, selected: 'deleteHistoryWarning'}]))
     },
     onHidden: () => dispatch(navigateUp()),
     onShowEditor: () => dispatch(ChatGen.createShowEditor({message: routeProps.get('message')})),

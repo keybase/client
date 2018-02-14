@@ -18,6 +18,41 @@ import {chatTab} from '../../constants/tabs'
 import type {TypedState} from '../../constants/reducer'
 import type {SagaGenerator} from '../../constants/types/saga'
 
+function* deleteMessageHistory(action: ChatGen.DeleteMessagePayload): SagaGenerator<any, any> {
+  const {message} = action.payload
+
+  const attrs = Constants.splitMessageIDKey(message.key)
+  const conversationIDKey: Types.ConversationIDKey = attrs.conversationIDKey
+  const parsedMessageID: Types.ParsedMessageID = Constants.parseMessageID(attrs.messageID)
+  const upto = parsedMessageID.msgID
+  const state: TypedState = yield Saga.select()
+  const inboxConvo = Constants.getInbox(state, conversationIDKey)
+
+  yield Saga.put(navigateTo([], [chatTab, conversationIDKey]))
+
+  if (!inboxConvo) {
+    logger.warn('Deleting message history for non-existent inbox:')
+    logger.debug('Deleting message history for non-existent inbox:', message)
+    return
+  }
+  if (!inboxConvo.name) {
+    logger.warn('Deleting message history for non-existent TLF:')
+    logger.debug('Deleting message history for non-existent TLF:', message)
+    return
+  }
+  const tlfName: string = inboxConvo.name
+
+  // $FlowIssue MessageID is incorrectly typed as any, upto needs to be number.
+  const param: RPCChatTypes.LocalPostDeleteHistoryUptoRpcParam = {
+    conversationID: Constants.keyToConversationID(conversationIDKey),
+    identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+    tlfName,
+    tlfPublic: false,
+    upto,
+  }
+  yield Saga.call(RPCChatTypes.localPostDeleteHistoryUptoRpcPromise, param)
+}
+
 function* deleteMessage(action: ChatGen.DeleteMessagePayload): SagaGenerator<any, any> {
   const {message} = action.payload
   if (message.type !== 'Text' && message.type !== 'Attachment') {
@@ -246,6 +281,7 @@ function* retryMessage(action: ChatGen.RetryMessagePayload): SagaGenerator<any, 
 
 function* registerSagas(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(ChatGen.deleteMessage, deleteMessage)
+  yield Saga.safeTakeEvery(ChatGen.deleteMessageHistory, deleteMessageHistory)
   yield Saga.safeTakeEvery(ChatGen.editMessage, editMessage)
   yield Saga.safeTakeEvery(ChatGen.postMessage, postMessage)
   yield Saga.safeTakeEvery(ChatGen.retryMessage, retryMessage)
