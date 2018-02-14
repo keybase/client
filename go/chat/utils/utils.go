@@ -778,6 +778,8 @@ func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.Unverifie
 	res.TeamType = rawConv.Metadata.TeamType
 	res.Version = rawConv.Metadata.Version
 	res.MaxMsgID = rawConv.ReaderInfo.MaxMsgid
+	res.Supersedes = rawConv.Metadata.Supersedes
+	res.SupersededBy = rawConv.Metadata.SupersededBy
 	if rc.LocalMetadata != nil {
 		res.LocalMetadata = &chat1.UnverifiedInboxUIItemMetadata{
 			ChannelName:       rc.LocalMetadata.TopicName,
@@ -1025,6 +1027,14 @@ func (c ByMsgUnboxedCtime) Len() int      { return len(c) }
 func (c ByMsgUnboxedCtime) Swap(i, j int) { c[i], c[j] = c[j], c[i] }
 func (c ByMsgUnboxedCtime) Less(i, j int) bool {
 	return c[i].Valid().ServerHeader.Ctime.Before(c[j].Valid().ServerHeader.Ctime)
+}
+
+type ByMsgUnboxedMsgID []chat1.MessageUnboxed
+
+func (c ByMsgUnboxedMsgID) Len() int      { return len(c) }
+func (c ByMsgUnboxedMsgID) Swap(i, j int) { c[i], c[j] = c[j], c[i] }
+func (c ByMsgUnboxedMsgID) Less(i, j int) bool {
+	return c[i].GetMessageID() > c[j].GetMessageID()
 }
 
 func GetTopicName(conv chat1.ConversationLocal) string {

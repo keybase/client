@@ -6,10 +6,12 @@ import {parseFolderNameToUsers, sortUserList} from '../util/kbfs'
 import type {Folder, MetaType, FolderRPCWithMeta} from './types/folders'
 import type {UserList} from '../common-adapters/usernames'
 
-// See KBDefines.h: KBExitFuseKextError
+// See Installer.m: KBExitFuseKextError
 export const ExitCodeFuseKextError = 4
-// See KBDefines.h: KBExitFuseKextPermissionError
+// See Installer.m: KBExitFuseKextPermissionError
 export const ExitCodeFuseKextPermissionError = 5
+// See Installer.m: KBExitAuthCanceledError
+export const ExitCodeAuthCanceledError = 6
 
 const initialState: Types.State = {
   folderState: {

@@ -304,6 +304,16 @@ func (u *userPlusDevice) addTeamMemberEmail(team, email string, role keybase1.Te
 	}
 }
 
+func (u *userPlusDevice) loadTeam(teamname string, admin bool) *teams.Team {
+	team, err := teams.Load(context.Background(), u.tc.G, keybase1.LoadTeamArg{
+		Name:        teamname,
+		NeedAdmin:   admin,
+		ForceRepoll: true,
+	})
+	require.NoError(u.tc.T, err)
+	return team
+}
+
 func (u *userPlusDevice) readInviteEmails(email string) []string {
 	arg := libkb.NewAPIArg("test/team/get_tokens")
 	arg.Args = libkb.NewHTTPArgs()

@@ -12,6 +12,7 @@ var ActionReadMessage = "readMessage"
 var ActionSetStatus = "setStatus"
 var ActionSetAppNotificationSettings = "setAppNotificationSettings"
 var ActionTeamType = "teamType"
+var ActionExpunge = "expunge"
 
 var PushActivity = "chat.activity"
 var PushTyping = "chat.typing"
@@ -22,6 +23,10 @@ var PushTeamChannels = "chat.teamchannels"
 var PushKBFSUpgrade = "chat.kbfsupgrade"
 var PushConvRetention = "chat.convretention"
 var PushTeamRetention = "chat.teamretention"
+
+func NewAllCryptKeys() AllCryptKeys {
+	return make(AllCryptKeys)
+}
 
 type NameInfo struct {
 	ID               chat1.TLFID

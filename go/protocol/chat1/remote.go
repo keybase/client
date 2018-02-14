@@ -746,6 +746,18 @@ func (o SetRetentionRes) DeepCopy() SetRetentionRes {
 	}
 }
 
+type SweepRes struct {
+	FoundTask       bool `codec:"foundTask" json:"foundTask"`
+	DeletedMessages bool `codec:"deletedMessages" json:"deletedMessages"`
+}
+
+func (o SweepRes) DeepCopy() SweepRes {
+	return SweepRes{
+		FoundTask:       o.FoundTask,
+		DeletedMessages: o.DeletedMessages,
+	}
+}
+
 type GetInboxRemoteArg struct {
 	Vers       InboxVers      `codec:"vers" json:"vers"`
 	Query      *GetInboxQuery `codec:"query,omitempty" json:"query,omitempty"`
@@ -912,13 +924,19 @@ type RemoteNotificationSuccessfulArg struct {
 }
 
 type SetConvRetentionArg struct {
-	ConvID ConversationID  `codec:"convID" json:"convID"`
-	Policy RetentionPolicy `codec:"policy" json:"policy"`
+	ConvID       ConversationID  `codec:"convID" json:"convID"`
+	Policy       RetentionPolicy `codec:"policy" json:"policy"`
+	SweepChannel uint64          `codec:"sweepChannel" json:"sweepChannel"`
 }
 
 type SetTeamRetentionArg struct {
-	TeamID keybase1.TeamID `codec:"teamID" json:"teamID"`
-	Policy RetentionPolicy `codec:"policy" json:"policy"`
+	TeamID       keybase1.TeamID `codec:"teamID" json:"teamID"`
+	Policy       RetentionPolicy `codec:"policy" json:"policy"`
+	SweepChannel uint64          `codec:"sweepChannel" json:"sweepChannel"`
+}
+
+type RetentionSweepConvArg struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
 }
 
 type UpgradeKBFSToImpteamArg struct {
@@ -959,6 +977,7 @@ type RemoteInterface interface {
 	RemoteNotificationSuccessful(context.Context, RemoteNotificationSuccessfulArg) error
 	SetConvRetention(context.Context, SetConvRetentionArg) (SetRetentionRes, error)
 	SetTeamRetention(context.Context, SetTeamRetentionArg) (SetRetentionRes, error)
+	RetentionSweepConv(context.Context, ConversationID) (SweepRes, error)
 	UpgradeKBFSToImpteam(context.Context, TLFID) error
 }
 
@@ -1489,6 +1508,22 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"retentionSweepConv": {
+				MakeArg: func() interface{} {
+					ret := make([]RetentionSweepConvArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]RetentionSweepConvArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]RetentionSweepConvArg)(nil), args)
+						return
+					}
+					ret, err = i.RetentionSweepConv(ctx, (*typedArgs)[0].ConvID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"upgradeKBFSToImpteam": {
 				MakeArg: func() interface{} {
 					ret := make([]UpgradeKBFSToImpteamArg, 1)
@@ -1686,6 +1721,12 @@ func (c RemoteClient) SetConvRetention(ctx context.Context, __arg SetConvRetenti
 
 func (c RemoteClient) SetTeamRetention(ctx context.Context, __arg SetTeamRetentionArg) (res SetRetentionRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.remote.setTeamRetention", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) RetentionSweepConv(ctx context.Context, convID ConversationID) (res SweepRes, err error) {
+	__arg := RetentionSweepConvArg{ConvID: convID}
+	err = c.Cli.Call(ctx, "chat.1.remote.retentionSweepConv", []interface{}{__arg}, &res)
 	return
 }
 

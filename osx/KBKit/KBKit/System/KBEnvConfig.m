@@ -9,6 +9,7 @@
 #import "KBEnvConfig.h"
 
 #import "KBDefines.h"
+#import "KBEnvironment.h"
 #import "KBPath.h"
 #import <Tikppa/Tikppa.h>
 
@@ -36,10 +37,28 @@
 - (instancetype)initWithRunMode:(KBRunMode)runMode {
   if ((self = [super init])) {
     _runMode = runMode;
+
+    // Read the mount point from the config file if possible.  NOTE:
+    // if you change this default, you must also change the default
+    // for darwin in the `GetMountDir` function of `libkb/env.go`.
+    NSString *defaultMountDir = [self homePath:[[self appNameWithDot] lowercaseString] options:0];
+    NSString *mountDir = defaultMountDir;
+    NSData *data = [NSData dataWithContentsOfFile:[self dataPath:@"config.json" options:0]];
+    if (data) {
+      NSError *err = nil;
+      NSDictionary *appConfig = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&err];
+      if (!err) {
+        id obj = [appConfig valueForKeyPath:@"mountdir"];
+        if (obj) {
+          mountDir = (NSString *)obj;
+        }
+      }
+    }
+
     switch (_runMode) {
       case KBRunModeProd: {
         self.title = @"Keybase.io";
-        self.mountDir = [KBPath path:@"/keybase" options:0];
+        self.mountDir = mountDir;
         self.debugEnabled = YES;
         self.info = @"Uses keybase.io";
         self.image = [NSImage imageNamed:NSImageNameNetwork];
@@ -47,7 +66,7 @@
       }
       case KBRunModeStaging: {
         self.title = @"Staging";
-        self.mountDir = [KBPath path:@"/keybase.staging" options:0];
+        self.mountDir = mountDir;
         self.debugEnabled = YES;
         self.info = @"Uses staging server.";
         self.image = [NSImage imageNamed:NSImageNameNetwork];
@@ -55,7 +74,7 @@
       }
       case KBRunModeDevel: {
         self.title = @"Devel";
-        self.mountDir = [KBPath path:@"/keybase.devel" options:0];
+        self.mountDir = mountDir;
         self.debugEnabled = YES;
         self.info = @"Uses the local web server.";
         self.image = [NSImage imageNamed:NSImageNameComputer];
@@ -107,6 +126,16 @@
 - (NSString *)appName {
   if (_runMode == KBRunModeProd) return @"Keybase";
   else return NSStringWithFormat(@"Keybase%@", NSStringFromKBRunMode(_runMode, NO));
+}
+
+- (NSString *)appNameWithDot {
+  if (_runMode == KBRunModeProd) return @"Keybase";
+  else return NSStringWithFormat(@"Keybase.%@", NSStringFromKBRunMode(_runMode, NO));
+}
+
+- (NSString *)homePath:(NSString *)filename options:(KBPathOptions)options {
+  NSString *homeDir = self.homeDir;
+  return [KBPath pathInDir:homeDir path:filename options:options];
 }
 
 - (NSString *)dataPath:(NSString *)filename options:(KBPathOptions)options {
@@ -234,6 +263,14 @@
     case KBRunModeDevel: return @"keybase.updater.devel";
     case KBRunModeStaging: return @"keybase.updater.staging";
     case KBRunModeProd: return @"keybase.updater";
+  }
+}
+
+- (NSString *)rootMountSymlink {
+  switch (_runMode) {
+    case KBRunModeDevel: return @"/keybase.devel";
+    case KBRunModeStaging: return @"/keybase.staging";
+    case KBRunModeProd: return @"/keybase";
   }
 }
 

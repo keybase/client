@@ -5,15 +5,13 @@ import {connect, type TypedState} from '../util/container'
 import {createGetProfile} from '../actions/tracker-gen'
 import {isMobile} from '../constants/platform'
 import {createShowUserProfile} from '../actions/profile-gen'
-
-const isSpecialCaseHighlight = (username: string) =>
-  username === 'channel' || username === 'here' || username === 'everyone'
+import {isSpecialMention} from '../constants/chat'
 
 const mapStateToProps = (
   state: TypedState,
   {username}: OwnProps
 ): {theme: $PropertyType<OwnProps, 'theme'>} => {
-  if (isSpecialCaseHighlight(username)) {
+  if (isSpecialMention(username)) {
     return {theme: 'highlight'}
   }
 
@@ -29,7 +27,7 @@ const mapStateToProps = (
 }
 
 const mapDispatchToProps = (dispatch, {username}: OwnProps) => ({
-  onClick: isSpecialCaseHighlight(username)
+  onClick: isSpecialMention(username)
     ? undefined
     : () => {
         isMobile

@@ -1,8 +1,13 @@
 {
-  "prelude": [],
+  "prelude": [
+    "import * as Types from '../constants/types/fs'"
+  ],
   "actions": {
-    "increaseCount": {
-      "amount?": "number"
+    "folderListLoad": {
+      "path": "Types.Path"
+    },
+    "folderListLoaded": {
+      "pathItems": "I.Map<Types.Path, Types.PathItem>"
     }
   }
 }

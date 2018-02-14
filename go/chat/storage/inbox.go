@@ -744,7 +744,7 @@ func (i *Inbox) getConvsForTeam(ctx context.Context, teamID keybase1.TeamID, con
 		i.Debug(ctx, "getConvsForTeam: teamIDToTLFID failed: %v", err)
 		return nil
 	}
-	for i, _ := range convs {
+	for i := range convs {
 		conv := &convs[i]
 		if conv.Conv.GetMembersType() == chat1.ConversationMembersType_TEAM && conv.Conv.Metadata.IdTriple.Tlfid.Eq(tlfID) {
 			res = append(res, conv)
@@ -1199,7 +1199,8 @@ func (i *Inbox) ServerVersion(ctx context.Context) (vers int, err Error) {
 }
 
 type InboxSyncRes struct {
-	TeamTypeChanged bool
+	TeamTypeChanged    bool
+	MembersTypeChanged []chat1.ConversationID
 }
 
 func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Conversation) (res InboxSyncRes, err Error) {
@@ -1227,6 +1228,10 @@ func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Co
 				// Changing the team type might be hard for clients of the inbox system to process,
 				// so call it out so they can know a hard update happened here.
 				res.TeamTypeChanged = true
+			}
+			if ibox.Conversations[index].Conv.Metadata.MembersType != newConv.Metadata.MembersType {
+				res.MembersTypeChanged = append(res.MembersTypeChanged,
+					ibox.Conversations[index].Conv.GetConvID())
 			}
 			ibox.Conversations[index].Conv = newConv
 			delete(convMap, conv.GetConvID().String())

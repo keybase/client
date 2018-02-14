@@ -325,6 +325,11 @@ func (f failingRemote) SetTeamRetention(ctx context.Context, _ chat1.SetTeamRete
 	return res, errors.New("SetTeamRetention not mocked")
 }
 
+func (f failingRemote) RetentionSweepConv(ctx context.Context, convID chat1.ConversationID) (res chat1.SweepRes, err error) {
+	require.Fail(f.t, "UpgradeKBFSToImpteam")
+	return res, nil
+}
+
 func (f failingRemote) UpgradeKBFSToImpteam(ctx context.Context, tlfID chat1.TLFID) error {
 	require.Fail(f.t, "UpgradeKBFSToImpteam")
 	return nil
@@ -355,9 +360,20 @@ func (f failingTlf) CompleteAndCanonicalizePrivateTlfName(context.Context, strin
 	return keybase1.CanonicalTLFNameAndIDWithBreaks{}, nil
 }
 
-func (f failingTlf) Lookup(context.Context, string, keybase1.TLFVisibility) (*types.NameInfo, error) {
+func (f failingTlf) Lookup(context.Context, string, bool) (*types.NameInfo, error) {
 	require.Fail(f.t, "Lookup call")
 	return nil, nil
+}
+
+func (f failingTlf) EncryptionKeys(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool) (*types.NameInfo, error) {
+	return f.Lookup(ctx, tlfName, public)
+}
+
+func (f failingTlf) DecryptionKeys(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool,
+	keyGeneration int, kbfsEncrypted bool) (*types.NameInfo, error) {
+	return f.Lookup(ctx, tlfName, public)
 }
 
 type failingUpak struct {
@@ -629,7 +645,7 @@ func TestConversationLocking(t *testing.T) {
 	t.Logf("Trace 1 can get multiple locks")
 	var breaks []keybase1.TLFIdentifyFailure
 	ctx = Context(context.TODO(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI, &breaks,
-		NewIdentifyNotifier(tc.Context()))
+		NewCachingIdentifyNotifier(tc.Context()))
 	acquires := 5
 	for i := 0; i < acquires; i++ {
 		timedAcquire(ctx, uid, conv.GetConvID())
@@ -641,7 +657,7 @@ func TestConversationLocking(t *testing.T) {
 
 	t.Logf("Trace 2 properly blocked by Trace 1")
 	ctx2 := Context(context.TODO(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI,
-		&breaks, NewIdentifyNotifier(tc.Context()))
+		&breaks, NewCachingIdentifyNotifier(tc.Context()))
 	blockCb := make(chan struct{})
 	hcs.lockTab.blockCb = &blockCb
 	cb := make(chan struct{})

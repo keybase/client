@@ -59,6 +59,7 @@ typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
 
 - (NSString *)logFile:(NSString *)label;
 
+- (NSString *)homePath:(NSString *)filename options:(KBPathOptions)options;
 - (NSString *)dataPath:(NSString *)filename options:(KBPathOptions)options;
 - (NSString *)runtimePath:(NSString *)filename options:(KBPathOptions)options;
 - (NSString *)cachePath:(NSString *)filename options:(KBPathOptions)options;
@@ -74,6 +75,7 @@ typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
 - (NSString *)launchdServiceLabel;
 - (NSString *)launchdKBFSLabel;
 - (NSString *)launchdUpdaterLabel;
+- (NSString *)rootMountSymlink;
 
 - (BOOL)isInApplications:(NSString *)path;
 - (BOOL)isInUserApplications:(NSString *)path;

@@ -173,7 +173,7 @@ type PushHandler struct {
 	sync.Mutex
 
 	badger        *badges.Badger
-	identNotifier *IdentifyNotifier
+	identNotifier types.IdentifyNotifier
 	orderer       *gregorMessageOrderer
 	typingMonitor *TypingMonitor
 }
@@ -182,7 +182,7 @@ func NewPushHandler(g *globals.Context) *PushHandler {
 	p := &PushHandler{
 		Contextified:  globals.NewContextified(g),
 		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "PushHandler", false),
-		identNotifier: NewIdentifyNotifier(g),
+		identNotifier: NewCachingIdentifyNotifier(g),
 		orderer:       newGregorMessageOrderer(g),
 		typingMonitor: NewTypingMonitor(g),
 	}
@@ -608,6 +608,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			})
 		default:
 			g.Debug(ctx, "unhandled chat.activity action %q", action)
+			return
 		}
 		if g.badger != nil && gm.UnreadUpdate != nil {
 			g.badger.PushChatUpdate(*gm.UnreadUpdate, gm.InboxVers)
@@ -783,6 +784,12 @@ func (g *PushHandler) UpgradeKBFSToImpteam(ctx context.Context, m gregor.OutOfBa
 			update.ConvID); err != nil {
 			g.Debug(ctx, "UpgradeKBFSToImpteam: failed to update KBFS upgrade: %s", err)
 			return err
+		}
+
+		// Just blow away anything we have locally, there might be unboxing errors in here during the
+		// transition.
+		if err = g.G().ConvSource.Clear(update.ConvID, uid); err != nil {
+			g.Debug(ctx, "UpgradeKBFSToImpteam: failed to clear convsource: %s", err)
 		}
 
 		g.G().NotifyRouter.HandleChatKBFSToImpteamUpgrade(ctx, keybase1.UID(uid.String()), update.ConvID)

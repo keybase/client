@@ -38,6 +38,7 @@ const Top = ({onClose, reason, inviteLink, name, isPrivate}) => {
               ref={r => {
                 textRef = r
               }}
+              selectable={true}
               style={stylesLink}
               type="BodySemibold"
             >
@@ -122,7 +123,6 @@ const stylesLinkBox = {
 }
 
 const stylesLink = {
-  ...globalStyles.selectable,
   ...globalStyles.windowDraggingClickable,
   marginLeft: 7,
   color: globalColors.green2,

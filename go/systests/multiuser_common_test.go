@@ -381,7 +381,7 @@ func (u *smuUser) getTeamsClient() keybase1.TeamsClient {
 }
 
 func (u *smuUser) pollForMembershipUpdate(team smuTeam, kg keybase1.PerTeamKeyGeneration, poller func(d keybase1.TeamDetails) bool) keybase1.TeamDetails {
-	wait := 10 * time.Millisecond
+	wait := 100 * time.Millisecond
 	var totalWait time.Duration
 	i := 0
 	for {
@@ -401,6 +401,7 @@ func (u *smuUser) pollForMembershipUpdate(team smuTeam, kg keybase1.PerTeamKeyGe
 		}
 		i++
 		u.ctx.log.Debug("in pollForMembershipUpdate: iter=%d; missed it, now waiting for %s (latest details.KG = %d; poller=%v)", i, wait, details.KeyGeneration, (poller != nil))
+		kickTeamRekeyd(u.getPrimaryGlobalContext(), u.ctx.t)
 		time.Sleep(wait)
 		totalWait += wait
 		wait = wait * 2
@@ -529,6 +530,10 @@ func (u *smuUser) getPrimaryGlobalContext() *libkb.GlobalContext {
 	return u.primaryDevice().tctx.G
 }
 
+func (u *smuUser) setUIDMapperNoCachingMode(enabled bool) {
+	u.getPrimaryGlobalContext().UIDMapper.SetTestingNoCachingMode(enabled)
+}
+
 func (u *smuUser) loginAfterReset(numClones int) *smuDeviceWrapper {
 	return u.loginAfterResetHelper(numClones, true)
 }
@@ -603,22 +608,14 @@ func (u *smuUser) isMemberActive(team smuTeam, user *smuUser) (bool, error) {
 
 func (u *smuUser) assertMemberActive(team smuTeam, user *smuUser) {
 	active, err := u.isMemberActive(team, user)
-	if err != nil {
-		u.ctx.t.Fatalf("assertMemberActive error: %s", err)
-	}
-	if !active {
-		u.ctx.t.Errorf("user %s not active (expected active)", user.username)
-	}
+	require.NoError(u.ctx.t, err, "assertMemberInactive error: %s", err)
+	require.True(u.ctx.t, active, "user %s is inactive (expected active)", user.username)
 }
 
 func (u *smuUser) assertMemberInactive(team smuTeam, user *smuUser) {
 	active, err := u.isMemberActive(team, user)
-	if err != nil {
-		u.ctx.t.Fatalf("assertMemberInactive error: %s", err)
-	}
-	if active {
-		u.ctx.t.Errorf("user %s is active (expected inactive)", user.username)
-	}
+	require.NoError(u.ctx.t, err, "assertMemberInactive error: %s", err)
+	require.False(u.ctx.t, active, "user %s is active (expected inactive)", user.username)
 }
 
 func (u *smuUser) uid() keybase1.UID {

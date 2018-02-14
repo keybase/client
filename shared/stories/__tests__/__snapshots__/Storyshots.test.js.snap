@@ -429,7 +429,7 @@ exports[`Storyshots Chat/Channel Heads up Display Mention Row 1`] = `
 </div>
 `;
 
-exports[`Storyshots Chat/Conversation/InfoPanel Participants (with add button) 1`] = `
+exports[`Storyshots Chat/Conversation/InfoPanel Participant 1`] = `
 .glamor-0,
 [data-glamor-0] {
   bottom: 1px;
@@ -516,30 +516,6 @@ exports[`Storyshots Chat/Conversation/InfoPanel Participants (with add button) 1
   font-weight: 400;
 }
 
-.glamor-8,
-[data-glamor-8] {
-  font-size: 13px;
-  line-height: 17px;
-  color: #36b37c;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-  text-decoration: inherit;
-}
-
-.glamor-14,
-[data-glamor-14] {
-  font-size: 13px;
-  line-height: 17px;
-  color: #ff4d61;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-  text-decoration: inherit;
-}
-
 <div
   style={
     Object {
@@ -572,839 +548,106 @@ exports[`Storyshots Chat/Conversation/InfoPanel Participants (with add button) 1
         }
       >
         <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
+          onMouseUp={[Function]}
           style={
             Object {
+              "alignItems": "stretch",
+              "borderRadius": 0,
+              "cursor": "pointer",
               "display": "flex",
               "flexDirection": "column",
-              "paddingTop": 8,
+              "height": undefined,
+              "lineHeight": 0,
+              "minWidth": undefined,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
             }
           }
         >
           <div
-            onClick={[Function]}
-            onMouseDown={[Function]}
-            onMouseEnter={undefined}
-            onMouseLeave={undefined}
-            onMouseUp={[Function]}
             style={
               Object {
-                "alignItems": "stretch",
-                "borderRadius": 0,
                 "cursor": "pointer",
                 "display": "flex",
                 "flexDirection": "column",
-                "height": undefined,
-                "lineHeight": 0,
-                "minWidth": undefined,
-                "position": "relative",
-                "textAlign": "left",
-                "transform": "none",
-                "transition": "none",
+                "minHeight": 48,
+                "paddingLeft": 16,
+                "paddingRight": 16,
               }
             }
           >
             <div
               style={
                 Object {
-                  "cursor": "pointer",
+                  "alignItems": "center",
                   "display": "flex",
-                  "flexDirection": "column",
-                  "minHeight": 48,
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
+                  "flex": 1,
+                  "flexDirection": "row",
+                  "marginRight": 8,
                 }
               }
             >
               <div
+                onClick={undefined}
                 style={
                   Object {
-                    "alignItems": "center",
-                    "display": "flex",
-                    "flex": 1,
-                    "flexDirection": "row",
-                    "marginRight": 8,
+                    "height": 32,
+                    "maxWidth": 32,
+                    "minHeight": 32,
+                    "minWidth": 32,
+                    "position": "relative",
+                    "userSelect": "none",
                   }
                 }
               >
                 <div
-                  onClick={undefined}
-                  style={
-                    Object {
-                      "height": 32,
-                      "maxWidth": 32,
-                      "minHeight": 32,
-                      "minWidth": 32,
-                      "position": "relative",
-                      "userSelect": "none",
-                    }
-                  }
-                >
-                  <div
-                    className="glamor-0"
-                  />
-                  <div
-                    className="glamor-1"
-                  />
-                </div>
+                  className="glamor-0"
+                />
                 <div
-                  style={
-                    Object {
-                      "display": "flex",
-                      "flexDirection": "column",
-                      "marginLeft": 16,
-                    }
-                  }
-                >
-                  <span
-                    className="glamor-4"
-                    onClick={undefined}
-                    title={undefined}
-                  >
-                    <span
-                      className="glamor-3"
-                      onClick={undefined}
-                      title={undefined}
-                    >
-                      <span
-                        className="glamor-2"
-                        onClick={undefined}
-                        title={undefined}
-                      >
-                        akalin
-                      </span>
-                    </span>
-                  </span>
-                  <span
-                    className="glamor-5"
-                    onClick={undefined}
-                    title={undefined}
-                  >
-                    Fred Akalin
-                  </span>
-                </div>
+                  className="glamor-1"
+                />
               </div>
-            </div>
-          </div>
-        </div>
-        <div
-          style={
-            Object {
-              "display": "flex",
-              "flexDirection": "column",
-              "paddingTop": 8,
-            }
-          }
-        >
-          <div
-            onClick={[Function]}
-            onMouseDown={[Function]}
-            onMouseEnter={undefined}
-            onMouseLeave={undefined}
-            onMouseUp={[Function]}
-            style={
-              Object {
-                "alignItems": "stretch",
-                "borderRadius": 0,
-                "cursor": "pointer",
-                "display": "flex",
-                "flexDirection": "column",
-                "height": undefined,
-                "lineHeight": 0,
-                "minWidth": undefined,
-                "position": "relative",
-                "textAlign": "left",
-                "transform": "none",
-                "transition": "none",
-              }
-            }
-          >
-            <div
-              style={
-                Object {
-                  "cursor": "pointer",
-                  "display": "flex",
-                  "flexDirection": "column",
-                  "minHeight": 48,
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                }
-              }
-            >
               <div
                 style={
                   Object {
-                    "alignItems": "center",
                     "display": "flex",
-                    "flex": 1,
-                    "flexDirection": "row",
-                    "marginRight": 8,
+                    "flexDirection": "column",
+                    "marginLeft": 16,
                   }
                 }
               >
-                <div
+                <span
+                  className="glamor-4"
                   onClick={undefined}
-                  style={
-                    Object {
-                      "height": 32,
-                      "maxWidth": 32,
-                      "minHeight": 32,
-                      "minWidth": 32,
-                      "position": "relative",
-                      "userSelect": "none",
-                    }
-                  }
-                >
-                  <div
-                    className="glamor-0"
-                  />
-                  <div
-                    className="glamor-1"
-                  />
-                </div>
-                <div
-                  style={
-                    Object {
-                      "display": "flex",
-                      "flexDirection": "column",
-                      "marginLeft": 16,
-                    }
-                  }
+                  title={undefined}
                 >
                   <span
-                    className="glamor-4"
+                    className="glamor-3"
                     onClick={undefined}
                     title={undefined}
                   >
                     <span
-                      className="glamor-3"
+                      className="glamor-2"
                       onClick={undefined}
                       title={undefined}
                     >
-                      <span
-                        className="glamor-8"
-                        onClick={undefined}
-                        title={undefined}
-                      >
-                        strib
-                      </span>
+                      akalin
                     </span>
                   </span>
-                  <span
-                    className="glamor-5"
-                    onClick={undefined}
-                    title={undefined}
-                  >
-                    Jeremy Stribling
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div
-          style={
-            Object {
-              "display": "flex",
-              "flexDirection": "column",
-              "paddingTop": 8,
-            }
-          }
-        >
-          <div
-            onClick={[Function]}
-            onMouseDown={[Function]}
-            onMouseEnter={undefined}
-            onMouseLeave={undefined}
-            onMouseUp={[Function]}
-            style={
-              Object {
-                "alignItems": "stretch",
-                "borderRadius": 0,
-                "cursor": "pointer",
-                "display": "flex",
-                "flexDirection": "column",
-                "height": undefined,
-                "lineHeight": 0,
-                "minWidth": undefined,
-                "position": "relative",
-                "textAlign": "left",
-                "transform": "none",
-                "transition": "none",
-              }
-            }
-          >
-            <div
-              style={
-                Object {
-                  "cursor": "pointer",
-                  "display": "flex",
-                  "flexDirection": "column",
-                  "minHeight": 48,
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                }
-              }
-            >
-              <div
-                style={
-                  Object {
-                    "alignItems": "center",
-                    "display": "flex",
-                    "flex": 1,
-                    "flexDirection": "row",
-                    "marginRight": 8,
-                  }
-                }
-              >
-                <div
+                </span>
+                <span
+                  className="glamor-5"
                   onClick={undefined}
-                  style={
-                    Object {
-                      "height": 32,
-                      "maxWidth": 32,
-                      "minHeight": 32,
-                      "minWidth": 32,
-                      "position": "relative",
-                      "userSelect": "none",
-                    }
-                  }
+                  title={undefined}
                 >
-                  <div
-                    className="glamor-0"
-                  />
-                  <div
-                    className="glamor-1"
-                  />
-                </div>
-                <div
-                  style={
-                    Object {
-                      "display": "flex",
-                      "flexDirection": "column",
-                      "marginLeft": 16,
-                    }
-                  }
-                >
-                  <span
-                    className="glamor-4"
-                    onClick={undefined}
-                    title={undefined}
-                  >
-                    <span
-                      className="glamor-3"
-                      onClick={undefined}
-                      title={undefined}
-                    >
-                      <span
-                        className="glamor-14"
-                        onClick={undefined}
-                        title={undefined}
-                      >
-                        max
-                      </span>
-                    </span>
-                  </span>
-                  <span
-                    className="glamor-5"
-                    onClick={undefined}
-                    title={undefined}
-                  >
-                    Max Krohn
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Chat/Conversation/InfoPanel Participants 1`] = `
-.glamor-0,
-[data-glamor-0] {
-  bottom: 1px;
-  left: 1px;
-  position: absolute;
-  right: 1px;
-  top: 1px;
-  background-color: #f0f0f0;
-  border-radius: 50%;
-}
-
-.glamor-1,
-[data-glamor-1] {
-  background-size: cover;
-  bottom: 0;
-  left: 0;
-  position: absolute;
-  right: 0;
-  top: 0;
-  background-image: -webkit-image-set(url('icons/icon-placeholder-avatar-32.png') 1x, url('icons/icon-placeholder-avatar-32@2x.png') 2x);
-  border-radius: 50%;
-  height: 32px;
-  max-width: 32px;
-  min-width: 32px;
-  opacity: 1;
-}
-
-.glamor-4,
-[data-glamor-4] {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-  display: -webkit-box;
-  display: -moz-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  text-decoration: inherit;
-  -webkit-box-orient: horizontal;
-  -webkit-box-direction: normal;
-  -webkit-flex-direction: row;
-  -webkit-box-lines: multiple;
-  -webkit-flex-wrap: wrap;
-}
-
-.glamor-3,
-[data-glamor-3] {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-}
-
-.glamor-2,
-[data-glamor-2] {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-  text-decoration: inherit;
-  font-style: italic;
-}
-
-.glamor-5,
-[data-glamor-5] {
-  font-size: 11px;
-  line-height: 15px;
-  color: rgba(0, 0, 0, 0.40);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
-}
-
-.glamor-8,
-[data-glamor-8] {
-  font-size: 13px;
-  line-height: 17px;
-  color: #36b37c;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-  text-decoration: inherit;
-}
-
-.glamor-14,
-[data-glamor-14] {
-  font-size: 13px;
-  line-height: 17px;
-  color: #ff4d61;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-  text-decoration: inherit;
-}
-
-<div
-  style={
-    Object {
-      "flex": 1,
-      "overflow": "auto",
-    }
-  }
->
-  <div
-    style={
-      Object {
-        "height": "100%",
-      }
-    }
-  >
-    <div
-      style={
-        Object {
-          "maxWidth": 320,
-        }
-      }
-    >
-      <div
-        style={
-          Object {
-            "display": "flex",
-            "flexDirection": "column",
-            "paddingTop": 8,
-          }
-        }
-      >
-        <div
-          style={
-            Object {
-              "display": "flex",
-              "flexDirection": "column",
-              "paddingTop": 8,
-            }
-          }
-        >
-          <div
-            onClick={[Function]}
-            onMouseDown={[Function]}
-            onMouseEnter={undefined}
-            onMouseLeave={undefined}
-            onMouseUp={[Function]}
-            style={
-              Object {
-                "alignItems": "stretch",
-                "borderRadius": 0,
-                "cursor": "pointer",
-                "display": "flex",
-                "flexDirection": "column",
-                "height": undefined,
-                "lineHeight": 0,
-                "minWidth": undefined,
-                "position": "relative",
-                "textAlign": "left",
-                "transform": "none",
-                "transition": "none",
-              }
-            }
-          >
-            <div
-              style={
-                Object {
-                  "cursor": "pointer",
-                  "display": "flex",
-                  "flexDirection": "column",
-                  "minHeight": 48,
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                }
-              }
-            >
-              <div
-                style={
-                  Object {
-                    "alignItems": "center",
-                    "display": "flex",
-                    "flex": 1,
-                    "flexDirection": "row",
-                    "marginRight": 8,
-                  }
-                }
-              >
-                <div
-                  onClick={undefined}
-                  style={
-                    Object {
-                      "height": 32,
-                      "maxWidth": 32,
-                      "minHeight": 32,
-                      "minWidth": 32,
-                      "position": "relative",
-                      "userSelect": "none",
-                    }
-                  }
-                >
-                  <div
-                    className="glamor-0"
-                  />
-                  <div
-                    className="glamor-1"
-                  />
-                </div>
-                <div
-                  style={
-                    Object {
-                      "display": "flex",
-                      "flexDirection": "column",
-                      "marginLeft": 16,
-                    }
-                  }
-                >
-                  <span
-                    className="glamor-4"
-                    onClick={undefined}
-                    title={undefined}
-                  >
-                    <span
-                      className="glamor-3"
-                      onClick={undefined}
-                      title={undefined}
-                    >
-                      <span
-                        className="glamor-2"
-                        onClick={undefined}
-                        title={undefined}
-                      >
-                        akalin
-                      </span>
-                    </span>
-                  </span>
-                  <span
-                    className="glamor-5"
-                    onClick={undefined}
-                    title={undefined}
-                  >
-                    Fred Akalin
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div
-          style={
-            Object {
-              "display": "flex",
-              "flexDirection": "column",
-              "paddingTop": 8,
-            }
-          }
-        >
-          <div
-            onClick={[Function]}
-            onMouseDown={[Function]}
-            onMouseEnter={undefined}
-            onMouseLeave={undefined}
-            onMouseUp={[Function]}
-            style={
-              Object {
-                "alignItems": "stretch",
-                "borderRadius": 0,
-                "cursor": "pointer",
-                "display": "flex",
-                "flexDirection": "column",
-                "height": undefined,
-                "lineHeight": 0,
-                "minWidth": undefined,
-                "position": "relative",
-                "textAlign": "left",
-                "transform": "none",
-                "transition": "none",
-              }
-            }
-          >
-            <div
-              style={
-                Object {
-                  "cursor": "pointer",
-                  "display": "flex",
-                  "flexDirection": "column",
-                  "minHeight": 48,
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                }
-              }
-            >
-              <div
-                style={
-                  Object {
-                    "alignItems": "center",
-                    "display": "flex",
-                    "flex": 1,
-                    "flexDirection": "row",
-                    "marginRight": 8,
-                  }
-                }
-              >
-                <div
-                  onClick={undefined}
-                  style={
-                    Object {
-                      "height": 32,
-                      "maxWidth": 32,
-                      "minHeight": 32,
-                      "minWidth": 32,
-                      "position": "relative",
-                      "userSelect": "none",
-                    }
-                  }
-                >
-                  <div
-                    className="glamor-0"
-                  />
-                  <div
-                    className="glamor-1"
-                  />
-                </div>
-                <div
-                  style={
-                    Object {
-                      "display": "flex",
-                      "flexDirection": "column",
-                      "marginLeft": 16,
-                    }
-                  }
-                >
-                  <span
-                    className="glamor-4"
-                    onClick={undefined}
-                    title={undefined}
-                  >
-                    <span
-                      className="glamor-3"
-                      onClick={undefined}
-                      title={undefined}
-                    >
-                      <span
-                        className="glamor-8"
-                        onClick={undefined}
-                        title={undefined}
-                      >
-                        strib
-                      </span>
-                    </span>
-                  </span>
-                  <span
-                    className="glamor-5"
-                    onClick={undefined}
-                    title={undefined}
-                  >
-                    Jeremy Stribling
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div
-          style={
-            Object {
-              "display": "flex",
-              "flexDirection": "column",
-              "paddingTop": 8,
-            }
-          }
-        >
-          <div
-            onClick={[Function]}
-            onMouseDown={[Function]}
-            onMouseEnter={undefined}
-            onMouseLeave={undefined}
-            onMouseUp={[Function]}
-            style={
-              Object {
-                "alignItems": "stretch",
-                "borderRadius": 0,
-                "cursor": "pointer",
-                "display": "flex",
-                "flexDirection": "column",
-                "height": undefined,
-                "lineHeight": 0,
-                "minWidth": undefined,
-                "position": "relative",
-                "textAlign": "left",
-                "transform": "none",
-                "transition": "none",
-              }
-            }
-          >
-            <div
-              style={
-                Object {
-                  "cursor": "pointer",
-                  "display": "flex",
-                  "flexDirection": "column",
-                  "minHeight": 48,
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                }
-              }
-            >
-              <div
-                style={
-                  Object {
-                    "alignItems": "center",
-                    "display": "flex",
-                    "flex": 1,
-                    "flexDirection": "row",
-                    "marginRight": 8,
-                  }
-                }
-              >
-                <div
-                  onClick={undefined}
-                  style={
-                    Object {
-                      "height": 32,
-                      "maxWidth": 32,
-                      "minHeight": 32,
-                      "minWidth": 32,
-                      "position": "relative",
-                      "userSelect": "none",
-                    }
-                  }
-                >
-                  <div
-                    className="glamor-0"
-                  />
-                  <div
-                    className="glamor-1"
-                  />
-                </div>
-                <div
-                  style={
-                    Object {
-                      "display": "flex",
-                      "flexDirection": "column",
-                      "marginLeft": 16,
-                    }
-                  }
-                >
-                  <span
-                    className="glamor-4"
-                    onClick={undefined}
-                    title={undefined}
-                  >
-                    <span
-                      className="glamor-3"
-                      onClick={undefined}
-                      title={undefined}
-                    >
-                      <span
-                        className="glamor-14"
-                        onClick={undefined}
-                        title={undefined}
-                      >
-                        max
-                      </span>
-                    </span>
-                  </span>
-                  <span
-                    className="glamor-5"
-                    onClick={undefined}
-                    title={undefined}
-                  >
-                    Max Krohn
-                  </span>
-                </div>
+                  Fred Akalin
+                </span>
               </div>
             </div>
           </div>
@@ -8833,6 +8076,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                               "width": 16,
                             }
                           }
+                          title="Leaving the general channel is disabled"
                         >
                           <div
                             onClick={[Function]}
@@ -8840,7 +8084,6 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                               Object {
                                 "alignItems": "flex-start",
                                 "alignSelf": "flex-start",
-                                "cursor": "pointer",
                                 "display": "flex",
                                 "flexDirection": "row",
                                 "marginRight": 0,
@@ -8856,7 +8099,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                                   "height": 13,
                                   "marginRight": 8,
                                   "marginTop": 2,
-                                  "opacity": 1,
+                                  "opacity": 0.4,
                                   "position": "relative",
                                   "transition": "background 0.1s ease-out",
                                   "width": 13,
@@ -8972,6 +8215,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                               "width": 16,
                             }
                           }
+                          title={undefined}
                         >
                           <div
                             onClick={[Function]}
@@ -9111,6 +8355,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                               "width": 16,
                             }
                           }
+                          title={undefined}
                         >
                           <div
                             onClick={[Function]}
@@ -9251,6 +8496,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                               "width": 16,
                             }
                           }
+                          title={undefined}
                         >
                           <div
                             onClick={[Function]}
@@ -9391,6 +8637,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                               "width": 16,
                             }
                           }
+                          title={undefined}
                         >
                           <div
                             onClick={[Function]}
@@ -9531,6 +8778,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                               "width": 16,
                             }
                           }
+                          title={undefined}
                         >
                           <div
                             onClick={[Function]}
@@ -9670,6 +8918,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                               "width": 16,
                             }
                           }
+                          title={undefined}
                         >
                           <div
                             onClick={[Function]}
@@ -10326,6 +9575,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                               "width": 16,
                             }
                           }
+                          title="Leaving the general channel is disabled"
                         >
                           <div
                             onClick={[Function]}
@@ -10333,7 +9583,6 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                               Object {
                                 "alignItems": "flex-start",
                                 "alignSelf": "flex-start",
-                                "cursor": "pointer",
                                 "display": "flex",
                                 "flexDirection": "row",
                                 "marginRight": 0,
@@ -10349,7 +9598,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                                   "height": 13,
                                   "marginRight": 8,
                                   "marginTop": 2,
-                                  "opacity": 1,
+                                  "opacity": 0.4,
                                   "position": "relative",
                                   "transition": "background 0.1s ease-out",
                                   "width": 13,
@@ -10511,6 +9760,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                               "width": 16,
                             }
                           }
+                          title={undefined}
                         >
                           <div
                             onClick={[Function]}
@@ -10696,6 +9946,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                               "width": 16,
                             }
                           }
+                          title={undefined}
                         >
                           <div
                             onClick={[Function]}
@@ -10882,6 +10133,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                               "width": 16,
                             }
                           }
+                          title={undefined}
                         >
                           <div
                             onClick={[Function]}
@@ -11068,6 +10320,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                               "width": 16,
                             }
                           }
+                          title={undefined}
                         >
                           <div
                             onClick={[Function]}
@@ -11254,6 +10507,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                               "width": 16,
                             }
                           }
+                          title={undefined}
                         >
                           <div
                             onClick={[Function]}
@@ -11439,6 +10693,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                               "width": 16,
                             }
                           }
+                          title={undefined}
                         >
                           <div
                             onClick={[Function]}
@@ -27059,23 +26314,6 @@ exports[`Storyshots Files Root 1`] = `
   font-weight: 600;
 }
 
-.glamor-1,
-[data-glamor-1] {
-  color: rgba(0, 0, 0, 0.40);
-}
-
-.glamor-2,
-[data-glamor-2] {
-  font-size: 13px;
-  line-height: 17px;
-  color: #33a0ff;
-  cursor: pointer;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
-}
-
 <div
   style={
     Object {
@@ -27094,338 +26332,98 @@ exports[`Storyshots Files Root 1`] = `
     <div
       style={
         Object {
-          "width": "100%",
+          "height": "100%",
+          "position": "relative",
         }
       }
     >
       <div
         style={
           Object {
+            "display": "flex",
+            "flex": 1,
+            "flexDirection": "column",
             "height": "100%",
-            "position": "relative",
           }
         }
       >
-        <div
-          style={
-            Object {
-              "display": "flex",
-              "flex": 1,
-              "flexDirection": "column",
-              "height": "100%",
-            }
-          }
-        >
-          <div>
-            <div
-              style={
-                Object {
-                  "alignItems": "center",
-                  "borderBottomColor": "rgba(0, 0, 0, 0.05)",
-                  "borderBottomWidth": 0,
-                  "display": "flex",
-                  "flexDirection": "row",
-                  "justifyContent": "center",
-                  "minHeight": 40,
-                }
-              }
-            >
-              <span
-                className="glamor-0"
-                onClick={undefined}
-                title={undefined}
-              >
-                Folders: /keybase
-              </span>
-            </div>
-          </div>
+        <div>
           <div
             style={
               Object {
-                "flexGrow": 1,
-                "position": "relative",
+                "alignItems": "center",
+                "borderBottomColor": "rgba(0, 0, 0, 0.05)",
+                "borderBottomWidth": 1,
+                "display": "flex",
+                "flexDirection": "row",
+                "justifyContent": "center",
+                "minHeight": 48,
               }
             }
           >
-            <div
-              style={
-                Object {
-                  "bottom": 0,
-                  "left": 0,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
+            <span
+              className="glamor-0"
+              onClick={undefined}
+              title={undefined}
             >
-              <div
-                style={
-                  Object {
-                    "height": "100%",
-                    "overflowY": "auto",
-                    "width": "100%",
-                  }
-                }
-              />
-            </div>
+              Keybase Files
+            </span>
           </div>
         </div>
-      </div>
-      <div
-        style={
-          Object {
-            "height": "100%",
-            "position": "relative",
-          }
-        }
-      >
-        <div
-          style={
-            Object {
-              "display": "flex",
-              "flex": 1,
-              "flexDirection": "column",
-              "height": "100%",
-            }
-          }
-        >
+        <div>
           <div
             style={
               Object {
+                "backgroundColor": "rgba(0, 0, 0, 0.05)",
+                "flex": 1,
+                "maxHeight": 1,
+                "minHeight": 1,
+              }
+            }
+          />
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "backgroundColor": "#F8FAFD",
+                "borderTopColor": "rgba(0, 0, 0, 0.05)",
+                "borderTopWidth": 1,
                 "display": "flex",
-                "flexDirection": "column",
+                "flexDirection": "row",
+                "justifyContent": "start",
+                "minHeight": 24,
               }
             }
-          >
-            <div
-              onClick={[Function]}
-              style={
-                Object {
-                  "alignItems": "center",
-                  "cursor": "pointer",
-                  "display": "flex",
-                  "flexDirection": "row",
-                  "left": 16,
-                  "position": "absolute",
-                  "top": 16,
-                }
-              }
-            >
-              <div>
-                <span
-                  className="glamor-1"
-                  onClick={null}
-                  onMouseEnter={undefined}
-                  onMouseLeave={undefined}
-                  style={
-                    Object {
-                      "WebkitFontSmoothing": "antialiased",
-                      "fontFamily": "kb",
-                      "fontSize": 16,
-                      "fontStyle": "normal",
-                      "fontVariant": "normal",
-                      "fontWeight": "normal",
-                      "lineHeight": 1,
-                      "marginRight": 6,
-                      "speak": "none",
-                      "textTransform": "none",
-                      "userSelect": "none",
-                    }
-                  }
-                >
-                  
-                </span>
-              </div>
-              <span
-                className="glamor-2"
-                onClick={[Function]}
-                title={undefined}
-              >
-                Back
-              </span>
-            </div>
-          </div>
-          <div>
-            <div
-              style={
-                Object {
-                  "alignItems": "center",
-                  "borderBottomColor": "rgba(0, 0, 0, 0.05)",
-                  "borderBottomWidth": 0,
-                  "display": "flex",
-                  "flexDirection": "row",
-                  "justifyContent": "center",
-                  "minHeight": 40,
-                }
-              }
-            >
-              <span
-                className="glamor-0"
-                onClick={undefined}
-                title={undefined}
-              >
-                Folders: /keybase/private
-              </span>
-            </div>
-          </div>
-          <div
-            style={
-              Object {
-                "flexGrow": 1,
-                "position": "relative",
-              }
-            }
-          >
-            <div
-              style={
-                Object {
-                  "bottom": 0,
-                  "left": 0,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
-            >
-              <div
-                style={
-                  Object {
-                    "height": "100%",
-                    "overflowY": "auto",
-                    "width": "100%",
-                  }
-                }
-              />
-            </div>
-          </div>
+          />
         </div>
-      </div>
-      <div
-        style={
-          Object {
-            "height": "100%",
-            "position": "relative",
-          }
-        }
-      >
         <div
           style={
             Object {
-              "display": "flex",
-              "flex": 1,
-              "flexDirection": "column",
-              "height": "100%",
+              "flexGrow": 1,
+              "position": "relative",
             }
           }
         >
           <div
             style={
               Object {
-                "display": "flex",
-                "flexDirection": "column",
-              }
-            }
-          >
-            <div
-              onClick={[Function]}
-              style={
-                Object {
-                  "alignItems": "center",
-                  "cursor": "pointer",
-                  "display": "flex",
-                  "flexDirection": "row",
-                  "left": 16,
-                  "position": "absolute",
-                  "top": 16,
-                }
-              }
-            >
-              <div>
-                <span
-                  className="glamor-1"
-                  onClick={null}
-                  onMouseEnter={undefined}
-                  onMouseLeave={undefined}
-                  style={
-                    Object {
-                      "WebkitFontSmoothing": "antialiased",
-                      "fontFamily": "kb",
-                      "fontSize": 16,
-                      "fontStyle": "normal",
-                      "fontVariant": "normal",
-                      "fontWeight": "normal",
-                      "lineHeight": 1,
-                      "marginRight": 6,
-                      "speak": "none",
-                      "textTransform": "none",
-                      "userSelect": "none",
-                    }
-                  }
-                >
-                  
-                </span>
-              </div>
-              <span
-                className="glamor-2"
-                onClick={[Function]}
-                title={undefined}
-              >
-                Back
-              </span>
-            </div>
-          </div>
-          <div>
-            <div
-              style={
-                Object {
-                  "alignItems": "center",
-                  "borderBottomColor": "rgba(0, 0, 0, 0.05)",
-                  "borderBottomWidth": 0,
-                  "display": "flex",
-                  "flexDirection": "row",
-                  "justifyContent": "center",
-                  "minHeight": 40,
-                }
-              }
-            >
-              <span
-                className="glamor-0"
-                onClick={undefined}
-                title={undefined}
-              >
-                Folders: /keybase/public
-              </span>
-            </div>
-          </div>
-          <div
-            style={
-              Object {
-                "flexGrow": 1,
-                "position": "relative",
+                "bottom": 0,
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
               }
             }
           >
             <div
               style={
                 Object {
-                  "bottom": 0,
-                  "left": 0,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
+                  "height": "100%",
+                  "overflowY": "auto",
+                  "width": "100%",
                 }
               }
-            >
-              <div
-                style={
-                  Object {
-                    "height": "100%",
-                    "overflowY": "auto",
-                    "width": "100%",
-                  }
-                }
-              />
-            </div>
+            />
           </div>
         </div>
       </div>

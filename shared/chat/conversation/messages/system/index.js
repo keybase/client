@@ -258,9 +258,8 @@ const InviteAddedToTeamNotice = ({
       <Text type="BodySmallSemibold" style={{textAlign: 'center'}}>
         <ConnectedUsernames {...connectedUsernamesProps} usernames={[invitee]} /> just joined {team}.{' '}
         {you === inviter ? 'You invited them' : 'They were invited by '}
-        {you !== inviter && (
-          <ConnectedUsernames {...connectedUsernamesProps} usernames={[inviter]} />
-        )} via {inviteType}
+        {you !== inviter && <ConnectedUsernames {...connectedUsernamesProps} usernames={[inviter]} />}
+        {inviteType === 'seitan' ? '' : ' via ' + inviteType}
         , and they were just now auto-added to the team sigchain by{' '}
         {you === adder ? 'you' : <ConnectedUsernames {...connectedUsernamesProps} usernames={[adder]} />}
         , the first available admin.
@@ -349,8 +348,8 @@ const GitPushInfoNotice = ({message, info, onClickUserAvatar, onViewGitRepo}: Gi
                 >
                   <Text
                     type="Terminal"
+                    selectable={true}
                     style={{
-                      ...globalStyles.selectable,
                       fontSize: 11,
                       color: globalColors.blue,
                       lineHeight: isMobile ? 16 : 1.3,
@@ -360,11 +359,7 @@ const GitPushInfoNotice = ({message, info, onClickUserAvatar, onViewGitRepo}: Gi
                   </Text>
                 </Box>
                 <Box style={{display: 'flex', flex: 1}}>
-                  <Text
-                    type="BodySmall"
-                    style={{...globalStyles.selectable, textAlign: 'left'}}
-                    lineClamp={2}
-                  >
+                  <Text type="BodySmall" selectable={true} style={{textAlign: 'left'}} lineClamp={2}>
                     {commit.message}
                   </Text>
                 </Box>

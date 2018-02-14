@@ -552,6 +552,20 @@
           "name": "rateLimit"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "SweepRes",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "foundTask"
+        },
+        {
+          "type": "boolean",
+          "name": "deletedMessages"
+        }
+      ]
     }
   ],
   "messages": {
@@ -1042,6 +1056,10 @@
         {
           "name": "policy",
           "type": "RetentionPolicy"
+        },
+        {
+          "name": "sweepChannel",
+          "type": "uint64"
         }
       ],
       "response": "SetRetentionRes"
@@ -1055,9 +1073,22 @@
         {
           "name": "policy",
           "type": "RetentionPolicy"
+        },
+        {
+          "name": "sweepChannel",
+          "type": "uint64"
         }
       ],
       "response": "SetRetentionRes"
+    },
+    "retentionSweepConv": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": "SweepRes"
     },
     "upgradeKBFSToImpteam": {
       "request": [

@@ -117,7 +117,7 @@
     "react": "16.2.0",
     "react-dom": "16.2.0",
     "react-list": "0.8.8",
-    "react-native": "0.51.0",
+    "react-native": "0.53.0",
     "react-native-camera": "0.10.0",
     "react-native-contacts": "git://github.com/Clarizen/react-native-contacts#c0881ed6077c29e5d08442aec24439d5f4db8f81",
     "react-native-fetch-blob": "0.10.8",
@@ -138,7 +138,8 @@
     "tlds": "^1.199.0",
     "typedarray-to-buffer": "3.1.2",
     "url-parse": "^1.2.0",
-    "util": "0.10.3"
+    "util": "0.10.3",
+    "uuid": "^3.0.0"
   },
   "devDependencies": {
     "@storybook/addon-storyshots": "3.2.17",
@@ -166,7 +167,7 @@
     "electron": "1.7.11",
     "electron-download": "git://github.com/keybase/electron-download#keybase-fixes-off-410",
     "electron-packager": "9.1.0",
-    "eslint": "4.16.0",
+    "eslint": "4.17.0",
     "eslint-config-standard": "10.2.1",
     "eslint-config-standard-jsx": "4.0.2",
     "eslint-config-standard-react": "5.0.0",
@@ -174,13 +175,13 @@
     "eslint-plugin-filenames": "1.2.0",
     "eslint-plugin-flowtype": "2.42.0",
     "eslint-plugin-import": "2.8.0",
-    "eslint-plugin-node": "5.2.1",
-    "eslint-plugin-prettier": "2.5.0",
+    "eslint-plugin-node": "6.0.0",
+    "eslint-plugin-prettier": "2.6.0",
     "eslint-plugin-promise": "3.6.0",
-    "eslint-plugin-react": "7.5.1",
+    "eslint-plugin-react": "7.6.1",
     "eslint-plugin-standard": "3.0.1",
     "file-loader": "1.1.5",
-    "flow-bin": "0.64.0",
+    "flow-bin": "0.65.0",
     "fs-extra": "4.0.2",
     "jest": "21.2.1",
     "jest-glamor-react": "3.2.2",
@@ -202,7 +203,6 @@
     "webpack-merge": "4.1.1"
   },
   "optionalDependencies": {
-    "regedit": "2.2.7",
-    "windows-shortcuts": "^0.1.6"
+    "regedit": "2.2.7"
   }
 }

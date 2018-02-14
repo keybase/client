@@ -25,10 +25,7 @@ const Contents = ({conversationIDKey, onBack, participants, onBlock, onBlockAndR
     <Text type="Body" style={{marginTop: globalMargins.small}}>
       To unblock it, run:
     </Text>
-    <Text
-      type="Terminal"
-      style={{...globalStyles.selectable, alignSelf: 'center', marginTop: globalMargins.small}}
-    >
+    <Text type="Terminal" selectable={true} style={{alignSelf: 'center', marginTop: globalMargins.small}}>
       keybase chat hide -u {participants}
     </Text>
     <Text type="Body" style={{marginTop: globalMargins.small}}>

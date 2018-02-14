@@ -104,6 +104,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.LoginProtocol(NewLoginHandler(xp, g)),
 		keybase1.NotifyCtlProtocol(NewNotifyCtlHandler(xp, connID, g)),
 		keybase1.PGPProtocol(NewPGPHandler(xp, connID, g)),
+		keybase1.PprofProtocol(NewPprofHandler(xp, g)),
 		keybase1.ReachabilityProtocol(newReachabilityHandler(xp, g, d.reachability)),
 		keybase1.RevokeProtocol(NewRevokeHandler(xp, g)),
 		keybase1.ProveProtocol(NewProveHandler(xp, g)),
@@ -342,6 +343,7 @@ func (d *Service) createChatModules() {
 	g.InboxSource = chat.NewInboxSource(g, g.Env.GetInboxSourceType(), ri)
 	g.ConvSource = chat.NewConversationSource(g, g.Env.GetConvSourceType(),
 		boxer, storage.New(g), ri)
+	g.Searcher = chat.NewSearcher(g)
 	g.ServerCacheVersions = storage.NewServerVersions(g)
 
 	// Syncer and retriers
@@ -1058,6 +1060,13 @@ func (d *Service) stopProfile() {
 		d.G().Log.Warning("could not write memory profile: %s", err)
 	}
 	d.G().Log.Debug("wrote memory profile %s", mem)
+
+	var mems runtime.MemStats
+	runtime.ReadMemStats(&mems)
+	d.G().Log.Debug("runtime mem alloc:   %v", mems.Alloc)
+	d.G().Log.Debug("runtime total alloc: %v", mems.TotalAlloc)
+	d.G().Log.Debug("runtime heap alloc:  %v", mems.HeapAlloc)
+	d.G().Log.Debug("runtime heap sys:    %v", mems.HeapSys)
 }
 
 func (d *Service) StartStandaloneChat(g *libkb.GlobalContext) error {

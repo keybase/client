@@ -1,5 +1,4 @@
-@namespace("chat.1")
-protocol common {
+@namespace("chat.1") protocol common {
 
   import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
   import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
@@ -15,6 +14,11 @@ protocol common {
   @typedef("uint64") @lint("ignore") record ConversationVers {}
   @typedef("bytes")  record OutboxID {}
   @typedef("bytes")  record TopicNameState {}
+
+  record InboxVersInfo {
+    gregor1.UID uid;
+    InboxVers vers;
+  }
 
   enum ConversationExistence {
     ACTIVE_0,

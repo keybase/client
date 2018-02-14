@@ -11,6 +11,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 )
 
 type ChatUI struct {
@@ -134,4 +135,58 @@ func (c *ChatUI) ChatConfirmChannelDelete(ctx context.Context, arg chat1.ChatCon
 		return false, err
 	}
 	return strings.TrimSpace(response) == confirm, nil
+}
+
+func (c *ChatUI) ChatSearchHit(ctx context.Context, arg chat1.ChatSearchHitArg) error {
+	if c.noOutput {
+		return nil
+	}
+	searchHit := arg.SearchHit
+	getMsgPrefix := func(uiMsg *chat1.UIMessage) string {
+		m := uiMsg.Valid()
+		t := gregor1.FromTime(m.Ctime)
+		return fmt.Sprintf("[%s %s] ", m.SenderUsername, shortDurationFromNow(t))
+	}
+
+	getContext := func(uiMsg *chat1.UIMessage) string {
+		if uiMsg != nil && uiMsg.IsValid() && uiMsg.GetMessageType() == chat1.MessageType_TEXT {
+			msgBody := uiMsg.Valid().MessageBody.Text().Body
+			return getMsgPrefix(uiMsg) + msgBody + "\n"
+		}
+		return ""
+	}
+
+	highlightHits := func(uiMsg *chat1.UIMessage, hits []string) string {
+		if uiMsg != nil && uiMsg.IsValid() && uiMsg.GetMessageType() == chat1.MessageType_TEXT {
+			msgBody := uiMsg.Valid().MessageBody.Text().Body
+			var hitText string
+			for _, hit := range hits {
+				hitText = strings.Replace(msgBody, hit, ColorString(c.G(), "red", hit), -1)
+			}
+			return getMsgPrefix(uiMsg) + hitText
+		}
+		return ""
+	}
+
+	// TODO: This should really use chat_cli_rendering.messageView, but we need
+	// to refactor for UIMessage
+	hitText := highlightHits(searchHit.HitMessage, searchHit.Matches)
+	if hitText != "" {
+		w := c.terminal.ErrorWriter()
+		fmt.Fprintf(w, getContext(searchHit.PrevMessage))
+		fmt.Fprintln(w, hitText)
+		fmt.Fprintf(w, getContext(searchHit.NextMessage))
+		fmt.Fprintln(w, "")
+	}
+	return nil
+}
+
+func (c *ChatUI) ChatSearchDone(ctx context.Context, arg chat1.ChatSearchDoneArg) error {
+	if c.noOutput {
+		return nil
+	}
+	w := c.terminal.ErrorWriter()
+	fmt.Fprintf(w, "Search complete. Found %d results.", arg.NumHits)
+	fmt.Fprintln(w, "")
+	return nil
 }

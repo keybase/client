@@ -247,6 +247,15 @@ func (s *Syncer) shouldDoFullReloadFromIncremental(ctx context.Context, syncRes 
 	return false
 }
 
+func (s *Syncer) handleMembersTypeChanged(ctx context.Context, uid gregor1.UID,
+	convIDs []chat1.ConversationID) {
+	// Clear caches from members type changed convos
+	for _, convID := range convIDs {
+		s.Debug(ctx, "handleMembersTypeChanged: clearing message cache: %s", convID)
+		s.G().ConvSource.Clear(convID, uid)
+	}
+}
+
 func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID,
 	syncRes *chat1.SyncChatRes) (err error) {
 	if !s.isConnected {
@@ -319,6 +328,7 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 			// Send notifications for a full clear
 			s.G().NotifyRouter.HandleChatInboxSynced(ctx, kuid, chat1.NewChatSyncResultWithClear())
 		} else {
+			s.handleMembersTypeChanged(ctx, uid, iboxSyncRes.MembersTypeChanged)
 			if s.shouldDoFullReloadFromIncremental(ctx, iboxSyncRes, incr.Convs) {
 				// If we get word we shoudl full clear the inbox (like if the user left a conversation),
 				// then just reload everything
