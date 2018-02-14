@@ -1,11 +1,17 @@
 // @flow
-import * as I from 'immutable'
+import * as Types from '../../constants/types/fs'
 import {DropdownPopupMenu} from './popup'
 import {connect, type TypedState} from '../../util/container'
+import {type RouteProps} from '../../route-tree/render-route'
 
-type OwnProps = {
-  routeProps: I.Map<'items' | 'isTeamPath' | 'onOpenBreadcrumb', any>,
-}
+type OwnProps = RouteProps<
+  {
+    isTeamPath: boolean,
+    items: Array<Types.PathBreadcrumbItem>,
+    onOpenBreadcrumb: (path: string) => void,
+  },
+  {}
+>
 
 // $FlowIssue doesn't like routeProps here.
 const mapStateToProps = (stateProps: TypedState, {routeProps}: OwnProps) => ({
