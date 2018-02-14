@@ -30,6 +30,9 @@ const distance = (a: Touch, b: Touch): number => {
   return Math.sqrt(Math.pow(a.pageX - b.pageX, 2) + Math.pow(a.pageY - b.pageY, 2))
 }
 
+// TODO change this to use a matrix-based transformation approach
+// and decompose to individual components (transformation matrices
+// are deprecated in RN)
 class PanZoomCalculator {
   initialTouch1: ?Touch = null
   touch1: ?Touch = null
