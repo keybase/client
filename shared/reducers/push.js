@@ -27,6 +27,7 @@ function reducer(state: Types.State = Constants.initialState, action: PushGen.Ac
         tokenType,
       }
     // Saga only actions
+    case PushGen.checkIOSPush:
     case PushGen.configurePush:
     case PushGen.error:
     case PushGen.notification:

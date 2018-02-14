@@ -4,11 +4,14 @@ import * as PushTypes from '../constants/types/push'
 import * as PushConstants from '../constants/push'
 import * as PushGen from './push-gen'
 import * as PushNotifications from 'react-native-push-notification'
-import {PushNotificationIOS, CameraRoll, ActionSheetIOS, AsyncStorage} from 'react-native'
+import {PushNotificationIOS, CameraRoll, ActionSheetIOS, AsyncStorage, Linking} from 'react-native'
 import {eventChannel} from 'redux-saga'
 import {isDevApplePushToken} from '../local-debug'
 import {isIOS} from '../constants/platform'
 import {isImageFileName} from '../constants/chat'
+
+const allowPush = 'allowPush'
+const shownPushPrompt = 'shownPushPrompt'
 
 function requestPushPermissions(): Promise<*> {
   return PushNotifications.requestPermissions()
@@ -16,10 +19,34 @@ function requestPushPermissions(): Promise<*> {
 
 function setNoPushPermissions(): Promise<*> {
   return new Promise((resolve, reject) => {
-    AsyncStorage.setItem('allowPush', 'false', e => {
+    AsyncStorage.setItem(allowPush, 'false', e => {
       resolve()
     })
   })
+}
+
+function setYesPushPermissions(): Promise<*> {
+  return new Promise((resolve, reject) => {
+    AsyncStorage.setItem(allowPush, 'true', e => {
+      resolve()
+    })
+  })
+}
+
+function setShownPushPrompt(): Promise<*> {
+  return new Promise((resolve, reject) => {
+    AsyncStorage.setItem(shownPushPrompt, 'true', e => {
+      resolve()
+    })
+  })
+}
+
+function getShownPushPrompt(): Promise<string> {
+  return AsyncStorage.getItem(shownPushPrompt)
+}
+
+function checkPermissions(): Promise<*> {
+  return new Promise((resolve, reject) => PushNotifications.checkPermissions(resolve))
 }
 
 function showMainWindow() {
@@ -150,6 +177,7 @@ function configurePush() {
       // Don't request permissions for ios, we'll ask later, after showing UI
       requestPermissions: !isIOS,
     })
+
     // It doesn't look like there is a registrationError being set for iOS.
     // https://github.com/zo0r/react-native-push-notification/issues/261
     PushNotificationIOS.addEventListener('registrationError', error => {
@@ -160,37 +188,17 @@ function configurePush() {
       )
     })
 
-    logger.debug('Check push permissions')
-    if (isIOS) {
-      AsyncStorage.getItem('allowPush', (error, result) => {
-        if (error || result !== 'false') {
-          PushNotifications.checkPermissions(permissions => {
-            logger.debug('Push checked permissions:', permissions)
-            if (!permissions.alert) {
-              // TODO(gabriel): Detect if we already showed permissions prompt and were denied,
-              // in which case we should not show prompt or show different prompt about enabling
-              // in Settings (for iOS)
-              dispatch(
-                PushGen.createPermissionsPrompt({
-                  prompt: true,
-                })
-              )
-            } else {
-              // We have permissions, this triggers a token registration in
-              // case it changed.
-              dispatch(PushGen.createPermissionsRequest())
-            }
-          })
-        }
-      })
-    }
-
     // TODO make some true unsubscribe function
     return () => {}
   })
 }
+function openAppSettings() {
+  Linking.openURL('app-settings:')
+}
 
 export {
+  openAppSettings,
+  checkPermissions,
   displayNewMessageNotification,
   getAppState,
   setAppState,
@@ -199,6 +207,9 @@ export {
   configurePush,
   saveAttachmentDialog,
   setNoPushPermissions,
+  setYesPushPermissions,
+  setShownPushPrompt,
+  getShownPushPrompt,
   showShareActionSheet,
   clearAllNotifications,
 }

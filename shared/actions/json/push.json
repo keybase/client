@@ -4,6 +4,7 @@
   ],
   "actions": {
     "configurePush": {},
+    "checkIOSPush": {},
     "permissionsNo": {},
     "permissionsRequest": {},
     "permissionsRequesting": {

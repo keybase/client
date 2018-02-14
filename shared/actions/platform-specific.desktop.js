@@ -52,7 +52,28 @@ function clearAllNotifications() {
   throw new Error('Clear all notifications not available on this platform')
 }
 
+function checkPermissions(): Promise<*> {
+  throw new Error('Push permissions unsupported on this platform')
+}
+function setYesPushPermissions(): Promise<*> {
+  throw new Error('Push permissions unsupported on this platform')
+}
+function setShownPushPrompt(): Promise<*> {
+  throw new Error('Push permissions unsupported on this platform')
+}
+function getShownPushPrompt(): Promise<string> {
+  throw new Error('Push permissions unsupported on this platform')
+}
+function openAppSettings(): void {
+  throw new Error('Cannot open app settings on desktop')
+}
+
 export {
+  checkPermissions,
+  setYesPushPermissions,
+  setShownPushPrompt,
+  getShownPushPrompt,
+  openAppSettings,
   requestPushPermissions,
   showMainWindow,
   configurePush,

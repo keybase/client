@@ -1,5 +1,10 @@
 // @flow
+declare export function checkPermissions(): Promise<*> //*
 declare export function setNoPushPermissions(): Promise<*>
+declare export function setYesPushPermissions(): Promise<*> //*
+declare export function setShownPushPrompt(): Promise<*> //*
+declare export function getShownPushPrompt(): Promise<string> //* 
+declare export function openAppSettings(): void //*
 declare export function requestPushPermissions(): Promise<*>
 declare export function configurePush(): void
 declare export function showMainWindow(): void
