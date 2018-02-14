@@ -79,12 +79,6 @@ const styleContentsFit = {
   flex: 1,
 }
 
-// const progressContainerStyle = {
-// ...styleContentsFit,
-// alignItems: 'center',
-// justifyContent: 'center',
-// }
-
 const styleContentsZoom = {
   display: 'block',
   flex: 1,

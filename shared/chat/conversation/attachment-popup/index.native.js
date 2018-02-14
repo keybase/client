@@ -1,4 +1,4 @@
-// @noflow
+// @flow
 import React, {Component} from 'react'
 import {
   Box,
@@ -9,7 +9,6 @@ import {
   NativeImage,
 } from '../../../common-adapters/index.native'
 import {globalColors, globalMargins, globalStyles, isIPhoneX} from '../../../styles'
-import {formatTimeForPopup} from '../../../util/timestamp'
 
 import type {Props} from './'
 
@@ -66,62 +65,7 @@ const AttachmentView = ({
   </Box>
 )
 
-const AttachmentPopup = ({
-  message,
-  localMessageState,
-  isZoomed,
-  onClose,
-  onDownloadAttachment,
-  onDeleteMessage,
-  onMessageAction,
-  onToggleZoom,
-  onOpenInFileUI,
-  you,
-}: Props) => {
-  const {previewType, title, author, timestamp} = message
-  const {downloadedPath} = localMessageState
-
-  if (!previewType || previewType === 'Other') {
-    return (
-      <Box
-        style={{
-          ...globalStyles.flexBoxColumn,
-          ...globalStyles.fillAbsolute,
-          backgroundColor: globalColors.white,
-          paddingTop: isIPhoneX ? globalMargins.medium : undefined,
-        }}
-      >
-        <Text
-          type="Body"
-          onClick={onClose}
-          style={{
-            color: globalColors.blue,
-            padding: globalMargins.small,
-            borderBottomWidth: 1,
-            borderBottomColor: globalColors.black_40,
-          }}
-        >
-          Close
-        </Text>
-        <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', alignItems: 'center', flex: 1}}>
-          <Icon type="icon-file-48" />
-          <Text
-            type="BodySemibold"
-            style={{marginTop: globalMargins.large, marginBottom: globalMargins.tiny}}
-          >
-            {title}
-          </Text>
-          <Text type="BodySmall">Sent by {author}</Text>
-          <Text type="BodySmall">{formatTimeForPopup(timestamp)}</Text>
-          <Text type="BodySmall" style={{color: globalColors.black, marginTop: globalMargins.large}}>
-            Your device can not preview this file.
-          </Text>
-        </Box>
-        <Icon type="iconfont-ellipsis" onClick={onMessageAction} style={styleHeaderFooter} />
-      </Box>
-    )
-  }
-
+const AttachmentPopup = (props: Props) => {
   return (
     <Box
       style={{
@@ -131,14 +75,18 @@ const AttachmentPopup = ({
         paddingTop: isIPhoneX ? globalMargins.medium : undefined,
       }}
     >
-      <Text type="Body" onClick={onClose} style={{color: globalColors.white, padding: globalMargins.small}}>
+      <Text
+        type="Body"
+        onClick={props.onClose}
+        style={{color: globalColors.white, padding: globalMargins.small}}
+      >
         Close
       </Text>
-      <AttachmentView isZoomed={isZoomed} onToggleZoom={onToggleZoom} path={downloadedPath} />
+      <AttachmentView isZoomed={props.isZoomed} onToggleZoom={props.onToggleZoom} path={props.path} />
       <Icon
         type="iconfont-ellipsis"
         style={{...styleHeaderFooter, color: globalColors.white}}
-        onClick={onMessageAction}
+        onClick={props.onShowMenu}
       />
     </Box>
   )

@@ -10,7 +10,7 @@ type Props = {
 }
 
 const ProgressBar = ({ratio, style, fillStyle}: Props) => (
-  <Box style={{...outer, style}}>
+  <Box style={{...outer, ...style}}>
     <Box style={{...inner, ...fillStyle, width: `${Math.max(0, Math.min(1, ratio)) * 100}%`}} />
   </Box>
 )

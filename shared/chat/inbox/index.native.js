@@ -206,7 +206,7 @@ class Inbox extends React.PureComponent<Props, State> {
             ref={this._setRef}
             onViewableItemsChanged={this._onViewChanged}
             initialNumToRender={this._maxVisible}
-            windowSize={this._maxVisible}
+            windowSize={3}
             getItemLayout={this._getItemLayout}
           />
           {noChats}
