@@ -9,7 +9,6 @@
 #import "KBEnvConfig.h"
 
 #import "KBDefines.h"
-#import "KBEnvironment.h"
 #import "KBPath.h"
 #import <Tikppa/Tikppa.h>
 
@@ -37,28 +36,10 @@
 - (instancetype)initWithRunMode:(KBRunMode)runMode {
   if ((self = [super init])) {
     _runMode = runMode;
-
-    // Read the mount point from the config file if possible.  NOTE:
-    // if you change this default, you must also change the default
-    // for darwin in the `GetMountDir` function of `libkb/env.go`.
-    NSString *defaultMountDir = [self dataPath:@"fs" options:0];
-    NSString *mountDir = defaultMountDir;
-    NSData *data = [NSData dataWithContentsOfFile:[self dataPath:@"config.json" options:0]];
-    if (data) {
-      NSError *err = nil;
-      NSDictionary *appConfig = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&err];
-      if (!err) {
-        id obj = [appConfig valueForKeyPath:@"mountdir"];
-        if (obj) {
-          mountDir = (NSString *)obj;
-        }
-      }
-    }
-
     switch (_runMode) {
       case KBRunModeProd: {
         self.title = @"Keybase.io";
-        self.mountDir = mountDir;
+        self.mountDir = [KBPath path:@"/keybase" options:0];
         self.debugEnabled = YES;
         self.info = @"Uses keybase.io";
         self.image = [NSImage imageNamed:NSImageNameNetwork];
@@ -66,7 +47,7 @@
       }
       case KBRunModeStaging: {
         self.title = @"Staging";
-        self.mountDir = mountDir;
+        self.mountDir = [KBPath path:@"/keybase.staging" options:0];
         self.debugEnabled = YES;
         self.info = @"Uses staging server.";
         self.image = [NSImage imageNamed:NSImageNameNetwork];
@@ -74,7 +55,7 @@
       }
       case KBRunModeDevel: {
         self.title = @"Devel";
-        self.mountDir = mountDir;
+        self.mountDir = [KBPath path:@"/keybase.devel" options:0];
         self.debugEnabled = YES;
         self.info = @"Uses the local web server.";
         self.image = [NSImage imageNamed:NSImageNameComputer];
@@ -253,14 +234,6 @@
     case KBRunModeDevel: return @"keybase.updater.devel";
     case KBRunModeStaging: return @"keybase.updater.staging";
     case KBRunModeProd: return @"keybase.updater";
-  }
-}
-
-- (NSString *)rootMountSymlink {
-  switch (_runMode) {
-    case KBRunModeDevel: return @"/keybase.devel";
-    case KBRunModeStaging: return @"/keybase.staging";
-    case KBRunModeProd: return @"/keybase";
   }
 }
 

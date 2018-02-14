@@ -74,7 +74,6 @@ typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
 - (NSString *)launchdServiceLabel;
 - (NSString *)launchdKBFSLabel;
 - (NSString *)launchdUpdaterLabel;
-- (NSString *)rootMountSymlink;
 
 - (BOOL)isInApplications:(NSString *)path;
 - (BOOL)isInUserApplications:(NSString *)path;
