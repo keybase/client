@@ -41,7 +41,7 @@
     // Read the mount point from the config file if possible.  NOTE:
     // if you change this default, you must also change the default
     // for darwin in the `GetMountDir` function of `libkb/env.go`.
-    NSString *defaultMountDir = [self homePath:[[self appNameWithDot] lowercaseString] options:0];
+    NSString *defaultMountDir = [self dataPath:@"fs" options:0];
     NSString *mountDir = defaultMountDir;
     NSData *data = [NSData dataWithContentsOfFile:[self dataPath:@"config.json" options:0]];
     if (data) {
@@ -126,16 +126,6 @@
 - (NSString *)appName {
   if (_runMode == KBRunModeProd) return @"Keybase";
   else return NSStringWithFormat(@"Keybase%@", NSStringFromKBRunMode(_runMode, NO));
-}
-
-- (NSString *)appNameWithDot {
-  if (_runMode == KBRunModeProd) return @"Keybase";
-  else return NSStringWithFormat(@"Keybase.%@", NSStringFromKBRunMode(_runMode, NO));
-}
-
-- (NSString *)homePath:(NSString *)filename options:(KBPathOptions)options {
-  NSString *homeDir = self.homeDir;
-  return [KBPath pathInDir:homeDir path:filename options:options];
 }
 
 - (NSString *)dataPath:(NSString *)filename options:(KBPathOptions)options {
