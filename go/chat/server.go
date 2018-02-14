@@ -2670,7 +2670,14 @@ func (h *Server) GetSearchRegexp(ctx context.Context, arg chat1.GetSearchRegexpA
 		return res, err
 	}
 
-	re, err := regexp.Compile(arg.Query)
+	var re *regexp.Regexp
+	if arg.IsRegex {
+		re, err = regexp.Compile(arg.Query)
+	} else {
+		// String queries are set case insensitive
+		re, err = regexp.Compile("(?i)" + regexp.QuoteMeta(arg.Query))
+	}
+
 	if err != nil {
 		return res, err
 	}

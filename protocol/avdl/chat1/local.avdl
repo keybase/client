@@ -790,5 +790,5 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  GetSearchRegexpRes getSearchRegexp(int sessionID, ConversationID conversationID, string query, int maxHits, int maxMessages, keybase1.TLFIdentifyBehavior identifyBehavior);
+  GetSearchRegexpRes getSearchRegexp(int sessionID, ConversationID conversationID, string query, boolean isRegex, int maxHits, int maxMessages, keybase1.TLFIdentifyBehavior identifyBehavior);
 }

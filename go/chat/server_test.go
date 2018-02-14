@@ -3692,10 +3692,11 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 			}
 		}
 
-		search := func(query string, maxHits int, maxMessages int) chat1.GetSearchRegexpRes {
+		search := func(query string, maxHits int, maxMessages int, isRegex bool) chat1.GetSearchRegexpRes {
 			res, err := tc.chatLocalHandler().GetSearchRegexp(tc.startCtx, chat1.GetSearchRegexpArg{
 				ConversationID: conv.Id,
 				Query:          query,
+				IsRegex:        isRegex,
 				MaxHits:        maxHits,
 				MaxMessages:    maxMessages,
 			})
@@ -3703,20 +3704,21 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 			return res
 		}
 
+		isRegex := false
 		maxHits := 1
 		maxMessages := 1000
 		// Test basic equality match
 		query := "hi"
 		msgBody := "hi"
 		messageID := sendMessage(msgBody)
-		res := search(query, maxHits, maxMessages)
+		res := search(query, maxHits, maxMessages, isRegex)
 		require.Equal(t, len(res.Hits), 1)
 		verifyHit(nullMessageID, messageID, nullMessageID, []string{msgBody}, res.Hits[0])
 		verifySearchDone(1)
 
 		// Test basic no results
 		query = "hey"
-		res = search(query, maxHits, maxMessages)
+		res = search(query, maxHits, maxMessages, isRegex)
 		require.Equal(t, len(res.Hits), 0)
 		verifySearchDone(0)
 
@@ -3724,55 +3726,67 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 		maxHits = 1
 		query = "hi"
 		messageID1 := sendMessage(msgBody)
-		res = search(query, maxHits, maxMessages)
+		res = search(query, maxHits, maxMessages, isRegex)
 		require.Equal(t, len(res.Hits), 1)
 		verifyHit(messageID, messageID1, nullMessageID, []string{msgBody}, res.Hits[0])
 		verifySearchDone(1)
 
 		maxHits = 5
-		res = search(query, maxHits, maxMessages)
+		res = search(query, maxHits, maxMessages, isRegex)
 		require.Equal(t, len(res.Hits), 2)
 		verifyHit(messageID, messageID1, nullMessageID, []string{msgBody}, res.Hits[0])
 		verifyHit(nullMessageID, messageID, messageID1, []string{msgBody}, res.Hits[1])
 		verifySearchDone(2)
 
 		messageID2 := sendMessage(msgBody)
-		res = search(query, maxHits, maxMessages)
+		res = search(query, maxHits, maxMessages, isRegex)
 		require.Equal(t, len(res.Hits), 3)
 		verifyHit(messageID1, messageID2, nullMessageID, []string{msgBody}, res.Hits[0])
 		verifyHit(messageID, messageID1, messageID2, []string{msgBody}, res.Hits[1])
 		verifyHit(nullMessageID, messageID, messageID1, []string{msgBody}, res.Hits[2])
 		verifySearchDone(3)
 
+		// Test regex functionality
+		isRegex = true
+
 		// Test utf8
 		msgBody = `约书亚和约翰屌爆了`
 		query = `约.*`
 		messageID3 := sendMessage(msgBody)
-		res = search(query, maxHits, maxMessages)
+		res = search(query, maxHits, maxMessages, isRegex)
 		require.Equal(t, len(res.Hits), 1)
 		verifyHit(messageID2, messageID3, nullMessageID, []string{msgBody}, res.Hits[0])
 		verifySearchDone(1)
 
-		// Test regex functionality
 		query = "h.*"
 		lowercase := "abcdefghijklmnopqrstuvwxyz"
 		for _, char := range lowercase {
 			sendMessage("h." + string(char))
 		}
 		maxHits = len(lowercase)
-		res = search(query, maxHits, maxMessages)
+		res = search(query, maxHits, maxMessages, isRegex)
 		require.Equal(t, len(res.Hits), maxHits)
 		verifySearchDone(maxHits)
 
 		query = `h\..*`
-		res = search(query, maxHits, maxMessages)
+		res = search(query, maxHits, maxMessages, isRegex)
 		require.Equal(t, len(res.Hits), maxHits)
 		verifySearchDone(maxHits)
 
 		// Test maxMessages
 		maxMessages = 2
-		res = search(query, maxHits, maxMessages)
+		res = search(query, maxHits, maxMessages, isRegex)
 		require.Equal(t, len(res.Hits), maxMessages)
 		verifySearchDone(maxMessages)
+
+		// Test invalid regex
+		_, err := tc.chatLocalHandler().GetSearchRegexp(tc.startCtx, chat1.GetSearchRegexpArg{
+			ConversationID: conv.Id,
+			Query:          "(",
+			IsRegex:        true,
+			MaxHits:        0,
+			MaxMessages:    0,
+		})
+		require.Error(t, err)
 	})
 }

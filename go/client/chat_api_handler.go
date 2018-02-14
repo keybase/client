@@ -266,22 +266,27 @@ func (o markOptionsV1) Check() error {
 	return checkChannelConv(methodMark, o.Channel, o.ConversationID)
 }
 
-type searchOptionsV1 struct {
+type searchRegexpOptionsV1 struct {
 	Channel        ChatChannel
 	ConversationID string `json:"conversation_id"`
 	Query          string `json:"query"`
+	IsRegex        bool   `json:"is_regex"`
 	MaxHits        int    `json:"max_hits"`
 	MaxMessages    int    `json:"max_messages"`
 }
 
-func (o searchOptionsV1) Check() error {
+func (o searchRegexpOptionsV1) Check() error {
 	if err := checkChannelConv(methodSearchRegexp, o.Channel, o.ConversationID); err != nil {
 		return err
 	}
 	if o.Query == "" {
 		return errors.New("query required")
 	}
-	if _, err := regexp.Compile(o.Query); err != nil {
+	query := o.Query
+	if !o.IsRegex {
+		query = regexp.QuoteMeta(o.Query)
+	}
+	if _, err := regexp.Compile(query); err != nil {
 		return err
 	}
 	return nil
@@ -444,7 +449,7 @@ func (a *ChatAPI) SearchRegexpV1(ctx context.Context, c Call, w io.Writer) error
 	if len(c.Params.Options) == 0 {
 		return ErrInvalidOptions{version: 1, method: methodSearchRegexp, err: errors.New("empty options")}
 	}
-	var opts searchOptionsV1
+	var opts searchRegexpOptionsV1
 	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
 		return err
 	}
