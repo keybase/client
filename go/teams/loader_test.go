@@ -834,7 +834,7 @@ func TestRotateSubteamByExplicitReader(t *testing.T) {
 }
 
 // TestLoaderCORE_7201 tests a case that came up.
-// A user had trouble loading A.B because it was stuck in a secretless in the cache.
+// A user had trouble loading A.B because the cached object was stuck as secretless.
 // U1 is an   ADMIN in A
 // U1 is only IMP implicitly in A.B
 // U1 is a    WRITER in A.B.C
