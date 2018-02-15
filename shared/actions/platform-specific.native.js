@@ -10,27 +10,10 @@ import {isDevApplePushToken} from '../local-debug'
 import {isIOS} from '../constants/platform'
 import {isImageFileName} from '../constants/chat'
 
-const allowPush = 'allowPush'
 const shownPushPrompt = 'shownPushPrompt'
 
 function requestPushPermissions(): Promise<*> {
   return PushNotifications.requestPermissions()
-}
-
-function setNoPushPermissions(): Promise<*> {
-  return new Promise((resolve, reject) => {
-    AsyncStorage.setItem(allowPush, 'false', e => {
-      resolve()
-    })
-  })
-}
-
-function setYesPushPermissions(): Promise<*> {
-  return new Promise((resolve, reject) => {
-    AsyncStorage.setItem(allowPush, 'true', e => {
-      resolve()
-    })
-  })
 }
 
 // Sets that we've shown the push prompt in local storage
@@ -209,8 +192,6 @@ export {
   showMainWindow,
   configurePush,
   saveAttachmentDialog,
-  setNoPushPermissions,
-  setYesPushPermissions,
   setShownPushPrompt,
   getShownPushPrompt,
   showShareActionSheet,

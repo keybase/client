@@ -16,7 +16,6 @@ import {
   configurePush,
   displayNewMessageNotification,
   clearAllNotifications,
-  setNoPushPermissions,
   setShownPushPrompt,
   getShownPushPrompt,
   openAppSettings,
@@ -29,7 +28,6 @@ const deviceIDSelector = ({config: {deviceID}}: TypedState) => deviceID
 
 function permissionsNoSaga() {
   return Saga.sequentially([
-    Saga.call(setNoPushPermissions),
     Saga.put(PushGen.createPermissionsRequesting({requesting: false})),
     Saga.put(PushGen.createPermissionsPrompt({prompt: false})),
   ])
