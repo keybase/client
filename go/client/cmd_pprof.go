@@ -26,7 +26,7 @@ type CmdPprofTrace struct {
 func (c *CmdPprofTrace) ParseArgv(ctx *cli.Context) error {
 	args := ctx.Args()
 	argErr := errors.New("Trace needs a single file path or --log, and not both")
-	writeToLogDir := ctx.Bool("Log")
+	writeToLogDir := ctx.Bool("log")
 	if len(args) == 0 && writeToLogDir {
 		c.writeToLogDir = true
 	} else if len(args) == 1 && !writeToLogDir {
