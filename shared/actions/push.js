@@ -1,10 +1,12 @@
 // @flow
 import logger from '../logger'
+import * as AppGen from './app-gen'
 import * as ChatGen from './chat-gen'
 import * as PushGen from './push-gen'
 import * as ChatTypes from '../constants/types/rpc-chat-gen'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
+import * as SettingsGen from './settings-gen'
 import {isMobile, isIOS} from '../constants/platform'
 import {chatTab} from '../constants/tabs'
 import {switchTo} from './route-tree'
@@ -31,6 +33,7 @@ function permissionsNoSaga() {
     Saga.call(setNoPushPermissions),
     Saga.put(PushGen.createPermissionsRequesting({requesting: false})),
     Saga.put(PushGen.createPermissionsPrompt({prompt: false})),
+    Saga.put(SettingsGen.createCalculateSettingsBadge()),
   ])
 }
 
@@ -198,13 +201,11 @@ function* checkIOSPushSaga(): Saga.SagaGenerator<any, any> {
     // we've definitely already prompted, set it in local storage
     // to handle previous users who have notifications on
     logger.debug('We missed setting shownPushPrompt in local storage, setting now')
-    yield Saga.all([
-      Saga.call(setShownPushPrompt),
-      Saga.put(PushGen.createSetHasPermissions({hasPermissions: true})),
-    ])
+    yield Saga.call(setShownPushPrompt)
   }
   if (!permissions.alert && !permissions.badge) {
     logger.info('Badge and alert permissions are disabled; showing prompt')
+    yield Saga.put(PushGen.createSetHasPermissions({hasPermissions: false}))
     yield Saga.put(
       PushGen.createPermissionsPrompt({
         prompt: true,
@@ -215,6 +216,7 @@ function* checkIOSPushSaga(): Saga.SagaGenerator<any, any> {
     logger.info('Badge or alert permissions are enabled')
     yield Saga.put(PushGen.createSetHasPermissions({hasPermissions: true}))
   }
+  yield Saga.put(SettingsGen.createCalculateSettingsBadge())
 }
 
 function* deletePushTokenSaga(): Saga.SagaGenerator<any, any> {
@@ -243,6 +245,26 @@ function* deletePushTokenSaga(): Saga.SagaGenerator<any, any> {
   }
 }
 
+function* _mobileAppState(action: AppGen.MobileAppStatePayload) {
+  const nextAppState = action.payload.nextAppState
+  if (nextAppState === 'active') {
+    const permissions = yield Saga.call(checkPermissions)
+    if (permissions.alert || permissions.badge) {
+      logger.info('Push permissions are ON')
+      yield Saga.all([
+        Saga.put(PushGen.createSetHasPermissions({hasPermissions: true})),
+        Saga.put(SettingsGen.createCalculateSettingsBadge()),
+      ])
+    } else {
+      logger.info('Push permissions are OFF')
+      yield Saga.all([
+        Saga.put(PushGen.createSetHasPermissions({hasPermissions: false})),
+        Saga.put(SettingsGen.createCalculateSettingsBadge()),
+      ])
+    }
+  }
+}
+
 function* pushSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeLatest(PushGen.permissionsRequest, permissionsRequestSaga)
   yield Saga.safeTakeLatestPure(PushGen.permissionsNo, permissionsNoSaga)
@@ -251,6 +273,7 @@ function* pushSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeLatest(PushGen.configurePush, configurePushSaga)
   yield Saga.safeTakeEvery(PushGen.checkIOSPush, checkIOSPushSaga)
   yield Saga.safeTakeEvery(PushGen.notification, pushNotificationSaga)
+  yield Saga.safeTakeEvery(AppGen.mobileAppState, _mobileAppState)
 }
 
 export default pushSaga

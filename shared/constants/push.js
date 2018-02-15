@@ -12,5 +12,5 @@ export const initialState: Types.State = {
   permissionsRequesting: false,
   tokenType: null,
   token: '',
-  hasPermissions: false,
+  hasPermissions: true,
 }
