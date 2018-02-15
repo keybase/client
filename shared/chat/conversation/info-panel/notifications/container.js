@@ -5,7 +5,14 @@ import * as Constants from '../../../../constants/chat'
 import * as Types from '../../../../constants/types/chat'
 import * as ChatGen from '../../../../actions/chat-gen'
 import {Notifications} from '.'
-import {compose, connect, type TypedState, lifecycle, type Dispatch} from '../../../../util/container'
+import {
+  compose,
+  connect,
+  type TypedState,
+  lifecycle,
+  setDisplayName,
+  type Dispatch,
+} from '../../../../util/container'
 import {type DeviceType} from '../../../../constants/types/devices'
 
 type StateProps = {
@@ -99,9 +106,11 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
     mobile: stateProps.mobile,
     muted: stateProps.muted,
     saveState: stateProps.saveState,
-    onMuteConversation: (muted: boolean) => {
-      dispatchProps._onMuteConversation(convKey, muted)
-    },
+    onMuteConversation: !Constants.isPendingConversationIDKey(convKey)
+      ? (muted: boolean) => {
+          dispatchProps._onMuteConversation(convKey, muted)
+        }
+      : null,
     onSetDesktop: (notifyType: Types.NotifyType) => {
       dispatchProps._onSetNotification(convKey, 'desktop', notifyType)
     },
@@ -116,6 +125,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
 
 const ConnectedNotifications = compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  setDisplayName('LifecycleNotifications'),
   lifecycle({
     componentDidMount() {
       this.props._resetSaveState()

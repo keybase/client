@@ -1,12 +1,12 @@
 // @flow
 import * as I from 'immutable'
 import * as React from 'react'
-import * as Types from '../../../constants/types/teams'
-import * as TeamsGen from '../../../actions/teams-gen'
+import * as Types from '../../../../constants/types/teams'
+import * as TeamsGen from '../../../../actions/teams-gen'
 import {TeamMemberRow} from '.'
-import {amIFollowing} from '../../../constants/selectors'
-import {navigateAppend} from '../../../actions/route-tree'
-import {connect, type TypedState} from '../../../util/container'
+import {amIFollowing} from '../../../../constants/selectors'
+import {navigateAppend} from '../../../../actions/route-tree'
+import {connect, type TypedState} from '../../../../util/container'
 
 type OwnProps = {
   active: boolean,

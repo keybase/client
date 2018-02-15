@@ -4,6 +4,7 @@ import configSaga from '../actions/config'
 import createSagaMiddleware from 'redux-saga'
 import deviceSaga from '../actions/devices'
 import favoriteSaga from '../actions/favorite'
+import fsSaga from '../actions/fs'
 import gregorSaga from '../actions/gregor'
 import kbfsSaga from '../actions/kbfs'
 import loginSaga from '../actions/login'
@@ -33,6 +34,7 @@ function* mainSaga(): SagaGenerator<any, any> {
   yield fork(configSaga)
   yield fork(deviceSaga)
   yield fork(favoriteSaga)
+  yield fork(fsSaga)
   yield fork(gregorSaga)
   yield fork(kbfsSaga)
   yield fork(loginSaga)

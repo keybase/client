@@ -9,7 +9,9 @@ export default function(state: Types.State = initialState, action: FSGen.Actions
   switch (action.type) {
     case FSGen.resetStore:
       return initialState
-    case FSGen.increaseCount:
+    case FSGen.folderListLoaded:
+      return state.mergeIn(['pathItems'], action.payload.pathItems)
+    case FSGen.folderListLoad:
       return state
     default:
       // eslint-disable-next-line no-unused-expressions

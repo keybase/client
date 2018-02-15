@@ -22,6 +22,7 @@
     <Feature Id="ProductFeature" Title="Keybase Application" Level="1">
       <ComponentGroupRef Id="ProductComponents" />
       <ComponentGroupRef Id="GuiComps" />
+      <ComponentRef Id="GUIShortCutComponent" />
       <ComponentGroupRef Id="StartupShortcuts" />
       <ComponentGroupRef Id="GuiStartMenuTileColors" />
       <ComponentGroupRef Id="BrowserExtensionKbnm" />
@@ -30,11 +31,12 @@
 
     <InstallExecuteSequence>
       <InstallValidate Suppress="yes">FAKE_PROPERTY</InstallValidate>
-      <Custom Action="StopMainApp" Before="StopUpdater"><![CDATA[Installed OR WIX_UPGRADE_DETECTED]]></Custom>
-      <Custom Action="StopUpdater" Before="StopGUI"><![CDATA[Installed OR WIX_UPGRADE_DETECTED]]></Custom>
-      <Custom Action="RemoveBrowserExtension" Before="InstallValidate"><![CDATA[Installed OR WIX_UPGRADE_DETECTED]]></Custom>
+      <Custom Action="StopMainApp" Before="StopUpdater"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
+      <Custom Action="StopUpdater" Before="StopGUI"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
+      <Custom Action="RemoveBrowserExtension" Before="InstallValidate"><![CDATA[Installed]]></Custom>
+      <Custom Action="RemoveGUIStartupShortcut" Before="InstallValidate"><![CDATA[REMOVE ~= "ALL" AND NOT (UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED)]]></Custom>
       <!-- StopGUI is legacy and to be removed after enough people are updated -->
-      <Custom Action="StopGUI" Before="InstallValidate"><![CDATA[Installed OR WIX_UPGRADE_DETECTED]]></Custom>
+      <Custom Action="StopGUI" Before="InstallValidate"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
       <Custom Action="RunMainApp" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
       <Custom Action="RunGUI" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
       <Custom Action="AddBrowserExtension" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
@@ -148,10 +150,6 @@
           <RegistryValue Name="ShortCutStartUp" Type="integer" Value="1" KeyPath="yes"  />
         </RegistryKey>
       </Component>
-      <Component Id="GUIShortCutStartUpComponent" Guid="804f1054-a702-47f2-8da2-17ab4ea67877">
-        <CreateFolder />
-        <RemoveFile Id="RemoveGUIStartupLink" Directory="StartupFolder" Name="GUIStartup.lnk" On="uninstall" />
-      </Component>
     </ComponentGroup>    
   </Fragment>
   <Fragment>
@@ -181,6 +179,17 @@
 
     </ComponentGroup>
   </Fragment>
+  <Fragment>
+    <Component Id="GUIShortCutComponent" Guid="{95AB14DC-1529-423E-A20C-C0A8C63AF94E}" Directory="ProgramMenuFolder">
+      <Shortcut Id="GUIShortCut"
+                Name="Keybase"
+                Description="Start GUI"
+                Target="[GuiDir]Keybase.exe"
+                WorkingDirectory="GuiDir"/>
+      <RegistryValue Root="HKCU" Key="Software\Keybase\Keybase" Name="ShortCutGUI" Type="integer" Value="1" KeyPath="yes"/>
+    </Component>
+  </Fragment>
+
   <Fragment>
     <CustomAction Id="RunMainApp"
               Directory="INSTALLFOLDER"
@@ -231,4 +240,18 @@
               Execute="immediate"
               Return="ignore"/>
   </Fragment>
+  <Fragment>
+    <CustomAction Id="RemoveGUIStartupShortcut"
+                  Script="vbscript">
+      <![CDATA[
+        const HKCU = &H80000001
+        strComputer = "."
+        Set oReg=GetObject("winmgmts:{impersonationLevel=impersonate}!\\" & strComputer & "\root\default:StdRegProv")
+        strKeyPath = "SOFTWARE\Microsoft\Windows\CurrentVersion\Run"
+        strValueName = "electron.app.Keybase"
+        oReg.DeleteValue HKCU,strKeyPath,strValueName
+      ]]>
+    </CustomAction>
+  </Fragment>  
+
 </Wix>

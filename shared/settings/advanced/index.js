@@ -7,7 +7,9 @@ type Props = {
   openAtLogin: boolean,
   onSetOpenAtLogin: (open: boolean) => void,
   onDBNuke: () => void,
+  onTrace: (durationSeconds: number) => void,
   onBack: () => void,
+  traceInProgress: boolean,
 }
 
 const Advanced = (props: Props) => (
@@ -33,11 +35,36 @@ const Advanced = (props: Props) => (
         />
       </Box>
     )}
-    <DBNuke {...props} />
+    <Developer {...props} />
   </Box>
 )
 
-function DBNuke(props: Props) {
+type TraceButtonProps = {
+  durationSeconds: number,
+  traceInProgress: boolean,
+  onTrace: (durationSeconds: number) => void,
+}
+
+class TraceButton extends React.Component<TraceButtonProps> {
+  _onClick = () => {
+    this.props.onTrace(this.props.durationSeconds)
+  }
+
+  render() {
+    const label = `Trace (${this.props.durationSeconds}s)`
+    return (
+      <Button
+        disabled={this.props.traceInProgress}
+        style={{marginTop: globalMargins.small}}
+        type="Danger"
+        label={label}
+        onClick={this._onClick}
+      />
+    )
+  }
+}
+
+function Developer(props: Props) {
   return (
     <Box
       style={{
@@ -60,6 +87,7 @@ function DBNuke(props: Props) {
         label="DB Nuke"
         onClick={props.onDBNuke}
       />
+      <TraceButton durationSeconds={30} onTrace={props.onTrace} traceInProgress={props.traceInProgress} />
       <Box style={{flex: 1}} />
     </Box>
   )

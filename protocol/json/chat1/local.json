@@ -2864,6 +2864,13 @@
         {
           "name": "identifyBehavior",
           "type": "keybase1.TLFIdentifyBehavior"
+        },
+        {
+          "name": "outboxID",
+          "type": [
+            null,
+            "OutboxID"
+          ]
         }
       ],
       "response": "PostLocalRes"
@@ -2908,6 +2915,13 @@
         {
           "name": "identifyBehavior",
           "type": "keybase1.TLFIdentifyBehavior"
+        },
+        {
+          "name": "outboxID",
+          "type": [
+            null,
+            "OutboxID"
+          ]
         }
       ],
       "response": "PostLocalRes"
@@ -3290,6 +3304,10 @@
         {
           "name": "query",
           "type": "string"
+        },
+        {
+          "name": "isRegex",
+          "type": "boolean"
         },
         {
           "name": "maxHits",

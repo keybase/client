@@ -217,35 +217,7 @@ export default class AppState {
   }
 
   setWinLoginState() {
-    // Note that setLoginItemSettings uses the registry. We use a .lnk file
-    // because it is easier for the installer to remove on uninstall.
-    if (!process.env.APPDATA) {
-      throw new Error('APPDATA unexpectedly empty')
-    }
-    const appDataPath = '' + process.env.APPDATA
-    const linkpath = path.join(
-      appDataPath,
-      'Microsoft\\Windows\\Start Menu\\Programs\\Startup\\GUIStartup.lnk'
-    )
-    if (this.state.openAtLogin) {
-      if (!fs.existsSync(linkpath)) {
-        var ws = require('windows-shortcuts')
-        if (!process.env.APPDATA) {
-          throw new Error('APPDATA unexpectedly empty')
-        }
-        ws.create(linkpath, path.join(appDataPath, 'Keybase\\gui\\Keybase.exe'))
-      }
-    } else {
-      if (fs.existsSync(linkpath)) {
-        fs.unlink(linkpath, err => {
-          if (err) {
-            console.log('An error occurred unlinking the shortcut ' + err.message)
-          }
-        })
-      } else {
-        console.log("Keybase.lnk file doesn't exist, cannot delete")
-      }
-    }
+    app.setLoginItemSettings({openAtLogin: !!this.state.openAtLogin})
   }
 
   manageWindow(win: any) {

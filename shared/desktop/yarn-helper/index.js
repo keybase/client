@@ -33,7 +33,6 @@ const commands = {
       makeShims(['net', 'tls', 'msgpack'])
       if (process.platform !== 'win32') {
         makeShims(['regedit'])
-        makeShims(['windows-shortcuts'])
       }
     },
     help: 'all: install global eslint. dummy modules',

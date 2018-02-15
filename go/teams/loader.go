@@ -386,7 +386,6 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	} else if !l.hasSyncedSecrets(ret) {
 		// The cached secrets are behind the cached chain.
 		// We may need to hit the server for secrets, even though there are no new links.
-
 		if arg.needAdmin {
 			l.G().Log.CDebugf(ctx, "TeamLoader fetching: NeedAdmin")
 			// Admins should always have up-to-date secrets
@@ -401,16 +400,10 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 			fetchLinksAndOrSecrets = true
 		}
 		if arg.readSubteamID == nil {
-			// This is not a recursive load.
-			// If we are in the team, we should have the keys.
-			myCachedRole, err := TeamSigChainState{ret.Chain}.GetUserRole(arg.me)
-			if err != nil {
-				myCachedRole = keybase1.TeamRole_NONE
-			}
-			if myCachedRole.IsReaderOrAbove() {
-				l.G().Log.CDebugf(ctx, "TeamLoader fetching: role: %v", myCachedRole)
-				fetchLinksAndOrSecrets = true
-			}
+			// This is not a recursive load. We should have the keys.
+			// This may be an extra round trip for public teams you're not in.
+			l.G().Log.CDebugf(ctx, "TeamLoader fetching: primary load")
+			fetchLinksAndOrSecrets = true
 		}
 	}
 
