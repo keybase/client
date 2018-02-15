@@ -12,13 +12,16 @@ type OwnProps = {
 
 type StateProps = {
   path: Types.Path,
-  items: I.List<Types.PathItem>,
+  itemNames: I.List<string>,
   progress: Types.ProgressType,
   sortSetting: Types.SortSetting,
+  username?: string,
+  pathItems: I.Map<Types.Path, Types.PathItem>,
 }
 
+type _sortSettingSetter = (setting: Types._SortSetting) => void
 type DispatchProps = {
-  _sortSettingChangeFactory: (path: Types.Path) => (setting: Types._SortSetting) => void,
+  _sortSettingChangeFactory: (path: Types.Path) => _sortSettingSetter,
 }
 
 const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
@@ -27,11 +30,10 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
   const itemDetail = state.fs.pathItems.get(path)
   const itemNames =
     itemDetail && itemDetail.type === 'folder' ? itemDetail.get('children', I.List()) : I.List()
-  const items: I.List<Types.PathItem> = itemNames
-    .map(name => Types.pathConcat(path, name))
-    .map(p => state.fs.pathItems.get(p, Constants.makeUnknownPathItem())) // provide an unknown default to make flow happy
   const progress: Types.ProgressType = itemDetail ? itemDetail.progress : 'pending'
-  return {items, path, progress, sortSetting}
+  const username = state.config.username || undefined
+  const pathItems = state.fs.pathItems
+  return {itemNames, path, progress, sortSetting, username, pathItems}
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
@@ -40,18 +42,41 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(FsGen.createSortSetting({path: path, sortSetting: Constants.makeSortSetting(setting)})),
 })
 
+const _getToggles = (sortSetting: Types.SortSetting, sortSettingChange: _sortSettingSetter) => {
+  const nextBy = sortSetting.sortBy === 'name' ? 'time' : sortSetting.sortBy === 'time' ? 'size' : 'name'
+  const nextOrder = sortSetting.sortOrder === 'asc' ? 'desc' : 'asc'
+  return {
+    toggleSortBy: () =>
+      sortSettingChange({
+        sortBy: nextBy,
+        sortOrder: sortSetting.sortOrder,
+      }),
+    toggleSortOrder: () =>
+      sortSettingChange({
+        sortBy: sortSetting.sortBy,
+        sortOrder: nextOrder,
+      }),
+  }
+}
+
 const mergeProps = (
-  {path, items, progress, sortSetting}: StateProps,
+  {path, itemNames, progress, sortSetting, pathItems, username}: StateProps,
   {_sortSettingChangeFactory, ...dispatchProps}: DispatchProps,
   ownProps
 ) => ({
-  items: Constants.sortPathItems(items, sortSetting)
+  items: Constants.sortPathItems(
+    itemNames
+      .map(name => Types.pathConcat(path, name))
+      .map(p => pathItems.get(p, Constants.makeUnknownPathItem())), // provide an unknown default to make flow happy
+    sortSetting,
+    Types.pathIsNonTeamTLFList(path) ? username : undefined
+  )
     .map(({name}) => Types.pathConcat(path, name))
     .toArray(),
   progress,
   path,
   sortSetting,
-  onSortSettingChange: _sortSettingChangeFactory(path),
+  ..._getToggles(sortSetting, _sortSettingChangeFactory(path)),
   /* TODO: enable these once we need them:
   name: Types.getPathName(stateProps.path),
   visibility: Types.getPathVisibility(stateProps.path),

@@ -43,7 +43,6 @@ export type SortOrder = 'asc' | 'desc'
 export type _SortSetting = {
   sortBy: SortBy,
   sortOrder: SortOrder,
-  // TODO: what if we want /keybase/private/me to be first?
 }
 export type SortSetting = I.RecordOf<_SortSetting>
 
@@ -95,6 +94,9 @@ export const stringToPathType = (s: string): PathType => {
 export const pathTypeToString = (p: PathType): string => p
 export const pathConcat = (p: Path, s: string): Path =>
   p === '/' ? stringToPath('/' + s) : stringToPath(pathToString(p) + '/' + s)
+export const pathIsNonTeamTLFList = (p: Path): boolean =>
+  pathToString(p) === '/keybase/private' || pathToString(p) === '/keybase/public'
+
 export const sortByToString = (s: SortBy): string => {
   switch (s) {
     case 'name':
@@ -118,29 +120,41 @@ export const sortOrderToString = (s: SortOrder): string => {
 
 type PathItemComparer = (a: PathItem, b: PathItem) => number
 
-const _sortByToAscComparer = (s: SortBy): PathItemComparer => (a: PathItem, b: PathItem): number => {
+const _neutralComparer = (a: PathItem, b: PathItem): number => 0
+
+const _getMeFirstComparer = (meUsername: string): PathItemComparer => (a: PathItem, b: PathItem): number =>
+  a.name === meUsername ? -1 : b.name === meUsername ? 1 : 0
+
+const _folderFirstComparer: PathItemComparer = (a: PathItem, b: PathItem): number => {
   if (a.type === 'folder' && b.type !== 'folder') {
     return -1
   } else if (a.type !== 'folder' && b.type === 'folder') {
     return 1
   }
+  return 0
+}
 
-  switch (s) {
+export const _getSortByComparer = (sortBy: SortBy): PathItemComparer => {
+  switch (sortBy) {
     case 'name':
-      return a.name < b.name ? -1 : 1
+      return (a: PathItem, b: PathItem): number => a.name.localeCompare(b.name)
     case 'time':
-      return a.lastModifiedTimestamp - b.lastModifiedTimestamp
+      return (a: PathItem, b: PathItem): number =>
+        a.lastModifiedTimestamp - b.lastModifiedTimestamp || a.name.localeCompare(b.name)
     case 'size':
-      return a.size - b.size
+      return (a: PathItem, b: PathItem): number => a.size - b.size || a.name.localeCompare(b.name)
     default:
-      throw new Error('invalid SortBy: ' + s)
+      throw new Error('invalid SortBy: ' + sortBy)
   }
 }
 
-const _sortByToDescComparer = (s: SortBy): PathItemComparer => {
-  const asc = _sortByToAscComparer(s)
-  return (a: PathItem, b: PathItem): number => -asc(a, b)
+export const sortSettingToCompareFunction = (
+  {sortBy, sortOrder}: SortSetting,
+  meUsername?: string
+): PathItemComparer => {
+  const meFirstComparer = meUsername ? _getMeFirstComparer(meUsername) : _neutralComparer
+  const sortByComparer = _getSortByComparer(sortBy)
+  const multiplier = sortOrder === 'desc' ? -1 : 1
+  return (a: PathItem, b: PathItem): number =>
+    multiplier * (meFirstComparer(a, b) || _folderFirstComparer(a, b) || sortByComparer(a, b))
 }
-
-export const sortSettingToCompareFunction = (setting: SortSetting): Function =>
-  setting.sortOrder === 'desc' ? _sortByToDescComparer(setting.sortBy) : _sortByToAscComparer(setting.sortBy)

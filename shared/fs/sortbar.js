@@ -1,45 +1,31 @@
 // @flow
 import * as React from 'react'
 import {globalStyles, globalColors, isMobile} from '../styles'
-import {Box, ClickableBox, Divider} from '../common-adapters'
-import * as Constants from '../constants/fs'
+import {Box, ClickableBox, Divider, Text} from '../common-adapters'
 import * as Types from '../constants/types/fs'
 
-export type OnSortSettingChange = (setting: Types._SortSetting) => void
-
 export type SortBarProps = {
-  onSortSettingChange: OnSortSettingChange,
+  toggleSortOrder: () => void,
+  toggleSortBy: () => void,
   sortSetting: Types._SortSetting,
 }
 
-export const SortBar = ({onSortSettingChange, sortSetting}: SortBarProps) => (
+export const SortBar = ({toggleSortBy, toggleSortOrder, sortSetting}: SortBarProps) => (
   <Box>
     <Divider />
     <Box style={stylesSortBar}>
-      Super Ugly Temporary SortBar:
-      <ClickableBox
-        onClick={() =>
-          onSortSettingChange(
-            Constants.makeSortSetting({
-              sortBy: sortSetting.sortBy,
-              sortOrder: sortSetting.sortOrder === 'asc' ? 'desc' : 'asc',
-            })
-          )
-        }
-        style={{marginLeft: '8px', color: 'red'}}
-      >
-        Click to change sort-order: {sortSetting.sortOrder}
+      <Text type="BodySmall" style={{marginLeft: '16px'}}>
+        Not-Super Ugly Temporary SortBar:
+      </Text>
+      <ClickableBox onClick={toggleSortOrder}>
+        <Text type="BodySmall" style={{marginLeft: '8px', color: 'red'}}>
+          Click to change sort-order: {sortSetting.sortOrder}
+        </Text>
       </ClickableBox>
-      <ClickableBox
-        onClick={() =>
-          onSortSettingChange({
-            sortBy: sortSetting.sortBy === 'name' ? 'time' : sortSetting.sortBy === 'time' ? 'size' : 'name',
-            sortOrder: sortSetting.sortOrder,
-          })
-        }
-        style={{marginLeft: '8px', color: 'blue'}}
-      >
-        Click to change sort-by: {sortSetting.sortBy}
+      <ClickableBox onClick={toggleSortBy}>
+        <Text type="BodySmall" style={{marginLeft: '8px', color: 'blue'}}>
+          Click to change sort-by: {sortSetting.sortBy}
+        </Text>
       </ClickableBox>
     </Box>
   </Box>

@@ -53,5 +53,6 @@ export const fsPathToRpcPathString = (p: Types.Path): string =>
 
 export const sortPathItems = (
   items: I.List<Types.PathItem>,
-  sortSetting: Types.SortSetting
-): I.List<Types.PathItem> => items.sort(Types.sortSettingToCompareFunction(sortSetting))
+  sortSetting: Types.SortSetting,
+  username?: string
+): I.List<Types.PathItem> => items.sort(Types.sortSettingToCompareFunction(sortSetting, username))

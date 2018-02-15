@@ -6,7 +6,7 @@ import {Box, ClickableBox, Icon, List, Text, Divider} from '../common-adapters'
 import {type IconType} from '../common-adapters/icon'
 import RowConnector from './row'
 import FolderHeader from './header'
-import {SortBar, type OnSortSettingChange} from './sortbar'
+import {SortBar} from './sortbar'
 
 const stylesCommonRow = {
   ...globalStyles.flexBoxRow,
@@ -39,7 +39,8 @@ type FolderProps = {
   items: Array<Types.Path>,
   path: Types.Path,
   progress: 'pending' | 'loaded',
-  onSortSettingChange: OnSortSettingChange,
+  toggleSortOrder: () => void,
+  toggleSortBy: () => void,
   sortSetting: Types._SortSetting,
 }
 
@@ -89,7 +90,7 @@ class Files extends React.PureComponent<FolderProps> {
   _renderRowPlaceholder = () => <FileRowPlaceholder />
 
   render() {
-    const {path, items, progress} = this.props
+    const {path, items, progress, toggleSortBy, toggleSortOrder, sortSetting} = this.props
     const list =
       progress === 'pending' ? (
         <List items={[null, null, null]} renderItem={this._renderRowPlaceholder} />
@@ -100,10 +101,7 @@ class Files extends React.PureComponent<FolderProps> {
       <Box style={styleOuterContainer}>
         <Box style={stylesContainer}>
           <FolderHeader path={path} />
-          <SortBar
-            onSortSettingChange={this.props.onSortSettingChange}
-            sortSetting={this.props.sortSetting}
-          />
+          <SortBar toggleSortBy={toggleSortBy} toggleSortOrder={toggleSortOrder} sortSetting={sortSetting} />
           {list}
         </Box>
       </Box>
