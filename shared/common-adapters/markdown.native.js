@@ -6,53 +6,13 @@ import Box from './box'
 import Emoji from './emoji'
 import Channel from './channel-container'
 import Mention from './mention-container'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+import {globalStyles, globalColors, globalMargins, styleSheetCreate} from '../styles'
 import {parseMarkdown, EmojiIfExists} from './markdown.shared'
 import {NativeClipboard} from './native-wrappers.native'
 import openURL from '../util/open-url'
 import {Alert} from 'react-native'
 
 import type {Props} from './markdown'
-
-const codeSnippetStyle = {
-  ...globalStyles.fontTerminal,
-  color: globalColors.blue,
-  fontSize: 13,
-  backgroundColor: globalColors.beige,
-  // FIXME not yet supported for nested <Text>:
-  // ...globalStyles.rounded,
-  // paddingLeft: globalMargins.xtiny,
-  // paddingRight: globalMargins.xtiny,
-}
-
-const codeSnippetBlockStyle = {
-  ...globalStyles.rounded,
-  backgroundColor: globalColors.beige,
-  marginBottom: globalMargins.xtiny,
-  marginTop: globalMargins.xtiny,
-  paddingBottom: globalMargins.xtiny,
-  paddingLeft: globalMargins.tiny,
-  paddingRight: globalMargins.tiny,
-  paddingTop: globalMargins.xtiny,
-}
-
-const codeSnippetBlockTextStyle = {
-  ...globalStyles.fontTerminal,
-  color: globalColors.black_75,
-}
-
-const quoteBlockStyle = {borderLeftColor: globalColors.lightGrey2, borderLeftWidth: 3, paddingLeft: 8}
-
-// The Text component adds default styles which we need to unset so that
-// styles applied to Markdown parent take effect. For instance, we need
-// to unset the default color applied by <Text type="body"> so that
-// <Markdown style={{color: ...}}> works.
-const neutralStyle = {color: undefined, fontWeight: undefined}
-const bigStyle = {fontSize: 32, lineHeight: undefined}
-const linkStyle = {fontWeight: undefined}
-const boldStyle = {color: undefined}
-const italicStyle = {color: undefined, fontStyle: 'italic', fontWeight: undefined}
-const strikeStyle = {color: undefined, fontWeight: undefined, textDecorationLine: 'line-through'}
 
 function previewCreateComponent(style) {
   return function(type, key, children, options) {
@@ -69,7 +29,7 @@ function previewCreateComponent(style) {
         return <Emoji emojiName={String(children)} size={12} key={key} />
       default:
         return (
-          <Text type="Body" key={key} lineClamp={1} style={[neutralStyle, style]}>
+          <Text type="Body" key={key} lineClamp={1} style={[styles.neutral, style]}>
             {children}
           </Text>
         )
@@ -98,14 +58,14 @@ function messageCreateComponent(style, allowFontScaling) {
         return <Box key={key}>{children}</Box>
       case 'inline-code':
         return (
-          <Text type="Body" key={key} style={codeSnippetStyle} allowFontScaling={allowFontScaling}>
+          <Text type="Body" key={key} style={styles.codeSnippet} allowFontScaling={allowFontScaling}>
             {children}
           </Text>
         )
       case 'code-block':
         return (
-          <Box key={key} style={codeSnippetBlockStyle}>
-            <Text type="Body" style={codeSnippetBlockTextStyle} allowFontScaling={allowFontScaling}>
+          <Box key={key} style={styles.codeSnippetBlock}>
+            <Text type="Body" style={styles.codeSnippetBlockText} allowFontScaling={allowFontScaling}>
               {children}
             </Text>
           </Box>
@@ -115,7 +75,7 @@ function messageCreateComponent(style, allowFontScaling) {
           <Text
             type="BodyPrimaryLink"
             key={key}
-            style={linkStyle}
+            style={styles.link}
             onClickURL={options.href}
             onLongPress={() => _urlChooseOption(options.href)}
             allowFontScaling={allowFontScaling}
@@ -128,7 +88,7 @@ function messageCreateComponent(style, allowFontScaling) {
           <Text
             type="Body"
             key={key}
-            style={[neutralStyle, style, options.big ? bigStyle : null]}
+            style={[styles.neutral, style, options.big ? styles.big : null]}
             allowFontScaling={allowFontScaling}
           >
             {children && children.length ? children : '\u200b'}
@@ -136,19 +96,19 @@ function messageCreateComponent(style, allowFontScaling) {
         )
       case 'bold':
         return (
-          <Text type="BodySemibold" key={key} style={boldStyle} allowFontScaling={allowFontScaling}>
+          <Text type="BodySemibold" key={key} style={styles.bold} allowFontScaling={allowFontScaling}>
             {children}
           </Text>
         )
       case 'italic':
         return (
-          <Text type="Body" key={key} style={italicStyle} allowFontScaling={allowFontScaling}>
+          <Text type="Body" key={key} style={styles.italic} allowFontScaling={allowFontScaling}>
             {children}
           </Text>
         )
       case 'strike':
         return (
-          <Text type="Body" key={key} style={strikeStyle} allowFontScaling={allowFontScaling}>
+          <Text type="Body" key={key} style={styles.strike} allowFontScaling={allowFontScaling}>
             {children}
           </Text>
         )
@@ -182,7 +142,7 @@ function messageCreateComponent(style, allowFontScaling) {
             name={name}
             convID={Types.stringToConversationIDKey(convID)}
             key={key}
-            style={linkStyle}
+            style={styles.link}
             allowFontScaling={allowFontScaling}
           />
         )
@@ -206,7 +166,7 @@ function messageCreateComponent(style, allowFontScaling) {
         )
       case 'quote-block':
         return (
-          <Box key={key} style={quoteBlockStyle}>
+          <Box key={key} style={styles.quoteBlock}>
             {children}
           </Box>
         )
@@ -234,5 +194,43 @@ class Markdown extends PureComponent<Props> {
     return content
   }
 }
+
+const styles = styleSheetCreate({
+  big: {fontSize: 32, lineHeight: undefined},
+  bold: {color: undefined},
+  codeSnippet: {
+    ...globalStyles.fontTerminal,
+    backgroundColor: globalColors.beige,
+    color: globalColors.blue,
+    fontSize: 13,
+    // FIXME not yet supported for nested <Text>:
+    // ...globalStyles.rounded,
+    // paddingLeft: globalMargins.xtiny,
+    // paddingRight: globalMargins.xtiny,
+  },
+  codeSnippetBlock: {
+    ...globalStyles.rounded,
+    backgroundColor: globalColors.beige,
+    marginBottom: globalMargins.xtiny,
+    marginTop: globalMargins.xtiny,
+    paddingBottom: globalMargins.xtiny,
+    paddingLeft: globalMargins.tiny,
+    paddingRight: globalMargins.tiny,
+    paddingTop: globalMargins.xtiny,
+  },
+  codeSnippetBlockText: {
+    ...globalStyles.fontTerminal,
+    color: globalColors.black_75,
+  },
+  italic: {color: undefined, fontStyle: 'italic', fontWeight: undefined},
+  // The Text component adds default styles which we need to unset so that
+  // styles applied to Markdown parent take effect. For instance, we need
+  // to unset the default color applied by <Text type="body"> so that
+  // <Markdown style={{color: ...}}> works.
+  link: {fontWeight: undefined},
+  neutral: {color: undefined, fontWeight: undefined},
+  quoteBlock: {borderLeftColor: globalColors.lightGrey2, borderLeftWidth: 3, paddingLeft: 8},
+  strike: {color: undefined, fontWeight: undefined, textDecorationLine: 'line-through'},
+})
 
 export default Markdown
