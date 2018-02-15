@@ -96,13 +96,15 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
         yield Saga.call(RPCTypes.appStateUpdateAppStateRpcPromise, {
           state: RPCTypes.appStateAppState.foreground,
         })
+        const conversationIDKey = ChatTypes.stringToConversationIDKey(convID)
         yield Saga.put(
           Chat2Gen.createSelectConversation({
-            conversationIDKey: ChatTypes.stringToConversationIDKey(convID),
+            conversationIDKey,
             fromUser: true,
           })
         )
-        yield Saga.put(switchTo([chatTab]))
+        yield Saga.put(switchTo([chatTab, 'conversation']))
+        yield Saga.put(Chat2Gen.createLoadMoreMessages({conversationIDKey}))
       } else if (payload.type === 'follow') {
         const {username} = payload
         if (!username) {
