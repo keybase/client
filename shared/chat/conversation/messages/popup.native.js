@@ -141,6 +141,7 @@ type OwnProps = MessagePopupRouteProps & {}
 
 export default connect(
   (state: TypedState, {routeProps}: OwnProps) => {
+    // $FlowIssue doesn't like routeProps here
     const message = routeProps.get('message')
     const you = state.config.username
     // Find out whether we're allowed to delete chat history. If we're
