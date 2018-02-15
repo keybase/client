@@ -9,6 +9,7 @@ export type Props = {
   selectedTab: Tab,
   onTabChange: (tab: Tab) => void,
   onLogout: () => void,
+  badgeNotifications?: boolean,
 }
 
 export default class Render extends React.Component<Props> {}
