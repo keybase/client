@@ -103,9 +103,14 @@ func findKBFSMount(uid string) (string, error) {
 	for _, mp := range fuseMountPoints {
 		// TODO: a better regexp that will rule out keybase.staging if
 		// we're in prod mode, etc.
-		if strings.Contains(mp, "keybase") {
-			return mp, nil
+		if !strings.Contains(mp, "keybase") {
+			continue
 		}
+		// Double-check that this is a real KBFS mount.
+		if _, err := os.Stat(filepath.Join(mp, ".kbfs_error")); err != nil {
+			continue
+		}
+		return mp, nil
 	}
 
 	// Give up and return the first one.
