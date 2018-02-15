@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import {Markdown} from '../../../../common-adapters'
-import {globalColors, isMobile} from '../../../../styles'
+import {globalColors, isMobile, styleSheetCreate} from '../../../../styles'
 
 export type Props = {
   text: string,
@@ -26,13 +26,13 @@ const MessageText = ({text, type, isEditing, mentionsAt, mentionsChannel, mentio
 // Encoding all 4 states as static objects so we don't re-render
 const getStyle = (type, isEditing) => {
   if (type === 'sent') {
-    return isEditing ? sentEditingStyle : sentStyle
+    return isEditing ? styles.sentEditing : styles.sent
   } else {
-    return isEditing ? pendingFailEditingStyle : pendingFailStyle
+    return isEditing ? styles.pendingFailEditing : styles.pendingFail
   }
 }
 
-const editingStyle = {
+const editing = {
   borderColor: globalColors.blue,
   borderRadius: 4,
   borderStyle: isMobile ? 'solid' : 'dashed',
@@ -40,8 +40,7 @@ const editingStyle = {
   paddingLeft: 2,
   paddingRight: 2,
 }
-
-const sentStyle = {
+const sent = {
   width: '100%',
   ...(isMobile
     ? {
@@ -49,28 +48,31 @@ const sentStyle = {
         color: globalColors.black_75_on_white,
       }
     : {
+        // Make text selectable. On mobile we implement that differently.
+        cursor: 'text',
+        userSelect: 'text',
         whiteSpace: 'pre-wrap',
         wordBreak: 'break-word',
-        // Make text selectable. On mobile we implement that
-        // differently.
-        userSelect: 'text',
-        cursor: 'text',
       }),
 }
-
-const sentEditingStyle = {
-  ...sentStyle,
-  ...editingStyle,
+const sentEditing = {
+  ...sent,
+  ...editing,
 }
-
-const pendingFailStyle = {
-  ...sentStyle,
+const pendingFail = {
+  ...sent,
   color: globalColors.black_40,
 }
-
-const pendingFailEditingStyle = {
-  ...pendingFailStyle,
-  ...editingStyle,
+const pendingFailEditing = {
+  ...pendingFail,
+  ...editing,
 }
+const styles = styleSheetCreate({
+  editing,
+  pendingFail,
+  pendingFailEditing,
+  sent,
+  sentEditing,
+})
 
 export default MessageText
