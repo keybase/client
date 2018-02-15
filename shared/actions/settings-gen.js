@@ -10,6 +10,7 @@ import HiddenString from '../util/hidden-string'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of settings but is handled by every reducer
+export const calculateSettingsBadge = 'settings:calculateSettingsBadge'
 export const dbNuke = 'settings:dbNuke'
 export const deleteAccountForever = 'settings:deleteAccountForever'
 export const invitesClearError = 'settings:invitesClearError'
@@ -40,6 +41,7 @@ export const trace = 'settings:trace'
 export const waitingForResponse = 'settings:waitingForResponse'
 
 // Action Creators
+export const createCalculateSettingsBadge = () => ({error: false, payload: undefined, type: calculateSettingsBadge})
 export const createDbNuke = () => ({error: false, payload: undefined, type: dbNuke})
 export const createDeleteAccountForever = () => ({error: false, payload: undefined, type: deleteAccountForever})
 export const createInvitesClearError = () => ({error: false, payload: undefined, type: invitesClearError})
@@ -82,6 +84,7 @@ export const createTrace = (payload: $ReadOnly<{durationSeconds: number}>) => ({
 export const createWaitingForResponse = (payload: $ReadOnly<{waiting: boolean}>) => ({error: false, payload, type: waitingForResponse})
 
 // Action Payloads
+export type CalculateSettingsBadgePayload = More.ReturnType<typeof createCalculateSettingsBadge>
 export type DbNukePayload = More.ReturnType<typeof createDbNuke>
 export type DeleteAccountForeverPayload = More.ReturnType<typeof createDeleteAccountForever>
 export type InvitesClearErrorPayload = More.ReturnType<typeof createInvitesClearError>
@@ -114,6 +117,7 @@ export type WaitingForResponsePayload = More.ReturnType<typeof createWaitingForR
 // All Actions
 // prettier-ignore
 export type Actions =
+  | More.ReturnType<typeof createCalculateSettingsBadge>
   | More.ReturnType<typeof createDbNuke>
   | More.ReturnType<typeof createDeleteAccountForever>
   | More.ReturnType<typeof createInvitesClearError>
