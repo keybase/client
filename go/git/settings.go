@@ -2,11 +2,9 @@ package git
 
 import (
 	"context"
-	"encoding/hex"
 	"errors"
 
 	"github.com/keybase/client/go/chat/globals"
-	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -27,7 +25,7 @@ func GetTeamRepoSettings(ctx context.Context, g *libkb.GlobalContext, arg keybas
 		return keybase1.GitTeamRepoSettings{ChatDisabled: true}, nil
 	}
 
-	apiArg, err := settingsArg(ctx, g, arg.Folder, arg.RepoID)
+	apiArg, teamID, err := settingsArg(ctx, g, arg.Folder, arg.RepoID)
 	if err != nil {
 		return keybase1.GitTeamRepoSettings{}, err
 	}
@@ -37,10 +35,11 @@ func GetTeamRepoSettings(ctx context.Context, g *libkb.GlobalContext, arg keybas
 		return keybase1.GitTeamRepoSettings{}, err
 	}
 
-	return convertTeamRepoSettings(ctx, g, resp.ChatConvID, resp.ChatDisabled)
+	return convertTeamRepoSettings(ctx, g, teamID, resp.ChatConvID, resp.ChatDisabled)
 }
 
-func convertTeamRepoSettings(ctx context.Context, g *libkb.GlobalContext, chatConvID string, chatDisabled bool) (keybase1.GitTeamRepoSettings, error) {
+func convertTeamRepoSettings(ctx context.Context, g *libkb.GlobalContext,
+	teamID keybase1.TeamID, chatConvID string, chatDisabled bool) (keybase1.GitTeamRepoSettings, error) {
 	settings := keybase1.GitTeamRepoSettings{
 		ChatDisabled: chatDisabled,
 	}
@@ -51,22 +50,16 @@ func convertTeamRepoSettings(ctx context.Context, g *libkb.GlobalContext, chatCo
 			settings.ChannelName = &globals.DefaultTeamTopic
 		} else {
 			// lookup the channel name
-			convID, err := hex.DecodeString(chatConvID)
+			convID, err := chat1.MakeConvID(chatConvID)
 			if err != nil {
 				return keybase1.GitTeamRepoSettings{}, err
 			}
-			convs, err := g.ChatHelper.FindConversationsByID(ctx, []chat1.ConversationID{convID})
+			channelName, err := g.ChatHelper.GetChannelTopicName(ctx, teamID,
+				chat1.TopicType_CHAT, convID)
 			if err != nil {
 				return keybase1.GitTeamRepoSettings{}, err
 			}
-			if len(convs) == 0 {
-				return keybase1.GitTeamRepoSettings{}, errors.New("no channel found")
-			}
-			if len(convs) > 1 {
-				return keybase1.GitTeamRepoSettings{}, errors.New("multiple conversations found")
-			}
-			name := utils.GetTopicName(convs[0])
-			settings.ChannelName = &name
+			settings.ChannelName = &channelName
 		}
 	}
 
@@ -78,7 +71,7 @@ func SetTeamRepoSettings(ctx context.Context, g *libkb.GlobalContext, arg keybas
 	if arg.Folder.FolderType != keybase1.FolderType_TEAM {
 		return errors.New("SetTeamRepoSettings denied: this repo is not a team repo")
 	}
-	apiArg, err := settingsArg(ctx, g, arg.Folder, arg.RepoID)
+	apiArg, _, err := settingsArg(ctx, g, arg.Folder, arg.RepoID)
 	if err != nil {
 		return err
 	}
@@ -108,14 +101,14 @@ func SetTeamRepoSettings(ctx context.Context, g *libkb.GlobalContext, arg keybas
 	return err
 }
 
-func settingsArg(ctx context.Context, g *libkb.GlobalContext, folder keybase1.Folder, repoID keybase1.RepoID) (*libkb.APIArg, error) {
+func settingsArg(ctx context.Context, g *libkb.GlobalContext,
+	folder keybase1.Folder, repoID keybase1.RepoID) (apiArg *libkb.APIArg, teamID keybase1.TeamID, err error) {
 	teamer := NewTeamer(g)
 	teamIDVis, err := teamer.LookupOrCreate(ctx, folder)
 	if err != nil {
-		return nil, err
+		return nil, teamID, err
 	}
-
-	arg := &libkb.APIArg{
+	apiArg = &libkb.APIArg{
 		Endpoint:    "kbfs/git/team/settings",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		NetContext:  ctx,
@@ -124,6 +117,5 @@ func settingsArg(ctx context.Context, g *libkb.GlobalContext, folder keybase1.Fo
 			"repo_id": libkb.S{Val: string(repoID)},
 		},
 	}
-
-	return arg, nil
+	return apiArg, teamIDVis.TeamID, nil
 }

@@ -2,6 +2,7 @@ package chat
 
 import (
 	"context"
+	"fmt"
 	"sort"
 	"sync"
 	"time"
@@ -29,8 +30,13 @@ type CachingTeamChannelSource struct {
 	ri      func() chat1.RemoteInterface
 }
 
+var _ types.TeamChannelSource = (*CachingTeamChannelSource)(nil)
+
 func NewCachingTeamChannelSource(g *globals.Context, ri func() chat1.RemoteInterface) *CachingTeamChannelSource {
-	c, _ := lru.New(100)
+	c, err := lru.New(100)
+	if err != nil {
+		panic(err)
+	}
 	return &CachingTeamChannelSource{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "CachingTeamChannelSource", false),
@@ -39,12 +45,13 @@ func NewCachingTeamChannelSource(g *globals.Context, ri func() chat1.RemoteInter
 	}
 }
 
-func (c *CachingTeamChannelSource) key(teamID chat1.TLFID) string {
-	return teamID.String()
+func (c *CachingTeamChannelSource) key(teamID chat1.TLFID, topicType chat1.TopicType) string {
+	return fmt.Sprintf("tid:%v,tt:%v", teamID.String(), int(topicType))
 }
 
-func (c *CachingTeamChannelSource) fetchFromCache(ctx context.Context, teamID chat1.TLFID) (res []types.ConvIDAndTopicName, ok bool) {
-	val, ok := c.cache.Get(c.key(teamID))
+func (c *CachingTeamChannelSource) fetchFromCache(ctx context.Context,
+	teamID chat1.TLFID, topicType chat1.TopicType) (res []types.ConvIDAndTopicName, ok bool) {
+	val, ok := c.cache.Get(c.key(teamID, topicType))
 	if !ok {
 		return res, false
 	}
@@ -60,15 +67,18 @@ func (c *CachingTeamChannelSource) fetchFromCache(ctx context.Context, teamID ch
 	return item.dat, true
 }
 
-func (c *CachingTeamChannelSource) writeToCache(ctx context.Context, teamID chat1.TLFID, names []types.ConvIDAndTopicName) {
-	c.cache.Add(c.key(teamID), teamChannelCacheItem{
+func (c *CachingTeamChannelSource) writeToCache(ctx context.Context,
+	teamID chat1.TLFID, topicType chat1.TopicType, names []types.ConvIDAndTopicName) {
+	c.cache.Add(c.key(teamID, topicType), teamChannelCacheItem{
 		dat:   names,
 		entry: time.Now(),
 	})
 }
 
 func (c *CachingTeamChannelSource) invalidate(ctx context.Context, teamID chat1.TLFID) {
-	c.cache.Remove(c.key(teamID))
+	for _, topicType := range chat1.TopicTypeMap {
+		c.cache.Remove(c.key(teamID, topicType))
+	}
 }
 
 func (c *CachingTeamChannelSource) GetChannelsFull(ctx context.Context, uid gregor1.UID, teamID chat1.TLFID,
@@ -104,7 +114,7 @@ func (c *CachingTeamChannelSource) GetChannelsTopicName(ctx context.Context, uid
 	teamID chat1.TLFID, topicType chat1.TopicType) (res []types.ConvIDAndTopicName, rl []chat1.RateLimit, err error) {
 
 	var ok bool
-	if res, ok = c.fetchFromCache(ctx, teamID); ok {
+	if res, ok = c.fetchFromCache(ctx, teamID, topicType); ok {
 		c.Debug(ctx, "GetChannelsTopicName: cache hit")
 		return res, rl, nil
 	}
@@ -173,8 +183,25 @@ func (c *CachingTeamChannelSource) GetChannelsTopicName(ctx context.Context, uid
 		}
 	}
 
-	c.writeToCache(ctx, teamID, res)
+	c.writeToCache(ctx, teamID, topicType, res)
 	return res, rl, nil
+}
+
+func (c *CachingTeamChannelSource) GetChannelTopicName(ctx context.Context, uid gregor1.UID, tlfID chat1.TLFID,
+	topicType chat1.TopicType, convID chat1.ConversationID) (topicName string, rl []chat1.RateLimit, err error) {
+	convs, rl, err := c.GetChannelsTopicName(ctx, uid, tlfID, topicType)
+	if err != nil {
+		return topicName, rl, err
+	}
+	if len(convs) == 0 {
+		return topicName, rl, fmt.Errorf("no convs found")
+	}
+	for _, conv := range convs {
+		if conv.ConvID.Eq(convID) {
+			return conv.TopicName, rl, nil
+		}
+	}
+	return topicName, rl, fmt.Errorf("no convs found with conv ID")
 }
 
 func (c *CachingTeamChannelSource) ChannelsChanged(ctx context.Context, teamID chat1.TLFID) {
