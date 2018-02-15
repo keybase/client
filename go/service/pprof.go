@@ -100,10 +100,10 @@ func (c *PprofHandler) LogTrace(_ context.Context, arg keybase1.LogTraceArg) (er
 	if err != nil {
 		ctx.LogUI.Warning("Error on filepath.Glob(%q): %s", pattern, err)
 	} else {
-		if len(matches) > maxTraceFileCount {
+		if len(matches)+1 > maxTraceFileCount {
 			// Sort by approximate increasing time.
 			sort.Strings(matches)
-			toRemove := matches[:maxTraceFileCount-len(matches)]
+			toRemove := matches[:len(matches)+1-maxTraceFileCount]
 			for _, path := range toRemove {
 				c.G().Log.Info("Removing old trace file %q", path)
 				err := os.Remove(path)
