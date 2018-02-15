@@ -159,18 +159,6 @@ const jsonDebugFileName = (function() {
   throw new Error(`Unknown platform ${process.platform}`)
 })()
 
-function traceFileName(): string {
-  switch (process.platform) {
-    case 'darwin':
-      return `${logDir()}/${envedPathOSX[runMode]}.trace.out`
-    case 'linux':
-      return `${logDir()}/trace.out`
-    case 'win32':
-      return `${logDir()}\\trace.out`
-  }
-  throw new Error(`Unknown platform ${process.platform}`)
-}
-
 const socketPath = findSocketDialPath()
 const dataRoot = findDataRoot()
 const cacheRoot = findCacheRoot()
@@ -202,6 +190,5 @@ export {
   mobileOsVersion,
   runMode,
   socketPath,
-  traceFileName,
   version,
 }
