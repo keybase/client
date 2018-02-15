@@ -17,6 +17,7 @@ const TurnOnNotifications = (props: Props) => (
       width: '100%',
       height: 330,
       backgroundColor: globalColors.red,
+      overflow: 'hidden',
     }}
   >
     <Box style={{height: 270, width: 250, position: 'absolute', top: -20, left: globalMargins.medium}}>
