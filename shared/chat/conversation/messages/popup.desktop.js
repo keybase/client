@@ -11,7 +11,6 @@ import {navigateAppend} from '../../../actions/route-tree'
 import {fileUIName} from '../../../constants/platform'
 import {connect} from 'react-redux'
 import {branch, renderComponent} from 'recompose'
-import flags from '../../../util/feature-flags'
 
 import MessagePopupHeader from './popup-header'
 
@@ -52,7 +51,7 @@ const TextPopupMenu = ({
       title: 'Delete',
     })
   }
-  if (canDeleteHistory && flags.deleteChatHistory) {
+  if (canDeleteHistory) {
     items.push('Divider')
     items.push({
       danger: true,
@@ -100,7 +99,7 @@ const AttachmentPopupMenu = ({
       title: 'Delete',
     })
   }
-  if (canDeleteHistory && flags.deleteChatHistory) {
+  if (canDeleteHistory) {
     items.push('Divider')
     items.push({
       danger: true,

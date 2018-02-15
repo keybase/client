@@ -8,7 +8,6 @@ import {NativeClipboard, PopupMenu} from '../../../common-adapters/index.native'
 import {connect, type TypedState} from '../../../util/container'
 import {isIOS} from '../../../constants/platform'
 import {navigateAppend} from '../../../actions/route-tree'
-import flags from '../../../util/feature-flags'
 
 import {type RouteProps} from '../../../route-tree/render-route'
 import {type TextProps, type AttachmentProps} from './popup'
@@ -76,7 +75,7 @@ function _attachmentMessagePopupHelper({
 }
 
 function MessagePopup(props: TextProps | AttachmentProps) {
-  const {canDeleteHistory, message, onDeleteMessage, onDeleteMessageHistory, onHidden, you} = props
+  const {message, onDeleteMessage, onDeleteMessageHistory, onHidden, you} = props
   if (message.type !== 'Text' && message.type !== 'Attachment') return null
 
   let items = []
@@ -109,13 +108,11 @@ function MessagePopup(props: TextProps | AttachmentProps) {
       title: 'Delete',
     })
   }
-  if (canDeleteHistory && flags.deleteChatHistory) {
-    items.push({
-      danger: true,
-      onClick: () => onDeleteMessageHistory && onDeleteMessageHistory(message),
-      title: 'Delete all messages before this one',
-    })
-  }
+  items.push({
+    danger: true,
+    onClick: () => onDeleteMessageHistory && onDeleteMessageHistory(message),
+    title: 'Delete all messages before this one',
+  })
 
   const menuProps = {
     header: {
