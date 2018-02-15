@@ -2,7 +2,6 @@
 import * as React from 'react'
 import {Box, Checkbox, ProgressIndicator, Text} from '../../common-adapters'
 import {globalStyles, globalMargins} from '../../styles'
-
 import type {NotificationsSettingsState} from '../../constants/types/settings'
 import type {Props} from './index'
 
@@ -85,7 +84,8 @@ const Notifications = (props: Props) =>
         unsubscribedFromAll={props.groups.email && props.groups.email.unsubscribedFromAll}
       />
 
-      {props.groups.app_push &&
+      {props.mobileHasPermissions &&
+        props.groups.app_push &&
         props.groups.app_push.settings && (
           <Group
             allowEdit={props.allowEdit}
@@ -99,7 +99,8 @@ const Notifications = (props: Props) =>
           />
         )}
 
-      {props.groups.security &&
+      {props.mobileHasPermissions &&
+        props.groups.security &&
         props.groups.security.settings && (
           <Group
             allowEdit={props.allowEdit}
