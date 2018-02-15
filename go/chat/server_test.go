@@ -2173,6 +2173,7 @@ func TestChatSrvGetThreadNonblockIncremental(t *testing.T) {
 		case res := <-threadCb:
 			require.True(t, res.Full)
 			require.Equal(t, 1, len(res.Thread.Messages))
+			require.True(t, res.Thread.Pagination.Last)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no thread cb")
 		}
