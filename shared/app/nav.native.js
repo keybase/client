@@ -364,17 +364,12 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
     const layerScreens = this.props.routeStack.filter(r => r.tags && r.tags.layerOnTop)
     const layers = layerScreens.map(r => r.leafComponent({shouldRender: true}))
 
-    // If we have layers, lets add an extra box, else lets just pass through
-    if (layers.count()) {
-      return (
-        <Box style={globalStyles.fillAbsolute}>
-          {shim}
-          {layers}
-        </Box>
-      )
-    } else {
-      return shim
-    }
+    return (
+      <Box style={globalStyles.fillAbsolute}>
+        {shim}
+        {layers}
+      </Box>
+    )
   }
 }
 

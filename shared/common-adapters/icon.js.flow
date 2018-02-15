@@ -14,6 +14,8 @@ export type Props = {
   inheritColor?: boolean,
   underlayColor?: string,
   className?: string,
+  iconStyle?: any, // style directly for the icon and not the box. the way this works currently isn't great. we shouldn't be stripping out styles like we do now
+  // its totally not compatible with stylesheet
 }
 
 declare export default class Icon extends React.Component<Props> {}

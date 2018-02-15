@@ -16,7 +16,7 @@ const ClickableBox = ({
   feedback = true,
 }: Props) => {
   if (onClick) {
-    const clickStyle = style ? {...boxStyle, ...style} : boxStyle
+    const clickStyle = style ? [boxStyle, style] : boxStyle
     if (feedback) {
       return (
         <TouchableOpacity

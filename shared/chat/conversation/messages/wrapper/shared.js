@@ -1,7 +1,14 @@
 // @flow
 import * as React from 'react'
 import {Avatar, Icon, Text, Box} from '../../../../common-adapters'
-import {globalStyles, globalMargins, globalColors, isMobile} from '../../../../styles'
+import {
+  globalStyles,
+  globalMargins,
+  globalColors,
+  isMobile,
+  styleSheetCreate,
+  collapseStyles,
+} from '../../../../styles'
 import ProfileResetNotice from '../system-profile-reset-notice/container'
 import Timestamp from './timestamp'
 import LoadMore from './load-more'
@@ -20,19 +27,17 @@ const colorForAuthor = (user: string, isYou: boolean, isFollowing: boolean, isBr
 }
 
 const UserAvatar = ({author, showImage, onAuthorClick}) => (
-  <Box style={_userAvatarStyle}>
+  <Box style={styles.userAvatar}>
     {showImage && <Avatar size={24} username={author} skipBackground={true} onClick={onAuthorClick} />}
   </Box>
 )
 
 const Username = ({username, isYou, isFollowing, isBroken, onClick}) => {
-  const style = {
-    ...(isYou ? globalStyles.italic : null),
-    alignSelf: 'flex-start',
-    color: colorForAuthor(username, isYou, isFollowing, isBroken),
-    backgroundColor: globalColors.white,
-    marginBottom: 2,
-  }
+  const style = collapseStyles([
+    styles.username,
+    isYou && styles.usernameYou,
+    {color: colorForAuthor(username, isYou, isFollowing, isBroken)},
+  ])
   return (
     <Text type="BodySmallSemibold" onClick={onClick} className="hover-underline" style={style}>
       {username}
@@ -42,12 +47,12 @@ const Username = ({username, isYou, isFollowing, isBroken, onClick}) => {
 
 const MenuButton = ({onClick}) => (
   <Box className="menu-button">
-    <Icon type="iconfont-ellipsis" style={_ellipsisStyle} onClick={onClick} />
+    <Icon type="iconfont-ellipsis" style={styles.ellipsis} onClick={onClick} />
   </Box>
 )
 
 const EditedMark = () => (
-  <Text type="BodySmall" style={_editedStyle}>
+  <Text type="BodySmall" style={styles.edited}>
     EDITED
   </Text>
 )
@@ -57,20 +62,20 @@ const Failure = ({failureDescription, onEdit, onRetry}) => {
   const resolveByEdit = failureDescription === 'message is too long'
   return (
     <Text type="BodySmall">
-      <Text type="BodySmall" style={_failStyleFace}>
+      <Text type="BodySmall" style={styles.failStyleFace}>
         {'┏(>_<)┓'}
       </Text>
-      <Text type="BodySmall" style={_failStyle}>
+      <Text type="BodySmall" style={styles.fail}>
         {' '}
         {error}
       </Text>
       {resolveByEdit && (
-        <Text type="BodySmall" style={_failStyleUnderline} onClick={onEdit}>
+        <Text type="BodySmall" style={styles.failStyleUnderline} onClick={onEdit}>
           Edit
         </Text>
       )}
       {!resolveByEdit && (
-        <Text type="BodySmall" style={_failStyleUnderline} onClick={onRetry}>
+        <Text type="BodySmall" style={styles.failStyleUnderline} onClick={onRetry}>
           Retry
         </Text>
       )}
@@ -82,27 +87,27 @@ class MessageWrapper extends React.PureComponent<Props> {
   render() {
     const props = this.props
     return (
-      <Box style={props.includeHeader ? _containerWithHeaderStyle : _containerNoHeaderStyle}>
-        {props.orangeLineAbove && <Box style={orangeLineStyle} />}
+      <Box style={styles.container}>
+        {props.orangeLineAbove && <Box style={styles.orangeLine} />}
         {props.hasOlderResetConversation && (
           <ProfileResetNotice conversationIDKey={props.message.conversationIDKey} />
         )}
         {props.loadMoreType && <LoadMore type={props.loadMoreType} />}
         {props.timestamp && <Timestamp timestamp={props.timestamp} />}
         <Box
-          style={{
-            ..._flexOneRow,
-            ...(props.isFirstNewMessage ? _stylesFirstNewMessage : null),
-            ...(props.isSelected ? _stylesSelected : null),
-          }}
+          style={collapseStyles([
+            styles.flexOneRow,
+            props.isFirstNewMessage && styles.firstNewMessage,
+            props.isSelected && styles.selected,
+          ])}
         >
-          <Box style={props.includeHeader ? _rightSideWithHeaderStyle : _rightSideNoHeaderStyle}>
+          <Box style={props.includeHeader ? styles.rightSideWithHeader : styles.rightSideNoHeader}>
             <UserAvatar
               author={props.author}
               showImage={props.includeHeader}
               onAuthorClick={props.onAuthorClick}
             />
-            <Box style={_flexOneColumn} className="message-wrapper">
+            <Box style={styles.flexOneColumn} className="message-wrapper">
               {props.includeHeader && (
                 <Username
                   username={props.author}
@@ -112,13 +117,13 @@ class MessageWrapper extends React.PureComponent<Props> {
                   onClick={props.onAuthorClick}
                 />
               )}
-              <Box style={_textContainerStyle} className="message">
-                <Box style={_flexOneColumn}>
+              <Box style={styles.textContainer} className="message">
+                <Box style={styles.flexOneColumn}>
                   <props.innerClass message={props.message} isEditing={props.isEditing} />
                   {props.isEdited && <EditedMark />}
                 </Box>
                 {!isMobile && <MenuButton onClick={props.onShowMenu} />}
-                {props.isRevoked && <Icon type="iconfont-exclamation" style={_exclamationStyle} />}
+                {props.isRevoked && <Icon type="iconfont-exclamation" style={styles.exclamation} />}
               </Box>
               {!!props.failureDescription && (
                 <Failure
@@ -135,96 +140,64 @@ class MessageWrapper extends React.PureComponent<Props> {
   }
 }
 
-const _flexOneRow = {
-  ...globalStyles.flexBoxRow,
-  flex: 1,
-}
-
-const _flexOneColumn = {
-  ...globalStyles.flexBoxColumn,
-  flex: 1,
-}
-
-const _containerNoHeaderStyle = {
-  ...globalStyles.flexBoxColumn,
-}
-
-const _containerWithHeaderStyle = {
-  ..._containerNoHeaderStyle,
-}
-
-const _rightSideNoHeaderStyle = {
-  ..._flexOneRow,
-  marginLeft: globalMargins.tiny,
-  paddingBottom: 2,
-  paddingRight: globalMargins.tiny,
-}
-
-const _rightSideWithHeaderStyle = {
-  ..._rightSideNoHeaderStyle,
-  paddingTop: 6,
-}
-
-const _stylesFirstNewMessage = {
-  borderBottomWidth: 0,
-  borderLeftWidth: 0,
-  borderRightWidth: 0,
-  borderStyle: 'solid',
-  borderTopColor: globalColors.orange,
-  borderTopWidth: 1,
-}
-
-const _stylesSelected = {
-  backgroundColor: globalColors.black_05,
-}
-
-const _exclamationStyle = {
-  color: globalColors.blue,
-  fontSize: 11,
-  paddingBottom: globalMargins.xtiny,
-  paddingTop: globalMargins.xtiny,
-}
-
-const _ellipsisStyle = {
-  fontSize: 16,
-  marginLeft: globalMargins.tiny,
-  marginRight: globalMargins.xtiny,
-}
-
-const _textContainerStyle = {
-  ...globalStyles.flexBoxRow,
-  borderRadius: 4,
-  flex: 1,
-  marginLeft: -globalMargins.xtiny,
-  marginRight: globalMargins.xtiny,
-  paddingLeft: globalMargins.xtiny,
-  paddingRight: globalMargins.xtiny,
-}
-
-const _editedStyle = {
-  backgroundColor: globalColors.white,
-  color: globalColors.black_20_on_white,
-}
-
-const _userAvatarStyle = {
-  width: 32,
-}
-
-const _failStyle = {
-  color: globalColors.red,
-}
-const _failStyleUnderline = {
-  ..._failStyle,
-  ...globalStyles.textDecoration('underline'),
-}
-const _failStyleFace = {
-  ..._failStyle,
-  fontSize: 9,
-}
-const orangeLineStyle = {
-  backgroundColor: globalColors.orange,
-  height: 1,
-  width: '100%',
-}
+const styles = styleSheetCreate({
+  container: {...globalStyles.flexBoxColumn},
+  edited: {backgroundColor: globalColors.white, color: globalColors.black_20_on_white},
+  ellipsis: {fontSize: 16, marginLeft: globalMargins.tiny, marginRight: globalMargins.xtiny},
+  exclamation: {
+    color: globalColors.blue,
+    fontSize: 11,
+    paddingBottom: globalMargins.xtiny,
+    paddingTop: globalMargins.xtiny,
+  },
+  fail: {color: globalColors.red},
+  failStyleFace: {color: globalColors.red, fontSize: 9},
+  failStyleUnderline: {color: globalColors.red, ...globalStyles.textDecoration('underline')},
+  firstNewMessage: {
+    borderBottomWidth: 0,
+    borderLeftWidth: 0,
+    borderRightWidth: 0,
+    borderStyle: 'solid',
+    borderTopColor: globalColors.orange,
+    borderTopWidth: 1,
+  },
+  flexOneColumn: {...globalStyles.flexBoxColumn, flex: 1},
+  flexOneRow: {...globalStyles.flexBoxRow, flex: 1},
+  orangeLine: {backgroundColor: globalColors.orange, height: 1, width: '100%'},
+  rightSideNoHeader: {
+    ...globalStyles.flexBoxRow,
+    flex: 1,
+    marginLeft: globalMargins.tiny,
+    paddingBottom: 2,
+    paddingRight: globalMargins.tiny,
+  },
+  rightSideWithHeader: {
+    ...globalStyles.flexBoxRow,
+    flex: 1,
+    marginLeft: globalMargins.tiny,
+    paddingBottom: 2,
+    paddingRight: globalMargins.tiny,
+    paddingTop: 6,
+  },
+  selected: {backgroundColor: globalColors.black_05},
+  textContainer: {
+    ...globalStyles.flexBoxRow,
+    borderRadius: 4,
+    flex: 1,
+    marginLeft: -globalMargins.xtiny,
+    marginRight: globalMargins.xtiny,
+    paddingLeft: globalMargins.xtiny,
+    paddingRight: globalMargins.xtiny,
+  },
+  userAvatar: {width: 32},
+  username: {
+    alignSelf: 'flex-start',
+    backgroundColor: globalColors.white,
+    marginBottom: 2,
+  },
+  usernameYou: {
+    ...globalStyles.italic,
+  },
+})
 
 export default MessageWrapper
