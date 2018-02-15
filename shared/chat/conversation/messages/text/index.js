@@ -45,7 +45,8 @@ const sentStyle = {
   width: '100%',
   ...(isMobile
     ? {
-        color: globalColors.black_75,
+        backgroundColor: globalColors.white,
+        color: globalColors.black_75_on_white,
       }
     : {
         whiteSpace: 'pre-wrap',

@@ -80,7 +80,9 @@ class ImageAttachment extends React.PureComponent<Props> {
 
 const titleStyle = {
   ...(isMobile
-    ? {}
+    ? {
+        backgroundColor: globalColors.white,
+      }
     : {
         wordBreak: 'break-word',
       }),
@@ -116,6 +118,7 @@ const imageContainerStyle = {
 const imageStyle = {
   maxWidth: 320,
   position: 'relative',
+  backgroundColor: globalColors.white,
 }
 
 const loadedStyle = {

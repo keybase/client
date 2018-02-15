@@ -30,6 +30,7 @@ const Username = ({username, isYou, isFollowing, isBroken, onClick}) => {
     ...(isYou ? globalStyles.italic : null),
     alignSelf: 'flex-start',
     color: colorForAuthor(username, isYou, isFollowing, isBroken),
+    backgroundColor: globalColors.white,
     marginBottom: 2,
   }
   return (
@@ -77,57 +78,62 @@ const Failure = ({failureDescription, onEdit, onRetry}) => {
   )
 }
 
-const MessageWrapper = (props: Props) => (
-  <Box style={props.includeHeader ? _containerWithHeaderStyle : _containerNoHeaderStyle}>
-    {props.orangeLineAbove && <Box style={orangeLineStyle} />}
-    {props.hasOlderResetConversation && (
-      <ProfileResetNotice conversationIDKey={props.message.conversationIDKey} />
-    )}
-    {props.loadMoreType && <LoadMore type={props.loadMoreType} />}
-    {props.timestamp && <Timestamp timestamp={props.timestamp} />}
-    <Box
-      style={{
-        ..._flexOneRow,
-        ...(props.isFirstNewMessage ? _stylesFirstNewMessage : null),
-        ...(props.isSelected ? _stylesSelected : null),
-      }}
-    >
-      <Box style={props.includeHeader ? _rightSideWithHeaderStyle : _rightSideNoHeaderStyle}>
-        <UserAvatar
-          author={props.author}
-          showImage={props.includeHeader}
-          onAuthorClick={props.onAuthorClick}
-        />
-        <Box style={_flexOneColumn} className="message-wrapper">
-          {props.includeHeader && (
-            <Username
-              username={props.author}
-              isYou={props.isYou}
-              isFollowing={props.isFollowing}
-              isBroken={props.isBroken}
-              onClick={props.onAuthorClick}
+class MessageWrapper extends React.PureComponent<Props> {
+  render() {
+    const props = this.props
+    return (
+      <Box style={props.includeHeader ? _containerWithHeaderStyle : _containerNoHeaderStyle}>
+        {props.orangeLineAbove && <Box style={orangeLineStyle} />}
+        {props.hasOlderResetConversation && (
+          <ProfileResetNotice conversationIDKey={props.message.conversationIDKey} />
+        )}
+        {props.loadMoreType && <LoadMore type={props.loadMoreType} />}
+        {props.timestamp && <Timestamp timestamp={props.timestamp} />}
+        <Box
+          style={{
+            ..._flexOneRow,
+            ...(props.isFirstNewMessage ? _stylesFirstNewMessage : null),
+            ...(props.isSelected ? _stylesSelected : null),
+          }}
+        >
+          <Box style={props.includeHeader ? _rightSideWithHeaderStyle : _rightSideNoHeaderStyle}>
+            <UserAvatar
+              author={props.author}
+              showImage={props.includeHeader}
+              onAuthorClick={props.onAuthorClick}
             />
-          )}
-          <Box style={_textContainerStyle} className="message">
-            <Box style={_flexOneColumn}>
-              <props.innerClass message={props.message} isEditing={props.isEditing} />
-              {props.isEdited && <EditedMark />}
+            <Box style={_flexOneColumn} className="message-wrapper">
+              {props.includeHeader && (
+                <Username
+                  username={props.author}
+                  isYou={props.isYou}
+                  isFollowing={props.isFollowing}
+                  isBroken={props.isBroken}
+                  onClick={props.onAuthorClick}
+                />
+              )}
+              <Box style={_textContainerStyle} className="message">
+                <Box style={_flexOneColumn}>
+                  <props.innerClass message={props.message} isEditing={props.isEditing} />
+                  {props.isEdited && <EditedMark />}
+                </Box>
+                {!isMobile && <MenuButton onClick={props.onShowMenu} />}
+                {props.isRevoked && <Icon type="iconfont-exclamation" style={_exclamationStyle} />}
+              </Box>
+              {!!props.failureDescription && (
+                <Failure
+                  failureDescription={props.failureDescription}
+                  onRetry={props.onRetry}
+                  onEdit={props.onEdit}
+                />
+              )}
             </Box>
-            {!isMobile && <MenuButton onClick={props.onShowMenu} />}
-            {props.isRevoked && <Icon type="iconfont-exclamation" style={_exclamationStyle} />}
           </Box>
-          {!!props.failureDescription && (
-            <Failure
-              failureDescription={props.failureDescription}
-              onRetry={props.onRetry}
-              onEdit={props.onEdit}
-            />
-          )}
         </Box>
       </Box>
-    </Box>
-  </Box>
-)
+    )
+  }
+}
 
 const _flexOneRow = {
   ...globalStyles.flexBoxRow,
@@ -196,7 +202,8 @@ const _textContainerStyle = {
 }
 
 const _editedStyle = {
-  color: globalColors.black_20,
+  backgroundColor: globalColors.white,
+  color: globalColors.black_20_on_white,
 }
 
 const _userAvatarStyle = {
