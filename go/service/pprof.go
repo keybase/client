@@ -89,7 +89,7 @@ func (c *PprofHandler) LogTrace(ctx context.Context, arg keybase1.LogTraceArg) (
 	logDir := c.G().Env.GetLogDir()
 	// Copied from oldLogFileTimeRangeTimeLayout from logger/file.go.
 	start := time.Now().Format("20060102T150405Z0700")
-	filename := fmt.Sprintf("trace.%s.%s.log", start, durationSecToDuration(arg.TraceDurationSeconds))
+	filename := fmt.Sprintf("trace.%s.%s.out", start, durationSecToDuration(arg.TraceDurationSeconds))
 	traceFile := filepath.Join(logDir, filename)
 	return c.trace(arg.SessionID, traceFile, arg.TraceDurationSeconds)
 }
