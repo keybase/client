@@ -19,7 +19,6 @@ import (
 	"github.com/strib/gomounts"
 )
 
- 
 var kbfusePath = fuse.OSXFUSEPaths{
 	DevicePrefix: "/dev/kbfuse",
 	Load:         "/Library/Filesystems/kbfuse.fs/Contents/Resources/load_kbfuse",
@@ -140,10 +139,12 @@ func (r root) Lookup(
 func main() {
 	// This must be run as soon (or edit /etc/fuse.conf to enable
 	// `user_allow_other`).
-        options := []fuse.MountOption{fuse.AllowOther()}
-        if runtime.GOOS == "darwin" {
-	   options = append(options, fuse.OSXFUSELocations(kbfusePath))
-        }
+	options := []fuse.MountOption{fuse.AllowOther()}
+	if runtime.GOOS == "darwin" {
+		options = append(options, fuse.OSXFUSELocations(kbfusePath))
+		options = append(options, fuse.FSName(""))
+		options = append(options, fuse.VolumeName(""))
+	}
 
 	c, err := fuse.Mount(os.Args[1], options...)
 	if err != nil {
