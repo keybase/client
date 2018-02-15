@@ -1478,7 +1478,7 @@ func (t *Team) PostTeamSettings(ctx context.Context, settings keybase1.TeamSetti
 		return err
 	}
 
-	t.notify(ctx, keybase1.TeamChangeSet{})
+	t.notify(ctx, keybase1.TeamChangeSet{Misc: true})
 	return nil
 }
 

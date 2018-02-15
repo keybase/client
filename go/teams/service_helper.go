@@ -980,7 +980,7 @@ func ListMyAccessRequests(ctx context.Context, g *libkb.GlobalContext, teamName 
 	return res, nil
 }
 
-func IgnoreRequest(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
+func IgnoreRequest(ctx context.Context, g *libkb.GlobalContext, teamName, username string) error {
 	uv, err := loadUserVersionByUsername(ctx, g, username)
 	if err != nil {
 		if err == errInviteRequired {
@@ -991,9 +991,15 @@ func IgnoreRequest(ctx context.Context, g *libkb.GlobalContext, teamname, userna
 		return err
 	}
 	arg := apiArg(ctx, "team/deny_access")
-	arg.Args.Add("team", libkb.S{Val: teamname})
+	arg.Args.Add("team", libkb.S{Val: teamName})
 	arg.Args.Add("uid", libkb.S{Val: uv.Uid.String()})
-	_, err = g.API.Post(arg)
+	if _, err := g.API.Post(arg); err != nil {
+		t, err := GetForTeamManagementByStringName(ctx, g, teamName, true)
+		if err != nil {
+			return err
+		}
+		t.notify(ctx, keybase1.TeamChangeSet{Misc: true})
+	}
 	return err
 }
 
@@ -1405,6 +1411,9 @@ func SetTarsDisabled(ctx context.Context, g *libkb.GlobalContext, teamname strin
 	arg := apiArg(ctx, "team/disable_tars")
 	arg.Args.Add("tid", libkb.S{Val: t.ID.String()})
 	arg.Args.Add("disabled", libkb.B{Val: disabled})
-	_, err = g.API.Post(arg)
-	return err
+	if _, err := g.API.Post(arg); err != nil {
+		return err
+	}
+	t.notify(ctx, keybase1.TeamChangeSet{Misc: true})
+	return nil
 }
