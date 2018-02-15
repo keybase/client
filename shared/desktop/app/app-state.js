@@ -328,7 +328,15 @@ export default class AppState {
     }
     let displayBounds = screen.getDisplayMatching(rect).bounds
     console.log('Check bounds:', rect, state.displayBounds, displayBounds)
-    return isEqual(state.displayBounds, displayBounds)
+    return (
+      isEqual(state.displayBounds, displayBounds) &&
+      !(
+        rect.x > displayBounds.x + displayBounds.width ||
+        rect.x + rect.width < displayBounds.x ||
+        rect.y > displayBounds.y + displayBounds.height ||
+        rect.y + rect.height < displayBounds.y
+      )
+    )
   }
 
   _loadStateSync() {
