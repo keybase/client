@@ -26314,6 +26314,42 @@ exports[`Storyshots Files Root 1`] = `
   font-weight: 600;
 }
 
+.glamor-1,
+[data-glamor-1] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  margin-left: 16px;
+}
+
+.glamor-2,
+[data-glamor-2] {
+  font-size: 11px;
+  line-height: 15px;
+  color: red;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  margin-left: 8px;
+}
+
+.glamor-3,
+[data-glamor-3] {
+  font-size: 11px;
+  line-height: 15px;
+  color: blue;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  margin-left: 8px;
+}
+
 <div
   style={
     Object {
@@ -26395,7 +26431,13 @@ exports[`Storyshots Files Root 1`] = `
               }
             }
           >
-            Super Ugly Temporary SortBar:
+            <span
+              className="glamor-1"
+              onClick={undefined}
+              title={undefined}
+            >
+              Not-Super Ugly Temporary SortBar:
+            </span>
             <div
               onClick={[Function]}
               onMouseDown={[Function]}
@@ -26406,13 +26448,11 @@ exports[`Storyshots Files Root 1`] = `
                 Object {
                   "alignItems": "stretch",
                   "borderRadius": 0,
-                  "color": "red",
                   "cursor": "pointer",
                   "display": "flex",
                   "flexDirection": "column",
                   "height": undefined,
                   "lineHeight": 0,
-                  "marginLeft": "8px",
                   "minWidth": undefined,
                   "position": "relative",
                   "textAlign": "left",
@@ -26421,8 +26461,14 @@ exports[`Storyshots Files Root 1`] = `
                 }
               }
             >
-              Click to change sort-order: 
-              asc
+              <span
+                className="glamor-2"
+                onClick={undefined}
+                title={undefined}
+              >
+                Click to change sort-order: 
+                asc
+              </span>
             </div>
             <div
               onClick={[Function]}
@@ -26434,13 +26480,11 @@ exports[`Storyshots Files Root 1`] = `
                 Object {
                   "alignItems": "stretch",
                   "borderRadius": 0,
-                  "color": "blue",
                   "cursor": "pointer",
                   "display": "flex",
                   "flexDirection": "column",
                   "height": undefined,
                   "lineHeight": 0,
-                  "marginLeft": "8px",
                   "minWidth": undefined,
                   "position": "relative",
                   "textAlign": "left",
@@ -26449,8 +26493,14 @@ exports[`Storyshots Files Root 1`] = `
                 }
               }
             >
-              Click to change sort-by: 
-              name
+              <span
+                className="glamor-3"
+                onClick={undefined}
+                title={undefined}
+              >
+                Click to change sort-by: 
+                name
+              </span>
             </div>
           </div>
         </div>
