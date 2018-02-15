@@ -5,8 +5,6 @@ import * as Types from '../constants/types/settings'
 import * as Constants from '../constants/settings'
 import * as LoginGen from '../actions/login-gen'
 import * as SettingsGen from '../actions/settings-gen'
-import * as NotificationsGen from '../actions/notifications-gen'
-import * as Tabs from '../constants/tabs'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as WaitingGen from '../actions/waiting-gen'
@@ -15,7 +13,7 @@ import trim from 'lodash/trim'
 import {delay} from 'redux-saga'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
 import {type TypedState} from '../constants/reducer'
-import {traceFileName, isMobile} from '../constants/platform'
+import {traceFileName} from '../constants/platform'
 
 function* _onUpdatePGPSettings(): Saga.SagaGenerator<any, any> {
   try {
@@ -367,14 +365,6 @@ const _traceSaga = (action: SettingsGen.TracePayload) => {
   ])
 }
 
-const _calculateSettingsBadge = (action: SettingsGen.CalculateSettingsBadgePayload, state: TypedState) => {
-  let settingsBadge = 0
-  if (!state.push.hasPermissions && isMobile) {
-    settingsBadge = settingsBadge + 1
-  }
-  return Saga.put(NotificationsGen.createSetTabBadge({tab: Tabs.settingsTab, badge: settingsBadge}))
-}
-
 function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(SettingsGen.invitesReclaim, _reclaimInviteSaga)
   yield Saga.safeTakeLatest(SettingsGen.invitesRefresh, _refreshInvitesSaga)
@@ -388,7 +378,6 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(SettingsGen.onSubmitNewPassphrase, _onSubmitNewPassphrase)
   yield Saga.safeTakeEvery(SettingsGen.onUpdatePGPSettings, _onUpdatePGPSettings)
   yield Saga.safeTakeLatestPure(SettingsGen.trace, _traceSaga)
-  yield Saga.safeTakeEveryPure(SettingsGen.calculateSettingsBadge, _calculateSettingsBadge)
 }
 
 export default settingsSaga

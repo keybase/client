@@ -180,7 +180,6 @@ function reducer(state: Types.State = Constants.initialState, action: SettingsGe
         waitingForResponse: waiting,
       }
     // Saga only actions
-    case SettingsGen.calculateSettingsBadge:
     case SettingsGen.dbNuke:
     case SettingsGen.deleteAccountForever:
     case SettingsGen.invitesReclaim:

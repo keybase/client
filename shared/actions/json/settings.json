@@ -4,7 +4,6 @@
     "import HiddenString from '../util/hidden-string'"
   ],
   "actions": {
-    "calculateSettingsBadge": {},
     "dbNuke": {},
     "deleteAccountForever": {},
     "invitesClearError": {},

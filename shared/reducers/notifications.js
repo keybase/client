@@ -65,13 +65,6 @@ export default function(state: Types.State = initialState, action: Notifications
       newState = _updateWidgetBadge(newState)
       return newState
     }
-    case NotificationsGen.setTabBadge: {
-      const {tab, badge} = action.payload
-      const navBadges = state.get('navBadges').withMutations(n => n.set(tab, badge))
-      let newState = state.withMutations(s => s.set('navBadges', navBadges))
-      newState = _updateWidgetBadge(newState)
-      return newState
-    }
     // Saga only actions
     case NotificationsGen.listenForKBFSNotifications:
     case NotificationsGen.listenForNotifications:

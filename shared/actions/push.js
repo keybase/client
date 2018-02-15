@@ -6,7 +6,6 @@ import * as PushGen from './push-gen'
 import * as ChatTypes from '../constants/types/rpc-chat-gen'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as SettingsGen from './settings-gen'
 import {isMobile, isIOS} from '../constants/platform'
 import {chatTab} from '../constants/tabs'
 import {switchTo} from './route-tree'
@@ -33,7 +32,6 @@ function permissionsNoSaga() {
     Saga.call(setNoPushPermissions),
     Saga.put(PushGen.createPermissionsRequesting({requesting: false})),
     Saga.put(PushGen.createPermissionsPrompt({prompt: false})),
-    Saga.put(SettingsGen.createCalculateSettingsBadge()),
   ])
 }
 
@@ -216,7 +214,6 @@ function* checkIOSPushSaga(): Saga.SagaGenerator<any, any> {
     logger.info('Badge or alert permissions are enabled')
     yield Saga.put(PushGen.createSetHasPermissions({hasPermissions: true}))
   }
-  yield Saga.put(SettingsGen.createCalculateSettingsBadge())
 }
 
 function* deletePushTokenSaga(): Saga.SagaGenerator<any, any> {
@@ -251,16 +248,10 @@ function* _mobileAppState(action: AppGen.MobileAppStatePayload) {
     const permissions = yield Saga.call(checkPermissions)
     if (permissions.alert || permissions.badge) {
       logger.info('Push permissions are ON')
-      yield Saga.all([
-        Saga.put(PushGen.createSetHasPermissions({hasPermissions: true})),
-        Saga.put(SettingsGen.createCalculateSettingsBadge()),
-      ])
+      yield Saga.put(PushGen.createSetHasPermissions({hasPermissions: true}))
     } else {
       logger.info('Push permissions are OFF')
-      yield Saga.all([
-        Saga.put(PushGen.createSetHasPermissions({hasPermissions: false})),
-        Saga.put(SettingsGen.createCalculateSettingsBadge()),
-      ])
+      yield Saga.put(PushGen.createSetHasPermissions({hasPermissions: false}))
     }
   }
 }

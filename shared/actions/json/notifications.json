@@ -13,10 +13,6 @@
       "badgeState": "RPCTypes.BadgeState"
     },
     "listenForNotifications": {},
-    "listenForKBFSNotifications": {},
-    "setTabBadge": {
-      "tab": "Tab",
-      "badge": "number"
-    }
+    "listenForKBFSNotifications": {}
   }
 }
