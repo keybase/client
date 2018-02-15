@@ -13,7 +13,7 @@ import {isImageFileName} from '../constants/chat'
 const shownPushPrompt = 'shownPushPrompt'
 
 function requestPushPermissions(): Promise<*> {
-  return PushNotifications.requestPermissions()
+  return isIOS ? PushNotifications.requestPermissions() : Promise.resolve()
 }
 
 // Sets that we've shown the push prompt in local storage
@@ -107,6 +107,7 @@ function configurePush() {
     PushNotifications.configure({
       onRegister: token => {
         let tokenType: ?PushTypes.TokenType
+        console.log('PUSH TOKEN', token)
         switch (token.os) {
           case 'ios':
             tokenType = isDevApplePushToken ? PushConstants.tokenTypeAppleDev : PushConstants.tokenTypeApple

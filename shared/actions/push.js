@@ -244,13 +244,14 @@ function* deletePushTokenSaga(): Saga.SagaGenerator<any, any> {
 
 function* _mobileAppState(action: AppGen.MobileAppStatePayload) {
   const nextAppState = action.payload.nextAppState
-  if (nextAppState === 'active') {
+  if (isIOS && nextAppState === 'active') {
+    console.log('Checking push permissions')
     const permissions = yield Saga.call(checkPermissions)
     if (permissions.alert || permissions.badge) {
-      logger.info('Push permissions are ON')
+      console.log('Push permissions are ON')
       yield Saga.put(PushGen.createSetHasPermissions({hasPermissions: true}))
     } else {
-      logger.info('Push permissions are OFF')
+      console.log('Push permissions are OFF')
       yield Saga.put(PushGen.createSetHasPermissions({hasPermissions: false}))
     }
   }
