@@ -15,7 +15,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keybase/client/go/chat/pager"
 	"github.com/keybase/clockwork"
 
 	"github.com/keybase/client/go/logger"
@@ -470,20 +469,10 @@ func (h *Server) mergeLocalRemoteThread(ctx context.Context, remoteThread, local
 			for _, m := range localThread.Messages {
 				lm[m.GetMessageID()] = true
 			}
+			res.Pagination = remoteThread.Pagination
 			for _, m := range remoteThread.Messages {
 				if !lm[m.GetMessageID()] {
 					res.Messages = append(res.Messages, m)
-				}
-				var pmsgs []pager.Message
-				for _, m := range res.Messages {
-					pmsgs = append(pmsgs, m)
-				}
-				if remoteThread.Pagination != nil {
-					if res.Pagination, err =
-						pager.NewThreadPager().MakePage(pmsgs, len(remoteThread.Messages)); err != nil {
-						return res, err
-					}
-					res.Pagination.Last = remoteThread.Pagination.Last
 				}
 			}
 			return res, nil
