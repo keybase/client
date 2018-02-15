@@ -788,7 +788,7 @@ const messageEdit = (action: Chat2Gen.MessageEditPayload, state: TypedState) => 
   if (message.type === 'text') {
     // Skip if the content is the same
     if (message.text.stringValue() === text.stringValue()) {
-      return Saga.put(Chat2Gen.createMessageSetEditing({conversationIDKey}))
+      return Saga.put(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null}))
     }
 
     const meta = Constants.getMeta(state, conversationIDKey)

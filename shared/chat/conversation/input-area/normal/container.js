@@ -80,7 +80,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     _editingMessage: stateProps._editingMessage,
     _onSubmit: (text: string) => {
       if (stateProps._editingMessage) {
-        if (stateProps._editingMessage.text.stringValue() === text) {
+        if (
+          stateProps._editingMessage.type === 'text' &&
+          stateProps._editingMessage.text.stringValue() === text
+        ) {
           dispatchProps._onCancelEditing(stateProps.conversationIDKey)
         } else {
           dispatchProps._onEditMessage(stateProps._editingMessage, text)
