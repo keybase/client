@@ -140,10 +140,11 @@ func main() {
 	// This must be run as soon (or edit /etc/fuse.conf to enable
 	// `user_allow_other`).
 	options := []fuse.MountOption{fuse.AllowOther()}
+	options = append(options, fuse.FSName("keybase-redirector"))
 	if runtime.GOOS == "darwin" {
 		options = append(options, fuse.OSXFUSELocations(kbfusePath))
-		options = append(options, fuse.FSName(""))
-		options = append(options, fuse.VolumeName(""))
+		options = append(options, fuse.VolumeName("keybase-redirector"))
+		options = append(options, fuse.NoBrowse())
 	}
 
 	c, err := fuse.Mount(os.Args[1], options...)

@@ -106,10 +106,36 @@ func NoAppleXattr() MountOption {
 	return noAppleXattr
 }
 
+// NoBrowse makes OSXFUSE mark the volume as non-browsable, so that
+// Finder won't automatically browse it.
+//
+// OS X only.  Others ignore this option.
+func NoBrowse() MountOption {
+	return noBrowse
+}
+
 // ExclCreate causes O_EXCL flag to be set for only "truly" exclusive creates,
 // i.e. create calls for which the initiator explicitly set the O_EXCL flag.
 //
+// OSXFUSE expects all create calls to return EEXIST in case the file
+// already exists, regardless of whether O_EXCL was specified or not.
+// To ensure this behavior, it normally sets OpenExclusive for all
+// Create calls, regardless of whether the original call had it set.
+// For distributed filesystems, that may force every file create to be
+// a distributed consensus action, causing undesirable delays.
+//
+// This option makes the FUSE filesystem see the original flag value,
+// and better decide when to ensure global consensus.
+//
+// Note that returning EEXIST on existing file create is still
+// expected with OSXFUSE, regardless of the presence of the
+// OpenExclusive flag.
+//
+// For more information, see
+// https://github.com/osxfuse/osxfuse/issues/209
+//
 // OS X only. Others ignore this options.
+// Requires OSXFUSE 3.4.1 or newer.
 func ExclCreate() MountOption {
 	return exclCreate
 }
@@ -275,6 +301,18 @@ func OSXFUSELocations(paths ...OSXFUSEPaths) MountOption {
 		// replace previous values, but make a copy so there's no
 		// worries about caller mutating their slice
 		conf.osxfuseLocations = append(conf.osxfuseLocations[:0], paths...)
+		return nil
+	}
+}
+
+// AllowNonEmptyMount allows the mounting over a non-empty directory.
+//
+// The files in it will be shadowed by the freshly created mount. By
+// default these mounts are rejected to prevent accidental covering up
+// of data, which could for example prevent automatic backup.
+func AllowNonEmptyMount() MountOption {
+	return func(conf *mountConfig) error {
+		conf.options["nonempty"] = ""
 		return nil
 	}
 }

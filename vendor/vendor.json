@@ -3,10 +3,10 @@
 	"ignore": "test appenginevm",
 	"package": [
 		{
-			"checksumSHA1": "68e5AeuAwK7lLjVXWYhkZYsIAZs=",
+			"checksumSHA1": "NgV1fBpGcstO5Xc9ikwaDzvRzBQ=",
 			"path": "bazil.org/fuse",
-			"revision": "10bcf1a918ef53457198345dd94a52c977328db6",
-			"revisionTime": "2016-08-09T21:03:52Z"
+			"revision": "dcb23d17637ff8d5455d74ec7fcfde946d19a84b",
+			"revisionTime": "2018-02-15T18:18:15Z"
 		},
 		{
 			"checksumSHA1": "389JFJTJADMtZkTIfdSnsmHVOUs=",
