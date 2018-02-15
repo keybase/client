@@ -14,6 +14,7 @@ type FileRowProps = {
   path: Types.Path,
   icon: IconType,
   onOpen: () => void,
+  visibility: Types.Visibility,
 }
 
 type FolderProps = {
@@ -35,7 +36,7 @@ const FileRow = RowConnector(({elems, path, name, icon, onOpen, visibility}: Fil
   <Box>
     <ClickableBox onClick={onOpen} style={stylesCommonRow}>
       <Box style={stylesRowBox}>
-        {elems.length === 3 && elems[1] === 'team' ? (
+        {elems.length === 3 && visibility === 'team' ? (
           <Avatar size={24} teamname={name} isTeam={true} style={iconStyle} />
         ) : (
           <Icon type={icon} style={iconStyle} />
