@@ -93,6 +93,8 @@ func (c *PprofHandler) LogTrace(_ context.Context, arg keybase1.LogTraceArg) (er
 		SessionID: arg.SessionID,
 	}
 
+	// Assume this directory already exists, i.e. we've already
+	// started logging.
 	logDir := c.G().Env.GetLogDir()
 
 	pattern := filepath.Join(logDir, "trace.*.out")
