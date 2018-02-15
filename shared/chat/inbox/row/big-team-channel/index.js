@@ -45,6 +45,7 @@ const textStyleError = {
   color: globalColors.red,
 }
 const textStylePlain = {
+  ...(isMobile ? {backgroundColor: globalColors.white} : {}),
   color: globalColors.black_75_on_white,
 }
 const textStylePlainBold = {

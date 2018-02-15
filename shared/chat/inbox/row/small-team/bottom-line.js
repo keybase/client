@@ -160,6 +160,7 @@ const noWrapStyle = {
 }
 
 const mobileBottomLineCommon = {
+  backgroundColor: globalColors.white,
   color: globalColors.black_40,
   fontSize: 13,
   lineHeight: lineHeight(17),

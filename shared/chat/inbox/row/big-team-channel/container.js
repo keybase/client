@@ -12,7 +12,7 @@ const mapStateToProps = (state: TypedState, ownProps) => {
     _meta: Constants.getMeta(state, _conversationIDKey),
     hasBadge: Constants.getHasBadge(state, _conversationIDKey),
     hasUnread: Constants.getHasUnread(state, _conversationIDKey),
-    isSelected: Constants.getIsSelected(state, _conversationIDKey),
+    isSelected: !isMobile && Constants.getIsSelected(state, _conversationIDKey),
   }
 }
 

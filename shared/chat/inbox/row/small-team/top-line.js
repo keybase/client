@@ -28,7 +28,7 @@ class SimpleTopLine extends React.Component<Props> {
   }
 
   render() {
-    const {participants, showBold, subColor, timestamp, usernameColor, hasBadge} = this.props
+    const {participants, showBold, subColor, timestamp, usernameColor, hasBadge, backgroundColor} = this.props
     const boldOverride = showBold ? globalStyles.fontBold : null
     return (
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', maxHeight: height, minHeight: height}}>
@@ -54,7 +54,16 @@ class SimpleTopLine extends React.Component<Props> {
           >
             <PlaintextUsernames
               type="BodySemibold"
-              containerStyle={{...boldOverride, color: usernameColor, paddingRight: 7}}
+              containerStyle={{
+                ...boldOverride,
+                color: usernameColor,
+                paddingRight: 7,
+                ...(isMobile
+                  ? {
+                      backgroundColor,
+                    }
+                  : {}),
+              }}
               users={participants.map(p => ({username: p}))}
               title={participants.join(', ')}
             />
@@ -63,7 +72,7 @@ class SimpleTopLine extends React.Component<Props> {
         <Text
           key="0"
           type="BodySmall"
-          style={{...boldOverride, color: subColor, lineHeight: lineHeight(height)}}
+          style={{...boldOverride, color: subColor, lineHeight: lineHeight(height), backgroundColor}}
         >
           {timestamp}
         </Text>

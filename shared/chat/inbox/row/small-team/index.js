@@ -50,6 +50,7 @@ class SmallTeam extends React.PureComponent<Props> {
           )}
           <Box style={props.isSelected ? conversationRowStyleSelected : conversationRowStyle}>
             <SimpleTopLine
+              backgroundColor={props.backgroundColor}
               hasUnread={props.hasUnread}
               hasBadge={props.hasBadge}
               participants={props.teamname ? [props.teamname] : props.participants}

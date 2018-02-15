@@ -18,7 +18,7 @@ const dismissKeyboard = () => {
 const NativeWrapper = (props: Props) => (
   <NativeTouchableHighlight
     onLongPress={props.onShowMenu}
-    underlayColor={globalColors.black_10}
+    underlayColor={globalColors.white}
     onPress={dismissKeyboard}
   >
     <React.Fragment>
