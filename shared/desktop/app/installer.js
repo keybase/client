@@ -4,11 +4,7 @@ import exec from './exec'
 import {keybaseBinPath} from './paths'
 import {quit} from './ctl'
 import {isWindows} from '../../constants/platform'
-import {
-  ExitCodeFuseKextError,
-  ExitCodeFuseKextPermissionError,
-  ExitCodeAuthCanceledError,
-} from '../../constants/favorite'
+import {ExitCodeFuseKextError, ExitCodeFuseKextPermissionError} from '../../constants/favorite'
 import UserData from './user-data'
 
 import type {InstallResult} from '../../constants/types/rpc-gen'
@@ -110,12 +106,6 @@ function checkErrors(result: InstallResult): CheckErrorsResult {
           // This will occur if they started install and didn't allow the extension in >= 10.13, and then restarted the app.
           // The app will deal with this scenario in the folders tab, so we can ignore this specific error here.
         }
-      } else if (cr.name === 'helper' && cr.exitCode === ExitCodeAuthCanceledError) {
-        // Consider this a FUSE error for the purpose of showing it to the user.
-        hasFUSEError = true
-        errors.push(
-          `Installation was canceled. The file system will not be available until authorization is granted.`
-        )
       } else if (cr.name === 'cli') {
         hasCLIError = true
       } else {
