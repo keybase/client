@@ -1514,6 +1514,10 @@ const loadCanUserPerform = (action: Chat2Gen.SelectConversationPayload, state: T
   }
 }
 
+const mobileNavOnSelect = (action: Chat2Gen.SelectConversationPayload) => {
+  return Saga.put(Route.navigateTo([chatTab, 'conversation'], []))
+}
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Refresh the inbox
   yield Saga.safeTakeEveryPure(
@@ -1555,14 +1559,15 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, loadCanUserPerform)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.startConversation, startConversation)
-
-  // Anything that means we should try and select
-  yield Saga.safeTakeEveryPure([Chat2Gen.metasReceived], selectTheNewestConversation)
-
   yield Saga.safeTakeEveryPure(Chat2Gen.openFolder, openFolder)
 
-  if (!isMobile) {
+  if (isMobile) {
+    // Push us into the conversation
+    yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, mobileNavOnSelect)
+  } else {
     yield Saga.safeTakeEveryPure(Chat2Gen.desktopNotification, desktopNotify)
+    // Auto select the latest convo
+    yield Saga.safeTakeEveryPure([Chat2Gen.metasReceived], selectTheNewestConversation)
   }
 
   // On bootstrap lets load the untrusted inbox. This helps make some flows easier

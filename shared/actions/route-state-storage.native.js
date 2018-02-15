@@ -2,6 +2,7 @@
 import logger from '../logger'
 import {AsyncStorage, Linking} from 'react-native'
 import {chatTab, isValidInitialTab} from '../constants/tabs'
+import {getPath} from '../route-tree'
 import * as ConfigGen from './config-gen'
 
 import type {Dispatch, GetState} from '../constants/types/flux'
@@ -126,11 +127,15 @@ class RouteStateStorage {
     }
     const item = {}
 
+    const routePath = getPath(state.routeTree.routeState)
     const selectedTab = routeState.selected
     if (isValidInitialTab(selectedTab)) {
       item.tab = selectedTab
       if (selectedTab === chatTab) {
-        item.selectedConversationIDKey = state.chat2.selectedConversation
+        if (routePath.size > 1) {
+          // in a conversation and not on the inbox
+          item.selectedConversationIDKey = state.chat2.selectedConversation
+        }
       }
       await this._setItem(item)
     } else {

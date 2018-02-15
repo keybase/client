@@ -1,7 +1,6 @@
 // @flow
 import * as Constants from '../../../../constants/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as Route from '../../../../actions/route-tree'
 import {BigTeamChannel} from '.'
 import {connect, type TypedState, isMobile} from '../../../../util/container'
 
@@ -17,13 +16,8 @@ const mapStateToProps = (state: TypedState, ownProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}) => ({
-  onSelectConversation: () => {
-    dispatch(Chat2Gen.createSelectConversation({conversationIDKey, fromUser: true}))
-
-    if (isMobile) {
-      dispatch(Route.navigateAppend(['conversation']))
-    }
-  },
+  onSelectConversation: () =>
+    dispatch(Chat2Gen.createSelectConversation({conversationIDKey, fromUser: true})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({

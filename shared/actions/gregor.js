@@ -13,10 +13,10 @@ import {folderFromPath} from '../constants/favorite.js'
 import {nativeReachabilityEvents} from '../util/reachability'
 import {replaceEntity} from './entities'
 import {type Dispatch} from '../constants/types/flux'
-import {type SagaGenerator} from '../constants/types/saga'
 import {type State as GregorState, type OutOfBandMessage} from '../constants/types/rpc-gregor-gen'
 import {type TypedState} from '../constants/reducer'
 import {usernameSelector, loggedInSelector} from '../constants/selectors'
+import {isMobile} from '../constants/platform'
 
 function isTlfItem(gItem: Types.NonNullGregorItem): boolean {
   return !!(gItem && gItem.item && gItem.item.category && gItem.item.category === 'tlf')
@@ -109,7 +109,7 @@ function registerGregorListeners() {
   }
 }
 
-function* handleTLFUpdate(items: Array<Types.NonNullGregorItem>): SagaGenerator<any, any> {
+function* handleTLFUpdate(items: Array<Types.NonNullGregorItem>): Saga.SagaGenerator<any, any> {
   const state: TypedState = yield Saga.select()
   const seenMsgs: Types.MsgMap = state.gregor.seenMsgs
 
@@ -118,11 +118,14 @@ function* handleTLFUpdate(items: Array<Types.NonNullGregorItem>): SagaGenerator<
   const newTlfUpdates = tlfUpdates.filter(gItem => !seenMsgs[gItem.md.msgID.toString('base64')])
   if (newTlfUpdates.length) {
     yield Saga.put(GregorGen.createUpdateSeenMsgs({seenMsgs: newTlfUpdates}))
-    yield Saga.put(FavoriteGen.createFavoriteList())
+    // We can ignore these on mobile, we don't have a menu widget, etc
+    if (!isMobile) {
+      yield Saga.put(FavoriteGen.createFavoriteList())
+    }
   }
 }
 
-function* handleIntroBanners(items: Array<Types.NonNullGregorItem>): SagaGenerator<any, any> {
+function* handleIntroBanners(items: Array<Types.NonNullGregorItem>): Saga.SagaGenerator<any, any> {
   const sawChatBanner = items.find(i => i.item && i.item.category === 'sawChatBanner')
   const sawSubteamsBanner = items.find(i => i.item && i.item.category === 'sawSubteamsBanner')
   if (sawChatBanner) {
@@ -213,7 +216,7 @@ function _injectItem(action: GregorGen.InjectItemPayload) {
   })
 }
 
-function* gregorSaga(): SagaGenerator<any, any> {
+function* gregorSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(GregorGen.pushState, _handlePushState)
   yield Saga.safeTakeEveryPure(GregorGen.pushOOBM, _handlePushOOBM)
   yield Saga.safeTakeEveryPure(GregorGen.injectItem, _injectItem)

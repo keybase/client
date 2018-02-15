@@ -9,7 +9,7 @@ import EnterPaperkey from './conversation/rekey/enter-paper-key'
 import Inbox from './inbox/container'
 import InfoPanel from './conversation/info-panel/container'
 import ManageChannels from './manage-channels/container'
-import MessageAction from './conversation/messages/message-popup'
+import MessagePopup from './conversation/messages/message-popup'
 import NewTeamDialogFromChat from './new-team-dialog-container'
 import ReallyLeaveTeam from '../teams/really-leave-team/container-chat'
 import RelativePopupHoc from '../common-adapters/relative-popup-hoc'
@@ -27,7 +27,7 @@ const conversationRoute = makeRouteDefNode({
       tags: makeLeafTags(isMobile ? {hideStatusBar: true, fullscreen: true} : {layerOnTop: true}),
       children: {
         messageAction: {
-          component: isMobile ? MessageAction : RelativePopupHoc(MessageAction),
+          component: RelativePopupHoc(MessagePopup),
           tags: makeLeafTags({layerOnTop: true}),
         },
       },
@@ -68,7 +68,7 @@ const conversationRoute = makeRouteDefNode({
       children: {},
     },
     messageAction: {
-      component: RelativePopupHoc(MessageAction),
+      component: RelativePopupHoc(MessagePopup),
       tags: makeLeafTags({layerOnTop: true}),
       children: {},
     },
