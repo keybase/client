@@ -4,6 +4,7 @@
 package libnativeinstaller
 
 import (
+	"errors"
 	"fmt"
 	"os/exec"
 	"path/filepath"
@@ -40,7 +41,7 @@ func AppBundleForPath() (string, error) {
 		return "", err
 	}
 	if path == "" {
-		return "", err
+		return "", errors.New("Could not get executable name")
 	}
 	paths := strings.SplitN(path, ".app", 2)
 	// If no match, return ""
