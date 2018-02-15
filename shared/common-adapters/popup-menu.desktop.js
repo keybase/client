@@ -54,23 +54,28 @@ class ModalLessPopupMenu extends Component<Props> {
                   style={{...stylesRow, ...styleClickable}}
                   onClick={i.onClick}
                 >
-                  <Text
-                    className="title"
-                    type="Body"
-                    style={{...stylesMenuText, ...i.style, ...styleDisabled}}
-                  >
-                    {i.title}
-                  </Text>
-                  {i.subTitle && (
+                  {i.view ? (
+                    i.view
+                  ) : (
                     <Text
-                      className="subtitle"
-                      key={i.subTitle}
-                      type="BodySmall"
-                      style={{...stylesMenuText, ...i.style}}
+                      className="title"
+                      type="Body"
+                      style={{...stylesMenuText, ...i.style, ...styleDisabled}}
                     >
-                      {i.subTitle}
+                      {i.title}
                     </Text>
                   )}
+                  {!i.view &&
+                    i.subTitle && (
+                      <Text
+                        className="subtitle"
+                        key={i.subTitle}
+                        type="BodySmall"
+                        style={{...stylesMenuText, ...i.style}}
+                      >
+                        {i.subTitle}
+                      </Text>
+                    )}
                 </Box>
               )
             })}
