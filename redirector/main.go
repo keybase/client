@@ -11,10 +11,13 @@ import (
 	"os/user"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strconv"
+	"strings"
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
+	"github.com/strib/gomounts"
 )
 
 type symlink struct {
@@ -61,6 +64,48 @@ func (r root) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 	}, nil
 }
 
+func findKBFSMount(uid string) (string, error) {
+	vols, err := gomounts.GetMountedVolumes()
+	if err != nil {
+		return "", err
+	}
+	fuseType := "fuse"
+	if runtime.GOOS == "darwin" {
+		fuseType = "kbfuse"
+	}
+	var fuseMountPoints []string
+	for _, v := range vols {
+		if v.Type != fuseType {
+			continue
+		}
+		if v.Owner != uid {
+			continue
+		}
+		fuseMountPoints = append(fuseMountPoints, v.Path)
+	}
+
+	if len(fuseMountPoints) == 0 {
+		return "", fuse.ENOENT
+	}
+	if len(fuseMountPoints) == 1 {
+		return fuseMountPoints[0], nil
+	}
+
+	// If there is more than one, pick the first one alphabetically
+	// that has "keybase" in the path.
+	sort.Strings(fuseMountPoints)
+	for _, mp := range fuseMountPoints {
+		// TODO: a better regexp that will rule out keybase.staging if
+		// we're in prod mode, etc.
+		if strings.Contains(mp, "keybase") {
+			return mp, nil
+		}
+	}
+
+	// Give up and return the first one.
+	return fuseMountPoints[0], nil
+}
+
 func (r root) Lookup(
 	ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (
 	n fs.Node, err error) {
@@ -68,24 +113,11 @@ func (r root) Lookup(
 	if err != nil {
 		return nil, err
 	}
-	// TODO: A real implementation should parse the
-	// keybase/config.json of the user to find if the user set a
-	// different mountdir.  But what to do if the user has
-	// $XDG_DATA_DIR or $KEYBASE_MOUNTDIR set?  Should we parse the
-	// `mount` output, or try to run `keybase status` on behalf of the
-	// user?
-	var mountpoint string
-	switch runtime.GOOS {
-	case "linux":
-		mountpoint = fmt.Sprintf("%s/.local/share/keybase/fs", u.HomeDir)
-	case "darwin":
-		mountpoint = fmt.Sprintf("%s/keybase", u.HomeDir)
-	case "windows":
-		panic("Unsupported")
-	default:
-		mountpoint = fmt.Sprintf("%s/.local/share/keybase/fs", u.HomeDir)
+	mountpoint, err := findKBFSMount(u.Uid)
+	if err != nil {
+		return nil, err
 	}
-	fmt.Printf("Lookup %s %s\n", req.Name, mountpoint)
+
 	resp.EntryValid = 0
 	switch req.Name {
 	case "private":

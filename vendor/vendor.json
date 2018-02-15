@@ -527,6 +527,12 @@
 			"revisionTime": "2016-11-17T07:43:51Z"
 		},
 		{
+			"checksumSHA1": "zXIbuVapmCpXnSx0QXqMf8J6nS4=",
+			"path": "github.com/strib/gomounts",
+			"revision": "456d35beeb3c59bb61c72639f80a00a7fb2bacb0",
+			"revisionTime": "2018-02-15T00:15:55Z"
+		},
+		{
 			"checksumSHA1": "yHbyLpI/Meh0DGrmi8x6FrDxxUY=",
 			"path": "github.com/syndtr/goleveldb/leveldb",
 			"revision": "b89cc31ef7977104127d34c1bd31ebd1a9db2199",
