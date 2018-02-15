@@ -32,6 +32,10 @@ func NewPprofHandler(xp rpc.Transporter, g *libkb.GlobalContext) *PprofHandler {
 }
 
 func (c *PprofHandler) trace(sessionID int, traceFile string, traceDurationSeconds keybase1.DurationSec) (err error) {
+	if !filepath.IsAbs(traceFile) {
+		return fmt.Errorf("%q is not an absolute path", traceFile)
+	}
+
 	ctx := engine.Context{
 		LogUI:     c.getLogUI(sessionID),
 		SessionID: sessionID,
