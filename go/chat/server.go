@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/pager"
+	"github.com/keybase/clockwork"
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/teams"
@@ -57,11 +58,13 @@ type Server struct {
 	boxer         *Boxer
 	store         *AttachmentStore
 	identNotifier types.IdentifyNotifier
+	clock         clockwork.Clock
 
 	// Only for testing
 	rc                chat1.RemoteInterface
 	mockChatUI        libkb.ChatUI
 	cachedThreadDelay *time.Duration
+	remoteThreadDelay *time.Duration
 }
 
 var _ chat1.LocalInterface = (*Server)(nil)
@@ -76,7 +79,12 @@ func NewServer(g *globals.Context, store *AttachmentStore, serverConn ServerConn
 		store:         store,
 		boxer:         NewBoxer(g),
 		identNotifier: NewCachingIdentifyNotifier(g),
+		clock:         clockwork.NewRealClock(),
 	}
+}
+
+func (h *Server) SetClock(clock clockwork.Clock) {
+	h.clock = clock
 }
 
 func (h *Server) getChatUI(sessionID int) libkb.ChatUI {
@@ -544,7 +552,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		go func() {
 			var err error
 			if h.cachedThreadDelay != nil {
-				time.Sleep(*h.cachedThreadDelay)
+				h.clock.Sleep(*h.cachedThreadDelay)
 			}
 			localThread, err = h.G().ConvSource.PullLocalOnly(bctx, arg.ConversationID,
 				uid, arg.Query, pagination)
@@ -601,6 +609,9 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		defer wg.Done()
 
 		// Run the full Pull operation, and redo pagination
+		if h.remoteThreadDelay != nil {
+			h.clock.Sleep(*h.remoteThreadDelay)
+		}
 		var remoteThread chat1.ThreadView
 		var rl []*chat1.RateLimit
 		remoteThread, rl, fullErr = h.G().ConvSource.Pull(bctx, arg.ConversationID,
