@@ -1,5 +1,6 @@
 // @flow
 import * as I from 'immutable'
+import {type IconType} from '../../common-adapters/icon'
 
 export opaque type Path = ?string
 
@@ -38,7 +39,7 @@ export type UnknownPathItem = I.RecordOf<_UnknownPathItem>
 
 export type PathItem = FolderPathItem | SymlinkPathItem | FilePathItem | UnknownPathItem
 
-export type SortBy = 'name' | 'time' | 'size'
+export type SortBy = 'name' | 'time'
 export type SortOrder = 'asc' | 'desc'
 export type _SortSetting = {
   sortBy: SortBy,
@@ -97,24 +98,35 @@ export const pathConcat = (p: Path, s: string): Path =>
 export const pathIsNonTeamTLFList = (p: Path): boolean =>
   pathToString(p) === '/keybase/private' || pathToString(p) === '/keybase/public'
 
-export const sortByToString = (s: SortBy): string => {
-  switch (s) {
+export type sortSettingDisplayParams = {
+  sortSettingText: string,
+  sortSettingIconType: IconType,
+}
+
+export const sortSettingToIconTypeAndText = (s: SortSetting): sortSettingDisplayParams => {
+  switch (s.sortBy) {
     case 'name':
-      return 'Name'
+      return s.sortOrder === 'asc'
+        ? {
+            sortSettingIconType: 'iconfont-new',
+            sortSettingText: 'Name ascending',
+          }
+        : {
+            sortSettingIconType: 'iconfont-new',
+            sortSettingText: 'Name descending',
+          }
     case 'time':
-      return 'Last Modified Time'
+      return s.sortOrder === 'asc'
+        ? {
+            sortSettingIconType: 'iconfont-new',
+            sortSettingText: 'Recent first',
+          }
+        : {
+            sortSettingIconType: 'iconfont-new',
+            sortSettingText: 'Older first',
+          }
     default:
       throw new Error('invalid SortBy')
-  }
-}
-export const sortOrderToString = (s: SortOrder): string => {
-  switch (s) {
-    case 'asc':
-      return '⬆'
-    case 'desc':
-      return '⬇'
-    default:
-      throw new Error('invalid SortOrder')
   }
 }
 
@@ -141,8 +153,6 @@ export const _getSortByComparer = (sortBy: SortBy): PathItemComparer => {
     case 'time':
       return (a: PathItem, b: PathItem): number =>
         a.lastModifiedTimestamp - b.lastModifiedTimestamp || a.name.localeCompare(b.name)
-    case 'size':
-      return (a: PathItem, b: PathItem): number => a.size - b.size || a.name.localeCompare(b.name)
     default:
       throw new Error('invalid SortBy: ' + sortBy)
   }

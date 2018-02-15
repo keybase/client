@@ -35,8 +35,7 @@ const load = () => {
           Types.stringToPath('/keybase/public'),
           Types.stringToPath('/keybase/team'),
         ]}
-        toggleSortBy={() => {}}
-        toggleSortOrder={() => {}}
+        setSortSetting={() => {}}
         sortSetting={{
           sortBy: 'name',
           sortOrder: 'asc',

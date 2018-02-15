@@ -42,23 +42,6 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(FsGen.createSortSetting({path: path, sortSetting: Constants.makeSortSetting(setting)})),
 })
 
-const _getToggles = (sortSetting: Types.SortSetting, sortSettingChange: _sortSettingSetter) => {
-  const nextBy = sortSetting.sortBy === 'name' ? 'time' : sortSetting.sortBy === 'time' ? 'size' : 'name'
-  const nextOrder = sortSetting.sortOrder === 'asc' ? 'desc' : 'asc'
-  return {
-    toggleSortBy: () =>
-      sortSettingChange({
-        sortBy: nextBy,
-        sortOrder: sortSetting.sortOrder,
-      }),
-    toggleSortOrder: () =>
-      sortSettingChange({
-        sortBy: sortSetting.sortBy,
-        sortOrder: nextOrder,
-      }),
-  }
-}
-
 const mergeProps = (
   {path, itemNames, progress, sortSetting, pathItems, username}: StateProps,
   {_sortSettingChangeFactory, ...dispatchProps}: DispatchProps,
@@ -76,7 +59,8 @@ const mergeProps = (
   progress,
   path,
   sortSetting,
-  ..._getToggles(sortSetting, _sortSettingChangeFactory(path)),
+  ...Types.sortSettingToIconTypeAndText(sortSetting),
+  setSortSetting: _sortSettingChangeFactory(path),
   /* TODO: enable these once we need them:
   name: Types.getPathName(stateProps.path),
   visibility: Types.getPathVisibility(stateProps.path),

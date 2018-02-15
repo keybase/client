@@ -26316,6 +26316,23 @@ exports[`Storyshots Files Root 1`] = `
 
 .glamor-1,
 [data-glamor-1] {
+  color: rgba(0, 0, 0, 0.40);
+}
+
+.glamor-2,
+[data-glamor-2] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  margin-left: 2px;
+}
+
+.glamor-3,
+[data-glamor-3] {
   font-size: 11px;
   line-height: 15px;
   color: rgba(0, 0, 0, 0.40);
@@ -26326,23 +26343,11 @@ exports[`Storyshots Files Root 1`] = `
   margin-left: 16px;
 }
 
-.glamor-2,
-[data-glamor-2] {
+.glamor-4,
+[data-glamor-4] {
   font-size: 11px;
   line-height: 15px;
   color: red;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
-  margin-left: 8px;
-}
-
-.glamor-3,
-[data-glamor-3] {
-  font-size: 11px;
-  line-height: 15px;
-  color: blue;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -26428,11 +26433,43 @@ exports[`Storyshots Files Root 1`] = `
                 "flexDirection": "row",
                 "justifyContent": "start",
                 "minHeight": 24,
+                "paddingLeft": "16px",
               }
             }
           >
+            <div>
+              <span
+                className="glamor-1"
+                onClick={null}
+                onMouseEnter={undefined}
+                onMouseLeave={undefined}
+                style={
+                  Object {
+                    "WebkitFontSmoothing": "antialiased",
+                    "fontFamily": "kb",
+                    "fontSize": 10,
+                    "fontStyle": "normal",
+                    "fontVariant": "normal",
+                    "fontWeight": "normal",
+                    "lineHeight": 1,
+                    "speak": "none",
+                    "textTransform": "none",
+                    "userSelect": "none",
+                  }
+                }
+              >
+                
+              </span>
+            </div>
             <span
-              className="glamor-1"
+              className="glamor-2"
+              onClick={undefined}
+              title={undefined}
+            >
+              Name ascending
+            </span>
+            <span
+              className="glamor-3"
               onClick={undefined}
               title={undefined}
             >
@@ -26462,12 +26499,11 @@ exports[`Storyshots Files Root 1`] = `
               }
             >
               <span
-                className="glamor-2"
+                className="glamor-4"
                 onClick={undefined}
                 title={undefined}
               >
-                Click to change sort-order: 
-                asc
+                name-asc
               </span>
             </div>
             <div
@@ -26494,12 +26530,73 @@ exports[`Storyshots Files Root 1`] = `
               }
             >
               <span
-                className="glamor-3"
+                className="glamor-4"
                 onClick={undefined}
                 title={undefined}
               >
-                Click to change sort-by: 
-                name
+                name-desc
+              </span>
+            </div>
+            <div
+              onClick={[Function]}
+              onMouseDown={[Function]}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              onMouseUp={[Function]}
+              style={
+                Object {
+                  "alignItems": "stretch",
+                  "borderRadius": 0,
+                  "cursor": "pointer",
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "height": undefined,
+                  "lineHeight": 0,
+                  "minWidth": undefined,
+                  "position": "relative",
+                  "textAlign": "left",
+                  "transform": "none",
+                  "transition": "none",
+                }
+              }
+            >
+              <span
+                className="glamor-4"
+                onClick={undefined}
+                title={undefined}
+              >
+                time-asc
+              </span>
+            </div>
+            <div
+              onClick={[Function]}
+              onMouseDown={[Function]}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              onMouseUp={[Function]}
+              style={
+                Object {
+                  "alignItems": "stretch",
+                  "borderRadius": 0,
+                  "cursor": "pointer",
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "height": undefined,
+                  "lineHeight": 0,
+                  "minWidth": undefined,
+                  "position": "relative",
+                  "textAlign": "left",
+                  "transform": "none",
+                  "transition": "none",
+                }
+              }
+            >
+              <span
+                className="glamor-4"
+                onClick={undefined}
+                title={undefined}
+              >
+                time-desc
               </span>
             </div>
           </div>
