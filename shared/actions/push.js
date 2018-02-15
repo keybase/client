@@ -203,12 +203,14 @@ function* checkIOSPushSaga(): Saga.SagaGenerator<any, any> {
   }
   if (!permissions.alert && !permissions.badge) {
     logger.info('Badge and alert permissions are disabled; showing prompt')
-    yield Saga.put(PushGen.createSetHasPermissions({hasPermissions: false}))
-    yield Saga.put(
-      PushGen.createPermissionsPrompt({
-        prompt: true,
-      })
-    )
+    yield Saga.all([
+      Saga.put(PushGen.createSetHasPermissions({hasPermissions: false})),
+      Saga.put(
+        PushGen.createPermissionsPrompt({
+          prompt: true,
+        })
+      ),
+    ])
   } else {
     // badge or alert permissions are enabled
     logger.info('Badge or alert permissions are enabled')
