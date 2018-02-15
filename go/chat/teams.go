@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
@@ -294,6 +295,43 @@ func (t *ImplicitTeamsNameInfoSource) lookupInternalName(ctx context.Context, na
 	return res, nil
 }
 
+type tlfIDToTeamIDMap struct {
+	storage *lru.Cache
+}
+
+func newTlfIDToTeamIDMap() *tlfIDToTeamIDMap {
+	s, _ := lru.New(10000)
+	return &tlfIDToTeamIDMap{
+		storage: s,
+	}
+}
+
+func (t *tlfIDToTeamIDMap) Lookup(ctx context.Context, tlfID chat1.TLFID, api libkb.API) (res keybase1.TeamID, err error) {
+	if iTeamID, ok := t.storage.Get(tlfID.String()); ok {
+		return iTeamID.(keybase1.TeamID), nil
+	}
+	arg := libkb.NewAPIArgWithNetContext(ctx, "team/id")
+	arg.Args = libkb.NewHTTPArgs()
+	arg.Args.Add("tlf_id", libkb.S{Val: tlfID.String()})
+	arg.SessionType = libkb.APISessionTypeREQUIRED
+	apiRes, err := api.Get(arg)
+	if err != nil {
+		return res, err
+	}
+	st, err := apiRes.Body.AtKey("team_id").GetString()
+	if err != nil {
+		return res, err
+	}
+	teamID, err := keybase1.TeamIDFromString(st)
+	if err != nil {
+		return res, err
+	}
+	t.storage.Add(tlfID.String(), teamID)
+	return teamID, nil
+}
+
+var tlfIDToTeamID = newTlfIDToTeamIDMap()
+
 func LoadTeam(ctx context.Context, g *libkb.GlobalContext, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
 	loadTeamArgOverride func(keybase1.TeamID) keybase1.LoadTeamArg) (team *teams.Team, err error) {
@@ -317,19 +355,7 @@ func LoadTeam(ctx context.Context, g *libkb.GlobalContext, tlfID chat1.TLFID,
 		}
 		return teams.Load(ctx, g, ltarg(teamID))
 	case chat1.ConversationMembersType_IMPTEAMUPGRADE:
-		arg := libkb.NewAPIArgWithNetContext(ctx, "team/id")
-		arg.Args = libkb.NewHTTPArgs()
-		arg.Args.Add("tlf_id", libkb.S{Val: tlfID.String()})
-		arg.SessionType = libkb.APISessionTypeREQUIRED
-		res, err := g.API.Get(arg)
-		if err != nil {
-			return team, err
-		}
-		st, err := res.Body.AtKey("team_id").GetString()
-		if err != nil {
-			return team, err
-		}
-		teamID, err := keybase1.TeamIDFromString(st)
+		teamID, err := tlfIDToTeamID.Lookup(ctx, tlfID, g.API)
 		if err != nil {
 			return team, err
 		}
