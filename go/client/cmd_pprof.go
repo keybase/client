@@ -6,6 +6,7 @@ package client
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
 	"time"
 
 	"github.com/keybase/cli"
@@ -17,16 +18,27 @@ import (
 
 type CmdPprofTrace struct {
 	libkb.Contextified
+	writeToLogDir bool
 	traceFile     string
 	traceDuration time.Duration
 }
 
 func (c *CmdPprofTrace) ParseArgv(ctx *cli.Context) error {
 	args := ctx.Args()
-	if len(args) != 1 {
-		return errors.New("Trace needs a single file path")
+	argErr := errors.New("Trace needs a single file path or --log, and not both")
+	writeToLogDir := ctx.Bool("Log")
+	if len(args) == 0 && writeToLogDir {
+		c.writeToLogDir = true
+	} else if len(args) == 1 && !writeToLogDir {
+		absPath, err := filepath.Abs(args.First())
+		if err != nil {
+			return err
+		}
+		c.traceFile = absPath
+	} else {
+		return argErr
 	}
-	c.traceFile = args.First()
+
 	c.traceDuration = ctx.Duration("duration")
 	if c.traceDuration <= 0 {
 		return fmt.Errorf("Invalid duration %s", c.traceDuration)
@@ -42,17 +54,25 @@ func (c *CmdPprofTrace) Run() error {
 	if err = RegisterProtocolsWithContext(nil, c.G()); err != nil {
 		return err
 	}
+
+	durationSeconds := keybase1.DurationSec(float64(c.traceDuration) / float64(time.Second))
+	if c.writeToLogDir {
+		return cli.LogTrace(context.TODO(), keybase1.LogTraceArg{
+			SessionID:            0,
+			TraceDurationSeconds: durationSeconds,
+		})
+	}
 	return cli.Trace(context.TODO(), keybase1.TraceArg{
 		SessionID:            0,
 		TraceFile:            c.traceFile,
-		TraceDurationSeconds: keybase1.DurationSec(float64(c.traceDuration) / float64(time.Second)),
+		TraceDurationSeconds: durationSeconds,
 	})
 }
 
 func NewCmdPprofTrace(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "trace",
-		ArgumentHelp: "/path/to/trace.out",
+		ArgumentHelp: "[/path/to/trace.out]",
 		Usage:        "Run an execution trace asynchronously.",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdPprofTraceRunner(g), "trace", c)
@@ -62,6 +82,10 @@ func NewCmdPprofTrace(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 				Name:  "duration, d",
 				Value: 5 * time.Second,
 				Usage: "How long to run the trace.",
+			},
+			cli.BoolFlag{
+				Name:  "log, l",
+				Usage: "Whether to write the trace to the log directory. If set, don't pass an argument.",
 			},
 		},
 	}
