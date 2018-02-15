@@ -31,6 +31,10 @@ func NewPprofHandler(xp rpc.Transporter, g *libkb.GlobalContext) *PprofHandler {
 	}
 }
 
+func durationSecToDuration(s keybase1.DurationSec) time.Duration {
+	return time.Duration(float64(s) * float64(time.Second))
+}
+
 func (c *PprofHandler) trace(sessionID int, traceFile string, traceDurationSeconds keybase1.DurationSec) (err error) {
 	if !filepath.IsAbs(traceFile) {
 		return fmt.Errorf("%q is not an absolute path", traceFile)
@@ -68,7 +72,7 @@ func (c *PprofHandler) trace(sessionID int, traceFile string, traceDurationSecon
 	c.G().Log.Info("Tracing to %s for %.2f second(s)", traceFile, traceDurationSeconds)
 
 	go func() {
-		time.Sleep(time.Duration(float64(traceDurationSeconds) * float64(time.Second)))
+		time.Sleep(durationSecToDuration(traceDurationSeconds))
 		trace.Stop()
 		close(f)
 		c.G().Log.Info("Tracing to %s done", traceFile)
@@ -85,7 +89,7 @@ func (c *PprofHandler) LogTrace(ctx context.Context, arg keybase1.LogTraceArg) (
 	logDir := c.G().Env.GetLogDir()
 	// Copied from oldLogFileTimeRangeTimeLayout from logger/file.go.
 	start := time.Now().Format("20060102T150405Z0700")
-	filename := fmt.Sprintf("trace.%s.%fs.log", start, arg.TraceDurationSeconds)
+	filename := fmt.Sprintf("trace.%s.%s.log", start, durationSecToDuration(arg.TraceDurationSeconds))
 	traceFile := filepath.Join(logDir, filename)
 	return c.trace(arg.SessionID, traceFile, arg.TraceDurationSeconds)
 }
