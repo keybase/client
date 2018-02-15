@@ -292,6 +292,9 @@ export default class AppState {
 
   _isValidWindowState(state: State): boolean {
     // Check if the display where the window was last open is still available
+    // and sanity check that we're placing the window where it will overlap
+    // the current screen, as per
+    // https://github.com/electron/electron/issues/10862
     let rect = {
       height: state.height,
       width: state.width,
