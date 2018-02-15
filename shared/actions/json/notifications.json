@@ -1,7 +1,6 @@
 {
   "prelude": [
-    "import * as Types from '../constants/types/notifications'",
-    "import {type Tab} from '../constants/tabs'"
+    "import * as Types from '../constants/types/notifications'"
   ],
   "actions": {
     "badgeApp": {
