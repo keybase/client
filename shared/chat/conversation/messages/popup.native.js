@@ -1,6 +1,7 @@
 // @flow
 import * as ChatConstants from '../../../constants/chat'
 import * as Types from '../../../constants/types/chat'
+import {getCanPerform} from '../../../constants/teams'
 import * as ChatGen from '../../../actions/chat-gen'
 import * as React from 'react'
 import MessagePopupHeader from './popup-header'
@@ -140,9 +141,18 @@ type OwnProps = MessagePopupRouteProps & {}
 
 export default connect(
   (state: TypedState, {routeProps}: OwnProps) => {
+    // $FlowIssue doesn't like routeProps here
     const message = routeProps.get('message')
     const you = state.config.username
+    // Find out whether we're allowed to delete chat history. If we're
+    // on a team, use canUserPerform, else assume we can.
+    const {conversationIDKey} = message
+    const inbox = state.chat.inbox.get(conversationIDKey)
+    const teamname = inbox && inbox.get('teamname')
+    const yourOperations = getCanPerform(state, teamname)
+    const canDeleteHistory = teamname ? yourOperations.deleteChatHistory : true
     return {
+      canDeleteHistory,
       message,
       you,
     }
