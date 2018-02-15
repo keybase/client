@@ -137,10 +137,11 @@ class AvatarRender extends React.PureComponent<Props, State> {
   render() {
     const {size} = this.props
     const borderRadius = this.props.isTeam ? sizeToTeamBorderRadius[String(size)] : size / 2
+    const containerStyle = [styles[`box:${size}`], this.props.style]
 
     return (
-      <ClickableBox onClick={this.props.onClick} feedback={false} style={styles[`box:${size}`]}>
-        <Box style={styles[`box:${size}`]}>
+      <ClickableBox onClick={this.props.onClick} feedback={false} style={containerStyle}>
+        <Box style={containerStyle}>
           {!this.props.skipBackground &&
             (!this.props.skipBackgroundAfterLoaded || !this.state.loaded) && (
               <Background
