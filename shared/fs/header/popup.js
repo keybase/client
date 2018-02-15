@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
-import {ModalLessPopupMenu} from '../../common-adapters/popup-menu.desktop'
+import {ModalLessPopupMenu} from '../../common-adapters/popup-menu'
 
 type PopupMenuProps = {
   items: Array<Types.PathBreadcrumbItem>,
