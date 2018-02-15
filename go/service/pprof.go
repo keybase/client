@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime/trace"
+	"sort"
 	"time"
 
 	"golang.org/x/net/context"
@@ -35,14 +36,9 @@ func durationSecToDuration(s keybase1.DurationSec) time.Duration {
 	return time.Duration(float64(s) * float64(time.Second))
 }
 
-func (c *PprofHandler) trace(sessionID int, traceFile string, traceDurationSeconds keybase1.DurationSec) (err error) {
+func (c *PprofHandler) trace(ctx engine.Context, traceFile string, traceDurationSeconds keybase1.DurationSec) (err error) {
 	if !filepath.IsAbs(traceFile) {
 		return fmt.Errorf("%q is not an absolute path", traceFile)
-	}
-
-	ctx := engine.Context{
-		LogUI:     c.getLogUI(sessionID),
-		SessionID: sessionID,
 	}
 
 	close := func(c io.Closer) {
@@ -82,14 +78,45 @@ func (c *PprofHandler) trace(sessionID int, traceFile string, traceDurationSecon
 }
 
 func (c *PprofHandler) Trace(_ context.Context, arg keybase1.TraceArg) (err error) {
-	return c.trace(arg.SessionID, arg.TraceFile, arg.TraceDurationSeconds)
+	ctx := engine.Context{
+		LogUI:     c.getLogUI(arg.SessionID),
+		SessionID: arg.SessionID,
+	}
+	return c.trace(ctx, arg.TraceFile, arg.TraceDurationSeconds)
 }
 
-func (c *PprofHandler) LogTrace(ctx context.Context, arg keybase1.LogTraceArg) (err error) {
+const maxTraceFileCount = 10
+
+func (c *PprofHandler) LogTrace(_ context.Context, arg keybase1.LogTraceArg) (err error) {
+	ctx := engine.Context{
+		LogUI:     c.getLogUI(arg.SessionID),
+		SessionID: arg.SessionID,
+	}
+
 	logDir := c.G().Env.GetLogDir()
+
+	pattern := filepath.Join(logDir, "trace.*.out")
+	matches, err := filepath.Glob(pattern)
+	if err != nil {
+		ctx.LogUI.Warning("Error on filepath.Glob(%q): %s", pattern, err)
+	} else {
+		if len(matches) > maxTraceFileCount {
+			// Sort by approximate increasing time.
+			sort.Strings(matches)
+			toRemove := matches[:maxTraceFileCount-len(matches)]
+			for _, path := range toRemove {
+				c.G().Log.Info("Removing old trace file %q", path)
+				err := os.Remove(path)
+				if err != nil {
+					ctx.LogUI.Warning("Error on os.Remove(%q): %s", path, err)
+				}
+			}
+		}
+	}
+
 	// Copied from oldLogFileTimeRangeTimeLayout from logger/file.go.
 	start := time.Now().Format("20060102T150405Z0700")
 	filename := fmt.Sprintf("trace.%s.%s.out", start, durationSecToDuration(arg.TraceDurationSeconds))
 	traceFile := filepath.Join(logDir, filename)
-	return c.trace(arg.SessionID, traceFile, arg.TraceDurationSeconds)
+	return c.trace(ctx, traceFile, arg.TraceDurationSeconds)
 }
