@@ -33,8 +33,10 @@ function setYesPushPermissions(): Promise<*> {
   })
 }
 
+// Sets that we've shown the push prompt in local storage
 function setShownPushPrompt(): Promise<*> {
   return new Promise((resolve, reject) => {
+    logger.info('Setting shownPushPrompt to true in local storage')
     AsyncStorage.setItem(shownPushPrompt, 'true', e => {
       resolve()
     })
@@ -192,6 +194,7 @@ function configurePush() {
     return () => {}
   })
 }
+
 function openAppSettings() {
   Linking.openURL('app-settings:')
 }

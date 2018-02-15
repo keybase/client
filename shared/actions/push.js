@@ -53,8 +53,14 @@ function* permissionsRequestSaga(): Saga.SagaGenerator<any, any> {
     const permissions = yield Saga.call(requestPushPermissions)
     logger.info('Permissions:', permissions)
     if (isIOS) {
-      logger.info('Setting shownPushPrompt to true in local storage')
       yield Saga.call(setShownPushPrompt)
+    }
+    if (permissions.alert || permissions.badge) {
+      logger.info('Badge or alert push permissions are enabled')
+      yield Saga.put(PushGen.createSetHasPermissions({hasPermissions: true}))
+    } else {
+      logger.info('Badge or alert push permissions are disabled')
+      yield Saga.put(PushGen.createSetHasPermissions({hasPermissions: false}))
     }
     // TODO(gabriel): Set permissions we have in store, might want it at some point?
   } finally {
@@ -181,20 +187,33 @@ function* configurePushSaga(): Saga.SagaGenerator<any, any> {
 
 function* checkIOSPushSaga(): Saga.SagaGenerator<any, any> {
   const permissions = yield Saga.call(checkPermissions)
-  console.log('Permissions', permissions)
+  logger.debug('Got push notification permissions:', JSON.stringify(permissions, null, 2))
   const shownPushPrompt = yield Saga.call(getShownPushPrompt)
-  console.log('Shown push prompt permissions? ', shownPushPrompt)
+  logger.debug(
+    shownPushPrompt
+      ? 'We have requested push permissions before'
+      : 'We have not requested push permissions before'
+  )
   if (!shownPushPrompt && (permissions.alert || permissions.sound || permissions.badge)) {
     // we've definitely already prompted, set it in local storage
     // to handle previous users who have notifications on
-    yield Saga.call(setShownPushPrompt)
+    logger.debug('We missed setting shownPushPrompt in local storage, setting now')
+    yield Saga.all([
+      Saga.call(setShownPushPrompt),
+      Saga.put(PushGen.createSetHasPermissions({hasPermissions: true})),
+    ])
   }
-  if (!permissions.alert || !permissions.badge) {
+  if (!permissions.alert && !permissions.badge) {
+    logger.info('Badge and alert permissions are disabled; showing prompt')
     yield Saga.put(
       PushGen.createPermissionsPrompt({
         prompt: true,
       })
     )
+  } else {
+    // badge or alert permissions are enabled
+    logger.info('Badge or alert permissions are enabled')
+    yield Saga.put(PushGen.createSetHasPermissions({hasPermissions: true}))
   }
 }
 

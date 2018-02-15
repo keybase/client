@@ -20,6 +20,7 @@ export const permissionsRequesting = 'push:permissionsRequesting'
 export const pushToken = 'push:pushToken'
 export const registrationError = 'push:registrationError'
 export const savePushToken = 'push:savePushToken'
+export const setHasPermissions = 'push:setHasPermissions'
 export const updatePushToken = 'push:updatePushToken'
 
 // Action Creators
@@ -39,6 +40,7 @@ export const createPushToken = (
 ) => ({error: false, payload, type: pushToken})
 export const createRegistrationError = (payload: $ReadOnly<{error: Error}>) => ({error: false, payload, type: registrationError})
 export const createSavePushToken = () => ({error: false, payload: undefined, type: savePushToken})
+export const createSetHasPermissions = (payload: $ReadOnly<{hasPermissions: boolean}>) => ({error: false, payload, type: setHasPermissions})
 export const createUpdatePushToken = (
   payload: $ReadOnly<{
     token: string,
@@ -58,6 +60,7 @@ export type PermissionsRequestingPayload = More.ReturnType<typeof createPermissi
 export type PushTokenPayload = More.ReturnType<typeof createPushToken>
 export type RegistrationErrorPayload = More.ReturnType<typeof createRegistrationError>
 export type SavePushTokenPayload = More.ReturnType<typeof createSavePushToken>
+export type SetHasPermissionsPayload = More.ReturnType<typeof createSetHasPermissions>
 export type UpdatePushTokenPayload = More.ReturnType<typeof createUpdatePushToken>
 
 // All Actions
@@ -74,5 +77,6 @@ export type Actions =
   | More.ReturnType<typeof createPushToken>
   | More.ReturnType<typeof createRegistrationError>
   | More.ReturnType<typeof createSavePushToken>
+  | More.ReturnType<typeof createSetHasPermissions>
   | More.ReturnType<typeof createUpdatePushToken>
   | {type: 'common:resetStore', payload: void}

@@ -26,6 +26,12 @@ function reducer(state: Types.State = Constants.initialState, action: PushGen.Ac
         token,
         tokenType,
       }
+    case PushGen.setHasPermissions:
+      const {hasPermissions} = action.payload
+      return {
+        ...state,
+        hasPermissions,
+      }
     // Saga only actions
     case PushGen.checkIOSPush:
     case PushGen.configurePush:
