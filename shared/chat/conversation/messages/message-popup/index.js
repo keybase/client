@@ -2,8 +2,8 @@
 import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
-import AttachmentMessage from './attachment'
-import TextMessage from './text'
+import AttachmentMessage from './attachment/container'
+import TextMessage from './text/container'
 
 type Props = {
   routeProps: I.RecordOf<{message: Types.MessageText}>,

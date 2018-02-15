@@ -247,6 +247,16 @@
     },
     "markConversationsStale": {
       "conversationIDKeys": "Array<Types.ConversationIDKey>",
-    }
+    },
+    "navigateToInbox": {},
+    "navigateToThread": {},
+    "messageAttachmentNativeShare": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal",
+    },
+    "messageAttachmentNativeSave": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal",
+    },
   }
 }

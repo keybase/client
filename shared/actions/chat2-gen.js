@@ -32,6 +32,8 @@ export const leaveConversation = 'chat2:leaveConversation'
 export const loadMoreMessages = 'chat2:loadMoreMessages'
 export const markConversationsStale = 'chat2:markConversationsStale'
 export const markInitiallyLoadedThreadAsRead = 'chat2:markInitiallyLoadedThreadAsRead'
+export const messageAttachmentNativeSave = 'chat2:messageAttachmentNativeSave'
+export const messageAttachmentNativeShare = 'chat2:messageAttachmentNativeShare'
 export const messageAttachmentUploaded = 'chat2:messageAttachmentUploaded'
 export const messageDelete = 'chat2:messageDelete'
 export const messageDeleteHistory = 'chat2:messageDeleteHistory'
@@ -50,6 +52,8 @@ export const metaRequestTrusted = 'chat2:metaRequestTrusted'
 export const metaRequestingTrusted = 'chat2:metaRequestingTrusted'
 export const metasReceived = 'chat2:metasReceived'
 export const muteConversation = 'chat2:muteConversation'
+export const navigateToInbox = 'chat2:navigateToInbox'
+export const navigateToThread = 'chat2:navigateToThread'
 export const openFolder = 'chat2:openFolder'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
@@ -159,6 +163,18 @@ export const createLeaveConversation = (payload: $ReadOnly<{conversationIDKey: T
 export const createLoadMoreMessages = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: loadMoreMessages})
 export const createMarkConversationsStale = (payload: $ReadOnly<{conversationIDKeys: Array<Types.ConversationIDKey>}>) => ({error: false, payload, type: markConversationsStale})
 export const createMarkInitiallyLoadedThreadAsRead = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: markInitiallyLoadedThreadAsRead})
+export const createMessageAttachmentNativeSave = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    ordinal: Types.Ordinal,
+  }>
+) => ({error: false, payload, type: messageAttachmentNativeSave})
+export const createMessageAttachmentNativeShare = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    ordinal: Types.Ordinal,
+  }>
+) => ({error: false, payload, type: messageAttachmentNativeShare})
 export const createMessageAttachmentUploaded = (
   payload: $ReadOnly<{
     conversationIDKey: Types.ConversationIDKey,
@@ -259,6 +275,8 @@ export const createMuteConversation = (
     muted: boolean,
   }>
 ) => ({error: false, payload, type: muteConversation})
+export const createNavigateToInbox = () => ({error: false, payload: undefined, type: navigateToInbox})
+export const createNavigateToThread = () => ({error: false, payload: undefined, type: navigateToThread})
 export const createOpenFolder = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: openFolder})
 export const createResetChatWithoutThem = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: resetChatWithoutThem})
 export const createResetLetThemIn = (
@@ -332,6 +350,8 @@ export type LeaveConversationPayload = More.ReturnType<typeof createLeaveConvers
 export type LoadMoreMessagesPayload = More.ReturnType<typeof createLoadMoreMessages>
 export type MarkConversationsStalePayload = More.ReturnType<typeof createMarkConversationsStale>
 export type MarkInitiallyLoadedThreadAsReadPayload = More.ReturnType<typeof createMarkInitiallyLoadedThreadAsRead>
+export type MessageAttachmentNativeSavePayload = More.ReturnType<typeof createMessageAttachmentNativeSave>
+export type MessageAttachmentNativeSharePayload = More.ReturnType<typeof createMessageAttachmentNativeShare>
 export type MessageAttachmentUploadedPayload = More.ReturnType<typeof createMessageAttachmentUploaded>
 export type MessageDeleteHistoryPayload = More.ReturnType<typeof createMessageDeleteHistory>
 export type MessageDeletePayload = More.ReturnType<typeof createMessageDelete>
@@ -350,6 +370,8 @@ export type MetaRequestTrustedPayload = More.ReturnType<typeof createMetaRequest
 export type MetaRequestingTrustedPayload = More.ReturnType<typeof createMetaRequestingTrusted>
 export type MetasReceivedPayload = More.ReturnType<typeof createMetasReceived>
 export type MuteConversationPayload = More.ReturnType<typeof createMuteConversation>
+export type NavigateToInboxPayload = More.ReturnType<typeof createNavigateToInbox>
+export type NavigateToThreadPayload = More.ReturnType<typeof createNavigateToThread>
 export type OpenFolderPayload = More.ReturnType<typeof createOpenFolder>
 export type ResetChatWithoutThemPayload = More.ReturnType<typeof createResetChatWithoutThem>
 export type ResetLetThemInPayload = More.ReturnType<typeof createResetLetThemIn>
@@ -390,6 +412,8 @@ export type Actions =
   | More.ReturnType<typeof createLoadMoreMessages>
   | More.ReturnType<typeof createMarkConversationsStale>
   | More.ReturnType<typeof createMarkInitiallyLoadedThreadAsRead>
+  | More.ReturnType<typeof createMessageAttachmentNativeSave>
+  | More.ReturnType<typeof createMessageAttachmentNativeShare>
   | More.ReturnType<typeof createMessageAttachmentUploaded>
   | More.ReturnType<typeof createMessageDelete>
   | More.ReturnType<typeof createMessageDeleteHistory>
@@ -408,6 +432,8 @@ export type Actions =
   | More.ReturnType<typeof createMetaRequestingTrusted>
   | More.ReturnType<typeof createMetasReceived>
   | More.ReturnType<typeof createMuteConversation>
+  | More.ReturnType<typeof createNavigateToInbox>
+  | More.ReturnType<typeof createNavigateToThread>
   | More.ReturnType<typeof createOpenFolder>
   | More.ReturnType<typeof createResetChatWithoutThem>
   | More.ReturnType<typeof createResetLetThemIn>

@@ -28,6 +28,7 @@ const conversationRoute = makeRouteDefNode({
       children: {
         messageAction: {
           component: RelativePopupHoc(MessagePopup),
+          children: {},
           tags: makeLeafTags({layerOnTop: true}),
         },
       },

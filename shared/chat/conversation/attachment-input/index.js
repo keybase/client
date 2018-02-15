@@ -99,7 +99,10 @@ class RenderAttachmentInput extends React.Component<Props, State> {
             )}
           </Box>
           {paths.length > 0 && (
-            <Text type="BodySmall" style={{color: globalColors.black_40, marginTop: 5}}>
+            <Text
+              type="BodySmall"
+              style={{color: globalColors.black_40, marginTop: 5, maxWidth: isMobile ? 300 : undefined}}
+            >
               {info.filename} ({this.state.index + 1} of {paths.length})
             </Text>
           )}

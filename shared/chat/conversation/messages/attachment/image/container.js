@@ -38,6 +38,15 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onShowInFinder: (message: Types.MessageAttachment) => {
     message.downloadPath && dispatch(KBFSGen.createOpenInFileUI({path: message.downloadPath}))
   },
+  _onShowMenu: (targetRect: ?ClientRect, message: Types.Message) =>
+    dispatch(
+      Route.navigateAppend([
+        {
+          props: {message, position: 'bottom left', targetRect},
+          selected: 'messageAction',
+        },
+      ])
+    ),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
@@ -59,6 +68,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
         : () => dispatchProps._loadPreview(ownProps.message.conversationIDKey, ownProps.message.ordinal),
     message: ownProps.message,
     onClick: () => dispatchProps._onClick(ownProps.message),
+    onShowMenu: () => dispatchProps._onShowMenu(null, ownProps.message),
     onShowInFinder:
       !isMobile && ownProps.message.downloadPath
         ? () => dispatchProps._onShowInFinder(ownProps.message)

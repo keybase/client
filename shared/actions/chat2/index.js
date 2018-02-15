@@ -21,7 +21,7 @@ import type {TypedState, Dispatch} from '../../util/container'
 import {chatTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {NotifyPopup} from '../../native/notifications'
-import {showMainWindow} from '../platform-specific'
+import {showMainWindow, saveAttachmentDialog, showShareActionSheet} from '../platform-specific'
 import {tmpDir, tmpFile, stat, downloadFilePathNoSearch, downloadFilePath, copy} from '../../util/file'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {parseFolderNameToUsers} from '../../util/kbfs'
@@ -1514,11 +1514,73 @@ const loadCanUserPerform = (action: Chat2Gen.SelectConversationPayload, state: T
   }
 }
 
-const mobileNavOnSelect = (action: Chat2Gen.SelectConversationPayload) => {
-  return Saga.put(Route.navigateTo([chatTab, 'conversation'], []))
+const navigateToInbox = () => Saga.put(Route.navigateTo([chatTab], []))
+const navigateToThread = () =>
+  Saga.put(Route.navigateTo(isMobile ? [chatTab, 'conversation'] : [chatTab], []))
+
+function* messageAttachmentNativeShare(action: Chat2Gen.MessageAttachmentNativeSharePayload) {
+  const {conversationIDKey, ordinal} = action.payload
+  let state: TypedState = yield Saga.select()
+  let message = Constants.getMessageMap(state, conversationIDKey).get(ordinal)
+  if (!message || message.type !== 'attachment') {
+    throw new Error('Invalid share message')
+  }
+  if (!message.deviceFilePath) {
+    yield Saga.call(
+      attachmentLoad,
+      Chat2Gen.createAttachmentLoad({
+        conversationIDKey,
+        isPreview: false,
+        ordinal,
+      })
+    )
+    state = yield Saga.select()
+    message = Constants.getMessageMap(state, conversationIDKey).get(ordinal)
+    if (!message || message.type !== 'attahcment' || !message.deviceFilePath) {
+      throw new Error("Couldn't download attachment")
+    }
+  }
+  yield Saga.call(showShareActionSheet, {url: message.deviceFilePath})
+}
+
+function* messageAttachmentNativeSave(action: Chat2Gen.MessageAttachmentNativeSavePayload) {
+  const {conversationIDKey, ordinal} = action.payload
+  let state: TypedState = yield Saga.select()
+  let message = Constants.getMessageMap(state, conversationIDKey).get(ordinal)
+  if (!message || message.type !== 'attachment') {
+    throw new Error('Invalid share message')
+  }
+  if (!message.deviceFilePath) {
+    yield Saga.call(
+      attachmentLoad,
+      Chat2Gen.createAttachmentLoad({
+        conversationIDKey,
+        isPreview: false,
+        ordinal,
+      })
+    )
+    state = yield Saga.select()
+    message = Constants.getMessageMap(state, conversationIDKey).get(ordinal)
+    if (!message || message.type !== 'attahcment' || !message.deviceFilePath) {
+      throw new Error("Couldn't download attachment")
+    }
+  }
+  yield Saga.call(saveAttachmentDialog, message.deviceFilePath)
 }
 
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
+  // Platform specific actions
+  if (isMobile) {
+    // Push us into the conversation
+    yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, navigateToThread)
+    yield Saga.safeTakeEvery(Chat2Gen.messageAttachmentNativeShare, messageAttachmentNativeShare)
+    yield Saga.safeTakeEvery(Chat2Gen.messageAttachmentNativeSave, messageAttachmentNativeSave)
+  } else {
+    yield Saga.safeTakeEveryPure(Chat2Gen.desktopNotification, desktopNotify)
+    // Auto select the latest convo
+    yield Saga.safeTakeEveryPure([Chat2Gen.metasReceived], selectTheNewestConversation)
+  }
+
   // Refresh the inbox
   yield Saga.safeTakeEveryPure(
     Chat2Gen.inboxRefresh,
@@ -1561,15 +1623,6 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.startConversation, startConversation)
   yield Saga.safeTakeEveryPure(Chat2Gen.openFolder, openFolder)
 
-  if (isMobile) {
-    // Push us into the conversation
-    yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, mobileNavOnSelect)
-  } else {
-    yield Saga.safeTakeEveryPure(Chat2Gen.desktopNotification, desktopNotify)
-    // Auto select the latest convo
-    yield Saga.safeTakeEveryPure([Chat2Gen.metasReceived], selectTheNewestConversation)
-  }
-
   // On bootstrap lets load the untrusted inbox. This helps make some flows easier
   yield Saga.safeTakeEveryPure(ConfigGen.bootstrapSuccess, bootstrapSuccess)
 
@@ -1606,6 +1659,9 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     [Chat2Gen.messagesAdd, Chat2Gen.selectConversation, Chat2Gen.markInitiallyLoadedThreadAsRead],
     markThreadAsRead
   )
+
+  yield Saga.safeTakeEveryPure(Chat2Gen.navigateToInbox, navigateToInbox)
+  yield Saga.safeTakeEveryPure(Chat2Gen.navigateToThread, navigateToThread)
 }
 
 export default chat2Saga

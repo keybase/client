@@ -8,6 +8,7 @@ type Props = {
   hasUnread: boolean,
   participants: Array<string>,
   showBold: boolean,
+  backgroundColor: ?string,
   subColor: ?string,
   timestamp: ?string,
   usernameColor: ?string,

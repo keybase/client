@@ -173,6 +173,7 @@ const styleButtonAlert = {
 }
 
 const OLDPopupMenu = PopupMenu
+const ModalLessPopupMenu = PopupMenu
 
-export {PopupHeaderText, OLDPopupMenu}
+export {PopupHeaderText, OLDPopupMenu, ModalLessPopupMenu}
 export default PopupMenu

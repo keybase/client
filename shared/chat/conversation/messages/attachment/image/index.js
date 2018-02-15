@@ -10,6 +10,7 @@ type Props = {
   isPreviewLoaded: boolean,
   loadPreview: ?() => void,
   onClick: () => void,
+  onShowMenu: () => void,
   onShowInFinder: ?() => void,
   path: ?string,
   title: string,
@@ -33,7 +34,7 @@ class ImageAttachment extends React.PureComponent<Props> {
 
   render() {
     return (
-      <ClickableBox style={imageContainerStyle} onClick={this.props.onClick}>
+      <ClickableBox style={imageContainerStyle} onClick={this.props.onClick} onLongPress={this.props.onShowMenu}>
         <Text type="BodySemibold" style={titleStyle}>
           {this.props.title}
         </Text>
