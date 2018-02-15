@@ -429,93 +429,7 @@ exports[`Storyshots Chat/Channel Heads up Display Mention Row 1`] = `
 </div>
 `;
 
-exports[`Storyshots Chat/Conversation/InfoPanel Participant 1`] = `
-.glamor-0,
-[data-glamor-0] {
-  bottom: 1px;
-  left: 1px;
-  position: absolute;
-  right: 1px;
-  top: 1px;
-  background-color: #f0f0f0;
-  border-radius: 50%;
-}
-
-.glamor-1,
-[data-glamor-1] {
-  background-size: cover;
-  bottom: 0;
-  left: 0;
-  position: absolute;
-  right: 0;
-  top: 0;
-  background-image: -webkit-image-set(url('icons/icon-placeholder-avatar-32.png') 1x, url('icons/icon-placeholder-avatar-32@2x.png') 2x);
-  border-radius: 50%;
-  height: 32px;
-  max-width: 32px;
-  min-width: 32px;
-  opacity: 1;
-}
-
-.glamor-4,
-[data-glamor-4] {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-  display: -webkit-box;
-  display: -moz-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  text-decoration: inherit;
-  -webkit-box-orient: horizontal;
-  -webkit-box-direction: normal;
-  -webkit-flex-direction: row;
-  -webkit-box-lines: multiple;
-  -webkit-flex-wrap: wrap;
-}
-
-.glamor-3,
-[data-glamor-3] {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-}
-
-.glamor-2,
-[data-glamor-2] {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-  text-decoration: inherit;
-  font-style: italic;
-}
-
-.glamor-5,
-[data-glamor-5] {
-  font-size: 11px;
-  line-height: 15px;
-  color: rgba(0, 0, 0, 0.40);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
-}
-
+exports[`Storyshots Chat/Conversation/InfoPanel Big team no preview 1`] = `
 <div
   style={
     Object {
@@ -534,123 +448,260 @@ exports[`Storyshots Chat/Conversation/InfoPanel Participant 1`] = `
     <div
       style={
         Object {
-          "maxWidth": 320,
+          "display": "flex",
+          "flexDirection": "column",
+          "height": 500,
+          "width": 320,
         }
       }
     >
       <div
         style={
           Object {
+            "alignItems": "stretch",
+            "backgroundColor": "#ffffff",
+            "borderLeft": "1px solid rgba(0, 0, 0, 0.05)",
+            "borderRight": "1px solid rgba(0, 0, 0, 0.05)",
             "display": "flex",
+            "flex": 1,
             "flexDirection": "column",
-            "paddingTop": 8,
+            "flexGrow": 1,
+            "marginTop": -1,
+            "paddingBottom": 24,
+            "position": "relative",
           }
         }
       >
         <div
-          onClick={[Function]}
-          onMouseDown={[Function]}
-          onMouseEnter={undefined}
-          onMouseLeave={undefined}
-          onMouseUp={[Function]}
           style={
             Object {
-              "alignItems": "stretch",
-              "borderRadius": 0,
-              "cursor": "pointer",
-              "display": "flex",
-              "flexDirection": "column",
-              "height": undefined,
-              "lineHeight": 0,
-              "minWidth": undefined,
-              "position": "relative",
-              "textAlign": "left",
-              "transform": "none",
-              "transition": "none",
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
             }
           }
         >
           <div
             style={
               Object {
-                "cursor": "pointer",
-                "display": "flex",
-                "flexDirection": "column",
-                "minHeight": 48,
-                "paddingLeft": 16,
-                "paddingRight": 16,
+                "height": "100%",
+                "overflowY": "auto",
+                "width": "100%",
               }
             }
-          >
-            <div
-              style={
-                Object {
-                  "alignItems": "center",
-                  "display": "flex",
-                  "flex": 1,
-                  "flexDirection": "row",
-                  "marginRight": 8,
-                }
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Chat/Conversation/InfoPanel Big team preview 1`] = `
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "display": "flex",
+          "flexDirection": "column",
+          "height": 500,
+          "width": 320,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "alignItems": "stretch",
+            "backgroundColor": "#ffffff",
+            "borderLeft": "1px solid rgba(0, 0, 0, 0.05)",
+            "borderRight": "1px solid rgba(0, 0, 0, 0.05)",
+            "display": "flex",
+            "flex": 1,
+            "flexDirection": "column",
+            "flexGrow": 1,
+            "marginTop": -1,
+            "paddingBottom": 24,
+            "position": "relative",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "height": "100%",
+                "overflowY": "auto",
+                "width": "100%",
               }
-            >
-              <div
-                onClick={undefined}
-                style={
-                  Object {
-                    "height": 32,
-                    "maxWidth": 32,
-                    "minHeight": 32,
-                    "minWidth": 32,
-                    "position": "relative",
-                    "userSelect": "none",
-                  }
-                }
-              >
-                <div
-                  className="glamor-0"
-                />
-                <div
-                  className="glamor-1"
-                />
-              </div>
-              <div
-                style={
-                  Object {
-                    "display": "flex",
-                    "flexDirection": "column",
-                    "marginLeft": 16,
-                  }
-                }
-              >
-                <span
-                  className="glamor-4"
-                  onClick={undefined}
-                  title={undefined}
-                >
-                  <span
-                    className="glamor-3"
-                    onClick={undefined}
-                    title={undefined}
-                  >
-                    <span
-                      className="glamor-2"
-                      onClick={undefined}
-                      title={undefined}
-                    >
-                      akalin
-                    </span>
-                  </span>
-                </span>
-                <span
-                  className="glamor-5"
-                  onClick={undefined}
-                  title={undefined}
-                >
-                  Fred Akalin
-                </span>
-              </div>
-            </div>
-          </div>
+            }
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Chat/Conversation/InfoPanel Conversation 1`] = `
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "display": "flex",
+          "flexDirection": "column",
+          "height": 500,
+          "width": 320,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "alignItems": "stretch",
+            "backgroundColor": "#ffffff",
+            "borderLeft": "1px solid rgba(0, 0, 0, 0.05)",
+            "borderRight": "1px solid rgba(0, 0, 0, 0.05)",
+            "display": "flex",
+            "flex": 1,
+            "flexDirection": "column",
+            "flexGrow": 1,
+            "marginTop": -1,
+            "paddingBottom": 24,
+            "position": "relative",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "height": "100%",
+                "overflowY": "auto",
+                "width": "100%",
+              }
+            }
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Chat/Conversation/InfoPanel Small team 1`] = `
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "display": "flex",
+          "flexDirection": "column",
+          "height": 500,
+          "width": 320,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "alignItems": "stretch",
+            "backgroundColor": "#ffffff",
+            "borderLeft": "1px solid rgba(0, 0, 0, 0.05)",
+            "borderRight": "1px solid rgba(0, 0, 0, 0.05)",
+            "display": "flex",
+            "flex": 1,
+            "flexDirection": "column",
+            "flexGrow": 1,
+            "marginTop": -1,
+            "paddingBottom": 24,
+            "position": "relative",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "height": "100%",
+                "overflowY": "auto",
+                "width": "100%",
+              }
+            }
+          />
         </div>
       </div>
     </div>
