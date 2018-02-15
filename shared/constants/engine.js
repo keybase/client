@@ -90,7 +90,7 @@ class EngineRpcCall {
     rpc: any,
     rpcNameKey: string,
     request: any,
-    finishedErrorShouldCancel?: boolean,
+    finishedErrorShouldCancel?: ?boolean,
     waitingActionCreator?: (waiting: boolean) => any
   ) {
     this._chanConfig = Saga.singleFixedChannelConfig(Object.keys(sagaMap))
@@ -130,7 +130,10 @@ class EngineRpcCall {
       this._subSagaChannel.close()
       yield Saga.put(EngineGen.createWaitingForRpc({name: this._rpcNameKey, waiting: false}))
       if (this._waitingActionCreator) {
-        yield Saga.put(this._waitingActionCreator(false))
+        const action = this._waitingActionCreator(false)
+        if (action) {
+          yield Saga.put(action)
+        }
       }
     } else {
       logger.error('Already cleaned up')
@@ -145,7 +148,10 @@ class EngineRpcCall {
     )
 
     if (this._waitingActionCreator) {
-      yield Saga.put(this._waitingActionCreator(true))
+      const action = this._waitingActionCreator(true)
+      if (action) {
+        yield Saga.put(action)
+      }
     }
 
     const subSagaTasks: Array<any> = []

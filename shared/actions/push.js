@@ -98,13 +98,14 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
         })
         const conversationIDKey = ChatTypes.stringToConversationIDKey(convID)
         yield Saga.put(
-          Chat2Gen.createSelectConversation({
+          Chat2Gen.createSelectConversationDueToPush({
             conversationIDKey,
-            fromUser: true,
+            phase: 'showImmediately',
           })
         )
+
+        yield Saga.put(Chat2Gen.createSetLoading({key: 'pushLoad', loading: true}))
         yield Saga.put(switchTo([chatTab, 'conversation']))
-        yield Saga.put(Chat2Gen.createLoadMoreMessages({conversationIDKey}))
       } else if (payload.type === 'follow') {
         const {username} = payload
         if (!username) {

@@ -5,8 +5,9 @@ import * as RouteTree from '../../../actions/route-tree'
 import Normal from '.'
 import {compose, connect, withStateHandlers, type TypedState} from '../../../util/container'
 
-const mapStateToProps = (state: TypedState, {routePath, routeProps, conversationIDKey}) => {
-  return {conversationIDKey}
+const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
+  const showLoader = !!state.chat2.loadingMap.get(`loadingThread:${conversationIDKey}`)
+  return {conversationIDKey, showLoader}
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
@@ -25,6 +26,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
     onOpenInfoPanelMobile: dispatchProps.onOpenInfoPanelMobile,
     onShowTracker: dispatchProps.onShowTracker,
+    showLoader: stateProps.showLoader,
   }
 }
 

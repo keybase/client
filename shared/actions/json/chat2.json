@@ -17,7 +17,7 @@
     // Select a conversation (or leave nothing selected)
     "selectConversation": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "fromUser?": "boolean" // true if this is a direct result of the user clicking
+      "fromUser?": "boolean", // true if this is a direct result of the user clicking
     },
     // Select an existing conversation or setup an empty one. Can either be adhoc or
     // a tlf (adhoc or team)
@@ -122,7 +122,7 @@
     },
     // Load some more messages for a conversation
     "loadMoreMessages": {
-      "conversationIDKey": "Types.ConversationIDKey"
+      "conversationIDKey": "Types.ConversationIDKey",
     },
     // Show a desktop notification
     "desktopNotification": {
@@ -258,5 +258,10 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal",
     },
+    // Special handling of the push actions. we want to select a conversation and load it at the right time and avoid all other work
+    "selectConversationDueToPush": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "phase": "'showImmediately' | 'loadNewContent'"
+    }
   }
 }

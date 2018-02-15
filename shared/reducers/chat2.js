@@ -289,6 +289,11 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
           // throw new Error(`Negative loading in chat ${action.payload.key}`)
         }
       })
+    case Chat2Gen.selectConversationDueToPush:
+      if (action.payload.phase !== 'showImmediately') {
+        return state
+      }
+    // fallthrough actually select it
     case Chat2Gen.selectConversation:
       return state.withMutations(s => {
         // Update the orange line on the previous conversation

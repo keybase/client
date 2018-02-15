@@ -407,11 +407,21 @@ const setupChatHandlers = () => {
           break
         case RPCChatTypes.commonSyncInboxResType.incremental: {
           const state: TypedState = getState()
+          const selectedConversation = Constants.getSelectedConversation(state)
           const username = state.config.username || ''
           const items = (syncRes.incremental && syncRes.incremental.items) || []
           const metas = items.reduce((arr, i) => {
             const meta = Constants.unverifiedInboxUIItemToConversationMeta(i, username)
             if (meta) {
+              if (meta.conversationIDKey === selectedConversation) {
+                // First thing load the messages
+                actions.unshift(
+                  Chat2Gen.createSelectConversationDueToPush({
+                    conversationIDKey: selectedConversation,
+                    phase: 'loadNewContent',
+                  })
+                )
+              }
               arr.push(meta)
             }
             return arr
@@ -569,6 +579,11 @@ const rpcLoadThread = (
       pivot = null
       num = numMessagesOnInitialLoad
       break
+    case Chat2Gen.selectConversationDueToPush:
+      if (action.payload.phase !== 'loadNewContent') {
+        return
+      }
+    // fallthrough on purpose
     case Chat2Gen.setPendingConversationUsers: // fallthrough . basically the same as selecting
     case Chat2Gen.selectConversation:
       // When we just select a conversation we can be in the following states
@@ -664,6 +679,8 @@ const rpcLoadThread = (
       pivot ? Types.ordinalToNumber(pivot) : ''
     } recent: ${recent ? 'true' : 'false'} num: ${num}`
   )
+
+  const loadingKey = `loadingThread:${conversationIDKey}`
   const loadThreadChanMapRpc = new EngineRpc.EngineRpcCall(
     {
       'chat.1.chatUi.chatThreadCached': onGotThread,
@@ -684,10 +701,17 @@ const rpcLoadThread = (
         },
         messageTypes: loadThreadMessageTypes,
       },
-    }
+    },
+    null,
+    (loading: boolean) => Chat2Gen.createSetLoading({key: loadingKey, loading})
   )
 
   actions.push(Saga.call(loadThreadChanMapRpc.run))
+
+  // we handled loading from push
+  if (state.chat2.loadingMap.get('pushLoad')) {
+    actions.push(Saga.put(Chat2Gen.createSetLoading({key: 'pushLoad', loading: false})))
+  }
   return Saga.sequentially(actions)
 }
 
@@ -1572,7 +1596,13 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
   if (isMobile) {
     // Push us into the conversation
-    yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, navigateToThread)
+    yield Saga.safeTakeEveryPure(
+      [
+        a => a.type === Chat2Gen.selectConversationDueToPush && a.payload.phase === 'showImmediately',
+        Chat2Gen.selectConversation,
+      ],
+      navigateToThread
+    )
     yield Saga.safeTakeEvery(Chat2Gen.messageAttachmentNativeShare, messageAttachmentNativeShare)
     yield Saga.safeTakeEvery(Chat2Gen.messageAttachmentNativeSave, messageAttachmentNativeSave)
   } else {
@@ -1602,6 +1632,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(
     [
       Chat2Gen.selectConversation,
+      Chat2Gen.selectConversationDueToPush,
       Chat2Gen.loadMoreMessages,
       Chat2Gen.setPendingConversationUsers,
       Chat2Gen.markConversationsStale,
