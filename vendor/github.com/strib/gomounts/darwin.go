@@ -39,7 +39,7 @@ func getMountedVolumes() ([]Volume, error) {
 	sliceHeader.Data = uintptr(unsafe.Pointer(mntbuf))
 
 	for _, v := range mntSlice {
-		uidstr := strconv.Itoa(v.f_owner)
+		uidstr := strconv.Itoa(int(v.f_owner))
 		result = append(result, Volume{C.GoString(&v.f_mntonname[0]), C.GoString(&v.f_fstypename[0]), uidstr})
 	}
 
