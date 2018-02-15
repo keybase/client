@@ -323,6 +323,7 @@ export default class AppState {
       const stateLoaded = JSON.parse(fs.readFileSync(configPath, {encoding: 'utf8'}))
 
       if (!this._isValidWindowState(stateLoaded)) {
+        console.log('  -- invalid window state')
         stateLoaded.x = null
         stateLoaded.y = null
       }
