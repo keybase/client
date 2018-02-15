@@ -130,10 +130,7 @@ class RouteStateStorage {
     if (isValidInitialTab(selectedTab)) {
       item.tab = selectedTab
       if (selectedTab === chatTab) {
-        const tab = routeState.children.get(chatTab)
-        if (tab && tab.selected) {
-          item.selectedConversationIDKey = tab.selected
-        }
+        item.selectedConversationIDKey = state.chat2.selectedConversation
       }
       await this._setItem(item)
     } else {

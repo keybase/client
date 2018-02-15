@@ -118,7 +118,9 @@ function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
               conversationIDKey: ChatTypes.stringToConversationIDKey(conversation),
             })
           )
-          yield Saga.put(navigateTo([chatTab], null, 'initial-restore'))
+          yield Saga.put(
+            navigateTo(isMobile ? [chatTab, 'conversation'] : [chatTab], null, 'initial-restore')
+          )
         } else {
           yield Saga.put(navigateTo([tab], null, 'initial-restore'))
         }
