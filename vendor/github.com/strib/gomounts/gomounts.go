@@ -4,8 +4,6 @@
 // Author: Clint Caywood
 //
 // https://github.com/cratonica/gomounts
-//
-// +build linux
 package gomounts
 
 // Represents a mounted volume on the host system
