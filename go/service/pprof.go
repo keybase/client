@@ -31,11 +31,7 @@ func NewPprofHandler(xp rpc.Transporter, g *libkb.GlobalContext) *PprofHandler {
 	}
 }
 
-func (c *PprofHandler) Trace(_ context.Context, arg keybase1.TraceArg) (err error) {
-	sessionID := arg.SessionID
-	traceFile := arg.TraceFile
-	traceDurationSeconds := arg.TraceDurationSeconds
-
+func (c *PprofHandler) trace(sessionID int, traceFile string, traceDurationSeconds keybase1.DurationSec) (err error) {
 	ctx := engine.Context{
 		LogUI:     c.getLogUI(sessionID),
 		SessionID: sessionID,
@@ -77,14 +73,15 @@ func (c *PprofHandler) Trace(_ context.Context, arg keybase1.TraceArg) (err erro
 	return nil
 }
 
+func (c *PprofHandler) Trace(_ context.Context, arg keybase1.TraceArg) (err error) {
+	return c.trace(arg.SessionID, arg.TraceFile, arg.TraceDurationSeconds)
+}
+
 func (c *PprofHandler) LogTrace(ctx context.Context, arg keybase1.LogTraceArg) (err error) {
 	logDir := c.G().Env.GetLogDir()
 	// Copied from oldLogFileTimeRangeTimeLayout from logger/file.go.
 	start := time.Now().Format("20060102T150405Z0700")
 	filename := fmt.Sprintf("trace.%s.%fs.log", start, arg.TraceDurationSeconds)
-	return c.Trace(ctx, keybase1.TraceArg{
-		SessionID:            arg.SessionID,
-		TraceFile:            filepath.Join(logDir, filename),
-		TraceDurationSeconds: arg.TraceDurationSeconds,
-	})
+	traceFile := filepath.Join(logDir, filename)
+	return c.trace(arg.SessionID, traceFile, arg.TraceDurationSeconds)
 }
