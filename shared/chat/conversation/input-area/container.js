@@ -1,5 +1,4 @@
 // @flow
-// import OldProfileResetNotice from '../notices/old-profile-reset-notice/container'
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
@@ -27,10 +26,6 @@ type Props = {
 
 class InputArea extends React.PureComponent<Props> {
   render() {
-    // TODO
-    // const input = this.props.finalizeInfo ? (
-    // <OldProfileResetNotice />
-
     if (this.props.isReset) {
       return null
     }
