@@ -4,8 +4,10 @@
 package service
 
 import (
+	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"runtime/trace"
 	"time"
 
@@ -73,4 +75,16 @@ func (c *PprofHandler) Trace(_ context.Context, arg keybase1.TraceArg) (err erro
 	}()
 
 	return nil
+}
+
+func (c *PprofHandler) LogTrace(ctx context.Context, arg keybase1.LogTraceArg) (err error) {
+	logDir := c.G().Env.GetLogDir()
+	// Copied from oldLogFileTimeRangeTimeLayout from logger/file.go.
+	start := time.Now().Format("20060102T150405Z0700")
+	filename := fmt.Sprintf("trace.%s.%fs.log", start, arg.TraceDurationSeconds)
+	return c.Trace(ctx, keybase1.TraceArg{
+		SessionID:            arg.SessionID,
+		TraceFile:            filepath.Join(logDir, filename),
+		TraceDurationSeconds: arg.TraceDurationSeconds,
+	})
 }

@@ -14,8 +14,14 @@ type TraceArg struct {
 	TraceDurationSeconds DurationSec `codec:"traceDurationSeconds" json:"traceDurationSeconds"`
 }
 
+type LogTraceArg struct {
+	SessionID            int         `codec:"sessionID" json:"sessionID"`
+	TraceDurationSeconds DurationSec `codec:"traceDurationSeconds" json:"traceDurationSeconds"`
+}
+
 type PprofInterface interface {
 	Trace(context.Context, TraceArg) error
+	LogTrace(context.Context, LogTraceArg) error
 }
 
 func PprofProtocol(i PprofInterface) rpc.Protocol {
@@ -38,6 +44,22 @@ func PprofProtocol(i PprofInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"logTrace": {
+				MakeArg: func() interface{} {
+					ret := make([]LogTraceArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]LogTraceArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]LogTraceArg)(nil), args)
+						return
+					}
+					err = i.LogTrace(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -48,5 +70,10 @@ type PprofClient struct {
 
 func (c PprofClient) Trace(ctx context.Context, __arg TraceArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.pprof.trace", []interface{}{__arg}, nil)
+	return
+}
+
+func (c PprofClient) LogTrace(ctx context.Context, __arg LogTraceArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.pprof.logTrace", []interface{}{__arg}, nil)
 	return
 }
