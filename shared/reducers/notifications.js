@@ -21,8 +21,9 @@ const _updateWidgetBadge = (s: Types.State): Types.State => {
 
 export default function(state: Types.State = initialState, action: NotificationsGen.Actions): Types.State {
   switch (action.type) {
-    case NotificationsGen.resetStore:
+    case NotificationsGen.resetStore: {
       return initialState
+    }
     case NotificationsGen.receivedBadgeState: {
       const {
         homeTodoItems,
@@ -58,11 +59,19 @@ export default function(state: Types.State = initialState, action: Notifications
       newState = _updateWidgetBadge(newState)
       return newState
     }
-    case NotificationsGen.badgeApp:
+    case NotificationsGen.badgeApp: {
       const {key, on} = action.payload
       let newState = state.update('keyState', ks => ks.set(key, on))
       newState = _updateWidgetBadge(newState)
       return newState
+    }
+    case NotificationsGen.setTabBadge: {
+      const {tab, badge} = action.payload
+      const navBadges = state.get('navBadges').withMutations(n => n.set(tab, badge))
+      let newState = state.withMutations(s => s.set('navBadges', navBadges))
+      newState = _updateWidgetBadge(newState)
+      return newState
+    }
     // Saga only actions
     case NotificationsGen.listenForKBFSNotifications:
     case NotificationsGen.listenForNotifications:

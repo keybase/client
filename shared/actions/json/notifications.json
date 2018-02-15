@@ -1,6 +1,7 @@
 {
   "prelude": [
-    "import * as Types from '../constants/types/notifications'"
+    "import * as Types from '../constants/types/notifications'",
+    "import {type Tab} from '../constants/tabs'"
   ],
   "actions": {
     "badgeApp": {
@@ -12,6 +13,10 @@
       "badgeState": "RPCTypes.BadgeState"
     },
     "listenForNotifications": {},
-    "listenForKBFSNotifications": {}
+    "listenForKBFSNotifications": {},
+    "setTabBadge": {
+      "tab": "Tab",
+      "badge": "number"
+    }
   }
 }
