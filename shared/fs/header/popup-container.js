@@ -13,7 +13,6 @@ type OwnProps = RouteProps<
   {}
 >
 
-// $FlowIssue doesn't like routeProps here.
 const mapStateToProps = (stateProps: TypedState, {routeProps}: OwnProps) => ({
   isTeamPath: routeProps.get('isTeamPath'),
   items: routeProps.get('items'),
