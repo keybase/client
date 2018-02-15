@@ -15,6 +15,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/chat/pager"
+
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/teams"
 
@@ -449,6 +451,40 @@ func (h *Server) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg
 	}, nil
 }
 
+func (h *Server) mergeLocalRemoteThread(ctx context.Context, remoteThread, localThread *chat1.ThreadView,
+	mode chat1.GetThreadNonblockCbMode) (res chat1.ThreadView, err error) {
+	switch mode {
+	case chat1.GetThreadNonblockCbMode_FULL:
+		return *remoteThread, nil
+	case chat1.GetThreadNonblockCbMode_INCREMENTAL:
+		if localThread != nil {
+			lm := make(map[chat1.MessageID]bool)
+			for _, m := range localThread.Messages {
+				lm[m.GetMessageID()] = true
+			}
+			for _, m := range remoteThread.Messages {
+				if !lm[m.GetMessageID()] {
+					res.Messages = append(res.Messages, m)
+				}
+				var pmsgs []pager.Message
+				for _, m := range res.Messages {
+					pmsgs = append(pmsgs, m)
+				}
+				if remoteThread.Pagination != nil {
+					if res.Pagination, err =
+						pager.NewThreadPager().MakePage(pmsgs, len(remoteThread.Messages)); err != nil {
+						return res, err
+					}
+					res.Pagination.Last = remoteThread.Pagination.Last
+				}
+			}
+			return res, nil
+		}
+		return *remoteThread, nil
+	}
+	return res, errors.New("unknown get thread cb mode")
+}
+
 func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonblockArg) (res chat1.NonblockFetchRes, fullErr error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
@@ -494,13 +530,13 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 	// Race the full operation versus the local one, so we don't lose anytime grabbing the local
 	// version if they are roughly as fast. However, the full operation has preference, so if it does
 	// win the race we don't send anything up from the local operation.
+	var localSentThread *chat1.ThreadView
 	var uilock sync.Mutex
 	var wg sync.WaitGroup
 	bctx, cancel := context.WithCancel(ctx)
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-
 		// Get local copy of the thread, abort the call if we have sent the full copy
 		var resThread *chat1.ThreadView
 		var localThread chat1.ThreadView
@@ -532,6 +568,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		// Check this again, since we might have waited on the lock while full sent
 		select {
 		case <-bctx.Done():
+			resThread = nil
 			h.Debug(ctx, "GetThreadNonblock: context canceled before local copy sent")
 			return
 		default:
@@ -541,6 +578,8 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 			h.Debug(ctx, "GetThreadNonblock: sending cached response: %d messages", len(resThread.Messages))
 			var jsonPt []byte
 			var err error
+
+			localSentThread = resThread
 			pt := utils.PresentThreadView(ctx, uid, *resThread, h.G().TeamChannelSource)
 			if jsonPt, err = json.Marshal(pt); err != nil {
 				h.Debug(ctx, "GetThreadNonblock: failed to JSON cached response: %s", err)
@@ -576,7 +615,12 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		h.Debug(ctx, "GetThreadNonblock: sending full response: %d messages", len(remoteThread.Messages))
 		uilock.Lock()
 		defer uilock.Unlock()
-		uires := utils.PresentThreadView(bctx, uid, remoteThread, h.G().TeamChannelSource)
+		var rthread chat1.ThreadView
+		if rthread, fullErr =
+			h.mergeLocalRemoteThread(ctx, &remoteThread, localSentThread, arg.CbMode); fullErr != nil {
+			return
+		}
+		uires := utils.PresentThreadView(bctx, uid, rthread, h.G().TeamChannelSource)
 		var jsonUIRes []byte
 		if jsonUIRes, fullErr = json.Marshal(uires); fullErr != nil {
 			h.Debug(ctx, "GetThreadNonblock: failed to JSON full result: %s", fullErr)
