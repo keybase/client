@@ -9,7 +9,7 @@ export type Props = {
   onPress?: void,
   onMouseEnter?: () => void,
   onMouseLeave?: () => void,
-  style?: ?Object,
+  style?: any,
   opacity?: boolean,
   inheritColor?: boolean,
   underlayColor?: string,

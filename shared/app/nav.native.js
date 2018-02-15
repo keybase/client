@@ -16,7 +16,7 @@ import {NavigationActions, type NavigationAction} from 'react-navigation'
 import {chatTab, loginTab, peopleTab, folderTab, settingsTab} from '../constants/tabs'
 import {compose} from 'recompose'
 import {connect, type TypedState} from '../util/container'
-import {globalColors, globalStyles, statusBarHeight} from '../styles/index.native'
+import {globalColors, globalStyles, statusBarHeight, styleSheetCreate} from '../styles/index.native'
 import {addSizeListener} from '../styles/status-bar'
 import * as I from 'immutable'
 import {isIOS, isIPhoneX} from '../constants/platform'
@@ -91,13 +91,11 @@ class CardStackShim extends Component<CardStackShimProps, *> {
         router={this}
         headerMode="none"
         mode={this.props.mode}
-        style={this.props.hidden ? _hiddenTransitionerStyle : undefined}
+        style={this.props.hidden ? styles.hiddenTransitioner : undefined}
       />
     )
   }
 }
-
-const _hiddenTransitionerStyle = {position: 'absolute', left: -9999, width: '100%', height: '100%'}
 
 const nop = () => {}
 const emptyObj = () => ({})
@@ -127,12 +125,12 @@ function renderStackRoute(route, shouldRender) {
 
   let style
   if (root) {
-    style = sceneWrapStyleNoStatusBarPadding
+    style = styles.sceneWrapStyleNoStatusBarPadding
   } else {
     style =
       route.tags && route.tags.underStatusBar
-        ? sceneWrapStyleNoStatusBarPadding
-        : sceneWrapStyleWithStatusBarPadding
+        ? styles.sceneWrapStyleNoStatusBarPadding
+        : styles.sceneWrapStyleWithStatusBarPadding
   }
 
   return (
@@ -209,7 +207,7 @@ class MainNavStack extends Component<any, any> {
       ))
 
     const content = (
-      <Box style={globalStyles.flexGrow}>
+      <Box style={styles.content}>
         {stacks}
         {![chatTab].includes(props.routeSelected) ? <Offline key="offline" /> : null}
         <GlobalError key="globalError" />
@@ -219,9 +217,9 @@ class MainNavStack extends Component<any, any> {
       </Box>
     )
     return (
-      <Box style={globalStyles.fullHeight}>
+      <Box style={styles.container}>
         <NativeKeyboardAvoidingView
-          style={_keyboardStyle}
+          style={styles.keyboard}
           behavior={isIOS ? 'padding' : undefined}
           /** TODO get rid of this once a better fix exists
            * keyboardVerticalOffset is to work around a bug in KeyboardAvoidingView
@@ -235,12 +233,6 @@ class MainNavStack extends Component<any, any> {
       </Box>
     )
   }
-}
-
-// TODO glamour
-const _keyboardStyle = {
-  ...globalStyles.fillAbsolute,
-  backgroundColor: globalColors.white,
 }
 
 type AnimatedTabBarProps = {
@@ -272,25 +264,18 @@ class AnimatedTabBar extends Component<AnimatedTabBarProps, {offset: any}> {
   render() {
     if (isIOS) {
       return (
-        <NativeAnimated.View
-          style={{
-            maxHeight: this.state.offset,
-          }}
-        >
+        <NativeAnimated.View style={{maxHeight: this.state.offset}}>
           {this.props.children}
         </NativeAnimated.View>
       )
     } else {
-      return <Box style={this.props.show ? _tabBarHeightBar : _tabBarHeightZero}>{this.props.children}</Box>
+      return (
+        <Box style={this.props.show ? styles.tabBarHeightBar : styles.tabBarHeightZero}>
+          {this.props.children}
+        </Box>
+      )
     }
   }
-}
-
-const _tabBarHeightBar = {
-  height: tabBarHeight,
-}
-const _tabBarHeightZero = {
-  height: 0,
 }
 
 class Nav extends Component<Props, {keyboardShowing: boolean}> {
@@ -365,22 +350,12 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
     const layers = layerScreens.map(r => r.leafComponent({shouldRender: true}))
 
     return (
-      <Box style={globalStyles.fillAbsolute}>
+      <Box style={styles.shimContainer}>
         {shim}
         {layers}
       </Box>
     )
   }
-}
-
-const sceneWrapStyleNoStatusBarPadding = {
-  ...globalStyles.fullHeight,
-  backgroundColor: globalColors.white,
-}
-
-const sceneWrapStyleWithStatusBarPadding = {
-  ...sceneWrapStyleNoStatusBarPadding,
-  paddingTop: isIPhoneX ? 40 : statusBarHeight,
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
@@ -390,6 +365,37 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   navigateUp: () => dispatch(navigateUp()),
+})
+
+const styles = styleSheetCreate({
+  container: globalStyles.fullHeight,
+  content: globalStyles.flexGrow,
+  hiddenTransitioner: {
+    height: '100%',
+    left: -9999,
+    position: 'absolute',
+    width: '100%',
+  },
+  keyboard: {
+    ...globalStyles.fillAbsolute,
+    backgroundColor: globalColors.white,
+  },
+  sceneWrapStyleNoStatusBarPadding: {
+    ...globalStyles.fullHeight,
+    backgroundColor: globalColors.white,
+  },
+  sceneWrapStyleWithStatusBarPadding: {
+    ...globalStyles.fullHeight,
+    backgroundColor: globalColors.white,
+    paddingTop: isIPhoneX ? 40 : statusBarHeight,
+  },
+  shimContainer: globalStyles.fillAbsolute,
+  tabBarHeightBar: {
+    height: tabBarHeight,
+  },
+  tabBarHeightZero: {
+    height: 0,
+  },
 })
 
 export default compose(connect(mapStateToProps, mapDispatchToProps))(Nav)

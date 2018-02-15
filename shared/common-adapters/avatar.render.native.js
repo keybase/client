@@ -146,7 +146,7 @@ class AvatarRender extends React.PureComponent<Props, State> {
               <Background
                 loaded={this.state.loaded}
                 loadingColor={this.props.loadingColor}
-                borderRadius={this.props.borderRadius}
+                borderRadius={borderRadius}
               />
             )}
           {!!this.props.url && (
