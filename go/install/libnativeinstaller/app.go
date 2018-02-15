@@ -45,7 +45,7 @@ func AppBundleForPath() (string, error) {
 	paths := strings.SplitN(path, ".app", 2)
 	// If no match, return ""
 	if len(paths) <= 1 {
-		return "", fmt.Errorf("Unable to resolve bundle for valid path: %s; %s", path, err)
+		return "", fmt.Errorf("Unable to resolve bundle for valid path: %s", path)
 	}
 
 	appPath := paths[0] + ".app"
