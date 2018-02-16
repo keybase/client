@@ -264,16 +264,38 @@ func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID k
 	if err != nil {
 		return err
 	}
-	uv := NewUserVersion(upak.Current.Uid, upak.Current.EldestSeqno)
+	uv := upak.Current.ToUserVersion()
 	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
 		t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true)
 		if err != nil {
 			return err
 		}
+
+		var existingRole keybase1.TeamRole
+		var existingInvite keybase1.TeamInvite
+		var isAnInvite bool
 		existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
 		if err != nil {
-			return libkb.NotFoundError{Msg: fmt.Sprintf("uid %s has never been a member of this team.",
-				username)}
+			// UV not found - look for invites.
+			invite, uv, found := t.FindActiveKeybaseInvite(uv.Uid)
+			if !found {
+				// username is neither crypto UV nor keybase invite in
+				// that team. bail out.
+				return libkb.NotFoundError{Msg: fmt.Sprintf("uid %s has never been a member of this team.",
+					username)}
+			}
+
+			isAnInvite = true
+			existingInvite = invite
+			existingRole = invite.Role
+			existingUV = uv
+		} else {
+			// User is existing crypto member - get their current role.
+			role, err := t.MemberRole(ctx, existingUV)
+			if err != nil {
+				return err
+			}
+			existingRole = role
 		}
 
 		if existingUV.EldestSeqno == uv.EldestSeqno {
@@ -282,16 +304,38 @@ func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID k
 					username, existingUV.EldestSeqno, uv.EldestSeqno),
 			}
 		}
-		existingRole, err := t.MemberRole(ctx, existingUV)
-		if err != nil {
-			return err
-		}
 
-		_, err = AddMemberByID(ctx, g, teamID, username, existingRole)
-		if err != nil {
-			return err
+		hasPUK := len(upak.Current.PerUserKeys) > 0
+		if hasPUK {
+			req, err := reqFromRole(uv, existingRole)
+			if err != nil {
+				return err
+			}
+
+			if isAnInvite {
+				req.CompletedInvites[existingInvite.Id] = uv.PercentForm()
+			} else {
+				req.None = []keybase1.UserVersion{existingUV}
+			}
+
+			return t.ChangeMembership(ctx, req)
+		} else {
+			if !isAnInvite {
+				// Someone is trying to re-add friend that used to be
+				// a PUK but is not PUK anymore after reset. Advise
+				// them to reconsider their life choices.
+				return fmt.Errorf(
+					"Trying to re-add %q to conversation, but they need to sign in using Keybase client first.",
+					username)
+			}
+
+			invites, err := kbInviteFromRole(uv, existingRole)
+			if err != nil {
+				return err
+			}
+			invites.Cancel = &[]SCTeamInviteID{SCTeamInviteID(existingInvite.Id)}
+			return t.postTeamInvites(ctx, invites)
 		}
-		return nil
 	})
 }
 
@@ -770,7 +814,6 @@ func loadUserVersionByUIDCheckUsername(ctx context.Context, g *libkb.GlobalConte
 }
 
 func reqFromRole(uv keybase1.UserVersion, role keybase1.TeamRole) (keybase1.TeamChangeReq, error) {
-
 	var req keybase1.TeamChangeReq
 	list := []keybase1.UserVersion{uv}
 	switch role {
@@ -787,6 +830,30 @@ func reqFromRole(uv keybase1.UserVersion, role keybase1.TeamRole) (keybase1.Team
 	}
 
 	return req, nil
+}
+
+func kbInviteFromRole(uv keybase1.UserVersion, role keybase1.TeamRole) (SCTeamInvites, error) {
+	invite := SCTeamInvite{
+		Type: "keybase",
+		Name: uv.TeamInviteName(),
+		ID:   NewInviteID(),
+	}
+	var invites SCTeamInvites
+	list := []SCTeamInvite{invite}
+	switch role {
+	case keybase1.TeamRole_OWNER:
+		invites.Owners = &list
+	case keybase1.TeamRole_ADMIN:
+		invites.Admins = &list
+	case keybase1.TeamRole_WRITER:
+		invites.Writers = &list
+	case keybase1.TeamRole_READER:
+		invites.Readers = &list
+	default:
+		return SCTeamInvites{}, errors.New("invalid team role")
+	}
+
+	return invites, nil
 }
 
 func makeIdentifyLiteRes(id keybase1.TeamID, name keybase1.TeamName) keybase1.IdentifyLiteRes {

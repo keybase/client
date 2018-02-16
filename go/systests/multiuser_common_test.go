@@ -440,6 +440,25 @@ func (u *smuUser) pollForTeamSeqnoLink(team smuTeam, toSeqno keybase1.Seqno) {
 	u.ctx.t.Fatalf("timed out waiting for team %s seqno link %d", team, toSeqno)
 }
 
+func (u *smuUser) pollForTeamSeqnoLinkWithLoadArgs(args keybase1.LoadTeamArg, toSeqno keybase1.Seqno) {
+	args.ForceRepoll = true
+	for i := 0; i < 20; i++ {
+		details, err := teams.Load(context.Background(), u.getPrimaryGlobalContext(), args)
+		if err != nil {
+			u.ctx.t.Fatalf("error while loading team %v: %v", args, err)
+		}
+
+		if details.CurrentSeqno() >= toSeqno {
+			u.ctx.t.Logf("Found new seqno %d at poll loop iter %d", details.CurrentSeqno(), i)
+			return
+		}
+
+		time.Sleep(500 * time.Millisecond)
+	}
+
+	u.ctx.t.Fatalf("timed out waiting for team %v seqno link %d", args, toSeqno)
+}
+
 func (u *smuUser) createTeam(writers []*smuUser) smuTeam {
 	name := u.username + "t"
 	nameK1, err := keybase1.TeamNameFromString(name)
@@ -479,6 +498,16 @@ func (u *smuUser) lookupImplicitTeam(create bool, displayName string, public boo
 	return smuImplicitTeam{ID: res.TeamID}
 }
 
+func (u *smuUser) loadTeamByID(teamID keybase1.TeamID, admin bool) *teams.Team {
+	team, err := teams.Load(context.Background(), u.getPrimaryGlobalContext(), keybase1.LoadTeamArg{
+		ID:          teamID,
+		NeedAdmin:   admin,
+		ForceRepoll: true,
+	})
+	require.NoError(u.ctx.t, err)
+	return team
+}
+
 func (u *smuUser) addTeamMember(team smuTeam, member *smuUser, role keybase1.TeamRole) {
 	cli := u.getTeamsClient()
 	_, err := cli.TeamAddMember(context.TODO(), keybase1.TeamAddMemberArg{
@@ -507,9 +536,7 @@ func (u *smuUser) reAddUserAfterReset(team smuImplicitTeam, w *smuUser) {
 		Id:       team.ID,
 		Username: w.username,
 	})
-	if err != nil {
-		u.ctx.t.Fatal(err)
-	}
+	require.NoError(u.ctx.t, err)
 }
 
 func (u *smuUser) reset() {
@@ -543,9 +570,13 @@ func (u *smuUser) delete() {
 
 func (u *smuUser) dbNuke() {
 	err := u.primaryDevice().ctlClient().DbNuke(context.TODO(), 0)
-	if err != nil {
-		u.ctx.t.Fatal(err)
-	}
+	require.NoError(u.ctx.t, err)
+}
+
+func (u *smuUser) userVersion() keybase1.UserVersion {
+	uv, err := u.primaryDevice().userClient().MeUserVersion(context.Background(), 0)
+	require.NoError(u.ctx.t, err)
+	return uv
 }
 
 func (u *smuUser) getPrimaryGlobalContext() *libkb.GlobalContext {

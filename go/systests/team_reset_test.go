@@ -548,6 +548,62 @@ func TestImplicitTeamResetAll(t *testing.T) {
 	divDebug(ctx, "team looked up after resets")
 }
 
+func TestImplicitResetMatrix(t *testing.T) {
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	ann := ctx.installKeybaseForUser("ann", 5)
+	ann.signup()
+	t.Logf("Signed up ann (%s)", ann.username)
+
+	bob := ctx.installKeybaseForUser("bob", 5)
+	bob.signupNoPUK()
+	t.Logf("Signed up bob (%s)", bob.username)
+
+	displayName := strings.Join([]string{ann.username, bob.username}, ",")
+	iteam := ann.lookupImplicitTeam(true /* create */, displayName, false /* isPublic */)
+	t.Logf("impteam created for %q (id: %s)", displayName, iteam.ID)
+
+	bob.reset()
+	bob.loginAfterResetNoPUK(5)
+
+	iteam2 := ann.lookupImplicitTeam(false /* create */, displayName, false /* isPublic */)
+	require.Equal(t, iteam.ID, iteam2.ID)
+
+	ann.reAddUserAfterReset(iteam, bob)
+
+	teamObj := ann.loadTeamByID(iteam.ID, true)
+
+	// Bob is not a crypto member so no "real" role
+	role, err := teamObj.MemberRole(context.Background(), bob.userVersion())
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_NONE, role)
+
+	// but should have active invite
+	invite, uv, found := teamObj.FindActiveKeybaseInvite(bob.uid())
+	require.True(t, found)
+	require.EqualValues(t, bob.userVersion(), uv)
+	require.Equal(t, keybase1.TeamRole_OWNER, invite.Role)
+
+	// bob upgrades PUK
+	bob.primaryDevice().tctx.Tp.DisableUpgradePerUserKey = false
+	err = bob.perUserKeyUpgrade()
+	require.NoError(t, err)
+
+	ann.pollForTeamSeqnoLinkWithLoadArgs(keybase1.LoadTeamArg{ID: iteam.ID}, keybase1.Seqno(3))
+
+	teamObj = ann.loadTeamByID(iteam.ID, true)
+
+	// Bob is now a real crypto member!
+	role, err = teamObj.MemberRole(context.Background(), bob.userVersion())
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_OWNER, role)
+
+	// Make sure we are still getting the same team.
+	iteam3 := ann.lookupImplicitTeam(false /* create */, displayName, false /* isPublic */)
+	require.Equal(t, iteam.ID, iteam3.ID)
+}
+
 // Remove a member who was in a team and reset.
 func TestTeamRemoveAfterReset(t *testing.T) {
 	ctx := newSMUContext(t)

@@ -677,6 +677,10 @@ func (t *Team) HasActiveInvite(name keybase1.TeamInviteName, typ string) (bool, 
 	return t.chain().HasActiveInvite(name, it)
 }
 
+func (t *Team) FindActiveKeybaseInvite(uid keybase1.UID) (keybase1.TeamInvite, keybase1.UserVersion, bool) {
+	return t.chain().FindActiveKeybaseInvite(uid)
+}
+
 func (t *Team) GetActiveAndObsoleteInvites() (ret map[keybase1.TeamInviteID]keybase1.TeamInvite) {
 	ret = make(map[keybase1.TeamInviteID]keybase1.TeamInvite)
 	for id, invite := range t.chain().inner.ActiveInvites {

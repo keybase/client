@@ -525,9 +525,20 @@ func (t *TeamSigChainState) FindActiveInviteByID(id keybase1.TeamInviteID) (keyb
 	return invite, found
 }
 
-func (t TeamSigChainState) IsInviteObsolete(id keybase1.TeamInviteID) bool {
+func (t *TeamSigChainState) IsInviteObsolete(id keybase1.TeamInviteID) bool {
 	_, ok := t.inner.ObsoleteInvites[id]
 	return ok
+}
+
+func (t *TeamSigChainState) FindActiveKeybaseInvite(uid keybase1.UID) (keybase1.TeamInvite, keybase1.UserVersion, bool) {
+	for _, invite := range t.inner.ActiveInvites {
+		if inviteUv, err := invite.KeybaseUserVersion(); err == nil {
+			if inviteUv.Uid.Equal(uid) {
+				return invite, inviteUv, true
+			}
+		}
+	}
+	return keybase1.TeamInvite{}, keybase1.UserVersion{}, false
 }
 
 // Threadsafe handle to a local model of a team sigchain.
@@ -1437,6 +1448,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		if prevState.IsImplicit() {
 			// Check to see if the additions were previously members of the team
 			checkImpteamInvites := func() error {
+				addedUIDs := make(map[keybase1.UID]bool)
 				for _, invites := range additions {
 					for _, invite := range invites {
 						cat, err := invite.Type.C()
@@ -1448,18 +1460,50 @@ func (t *TeamSigChainPlayer) addInnerLink(
 							if err != nil {
 								return err
 							}
-							if _, err := prevState.GetLatestUVWithUID(uv.Uid); err != nil {
-								return err
+							addedUIDs[uv.Uid] = true
+							_, err = prevState.GetLatestUVWithUID(uv.Uid)
+							if err == nil {
+								// Found crypto member in previous
+								// state, we are good!
+								return nil
 							}
+							_, _, found := prevState.FindActiveKeybaseInvite(uv.Uid)
+							if found {
+								// Found PUKless member in previous
+								// state, still fine!
+								return nil
+							}
+							// Neither crypto member nor PUKless member
+							// found, we can't allow this addition.
+							return fmt.Errorf("Not found previous version of user %s", uv.Uid)
 						} else {
 							return fmt.Errorf("invalid invite type in implicit team: %v", cat)
 						}
 					}
 				}
+
+				var cancelledUVs []keybase1.UserVersion
+				for _, inviteId := range cancelations {
+					invite, found := prevState.FindActiveInviteByID(inviteId)
+					if !found {
+						return fmt.Errorf("encountered cancellation of invite that doesn't exist")
+					}
+					inviteUv, err := invite.KeybaseUserVersion()
+					if err != nil {
+						return fmt.Errorf("cancelled invite is not valid keybase-type invite: %v", err)
+					}
+					cancelledUVs = append(cancelledUVs, inviteUv)
+				}
+
+				for _, uv := range cancelledUVs {
+					if !addedUIDs[uv.Uid] {
+						return fmt.Errorf("cancelling invite for %v without inviting back a new version", uv)
+					}
+				}
 				return nil
 			}
 			if err := checkImpteamInvites(); err != nil {
-				return res, NewImplicitTeamOperationError(payload.Body.Type)
+				return res, NewImplicitTeamOperationError("Error in link %q: %v", payload.Body.Type, err)
 			}
 		}
 
@@ -1689,16 +1733,13 @@ func (t *TeamSigChainPlayer) sanityCheckInvites(
 	}
 
 	if invites.Cancel != nil {
-		if options.implicitTeam {
-			return nil, nil, NewImplicitTeamOperationError("encountered invite cancellation")
-		}
 		for _, c := range *invites.Cancel {
 			id, err := c.TeamInviteID()
 			if err != nil {
 				return nil, nil, err
 			}
 			if byID[id] {
-				return nil, nil, NewInviteError(fmt.Sprintf("ID %s appears twice as a cancelation", c))
+				return nil, nil, NewInviteError(fmt.Sprintf("ID %s appears twice as a cancellation", c))
 			}
 			byID[id] = false
 			cancelations = append(cancelations, id)
