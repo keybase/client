@@ -31,8 +31,8 @@ func (b *breakTracker) makeDbKey(tlfID chat1.TLFID) libkb.DbKey {
 }
 
 func (b *breakTracker) UpdateTLF(ctx context.Context, tlfID chat1.TLFID,
-	breaks []keybase1.TLFIdentifyFailure) error {
-
+	breaks []keybase1.TLFIdentifyFailure) (err error) {
+	defer b.Trace(ctx, func() error { return err }, "UpdateTLF(%s)", tlfID)()
 	key := b.makeDbKey(tlfID)
 
 	dat, err := encode(breaks)
@@ -46,8 +46,8 @@ func (b *breakTracker) UpdateTLF(ctx context.Context, tlfID chat1.TLFID,
 	return nil
 }
 
-func (b *breakTracker) IsTLFBroken(ctx context.Context, tlfID chat1.TLFID) (bool, error) {
-
+func (b *breakTracker) IsTLFBroken(ctx context.Context, tlfID chat1.TLFID) (res bool, err error) {
+	defer b.Trace(ctx, func() error { return err }, "IsTLFBroken(%s)", tlfID)()
 	key := b.makeDbKey(tlfID)
 	raw, found, err := b.G().LocalChatDb.GetRaw(key)
 	if err != nil {

@@ -7,6 +7,7 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.WritableArray;
 
 import java.io.BufferedReader;
@@ -27,8 +28,12 @@ public class NativeLogger extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void log(String tagPrefix, String toLog) {
-        Log.i(tagPrefix + NAME, toLog);
+    public void log(ReadableArray tagsAndLogs) {
+        int len = tagsAndLogs.size();
+        for (int i = 0; i < len; i++) {
+            ReadableArray tagAndLog = tagsAndLogs.getArray(i);
+            Log.i(tagAndLog.getString(0) + NAME, tagAndLog.getString(1));
+        }
     }
 
     @ReactMethod

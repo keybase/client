@@ -76,14 +76,22 @@ class Text extends Component<Props> {
       style = [baseStyle, dynamicStyle, this.props.style]
     }
 
+    const onPress =
+      this.props.onClick ||
+      (this.props.onClickURL ? this._urlClick : undefined) ||
+      // If selectable and there isn't already an onClick handler,
+      // make a dummy one so that it shows the selection (on iOS).
+      (this.props.selectable ? () => {} : undefined)
+
     return (
       <StyledText
         ref={ref => {
           this._nativeText = ref
         }}
+        selectable={this.props.selectable}
         style={style}
         {...lineClamp(this.props.lineClamp)}
-        onPress={this.props.onClick || (this.props.onClickURL ? this._urlClick : undefined)}
+        onPress={onPress}
         onLongPress={this.props.onLongPress}
         allowFontScaling={this.props.allowFontScaling}
       >

@@ -106,12 +106,15 @@ export default function makeMenu(window: any) {
       },
       {
         ...editMenu,
+        label: '&Edit',
       },
       {
         ...windowMenu,
+        label: '&Window',
       },
       {
         ...helpMenu,
+        label: '&Help',
       },
     ]
     const menu = Menu.buildFromTemplate(template)

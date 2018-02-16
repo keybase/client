@@ -2,8 +2,7 @@
 import * as React from 'react'
 import {Box, Checkbox, Icon, RadioButton, ProgressIndicator, Text} from '../../../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../../styles'
-import {type NotificationSaveState} from '../../../../constants/types/chat'
-import type {Props} from '.'
+import {type NotifyType, type NotificationSaveState} from '../../../../constants/types/chat'
 
 const SaveStateComponents = (saveState: NotificationSaveState) => {
   switch (saveState) {
@@ -21,11 +20,25 @@ const SaveStateComponents = (saveState: NotificationSaveState) => {
   }
 }
 
-const Notifications = ({
+export type Props = {
+  channelWide: boolean,
+  desktop: NotifyType,
+  mobile: NotifyType,
+  muted: boolean,
+  saveState: NotificationSaveState,
+  onMuteConversation: (muted: boolean) => void,
+  onSetDesktop: NotifyType => void,
+  onSetMobile: NotifyType => void,
+  onToggleChannelWide: () => void,
+}
+
+export const Notifications = ({
   channelWide,
   desktop,
   mobile,
+  muted,
   saveState,
+  onMuteConversation,
   onSetDesktop,
   onSetMobile,
   onToggleChannelWide,
@@ -37,6 +50,29 @@ const Notifications = ({
       paddingRight: globalMargins.small,
     }}
   >
+    <Box
+      style={{
+        ...globalStyles.flexBoxRow,
+        alignItems: 'center',
+        marginBottom: globalMargins.xtiny,
+      }}
+    >
+      <Checkbox
+        checked={muted}
+        disabled={onMuteConversation == null}
+        onCheck={onMuteConversation}
+        label="Mute all notifications"
+      />
+      <Icon
+        type="iconfont-shh"
+        style={{
+          color: globalColors.black_20,
+          marginLeft: globalMargins.xtiny,
+          ...(isMobile ? {fontSize: 24} : {}),
+        }}
+      />
+    </Box>
+
     <Checkbox
       checked={!channelWide}
       label="Ignore @here and @channel mentions"
@@ -134,5 +170,3 @@ const styleSaveState = {
   justifyContent: 'center',
   paddingTop: globalMargins.small,
 }
-
-export default Notifications

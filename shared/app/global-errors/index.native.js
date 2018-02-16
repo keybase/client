@@ -101,26 +101,22 @@ class GlobalError extends Component<Props, State> {
       <Box style={{...containerStyle, maxHeight}}>
         <NativeTouchableWithoutFeedback onPress={this._onExpandClick}>
           <Box style={summaryRowStyle}>
-            {summary && (
-              <Icon
-                type="iconfont-exclamation"
-                style={{color: globalColors.white, marginRight: globalMargins.tiny}}
-              />
-            )}
+            <Icon
+              type="iconfont-exclamation"
+              style={{color: globalColors.white, marginRight: globalMargins.tiny}}
+            />
             <Text type="BodySmall" style={{color: globalColors.white, flex: 1, textAlign: 'center'}}>
               {summary}
             </Text>
-            {summary && (
-              <Icon
-                type="iconfont-close"
-                onClick={onDismiss}
-                style={{color: globalColors.white_75, marginLeft: globalMargins.tiny}}
-              />
-            )}
+            <Icon
+              type="iconfont-close"
+              onClick={onDismiss}
+              style={{color: globalColors.white_75, marginLeft: globalMargins.tiny}}
+            />
           </Box>
         </NativeTouchableWithoutFeedback>
         <NativeScrollView>
-          <Text type="BodySmall" style={detailStyle}>
+          <Text type="BodySmall" selectable={true} style={detailStyle}>
             {this.props.error && this.props.error.message}
             {'\n\n'}
             {details}
@@ -146,13 +142,13 @@ const summaryRowStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',
   justifyContent: 'flex-start',
+  flexShrink: 0,
   minHeight: GlobalError.maxHeightForSize('Small'),
   padding: globalMargins.tiny,
   paddingTop: globalMargins.medium,
 }
 
 const detailStyle = {
-  ...globalStyles.selectable,
   color: globalColors.white_75,
   fontSize: 13,
   lineHeight: 17,

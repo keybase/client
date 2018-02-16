@@ -1666,6 +1666,24 @@ func (t TeamMember) IsReset() bool {
 	return t.EldestSeqno != t.UserEldestSeqno
 }
 
+// ActiveUsernames returns a map of username -> active status
+func (t TeamMembersDetails) ActiveUsernames() map[string]bool {
+	m := make(map[string]bool)
+	for _, u := range t.Owners {
+		m[u.Username] = m[u.Username] || u.Active
+	}
+	for _, u := range t.Admins {
+		m[u.Username] = m[u.Username] || u.Active
+	}
+	for _, u := range t.Writers {
+		m[u.Username] = m[u.Username] || u.Active
+	}
+	for _, u := range t.Readers {
+		m[u.Username] = m[u.Username] || u.Active
+	}
+	return m
+}
+
 func (t TeamName) IsNil() bool {
 	return len(t.Parts) == 0
 }
@@ -2145,6 +2163,14 @@ func (req *TeamChangeReq) AddUVWithRole(uv UserVersion, role TeamRole) error {
 	return nil
 }
 
+func (req *TeamChangeReq) GetAllAdds() (ret []UserVersion) {
+	ret = append(ret, req.Readers...)
+	ret = append(ret, req.Writers...)
+	ret = append(ret, req.Admins...)
+	ret = append(ret, req.Owners...)
+	return ret
+}
+
 func TotalNumberOfCommits(refs []GitRefMetadata) (total int) {
 	for _, ref := range refs {
 		total += len(ref.Commits)
@@ -2158,4 +2184,24 @@ func RefNames(refs []GitRefMetadata) string {
 		names[i] = ref.RefName
 	}
 	return strings.Join(names, ", ")
+}
+
+func TeamEncryptedKBFSKeysetHashFromString(s string) TeamEncryptedKBFSKeysetHash {
+	return TeamEncryptedKBFSKeysetHash(s)
+}
+
+func TeamEncryptedKBFSKeysetHashFromBytes(s []byte) TeamEncryptedKBFSKeysetHash {
+	return TeamEncryptedKBFSKeysetHashFromString(hex.EncodeToString(s))
+}
+
+func (e TeamEncryptedKBFSKeysetHash) String() string {
+	return string(e)
+}
+
+func (e TeamEncryptedKBFSKeysetHash) Bytes() []byte {
+	return []byte(e.String())
+}
+
+func (e TeamEncryptedKBFSKeysetHash) SecureEqual(l TeamEncryptedKBFSKeysetHash) bool {
+	return hmac.Equal(e.Bytes(), l.Bytes())
 }

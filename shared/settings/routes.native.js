@@ -10,6 +10,7 @@ import Push from '../app/push/push.native'
 import DevicesRoute from '../devices/routes'
 import GitRoute from '../git/routes'
 import FoldersRoute from '../folders/routes'
+import FilesRoute from '../fs/routes'
 import WebLinks from './web-links'
 import Passphrase from './passphrase/container'
 
@@ -87,6 +88,7 @@ const routeTree = makeRouteDefNode({
           component: TestPopup,
           tags: makeLeafTags({layerOnTop: true}),
         },
+        files: FilesRoute,
       },
     },
   },

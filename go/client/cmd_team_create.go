@@ -15,6 +15,7 @@ type CmdTeamCreate struct {
 	TeamName  keybase1.TeamName
 	SessionID int
 	libkb.Contextified
+	joinSubteam bool
 }
 
 func (v *CmdTeamCreate) ParseArgv(ctx *cli.Context) error {
@@ -23,6 +24,8 @@ func (v *CmdTeamCreate) ParseArgv(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
+
+	v.joinSubteam = ctx.Bool("join-subteam")
 
 	return nil
 }
@@ -36,8 +39,9 @@ func (v *CmdTeamCreate) Run() (err error) {
 	dui := v.G().UI.GetDumbOutputUI()
 
 	createRes, err := cli.TeamCreate(context.TODO(), keybase1.TeamCreateArg{
-		Name:      v.TeamName.String(),
-		SessionID: v.SessionID,
+		Name:        v.TeamName.String(),
+		SessionID:   v.SessionID,
+		JoinSubteam: v.joinSubteam,
 	})
 	if err != nil {
 		return err
@@ -60,6 +64,12 @@ func newCmdTeamCreate(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 			cl.ChooseCommand(NewCmdTeamCreateRunner(g), "create", c)
 		},
 		Description: "Create a team or a subteam with specified name.",
+		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "j, join-subteam",
+				Usage: "join subteam after creating it (off by default)",
+			},
+		},
 	}
 }
 

@@ -31,6 +31,7 @@ type smuUser struct {
 	username       string
 	userInfo       *signupInfo
 	primary        *smuDeviceWrapper
+	notifications  *teamNotifyHandler
 }
 
 type smuContext struct {
@@ -226,8 +227,16 @@ func (d *smuDeviceWrapper) userClient() keybase1.UserClient {
 	return keybase1.UserClient{Cli: d.cli}
 }
 
+func (d *smuDeviceWrapper) ctlClient() keybase1.CtlClient {
+	return keybase1.CtlClient{Cli: d.cli}
+}
+
 func (d *smuDeviceWrapper) rpcClient() rpc.GenericClient {
 	return d.cli
+}
+
+func (d *smuDeviceWrapper) transport() rpc.Transporter {
+	return d.xp
 }
 
 func (d *smuDeviceWrapper) startClient() {
@@ -338,12 +347,41 @@ type smuImplicitTeam struct {
 	ID keybase1.TeamID
 }
 
+func (u *smuUser) registerForNotifications() {
+	u.notifications = newTeamNotifyHandler()
+	srv := rpc.NewServer(u.primaryDevice().transport(), nil)
+	if err := srv.Register(keybase1.NotifyTeamProtocol(u.notifications)); err != nil {
+		u.ctx.t.Fatal(err)
+	}
+	ncli := keybase1.NotifyCtlClient{Cli: u.primaryDevice().rpcClient()}
+	if err := ncli.SetNotifications(context.TODO(), keybase1.NotificationChannels{Team: true}); err != nil {
+		u.ctx.t.Fatal(err)
+	}
+}
+
+func (u *smuUser) waitForTeamAbandoned(teamID keybase1.TeamID) {
+	// process 10 team rotations or 10s worth of time
+	for i := 0; i < 10; i++ {
+		select {
+		case abandonID := <-u.notifications.abandonCh:
+			u.ctx.t.Logf("team abandon notification received: %v", abandonID)
+			if abandonID.Eq(teamID) {
+				u.ctx.t.Logf("abandon matched!")
+				return
+			}
+			u.ctx.t.Logf("ignoring abandon message (expected teamID = %q)", teamID)
+		case <-time.After(1 * time.Second * libkb.CITimeMultiplier(u.getPrimaryGlobalContext())):
+		}
+	}
+	u.ctx.t.Fatalf("timed out waiting for team abandon %s", teamID)
+}
+
 func (u *smuUser) getTeamsClient() keybase1.TeamsClient {
 	return keybase1.TeamsClient{Cli: u.primaryDevice().rpcClient()}
 }
 
 func (u *smuUser) pollForMembershipUpdate(team smuTeam, kg keybase1.PerTeamKeyGeneration, poller func(d keybase1.TeamDetails) bool) keybase1.TeamDetails {
-	wait := 10 * time.Millisecond
+	wait := 100 * time.Millisecond
 	var totalWait time.Duration
 	i := 0
 	for {
@@ -363,6 +401,7 @@ func (u *smuUser) pollForMembershipUpdate(team smuTeam, kg keybase1.PerTeamKeyGe
 		}
 		i++
 		u.ctx.log.Debug("in pollForMembershipUpdate: iter=%d; missed it, now waiting for %s (latest details.KG = %d; poller=%v)", i, wait, details.KeyGeneration, (poller != nil))
+		kickTeamRekeyd(u.getPrimaryGlobalContext(), u.ctx.t)
 		time.Sleep(wait)
 		totalWait += wait
 		wait = wait * 2
@@ -480,8 +519,19 @@ func (u *smuUser) delete() {
 	}
 }
 
+func (u *smuUser) dbNuke() {
+	err := u.primaryDevice().ctlClient().DbNuke(context.TODO(), 0)
+	if err != nil {
+		u.ctx.t.Fatal(err)
+	}
+}
+
 func (u *smuUser) getPrimaryGlobalContext() *libkb.GlobalContext {
 	return u.primaryDevice().tctx.G
+}
+
+func (u *smuUser) setUIDMapperNoCachingMode(enabled bool) {
+	u.getPrimaryGlobalContext().UIDMapper.SetTestingNoCachingMode(enabled)
 }
 
 func (u *smuUser) loginAfterReset(numClones int) *smuDeviceWrapper {
@@ -558,22 +608,14 @@ func (u *smuUser) isMemberActive(team smuTeam, user *smuUser) (bool, error) {
 
 func (u *smuUser) assertMemberActive(team smuTeam, user *smuUser) {
 	active, err := u.isMemberActive(team, user)
-	if err != nil {
-		u.ctx.t.Fatalf("assertMemberActive error: %s", err)
-	}
-	if !active {
-		u.ctx.t.Errorf("user %s not active (expected active)", user.username)
-	}
+	require.NoError(u.ctx.t, err, "assertMemberInactive error: %s", err)
+	require.True(u.ctx.t, active, "user %s is inactive (expected active)", user.username)
 }
 
 func (u *smuUser) assertMemberInactive(team smuTeam, user *smuUser) {
 	active, err := u.isMemberActive(team, user)
-	if err != nil {
-		u.ctx.t.Fatalf("assertMemberInactive error: %s", err)
-	}
-	if active {
-		u.ctx.t.Errorf("user %s is active (expected inactive)", user.username)
-	}
+	require.NoError(u.ctx.t, err, "assertMemberInactive error: %s", err)
+	require.False(u.ctx.t, active, "user %s is active (expected inactive)", user.username)
 }
 
 func (u *smuUser) uid() keybase1.UID {

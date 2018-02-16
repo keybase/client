@@ -84,6 +84,20 @@
       "typedef": "bytes"
     },
     {
+      "type": "record",
+      "name": "InboxVersInfo",
+      "fields": [
+        {
+          "type": "gregor1.UID",
+          "name": "uid"
+        },
+        {
+          "type": "InboxVers",
+          "name": "vers"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "ConversationExistence",
       "symbols": [
@@ -98,7 +112,8 @@
       "symbols": [
         "KBFS_0",
         "TEAM_1",
-        "IMPTEAM_2"
+        "IMPTEAMNATIVE_2",
+        "IMPTEAMUPGRADE_3"
       ]
     },
     {
@@ -765,6 +780,13 @@
           "name": "supersedes"
         },
         {
+          "type": [
+            null,
+            "boolean"
+          ],
+          "name": "kbfsCryptKeysUsed"
+        },
+        {
           "type": {
             "type": "array",
             "items": "MessageID"
@@ -850,6 +872,13 @@
         {
           "type": "gregor1.DeviceID",
           "name": "senderDevice"
+        },
+        {
+          "type": [
+            null,
+            "boolean"
+          ],
+          "name": "kbfsCryptKeysUsed"
         },
         {
           "type": [

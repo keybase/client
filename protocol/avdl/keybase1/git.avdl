@@ -41,13 +41,14 @@ protocol git {
   enum GitPushType {
     DEFAULT_0,
     CREATEREPO_1,
-    DELETEBRANCH_2,
+    // UNUSED_2, <- this was DELETEBRANCH_2, which we never used. Using isDelete flag in GitRefMetadata instead.
     RENAMEREPO_3
   }
   record GitRefMetadata {
     string refName;    
     array<GitCommit> commits;
     boolean moreCommitsAvailable; // true if `commits` doesn't include all
+    boolean isDelete; // true if this is a branch/ref delete operation
   }
 
   // GitLocalMetadata is the struct that local RPCs use to read and write repo

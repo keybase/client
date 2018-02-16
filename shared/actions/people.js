@@ -12,13 +12,12 @@ import {peopleTab} from '../constants/tabs'
 import {type TypedState} from '../constants/reducer'
 import {createDecrementWaiting, createIncrementWaiting} from '../actions/waiting-gen'
 import {getPath} from '../route-tree'
-import flags from '../util/feature-flags'
 
 const _getPeopleData = function(action: PeopleGen.GetPeopleDataPayload, state: TypedState) {
   return Saga.sequentially([
     Saga.put(createIncrementWaiting({key: Constants.getPeopleDataWaitingKey})),
     Saga.call(RPCTypes.homeHomeGetScreenRpcPromise, {
-      markViewed: flags.newPeopleTab ? action.payload.markViewed : false,
+      markViewed: action.payload.markViewed,
       numFollowSuggestionsWanted: action.payload.numFollowSuggestionsWanted,
     }),
     Saga.identity(state.config.following),

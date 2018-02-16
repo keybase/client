@@ -200,7 +200,7 @@ func (e *ListTrackingEngine) runJSON(trackList TrackList, verbose bool) error {
 		var rec *jsonw.Wrapper
 		var e2 error
 		if verbose {
-			rec = link.GetPayloadJSON()
+			rec = link.UnmarshalPayloadJSON()
 		} else if rec, e2 = condenseRecord(link); e2 != nil {
 			e.G().Log.Warning("In conversion to JSON: %s", e2)
 		}

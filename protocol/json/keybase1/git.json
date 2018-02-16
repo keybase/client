@@ -105,7 +105,6 @@
       "symbols": [
         "DEFAULT_0",
         "CREATEREPO_1",
-        "DELETEBRANCH_2",
         "RENAMEREPO_3"
       ]
     },
@@ -127,6 +126,10 @@
         {
           "type": "boolean",
           "name": "moreCommitsAvailable"
+        },
+        {
+          "type": "boolean",
+          "name": "isDelete"
         }
       ]
     },

@@ -471,16 +471,24 @@ func TestSweepObsoleteKeybaseInvites(t *testing.T) {
 	bob.perUserKeyUpgrade()
 	t.Logf("Bob (%s) gets PUK", bob.username)
 
-	// TODO: Once CORE-6905 is done, this will automatically complete
-	// invite, breaking this test. But there are other tests that do
-	// not involve the server to check the same thing:
-	// TestObsoletingInvites*.
-	ann.addTeamMember(team, bob.username, keybase1.TeamRole_WRITER)
+	teamObj, err := teams.Load(context.Background(), ann.tc.G, keybase1.LoadTeamArg{
+		Name:        team,
+		ForceRepoll: true,
+		NeedAdmin:   true,
+	})
+	require.NoError(t, err)
+
+	// Use ChangeMembership to add bob without sweeping his keybase
+	// invite.
+	err = teamObj.ChangeMembership(context.Background(), keybase1.TeamChangeReq{
+		Writers: []keybase1.UserVersion{bob.userVersion()},
+	})
+	require.NoError(t, err)
 
 	// Bob then leaves team.
 	bob.leave(team)
 
-	teamObj, err := teams.Load(context.Background(), ann.tc.G, keybase1.LoadTeamArg{
+	teamObj, err = teams.Load(context.Background(), ann.tc.G, keybase1.LoadTeamArg{
 		Name:        team,
 		ForceRepoll: true,
 	})

@@ -49,7 +49,7 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
   const payload = notification.payload.notification
   if (payload) {
     // Handle types that are not from user interaction
-    if (payload.type === 'chat.newmessageSilent') {
+    if (payload.type === 'chat.newmessageSilent_2') {
       logger.info('Push notification: silent notification received')
       try {
         const unboxRes = yield Saga.call(ChatTypes.localUnboxMobilePushNotificationRpcPromise, {

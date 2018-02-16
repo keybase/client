@@ -10,6 +10,7 @@ type ChatContext struct {
 	ConvSource          types.ConversationSource  // source of remote message bodies for chat
 	MessageDeliverer    types.MessageDeliverer    // background message delivery service
 	ServerCacheVersions types.ServerCacheVersions // server side versions for chat caches
+	Searcher            types.Searcher            // For searching chat messages
 	Syncer              types.Syncer              // For syncing inbox with server
 	FetchRetrier        types.FetchRetrier        // For retrying failed fetch requests
 	ConvLoader          types.ConvLoader          // background conversation loader

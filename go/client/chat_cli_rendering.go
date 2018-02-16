@@ -100,7 +100,8 @@ func (v conversationListView) convName(g *libkb.GlobalContext, conv chat1.Conver
 	switch conv.GetMembersType() {
 	case chat1.ConversationMembersType_TEAM:
 		return v.convNameTeam(g, conv)
-	case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAM:
+	case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAMNATIVE,
+		chat1.ConversationMembersType_IMPTEAMUPGRADE:
 		return v.convNameKBFS(g, conv, myUsername)
 	}
 	return ""
@@ -429,7 +430,10 @@ type messageView struct {
 }
 
 func formatSystemMessage(body chat1.MessageSystem) string {
-	typ, _ := body.SystemType()
+	typ, err := body.SystemType()
+	if err != nil {
+		return "<unknown system message>"
+	}
 	switch typ {
 	case chat1.MessageSystemType_ADDEDTOTEAM:
 		return fmt.Sprintf("[Added @%s to the team]", body.Addedtoteam().Addee)

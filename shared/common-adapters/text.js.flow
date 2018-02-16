@@ -48,6 +48,7 @@ type Props = {
   onClickURL?: ?string,
   onPress?: void,
   onLongPress?: () => void,
+  selectable?: boolean,
   style?: any,
   type: TextType,
   title?: ?string,

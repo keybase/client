@@ -55,6 +55,9 @@ func (c *CmdWatchdog2) Run() error {
 		},
 		ExitOn: watchdog.ExitOnSuccess,
 	}
+	if runtime.GOOS == "windows" {
+		serviceProgram.ExitOn = watchdog.ExitAllOnSuccess
+	}
 	programs = append(programs, serviceProgram)
 
 	// KBFS

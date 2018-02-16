@@ -41,6 +41,10 @@
     "loadGitRepo": {
       "username": "?string",
       "teamname": "?string"
+    },
+    "navigateToTeamRepo": {
+      "repoID": "string",
+      "teamname": "string"
     }
   }
 }

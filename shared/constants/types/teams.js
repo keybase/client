@@ -5,6 +5,8 @@ import type {ConversationIDKey} from './chat'
 
 export type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner'
 
+export type TeamOperations = RPCTypes.TeamOperation
+
 export type PublicitySettings = {
   ignoreAccessRequests: boolean,
   openTeam: boolean,
@@ -24,7 +26,8 @@ export type _PublicitySettings = {
   team: boolean,
 }
 
-export type TeamSettings = RPCTypes.TeamSettings
+export type _TeamSettings = RPCTypes.TeamSettings
+export type TeamSettings = I.RecordOf<_TeamSettings>
 export type ChannelMembershipState = {[channelname: string]: boolean}
 
 export type _ChannelInfo = {
@@ -95,10 +98,10 @@ export type _State = {
       }>
     >
   >,
+  teamNameToIsOpen: I.Map<Teamname, boolean>,
   teamNameToLoadingInvites: I.Map<Teamname, I.Map<string, boolean>>,
   teamNameToMembers: I.Map<Teamname, I.Set<MemberInfo>>,
   teamNameToMemberUsernames: I.Map<Teamname, I.Set<string>>,
-  teamNameToLoading: I.Map<Teamname, boolean>,
   teamNameToRequests: I.Map<Teamname, I.Set<RequestInfo>>,
   teamNameToResetUsers: I.Map<Teamname, I.Set<string>>,
   teamNameToRole: I.Map<Teamname, TeamRoleType>,

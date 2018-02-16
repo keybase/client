@@ -38,7 +38,7 @@ const DividerBox = glamorous(Box)({
 })
 
 const FloatingDivider = ({toggle, badgeCount}: Props) => (
-  <ClickableBox onClick={toggle} style={_floatingStyle}>
+  <ClickableBox title="Teams with multiple channels." onClick={toggle} style={_floatingStyle}>
     <DividerBox>
       <BigTeamsLabel isFiltered={false} />
       {badgeCount > 0 && <Badge badgeStyle={_badgeStyle} badgeNumber={badgeCount} />}

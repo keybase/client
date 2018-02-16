@@ -68,6 +68,12 @@ func (e *TrackEngine) Run(ctx *Context) error {
 		AlwaysBlock:           true,
 	}
 
+	if ctx.SessionID != 0 {
+		arg.IdentifyBehavior = keybase1.TLFIdentifyBehavior_GUI
+	} else {
+		arg.IdentifyBehavior = keybase1.TLFIdentifyBehavior_CLI
+	}
+
 	ieng := NewResolveThenIdentify2WithTrack(e.G(), arg, e.arg.Options)
 	if err := RunEngine(ieng, ctx); err != nil {
 		return err

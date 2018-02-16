@@ -28,6 +28,10 @@ func NewCmdAccountReset(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 	}
 }
 
+func NewCmdAccountResetRunner(g *libkb.GlobalContext) *CmdAccountReset {
+	return &CmdAccountReset{Contextified: libkb.NewContextified(g)}
+}
+
 func (c *CmdAccountReset) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 0 {
 		return errors.New("acctdelete takes no arguments")

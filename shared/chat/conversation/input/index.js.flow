@@ -2,7 +2,7 @@
 import {Component} from 'react'
 import * as Types from '../../../constants/types/chat'
 
-export type Props = {
+export type PreMentionHocProps = {
   channelName: ?string,
   editingMessage: ?Types.Message,
   focusInputCounter: number,
@@ -27,5 +27,35 @@ export type Props = {
   text: string,
   typing: Array<Types.Username>,
 }
+
+export type MentionHocProps = {
+  insertMention: (u: string, options?: {notUser: boolean}) => void,
+  insertChannelMention: (c: string, options?: {notChannel: boolean}) => void,
+
+  // on desktop:
+  onKeyDown?: (e: SyntheticKeyboardEvent<>) => void,
+  onKeyUp?: (e: SyntheticKeyboardEvent<*>) => void,
+  switchMention?: (u: string) => void,
+  switchChannelMention?: (c: string) => void,
+  upArrowCounter?: number,
+  downArrowCounter?: number,
+  // on mobile:
+  onChangeText?: (newText: string) => void,
+  onSelectionChange?: ({selectionStart: number, selectionEnd: number}) => void,
+  onBlur?: () => void,
+  onFocus?: () => void,
+  insertMentionMarker?: () => void,
+
+  onEnterKeyDown: (e: SyntheticKeyboardEvent<>) => void,
+  pickSelectedCounter: number,
+  channelMentionFilter: string,
+  channelMentionPopupOpen: boolean,
+  setChannelMentionPopupOpen: (setOpen: boolean) => void,
+  mentionFilter: string,
+  mentionPopupOpen: boolean,
+  setMentionPopupOpen: (setOpen: boolean) => void,
+}
+
+export type Props = PreMentionHocProps & MentionHocProps
 
 export default class Input extends Component<Props> {}

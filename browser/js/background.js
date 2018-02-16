@@ -79,13 +79,15 @@ function generateConditions(matchers)  {
   // Generate pageMatchRules conditions
   const conditions = [];
   for (const m of matchers) {
-    const cond = {
-      pageUrl: { originAndPathMatches: m.originAndPathMatches },
-    };
-    if (m.css !== undefined) {
-      cond.css = m.css;
+    for (const hostName of getServiceHosts(m)) {
+      const cond = {
+        pageUrl: { originAndPathMatches: m.originAndPathMatches, hostEquals: hostName},
+      };
+      if (m.css !== undefined) {
+        cond.css = m.css;
+      }
+      conditions.push(new chrome.declarativeContent.PageStateMatcher(cond));
     }
-    conditions.push(new chrome.declarativeContent.PageStateMatcher(cond));
   }
   return conditions;
 }

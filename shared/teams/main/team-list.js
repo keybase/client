@@ -1,16 +1,6 @@
 // @flow
 import * as React from 'react'
-import {
-  ClickableBox,
-  Icon,
-  Avatar,
-  Badge,
-  Box,
-  Divider,
-  Text,
-  ProgressIndicator,
-  Meta,
-} from '../../common-adapters'
+import {ClickableBox, Icon, Avatar, Badge, Box, Divider, Text, Meta} from '../../common-adapters'
 import {Set} from 'immutable'
 import {globalMargins, globalStyles, globalColors, isMobile} from '../../styles'
 
@@ -20,6 +10,7 @@ export type Props = {
   teamnames: Array<Teamname>,
   teammembercounts: {[string]: number},
   teamresetusers: {[string]: Set<string>},
+  teamNameToIsOpen: {[string]: boolean},
   newTeams: Array<Teamname>,
   newTeamRequests: Array<Teamname>,
   onOpenFolder: (teamname: Teamname) => void,
@@ -31,6 +22,7 @@ type RowProps = {
   name: Teamname,
   membercount: number,
   isNew: boolean,
+  isOpen: boolean,
   newRequests: number,
   onOpenFolder: ?() => void,
   onManageChat: ?() => void,
@@ -45,10 +37,19 @@ const newCharmStyle = {
   alignSelf: 'center',
 }
 
+const openCharmStyle = {
+  alignSelf: 'center',
+  backgroundColor: globalColors.green,
+  borderRadius: 1,
+  marginLeft: 4,
+  marginTop: 2,
+}
+
 const TeamRow = ({
   name,
   membercount,
   isNew,
+  isOpen,
   newRequests,
   onOpenFolder,
   onManageChat,
@@ -80,9 +81,10 @@ const TeamRow = ({
           )}
         </Box>
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: globalMargins.small}}>
-          <Text type="BodySemibold" lineClamp={1}>
-            {name}
-          </Text>
+          <Box style={globalStyles.flexBoxRow}>
+            <Text type="BodySemibold">{name}</Text>
+            {isOpen && <Meta title="OPEN" style={openCharmStyle} />}
+          </Box>
           <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
             {isNew && <Meta title="NEW" style={newCharmStyle} />}
             <Text type="BodySmall">{membercount + ' member' + (membercount !== 1 ? 's' : '')}</Text>
@@ -110,12 +112,12 @@ const TeamList = (props: Props) => (
       width: '100%',
     }}
   >
-    {!props.loaded && <ProgressIndicator style={{alignSelf: 'center', width: 20}} />}
     {props.teamnames.map((name, index, arr) => (
       <TeamRow
         key={name}
         name={name}
         isNew={props.newTeams.includes(name)}
+        isOpen={props.teamNameToIsOpen[name]}
         newRequests={props.newTeamRequests.filter(team => team === name).length}
         membercount={props.teammembercounts[name]}
         onOpenFolder={() => props.onOpenFolder(name)}

@@ -106,10 +106,11 @@ func (e *PGPDecrypt) Run(ctx *Context) (err error) {
 
 		// identify the SignedBy assertion
 		arg := keybase1.Identify2Arg{
-			UserAssertion: e.arg.SignedBy,
-			AlwaysBlock:   true,
-			NeedProofSet:  true,
-			NoSkipSelf:    true,
+			UserAssertion:    e.arg.SignedBy,
+			AlwaysBlock:      true,
+			NeedProofSet:     true,
+			NoSkipSelf:       true,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 		}
 		eng := NewResolveThenIdentify2(e.G(), &arg)
 		if err := RunEngine(eng, ctx); err != nil {
@@ -131,10 +132,11 @@ func (e *PGPDecrypt) Run(ctx *Context) (err error) {
 
 		// identify the signer
 		arg := keybase1.Identify2Arg{
-			UserAssertion: e.signer.GetName(),
-			AlwaysBlock:   true,
-			NeedProofSet:  true,
-			NoSkipSelf:    true,
+			UserAssertion:    e.signer.GetName(),
+			AlwaysBlock:      true,
+			NeedProofSet:     true,
+			NoSkipSelf:       true,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 		}
 		eng := NewResolveThenIdentify2(e.G(), &arg)
 		if err := RunEngine(eng, ctx); err != nil {

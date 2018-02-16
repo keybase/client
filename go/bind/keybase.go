@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"runtime/debug"
 	"runtime/trace"
 	"sync"
 	"time"
@@ -252,6 +253,17 @@ func Reset() error {
 		return fmt.Errorf("Socket error: %s", err)
 	}
 	return nil
+}
+
+// ForceGC Forces a gc
+func ForceGC() {
+	fmt.Printf("Flushing global caches\n")
+	kbCtx.FlushCaches()
+	fmt.Printf("Done flushing global caches\n")
+
+	fmt.Printf("Starting force gc\n")
+	debug.FreeOSMemory()
+	fmt.Printf("Done force gc\n")
 }
 
 // Version returns semantic version string

@@ -16,8 +16,9 @@ import (
 func runIdentify(tc *libkb.TestContext, username string) (idUI *FakeIdentifyUI, res *keybase1.Identify2Res, err error) {
 	idUI = &FakeIdentifyUI{}
 	arg := keybase1.Identify2Arg{
-		UserAssertion: username,
-		AlwaysBlock:   true,
+		UserAssertion:    username,
+		AlwaysBlock:      true,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 	}
 
 	ctx := Context{

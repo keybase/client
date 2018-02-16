@@ -1,7 +1,7 @@
 // @flow
 // Separate type file because standard is failing
 
-type Timestamp = number
+export type Timestamp = number
 type ISOTimestamp = string
 
 export type LogLevel = 'Error' | 'Warn' | 'Info' | 'Action' | 'Debug'

@@ -5,6 +5,7 @@
   ],
   "actions": {
     "createNewTeam": {
+      "joinSubteam": "boolean",
       "teamname": "string",
       "rootPath": "I.List<string>",
       "sourceSubPath": "I.List<string>",

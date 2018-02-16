@@ -10,11 +10,11 @@ static const NSString* tagName = @"KBNativeLogger";
 
 RCT_EXPORT_MODULE(KBNativeLogger);
 
-RCT_REMAP_METHOD(log,
-                 tagPrefix:(NSString*)tagPrefix
-                 toLog:(NSString*)toLog)
+RCT_REMAP_METHOD(log,tagsAndLogs:(NSArray*)tagsAndLogs)
 {
-  DDLogInfo(@"%@%@: %@", tagPrefix, tagName, toLog);
+  for (NSArray * tagAndLog in tagsAndLogs) {
+    DDLogInfo(@"%@%@: %@", tagAndLog[0], tagName, tagAndLog[1]);
+  }
 }
 
 RCT_REMAP_METHOD(dump,

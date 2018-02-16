@@ -4,6 +4,7 @@ protocol local {
   import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
   import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
   import idl "common.avdl";
+  import idl "chat_ui.avdl";
 
   record MessageText {
     string body;
@@ -238,6 +239,7 @@ protocol local {
     array<MessagePreviousPointer> prev;
     gregor1.UID sender;
     gregor1.DeviceID senderDevice;
+    union { null, boolean } kbfsCryptKeysUsed;
 
     // MessageBoxed.V1: Hash of the encrypted body ciphertext.
     // MessageBoxed.V2: Hash of encrypted body (.v || .n || .e)
@@ -478,6 +480,10 @@ protocol local {
     // This field, if null or empty, indicates identify succeeded without any
     // break.
     array<keybase1.TLFIdentifyFailure> identifyFailures;
+
+    Expunge expunge; // The latest history deletion. Defaults to zeroes.
+    union { null, RetentionPolicy } convRetention;
+    union { null, RetentionPolicy } teamRetention;
   }
 
   record NonblockFetchRes {
@@ -518,7 +524,11 @@ protocol local {
 
   GetThreadLocalRes getCachedThread(ConversationID conversationID, union { null, GetThreadQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
 
-  NonblockFetchRes getThreadNonblock(int sessionID, ConversationID conversationID, union { null, GetThreadQuery} query, union { null, UIPagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
+  enum GetThreadNonblockCbMode {
+    FULL_0,
+    INCREMENTAL_1
+  }
+  NonblockFetchRes getThreadNonblock(int sessionID, ConversationID conversationID, GetThreadNonblockCbMode cbMode, union { null, GetThreadQuery} query, union { null, UIPagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   record GetInboxLocalRes {
     array<Conversation> conversationsUnverified;
@@ -672,7 +682,7 @@ protocol local {
   }
 
   // Post an attachment from stream source to conversationID.
-  PostLocalRes postAttachmentLocal(int sessionID, ConversationID conversationID, string tlfName, keybase1.TLFVisibility visibility, LocalSource attachment, union { null, MakePreviewRes} preview, string title, bytes metadata, keybase1.TLFIdentifyBehavior identifyBehavior);
+  PostLocalRes postAttachmentLocal(int sessionID, ConversationID conversationID, string tlfName, keybase1.TLFVisibility visibility, LocalSource attachment, union { null, MakePreviewRes} preview, string title, bytes metadata, keybase1.TLFIdentifyBehavior identifyBehavior, union { null, OutboxID } outboxID);
 
   // LocalFileSource is a file attachment source.  Filename must be readable
   // by the service for the duration of the attachment upload.
@@ -681,7 +691,7 @@ protocol local {
   }
 
   // Post an attachment from file source to conversationID.
-  PostLocalRes postFileAttachmentLocal(int sessionID, ConversationID conversationID, string tlfName, keybase1.TLFVisibility visibility, LocalFileSource attachment, union { null, MakePreviewRes } preview, string title, bytes metadata, keybase1.TLFIdentifyBehavior identifyBehavior);
+  PostLocalRes postFileAttachmentLocal(int sessionID, ConversationID conversationID, string tlfName, keybase1.TLFVisibility visibility, LocalFileSource attachment, union { null, MakePreviewRes } preview, string title, bytes metadata, keybase1.TLFIdentifyBehavior identifyBehavior, union { null, OutboxID } outboxID);
 
   record DownloadAttachmentLocalRes {
     boolean offline;
@@ -709,7 +719,7 @@ protocol local {
   @lint("ignore")
   void CancelPost(OutboxID outboxID);
   @lint("ignore")
-  void RetryPost(OutboxID outboxID);
+  void RetryPost(OutboxID outboxID, union { null, keybase1.TLFIdentifyBehavior } identifyBehavior);
 
   record MarkAsReadLocalRes {
      boolean offline;
@@ -776,4 +786,13 @@ protocol local {
   void setConvRetentionLocal(ConversationID convID, RetentionPolicy policy);
   void setTeamRetentionLocal(keybase1.TeamID teamID, RetentionPolicy policy);
 
+  void upgradeKBFSConversationToImpteam(ConversationID convID);
+
+  record GetSearchRegexpRes {
+    array<ChatSearchHit> hits;
+    array<RateLimit> rateLimits;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
+  }
+
+  GetSearchRegexpRes getSearchRegexp(int sessionID, ConversationID conversationID, string query, boolean isRegex, int maxHits, int maxMessages, keybase1.TLFIdentifyBehavior identifyBehavior);
 }

@@ -11,6 +11,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -22,13 +23,15 @@ const teamHandlerName = "teamHandler"
 
 type teamHandler struct {
 	libkb.Contextified
+	badger *badges.Badger
 }
 
 var _ libkb.GregorInBandMessageHandler = (*teamHandler)(nil)
 
-func newTeamHandler(g *libkb.GlobalContext) *teamHandler {
+func newTeamHandler(g *libkb.GlobalContext, badger *badges.Badger) *teamHandler {
 	return &teamHandler{
 		Contextified: libkb.NewContextified(g),
+		badger:       badger,
 	}
 }
 
@@ -52,6 +55,8 @@ func (r *teamHandler) Create(ctx context.Context, cli gregor1.IncomingInterface,
 		return true, r.seitanCompletion(ctx, cli, item)
 	case "team.member_out_from_reset":
 		return true, r.memberOutFromReset(ctx, cli, item)
+	case "team.abandoned":
+		return true, r.abandonTeam(ctx, cli, item)
 	default:
 		return false, fmt.Errorf("unknown teamHandler category: %q", category)
 	}
@@ -92,6 +97,30 @@ func (r *teamHandler) memberOutFromReset(ctx context.Context, cli gregor1.Incomi
 	return nil
 }
 
+type abandonMsg struct {
+	TeamID keybase1.TeamID `json:"team_id"`
+}
+
+func (r *teamHandler) abandonTeam(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
+	nm := "team.abandoned"
+	r.G().Log.CDebugf(ctx, "teamHandler.abandonTeam: %s received", nm)
+	var msg abandonMsg
+	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
+		r.G().Log.CDebugf(ctx, "error unmarshaling %s item: %s", nm, err)
+		return err
+	}
+	r.G().Log.CDebugf(ctx, "teamHandler.abandonTeam: %s unmarshaled: %+v", nm, msg)
+
+	r.G().NotifyRouter.HandleTeamAbandoned(ctx, msg.TeamID)
+
+	r.G().Log.CDebugf(ctx, "teamHandler.abandonTeam: locally dismissing %s", nm)
+	if err := r.G().GregorDismisser.LocalDismissItem(ctx, item.Metadata().MsgID()); err != nil {
+		r.G().Log.CDebugf(ctx, "teamHandler.abandonTeam: failed to locally dismiss msg %v", item.Metadata().MsgID())
+	}
+
+	return nil
+}
+
 func (r *teamHandler) changeTeam(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item, changes keybase1.TeamChangeSet) error {
 	var rows []keybase1.TeamChangeRow
 	r.G().Log.CDebugf(ctx, "teamHandler: changeTeam received")
@@ -108,6 +137,45 @@ func (r *teamHandler) changeTeam(ctx context.Context, cli gregor1.IncomingInterf
 	if err := r.G().GregorDismisser.LocalDismissItem(ctx, item.Metadata().MsgID()); err != nil {
 		r.G().Log.CDebugf(ctx, "failed to local dismiss team change: %s", err)
 	}
+
+	// check the badge state to see if any team reset badges need dismissal
+	for _, row := range rows {
+		badges := r.badger.State().FindResetMemberBadges(row.Name)
+
+		if len(badges) == 0 {
+			continue
+		}
+
+		// load this team and see if any of the badge users are active members
+		details, err := teams.Details(ctx, r.G(), row.Name, false)
+		if err != nil {
+			r.G().Log.CDebugf(ctx, "error getting team details: %s", err)
+			// not fatal
+			continue
+		}
+
+		activeUsernames := details.Members.ActiveUsernames()
+
+		for _, badge := range badges {
+			active, inTeam := activeUsernames[badge.Username]
+			if !inTeam {
+				// the user is not in the team anymore, so dismiss the
+				// gregor message for this badge
+				r.G().Log.CDebugf(ctx, "user %s is not in team %s, dismissing TeamMemberOutFromReset badge", badge.Username, row.Name)
+				if err := r.G().GregorDismisser.DismissItem(ctx, cli, badge.Id); err != nil {
+					r.G().Log.CDebugf(ctx, "failed to dismiss TeamMemberOutFromReset badge: %s", err)
+				}
+			} else if active {
+				// the user is active in the team, so dismiss the gregor message
+				// for this badge
+				r.G().Log.CDebugf(ctx, "user %s is active in team %s, dismissing TeamMemberOutFromReset badge", badge.Username, row.Name)
+				if err := r.G().GregorDismisser.DismissItem(ctx, cli, badge.Id); err != nil {
+					r.G().Log.CDebugf(ctx, "failed to dismiss TeamMemberOutFromReset badge: %s", err)
+				}
+			}
+		}
+	}
+
 	return nil
 }
 

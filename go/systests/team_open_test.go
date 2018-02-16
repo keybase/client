@@ -26,8 +26,7 @@ func TestTeamOpenAutoAddMember(t *testing.T) {
 
 	cli := own.teamsClient
 	createRes, err := cli.TeamCreateWithSettings(context.TODO(), keybase1.TeamCreateWithSettingsArg{
-		Name:                 teamName,
-		SendChatNotification: false,
+		Name: teamName,
 		Settings: keybase1.TeamSettings{
 			Open:   true,
 			JoinAs: keybase1.TeamRole_READER,
@@ -269,12 +268,12 @@ func TestTeamOpenRemoveOldUVAddInvite(t *testing.T) {
 
 	ann.openTeam(team, keybase1.TeamRole_READER)
 
+	kickTeamRekeyd(annCtx, t)
 	bob.reset()
 	bob.loginAfterResetNoPUK(10)
 
 	bob.requestAccess(team)
 
-	kickTeamRekeyd(annCtx, t)
 	ann.pollForTeamSeqnoLink(team, keybase1.Seqno(6))
 
 	teamObj, err := teams.Load(context.TODO(), annCtx, keybase1.LoadTeamArg{
@@ -327,6 +326,7 @@ func TestTeamOpenResetAndRejoin(t *testing.T) {
 	bobCtx := bob.getPrimaryGlobalContext()
 
 	// Bob is in the team but he resets and doesn't provision.
+	kickTeamRekeyd(annCtx, t)
 	bob.reset()
 
 	loadUserArg := libkb.NewLoadUserArg(annCtx).
@@ -356,7 +356,6 @@ func TestTeamOpenResetAndRejoin(t *testing.T) {
 	// - Rotate key (after bob resets)
 	// - Change membership (remove reset version of bob)
 	// - Invite (add bob%0 as keybase-type invite)
-	kickTeamRekeyd(annCtx, t)
 	ann.pollForTeamSeqnoLink(team, keybase1.Seqno(6))
 
 	loadTeamArg := keybase1.LoadTeamArg{
@@ -380,10 +379,10 @@ func TestTeamOpenResetAndRejoin(t *testing.T) {
 
 	// Finally bob gets a PUK - should be automatically added by SBS
 	// handler.
+	kickTeamRekeyd(annCtx, t)
 	bob.loginAfterReset(10)
 
 	// We are expecting a new ChangeMembership link that adds bob.
-	kickTeamRekeyd(annCtx, t)
 	ann.pollForTeamSeqnoLink(team, keybase1.Seqno(7))
 
 	teamObj, err = teams.Load(context.TODO(), annCtx, loadTeamArg)

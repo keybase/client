@@ -191,6 +191,14 @@ func GetCtlClient(g *libkb.GlobalContext) (cli keybase1.CtlClient, err error) {
 	return
 }
 
+func GetPprofClient(g *libkb.GlobalContext) (cli keybase1.PprofClient, err error) {
+	var rcli *rpc.Client
+	if rcli, _, err = GetRPCClientWithContext(g); err == nil {
+		cli = keybase1.PprofClient{Cli: rcli}
+	}
+	return
+}
+
 func GetAccountClient(g *libkb.GlobalContext) (cli keybase1.AccountClient, err error) {
 	var rcli *rpc.Client
 	if rcli, _, err = GetRPCClientWithContext(g); err == nil {

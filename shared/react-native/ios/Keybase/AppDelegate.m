@@ -13,6 +13,7 @@
 #import "Engine.h"
 #import "LogSend.h"
 #import "RCTLinkingManager.h"
+#import <keybase/keybase.h>
 
 // Systrace is busted due to the new bridge. Uncomment this to force the old bridge.
 // You'll also have to edit the React.xcodeproj. Intructions here:
@@ -253,6 +254,11 @@ const BOOL isDebug = NO;
   return [RCTLinkingManager application:application
                    continueUserActivity:userActivity
                      restorationHandler:restorationHandler];
+}
+
+- (void)applicationDidReceiveMemoryWarning:(UIApplication *)application
+{
+  KeybaseForceGC();
 }
 
 @end

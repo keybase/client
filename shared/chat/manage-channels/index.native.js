@@ -33,7 +33,13 @@ const Row = (
   }
 ) => (
   <Box style={_rowBox}>
-    <Checkbox style={{alignSelf: 'flex-end'}} checked={props.selected} label="" onCheck={props.onToggle} />
+    <Checkbox
+      disabled={props.name.toLowerCase() === 'general'}
+      style={{alignSelf: 'flex-end'}}
+      checked={props.selected}
+      label=""
+      onCheck={props.onToggle}
+    />
     <Box
       style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative', paddingLeft: globalMargins.tiny}}
     >

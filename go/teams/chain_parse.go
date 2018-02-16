@@ -24,21 +24,23 @@ func (s SCTeamID) ToTeamID() (keybase1.TeamID, error) { return keybase1.TeamIDFr
 // where n is the seqno IF the seqno is not 1.
 type SCTeamMember keybase1.UserVersion
 
+type SCMapInviteIDToUV map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm
+
 type SCTeamSection struct {
-	ID               SCTeamID                                                  `json:"id"`
-	Name             *SCTeamName                                               `json:"name,omitempty"`
-	Members          *SCTeamMembers                                            `json:"members,omitempty"`
-	Parent           *SCTeamParent                                             `json:"parent,omitempty"`
-	Subteam          *SCSubteam                                                `json:"subteam,omitempty"`
-	PerTeamKey       *SCPerTeamKey                                             `json:"per_team_key,omitempty"`
-	Admin            *SCTeamAdmin                                              `json:"admin,omitempty"`
-	Invites          *SCTeamInvites                                            `json:"invites,omitempty"`
-	CompletedInvites map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm `json:"completed_invites,omitempty"`
-	Implicit         bool                                                      `json:"is_implicit,omitempty"`
-	Public           bool                                                      `json:"is_public,omitempty"`
-	Entropy          SCTeamEntropy                                             `json:"entropy,omitempty"`
-	Settings         *SCTeamSettings                                           `json:"settings,omitempty"`
-	KBFS             *SCTeamKBFS                                               `json:"kbfs,omitempty"`
+	ID               SCTeamID          `json:"id"`
+	Name             *SCTeamName       `json:"name,omitempty"`
+	Members          *SCTeamMembers    `json:"members,omitempty"`
+	Parent           *SCTeamParent     `json:"parent,omitempty"`
+	Subteam          *SCSubteam        `json:"subteam,omitempty"`
+	PerTeamKey       *SCPerTeamKey     `json:"per_team_key,omitempty"`
+	Admin            *SCTeamAdmin      `json:"admin,omitempty"`
+	Invites          *SCTeamInvites    `json:"invites,omitempty"`
+	CompletedInvites SCMapInviteIDToUV `json:"completed_invites,omitempty"`
+	Implicit         bool              `json:"is_implicit,omitempty"`
+	Public           bool              `json:"is_public,omitempty"`
+	Entropy          SCTeamEntropy     `json:"entropy,omitempty"`
+	Settings         *SCTeamSettings   `json:"settings,omitempty"`
+	KBFS             *SCTeamKBFS       `json:"kbfs,omitempty"`
 }
 
 type SCTeamMembers struct {
@@ -101,11 +103,19 @@ type SCTeamSettingsOpen struct {
 }
 
 type SCTeamKBFS struct {
-	TLF *SCTeamKBFSTLF `json:"tlf,omitempty"`
+	TLF    *SCTeamKBFSTLF           `json:"tlf,omitempty"`
+	Keyset *SCTeamKBFSLegacyUpgrade `json:"legacy_tlf_upgrade,omitempty"`
 }
 
 type SCTeamKBFSTLF struct {
 	ID keybase1.TLFID `json:"id"`
+}
+
+type SCTeamKBFSLegacyUpgrade struct {
+	AppType          keybase1.TeamApplication             `json:"app_type"`
+	TeamGeneration   keybase1.PerTeamKeyGeneration        `json:"team_generation"`
+	LegacyGeneration int                                  `json:"legacy_generation"`
+	KeysetHash       keybase1.TeamEncryptedKBFSKeysetHash `json:"encrypted_keyset_hash"`
 }
 
 func (a SCTeamAdmin) SigChainLocation() keybase1.SigChainLocation {

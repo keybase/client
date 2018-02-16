@@ -45,9 +45,9 @@ func (h *TeamsHandler) assertLoggedIn(ctx context.Context) error {
 func (h *TeamsHandler) TeamCreate(ctx context.Context, arg keybase1.TeamCreateArg) (res keybase1.TeamCreateResult, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	arg2 := keybase1.TeamCreateWithSettingsArg{
-		SessionID:            arg.SessionID,
-		Name:                 arg.Name,
-		SendChatNotification: arg.SendChatNotification,
+		SessionID:   arg.SessionID,
+		Name:        arg.Name,
+		JoinSubteam: arg.JoinSubteam,
 	}
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return res, err
@@ -81,6 +81,27 @@ func (h *TeamsHandler) TeamCreateWithSettings(ctx context.Context, arg keybase1.
 			return res, err
 		}
 		res.TeamID = *teamID
+
+		// join the team to send the Create message
+		h.G().Log.CDebugf(ctx, "TeamCreate: joining just-created subteam %s temporarily to set it up", arg.Name)
+		username := h.G().Env.GetUsername().String()
+		_, err = teams.AddMember(ctx, h.G().ExternalG(), teamName.String(), username, keybase1.TeamRole_ADMIN)
+		if err != nil {
+			h.G().Log.CDebugf(ctx, "TeamCreate: error adding self to new subteam %s: %s", arg.Name, err)
+			return res, err
+		}
+		res.CreatorAdded = true
+		res.ChatSent = teams.SendTeamChatCreateMessage(ctx, h.G().ExternalG(), teamName.String(), username)
+
+		if !arg.JoinSubteam {
+			h.G().Log.CDebugf(ctx, "TeamCreate: leaving just-created subteam %s", arg.Name)
+			if err := teams.Leave(ctx, h.G().ExternalG(), teamName.String(), false); err != nil {
+				h.G().Log.CDebugf(ctx, "TeamCreate: error leaving new subteam %s: %s", arg.Name, err)
+				return res, err
+			}
+			h.G().Log.CDebugf(ctx, "TeamCreate: left just-created subteam %s", arg.Name)
+			res.CreatorAdded = false
+		}
 	} else {
 		teamID, err := teams.CreateRootTeam(ctx, h.G().ExternalG(), teamName.String(), arg.Settings)
 		if err != nil {
@@ -356,6 +377,14 @@ func (h *TeamsHandler) TeamCreateSeitanToken(ctx context.Context, arg keybase1.T
 	return teams.CreateSeitanToken(ctx, h.G().ExternalG(), arg.Name, arg.Role, arg.Label)
 }
 
+func (h *TeamsHandler) TeamCreateSeitanTokenV2(ctx context.Context, arg keybase1.TeamCreateSeitanTokenV2Arg) (token keybase1.SeitanIKeyV2, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return "", err
+	}
+	return teams.CreateSeitanTokenV2(ctx, h.G().ExternalG(), arg.Name, arg.Role, arg.Label)
+}
+
 func (h *TeamsHandler) GetTeamRootID(ctx context.Context, id keybase1.TeamID) (keybase1.TeamID, error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	return teams.GetRootID(ctx, h.G().ExternalG(), id)
@@ -364,8 +393,11 @@ func (h *TeamsHandler) GetTeamRootID(ctx context.Context, id keybase1.TeamID) (k
 func (h *TeamsHandler) LookupImplicitTeam(ctx context.Context, arg keybase1.LookupImplicitTeamArg) (res keybase1.LookupImplicitTeamRes, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("LookupImplicitTeam(%s)", arg.Name), func() error { return err })()
-	res.TeamID, res.Name, res.DisplayName, res.TlfID, err = teams.LookupImplicitTeam(ctx, h.G().ExternalG(), arg.Name,
-		arg.Public)
+	var team *teams.Team
+	team, res.Name, res.DisplayName, err =
+		teams.LookupImplicitTeam(ctx, h.G().ExternalG(), arg.Name, arg.Public)
+	res.TeamID = team.ID
+	res.TlfID = team.KBFSTLFID()
 	return res, err
 }
 
@@ -376,8 +408,11 @@ func (h *TeamsHandler) LookupOrCreateImplicitTeam(ctx context.Context, arg keyba
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return res, err
 	}
-	res.TeamID, res.Name, res.DisplayName, res.TlfID, err = teams.LookupOrCreateImplicitTeam(ctx, h.G().ExternalG(),
+	var team *teams.Team
+	team, res.Name, res.DisplayName, err = teams.LookupOrCreateImplicitTeam(ctx, h.G().ExternalG(),
 		arg.Name, arg.Public)
+	res.TeamID = team.ID
+	res.TlfID = team.KBFSTLFID()
 	return res, err
 }
 

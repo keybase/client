@@ -1,9 +1,10 @@
 package engine
 
 import (
+	"testing"
+
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestProfileEdit(t *testing.T) {
@@ -18,9 +19,10 @@ func TestProfileEdit(t *testing.T) {
 		// add NoSkipSelf and NeedProofSet to go through with the full identify,
 		// with RPCs to the outside and all.
 		arg := &keybase1.Identify2Arg{
-			Uid:          fu.UID(),
-			NoSkipSelf:   true,
-			NeedProofSet: true,
+			Uid:              fu.UID(),
+			NoSkipSelf:       true,
+			NeedProofSet:     true,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 		}
 		eng := NewIdentify2WithUID(tc.G, arg)
 		ctx := Context{IdentifyUI: i}

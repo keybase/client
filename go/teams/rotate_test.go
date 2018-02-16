@@ -78,10 +78,11 @@ func setupRotateTest(t *testing.T, implicit bool, public bool) (tc libkb.TestCon
 	if implicit {
 		t.Logf("creating implicit team")
 		displayName := strings.Join(usernames, ",")
-		teamID, teamName, _, _, err = LookupOrCreateImplicitTeam(context.TODO(), tc.G, displayName, public)
+		var team *Team
+		team, teamName, _, err = LookupOrCreateImplicitTeam(context.TODO(), tc.G, displayName, public)
 		require.NoError(t, err)
 
-		return tc, owner, other, teamID, teamName
+		return tc, owner, other, team.ID, teamName
 	}
 	if public {
 		t.Fatalf("public teams not supported")

@@ -44,37 +44,35 @@ func TestLookupImplicitTeams(t *testing.T) {
 
 	lookupAndCreate := func(displayName string, public bool) {
 		t.Logf("displayName:%v public:%v", displayName, public)
-		_, _, _, _, err := LookupImplicitTeam(context.TODO(), tc.G, displayName, public)
+		_, _, _, err := LookupImplicitTeam(context.TODO(), tc.G, displayName, public)
 		require.Error(t, err)
 		require.IsType(t, TeamDoesNotExistError{}, err)
 
-		createdTeamID, _, impTeamName, tlfid0, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, displayName,
+		createdTeam, _, impTeamName, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, displayName,
 			public)
+		tlfid0 := createdTeam.KBFSTLFID()
 		require.NoError(t, err)
 		require.Equal(t, public, impTeamName.IsPublic)
 		require.True(t, tlfid0.IsNil())
 
 		tlfid1 := newImplicitTLFID(public)
-		err = CreateTLF(context.TODO(), tc.G, keybase1.CreateTLFArg{TeamID: createdTeamID, TlfID: tlfid1})
+		err = CreateTLF(context.TODO(), tc.G, keybase1.CreateTLFArg{TeamID: createdTeam.ID, TlfID: tlfid1})
 		require.NoError(t, err)
 
 		// second time, LookupOrCreate should Lookup the team just created.
-		createdTeamID2, _, impTeamName2, tlfid2, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, displayName,
+		createdTeam2, _, impTeamName2, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, displayName,
 			public)
 		require.NoError(t, err)
-		require.Equal(t, createdTeamID, createdTeamID2)
+		tlfid2 := createdTeam2.KBFSTLFID()
+		require.Equal(t, createdTeam.ID, createdTeam2.ID)
 		require.Equal(t, impTeamName, impTeamName2, "public: %v", public)
 		require.Equal(t, tlfid1, tlfid2, "the right TLFID came back")
 
-		lookupTeamID, _, impTeamName, _, err := LookupImplicitTeam(context.TODO(), tc.G, displayName, public)
+		lookupTeam, _, impTeamName, err := LookupImplicitTeam(context.TODO(), tc.G, displayName, public)
 		require.NoError(t, err)
-		require.Equal(t, createdTeamID, lookupTeamID)
+		require.Equal(t, createdTeam.ID, lookupTeam.ID)
 
-		team, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
-			ID:     createdTeamID,
-			Public: public,
-		})
-		require.NoError(t, err)
+		team := createdTeam
 		teamDisplay, err := team.ImplicitTeamDisplayNameString(context.TODO())
 		require.NoError(t, err)
 		formatName, err := FormatImplicitTeamDisplayName(context.TODO(), tc.G, impTeamName)
@@ -90,9 +88,9 @@ func TestLookupImplicitTeams(t *testing.T) {
 	lookupAndCreate(displayName, false)
 	lookupAndCreate(displayName, true)
 
-	_, _, _, _, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, "dksjdskjs/sxs?", false)
+	_, _, _, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, "dksjdskjs/sxs?", false)
 	require.Error(t, err)
-	_, _, _, _, err = LookupOrCreateImplicitTeam(context.TODO(), tc.G, "dksjdskjs/sxs?", true)
+	_, _, _, err = LookupOrCreateImplicitTeam(context.TODO(), tc.G, "dksjdskjs/sxs?", true)
 	require.Error(t, err)
 }
 
@@ -103,19 +101,19 @@ func TestImplicitPukless(t *testing.T) {
 
 	displayName := "" + fus[0].Username + "," + fus[1].Username
 	t.Logf("U0 creates an implicit team: %v", displayName)
-	teamID, _, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayName, false /*isPublic*/)
+	team, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayName, false /*isPublic*/)
 	require.NoError(t, err)
 
-	teamID2, _, _, _, err := LookupImplicitTeam(context.Background(), tcs[0].G, displayName, false /*isPublic*/)
+	team2, _, _, err := LookupImplicitTeam(context.Background(), tcs[0].G, displayName, false /*isPublic*/)
 	require.NoError(t, err)
-	require.Equal(t, teamID, teamID2)
+	require.Equal(t, team.ID, team2.ID)
 
-	teamID2, _, _, _, err = LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayName, false /*isPublic*/)
+	team2, _, _, err = LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayName, false /*isPublic*/)
 	require.NoError(t, err)
-	require.Equal(t, teamID, teamID2)
+	require.Equal(t, team.ID, team2.ID)
 
 	t.Logf("U0 loads the team")
-	team, err := Load(context.Background(), tcs[0].G, keybase1.LoadTeamArg{ID: teamID})
+	team, err = Load(context.Background(), tcs[0].G, keybase1.LoadTeamArg{ID: team.ID})
 	require.NoError(t, err)
 	require.False(t, team.IsPublic())
 	u0Role, err := team.chain().GetUserRole(fus[0].GetUserVersion())
@@ -139,16 +137,16 @@ func TestImplicitTeamReader(t *testing.T) {
 
 	displayName := "" + fus[0].Username + ",bob@twitter#" + fus[1].Username
 	t.Logf("U0 creates an implicit team: %v", displayName)
-	teamID, _, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayName, false /*public*/)
+	team, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayName, false /*public*/)
 	require.NoError(t, err)
 
 	t.Logf("U1 looks up the team")
-	teamID2, _, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayName, false /*public*/)
+	team2, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayName, false /*public*/)
 	require.NoError(t, err)
-	require.Equal(t, teamID, teamID2, "users should lookup the same team ID")
+	require.Equal(t, team.ID, team2.ID, "users should lookup the same team ID")
 
 	t.Logf("U1 loads the team")
-	team, err := Load(context.Background(), tcs[1].G, keybase1.LoadTeamArg{ID: teamID2})
+	team, err = Load(context.Background(), tcs[1].G, keybase1.LoadTeamArg{ID: team2.ID})
 	require.NoError(t, err)
 	_, err = team.ApplicationKey(context.Background(), keybase1.TeamApplication_KBFS)
 	require.NoError(t, err, "getting kbfs application key")
@@ -236,15 +234,15 @@ func TestLookupImplicitTeamResolvedSocialAssertion(t *testing.T) {
 	displayName1 := "t_tracy@rooter," + fus[0].Username
 	displayName2 := "t_tracy," + fus[0].Username
 
-	teamID1, _, impTeamName1, _, err := LookupOrCreateImplicitTeam(context.TODO(), tcs[0].G, displayName1, false /*isPublic*/)
+	team1, _, impTeamName1, err := LookupOrCreateImplicitTeam(context.TODO(), tcs[0].G, displayName1, false /*isPublic*/)
 	require.NoError(t, err)
-	teamID2, _, _, _, err := LookupOrCreateImplicitTeam(context.TODO(), tcs[0].G, displayName2, false /*isPublic*/)
+	team2, _, _, err := LookupOrCreateImplicitTeam(context.TODO(), tcs[0].G, displayName2, false /*isPublic*/)
 	require.NoError(t, err)
 
-	require.Equal(t, teamID1, teamID2, "implicit team ID should be the same for %v and %v", displayName1, displayName2)
+	require.Equal(t, team1.ID, team2.ID, "implicit team ID should be the same for %v and %v", displayName1, displayName2)
 
 	team, err := Load(context.TODO(), tcs[0].G, keybase1.LoadTeamArg{
-		ID: teamID1,
+		ID: team1.ID,
 	})
 	require.NoError(t, err)
 	owners, err := team.UsersWithRole(keybase1.TeamRole_OWNER)
@@ -270,16 +268,10 @@ func TestImplicitTeamRotate(t *testing.T) {
 
 		displayName := strings.Join([]string{fus[0].Username, fus[1].Username}, ",")
 
-		teamID, _, _, _, err := LookupOrCreateImplicitTeam(context.TODO(), tcs[0].G, displayName, public)
+		team, _, _, err := LookupOrCreateImplicitTeam(context.TODO(), tcs[0].G, displayName, public)
 		require.NoError(t, err)
+		teamID := team.ID
 		t.Logf("teamID: %v", teamID)
-
-		t.Logf("load as creator")
-		team, err := Load(context.TODO(), tcs[0].G, keybase1.LoadTeamArg{
-			ID:     teamID,
-			Public: public,
-		})
-		require.NoError(t, err)
 		require.Equal(t, keybase1.PerTeamKeyGeneration(1), team.Generation())
 
 		t.Logf("rotate the key")
@@ -311,7 +303,7 @@ func TestLoggedOutPublicTeamLoad(t *testing.T) {
 	defer tc.Cleanup()
 	u, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
 	require.NoError(t, err)
-	createdTeamID, _, impTeamName, _, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, u.Username, true)
+	createdTeam, _, impTeamName, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, u.Username, true)
 	require.NoError(t, err)
 	require.Equal(t, true, impTeamName.IsPublic)
 	err = tc.G.Logout()
@@ -319,7 +311,7 @@ func TestLoggedOutPublicTeamLoad(t *testing.T) {
 
 	for i := 0; i < 2; i++ {
 		_, err = Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
-			ID:     createdTeamID,
+			ID:     createdTeam.ID,
 			Public: true,
 		})
 		require.NoError(t, err)

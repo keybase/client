@@ -234,6 +234,7 @@ a.keybase-chat {
   border-radius: 28px;
 }
 a.keybase-chat img {
+  vertical-align: unset;
   height: 16px;
   width: 16px;
   margin-bottom: -2px;

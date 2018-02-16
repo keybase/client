@@ -52,7 +52,7 @@ const CodePageText = ({onBack, textCode, otherDeviceRole, setCodePageMode}) => (
     </Text>
     <SubTitle usePhone={_otherIsPhone(otherDeviceRole)} />
     <DeviceIcon usePhone={_otherIsPhone(otherDeviceRole)} />
-    <Text type="Body" style={stylesPaperkey}>
+    <Text type="Body" selectable={true} style={stylesPaperkey}>
       {textCode}
     </Text>
     {_otherIsPhone(otherDeviceRole) && (
@@ -159,7 +159,6 @@ const stylesContainer = {
 const stylesPaperkey = {
   ...getStyle('Header', 'Normal'),
   ...globalStyles.fontTerminal,
-  ...globalStyles.selectable,
   color: globalColors.darkBlue,
   display: 'inline-block',
   lineHeight: '20px',

@@ -115,46 +115,109 @@ export default class AppState {
   }
 
   checkOpenAtLogin() {
-    if (!this.state.openAtLogin) {
-      console.log('Skip setting login item due to user pref')
-      return
-    }
-    if (__DEV__) {
-      console.log('Skip setting login item due to dev env')
-      return
-    }
     console.log('Setting login item due to user pref')
+
     this.setOSLoginState()
   }
 
+  getDarwinAppName() {
+    return __DEV__ ? 'Electron Helper' : 'Keybase'
+  }
+
   setOSLoginState() {
-    // Comment this out if you want to test auto login stuff w/ a dev build, otherwise do a package build
     if (__DEV__) {
       console.log('Skipping auto login state change due to dev env. ')
       return
     }
+    // Comment this out if you want to test auto login stuff
+
     const isDarwin = process.platform === 'darwin'
-    // Electron has a bug where setting this to false fails!
+    const isWindows = process.platform === 'win32'
+    // Electron has a bug where app.setLoginItemSettings() to false fails!
     // https://github.com/electron/electron/issues/10880
     if (isDarwin) {
-      const applescript = require('applescript')
-      try {
-        const appName = __DEV__ ? 'Electron' : 'Keybase'
-        const command = this.state.openAtLogin
-          ? `tell application "System Events" to make login item at end with properties {path:"${appBundlePath() ||
-              ''}", hidden:false, name:"${appName}"}`
-          : `tell application "System Events" to delete login item "${appName}"`
-        applescript.execString(command, (err, result) => {
-          if (err) {
-            console.log(`apple script error: ${err}, ${result}`)
-          }
-        })
-      } catch (e) {
-        console.log('Error setting apple startup prefs: ', e)
-      }
-    } else {
-      app.setLoginItemSettings({openAtLogin: !!this.state.openAtLogin})
+      this.setDarwinLoginState()
+    } else if (isWindows) {
+      this.setWinLoginState()
     }
+  }
+
+  setDarwinLoginState() {
+    const applescript = require('applescript')
+
+    try {
+      this.checkMultiDarwinLoginItems()
+      const appName = this.getDarwinAppName()
+      if (this.state.openAtLogin) {
+        applescript.execString(
+          `tell application "System Events" to get the name of login item "${appName}"`,
+          (err, result) => {
+            if (!err) {
+              // our login item is there, nothing to do
+              return
+            }
+            applescript.execString(
+              `tell application "System Events" to make login item at end with properties {path:"${appBundlePath() ||
+                ''}", hidden:false, name:"${appName}"}`,
+              (err, result) => {
+                if (err) {
+                  console.log(`apple script error making login item: ${err}, ${result}`)
+                }
+              }
+            )
+          }
+        )
+      } else {
+        applescript.execString(
+          `tell application "System Events" to delete login item "${appName}"`,
+          (err, result) => {
+            if (err) {
+              console.log(`apple script error removing login item: ${err}, ${result}`)
+            }
+          }
+        )
+      }
+    } catch (e) {
+      console.log('Error setting apple startup prefs: ', e)
+    }
+  }
+
+  // Remove all our entries but one to repair a previous bug. Can eventually be removed.
+  checkMultiDarwinLoginItems() {
+    const applescript = require('applescript')
+    const appName = this.getDarwinAppName()
+
+    applescript.execString(
+      `tell application "System Events" to get the name of every login item`,
+      (err, result) => {
+        if (err) {
+          console.log(`Error getting every login item: ${err}, ${result}`)
+          return
+        }
+        var foundApp = false
+        for (var loginItem in result) {
+          if (result[loginItem] === appName) {
+            if (!foundApp) {
+              foundApp = true
+              continue
+            }
+            console.log('login items: deleting ', appName)
+            applescript.execString(
+              `tell application "System Events" to delete login item "${appName}"`,
+              (err, result) => {
+                if (err) {
+                  console.log(`apple script error deleting multi login items: ${err}, ${result}`)
+                }
+              }
+            )
+          }
+        }
+      }
+    )
+  }
+
+  setWinLoginState() {
+    app.setLoginItemSettings({openAtLogin: !!this.state.openAtLogin})
   }
 
   manageWindow(win: any) {
@@ -229,6 +292,9 @@ export default class AppState {
 
   _isValidWindowState(state: State): boolean {
     // Check if the display where the window was last open is still available
+    // and sanity check that we're placing the window where it will overlap
+    // the current screen, as per
+    // https://github.com/electron/electron/issues/10862
     let rect = {
       height: state.height,
       width: state.width,
@@ -237,7 +303,15 @@ export default class AppState {
     }
     let displayBounds = screen.getDisplayMatching(rect).bounds
     console.log('Check bounds:', rect, state.displayBounds, displayBounds)
-    return isEqual(state.displayBounds, displayBounds)
+    return (
+      isEqual(state.displayBounds, displayBounds) &&
+      !(
+        rect.x > displayBounds.x + displayBounds.width ||
+        rect.x + rect.width < displayBounds.x ||
+        rect.y > displayBounds.y + displayBounds.height ||
+        rect.y + rect.height < displayBounds.y
+      )
+    )
   }
 
   _loadStateSync() {
@@ -252,6 +326,7 @@ export default class AppState {
       const stateLoaded = JSON.parse(fs.readFileSync(configPath, {encoding: 'utf8'}))
 
       if (!this._isValidWindowState(stateLoaded)) {
+        console.log('  -- invalid window state')
         stateLoaded.x = null
         stateLoaded.y = null
       }

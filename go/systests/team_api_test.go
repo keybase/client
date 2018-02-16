@@ -38,7 +38,7 @@ func TestTeamAPI(t *testing.T) {
 
 	assertTeamAPIOutput(t, tt.users[0],
 		`{"method": "create-team", "params": {"options": {"team": "`+teamName+`.sub"}}}`,
-		`{"result":{"chatSent":false,"creatorAdded":false}}`)
+		`{"result":{"chatSent":true,"creatorAdded":false}}`)
 
 	assertTeamAPIOutput(t, tt.users[0],
 		`{"method": "rename-subteam", "params": {"options": {"team": "`+teamName+`.sub", "new-team-name": "`+teamName+`.sub2"}}}`,

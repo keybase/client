@@ -6,7 +6,6 @@ import * as Tabs from '../constants/tabs'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as I from 'immutable'
 import {isMobile} from '../constants/platform'
-import flags from '../util/feature-flags'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -64,7 +63,7 @@ export default function(state: Types.State = initialState, action: Notifications
         n.set(Tabs.folderTab, newTlfs + rekeysNeeded)
         n.set(Tabs.gitTab, newGit)
         n.set(Tabs.teamsTab, newTeams)
-        n.set(Tabs.peopleTab, flags.newPeopleTab ? homeTodoItems : 0)
+        n.set(Tabs.peopleTab, homeTodoItems)
       })
       let newState = state.withMutations(s => {
         s.set('navBadges', navBadges)

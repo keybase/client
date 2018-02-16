@@ -9,10 +9,12 @@ import type {Props} from './post-proof'
 
 const PostProof = (props: Props) => {
   const {
+    allowProofCheck,
     platform,
     platformUserName,
     descriptionText,
     proofAction,
+    onAllowProofCheck,
     onCancel,
     onComplete,
     isOnCompleteWaiting,
@@ -81,10 +83,14 @@ const PostProof = (props: Props) => {
             label={proofActionText || ''}
             icon={proofActionIcon}
             color={globalColors.blue}
-            onClick={() => proofAction()}
+            onClick={() => {
+              onAllowProofCheck(true)
+              proofAction()
+            }}
           />
         )}
       <Button
+        disabled={!allowProofCheck}
         style={styleContinueButton}
         fullWidth={true}
         type="Primary"

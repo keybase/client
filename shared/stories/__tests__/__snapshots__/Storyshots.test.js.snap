@@ -37,7 +37,11 @@ exports[`Storyshots Chat/Channel Heads up Display Mention Hud 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -114,8 +118,8 @@ exports[`Storyshots Chat/Channel Heads up Display Mention Hud 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -170,8 +174,8 @@ exports[`Storyshots Chat/Channel Heads up Display Mention Hud 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -299,7 +303,11 @@ exports[`Storyshots Chat/Channel Heads up Display Mention Row 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -311,8 +319,8 @@ exports[`Storyshots Chat/Channel Heads up Display Mention Row 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseOver={[Function]}
         onMouseUp={[Function]}
         style={
@@ -347,8 +355,8 @@ exports[`Storyshots Chat/Channel Heads up Display Mention Row 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseOver={[Function]}
         onMouseUp={[Function]}
         style={
@@ -383,8 +391,8 @@ exports[`Storyshots Chat/Channel Heads up Display Mention Row 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseOver={[Function]}
         onMouseUp={[Function]}
         style={
@@ -421,28 +429,7 @@ exports[`Storyshots Chat/Channel Heads up Display Mention Row 1`] = `
 </div>
 `;
 
-exports[`Storyshots Chat/Conversation/InfoPanel Mute row (big) 1`] = `
-.glamor-0,
-[data-glamor-0] {
-  color: #ffffff;
-}
-
-.glamor-1,
-[data-glamor-1] {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
-}
-
-.glamor-2,
-[data-glamor-2] {
-  color: rgba(0, 0, 0, 0.20);
-}
-
+exports[`Storyshots Chat/Conversation/InfoPanel Big team no preview 1`] = `
 <div
   style={
     Object {
@@ -452,1011 +439,59 @@ exports[`Storyshots Chat/Conversation/InfoPanel Mute row (big) 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
         Object {
-          "alignItems": "center",
           "display": "flex",
-          "flexDirection": "row",
-          "marginBottom": 4,
-          "marginLeft": 16,
-        }
-      }
-    >
-      <div
-        onClick={[Function]}
-        style={
-          Object {
-            "alignItems": "flex-start",
-            "cursor": "pointer",
-            "display": "flex",
-            "flexDirection": "row",
-          }
-        }
-      >
-        <div
-          style={
-            Object {
-              "backgroundColor": "inherit",
-              "border": "solid 1px rgba(0, 0, 0, 0.20)",
-              "borderRadius": 2,
-              "height": 13,
-              "marginRight": 8,
-              "marginTop": 2,
-              "opacity": 1,
-              "position": "relative",
-              "transition": "background 0.1s ease-out",
-              "width": 13,
-            }
-          }
-        >
-          <div>
-            <span
-              className="glamor-0"
-              onClick={null}
-              onMouseEnter={undefined}
-              onMouseLeave={undefined}
-              style={
-                Object {
-                  "WebkitFontSmoothing": "antialiased",
-                  "fontFamily": "kb",
-                  "fontSize": 9,
-                  "fontStyle": "normal",
-                  "fontVariant": "normal",
-                  "fontWeight": "normal",
-                  "left": 1,
-                  "lineHeight": 1,
-                  "opacity": 0,
-                  "position": "absolute",
-                  "speak": "none",
-                  "textTransform": "none",
-                  "top": 1,
-                  "transition": "opacity 0.1s ease-out",
-                  "userSelect": "none",
-                }
-              }
-            >
-              
-            </span>
-          </div>
-        </div>
-        <span
-          className="glamor-1"
-          onClick={undefined}
-          title={undefined}
-        >
-          Mute channel
-        </span>
-      </div>
-      <div>
-        <span
-          className="glamor-2"
-          onClick={null}
-          onMouseEnter={undefined}
-          onMouseLeave={undefined}
-          style={
-            Object {
-              "WebkitFontSmoothing": "antialiased",
-              "fontFamily": "kb",
-              "fontSize": 16,
-              "fontStyle": "normal",
-              "fontVariant": "normal",
-              "fontWeight": "normal",
-              "lineHeight": 1,
-              "marginLeft": 4,
-              "speak": "none",
-              "textTransform": "none",
-              "userSelect": "none",
-            }
-          }
-        >
-          
-        </span>
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Chat/Conversation/InfoPanel Mute row (big, muted) 1`] = `
-.glamor-0,
-[data-glamor-0] {
-  color: #ffffff;
-}
-
-.glamor-1,
-[data-glamor-1] {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
-}
-
-.glamor-2,
-[data-glamor-2] {
-  color: rgba(0, 0, 0, 0.20);
-}
-
-<div
-  style={
-    Object {
-      "flex": 1,
-      "overflow": "auto",
-    }
-  }
->
-  <div
-    style={undefined}
-  >
-    <div
-      style={
-        Object {
-          "alignItems": "center",
-          "display": "flex",
-          "flexDirection": "row",
-          "marginBottom": 4,
-          "marginLeft": 16,
-        }
-      }
-    >
-      <div
-        onClick={[Function]}
-        style={
-          Object {
-            "alignItems": "flex-start",
-            "cursor": "pointer",
-            "display": "flex",
-            "flexDirection": "row",
-          }
-        }
-      >
-        <div
-          style={
-            Object {
-              "backgroundColor": "#33a0ff",
-              "border": "solid 1px #33a0ff",
-              "borderRadius": 2,
-              "height": 13,
-              "marginRight": 8,
-              "marginTop": 2,
-              "opacity": 1,
-              "position": "relative",
-              "transition": "background 0.1s ease-out",
-              "width": 13,
-            }
-          }
-        >
-          <div>
-            <span
-              className="glamor-0"
-              onClick={null}
-              onMouseEnter={undefined}
-              onMouseLeave={undefined}
-              style={
-                Object {
-                  "WebkitFontSmoothing": "antialiased",
-                  "fontFamily": "kb",
-                  "fontSize": 9,
-                  "fontStyle": "normal",
-                  "fontVariant": "normal",
-                  "fontWeight": "normal",
-                  "left": 1,
-                  "lineHeight": 1,
-                  "position": "absolute",
-                  "speak": "none",
-                  "textTransform": "none",
-                  "top": 1,
-                  "transition": "opacity 0.1s ease-out",
-                  "userSelect": "none",
-                }
-              }
-            >
-              
-            </span>
-          </div>
-        </div>
-        <span
-          className="glamor-1"
-          onClick={undefined}
-          title={undefined}
-        >
-          Mute channel
-        </span>
-      </div>
-      <div>
-        <span
-          className="glamor-2"
-          onClick={null}
-          onMouseEnter={undefined}
-          onMouseLeave={undefined}
-          style={
-            Object {
-              "WebkitFontSmoothing": "antialiased",
-              "fontFamily": "kb",
-              "fontSize": 16,
-              "fontStyle": "normal",
-              "fontVariant": "normal",
-              "fontWeight": "normal",
-              "lineHeight": 1,
-              "marginLeft": 4,
-              "speak": "none",
-              "textTransform": "none",
-              "userSelect": "none",
-            }
-          }
-        >
-          
-        </span>
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Chat/Conversation/InfoPanel Mute row (small) 1`] = `
-.glamor-0,
-[data-glamor-0] {
-  color: #ffffff;
-}
-
-.glamor-1,
-[data-glamor-1] {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
-}
-
-.glamor-2,
-[data-glamor-2] {
-  color: rgba(0, 0, 0, 0.20);
-}
-
-<div
-  style={
-    Object {
-      "flex": 1,
-      "overflow": "auto",
-    }
-  }
->
-  <div
-    style={undefined}
-  >
-    <div
-      style={
-        Object {
-          "alignItems": "center",
-          "display": "flex",
-          "flexDirection": "row",
-          "marginBottom": 4,
-          "marginLeft": 16,
-        }
-      }
-    >
-      <div
-        onClick={[Function]}
-        style={
-          Object {
-            "alignItems": "flex-start",
-            "cursor": "pointer",
-            "display": "flex",
-            "flexDirection": "row",
-          }
-        }
-      >
-        <div
-          style={
-            Object {
-              "backgroundColor": "inherit",
-              "border": "solid 1px rgba(0, 0, 0, 0.20)",
-              "borderRadius": 2,
-              "height": 13,
-              "marginRight": 8,
-              "marginTop": 2,
-              "opacity": 1,
-              "position": "relative",
-              "transition": "background 0.1s ease-out",
-              "width": 13,
-            }
-          }
-        >
-          <div>
-            <span
-              className="glamor-0"
-              onClick={null}
-              onMouseEnter={undefined}
-              onMouseLeave={undefined}
-              style={
-                Object {
-                  "WebkitFontSmoothing": "antialiased",
-                  "fontFamily": "kb",
-                  "fontSize": 9,
-                  "fontStyle": "normal",
-                  "fontVariant": "normal",
-                  "fontWeight": "normal",
-                  "left": 1,
-                  "lineHeight": 1,
-                  "opacity": 0,
-                  "position": "absolute",
-                  "speak": "none",
-                  "textTransform": "none",
-                  "top": 1,
-                  "transition": "opacity 0.1s ease-out",
-                  "userSelect": "none",
-                }
-              }
-            >
-              
-            </span>
-          </div>
-        </div>
-        <span
-          className="glamor-1"
-          onClick={undefined}
-          title={undefined}
-        >
-          Mute notifications
-        </span>
-      </div>
-      <div>
-        <span
-          className="glamor-2"
-          onClick={null}
-          onMouseEnter={undefined}
-          onMouseLeave={undefined}
-          style={
-            Object {
-              "WebkitFontSmoothing": "antialiased",
-              "fontFamily": "kb",
-              "fontSize": 16,
-              "fontStyle": "normal",
-              "fontVariant": "normal",
-              "fontWeight": "normal",
-              "lineHeight": 1,
-              "marginLeft": 4,
-              "speak": "none",
-              "textTransform": "none",
-              "userSelect": "none",
-            }
-          }
-        >
-          
-        </span>
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Chat/Conversation/InfoPanel Mute row (small, muted) 1`] = `
-.glamor-0,
-[data-glamor-0] {
-  color: #ffffff;
-}
-
-.glamor-1,
-[data-glamor-1] {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
-}
-
-.glamor-2,
-[data-glamor-2] {
-  color: rgba(0, 0, 0, 0.20);
-}
-
-<div
-  style={
-    Object {
-      "flex": 1,
-      "overflow": "auto",
-    }
-  }
->
-  <div
-    style={undefined}
-  >
-    <div
-      style={
-        Object {
-          "alignItems": "center",
-          "display": "flex",
-          "flexDirection": "row",
-          "marginBottom": 4,
-          "marginLeft": 16,
-        }
-      }
-    >
-      <div
-        onClick={[Function]}
-        style={
-          Object {
-            "alignItems": "flex-start",
-            "cursor": "pointer",
-            "display": "flex",
-            "flexDirection": "row",
-          }
-        }
-      >
-        <div
-          style={
-            Object {
-              "backgroundColor": "#33a0ff",
-              "border": "solid 1px #33a0ff",
-              "borderRadius": 2,
-              "height": 13,
-              "marginRight": 8,
-              "marginTop": 2,
-              "opacity": 1,
-              "position": "relative",
-              "transition": "background 0.1s ease-out",
-              "width": 13,
-            }
-          }
-        >
-          <div>
-            <span
-              className="glamor-0"
-              onClick={null}
-              onMouseEnter={undefined}
-              onMouseLeave={undefined}
-              style={
-                Object {
-                  "WebkitFontSmoothing": "antialiased",
-                  "fontFamily": "kb",
-                  "fontSize": 9,
-                  "fontStyle": "normal",
-                  "fontVariant": "normal",
-                  "fontWeight": "normal",
-                  "left": 1,
-                  "lineHeight": 1,
-                  "position": "absolute",
-                  "speak": "none",
-                  "textTransform": "none",
-                  "top": 1,
-                  "transition": "opacity 0.1s ease-out",
-                  "userSelect": "none",
-                }
-              }
-            >
-              
-            </span>
-          </div>
-        </div>
-        <span
-          className="glamor-1"
-          onClick={undefined}
-          title={undefined}
-        >
-          Mute notifications
-        </span>
-      </div>
-      <div>
-        <span
-          className="glamor-2"
-          onClick={null}
-          onMouseEnter={undefined}
-          onMouseLeave={undefined}
-          style={
-            Object {
-              "WebkitFontSmoothing": "antialiased",
-              "fontFamily": "kb",
-              "fontSize": 16,
-              "fontStyle": "normal",
-              "fontVariant": "normal",
-              "fontWeight": "normal",
-              "lineHeight": 1,
-              "marginLeft": 4,
-              "speak": "none",
-              "textTransform": "none",
-              "userSelect": "none",
-            }
-          }
-        >
-          
-        </span>
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Chat/Conversation/InfoPanel Participants (with add button) 1`] = `
-.glamor-0,
-[data-glamor-0] {
-  bottom: 1px;
-  left: 1px;
-  position: absolute;
-  right: 1px;
-  top: 1px;
-  background-color: #f0f0f0;
-  border-radius: 50%;
-}
-
-.glamor-1,
-[data-glamor-1] {
-  background-size: cover;
-  bottom: 0;
-  left: 0;
-  position: absolute;
-  right: 0;
-  top: 0;
-  background-image: -webkit-image-set(url('icons/icon-placeholder-avatar-32.png') 1x, url('icons/icon-placeholder-avatar-32@2x.png') 2x);
-  border-radius: 50%;
-  height: 32px;
-  max-width: 32px;
-  min-width: 32px;
-  opacity: 1;
-}
-
-.glamor-4,
-[data-glamor-4] {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-  display: -webkit-box;
-  display: -moz-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  text-decoration: inherit;
-  -webkit-box-orient: horizontal;
-  -webkit-box-direction: normal;
-  -webkit-flex-direction: row;
-  -webkit-box-lines: multiple;
-  -webkit-flex-wrap: wrap;
-}
-
-.glamor-3,
-[data-glamor-3] {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-}
-
-.glamor-2,
-[data-glamor-2] {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-  text-decoration: inherit;
-  font-style: italic;
-}
-
-.glamor-5,
-[data-glamor-5] {
-  font-size: 11px;
-  line-height: 15px;
-  color: rgba(0, 0, 0, 0.40);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
-}
-
-.glamor-8,
-[data-glamor-8] {
-  font-size: 13px;
-  line-height: 17px;
-  color: #36b37c;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-  text-decoration: inherit;
-}
-
-.glamor-14,
-[data-glamor-14] {
-  font-size: 13px;
-  line-height: 17px;
-  color: #ff4d61;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-  text-decoration: inherit;
-}
-
-<div
-  style={
-    Object {
-      "flex": 1,
-      "overflow": "auto",
-    }
-  }
->
-  <div
-    style={undefined}
-  >
-    <div
-      style={
-        Object {
-          "maxWidth": 320,
+          "flexDirection": "column",
+          "height": 500,
+          "width": 320,
         }
       }
     >
       <div
         style={
           Object {
+            "alignItems": "stretch",
+            "backgroundColor": "#ffffff",
+            "borderLeft": "1px solid rgba(0, 0, 0, 0.05)",
+            "borderRight": "1px solid rgba(0, 0, 0, 0.05)",
             "display": "flex",
+            "flex": 1,
             "flexDirection": "column",
-            "paddingTop": 8,
+            "flexGrow": 1,
+            "marginTop": -1,
+            "paddingBottom": 24,
+            "position": "relative",
           }
         }
       >
         <div
           style={
             Object {
-              "display": "flex",
-              "flexDirection": "column",
-              "paddingTop": 8,
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
             }
           }
         >
           <div
-            onClick={[Function]}
-            onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
-            onMouseUp={[Function]}
             style={
               Object {
-                "alignItems": "stretch",
-                "borderRadius": 0,
-                "cursor": "pointer",
-                "display": "flex",
-                "flexDirection": "column",
-                "height": undefined,
-                "lineHeight": 0,
-                "minWidth": undefined,
-                "position": "relative",
-                "textAlign": "left",
-                "transform": "none",
-                "transition": "none",
+                "height": "100%",
+                "overflowY": "auto",
+                "width": "100%",
               }
             }
-          >
-            <div
-              style={
-                Object {
-                  "cursor": "pointer",
-                  "display": "flex",
-                  "flexDirection": "column",
-                  "minHeight": 48,
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                }
-              }
-            >
-              <div
-                style={
-                  Object {
-                    "alignItems": "center",
-                    "display": "flex",
-                    "flex": 1,
-                    "flexDirection": "row",
-                    "marginRight": 8,
-                  }
-                }
-              >
-                <div
-                  onClick={undefined}
-                  style={
-                    Object {
-                      "height": 32,
-                      "maxWidth": 32,
-                      "minHeight": 32,
-                      "minWidth": 32,
-                      "position": "relative",
-                      "userSelect": "none",
-                    }
-                  }
-                >
-                  <div
-                    className="glamor-0"
-                  />
-                  <div
-                    className="glamor-1"
-                  />
-                </div>
-                <div
-                  style={
-                    Object {
-                      "display": "flex",
-                      "flexDirection": "column",
-                      "marginLeft": 16,
-                    }
-                  }
-                >
-                  <span
-                    className="glamor-4"
-                    onClick={undefined}
-                    title={undefined}
-                  >
-                    <span
-                      className="glamor-3"
-                      onClick={undefined}
-                      title={undefined}
-                    >
-                      <span
-                        className="glamor-2"
-                        onClick={undefined}
-                        title={undefined}
-                      >
-                        akalin
-                      </span>
-                    </span>
-                  </span>
-                  <span
-                    className="glamor-5"
-                    onClick={undefined}
-                    title={undefined}
-                  >
-                    Fred Akalin
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div
-          style={
-            Object {
-              "display": "flex",
-              "flexDirection": "column",
-              "paddingTop": 8,
-            }
-          }
-        >
-          <div
-            onClick={[Function]}
-            onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
-            onMouseUp={[Function]}
-            style={
-              Object {
-                "alignItems": "stretch",
-                "borderRadius": 0,
-                "cursor": "pointer",
-                "display": "flex",
-                "flexDirection": "column",
-                "height": undefined,
-                "lineHeight": 0,
-                "minWidth": undefined,
-                "position": "relative",
-                "textAlign": "left",
-                "transform": "none",
-                "transition": "none",
-              }
-            }
-          >
-            <div
-              style={
-                Object {
-                  "cursor": "pointer",
-                  "display": "flex",
-                  "flexDirection": "column",
-                  "minHeight": 48,
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                }
-              }
-            >
-              <div
-                style={
-                  Object {
-                    "alignItems": "center",
-                    "display": "flex",
-                    "flex": 1,
-                    "flexDirection": "row",
-                    "marginRight": 8,
-                  }
-                }
-              >
-                <div
-                  onClick={undefined}
-                  style={
-                    Object {
-                      "height": 32,
-                      "maxWidth": 32,
-                      "minHeight": 32,
-                      "minWidth": 32,
-                      "position": "relative",
-                      "userSelect": "none",
-                    }
-                  }
-                >
-                  <div
-                    className="glamor-0"
-                  />
-                  <div
-                    className="glamor-1"
-                  />
-                </div>
-                <div
-                  style={
-                    Object {
-                      "display": "flex",
-                      "flexDirection": "column",
-                      "marginLeft": 16,
-                    }
-                  }
-                >
-                  <span
-                    className="glamor-4"
-                    onClick={undefined}
-                    title={undefined}
-                  >
-                    <span
-                      className="glamor-3"
-                      onClick={undefined}
-                      title={undefined}
-                    >
-                      <span
-                        className="glamor-8"
-                        onClick={undefined}
-                        title={undefined}
-                      >
-                        strib
-                      </span>
-                    </span>
-                  </span>
-                  <span
-                    className="glamor-5"
-                    onClick={undefined}
-                    title={undefined}
-                  >
-                    Jeremy Stribling
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div
-          style={
-            Object {
-              "display": "flex",
-              "flexDirection": "column",
-              "paddingTop": 8,
-            }
-          }
-        >
-          <div
-            onClick={[Function]}
-            onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
-            onMouseUp={[Function]}
-            style={
-              Object {
-                "alignItems": "stretch",
-                "borderRadius": 0,
-                "cursor": "pointer",
-                "display": "flex",
-                "flexDirection": "column",
-                "height": undefined,
-                "lineHeight": 0,
-                "minWidth": undefined,
-                "position": "relative",
-                "textAlign": "left",
-                "transform": "none",
-                "transition": "none",
-              }
-            }
-          >
-            <div
-              style={
-                Object {
-                  "cursor": "pointer",
-                  "display": "flex",
-                  "flexDirection": "column",
-                  "minHeight": 48,
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                }
-              }
-            >
-              <div
-                style={
-                  Object {
-                    "alignItems": "center",
-                    "display": "flex",
-                    "flex": 1,
-                    "flexDirection": "row",
-                    "marginRight": 8,
-                  }
-                }
-              >
-                <div
-                  onClick={undefined}
-                  style={
-                    Object {
-                      "height": 32,
-                      "maxWidth": 32,
-                      "minHeight": 32,
-                      "minWidth": 32,
-                      "position": "relative",
-                      "userSelect": "none",
-                    }
-                  }
-                >
-                  <div
-                    className="glamor-0"
-                  />
-                  <div
-                    className="glamor-1"
-                  />
-                </div>
-                <div
-                  style={
-                    Object {
-                      "display": "flex",
-                      "flexDirection": "column",
-                      "marginLeft": 16,
-                    }
-                  }
-                >
-                  <span
-                    className="glamor-4"
-                    onClick={undefined}
-                    title={undefined}
-                  >
-                    <span
-                      className="glamor-3"
-                      onClick={undefined}
-                      title={undefined}
-                    >
-                      <span
-                        className="glamor-14"
-                        onClick={undefined}
-                        title={undefined}
-                      >
-                        max
-                      </span>
-                    </span>
-                  </span>
-                  <span
-                    className="glamor-5"
-                    onClick={undefined}
-                    title={undefined}
-                  >
-                    Max Krohn
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
+          />
         </div>
       </div>
     </div>
@@ -1464,117 +499,7 @@ exports[`Storyshots Chat/Conversation/InfoPanel Participants (with add button) 1
 </div>
 `;
 
-exports[`Storyshots Chat/Conversation/InfoPanel Participants 1`] = `
-.glamor-0,
-[data-glamor-0] {
-  bottom: 1px;
-  left: 1px;
-  position: absolute;
-  right: 1px;
-  top: 1px;
-  background-color: #f0f0f0;
-  border-radius: 50%;
-}
-
-.glamor-1,
-[data-glamor-1] {
-  background-size: cover;
-  bottom: 0;
-  left: 0;
-  position: absolute;
-  right: 0;
-  top: 0;
-  background-image: -webkit-image-set(url('icons/icon-placeholder-avatar-32.png') 1x, url('icons/icon-placeholder-avatar-32@2x.png') 2x);
-  border-radius: 50%;
-  height: 32px;
-  max-width: 32px;
-  min-width: 32px;
-  opacity: 1;
-}
-
-.glamor-4,
-[data-glamor-4] {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-  display: -webkit-box;
-  display: -moz-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  text-decoration: inherit;
-  -webkit-box-orient: horizontal;
-  -webkit-box-direction: normal;
-  -webkit-flex-direction: row;
-  -webkit-box-lines: multiple;
-  -webkit-flex-wrap: wrap;
-}
-
-.glamor-3,
-[data-glamor-3] {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-}
-
-.glamor-2,
-[data-glamor-2] {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-  text-decoration: inherit;
-  font-style: italic;
-}
-
-.glamor-5,
-[data-glamor-5] {
-  font-size: 11px;
-  line-height: 15px;
-  color: rgba(0, 0, 0, 0.40);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
-}
-
-.glamor-8,
-[data-glamor-8] {
-  font-size: 13px;
-  line-height: 17px;
-  color: #36b37c;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-  text-decoration: inherit;
-}
-
-.glamor-14,
-[data-glamor-14] {
-  font-size: 13px;
-  line-height: 17px;
-  color: #ff4d61;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-  text-decoration: inherit;
-}
-
+exports[`Storyshots Chat/Conversation/InfoPanel Big team preview 1`] = `
 <div
   style={
     Object {
@@ -1584,368 +509,199 @@ exports[`Storyshots Chat/Conversation/InfoPanel Participants 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
         Object {
-          "maxWidth": 320,
+          "display": "flex",
+          "flexDirection": "column",
+          "height": 500,
+          "width": 320,
         }
       }
     >
       <div
         style={
           Object {
+            "alignItems": "stretch",
+            "backgroundColor": "#ffffff",
+            "borderLeft": "1px solid rgba(0, 0, 0, 0.05)",
+            "borderRight": "1px solid rgba(0, 0, 0, 0.05)",
             "display": "flex",
+            "flex": 1,
             "flexDirection": "column",
-            "paddingTop": 8,
+            "flexGrow": 1,
+            "marginTop": -1,
+            "paddingBottom": 24,
+            "position": "relative",
           }
         }
       >
         <div
           style={
             Object {
-              "display": "flex",
-              "flexDirection": "column",
-              "paddingTop": 8,
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
             }
           }
         >
           <div
-            onClick={[Function]}
-            onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
-            onMouseUp={[Function]}
             style={
               Object {
-                "alignItems": "stretch",
-                "borderRadius": 0,
-                "cursor": "pointer",
-                "display": "flex",
-                "flexDirection": "column",
-                "height": undefined,
-                "lineHeight": 0,
-                "minWidth": undefined,
-                "position": "relative",
-                "textAlign": "left",
-                "transform": "none",
-                "transition": "none",
+                "height": "100%",
+                "overflowY": "auto",
+                "width": "100%",
               }
             }
-          >
-            <div
-              style={
-                Object {
-                  "cursor": "pointer",
-                  "display": "flex",
-                  "flexDirection": "column",
-                  "minHeight": 48,
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                }
-              }
-            >
-              <div
-                style={
-                  Object {
-                    "alignItems": "center",
-                    "display": "flex",
-                    "flex": 1,
-                    "flexDirection": "row",
-                    "marginRight": 8,
-                  }
-                }
-              >
-                <div
-                  onClick={undefined}
-                  style={
-                    Object {
-                      "height": 32,
-                      "maxWidth": 32,
-                      "minHeight": 32,
-                      "minWidth": 32,
-                      "position": "relative",
-                      "userSelect": "none",
-                    }
-                  }
-                >
-                  <div
-                    className="glamor-0"
-                  />
-                  <div
-                    className="glamor-1"
-                  />
-                </div>
-                <div
-                  style={
-                    Object {
-                      "display": "flex",
-                      "flexDirection": "column",
-                      "marginLeft": 16,
-                    }
-                  }
-                >
-                  <span
-                    className="glamor-4"
-                    onClick={undefined}
-                    title={undefined}
-                  >
-                    <span
-                      className="glamor-3"
-                      onClick={undefined}
-                      title={undefined}
-                    >
-                      <span
-                        className="glamor-2"
-                        onClick={undefined}
-                        title={undefined}
-                      >
-                        akalin
-                      </span>
-                    </span>
-                  </span>
-                  <span
-                    className="glamor-5"
-                    onClick={undefined}
-                    title={undefined}
-                  >
-                    Fred Akalin
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
+          />
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Chat/Conversation/InfoPanel Conversation 1`] = `
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "display": "flex",
+          "flexDirection": "column",
+          "height": 500,
+          "width": 320,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "alignItems": "stretch",
+            "backgroundColor": "#ffffff",
+            "borderLeft": "1px solid rgba(0, 0, 0, 0.05)",
+            "borderRight": "1px solid rgba(0, 0, 0, 0.05)",
+            "display": "flex",
+            "flex": 1,
+            "flexDirection": "column",
+            "flexGrow": 1,
+            "marginTop": -1,
+            "paddingBottom": 24,
+            "position": "relative",
+          }
+        }
+      >
         <div
           style={
             Object {
-              "display": "flex",
-              "flexDirection": "column",
-              "paddingTop": 8,
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
             }
           }
         >
           <div
-            onClick={[Function]}
-            onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
-            onMouseUp={[Function]}
             style={
               Object {
-                "alignItems": "stretch",
-                "borderRadius": 0,
-                "cursor": "pointer",
-                "display": "flex",
-                "flexDirection": "column",
-                "height": undefined,
-                "lineHeight": 0,
-                "minWidth": undefined,
-                "position": "relative",
-                "textAlign": "left",
-                "transform": "none",
-                "transition": "none",
+                "height": "100%",
+                "overflowY": "auto",
+                "width": "100%",
               }
             }
-          >
-            <div
-              style={
-                Object {
-                  "cursor": "pointer",
-                  "display": "flex",
-                  "flexDirection": "column",
-                  "minHeight": 48,
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                }
-              }
-            >
-              <div
-                style={
-                  Object {
-                    "alignItems": "center",
-                    "display": "flex",
-                    "flex": 1,
-                    "flexDirection": "row",
-                    "marginRight": 8,
-                  }
-                }
-              >
-                <div
-                  onClick={undefined}
-                  style={
-                    Object {
-                      "height": 32,
-                      "maxWidth": 32,
-                      "minHeight": 32,
-                      "minWidth": 32,
-                      "position": "relative",
-                      "userSelect": "none",
-                    }
-                  }
-                >
-                  <div
-                    className="glamor-0"
-                  />
-                  <div
-                    className="glamor-1"
-                  />
-                </div>
-                <div
-                  style={
-                    Object {
-                      "display": "flex",
-                      "flexDirection": "column",
-                      "marginLeft": 16,
-                    }
-                  }
-                >
-                  <span
-                    className="glamor-4"
-                    onClick={undefined}
-                    title={undefined}
-                  >
-                    <span
-                      className="glamor-3"
-                      onClick={undefined}
-                      title={undefined}
-                    >
-                      <span
-                        className="glamor-8"
-                        onClick={undefined}
-                        title={undefined}
-                      >
-                        strib
-                      </span>
-                    </span>
-                  </span>
-                  <span
-                    className="glamor-5"
-                    onClick={undefined}
-                    title={undefined}
-                  >
-                    Jeremy Stribling
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
+          />
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Chat/Conversation/InfoPanel Small team 1`] = `
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "display": "flex",
+          "flexDirection": "column",
+          "height": 500,
+          "width": 320,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "alignItems": "stretch",
+            "backgroundColor": "#ffffff",
+            "borderLeft": "1px solid rgba(0, 0, 0, 0.05)",
+            "borderRight": "1px solid rgba(0, 0, 0, 0.05)",
+            "display": "flex",
+            "flex": 1,
+            "flexDirection": "column",
+            "flexGrow": 1,
+            "marginTop": -1,
+            "paddingBottom": 24,
+            "position": "relative",
+          }
+        }
+      >
         <div
           style={
             Object {
-              "display": "flex",
-              "flexDirection": "column",
-              "paddingTop": 8,
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
             }
           }
         >
           <div
-            onClick={[Function]}
-            onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
-            onMouseUp={[Function]}
             style={
               Object {
-                "alignItems": "stretch",
-                "borderRadius": 0,
-                "cursor": "pointer",
-                "display": "flex",
-                "flexDirection": "column",
-                "height": undefined,
-                "lineHeight": 0,
-                "minWidth": undefined,
-                "position": "relative",
-                "textAlign": "left",
-                "transform": "none",
-                "transition": "none",
+                "height": "100%",
+                "overflowY": "auto",
+                "width": "100%",
               }
             }
-          >
-            <div
-              style={
-                Object {
-                  "cursor": "pointer",
-                  "display": "flex",
-                  "flexDirection": "column",
-                  "minHeight": 48,
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                }
-              }
-            >
-              <div
-                style={
-                  Object {
-                    "alignItems": "center",
-                    "display": "flex",
-                    "flex": 1,
-                    "flexDirection": "row",
-                    "marginRight": 8,
-                  }
-                }
-              >
-                <div
-                  onClick={undefined}
-                  style={
-                    Object {
-                      "height": 32,
-                      "maxWidth": 32,
-                      "minHeight": 32,
-                      "minWidth": 32,
-                      "position": "relative",
-                      "userSelect": "none",
-                    }
-                  }
-                >
-                  <div
-                    className="glamor-0"
-                  />
-                  <div
-                    className="glamor-1"
-                  />
-                </div>
-                <div
-                  style={
-                    Object {
-                      "display": "flex",
-                      "flexDirection": "column",
-                      "marginLeft": 16,
-                    }
-                  }
-                >
-                  <span
-                    className="glamor-4"
-                    onClick={undefined}
-                    title={undefined}
-                  >
-                    <span
-                      className="glamor-3"
-                      onClick={undefined}
-                      title={undefined}
-                    >
-                      <span
-                        className="glamor-14"
-                        onClick={undefined}
-                        title={undefined}
-                      >
-                        max
-                      </span>
-                    </span>
-                  </span>
-                  <span
-                    className="glamor-5"
-                    onClick={undefined}
-                    title={undefined}
-                  >
-                    Max Krohn
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
+          />
         </div>
       </div>
     </div>
@@ -1972,6 +728,11 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
 
 .glamor-2,
 [data-glamor-2] {
+  color: rgba(0, 0, 0, 0.20);
+}
+
+.glamor-5,
+[data-glamor-5] {
   font-size: 11px;
   line-height: 15px;
   color: rgba(0, 0, 0, 0.40);
@@ -1981,13 +742,8 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
   font-weight: 600;
 }
 
-.glamor-3,
-[data-glamor-3] {
-  color: rgba(0, 0, 0, 0.20);
-}
-
-.glamor-4,
-[data-glamor-4] {
+.glamor-7,
+[data-glamor-7] {
   transition: background 0.1s ease-out;
   border-radius: 100%;
   height: 14px;
@@ -2002,13 +758,13 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
   -moz-transition: background 0.1s ease-out;
 }
 
-.glamor-4:hover,
-[data-glamor-4]:hover {
+.glamor-7:hover,
+[data-glamor-7]:hover {
   border: solid 1px #33a0ff;
 }
 
-.glamor-6,
-[data-glamor-6] {
+.glamor-9,
+[data-glamor-9] {
   transition: background 0.1s ease-out;
   border-radius: 100%;
   height: 14px;
@@ -2022,18 +778,18 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
   -moz-transition: background 0.1s ease-out;
 }
 
-.glamor-6:hover,
-[data-glamor-6]:hover {
+.glamor-9:hover,
+[data-glamor-9]:hover {
   border: solid 1px #33a0ff;
 }
 
-.glamor-18,
-[data-glamor-18] {
+.glamor-21,
+[data-glamor-21] {
   color: #3dcc8e;
 }
 
-.glamor-19,
-[data-glamor-19] {
+.glamor-22,
+[data-glamor-22] {
   font-size: 11px;
   line-height: 15px;
   color: #3dcc8e;
@@ -2052,7 +808,11 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -2064,6 +824,107 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
         }
       }
     >
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "marginBottom": 4,
+          }
+        }
+      >
+        <div
+          onClick={[Function]}
+          style={
+            Object {
+              "alignItems": "flex-start",
+              "cursor": "pointer",
+              "display": "flex",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "backgroundColor": "inherit",
+                "border": "solid 1px rgba(0, 0, 0, 0.20)",
+                "borderRadius": 2,
+                "height": 13,
+                "marginRight": 8,
+                "marginTop": 2,
+                "opacity": 1,
+                "position": "relative",
+                "transition": "background 0.1s ease-out",
+                "width": 13,
+              }
+            }
+          >
+            <div>
+              <span
+                className="glamor-0"
+                onClick={null}
+                onMouseEnter={undefined}
+                onMouseLeave={undefined}
+                style={
+                  Object {
+                    "WebkitFontSmoothing": "antialiased",
+                    "fontFamily": "kb",
+                    "fontSize": 9,
+                    "fontStyle": "normal",
+                    "fontVariant": "normal",
+                    "fontWeight": "normal",
+                    "left": 1,
+                    "lineHeight": 1,
+                    "opacity": 0,
+                    "position": "absolute",
+                    "speak": "none",
+                    "textTransform": "none",
+                    "top": 1,
+                    "transition": "opacity 0.1s ease-out",
+                    "userSelect": "none",
+                  }
+                }
+              >
+                
+              </span>
+            </div>
+          </div>
+          <span
+            className="glamor-1"
+            onClick={undefined}
+            title={undefined}
+          >
+            Mute all notifications
+          </span>
+        </div>
+        <div>
+          <span
+            className="glamor-2"
+            onClick={null}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
+            style={
+              Object {
+                "WebkitFontSmoothing": "antialiased",
+                "fontFamily": "kb",
+                "fontSize": 16,
+                "fontStyle": "normal",
+                "fontVariant": "normal",
+                "fontWeight": "normal",
+                "lineHeight": 1,
+                "marginLeft": 4,
+                "speak": "none",
+                "textTransform": "none",
+                "userSelect": "none",
+              }
+            }
+          >
+            
+          </span>
+        </div>
+      </div>
       <div
         onClick={[Function]}
         style={
@@ -2139,7 +1000,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
         }
       >
         <span
-          className="glamor-2"
+          className="glamor-5"
           onClick={undefined}
           title={undefined}
         >
@@ -2147,7 +1008,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
         </span>
         <div>
           <span
-            className="glamor-3"
+            className="glamor-2"
             onClick={null}
             onMouseEnter={undefined}
             onMouseLeave={undefined}
@@ -2193,7 +1054,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
           }
         >
           <div
-            className="glamor-4"
+            className="glamor-7"
           >
             <div
               style={
@@ -2241,7 +1102,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
           }
         >
           <div
-            className="glamor-6"
+            className="glamor-9"
           >
             <div
               style={
@@ -2289,7 +1150,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
           }
         >
           <div
-            className="glamor-6"
+            className="glamor-9"
           >
             <div
               style={
@@ -2325,7 +1186,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
         }
       >
         <span
-          className="glamor-2"
+          className="glamor-5"
           onClick={undefined}
           title={undefined}
         >
@@ -2333,7 +1194,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
         </span>
         <div>
           <span
-            className="glamor-3"
+            className="glamor-2"
             onClick={null}
             onMouseEnter={undefined}
             onMouseLeave={undefined}
@@ -2379,7 +1240,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
           }
         >
           <div
-            className="glamor-6"
+            className="glamor-9"
           >
             <div
               style={
@@ -2427,7 +1288,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
           }
         >
           <div
-            className="glamor-4"
+            className="glamor-7"
           >
             <div
               style={
@@ -2475,7 +1336,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
           }
         >
           <div
-            className="glamor-6"
+            className="glamor-9"
           >
             <div
               style={
@@ -2514,7 +1375,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
       >
         <div>
           <span
-            className="glamor-18"
+            className="glamor-21"
             onClick={null}
             onMouseEnter={undefined}
             onMouseLeave={undefined}
@@ -2537,7 +1398,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
           </span>
         </div>
         <span
-          className="glamor-19"
+          className="glamor-22"
           onClick={undefined}
           title={undefined}
         >
@@ -2568,6 +1429,11 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
 
 .glamor-2,
 [data-glamor-2] {
+  color: rgba(0, 0, 0, 0.20);
+}
+
+.glamor-5,
+[data-glamor-5] {
   font-size: 11px;
   line-height: 15px;
   color: rgba(0, 0, 0, 0.40);
@@ -2577,13 +1443,8 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
   font-weight: 600;
 }
 
-.glamor-3,
-[data-glamor-3] {
-  color: rgba(0, 0, 0, 0.20);
-}
-
-.glamor-4,
-[data-glamor-4] {
+.glamor-7,
+[data-glamor-7] {
   transition: background 0.1s ease-out;
   border-radius: 100%;
   height: 14px;
@@ -2598,13 +1459,13 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
   -moz-transition: background 0.1s ease-out;
 }
 
-.glamor-4:hover,
-[data-glamor-4]:hover {
+.glamor-7:hover,
+[data-glamor-7]:hover {
   border: solid 1px #33a0ff;
 }
 
-.glamor-6,
-[data-glamor-6] {
+.glamor-9,
+[data-glamor-9] {
   transition: background 0.1s ease-out;
   border-radius: 100%;
   height: 14px;
@@ -2618,8 +1479,8 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
   -moz-transition: background 0.1s ease-out;
 }
 
-.glamor-6:hover,
-[data-glamor-6]:hover {
+.glamor-9:hover,
+[data-glamor-9]:hover {
   border: solid 1px #33a0ff;
 }
 
@@ -2632,7 +1493,11 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -2644,6 +1509,107 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
         }
       }
     >
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "marginBottom": 4,
+          }
+        }
+      >
+        <div
+          onClick={[Function]}
+          style={
+            Object {
+              "alignItems": "flex-start",
+              "cursor": "pointer",
+              "display": "flex",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "backgroundColor": "inherit",
+                "border": "solid 1px rgba(0, 0, 0, 0.20)",
+                "borderRadius": 2,
+                "height": 13,
+                "marginRight": 8,
+                "marginTop": 2,
+                "opacity": 1,
+                "position": "relative",
+                "transition": "background 0.1s ease-out",
+                "width": 13,
+              }
+            }
+          >
+            <div>
+              <span
+                className="glamor-0"
+                onClick={null}
+                onMouseEnter={undefined}
+                onMouseLeave={undefined}
+                style={
+                  Object {
+                    "WebkitFontSmoothing": "antialiased",
+                    "fontFamily": "kb",
+                    "fontSize": 9,
+                    "fontStyle": "normal",
+                    "fontVariant": "normal",
+                    "fontWeight": "normal",
+                    "left": 1,
+                    "lineHeight": 1,
+                    "opacity": 0,
+                    "position": "absolute",
+                    "speak": "none",
+                    "textTransform": "none",
+                    "top": 1,
+                    "transition": "opacity 0.1s ease-out",
+                    "userSelect": "none",
+                  }
+                }
+              >
+                
+              </span>
+            </div>
+          </div>
+          <span
+            className="glamor-1"
+            onClick={undefined}
+            title={undefined}
+          >
+            Mute all notifications
+          </span>
+        </div>
+        <div>
+          <span
+            className="glamor-2"
+            onClick={null}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
+            style={
+              Object {
+                "WebkitFontSmoothing": "antialiased",
+                "fontFamily": "kb",
+                "fontSize": 16,
+                "fontStyle": "normal",
+                "fontVariant": "normal",
+                "fontWeight": "normal",
+                "lineHeight": 1,
+                "marginLeft": 4,
+                "speak": "none",
+                "textTransform": "none",
+                "userSelect": "none",
+              }
+            }
+          >
+            
+          </span>
+        </div>
+      </div>
       <div
         onClick={[Function]}
         style={
@@ -2719,7 +1685,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
         }
       >
         <span
-          className="glamor-2"
+          className="glamor-5"
           onClick={undefined}
           title={undefined}
         >
@@ -2727,7 +1693,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
         </span>
         <div>
           <span
-            className="glamor-3"
+            className="glamor-2"
             onClick={null}
             onMouseEnter={undefined}
             onMouseLeave={undefined}
@@ -2773,7 +1739,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
           }
         >
           <div
-            className="glamor-4"
+            className="glamor-7"
           >
             <div
               style={
@@ -2821,7 +1787,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
           }
         >
           <div
-            className="glamor-6"
+            className="glamor-9"
           >
             <div
               style={
@@ -2869,7 +1835,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
           }
         >
           <div
-            className="glamor-6"
+            className="glamor-9"
           >
             <div
               style={
@@ -2905,7 +1871,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
         }
       >
         <span
-          className="glamor-2"
+          className="glamor-5"
           onClick={undefined}
           title={undefined}
         >
@@ -2913,7 +1879,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
         </span>
         <div>
           <span
-            className="glamor-3"
+            className="glamor-2"
             onClick={null}
             onMouseEnter={undefined}
             onMouseLeave={undefined}
@@ -2959,7 +1925,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
           }
         >
           <div
-            className="glamor-6"
+            className="glamor-9"
           >
             <div
               style={
@@ -3007,7 +1973,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
           }
         >
           <div
-            className="glamor-4"
+            className="glamor-7"
           >
             <div
               style={
@@ -3055,7 +2021,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
           }
         >
           <div
-            className="glamor-6"
+            className="glamor-9"
           >
             <div
               style={
@@ -3131,6 +2097,11 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
 
 .glamor-2,
 [data-glamor-2] {
+  color: rgba(0, 0, 0, 0.20);
+}
+
+.glamor-5,
+[data-glamor-5] {
   font-size: 11px;
   line-height: 15px;
   color: rgba(0, 0, 0, 0.40);
@@ -3140,13 +2111,8 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
   font-weight: 600;
 }
 
-.glamor-3,
-[data-glamor-3] {
-  color: rgba(0, 0, 0, 0.20);
-}
-
-.glamor-4,
-[data-glamor-4] {
+.glamor-7,
+[data-glamor-7] {
   transition: background 0.1s ease-out;
   border-radius: 100%;
   height: 14px;
@@ -3160,13 +2126,13 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
   -moz-transition: background 0.1s ease-out;
 }
 
-.glamor-4:hover,
-[data-glamor-4]:hover {
+.glamor-7:hover,
+[data-glamor-7]:hover {
   border: solid 1px #33a0ff;
 }
 
-.glamor-6,
-[data-glamor-6] {
+.glamor-9,
+[data-glamor-9] {
   transition: background 0.1s ease-out;
   border-radius: 100%;
   height: 14px;
@@ -3181,8 +2147,8 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
   -moz-transition: background 0.1s ease-out;
 }
 
-.glamor-6:hover,
-[data-glamor-6]:hover {
+.glamor-9:hover,
+[data-glamor-9]:hover {
   border: solid 1px #33a0ff;
 }
 
@@ -3195,7 +2161,11 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -3207,6 +2177,107 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
         }
       }
     >
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "marginBottom": 4,
+          }
+        }
+      >
+        <div
+          onClick={[Function]}
+          style={
+            Object {
+              "alignItems": "flex-start",
+              "cursor": "pointer",
+              "display": "flex",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "backgroundColor": "inherit",
+                "border": "solid 1px rgba(0, 0, 0, 0.20)",
+                "borderRadius": 2,
+                "height": 13,
+                "marginRight": 8,
+                "marginTop": 2,
+                "opacity": 1,
+                "position": "relative",
+                "transition": "background 0.1s ease-out",
+                "width": 13,
+              }
+            }
+          >
+            <div>
+              <span
+                className="glamor-0"
+                onClick={null}
+                onMouseEnter={undefined}
+                onMouseLeave={undefined}
+                style={
+                  Object {
+                    "WebkitFontSmoothing": "antialiased",
+                    "fontFamily": "kb",
+                    "fontSize": 9,
+                    "fontStyle": "normal",
+                    "fontVariant": "normal",
+                    "fontWeight": "normal",
+                    "left": 1,
+                    "lineHeight": 1,
+                    "opacity": 0,
+                    "position": "absolute",
+                    "speak": "none",
+                    "textTransform": "none",
+                    "top": 1,
+                    "transition": "opacity 0.1s ease-out",
+                    "userSelect": "none",
+                  }
+                }
+              >
+                
+              </span>
+            </div>
+          </div>
+          <span
+            className="glamor-1"
+            onClick={undefined}
+            title={undefined}
+          >
+            Mute all notifications
+          </span>
+        </div>
+        <div>
+          <span
+            className="glamor-2"
+            onClick={null}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
+            style={
+              Object {
+                "WebkitFontSmoothing": "antialiased",
+                "fontFamily": "kb",
+                "fontSize": 16,
+                "fontStyle": "normal",
+                "fontVariant": "normal",
+                "fontWeight": "normal",
+                "lineHeight": 1,
+                "marginLeft": 4,
+                "speak": "none",
+                "textTransform": "none",
+                "userSelect": "none",
+              }
+            }
+          >
+            
+          </span>
+        </div>
+      </div>
       <div
         onClick={[Function]}
         style={
@@ -3281,7 +2352,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
         }
       >
         <span
-          className="glamor-2"
+          className="glamor-5"
           onClick={undefined}
           title={undefined}
         >
@@ -3289,7 +2360,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
         </span>
         <div>
           <span
-            className="glamor-3"
+            className="glamor-2"
             onClick={null}
             onMouseEnter={undefined}
             onMouseLeave={undefined}
@@ -3335,7 +2406,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
           }
         >
           <div
-            className="glamor-4"
+            className="glamor-7"
           >
             <div
               style={
@@ -3383,7 +2454,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
           }
         >
           <div
-            className="glamor-6"
+            className="glamor-9"
           >
             <div
               style={
@@ -3431,7 +2502,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
           }
         >
           <div
-            className="glamor-4"
+            className="glamor-7"
           >
             <div
               style={
@@ -3467,7 +2538,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
         }
       >
         <span
-          className="glamor-2"
+          className="glamor-5"
           onClick={undefined}
           title={undefined}
         >
@@ -3475,7 +2546,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
         </span>
         <div>
           <span
-            className="glamor-3"
+            className="glamor-2"
             onClick={null}
             onMouseEnter={undefined}
             onMouseLeave={undefined}
@@ -3521,7 +2592,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
           }
         >
           <div
-            className="glamor-4"
+            className="glamor-7"
           >
             <div
               style={
@@ -3569,7 +2640,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
           }
         >
           <div
-            className="glamor-4"
+            className="glamor-7"
           >
             <div
               style={
@@ -3617,7 +2688,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
           }
         >
           <div
-            className="glamor-6"
+            className="glamor-9"
           >
             <div
               style={
@@ -3696,7 +2767,11 @@ exports[`Storyshots Chat/Heads up Display Mention Hud 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -3773,8 +2848,8 @@ exports[`Storyshots Chat/Heads up Display Mention Hud 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -3829,8 +2904,8 @@ exports[`Storyshots Chat/Heads up Display Mention Hud 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -4008,7 +3083,6 @@ exports[`Storyshots Chat/Heads up Display Mention Row 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 600;
-  margin-left: 16px;
   text-decoration: inherit;
 }
 
@@ -4033,7 +3107,11 @@ exports[`Storyshots Chat/Heads up Display Mention Row 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -4045,8 +3123,8 @@ exports[`Storyshots Chat/Heads up Display Mention Row 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseOver={[Function]}
         onMouseUp={[Function]}
         style={
@@ -4089,6 +3167,13 @@ exports[`Storyshots Chat/Heads up Display Mention Row 1`] = `
             className="glamor-1"
           />
         </div>
+        <div
+          style={
+            Object {
+              "width": 16,
+            }
+          }
+        />
         <span
           className="glamor-4"
           onClick={undefined}
@@ -4119,8 +3204,8 @@ exports[`Storyshots Chat/Heads up Display Mention Row 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseOver={[Function]}
         onMouseUp={[Function]}
         style={
@@ -4163,6 +3248,13 @@ exports[`Storyshots Chat/Heads up Display Mention Row 1`] = `
             className="glamor-1"
           />
         </div>
+        <div
+          style={
+            Object {
+              "width": 16,
+            }
+          }
+        />
         <span
           className="glamor-4"
           onClick={undefined}
@@ -4193,8 +3285,8 @@ exports[`Storyshots Chat/Heads up Display Mention Row 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseOver={[Function]}
         onMouseUp={[Function]}
         style={
@@ -4237,6 +3329,13 @@ exports[`Storyshots Chat/Heads up Display Mention Row 1`] = `
             className="glamor-1"
           />
         </div>
+        <div
+          style={
+            Object {
+              "width": 16,
+            }
+          }
+        />
         <span
           className="glamor-4"
           onClick={undefined}
@@ -4396,7 +3495,11 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -4411,8 +3514,8 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -4601,8 +3704,8 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -4754,8 +3857,8 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -4881,8 +3984,8 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -4971,8 +4074,8 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -5061,8 +4164,8 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -5151,8 +4254,8 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -5410,7 +4513,11 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -5422,8 +4529,8 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -5625,8 +4732,8 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -5865,8 +4972,8 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -6223,7 +5330,11 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -6296,8 +5407,8 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -6360,8 +5471,8 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -6424,8 +5535,8 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -6488,8 +5599,8 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -6623,8 +5734,8 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -6688,8 +5799,8 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -6752,8 +5863,8 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -6830,8 +5941,8 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -6907,7 +6018,11 @@ exports[`Storyshots Chat/List Emoji Only 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -7000,7 +6115,11 @@ exports[`Storyshots Chat/List Normal 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -7207,7 +6326,11 @@ exports[`Storyshots Chat/Teams CreateChannel 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -7552,8 +6675,8 @@ exports[`Storyshots Chat/Teams CreateChannel 1`] = `
                 <div
                   onClick={[Function]}
                   onMouseDown={[Function]}
-                  onMouseEnter={[Function]}
-                  onMouseLeave={[Function]}
+                  onMouseEnter={undefined}
+                  onMouseLeave={undefined}
                   onMouseUp={[Function]}
                   style={
                     Object {
@@ -7608,8 +6731,8 @@ exports[`Storyshots Chat/Teams CreateChannel 1`] = `
                 <div
                   onClick={[Function]}
                   onMouseDown={[Function]}
-                  onMouseEnter={[Function]}
-                  onMouseLeave={[Function]}
+                  onMouseEnter={undefined}
+                  onMouseLeave={undefined}
                   onMouseUp={[Function]}
                   style={
                     Object {
@@ -7797,7 +6920,11 @@ exports[`Storyshots Chat/Teams EditChannel - general 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -8058,8 +7185,8 @@ exports[`Storyshots Chat/Teams EditChannel - general 1`] = `
             <div
               onClick={[Function]}
               onMouseDown={[Function]}
-              onMouseEnter={[Function]}
-              onMouseLeave={[Function]}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
               onMouseUp={[Function]}
               style={
                 Object {
@@ -8114,8 +7241,8 @@ exports[`Storyshots Chat/Teams EditChannel - general 1`] = `
             <div
               onClick={null}
               onMouseDown={[Function]}
-              onMouseEnter={[Function]}
-              onMouseLeave={[Function]}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
               onMouseUp={[Function]}
               style={
                 Object {
@@ -8287,7 +7414,11 @@ exports[`Storyshots Chat/Teams EditChannel 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -8541,8 +7672,8 @@ exports[`Storyshots Chat/Teams EditChannel 1`] = `
             <div
               onClick={[Function]}
               onMouseDown={[Function]}
-              onMouseEnter={[Function]}
-              onMouseLeave={[Function]}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
               onMouseUp={[Function]}
               style={
                 Object {
@@ -8597,8 +7728,8 @@ exports[`Storyshots Chat/Teams EditChannel 1`] = `
             <div
               onClick={null}
               onMouseDown={[Function]}
-              onMouseEnter={[Function]}
-              onMouseLeave={[Function]}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
               onMouseUp={[Function]}
               style={
                 Object {
@@ -8800,7 +7931,11 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -8992,6 +8127,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                               "width": 16,
                             }
                           }
+                          title="Leaving the general channel is disabled"
                         >
                           <div
                             onClick={[Function]}
@@ -8999,7 +8135,6 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                               Object {
                                 "alignItems": "flex-start",
                                 "alignSelf": "flex-start",
-                                "cursor": "pointer",
                                 "display": "flex",
                                 "flexDirection": "row",
                                 "marginRight": 0,
@@ -9015,7 +8150,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                                   "height": 13,
                                   "marginRight": 8,
                                   "marginTop": 2,
-                                  "opacity": 1,
+                                  "opacity": 0.4,
                                   "position": "relative",
                                   "transition": "background 0.1s ease-out",
                                   "width": 13,
@@ -9131,6 +8266,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                               "width": 16,
                             }
                           }
+                          title={undefined}
                         >
                           <div
                             onClick={[Function]}
@@ -9270,6 +8406,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                               "width": 16,
                             }
                           }
+                          title={undefined}
                         >
                           <div
                             onClick={[Function]}
@@ -9410,6 +8547,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                               "width": 16,
                             }
                           }
+                          title={undefined}
                         >
                           <div
                             onClick={[Function]}
@@ -9550,6 +8688,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                               "width": 16,
                             }
                           }
+                          title={undefined}
                         >
                           <div
                             onClick={[Function]}
@@ -9690,6 +8829,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                               "width": 16,
                             }
                           }
+                          title={undefined}
                         >
                           <div
                             onClick={[Function]}
@@ -9829,6 +8969,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                               "width": 16,
                             }
                           }
+                          title={undefined}
                         >
                           <div
                             onClick={[Function]}
@@ -10000,8 +9141,8 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                   <div
                     onClick={[Function]}
                     onMouseDown={[Function]}
-                    onMouseEnter={[Function]}
-                    onMouseLeave={[Function]}
+                    onMouseEnter={undefined}
+                    onMouseLeave={undefined}
                     onMouseUp={[Function]}
                     style={
                       Object {
@@ -10056,8 +9197,8 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                   <div
                     onClick={[Function]}
                     onMouseDown={[Function]}
-                    onMouseEnter={[Function]}
-                    onMouseLeave={[Function]}
+                    onMouseEnter={undefined}
+                    onMouseLeave={undefined}
                     onMouseUp={[Function]}
                     style={
                       Object {
@@ -10289,7 +9430,11 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -10481,6 +9626,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                               "width": 16,
                             }
                           }
+                          title="Leaving the general channel is disabled"
                         >
                           <div
                             onClick={[Function]}
@@ -10488,7 +9634,6 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                               Object {
                                 "alignItems": "flex-start",
                                 "alignSelf": "flex-start",
-                                "cursor": "pointer",
                                 "display": "flex",
                                 "flexDirection": "row",
                                 "marginRight": 0,
@@ -10504,7 +9649,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                                   "height": 13,
                                   "marginRight": 8,
                                   "marginTop": 2,
-                                  "opacity": 1,
+                                  "opacity": 0.4,
                                   "position": "relative",
                                   "transition": "background 0.1s ease-out",
                                   "width": 13,
@@ -10666,6 +9811,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                               "width": 16,
                             }
                           }
+                          title={undefined}
                         >
                           <div
                             onClick={[Function]}
@@ -10851,6 +9997,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                               "width": 16,
                             }
                           }
+                          title={undefined}
                         >
                           <div
                             onClick={[Function]}
@@ -11037,6 +10184,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                               "width": 16,
                             }
                           }
+                          title={undefined}
                         >
                           <div
                             onClick={[Function]}
@@ -11223,6 +10371,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                               "width": 16,
                             }
                           }
+                          title={undefined}
                         >
                           <div
                             onClick={[Function]}
@@ -11409,6 +10558,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                               "width": 16,
                             }
                           }
+                          title={undefined}
                         >
                           <div
                             onClick={[Function]}
@@ -11594,6 +10744,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                               "width": 16,
                             }
                           }
+                          title={undefined}
                         >
                           <div
                             onClick={[Function]}
@@ -11811,8 +10962,8 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                   <div
                     onClick={[Function]}
                     onMouseDown={[Function]}
-                    onMouseEnter={[Function]}
-                    onMouseLeave={[Function]}
+                    onMouseEnter={undefined}
+                    onMouseLeave={undefined}
                     onMouseUp={[Function]}
                     style={
                       Object {
@@ -11867,8 +11018,8 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                   <div
                     onClick={null}
                     onMouseDown={[Function]}
-                    onMouseEnter={[Function]}
-                    onMouseLeave={[Function]}
+                    onMouseEnter={undefined}
+                    onMouseLeave={undefined}
                     onMouseUp={[Function]}
                     style={
                       Object {
@@ -12364,7 +11515,11 @@ exports[`Storyshots Common Avatar 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div>
       <span
@@ -14286,7 +13441,11 @@ exports[`Storyshots Common Box 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -14728,7 +13887,11 @@ exports[`Storyshots Common Button 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -14764,8 +13927,8 @@ exports[`Storyshots Common Button 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -14820,8 +13983,8 @@ exports[`Storyshots Common Button 1`] = `
           <div
             onClick={null}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -14887,8 +14050,8 @@ exports[`Storyshots Common Button 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -14943,8 +14106,8 @@ exports[`Storyshots Common Button 1`] = `
           <div
             onClick={null}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -15010,8 +14173,8 @@ exports[`Storyshots Common Button 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -15066,8 +14229,8 @@ exports[`Storyshots Common Button 1`] = `
           <div
             onClick={null}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -15133,8 +14296,8 @@ exports[`Storyshots Common Button 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -15189,8 +14352,8 @@ exports[`Storyshots Common Button 1`] = `
           <div
             onClick={null}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -15256,8 +14419,8 @@ exports[`Storyshots Common Button 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -15315,8 +14478,8 @@ exports[`Storyshots Common Button 1`] = `
           <div
             onClick={null}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -15379,8 +14542,8 @@ exports[`Storyshots Common Button 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -15434,8 +14597,8 @@ exports[`Storyshots Common Button 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -15489,8 +14652,8 @@ exports[`Storyshots Common Button 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -15544,8 +14707,8 @@ exports[`Storyshots Common Button 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -15599,8 +14762,8 @@ exports[`Storyshots Common Button 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -15715,7 +14878,11 @@ exports[`Storyshots Common ButtonBar 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -15747,8 +14914,8 @@ exports[`Storyshots Common ButtonBar 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -15811,8 +14978,8 @@ exports[`Storyshots Common ButtonBar 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -15867,8 +15034,8 @@ exports[`Storyshots Common ButtonBar 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -15937,8 +15104,8 @@ exports[`Storyshots Common ButtonBar 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -16015,8 +15182,8 @@ exports[`Storyshots Common ButtonBar 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -16071,8 +15238,8 @@ exports[`Storyshots Common ButtonBar 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -16143,8 +15310,8 @@ exports[`Storyshots Common ButtonBar 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -16207,8 +15374,8 @@ exports[`Storyshots Common ButtonBar 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -16271,8 +15438,8 @@ exports[`Storyshots Common ButtonBar 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -16335,8 +15502,8 @@ exports[`Storyshots Common ButtonBar 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -16391,8 +15558,8 @@ exports[`Storyshots Common ButtonBar 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -16461,8 +15628,8 @@ exports[`Storyshots Common ButtonBar 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -16546,7 +15713,11 @@ exports[`Storyshots Common Checkbox 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -16875,7 +16046,11 @@ exports[`Storyshots Common Dropdown 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -17058,7 +16233,11 @@ exports[`Storyshots Common Icon 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div>
       <span
@@ -24545,7 +23724,11 @@ exports[`Storyshots Common RadioButton 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -25123,7 +24306,11 @@ exports[`Storyshots Common Text 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -26000,6 +25187,302 @@ exports[`Storyshots Common Text 1`] = `
 </div>
 `;
 
+exports[`Storyshots Devices Only active 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  color: #33a0ff;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  font-size: 14px;
+  line-height: 18px;
+  color: #33a0ff;
+  cursor: pointer;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  padding: 4px;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "display": "flex",
+          "flexDirection": "column",
+          "height": "100%",
+        }
+      }
+    >
+      <div
+        onClick={[Function]}
+        onMouseDown={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
+        onMouseUp={[Function]}
+        style={
+          Object {
+            "alignItems": "stretch",
+            "borderRadius": 0,
+            "cursor": "pointer",
+            "display": "flex",
+            "flexDirection": "column",
+            "height": undefined,
+            "lineHeight": 0,
+            "minWidth": undefined,
+            "position": "relative",
+            "textAlign": "left",
+            "transform": "none",
+            "transition": "none",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "borderBottomColor": "rgba(0, 0, 0, 0.05)",
+              "borderBottomWidth": 0,
+              "display": "flex",
+              "flexDirection": "row",
+              "justifyContent": "center",
+              "minHeight": 48,
+              "padding": 8,
+            }
+          }
+        >
+          <div>
+            <span
+              className="glamor-0"
+              onClick={null}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "fontFamily": "kb",
+                  "fontSize": 16,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "lineHeight": 1,
+                  "speak": "none",
+                  "textTransform": "none",
+                  "userSelect": "none",
+                }
+              }
+            >
+              
+            </span>
+          </div>
+          <span
+            className="glamor-1"
+            onClick={undefined}
+            title={undefined}
+          >
+            Add new...
+          </span>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "flexGrow": 1,
+            "position": "relative",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "height": "100%",
+                "overflowY": "auto",
+                "width": "100%",
+              }
+            }
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Devices Showing revoked 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  color: #33a0ff;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  font-size: 14px;
+  line-height: 18px;
+  color: #33a0ff;
+  cursor: pointer;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  padding: 4px;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "display": "flex",
+          "flexDirection": "column",
+          "height": "100%",
+        }
+      }
+    >
+      <div
+        onClick={[Function]}
+        onMouseDown={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
+        onMouseUp={[Function]}
+        style={
+          Object {
+            "alignItems": "stretch",
+            "borderRadius": 0,
+            "cursor": "pointer",
+            "display": "flex",
+            "flexDirection": "column",
+            "height": undefined,
+            "lineHeight": 0,
+            "minWidth": undefined,
+            "position": "relative",
+            "textAlign": "left",
+            "transform": "none",
+            "transition": "none",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "borderBottomColor": "rgba(0, 0, 0, 0.05)",
+              "borderBottomWidth": 0,
+              "display": "flex",
+              "flexDirection": "row",
+              "justifyContent": "center",
+              "minHeight": 48,
+              "padding": 8,
+            }
+          }
+        >
+          <div>
+            <span
+              className="glamor-0"
+              onClick={null}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "fontFamily": "kb",
+                  "fontSize": 16,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "lineHeight": 1,
+                  "speak": "none",
+                  "textTransform": "none",
+                  "userSelect": "none",
+                }
+              }
+            >
+              
+            </span>
+          </div>
+          <span
+            className="glamor-1"
+            onClick={undefined}
+            title={undefined}
+          >
+            Add new...
+          </span>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "flexGrow": 1,
+            "position": "relative",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "height": "100%",
+                "overflowY": "auto",
+                "width": "100%",
+              }
+            }
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`Storyshots Edit team description Description changed 1`] = `
 .glamor-0,
 [data-glamor-0] {
@@ -26107,7 +25590,11 @@ exports[`Storyshots Edit team description Description changed 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -26320,8 +25807,8 @@ exports[`Storyshots Edit team description Description changed 1`] = `
                 <div
                   onClick={[Function]}
                   onMouseDown={[Function]}
-                  onMouseEnter={[Function]}
-                  onMouseLeave={[Function]}
+                  onMouseEnter={undefined}
+                  onMouseLeave={undefined}
                   onMouseUp={[Function]}
                   style={
                     Object {
@@ -26376,8 +25863,8 @@ exports[`Storyshots Edit team description Description changed 1`] = `
                 <div
                   onClick={[Function]}
                   onMouseDown={[Function]}
-                  onMouseEnter={[Function]}
-                  onMouseLeave={[Function]}
+                  onMouseEnter={undefined}
+                  onMouseLeave={undefined}
                   onMouseUp={[Function]}
                   style={
                     Object {
@@ -26538,7 +26025,11 @@ exports[`Storyshots Edit team description Description unchanged 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -26751,8 +26242,8 @@ exports[`Storyshots Edit team description Description unchanged 1`] = `
                 <div
                   onClick={[Function]}
                   onMouseDown={[Function]}
-                  onMouseEnter={[Function]}
-                  onMouseLeave={[Function]}
+                  onMouseEnter={undefined}
+                  onMouseLeave={undefined}
                   onMouseUp={[Function]}
                   style={
                     Object {
@@ -26807,8 +26298,8 @@ exports[`Storyshots Edit team description Description unchanged 1`] = `
                 <div
                   onClick={null}
                   onMouseDown={[Function]}
-                  onMouseEnter={[Function]}
-                  onMouseLeave={[Function]}
+                  onMouseEnter={undefined}
+                  onMouseLeave={undefined}
                   onMouseUp={[Function]}
                   style={
                     Object {
@@ -26862,40 +26353,16 @@ exports[`Storyshots Edit team description Description unchanged 1`] = `
 </div>
 `;
 
-exports[`Storyshots FS Root 1`] = `
+exports[`Storyshots Files Root 1`] = `
 .glamor-0,
 [data-glamor-0] {
-  font-size: 16px;
-  line-height: 20px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-}
-
-.glamor-1,
-[data-glamor-1] {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-}
-
-.glamor-2,
-[data-glamor-2] {
   font-size: 14px;
   line-height: 18px;
-  color: #ffffff;
+  color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 600;
-  text-align: center;
-  white-space: pre;
 }
 
 <div
@@ -26907,12 +26374,17 @@ exports[`Storyshots FS Root 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
         Object {
-          "width": "100%",
+          "height": "100%",
+          "position": "relative",
         }
       }
     >
@@ -26922,431 +26394,87 @@ exports[`Storyshots FS Root 1`] = `
             "display": "flex",
             "flex": 1,
             "flexDirection": "column",
-            "padding": 64,
+            "height": "100%",
           }
         }
       >
-        <span
-          className="glamor-0"
-          onClick={undefined}
-          title={undefined}
-        >
-          Hi 
-          jzila
-          !
-        </span>
-        <span
-          className="glamor-1"
-          onClick={undefined}
-          title={undefined}
-        >
-          Count: 
-          1
-        </span>
-        <div
-          style={
-            Object {
-              "alignItems": "center",
-              "display": "flex",
-              "flexDirection": "row",
-              "justifyContent": "flex-start",
-              "minHeight": 64,
-              "width": "100%",
-            }
-          }
-        >
+        <div>
           <div
-            onClick={[Function]}
-            onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
-            onMouseUp={[Function]}
             style={
               Object {
                 "alignItems": "center",
-                "alignSelf": "center",
-                "backgroundColor": "#33a0ff",
-                "borderRadius": 50,
-                "cursor": "pointer",
-                "display": "inline-block",
-                "flexDirection": "column",
-                "height": 32,
+                "borderBottomColor": "rgba(0, 0, 0, 0.05)",
+                "borderBottomWidth": 1,
+                "display": "flex",
+                "flexDirection": "row",
                 "justifyContent": "center",
-                "lineHeight": "inherit",
-                "minWidth": undefined,
-                "paddingLeft": 24,
-                "paddingRight": 24,
-                "position": "relative",
-                "textAlign": "left",
-                "transform": "none",
-                "transition": "none",
+                "minHeight": 48,
               }
             }
           >
-            <div
-              style={
-                Object {
-                  "alignItems": "center",
-                  "display": "flex",
-                  "height": "100%",
-                  "justifyContent": "center",
-                  "position": "relative",
-                }
-              }
+            <span
+              className="glamor-0"
+              onClick={undefined}
+              title={undefined}
             >
-              <span
-                className="glamor-2"
-                onClick={undefined}
-                title={undefined}
-              >
-                Up by 1
-              </span>
-            </div>
-          </div>
-          <div
-            style={
-              Object {
-                "height": 8,
-                "width": 8,
-              }
-            }
-          />
-          <div
-            onClick={[Function]}
-            onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
-            onMouseUp={[Function]}
-            style={
-              Object {
-                "alignItems": "center",
-                "alignSelf": "center",
-                "backgroundColor": "#33a0ff",
-                "borderRadius": 50,
-                "cursor": "pointer",
-                "display": "inline-block",
-                "flexDirection": "column",
-                "height": 32,
-                "justifyContent": "center",
-                "lineHeight": "inherit",
-                "minWidth": undefined,
-                "paddingLeft": 24,
-                "paddingRight": 24,
-                "position": "relative",
-                "textAlign": "left",
-                "transform": "none",
-                "transition": "none",
-              }
-            }
-          >
-            <div
-              style={
-                Object {
-                  "alignItems": "center",
-                  "display": "flex",
-                  "height": "100%",
-                  "justifyContent": "center",
-                  "position": "relative",
-                }
-              }
-            >
-              <span
-                className="glamor-2"
-                onClick={undefined}
-                title={undefined}
-              >
-                Up by 10
-              </span>
-            </div>
+              Keybase Files
+            </span>
           </div>
         </div>
-      </div>
-      <div
-        style={
-          Object {
-            "display": "flex",
-            "flex": 1,
-            "flexDirection": "column",
-            "padding": 64,
-          }
-        }
-      >
-        <span
-          className="glamor-0"
-          onClick={undefined}
-          title={undefined}
-        >
-          Hi 
-          !
-        </span>
-        <span
-          className="glamor-1"
-          onClick={undefined}
-          title={undefined}
-        >
-          Count: 
-          1
-        </span>
-        <div
-          style={
-            Object {
-              "alignItems": "center",
-              "display": "flex",
-              "flexDirection": "row",
-              "justifyContent": "flex-start",
-              "minHeight": 64,
-              "width": "100%",
-            }
-          }
-        >
-          <div
-            onClick={[Function]}
-            onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
-            onMouseUp={[Function]}
-            style={
-              Object {
-                "alignItems": "center",
-                "alignSelf": "center",
-                "backgroundColor": "#33a0ff",
-                "borderRadius": 50,
-                "cursor": "pointer",
-                "display": "inline-block",
-                "flexDirection": "column",
-                "height": 32,
-                "justifyContent": "center",
-                "lineHeight": "inherit",
-                "minWidth": undefined,
-                "paddingLeft": 24,
-                "paddingRight": 24,
-                "position": "relative",
-                "textAlign": "left",
-                "transform": "none",
-                "transition": "none",
-              }
-            }
-          >
-            <div
-              style={
-                Object {
-                  "alignItems": "center",
-                  "display": "flex",
-                  "height": "100%",
-                  "justifyContent": "center",
-                  "position": "relative",
-                }
-              }
-            >
-              <span
-                className="glamor-2"
-                onClick={undefined}
-                title={undefined}
-              >
-                Up by 1
-              </span>
-            </div>
-          </div>
+        <div>
           <div
             style={
               Object {
-                "height": 8,
-                "width": 8,
+                "backgroundColor": "rgba(0, 0, 0, 0.05)",
+                "flex": 1,
+                "maxHeight": 1,
+                "minHeight": 1,
               }
             }
           />
           <div
-            onClick={[Function]}
-            onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
-            onMouseUp={[Function]}
             style={
               Object {
                 "alignItems": "center",
-                "alignSelf": "center",
-                "backgroundColor": "#33a0ff",
-                "borderRadius": 50,
-                "cursor": "pointer",
-                "display": "inline-block",
-                "flexDirection": "column",
-                "height": 32,
-                "justifyContent": "center",
-                "lineHeight": "inherit",
-                "minWidth": undefined,
-                "paddingLeft": 24,
-                "paddingRight": 24,
-                "position": "relative",
-                "textAlign": "left",
-                "transform": "none",
-                "transition": "none",
+                "backgroundColor": "#F8FAFD",
+                "borderTopColor": "rgba(0, 0, 0, 0.05)",
+                "borderTopWidth": 1,
+                "display": "flex",
+                "flexDirection": "row",
+                "justifyContent": "start",
+                "minHeight": 24,
               }
             }
-          >
-            <div
-              style={
-                Object {
-                  "alignItems": "center",
-                  "display": "flex",
-                  "height": "100%",
-                  "justifyContent": "center",
-                  "position": "relative",
-                }
-              }
-            >
-              <span
-                className="glamor-2"
-                onClick={undefined}
-                title={undefined}
-              >
-                Up by 10
-              </span>
-            </div>
-          </div>
+          />
         </div>
-      </div>
-      <div
-        style={
-          Object {
-            "display": "flex",
-            "flex": 1,
-            "flexDirection": "column",
-            "padding": 64,
-          }
-        }
-      >
-        <span
-          className="glamor-0"
-          onClick={undefined}
-          title={undefined}
-        >
-          Hi 
-          jzila
-          !
-        </span>
-        <span
-          className="glamor-1"
-          onClick={undefined}
-          title={undefined}
-        >
-          Count: 
-          1
-        </span>
         <div
           style={
             Object {
-              "alignItems": "center",
-              "display": "flex",
-              "flexDirection": "row",
-              "justifyContent": "flex-start",
-              "minHeight": 64,
-              "width": "100%",
+              "flexGrow": 1,
+              "position": "relative",
             }
           }
         >
           <div
-            onClick={[Function]}
-            onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
-            onMouseUp={[Function]}
             style={
               Object {
-                "alignItems": "center",
-                "alignSelf": "center",
-                "backgroundColor": "#33a0ff",
-                "borderRadius": 50,
-                "cursor": "pointer",
-                "display": "inline-block",
-                "flexDirection": "column",
-                "height": 32,
-                "justifyContent": "center",
-                "lineHeight": "inherit",
-                "minWidth": undefined,
-                "paddingLeft": 24,
-                "paddingRight": 24,
-                "position": "relative",
-                "textAlign": "left",
-                "transform": "none",
-                "transition": "none",
+                "bottom": 0,
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
               }
             }
           >
             <div
               style={
                 Object {
-                  "alignItems": "center",
-                  "display": "flex",
                   "height": "100%",
-                  "justifyContent": "center",
-                  "position": "relative",
+                  "overflowY": "auto",
+                  "width": "100%",
                 }
               }
-            >
-              <span
-                className="glamor-2"
-                onClick={undefined}
-                title={undefined}
-              >
-                Up by 1
-              </span>
-            </div>
-          </div>
-          <div
-            style={
-              Object {
-                "height": 8,
-                "width": 8,
-              }
-            }
-          />
-          <div
-            onClick={[Function]}
-            onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
-            onMouseUp={[Function]}
-            style={
-              Object {
-                "alignItems": "center",
-                "alignSelf": "center",
-                "backgroundColor": "#33a0ff",
-                "borderRadius": 50,
-                "cursor": "pointer",
-                "display": "inline-block",
-                "flexDirection": "column",
-                "height": 32,
-                "justifyContent": "center",
-                "lineHeight": "inherit",
-                "minWidth": undefined,
-                "paddingLeft": 24,
-                "paddingRight": 24,
-                "position": "relative",
-                "textAlign": "left",
-                "transform": "none",
-                "transition": "none",
-              }
-            }
-          >
-            <div
-              style={
-                Object {
-                  "alignItems": "center",
-                  "display": "flex",
-                  "height": "100%",
-                  "justifyContent": "center",
-                  "position": "relative",
-                }
-              }
-            >
-              <span
-                className="glamor-2"
-                onClick={undefined}
-                title={undefined}
-              >
-                Up by 10
-              </span>
-            </div>
+            />
           </div>
         </div>
       </div>
@@ -27452,7 +26580,11 @@ exports[`Storyshots Git DeleteRepo 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -27611,8 +26743,8 @@ exports[`Storyshots Git DeleteRepo 1`] = `
               <div
                 onClick={[Function]}
                 onMouseDown={[Function]}
-                onMouseEnter={[Function]}
-                onMouseLeave={[Function]}
+                onMouseEnter={undefined}
+                onMouseLeave={undefined}
                 onMouseUp={[Function]}
                 style={
                   Object {
@@ -27660,8 +26792,8 @@ exports[`Storyshots Git DeleteRepo 1`] = `
               <div
                 onClick={null}
                 onMouseDown={[Function]}
-                onMouseEnter={[Function]}
-                onMouseLeave={[Function]}
+                onMouseEnter={undefined}
+                onMouseLeave={undefined}
                 onMouseUp={[Function]}
                 style={
                   Object {
@@ -27854,7 +26986,11 @@ exports[`Storyshots Git DeleteTeamRepo 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -28100,8 +27236,8 @@ exports[`Storyshots Git DeleteTeamRepo 1`] = `
               <div
                 onClick={[Function]}
                 onMouseDown={[Function]}
-                onMouseEnter={[Function]}
-                onMouseLeave={[Function]}
+                onMouseEnter={undefined}
+                onMouseLeave={undefined}
                 onMouseUp={[Function]}
                 style={
                   Object {
@@ -28149,8 +27285,8 @@ exports[`Storyshots Git DeleteTeamRepo 1`] = `
               <div
                 onClick={null}
                 onMouseDown={[Function]}
-                onMouseEnter={[Function]}
-                onMouseLeave={[Function]}
+                onMouseEnter={undefined}
+                onMouseLeave={undefined}
                 onMouseUp={[Function]}
                 style={
                   Object {
@@ -28277,7 +27413,11 @@ exports[`Storyshots Git NewPersonalRepo 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -28412,8 +27552,8 @@ exports[`Storyshots Git NewPersonalRepo 1`] = `
               <div
                 onClick={[Function]}
                 onMouseDown={[Function]}
-                onMouseEnter={[Function]}
-                onMouseLeave={[Function]}
+                onMouseEnter={undefined}
+                onMouseLeave={undefined}
                 onMouseUp={[Function]}
                 style={
                   Object {
@@ -28461,8 +27601,8 @@ exports[`Storyshots Git NewPersonalRepo 1`] = `
               <div
                 onClick={null}
                 onMouseDown={[Function]}
-                onMouseEnter={[Function]}
-                onMouseLeave={[Function]}
+                onMouseEnter={undefined}
+                onMouseLeave={undefined}
                 onMouseUp={[Function]}
                 style={
                   Object {
@@ -28650,7 +27790,11 @@ exports[`Storyshots Git NewTeamRepo 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -28917,8 +28061,8 @@ exports[`Storyshots Git NewTeamRepo 1`] = `
               <div
                 onClick={[Function]}
                 onMouseDown={[Function]}
-                onMouseEnter={[Function]}
-                onMouseLeave={[Function]}
+                onMouseEnter={undefined}
+                onMouseLeave={undefined}
                 onMouseUp={[Function]}
                 style={
                   Object {
@@ -28966,8 +28110,8 @@ exports[`Storyshots Git NewTeamRepo 1`] = `
               <div
                 onClick={null}
                 onMouseDown={[Function]}
-                onMouseEnter={[Function]}
-                onMouseLeave={[Function]}
+                onMouseEnter={undefined}
+                onMouseLeave={undefined}
                 onMouseUp={[Function]}
                 style={
                   Object {
@@ -29030,7 +28174,11 @@ exports[`Storyshots Git Root 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -29116,7 +28264,7 @@ exports[`Storyshots People/Follow Suggestions One 1`] = `
 [data-glamor-3] {
   font-size: 13px;
   line-height: 17px;
-  color: #33a0ff;
+  color: rgba(0, 0, 0, 0.75);
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -29126,6 +28274,7 @@ exports[`Storyshots People/Follow Suggestions One 1`] = `
   padding-right: 8px;
   text-decoration: inherit;
   display: inline;
+  font-style: italic;
 }
 
 .glamor-6,
@@ -29155,7 +28304,11 @@ exports[`Storyshots People/Follow Suggestions One 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -29197,8 +28350,8 @@ exports[`Storyshots People/Follow Suggestions One 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -29266,7 +28419,7 @@ exports[`Storyshots People/Follow Suggestions One 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-3 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -29362,7 +28515,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
 [data-glamor-3] {
   font-size: 13px;
   line-height: 17px;
-  color: #33a0ff;
+  color: rgba(0, 0, 0, 0.75);
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -29372,6 +28525,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
   padding-right: 8px;
   text-decoration: inherit;
   display: inline;
+  font-style: italic;
 }
 
 .glamor-6,
@@ -29408,6 +28562,22 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
   display: inline;
 }
 
+.glamor-15,
+[data-glamor-15] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #33a0ff;
+  cursor: pointer;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  padding-left: 8px;
+  padding-right: 8px;
+  text-decoration: inherit;
+  display: inline;
+}
+
 <div
   style={
     Object {
@@ -29417,7 +28587,11 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -29459,8 +28633,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -29528,7 +28702,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-3 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -29547,8 +28721,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -29616,7 +28790,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-9"
+                  className="glamor-9 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -29635,8 +28809,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -29689,7 +28863,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-15 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -29708,8 +28882,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -29777,7 +28951,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-15 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -29796,8 +28970,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -29865,7 +29039,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-15 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -29884,8 +29058,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -29953,7 +29127,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-15 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -29972,8 +29146,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -30041,7 +29215,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-15 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -30060,8 +29234,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -30129,7 +29303,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-15 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -30148,8 +29322,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -30217,7 +29391,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-15 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -30236,8 +29410,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -30290,7 +29464,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-15 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -30309,8 +29483,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -30378,7 +29552,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-15 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -30397,8 +29571,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -30466,7 +29640,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-15 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -30485,8 +29659,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -30554,7 +29728,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-15 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -30573,8 +29747,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -30642,7 +29816,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-15 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -30738,7 +29912,7 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
 [data-glamor-3] {
   font-size: 13px;
   line-height: 17px;
-  color: #33a0ff;
+  color: rgba(0, 0, 0, 0.75);
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -30748,6 +29922,7 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
   padding-right: 8px;
   text-decoration: inherit;
   display: inline;
+  font-style: italic;
 }
 
 .glamor-6,
@@ -30784,6 +29959,22 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
   display: inline;
 }
 
+.glamor-15,
+[data-glamor-15] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #33a0ff;
+  cursor: pointer;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  padding-left: 8px;
+  padding-right: 8px;
+  text-decoration: inherit;
+  display: inline;
+}
+
 <div
   style={
     Object {
@@ -30793,7 +29984,11 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -30835,8 +30030,8 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -30904,7 +30099,7 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-3 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -30923,8 +30118,8 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -30992,7 +30187,7 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-9"
+                  className="glamor-9 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -31011,8 +30206,8 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -31065,7 +30260,7 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-15 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -31084,8 +30279,8 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -31153,7 +30348,7 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-15 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -31172,8 +30367,8 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -31241,7 +30436,7 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-15 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -31260,8 +30455,8 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -31329,7 +30524,7 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-15 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -31348,8 +30543,8 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -31417,7 +30612,7 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
                 title={undefined}
               >
                 <span
-                  className="glamor-3"
+                  className="glamor-15 hover-underline"
                   onClick={[Function]}
                   title={undefined}
                 >
@@ -31590,7 +30785,11 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -31689,7 +30888,7 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
               title={undefined}
             >
               <span
-                className="glamor-1"
+                className="glamor-1 hover-underline"
                 onClick={[Function]}
                 title={undefined}
               >
@@ -31710,7 +30909,7 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
               title={undefined}
             >
               <span
-                className="glamor-4"
+                className="glamor-4 hover-underline"
                 onClick={[Function]}
                 title={undefined}
               >
@@ -31732,7 +30931,7 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
             >
               and 
               <span
-                className="glamor-4"
+                className="glamor-1 hover-underline"
                 onClick={[Function]}
                 title={undefined}
               >
@@ -32018,7 +31217,11 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -32117,7 +31320,7 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
               title={undefined}
             >
               <span
-                className="glamor-1"
+                className="glamor-1 hover-underline"
                 onClick={[Function]}
                 title={undefined}
               >
@@ -32138,7 +31341,7 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
               title={undefined}
             >
               <span
-                className="glamor-4"
+                className="glamor-4 hover-underline"
                 onClick={[Function]}
                 title={undefined}
               >
@@ -32159,7 +31362,7 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
               title={undefined}
             >
               <span
-                className="glamor-4"
+                className="glamor-1 hover-underline"
                 onClick={[Function]}
                 title={undefined}
               >
@@ -32180,7 +31383,7 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
               title={undefined}
             >
               <span
-                className="glamor-4"
+                className="glamor-4 hover-underline"
                 onClick={[Function]}
                 title={undefined}
               >
@@ -32428,126 +31631,154 @@ exports[`Storyshots People/Follow notification Someone followed you 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
+      onClick={[Function]}
+      onMouseDown={[Function]}
+      onMouseEnter={undefined}
+      onMouseLeave={undefined}
+      onMouseUp={[Function]}
       style={
         Object {
-          "backgroundColor": "#ebf5fc",
-          "borderBottomColor": "#ffffff",
-          "borderBottomStyle": "solid",
-          "borderBottomWidth": 1,
+          "alignItems": "stretch",
+          "borderRadius": 0,
+          "cursor": "pointer",
           "display": "flex",
-          "flexDirection": "row",
-          "paddingBottom": 8,
-          "paddingLeft": 12,
-          "paddingTop": 8,
+          "flexDirection": "column",
+          "height": undefined,
+          "lineHeight": 0,
+          "minWidth": undefined,
           "position": "relative",
+          "textAlign": "left",
+          "transform": "none",
+          "transition": "none",
         }
       }
     >
       <div
         style={
           Object {
-            "marginRight": 20,
-            "width": 32,
+            "backgroundColor": "#ebf5fc",
+            "borderBottomColor": "#ffffff",
+            "borderBottomStyle": "solid",
+            "borderBottomWidth": 1,
+            "display": "flex",
+            "flexDirection": "row",
+            "paddingBottom": 8,
+            "paddingLeft": 12,
+            "paddingTop": 8,
+            "position": "relative",
           }
         }
       >
         <div
-          onClick={[Function]}
           style={
             Object {
-              "cursor": "pointer",
-              "height": 32,
-              "maxWidth": 32,
-              "minHeight": 32,
-              "minWidth": 32,
-              "position": "relative",
-              "userSelect": "none",
+              "marginRight": 20,
+              "width": 32,
             }
           }
         >
           <div
-            className="glamor-0"
-          />
-          <div
-            className="glamor-1"
-          />
+            onClick={[Function]}
+            style={
+              Object {
+                "cursor": "pointer",
+                "height": 32,
+                "maxWidth": 32,
+                "minHeight": 32,
+                "minWidth": 32,
+                "position": "relative",
+                "userSelect": "none",
+              }
+            }
+          >
+            <div
+              className="glamor-0"
+            />
+            <div
+              className="glamor-1"
+            />
+          </div>
         </div>
-      </div>
-      <div
-        style={
-          Object {
-            "display": "flex",
-            "flexDirection": "column",
-            "justifyContent": "center",
-            "overflow": "hidden",
-            "paddingRight": 80,
-            "position": "relative",
-            "width": "auto",
+        <div
+          style={
+            Object {
+              "display": "flex",
+              "flexDirection": "column",
+              "justifyContent": "center",
+              "overflow": "hidden",
+              "paddingRight": 80,
+              "position": "relative",
+              "width": "auto",
+            }
           }
-        }
-      >
-        <span
-          className="glamor-5"
-          onClick={undefined}
-          title={undefined}
         >
           <span
-            className="glamor-4"
+            className="glamor-5"
             onClick={undefined}
             title={undefined}
           >
             <span
-              className="glamor-3"
+              className="glamor-4"
               onClick={undefined}
               title={undefined}
             >
               <span
-                className="glamor-2"
-                onClick={[Function]}
+                className="glamor-3"
+                onClick={undefined}
                 title={undefined}
               >
-                mmaxim
+                <span
+                  className="glamor-2 hover-underline"
+                  onClick={[Function]}
+                  title={undefined}
+                >
+                  mmaxim
+                </span>
               </span>
             </span>
+             
+            followed you.
           </span>
-           
-          followed you.
-        </span>
-      </div>
-      <div
-        style={
-          Object {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "row",
-            "position": "absolute",
-            "right": 8,
-            "top": 12,
-          }
-        }
-      >
-        <span
-          className="glamor-6"
-          onClick={undefined}
-          title={undefined}
-        >
-          now
-        </span>
+        </div>
         <div
           style={
             Object {
-              "backgroundColor": "#ff6f21",
-              "borderRadius": 6,
-              "height": 8,
-              "marginLeft": 4,
-              "marginTop": 1,
-              "width": 8,
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "position": "absolute",
+              "right": 8,
+              "top": 12,
             }
           }
-        />
+        >
+          <span
+            className="glamor-6"
+            onClick={undefined}
+            title={undefined}
+          >
+            now
+          </span>
+          <div
+            style={
+              Object {
+                "backgroundColor": "#ff6f21",
+                "borderRadius": 6,
+                "height": 8,
+                "marginLeft": 4,
+                "marginTop": 1,
+                "width": 8,
+              }
+            }
+          />
+        </div>
       </div>
     </div>
   </div>
@@ -32655,114 +31886,142 @@ exports[`Storyshots People/Follow notification Someone you follow followed you 1
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
+      onClick={[Function]}
+      onMouseDown={[Function]}
+      onMouseEnter={undefined}
+      onMouseLeave={undefined}
+      onMouseUp={[Function]}
       style={
         Object {
-          "backgroundColor": "#ffffff",
-          "borderBottomColor": "rgba(0, 0, 0, 0.05)",
-          "borderBottomStyle": "solid",
-          "borderBottomWidth": 1,
+          "alignItems": "stretch",
+          "borderRadius": 0,
+          "cursor": "pointer",
           "display": "flex",
-          "flexDirection": "row",
-          "paddingBottom": 8,
-          "paddingLeft": 12,
-          "paddingTop": 8,
+          "flexDirection": "column",
+          "height": undefined,
+          "lineHeight": 0,
+          "minWidth": undefined,
           "position": "relative",
+          "textAlign": "left",
+          "transform": "none",
+          "transition": "none",
         }
       }
     >
       <div
         style={
           Object {
-            "marginRight": 20,
-            "width": 32,
+            "backgroundColor": "#ffffff",
+            "borderBottomColor": "rgba(0, 0, 0, 0.05)",
+            "borderBottomStyle": "solid",
+            "borderBottomWidth": 1,
+            "display": "flex",
+            "flexDirection": "row",
+            "paddingBottom": 8,
+            "paddingLeft": 12,
+            "paddingTop": 8,
+            "position": "relative",
           }
         }
       >
         <div
-          onClick={[Function]}
           style={
             Object {
-              "cursor": "pointer",
-              "height": 32,
-              "maxWidth": 32,
-              "minHeight": 32,
-              "minWidth": 32,
-              "position": "relative",
-              "userSelect": "none",
+              "marginRight": 20,
+              "width": 32,
             }
           }
         >
           <div
-            className="glamor-0"
-          />
-          <div
-            className="glamor-1"
-          />
+            onClick={[Function]}
+            style={
+              Object {
+                "cursor": "pointer",
+                "height": 32,
+                "maxWidth": 32,
+                "minHeight": 32,
+                "minWidth": 32,
+                "position": "relative",
+                "userSelect": "none",
+              }
+            }
+          >
+            <div
+              className="glamor-0"
+            />
+            <div
+              className="glamor-1"
+            />
+          </div>
         </div>
-      </div>
-      <div
-        style={
-          Object {
-            "display": "flex",
-            "flexDirection": "column",
-            "justifyContent": "center",
-            "overflow": "hidden",
-            "paddingRight": 80,
-            "position": "relative",
-            "width": "auto",
+        <div
+          style={
+            Object {
+              "display": "flex",
+              "flexDirection": "column",
+              "justifyContent": "center",
+              "overflow": "hidden",
+              "paddingRight": 80,
+              "position": "relative",
+              "width": "auto",
+            }
           }
-        }
-      >
-        <span
-          className="glamor-5"
-          onClick={undefined}
-          title={undefined}
         >
           <span
-            className="glamor-4"
+            className="glamor-5"
             onClick={undefined}
             title={undefined}
           >
             <span
-              className="glamor-3"
+              className="glamor-4"
               onClick={undefined}
               title={undefined}
             >
               <span
-                className="glamor-2"
-                onClick={[Function]}
+                className="glamor-3"
+                onClick={undefined}
                 title={undefined}
               >
-                max
+                <span
+                  className="glamor-2 hover-underline"
+                  onClick={[Function]}
+                  title={undefined}
+                >
+                  max
+                </span>
               </span>
             </span>
+             
+            followed you.
           </span>
-           
-          followed you.
-        </span>
-      </div>
-      <div
-        style={
-          Object {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "row",
-            "position": "absolute",
-            "right": 8,
-            "top": 12,
+        </div>
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "position": "absolute",
+              "right": 8,
+              "top": 12,
+            }
           }
-        }
-      >
-        <span
-          className="glamor-6"
-          onClick={undefined}
-          title={undefined}
         >
-          3d
-        </span>
+          <span
+            className="glamor-6"
+            onClick={undefined}
+            title={undefined}
+          >
+            3d
+          </span>
+        </div>
       </div>
     </div>
   </div>
@@ -32817,7 +32076,11 @@ exports[`Storyshots People/Todos Chat 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -32889,8 +32152,8 @@ exports[`Storyshots People/Todos Chat 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -33010,7 +32273,11 @@ exports[`Storyshots People/Todos Fill out bio 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -33082,8 +32349,8 @@ exports[`Storyshots People/Todos Fill out bio 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -33208,7 +32475,11 @@ exports[`Storyshots People/Todos Follow someone 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -33280,8 +32551,8 @@ exports[`Storyshots People/Todos Follow someone 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -33413,7 +32684,11 @@ exports[`Storyshots People/Todos Install on phone 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -33485,8 +32760,8 @@ exports[`Storyshots People/Todos Install on phone 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -33618,7 +32893,11 @@ exports[`Storyshots People/Todos Make a folder 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -33690,8 +32969,8 @@ exports[`Storyshots People/Todos Make a folder 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -33823,7 +33102,11 @@ exports[`Storyshots People/Todos Make a git 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -33895,8 +33178,8 @@ exports[`Storyshots People/Todos Make a git 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -34016,7 +33299,11 @@ exports[`Storyshots People/Todos Make a paper key 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -34088,8 +33375,8 @@ exports[`Storyshots People/Todos Make a paper key 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -34214,7 +33501,11 @@ exports[`Storyshots People/Todos Make a team 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -34286,8 +33577,8 @@ exports[`Storyshots People/Todos Make a team 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -34419,7 +33710,11 @@ exports[`Storyshots People/Todos Prove something 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -34491,8 +33786,8 @@ exports[`Storyshots People/Todos Prove something 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -34624,7 +33919,11 @@ exports[`Storyshots People/Todos Set publicity 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -34696,8 +33995,8 @@ exports[`Storyshots People/Todos Set publicity 1`] = `
           <div
             onClick={[Function]}
             onMouseDown={[Function]}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
             onMouseUp={[Function]}
             style={
               Object {
@@ -34802,7 +34101,11 @@ exports[`Storyshots Search Filter 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div>
       <div
@@ -37483,7 +36786,11 @@ exports[`Storyshots Search Result 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -40226,7 +39533,11 @@ exports[`Storyshots Search Results List 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -40426,7 +39737,11 @@ exports[`Storyshots Search User Input 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div>
       <div
@@ -42704,7 +42019,11 @@ exports[`Storyshots Search User Input editable 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div>
       <div
@@ -43580,7 +42899,11 @@ exports[`Storyshots Team Roles ConfirmAdmin 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -44000,8 +43323,8 @@ exports[`Storyshots Team Roles ConfirmAdmin 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -44056,8 +43379,8 @@ exports[`Storyshots Team Roles ConfirmAdmin 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -44236,7 +43559,11 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -44629,8 +43956,8 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -44685,8 +44012,8 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -44870,7 +44197,11 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -45334,8 +44665,8 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -45390,8 +44721,8 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -45575,7 +44906,11 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -45995,8 +45330,8 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -46051,8 +45386,8 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -46208,7 +45543,11 @@ exports[`Storyshots Team Roles Picker 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -46717,8 +46056,8 @@ exports[`Storyshots Team Roles Picker 1`] = `
         <div
           onClick={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
           onMouseUp={[Function]}
           style={
             Object {
@@ -46795,7 +46134,11 @@ exports[`Storyshots Teams BetaNote 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -46905,7 +46248,11 @@ exports[`Storyshots Teams Header 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -46917,6 +46264,7 @@ exports[`Storyshots Teams Header 1`] = `
           "flexDirection": "row",
           "height": 48,
           "justifyContent": "center",
+          "position": "relative",
           "width": "100%",
         }
       }
@@ -46924,8 +46272,8 @@ exports[`Storyshots Teams Header 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -46981,8 +46329,8 @@ exports[`Storyshots Teams Header 1`] = `
       <div
         onClick={[Function]}
         onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
         onMouseUp={[Function]}
         style={
           Object {
@@ -47073,11 +46421,6 @@ exports[`Storyshots Teams TeamList 1`] = `
   font-size: 13px;
   line-height: 17px;
   color: rgba(0, 0, 0, 0.75);
-  overflow: hidden;
-  display: -webkit-box;
-  text-overflow: ellipsis;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 1;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -47086,6 +46429,27 @@ exports[`Storyshots Teams TeamList 1`] = `
 
 .glamor-3,
 [data-glamor-3] {
+  font-size: 10px;
+  line-height: 11px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 700;
+  border-radius: 1px;
+  height: 11px;
+  padding-left: 3px;
+  padding-right: 3px;
+  align-self: center;
+  text-transform: uppercase;
+  background-color: #3dcc8e;
+  margin-left: 4px;
+  margin-top: 2px;
+  -webkit-align-self: center;
+}
+
+.glamor-4,
+[data-glamor-4] {
   font-size: 11px;
   line-height: 15px;
   color: rgba(0, 0, 0, 0.40);
@@ -47095,18 +46459,18 @@ exports[`Storyshots Teams TeamList 1`] = `
   font-weight: 400;
 }
 
-.glamor-4,
-[data-glamor-4] {
+.glamor-5,
+[data-glamor-5] {
   color: rgba(0, 0, 0, 0.40);
 }
 
-.glamor-4:hover,
-[data-glamor-4]:hover {
+.glamor-5:hover,
+[data-glamor-5]:hover {
   color: rgba(0, 0, 0, 0.75);
 }
 
-.glamor-9,
-[data-glamor-9] {
+.glamor-10,
+[data-glamor-10] {
   font-size: 10px;
   line-height: 11px;
   color: #ffffff;
@@ -47125,8 +46489,8 @@ exports[`Storyshots Teams TeamList 1`] = `
   -webkit-align-self: center;
 }
 
-.glamor-15,
-[data-glamor-15] {
+.glamor-16,
+[data-glamor-16] {
   font-size: 9px;
   line-height: 8px;
   color: #ffffff;
@@ -47147,7 +46511,11 @@ exports[`Storyshots Teams TeamList 1`] = `
   }
 >
   <div
-    style={undefined}
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
   >
     <div
       style={
@@ -47165,20 +46533,6 @@ exports[`Storyshots Teams TeamList 1`] = `
           }
         }
       >
-        <img
-          className={undefined}
-          draggable="false"
-          onClick={null}
-          srcSet="icons/icon-progress-grey-static.png 1x, icons/icon-progress-grey-static@2x.png 2x"
-          style={
-            Object {
-              "alignSelf": "center",
-              "userSelect": "none",
-              "width": 20,
-            }
-          }
-          title={undefined}
-        />
         <div
           style={
             Object {
@@ -47203,8 +46557,8 @@ exports[`Storyshots Teams TeamList 1`] = `
             <div
               onClick={[Function]}
               onMouseDown={[Function]}
-              onMouseEnter={[Function]}
-              onMouseLeave={[Function]}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
               onMouseUp={[Function]}
               style={
                 Object {
@@ -47264,13 +46618,29 @@ exports[`Storyshots Teams TeamList 1`] = `
                   }
                 }
               >
-                <span
-                  className="glamor-2"
-                  onClick={undefined}
-                  title={undefined}
+                <div
+                  style={
+                    Object {
+                      "display": "flex",
+                      "flexDirection": "row",
+                    }
+                  }
                 >
-                  stripe
-                </span>
+                  <span
+                    className="glamor-2"
+                    onClick={undefined}
+                    title={undefined}
+                  >
+                    stripe
+                  </span>
+                  <span
+                    className="glamor-3"
+                    onClick={undefined}
+                    title={undefined}
+                  >
+                    OPEN
+                  </span>
+                </div>
                 <div
                   style={
                     Object {
@@ -47281,7 +46651,7 @@ exports[`Storyshots Teams TeamList 1`] = `
                   }
                 >
                   <span
-                    className="glamor-3"
+                    className="glamor-4"
                     onClick={undefined}
                     title={undefined}
                   >
@@ -47292,7 +46662,7 @@ exports[`Storyshots Teams TeamList 1`] = `
             </div>
             <div>
               <span
-                className="glamor-4"
+                className="glamor-5"
                 onClick={[Function]}
                 onMouseEnter={undefined}
                 onMouseLeave={undefined}
@@ -47317,7 +46687,7 @@ exports[`Storyshots Teams TeamList 1`] = `
             </div>
             <div>
               <span
-                className="glamor-4"
+                className="glamor-5"
                 onClick={[Function]}
                 onMouseEnter={undefined}
                 onMouseLeave={undefined}
@@ -47379,8 +46749,8 @@ exports[`Storyshots Teams TeamList 1`] = `
             <div
               onClick={[Function]}
               onMouseDown={[Function]}
-              onMouseEnter={[Function]}
-              onMouseLeave={[Function]}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
               onMouseUp={[Function]}
               style={
                 Object {
@@ -47440,13 +46810,22 @@ exports[`Storyshots Teams TeamList 1`] = `
                   }
                 }
               >
-                <span
-                  className="glamor-2"
-                  onClick={undefined}
-                  title={undefined}
+                <div
+                  style={
+                    Object {
+                      "display": "flex",
+                      "flexDirection": "row",
+                    }
+                  }
                 >
-                  stripe.usa
-                </span>
+                  <span
+                    className="glamor-2"
+                    onClick={undefined}
+                    title={undefined}
+                  >
+                    stripe.usa
+                  </span>
+                </div>
                 <div
                   style={
                     Object {
@@ -47457,14 +46836,14 @@ exports[`Storyshots Teams TeamList 1`] = `
                   }
                 >
                   <span
-                    className="glamor-9"
+                    className="glamor-10"
                     onClick={undefined}
                     title={undefined}
                   >
                     NEW
                   </span>
                   <span
-                    className="glamor-3"
+                    className="glamor-4"
                     onClick={undefined}
                     title={undefined}
                   >
@@ -47475,7 +46854,7 @@ exports[`Storyshots Teams TeamList 1`] = `
             </div>
             <div>
               <span
-                className="glamor-4"
+                className="glamor-5"
                 onClick={[Function]}
                 onMouseEnter={undefined}
                 onMouseLeave={undefined}
@@ -47500,7 +46879,7 @@ exports[`Storyshots Teams TeamList 1`] = `
             </div>
             <div>
               <span
-                className="glamor-4"
+                className="glamor-5"
                 onClick={[Function]}
                 onMouseEnter={undefined}
                 onMouseLeave={undefined}
@@ -47562,8 +46941,8 @@ exports[`Storyshots Teams TeamList 1`] = `
             <div
               onClick={[Function]}
               onMouseDown={[Function]}
-              onMouseEnter={[Function]}
-              onMouseLeave={[Function]}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
               onMouseUp={[Function]}
               style={
                 Object {
@@ -47634,7 +47013,7 @@ exports[`Storyshots Teams TeamList 1`] = `
                   }
                 >
                   <span
-                    className="glamor-15"
+                    className="glamor-16"
                     onClick={undefined}
                     title={undefined}
                   >
@@ -47652,13 +47031,29 @@ exports[`Storyshots Teams TeamList 1`] = `
                   }
                 }
               >
-                <span
-                  className="glamor-2"
-                  onClick={undefined}
-                  title={undefined}
+                <div
+                  style={
+                    Object {
+                      "display": "flex",
+                      "flexDirection": "row",
+                    }
+                  }
                 >
-                  techtonica
-                </span>
+                  <span
+                    className="glamor-2"
+                    onClick={undefined}
+                    title={undefined}
+                  >
+                    techtonica
+                  </span>
+                  <span
+                    className="glamor-3"
+                    onClick={undefined}
+                    title={undefined}
+                  >
+                    OPEN
+                  </span>
+                </div>
                 <div
                   style={
                     Object {
@@ -47669,7 +47064,7 @@ exports[`Storyshots Teams TeamList 1`] = `
                   }
                 >
                   <span
-                    className="glamor-3"
+                    className="glamor-4"
                     onClick={undefined}
                     title={undefined}
                   >
@@ -47680,7 +47075,7 @@ exports[`Storyshots Teams TeamList 1`] = `
             </div>
             <div>
               <span
-                className="glamor-4"
+                className="glamor-5"
                 onClick={[Function]}
                 onMouseEnter={undefined}
                 onMouseLeave={undefined}
@@ -47705,7 +47100,7 @@ exports[`Storyshots Teams TeamList 1`] = `
             </div>
             <div>
               <span
-                className="glamor-4"
+                className="glamor-5"
                 onClick={[Function]}
                 onMouseEnter={undefined}
                 onMouseLeave={undefined}

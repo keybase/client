@@ -81,6 +81,7 @@ type configGetter interface {
 	GetFeatureFlags() (FeatureFlags, error)
 	GetLevelDBNumFiles() (int, bool)
 	GetChatInboxSourceLocalizeThreads() (int, bool)
+	GetPayloadCacheSize() (int, bool)
 }
 
 type CommandLine interface {
@@ -366,6 +367,8 @@ type ChatUI interface {
 	ChatThreadCached(context.Context, chat1.ChatThreadCachedArg) error
 	ChatThreadFull(context.Context, chat1.ChatThreadFullArg) error
 	ChatConfirmChannelDelete(context.Context, chat1.ChatConfirmChannelDeleteArg) (bool, error)
+	ChatSearchHit(context.Context, chat1.ChatSearchHitArg) error
+	ChatSearchDone(context.Context, chat1.ChatSearchDoneArg) error
 }
 
 type PromptDefault int
@@ -714,4 +717,5 @@ type ChatHelper interface {
 	FindConversations(ctx context.Context, name string, topicName *string, topicType chat1.TopicType,
 		membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility) ([]chat1.ConversationLocal, error)
 	FindConversationsByID(ctx context.Context, convIDs []chat1.ConversationID) ([]chat1.ConversationLocal, error)
+	GetChannelTopicName(context.Context, keybase1.TeamID, chat1.TopicType, chat1.ConversationID) (string, error)
 }

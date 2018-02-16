@@ -1,13 +1,14 @@
-Recent changes:
----------------
-- Performance! Chats should load faster now, and writes to KBFS should be much faster, avoiding operating system timeouts in most cases.
-
-- Keybase has a new icon. We thank our departing ferret-dog mascot for his years of loyalty.
-
-- Keybase Chat has launched! You can read more about it on the Keybase blog.
-
-- Sharing before signup: Go ahead and put data in /keybase/private/you,friend@twitter/. If you have any invite codes, this will pop up a window with a link to DM them. It also works for end-to-end encryption with Reddit, Coinbase, Github, and Hacker News users.
-
-What we are currently working on:
----------------------------------
-- Mobile apps!
+Design:
+  Some new colors and icons
+People:
+  A new landing page for the app! See important activity regarding your account and the network. Helpful prompts to improve your account security and health.
+Teams:
+  Subteams tab: An easier way to understand and make sub teams
+  More team management options
+  Ability to ignore join requests
+Chat:
+  Git notifications in chat. Keep the team up to date whenever anyone is pushing to your repos
+  Mention chat channels using '#'
+  See previews of images before attaching
+  Handle teams with large numbers of members better
+  Updated emojis

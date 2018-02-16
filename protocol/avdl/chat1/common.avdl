@@ -1,5 +1,4 @@
-@namespace("chat.1")
-protocol common {
+@namespace("chat.1") protocol common {
 
   import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
   import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
@@ -16,6 +15,11 @@ protocol common {
   @typedef("bytes")  record OutboxID {}
   @typedef("bytes")  record TopicNameState {}
 
+  record InboxVersInfo {
+    gregor1.UID uid;
+    InboxVers vers;
+  }
+
   enum ConversationExistence {
     ACTIVE_0,
     ARCHIVED_1,
@@ -25,7 +29,8 @@ protocol common {
   enum ConversationMembersType {
     KBFS_0,
     TEAM_1,
-    IMPTEAM_2
+    IMPTEAMNATIVE_2,
+    IMPTEAMUPGRADE_3
   }
 
   enum SyncInboxResType {
@@ -300,6 +305,7 @@ protocol common {
     boolean tlfPublic;
     MessageType messageType;
     MessageID supersedes;
+    union { null, boolean } kbfsCryptKeysUsed;
 
     // These 3 fields are hints for the server.
     // They can be derived from the message body, and are not signed.
@@ -333,6 +339,8 @@ protocol common {
     array<MessagePreviousPointer> prev;
     gregor1.UID sender;
     gregor1.DeviceID senderDevice;
+    union { null, boolean } kbfsCryptKeysUsed;
+
     // Latest merkle root when sent.
     // Nil from v1 messages. Non-nil from v2 messages.
     union { null, MerkleRoot } merkleRoot;

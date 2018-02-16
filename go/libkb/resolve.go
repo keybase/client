@@ -27,6 +27,7 @@ type ResolveResult struct {
 	resolvedTeamName   keybase1.TeamName
 	cachedAt           time.Time
 	mutable            bool
+	deleted            bool
 }
 
 func (res ResolveResult) HasPrimaryKey() bool {
@@ -96,6 +97,17 @@ func (res *ResolveResult) GetError() error {
 
 func (res *ResolveResult) GetBody() *jsonw.Wrapper {
 	return res.body
+}
+
+func (res *ResolveResult) GetDeleted() bool {
+	return res.deleted
+}
+
+func (res ResolveResult) FailOnDeleted() ResolveResult {
+	if res.deleted {
+		res.err = DeletedError{Msg: fmt.Sprintf("user %q deleted", res.uid)}
+	}
+	return res
 }
 
 func (r *Resolver) ResolveWithBody(input string) ResolveResult {
@@ -297,7 +309,7 @@ func (r *Resolver) resolveURLViaServerLookup(ctx context.Context, au AssertionUR
 
 	ha := HTTPArgsFromKeyValuePair(key, S{val})
 	ha.Add("multi", I{1})
-	ha.Add("load_deleted", B{true})
+	ha.Add("load_deleted_v2", B{true})
 	fields := "basics"
 	if withBody {
 		fields += ",public_keys,pictures"
@@ -323,31 +335,41 @@ func (r *Resolver) resolveURLViaServerLookup(ctx context.Context, au AssertionUR
 		r.G().Log.CDebugf(ctx, "API user/lookup %q not found", input)
 		res.err = NotFoundError{}
 		return
-	case SCDeleted:
-		r.G().Log.CDebugf(ctx, "API user/lookup %q deleted", input)
-		res.err = DeletedError{Msg: fmt.Sprintf("user %q deleted", input)}
-		return
 	}
 
 	var them *jsonw.Wrapper
 	if them, res.err = ares.Body.AtKey("them").ToArray(); res.err != nil {
-		return
+		return res
 	}
 
 	if l, res.err = them.Len(); res.err != nil {
-		return
+		return res
 	}
 
 	if l == 0 {
 		res.err = ResolutionError{Input: input, Msg: "No resolution found", Kind: ResolutionErrorNotFound}
-	} else if l > 1 {
+		return res
+	}
+	if l > 1 {
 		res.err = ResolutionError{Input: input, Msg: "Identify is ambiguous", Kind: ResolutionErrorAmbiguous}
-	} else {
-		res.body = them.AtIndex(0)
-		res.uid, res.err = GetUID(res.body.AtKey("id"))
-		if res.err == nil {
-			res.resolvedKbUsername, res.err = res.body.AtPath("basics.username").GetString()
-		}
+		return res
+	}
+	res.body = them.AtIndex(0)
+	res.uid, res.err = GetUID(res.body.AtKey("id"))
+	if res.err != nil {
+		return res
+	}
+	res.resolvedKbUsername, res.err = res.body.AtPath("basics.username").GetString()
+	if res.err != nil {
+		return res
+	}
+	var status int
+	status, res.err = res.body.AtPath("basics.status").GetInt()
+	if res.err != nil {
+		return res
+	}
+	if status == SCDeleted {
+		res.deleted = true
 	}
 
 	return
@@ -492,8 +514,8 @@ func (r *Resolver) putToDiskCache(ctx context.Context, key string, res ResolveRe
 	if res.mutable {
 		return
 	}
-	// Don't cache errors
-	if res.err != nil {
+	// Don't cache errors or deleted users
+	if res.err != nil || res.deleted {
 		return
 	}
 	if res.uid.IsNil() {
@@ -518,8 +540,8 @@ func (r *Resolver) putToMemCache(key string, res ResolveResult) {
 	if r.cache == nil {
 		return
 	}
-	// Don't cache errors
-	if res.err != nil {
+	// Don't cache errors or deleted users
+	if res.err != nil || res.deleted {
 		return
 	}
 	if !res.HasPrimaryKey() {

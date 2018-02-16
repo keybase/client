@@ -15,7 +15,6 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/teams"
 	"github.com/keybase/client/go/uidmap"
 	context "golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
@@ -182,7 +181,7 @@ func (b *NonblockingLocalizer) Name() string {
 }
 
 func filterConvLocals(convLocals []chat1.ConversationLocal, rquery *chat1.GetInboxQuery,
-	query *chat1.GetInboxLocalQuery, nameInfo types.NameInfo) (res []chat1.ConversationLocal, err error) {
+	query *chat1.GetInboxLocalQuery, nameInfo *types.NameInfo) (res []chat1.ConversationLocal, err error) {
 
 	for _, convLocal := range convLocals {
 
@@ -260,7 +259,7 @@ func (b *baseInboxSource) SetRemoteInterface(ri func() chat1.RemoteInterface) {
 }
 
 func (b *baseInboxSource) GetInboxQueryLocalToRemote(ctx context.Context,
-	lquery *chat1.GetInboxLocalQuery) (rquery *chat1.GetInboxQuery, info types.NameInfo, err error) {
+	lquery *chat1.GetInboxLocalQuery) (rquery *chat1.GetInboxQuery, info *types.NameInfo, err error) {
 
 	if lquery == nil {
 		return nil, info, nil
@@ -314,9 +313,9 @@ func (b *baseInboxSource) IsMember(ctx context.Context, uid gregor1.UID, convID 
 }
 
 func GetInboxQueryNameInfo(ctx context.Context, g *globals.Context,
-	lquery *chat1.GetInboxLocalQuery) (types.NameInfo, error) {
+	lquery *chat1.GetInboxLocalQuery) (*types.NameInfo, error) {
 	if lquery.Name == nil || len(lquery.Name.Name) == 0 {
-		return types.NameInfo{}, nil
+		return nil, nil
 	}
 	return CtxKeyFinder(ctx, g).Find(ctx, lquery.Name.Name, lquery.Name.MembersType,
 		lquery.Visibility() == keybase1.TLFVisibility_PUBLIC)
@@ -439,6 +438,26 @@ func (s *RemoteInboxSource) MembershipUpdate(ctx context.Context, uid gregor1.UI
 	joined []chat1.ConversationMember, removed []chat1.ConversationMember, resets []chat1.ConversationMember,
 	previews []chat1.ConversationID) (res types.MembershipUpdateRes, err error) {
 	return res, err
+}
+
+func (s *RemoteInboxSource) SetConvRetention(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+	convID chat1.ConversationID, policy chat1.RetentionPolicy) (res *chat1.ConversationLocal, err error) {
+	return res, err
+}
+
+func (s *RemoteInboxSource) SetTeamRetention(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+	teamID keybase1.TeamID, policy chat1.RetentionPolicy) (res []chat1.ConversationLocal, err error) {
+	return res, err
+}
+
+func (s *RemoteInboxSource) TeamTypeChanged(ctx context.Context, uid gregor1.UID,
+	vers chat1.InboxVers, convID chat1.ConversationID, teamType chat1.TeamType) (conv *chat1.ConversationLocal, err error) {
+	return conv, err
+}
+
+func (s *RemoteInboxSource) UpdateKBFSToImpteam(ctx context.Context, uid gregor1.UID,
+	vers chat1.InboxVers, convID chat1.ConversationID) (conv *chat1.ConversationLocal, err error) {
+	return conv, err
 }
 
 type HybridInboxSource struct {
@@ -644,6 +663,16 @@ func (s *HybridInboxSource) getConvLocal(ctx context.Context, uid gregor1.UID,
 	return &ib.Convs[0], nil
 }
 
+// Get convs. May return fewer or no conversations.
+func (s *HybridInboxSource) getConvsLocal(ctx context.Context, uid gregor1.UID,
+	convIDs []chat1.ConversationID) ([]chat1.ConversationLocal, error) {
+	// Read back affected conversation so we can send it to the frontend
+	ib, _, err := s.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
+		ConvIDs: convIDs,
+	}, nil)
+	return ib.Convs, err
+}
+
 func (s *HybridInboxSource) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	convID chat1.ConversationID, msg chat1.MessageBoxed, maxMsgs []chat1.MessageSummary) (conv *chat1.ConversationLocal, err error) {
 	defer s.Trace(ctx, func() error { return err }, "NewMessage")()
@@ -720,6 +749,23 @@ func (s *HybridInboxSource) TeamTypeChanged(ctx context.Context, uid gregor1.UID
 	}
 	if conv, err = s.getConvLocal(ctx, uid, convID); err != nil {
 		s.Debug(ctx, "TeamTypeChanged: unable to load conversation: convID: %s err: %s",
+			convID, err.Error())
+		return nil, nil
+	}
+	return conv, nil
+}
+
+func (s *HybridInboxSource) UpgradeKBFSToImpteam(ctx context.Context, uid gregor1.UID,
+	vers chat1.InboxVers, convID chat1.ConversationID) (conv *chat1.ConversationLocal, err error) {
+	defer s.Trace(ctx, func() error { return err }, "UpgradeKBFSToImpteam")()
+
+	ib := storage.NewInbox(s.G(), uid)
+	if cerr := ib.UpgradeKBFSToImpteam(ctx, vers, convID); cerr != nil {
+		err = s.handleInboxError(ctx, cerr, uid)
+		return nil, err
+	}
+	if conv, err = s.getConvLocal(ctx, uid, convID); err != nil {
+		s.Debug(ctx, "UpgradeKBFSToImpteam: unable to load conversation: convID: %s err: %s",
 			convID, err.Error())
 		return nil, nil
 	}
@@ -807,6 +853,47 @@ func (s *HybridInboxSource) MembershipUpdate(ctx context.Context, uid gregor1.UI
 	}
 
 	return res, nil
+}
+
+func (s *HybridInboxSource) SetConvRetention(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+	convID chat1.ConversationID, policy chat1.RetentionPolicy) (res *chat1.ConversationLocal, err error) {
+	return s.modConversation(ctx, "SetConvRetention", uid, convID, func(ctx context.Context, ib *storage.Inbox) error {
+		return ib.SetConvRetention(ctx, vers, convID, policy)
+	})
+}
+
+func (s *HybridInboxSource) SetTeamRetention(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+	teamID keybase1.TeamID, policy chat1.RetentionPolicy) (convs []chat1.ConversationLocal, err error) {
+	defer s.Trace(ctx, func() error { return err }, "SetTeamRetention")()
+	ib := storage.NewInbox(s.G(), uid)
+	convIDs, cerr := ib.SetTeamRetention(ctx, vers, teamID, policy)
+	if cerr != nil {
+		err = s.handleInboxError(ctx, cerr, uid)
+		return nil, err
+	}
+	if convs, err = s.getConvsLocal(ctx, uid, convIDs); err != nil {
+		s.Debug(ctx, "SetTeamRetention: unable to load conversations: convIDs: %v err: %s",
+			convIDs, err.Error())
+		return nil, nil
+	}
+	return convs, nil
+}
+
+func (s *HybridInboxSource) modConversation(ctx context.Context, debugLabel string, uid gregor1.UID, convID chat1.ConversationID,
+	mod func(context.Context, *storage.Inbox) error) (
+	conv *chat1.ConversationLocal, err error) {
+	defer s.Trace(ctx, func() error { return err }, debugLabel)()
+	ib := storage.NewInbox(s.G(), uid)
+	if cerr := mod(ctx, ib); cerr != nil {
+		err = s.handleInboxError(ctx, cerr, uid)
+		return nil, err
+	}
+	if conv, err = s.getConvLocal(ctx, uid, convID); err != nil {
+		s.Debug(ctx, "%v: unable to load conversation: convID: %s err: %s",
+			debugLabel, convID, err.Error())
+		return nil, nil
+	}
+	return conv, nil
 }
 
 func (s *localizerPipeline) localizeConversationsPipeline(ctx context.Context, uid gregor1.UID,
@@ -1017,6 +1104,9 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 			}
 		}
 	}
+	conversationLocal.Expunge = conversationRemote.Expunge
+	conversationLocal.ConvRetention = conversationRemote.ConvRetention
+	conversationLocal.TeamRetention = conversationRemote.TeamRetention
 
 	if len(conversationRemote.MaxMsgSummaries) == 0 {
 		errMsg := "conversation has an empty MaxMsgSummaries field"
@@ -1152,21 +1242,13 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	// Form the writers name list, either from the active list + TLF name, or from the
 	// channel information for a team chat
 	switch conversationRemote.GetMembersType() {
-	case chat1.ConversationMembersType_IMPTEAM:
-		teamID, err := tlfIDToTeamdID(conversationLocal.Info.Triple.Tlfid)
-		if err != nil {
-			errMsg := fmt.Sprintf("error parsing impteam TLFID: %v", err.Error())
-			conversationLocal.Error = chat1.NewConversationErrorLocal(
-				errMsg, conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_PERMANENT, nil)
-			return conversationLocal
-		}
+	case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE:
 		ok := true
 		var errMsg string
 		s.Debug(ctx, "localizeConversation: trying to load team for %v chat", conversationLocal.Info.Visibility)
-		iteam, err := teams.Load(ctx, s.G().ExternalG(), keybase1.LoadTeamArg{
-			ID:     teamID,
-			Public: conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC,
-		})
+		iteam, err := LoadTeam(ctx, s.G().ExternalG(), conversationLocal.Info.Triple.Tlfid,
+			conversationRemote.GetMembersType(),
+			conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC, nil)
 		if err != nil {
 			ok = false
 			errMsg = fmt.Sprintf("unable to load iteam: %v", err.Error())

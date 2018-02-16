@@ -53,12 +53,11 @@ func readChatsWithErrorAndDevice(team smuTeam, u *smuUser, dev *smuDeviceWrapper
 			return messages, nil
 		}
 
-		if err != nil && !strings.Contains(err.Error(), "KBFS client not found") {
-			// Only retry on KBFS errors
-			return messages, err
+		if err != nil {
+			u.ctx.t.Logf("readChatsWithError failure: %s", err.Error())
 		}
 
-		u.ctx.t.Logf("readChatsWithError polling for KBFS")
+		u.ctx.t.Logf("readChatsWithError trying again")
 		time.Sleep(wait)
 		totalWait += wait
 	}
@@ -144,14 +143,15 @@ func TestTeamDelete(t *testing.T) {
 	readChats(team, bob, 1)
 	divDebug(ctx, "Ann and bob can read")
 
+	// just one person needs to do this before ann deletes, so her
+	// deletion will immediately fall into accelerated rekeyd.
+	kickTeamRekeyd(bob.getPrimaryGlobalContext(), t)
+
 	ann.delete()
 	divDebug(ctx, "Ann deleted her account")
 	divDebug(ctx, "ann uid: %s", ann.uid())
 	divDebug(ctx, "bob uid: %s", bob.uid())
 	divDebug(ctx, "cam uid: %s", cam.uid())
-
-	// just one person needs to do this
-	kickTeamRekeyd(bob.getPrimaryGlobalContext(), t)
 
 	// bob and cam should see the key get rotated after ann deletes
 	bob.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2), nil)
@@ -166,11 +166,15 @@ func TestTeamDelete(t *testing.T) {
 	divDebug(ctx, "Cam sent a chat")
 	readChats(team, bob, 2)
 
-	// XXX this assertion currently fails
-	// bob.assertMemberInactive(team, ann)
+	// Disable UIDMapper cache to be able to see current state of
+	// Active/Inactive for members.
+	bob.setUIDMapperNoCachingMode(true)
+	cam.setUIDMapperNoCachingMode(true)
+
+	bob.assertMemberInactive(team, ann)
 	bob.assertMemberActive(team, cam)
-	// XXX this assertion currently fails
-	// cam.assertMemberInactive(team, ann)
+
+	cam.assertMemberInactive(team, ann)
 	cam.assertMemberActive(team, bob)
 }
 
@@ -191,12 +195,8 @@ func TestTeamReset(t *testing.T) {
 	// Note that ann (the admin) has a UIDMapper that should get pubsub updates
 	// since she is an admin for the team in question. cam won't get those
 	// pubsub updates
-	users := []*smuUser{bob, cam}
-	for _, user := range users {
-		for _, device := range user.devices {
-			device.tctx.G.UIDMapper.SetTestingNoCachingMode(true)
-		}
-	}
+	bob.setUIDMapperNoCachingMode(true)
+	cam.setUIDMapperNoCachingMode(true)
 
 	team := ann.createTeam([]*smuUser{bob, cam})
 	divDebug(ctx, "team created (%s)", team.name)
@@ -580,9 +580,12 @@ func TestImplicitTeamResetAll(t *testing.T) {
 
 	ann := ctx.installKeybaseForUser("ann", 10)
 	ann.signup()
+	ann.registerForNotifications()
 	divDebug(ctx, "Signed up ann (%s)", ann.username)
+
 	bob := ctx.installKeybaseForUser("bob", 10)
 	bob.signup()
+	bob.registerForNotifications()
 	divDebug(ctx, "Signed up bob (%s)", bob.username)
 
 	displayName := strings.Join([]string{ann.username, bob.username}, ",")
@@ -602,6 +605,8 @@ func TestImplicitTeamResetAll(t *testing.T) {
 	ann.loginAfterReset(10)
 	divDebug(ctx, "Ann logged in after reset")
 
+	ann.waitForTeamAbandoned(iteam.ID)
+
 	iteam3 := ann.lookupImplicitTeam(true /*create*/, displayName, false /*isPublic*/)
 	require.NotEqual(t, iteam.ID, iteam3.ID, "lookup after resets should return different team")
 	divDebug(ctx, "team looked up after resets")
@@ -618,15 +623,22 @@ func TestTeamRemoveAfterReset(t *testing.T) {
 	bob := ctx.installKeybaseForUser("bob", 10)
 	bob.signup()
 	divDebug(ctx, "Signed up bob (%s)", bob.username)
+	joe := ctx.installKeybaseForUser("joe", 10)
+	joe.signup()
+	divDebug(ctx, "Signed up joe (%s)", joe.username)
 
-	team := ann.createTeam([]*smuUser{bob})
+	team := ann.createTeam([]*smuUser{bob, joe})
 	divDebug(ctx, "team created (%s)", team.name)
 
+	kickTeamRekeyd(ann.getPrimaryGlobalContext(), t)
 	bob.reset()
 	divDebug(ctx, "Reset bob (%s)", bob.username)
 
 	bob.loginAfterReset(10)
 	divDebug(ctx, "Bob logged in after reset")
+
+	joe.reset()
+	divDebug(ctx, "Reset joe (%s), not re-provisioning though!", joe.username)
 
 	ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2), nil)
 
@@ -637,11 +649,88 @@ func TestTeamRemoveAfterReset(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	err = cli.TeamRemoveMember(context.TODO(), keybase1.TeamRemoveMemberArg{
+		Name:     team.name,
+		Username: joe.username,
+	})
+	require.NoError(t, err)
+
 	G := ann.getPrimaryGlobalContext()
 	teams.NewTeamLoaderAndInstall(G)
 	role, err := teams.MemberRole(context.TODO(), G, team.name, bob.username)
 	require.NoError(t, err)
 	require.Equal(t, role, keybase1.TeamRole_NONE)
+}
+
+func TestTeamRemoveMemberAfterDelete(t *testing.T) {
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	ann := ctx.installKeybaseForUser("ann", 10)
+	ann.signup()
+	divDebug(ctx, "Signed up ann (%s)", ann.username)
+	bob := ctx.installKeybaseForUser("bob", 10)
+	bob.signup()
+	divDebug(ctx, "Signed up bob (%s)", bob.username)
+
+	team := ann.createTeam([]*smuUser{bob})
+	divDebug(ctx, "team created (%s)", team.name)
+
+	bob.delete()
+	divDebug(ctx, "Bob deleted (%s)", bob.username)
+
+	ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2), nil)
+
+	// bob stays in multiple caches (UPAK, resolver etc.) so it's
+	// easier to just nuke to observe "user deleted" errors.
+	ann.dbNuke()
+
+	cli := ann.getTeamsClient()
+	err := cli.TeamRemoveMember(context.Background(), keybase1.TeamRemoveMemberArg{
+		Name:     team.name,
+		Username: bob.username,
+	})
+	require.NoError(t, err)
+
+	t.Logf("Calling TeamGet")
+
+	details, err := cli.TeamGet(context.Background(), keybase1.TeamGetArg{
+		Name:        team.name,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+
+	require.Equal(t, 1, len(details.Members.Owners))
+	require.Equal(t, ann.username, details.Members.Owners[0].Username)
+	require.Equal(t, 0, len(details.Members.Admins))
+	require.Equal(t, 0, len(details.Members.Writers))
+	require.Equal(t, 0, len(details.Members.Readers))
+}
+
+func TestTeamTryAddDeletedUser(t *testing.T) {
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	ann := ctx.installKeybaseForUser("ann", 10)
+	ann.signup()
+	divDebug(ctx, "Signed up ann (%s)", ann.username)
+
+	bob := ctx.installKeybaseForUser("bob", 10)
+	bob.signup()
+	divDebug(ctx, "Signed up bob (%s)", bob.username)
+	bob.delete()
+	divDebug(ctx, "Bob deleted (%s)", bob.username)
+
+	cli := ann.getTeamsClient()
+	team := ann.createTeam([]*smuUser{})
+	divDebug(ctx, "team created (%s)", team.name)
+
+	_, err := cli.TeamAddMember(context.Background(), keybase1.TeamAddMemberArg{
+		Name:     team.name,
+		Username: bob.username,
+		Role:     keybase1.TeamRole_READER,
+	})
+	require.Error(t, err)
 }
 
 // Add a member after reset in a normal (non-implicit) team
@@ -661,6 +750,7 @@ func TestTeamReAddAfterReset(t *testing.T) {
 
 	sendChat(team, ann, "0")
 
+	kickTeamRekeyd(ann.getPrimaryGlobalContext(), t)
 	bob.reset()
 	divDebug(ctx, "Reset bob (%s)", bob.username)
 
@@ -700,21 +790,17 @@ func TestTeamOpenReset(t *testing.T) {
 	bob.signup()
 	divDebug(ctx, "Signed up bob (%s)", bob.username)
 
-	for _, user := range []*smuUser{ann, bob} {
-		for _, device := range user.devices {
-			device.tctx.G.UIDMapper.SetTestingNoCachingMode(true)
-		}
-	}
+	ann.setUIDMapperNoCachingMode(true)
+	bob.setUIDMapperNoCachingMode(true)
 
 	team := ann.createTeam([]*smuUser{bob})
 	divDebug(ctx, "team created (%s)", team.name)
 	ann.openTeam(team, keybase1.TeamRole_WRITER)
 	ann.assertMemberActive(team, bob)
 
+	kickTeamRekeyd(ann.getPrimaryGlobalContext(), t)
 	bob.reset()
 	divDebug(ctx, "Reset bob (%s)", bob.username)
-
-	kickTeamRekeyd(ann.getPrimaryGlobalContext(), t)
 
 	details := ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2), nil)
 	t.Logf("details from poll: %+v", details)
@@ -771,4 +857,130 @@ func TestTeamListAfterReset(t *testing.T) {
 		}
 	}
 	require.True(t, found, "we found bob (before he found us)")
+}
+
+func TestTeamAfterDeleteUser(t *testing.T) {
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	ann := ctx.installKeybaseForUser("ann", 10)
+	ann.signup()
+	divDebug(ctx, "Signed up ann (%s, %s)", ann.username, ann.uid())
+	bob := ctx.installKeybaseForUser("bob", 10)
+	bob.signup()
+	divDebug(ctx, "Signed up bob (%s, %s)", bob.username, bob.uid())
+
+	team := ann.createTeam([]*smuUser{bob})
+	divDebug(ctx, "team created (%s)", team.name)
+
+	sendChat(team, ann, "0")
+	divDebug(ctx, "Sent chat '0' (%s via %s)", team.name, ann.username)
+
+	kickTeamRekeyd(ann.getPrimaryGlobalContext(), t)
+	ann.delete()
+
+	bob.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2), nil)
+
+	divDebug(ctx, "Deleted ann (%s)", ann.username)
+
+	_, err := bob.teamGet(team)
+	require.NoError(t, err)
+
+	bob.dbNuke()
+
+	_, err = bob.teamGet(team)
+	require.NoError(t, err)
+
+	readChats(team, bob, 1)
+}
+
+// TestTeamResetBadges checks that badges show up for admins
+// when a member of the team resets, and that they are dismissed
+// when the reset user is added.
+func TestTeamResetBadgesOnAdd(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	tt.addUser("own")
+	tt.addUser("roo")
+
+	teamID, teamName := tt.users[0].createTeam2()
+	tt.users[0].kickTeamRekeyd()
+	tt.users[0].addTeamMember(teamName.String(), tt.users[1].username, keybase1.TeamRole_WRITER)
+	tt.users[1].reset()
+	tt.users[0].waitForTeamChangedGregor(teamID, keybase1.Seqno(2))
+	// wait for badge state to have 1 team w/ reset member
+	tt.users[0].waitForBadgeStateWithReset(1)
+
+	// users[0] should be badged since users[1] reset
+	badgeState := getBadgeState(t, tt.users[0])
+	if len(badgeState.TeamsWithResetUsers) == 0 {
+		t.Fatal("TeamsWithResetUsers is empty after reset")
+	}
+	out := badgeState.TeamsWithResetUsers[0]
+	if out.Teamname != teamName.String() {
+		t.Errorf("badged team name: %s, expected %s", out.Teamname, teamName)
+	}
+	if out.Username != tt.users[1].username {
+		t.Errorf("badged user: %s, expected %s", out.Username, tt.users[1].username)
+	}
+
+	// users[1] logs in after reset
+	tt.users[1].loginAfterReset()
+
+	// users[0] adds users[1] back to the team
+	tt.users[0].addTeamMember(teamName.String(), tt.users[1].username, keybase1.TeamRole_WRITER)
+
+	// wait for badge state to have no teams w/ reset member
+	tt.users[0].waitForBadgeStateWithReset(0)
+
+	// badge state should be cleared
+	badgeState = getBadgeState(t, tt.users[0])
+	if len(badgeState.TeamsWithResetUsers) != 0 {
+		t.Errorf("badge state for TeamsWithResetUsers not empty: %d", len(badgeState.TeamsWithResetUsers))
+	}
+}
+
+// TestTeamResetBadgesOnRemove checks that badges show up for admins
+// when a member of the team resets, and that they are dismissed
+// when the reset user is removed.
+func TestTeamResetBadgesOnRemove(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	tt.addUser("own")
+	tt.addUser("roo")
+
+	teamID, teamName := tt.users[0].createTeam2()
+	tt.users[0].kickTeamRekeyd()
+	tt.users[0].addTeamMember(teamName.String(), tt.users[1].username, keybase1.TeamRole_WRITER)
+	tt.users[1].reset()
+	tt.users[0].waitForTeamChangedGregor(teamID, keybase1.Seqno(2))
+	// wait for badge state to have 1 team w/ reset member
+	tt.users[0].waitForBadgeStateWithReset(1)
+
+	// users[0] should be badged since users[1] reset
+	badgeState := getBadgeState(t, tt.users[0])
+	if len(badgeState.TeamsWithResetUsers) == 0 {
+		t.Fatal("TeamsWithResetUsers is empty after reset")
+	}
+	out := badgeState.TeamsWithResetUsers[0]
+	if out.Teamname != teamName.String() {
+		t.Errorf("badged team name: %s, expected %s", out.Teamname, teamName)
+	}
+	if out.Username != tt.users[1].username {
+		t.Errorf("badged user: %s, expected %s", out.Username, tt.users[1].username)
+	}
+
+	// users[0] removes users[1] from the team
+	tt.users[0].removeTeamMember(teamName.String(), tt.users[1].username)
+
+	// wait for badge state to have no teams w/ reset member
+	tt.users[0].waitForBadgeStateWithReset(0)
+
+	// badge state should be cleared
+	badgeState = getBadgeState(t, tt.users[0])
+	if len(badgeState.TeamsWithResetUsers) != 0 {
+		t.Errorf("badge state for TeamsWithResetUsers not empty: %d", len(badgeState.TeamsWithResetUsers))
+	}
 }

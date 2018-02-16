@@ -59,6 +59,8 @@ const (
 	PromptDescriptorRemoveMember
 	PromptDescriptorDeleteRootTeam
 	PromptDescriptorDeleteSubteam
+	PromptDescriptorChatDeleteHistory
+	PromptDescriptorChatSetRetention
 )
 
 const (

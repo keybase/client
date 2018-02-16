@@ -7,11 +7,13 @@ import * as LoginGen from '../actions/login-gen'
 import * as SettingsGen from '../actions/settings-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
+import * as WaitingGen from '../actions/waiting-gen'
 import mapValues from 'lodash/mapValues'
 import trim from 'lodash/trim'
 import {delay} from 'redux-saga'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
 import {type TypedState} from '../constants/reducer'
+import {traceFileName} from '../constants/platform'
 
 function* _onUpdatePGPSettings(): Saga.SagaGenerator<any, any> {
   try {
@@ -348,6 +350,21 @@ function _deleteAccountForeverSaga(action: SettingsGen.DeleteAccountForeverPaylo
 const _loadSettings = () => Saga.call(RPCTypes.userLoadMySettingsRpcPromise)
 const _loadSettingsSuccess = emailState => Saga.put(SettingsGen.createLoadedSettings({emailState}))
 
+const _traceSaga = (action: SettingsGen.TracePayload) => {
+  const durationSeconds = action.payload.durationSeconds
+  return Saga.sequentially([
+    Saga.call(RPCTypes.pprofTraceRpcPromise, {
+      // TODO: Make the go side ensure that the directory exists.
+      // TODO: Include any trace output in a log send.
+      traceFile: traceFileName(),
+      traceDurationSeconds: durationSeconds,
+    }),
+    Saga.put(WaitingGen.createIncrementWaiting({key: Constants.traceInProgressKey})),
+    Saga.delay(durationSeconds * 1000),
+    Saga.put(WaitingGen.createDecrementWaiting({key: Constants.traceInProgressKey})),
+  ])
+}
+
 function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(SettingsGen.invitesReclaim, _reclaimInviteSaga)
   yield Saga.safeTakeLatest(SettingsGen.invitesRefresh, _refreshInvitesSaga)
@@ -360,6 +377,7 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(SettingsGen.onSubmitNewEmail, _onSubmitNewEmail)
   yield Saga.safeTakeEvery(SettingsGen.onSubmitNewPassphrase, _onSubmitNewPassphrase)
   yield Saga.safeTakeEvery(SettingsGen.onUpdatePGPSettings, _onUpdatePGPSettings)
+  yield Saga.safeTakeLatestPure(SettingsGen.trace, _traceSaga)
 }
 
 export default settingsSaga

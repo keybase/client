@@ -716,6 +716,37 @@ func TestOnlyOwnerLeaveThenUpgradeFriend(t *testing.T) {
 	}
 }
 
+func TestLeaveAsReader(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	t.Logf("U0 creates fennel_network")
+	teamName, teamID := createTeam2(*tcs[0])
+
+	t.Logf("U0 adds U1 to the root")
+	_, err := AddMember(context.Background(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER)
+	require.NoError(t, err)
+
+	t.Logf("U1 leaves the team")
+	err = Leave(context.Background(), tcs[1].G, teamName.String(), false)
+	require.NoError(t, err)
+
+	t.Logf("U0 loads the team")
+	require.NoError(t, err, "loading the team")
+	_, err = Load(context.Background(), tcs[0].G, keybase1.LoadTeamArg{
+		ID:          teamID,
+		ForceRepoll: true,
+	})
+
+	t.Logf("U0 loads the team from scratch")
+	_, err = Load(context.Background(), tcs[0].G, keybase1.LoadTeamArg{
+		ID:              teamID,
+		ForceFullReload: true,
+		ForceRepoll:     true,
+	})
+	require.NoError(t, err, "loading the team FROM SCRATCH")
+}
+
 func TestMemberAddResolveCache(t *testing.T) {
 	tc, _, other, _, name := memberSetupMultiple(t)
 	defer tc.Cleanup()

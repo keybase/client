@@ -32,7 +32,7 @@ const routeTree = makeRouteDefNode({
     [folderTab]: foldersRoutes,
     [gitTab]: gitRoutes,
     [loginTab]: loginRoutes,
-    [peopleTab]: flags.newPeopleTab ? peopleRoutes : profileRoutes,
+    [peopleTab]: peopleRoutes,
     [profileTab]: profileRoutes,
     [settingsTab]: settingsRoutes,
     [teamsTab]: teamsRoutes,

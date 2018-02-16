@@ -35,21 +35,27 @@ const seitanEncodedIKeyPlusOffset = 5
 const KBase30EncodeStd = "abcdefghjkmnpqrsuvwxyz23456789"
 const base30BitMask = byte(0x1f)
 
+type SeitanVersion uint
+
+const (
+	SeitanVersion1 SeitanVersion = 1
+	SeitanVersion2 SeitanVersion = 2
+)
+
 // "Invite Key"
 type SeitanIKey string
 
-// "Packed Encrypted Invite Key"
-// All following 3 structs should be considerd one. When any changes,
-// Version in PEIKey has to be bumped up.
-type SeitanPEIKey struct {
-	_struct               bool `codec:",toarray"`
-	Version               uint
-	TeamKeyGeneration     keybase1.PerTeamKeyGeneration
-	RandomNonce           keybase1.BoxNonce
-	EncryptedIKeyAndLabel []byte // keybase1.SeitanIKeyAndLabel MsgPacked and encrypted
+// "Seitan Packed Encrypted Key" All following 3 structs should be considered one.
+// When any changes, version has to be bumped up.
+type SeitanPKey struct {
+	_struct              bool `codec:",toarray"`
+	Version              SeitanVersion
+	TeamKeyGeneration    keybase1.PerTeamKeyGeneration
+	RandomNonce          keybase1.BoxNonce
+	EncryptedKeyAndLabel []byte // keybase1.SeitanKeyAndLabel MsgPacked and encrypted
 }
 
-func GenerateIKey() (ikey SeitanIKey, err error) {
+func generateIKey(plusOffset int) (str string, err error) {
 
 	alphabet := []byte(KBase30EncodeStd)
 	randEncodingByte := func() (byte, error) {
@@ -68,25 +74,25 @@ func GenerateIKey() (ikey SeitanIKey, err error) {
 
 	var buf []byte
 	for i := 0; i < SeitanEncodedIKeyLength; i++ {
-		if i == seitanEncodedIKeyPlusOffset {
+		if i == plusOffset {
 			buf = append(buf, '+')
 		} else {
 			b, err := randEncodingByte()
 			if err != nil {
-				return ikey, err
+				return "", err
 			}
 			buf = append(buf, b)
 		}
 	}
-	return SeitanIKey(string(buf)), nil
+	return string(buf), nil
 }
 
-// IsSeitany is a very conservative check of whether a given string looks
-// like a Seitan token. We want to err on the side of considering strings
-// Seitan tokens, since we don't mistakenly want to send botched Seitan
-// tokens to the server.
-func IsSeitany(s string) bool {
-	return len(s) > 5 && strings.IndexByte(s, '+') > 1
+func GenerateIKey() (ikey SeitanIKey, err error) {
+	str, err := generateIKey(seitanEncodedIKeyPlusOffset)
+	if err != nil {
+		return ikey, err
+	}
+	return SeitanIKey(str), err
 }
 
 var tokenPasteRegexp = regexp.MustCompile(`token\: [a-z0-9+]{16,18}`)
@@ -107,12 +113,12 @@ func ParseSeitanTokenFromPaste(token string) (string, bool) {
 	return token, false
 }
 
-// GenerateIKeyFromString safely creates SeitanIKey value from
+// ParseIKeyFromString safely creates SeitanIKey value from
 // plaintext string. Only format is checked - any 18-character token
 // with '+' character at position 5 can be "Invite Key". Alphabet is
 // not checked, as it is only a hint for token generation and it can
 // change over time, but we assume that token length stays the same.
-func GenerateIKeyFromString(token string) (ikey SeitanIKey, err error) {
+func ParseIKeyFromString(token string) (ikey SeitanIKey, err error) {
 	if len(token) != SeitanEncodedIKeyLength {
 		return ikey, fmt.Errorf("invalid token length: expected %d characters, got %d", SeitanEncodedIKeyLength, len(token))
 	}
@@ -137,13 +143,33 @@ const (
 // "Stretched Invite Key"
 type SeitanSIKey [SeitanScryptKeylen]byte
 
+func generateSIKey(s string) (buf []byte, err error) {
+	buf, err = scrypt.Key([]byte(s), nil, SeitanScryptCost, SeitanScryptR, SeitanScryptP, SeitanScryptKeylen)
+	return buf, err
+}
+
 func (ikey SeitanIKey) GenerateSIKey() (sikey SeitanSIKey, err error) {
-	ret, err := scrypt.Key([]byte(ikey.String()), nil, SeitanScryptCost, SeitanScryptR, SeitanScryptP, SeitanScryptKeylen)
+	buf, err := generateSIKey(ikey.String())
 	if err != nil {
 		return sikey, err
 	}
-	copy(sikey[:], ret)
+	copy(sikey[:], buf)
 	return sikey, nil
+}
+
+func generateTeamInviteID(secretKey []byte, payload []byte) (id SCTeamInviteID, err error) {
+	mac := hmac.New(sha512.New, secretKey)
+	_, err = mac.Write(payload)
+	if err != nil {
+		return id, err
+	}
+
+	out := mac.Sum(nil)
+	out = out[0:15]
+	out = append(out, libkb.InviteIDTag)
+	id = SCTeamInviteID(hex.EncodeToString(out[:]))
+	return id, nil
+
 }
 
 func (sikey SeitanSIKey) GenerateTeamInviteID() (id SCTeamInviteID, err error) {
@@ -155,78 +181,70 @@ func (sikey SeitanSIKey) GenerateTeamInviteID() (id SCTeamInviteID, err error) {
 	if err != nil {
 		return id, err
 	}
-
-	mac := hmac.New(sha512.New, sikey[:])
-	_, err = mac.Write(payload)
-	if err != nil {
-		return id, err
-	}
-
-	out := mac.Sum(nil)
-	out = out[0:15]
-	out = append(out, libkb.InviteIDTag)
-	id = SCTeamInviteID(hex.EncodeToString(out[:]))
-	return id, nil
+	return generateTeamInviteID(sikey[:], payload)
 }
 
-func (ikey SeitanIKey) generatePackedEncryptedIKeyWithSecretKey(secretKey keybase1.Bytes32, gen keybase1.PerTeamKeyGeneration, nonce keybase1.BoxNonce, label keybase1.SeitanIKeyLabel) (peikey SeitanPEIKey, encoded string, err error) {
-	var keyAndLabel keybase1.SeitanIKeyAndLabelVersion1
-	keyAndLabel.I = keybase1.SeitanIKey(ikey)
-	keyAndLabel.L = label
-
-	packedKeyAndLabel, err := libkb.MsgpackEncode(keybase1.NewSeitanIKeyAndLabelWithV1(keyAndLabel))
-	if err != nil {
-		return peikey, encoded, err
-	}
-
+func packAndEncryptKeyWithSecretKey(secretKey keybase1.Bytes32, gen keybase1.PerTeamKeyGeneration, nonce keybase1.BoxNonce, packedKeyAndLabel []byte, version SeitanVersion) (pkey SeitanPKey, encoded string, err error) {
 	var encKey [libkb.NaclSecretBoxKeySize]byte = secretKey
 	var naclNonce [libkb.NaclDHNonceSize]byte = nonce
-	encryptedIKeyAndLabel := secretbox.Seal(nil, []byte(packedKeyAndLabel), &naclNonce, &encKey)
+	encryptedKeyAndLabel := secretbox.Seal(nil, []byte(packedKeyAndLabel), &naclNonce, &encKey)
 
-	peikey = SeitanPEIKey{
-		Version:               1,
-		TeamKeyGeneration:     gen,
-		RandomNonce:           nonce,
-		EncryptedIKeyAndLabel: encryptedIKeyAndLabel,
+	pkey = SeitanPKey{
+		Version:              version,
+		TeamKeyGeneration:    gen,
+		RandomNonce:          nonce,
+		EncryptedKeyAndLabel: encryptedKeyAndLabel,
 	}
 
-	packed, err := libkb.MsgpackEncode(peikey)
+	packed, err := libkb.MsgpackEncode(pkey)
 	if err != nil {
-		return peikey, encoded, err
+		return pkey, encoded, err
 	}
 
 	encoded = base64.StdEncoding.EncodeToString(packed)
-	return peikey, encoded, nil
+	return pkey, encoded, nil
 }
 
-func (ikey SeitanIKey) GeneratePackedEncryptedIKey(ctx context.Context, team *Team, label keybase1.SeitanIKeyLabel) (peikey SeitanPEIKey, encoded string, err error) {
+func (ikey SeitanIKey) generatePackedEncryptedKeyWithSecretKey(secretKey keybase1.Bytes32, gen keybase1.PerTeamKeyGeneration, nonce keybase1.BoxNonce, label keybase1.SeitanKeyLabel) (pkey SeitanPKey, encoded string, err error) {
+	var keyAndLabel keybase1.SeitanKeyAndLabelVersion1
+	keyAndLabel.I = keybase1.SeitanIKey(ikey)
+	keyAndLabel.L = label
+
+	packedKeyAndLabel, err := libkb.MsgpackEncode(keybase1.NewSeitanKeyAndLabelWithV1(keyAndLabel))
+	if err != nil {
+		return pkey, encoded, err
+	}
+	return packAndEncryptKeyWithSecretKey(secretKey, gen, nonce, packedKeyAndLabel, SeitanVersion1)
+}
+
+func (ikey SeitanIKey) GeneratePackedEncryptedKey(ctx context.Context, team *Team, label keybase1.SeitanKeyLabel) (pkey SeitanPKey, encoded string, err error) {
 	appKey, err := team.SeitanInviteTokenKeyLatest(ctx)
 	if err != nil {
-		return peikey, encoded, err
+		return pkey, encoded, err
 	}
 
 	var nonce keybase1.BoxNonce
 	if _, err = rand.Read(nonce[:]); err != nil {
-		return peikey, encoded, err
+		return pkey, encoded, err
 	}
 
-	return ikey.generatePackedEncryptedIKeyWithSecretKey(appKey.Key, appKey.KeyGeneration, nonce, label)
+	return ikey.generatePackedEncryptedKeyWithSecretKey(appKey.Key, appKey.KeyGeneration, nonce, label)
 }
 
-func SeitanDecodePEIKey(base64Buffer string) (peikey SeitanPEIKey, err error) {
+func SeitanDecodePKey(base64Buffer string) (pkey SeitanPKey, err error) {
 	packed, err := base64.StdEncoding.DecodeString(base64Buffer)
 	if err != nil {
-		return peikey, err
+		return pkey, err
 	}
 
-	err = libkb.MsgpackDecode(&peikey, packed)
-	return peikey, err
+	err = libkb.MsgpackDecode(&pkey, packed)
+	return pkey, err
 }
 
-func (peikey SeitanPEIKey) decryptIKeyAndLabelWithSecretKey(secretKey keybase1.Bytes32) (ret keybase1.SeitanIKeyAndLabel, err error) {
+func (pkey SeitanPKey) decryptKeyAndLabelWithSecretKey(secretKey keybase1.Bytes32) (ret keybase1.SeitanKeyAndLabel, err error) {
 	var encKey [libkb.NaclSecretBoxKeySize]byte = secretKey
-	var naclNonce [libkb.NaclDHNonceSize]byte = peikey.RandomNonce
-	plain, ok := secretbox.Open(nil, peikey.EncryptedIKeyAndLabel, &naclNonce, &encKey)
+	var naclNonce [libkb.NaclDHNonceSize]byte = pkey.RandomNonce
+	plain, ok := secretbox.Open(nil, pkey.EncryptedKeyAndLabel, &naclNonce, &encKey)
 	if !ok {
 		return ret, errors.New("failed to decrypt seitan plain")
 	}
@@ -239,13 +257,13 @@ func (peikey SeitanPEIKey) decryptIKeyAndLabelWithSecretKey(secretKey keybase1.B
 	return ret, nil
 }
 
-func (peikey SeitanPEIKey) DecryptIKeyAndLabel(ctx context.Context, team *Team) (ret keybase1.SeitanIKeyAndLabel, err error) {
-	appKey, err := team.SeitanInviteTokenKeyAtGeneration(ctx, peikey.TeamKeyGeneration)
+func (pkey SeitanPKey) DecryptKeyAndLabel(ctx context.Context, team *Team) (ret keybase1.SeitanKeyAndLabel, err error) {
+	appKey, err := team.SeitanInviteTokenKeyAtGeneration(ctx, pkey.TeamKeyGeneration)
 	if err != nil {
 		return ret, err
 	}
 
-	return peikey.decryptIKeyAndLabelWithSecretKey(appKey.Key)
+	return pkey.decryptKeyAndLabelWithSecretKey(appKey.Key)
 }
 
 // "Acceptance Key"

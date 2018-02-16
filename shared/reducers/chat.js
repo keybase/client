@@ -328,6 +328,7 @@ function reducer(
     case ChatGen.badgeAppForChat:
     case ChatGen.blockConversation:
     case ChatGen.deleteMessage:
+    case ChatGen.deleteMessageHistory:
     case ChatGen.downloadProgress:
     case ChatGen.editMessage:
     case ChatGen.getInboxAndUnbox:

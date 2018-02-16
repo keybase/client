@@ -1,0 +1,8 @@
+@namespace("keybase.1")
+
+protocol pprof {
+
+  import idl "common.avdl";
+
+  void trace(int sessionID, string traceFile, DurationSec traceDurationSeconds);
+}

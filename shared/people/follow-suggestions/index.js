@@ -10,6 +10,7 @@ const connectedUsernamesProps = {
   colorFollowing: true,
   type: 'BodySemibold',
   style: {marginTop: globalMargins.xtiny, display: 'flex'},
+  underline: true,
 }
 
 export type FollowSuggestion = Types._FollowSuggestion

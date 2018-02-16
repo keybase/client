@@ -1,6 +1,7 @@
 // @flow
 import * as Types from './types/settings'
 import HiddenString from '../util/hidden-string'
+import type {TypedState} from './reducer'
 
 const initialState: Types.State = {
   allowDeleteAccount: false,
@@ -40,6 +41,10 @@ const initialState: Types.State = {
   waitingForResponse: false,
 }
 
+const traceInProgressKey = 'traceInProgress'
+
+const traceInProgress = (state: TypedState) => state.waiting.get(traceInProgressKey, 0) !== 0
+
 export const aboutTab = 'settingsTabs:aboutTab'
 export const advancedTab = 'settingsTabs:advancedTab'
 export const deleteMeTab = 'settingsTabs:deleteMeTab'
@@ -55,4 +60,4 @@ export const passphraseTab = 'settingsTabs:passphrase'
 export const screenprotectorTab = 'settingsTabs:screenprotector'
 export const updatePaymentTab = 'settingsTabs:updatePaymentTab'
 export const securityGroup = 'security'
-export {initialState}
+export {initialState, traceInProgressKey, traceInProgress}

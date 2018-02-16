@@ -36,6 +36,7 @@ export const onUpdatePGPSettings = 'settings:onUpdatePGPSettings'
 export const onUpdatePassphraseError = 'settings:onUpdatePassphraseError'
 export const onUpdatedPGPSettings = 'settings:onUpdatedPGPSettings'
 export const setAllowDeleteAccount = 'settings:setAllowDeleteAccount'
+export const trace = 'settings:trace'
 export const waitingForResponse = 'settings:waitingForResponse'
 
 // Action Creators
@@ -77,6 +78,7 @@ export const createOnUpdatePGPSettings = () => ({error: false, payload: undefine
 export const createOnUpdatePassphraseError = (payload: $ReadOnly<{error: Error}>) => ({error: false, payload, type: onUpdatePassphraseError})
 export const createOnUpdatedPGPSettings = (payload: $ReadOnly<{hasKeys: boolean}>) => ({error: false, payload, type: onUpdatedPGPSettings})
 export const createSetAllowDeleteAccount = (payload: $ReadOnly<{allow: boolean}>) => ({error: false, payload, type: setAllowDeleteAccount})
+export const createTrace = (payload: $ReadOnly<{durationSeconds: number}>) => ({error: false, payload, type: trace})
 export const createWaitingForResponse = (payload: $ReadOnly<{waiting: boolean}>) => ({error: false, payload, type: waitingForResponse})
 
 // Action Payloads
@@ -106,6 +108,7 @@ export type OnUpdatePGPSettingsPayload = More.ReturnType<typeof createOnUpdatePG
 export type OnUpdatePassphraseErrorPayload = More.ReturnType<typeof createOnUpdatePassphraseError>
 export type OnUpdatedPGPSettingsPayload = More.ReturnType<typeof createOnUpdatedPGPSettings>
 export type SetAllowDeleteAccountPayload = More.ReturnType<typeof createSetAllowDeleteAccount>
+export type TracePayload = More.ReturnType<typeof createTrace>
 export type WaitingForResponsePayload = More.ReturnType<typeof createWaitingForResponse>
 
 // All Actions
@@ -139,5 +142,6 @@ export type Actions =
   | More.ReturnType<typeof createOnUpdatePassphraseError>
   | More.ReturnType<typeof createOnUpdatedPGPSettings>
   | More.ReturnType<typeof createSetAllowDeleteAccount>
+  | More.ReturnType<typeof createTrace>
   | More.ReturnType<typeof createWaitingForResponse>
   | {type: 'common:resetStore', payload: void}

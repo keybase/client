@@ -43,6 +43,11 @@ type LogOutput interface {
 	Profile(s string, args ...interface{})
 }
 
+type LogOutputWithDepthAdder interface {
+	LogOutput
+	CloneWithAddedDepth(depth int) LogOutputWithDepthAdder
+}
+
 type LogOptions interface {
 	ShowAddress() bool
 	ShowArg() bool

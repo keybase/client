@@ -28,6 +28,7 @@ type CmdTeamListMemberships struct {
 	showAll              bool
 	verbose              bool
 	showInviteID         bool
+	verified             bool
 	tabw                 *tabwriter.Writer
 }
 
@@ -78,6 +79,9 @@ func newCmdTeamListMemberships(cl *libcmdline.CommandLine, g *libkb.GlobalContex
 		flags = append(flags, cli.BoolFlag{
 			Name:  "include-implicit-teams",
 			Usage: "[devel only] Include automatic teams that are not normally visible",
+		}, cli.BoolFlag{
+			Name:  "verified",
+			Usage: "[devel only] Verify results by loading every team",
 		})
 	}
 	return cli.Command{
@@ -102,6 +106,7 @@ func (c *CmdTeamListMemberships) ParseArgv(ctx *cli.Context) error {
 	}
 	c.userAssertion = ctx.String("user")
 	c.includeImplicitTeams = ctx.Bool("include-implicit-teams")
+	c.verified = ctx.Bool("verified")
 	c.showAll = ctx.Bool("all")
 	c.showInviteID = ctx.Bool("show-invite-id")
 
@@ -146,17 +151,23 @@ func (c *CmdTeamListMemberships) runGet(cli keybase1.TeamsClient) error {
 func (c *CmdTeamListMemberships) runUser(cli keybase1.TeamsClient) error {
 	var err error
 	var list keybase1.AnnotatedTeamList
-	if !c.showAll {
+	if c.showAll {
+		arg := keybase1.TeamListTeammatesArg{
+			IncludeImplicitTeams: c.includeImplicitTeams,
+		}
+		list, err = cli.TeamListTeammates(context.Background(), arg)
+	} else if c.verified {
+		arg := keybase1.TeamListVerifiedArg{
+			UserAssertion:        c.userAssertion,
+			IncludeImplicitTeams: c.includeImplicitTeams,
+		}
+		list, err = cli.TeamListVerified(context.Background(), arg)
+	} else {
 		arg := keybase1.TeamListUnverifiedArg{
 			UserAssertion:        c.userAssertion,
 			IncludeImplicitTeams: c.includeImplicitTeams,
 		}
 		list, err = cli.TeamListUnverified(context.Background(), arg)
-	} else {
-		arg := keybase1.TeamListTeammatesArg{
-			IncludeImplicitTeams: c.includeImplicitTeams,
-		}
-		list, err = cli.TeamListTeammates(context.Background(), arg)
 	}
 
 	if err != nil {

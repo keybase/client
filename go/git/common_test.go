@@ -2,8 +2,10 @@ package git
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
 
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -46,6 +48,8 @@ type mockChatHelper struct {
 	sentMessages []MockMessage
 	convs        map[string]chat1.ConversationLocal
 }
+
+var _ libkb.ChatHelper = (*mockChatHelper)(nil)
 
 func newMockChatHelper() *mockChatHelper {
 	return &mockChatHelper{
@@ -146,6 +150,16 @@ func (m *mockChatHelper) FindConversationsByID(ctx context.Context, convIDs []ch
 		}
 	}
 	return convs, nil
+}
+
+func (m *mockChatHelper) GetChannelTopicName(ctx context.Context, teamID keybase1.TeamID,
+	topicType chat1.TopicType, convID chat1.ConversationID) (string, error) {
+	for _, v := range m.convs {
+		if v.Info.Id.Eq(convID) {
+			return utils.GetTopicName(v), nil
+		}
+	}
+	return "", fmt.Errorf("mockChatHelper.GetChannelTopicName conv not found %v", convID)
 }
 
 func (m *mockChatHelper) convKey(name string, topicName *string) string {

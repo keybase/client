@@ -26,6 +26,7 @@ type ChatServiceHandler interface {
 	DownloadV1(context.Context, downloadOptionsV1) Reply
 	SetStatusV1(context.Context, setStatusOptionsV1) Reply
 	MarkV1(context.Context, markOptionsV1) Reply
+	SearchRegexpV1(context.Context, searchRegexpOptionsV1) Reply
 }
 
 // chatServiceHandler implements ChatServiceHandler.
@@ -175,6 +176,11 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 			continue
 		}
 
+		// skip any PLACEHOLDER or OUTBOX messages
+		if st != chat1.MessageUnboxedState_VALID {
+			continue
+		}
+
 		mv := m.Valid()
 
 		if mv.ClientHeader.MessageType == chat1.MessageType_TLFNAME {
@@ -217,6 +223,7 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 			Prev:          prev,
 			Unread:        unread,
 			RevokedDevice: mv.SenderDeviceRevokedAt != nil,
+			KBFSEncrypted: mv.ClientHeader.KbfsCryptKeysUsed == nil || *mv.ClientHeader.KbfsCryptKeysUsed,
 		}
 
 		msg.Content = c.convertMsgBody(mv.MessageBody)
@@ -604,6 +611,7 @@ func (c *chatServiceHandler) SetStatusV1(ctx context.Context, opts setStatusOpti
 	return Reply{Result: res}
 }
 
+// MarkV1 implements ChatServiceHandler.MarkV1.
 func (c *chatServiceHandler) MarkV1(ctx context.Context, opts markOptionsV1) Reply {
 	convID, rlimits, err := c.resolveAPIConvID(ctx, opts.ConversationID, opts.Channel)
 	if err != nil {
@@ -632,6 +640,51 @@ func (c *chatServiceHandler) MarkV1(ctx context.Context, opts markOptionsV1) Rep
 		},
 	}
 	return Reply{Result: cres}
+}
+
+// SearchRegexpV1 implements ChatServiceHandler.SearchRegexpV1.
+func (c *chatServiceHandler) SearchRegexpV1(ctx context.Context, opts searchRegexpOptionsV1) Reply {
+	convID, rlimits, err := c.resolveAPIConvID(ctx, opts.ConversationID, opts.Channel)
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	if opts.MaxHits <= 0 {
+		opts.MaxHits = 10
+	}
+
+	if opts.MaxMessages <= 0 {
+		opts.MaxMessages = 10000
+	}
+
+	arg := chat1.GetSearchRegexpArg{
+		ConversationID:   convID,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		Query:            opts.Query,
+		IsRegex:          opts.IsRegex,
+		MaxHits:          opts.MaxHits,
+		MaxMessages:      opts.MaxMessages,
+	}
+
+	res, err := client.GetSearchRegexp(ctx, arg)
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	allLimits := append(rlimits, res.RateLimits...)
+	searchRes := SearchRes{
+		Hits: res.Hits,
+		RateLimits: RateLimits{
+			c.aggRateLimits(allLimits),
+		},
+		IdentifyFailures: res.IdentifyFailures,
+	}
+	return Reply{Result: searchRes}
 }
 
 type sendArgV1 struct {
@@ -800,7 +853,8 @@ func (c *chatServiceHandler) getExistingConvs(ctx context.Context, id chat1.Conv
 
 	var tlfName string
 	switch channel.GetMembersType(c.G().GetEnv()) {
-	case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAM:
+	case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAMNATIVE,
+		chat1.ConversationMembersType_IMPTEAMUPGRADE:
 		tlfQ := keybase1.TLFQuery{
 			TlfName:          channel.Name,
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
@@ -990,6 +1044,7 @@ type MsgSummary struct {
 	Unread        bool                           `json:"unread"`
 	RevokedDevice bool                           `json:"revoked_device,omitempty"`
 	Offline       bool                           `json:"offline,omitempty"`
+	KBFSEncrypted bool                           `json:"kbfs_encrypted,omitempty"`
 }
 
 // Message contains eiter a MsgSummary or an Error.  Used for JSON output.
@@ -1031,6 +1086,12 @@ type ChatList struct {
 // SendRes is the result of successfully sending a message.
 type SendRes struct {
 	Message          string                        `json:"message"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `json:"identify_failures,omitempty"`
+	RateLimits
+}
+
+type SearchRes struct {
+	Hits             []chat1.ChatSearchHit         `json:"hits"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `json:"identify_failures,omitempty"`
 	RateLimits
 }

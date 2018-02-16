@@ -1,16 +1,28 @@
 // @flow
 import * as ChatConstants from '../../../constants/chat'
 import * as Types from '../../../constants/types/chat'
+import {getCanPerform} from '../../../constants/teams'
 import * as ChatGen from '../../../actions/chat-gen'
 import * as React from 'react'
 import MessagePopupHeader from './popup-header'
 import {NativeClipboard, PopupMenu} from '../../../common-adapters/index.native'
 import {connect, type TypedState} from '../../../util/container'
 import {isIOS} from '../../../constants/platform'
+import {navigateAppend} from '../../../actions/route-tree'
+import flags from '../../../util/feature-flags'
+
 import {type RouteProps} from '../../../route-tree/render-route'
 import {type TextProps, type AttachmentProps} from './popup'
 
-function _textMessagePopupHelper({message, type, onDeleteMessage, onHidden, onShowEditor, you}: TextProps) {
+function _textMessagePopupHelper({
+  message,
+  type,
+  onDeleteMessage,
+  onDeleteMessageHistory,
+  onHidden,
+  onShowEditor,
+  you,
+}: TextProps) {
   const edit =
     message.author === you
       ? [
@@ -65,7 +77,7 @@ function _attachmentMessagePopupHelper({
 }
 
 function MessagePopup(props: TextProps | AttachmentProps) {
-  const {message, onDeleteMessage, onHidden, you} = props
+  const {canDeleteHistory, message, onDeleteMessage, onDeleteMessageHistory, onHidden, you} = props
   if (message.type !== 'Text' && message.type !== 'Attachment') return null
 
   let items = []
@@ -94,10 +106,15 @@ function MessagePopup(props: TextProps | AttachmentProps) {
   if (message.author === you) {
     items.push({
       danger: true,
-      onClick: () => {
-        onDeleteMessage(message)
-      },
+      onClick: () => onDeleteMessage(message),
       title: 'Delete',
+    })
+  }
+  if (canDeleteHistory && flags.deleteChatHistory) {
+    items.push({
+      danger: true,
+      onClick: () => onDeleteMessageHistory && onDeleteMessageHistory(message),
+      title: 'Delete all messages before this one',
     })
   }
 
@@ -124,9 +141,18 @@ type OwnProps = MessagePopupRouteProps & {}
 
 export default connect(
   (state: TypedState, {routeProps}: OwnProps) => {
+    // $FlowIssue doesn't like routeProps here
     const message = routeProps.get('message')
     const you = state.config.username
+    // Find out whether we're allowed to delete chat history. If we're
+    // on a team, use canUserPerform, else assume we can.
+    const {conversationIDKey} = message
+    const inbox = state.chat.inbox.get(conversationIDKey)
+    const teamname = inbox && inbox.get('teamname')
+    const yourOperations = getCanPerform(state, teamname)
+    const canDeleteHistory = teamname ? yourOperations.deleteChatHistory : true
     return {
+      canDeleteHistory,
       message,
       you,
     }
@@ -134,6 +160,10 @@ export default connect(
   (dispatch: Dispatch, {routeProps, navigateUp}: OwnProps) => ({
     onDeleteMessage: (message: Types.ServerMessage) => {
       dispatch(ChatGen.createDeleteMessage({message}))
+    },
+    onDeleteMessageHistory: message => {
+      dispatch(navigateUp())
+      dispatch(navigateAppend([{props: {message}, selected: 'deleteHistoryWarning'}]))
     },
     onHidden: () => dispatch(navigateUp()),
     onShowEditor: () => dispatch(ChatGen.createShowEditor({message: routeProps.get('message')})),

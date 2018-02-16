@@ -5,9 +5,6 @@ import * as I from 'immutable'
 import type {PropsPath} from '../../../route-tree/index'
 import {peopleTab} from '../../../constants/tabs'
 
-// These tests are for navigation with newPeopleTab: false
-// when the new people tab is going to be released these
-// expectedPaths must change to reflect the new root behavior
 describe('getProfilePath', () => {
   const state = {
     entities: {

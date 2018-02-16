@@ -4,9 +4,9 @@ import type {FeatureFlags} from './feature-flags'
 
 const ff: FeatureFlags = {
   admin: __DEV__,
+  deleteChatHistory: __DEV__,
   fsEnabled: __DEV__,
   impTeamChatEnabled: true,
-  newPeopleTab: true,
   plansEnabled: false,
 }
 

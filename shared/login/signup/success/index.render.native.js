@@ -27,7 +27,7 @@ class SuccessRender extends Component<Props, State> {
         </Text>
 
         <Box style={paperKeyContainerStyle}>
-          <Text type="Header" style={paperkeyStyle}>
+          <Text type="Header" selectable={true} style={paperkeyStyle}>
             {this.props.paperkey.stringValue()}
           </Text>
           <Box style={paperCornerStyle}>

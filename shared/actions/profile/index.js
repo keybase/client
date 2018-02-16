@@ -16,7 +16,6 @@ import {navigateTo, navigateUp} from '../../actions/route-tree'
 import {loginTab, peopleTab} from '../../constants/tabs'
 import {pgpSaga} from './pgp'
 import {proofsSaga} from './proofs'
-import flags from '../../util/feature-flags'
 
 import type {TypedState} from '../../constants/reducer'
 
@@ -156,7 +155,7 @@ function _outputInstructionsActionLink(
 function _backToProfile() {
   return Saga.sequentially([
     Saga.put(TrackerGen.createGetMyProfile({})),
-    Saga.put(navigateTo(flags.newPeopleTab ? ['profile'] : [], [peopleTab])),
+    Saga.put(navigateTo(['profile'], [peopleTab])),
   ])
 }
 

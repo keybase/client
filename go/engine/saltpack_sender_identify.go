@@ -143,6 +143,7 @@ func (e *SaltpackSenderIdentify) identifySender(ctx *Context) (err error) {
 		NoErrorOnTrackFailure: true,
 		Reason:                e.arg.reason,
 		UserAssertion:         e.arg.userAssertion,
+		IdentifyBehavior:      keybase1.TLFIdentifyBehavior_CLI,
 	}
 	eng := NewIdentify2WithUID(e.G(), &iarg)
 	if err = RunEngine(eng, ctx); err != nil {

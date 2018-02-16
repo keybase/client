@@ -30,10 +30,9 @@ function exitProcess() {
   process.exit(0)
 }
 
-export function quit() {
-  // Only quit the app in dev mode
-  if (__DEV__) {
-    console.log('Only quiting gui in dev mode')
+export function quit(appOnly: boolean = false) {
+  if (appOnly || __DEV__) {
+    console.log('Only quiting gui')
     exitApp()
     return
   }

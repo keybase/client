@@ -148,7 +148,7 @@ func generateRenameSubteamSigForParentChain(g *libkb.GlobalContext, me *libkb.Us
 		return nil, err
 	}
 	seqType := seqTypeForTeamPublicness(parentTeam.IsPublic())
-	v2Sig, err := makeSigchainV2OuterSig(
+	v2Sig, _, err := makeSigchainV2OuterSig(
 		signingKey,
 		libkb.LinkTypeRenameSubteam,
 		parentTeam.GetLatestSeqno()+1,
@@ -205,7 +205,7 @@ func generateRenameUpPointerSigForSubteamChain(g *libkb.GlobalContext, me *libkb
 		return nil, err
 	}
 	seqType := seqTypeForTeamPublicness(teams.subteam.IsPublic())
-	v2Sig, err := makeSigchainV2OuterSig(
+	v2Sig, _, err := makeSigchainV2OuterSig(
 		signingKey,
 		libkb.LinkTypeRenameUpPointer,
 		teams.subteam.GetLatestSeqno()+1,

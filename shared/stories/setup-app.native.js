@@ -1,4 +1,5 @@
 // @flow
+import '../dev/storybook-connect'
 import {AppRegistry} from 'react-native'
 import {getStorybookUI} from '@storybook/react-native'
 import loadStories from './index.native.js'

@@ -48,12 +48,18 @@ const Row = (
   >
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minHeight: 40}}>
       <Box style={_rowBox}>
-        <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', width: 16}}>
+        <Box
+          style={{...globalStyles.flexBoxRow, alignItems: 'center', width: 16}}
+          title={
+            props.name.toLowerCase() === 'general' ? 'Leaving the general channel is disabled' : undefined
+          }
+        >
           <Checkbox
             checked={props.selected}
             label=""
             onCheck={props.onToggle}
             style={{alignSelf: 'flex-start', marginRight: 0}}
+            disabled={props.name.toLowerCase() === 'general'}
           />
         </Box>
         <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.tiny, minHeight: 32}}>

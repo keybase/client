@@ -14,6 +14,7 @@ export type Props = {
   onClick?: ?() => void,
   opacity?: number,
   skipBackground?: boolean,
+  skipBackgroundAfterLoaded?: boolean, // if we're on a white background we don't need a white back cover
   size: AvatarSize,
   style?: ?Object,
   username?: ?string,

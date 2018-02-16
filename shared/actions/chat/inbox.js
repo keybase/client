@@ -233,7 +233,10 @@ function* _processConversation(c: RPCChatTypes.InboxUIItem): Generator<any, void
   const conversationIDKey = c.convID
 
   // Update reset participants (only implicit teams)
-  if (c.membersType === RPCChatTypes.commonConversationMembersType.impteam) {
+  if (
+    c.membersType === RPCChatTypes.commonConversationMembersType.impteamnative ||
+    c.membersType === RPCChatTypes.commonConversationMembersType.impteamupgrade
+  ) {
     yield Saga.put(
       ChatGen.createUpdateResetParticipants({
         conversationIDKey,

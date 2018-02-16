@@ -1,0 +1,8 @@
+This is where you can access the Keybase File System (KBFS)!  See
+https://keybase.io/docs/kbfs for more details.
+
+The first user to run `run_keybase` will find their file system
+available at `/keybase` (via a symlink).  Subsequent users will have
+unique mountpoints (printed out by `run_keybase` and available via
+`keybase status`) that can be symlinked from a convenient location
+(such as ~/keybase) if desired.

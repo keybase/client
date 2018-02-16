@@ -189,6 +189,7 @@ export type GitPushInfo = {
   type: 'gitPush',
   pusher: string,
   repo: string,
+  repoID: string,
   team: string,
   refs?: ?Array<RPCTypes.GitRefMetadata>,
 }

@@ -1,30 +1,113 @@
 // @flow
 import * as React from 'react'
-import {globalStyles, globalMargins} from '../styles'
-import {Box, Button, Text, ButtonBar} from '../common-adapters'
+import * as Types from '../constants/types/fs'
+import {globalStyles, globalMargins, isMobile} from '../styles'
+import {Box, ClickableBox, Icon, List, Text, Divider} from '../common-adapters'
+import {type IconType} from '../common-adapters/icon'
+import RowConnector from './row'
+import FolderHeader from './header/header-container'
+import SortBar from './sortbar'
 
-type Props = {
-  counter: number,
-  you: ?string,
-  increase: () => void,
-  increase10: () => void,
+const stylesCommonRow = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  justifyContent: 'center',
+  minHeight: isMobile ? 64 : 40,
+  paddingLeft: 16,
 }
 
-const Fs = ({counter, you, increase, increase10}: Props) => (
-  <Box style={containerStyle}>
-    <Text type="Header">Hi {you}!</Text>
-    <Text type="BodySemibold">Count: {counter}</Text>
-    <ButtonBar align="flex-start">
-      <Button type="Primary" onClick={increase} label="Up by 1" />
-      <Button type="Primary" onClick={increase10} label="Up by 10" />
-    </ButtonBar>
+const stylesContainer = {
+  ...globalStyles.flexBoxColumn,
+  ...globalStyles.fullHeight,
+  flex: 1,
+}
+
+const stylesRowBox = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  flex: 1,
+}
+
+type FileRowProps = {
+  name: string,
+  path: Types.Path,
+  icon: IconType,
+  onOpen: () => void,
+}
+
+type FolderProps = {
+  items: Array<Types.Path>,
+  path: Types.Path,
+  progress: 'pending' | 'loaded',
+}
+
+const folderBoxStyle = {...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'stretch'}
+
+const styleOuterContainer = {
+  height: '100%',
+  position: 'relative',
+}
+
+const iconStyle = {marginRight: globalMargins.small}
+
+const FileRow = RowConnector(({path, name, icon, onOpen}: FileRowProps) => (
+  <Box>
+    <ClickableBox onClick={onOpen} style={stylesCommonRow}>
+      <Box style={stylesRowBox}>
+        <Icon type={icon} style={iconStyle} />
+        <Box style={folderBoxStyle}>
+          <Text type="Body">{name}</Text>
+        </Box>
+      </Box>
+    </ClickableBox>
+    <Divider style={stylesRowDivider} />
+  </Box>
+))
+
+const rowPlaceholderIcon = isMobile ? 'icon-folder-private-24' : 'icon-folder-private-24'
+const placeholderTextStyle = {
+  width: '256px',
+  backgroundColor: 'lightGrey',
+  height: '16px',
+  marginTop: '4px',
+}
+const FileRowPlaceholder = () => (
+  <Box style={stylesCommonRow}>
+    <Box style={stylesRowBox}>
+      <Icon type={rowPlaceholderIcon} style={iconStyle} />
+      <Box style={folderBoxStyle}>
+        <Box style={placeholderTextStyle} />
+      </Box>
+    </Box>
   </Box>
 )
 
-const containerStyle = {
-  ...globalStyles.flexBoxColumn,
-  flex: 1,
-  padding: globalMargins.xlarge,
+class Files extends React.PureComponent<FolderProps> {
+  _renderRow = (index, item) => <FileRow key={Types.pathToString(item)} path={item} />
+  _renderRowPlaceholder = index => <FileRowPlaceholder key={index} />
+
+  render() {
+    const {path, items, progress} = this.props
+    const list =
+      progress === 'pending' ? (
+        <List items={[null, null, null]} renderItem={this._renderRowPlaceholder} />
+      ) : (
+        <List items={items} renderItem={this._renderRow} />
+      )
+    return (
+      <Box style={styleOuterContainer}>
+        <Box style={stylesContainer}>
+          <FolderHeader path={path} />
+          <SortBar />
+          {list}
+        </Box>
+      </Box>
+    )
+  }
 }
 
-export default Fs
+const stylesRowDivider = {
+  marginLeft: isMobile ? 48 : 48,
+}
+
+export default Files

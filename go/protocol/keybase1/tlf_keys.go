@@ -11,7 +11,7 @@ import (
 type TLFIdentifyBehavior int
 
 const (
-	TLFIdentifyBehavior_DEFAULT_KBFS    TLFIdentifyBehavior = 0
+	TLFIdentifyBehavior_UNSET           TLFIdentifyBehavior = 0
 	TLFIdentifyBehavior_CHAT_CLI        TLFIdentifyBehavior = 1
 	TLFIdentifyBehavior_CHAT_GUI        TLFIdentifyBehavior = 2
 	TLFIdentifyBehavior_CHAT_GUI_STRICT TLFIdentifyBehavior = 3
@@ -20,12 +20,14 @@ const (
 	TLFIdentifyBehavior_CHAT_SKIP       TLFIdentifyBehavior = 6
 	TLFIdentifyBehavior_SALTPACK        TLFIdentifyBehavior = 7
 	TLFIdentifyBehavior_CLI             TLFIdentifyBehavior = 8
+	TLFIdentifyBehavior_GUI             TLFIdentifyBehavior = 9
+	TLFIdentifyBehavior_DEFAULT_KBFS    TLFIdentifyBehavior = 10
 )
 
 func (o TLFIdentifyBehavior) DeepCopy() TLFIdentifyBehavior { return o }
 
 var TLFIdentifyBehaviorMap = map[string]TLFIdentifyBehavior{
-	"DEFAULT_KBFS":    0,
+	"UNSET":           0,
 	"CHAT_CLI":        1,
 	"CHAT_GUI":        2,
 	"CHAT_GUI_STRICT": 3,
@@ -34,18 +36,22 @@ var TLFIdentifyBehaviorMap = map[string]TLFIdentifyBehavior{
 	"CHAT_SKIP":       6,
 	"SALTPACK":        7,
 	"CLI":             8,
+	"GUI":             9,
+	"DEFAULT_KBFS":    10,
 }
 
 var TLFIdentifyBehaviorRevMap = map[TLFIdentifyBehavior]string{
-	0: "DEFAULT_KBFS",
-	1: "CHAT_CLI",
-	2: "CHAT_GUI",
-	3: "CHAT_GUI_STRICT",
-	4: "KBFS_REKEY",
-	5: "KBFS_QR",
-	6: "CHAT_SKIP",
-	7: "SALTPACK",
-	8: "CLI",
+	0:  "UNSET",
+	1:  "CHAT_CLI",
+	2:  "CHAT_GUI",
+	3:  "CHAT_GUI_STRICT",
+	4:  "KBFS_REKEY",
+	5:  "KBFS_QR",
+	6:  "CHAT_SKIP",
+	7:  "SALTPACK",
+	8:  "CLI",
+	9:  "GUI",
+	10: "DEFAULT_KBFS",
 }
 
 func (e TLFIdentifyBehavior) String() string {

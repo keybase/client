@@ -3,9 +3,11 @@ import {Component} from 'react'
 import type {AttachmentMessage, TextMessage, LocalMessageState} from '../../../constants/types/chat'
 
 type BaseProps = {
+  canDeleteHistory?: boolean,
   onHidden: () => void,
   style?: Object,
   onDeleteMessage: (message: TextMessage | AttachmentMessage) => void,
+  onDeleteMessageHistory?: (message: TextMessage | AttachmentMessage) => void,
 }
 
 export type TextProps = {

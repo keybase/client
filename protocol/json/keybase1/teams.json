@@ -430,6 +430,17 @@
         {
           "type": "Time",
           "name": "cachedAt"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": {
+              "type": "array",
+              "items": "CryptKey"
+            },
+            "keys": "TeamApplication"
+          },
+          "name": "tlfCryptKeys"
         }
       ]
     },
@@ -557,6 +568,78 @@
     },
     {
       "type": "record",
+      "name": "TeamEncryptedKBFSKeyset",
+      "fields": [
+        {
+          "type": "int",
+          "name": "v"
+        },
+        {
+          "type": "bytes",
+          "name": "e"
+        },
+        {
+          "type": "bytes",
+          "name": "n"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamGetLegacyTLFUpgrade",
+      "fields": [
+        {
+          "type": "string",
+          "name": "encryptedKeyset",
+          "jsonkey": "encrypted_keyset"
+        },
+        {
+          "type": "PerTeamKeyGeneration",
+          "name": "teamGeneration",
+          "jsonkey": "team_generation"
+        },
+        {
+          "type": "int",
+          "name": "legacyGeneration",
+          "jsonkey": "legacy_generation"
+        },
+        {
+          "type": "TeamApplication",
+          "name": "appType",
+          "jsonkey": "app_type"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamEncryptedKBFSKeysetHash",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "TeamLegacyTLFUpgradeChainInfo",
+      "fields": [
+        {
+          "type": "TeamEncryptedKBFSKeysetHash",
+          "name": "keysetHash"
+        },
+        {
+          "type": "PerTeamKeyGeneration",
+          "name": "teamGeneration"
+        },
+        {
+          "type": "int",
+          "name": "legacyGeneration"
+        },
+        {
+          "type": "TeamApplication",
+          "name": "appType"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TeamSigChainState",
       "fields": [
         {
@@ -678,6 +761,14 @@
         {
           "type": "TLFID",
           "name": "tlfID"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "TeamLegacyTLFUpgradeChainInfo",
+            "keys": "TeamApplication"
+          },
+          "name": "tlfLegacyUpgrade"
         }
       ]
     },
@@ -935,17 +1026,30 @@
       "typedef": "string"
     },
     {
+      "type": "record",
+      "name": "SeitanPubKey",
+      "fields": [],
+      "typedef": "KID"
+    },
+    {
+      "type": "record",
+      "name": "SeitanIKeyV2",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
       "type": "enum",
-      "name": "SeitanIKeyAndLabelVersion",
+      "name": "SeitanKeyAndLabelVersion",
       "symbols": [
-        "V1_1"
+        "V1_1",
+        "V2_2"
       ]
     },
     {
       "type": "variant",
-      "name": "SeitanIKeyAndLabel",
+      "name": "SeitanKeyAndLabel",
       "switch": {
-        "type": "SeitanIKeyAndLabelVersion",
+        "type": "SeitanKeyAndLabelVersion",
         "name": "v"
       },
       "cases": [
@@ -954,7 +1058,14 @@
             "name": "V1",
             "def": false
           },
-          "body": "SeitanIKeyAndLabelVersion1"
+          "body": "SeitanKeyAndLabelVersion1"
+        },
+        {
+          "label": {
+            "name": "V2",
+            "def": false
+          },
+          "body": "SeitanKeyAndLabelVersion2"
         },
         {
           "label": {
@@ -966,30 +1077,44 @@
     },
     {
       "type": "record",
-      "name": "SeitanIKeyAndLabelVersion1",
+      "name": "SeitanKeyAndLabelVersion1",
       "fields": [
         {
           "type": "SeitanIKey",
           "name": "i"
         },
         {
-          "type": "SeitanIKeyLabel",
+          "type": "SeitanKeyLabel",
+          "name": "l"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SeitanKeyAndLabelVersion2",
+      "fields": [
+        {
+          "type": "SeitanPubKey",
+          "name": "k"
+        },
+        {
+          "type": "SeitanKeyLabel",
           "name": "l"
         }
       ]
     },
     {
       "type": "enum",
-      "name": "SeitanIKeyLabelType",
+      "name": "SeitanKeyLabelType",
       "symbols": [
         "SMS_1"
       ]
     },
     {
       "type": "variant",
-      "name": "SeitanIKeyLabel",
+      "name": "SeitanKeyLabel",
       "switch": {
-        "type": "SeitanIKeyLabelType",
+        "type": "SeitanKeyLabelType",
         "name": "t"
       },
       "cases": [
@@ -998,7 +1123,7 @@
             "name": "SMS",
             "def": false
           },
-          "body": "SeitanIKeyLabelSms"
+          "body": "SeitanKeyLabelSms"
         },
         {
           "label": {
@@ -1010,7 +1135,7 @@
     },
     {
       "type": "record",
-      "name": "SeitanIKeyLabelSms",
+      "name": "SeitanKeyLabelSms",
       "fields": [
         {
           "type": "string",
@@ -1076,6 +1201,20 @@
     },
     {
       "type": "record",
+      "name": "TeamKBFSKeyRefresher",
+      "fields": [
+        {
+          "type": "int",
+          "name": "generation"
+        },
+        {
+          "type": "TeamApplication",
+          "name": "appType"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TeamRefreshers",
       "fields": [
         {
@@ -1092,6 +1231,10 @@
         {
           "type": "TeamRole",
           "name": "wantMembersRole"
+        },
+        {
+          "type": "TeamKBFSKeyRefresher",
+          "name": "needKBFSKeyGeneration"
         }
       ],
       "doc": "* TeamRefreshData are needed or wanted data requirements that, if unmet, will cause\n   * a refresh of the cache."
@@ -1178,6 +1321,11 @@
           "jsonkey": "is_implicit_team"
         },
         {
+          "type": "boolean",
+          "name": "isOpenTeam",
+          "jsonkey": "is_open_team"
+        },
+        {
           "type": "TeamRole",
           "name": "role"
         },
@@ -1240,6 +1388,11 @@
           "type": "boolean",
           "name": "isImplicitTeam",
           "jsonkey": "is_implicit_team"
+        },
+        {
+          "type": "boolean",
+          "name": "isOpenTeam",
+          "jsonkey": "is_open_team"
         },
         {
           "type": "TeamRole",
@@ -1643,6 +1796,10 @@
         {
           "type": "boolean",
           "name": "changeTarsDisabled"
+        },
+        {
+          "type": "boolean",
+          "name": "deleteChatHistory"
         }
       ]
     },
@@ -1669,7 +1826,7 @@
           "type": "string"
         },
         {
-          "name": "sendChatNotification",
+          "name": "joinSubteam",
           "type": "boolean"
         }
       ],
@@ -1686,7 +1843,7 @@
           "type": "string"
         },
         {
-          "name": "sendChatNotification",
+          "name": "joinSubteam",
           "type": "boolean"
         },
         {
@@ -2068,10 +2225,31 @@
         },
         {
           "name": "label",
-          "type": "SeitanIKeyLabel"
+          "type": "SeitanKeyLabel"
         }
       ],
       "response": "SeitanIKey"
+    },
+    "teamCreateSeitanTokenV2": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "role",
+          "type": "TeamRole"
+        },
+        {
+          "name": "label",
+          "type": "SeitanKeyLabel"
+        }
+      ],
+      "response": "SeitanIKeyV2"
     },
     "teamAddEmailsBulk": {
       "request": [

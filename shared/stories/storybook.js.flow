@@ -1,6 +1,11 @@
 // @flow
+import * as React from 'react'
+export type SelectorMap = {
+  [componentDisplayName: string]: (any) => any,
+}
 
 declare function storiesOf(name: string, module: any): any
 declare function action(name: string): any
+declare function createPropProvider(map: SelectorMap): React.Node => React.Node
 
-export {action, storiesOf}
+export {action, storiesOf, createPropProvider}

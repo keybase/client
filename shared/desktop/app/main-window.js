@@ -67,6 +67,16 @@ export default function() {
   console.log('Opened at login:', openedAtLogin)
   console.log('Is restore:', isRestore)
   console.log('Open hidden:', openHidden)
+  if (isWindows) {
+    // DPI scaling issues
+    // https://github.com/electron/electron/issues/10862
+    mainWindow.window.setBounds({
+      x: appState.state.x,
+      y: appState.state.y,
+      width: appState.state.width,
+      height: appState.state.height,
+    })
+  }
 
   // Don't show main window:
   // - If we are set to open hidden,

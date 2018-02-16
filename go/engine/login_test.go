@@ -2614,6 +2614,94 @@ func TestResetAccountLikeNistur(t *testing.T) {
 	}
 }
 
+// Establish two devices.  Reset on one of them, login on the other.
+func TestResetMultipleDevices(t *testing.T) {
+	tcX := SetupEngineTest(t, "login")
+	defer tcX.Cleanup()
+
+	// create provisioner device
+	u := CreateAndSignupFakeUser(tcX, "login")
+	if err := AssertProvisioned(tcX); err != nil {
+		t.Fatal(err)
+	}
+	testUserHasDeviceKey(tcX)
+	var secretX kex2.Secret
+	if _, err := rand.Read(secretX[:]); err != nil {
+		t.Fatal(err)
+	}
+	secretCh := make(chan kex2.Secret)
+
+	// provisionee context:
+	tcY := SetupEngineTest(t, "template")
+	defer tcY.Cleanup()
+
+	// provisionee calls login:
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUISecretCh(secretCh),
+		LoginUI:     &libkb.TestLoginUI{Username: u.Username},
+		LogUI:       tcY.G.UI.GetLogUI(),
+		SecretUI:    &libkb.TestSecretUI{},
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tcY.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+
+	var wg sync.WaitGroup
+
+	// start provisionee
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if err := RunEngine(eng, ctx); err != nil {
+			t.Errorf("login error: %s", err)
+			return
+		}
+	}()
+
+	// start provisioner
+	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		ctx := &Context{
+			SecretUI:    u.NewSecretUI(),
+			ProvisionUI: newTestProvisionUI(),
+		}
+		if err := RunEngine(provisioner, ctx); err != nil {
+			t.Errorf("provisioner error: %s", err)
+			return
+		}
+	}()
+	secretFromY := <-secretCh
+	provisioner.AddSecret(secretFromY)
+
+	wg.Wait()
+
+	if err := AssertProvisioned(tcY); err != nil {
+		t.Fatal(err)
+	}
+
+	// have two devices in contexts tcX and tcY
+	deviceX := tcX.G.Env.GetDeviceID()
+
+	// logout on tcX
+	Logout(tcX)
+
+	// reset on tcY
+	ResetAccount(tcY, u)
+
+	// login on tcX
+	u.LoginOrBust(tcX)
+
+	if err := AssertProvisioned(tcX); err != nil {
+		t.Fatal(err)
+	}
+
+	if tcX.G.Env.GetDeviceID() == deviceX {
+		t.Error("device id did not change")
+	}
+}
+
 // If there is a bad device id in the config file, provisioning
 // appears to succeed and provision the new device, but the config
 // file retains the bad device id and further attempts to
@@ -3584,7 +3672,7 @@ func skipOldGPG(tc libkb.TestContext) {
 	if err != nil {
 		tc.T.Fatal(err)
 	}
-	tc.T.Skip(fmt.Sprintf("skipping test due to gpg version < 2.0.29 (%s)", v))
+	tc.T.Skip(fmt.Sprintf("skipping test due to gpg version < 2.0.29 (%v)", v))
 }
 
 func assertDeviceKeysCached(tc libkb.TestContext) {

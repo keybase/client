@@ -14,6 +14,10 @@
     {
       "path": "common.avdl",
       "type": "idl"
+    },
+    {
+      "path": "chat_ui.avdl",
+      "type": "idl"
     }
   ],
   "types": [
@@ -746,6 +750,13 @@
           "name": "senderDevice"
         },
         {
+          "type": [
+            null,
+            "boolean"
+          ],
+          "name": "kbfsCryptKeysUsed"
+        },
+        {
           "type": "Hash",
           "name": "bodyHash"
         },
@@ -1410,6 +1421,24 @@
             "items": "keybase1.TLFIdentifyFailure"
           },
           "name": "identifyFailures"
+        },
+        {
+          "type": "Expunge",
+          "name": "expunge"
+        },
+        {
+          "type": [
+            null,
+            "RetentionPolicy"
+          ],
+          "name": "convRetention"
+        },
+        {
+          "type": [
+            null,
+            "RetentionPolicy"
+          ],
+          "name": "teamRetention"
         }
       ]
     },
@@ -1546,6 +1575,14 @@
           },
           "name": "identifyFailures"
         }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "GetThreadNonblockCbMode",
+      "symbols": [
+        "FULL_0",
+        "INCREMENTAL_1"
       ]
     },
     {
@@ -2193,6 +2230,33 @@
           "name": "enabled"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "GetSearchRegexpRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ChatSearchHit"
+          },
+          "name": "hits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
+        }
+      ]
     }
   ],
   "messages": {
@@ -2259,6 +2323,10 @@
         {
           "name": "conversationID",
           "type": "ConversationID"
+        },
+        {
+          "name": "cbMode",
+          "type": "GetThreadNonblockCbMode"
         },
         {
           "name": "query",
@@ -2808,6 +2876,13 @@
         {
           "name": "identifyBehavior",
           "type": "keybase1.TLFIdentifyBehavior"
+        },
+        {
+          "name": "outboxID",
+          "type": [
+            null,
+            "OutboxID"
+          ]
         }
       ],
       "response": "PostLocalRes"
@@ -2852,6 +2927,13 @@
         {
           "name": "identifyBehavior",
           "type": "keybase1.TLFIdentifyBehavior"
+        },
+        {
+          "name": "outboxID",
+          "type": [
+            null,
+            "OutboxID"
+          ]
         }
       ],
       "response": "PostLocalRes"
@@ -2948,6 +3030,13 @@
         {
           "name": "outboxID",
           "type": "OutboxID"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "keybase1.TLFIdentifyBehavior"
+          ]
         }
       ],
       "response": null,
@@ -3204,6 +3293,48 @@
         }
       ],
       "response": null
+    },
+    "upgradeKBFSConversationToImpteam": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": null
+    },
+    "getSearchRegexp": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "query",
+          "type": "string"
+        },
+        {
+          "name": "isRegex",
+          "type": "boolean"
+        },
+        {
+          "name": "maxHits",
+          "type": "int"
+        },
+        {
+          "name": "maxMessages",
+          "type": "int"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "GetSearchRegexpRes"
     }
   },
   "namespace": "chat.1"

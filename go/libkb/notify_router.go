@@ -54,6 +54,9 @@ type NotifyListener interface {
 	ChatJoinedConversation(uid keybase1.UID, conv chat1.InboxUIItem)
 	ChatLeftConversation(uid keybase1.UID, convID chat1.ConversationID)
 	ChatResetConversation(uid keybase1.UID, convID chat1.ConversationID)
+	ChatSetConvRetention(uid keybase1.UID, convID chat1.ConversationID)
+	ChatSetTeamRetention(uid keybase1.UID, teamID keybase1.TeamID)
+	ChatKBFSToImpteamUpgrade(uid keybase1.UID, convID chat1.ConversationID)
 	PGPKeyInSecretStoreFile()
 	BadgeState(badgeState keybase1.BadgeState)
 	ReachabilityChanged(r keybase1.Reachability)
@@ -92,15 +95,19 @@ func (n *NoopNotifyListener) ChatTLFResolve(uid keybase1.UID, convID chat1.Conve
 func (n *NoopNotifyListener) ChatInboxStale(uid keybase1.UID) {}
 func (n *NoopNotifyListener) ChatThreadsStale(uid keybase1.UID, updates []chat1.ConversationStaleUpdate) {
 }
-func (n *NoopNotifyListener) ChatInboxSynced(uid keybase1.UID, syncRes chat1.ChatSyncResult)      {}
-func (n *NoopNotifyListener) ChatInboxSyncStarted(uid keybase1.UID)                               {}
-func (n *NoopNotifyListener) ChatTypingUpdate([]chat1.ConvTypingUpdate)                           {}
-func (n *NoopNotifyListener) ChatJoinedConversation(uid keybase1.UID, conv chat1.InboxUIItem)     {}
-func (n *NoopNotifyListener) ChatLeftConversation(uid keybase1.UID, convID chat1.ConversationID)  {}
-func (n *NoopNotifyListener) ChatResetConversation(uid keybase1.UID, convID chat1.ConversationID) {}
-func (n *NoopNotifyListener) PGPKeyInSecretStoreFile()                                            {}
-func (n *NoopNotifyListener) BadgeState(badgeState keybase1.BadgeState)                           {}
-func (n *NoopNotifyListener) ReachabilityChanged(r keybase1.Reachability)                         {}
+func (n *NoopNotifyListener) ChatInboxSynced(uid keybase1.UID, syncRes chat1.ChatSyncResult)         {}
+func (n *NoopNotifyListener) ChatInboxSyncStarted(uid keybase1.UID)                                  {}
+func (n *NoopNotifyListener) ChatTypingUpdate([]chat1.ConvTypingUpdate)                              {}
+func (n *NoopNotifyListener) ChatJoinedConversation(uid keybase1.UID, conv chat1.InboxUIItem)        {}
+func (n *NoopNotifyListener) ChatLeftConversation(uid keybase1.UID, convID chat1.ConversationID)     {}
+func (n *NoopNotifyListener) ChatResetConversation(uid keybase1.UID, convID chat1.ConversationID)    {}
+func (n *NoopNotifyListener) Chat(uid keybase1.UID, convID chat1.ConversationID)                     {}
+func (n *NoopNotifyListener) ChatSetConvRetention(uid keybase1.UID, convID chat1.ConversationID)     {}
+func (n *NoopNotifyListener) ChatSetTeamRetention(uid keybase1.UID, teamID keybase1.TeamID)          {}
+func (n *NoopNotifyListener) ChatKBFSToImpteamUpgrade(uid keybase1.UID, convID chat1.ConversationID) {}
+func (n *NoopNotifyListener) PGPKeyInSecretStoreFile()                                               {}
+func (n *NoopNotifyListener) BadgeState(badgeState keybase1.BadgeState)                              {}
+func (n *NoopNotifyListener) ReachabilityChanged(r keybase1.Reachability)                            {}
 func (n *NoopNotifyListener) TeamChangedByID(teamID keybase1.TeamID, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet) {
 }
 func (n *NoopNotifyListener) TeamChangedByName(teamName string, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet) {
@@ -864,6 +871,90 @@ func (n *NotifyRouter) HandleChatResetConversation(ctx context.Context, uid keyb
 	n.G().Log.CDebugf(ctx, "- Sent ChatResetConversation notification")
 }
 
+func (n *NotifyRouter) HandleChatKBFSToImpteamUpgrade(ctx context.Context, uid keybase1.UID,
+	convID chat1.ConversationID) {
+	if n == nil {
+		return
+	}
+	var wg sync.WaitGroup
+	n.G().Log.CDebugf(ctx, "+ Sending ChatKBFSToImpteamUpgrade notification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Chat {
+			wg.Add(1)
+			go func() {
+				(chat1.NotifyChatClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).ChatKBFSToImpteamUpgrade(context.Background(), chat1.ChatKBFSToImpteamUpgradeArg{
+					Uid:    uid,
+					ConvID: convID,
+				})
+				wg.Done()
+			}()
+		}
+		return true
+	})
+	wg.Wait()
+	if n.listener != nil {
+		n.listener.ChatKBFSToImpteamUpgrade(uid, convID)
+	}
+	n.G().Log.CDebugf(ctx, "- Sent ChatKBFSToImpteamUpgrade notification")
+}
+
+func (n *NotifyRouter) HandleChatSetConvRetention(ctx context.Context, uid keybase1.UID,
+	convID chat1.ConversationID, conv *chat1.InboxUIItem) {
+	n.notifyChatCommon(ctx, "ChatSetConvRetention", func(ctx context.Context, cli *chat1.NotifyChatClient) {
+		cli.ChatSetConvRetention(ctx, chat1.ChatSetConvRetentionArg{
+			Uid:    uid,
+			ConvID: convID,
+			Conv:   conv,
+		})
+	}, func(ctx context.Context, listener NotifyListener) {
+		listener.ChatSetConvRetention(uid, convID)
+	})
+}
+
+func (n *NotifyRouter) HandleChatSetTeamRetention(ctx context.Context, uid keybase1.UID,
+	teamID keybase1.TeamID, convs []chat1.InboxUIItem) {
+	n.notifyChatCommon(ctx, "ChatSetTeamRetention", func(ctx context.Context, cli *chat1.NotifyChatClient) {
+		cli.ChatSetTeamRetention(ctx, chat1.ChatSetTeamRetentionArg{
+			Uid:    uid,
+			TeamID: teamID,
+			Convs:  convs,
+		})
+	}, func(ctx context.Context, listener NotifyListener) {
+		listener.ChatSetTeamRetention(uid, teamID)
+	})
+}
+
+type notifyChatFn1 func(context.Context, *chat1.NotifyChatClient)
+type notifyChatFn2 func(context.Context, NotifyListener)
+
+func (n *NotifyRouter) notifyChatCommon(ctx context.Context, debugLabel string, fn1 notifyChatFn1, fn2 notifyChatFn2) {
+	if n == nil {
+		return
+	}
+	var wg sync.WaitGroup
+	n.G().Log.CDebugf(ctx, "+ Sending %v notification", debugLabel)
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Chat {
+			wg.Add(1)
+			go func() {
+				cli := &chat1.NotifyChatClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}
+				fn1(context.Background(), cli)
+				wg.Done()
+			}()
+		}
+		return true
+	})
+	wg.Wait()
+	if n.listener != nil {
+		fn2(ctx, n.listener)
+	}
+	n.G().Log.CDebugf(ctx, "- Sent %v notification", debugLabel)
+}
+
 // HandlePaperKeyCached is called whenever a paper key is cached
 // in response to a rekey harassment.
 func (n *NotifyRouter) HandlePaperKeyCached(uid keybase1.UID, encKID keybase1.KID, sigKID keybase1.KID) {
@@ -1153,4 +1244,30 @@ func (n *NotifyRouter) HandleTeamExit(ctx context.Context, teamID keybase1.TeamI
 		n.listener.TeamExit(teamID)
 	}
 	n.G().Log.CDebugf(ctx, "- Sent TeamExit notification")
+}
+
+func (n *NotifyRouter) HandleTeamAbandoned(ctx context.Context, teamID keybase1.TeamID) {
+	if n == nil {
+		return
+	}
+
+	var wg sync.WaitGroup
+	n.G().Log.CDebugf(ctx, "+ Sending TeamExit notification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Team {
+			wg.Add(1)
+			go func() {
+				(keybase1.NotifyTeamClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).TeamAbandoned(context.Background(), teamID)
+				wg.Done()
+			}()
+		}
+		return true
+	})
+	wg.Wait()
+	if n.listener != nil {
+		n.listener.TeamExit(teamID)
+	}
+	n.G().Log.CDebugf(ctx, "- Sent TeamAbandoned notification")
 }

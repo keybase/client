@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"net/url"
 	"strconv"
+
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 type HTTPValue interface {
@@ -45,6 +47,10 @@ type B struct {
 	Val bool
 }
 
+type HTTPTime struct {
+	Val keybase1.Time
+}
+
 func (a *HTTPArgs) Add(s string, v HTTPValue) {
 	(*a)[s] = v
 }
@@ -63,6 +69,7 @@ func (b B) String() string {
 	}
 	return "0"
 }
+func (t HTTPTime) String() string { return strconv.FormatInt(int64(t.Val), 10) }
 
 func (a HTTPArgs) ToValues() url.Values {
 	ret := url.Values{}

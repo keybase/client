@@ -54,7 +54,7 @@ if (enableStoreLogging) {
     },
     stateTransformer: (...args) => {
       // This is noisy, so let's not show it while filtering action logs
-      !filterActionLogs && logger.info('State:', ...args)
+      !filterActionLogs && console.log('State:', ...args) // DON'T use the logger here, we never want this in the logs
       return null
     },
     titleFormatter: () => null,

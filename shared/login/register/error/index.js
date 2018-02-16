@@ -148,7 +148,7 @@ const renderError = (error: RPCError) => {
       return (
         <Box style={styleContent}>
           <Box style={{...globalStyles.flexBoxColumn, ...styleText}}>
-            <Text type="Body">Looks like thats a bad passphrase.</Text>
+            <Text type="Body">Looks like that's a bad passphrase.</Text>
             <Text
               type="BodyPrimaryLink"
               onClick={() => openURL('https://keybase.io/#password-reset')}

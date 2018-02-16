@@ -40,6 +40,10 @@ type TeamDeletedArg struct {
 	TeamID TeamID `codec:"teamID" json:"teamID"`
 }
 
+type TeamAbandonedArg struct {
+	TeamID TeamID `codec:"teamID" json:"teamID"`
+}
+
 type TeamExitArg struct {
 	TeamID TeamID `codec:"teamID" json:"teamID"`
 }
@@ -48,6 +52,7 @@ type NotifyTeamInterface interface {
 	TeamChangedByID(context.Context, TeamChangedByIDArg) error
 	TeamChangedByName(context.Context, TeamChangedByNameArg) error
 	TeamDeleted(context.Context, TeamID) error
+	TeamAbandoned(context.Context, TeamID) error
 	TeamExit(context.Context, TeamID) error
 }
 
@@ -103,6 +108,22 @@ func NotifyTeamProtocol(i NotifyTeamInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodNotify,
 			},
+			"teamAbandoned": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamAbandonedArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamAbandonedArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamAbandonedArg)(nil), args)
+						return
+					}
+					err = i.TeamAbandoned(ctx, (*typedArgs)[0].TeamID)
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
 			"teamExit": {
 				MakeArg: func() interface{} {
 					ret := make([]TeamExitArg, 1)
@@ -140,6 +161,12 @@ func (c NotifyTeamClient) TeamChangedByName(ctx context.Context, __arg TeamChang
 func (c NotifyTeamClient) TeamDeleted(ctx context.Context, teamID TeamID) (err error) {
 	__arg := TeamDeletedArg{TeamID: teamID}
 	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamDeleted", []interface{}{__arg})
+	return
+}
+
+func (c NotifyTeamClient) TeamAbandoned(ctx context.Context, teamID TeamID) (err error) {
+	__arg := TeamAbandonedArg{TeamID: teamID}
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamAbandoned", []interface{}{__arg})
 	return
 }
 

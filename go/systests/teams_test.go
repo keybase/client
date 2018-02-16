@@ -174,9 +174,13 @@ func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusD
 	if err = srv.Register(keybase1.NotifyTeamProtocol(u.notifications)); err != nil {
 		tt.t.Fatal(err)
 	}
+	if err = srv.Register(keybase1.NotifyBadgesProtocol(u.notifications)); err != nil {
+		tt.t.Fatal(err)
+	}
 	ncli := keybase1.NotifyCtlClient{Cli: cli}
 	if err = ncli.SetNotifications(context.TODO(), keybase1.NotificationChannels{
-		Team: true,
+		Team:   true,
+		Badges: true,
 	}); err != nil {
 		tt.t.Fatal(err)
 	}
@@ -277,6 +281,16 @@ func (u *userPlusDevice) addTeamMember(team, username string, role keybase1.Team
 	}
 }
 
+func (u *userPlusDevice) removeTeamMember(team, username string) {
+	rm := client.NewCmdTeamRemoveMemberRunner(u.tc.G)
+	rm.Team = team
+	rm.Username = username
+	rm.Force = true
+	if err := rm.Run(); err != nil {
+		u.tc.T.Fatal(err)
+	}
+}
+
 func (u *userPlusDevice) leave(team string) {
 	leave := client.NewCmdTeamLeaveRunner(u.tc.G)
 	leave.Team = team
@@ -302,6 +316,16 @@ func (u *userPlusDevice) addTeamMemberEmail(team, email string, role keybase1.Te
 	if err := add.Run(); err != nil {
 		u.tc.T.Fatal(err)
 	}
+}
+
+func (u *userPlusDevice) loadTeam(teamname string, admin bool) *teams.Team {
+	team, err := teams.Load(context.Background(), u.tc.G, keybase1.LoadTeamArg{
+		Name:        teamname,
+		NeedAdmin:   admin,
+		ForceRepoll: true,
+	})
+	require.NoError(u.tc.T, err)
+	return team
 }
 
 func (u *userPlusDevice) readInviteEmails(email string) []string {
@@ -415,6 +439,21 @@ func (u *userPlusDevice) waitForTeamChangedGregor(teamID keybase1.TeamID, toSeqn
 		}
 	}
 	u.tc.T.Fatalf("timed out waiting for team rotate %s", teamID)
+}
+
+func (u *userPlusDevice) waitForBadgeStateWithReset(numReset int) {
+	for i := 0; i < 10; i++ {
+		select {
+		case arg := <-u.notifications.badgeCh:
+			u.tc.T.Logf("badge state received: %+v", arg.TeamsWithResetUsers)
+			if len(arg.TeamsWithResetUsers) == numReset {
+				u.tc.T.Logf("badge state length match")
+				return
+			}
+		case <-time.After(1 * time.Second * libkb.CITimeMultiplier(u.tc.G)):
+			u.tc.T.Fatal("timed out waiting for badge state")
+		}
+	}
 }
 
 func (u *userPlusDevice) drainGregor() {
@@ -660,12 +699,16 @@ func GetTeamForTestByID(ctx context.Context, g *libkb.GlobalContext, id keybase1
 }
 
 type teamNotifyHandler struct {
-	changeCh chan keybase1.TeamChangedByIDArg
+	changeCh  chan keybase1.TeamChangedByIDArg
+	abandonCh chan keybase1.TeamID
+	badgeCh   chan keybase1.BadgeState
 }
 
 func newTeamNotifyHandler() *teamNotifyHandler {
 	return &teamNotifyHandler{
-		changeCh: make(chan keybase1.TeamChangedByIDArg, 1),
+		changeCh:  make(chan keybase1.TeamChangedByIDArg, 1),
+		abandonCh: make(chan keybase1.TeamID, 10),
+		badgeCh:   make(chan keybase1.BadgeState, 10),
 	}
 }
 
@@ -683,6 +726,16 @@ func (n *teamNotifyHandler) TeamDeleted(ctx context.Context, teamID keybase1.Tea
 }
 
 func (n *teamNotifyHandler) TeamExit(ctx context.Context, teamID keybase1.TeamID) error {
+	return nil
+}
+
+func (n *teamNotifyHandler) TeamAbandoned(ctx context.Context, teamID keybase1.TeamID) error {
+	n.abandonCh <- teamID
+	return nil
+}
+
+func (n *teamNotifyHandler) BadgeState(ctx context.Context, badgeState keybase1.BadgeState) error {
+	n.badgeCh <- badgeState
 	return nil
 }
 
@@ -970,6 +1023,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, annPerms.JoinTeam)
 	require.True(t, annPerms.SetPublicityAny)
 	require.True(t, annPerms.ChangeTarsDisabled)
+	require.True(t, annPerms.DeleteChatHistory)
 
 	require.True(t, bobPerms.ManageMembers)
 	require.True(t, bobPerms.ManageSubteams)
@@ -985,6 +1039,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, bobPerms.JoinTeam)
 	require.True(t, bobPerms.SetPublicityAny)
 	require.True(t, bobPerms.ChangeTarsDisabled)
+	require.True(t, bobPerms.DeleteChatHistory)
 
 	// Some ops are fine for writers
 	require.False(t, pamPerms.ManageMembers)
@@ -1001,6 +1056,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, pamPerms.JoinTeam)
 	require.False(t, pamPerms.SetPublicityAny)
 	require.False(t, pamPerms.ChangeTarsDisabled)
+	require.False(t, pamPerms.DeleteChatHistory)
 
 	// Only SetMemberShowcase (by default) and LeaveTeam is available for readers
 	require.False(t, eddPerms.ManageMembers)
@@ -1017,6 +1073,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, eddPerms.JoinTeam)
 	require.False(t, eddPerms.SetPublicityAny)
 	require.False(t, eddPerms.ChangeTarsDisabled)
+	require.False(t, eddPerms.DeleteChatHistory)
 
 	annPerms = callCanPerform(ann, subteam)
 	bobPerms = callCanPerform(bob, subteam)
@@ -1034,8 +1091,8 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.True(t, annPerms.ListFirst)
 	require.True(t, annPerms.JoinTeam)
 	require.True(t, annPerms.SetPublicityAny)
-
 	require.True(t, annPerms.ChangeTarsDisabled)
+	require.False(t, annPerms.DeleteChatHistory)
 
 	require.True(t, bobPerms.ManageMembers)
 	require.True(t, bobPerms.ManageSubteams)
@@ -1047,10 +1104,11 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, bobPerms.SetMemberShowcase)
 	require.True(t, bobPerms.ChangeOpenTeam)
 	require.False(t, bobPerms.LeaveTeam) // not a member of the subteam
-	require.True(t, annPerms.ListFirst)
-	require.True(t, annPerms.JoinTeam)
-	require.True(t, annPerms.SetPublicityAny)
-	require.True(t, annPerms.ChangeTarsDisabled)
+	require.True(t, bobPerms.ListFirst)
+	require.True(t, bobPerms.JoinTeam)
+	require.True(t, bobPerms.SetPublicityAny)
+	require.True(t, bobPerms.ChangeTarsDisabled)
+	require.False(t, bobPerms.DeleteChatHistory)
 
 	// Invalid team for pam
 	_, err = teams.CanUserPerform(context.TODO(), pam.tc.G, subteam)
@@ -1073,4 +1131,5 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, donnyPerms.ListFirst)
 	// TBD: require.True(t, donnyPerms.JoinTeam)
 	require.False(t, donnyPerms.SetPublicityAny)
+	require.False(t, donnyPerms.DeleteChatHistory)
 }

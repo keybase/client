@@ -26,6 +26,7 @@ export const clearMessages = 'chat:clearMessages'
 export const clearRekey = 'chat:clearRekey'
 export const deleteEntity = 'chat:deleteEntity'
 export const deleteMessage = 'chat:deleteMessage'
+export const deleteMessageHistory = 'chat:deleteMessageHistory'
 export const downloadProgress = 'chat:downloadProgress'
 export const editMessage = 'chat:editMessage'
 export const exitSearch = 'chat:exitSearch'
@@ -154,6 +155,7 @@ export const createDeleteEntity = (
   }>
 ) => ({error: false, payload, type: deleteEntity})
 export const createDeleteMessage = (payload: $ReadOnly<{message: Types.Message}>) => ({error: false, payload, type: deleteMessage})
+export const createDeleteMessageHistory = (payload: $ReadOnly<{message: Types.Message}>) => ({error: false, payload, type: deleteMessageHistory})
 export const createDownloadProgress = (
   payload: $ReadOnly<{
     messageKey: Types.MessageKey,
@@ -451,6 +453,7 @@ export type BlockConversationPayload = More.ReturnType<typeof createBlockConvers
 export type ClearMessagesPayload = More.ReturnType<typeof createClearMessages>
 export type ClearRekeyPayload = More.ReturnType<typeof createClearRekey>
 export type DeleteEntityPayload = More.ReturnType<typeof createDeleteEntity>
+export type DeleteMessageHistoryPayload = More.ReturnType<typeof createDeleteMessageHistory>
 export type DeleteMessagePayload = More.ReturnType<typeof createDeleteMessage>
 export type DownloadProgressPayload = More.ReturnType<typeof createDownloadProgress>
 export type EditMessagePayload = More.ReturnType<typeof createEditMessage>
@@ -547,6 +550,7 @@ export type Actions =
   | More.ReturnType<typeof createClearRekey>
   | More.ReturnType<typeof createDeleteEntity>
   | More.ReturnType<typeof createDeleteMessage>
+  | More.ReturnType<typeof createDeleteMessageHistory>
   | More.ReturnType<typeof createDownloadProgress>
   | More.ReturnType<typeof createEditMessage>
   | More.ReturnType<typeof createExitSearch>

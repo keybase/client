@@ -212,7 +212,8 @@ function _bootstrapSuccess(action: ConfigGen.BootstrapSuccessPayload, state: Typ
   return Saga.sequentially(actions)
 }
 
-function _loadAvatarHelper(action: {payload: {names: Array<string>, endpoint: string, key: string}}) {
+type AvatarHelperAction = {payload: {names: Array<string>, endpoint: string, key: string}}
+function _loadAvatarHelper(action: AvatarHelperAction) {
   const {names, endpoint, key} = action.payload
   return Saga.sequentially([
     Saga.call(RPCTypes.apiserverGetRpcPromise, {
@@ -223,7 +224,16 @@ function _loadAvatarHelper(action: {payload: {names: Array<string>, endpoint: st
   ])
 }
 
-function _afterLoadAvatarHelper([response: {body: string}, names]) {
+function _loadAvatarHelperError(error: Error, action: AvatarHelperAction) {
+  // Ignore api errors
+  if (error.code === RPCTypes.constantsStatusCode.scapinetworkerror) {
+    throw error // TEMP
+  } else {
+    throw error
+  }
+}
+
+function _loadAvatarHelperSuccess([response: {body: string}, names]) {
   const nameToUrlMap = JSON.parse(response.body).pictures.reduce((map, picMap, idx) => {
     const name = names[idx]
     const urlMap = {
@@ -284,14 +294,6 @@ function* _loadTeamAvatars(action: ConfigGen.LoadTeamAvatarsPayload) {
   }
 }
 
-// Every minute we clear out any avatars that might have errored out
-function* _periodicAvatarCacheClear(): Generator<any, void, any> {
-  while (true) {
-    yield Saga.call(Saga.delay, 1000 * 60)
-    yield Saga.put(ConfigGen.createClearAvatarCache())
-  }
-}
-
 function _setOpenAtLogin(action: ConfigGen.SetOpenAtLoginPayload) {
   if (action.payload.writeFile) {
     setAppState({openAtLogin: action.payload.open})
@@ -313,9 +315,13 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.retryBootstrap, _retryBootstrap)
   yield Saga.safeTakeEvery(ConfigGen.loadAvatars, _loadAvatars)
   yield Saga.safeTakeEvery(ConfigGen.loadTeamAvatars, _loadTeamAvatars)
-  yield Saga.safeTakeEveryPure('_loadAvatarHelper', _loadAvatarHelper, _afterLoadAvatarHelper)
+  yield Saga.safeTakeEveryPure(
+    '_loadAvatarHelper',
+    _loadAvatarHelper,
+    _loadAvatarHelperSuccess,
+    _loadAvatarHelperError
+  )
   yield Saga.safeTakeEveryPure(ConfigGen.setOpenAtLogin, _setOpenAtLogin)
-  yield Saga.fork(_periodicAvatarCacheClear)
   yield Saga.fork(_getAppState)
 }
 

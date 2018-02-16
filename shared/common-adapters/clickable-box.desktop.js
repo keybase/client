@@ -4,6 +4,10 @@ import {globalStyles} from '../styles'
 
 import type {Props} from './clickable-box'
 
+const needMouseEnterLeaveHandlers = (props: Props): boolean => {
+  return !!(props.hoverColor || props.underlayColor || props.onMouseEnter || props.onMouseLeave)
+}
+
 class ClickableBox extends React.Component<Props & {children: any}, {mouseDown: boolean, mouseIn: boolean}> {
   state = {
     mouseDown: false,
@@ -58,8 +62,10 @@ class ClickableBox extends React.Component<Props & {children: any}, {mouseDown: 
       <div
         {...otherProps}
         onMouseDown={this._onMouseDown}
-        onMouseEnter={this._onMouseEnter}
-        onMouseLeave={this._onMouseLeave}
+        // Set onMouseEnter/Leave only if needed, so that any hover
+        // properties of children elements work.
+        onMouseEnter={needMouseEnterLeaveHandlers(this.props) ? this._onMouseEnter : undefined}
+        onMouseLeave={needMouseEnterLeaveHandlers(this.props) ? this._onMouseLeave : undefined}
         onMouseUp={this._onMouseUp}
         onClick={onClick}
         style={{..._containerStyle, ...(onClick ? globalStyles.clickable : null), ...style}}

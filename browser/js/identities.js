@@ -1,81 +1,132 @@
 // All of our identity services and matchers are defined here.
 
+// parseLocationQuery converts URL-encoded parameters into an object. It
+// requires unique keys, will throw an error if there is a duplicate key.
 function parseLocationQuery(s) {
-    if (s.startsWith("?")) s = s.substr(1);
-    if (s == "") return {};
-    const params = {};
-    const parts = s.split('&');
-    for (let i = 0; i < parts.length; i++)
-    {
-        let p = parts[i].split('=', 2);
-        if (p.length == 1) {
-            params[p[0]] = "";
-        } else {
-            params[p[0]] = decodeURIComponent(p[1].replace(/\+/g, " "));
-        }
+  if (s.startsWith("?")) s = s.substr(1);
+  if (s == "") return {};
+  const params = {};
+  const parts = s.split('&');
+  for (let i = 0; i < parts.length; i++) {
+    let p = parts[i].split('=', 2);
+    const key = p[0];
+    if (key in params) {
+      throw new Error('duplicate key in query string: ' + key);
     }
-    return params;
+    if (p.length == 1) {
+      params[key] = "";
+    } else {
+      params[key] = decodeURIComponent(p[1].replace(/\+/g, " "));
+    }
+  }
+  return params;
 }
 
-// identityMatchers is used to generate our declarative page match rules, but also
-// used to check for matches at runtime. Unfortunately, these mechanisms use different
-// implementations of regular expressions (re2 vs javascript's regexp) so there's
-// some redundancy but at least it's all in one place? :D
+// identityMatchers is used to generate our declarative page match rules, but
+// also used to check for matches at runtime for each `service` that we
+// support. They have the following schema:
+// {
+//  "service": Service name, if you add one here update `profileInject` in
+//  `identities.js` and `User.prototype.href to fully register it.
+//
+//  "getUsername": Function to parse the username from the browser
+//  `location` object.
+//
+//  "pathMatches": A regular expression used to match the pathname  within the
+//  service (i.e. news.ycombinator.com/user?id=username matches but not
+//  news.ycombinator.com/newest).
+//
+//  "originAndPathMatches": A re2 style regex used to match a page within
+//  the service for declarativeContent matching
+//  (https://developer.chrome.com/extensions/declarativeContent).
+//
+//  "subdomains": Subdomains that the host is considered valid on.
+//
+//  "host": Used to match that the host is the host we want to run on
+//  (preventing any regex trickery for `pathMatches` or
+//  `originAndPathMatches`).
+//
+//  "css": (optional) CSS selector which must be present for declarativeContent
+//  or the chat button to be injected.
+//
+// }
+//
 const identityMatchers = [
   {
     service: "keybase",
     getUsername: function(loc) { return loc.pathname.split('/')[1]; },
-    locationMatches: new RegExp('\.keybase\.(?:io|pub)/([\\w]+)[/]?'),
-    originAndPathMatches: '\.keybase\.(io|pub)/[\\w]+[/]?',
+    pathMatches: new RegExp('^([\\w]+)[/]?'),
+    originAndPathMatches: '^https://keybase\\.io/[\\w]+[/]?',
+    subdomains: [],
+    host: 'keybase.io',
     css: ['.profile-heading']
   },
   {
     service: "reddit",
     getUsername: function(loc) { return loc.pathname.split('/')[2]; },
-    locationMatches: new RegExp('\.reddit.com/user/([\\w-]+)[/]?$'),
-    originAndPathMatches: '\.reddit.com/user/[\\w-]+[/]?$',
+    pathMatches: new RegExp('^/user/([\\w-]+)[/]?$'),
+    originAndPathMatches: '^https://[\\w.-]*?\\.reddit\\.com/user/[\\w-]+[/]?$',
+    subdomains: ['np', 'ssl', 'blog', 'fr', 'pay', 'es', 'en-us', 'en', 'ru',
+      'us', 'de', 'dd', 'no', 'pt', 'ww', 'ss', '4x', 'sv', 'nl', 'hw', 'hr',
+      'www'],
+    host: 'reddit.com'
   },
   {
     service: "twitter",
     getUsername: function(loc) { return loc.pathname.split('/')[1]; },
-    locationMatches: new RegExp('\.twitter\.com/([\\w]+)[/]?$'),
-    originAndPathMatches: '\.twitter\.com/[\\w]+[/]?$',
+    pathMatches: new RegExp('^/([\\w]+)[/]?$'),
+    originAndPathMatches: '^https://twitter\\.com/[\\w]+[/]?$',
+    subdomains: [],
+    host: 'twitter.com',
     css: ['body.ProfilePage']
   },
   {
     service: "github",
     getUsername: function(loc) { return loc.pathname.split('/')[1]; },
-    locationMatches: new RegExp('\.github\.com/([\\w\-]+)[/]?$'),
-    originAndPathMatches: '\.github\.com/[\\w\-]+[/]?$',
+    pathMatches: new RegExp('^/([\\w\-]+)[/]?$'),
+    originAndPathMatches: '^https://github\\.com/[\\w\-]+[/]?$',
+    subdomains: [],
+    host: 'github.com',
     css: ['body.page-profile']
   },
   {
     service: "facebook",
     getUsername: function(loc) { return loc.pathname.split('/')[1]; },
-    locationMatches: new RegExp('\.facebook\.com/([\\w\.]+)[/]?$'),
-    originAndPathMatches: '\.facebook\.com/[\\w\.]+[/]?$',
+    pathMatches: new RegExp('^/([\\w\\.]+)[/]?$'),
+    originAndPathMatches: '^https://(www)?\\.facebook\\.com/[\\w\\.]+[/]?$',
+    subdomains: ['www'],
+    host: 'facebook.com',
     css: ['body.timelineLayout']
   },
   {
     service: "hackernews",
     getUsername: function(loc) { return parseLocationQuery(loc.search)["id"]; },
-    locationMatches: new RegExp('news\.ycombinator\.com/user'),
-    originAndPathMatches: 'news\.ycombinator\.com/user',
+    pathMatches: new RegExp('^/user'),
+    originAndPathMatches: '^https://news\\.ycombinator\\.com/user',
+    subdomains: [],
+    host: 'news.ycombinator.com',
     css: ['html[op="user"]']
   }
 ];
 
+function getServiceHosts(service) {
+  hosts = [service.host]
+  for (const subdomain of service.subdomains) {
+    hosts.push(subdomain + '.' + service.host)
+  }
+  return hosts
+}
+
 // Match a window.location and document against a service profile and return
 // a User instance. Will skip matching CSS if no document is provided.
 function matchService(loc, doc, forceService) {
-  // Prefix the url with a period if there is no subdomain.
-  const hasSubdomain = loc.hostname.indexOf(".") !== loc.hostname.lastIndexOf(".");
-  const url = (!hasSubdomain && ".") + loc.hostname + loc.pathname;
 
   for (const m of identityMatchers) {
     if (forceService !== undefined && forceService !== m.service) continue;
 
-    const matched = url.match(m.locationMatches);
+    const matched = getServiceHosts(m).some(function(hostName) {
+      return hostName === loc.hostname
+    }) && loc.pathname.match(m.pathMatches);
     if (!matched) continue;
 
     const username = safeHTML(m.getUsername(loc));

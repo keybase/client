@@ -48,7 +48,7 @@ dnsRes ios_getDNSServers() {
     }
     free(addr_union);
   }
-  res_nclose(res);
+  res_ndestroy(res);
   free(res);
   return dnsSrvs;
 }

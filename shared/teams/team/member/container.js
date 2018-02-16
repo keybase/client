@@ -6,12 +6,11 @@ import {connect} from 'react-redux'
 import {compose} from 'recompose'
 import {HeaderHoc} from '../../../common-adapters'
 import {createShowUserProfile} from '../../../actions/profile-gen'
-import {createGetProfile} from '../../../actions/tracker-gen'
 import {createStartConversation} from '../../../actions/chat-gen'
-import {isMobile} from '../../../constants/platform'
 import {TeamMember} from '.'
 import {type TypedState} from '../../../constants/reducer'
-import {getCanPerform} from '../../../constants/teams'
+import {getCanPerform, teamWaitingKey} from '../../../constants/teams'
+import {anyWaiting} from '../../../constants/waiting'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 
 type StateProps = {
@@ -31,7 +30,7 @@ const mapStateToProps = (state: TypedState, {routeProps}): StateProps => {
 
   return {
     teamname: teamname,
-    loading: state.entities.getIn(['teams', 'teamNameToLoading', teamname], true),
+    loading: anyWaiting(state, teamWaitingKey(teamname)),
     following: amIFollowing(state, username),
     follower: amIBeingFollowed(state, username),
     yourOperations: getCanPerform(state, teamname),
@@ -52,13 +51,7 @@ type DispatchProps = {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateAppend, navigateUp}): DispatchProps => ({
-  onOpenProfile: () => {
-    isMobile
-      ? dispatch(createShowUserProfile({username: routeProps.get('username')}))
-      : dispatch(
-          createGetProfile({username: routeProps.get('username'), ignoreCache: true, forceDisplay: true})
-        )
-  },
+  onOpenProfile: () => dispatch(createShowUserProfile({username: routeProps.get('username')})),
   _onEditMembership: (name: string, username: string) =>
     dispatch(
       navigateAppend([

@@ -2,7 +2,6 @@
 import type {State} from './types/profile'
 import * as I from 'immutable'
 import {type TypedState} from '../util/container'
-import flags from '../util/feature-flags'
 import {peopleTab} from '../constants/tabs'
 import {serviceIdToService} from './search'
 import {parseUserId} from '../util/platforms'
@@ -127,7 +126,6 @@ const getProfilePath = (
   me: string,
   state: TypedState
 ): PropsPath<*> => {
-  const {newPeopleTab} = flags
   const onlyProfilesProps = peopleRouteProps.filter(segment =>
     [peopleTab, 'profile', 'nonUserProfile'].includes(segment.node)
   )
@@ -139,10 +137,6 @@ const getProfilePath = (
   if (!username.includes('@')) {
     if (onlyProfilesProps.size <= 1) {
       // There's nothing on the peopleTab stack
-      if (username === me && !newPeopleTab) {
-        // I'm already the root of the tab
-        return [peopleTab]
-      }
       return [peopleTab, {selected: 'profile', props: {username}}]
     }
     // check last entry in path

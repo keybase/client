@@ -20,6 +20,7 @@ const connectedUsernamesProps = {
   inline: true,
   colorFollowing: true,
   type: 'BodySmallSemibold',
+  underline: true,
 }
 
 type Props = {
@@ -27,8 +28,10 @@ type Props = {
   channelname: string,
   isBigTeam: boolean,
   message: SystemMessage,
+  onClickUserAvatar: (username: string) => void,
   onManageChannels: (teamname: string) => void,
   onViewTeam: (teamname: string) => void,
+  onViewGitRepo: (repoID: string, teamname: string) => void,
   teamname: string,
   you: string,
 }
@@ -41,6 +44,7 @@ const AddedToTeamNotice = ({
   isBigTeam,
   message,
   info,
+  onClickUserAvatar,
   onManageChannels,
   onViewTeam,
   you,
@@ -93,6 +97,7 @@ const AddedToTeamNotice = ({
       style={{marginTop: globalMargins.small}}
       username={you !== addee ? addee : undefined}
       teamname={you === addee ? team : undefined}
+      onClickAvatar={you !== addee ? () => onClickUserAvatar(addee) : () => onViewTeam(team)}
       bgColor={globalColors.blue4}
     >
       {you === addee && (
@@ -131,7 +136,14 @@ const AddedToTeamNotice = ({
 
 type ComplexTeamProps = Props & {info: SimpleToComplexTeamInfo}
 
-const ComplexTeamNotice = ({channelname, message, info, onManageChannels, you}: ComplexTeamProps) => {
+const ComplexTeamNotice = ({
+  channelname,
+  message,
+  info,
+  onManageChannels,
+  onViewTeam,
+  you,
+}: ComplexTeamProps) => {
   const teamname = info.team
   const authorComponent =
     message.author === you ? (
@@ -150,6 +162,7 @@ const ComplexTeamNotice = ({channelname, message, info, onManageChannels, you}: 
       style={{marginTop: globalMargins.small}}
       teamname={teamname || ''}
       bgColor={globalColors.blue4}
+      onClickAvatar={() => onViewTeam(teamname)}
     >
       <Text
         type="BodySmallSemibold"
@@ -221,7 +234,9 @@ const InviteAddedToTeamNotice = ({
   channelname,
   message,
   info,
+  onClickUserAvatar,
   onManageChannels,
+  onViewTeam,
   you,
 }: InviteAddedToTeamProps) => {
   const {team, inviter, invitee, adder, inviteType} = info
@@ -243,9 +258,8 @@ const InviteAddedToTeamNotice = ({
       <Text type="BodySmallSemibold" style={{textAlign: 'center'}}>
         <ConnectedUsernames {...connectedUsernamesProps} usernames={[invitee]} /> just joined {team}.{' '}
         {you === inviter ? 'You invited them' : 'They were invited by '}
-        {you !== inviter && (
-          <ConnectedUsernames {...connectedUsernamesProps} usernames={[inviter]} />
-        )} via {inviteType}
+        {you !== inviter && <ConnectedUsernames {...connectedUsernamesProps} usernames={[inviter]} />}
+        {inviteType === 'seitan' ? '' : ' via ' + inviteType}
         , and they were just now auto-added to the team sigchain by{' '}
         {you === adder ? 'you' : <ConnectedUsernames {...connectedUsernamesProps} usernames={[adder]} />}
         , the first available admin.
@@ -259,6 +273,7 @@ const InviteAddedToTeamNotice = ({
       username={invitee === you ? undefined : invitee}
       teamname={invitee === you ? team : undefined}
       bgColor={globalColors.blue4}
+      onClickAvatar={invitee === you ? () => onViewTeam(team) : () => onClickUserAvatar(invitee)}
     >
       {you === invitee && (
         <Icon type="icon-team-sparkles-48-40" style={{marginTop: -36, width: 48, height: 40}} />
@@ -273,7 +288,7 @@ const InviteAddedToTeamNotice = ({
 
 type GitPushInfoProps = Props & {info: GitPushInfo}
 
-const GitPushInfoNotice = ({message, info}: GitPushInfoProps) => {
+const GitPushInfoNotice = ({message, info, onClickUserAvatar, onViewGitRepo}: GitPushInfoProps) => {
   // There is a bug in the data layer where mergeEntities when it sees dupes of this message will keep on adding to the array
   // Short term fix: clean this up
 
@@ -296,6 +311,7 @@ const GitPushInfoNotice = ({message, info}: GitPushInfoProps) => {
       key={branchName}
       style={{marginTop: globalMargins.small}}
       bgColor={globalColors.blue4}
+      onClickAvatar={() => onClickUserAvatar(info.pusher)}
     >
       <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
         {formatTimeForMessages(message.timestamp)}
@@ -304,7 +320,11 @@ const GitPushInfoNotice = ({message, info}: GitPushInfoProps) => {
         <Text type="BodySmallSemibold" style={{textAlign: 'center', marginBottom: globalMargins.xtiny}}>
           <ConnectedUsernames {...connectedUsernamesProps} usernames={[info.pusher]} /> pushed{' '}
           {refsMap[branchName].length} {`commit${refsMap[branchName].length !== 1 ? 's' : ''}`} to{' '}
-          {`${info.repo}/${branchName}`}:
+          <Text
+            type="BodySmallSemibold"
+            style={info.repoID ? {color: globalColors.black_75} : undefined}
+            onClick={info.repoID ? () => onViewGitRepo(info.repoID, info.team) : undefined}
+          >{`${info.repo}/${branchName}`}</Text>:
         </Text>
         <Box style={globalStyles.flexBoxColumn}>
           {refsMap[branchName].map((commit, i) => (
@@ -328,8 +348,8 @@ const GitPushInfoNotice = ({message, info}: GitPushInfoProps) => {
                 >
                   <Text
                     type="Terminal"
+                    selectable={true}
                     style={{
-                      ...globalStyles.selectable,
                       fontSize: 11,
                       color: globalColors.blue,
                       lineHeight: isMobile ? 16 : 1.3,
@@ -339,11 +359,7 @@ const GitPushInfoNotice = ({message, info}: GitPushInfoProps) => {
                   </Text>
                 </Box>
                 <Box style={{display: 'flex', flex: 1}}>
-                  <Text
-                    type="BodySmall"
-                    style={{...globalStyles.selectable, textAlign: 'left'}}
-                    lineClamp={2}
-                  >
+                  <Text type="BodySmall" selectable={true} style={{textAlign: 'left'}} lineClamp={2}>
                     {commit.message}
                   </Text>
                 </Box>

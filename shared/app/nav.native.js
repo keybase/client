@@ -3,6 +3,7 @@ import CardStackTransitioner from 'react-navigation/src/views/CardStack/CardStac
 import GlobalError from './global-errors/container'
 import Offline from '../offline'
 import React, {Component} from 'react'
+import {type EmitterListener} from 'react-native'
 import TabBar from './tab-bar/container'
 import {
   Box,
@@ -16,6 +17,7 @@ import {chatTab, loginTab, peopleTab, folderTab, settingsTab, type Tab} from '..
 import {compose} from 'recompose'
 import {connect, type TypedState} from '../util/container'
 import {globalColors, globalStyles, statusBarHeight} from '../styles/index.native'
+import {addSizeListener} from '../styles/status-bar'
 import * as I from 'immutable'
 import {isIOS, isIPhoneX} from '../constants/platform'
 import {navigateTo, navigateUp, switchTo} from '../actions/route-tree'
@@ -157,8 +159,26 @@ const tabIsCached = {
 }
 
 class MainNavStack extends Component<any, any> {
+  _listener: EmitterListener
   state = {
     stackCache: I.Map(),
+    verticalOffset: 0,
+  }
+
+  componentWillMount() {
+    this._listener = addSizeListener(this.statusBarListener)
+  }
+
+  componentWillUnmount() {
+    this._listener && this._listener.remove()
+  }
+
+  statusBarListener = (frameData: any) => {
+    // the iPhone X has default status bar height of 45px
+    // and it doesn't increase in height like earlier devices.
+    // (so this should always be 0 on an iPhone X, but this should still
+    // be correct if it expands)
+    this.setState({verticalOffset: frameData.height - (isIPhoneX ? 45 : 20)})
   }
 
   componentWillReceiveProps() {
@@ -203,7 +223,16 @@ class MainNavStack extends Component<any, any> {
     )
     return (
       <Box style={globalStyles.fullHeight}>
-        <NativeKeyboardAvoidingView style={_keyboardStyle} behavior={isIOS ? 'padding' : undefined}>
+        <NativeKeyboardAvoidingView
+          style={_keyboardStyle}
+          behavior={isIOS ? 'padding' : undefined}
+          /** TODO get rid of this once a better fix exists
+           * keyboardVerticalOffset is to work around a bug in KeyboardAvoidingView
+           * when the in-call status bar is active. See https://github.com/facebook/react-native/issues/17862
+           * We need to account for the extra offset made by the larger in call status bar (on pre-iPhone X devices).
+           */
+          keyboardVerticalOffset={this.state.verticalOffset}
+        >
           {content}
         </NativeKeyboardAvoidingView>
       </Box>

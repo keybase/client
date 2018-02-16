@@ -12,10 +12,13 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"sort"
+	"sync"
 	"time"
 
 	"golang.org/x/crypto/nacl/secretbox"
 	"golang.org/x/net/context"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/signencrypt"
@@ -182,6 +185,18 @@ func (p *publicUnboxConversationInfo) GetFinalizeInfo() *chat1.ConversationFinal
 	return nil
 }
 
+func (b *Boxer) getEffectiveMembersType(ctx context.Context, boxed chat1.MessageBoxed,
+	convMembersType chat1.ConversationMembersType) chat1.ConversationMembersType {
+	switch convMembersType {
+	case chat1.ConversationMembersType_IMPTEAMUPGRADE:
+		if boxed.KBFSEncrypted() {
+			b.Debug(ctx, "getEffectiveMembersType: overruling %v conv with KBFS keys", convMembersType)
+			return chat1.ConversationMembersType_KBFS
+		}
+	}
+	return convMembersType
+}
+
 // UnboxMessage unboxes a chat1.MessageBoxed into a chat1.MessageUnboxed. It
 // finds the appropriate keybase1.CryptKey, decrypts the message, and verifies
 // several things:
@@ -204,12 +219,13 @@ func (p *publicUnboxConversationInfo) GetFinalizeInfo() *chat1.ConversationFinal
 // Permanent errors can be cached and must be treated as a value to deal with,
 // whereas temporary errors are transient failures.
 func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv unboxConversationInfo) (m chat1.MessageUnboxed, uberr UnboxingError) {
-	b.Debug(ctx, "+ UnboxMessage for convID %s msg_id %s", conv.GetConvID().String(), boxed.GetMessageID().String())
-	defer b.Debug(ctx, "- UnboxMessage for convID %s msg_id %s -> %s", conv.GetConvID().String(), boxed.GetMessageID().String(), libkb.ErrToOk(uberr))
+	defer b.Trace(ctx, func() error { return uberr }, "UnboxMessage(%s, %d)", conv.GetConvID(),
+		boxed.GetMessageID())()
 	tlfName := boxed.ClientHeader.TLFNameExpanded(conv.GetFinalizeInfo())
+	keyMembersType := b.getEffectiveMembersType(ctx, boxed, conv.GetMembersType())
 	nameInfo, err := CtxKeyFinder(ctx, b.G()).FindForDecryption(ctx,
 		tlfName, boxed.ClientHeader.Conv.Tlfid, conv.GetMembersType(),
-		boxed.ClientHeader.TlfPublic, boxed.KeyGeneration)
+		boxed.ClientHeader.TlfPublic, boxed.KeyGeneration, keyMembersType == chat1.ConversationMembersType_KBFS)
 	if err != nil {
 		// Check to see if this is a permanent error from the server
 		if b.detectKBFSPermanentServerError(err) {
@@ -218,9 +234,9 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 		// transient error. Rekey errors come through here
 		return chat1.MessageUnboxed{}, NewTransientUnboxingError(err)
 	}
-
 	var encryptionKey types.CryptKey
-	for _, key := range nameInfo.CryptKeys {
+	keys := nameInfo.CryptKeys[keyMembersType]
+	for _, key := range keys {
 		if key.Generation() == boxed.KeyGeneration {
 			encryptionKey = key
 			break
@@ -228,7 +244,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 	}
 
 	if encryptionKey == nil {
-		err := fmt.Errorf("no key found for generation %d (%d keys checked)", boxed.KeyGeneration, len(nameInfo.CryptKeys))
+		err := fmt.Errorf("no key found for generation %d (%d keys checked)", boxed.KeyGeneration, len(keys))
 		return chat1.MessageUnboxed{}, NewTransientUnboxingError(err)
 	}
 
@@ -254,6 +270,20 @@ func (b *Boxer) checkInvariants(ctx context.Context, convID chat1.ConversationID
 		err := fmt.Errorf("conversation ID mismatch: header: %x convID: %s",
 			unboxed.ClientHeader.Conv.Hash(), convID)
 		return NewPermanentUnboxingError(err)
+	}
+
+	// Check that message type on the client header matches the body
+	body := unboxed.MessageBody
+	if !body.IsNil() {
+		bodyTyp, err := body.MessageType()
+		if err != nil {
+			return NewPermanentUnboxingError(err)
+		}
+		if unboxed.ClientHeader.MessageType != bodyTyp {
+			err := fmt.Errorf("client header message type does not match body: %v(header) != %v(body)",
+				unboxed.ClientHeader.MessageType, bodyTyp)
+			return NewPermanentUnboxingError(err)
+		}
 	}
 
 	// Make sure the body hash is unique to this message, and then record it.
@@ -470,9 +500,10 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed,
 			Sender:       hp.Sender,
 			SenderDevice: hp.SenderDevice,
 			// MerkleRoot is not expected to be in any v1 messages. Ignore it.
-			MerkleRoot: nil,
-			OutboxID:   hp.OutboxID,
-			OutboxInfo: hp.OutboxInfo,
+			MerkleRoot:        nil,
+			OutboxID:          hp.OutboxID,
+			OutboxInfo:        hp.OutboxInfo,
+			KbfsCryptKeysUsed: hp.KbfsCryptKeysUsed,
 		}
 	default:
 		return nil,
@@ -685,16 +716,17 @@ func (b *Boxer) unversionHeaderMBV2(ctx context.Context, headerVersioned chat1.H
 				NewPermanentUnboxingError(fmt.Errorf("HeaderSignature non-nil in MBV2"))
 		}
 		return chat1.MessageClientHeaderVerified{
-			Conv:         hp.Conv,
-			TlfName:      hp.TlfName,
-			TlfPublic:    hp.TlfPublic,
-			MessageType:  hp.MessageType,
-			Prev:         hp.Prev,
-			Sender:       hp.Sender,
-			SenderDevice: hp.SenderDevice,
-			MerkleRoot:   hp.MerkleRoot,
-			OutboxID:     hp.OutboxID,
-			OutboxInfo:   hp.OutboxInfo,
+			Conv:              hp.Conv,
+			TlfName:           hp.TlfName,
+			TlfPublic:         hp.TlfPublic,
+			MessageType:       hp.MessageType,
+			Prev:              hp.Prev,
+			Sender:            hp.Sender,
+			SenderDevice:      hp.SenderDevice,
+			MerkleRoot:        hp.MerkleRoot,
+			OutboxID:          hp.OutboxID,
+			OutboxInfo:        hp.OutboxInfo,
+			KbfsCryptKeysUsed: hp.KbfsCryptKeysUsed,
 		}, hp.BodyHash, nil
 	default:
 		return chat1.MessageClientHeaderVerified{}, nil,
@@ -859,7 +891,7 @@ func (b *Boxer) UnboxThread(ctx context.Context, boxed chat1.ThreadViewBoxed, co
 }
 
 func (b *Boxer) getUsernameAndDevice(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (string, string, string, error) {
-	nun, devName, devType, err := b.G().GetUPAKLoader().LookupUsernameAndDevice(ctx, uid, deviceID)
+	nun, devName, devType, err := CtxUPAKFinder(ctx, b.G()).LookupUsernameAndDevice(ctx, uid, deviceID)
 	if err != nil {
 		return "", "", "", err
 	}
@@ -936,14 +968,42 @@ func (b *Boxer) getAtMentionInfo(ctx context.Context, tlfID chat1.TLFID,
 }
 
 func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed, conv unboxConversationInfo) (unboxed []chat1.MessageUnboxed, err error) {
-	for _, msg := range boxed {
-		decmsg, err := b.UnboxMessage(ctx, msg, conv)
-		if err != nil {
-			return unboxed, err
+	defer b.Trace(ctx, func() error { return err }, "UnboxMessages(%s)", conv.GetConvID())()
+
+	boxCh := make(chan chat1.MessageBoxed)
+	eg, ctx := errgroup.WithContext(BackgroundContext(ctx, b.G()))
+	eg.Go(func() error {
+		defer close(boxCh)
+		for _, msg := range boxed {
+			select {
+			case boxCh <- msg:
+			case <-ctx.Done():
+				return ctx.Err()
+			}
 		}
-		unboxed = append(unboxed, decmsg)
+		return nil
+	})
+	var resLock sync.Mutex
+	numUnboxThreads := 2
+	for i := 0; i < numUnboxThreads; i++ {
+		eg.Go(func() error {
+			for msg := range boxCh {
+				decmsg, err := b.UnboxMessage(ctx, msg, conv)
+				if err != nil {
+					return err
+				}
+				resLock.Lock()
+				unboxed = append(unboxed, decmsg)
+				resLock.Unlock()
+			}
+			return nil
+		})
 	}
 
+	if err := eg.Wait(); err != nil {
+		return unboxed, err
+	}
+	sort.Sort(utils.ByMsgUnboxedMsgID(unboxed))
 	return unboxed, nil
 }
 
@@ -968,7 +1028,8 @@ func (b *Boxer) latestMerkleRoot(ctx context.Context) (*chat1.MerkleRoot, error)
 // finds the most recent key for the TLF.
 func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
 	membersType chat1.ConversationMembersType,
-	signingKeyPair libkb.NaclSigningKeyPair) (*chat1.MessageBoxed, error) {
+	signingKeyPair libkb.NaclSigningKeyPair) (res *chat1.MessageBoxed, err error) {
+	defer b.Trace(ctx, func() error { return err }, "BoxMessage")()
 	tlfName := msg.ClientHeader.TlfName
 	var encryptionKey types.CryptKey
 
@@ -987,7 +1048,7 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
 	if msg.ClientHeader.TlfPublic {
 		encryptionKey = &publicCryptKey
 	} else {
-		for _, key := range nameInfo.CryptKeys {
+		for _, key := range nameInfo.CryptKeys[membersType] {
 			if encryptionKey == nil || key.Generation() > encryptionKey.Generation() {
 				encryptionKey = key
 			}
@@ -1116,17 +1177,18 @@ func (b *Boxer) boxV1(messagePlaintext chat1.MessagePlaintext, key types.CryptKe
 
 	// create the v1 header, adding hash
 	header := chat1.HeaderPlaintextV1{
-		Conv:         messagePlaintext.ClientHeader.Conv,
-		TlfName:      messagePlaintext.ClientHeader.TlfName,
-		TlfPublic:    messagePlaintext.ClientHeader.TlfPublic,
-		MessageType:  messagePlaintext.ClientHeader.MessageType,
-		Prev:         messagePlaintext.ClientHeader.Prev,
-		Sender:       messagePlaintext.ClientHeader.Sender,
-		SenderDevice: messagePlaintext.ClientHeader.SenderDevice,
-		MerkleRoot:   nil, // MerkleRoot cannot be sent in MBv1 messages
-		BodyHash:     bodyHash[:],
-		OutboxInfo:   messagePlaintext.ClientHeader.OutboxInfo,
-		OutboxID:     messagePlaintext.ClientHeader.OutboxID,
+		Conv:              messagePlaintext.ClientHeader.Conv,
+		TlfName:           messagePlaintext.ClientHeader.TlfName,
+		TlfPublic:         messagePlaintext.ClientHeader.TlfPublic,
+		MessageType:       messagePlaintext.ClientHeader.MessageType,
+		Prev:              messagePlaintext.ClientHeader.Prev,
+		Sender:            messagePlaintext.ClientHeader.Sender,
+		SenderDevice:      messagePlaintext.ClientHeader.SenderDevice,
+		MerkleRoot:        nil, // MerkleRoot cannot be sent in MBv1 messages
+		BodyHash:          bodyHash[:],
+		OutboxInfo:        messagePlaintext.ClientHeader.OutboxInfo,
+		OutboxID:          messagePlaintext.ClientHeader.OutboxID,
+		KbfsCryptKeysUsed: messagePlaintext.ClientHeader.KbfsCryptKeysUsed,
 	}
 
 	// sign the header and insert the signature
@@ -1182,17 +1244,18 @@ func (b *Boxer) boxV2(messagePlaintext chat1.MessagePlaintext, baseEncryptionKey
 
 	// create the v1 header, adding hash
 	headerVersioned := chat1.NewHeaderPlaintextWithV1(chat1.HeaderPlaintextV1{
-		Conv:         messagePlaintext.ClientHeader.Conv,
-		TlfName:      messagePlaintext.ClientHeader.TlfName,
-		TlfPublic:    messagePlaintext.ClientHeader.TlfPublic,
-		MessageType:  messagePlaintext.ClientHeader.MessageType,
-		Prev:         messagePlaintext.ClientHeader.Prev,
-		Sender:       messagePlaintext.ClientHeader.Sender,
-		SenderDevice: messagePlaintext.ClientHeader.SenderDevice,
-		BodyHash:     bodyHash,
-		MerkleRoot:   messagePlaintext.ClientHeader.MerkleRoot,
-		OutboxInfo:   messagePlaintext.ClientHeader.OutboxInfo,
-		OutboxID:     messagePlaintext.ClientHeader.OutboxID,
+		Conv:              messagePlaintext.ClientHeader.Conv,
+		TlfName:           messagePlaintext.ClientHeader.TlfName,
+		TlfPublic:         messagePlaintext.ClientHeader.TlfPublic,
+		MessageType:       messagePlaintext.ClientHeader.MessageType,
+		Prev:              messagePlaintext.ClientHeader.Prev,
+		Sender:            messagePlaintext.ClientHeader.Sender,
+		SenderDevice:      messagePlaintext.ClientHeader.SenderDevice,
+		BodyHash:          bodyHash,
+		MerkleRoot:        messagePlaintext.ClientHeader.MerkleRoot,
+		OutboxInfo:        messagePlaintext.ClientHeader.OutboxInfo,
+		OutboxID:          messagePlaintext.ClientHeader.OutboxID,
+		KbfsCryptKeysUsed: messagePlaintext.ClientHeader.KbfsCryptKeysUsed,
 		// In MessageBoxed.V2 HeaderSignature is nil.
 		HeaderSignature: nil,
 	})
@@ -1448,7 +1511,7 @@ func (b *Boxer) ValidSenderKey(ctx context.Context, sender gregor1.UID, key []by
 	kid := keybase1.KIDFromSlice(key)
 	ctime2 := gregor1.FromTime(ctime)
 
-	cachedUserLoader := b.G().GetUPAKLoader()
+	cachedUserLoader := CtxUPAKFinder(ctx, b.G())
 	if cachedUserLoader == nil {
 		return false, false, nil, NewTransientUnboxingError(fmt.Errorf("no CachedUserLoader available in context"))
 	}
@@ -1540,7 +1603,7 @@ func (b *Boxer) compareHeadersMBV1(ctx context.Context, hServer chat1.MessageCli
 		return NewPermanentUnboxingError(NewHeaderMismatchError("MessageType"))
 	}
 
-	// Note: Supersedes, Deletes, and DeleteHistory are not checked because they are not
+	// Note: Supersedes, Deletes, and some other fields are not checked because they are not
 	//       part of MessageClientHeaderVerified.
 
 	// Prev

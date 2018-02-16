@@ -1,24 +1,44 @@
 // @flow
 import React from 'react'
-import {Box} from '../common-adapters'
-import {storiesOf, action} from '../stories/storybook'
-import Fs from '.'
+import * as Types from '../constants/types/fs'
+import {action, storiesOf, createPropProvider} from '../stories/storybook'
+import Files from '.'
 
-const common = {
-  counter: 1,
-  increase: action('up by one'),
-  increase10: action('up by ten'),
-  you: 'jzila',
-}
+const provider = createPropProvider({
+  FileRow: ({path}: {path: Types.Path}) => ({
+    icon: 'icon-folder-private-24',
+    name: Types.getPathName(path),
+    onOpen: () => {},
+    path,
+  }),
+  FolderHeader: () => ({
+    breadcrumbItems: [
+      {
+        name: 'keybase',
+        path: '/keybase',
+      },
+    ],
+    dropdownItems: [],
+    isTeamPath: false,
+    onOpenBreadcrumb: action('onOpenBreadcrumb'),
+    onOpenBreadcrumbDropdown: action('onOpenBreadcrumbDropdown'),
+  }),
+})
 
 const load = () => {
-  storiesOf('FS', module).add('Root', () => (
-    <Box style={{width: '100%'}}>
-      <Fs {...common} />
-      <Fs {...common} you={null} />
-      <Fs {...common} count={9999999999} />
-    </Box>
-  ))
+  storiesOf('Files', module)
+    .addDecorator(provider)
+    .add('Root', () => (
+      <Files
+        path={Types.stringToPath('/keybase')}
+        progress="pending"
+        items={[
+          Types.stringToPath('/keybase/private'),
+          Types.stringToPath('/keybase/public'),
+          Types.stringToPath('/keybase/team'),
+        ]}
+      />
+    ))
 }
 
 export default load

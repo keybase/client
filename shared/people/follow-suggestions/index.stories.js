@@ -1,17 +1,10 @@
 // @flow
 import * as React from 'react'
-import {Provider} from 'react-redux'
-import {createStore} from 'redux'
-import {Set} from 'immutable'
 import {storiesOf, action} from '../../stories/storybook'
+import * as PropProviders from '../../stories/prop-providers'
 import FollowSuggestions, {type Props} from '.'
 
-const store = {
-  config: {
-    following: Set(['max', 'cnojima', 'cdixon']),
-    you: 'ayoubd',
-  },
-}
+const provider = PropProviders.compose(PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'))
 
 const props1: Props = {
   onClickUser: action('onClickUser'),
@@ -82,7 +75,7 @@ const props3: Props = {
 
 const load = () => {
   storiesOf('People/Follow Suggestions', module)
-    .addDecorator(story => <Provider store={createStore(ignore => store, store)}>{story()}</Provider>)
+    .addDecorator(provider)
     .add('One', () => <FollowSuggestions {...props1} />)
     .add('Several', () => <FollowSuggestions {...props2} />)
     .add('Overflow', () => <FollowSuggestions {...props3} />)

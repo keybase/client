@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box} from '../../../common-adapters'
+import {Avatar, Box, ClickableBox} from '../../../common-adapters'
 import {globalStyles, globalMargins, isMobile} from '../../../styles'
 
 export type Props = {
@@ -9,16 +9,17 @@ export type Props = {
   teamname?: string,
   children?: React.Node,
   style?: ?Object,
+  onClickAvatar?: () => void,
 }
 
 const AVATAR_SIZE = 24
 
-const UserNotice = ({bgColor, username, teamname, children, style}: Props) => (
+const UserNotice = ({bgColor, username, teamname, children, style, onClickAvatar}: Props) => (
   <Box style={{...styleOuterBox, ...style}}>
     {(username || teamname) && (
-      <Box style={stylesAvatarWrapper(AVATAR_SIZE)}>
+      <ClickableBox style={stylesAvatarWrapper(AVATAR_SIZE)} onClick={onClickAvatar}>
         <Avatar size={AVATAR_SIZE} {...(username ? {username} : {teamname})} style={stylesAvatar} />
-      </Box>
+      </ClickableBox>
     )}
     <Box style={{...styleBox, backgroundColor: bgColor}}>{children}</Box>
   </Box>

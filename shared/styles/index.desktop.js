@@ -88,10 +88,6 @@ const util = {
   scrollable: {
     overflowY: 'auto',
   },
-  selectable: {
-    userSelect: 'text',
-    cursor: 'text',
-  },
   noSelect: {
     userSelect: 'none',
   },

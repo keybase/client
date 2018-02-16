@@ -1327,18 +1327,19 @@ func (o HeaderPlaintextUnsupported) DeepCopy() HeaderPlaintextUnsupported {
 }
 
 type HeaderPlaintextV1 struct {
-	Conv            ConversationIDTriple     `codec:"conv" json:"conv"`
-	TlfName         string                   `codec:"tlfName" json:"tlfName"`
-	TlfPublic       bool                     `codec:"tlfPublic" json:"tlfPublic"`
-	MessageType     MessageType              `codec:"messageType" json:"messageType"`
-	Prev            []MessagePreviousPointer `codec:"prev" json:"prev"`
-	Sender          gregor1.UID              `codec:"sender" json:"sender"`
-	SenderDevice    gregor1.DeviceID         `codec:"senderDevice" json:"senderDevice"`
-	BodyHash        Hash                     `codec:"bodyHash" json:"bodyHash"`
-	OutboxInfo      *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
-	OutboxID        *OutboxID                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
-	HeaderSignature *SignatureInfo           `codec:"headerSignature,omitempty" json:"headerSignature,omitempty"`
-	MerkleRoot      *MerkleRoot              `codec:"merkleRoot,omitempty" json:"merkleRoot,omitempty"`
+	Conv              ConversationIDTriple     `codec:"conv" json:"conv"`
+	TlfName           string                   `codec:"tlfName" json:"tlfName"`
+	TlfPublic         bool                     `codec:"tlfPublic" json:"tlfPublic"`
+	MessageType       MessageType              `codec:"messageType" json:"messageType"`
+	Prev              []MessagePreviousPointer `codec:"prev" json:"prev"`
+	Sender            gregor1.UID              `codec:"sender" json:"sender"`
+	SenderDevice      gregor1.DeviceID         `codec:"senderDevice" json:"senderDevice"`
+	KbfsCryptKeysUsed *bool                    `codec:"kbfsCryptKeysUsed,omitempty" json:"kbfsCryptKeysUsed,omitempty"`
+	BodyHash          Hash                     `codec:"bodyHash" json:"bodyHash"`
+	OutboxInfo        *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
+	OutboxID          *OutboxID                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
+	HeaderSignature   *SignatureInfo           `codec:"headerSignature,omitempty" json:"headerSignature,omitempty"`
+	MerkleRoot        *MerkleRoot              `codec:"merkleRoot,omitempty" json:"merkleRoot,omitempty"`
 }
 
 func (o HeaderPlaintextV1) DeepCopy() HeaderPlaintextV1 {
@@ -1360,7 +1361,14 @@ func (o HeaderPlaintextV1) DeepCopy() HeaderPlaintextV1 {
 		})(o.Prev),
 		Sender:       o.Sender.DeepCopy(),
 		SenderDevice: o.SenderDevice.DeepCopy(),
-		BodyHash:     o.BodyHash.DeepCopy(),
+		KbfsCryptKeysUsed: (func(x *bool) *bool {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.KbfsCryptKeysUsed),
+		BodyHash: o.BodyHash.DeepCopy(),
 		OutboxInfo: (func(x *OutboxInfo) *OutboxInfo {
 			if x == nil {
 				return nil
@@ -2609,6 +2617,9 @@ type ConversationLocal struct {
 	MaxMessages      []MessageUnboxed              `codec:"maxMessages" json:"maxMessages"`
 	IsEmpty          bool                          `codec:"isEmpty" json:"isEmpty"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+	Expunge          Expunge                       `codec:"expunge" json:"expunge"`
+	ConvRetention    *RetentionPolicy              `codec:"convRetention,omitempty" json:"convRetention,omitempty"`
+	TeamRetention    *RetentionPolicy              `codec:"teamRetention,omitempty" json:"teamRetention,omitempty"`
 }
 
 func (o ConversationLocal) DeepCopy() ConversationLocal {
@@ -2681,6 +2692,21 @@ func (o ConversationLocal) DeepCopy() ConversationLocal {
 			}
 			return ret
 		})(o.IdentifyFailures),
+		Expunge: o.Expunge.DeepCopy(),
+		ConvRetention: (func(x *RetentionPolicy) *RetentionPolicy {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ConvRetention),
+		TeamRetention: (func(x *RetentionPolicy) *RetentionPolicy {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.TeamRetention),
 	}
 }
 
@@ -2848,6 +2874,32 @@ func (o GetThreadLocalRes) DeepCopy() GetThreadLocalRes {
 			return ret
 		})(o.IdentifyFailures),
 	}
+}
+
+type GetThreadNonblockCbMode int
+
+const (
+	GetThreadNonblockCbMode_FULL        GetThreadNonblockCbMode = 0
+	GetThreadNonblockCbMode_INCREMENTAL GetThreadNonblockCbMode = 1
+)
+
+func (o GetThreadNonblockCbMode) DeepCopy() GetThreadNonblockCbMode { return o }
+
+var GetThreadNonblockCbModeMap = map[string]GetThreadNonblockCbMode{
+	"FULL":        0,
+	"INCREMENTAL": 1,
+}
+
+var GetThreadNonblockCbModeRevMap = map[GetThreadNonblockCbMode]string{
+	0: "FULL",
+	1: "INCREMENTAL",
+}
+
+func (e GetThreadNonblockCbMode) String() string {
+	if v, ok := GetThreadNonblockCbModeRevMap[e]; ok {
+		return v
+	}
+	return ""
 }
 
 type GetInboxLocalRes struct {
@@ -3656,6 +3708,50 @@ func (o AppNotificationSettingLocal) DeepCopy() AppNotificationSettingLocal {
 	}
 }
 
+type GetSearchRegexpRes struct {
+	Hits             []ChatSearchHit               `codec:"hits" json:"hits"`
+	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+}
+
+func (o GetSearchRegexpRes) DeepCopy() GetSearchRegexpRes {
+	return GetSearchRegexpRes{
+		Hits: (func(x []ChatSearchHit) []ChatSearchHit {
+			if x == nil {
+				return nil
+			}
+			var ret []ChatSearchHit
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Hits),
+		RateLimits: (func(x []RateLimit) []RateLimit {
+			if x == nil {
+				return nil
+			}
+			var ret []RateLimit
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.RateLimits),
+		IdentifyFailures: (func(x []keybase1.TLFIdentifyFailure) []keybase1.TLFIdentifyFailure {
+			if x == nil {
+				return nil
+			}
+			var ret []keybase1.TLFIdentifyFailure
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.IdentifyFailures),
+	}
+}
+
 type GetThreadLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Query            *GetThreadQuery              `codec:"query,omitempty" json:"query,omitempty"`
@@ -3673,6 +3769,7 @@ type GetCachedThreadArg struct {
 type GetThreadNonblockArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
+	CbMode           GetThreadNonblockCbMode      `codec:"cbMode" json:"cbMode"`
 	Query            *GetThreadQuery              `codec:"query,omitempty" json:"query,omitempty"`
 	Pagination       *UIPagination                `codec:"pagination,omitempty" json:"pagination,omitempty"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
@@ -3833,6 +3930,7 @@ type PostAttachmentLocalArg struct {
 	Title            string                       `codec:"title" json:"title"`
 	Metadata         []byte                       `codec:"metadata" json:"metadata"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+	OutboxID         *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 }
 
 type PostFileAttachmentLocalArg struct {
@@ -3845,6 +3943,7 @@ type PostFileAttachmentLocalArg struct {
 	Title            string                       `codec:"title" json:"title"`
 	Metadata         []byte                       `codec:"metadata" json:"metadata"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+	OutboxID         *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 }
 
 type DownloadAttachmentLocalArg struct {
@@ -3876,7 +3975,8 @@ type CancelPostArg struct {
 }
 
 type RetryPostArg struct {
-	OutboxID OutboxID `codec:"outboxID" json:"outboxID"`
+	OutboxID         OutboxID                      `codec:"outboxID" json:"outboxID"`
+	IdentifyBehavior *keybase1.TLFIdentifyBehavior `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
 }
 
 type MarkAsReadLocalArg struct {
@@ -3967,6 +4067,20 @@ type SetTeamRetentionLocalArg struct {
 	Policy RetentionPolicy `codec:"policy" json:"policy"`
 }
 
+type UpgradeKBFSConversationToImpteamArg struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+}
+
+type GetSearchRegexpArg struct {
+	SessionID        int                          `codec:"sessionID" json:"sessionID"`
+	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
+	Query            string                       `codec:"query" json:"query"`
+	IsRegex          bool                         `codec:"isRegex" json:"isRegex"`
+	MaxHits          int                          `codec:"maxHits" json:"maxHits"`
+	MaxMessages      int                          `codec:"maxMessages" json:"maxMessages"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
@@ -3996,7 +4110,7 @@ type LocalInterface interface {
 	DownloadFileAttachmentLocal(context.Context, DownloadFileAttachmentLocalArg) (DownloadAttachmentLocalRes, error)
 	MakePreview(context.Context, MakePreviewArg) (MakePreviewRes, error)
 	CancelPost(context.Context, OutboxID) error
-	RetryPost(context.Context, OutboxID) error
+	RetryPost(context.Context, RetryPostArg) error
 	MarkAsReadLocal(context.Context, MarkAsReadLocalArg) (MarkAsReadLocalRes, error)
 	FindConversationsLocal(context.Context, FindConversationsLocalArg) (FindConversationsLocalRes, error)
 	UpdateTyping(context.Context, UpdateTypingArg) error
@@ -4013,6 +4127,8 @@ type LocalInterface interface {
 	AddTeamMemberAfterReset(context.Context, AddTeamMemberAfterResetArg) error
 	SetConvRetentionLocal(context.Context, SetConvRetentionLocalArg) error
 	SetTeamRetentionLocal(context.Context, SetTeamRetentionLocalArg) error
+	UpgradeKBFSConversationToImpteam(context.Context, ConversationID) error
+	GetSearchRegexp(context.Context, GetSearchRegexpArg) (GetSearchRegexpRes, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -4473,7 +4589,7 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]RetryPostArg)(nil), args)
 						return
 					}
-					err = i.RetryPost(ctx, (*typedArgs)[0].OutboxID)
+					err = i.RetryPost(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4729,6 +4845,38 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"upgradeKBFSConversationToImpteam": {
+				MakeArg: func() interface{} {
+					ret := make([]UpgradeKBFSConversationToImpteamArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]UpgradeKBFSConversationToImpteamArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]UpgradeKBFSConversationToImpteamArg)(nil), args)
+						return
+					}
+					err = i.UpgradeKBFSConversationToImpteam(ctx, (*typedArgs)[0].ConvID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getSearchRegexp": {
+				MakeArg: func() interface{} {
+					ret := make([]GetSearchRegexpArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetSearchRegexpArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetSearchRegexpArg)(nil), args)
+						return
+					}
+					ret, err = i.GetSearchRegexp(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -4880,8 +5028,7 @@ func (c LocalClient) CancelPost(ctx context.Context, outboxID OutboxID) (err err
 	return
 }
 
-func (c LocalClient) RetryPost(ctx context.Context, outboxID OutboxID) (err error) {
-	__arg := RetryPostArg{OutboxID: outboxID}
+func (c LocalClient) RetryPost(ctx context.Context, __arg RetryPostArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.RetryPost", []interface{}{__arg}, nil)
 	return
 }
@@ -4967,5 +5114,16 @@ func (c LocalClient) SetConvRetentionLocal(ctx context.Context, __arg SetConvRet
 
 func (c LocalClient) SetTeamRetentionLocal(ctx context.Context, __arg SetTeamRetentionLocalArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.setTeamRetentionLocal", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) UpgradeKBFSConversationToImpteam(ctx context.Context, convID ConversationID) (err error) {
+	__arg := UpgradeKBFSConversationToImpteamArg{ConvID: convID}
+	err = c.Cli.Call(ctx, "chat.1.local.upgradeKBFSConversationToImpteam", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) GetSearchRegexp(ctx context.Context, __arg GetSearchRegexpArg) (res GetSearchRegexpRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getSearchRegexp", []interface{}{__arg}, &res)
 	return
 }

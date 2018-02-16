@@ -52,7 +52,6 @@ function registerReachability() {
           // without re-bootstrapping. Originally we used to do this on HTML5
           // 'online' event, but reachability is more precise.
           dispatch(ConfigGen.createBootstrap({isReconnect: true}))
-          dispatch(ConfigGen.createClearAvatarCache())
         }
       }
     })

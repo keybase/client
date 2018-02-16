@@ -167,6 +167,15 @@ func CanonicalTlfNameForTest(tlfName string) keybase1.CanonicalTlfName {
 	return keybase1.CanonicalTlfName(strings.Join(names, ","))
 }
 
+func (m TlfMock) newTLFID() chat1.TLFID {
+	suffix := byte(0x29)
+	idBytes, err := libkb.RandBytesWithSuffix(16, suffix)
+	if err != nil {
+		panic("RandBytes failed: " + err.Error())
+	}
+	return chat1.TLFID(idBytes)
+}
+
 func (m TlfMock) getTlfID(cname keybase1.CanonicalTlfName) (keybase1.TLFID, error) {
 	tlfID, ok := m.world.tlfs[cname]
 	if !ok {
@@ -175,31 +184,48 @@ func (m TlfMock) getTlfID(cname keybase1.CanonicalTlfName) (keybase1.TLFID, erro
 				return "", fmt.Errorf("user %s not found", n)
 			}
 		}
-		tlfID = mustGetRandBytesWithControlledFirstByte(16, byte(len(m.world.tlfs)+1))
+		tlfID = m.newTLFID()
 		m.world.tlfs[cname] = tlfID
 		m.world.tlfKeys[cname] = mustGetRandCryptKeys(byte(len(m.world.tlfKeys) + 1))
 	}
 	return keybase1.TLFID(hex.EncodeToString([]byte(tlfID))), nil
 }
 
-func (m TlfMock) Lookup(ctx context.Context, tlfName string, vis keybase1.TLFVisibility) (res types.NameInfo, err error) {
+func (m TlfMock) Lookup(ctx context.Context, tlfName string, public bool) (res *types.NameInfo, err error) {
 	var tlfID keybase1.TLFID
+	res = types.NewNameInfo()
 	name := CanonicalTlfNameForTest(tlfName)
 	res.CanonicalName = name.String()
 	if tlfID, err = m.getTlfID(name); err != nil {
 		return res, err
 	}
 	res.ID = tlfID.ToBytes()
+	vis := keybase1.TLFVisibility_PRIVATE
+	if public {
+		vis = keybase1.TLFVisibility_PUBLIC
+	}
 	if vis == keybase1.TLFVisibility_PRIVATE {
 		cres, err := m.CryptKeys(ctx, tlfName)
 		if err != nil {
 			return res, err
 		}
 		for _, key := range cres.CryptKeys {
-			res.CryptKeys = append(res.CryptKeys, key)
+			res.CryptKeys[chat1.ConversationMembersType_KBFS] =
+				append(res.CryptKeys[chat1.ConversationMembersType_KBFS], key)
 		}
 	}
 	return res, nil
+}
+
+func (m TlfMock) EncryptionKeys(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool) (*types.NameInfo, error) {
+	return m.Lookup(ctx, tlfName, public)
+}
+
+func (m TlfMock) DecryptionKeys(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool,
+	keyGeneration int, kbfsEncrypted bool) (*types.NameInfo, error) {
+	return m.Lookup(ctx, tlfName, public)
 }
 
 func (m TlfMock) CryptKeys(ctx context.Context, tlfName string) (res keybase1.GetTLFCryptKeysRes, err error) {
@@ -469,6 +495,8 @@ func (m *ChatRemoteMock) createBogusBody(typ chat1.MessageType) chat1.MessageBod
 
 type dummyChannelSource struct{}
 
+var _ types.TeamChannelSource = (*dummyChannelSource)(nil)
+
 func (d dummyChannelSource) GetChannelsFull(ctx context.Context, uid gregor1.UID, tlfID chat1.TLFID,
 	topicType chat1.TopicType) ([]chat1.ConversationLocal, []chat1.RateLimit, error) {
 	return nil, nil, nil
@@ -477,6 +505,11 @@ func (d dummyChannelSource) GetChannelsFull(ctx context.Context, uid gregor1.UID
 func (d dummyChannelSource) GetChannelsTopicName(ctx context.Context, uid gregor1.UID, tlfID chat1.TLFID,
 	topicType chat1.TopicType) ([]types.ConvIDAndTopicName, []chat1.RateLimit, error) {
 	return nil, nil, nil
+}
+
+func (d dummyChannelSource) GetChannelTopicName(ctx context.Context, uid gregor1.UID, tlfID chat1.TLFID,
+	topicType chat1.TopicType, convID chat1.ConversationID) (string, []chat1.RateLimit, error) {
+	return "", nil, nil
 }
 
 func (d dummyChannelSource) ChannelsChanged(ctx context.Context, tlfID chat1.TLFID) {}
@@ -614,6 +647,14 @@ func (m *ChatRemoteMock) SetConversationStatus(ctx context.Context, arg chat1.Se
 func (m *ChatRemoteMock) SetAppNotificationSettings(ctx context.Context,
 	arg chat1.SetAppNotificationSettingsArg) (res chat1.SetAppNotificationSettingsRes, err error) {
 	return res, errors.New("not implemented")
+}
+
+func (m *ChatRemoteMock) RetentionSweepConv(ctx context.Context, convID chat1.ConversationID) (res chat1.SweepRes, err error) {
+	return res, errors.New("not implemented")
+}
+
+func (m *ChatRemoteMock) UpgradeKBFSToImpteam(ctx context.Context, tlfID chat1.TLFID) error {
+	return errors.New("not implemented")
 }
 
 func (m *ChatRemoteMock) SetGlobalAppNotificationSettings(ctx context.Context,
@@ -802,15 +843,23 @@ type NonblockThreadResult struct {
 	Full   bool
 }
 
-type ChatUI struct {
-	inboxCb  chan NonblockInboxResult
-	threadCb chan NonblockThreadResult
+type NonblockSearchResult struct {
+	chat1.ChatSearchHitArg
 }
 
-func NewChatUI(inboxCb chan NonblockInboxResult, threadCb chan NonblockThreadResult) *ChatUI {
+type ChatUI struct {
+	inboxCb      chan NonblockInboxResult
+	threadCb     chan NonblockThreadResult
+	searchHitCb  chan chat1.ChatSearchHitArg
+	searchDoneCb chan chat1.ChatSearchDoneArg
+}
+
+func NewChatUI(inboxCb chan NonblockInboxResult, threadCb chan NonblockThreadResult, searchHitCb chan chat1.ChatSearchHitArg, searchDoneCb chan chat1.ChatSearchDoneArg) *ChatUI {
 	return &ChatUI{
-		inboxCb:  inboxCb,
-		threadCb: threadCb,
+		inboxCb:      inboxCb,
+		threadCb:     threadCb,
+		searchHitCb:  searchHitCb,
+		searchDoneCb: searchDoneCb,
 	}
 }
 
@@ -913,4 +962,14 @@ func (c *ChatUI) ChatThreadFull(ctx context.Context, arg chat1.ChatThreadFullArg
 
 func (c *ChatUI) ChatConfirmChannelDelete(ctx context.Context, arg chat1.ChatConfirmChannelDeleteArg) (bool, error) {
 	return true, nil
+}
+
+func (c *ChatUI) ChatSearchHit(ctx context.Context, arg chat1.ChatSearchHitArg) error {
+	c.searchHitCb <- arg
+	return nil
+}
+
+func (c *ChatUI) ChatSearchDone(ctx context.Context, arg chat1.ChatSearchDoneArg) error {
+	c.searchDoneCb <- arg
+	return nil
 }

@@ -291,6 +291,14 @@ func (p CommandLine) GetUIDMapFullNameCacheSize() (int, bool) {
 	return 0, false
 }
 
+func (p CommandLine) GetPayloadCacheSize() (int, bool) {
+	ret := p.GetGInt("payload-cache-size")
+	if ret != 0 {
+		return ret, true
+	}
+	return 0, false
+}
+
 func (p CommandLine) GetLocalTrackMaxAge() (time.Duration, bool) {
 	ret, err := p.GetGDuration("local-track-maxage")
 	if err != nil {

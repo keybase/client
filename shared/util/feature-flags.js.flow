@@ -2,17 +2,17 @@
 
 export type FeatureFlags = {|
   admin: boolean,
+  deleteChatHistory: boolean,
   fsEnabled: boolean,
   impTeamChatEnabled: boolean,
-  newPeopleTab: boolean,
   plansEnabled: boolean,
 |}
 
 const ff: FeatureFlags = {
   admin: false,
+  deleteChatHistory: false,
   fsEnabled: false,
   impTeamChatEnabled: false,
-  newPeopleTab: false,
   plansEnabled: false,
 }
 

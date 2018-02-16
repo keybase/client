@@ -4,7 +4,7 @@ import * as React from 'react'
 import {globalColors, glamorous} from '../styles'
 import ClickableBox from './clickable-box'
 import Box from './box'
-import {createSelector} from 'reselect'
+import {Image} from 'react-native'
 
 import type {AvatarSize} from './avatar'
 import type {IconType} from './icon'
@@ -28,6 +28,7 @@ type Props = {
   onClick?: ?(event: SyntheticEvent<>) => void,
   opacity: ?number,
   skipBackground?: boolean,
+  skipBackgroundAfterLoaded?: boolean,
   size: AvatarSize,
   style?: ?Object,
   url: ?string,
@@ -78,31 +79,24 @@ class Background extends React.PureComponent<{loaded: boolean, loadingColor: any
   }
 }
 
-const UserImageImage = glamorous.image(
-  {
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-    right: 0,
-    top: 0,
-  },
-  props => ({
-    opacity: props.opacity,
-    borderRadius: props.borderRadius,
-    height: props.size,
-    width: props.size,
-  })
-)
 class UserImage extends React.PureComponent<ImageProps> {
   render() {
     const {borderRadius, url, size, onLoadEnd, opacity = 1} = this.props
     return (
-      <UserImageImage
-        opacity={opacity}
+      <Image
         source={url}
         onLoadEnd={onLoadEnd}
-        size={size}
-        borderRadius={borderRadius}
+        style={{
+          borderRadius,
+          bottom: 0,
+          height: size,
+          left: 0,
+          opacity,
+          position: 'absolute',
+          right: 0,
+          top: 0,
+          width: size,
+        }}
       />
     )
   }
@@ -111,24 +105,23 @@ class UserImage extends React.PureComponent<ImageProps> {
 const borderOffset = -1
 const borderSize = 2
 // Layer on top to extend outside of the image
-const BorderView = glamorous.view(
-  {
-    borderWidth: borderSize,
-    bottom: borderOffset,
-    left: borderOffset,
-    margin: borderSize / 2,
-    position: 'absolute',
-    right: borderOffset,
-    top: borderOffset,
-  },
-  props => ({
-    borderColor: props.borderColor,
-    borderRadius: props.borderRadius,
-  })
-)
 class Border extends React.PureComponent<{borderColor: any, borderRadius: number}> {
   render() {
-    return <BorderView borderColor={this.props.borderColor} borderRadius={this.props.borderRadius} />
+    return (
+      <Box
+        style={{
+          borderWidth: borderSize,
+          bottom: borderOffset,
+          left: borderOffset,
+          margin: borderSize / 2,
+          position: 'absolute',
+          right: borderOffset,
+          top: borderOffset,
+          borderColor: this.props.borderColor,
+          borderRadius: this.props.borderRadius,
+        }}
+      />
+    )
   }
 }
 
@@ -173,6 +166,7 @@ class AvatarRender extends React.PureComponent<Props, State> {
       followIconSize,
       children,
       skipBackground,
+      skipBackgroundAfterLoaded,
     } = this.props
 
     const borderRadius = this.props.isTeam
@@ -182,9 +176,14 @@ class AvatarRender extends React.PureComponent<Props, State> {
     return (
       <ClickableBox onClick={onClick} feedback={false} style={boxStyle(style, size)}>
         <Box style={boxStyle(style, size)}>
-          {!skipBackground && (
-            <Background loaded={this.state.loaded} loadingColor={loadingColor} borderRadius={borderRadius} />
-          )}
+          {!skipBackground &&
+            (!skipBackgroundAfterLoaded || !this.state.loaded) && (
+              <Background
+                loaded={this.state.loaded}
+                loadingColor={loadingColor}
+                borderRadius={borderRadius}
+              />
+            )}
           {!!url && (
             <UserImage
               opacity={opacity}
@@ -205,23 +204,20 @@ class AvatarRender extends React.PureComponent<Props, State> {
   }
 }
 
-const _iconStyle = createSelector([a => a], size => ({
-  height: size,
-  width: size,
-}))
+const sizes = [176, 112, 80, 64, 48, 40, 32, 24, 16, 12]
 
-const iconStyle = (size, style) => {
-  return style ? {..._iconStyle(size), ...style} : _iconStyle(size)
-}
+const iconStyles = sizes.reduce((map, size) => {
+  map[String(size)] = {height: size, width: size}
+  return map
+}, {})
 
-const _boxStyle = createSelector([a => a], size => ({
-  height: size,
-  position: 'relative',
-  width: size,
-}))
+const boxStyles = sizes.reduce((map, size) => {
+  map[String(size)] = {height: size, position: 'relative', width: size}
+  return map
+}, {})
 
-const boxStyle = createSelector([a => a, (_, b) => b], (style, size) => {
-  return style ? {..._boxStyle(size), ...style} : _boxStyle(size)
-})
+const iconStyle = (size, style) =>
+  style ? {...iconStyles[String(size)], ...style} : iconStyles[String(size)]
+const boxStyle = (style, size) => (style ? {...boxStyles[String(size)], ...style} : boxStyles[String(size)])
 
 export default AvatarRender

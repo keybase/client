@@ -22,7 +22,7 @@
     <Feature Id="ProductFeature" Title="Keybase Application" Level="1">
       <ComponentGroupRef Id="ProductComponents" />
       <ComponentGroupRef Id="GuiComps" />
-      <ComponentGroupRef Id="ApplicationShortcuts" />
+      <ComponentRef Id="GUIShortCutComponent" />
       <ComponentGroupRef Id="StartupShortcuts" />
       <ComponentGroupRef Id="GuiStartMenuTileColors" />
       <ComponentGroupRef Id="BrowserExtensionKbnm" />
@@ -31,14 +31,12 @@
 
     <InstallExecuteSequence>
       <InstallValidate Suppress="yes">FAKE_PROPERTY</InstallValidate>
-      <Custom Action="StopUpdater" Before="InstallValidate"><![CDATA[Installed]]></Custom>
-      <!-- These roaming actions are temporary, while we switch from appdata to localappdata. -->
-      <Custom Action="StopUpdaterRoaming" Before="InstallValidate"><![CDATA[Installed]]></Custom>
-      <Custom Action="StopMainAppRoaming" Before="StopGUI"><![CDATA[Installed]]></Custom>
-      <Custom Action="StopMainApp" Before="StopGUI"><![CDATA[Installed]]></Custom>
+      <Custom Action="StopMainApp" Before="StopUpdater"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
+      <Custom Action="StopUpdater" Before="StopGUI"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
       <Custom Action="RemoveBrowserExtension" Before="InstallValidate"><![CDATA[Installed]]></Custom>
-      <Custom Action="StopGUI" Before="InstallValidate"><![CDATA[Installed]]></Custom>
-      <Custom Action="RunMainAppDummyForRepair" Before="RunMainApp"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
+      <Custom Action="RemoveGUIStartupShortcut" Before="InstallValidate"><![CDATA[REMOVE ~= "ALL" AND NOT (UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED)]]></Custom>
+      <!-- StopGUI is legacy and to be removed after enough people are updated -->
+      <Custom Action="StopGUI" Before="InstallValidate"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
       <Custom Action="RunMainApp" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
       <Custom Action="RunGUI" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
       <Custom Action="AddBrowserExtension" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
@@ -63,15 +61,9 @@
         <Directory Id="INSTALLFOLDER" Name="Keybase">
         </Directory>
       </Directory>
-      <Directory Id="ProgramMenuFolder">
-        <Directory Id="ApplicationProgramsFolder" Name="Keybase"/>
-      </Directory>
       <Directory Id="StartupFolder" Name="Startup" />
       <Directory Id="SystemFolder" Name="System" />
-      <Directory Id="AppDataFolder">
-        <Directory Id="ROAMINGINSTALLFOLDER" Name="Keybase">
-        </Directory>
-      </Directory>
+      <Directory Id="ProgramMenuFolder" Name="ProgramMenu" />
     </Directory>
   </Fragment>
   
@@ -85,8 +77,6 @@
         <RemoveFolder Id="GuiResourcesDirRemove" On="uninstall" Directory="GuiResourcesDir"/>
         <RemoveFolder Id="GuiNodeModulesDirRemove" On="uninstall" Directory="GuiNodeModulesDir"/>
         <RemoveFolder Id="GuiRegeditDirRemove" On="uninstall" Directory="GuiRegeditDir"/>
-        <RemoveFolder Id="ROAMINGINSTALLFOLDERRemove" On="uninstall" Directory="ROAMINGINSTALLFOLDER"/>
-        <RemoveFolder Id="ApplicationProgramsFolderRemove" On="uninstall" Directory="ApplicationProgramsFolder"/>
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
           <RegistryValue Name="KeybaseExe" Value="1" KeyPath="yes" Type="integer" />
         </RegistryKey>
@@ -160,16 +150,6 @@
           <RegistryValue Name="ShortCutStartUp" Type="integer" Value="1" KeyPath="yes"  />
         </RegistryKey>
       </Component>
-      <Component Id="GUIShortCutStartUpComponent" Guid="{4AC98412-7636-4727-AB39-44A98E25249A}">
-        <Shortcut Id="GUIShortCutStartUp" Name="GUIStartup"
-                  Description="Start GUI at boot"
-                  Target="[INSTALLFOLDER]keybaserq.exe"
-                  Arguments="&quot;[GuiDir]Keybase.exe&quot;"
-                  WorkingDirectory="GuiDir"/>
-        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
-          <RegistryValue Name="ShortCutStartUpGUI" Type="integer" Value="1" KeyPath="yes"  />
-        </RegistryKey>
-      </Component>
     </ComponentGroup>    
   </Fragment>
   <Fragment>
@@ -199,32 +179,17 @@
 
     </ComponentGroup>
   </Fragment>
-
-  
-
   <Fragment>
-    <ComponentGroup Id="ApplicationShortcuts" Directory="ApplicationProgramsFolder">
-      <Component Id="GUIShortCutComponent" Guid="{034E2E25-3676-4101-87F5-F6E081CA446A}">
-        <Shortcut Id="GUIShortCut"
-                  Name="Keybase"
-                  Description="Start GUI"
-                  Target="[GuiDir]Keybase.exe"
-                  WorkingDirectory="GuiDir"/>
-        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
-          <RegistryValue Name="ShortCutGUI" Type="integer" Value="1" KeyPath="yes"  />
-        </RegistryKey>
-      </Component>
-    </ComponentGroup>
+    <Component Id="GUIShortCutComponent" Guid="{95AB14DC-1529-423E-A20C-C0A8C63AF94E}" Directory="ProgramMenuFolder">
+      <Shortcut Id="GUIShortCut"
+                Name="Keybase"
+                Description="Start GUI"
+                Target="[GuiDir]Keybase.exe"
+                WorkingDirectory="GuiDir"/>
+      <RegistryValue Root="HKCU" Key="Software\Keybase\Keybase" Name="ShortCutGUI" Type="integer" Value="1" KeyPath="yes"/>
+    </Component>
   </Fragment>
 
-  <Fragment>
-    <!-- This has to be run so the repairman can finish moving files before upd.exe is run by watchdog2 -->
-    <CustomAction Id="RunMainAppDummyForRepair"
-              Directory="INSTALLFOLDER"
-              ExeCommand="[INSTALLFOLDER]keybaserq.exe -wait &quot;[INSTALLFOLDER]keybase.exe&quot; --standalone ping"
-              Execute="commit"
-              Return="ignore"/>
-  </Fragment>
   <Fragment>
     <CustomAction Id="RunMainApp"
               Directory="INSTALLFOLDER"
@@ -243,20 +208,6 @@
     <CustomAction Id="StopUpdater"
               Directory="INSTALLFOLDER"
               ExeCommand="[INSTALLFOLDER]keybaserq.exe -wait [WindowsFolder]\System32\taskkill.exe /F /IM upd.exe"
-              Execute="immediate"
-              Return="ignore"/>
-  </Fragment>
-  <Fragment>
-    <CustomAction Id="StopMainAppRoaming"
-              Directory="ROAMINGINSTALLFOLDER"
-              ExeCommand="[ROAMINGINSTALLFOLDER]keybaserq.exe -wait &quot;[ROAMINGINSTALLFOLDER]keybase.exe&quot; ctl stop --kill-kbfs"
-              Execute="immediate"
-              Return="ignore"/>
-  </Fragment>
-  <Fragment>
-    <CustomAction Id="StopUpdaterRoaming"
-              Directory="ROAMINGINSTALLFOLDER"
-              ExeCommand="[ROAMINGINSTALLFOLDER]keybaserq.exe -wait [WindowsFolder]\System32\taskkill.exe /F /IM upd.exe"
               Execute="immediate"
               Return="ignore"/>
   </Fragment>
@@ -289,4 +240,18 @@
               Execute="immediate"
               Return="ignore"/>
   </Fragment>
+  <Fragment>
+    <CustomAction Id="RemoveGUIStartupShortcut"
+                  Script="vbscript">
+      <![CDATA[
+        const HKCU = &H80000001
+        strComputer = "."
+        Set oReg=GetObject("winmgmts:{impersonationLevel=impersonate}!\\" & strComputer & "\root\default:StdRegProv")
+        strKeyPath = "SOFTWARE\Microsoft\Windows\CurrentVersion\Run"
+        strValueName = "electron.app.Keybase"
+        oReg.DeleteValue HKCU,strKeyPath,strValueName
+      ]]>
+    </CustomAction>
+  </Fragment>  
+
 </Wix>
