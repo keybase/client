@@ -600,6 +600,7 @@ func (u *userPlusDevice) reset() {
 	uvAfter := u.userVersion()
 	require.NotEqual(u.tc.T, uvBefore.EldestSeqno, uvAfter.EldestSeqno,
 		"eldest seqno should change as result of reset")
+	u.tc.T.Logf("User reset; eldest seqno %d -> %d", uvBefore.EldestSeqno, uvAfter.EldestSeqno)
 }
 
 func (u *userPlusDevice) loginAfterReset() {
@@ -614,12 +615,15 @@ func (u *userPlusDevice) loginAfterResetHelper(puk bool) {
 	t := u.device.tctx.T
 	u.device.tctx.Tp.DisableUpgradePerUserKey = !puk
 	g := u.device.tctx.G
+	devName := randomDevice()
+	g.ResetSocket(true)
+	g.Log.Debug("loginAfterResetHelper: new device name is %q", devName)
 
 	ui := genericUI{
 		g:           g,
 		SecretUI:    signupInfoSecretUI{u.userInfo, u.tc.G.GetLog()},
 		LoginUI:     usernameLoginUI{u.username},
-		ProvisionUI: nullProvisionUI{randomDevice()},
+		ProvisionUI: nullProvisionUI{devName},
 	}
 	g.SetUI(&ui)
 	loginCmd := client.NewCmdLoginRunner(g)
