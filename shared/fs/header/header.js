@@ -4,7 +4,7 @@ import * as Types from '../../constants/types/fs'
 import {globalStyles, globalColors, globalMargins, isMobile} from '../../styles'
 import {Avatar, Box, ClickableBox, Icon, Text} from '../../common-adapters'
 
-type FolderHeaderProps = {
+export type FolderHeaderProps = {
   breadcrumbItems: Array<Types.PathBreadcrumbItem>,
   dropdownItems: Array<Types.PathBreadcrumbItem>,
   isTeamPath: boolean,

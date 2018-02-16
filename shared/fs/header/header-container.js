@@ -48,7 +48,7 @@ const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => {
       path: Types.pathToString(acc),
     }
   })
-  let breadcrumbItems = items
+  let breadcrumbItems = items || []
   let dropdownItems = []
   if (items.length > 3) {
     dropdownItems = items.slice(0, items.length - 2).reverse()
