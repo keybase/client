@@ -172,11 +172,7 @@ func TestChatMessageUnbox(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		var msg chat1.MessagePlaintext
-		uid := gregor1.UID(u.User.GetUID().ToBytes())
-		typ := chat1.MessageType_TEXT
-		header := msgHeader(uid, mbVersion, typ)
-		msg = textMsgWithHeader(t, text, header)
+		msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()), mbVersion)
 		outboxID := chat1.OutboxID{0xdc, 0x74, 0x6, 0x5d, 0xf9, 0x5f, 0x1c, 0x48}
 		msg.ClientHeader.OutboxID = &outboxID
 
@@ -201,7 +197,7 @@ func TestChatMessageUnbox(t *testing.T) {
 		}
 		body := unboxed.MessageBody
 		unboxedTyp, _ := body.MessageType()
-		require.Equal(t, unboxedTyp, typ)
+		require.Equal(t, unboxedTyp, chat1.MessageType_TEXT)
 		require.Equal(t, body.Text().Body, text)
 		require.Nil(t, unboxed.SenderDeviceRevokedAt, "message should not be from revoked device")
 		require.NotNil(t, unboxed.BodyHash)
