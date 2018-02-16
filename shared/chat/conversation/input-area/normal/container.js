@@ -113,10 +113,14 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 // Standalone throttled function to ensure we never accidentally recreate it and break the throttling
 const throttled = throttle((f, param) => f(param), 1000)
 
-// todo plumb throttled call to send
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  withStateHandlers({text: ''}, {_setText: () => (text: string) => ({text})}),
+  withStateHandlers(
+    props => ({text: unsentText[Types.conversationIDKeyToString(props.conversationIDKey)] || ''}),
+    {
+      _setText: () => (text: string) => ({text}),
+    }
+  ),
   withProps(props => ({
     setText: (text: string, skipUnsentSaving?: boolean) => {
       props._setText(text)
