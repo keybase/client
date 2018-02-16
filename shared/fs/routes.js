@@ -1,7 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import Files from './container'
-import DropdownPopupMenu from './header/popup'
+import BreadcrumbPopupMenu from './header/breadcrumb-popup'
 import RelativePopupHoc from '../common-adapters/relative-popup-hoc'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 
@@ -9,7 +9,7 @@ const folderRoute = makeRouteDefNode({
   children: {
     folder: () => folderRoute,
     breadcrumbAction: {
-      component: RelativePopupHoc(DropdownPopupMenu),
+      component: RelativePopupHoc(BreadcrumbPopupMenu),
       tags: makeLeafTags({layerOnTop: true}),
     },
   },

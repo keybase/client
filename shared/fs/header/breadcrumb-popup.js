@@ -24,7 +24,7 @@ const itemView = (name, isTeamRoot) => (
   </Box>
 )
 
-const DropdownPopupMenu = ({routeProps}: PopupMenuProps) => {
+const BreadcrumbPopupMenu = ({routeProps}: PopupMenuProps) => {
   const isTeamPath = routeProps.get('isTeamPath')
   const items = routeProps.get('items')
   const onOpenBreadcrumb = routeProps.get('onOpenBreadcrumb')
@@ -57,4 +57,4 @@ const stylesTeamAvatar = {
   marginTop: 3,
 }
 
-export default DropdownPopupMenu
+export default BreadcrumbPopupMenu
