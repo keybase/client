@@ -40,15 +40,10 @@ type BigProps = {
 const BigTeamHeader = ({channelname, teamname, onClick}: BigProps) => {
   return (
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'stretch'}}>
-      <Text
-        key="bigTeamHeaderChannelName"
-        style={{alignSelf: 'center', marginTop: globalMargins.medium}}
-        type="BodyBig"
-      >
+      <Text style={{alignSelf: 'center', marginTop: globalMargins.medium}} type="BodyBig">
         #{channelname}
       </Text>
       <ClickableBox
-        key="bigTeamHeaderTeamName"
         style={{...globalStyles.flexBoxRow, alignSelf: 'center', alignItems: 'center'}}
         onClick={onClick}
       >
