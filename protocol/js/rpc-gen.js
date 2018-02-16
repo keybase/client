@@ -2924,7 +2924,7 @@ export type PingResponse = $ReadOnly<{timestamp: Time}>
 
 export type PlatformInfo = $ReadOnly<{os: String, osVersion: String, arch: String, goVersion: String}>
 
-export type PprofLogTraceRpcParam = $ReadOnly<{traceDurationSeconds: DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type PprofLogTraceRpcParam = $ReadOnly<{logDirForMobile: String, traceDurationSeconds: DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type PprofTraceRpcParam = $ReadOnly<{traceFile: String, traceDurationSeconds: DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 

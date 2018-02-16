@@ -13,6 +13,7 @@ import trim from 'lodash/trim'
 import {delay} from 'redux-saga'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
 import {type TypedState} from '../constants/reducer'
+import {traceDir} from '../constants/platform'
 
 function* _onUpdatePGPSettings(): Saga.SagaGenerator<any, any> {
   try {
@@ -353,6 +354,7 @@ const _traceSaga = (action: SettingsGen.TracePayload) => {
   const durationSeconds = action.payload.durationSeconds
   return Saga.sequentially([
     Saga.call(RPCTypes.pprofLogTraceRpcPromise, {
+      logDirForMobile: traceDir(),
       traceDurationSeconds: durationSeconds,
     }),
     Saga.put(WaitingGen.createIncrementWaiting({key: Constants.traceInProgressKey})),

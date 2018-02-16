@@ -52,6 +52,10 @@ function logFileName(): string {
   return _logPath
 }
 
+function traceDir(): string {
+  return _dir
+}
+
 export {
   appVersionCode,
   appVersionName,
@@ -70,6 +74,7 @@ export {
   isWindows,
   mobileOsVersion,
   runMode,
+  traceDir,
   version,
   logFileName,
   logFileDir,

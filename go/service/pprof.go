@@ -95,7 +95,12 @@ func (c *PprofHandler) LogTrace(_ context.Context, arg keybase1.LogTraceArg) (er
 
 	// Assume this directory already exists, i.e. we've already
 	// started logging.
-	logDir := c.G().Env.GetLogDir()
+	var logDir string
+	if len(arg.LogDirForMobile) > 0 {
+		logDir = arg.LogDirForMobile
+	} else {
+		logDir = c.G().Env.GetLogDir()
+	}
 
 	pattern := filepath.Join(logDir, "trace.*.out")
 	matches, err := filepath.Glob(pattern)

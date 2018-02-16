@@ -16,6 +16,7 @@ type TraceArg struct {
 
 type LogTraceArg struct {
 	SessionID            int         `codec:"sessionID" json:"sessionID"`
+	LogDirForMobile      string      `codec:"logDirForMobile" json:"logDirForMobile"`
 	TraceDurationSeconds DurationSec `codec:"traceDurationSeconds" json:"traceDurationSeconds"`
 }
 

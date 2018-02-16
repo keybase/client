@@ -6,5 +6,5 @@ protocol pprof {
 
   void trace(int sessionID, string traceFile, DurationSec traceDurationSeconds);
 
-  void logTrace(int sessionID, DurationSec traceDurationSeconds);
+  void logTrace(int sessionID, string logDirForMobile, DurationSec traceDurationSeconds);
 }

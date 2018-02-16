@@ -159,6 +159,11 @@ const jsonDebugFileName = (function() {
   throw new Error(`Unknown platform ${process.platform}`)
 })()
 
+function traceDir(): string {
+  // Empty string means let the service figure out the right directory.
+  return ''
+}
+
 const socketPath = findSocketDialPath()
 const dataRoot = findDataRoot()
 const cacheRoot = findCacheRoot()
@@ -190,5 +195,6 @@ export {
   mobileOsVersion,
   runMode,
   socketPath,
+  traceDir,
   version,
 }

@@ -32,6 +32,10 @@
           "type": "int"
         },
         {
+          "name": "logDirForMobile",
+          "type": "string"
+        },
+        {
           "name": "traceDurationSeconds",
           "type": "DurationSec"
         }
