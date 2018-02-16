@@ -213,9 +213,9 @@ func testImplicitResetParametrized(t *testing.T, startPUK, getPUKAfter bool) {
 
 	ann.reAddUserAfterReset(iteam, bob)
 
-	teamObj := ann.loadTeamByID(iteam.ID, true)
-
 	if !getPUKAfter {
+		teamObj := ann.loadTeamByID(iteam.ID, true)
+
 		// Bob is not a crypto member so no "real" role
 		role, err := teamObj.MemberRole(context.Background(), bob.userVersion())
 		require.NoError(t, err)

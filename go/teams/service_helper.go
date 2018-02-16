@@ -277,18 +277,18 @@ func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID k
 		existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
 		if err != nil {
 			// UV not found - look for invites.
-			invite, uv, found := t.FindActiveKeybaseInvite(uv.Uid)
+			invite, foundUV, found := t.FindActiveKeybaseInvite(uv.Uid)
 			if !found {
 				// username is neither crypto UV nor keybase invite in
 				// that team. bail out.
-				return libkb.NotFoundError{Msg: fmt.Sprintf("uid %s has never been a member of this team.",
-					username)}
+				return libkb.NotFoundError{Msg: fmt.Sprintf("User %q (%s) is not a member of this team.",
+					username, uv.Uid)}
 			}
 
 			isAnInvite = true
 			existingInvite = invite
 			existingRole = invite.Role
-			existingUV = uv
+			existingUV = foundUV
 		} else {
 			// User is existing crypto member - get their current role.
 			role, err := t.MemberRole(ctx, existingUV)
