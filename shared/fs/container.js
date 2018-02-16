@@ -65,10 +65,6 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
     setSortByTimeDesc: () => setSortSetting({sortBy: 'time', sortOrder: 'desc'}),
 
     loadFolderList: dispatchProps.loadFolderList,
-    /* TODO: enable these once we need them:
-    name: Types.getPathName(stateProps.path),
-    visibility: Types.getPathVisibility(stateProps.path),
-    */
   }
 }
 

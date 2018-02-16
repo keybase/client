@@ -464,7 +464,7 @@ func (d *Service) startupGregor() {
 		// TODO -- get rid of this?
 		d.gregor.PushHandler(newRekeyLogHandler(d.G()))
 
-		d.gregor.PushHandler(newTeamHandler(d.G()))
+		d.gregor.PushHandler(newTeamHandler(d.G(), d.badger))
 		d.gregor.PushHandler(d.home)
 
 		// Connect to gregord

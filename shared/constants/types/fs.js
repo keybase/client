@@ -70,10 +70,9 @@ export const stringToPath = (s: string): Path => (s.indexOf('/') === 0 ? s : nul
 export const pathToString = (p: Path): string => (!p ? '' : p)
 export const getPathName = (p: Path): string => (!p ? '' : p.split('/').pop())
 export const getPathElements = (p: Path): Array<string> => (!p ? [] : p.split('/').slice(1))
-export const getPathVisibility = (p: Path): Visibility => {
-  if (!p) return null
-  const [, , visibility] = p.split('/')
-  if (!visibility) return null
+export const getVisibilityFromElems = (elems: Array<string>) => {
+  if (elems.length < 2 || !elems[1]) return null
+  const visibility = elems[1]
   switch (visibility) {
     case 'private':
     case 'public':
@@ -84,6 +83,10 @@ export const getPathVisibility = (p: Path): Visibility => {
       // be an empty string, so asserting empty will always fail.
       return null
   }
+}
+export const getPathVisibility = (p: Path): Visibility => {
+  const elems = getPathElements(p)
+  return getVisibilityFromElems(elems)
 }
 export const stringToPathType = (s: string): PathType => {
   switch (s) {

@@ -174,9 +174,13 @@ func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusD
 	if err = srv.Register(keybase1.NotifyTeamProtocol(u.notifications)); err != nil {
 		tt.t.Fatal(err)
 	}
+	if err = srv.Register(keybase1.NotifyBadgesProtocol(u.notifications)); err != nil {
+		tt.t.Fatal(err)
+	}
 	ncli := keybase1.NotifyCtlClient{Cli: cli}
 	if err = ncli.SetNotifications(context.TODO(), keybase1.NotificationChannels{
-		Team: true,
+		Team:   true,
+		Badges: true,
 	}); err != nil {
 		tt.t.Fatal(err)
 	}
@@ -273,6 +277,16 @@ func (u *userPlusDevice) addTeamMember(team, username string, role keybase1.Team
 	add.Role = role
 	add.SkipChatNotification = u.suppressTeamChatAnnounce
 	if err := add.Run(); err != nil {
+		u.tc.T.Fatal(err)
+	}
+}
+
+func (u *userPlusDevice) removeTeamMember(team, username string) {
+	rm := client.NewCmdTeamRemoveMemberRunner(u.tc.G)
+	rm.Team = team
+	rm.Username = username
+	rm.Force = true
+	if err := rm.Run(); err != nil {
 		u.tc.T.Fatal(err)
 	}
 }
@@ -425,6 +439,21 @@ func (u *userPlusDevice) waitForTeamChangedGregor(teamID keybase1.TeamID, toSeqn
 		}
 	}
 	u.tc.T.Fatalf("timed out waiting for team rotate %s", teamID)
+}
+
+func (u *userPlusDevice) waitForBadgeStateWithReset(numReset int) {
+	for i := 0; i < 10; i++ {
+		select {
+		case arg := <-u.notifications.badgeCh:
+			u.tc.T.Logf("badge state received: %+v", arg.TeamsWithResetUsers)
+			if len(arg.TeamsWithResetUsers) == numReset {
+				u.tc.T.Logf("badge state length match")
+				return
+			}
+		case <-time.After(1 * time.Second * libkb.CITimeMultiplier(u.tc.G)):
+			u.tc.T.Fatal("timed out waiting for badge state")
+		}
+	}
 }
 
 func (u *userPlusDevice) drainGregor() {
@@ -672,12 +701,14 @@ func GetTeamForTestByID(ctx context.Context, g *libkb.GlobalContext, id keybase1
 type teamNotifyHandler struct {
 	changeCh  chan keybase1.TeamChangedByIDArg
 	abandonCh chan keybase1.TeamID
+	badgeCh   chan keybase1.BadgeState
 }
 
 func newTeamNotifyHandler() *teamNotifyHandler {
 	return &teamNotifyHandler{
 		changeCh:  make(chan keybase1.TeamChangedByIDArg, 1),
 		abandonCh: make(chan keybase1.TeamID, 10),
+		badgeCh:   make(chan keybase1.BadgeState, 10),
 	}
 }
 
@@ -700,6 +731,11 @@ func (n *teamNotifyHandler) TeamExit(ctx context.Context, teamID keybase1.TeamID
 
 func (n *teamNotifyHandler) TeamAbandoned(ctx context.Context, teamID keybase1.TeamID) error {
 	n.abandonCh <- teamID
+	return nil
+}
+
+func (n *teamNotifyHandler) BadgeState(ctx context.Context, badgeState keybase1.BadgeState) error {
+	n.badgeCh <- badgeState
 	return nil
 }
 
