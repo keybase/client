@@ -893,3 +893,94 @@ func TestTeamAfterDeleteUser(t *testing.T) {
 
 	readChats(team, bob, 1)
 }
+
+// TestTeamResetBadges checks that badges show up for admins
+// when a member of the team resets, and that they are dismissed
+// when the reset user is added.
+func TestTeamResetBadgesOnAdd(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	tt.addUser("own")
+	tt.addUser("roo")
+
+	teamID, teamName := tt.users[0].createTeam2()
+	tt.users[0].kickTeamRekeyd()
+	tt.users[0].addTeamMember(teamName.String(), tt.users[1].username, keybase1.TeamRole_WRITER)
+	tt.users[1].reset()
+	tt.users[0].waitForTeamChangedGregor(teamID, keybase1.Seqno(2))
+	// wait for badge state to have 1 team w/ reset member
+	tt.users[0].waitForBadgeStateWithReset(1)
+
+	// users[0] should be badged since users[1] reset
+	badgeState := getBadgeState(t, tt.users[0])
+	if len(badgeState.TeamsWithResetUsers) == 0 {
+		t.Fatal("TeamsWithResetUsers is empty after reset")
+	}
+	out := badgeState.TeamsWithResetUsers[0]
+	if out.Teamname != teamName.String() {
+		t.Errorf("badged team name: %s, expected %s", out.Teamname, teamName)
+	}
+	if out.Username != tt.users[1].username {
+		t.Errorf("badged user: %s, expected %s", out.Username, tt.users[1].username)
+	}
+
+	// users[1] logs in after reset
+	tt.users[1].loginAfterReset()
+
+	// users[0] adds users[1] back to the team
+	tt.users[0].addTeamMember(teamName.String(), tt.users[1].username, keybase1.TeamRole_WRITER)
+
+	// wait for badge state to have no teams w/ reset member
+	tt.users[0].waitForBadgeStateWithReset(0)
+
+	// badge state should be cleared
+	badgeState = getBadgeState(t, tt.users[0])
+	if len(badgeState.TeamsWithResetUsers) != 0 {
+		t.Errorf("badge state for TeamsWithResetUsers not empty: %d", len(badgeState.TeamsWithResetUsers))
+	}
+}
+
+// TestTeamResetBadgesOnRemove checks that badges show up for admins
+// when a member of the team resets, and that they are dismissed
+// when the reset user is removed.
+func TestTeamResetBadgesOnRemove(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	tt.addUser("own")
+	tt.addUser("roo")
+
+	teamID, teamName := tt.users[0].createTeam2()
+	tt.users[0].kickTeamRekeyd()
+	tt.users[0].addTeamMember(teamName.String(), tt.users[1].username, keybase1.TeamRole_WRITER)
+	tt.users[1].reset()
+	tt.users[0].waitForTeamChangedGregor(teamID, keybase1.Seqno(2))
+	// wait for badge state to have 1 team w/ reset member
+	tt.users[0].waitForBadgeStateWithReset(1)
+
+	// users[0] should be badged since users[1] reset
+	badgeState := getBadgeState(t, tt.users[0])
+	if len(badgeState.TeamsWithResetUsers) == 0 {
+		t.Fatal("TeamsWithResetUsers is empty after reset")
+	}
+	out := badgeState.TeamsWithResetUsers[0]
+	if out.Teamname != teamName.String() {
+		t.Errorf("badged team name: %s, expected %s", out.Teamname, teamName)
+	}
+	if out.Username != tt.users[1].username {
+		t.Errorf("badged user: %s, expected %s", out.Username, tt.users[1].username)
+	}
+
+	// users[0] removes users[1] from the team
+	tt.users[0].removeTeamMember(teamName.String(), tt.users[1].username)
+
+	// wait for badge state to have no teams w/ reset member
+	tt.users[0].waitForBadgeStateWithReset(0)
+
+	// badge state should be cleared
+	badgeState = getBadgeState(t, tt.users[0])
+	if len(badgeState.TeamsWithResetUsers) != 0 {
+		t.Errorf("badge state for TeamsWithResetUsers not empty: %d", len(badgeState.TeamsWithResetUsers))
+	}
+}

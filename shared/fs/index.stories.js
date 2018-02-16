@@ -5,21 +5,23 @@ import {action, storiesOf, createPropProvider} from '../stories/storybook'
 import Files from '.'
 
 const provider = createPropProvider({
+  FileRow: ({path}: {path: Types.Path}) => ({
+    icon: 'icon-folder-private-24',
+    name: Types.getPathName(path),
+    onOpen: () => {},
+    path,
+  }),
   FolderHeader: () => ({
-    isTeamPath: false,
-    items: [
+    breadcrumbItems: [
       {
         name: 'keybase',
         path: '/keybase',
       },
     ],
+    dropdownItems: [],
+    isTeamPath: false,
     onOpenBreadcrumb: action('onOpenBreadcrumb'),
-  }),
-  FileRow: ({path}: {path: Types.Path}) => ({
-    icon: 'icon-folder-private-24',
-    name: Types.getPathName(path),
-    path,
-    onOpen: () => {},
+    onOpenBreadcrumbDropdown: action('onOpenBreadcrumbDropdown'),
   }),
 })
 
