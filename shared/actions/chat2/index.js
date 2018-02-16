@@ -692,6 +692,7 @@ const rpcLoadThread = (
       conversationID,
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
       query: {
+        cbMode: RPCChatTypes.localGetThreadNonblockCbMode.incremental,
         disableResolveSupersedes: false,
         markAsRead: false,
         messageIDControl: {
