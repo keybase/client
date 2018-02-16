@@ -53,9 +53,9 @@ const FileRow = RowConnector(({elems, path, name, icon, onOpen, visibility}: Fil
 const rowPlaceholderIcon = isMobile ? 'icon-folder-private-24' : 'icon-folder-private-24'
 const placeholderTextStyle = {
   backgroundColor: 'lightGrey',
-  height: '16px',
-  marginTop: '4px',
-  width: '256px',
+  height: 16,
+  marginTop: 4,
+  width: 256,
 }
 const FileRowPlaceholder = () => (
   <Box style={stylesCommonRow}>

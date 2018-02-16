@@ -56,8 +56,8 @@ export const pathToString = (p: Path): string => (!p ? '' : p)
 export const getPathName = (p: Path): string => (!p ? '' : p.split('/').pop())
 export const getPathElements = (p: Path): Array<string> => (!p ? [] : p.split('/').slice(1))
 export const getVisibilityFromElems = (elems: Array<string>) => {
-  const [, visibility] = elems
-  if (!visibility) return null
+  if (elems.length < 2 || !elems[1]) return null
+  const visibility = elems[1]
   switch (visibility) {
     case 'private':
     case 'public':
