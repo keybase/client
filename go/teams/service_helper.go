@@ -306,24 +306,10 @@ func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID k
 		}
 
 		hasPUK := len(upak.Current.PerUserKeys) > 0
-		if hasPUK {
-			req, err := reqFromRole(uv, existingRole)
-			if err != nil {
-				return err
-			}
-
-			if isAnInvite {
-				req.CompletedInvites[existingInvite.Id] = uv.PercentForm()
-			} else {
-				req.None = []keybase1.UserVersion{existingUV}
-			}
-
-			return t.ChangeMembership(ctx, req)
-		} else {
+		if !hasPUK {
 			if !isAnInvite {
 				// Someone is trying to re-add friend that used to be
-				// a PUK but is not PUK anymore after reset. Advise
-				// them to reconsider their life choices.
+				// a PUK but is not PUK anymore after reset.
 				return fmt.Errorf(
 					"Trying to re-add %q to conversation, but they need to sign in using Keybase client first.",
 					username)
@@ -336,6 +322,20 @@ func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID k
 			invites.Cancel = &[]SCTeamInviteID{SCTeamInviteID(existingInvite.Id)}
 			return t.postTeamInvites(ctx, invites)
 		}
+
+		req, err := reqFromRole(uv, existingRole)
+		if err != nil {
+			return err
+		}
+
+		if isAnInvite {
+			req.CompletedInvites = make(SCMapInviteIDToUV)
+			req.CompletedInvites[existingInvite.Id] = uv.PercentForm()
+		} else {
+			req.None = []keybase1.UserVersion{existingUV}
+		}
+
+		return t.ChangeMembership(ctx, req)
 	})
 }
 
