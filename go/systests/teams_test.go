@@ -615,8 +615,14 @@ func (u *userPlusDevice) loginAfterResetHelper(puk bool) {
 	t := u.device.tctx.T
 	u.device.tctx.Tp.DisableUpgradePerUserKey = !puk
 	g := u.device.tctx.G
-	devName := randomDevice()
+
+	// We have to reset a socket here, since we need to regigster
+	// the protocols in the genericUI below. If we reuse the previous
+	// socket, then the RPC protocols will not update, and we'll wind
+	// up reusing the old device name.
 	g.ResetSocket(true)
+
+	devName := randomDevice()
 	g.Log.Debug("loginAfterResetHelper: new device name is %q", devName)
 
 	ui := genericUI{
