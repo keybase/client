@@ -153,6 +153,7 @@ get_deps() {(
     echo "Using local kbfs binpath: $kbfs_binpath"
     cp "$kbfs_binpath" .
     cp "$git_remote_keybase_binpath" .
+    echo "Using local redirector binpath: $redirector_binpath"
     cp "$redirector_binpath" .
   else
     kbfs_url="https://github.com/keybase/kbfs/releases/download/v$kbfs_version/kbfs-$kbfs_version-darwin.tgz"
