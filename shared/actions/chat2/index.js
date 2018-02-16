@@ -689,10 +689,10 @@ const rpcLoadThread = (
     RPCChatTypes.localGetThreadNonblockRpcChannelMap,
     'localGetThreadNonblock',
     {
+      cbMode: RPCChatTypes.localGetThreadNonblockCbMode.incremental,
       conversationID,
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
       query: {
-        cbMode: RPCChatTypes.localGetThreadNonblockCbMode.incremental,
         disableResolveSupersedes: false,
         markAsRead: false,
         messageIDControl: {
