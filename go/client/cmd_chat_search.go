@@ -24,6 +24,7 @@ type CmdChatSearch struct {
 	query            string
 	maxHits          int
 	maxMessages      int
+	isRegex          bool
 	hasTTY           bool
 }
 
@@ -47,6 +48,10 @@ func newCmdChatSearch(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 			cl.SetNoStandalone()
 		},
 		Flags: append(getConversationResolverFlags(),
+			cli.BoolFlag{
+				Name:  "r, regex",
+				Usage: "Make the given query a regex",
+			},
 			cli.IntFlag{
 				Name:  "max-hits",
 				Value: 10,
@@ -113,6 +118,7 @@ func (c *CmdChatSearch) Run() (err error) {
 		ConversationID:   conversationInfo.Id,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		Query:            c.query,
+		IsRegex:          c.isRegex,
 		MaxHits:          c.maxHits,
 		MaxMessages:      c.maxMessages,
 	}
@@ -136,8 +142,12 @@ func (c *CmdChatSearch) ParseArgv(ctx *cli.Context) (err error) {
 	c.query = ctx.Args().Get(1)
 	c.maxHits = ctx.Int("max-hits")
 	c.maxMessages = ctx.Int("max-messages")
-	_, err = regexp.Compile(c.query)
-	if err != nil {
+	c.isRegex = ctx.Bool("regex")
+	query := c.query
+	if !c.isRegex {
+		query = regexp.QuoteMeta(c.query)
+	}
+	if _, err := regexp.Compile(query); err != nil {
 		return err
 	}
 	c.hasTTY = isatty.IsTerminal(os.Stdin.Fd())

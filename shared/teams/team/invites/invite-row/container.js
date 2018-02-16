@@ -1,18 +1,18 @@
 // @flow
-import * as TeamsGen from '../../../actions/teams-gen'
+import * as TeamsGen from '../../../../actions/teams-gen'
 import * as I from 'immutable'
 import * as React from 'react'
-import * as Types from '../../../constants/types/teams'
-import {amIFollowing} from '../../../constants/selectors'
+import * as Types from '../../../../constants/types/teams'
+import {amIFollowing} from '../../../../constants/selectors'
 import {TeamInviteRow} from '.'
-import {connect, type TypedState} from '../../../util/container'
+import {connect, type TypedState} from '../../../../util/container'
 
 type OwnProps = {
   email?: string,
   id: string,
   name?: string,
   teamname: string,
-  username?: string,
+  username: string,
 }
 
 type StateProps = {

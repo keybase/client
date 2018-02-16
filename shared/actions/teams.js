@@ -403,7 +403,13 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
       Saga.put(replaceEntity(['teams', 'teamNameToMembers'], I.Map([[teamname, I.Set(infos)]]))),
       Saga.put(replaceEntity(['teams', 'teamNameToMemberUsernames'], I.Map([[teamname, memberNames]]))),
       Saga.put(replaceEntity(['teams', 'teamNameToRequests'], I.Map(requestMap))),
-      Saga.put(replaceEntity(['teams', 'teamNameToTeamSettings'], I.Map({[teamname]: details.settings}))),
+      Saga.put(
+        replaceEntity(
+          ['teams', 'teamNameToTeamSettings'],
+          // $FlowIssue read-only prop type issues
+          I.Map({[teamname]: Constants.makeTeamSettings(details.settings)})
+        )
+      ),
       Saga.put(replaceEntity(['teams', 'teamNameToInvites'], I.Map([[teamname, I.Set(invitesMap)]]))),
       Saga.put(replaceEntity(['teams', 'teamNameToPublicitySettings'], I.Map({[teamname]: publicityMap}))),
       Saga.put(replaceEntity(['teams', 'teamNameToSubteams'], I.Map([[teamname, I.Set(subteams)]]))),

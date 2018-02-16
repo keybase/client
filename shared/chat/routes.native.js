@@ -13,6 +13,7 @@ import NewTeamDialog from './new-team-dialog-container.js'
 import ManageChannels from './manage-channels/container'
 import CreateChannel from './create-channel/container'
 import ReallyLeaveTeam from '../teams/really-leave-team/container-chat'
+import DeleteHistoryWarning from './delete-history-warning/container'
 
 const conversationRoute = makeRouteDefNode({
   component: Conversation,
@@ -55,9 +56,15 @@ const conversationRoute = makeRouteDefNode({
     enterPaperkey: {
       component: EnterPaperkey,
     },
+    deleteHistoryWarning: {
+      component: DeleteHistoryWarning,
+      tags: makeLeafTags({layerOnTop: false}),
+      children: {},
+    },
     messageAction: {
       component: MessagePopup,
       tags: makeLeafTags({keepKeyboardOnLeave: true, layerOnTop: true}),
+      children: {},
     },
     showNewTeamDialog: {
       component: NewTeamDialog,

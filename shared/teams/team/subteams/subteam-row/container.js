@@ -1,11 +1,11 @@
 // @flow
 import * as I from 'immutable'
-import * as Types from '../../../constants/types/teams'
-import * as Constants from '../../../constants/teams'
-import {TeamRow} from '../../main/team-list'
-import {connect, type TypedState} from '../../../util/container'
-import {navigateAppend} from '../../../actions/route-tree'
-import * as KBFSGen from '../../../actions/kbfs-gen'
+import * as Types from '../../../../constants/types/teams'
+import * as Constants from '../../../../constants/teams'
+import {TeamRow} from '../../../main/team-list'
+import {connect, type TypedState} from '../../../../util/container'
+import {navigateAppend} from '../../../../actions/route-tree'
+import * as KBFSGen from '../../../../actions/kbfs-gen'
 
 type OwnProps = {
   teamname: string,

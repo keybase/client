@@ -39,7 +39,12 @@ class SearchResultsList extends Component<Props> {
             </Text>
           </Box>
         )}
-        <NativeFlatList data={items} renderItem={this._renderItem} keyExtractor={this._keyExtractor} />
+        <NativeFlatList
+          data={items}
+          renderItem={this._renderItem}
+          keyExtractor={this._keyExtractor}
+          keyboardDismissMode={this.props.keyboardDismissMode}
+        />
       </Box>
     )
   }

@@ -44,6 +44,7 @@ class Pinentry extends Component<Props, State> {
 
   _onSubmit = () => {
     this.props.onSubmit(this.state.passphrase)
+    this.setState({passphrase: ''})
   }
 
   componentDidMount() {
@@ -103,6 +104,7 @@ class Pinentry extends Component<Props, State> {
               onChangeText: passphrase => this.setState({passphrase}),
               onEnterKeyDown: this._onSubmit,
               type: this.state.showTyping ? 'passwordVisible' : 'password',
+              value: this.state.passphrase,
               ...typeStyle,
             }}
             checkboxContainerStyle={{paddingLeft: 60, paddingRight: 60, ...checkboxContainerStyle}}

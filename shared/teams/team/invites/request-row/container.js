@@ -1,12 +1,12 @@
 // @flow
 import * as React from 'react'
-import * as TeamsGen from '../../../actions/teams-gen'
-import {amIFollowing} from '../../../constants/selectors'
+import * as TeamsGen from '../../../../actions/teams-gen'
+import {amIFollowing} from '../../../../constants/selectors'
 import {TeamRequestRow} from '.'
-import {navigateAppend} from '../../../actions/route-tree'
-import {createShowUserProfile} from '../../../actions/profile-gen'
-import {createStartConversation} from '../../../actions/chat-gen'
-import {connect, type TypedState} from '../../../util/container'
+import {navigateAppend} from '../../../../actions/route-tree'
+import {createShowUserProfile} from '../../../../actions/profile-gen'
+import {createStartConversation} from '../../../../actions/chat-gen'
+import {connect, type TypedState} from '../../../../util/container'
 
 type OwnProps = {
   username: string,

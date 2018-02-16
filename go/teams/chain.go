@@ -2103,6 +2103,11 @@ func (t *TeamSigChainPlayer) parseKBFSTLFUpgrade(upgrade *SCTeamKBFS, newState *
 		newState.inner.TlfID = upgrade.TLF.ID
 	}
 	if upgrade.Keyset != nil {
+		if newState.inner.TlfLegacyUpgrade == nil {
+			// If an old client cached this as nil, then just make a new map here for this link
+			newState.inner.TlfLegacyUpgrade =
+				make(map[keybase1.TeamApplication]keybase1.TeamLegacyTLFUpgradeChainInfo)
+		}
 		newState.inner.TlfLegacyUpgrade[upgrade.Keyset.AppType] = keybase1.TeamLegacyTLFUpgradeChainInfo{
 			KeysetHash:       upgrade.Keyset.KeysetHash,
 			TeamGeneration:   upgrade.Keyset.TeamGeneration,

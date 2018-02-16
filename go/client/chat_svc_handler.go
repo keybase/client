@@ -26,7 +26,7 @@ type ChatServiceHandler interface {
 	DownloadV1(context.Context, downloadOptionsV1) Reply
 	SetStatusV1(context.Context, setStatusOptionsV1) Reply
 	MarkV1(context.Context, markOptionsV1) Reply
-	SearchRegexpV1(context.Context, searchOptionsV1) Reply
+	SearchRegexpV1(context.Context, searchRegexpOptionsV1) Reply
 }
 
 // chatServiceHandler implements ChatServiceHandler.
@@ -643,7 +643,7 @@ func (c *chatServiceHandler) MarkV1(ctx context.Context, opts markOptionsV1) Rep
 }
 
 // SearchRegexpV1 implements ChatServiceHandler.SearchRegexpV1.
-func (c *chatServiceHandler) SearchRegexpV1(ctx context.Context, opts searchOptionsV1) Reply {
+func (c *chatServiceHandler) SearchRegexpV1(ctx context.Context, opts searchRegexpOptionsV1) Reply {
 	convID, rlimits, err := c.resolveAPIConvID(ctx, opts.ConversationID, opts.Channel)
 	if err != nil {
 		return c.errReply(err)
@@ -666,6 +666,7 @@ func (c *chatServiceHandler) SearchRegexpV1(ctx context.Context, opts searchOpti
 		ConversationID:   convID,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		Query:            opts.Query,
+		IsRegex:          opts.IsRegex,
 		MaxHits:          opts.MaxHits,
 		MaxMessages:      opts.MaxMessages,
 	}

@@ -75,6 +75,9 @@
     "deleteMessage": {
       "message": "Types.Message"
     },
+    "deleteMessageHistory": {
+      "message": "Types.Message"
+    },
     "addPending": {
       "participants": "Array<string>",
       "temporary": "boolean"

@@ -203,6 +203,11 @@ export const localGetThreadLocalRpcChannelMap = (configKeys: Array<string>, requ
 
 export const localGetThreadLocalRpcPromise = (request: LocalGetThreadLocalRpcParam): Promise<LocalGetThreadLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getThreadLocal', request, (error: RPCError, result: LocalGetThreadLocalResult) => (error ? reject(error) : resolve(result))))
 
+export const localGetThreadNonblockCbMode = {
+  full: 0,
+  incremental: 1,
+}
+
 export const localGetThreadNonblockRpcChannelMap = (configKeys: Array<string>, request: LocalGetThreadNonblockRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getThreadNonblock', request)
 
 export const localGetThreadNonblockRpcPromise = (request: LocalGetThreadNonblockRpcParam): Promise<LocalGetThreadNonblockResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getThreadNonblock', request, (error: RPCError, result: LocalGetThreadNonblockResult) => (error ? reject(error) : resolve(result))))
@@ -779,6 +784,10 @@ export type GetTLFConversationsRes = $ReadOnly<{conversations?: ?Array<Conversat
 
 export type GetThreadLocalRes = $ReadOnly<{thread: ThreadView, offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 
+export type GetThreadNonblockCbMode =
+  | 0 // FULL_0
+  | 1 // INCREMENTAL_1
+
 export type GetThreadQuery = $ReadOnly<{markAsRead: Boolean, messageTypes?: ?Array<MessageType>, disableResolveSupersedes: Boolean, before?: ?Gregor1.Time, after?: ?Gregor1.Time, messageIDControl?: ?MessageIDControl}>
 
 export type GetThreadRemoteRes = $ReadOnly<{thread: ThreadViewBoxed, membersType: ConversationMembersType, rateLimit?: ?RateLimit}>
@@ -866,13 +875,13 @@ export type LocalGetInboxSummaryForCLILocalRpcParam = $ReadOnly<{query: GetInbox
 
 export type LocalGetMessagesLocalRpcParam = $ReadOnly<{conversationID: ConversationID, messageIDs?: ?Array<MessageID>, disableResolveSupersedes: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LocalGetSearchRegexpRpcParam = $ReadOnly<{conversationID: ConversationID, query: String, maxHits: Int, maxMessages: Int, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalGetSearchRegexpRpcParam = $ReadOnly<{conversationID: ConversationID, query: String, isRegex: Boolean, maxHits: Int, maxMessages: Int, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LocalGetTLFConversationsLocalRpcParam = $ReadOnly<{tlfName: String, topicType: TopicType, membersType: ConversationMembersType, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LocalGetThreadLocalRpcParam = $ReadOnly<{conversationID: ConversationID, query?: ?GetThreadQuery, pagination?: ?Pagination, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LocalGetThreadNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, query?: ?GetThreadQuery, pagination?: ?UIPagination, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalGetThreadNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, cbMode: GetThreadNonblockCbMode, query?: ?GetThreadQuery, pagination?: ?UIPagination, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LocalJoinConversationByIDLocalRpcParam = $ReadOnly<{convID: ConversationID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 

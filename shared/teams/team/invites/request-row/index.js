@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, Button, ClickableBox, Icon, Meta, Usernames} from '../../../common-adapters'
-import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
+import {Avatar, Box, Button, ClickableBox, Icon, Meta, Usernames} from '../../../../common-adapters'
+import {globalColors, globalMargins, globalStyles, isMobile} from '../../../../styles'
 
 export type Props = {
   username: string,

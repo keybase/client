@@ -30,6 +30,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
+	"github.com/keybase/clockwork"
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/stretchr/testify/require"
@@ -2083,6 +2084,108 @@ func receiveThreadResult(t *testing.T, cb chan kbtest.NonblockThreadResult) (res
 	return res
 }
 
+func TestChatSrvGetThreadNonblockIncremental(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		ctc := makeChatTestContext(t, "TestChatSrvGetThreadNonblockIncremental", 1)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
+		threadCb := make(chan kbtest.NonblockThreadResult, 100)
+		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil)
+		ctc.as(t, users[0]).h.mockChatUI = ui
+
+		query := chat1.GetThreadQuery{
+			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+		}
+		ctx := ctc.as(t, users[0]).startCtx
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
+
+		t.Logf("send a bunch of messages")
+		numMsgs := 20
+		msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
+		for i := 0; i < numMsgs; i++ {
+			mustPostLocalForTest(t, ctc, users[0], conv, msg)
+		}
+
+		// Basic
+		delay := 10 * time.Minute
+		clock := clockwork.NewFakeClock()
+		ctc.as(t, users[0]).h.clock = clock
+		ctc.as(t, users[0]).h.remoteThreadDelay = &delay
+		cb := make(chan struct{})
+		go func() {
+			_, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadNonblock(ctx,
+				chat1.GetThreadNonblockArg{
+					ConversationID:   conv.Id,
+					IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+					Query:            &query,
+				},
+			)
+			require.NoError(t, err)
+			close(cb)
+		}()
+		select {
+		case res := <-threadCb:
+			require.False(t, res.Full)
+			require.Equal(t, numMsgs, len(res.Thread.Messages))
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no thread cb")
+		}
+		clock.Advance(20 * time.Minute)
+		select {
+		case res := <-threadCb:
+			require.True(t, res.Full)
+			require.Equal(t, numMsgs, len(res.Thread.Messages))
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no thread cb")
+		}
+		select {
+		case <-cb:
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "GetThread never finished")
+		}
+
+		// Incremental
+		cb = make(chan struct{})
+		go func() {
+			_, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadNonblock(ctx,
+				chat1.GetThreadNonblockArg{
+					ConversationID:   conv.Id,
+					IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+					Query:            &query,
+					CbMode:           chat1.GetThreadNonblockCbMode_INCREMENTAL,
+				},
+			)
+			require.NoError(t, err)
+			close(cb)
+		}()
+		select {
+		case res := <-threadCb:
+			require.False(t, res.Full)
+			require.Equal(t, numMsgs, len(res.Thread.Messages))
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no thread cb")
+		}
+		mustPostLocalForTest(t, ctc, users[0], conv, msg)
+		clock.Advance(20 * time.Minute)
+		select {
+		case res := <-threadCb:
+			require.True(t, res.Full)
+			require.Equal(t, 1, len(res.Thread.Messages))
+			require.True(t, res.Thread.Pagination.Last)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no thread cb")
+		}
+		select {
+		case <-cb:
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "GetThread never finished")
+		}
+
+	})
+}
+
 func TestChatSrvGetThreadNonblock(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		ctc := makeChatTestContext(t, "GetThreadNonblock", 1)
@@ -2131,7 +2234,10 @@ func TestChatSrvGetThreadNonblock(t *testing.T) {
 		require.Equal(t, numMsgs, len(res.Messages))
 
 		t.Logf("read back with a delay on the local pull")
-		delay := time.Hour * 800
+
+		delay := 10 * time.Minute
+		clock := clockwork.NewFakeClock()
+		ctc.as(t, users[0]).h.clock = clock
 		ctc.as(t, users[0]).h.cachedThreadDelay = &delay
 		_, err = ctc.as(t, users[0]).chatLocalHandler().GetThreadNonblock(ctx,
 			chat1.GetThreadNonblockArg{
@@ -2143,6 +2249,12 @@ func TestChatSrvGetThreadNonblock(t *testing.T) {
 		require.NoError(t, err)
 		res = receiveThreadResult(t, threadCb)
 		require.Equal(t, numMsgs, len(res.Messages))
+		clock.Advance(20 * time.Minute)
+		select {
+		case <-threadCb:
+			require.Fail(t, "no cb expected")
+		default:
+		}
 	})
 }
 
@@ -3692,10 +3804,11 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 			}
 		}
 
-		search := func(query string, maxHits int, maxMessages int) chat1.GetSearchRegexpRes {
+		search := func(query string, maxHits int, maxMessages int, isRegex bool) chat1.GetSearchRegexpRes {
 			res, err := tc.chatLocalHandler().GetSearchRegexp(tc.startCtx, chat1.GetSearchRegexpArg{
 				ConversationID: conv.Id,
 				Query:          query,
+				IsRegex:        isRegex,
 				MaxHits:        maxHits,
 				MaxMessages:    maxMessages,
 			})
@@ -3703,20 +3816,21 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 			return res
 		}
 
+		isRegex := false
 		maxHits := 1
 		maxMessages := 1000
 		// Test basic equality match
 		query := "hi"
 		msgBody := "hi"
 		messageID := sendMessage(msgBody)
-		res := search(query, maxHits, maxMessages)
+		res := search(query, maxHits, maxMessages, isRegex)
 		require.Equal(t, len(res.Hits), 1)
 		verifyHit(nullMessageID, messageID, nullMessageID, []string{msgBody}, res.Hits[0])
 		verifySearchDone(1)
 
 		// Test basic no results
 		query = "hey"
-		res = search(query, maxHits, maxMessages)
+		res = search(query, maxHits, maxMessages, isRegex)
 		require.Equal(t, len(res.Hits), 0)
 		verifySearchDone(0)
 
@@ -3724,55 +3838,67 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 		maxHits = 1
 		query = "hi"
 		messageID1 := sendMessage(msgBody)
-		res = search(query, maxHits, maxMessages)
+		res = search(query, maxHits, maxMessages, isRegex)
 		require.Equal(t, len(res.Hits), 1)
 		verifyHit(messageID, messageID1, nullMessageID, []string{msgBody}, res.Hits[0])
 		verifySearchDone(1)
 
 		maxHits = 5
-		res = search(query, maxHits, maxMessages)
+		res = search(query, maxHits, maxMessages, isRegex)
 		require.Equal(t, len(res.Hits), 2)
 		verifyHit(messageID, messageID1, nullMessageID, []string{msgBody}, res.Hits[0])
 		verifyHit(nullMessageID, messageID, messageID1, []string{msgBody}, res.Hits[1])
 		verifySearchDone(2)
 
 		messageID2 := sendMessage(msgBody)
-		res = search(query, maxHits, maxMessages)
+		res = search(query, maxHits, maxMessages, isRegex)
 		require.Equal(t, len(res.Hits), 3)
 		verifyHit(messageID1, messageID2, nullMessageID, []string{msgBody}, res.Hits[0])
 		verifyHit(messageID, messageID1, messageID2, []string{msgBody}, res.Hits[1])
 		verifyHit(nullMessageID, messageID, messageID1, []string{msgBody}, res.Hits[2])
 		verifySearchDone(3)
 
+		// Test regex functionality
+		isRegex = true
+
 		// Test utf8
 		msgBody = `约书亚和约翰屌爆了`
 		query = `约.*`
 		messageID3 := sendMessage(msgBody)
-		res = search(query, maxHits, maxMessages)
+		res = search(query, maxHits, maxMessages, isRegex)
 		require.Equal(t, len(res.Hits), 1)
 		verifyHit(messageID2, messageID3, nullMessageID, []string{msgBody}, res.Hits[0])
 		verifySearchDone(1)
 
-		// Test regex functionality
 		query = "h.*"
 		lowercase := "abcdefghijklmnopqrstuvwxyz"
 		for _, char := range lowercase {
 			sendMessage("h." + string(char))
 		}
 		maxHits = len(lowercase)
-		res = search(query, maxHits, maxMessages)
+		res = search(query, maxHits, maxMessages, isRegex)
 		require.Equal(t, len(res.Hits), maxHits)
 		verifySearchDone(maxHits)
 
 		query = `h\..*`
-		res = search(query, maxHits, maxMessages)
+		res = search(query, maxHits, maxMessages, isRegex)
 		require.Equal(t, len(res.Hits), maxHits)
 		verifySearchDone(maxHits)
 
 		// Test maxMessages
 		maxMessages = 2
-		res = search(query, maxHits, maxMessages)
+		res = search(query, maxHits, maxMessages, isRegex)
 		require.Equal(t, len(res.Hits), maxMessages)
 		verifySearchDone(maxMessages)
+
+		// Test invalid regex
+		_, err := tc.chatLocalHandler().GetSearchRegexp(tc.startCtx, chat1.GetSearchRegexpArg{
+			ConversationID: conv.Id,
+			Query:          "(",
+			IsRegex:        true,
+			MaxHits:        0,
+			MaxMessages:    0,
+		})
+		require.Error(t, err)
 	})
 }

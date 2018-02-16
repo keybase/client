@@ -51,6 +51,13 @@ export type _PathUserSetting = {
 }
 export type PathUserSetting = I.RecordOf<_PathUserSetting>
 
+export type PathBreadcrumbItem = {
+  isTlfNameItem: boolean,
+  isLastItem: boolean,
+  name: string,
+  path: string,
+}
+
 export type _State = {
   pathItems: I.Map<Path, PathItem>,
   pathUserSettings: I.Map<Path, PathUserSetting>,

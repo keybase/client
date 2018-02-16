@@ -2876,6 +2876,32 @@ func (o GetThreadLocalRes) DeepCopy() GetThreadLocalRes {
 	}
 }
 
+type GetThreadNonblockCbMode int
+
+const (
+	GetThreadNonblockCbMode_FULL        GetThreadNonblockCbMode = 0
+	GetThreadNonblockCbMode_INCREMENTAL GetThreadNonblockCbMode = 1
+)
+
+func (o GetThreadNonblockCbMode) DeepCopy() GetThreadNonblockCbMode { return o }
+
+var GetThreadNonblockCbModeMap = map[string]GetThreadNonblockCbMode{
+	"FULL":        0,
+	"INCREMENTAL": 1,
+}
+
+var GetThreadNonblockCbModeRevMap = map[GetThreadNonblockCbMode]string{
+	0: "FULL",
+	1: "INCREMENTAL",
+}
+
+func (e GetThreadNonblockCbMode) String() string {
+	if v, ok := GetThreadNonblockCbModeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type GetInboxLocalRes struct {
 	ConversationsUnverified []Conversation                `codec:"conversationsUnverified" json:"conversationsUnverified"`
 	Pagination              *Pagination                   `codec:"pagination,omitempty" json:"pagination,omitempty"`
@@ -3743,6 +3769,7 @@ type GetCachedThreadArg struct {
 type GetThreadNonblockArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
+	CbMode           GetThreadNonblockCbMode      `codec:"cbMode" json:"cbMode"`
 	Query            *GetThreadQuery              `codec:"query,omitempty" json:"query,omitempty"`
 	Pagination       *UIPagination                `codec:"pagination,omitempty" json:"pagination,omitempty"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
@@ -4048,6 +4075,7 @@ type GetSearchRegexpArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Query            string                       `codec:"query" json:"query"`
+	IsRegex          bool                         `codec:"isRegex" json:"isRegex"`
 	MaxHits          int                          `codec:"maxHits" json:"maxHits"`
 	MaxMessages      int                          `codec:"maxMessages" json:"maxMessages"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`

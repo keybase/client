@@ -290,6 +290,20 @@
 			remoteGlobalIDString = 2D2A28201D9B03D100D4039D;
 			remoteInfo = "RCTAnimation-tvOS";
 		};
+		DB73723B203723F50067E718 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DB2BD17E1DE7D81C00BB7989 /* React.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = EBF21BDC1FC498900052F4D5;
+			remoteInfo = jsinspector;
+		};
+		DB73723D203723F50067E718 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DB2BD17E1DE7D81C00BB7989 /* React.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = EBF21BFA1FC4989A0052F4D5;
+			remoteInfo = "jsinspector-tvOS";
+		};
 		DB7417A51E1FFF1000CEC6B7 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = DB2BD1A61DE7D97900BB7989 /* RCTPushNotification.xcodeproj */;
@@ -624,6 +638,8 @@
 				DB7417BD1E1FFF1000CEC6B7 /* libcxxreact.a */,
 				DB7417BF1E1FFF1000CEC6B7 /* libjschelpers.a */,
 				DB7417C11E1FFF1000CEC6B7 /* libjschelpers.a */,
+				DB73723C203723F50067E718 /* libjsinspector.a */,
+				DB73723E203723F50067E718 /* libjsinspector-tvOS.a */,
 				DB0501201F10114D000B54AD /* libthird-party.a */,
 				DB0501221F10114D000B54AD /* libthird-party.a */,
 				DB0501241F10114D000B54AD /* libdouble-conversion.a */,
@@ -1220,6 +1236,20 @@
 			remoteRef = DB6D0B7B1E5B9EB400410F3C /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
+		DB73723C203723F50067E718 /* libjsinspector.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libjsinspector.a;
+			remoteRef = DB73723B203723F50067E718 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		DB73723E203723F50067E718 /* libjsinspector-tvOS.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libjsinspector-tvOS.a";
+			remoteRef = DB73723D203723F50067E718 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		DB7417A61E1FFF1000CEC6B7 /* libRCTPushNotification-tvOS.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
@@ -1473,7 +1503,7 @@
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = 1;
-				VALID_ARCHS = "arm64 armv7s";
+				VALID_ARCHS = "arm64 armv7s arm7";
 			};
 			name = Debug;
 		};
@@ -1521,7 +1551,7 @@
 				SWIFT_OBJC_BRIDGING_HEADER = "Keybase/Keybase-Bridging-Header.h";
 				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = 1;
-				VALID_ARCHS = "arm64 armv7s";
+				VALID_ARCHS = "arm64 armv7s arm7";
 			};
 			name = Release;
 		};

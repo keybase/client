@@ -3,10 +3,10 @@ import React, {Component} from 'react'
 import {
   Box,
   Icon,
-  ScrollView,
   Text,
   ProgressIndicator,
   NativeImage,
+  ZoomableBox,
 } from '../../../common-adapters/index.native'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import {formatTimeForPopup} from '../../../util/timestamp'
@@ -32,22 +32,16 @@ class AutoMaxSizeImage extends Component<any, {width: number, height: number}> {
 
   render() {
     return (
-      <ScrollView
-        minimumZoomScale={1}
-        // maximumZoomScale arbitrarily set to 10 here.
-        // In the future we could set it to max(imageHeight / contentHeight, imageWidth / contentWidth)
-        maximumZoomScale={10}
-        scrollsToTop={false}
-        indicatorStyle="white"
-        alwaysBounceVertical={false}
+      <ZoomableBox
         contentContainerStyle={{flex: 1, position: 'relative'}}
+        maxZoom={10}
         style={{position: 'relative', overflow: 'hidden', width: '100%', height: '100%'}}
       >
         <NativeImage
           {...this.props}
           style={{flex: 1, resizeMode: 'contain', maxHeight: this.state.height, maxWidth: this.state.width}}
         />
-      </ScrollView>
+      </ZoomableBox>
     )
   }
 }
