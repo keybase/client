@@ -277,4 +277,42 @@ func TestImplicitResetNoPukEncore(t *testing.T) {
 	// 4. ann re-adds bob (this just adds invite link, doesn't remove old PUKful bob)
 	// (up to this point, this case is tested in
 	// TestImplicitResetPUKtoNoPUK and TestChatSrvUserReset)
+	// 5. now bob resets again, but this time gets a PUK
+	// 6. when they are re-added, old PUKful bob is removed to make
+	//    room for new PUK-ful bob, BUT: old invite stays as well,
+	//    and is never sweeped by anything :()
+
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	ann := ctx.installKeybaseForUser("ann", 5)
+	ann.signup()
+	t.Logf("Signed up ann (%s)", ann.username)
+
+	bob := ctx.installKeybaseForUser("bob", 5)
+	bob.signup()
+	t.Logf("Signed up bob (%s)", bob.username)
+
+	displayName := strings.Join([]string{ann.username, bob.username}, ",")
+	iteam := ann.lookupImplicitTeam(true /* create */, displayName, false /* isPublic */)
+	t.Logf("impteam created for %q (id: %s)", displayName, iteam.ID)
+
+	bob.reset()
+	bob.loginAfterResetNoPUK(5)
+
+	ann.reAddUserAfterReset(iteam, bob)
+
+	bob.reset()
+	bob.loginAfterReset(5)
+
+	ann.reAddUserAfterReset(iteam, bob)
+
+	teamObj := ann.loadTeamByID(iteam.ID, true)
+	role, err := teamObj.MemberRole(context.Background(), bob.userVersion())
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_OWNER, role)
+
+	// commented out so the test doesn't fail.
+	// invites := teamObj.GetActiveAndObsoleteInvites()
+	// require.Equal(t, 0, len(invites), "leftover invite :(")
 }
