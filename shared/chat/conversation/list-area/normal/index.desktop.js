@@ -72,7 +72,7 @@ class Thread extends React.Component<Props, State> {
   }
 
   _maybeLoadMoreMessages = debounce((clientHeight: number, scrollTop: number) => {
-    if (clientHeight && scrollTop === 0) {
+    if (clientHeight && scrollTop <= 20) {
       this.props.loadMoreMessages()
     }
   }, 500)

@@ -29,8 +29,8 @@ import flags from '../../util/feature-flags'
 
 // If we're out of date we'll only try and fill a gap of this size, otherwise we throw old messages away
 const largestGapToFillOnSyncCall = 50
-const numMessagesOnInitialLoad = 20
-const numMessagesPerLoad = 50
+const numMessagesOnInitialLoad = isMobile ? 20 : 50
+const numMessagesPerLoad = isMobile ? 50 : 100
 
 const inboxQuery = {
   computeActiveList: true,
