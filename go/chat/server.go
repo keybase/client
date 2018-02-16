@@ -614,7 +614,6 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		res.RateLimits = utils.AggRateLimitsP(rl)
 
 		// Acquire lock and send up actual response
-		h.Debug(ctx, "GetThreadNonblock: sending full response: %d messages", len(remoteThread.Messages))
 		uilock.Lock()
 		defer uilock.Unlock()
 		var rthread chat1.ThreadView
@@ -622,6 +621,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 			h.mergeLocalRemoteThread(ctx, &remoteThread, localSentThread, arg.CbMode); fullErr != nil {
 			return
 		}
+		h.Debug(ctx, "GetThreadNonblock: sending full response: %d messages", len(rthread.Messages))
 		uires := utils.PresentThreadView(bctx, uid, rthread, h.G().TeamChannelSource)
 		var jsonUIRes []byte
 		if jsonUIRes, fullErr = json.Marshal(uires); fullErr != nil {
