@@ -896,7 +896,6 @@ func (s *HybridConversationSource) Expunge(ctx context.Context,
 	defer s.Trace(ctx, func() error { return err }, "Expunge")()
 	s.Debug(ctx, "Expunge: convID: %s uid: %s upto: %v", convID, uid, expunge.Upto)
 
-	// @@@ TODO Is this apt to deadlock? Callstack Syncer.sync->HybridConversationSource.Expunge->Syncer.SendChatStaleNotifications
 	s.lockTab.Acquire(ctx, uid, convID)
 	defer s.lockTab.Release(ctx, uid, convID)
 
@@ -909,6 +908,7 @@ func (s *HybridConversationSource) Expunge(ctx context.Context,
 			ConvID:     convID,
 			UpdateType: chat1.StaleUpdateType_CLEAR,
 		}}
+		// It is ok to send notifications while hodling the lock because it's a re-entrant-ish lock.
 		s.G().Syncer.SendChatStaleNotifications(ctx, uid, supdate, false)
 	}
 	return nil

@@ -124,6 +124,8 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 
 	// Get superseding messages
 	var deleteHistoryUpto chat1.MessageID
+	// If there are no superseding messages we still need to run
+	// the bottom loop to filter out messages deleted by retention.
 	if len(superMsgIDs) > 0 {
 		msgs, err := t.messagesFunc(ctx, conv, uid, superMsgIDs)
 		if err != nil {

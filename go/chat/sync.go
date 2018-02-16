@@ -330,7 +330,6 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 		} else {
 			s.handleMembersTypeChanged(ctx, uid, iboxSyncRes.MembersTypeChanged)
 			for _, expunge := range iboxSyncRes.Expunges {
-				// @@@ TODO Is it ok to access convsource here like this? Chance of deadlock or recursion?
 				err := s.G().ConvSource.Expunge(ctx, expunge.ConvID, uid, expunge.Expunge)
 				if err != nil {
 					s.Debug(ctx, "Sync: failed to expunge: %v", err)

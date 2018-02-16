@@ -986,6 +986,7 @@ func (i *Inbox) SetAppNotificationSettings(ctx context.Context, vers chat1.Inbox
 }
 
 // Mark the expunge on the stored inbox
+// The inbox Expunge tag is kept up to date for retention but not for delete-history.
 // Does not delete any messages. Relies on separate server mechanism to delete clear max messages.
 func (i *Inbox) Expunge(ctx context.Context, vers chat1.InboxVers,
 	convID chat1.ConversationID, expunge chat1.Expunge, maxMsgs []chat1.MessageSummary) (err Error) {
