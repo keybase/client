@@ -1,13 +1,13 @@
 // @flow
 import * as React from 'react'
-import {Box, Button, Divider, HeaderHoc, List, Text} from '../../../common-adapters'
+import {Divider, HeaderHoc, List} from '../../../common-adapters'
 import {type Props as HeaderHocProps} from '../../../common-adapters/header-hoc'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
 import {SmallTeamHeader, BigTeamHeader} from './header'
 import Notifications from './notifications/container'
 import {Participant, type ParticipantInfo} from './participant'
 import {ManageTeam} from './manage-team'
-import {TurnIntoTeam} from './turn-into-team'
+import {CaptionedButton, DangerButton} from './button-utils'
 
 const border = `1px solid ${globalColors.black_05}`
 const listStyle = {
@@ -25,11 +25,6 @@ const listStyle = {
       }),
 }
 
-const dividerStyle = {
-  marginBottom: globalMargins.small,
-  marginTop: globalMargins.small,
-}
-
 type InfoPanelProps = {
   participants: Array<ParticipantInfo>,
   isPreview: boolean,
@@ -44,51 +39,17 @@ type InfoPanelProps = {
   // Used by Participant.
   onShowProfile: (username: string) => void,
 
-  // Used by ConversationFooterRow.
+  // Used for conversations.
   onShowBlockConversationDialog: () => void,
   onShowNewTeamDialog: () => void,
 
-  // Used by {Small,Big}HeaderRow.
+  // Used for small and big teams.
   onViewTeam: () => void,
 
-  // Used by BigHeaderRow.
+  // Used for big teams.
   onLeaveConversation: () => void,
   onJoinChannel: () => void,
 } & HeaderHocProps
-
-type ConversationFooterRow = {
-  type: 'conversation footer',
-  key: 'CONVERSATION FOOTER',
-
-  onShowBlockConversationDialog: () => void,
-  onShowNewTeamDialog: () => void,
-}
-
-type SmallHeaderRow = {
-  type: 'small header',
-  key: 'SMALL HEADER',
-
-  teamname: string,
-  admin: boolean,
-  participantCount: number,
-
-  onViewTeam: () => void,
-}
-
-type BigHeaderRow = {
-  type: 'big header',
-  key: 'BIG HEADER',
-
-  isPreview: boolean,
-  teamname: string,
-  channelname: string,
-  admin: boolean,
-  participantCount: number,
-
-  onViewTeam: () => void,
-  onLeaveConversation: () => void,
-  onJoinChannel: () => void,
-}
 
 type ParticipantRow = ParticipantInfo & {
   type: 'participant',
@@ -97,130 +58,203 @@ type ParticipantRow = ParticipantInfo & {
   onShowProfile: string => void,
 }
 
-type TeamRow = ConversationFooterRow | SmallHeaderRow | BigHeaderRow | ParticipantRow
-type RowType = $PropertyType<TeamRow, 'type'>
+type DividerRow = {
+  type: 'divider',
+  key: string,
+  marginTop?: number,
+  marginBottom?: number,
+}
 
-const _renderTeamRow = (i: number, props: TeamRow) => {
-  switch (props.type) {
-    case 'conversation footer':
-      return (
-        <Box key={props.key} style={{...globalStyles.flexBoxColumn, alignItems: 'stretch'}}>
-          <Divider style={{marginBottom: 10, marginTop: 10}} />
+const getDividerStyle = (row: DividerRow) => ({
+  marginBottom: 'marginBottom' in row ? row.marginBottom : globalMargins.small,
+  marginTop: 'marginTop' in row ? row.marginTop : globalMargins.small,
+})
 
-          <TurnIntoTeam onClick={props.onShowNewTeamDialog} />
+type NotificationsRow = {
+  type: 'notifications',
+}
 
-          <Divider style={dividerStyle} />
+type TurnIntoTeamRow = {
+  type: 'turn into team',
+  onShowNewTeamDialog: () => void,
+}
 
-          <Notifications />
+type BlockThisConversationRow = {
+  type: 'block this conversation',
+  onShowBlockConversationDialog: () => void,
+}
 
-          <Divider style={dividerStyle} />
+type ManageTeamRow = {
+  type: 'manage team',
+  canManage: boolean,
+  label: string,
+  participantCount: number,
+  onViewTeam: () => void,
+}
 
-          <Button
-            type="Danger"
-            small={true}
-            label="Block this conversation"
-            onClick={props.onShowBlockConversationDialog}
-          />
-        </Box>
-      )
+type SmallTeamHeaderRow = {
+  type: 'small team header',
+  teamname: string,
+  participantCount: number,
+  onViewTeam: () => void,
+}
 
-    case 'small header':
-      return (
-        <Box key={props.key} style={{...globalStyles.flexBoxColumn, alignItems: 'stretch'}}>
-          <SmallTeamHeader
-            teamname={props.teamname}
-            participantCount={props.participantCount}
-            onClick={props.onViewTeam}
-          />
+type BigTeamHeaderRow = {
+  type: 'big team header',
+  teamname: string,
+  channelname: string,
+  onViewTeam: () => void,
+}
 
-          <Divider style={{marginBottom: 20, marginTop: 20}} />
+type JoinChannelRow = {
+  type: 'join channel',
+  teamname: string,
+  onJoinChannel: () => void,
+}
 
-          <Notifications />
-          <Divider style={dividerStyle} />
+type LeaveChannelRow = {
+  type: 'leave channel',
+  onLeaveConversation: () => void,
+}
 
-          <ManageTeam
-            canManage={props.admin}
-            label="In this team"
-            participantCount={props.participantCount}
-            onClick={props.onViewTeam}
-          />
-        </Box>
-      )
+// All the row types that can appear in a small or big team header.
+type TeamHeaderRow =
+  | DividerRow
+  | NotificationsRow
+  | ManageTeamRow
+  | SmallTeamHeaderRow
+  | BigTeamHeaderRow
+  | JoinChannelRow
+  | LeaveChannelRow
 
-    case 'big header':
-      return (
-        <Box key={props.key} style={{...globalStyles.flexBoxColumn, alignItems: 'stretch'}}>
-          <BigTeamHeader
-            channelname={props.channelname}
-            teamname={props.teamname}
-            onClick={props.onViewTeam}
-          />
+type Row =
+  | ParticipantRow
+  | DividerRow
+  | NotificationsRow
+  | TurnIntoTeamRow
+  | BlockThisConversationRow
+  | TeamHeaderRow
 
-          {!props.isPreview && (
-            <Box>
-              <Divider style={dividerStyle} />
-              <Notifications />
-            </Box>
-          )}
-
-          <Divider style={dividerStyle} />
-
-          <Box style={{...globalStyles.flexBoxRow, justifyContent: 'center'}}>
-            {props.isPreview && (
-              <Button
-                type="Primary"
-                label="Join channel"
-                style={{marginRight: globalMargins.xtiny}}
-                small={true}
-                onClick={props.onJoinChannel}
-              />
-            )}
-            {!props.isPreview && (
-              <Button type="Danger" small={true} label="Leave channel" onClick={props.onLeaveConversation} />
-            )}
-          </Box>
-
-          {props.isPreview && (
-            <Text type="BodySmall" style={{textAlign: 'center', marginTop: globalMargins.xtiny}}>
-              Anyone in {props.teamname} can join.
-            </Text>
-          )}
-
-          <Divider style={dividerStyle} />
-
-          <ManageTeam
-            canManage={props.admin && props.channelname === 'general'}
-            label="In this channel"
-            participantCount={props.participantCount}
-            onClick={props.onViewTeam}
-          />
-        </Box>
-      )
+const _renderRow = (i: number, row: Row): React.Node => {
+  switch (row.type) {
     case 'participant':
-      return <Participant key={props.key} {...props} />
+      return <Participant key={`participant ${row.key}`} {...row} />
+
+    case 'divider':
+      return <Divider key={`divider ${row.key}`} style={getDividerStyle(row)} />
+
+    case 'notifications':
+      return <Notifications key="notifications" />
+
+    case 'turn into team':
+      return (
+        <CaptionedButton
+          caption="You'll be able to add and delete members as you wish."
+          key="turn into team"
+          label="Turn into team"
+          onClick={row.onShowNewTeamDialog}
+        />
+      )
+
+    case 'block this conversation':
+      return (
+        <DangerButton
+          key="block this conversation"
+          label="Block this conversation"
+          onClick={row.onShowBlockConversationDialog}
+        />
+      )
+
+    case 'manage team':
+      return (
+        <ManageTeam
+          key="manage team"
+          canManage={row.canManage}
+          label={row.label}
+          participantCount={row.participantCount}
+          onClick={row.onViewTeam}
+        />
+      )
+
+    case 'small team header':
+      return (
+        <SmallTeamHeader
+          key="small team header"
+          teamname={row.teamname}
+          participantCount={row.participantCount}
+          onClick={row.onViewTeam}
+        />
+      )
+
+    case 'big team header':
+      return (
+        <BigTeamHeader
+          key="big team header"
+          channelname={row.channelname}
+          teamname={row.teamname}
+          onClick={row.onViewTeam}
+        />
+      )
+
+    case 'join channel':
+      return (
+        <CaptionedButton
+          caption={`Anyone in ${row.teamname} can join.`}
+          key="join channel"
+          label="Join channel"
+          onClick={row.onJoinChannel}
+        />
+      )
+
+    case 'leave channel':
+      return <DangerButton key="leave channel" label="Leave channel" onClick={row.onLeaveConversation} />
 
     default:
-      throw new Error('Unexpected type ' + props.type)
+      // eslint-disable-next-line no-unused-expressions
+      ;(row.type: empty)
+      throw new Error(`Impossible case encountered: ${row.type}`)
   }
 }
 
-const typeSizeEstimator = (type: RowType): number => {
+const typeSizeEstimator = (row: Row): number => {
   // The sizes below are retrieved by using the React DevTools
   // inspector on the appropriate components, including margins.
-  switch (type) {
-    case 'conversation footer':
-      return 444
-
-    case 'small header':
-      return 407
-
-    case 'big header':
-      return 469 // estimate based on size of header in non-admin non-preview mode
+  switch (row.type) {
     case 'participant':
       return 56
 
+    case 'divider':
+      const style = getDividerStyle(row)
+      return 1 + style.marginTop + style.marginBottom
+
+    case 'notifications':
+      return 270
+
+    case 'turn into team':
+      return 47
+
+    case 'block this conversation':
+      return 44
+
+    case 'manage team':
+      return 15
+
+    case 'small team header':
+      return 32
+
+    case 'big team header':
+      return 57
+
+    case 'join channel':
+      return 47
+
+    case 'leave channel':
+      return 44
+
     default:
-      throw new Error('Unexpected type ' + type)
+      // eslint-disable-next-line no-unused-expressions
+      ;(row.type: empty)
+      throw new Error(`Impossible case encountered: ${row.type}`)
   }
 }
 
@@ -235,54 +269,142 @@ const _InfoPanel = (props: InfoPanelProps) => {
 
   const participantCount = participants.length
 
-  let rows: Array<TeamRow>
-  if (props.teamname && props.channelname) {
+  let rows: Array<Row>
+  const {teamname, channelname, onViewTeam} = props
+  if (teamname && channelname) {
+    let headerRows: Array<TeamHeaderRow>
     if (props.smallTeam) {
-      rows = [
+      // Small team.
+      headerRows = [
         {
-          type: 'small header',
-          key: 'SMALL HEADER',
-
-          teamname: props.teamname,
-          admin: props.admin,
+          type: 'small team header',
+          teamname,
           participantCount,
-
-          onViewTeam: props.onViewTeam,
+          onViewTeam,
         },
-      ].concat(participants)
+        {
+          type: 'divider',
+          key: '1',
+          marginBottom: 20,
+          marginTop: 20,
+        },
+        {
+          type: 'notifications',
+        },
+        {
+          type: 'divider',
+          key: '2',
+        },
+        {
+          type: 'manage team',
+          canManage: props.admin,
+          label: 'In this team',
+          participantCount,
+          onViewTeam: onViewTeam,
+        },
+      ]
     } else {
-      rows = [
-        {
-          type: 'big header',
-          key: 'BIG HEADER',
+      // Big team.
+      const headerRow = {
+        type: 'big team header',
+        teamname,
+        channelname,
+        onViewTeam,
+      }
+      const manageTeamRow = {
+        type: 'manage team',
+        canManage: props.admin && channelname === 'general',
+        label: 'In this channel',
+        participantCount,
+        onViewTeam,
+      }
 
-          isPreview: props.isPreview,
-          teamname: props.teamname,
-          channelname: props.channelname,
-          admin: props.admin,
-          participantCount,
-
-          onViewTeam: props.onViewTeam,
-          onJoinChannel: props.onJoinChannel,
-          onLeaveConversation: props.onLeaveConversation,
-        },
-      ].concat(participants)
+      if (props.isPreview) {
+        // Big team, preview.
+        headerRows = [
+          headerRow,
+          {
+            type: 'divider',
+            key: '1',
+          },
+          {
+            type: 'join channel',
+            teamname,
+            onJoinChannel: props.onJoinChannel,
+          },
+          {
+            type: 'divider',
+            key: '2',
+          },
+          manageTeamRow,
+        ]
+      } else {
+        // Big team, no preview.
+        headerRows = [
+          headerRow,
+          {
+            type: 'divider',
+            key: '1',
+          },
+          {
+            type: 'notifications',
+          },
+          {
+            type: 'divider',
+            key: '2',
+            marginBottom: globalMargins.tiny,
+          },
+          {
+            type: 'leave channel',
+            onLeaveConversation: props.onLeaveConversation,
+          },
+          {
+            type: 'divider',
+            key: '3',
+            marginTop: globalMargins.tiny,
+          },
+          manageTeamRow,
+        ]
+      }
     }
+    rows = headerRows.concat(participants)
   } else {
-    rows = participants.concat({
-      type: 'conversation footer',
-      key: 'CONVERSATION FOOTER',
-
-      onShowBlockConversationDialog: props.onShowBlockConversationDialog,
-      onShowNewTeamDialog: props.onShowNewTeamDialog,
-    })
+    // Conversation.
+    rows = participants.concat([
+      {
+        type: 'divider',
+        key: '1',
+        marginBottom: 10,
+        marginTop: 10,
+      },
+      {
+        type: 'turn into team',
+        onShowNewTeamDialog: props.onShowNewTeamDialog,
+      },
+      {
+        type: 'divider',
+        key: '2',
+      },
+      {
+        type: 'notifications',
+      },
+      {
+        type: 'divider',
+        key: '3',
+        marginBottom: 10,
+      },
+      {
+        type: 'block this conversation',
+        onShowBlockConversationDialog: props.onShowBlockConversationDialog,
+      },
+    ])
   }
 
-  const rowSizeEstimator = index => typeSizeEstimator(rows[index].type)
+  const rowSizeEstimator = index => typeSizeEstimator(rows[index])
   return (
     <List
       items={rows}
-      renderItem={_renderTeamRow}
+      renderItem={_renderRow}
       keyProperty="key"
       style={listStyle}
       itemSizeEstimator={rowSizeEstimator}
