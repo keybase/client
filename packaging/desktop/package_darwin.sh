@@ -37,6 +37,7 @@ comment=""
 
 keybase_binpath=${KEYBASE_BINPATH:-}
 git_remote_keybase_binpath=${GIT_REMOTE_KEYBASE_BINPATH:-}
+redirector_binpath=${REDIRECTOR_BINPATH:-}
 kbfs_binpath=${KBFS_BINPATH:-}
 kbnm_binpath=${KBNM_BINPATH:-}
 updater_binpath=${UPDATER_BINPATH:-}
@@ -102,6 +103,7 @@ updater_url="https://prerelease.keybase.io/darwin-package/KeybaseUpdater-1.0.6-d
 
 keybase_bin="$tmp_dir/keybase"
 git_remote_keybase_bin="$tmp_dir/git-remote-keybase"
+redirector_bin="$tmp_dir/keybase-redirector"
 kbfs_bin="$tmp_dir/kbfs"
 kbnm_bin="$tmp_dir/kbnm"
 updater_bin="$tmp_dir/updater"
@@ -150,7 +152,7 @@ get_deps() {(
   if [ ! "$kbfs_binpath" = "" ]; then
     echo "Using local kbfs binpath: $kbfs_binpath"
     cp "$kbfs_binpath" .
-    cp "$git_remote_keybase_binpath" .
+    cp "$redirector_binpath" .
   else
     kbfs_url="https://github.com/keybase/kbfs/releases/download/v$kbfs_version/kbfs-$kbfs_version-darwin.tgz"
     echo "Getting $kbfs_url"
@@ -205,6 +207,7 @@ package_app() {(
   mkdir -p "$shared_support_dir/bin"
   cp "$keybase_bin" "$shared_support_dir/bin"
   cp "$git_remote_keybase_bin" "$shared_support_dir/bin"
+  cp "$redirector_bin" "$shared_support_dir/bin"
   cp "$kbfs_bin" "$shared_support_dir/bin"
   cp "$kbnm_bin" "$shared_support_dir/bin"
   cp "$updater_bin" "$shared_support_dir/bin"
