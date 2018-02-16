@@ -829,7 +829,12 @@ function _badgeAppForTeams(action: TeamsGen.BadgeAppForTeamsPayload, state: Type
     if (!res[entry.teamname]) {
       res[entry.teamname] = I.Set()
     }
-    res[entry.teamname] = res[entry.teamname].add(entry.username)
+    res[entry.teamname] = res[entry.teamname].add(
+      Constants.makeResetUser({
+        username: entry.username,
+        badgeIDKey: Constants.resetUserBadgeIDToKey(entry.id),
+      })
+    )
     return res
   }, {})
 
@@ -857,7 +862,9 @@ function _badgeAppForTeams(action: TeamsGen.BadgeAppForTeamsPayload, state: Type
   // if the user wasn't on the teams tab, loads will be triggered by navigation around the app
   actions.push(Saga.put(replaceEntity(['teams'], I.Map([['newTeams', newTeams]]))))
   actions.push(Saga.put(replaceEntity(['teams'], I.Map([['newTeamRequests', newTeamRequests]]))))
-  actions.push(Saga.put(replaceEntity(['teams', 'teamNameToResetUsers'], I.Map(teamsWithResetUsersMap))))
+  actions.push(
+    Saga.put(replaceEntity(['teams'], I.Map([['teamNameToResetUsers', I.Map(teamsWithResetUsersMap)]])))
+  )
   return Saga.sequentially(actions)
 }
 

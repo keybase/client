@@ -7,12 +7,12 @@ import Teams from './main'
 import openURL from '../util/open-url'
 import {navigateAppend} from '../actions/route-tree'
 import {compose, lifecycle, type TypedState, pausableConnect} from '../util/container'
-import {type Teamname} from '../constants/types/teams'
+import {type Teamname, type ResetUser} from '../constants/types/teams'
 
 type StateProps = {
   _teamnames: I.Set<Teamname>,
   _teammembercounts: I.Map<Teamname, number>,
-  _teamresetusers: I.Map<Teamname, I.Set<string>>,
+  _teamresetusers: I.Map<Teamname, I.Set<ResetUser>>,
   sawChatBanner: boolean,
   loaded: boolean,
   _newTeams: I.Set<string>,

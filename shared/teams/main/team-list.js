@@ -4,12 +4,12 @@ import {ClickableBox, Icon, Avatar, Badge, Box, Divider, Text, Meta} from '../..
 import {Set} from 'immutable'
 import {globalMargins, globalStyles, globalColors, isMobile} from '../../styles'
 
-import type {Teamname} from '../../constants/types/teams'
+import type {Teamname, ResetUser} from '../../constants/types/teams'
 
 export type Props = {
   teamnames: Array<Teamname>,
   teammembercounts: {[string]: number},
-  teamresetusers: {[string]: Set<string>},
+  teamresetusers: {[string]: Set<ResetUser>},
   teamNameToIsOpen: {[string]: boolean},
   newTeams: Array<Teamname>,
   newTeamRequests: Array<Teamname>,

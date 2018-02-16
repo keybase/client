@@ -80,6 +80,14 @@ export type TypeMap = {
   writer: string | boolean,
 }
 
+export type ResetUserBadgeID = Buffer
+export type ResetUserBadgeIDKey = string
+export type _ResetUser = {
+  username: string,
+  badgeIDKey: ResetUserBadgeIDKey,
+}
+export type ResetUser = I.RecordOf<_ResetUser>
+
 export type _State = {
   convIDToChannelInfo: I.Map<ConversationIDKey, ChannelInfo>,
   sawChatBanner: boolean,
@@ -103,7 +111,7 @@ export type _State = {
   teamNameToMembers: I.Map<Teamname, I.Set<MemberInfo>>,
   teamNameToMemberUsernames: I.Map<Teamname, I.Set<string>>,
   teamNameToRequests: I.Map<Teamname, I.Set<RequestInfo>>,
-  teamNameToResetUsers: I.Map<Teamname, I.Set<string>>,
+  teamNameToResetUsers: I.Map<Teamname, I.Set<ResetUser>>,
   teamNameToRole: I.Map<Teamname, TeamRoleType>,
   teamNameToSubteams: I.Map<Teamname, I.Set<Teamname>>,
   teamNameToCanPerform: I.Map<Teamname, RPCTypes.TeamOperation>,
