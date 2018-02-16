@@ -628,6 +628,23 @@ func (u *userPlusDevice) loginAfterResetHelper(puk bool) {
 	require.NoError(t, err, "login after reset")
 }
 
+func TestTeamTesterMultipleResets(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+	t.Logf("Signed up ann (%s)", ann.username)
+
+	ann.reset()
+	ann.loginAfterReset()
+
+	t.Logf("Ann resets for first time, uv is %v", ann.userVersion())
+
+	ann.reset()
+	ann.loginAfterReset()
+	t.Logf("Ann reset twice, uv is %v", ann.userVersion())
+}
+
 func (u *userPlusDevice) perUserKeyUpgrade() {
 	t := u.device.tctx.T
 	u.device.tctx.Tp.DisableUpgradePerUserKey = false
