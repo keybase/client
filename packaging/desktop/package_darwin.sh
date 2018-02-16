@@ -38,7 +38,7 @@ comment=""
 keybase_binpath=${KEYBASE_BINPATH:-}
 git_remote_keybase_binpath=${GIT_REMOTE_KEYBASE_BINPATH:-}
 kbfs_binpath=${KBFS_BINPATH:-}
-redirector_binpath=${REDIRECTOR_BINPATH:`dirname $KBFS_BINPATH`/keybase-redirector}
+redirector_binpath=${REDIRECTOR_BINPATH:-`dirname $KBFS_BINPATH`/keybase-redirector}
 kbnm_binpath=${KBNM_BINPATH:-}
 updater_binpath=${UPDATER_BINPATH:-}
 
