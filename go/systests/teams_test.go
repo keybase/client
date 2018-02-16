@@ -395,7 +395,7 @@ func (u *userPlusDevice) devices() []keybase1.Device {
 }
 
 func (u *userPlusDevice) userVersion() keybase1.UserVersion {
-	uv, err := u.device.userClient.MeUserVersion(context.TODO(), 0)
+	uv, err := u.device.userClient.MeUserVersion(context.TODO(), keybase1.MeUserVersionArg{ForcePoll: true})
 	require.NoError(u.tc.T, err)
 	return uv
 }

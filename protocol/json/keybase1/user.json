@@ -564,6 +564,10 @@
         {
           "name": "sessionID",
           "type": "int"
+        },
+        {
+          "name": "forcePoll",
+          "type": "boolean"
         }
       ],
       "response": "UserVersion"
