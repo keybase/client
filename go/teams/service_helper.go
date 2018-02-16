@@ -307,19 +307,13 @@ func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID k
 
 		hasPUK := len(upak.Current.PerUserKeys) > 0
 		if !hasPUK {
-			if !isAnInvite {
-				// Someone is trying to re-add friend that used to be
-				// a PUK but is not PUK anymore after reset.
-				return fmt.Errorf(
-					"Trying to re-add %q to conversation, but they need to sign in using Keybase client first.",
-					username)
-			}
-
 			invites, err := kbInviteFromRole(uv, existingRole)
 			if err != nil {
 				return err
 			}
-			invites.Cancel = &[]SCTeamInviteID{SCTeamInviteID(existingInvite.Id)}
+			if isAnInvite {
+				invites.Cancel = &[]SCTeamInviteID{SCTeamInviteID(existingInvite.Id)}
+			}
 			return t.postTeamInvites(ctx, invites)
 		}
 
