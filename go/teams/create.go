@@ -208,7 +208,7 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me *lib
 		return err
 	}
 	seqType := seqTypeForTeamPublicness(public)
-	v2Sig, _, err := makeSigchainV2OuterSig(
+	v2Sig, _, err := libkb.MakeSigchainV2OuterSig(
 		deviceSigningKey,
 		libkb.LinkTypeTeamRoot,
 		1, /* seqno */
@@ -422,46 +422,6 @@ func makeRootTeamSection(teamName string, teamID keybase1.TeamID, members SCTeam
 	return teamSection, nil
 }
 
-func makeSigchainV2OuterSig(
-	signingKey libkb.GenericKey,
-	v1LinkType libkb.LinkType,
-	seqno keybase1.Seqno,
-	innerLinkJSON []byte,
-	prevLinkID libkb.LinkID,
-	hasRevokes bool,
-	seqType keybase1.SeqType,
-	ignoreIfUnsupported bool,
-) (sig string, linkID libkb.LinkID, err error) {
-	currLinkID := libkb.ComputeLinkID(innerLinkJSON)
-
-	v2LinkType, err := libkb.SigchainV2TypeFromV1TypeAndRevocations(string(v1LinkType), hasRevokes)
-	if err != nil {
-		return sig, linkID, err
-	}
-
-	outerLink := libkb.OuterLinkV2{
-		Version:             2,
-		Seqno:               seqno,
-		Prev:                prevLinkID,
-		Curr:                currLinkID,
-		LinkType:            v2LinkType,
-		SeqType:             seqType,
-		IgnoreIfUnsupported: ignoreIfUnsupported,
-	}
-	encodedOuterLink, err := outerLink.Encode()
-	if err != nil {
-		return sig, linkID, err
-	}
-
-	sig, _, err = signingKey.SignToString(encodedOuterLink)
-	if err != nil {
-		return sig, linkID, err
-	}
-
-	linkID = libkb.ComputeLinkID(encodedOuterLink)
-	return sig, linkID, nil
-}
-
 func generateNewSubteamSigForParentChain(g *libkb.GlobalContext, me *libkb.User, signingKey libkb.GenericKey, parentTeam *TeamSigChainState, subteamName keybase1.TeamName, subteamID keybase1.TeamID, admin *SCTeamAdmin) (item *libkb.SigMultiItem, err error) {
 	newSubteamSigBody, err := NewSubteamSig(me, signingKey, parentTeam, subteamName, subteamID, admin)
 	if err != nil {
@@ -477,7 +437,7 @@ func generateNewSubteamSigForParentChain(g *libkb.GlobalContext, me *libkb.User,
 		return nil, err
 	}
 	seqType := seqTypeForTeamPublicness(parentTeam.IsPublic())
-	v2Sig, _, err := makeSigchainV2OuterSig(
+	v2Sig, _, err := libkb.MakeSigchainV2OuterSig(
 		signingKey,
 		libkb.LinkTypeNewSubteam,
 		parentTeam.GetLatestSeqno()+1,
@@ -567,14 +527,14 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 	}
 
 	seqType := seqTypeForTeamPublicness(parentTeam.IsPublic())
-	v2Sig, _, err := makeSigchainV2OuterSig(
+	v2Sig, _, err := libkb.MakeSigchainV2OuterSig(
 		signingKey,
 		libkb.LinkTypeSubteamHead,
 		1, /* seqno */
 		subteamHeadSigJSON,
 		nil,   /* prevLinkID */
 		false, /* hasRevokes */
-		seqTypeForTeamPublicness(parentTeam.IsPublic()),
+		seqType,
 		false, /* ignoreIfUnsupported */
 	)
 	if err != nil {
