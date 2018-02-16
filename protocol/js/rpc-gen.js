@@ -3264,6 +3264,8 @@ export type SigListArgs = $ReadOnly<{sessionID: Int, username: String, allKeys: 
 
 export type SigTypes = $ReadOnly<{track: Boolean, proof: Boolean, cryptocurrency: Boolean, isSelf: Boolean}>
 
+export type SigVersion = Int
+
 export type SignMode =
   | 0 // ATTACHED_0
   | 1 // DETACHED_1
@@ -3785,7 +3787,7 @@ export type TrackDismissWithTokenRpcParam = $ReadOnly<{trackToken: TrackToken, i
 
 export type TrackFakeTrackingChangedRpcParam = $ReadOnly<{username: String, isTracking: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TrackOptions = $ReadOnly<{localOnly: Boolean, bypassConfirm: Boolean, forceRetrack: Boolean, expiringLocal: Boolean, forPGPPull: Boolean}>
+export type TrackOptions = $ReadOnly<{localOnly: Boolean, bypassConfirm: Boolean, forceRetrack: Boolean, expiringLocal: Boolean, forPGPPull: Boolean, sigVersion: SigVersion}>
 
 export type TrackProof = $ReadOnly<{proofType: String, proofName: String, idString: String}>
 

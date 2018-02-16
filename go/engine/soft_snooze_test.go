@@ -60,93 +60,95 @@ func (e *flakeyRooterAPI) PostHTML(arg libkb.APIArg) (res *libkb.ExternalHTMLRes
 }
 
 func TestSoftSnooze(t *testing.T) {
-	tc := SetupEngineTest(t, "track")
-	defer tc.Cleanup()
-	fu := CreateAndSignupFakeUser(tc, "track")
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		tc := SetupEngineTest(t, "track")
+		defer tc.Cleanup()
+		fu := CreateAndSignupFakeUser(tc, "track")
 
-	fakeClock := clockwork.NewFakeClockAt(time.Now())
-	tc.G.SetClock(fakeClock)
-	// to pick up the new clock...
-	tc.G.ResetLoginState()
+		fakeClock := clockwork.NewFakeClockAt(time.Now())
+		tc.G.SetClock(fakeClock)
+		// to pick up the new clock...
+		tc.G.ResetLoginState()
 
-	flakeyAPI := flakeyRooterAPI{orig: tc.G.XAPI, flakeOut: false, G: tc.G}
-	tc.G.XAPI = &flakeyAPI
+		flakeyAPI := flakeyRooterAPI{orig: tc.G.XAPI, flakeOut: false, G: tc.G}
+		tc.G.XAPI = &flakeyAPI
 
-	idUI := &FakeIdentifyUI{}
-	username := "t_tracy"
-	arg := &keybase1.Identify2Arg{
-		UserAssertion:    username,
-		NeedProofSet:     true,
-		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
-	}
-	ctx := &Context{
-		LogUI:      tc.G.UI.GetLogUI(),
-		IdentifyUI: idUI,
-		SecretUI:   fu.NewSecretUI(),
-	}
+		idUI := &FakeIdentifyUI{}
+		username := "t_tracy"
+		arg := &keybase1.Identify2Arg{
+			UserAssertion:    username,
+			NeedProofSet:     true,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
+		}
+		ctx := &Context{
+			LogUI:      tc.G.UI.GetLogUI(),
+			IdentifyUI: idUI,
+			SecretUI:   fu.NewSecretUI(),
+		}
 
-	// Identify tracy; all proofs should work
-	eng := NewResolveThenIdentify2(tc.G, arg)
-	if err := RunEngine(eng, ctx); err != nil {
-		t.Fatal(err)
-	}
-	targ := TrackTokenArg{
-		Token:   idUI.Token,
-		Options: keybase1.TrackOptions{BypassConfirm: true},
-	}
+		// Identify tracy; all proofs should work
+		eng := NewResolveThenIdentify2(tc.G, arg)
+		if err := RunEngine(eng, ctx); err != nil {
+			t.Fatal(err)
+		}
+		targ := TrackTokenArg{
+			Token:   idUI.Token,
+			Options: keybase1.TrackOptions{BypassConfirm: true, SigVersion: keybase1.SigVersion(sigVersion)},
+		}
 
-	// Track tracy
-	teng := NewTrackToken(&targ, tc.G)
-	if err := RunEngine(teng, ctx); err != nil {
-		t.Fatal(err)
-	}
+		// Track tracy
+		teng := NewTrackToken(&targ, tc.G)
+		if err := RunEngine(teng, ctx); err != nil {
+			t.Fatal(err)
+		}
 
-	defer runUntrack(tc.G, fu, username)
+		defer runUntrack(tc.G, fu, username, sigVersion)
 
-	// Now make her Rooter proof flakey / fail with a 429
-	flakeyAPI.flakeOut = true
-	idUI = &FakeIdentifyUI{}
-	ctx.IdentifyUI = idUI
+		// Now make her Rooter proof flakey / fail with a 429
+		flakeyAPI.flakeOut = true
+		idUI = &FakeIdentifyUI{}
+		ctx.IdentifyUI = idUI
 
-	// Advance so that our previous cached success is out of
-	// cache on its own, but still can override a 429-like soft failure.
-	fakeClock.Advance(tc.G.Env.GetProofCacheMediumDur() + time.Minute)
+		// Advance so that our previous cached success is out of
+		// cache on its own, but still can override a 429-like soft failure.
+		fakeClock.Advance(tc.G.Env.GetProofCacheMediumDur() + time.Minute)
 
-	eng = NewResolveThenIdentify2(tc.G, arg)
-	eng.testArgs = &Identify2WithUIDTestArgs{noCache: true}
-	// Should not get an error
-	if err := RunEngine(eng, ctx); err != nil {
-		t.Fatal(err)
-	}
-	result, found := idUI.ProofResults["rooter"]
-	if !found {
-		t.Fatal("Failed to find a rooter proof")
-	}
-	if pe := libkb.ImportProofError(result.SnoozedResult); pe == nil {
-		t.Fatal("expected a snoozed error result")
-	}
+		eng = NewResolveThenIdentify2(tc.G, arg)
+		eng.testArgs = &Identify2WithUIDTestArgs{noCache: true}
+		// Should not get an error
+		if err := RunEngine(eng, ctx); err != nil {
+			t.Fatal(err)
+		}
+		result, found := idUI.ProofResults["rooter"]
+		if !found {
+			t.Fatal("Failed to find a rooter proof")
+		}
+		if pe := libkb.ImportProofError(result.SnoozedResult); pe == nil {
+			t.Fatal("expected a snoozed error result")
+		}
 
-	// Now time out the success that allowed us to circumvent
-	// the soft failure.
-	fakeClock.Advance(tc.G.Env.GetProofCacheLongDur())
-	eng = NewResolveThenIdentify2(tc.G, arg)
-	eng.testArgs = &Identify2WithUIDTestArgs{noCache: true}
-	idUI = &FakeIdentifyUI{}
-	ctx.IdentifyUI = idUI
-	if err := RunEngine(eng, ctx); err == nil {
-		t.Fatal("Expected a failure in our proof")
-	}
+		// Now time out the success that allowed us to circumvent
+		// the soft failure.
+		fakeClock.Advance(tc.G.Env.GetProofCacheLongDur())
+		eng = NewResolveThenIdentify2(tc.G, arg)
+		eng.testArgs = &Identify2WithUIDTestArgs{noCache: true}
+		idUI = &FakeIdentifyUI{}
+		ctx.IdentifyUI = idUI
+		if err := RunEngine(eng, ctx); err == nil {
+			t.Fatal("Expected a failure in our proof")
+		}
 
-	result, found = idUI.ProofResults["rooter"]
-	if !found {
-		t.Fatal("Failed to find a rooter proof")
-	}
-	if pe := libkb.ImportProofError(result.ProofResult); pe == nil {
-		t.Fatal("expected a Rooter error result")
-	}
-	if !idUI.BrokenTracking {
-		t.Fatal("expected broken tracking!")
-	}
+		result, found = idUI.ProofResults["rooter"]
+		if !found {
+			t.Fatal("Failed to find a rooter proof")
+		}
+		if pe := libkb.ImportProofError(result.ProofResult); pe == nil {
+			t.Fatal("expected a Rooter error result")
+		}
+		if !idUI.BrokenTracking {
+			t.Fatal("expected broken tracking!")
+		}
 
-	assertTracking(tc, username)
+		assertTracking(tc, username)
+	})
 }

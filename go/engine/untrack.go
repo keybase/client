@@ -9,8 +9,9 @@ import (
 )
 
 type UntrackEngineArg struct {
-	Username libkb.NormalizedUsername
-	Me       *libkb.User
+	Username   libkb.NormalizedUsername
+	Me         *libkb.User
+	SigVersion libkb.SigVersion
 }
 
 type UntrackEngine struct {
@@ -67,7 +68,12 @@ func (e *UntrackEngine) Run(ctx *Context) (err error) {
 		return
 	}
 
-	untrackStatement, err := e.arg.Me.UntrackingProofFor(e.signingKeyPub, them)
+	// Make V2 Sigs default
+	if e.arg.SigVersion == 0 {
+		e.arg.SigVersion = libkb.KeybaseSignatureV2
+	}
+
+	untrackStatement, err := e.arg.Me.UntrackingProofFor(e.signingKeyPub, e.arg.SigVersion, them)
 	if err != nil {
 		return
 	}
@@ -190,32 +196,60 @@ func (e *UntrackEngine) storeRemoteUntrack(them *libkb.User, ctx *Context) (err 
 	e.G().Log.Debug("+ StoreRemoteUntrack")
 	defer e.G().Log.Debug("- StoreRemoteUntrack -> %s", libkb.ErrToOk(err))
 
+	me := e.arg.Me
 	arg := libkb.SecretKeyArg{
-		Me:      e.arg.Me,
+		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
 	}
-	var signingKeyPriv libkb.GenericKey
-	if signingKeyPriv, err = e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(arg, "untracking signature")); err != nil {
+	var signingKey libkb.GenericKey
+	if signingKey, err = e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(arg, "untracking signature")); err != nil {
 		return
 	}
 
 	var sig string
 	var sigid keybase1.SigID
-	if sig, sigid, err = signingKeyPriv.SignToString(e.untrackStatementBytes); err != nil {
-		return
+	sigVersion := libkb.SigVersion(e.arg.SigVersion)
+	if sigVersion == libkb.KeybaseSignatureV2 {
+		prevSeqno := me.GetSigChainLastKnownSeqno()
+		prevLinkID := me.GetSigChainLastKnownID()
+		sig, sigid, _, err = libkb.MakeSigchainV2OuterSig(
+			signingKey,
+			libkb.LinkTypeUntrack,
+			prevSeqno+1,
+			e.untrackStatementBytes,
+			prevLinkID,
+			false, /* hasRevokes */
+			keybase1.SeqType_PUBLIC,
+			false, /* ignoreIfUnsupported */
+		)
+		if err != nil {
+			return err
+		}
+	} else {
+		sig, sigid, err = signingKey.SignToString(e.untrackStatementBytes)
+		if err != nil {
+			return
+		}
+
+	}
+
+	httpsArgs := libkb.HTTPArgs{
+		"sig_id_base":  libkb.S{Val: sigid.ToString(false)},
+		"sig_id_short": libkb.S{Val: sigid.ToShortID()},
+		"sig":          libkb.S{Val: sig},
+		"uid":          libkb.UIDArg(them.GetUID()),
+		"type":         libkb.S{Val: "untrack"},
+		"signing_kid":  e.signingKeyPub.GetKID(),
+	}
+
+	if sigVersion == libkb.KeybaseSignatureV2 {
+		httpsArgs["sig_inner"] = libkb.S{Val: string(e.untrackStatementBytes)}
 	}
 
 	_, err = e.G().API.Post(libkb.APIArg{
 		Endpoint:    "follow",
 		SessionType: libkb.APISessionTypeREQUIRED,
-		Args: libkb.HTTPArgs{
-			"sig_id_base":  libkb.S{Val: sigid.ToString(false)},
-			"sig_id_short": libkb.S{Val: sigid.ToShortID()},
-			"sig":          libkb.S{Val: sig},
-			"uid":          libkb.UIDArg(them.GetUID()),
-			"type":         libkb.S{Val: "untrack"},
-			"signing_kid":  e.signingKeyPub.GetKID(),
-		},
+		Args:        httpsArgs,
 	})
 
 	return

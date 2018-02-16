@@ -236,59 +236,61 @@ func TestRevokeKey(t *testing.T) {
 
 // See issue #370.
 func TestTrackAfterRevoke(t *testing.T) {
-	tc1 := SetupEngineTest(t, "rev")
-	defer tc1.Cleanup()
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		tc1 := SetupEngineTest(t, "rev")
+		defer tc1.Cleanup()
 
-	// We need two devices. Use a paperkey to sign into the second device.
+		// We need two devices. Use a paperkey to sign into the second device.
 
-	// Sign up on tc1:
-	u := CreateAndSignupFakeUserGPG(tc1, "pgp")
+		// Sign up on tc1:
+		u := CreateAndSignupFakeUserGPG(tc1, "pgp")
 
-	t.Logf("create a paperkey")
-	beng := NewPaperKey(tc1.G)
-	ctx := &Context{
-		LogUI:    tc1.G.UI.GetLogUI(),
-		LoginUI:  &libkb.TestLoginUI{},
-		SecretUI: &libkb.TestSecretUI{},
-	}
-	err := RunEngine(beng, ctx)
-	require.NoError(t, err)
-	paperkey := beng.Passphrase()
+		t.Logf("create a paperkey")
+		beng := NewPaperKey(tc1.G)
+		ctx := &Context{
+			LogUI:    tc1.G.UI.GetLogUI(),
+			LoginUI:  &libkb.TestLoginUI{},
+			SecretUI: &libkb.TestSecretUI{},
+		}
+		err := RunEngine(beng, ctx)
+		require.NoError(t, err)
+		paperkey := beng.Passphrase()
 
-	// Redo SetupEngineTest to get a new home directory...should look like a new device.
-	tc2 := SetupEngineTest(t, "login")
-	defer tc2.Cleanup()
+		// Redo SetupEngineTest to get a new home directory...should look like a new device.
+		tc2 := SetupEngineTest(t, "login")
+		defer tc2.Cleanup()
 
-	// Login on device tc2 using the paperkey.
-	t.Logf("running LoginWithPaperKey")
-	secUI := u.NewSecretUI()
-	secUI.Passphrase = paperkey
-	provUI := newTestProvisionUIPaper()
-	provLoginUI := &libkb.TestLoginUI{Username: u.Username}
-	ctx = &Context{
-		ProvisionUI: provUI,
-		LogUI:       tc2.G.UI.GetLogUI(),
-		SecretUI:    secUI,
-		LoginUI:     provLoginUI,
-		GPGUI:       &gpgtestui{},
-	}
-	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
-	err = RunEngine(eng, ctx)
-	require.NoError(t, err)
+		// Login on device tc2 using the paperkey.
+		t.Logf("running LoginWithPaperKey")
+		secUI := u.NewSecretUI()
+		secUI.Passphrase = paperkey
+		provUI := newTestProvisionUIPaper()
+		provLoginUI := &libkb.TestLoginUI{Username: u.Username}
+		ctx = &Context{
+			ProvisionUI: provUI,
+			LogUI:       tc2.G.UI.GetLogUI(),
+			SecretUI:    secUI,
+			LoginUI:     provLoginUI,
+			GPGUI:       &gpgtestui{},
+		}
+		eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+		err = RunEngine(eng, ctx)
+		require.NoError(t, err)
 
-	t.Logf("tc2 revokes tc1 device:")
-	err = doRevokeDevice(tc2, u, tc1.G.Env.GetDeviceID(), false, false)
-	require.NoError(t, err)
+		t.Logf("tc2 revokes tc1 device:")
+		err = doRevokeDevice(tc2, u, tc1.G.Env.GetDeviceID(), false, false)
+		require.NoError(t, err)
 
-	// Still logged in on tc1.  Try to use it to track someone.  It should fail
-	// with a KeyRevokedError.
-	_, _, err = runTrack(tc1, u, "t_alice")
-	if err == nil {
-		t.Fatal("expected runTrack to return an error")
-	}
-	if _, ok := err.(libkb.KeyRevokedError); !ok {
-		t.Errorf("expected libkb.KeyRevokedError, got %T", err)
-	}
+		// Still logged in on tc1.  Try to use it to track someone.  It should fail
+		// with a KeyRevokedError.
+		_, _, err = runTrack(tc1, u, "t_alice", sigVersion)
+		if err == nil {
+			t.Fatal("expected runTrack to return an error")
+		}
+		if _, ok := err.(libkb.KeyRevokedError); !ok {
+			t.Errorf("expected libkb.KeyRevokedError, got %T", err)
+		}
+	})
 }
 
 func TestSignAfterRevoke(t *testing.T) {

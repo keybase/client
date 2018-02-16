@@ -172,12 +172,12 @@ func MakeSigchainV2OuterSig(
 	hasRevokes bool,
 	seqType keybase1.SeqType,
 	ignoreIfUnsupported bool,
-) (sig string, linkID LinkID, err error) {
+) (sig string, sigid keybase1.SigID, linkID LinkID, err error) {
 	currLinkID := ComputeLinkID(innerLinkJSON)
 
 	v2LinkType, err := SigchainV2TypeFromV1TypeAndRevocations(string(v1LinkType), hasRevokes)
 	if err != nil {
-		return sig, linkID, err
+		return sig, sigid, linkID, err
 	}
 
 	outerLink := OuterLinkV2{
@@ -191,16 +191,16 @@ func MakeSigchainV2OuterSig(
 	}
 	encodedOuterLink, err := outerLink.Encode()
 	if err != nil {
-		return sig, linkID, err
+		return sig, sigid, linkID, err
 	}
 
-	sig, _, err = signingKey.SignToString(encodedOuterLink)
+	sig, sigid, err = signingKey.SignToString(encodedOuterLink)
 	if err != nil {
-		return sig, linkID, err
+		return sig, sigid, linkID, err
 	}
 
 	linkID = ComputeLinkID(encodedOuterLink)
-	return sig, linkID, nil
+	return sig, sigid, linkID, nil
 }
 
 func DecodeStubbedOuterLinkV2(b64encoded string) (*OuterLinkV2WithMetadata, error) {

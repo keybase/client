@@ -12,12 +12,12 @@ import (
 const aliceFp string = "2373fd089f28f328916b88f99c7927c0bdfdadf9"
 const bobFp string = "91fe9b24ef6706b1f7898f2059a2a43f8b731f29"
 
-func createUserWhoTracks(tc libkb.TestContext, trackedUsers []string) *FakeUser {
+func createUserWhoTracks(tc libkb.TestContext, trackedUsers []string, sigVersion libkb.SigVersion) *FakeUser {
 	fu := CreateAndSignupFakeUser(tc, "pull")
 	fu.LoginOrBust(tc)
 
 	for _, trackedUser := range trackedUsers {
-		_, _, err := runTrack(tc, fu, trackedUser)
+		_, _, err := runTrack(tc, fu, trackedUser, sigVersion)
 		if err != nil {
 			tc.T.Fatal("Error while tracking", trackedUser, err)
 		}
@@ -25,9 +25,9 @@ func createUserWhoTracks(tc libkb.TestContext, trackedUsers []string) *FakeUser 
 	return fu
 }
 
-func untrackUserList(tc libkb.TestContext, fu *FakeUser, trackedUsers []string) {
+func untrackUserList(tc libkb.TestContext, fu *FakeUser, trackedUsers []string, sigVersion libkb.SigVersion) {
 	for _, trackedUser := range trackedUsers {
-		if err := runUntrack(tc.G, fu, trackedUser); err != nil {
+		if err := runUntrack(tc.G, fu, trackedUser, sigVersion); err != nil {
 			tc.T.Fatal("Error while untracking", trackedUser, err)
 		}
 	}
@@ -86,56 +86,62 @@ func runPGPPullExpectingError(tc libkb.TestContext, arg PGPPullEngineArg) {
 }
 
 func TestPGPPullAll(t *testing.T) {
-	tc := SetupEngineTest(t, "pgp_pull")
-	defer tc.Cleanup()
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		tc := SetupEngineTest(t, "pgp_pull")
+		defer tc.Cleanup()
 
-	users := []string{"t_alice", "t_bob"}
-	fu := createUserWhoTracks(tc, users)
-	defer untrackUserList(tc, fu, users)
-	gpgClient := createGpgClient(tc)
+		users := []string{"t_alice", "t_bob"}
+		fu := createUserWhoTracks(tc, users, sigVersion)
+		defer untrackUserList(tc, fu, users, sigVersion)
+		gpgClient := createGpgClient(tc)
 
-	assertKeysMissing(t, gpgClient, []string{aliceFp, bobFp})
+		assertKeysMissing(t, gpgClient, []string{aliceFp, bobFp})
 
-	runPGPPull(tc, PGPPullEngineArg{})
+		runPGPPull(tc, PGPPullEngineArg{})
 
-	assertKeysPresent(t, gpgClient, []string{aliceFp, bobFp})
+		assertKeysPresent(t, gpgClient, []string{aliceFp, bobFp})
+	})
 }
 
 func TestPGPPullOne(t *testing.T) {
-	tc := SetupEngineTest(t, "pgp_pull")
-	defer tc.Cleanup()
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		tc := SetupEngineTest(t, "pgp_pull")
+		defer tc.Cleanup()
 
-	users := []string{"t_alice", "t_bob"}
-	fu := createUserWhoTracks(tc, users)
-	defer untrackUserList(tc, fu, users)
-	gpgClient := createGpgClient(tc)
+		users := []string{"t_alice", "t_bob"}
+		fu := createUserWhoTracks(tc, users, sigVersion)
+		defer untrackUserList(tc, fu, users, sigVersion)
+		gpgClient := createGpgClient(tc)
 
-	assertKeysMissing(t, gpgClient, []string{aliceFp, bobFp})
+		assertKeysMissing(t, gpgClient, []string{aliceFp, bobFp})
 
-	runPGPPull(tc, PGPPullEngineArg{
-		// ID'ing the same user twice should be ok.
-		UserAsserts: []string{"t_bob", "t_bob+kbtester1@twitter"},
+		runPGPPull(tc, PGPPullEngineArg{
+			// ID'ing the same user twice should be ok.
+			UserAsserts: []string{"t_bob", "t_bob+kbtester1@twitter"},
+		})
+
+		assertKeysPresent(t, gpgClient, []string{bobFp})
+		assertKeysMissing(t, gpgClient, []string{aliceFp})
 	})
-
-	assertKeysPresent(t, gpgClient, []string{bobFp})
-	assertKeysMissing(t, gpgClient, []string{aliceFp})
 }
 
 func TestPGPPullBadIDs(t *testing.T) {
-	tc := SetupEngineTest(t, "pgp_pull")
-	defer tc.Cleanup()
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		tc := SetupEngineTest(t, "pgp_pull")
+		defer tc.Cleanup()
 
-	users := []string{"t_alice", "t_bob"}
-	fu := createUserWhoTracks(tc, users)
-	defer untrackUserList(tc, fu, users)
-	gpgClient := createGpgClient(tc)
+		users := []string{"t_alice", "t_bob"}
+		fu := createUserWhoTracks(tc, users, sigVersion)
+		defer untrackUserList(tc, fu, users, sigVersion)
+		gpgClient := createGpgClient(tc)
 
-	assertKeysMissing(t, gpgClient, []string{aliceFp, bobFp})
+		assertKeysMissing(t, gpgClient, []string{aliceFp, bobFp})
 
-	runPGPPullExpectingError(tc, PGPPullEngineArg{
-		// ID'ing a nonexistent/untracked user should fail the pull.
-		UserAsserts: []string{"t_bob", "t_NOT_TRACKED_BY_ME"},
+		runPGPPullExpectingError(tc, PGPPullEngineArg{
+			// ID'ing a nonexistent/untracked user should fail the pull.
+			UserAsserts: []string{"t_bob", "t_NOT_TRACKED_BY_ME"},
+		})
+
+		assertKeysMissing(t, gpgClient, []string{aliceFp, bobFp})
 	})
-
-	assertKeysMissing(t, gpgClient, []string{aliceFp, bobFp})
 }

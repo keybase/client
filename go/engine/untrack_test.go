@@ -10,9 +10,10 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-func runUntrack(g *libkb.GlobalContext, fu *FakeUser, username string) error {
+func runUntrack(g *libkb.GlobalContext, fu *FakeUser, username string, sigVersion libkb.SigVersion) error {
 	arg := UntrackEngineArg{
-		Username: libkb.NewNormalizedUsername(username),
+		Username:   libkb.NewNormalizedUsername(username),
+		SigVersion: sigVersion,
 	}
 	ctx := Context{
 		LogUI:    g.UI.GetLogUI(),
@@ -49,16 +50,16 @@ func assertUntracked(tc libkb.TestContext, username string) {
 	}
 }
 
-func untrackAlice(tc libkb.TestContext, fu *FakeUser) {
-	err := runUntrack(tc.G, fu, "t_alice")
+func untrackAlice(tc libkb.TestContext, fu *FakeUser, sigVersion libkb.SigVersion) {
+	err := runUntrack(tc.G, fu, "t_alice", sigVersion)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
 	return
 }
 
-func untrackBob(tc libkb.TestContext, fu *FakeUser) {
-	err := runUntrack(tc.G, fu, "t_bob")
+func untrackBob(tc libkb.TestContext, fu *FakeUser, sigVersion libkb.SigVersion) {
+	err := runUntrack(tc.G, fu, "t_bob", sigVersion)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -66,50 +67,54 @@ func untrackBob(tc libkb.TestContext, fu *FakeUser) {
 }
 
 func TestUntrack(t *testing.T) {
-	tc := SetupEngineTest(t, "untrack")
-	defer tc.Cleanup()
-	fu := CreateAndSignupFakeUser(tc, "untrk")
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		tc := SetupEngineTest(t, "untrack")
+		defer tc.Cleanup()
+		fu := CreateAndSignupFakeUser(tc, "untrk")
 
-	// Local-tracked only.
-	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: true, BypassConfirm: true}, fu.NewSecretUI())
-	assertTracking(tc, "t_alice")
-	untrackAlice(tc, fu)
-	assertUntracked(tc, "t_alice")
+		// Local-tracked only.
+		trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: true, BypassConfirm: true, SigVersion: keybase1.SigVersion(sigVersion)}, fu.NewSecretUI())
+		assertTracking(tc, "t_alice")
+		untrackAlice(tc, fu, sigVersion)
+		assertUntracked(tc, "t_alice")
 
-	// Remote-tracked only.
-	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: false, BypassConfirm: true}, fu.NewSecretUI())
-	untrackAlice(tc, fu)
-	assertUntracked(tc, "t_alice")
+		// Remote-tracked only.
+		trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: false, BypassConfirm: true, SigVersion: keybase1.SigVersion(sigVersion)}, fu.NewSecretUI())
+		untrackAlice(tc, fu, sigVersion)
+		assertUntracked(tc, "t_alice")
 
-	// Both local- and remote-tracked.
-	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: true, BypassConfirm: true}, fu.NewSecretUI())
-	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: false, BypassConfirm: true}, fu.NewSecretUI())
-	untrackAlice(tc, fu)
-	assertUntracked(tc, "t_alice")
+		// Both local- and remote-tracked.
+		trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: true, BypassConfirm: true, SigVersion: keybase1.SigVersion(sigVersion)}, fu.NewSecretUI())
+		trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: false, BypassConfirm: true, SigVersion: keybase1.SigVersion(sigVersion)}, fu.NewSecretUI())
+		untrackAlice(tc, fu, sigVersion)
+		assertUntracked(tc, "t_alice")
 
-	// Assert that we gracefully handle cases where there is nothing to untrack.
-	err := runUntrack(tc.G, fu, "t_alice")
-	if err == nil {
-		t.Fatal("expected untrack error; got no error")
-	} else if _, ok := err.(libkb.UntrackError); !ok {
-		t.Fatalf("expected an UntrackError; got %s", err)
-	}
+		// Assert that we gracefully handle cases where there is nothing to untrack.
+		err := runUntrack(tc.G, fu, "t_alice", sigVersion)
+		if err == nil {
+			t.Fatal("expected untrack error; got no error")
+		} else if _, ok := err.(libkb.UntrackError); !ok {
+			t.Fatalf("expected an UntrackError; got %s", err)
+		}
 
-	err = runUntrack(tc.G, fu, "t_bob")
-	if err == nil {
-		t.Fatal("expected untrack error; got no error")
-	} else if _, ok := err.(libkb.UntrackError); !ok {
-		t.Fatalf("expected an UntrackError; got %s", err)
-	}
-	return
+		err = runUntrack(tc.G, fu, "t_bob", sigVersion)
+		if err == nil {
+			t.Fatal("expected untrack error; got no error")
+		} else if _, ok := err.(libkb.UntrackError); !ok {
+			t.Fatalf("expected an UntrackError; got %s", err)
+		}
+		return
+	})
 }
 
 func TestUntrackRemoteOnly(t *testing.T) {
-	tc := SetupEngineTest(t, "untrack")
-	defer tc.Cleanup()
-	fu := CreateAndSignupFakeUser(tc, "untrk")
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		tc := SetupEngineTest(t, "untrack")
+		defer tc.Cleanup()
+		fu := CreateAndSignupFakeUser(tc, "untrk")
 
-	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: false, BypassConfirm: true}, fu.NewSecretUI())
-	untrackAlice(tc, fu)
-	assertUntracked(tc, "t_alice")
+		trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: false, BypassConfirm: true, SigVersion: keybase1.SigVersion(sigVersion)}, fu.NewSecretUI())
+		untrackAlice(tc, fu, sigVersion)
+		assertUntracked(tc, "t_alice")
+	})
 }
