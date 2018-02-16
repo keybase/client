@@ -309,6 +309,18 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
                 : meta
           )
         }
+        // Update the current conversation. If the ordinal is the last item, just remove it so we don't get an orange bar as we type
+        if (action.payload.conversationIDKey) {
+          s.updateIn(['metaMap', action.payload.conversationIDKey], meta => {
+            if (meta) {
+              const lastOrdinal = state.messageOrdinals.get(action.payload.conversationIDKey, I.Set()).last()
+              if (lastOrdinal === meta.orangeLineOrdinal) {
+                return meta.set('orangeLineOrdinal', null)
+              }
+            }
+            return meta
+          })
+        }
         s.set('selectedConversation', action.payload.conversationIDKey)
       })
     case Chat2Gen.setInboxFilter:
@@ -466,9 +478,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       const metaMap =
         context.type === 'threadLoad' && state.metaMap.get(context.conversationIDKey)
           ? state.metaMap.update(context.conversationIDKey, (meta: Types.ConversationMeta) =>
-              meta
-                .set('hasLoadedThread', true)
-                .set('orangeLineOrdinal', messageOrdinals.get(context.conversationIDKey, I.Set()).last())
+              meta.set('hasLoadedThread', true)
             )
           : state.metaMap
 
