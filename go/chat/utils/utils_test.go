@@ -3,6 +3,7 @@ package utils
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -44,6 +45,8 @@ type testTeamChannelSource struct {
 	channels []string
 }
 
+var _ types.TeamChannelSource = (*testTeamChannelSource)(nil)
+
 func newTestTeamChannelSource(channels []string) *testTeamChannelSource {
 	return &testTeamChannelSource{
 		channels: channels,
@@ -58,6 +61,11 @@ func (t *testTeamChannelSource) GetChannelsTopicName(ctx context.Context, uid gr
 		})
 	}
 	return res, rl, nil
+}
+
+func (t *testTeamChannelSource) GetChannelTopicName(ctx context.Context, uid gregor1.UID,
+	teamID chat1.TLFID, topicType chat1.TopicType, convID chat1.ConversationID) (string, []chat1.RateLimit, error) {
+	return "", nil, fmt.Errorf("testTeamChannelSource.GetChannelTopicName not implemented")
 }
 
 func (t *testTeamChannelSource) GetChannelsFull(ctx context.Context, uid gregor1.UID,

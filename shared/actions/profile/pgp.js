@@ -5,7 +5,7 @@ import * as ProfileGen from '../profile-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
 import {isValidEmail, isValidName} from '../../util/simple-validators'
-import {navigateTo, navigateAppend} from '../../actions/route-tree'
+import {navigateTo} from '../../actions/route-tree'
 import {peopleTab} from '../../constants/tabs'
 import type {TypedState} from '../../constants/reducer'
 
@@ -69,7 +69,7 @@ function* _dropPgpSaga(action: ProfileGen.DropPgpPayload): Saga.SagaGenerator<an
 
 // TODO(mm) handle error better
 function* _generatePgpSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.put(navigateAppend(['generate'], [peopleTab, 'pgp']))
+  yield Saga.put(navigateTo([peopleTab, 'profile', 'pgp', 'provideInfo', 'generate']))
 
   const state: TypedState = yield Saga.select()
   const {profile: {pgpInfo}} = state
@@ -114,7 +114,7 @@ function* _generatePgpSaga(): Saga.SagaGenerator<any, any> {
     const publicKey = incoming['keybase.1.pgpUi.keyGenerated'].params.key.key
 
     yield Saga.put(ProfileGen.createUpdatePgpPublicKey({publicKey}))
-    yield Saga.put(navigateAppend(['finished'], [peopleTab, 'pgp']))
+    yield Saga.put(navigateTo([peopleTab, 'profile', 'pgp', 'provideInfo', 'generate', 'finished']))
 
     const finishedAction: ProfileGen.FinishedWithKeyGenPayload = yield Saga.take(
       ProfileGen.finishedWithKeyGen
@@ -127,7 +127,7 @@ function* _generatePgpSaga(): Saga.SagaGenerator<any, any> {
     const {response: finishedResponse} = yield generatePgpKeyChanMap.take('keybase.1.pgpUi.finished')
     yield Saga.call([finishedResponse, finishedResponse.result])
 
-    yield Saga.put(navigateTo([], [peopleTab]))
+    yield Saga.put(navigateTo([peopleTab, 'profile']))
   } catch (e) {
     generatePgpKeyChanMap.close()
     logger.info('error in generating pgp key', e)

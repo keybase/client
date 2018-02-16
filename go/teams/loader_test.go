@@ -832,3 +832,53 @@ func TestRotateSubteamByExplicitReader(t *testing.T) {
 		require.NoError(t, err, "load as %v", i)
 	}
 }
+
+// TestLoaderCORE_7201 tests a case that came up.
+// A user had trouble loading A.B because the cached object was stuck as secretless.
+// U1 is an   ADMIN in A
+// U1 is only IMP implicitly in A.B
+// U1 is a    WRITER in A.B.C
+func TestLoaderCORE_7201(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	t.Logf("U0 creates A")
+	rootName, rootID := createTeam2(*tcs[0])
+
+	t.Logf("U0 adds U1 to A")
+	_, err := AddMember(context.TODO(), tcs[0].G, rootName.String(), fus[1].Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err, "add member")
+
+	t.Logf("U0 creates A.B")
+	subBName, subBID := createSubteam(tcs[0], rootName, "bbb")
+
+	t.Logf("U0 creates A.B.C")
+	subCName, subCID := createSubteam(tcs[0], subBName, "ccc")
+
+	t.Logf("U0 adds U1 to A.B.C")
+	_, err = AddMember(context.TODO(), tcs[0].G, subCName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	require.NoError(t, err, "add member")
+	t.Logf("setup complete")
+
+	t.Logf("U1 loads and caches A.B.C")
+	// Causing A.B to get cached. Secretless?
+	_, err = Load(context.TODO(), tcs[1].G, keybase1.LoadTeamArg{
+		ID:          subCID,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+
+	t.Logf("U1 loads A")
+	_, err = Load(context.TODO(), tcs[1].G, keybase1.LoadTeamArg{
+		ID:          rootID,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+
+	t.Logf("U1 loads A.B")
+	_, err = Load(context.TODO(), tcs[1].G, keybase1.LoadTeamArg{
+		ID:          subBID,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+}
