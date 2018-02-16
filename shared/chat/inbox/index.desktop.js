@@ -23,7 +23,7 @@ class Inbox extends PureComponent<Props, State> {
     showFloating: false,
   }
 
-  _mounted: true
+  _mounted: boolean = true
   _list: ?ReactList
 
   componentDidUpdate(prevProps: Props) {

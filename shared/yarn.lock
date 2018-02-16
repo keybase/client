@@ -3781,9 +3781,9 @@ eslint-plugin-filenames@1.2.0:
     lodash.snakecase "4.1.1"
     lodash.upperfirst "4.3.1"
 
-eslint-plugin-flowtype@2.42.0:
-  version "2.42.0"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-flowtype/-/eslint-plugin-flowtype-2.42.0.tgz#7fcc98df4ed9482a22ac10ba4ca48d649c4c733a"
+eslint-plugin-flowtype@2.44.0:
+  version "2.44.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-flowtype/-/eslint-plugin-flowtype-2.44.0.tgz#c0610d0018801e1fbe1eaec1c2174de1338ab4ee"
   dependencies:
     lodash "^4.15.0"
 
@@ -4358,9 +4358,9 @@ flatten@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/flatten/-/flatten-1.0.2.tgz#dae46a9d78fbe25292258cc1e780a41d95c03782"
 
-flow-bin@0.65.0:
-  version "0.65.0"
-  resolved "https://registry.yarnpkg.com/flow-bin/-/flow-bin-0.65.0.tgz#64ffeca27211c786e2d68508c65686ba1b8a2169"
+flow-bin@0.66.0:
+  version "0.66.0"
+  resolved "https://registry.yarnpkg.com/flow-bin/-/flow-bin-0.66.0.tgz#a96dde7015dc3343fd552a7b4963c02be705ca26"
 
 flush-write-stream@^1.0.0:
   version "1.0.2"
