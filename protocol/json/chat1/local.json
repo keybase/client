@@ -1578,6 +1578,14 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "GetThreadNonblockCbMode",
+      "symbols": [
+        "FULL_0",
+        "INCREMENTAL_1"
+      ]
+    },
+    {
       "type": "record",
       "name": "GetInboxLocalRes",
       "fields": [
@@ -2315,6 +2323,10 @@
         {
           "name": "conversationID",
           "type": "ConversationID"
+        },
+        {
+          "name": "cbMode",
+          "type": "GetThreadNonblockCbMode"
         },
         {
           "name": "query",
