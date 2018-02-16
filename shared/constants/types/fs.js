@@ -38,7 +38,8 @@ export type UnknownPathItem = I.RecordOf<_UnknownPathItem>
 export type PathItem = FolderPathItem | SymlinkPathItem | FilePathItem | UnknownPathItem
 
 export type PathBreadcrumbItem = {
-  idx: number,
+  isTlfNameItem: boolean,
+  isLastItem: boolean,
   name: string,
   path: string,
 }

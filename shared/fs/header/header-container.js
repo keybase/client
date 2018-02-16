@@ -3,6 +3,7 @@ import * as Types from '../../constants/types/fs'
 import {compose, connect, setDisplayName, type Dispatch} from '../../util/container'
 import {fsTab} from '../../constants/tabs'
 import {navigateAppend, navigateTo} from '../../actions/route-tree'
+import FolderHeader from './header'
 
 type OwnProps = {
   path: Types.Path,
@@ -41,7 +42,8 @@ const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => {
   const items = elems.map((e, i) => {
     acc = Types.pathConcat(acc, e)
     return {
-      idx: i,
+      isTlfNameItem: i === 2,
+      isLastItem: i === elems.length - 1,
       name: e,
       path: Types.pathToString(acc),
     }
@@ -54,8 +56,8 @@ const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => {
   }
   return {
     ...dispatchProps,
-    breadcrumbItems: breadcrumbItems,
-    dropdownItems: dropdownItems,
+    breadcrumbItems,
+    dropdownItems,
     isTeamPath: elems.length >= 2 && elems[1] === 'team',
   }
 }
@@ -63,4 +65,4 @@ const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => {
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   setDisplayName('FolderHeader')
-)
+)(FolderHeader)

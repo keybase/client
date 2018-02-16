@@ -5,7 +5,7 @@ import {globalStyles, globalMargins, isMobile} from '../styles'
 import {Box, ClickableBox, Icon, List, Text, Divider} from '../common-adapters'
 import {type IconType} from '../common-adapters/icon'
 import RowConnector from './row'
-import FolderHeader from './header/header'
+import FolderHeader from './header/header-container'
 import SortBar from './sortbar'
 
 const stylesCommonRow = {
