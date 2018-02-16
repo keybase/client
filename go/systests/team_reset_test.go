@@ -548,7 +548,7 @@ func TestImplicitTeamResetAll(t *testing.T) {
 	divDebug(ctx, "team looked up after resets")
 }
 
-func TestImplicitResetMatrix(t *testing.T) {
+func testImplicitResetParametrized(t *testing.T, getPUKAfter bool) {
 	ctx := newSMUContext(t)
 	defer ctx.cleanup()
 
@@ -565,7 +565,13 @@ func TestImplicitResetMatrix(t *testing.T) {
 	t.Logf("impteam created for %q (id: %s)", displayName, iteam.ID)
 
 	bob.reset()
-	bob.loginAfterResetNoPUK(5)
+	if getPUKAfter {
+		// Bob resets and gets a PUK afterwards
+		bob.loginAfterReset(5)
+	} else {
+		// Bob resets and does not get a PUK.
+		bob.loginAfterResetNoPUK(5)
+	}
 
 	iteam2 := ann.lookupImplicitTeam(false /* create */, displayName, false /* isPublic */)
 	require.Equal(t, iteam.ID, iteam2.ID)
@@ -574,34 +580,44 @@ func TestImplicitResetMatrix(t *testing.T) {
 
 	teamObj := ann.loadTeamByID(iteam.ID, true)
 
-	// Bob is not a crypto member so no "real" role
-	role, err := teamObj.MemberRole(context.Background(), bob.userVersion())
-	require.NoError(t, err)
-	require.Equal(t, keybase1.TeamRole_NONE, role)
+	if !getPUKAfter {
+		// Bob is not a crypto member so no "real" role
+		role, err := teamObj.MemberRole(context.Background(), bob.userVersion())
+		require.NoError(t, err)
+		require.Equal(t, keybase1.TeamRole_NONE, role)
 
-	// but should have active invite
-	invite, uv, found := teamObj.FindActiveKeybaseInvite(bob.uid())
-	require.True(t, found)
-	require.EqualValues(t, bob.userVersion(), uv)
-	require.Equal(t, keybase1.TeamRole_OWNER, invite.Role)
+		// but should have active invite
+		invite, uv, found := teamObj.FindActiveKeybaseInvite(bob.uid())
+		require.True(t, found)
+		require.EqualValues(t, bob.userVersion(), uv)
+		require.Equal(t, keybase1.TeamRole_OWNER, invite.Role)
 
-	// bob upgrades PUK
-	bob.primaryDevice().tctx.Tp.DisableUpgradePerUserKey = false
-	err = bob.perUserKeyUpgrade()
-	require.NoError(t, err)
+		// bob upgrades PUK
+		bob.primaryDevice().tctx.Tp.DisableUpgradePerUserKey = false
+		err = bob.perUserKeyUpgrade()
+		require.NoError(t, err)
 
-	ann.pollForTeamSeqnoLinkWithLoadArgs(keybase1.LoadTeamArg{ID: iteam.ID}, keybase1.Seqno(3))
+		ann.pollForTeamSeqnoLinkWithLoadArgs(keybase1.LoadTeamArg{ID: iteam.ID}, keybase1.Seqno(3))
+	}
 
 	teamObj = ann.loadTeamByID(iteam.ID, true)
 
 	// Bob is now a real crypto member!
-	role, err = teamObj.MemberRole(context.Background(), bob.userVersion())
+	role, err := teamObj.MemberRole(context.Background(), bob.userVersion())
 	require.NoError(t, err)
 	require.Equal(t, keybase1.TeamRole_OWNER, role)
 
 	// Make sure we are still getting the same team.
 	iteam3 := ann.lookupImplicitTeam(false /* create */, displayName, false /* isPublic */)
 	require.Equal(t, iteam.ID, iteam3.ID)
+}
+
+func TestImplicitResetNoPUKtoNoPUK(t *testing.T) {
+	testImplicitResetParametrized(t, false /* getPUKAfter */)
+}
+
+func TestImplicitResetNoPUKtoPUK(t *testing.T) {
+	testImplicitResetParametrized(t, true /* getPUKAfter */)
 }
 
 // Remove a member who was in a team and reset.
