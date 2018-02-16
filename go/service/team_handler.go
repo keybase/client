@@ -157,10 +157,18 @@ func (r *teamHandler) changeTeam(ctx context.Context, cli gregor1.IncomingInterf
 		activeUsernames := details.Members.ActiveUsernames()
 
 		for _, badge := range badges {
-			if activeUsernames[badge.Username] {
-				// they are active in the team, so dismiss the gregor message
+			active, inTeam := activeUsernames[badge.Username]
+			if !inTeam {
+				// the user is not in the team anymore, so dismiss the
+				// gregor message for this badge
+				r.G().Log.CDebugf(ctx, "user %s is not in team %s, dismissing TeamMemberOutFromReset badge", badge.Username, row.Name)
+				if err := r.G().GregorDismisser.DismissItem(ctx, cli, badge.Id); err != nil {
+					r.G().Log.CDebugf(ctx, "failed to dismiss TeamMemberOutFromReset badge: %s", err)
+				}
+			} else if active {
+				// the user is active in the team, so dismiss the gregor message
 				// for this badge
-				r.G().Log.CDebugf(ctx, "user %s is in team %s, dismissing TeamMemberOutFromReset badge", badge.Username, row.Name)
+				r.G().Log.CDebugf(ctx, "user %s is active in team %s, dismissing TeamMemberOutFromReset badge", badge.Username, row.Name)
 				if err := r.G().GregorDismisser.DismissItem(ctx, cli, badge.Id); err != nil {
 					r.G().Log.CDebugf(ctx, "failed to dismiss TeamMemberOutFromReset badge: %s", err)
 				}
