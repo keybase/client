@@ -359,7 +359,6 @@ function* onSelectAttachment({payload: {input}}: ChatGen.SelectAttachmentPayload
     }
   }
 
-  // $FlowIssue this is changing soon
   const preview = yield Saga.call(RPCChatTypes.localMakePreviewRpcPromise, {
     attachment: {filename},
     outputDir: tmpDir(),
