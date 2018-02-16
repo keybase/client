@@ -51,6 +51,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 })
 
 export default compose(
+  // $FlowIssue
   connect(mapStateToProps, mapDispatchToProps),
   branch(props => !props, renderNothing),
   // $FlowIssue gets very confused here
