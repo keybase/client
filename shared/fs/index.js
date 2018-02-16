@@ -5,7 +5,7 @@ import {globalStyles, globalMargins, isMobile} from '../styles'
 import {Box, ClickableBox, Icon, List, Text, Divider} from '../common-adapters'
 import {type IconType} from '../common-adapters/icon'
 import RowConnector from './row'
-import FolderHeader from './header'
+import FolderHeader from './header/header-container'
 import SortBar from './sortbar'
 
 const stylesCommonRow = {
@@ -84,7 +84,7 @@ const FileRowPlaceholder = () => (
 
 class Files extends React.PureComponent<FolderProps> {
   _renderRow = (index, item) => <FileRow key={Types.pathToString(item)} path={item} />
-  _renderRowPlaceholder = () => <FileRowPlaceholder />
+  _renderRowPlaceholder = index => <FileRowPlaceholder key={index} />
 
   render() {
     const {path, items, progress} = this.props
