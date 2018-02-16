@@ -23,7 +23,28 @@ class Inbox extends PureComponent<Props, State> {
     showFloating: false,
   }
 
+  _mounted: true
   _list: ?ReactList
+
+  componentDidUpdate(prevProps: Props) {
+    // If we click the expand button lets try and show the floater. Kinda tricky as we decide if we're showing it
+    // based on a callback the list gives us so there's a race. Let's just give it half a sec
+    if (prevProps.smallTeamsExpanded !== this.props.smallTeamsExpanded) {
+      if (this.props.smallTeamsExpanded) {
+        setTimeout(() => {
+          this._updateShowFloating()
+        }, 500)
+      }
+    }
+  }
+
+  componentDidMount() {
+    this._mounted = true
+  }
+
+  componentWillUnmount() {
+    this._mounted = false
+  }
 
   _itemSizeGetter = index => {
     const row = this.props.rows[index]
@@ -62,6 +83,9 @@ class Inbox extends PureComponent<Props, State> {
   }
 
   _updateShowFloating = () => {
+    if (!this._mounted) {
+      return
+    }
     let showFloating = true
     if (this._list) {
       const [, last] = this._list.getVisibleRange()
@@ -74,9 +98,7 @@ class Inbox extends PureComponent<Props, State> {
       }
     }
 
-    if (this.state.showFloating !== showFloating) {
-      this.setState({showFloating})
-    }
+    this.setState(old => (old.showFloating !== showFloating ? {showFloating} : null))
   }
 
   _onScroll = () => {
