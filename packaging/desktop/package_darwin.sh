@@ -37,8 +37,8 @@ comment=""
 
 keybase_binpath=${KEYBASE_BINPATH:-}
 git_remote_keybase_binpath=${GIT_REMOTE_KEYBASE_BINPATH:-}
-redirector_binpath=${REDIRECTOR_BINPATH:-}
 kbfs_binpath=${KBFS_BINPATH:-}
+redirector_binpath=${REDIRECTOR_BINPATH:`dirname $KBFS_BINPATH`/keybase-redirector}
 kbnm_binpath=${KBNM_BINPATH:-}
 updater_binpath=${UPDATER_BINPATH:-}
 
@@ -152,6 +152,7 @@ get_deps() {(
   if [ ! "$kbfs_binpath" = "" ]; then
     echo "Using local kbfs binpath: $kbfs_binpath"
     cp "$kbfs_binpath" .
+    cp "$git_remote_keybase_binpath" .
     cp "$redirector_binpath" .
   else
     kbfs_url="https://github.com/keybase/kbfs/releases/download/v$kbfs_version/kbfs-$kbfs_version-darwin.tgz"
