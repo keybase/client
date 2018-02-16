@@ -1465,26 +1465,25 @@ func (t *TeamSigChainPlayer) addInnerLink(
 							if err == nil {
 								// Found crypto member in previous
 								// state, we are good!
-								return nil
+								continue
 							}
 							_, _, found := prevState.FindActiveKeybaseInvite(uv.Uid)
 							if found {
 								// Found PUKless member in previous
 								// state, still fine!
-								return nil
+								continue
 							}
 							// Neither crypto member nor PUKless member
 							// found, we can't allow this addition.
 							return fmt.Errorf("Not found previous version of user %s", uv.Uid)
-						} else {
-							return fmt.Errorf("invalid invite type in implicit team: %v", cat)
 						}
+						return fmt.Errorf("invalid invite type in implicit team: %v", cat)
 					}
 				}
 
 				var cancelledUVs []keybase1.UserVersion
-				for _, inviteId := range cancelations {
-					invite, found := prevState.FindActiveInviteByID(inviteId)
+				for _, inviteID := range cancelations {
+					invite, found := prevState.FindActiveInviteByID(inviteID)
 					if !found {
 						return fmt.Errorf("encountered cancellation of invite that doesn't exist")
 					}
