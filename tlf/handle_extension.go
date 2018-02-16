@@ -123,14 +123,26 @@ type HandleExtension struct {
 
 // String implements the fmt.Stringer interface for HandleExtension.
 // Ex: "(conflicted copy 2016-05-09 #2)"
-func (e HandleExtension) String() string {
+func (e HandleExtension) string(isBackedByTeam bool) string {
 	date := time.Unix(e.Date, 0).UTC().Format(handleExtensionDateFormat)
 	var num string
-	if e.Number > 0 {
+	minNumberSuffixToShow := uint16(2)
+	if isBackedByTeam {
+		// When a TLF is backed by an implicit team, it should always
+		// use the "#1" suffix, unlike for older TLFs.
+		minNumberSuffixToShow = 1
+	}
+	if e.Number >= minNumberSuffixToShow {
 		num = " #"
 		num += strconv.FormatUint(uint64(e.Number), 10)
 	}
 	return fmt.Sprintf(handleExtensionFormat, e.Type.String(e.Username), date, num)
+}
+
+// String implements the fmt.Stringer interface for HandleExtension.
+// Ex: "(conflicted copy 2016-05-09 #2)"
+func (e HandleExtension) String() string {
+	return e.string(false)
 }
 
 // NewHandleExtension returns a new HandleExtension struct
@@ -223,11 +235,12 @@ func ParseHandleExtensionSuffix(s string) ([]HandleExtension, error) {
 }
 
 // newHandleExtensionSuffix creates a suffix string given a set of extensions.
-func newHandleExtensionSuffix(extensions []HandleExtension) string {
+func newHandleExtensionSuffix(
+	extensions []HandleExtension, isBackedByTeam bool) string {
 	var suffix string
 	for _, extension := range extensions {
 		suffix += HandleExtensionSep
-		suffix += extension.String()
+		suffix += extension.string(isBackedByTeam)
 	}
 	return suffix
 }
@@ -263,5 +276,12 @@ func (l HandleExtensionList) Splat() (ci, fi *HandleExtension) {
 
 // Suffix outputs a suffix string for this extension list.
 func (l HandleExtensionList) Suffix() string {
-	return newHandleExtensionSuffix(l)
+	return newHandleExtensionSuffix(l, false)
+}
+
+// SuffixForTeamHandle outputs a suffix string for this extension list
+// for a handle that's backed by a team (which must be an implicit
+// team, since there aren't any suffixes for regulat teams).
+func (l HandleExtensionList) SuffixForTeamHandle() string {
+	return newHandleExtensionSuffix(l, true)
 }

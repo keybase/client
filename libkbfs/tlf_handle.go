@@ -199,7 +199,11 @@ func (h TlfHandle) recomputeNameWithExtensions() tlf.CanonicalName {
 	newName := components[0]
 	extensionList := tlf.HandleExtensionList(h.Extensions())
 	sort.Sort(extensionList)
-	newName += extensionList.Suffix()
+	if h.IsBackedByTeam() {
+		newName += extensionList.SuffixForTeamHandle()
+	} else {
+		newName += extensionList.Suffix()
+	}
 	return tlf.CanonicalName(newName)
 }
 
