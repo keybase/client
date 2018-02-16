@@ -21,6 +21,7 @@ type StateProps = {
 
 type _sortSettingSetter = (setting: Types._SortSetting) => void
 type DispatchProps = {
+  loadFolderList: (path: Types.Path) => void,
   _sortSettingChangeFactory: (path: Types.Path) => _sortSettingSetter,
 }
 
@@ -37,42 +38,45 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _loadFolderList: (path: Types.Path) => dispatch(FsGen.createFolderListLoad({path})),
+  loadFolderList: (path: Types.Path) => dispatch(FsGen.createFolderListLoad({path})),
   _sortSettingChangeFactory: (path: Types.Path) => (setting: Types.SortSetting) =>
     dispatch(FsGen.createSortSetting({path: path, sortSetting: Constants.makeSortSetting(setting)})),
 })
 
-const mergeProps = (
-  {path, itemNames, progress, sortSetting, pathItems, username}: StateProps,
-  {_sortSettingChangeFactory, ...dispatchProps}: DispatchProps,
-  ownProps
-) => ({
-  items: Constants.sortPathItems(
-    itemNames
-      .map(name => Types.pathConcat(path, name))
-      .map(p => pathItems.get(p, Constants.makeUnknownPathItem())), // provide an unknown default to make flow happy
-    sortSetting,
-    Types.pathIsNonTeamTLFList(path) ? username : undefined
-  )
-    .map(({name}) => Types.pathConcat(path, name))
-    .toArray(),
-  progress,
-  path,
-  sortSetting,
-  ...Types.sortSettingToIconTypeAndText(sortSetting),
-  setSortSetting: _sortSettingChangeFactory(path),
-  /* TODO: enable these once we need them:
-  name: Types.getPathName(stateProps.path),
-  visibility: Types.getPathVisibility(stateProps.path),
-  */
-  ...dispatchProps,
-})
+const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps) => {
+  const setSortSetting = dispatchProps._sortSettingChangeFactory(stateProps.path)
+  return {
+    items: Constants.sortPathItems(
+      stateProps.itemNames.map(name => Types.pathConcat(stateProps.path, name)).map(
+        p => stateProps.pathItems.get(p, Constants.makeUnknownPathItem()) // provide an unknown default to make flow happy
+      ),
+      stateProps.sortSetting,
+      Types.pathIsNonTeamTLFList(stateProps.path) ? stateProps.username : undefined
+    )
+      .map(({name}) => Types.pathConcat(stateProps.path, name))
+      .toArray(),
+    progress: stateProps.progress,
+    path: stateProps.path,
+    sortSetting: stateProps.sortSetting,
+
+    setSortByNameAsc: () => setSortSetting({sortBy: 'name', sortOrder: 'asc'}),
+    setSortByNameDesc: () => setSortSetting({sortBy: 'name', sortOrder: 'desc'}),
+    setSortByTimeAsc: () => setSortSetting({sortBy: 'time', sortOrder: 'asc'}),
+    setSortByTimeDesc: () => setSortSetting({sortBy: 'time', sortOrder: 'desc'}),
+
+    loadFolderList: dispatchProps.loadFolderList,
+    /* TODO: enable these once we need them:
+    name: Types.getPathName(stateProps.path),
+    visibility: Types.getPathVisibility(stateProps.path),
+    */
+  }
+}
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentWillMount() {
-      this.props._loadFolderList(this.props.path)
+      this.props.loadFolderList(this.props.path)
     },
   }),
   setDisplayName('Files')

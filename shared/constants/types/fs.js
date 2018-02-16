@@ -1,6 +1,5 @@
 // @flow
 import * as I from 'immutable'
-import {type IconType} from '../../common-adapters/icon'
 
 export opaque type Path = ?string
 
@@ -95,39 +94,9 @@ export const stringToPathType = (s: string): PathType => {
 export const pathTypeToString = (p: PathType): string => p
 export const pathConcat = (p: Path, s: string): Path =>
   p === '/' ? stringToPath('/' + s) : stringToPath(pathToString(p) + '/' + s)
-export const pathIsNonTeamTLFList = (p: Path): boolean =>
-  pathToString(p) === '/keybase/private' || pathToString(p) === '/keybase/public'
-
-export type sortSettingDisplayParams = {
-  sortSettingText: string,
-  sortSettingIconType: IconType,
-}
-
-export const sortSettingToIconTypeAndText = (s: SortSetting): sortSettingDisplayParams => {
-  switch (s.sortBy) {
-    case 'name':
-      return s.sortOrder === 'asc'
-        ? {
-            sortSettingIconType: 'iconfont-new',
-            sortSettingText: 'Name ascending',
-          }
-        : {
-            sortSettingIconType: 'iconfont-new',
-            sortSettingText: 'Name descending',
-          }
-    case 'time':
-      return s.sortOrder === 'asc'
-        ? {
-            sortSettingIconType: 'iconfont-new',
-            sortSettingText: 'Recent first',
-          }
-        : {
-            sortSettingIconType: 'iconfont-new',
-            sortSettingText: 'Older first',
-          }
-    default:
-      throw new Error('invalid SortBy')
-  }
+export const pathIsNonTeamTLFList = (p: Path): boolean => {
+  const str = pathToString(p)
+  return str === '/keybase/private' || str === '/keybase/public'
 }
 
 type PathItemComparer = (a: PathItem, b: PathItem) => number
