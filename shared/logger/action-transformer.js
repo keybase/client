@@ -5,6 +5,7 @@
 import * as I from 'immutable'
 import * as RouteTreeConstants from '../constants/route-tree'
 import * as AppGen from '../actions/app-gen'
+import * as Chat2Gen from '../actions/chat2-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as GregorGen from '../actions/gregor-gen'
 import * as EngineGen from '../actions/engine-gen'
@@ -62,6 +63,7 @@ const actionTransformMap: {[key: string]: ActionTransformer<*, *>} = {
   [EngineGen.waitingForRpc]: nullTransform,
   [GregorGen.pushOOBM]: nullTransform,
   [AppGen.changedFocus]: nullTransform,
+  [Chat2Gen.setLoading]: a => a,
 }
 
 const transformActionForLog: ActionTransformer<*, *> = (action, state) =>

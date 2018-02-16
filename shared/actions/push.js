@@ -1,5 +1,6 @@
 // @flow
 import logger from '../logger'
+import * as AppGen from './app-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as PushGen from './push-gen'
 import * as ChatTypes from '../constants/types/chat2'
@@ -45,10 +46,18 @@ function* permissionsRequestSaga(): Saga.SagaGenerator<any, any> {
   }
 }
 
+// we set this flag when we handle a push so additional pushes don't cause our logic to be weird
+// given a session (being in the foreground) we only want to handle one push
+let handledPushThisSession = false
+const resetHandledPush = () => {
+  handledPushThisSession = false
+}
+
 function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.SagaGenerator<any, any> {
   logger.info('Push notification:', notification)
   const payload = notification.payload.notification
   if (payload) {
+    console.log('aaa push saga', payload)
     // Handle types that are not from user interaction
     if (payload.type === 'chat.newmessageSilent_2') {
       logger.info('Push notification: silent notification received')
@@ -96,6 +105,10 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
         yield Saga.call(RPCTypes.appStateUpdateAppStateRpcPromise, {
           state: RPCTypes.appStateAppState.foreground,
         })
+        if (handledPushThisSession) {
+          return
+        }
+        handledPushThisSession = true
         const conversationIDKey = ChatTypes.stringToConversationIDKey(convID)
         yield Saga.put(
           Chat2Gen.createSelectConversationDueToPush({
@@ -103,7 +116,6 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
             phase: 'showImmediately',
           })
         )
-
         yield Saga.put(Chat2Gen.createSetLoading({key: 'pushLoad', loading: true}))
         yield Saga.put(switchTo([chatTab, 'conversation']))
       } else if (payload.type === 'follow') {
@@ -200,6 +212,7 @@ function* pushSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeLatest(PushGen.savePushToken, savePushTokenSaga)
   yield Saga.safeTakeLatest(PushGen.configurePush, configurePushSaga)
   yield Saga.safeTakeEvery(PushGen.notification, pushNotificationSaga)
+  yield Saga.safeTakeEveryPure(AppGen.mobileAppState, resetHandledPush)
 }
 
 export default pushSaga
