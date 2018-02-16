@@ -146,7 +146,7 @@ func (b *Badger) log(state1 keybase1.BadgeState) {
 		if len(c1.ConvID) >= chat1.DbShortFormLen {
 			// This is the db short form for logging brevity only.
 			// Don't let this leave this method.
-			c2id = chat1.ConversationID([]byte(c1.ConvID)).DbShortForm()
+			c2id = keybase1.ChatConversationID(chat1.ConversationID([]byte(c1.ConvID)).DbShortForm())
 		}
 
 		c2 := keybase1.BadgeConversationInfo{

@@ -8,6 +8,7 @@
   @typedef("uint") @lint("ignore") record TLFConvOrdinal {}
   @typedef("bytes")  record TopicID {}
   @typedef("bytes")  record ConversationID {}
+  @typedef("bytes")  record ConvIDShort {}
   @typedef("bytes")  record TLFID {}
   @typedef("bytes")  record Hash {}
   @typedef("uint64") @lint("ignore") record InboxVers {}

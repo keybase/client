@@ -47,6 +47,12 @@
     },
     {
       "type": "record",
+      "name": "ConvIDShort",
+      "fields": [],
+      "typedef": "bytes"
+    },
+    {
+      "type": "record",
       "name": "TLFID",
       "fields": [],
       "typedef": "bytes"

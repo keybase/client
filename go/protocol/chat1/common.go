@@ -55,6 +55,17 @@ func (o ConversationID) DeepCopy() ConversationID {
 	})(o)
 }
 
+type ConvIDShort []byte
+
+func (o ConvIDShort) DeepCopy() ConvIDShort {
+	return (func(x []byte) []byte {
+		if x == nil {
+			return nil
+		}
+		return append([]byte{}, x...)
+	})(o)
+}
+
 type TLFID []byte
 
 func (o TLFID) DeepCopy() TLFID {
