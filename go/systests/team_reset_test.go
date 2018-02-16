@@ -931,12 +931,22 @@ func TestTeamResetBadges(t *testing.T) {
 	// users[0] adds users[1] back to the team
 	tt.users[0].addTeamMember(teamName.String(), tt.users[1].username, keybase1.TeamRole_WRITER)
 
-	// tt.users[0].waitForTeamChangedGregor(teamID, keybase1.Seqno(3))
-
 	// wait for badge state to have no teams w/ reset member
 	tt.users[0].waitForBadgeStateWithReset(0)
 
 	// badge state should be cleared
+	badgeState = getBadgeState(t, tt.users[0])
+	if len(badgeState.TeamsWithResetUsers) != 0 {
+		t.Errorf("badge state for TeamsWithResetUsers not empty: %d", len(badgeState.TeamsWithResetUsers))
+	}
+
+	// users[1] resets again
+	tt.users[1].reset()
+	tt.users[0].waitForBadgeStateWithReset(1)
+	// users[0] removes users[1] from the team
+	tt.users[0].removeTeamMember(teamName.String(), tt.users[1].username)
+	// badge state should clear
+	tt.users[0].waitForBadgeStateWithReset(0)
 	badgeState = getBadgeState(t, tt.users[0])
 	if len(badgeState.TeamsWithResetUsers) != 0 {
 		t.Errorf("badge state for TeamsWithResetUsers not empty: %d", len(badgeState.TeamsWithResetUsers))

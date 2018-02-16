@@ -281,6 +281,16 @@ func (u *userPlusDevice) addTeamMember(team, username string, role keybase1.Team
 	}
 }
 
+func (u *userPlusDevice) removeTeamMember(team, username string) {
+	rm := client.NewCmdTeamRemoveMemberRunner(u.tc.G)
+	rm.Team = team
+	rm.Username = username
+	rm.Force = true
+	if err := rm.Run(); err != nil {
+		u.tc.T.Fatal(err)
+	}
+}
+
 func (u *userPlusDevice) leave(team string) {
 	leave := client.NewCmdTeamLeaveRunner(u.tc.G)
 	leave.Team = team
@@ -435,8 +445,9 @@ func (u *userPlusDevice) waitForBadgeStateWithReset(numReset int) {
 	for i := 0; i < 10; i++ {
 		select {
 		case arg := <-u.notifications.badgeCh:
-			u.tc.T.Logf("badge state received: %+v", arg)
+			u.tc.T.Logf("badge state received: %+v", arg.TeamsWithResetUsers)
 			if len(arg.TeamsWithResetUsers) == numReset {
+				u.tc.T.Logf("badge state length match")
 				return
 			}
 		case <-time.After(1 * time.Second * libkb.CITimeMultiplier(u.tc.G)):
