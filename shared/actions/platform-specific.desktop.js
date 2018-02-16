@@ -52,7 +52,12 @@ function clearAllNotifications() {
   throw new Error('Clear all notifications not available on this platform')
 }
 
+function openAppSettings() {
+  throw new Error('No app settings')
+}
+
 export {
+  openAppSettings,
   requestPushPermissions,
   showMainWindow,
   configurePush,

@@ -18,7 +18,9 @@ export type PushNotification = {
 }
 
 export type State = {
+  checkOnStart: boolean, // if we want to recheck on foregrounding
   token: string,
+  hasPermissions: boolean, // we can get a token with no permissions!
   tokenType: ?TokenType,
   permissionsRequesting: boolean,
   permissionsPrompt: boolean,

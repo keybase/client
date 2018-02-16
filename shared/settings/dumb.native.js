@@ -25,6 +25,7 @@ const settingsNavMap: DumbComponentMap<SettingsNav> = {
     Normal: {
       selectedTab: settingsConstants.landingTab,
       onTabChange: tab => console.log('clicked', tab),
+      badgePushNotification: false,
       onLogout: () => {},
       badgeNumbers: {},
     },

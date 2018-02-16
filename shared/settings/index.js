@@ -5,6 +5,7 @@ import {pausableConnect, type TypedState} from '../util/container'
 import {switchTo} from '../actions/route-tree'
 import {type RouteProps} from '../route-tree/render-route'
 import {type Tab} from '../constants/types/settings'
+import * as PushConstants from '../constants/push'
 
 const getNavBadges = (state: TypedState) => state.notifications.get('navBadges')
 
@@ -25,6 +26,7 @@ const mapStateToProps = (
     isModal: routeLeafTags.modal,
     // TODO: Is there a way to validate that routeSelected is a Tab?
     selectedTab: (routeSelected: any),
+    badgePushNotification: PushConstants.showSettingsBadge(state),
   }
 }
 

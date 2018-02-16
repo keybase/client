@@ -36,3 +36,4 @@ export {
   defaultMemoize,
 }
 export {Dispatch} from '../constants/types/flux'
+export {isMobile} from '../constants/platform'

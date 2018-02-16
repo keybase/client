@@ -276,6 +276,8 @@ const deleteConfirmMap: DumbComponentMap<DeleteConfirm> = {
 }
 
 const commonSettings = {
+  showPushNotificationsButton: false,
+  onAcceptPush: () => {},
   groups: {
     app_push: {
       settings: [

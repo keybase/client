@@ -14,6 +14,7 @@ export type Settings = Array<{
 
 export type Props = {
   allowEdit: boolean,
+  showPushNotificationsButton: boolean,
   groups: {
     app_push?: Group,
     email?: Group,
@@ -24,6 +25,7 @@ export type Props = {
   onToggle: (groupName: string, name: string) => void,
   onToggleUnsubscribeAll: (group: string) => void,
   waitingForResponse: boolean,
+  onAcceptPush: () => void,
 }
 
 export default class Notifications extends Component<Props> {}
