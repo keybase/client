@@ -475,6 +475,8 @@ func (h *Server) mergeLocalRemoteThread(ctx context.Context, remoteThread, local
 					res.Messages = append(res.Messages, m)
 				}
 			}
+			h.Debug(ctx, "mergeLocalRemoteThread: incremental cb mode: orig: %d post: %d",
+				len(remoteThread.Messages), len(res.Messages))
 			return res, nil
 		}
 		return *remoteThread, nil
@@ -487,7 +489,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
 	defer h.Trace(ctx, func() error { return fullErr },
-		fmt.Sprintf("GetThreadNonblock(%s)", arg.ConversationID))()
+		fmt.Sprintf("GetThreadNonblock(%s,%v)", arg.ConversationID, arg.CbMode))()
 	defer func() {
 		fullErr = h.handleOfflineError(ctx, fullErr, &res)
 
