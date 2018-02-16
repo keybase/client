@@ -271,3 +271,17 @@ func (b *BadgeState) updateWithChat(update chat1.UnreadUpdate) {
 		}
 	}
 }
+
+func (b *BadgeState) FindResetMemberBadges(teamName string) (badges []keybase1.TeamMemberOutReset) {
+	b.Lock()
+	defer b.Unlock()
+
+	for _, badge := range b.state.TeamsWithResetUsers {
+		if badge.Teamname != teamName {
+			continue
+		}
+		badges = append(badges, badge)
+	}
+
+	return badges
+}
