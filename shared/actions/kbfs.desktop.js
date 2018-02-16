@@ -263,14 +263,14 @@ function uninstallKBFSSagaSuccess(result: RPCTypes.UninstallResult) {
 }
 
 function* openWithCurrentMountDir(openPath: string): Saga.SagaGenerator<any, any> {
-  const goodPath = path.normalize(openPath)
+  const goodPath = path.posix.normalize(openPath)
   if (!openPath.startsWith(Constants.defaultKBFSPath)) {
     throw new Error(`openWithCurrentMountDir requires ${Constants.defaultKBFSPath} prefix: ${openPath}`)
   }
 
   // turns '/keybase/private/alice' to 'private/alice'
   const subPath = goodPath
-    .split(path.sep)
+    .split('/')
     .slice(2)
     .join(path.sep)
 
