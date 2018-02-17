@@ -1155,7 +1155,7 @@ func (c *ChainLink) Store(g *GlobalContext) (didStore bool, err error) {
 	key := DbKey{Typ: DBLink, Key: c.id.String()}
 
 	// Don't write with any aliases
-	if err = g.LocalDb.Put(key, []DbKey{}, packed); err != nil {
+	if err = g.LocalDb.Put(key, nil, packed); err != nil {
 		return false, err
 	}
 	g.VDL.Log(VLog1, "| Store Link %s", c.id)

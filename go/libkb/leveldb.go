@@ -11,6 +11,7 @@ import (
 
 	"github.com/syndtr/goleveldb/leveldb"
 	errors "github.com/syndtr/goleveldb/leveldb/errors"
+	"github.com/syndtr/goleveldb/leveldb/filter"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 )
 
@@ -106,9 +107,15 @@ func NewLevelDb(g *GlobalContext, filename func() string) *LevelDb {
 // Explicit open does nothing we'll wait for a lazy open
 func (l *LevelDb) Open() error { return nil }
 
+// Opts returns the options for all leveldb databases.
+//
+// PC: I think it's worth trying a bloom filter.  From docs:
+// "In many cases, a filter can cut down the number of disk
+// seeks from a handful to a single disk seek per DB.Get call."
 func (l *LevelDb) Opts() *opt.Options {
 	return &opt.Options{
 		OpenFilesCacheCapacity: l.G().Env.GetLevelDBNumFiles(),
+		Filter:                 filter.NewBloomFilter(10),
 	}
 }
 
