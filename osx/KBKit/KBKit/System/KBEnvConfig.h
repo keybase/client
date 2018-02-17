@@ -68,6 +68,7 @@ typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
 - (NSString *)serviceBinPathWithPathOptions:(KBPathOptions)pathOptions servicePath:(NSString *)servicePath;
 - (NSString *)kbfsBinPathWithPathOptions:(KBPathOptions)pathOptions servicePath:(NSString *)servicePath;
 - (NSString *)gitRemoteHelperName;
+- (NSString *)redirectorName;
 
 - (BOOL)validate:(NSError **)error;
 
