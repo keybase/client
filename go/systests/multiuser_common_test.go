@@ -574,7 +574,7 @@ func (u *smuUser) dbNuke() {
 }
 
 func (u *smuUser) userVersion() keybase1.UserVersion {
-	uv, err := u.primaryDevice().userClient().MeUserVersion(context.Background(), 0)
+	uv, err := u.primaryDevice().userClient().MeUserVersion(context.Background(), keybase1.MeUserVersionArg{ForcePoll: true})
 	require.NoError(u.ctx.t, err)
 	return uv
 }

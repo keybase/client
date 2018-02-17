@@ -239,7 +239,7 @@ func testImplicitResetParametrized(t *testing.T, startPUK, getPUKAfter bool) {
 		ann.pollForTeamSeqnoLinkWithLoadArgs(keybase1.LoadTeamArg{ID: iteam.ID}, expectedSeqno)
 	}
 
-	teamObj = ann.loadTeamByID(iteam.ID, true)
+	teamObj := ann.loadTeamByID(iteam.ID, true)
 
 	// Bob is now a real crypto member!
 	role, err := teamObj.MemberRole(context.Background(), bob.userVersion())
@@ -281,33 +281,31 @@ func TestImplicitResetNoPukEncore(t *testing.T) {
 	// 6. when they are re-added, old PUKful bob is removed to make
 	//    room for new PUK-ful bob, BUT: old invite stays as well,
 	//    and is never sweeped by anything :()
+	tt := newTeamTester(t)
+	defer tt.cleanup()
 
-	ctx := newSMUContext(t)
-	defer ctx.cleanup()
-
-	ann := ctx.installKeybaseForUser("ann", 5)
-	ann.signup()
+	ann := tt.addUser("ann")
 	t.Logf("Signed up ann (%s)", ann.username)
 
-	bob := ctx.installKeybaseForUser("bob", 5)
-	bob.signup()
+	bob := tt.addUser("bob")
 	t.Logf("Signed up bob (%s)", bob.username)
 
 	displayName := strings.Join([]string{ann.username, bob.username}, ",")
-	iteam := ann.lookupImplicitTeam(true /* create */, displayName, false /* isPublic */)
-	t.Logf("impteam created for %q (id: %s)", displayName, iteam.ID)
+	iteam, err := ann.lookupImplicitTeam(true /* create */, displayName, false /* isPublic */)
+	require.NoError(t, err)
+	t.Logf("impteam created for %q (id: %s)", displayName, iteam)
 
 	bob.reset()
-	bob.loginAfterResetNoPUK(5)
+	bob.loginAfterResetPukless()
 
 	ann.reAddUserAfterReset(iteam, bob)
 
 	bob.reset()
-	bob.loginAfterReset(5)
+	bob.loginAfterReset()
 
 	ann.reAddUserAfterReset(iteam, bob)
 
-	teamObj := ann.loadTeamByID(iteam.ID, true)
+	teamObj := ann.loadTeamByID(iteam, true)
 	role, err := teamObj.MemberRole(context.Background(), bob.userVersion())
 	require.NoError(t, err)
 	require.Equal(t, keybase1.TeamRole_OWNER, role)

@@ -344,9 +344,28 @@ func (u *userPlusDevice) addTeamMemberEmail(team, email string, role keybase1.Te
 	}
 }
 
+func (u *userPlusDevice) reAddUserAfterReset(team keybase1.TeamID, w *userPlusDevice) {
+	err := u.teamsClient.TeamReAddMemberAfterReset(context.Background(),
+		keybase1.TeamReAddMemberAfterResetArg{
+			Id:       team,
+			Username: w.username,
+		})
+	require.NoError(u.tc.T, err)
+}
+
 func (u *userPlusDevice) loadTeam(teamname string, admin bool) *teams.Team {
 	team, err := teams.Load(context.Background(), u.tc.G, keybase1.LoadTeamArg{
 		Name:        teamname,
+		NeedAdmin:   admin,
+		ForceRepoll: true,
+	})
+	require.NoError(u.tc.T, err)
+	return team
+}
+
+func (u *userPlusDevice) loadTeamByID(teamID keybase1.TeamID, admin bool) *teams.Team {
+	team, err := teams.Load(context.Background(), u.tc.G, keybase1.LoadTeamArg{
+		ID:          teamID,
 		NeedAdmin:   admin,
 		ForceRepoll: true,
 	})
