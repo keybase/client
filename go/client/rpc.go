@@ -96,7 +96,7 @@ func RegisterProtocolsWithContext(prots []rpc.Protocol, g *libkb.GlobalContext) 
 			if _, ok := err.(rpc.AlreadyRegisteredError); !ok {
 				return err
 			}
-			g.Log.Debug("Protocol already resgistered: %v", err)
+			g.Log.Debug("Protocol already registered: %v", err)
 			err = nil
 		}
 	}
