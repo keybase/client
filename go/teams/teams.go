@@ -965,7 +965,7 @@ func (t *Team) postTeamInvites(ctx context.Context, invites SCTeamInvites) error
 
 	err = t.precheckLinksToPost(ctx, []libkb.SigMultiItem{sigMultiItem})
 	if err != nil {
-		return fmt.Errorf("cannot post link (precheck): %v", err)
+		return err
 	}
 
 	payload := t.sigPayload(sigMultiItem, sigPayloadArgs{})
@@ -1092,7 +1092,7 @@ func (t *Team) postChangeItem(ctx context.Context, section SCTeamSection, linkTy
 
 	err = t.precheckLinksToPost(ctx, []libkb.SigMultiItem{sigMultiItem})
 	if err != nil {
-		return fmt.Errorf("cannot post link (precheck): %v", err)
+		return err
 	}
 
 	// make the payload

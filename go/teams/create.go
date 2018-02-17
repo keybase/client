@@ -237,7 +237,8 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me *lib
 
 	err = precheckLinkToPost(ctx, g, sigMultiItem, nil, me.ToUserVersion())
 	if err != nil {
-		return fmt.Errorf("cannot post link (precheck): %v", err)
+		g.Log.CDebugf(ctx, "cannot post link (precheck): %v", err)
+		return err
 	}
 
 	g.Log.CDebugf(ctx, "makeSigAndPostRootTeam post sigs")
