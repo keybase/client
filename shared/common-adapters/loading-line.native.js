@@ -26,6 +26,7 @@ class LoadingLine extends Component<Props, {fadeAnim: any}> {
         NativeAnimated.timing(this.state.fadeAnim, {
           duration: 600,
           easing: NativeEasing.ease,
+          isInteraction: false,
           toValue: 0,
           useNativeDriver: true,
         }).start(() => this._animate())

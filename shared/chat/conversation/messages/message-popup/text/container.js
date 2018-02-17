@@ -5,6 +5,7 @@ import * as Types from '../../../../../constants/types/chat2'
 import * as Route from '../../../../../actions/route-tree'
 import {getCanPerform} from '../../../../../constants/teams'
 import {connect, type TypedState, type Dispatch} from '../../../../../util/container'
+import {copyToClipboard} from '../../../../../util/clipboard'
 import flags from '../../../../../util/feature-flags'
 import Text from '.'
 
@@ -25,6 +26,11 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
+  _onCopy: (message: Types.Message) => {
+    if (message.type === 'text') {
+      copyToClipboard(message.text.stringValue())
+    }
+  },
   _onDelete: (message: Types.Message) =>
     dispatch(
       Chat2Gen.createMessageDelete({
@@ -51,6 +57,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const yourMessage = message.author === stateProps._you
   return {
     message,
+    onCopy: () => dispatchProps._onCopy(message),
     onDelete: yourMessage ? () => dispatchProps._onDelete(message) : null,
     onDeleteMessageHistory: stateProps._canDeleteHistory
       ? () => dispatchProps._onDeleteMessageHistory(message)

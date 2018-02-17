@@ -47,7 +47,7 @@ const tabBarHeight = isIPhoneX ? 80 : 48
 
 const stylesTabBar = {
   ...globalStyles.flexBoxRow,
-  backgroundColor: globalColors.darkBlue2,
+  backgroundColor: 'red', // TEMP for chat branch globalColors.darkBlue2,
   height: tabBarHeight,
   justifyContent: 'flex-start',
   ...(isIPhoneX

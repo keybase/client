@@ -7,6 +7,7 @@ import {isMobile} from '../../../../../util/container'
 
 type Props = {
   message: Types.MessageText,
+  onCopy: () => void,
   onDelete: ?() => void,
   onDeleteMessageHistory: ?() => void,
   onEdit: ?() => void,
@@ -20,6 +21,7 @@ const TextPopupMenu = (props: Props) => {
   const items = props.yourMessage
     ? [
         ...(props.showDivider ? ['Divider'] : []),
+        {onClick: props.onCopy, title: 'Copy Text'},
         {disabled: !props.onEdit, onClick: props.onEdit, title: 'Edit'},
         {
           danger: true,
@@ -40,7 +42,7 @@ const TextPopupMenu = (props: Props) => {
             ]
           : []),
       ]
-    : []
+    : [{onClick: props.onCopy, title: 'Copy Text'}]
 
   const header = {
     title: 'header',
