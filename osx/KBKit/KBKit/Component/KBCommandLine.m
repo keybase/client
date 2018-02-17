@@ -48,13 +48,6 @@
     DDLogDebug(@"Result: %@", value);
     completion(error);
   }];
-
-  NSDictionary *redirectorParams = @{@"directory": self.servicePath, @"name": self.config.redirectorName, @"appName": self.config.appName};
-  DDLogDebug(@"Helper: addToPath(%@)", redirectorParams);
-  [self.helperTool.helper sendRequest:@"addToPath" params:@[redirectorParams] completion:^(NSError *error, id value) {
-    DDLogDebug(@"Result: %@", value);
-    completion(error);
-  }];
 }
 
 - (void)uninstall:(KBCompletion)completion {
