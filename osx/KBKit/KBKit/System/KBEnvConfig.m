@@ -149,10 +149,6 @@
   return @"git-remote-keybase";
 }
 
-- (NSString *)redirectorName {
-  return @"keybase-redirector";
-}
-
 - (NSString *)kbfsBinName {
   switch(_runMode) {
     case KBRunModeDevel: return @"kbfsdev";
