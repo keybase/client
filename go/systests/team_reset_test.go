@@ -676,17 +676,25 @@ func TestTeamRemoveMemberAfterDelete(t *testing.T) {
 	team := ann.createTeam([]*smuUser{bob})
 	divDebug(ctx, "team created (%s)", team.name)
 
+	bobUID := bob.uid()
+
 	bob.delete()
 	divDebug(ctx, "Bob deleted (%s)", bob.username)
 
 	ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2), nil)
 
-	// bob stays in multiple caches (UPAK, resolver etc.) so it's
-	// easier to just nuke to observe "user deleted" errors.
-	ann.dbNuke()
+	// Ensure ann sees bob as deleted, and not some cached remnant of
+	// the past.
+	ann.primaryDevice().clearUPAKCache()
+	G := ann.getPrimaryGlobalContext()
+	arg := libkb.NewLoadUserArg(G).WithNetContext(context.Background()).
+		WithUID(bobUID).WithPublicKeyOptional()
+	upak, _, err := G.GetUPAKLoader().LoadV2(arg)
+	require.NoError(t, err)
+	require.EqualValues(t, libkb.SCDeleted, upak.Current.Status)
 
 	cli := ann.getTeamsClient()
-	err := cli.TeamRemoveMember(context.Background(), keybase1.TeamRemoveMemberArg{
+	err = cli.TeamRemoveMember(context.Background(), keybase1.TeamRemoveMemberArg{
 		Name:     team.name,
 		Username: bob.username,
 	})
