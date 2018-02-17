@@ -1,9 +1,7 @@
 package gregor1
 
 import (
-	"bytes"
 	"errors"
-	"sort"
 	"time"
 
 	"github.com/keybase/client/go/gregor"
@@ -163,30 +161,8 @@ func (o ObjFactory) MakeStateSyncMessage(uid gregor.UID, msgid gregor.MsgID, dev
 	}, nil
 }
 
-type itemSlice []ItemAndMetadata
-
-func (its itemSlice) Len() int      { return len(its) }
-func (its itemSlice) Swap(i, j int) { its[i], its[j] = its[j], its[i] }
-
-// Less returns true if i's ctime is before j's, or if they're equal and
-// i's MsgID is lexicographically before j's.
-func (its itemSlice) Less(i, j int) bool {
-	mI, mJ := its[i].Metadata(), its[j].Metadata()
-	if mI != nil && mJ != nil {
-		if mI.CTime().Equal(mJ.CTime()) {
-			if mI.MsgID() != nil && mJ.MsgID() != nil {
-				return bytes.Compare(mI.MsgID().Bytes(), mJ.MsgID().Bytes()) < 0
-			} else {
-				return mI.MsgID() == nil
-			}
-		}
-		return mI.CTime().Before(mJ.CTime())
-	}
-	return mI == nil
-}
-
 func (o ObjFactory) MakeState(items []gregor.Item) (gregor.State, error) {
-	var ourItems itemSlice
+	var ourItems []ItemAndMetadata
 	for _, item := range items {
 		ourItem, err := castItem(item)
 		if err != nil {
@@ -194,7 +170,6 @@ func (o ObjFactory) MakeState(items []gregor.Item) (gregor.State, error) {
 		}
 		ourItems = append(ourItems, ourItem)
 	}
-	sort.Sort(ourItems)
 	return State{Items_: ourItems}, nil
 }
 
