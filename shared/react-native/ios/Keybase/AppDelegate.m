@@ -89,6 +89,7 @@ const BOOL isDebug = NO;
   [self addSkipBackupAttributeToItemAtPath:keybasePath];
 
   // Create LevelDB and log directories with a slightly lower data protection mode so we can use them in the background
+  [self createBackgroundReadableDirectory:keybasePath];
   [self createBackgroundReadableDirectory:chatLevelDBPath];
   [self createBackgroundReadableDirectory:levelDBPath];
   [self createBackgroundReadableDirectory:logPath];
