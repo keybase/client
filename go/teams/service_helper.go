@@ -272,10 +272,15 @@ func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID k
 		}
 
 		var existingRole keybase1.TeamRole
-		var existingInvite keybase1.TeamInvite
-		var isAnInvite bool
 		existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
-		if err != nil {
+		if err == nil {
+			// User is existing crypto member - get their current role.
+			role, err := t.MemberRole(ctx, existingUV)
+			if err != nil {
+				return err
+			}
+			existingRole = role
+		} else {
 			// UV not found - look for invites.
 			invite, foundUV, found := t.FindActiveKeybaseInvite(uv.Uid)
 			if !found {
@@ -285,17 +290,8 @@ func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID k
 					username, uv.Uid)}
 			}
 
-			isAnInvite = true
-			existingInvite = invite
 			existingRole = invite.Role
 			existingUV = foundUV
-		} else {
-			// User is existing crypto member - get their current role.
-			role, err := t.MemberRole(ctx, existingUV)
-			if err != nil {
-				return err
-			}
-			existingRole = role
 		}
 
 		if existingUV.EldestSeqno == uv.EldestSeqno {
@@ -306,30 +302,13 @@ func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID k
 		}
 
 		hasPUK := len(upak.Current.PerUserKeys) > 0
-		if !hasPUK {
-			invites, err := kbInviteFromRole(uv, existingRole)
-			if err != nil {
-				return err
-			}
-			if isAnInvite {
-				invites.Cancel = &[]SCTeamInviteID{SCTeamInviteID(existingInvite.Id)}
-			}
-			return t.postTeamInvites(ctx, invites)
-		}
 
-		req, err := reqFromRole(uv, existingRole)
-		if err != nil {
+		tx := CreateAddMemberTx(t)
+		if err := tx.ReAddMemberToImplicitTeam(ctx, uv, hasPUK, existingRole); err != nil {
 			return err
 		}
 
-		if isAnInvite {
-			req.CompletedInvites = make(SCMapInviteIDToUV)
-			req.CompletedInvites[existingInvite.Id] = uv.PercentForm()
-		} else {
-			req.None = []keybase1.UserVersion{existingUV}
-		}
-
-		return t.ChangeMembership(ctx, req)
+		return tx.Post(ctx)
 	})
 }
 

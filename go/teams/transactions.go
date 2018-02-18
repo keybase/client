@@ -319,6 +319,51 @@ func (tx *AddMemberTx) CompleteSocialInvitesFor(ctx context.Context, uv keybase1
 	return nil
 }
 
+func (tx *AddMemberTx) completeAllKeybaseInvitesForUID(uv keybase1.UserVersion) error {
+	// Find the right payload first
+	payload := tx.findChangeReqForUV(uv)
+	if payload == nil {
+		return fmt.Errorf("could not find uv %v in transaction", uv)
+	}
+
+	team := tx.team
+	for _, invite := range team.chain().inner.ActiveInvites {
+		if inviteUv, err := invite.KeybaseUserVersion(); err == nil {
+			if inviteUv.Uid.Equal(uv.Uid) {
+				if payload.CompletedInvites == nil {
+					payload.CompletedInvites = make(map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm)
+				}
+				payload.CompletedInvites[invite.Id] = uv.PercentForm()
+			}
+		}
+	}
+
+	return nil
+}
+
+func (tx *AddMemberTx) ReAddMemberToImplicitTeam(ctx context.Context, uv keybase1.UserVersion, hasPUK bool, role keybase1.TeamRole) error {
+	if hasPUK {
+		tx.addMember(uv, role)
+		tx.sweepCryptoMembers(uv.Uid)
+		if err := tx.completeAllKeybaseInvitesForUID(uv); err != nil {
+			return err
+		}
+	} else {
+		tx.createInvite(uv, role)
+		tx.sweepKeybaseInvites(uv.Uid)
+		// We cannot sweep crypto members here because we need to
+		// ensure that we are only posting one link, and if we want to
+		// add pukless member, it has to be invite link. So old crypto
+		// members have to stay for now.
+	}
+
+	if len(tx.payloads) != 1 {
+		return errors.New("ReAddMemberToImplicitTeam tried to create more than one link")
+	}
+
+	return nil
+}
+
 func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 	team := tx.team
 	g := team.G()

@@ -279,8 +279,8 @@ func TestImplicitResetNoPukEncore(t *testing.T) {
 	// TestImplicitResetPUKtoNoPUK and TestChatSrvUserReset)
 	// 5. now bob resets again, but this time gets a PUK
 	// 6. when they are re-added, old PUKful bob is removed to make
-	//    room for new PUK-ful bob, BUT: old invite stays as well,
-	//    and is never sweeped by anything :()
+	//    room for new PUK-ful bob, and old invite is also sweeped
+	//    (completed).
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -310,7 +310,6 @@ func TestImplicitResetNoPukEncore(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, keybase1.TeamRole_OWNER, role)
 
-	// commented out so the test doesn't fail.
-	// invites := teamObj.GetActiveAndObsoleteInvites()
-	// require.Equal(t, 0, len(invites), "leftover invite :(")
+	invites := teamObj.GetActiveAndObsoleteInvites()
+	require.Equal(t, 0, len(invites), "leftover invite")
 }
