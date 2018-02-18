@@ -260,34 +260,3 @@ func TestImplicitSBSConsolidation2(t *testing.T) {
 
 	trySBSConsolidation(t, "%v,%v#%v@rooter")
 }
-
-func TestImplicitInvalidLinks(t *testing.T) {
-	tt := newTeamTester(t)
-	defer tt.cleanup()
-
-	ann := tt.addUser("ann")
-	bob := tt.addUser("bob")
-
-	pam := tt.addUser("pam")
-	joe := tt.addPuklessUser("joe")
-
-	_ = joe
-
-	impteamName := strings.Join([]string{ann.username, bob.username}, ",")
-	teamID, err := ann.lookupImplicitTeam(true /* create */, impteamName, false)
-	require.NoError(t, err)
-
-	RequirePrecheckError := func(err error) {
-		require.Error(t, err)
-		require.IsType(t, teams.PrecheckAppendError{}, err)
-	}
-
-	teamObj := ann.loadTeamByID(teamID, true)
-	{
-		req := keybase1.TeamChangeReq{
-			Owners: []keybase1.UserVersion{pam.userVersion()},
-		}
-		err := teamObj.ChangeMembership(context.Background(), req)
-		RequirePrecheckError(err)
-	}
-}

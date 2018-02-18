@@ -317,3 +317,55 @@ func TestLoggedOutPublicTeamLoad(t *testing.T) {
 		require.NoError(t, err)
 	}
 }
+
+func TestImplicitInvalidLinks(t *testing.T) {
+	fus, tcs, cleanup := setupNTestsWithPukless(t, 4, 1)
+	defer cleanup()
+
+	ann := fus[0] // pukful user
+	bob := fus[1] // pukful user
+
+	pam := fus[2] // pukful user
+	joe := fus[3] // pukless user
+
+	_ = joe
+
+	impteamName := strings.Join([]string{ann.Username, bob.Username}, ",")
+	t.Logf("ann creates an implicit team: %v", impteamName)
+	teamObj, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, impteamName, false /*isPublic*/)
+	require.NoError(t, err)
+
+	RequirePrecheckError := func(err error) {
+		require.Error(t, err)
+		require.IsType(t, PrecheckAppendError{}, err)
+	}
+
+	{
+		// Adding entirely new member should be illegal
+		req := keybase1.TeamChangeReq{
+			Owners: []keybase1.UserVersion{pam.GetUserVersion()},
+		}
+		err := teamObj.ChangeMembership(context.Background(), req)
+		RequirePrecheckError(err)
+	}
+
+	{
+		invite := SCTeamInvite{
+			Type: "keybase",
+			Name: joe.GetUserVersion().TeamInviteName(),
+			ID:   NewInviteID(),
+		}
+
+		err := teamObj.postInvite(context.Background(), invite, keybase1.TeamRole_OWNER)
+		RequirePrecheckError(err)
+	}
+
+	{
+		// Removing existing member should be illegal
+		req := keybase1.TeamChangeReq{
+			None: []keybase1.UserVersion{bob.GetUserVersion()},
+		}
+		err := teamObj.ChangeMembership(context.Background(), req)
+		RequirePrecheckError(err)
+	}
+}
