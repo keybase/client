@@ -222,6 +222,8 @@ func (s *testDeviceSet) newDevice(nm string) *testDevice {
 		s.log = tctx.G.Log
 	}
 
+	installInsecureTriplesec(tctx.G)
+
 	ret := &testDevice{t: s.t, tctx: tctx, deviceName: nm}
 	s.devices = append(s.devices, ret)
 	return ret

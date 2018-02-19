@@ -12,11 +12,24 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	"github.com/stretchr/testify/require"
+
+	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
 )
+
+func InstallInsecureTriplesec(g *libkb.GlobalContext) {
+	g.NewTriplesec = func(passphrase []byte, salt []byte) (libkb.Triplesec, error) {
+		warner := func() { g.Log.Warning("Installing insecure Triplesec with weak stretch parameters") }
+		isProduction := func() bool {
+			return g.Env.GetRunMode() == libkb.ProductionRunMode
+		}
+		return insecureTriplesec.NewCipher(passphrase, salt, warner, isProduction)
+	}
+}
 
 func setupTest(tb testing.TB, name string) libkb.TestContext {
 	tc := libkb.SetupTest(tb, name, 1)
 	tc.G.SetServices(externals.GetServices())
+	InstallInsecureTriplesec(tc.G)
 	teams.NewTeamLoaderAndInstall(tc.G)
 	return tc
 }
