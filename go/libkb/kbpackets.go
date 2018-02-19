@@ -16,6 +16,7 @@ import (
 	"fmt"
 	"io"
 
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 )
 
@@ -188,25 +189,56 @@ func MsgpackDecodeAll(data []byte, handle *codec.MsgpackHandle, out interface{})
 func (p *KeybasePacket) unpackBody(ch *codec.MsgpackHandle) error {
 	var body interface{}
 
+	mb, ok := p.Body.(map[interface{}]interface{})
+	if !ok {
+		return errors.New("body not a generic map")
+	}
+
+	skipEncode := false
+
 	switch p.Tag {
 	case TagP3skb:
 		// We can't use this SKB until it's been SetContext'ed
 		body = NewSKB()
 	case TagSignature:
-		body = &NaclSigInfo{}
+		si := &NaclSigInfo{
+			Kid:      keybase1.BinaryKID(mb["key"].([]byte)),
+			Payload:  mb["payload"].([]byte),
+			HashType: int(mb["hash_type"].(int64)),
+			Detached: mb["detached"].(bool),
+		}
+
+		if sig, ok := mb["sig"].([]byte); ok {
+			copy(si.Sig[:], sig)
+		}
+		if st, ok := mb["sig_type"].(int64); ok {
+			si.SigType = int(st)
+		}
+		if v, ok := mb["version"].(int64); ok {
+			si.Version = int(v)
+		}
+		if p, ok := mb["prefix"].(SignaturePrefix); ok {
+			si.Prefix = p
+		}
+
+		p.Body = si
+		skipEncode = true
 	case TagEncryption:
 		body = &NaclEncryptionInfo{}
 	default:
 		return fmt.Errorf("Unknown packet tag: %d", p.Tag)
 	}
-	var encoded []byte
-	if err := codec.NewEncoderBytes(&encoded, ch).Encode(p.Body); err != nil {
-		return err
+
+	if !skipEncode {
+		var encoded []byte
+		if err := codec.NewEncoderBytes(&encoded, ch).Encode(p.Body); err != nil {
+			return err
+		}
+		if err := MsgpackDecodeAll(encoded, ch, body); err != nil {
+			return err
+		}
+		p.Body = body
 	}
-	if err := MsgpackDecodeAll(encoded, ch, body); err != nil {
-		return err
-	}
-	p.Body = body
 
 	return nil
 }

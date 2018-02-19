@@ -356,8 +356,8 @@ func (rkt *rekeyTester) assertRekeyWindowPushed(dw *deviceWrapper) {
 	rkt.log.Debug("+ assertRekeyWindowPushed")
 	select {
 	case <-dw.rekeyUI.refreshes:
-	case <-time.After(10 * time.Second):
-		rkt.t.Fatalf("no gregor came in after 10s; something is broken")
+	case <-time.After(30 * time.Second):
+		rkt.t.Fatalf("no gregor came in after 30s; something is broken")
 	}
 	rkt.log.Debug("- assertRekeyWindowPushed")
 }
@@ -409,7 +409,7 @@ func (rkt *rekeyTester) clearAllRefreshes(dw *deviceWrapper) {
 func (rkt *rekeyTester) waitForEvent(dw *deviceWrapper, wanted service.RekeyInterrupt) {
 	rkt.log.Debug("+ waitForEvent(%v)", wanted)
 	defer rkt.log.Debug("- waitForEvent(%v)", wanted)
-	timeout := 10 * time.Second
+	timeout := 30 * time.Second
 	for {
 		select {
 		case received := <-dw.rekeyUI.events:
@@ -586,8 +586,8 @@ func (rkt *rekeyTester) expectAlreadyKeyedNoop(dw *deviceWrapper) {
 				rkt.t.Fatalf("Got wrong event type: %+v", ev)
 				done = true
 			}
-		case <-time.After(10 * time.Second):
-			rkt.t.Fatal("Didn't get an event before 10s timeout")
+		case <-time.After(30 * time.Second):
+			rkt.t.Fatal("Didn't get an event before 30s timeout")
 		}
 	}
 	rkt.confirmNoRekeyUIActivity(dw, 28, false)

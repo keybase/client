@@ -384,7 +384,6 @@ export function getPathProps(
     curState = curState.getChild(curState.selected)
     path.push({
       node: thisNode,
-      // $FlowIssue dunno
       props: (curState && curState.props) || I.Map(),
     })
   }
