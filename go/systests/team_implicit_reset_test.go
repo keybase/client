@@ -361,3 +361,34 @@ func TestImplicitResetNoPukEncore(t *testing.T) {
 	invites := teamObj.GetActiveAndObsoleteInvites()
 	require.Equal(t, 0, len(invites), "leftover invite")
 }
+
+func TestImplicitResetBadReadds(t *testing.T) {
+	// Check if we can't ruin implicit team state by bad re-adds.
+
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+	bob := tt.addUser("bob")
+	pam := tt.addPuklessUser("pam")
+
+	displayName := strings.Join([]string{ann.username, bob.username, pam.username}, ",")
+	iteam, err := ann.lookupImplicitTeam(true /* create */, displayName, false /* isPublic */)
+	require.NoError(t, err)
+	t.Logf("impteam created for %q (id: %s)", displayName, iteam)
+
+	bob.reset()
+	bob.loginAfterResetPukless()
+
+	_, err = teams.AddMemberByID(context.Background(), ann.tc.G, iteam, bob.username, keybase1.TeamRole_READER)
+	require.NoError(t, err)
+
+	iteam2, err := ann.lookupImplicitTeam(false /* create */, displayName, false /* isPublic */)
+	require.NoError(t, err)
+	require.Equal(t, iteam, iteam2)
+
+	// In this case, simple AddMemberByID works just as well, because all
+	// that needs to be added is a new invite.
+	_, err = teams.AddMemberByID(context.Background(), ann.tc.G, iteam, bob.username, keybase1.TeamRole_OWNER)
+	require.NoError(t, err)
+}

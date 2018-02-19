@@ -319,18 +319,17 @@ func TestLoggedOutPublicTeamLoad(t *testing.T) {
 }
 
 func TestImplicitInvalidLinks(t *testing.T) {
-	fus, tcs, cleanup := setupNTestsWithPukless(t, 4, 1)
+	fus, tcs, cleanup := setupNTestsWithPukless(t, 5, 2)
 	defer cleanup()
 
 	ann := fus[0] // pukful user
 	bob := fus[1] // pukful user
+	cat := fus[3] // pukless user
 
 	pam := fus[2] // pukful user
-	joe := fus[3] // pukless user
+	joe := fus[4] // pukless user
 
-	_ = joe
-
-	impteamName := strings.Join([]string{ann.Username, bob.Username}, ",")
+	impteamName := strings.Join([]string{ann.Username, bob.Username, cat.Username}, ",")
 	t.Logf("ann creates an implicit team: %v", impteamName)
 	teamObj, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, impteamName, false /*isPublic*/)
 	require.NoError(t, err)
@@ -350,13 +349,19 @@ func TestImplicitInvalidLinks(t *testing.T) {
 	}
 
 	{
+		// Adding entirely new pukless member should be illegal
 		invite := SCTeamInvite{
 			Type: "keybase",
 			Name: joe.GetUserVersion().TeamInviteName(),
 			ID:   NewInviteID(),
 		}
-
 		err := teamObj.postInvite(context.Background(), invite, keybase1.TeamRole_OWNER)
+		RequirePrecheckError(err)
+	}
+
+	{
+		// Adding new social invite never works
+		_, err := teamObj.inviteSBSMember(context.Background(), ann.Username+"@rooter", keybase1.TeamRole_OWNER)
 		RequirePrecheckError(err)
 	}
 
@@ -366,6 +371,14 @@ func TestImplicitInvalidLinks(t *testing.T) {
 			None: []keybase1.UserVersion{bob.GetUserVersion()},
 		}
 		err := teamObj.ChangeMembership(context.Background(), req)
+		RequirePrecheckError(err)
+	}
+
+	{
+		// Removing existing pukless member should be illegal
+		invite, _, found := teamObj.FindActiveKeybaseInvite(cat.GetUID())
+		require.True(t, found)
+		err := removeInviteID(context.Background(), teamObj, invite.Id)
 		RequirePrecheckError(err)
 	}
 }
