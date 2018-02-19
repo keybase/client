@@ -38,26 +38,22 @@ type BigProps = {
 }
 
 const BigTeamHeader = ({channelname, teamname, onClick}: BigProps) => {
-  return [
-    <Text
-      key="bigTeamHeaderChannelName"
-      style={{alignSelf: 'center', marginTop: globalMargins.medium}}
-      type="BodyBig"
-    >
-      #{channelname}
-    </Text>,
-
-    <ClickableBox
-      key="bigTeamHeaderTeamName"
-      style={{...globalStyles.flexBoxRow, alignSelf: 'center', alignItems: 'center'}}
-      onClick={onClick}
-    >
-      <Avatar teamname={teamname} size={12} />
-      <Text type="BodySmallSemibold" style={{marginLeft: globalMargins.xtiny}}>
-        {teamname}
+  return (
+    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'stretch'}}>
+      <Text style={{alignSelf: 'center', marginTop: globalMargins.medium}} type="BodyBig">
+        #{channelname}
       </Text>
-    </ClickableBox>,
-  ]
+      <ClickableBox
+        style={{...globalStyles.flexBoxRow, alignSelf: 'center', alignItems: 'center'}}
+        onClick={onClick}
+      >
+        <Avatar teamname={teamname} size={12} />
+        <Text type="BodySmallSemibold" style={{marginLeft: globalMargins.xtiny}}>
+          {teamname}
+        </Text>
+      </ClickableBox>
+    </Box>
+  )
 }
 
 export {SmallTeamHeader, BigTeamHeader}

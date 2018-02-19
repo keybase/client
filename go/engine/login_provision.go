@@ -525,13 +525,13 @@ func (e *loginProvision) deviceName(ctx *Context) (string, error) {
 		}
 
 		if duplicate {
+			e.G().Log.Debug("Device name reused: %q", devname)
 			arg.ErrorMessage = fmt.Sprintf("Device name %q already used", devname)
 			continue
 		}
 
 		return devname, nil
 	}
-
 	return "", libkb.RetryExhaustedError{}
 }
 

@@ -2,37 +2,19 @@
 import * as React from 'react'
 import * as Types from '../constants/types/fs'
 import {globalStyles, globalMargins, isMobile} from '../styles'
-import {Box, ClickableBox, Icon, List, Text, Divider} from '../common-adapters'
+import {Avatar, Box, ClickableBox, Icon, List, Text, Divider} from '../common-adapters'
 import {type IconType} from '../common-adapters/icon'
 import RowConnector from './row'
 import FolderHeader from './header/header-container'
 import SortBar from './sortbar'
 
-const stylesCommonRow = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  justifyContent: 'center',
-  minHeight: isMobile ? 64 : 40,
-  paddingLeft: 16,
-}
-
-const stylesContainer = {
-  ...globalStyles.flexBoxColumn,
-  ...globalStyles.fullHeight,
-  flex: 1,
-}
-
-const stylesRowBox = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  flex: 1,
-}
-
 type FileRowProps = {
+  elems: Array<string>,
   name: string,
   path: Types.Path,
   icon: IconType,
   onOpen: () => void,
+  visibility: Types.Visibility,
 }
 
 type FolderProps = {
@@ -50,11 +32,15 @@ const styleOuterContainer = {
 
 const iconStyle = {marginRight: globalMargins.small}
 
-const FileRow = RowConnector(({path, name, icon, onOpen}: FileRowProps) => (
+const FileRow = RowConnector(({elems, path, name, icon, onOpen, visibility}: FileRowProps) => (
   <Box>
     <ClickableBox onClick={onOpen} style={stylesCommonRow}>
       <Box style={stylesRowBox}>
-        <Icon type={icon} style={iconStyle} />
+        {elems.length === 3 && visibility === 'team' ? (
+          <Avatar size={24} teamname={name} isTeam={true} style={iconStyle} />
+        ) : (
+          <Icon type={icon} style={iconStyle} />
+        )}
         <Box style={folderBoxStyle}>
           <Text type="Body">{name}</Text>
         </Box>
@@ -66,10 +52,10 @@ const FileRow = RowConnector(({path, name, icon, onOpen}: FileRowProps) => (
 
 const rowPlaceholderIcon = isMobile ? 'icon-folder-private-24' : 'icon-folder-private-24'
 const placeholderTextStyle = {
-  width: '256px',
   backgroundColor: 'lightGrey',
-  height: '16px',
-  marginTop: '4px',
+  height: 16,
+  marginTop: 4,
+  width: 256,
 }
 const FileRowPlaceholder = () => (
   <Box style={stylesCommonRow}>
@@ -108,6 +94,26 @@ class Files extends React.PureComponent<FolderProps> {
 
 const stylesRowDivider = {
   marginLeft: isMobile ? 48 : 48,
+}
+
+const stylesCommonRow = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  justifyContent: 'center',
+  minHeight: isMobile ? 64 : 40,
+  paddingLeft: 16,
+}
+
+const stylesContainer = {
+  ...globalStyles.flexBoxColumn,
+  ...globalStyles.fullHeight,
+  flex: 1,
+}
+
+const stylesRowBox = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  flex: 1,
 }
 
 export default Files

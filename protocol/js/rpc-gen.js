@@ -3872,7 +3872,7 @@ export type UserLoadUserRpcParam = $ReadOnly<{uid: UID, incomingCallMap?: Incomi
 
 export type UserLogPoint = $ReadOnly<{role: TeamRole, sigMeta: SignatureMetadata}>
 
-export type UserMeUserVersionRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type UserMeUserVersionRpcParam = $ReadOnly<{forcePoll: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type UserOrTeamID = String
 
