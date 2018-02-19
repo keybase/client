@@ -862,7 +862,7 @@
           "name": "resetUID",
           "type": [
             null,
-            "gregor1.UID"
+            "keybase1.UID"
           ]
         }
       ],
