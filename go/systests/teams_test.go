@@ -574,6 +574,25 @@ func (u *userPlusDevice) pollForTeamSeqnoLink(team string, toSeqno keybase1.Seqn
 	u.tc.T.Fatalf("timed out waiting for team rotate %s", team)
 }
 
+func (u *userPlusDevice) pollForTeamSeqnoLinkWithLoadArgs(args keybase1.LoadTeamArg, toSeqno keybase1.Seqno) {
+	args.ForceRepoll = true
+	for i := 0; i < 20; i++ {
+		details, err := teams.Load(context.Background(), u.tc.G, args)
+		if err != nil {
+			u.tc.T.Fatalf("error while loading team %v: %v", args, err)
+		}
+
+		if details.CurrentSeqno() >= toSeqno {
+			u.tc.T.Logf("Found new seqno %d at poll loop iter %d", details.CurrentSeqno(), i)
+			return
+		}
+
+		time.Sleep(500 * time.Millisecond)
+	}
+
+	u.tc.T.Fatalf("timed out waiting for team %v seqno link %d", args, toSeqno)
+}
+
 func (u *userPlusDevice) proveRooter() {
 	cmd := client.NewCmdProveRooterRunner(u.tc.G, u.username)
 	if err := cmd.Run(); err != nil {

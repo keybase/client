@@ -178,6 +178,50 @@ func TestImplicitTeamResetAll(t *testing.T) {
 	divDebug(ctx, "team looked up after resets")
 }
 
+func TestImplicitResetAndSBSBringback(t *testing.T) {
+	// 1. ann and bob (both PUKful) make imp team
+	// 2. bob resets
+	// 3. bob doesn't get a PUK
+	// 4. ann re-adds bob (this just adds invite link, doesn't remove old PUKful bob)
+	// 5. bob gets a PUK
+	// 6. he should be automatically brought back as crypto member by alice
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+	t.Logf("Signed up ann (%s)", ann.username)
+
+	bob := tt.addUser("bob")
+	t.Logf("Signed up bob (%s)", bob.username)
+
+	// (1)
+	displayName := strings.Join([]string{ann.username, bob.username}, ",")
+	iteam, err := ann.lookupImplicitTeam(true /* create */, displayName, false /* isPublic */)
+	require.NoError(t, err)
+	t.Logf("impteam created for %q (id: %s)", displayName, iteam)
+
+	bob.kickTeamRekeyd()
+	bob.reset()                  // (2)
+	bob.loginAfterResetPukless() // (3)
+
+	ann.reAddUserAfterReset(iteam, bob) // (4)
+
+	teamObj := ann.loadTeamByID(iteam, true)
+	nextSeqno := teamObj.NextSeqno()
+
+	bob.perUserKeyUpgrade() // (5)
+
+	ann.pollForTeamSeqnoLinkWithLoadArgs(keybase1.LoadTeamArg{ID: iteam}, nextSeqno)
+
+	teamObj = ann.loadTeamByID(iteam, true)
+	role, err := teamObj.MemberRole(context.Background(), bob.userVersion())
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_OWNER, role)
+
+	invites := teamObj.GetActiveAndObsoleteInvites()
+	require.Equal(t, 0, len(invites), "leftover invite")
+}
+
 func testImplicitResetParametrized(t *testing.T, startPUK, getPUKAfter bool) {
 	ctx := newSMUContext(t)
 	defer ctx.cleanup()
@@ -290,20 +334,21 @@ func TestImplicitResetNoPukEncore(t *testing.T) {
 	bob := tt.addUser("bob")
 	t.Logf("Signed up bob (%s)", bob.username)
 
+	// (1)
 	displayName := strings.Join([]string{ann.username, bob.username}, ",")
 	iteam, err := ann.lookupImplicitTeam(true /* create */, displayName, false /* isPublic */)
 	require.NoError(t, err)
 	t.Logf("impteam created for %q (id: %s)", displayName, iteam)
 
-	bob.reset()
-	bob.loginAfterResetPukless()
+	bob.reset()                  // (2)
+	bob.loginAfterResetPukless() // (3)
 
-	ann.reAddUserAfterReset(iteam, bob)
+	ann.reAddUserAfterReset(iteam, bob) // (4)
 
-	bob.reset()
+	bob.reset() // (5)
 	bob.loginAfterReset()
 
-	ann.reAddUserAfterReset(iteam, bob)
+	ann.reAddUserAfterReset(iteam, bob) // (6)
 
 	teamObj := ann.loadTeamByID(iteam, true)
 	role, err := teamObj.MemberRole(context.Background(), bob.userVersion())
