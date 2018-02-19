@@ -121,11 +121,3 @@ func (k KeychainSecretStore) GetUsersWithStoredSecrets() ([]string, error) {
 	k.context.GetLog().Debug("KeychainSecretStore.GetUsersWithStoredSecrets() -> %d users", len(users))
 	return users, nil
 }
-
-func (k KeychainSecretStore) GetApprovalPrompt() string {
-	return "Save in Keychain"
-}
-
-func (k KeychainSecretStore) GetTerminalPrompt() string {
-	return "Store your key in Apple's local keychain?"
-}

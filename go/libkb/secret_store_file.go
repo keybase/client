@@ -110,14 +110,6 @@ func (s *SecretStoreFile) GetUsersWithStoredSecrets() ([]string, error) {
 	return users, nil
 }
 
-func (s *SecretStoreFile) GetApprovalPrompt() string {
-	return "Remember login key"
-}
-
-func (s *SecretStoreFile) GetTerminalPrompt() string {
-	return "Remember your login key?"
-}
-
 func (s *SecretStoreFile) userpath(username NormalizedUsername) string {
 	return filepath.Join(s.dir, fmt.Sprintf("%s.ss", username))
 }

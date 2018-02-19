@@ -37,11 +37,3 @@ func (s *SecretStoreMem) GetUsersWithStoredSecrets() ([]string, error) {
 	}
 	return usernames, nil
 }
-
-func (s *SecretStoreMem) GetApprovalPrompt() string {
-	return ""
-}
-
-func (s *SecretStoreMem) GetTerminalPrompt() string {
-	return ""
-}
