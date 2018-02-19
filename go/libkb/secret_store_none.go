@@ -17,6 +17,7 @@ type TestSecretStoreAll struct {
 }
 
 func (t TestSecretStoreAll) GetUsersWithStoredSecrets() (ret []string, err error) {
+	panic("someone uses this")
 	for name := range t.secretStoreNoneMap {
 		ret = append(ret, string(name))
 	}
@@ -24,24 +25,29 @@ func (t TestSecretStoreAll) GetUsersWithStoredSecrets() (ret []string, err error
 }
 
 func (t TestSecretStoreAll) GetTerminalPrompt() string {
+	panic("someone uses this")
 	return "Store your key in the local secret store?"
 }
 
 func (t TestSecretStoreAll) GetApprovalPrompt() string {
+	panic("someone uses this")
 	return "Store your key in the local secret store?"
 }
 
 func NewTestSecretStoreAll(c SecretStoreContext, g *GlobalContext) SecretStoreAll {
+	panic("someone uses this")
 	ret := TestSecretStoreAll{context: c, secretStoreNoneMap: make(map[NormalizedUsername]LKSecFullSecret)}
 	ret.SetGlobalContext(g)
 	return ret
 }
 
 func (t TestSecretStoreAll) GetAllUserNames() (NormalizedUsername, []NormalizedUsername, error) {
+	panic("someone uses this")
 	return t.context.GetAllUserNames()
 }
 
 func (t TestSecretStoreAll) RetrieveSecret(accountName NormalizedUsername) (ret LKSecFullSecret, err error) {
+	panic("someone uses this")
 
 	ret, ok := t.secretStoreNoneMap[accountName]
 
@@ -55,6 +61,7 @@ func (t TestSecretStoreAll) RetrieveSecret(accountName NormalizedUsername) (ret 
 }
 
 func (t TestSecretStoreAll) StoreSecret(accountName NormalizedUsername, secret LKSecFullSecret) error {
+	panic("someone uses this")
 	t.G().Log.Debug("| TestSecretStore::StoreSecret(isNil=%v)", secret.IsNil())
 
 	t.secretStoreNoneMap[accountName] = secret
@@ -62,6 +69,7 @@ func (t TestSecretStoreAll) StoreSecret(accountName NormalizedUsername, secret L
 }
 
 func (t TestSecretStoreAll) ClearSecret(accountName NormalizedUsername) error {
+	panic("someone uses this")
 	t.G().Log.Debug("| TestSecretStore::ClearSecret()")
 
 	delete(t.secretStoreNoneMap, accountName)
