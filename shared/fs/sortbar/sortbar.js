@@ -9,7 +9,7 @@ const stylesSortBar = {
   backgroundColor: globalColors.blue5,
   borderTopColor: globalColors.black_05,
   borderTopWidth: 1,
-  paddingLeft: '16px',
+  paddingLeft: 16,
 }
 
 const stylesSortSetting = {

@@ -29,8 +29,8 @@ const stylesSortSetting = {
 
 const stylesPopup = {
   position: 'absolute',
-  left: '88px',
-  top: '64px',
+  left: 88,
+  top: 64,
 }
 const stylesIcon = {
   marginRight: globalMargins.xtiny,
