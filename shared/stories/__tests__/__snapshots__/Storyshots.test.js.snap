@@ -26356,54 +26356,28 @@ exports[`Storyshots Edit team description Description unchanged 1`] = `
 exports[`Storyshots Files Root 1`] = `
 .glamor-0,
 [data-glamor-0] {
-  font-size: 14px;
-  line-height: 18px;
-  color: rgba(0, 0, 0, 0.75);
+  font-size: 13px;
+  line-height: 20px;
+  color: #000000;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
+  font-family: Source Code Pro;
+  margin-bottom: 8px;
 }
 
 .glamor-1,
 [data-glamor-1] {
-  color: rgba(0, 0, 0, 0.40);
-}
-
-.glamor-2,
-[data-glamor-2] {
-  font-size: 11px;
-  line-height: 15px;
-  color: rgba(0, 0, 0, 0.40);
+  font-size: 13px;
+  line-height: 20px;
+  color: #a8d7ff;
+  user-select: text;
+  cursor: text;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-  margin-left: 2px;
-}
-
-.glamor-3,
-[data-glamor-3] {
-  font-size: 11px;
-  line-height: 15px;
-  color: rgba(0, 0, 0, 0.40);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
-  margin-left: 16px;
-}
-
-.glamor-4,
-[data-glamor-4] {
-  font-size: 11px;
-  line-height: 15px;
-  color: red;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
-  margin-left: 8px;
+  font-family: Source Code Pro;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
 }
 
 <div
@@ -26424,264 +26398,56 @@ exports[`Storyshots Files Root 1`] = `
     <div
       style={
         Object {
-          "height": "100%",
-          "position": "relative",
+          "borderColor": "rgba(255,0,0,0.75)",
+          "borderStyle": "solid",
+          "borderWidth": 2,
+          "display": "flex",
+          "flexDirection": "column",
+          "padding": 10,
         }
       }
     >
+      <span
+        className="glamor-0"
+        onClick={undefined}
+        title={undefined}
+      >
+        🛑 An error occurred in a connected child component. Did you supply all props the child expects?
+      </span>
       <div
         style={
           Object {
+            "backgroundColor": "#003563",
+            "borderRadius": 4,
             "display": "flex",
-            "flex": 1,
             "flexDirection": "column",
-            "height": "100%",
+            "padding": 10,
+            "whiteSpace": "pre-line",
           }
         }
       >
-        <div>
-          <div
-            style={
-              Object {
-                "alignItems": "center",
-                "borderBottomColor": "rgba(0, 0, 0, 0.05)",
-                "borderBottomWidth": 1,
-                "display": "flex",
-                "flexDirection": "row",
-                "justifyContent": "center",
-                "minHeight": 48,
-              }
-            }
-          >
-            <span
-              className="glamor-0"
-              onClick={undefined}
-              title={undefined}
-            >
-              Keybase Files
-            </span>
-          </div>
-        </div>
-        <div>
-          <div
-            style={
-              Object {
-                "backgroundColor": "rgba(0, 0, 0, 0.05)",
-                "flex": 1,
-                "maxHeight": 1,
-                "minHeight": 1,
-              }
-            }
-          />
-          <div
-            style={
-              Object {
-                "alignItems": "center",
-                "backgroundColor": "#F8FAFD",
-                "borderTopColor": "rgba(0, 0, 0, 0.05)",
-                "borderTopWidth": 1,
-                "display": "flex",
-                "flexDirection": "row",
-                "justifyContent": "start",
-                "minHeight": 24,
-                "paddingLeft": "16px",
-              }
-            }
-          >
-            <div>
-              <span
-                className="glamor-1"
-                onClick={null}
-                onMouseEnter={undefined}
-                onMouseLeave={undefined}
-                style={
-                  Object {
-                    "WebkitFontSmoothing": "antialiased",
-                    "fontFamily": "kb",
-                    "fontSize": 10,
-                    "fontStyle": "normal",
-                    "fontVariant": "normal",
-                    "fontWeight": "normal",
-                    "lineHeight": 1,
-                    "speak": "none",
-                    "textTransform": "none",
-                    "userSelect": "none",
-                  }
-                }
-              >
-                
-              </span>
-            </div>
-            <span
-              className="glamor-2"
-              onClick={undefined}
-              title={undefined}
-            >
-              Name ascending
-            </span>
-            <span
-              className="glamor-3"
-              onClick={undefined}
-              title={undefined}
-            >
-              Not-Super Ugly Temporary SortBar:
-            </span>
-            <div
-              onClick={[Function]}
-              onMouseDown={[Function]}
-              onMouseEnter={undefined}
-              onMouseLeave={undefined}
-              onMouseUp={[Function]}
-              style={
-                Object {
-                  "alignItems": "stretch",
-                  "borderRadius": 0,
-                  "cursor": "pointer",
-                  "display": "flex",
-                  "flexDirection": "column",
-                  "height": undefined,
-                  "lineHeight": 0,
-                  "minWidth": undefined,
-                  "position": "relative",
-                  "textAlign": "left",
-                  "transform": "none",
-                  "transition": "none",
-                }
-              }
-            >
-              <span
-                className="glamor-4"
-                onClick={undefined}
-                title={undefined}
-              >
-                name-asc
-              </span>
-            </div>
-            <div
-              onClick={[Function]}
-              onMouseDown={[Function]}
-              onMouseEnter={undefined}
-              onMouseLeave={undefined}
-              onMouseUp={[Function]}
-              style={
-                Object {
-                  "alignItems": "stretch",
-                  "borderRadius": 0,
-                  "cursor": "pointer",
-                  "display": "flex",
-                  "flexDirection": "column",
-                  "height": undefined,
-                  "lineHeight": 0,
-                  "minWidth": undefined,
-                  "position": "relative",
-                  "textAlign": "left",
-                  "transform": "none",
-                  "transition": "none",
-                }
-              }
-            >
-              <span
-                className="glamor-4"
-                onClick={undefined}
-                title={undefined}
-              >
-                name-desc
-              </span>
-            </div>
-            <div
-              onClick={[Function]}
-              onMouseDown={[Function]}
-              onMouseEnter={undefined}
-              onMouseLeave={undefined}
-              onMouseUp={[Function]}
-              style={
-                Object {
-                  "alignItems": "stretch",
-                  "borderRadius": 0,
-                  "cursor": "pointer",
-                  "display": "flex",
-                  "flexDirection": "column",
-                  "height": undefined,
-                  "lineHeight": 0,
-                  "minWidth": undefined,
-                  "position": "relative",
-                  "textAlign": "left",
-                  "transform": "none",
-                  "transition": "none",
-                }
-              }
-            >
-              <span
-                className="glamor-4"
-                onClick={undefined}
-                title={undefined}
-              >
-                time-asc
-              </span>
-            </div>
-            <div
-              onClick={[Function]}
-              onMouseDown={[Function]}
-              onMouseEnter={undefined}
-              onMouseLeave={undefined}
-              onMouseUp={[Function]}
-              style={
-                Object {
-                  "alignItems": "stretch",
-                  "borderRadius": 0,
-                  "cursor": "pointer",
-                  "display": "flex",
-                  "flexDirection": "column",
-                  "height": undefined,
-                  "lineHeight": 0,
-                  "minWidth": undefined,
-                  "position": "relative",
-                  "textAlign": "left",
-                  "transform": "none",
-                  "transition": "none",
-                }
-              }
-            >
-              <span
-                className="glamor-4"
-                onClick={undefined}
-                title={undefined}
-              >
-                time-desc
-              </span>
-            </div>
-          </div>
-        </div>
-        <div
-          style={
-            Object {
-              "flexGrow": 1,
-              "position": "relative",
-            }
-          }
+        <span
+          className="glamor-1"
+          onClick={undefined}
+          title={undefined}
         >
-          <div
-            style={
-              Object {
-                "bottom": 0,
-                "left": 0,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-              }
-            }
-          >
-            <div
-              style={
-                Object {
-                  "height": "100%",
-                  "overflowY": "auto",
-                  "width": "100%",
-                }
-              }
-            />
-          </div>
-        </div>
+          Error: In calling propSelector for SortBar: 
+          Your propProvider is probably missing a key for this connected component. See shared/storybook/README.md for more details.
+
+          TypeError: state[name] is not a function
+          
+    in ConnectAdvanced(SortBar) (created by Files)
+    in div (created by Box)
+    in Box (created by Files)
+    in div (created by Box)
+    in Box (created by Files)
+    in Files
+    in StorybookErrorBoundary
+    in Provider
+    in div (created by ScrollView)
+    in div (created by ScrollView)
+    in ScrollView
+        </span>
       </div>
     </div>
   </div>

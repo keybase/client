@@ -6,7 +6,7 @@ import {Avatar, Box, ClickableBox, Icon, List, Text, Divider} from '../common-ad
 import {type IconType} from '../common-adapters/icon'
 import RowConnector from './row'
 import FolderHeader from './header/header-container'
-import SortBar from './sortbar'
+import SortBar from './sortbar/container'
 
 type FileRowProps = {
   elems: Array<string>,
@@ -89,6 +89,7 @@ class Files extends React.PureComponent<FolderProps> {
         <Box style={stylesContainer}>
           <FolderHeader path={this.props.path} />
           <SortBar
+            path={this.props.path}
             sortSetting={this.props.sortSetting}
             setSortByNameAsc={this.props.setSortByNameAsc}
             setSortByNameDesc={this.props.setSortByNameDesc}

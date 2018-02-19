@@ -28,7 +28,7 @@ export const DropdownPopupMenu = ({items, isTeamPath, onOpenBreadcrumb}: PopupMe
     title: i.name,
     view: itemView(i.name, isTeamPath && idx === items.length - 3),
   }))
-  return <ModalLessPopupMenu items={popupItems} onHidden={() => {}} style={stylePopup} />
+  return <ModalLessPopupMenu items={popupItems} style={stylePopup} />
 }
 
 const stylePopup = {

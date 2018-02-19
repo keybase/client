@@ -1,5 +1,6 @@
 // @flow
 import * as I from 'immutable'
+import {type IconType} from '../../common-adapters/icon'
 
 export opaque type Path = ?string
 
@@ -146,4 +147,35 @@ export const sortSettingToCompareFunction = (
   const multiplier = sortOrder === 'desc' ? -1 : 1
   return (a: PathItem, b: PathItem): number =>
     multiplier * (meFirstComparer(a, b) || _folderFirstComparer(a, b) || sortByComparer(a, b))
+}
+type sortSettingDisplayParams = {
+  sortSettingText: string,
+  sortSettingIconType: IconType,
+}
+
+export const sortSettingToIconTypeAndText = (s: _SortSetting): sortSettingDisplayParams => {
+  switch (s.sortBy) {
+    case 'name':
+      return s.sortOrder === 'asc'
+        ? {
+            sortSettingIconType: 'iconfont-new',
+            sortSettingText: 'Name ascending',
+          }
+        : {
+            sortSettingIconType: 'iconfont-new',
+            sortSettingText: 'Name descending',
+          }
+    case 'time':
+      return s.sortOrder === 'asc'
+        ? {
+            sortSettingIconType: 'iconfont-new',
+            sortSettingText: 'Recent first',
+          }
+        : {
+            sortSettingIconType: 'iconfont-new',
+            sortSettingText: 'Older first',
+          }
+    default:
+      throw new Error('invalid SortBy')
+  }
 }

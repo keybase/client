@@ -20,6 +20,12 @@ export type Props = {
   styleCatcher?: ?Object,
 }
 
+export type ModalLessPopupMenuProps = {
+  items: Array<MenuItem | 'Divider' | null>,
+  header?: ?MenuItem,
+  style?: Object,
+}
+
 export type HeaderTextProps = {
   color: string,
   backgroundColor: string,
@@ -29,7 +35,7 @@ export type HeaderTextProps = {
 
 class PopupHeaderText extends React.Component<HeaderTextProps> {}
 class OLDPopupMenu extends React.Component<Props> {}
-class ModalLessPopupMenu extends React.Component<Props> {}
+class ModalLessPopupMenu extends React.Component<ModalLessPopupMenuProps> {}
 
 export {PopupHeaderText, ModalLessPopupMenu, OLDPopupMenu}
 
