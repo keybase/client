@@ -135,7 +135,15 @@ type SecretStoreLocked struct {
 }
 
 func NewSecretStoreLocked(g *GlobalContext) *SecretStoreLocked {
-	ss := NewSecretStoreAll(g)
+	var ss SecretStoreAll
+	if g.Env.UseSecretStoreMem() {
+		// config or command line flag said to use in-memory secret store
+		g.Log.Debug("using memory-only SecretStore")
+		ss = NewSecretStoreMem()
+	} else {
+		// use os-specifig secret store
+		ss = NewSecretStoreAll(g)
+	}
 	if ss == nil {
 		// right now, some stuff depends on g.SecretStoreAll being nil or not
 		return nil

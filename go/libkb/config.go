@@ -539,6 +539,9 @@ func (f JSONConfigFile) GetVDebugSetting() string {
 func (f JSONConfigFile) GetAutoFork() (bool, bool) {
 	return f.GetTopLevelBool("auto_fork")
 }
+func (f JSONConfigFile) GetUseSecretStoreMem() (bool, bool) {
+	return f.GetTopLevelBool("secret_store_memory_only")
+}
 func (f JSONConfigFile) GetLogFormat() string {
 	return f.GetTopLevelString("log_format")
 }

@@ -82,6 +82,7 @@ type configGetter interface {
 	GetLevelDBNumFiles() (int, bool)
 	GetChatInboxSourceLocalizeThreads() (int, bool)
 	GetPayloadCacheSize() (int, bool)
+	GetUseSecretStoreMem() (bool, bool)
 }
 
 type CommandLine interface {

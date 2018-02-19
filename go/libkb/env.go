@@ -89,6 +89,7 @@ func (n NullConfiguration) GetMountDir() string                                 
 func (n NullConfiguration) GetBGIdentifierDisabled() (bool, bool)                          { return false, false }
 func (n NullConfiguration) GetFeatureFlags() (FeatureFlags, error)                         { return FeatureFlags{}, nil }
 func (n NullConfiguration) GetAppType() AppType                                            { return NoAppType }
+func (n NullConfiguration) GetUseSecretStoreMem() (bool, bool)                             { return false, false }
 func (n NullConfiguration) GetLevelDBNumFiles() (int, bool)                                { return 0, false }
 func (n NullConfiguration) GetChatInboxSourceLocalizeThreads() (int, bool)                 { return 1, false }
 func (n NullConfiguration) GetBug3964RepairTime(NormalizedUsername) (time.Time, error) {
@@ -1299,6 +1300,13 @@ func (e *Env) WantsSystemd() bool {
 func (e *Env) DarwinForceSecretStoreFile() bool {
 	return (e.GetRunMode() == DevelRunMode &&
 		os.Getenv("KEYBASE_SECRET_STORE_FILE") == "1")
+}
+
+func (e *Env) UseSecretStoreMem() bool {
+	return e.GetBool(false,
+		e.cmd.GetUseSecretStoreMem,
+		e.GetConfig().GetUseSecretStoreMem,
+	)
 }
 
 func GetPlatformString() string {
