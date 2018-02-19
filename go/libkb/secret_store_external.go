@@ -159,7 +159,3 @@ func (s *secretStoreAccountName) setup() {
 		s.context.GetLog().Debug("- secret_store_external:setup")
 	})
 }
-
-func NewTestSecretStoreAll(c SecretStoreContext, g *GlobalContext) SecretStoreAll {
-	return nil
-}
