@@ -269,10 +269,6 @@ func setupTestContext(tb TestingTB, name string, tcPrev *TestContext) (tc TestCo
 	tc.G = g
 	tc.T = tb
 
-	if g.SecretStoreAll == nil {
-		g.SecretStoreAll = &SecretStoreLocked{SecretStoreAll: NewTestSecretStoreAll(g, g)}
-	}
-
 	return
 }
 
