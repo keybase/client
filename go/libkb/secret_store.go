@@ -28,8 +28,8 @@ type SecretStoreAll interface {
 	StoreSecret(username NormalizedUsername, secret LKSecFullSecret) error
 	ClearSecret(username NormalizedUsername) error
 	GetUsersWithStoredSecrets() ([]string, error)
-	GetApprovalPrompt() string
-	GetTerminalPrompt() string
+	// GetApprovalPrompt() string
+	// GetTerminalPrompt() string
 }
 
 type SecretStoreContext interface {
