@@ -852,6 +852,7 @@ type TlfFinalizeArg struct {
 	ResetDate      string       `codec:"resetDate" json:"resetDate"`
 	ResetTimestamp gregor1.Time `codec:"resetTimestamp" json:"resetTimestamp"`
 	ResetFull      string       `codec:"resetFull" json:"resetFull"`
+	ResetUID       *gregor1.UID `codec:"resetUID,omitempty" json:"resetUID,omitempty"`
 }
 
 type TlfResolveArg struct {

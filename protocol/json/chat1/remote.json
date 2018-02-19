@@ -857,6 +857,13 @@
         {
           "name": "resetFull",
           "type": "string"
+        },
+        {
+          "name": "resetUID",
+          "type": [
+            null,
+            "gregor1.UID"
+          ]
         }
       ],
       "response": null
