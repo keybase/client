@@ -440,25 +440,6 @@ func (u *smuUser) pollForTeamSeqnoLink(team smuTeam, toSeqno keybase1.Seqno) {
 	u.ctx.t.Fatalf("timed out waiting for team %s seqno link %d", team, toSeqno)
 }
 
-func (u *smuUser) pollForTeamSeqnoLinkWithLoadArgs(args keybase1.LoadTeamArg, toSeqno keybase1.Seqno) {
-	args.ForceRepoll = true
-	for i := 0; i < 20; i++ {
-		details, err := teams.Load(context.Background(), u.getPrimaryGlobalContext(), args)
-		if err != nil {
-			u.ctx.t.Fatalf("error while loading team %v: %v", args, err)
-		}
-
-		if details.CurrentSeqno() >= toSeqno {
-			u.ctx.t.Logf("Found new seqno %d at poll loop iter %d", details.CurrentSeqno(), i)
-			return
-		}
-
-		time.Sleep(500 * time.Millisecond)
-	}
-
-	u.ctx.t.Fatalf("timed out waiting for team %v seqno link %d", args, toSeqno)
-}
-
 func (u *smuUser) createTeam(writers []*smuUser) smuTeam {
 	name := u.username + "t"
 	nameK1, err := keybase1.TeamNameFromString(name)
