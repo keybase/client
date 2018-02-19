@@ -364,6 +364,7 @@ func TestImplicitResetNoPukEncore(t *testing.T) {
 
 func TestImplicitResetBadReadds(t *testing.T) {
 	// Check if we can't ruin implicit team state by bad re-adds.
+	t.Skip()
 
 	tt := newTeamTester(t)
 	defer tt.cleanup()
@@ -380,8 +381,10 @@ func TestImplicitResetBadReadds(t *testing.T) {
 	bob.reset()
 	bob.loginAfterResetPukless()
 
+	// TODO: Apparently nothing stops us from re-adding bob as READER
+	// instead of OWNER.
 	_, err = teams.AddMemberByID(context.Background(), ann.tc.G, iteam, bob.username, keybase1.TeamRole_READER)
-	require.NoError(t, err)
+	require.Error(t, err)
 
 	iteam2, err := ann.lookupImplicitTeam(false /* create */, displayName, false /* isPublic */)
 	require.NoError(t, err)
