@@ -14,30 +14,32 @@ import (
 
 // bob resets, implicit team lookup should still work for ann
 func TestImplicitTeamReset(t *testing.T) {
-	ctx := newSMUContext(t)
-	defer ctx.cleanup()
+	tt := newTeamTester(t)
+	defer tt.cleanup()
 
-	ann := ctx.installKeybaseForUser("ann", 10)
-	ann.signup()
-	divDebug(ctx, "Signed up ann (%s)", ann.username)
-	bob := ctx.installKeybaseForUser("bob", 10)
-	bob.signup()
-	divDebug(ctx, "Signed up bob (%s)", bob.username)
+	ann := tt.addUser("ann")
+	t.Logf("Signed up ann (%s)", ann.username)
+
+	bob := tt.addUser("bob")
+	t.Logf("Signed up bob (%s)", bob.username)
 
 	displayName := strings.Join([]string{ann.username, bob.username}, ",")
-	iteam := ann.lookupImplicitTeam(true /*create*/, displayName, false /*isPublic*/)
-	divDebug(ctx, "team created (%s)", iteam.ID)
+	iteam, err := ann.lookupImplicitTeam(true /*create*/, displayName, false /*isPublic*/)
+	require.NoError(t, err)
+	t.Logf("team created (%s)", iteam)
 
-	iteam2 := ann.lookupImplicitTeam(false /*create*/, displayName, false /*isPublic*/)
-	require.Equal(t, iteam.ID, iteam2.ID, "second lookup should return same team")
-	divDebug(ctx, "team looked up before reset")
+	iteam2, err := ann.lookupImplicitTeam(false /*create*/, displayName, false /*isPublic*/)
+	require.NoError(t, err)
+	require.Equal(t, iteam, iteam2, "second lookup should return same team")
+	t.Logf("team looked up before reset")
 
 	bob.reset()
-	divDebug(ctx, "Reset bob (%s)", bob.username)
+	t.Logf("Reset bob (%s)", bob.username)
 
-	iteam3 := ann.lookupImplicitTeam(false /*create*/, displayName, false /*isPublic*/)
-	require.Equal(t, iteam.ID, iteam3.ID, "lookup after reset should return same team")
-	divDebug(ctx, "team looked up before reset")
+	iteam3, err := ann.lookupImplicitTeam(false /*create*/, displayName, false /*isPublic*/)
+	require.NoError(t, err)
+	require.Equal(t, iteam, iteam3, "lookup after reset should return same team")
+	t.Logf("team looked up before reset")
 }
 
 func TestImplicitTeamUserReset(t *testing.T) {
