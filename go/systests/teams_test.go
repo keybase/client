@@ -15,6 +15,8 @@ import (
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/stretchr/testify/require"
+
+	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
 )
 
 func TestTeamCreate(t *testing.T) {
@@ -70,7 +72,7 @@ func TestTeamRotateOnRevoke(t *testing.T) {
 	defer tt.cleanup()
 
 	tt.addUser("onr")
-	tt.addUser("wtr")
+	tt.addUserWithPaper("wtr")
 
 	teamID, teamName := tt.users[0].createTeam2()
 	tt.users[0].addTeamMember(teamName.String(), tt.users[1].username, keybase1.TeamRole_WRITER)
@@ -118,15 +120,25 @@ func newTeamTester(t *testing.T) *teamTester {
 }
 
 func (tt *teamTester) addUser(pre string) *userPlusDevice {
-	return tt.addUserHelper(pre, true, true)
-}
-
-func (tt *teamTester) addUserNoPaper(pre string) *userPlusDevice {
 	return tt.addUserHelper(pre, true, false)
 }
 
+func (tt *teamTester) addUserWithPaper(pre string) *userPlusDevice {
+	return tt.addUserHelper(pre, true, true)
+}
+
 func (tt *teamTester) addPuklessUser(pre string) *userPlusDevice {
-	return tt.addUserHelper(pre, false, true)
+	return tt.addUserHelper(pre, false, false)
+}
+
+func installInsecureTriplesec(g *libkb.GlobalContext) {
+	g.NewTriplesec = func(passphrase []byte, salt []byte) (libkb.Triplesec, error) {
+		warner := func() { g.Log.Warning("Installing insecure Triplesec with weak stretch parameters") }
+		isProduction := func() bool {
+			return g.Env.GetRunMode() == libkb.ProductionRunMode
+		}
+		return insecureTriplesec.NewCipher(passphrase, salt, warner, isProduction)
+	}
 }
 
 func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusDevice {
@@ -142,6 +154,8 @@ func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusD
 	require.True(tt.t, libkb.CheckUsername.F(userInfo.username), "username check failed (%v): %v", libkb.CheckUsername.Hint, userInfo.username)
 	tc := u.device.tctx
 	g := tc.G
+	installInsecureTriplesec(g)
+
 	signupUI := signupUI{
 		info:         userInfo,
 		Contextified: libkb.NewContextified(g),
@@ -409,7 +423,7 @@ func (u *userPlusDevice) devices() []keybase1.Device {
 }
 
 func (u *userPlusDevice) userVersion() keybase1.UserVersion {
-	uv, err := u.device.userClient.MeUserVersion(context.TODO(), 0)
+	uv, err := u.device.userClient.MeUserVersion(context.TODO(), keybase1.MeUserVersionArg{ForcePoll: true})
 	require.NoError(u.tc.T, err)
 	return uv
 }
@@ -587,6 +601,8 @@ func (u *userPlusDevice) provisionNewDevice() *deviceWrapper {
 	device := &deviceWrapper{tctx: tc}
 	device.start(0)
 
+	require.NotNil(t, u.backupKey, "Add user with paper key to use provisionNewDevice")
+
 	// ui for provisioning
 	ui := &rekeyProvisionUI{username: u.username, backupKey: u.backupKey}
 	{
@@ -629,6 +645,7 @@ func (u *userPlusDevice) reset() {
 	uvAfter := u.userVersion()
 	require.NotEqual(u.tc.T, uvBefore.EldestSeqno, uvAfter.EldestSeqno,
 		"eldest seqno should change as result of reset")
+	u.tc.T.Logf("User reset; eldest seqno %d -> %d", uvBefore.EldestSeqno, uvAfter.EldestSeqno)
 }
 
 func (u *userPlusDevice) loginAfterReset() {
@@ -644,17 +661,43 @@ func (u *userPlusDevice) loginAfterResetHelper(puk bool) {
 	u.device.tctx.Tp.DisableUpgradePerUserKey = !puk
 	g := u.device.tctx.G
 
+	// We have to reset a socket here, since we need to regigster
+	// the protocols in the genericUI below. If we reuse the previous
+	// socket, then the RPC protocols will not update, and we'll wind
+	// up reusing the old device name.
+	g.ResetSocket(true)
+
+	devName := randomDevice()
+	g.Log.Debug("loginAfterResetHelper: new device name is %q", devName)
+
 	ui := genericUI{
 		g:           g,
 		SecretUI:    signupInfoSecretUI{u.userInfo, u.tc.G.GetLog()},
 		LoginUI:     usernameLoginUI{u.username},
-		ProvisionUI: nullProvisionUI{randomDevice()},
+		ProvisionUI: nullProvisionUI{devName},
 	}
 	g.SetUI(&ui)
 	loginCmd := client.NewCmdLoginRunner(g)
 	loginCmd.Username = u.username
 	err := loginCmd.Run()
 	require.NoError(t, err, "login after reset")
+}
+
+func TestTeamTesterMultipleResets(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+	t.Logf("Signed up ann (%s)", ann.username)
+
+	ann.reset()
+	ann.loginAfterReset()
+
+	t.Logf("Ann resets for first time, uv is %v", ann.userVersion())
+
+	ann.reset()
+	ann.loginAfterReset()
+	t.Logf("Ann reset twice, uv is %v", ann.userVersion())
 }
 
 func (u *userPlusDevice) perUserKeyUpgrade() {
@@ -779,7 +822,7 @@ func TestTeamSignedByRevokedDevice(t *testing.T) {
 	defer tt.cleanup()
 
 	// the signer
-	alice := tt.addUser("alice")
+	alice := tt.addUserWithPaper("alice")
 
 	// the loader
 	bob := tt.addUser("bob")
@@ -847,7 +890,7 @@ func TestTeamSignedByRevokedDevice2(t *testing.T) {
 	defer tt.cleanup()
 
 	// the signer
-	alice := tt.addUser("alice")
+	alice := tt.addUserWithPaper("alice")
 	aliced2 := alice.provisionNewDevice()
 
 	// the loader

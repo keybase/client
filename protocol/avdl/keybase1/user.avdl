@@ -146,7 +146,7 @@ protocol user {
   // deleteUser deletes the user. Only works in Dev mode since it's so dangerous
   void deleteUser(int sessionID);
 
-  UserVersion meUserVersion(int sessionID);
+  UserVersion meUserVersion(int sessionID, boolean forcePoll);
 
   /**
    getUPAK returns a UPAK. Used mainly for debugging.

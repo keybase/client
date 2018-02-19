@@ -847,11 +847,12 @@ type SyncAllArg struct {
 }
 
 type TlfFinalizeArg struct {
-	TlfID          TLFID        `codec:"tlfID" json:"tlfID"`
-	ResetUser      string       `codec:"resetUser" json:"resetUser"`
-	ResetDate      string       `codec:"resetDate" json:"resetDate"`
-	ResetTimestamp gregor1.Time `codec:"resetTimestamp" json:"resetTimestamp"`
-	ResetFull      string       `codec:"resetFull" json:"resetFull"`
+	TlfID          TLFID         `codec:"tlfID" json:"tlfID"`
+	ResetUser      string        `codec:"resetUser" json:"resetUser"`
+	ResetDate      string        `codec:"resetDate" json:"resetDate"`
+	ResetTimestamp gregor1.Time  `codec:"resetTimestamp" json:"resetTimestamp"`
+	ResetFull      string        `codec:"resetFull" json:"resetFull"`
+	ResetUID       *keybase1.UID `codec:"resetUID,omitempty" json:"resetUID,omitempty"`
 }
 
 type TlfResolveArg struct {

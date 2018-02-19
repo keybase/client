@@ -219,7 +219,7 @@ protocol remote {
   // tlfFinalize is an endpoint for kbfstlfd to notify Gregor that a TLF ID has been finalized.
   // Gregor keeps an internal record of these TLF IDs, so that it can always return the latest
   // conversation per TLF ID on GetInboxRemote.
-  void tlfFinalize(TLFID tlfID, string resetUser, string resetDate, gregor1.Time resetTimestamp, string resetFull);
+  void tlfFinalize(TLFID tlfID, string resetUser, string resetDate, gregor1.Time resetTimestamp, string resetFull, union { null, keybase1.UID } resetUID);
 
   void tlfResolve(TLFID tlfID, array<gregor1.UID> resolvedWriters, array<gregor1.UID> resolvedReaders);
 

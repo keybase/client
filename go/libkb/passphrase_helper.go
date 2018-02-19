@@ -141,7 +141,6 @@ func GetPassphraseUntilCheck(g *GlobalContext, arg keybase1.GUIEntryArg, prompte
 		}
 		arg.RetryLabel = err.Error()
 	}
-
 	return keybase1.GetPassphraseRes{}, RetryExhaustedError{}
 }
 
