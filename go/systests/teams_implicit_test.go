@@ -225,6 +225,7 @@ func trySBSConsolidation(t *testing.T, impteamExpr string) {
 
 	t.Logf("Created team %s -> %s", impteamName, teamID)
 
+	bob.kickTeamRekeyd()
 	bob.proveRooter()
 	t.Logf("Bob (%s) proved rooter", bob.username)
 
