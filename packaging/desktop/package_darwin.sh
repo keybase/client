@@ -240,6 +240,7 @@ sign() {(
   spctl --assess --verbose=4 "$app_name.app"
   codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/keybase"
   codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/git-remote-keybase"
+  codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/keybase-redirector"
   codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/kbfs"
   codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/kbnm"
   codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/updater"
