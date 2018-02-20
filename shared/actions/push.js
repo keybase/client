@@ -244,7 +244,7 @@ function* deletePushTokenSaga(): Saga.SagaGenerator<any, any> {
   }
 }
 
-function* _mobileAppState(action: AppGen.MobileAppStatePayload) {
+function* mobileAppStateSaga(action: AppGen.MobileAppStatePayload) {
   const nextAppState = action.payload.nextAppState
   if (isIOS && nextAppState === 'active') {
     console.log('Checking push permissions')
@@ -267,7 +267,7 @@ function* pushSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeLatest(PushGen.configurePush, configurePushSaga)
   yield Saga.safeTakeEvery(PushGen.checkIOSPush, checkIOSPushSaga)
   yield Saga.safeTakeEvery(PushGen.notification, pushNotificationSaga)
-  yield Saga.safeTakeEvery(AppGen.mobileAppState, _mobileAppState)
+  yield Saga.safeTakeEvery(AppGen.mobileAppState, mobileAppStateSaga)
 }
 
 export default pushSaga

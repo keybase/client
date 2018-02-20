@@ -5,7 +5,7 @@ import {globalStyles, globalColors, globalMargins} from '../../styles'
 import * as PushGen from '../../actions/push-gen'
 import {connect} from '../../util/container'
 
-const notificationMonster = '../../images/illustrations/illustration-turn-on-notifications-460-x-252.png'
+const notificationMonster = require('../../images/illustrations/illustration-turn-on-notifications-460-x-252.png')
 
 export type Props = {
   onEnable: () => void,
@@ -23,7 +23,7 @@ const TurnOnNotifications = (props: Props) => (
     }}
   >
     <Box style={{height: 270, width: 250, position: 'absolute', top: -20, left: globalMargins.medium}}>
-      <NativeImage resizeMode="contain" source={require(notificationMonster)} />
+      <NativeImage resizeMode="contain" source={notificationMonster} />
     </Box>
     <Text
       type="BodySemibold"
