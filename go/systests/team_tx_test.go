@@ -321,3 +321,35 @@ func TestTeamTxSubteamAdmins(t *testing.T) {
 	err = tx.Post(context.Background())
 	require.NoError(t, err)
 }
+
+func TestTeamTxBadAdds(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+	t.Logf("Signed up user ann (%s)", ann.username)
+
+	bob := tt.addUser("bob")
+	t.Logf("Signed up user bob (%s)", bob.username)
+
+	bobUV := bob.userVersion()
+	bob.reset()
+
+	team := ann.createTeam()
+	t.Logf("Team created (%s)", team)
+
+	teamObj := ann.loadTeam(team, true /* admin */)
+	tx := teams.CreateAddMemberTx(teamObj)
+	err := tx.AddMemberByUV(context.Background(), bobUV, keybase1.TeamRole_WRITER)
+	require.Error(t, err)
+	require.True(t, tx.IsEmpty())
+
+	bob.loginAfterReset()
+	bobUV = bob.userVersion()
+
+	bob.delete()
+
+	err = tx.AddMemberByUV(context.Background(), bobUV, keybase1.TeamRole_WRITER)
+	require.Error(t, err)
+	require.True(t, tx.IsEmpty())
+}

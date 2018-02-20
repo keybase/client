@@ -699,6 +699,11 @@ func (u *userPlusDevice) reset() {
 	u.tc.T.Logf("User reset; eldest seqno %d -> %d", uvBefore.EldestSeqno, uvAfter.EldestSeqno)
 }
 
+func (u *userPlusDevice) delete() {
+	err := u.device.userClient.DeleteUser(context.TODO(), 0)
+	require.NoError(u.tc.T, err)
+}
+
 func (u *userPlusDevice) loginAfterReset() {
 	u.loginAfterResetHelper(true)
 }
