@@ -94,13 +94,13 @@ func (h ConfigHandler) SetValue(_ context.Context, arg keybase1.SetValueArg) (er
 	}
 	switch {
 	case arg.Value.IsNull:
-		w.SetNullAtPath(arg.Path)
+		err = w.SetNullAtPath(arg.Path)
 	case arg.Value.S != nil:
-		w.SetStringAtPath(arg.Path, *arg.Value.S)
+		err = w.SetStringAtPath(arg.Path, *arg.Value.S)
 	case arg.Value.I != nil:
-		w.SetIntAtPath(arg.Path, *arg.Value.I)
+		err = w.SetIntAtPath(arg.Path, *arg.Value.I)
 	case arg.Value.B != nil:
-		w.SetBoolAtPath(arg.Path, *arg.Value.B)
+		err = w.SetBoolAtPath(arg.Path, *arg.Value.B)
 	case arg.Value.O != nil:
 		var jw *jsonw.Wrapper
 		jw, err = jsonw.Unmarshal([]byte(*arg.Value.O))
@@ -192,6 +192,7 @@ func (h ConfigHandler) GetExtendedStatus(ctx context.Context, sessionID int) (re
 	res.ProvisionedUsernames = p
 	res.PlatformInfo = getPlatformInfo()
 	res.DefaultDeviceID = h.G().Env.GetDeviceID()
+	res.RememberPassphrase = h.G().Env.RememberPassphrase()
 
 	return res, nil
 }
@@ -327,4 +328,54 @@ func (h ConfigHandler) GetBootstrapStatus(ctx context.Context, sessionID int) (k
 	}
 
 	return eng.Status(), nil
+}
+
+func (h ConfigHandler) GetRememberPassphrase(ctx context.Context, sessionID int) (bool, error) {
+	return h.G().Env.RememberPassphrase(), nil
+}
+
+func (h ConfigHandler) SetRememberPassphrase(ctx context.Context, arg keybase1.SetRememberPassphraseArg) error {
+	remember, err := h.GetRememberPassphrase(ctx, arg.SessionID)
+	if err != nil {
+		return err
+	}
+	if remember == arg.Remember {
+		h.G().Log.Debug("SetRememberPassphrase: no change necessary (remember = %v)", remember)
+		return nil
+	}
+
+	// set the config variable
+	w := h.G().Env.GetConfigWriter()
+	if err := w.SetRememberPassphrase(arg.Remember); err != nil {
+		return err
+	}
+	h.G().ConfigReload()
+
+	username := h.G().Env.GetUsername()
+
+	// get the current secret
+	secret, err := h.G().SecretStoreAll.RetrieveSecret(username)
+	if err != nil {
+		h.G().Log.Debug("error retrieving existing secret for SetRememberPassphrase(%v): %s", arg.Remember, err)
+		return err
+	}
+
+	// clear the existing secret from the existing secret store
+	if err := h.G().SecretStoreAll.ClearSecret(username); err != nil {
+		h.G().Log.Debug("error clearing existing secret for SetRememberPassphrase(%v): %s", arg.Remember, err)
+		return err
+	}
+
+	// make a new secret store based on the new config
+	h.G().SecretStoreAll = libkb.NewSecretStoreLocked(h.G())
+
+	// store the secret in the secret store
+	if err := h.G().SecretStoreAll.StoreSecret(username, secret); err != nil {
+		h.G().Log.Debug("error storing existing secret for SetRememberPassphrase(%v): %s", arg.Remember, err)
+		return err
+	}
+
+	h.G().Log.Debug("SetRememberPassphrase(%v) success", arg.Remember)
+
+	return nil
 }

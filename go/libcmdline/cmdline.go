@@ -337,8 +337,8 @@ func (p CommandLine) GetMountDir() string {
 	return p.GetGString("mountdir")
 }
 
-func (p CommandLine) GetUseSecretStoreMem() (bool, bool) {
-	return p.GetBool("secret-store-mem", true)
+func (p CommandLine) GetRememberPassphrase() (bool, bool) {
+	return p.GetBool("remember-passphrase", true)
 }
 
 func (p CommandLine) GetBool(s string, glbl bool) (bool, bool) {
@@ -570,6 +570,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.BoolFlag{
 			Name:  "bg-identifier-disabled",
 			Usage: "supply to disable the BG identifier loop",
+		},
+		cli.BoolFlag{
+			Name:  "remember-passphrase",
+			Usage: "Remember keybase passphrase",
 		},
 	}
 	if extraFlags != nil {

@@ -82,7 +82,7 @@ type configGetter interface {
 	GetLevelDBNumFiles() (int, bool)
 	GetChatInboxSourceLocalizeThreads() (int, bool)
 	GetPayloadCacheSize() (int, bool)
-	GetUseSecretStoreMem() (bool, bool)
+	GetRememberPassphrase() (bool, bool)
 }
 
 type CommandLine interface {
@@ -197,6 +197,7 @@ type ConfigWriter interface {
 	SetUpdatePreferenceSnoozeUntil(keybase1.Time) error
 	SetUpdateLastChecked(keybase1.Time) error
 	SetBug3964RepairTime(NormalizedUsername, time.Time) error
+	SetRememberPassphrase(bool) error
 	Reset()
 	BeginTransaction() (ConfigWriterTransacter, error)
 }
