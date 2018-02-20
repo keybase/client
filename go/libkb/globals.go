@@ -104,7 +104,7 @@ type GlobalContext struct {
 	RateLimits         *RateLimits               // tracks the last time certain actions were taken
 	clockMu            *sync.Mutex               // protects Clock
 	clock              clockwork.Clock           // RealClock unless we're testing
-	secretStoreMu      sync.Mutex                // protects secretStore
+	secretStoreMu      *sync.Mutex               // protects secretStore
 	secretStore        *SecretStoreLocked        // SecretStore
 	hookMu             *sync.RWMutex             // protects loginHooks, logoutHooks
 	loginHooks         []LoginHook               // call these on login
@@ -157,6 +157,7 @@ func (g *GlobalContext) GetClock() clockwork.Clock                     { return 
 
 type LogGetter func() logger.Logger
 
+// Note: all these sync.Mutex fields are pointers so that the Clone funcs work.
 func NewGlobalContext() *GlobalContext {
 	log := logger.New("keybase")
 	return &GlobalContext{
@@ -175,6 +176,7 @@ func NewGlobalContext() *GlobalContext {
 		outOfDateInfo:      &keybase1.OutOfDateInfo{},
 		lastUpgradeWarning: new(time.Time),
 		uchMu:              new(sync.Mutex),
+		secretStoreMu:      new(sync.Mutex),
 		NewTriplesec:       NewSecureTriplesec,
 		ActiveDevice:       new(ActiveDevice),
 		NetContext:         context.TODO(),
