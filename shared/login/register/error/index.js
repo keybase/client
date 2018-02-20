@@ -219,10 +219,10 @@ const renderError = (error: RPCError) => {
     default:
       return (
         <Box style={styleContent}>
-          <Text type="BodySemibold" selectable={true}>
+          <Text style={styleErrorTitle} type="Body" selectable={true}>
             {error.desc}
           </Text>
-          <Text type="Body" selectable={true}>
+          <Text type="BodySmall" selectable={true}>
             {error.details}
           </Text>
         </Box>
@@ -265,6 +265,10 @@ const styleContent = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
   flex: 1,
+}
+
+const styleErrorTitle = {
+  marginBottom: globalMargins.tiny,
 }
 
 export default Render
