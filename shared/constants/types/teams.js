@@ -81,6 +81,7 @@ export type TypeMap = {
 }
 
 export type _State = {
+  channelCreationError: string,
   convIDToChannelInfo: I.Map<ConversationIDKey, ChannelInfo>,
   sawChatBanner: boolean,
   sawSubteamsBanner: boolean,

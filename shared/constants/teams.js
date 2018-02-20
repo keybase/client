@@ -57,6 +57,7 @@ export const makeTeamSettings: I.RecordFactory<Types._TeamSettings> = I.Record({
 })
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
+  channelCreationError: '',
   convIDToChannelInfo: I.Map(),
   loaded: false,
   sawChatBanner: false,

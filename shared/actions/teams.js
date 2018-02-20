@@ -876,6 +876,9 @@ const _onTabChange = (action: RouteTypes.SwitchTo) => {
   }
 }
 
+const _setChannelCreationError = (action: TeamsGen.SetChannelCreationErrorPayload) =>
+  Saga.put(replaceEntity(['teams'], I.Map({channelCreationError: action.payload.error})))
+
 const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TeamsGen.leaveTeam, _leaveTeam)
   yield Saga.safeTakeEveryPure(TeamsGen.createNewTeam, _createNewTeam)
@@ -900,6 +903,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TeamsGen.deleteChannelConfirmed, _deleteChannelConfirmed)
   yield Saga.safeTakeEveryPure(TeamsGen.badgeAppForTeams, _badgeAppForTeams)
   yield Saga.safeTakeEveryPure(RouteConstants.switchTo, _onTabChange)
+  yield Saga.safeTakeEveryPure(TeamsGen.setChannelCreationError, _setChannelCreationError)
   yield Saga.safeTakeEvery(TeamsGen.inviteToTeamByPhone, _inviteToTeamByPhone)
   yield Saga.safeTakeEveryPure(TeamsGen.setPublicity, _setPublicity, _afterSaveCalls)
   yield Saga.safeTakeEveryPure(

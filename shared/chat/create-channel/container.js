@@ -1,4 +1,4 @@
-// @noflow
+// @flow
 import * as TeamsGen from '../../actions/teams-gen'
 import CreateChannel from '.'
 import {compose, withHandlers, lifecycle, withState, connect, type TypedState} from '../../util/container'
@@ -7,7 +7,7 @@ import upperFirst from 'lodash/upperFirst'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   return {
-    errorText: upperFirst(state.chat.channelCreationError),
+    errorText: upperFirst(state.entities.teams.channelCreationError),
     teamname: routeProps.get('teamname'),
   }
 }
