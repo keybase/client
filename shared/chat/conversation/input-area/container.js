@@ -11,7 +11,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}): * => {
   const meta = Constants.getMeta(state, conversationIDKey)
   return {
     conversationIDKey,
-    isPreview: false, // TODO
+    isPreview: meta.membershipType === 'youArePreviewing',
     isReset: !meta.resetParticipants.isEmpty(),
   }
 }

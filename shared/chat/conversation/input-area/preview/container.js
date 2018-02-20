@@ -1,4 +1,5 @@
 // @flow
+import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import ChannelPreview from '.'
@@ -13,23 +14,16 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _onJoinChannel: (selectedConversation: Types.ConversationIDKey) => {
-    // dispatch(ChatGen.createJoinConversation({conversationIDKey: selectedConversation})),
-  },
-  _onLeaveChannel: (selectedConversation: Types.ConversationIDKey, teamname: string) => {
-    // dispatch(ChatGen.createLeaveConversation({conversationIDKey: selectedConversation}))
-    // dispatch(RouteTree.navigateUp())
-    // if (ownProps.previousPath) {
-    // dispatch(RouteTree.navigateTo(ownProps.previousPath))
-    // }
-  },
+  _onJoinChannel: (conversationIDKey: Types.ConversationIDKey) =>
+    dispatch(Chat2Gen.createJoinConversation({conversationIDKey})),
+  _onLeaveChannel: (conversationIDKey: Types.ConversationIDKey) =>
+    dispatch(Chat2Gen.createLeaveConversation({conversationIDKey})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   channelname: stateProps._meta.channelname,
   onJoinChannel: () => dispatchProps._onJoinChannel(stateProps._conversationIDKey),
-  onLeaveChannel: () =>
-    dispatchProps._onLeaveChannel(stateProps._conversationIDKey, stateProps._meta.teamname),
+  onLeaveChannel: () => dispatchProps._onLeaveChannel(stateProps._conversationIDKey),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(ChannelPreview)

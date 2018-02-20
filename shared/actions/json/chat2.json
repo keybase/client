@@ -18,6 +18,7 @@
     "selectConversation": {
       "conversationIDKey": "Types.ConversationIDKey",
       "fromUser?": "boolean", // true if this is a direct result of the user clicking
+      "asAPreview?": "boolean", // true if you want to preview the conversation
     },
     // Select an existing conversation or setup an empty one. Can either be adhoc or
     // a tlf (adhoc or team)
@@ -35,8 +36,7 @@
     "setupChatHandlers": {},
     // Refresh the inbox
     "inboxRefresh": {
-      "reason": "string", // why this happened for logging
-      "clearAllData?": "boolean" // if we should throw out our internal data
+      "reason": "'bootstrap' | 'teamTypeChanged' | 'inboxSyncedClear' | 'inboxSyncedUnknown' | 'inboxStale' | 'joinedAConversation' | 'leftAConversation' | 'componentNeverLoaded'", // why this happened for logging
     },
     // Update the jump to conversation filter
     "setInboxFilter": {

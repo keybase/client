@@ -116,7 +116,9 @@ const metaMapReducer = (metaMap, action) => {
         })
       })
     case Chat2Gen.inboxRefresh:
-      return action.payload.clearAllData ? metaMap.clear() : metaMap
+      return ['inboxSyncedClear', 'leftAConversation'].includes(action.payload.reason)
+        ? metaMap.clear()
+        : metaMap
     default:
       return metaMap
   }
@@ -136,7 +138,7 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
             : message
       )
     case Chat2Gen.inboxRefresh:
-      return action.payload.clearAllData ? messageMap.clear() : messageMap
+      return action.payload.reason === 'inboxSyncedClear' ? messageMap.clear() : messageMap
     case Chat2Gen.messageAttachmentUploaded: {
       const {conversationIDKey, message, placeholderID} = action.payload
       const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, conversationIDKey, placeholderID)
@@ -260,7 +262,7 @@ const messageOrdinalsReducer = (messageOrdinals, action) => {
   // Note: on a delete we leave the ordinals in the list
   switch (action.type) {
     case Chat2Gen.inboxRefresh:
-      return action.payload.clearAllData ? messageOrdinals.clear() : messageOrdinals
+      return action.payload.reason === 'inboxSyncedClear' ? messageOrdinals.clear() : messageOrdinals
     case Chat2Gen.markConversationsStale:
       return messageOrdinals.deleteAll(action.payload.conversationIDKeys)
     default:
@@ -561,6 +563,13 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.updateTypers: {
       return state.set('typingMap', action.payload.conversationToTypers)
     }
+
+    // case Chat2Gen.leaveConversation: {
+    // if (state.selectedConversation === action.payload.conversationIDKey) {
+    // return state.set('selectedConversation', Types.stringToConversationIDKey(''))
+    // }
+    // return state
+    // }
 
     // metaMap/messageMap/messageOrdinalsList only actions
     case Chat2Gen.inboxRefresh:

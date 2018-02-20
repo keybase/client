@@ -43,7 +43,7 @@ const inboxQuery = {
   unreadOnly: false,
 }
 
-const rpcInboxRefresh = (action: Chat2Gen.InboxRefreshPayload, state: TypedState) => {
+const rpcInboxRefresh = (action: Chat2Gen.InboxRefreshPayload | Chat2Gen.LeaveConversationPayload, state: TypedState) => {
   const username = state.config.username || ''
   const untrustedInboxRpc = new EngineRpc.EngineRpcCall(
     {
@@ -381,7 +381,7 @@ const setupChatHandlers = () => {
           // }
           return null // TODO?
         case RPCChatTypes.notifyChatChatActivityType.teamtype:
-          return [Chat2Gen.createInboxRefresh({reason: 'team type changed'})]
+          return [Chat2Gen.createInboxRefresh({reason: 'teamTypeChanged'})]
         default:
           break
       }
@@ -409,7 +409,7 @@ const setupChatHandlers = () => {
 
       switch (syncRes.syncType) {
         case RPCChatTypes.commonSyncInboxResType.clear:
-          actions.push(Chat2Gen.createInboxRefresh({clearAllData: true, reason: 'inbox synced clear'}))
+          actions.push(Chat2Gen.createInboxRefresh({reason: 'inboxSyncedClear'}))
           break
         case RPCChatTypes.commonSyncInboxResType.current:
           break
@@ -448,19 +448,19 @@ const setupChatHandlers = () => {
           break
         }
         default:
-          actions.push(Chat2Gen.createInboxRefresh({reason: 'inbox synced unknown'}))
+          actions.push(Chat2Gen.createInboxRefresh({reason: 'inboxSyncedUnknown'}))
       }
       return actions
     }
   )
 
   engine().setIncomingActionCreators('chat.1.NotifyChat.ChatInboxSyncStarted', () => {
-    receivedSyncStart = true
+    receivedSyncStartCount++
     return [Chat2Gen.createSetLoading({key: 'inboxSyncStarted', loading: true})]
   })
 
   engine().setIncomingActionCreators('chat.1.NotifyChat.ChatInboxStale', () => [
-    Chat2Gen.createInboxRefresh({reason: 'inbox stale'}),
+    Chat2Gen.createInboxRefresh({reason: 'inboxStale'}),
   ])
 
   engine().setIncomingActionCreators(
@@ -517,6 +517,13 @@ const setupChatHandlers = () => {
       }
     }
   )
+
+  engine().setIncomingActionCreators('chat.1.NotifyChat.ChatJoinedConversation', () => [
+    Chat2Gen.createInboxRefresh({reason: 'joinedAConversation'}),
+  ])
+  engine().setIncomingActionCreators('chat.1.NotifyChat.ChatLeftConversation', () => [
+    Chat2Gen.createInboxRefresh({reason: 'leftAConversation'}),
+  ])
 }
 
 const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType).reduce((arr, key) => {
@@ -724,6 +731,13 @@ const rpcLoadThread = (
   }
   return Saga.sequentially(actions)
 }
+
+const previewConversation = (action: Chat2Gen.SelectConversationPayload) =>
+  action.payload.asAPreview
+    ? Saga.call(RPCChatTypes.localPreviewConversationByIDLocalRpcPromise, {
+        convID: Types.keyToConversationID(action.payload.conversationIDKey),
+      })
+    : null
 
 const clearInboxFilter = (action: Chat2Gen.SelectConversationPayload) =>
   Saga.put(Chat2Gen.createSetInboxFilter({filter: ''}))
@@ -1068,10 +1082,15 @@ const startConversation = (action: Chat2Gen.StartConversationPayload, state: Typ
 
 const bootstrapSuccess = () => Saga.put(Chat2Gen.createInboxRefresh({reason: 'bootstrap'}))
 
-const selectTheNewestConversation = (action: any, state: TypedState) => {
-  // already something?
-  if (Constants.getSelectedConversation(state) || !state.chat2.pendingConversationUsers.isEmpty()) {
-    return
+const selectTheNewestConversation = (
+  action: Chat2Gen.MetasReceivedPayload | Chat2Gen.LeaveConversationPayload,
+  state: TypedState
+) => {
+  if (action.type === Chat2Gen.metasReceived) {
+    // already something?
+    if (Constants.getSelectedConversation(state) || !state.chat2.pendingConversationUsers.isEmpty()) {
+      return
+    }
   }
 
   const meta = state.chat2.metaMap
@@ -1466,6 +1485,11 @@ const markThreadAsRead = (
 
   const conversationIDKey = Constants.getSelectedConversation(state)
 
+  if (!state.chat2.metaMap.get(conversationIDKey)) {
+    logger.info('marking read bail on not in meta list. preview?')
+    return
+  }
+
   if (action.type === Chat2Gen.markInitiallyLoadedThreadAsRead) {
     if (action.payload.conversationIDKey !== conversationIDKey) {
       logger.info('marking read bail on not looking at this thread anymore?')
@@ -1632,6 +1656,16 @@ const debugDump = (action: Chat2Gen.DebugDumpPayload, state: TypedState) => {
   )
 }
 
+const joinConversation = (action: Chat2Gen.JoinConversationPayload) =>
+  Saga.call(RPCChatTypes.localJoinConversationByIDLocalRpcPromise, {
+    convID: Types.keyToConversationID(action.payload.conversationIDKey),
+  })
+
+const leaveConversation = (action: Chat2Gen.LeaveConversationPayload) =>
+  Saga.call(RPCChatTypes.localLeaveConversationLocalRpcPromise, {
+    convID: Types.keyToConversationID(action.payload.conversationIDKey),
+  })
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
   if (isMobile) {
@@ -1648,12 +1682,15 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   } else {
     yield Saga.safeTakeEveryPure(Chat2Gen.desktopNotification, desktopNotify)
     // Auto select the latest convo
-    yield Saga.safeTakeEveryPure([Chat2Gen.metasReceived], selectTheNewestConversation)
+    yield Saga.safeTakeEveryPure(
+      [Chat2Gen.metasReceived, Chat2Gen.leaveConversation],
+      selectTheNewestConversation
+    )
   }
 
   // Refresh the inbox
   yield Saga.safeTakeEveryPure(
-    Chat2Gen.inboxRefresh,
+    [Chat2Gen.inboxRefresh,  Chat2Gen.leaveConversation],
     rpcInboxRefresh,
     rpcInboxRefreshSuccess,
     rpcInboxRefreshError
@@ -1679,6 +1716,8 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     ],
     rpcLoadThread
   )
+
+  yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, previewConversation)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.messageRetry, messageRetry)
   yield Saga.safeTakeEveryPure(Chat2Gen.messageSend, messageSend)
@@ -1733,6 +1772,9 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
 
   yield Saga.safeTakeEveryPure(Chat2Gen.navigateToInbox, navigateToInbox)
   yield Saga.safeTakeEveryPure(Chat2Gen.navigateToThread, navigateToThread)
+
+  yield Saga.safeTakeEveryPure(Chat2Gen.joinConversation, joinConversation)
+  yield Saga.safeTakeEveryPure(Chat2Gen.leaveConversation, leaveConversation)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.debugDump, debugDump)
 }

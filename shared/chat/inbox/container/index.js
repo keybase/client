@@ -65,8 +65,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeState, setRouteState, navi
         reason: 'untrusted inbox visible',
       })
     ),
-  refreshInbox: (force: boolean) =>
-    dispatch(Chat2Gen.createInboxRefresh({reason: 'component thinks never loaded'})),
+  refreshInbox: (force: boolean) => dispatch(Chat2Gen.createInboxRefresh({reason: 'componentNeverLoaded'})),
   toggleSmallTeamsExpanded: () =>
     setRouteState({
       smallTeamsExpanded: !routeState.get('smallTeamsExpanded'),

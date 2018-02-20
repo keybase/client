@@ -155,12 +155,7 @@ export const createDesktopNotification = (
   }>
 ) => ({error: false, payload, type: desktopNotification})
 export const createExitSearch = () => ({error: false, payload: undefined, type: exitSearch})
-export const createInboxRefresh = (
-  payload: $ReadOnly<{
-    reason: string,
-    clearAllData?: boolean,
-  }>
-) => ({error: false, payload, type: inboxRefresh})
+export const createInboxRefresh = (payload: $ReadOnly<{reason: 'bootstrap' | 'teamTypeChanged' | 'inboxSyncedClear' | 'inboxSyncedUnknown' | 'inboxStale' | 'joinedAConversation' | 'leftAConversation' | 'componentNeverLoaded'}>) => ({error: false, payload, type: inboxRefresh})
 export const createJoinConversation = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: joinConversation})
 export const createLeaveConversation = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: leaveConversation})
 export const createLoadMoreMessages = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: loadMoreMessages})
@@ -292,6 +287,7 @@ export const createSelectConversation = (
   payload: $ReadOnly<{
     conversationIDKey: Types.ConversationIDKey,
     fromUser?: boolean,
+    asAPreview?: boolean,
   }>
 ) => ({error: false, payload, type: selectConversation})
 export const createSelectConversationDueToPush = (
