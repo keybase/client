@@ -28,11 +28,10 @@ func TestTeamInviteRooter(t *testing.T) {
 	rooterUser := tt.users[1].username + "@rooter"
 	tt.users[0].addTeamMember(teamName.String(), rooterUser, keybase1.TeamRole_WRITER)
 
-	// user 1 proves rooter
+	// user 1 proves rooter, kicking rekeyd so it notices the proof
+	// beforehand so user 0 can notice proof faster.
+	tt.users[1].kickTeamRekeyd()
 	tt.users[1].proveRooter()
-
-	// user 0 kicks rekeyd so it notices the proof
-	tt.users[0].kickTeamRekeyd()
 
 	// user 0 should get gregor notification that the team changed
 	tt.users[0].waitForTeamChangedGregor(teamID, keybase1.Seqno(3))
@@ -82,12 +81,10 @@ func TestTeamInviteEmail(t *testing.T) {
 	tokens := tt.users[1].readInviteEmails(email)
 
 	// user 1 accepts all invitations
+	tt.users[1].kickTeamRekeyd()
 	for _, token := range tokens {
 		tt.users[1].acceptEmailInvite(token)
 	}
-
-	// user 0 kicks rekeyd so it notices the accepted invite
-	tt.users[0].kickTeamRekeyd()
 
 	// user 0 should get gregor notification that the team changed
 	tt.users[0].waitForTeamChangedGregor(teamID, keybase1.Seqno(3))
@@ -144,11 +141,9 @@ func TestTeamInviteAcceptOrRequest(t *testing.T) {
 	require.Len(t, tokens, 1)
 
 	// user 1 accepts the invitation
+	tt.users[1].kickTeamRekeyd()
 	ret = tt.users[1].acceptInviteOrRequestAccess(tokens[0])
 	require.EqualValues(t, ret, keybase1.TeamAcceptOrRequestResult{WasToken: true})
-
-	// user 0 kicks rekeyd so it notices the accepted invite
-	tt.users[0].kickTeamRekeyd()
 
 	// user 0 should get gregor notification that the team changed
 	tt.users[0].waitForTeamChangedGregor(teamID, keybase1.Seqno(3))
@@ -216,8 +211,6 @@ func TestTeamReInviteAfterReset(t *testing.T) {
 	teamID, teamName := ann.createTeam2()
 	t.Logf("Created team %q", teamName.String())
 
-	ann.waitForTeamChangedAndRotated(teamID, keybase1.Seqno(1))
-
 	bob := ctx.installKeybaseForUserNoPUK("bob", 10)
 	bob.signupNoPUK()
 	divDebug(ctx, "Signed up bob (%s)", bob.username)
@@ -237,12 +230,12 @@ func TestTeamReInviteAfterReset(t *testing.T) {
 
 	bob.primaryDevice().tctx.Tp.DisableUpgradePerUserKey = false
 
+	ann.kickTeamRekeyd()
 	err := bob.perUserKeyUpgrade()
 	require.NoError(t, err)
 
 	t.Logf("Bob got a PUK, now let's see if Ann's client adds him to team")
 
-	ann.kickTeamRekeyd()
 	ann.waitForTeamChangedGregor(teamID, keybase1.Seqno(4))
 
 	details, err := ann.teamsClient.TeamGet(context.TODO(), keybase1.TeamGetArg{Name: teamName.String(), ForceRepoll: true})
@@ -271,9 +264,8 @@ func TestImpTeamWithRooter(t *testing.T) {
 
 	// TODO: Test chats, but it might be hard since implicit team tlf
 	// name resolution for chat commands needs KBFS running.
+	bob.kickTeamRekeyd()
 	bob.proveRooter()
-
-	alice.kickTeamRekeyd()
 
 	alice.waitForTeamChangedGregor(team, keybase1.Seqno(2))
 
@@ -312,9 +304,8 @@ func TestImpTeamWithRooterConflict(t *testing.T) {
 
 	t.Logf("Created implicit team %q -> %s\n", displayNameKeybase, team2)
 
+	bob.kickTeamRekeyd()
 	bob.proveRooter()
-
-	alice.kickTeamRekeyd()
 
 	alice.waitForTeamChangedGregor(team, keybase1.Seqno(2))
 
@@ -354,10 +345,11 @@ func TestImpTeamWithMultipleRooters(t *testing.T) {
 
 	require.NotEqual(t, team1, team2)
 
+	// Kick rekeyd so rooter proof notifications arrive faster.
+	alice.kickTeamRekeyd()
+
 	bob.proveRooter()
 	charlie.proveRooter()
-
-	alice.kickTeamRekeyd()
 
 	toSeqno := keybase1.Seqno(2)
 	var winningTeam keybase1.TeamID

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -155,4 +156,35 @@ func TestSystemMessageMentions(t *testing.T) {
 	atMentions, chanMention = SystemMessageMentions(context.TODO(), body, usource)
 	require.Zero(t, len(atMentions))
 	require.Equal(t, chat1.ChannelMention_ALL, chanMention)
+}
+
+func TestSanitizeAttachmentFilename(t *testing.T) {
+
+	// Test text type is unmodified
+	text := "hi"
+	body := chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: "hi",
+	})
+	err := sanitizeAttachmentFilename(body)
+	require.NoError(t, err)
+	require.Equal(t, body.Text().Body, text)
+
+	// Test Attachment and Attachmentuploaded types are sanitized
+	filename := "../.bash_profile"
+	asset := chat1.Asset{Filename: filename}
+	sanitized := filepath.Base(filename)
+	body = chat1.NewMessageBodyWithAttachment(chat1.MessageAttachment{
+		Object: asset,
+	})
+	err = sanitizeAttachmentFilename(body)
+	require.NoError(t, err)
+	require.Equal(t, body.Attachment().Object.Filename, sanitized)
+
+	body = chat1.NewMessageBodyWithAttachmentuploaded(chat1.MessageAttachmentUploaded{
+		Object: asset,
+	})
+	err = sanitizeAttachmentFilename(body)
+	require.NoError(t, err)
+	require.Equal(t, body.Attachmentuploaded().Object.Filename, sanitized)
+
 }

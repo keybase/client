@@ -126,7 +126,7 @@ func TestHome(t *testing.T) {
 	// item, and then we will still have two todo items lined up next with
 	// one badged. This is a bit brittle since if the server-side logic
 	// changes, this test will break. But let's leave it for now.
-	tt.addUser("alice")
+	tt.addUserWithPaper("alice")
 	alice := tt.users[0]
 	g := alice.tc.G
 

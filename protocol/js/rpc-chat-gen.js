@@ -1198,7 +1198,7 @@ export type RemoteSyncChatRpcParam = $ReadOnly<{vers: InboxVers, incomingCallMap
 
 export type RemoteSyncInboxRpcParam = $ReadOnly<{vers: InboxVers, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type RemoteTlfFinalizeRpcParam = $ReadOnly<{tlfID: TLFID, resetUser: String, resetDate: String, resetTimestamp: Gregor1.Time, resetFull: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type RemoteTlfFinalizeRpcParam = $ReadOnly<{tlfID: TLFID, resetUser: String, resetDate: String, resetTimestamp: Gregor1.Time, resetFull: String, resetUID?: ?Keybase1.UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type RemoteTlfResolveRpcParam = $ReadOnly<{tlfID: TLFID, resolvedWriters?: ?Array<Gregor1.UID>, resolvedReaders?: ?Array<Gregor1.UID>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
