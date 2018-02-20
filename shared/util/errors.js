@@ -6,13 +6,30 @@ export class RPCError extends Error {
   desc: string // Don't use! This is for compatibility with RPC error object.
   name: string
 
+  userMessage: string // Human-readable-ish message from service about this error
+  details: string // Details w/ error code & method if it's present
+
   constructor(message: string, code: number, fields: any, name: ?string, method: ?string) {
     super(paramsToErrorMsg(message, code, fields, name, method))
     this.code = code // Consult type StatusCode in rpc-gen.js for what this means
     this.fields = fields
     this.desc = message // Don't use! This is for compatibility with RPC error object.
     this.name = name || ''
+
+    this.userMessage = message
+    this.details = paramsToErrorDetails(code, name, method)
   }
+}
+
+const paramsToErrorDetails = (code: number, name: ?string, method: ?string) => {
+  let res = `Error code ${code}`
+  if (name) {
+    res += `: ${name}`
+  }
+  if (method) {
+    res += ` in method ${method}`
+  }
+  return res
 }
 
 const paramsToErrorMsg = (

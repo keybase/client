@@ -219,7 +219,12 @@ const renderError = (error: RPCError) => {
     default:
       return (
         <Box style={styleContent}>
-          <Text type="Body">Unknown error: {error.message}</Text>
+          <Text type="BodySemibold" selectable={true}>
+            {error.userMessage}
+          </Text>
+          <Text type="Body" selectable={true}>
+            {error.details}
+          </Text>
         </Box>
       )
   }
