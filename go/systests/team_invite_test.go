@@ -390,7 +390,7 @@ func TestClearSocialInvitesOnAdd(t *testing.T) {
 	})
 	tt.users = append(tt.users, ann)
 
-	tracer := ann.tc.G.CTimeTracer(context.Background(), "test-tracer")
+	tracer := ann.tc.G.CTimeTracer(context.Background(), "test-tracer", true)
 	defer tracer.Finish()
 
 	tracer.Stage("bob")

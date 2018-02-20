@@ -123,7 +123,7 @@ func getUsernameAndFullName(ctx context.Context, g *libkb.GlobalContext, uid key
 }
 
 func ListTeamsVerified(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListVerifiedArg) (*keybase1.AnnotatedTeamList, error) {
-	tracer := g.CTimeTracer(ctx, "TeamList.ListTeamsVerified")
+	tracer := g.CTimeTracer(ctx, "TeamList.ListTeamsVerified", true)
 	defer tracer.Finish()
 
 	tracer.Stage("Resolve QueryUID")
@@ -248,7 +248,7 @@ func ListTeamsVerified(ctx context.Context, g *libkb.GlobalContext, arg keybase1
 }
 
 func ListAll(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListTeammatesArg) (*keybase1.AnnotatedTeamList, error) {
-	tracer := g.CTimeTracer(ctx, "TeamList.ListAll")
+	tracer := g.CTimeTracer(ctx, "TeamList.ListAll", true)
 	defer tracer.Finish()
 
 	meUID := g.ActiveDevice.UID()

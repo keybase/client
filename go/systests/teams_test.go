@@ -250,7 +250,7 @@ func (u *userPlusDevice) createTeam() string {
 		u.tc.T.Fatal(err)
 	}
 	create.TeamName = name
-	tracer := u.tc.G.CTimeTracer(context.Background(), "tracer-create-team")
+	tracer := u.tc.G.CTimeTracer(context.Background(), "tracer-create-team", true)
 	defer tracer.Finish()
 	if err := create.Run(); err != nil {
 		u.tc.T.Fatal(err)
