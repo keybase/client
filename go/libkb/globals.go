@@ -618,13 +618,17 @@ func (g *GlobalContext) Configure(line CommandLine, usage Usage) error {
 		return err
 	}
 
-	// secretStore must be created after SetCommandLine in order
-	// to correctly use -H,-home flag.
+	if err := g.ConfigureUsage(usage); err != nil {
+		return err
+	}
+
+	// secretStore must be created after SetCommandLine and ConfigureUsage in order
+	// to correctly use -H,-home flag and config vars for remember_passphrase.
 	g.secretStoreMu.Lock()
 	g.secretStore = NewSecretStoreLocked(g)
 	g.secretStoreMu.Unlock()
 
-	return g.ConfigureUsage(usage)
+	return nil
 }
 
 func (g *GlobalContext) ConfigureUsage(usage Usage) error {
