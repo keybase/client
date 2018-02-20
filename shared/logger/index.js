@@ -121,13 +121,17 @@ const devLoggers = () => ({
 const prodLoggers = () => ({
   action: isMobile
     ? new RingLogger(200)
-    : new DumpPeriodicallyLogger(new RingLogger(500), 10 * 60e3, writeLogLinesToFile, 'Action'),
+    : new DumpPeriodicallyLogger(new RingLogger(200), 10 * 60e3, writeLogLinesToFile, 'Action'),
   debug: new RingLogger(500),
   error: isMobile
     ? new NativeLogger()
     : new DumpPeriodicallyLogger(new RingLogger(100), 1 * 60e3, writeLogLinesToFile, 'Error'),
-  info: isMobile ? new NativeLogger() : new RingLogger(500),
-  warn: isMobile ? new NativeLogger() : new RingLogger(500),
+  info: isMobile
+    ? new NativeLogger()
+    : new DumpPeriodicallyLogger(new RingLogger(500), 1 * 60e3, writeLogLinesToFile, 'Info'),
+  warn: isMobile
+    ? new NativeLogger()
+    : new DumpPeriodicallyLogger(new RingLogger(500), 1 * 60e3, writeLogLinesToFile, 'Warn'),
 })
 
 // Settings
