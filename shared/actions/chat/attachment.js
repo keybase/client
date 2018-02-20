@@ -32,7 +32,13 @@ function* onSaveAttachmentNative({
 }: ChatGen.SaveAttachmentNativePayload): SagaGenerator<any, any> {
   const path = yield Saga.call(onSaveAttachment, ChatGen.createSaveAttachment({messageKey}))
   if (path) {
-    yield Saga.call(saveAttachmentDialog, path)
+    logger.info('Trying to save chat attachment to camera roll')
+    try {
+      yield Saga.call(saveAttachmentDialog, path)
+    } catch (err) {
+      logger.info('Failed to save attachment: ' + err)
+      throw new Error('Save attachment failed. Enable photo access in privacy settings.')
+    }
   }
 }
 
