@@ -714,8 +714,8 @@ func (fs *FS) Chtimes(name string, atime time.Time, mtime time.Time) (
 	return fs.config.KBFSOps().SetMtime(fs.ctx, n, &mtime)
 }
 
-// Chrute returns a *FS whose root is p.
-func (fs *FS) Chrute(p string) (newFS *FS, err error) {
+// ChrootAsLibFS returns a *FS whose root is p.
+func (fs *FS) ChrootAsLibFS(p string) (newFS *FS, err error) {
 	fs.log.CDebugf(fs.ctx, "Chroot %s", p)
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "Chroot done: %+v", err)
@@ -753,7 +753,7 @@ func (fs *FS) Chrute(p string) (newFS *FS, err error) {
 
 // Chroot implements the billy.Filesystem interface for FS.
 func (fs *FS) Chroot(p string) (newFS billy.Filesystem, err error) {
-	return fs.Chrute(p)
+	return fs.ChrootAsLibFS(p)
 }
 
 // Root implements the billy.Filesystem interface for FS.
