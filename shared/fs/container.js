@@ -12,7 +12,7 @@ type OwnProps = {
 
 type StateProps = {
   path: Types.Path,
-  items: I.List<Types.Path>,
+  items: I.List<string>,
   progress: Types.ProgressType,
 }
 
@@ -30,16 +30,14 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   _loadFolderList: (path: Types.Path) => dispatch(FsGen.createFolderListLoad({path})),
 })
 
-const mergeProps = ({path, items, progress}: StateProps, dispatchProps: DispatchProps, ownProps) => ({
-  items: items.map(name => Types.pathConcat(path, Types.pathToString(name))).toArray(),
-  progress,
-  path,
-  /* TODO: enable these once we need them:
-  name: Types.getPathName(stateProps.path),
-  visibility: Types.getPathVisibility(stateProps.path),
-  */
-  ...dispatchProps,
-})
+const mergeProps = ({path, items, progress}: StateProps, dispatchProps: DispatchProps, ownProps) => {
+  return {
+    items: items.map(name => Types.pathConcat(path, name)).toArray(),
+    path,
+    progress,
+    ...dispatchProps,
+  }
+}
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),

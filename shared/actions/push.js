@@ -76,10 +76,12 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
     if (payload.type === 'chat.newmessageSilent_2') {
       logger.info('Push notification: silent notification received')
       try {
+        // $ForceType
+        const membersType: ChatTypes.ConversationMembersType =
+          typeof payload.t === 'string' ? parseInt(payload.t) : payload.t
         const unboxRes = yield Saga.call(ChatTypes.localUnboxMobilePushNotificationRpcPromise, {
           convID: payload.c || '',
-          // $FlowIssue payload.t isn't ConversationMembersType
-          membersType: typeof payload.t === 'string' ? parseInt(payload.t) : payload.t,
+          membersType,
           payload: payload.m || '',
           pushIDs: typeof payload.p === 'string' ? JSON.parse(payload.p) : payload.p,
         })

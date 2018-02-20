@@ -292,6 +292,9 @@ export default class AppState {
 
   _isValidWindowState(state: State): boolean {
     // Check if the display where the window was last open is still available
+    // and sanity check that we're placing the window where it will overlap
+    // the current screen, as per
+    // https://github.com/electron/electron/issues/10862
     let rect = {
       height: state.height,
       width: state.width,
@@ -300,7 +303,15 @@ export default class AppState {
     }
     let displayBounds = screen.getDisplayMatching(rect).bounds
     console.log('Check bounds:', rect, state.displayBounds, displayBounds)
-    return isEqual(state.displayBounds, displayBounds)
+    return (
+      isEqual(state.displayBounds, displayBounds) &&
+      !(
+        rect.x > displayBounds.x + displayBounds.width ||
+        rect.x + rect.width < displayBounds.x ||
+        rect.y > displayBounds.y + displayBounds.height ||
+        rect.y + rect.height < displayBounds.y
+      )
+    )
   }
 
   _loadStateSync() {
@@ -315,6 +326,7 @@ export default class AppState {
       const stateLoaded = JSON.parse(fs.readFileSync(configPath, {encoding: 'utf8'}))
 
       if (!this._isValidWindowState(stateLoaded)) {
+        console.log('  -- invalid window state')
         stateLoaded.x = null
         stateLoaded.y = null
       }

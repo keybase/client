@@ -107,10 +107,6 @@ func NewSecretStoreAll(g *GlobalContext) SecretStoreAll {
 	return KeychainSecretStore{context: g}
 }
 
-func NewTestSecretStoreAll(c SecretStoreContext, g *GlobalContext) SecretStoreAll {
-	return nil
-}
-
 func HasSecretStore() bool {
 	return true
 }

@@ -30,6 +30,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
+	"github.com/keybase/clockwork"
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/stretchr/testify/require"
@@ -2083,6 +2084,108 @@ func receiveThreadResult(t *testing.T, cb chan kbtest.NonblockThreadResult) (res
 	return res
 }
 
+func TestChatSrvGetThreadNonblockIncremental(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		ctc := makeChatTestContext(t, "TestChatSrvGetThreadNonblockIncremental", 1)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
+		threadCb := make(chan kbtest.NonblockThreadResult, 100)
+		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil)
+		ctc.as(t, users[0]).h.mockChatUI = ui
+
+		query := chat1.GetThreadQuery{
+			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+		}
+		ctx := ctc.as(t, users[0]).startCtx
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
+
+		t.Logf("send a bunch of messages")
+		numMsgs := 20
+		msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
+		for i := 0; i < numMsgs; i++ {
+			mustPostLocalForTest(t, ctc, users[0], conv, msg)
+		}
+
+		// Basic
+		delay := 10 * time.Minute
+		clock := clockwork.NewFakeClock()
+		ctc.as(t, users[0]).h.clock = clock
+		ctc.as(t, users[0]).h.remoteThreadDelay = &delay
+		cb := make(chan struct{})
+		go func() {
+			_, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadNonblock(ctx,
+				chat1.GetThreadNonblockArg{
+					ConversationID:   conv.Id,
+					IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+					Query:            &query,
+				},
+			)
+			require.NoError(t, err)
+			close(cb)
+		}()
+		select {
+		case res := <-threadCb:
+			require.False(t, res.Full)
+			require.Equal(t, numMsgs, len(res.Thread.Messages))
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no thread cb")
+		}
+		clock.Advance(20 * time.Minute)
+		select {
+		case res := <-threadCb:
+			require.True(t, res.Full)
+			require.Equal(t, numMsgs, len(res.Thread.Messages))
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no thread cb")
+		}
+		select {
+		case <-cb:
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "GetThread never finished")
+		}
+
+		// Incremental
+		cb = make(chan struct{})
+		go func() {
+			_, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadNonblock(ctx,
+				chat1.GetThreadNonblockArg{
+					ConversationID:   conv.Id,
+					IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+					Query:            &query,
+					CbMode:           chat1.GetThreadNonblockCbMode_INCREMENTAL,
+				},
+			)
+			require.NoError(t, err)
+			close(cb)
+		}()
+		select {
+		case res := <-threadCb:
+			require.False(t, res.Full)
+			require.Equal(t, numMsgs, len(res.Thread.Messages))
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no thread cb")
+		}
+		mustPostLocalForTest(t, ctc, users[0], conv, msg)
+		clock.Advance(20 * time.Minute)
+		select {
+		case res := <-threadCb:
+			require.True(t, res.Full)
+			require.Equal(t, 1, len(res.Thread.Messages))
+			require.True(t, res.Thread.Pagination.Last)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no thread cb")
+		}
+		select {
+		case <-cb:
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "GetThread never finished")
+		}
+
+	})
+}
+
 func TestChatSrvGetThreadNonblock(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		ctc := makeChatTestContext(t, "GetThreadNonblock", 1)
@@ -2131,7 +2234,10 @@ func TestChatSrvGetThreadNonblock(t *testing.T) {
 		require.Equal(t, numMsgs, len(res.Messages))
 
 		t.Logf("read back with a delay on the local pull")
-		delay := time.Hour * 800
+
+		delay := 10 * time.Minute
+		clock := clockwork.NewFakeClock()
+		ctc.as(t, users[0]).h.clock = clock
 		ctc.as(t, users[0]).h.cachedThreadDelay = &delay
 		_, err = ctc.as(t, users[0]).chatLocalHandler().GetThreadNonblock(ctx,
 			chat1.GetThreadNonblockArg{
@@ -2143,6 +2249,12 @@ func TestChatSrvGetThreadNonblock(t *testing.T) {
 		require.NoError(t, err)
 		res = receiveThreadResult(t, threadCb)
 		require.Equal(t, numMsgs, len(res.Messages))
+		clock.Advance(20 * time.Minute)
+		select {
+		case <-threadCb:
+			require.Fail(t, "no cb expected")
+		default:
+		}
 	})
 }
 
