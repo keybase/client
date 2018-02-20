@@ -225,12 +225,10 @@ function _loadAvatarHelper(action: AvatarHelperAction) {
 }
 
 function _loadAvatarHelperError(error: Error, action: AvatarHelperAction) {
-  // Ignore api errors
-  if (error.code === RPCTypes.constantsStatusCode.scapinetworkerror) {
-    throw error // TEMP
-  } else {
+  if (error.code === RPCTypes.constantsStatusCode.scinputerror) {
     throw error
   }
+  // ignore all other errors
 }
 
 function _loadAvatarHelperSuccess([response: {body: string}, names]) {
