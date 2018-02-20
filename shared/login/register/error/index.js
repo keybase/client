@@ -220,7 +220,7 @@ const renderError = (error: RPCError) => {
       return (
         <Box style={styleContent}>
           <Text type="BodySemibold" selectable={true}>
-            {error.userMessage}
+            {error.desc}
           </Text>
           <Text type="Body" selectable={true}>
             {error.details}
