@@ -395,15 +395,15 @@ const setupChatHandlers = () => {
     ]
   )
 
-  // It's possible we get ChatInboxSynced without ChatInboxSyncStarted. So when we get a ChatInboxSyncStarted we mark it
+  // It's possible we get multiple ChatInboxSynced without ChatInboxSyncStarted. So when we get a ChatInboxSyncStarted we mark it
   // simply locally. If we get a Synced after we undo the loading flag so our count is zero
-  let receivedSyncStart = false
+  let receivedSyncStartCount = 0
   engine().setIncomingActionCreators(
     'chat.1.NotifyChat.ChatInboxSynced',
     ({syncRes}: RPCChatTypes.NotifyChatChatInboxSyncedRpcParam, ignore1, ignore2, getState) => {
       const actions = []
-      if (receivedSyncStart) {
-        receivedSyncStart = false
+      if (receivedSyncStartCount > 0) {
+        receivedSyncStartCount--
         actions.push(Chat2Gen.createSetLoading({key: 'inboxSyncStarted', loading: false}))
       }
 

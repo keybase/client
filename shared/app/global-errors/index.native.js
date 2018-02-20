@@ -2,6 +2,7 @@
 import React, {Component} from 'react'
 import {
   Box,
+  Button,
   Text,
   Icon,
   HOCTimers,
@@ -10,6 +11,7 @@ import {
   NativeTouchableWithoutFeedback,
 } from '../../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins, isIPhoneX} from '../../styles'
+import {copyToClipboard} from '../../util/clipboard'
 
 import type {Props} from './index'
 
@@ -128,13 +130,20 @@ class GlobalError extends Component<Props, State> {
           </Box>
         </NativeTouchableWithoutFeedback>
         {this.props.debugDump.length ? (
-          <List
-            items={this.props.debugDump}
-            renderItem={this._renderItem}
-            indexAsKey={true}
-            style={{height: 500}}
-            windowSize={30}
-          />
+          <Box style={{flex: 1}}>
+            <Button
+              onClick={() => copyToClipboard(this.props.debugDump.join('\n'))}
+              type="Primary"
+              label="Copy"
+            />
+            <List
+              items={this.props.debugDump}
+              renderItem={this._renderItem}
+              indexAsKey={true}
+              style={{height: 500}}
+              windowSize={30}
+            />
+          </Box>
         ) : (
           <NativeScrollView>
             <Text type="BodySmall" selectable={true} style={detailStyle}>

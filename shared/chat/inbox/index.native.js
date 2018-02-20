@@ -79,7 +79,7 @@ class Inbox extends React.PureComponent<Props, State> {
     return (
       (row.type === 'small' && row.conversationIDKey) ||
       (row.type === 'bigHeader' && row.teamname) ||
-      (row.type === 'big' && `${row.teamname}:${row.channelname}`) ||
+      (row.type === 'big' && row.conversationIDKey) ||
       'missingkey'
     )
   }
