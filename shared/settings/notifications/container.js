@@ -6,6 +6,7 @@ import {navigateUp} from '../../actions/route-tree'
 
 const mapStateToProps = (state: TypedState, ownProps: {}) => ({
   ...state.settings.notifications,
+  mobileHasPermissions: state.push.hasPermissions,
   waitingForResponse: state.settings.waitingForResponse,
 })
 

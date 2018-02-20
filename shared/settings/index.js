@@ -9,6 +9,7 @@ import {type Tab} from '../constants/types/settings'
 const getNavBadges = (state: TypedState) => state.notifications.get('navBadges')
 
 type StateProps = {
+  badgeNotifications: boolean,
   badgeNumbers: {[key: Tab]: number},
   isModal: boolean,
   selectedTab: Tab,
@@ -21,6 +22,7 @@ const mapStateToProps = (
   // $FlowIssue
   const badgeNumbers: {[key: Tab]: number} = getNavBadges(state).toObject()
   return {
+    badgeNotifications: !state.push.hasPermissions,
     badgeNumbers,
     isModal: routeLeafTags.modal,
     // TODO: Is there a way to validate that routeSelected is a Tab?
