@@ -186,7 +186,7 @@ func findRoleDowngrade(points []keybase1.UserLogPoint, role keybase1.TeamRole) *
 }
 
 // AssertWasRoleOrAboveAt asserts that user `uv` had `role` or above on the
-// team at the given SigChainLocation `scl`.
+// team just after the given SigChainLocation `scl`.
 // We start at the point given, go backwards until we find a promotion,
 // then go forwards to make sure there wasn't a demotion before the specified time.
 // If there was, return a PermissionError. If no adminship was found at all, return a PermissionError.
@@ -199,9 +199,15 @@ func (t TeamSigChainState) AssertWasRoleOrAboveAt(uv keybase1.UserVersion,
 		}
 		return NewPermissionError(t.GetID(), uv, msg)
 	}
+	if scl.Seqno < keybase1.Seqno(0) {
+		return mkErr("negative seqno: %v", scl.Seqno)
+	}
 	points := t.inner.UserLog[uv]
 	for i := len(points) - 1; i >= 0; i-- {
 		point := points[i]
+		if err := point.SigMeta.SigChainLocation.Comparable(scl); err != nil {
+			return mkErr(err.Error())
+		}
 		if point.SigMeta.SigChainLocation.LessThanOrEqualTo(scl) && point.Role.IsOrAbove(role) {
 			// OK great, we found a point with the role in the log that's less than or equal to the given one.
 			// But now we reverse and go forward, and check that it wasn't revoked or downgraded.
