@@ -72,10 +72,11 @@ func (s *SecretStoreImp) StoreSecret(secret LKSecFullSecret) error {
 // a short period of time (i.e. one function block).  Multiple calls to RetrieveSecret()
 // will only call the underlying store.RetrieveSecret once.
 func NewSecretStore(g *GlobalContext, username NormalizedUsername) SecretStore {
-	if g.SecretStoreAll != nil {
+	store := g.SecretStore()
+	if store != nil {
 		return &SecretStoreImp{
 			username: username,
-			store:    g.SecretStoreAll,
+			store:    store,
 		}
 	}
 	return nil
@@ -122,10 +123,11 @@ func GetConfiguredAccounts(c SecretStoreContext, s SecretStoreAll) ([]keybase1.C
 }
 
 func ClearStoredSecret(g *GlobalContext, username NormalizedUsername) error {
-	if g.SecretStoreAll == nil {
+	ss := g.SecretStore()
+	if ss == nil {
 		return nil
 	}
-	return g.SecretStoreAll.ClearSecret(username)
+	return ss.ClearSecret(username)
 }
 
 // SecretStoreLocked protects a SecretStoreAll with a mutex.

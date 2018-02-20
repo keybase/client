@@ -142,8 +142,9 @@ func (h ConfigHandler) GetExtendedStatus(ctx context.Context, sessionID int) (re
 			res.Device = device.ProtExport()
 		}
 
-		if me != nil && h.G().SecretStoreAll != nil {
-			s, err := h.G().SecretStoreAll.RetrieveSecret(me.GetNormalizedName())
+		ss := h.G().SecretStore()
+		if me != nil && ss != nil {
+			s, err := ss.RetrieveSecret(me.GetNormalizedName())
 			if err == nil && !s.IsNil() {
 				res.StoredSecret = true
 			}
@@ -351,27 +352,9 @@ func (h ConfigHandler) SetRememberPassphrase(ctx context.Context, arg keybase1.S
 	}
 	h.G().ConfigReload()
 
-	username := h.G().Env.GetUsername()
-
-	// get the current secret
-	secret, err := h.G().SecretStoreAll.RetrieveSecret(username)
-	if err != nil {
-		h.G().Log.Debug("error retrieving existing secret for SetRememberPassphrase(%v): %s", arg.Remember, err)
-		return err
-	}
-
-	// clear the existing secret from the existing secret store
-	if err := h.G().SecretStoreAll.ClearSecret(username); err != nil {
-		h.G().Log.Debug("error clearing existing secret for SetRememberPassphrase(%v): %s", arg.Remember, err)
-		return err
-	}
-
-	// make a new secret store based on the new config
-	h.G().SecretStoreAll = libkb.NewSecretStoreLocked(h.G())
-
-	// store the secret in the secret store
-	if err := h.G().SecretStoreAll.StoreSecret(username, secret); err != nil {
-		h.G().Log.Debug("error storing existing secret for SetRememberPassphrase(%v): %s", arg.Remember, err)
+	// replace the secret store
+	if err := h.G().ReplaceSecretStore(); err != nil {
+		h.G().Log.Debug("error replacing secret store for SetRememberPassphrase(%v): %s", arg.Remember, err)
 		return err
 	}
 

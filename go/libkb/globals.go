@@ -23,6 +23,7 @@ import (
 	"os"
 	"runtime"
 	"sync"
+	"testing"
 	"time"
 
 	logger "github.com/keybase/client/go/logger"
@@ -103,7 +104,8 @@ type GlobalContext struct {
 	RateLimits         *RateLimits               // tracks the last time certain actions were taken
 	clockMu            *sync.Mutex               // protects Clock
 	clock              clockwork.Clock           // RealClock unless we're testing
-	SecretStoreAll     *SecretStoreLocked        // nil except for tests and supported platforms
+	secretStoreMu      *sync.Mutex               // protects secretStore
+	secretStore        *SecretStoreLocked        // SecretStore
 	hookMu             *sync.RWMutex             // protects loginHooks, logoutHooks
 	loginHooks         []LoginHook               // call these on login
 	logoutHooks        []LogoutHook              // call these on logout
@@ -303,11 +305,13 @@ func (g *GlobalContext) Logout() error {
 	g.createLoginStateLocked()
 
 	// remove stored secret
-	if g.SecretStoreAll != nil {
-		if err := g.SecretStoreAll.ClearSecret(username); err != nil {
+	g.secretStoreMu.Lock()
+	if g.secretStore != nil {
+		if err := g.secretStore.ClearSecret(username); err != nil {
 			g.Log.Debug("clear stored secret error: %s", err)
 		}
 	}
+	g.secretStoreMu.Unlock()
 
 	// reload config to clear anything in memory
 	if err := g.ConfigReload(); err != nil {
@@ -612,9 +616,11 @@ func (g *GlobalContext) Configure(line CommandLine, usage Usage) error {
 		return err
 	}
 
-	// SecretStoreAll must be created after SetCommandLine in order
+	// secretStore must be created after SetCommandLine in order
 	// to correctly use -H,-home flag.
-	g.SecretStoreAll = NewSecretStoreLocked(g)
+	g.secretStoreMu.Lock()
+	g.secretStore = NewSecretStoreLocked(g)
+	g.secretStoreMu.Unlock()
 
 	return g.ConfigureUsage(usage)
 }
@@ -722,7 +728,9 @@ type Contextifier interface {
 }
 
 func (g *GlobalContext) GetConfiguredAccounts() ([]keybase1.ConfiguredAccount, error) {
-	return GetConfiguredAccounts(g, g.SecretStoreAll)
+	g.secretStoreMu.Lock()
+	defer g.secretStoreMu.Unlock()
+	return GetConfiguredAccounts(g, g.secretStore)
 }
 
 func (g *GlobalContext) GetAllUserNames() (NormalizedUsername, []NormalizedUsername, error) {
@@ -738,8 +746,10 @@ func (g *GlobalContext) GetStoredSecretAccessGroup() string {
 }
 
 func (g *GlobalContext) GetUsersWithStoredSecrets() ([]string, error) {
-	if g.SecretStoreAll != nil {
-		return g.SecretStoreAll.GetUsersWithStoredSecrets()
+	g.secretStoreMu.Lock()
+	defer g.secretStoreMu.Unlock()
+	if g.secretStore != nil {
+		return g.secretStore.GetUsersWithStoredSecrets()
 	}
 	return []string{}, nil
 }
@@ -1110,4 +1120,61 @@ func (g *GlobalContext) StartStandaloneChat() {
 	}
 
 	g.StandaloneChatConnector.StartStandaloneChat(g)
+}
+
+func (g *GlobalContext) SecretStore() *SecretStoreLocked {
+	g.secretStoreMu.Lock()
+	defer g.secretStoreMu.Unlock()
+
+	return g.secretStore
+}
+
+// ReplaceSecretStore gets the existing secret out of the existing
+// secret store, creates a new secret store (could be a new type
+// of SecretStore based on a config change), and inserts the secret
+// into the new secret store.
+func (g *GlobalContext) ReplaceSecretStore() error {
+	g.secretStoreMu.Lock()
+	defer g.secretStoreMu.Unlock()
+
+	username := g.Env.GetUsername()
+
+	// get the current secret
+	secret, err := g.secretStore.RetrieveSecret(username)
+	if err != nil {
+		g.Log.Debug("error retrieving existing secret for ReplaceSecretStore: %s", err)
+		return err
+	}
+
+	// clear the existing secret from the existing secret store
+	if err := g.secretStore.ClearSecret(username); err != nil {
+		g.Log.Debug("error clearing existing secret for ReplaceSecretStore: %s", err)
+		return err
+	}
+
+	// make a new secret store
+	g.secretStore = NewSecretStoreLocked(g)
+
+	// store the secret in the secret store
+	if err := g.secretStore.StoreSecret(username, secret); err != nil {
+		g.Log.Debug("error storing existing secret for ReplaceSecretStore: %s", err)
+		return err
+	}
+
+	g.Log.Debug("ReplaceSecretStore success")
+
+	return nil
+}
+
+// engine/deprovision_test calls this to set g.secretStore to nil.
+// It doesn't make much sense since it is impossible for g.secretStore
+// to be nil in the real world, but keeping it for backwards
+// compatibility.
+// This takes t *testing.T as a parameter just to make sure only
+// tests call it.
+func (g *GlobalContext) SetSecretStoreNilForTests(t *testing.T) {
+	g.secretStoreMu.Lock()
+	defer g.secretStoreMu.Unlock()
+
+	g.secretStore = nil
 }

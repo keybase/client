@@ -321,7 +321,7 @@ func (s *LoginState) GetPassphraseStreamWithPassphrase(passphrase string) (pps *
 }
 
 func (s *LoginState) getStoredPassphraseStream(username NormalizedUsername) (*PassphraseStream, error) {
-	fullSecret, err := s.G().SecretStoreAll.RetrieveSecret(s.G().Env.GetUsername())
+	fullSecret, err := s.G().SecretStore().RetrieveSecret(s.G().Env.GetUsername())
 	if err != nil {
 		return nil, err
 	}
@@ -355,7 +355,7 @@ func (s *LoginState) GetPassphraseStreamStored(ui SecretUI) (pps *PassphraseStre
 	}
 
 	// 2. try from secret store
-	if s.G().SecretStoreAll != nil {
+	if s.G().SecretStore() != nil {
 		s.G().Log.Debug("| trying to get passphrase stream from secret store")
 		pps, err = s.getStoredPassphraseStream(s.G().Env.GetUsername())
 		if err == nil {
