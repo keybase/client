@@ -27,7 +27,7 @@ func (tx *AddMemberTx) DebugPayloads() []interface{} {
 }
 
 func (tx *AddMemberTx) IsEmpty() bool {
-	return len(tx.payloads) > 0
+	return len(tx.payloads) == 0
 }
 
 func (tx *AddMemberTx) invitePayload() *SCTeamInvites {
@@ -264,6 +264,19 @@ func (tx *AddMemberTx) AddMemberByUsername(ctx context.Context, username string,
 	}
 
 	return tx.addMemberByUPKV2(ctx, upak.Current, role)
+}
+
+func (tx *AddMemberTx) CompleteInviteByID(ctx context.Context, inviteID keybase1.TeamInviteID, uv keybase1.UserVersion) error {
+	payload := tx.findChangeReqForUV(uv)
+	if payload == nil {
+		return fmt.Errorf("could not find uv %v in transaction", uv)
+	}
+
+	if payload.CompletedInvites == nil {
+		payload.CompletedInvites = make(map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm)
+	}
+	payload.CompletedInvites[inviteID] = uv.PercentForm()
+	return nil
 }
 
 func (tx *AddMemberTx) CompleteSocialInvitesFor(ctx context.Context, uv keybase1.UserVersion, username string) (err error) {

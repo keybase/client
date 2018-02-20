@@ -310,13 +310,8 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 		return err
 	}
 
-	tx := CreateAddMemberTx(team)
-
-	var invitesToCancel []keybase1.TeamInviteID
-
-	var req keybase1.TeamChangeReq
 	var chats []chatSeitanRecip
-	req.CompletedInvites = make(map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm)
+	tx := CreateAddMemberTx(team)
 
 	for _, seitan := range msg.Seitans {
 		invite, found := team.chain().FindActiveInviteByID(seitan.InviteID)
@@ -341,7 +336,6 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 
 		if currentRole.IsOrAbove(invite.Role) {
 			g.Log.CDebugf(ctx, "User already has same or higher role, canceling invite.")
-			invitesToCancel = append(invitesToCancel, invite.Id)
 			tx.CancelInvite(invite.Id)
 			continue
 		}
@@ -353,47 +347,34 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 		}
 
 		g.Log.CDebugf(ctx, "Completing invite %s", invite.Id)
-		req.CompletedInvites[seitan.InviteID] = uv.PercentForm()
+		err = tx.CompleteInviteByID(ctx, invite.Id, uv)
+		if err != nil {
+			g.Log.CDebugf(ctx, "Failed to completed invite, treating as fatal error: %v", err)
+			return nil
+		}
+
 		chats = append(chats, chatSeitanRecip{
 			inviter: invite.Inviter.Uid,
 			invitee: seitan.Uid,
 		})
 	}
 
-	var needReload bool
-
-	if len(req.CompletedInvites) > 0 {
-		// Did we actually bring anyone in? (or all requests were outdated/invalid)
-		err = team.ChangeMembership(ctx, req)
-		if err != nil {
-			return err
-		}
-		needReload = true
+	// Nothing to do...
+	if tx.IsEmpty() {
+		return nil
 	}
+
+	err = tx.Post(ctx)
+	if err != nil {
+		return err
+	}
+
 	// Send chats
 	for _, chat := range chats {
 		g.Log.CDebugf(ctx, "sending welcome message for successful Seitan handle: inviter: %s invitee: %s",
 			chat.inviter, chat.invitee)
 		SendChatInviteWelcomeMessage(ctx, g, team.Name().String(), keybase1.TeamInviteCategory_SEITAN,
 			chat.inviter, chat.invitee)
-	}
-
-	if len(invitesToCancel) > 0 {
-		if needReload {
-			// Reload the team because we posted a link, invalidating the old snapshot
-			team, err = Load(ctx, g, keybase1.LoadTeamArg{
-				ID:          msg.TeamID,
-				Public:      msg.TeamID.IsPublic(),
-				ForceRepoll: true,
-			})
-			if err != nil {
-				return err
-			}
-		}
-		err = removeMultipleInviteIDs(ctx, team, invitesToCancel)
-		if err != nil {
-			return err
-		}
 	}
 
 	return nil
