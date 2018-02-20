@@ -93,6 +93,9 @@
   if ([[self.settings objectForKey:@"install-mountdir"] boolValue]) {
     self.installOptions |= KBInstallOptionMountDir;
   }
+  if ([[self.settings objectForKey:@"install-redirector"] boolValue]) {
+    self.installOptions |= KBInstallOptionRedirector;
+  }
   if ([[self.settings objectForKey:@"install-helper"] boolValue]) {
     self.installOptions |= KBInstallOptionHelper;
   }
