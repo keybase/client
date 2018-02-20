@@ -919,6 +919,11 @@
           "type": "boolean",
           "name": "implicitTeam",
           "jsonkey": "implicit_team"
+        },
+        {
+          "type": "boolean",
+          "name": "misc",
+          "jsonkey": "misc"
         }
       ]
     },

@@ -273,6 +273,18 @@ func (u *userPlusDevice) teamSetSettings(teamName string, settings keybase1.Team
 		Settings: settings,
 	})
 	require.NoError(u.tc.T, err)
+	changeByID := false
+	for {
+		select {
+		case arg := <-u.notifications.changeCh:
+			changeByID = arg.Changes.Misc
+		case <-time.After(500 * time.Millisecond * libkb.CITimeMultiplier(u.tc.G)):
+			u.tc.T.Fatal("no notification on teamSetSettings")
+		}
+		if changeByID {
+			return
+		}
+	}
 }
 
 func (u *userPlusDevice) teamGetDetails(teamName string) keybase1.TeamDetails {
