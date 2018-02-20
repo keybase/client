@@ -994,13 +994,14 @@ func IgnoreRequest(ctx context.Context, g *libkb.GlobalContext, teamName, userna
 	arg.Args.Add("team", libkb.S{Val: teamName})
 	arg.Args.Add("uid", libkb.S{Val: uv.Uid.String()})
 	if _, err := g.API.Post(arg); err != nil {
-		t, err := GetForTeamManagementByStringName(ctx, g, teamName, true)
-		if err != nil {
-			return err
-		}
-		t.notify(ctx, keybase1.TeamChangeSet{Misc: true})
+		return err
 	}
-	return err
+	t, err := GetForTeamManagementByStringName(ctx, g, teamName, true)
+	if err != nil {
+		return err
+	}
+	t.notify(ctx, keybase1.TeamChangeSet{Misc: true})
+	return nil
 }
 
 func apiArg(ctx context.Context, endpoint string) libkb.APIArg {
