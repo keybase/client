@@ -180,24 +180,28 @@ func TestLoadDeviceKeyRevoked(t *testing.T) {
 
 func TestFullSelfCacherFlushSingleMachine(t *testing.T) {
 	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		tc := SetupEngineTest(t, "fsc")
-		defer tc.Cleanup()
+		_testFullSelfCacherFlushSingleMachine(t, sigVersion)
+	})
+}
 
-		fu := CreateAndSignupFakeUser(tc, "fsc")
+func _testFullSelfCacherFlushSingleMachine(t *testing.T, sigVersion libkb.SigVersion) {
+	tc := SetupEngineTest(t, "fsc")
+	defer tc.Cleanup()
 
-		var scv keybase1.Seqno
-		tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
-			require.NotNil(t, u)
-			scv = u.GetSigChainLastKnownSeqno()
-			return nil
-		})
-		trackAlice(tc, fu, sigVersion)
-		defer untrackAlice(tc, fu, sigVersion)
-		tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
-			require.NotNil(t, u)
-			require.True(t, u.GetSigChainLastKnownSeqno() > scv)
-			return nil
-		})
+	fu := CreateAndSignupFakeUser(tc, "fsc")
+
+	var scv keybase1.Seqno
+	tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
+		require.NotNil(t, u)
+		scv = u.GetSigChainLastKnownSeqno()
+		return nil
+	})
+	trackAlice(tc, fu, sigVersion)
+	defer untrackAlice(tc, fu, sigVersion)
+	tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
+		require.NotNil(t, u)
+		require.True(t, u.GetSigChainLastKnownSeqno() > scv)
+		return nil
 	})
 }
 
@@ -443,54 +447,58 @@ func TestLoadAfterAcctReset2(t *testing.T) {
 // would be dropped from the self UPAK.
 func TestLoadAfterAcctResetCORE6943(t *testing.T) {
 	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		tc := SetupEngineTest(t, "clu")
-		defer tc.Cleanup()
-
-		t.Logf("create new user")
-		fu := CreateAndSignupFakeUser(tc, "res")
-
-		trackAlice(tc, fu, sigVersion)
-
-		loadUpak := func() (*keybase1.UserPlusAllKeys, error) {
-			t.Logf("loadUpak: using username:%+v", fu.Username)
-			loadArg := libkb.NewLoadUserArg(tc.G).WithUID(fu.UID()).WithPublicKeyOptional().WithNetContext(context.TODO()).WithStaleOK(false)
-			upak, _, err := tc.G.GetUPAKLoader().Load(loadArg)
-			if err != nil {
-				return nil, err
-			}
-
-			t.Logf("loadUpak done: using username:%+v uid: %+v keys: %d", upak.Base.Username, upak.Base.Uid, len(upak.Base.DeviceKeys))
-			return upak, nil
-		}
-
-		upak1, err := loadUpak()
-		if err != nil {
-			t.Fatalf("Failed to load user: %+v", err)
-		}
-
-		// Reset account and then login again to establish new eldest and
-		// add new device keys.
-		ResetAccount(tc, fu)
-
-		tc.G.GetUPAKLoader().Invalidate(context.TODO(), fu.UID())
-
-		fu.LoginOrBust(tc)
-		if err := AssertProvisioned(tc); err != nil {
-			t.Fatal(err)
-		}
-		// login a second time to force the bug.
-		fu.LoginOrBust(tc)
-
-		// Make sure that we can load the eldest key from the previous subchain
-		_, _, _, err = tc.G.GetUPAKLoader().LoadKeyV2(context.TODO(), fu.UID(), upak1.Base.DeviceKeys[0].KID)
-
-		if err != nil {
-			t.Fatal("Failed to load a UID/KID combo from first incarnation")
-		}
-
-		_, err = loadUpak()
-		if err != nil {
-			t.Fatalf("Failed to load user: %+v", err)
-		}
+		_testLoadAfterAcctResetCORE6943(t, sigVersion)
 	})
+}
+
+func _testLoadAfterAcctResetCORE6943(t *testing.T, sigVersion libkb.SigVersion) {
+	tc := SetupEngineTest(t, "clu")
+	defer tc.Cleanup()
+
+	t.Logf("create new user")
+	fu := CreateAndSignupFakeUser(tc, "res")
+
+	trackAlice(tc, fu, sigVersion)
+
+	loadUpak := func() (*keybase1.UserPlusAllKeys, error) {
+		t.Logf("loadUpak: using username:%+v", fu.Username)
+		loadArg := libkb.NewLoadUserArg(tc.G).WithUID(fu.UID()).WithPublicKeyOptional().WithNetContext(context.TODO()).WithStaleOK(false)
+		upak, _, err := tc.G.GetUPAKLoader().Load(loadArg)
+		if err != nil {
+			return nil, err
+		}
+
+		t.Logf("loadUpak done: using username:%+v uid: %+v keys: %d", upak.Base.Username, upak.Base.Uid, len(upak.Base.DeviceKeys))
+		return upak, nil
+	}
+
+	upak1, err := loadUpak()
+	if err != nil {
+		t.Fatalf("Failed to load user: %+v", err)
+	}
+
+	// Reset account and then login again to establish new eldest and
+	// add new device keys.
+	ResetAccount(tc, fu)
+
+	tc.G.GetUPAKLoader().Invalidate(context.TODO(), fu.UID())
+
+	fu.LoginOrBust(tc)
+	if err := AssertProvisioned(tc); err != nil {
+		t.Fatal(err)
+	}
+	// login a second time to force the bug.
+	fu.LoginOrBust(tc)
+
+	// Make sure that we can load the eldest key from the previous subchain
+	_, _, _, err = tc.G.GetUPAKLoader().LoadKeyV2(context.TODO(), fu.UID(), upak1.Base.DeviceKeys[0].KID)
+
+	if err != nil {
+		t.Fatal("Failed to load a UID/KID combo from first incarnation")
+	}
+
+	_, err = loadUpak()
+	if err != nil {
+		t.Fatalf("Failed to load user: %+v", err)
+	}
 }

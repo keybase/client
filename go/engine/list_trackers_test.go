@@ -15,38 +15,42 @@ import (
 // the list.
 func TestListTrackers(t *testing.T) {
 	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		tc := SetupEngineTest(t, "trackerlist")
-		defer tc.Cleanup()
-
-		fu := CreateAndSignupFakeUser(tc, "login")
-		trackAlice(tc, fu, sigVersion)
-		defer untrackAlice(tc, fu, sigVersion)
-
-		uid := libkb.UsernameToUID("t_alice")
-		e := NewListTrackers(uid, tc.G)
-		ctx := &Context{LogUI: tc.G.UI.GetLogUI()}
-		if err := RunEngine(e, ctx); err != nil {
-			t.Fatal(err)
-		}
-		buid := libkb.UsernameToUID(fu.Username)
-		trackers := e.List()
-		if len(trackers) == 0 {
-			t.Errorf("t_alice tracker count: 0.  expected > 0.")
-		}
-
-		found := false
-		for _, x := range trackers {
-			if x.GetUID().Equal(buid) {
-				found = true
-				break
-			}
-		}
-		if !found {
-			t.Errorf("fake user %q (%s) not included in list of t_alice trackers.", fu.Username, buid)
-			t.Logf("tracker list:")
-			for i, x := range trackers {
-				t.Logf("%d: %s, %d, %d", i, x.Tracker, x.Status, x.MTime)
-			}
-		}
+		_testListTrackers(t, sigVersion)
 	})
+}
+
+func _testListTrackers(t *testing.T, sigVersion libkb.SigVersion) {
+	tc := SetupEngineTest(t, "trackerlist")
+	defer tc.Cleanup()
+
+	fu := CreateAndSignupFakeUser(tc, "login")
+	trackAlice(tc, fu, sigVersion)
+	defer untrackAlice(tc, fu, sigVersion)
+
+	uid := libkb.UsernameToUID("t_alice")
+	e := NewListTrackers(uid, tc.G)
+	ctx := &Context{LogUI: tc.G.UI.GetLogUI()}
+	if err := RunEngine(e, ctx); err != nil {
+		t.Fatal(err)
+	}
+	buid := libkb.UsernameToUID(fu.Username)
+	trackers := e.List()
+	if len(trackers) == 0 {
+		t.Errorf("t_alice tracker count: 0.  expected > 0.")
+	}
+
+	found := false
+	for _, x := range trackers {
+		if x.GetUID().Equal(buid) {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Errorf("fake user %q (%s) not included in list of t_alice trackers.", fu.Username, buid)
+		t.Logf("tracker list:")
+		for i, x := range trackers {
+			t.Logf("%d: %s, %d, %d", i, x.Tracker, x.Status, x.MTime)
+		}
+	}
 }

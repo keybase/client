@@ -388,32 +388,36 @@ func TestIdentify2WithUIDWithBrokenTrackWithSuppressUI(t *testing.T) {
 
 func TestIdentify2WithUIDWithUntrackedFastPath(t *testing.T) {
 	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		tc := SetupEngineTest(t, "TestIdentify2WithUIDWithUntrackedFastPath")
-		defer tc.Cleanup()
-
-		fu := CreateAndSignupFakeUser(tc, "track")
-
-		runID2 := func(expectFastPath bool) {
-
-			tester := newIdentify2WithUIDTester(tc.G)
-			tester.noDiskCache = true
-
-			eng := NewIdentify2WithUID(tc.G, &keybase1.Identify2Arg{Uid: aliceUID, IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI})
-			eng.testArgs = &Identify2WithUIDTestArgs{
-				cache: tester,
-				allowUntrackedFastPath: true,
-			}
-			ctx := Context{IdentifyUI: tester}
-			err := eng.Run(&ctx)
-			require.NoError(t, err)
-			require.Equal(t, expectFastPath, (eng.testArgs.stats.untrackedFastPaths == 1), "right number of untracked fast paths")
-		}
-
-		runID2(true)
-		trackAlice(tc, fu, sigVersion)
-		defer untrackAlice(tc, fu, sigVersion)
-		runID2(false)
+		_testIdentify2WithUIDWithUntrackedFastPath(t, sigVersion)
 	})
+}
+
+func _testIdentify2WithUIDWithUntrackedFastPath(t *testing.T, sigVersion libkb.SigVersion) {
+	tc := SetupEngineTest(t, "TestIdentify2WithUIDWithUntrackedFastPath")
+	defer tc.Cleanup()
+
+	fu := CreateAndSignupFakeUser(tc, "track")
+
+	runID2 := func(expectFastPath bool) {
+
+		tester := newIdentify2WithUIDTester(tc.G)
+		tester.noDiskCache = true
+
+		eng := NewIdentify2WithUID(tc.G, &keybase1.Identify2Arg{Uid: aliceUID, IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI})
+		eng.testArgs = &Identify2WithUIDTestArgs{
+			cache: tester,
+			allowUntrackedFastPath: true,
+		}
+		ctx := Context{IdentifyUI: tester}
+		err := eng.Run(&ctx)
+		require.NoError(t, err)
+		require.Equal(t, expectFastPath, (eng.testArgs.stats.untrackedFastPaths == 1), "right number of untracked fast paths")
+	}
+
+	runID2(true)
+	trackAlice(tc, fu, sigVersion)
+	defer untrackAlice(tc, fu, sigVersion)
+	runID2(false)
 }
 
 func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
@@ -963,122 +967,129 @@ func TestIdentify2NoSigchain(t *testing.T) {
 // See CORE-4310
 func TestIdentifyAfterDbNuke(t *testing.T) {
 	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-
-		tc := SetupEngineTest(t, "track")
-		defer tc.Cleanup()
-		fu := CreateAndSignupFakeUser(tc, "track")
-
-		trackAlice(tc, fu, sigVersion)
-		defer untrackAlice(tc, fu, sigVersion)
-
-		runIDAlice := func() {
-
-			i := newIdentify2WithUIDTester(tc.G)
-			arg := &keybase1.Identify2Arg{
-				Uid:              aliceUID,
-				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
-			}
-			eng := NewIdentify2WithUID(tc.G, arg)
-			eng.testArgs = &Identify2WithUIDTestArgs{
-				noCache: true,
-			}
-			ctx := Context{IdentifyUI: i}
-			waiter := launchWaiter(t, i.finishCh)
-
-			if err := eng.Run(&ctx); err != nil {
-				t.Fatal(err)
-			}
-			waiter()
-		}
-
-		tc.G.Log.Debug("------------ ID Alice Iteration 0 ---------------")
-		runIDAlice()
-		if _, err := tc.G.LocalDb.Nuke(); err != nil {
-			t.Fatal(err)
-		}
-		if err := tc.G.ConfigureCaches(); err != nil {
-			t.Fatal(err)
-		}
-		tc.G.Log.Debug("------------ ID Alice Iteration 1 ---------------")
-		runIDAlice()
+		_testIdentifyAfterDbNuke(t, sigVersion)
 	})
+}
+
+func _testIdentifyAfterDbNuke(t *testing.T, sigVersion libkb.SigVersion) {
+
+	tc := SetupEngineTest(t, "track")
+	defer tc.Cleanup()
+	fu := CreateAndSignupFakeUser(tc, "track")
+
+	trackAlice(tc, fu, sigVersion)
+	defer untrackAlice(tc, fu, sigVersion)
+
+	runIDAlice := func() {
+
+		i := newIdentify2WithUIDTester(tc.G)
+		arg := &keybase1.Identify2Arg{
+			Uid:              aliceUID,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
+		}
+		eng := NewIdentify2WithUID(tc.G, arg)
+		eng.testArgs = &Identify2WithUIDTestArgs{
+			noCache: true,
+		}
+		ctx := Context{IdentifyUI: i}
+		waiter := launchWaiter(t, i.finishCh)
+
+		if err := eng.Run(&ctx); err != nil {
+			t.Fatal(err)
+		}
+		waiter()
+	}
+
+	tc.G.Log.Debug("------------ ID Alice Iteration 0 ---------------")
+	runIDAlice()
+	if _, err := tc.G.LocalDb.Nuke(); err != nil {
+		t.Fatal(err)
+	}
+	if err := tc.G.ConfigureCaches(); err != nil {
+		t.Fatal(err)
+	}
+	tc.G.Log.Debug("------------ ID Alice Iteration 1 ---------------")
+	runIDAlice()
 }
 
 func TestNoSelfHostedIdentifyInPassiveMode(t *testing.T) {
 	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		tc := SetupEngineTest(t, "id")
-		defer tc.Cleanup()
+		_testNoSelfHostedIdentifyInPassiveMode(t, sigVersion)
+	})
+}
+func _testNoSelfHostedIdentifyInPassiveMode(t *testing.T, sigVersion libkb.SigVersion) {
+	tc := SetupEngineTest(t, "id")
+	defer tc.Cleanup()
 
-		eve := CreateAndSignupFakeUser(tc, "e")
-		_, _, err := proveRooter(tc.G, eve)
-		tc.G.ProofCache.DisableDisk()
-		require.NoError(t, err)
-		Logout(tc)
+	eve := CreateAndSignupFakeUser(tc, "e")
+	_, _, err := proveRooter(tc.G, eve)
+	tc.G.ProofCache.DisableDisk()
+	require.NoError(t, err)
+	Logout(tc)
 
-		alice := CreateAndSignupFakeUser(tc, "a")
+	alice := CreateAndSignupFakeUser(tc, "a")
 
-		runTest := func(identifyBehavior keybase1.TLFIdentifyBehavior, returnUnchecked bool, shouldCheck bool, wantedMode libkb.ProofCheckerMode) {
+	runTest := func(identifyBehavior keybase1.TLFIdentifyBehavior, returnUnchecked bool, shouldCheck bool, wantedMode libkb.ProofCheckerMode) {
 
-			i := newIdentify2WithUIDTester(tc.G)
-			checked := false
-			i.checkStatusHook = func(l libkb.SigHint, pcm libkb.ProofCheckerMode) libkb.ProofError {
-				checked = true
-				if strings.Contains(l.GetHumanURL(), "rooter") {
-					if !shouldCheck {
-						t.Fatalf("should not have gotten a check; should have hit cache")
-					}
-					require.Equal(t, pcm, wantedMode, "we get a passive ID in GUI mode")
-					if returnUnchecked {
-						return libkb.ProofErrorUnchecked
-					}
+		i := newIdentify2WithUIDTester(tc.G)
+		checked := false
+		i.checkStatusHook = func(l libkb.SigHint, pcm libkb.ProofCheckerMode) libkb.ProofError {
+			checked = true
+			if strings.Contains(l.GetHumanURL(), "rooter") {
+				if !shouldCheck {
+					t.Fatalf("should not have gotten a check; should have hit cache")
 				}
-				tc.G.Log.Debug("proof rubber-stamped: %s", l.GetHumanURL())
-				return nil
+				require.Equal(t, pcm, wantedMode, "we get a passive ID in GUI mode")
+				if returnUnchecked {
+					return libkb.ProofErrorUnchecked
+				}
 			}
-
-			tc.G.Services = i
-			arg := &keybase1.Identify2Arg{
-				Uid:              eve.UID(),
-				IdentifyBehavior: identifyBehavior,
-				NeedProofSet:     true,
-			}
-			eng := NewIdentify2WithUID(tc.G, arg)
-			eng.testArgs = &Identify2WithUIDTestArgs{
-				noMe: false,
-			}
-			ctx := Context{IdentifyUI: i}
-			var waiter func()
-			if !identifyBehavior.ShouldSuppressTrackerPopups() {
-				waiter = launchWaiter(t, i.finishCh)
-			}
-			err = eng.Run(&ctx)
-			require.NoError(t, err)
-			require.Equal(t, checked, shouldCheck)
-			if waiter != nil {
-				waiter()
-			}
+			tc.G.Log.Debug("proof rubber-stamped: %s", l.GetHumanURL())
+			return nil
 		}
 
-		// Alice ID's Eve, in chat mode, without a track. Assert that we get a
-		// PASSIVE proof checker mode for rooter.
-		runTest(keybase1.TLFIdentifyBehavior_CHAT_GUI, true, true, libkb.ProofCheckerModePassive)
+		tc.G.Services = i
+		arg := &keybase1.Identify2Arg{
+			Uid:              eve.UID(),
+			IdentifyBehavior: identifyBehavior,
+			NeedProofSet:     true,
+		}
+		eng := NewIdentify2WithUID(tc.G, arg)
+		eng.testArgs = &Identify2WithUIDTestArgs{
+			noMe: false,
+		}
+		ctx := Context{IdentifyUI: i}
+		var waiter func()
+		if !identifyBehavior.ShouldSuppressTrackerPopups() {
+			waiter = launchWaiter(t, i.finishCh)
+		}
+		err = eng.Run(&ctx)
+		require.NoError(t, err)
+		require.Equal(t, checked, shouldCheck)
+		if waiter != nil {
+			waiter()
+		}
+	}
 
-		// Alice ID's Eve, in standard ID mode, without a track. Assert that we get a
-		// ACTIVE proof checker mode for the rooter
-		runTest(keybase1.TLFIdentifyBehavior_DEFAULT_KBFS, false, true, libkb.ProofCheckerModeActive)
+	// Alice ID's Eve, in chat mode, without a track. Assert that we get a
+	// PASSIVE proof checker mode for rooter.
+	runTest(keybase1.TLFIdentifyBehavior_CHAT_GUI, true, true, libkb.ProofCheckerModePassive)
 
-		// Alice ID's Eve in chat mode, without a track. But she should hit the proof cache
-		// from right above.
-		runTest(keybase1.TLFIdentifyBehavior_CHAT_GUI, false, false, libkb.ProofCheckerModePassive)
+	// Alice ID's Eve, in standard ID mode, without a track. Assert that we get a
+	// ACTIVE proof checker mode for the rooter
+	runTest(keybase1.TLFIdentifyBehavior_DEFAULT_KBFS, false, true, libkb.ProofCheckerModeActive)
 
-		trackUser(tc, alice, eve.NormalizedUsername(), sigVersion)
+	// Alice ID's Eve in chat mode, without a track. But she should hit the proof cache
+	// from right above.
+	runTest(keybase1.TLFIdentifyBehavior_CHAT_GUI, false, false, libkb.ProofCheckerModePassive)
 
-		tc.G.ProofCache.Reset()
+	trackUser(tc, alice, eve.NormalizedUsername(), sigVersion)
 
-		// Alice ID's Eve, in chat mode, with a track. Assert that we get an
-		// Active proof checker mode for rooter.
-		runTest(keybase1.TLFIdentifyBehavior_CHAT_GUI, true, true, libkb.ProofCheckerModeActive)
-	})
+	tc.G.ProofCache.Reset()
+
+	// Alice ID's Eve, in chat mode, with a track. Assert that we get an
+	// Active proof checker mode for rooter.
+	runTest(keybase1.TLFIdentifyBehavior_CHAT_GUI, true, true, libkb.ProofCheckerModeActive)
 }
 
 func TestSkipExternalChecks(t *testing.T) {
