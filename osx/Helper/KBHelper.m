@@ -12,9 +12,11 @@
 #import "KBLogger.h"
 #import <MPMessagePack/MPXPCProtocol.h>
 
-@implementation KBHelper
+@interface KBHelper ()
+@property NSTask *redirector;
+@end
 
-@property NSTask *redirector
+@implementation KBHelper
 
 + (int)run {
   NSString *version = NSBundle.mainBundle.infoDictionary[@"CFBundleShortVersionString"];
@@ -142,9 +144,9 @@
 - (void)startRedirector:(NSString *)directory uid:(NSNumber *)uid gid:(NSNumber *)gid permissions:(NSNumber *)permissions excludeFromBackup:(BOOL)excludeFromBackup redirectorBin:(NSString *)redirectorBin completion:(void (^)(NSError *error, id value))completion {
   // First create the directory.
   [self createDirectory:directory uid:uid gid:gid permissions:permissions excludeFromBackup:excludeFromBackup completion:^(NSError *err, id value) {
-    if err != nil {
-      completion(err, id);
-      return
+    if (err) {
+      completion(err, value);
+      return;
     }
 
     // TODO: verify that the binary is signed by Keybase.
@@ -152,9 +154,14 @@
     NSTask *task = [[NSTask alloc] init];
     task.launchPath = redirectorBin;
     task.arguments = @[directory];
-    self.task = task;
-    [self.task launch];
+    self.redirector = task;
+    [self.redirector launch];
+    completion(nil, value);
   }];
+}
+
+- (void)stopRedirector:(NSString *)directory completion:(void (^)(NSError *error, id value))completion {
+  completion(nil, @{});
 }
 
 - (BOOL)linkExists:(NSString *)linkPath {
