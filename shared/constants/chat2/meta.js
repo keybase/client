@@ -146,12 +146,14 @@ export const updateMeta = (
     : meta.resetParticipants
 
   return meta.withMutations(m => {
+    m.set('channelname', meta.channelname || old.channelname)
     m.set('hasLoadedThread', hasLoadedThread)
     m.set('notificationSettings', notificationSettings)
+    m.set('orangeLineOrdinal', old.orangeLineOrdinal)
     m.set('participants', participants)
     m.set('rekeyers', rekeyers)
     m.set('resetParticipants', resetParticipants)
-    m.set('orangeLineOrdinal', old.orangeLineOrdinal)
+    m.set('teamname', meta.teamname || old.teamname)
   })
 }
 

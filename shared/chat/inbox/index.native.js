@@ -203,6 +203,7 @@ class Inbox extends React.PureComponent<Props, State> {
             onViewableItemsChanged={this._onViewChanged}
             windowSize={5}
             getItemLayout={this._getItemLayout}
+            removeClippedSubviews={true}
           />
           {noChats}
           {owl}
