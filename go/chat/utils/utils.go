@@ -913,7 +913,7 @@ func PresentMessageUnboxed(ctx context.Context, rawMsg chat1.MessageUnboxed, uid
 			MessageID:             rawMsg.GetMessageID(),
 			Ctime:                 valid.ServerHeader.Ctime,
 			OutboxID:              strOutboxID,
-			MessageBody:           valid.MessageBody,
+			MessageBody:           body,
 			SenderUsername:        valid.SenderUsername,
 			SenderDeviceName:      valid.SenderDeviceName,
 			SenderDeviceType:      valid.SenderDeviceType,

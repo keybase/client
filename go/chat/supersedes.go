@@ -87,6 +87,9 @@ func (t *basicSupersedesTransform) transformAttachment(msg chat1.MessageUnboxed,
 func (t *basicSupersedesTransform) transform(ctx context.Context, msg chat1.MessageUnboxed,
 	superMsg chat1.MessageUnboxed) *chat1.MessageUnboxed {
 
+	if !superMsg.IsValidFull() {
+		return nil
+	}
 	switch superMsg.GetMessageType() {
 	case chat1.MessageType_DELETE, chat1.MessageType_DELETEHISTORY:
 		return nil
@@ -158,9 +161,9 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 			newMsg := &originalMsgs[i]
 			// If the message is superseded, then transform it and add that
 			if superMsg, ok := smap[msg.GetMessageID()]; ok {
-				t.Debug(ctx, "transforming: msgID: %d superMsgID: %d", msg.GetMessageID(),
-					superMsg.GetMessageID())
 				newMsg = t.transform(ctx, msg, superMsg)
+				t.Debug(ctx, "transformed: original:%v super:%v -> %v",
+					msg.DebugString(), superMsg.DebugString(), newMsg.DebugString())
 			}
 			if newMsg == nil {
 				// Transform might return nil in case of a delete.
@@ -172,7 +175,7 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 			}
 			if !newMsg.IsValidFull() {
 				// Drop the message. It has been deleted locally but not superseded by anything.
-				// Could be a delete-history or retention expunge.
+				// Could have been deleted by a delete-history or retention expunge.
 				continue
 			}
 			newMsgs = append(newMsgs, *newMsg)

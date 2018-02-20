@@ -3168,6 +3168,7 @@ func TestChatSrvRetentionSweepTeam(t *testing.T) {
 			var nText int
 			for _, msg := range tvres.Thread.Messages {
 				require.True(t, msg.IsValidFull())
+				require.Equal(t, chat1.MessageID(0), msg.Valid().ServerHeader.SupersededBy)
 				if msg.GetMessageType() == chat1.MessageType_TEXT {
 					nText++
 				}

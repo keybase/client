@@ -22,6 +22,7 @@ func TestGetThreadSupersedes(t *testing.T) {
 }
 
 func testGetThreadSupersedes(t *testing.T, deleteHistory bool) {
+	t.Logf("stage deleteHistory:%v", deleteHistory)
 	ctx, world, ri, _, sender, _ := setupTest(t, 1)
 	defer world.Cleanup()
 
