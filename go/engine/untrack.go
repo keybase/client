@@ -4,6 +4,8 @@
 package engine
 
 import (
+	"errors"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
@@ -209,7 +211,10 @@ func (e *UntrackEngine) storeRemoteUntrack(them *libkb.User, ctx *Context) (err 
 	var sig string
 	var sigid keybase1.SigID
 	sigVersion := libkb.SigVersion(e.arg.SigVersion)
-	if sigVersion == libkb.KeybaseSignatureV2 {
+	switch sigVersion {
+	case libkb.KeybaseSignatureV1:
+		sig, sigid, err = signingKey.SignToString(e.untrackStatementBytes)
+	case libkb.KeybaseSignatureV2:
 		prevSeqno := me.GetSigChainLastKnownSeqno()
 		prevLinkID := me.GetSigChainLastKnownID()
 		sig, sigid, _, err = libkb.MakeSigchainV2OuterSig(
@@ -222,15 +227,11 @@ func (e *UntrackEngine) storeRemoteUntrack(them *libkb.User, ctx *Context) (err 
 			keybase1.SeqType_PUBLIC,
 			false, /* ignoreIfUnsupported */
 		)
-		if err != nil {
-			return err
-		}
-	} else {
-		sig, sigid, err = signingKey.SignToString(e.untrackStatementBytes)
-		if err != nil {
-			return
-		}
-
+	default:
+		err = errors.New("Invalid Signature Version")
+	}
+	if err != nil {
+		return
 	}
 
 	httpsArgs := libkb.HTTPArgs{

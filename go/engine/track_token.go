@@ -230,7 +230,11 @@ func (e *TrackToken) storeRemoteTrack(ctx *Context, pubKID keybase1.KID) (err er
 	var sig string
 	var sigid keybase1.SigID
 	sigVersion := libkb.SigVersion(e.arg.Options.SigVersion)
-	if sigVersion == libkb.KeybaseSignatureV2 {
+	switch sigVersion {
+	case libkb.KeybaseSignatureV1:
+		sig, sigid, err = signingKey.SignToString(e.trackStatementBytes)
+		linkID = libkb.ComputeLinkID(e.trackStatementBytes)
+	case libkb.KeybaseSignatureV2:
 		prevSeqno := me.GetSigChainLastKnownSeqno()
 		prevLinkID := me.GetSigChainLastKnownID()
 
@@ -244,15 +248,12 @@ func (e *TrackToken) storeRemoteTrack(ctx *Context, pubKID keybase1.KID) (err er
 			keybase1.SeqType_PUBLIC,
 			false, /* ignoreIfUnsupported */
 		)
-		if err != nil {
-			return err
-		}
-	} else {
-		sig, sigid, err = signingKey.SignToString(e.trackStatementBytes)
-		linkID = libkb.ComputeLinkID(e.trackStatementBytes)
-		if err != nil {
-			return err
-		}
+	default:
+		err = errors.New("Invalid Signature Version")
+	}
+
+	if err != nil {
+		return err
 	}
 
 	httpsArgs := libkb.HTTPArgs{
