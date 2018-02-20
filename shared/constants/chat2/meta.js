@@ -92,7 +92,7 @@ export const unverifiedInboxUIItemToConversationMeta = (
     teamname,
     timestamp: i.time,
     tlfname: i.name,
-    trustedState: i.localMetadata ? 'trusted' : 'untrusted', // if we have localMetadata attached to an unverifiedInboxUIItem it's been loaded previously
+    trustedState: 'untrusted',
   })
 }
 
@@ -123,13 +123,8 @@ export const updateMeta = (
   old: Types.ConversationMeta,
   meta: Types.ConversationMeta
 ): Types.ConversationMeta => {
-  // Don't downgrade version
-  if (meta.inboxVersion < old.inboxVersion) {
-    return old
-  }
-
-  // Same version and same state?
-  if (meta.inboxVersion === old.inboxVersion && meta.trustedState === old.trustedState) {
+  // Older/same version and same state?
+  if (meta.inboxVersion <= old.inboxVersion && meta.trustedState === old.trustedState) {
     return old
   }
 
