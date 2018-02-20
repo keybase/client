@@ -176,7 +176,7 @@ function ImageIcon({type, style}: ImageIconProps) {
 
   return (
     <Box style={{...wrapperStyle, ...style}}>
-      <Icon type="iconfont-import" style={iconStyle} />
+      <Icon type="iconfont-download" style={iconStyle} />
     </Box>
   )
 }
