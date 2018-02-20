@@ -104,7 +104,7 @@ type GlobalContext struct {
 	RateLimits         *RateLimits               // tracks the last time certain actions were taken
 	clockMu            *sync.Mutex               // protects Clock
 	clock              clockwork.Clock           // RealClock unless we're testing
-	secretStoreMu      *sync.Mutex               // protects secretStore
+	secretStoreMu      sync.Mutex                // protects secretStore
 	secretStore        *SecretStoreLocked        // SecretStore
 	hookMu             *sync.RWMutex             // protects loginHooks, logoutHooks
 	loginHooks         []LoginHook               // call these on login

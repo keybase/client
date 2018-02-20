@@ -308,7 +308,7 @@ func TestDeprovisionLoggedOut(t *testing.T) {
 	assertDeprovisionLoggedOut(tc)
 
 	// Now, test codepath with no secret store
-	tc.G.SecretStore() = nil
+	tc.G.SetSecretStoreNilForTests(t)
 	assertDeprovisionLoggedOut(tc)
 }
 
