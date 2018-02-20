@@ -883,7 +883,7 @@ export type LocalGetSearchRegexpRpcParam = $ReadOnly<{conversationID: Conversati
 
 export type LocalGetTLFConversationsLocalRpcParam = $ReadOnly<{tlfName: String, topicType: TopicType, membersType: ConversationMembersType, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LocalGetTeamTypesForTeamsRpcParam = $ReadOnly<{teamNames?: ?Array<String>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalGetTeamTypesForTeamsRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LocalGetThreadLocalRpcParam = $ReadOnly<{conversationID: ConversationID, query?: ?GetThreadQuery, pagination?: ?Pagination, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 

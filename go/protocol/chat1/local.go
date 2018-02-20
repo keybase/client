@@ -4082,7 +4082,6 @@ type GetSearchRegexpArg struct {
 }
 
 type GetTeamTypesForTeamsArg struct {
-	TeamNames []string `codec:"teamNames" json:"teamNames"`
 }
 
 type LocalInterface interface {
@@ -4133,7 +4132,7 @@ type LocalInterface interface {
 	SetTeamRetentionLocal(context.Context, SetTeamRetentionLocalArg) error
 	UpgradeKBFSConversationToImpteam(context.Context, ConversationID) error
 	GetSearchRegexp(context.Context, GetSearchRegexpArg) (GetSearchRegexpRes, error)
-	GetTeamTypesForTeams(context.Context, []string) (map[string]TeamType, error)
+	GetTeamTypesForTeams(context.Context) (map[string]TeamType, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -4888,12 +4887,7 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]GetTeamTypesForTeamsArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]GetTeamTypesForTeamsArg)(nil), args)
-						return
-					}
-					ret, err = i.GetTeamTypesForTeams(ctx, (*typedArgs)[0].TeamNames)
+					ret, err = i.GetTeamTypesForTeams(ctx)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -5149,8 +5143,7 @@ func (c LocalClient) GetSearchRegexp(ctx context.Context, __arg GetSearchRegexpA
 	return
 }
 
-func (c LocalClient) GetTeamTypesForTeams(ctx context.Context, teamNames []string) (res map[string]TeamType, err error) {
-	__arg := GetTeamTypesForTeamsArg{TeamNames: teamNames}
-	err = c.Cli.Call(ctx, "chat.1.local.getTeamTypesForTeams", []interface{}{__arg}, &res)
+func (c LocalClient) GetTeamTypesForTeams(ctx context.Context) (res map[string]TeamType, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getTeamTypesForTeams", []interface{}{GetTeamTypesForTeamsArg{}}, &res)
 	return
 }

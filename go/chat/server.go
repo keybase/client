@@ -2756,7 +2756,7 @@ func (h *Server) GetSearchRegexp(ctx context.Context, arg chat1.GetSearchRegexpA
 	}, nil
 }
 
-func (h *Server) GetTeamTypesForTeams(ctx context.Context, teamNames []string) (res map[string]chat1.TeamType, err error) {
+func (h *Server) GetTeamTypesForTeams(ctx context.Context) (res map[string]chat1.TeamType, err error) {
 	defer h.Trace(ctx, func() error { return err }, "GetTeamTypesForTeams")()
 
 	// Make it possible to call this RPC from standalone mode.

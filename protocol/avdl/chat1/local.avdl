@@ -796,5 +796,5 @@ protocol local {
 
   GetSearchRegexpRes getSearchRegexp(int sessionID, ConversationID conversationID, string query, boolean isRegex, int maxHits, int maxMessages, keybase1.TLFIdentifyBehavior identifyBehavior);
 
-  map<string,TeamType> getTeamTypesForTeams(array<string> teamNames);
+  map<string,TeamType> getTeamTypesForTeams();
 }

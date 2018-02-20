@@ -3337,15 +3337,7 @@
       "response": "GetSearchRegexpRes"
     },
     "getTeamTypesForTeams": {
-      "request": [
-        {
-          "name": "teamNames",
-          "type": {
-            "type": "array",
-            "items": "string"
-          }
-        }
-      ],
+      "request": [],
       "response": {
         "type": "map",
         "values": "TeamType",

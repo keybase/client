@@ -195,7 +195,7 @@ func (c *CmdTeamListMemberships) runUser(cli keybase1.TeamsClient) error {
 		if err != nil {
 			return err
 		}
-		teamTypes, err = resolver.ChatClient.GetTeamTypesForTeams(context.Background(), []string{})
+		teamTypes, err = resolver.ChatClient.GetTeamTypesForTeams(context.Background())
 		if err != nil {
 			return err
 		}
