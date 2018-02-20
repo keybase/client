@@ -5,13 +5,10 @@
 package libpages
 
 import (
-	"context"
-	"net/http"
 	"os"
 	"sync"
 	"time"
 
-	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libpages/config"
 	"github.com/keybase/kbfs/tlf"
 )
@@ -20,7 +17,7 @@ const configCacheTime = 16 * time.Second
 
 type site struct {
 	// fs should never be changed once it's constructed.
-	fs         *libfs.FS
+	fs         CacheableFS
 	tlfID      tlf.ID
 	fsShutdown func()
 	root       Root
@@ -31,7 +28,7 @@ type site struct {
 	cachedConfigExpiresAt time.Time
 }
 
-func makeSite(fs *libfs.FS, tlfID tlf.ID, fsShutdown func(), root Root) *site {
+func makeSite(fs CacheableFS, tlfID tlf.ID, fsShutdown func(), root Root) *site {
 	return &site{
 		fs:         fs,
 		tlfID:      tlfID,
@@ -62,7 +59,12 @@ func (s *site) fetchConfigAndRefreshCache() (cfg config.Config, err error) {
 		return s.cachedConfig, nil
 	}
 
-	f, err := s.fs.Open(config.DefaultConfigFilepath)
+	realFS, err := s.fs.Use()
+	if err != nil {
+		return nil, err
+	}
+
+	f, err := realFS.Open(config.DefaultConfigFilepath)
 	switch {
 	case os.IsNotExist(err):
 		cfg = config.DefaultV1()
@@ -87,8 +89,4 @@ func (s *site) getConfig(forceRefresh bool) (cfg config.Config, err error) {
 		return cachedConfig, nil
 	}
 	return s.fetchConfigAndRefreshCache()
-}
-
-func (s *site) getHTTPFileSystem(ctx context.Context) http.FileSystem {
-	return s.fs.ToHTTPFileSystem(ctx)
 }

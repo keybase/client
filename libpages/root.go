@@ -68,11 +68,26 @@ type Root struct {
 	PathUnparsed    string
 }
 
-// MakeFS makes a *libfs.FS from *r, which can be adapted to a http.FileSystem
+// CacheableFS is a wrapper around a *libfs.FS and a subdir. Use use() to get a
+// *libfs.FS that roots at subdir. This essentially delays "cd"ing into subdir,
+// and is useful for caching a *libfs.FS object without the downside of caching
+// a libkbfs.Node that can be obsolete when it's renamed or removed.
+type CacheableFS struct {
+	fs     *libfs.FS
+	subdir string
+}
+
+// Use returns a *libfs.FS to use.
+func (fs CacheableFS) Use() (*libfs.FS, error) {
+	return fs.fs.Chrute(fs.subdir)
+}
+
+// MakeFS makes a CacheableFS from *r, which can be adapted to a http.FileSystem
 // (through ToHTTPFileSystem) to be used by http package to serve through HTTP.
+// Caller must call use() to get a usable FS.
 func (r *Root) MakeFS(
 	ctx context.Context, log *zap.Logger, kbfsConfig libkbfs.Config) (
-	fs *libfs.FS, tlfID tlf.ID, shutdown func(), err error) {
+	fs CacheableFS, tlfID tlf.ID, shutdown func(), err error) {
 	fsCtx, cancel := context.WithCancel(context.Background())
 	defer func() {
 		zapFields := []zapcore.Field{
@@ -92,25 +107,28 @@ func (r *Root) MakeFS(
 		libkbfs.CtxWithRandomIDReplayable(
 			fsCtx, ctxIDKey, ctxOpID, nil))
 	if err != nil {
-		return nil, tlf.ID{}, nil, err
+		return CacheableFS{}, tlf.ID{}, nil, err
 	}
 	switch r.Type {
 	case KBFSRoot:
 		tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
 			ctx, kbfsConfig.KBPKI(), kbfsConfig.MDOps(), r.TlfNameUnparsed, r.TlfType)
 		if err != nil {
-			return nil, tlf.ID{}, nil, err
+			return CacheableFS{}, tlf.ID{}, nil, err
 		}
-		fs, err = libfs.NewFS(fsCtx, kbfsConfig,
-			tlfHandle, r.PathUnparsed, "", keybase1.MDPriorityNormal)
+		tlfFS, err := libfs.NewFS(fsCtx, kbfsConfig,
+			tlfHandle, "", "", keybase1.MDPriorityNormal)
 		if err != nil {
-			return nil, tlf.ID{}, nil, err
+			return CacheableFS{}, tlf.ID{}, nil, err
 		}
-		return fs, tlfHandle.TlfID(), cancel, nil
+		return CacheableFS{
+			fs:     tlfFS,
+			subdir: r.PathUnparsed,
+		}, tlfHandle.TlfID(), cancel, nil
 	case GitRoot:
 		session, err := kbfsConfig.KeybaseService().CurrentSession(ctx, 0)
 		if err != nil {
-			return nil, tlf.ID{}, nil, err
+			return CacheableFS{}, tlf.ID{}, nil, err
 		}
 		tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
 			ctx, kbfsConfig.KBPKI(), kbfsConfig.MDOps(),
@@ -119,18 +137,21 @@ func (r *Root) MakeFS(
 			// logged into a bot account.
 			string(session.Name), tlf.Private)
 		if err != nil {
-			return nil, tlf.ID{}, nil, err
+			return CacheableFS{}, tlf.ID{}, nil, err
 		}
-		fs, err = libfs.NewFS(fsCtx, kbfsConfig, tlfHandle,
-			fmt.Sprintf("%s/%s/%s", libgit.AutogitTLFListDir(r.TlfType),
-				r.TlfNameUnparsed, r.PathUnparsed), "",
+		autogitTLFFS, err := libfs.NewFS(fsCtx, kbfsConfig, tlfHandle,
+			fmt.Sprintf("%s/%s", libgit.AutogitTLFListDir(r.TlfType),
+				r.TlfNameUnparsed), "",
 			keybase1.MDPriorityNormal)
 		if err != nil {
-			return nil, tlf.ID{}, nil, err
+			return CacheableFS{}, tlf.ID{}, nil, err
 		}
-		return fs, tlfHandle.TlfID(), cancel, nil
+		return CacheableFS{
+			fs:     autogitTLFFS,
+			subdir: r.PathUnparsed,
+		}, tlfHandle.TlfID(), cancel, nil
 	default:
-		return nil, tlf.ID{}, nil, ErrInvalidKeybasePagesRecord{}
+		return CacheableFS{}, tlf.ID{}, nil, ErrInvalidKeybasePagesRecord{}
 	}
 }
 

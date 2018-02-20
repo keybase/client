@@ -19,6 +19,7 @@ import (
 	"time"
 
 	lru "github.com/hashicorp/golang-lru"
+	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/libpages/config"
 	_ "github.com/keybase/kbfs/libpages/mime" // side-effects: add mime types
@@ -204,8 +205,8 @@ func (s *Server) handleUnauthorized(w http.ResponseWriter,
 }
 
 func (s *Server) isDirWithNoIndexHTML(
-	st *site, requestPath string) (bool, error) {
-	fi, err := st.fs.Stat(strings.Trim(path.Clean(requestPath), "/"))
+	realFS *libfs.FS, requestPath string) (bool, error) {
+	fi, err := realFS.Stat(strings.Trim(path.Clean(requestPath), "/"))
 	switch {
 	case os.IsNotExist(err):
 		// It doesn't exist! So just let the http package handle it.
@@ -221,7 +222,7 @@ func (s *Server) isDirWithNoIndexHTML(
 		return false, nil
 	}
 
-	fi, err = st.fs.Stat(path.Join(requestPath, "index.html"))
+	fi, err = realFS.Stat(path.Join(requestPath, "index.html"))
 	switch {
 	case err == nil:
 		return false, nil
@@ -236,7 +237,7 @@ func (s *Server) isDirWithNoIndexHTML(
 const cloningFilename = "CLONING"
 const gitRootInitialTimeout = time.Second
 
-func (s *Server) shouldShowCloningLandingPage(st *site) (bool, error) {
+func (s *Server) shouldShowCloningLandingPage(st *site, realFS *libfs.FS) (bool, error) {
 	if st.root.Type != GitRoot {
 		// CLONING file only matters for git roots.
 		return false, nil
@@ -253,14 +254,14 @@ func (s *Server) shouldShowCloningLandingPage(st *site) (bool, error) {
 	// Read under timeout to trigger a clone in case this is an initial
 	// request. This should only happen to the first ever access to a site
 	// backed by this git repo.
-	_, err = st.fs.WithContext(ctxInitialRead).ReadDir("/")
+	_, err = realFS.WithContext(ctxInitialRead).ReadDir("/")
 	switch err {
 	case nil, context.DeadlineExceeded, context.Canceled:
 		// Assume we have triggered a clone or pull and carry on.
 	default:
 		return false, err
 	}
-	_, err = st.fs.Stat(cloningFilename)
+	_, err = realFS.Stat(cloningFilename)
 	switch {
 	case err == nil:
 		return true, nil
@@ -421,9 +422,15 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	sri.TlfID = st.tlfID
 
+	realFS, err := st.fs.Use()
+	if err != nil {
+		s.handleError(w, err)
+		return
+	}
+
 	// Show a landing page if site uses git root and has a CLONING file which
 	// indicates we are still cloning the assets.
-	shouldShowCloningLandingPage, err := s.shouldShowCloningLandingPage(st)
+	shouldShowCloningLandingPage, err := s.shouldShowCloningLandingPage(st, realFS)
 	if err != nil {
 		s.handleError(w, err)
 		return
@@ -466,7 +473,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// http.FileServer handle it.  This permission check should ideally
 	// happen inside the http package, but unfortunately there isn't a
 	// way today.
-	isListing, err := s.isDirWithNoIndexHTML(st, r.URL.Path)
+	isListing, err := s.isDirWithNoIndexHTML(realFS, r.URL.Path)
 	if err != nil {
 		s.handleError(w, err)
 		return
@@ -482,7 +489,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.FileServer(st.getHTTPFileSystem(ctx)).ServeHTTP(w, r)
+	http.FileServer(realFS.ToHTTPFileSystem(ctx)).ServeHTTP(w, r)
 }
 
 // allowDomain is used to determine whether a given domain should be

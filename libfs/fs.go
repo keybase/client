@@ -714,8 +714,8 @@ func (fs *FS) Chtimes(name string, atime time.Time, mtime time.Time) (
 	return fs.config.KBFSOps().SetMtime(fs.ctx, n, &mtime)
 }
 
-// Chroot implements the billy.Filesystem interface for FS.
-func (fs *FS) Chroot(p string) (newFS billy.Filesystem, err error) {
+// Chrute returns a *FS whose root is p.
+func (fs *FS) Chrute(p string) (newFS *FS, err error) {
 	fs.log.CDebugf(fs.ctx, "Chroot %s", p)
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "Chroot done: %+v", err)
@@ -725,7 +725,7 @@ func (fs *FS) Chroot(p string) (newFS billy.Filesystem, err error) {
 	// lookupOrCreateEntry doesn't handle "..", so we don't have to
 	// worry about someone trying to break out of the jail since this
 	// lookup will fail.
-	n, _, err := fs.lookupOrCreateEntry(p, os.O_RDONLY, 0)
+	n, ei, err := fs.lookupOrCreateEntry(p, os.O_RDONLY, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -735,8 +735,10 @@ func (fs *FS) Chroot(p string) (newFS billy.Filesystem, err error) {
 		fsInner: &fsInner{
 			config:   fs.config,
 			root:     n,
+			rootInfo: ei,
 			h:        fs.h,
 			subdir:   path.Clean(path.Join(fs.subdir, p)),
+			uniqID:   fs.uniqID,
 			log:      fs.log,
 			deferLog: fs.deferLog,
 
@@ -744,8 +746,14 @@ func (fs *FS) Chroot(p string) (newFS billy.Filesystem, err error) {
 			lockNamespace: bytes.Join(
 				[][]byte{fs.lockNamespace, []byte(p)}, []byte{'/'}),
 			priority: fs.priority,
+			events:   make(map[chan<- FSEvent]bool),
 		},
 	}, nil
+}
+
+// Chroot implements the billy.Filesystem interface for FS.
+func (fs *FS) Chroot(p string) (newFS billy.Filesystem, err error) {
+	return fs.Chrute(p)
 }
 
 // Root implements the billy.Filesystem interface for FS.
