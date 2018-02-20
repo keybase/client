@@ -41,21 +41,22 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   loadFolderList: (path: Types.Path) => dispatch(FsGen.createFolderListLoad({path})),
 })
 
-const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps) => ({
-  items: Constants.sortPathItems(
-    stateProps._itemNames.map(name => Types.pathConcat(stateProps.path, name)).map(
-      p => stateProps._pathItems.get(p, Constants.makeUnknownPathItem()) // provide an unknown default to make flow happy
-    ),
-    stateProps._sortSetting,
-    Types.pathIsNonTeamTLFList(stateProps.path) ? stateProps._username : undefined
+const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps) => {
+  const pathItems = stateProps._itemNames.map(name =>
+    stateProps._pathItems.get(Types.pathConcat(stateProps.path, name), Constants.makeUnknownPathItem())
   )
+  const username = Types.pathIsNonTeamTLFList(stateProps.path) ? stateProps._username : undefined
+  const items = Constants.sortPathItems(pathItems, stateProps._sortSetting, username)
     .map(({name}) => Types.pathConcat(stateProps.path, name))
-    .toArray(),
-  progress: stateProps.progress,
-  path: stateProps.path,
+    .toArray()
+  return {
+    items,
+    progress: stateProps.progress,
+    path: stateProps.path,
 
-  loadFolderList: dispatchProps.loadFolderList,
-})
+    loadFolderList: dispatchProps.loadFolderList,
+  }
+}
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),

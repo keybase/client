@@ -22,10 +22,6 @@ type FolderProps = {
   path: Types.Path,
   progress: 'pending' | 'loaded',
   sortSetting: Types._SortSetting,
-  setSortByNameAsc: () => void,
-  setSortByNameDesc: () => void,
-  setSortByTimeAsc: () => void,
-  setSortByTimeDesc: () => void,
 }
 
 const folderBoxStyle = {...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'stretch'}
@@ -88,14 +84,7 @@ class Files extends React.PureComponent<FolderProps> {
       <Box style={styleOuterContainer}>
         <Box style={stylesContainer}>
           <FolderHeader path={this.props.path} />
-          <SortBar
-            path={this.props.path}
-            sortSetting={this.props.sortSetting}
-            setSortByNameAsc={this.props.setSortByNameAsc}
-            setSortByNameDesc={this.props.setSortByNameDesc}
-            setSortByTimeAsc={this.props.setSortByTimeAsc}
-            setSortByTimeDesc={this.props.setSortByTimeDesc}
-          />
+          <SortBar path={this.props.path} />
           {list}
         </Box>
       </Box>

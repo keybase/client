@@ -36,10 +36,7 @@ export const makeSortSetting: I.RecordFactory<Types._SortSetting> = I.Record({
 })
 
 export const makePathUserSetting: I.RecordFactory<Types._PathUserSetting> = I.Record({
-  sort: makeSortSetting({
-    sortBy: 'name',
-    sortOrder: 'asc',
-  }),
+  sort: makeSortSetting(),
 })
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({

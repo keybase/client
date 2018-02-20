@@ -37,10 +37,6 @@ const load = () => {
           Types.stringToPath('/keybase/public'),
           Types.stringToPath('/keybase/team'),
         ]}
-        setSortByNameAsc={() => {}}
-        setSortByNameDesc={() => {}}
-        setSortByTimeAsc={() => {}}
-        setSortByTimeDesc={() => {}}
         sortSetting={{
           sortBy: 'name',
           sortOrder: 'asc',
