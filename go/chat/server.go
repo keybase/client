@@ -2755,3 +2755,34 @@ func (h *Server) GetSearchRegexp(ctx context.Context, arg chat1.GetSearchRegexpA
 		IdentifyFailures: identBreaks,
 	}, nil
 }
+
+func (h *Server) GetTeamTypesForTeams(ctx context.Context, teamNames []string) (res map[string]chat1.TeamType, err error) {
+	defer h.Trace(ctx, func() error { return err }, "GetTeamTypesForTeams")()
+
+	// Make it possible to call this RPC from standalone mode.
+	h.G().StartStandaloneChat()
+
+	var query chat1.GetInboxLocalQuery
+	query.ComputeActiveList = true
+	query.OneChatTypePerTLF = new(bool)
+	*query.OneChatTypePerTLF = true
+	query.UnreadOnly, query.ReadOnly = false, false
+	gires, err := h.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
+		Pagination:       &chat1.Pagination{Num: int(^uint(0) >> 1)},
+		Query:            &query,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_UNSET,
+	})
+	if err != nil {
+		return res, err
+	}
+
+	res = make(map[string]chat1.TeamType)
+	for _, conversation := range gires.Conversations {
+		info := conversation.Info
+		if info.MembersType == chat1.ConversationMembersType_TEAM {
+			res[info.TlfName] = info.TeamType
+		}
+	}
+
+	return res, nil
+}

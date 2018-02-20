@@ -4081,6 +4081,10 @@ type GetSearchRegexpArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
+type GetTeamTypesForTeamsArg struct {
+	TeamNames []string `codec:"teamNames" json:"teamNames"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
@@ -4129,6 +4133,7 @@ type LocalInterface interface {
 	SetTeamRetentionLocal(context.Context, SetTeamRetentionLocalArg) error
 	UpgradeKBFSConversationToImpteam(context.Context, ConversationID) error
 	GetSearchRegexp(context.Context, GetSearchRegexpArg) (GetSearchRegexpRes, error)
+	GetTeamTypesForTeams(context.Context, []string) (map[string]TeamType, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -4877,6 +4882,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"getTeamTypesForTeams": {
+				MakeArg: func() interface{} {
+					ret := make([]GetTeamTypesForTeamsArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetTeamTypesForTeamsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetTeamTypesForTeamsArg)(nil), args)
+						return
+					}
+					ret, err = i.GetTeamTypesForTeams(ctx, (*typedArgs)[0].TeamNames)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -5125,5 +5146,11 @@ func (c LocalClient) UpgradeKBFSConversationToImpteam(ctx context.Context, convI
 
 func (c LocalClient) GetSearchRegexp(ctx context.Context, __arg GetSearchRegexpArg) (res GetSearchRegexpRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.getSearchRegexp", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) GetTeamTypesForTeams(ctx context.Context, teamNames []string) (res map[string]TeamType, err error) {
+	__arg := GetTeamTypesForTeamsArg{TeamNames: teamNames}
+	err = c.Cli.Call(ctx, "chat.1.local.getTeamTypesForTeams", []interface{}{__arg}, &res)
 	return
 }
