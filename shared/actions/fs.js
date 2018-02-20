@@ -21,6 +21,7 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
   yield Saga.call(RPCTypes.SimpleFSSimpleFSWaitRpcPromise, {opID})
 
   const result = yield Saga.call(RPCTypes.SimpleFSSimpleFSReadListRpcPromise, {opID})
+  const entries = result.entries || []
 
   const direntToPathAndPathItem = (d: RPCTypes.Dirent) => [
     Types.pathConcat(rootPath, d.name),
@@ -28,11 +29,11 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
   ]
 
   const pathItems: I.Map<Types.Path, Types.PathItem> = I.Map(
-    result.entries.map(direntToPathAndPathItem).concat([
+    entries.map(direntToPathAndPathItem).concat([
       [
         rootPath,
         Constants.makeFolder({
-          children: I.List(result.entries.map(d => d.name)),
+          children: I.List(entries.map(d => d.name)),
           progress: 'loaded',
         }),
       ],
