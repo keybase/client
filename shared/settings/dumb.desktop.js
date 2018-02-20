@@ -319,6 +319,7 @@ const commonSettings = {
   onSave: () => console.log('onSave'),
   onToggle: (name: string) => console.log('on toggle', name),
   onToggleUnsubscribeAll: () => console.log('on subscribe all'),
+  mobileHasPermissions: true,
 }
 
 let unsubSettings = commonSettings

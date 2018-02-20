@@ -31,7 +31,7 @@ export function SettingsItem({
   )
 }
 
-function SettingsNav({badgeNumbers, selectedTab, onTabChange, onLogout}: Props) {
+function SettingsNav({badgeNotifications, badgeNumbers, selectedTab, onTabChange, onLogout}: Props) {
   return (
     <NativeScrollView style={{width: '100%', height: '100%'}}>
       <Box style={styleNavBox}>
@@ -52,7 +52,7 @@ function SettingsNav({badgeNumbers, selectedTab, onTabChange, onLogout}: Props) 
         />
         <SettingsItem
           text="Notifications"
-          badgeNumber={0}
+          badgeNumber={badgeNotifications ? 1 : 0}
           onClick={() => onTabChange(Constants.notificationsTab)}
         />
         <SettingsItem
