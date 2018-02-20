@@ -25,6 +25,7 @@ const mapStateToProps = (state: TypedState, {routeState}) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {routeState, setRouteState, navigateAppend}) => ({
+  onDebugDump: () => dispatch(Chat2Gen.createDebugDump({})),
   _onSelectNext: (
     rows: Array<Inbox.RowItem>,
     selectedConversationIDKey: ?Types.ConversationIDKey,
@@ -42,7 +43,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeState, setRouteState, navi
       dispatch(Chat2Gen.createSelectConversation({conversationIDKey, fromUser: true}))
     }
   },
-  getTeams: () => dispatch(TeamsGen.createGetTeams()),
   _onHotkey: (cmd: string, focusFilter: () => void) => {
     if (cmd.endsWith('+n')) {
       dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'searchingForUsers'}))
@@ -50,18 +50,13 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeState, setRouteState, navi
       focusFilter()
     }
   },
+  getTeams: () => dispatch(TeamsGen.createGetTeams()),
   onNewChat: () => {
     dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'searchingForUsers'}))
     if (isMobile) {
       dispatch(navigateAppend(['conversation']))
     }
   },
-  // onSelect: (conversationIDKey: Types.ConversationIDKey) => {
-  // dispatch(Chat2Gen.createSelectConversation({conversationIDKey, fromUser: true}))
-  // if (isMobile) {
-  // dispatch(navigateAppend('conversation'))
-  // }
-  // },
   onSetFilter: (filter: string) => dispatch(Chat2Gen.createSetInboxFilter({filter})),
   onUntrustedInboxVisible: (conversationIDKeys: Array<Types.ConversationIDKey>) =>
     dispatch(
@@ -86,7 +81,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   isLoading: stateProps.isLoading,
   neverLoaded: stateProps.neverLoaded,
   onNewChat: dispatchProps.onNewChat,
-  // onSelect: dispatchProps.onSelect,
+  onDebugDump: dispatchProps.onDebugDump,
   onSelectDown: () => dispatchProps._onSelectNext(stateProps.rows, stateProps._selectedConversationIDKey, 1),
   onSelectUp: () => dispatchProps._onSelectNext(stateProps.rows, stateProps._selectedConversationIDKey, -1),
   onSetFilter: dispatchProps.onSetFilter,

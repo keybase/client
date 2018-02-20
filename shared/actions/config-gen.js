@@ -19,6 +19,7 @@ export const changeKBFSPath = 'config:changeKBFSPath'
 export const clearRouteState = 'config:clearRouteState'
 export const configLoaded = 'config:configLoaded'
 export const daemonError = 'config:daemonError'
+export const debugDump = 'config:debugDump'
 export const extendedConfigLoaded = 'config:extendedConfigLoaded'
 export const getExtendedStatus = 'config:getExtendedStatus'
 export const globalError = 'config:globalError'
@@ -55,6 +56,7 @@ export const createChangeKBFSPath = (payload: $ReadOnly<{kbfsPath: string}>) => 
 export const createClearRouteState = () => ({error: false, payload: undefined, type: clearRouteState})
 export const createConfigLoaded = (payload: $ReadOnly<{config: RPCTypes.Config}>) => ({error: false, payload, type: configLoaded})
 export const createDaemonError = (payload: $ReadOnly<{daemonError: ?Error}>) => ({error: false, payload, type: daemonError})
+export const createDebugDump = (payload: $ReadOnly<{items: Array<string>}>) => ({error: false, payload, type: debugDump})
 export const createExtendedConfigLoaded = (payload: $ReadOnly<{extendedConfig: RPCTypes.ExtendedStatus}>) => ({error: false, payload, type: extendedConfigLoaded})
 export const createGetExtendedStatus = () => ({error: false, payload: undefined, type: getExtendedStatus})
 export const createGlobalError = (payload: $ReadOnly<{globalError: ?Error}>) => ({error: false, payload, type: globalError})
@@ -90,6 +92,7 @@ export type ChangeKBFSPathPayload = More.ReturnType<typeof createChangeKBFSPath>
 export type ClearRouteStatePayload = More.ReturnType<typeof createClearRouteState>
 export type ConfigLoadedPayload = More.ReturnType<typeof createConfigLoaded>
 export type DaemonErrorPayload = More.ReturnType<typeof createDaemonError>
+export type DebugDumpPayload = More.ReturnType<typeof createDebugDump>
 export type ExtendedConfigLoadedPayload = More.ReturnType<typeof createExtendedConfigLoaded>
 export type GetExtendedStatusPayload = More.ReturnType<typeof createGetExtendedStatus>
 export type GlobalErrorPayload = More.ReturnType<typeof createGlobalError>
@@ -117,6 +120,7 @@ export type Actions =
   | More.ReturnType<typeof createClearRouteState>
   | More.ReturnType<typeof createConfigLoaded>
   | More.ReturnType<typeof createDaemonError>
+  | More.ReturnType<typeof createDebugDump>
   | More.ReturnType<typeof createExtendedConfigLoaded>
   | More.ReturnType<typeof createGetExtendedStatus>
   | More.ReturnType<typeof createGlobalError>

@@ -262,6 +262,9 @@
     "selectConversationDueToPush": {
       "conversationIDKey": "Types.ConversationIDKey",
       "phase": "'showImmediately' | 'loadNewContent'"
+    },
+    "debugDump": {
+      "conversationIDKey?": "Types.ConversationIDKey",
     }
   }
 }

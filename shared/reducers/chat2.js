@@ -612,6 +612,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.navigateToThread:
     case Chat2Gen.messageAttachmentNativeShare:
     case Chat2Gen.messageAttachmentNativeSave:
+    case Chat2Gen.debugDump:
       return state
     default:
       // eslint-disable-next-line no-unused-expressions

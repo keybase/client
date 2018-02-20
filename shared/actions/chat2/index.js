@@ -1,19 +1,19 @@
 // @flow
 import * as Chat2Gen from '../chat2-gen'
-import * as SearchGen from '../search-gen'
 import * as ConfigGen from '../config-gen'
-import * as TeamsGen from '../teams-gen'
-import * as KBFSGen from '../kbfs-gen'
-import * as UsersGen from '../users-gen'
 import * as Constants from '../../constants/chat2'
-import * as SearchConstants from '../../constants/search'
 import * as EngineRpc from '../../constants/engine'
 import * as I from 'immutable'
+import * as KBFSGen from '../kbfs-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Route from '../route-tree'
 import * as Saga from '../../util/saga'
+import * as SearchConstants from '../../constants/search'
+import * as SearchGen from '../search-gen'
+import * as TeamsGen from '../teams-gen'
 import * as Types from '../../constants/types/chat2'
+import * as UsersGen from '../users-gen'
 import HiddenString from '../../util/hidden-string'
 import engine from '../../engine'
 import logger from '../../logger'
@@ -1602,6 +1602,36 @@ function* messageAttachmentNativeSave(action: Chat2Gen.MessageAttachmentNativeSa
   yield Saga.call(saveAttachmentDialog, message.deviceFilePath)
 }
 
+const debugDump = (action: Chat2Gen.DebugDumpPayload, state: TypedState) => {
+  let data
+  const chat = state.chat2
+  const c = action.payload.conversationIDKey
+  if (c) {
+    data = {
+      badgeMap: chat.badgeMap.get(c),
+      editingMap: chat.editingMap.get(c),
+      loadingMap: chat.loadingMap,
+      messageMap: chat.messageMap.get(c),
+      messageOrdinals: chat.messageOrdinals.get(c),
+      metaMap: chat.metaMap.get(c),
+      pendingConversationUsers: chat.pendingConversationUsers,
+      pendingMode: chat.pendingMode,
+      pendingOutboxToOrdinal: chat.pendingOutboxToOrdinal.get(c),
+      pendingSelected: chat.pendingSelected,
+      selectedConversation: chat.selectedConversation,
+      typingMap: chat.typingMap.get(c),
+      unreadMap: chat.unreadMap.get(c),
+    }
+  } else {
+    data = chat.toJS()
+  }
+  return Saga.put(
+    ConfigGen.createDebugDump({
+      items: JSON.stringify(data, null, 2).split('\n'),
+    })
+  )
+}
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
   if (isMobile) {
@@ -1703,6 +1733,8 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
 
   yield Saga.safeTakeEveryPure(Chat2Gen.navigateToInbox, navigateToInbox)
   yield Saga.safeTakeEveryPure(Chat2Gen.navigateToThread, navigateToThread)
+
+  yield Saga.safeTakeEveryPure(Chat2Gen.debugDump, debugDump)
 }
 
 export default chat2Saga

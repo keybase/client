@@ -24,6 +24,7 @@ export const attachmentUploading = 'chat2:attachmentUploading'
 export const badgesUpdated = 'chat2:badgesUpdated'
 export const clearOrdinals = 'chat2:clearOrdinals'
 export const clearPendingConversation = 'chat2:clearPendingConversation'
+export const debugDump = 'chat2:debugDump'
 export const desktopNotification = 'chat2:desktopNotification'
 export const exitSearch = 'chat2:exitSearch'
 export const inboxRefresh = 'chat2:inboxRefresh'
@@ -145,6 +146,7 @@ export const createAttachmentUploading = (
 export const createBadgesUpdated = (payload: $ReadOnly<{conversations: Array<RPCTypes.BadgeConversationInfo>}>) => ({error: false, payload, type: badgesUpdated})
 export const createClearOrdinals = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: clearOrdinals})
 export const createClearPendingConversation = () => ({error: false, payload: undefined, type: clearPendingConversation})
+export const createDebugDump = (payload: $ReadOnly<{conversationIDKey?: Types.ConversationIDKey}>) => ({error: false, payload, type: debugDump})
 export const createDesktopNotification = (
   payload: $ReadOnly<{
     conversationIDKey: Types.ConversationIDKey,
@@ -349,6 +351,7 @@ export type AttachmentUploadingPayload = More.ReturnType<typeof createAttachment
 export type BadgesUpdatedPayload = More.ReturnType<typeof createBadgesUpdated>
 export type ClearOrdinalsPayload = More.ReturnType<typeof createClearOrdinals>
 export type ClearPendingConversationPayload = More.ReturnType<typeof createClearPendingConversation>
+export type DebugDumpPayload = More.ReturnType<typeof createDebugDump>
 export type DesktopNotificationPayload = More.ReturnType<typeof createDesktopNotification>
 export type ExitSearchPayload = More.ReturnType<typeof createExitSearch>
 export type InboxRefreshPayload = More.ReturnType<typeof createInboxRefresh>
@@ -412,6 +415,7 @@ export type Actions =
   | More.ReturnType<typeof createBadgesUpdated>
   | More.ReturnType<typeof createClearOrdinals>
   | More.ReturnType<typeof createClearPendingConversation>
+  | More.ReturnType<typeof createDebugDump>
   | More.ReturnType<typeof createDesktopNotification>
   | More.ReturnType<typeof createExitSearch>
   | More.ReturnType<typeof createInboxRefresh>

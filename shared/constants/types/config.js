@@ -28,6 +28,7 @@ export type _State = {
   daemonError: ?Error,
   deviceID: ?DeviceID,
   deviceName: ?string,
+  debugDump: Array<string>,
   error: ?any,
   extendedConfig: ?ExtendedStatus,
   followers: I.Set<string>,

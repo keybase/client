@@ -1,5 +1,6 @@
 // @flow
 import * as I from 'immutable'
+import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Types from '../types/chat2'
 import {chatTab} from '../tabs'
 import type {TypedState} from '../reducer'
@@ -7,28 +8,19 @@ import {makeConversationMeta} from './meta'
 import {getPath} from '../../route-tree'
 import {isMobile} from '../platform'
 
+export const DEBUGDumpChat = () => {
+  const dispatch = isMobile ? global.store.dispatch : window.DEBUGStore.dispatch
+  if (!dispatch) return
+  dispatch(Chat2Gen.createDebugDump({}))
+}
+
 // TEMP
 if (__DEV__) {
   console.warn('DEBUG DUMP CHAT ENABLED-\n-\n-\n-\n-\n-\n-\n-\n-\n-\n-\n-\n-\n')
-  window.DEBUGDumpChat = (c: string) => {
-    console.log(
-      'messageMap',
-      window.DEBUGStore.getState()
-        .chat2.messageMap.get(c)
-        .toJS()
-    )
-    console.log(
-      'messageOrdinals',
-      window.DEBUGStore.getState()
-        .chat2.messageOrdinals.get(c)
-        .toJS()
-    )
-    console.log(
-      'metaMap',
-      window.DEBUGStore.getState()
-        .chat2.metaMap.get(c)
-        .toJS()
-    )
+  if (isMobile) {
+    global.DEBUGDumpChat = DEBUGDumpChat
+  } else {
+    window.DEBUGDumpChat = DEBUGDumpChat
   }
 }
 // TEMP

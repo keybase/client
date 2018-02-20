@@ -11,19 +11,11 @@ const ShhIcon = () => (
   </Box>
 )
 
-const ChannelHeader = ({
-  badgeNumber,
-  channelName,
-  muted,
-  onBack,
-  onToggleInfoPanel,
-  teamName,
-  smallTeam,
-}: Props) => (
+const ChannelHeader = (props: Props) => (
   <Box style={containerStyle}>
     <BackButton
-      badgeNumber={badgeNumber}
-      onClick={onBack}
+      badgeNumber={props.badgeNumber}
+      onClick={props.onBack}
       iconStyle={{color: globalColors.black_40}}
       textStyle={{color: globalColors.blue}}
       style={{flexShrink: 0, padding: globalMargins.tiny}}
@@ -37,25 +29,25 @@ const ChannelHeader = ({
     >
       <Box style={{...globalStyles.flexBoxColumn}}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', alignSelf: 'center'}}>
-          <Avatar teamname={teamName} size={smallTeam ? 16 : 12} />
-          {!smallTeam && (
+          <Avatar teamname={props.teamName} size={props.smallTeam ? 16 : 12} />
+          {!props.smallTeam && (
             <Text type="BodySmallSemibold" style={{color: globalColors.black_40}}>
-              &nbsp;{teamName}
+              &nbsp;{props.teamName}
             </Text>
           )}
-          {smallTeam && (
+          {props.smallTeam && (
             <Text type="BodyBig" style={{color: globalColors.black_75}}>
-              &nbsp;{teamName}
+              &nbsp;{props.teamName}
             </Text>
           )}
-          {smallTeam && muted && <ShhIcon />}
+          {props.smallTeam && props.muted && <ShhIcon />}
         </Box>
-        {!smallTeam && (
+        {!props.smallTeam && (
           <Box style={{...globalStyles.flexBoxRow, alignSelf: 'center'}}>
             <Text type="BodyBig" style={{color: globalColors.black_75}}>
-              #{channelName}
+              #{props.channelName}
             </Text>
-            {muted && <ShhIcon />}
+            {props.muted && <ShhIcon />}
           </Box>
         )}
       </Box>
@@ -63,25 +55,16 @@ const ChannelHeader = ({
     <Icon
       type="iconfont-info"
       style={{...styleLeft, flexShrink: 0, padding: globalMargins.tiny, fontSize: 21}}
-      onClick={onToggleInfoPanel}
+      onClick={props.onToggleInfoPanel}
     />
   </Box>
 )
 
-const UsernameHeader = ({
-  badgeNumber,
-  canOpenInfoPanel,
-  muted,
-  onBack,
-  onOpenFolder,
-  onShowProfile,
-  onToggleInfoPanel,
-  participants,
-}: Props) => (
+const UsernameHeader = (props: Props) => (
   <Box style={containerStyle}>
     <BackButton
-      badgeNumber={badgeNumber}
-      onClick={onBack}
+      badgeNumber={props.badgeNumber}
+      onClick={props.onBack}
       iconStyle={{color: globalColors.black_40}}
       textStyle={{color: globalColors.blue}}
       style={{flexShrink: 0, padding: globalMargins.tiny}}
@@ -100,20 +83,25 @@ const UsernameHeader = ({
         inline={false}
         commaColor={globalColors.black_40}
         type="BodyBig"
-        usernames={participants}
+        usernames={props.participants}
         containerStyle={styleCenter}
-        onUsernameClicked={onShowProfile}
+        onUsernameClicked={props.onShowProfile}
         skipSelf={true}
       />
-      {muted && <ShhIcon />}
+      {props.muted && <ShhIcon />}
     </Box>
-    {canOpenInfoPanel && (
+    {props.canOpenInfoPanel && (
       <Icon
         type="iconfont-info"
         style={{...styleLeft, flexShrink: 0, padding: globalMargins.tiny, fontSize: 21}}
-        onClick={onToggleInfoPanel}
+        onClick={props.onToggleInfoPanel}
       />
     )}
+    <Icon
+      type="iconfont-keybase"
+      style={{...styleLeft, flexShrink: 0, padding: globalMargins.tiny, fontSize: 21}}
+      onClick={props.onDebugDump}
+    />
   </Box>
 )
 
