@@ -309,6 +309,9 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 	if err != nil {
 		return err
 	}
+
+	tx := CreateAddMemberTx(team)
+
 	var invitesToCancel []keybase1.TeamInviteID
 
 	var req keybase1.TeamChangeReq
@@ -339,20 +342,14 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 		if currentRole.IsOrAbove(invite.Role) {
 			g.Log.CDebugf(ctx, "User already has same or higher role, canceling invite.")
 			invitesToCancel = append(invitesToCancel, invite.Id)
+			tx.CancelInvite(invite.Id)
 			continue
 		}
 
-		switch invite.Role {
-		case keybase1.TeamRole_READER:
-			req.Readers = append(req.Readers, uv)
-		case keybase1.TeamRole_WRITER:
-			req.Writers = append(req.Writers, uv)
-		case keybase1.TeamRole_ADMIN:
-			req.Admins = append(req.Admins, uv)
-		case keybase1.TeamRole_OWNER:
-			req.Owners = append(req.Owners, uv)
-		default:
-			return fmt.Errorf("Unexpected role in invitation: %v", invite.Role)
+		err = tx.AddMemberByUV(ctx, uv, invite.Role)
+		if err != nil {
+			g.Log.CDebugf(ctx, "Failed to add %v to transaction: %v", uv, err)
+			continue
 		}
 
 		g.Log.CDebugf(ctx, "Completing invite %s", invite.Id)

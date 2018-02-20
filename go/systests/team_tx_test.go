@@ -10,7 +10,7 @@ import (
 	"github.com/keybase/client/go/teams"
 )
 
-func TestTeamTx1(t *testing.T) {
+func testTeamTx1(t *testing.T, byUV bool) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -35,8 +35,13 @@ func TestTeamTx1(t *testing.T) {
 	teamObj := ann.loadTeam(team, true /* admin */)
 
 	tx := teams.CreateAddMemberTx(teamObj)
-	tx.AddMemberByUsername(context.Background(), bob.username, keybase1.TeamRole_WRITER)
-	tx.AddMemberByUsername(context.Background(), tracy.username, keybase1.TeamRole_READER)
+	if byUV {
+		tx.AddMemberByUV(context.Background(), bob.userVersion(), keybase1.TeamRole_WRITER)
+		tx.AddMemberByUV(context.Background(), tracy.userVersion(), keybase1.TeamRole_READER)
+	} else {
+		tx.AddMemberByUsername(context.Background(), bob.username, keybase1.TeamRole_WRITER)
+		tx.AddMemberByUsername(context.Background(), tracy.username, keybase1.TeamRole_READER)
+	}
 
 	err := tx.Post(context.Background())
 	require.NoError(t, err)
@@ -80,6 +85,14 @@ func TestTeamTx1(t *testing.T) {
 	require.Equal(t, 1, len(members.Writers))
 	require.EqualValues(t, bob.userVersion(), members.Writers[0])
 	require.Equal(t, 0, len(teamObj.GetActiveAndObsoleteInvites()))
+}
+
+func TestTeamTxAddByUsername(t *testing.T) {
+	testTeamTx1(t, false /* byUV */)
+}
+
+func TestTeamTxAddByUV(t *testing.T) {
+	testTeamTx1(t, true /* byUV */)
 }
 
 func TestTeamTxDependency(t *testing.T) {
