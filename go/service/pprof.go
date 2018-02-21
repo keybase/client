@@ -85,6 +85,7 @@ func (c *PprofHandler) Trace(_ context.Context, arg keybase1.TraceArg) (err erro
 	return c.trace(ctx, arg.TraceFile, arg.TraceDurationSeconds)
 }
 
+// Keep in sync with maxTraceFileCount in libkb/log_send.go.
 const maxTraceFileCount = 5
 
 func (c *PprofHandler) LogTrace(_ context.Context, arg keybase1.LogTraceArg) (err error) {
@@ -102,6 +103,7 @@ func (c *PprofHandler) LogTrace(_ context.Context, arg keybase1.LogTraceArg) (er
 		logDir = c.G().Env.GetLogDir()
 	}
 
+	// Keep in sync with glob pattern in libkb/log_send.go.
 	pattern := filepath.Join(logDir, "trace.*.out")
 	matches, err := filepath.Glob(pattern)
 	if err != nil {

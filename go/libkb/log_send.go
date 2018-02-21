@@ -420,9 +420,11 @@ func addFilesToTarGz(log logger.Logger, w io.Writer, paths []string) bool {
 	return added
 }
 
+// Keep in sync with maxTraceFileCount in service/pprof.go.
 const maxTraceFileCount = 5
 
 func getTraceBundle(log logger.Logger, traceDir string) []byte {
+	// Keep in sync with glob pattern in service/pprof.go.
 	pattern := filepath.Join(traceDir, "trace.*.out")
 	matches, err := filepath.Glob(pattern)
 	if err != nil {
