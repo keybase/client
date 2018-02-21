@@ -388,18 +388,17 @@ const CustomComponent = ({onOpenFolder, onManageChat, onShowMenu, canManageChat}
       canManageChat && (
         <Icon
           onClick={onManageChat}
+          style={{fontSize: isMobile ? 20 : 16, marginRight: globalMargins.tiny}}
           type="iconfont-chat"
-          style={{fontSize: isMobile ? 20 : 16, marginRight: globalMargins.tiny}}
         />
       )}
-    {!isMobile &&
-      canManageChat && (
-        <Icon
-          onClick={onOpenFolder}
-          type="iconfont-folder-private"
-          style={{fontSize: isMobile ? 20 : 16, marginRight: globalMargins.tiny}}
-        />
-      )}
+    {!isMobile && (
+      <Icon
+        onClick={onOpenFolder}
+        style={{fontSize: isMobile ? 20 : 16, marginRight: globalMargins.tiny}}
+        type="iconfont-folder-private"
+      />
+    )}
     <Icon
       onClick={onShowMenu}
       type="iconfont-ellipsis"
