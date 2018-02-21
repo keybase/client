@@ -2,8 +2,7 @@
 //  KBRedirector.h
 //  KBKit
 //
-//  Created by Gabriel on 8/24/16.
-//  Copyright © 2016 Gabriel Handford. All rights reserved.
+//  Created by strib on 2/20/18.
 //
 
 #import <Foundation/Foundation.h>

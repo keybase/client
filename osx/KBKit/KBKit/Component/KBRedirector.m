@@ -2,7 +2,7 @@
 //  KBRedirector.m
 //  KBKit
 //
-//  Created by Jeremy on 2/20/18.
+//  Created by strib on 2/21/18.
 //
 
 #import "KBRedirector.h"
