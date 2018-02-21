@@ -134,10 +134,10 @@ func (l *TeamLoader) verifySignatureAndExtractKID(ctx context.Context, outer lib
 }
 
 func (l *TeamLoader) addProofsForKeyInUserSigchain(ctx context.Context, teamID keybase1.TeamID, teamLinkMap linkMapT, link *chainLinkUnpacked, uid keybase1.UID, key *keybase1.PublicKeyV2NaCl, userLinkMap linkMapT, proofSet *proofSetT) {
-	b := newProofTerm(teamID.AsUserOrTeam(), link.SignatureMetadata(), teamLinkMap)
-	c := key.Base.Revocation
-	if c != nil {
-		proofSet.AddNeededHappensBeforeProof(ctx, b, newProofTerm(uid.AsUserOrTeam(), *c, userLinkMap), "team link before user key revocation")
+	event1Link := newProofTerm(teamID.AsUserOrTeam(), link.SignatureMetadata(), teamLinkMap)
+	event2Revoke := key.Base.Revocation
+	if event2Revoke != nil {
+		proofSet.AddNeededHappensBeforeProof(ctx, event1Link, newProofTerm(uid.AsUserOrTeam(), *event2Revoke, userLinkMap), "team link before user key revocation")
 	}
 }
 
@@ -283,12 +283,12 @@ func (l *TeamLoader) walkUpToAdmin(
 }
 
 func (l *TeamLoader) addProofsForAdminPermission(ctx context.Context, t keybase1.TeamSigChainState, link *chainLinkUnpacked, bookends proofTermBookends, proofSet *proofSetT) {
-	a := bookends.left
-	b := newProofTerm(t.Id.AsUserOrTeam(), link.SignatureMetadata(), t.LinkIDs)
-	c := bookends.right
-	proofSet.AddNeededHappensBeforeProof(ctx, a, b, "became admin before team link")
-	if c != nil {
-		proofSet.AddNeededHappensBeforeProof(ctx, b, *c, "team link before adminship demotion")
+	event1Promote := bookends.left
+	event2Link := newProofTerm(t.Id.AsUserOrTeam(), link.SignatureMetadata(), t.LinkIDs)
+	event3Demote := bookends.right
+	proofSet.AddNeededHappensBeforeProof(ctx, event1Promote, event2Link, "became admin before team link")
+	if event3Demote != nil {
+		proofSet.AddNeededHappensBeforeProof(ctx, event2Link, *event3Demote, "team link before adminship demotion")
 	}
 }
 
