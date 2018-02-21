@@ -33,7 +33,7 @@ const TeamInfo = (props: Props) => (
 
     <Text type="BodySmall">{props.memberCount + ' member' + (props.memberCount !== 1 ? 's' : '')}</Text>
 
-    <Text type={isMobile ? 'Body' : 'BodySmall'} style={styleDescription}>
+    <Text type={'Body'} style={styleDescription}>
       {props.description}
     </Text>
 
@@ -101,8 +101,8 @@ const TeamInfo = (props: Props) => (
 const styleDescription = {
   ...globalStyles.flexBoxRow,
   marginBottom: globalMargins.tiny,
-  marginLeft: globalMargins.small,
-  marginRight: globalMargins.small,
+  marginLeft: globalMargins.tiny,
+  marginRight: globalMargins.tiny,
   marginTop: globalMargins.tiny,
   textAlign: 'center',
 }

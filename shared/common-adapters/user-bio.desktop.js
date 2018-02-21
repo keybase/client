@@ -153,7 +153,7 @@ class BioRender extends Component<Props> {
             )}
             {userInfo.bio && (
               <Text
-                type={this.props.type === 'Profile' ? 'Body' : 'BodySmall'}
+                type={'Body'}
                 selectable={true}
                 style={{...stylesBio, ...stylesBioType[this.props.type]}}
                 {...bioLineClamp}
@@ -229,6 +229,7 @@ const stylesContainer = {
   justifyContent: 'center',
   position: 'relative',
   width: 320,
+  marginBottom: globalMargins.tiny,
 }
 const stylesContent = {
   backgroundColor: globalColors.white,
