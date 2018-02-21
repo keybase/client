@@ -46,7 +46,7 @@ export default (props: Props) => (
     <Box style={iconContainerStyle}>{props.icon}</Box>
     <Box
       style={{
-        ...contentContainerStyle,
+        ...childrenContainerStyle,
         ...props.contentStyle,
       }}
     >
@@ -73,7 +73,7 @@ const containerStyle = {
 
 const iconContainerStyle = {marginRight: 20, width: isMobile ? 48 : 32}
 
-const contentContainerStyle = {
+const childrenContainerStyle = {
   ...globalStyles.flexBoxColumn,
   paddingRight: isMobile ? 100 : 80,
   width: 'auto',
