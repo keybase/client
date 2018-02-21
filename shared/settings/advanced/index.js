@@ -88,6 +88,9 @@ function Developer(props: Props) {
         onClick={props.onDBNuke}
       />
       <TraceButton durationSeconds={30} onTrace={props.onTrace} traceInProgress={props.traceInProgress} />
+      <Text type="BodySmallSemibold" style={{textAlign: 'center'}}>
+        Trace files are included in logs sent with feedback.
+      </Text>
       <Box style={{flex: 1}} />
     </Box>
   )

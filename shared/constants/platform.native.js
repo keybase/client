@@ -52,8 +52,8 @@ function logFileName(): string {
   return _logPath
 }
 
-function traceFileName(): string {
-  return `${_dir}/trace.out`
+function traceDir(): string {
+  return _dir
 }
 
 export {
@@ -74,8 +74,8 @@ export {
   isWindows,
   mobileOsVersion,
   runMode,
+  traceDir,
   version,
   logFileName,
   logFileDir,
-  traceFileName,
 }
