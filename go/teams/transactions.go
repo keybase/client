@@ -338,10 +338,6 @@ func (tx *AddMemberTx) completeAllKeybaseInvitesForUID(uv keybase1.UserVersion) 
 }
 
 func (tx *AddMemberTx) ReAddMemberToImplicitTeam(ctx context.Context, uv keybase1.UserVersion, hasPUK bool, role keybase1.TeamRole) error {
-	if !tx.team.IsImplicit() {
-		return errors.New("Trying to use ReAddMemberToImplicitTeam on a team that is not implicit.")
-	}
-
 	if hasPUK {
 		tx.addMember(uv, role)
 		tx.sweepCryptoMembers(uv.Uid)
