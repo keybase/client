@@ -25,20 +25,7 @@ export const PeoplePageSearchBar = (
     styleSearchText?: any,
   }
 ) => (
-  <Box
-    style={{
-      ...globalStyles.flexBoxRow,
-      alignItems: 'center',
-      justifyContent: 'center',
-      height: 48,
-      position: 'absolute',
-      top: 0,
-      right: 0,
-      backgroundColor: globalColors.white_90,
-      zIndex: 1,
-      ...props.styleRowContainer,
-    }}
-  >
+  <Box style={{...styleRowContainer, ...props.styleRowContainer}}>
     <ClickableBox onClick={props.onSearch} style={{...styleSearchContainer, ...props.styleSearchContainer}}>
       <Icon style={{...styleSearch, ...props.styleSearch}} type="iconfont-search" />
       <Text style={{...styleSearchText, ...props.styleSearchText}} type="Body">
@@ -47,6 +34,18 @@ export const PeoplePageSearchBar = (
     </ClickableBox>
   </Box>
 )
+
+const styleRowContainer = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  justifyContent: 'center',
+  height: 48,
+  position: 'absolute',
+  top: 0,
+  right: 0,
+  backgroundColor: globalColors.white_90,
+  zIndex: 1,
+}
 
 export const PeoplePageList = (props: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, width: '100%', position: 'relative', marginTop: 48}}>

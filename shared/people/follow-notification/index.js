@@ -71,33 +71,10 @@ export const MultiFollowNotification = (props: Props) => {
     <PeopleItem
       badged={props.badged}
       icon={
-        <Box
-          style={{
-            ...globalStyles.flexBoxColumn,
-            width: isMobile ? 48 : 32,
-            height: isMobile ? 48 : 32,
-            position: 'relative',
-          }}
-        >
+        <Box style={multiIconContainerStyle}>
           <Icon type={isMobile ? 'icon-followers-new-48' : 'icon-followers-new-32'} />
-          <Box
-            style={{
-              ...globalStyles.flexBoxColumn,
-              position: 'absolute',
-              right: 0,
-              left: 0,
-              top: isMobile ? 30 : 20,
-            }}
-          >
-            <Meta
-              title={`+${props.newFollows.length + (props.numAdditional || 0)}`}
-              style={{
-                alignSelf: 'center',
-                backgroundColor: globalColors.blue,
-                minWidth: isMobile ? 24 : 16,
-                ...(isMobile ? undefined : {textAlign: 'center'}),
-              }}
-            />
+          <Box style={multiMetaContainerStyle}>
+            <Meta title={`+${props.newFollows.length + (props.numAdditional || 0)}`} style={multiMetaStyle} />
           </Box>
         </Box>
       }
@@ -117,12 +94,7 @@ export const MultiFollowNotification = (props: Props) => {
       </Text>
       <ScrollView
         {...(isMobile ? {horizontal: true, alwaysBounceHorizontal: false} : {})} // Causes error on desktop
-        contentContainerStyle={{
-          ...globalStyles.flexBoxRow,
-          ...(isMobile
-            ? null
-            : {...globalStyles.flexBoxRow, width: '100%', height: 32, flexWrap: 'wrap', overflow: 'hidden'}),
-        }}
+        contentContainerStyle={scrollViewContainerStyle}
       >
         {usernames.map(username => (
           <Avatar
@@ -136,4 +108,33 @@ export const MultiFollowNotification = (props: Props) => {
       </ScrollView>
     </PeopleItem>
   )
+}
+
+const multiIconContainerStyle = {
+  ...globalStyles.flexBoxColumn,
+  width: isMobile ? 48 : 32,
+  height: isMobile ? 48 : 32,
+  position: 'relative',
+}
+
+const multiMetaContainerStyle = {
+  ...globalStyles.flexBoxColumn,
+  position: 'absolute',
+  right: 0,
+  left: 0,
+  top: isMobile ? 30 : 20,
+}
+
+const multiMetaStyle = {
+  alignSelf: 'center',
+  backgroundColor: globalColors.blue,
+  minWidth: isMobile ? 24 : 16,
+  ...(isMobile ? undefined : {textAlign: 'center'}),
+}
+
+const scrollViewContainerStyle = {
+  ...globalStyles.flexBoxRow,
+  ...(isMobile
+    ? null
+    : {...globalStyles.flexBoxRow, width: '100%', height: 32, flexWrap: 'wrap', overflow: 'hidden'}),
 }

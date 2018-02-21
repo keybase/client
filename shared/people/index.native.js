@@ -25,12 +25,7 @@ const People = (props: Props) => (
       <PeoplePageSearchBar
         {...props}
         styleRowContainer={{left: 0}}
-        styleSearchContainer={{
-          borderColor: globalColors.black_05,
-          borderWidth: NativeStyleSheet.hairlineWidth,
-          minHeight: 33,
-          width: 200,
-        }}
+        styleSearchContainer={searchContainerStyle}
         styleSearchText={{fontSize: 15}}
       />
       <Avatar
@@ -43,5 +38,12 @@ const People = (props: Props) => (
     </ScrollView>
   </NativeSafeAreaView>
 )
+
+const searchContainerStyle = {
+  borderColor: globalColors.black_05,
+  borderWidth: NativeStyleSheet.hairlineWidth,
+  minHeight: 33,
+  width: 200,
+}
 
 export default People

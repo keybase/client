@@ -21,16 +21,7 @@ export type Props = {
 }
 
 const Suggestion = (props: Types._FollowSuggestion & {onClickUser: () => void}) => (
-  <ClickableBox
-    style={{
-      ...globalStyles.flexBoxColumn,
-      flexShrink: 0,
-      width: 112,
-      height: 106,
-      alignItems: 'center',
-    }}
-    onClick={props.onClickUser}
-  >
+  <ClickableBox style={suggestionContainerStyle} onClick={props.onClickUser}>
     <Avatar
       username={props.username}
       size={64}
@@ -40,14 +31,10 @@ const Suggestion = (props: Types._FollowSuggestion & {onClickUser: () => void}) 
     />
     <ConnectedUsernames
       {...connectedUsernamesProps}
+      {...connectedUsernamesStyles}
       usernames={[props.username]}
       onUsernameClicked={props.onClickUser}
       inline={true}
-      containerStyle={isMobile ? undefined : {textAlign: 'center'}}
-      style={{
-        paddingLeft: globalMargins.tiny,
-        paddingRight: globalMargins.tiny,
-      }}
     />
     {!!props.fullName && (
       <Text type="BodySmall" lineClamp={1} style={{paddingLeft: 2, paddingRight: 2}}>
@@ -58,25 +45,13 @@ const Suggestion = (props: Types._FollowSuggestion & {onClickUser: () => void}) 
 )
 
 export default (props: Props) => (
-  <Box
-    style={{
-      ...globalStyles.flexBoxColumn,
-      position: 'relative',
-      paddingTop: globalMargins.tiny,
-      paddingBottom: globalMargins.tiny,
-    }}
-  >
+  <Box style={containerStyle}>
     <Text type="BodySmallSemibold" style={{marginBottom: globalMargins.tiny, marginLeft: globalMargins.tiny}}>
       Consider following...
     </Text>
     <ScrollView
       {...(isMobile ? {horizontal: true, alwaysBounceHorizontal: false} : {})} // Causes error on desktop
-      contentContainerStyle={{
-        ...globalStyles.flexBoxRow,
-        ...(isMobile
-          ? null
-          : {...globalStyles.flexBoxRow, width: '100%', height: 106, flexWrap: 'wrap', overflow: 'hidden'}),
-      }}
+      contentContainerStyle={scrollViewContainerStyle}
     >
       {props.suggestions.map(suggestion => (
         <Suggestion
@@ -88,3 +63,33 @@ export default (props: Props) => (
     </ScrollView>
   </Box>
 )
+
+const suggestionContainerStyle = {
+  ...globalStyles.flexBoxColumn,
+  flexShrink: 0,
+  width: 112,
+  height: 106,
+  alignItems: 'center',
+}
+
+const connectedUsernamesStyles = {
+  containerStyle: isMobile ? undefined : {textAlign: 'center'},
+  style: {
+    paddingLeft: globalMargins.tiny,
+    paddingRight: globalMargins.tiny,
+  },
+}
+
+const containerStyle = {
+  ...globalStyles.flexBoxColumn,
+  position: 'relative',
+  paddingTop: globalMargins.tiny,
+  paddingBottom: globalMargins.tiny,
+}
+
+const scrollViewContainerStyle = {
+  ...globalStyles.flexBoxRow,
+  ...(isMobile
+    ? null
+    : {...globalStyles.flexBoxRow, width: '100%', height: 106, flexWrap: 'wrap', overflow: 'hidden'}),
+}
