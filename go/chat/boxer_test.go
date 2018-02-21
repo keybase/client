@@ -45,10 +45,10 @@ func textMsg(t *testing.T, text string, mbVersion chat1.MessageBoxedVersion) cha
 	return textMsgWithSender(t, text, gregor1.UID(uid), mbVersion)
 }
 
-func msgHeader(uid gregor1.UID, mbVersion chat1.MessageBoxedVersion, typ chat1.MessageType) chat1.MessageClientHeader {
+func textMsgWithSender(t *testing.T, text string, uid gregor1.UID, mbVersion chat1.MessageBoxedVersion) chat1.MessagePlaintext {
 	header := chat1.MessageClientHeader{
 		Sender:      uid,
-		MessageType: typ,
+		MessageType: chat1.MessageType_TEXT,
 	}
 	switch mbVersion {
 	case chat1.MessageBoxedVersion_V2:
@@ -57,11 +57,6 @@ func msgHeader(uid gregor1.UID, mbVersion chat1.MessageBoxedVersion, typ chat1.M
 			Hash:  []byte{123, 117, 0, 99, 99, 79, 223, 37, 180, 168, 111, 107, 210, 227, 128, 35, 47, 158, 221, 210, 151, 242, 182, 199, 50, 29, 236, 93, 106, 149, 133, 221, 156, 216, 167, 79, 91, 28, 9, 196, 107, 173, 61, 248, 123, 97, 101, 34, 7, 15, 30, 80, 246, 162, 198, 12, 20, 19, 130, 151, 45, 2, 130, 170},
 		}
 	}
-	return header
-}
-
-func textMsgWithSender(t *testing.T, text string, uid gregor1.UID, mbVersion chat1.MessageBoxedVersion) chat1.MessagePlaintext {
-	header := msgHeader(uid, mbVersion, chat1.MessageType_TEXT)
 	return textMsgWithHeader(t, text, header)
 }
 
@@ -196,13 +191,15 @@ func TestChatMessageUnbox(t *testing.T) {
 			t.Fatal(err)
 		}
 		body := unboxed.MessageBody
-		unboxedTyp, _ := body.MessageType()
-		require.Equal(t, unboxedTyp, chat1.MessageType_TEXT)
-		require.Equal(t, body.Text().Body, text)
+		if typ, _ := body.MessageType(); typ != chat1.MessageType_TEXT {
+			t.Errorf("body type: %d, expected %d", typ, chat1.MessageType_TEXT)
+		}
+		if body.Text().Body != text {
+			t.Errorf("body text: %q, expected %q", body.Text().Body, text)
+		}
 		require.Nil(t, unboxed.SenderDeviceRevokedAt, "message should not be from revoked device")
 		require.NotNil(t, unboxed.BodyHash)
 	})
-
 }
 
 func TestChatMessageMissingOutboxID(t *testing.T) {

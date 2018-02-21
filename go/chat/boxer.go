@@ -527,9 +527,17 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed,
 	// Will remain empty if the body was deleted.
 	var body chat1.MessageBody
 	if !skipBodyVerification {
-		body, ierr = b.unversionBody(ctx, bodyVersioned)
-		if ierr != nil {
-			return nil, ierr
+		bodyVersion, err := bodyVersioned.Version()
+		if err != nil {
+			return nil, NewPermanentUnboxingError(err)
+		}
+		switch bodyVersion {
+		case chat1.BodyPlaintextVersion_V1:
+			body = bodyVersioned.V1().MessageBody
+		default:
+			return nil,
+				NewPermanentUnboxingError(NewBodyVersionError(bodyVersion,
+					b.bodyUnsupported(ctx, bodyVersion, bodyVersioned)))
 		}
 	}
 
