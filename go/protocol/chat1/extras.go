@@ -15,6 +15,8 @@ import (
 
 type ByUID []gregor1.UID
 
+type ConvIDShort = []byte
+
 func (b ByUID) Len() int      { return len(b) }
 func (b ByUID) Swap(i, j int) { b[i], b[j] = b[j], b[i] }
 func (b ByUID) Less(i, j int) bool {
@@ -69,31 +71,15 @@ const DbShortFormLen = 10
 // DbShortForm should only be used when interacting with the database, and should
 // never leave Gregor
 func (cid ConversationID) DbShortForm() ConvIDShort {
-	return ConvIDShort(cid[:DbShortFormLen])
+	return cid[:DbShortFormLen]
 }
 
 func (cid ConversationID) DbShortFormString() string {
 	return hex.EncodeToString(cid.DbShortForm())
 }
 
-func (cid ConvIDShort) String() string {
+func DbShortFormToString(cid ConvIDShort) string {
 	return hex.EncodeToString(cid)
-}
-
-func (cid ConvIDShort) IsNil() bool {
-	return len(cid) < DbShortFormLen
-}
-
-func (cid ConvIDShort) Eq(c ConvIDShort) bool {
-	return bytes.Equal(cid, c)
-}
-
-func (cid ConvIDShort) Less(c ConvIDShort) bool {
-	return bytes.Compare(cid, c) < 0
-}
-
-func (cid ConvIDShort) Bytes() []byte {
-	return []byte(cid)
 }
 
 func MakeTLFID(val string) (TLFID, error) {
