@@ -346,11 +346,17 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 			continue
 		}
 
+		// Only allow adding members as cryptomembers. Server should
+		// never send us  PUKless users accepting seitan tokens. When
+		// PUKless user accepts seitan token invite status is set to
+		// WAITING_FOR_PUK and team_rekeyd hold on it till user gets a
+		// PUK and status is set to ACCEPTED.
+
 		g.Log.CDebugf(ctx, "Completing invite %s", invite.Id)
 		err = tx.CompleteInviteByID(ctx, invite.Id, uv)
 		if err != nil {
-			g.Log.CDebugf(ctx, "Failed to completed invite, treating as fatal error: %v", err)
-			return nil
+			g.Log.CDebugf(ctx, "Failed to complete invite, member was added as keybase-invite: %v", err)
+			return err
 		}
 
 		chats = append(chats, chatSeitanRecip{
@@ -359,7 +365,6 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 		})
 	}
 
-	// Nothing to do...
 	if tx.IsEmpty() {
 		return nil
 	}

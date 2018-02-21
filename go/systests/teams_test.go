@@ -131,6 +131,16 @@ func (tt *teamTester) addPuklessUser(pre string) *userPlusDevice {
 	return tt.addUserHelper(pre, false, false)
 }
 
+func (tt *teamTester) logUserNames() {
+	for _, u := range tt.users {
+		var pukless string
+		if u.device.tctx.Tp.DisableUpgradePerUserKey {
+			pukless = "pukless "
+		}
+		tt.t.Logf("Signed up %s%q (%s)", pukless, u.username, u.uid)
+	}
+}
+
 func installInsecureTriplesec(g *libkb.GlobalContext) {
 	g.NewTriplesec = func(passphrase []byte, salt []byte) (libkb.Triplesec, error) {
 		warner := func() { g.Log.Warning("Installing insecure Triplesec with weak stretch parameters") }

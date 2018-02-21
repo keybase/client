@@ -340,6 +340,8 @@ func TestTeamTxBadAdds(t *testing.T) {
 
 	teamObj := ann.loadTeam(team, true /* admin */)
 	tx := teams.CreateAddMemberTx(teamObj)
+
+	// Tring to add bob using old UV (from before reset)
 	err := tx.AddMemberByUV(context.Background(), bobUV, keybase1.TeamRole_WRITER)
 	require.Error(t, err)
 	require.True(t, tx.IsEmpty())
@@ -349,6 +351,7 @@ func TestTeamTxBadAdds(t *testing.T) {
 
 	bob.delete()
 
+	// Trying to add deleted bob.
 	err = tx.AddMemberByUV(context.Background(), bobUV, keybase1.TeamRole_WRITER)
 	require.Error(t, err)
 	require.True(t, tx.IsEmpty())

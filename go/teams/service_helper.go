@@ -669,24 +669,35 @@ func AcceptSeitan(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKey) 
 	return err
 }
 
+func ProcessSeitanV2(ikey SeitanIKeyV2, uv keybase1.UserVersion, kbtime keybase1.Time) (sig string,
+	inviteID SCTeamInviteID, err error) {
+
+	sikey, err := ikey.GenerateSIKey()
+	if err != nil {
+		return sig, inviteID, err
+	}
+
+	inviteID, err = sikey.GenerateTeamInviteID()
+	if err != nil {
+		return sig, inviteID, err
+	}
+
+	_, encoded, err := sikey.GenerateSignature(uv.Uid, uv.EldestSeqno, inviteID, kbtime)
+	if err != nil {
+		return sig, inviteID, err
+	}
+
+	return encoded, inviteID, nil
+}
+
 func AcceptSeitanV2(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKeyV2) error {
 	uv, err := getCurrentUserUV(ctx, g)
 	if err != nil {
 		return err
 	}
 
-	sikey, err := ikey.GenerateSIKey()
-	if err != nil {
-		return err
-	}
-
-	inviteID, err := sikey.GenerateTeamInviteID()
-	if err != nil {
-		return err
-	}
-
 	now := keybase1.ToTime(time.Now())
-	_, encoded, err := sikey.GenerateSignature(uv.Uid, uv.EldestSeqno, inviteID, now)
+	encoded, inviteID, err := ProcessSeitanV2(ikey, uv, now)
 	if err != nil {
 		return err
 	}
