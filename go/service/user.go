@@ -236,14 +236,6 @@ func (h *UserHandler) ResetUser(ctx context.Context, sessionID int) error {
 	return nil
 }
 
-func (h *UserHandler) DeleteUser(ctx context.Context, sessionID int) error {
-	err := h.G().LoginState().DeleteAccount(h.G().Env.GetUsername().String())
-	if err != nil {
-		return err
-	}
-	return h.G().Logout()
-}
-
 func (h *UserHandler) ProfileEdit(nctx context.Context, arg keybase1.ProfileEditArg) error {
 	eng := engine.NewProfileEdit(h.G(), arg)
 	ctx := &engine.Context{NetContext: nctx}

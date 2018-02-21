@@ -1803,10 +1803,6 @@ export const uiPromptDefault = {
   no: 2,
 }
 
-export const userDeleteUserRpcChannelMap = (configKeys: Array<string>, request: UserDeleteUserRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.deleteUser', request)
-
-export const userDeleteUserRpcPromise = (request: UserDeleteUserRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.deleteUser', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
 export const userGetUPAKRpcChannelMap = (configKeys: Array<string>, request: UserGetUPAKRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.getUPAK', request)
 
 export const userGetUPAKRpcPromise = (request: UserGetUPAKRpcParam): Promise<UserGetUPAKResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.getUPAK', request, (error: RPCError, result: UserGetUPAKResult) => (error ? reject(error) : resolve(result))))
@@ -3849,8 +3845,6 @@ export type UninstallResult = $ReadOnly<{componentResults?: ?Array<ComponentResu
 export type User = $ReadOnly<{uid: UID, username: String}>
 
 export type UserCard = $ReadOnly<{following: Int, followers: Int, uid: UID, fullName: String, location: String, bio: String, website: String, twitter: String, youFollowThem: Boolean, theyFollowYou: Boolean, teamShowcase?: ?Array<UserTeamShowcase>}>
-
-export type UserDeleteUserRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type UserGetUPAKRpcParam = $ReadOnly<{uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
