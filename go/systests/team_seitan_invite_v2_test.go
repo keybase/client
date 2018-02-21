@@ -68,8 +68,7 @@ func testTeamInviteSeitanHappy(t *testing.T, implicitAdmin bool, seitanVersion t
 		token = string(ikey)
 		require.NoError(t, err)
 	default:
-		t.Logf("Invalid seitan version %v", seitanVersion)
-		t.FailNow()
+		t.Fatalf("Invalid seitan version %v", seitanVersion)
 	}
 
 	t.Logf("Created token %q", token)
@@ -376,6 +375,7 @@ func TestTeamHandleMultipleSeitans(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, keybase1.TeamRole_NONE, role)
 
+	// And invite that Mel tried (and failed) to use is still there.
 	require.Equal(t, 1, teamObj.NumActiveInvites(), "NumActiveInvites")
 	allInvites := teamObj.GetActiveAndObsoleteInvites()
 	require.Len(t, allInvites, 1)
@@ -383,10 +383,85 @@ func TestTeamHandleMultipleSeitans(t *testing.T) {
 		// Ignore errors, we went through this path before in seitan
 		// processing and acceptance.
 		sikey, _ := teams.SeitanIKeyV2(anotherToken).GenerateSIKey()
-		inviteId, _ := sikey.GenerateTeamInviteID()
-		require.EqualValues(t, inviteId, invite.Id)
+		inviteID, _ := sikey.GenerateTeamInviteID()
+		require.EqualValues(t, inviteID, invite.Id)
 		invtype, err := invite.Type.C()
 		require.NoError(t, err)
 		require.Equal(t, keybase1.TeamInviteCategory_SEITAN, invtype)
 	}
+}
+
+func testTeamInviteSeitanPukless(t *testing.T, seitanVersion teams.SeitanVersion) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	bee := tt.addUser("bee")
+	cass := tt.addPuklessUser("cass")
+	tt.logUserNames()
+
+	teamID, teamName := bee.createTeam2()
+	t.Logf("Created team %s", teamName.String())
+
+	label := keybase1.NewSeitanKeyLabelWithSms(keybase1.SeitanKeyLabelSms{
+		F: "cass",
+		N: "+1-800-CRYPTO",
+	})
+	var token string
+	switch seitanVersion {
+	case teams.SeitanVersion1:
+		ikey, err := bee.teamsClient.TeamCreateSeitanToken(context.Background(), keybase1.TeamCreateSeitanTokenArg{
+			Name:  teamName.String(),
+			Role:  keybase1.TeamRole_WRITER,
+			Label: label,
+		})
+		token = string(ikey)
+		require.NoError(t, err)
+	case teams.SeitanVersion2:
+		ikey, err := bee.teamsClient.TeamCreateSeitanTokenV2(context.Background(), keybase1.TeamCreateSeitanTokenV2Arg{
+			Name:  teamName.String(),
+			Role:  keybase1.TeamRole_WRITER,
+			Label: label,
+		})
+		token = string(ikey)
+		require.NoError(t, err)
+	default:
+		t.Fatalf("Invalid seitan version %v", seitanVersion)
+	}
+
+	t.Logf("Created token %q", token)
+
+	bee.kickTeamRekeyd()
+	err := cass.teamsClient.TeamAcceptInvite(context.Background(), keybase1.TeamAcceptInviteArg{
+		Token: token,
+	})
+	require.NoError(t, err)
+
+	teamObj := bee.loadTeam(teamName.String(), true /* admin */)
+	var invite keybase1.TeamInvite
+	for _, invite = range teamObj.GetActiveAndObsoleteInvites() {
+	}
+
+	// Invite should be WAITING_FOR_PUK now and we can't cancel it anymore.
+	err = teams.CancelInviteByID(context.Background(), bee.tc.G, teamName.String(), invite.Id)
+	require.Error(t, err)
+
+	cass.kickTeamRekeyd()
+	cass.perUserKeyUpgrade()
+
+	bee.waitForTeamChangedGregor(teamID, keybase1.Seqno(3))
+	teamObj = bee.loadTeam(teamName.String(), true /* admin */)
+	// Invite should be completed now.
+	require.Len(t, teamObj.GetActiveAndObsoleteInvites(), 0)
+	// Cass should be brought in as WRITER.
+	role, err := teamObj.MemberRole(context.Background(), cass.userVersion())
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_WRITER, role)
+}
+
+func TestTeamInviteSeitanPuklessV1(t *testing.T) {
+	testTeamInviteSeitanPukless(t, teams.SeitanVersion1)
+}
+
+func TestTeamInviteSeitanPuklessV2(t *testing.T) {
+	testTeamInviteSeitanPukless(t, teams.SeitanVersion2)
 }
