@@ -69,6 +69,7 @@ export const setPendingMode = 'chat2:setPendingMode'
 export const setPendingSelected = 'chat2:setPendingSelected'
 export const setupChatHandlers = 'chat2:setupChatHandlers'
 export const startConversation = 'chat2:startConversation'
+export const updateNotificationSettings = 'chat2:updateNotificationSettings'
 export const updateTypers = 'chat2:updateTypers'
 
 // Action Creators
@@ -331,6 +332,14 @@ export const createStartConversation = (
     forceImmediate?: boolean,
   }>
 ) => ({error: false, payload, type: startConversation})
+export const createUpdateNotificationSettings = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    notificationsDesktop: Types.NotificationsType,
+    notificationsMobile: Types.NotificationsType,
+    notificationsGlobalIgnoreMentions: boolean,
+  }>
+) => ({error: false, payload, type: updateNotificationSettings})
 export const createUpdateTypers = (payload: $ReadOnly<{conversationToTypers: I.Map<Types.ConversationIDKey, I.Set<string>>}>) => ({error: false, payload, type: updateTypers})
 
 // Action Payloads
@@ -392,6 +401,7 @@ export type SetPendingModePayload = More.ReturnType<typeof createSetPendingMode>
 export type SetPendingSelectedPayload = More.ReturnType<typeof createSetPendingSelected>
 export type SetupChatHandlersPayload = More.ReturnType<typeof createSetupChatHandlers>
 export type StartConversationPayload = More.ReturnType<typeof createStartConversation>
+export type UpdateNotificationSettingsPayload = More.ReturnType<typeof createUpdateNotificationSettings>
 export type UpdateTypersPayload = More.ReturnType<typeof createUpdateTypers>
 
 // All Actions
@@ -456,5 +466,6 @@ export type Actions =
   | More.ReturnType<typeof createSetPendingSelected>
   | More.ReturnType<typeof createSetupChatHandlers>
   | More.ReturnType<typeof createStartConversation>
+  | More.ReturnType<typeof createUpdateNotificationSettings>
   | More.ReturnType<typeof createUpdateTypers>
   | {type: 'common:resetStore', payload: void}

@@ -80,7 +80,6 @@ export const unverifiedInboxUIItemToConversationMeta = (
     inboxVersion: i.version,
     isMuted: i.status === RPCChatTypes.commonConversationStatus.muted,
     membershipType: conversationMemberStatusToMembershipType(i.memberStatus),
-    notificationSettings: null,
     participants,
     resetParticipants,
     snippet: i.localMetadata ? i.localMetadata.snippet : '',
@@ -128,11 +127,6 @@ export const updateMeta = (
     return old
   }
 
-  // TODO this should be our own type and NOT this raw structure from the daemon
-  const notificationSettings =
-    JSON.stringify(old.notificationSettings || {}) === JSON.stringify(meta.notificationSettings || {})
-      ? old.notificationSettings
-      : meta.notificationSettings
   const hasLoadedThread = old.hasLoadedThread
   const participants = old.participants.equals(meta.participants) ? old.participants : meta.participants
   const rekeyers = old.rekeyers.equals(meta.rekeyers) ? old.rekeyers : meta.rekeyers
@@ -143,7 +137,6 @@ export const updateMeta = (
   return meta.withMutations(m => {
     m.set('channelname', meta.channelname || old.channelname)
     m.set('hasLoadedThread', hasLoadedThread)
-    m.set('notificationSettings', notificationSettings)
     m.set('orangeLineOrdinal', old.orangeLineOrdinal)
     m.set('participants', participants)
     m.set('rekeyers', rekeyers)
@@ -186,13 +179,43 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
 
   const isTeam = i.membersType === RPCChatTypes.commonConversationMembersType.team
 
+  let notificationsDesktop = 'never'
+  let notificationsGlobalIgnoreMentions = false
+  let notificationsMobile = 'never'
+
+  // Map this weird structure from the daemon to something we want
+  if (i.notifications) {
+    notificationsGlobalIgnoreMentions = i.notifications.channelWide
+    const s = i.notifications.settings
+    if (s) {
+      const desktop = s.desktop
+      if (desktop) {
+        if (desktop[String(RPCChatTypes.commonNotificationKind.generic)]) {
+          notificationsDesktop = 'onAnyActivity'
+        } else if (desktop[String(RPCChatTypes.commonNotificationKind.generic)]) {
+          notificationsDesktop = 'onWhenAtMentioned'
+        }
+      }
+      const mobile = s.mobile
+      if (mobile) {
+        if (mobile[String(RPCChatTypes.commonNotificationKind.generic)]) {
+          notificationsMobile = 'onAnyActivity'
+        } else if (mobile[String(RPCChatTypes.commonNotificationKind.generic)]) {
+          notificationsMobile = 'onWhenAtMentioned'
+        }
+      }
+    }
+  }
+
   return makeConversationMeta({
     channelname: (isTeam && i.channel) || '',
     conversationIDKey: Types.stringToConversationIDKey(i.convID),
     inboxVersion: i.version,
     isMuted: i.status === RPCChatTypes.commonConversationStatus.muted,
     membershipType: conversationMemberStatusToMembershipType(i.memberStatus),
-    notificationSettings: i.notifications,
+    notificationsDesktop,
+    notificationsGlobalIgnoreMentions,
+    notificationsMobile,
     participants: I.OrderedSet(i.participants || []),
     resetParticipants,
     snippet: i.snippet,
@@ -215,7 +238,9 @@ export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record
   inboxVersion: -1,
   isMuted: false,
   membershipType: 'active',
-  notificationSettings: null,
+  notificationsDesktop: 'never',
+  notificationsGlobalIgnoreMentions: false,
+  notificationsMobile: 'never',
   orangeLineOrdinal: null,
   participants: I.OrderedSet(),
   rekeyers: I.Set(),

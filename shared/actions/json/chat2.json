@@ -263,6 +263,12 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "phase": "'showImmediately' | 'loadNewContent'"
     },
+    "updateNotificationSettings": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "notificationsDesktop": "Types.NotificationsType",
+      "notificationsMobile": "Types.NotificationsType",
+      "notificationsGlobalIgnoreMentions": "boolean",
+    },
     "debugDump": {
       "conversationIDKey?": "Types.ConversationIDKey",
     }

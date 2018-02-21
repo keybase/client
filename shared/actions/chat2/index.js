@@ -43,7 +43,10 @@ const inboxQuery = {
   unreadOnly: false,
 }
 
-const rpcInboxRefresh = (action: Chat2Gen.InboxRefreshPayload | Chat2Gen.LeaveConversationPayload, state: TypedState) => {
+const rpcInboxRefresh = (
+  action: Chat2Gen.InboxRefreshPayload | Chat2Gen.LeaveConversationPayload,
+  state: TypedState
+) => {
   const username = state.config.username || ''
   const untrustedInboxRpc = new EngineRpc.EngineRpcCall(
     {
@@ -1666,6 +1669,15 @@ const leaveConversation = (action: Chat2Gen.LeaveConversationPayload) =>
     convID: Types.keyToConversationID(action.payload.conversationIDKey),
   })
 
+const muteConversation = (action: Chat2Gen.MuteConversationPayload) =>
+  Saga.call(RPCChatTypes.localSetConversationStatusLocalRpcPromise, {
+    conversationID: Types.keyToConversationID(action.payload.conversationIDKey),
+    identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+    status: action.payload.muted
+      ? RPCChatTypes.commonConversationStatus.muted
+      : RPCChatTypes.commonConversationStatus.unfiled,
+  })
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
   if (isMobile) {
@@ -1690,7 +1702,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
 
   // Refresh the inbox
   yield Saga.safeTakeEveryPure(
-    [Chat2Gen.inboxRefresh,  Chat2Gen.leaveConversation],
+    [Chat2Gen.inboxRefresh, Chat2Gen.leaveConversation],
     rpcInboxRefresh,
     rpcInboxRefreshSuccess,
     rpcInboxRefreshError
@@ -1777,6 +1789,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.leaveConversation, leaveConversation)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.debugDump, debugDump)
+  yield Saga.safeTakeEveryPure(Chat2Gen.muteConversation, muteConversation)
 }
 
 export default chat2Saga

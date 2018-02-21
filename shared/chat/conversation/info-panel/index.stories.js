@@ -1,6 +1,7 @@
-// @flow
+// @noflow
 import React from 'react'
 import {storiesOf, action, createPropProvider} from '../../../stories/storybook'
+import * as Types from '../../../constants/types/chat2'
 import {Box} from '../../../common-adapters'
 import {globalStyles} from '../../../styles'
 import {InfoPanel, type InfoPanelProps} from '.'
@@ -34,26 +35,18 @@ const provider = createPropProvider({
 })
 
 const commonProps = {
+  selectedConversationIDKey: Types.stringToConversationIDKey(''),
   participants: [
     {
-      broken: false,
-      following: false,
       fullname: 'Fred Akalin',
-      isYou: true,
       username: 'akalin',
     },
     {
-      broken: false,
-      following: true,
       fullname: 'Jeremy Stribling',
-      isYou: false,
       username: 'strib',
     },
     {
-      broken: true,
-      following: true,
       fullname: 'Max Krohn',
-      isYou: false,
       username: 'max',
     },
   ],

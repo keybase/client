@@ -37,7 +37,7 @@ const Offline = () => (
   </Box>
 )
 
-const InfoPaneWrapper = ({onToggle}) => (
+const InfoPaneWrapper = ({onToggle, conversationIDKey}) => (
   <div
     style={{
       ...globalStyles.flexBoxColumn,
@@ -48,7 +48,7 @@ const InfoPaneWrapper = ({onToggle}) => (
       width: 320,
     }}
   >
-    <InfoPanel onToggleInfoPanel={onToggle} />
+    <InfoPanel onToggleInfoPanel={onToggle} conversationIDKey={conversationIDKey} />
   </div>
 )
 
@@ -145,7 +145,12 @@ class Conversation extends React.PureComponent<Props, State> {
           onScrollDown={this.props.onScrollDown}
           conversationIDKey={this.props.conversationIDKey}
         />
-        {this.state.infoPanelOpen && <InfoPaneWrapper onToggle={this._onToggleInfoPanel} />}
+        {this.state.infoPanelOpen && (
+          <InfoPaneWrapper
+            onToggle={this._onToggleInfoPanel}
+            conversationIDKey={this.props.conversationIDKey}
+          />
+        )}
         {this.state.showDropOverlay && <DropOverlay onDragLeave={this._onDragLeave} onDrop={this._onDrop} />}
       </Box>
     )

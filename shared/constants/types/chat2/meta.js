@@ -1,7 +1,6 @@
 // Metadata about a conversation. We keep the messages sep. since we update these at different times
 // @flow
 import * as I from 'immutable'
-import * as RPCChatTypes from '../rpc-chat-gen'
 import * as Common from './common'
 import type {Ordinal} from './message'
 
@@ -10,6 +9,7 @@ type TeamType = 'small' | 'big' | 'adhoc'
 type Username = string
 
 export type MetaTrustedState = 'untrusted' | 'requesting' | 'trusted' | 'error'
+export type NotificationsType = 'onAnyActivity' | 'onWhenAtMentioned' | 'never'
 
 export type _ConversationMeta = {
   channelname: string,
@@ -18,7 +18,9 @@ export type _ConversationMeta = {
   inboxVersion: number,
   isMuted: boolean,
   membershipType: MembershipType,
-  notificationSettings: ?RPCChatTypes.ConversationNotificationInfo,
+  notificationsDesktop: NotificationsType,
+  notificationsMobile: NotificationsType,
+  notificationsGlobalIgnoreMentions: boolean,
   orangeLineOrdinal: ?Ordinal,
   participants: I.OrderedSet<string>,
   rekeyers: I.Set<string>,
