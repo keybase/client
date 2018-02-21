@@ -109,6 +109,7 @@ func (l *LogSendContext) post(status, feedback, kbfsLog, svcLog, desktopLog, upd
 	}
 
 	if len(traceBundle) > 0 {
+		l.G().Log.Debug("trace bundle size: %d", len(traceBundle))
 		if err := addBinaryFile(mpart, "trace_tar_gz", "trace.tar.gz", traceBundle); err != nil {
 			return "", err
 		}
@@ -118,7 +119,7 @@ func (l *LogSendContext) post(status, feedback, kbfsLog, svcLog, desktopLog, upd
 		return "", err
 	}
 
-	l.G().Log.Debug("body size: %d\n", body.Len())
+	l.G().Log.Debug("body size: %d", body.Len())
 
 	arg := APIArg{
 		Endpoint:    "logdump/send",
