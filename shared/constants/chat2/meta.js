@@ -145,6 +145,53 @@ export const updateMeta = (
   })
 }
 
+const parseNotificationSettings = (notifications: ?RPCChatTypes.ConversationNotificationInfo) => {
+  let notificationsDesktop = 'never'
+  let notificationsGlobalIgnoreMentions = false
+  let notificationsMobile = 'never'
+
+  // Map this weird structure from the daemon to something we want
+  if (notifications) {
+    notificationsGlobalIgnoreMentions = notifications.channelWide
+    const s = notifications.settings
+    if (s) {
+      const desktop = s[String(RPCTypes.commonDeviceType.desktop)]
+      if (desktop) {
+        if (desktop[String(RPCChatTypes.commonNotificationKind.generic)]) {
+          notificationsDesktop = 'onAnyActivity'
+        } else if (desktop[String(RPCChatTypes.commonNotificationKind.atmention)]) {
+          notificationsDesktop = 'onWhenAtMentioned'
+        }
+      }
+      const mobile = s[String(RPCTypes.commonDeviceType.mobile)]
+      if (mobile) {
+        if (mobile[String(RPCChatTypes.commonNotificationKind.generic)]) {
+          notificationsMobile = 'onAnyActivity'
+        } else if (mobile[String(RPCChatTypes.commonNotificationKind.atmention)]) {
+          notificationsMobile = 'onWhenAtMentioned'
+        }
+      }
+    }
+  }
+
+  return {notificationsDesktop, notificationsGlobalIgnoreMentions, notificationsMobile}
+}
+
+export const updateMetaWithNotificationSettings = (
+  old: Types.ConversationMeta,
+  notifications: ?RPCChatTypes.ConversationNotificationInfo
+) => {
+  const {
+    notificationsDesktop,
+    notificationsGlobalIgnoreMentions,
+    notificationsMobile,
+  } = parseNotificationSettings(notifications)
+  return old
+    .set('notificationsDesktop', notificationsDesktop)
+    .set('notificationsGlobalIgnoreMentions', notificationsGlobalIgnoreMentions)
+    .set('notificationsMobile', notificationsMobile)
+}
+
 export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
   // Public chats only
   if (i.visibility !== RPCTypes.commonTLFVisibility.private) {
@@ -178,34 +225,11 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
   } = conversationMetadataToMetaSupersedeInfo(i.supersedes)
 
   const isTeam = i.membersType === RPCChatTypes.commonConversationMembersType.team
-
-  let notificationsDesktop = 'never'
-  let notificationsGlobalIgnoreMentions = false
-  let notificationsMobile = 'never'
-
-  // Map this weird structure from the daemon to something we want
-  if (i.notifications) {
-    notificationsGlobalIgnoreMentions = i.notifications.channelWide
-    const s = i.notifications.settings
-    if (s) {
-      const desktop = s.desktop
-      if (desktop) {
-        if (desktop[String(RPCChatTypes.commonNotificationKind.generic)]) {
-          notificationsDesktop = 'onAnyActivity'
-        } else if (desktop[String(RPCChatTypes.commonNotificationKind.generic)]) {
-          notificationsDesktop = 'onWhenAtMentioned'
-        }
-      }
-      const mobile = s.mobile
-      if (mobile) {
-        if (mobile[String(RPCChatTypes.commonNotificationKind.generic)]) {
-          notificationsMobile = 'onAnyActivity'
-        } else if (mobile[String(RPCChatTypes.commonNotificationKind.generic)]) {
-          notificationsMobile = 'onWhenAtMentioned'
-        }
-      }
-    }
-  }
+  const {
+    notificationsDesktop,
+    notificationsGlobalIgnoreMentions,
+    notificationsMobile,
+  } = parseNotificationSettings(i.notifications)
 
   return makeConversationMeta({
     channelname: (isTeam && i.channel) || '',

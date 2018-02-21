@@ -55,6 +55,7 @@ export const metasReceived = 'chat2:metasReceived'
 export const muteConversation = 'chat2:muteConversation'
 export const navigateToInbox = 'chat2:navigateToInbox'
 export const navigateToThread = 'chat2:navigateToThread'
+export const notificationSettingsUpdated = 'chat2:notificationSettingsUpdated'
 export const openFolder = 'chat2:openFolder'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
@@ -276,6 +277,12 @@ export const createMuteConversation = (
 ) => ({error: false, payload, type: muteConversation})
 export const createNavigateToInbox = () => ({error: false, payload: undefined, type: navigateToInbox})
 export const createNavigateToThread = () => ({error: false, payload: undefined, type: navigateToThread})
+export const createNotificationSettingsUpdated = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    settings: RPCChatTypes.ConversationNotificationInfo,
+  }>
+) => ({error: false, payload, type: notificationSettingsUpdated})
 export const createOpenFolder = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: openFolder})
 export const createResetChatWithoutThem = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: resetChatWithoutThem})
 export const createResetLetThemIn = (
@@ -387,6 +394,7 @@ export type MetasReceivedPayload = More.ReturnType<typeof createMetasReceived>
 export type MuteConversationPayload = More.ReturnType<typeof createMuteConversation>
 export type NavigateToInboxPayload = More.ReturnType<typeof createNavigateToInbox>
 export type NavigateToThreadPayload = More.ReturnType<typeof createNavigateToThread>
+export type NotificationSettingsUpdatedPayload = More.ReturnType<typeof createNotificationSettingsUpdated>
 export type OpenFolderPayload = More.ReturnType<typeof createOpenFolder>
 export type ResetChatWithoutThemPayload = More.ReturnType<typeof createResetChatWithoutThem>
 export type ResetLetThemInPayload = More.ReturnType<typeof createResetLetThemIn>
@@ -452,6 +460,7 @@ export type Actions =
   | More.ReturnType<typeof createMuteConversation>
   | More.ReturnType<typeof createNavigateToInbox>
   | More.ReturnType<typeof createNavigateToThread>
+  | More.ReturnType<typeof createNotificationSettingsUpdated>
   | More.ReturnType<typeof createOpenFolder>
   | More.ReturnType<typeof createResetChatWithoutThem>
   | More.ReturnType<typeof createResetLetThemIn>

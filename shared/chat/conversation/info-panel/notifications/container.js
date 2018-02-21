@@ -97,9 +97,13 @@ export default compose(
         props._updateNotifications(state.desktop, mobile, state.channelWide)
         return {mobile}
       },
-      updateSaveState: () => (saveState: SaveStateType) => {
-        return {saveState}
-      },
+      updateSaveState: () => (saveState: SaveStateType) => ({saveState}),
+      syncLocalToStore: (state, props) => (channelWide, desktop, mobile, muted) => ({
+        channelWide,
+        desktop,
+        mobile,
+        muted,
+      }),
     }
   ),
   lifecycle({
@@ -130,6 +134,20 @@ export default compose(
             nextProps.updateSaveState('saving')
           }
         }
+      }
+      // store changed?
+      if (
+        this.props._storeDesktop !== nextProps._storeDesktop ||
+        this.props._storeMobile !== nextProps._storeMobile ||
+        this.props._storeChannelWide !== nextProps._storeChannelWide ||
+        this.props._storeMuted !== nextProps._storeMuted
+      ) {
+        nextProps.syncLocalToStore(
+          nextProps._storeChannelWide,
+          nextProps._storeDesktop,
+          nextProps._storeMobile,
+          nextProps._storeMuted
+        )
       }
     },
   }),

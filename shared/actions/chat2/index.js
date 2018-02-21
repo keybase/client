@@ -366,23 +366,16 @@ const setupChatHandlers = () => {
               ]
             : null
         case RPCChatTypes.notifyChatChatActivityType.setAppNotificationSettings:
-          // OLD code for refernc
-          // if (action.payload.activity && action.payload.activity.setAppNotificationSettings) {
-          // const {convID, settings} = action.payload.activity.setAppNotificationSettings
-          // if (convID && settings) {
-          // const conversationIDKey = Types.conversationIDToKey(convID)
-          // const notifications = parseNotifications(settings)
-          // if (notifications) {
-          // yield Saga.put(
-          // ChatGen.createUpdatedNotifications({
-          // conversationIDKey,
-          // notifications,
-          // })
-          // )
-          // }
-          // }
-          // }
-          return null // TODO?
+          const setAppNotificationSettings: ?RPCChatTypes.SetAppNotificationSettingsInfo =
+            activity.setAppNotificationSettings
+          return setAppNotificationSettings
+            ? [
+                Chat2Gen.createNotificationSettingsUpdated({
+                  conversationIDKey: Types.conversationIDToKey(setAppNotificationSettings.convID),
+                  settings: setAppNotificationSettings.settings,
+                }),
+              ]
+            : null
         case RPCChatTypes.notifyChatChatActivityType.teamtype:
           return [Chat2Gen.createInboxRefresh({reason: 'teamTypeChanged'})]
         default:
@@ -1678,6 +1671,34 @@ const muteConversation = (action: Chat2Gen.MuteConversationPayload) =>
       : RPCChatTypes.commonConversationStatus.unfiled,
   })
 
+const updateNotificationSettings = (action: Chat2Gen.UpdateNotificationSettingsPayload) =>
+  Saga.call(RPCChatTypes.localSetAppNotificationSettingsLocalRpcPromise, {
+    channelWide: action.payload.notificationsGlobalIgnoreMentions,
+    convID: Types.keyToConversationID(action.payload.conversationIDKey),
+    settings: [
+      {
+        deviceType: RPCTypes.commonDeviceType.desktop,
+        enabled: action.payload.notificationsDesktop === 'onWhenAtMentioned',
+        kind: RPCChatTypes.commonNotificationKind.atmention,
+      },
+      {
+        deviceType: RPCTypes.commonDeviceType.desktop,
+        enabled: action.payload.notificationsDesktop === 'onAnyActivity',
+        kind: RPCChatTypes.commonNotificationKind.generic,
+      },
+      {
+        deviceType: RPCTypes.commonDeviceType.mobile,
+        enabled: action.payload.notificationsMobile === 'onWhenAtMentioned',
+        kind: RPCChatTypes.commonNotificationKind.atmention,
+      },
+      {
+        deviceType: RPCTypes.commonDeviceType.mobile,
+        enabled: action.payload.notificationsMobile === 'onAnyActivity',
+        kind: RPCChatTypes.commonNotificationKind.generic,
+      },
+    ],
+  })
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
   if (isMobile) {
@@ -1790,6 +1811,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
 
   yield Saga.safeTakeEveryPure(Chat2Gen.debugDump, debugDump)
   yield Saga.safeTakeEveryPure(Chat2Gen.muteConversation, muteConversation)
+  yield Saga.safeTakeEveryPure(Chat2Gen.updateNotificationSettings, updateNotificationSettings)
 }
 
 export default chat2Saga

@@ -269,6 +269,10 @@
       "notificationsMobile": "Types.NotificationsType",
       "notificationsGlobalIgnoreMentions": "boolean",
     },
+    "notificationSettingsUpdated": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "settings": "RPCChatTypes.ConversationNotificationInfo"
+    },
     "debugDump": {
       "conversationIDKey?": "Types.ConversationIDKey",
     }
