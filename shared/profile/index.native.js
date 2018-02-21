@@ -79,7 +79,7 @@ class Profile extends Component<Props, State> {
   _makeUserProofs(loading: boolean) {
     return (
       <UserProofs
-        type={'proofs'}
+        type="proofs"
         username={this.props.username}
         loading={loading}
         proofs={this.props.loading ? [] : this.props.proofs}
@@ -273,7 +273,7 @@ class Profile extends Component<Props, State> {
           />
           {!this.props.loading && (
             <UserProofs
-              type={'missingProofs'}
+              type="missingProofs"
               username={this.props.username}
               missingProofs={missingProofs}
               currentlyFollowing={false}

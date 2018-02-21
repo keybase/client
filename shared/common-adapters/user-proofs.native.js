@@ -37,7 +37,7 @@ function MissingProofRow({missingProof, style}: {missingProof: MissingProof, sty
         </Box>
         <Box style={styleStatusIconContainer}>
           <Icon
-            type={'iconfont-proof-placeholder'}
+            type="iconfont-proof-placeholder"
             style={{
               ...styleStatusIcon('iconfont-proof-placeholder'),
               color: globalColors.black_10,
@@ -122,7 +122,7 @@ function LoadingProofRow({width}: {width: number}): React.Element<any> {
       </Box>
       <Box style={styleStatusIconContainer}>
         <Icon
-          type={'iconfont-proof-placeholder'}
+          type="iconfont-proof-placeholder"
           style={{
             ...styleStatusIcon('iconfont-proof-placeholder'),
             color: globalColors.lightGrey,

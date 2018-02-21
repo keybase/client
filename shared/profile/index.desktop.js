@@ -370,7 +370,7 @@ class ProfileRender extends PureComponent<Props, State> {
                   )}
                 {(loading || this.props.proofs.length > 0) && (
                   <UserProofs
-                    type={'proofs'}
+                    type="proofs"
                     ref={c => {
                       this._proofList = c
                     }}
@@ -385,7 +385,7 @@ class ProfileRender extends PureComponent<Props, State> {
                   !this.props.serverActive &&
                   missingProofs.length > 0 && (
                     <UserProofs
-                      type={'missingProofs'}
+                      type="missingProofs"
                       username={this.props.username}
                       missingProofs={missingProofs}
                     />

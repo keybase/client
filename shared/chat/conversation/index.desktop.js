@@ -144,7 +144,7 @@ class Conversation extends Component<Props, State> {
     } else if (this.props.showSearchResults) {
       list = (
         <SearchResultsList
-          searchKey={'chatSearch'} /* todo move to constant */
+          searchKey="chatSearch" /* todo move to constant */
           onShowTracker={this.props.onShowTrackerInSearch}
           style={{...globalStyles.scrollable, flexGrow: 1}}
         />

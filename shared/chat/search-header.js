@@ -6,7 +6,7 @@ import {compose, withState, lifecycle} from 'recompose'
 const _SearchHeader = props => (
   <UserInput
     autoFocus={true}
-    searchKey={'chatSearch'}
+    searchKey="chatSearch"
     focusInputCounter={props.focusInputCounter}
     placeholder={props.placeholder}
     onExitSearch={props.onExitSearch}

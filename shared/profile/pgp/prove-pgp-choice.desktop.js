@@ -31,7 +31,7 @@ class ProvePgpChoice extends Component<Props> {
           style={styleCancelButton}
           type="Secondary"
           onClick={() => this.props.onCancel()}
-          label={'Cancel'}
+          label="Cancel"
         />
       </StandardScreen>
     )

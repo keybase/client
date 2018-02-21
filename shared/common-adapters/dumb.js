@@ -706,28 +706,28 @@ const listItemMap: DumbComponentMap<ListItem> = {
       type: 'Small',
       icon: <Box style={{height: 24, width: 24, backgroundColor: globalColors.black_20}} />,
       body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
-      action: <Button label={'Action'} type={'Primary'} onClick={() => {}} />,
+      action: <Button label="Action" type="Primary" onClick={() => {}} />,
     },
     'Small list item with button action': {
       type: 'Small',
       swipeToAction: true,
       icon: <Box style={{height: 32, width: 32, backgroundColor: globalColors.black_20}} />,
       body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
-      action: <Button label={'Action'} type={'Primary'} onClick={() => {}} />,
+      action: <Button label="Action" type="Primary" onClick={() => {}} />,
     },
     'Small list item with avatar 40 (mobile only)': {
       type: 'Small',
       icon: <Box style={{height: 40, width: 40, backgroundColor: globalColors.black_20}} />,
       body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
       swipeToAction: true,
-      action: <Button label={'Action'} type={'Primary'} onClick={() => {}} />,
+      action: <Button label="Action" type="Primary" onClick={() => {}} />,
     },
     'Small list item with text action': {
       type: 'Small',
       icon: <Box style={{height: 32, width: 32, backgroundColor: globalColors.black_20}} />,
       body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
       action: (
-        <Text style={{color: globalColors.red}} type={'BodySmall'} onClick={() => {}}>
+        <Text style={{color: globalColors.red}} type="BodySmall" onClick={() => {}}>
           Action Jack
         </Text>
       ),
@@ -739,14 +739,14 @@ const listItemMap: DumbComponentMap<ListItem> = {
       icon: <Box style={{height: 48, width: 48, backgroundColor: globalColors.black_20}} />,
       body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
       swipeToAction: true,
-      action: <Button label={'Action'} type={'Primary'} onClick={() => {}} />,
+      action: <Button label="Action" type="Primary" onClick={() => {}} />,
     },
     'Large list item with text action': {
       type: 'Large',
       icon: <Box style={{height: 48, width: 48, backgroundColor: globalColors.black_20}} />,
       body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
       action: (
-        <Text style={{color: globalColors.red}} type={'BodySmall'} onClick={() => {}}>
+        <Text style={{color: globalColors.red}} type="BodySmall" onClick={() => {}}>
           Action Jack
         </Text>
       ),

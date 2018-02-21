@@ -21,7 +21,7 @@ const Revoke = ({platform, platformHandle, errorMessage, onCancel, onRevoke, isW
         </Box>
       )}
       <Box style={styleContentContainer}>
-        <PlatformIcon platform={platform} overlay={'icon-proof-broken'} overlayColor={globalColors.red} />
+        <PlatformIcon platform={platform} overlay="icon-proof-broken" overlayColor={globalColors.red} />
         <Text style={stylePlatformUsername} type="Header">
           {platformHandle}
         </Text>
