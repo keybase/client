@@ -124,9 +124,12 @@ func (c *CmdLogSend) pokeUI() error {
 		return err
 	}
 	err = cli.PrepareLogsend(context.Background())
+	if err != nil {
+		return err
+	}
 	// Give the GUI a moment to get its logs in order
 	time.Sleep(1 * time.Second)
-	return err
+	return nil
 }
 
 func (c *CmdLogSend) confirm() error {
