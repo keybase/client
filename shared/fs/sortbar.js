@@ -13,7 +13,7 @@ const SortBar = () => (
 const stylesSortBar = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-  justifyContent: 'start',
+  justifyContent: 'flex-start',
   backgroundColor: globalColors.blue5,
   borderTopColor: globalColors.black_05,
   borderTopWidth: 1,
