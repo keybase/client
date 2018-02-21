@@ -29,6 +29,11 @@ type TrackTokenArg struct {
 
 // NewTrackToken creates a TrackToken engine.
 func NewTrackToken(arg *TrackTokenArg, g *libkb.GlobalContext) *TrackToken {
+	// Make V1 Sigs default
+	if arg.Options.SigVersion == 0 {
+		arg.Options.SigVersion = keybase1.SigVersion(libkb.KeybaseSignatureV1)
+	}
+
 	return &TrackToken{
 		arg:          arg,
 		Contextified: libkb.NewContextified(g),
@@ -98,11 +103,6 @@ func (e *TrackToken) Run(ctx *Context) (err error) {
 	signingKeyPub, err := e.arg.Me.SigningKeyPub()
 	if err != nil {
 		return err
-	}
-
-	// Make V1 Sigs default
-	if e.arg.Options.SigVersion == 0 {
-		e.arg.Options.SigVersion = keybase1.SigVersion(libkb.KeybaseSignatureV1)
 	}
 
 	e.trackStatement, err = e.arg.Me.TrackingProofFor(signingKeyPub, libkb.SigVersion(e.arg.Options.SigVersion), e.them, outcome)
@@ -226,39 +226,25 @@ func (e *TrackToken) storeRemoteTrack(ctx *Context, pubKID keybase1.KID) (err er
 		return errors.New("unexpeceted KID mismatch between locked and unlocked signing key")
 	}
 
-	var linkID libkb.LinkID
-	var sig string
-	var sigid keybase1.SigID
 	sigVersion := libkb.SigVersion(e.arg.Options.SigVersion)
-	switch sigVersion {
-	case libkb.KeybaseSignatureV1:
-		sig, sigid, err = signingKey.SignToString(e.trackStatementBytes)
-		linkID = libkb.ComputeLinkID(e.trackStatementBytes)
-	case libkb.KeybaseSignatureV2:
-		prevSeqno := me.GetSigChainLastKnownSeqno()
-		prevLinkID := me.GetSigChainLastKnownID()
-
-		sig, sigid, linkID, err = libkb.MakeSigchainV2OuterSig(
-			signingKey,
-			libkb.LinkTypeTrack,
-			prevSeqno+1,
-			e.trackStatementBytes,
-			prevLinkID,
-			false, /* hasRevokes */
-			keybase1.SeqType_PUBLIC,
-			false, /* ignoreIfUnsupported */
-		)
-	default:
-		err = errors.New("Invalid Signature Version")
-	}
+	sig, sigID, linkID, err := libkb.MakeSig(
+		signingKey,
+		libkb.LinkTypeTrack,
+		e.trackStatementBytes,
+		false, /* hasRevokes */
+		keybase1.SeqType_PUBLIC,
+		false, /* ignoreIfUnsupported */
+		me,
+		sigVersion,
+	)
 
 	if err != nil {
 		return err
 	}
 
 	httpsArgs := libkb.HTTPArgs{
-		"sig_id_base":  libkb.S{Val: sigid.ToString(false)},
-		"sig_id_short": libkb.S{Val: sigid.ToShortID()},
+		"sig_id_base":  libkb.S{Val: sigID.ToString(false)},
+		"sig_id_short": libkb.S{Val: sigID.ToShortID()},
 		"sig":          libkb.S{Val: sig},
 		"uid":          libkb.UIDArg(e.them.GetUID()),
 		"type":         libkb.S{Val: "track"},
@@ -279,7 +265,7 @@ func (e *TrackToken) storeRemoteTrack(ctx *Context, pubKID keybase1.KID) (err er
 		return err
 	}
 
-	me.SigChainBump(linkID, sigid)
+	me.SigChainBump(linkID, sigID)
 
 	return err
 }

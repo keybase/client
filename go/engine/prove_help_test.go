@@ -56,16 +56,17 @@ func (p *ProveUIMock) DisplayRecheckWarning(_ context.Context, arg keybase1.Disp
 	return nil
 }
 
-func proveRooter(g *libkb.GlobalContext, fu *FakeUser) (*ProveUIMock, keybase1.SigID, error) {
-	return proveRooterWithSecretUI(g, fu, fu.NewSecretUI())
+func proveRooter(g *libkb.GlobalContext, fu *FakeUser, sigVersion libkb.SigVersion) (*ProveUIMock, keybase1.SigID, error) {
+	return proveRooterWithSecretUI(g, fu, fu.NewSecretUI(), sigVersion)
 }
 
-func proveRooterWithSecretUI(g *libkb.GlobalContext, fu *FakeUser, secretUI libkb.SecretUI) (*ProveUIMock, keybase1.SigID, error) {
+func proveRooterWithSecretUI(g *libkb.GlobalContext, fu *FakeUser, secretUI libkb.SecretUI, sigVersion libkb.SigVersion) (*ProveUIMock, keybase1.SigID, error) {
 	arg := keybase1.StartProofArg{
 		Service:      "rooter",
 		Username:     fu.Username,
 		Force:        false,
 		PromptPosted: true,
+		SigVersion:   keybase1.SigVersion(sigVersion),
 	}
 
 	eng := NewProve(&arg, g)
@@ -106,12 +107,13 @@ func proveRooterWithSecretUI(g *libkb.GlobalContext, fu *FakeUser, secretUI libk
 	return proveUI, eng.sigID, err
 }
 
-func proveRooterFail(g *libkb.GlobalContext, fu *FakeUser) (*ProveUIMock, error) {
+func proveRooterFail(g *libkb.GlobalContext, fu *FakeUser, sigVersion libkb.SigVersion) (*ProveUIMock, error) {
 	arg := keybase1.StartProofArg{
 		Service:      "rooter",
 		Username:     fu.Username,
 		Force:        false,
 		PromptPosted: true,
+		SigVersion:   keybase1.SigVersion(sigVersion),
 	}
 
 	eng := NewProve(&arg, g)
@@ -160,12 +162,13 @@ func proveRooterRemove(g *libkb.GlobalContext, postID string) error {
 	return err
 }
 
-func proveRooterOther(g *libkb.GlobalContext, fu *FakeUser, rooterUsername string) (*ProveUIMock, keybase1.SigID, error) {
+func proveRooterOther(g *libkb.GlobalContext, fu *FakeUser, rooterUsername string, sigVersion libkb.SigVersion) (*ProveUIMock, keybase1.SigID, error) {
 	arg := keybase1.StartProofArg{
 		Service:      "rooter",
 		Username:     rooterUsername,
 		Force:        false,
 		PromptPosted: true,
+		SigVersion:   keybase1.SigVersion(sigVersion),
 	}
 
 	eng := NewProve(&arg, g)

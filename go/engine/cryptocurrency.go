@@ -17,6 +17,10 @@ type CryptocurrencyEngine struct {
 }
 
 func NewCryptocurrencyEngine(g *libkb.GlobalContext, arg keybase1.RegisterAddressArg) *CryptocurrencyEngine {
+	// Make V2 Sigs default
+	if arg.SigVersion == 0 {
+		arg.SigVersion = keybase1.SigVersion(libkb.KeybaseSignatureV2)
+	}
 	return &CryptocurrencyEngine{
 		Contextified: libkb.NewContextified(g),
 		arg:          arg,
@@ -93,15 +97,32 @@ func (e *CryptocurrencyEngine) Run(ctx *Context) (err error) {
 	if err = sigKey.CheckSecretKey(); err != nil {
 		return err
 	}
+	sigVersion := libkb.SigVersion(e.arg.SigVersion)
+	claim, err := me.CryptocurrencySig(sigKey, e.arg.Address, typ, sigIDToRevoke, merkleRoot, sigVersion)
+	if err != nil {
+		return err
+	}
 
-	claim, err := me.CryptocurrencySig(sigKey, e.arg.Address, typ, sigIDToRevoke, merkleRoot)
+	sigInner, err := claim.Marshal()
 	if err != nil {
 		return err
 	}
-	sig, _, _, err := libkb.SignJSON(claim, sigKey)
+
+	sig, _, _, err := libkb.MakeSig(
+		sigKey,
+		libkb.LinkTypeCryptocurrency,
+		sigInner,
+		len(sigIDToRevoke) > 0, /* hasRevokes */
+		keybase1.SeqType_PUBLIC,
+		false, /* ignoreIfUnsupported */
+		me,
+		sigVersion,
+	)
+
 	if err != nil {
 		return err
 	}
+
 	kid := sigKey.GetKID()
 	args := libkb.HTTPArgs{
 		"sig":             libkb.S{Val: sig},
@@ -111,6 +132,10 @@ func (e *CryptocurrencyEngine) Run(ctx *Context) (err error) {
 	}
 	if lease != nil {
 		args["downgrade_lease_id"] = libkb.S{Val: string(lease.LeaseID)}
+	}
+
+	if sigVersion == libkb.KeybaseSignatureV2 {
+		args["sig_inner"] = libkb.S{Val: string(sigInner)}
 	}
 
 	_, err = e.G().API.Post(libkb.APIArg{

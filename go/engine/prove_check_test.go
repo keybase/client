@@ -12,6 +12,12 @@ import (
 )
 
 func TestProveCheck(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testProveCheck(t, sigVersion)
+	})
+}
+
+func _testProveCheck(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "prove check")
 	defer tc.Cleanup()
 
@@ -21,6 +27,7 @@ func TestProveCheck(t *testing.T) {
 		Username:     fu.Username,
 		Force:        false,
 		PromptPosted: true,
+		SigVersion:   keybase1.SigVersion(sigVersion),
 	}
 
 	eng := NewProve(&arg, tc.G)

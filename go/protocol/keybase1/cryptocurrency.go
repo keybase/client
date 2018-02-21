@@ -21,10 +21,11 @@ func (o RegisterAddressRes) DeepCopy() RegisterAddressRes {
 }
 
 type RegisterAddressArg struct {
-	SessionID    int    `codec:"sessionID" json:"sessionID"`
-	Address      string `codec:"address" json:"address"`
-	Force        bool   `codec:"force" json:"force"`
-	WantedFamily string `codec:"wantedFamily" json:"wantedFamily"`
+	SessionID    int        `codec:"sessionID" json:"sessionID"`
+	Address      string     `codec:"address" json:"address"`
+	Force        bool       `codec:"force" json:"force"`
+	WantedFamily string     `codec:"wantedFamily" json:"wantedFamily"`
+	SigVersion   SigVersion `codec:"sigVersion" json:"sigVersion"`
 }
 
 type CryptocurrencyInterface interface {

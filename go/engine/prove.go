@@ -24,6 +24,7 @@ type Prove struct {
 	sigID      keybase1.SigID
 	postRes    *libkb.PostProofRes
 	signingKey libkb.GenericKey
+	sigInner   []byte
 
 	remoteNameNormalized string
 
@@ -32,6 +33,10 @@ type Prove struct {
 
 // NewProve makes a new Prove Engine given an RPC-friendly ProveArg.
 func NewProve(arg *keybase1.StartProofArg, g *libkb.GlobalContext) *Prove {
+	// Make V2 Sigs default
+	if arg.SigVersion == 0 {
+		arg.SigVersion = keybase1.SigVersion(libkb.KeybaseSignatureV2)
+	}
 	return &Prove{
 		arg:          arg,
 		Contextified: libkb.NewContextified(g),
@@ -181,12 +186,27 @@ func (p *Prove) generateProof(ctx *Context) (err error) {
 		return err
 	}
 
-	if p.proof, err = p.me.ServiceProof(p.signingKey, p.st, p.remoteNameNormalized); err != nil {
+	sigVersion := libkb.SigVersion(p.arg.SigVersion)
+
+	if p.proof, err = p.me.ServiceProof(p.signingKey, p.st, p.remoteNameNormalized, sigVersion); err != nil {
 		return
 	}
-	if p.sig, p.sigID, _, err = libkb.SignJSON(p.proof, p.signingKey); err != nil {
+
+	if p.sigInner, err = p.proof.Marshal(); err != nil {
 		return
 	}
+
+	p.sig, p.sigID, _, err = libkb.MakeSig(
+		p.signingKey,
+		libkb.LinkTypeWebServiceBinding,
+		p.sigInner,
+		false, /* hasRevokes */
+		keybase1.SeqType_PUBLIC,
+		false, /* ignoreIfUnsupported */
+		p.me,
+		sigVersion,
+	)
+
 	return
 }
 
@@ -199,6 +219,9 @@ func (p *Prove) postProofToServer(ctx *Context) (err error) {
 		RemoteUsername: p.remoteNameNormalized,
 		RemoteKey:      p.st.GetAPIArgKey(),
 		SigningKey:     p.signingKey,
+	}
+	if libkb.SigVersion(p.arg.SigVersion) == libkb.KeybaseSignatureV2 {
+		arg.SigInner = p.sigInner
 	}
 	p.postRes, err = libkb.PostProof(ctx.GetNetContext(), p.G(), arg)
 	return

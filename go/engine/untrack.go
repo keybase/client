@@ -4,8 +4,6 @@
 package engine
 
 import (
-	"errors"
-
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
@@ -25,6 +23,11 @@ type UntrackEngine struct {
 
 // NewUntrackEngine creates a default UntrackEngine for tracking theirName.
 func NewUntrackEngine(arg *UntrackEngineArg, g *libkb.GlobalContext) *UntrackEngine {
+	// Make V1 Sigs default
+	if arg.SigVersion == 0 {
+		arg.SigVersion = libkb.KeybaseSignatureV1
+	}
+
 	return &UntrackEngine{
 		arg:          arg,
 		Contextified: libkb.NewContextified(g),
@@ -68,11 +71,6 @@ func (e *UntrackEngine) Run(ctx *Context) (err error) {
 	e.signingKeyPub, err = e.arg.Me.SigningKeyPub()
 	if err != nil {
 		return
-	}
-
-	// Make V1 Sigs default
-	if e.arg.SigVersion == 0 {
-		e.arg.SigVersion = libkb.KeybaseSignatureV1
 	}
 
 	untrackStatement, err := e.arg.Me.UntrackingProofFor(e.signingKeyPub, e.arg.SigVersion, them)
@@ -208,35 +206,24 @@ func (e *UntrackEngine) storeRemoteUntrack(them *libkb.User, ctx *Context) (err 
 		return
 	}
 
-	var sig string
-	var sigid keybase1.SigID
 	sigVersion := libkb.SigVersion(e.arg.SigVersion)
-	switch sigVersion {
-	case libkb.KeybaseSignatureV1:
-		sig, sigid, err = signingKey.SignToString(e.untrackStatementBytes)
-	case libkb.KeybaseSignatureV2:
-		prevSeqno := me.GetSigChainLastKnownSeqno()
-		prevLinkID := me.GetSigChainLastKnownID()
-		sig, sigid, _, err = libkb.MakeSigchainV2OuterSig(
-			signingKey,
-			libkb.LinkTypeUntrack,
-			prevSeqno+1,
-			e.untrackStatementBytes,
-			prevLinkID,
-			false, /* hasRevokes */
-			keybase1.SeqType_PUBLIC,
-			false, /* ignoreIfUnsupported */
-		)
-	default:
-		err = errors.New("Invalid Signature Version")
-	}
+	sig, sigID, _, err := libkb.MakeSig(
+		signingKey,
+		libkb.LinkTypeUntrack,
+		e.untrackStatementBytes,
+		false, /* hasRevokes */
+		keybase1.SeqType_PUBLIC,
+		false, /* ignoreIfUnsupported */
+		me,
+		sigVersion)
+
 	if err != nil {
 		return
 	}
 
 	httpsArgs := libkb.HTTPArgs{
-		"sig_id_base":  libkb.S{Val: sigid.ToString(false)},
-		"sig_id_short": libkb.S{Val: sigid.ToShortID()},
+		"sig_id_base":  libkb.S{Val: sigID.ToString(false)},
+		"sig_id_short": libkb.S{Val: sigID.ToShortID()},
 		"sig":          libkb.S{Val: sig},
 		"uid":          libkb.UIDArg(them.GetUID()),
 		"type":         libkb.S{Val: "untrack"},

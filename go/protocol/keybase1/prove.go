@@ -35,12 +35,13 @@ func (o StartProofResult) DeepCopy() StartProofResult {
 }
 
 type StartProofArg struct {
-	SessionID    int    `codec:"sessionID" json:"sessionID"`
-	Service      string `codec:"service" json:"service"`
-	Username     string `codec:"username" json:"username"`
-	Force        bool   `codec:"force" json:"force"`
-	PromptPosted bool   `codec:"promptPosted" json:"promptPosted"`
-	Auto         bool   `codec:"auto" json:"auto"`
+	SessionID    int        `codec:"sessionID" json:"sessionID"`
+	Service      string     `codec:"service" json:"service"`
+	Username     string     `codec:"username" json:"username"`
+	Force        bool       `codec:"force" json:"force"`
+	PromptPosted bool       `codec:"promptPosted" json:"promptPosted"`
+	Auto         bool       `codec:"auto" json:"auto"`
+	SigVersion   SigVersion `codec:"sigVersion" json:"sigVersion"`
 }
 
 type CheckProofArg struct {

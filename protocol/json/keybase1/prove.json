@@ -74,6 +74,10 @@
         {
           "name": "auto",
           "type": "boolean"
+        },
+        {
+          "name": "sigVersion",
+          "type": "SigVersion"
         }
       ],
       "response": "StartProofResult"
