@@ -55,7 +55,7 @@ func (c *CmdPprofTrace) Run() error {
 		return err
 	}
 
-	durationSeconds := keybase1.DurationSec(float64(c.traceDuration) / float64(time.Second))
+	durationSeconds := keybase1.DurationSec(c.traceDuration.Seconds())
 	if c.writeToLogDir {
 		return cli.LogTrace(context.TODO(), keybase1.LogTraceArg{
 			SessionID:            0,
