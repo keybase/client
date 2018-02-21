@@ -68,7 +68,7 @@ const containerStyle = {
   paddingBottom: globalMargins.tiny,
   position: 'relative',
   borderBottomWidth: 1,
-  ...(isMobile ? null : {borderBottomStyle: 'solid'}),
+  ...(isMobile ? null : {borderStyle: 'solid'}),
 }
 
 const iconContainerStyle = {marginRight: 20, width: isMobile ? 48 : 32}
