@@ -146,8 +146,8 @@
 }
 
 - (NSString *)redirectorBinPathWithPathOptions:(KBPathOptions)pathOptions servicePath:(NSString *)servicePath {
-  if (!servicePath) return [self redirectorName];
-  return [KBPath pathInDir:servicePath path:[self redirectorName] options:pathOptions];
+  if (!servicePath) return [self redirectorBinName];
+  return [KBPath pathInDir:servicePath path:[self redirectorBinName] options:pathOptions];
 }
 
 - (NSString *)gitRemoteHelperName {

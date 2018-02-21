@@ -15,6 +15,6 @@
 
 @interface KBRedirector : KBInstallable
 
-- (instancetype)initWithConfig:(KBEnvConfig *)config helperTool:(KBHelperTool *)helperTool;
+- (instancetype)initWithConfig:(KBEnvConfig *)config helperTool:(KBHelperTool *)helperTool servicePath:(NSString *)servicePath;
 
 @end

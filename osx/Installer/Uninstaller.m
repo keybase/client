@@ -35,7 +35,7 @@
     [installables addObject:environment.helperTool];
   }
   if (options.uninstallOptions & UninstallOptionRedirector) {
-    KBRedirector *redirector = [[KBRedirector alloc] initWithConfig:environment.config helperTool:environment.helperTool];
+    KBRedirector *redirector = [[KBRedirector alloc] initWithConfig:environment.config helperTool:environment.helperTool servicePath:@""];
     [installables addObject:redirector];
   }
   if (options.uninstallOptions & UninstallOptionApp) {
