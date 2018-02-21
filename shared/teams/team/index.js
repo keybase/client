@@ -380,9 +380,16 @@ type CustomProps = {
   onManageChat: () => void,
   onShowMenu: () => void,
   canManageChat: boolean,
+  canViewFolder: boolean,
 }
 
-const CustomComponent = ({onOpenFolder, onManageChat, onShowMenu, canManageChat}: CustomProps) => (
+const CustomComponent = ({
+  onOpenFolder,
+  onManageChat,
+  onShowMenu,
+  canManageChat,
+  canViewFolder,
+}: CustomProps) => (
   <Box style={{...globalStyles.flexBoxRow, position: 'absolute', right: 0}}>
     {!isMobile &&
       canManageChat && (
@@ -392,13 +399,14 @@ const CustomComponent = ({onOpenFolder, onManageChat, onShowMenu, canManageChat}
           type="iconfont-chat"
         />
       )}
-    {!isMobile && (
-      <Icon
-        onClick={onOpenFolder}
-        style={{fontSize: isMobile ? 20 : 16, marginRight: globalMargins.tiny}}
-        type="iconfont-folder-private"
-      />
-    )}
+    {!isMobile &&
+      canViewFolder && (
+        <Icon
+          onClick={onOpenFolder}
+          style={{fontSize: isMobile ? 20 : 16, marginRight: globalMargins.tiny}}
+          type="iconfont-folder-private"
+        />
+      )}
     <Icon
       onClick={onShowMenu}
       type="iconfont-ellipsis"
