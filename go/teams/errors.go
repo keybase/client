@@ -224,6 +224,17 @@ func NewExplicitTeamOperationError(m string) error {
 	return &ExplicitTeamOperationError{msg: m}
 }
 
+func IsTeamReadError(err error) bool {
+	switch e := err.(type) {
+	case libkb.AppStatusError:
+		switch keybase1.StatusCode(e.Code) {
+		case keybase1.StatusCode_SCTeamReadError:
+			return true
+		}
+	}
+	return false
+}
+
 func fixupTeamGetError(ctx context.Context, g *libkb.GlobalContext, e error, teamDescriptor string, publicTeam bool) error {
 	if e == nil {
 		return nil
