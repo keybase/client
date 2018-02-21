@@ -366,6 +366,7 @@ func (u *userPlusDevice) loadTeam(teamname string, admin bool) *teams.Team {
 func (u *userPlusDevice) loadTeamByID(teamID keybase1.TeamID, admin bool) *teams.Team {
 	team, err := teams.Load(context.Background(), u.tc.G, keybase1.LoadTeamArg{
 		ID:          teamID,
+		Public:      teamID.IsPublic(),
 		NeedAdmin:   admin,
 		ForceRepoll: true,
 	})
