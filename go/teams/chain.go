@@ -744,62 +744,55 @@ func (t *TeamSigChainPlayer) addInnerLink(
 	// When isInflate then it is likely prevSeqno != prevState.GetLatestSeqno()
 	prevSeqno := link.Seqno() - 1
 
-	hasPrevState := func(has bool) error {
-		if has {
-			if prevState == nil {
-				return fmt.Errorf("link type '%s' unexpected at beginning", payload.Body.Type)
-			}
-		} else {
-			if prevState != nil {
-				return fmt.Errorf("link type '%s' unexpected at seqno:%v", payload.Body.Type, prevState.inner.LastSeqno+1)
-			}
-		}
-		return nil
-	}
-	hasGeneric := func(hasExpected bool, hasReal bool, attr string) error {
-		if hasExpected != hasReal {
-			if hasReal {
-				return fmt.Errorf("team section contains unexpected %s", attr)
-			}
-			return fmt.Errorf("missing %s", attr)
-		}
-		return nil
-	}
-	hasName := func(has bool) error {
-		return hasGeneric(has, team.Name != nil, "name")
-	}
-	hasMembers := func(has bool) error {
-		return hasGeneric(has, team.Members != nil, "members")
-	}
-	hasParent := func(has bool) error {
-		return hasGeneric(has, team.Parent != nil, "parent")
-	}
-	hasSubteam := func(has bool) error {
-		return hasGeneric(has, team.Subteam != nil, "subteam")
-	}
-	hasPerTeamKey := func(has bool) error {
-		return hasGeneric(has, team.PerTeamKey != nil, "per-team-key")
-	}
-	hasAdmin := func(has bool) error {
-		return hasGeneric(has, team.Admin != nil, "admin")
-	}
-	hasInvites := func(has bool) error {
-		return hasGeneric(has, team.Invites != nil, "invite")
-	}
-	hasCompletedInvites := func(has bool) error {
-		return hasGeneric(has, len(team.CompletedInvites) != 0, "completed_invites")
-	}
-	hasSettings := func(has bool) error {
-		return hasGeneric(has, team.Settings != nil, "settings")
-	}
-	hasKBFSSettings := func(has bool) error {
-		return hasGeneric(has, team.KBFS != nil, "KBFS settings")
-	}
 	allowInflate := func(allow bool) error {
 		if isInflate && !allow {
 			return fmt.Errorf("inflating link type not supported: %v", payload.Body.Type)
 		}
 		return nil
+	}
+	enforceFirstInChain := func(firstInChain bool) error {
+		if firstInChain {
+			if prevState != nil {
+				return fmt.Errorf("link type '%s' unexpected at seqno:%v", payload.Body.Type, prevState.inner.LastSeqno+1)
+			}
+		} else {
+			if prevState == nil {
+				return fmt.Errorf("link type '%s' unexpected at beginning", payload.Body.Type)
+			}
+		}
+		return nil
+	}
+	enforceGeneric := func(name string, rule Tristate, hasReal bool) error {
+		switch rule {
+		case TristateDisallow:
+			if hasReal {
+				return fmt.Errorf("sigchain link contains unexpected '%s'", name)
+			}
+		case TristateRequire:
+			if !hasReal {
+				return fmt.Errorf("sigchain link missing %s", name)
+			}
+		case TristateOptional:
+		default:
+			return fmt.Errorf("unsupported tristate (fault): %v", rule)
+		}
+		return nil
+	}
+	enforce := func(rules LinkRules) error {
+		return libkb.PickFirstError(
+			enforceGeneric("name", rules.Name, team.Name != nil),
+			enforceGeneric("members", rules.Members, team.Members != nil),
+			enforceGeneric("parent", rules.Parent, team.Parent != nil),
+			enforceGeneric("subteam", rules.Subteam, team.Subteam != nil),
+			enforceGeneric("per-team-key", rules.PerTeamKey, team.PerTeamKey != nil),
+			enforceGeneric("admin", rules.Admin, team.Admin != nil),
+			enforceGeneric("invites", rules.Invites, team.Invites != nil),
+			enforceGeneric("completed-invites", rules.CompletedInvites, team.CompletedInvites != nil),
+			enforceGeneric("settings", rules.Settings, team.Settings != nil),
+			enforceGeneric("kbfs", rules.KBFS, team.KBFS != nil),
+			allowInflate(rules.AllowInflate),
+			enforceFirstInChain(rules.FirstInChain),
+		)
 	}
 
 	checkAdmin := func(op string) (signerIsExplicitOwner bool, err error) {
@@ -827,17 +820,14 @@ func (t *TeamSigChainPlayer) addInnerLink(
 
 	switch libkb.LinkType(payload.Body.Type) {
 	case libkb.LinkTypeTeamRoot:
-		err = libkb.PickFirstError(
-			allowInflate(false),
-			hasPrevState(false),
-			hasName(true),
-			hasMembers(true),
-			hasParent(false),
-			hasSubteam(false),
-			hasPerTeamKey(true),
-			hasAdmin(false),
-			hasKBFSSettings(false),
-			hasCompletedInvites(false))
+		err = enforce(LinkRules{
+			Name:         TristateRequire,
+			Members:      TristateRequire,
+			PerTeamKey:   TristateRequire,
+			Invites:      TristateOptional,
+			Settings:     TristateOptional,
+			FirstInChain: true,
+		})
 		if err != nil {
 			return res, err
 		}
@@ -940,16 +930,12 @@ func (t *TeamSigChainPlayer) addInnerLink(
 
 		return res, nil
 	case libkb.LinkTypeChangeMembership:
-		err = libkb.PickFirstError(
-			allowInflate(false),
-			hasPrevState(true),
-			hasName(false),
-			hasMembers(true),
-			hasParent(false),
-			hasInvites(false),
-			hasSubteam(false),
-			hasKBFSSettings(false),
-			hasSettings(false))
+		err = enforce(LinkRules{
+			Members:          TristateRequire,
+			PerTeamKey:       TristateOptional,
+			Admin:            TristateOptional,
+			CompletedInvites: TristateOptional,
+		})
 		if err != nil {
 			return res, err
 		}
@@ -1100,18 +1086,10 @@ func (t *TeamSigChainPlayer) addInnerLink(
 
 		return res, nil
 	case libkb.LinkTypeRotateKey:
-		err = libkb.PickFirstError(
-			allowInflate(false),
-			hasPrevState(true),
-			hasName(false),
-			hasMembers(false),
-			hasParent(false),
-			hasSubteam(false),
-			hasPerTeamKey(true),
-			hasInvites(false),
-			hasCompletedInvites(false),
-			hasKBFSSettings(false),
-			hasSettings(false))
+		err = enforce(LinkRules{
+			PerTeamKey: TristateRequire,
+			Admin:      TristateOptional,
+		})
 		if err != nil {
 			return res, err
 		}
@@ -1144,20 +1122,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 
 		return res, nil
 	case libkb.LinkTypeLeave:
-		err = libkb.PickFirstError(
-			allowInflate(false),
-			hasPrevState(true),
-			hasName(false),
-			hasMembers(false),
-			hasParent(false),
-			hasSubteam(false),
-			hasPerTeamKey(false),
-			hasInvites(false),
-			hasAdmin(false),
-			hasInvites(false),
-			hasCompletedInvites(false),
-			hasKBFSSettings(false),
-			hasSettings(false))
+		err = enforce(LinkRules{ /* Just about everything is restricted. */ })
 		if err != nil {
 			return res, err
 		}
@@ -1187,18 +1152,11 @@ func (t *TeamSigChainPlayer) addInnerLink(
 
 		return res, nil
 	case libkb.LinkTypeNewSubteam:
-		err = libkb.PickFirstError(
-			allowInflate(true),
-			hasPrevState(true),
-			hasName(false),
-			hasMembers(false),
-			hasParent(false),
-			hasSubteam(true),
-			hasPerTeamKey(false),
-			hasInvites(false),
-			hasCompletedInvites(false),
-			hasKBFSSettings(false),
-			hasSettings(false))
+		err = enforce(LinkRules{
+			Subteam:      TristateRequire,
+			Admin:        TristateOptional,
+			AllowInflate: true,
+		})
 		if err != nil {
 			return res, err
 		}
@@ -1235,17 +1193,15 @@ func (t *TeamSigChainPlayer) addInnerLink(
 
 		return res, nil
 	case libkb.LinkTypeSubteamHead:
-		err = libkb.PickFirstError(
-			allowInflate(false),
-			hasPrevState(false),
-			hasName(true),
-			hasMembers(true),
-			hasParent(true),
-			hasSubteam(false),
-			hasPerTeamKey(true),
-			hasInvites(false),
-			hasKBFSSettings(false),
-			hasCompletedInvites(false))
+		err = enforce(LinkRules{
+			Name:         TristateRequire,
+			Members:      TristateRequire,
+			Parent:       TristateRequire,
+			PerTeamKey:   TristateRequire,
+			Admin:        TristateOptional,
+			Settings:     TristateOptional,
+			FirstInChain: true,
+		})
 		if err != nil {
 			return res, err
 		}
@@ -1327,18 +1283,11 @@ func (t *TeamSigChainPlayer) addInnerLink(
 
 		return res, nil
 	case libkb.LinkTypeRenameSubteam:
-		err = libkb.PickFirstError(
-			allowInflate(true),
-			hasPrevState(true),
-			hasName(false),
-			hasMembers(false),
-			hasParent(false),
-			hasSubteam(true),
-			hasPerTeamKey(false),
-			hasInvites(false),
-			hasCompletedInvites(false),
-			hasKBFSSettings(false),
-			hasSettings(false))
+		err = enforce(LinkRules{
+			Subteam:      TristateRequire,
+			Admin:        TristateOptional,
+			AllowInflate: true,
+		})
 		if err != nil {
 			return res, err
 		}
@@ -1375,18 +1324,11 @@ func (t *TeamSigChainPlayer) addInnerLink(
 
 		return res, nil
 	case libkb.LinkTypeRenameUpPointer:
-		err = libkb.PickFirstError(
-			allowInflate(false),
-			hasPrevState(true),
-			hasName(true),
-			hasMembers(false),
-			hasParent(true),
-			hasSubteam(false),
-			hasPerTeamKey(false),
-			hasInvites(false),
-			hasCompletedInvites(false),
-			hasKBFSSettings(false),
-			hasSettings(false))
+		err = enforce(LinkRules{
+			Name:   TristateRequire,
+			Parent: TristateRequire,
+			Admin:  TristateOptional,
+		})
 		if err != nil {
 			return res, err
 		}
@@ -1437,18 +1379,11 @@ func (t *TeamSigChainPlayer) addInnerLink(
 
 		return res, nil
 	case libkb.LinkTypeDeleteSubteam:
-		err = libkb.PickFirstError(
-			allowInflate(true),
-			hasPrevState(true),
-			hasName(false),
-			hasMembers(false),
-			hasParent(false),
-			hasSubteam(true),
-			hasPerTeamKey(false),
-			hasInvites(false),
-			hasCompletedInvites(false),
-			hasKBFSSettings(false),
-			hasSettings(false))
+		err = enforce(LinkRules{
+			Subteam:      TristateRequire,
+			Admin:        TristateOptional,
+			AllowInflate: true,
+		})
 		if err != nil {
 			return res, err
 		}
@@ -1483,17 +1418,11 @@ func (t *TeamSigChainPlayer) addInnerLink(
 
 		return res, nil
 	case libkb.LinkTypeInvite:
-		err = libkb.PickFirstError(
-			allowInflate(false),
-			hasPrevState(true),
-			hasName(false),
-			hasMembers(false),
-			hasParent(false),
-			hasSubteam(false),
-			hasPerTeamKey(false),
-			hasInvites(true),
-			hasKBFSSettings(false),
-			hasSettings(false))
+		err = enforce(LinkRules{
+			Admin:            TristateOptional,
+			Invites:          TristateRequire,
+			CompletedInvites: TristateOptional, // @@@ UHOH! This was not banned, but is not processed.
+		})
 		if err != nil {
 			return res, err
 		}
@@ -1543,18 +1472,10 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		t.updateInvites(&res.newState, additions, cancelations)
 		return res, nil
 	case libkb.LinkTypeSettings:
-		err = libkb.PickFirstError(
-			allowInflate(false),
-			hasPrevState(true),
-			hasName(false),
-			hasMembers(false),
-			hasParent(false),
-			hasInvites(false),
-			hasSubteam(false),
-			hasPerTeamKey(false),
-			hasCompletedInvites(false),
-			hasKBFSSettings(false),
-			hasSettings(true))
+		err = enforce(LinkRules{
+			Admin:    TristateOptional,
+			Settings: TristateRequire,
+		})
 		if err != nil {
 			return res, err
 		}
@@ -1572,18 +1493,10 @@ func (t *TeamSigChainPlayer) addInnerLink(
 	case libkb.LinkTypeDeleteUpPointer:
 		return res, NewTeamDeletedError()
 	case libkb.LinkTypeKBFSSettings:
-		err = libkb.PickFirstError(
-			hasKBFSSettings(true),
-			allowInflate(false),
-			hasPrevState(true),
-			hasName(false),
-			hasMembers(false),
-			hasParent(false),
-			hasSubteam(false),
-			hasInvites(false),
-			hasPerTeamKey(false),
-			hasSettings(false),
-			hasCompletedInvites(false))
+		err = enforce(LinkRules{
+			Admin: TristateOptional,
+			KBFS:  TristateRequire,
+		})
 		if err != nil {
 			return res, err
 		}
@@ -2122,4 +2035,32 @@ func (t *TeamSigChainPlayer) parseKBFSTLFUpgrade(upgrade *SCTeamKBFS, newState *
 		}
 	}
 	return nil
+}
+
+type Tristate int
+
+const (
+	TristateDisallow Tristate = 0 // default
+	TristateRequire  Tristate = 1
+	TristateOptional Tristate = 2
+)
+
+// LinkRules describes what fields and properties are required for a link type.
+// Default values are the strictest.
+// Keep this in sync with `func enforce`.
+type LinkRules struct {
+	// Sections
+	Name             Tristate
+	Members          Tristate
+	Parent           Tristate
+	Subteam          Tristate
+	PerTeamKey       Tristate
+	Admin            Tristate
+	Invites          Tristate
+	CompletedInvites Tristate
+	Settings         Tristate
+	KBFS             Tristate
+
+	AllowInflate bool // whether this link is allowed to be filled later
+	FirstInChain bool // whether this link must be the beginning of the chain
 }
