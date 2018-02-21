@@ -3082,7 +3082,7 @@ func TestChatSrvRetentionSweepConv(t *testing.T) {
 
 		expungeInfo := consumeExpunge(t, listener)
 		require.True(t, expungeInfo.ConvID.Eq(created.Id))
-		require.Equal(t, chat1.Expunge{Upto: 4}, expungeInfo.Expunge)
+		require.Equal(t, chat1.Expunge{Upto: 4}, expungeInfo.Expunge, "expunge upto")
 
 		tvres, err := ctc.as(t, users[1]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{ConversationID: created.Id})
 		require.NoError(t, err)
@@ -3174,7 +3174,7 @@ func TestChatSrvRetentionSweepTeam(t *testing.T) {
 				}
 			}
 			if expectDeleted {
-				require.Equal(t, 0, nText)
+				require.Equal(t, 0, nText, "conv contents should be deleted: %v", convID.DbShortFormString())
 			} else {
 				require.Equal(t, 1, nText)
 			}
