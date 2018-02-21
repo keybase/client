@@ -147,37 +147,37 @@ func remoteTlfAndPath(path keybase1.Path) (
 }
 
 func (k *SimpleFS) getFS(ctx context.Context, path keybase1.Path) (
-	fs billy.Filesystem, finalElem string, exitEarly bool, err error) {
+	fs billy.Filesystem, finalElem string, err error) {
 	pt, err := path.PathType()
 	if err != nil {
-		return nil, "", false, err
+		return nil, "", err
 	}
 	switch pt {
 	case keybase1.PathType_KBFS:
 		t, tlfName, restOfPath, finalElem, err := remoteTlfAndPath(path)
 		if err != nil {
-			return nil, "", false, err
+			return nil, "", err
 		}
 		tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
 			ctx, k.config.KBPKI(), k.config.MDOps(), tlfName, t)
 		if err != nil {
-			return nil, "", false, err
+			return nil, "", err
 		}
 		fs, err := libfs.NewFS(
 			ctx, k.config, tlfHandle, restOfPath, "", keybase1.MDPriorityNormal)
 		if err != nil {
-			if exitEarly, err := libfs.FilterTLFEarlyExitError(
+			if exitEarly, _ := libfs.FilterTLFEarlyExitError(
 				ctx, err, k.log, tlfHandle.GetCanonicalName()); exitEarly {
-				return nil, finalElem, true, err
+				return nil, finalElem, libfs.TlfDoesNotExist{}
 			}
-			return nil, "", false, err
+			return nil, "", err
 		}
-		return fs, finalElem, false, nil
+		return fs, finalElem, nil
 	case keybase1.PathType_LOCAL:
 		fs = osfs.New(stdpath.Dir(path.Local()))
-		return fs, stdpath.Base(path.Local()), false, nil
+		return fs, stdpath.Base(path.Local()), nil
 	default:
-		return nil, "", false, simpleFSError{"Invalid path type"}
+		return nil, "", simpleFSError{"Invalid path type"}
 	}
 }
 
@@ -315,12 +315,14 @@ func (k *SimpleFS) SimpleFSList(ctx context.Context, arg keybase1.SimpleFSListAr
 		case rawPath == `/team`:
 			res, err = k.favoriteList(ctx, arg.Path, tlf.SingleTeam)
 		default:
-			fs, finalElem, exitEarly, err := k.getFS(ctx, arg.Path)
-			if exitEarly {
+			fs, finalElem, err := k.getFS(ctx, arg.Path)
+			switch err.(type) {
+			case nil:
+			case libfs.TlfDoesNotExist:
 				// TLF doesn't exist yet; just return an empty result.
 				k.setResult(arg.OpID, keybase1.SimpleFSListResult{})
 				return nil
-			} else if err != nil {
+			default:
 				return err
 			}
 
@@ -357,12 +359,14 @@ func (k *SimpleFS) SimpleFSListRecursive(ctx context.Context, arg keybase1.Simpl
 		// Here we don't walk symlinks, so no loops possible.
 		var paths []string
 
-		fs, finalElem, exitEarly, err := k.getFS(ctx, arg.Path)
-		if exitEarly {
+		fs, finalElem, err := k.getFS(ctx, arg.Path)
+		switch err.(type) {
+		case nil:
+		case libfs.TlfDoesNotExist:
 			// TLF doesn't exist yet; just return an empty result.
 			k.setResult(arg.OpID, keybase1.SimpleFSListResult{})
 			return nil
-		} else if err != nil {
+		default:
 			return err
 		}
 
@@ -446,7 +450,7 @@ func copyWithCancellation(ctx context.Context, dst io.Writer, src io.Reader) err
 func (k *SimpleFS) doCopyFromSource(
 	ctx context.Context, srcFS billy.Filesystem, srcFI os.FileInfo,
 	destPath keybase1.Path) error {
-	dstFS, finalDstElem, _, err := k.getFS(ctx, destPath)
+	dstFS, finalDstElem, err := k.getFS(ctx, destPath)
 	if err != nil {
 		return err
 	}
@@ -474,7 +478,7 @@ func (k *SimpleFS) doCopyFromSource(
 func (k *SimpleFS) doCopy(ctx context.Context, srcPath, destPath keybase1.Path) error {
 	// Note this is also used by move, so if this changes update SimpleFSMove
 	// code also.
-	srcFS, finalSrcElem, _, err := k.getFS(ctx, srcPath)
+	srcFS, finalSrcElem, err := k.getFS(ctx, srcPath)
 	if err != nil {
 		return err
 	}
@@ -528,7 +532,7 @@ func (k *SimpleFS) SimpleFSCopyRecursive(ctx context.Context,
 					path := paths[len(paths)-1]
 					paths = paths[:len(paths)-1]
 
-					srcFS, finalSrcElem, _, err := k.getFS(ctx, path.src)
+					srcFS, finalSrcElem, err := k.getFS(ctx, path.src)
 					if err != nil {
 						return err
 					}
@@ -563,7 +567,7 @@ func (k *SimpleFS) SimpleFSCopyRecursive(ctx context.Context,
 }
 
 func (k *SimpleFS) doRemove(ctx context.Context, path keybase1.Path) error {
-	fs, finalElem, _, err := k.getFS(ctx, path)
+	fs, finalElem, err := k.getFS(ctx, path)
 	if err != nil {
 		return err
 	}
@@ -666,7 +670,7 @@ func (k *SimpleFS) SimpleFSOpen(ctx context.Context, arg keybase1.SimpleFSOpenAr
 	}
 	defer func() { k.doneSyncOp(ctx, err) }()
 
-	fs, finalElem, _, err := k.getFS(ctx, arg.Dest)
+	fs, finalElem, err := k.getFS(ctx, arg.Dest)
 	if err != nil {
 		return err
 	}
@@ -723,7 +727,7 @@ func (k *SimpleFS) SimpleFSSetStat(ctx context.Context, arg keybase1.SimpleFSSet
 	}
 	defer func() { k.doneSyncOp(ctx, err) }()
 
-	fs, finalElem, _, err := k.getFS(ctx, arg.Dest)
+	fs, finalElem, err := k.getFS(ctx, arg.Dest)
 	if err != nil {
 		return err
 	}
@@ -881,7 +885,7 @@ func (k *SimpleFS) SimpleFSStat(ctx context.Context, path keybase1.Path) (_ keyb
 	}
 	defer func() { k.doneSyncOp(ctx, err) }()
 
-	fs, finalElem, _, err := k.getFS(ctx, path)
+	fs, finalElem, err := k.getFS(ctx, path)
 	if err != nil {
 		return keybase1.Dirent{}, err
 	}

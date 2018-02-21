@@ -28,7 +28,7 @@ func closeSimpleFS(ctx context.Context, t *testing.T, fs *SimpleFS) {
 	// the journal.
 	ctx, err := fs.startOpWrapContext(ctx)
 	require.NoError(t, err)
-	remoteFS, _, _, err := fs.getFS(ctx, keybase1.NewPathWithKbfs("/private/jdoe"))
+	remoteFS, _, err := fs.getFS(ctx, keybase1.NewPathWithKbfs("/private/jdoe"))
 	require.NoError(t, err)
 	err = remoteFS.(*libfs.FS).SyncAll()
 	require.NoError(t, err)
