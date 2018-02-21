@@ -4,6 +4,7 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -340,7 +341,7 @@ func (h *GitHandler) kbfsClient() (*keybase1.KBFSGitClient, error) {
 		return nil, libkb.LoginRequiredError{}
 	}
 	if h.G().ConnectionManager == nil {
-		return nil, fmt.Errorf("no connection manager available")
+		return nil, errors.New("no connection manager available")
 	}
 	xp := h.G().ConnectionManager.LookupByClientType(keybase1.ClientType_KBFS)
 	if xp == nil {
