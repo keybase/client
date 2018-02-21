@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -29,6 +30,7 @@ type CmdTeamListMemberships struct {
 	verbose              bool
 	showInviteID         bool
 	verified             bool
+	showTeamType         bool
 	tabw                 *tabwriter.Writer
 }
 
@@ -69,6 +71,10 @@ func newCmdTeamListMemberships(cl *libcmdline.CommandLine, g *libkb.GlobalContex
 		cli.BoolFlag{
 			Name:  "show-invite-id",
 			Usage: "Show invite IDs",
+		},
+		cli.BoolFlag{
+			Name:  "show-team-type",
+			Usage: "Show team types (small/complex) when listing teams",
 		},
 		cli.BoolFlag{
 			Name:  "v, verbose",
@@ -121,6 +127,7 @@ func (c *CmdTeamListMemberships) ParseArgv(ctx *cli.Context) error {
 
 	c.json = ctx.Bool("json")
 	c.forcePoll = ctx.Bool("force-poll")
+	c.showTeamType = ctx.Bool("show-team-type")
 	c.verbose = ctx.Bool("verbose")
 
 	return nil
@@ -181,6 +188,19 @@ func (c *CmdTeamListMemberships) runUser(cli keybase1.TeamsClient) error {
 		return list.Teams[i].FqName < list.Teams[j].FqName
 	})
 
+	var teamTypes map[string]chat1.TeamType
+
+	if c.showTeamType {
+		resolver, err := newChatConversationResolver(c.G())
+		if err != nil {
+			return err
+		}
+		teamTypes, err = resolver.ChatClient.GetTeamTypesForTeams(context.Background())
+		if err != nil {
+			return err
+		}
+	}
+
 	if c.json {
 		b, err := json.Marshal(list)
 		if err != nil {
@@ -202,6 +222,7 @@ func (c *CmdTeamListMemberships) runUser(cli keybase1.TeamsClient) error {
 		fmt.Fprintf(c.tabw, "Team\tRole\tMembers\n")
 	}
 	for _, t := range list.Teams {
+		teamName := t.FqName
 		var role string
 		if t.Implicit != nil {
 			role += "implied admin"
@@ -212,6 +233,17 @@ func (c *CmdTeamListMemberships) runUser(cli keybase1.TeamsClient) error {
 			}
 			role += strings.ToLower(t.Role.String())
 		}
+		if c.showTeamType {
+			teamType, found := teamTypes[teamName]
+			if found {
+				switch teamType {
+				case chat1.TeamType_SIMPLE:
+					teamName = fmt.Sprintf("%s (small)", teamName)
+				case chat1.TeamType_COMPLEX:
+					teamName = fmt.Sprintf("%s (big)", teamName)
+				}
+			}
+		}
 		if c.showAll {
 			var reset string
 			if !t.Active {
@@ -220,9 +252,9 @@ func (c *CmdTeamListMemberships) runUser(cli keybase1.TeamsClient) error {
 					reset = " " + reset
 				}
 			}
-			fmt.Fprintf(c.tabw, "%s\t%s\t%s\t%s%s\n", t.FqName, role, t.Username, t.FullName, reset)
+			fmt.Fprintf(c.tabw, "%s\t%s\t%s\t%s%s\n", teamName, role, t.Username, t.FullName, reset)
 		} else {
-			fmt.Fprintf(c.tabw, "%s\t%s\t%d\n", t.FqName, role, t.MemberCount)
+			fmt.Fprintf(c.tabw, "%s\t%s\t%d\n", teamName, role, t.MemberCount)
 		}
 	}
 	if c.showAll {

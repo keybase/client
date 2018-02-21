@@ -3335,6 +3335,14 @@
         }
       ],
       "response": "GetSearchRegexpRes"
+    },
+    "getTeamTypesForTeams": {
+      "request": [],
+      "response": {
+        "type": "map",
+        "values": "TeamType",
+        "keys": "string"
+      }
     }
   },
   "namespace": "chat.1"
