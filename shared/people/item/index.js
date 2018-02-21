@@ -46,7 +46,7 @@ export default (props: Props) => (
       position: 'relative',
       borderBottomWidth: 1,
       borderBottomColor: props.badged ? globalColors.white : globalColors.black_05,
-      borderBottomStyle: 'solid',
+      ...(isMobile ? undefined : {borderBottomStyle: 'solid'}),
     }}
   >
     <Box style={{marginRight: 20, width: isMobile ? 48 : 32}}>{props.icon}</Box>

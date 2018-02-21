@@ -43,7 +43,7 @@ const Suggestion = (props: Types._FollowSuggestion & {onClickUser: () => void}) 
       usernames={[props.username]}
       onUsernameClicked={props.onClickUser}
       inline={true}
-      containerStyle={{textAlign: 'center'}}
+      containerStyle={isMobile ? undefined : {textAlign: 'center'}}
       style={{
         paddingLeft: globalMargins.tiny,
         paddingRight: globalMargins.tiny,

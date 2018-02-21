@@ -95,7 +95,7 @@ export const MultiFollowNotification = (props: Props) => {
                 alignSelf: 'center',
                 backgroundColor: globalColors.blue,
                 minWidth: isMobile ? 24 : 16,
-                textAlign: 'center',
+                ...(isMobile ? undefined : {textAlign: 'center'}),
               }}
             />
           </Box>
@@ -105,7 +105,7 @@ export const MultiFollowNotification = (props: Props) => {
     >
       <Text type="Body" style={{marginTop: 2, marginBottom: globalMargins.xtiny}}>
         <ConnectedUsernames
-          containerStyle={{whiteSpace: 'wrap'}}
+          containerStyle={isMobile ? undefined : {whiteSpace: 'wrap'}}
           inlineGrammar={true}
           showAnd={!props.numAdditional}
           {...connectedUsernamesProps}
