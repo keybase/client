@@ -31,6 +31,7 @@ type Logs struct {
 	Install string
 	System  string
 	Git     string
+	Trace   string
 }
 
 // LogSendContext for LogSend
