@@ -149,7 +149,22 @@
       return;
     }
 
-    // TODO: verify that the binary is signed by Keybase.
+    // Make sure the passed-in redirectory binary points to a proper binary
+    // signed by Keybase, we don't want this to be able to run arbitrary code
+    // as root.  TODO: Technically the binary could be swapped out immediately 
+    // after the check, so maybe we should come up with a way to protect
+    // against that.  (Perhaps copy the binary first to a root-only location?)
+    SecStaticCodeRef staticCode = NULL;
+    CFURLRef url = (__bridge CFURLRef)[NSURL fileURLWithPath:redirectorBin];
+    SecStaticCodeCreateWithPath(url, kSecCSDefaultFlags, &staticCode);
+    SecRequirementRef keybaseRequirement = NULL;
+    // This requirement string is taken from Installer/Info.plist.
+    SecRequirementCreateWithString(CFSTR("anchor apple generic and identifier \"keybase-redirector\" and (certificate leaf[field.1.2.840.113635.100.6.1.9] /* exists */ or certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = \"99229SGT5K\")"), kSecCSDefaultFlags, &keybaseRequirement);
+    OSStatus codeCheckResult = SecStaticCodeCheckValidityWithErrors(staticCode, kSecCSDefaultFlags, keybaseRequirement, NULL);
+    if (codeCheckResult != errSecSuccess) {
+      completion(KBMakeError(codeCheckResult, @"Bad redirector binary"), nil);
+      return;
+    }
 
     NSTask *task = [[NSTask alloc] init];
     task.launchPath = redirectorBin;
