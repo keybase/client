@@ -349,11 +349,12 @@ func (arg ProofMetadata) ToJSON(g *GlobalContext) (ret *jsonw.Wrapper, err error
 	return
 }
 
-func (u *User) TrackingProofFor(signingKey GenericKey, u2 *User, outcome *IdentifyOutcome) (ret *jsonw.Wrapper, err error) {
+func (u *User) TrackingProofFor(signingKey GenericKey, sigVersion SigVersion, u2 *User, outcome *IdentifyOutcome) (ret *jsonw.Wrapper, err error) {
 	ret, err = ProofMetadata{
 		Me:         u,
 		LinkType:   LinkTypeTrack,
 		SigningKey: signingKey,
+		SigVersion: sigVersion,
 	}.ToJSON(u.G())
 	if err == nil {
 		err = u2.ToTrackingStatement(ret.AtKey("body"), outcome)
@@ -361,11 +362,12 @@ func (u *User) TrackingProofFor(signingKey GenericKey, u2 *User, outcome *Identi
 	return
 }
 
-func (u *User) UntrackingProofFor(signingKey GenericKey, u2 *User) (ret *jsonw.Wrapper, err error) {
+func (u *User) UntrackingProofFor(signingKey GenericKey, sigVersion SigVersion, u2 *User) (ret *jsonw.Wrapper, err error) {
 	ret, err = ProofMetadata{
 		Me:         u,
 		LinkType:   LinkTypeUntrack,
 		SigningKey: signingKey,
+		SigVersion: sigVersion,
 	}.ToJSON(u.G())
 	if err == nil {
 		err = u2.ToUntrackingStatement(ret.AtKey("body"))

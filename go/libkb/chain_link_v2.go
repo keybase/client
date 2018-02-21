@@ -163,6 +163,46 @@ func (o OuterLinkV2) Encode() ([]byte, error) {
 	return MsgpackEncode(o)
 }
 
+func MakeSigchainV2OuterSig(
+	signingKey GenericKey,
+	v1LinkType LinkType,
+	seqno keybase1.Seqno,
+	innerLinkJSON []byte,
+	prevLinkID LinkID,
+	hasRevokes bool,
+	seqType keybase1.SeqType,
+	ignoreIfUnsupported bool,
+) (sig string, sigid keybase1.SigID, linkID LinkID, err error) {
+	currLinkID := ComputeLinkID(innerLinkJSON)
+
+	v2LinkType, err := SigchainV2TypeFromV1TypeAndRevocations(string(v1LinkType), hasRevokes)
+	if err != nil {
+		return sig, sigid, linkID, err
+	}
+
+	outerLink := OuterLinkV2{
+		Version:             2,
+		Seqno:               seqno,
+		Prev:                prevLinkID,
+		Curr:                currLinkID,
+		LinkType:            v2LinkType,
+		SeqType:             seqType,
+		IgnoreIfUnsupported: ignoreIfUnsupported,
+	}
+	encodedOuterLink, err := outerLink.Encode()
+	if err != nil {
+		return sig, sigid, linkID, err
+	}
+
+	sig, sigid, err = signingKey.SignToString(encodedOuterLink)
+	if err != nil {
+		return sig, sigid, linkID, err
+	}
+
+	linkID = ComputeLinkID(encodedOuterLink)
+	return sig, sigid, linkID, nil
+}
+
 func DecodeStubbedOuterLinkV2(b64encoded string) (*OuterLinkV2WithMetadata, error) {
 	payload, err := base64.StdEncoding.DecodeString(b64encoded)
 	if err != nil {

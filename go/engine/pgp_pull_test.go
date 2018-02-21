@@ -12,12 +12,12 @@ import (
 const aliceFp string = "2373fd089f28f328916b88f99c7927c0bdfdadf9"
 const bobFp string = "91fe9b24ef6706b1f7898f2059a2a43f8b731f29"
 
-func createUserWhoTracks(tc libkb.TestContext, trackedUsers []string) *FakeUser {
+func createUserWhoTracks(tc libkb.TestContext, trackedUsers []string, sigVersion libkb.SigVersion) *FakeUser {
 	fu := CreateAndSignupFakeUser(tc, "pull")
 	fu.LoginOrBust(tc)
 
 	for _, trackedUser := range trackedUsers {
-		_, _, err := runTrack(tc, fu, trackedUser)
+		_, _, err := runTrack(tc, fu, trackedUser, sigVersion)
 		if err != nil {
 			tc.T.Fatal("Error while tracking", trackedUser, err)
 		}
@@ -25,9 +25,9 @@ func createUserWhoTracks(tc libkb.TestContext, trackedUsers []string) *FakeUser 
 	return fu
 }
 
-func untrackUserList(tc libkb.TestContext, fu *FakeUser, trackedUsers []string) {
+func untrackUserList(tc libkb.TestContext, fu *FakeUser, trackedUsers []string, sigVersion libkb.SigVersion) {
 	for _, trackedUser := range trackedUsers {
-		if err := runUntrack(tc.G, fu, trackedUser); err != nil {
+		if err := runUntrack(tc.G, fu, trackedUser, sigVersion); err != nil {
 			tc.T.Fatal("Error while untracking", trackedUser, err)
 		}
 	}
@@ -86,12 +86,18 @@ func runPGPPullExpectingError(tc libkb.TestContext, arg PGPPullEngineArg) {
 }
 
 func TestPGPPullAll(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testPGPPullAll(t, sigVersion)
+	})
+}
+
+func _testPGPPullAll(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "pgp_pull")
 	defer tc.Cleanup()
 
 	users := []string{"t_alice", "t_bob"}
-	fu := createUserWhoTracks(tc, users)
-	defer untrackUserList(tc, fu, users)
+	fu := createUserWhoTracks(tc, users, sigVersion)
+	defer untrackUserList(tc, fu, users, sigVersion)
 	gpgClient := createGpgClient(tc)
 
 	assertKeysMissing(t, gpgClient, []string{aliceFp, bobFp})
@@ -102,12 +108,18 @@ func TestPGPPullAll(t *testing.T) {
 }
 
 func TestPGPPullOne(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testPGPPullOne(t, sigVersion)
+	})
+}
+
+func _testPGPPullOne(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "pgp_pull")
 	defer tc.Cleanup()
 
 	users := []string{"t_alice", "t_bob"}
-	fu := createUserWhoTracks(tc, users)
-	defer untrackUserList(tc, fu, users)
+	fu := createUserWhoTracks(tc, users, sigVersion)
+	defer untrackUserList(tc, fu, users, sigVersion)
 	gpgClient := createGpgClient(tc)
 
 	assertKeysMissing(t, gpgClient, []string{aliceFp, bobFp})
@@ -122,12 +134,18 @@ func TestPGPPullOne(t *testing.T) {
 }
 
 func TestPGPPullBadIDs(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testPGPPullBadIDs(t, sigVersion)
+	})
+}
+
+func _testPGPPullBadIDs(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "pgp_pull")
 	defer tc.Cleanup()
 
 	users := []string{"t_alice", "t_bob"}
-	fu := createUserWhoTracks(tc, users)
-	defer untrackUserList(tc, fu, users)
+	fu := createUserWhoTracks(tc, users, sigVersion)
+	defer untrackUserList(tc, fu, users, sigVersion)
 	gpgClient := createGpgClient(tc)
 
 	assertKeysMissing(t, gpgClient, []string{aliceFp, bobFp})

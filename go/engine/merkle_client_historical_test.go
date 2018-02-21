@@ -1,13 +1,20 @@
 package engine
 
 import (
+	"testing"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
-	"testing"
 )
 
 func TestMerkleClientHistorical(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testMerkleClientHistorical(t, sigVersion)
+	})
+}
+
+func _testMerkleClientHistorical(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
 	fu := CreateAndSignupFakeUser(tc, "track")
@@ -23,8 +30,8 @@ func TestMerkleClientHistorical(t *testing.T) {
 	require.NotNil(t, root)
 
 	for i := 0; i < 5; i++ {
-		trackAlice(tc, fu)
-		untrackAlice(tc, fu)
+		trackAlice(tc, fu, sigVersion)
+		untrackAlice(tc, fu, sigVersion)
 	}
 	leaf2, err := mc.LookupLeafAtHashMeta(context.TODO(), fu.UID().AsUserOrTeam(), root.HashMeta())
 	require.NoError(t, err)

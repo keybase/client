@@ -236,6 +236,12 @@ func TestRevokeKey(t *testing.T) {
 
 // See issue #370.
 func TestTrackAfterRevoke(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testTrackAfterRevoke(t, sigVersion)
+	})
+}
+
+func _testTrackAfterRevoke(t *testing.T, sigVersion libkb.SigVersion) {
 	tc1 := SetupEngineTest(t, "rev")
 	defer tc1.Cleanup()
 
@@ -282,7 +288,7 @@ func TestTrackAfterRevoke(t *testing.T) {
 
 	// Still logged in on tc1.  Try to use it to track someone.  It should fail
 	// with a KeyRevokedError.
-	_, _, err = runTrack(tc1, u, "t_alice")
+	_, _, err = runTrack(tc1, u, "t_alice", sigVersion)
 	if err == nil {
 		t.Fatal("expected runTrack to return an error")
 	}

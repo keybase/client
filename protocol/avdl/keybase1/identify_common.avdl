@@ -7,6 +7,9 @@ protocol identifyCommon {
   @typedef("string")
   record TrackToken {}
 
+  @typedef("int")
+  record SigVersion {}
+
   enum TrackDiffType {
     NONE_0,
     ERROR_1,
@@ -60,6 +63,8 @@ protocol identifyCommon {
     boolean forceRetrack;  // only used in testing
     boolean expiringLocal;
     boolean forPGPPull;
+    SigVersion sigVersion;
+
   }
 
   enum IdentifyReasonType {

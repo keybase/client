@@ -179,6 +179,12 @@ func TestLoadDeviceKeyRevoked(t *testing.T) {
 }
 
 func TestFullSelfCacherFlushSingleMachine(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testFullSelfCacherFlushSingleMachine(t, sigVersion)
+	})
+}
+
+func _testFullSelfCacherFlushSingleMachine(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "fsc")
 	defer tc.Cleanup()
 
@@ -190,8 +196,8 @@ func TestFullSelfCacherFlushSingleMachine(t *testing.T) {
 		scv = u.GetSigChainLastKnownSeqno()
 		return nil
 	})
-	trackAlice(tc, fu)
-	defer untrackAlice(tc, fu)
+	trackAlice(tc, fu, sigVersion)
+	defer untrackAlice(tc, fu, sigVersion)
 	tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
 		require.NotNil(t, u)
 		require.True(t, u.GetSigChainLastKnownSeqno() > scv)
@@ -440,13 +446,19 @@ func TestLoadAfterAcctReset2(t *testing.T) {
 // logins in a row, right on top of each other, previous subchains
 // would be dropped from the self UPAK.
 func TestLoadAfterAcctResetCORE6943(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testLoadAfterAcctResetCORE6943(t, sigVersion)
+	})
+}
+
+func _testLoadAfterAcctResetCORE6943(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "clu")
 	defer tc.Cleanup()
 
 	t.Logf("create new user")
 	fu := CreateAndSignupFakeUser(tc, "res")
 
-	trackAlice(tc, fu)
+	trackAlice(tc, fu, sigVersion)
 
 	loadUpak := func() (*keybase1.UserPlusAllKeys, error) {
 		t.Logf("loadUpak: using username:%+v", fu.Username)
