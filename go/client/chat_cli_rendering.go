@@ -445,10 +445,17 @@ func formatSystemMessage(body chat1.MessageSystem) string {
 	case chat1.MessageSystemType_CREATETEAM:
 		return fmt.Sprintf("[%s created the team %s]", body.Createteam().Creator, body.Createteam().Team)
 	case chat1.MessageSystemType_GITPUSH:
-		total := keybase1.TotalNumberOfCommits(body.Gitpush().Refs)
-		names := keybase1.RefNames(body.Gitpush().Refs)
-		return fmt.Sprintf("[git (%s) %s pushed %d commits to %s]", body.Gitpush().RepoName,
-			body.Gitpush().Pusher, total, names)
+		switch body.Gitpush().PushType {
+		case keybase1.GitPushType_CREATEREPO:
+			return fmt.Sprintf("[git %s created the repo %s]", body.Gitpush().Pusher, body.Gitpush().RepoName)
+		case keybase1.GitPushType_RENAMEREPO:
+			return fmt.Sprintf("[git %s changed the name of the repo %s to %s]", body.Gitpush().Pusher, body.Gitpush().PreviousRepoName, body.Gitpush().RepoName)
+		default:
+			total := keybase1.TotalNumberOfCommits(body.Gitpush().Refs)
+			names := keybase1.RefNames(body.Gitpush().Refs)
+			return fmt.Sprintf("[git (%s) %s pushed %d commits to %s]", body.Gitpush().RepoName,
+				body.Gitpush().Pusher, total, names)
+		}
 	}
 	return "<unknown system message>"
 }
