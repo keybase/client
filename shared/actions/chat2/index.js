@@ -1019,7 +1019,6 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
 }
 
 const startConversation = (action: Chat2Gen.StartConversationPayload, state: TypedState) => {
-  /*, forceImmediate */
   const {participants, tlf} = action.payload
   const you = state.config.username || ''
 
@@ -1065,14 +1064,14 @@ const startConversation = (action: Chat2Gen.StartConversationPayload, state: Typ
   if (conversationIDKey) {
     return Saga.sequentially([
       Saga.put(Chat2Gen.createSelectConversation({conversationIDKey})),
-      Saga.put(Route.switchTo([chatTab])),
+      Saga.put(Chat2Gen.createNavigateToThread()),
     ])
   }
 
   return Saga.sequentially([
     Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'fixedSetOfUsers'})),
     Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: false, users})),
-    Saga.put(Route.switchTo([chatTab])),
+    Saga.put(Chat2Gen.createNavigateToThread()),
   ])
 }
 
@@ -1568,9 +1567,9 @@ const loadCanUserPerform = (action: Chat2Gen.SelectConversationPayload, state: T
   }
 }
 
-const navigateToInbox = () => Saga.put(Route.navigateTo([chatTab], []))
+const navigateToInbox = () => Saga.put(Route.navigateTo([{selected: chatTab}, {selected: null}]))
 const navigateToThread = () =>
-  Saga.put(Route.navigateTo(isMobile ? [chatTab, 'conversation'] : [chatTab], []))
+  Saga.put(Route.navigateTo(isMobile ? [chatTab, 'conversation'] : [{selected: chatTab}, {selected: null}]))
 
 function* messageAttachmentNativeShare(action: Chat2Gen.MessageAttachmentNativeSharePayload) {
   const {conversationIDKey, ordinal} = action.payload

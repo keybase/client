@@ -9,7 +9,7 @@ export type Props = {
   name: string,
   onBack: () => void,
   onJoinSubteamChange: () => void,
-  onNameChange: () => void,
+  onNameChange: (n: string) => void,
   onSubmit: () => void,
   pending: boolean,
 }

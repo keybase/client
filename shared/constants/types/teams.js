@@ -86,6 +86,8 @@ export type _State = {
   sawChatBanner: boolean,
   sawSubteamsBanner: boolean,
   teamAccessRequestsPending: I.Set<Teamname>,
+  teamCreationError: string,
+  teamCreationPending: boolean,
   teamNameToConvIDs: I.Map<Teamname, I.Set<ConversationIDKey>>,
   teamNameToInvites: I.Map<
     Teamname,

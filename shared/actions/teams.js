@@ -243,13 +243,6 @@ const _ignoreRequest = function*(action: TeamsGen.IgnoreRequestPayload) {
   }
 }
 
-// function getPendingConvParticipants(state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) {
-// return null
-// // if (!ChatConstants.isPendingConversationIDKey(conversationIDKey)) return null
-
-// // return state.chat.pendingConversations.get(conversationIDKey)
-// }
-
 const _createNewTeamFromConversation = function*(
   action: TeamsGen.CreateNewTeamFromConversationPayload
 ): Saga.SagaGenerator<any, any> {
@@ -260,12 +253,6 @@ const _createNewTeamFromConversation = function*(
   let participants
 
   participants = meta.participants
-
-  // if (inbox) {
-  // participants = inbox.get('participants')
-  // } else {
-  // participants = getPendingConvParticipants(state, ChatTypes.stringToConversationIDKey(conversationIDKey))
-  // }
 
   if (participants) {
     yield Saga.put(TeamsGen.createSetTeamCreationError({error: ''}))
@@ -286,9 +273,7 @@ const _createNewTeamFromConversation = function*(
           })
         }
       }
-      // TODO
-      // yield Saga.put(ChatGen.createExitSearch({skipSelectPreviousConversation: true}))
-      // yield Saga.put(ChatGen.createOpenTeamConversation({teamname, channelname: 'general'}))
+      yield Saga.put(Chat2Gen.createStartConversation({tlf: `/keybase/team/${teamname}`}))
     } catch (error) {
       yield Saga.put(TeamsGen.createSetTeamCreationError({error: error.desc}))
     } finally {
@@ -879,6 +864,12 @@ const _onTabChange = (action: RouteTypes.SwitchTo) => {
 const _setChannelCreationError = (action: TeamsGen.SetChannelCreationErrorPayload) =>
   Saga.put(replaceEntity(['teams'], I.Map({channelCreationError: action.payload.error})))
 
+const _setTeamCreationError = (action: TeamsGen.SetTeamCreationErrorPayload) =>
+  Saga.put(replaceEntity(['teams'], I.Map({teamCreationError: action.payload.error})))
+
+const _setTeamCreationPending = (action: TeamsGen.SetTeamCreationPendingPayload) =>
+  Saga.put(replaceEntity(['teams'], I.Map({teamCreationPending: action.payload.pending})))
+
 const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TeamsGen.leaveTeam, _leaveTeam)
   yield Saga.safeTakeEveryPure(TeamsGen.createNewTeam, _createNewTeam)
@@ -904,6 +895,8 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TeamsGen.badgeAppForTeams, _badgeAppForTeams)
   yield Saga.safeTakeEveryPure(RouteConstants.switchTo, _onTabChange)
   yield Saga.safeTakeEveryPure(TeamsGen.setChannelCreationError, _setChannelCreationError)
+  yield Saga.safeTakeEveryPure(TeamsGen.setTeamCreationError, _setTeamCreationError)
+  yield Saga.safeTakeEveryPure(TeamsGen.setTeamCreationPending, _setTeamCreationPending)
   yield Saga.safeTakeEvery(TeamsGen.inviteToTeamByPhone, _inviteToTeamByPhone)
   yield Saga.safeTakeEveryPure(TeamsGen.setPublicity, _setPublicity, _afterSaveCalls)
   yield Saga.safeTakeEveryPure(

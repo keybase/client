@@ -62,6 +62,8 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   loaded: false,
   sawChatBanner: false,
   sawSubteamsBanner: false,
+  teamCreationError: '',
+  teamCreationPending: false,
   teamAccessRequestsPending: I.Set(),
   teamNameToConvIDs: I.Map(),
   teamNameToInvites: I.Map(),
