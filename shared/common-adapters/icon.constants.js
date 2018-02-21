@@ -1261,6 +1261,11 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-skull-64.png'),
   },
+  'icon-team-git-16-18': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-team-git-16-18.png'),
+  },
   'icon-team-leave-28': {
     isFont: false,
     extension: 'png',

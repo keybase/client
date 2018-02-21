@@ -108,13 +108,11 @@ class FriendshipsRender extends Component<Props> {
             this.props.onSwitchTab && this.props.onSwitchTab('Followers')
           }}
         >
-          <Box style={{marginTop: globalMargins.small}}>
+          <Box style={{marginTop: globalMargins.large}}>
             {followers === 0 &&
               isYou && (
                 <Box style={friendshipEmptyStyle}>
-                  <Text type="Body" style={{color: globalColors.black_40}}>
-                    You have no followers.
-                  </Text>
+                  <Text type="BodySmall">You have no followers.</Text>
                 </Box>
               )}
             <ReactList
@@ -132,13 +130,11 @@ class FriendshipsRender extends Component<Props> {
             this.props.onSwitchTab && this.props.onSwitchTab('Following')
           }}
         >
-          <Box style={{marginTop: globalMargins.small}}>
+          <Box style={{marginTop: globalMargins.large}}>
             {following === 0 &&
               isYou && (
                 <Box style={friendshipEmptyStyle}>
-                  <Text type="Body" style={{color: globalColors.black_40}}>
-                    You are not following anyone.
-                  </Text>
+                  <Text type="BodySmall">You are not following anyone.</Text>
                 </Box>
               )}
             <ReactList
