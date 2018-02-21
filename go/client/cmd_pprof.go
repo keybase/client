@@ -85,7 +85,7 @@ func NewCmdPprofTrace(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 			},
 			cli.BoolFlag{
 				Name:  "log, l",
-				Usage: "Whether to write the trace to the log directory. If set, don't pass an argument.",
+				Usage: "Whether to write the trace to the log directory so that it gets included in a log send. If set, don't pass an argument.",
 			},
 		},
 	}
