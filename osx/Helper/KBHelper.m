@@ -162,7 +162,7 @@
 
 - (void)checkKeybaseBinary:(NSURL *)bin error:(NSError **)error {
     SecStaticCodeRef staticCode = NULL;
-    CFURLRef url = (__bridge CFURLRef)dstURL;
+    CFURLRef url = (__bridge CFURLRef)bin;
     SecStaticCodeCreateWithPath(url, kSecCSDefaultFlags, &staticCode);
     SecRequirementRef keybaseRequirement = NULL;
     // This requirement string is taken from Installer/Info.plist.
@@ -179,11 +179,11 @@
   task.arguments = @[mount];
 
   @try {
-    [self.task launch];
-    [self.task waitUntilExit];
+    [task launch];
+    [task waitUntilExit];
   } @catch (NSException *e) {
-    NSString *errorMessage = NSStringWithFormat(@"%@ (%@)", e.reason, self.taskDescription);
-    error = KBMakeError(KBErrorCodeGeneric, @"%@", errorMessage);
+    NSString *errorMessage = [NSString stringWithFormat:@"%@ (unmount)", e.reason];
+    *error = KBMakeError(-1, errorMessage);
   }
 }
 
@@ -212,7 +212,7 @@
     // Copy the binary to a root-only location so it can't be
     // subsequently modified by a user after we check it.
     NSError *error = nil;
-    (NSURL *)dstURL = [self copyBinaryForHelperUse:redirectorBin name:@"keybase-redirector" error:&error];
+    NSURL *dstURL = [self copyBinaryForHelperUse:redirectorBin name:@"keybase-redirector" error:&error];
     if (error) {
       completion(error, nil);
       return;
@@ -244,7 +244,11 @@
     return;
   }
 
-  self.redirector = nil;
+  if (self.redirector) {
+    [self.redirector terminate];
+    self.redirector = nil;
+  }
+
   completion(nil, @{});
 }
 
