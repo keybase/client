@@ -15,6 +15,7 @@
 #import "KBCommandLine.h"
 #import "KBUpdaterService.h"
 #import "KBMountDir.h"
+#import "KBRedirector.h"
 #import "KBAppBundle.h"
 #import "KBNM.h"
 

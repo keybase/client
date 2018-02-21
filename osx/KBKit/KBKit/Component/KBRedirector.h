@@ -1,5 +1,5 @@
 //
-//  KBMountDir.h
+//  KBRedirector.h
 //  KBKit
 //
 //  Created by Gabriel on 8/24/16.
