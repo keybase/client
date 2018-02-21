@@ -750,6 +750,12 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		}
 		return nil
 	}
+	allowInImplicitTeam := func(allow bool) error {
+		if team.Implicit && !allow {
+			return NewImplicitTeamOperationError(payload.Body.Type)
+		}
+		return nil
+	}
 	enforceFirstInChain := func(firstInChain bool) error {
 		if firstInChain {
 			if prevState != nil {
@@ -790,6 +796,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			enforceGeneric("completed-invites", rules.CompletedInvites, team.CompletedInvites != nil),
 			enforceGeneric("settings", rules.Settings, team.Settings != nil),
 			enforceGeneric("kbfs", rules.KBFS, team.KBFS != nil),
+			allowInImplicitTeam(rules.AllowInImplicitTeam),
 			allowInflate(rules.AllowInflate),
 			enforceFirstInChain(rules.FirstInChain),
 		)
@@ -821,12 +828,13 @@ func (t *TeamSigChainPlayer) addInnerLink(
 	switch libkb.LinkType(payload.Body.Type) {
 	case libkb.LinkTypeTeamRoot:
 		err = enforce(LinkRules{
-			Name:         TristateRequire,
-			Members:      TristateRequire,
-			PerTeamKey:   TristateRequire,
-			Invites:      TristateOptional,
-			Settings:     TristateOptional,
-			FirstInChain: true,
+			Name:                TristateRequire,
+			Members:             TristateRequire,
+			PerTeamKey:          TristateRequire,
+			Invites:             TristateOptional,
+			Settings:            TristateOptional,
+			AllowInImplicitTeam: true,
+			FirstInChain:        true,
 		})
 		if err != nil {
 			return res, err
@@ -931,10 +939,11 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		return res, nil
 	case libkb.LinkTypeChangeMembership:
 		err = enforce(LinkRules{
-			Members:          TristateRequire,
-			PerTeamKey:       TristateOptional,
-			Admin:            TristateOptional,
-			CompletedInvites: TristateOptional,
+			Members:             TristateRequire,
+			PerTeamKey:          TristateOptional,
+			Admin:               TristateOptional,
+			CompletedInvites:    TristateOptional,
+			AllowInImplicitTeam: true,
 		})
 		if err != nil {
 			return res, err
@@ -1087,8 +1096,9 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		return res, nil
 	case libkb.LinkTypeRotateKey:
 		err = enforce(LinkRules{
-			PerTeamKey: TristateRequire,
-			Admin:      TristateOptional,
+			PerTeamKey:          TristateRequire,
+			Admin:               TristateOptional,
+			AllowInImplicitTeam: true,
 		})
 		if err != nil {
 			return res, err
@@ -1127,10 +1137,6 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, err
 		}
 
-		if prevState.IsImplicit() {
-			return res, NewImplicitTeamOperationError(payload.Body.Type)
-		}
-
 		// Check that the signer is at least a reader.
 		// Implicit admins cannot leave a subteam.
 		signerRole, err := prevState.GetUserRoleAtSeqno(signer.signer, prevSeqno)
@@ -1159,10 +1165,6 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		})
 		if err != nil {
 			return res, err
-		}
-
-		if prevState.IsImplicit() {
-			return res, NewImplicitTeamOperationError(payload.Body.Type)
 		}
 
 		// Check the subteam ID
@@ -1292,10 +1294,6 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, err
 		}
 
-		if prevState.IsImplicit() {
-			return res, NewImplicitTeamOperationError(payload.Body.Type)
-		}
-
 		_, err = checkAdmin("rename subteam")
 		if err != nil {
 			return res, err
@@ -1331,10 +1329,6 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		})
 		if err != nil {
 			return res, err
-		}
-
-		if prevState.IsImplicit() {
-			return res, NewImplicitTeamOperationError(payload.Body.Type)
 		}
 
 		// These links only occur in subteam.
@@ -1388,10 +1382,6 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, err
 		}
 
-		if prevState.IsImplicit() {
-			return res, NewImplicitTeamOperationError(payload.Body.Type)
-		}
-
 		_, err = checkAdmin("delete subteam")
 		if err != nil {
 			return res, err
@@ -1419,9 +1409,10 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		return res, nil
 	case libkb.LinkTypeInvite:
 		err = enforce(LinkRules{
-			Admin:            TristateOptional,
-			Invites:          TristateRequire,
-			CompletedInvites: TristateOptional, // @@@ UHOH! This was not banned, but is not processed.
+			Admin:               TristateOptional,
+			Invites:             TristateRequire,
+			CompletedInvites:    TristateOptional, // @@@ UHOH! This was not banned, but is not processed.
+			AllowInImplicitTeam: true,
 		})
 		if err != nil {
 			return res, err
@@ -1475,6 +1466,9 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		err = enforce(LinkRules{
 			Admin:    TristateOptional,
 			Settings: TristateRequire,
+			// At the moment the only team setting is banned in implicit teams.
+			// But in the future there could be allowed settings that also use this link type.
+			AllowInImplicitTeam: true,
 		})
 		if err != nil {
 			return res, err
@@ -1494,8 +1488,9 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		return res, NewTeamDeletedError()
 	case libkb.LinkTypeKBFSSettings:
 		err = enforce(LinkRules{
-			Admin: TristateOptional,
-			KBFS:  TristateRequire,
+			Admin:               TristateOptional,
+			KBFS:                TristateRequire,
+			AllowInImplicitTeam: true,
 		})
 		if err != nil {
 			return res, err
@@ -2061,6 +2056,7 @@ type LinkRules struct {
 	Settings         Tristate
 	KBFS             Tristate
 
-	AllowInflate bool // whether this link is allowed to be filled later
-	FirstInChain bool // whether this link must be the beginning of the chain
+	AllowInImplicitTeam bool // whether this link is allowed in implicit team chains
+	AllowInflate        bool // whether this link is allowed to be filled later
+	FirstInChain        bool // whether this link must be the beginning of the chain
 }
