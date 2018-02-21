@@ -360,7 +360,7 @@
 		00E206681C4DBD170095FD56 /* KBCommandLine.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E206661C4DBD170095FD56 /* KBCommandLine.h */; };
 		00E206691C4DBD170095FD56 /* KBCommandLine.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E206671C4DBD170095FD56 /* KBCommandLine.m */; };
 		206644B0203CEF0700082D09 /* KBRedirector.h in Headers */ = {isa = PBXBuildFile; fileRef = 206644AE203CEF0700082D09 /* KBRedirector.h */; };
-		206644B1203CEF0700082D09 /* KBRedirector.m in Sources */ = {isa = PBXBuildFile; fileRef = 206644AF203CEF0700082D09 /* KBRedirector.m */; };
+		206644B3203CF59B00082D09 /* KBRedirector.m in Sources */ = {isa = PBXBuildFile; fileRef = 206644AF203CEF0700082D09 /* KBRedirector.m */; };
 		5CF627053506EA5AD0D3EC32 /* libPods-KBKit.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B74D43B87E43EC9A7B5E254 /* libPods-KBKit.a */; };
 /* End PBXBuildFile section */
 
@@ -1681,6 +1681,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				206644B3203CF59B00082D09 /* KBRedirector.m in Sources */,
 				00010C921BE19F8900A9C285 /* KBApp.m in Sources */,
 				00010DA71BE19F8900A9C285 /* KBSecretPromptView.m in Sources */,
 				00010D531BE19F8900A9C285 /* KBKeyImportView.m in Sources */,
@@ -1738,7 +1739,6 @@
 				00010CAE1BE19F8900A9C285 /* KBInstallable.m in Sources */,
 				0033F4761C3F271B00317C79 /* KBMemLogger.m in Sources */,
 				00010DC31BE19F8900A9C285 /* KBUserButtonView.m in Sources */,
-				206644B1203CEF0700082D09 /* KBRedirector.m in Sources */,
 				00010DBD1BE19F8900A9C285 /* KBSearchField.m in Sources */,
 				00010D4F1BE19F8900A9C285 /* KBProgressView.m in Sources */,
 				00010DCB1BE19F8900A9C285 /* KBUserInfoView.m in Sources */,

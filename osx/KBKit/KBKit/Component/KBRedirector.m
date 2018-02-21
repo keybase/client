@@ -31,7 +31,7 @@
   uid_t uid = 0;
   gid_t gid = 0;
   NSNumber *permissions = [NSNumber numberWithShort:0600];
-  NSDictionary *params = @{@"directory": @"/keybase", @"uid": @(uid), @"gid": @(gid), @"permissions": permissions, @"excludeFromBackup": @(YES), @"redirectorBin": "/Applications/Keybase.app/Contents/SharedSupport/bin/keybase-redirector"};
+  NSDictionary *params = @{@"directory": @"/keybase.redirect", @"uid": @(uid), @"gid": @(gid), @"permissions": permissions, @"excludeFromBackup": @(YES), @"redirectorBin": @"/Applications/Keybase.app/Contents/SharedSupport/bin/keybase-redirector"};
   DDLogDebug(@"Starting redirector: %@", params);
   [self.helperTool.helper sendRequest:@"startRedirector" params:@[params] completion:^(NSError *err, id value) {
     completion(err);

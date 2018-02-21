@@ -47,6 +47,7 @@
   [parser registerSwitch:@"uninstall"];
   [parser registerSwitch:@"install-fuse"];
   [parser registerSwitch:@"install-mountdir"];
+  [parser registerSwitch:@"install-redirector"];
   [parser registerSwitch:@"install-helper"];
   [parser registerSwitch:@"install-app-bundle"];
   [parser registerSwitch:@"install-cli"];
