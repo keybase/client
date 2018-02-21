@@ -141,37 +141,26 @@
   completion(nil, @{});
 }
 
-- (void)startRedirector:(NSString *)directory uid:(NSNumber *)uid gid:(NSNumber *)gid permissions:(NSNumber *)permissions excludeFromBackup:(BOOL)excludeFromBackup redirectorBin:(NSString *)redirectorBin completion:(void (^)(NSError *error, id value))completion {
-  // First create the directory.
-  [self createDirectory:directory uid:uid gid:gid permissions:permissions excludeFromBackup:excludeFromBackup completion:^(NSError *err, id value) {
-    if (err) {
-      completion(err, value);
-      return;
-    }
-
-    // Copy the binary to a root-only location so it can't be
-    // subsequently modified by a user.
+- (NSURL *)copyBinaryForHelperUse:(NSString *)bin name:(NSString *)name error:(NSError **)error {
     NSURL *directoryURL = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:[[NSProcessInfo processInfo] globallyUniqueString]] isDirectory:YES];
     NSMutableDictionary *attributes = [NSMutableDictionary dictionary];
     attributes[NSFilePosixPermissions] = [NSNumber numberWithShort:0700];
     attributes[NSFileOwnerAccountID] = 0;
     attributes[NSFileGroupOwnerAccountID] = 0;
-    NSError *error = nil;
-    if (![[NSFileManager defaultManager] createDirectoryAtURL:directoryURL withIntermediateDirectories:YES attributes:attributes error:&error]) {
-      completion(nil, error);
-      return;
+    if (![[NSFileManager defaultManager] createDirectoryAtURL:directoryURL withIntermediateDirectories:YES attributes:attributes error:error]) {
+      return nil;
     }
 
-    NSURL *srcURL = [NSURL fileURLWithPath:redirectorBin];
-    NSURL *dstURL = [directoryURL URLByAppendingPathComponent:@"keybase-redirector" isDirectory:NO];
-    if (![[NSFileManager defaultManager] copyItemAtURL:srcURL toURL:dstURL error:&error]) {
-      completion(nil, error);
-      return;
+    NSURL *srcURL = [NSURL fileURLWithPath:bin];
+    NSURL *dstURL = [directoryURL URLByAppendingPathComponent:name isDirectory:NO];
+    if (![[NSFileManager defaultManager] copyItemAtURL:srcURL toURL:dstURL error:error]) {
+      return nil;
     }
 
-    // Make sure the passed-in redirector binary points to a proper binary
-    // signed by Keybase, we don't want this to be able to run arbitrary code
-    // as root.
+    return dstURL;
+}
+
+- (void)checkKeybaseBinary:(NSURL *)bin error:(NSError **)error {
     SecStaticCodeRef staticCode = NULL;
     CFURLRef url = (__bridge CFURLRef)dstURL;
     SecStaticCodeCreateWithPath(url, kSecCSDefaultFlags, &staticCode);
@@ -180,7 +169,61 @@
     SecRequirementCreateWithString(CFSTR("anchor apple generic and identifier \"keybase-redirector\" and (certificate leaf[field.1.2.840.113635.100.6.1.9] /* exists */ or certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = \"99229SGT5K\")"), kSecCSDefaultFlags, &keybaseRequirement);
     OSStatus codeCheckResult = SecStaticCodeCheckValidityWithErrors(staticCode, kSecCSDefaultFlags, keybaseRequirement, NULL);
     if (codeCheckResult != errSecSuccess) {
-      completion(KBMakeError(codeCheckResult, @"Bad redirector binary"), nil);
+      *error = KBMakeError(codeCheckResult, @"Binary not signed by Keybase");
+    }
+}
+
+- (void)unmount:(NSString *)mount error:(NSError **)error {
+  NSTask *task = [[NSTask alloc] init];
+  task.launchPath = @"/sbin/umount";
+  task.arguments = @[mount];
+
+  @try {
+    [self.task launch];
+    [self.task waitUntilExit];
+  } @catch (NSException *e) {
+    NSString *errorMessage = NSStringWithFormat(@"%@ (%@)", e.reason, self.taskDescription);
+    error = KBMakeError(KBErrorCodeGeneric, @"%@", errorMessage);
+  }
+}
+
+- (void)startRedirector:(NSString *)directory uid:(NSNumber *)uid gid:(NSNumber *)gid permissions:(NSNumber *)permissions excludeFromBackup:(BOOL)excludeFromBackup redirectorBin:(NSString *)redirectorBin completion:(void (^)(NSError *error, id value))completion {
+  if (self.redirector) {
+    // Already started.
+    completion(nil, @{});
+    return;
+  }
+
+  // Unmount anything that's already mounted there.
+  NSError *error = nil;
+  [self unmount:directory error:&error];
+  if (error) {
+    completion(error, nil);
+    return;
+  }
+
+  // First create the directory.
+  [self createDirectory:directory uid:uid gid:gid permissions:permissions excludeFromBackup:excludeFromBackup completion:^(NSError *err, id value) {
+    if (err) {
+      completion(err, value);
+      return;
+    }
+
+    // Copy the binary to a root-only location so it can't be
+    // subsequently modified by a user after we check it.
+    NSError *error = nil;
+    (NSURL *)dstURL = [self copyBinaryForHelperUse:redirectorBin name:@"keybase-redirector" error:&error];
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+
+    // Make sure the passed-in redirector binary points to a proper binary
+    // signed by Keybase, we don't want this to be able to run arbitrary code
+    // as root.
+    [self checkKeybaseBinary:dstURL error:&error];
+    if (error) {
+      completion(error, nil);
       return;
     }
 
@@ -194,6 +237,14 @@
 }
 
 - (void)stopRedirector:(NSString *)directory completion:(void (^)(NSError *error, id value))completion {
+  NSError *error = nil;
+  [self unmount:directory error:&error];
+  if (error) {
+    completion(error, nil);
+    return;
+  }
+
+  self.redirector = nil;
   completion(nil, @{});
 }
 
