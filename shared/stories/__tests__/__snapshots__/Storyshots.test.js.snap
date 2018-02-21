@@ -26441,7 +26441,7 @@ exports[`Storyshots Files Root 1`] = `
                 "borderTopWidth": 1,
                 "display": "flex",
                 "flexDirection": "row",
-                "justifyContent": "start",
+                "justifyContent": "flex-start",
                 "minHeight": 24,
               }
             }
