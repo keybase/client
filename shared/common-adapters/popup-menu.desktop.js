@@ -1,11 +1,11 @@
 // @flow
 import React, {Component} from 'react'
-import type {Props, HeaderTextProps} from './popup-menu'
+import type {ModalLessPopupMenuProps, Props, HeaderTextProps} from './popup-menu'
 import {Box, Text} from '../common-adapters/index'
 import EscapeHandler from '../util/escape-handler'
 import {globalColors, globalMargins, globalStyles} from '../styles'
 
-class ModalLessPopupMenu extends Component<Props> {
+class ModalLessPopupMenu extends Component<ModalLessPopupMenuProps> {
   render() {
     const realCSS = `
     .menu-hover:hover { background-color: ${(this.props.style && this.props.style.hoverColor) ||
