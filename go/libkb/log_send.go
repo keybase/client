@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"archive/tar"
 	"bytes"
 	"compress/gzip"
 	"fmt"
@@ -40,6 +41,19 @@ type LogSendContext struct {
 	Logs Logs
 }
 
+func addBinaryFile(mpart *multipart.Writer, param, filename string, data []byte) error {
+	if len(data) == 0 {
+		return nil
+	}
+
+	part, err := mpart.CreateFormFile(param, filename)
+	if err != nil {
+		return err
+	}
+	_, err = io.Copy(part, bytes.NewBuffer(data))
+	return err
+}
+
 func addFile(mpart *multipart.Writer, param, filename, data string) error {
 	if len(data) == 0 {
 		return nil
@@ -56,7 +70,7 @@ func addFile(mpart *multipart.Writer, param, filename, data string) error {
 	return gz.Close()
 }
 
-func (l *LogSendContext) post(status, feedback, kbfsLog, svcLog, desktopLog, updaterLog, startLog, installLog, systemLog, gitLog string) (string, error) {
+func (l *LogSendContext) post(status, feedback, kbfsLog, svcLog, desktopLog, updaterLog, startLog, installLog, systemLog, gitLog string, traceBundle []byte) (string, error) {
 	l.G().Log.Debug("sending status + logs to keybase")
 
 	var body bytes.Buffer
@@ -92,6 +106,12 @@ func (l *LogSendContext) post(status, feedback, kbfsLog, svcLog, desktopLog, upd
 	}
 	if err := addFile(mpart, "git_log_gz", "git_log.gz", gitLog); err != nil {
 		return "", err
+	}
+
+	if len(traceBundle) > 0 {
+		if err := addBinaryFile(mpart, "trace_tar_gz", "trace.tar.gz", traceBundle); err != nil {
+			return "", err
+		}
 	}
 
 	if err := mpart.Close(); err != nil {
@@ -355,9 +375,74 @@ func tailFile(log logger.Logger, which string, filename string, numBytes int) (r
 	return string(buf), seeked
 }
 
-// LogSend sends the the tails of log files to kb
-//
-// TODO: Also include trace output files.
+func addFileToTar(tw *tar.Writer, path string) error {
+	file, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	if stat, err := file.Stat(); err == nil {
+		header := tar.Header{
+			Name:    path,
+			Size:    stat.Size(),
+			Mode:    int64(stat.Mode()),
+			ModTime: stat.ModTime(),
+		}
+		if err := tw.WriteHeader(&header); err != nil {
+			return err
+		}
+		if _, err := io.Copy(tw, file); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func addFilesToTarGz(log logger.Logger, w io.Writer, paths []string) bool {
+	gw := gzip.NewWriter(w)
+	defer gw.Close()
+	tw := tar.NewWriter(gw)
+	defer tw.Close()
+
+	added := false
+	for _, path := range paths {
+		err := addFileToTar(tw, path)
+		if err != nil {
+			log.Warning("Error adding %q to tar file: %s", path, err)
+			continue
+		}
+		added = true
+	}
+	return added
+}
+
+const maxTraceFileCount = 5
+
+func getTraceBundle(log logger.Logger, traceDir string) []byte {
+	pattern := filepath.Join(traceDir, "trace.*.out")
+	matches, err := filepath.Glob(pattern)
+	if err != nil {
+		log.Warning("Error on filepath.Glob(%q): %s", pattern, err)
+		return nil
+	}
+
+	if len(matches) > maxTraceFileCount {
+		// Sort by approximate increasing time.
+		sort.Strings(matches)
+		matches = matches[len(matches)-maxTraceFileCount:]
+	}
+
+	buf := bytes.NewBuffer(nil)
+	added := addFilesToTarGz(log, buf, matches)
+	if !added {
+		return nil
+	}
+	return buf.Bytes()
+}
+
+// LogSend sends the the tails of log files to kb, and also the last
+// few trace output files.
 func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, numBytes int) (string, error) {
 	logs := l.Logs
 	var kbfsLog string
@@ -368,6 +453,7 @@ func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, num
 	var installLog string
 	var systemLog string
 	var gitLog string
+	var traceBundle []byte
 
 	if sendLogs {
 		svcLog = tail(l.G().Log, "service", logs.Service, numBytes)
@@ -386,6 +472,9 @@ func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, num
 		installLog = tail(l.G().Log, "install", logs.Install, numBytes)
 		systemLog = tail(l.G().Log, "system", logs.System, numBytes)
 		gitLog = tail(l.G().Log, "git", logs.Git, numBytes)
+		if logs.Trace != "" {
+			traceBundle = getTraceBundle(l.G().Log, logs.Trace)
+		}
 	} else {
 		kbfsLog = ""
 		svcLog = ""
@@ -397,5 +486,5 @@ func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, num
 		gitLog = ""
 	}
 
-	return l.post(statusJSON, feedback, kbfsLog, svcLog, desktopLog, updaterLog, startLog, installLog, systemLog, gitLog)
+	return l.post(statusJSON, feedback, kbfsLog, svcLog, desktopLog, updaterLog, startLog, installLog, systemLog, gitLog, traceBundle)
 }
