@@ -385,10 +385,11 @@ func addFileToTar(tw *tar.Writer, path string) error {
 
 	if stat, err := file.Stat(); err == nil {
 		header := tar.Header{
-			Name:    filepath.Base(path),
-			Size:    stat.Size(),
-			Mode:    int64(stat.Mode()),
-			ModTime: stat.ModTime(),
+			Typeflag: tar.TypeReg,
+			Name:     filepath.Base(path),
+			Size:     stat.Size(),
+			Mode:     int64(0600),
+			ModTime:  stat.ModTime(),
 		}
 		if err := tw.WriteHeader(&header); err != nil {
 			return err
