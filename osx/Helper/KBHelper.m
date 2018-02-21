@@ -149,13 +149,33 @@
       return;
     }
 
+    // Copy the binary to a root-only location so it can't be
+    // subsequently modified by a user.
+    NSURL *directoryURL = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:[[NSProcessInfo processInfo] globallyUniqueString]] isDirectory:YES];
+    NSMutableDictionary *attributes = [NSMutableDictionary dictionary];
+    attributes[NSFilePosixPermissions] = [NSNumber numberWithShort:0700];
+    attributes[NSFileOwnerAccountID] = 0;
+    attributes[NSFileGroupOwnerAccountID] = 0;
+    NSError *error = nil;
+    if (![[NSFileManager defaultManager] createDirectoryAtURL:directoryURL withIntermediateDirectories:YES attributes:attributes error:&error]) {
+      completion(nil, error);
+      return;
+    }
+
+    NSURL srcUrl = [NSURL fileURLWithPath:redirectorBin];
+    NSURL dstUrl = [NSURL fileURLWithPath:[directoryURL stribByAppendingPathComponent @"keybase-redirector"]];
+    if (![[NSFileManager defaultManager] copyItemAtURL:srcURL toURL:dstURL error:&error]) {
+      completion(nil, error);
+      return;
+    }
+
     // Make sure the passed-in redirectory binary points to a proper binary
     // signed by Keybase, we don't want this to be able to run arbitrary code
-    // as root.  TODO: Technically the binary could be swapped out immediately 
+    // as root.  TODO: Technically the binary could be swapped out immediately
     // after the check, so maybe we should come up with a way to protect
     // against that.  (Perhaps copy the binary first to a root-only location?)
     SecStaticCodeRef staticCode = NULL;
-    CFURLRef url = (__bridge CFURLRef)[NSURL fileURLWithPath:redirectorBin];
+    CFURLRef url = (__bridge CFURLRef)dstURL;
     SecStaticCodeCreateWithPath(url, kSecCSDefaultFlags, &staticCode);
     SecRequirementRef keybaseRequirement = NULL;
     // This requirement string is taken from Installer/Info.plist.
