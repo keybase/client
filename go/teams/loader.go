@@ -305,11 +305,15 @@ func (l *TeamLoader) load2InnerLocked(ctx context.Context, arg load2ArgT) (res *
 }
 
 func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (*load2ResT, error) {
+	ctx, tbs := l.G().CTimeBuckets(ctx)
+	tracer := l.G().CTimeTracer(ctx, "TeamLoader.load2ILR", false)
+	defer tracer.Finish()
 
 	var err error
 	var didRepoll bool
 
 	// Fetch from cache
+	tracer.Stage("cache load")
 	var ret *keybase1.TeamData
 	if !arg.forceFullReload {
 		// Load from cache
@@ -330,6 +334,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	}
 
 	// Determine whether to repoll merkle.
+	tracer.Stage("merkle")
 	discardCache, repoll := l.load2DecideRepoll(ctx, arg, ret)
 	if discardCache {
 		ret = nil
@@ -366,6 +371,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	var parentChildOperations []*parentChildOperation
 
 	// Backfill stubbed links that need to be filled now.
+	tracer.Stage("backfill")
 	if ret != nil && len(arg.needSeqnos) > 0 {
 		ret, proofSet, parentChildOperations, err = l.fillInStubbedLinks(
 			ctx, arg.me, arg.teamID, ret, arg.needSeqnos, readSubteamID, proofSet, parentChildOperations)
@@ -374,6 +380,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		}
 	}
 
+	tracer.Stage("pre-fetch")
 	var fetchLinksAndOrSecrets bool
 	if ret == nil {
 		l.G().Log.CDebugf(ctx, "TeamLoader fetching: no cache")
@@ -408,6 +415,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	}
 
 	// Pull new links from the server
+	tracer.Stage("fetch")
 	var teamUpdate *rawTeam
 	if fetchLinksAndOrSecrets {
 		lows := l.lows(ctx, ret)
@@ -419,6 +427,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		l.G().Log.CDebugf(ctx, "TeamLoader got %v links", len(teamUpdate.Chain))
 	}
 
+	tracer.Stage("unpack")
 	links, err := l.unpackLinks(ctx, teamUpdate)
 	if err != nil {
 		return nil, err
@@ -430,6 +439,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 			return nil, err
 		}
 	}
+	tracer.Stage("linkloop (%v)", len(links))
 	for i, link := range links {
 		l.G().Log.CDebugf(ctx, "TeamLoader processing link seqno:%v", link.Seqno())
 
@@ -471,6 +481,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		}
 		prev = link.LinkID()
 	}
+	tbs.Log(ctx, "CachedUPAKLoader.LoadKeyV2")
 
 	if ret == nil {
 		return nil, fmt.Errorf("team loader fault: got nil from load2")
@@ -481,17 +492,20 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 			ret.Chain.LastLinkID, lastLinkID)
 	}
 
+	tracer.Stage("pco")
 	err = l.checkParentChildOperations(ctx,
 		arg.me, arg.teamID, ret.Chain.ParentID, readSubteamID, parentChildOperations, proofSet)
 	if err != nil {
 		return nil, err
 	}
 
+	tracer.Stage("checkproofs")
 	err = l.checkProofs(ctx, ret, proofSet)
 	if err != nil {
 		return nil, err
 	}
 
+	tracer.Stage("secrets")
 	if teamUpdate != nil {
 		if teamUpdate.SubteamReader {
 			// Only allow subteam-reader results if we are in a recursive load.
@@ -533,6 +547,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	// Recalculate the team name.
 	// This must always run to pick up changes on chain and off-chain with ancestor renames.
 	// Also because without this a subteam could claim any parent in its name.
+	tracer.Stage("namecalc")
 	newName, err := l.calculateName(ctx, ret, arg.me, readSubteamID, arg.staleOK)
 	if err != nil {
 		return nil, fmt.Errorf("error recalculating name for %v: %v", ret.Name, err)
@@ -556,8 +571,10 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	ret.LatestSeqnoHint = 0
 
 	// Cache the validated result
+	tracer.Stage("put")
 	l.storage.Put(ctx, ret)
 
+	tracer.Stage("notify")
 	if cachedName != nil && !cachedName.Eq(newName) {
 		chain := TeamSigChainState{inner: ret.Chain}
 		// Send a notification if we used to have the name cached and it has changed at all.
@@ -571,6 +588,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	}
 
 	// Check request constraints
+	tracer.Stage("postcheck")
 	err = l.load2CheckReturn(ctx, arg, ret)
 	if err != nil {
 		return nil, err

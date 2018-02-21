@@ -51,7 +51,7 @@ func membersUIDsToUsernames(ctx context.Context, g *libkb.GlobalContext, m keyba
 }
 
 func Details(ctx context.Context, g *libkb.GlobalContext, name string, forceRepoll bool) (res keybase1.TeamDetails, err error) {
-	tracer := g.CTimeTracer(ctx, "TeamDetails")
+	tracer := g.CTimeTracer(ctx, "TeamDetails", true)
 	defer tracer.Finish()
 
 	// Assume private team

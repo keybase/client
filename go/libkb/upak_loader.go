@@ -480,6 +480,8 @@ func (u *CachedUPAKLoader) LoadUserPlusKeys(ctx context.Context, uid keybase1.UI
 // incarnation if there are multiple.
 func (u *CachedUPAKLoader) LoadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (ret *keybase1.UserPlusKeysV2, key *keybase1.PublicKeyV2NaCl, linkMap map[keybase1.Seqno]keybase1.LinkID, err error) {
 	defer u.G().CVTrace(ctx, VLog0, fmt.Sprintf("LoadKeyV2 uid:%s,kid:%s", uid, kid), func() error { return err })()
+	ctx, tbs := u.G().CTimeBuckets(ctx)
+	defer tbs.Record("CachedUPAKLoader.LoadKeyV2")()
 	if uid.IsNil() {
 		return nil, nil, nil, NoUIDError{}
 	}
