@@ -162,18 +162,16 @@
       return;
     }
 
-    NSURL srcUrl = [NSURL fileURLWithPath:redirectorBin];
-    NSURL dstUrl = [NSURL fileURLWithPath:[directoryURL stribByAppendingPathComponent @"keybase-redirector"]];
+    NSURL *srcURL = [NSURL fileURLWithPath:redirectorBin];
+    NSURL *dstURL = [directoryURL URLByAppendingPathComponent:@"keybase-redirector" isDirectory:NO];
     if (![[NSFileManager defaultManager] copyItemAtURL:srcURL toURL:dstURL error:&error]) {
       completion(nil, error);
       return;
     }
 
-    // Make sure the passed-in redirectory binary points to a proper binary
+    // Make sure the passed-in redirector binary points to a proper binary
     // signed by Keybase, we don't want this to be able to run arbitrary code
-    // as root.  TODO: Technically the binary could be swapped out immediately
-    // after the check, so maybe we should come up with a way to protect
-    // against that.  (Perhaps copy the binary first to a root-only location?)
+    // as root.
     SecStaticCodeRef staticCode = NULL;
     CFURLRef url = (__bridge CFURLRef)dstURL;
     SecStaticCodeCreateWithPath(url, kSecCSDefaultFlags, &staticCode);
@@ -187,7 +185,7 @@
     }
 
     NSTask *task = [[NSTask alloc] init];
-    task.launchPath = redirectorBin;
+    task.launchPath = dstURL.path;
     task.arguments = @[directory];
     self.redirector = task;
     [self.redirector launch];
