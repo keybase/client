@@ -8,6 +8,10 @@
     },
     "folderListLoaded": {
       "pathItems": "I.Map<Types.Path, Types.PathItem>"
+    },
+    "sortSetting": {
+      "path": "Types.Path",
+      "sortSetting": "Types.SortSetting"
     }
   }
 }

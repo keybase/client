@@ -6,7 +6,7 @@ import {Avatar, Box, ClickableBox, Icon, List, Text, Divider} from '../common-ad
 import {type IconType} from '../common-adapters/icon'
 import RowConnector from './row'
 import FolderHeader from './header/header-container'
-import SortBar from './sortbar'
+import SortBar from './sortbar/container'
 
 type FileRowProps = {
   elems: Array<string>,
@@ -21,6 +21,7 @@ type FolderProps = {
   items: Array<Types.Path>,
   path: Types.Path,
   progress: 'pending' | 'loaded',
+  sortSetting: Types._SortSetting,
 }
 
 const folderBoxStyle = {...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'space-between'}
@@ -73,18 +74,17 @@ class Files extends React.PureComponent<FolderProps> {
   _renderRowPlaceholder = index => <FileRowPlaceholder key={index} />
 
   render() {
-    const {path, items, progress} = this.props
     const list =
-      progress === 'pending' ? (
+      this.props.progress === 'pending' ? (
         <List items={['1', '2', '3']} renderItem={this._renderRowPlaceholder} />
       ) : (
-        <List items={items} renderItem={this._renderRow} />
+        <List items={this.props.items} renderItem={this._renderRow} />
       )
     return (
       <Box style={styleOuterContainer}>
         <Box style={stylesContainer}>
-          <FolderHeader path={path} />
-          <SortBar />
+          <FolderHeader path={this.props.path} />
+          <SortBar path={this.props.path} />
           {list}
         </Box>
       </Box>

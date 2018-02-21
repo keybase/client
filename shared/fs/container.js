@@ -11,31 +11,50 @@ type OwnProps = {
 }
 
 type StateProps = {
+  _itemNames: I.List<string>,
+  _username?: string,
+  _pathItems: I.Map<Types.Path, Types.PathItem>,
+  _sortSetting: Types.SortSetting,
+
   path: Types.Path,
-  items: I.List<string>,
   progress: Types.ProgressType,
 }
 
-type DispatchProps = {}
+type DispatchProps = {
+  loadFolderList: (path: Types.Path) => void,
+}
 
 const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
   const path = Types.stringToPath(routeProps.get('path', Constants.defaultPath))
   const itemDetail = state.fs.pathItems.get(path)
-  const items = itemDetail && itemDetail.type === 'folder' ? itemDetail.get('children', I.List()) : I.List()
-  const progress: Types.ProgressType = itemDetail ? itemDetail.progress : 'pending'
-  return {items, path, progress}
+  return {
+    _itemNames: itemDetail && itemDetail.type === 'folder' ? itemDetail.get('children', I.List()) : I.List(),
+    _username: state.config.username || undefined,
+    _pathItems: state.fs.pathItems,
+    _sortSetting: state.fs.pathUserSettings.get(path, Constants.makePathUserSetting()).get('sort'),
+    path,
+    progress: itemDetail ? itemDetail.progress : 'pending',
+  }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _loadFolderList: (path: Types.Path) => dispatch(FsGen.createFolderListLoad({path})),
+  loadFolderList: (path: Types.Path) => dispatch(FsGen.createFolderListLoad({path})),
 })
 
-const mergeProps = ({path, items, progress}: StateProps, dispatchProps: DispatchProps, ownProps) => {
+const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps) => {
+  const pathItems = stateProps._itemNames.map(name =>
+    stateProps._pathItems.get(Types.pathConcat(stateProps.path, name), Constants.makeUnknownPathItem())
+  )
+  const username = Types.pathIsNonTeamTLFList(stateProps.path) ? stateProps._username : undefined
+  const items = Constants.sortPathItems(pathItems, stateProps._sortSetting, username)
+    .map(({name}) => Types.pathConcat(stateProps.path, name))
+    .toArray()
   return {
-    items: items.map(name => Types.pathConcat(path, name)).toArray(),
-    path,
-    progress,
-    ...dispatchProps,
+    items,
+    progress: stateProps.progress,
+    path: stateProps.path,
+
+    loadFolderList: dispatchProps.loadFolderList,
   }
 }
 
@@ -43,7 +62,7 @@ export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentWillMount() {
-      this.props._loadFolderList(this.props.path)
+      this.props.loadFolderList(this.props.path)
     },
   }),
   setDisplayName('Files')

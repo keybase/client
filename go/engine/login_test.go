@@ -3749,7 +3749,7 @@ func assertPassphraseStreamCache(tc libkb.TestContext) {
 }
 
 func assertSecretStored(tc libkb.TestContext, username string) {
-	secret, err := tc.G.SecretStoreAll.RetrieveSecret(libkb.NewNormalizedUsername(username))
+	secret, err := tc.G.SecretStore().RetrieveSecret(libkb.NewNormalizedUsername(username))
 	if err != nil {
 		tc.T.Fatal(err)
 	}
