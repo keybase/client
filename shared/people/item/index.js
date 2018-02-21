@@ -38,56 +38,62 @@ export type Props = {
 export default (props: Props) => (
   <Box
     style={{
-      ...globalStyles.flexBoxRow,
+      ...containerStyle,
       backgroundColor: props.badged ? globalColors.blue4 : globalColors.white,
-      paddingTop: globalMargins.tiny,
-      paddingLeft: 12,
-      paddingBottom: globalMargins.tiny,
-      position: 'relative',
-      borderBottomWidth: 1,
       borderBottomColor: props.badged ? globalColors.white : globalColors.black_05,
-      ...(isMobile ? undefined : {borderBottomStyle: 'solid'}),
     }}
   >
-    <Box style={{marginRight: 20, width: isMobile ? 48 : 32}}>{props.icon}</Box>
+    <Box style={iconContainerStyle}>{props.icon}</Box>
     <Box
       style={{
-        ...globalStyles.flexBoxColumn,
-        paddingRight: isMobile ? 100 : 80,
-        width: 'auto',
-        overflow: 'hidden',
-        position: 'relative',
+        ...contentContainerStyle,
         ...props.contentStyle,
       }}
     >
       {props.children}
     </Box>
-    <Box
-      style={{
-        ...globalStyles.flexBoxRow,
-        position: 'absolute',
-        alignItems: 'center',
-        right: 8,
-        top: 12,
-      }}
-    >
+    <Box style={timestampContainerStyle}>
       {!!props.when && (
-        <Text type="BodySmall" style={{}}>
-          {formatter.set(moment(props.when).toObject()).fromNow(true)}
-        </Text>
+        <Text type="BodySmall">{formatter.set(moment(props.when).toObject()).fromNow(true)}</Text>
       )}
-      {props.badged && (
-        <Box
-          style={{
-            backgroundColor: globalColors.orange,
-            borderRadius: 6,
-            height: 8,
-            marginLeft: globalMargins.xtiny,
-            marginTop: isMobile ? 3 : 1,
-            width: 8,
-          }}
-        />
-      )}
+      {props.badged && <Box style={badgeStyle} />}
     </Box>
   </Box>
 )
+
+const containerStyle = {
+  ...globalStyles.flexBoxRow,
+  paddingTop: globalMargins.tiny,
+  paddingLeft: 12,
+  paddingBottom: globalMargins.tiny,
+  position: 'relative',
+  borderBottomWidth: 1,
+  ...(isMobile ? null : {borderBottomStyle: 'solid'}),
+}
+
+const iconContainerStyle = {marginRight: 20, width: isMobile ? 48 : 32}
+
+const contentContainerStyle = {
+  ...globalStyles.flexBoxColumn,
+  paddingRight: isMobile ? 100 : 80,
+  width: 'auto',
+  overflow: 'hidden',
+  position: 'relative',
+}
+
+const timestampContainerStyle = {
+  ...globalStyles.flexBoxRow,
+  position: 'absolute',
+  alignItems: 'center',
+  right: 8,
+  top: 12,
+}
+
+const badgeStyle = {
+  backgroundColor: globalColors.orange,
+  borderRadius: 6,
+  height: 8,
+  marginLeft: globalMargins.xtiny,
+  marginTop: isMobile ? 3 : 1,
+  width: 8,
+}
