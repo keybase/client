@@ -195,6 +195,7 @@ func (s serviceCn) NewCrypto(config libkbfs.Config, params libkbfs.InitParams, c
 // LogSend sends a log to Keybase
 func LogSend(status string, feedback string, sendLogs bool, uiLogPath string) (string, error) {
 	logSendContext.Logs.Desktop = uiLogPath
+	// TODO: Fill in logSendContext.Logs.Trace also.
 	return logSendContext.LogSend(status, feedback, sendLogs, 5*1024*1024)
 }
 
