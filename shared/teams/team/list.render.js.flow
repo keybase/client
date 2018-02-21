@@ -1,0 +1,10 @@
+// @flow
+import * as React from 'react'
+import type {TeamRow, TeamRows} from './list'
+
+export type Props = {
+  rows: TeamRows,
+  renderRow: (index: number, row: TeamRow) => React.Node,
+}
+
+export default (props: Props): React.Node => null

@@ -1,26 +1,10 @@
 // @flow
 import * as React from 'react'
-import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
-import {
-  Avatar,
-  Badge,
-  Box,
-  Button,
-  ButtonBar,
-  Meta,
-  Icon,
-  PopupMenu,
-  ProgressIndicator,
-  Text,
-  Tabs,
-} from '../../common-adapters'
-import {globalStyles, globalMargins, globalColors, isMobile} from '../../styles'
-import Members from './members/container'
-import Settings from './settings/container'
-import RequestsAndInvites from './invites/container'
-import Subteams from './subteams/container'
+import {Box, Icon, PopupMenu} from '../../common-adapters'
+import {globalStyles, globalMargins, isMobile} from '../../styles'
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import List, {type TeamRows} from './list'
 
 export type Props = {
   description: string,
@@ -49,328 +33,100 @@ export type Props = {
   yourOperations: RPCTypes.TeamOperation,
 }
 
-const Help = isMobile
-  ? () => null
-  : ({name}: {name: Types.Teamname}) => (
-      <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', margin: 20}}>
-        <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginBottom: globalMargins.xtiny}}>
-          <Box style={{backgroundColor: globalColors.black_05, height: 1, width: 24}} />
-          <Icon
-            style={{
-              color: globalColors.black_10,
-              paddingLeft: globalMargins.tiny,
-              paddingRight: globalMargins.tiny,
-            }}
-            type="iconfont-info"
-          />
-          <Box style={{backgroundColor: globalColors.black_05, height: 1, width: 24}} />
-        </Box>
-        <Text type="BodySmall" style={{textAlign: 'center'}}>
-          You can also manage teams from the terminal:
-        </Text>
-        <Text
-          type="TerminalInline"
-          selectable={true}
-          style={{
-            marginLeft: globalMargins.xtiny,
-            marginTop: globalMargins.xtiny,
-          }}
-        >
-          keybase team --help
-        </Text>
-      </Box>
-    )
-
-type TeamTabsProps = {
-  admin: boolean,
-  memberCount: number,
-  name: Types.Teamname,
-  newTeamRequests: Array<Types.Teamname>,
-  numInvites: number,
-  numRequests: number,
-  numSubteams: number,
-  loading?: boolean,
-  selectedTab?: string,
-  setSelectedTab: (?Types.TabKey) => void,
-  yourOperations: RPCTypes.TeamOperation,
-}
-
-const TeamTabs = (props: TeamTabsProps) => {
-  const {
-    admin,
-    numInvites,
-    memberCount,
-    name,
-    newTeamRequests,
-    numRequests,
-    numSubteams,
-    loading = false,
-    selectedTab,
-    setSelectedTab,
-    yourOperations,
-  } = props
-  let membersLabel = 'MEMBERS'
-  membersLabel += !loading && memberCount !== 0 ? ` (${memberCount})` : ''
-  const tabs = [
-    <Text
-      key="members"
-      type="BodySmallSemibold"
-      style={{
-        color: globalColors.black_75,
-      }}
-    >
-      {membersLabel}
-    </Text>,
-  ]
-
-  let requestsBadge = 0
-  if (newTeamRequests.length) {
-    // Use min here so we never show a badge number > the (X) number of requests we have
-    requestsBadge = Math.min(
-      newTeamRequests.reduce((count, team) => (team === name ? count + 1 : count), 0),
-      numRequests
-    )
-  }
-
-  if (admin) {
-    let invitesLabel = 'INVITES'
-    invitesLabel += !loading && numInvites + numRequests !== 0 ? ` (${numInvites + numRequests})` : ''
-    tabs.push(
-      <Box key="invites" style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-        <Text
-          type="BodySmallSemibold"
-          style={{
-            color: globalColors.black_75,
-          }}
-        >
-          {invitesLabel}
-        </Text>
-        {!!requestsBadge && <Badge badgeNumber={requestsBadge} badgeStyle={{marginTop: 1, marginLeft: 2}} />}
-      </Box>
-    )
-  }
-
-  let subteamsLabel = 'SUBTEAMS'
-  subteamsLabel += !loading && numSubteams !== 0 ? ` (${numSubteams})` : ''
-  if (numSubteams > 0 || yourOperations.manageSubteams) {
-    tabs.push(
-      <Text
-        key="subteams"
-        type="BodySmallSemibold"
-        style={{
-          color: globalColors.black_75,
-        }}
-      >
-        {subteamsLabel}
-      </Text>
-    )
-  }
-
-  const publicityLabel = 'SETTINGS'
-  tabs.push(
-    isMobile ? (
-      <Icon key="publicity" type="iconfont-nav-settings" />
-    ) : (
-      <Text
-        key="publicity"
-        type="BodySmallSemibold"
-        style={{
-          color: globalColors.black_75,
-        }}
-      >
-        {publicityLabel}
-      </Text>
-    )
-  )
-
-  if (loading) {
-    tabs.push(<ProgressIndicator style={{alignSelf: 'center', width: 17, height: 17}} />)
-  }
-
-  const onSelect = (tab: any) => {
-    const key = tab && tab.key
-    if (key) {
-      if (key !== 'loadingIndicator') {
-        setSelectedTab(key)
-      } else {
-        setSelectedTab('members')
-      }
-    }
-  }
-
-  const selected = tabs.find(tab => tab.key === selectedTab)
-  return (
-    <Tabs
-      tabs={tabs}
-      selected={selected}
-      onSelect={onSelect}
-      style={{flexBasis: '100%'}}
-      tabStyle={
-        isMobile
-          ? {
-              paddingLeft: globalMargins.tiny,
-              paddingRight: globalMargins.tiny,
-            }
-          : {}
-      }
-    />
-  )
-}
-
 class Team extends React.PureComponent<Props> {
   render() {
-    const {
-      description,
-      name,
-      showMenu,
-      setShowMenu,
-      onAddPeople,
-      onAddSelf,
-      onCreateSubteam,
-      onEditDescription,
-      onInviteByEmail,
-      onLeaveTeam,
-      selectedTab,
-      loading,
-      memberCount,
-      onManageChat,
-      openTeam,
-      yourRole,
-      yourOperations,
-    } = this.props
+    const {name} = this.props
+
+    const props = this.props
 
     const teamname = name
 
-    let contents
-    if (selectedTab === 'members') {
-      contents = <Members teamname={teamname} />
-    } else if (selectedTab === 'subteams') {
-      contents = <Subteams teamname={teamname} />
-    } else if (selectedTab === 'invites') {
-      contents = <RequestsAndInvites teamname={teamname} />
-    } else if (selectedTab === 'publicity') {
-      contents = <Settings teamname={teamname} />
+    const rows: TeamRows = []
+    if (props.yourOperations.joinTeam) {
+      rows.push({type: 'add yourself', onAddSelf: props.onAddSelf})
+    }
+    rows.push(
+      {
+        type: 'summary',
+        teamname,
+        openTeam: props.openTeam,
+        role: props.yourRole,
+        memberCount: props.memberCount,
+      },
+      {
+        type: 'description',
+        description: props.description,
+        canEdit: props.yourOperations.editChannelDescription,
+        onEditDescription: props.onEditDescription,
+      },
+      {
+        type: 'help',
+        teamname,
+      }
+    )
+    if (props.yourOperations.manageMembers) {
+      rows.push({type: 'action', onAddPeople: props.onAddPeople, onInviteByEmail: props.onInviteByEmail})
+    }
+    rows.push({
+      type: 'tabs',
+      admin: props.yourOperations.manageMembers,
+      memberCount: props.memberCount,
+      teamname,
+      newTeamRequests: props.newTeamRequests,
+      numInvites: props.numInvites,
+      numRequests: props.numRequests,
+      numSubteams: props.numSubteams,
+      loading: props.loading,
+      selectedTab: props.selectedTab,
+      setSelectedTab: props.setSelectedTab,
+      yourOperations: props.yourOperations,
+    })
+
+    if (props.selectedTab === 'members') {
+      rows.push({type: 'members', teamname})
+    } else if (props.selectedTab === 'subteams') {
+      rows.push({type: 'subteams', teamname})
+    } else if (props.selectedTab === 'invites') {
+      rows.push({type: 'invites', teamname})
+    } else if (props.selectedTab === 'publicity') {
+      rows.push({type: 'settings', teamname})
     }
 
     const popupMenuItems = []
-
-    if (yourOperations.renameChannel) {
-      popupMenuItems.push({onClick: onManageChat, title: 'Manage chat channels'})
+    if (props.yourOperations.renameChannel) {
+      popupMenuItems.push({onClick: props.onManageChat, title: 'Manage chat channels'})
     }
-
-    if (yourOperations.leaveTeam) {
-      popupMenuItems.push({onClick: onLeaveTeam, title: 'Leave team', danger: true})
+    if (props.yourOperations.leaveTeam) {
+      popupMenuItems.push({onClick: props.onLeaveTeam, title: 'Leave team', danger: true})
     }
-
-    if (yourOperations.manageSubteams) {
-      popupMenuItems.push({onClick: onCreateSubteam, title: 'Create subteam'})
+    if (props.yourOperations.manageSubteams) {
+      popupMenuItems.push({onClick: props.onCreateSubteam, title: 'Create subteam'})
     }
 
     return (
-      <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, width: '100%'}}>
-        {yourOperations.joinTeam && (
-          <Box style={stylesAddYourselfBanner}>
-            <Text type="BodySemibold" style={stylesAddYourselfBannerText}>
-              You are not a member of this team.
-            </Text>
-            <Text
-              backgroundMode="Information"
-              type="BodySemiboldLink"
-              style={stylesAddYourselfBannerText}
-              onClick={onAddSelf}
-              underline={true}
-            >
-              Add yourself
-            </Text>
-          </Box>
-        )}
-        <Box style={stylesTeamHeader}>
-          <Avatar isTeam={true} teamname={name} size={64} />
-          <Text type="HeaderBig" selectable={true} style={{marginTop: globalMargins.tiny}}>
-            {name}
-          </Text>
-          <Box style={globalStyles.flexBoxRow}>
-            <Text type="BodySmall">TEAM</Text>
-            {openTeam && <Meta style={stylesMeta} title="OPEN" />}
-          </Box>
-          <Text type="BodySmall">
-            {memberCount + ' member' + (memberCount !== 1 ? 's' : '')} •{' '}
-            {yourRole && Constants.typeToLabel[yourRole]}
-          </Text>
+      <Box
+        style={{
+          ...globalStyles.flexBoxColumn,
+          alignItems: 'center',
+          flex: 1,
+          width: '100%',
+          height: '100%',
+          position: 'relative',
+        }}
+      >
+        <List rows={rows} />
 
-          {!loading && (yourOperations.editChannelDescription || description) ? (
-            <Text
-              style={{
-                paddingTop: globalMargins.tiny,
-                color: description ? globalColors.black_75 : globalColors.black_20,
-              }}
-              onClick={yourOperations.editChannelDescription ? onEditDescription : null}
-              type={yourOperations.editChannelDescription ? 'BodySecondaryLink' : 'Body'}
-            >
-              {description || (yourOperations.editChannelDescription && 'Write a brief description')}
-            </Text>
-          ) : (
-            <Box />
-          )}
-
-          {yourOperations.manageMembers && (
-            <ButtonBar>
-              <Button type="Primary" label="Add people" onClick={onAddPeople} />
-              {!isMobile && <Button type="Secondary" label="Invite by email" onClick={onInviteByEmail} />}
-              {isMobile && <Button type="Secondary" label="Invite contacts" onClick={onInviteByEmail} />}
-            </ButtonBar>
-          )}
-          <Help name={name} />
-        </Box>
-        <TeamTabs {...this.props} admin={yourOperations.manageMembers} />
-        {contents}
-        {showMenu &&
+        {props.showMenu &&
           popupMenuItems.length > 0 && (
             <PopupMenu
               items={popupMenuItems}
-              onHidden={() => setShowMenu(false)}
+              onHidden={() => props.setShowMenu(false)}
               style={{position: 'absolute', right: globalMargins.tiny, top: globalMargins.large}}
             />
           )}
       </Box>
     )
   }
-}
-
-const stylesTeamHeader = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  textAlign: 'center',
-  paddingLeft: isMobile ? 0 : globalMargins.medium,
-  paddingRight: isMobile ? 0 : globalMargins.medium,
-  maxWidth: 560,
-}
-
-const stylesAddYourselfBanner = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  alignSelf: 'stretch',
-  backgroundColor: globalColors.blue,
-  justifyContent: 'center',
-  minHeight: 40,
-  marginBottom: globalMargins.tiny,
-  paddingBottom: globalMargins.tiny,
-  paddingLeft: globalMargins.medium,
-  paddingRight: globalMargins.medium,
-  paddingTop: globalMargins.tiny,
-}
-
-const stylesMeta = {
-  alignSelf: 'center',
-  backgroundColor: globalColors.green,
-  borderRadius: 1,
-  marginLeft: globalMargins.tiny,
-  marginTop: 1,
-}
-
-const stylesAddYourselfBannerText = {
-  color: globalColors.white,
-  textAlign: 'center',
 }
 
 export default Team
