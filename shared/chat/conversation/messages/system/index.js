@@ -113,7 +113,11 @@ const AddedToTeamNotice = ({
           style={{color: globalColors.black_40, textAlign: 'center'}}
         >
           {adderComponent} added {addeeComponent} to{' '}
-          <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
+          <Text
+            onClick={() => onViewTeam(team)}
+            style={{color: globalColors.black_60}}
+            type="BodySmallSemiboldInlineLink"
+          >
             {team}
           </Text>
           .{' '}
