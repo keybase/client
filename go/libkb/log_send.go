@@ -412,6 +412,7 @@ func addFilesToTarGz(log logger.Logger, w io.Writer, paths []string) bool {
 			log.Warning("Error adding %q to tar file: %s", path, err)
 			continue
 		}
+		log.Debug("Added trace file %q", path)
 		added = true
 	}
 	return added
