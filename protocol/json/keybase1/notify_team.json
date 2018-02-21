@@ -22,6 +22,10 @@
         {
           "type": "boolean",
           "name": "renamed"
+        },
+        {
+          "type": "boolean",
+          "name": "misc"
         }
       ]
     }

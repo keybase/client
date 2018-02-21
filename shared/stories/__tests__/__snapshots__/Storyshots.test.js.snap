@@ -30767,8 +30767,8 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
         Object {
           "backgroundColor": "#ebf5fc",
           "borderBottomColor": "#ffffff",
-          "borderBottomStyle": "solid",
           "borderBottomWidth": 1,
+          "borderStyle": "solid",
           "display": "flex",
           "flexDirection": "row",
           "paddingBottom": 8,
@@ -31199,8 +31199,8 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
         Object {
           "backgroundColor": "#ffffff",
           "borderBottomColor": "rgba(0, 0, 0, 0.05)",
-          "borderBottomStyle": "solid",
           "borderBottomWidth": 1,
+          "borderStyle": "solid",
           "display": "flex",
           "flexDirection": "row",
           "paddingBottom": 8,
@@ -31636,8 +31636,8 @@ exports[`Storyshots People/Follow notification Someone followed you 1`] = `
           Object {
             "backgroundColor": "#ebf5fc",
             "borderBottomColor": "#ffffff",
-            "borderBottomStyle": "solid",
             "borderBottomWidth": 1,
+            "borderStyle": "solid",
             "display": "flex",
             "flexDirection": "row",
             "paddingBottom": 8,
@@ -31891,8 +31891,8 @@ exports[`Storyshots People/Follow notification Someone you follow followed you 1
           Object {
             "backgroundColor": "#ffffff",
             "borderBottomColor": "rgba(0, 0, 0, 0.05)",
-            "borderBottomStyle": "solid",
             "borderBottomWidth": 1,
+            "borderStyle": "solid",
             "display": "flex",
             "flexDirection": "row",
             "paddingBottom": 8,
@@ -32058,8 +32058,8 @@ exports[`Storyshots People/Todos Chat 1`] = `
         Object {
           "backgroundColor": "#ebf5fc",
           "borderBottomColor": "#ffffff",
-          "borderBottomStyle": "solid",
           "borderBottomWidth": 1,
+          "borderStyle": "solid",
           "display": "flex",
           "flexDirection": "row",
           "paddingBottom": 8,
@@ -32255,8 +32255,8 @@ exports[`Storyshots People/Todos Fill out bio 1`] = `
         Object {
           "backgroundColor": "#ebf5fc",
           "borderBottomColor": "#ffffff",
-          "borderBottomStyle": "solid",
           "borderBottomWidth": 1,
+          "borderStyle": "solid",
           "display": "flex",
           "flexDirection": "row",
           "paddingBottom": 8,
@@ -32457,8 +32457,8 @@ exports[`Storyshots People/Todos Follow someone 1`] = `
         Object {
           "backgroundColor": "#ebf5fc",
           "borderBottomColor": "#ffffff",
-          "borderBottomStyle": "solid",
           "borderBottomWidth": 1,
+          "borderStyle": "solid",
           "display": "flex",
           "flexDirection": "row",
           "paddingBottom": 8,
@@ -32666,8 +32666,8 @@ exports[`Storyshots People/Todos Install on phone 1`] = `
         Object {
           "backgroundColor": "#ebf5fc",
           "borderBottomColor": "#ffffff",
-          "borderBottomStyle": "solid",
           "borderBottomWidth": 1,
+          "borderStyle": "solid",
           "display": "flex",
           "flexDirection": "row",
           "paddingBottom": 8,
@@ -32875,8 +32875,8 @@ exports[`Storyshots People/Todos Make a folder 1`] = `
         Object {
           "backgroundColor": "#ebf5fc",
           "borderBottomColor": "#ffffff",
-          "borderBottomStyle": "solid",
           "borderBottomWidth": 1,
+          "borderStyle": "solid",
           "display": "flex",
           "flexDirection": "row",
           "paddingBottom": 8,
@@ -33084,8 +33084,8 @@ exports[`Storyshots People/Todos Make a git 1`] = `
         Object {
           "backgroundColor": "#ebf5fc",
           "borderBottomColor": "#ffffff",
-          "borderBottomStyle": "solid",
           "borderBottomWidth": 1,
+          "borderStyle": "solid",
           "display": "flex",
           "flexDirection": "row",
           "paddingBottom": 8,
@@ -33281,8 +33281,8 @@ exports[`Storyshots People/Todos Make a paper key 1`] = `
         Object {
           "backgroundColor": "#ebf5fc",
           "borderBottomColor": "#ffffff",
-          "borderBottomStyle": "solid",
           "borderBottomWidth": 1,
+          "borderStyle": "solid",
           "display": "flex",
           "flexDirection": "row",
           "paddingBottom": 8,
@@ -33483,8 +33483,8 @@ exports[`Storyshots People/Todos Make a team 1`] = `
         Object {
           "backgroundColor": "#ebf5fc",
           "borderBottomColor": "#ffffff",
-          "borderBottomStyle": "solid",
           "borderBottomWidth": 1,
+          "borderStyle": "solid",
           "display": "flex",
           "flexDirection": "row",
           "paddingBottom": 8,
@@ -33692,8 +33692,8 @@ exports[`Storyshots People/Todos Prove something 1`] = `
         Object {
           "backgroundColor": "#ebf5fc",
           "borderBottomColor": "#ffffff",
-          "borderBottomStyle": "solid",
           "borderBottomWidth": 1,
+          "borderStyle": "solid",
           "display": "flex",
           "flexDirection": "row",
           "paddingBottom": 8,
@@ -33901,8 +33901,8 @@ exports[`Storyshots People/Todos Set publicity 1`] = `
         Object {
           "backgroundColor": "#ebf5fc",
           "borderBottomColor": "#ffffff",
-          "borderBottomStyle": "solid",
           "borderBottomWidth": 1,
+          "borderStyle": "solid",
           "display": "flex",
           "flexDirection": "row",
           "paddingBottom": 8,

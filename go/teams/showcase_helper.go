@@ -97,8 +97,11 @@ func SetTeamShowcase(ctx context.Context, g *libkb.GlobalContext, teamname strin
 	if anyMemberShowcase != nil {
 		arg.Args.Add("any_member_showcase", libkb.B{Val: *anyMemberShowcase})
 	}
-	_, err = g.API.Post(arg)
-	return err
+	if _, err := g.API.Post(arg); err != nil {
+		return err
+	}
+	t.notify(ctx, keybase1.TeamChangeSet{Misc: true})
+	return nil
 }
 
 func SetTeamMemberShowcase(ctx context.Context, g *libkb.GlobalContext, teamname string, isShowcased bool) error {

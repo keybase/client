@@ -20,14 +20,7 @@ export const Task = (props: Props) => (
     <Text type="Body" style={{marginTop: 2, marginBottom: globalMargins.xtiny}}>
       {props.instructions}
     </Text>
-    <Box
-      style={{
-        ...globalStyles.flexBoxRow,
-        justifyContent: 'flex-start',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-      }}
-    >
+    <Box style={actionContainerStyle}>
       <Button
         small={true}
         type="Primary"
@@ -43,3 +36,10 @@ export const Task = (props: Props) => (
     </Box>
   </PeopleItem>
 )
+
+const actionContainerStyle = {
+  ...globalStyles.flexBoxRow,
+  justifyContent: 'flex-start',
+  alignItems: 'center',
+  flexWrap: 'wrap',
+}

@@ -60,6 +60,12 @@ func (e *flakeyRooterAPI) PostHTML(arg libkb.APIArg) (res *libkb.ExternalHTMLRes
 }
 
 func TestSoftSnooze(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testSoftSnooze(t, sigVersion)
+	})
+}
+
+func _testSoftSnooze(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
 	fu := CreateAndSignupFakeUser(tc, "track")
@@ -92,7 +98,7 @@ func TestSoftSnooze(t *testing.T) {
 	}
 	targ := TrackTokenArg{
 		Token:   idUI.Token,
-		Options: keybase1.TrackOptions{BypassConfirm: true},
+		Options: keybase1.TrackOptions{BypassConfirm: true, SigVersion: keybase1.SigVersion(sigVersion)},
 	}
 
 	// Track tracy
@@ -101,7 +107,7 @@ func TestSoftSnooze(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	defer runUntrack(tc.G, fu, username)
+	defer runUntrack(tc.G, fu, username, sigVersion)
 
 	// Now make her Rooter proof flakey / fail with a 429
 	flakeyAPI.flakeOut = true

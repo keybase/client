@@ -15,7 +15,7 @@ const stylesSortBar = {
 const stylesSortSetting = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-  justifyContent: 'start',
+  justifyContent: 'flex-start',
   minHeight: isMobile ? 24 : 24,
 }
 

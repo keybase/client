@@ -14,12 +14,18 @@ import (
 // t_alice's trackers and makes sure that the new fake user is in
 // the list.
 func TestListTrackers(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testListTrackers(t, sigVersion)
+	})
+}
+
+func _testListTrackers(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "trackerlist")
 	defer tc.Cleanup()
 
 	fu := CreateAndSignupFakeUser(tc, "login")
-	trackAlice(tc, fu)
-	defer untrackAlice(tc, fu)
+	trackAlice(tc, fu, sigVersion)
+	defer untrackAlice(tc, fu, sigVersion)
 
 	uid := libkb.UsernameToUID("t_alice")
 	e := NewListTrackers(uid, tc.G)

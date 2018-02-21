@@ -15,7 +15,17 @@ import (
 	context "golang.org/x/net/context"
 )
 
+func doWithSigChainVersions(f func(libkb.SigVersion)) {
+	f(libkb.KeybaseSignatureV1)
+	f(libkb.KeybaseSignatureV2)
+}
+
 func TestTrackTokenIdentify2(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testTrackTokenIdentify2(t, sigVersion)
+	})
+}
+func _testTrackTokenIdentify2(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
 	fu := CreateAndSignupFakeUser(tc, "track")
@@ -38,18 +48,23 @@ func TestTrackTokenIdentify2(t *testing.T) {
 	}
 	targ := TrackTokenArg{
 		Token:   idUI.Token,
-		Options: keybase1.TrackOptions{BypassConfirm: true},
+		Options: keybase1.TrackOptions{BypassConfirm: true, SigVersion: keybase1.SigVersion(sigVersion)},
 	}
 	teng := NewTrackToken(&targ, tc.G)
 	if err := RunEngine(teng, ctx); err != nil {
 		tc.T.Fatal(err)
 	}
 
-	defer runUntrack(tc.G, fu, username)
+	defer runUntrack(tc.G, fu, username, sigVersion)
 	assertTracking(tc, username)
 }
 
 func TestTrackLocalThenLocalTemp(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testTrackLocalThenLocalTemp(t, sigVersion)
+	})
+}
+func _testTrackLocalThenLocalTemp(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
 	fu := CreateAndSignupFakeUser(tc, "track")
@@ -83,7 +98,7 @@ func TestTrackLocalThenLocalTemp(t *testing.T) {
 	}
 	targ := TrackTokenArg{
 		Token:   idUI.Token,
-		Options: keybase1.TrackOptions{BypassConfirm: true, LocalOnly: true},
+		Options: keybase1.TrackOptions{BypassConfirm: true, LocalOnly: true, SigVersion: keybase1.SigVersion(sigVersion)},
 	}
 
 	// Track tracy
@@ -92,7 +107,7 @@ func TestTrackLocalThenLocalTemp(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	defer runUntrack(tc.G, fu, username)
+	defer runUntrack(tc.G, fu, username, sigVersion)
 
 	// Now make her Rooter proof fail with a 429
 	flakeyAPI.flakeOut = true
@@ -176,6 +191,11 @@ func TestTrackLocalThenLocalTemp(t *testing.T) {
 }
 
 func TestTrackRemoteThenLocalTemp(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testTrackRemoteThenLocalTemp(t, sigVersion)
+	})
+}
+func _testTrackRemoteThenLocalTemp(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
 	fu := CreateAndSignupFakeUser(tc, "track")
@@ -211,7 +231,7 @@ func TestTrackRemoteThenLocalTemp(t *testing.T) {
 	// Leaving LocalOnly off here will result in remote tracking
 	targ := TrackTokenArg{
 		Token:   idUI.Token,
-		Options: keybase1.TrackOptions{BypassConfirm: true},
+		Options: keybase1.TrackOptions{BypassConfirm: true, SigVersion: keybase1.SigVersion(sigVersion)},
 	}
 
 	// Track tracy
@@ -220,7 +240,7 @@ func TestTrackRemoteThenLocalTemp(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	defer runUntrack(tc.G, fu, username)
+	defer runUntrack(tc.G, fu, username, sigVersion)
 
 	// Now make her Rooter proof fail with a 429
 	flakeyAPI.flakeOut = true
@@ -299,6 +319,12 @@ func TestTrackRemoteThenLocalTemp(t *testing.T) {
 }
 
 func TestTrackFailTempRecover(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testTrackFailTempRecover(t, sigVersion)
+	})
+}
+
+func _testTrackFailTempRecover(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
 	fu := CreateAndSignupFakeUser(tc, "track")
@@ -332,7 +358,7 @@ func TestTrackFailTempRecover(t *testing.T) {
 	}
 	targ := TrackTokenArg{
 		Token:   idUI.Token,
-		Options: keybase1.TrackOptions{BypassConfirm: true, LocalOnly: true},
+		Options: keybase1.TrackOptions{BypassConfirm: true, LocalOnly: true, SigVersion: keybase1.SigVersion(sigVersion)},
 	}
 
 	// Track tracy
@@ -341,7 +367,7 @@ func TestTrackFailTempRecover(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	defer runUntrack(tc.G, fu, username)
+	defer runUntrack(tc.G, fu, username, sigVersion)
 
 	// Now make her Rooter proof fail with a 429
 	flakeyAPI.flakeOut = true
@@ -434,6 +460,12 @@ func (d *FakeGregorDismisser) LocalDismissItem(ctx context.Context, id gregor.Ms
 }
 
 func TestTrackWithTokenDismissesGregor(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testTrackWithTokenDismissesGregor(t, sigVersion)
+	})
+}
+
+func _testTrackWithTokenDismissesGregor(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
 	fu := CreateAndSignupFakeUser(tc, "track")
@@ -468,7 +500,7 @@ func TestTrackWithTokenDismissesGregor(t *testing.T) {
 	}
 	targ := TrackTokenArg{
 		Token:   idUI.Token,
-		Options: keybase1.TrackOptions{BypassConfirm: true},
+		Options: keybase1.TrackOptions{BypassConfirm: true, SigVersion: keybase1.SigVersion(sigVersion)},
 	}
 	teng := NewTrackToken(&targ, tc.G)
 	if err := RunEngine(teng, ctx); err != nil {

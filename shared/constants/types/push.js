@@ -22,4 +22,5 @@ export type State = {
   tokenType: ?TokenType,
   permissionsRequesting: boolean,
   permissionsPrompt: boolean,
+  hasPermissions: boolean,
 }

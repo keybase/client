@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
 	"github.com/keybase/client/go/uidmap"
 	context "golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
@@ -1353,16 +1354,26 @@ func (s *localizerPipeline) checkRekeyErrorInner(ctx context.Context, fromErr er
 
 	switch fromErr := fromErr.(type) {
 	case UnboxingError:
-		switch fromErr := fromErr.Inner().(type) {
-		case libkb.NeedSelfRekeyError:
-			convErrTyp = chat1.ConversationErrorType_SELFREKEYNEEDED
-			rekeyInfo = &chat1.ConversationErrorRekey{
-				TlfName: fromErr.Tlf,
+		switch conversationRemote.GetMembersType() {
+		case chat1.ConversationMembersType_KBFS:
+			switch fromErr := fromErr.Inner().(type) {
+			case libkb.NeedSelfRekeyError:
+				convErrTyp = chat1.ConversationErrorType_SELFREKEYNEEDED
+				rekeyInfo = &chat1.ConversationErrorRekey{
+					TlfName: fromErr.Tlf,
+				}
+			case libkb.NeedOtherRekeyError:
+				convErrTyp = chat1.ConversationErrorType_OTHERREKEYNEEDED
+				rekeyInfo = &chat1.ConversationErrorRekey{
+					TlfName: fromErr.Tlf,
+				}
 			}
-		case libkb.NeedOtherRekeyError:
-			convErrTyp = chat1.ConversationErrorType_OTHERREKEYNEEDED
-			rekeyInfo = &chat1.ConversationErrorRekey{
-				TlfName: fromErr.Tlf,
+		case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE:
+			if teams.IsTeamReadError(fromErr.Inner()) {
+				convErrTyp = chat1.ConversationErrorType_OTHERREKEYNEEDED
+				rekeyInfo = &chat1.ConversationErrorRekey{
+					TlfName: unverifiedTLFName,
+				}
 			}
 		}
 	}
