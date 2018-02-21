@@ -10,15 +10,17 @@
 
 @interface KBRedirector ()
 @property KBHelperTool *helperTool;
+@property NSString *servicePath;
 @end
 
 @implementation KBRedirector
 
 @synthesize error;
 
-- (instancetype)initWithConfig:(KBEnvConfig *)config helperTool:(KBHelperTool *)helperTool {
+- (instancetype)initWithConfig:(KBEnvConfig *)config helperTool:(KBHelperTool *)helperTool servicePath:(NSString *)servicePath {
   if ((self = [self initWithConfig:config name:@"Redirector" info:@"Helper tool for redirector" image:nil])) {
     _helperTool = helperTool;
+    _servicePath = servicePath;
   }
   return self;
 }
@@ -31,7 +33,9 @@
   uid_t uid = 0;
   gid_t gid = 0;
   NSNumber *permissions = [NSNumber numberWithShort:0600];
-  NSDictionary *params = @{@"directory": @"/keybase.redirect", @"uid": @(uid), @"gid": @(gid), @"permissions": permissions, @"excludeFromBackup": @(YES), @"redirectorBin": @"/Applications/Keybase.app/Contents/SharedSupport/bin/keybase-redirector"};
+  NSString *mount = [self.config redirectorMount];
+  NSString *binPath = [self.config redirectorBinPathWithPathOptions:0 servicePath:_servicePath];
+  NSDictionary *params = @{@"directory": mount, @"uid": @(uid), @"gid": @(gid), @"permissions": permissions, @"excludeFromBackup": @(YES), @"redirectorBin": binPath};
   DDLogDebug(@"Starting redirector: %@", params);
   [self.helperTool.helper sendRequest:@"startRedirector" params:@[params] completion:^(NSError *err, id value) {
     completion(err);

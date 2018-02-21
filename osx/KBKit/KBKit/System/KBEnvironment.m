@@ -79,7 +79,7 @@
 
     if (config.installOptions&KBInstallOptionRedirector) {
       helperRequired = YES;
-      KBRedirector *redirector = [[KBRedirector alloc] initWithConfig:config helperTool:_helperTool];
+      KBRedirector *redirector = [[KBRedirector alloc] initWithConfig:config helperTool:_helperTool servicePath:servicePath];
       [_installables addObject:redirector];
     }
 
