@@ -465,19 +465,24 @@ func postLocalForTestNoAdvanceClock(t *testing.T, ctc *chatTestContext, asUser *
 	})
 }
 
-func postLocalForTest(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) (chat1.PostLocalRes, error) {
+func postLocalForTest(t *testing.T, ctc *chatTestContext,
+	asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) (chat1.PostLocalRes, error) {
 	defer ctc.advanceFakeClock(time.Second)
 	return postLocalForTestNoAdvanceClock(t, ctc, asUser, conv, msg)
 }
 
-func mustPostLocalForTestNoAdvanceClock(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) {
-	_, err := postLocalForTestNoAdvanceClock(t, ctc, asUser, conv, msg)
+func mustPostLocalForTestNoAdvanceClock(t *testing.T, ctc *chatTestContext,
+	asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) chat1.MessageID {
+	x, err := postLocalForTestNoAdvanceClock(t, ctc, asUser, conv, msg)
 	require.NoError(t, err)
+	return x.MessageID
 }
 
-func mustPostLocalForTest(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) {
-	mustPostLocalForTestNoAdvanceClock(t, ctc, asUser, conv, msg)
+func mustPostLocalForTest(t *testing.T, ctc *chatTestContext,
+	asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) chat1.MessageID {
+	msgID := mustPostLocalForTestNoAdvanceClock(t, ctc, asUser, conv, msg)
 	ctc.advanceFakeClock(time.Second)
+	return msgID
 }
 
 func mustSetConvRetentionPolicy(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser,
@@ -511,13 +516,16 @@ func mustJoinConversationByID(t *testing.T, ctc *chatTestContext, asUser *kbtest
 }
 
 // Make chatsweeperd run a particular conversation until messages are deleted.
-// Does not need to run as a particular user, that's just an easy way to get a remote client.
-func sweepPollForDeletion(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, convID chat1.ConversationID) {
+// The RPC does not need to run as a particular user, that's just an easy way to get a remote client.
+// Consumes expunge notifications from `listener` and returns the latest one.
+// `upto` is optional (0 means any)
+func sweepPollForDeletion(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, listener *serverChatListener, convID chat1.ConversationID, uptoWant chat1.MessageID) chat1.ExpungeInfo {
 	t.Logf("sweepPollForDeletion(convID: %v)", convID)
 	tc := ctc.as(t, asUser)
 	maxTime := 5 * time.Second
 	afterCh := time.After(maxTime)
 	var foundTaskCount int
+	var upto chat1.MessageID
 	for i := 0; ; i++ {
 		res, err := tc.ri.RetentionSweepConv(tc.startCtx, convID)
 		require.NoError(t, err)
@@ -525,12 +533,19 @@ func sweepPollForDeletion(t *testing.T, ctc *chatTestContext, asUser *kbtest.Fak
 			foundTaskCount++
 		}
 		if res.DeletedMessages {
-			return
+			expungeInfo := consumeExpunge(t, listener)
+			require.Equal(t, convID, expungeInfo.ConvID, "accidentally consumed expunge info for other conv")
+			upto = res.Expunge.Upto
+			if upto >= uptoWant {
+				return expungeInfo
+			}
+			t.Logf("sweepPollForDeletion ignoring expungeInfo: %v", expungeInfo.Expunge)
 		}
 		time.Sleep(10 * time.Millisecond)
 		select {
 		case <-afterCh:
-			require.FailNow(t, fmt.Sprintf("no messages deleted after %v runs, %v hit, %v", i, foundTaskCount, maxTime))
+			require.FailNow(t, fmt.Sprintf("no messages deleted after %v runs, %v hit, upto %v, %v",
+				i, foundTaskCount, upto, maxTime))
 		default:
 		}
 	}
@@ -3078,9 +3093,7 @@ func TestChatSrvRetentionSweepConv(t *testing.T) {
 		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
 
 		// This will take at least 1 second. For the deletable message to get old enough.
-		sweepPollForDeletion(t, ctc, users[1], created.Id)
-
-		expungeInfo := consumeExpunge(t, listener)
+		expungeInfo := sweepPollForDeletion(t, ctc, users[1], listener, created.Id, 4)
 		require.True(t, expungeInfo.ConvID.Eq(created.Id))
 		require.Equal(t, chat1.Expunge{Upto: 4}, expungeInfo.Expunge, "expunge upto")
 
@@ -3142,9 +3155,14 @@ func TestChatSrvRetentionSweepTeam(t *testing.T) {
 		convExpirePolicy := chat1.NewRetentionPolicyWithExpire(chat1.RpExpire{Age: gregor1.DurationSec(1)})
 		convRetainPolicy := chat1.NewRetentionPolicyWithRetain(chat1.RpRetain{})
 
+		latestMsgMap := make(map[string] /*convID*/ chat1.MessageID)
+		latestMsg := func(convID chat1.ConversationID) chat1.MessageID {
+			return latestMsgMap[convID.String()]
+		}
 		for i, conv := range convs {
 			t.Logf("conv (%v/%v) %v in team %v", i+1, len(convs), conv.Id, tlfIDToTeamIDForce(t, conv.Triple.Tlfid))
-			mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+			msgID := mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+			latestMsgMap[conv.Id.String()] = msgID
 
 			ignoreTypes := []chat1.MessageType{chat1.MessageType_SYSTEM, chat1.MessageType_JOIN}
 			consumeNewMsgWhileIgnoring(t, listener, chat1.MessageType_TEXT, ignoreTypes)
@@ -3158,8 +3176,8 @@ func TestChatSrvRetentionSweepTeam(t *testing.T) {
 		require.True(t, consumeSetConvRetention(t, listener).Eq(convC.Id))
 
 		// This will take at least 1 second.
-		sweepPollForDeletion(t, ctc, users[0], convB.Id)
-		sweepPollForDeletion(t, ctc, users[0], convA.Id)
+		sweepPollForDeletion(t, ctc, users[0], listener, convB.Id, latestMsg(convB.Id)+1)
+		sweepPollForDeletion(t, ctc, users[0], listener, convA.Id, latestMsg(convA.Id)+1)
 		sweepNoDeletion(t, ctc, users[0], convC.Id)
 
 		checkThread := func(convID chat1.ConversationID, expectDeleted bool) {
