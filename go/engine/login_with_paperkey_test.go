@@ -94,7 +94,7 @@ func TestLoginWithPaperKeyLoggedInAndLocked(t *testing.T) {
 		a.ClearCachedSecretKeys()
 	}, "test")
 	require.NoError(t, err)
-	err = tc.G.SecretStoreAll.ClearSecret(libkb.NormalizedUsername(u.Username))
+	err = tc.G.SecretStore().ClearSecret(libkb.NormalizedUsername(u.Username))
 	require.NoError(t, err)
 
 	t.Logf("checking logged in status [before]")

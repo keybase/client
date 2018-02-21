@@ -57,6 +57,7 @@ protocol config {
     boolean paperEncKeyCached;
     boolean storedSecret;
     boolean secretPromptSkip;
+    boolean rememberPassphrase;
     union { null, Device } device;
     union { null, LoadDeviceErr } deviceErr; /* if err getting device, this will describe it */
     string logDir;
@@ -152,4 +153,7 @@ protocol config {
     array<string> followers;    // who follows current logged in user
   }
   BootstrapStatus getBootstrapStatus(int sessionID);
+
+  boolean getRememberPassphrase(int sessionID);
+  void setRememberPassphrase(int sessionID, boolean remember);
 }

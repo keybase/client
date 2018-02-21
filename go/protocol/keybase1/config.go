@@ -116,6 +116,7 @@ type ExtendedStatus struct {
 	PaperEncKeyCached      bool            `codec:"paperEncKeyCached" json:"paperEncKeyCached"`
 	StoredSecret           bool            `codec:"storedSecret" json:"storedSecret"`
 	SecretPromptSkip       bool            `codec:"secretPromptSkip" json:"secretPromptSkip"`
+	RememberPassphrase     bool            `codec:"rememberPassphrase" json:"rememberPassphrase"`
 	Device                 *Device         `codec:"device,omitempty" json:"device,omitempty"`
 	DeviceErr              *LoadDeviceErr  `codec:"deviceErr,omitempty" json:"deviceErr,omitempty"`
 	LogDir                 string          `codec:"logDir" json:"logDir"`
@@ -138,6 +139,7 @@ func (o ExtendedStatus) DeepCopy() ExtendedStatus {
 		PaperEncKeyCached:      o.PaperEncKeyCached,
 		StoredSecret:           o.StoredSecret,
 		SecretPromptSkip:       o.SecretPromptSkip,
+		RememberPassphrase:     o.RememberPassphrase,
 		Device: (func(x *Device) *Device {
 			if x == nil {
 				return nil
@@ -414,6 +416,15 @@ type GetBootstrapStatusArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type GetRememberPassphraseArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
+type SetRememberPassphraseArg struct {
+	SessionID int  `codec:"sessionID" json:"sessionID"`
+	Remember  bool `codec:"remember" json:"remember"`
+}
+
 type ConfigInterface interface {
 	GetCurrentStatus(context.Context, int) (GetCurrentStatusRes, error)
 	GetExtendedStatus(context.Context, int) (ExtendedStatus, error)
@@ -432,6 +443,8 @@ type ConfigInterface interface {
 	// Wait for client type to connect to service.
 	WaitForClient(context.Context, WaitForClientArg) (bool, error)
 	GetBootstrapStatus(context.Context, int) (BootstrapStatus, error)
+	GetRememberPassphrase(context.Context, int) (bool, error)
+	SetRememberPassphrase(context.Context, SetRememberPassphraseArg) error
 }
 
 func ConfigProtocol(i ConfigInterface) rpc.Protocol {
@@ -625,6 +638,38 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"getRememberPassphrase": {
+				MakeArg: func() interface{} {
+					ret := make([]GetRememberPassphraseArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetRememberPassphraseArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetRememberPassphraseArg)(nil), args)
+						return
+					}
+					ret, err = i.GetRememberPassphrase(ctx, (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"setRememberPassphrase": {
+				MakeArg: func() interface{} {
+					ret := make([]SetRememberPassphraseArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SetRememberPassphraseArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SetRememberPassphraseArg)(nil), args)
+						return
+					}
+					err = i.SetRememberPassphrase(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -702,5 +747,16 @@ func (c ConfigClient) WaitForClient(ctx context.Context, __arg WaitForClientArg)
 func (c ConfigClient) GetBootstrapStatus(ctx context.Context, sessionID int) (res BootstrapStatus, err error) {
 	__arg := GetBootstrapStatusArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.config.getBootstrapStatus", []interface{}{__arg}, &res)
+	return
+}
+
+func (c ConfigClient) GetRememberPassphrase(ctx context.Context, sessionID int) (res bool, err error) {
+	__arg := GetRememberPassphraseArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.config.getRememberPassphrase", []interface{}{__arg}, &res)
+	return
+}
+
+func (c ConfigClient) SetRememberPassphrase(ctx context.Context, __arg SetRememberPassphraseArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.config.setRememberPassphrase", []interface{}{__arg}, nil)
 	return
 }

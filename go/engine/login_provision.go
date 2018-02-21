@@ -1118,7 +1118,7 @@ func (e *loginProvision) verifyLocalStorage() {
 	e.verifyRegularFile("secretkeys", e.G().SKBFilenameForUser(normUsername))
 
 	// check secret stored
-	secret, err := e.G().SecretStoreAll.RetrieveSecret(normUsername)
+	secret, err := e.G().SecretStore().RetrieveSecret(normUsername)
 	if err != nil {
 		e.G().Log.Debug("loginProvision(verify): failed to retrieve secret for %s: %s", e.username, err)
 	}

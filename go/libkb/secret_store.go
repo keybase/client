@@ -28,8 +28,6 @@ type SecretStoreAll interface {
 	StoreSecret(username NormalizedUsername, secret LKSecFullSecret) error
 	ClearSecret(username NormalizedUsername) error
 	GetUsersWithStoredSecrets() ([]string, error)
-	GetApprovalPrompt() string
-	GetTerminalPrompt() string
 }
 
 type SecretStoreContext interface {
@@ -74,10 +72,11 @@ func (s *SecretStoreImp) StoreSecret(secret LKSecFullSecret) error {
 // a short period of time (i.e. one function block).  Multiple calls to RetrieveSecret()
 // will only call the underlying store.RetrieveSecret once.
 func NewSecretStore(g *GlobalContext, username NormalizedUsername) SecretStore {
-	if g.SecretStoreAll != nil {
+	store := g.SecretStore()
+	if store != nil {
 		return &SecretStoreImp{
 			username: username,
-			store:    g.SecretStoreAll,
+			store:    store,
 		}
 	}
 	return nil
@@ -124,10 +123,11 @@ func GetConfiguredAccounts(c SecretStoreContext, s SecretStoreAll) ([]keybase1.C
 }
 
 func ClearStoredSecret(g *GlobalContext, username NormalizedUsername) error {
-	if g.SecretStoreAll == nil {
+	ss := g.SecretStore()
+	if ss == nil {
 		return nil
 	}
-	return g.SecretStoreAll.ClearSecret(username)
+	return ss.ClearSecret(username)
 }
 
 // SecretStoreLocked protects a SecretStoreAll with a mutex.
@@ -137,11 +137,23 @@ type SecretStoreLocked struct {
 }
 
 func NewSecretStoreLocked(g *GlobalContext) *SecretStoreLocked {
-	ss := NewSecretStoreAll(g)
+	var ss SecretStoreAll
+
+	if g.Env.RememberPassphrase() {
+		// use os-specific secret store
+		g.Log.Debug("NewSecretStoreLocked: using os-specific SecretStore")
+		ss = NewSecretStoreAll(g)
+	} else {
+		// config or command line flag said to use in-memory secret store
+		g.Log.Debug("NewSecretStoreLocked: using memory-only SecretStore")
+		ss = NewSecretStoreMem()
+	}
+
 	if ss == nil {
 		// right now, some stuff depends on g.SecretStoreAll being nil or not
 		return nil
 	}
+
 	return &SecretStoreLocked{
 		SecretStoreAll: ss,
 	}

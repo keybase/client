@@ -339,6 +339,10 @@ export const configGetExtendedStatusRpcChannelMap = (configKeys: Array<string>, 
 
 export const configGetExtendedStatusRpcPromise = (request: ConfigGetExtendedStatusRpcParam): Promise<ConfigGetExtendedStatusResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.getExtendedStatus', request, (error: RPCError, result: ConfigGetExtendedStatusResult) => (error ? reject(error) : resolve(result))))
 
+export const configGetRememberPassphraseRpcChannelMap = (configKeys: Array<string>, request: ConfigGetRememberPassphraseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.getRememberPassphrase', request)
+
+export const configGetRememberPassphraseRpcPromise = (request: ConfigGetRememberPassphraseRpcParam): Promise<ConfigGetRememberPassphraseResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.getRememberPassphrase', request, (error: RPCError, result: ConfigGetRememberPassphraseResult) => (error ? reject(error) : resolve(result))))
+
 export const configGetValueRpcChannelMap = (configKeys: Array<string>, request: ConfigGetValueRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.getValue', request)
 
 export const configGetValueRpcPromise = (request: ConfigGetValueRpcParam): Promise<ConfigGetValueResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.getValue', request, (error: RPCError, result: ConfigGetValueResult) => (error ? reject(error) : resolve(result))))
@@ -350,6 +354,10 @@ export const configHelloIAmRpcPromise = (request: ConfigHelloIAmRpcParam): Promi
 export const configSetPathRpcChannelMap = (configKeys: Array<string>, request: ConfigSetPathRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.setPath', request)
 
 export const configSetPathRpcPromise = (request: ConfigSetPathRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.setPath', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+
+export const configSetRememberPassphraseRpcChannelMap = (configKeys: Array<string>, request: ConfigSetRememberPassphraseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.setRememberPassphrase', request)
+
+export const configSetRememberPassphraseRpcPromise = (request: ConfigSetRememberPassphraseRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.setRememberPassphrase', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const configSetUserConfigRpcChannelMap = (configKeys: Array<string>, request: ConfigSetUserConfigRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.setUserConfig', request)
 
@@ -2035,11 +2043,15 @@ export type ConfigGetCurrentStatusRpcParam = ?$ReadOnly<{incomingCallMap?: Incom
 
 export type ConfigGetExtendedStatusRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
+export type ConfigGetRememberPassphraseRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
 export type ConfigGetValueRpcParam = $ReadOnly<{path: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type ConfigHelloIAmRpcParam = $ReadOnly<{details: ClientDetails, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type ConfigSetPathRpcParam = $ReadOnly<{path: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
+export type ConfigSetRememberPassphraseRpcParam = $ReadOnly<{remember: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type ConfigSetUserConfigRpcParam = $ReadOnly<{username: String, key: String, value: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -2174,7 +2186,7 @@ export type ExitCode =
   | 2 // NOTOK_2
   | 4 // RESTART_4
 
-export type ExtendedStatus = $ReadOnly<{standalone: Boolean, passphraseStreamCached: Boolean, tsecCached: Boolean, deviceSigKeyCached: Boolean, deviceEncKeyCached: Boolean, paperSigKeyCached: Boolean, paperEncKeyCached: Boolean, storedSecret: Boolean, secretPromptSkip: Boolean, device?: ?Device, deviceErr?: ?LoadDeviceErr, logDir: String, session?: ?SessionStatus, defaultUsername: String, provisionedUsernames?: ?Array<String>, Clients?: ?Array<ClientDetails>, platformInfo: PlatformInfo, defaultDeviceID: DeviceID}>
+export type ExtendedStatus = $ReadOnly<{standalone: Boolean, passphraseStreamCached: Boolean, tsecCached: Boolean, deviceSigKeyCached: Boolean, deviceEncKeyCached: Boolean, paperSigKeyCached: Boolean, paperEncKeyCached: Boolean, storedSecret: Boolean, secretPromptSkip: Boolean, rememberPassphrase: Boolean, device?: ?Device, deviceErr?: ?LoadDeviceErr, logDir: String, session?: ?SessionStatus, defaultUsername: String, provisionedUsernames?: ?Array<String>, Clients?: ?Array<ClientDetails>, platformInfo: PlatformInfo, defaultDeviceID: DeviceID}>
 
 export type FSEditListRequest = $ReadOnly<{folder: Folder, requestID: Int}>
 
@@ -3942,6 +3954,7 @@ type ConfigGetBootstrapStatusResult = BootstrapStatus
 type ConfigGetConfigResult = Config
 type ConfigGetCurrentStatusResult = GetCurrentStatusRes
 type ConfigGetExtendedStatusResult = ExtendedStatus
+type ConfigGetRememberPassphraseResult = Boolean
 type ConfigGetValueResult = ConfigValue
 type ConfigWaitForClientResult = Boolean
 type CryptoSignED25519ForKBFSResult = ED25519SignatureInfo
