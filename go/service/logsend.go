@@ -28,7 +28,7 @@ func NewLogsendHandler(xp rpc.Transporter, g *libkb.GlobalContext) *LogsendHandl
 func (h *LogsendHandler) PrepareLogsend(ctx context.Context) error {
 	connMgr := h.G().ConnectionManager
 	if connMgr == nil {
-		return nil, errors.New("no connection manager available")
+		return errors.New("no connection manager available")
 	}
 	xp := connMgr.LookupByClientType(keybase1.ClientType_GUI_MAIN)
 	if xp == nil {
