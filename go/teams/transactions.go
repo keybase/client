@@ -152,6 +152,10 @@ func (tx *AddMemberTx) AddMemberByUsername(ctx context.Context, username string,
 	team := tx.team
 	g := team.G()
 
+	if team.IsImplicit() {
+		return errors.New("Trying to use AddMemberByUsername for implicit team.")
+	}
+
 	defer g.CTrace(ctx, fmt.Sprintf("AddMemberTx.AddMemberByUsername(%s,%v) to team %q", username, role, team.Name()), func() error { return err })()
 
 	normalizedUsername, uv, hasPUK, err := loadUserVersionAndPUKedByUsername(ctx, g, username)
@@ -209,16 +213,8 @@ func (tx *AddMemberTx) AddMemberByUsername(ctx context.Context, username string,
 
 	// No going back after this point!
 
-	// Separate logic for sweeping in implicit teams, since memberships
-	// there have to be "constant" at every signature, so we can't post e.g.
-	// one sig that removes UV and another that adds invite.
-
-	if !team.IsImplicit() || !hasPUK {
-		tx.sweepKeybaseInvites(uv.Uid)
-	}
-	if !team.IsImplicit() || hasPUK {
-		tx.sweepCryptoMembers(uv.Uid)
-	}
+	tx.sweepKeybaseInvites(uv.Uid)
+	tx.sweepCryptoMembers(uv.Uid)
 
 	if !hasPUK {
 		return tx.createInvite(uv, role)
@@ -342,6 +338,10 @@ func (tx *AddMemberTx) completeAllKeybaseInvitesForUID(uv keybase1.UserVersion) 
 }
 
 func (tx *AddMemberTx) ReAddMemberToImplicitTeam(ctx context.Context, uv keybase1.UserVersion, hasPUK bool, role keybase1.TeamRole) error {
+	if !tx.team.IsImplicit() {
+		return errors.New("Trying to use ReAddMemberToImplicitTeam on a team that is not implicit.")
+	}
+
 	if hasPUK {
 		tx.addMember(uv, role)
 		tx.sweepCryptoMembers(uv.Uid)
