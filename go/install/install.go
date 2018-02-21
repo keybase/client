@@ -61,12 +61,14 @@ const (
 	ComponentNameMountDir ComponentName = "mountdir"
 	// ComponentNameCLIPaths is for /etc/paths.d/Keybase
 	ComponentNameCLIPaths ComponentName = "clipaths"
+	// ComponentNameRedirector is the KBFS redirector
+	ComponentNameRedirector ComponentName = "redirector"
 	// ComponentNameUnknown is placeholder for unknown components
 	ComponentNameUnknown ComponentName = "unknown"
 )
 
 // ComponentNames are all the valid component names
-var ComponentNames = []ComponentName{ComponentNameCLI, ComponentNameService, ComponentNameKBFS, ComponentNameUpdater, ComponentNameFuse, ComponentNameHelper, ComponentNameApp, ComponentNameKBNM, ComponentNameCLIPaths}
+var ComponentNames = []ComponentName{ComponentNameCLI, ComponentNameService, ComponentNameKBFS, ComponentNameUpdater, ComponentNameFuse, ComponentNameHelper, ComponentNameApp, ComponentNameKBNM, ComponentNameRedirector, ComponentNameCLIPaths}
 
 // String returns string for ComponentName
 func (c ComponentName) String() string {
@@ -94,6 +96,8 @@ func (c ComponentName) Description() string {
 		return "Browser Native Messaging"
 	case ComponentNameCLIPaths:
 		return "Command Line (privileged)"
+	case ComponentNameRedirector:
+		return "Redirector (privileged)"
 	}
 	return "Unknown"
 }
@@ -119,6 +123,8 @@ func ComponentNameFromString(s string) ComponentName {
 		return ComponentNameHelper
 	case string(ComponentNameCLIPaths):
 		return ComponentNameCLIPaths
+	case string(ComponentNameRedirector):
+		return ComponentNameRedirector
 	}
 	return ComponentNameUnknown
 }

@@ -412,6 +412,7 @@ func InstallAuto(context Context, binPath string, sourcePath string, timeout tim
 			ComponentNameHelper.String(),
 			ComponentNameFuse.String(),
 			ComponentNameMountDir.String(),
+			ComponentNameRedirector.String(),
 			ComponentNameKBFS.String(),
 			ComponentNameKBNM.String(),
 		}
@@ -496,6 +497,14 @@ func Install(context Context, binPath string, sourcePath string, components []st
 		componentResults = append(componentResults, componentResult(string(ComponentNameKBFS), err))
 		if err != nil {
 			log.Errorf("Error installing KBFS: %s", err)
+		}
+	}
+
+	if libkb.IsIn(string(ComponentNameRedirector), components, false) {
+		err = libnativeinstaller.InstallRedirector(context.GetRunMode(), log)
+		componentResults = append(componentResults, componentResult(string(ComponentNameRedirector), err))
+		if err != nil {
+			log.Errorf("Error starting redirector: %s", err)
 		}
 	}
 
@@ -681,6 +690,14 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 	componentResults := []keybase1.ComponentResult{}
 
 	log.Debug("Uninstalling components: %s", components)
+
+	if libkb.IsIn(string(ComponentNameRedirector), components, false) {
+		err = libnativeinstaller.UninstallRedirector(context.GetRunMode(), log)
+		componentResults = append(componentResults, componentResult(string(ComponentNameRedirector), err))
+		if err != nil {
+			log.Errorf("Error uninstalling mount dir: %s", err)
+		}
+	}
 
 	if libkb.IsIn(string(ComponentNameKBFS), components, false) {
 		var mountDir string

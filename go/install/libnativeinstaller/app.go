@@ -89,6 +89,17 @@ func UninstallMountDir(runMode libkb.RunMode, log Log) error {
 	return execNativeInstallerWithArg([]string{"--uninstall-mountdir"}, runMode, log)
 }
 
+// InstallRedirector calls the installer with --install-redirector.
+func InstallRedirector(runMode libkb.RunMode, log Log) error {
+	log.Info("Starting redirector")
+	return execNativeInstallerWithArg([]string{"--install-redirector"}, runMode, log)
+}
+
+// UninstallRedirector calls the installer with --uninstall-redirector.
+func UninstallRedirector(runMode libkb.RunMode, log Log) error {
+	return execNativeInstallerWithArg([]string{"--uninstall-redirector"}, runMode, log)
+}
+
 // InstallFuse calls the installer with --install-fuse.
 func InstallFuse(runMode libkb.RunMode, log Log) error {
 	log.Info("Installing KBFuse")

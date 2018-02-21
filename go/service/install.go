@@ -36,7 +36,7 @@ func (h *InstallHandler) InstallFuse(context.Context) (keybase1.InstallResult, e
 }
 
 func (h *InstallHandler) InstallKBFS(context.Context) (keybase1.InstallResult, error) {
-	components := []string{"mountdir", "kbfs"}
+	components := []string{"mountdir", "kbfs", "redirector"}
 	result := install.Install(h.G(), "", "", components, false, 120, h.G().Log)
 	return result, nil
 }
