@@ -350,7 +350,9 @@ func (tx *AddMemberTx) ReAddMemberToImplicitTeam(ctx context.Context, uv keybase
 		// We cannot sweep crypto members here because we need to
 		// ensure that we are only posting one link, and if we want to
 		// add pukless member, it has to be invite link. So old crypto
-		// members have to stay for now.
+		// members have to stay for now. However, old crypto member
+		// should be sweeped when Keybase-type invite goes through SBS
+		// handler and invited member becomes a real crypto dude.
 	}
 
 	if len(tx.payloads) != 1 {

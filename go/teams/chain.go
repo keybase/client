@@ -530,6 +530,10 @@ func (t *TeamSigChainState) IsInviteObsolete(id keybase1.TeamInviteID) bool {
 	return ok
 }
 
+// FindActiveKeybaseInvite finds and returns *first* Keybase-type
+// invite for given UID. Ordering here is not guaranteed, caller
+// shouldn't assume that returned invite will be the oldest/newest one
+// for the UID.
 func (t *TeamSigChainState) FindActiveKeybaseInvite(uid keybase1.UID) (keybase1.TeamInvite, keybase1.UserVersion, bool) {
 	for _, invite := range t.inner.ActiveInvites {
 		if inviteUv, err := invite.KeybaseUserVersion(); err == nil {
@@ -1485,7 +1489,9 @@ func (t *TeamSigChainPlayer) addInnerLink(
 				for _, inviteID := range cancelations {
 					invite, found := prevState.FindActiveInviteByID(inviteID)
 					if !found {
-						return fmt.Errorf("encountered cancellation of invite that doesn't exist")
+						// This is harmless and also we might be canceling
+						// an obsolete invite.
+						continue
 					}
 					inviteUv, err := invite.KeybaseUserVersion()
 					if err != nil {
