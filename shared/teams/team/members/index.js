@@ -16,14 +16,3 @@ export type Props = {
 export const Members = (props: Props) => (
   <List items={props.members} fixedHeight={48} renderItem={MemberRow} style={{alignSelf: 'stretch'}} />
 )
-
-export function MemberRows(props: Props): React.Node[] {
-  const rows = []
-  const {members} = props
-  let i = 0
-  while (members.length) {
-    rows.push(MemberRow(i, members.shift()))
-    i++
-  }
-  return rows
-}

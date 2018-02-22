@@ -6,10 +6,16 @@ import * as TeamsGen from '../../actions/teams-gen'
 import * as KBFSGen from '../../actions/kbfs-gen'
 import Team, {CustomComponent} from '.'
 import {HeaderHoc} from '../../common-adapters'
-import {compose, lifecycle, withState} from 'recompose'
-import {connect, type TypedState} from '../../util/container'
+import {branch, connect, withStateHandlers, lifecycle, compose, type TypedState} from '../../util/container'
 import {navigateAppend} from '../../actions/route-tree'
 import {anyWaiting} from '../../constants/waiting'
+
+import {membersListItemsConnector} from './members/container'
+
+/**
+ * WARNING: Never add a prop here called `listItems`. That is used by the
+ * connectors pulled in for switching the tab views.
+ */
 
 const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
   const teamname = routeProps.get('teamname')
@@ -70,7 +76,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 }
 
 export default compose(
-  withState('showMenu', 'setShowMenu', false),
+  withStateHandlers(props => ({showMenu: false}), {setShowMenu: () => (showMenu: boolean) => ({showMenu})}),
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentDidMount: function() {
@@ -83,5 +89,6 @@ export default compose(
       }
     },
   }),
+  branch(props => props.selectedTab === 'members', membersListItemsConnector),
   HeaderHoc
 )(Team)

@@ -8,7 +8,8 @@ import {amIFollowing} from '../../../../constants/selectors'
 import {navigateAppend} from '../../../../actions/route-tree'
 import {connect, type TypedState} from '../../../../util/container'
 
-type OwnProps = {
+export type OwnProps = {
+  type: 'member',
   active: boolean,
   fullName: string,
   username: string,
