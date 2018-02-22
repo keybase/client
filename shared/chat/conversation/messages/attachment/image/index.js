@@ -34,7 +34,11 @@ class ImageAttachment extends React.PureComponent<Props> {
 
   render() {
     return (
-      <ClickableBox style={imageContainerStyle} onClick={this.props.onClick} onLongPress={this.props.onShowMenu}>
+      <ClickableBox
+        style={imageContainerStyle}
+        onClick={this.props.onClick}
+        onLongPress={this.props.onShowMenu}
+      >
         <Text type="BodySemibold" style={titleStyle}>
           {this.props.title}
         </Text>
@@ -57,7 +61,7 @@ class ImageAttachment extends React.PureComponent<Props> {
           )}
           {!!this.props.arrowColor && (
             <Box style={downloadedIconWrapperStyle}>
-              <Icon type="iconfont-import" style={{color: this.props.arrowColor, maxHeight: 14}} />
+              <Icon type="iconfont-download" style={{color: this.props.arrowColor, maxHeight: 14}} />
             </Box>
           )}
         </Box>

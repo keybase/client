@@ -1258,7 +1258,7 @@ export type StaleUpdateType =
   | 0 // CLEAR_0
   | 1 // NEWACTIVITY_1
 
-export type SweepRes = $ReadOnly<{foundTask: Boolean, deletedMessages: Boolean}>
+export type SweepRes = $ReadOnly<{foundTask: Boolean, deletedMessages: Boolean, expunge: Expunge}>
 
 export type SyncAllNotificationRes = {typ: 0, state: ?Gregor1.State} | {typ: 1, incremental: ?Gregor1.SyncResult}
 

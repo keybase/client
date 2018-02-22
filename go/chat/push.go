@@ -606,6 +606,27 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				TeamType: nm.TeamType,
 				Conv:     g.presentUIItem(conv),
 			})
+		case types.ActionExpunge:
+			var nm chat1.ExpungePayload
+			err = dec.Decode(&nm)
+			if err != nil {
+				g.Debug(ctx, "chat activity: error decoding: %s", err.Error())
+				return
+			}
+			g.Debug(ctx, "chat activity: expunge: convID: %s expunge: %v",
+				nm.ConvID, nm.Expunge)
+			uid := m.UID().Bytes()
+			if err = g.G().ConvSource.Expunge(ctx, nm.ConvID, uid, nm.Expunge); err != nil {
+				g.Debug(ctx, "chat activity: unable to update conv: %s", err.Error())
+			}
+			if conv, err = g.G().InboxSource.Expunge(ctx, uid, nm.InboxVers, nm.ConvID, nm.Expunge, nm.MaxMsgs); err != nil {
+				g.Debug(ctx, "chat activity: unable to update inbox: %s", err.Error())
+			}
+			activity = chat1.NewChatActivityWithExpunge(chat1.ExpungeInfo{
+				ConvID:  nm.ConvID,
+				Expunge: nm.Expunge,
+				Conv:    g.presentUIItem(conv),
+			})
 		default:
 			g.Debug(ctx, "unhandled chat.activity action %q", action)
 			return
@@ -932,7 +953,7 @@ func (g *PushHandler) SetConvRetention(ctx context.Context, m gregor.OutOfBandMe
 		if conv == nil {
 			return
 		}
-		// Send notify for each conversation ID
+		// Send notify for the conv
 		if conv.GetTopicType() == chat1.TopicType_CHAT {
 			if g.shouldSendNotifications() {
 				g.G().NotifyRouter.HandleChatSetConvRetention(ctx, keybase1.UID(uid.String()),
