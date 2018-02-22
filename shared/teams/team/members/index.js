@@ -22,7 +22,7 @@ export function MemberRows(props: Props): React.Node[] {
   const {members} = props
   let i = 0
   while (members.length) {
-    rows.push(MemberRow(i, members.pop()))
+    rows.push(MemberRow(i, members.shift()))
     i++
   }
   return rows
