@@ -488,7 +488,7 @@ func GetSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, error) {
 var chanNameMentionRegExp = regexp.MustCompile(`\B#([0-9a-zA-Z_-]+)`)
 
 func ParseChannelNameMentions(ctx context.Context, body string, uid gregor1.UID, teamID chat1.TLFID,
-	ts types.TeamChannelSource) (res []types.ConvIDAndTopicName) {
+	ts types.TeamChannelSource) (res []chat1.ChannelNameMention) {
 	names := parseRegexpNames(ctx, body, chanNameMentionRegExp)
 	if len(names) == 0 {
 		return nil
@@ -497,7 +497,7 @@ func ParseChannelNameMentions(ctx context.Context, body string, uid gregor1.UID,
 	if err != nil {
 		return nil
 	}
-	validChans := make(map[string]types.ConvIDAndTopicName)
+	validChans := make(map[string]chat1.ChannelNameMention)
 	for _, cr := range chanResponse {
 		validChans[cr.TopicName] = cr
 	}
@@ -861,7 +861,7 @@ func computeOutboxOrdinal(obr chat1.OutboxRecord) float64 {
 	return float64(obr.Msg.ClientHeader.OutboxInfo.Prev) + float64(obr.Ordinal)/1000.0
 }
 
-func presentChannelNameMentions(ctx context.Context, crs []types.ConvIDAndTopicName) (res []chat1.UIChannelNameMention) {
+func presentChannelNameMentions(ctx context.Context, crs []chat1.ChannelNameMention) (res []chat1.UIChannelNameMention) {
 	for _, cr := range crs {
 		res = append(res, chat1.UIChannelNameMention{
 			Name:   cr.TopicName,
@@ -886,25 +886,10 @@ func PresentMessageUnboxed(ctx context.Context, rawMsg chat1.MessageUnboxed, uid
 	if err != nil {
 		return miscErr(err)
 	}
-
 	switch state {
 	case chat1.MessageUnboxedState_VALID:
-		if !rawMsg.IsValidFull() {
-			return miscErr(fmt.Errorf("unexpected deleted %v message", strings.ToLower(rawMsg.GetMessageType().String())))
-		}
-		valid := rawMsg.Valid()
-
-		// Get channel name mentions (only frontend really cares about these, so just get it here)
-		var channelNameMentions []types.ConvIDAndTopicName
-		switch rawMsg.GetMessageType() {
-		case chat1.MessageType_TEXT:
-			channelNameMentions = ParseChannelNameMentions(ctx, valid.MessageBody.Text().Body, uid,
-				valid.ClientHeader.Conv.Tlfid, tcs)
-		case chat1.MessageType_EDIT:
-			channelNameMentions = ParseChannelNameMentions(ctx, valid.MessageBody.Edit().Body, uid,
-				valid.ClientHeader.Conv.Tlfid, tcs)
-		}
 		var strOutboxID *string
+		valid := rawMsg.Valid()
 		if valid.ClientHeader.OutboxID != nil {
 			so := valid.ClientHeader.OutboxID.String()
 			strOutboxID = &so
@@ -913,15 +898,15 @@ func PresentMessageUnboxed(ctx context.Context, rawMsg chat1.MessageUnboxed, uid
 			MessageID:             rawMsg.GetMessageID(),
 			Ctime:                 valid.ServerHeader.Ctime,
 			OutboxID:              strOutboxID,
-			MessageBody:           valid.MessageBody,
-			SenderUsername:        valid.SenderUsername,
-			SenderDeviceName:      valid.SenderDeviceName,
-			SenderDeviceType:      valid.SenderDeviceType,
-			SenderDeviceRevokedAt: valid.SenderDeviceRevokedAt,
-			Superseded:            valid.ServerHeader.SupersededBy != 0,
-			AtMentions:            valid.AtMentionUsernames,
-			ChannelMention:        valid.ChannelMention,
-			ChannelNameMentions:   presentChannelNameMentions(ctx, channelNameMentions),
+			MessageBody:           rawMsg.Valid().MessageBody,
+			SenderUsername:        rawMsg.Valid().SenderUsername,
+			SenderDeviceName:      rawMsg.Valid().SenderDeviceName,
+			SenderDeviceType:      rawMsg.Valid().SenderDeviceType,
+			SenderDeviceRevokedAt: rawMsg.Valid().SenderDeviceRevokedAt,
+			Superseded:            rawMsg.Valid().ServerHeader.SupersededBy != 0,
+			AtMentions:            rawMsg.Valid().AtMentionUsernames,
+			ChannelMention:        rawMsg.Valid().ChannelMention,
+			ChannelNameMentions:   presentChannelNameMentions(ctx, rawMsg.Valid().ChannelNameMentions),
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
 		var body string
