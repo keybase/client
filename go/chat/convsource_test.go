@@ -803,5 +803,20 @@ func TestConversationLockingDeadlock(t *testing.T) {
 	blocked, err = timedAcquire(ctx3, t, hcs, uid, conv.GetConvID())
 	require.NoError(t, err)
 	require.False(t, blocked)
-
+	require.True(t, hcs.lockTab.Release(ctx2, uid, conv2.GetConvID()))
+	select {
+	case res := <-cb:
+		require.NoError(t, res.err)
+		require.True(t, res.blocked)
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "not blocked")
+	}
+	require.True(t, hcs.lockTab.Release(ctx3, uid, conv3.GetConvID()))
+	select {
+	case res := <-cb2:
+		require.NoError(t, res.err)
+		require.True(t, res.blocked)
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "not blocked")
+	}
 }

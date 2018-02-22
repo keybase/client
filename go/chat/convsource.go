@@ -236,16 +236,17 @@ func (c *conversationLockTab) key(uid gregor1.UID, convID chat1.ConversationID) 
 }
 
 func (c *conversationLockTab) deadlockDetect(ctx context.Context, trace string, waiters map[string]bool) bool {
-	wait, ok := c.waits[trace]
+	waitingOnTrace, ok := c.waits[trace]
 	if !ok {
 		return false
 	}
-	if waiters[wait] {
-		c.Debug(ctx, "deadlockDetect: deadlock detected: trace: %s waiters: %v", trace, waiters)
+	if waiters[waitingOnTrace] {
+		c.Debug(ctx, "deadlockDetect: deadlock detected: trace: %s waitingOnTrace: %s waiters: %v",
+			trace, waitingOnTrace, waiters)
 		return true
 	}
 	waiters[trace] = true
-	return c.deadlockDetect(ctx, wait, waiters)
+	return c.deadlockDetect(ctx, waitingOnTrace, waiters)
 }
 
 func (c *conversationLockTab) doAcquire(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (blocked bool, err error) {
