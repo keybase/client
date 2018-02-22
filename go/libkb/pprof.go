@@ -22,7 +22,7 @@ func MakeTraceFilename(dir string, start time.Time, duration time.Duration) stri
 	// approximately sorts by increasing start time; time zones
 	// prevent it from being an exact sorting.
 	startStr := start.Format("20060102T150405Z0700")
-	filename := fmt.Sprintf("trace.%s.%s.out", start, duration)
+	filename := fmt.Sprintf("trace.%s.%s.out", startStr, duration)
 	return filepath.Join(dir, filename)
 }
 

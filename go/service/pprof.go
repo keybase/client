@@ -101,10 +101,10 @@ func (c *PprofHandler) LogTrace(_ context.Context, arg keybase1.LogTraceArg) (er
 
 	traceFiles, err := libkb.GetSortedTraceFiles(logDir)
 	if err != nil {
-		ctx.LogUI.Warning("Error getting trace files in %q: %s", traceDir, err)
-	} else if len(matches)+1 > libkb.MaxTraceFileCount {
+		ctx.LogUI.Warning("Error getting trace files in %q: %s", logDir, err)
+	} else if len(traceFiles)+1 > libkb.MaxTraceFileCount {
 		// Remove old trace files.
-		toRemove := matches[:len(matches)+1-maxTraceFileCount]
+		toRemove := traceFiles[:len(traceFiles)+1-libkb.MaxTraceFileCount]
 		for _, path := range toRemove {
 			c.G().Log.Info("Removing old trace file %q", path)
 			err := os.Remove(path)
