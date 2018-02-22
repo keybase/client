@@ -161,12 +161,12 @@ func NewLoginState(g *GlobalContext) *LoginState {
 	return res
 }
 
-func (s *LoginState) LoginWithPrompt(username string, loginUI LoginUI, secretUI SecretUI, after afterFn) (err error) {
+func (s *LoginState) LoginWithPrompt(username string, loginUI LoginUI, secretUI SecretUI, force bool, after afterFn) (err error) {
 	s.G().Log.Debug("+ LoginWithPrompt(%s) called", username)
 	defer func() { s.G().Log.Debug("- LoginWithPrompt -> %s", ErrToOk(err)) }()
 
 	err = s.loginHandle(func(lctx LoginContext) error {
-		return s.loginWithPromptHelper(lctx, username, loginUI, secretUI, false)
+		return s.loginWithPromptHelper(lctx, username, loginUI, secretUI, force)
 	}, after, "loginWithPromptHelper")
 	return
 }
@@ -248,7 +248,7 @@ func (s *LoginState) GetPassphraseStream(ui SecretUI) (pps *PassphraseStream, er
 	s.G().Log.Debug("+ GetPassphraseStream() called")
 	defer func() { s.G().Log.Debug("- GetPassphraseStream() -> %s", ErrToOk(err)) }()
 
-	pps, err = s.GetPassphraseStreamForUser(ui, string(s.G().Env.GetUsername()))
+	pps, err = s.GetPassphraseStreamForUser(ui, s.G().Env.GetUsername().String())
 	return
 }
 
@@ -461,10 +461,7 @@ func (s *LoginState) resetOrDelete(un string, which string) (err error) {
 			SessionR:    lctx.LocalSession(),
 		}
 		pdpka.PopulateArgs(&arg.Args)
-		res, aerr := s.G().API.Post(arg)
-		if aerr == nil {
-			s.G().Log.Info("%s Result: %+v\n", which, res.AppStatus)
-		}
+		_, aerr = s.G().API.Post(arg)
 		return aerr
 	}, nil, ("ResetAccount:" + which))
 	if aerr != nil {

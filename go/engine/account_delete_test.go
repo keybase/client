@@ -8,10 +8,11 @@
 package engine
 
 import (
+	"testing"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
-	"testing"
 )
 
 func TestAccountDelete(t *testing.T) {
@@ -20,7 +21,10 @@ func TestAccountDelete(t *testing.T) {
 
 	fu := CreateAndSignupFakeUser(tc, "acct")
 
-	ctx := &Context{}
+	ctx := &Context{
+		LoginUI:  &libkb.TestLoginUI{},
+		SecretUI: &libkb.TestSecretUI{Passphrase: fu.Passphrase},
+	}
 	eng := NewAccountDelete(tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
@@ -65,7 +69,10 @@ func TestAccountDeleteIdentify(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	ctx := &Context{}
+	ctx := &Context{
+		LoginUI:  &libkb.TestLoginUI{},
+		SecretUI: &libkb.TestSecretUI{Passphrase: fu.Passphrase},
+	}
 	eng := NewAccountDelete(tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)

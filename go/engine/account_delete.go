@@ -45,36 +45,12 @@ func (e *AccountDelete) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *AccountDelete) Run(ctx *Context) error {
-	var postErr error
-	aerr := e.G().LoginState().Account(func(a *libkb.Account) {
-		if err := a.LoginSession().Load(); err != nil {
-			postErr = err
-			return
-		}
-		lp, err := libkb.ComputeLoginPackage(a, "")
-		if err != nil {
-			postErr = err
-			return
-		}
-
-		arg := libkb.APIArg{
-			Endpoint:    "delete",
-			SessionType: libkb.APISessionTypeREQUIRED,
-			SessionR:    a.LocalSession(),
-			Args:        libkb.NewHTTPArgs(),
-		}
-		lp.PopulateArgs(&arg.Args)
-		_, postErr = e.G().API.Post(arg)
-		if postErr != nil {
-			e.G().Log.Warning("API.Post error: %s", postErr)
-
-		}
-	}, "AccountDelete - Run")
-	if aerr != nil {
-		return aerr
+	username := e.G().GetEnv().GetUsername().String()
+	if err := e.G().LoginState().LoginWithPrompt(username, ctx.LoginUI, ctx.SecretUI, true, nil); err != nil {
+		return err
 	}
-	if postErr != nil {
-		return postErr
+	if err := e.G().LoginState().DeleteAccount(username); err != nil {
+		return err
 	}
 
 	e.G().Log.Debug("account deleted, logging out")

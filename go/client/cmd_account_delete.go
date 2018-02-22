@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type CmdAccountDelete struct {
@@ -36,6 +37,13 @@ func (c *CmdAccountDelete) ParseArgv(ctx *cli.Context) error {
 }
 
 func (c *CmdAccountDelete) Run() error {
+	protocols := []rpc.Protocol{
+		NewLoginUIProtocol(c.G()),
+		NewSecretUIProtocol(c.G()),
+	}
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
+		return err
+	}
 	cli, err := GetLoginClient(c.G())
 	if err != nil {
 		return err

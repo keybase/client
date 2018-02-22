@@ -61,7 +61,7 @@ func TestLoginLogout(t *testing.T) {
 	}
 
 	secretUI := &libkb.TestSecretUI{Passphrase: fu.Passphrase}
-	if err := tc.G.LoginState().LoginWithPrompt("", nil, secretUI, nil); err != nil {
+	if err := tc.G.LoginState().LoginWithPrompt("", nil, secretUI, false /* force */, nil); err != nil {
 		t.Error(err)
 	}
 
@@ -110,11 +110,11 @@ func TestLoginWhileAlreadyLoggedIn(t *testing.T) {
 
 	// These should all work, since the username matches.
 
-	if err := tc.G.LoginState().LoginWithPrompt("", nil, nil, nil); err != nil {
+	if err := tc.G.LoginState().LoginWithPrompt("", nil, nil, false /* force */, nil); err != nil {
 		t.Error(err)
 	}
 
-	if err := tc.G.LoginState().LoginWithPrompt(fu.Username, nil, nil, nil); err != nil {
+	if err := tc.G.LoginState().LoginWithPrompt(fu.Username, nil, nil, false /* force */, nil); err != nil {
 		t.Error(err)
 	}
 
@@ -127,7 +127,7 @@ func TestLoginWhileAlreadyLoggedIn(t *testing.T) {
 	}
 
 	// This should fail.
-	if _, ok := tc.G.LoginState().LoginWithPrompt("other", nil, nil, nil).(libkb.LoggedInWrongUserError); !ok {
+	if _, ok := tc.G.LoginState().LoginWithPrompt("other", nil, nil, false /* force */, nil).(libkb.LoggedInWrongUserError); !ok {
 		t.Fatal("Did not get expected LoggedIn error")
 	}
 }
@@ -143,7 +143,7 @@ func TestLoginAfterLoginStateReset(t *testing.T) {
 
 	tc.ResetLoginState()
 
-	if err := tc.G.LoginState().LoginWithPrompt("", nil, nil, nil); err != nil {
+	if err := tc.G.LoginState().LoginWithPrompt("", nil, nil, false /* force */, nil); err != nil {
 		t.Error(err)
 	}
 }
@@ -158,7 +158,7 @@ func TestLoginNonexistent(t *testing.T) {
 	Logout(tc)
 
 	secretUI := &libkb.TestSecretUI{Passphrase: "XXXXXXXXXXXX"}
-	err := tc.G.LoginState().LoginWithPrompt("nonexistent", nil, secretUI, nil)
+	err := tc.G.LoginState().LoginWithPrompt("nonexistent", nil, secretUI, false /* force */, nil)
 	if _, ok := err.(libkb.NotFoundError); !ok {
 		t.Errorf("error type: %T, expected libkb.NotFoundError", err)
 	}
@@ -210,7 +210,7 @@ func TestLoginWithPromptPassphrase(t *testing.T) {
 	mockGetKeybasePassphrase := &GetPassphraseMock{
 		Passphrase: fu.Passphrase,
 	}
-	if err := tc.G.LoginState().LoginWithPrompt("", nil, mockGetKeybasePassphrase, nil); err != nil {
+	if err := tc.G.LoginState().LoginWithPrompt("", nil, mockGetKeybasePassphrase, false /* force */, nil); err != nil {
 		t.Error(err)
 	}
 
@@ -221,7 +221,7 @@ func TestLoginWithPromptPassphrase(t *testing.T) {
 	Logout(tc)
 
 	mockGetKeybasePassphrase.Called = false
-	if err := tc.G.LoginState().LoginWithPrompt(fu.Username, nil, mockGetKeybasePassphrase, nil); err != nil {
+	if err := tc.G.LoginState().LoginWithPrompt(fu.Username, nil, mockGetKeybasePassphrase, false /* force */, nil); err != nil {
 		t.Error(err)
 	}
 
@@ -240,7 +240,7 @@ func TestLoginWithPromptPassphrase(t *testing.T) {
 		Username: fu.Username,
 	}
 	mockGetKeybasePassphrase.Called = false
-	if err := tc.G.LoginState().LoginWithPrompt("", mockGetUsername, mockGetKeybasePassphrase, nil); err != nil {
+	if err := tc.G.LoginState().LoginWithPrompt("", mockGetUsername, mockGetKeybasePassphrase, false /* force */, nil); err != nil {
 		t.Error(err)
 	}
 
@@ -304,7 +304,7 @@ func TestLoginWithStoredSecret(t *testing.T) {
 		Passphrase:  fu.Passphrase,
 		StoreSecret: true,
 	}
-	if err := tc.G.LoginState().LoginWithPrompt("", nil, mockGetPassphrase, nil); err != nil {
+	if err := tc.G.LoginState().LoginWithPrompt("", nil, mockGetPassphrase, false /* force */, nil); err != nil {
 		t.Fatal(err)
 	}
 

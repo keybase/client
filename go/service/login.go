@@ -171,6 +171,8 @@ func (h *LoginHandler) AccountDelete(ctx context.Context, sessionID int) error {
 		LogUI:      h.getLogUI(sessionID),
 		NetContext: ctx,
 		SessionID:  sessionID,
+		LoginUI:    h.getLoginUI(sessionID),
+		SecretUI:   h.getSecretUI(sessionID, h.G()),
 	}
 	eng := engine.NewAccountDelete(h.G())
 	return engine.RunEngine(eng, ectx)

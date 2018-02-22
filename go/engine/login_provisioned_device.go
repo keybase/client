@@ -155,7 +155,7 @@ func (e *LoginProvisionedDevice) run(ctx *Context) error {
 		}
 
 	} else {
-		if err := e.G().LoginState().LoginWithPrompt(e.username, ctx.LoginUI, ctx.SecretUI, afterLogin); err != nil {
+		if err := e.G().LoginState().LoginWithPrompt(e.username, ctx.LoginUI, ctx.SecretUI, false /* force */, afterLogin); err != nil {
 			return err
 		}
 	}
