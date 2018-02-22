@@ -24,7 +24,6 @@ const _Contents = ({conversationIDKey, onBack, participants, onBlock, onBlockAnd
       style={{
         ...globalStyles.flexBoxColumn,
         justifyContent: 'flex-start',
-        paddingTop: 5,
       }}
     >
       <Box style={{...globalStyles.flexBoxColumn, padding: globalMargins.medium}}>
@@ -65,14 +64,13 @@ const _Contents = ({conversationIDKey, onBack, participants, onBlock, onBlockAnd
 // apply to the insides and not the outter container.
 const Contents = _Contents
 
-const RenderBlockConversationWarning = (props: Props) => (
-  <PopupDialog
-    onClose={props.onBack}
-    styleCover={isMobile ? {paddingBottom: 0, paddingLeft: 0, paddingRight: 0, paddingTop: 0} : null}
-    styleContainer={isMobile ? {borderRadius: 0, width: '100%'} : null}
-  >
+const RenderBlockConversationWarning = (props: Props) =>
+  isMobile ? (
     <Contents {...props} />
-  </PopupDialog>
-)
+  ) : (
+    <PopupDialog onClose={props.onBack}>
+      <Contents {...props} />
+    </PopupDialog>
+  )
 
 export default RenderBlockConversationWarning

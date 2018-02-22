@@ -13,9 +13,8 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onAttach: (conversationIDKey: Types.ConversationIDKey, paths: Array<string>) =>
     dispatch(RouteTree.navigateAppend([{props: {conversationIDKey, paths}, selected: 'attachmentInput'}])),
-  onOpenInfoPanelMobile: () => {
-    // TODO
-  },
+  _onOpenInfoPanelMobile: (conversationIDKey: Types.ConversationIDKey) =>
+    dispatch(RouteTree.navigateAppend([{props: {conversationIDKey}, selected: 'infoPanel'}])),
   onShowTracker: (username: string) =>
     dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: false, username})),
 })
@@ -24,7 +23,7 @@ const mergeProps = (stateProps, dispatchProps) => {
   return {
     conversationIDKey: stateProps.conversationIDKey,
     onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
-    onOpenInfoPanelMobile: dispatchProps.onOpenInfoPanelMobile,
+    onOpenInfoPanelMobile: () => dispatchProps._onOpenInfoPanelMobile(stateProps.conversationIDKey),
     onShowTracker: dispatchProps.onShowTracker,
     showLoader: stateProps.showLoader,
   }

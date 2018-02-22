@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
 import * as React from 'react'
@@ -16,7 +17,8 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
-  const meta = Constants.getMeta(state, ownProps.conversationIDKey)
+  const conversationIDKey = ownProps.conversationIDKey
+  const meta = Constants.getMeta(state, conversationIDKey)
 
   let admin = false
   if (meta.teamname) {
@@ -30,13 +32,14 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
     admin,
     channelname: meta.channelname,
     isPreview: meta.membershipType === 'youArePreviewing',
-    selectedConversationIDKey: ownProps.conversationIDKey,
+    selectedConversationIDKey: conversationIDKey,
     smallTeam: meta.teamType !== 'big',
     teamname: meta.teamname,
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+  _onBack: () => dispatch(navigateUp()),
   _navToRootChat: () => dispatch(Chat2Gen.createNavigateToInbox()),
   _onLeaveConversation: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createLeaveConversation({conversationIDKey})),
@@ -91,13 +94,17 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 
 const ConnectedInfoPanel = connect(mapStateToProps, mapDispatchToProps, mergeProps)(InfoPanel)
 
-type SelectorStateProps = {
-  selectedConversationIDKey: ?Types.ConversationIDKey,
+type SelectorOwnProps = {
+  conversationIDKey: ?Types.ConversationIDKey,
+  routeProps?: I.RecordOf<{conversationIDKey: Types.ConversationIDKey}>, // on mobile its a route
+  navigateUp?: () => void,
 }
 
-const mapStateToSelectorProps = (state: TypedState, ownProps: OwnProps): SelectorStateProps => {
+const mapStateToSelectorProps = (state: TypedState, ownProps: SelectorOwnProps) => {
+  const conversationIDKey =
+    ownProps.conversationIDKey || (ownProps.routeProps ? ownProps.routeProps.get('conversationIDKey') : null)
   return {
-    selectedConversationIDKey: ownProps.conversationIDKey,
+    conversationIDKey,
   }
 }
 
@@ -110,20 +117,17 @@ const mapDispatchToSelectorProps = (dispatch: Dispatch, {navigateUp}): SelectorD
   onBack: () => dispatch(navigateUp()),
 })
 
-type SelectorProps = SelectorStateProps & SelectorDispatchProps
-
-class InfoPanelSelector extends React.PureComponent<SelectorProps> {
+type Props = {
+  conversationIDKey: Types.ConversationIDKey,
+  onBack: () => void,
+}
+class InfoPanelSelector extends React.PureComponent<Props> {
   render() {
-    if (!this.props.selectedConversationIDKey) {
+    if (!this.props.conversationIDKey) {
       return null
     }
 
-    return (
-      <ConnectedInfoPanel
-        onBack={this.props.onBack}
-        conversationIDKey={this.props.selectedConversationIDKey}
-      />
-    )
+    return <ConnectedInfoPanel onBack={this.props.onBack} conversationIDKey={this.props.conversationIDKey} />
   }
 }
 

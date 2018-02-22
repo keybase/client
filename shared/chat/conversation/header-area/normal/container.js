@@ -28,7 +28,7 @@ const mapStateToProps = (state: TypedState, {infoPanelOpen, conversationIDKey}) 
     _conversationIDKey: conversationIDKey,
     _participants,
     badgeNumber: state.notifications.getIn(['navBadges', chatTab]),
-    canOpenInfoPanel: true, //! Constants.isPendingConversationIDKey(Constants.getSelectedConversation(state) || ''),
+    canOpenInfoPanel: !state.chat2.pendingSelected,
     channelName: meta.channelname,
     infoPanelOpen,
     muted: meta.isMuted,
