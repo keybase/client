@@ -631,7 +631,9 @@ func TestConversationLocking(t *testing.T) {
 	timedAcquire := func(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (ret bool) {
 		cb := make(chan struct{})
 		go func() {
-			ret = hcs.lockTab.Acquire(ctx, uid, convID)
+			var err error
+			ret, err = hcs.lockTab.Acquire(ctx, uid, convID)
+			require.NoError(t, err)
 			close(cb)
 		}()
 		select {
