@@ -14,8 +14,9 @@ type DispatchProps = {
   _onOpenBreadcrumb: (path: string, evt?: SyntheticEvent<>) => void,
   _onOpenBreadcrumbDropdown: (
     dropdownItems: Array<Types.PathBreadcrumbItem>,
-    isTeamPath: boolean
-  ) => (evt?: SyntheticEvent<>) => void,
+    isTeamPath: boolean,
+    evt?: SyntheticEvent<>
+  ) => void,
 }
 
 const mapStateToProps = () => ({})
@@ -25,7 +26,9 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(navigateTo([fsTab, {props: {path: Types.stringToPath(path)}, selected: 'folder'}]))
     evt && evt.stopPropagation()
   },
-  _onOpenBreadcrumbDropdown: (dropdownItems: Array<Types.PathBreadcrumbItem>, isTeamPath: boolean) => (
+  _onOpenBreadcrumbDropdown: (
+    dropdownItems: Array<Types.PathBreadcrumbItem>,
+    isTeamPath: boolean,
     evt?: SyntheticEvent<>
   ) =>
     dispatch(
@@ -69,7 +72,8 @@ const mergeProps = (
   }
   const isTeamPath = elems.length >= 2 && elems[1] === 'team'
   return {
-    onOpenBreadcrumbDropdown: _onOpenBreadcrumbDropdown(dropdownItems, isTeamPath),
+    onOpenBreadcrumbDropdown: (evt?: SyntheticEvent<>) =>
+      _onOpenBreadcrumbDropdown(dropdownItems, isTeamPath, evt),
     breadcrumbItems,
     dropdownItems,
     isTeamPath,
