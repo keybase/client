@@ -15,7 +15,7 @@ type StateProps = {
 }
 
 type DispatchProps = {
-  _getOnOpenSortSettingPopup: (path: Types.Path) => () => void,
+  _getOnOpenSortSettingPopup: (path: Types.Path) => (evt?: SyntheticEvent<>) => void,
 }
 
 const mapStateToProps = (state: TypedState, {path}: OwnProps) => ({
@@ -23,16 +23,17 @@ const mapStateToProps = (state: TypedState, {path}: OwnProps) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _getOnOpenSortSettingPopup: (path: Types.Path) => (targetRect: ?ClientRect) =>
+  _getOnOpenSortSettingPopup: (path: Types.Path) => () =>
     dispatch(
       navigateAppend([
         {
           props: {
-            targetRect,
-            sortSettingToAction: (sortSetting: Types.SortSetting) => () => {
+            sortSettingToAction: (sortSetting: Types.SortSetting) => (evt?: SyntheticEvent<>) => {
               dispatch(FsGen.createSortSetting({path, sortSetting: Constants.makeSortSetting(sortSetting)}))
               dispatch(navigateUp())
+              evt && evt.stopPropagation()
             },
+            onHidden: () => dispatch(navigateUp()),
           },
           selected: 'sortbarAction',
         },

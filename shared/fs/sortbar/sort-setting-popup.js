@@ -2,13 +2,14 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import {type RouteProps} from '../../route-tree/render-route'
-import {ModalLessPopupMenu} from '../../common-adapters/popup-menu'
+import PopupMenu from '../../common-adapters/popup-menu'
 import {Icon, Box, Text} from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors, isMobile} from '../../styles'
 
 type SortBarPopupMenuProps = RouteProps<
   {
     sortSettingToAction: Types._SortSetting => () => void,
+    onHidden: () => void,
   },
   {}
 >
@@ -23,7 +24,7 @@ const sortSettings = [
 const stylesSortSetting = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-  justifyContent: 'start',
+  justifyContent: 'flex-start',
   minHeight: isMobile ? 24 : 24,
 }
 
@@ -37,8 +38,9 @@ const stylesIcon = {
   color: globalColors.black_75,
 }
 
-const SortBarPopupMenu = (props: SortBarPopupMenuProps) => {
-  const sortSettingToAction = props.routeProps.get('sortSettingToAction')
+const SortBarPopupMenu = ({routeProps}: SortBarPopupMenuProps) => {
+  const sortSettingToAction = routeProps.get('sortSettingToAction')
+  const onHidden = routeProps.get('onHidden')
   const popupItems = sortSettings.map(sortSetting => {
     const {sortSettingIconType, sortSettingText} = Types.sortSettingToIconTypeAndText(sortSetting)
     return {
@@ -52,7 +54,7 @@ const SortBarPopupMenu = (props: SortBarPopupMenuProps) => {
       ),
     }
   })
-  return <ModalLessPopupMenu items={popupItems} style={stylesPopup} />
+  return <PopupMenu items={popupItems} style={stylesPopup} onHidden={onHidden} />
 }
 
 export default SortBarPopupMenu

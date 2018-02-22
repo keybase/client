@@ -7,7 +7,7 @@ export type MenuItem = {
   subTitle?: string, // subTitle is not used on native
   danger?: boolean,
   disabled?: boolean,
-  onClick?: () => void,
+  onClick?: (evt?: SyntheticEvent<>) => void,
   onPress?: void,
   style?: Object,
 }

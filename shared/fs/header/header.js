@@ -8,13 +8,8 @@ export type FolderHeaderProps = {
   breadcrumbItems: Array<Types.PathBreadcrumbItem>,
   dropdownItems: Array<Types.PathBreadcrumbItem>,
   isTeamPath: boolean,
-  onOpenBreadcrumb: (path: string) => void,
-  onOpenBreadcrumbDropdown: (
-    dropdownItems: Array<Types.PathBreadcrumbItem>,
-    isTeamPath: boolean,
-    onOpenBreadcrumb: (path: string) => void,
-    targetRect: ?ClientRect
-  ) => void,
+  onOpenBreadcrumb: (path: string) => (evt?: SyntheticEvent<>) => void,
+  onOpenBreadcrumbDropdown: (evt?: SyntheticEvent<>) => void,
 }
 
 const FolderHeader = ({
@@ -33,14 +28,7 @@ const FolderHeader = ({
       <Box style={folderHeaderStyleTree}>
         {dropdownItems.length > 0 && (
           <Box style={folderBreadcrumbStyle}>
-            <ClickableBox
-              style={styleBreadcrumbDropdownIconBox}
-              onClick={evt => {
-                const node = evt.target instanceof window.HTMLElement ? evt.target : null
-                const rect = node ? node.getBoundingClientRect() : null
-                onOpenBreadcrumbDropdown(dropdownItems, isTeamPath, onOpenBreadcrumb, rect)
-              }}
-            >
+            <ClickableBox style={styleBreadcrumbDropdownIconBox} onClick={onOpenBreadcrumbDropdown}>
               <Icon type="iconfont-folder-private" style={styleBreadcrumbDropdownIcon} />
             </ClickableBox>
             <Icon type="iconfont-arrow-left" style={iconStyle} />
@@ -56,7 +44,7 @@ const FolderHeader = ({
               </Text>
             ) : (
               <Box style={folderBreadcrumbStyle}>
-                <ClickableBox onClick={() => onOpenBreadcrumb(i.path)}>
+                <ClickableBox onClick={onOpenBreadcrumb(i.path)}>
                   <Text type="BodySmallSemibold" style={styleParentBreadcrumb}>
                     {i.name}
                   </Text>
