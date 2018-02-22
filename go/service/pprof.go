@@ -9,7 +9,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime/trace"
-	"sort"
 	"time"
 
 	"golang.org/x/net/context"
@@ -100,27 +99,21 @@ func (c *PprofHandler) LogTrace(_ context.Context, arg keybase1.LogTraceArg) (er
 		logDir = c.G().Env.GetLogDir()
 	}
 
-	traceFiles, err := libkb.GetTraceFiles(logDir)
+	traceFiles, err := libkb.GetSortedTraceFiles(logDir)
 	if err != nil {
 		ctx.LogUI.Warning("Error getting trace files in %q: %s", traceDir, err)
-	} else {
-		if len(matches)+1 > libkb.MaxTraceFileCount {
-			// Sort by approximate increasing time.
-			sort.Strings(matches)
-			toRemove := matches[:len(matches)+1-maxTraceFileCount]
-			for _, path := range toRemove {
-				c.G().Log.Info("Removing old trace file %q", path)
-				err := os.Remove(path)
-				if err != nil {
-					ctx.LogUI.Warning("Error on os.Remove(%q): %s", path, err)
-				}
+	} else if len(matches)+1 > libkb.MaxTraceFileCount {
+		// Remove old trace files.
+		toRemove := matches[:len(matches)+1-maxTraceFileCount]
+		for _, path := range toRemove {
+			c.G().Log.Info("Removing old trace file %q", path)
+			err := os.Remove(path)
+			if err != nil {
+				ctx.LogUI.Warning("Error on os.Remove(%q): %s", path, err)
 			}
 		}
 	}
 
-	// Copied from oldLogFileTimeRangeTimeLayout from logger/file.go.
-	start := time.Now().Format("20060102T150405Z0700")
-	filename := fmt.Sprintf("trace.%s.%s.out", start, durationSecToDuration(arg.TraceDurationSeconds))
-	traceFile := filepath.Join(logDir, filename)
+	traceFile := libkb.MakeTraceFilename(logDir, time.Now(), durationSecToDuration(arg.TraceDurationSeconds))
 	return c.trace(ctx, traceFile, arg.TraceDurationSeconds)
 }

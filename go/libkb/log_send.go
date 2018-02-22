@@ -421,15 +421,14 @@ func addFilesToTarGz(log logger.Logger, w io.Writer, paths []string) bool {
 }
 
 func getTraceBundle(log logger.Logger, traceDir string) []byte {
-	traceFiles, err := GetTraceFiles(traceDir)
+	traceFiles, err := GetSortedTraceFiles(traceDir)
 	if err != nil {
 		log.Warning("Error getting trace files in %q: %s", traceDir, err)
 		return nil
 	}
 
+	// Send the newest trace files.
 	if len(traceFiles) > MaxTraceFileCount {
-		// Sort by approximate increasing time.
-		sort.Strings(traceFiles)
 		traceFiles = traceFiles[len(traceFiles)-MaxTraceFileCount:]
 	}
 
