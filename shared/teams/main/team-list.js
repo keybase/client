@@ -123,7 +123,7 @@ const TeamList = (props: Props) => (
         onOpenFolder={() => props.onOpenFolder(name)}
         onManageChat={() => props.onManageChat(name)}
         onViewTeam={() => props.onViewTeam(name)}
-        resetUserCount={(props.teamresetusers[name] && props.teamresetusers[name].size) || 0}
+        resetUserCount={props.teamresetusers[name] ? props.teamresetusers[name].size : 0}
       />
     ))}
   </Box>
