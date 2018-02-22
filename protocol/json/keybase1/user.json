@@ -550,15 +550,6 @@
       ],
       "response": null
     },
-    "deleteUser": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        }
-      ],
-      "response": null
-    },
     "meUserVersion": {
       "request": [
         {

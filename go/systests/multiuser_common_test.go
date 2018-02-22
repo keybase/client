@@ -228,6 +228,10 @@ func (d *smuDeviceWrapper) userClient() keybase1.UserClient {
 	return keybase1.UserClient{Cli: d.cli}
 }
 
+func (d *smuDeviceWrapper) loginClient() keybase1.LoginClient {
+	return keybase1.LoginClient{Cli: d.cli}
+}
+
 func (d *smuDeviceWrapper) ctlClient() keybase1.CtlClient {
 	return keybase1.CtlClient{Cli: d.cli}
 }
@@ -516,7 +520,7 @@ func (u *smuUser) reset() {
 }
 
 func (u *smuUser) delete() {
-	err := u.primaryDevice().userClient().DeleteUser(context.TODO(), 0)
+	err := u.primaryDevice().loginClient().AccountDelete(context.TODO(), 0)
 	if err != nil {
 		u.ctx.t.Fatal(err)
 	}
