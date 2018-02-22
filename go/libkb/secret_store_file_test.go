@@ -96,6 +96,38 @@ func TestSecretStoreFileStoreSecret(t *testing.T) {
 	}
 }
 
+func TestSecretStoreFileStoreSecretV2(t *testing.T) {
+	td, tdClean := testSSDir(t)
+	defer tdClean()
+
+	cases := map[string]struct {
+		username NormalizedUsername
+		secret   []byte
+	}{
+		"new entry": {"charlie", []byte("charliecharliecharliecharliechar")},
+		"upgrade":   {"alice", []byte("alice_next_secret_alice_next_sec")},
+	}
+
+	ss := NewSecretStoreFile(td)
+
+	for name, test := range cases {
+		fs, err := newLKSecFullSecretFromBytes(test.secret)
+		if err != nil {
+			t.Fatalf("failed to make new full secret: %s", err)
+		}
+		if err := ss.storeSecretV2(test.username, fs); err != nil {
+			t.Fatalf("%s: %s", name, err)
+		}
+		secret, err := ss.retrieveSecretV2(test.username)
+		if err != nil {
+			t.Fatalf("%s: %s", name, err)
+		}
+		if !bytes.Equal(secret.Bytes(), test.secret) {
+			t.Errorf("%s: secret: %x, expected %x", name, secret, test.secret)
+		}
+	}
+}
+
 func TestSecretStoreFileClearSecret(t *testing.T) {
 	td, tdClean := testSSDir(t)
 	defer tdClean()
