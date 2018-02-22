@@ -85,9 +85,6 @@ func (c *PprofHandler) Trace(_ context.Context, arg keybase1.TraceArg) (err erro
 	return c.trace(ctx, arg.TraceFile, arg.TraceDurationSeconds)
 }
 
-// Keep in sync with maxTraceFileCount in libkb/log_send.go.
-const maxTraceFileCount = 5
-
 func (c *PprofHandler) LogTrace(_ context.Context, arg keybase1.LogTraceArg) (err error) {
 	ctx := engine.Context{
 		LogUI:     c.getLogUI(arg.SessionID),
@@ -103,13 +100,11 @@ func (c *PprofHandler) LogTrace(_ context.Context, arg keybase1.LogTraceArg) (er
 		logDir = c.G().Env.GetLogDir()
 	}
 
-	// Keep in sync with glob pattern in libkb/log_send.go.
-	pattern := filepath.Join(logDir, "trace.*.out")
-	matches, err := filepath.Glob(pattern)
+	traceFiles, err := libkb.GetTraceFiles(logDir)
 	if err != nil {
-		ctx.LogUI.Warning("Error on filepath.Glob(%q): %s", pattern, err)
+		ctx.LogUI.Warning("Error getting trace files in %q: %s", traceDir, err)
 	} else {
-		if len(matches)+1 > maxTraceFileCount {
+		if len(matches)+1 > libkb.MaxTraceFileCount {
 			// Sort by approximate increasing time.
 			sort.Strings(matches)
 			toRemove := matches[:len(matches)+1-maxTraceFileCount]
