@@ -169,6 +169,8 @@
     array<ConversationMemberStatus> memberStatus;
     // If left empty, default is active
     array<ConversationExistence> existences;
+    // If left empty, default is any type
+    array<ConversationMembersType> membersTypes;
 
     // Extended list of conversation IDs to fetch (don't need to set convID, if convID is set then
     // this it will be like appending it to this list)
