@@ -21,7 +21,7 @@ public class LogSend extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void logSend(String status, String feedback, boolean sendLogs, String logFilePath, Strince traceDir, Promise promise) {
+    public void logSend(String status, String feedback, boolean sendLogs, String logFilePath, String traceDir, Promise promise) {
         try {
             final String logID = Keybase.logSend(status, feedback, sendLogs, logFilePath, traceDir);
             promise.resolve(logID);
