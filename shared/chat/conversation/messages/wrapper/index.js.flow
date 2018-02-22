@@ -23,6 +23,7 @@ export type Props = {
   onEdit: () => void,
   onAuthorClick: () => void,
   orangeLineAbove: boolean,
+  showTeamOffer: boolean,
   timestamp: ?string,
 }
 

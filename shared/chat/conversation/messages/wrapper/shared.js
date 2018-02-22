@@ -92,7 +92,7 @@ class MessageWrapper extends React.PureComponent<Props> {
         {props.hasOlderResetConversation && (
           <ProfileResetNotice conversationIDKey={props.message.conversationIDKey} />
         )}
-        {props.loadMoreType && <LoadMore type={props.loadMoreType} />}
+        {props.loadMoreType && <LoadMore type={props.loadMoreType} showTeamOffer={this.props.showTeamOffer}/>}
         {props.timestamp && <Timestamp timestamp={props.timestamp} />}
         <Box
           style={collapseStyles([

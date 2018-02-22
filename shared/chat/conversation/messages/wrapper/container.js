@@ -19,6 +19,7 @@ const mapStateToProps = (state: TypedState, {message, previous, innerClass, isSe
   const meta = Constants.getMeta(state, message.conversationIDKey)
   const hasOlderResetConversation = previous ? false : !!meta.supersedes
   const orangeLineAbove = !!previous && meta.orangeLineOrdinal === previous.ordinal
+  const showTeamOffer = meta.teamType === 'adhoc' && meta.participants.size > 2
 
   return {
     hasOlderResetConversation,
@@ -31,6 +32,7 @@ const mapStateToProps = (state: TypedState, {message, previous, innerClass, isSe
     message,
     orangeLineAbove,
     previous,
+    showTeamOffer,
   }
 }
 
@@ -104,6 +106,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     onRetry: () => dispatchProps._onRetry(message.conversationIDKey, message.outboxID),
     onShowMenu: (clientRect: ?ClientRect) => dispatchProps._onShowMenu(clientRect, message),
     orangeLineAbove: stateProps.orangeLineAbove,
+    showTeamOffer: stateProps.showTeamOffer,
     timestamp,
   }
 }

@@ -2,12 +2,11 @@
 import * as React from 'react'
 import {Text, Box, Icon} from '../../../../common-adapters'
 import {globalStyles, isMobile} from '../../../../styles'
-// import CreateTeamNotice from '../notices/create-team-notice/container'
-// // TODO
+import CreateTeamNotice from '../system-create-team-notice/container'
 
 type Props = {
   type: 'noMoreToLoad' | 'moreToLoad',
-  // showTeamOffer: boolean,
+  showTeamOffer: boolean,
 }
 
 class MessageLoadingMore extends React.PureComponent<Props> {
@@ -19,9 +18,11 @@ class MessageLoadingMore extends React.PureComponent<Props> {
             <Icon type={isMobile ? 'icon-secure-static-266' : 'icon-secure-266'} />
           )}
         </Box>
-        {/*
-    showTeamOffer &&
-    <Box style={moreStyle}><CreateTeamNotice /></Box> */}
+        {this.props.showTeamOffer && (
+          <Box style={moreStyle}>
+            <CreateTeamNotice />
+          </Box>
+        )}
         <Box style={this.props.type === 'moreToLoad' ? moreStyle : noneStyle}>
           <Text type="BodySmallSemibold">ヽ(ಠ益ಠ)ノ</Text>
           <Text type="BodySmallSemibold">Digging ancient messages...</Text>
