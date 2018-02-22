@@ -196,7 +196,6 @@ func (s serviceCn) NewCrypto(config libkbfs.Config, params libkbfs.InitParams, c
 func LogSend(status string, feedback string, sendLogs bool, uiLogPath, traceDir string) (string, error) {
 	logSendContext.Logs.Desktop = uiLogPath
 	logSendContext.Logs.Trace = traceDir
-	// TODO: Fill in logSendContext.Logs.Trace also.
 	return logSendContext.LogSend(status, feedback, sendLogs, 5*1024*1024)
 }
 
