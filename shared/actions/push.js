@@ -235,6 +235,7 @@ function* checkIOSPushSaga(): Saga.SagaGenerator<any, any> {
     // badge or alert permissions are enabled
     logger.info('Badge or alert permissions are enabled')
     yield Saga.put(PushGen.createSetHasPermissions({hasPermissions: true}))
+    yield Saga.call(requestPushPermissions)
   }
 }
 

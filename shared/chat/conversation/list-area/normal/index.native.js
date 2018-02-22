@@ -27,7 +27,11 @@ class ConversationList extends React.PureComponent<Props> {
   _keyExtractor = ordinal => String(ordinal)
 
   // Don't load if we have no messages in there. This happens a lot when we're dealing with stale messages
-  _onEndReached = () => {
+  _onEndReached = ({distanceFromEnd}) => {
+    // This gets called a bunch when we're not really at the end. Instead lets do it when the distance is small
+    if (distanceFromEnd < -100) {
+      return
+    }
     if (this.props.messageOrdinals.size > 1) {
       this.props.loadMoreMessages()
     }
