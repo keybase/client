@@ -1567,9 +1567,14 @@ const loadCanUserPerform = (action: Chat2Gen.SelectConversationPayload, state: T
   }
 }
 
-const navigateToInbox = () => Saga.put(Route.navigateTo([{selected: chatTab}, {selected: null}]))
+const navigateToInbox = () =>
+  Saga.put(Route.navigateTo([{props: {}, selected: chatTab}, {props: {}, selected: null}]))
 const navigateToThread = () =>
-  Saga.put(Route.navigateTo(isMobile ? [chatTab, 'conversation'] : [{selected: chatTab}, {selected: null}]))
+  Saga.put(
+    Route.navigateTo(
+      isMobile ? [chatTab, 'conversation'] : [{props: {}, selected: chatTab}, {props: {}, selected: null}]
+    )
+  )
 
 function* messageAttachmentNativeShare(action: Chat2Gen.MessageAttachmentNativeSharePayload) {
   const {conversationIDKey, ordinal} = action.payload
