@@ -41,7 +41,7 @@ type LogSendContext struct {
 	Logs Logs
 }
 
-func addBinaryFile(mpart *multipart.Writer, param, filename string, data []byte) error {
+func addFile(mpart *multipart.Writer, param, filename string, data []byte) error {
 	if len(data) == 0 {
 		return nil
 	}
@@ -54,7 +54,7 @@ func addBinaryFile(mpart *multipart.Writer, param, filename string, data []byte)
 	return err
 }
 
-func addFile(mpart *multipart.Writer, param, filename, data string) error {
+func addGzippedFile(mpart *multipart.Writer, param, filename, data string) error {
 	if len(data) == 0 {
 		return nil
 	}
@@ -80,37 +80,37 @@ func (l *LogSendContext) post(status, feedback, kbfsLog, svcLog, desktopLog, upd
 		mpart.WriteField("feedback", feedback)
 	}
 
-	if err := addFile(mpart, "status_gz", "status.gz", status); err != nil {
+	if err := addGzippedFile(mpart, "status_gz", "status.gz", status); err != nil {
 		return "", err
 	}
-	if err := addFile(mpart, "kbfs_log_gz", "kbfs_log.gz", kbfsLog); err != nil {
+	if err := addGzippedFile(mpart, "kbfs_log_gz", "kbfs_log.gz", kbfsLog); err != nil {
 		return "", err
 	}
-	if err := addFile(mpart, "keybase_log_gz", "keybase_log.gz", svcLog); err != nil {
+	if err := addGzippedFile(mpart, "keybase_log_gz", "keybase_log.gz", svcLog); err != nil {
 		return "", err
 	}
-	if err := addFile(mpart, "updater_log_gz", "updater_log.gz", updaterLog); err != nil {
+	if err := addGzippedFile(mpart, "updater_log_gz", "updater_log.gz", updaterLog); err != nil {
 		return "", err
 	}
-	if err := addFile(mpart, "gui_log_gz", "gui_log.gz", desktopLog); err != nil {
+	if err := addGzippedFile(mpart, "gui_log_gz", "gui_log.gz", desktopLog); err != nil {
 		return "", err
 	}
-	if err := addFile(mpart, "start_log_gz", "start_log.gz", startLog); err != nil {
+	if err := addGzippedFile(mpart, "start_log_gz", "start_log.gz", startLog); err != nil {
 		return "", err
 	}
-	if err := addFile(mpart, "install_log_gz", "install_log.gz", installLog); err != nil {
+	if err := addGzippedFile(mpart, "install_log_gz", "install_log.gz", installLog); err != nil {
 		return "", err
 	}
-	if err := addFile(mpart, "system_log_gz", "system_log.gz", systemLog); err != nil {
+	if err := addGzippedFile(mpart, "system_log_gz", "system_log.gz", systemLog); err != nil {
 		return "", err
 	}
-	if err := addFile(mpart, "git_log_gz", "git_log.gz", gitLog); err != nil {
+	if err := addGzippedFile(mpart, "git_log_gz", "git_log.gz", gitLog); err != nil {
 		return "", err
 	}
 
 	if len(traceBundle) > 0 {
 		l.G().Log.Debug("trace bundle size: %d", len(traceBundle))
-		if err := addBinaryFile(mpart, "trace_tar_gz", "trace.tar.gz", traceBundle); err != nil {
+		if err := addFile(mpart, "trace_tar_gz", "trace.tar.gz", traceBundle); err != nil {
 			return "", err
 		}
 	}
