@@ -2,7 +2,10 @@
 import React from 'react'
 import {Box, Text} from '../../../common-adapters'
 import {globalColors, globalStyles, globalMargins, isMobile} from '../../../styles'
-import type {Props} from '.'
+
+type Props = {
+  onShowNewTeamDialog: () => void,
+}
 
 const CreateTeamHeader = ({onShowNewTeamDialog}: Props) => (
   <Box style={isMobile ? stylesMobileContainer : stylesDesktopContainer}>

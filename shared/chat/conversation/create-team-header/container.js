@@ -1,39 +1,31 @@
-// @noflow // TODO
-// import CreateTeamHeader from '.'
-// import {connect} from 'react-redux'
-// import {navigateAppend} from '../../../actions/route-tree'
-// import * as Constants from '../../../constants/chat'
-// import * as Types from '../../../constants/types/chat'
-// import type {TypedState} from '../../../constants/reducer'
+// @flow
+import * as Types from '../../../constants/types/chat2'
+import CreateTeamHeader from '.'
+import {connect, type TypedState, type Dispatch} from '../../../util/container'
+import {navigateAppend} from '../../../actions/route-tree'
 
-// import type {StateProps, DispatchProps} from './container'
+type OwnProps = {
+  conversationIDKey: Types.ConversationIDKey,
+}
+const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => ({
+  conversationIDKey,
+})
 
-// const mapStateToProps = (state: TypedState) => {
-// const selectedConversationIDKey = Constants.getSelectedConversation(state)
-// if (!selectedConversationIDKey) {
-// throw new Error('no selected conversation')
-// }
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  _onShowNewTeamDialog: (conversationIDKey: Types.ConversationIDKey) => {
+    dispatch(
+      navigateAppend([
+        {
+          props: {conversationIDKey},
+          selected: 'showNewTeamDialog',
+        },
+      ])
+    )
+  },
+})
 
-// return {
-// selectedConversationIDKey,
-// }
-// }
+const mergeProps = (stateProps, dispatchProps) => ({
+  onShowNewTeamDialog: () => dispatchProps._onShowNewTeamDialog(stateProps.conversationIDKey),
+})
 
-// const mapDispatchToProps = (dispatch: Dispatch) => ({
-// _onShowNewTeamDialog: (conversationIDKey: Types.ConversationIDKey) => {
-// dispatch(
-// navigateAppend([
-// {
-// props: {conversationIDKey},
-// selected: 'showNewTeamDialog',
-// },
-// ])
-// )
-// },
-// })
-
-// const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => ({
-// onShowNewTeamDialog: () => dispatchProps._onShowNewTeamDialog(stateProps.selectedConversationIDKey),
-// })
-
-// export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(CreateTeamHeader)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(CreateTeamHeader)

@@ -249,20 +249,24 @@ const _createNewTeamFromConversation = function*(
   const {conversationIDKey, teamname} = action.payload
   const state: TypedState = yield Saga.select()
   const me = usernameSelector(state)
-  const meta = ChatConstants.getMeta(state, conversationIDKey)
-  let participants
+  let participants: Array<string> = []
 
-  participants = meta.participants
+  if (state.chat2.pendingSelected) {
+    participants = state.chat2.pendingConversationUsers.toArray()
+  } else {
+    const meta = ChatConstants.getMeta(state, conversationIDKey)
+    participants = meta.participants.toArray()
+  }
 
   if (participants) {
     yield Saga.put(TeamsGen.createSetTeamCreationError({error: ''}))
     yield Saga.put(TeamsGen.createSetTeamCreationPending({pending: true}))
     try {
       const createRes = yield Saga.call(RPCTypes.teamsTeamCreateRpcPromise, {
-        name: teamname,
         joinSubteam: false,
+        name: teamname,
       })
-      for (const username of participants.toArray()) {
+      for (const username of participants) {
         if (!createRes.creatorAdded || username !== me) {
           yield Saga.call(RPCTypes.teamsTeamAddMemberRpcPromise, {
             email: '',
@@ -274,6 +278,10 @@ const _createNewTeamFromConversation = function*(
         }
       }
       yield Saga.put(Chat2Gen.createStartConversation({tlf: `/keybase/team/${teamname}`}))
+      if (state.chat2.pendingSelected) {
+        yield Saga.put(Chat2Gen.createExitSearch())
+        yield Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'}))
+      }
     } catch (error) {
       yield Saga.put(TeamsGen.createSetTeamCreationError({error: error.desc}))
     } finally {
