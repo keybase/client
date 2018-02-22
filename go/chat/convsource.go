@@ -215,17 +215,19 @@ type conversationLockTab struct {
 	sync.Mutex
 	utils.DebugLabeler
 
-	convLocks map[string]*conversationLock
-	waits     map[string]string
-	blockCb   *chan struct{} // Testing
+	maxAcquireRetries int
+	convLocks         map[string]*conversationLock
+	waits             map[string]string
+	blockCb           *chan struct{} // Testing
 }
 
 func newConversationLockTab(g *globals.Context) *conversationLockTab {
 	return &conversationLockTab{
-		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "conversationLockTab", false),
-		convLocks:    make(map[string]*conversationLock),
-		waits:        make(map[string]string),
+		Contextified:      globals.NewContextified(g),
+		DebugLabeler:      utils.NewDebugLabeler(g.GetLog(), "conversationLockTab", false),
+		convLocks:         make(map[string]*conversationLock),
+		waits:             make(map[string]string),
+		maxAcquireRetries: 25,
 	}
 }
 
@@ -238,9 +240,8 @@ func (c *conversationLockTab) deadlockDetect(ctx context.Context, trace string, 
 	if !ok {
 		return false
 	}
-	if wtrace, ok := waiters[wait]; ok {
-		c.Debug(ctx, "deadlockDetect: deadlock detected: trace: %s wtrace: %s waiters: %v", trace, wtrace,
-			waiters)
+	if waiters[wait] {
+		c.Debug(ctx, "deadlockDetect: deadlock detected: trace: %s waiters: %v", trace, waiters)
 		return true
 	}
 	waiters[trace] = true
@@ -267,13 +268,14 @@ func (c *conversationLockTab) doAcquire(ctx context.Context, uid gregor1.UID, co
 		if c.blockCb != nil {
 			*c.blockCb <- struct{}{} // For testing
 		}
-		lock.refs++
 		c.waits[trace] = lock.trace
 		if c.deadlockDetect(ctx, lock.trace, map[string]bool{
 			trace: true,
 		}) {
+			c.Unlock()
 			return true, errConvLockTabDeadlock
 		}
+		lock.refs++
 		c.Unlock() // Give up map lock while we are waiting for conv lock
 		lock.lock.Lock()
 		c.Lock()
@@ -299,9 +301,8 @@ func (c *conversationLockTab) doAcquire(ctx context.Context, uid gregor1.UID, co
 // shared lock for the current chat trace, and serves to synchronize large chat operations. If there is
 // no chat trace, this is a no-op.
 func (c *conversationLockTab) Acquire(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (blocked bool, err error) {
-	maxRetry := 25
 	sleep := 200 * time.Millisecond
-	for i := 0; i < maxRetry; i++ {
+	for i := 0; i < c.maxAcquireRetries; i++ {
 		blocked, err = c.doAcquire(ctx, uid, convID)
 		if err != nil {
 			if err != errConvLockTabDeadlock {
@@ -313,7 +314,8 @@ func (c *conversationLockTab) Acquire(ctx context.Context, uid gregor1.UID, conv
 		}
 		return blocked, nil
 	}
-	return true, fmt.Errorf("failed to obtain conv lock: uid: %s convID: %s", uid, convID)
+	c.Debug(ctx, "Acquire: giving up, max attempts reached")
+	return true, errConvLockTabDeadlock
 }
 
 func (c *conversationLockTab) Release(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (released bool) {
