@@ -42,7 +42,7 @@ const FileRow = RowConnector(({elems, path, name, itemStyles, onOpen, visibility
     <ClickableBox onClick={onOpen} style={stylesCommonRow}>
       <Box style={stylesRowBox}>
         {elems.length === 3 && visibility === 'team' ? (
-          <Avatar size={24} teamname={name} isTeam={true} style={iconStyle} />
+          <Avatar size={32} teamname={name} isTeam={true} style={iconStyle} />
         ) : (
           <Icon type={itemStyles.iconType} style={{color: itemStyles.iconColor, ...iconStyle}} />
         )}
