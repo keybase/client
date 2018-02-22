@@ -30,8 +30,10 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
           props: {
             sortSettingToAction: (sortSetting: Types.SortSetting) => (evt?: SyntheticEvent<>) => {
               dispatch(FsGen.createSortSetting({path, sortSetting: Constants.makeSortSetting(sortSetting)}))
-              dispatch(navigateUp())
-              evt && evt.stopPropagation()
+              if (evt) {
+                dispatch(navigateUp())
+                evt.stopPropagation()
+              }
             },
             onHidden: () => dispatch(navigateUp()),
           },
