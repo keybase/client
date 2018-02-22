@@ -42,7 +42,12 @@ func (h *InstallHandler) InstallKBFS(context.Context) (keybase1.InstallResult, e
 }
 
 func (h *InstallHandler) UninstallKBFS(context.Context) (keybase1.UninstallResult, error) {
-	components := []string{"kbfs", "mountdir", "fuse"}
+	// If we're uninstalling the FUSE kext, we need to uninstall the
+	// redirector first because it uses that module. That means one
+	// user's uninstall request will affect the other users on the
+	// same machine -- but that was true anyway when uninstalling the
+	// kext if the other users didn't have KBFS actively mounted.
+	components := []string{"redirector", "kbfs", "mountdir", "fuse"}
 	result := install.Uninstall(h.G(), components, h.G().Log)
 	return result, nil
 }
