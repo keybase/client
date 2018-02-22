@@ -22,6 +22,8 @@ const stylesSortSetting = {
 const stylesIcon = {
   marginRight: globalMargins.xtiny,
   fontSize: 11,
+  marginTop: 3,
+  display: 'inline-block',
 }
 
 export type SortBarProps = {

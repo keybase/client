@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Types from '../constants/types/fs'
 import {globalStyles, globalColors, globalMargins, isMobile} from '../styles'
 import {Avatar, Box, ClickableBox, Icon, List, Text, Divider} from '../common-adapters'
-import {type IconType} from '../common-adapters/icon'
 import RowConnector from './row'
 import FolderHeader from './header/header-container'
 import SortBar from './sortbar/container'
@@ -12,7 +11,7 @@ type FileRowProps = {
   elems: Array<string>,
   name: string,
   path: Types.Path,
-  icon: IconType,
+  itemStyles: Types.ItemStyles,
   onOpen: () => void,
   visibility: Types.Visibility,
 }
@@ -31,19 +30,24 @@ const styleOuterContainer = {
   position: 'relative',
 }
 
-const iconStyle = {marginRight: globalMargins.small}
+const iconStyle = {
+  marginRight: globalMargins.small,
+  fontSize: 28,
+}
 
-const FileRow = RowConnector(({elems, path, name, icon, onOpen, visibility}: FileRowProps) => (
+const FileRow = RowConnector(({elems, path, name, itemStyles, onOpen, visibility}: FileRowProps) => (
   <Box>
     <ClickableBox onClick={onOpen} style={stylesCommonRow}>
       <Box style={stylesRowBox}>
         {elems.length === 3 && visibility === 'team' ? (
           <Avatar size={24} teamname={name} isTeam={true} style={iconStyle} />
         ) : (
-          <Icon type={icon} style={iconStyle} />
+          <Icon type={itemStyles.iconType} style={{color: itemStyles.iconColor, ...iconStyle}} />
         )}
         <Box style={folderBoxStyle}>
-          <Text type="Body">{name}</Text>
+          <Text type={itemStyles.textType} style={{color: itemStyles.textColor}}>
+            {name}
+          </Text>
         </Box>
       </Box>
     </ClickableBox>
@@ -51,7 +55,7 @@ const FileRow = RowConnector(({elems, path, name, icon, onOpen, visibility}: Fil
   </Box>
 ))
 
-const rowPlaceholderIcon = isMobile ? 'icon-folder-private-24' : 'icon-folder-private-24'
+const rowPlaceholderIcon = isMobile ? 'iconfont-folder-private' : 'iconfont-folder-private'
 const placeholderTextStyle = {
   backgroundColor: globalColors.lightGrey,
   height: 16,

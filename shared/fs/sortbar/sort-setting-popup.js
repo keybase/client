@@ -33,8 +33,11 @@ const stylesPopup = {
   top: 64,
 }
 const stylesIcon = {
-  marginRight: globalMargins.xtiny,
+  marginRight: globalMargins.tiny,
   color: globalColors.black_75,
+  fontSize: 13,
+  marginTop: 3,
+  display: 'inline-block',
 }
 
 const SortBarPopupMenu = (props: SortBarPopupMenuProps) => {

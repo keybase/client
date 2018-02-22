@@ -41,9 +41,9 @@ const FolderHeader = ({
                 onOpenBreadcrumbDropdown(dropdownItems, isTeamPath, onOpenBreadcrumb, rect)
               }}
             >
-              <Icon type="iconfont-folder-private" style={styleBreadcrumbDropdownIcon} />
+              <Icon type="iconfont-folder-dropdown" style={styleBreadcrumbDropdownIcon} />
             </ClickableBox>
-            <Icon type="iconfont-arrow-left" style={iconStyle} />
+            <Icon type="iconfont-arrow-right" style={iconStyle} />
           </Box>
         )}
         {breadcrumbItems.map(i => (
@@ -61,7 +61,7 @@ const FolderHeader = ({
                     {i.name}
                   </Text>
                 </ClickableBox>
-                <Icon type="iconfont-arrow-left" style={iconStyle} />
+                <Icon type="iconfont-arrow-right" style={iconStyle} />
               </Box>
             )}
           </Box>

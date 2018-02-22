@@ -2,6 +2,7 @@
 import * as I from 'immutable'
 import * as Types from './types/fs'
 import uuidv1 from 'uuid/v1'
+import {globalColors} from '../styles'
 
 export const defaultPath = '/keybase'
 
@@ -53,3 +54,57 @@ export const sortPathItems = (
   sortSetting: Types.SortSetting,
   username?: string
 ): I.List<Types.PathItem> => items.sort(Types.sortSettingToCompareFunction(sortSetting, username))
+
+const privateColors = {
+  iconColor: globalColors.darkBlue2,
+  textColor: globalColors.darkBlue5,
+}
+
+const publicColors = {
+  iconColor: globalColors.yellowGreen2,
+  textColor: globalColors.yellowGreen4,
+}
+
+const folderTextType = {
+  textType: 'BodySemibold',
+}
+
+const fileTextType = {
+  textType: 'Body',
+}
+
+export const getItemStyles = (
+  path: Types.Path,
+  type: Types.PathType,
+  username?: string
+): Types.ItemStyles => {
+  if (path === '/keybase/team') {
+    return {iconType: 'iconfont-nav-teams', ...privateColors, ...folderTextType}
+  } else if (username) {
+    if (path === `/keybase/public/${username}`) {
+      return {iconType: 'iconfont-folder-public-me', ...publicColors, ...folderTextType}
+    } else if (path === `/keybase/private/${username}`) {
+      return {iconType: 'iconfont-folder-private-me', ...privateColors, ...folderTextType}
+    }
+  }
+
+  let colors = privateColors
+  let folderIconType = 'iconfont-folder-private'
+  // For icon purposes, we are treating team folders as private.
+  if (Types.pathToString(path).split('/', 3)[2] === 'public') {
+    colors = publicColors
+    folderIconType = 'iconfont-folder-public'
+  }
+
+  switch (type) {
+    case 'folder':
+      return {iconType: folderIconType, ...colors, ...folderTextType}
+    case 'file':
+      // TODO: different file types
+      return {iconType: 'iconfont-file-note', ...colors, ...fileTextType}
+    case 'symlink':
+      return {iconType: 'iconfont-file-note', ...colors, ...fileTextType}
+    default:
+      return {iconType: 'iconfont-question-mark', ...colors, ...fileTextType}
+  }
+}
