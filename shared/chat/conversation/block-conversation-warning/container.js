@@ -23,7 +23,6 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onBlock: (conversationIDKey: ConversationIDKey, reportUser: boolean) => {
     dispatch(
       Chat2Gen.createBlockConversation({
-        blocked: true,
         conversationIDKey,
         reportUser,
       })
@@ -35,6 +34,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   conversationIDKey: stateProps.conversationIDKey,
+  onBack: dispatchProps.onBack,
   onBlock: () => dispatchProps._onBlock(stateProps.conversationIDKey, false),
   onBlockAndReport: () => dispatchProps._onBlock(stateProps.conversationIDKey, true),
   participants: stateProps.participants,

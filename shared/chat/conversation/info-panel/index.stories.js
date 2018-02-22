@@ -1,11 +1,10 @@
-// @noflow
+// @flow
 import React from 'react'
 import {storiesOf, action, createPropProvider} from '../../../stories/storybook'
 import * as Types from '../../../constants/types/chat2'
 import {Box} from '../../../common-adapters'
 import {globalStyles} from '../../../styles'
 import {InfoPanel, type InfoPanelProps} from '.'
-import {type Props as NotificationProps} from './notifications'
 
 const unexpected = (name: string) => () => {
   throw new Error(`unexpected ${name}`)
@@ -15,17 +14,17 @@ const onlyValidConversationsProps = {
   conversationIDKey: 'fake key',
 }
 
-const notificationProps: NotificationProps = {
+const notificationProps = {
   _resetSaveState: () => ({}),
   channelWide: false,
-  desktop: 'atmention',
+  desktop: 'onWhenAtMentioned',
   mobile: 'never',
   muted: false,
-  saveState: 'unsaved',
-  onMuteConversation: action('onMuteConversation'),
-  onSetDesktop: action('onSetDesktop'),
-  onSetMobile: action('onSetMobile'),
-  onToggleChannelWide: action('onToggleChannelwide'),
+  saveState: 'same',
+  toggleMuted: action('onMuteConversation'),
+  updateDesktop: action('onSetDesktop'),
+  updateMobile: action('onSetMobile'),
+  toggleChannelWide: action('onToggleChannelwide'),
 }
 
 const provider = createPropProvider({

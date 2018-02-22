@@ -22,6 +22,7 @@ export const attachmentUpload = 'chat2:attachmentUpload'
 export const attachmentUploaded = 'chat2:attachmentUploaded'
 export const attachmentUploading = 'chat2:attachmentUploading'
 export const badgesUpdated = 'chat2:badgesUpdated'
+export const blockConversation = 'chat2:blockConversation'
 export const clearOrdinals = 'chat2:clearOrdinals'
 export const clearPendingConversation = 'chat2:clearPendingConversation'
 export const debugDump = 'chat2:debugDump'
@@ -146,6 +147,12 @@ export const createAttachmentUploading = (
   }>
 ) => ({error: false, payload, type: attachmentUploading})
 export const createBadgesUpdated = (payload: $ReadOnly<{conversations: Array<RPCTypes.BadgeConversationInfo>}>) => ({error: false, payload, type: badgesUpdated})
+export const createBlockConversation = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    reportUser: boolean,
+  }>
+) => ({error: false, payload, type: blockConversation})
 export const createClearOrdinals = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: clearOrdinals})
 export const createClearPendingConversation = () => ({error: false, payload: undefined, type: clearPendingConversation})
 export const createDebugDump = (payload: $ReadOnly<{conversationIDKey?: Types.ConversationIDKey}>) => ({error: false, payload, type: debugDump})
@@ -361,6 +368,7 @@ export type AttachmentUploadPayload = More.ReturnType<typeof createAttachmentUpl
 export type AttachmentUploadedPayload = More.ReturnType<typeof createAttachmentUploaded>
 export type AttachmentUploadingPayload = More.ReturnType<typeof createAttachmentUploading>
 export type BadgesUpdatedPayload = More.ReturnType<typeof createBadgesUpdated>
+export type BlockConversationPayload = More.ReturnType<typeof createBlockConversation>
 export type ClearOrdinalsPayload = More.ReturnType<typeof createClearOrdinals>
 export type ClearPendingConversationPayload = More.ReturnType<typeof createClearPendingConversation>
 export type DebugDumpPayload = More.ReturnType<typeof createDebugDump>
@@ -427,6 +435,7 @@ export type Actions =
   | More.ReturnType<typeof createAttachmentUploaded>
   | More.ReturnType<typeof createAttachmentUploading>
   | More.ReturnType<typeof createBadgesUpdated>
+  | More.ReturnType<typeof createBlockConversation>
   | More.ReturnType<typeof createClearOrdinals>
   | More.ReturnType<typeof createClearPendingConversation>
   | More.ReturnType<typeof createDebugDump>

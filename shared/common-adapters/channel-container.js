@@ -1,4 +1,4 @@
-// @noflow
+// @flow
 import * as Chat2Gen from '../actions/chat2-gen'
 import {Channel, type OwnProps} from './channel'
 import {connect, type TypedState} from '../util/container'

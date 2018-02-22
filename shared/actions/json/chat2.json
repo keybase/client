@@ -275,6 +275,10 @@
     },
     "debugDump": {
       "conversationIDKey?": "Types.ConversationIDKey",
+    },
+    "blockConversation": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "reportUser": "boolean"
     }
   }
 }

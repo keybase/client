@@ -1709,6 +1709,15 @@ const updateNotificationSettings = (action: Chat2Gen.UpdateNotificationSettingsP
     ],
   })
 
+const blockConversation = (action: Chat2Gen.BlockConversationPayload) =>
+  Saga.call(RPCChatTypes.localSetConversationStatusLocalRpcPromise, {
+    conversationID: Types.keyToConversationID(action.payload.conversationIDKey),
+    identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+    status: action.payload.reportUser
+      ? RPCChatTypes.commonConversationStatus.reported
+      : RPCChatTypes.commonConversationStatus.blocked,
+  })
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
   if (isMobile) {
@@ -1822,6 +1831,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.debugDump, debugDump)
   yield Saga.safeTakeEveryPure(Chat2Gen.muteConversation, muteConversation)
   yield Saga.safeTakeEveryPure(Chat2Gen.updateNotificationSettings, updateNotificationSettings)
+  yield Saga.safeTakeEveryPure(Chat2Gen.blockConversation, blockConversation)
 }
 
 export default chat2Saga

@@ -1,4 +1,4 @@
-// @noflow // TODO
+// @flow
 import React from 'react'
 import * as I from 'immutable'
 import {Box} from '../../../common-adapters'
@@ -19,7 +19,7 @@ const simpleCommon = {
   isSelected: false,
   onSelectConversation: action('onSelectConversation'),
   participantNeedToRekey: false,
-  participants: I.List(['chris']),
+  participants: ['chris'],
   rekeyInfo: null,
   showBold: false,
   snippet: 'snippet',
@@ -58,7 +58,7 @@ const mocks = [
     conversationIDKey: '2',
     hasUnread: false,
     hasBadge: false,
-    participants: I.List(['jzila']),
+    participants: ['jzila'],
     showBold: false,
     snippet: 'I don\t know that I would want.',
     timestamp: '5:12 pm',
@@ -124,7 +124,7 @@ const load = () => {
     .add('Filtered', () => (
       <Box style={{borderColor: 'black', borderStyle: 'solid', borderWidth: 1, width: 240}}>
         <FilterSmallTeam {...commonFiltered} />
-        <FilterSmallTeam {...commonFiltered} participants={I.List.of('chris')} />
+        <FilterSmallTeam {...commonFiltered} participants={['chris']} />
         <FilterSmallTeam {...commonFiltered} teamname="pokerpals" />
         <FilterBigTeamChannel {...commonBigFiltered} channelname="general" />
         <FilterBigTeamChannel {...commonBigFiltered} channelname="random" />
@@ -153,7 +153,7 @@ const commonFiltered = {
   isSelected: false,
   onSelectConversation: action('onSelectConversation'),
   participantNeedToRekey: false,
-  participants: I.List.of('chris', 'mikem'),
+  participants: ['chris', 'mikem'],
   showBold: false,
   teamname: null,
   usernameColor: globalColors.darkBlue,
