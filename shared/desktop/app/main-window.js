@@ -70,6 +70,7 @@ export default function() {
   if (
     isWindows &&
     appState &&
+    appState.state &&
     typeof appState.state.x === 'number' &&
     typeof appState.state.y === 'number' &&
     typeof appState.state.width === 'number' &&
