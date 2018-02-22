@@ -69,6 +69,7 @@ export default function() {
   console.log('Open hidden:', openHidden)
   if (
     isWindows &&
+    appState &&
     typeof appState.state.x === 'number' &&
     typeof appState.state.y === 'number' &&
     typeof appState.state.width === 'number' &&
