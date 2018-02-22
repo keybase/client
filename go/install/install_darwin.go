@@ -695,7 +695,7 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 		err = libnativeinstaller.UninstallRedirector(context.GetRunMode(), log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameRedirector), err))
 		if err != nil {
-			log.Errorf("Error uninstalling mount dir: %s", err)
+			log.Errorf("Error stopping the redirector: %s", err)
 		}
 	}
 
