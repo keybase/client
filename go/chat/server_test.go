@@ -2457,6 +2457,7 @@ func TestChatSrvGetInboxNonblockError(t *testing.T) {
 			chat1.GetInboxNonblockLocalArg{
 				Query: &chat1.GetInboxLocalQuery{
 					ConvIDs: []chat1.ConversationID{conv.Id},
+					Name:    &chat1.NameQuery{MembersType: mt},
 				},
 				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 			})

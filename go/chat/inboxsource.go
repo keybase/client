@@ -267,16 +267,19 @@ func (b *baseInboxSource) GetInboxQueryLocalToRemote(ctx context.Context,
 	}
 
 	rquery = &chat1.GetInboxQuery{}
-	if lquery.Name != nil && len(lquery.Name.Name) > 0 {
-		var err error
-		info, err = CtxKeyFinder(ctx, b.G()).Find(ctx, lquery.Name.Name, lquery.Name.MembersType,
-			lquery.Visibility() == keybase1.TLFVisibility_PUBLIC)
-		if err != nil {
-			return nil, info, err
+	if lquery.Name != nil {
+		rquery.MembersTypes = []chat1.ConversationMembersType{lquery.Name.MembersType}
+		if len(lquery.Name.Name) > 0 {
+			var err error
+			info, err = CtxKeyFinder(ctx, b.G()).Find(ctx, lquery.Name.Name, lquery.Name.MembersType,
+				lquery.Visibility() == keybase1.TLFVisibility_PUBLIC)
+			if err != nil {
+				return nil, info, err
+			}
+			rquery.TlfID = &info.ID
+			b.Debug(ctx, "GetInboxQueryLocalToRemote: mapped name %q to TLFID %v",
+				lquery.Name.Name, info.ID)
 		}
-		rquery.TlfID = &info.ID
-		b.Debug(ctx, "GetInboxQueryLocalToRemote: mapped name %q to TLFID %v",
-			lquery.Name.Name, info.ID)
 	}
 
 	rquery.After = lquery.After
