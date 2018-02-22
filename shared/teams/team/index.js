@@ -3,40 +3,29 @@ import * as React from 'react'
 import * as Types from '../../constants/types/teams'
 import {Box, Icon, PopupMenu} from '../../common-adapters'
 import {globalStyles, globalMargins, isMobile} from '../../styles'
-import * as RPCTypes from '../../constants/types/rpc-gen'
 import List, {type TeamRows} from './list'
 
 export type Props = {
-  description: string,
-  newTeamRequests: Array<Types.Teamname>,
-  loading: boolean,
+  teamname: Types.Teamname,
+  admin: Boolean,
   memberCount: number,
-  name: Types.Teamname,
+  newTeamRequests: Array<Types.Teamname>,
   numInvites: number,
   numRequests: number,
   numSubteams: number,
-  onAddPeople: () => void,
-  onAddSelf: () => void,
-  onCreateSubteam: () => void,
-  onInviteByEmail: () => void,
-  setSelectedTab: (t: ?Types.TabKey) => void,
-  onEditDescription: () => void,
-  onLeaveTeam: () => void,
+  loading: boolean,
+  selectedTab: string,
+  setSelectedTab: (?Types.TabKey) => void,
+  yourOperations: Types.TeamOperations,
+
   onManageChat: () => void,
-  openTeam: boolean,
-  selectedTab: Types.TabKey,
-  showAddYourselfBanner: boolean,
-  showMenu: boolean,
-  setShowMenu: (s: boolean) => void,
-  you: string,
-  yourRole: ?Types.TeamRoleType,
-  yourOperations: RPCTypes.TeamOperation,
+  onLeaveTeam: () => void,
+  onCreateSubteam: () => void,
+  setShowMenu: boolean => void,
 }
 
 const Team = (props: Props) => {
-  const {name} = props
-
-  const teamname = name
+  const {teamname} = props
 
   const rows: TeamRows = [{type: 'header', teamname}]
   rows.push({
