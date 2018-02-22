@@ -235,16 +235,21 @@ func (c *conversationLockTab) key(uid gregor1.UID, convID chat1.ConversationID) 
 	return fmt.Sprintf("%s:%s", uid, convID)
 }
 
+// deadlockDetect tries to find a deadlock condition in the current set of waiting acquirers.
 func (c *conversationLockTab) deadlockDetect(ctx context.Context, trace string, waiters map[string]bool) bool {
+	// See if this trace is waiting on any other trace
 	waitingOnTrace, ok := c.waits[trace]
 	if !ok {
+		// If not, no deadlock
 		return false
 	}
+	// If we are waiting on a trace we have already encountered, then we have hit a deadlock
 	if waiters[waitingOnTrace] {
 		c.Debug(ctx, "deadlockDetect: deadlock detected: trace: %s waitingOnTrace: %s waiters: %v",
 			trace, waitingOnTrace, waiters)
 		return true
 	}
+	// Set the current trace as waiting, and then continue down the chain
 	waiters[trace] = true
 	return c.deadlockDetect(ctx, waitingOnTrace, waiters)
 }
@@ -270,6 +275,7 @@ func (c *conversationLockTab) doAcquire(ctx context.Context, uid gregor1.UID, co
 			*c.blockCb <- struct{}{} // For testing
 		}
 		c.waits[trace] = lock.trace
+		// If we get blocked, let's make sure we aren't in a deadlock situation, and if so, we bail out
 		if c.deadlockDetect(ctx, lock.trace, map[string]bool{
 			trace: true,
 		}) {
