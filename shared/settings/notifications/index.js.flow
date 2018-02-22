@@ -1,16 +1,16 @@
 // @flow
 import {Component} from 'react'
 
-export type Group = {
-  settings: Settings,
-  unsubscribedFromAll: boolean,
-}
-
 export type Settings = Array<{
   description: string,
   name: string,
   subscribed: boolean,
 }>
+
+export type Group = {
+  settings: Settings,
+  unsubscribedFromAll: boolean,
+}
 
 export type Props = {
   allowEdit: boolean,
@@ -23,6 +23,7 @@ export type Props = {
   onRefresh: () => void,
   onToggle: (groupName: string, name: string) => void,
   onToggleUnsubscribeAll: (group: string) => void,
+  mobileHasPermissions: boolean,
   waitingForResponse: boolean,
 }
 

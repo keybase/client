@@ -5,16 +5,26 @@
 
 package engine
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/keybase/client/go/libkb"
+)
 
 func TestPGPKeyfinder(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testPGPKeyfinder(t, sigVersion)
+	})
+}
+
+func _testPGPKeyfinder(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "PGPKeyfinder")
 	defer tc.Cleanup()
 
 	u := CreateAndSignupFakeUser(tc, "login")
 	// track alice before starting so we have a user already tracked
-	trackAlice(tc, u)
-	defer untrackAlice(tc, u)
+	trackAlice(tc, u, sigVersion)
+	defer untrackAlice(tc, u, sigVersion)
 
 	ctx := &Context{}
 	arg := &PGPKeyfinderArg{

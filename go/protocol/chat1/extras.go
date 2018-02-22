@@ -15,6 +15,8 @@ import (
 
 type ByUID []gregor1.UID
 
+type ConvIDShort = []byte
+
 func (b ByUID) Len() int      { return len(b) }
 func (b ByUID) Swap(i, j int) { b[i], b[j] = b[j], b[i] }
 func (b ByUID) Less(i, j int) bool {
@@ -68,12 +70,16 @@ const DbShortFormLen = 10
 
 // DbShortForm should only be used when interacting with the database, and should
 // never leave Gregor
-func (cid ConversationID) DbShortForm() []byte {
+func (cid ConversationID) DbShortForm() ConvIDShort {
 	return cid[:DbShortFormLen]
 }
 
 func (cid ConversationID) DbShortFormString() string {
 	return hex.EncodeToString(cid.DbShortForm())
+}
+
+func DbShortFormToString(cid ConvIDShort) string {
+	return hex.EncodeToString(cid)
 }
 
 func MakeTLFID(val string) (TLFID, error) {
@@ -221,20 +227,15 @@ func (m MessageUnboxed) IsValid() bool {
 	return false
 }
 
-// IsValidFull returns whether the message is all of:
+// IsValidFull returns whether the message is both:
 // 1. Valid
 // 2. Has a non-deleted body with a type matching the header
 //    (TLFNAME is an exception as it has no body)
-// 3. Supersededby == 0
 func (m MessageUnboxed) IsValidFull() bool {
 	if !m.IsValid() {
 		return false
 	}
 	valid := m.Valid()
-	if valid.ServerHeader.SupersededBy != 0 {
-		// Message marked as superseded
-		return false
-	}
 	headerType := valid.ClientHeader.MessageType
 	switch headerType {
 	case MessageType_NONE:
@@ -250,7 +251,10 @@ func (m MessageUnboxed) IsValidFull() bool {
 	return bodyType == headerType
 }
 
-func (m MessageUnboxed) DebugString() string {
+func (m *MessageUnboxed) DebugString() string {
+	if m == nil {
+		return "[nil]"
+	}
 	state, err := m.State()
 	if err != nil {
 		return fmt.Sprintf("[INVALID err:%v]", err)
@@ -259,29 +263,42 @@ func (m MessageUnboxed) DebugString() string {
 		merr := m.Error()
 		return fmt.Sprintf("[%v %v mt:%v (%v)]", state, m.GetMessageID(), merr.ErrType, merr.ErrMsg)
 	}
-	if state != MessageUnboxedState_VALID {
+	switch state {
+	case MessageUnboxedState_VALID:
+		valid := m.Valid()
+		headerType := valid.ClientHeader.MessageType
+		s := fmt.Sprintf("%v %v", state, valid.ServerHeader.MessageID)
+		bodyType, err := valid.MessageBody.MessageType()
+		if err != nil {
+			return fmt.Sprintf("[INVALID-BODY err:%v]", err)
+		}
+		if headerType == bodyType {
+			s = fmt.Sprintf("%v %v", s, headerType)
+		} else {
+			if headerType == MessageType_TLFNAME {
+				s = fmt.Sprintf("%v h:%v (b:%v)", s, headerType, bodyType)
+			} else {
+				s = fmt.Sprintf("%v h:%v != b:%v", s, headerType, bodyType)
+			}
+		}
+		if valid.ServerHeader.SupersededBy != 0 {
+			s = fmt.Sprintf("%v supBy:%v", s, valid.ServerHeader.SupersededBy)
+		}
+		return fmt.Sprintf("[%v]", s)
+	case MessageUnboxedState_OUTBOX:
+		obr := m.Outbox()
+		ostateStr := "CORRUPT"
+		ostate, err := obr.State.State()
+		if err != nil {
+			ostateStr = "CORRUPT"
+		} else {
+			ostateStr = fmt.Sprintf("%v", ostate)
+		}
+		return fmt.Sprintf("[%v obid:%v prev:%v ostate:%v %v]",
+			state, obr.OutboxID, obr.Msg.ClientHeader.OutboxInfo.Prev, ostateStr, obr.Msg.ClientHeader.MessageType)
+	default:
 		return fmt.Sprintf("[state:%v %v]", state, m.GetMessageID())
 	}
-	valid := m.Valid()
-	headerType := valid.ClientHeader.MessageType
-	s := fmt.Sprintf("%v %v", state, valid.ServerHeader.MessageID)
-	bodyType, err := valid.MessageBody.MessageType()
-	if err != nil {
-		return fmt.Sprintf("[INVALID-BODY err:%v]", err)
-	}
-	if headerType == bodyType {
-		s = fmt.Sprintf("%v %v", s, headerType)
-	} else {
-		if headerType == MessageType_TLFNAME {
-			s = fmt.Sprintf("%v h:%v (b:%v)", s, headerType, bodyType)
-		} else {
-			s = fmt.Sprintf("%v h:%v != b:%v", s, headerType, bodyType)
-		}
-	}
-	if valid.ServerHeader.SupersededBy != 0 {
-		s = fmt.Sprintf("%v supBy:%v", s, valid.ServerHeader.SupersededBy)
-	}
-	return fmt.Sprintf("[%v]", s)
 }
 
 func MessageUnboxedDebugStrings(ms []MessageUnboxed) (res []string) {

@@ -8,7 +8,7 @@ import type {Proof} from '../constants/types/tracker'
 import {Box, Icon, Text, Meta} from '../common-adapters/index'
 import {defaultColor} from '../common-adapters/icon.shared'
 import {globalStyles, globalColors, globalMargins} from '../styles'
-import {metaNone, checking as proofChecking} from '../constants/tracker'
+import {metaNone} from '../constants/tracker'
 
 function MissingProofRow({missingProof}: {missingProof: MissingProof}): React.Node {
   const missingColor = globalColors.black_20
@@ -177,15 +177,11 @@ class ProofsRender extends React.Component<Props> {
   }
 
   _onClickProof(proof: Proof): void {
-    if (proof.state !== proofChecking) {
-      proof.humanUrl && openUrl(proof.humanUrl)
-    }
+    proof.humanUrl && openUrl(proof.humanUrl)
   }
 
   _onClickProfile(proof: Proof): void {
-    if (proof.state !== proofChecking) {
-      proof.profileUrl && openUrl(proof.profileUrl)
-    }
+    proof.profileUrl && openUrl(proof.profileUrl)
   }
 
   render() {

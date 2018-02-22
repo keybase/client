@@ -705,18 +705,24 @@ func TestInboxSync(t *testing.T) {
 	require.Equal(t, chat1.ConversationStatus_MUTED, newRes[7].Conv.Metadata.Status)
 	require.Equal(t, chat1.ConversationStatus_UNFILED, newRes[4].Conv.Metadata.Status)
 	require.False(t, syncRes.TeamTypeChanged)
+	require.Len(t, syncRes.Expunges, 0)
 
 	syncConvs = nil
 	vers, err = inbox.Version(context.TODO())
 	require.NoError(t, err)
 	convs[8].Conv.Metadata.TeamType = chat1.TeamType_COMPLEX
 	syncConvs = append(syncConvs, convs[8].Conv)
+	convs[9].Conv.Expunge = chat1.Expunge{Upto: 3}
+	syncConvs = append(syncConvs, convs[9].Conv)
 	syncRes, err = inbox.Sync(context.TODO(), vers+1, syncConvs)
 	newVers, newRes, _, err = inbox.Read(context.TODO(), nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, vers+1, newVers)
 	require.Equal(t, chat1.TeamType_COMPLEX, newRes[9].Conv.Metadata.TeamType)
 	require.True(t, syncRes.TeamTypeChanged)
+	require.Len(t, syncRes.Expunges, 1)
+	require.True(t, convs[9].Conv.GetConvID().Eq(syncRes.Expunges[0].ConvID))
+	require.Equal(t, convs[9].Conv.Expunge, syncRes.Expunges[0].Expunge)
 }
 
 func TestInboxServerVersion(t *testing.T) {

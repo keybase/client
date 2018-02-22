@@ -194,14 +194,18 @@ func TestUserEmails(t *testing.T) {
 }
 
 func TestProvisionDesktop(t *testing.T) {
-	testProvisionDesktop(t, false)
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		testProvisionDesktop(t, false, sigVersion)
+	})
 }
 
 func TestProvisionDesktopPUK(t *testing.T) {
-	testProvisionDesktop(t, true)
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		testProvisionDesktop(t, true, sigVersion)
+	})
 }
 
-func testProvisionDesktop(t *testing.T, upgradePerUserKey bool) {
+func testProvisionDesktop(t *testing.T, upgradePerUserKey bool, sigVersion libkb.SigVersion) {
 	// device X (provisioner) context:
 	t.Logf("setup X")
 	tcX := SetupEngineTest(t, "kex2provision")
@@ -297,6 +301,7 @@ func testProvisionDesktop(t *testing.T, upgradePerUserKey bool) {
 		arg := &TrackEngineArg{
 			UserAssertion: whom,
 			Options:       keybase1.TrackOptions{BypassConfirm: true},
+			SigVersion:    sigVersion,
 		}
 		ctx = &Context{
 			LogUI:      tcY.G.UI.GetLogUI(),
@@ -885,6 +890,12 @@ func testSign(t *testing.T, tc libkb.TestContext) {
 }
 
 func TestProvisionPaperOnly(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testProvisionPaperOnly(t, sigVersion)
+	})
+}
+
+func _testProvisionPaperOnly(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 	fu := NewFakeUserOrBust(t, "paper")
@@ -982,6 +993,7 @@ func TestProvisionPaperOnly(t *testing.T) {
 		targ := &TrackEngineArg{
 			UserAssertion: whom,
 			Options:       keybase1.TrackOptions{BypassConfirm: true},
+			SigVersion:    sigVersion,
 		}
 		ctx := &Context{
 			LogUI:      tc2.G.UI.GetLogUI(),
@@ -1978,6 +1990,12 @@ func TestProvisionPaperFailures(t *testing.T) {
 // After kex provisioning, try using a synced pgp key to sign
 // something.
 func TestProvisionKexUseSyncPGP(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testProvisionKexUseSyncPGP(t, sigVersion)
+	})
+}
+
+func _testProvisionKexUseSyncPGP(t *testing.T, sigVersion libkb.SigVersion) {
 	// device X (provisioner) context:
 	tcX := SetupEngineTestRealTriplesec(t, "kex2provision")
 	defer tcX.Cleanup()
@@ -2050,6 +2068,7 @@ func TestProvisionKexUseSyncPGP(t *testing.T) {
 	arg := &TrackEngineArg{
 		UserAssertion: "t_alice",
 		Options:       keybase1.TrackOptions{BypassConfirm: true},
+		SigVersion:    sigVersion,
 	}
 	ctx = &Context{
 		LogUI:      tcY.G.UI.GetLogUI(),
@@ -2338,6 +2357,12 @@ func TestResetAccountPaper(t *testing.T) {
 
 // After resetting account, try kex2 provisioning.
 func TestResetAccountKexProvision(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testResetAccountKexProvision(t, sigVersion)
+	})
+}
+
+func _testResetAccountKexProvision(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
@@ -2415,6 +2440,7 @@ func TestResetAccountKexProvision(t *testing.T) {
 	arg := &TrackEngineArg{
 		UserAssertion: "t_alice",
 		Options:       keybase1.TrackOptions{BypassConfirm: true},
+		SigVersion:    sigVersion,
 	}
 	ctx = &Context{
 		LogUI:      tcY.G.UI.GetLogUI(),
@@ -2500,6 +2526,12 @@ func TestResetThenPGPOnlyThenProvision(t *testing.T) {
 // Try to replicate @nistur sigchain.
 // github issue: https://github.com/keybase/client/issues/2356
 func TestResetAccountLikeNistur(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testResetAccountLikeNistur(t, sigVersion)
+	})
+}
+
+func _testResetAccountLikeNistur(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
@@ -2601,6 +2633,7 @@ func TestResetAccountLikeNistur(t *testing.T) {
 	arg := &TrackEngineArg{
 		UserAssertion: "t_alice",
 		Options:       keybase1.TrackOptions{BypassConfirm: true},
+		SigVersion:    sigVersion,
 	}
 	ctx = &Context{
 		LogUI:      tcY.G.UI.GetLogUI(),
@@ -2709,6 +2742,12 @@ func TestResetMultipleDevices(t *testing.T) {
 // results in provisioning again...)
 // Seems to only happen w/ kex2.
 func TestProvisionWithBadConfig(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testProvisionWithBadConfig(t, sigVersion)
+	})
+}
+
+func _testProvisionWithBadConfig(t *testing.T, sigVersion libkb.SigVersion) {
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "kex2provision")
 	defer tcX.Cleanup()
@@ -2801,6 +2840,7 @@ func TestProvisionWithBadConfig(t *testing.T) {
 	arg := &TrackEngineArg{
 		UserAssertion: "t_alice",
 		Options:       keybase1.TrackOptions{BypassConfirm: true},
+		SigVersion:    sigVersion,
 	}
 	ctx = &Context{
 		LogUI:      tcY.G.UI.GetLogUI(),
@@ -2945,16 +2985,20 @@ func TestProvisionGPGMobile(t *testing.T) {
 }
 
 func TestProvisionEnsureNoPaperKey(t *testing.T) {
-	testProvisionEnsureNoPaperKey(t, false)
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		testProvisionEnsureNoPaperKey(t, false, sigVersion)
+	})
 }
 
 func TestProvisionEnsureNoPaperKeyPUK(t *testing.T) {
-	testProvisionEnsureNoPaperKey(t, true)
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		testProvisionEnsureNoPaperKey(t, true, sigVersion)
+	})
 }
 
 // Provisioning a new device when the user has no paper keys should work
 // and not generate a paper key.
-func testProvisionEnsureNoPaperKey(t *testing.T, upgradePerUserKey bool) {
+func testProvisionEnsureNoPaperKey(t *testing.T, upgradePerUserKey bool, sigVersion libkb.SigVersion) {
 	// This test is based on TestProvisionDesktop.
 
 	t.Logf("create 2 contexts")
@@ -3065,6 +3109,7 @@ func testProvisionEnsureNoPaperKey(t *testing.T, upgradePerUserKey bool) {
 		arg := &TrackEngineArg{
 			UserAssertion: whom,
 			Options:       keybase1.TrackOptions{BypassConfirm: true},
+			SigVersion:    sigVersion,
 		}
 		ctx = &Context{
 			LogUI:      tcY.G.UI.GetLogUI(),
@@ -3091,6 +3136,12 @@ func testProvisionEnsureNoPaperKey(t *testing.T, upgradePerUserKey bool) {
 
 // Device X provisions device Y, then device Y revokes X.
 func TestProvisionAndRevoke(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testProvisionAndRevoke(t, sigVersion)
+	})
+}
+
+func _testProvisionAndRevoke(t *testing.T, sigVersion libkb.SigVersion) {
 	// This test is based on TestProvisionDesktop.
 
 	t.Logf("create 2 contexts")
@@ -3200,6 +3251,7 @@ func TestProvisionAndRevoke(t *testing.T) {
 		arg := &TrackEngineArg{
 			UserAssertion: whom,
 			Options:       keybase1.TrackOptions{BypassConfirm: true},
+			SigVersion:    sigVersion,
 		}
 		ctx = &Context{
 			LogUI:      tcY.G.UI.GetLogUI(),
@@ -3697,7 +3749,7 @@ func assertPassphraseStreamCache(tc libkb.TestContext) {
 }
 
 func assertSecretStored(tc libkb.TestContext, username string) {
-	secret, err := tc.G.SecretStoreAll.RetrieveSecret(libkb.NewNormalizedUsername(username))
+	secret, err := tc.G.SecretStore().RetrieveSecret(libkb.NewNormalizedUsername(username))
 	if err != nil {
 		tc.T.Fatal(err)
 	}

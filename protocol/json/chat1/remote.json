@@ -564,6 +564,10 @@
         {
           "type": "boolean",
           "name": "deletedMessages"
+        },
+        {
+          "type": "Expunge",
+          "name": "expunge"
         }
       ]
     }
@@ -857,6 +861,13 @@
         {
           "name": "resetFull",
           "type": "string"
+        },
+        {
+          "name": "resetUID",
+          "type": [
+            null,
+            "keybase1.UID"
+          ]
         }
       ],
       "response": null

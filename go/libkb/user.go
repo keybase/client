@@ -120,6 +120,13 @@ func (u *User) GetSigChainLastKnownSeqno() keybase1.Seqno {
 	return u.sigChain().GetLastKnownSeqno()
 }
 
+func (u *User) GetSigChainLastKnownID() LinkID {
+	if u.sigChain() == nil {
+		return nil
+	}
+	return u.sigChain().GetLastKnownID()
+}
+
 func (u *User) GetCurrentEldestSeqno() keybase1.Seqno {
 	if u.sigChain() == nil {
 		// Note that NameWithEldestSeqno will return an error if you call it with zero.
@@ -710,23 +717,6 @@ func (u *User) SigningKeyPub() (GenericKey, error) {
 		return nil, err
 	}
 	return pubKey, nil
-}
-
-func (u *User) TrackStatementJSON(them *User, outcome *IdentifyOutcome) (string, error) {
-	key, err := u.SigningKeyPub()
-	if err != nil {
-		return "", err
-	}
-
-	stmt, err := u.TrackingProofFor(key, them, outcome)
-	if err != nil {
-		return "", err
-	}
-	json, err := stmt.Marshal()
-	if err != nil {
-		return "", err
-	}
-	return string(json), nil
 }
 
 func (u *User) GetSigIDFromSeqno(seqno keybase1.Seqno) keybase1.SigID {

@@ -387,6 +387,12 @@ func TestIdentify2WithUIDWithBrokenTrackWithSuppressUI(t *testing.T) {
 }
 
 func TestIdentify2WithUIDWithUntrackedFastPath(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testIdentify2WithUIDWithUntrackedFastPath(t, sigVersion)
+	})
+}
+
+func _testIdentify2WithUIDWithUntrackedFastPath(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "TestIdentify2WithUIDWithUntrackedFastPath")
 	defer tc.Cleanup()
 
@@ -409,8 +415,8 @@ func TestIdentify2WithUIDWithUntrackedFastPath(t *testing.T) {
 	}
 
 	runID2(true)
-	trackAlice(tc, fu)
-	defer untrackAlice(tc, fu)
+	trackAlice(tc, fu, sigVersion)
+	defer untrackAlice(tc, fu, sigVersion)
 	runID2(false)
 }
 
@@ -960,13 +966,19 @@ func TestIdentify2NoSigchain(t *testing.T) {
 
 // See CORE-4310
 func TestIdentifyAfterDbNuke(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testIdentifyAfterDbNuke(t, sigVersion)
+	})
+}
+
+func _testIdentifyAfterDbNuke(t *testing.T, sigVersion libkb.SigVersion) {
 
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
 	fu := CreateAndSignupFakeUser(tc, "track")
 
-	trackAlice(tc, fu)
-	defer untrackAlice(tc, fu)
+	trackAlice(tc, fu, sigVersion)
+	defer untrackAlice(tc, fu, sigVersion)
 
 	runIDAlice := func() {
 
@@ -1001,6 +1013,11 @@ func TestIdentifyAfterDbNuke(t *testing.T) {
 }
 
 func TestNoSelfHostedIdentifyInPassiveMode(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testNoSelfHostedIdentifyInPassiveMode(t, sigVersion)
+	})
+}
+func _testNoSelfHostedIdentifyInPassiveMode(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "id")
 	defer tc.Cleanup()
 
@@ -1066,7 +1083,7 @@ func TestNoSelfHostedIdentifyInPassiveMode(t *testing.T) {
 	// from right above.
 	runTest(keybase1.TLFIdentifyBehavior_CHAT_GUI, false, false, libkb.ProofCheckerModePassive)
 
-	trackUser(tc, alice, eve.NormalizedUsername())
+	trackUser(tc, alice, eve.NormalizedUsername(), sigVersion)
 
 	tc.G.ProofCache.Reset()
 

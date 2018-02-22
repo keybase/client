@@ -167,9 +167,6 @@ func (h *LoginHandler) PGPProvision(ctx context.Context, arg keybase1.PGPProvisi
 }
 
 func (h *LoginHandler) AccountDelete(ctx context.Context, sessionID int) error {
-	if h.G().Env.GetRunMode() == libkb.ProductionRunMode {
-		return errors.New("AccountDelete is a devel-only RPC")
-	}
 	ectx := &engine.Context{
 		LogUI:      h.getLogUI(sessionID),
 		NetContext: ctx,

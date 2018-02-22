@@ -125,6 +125,12 @@ func (t *testDecryptSaltpackUI) SaltpackPromptForDecrypt(_ context.Context, arg 
 }
 
 func TestSaltpackDecryptBrokenTrack(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testSaltpackDecryptBrokenTrack(t, sigVersion)
+	})
+}
+
+func _testSaltpackDecryptBrokenTrack(t *testing.T, sigVersion libkb.SigVersion) {
 
 	tc := SetupEngineTest(t, "SaltpackDecrypt")
 	defer tc.Cleanup()
@@ -194,7 +200,7 @@ func TestSaltpackDecryptBrokenTrack(t *testing.T) {
 		NumProofSuccesses: 1,
 		TrackStatus:       keybase1.TrackStatus_NEW_OK,
 	}
-	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome)
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome, sigVersion)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -5,11 +5,12 @@ package service
 
 import (
 	"errors"
+	"time"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
-	"time"
 )
 
 type LogsendHandler struct {
@@ -25,7 +26,11 @@ func NewLogsendHandler(xp rpc.Transporter, g *libkb.GlobalContext) *LogsendHandl
 }
 
 func (h *LogsendHandler) PrepareLogsend(ctx context.Context) error {
-	xp := h.G().ConnectionManager.LookupByClientType(keybase1.ClientType_GUI_MAIN)
+	connMgr := h.G().ConnectionManager
+	if connMgr == nil {
+		return errors.New("no connection manager available")
+	}
+	xp := connMgr.LookupByClientType(keybase1.ClientType_GUI_MAIN)
 	if xp == nil {
 		return errors.New("GUI main process wasn't found")
 	}

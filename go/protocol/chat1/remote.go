@@ -747,14 +747,16 @@ func (o SetRetentionRes) DeepCopy() SetRetentionRes {
 }
 
 type SweepRes struct {
-	FoundTask       bool `codec:"foundTask" json:"foundTask"`
-	DeletedMessages bool `codec:"deletedMessages" json:"deletedMessages"`
+	FoundTask       bool    `codec:"foundTask" json:"foundTask"`
+	DeletedMessages bool    `codec:"deletedMessages" json:"deletedMessages"`
+	Expunge         Expunge `codec:"expunge" json:"expunge"`
 }
 
 func (o SweepRes) DeepCopy() SweepRes {
 	return SweepRes{
 		FoundTask:       o.FoundTask,
 		DeletedMessages: o.DeletedMessages,
+		Expunge:         o.Expunge.DeepCopy(),
 	}
 }
 
@@ -847,11 +849,12 @@ type SyncAllArg struct {
 }
 
 type TlfFinalizeArg struct {
-	TlfID          TLFID        `codec:"tlfID" json:"tlfID"`
-	ResetUser      string       `codec:"resetUser" json:"resetUser"`
-	ResetDate      string       `codec:"resetDate" json:"resetDate"`
-	ResetTimestamp gregor1.Time `codec:"resetTimestamp" json:"resetTimestamp"`
-	ResetFull      string       `codec:"resetFull" json:"resetFull"`
+	TlfID          TLFID         `codec:"tlfID" json:"tlfID"`
+	ResetUser      string        `codec:"resetUser" json:"resetUser"`
+	ResetDate      string        `codec:"resetDate" json:"resetDate"`
+	ResetTimestamp gregor1.Time  `codec:"resetTimestamp" json:"resetTimestamp"`
+	ResetFull      string        `codec:"resetFull" json:"resetFull"`
+	ResetUID       *keybase1.UID `codec:"resetUID,omitempty" json:"resetUID,omitempty"`
 }
 
 type TlfResolveArg struct {

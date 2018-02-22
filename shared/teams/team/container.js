@@ -135,7 +135,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       onOpenFolder={onOpenFolder}
       onManageChat={onManageChat}
       onShowMenu={() => ownProps.setShowMenu(true)}
-      canManageChat={yourOperations.leaveTeam}
+      canManageChat={yourOperations.createChannel}
+      canViewFolder={!yourOperations.joinTeam}
     />
   )
 

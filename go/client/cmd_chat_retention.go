@@ -47,10 +47,10 @@ Keep messages indefinitely:
     keybase chat retention-policy patrick --keep
 
 Keep messages for a week:
-    keybase chat retention-policy patrick --age 1w
+    keybase chat retention-policy patrick --expire 1w
 
 Change the team-wide policy:
-    keybase chat retention-policy ateam --age 1y
+    keybase chat retention-policy ateam --expire 1y
 
 Use the team policy for this channel:
     keybase chat retention-policy ateam --channel '#general' --inherit
@@ -65,7 +65,7 @@ Use the team policy for this channel:
 				Usage: `Keep messages indefinitely`,
 			},
 			cli.StringFlag{
-				Name:  "age",
+				Name:  "expire",
 				Usage: `Delete messages after one of [1d, 1w, 30d, 3m, 1y]`,
 			},
 			cli.BoolFlag{
@@ -140,12 +140,12 @@ func (c *CmdChatSetRetention) ParseArgv(ctx *cli.Context) (err error) {
 	var keep bool
 	var inherit bool
 	var exclusiveChoices []string
-	if timeStr := ctx.String("age"); len(timeStr) > 0 {
+	if timeStr := ctx.String("expire"); len(timeStr) > 0 {
 		age, err = c.parseAgeLimited(timeStr)
 		if err != nil {
 			return err
 		}
-		exclusiveChoices = append(exclusiveChoices, "age")
+		exclusiveChoices = append(exclusiveChoices, "expire")
 	}
 	keep = ctx.Bool("keep")
 	if keep {
@@ -201,33 +201,7 @@ func (c *CmdChatSetRetention) postPolicy(ctx context.Context, conv *chat1.Conver
 	if err != nil {
 		return err
 	}
-	teamInvolved := (conv.Info.MembersType == chat1.ConversationMembersType_TEAM)
-	teamWide := teamInvolved && !setChannel
-
-	promptText := fmt.Sprintf("Set the conversation retention policy?\nHit Enter, or Ctrl-C to cancel.")
-	if teamInvolved {
-		promptText = fmt.Sprintf("Set the channel retention policy?\nHit Enter, or Ctrl-C to cancel.")
-	}
-	if teamWide {
-		promptText = fmt.Sprintf("Set the team-wide retention policy?\nHit Enter, or Ctrl-C to cancel.")
-	}
-	_, err = c.G().UI.GetTerminalUI().Prompt(PromptDescriptorChatSetRetention, promptText)
-	if err != nil {
-		return err
-	}
-
-	if teamWide {
-		teamID, err := keybase1.TeamIDFromString(conv.Info.Triple.Tlfid.String())
-		if err != nil {
-			return err
-		}
-		return lcli.SetTeamRetentionLocal(ctx, chat1.SetTeamRetentionLocalArg{
-			TeamID: teamID,
-			Policy: policy})
-	}
-	return lcli.SetConvRetentionLocal(ctx, chat1.SetConvRetentionLocalArg{
-		ConvID: conv.Info.Id,
-		Policy: policy})
+	return postRetentionPolicy(ctx, lcli, c.G().UI.GetTerminalUI(), conv, policy, setChannel, true /*doPrompt*/)
 }
 
 // Show a non-team conv policy

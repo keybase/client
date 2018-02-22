@@ -2,9 +2,11 @@ package engine
 
 import (
 	"fmt"
-	"github.com/keybase/clockwork"
 	"testing"
 	"time"
+
+	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/clockwork"
 )
 
 const (
@@ -14,6 +16,12 @@ const (
 )
 
 func TestBackgroundIdentifier(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testBackgroundIdentifier(t, sigVersion)
+	})
+}
+
+func _testBackgroundIdentifier(t *testing.T, sigVersion libkb.SigVersion) {
 	t.Skip()
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
@@ -24,18 +32,18 @@ func TestBackgroundIdentifier(t *testing.T) {
 	// to pick up the new clock...
 	tc.G.ResetLoginState()
 
-	_, tracy, err := runTrack(tc, fu, "t_tracy")
+	_, tracy, err := runTrack(tc, fu, "t_tracy", sigVersion)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer runUntrack(tc.G, fu, "t_tracy")
+	defer runUntrack(tc.G, fu, "t_tracy", sigVersion)
 
-	_, bob, err := runTrack(tc, fu, "t_bob")
+	_, bob, err := runTrack(tc, fu, "t_bob", sigVersion)
 	t.Logf("bob is %s", bob.GetUID())
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer runUntrack(tc.G, fu, "t_bob")
+	defer runUntrack(tc.G, fu, "t_bob", sigVersion)
 
 	endCh := make(chan struct{})
 	snoopCh := make(chan IdentifyJob, 100)

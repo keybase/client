@@ -16,6 +16,7 @@ type TrackEngineArg struct {
 	Options           keybase1.TrackOptions
 	ForceRemoteCheck  bool
 	AllowSelfIdentify bool
+	SigVersion        libkb.SigVersion
 }
 
 type TrackEngine struct {

@@ -23,10 +23,6 @@ function configurePush() {
   throw new Error('Configure Push not needed on this platform')
 }
 
-function setNoPushPermissions(): Promise<*> {
-  throw new Error('Push permissions unsupported on this platform')
-}
-
 function setAppState(toMerge: Object) {
   ipcRenderer.send('setAppState', toMerge)
 }
@@ -52,7 +48,27 @@ function clearAllNotifications() {
   throw new Error('Clear all notifications not available on this platform')
 }
 
+function checkPermissions(): Promise<*> {
+  throw new Error('Push permissions unsupported on this platform')
+}
+
+function setShownPushPrompt(): Promise<*> {
+  throw new Error('Push permissions unsupported on this platform')
+}
+
+function getShownPushPrompt(): Promise<string> {
+  throw new Error('Push permissions unsupported on this platform')
+}
+
+function openAppSettings(): void {
+  throw new Error('Cannot open app settings on desktop')
+}
+
 export {
+  checkPermissions,
+  setShownPushPrompt,
+  getShownPushPrompt,
+  openAppSettings,
   requestPushPermissions,
   showMainWindow,
   configurePush,
@@ -60,7 +76,6 @@ export {
   setAppState,
   saveAttachmentDialog,
   showShareActionSheet,
-  setNoPushPermissions,
   displayNewMessageNotification,
   clearAllNotifications,
 }

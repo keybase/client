@@ -272,7 +272,7 @@ func userHasStoredSecretViaConfiguredAccounts(tc *libkb.TestContext, username st
 }
 
 func userHasStoredSecretViaSecretStore(tc *libkb.TestContext, username string) bool {
-	secret, err := tc.G.SecretStoreAll.RetrieveSecret(libkb.NewNormalizedUsername(username))
+	secret, err := tc.G.SecretStore().RetrieveSecret(libkb.NewNormalizedUsername(username))
 	// TODO: Have RetrieveSecret return platform-independent errors
 	// so that we can make sure we got the right one.
 	return (!secret.IsNil() && err == nil)

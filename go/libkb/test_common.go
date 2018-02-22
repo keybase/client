@@ -233,7 +233,9 @@ func setupTestContext(tb TestingTB, name string, tcPrev *TestContext) (tc TestCo
 	g.Env.Test = tc.Tp
 
 	// SecretStoreFile needs test home directory
-	g.SecretStoreAll = NewSecretStoreLocked(g)
+	g.secretStoreMu.Lock()
+	g.secretStore = NewSecretStoreLocked(g)
+	g.secretStoreMu.Unlock()
 
 	g.ConfigureLogging()
 
@@ -268,10 +270,6 @@ func setupTestContext(tb TestingTB, name string, tcPrev *TestContext) (tc TestCo
 	g.SetUIDMapper(NewTestUIDMapper(g.GetUPAKLoader()))
 	tc.G = g
 	tc.T = tb
-
-	if g.SecretStoreAll == nil {
-		g.SecretStoreAll = &SecretStoreLocked{SecretStoreAll: NewTestSecretStoreAll(g, g)}
-	}
 
 	return
 }

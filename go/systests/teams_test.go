@@ -15,6 +15,8 @@ import (
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/stretchr/testify/require"
+
+	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
 )
 
 func TestTeamCreate(t *testing.T) {
@@ -70,7 +72,7 @@ func TestTeamRotateOnRevoke(t *testing.T) {
 	defer tt.cleanup()
 
 	tt.addUser("onr")
-	tt.addUser("wtr")
+	tt.addUserWithPaper("wtr")
 
 	teamID, teamName := tt.users[0].createTeam2()
 	tt.users[0].addTeamMember(teamName.String(), tt.users[1].username, keybase1.TeamRole_WRITER)
@@ -118,15 +120,25 @@ func newTeamTester(t *testing.T) *teamTester {
 }
 
 func (tt *teamTester) addUser(pre string) *userPlusDevice {
-	return tt.addUserHelper(pre, true, true)
-}
-
-func (tt *teamTester) addUserNoPaper(pre string) *userPlusDevice {
 	return tt.addUserHelper(pre, true, false)
 }
 
+func (tt *teamTester) addUserWithPaper(pre string) *userPlusDevice {
+	return tt.addUserHelper(pre, true, true)
+}
+
 func (tt *teamTester) addPuklessUser(pre string) *userPlusDevice {
-	return tt.addUserHelper(pre, false, true)
+	return tt.addUserHelper(pre, false, false)
+}
+
+func installInsecureTriplesec(g *libkb.GlobalContext) {
+	g.NewTriplesec = func(passphrase []byte, salt []byte) (libkb.Triplesec, error) {
+		warner := func() { g.Log.Warning("Installing insecure Triplesec with weak stretch parameters") }
+		isProduction := func() bool {
+			return g.Env.GetRunMode() == libkb.ProductionRunMode
+		}
+		return insecureTriplesec.NewCipher(passphrase, salt, warner, isProduction)
+	}
 }
 
 func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusDevice {
@@ -142,6 +154,8 @@ func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusD
 	require.True(tt.t, libkb.CheckUsername.F(userInfo.username), "username check failed (%v): %v", libkb.CheckUsername.Hint, userInfo.username)
 	tc := u.device.tctx
 	g := tc.G
+	installInsecureTriplesec(g)
+
 	signupUI := signupUI{
 		info:         userInfo,
 		Contextified: libkb.NewContextified(g),
@@ -236,7 +250,7 @@ func (u *userPlusDevice) createTeam() string {
 		u.tc.T.Fatal(err)
 	}
 	create.TeamName = name
-	tracer := u.tc.G.CTimeTracer(context.Background(), "tracer-create-team")
+	tracer := u.tc.G.CTimeTracer(context.Background(), "tracer-create-team", true)
 	defer tracer.Finish()
 	if err := create.Run(); err != nil {
 		u.tc.T.Fatal(err)
@@ -259,6 +273,18 @@ func (u *userPlusDevice) teamSetSettings(teamName string, settings keybase1.Team
 		Settings: settings,
 	})
 	require.NoError(u.tc.T, err)
+	changeByID := false
+	for {
+		select {
+		case arg := <-u.notifications.changeCh:
+			changeByID = arg.Changes.Misc
+		case <-time.After(500 * time.Millisecond * libkb.CITimeMultiplier(u.tc.G)):
+			u.tc.T.Fatal("no notification on teamSetSettings")
+		}
+		if changeByID {
+			return
+		}
+	}
 }
 
 func (u *userPlusDevice) teamGetDetails(teamName string) keybase1.TeamDetails {
@@ -587,6 +613,8 @@ func (u *userPlusDevice) provisionNewDevice() *deviceWrapper {
 	device := &deviceWrapper{tctx: tc}
 	device.start(0)
 
+	require.NotNil(t, u.backupKey, "Add user with paper key to use provisionNewDevice")
+
 	// ui for provisioning
 	ui := &rekeyProvisionUI{username: u.username, backupKey: u.backupKey}
 	{
@@ -806,7 +834,7 @@ func TestTeamSignedByRevokedDevice(t *testing.T) {
 	defer tt.cleanup()
 
 	// the signer
-	alice := tt.addUser("alice")
+	alice := tt.addUserWithPaper("alice")
 
 	// the loader
 	bob := tt.addUser("bob")
@@ -874,7 +902,7 @@ func TestTeamSignedByRevokedDevice2(t *testing.T) {
 	defer tt.cleanup()
 
 	// the signer
-	alice := tt.addUser("alice")
+	alice := tt.addUserWithPaper("alice")
 	aliced2 := alice.provisionNewDevice()
 
 	// the loader

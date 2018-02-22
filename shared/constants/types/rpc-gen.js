@@ -339,6 +339,10 @@ export const configGetExtendedStatusRpcChannelMap = (configKeys: Array<string>, 
 
 export const configGetExtendedStatusRpcPromise = (request: ConfigGetExtendedStatusRpcParam): Promise<ConfigGetExtendedStatusResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.getExtendedStatus', request, (error: RPCError, result: ConfigGetExtendedStatusResult) => (error ? reject(error) : resolve(result))))
 
+export const configGetRememberPassphraseRpcChannelMap = (configKeys: Array<string>, request: ConfigGetRememberPassphraseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.getRememberPassphrase', request)
+
+export const configGetRememberPassphraseRpcPromise = (request: ConfigGetRememberPassphraseRpcParam): Promise<ConfigGetRememberPassphraseResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.getRememberPassphrase', request, (error: RPCError, result: ConfigGetRememberPassphraseResult) => (error ? reject(error) : resolve(result))))
+
 export const configGetValueRpcChannelMap = (configKeys: Array<string>, request: ConfigGetValueRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.getValue', request)
 
 export const configGetValueRpcPromise = (request: ConfigGetValueRpcParam): Promise<ConfigGetValueResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.getValue', request, (error: RPCError, result: ConfigGetValueResult) => (error ? reject(error) : resolve(result))))
@@ -350,6 +354,10 @@ export const configHelloIAmRpcPromise = (request: ConfigHelloIAmRpcParam): Promi
 export const configSetPathRpcChannelMap = (configKeys: Array<string>, request: ConfigSetPathRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.setPath', request)
 
 export const configSetPathRpcPromise = (request: ConfigSetPathRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.setPath', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+
+export const configSetRememberPassphraseRpcChannelMap = (configKeys: Array<string>, request: ConfigSetRememberPassphraseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.setRememberPassphrase', request)
+
+export const configSetRememberPassphraseRpcPromise = (request: ConfigSetRememberPassphraseRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.config.setRememberPassphrase', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const configSetUserConfigRpcChannelMap = (configKeys: Array<string>, request: ConfigSetUserConfigRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.setUserConfig', request)
 
@@ -1220,6 +1228,10 @@ export const pgpSignMode = {
   clear: 2,
 }
 
+export const pprofLogTraceRpcChannelMap = (configKeys: Array<string>, request: PprofLogTraceRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pprof.logTrace', request)
+
+export const pprofLogTraceRpcPromise = (request: PprofLogTraceRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pprof.logTrace', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+
 export const pprofTraceRpcChannelMap = (configKeys: Array<string>, request: PprofTraceRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pprof.trace', request)
 
 export const pprofTraceRpcPromise = (request: PprofTraceRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pprof.trace', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
@@ -1795,10 +1807,6 @@ export const uiPromptDefault = {
   no: 2,
 }
 
-export const userDeleteUserRpcChannelMap = (configKeys: Array<string>, request: UserDeleteUserRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.deleteUser', request)
-
-export const userDeleteUserRpcPromise = (request: UserDeleteUserRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.deleteUser', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
 export const userGetUPAKRpcChannelMap = (configKeys: Array<string>, request: UserGetUPAKRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.getUPAK', request)
 
 export const userGetUPAKRpcPromise = (request: UserGetUPAKRpcParam): Promise<UserGetUPAKResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.getUPAK', request, (error: RPCError, result: UserGetUPAKResult) => (error ? reject(error) : resolve(result))))
@@ -2035,11 +2043,15 @@ export type ConfigGetCurrentStatusRpcParam = ?$ReadOnly<{incomingCallMap?: Incom
 
 export type ConfigGetExtendedStatusRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
+export type ConfigGetRememberPassphraseRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
 export type ConfigGetValueRpcParam = $ReadOnly<{path: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type ConfigHelloIAmRpcParam = $ReadOnly<{details: ClientDetails, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type ConfigSetPathRpcParam = $ReadOnly<{path: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
+export type ConfigSetRememberPassphraseRpcParam = $ReadOnly<{remember: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type ConfigSetUserConfigRpcParam = $ReadOnly<{username: String, key: String, value: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -2174,7 +2186,7 @@ export type ExitCode =
   | 2 // NOTOK_2
   | 4 // RESTART_4
 
-export type ExtendedStatus = $ReadOnly<{standalone: Boolean, passphraseStreamCached: Boolean, tsecCached: Boolean, deviceSigKeyCached: Boolean, deviceEncKeyCached: Boolean, paperSigKeyCached: Boolean, paperEncKeyCached: Boolean, storedSecret: Boolean, secretPromptSkip: Boolean, device?: ?Device, deviceErr?: ?LoadDeviceErr, logDir: String, session?: ?SessionStatus, defaultUsername: String, provisionedUsernames?: ?Array<String>, Clients?: ?Array<ClientDetails>, platformInfo: PlatformInfo, defaultDeviceID: DeviceID}>
+export type ExtendedStatus = $ReadOnly<{standalone: Boolean, passphraseStreamCached: Boolean, tsecCached: Boolean, deviceSigKeyCached: Boolean, deviceEncKeyCached: Boolean, paperSigKeyCached: Boolean, paperEncKeyCached: Boolean, storedSecret: Boolean, secretPromptSkip: Boolean, rememberPassphrase: Boolean, device?: ?Device, deviceErr?: ?LoadDeviceErr, logDir: String, session?: ?SessionStatus, defaultUsername: String, provisionedUsernames?: ?Array<String>, Clients?: ?Array<ClientDetails>, platformInfo: PlatformInfo, defaultDeviceID: DeviceID}>
 
 export type FSEditListRequest = $ReadOnly<{folder: Folder, requestID: Int}>
 
@@ -2920,6 +2932,8 @@ export type PingResponse = $ReadOnly<{timestamp: Time}>
 
 export type PlatformInfo = $ReadOnly<{os: String, osVersion: String, arch: String, goVersion: String}>
 
+export type PprofLogTraceRpcParam = $ReadOnly<{logDirForMobile: String, traceDurationSeconds: DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
 export type PprofTraceRpcParam = $ReadOnly<{traceFile: String, traceDurationSeconds: DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type ProblemSet = $ReadOnly<{user: User, kid: KID, tlfs?: ?Array<ProblemTLF>}>
@@ -3264,6 +3278,8 @@ export type SigListArgs = $ReadOnly<{sessionID: Int, username: String, allKeys: 
 
 export type SigTypes = $ReadOnly<{track: Boolean, proof: Boolean, cryptocurrency: Boolean, isSelf: Boolean}>
 
+export type SigVersion = Int
+
 export type SignMode =
   | 0 // ATTACHED_0
   | 1 // DETACHED_1
@@ -3546,9 +3562,9 @@ export type TeamCLKRMsg = $ReadOnly<{teamID: TeamID, generation: PerTeamKeyGener
 
 export type TeamChangeReq = $ReadOnly<{owners?: ?Array<UserVersion>, admins?: ?Array<UserVersion>, writers?: ?Array<UserVersion>, readers?: ?Array<UserVersion>, none?: ?Array<UserVersion>, completedInvites: {[key: string]: UserVersionPercentForm}}>
 
-export type TeamChangeRow = $ReadOnly<{id: TeamID, name: String, keyRotated: Boolean, membershipChanged: Boolean, latestSeqno: Seqno, implicitTeam: Boolean}>
+export type TeamChangeRow = $ReadOnly<{id: TeamID, name: String, keyRotated: Boolean, membershipChanged: Boolean, latestSeqno: Seqno, implicitTeam: Boolean, misc: Boolean}>
 
-export type TeamChangeSet = $ReadOnly<{membershipChanged: Boolean, keyRotated: Boolean, renamed: Boolean}>
+export type TeamChangeSet = $ReadOnly<{membershipChanged: Boolean, keyRotated: Boolean, renamed: Boolean, misc: Boolean}>
 
 export type TeamCreateResult = $ReadOnly<{teamID: TeamID, chatSent: Boolean, creatorAdded: Boolean}>
 
@@ -3785,7 +3801,7 @@ export type TrackDismissWithTokenRpcParam = $ReadOnly<{trackToken: TrackToken, i
 
 export type TrackFakeTrackingChangedRpcParam = $ReadOnly<{username: String, isTracking: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TrackOptions = $ReadOnly<{localOnly: Boolean, bypassConfirm: Boolean, forceRetrack: Boolean, expiringLocal: Boolean, forPGPPull: Boolean}>
+export type TrackOptions = $ReadOnly<{localOnly: Boolean, bypassConfirm: Boolean, forceRetrack: Boolean, expiringLocal: Boolean, forPGPPull: Boolean, sigVersion: SigVersion}>
 
 export type TrackProof = $ReadOnly<{proofType: String, proofName: String, idString: String}>
 
@@ -3835,8 +3851,6 @@ export type UninstallResult = $ReadOnly<{componentResults?: ?Array<ComponentResu
 export type User = $ReadOnly<{uid: UID, username: String}>
 
 export type UserCard = $ReadOnly<{following: Int, followers: Int, uid: UID, fullName: String, location: String, bio: String, website: String, twitter: String, youFollowThem: Boolean, theyFollowYou: Boolean, teamShowcase?: ?Array<UserTeamShowcase>}>
-
-export type UserDeleteUserRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type UserGetUPAKRpcParam = $ReadOnly<{uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -3940,6 +3954,7 @@ type ConfigGetBootstrapStatusResult = BootstrapStatus
 type ConfigGetConfigResult = Config
 type ConfigGetCurrentStatusResult = GetCurrentStatusRes
 type ConfigGetExtendedStatusResult = ExtendedStatus
+type ConfigGetRememberPassphraseResult = Boolean
 type ConfigGetValueResult = ConfigValue
 type ConfigWaitForClientResult = Boolean
 type CryptoSignED25519ForKBFSResult = ED25519SignatureInfo

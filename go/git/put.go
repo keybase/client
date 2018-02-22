@@ -93,6 +93,11 @@ func sendChat(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamI
 		return nil
 	}
 
+	if arg.Metadata.PushType == keybase1.GitPushType_DEFAULT && keybase1.TotalNumberOfCommits(arg.Metadata.Refs) == 0 {
+		g.Log.CDebugf(ctx, "default git push and no commits, not sending chat")
+		return nil
+	}
+
 	g.StartStandaloneChat()
 
 	subBody := chat1.NewMessageSystemWithGitpush(chat1.MessageSystemGitPush{
