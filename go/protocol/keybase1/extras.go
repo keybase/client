@@ -1905,6 +1905,20 @@ func (s SigChainLocation) LessThanOrEqualTo(s2 SigChainLocation) bool {
 	return s.SeqType == s2.SeqType && s.Seqno <= s2.Seqno
 }
 
+func (s SigChainLocation) Comparable(s2 SigChainLocation) error {
+	if s.SeqType != s2.SeqType {
+		return fmt.Errorf("mismatched seqtypes: %v != %v", s.SeqType, s2.SeqType)
+	}
+	return nil
+}
+
+func (s SigChainLocation) Sub1() SigChainLocation {
+	return SigChainLocation{
+		Seqno:   s.Seqno - 1,
+		SeqType: s.SeqType,
+	}
+}
+
 func (r TeamRole) IsAdminOrAbove() bool {
 	return r.IsOrAbove(TeamRole_ADMIN)
 }
