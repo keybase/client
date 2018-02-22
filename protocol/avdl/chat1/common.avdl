@@ -127,6 +127,11 @@
     array<ConversationIDMessageIDPair> pairs;
   }
 
+  record ChannelNameMention {
+    ConversationID convID;
+    string topicName;
+  }
+
   enum ConversationMemberStatus {
     ACTIVE_0,  // in the channel
     REMOVED_1, // removed from channel forcibly

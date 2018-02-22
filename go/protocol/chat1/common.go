@@ -467,6 +467,18 @@ func (o ConversationIDMessageIDPairs) DeepCopy() ConversationIDMessageIDPairs {
 	}
 }
 
+type ChannelNameMention struct {
+	ConvID    ConversationID `codec:"convID" json:"convID"`
+	TopicName string         `codec:"topicName" json:"topicName"`
+}
+
+func (o ChannelNameMention) DeepCopy() ChannelNameMention {
+	return ChannelNameMention{
+		ConvID:    o.ConvID.DeepCopy(),
+		TopicName: o.TopicName,
+	}
+}
+
 type ConversationMemberStatus int
 
 const (
