@@ -11,26 +11,23 @@ type OwnProps = {
 }
 
 type DispatchProps = {
-  onOpenBreadcrumb: (path: string) => (evt?: SyntheticEvent<>) => void,
+  _onOpenBreadcrumb: (path: string, evt?: SyntheticEvent<>) => void,
   _onOpenBreadcrumbDropdown: (
     dropdownItems: Array<Types.PathBreadcrumbItem>,
-    isTeamPath: boolean,
-    onOpenBreadcrumb: (path: string) => (evt?: SyntheticEvent<>) => void
+    isTeamPath: boolean
   ) => (evt?: SyntheticEvent<>) => void,
 }
 
 const mapStateToProps = () => ({})
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onOpenBreadcrumb: (path: string) => (evt?: SyntheticEvent<>) => {
+  _onOpenBreadcrumb: (path: string, evt?: SyntheticEvent<>) => {
     dispatch(navigateTo([fsTab, {props: {path: Types.stringToPath(path)}, selected: 'folder'}]))
     evt && evt.stopPropagation()
   },
-  _onOpenBreadcrumbDropdown: (
-    dropdownItems: Array<Types.PathBreadcrumbItem>,
-    isTeamPath: boolean,
-    onOpenBreadcrumb: (path: string) => (evt?: SyntheticEvent<>) => void
-  ) => (evt?: SyntheticEvent<>) =>
+  _onOpenBreadcrumbDropdown: (dropdownItems: Array<Types.PathBreadcrumbItem>, isTeamPath: boolean) => (
+    evt?: SyntheticEvent<>
+  ) =>
     dispatch(
       navigateAppend([
         {
@@ -39,7 +36,6 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
             position: !isMobile ? 'top right' : null,
             isTeamPath,
             items: dropdownItems,
-            onOpenBreadcrumb,
             onHidden: () => dispatch(navigateUp()),
           },
           selected: 'breadcrumbAction',
@@ -50,18 +46,19 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
 const mergeProps = (
   stateProps,
-  {onOpenBreadcrumb, _onOpenBreadcrumbDropdown}: DispatchProps,
+  {_onOpenBreadcrumb, _onOpenBreadcrumbDropdown}: DispatchProps,
   {path}: OwnProps
 ) => {
   let acc = Types.stringToPath('/')
   const elems = Types.getPathElements(path)
   const items = elems.map((e, i) => {
     acc = Types.pathConcat(acc, e)
+    const path = Types.pathToString(acc)
     return {
       isTlfNameItem: i === 2,
       isLastItem: i === elems.length - 1,
       name: e,
-      path: Types.pathToString(acc),
+      onOpenBreadcrumb: (evt?: SyntheticEvent<>) => _onOpenBreadcrumb(path, evt),
     }
   })
   let breadcrumbItems = items || []
@@ -72,8 +69,7 @@ const mergeProps = (
   }
   const isTeamPath = elems.length >= 2 && elems[1] === 'team'
   return {
-    onOpenBreadcrumb,
-    onOpenBreadcrumbDropdown: _onOpenBreadcrumbDropdown(dropdownItems, isTeamPath, onOpenBreadcrumb),
+    onOpenBreadcrumbDropdown: _onOpenBreadcrumbDropdown(dropdownItems, isTeamPath),
     breadcrumbItems,
     dropdownItems,
     isTeamPath,

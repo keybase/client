@@ -10,7 +10,6 @@ type PopupMenuProps = RouteProps<
   {
     isTeamPath: boolean,
     items: Array<Types.PathBreadcrumbItem>,
-    onOpenBreadcrumb: (path: string) => (evt?: SyntheticEvent<>) => void,
     onHidden: () => void,
   },
   {}
@@ -28,10 +27,9 @@ const itemView = (name, isTeamRoot) => (
 const BreadcrumbPopupMenu = ({routeProps}: PopupMenuProps) => {
   const isTeamPath = routeProps.get('isTeamPath')
   const items = routeProps.get('items')
-  const onOpenBreadcrumb = routeProps.get('onOpenBreadcrumb')
   const onHidden = routeProps.get('onHidden')
   const popupItems = items.map((i, idx) => ({
-    onClick: onOpenBreadcrumb(i.path),
+    onClick: i.onOpenBreadcrumb,
     title: i.name,
     view: itemView(i.name, isTeamPath && idx === items.length - 3),
   }))

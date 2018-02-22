@@ -8,7 +8,6 @@ export type FolderHeaderProps = {
   breadcrumbItems: Array<Types.PathBreadcrumbItem>,
   dropdownItems: Array<Types.PathBreadcrumbItem>,
   isTeamPath: boolean,
-  onOpenBreadcrumb: (path: string) => (evt?: SyntheticEvent<>) => void,
   onOpenBreadcrumbDropdown: (evt?: SyntheticEvent<>) => void,
 }
 
@@ -16,7 +15,6 @@ const FolderHeader = ({
   dropdownItems,
   breadcrumbItems,
   isTeamPath,
-  onOpenBreadcrumb,
   onOpenBreadcrumbDropdown,
 }: FolderHeaderProps) => (
   <Box>
@@ -35,7 +33,7 @@ const FolderHeader = ({
           </Box>
         )}
         {breadcrumbItems.map(i => (
-          <Box key={i.path} style={folderBreadcrumbStyle}>
+          <Box key={i.name} style={folderBreadcrumbStyle}>
             {i.isTlfNameItem &&
               isTeamPath && <Avatar size={12} teamname={i.name} isTeam={true} style={styleTeamAvatar} />}
             {i.isLastItem ? (
@@ -44,7 +42,7 @@ const FolderHeader = ({
               </Text>
             ) : (
               <Box style={folderBreadcrumbStyle}>
-                <ClickableBox onClick={onOpenBreadcrumb(i.path)}>
+                <ClickableBox onClick={i.onOpenBreadcrumb}>
                   <Text type="BodySmallSemibold" style={styleParentBreadcrumb}>
                     {i.name}
                   </Text>

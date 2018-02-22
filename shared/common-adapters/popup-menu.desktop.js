@@ -99,7 +99,7 @@ class PopupMenu extends Component<Props> {
             e.stopPropagation()
           }}
         >
-          <ModalLessPopupMenu {...(this.props: ModalLessPopupMenuProps)} />
+          <ModalLessPopupMenu {...this.props} />
         </Box>
       </EscapeHandler>
     )
