@@ -33,102 +33,72 @@ export type Props = {
   yourOperations: RPCTypes.TeamOperation,
 }
 
-class Team extends React.PureComponent<Props> {
-  render() {
-    const {name} = this.props
+const Team = (props: Props) => {
+  const {name} = props
 
-    const props = this.props
+  const teamname = name
 
-    const teamname = name
+  const rows: TeamRows = [{type: 'header', teamname}]
+  rows.push({
+    type: 'tabs',
+    admin: props.yourOperations.manageMembers,
+    memberCount: props.memberCount,
+    teamname,
+    newTeamRequests: props.newTeamRequests,
+    numInvites: props.numInvites,
+    numRequests: props.numRequests,
+    numSubteams: props.numSubteams,
+    loading: props.loading,
+    selectedTab: props.selectedTab,
+    setSelectedTab: props.setSelectedTab,
+    yourOperations: props.yourOperations,
+  })
 
-    const rows: TeamRows = []
-    if (props.yourOperations.joinTeam) {
-      rows.push({type: 'add yourself', onAddSelf: props.onAddSelf})
-    }
-    rows.push(
-      {
-        type: 'summary',
-        teamname,
-        openTeam: props.openTeam,
-        role: props.yourRole,
-        memberCount: props.memberCount,
-      },
-      {
-        type: 'description',
-        description: props.description,
-        canEdit: props.yourOperations.editChannelDescription,
-        onEditDescription: props.onEditDescription,
-      },
-      {
-        type: 'help',
-        teamname,
-      }
-    )
-    if (props.yourOperations.manageMembers) {
-      rows.push({type: 'action', onAddPeople: props.onAddPeople, onInviteByEmail: props.onInviteByEmail})
-    }
-    rows.push({
-      type: 'tabs',
-      admin: props.yourOperations.manageMembers,
-      memberCount: props.memberCount,
-      teamname,
-      newTeamRequests: props.newTeamRequests,
-      numInvites: props.numInvites,
-      numRequests: props.numRequests,
-      numSubteams: props.numSubteams,
-      loading: props.loading,
-      selectedTab: props.selectedTab,
-      setSelectedTab: props.setSelectedTab,
-      yourOperations: props.yourOperations,
-    })
-
-    if (props.selectedTab === 'members') {
-      rows.push({type: 'members', teamname})
-    } else if (props.selectedTab === 'subteams') {
-      rows.push({type: 'subteams', teamname})
-    } else if (props.selectedTab === 'invites') {
-      rows.push({type: 'invites', teamname})
-    } else if (props.selectedTab === 'publicity') {
-      rows.push({type: 'settings', teamname})
-    }
-
-    const popupMenuItems = []
-    if (props.yourOperations.renameChannel) {
-      popupMenuItems.push({onClick: props.onManageChat, title: 'Manage chat channels'})
-    }
-    if (props.yourOperations.leaveTeam) {
-      popupMenuItems.push({onClick: props.onLeaveTeam, title: 'Leave team', danger: true})
-    }
-    if (props.yourOperations.manageSubteams) {
-      popupMenuItems.push({onClick: props.onCreateSubteam, title: 'Create subteam'})
-    }
-
-    return (
-      <Box
-        style={{
-          ...globalStyles.flexBoxColumn,
-          alignItems: 'center',
-          flex: 1,
-          width: '100%',
-          height: '100%',
-          position: 'relative',
-        }}
-      >
-        <List rows={rows} />
-
-        {props.showMenu &&
-          popupMenuItems.length > 0 && (
-            <PopupMenu
-              items={popupMenuItems}
-              onHidden={() => props.setShowMenu(false)}
-              style={{position: 'absolute', right: globalMargins.tiny, top: globalMargins.large}}
-            />
-          )}
-      </Box>
-    )
+  if (props.selectedTab === 'members') {
+    rows.push({type: 'members', teamname})
+  } else if (props.selectedTab === 'subteams') {
+    rows.push({type: 'subteams', teamname})
+  } else if (props.selectedTab === 'invites') {
+    rows.push({type: 'invites', teamname})
+  } else if (props.selectedTab === 'publicity') {
+    rows.push({type: 'settings', teamname})
   }
-}
 
+  const popupMenuItems = []
+  if (props.yourOperations.renameChannel) {
+    popupMenuItems.push({onClick: props.onManageChat, title: 'Manage chat channels'})
+  }
+  if (props.yourOperations.leaveTeam) {
+    popupMenuItems.push({onClick: props.onLeaveTeam, title: 'Leave team', danger: true})
+  }
+  if (props.yourOperations.manageSubteams) {
+    popupMenuItems.push({onClick: props.onCreateSubteam, title: 'Create subteam'})
+  }
+
+  return (
+    <Box
+      style={{
+        ...globalStyles.flexBoxColumn,
+        alignItems: 'center',
+        flex: 1,
+        width: '100%',
+        height: '100%',
+        position: 'relative',
+      }}
+    >
+      <List rows={rows} />
+
+      {props.showMenu &&
+        popupMenuItems.length > 0 && (
+          <PopupMenu
+            items={popupMenuItems}
+            onHidden={() => props.setShowMenu(false)}
+            style={{position: 'absolute', right: globalMargins.tiny, top: globalMargins.large}}
+          />
+        )}
+    </Box>
+  )
+}
 export default Team
 
 type CustomProps = {
