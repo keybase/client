@@ -302,8 +302,21 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
 const chatActivityToMetasAction = (payload: ?{+conv?: ?RPCChatTypes.InboxUIItem}) => {
   const meta = payload && payload.conv && Constants.inboxUIItemToConversationMeta(payload.conv)
   const usernameToFullname = (payload && payload.conv && payload.conv.fullNames) || {}
+  const isADelete =
+    payload &&
+    payload.conv &&
+    [
+      RPCChatTypes.commonConversationStatus.ignored,
+      RPCChatTypes.commonConversationStatus.blocked,
+      RPCChatTypes.commonConversationStatus.reported,
+    ].includes(payload.conv.status)
   return meta
-    ? [Chat2Gen.createMetasReceived({metas: [meta]}), UsersGen.createUpdateFullnames({usernameToFullname})]
+    ? [
+        isADelete
+          ? Chat2Gen.createMetaDelete({conversationIDKey: meta.conversationIDKey})
+          : Chat2Gen.createMetasReceived({metas: [meta]}),
+        UsersGen.createUpdateFullnames({usernameToFullname}),
+      ]
     : []
 }
 
@@ -1078,10 +1091,15 @@ const startConversation = (action: Chat2Gen.StartConversationPayload, state: Typ
 const bootstrapSuccess = () => Saga.put(Chat2Gen.createInboxRefresh({reason: 'bootstrap'}))
 
 const selectTheNewestConversation = (
-  action: Chat2Gen.MetasReceivedPayload | Chat2Gen.LeaveConversationPayload,
+  action: Chat2Gen.MetasReceivedPayload | Chat2Gen.LeaveConversationPayload | Chat2Gen.MetaDeletePayload,
   state: TypedState
 ) => {
-  if (action.type === Chat2Gen.metasReceived) {
+  if (action.type === Chat2Gen.metaDelete) {
+    // only do this if we blocked the current conversation
+    if (Constants.getSelectedConversation(state) !== action.payload.conversationIDKey) {
+      return
+    }
+  } else if (action.type === Chat2Gen.metasReceived) {
     // already something?
     if (Constants.getSelectedConversation(state) || !state.chat2.pendingConversationUsers.isEmpty()) {
       return
@@ -1710,13 +1728,16 @@ const updateNotificationSettings = (action: Chat2Gen.UpdateNotificationSettingsP
   })
 
 const blockConversation = (action: Chat2Gen.BlockConversationPayload) =>
-  Saga.call(RPCChatTypes.localSetConversationStatusLocalRpcPromise, {
-    conversationID: Types.keyToConversationID(action.payload.conversationIDKey),
-    identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-    status: action.payload.reportUser
-      ? RPCChatTypes.commonConversationStatus.reported
-      : RPCChatTypes.commonConversationStatus.blocked,
-  })
+  Saga.sequentially([
+    Saga.put(Chat2Gen.createNavigateToInbox()),
+    Saga.call(RPCChatTypes.localSetConversationStatusLocalRpcPromise, {
+      conversationID: Types.keyToConversationID(action.payload.conversationIDKey),
+      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+      status: action.payload.reportUser
+        ? RPCChatTypes.commonConversationStatus.reported
+        : RPCChatTypes.commonConversationStatus.blocked,
+    }),
+  ])
 
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
@@ -1735,7 +1756,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     yield Saga.safeTakeEveryPure(Chat2Gen.desktopNotification, desktopNotify)
     // Auto select the latest convo
     yield Saga.safeTakeEveryPure(
-      [Chat2Gen.metasReceived, Chat2Gen.leaveConversation],
+      [Chat2Gen.metasReceived, Chat2Gen.leaveConversation, Chat2Gen.metaDelete],
       selectTheNewestConversation
     )
   }

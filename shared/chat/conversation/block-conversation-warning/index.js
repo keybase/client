@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
 import {Box, Button, PopupDialog, Text, StandardScreen, ButtonBar} from '../../../common-adapters/index'
-import {globalMargins, globalStyles, globalColors} from '../../../styles'
+import {globalMargins, globalStyles, globalColors, isMobile} from '../../../styles'
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey,
@@ -14,7 +14,7 @@ type Props = {
 
 const _Contents = ({conversationIDKey, onBack, participants, onBlock, onBlockAndReport}: Props) => (
   <StandardScreen
-    onBack={onBack}
+    onBack={isMobile ? onBack : null}
     style={{
       paddingLeft: 0,
       paddingRight: 0,
@@ -27,7 +27,7 @@ const _Contents = ({conversationIDKey, onBack, participants, onBlock, onBlockAnd
         paddingTop: 5,
       }}
     >
-      <Box style={{padding: globalMargins.medium}}>
+      <Box style={{...globalStyles.flexBoxColumn, padding: globalMargins.medium}}>
         <Text
           type="Header"
           style={{alignSelf: 'center'}}
@@ -68,8 +68,8 @@ const Contents = _Contents
 const RenderBlockConversationWarning = (props: Props) => (
   <PopupDialog
     onClose={props.onBack}
-    styleCover={{paddingLeft: 0, paddingRight: 0, paddingTop: 0, paddingBottom: 0}}
-    styleContainer={{borderRadius: 0, width: '100%'}}
+    styleCover={isMobile ? {paddingBottom: 0, paddingLeft: 0, paddingRight: 0, paddingTop: 0} : null}
+    styleContainer={isMobile ? {borderRadius: 0, width: '100%'} : null}
   >
     <Contents {...props} />
   </PopupDialog>

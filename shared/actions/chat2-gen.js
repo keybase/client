@@ -47,6 +47,7 @@ export const messageSetEditing = 'chat2:messageSetEditing'
 export const messageWasEdited = 'chat2:messageWasEdited'
 export const messagesAdd = 'chat2:messagesAdd'
 export const messagesWereDeleted = 'chat2:messagesWereDeleted'
+export const metaDelete = 'chat2:metaDelete'
 export const metaHandleQueue = 'chat2:metaHandleQueue'
 export const metaNeedsUpdating = 'chat2:metaNeedsUpdating'
 export const metaReceivedError = 'chat2:metaReceivedError'
@@ -254,6 +255,7 @@ export const createMessagesWereDeleted = (
     ordinals?: Array<Types.Ordinal>,
   }>
 ) => ({error: false, payload, type: messagesWereDeleted})
+export const createMetaDelete = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: metaDelete})
 export const createMetaHandleQueue = () => ({error: false, payload: undefined, type: metaHandleQueue})
 export const createMetaNeedsUpdating = (
   payload: $ReadOnly<{
@@ -393,6 +395,7 @@ export type MessageSetEditingPayload = More.ReturnType<typeof createMessageSetEd
 export type MessageWasEditedPayload = More.ReturnType<typeof createMessageWasEdited>
 export type MessagesAddPayload = More.ReturnType<typeof createMessagesAdd>
 export type MessagesWereDeletedPayload = More.ReturnType<typeof createMessagesWereDeleted>
+export type MetaDeletePayload = More.ReturnType<typeof createMetaDelete>
 export type MetaHandleQueuePayload = More.ReturnType<typeof createMetaHandleQueue>
 export type MetaNeedsUpdatingPayload = More.ReturnType<typeof createMetaNeedsUpdating>
 export type MetaReceivedErrorPayload = More.ReturnType<typeof createMetaReceivedError>
@@ -460,6 +463,7 @@ export type Actions =
   | More.ReturnType<typeof createMessageWasEdited>
   | More.ReturnType<typeof createMessagesAdd>
   | More.ReturnType<typeof createMessagesWereDeleted>
+  | More.ReturnType<typeof createMetaDelete>
   | More.ReturnType<typeof createMetaHandleQueue>
   | More.ReturnType<typeof createMetaNeedsUpdating>
   | More.ReturnType<typeof createMetaReceivedError>

@@ -68,6 +68,10 @@
       "error": "?RPCChatTypes.ConversationErrorLocal",
       "username": "?string"
     },
+    // We got a status update saying it was blocked or ignored
+    "metaDelete": {
+      "conversationIDKey": "Types.ConversationIDKey",
+    },
     // Add a new message
     "messagesAdd": {
       "context": "{type: 'sent'} | {type: 'incoming'} | {type: 'threadLoad', conversationIDKey: Types.ConversationIDKey}", // because we clicked on a conversation for the very first time?

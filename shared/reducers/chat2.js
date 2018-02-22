@@ -51,6 +51,8 @@ const upgradeMessage = (old: Types.Message, m: Types.Message) => {
 
 const metaMapReducer = (metaMap, action) => {
   switch (action.type) {
+    case Chat2Gen.metaDelete:
+      return metaMap.delete(action.payload.conversationIDKey)
     case Chat2Gen.notificationSettingsUpdated:
       return metaMap.update(
         action.payload.conversationIDKey,
@@ -593,6 +595,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.attachmentDownloaded:
     case Chat2Gen.markConversationsStale:
     case Chat2Gen.notificationSettingsUpdated:
+    case Chat2Gen.metaDelete:
       return state.withMutations(s => {
         s.set('metaMap', metaMapReducer(state.metaMap, action))
         s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))
