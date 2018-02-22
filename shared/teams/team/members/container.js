@@ -3,7 +3,7 @@ import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
 import * as I from 'immutable'
 import {type TypedState, connect} from '../../../util/container'
-import {Members} from '.'
+import {Members, MemberRows as _MemberRows} from '.'
 
 export type OwnProps = {
   teamname: string,
@@ -74,3 +74,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 }
 
 export default connect(mapStateToProps, () => ({}), mergeProps)(Members)
+export const MemberRows = connect(mapStateToProps, () => ({}), mergeProps)(_MemberRows)

@@ -6,7 +6,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import {Avatar, Button, ButtonBar, Box, Icon, Meta, Text} from '../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
 import TeamTabs from './tabs'
-import Members from './members/container'
+import Members, {MemberRows} from './members/container'
 import Subteams from './subteams/container'
 import Invites from './invites/container'
 import Settings from './settings/container'
@@ -196,7 +196,12 @@ const renderRow = (index: number, row: TeamRow) => {
       return <TeamTabs key="tabs" {...row} />
     }
     case 'members': {
-      return <Members key="members" teamname={row.teamname} />
+      // const memberRows = []
+      // for (let memberRow of MemberGenerator()) {
+      //   memberRows.push(memberRow)
+      // }
+      // return memberRows
+      return <MemberRows key="members" teamname={row.teamname} />
     }
     case 'subteams': {
       return <Subteams key="subteams" teamname={row.teamname} />
