@@ -67,7 +67,7 @@ export default function() {
   console.log('Opened at login:', openedAtLogin)
   console.log('Is restore:', isRestore)
   console.log('Open hidden:', openHidden)
-  if (isWindows && appState.state.x) {
+  if (isWindows && typeof appState.state.x === 'number') {
     // DPI scaling issues
     // https://github.com/electron/electron/issues/10862
     mainWindow.window.setBounds({
