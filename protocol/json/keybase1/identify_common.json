@@ -18,6 +18,12 @@
       "typedef": "string"
     },
     {
+      "type": "record",
+      "name": "SigVersion",
+      "fields": [],
+      "typedef": "int"
+    },
+    {
       "type": "enum",
       "name": "TrackDiffType",
       "symbols": [
@@ -103,6 +109,10 @@
         {
           "type": "boolean",
           "name": "forPGPPull"
+        },
+        {
+          "type": "SigVersion",
+          "name": "sigVersion"
         }
       ]
     },

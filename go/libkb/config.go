@@ -539,6 +539,9 @@ func (f JSONConfigFile) GetVDebugSetting() string {
 func (f JSONConfigFile) GetAutoFork() (bool, bool) {
 	return f.GetTopLevelBool("auto_fork")
 }
+func (f JSONConfigFile) GetRememberPassphrase() (bool, bool) {
+	return f.GetTopLevelBool("remember_passphrase")
+}
 func (f JSONConfigFile) GetLogFormat() string {
 	return f.GetTopLevelString("log_format")
 }
@@ -825,4 +828,8 @@ func (f JSONConfigFile) SetBug3964RepairTime(un NormalizedUsername, t time.Time)
 
 func (f JSONConfigFile) GetAppType() AppType {
 	return AppType(f.GetTopLevelString("app_type"))
+}
+
+func (f *JSONConfigFile) SetRememberPassphrase(remember bool) error {
+	return f.SetBoolAtPath("remember_passphrase", remember)
 }

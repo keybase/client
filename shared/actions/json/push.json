@@ -4,6 +4,7 @@
   ],
   "actions": {
     "configurePush": {},
+    "checkIOSPush": {},
     "permissionsNo": {},
     "permissionsRequest": {},
     "permissionsRequesting": {
@@ -29,6 +30,9 @@
     "savePushToken": {},
     "notification": {
       "notification": "Types.PushNotification"
+    },
+    "setHasPermissions": {
+      "hasPermissions": "boolean"
     }
   }
 }

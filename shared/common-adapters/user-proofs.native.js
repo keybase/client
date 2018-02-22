@@ -144,13 +144,13 @@ class ProofsRender extends React.Component<Props> {
   }
 
   _onClickProof(proof: Proof): void {
-    if (proof.state !== proofChecking && proof.humanUrl) {
+    if (proof.humanUrl) {
       openUrl(this._ensureUrlProtocal(proof.humanUrl))
     }
   }
 
   _onClickProfile(proof: Proof): void {
-    if (proof.state !== proofChecking && proof.profileUrl) {
+    if (proof.profileUrl) {
       openUrl(this._ensureUrlProtocal(proof.profileUrl))
     }
   }

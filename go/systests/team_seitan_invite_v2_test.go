@@ -84,6 +84,7 @@ func testTeamInviteSeitanHappy(t *testing.T, implicitAdmin bool, seitanVersion t
 		require.Equal(t, keybase1.TeamInviteName("bugs (0000)"), invite.Name)
 	}
 
+	roo.kickTeamRekeyd()
 	err := roo.teamsClient.TeamAcceptInvite(context.TODO(), keybase1.TeamAcceptInviteArg{
 		Token: token,
 	})
@@ -91,7 +92,6 @@ func testTeamInviteSeitanHappy(t *testing.T, implicitAdmin bool, seitanVersion t
 
 	t.Logf("User used token, waiting for rekeyd")
 
-	own.kickTeamRekeyd()
 	own.waitForTeamChangedGregor(teamID, keybase1.Seqno(3))
 
 	t0, err := teams.GetTeamByNameForTest(context.TODO(), own.tc.G, teamName.String(), false /* public */, true /* needAdmin */)

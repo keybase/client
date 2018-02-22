@@ -157,7 +157,7 @@ build_one_architecture() {
   # Copy in the systemd unit files.
   units_dir="$layout_dir/usr/lib/systemd/user"
   mkdir -p "$units_dir"
-  cp "$here/systemd"/* "$units_dir"
+  cp "$here/systemd"/* "$kbfs_repo/packaging/linux/systemd"/* "$units_dir"
 
   # Check for whitespace in all the filenames we've copied. We don't support
   # whitespace in our later build scripts (for example RPM packaging), and even

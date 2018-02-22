@@ -700,8 +700,13 @@ function _setupTeamHandlers() {
     engine().setIncomingHandler(
       'keybase.1.NotifyTeam.teamChangedByName',
       (args: RPCTypes.NotifyTeamTeamChangedByNameRpcParam) => {
+        logger.info(`Got teamChanged for ${args.teamName} from service`)
         if (!args.implicitTeam) {
           const actions = getLoadCalls(args.teamName)
+          if (actions.length) {
+            logger.info('Reloading team list due to teamChanged')
+            logger.info(`Reloading ${args.teamName} due to teamChanged`)
+          }
           actions.forEach(dispatch)
         }
       }
@@ -713,11 +718,19 @@ function _setupTeamHandlers() {
       }
     )
     engine().setIncomingHandler('keybase.1.NotifyTeam.teamDeleted', () => {
+      logger.info('Got teamDeleted from service')
       const actions = getLoadCalls()
+      if (actions.length) {
+        logger.info('Reloading team list due to teamDeleted')
+      }
       actions.forEach(dispatch)
     })
     engine().setIncomingHandler('keybase.1.NotifyTeam.teamExit', () => {
+      logger.info('Got teamExit from service')
       const actions = getLoadCalls()
+      if (actions.length) {
+        logger.info('Reloading team list due to teamExit')
+      }
       actions.forEach(dispatch)
     })
   })

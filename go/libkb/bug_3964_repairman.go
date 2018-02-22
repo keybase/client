@@ -50,7 +50,7 @@ func (b *bug3964Repairman) loadLKSecServerDetails(lctx LoginContext, lksec *LKSe
 
 func (b *bug3964Repairman) updateSecretStore(nun NormalizedUsername, lksec *LKSec) error {
 	fs := lksec.FullSecret()
-	ss := b.G().SecretStoreAll
+	ss := b.G().SecretStore()
 	if fs.IsNil() {
 		b.G().Log.Warning("Got unexpected nil full secret")
 		return ss.ClearSecret(nun)

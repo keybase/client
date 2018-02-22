@@ -138,6 +138,7 @@ const _trackUser = (trackToken: ?string, localIgnore: boolean): Promise<boolean>
           forPGPPull: false,
           forceRetrack: false,
           localOnly: localIgnore,
+          sigVersion: 0, // Default sigVersion will be used.
         },
         trackToken,
       })

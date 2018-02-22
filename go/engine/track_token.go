@@ -99,11 +99,17 @@ func (e *TrackToken) Run(ctx *Context) (err error) {
 	if err != nil {
 		return err
 	}
-	if e.trackStatement, err = e.arg.Me.TrackingProofFor(signingKeyPub, e.them, outcome); err != nil {
+
+	// Make V2 Sigs default
+	if e.arg.Options.SigVersion == 0 {
+		e.arg.Options.SigVersion = keybase1.SigVersion(libkb.KeybaseSignatureV2)
+	}
+
+	e.trackStatement, err = e.arg.Me.TrackingProofFor(signingKeyPub, libkb.SigVersion(e.arg.Options.SigVersion), e.them, outcome)
+	if err != nil {
 		e.G().Log.Debug("tracking proof err: %s", err)
 		return err
 	}
-
 	if e.trackStatementBytes, err = e.trackStatement.Marshal(); err != nil {
 		return err
 	}
@@ -202,8 +208,9 @@ func (e *TrackToken) storeRemoteTrack(ctx *Context, pubKID keybase1.KID) (err er
 	}()
 
 	// need unlocked signing key
+	me := e.arg.Me
 	ska := libkb.SecretKeyArg{
-		Me:      e.arg.Me,
+		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
 	}
 	arg := ctx.SecretKeyPromptArg(ska, "tracking signature")
@@ -219,22 +226,52 @@ func (e *TrackToken) storeRemoteTrack(ctx *Context, pubKID keybase1.KID) (err er
 		return errors.New("unexpeceted KID mismatch between locked and unlocked signing key")
 	}
 
-	sig, sigid, err := signingKey.SignToString(e.trackStatementBytes)
+	var linkID libkb.LinkID
+	var sig string
+	var sigid keybase1.SigID
+	sigVersion := libkb.SigVersion(e.arg.Options.SigVersion)
+	switch sigVersion {
+	case libkb.KeybaseSignatureV1:
+		sig, sigid, err = signingKey.SignToString(e.trackStatementBytes)
+		linkID = libkb.ComputeLinkID(e.trackStatementBytes)
+	case libkb.KeybaseSignatureV2:
+		prevSeqno := me.GetSigChainLastKnownSeqno()
+		prevLinkID := me.GetSigChainLastKnownID()
+
+		sig, sigid, linkID, err = libkb.MakeSigchainV2OuterSig(
+			signingKey,
+			libkb.LinkTypeTrack,
+			prevSeqno+1,
+			e.trackStatementBytes,
+			prevLinkID,
+			false, /* hasRevokes */
+			keybase1.SeqType_PUBLIC,
+			false, /* ignoreIfUnsupported */
+		)
+	default:
+		err = errors.New("Invalid Signature Version")
+	}
+
 	if err != nil {
 		return err
 	}
 
+	httpsArgs := libkb.HTTPArgs{
+		"sig_id_base":  libkb.S{Val: sigid.ToString(false)},
+		"sig_id_short": libkb.S{Val: sigid.ToShortID()},
+		"sig":          libkb.S{Val: sig},
+		"uid":          libkb.UIDArg(e.them.GetUID()),
+		"type":         libkb.S{Val: "track"},
+		"signing_kid":  signingKey.GetKID(),
+	}
+
+	if sigVersion == libkb.KeybaseSignatureV2 {
+		httpsArgs["sig_inner"] = libkb.S{Val: string(e.trackStatementBytes)}
+	}
 	_, err = e.G().API.Post(libkb.APIArg{
 		Endpoint:    "follow",
 		SessionType: libkb.APISessionTypeREQUIRED,
-		Args: libkb.HTTPArgs{
-			"sig_id_base":  libkb.S{Val: sigid.ToString(false)},
-			"sig_id_short": libkb.S{Val: sigid.ToShortID()},
-			"sig":          libkb.S{Val: sig},
-			"uid":          libkb.UIDArg(e.them.GetUID()),
-			"type":         libkb.S{Val: "track"},
-			"signing_kid":  signingKey.GetKID(),
-		},
+		Args:        httpsArgs,
 	})
 
 	if err != nil {
@@ -242,8 +279,7 @@ func (e *TrackToken) storeRemoteTrack(ctx *Context, pubKID keybase1.KID) (err er
 		return err
 	}
 
-	linkid := libkb.ComputeLinkID(e.trackStatementBytes)
-	e.arg.Me.SigChainBump(linkid, sigid)
+	me.SigChainBump(linkID, sigid)
 
 	return err
 }

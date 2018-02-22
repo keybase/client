@@ -19,8 +19,8 @@ type sb struct {
 	proofState keybase1.ProofState
 }
 
-func checkTrack(tc libkb.TestContext, fu *FakeUser, username string, blocks []sb, outcome *keybase1.IdentifyOutcome) error {
-	ui, them, err := runTrack(tc, fu, username)
+func checkTrack(tc libkb.TestContext, fu *FakeUser, username string, blocks []sb, outcome *keybase1.IdentifyOutcome, sigVersion libkb.SigVersion) error {
+	ui, them, err := runTrack(tc, fu, username, sigVersion)
 	if err != nil {
 		return err
 	}
@@ -152,21 +152,33 @@ var sbtests = []sbtest{
 }
 
 func TestTrackProofServiceBlocks(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testTrackProofServiceBlocks(t, sigVersion)
+	})
+}
+
+func _testTrackProofServiceBlocks(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
 	fu := CreateAndSignupFakeUser(tc, "track")
 
 	for _, test := range sbtests {
-		err := checkTrack(tc, fu, test.name, test.blocks, &test.outcome)
+		err := checkTrack(tc, fu, test.name, test.blocks, &test.outcome, sigVersion)
 		if err != nil {
 			t.Errorf("%s: %s", test.name, err)
 		}
-		runUntrack(tc.G, fu, test.name)
+		runUntrack(tc.G, fu, test.name, sigVersion)
 	}
 }
 
 // track a user that has no proofs
 func TestTrackProofZero(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testTrackProofZero(t, sigVersion)
+	})
+}
+
+func _testTrackProofZero(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
 
@@ -180,7 +192,7 @@ func TestTrackProofZero(t *testing.T) {
 	outcome := keybase1.IdentifyOutcome{
 		TrackStatus: keybase1.TrackStatus_NEW_ZERO_PROOFS,
 	}
-	err := checkTrack(tc, trackUser, proofUser.Username, nil, &outcome)
+	err := checkTrack(tc, trackUser, proofUser.Username, nil, &outcome, sigVersion)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -189,6 +201,12 @@ func TestTrackProofZero(t *testing.T) {
 // track a user that has a rooter proof, check the tracking
 // statement for correctness.
 func TestTrackProofRooter(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testTrackProofRooter(t, sigVersion)
+	})
+}
+
+func _testTrackProofRooter(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
 
@@ -212,14 +230,14 @@ func TestTrackProofRooter(t *testing.T) {
 		NumProofSuccesses: 1,
 		TrackStatus:       keybase1.TrackStatus_NEW_OK,
 	}
-	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome)
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome, sigVersion)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// retrack, check the track status
 	outcome.TrackStatus = keybase1.TrackStatus_UPDATE_OK
-	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome)
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome, sigVersion)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -228,6 +246,12 @@ func TestTrackProofRooter(t *testing.T) {
 // upgrade tracking statement when new proof is added:
 // track a user that has no proofs, then track them again after they add a proof
 func TestTrackProofUpgrade(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testTrackProofUpgrade(t, sigVersion)
+	})
+}
+
+func _testTrackProofUpgrade(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
 
@@ -240,7 +264,7 @@ func TestTrackProofUpgrade(t *testing.T) {
 	outcome := keybase1.IdentifyOutcome{
 		TrackStatus: keybase1.TrackStatus_NEW_ZERO_PROOFS,
 	}
-	err := checkTrack(tc, trackUser, proofUser.Username, nil, &outcome)
+	err := checkTrack(tc, trackUser, proofUser.Username, nil, &outcome, sigVersion)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -267,7 +291,7 @@ func TestTrackProofUpgrade(t *testing.T) {
 		NumProofSuccesses: 1,
 		TrackStatus:       keybase1.TrackStatus_UPDATE_NEW_PROOFS,
 	}
-	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome)
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome, sigVersion)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -275,6 +299,12 @@ func TestTrackProofUpgrade(t *testing.T) {
 
 // test a change to a proof
 func TestTrackProofChangeSinceTrack(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testTrackProofChangeSinceTrack(t, sigVersion)
+	})
+}
+
+func _testTrackProofChangeSinceTrack(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
 
@@ -298,7 +328,7 @@ func TestTrackProofChangeSinceTrack(t *testing.T) {
 		NumProofSuccesses: 1,
 		TrackStatus:       keybase1.TrackStatus_NEW_OK,
 	}
-	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome)
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome, sigVersion)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -316,7 +346,7 @@ func TestTrackProofChangeSinceTrack(t *testing.T) {
 	// track user logs in and tracks proof user again
 	trackUser.LoginOrBust(tc)
 	outcome.TrackStatus = keybase1.TrackStatus_UPDATE_OK
-	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome)
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome, sigVersion)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -324,6 +354,12 @@ func TestTrackProofChangeSinceTrack(t *testing.T) {
 
 // track a user that has a failed rooter proof
 func TestTrackProofRooterFail(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testTrackProofRooterFail(t, sigVersion)
+	})
+}
+
+func _testTrackProofRooterFail(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
 
@@ -350,7 +386,7 @@ func TestTrackProofRooterFail(t *testing.T) {
 		TrackStatus:      keybase1.TrackStatus_NEW_ZERO_PROOFS,
 	}
 	// and they have no proofs
-	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome)
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome, sigVersion)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -362,6 +398,12 @@ func TestTrackProofRooterFail(t *testing.T) {
 // been removed as it only checks every 12 hours.  The client will
 // notice and should generate an appropriate tracking statement.
 func TestTrackProofRooterRemove(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testTrackProofRooterRemove(t, sigVersion)
+	})
+}
+
+func _testTrackProofRooterRemove(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
 
@@ -385,7 +427,7 @@ func TestTrackProofRooterRemove(t *testing.T) {
 		NumProofSuccesses: 1,
 		TrackStatus:       keybase1.TrackStatus_NEW_OK,
 	}
-	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome)
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome, sigVersion)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -418,7 +460,7 @@ func TestTrackProofRooterRemove(t *testing.T) {
 		NumProofFailures: 1,
 		TrackStatus:      keybase1.TrackStatus_UPDATE_OK,
 	}
-	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome)
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome, sigVersion)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -429,6 +471,12 @@ func TestTrackProofRooterRemove(t *testing.T) {
 // libkb.IdentifyState.ComputeRevokedProofs() function, and how
 // libkb.IdentifyOutcome.TrackStatus() interprets the result.
 func TestTrackProofRooterRevoke(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testTrackProofRooterRevoke(t, sigVersion)
+	})
+}
+
+func _testTrackProofRooterRevoke(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
 
@@ -452,7 +500,7 @@ func TestTrackProofRooterRevoke(t *testing.T) {
 		NumProofSuccesses: 1,
 		TrackStatus:       keybase1.TrackStatus_NEW_OK,
 	}
-	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome)
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome, sigVersion)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -477,7 +525,7 @@ func TestTrackProofRooterRevoke(t *testing.T) {
 		NumRevoked:  1,
 		TrackStatus: keybase1.TrackStatus_UPDATE_BROKEN_REVOKED,
 	}
-	err = checkTrack(tc, trackUser, proofUser.Username, nil, &outcome)
+	err = checkTrack(tc, trackUser, proofUser.Username, nil, &outcome, sigVersion)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -486,7 +534,7 @@ func TestTrackProofRooterRevoke(t *testing.T) {
 	outcome = keybase1.IdentifyOutcome{
 		TrackStatus: keybase1.TrackStatus_UPDATE_OK,
 	}
-	err = checkTrack(tc, trackUser, proofUser.Username, nil, &outcome)
+	err = checkTrack(tc, trackUser, proofUser.Username, nil, &outcome, sigVersion)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -495,6 +543,12 @@ func TestTrackProofRooterRevoke(t *testing.T) {
 // proofUser makes a user@rooter proof, then a user2@rooter proof.
 // trackUser tracks proofUser.  Verify the tracking statement.
 func TestTrackProofRooterOther(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testTrackProofRooterOther(t, sigVersion)
+	})
+}
+
+func _testTrackProofRooterOther(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
 
@@ -528,7 +582,7 @@ func TestTrackProofRooterOther(t *testing.T) {
 		NumProofSuccesses: 1,
 		TrackStatus:       keybase1.TrackStatus_NEW_OK,
 	}
-	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome)
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome, sigVersion)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -538,6 +592,12 @@ func TestTrackProofRooterOther(t *testing.T) {
 // proofUser.  proofUser makes a user2@rooter proof, trackUser
 // tracks proofUser again.  Test that the change is noticed.
 func TestTrackProofRooterChange(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testTrackProofRooterChange(t, sigVersion)
+	})
+}
+
+func _testTrackProofRooterChange(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
 
@@ -561,7 +621,7 @@ func TestTrackProofRooterChange(t *testing.T) {
 		NumProofSuccesses: 1,
 		TrackStatus:       keybase1.TrackStatus_NEW_OK,
 	}
-	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome)
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome, sigVersion)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -587,7 +647,7 @@ func TestTrackProofRooterChange(t *testing.T) {
 		NumProofSuccesses: 1,
 		TrackStatus:       keybase1.TrackStatus_UPDATE_BROKEN_FAILED_PROOFS,
 	}
-	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome)
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome, sigVersion)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -597,7 +657,7 @@ func TestTrackProofRooterChange(t *testing.T) {
 		NumProofSuccesses: 1,
 		TrackStatus:       keybase1.TrackStatus_UPDATE_OK,
 	}
-	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome)
+	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome, sigVersion)
 	if err != nil {
 		t.Fatal(err)
 	}

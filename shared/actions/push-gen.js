@@ -9,6 +9,7 @@ import * as Types from '../constants/types/push'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of push but is handled by every reducer
+export const checkIOSPush = 'push:checkIOSPush'
 export const configurePush = 'push:configurePush'
 export const error = 'push:error'
 export const notification = 'push:notification'
@@ -19,9 +20,11 @@ export const permissionsRequesting = 'push:permissionsRequesting'
 export const pushToken = 'push:pushToken'
 export const registrationError = 'push:registrationError'
 export const savePushToken = 'push:savePushToken'
+export const setHasPermissions = 'push:setHasPermissions'
 export const updatePushToken = 'push:updatePushToken'
 
 // Action Creators
+export const createCheckIOSPush = () => ({error: false, payload: undefined, type: checkIOSPush})
 export const createConfigurePush = () => ({error: false, payload: undefined, type: configurePush})
 export const createError = (payload: $ReadOnly<{error: Error}>) => ({error: false, payload, type: error})
 export const createNotification = (payload: $ReadOnly<{notification: Types.PushNotification}>) => ({error: false, payload, type: notification})
@@ -37,6 +40,7 @@ export const createPushToken = (
 ) => ({error: false, payload, type: pushToken})
 export const createRegistrationError = (payload: $ReadOnly<{error: Error}>) => ({error: false, payload, type: registrationError})
 export const createSavePushToken = () => ({error: false, payload: undefined, type: savePushToken})
+export const createSetHasPermissions = (payload: $ReadOnly<{hasPermissions: boolean}>) => ({error: false, payload, type: setHasPermissions})
 export const createUpdatePushToken = (
   payload: $ReadOnly<{
     token: string,
@@ -45,6 +49,7 @@ export const createUpdatePushToken = (
 ) => ({error: false, payload, type: updatePushToken})
 
 // Action Payloads
+export type CheckIOSPushPayload = More.ReturnType<typeof createCheckIOSPush>
 export type ConfigurePushPayload = More.ReturnType<typeof createConfigurePush>
 export type ErrorPayload = More.ReturnType<typeof createError>
 export type NotificationPayload = More.ReturnType<typeof createNotification>
@@ -55,11 +60,13 @@ export type PermissionsRequestingPayload = More.ReturnType<typeof createPermissi
 export type PushTokenPayload = More.ReturnType<typeof createPushToken>
 export type RegistrationErrorPayload = More.ReturnType<typeof createRegistrationError>
 export type SavePushTokenPayload = More.ReturnType<typeof createSavePushToken>
+export type SetHasPermissionsPayload = More.ReturnType<typeof createSetHasPermissions>
 export type UpdatePushTokenPayload = More.ReturnType<typeof createUpdatePushToken>
 
 // All Actions
 // prettier-ignore
 export type Actions =
+  | More.ReturnType<typeof createCheckIOSPush>
   | More.ReturnType<typeof createConfigurePush>
   | More.ReturnType<typeof createError>
   | More.ReturnType<typeof createNotification>
@@ -70,5 +77,6 @@ export type Actions =
   | More.ReturnType<typeof createPushToken>
   | More.ReturnType<typeof createRegistrationError>
   | More.ReturnType<typeof createSavePushToken>
+  | More.ReturnType<typeof createSetHasPermissions>
   | More.ReturnType<typeof createUpdatePushToken>
   | {type: 'common:resetStore', payload: void}

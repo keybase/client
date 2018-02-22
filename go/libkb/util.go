@@ -22,12 +22,12 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
-	"sync"
 	"syscall"
 	"time"
 	"unicode"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/profiling"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
 	"golang.org/x/net/context"
@@ -521,8 +521,15 @@ func (g *GlobalContext) CTraceTimed(ctx context.Context, msg string, f func() er
 	return CTraceTimed(ctx, g.Log.CloneWithAddedDepth(1), msg, f, g.Clock())
 }
 
-func (g *GlobalContext) CTimeTracer(ctx context.Context, label string) *TimeTracer {
-	return NewTimeTracer(ctx, g.Log.CloneWithAddedDepth(1), g.Clock(), label)
+func (g *GlobalContext) CTimeTracer(ctx context.Context, label string, enabled bool) profiling.TimeTracer {
+	if enabled {
+		return profiling.NewTimeTracer(ctx, g.Log.CloneWithAddedDepth(1), g.Clock(), label)
+	}
+	return profiling.NewSilentTimeTracer()
+}
+
+func (g *GlobalContext) CTimeBuckets(ctx context.Context) (context.Context, *profiling.TimeBuckets) {
+	return profiling.WithTimeBuckets(ctx, g.Clock(), g.Log)
 }
 
 func (g *GlobalContext) ExitTraceOK(msg string, f func() bool) func() {
@@ -693,55 +700,6 @@ func CITimeMultiplier(g *GlobalContext) time.Duration {
 		return time.Duration(3)
 	}
 	return time.Duration(1)
-}
-
-type TimeTracer struct {
-	sync.Mutex
-	ctx    context.Context
-	log    logger.Logger
-	clock  clockwork.Clock
-	label  string
-	stage  string
-	staged bool      // whether any stages were used
-	start  time.Time // when the tracer started
-	prev   time.Time // when the active stage started
-}
-
-func NewTimeTracer(ctx context.Context, log logger.Logger, clock clockwork.Clock, label string) *TimeTracer {
-	now := clock.Now()
-	log.CDebugf(ctx, "+ %s", label)
-	return &TimeTracer{
-		ctx:    ctx,
-		log:    log,
-		clock:  clock,
-		label:  label,
-		stage:  "init",
-		staged: false,
-		start:  now,
-		prev:   now,
-	}
-}
-
-func (t *TimeTracer) finishStage() {
-	t.log.CDebugf(t.ctx, "| %s:%s [time=%s]", t.label, t.stage, t.clock.Since(t.prev))
-}
-
-func (t *TimeTracer) Stage(format string, args ...interface{}) {
-	t.Lock()
-	defer t.Unlock()
-	t.finishStage()
-	t.stage = fmt.Sprintf(format, args...)
-	t.prev = t.clock.Now()
-	t.staged = true
-}
-
-func (t *TimeTracer) Finish() {
-	t.Lock()
-	defer t.Unlock()
-	if t.staged {
-		t.finishStage()
-	}
-	t.log.CDebugf(t.ctx, "- %s [time=%s]", t.label, t.clock.Since(t.start))
 }
 
 func IsAppStatusCode(err error, code keybase1.StatusCode) bool {

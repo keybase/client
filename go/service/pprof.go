@@ -4,9 +4,12 @@
 package service
 
 import (
+	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"runtime/trace"
+	"sort"
 	"time"
 
 	"golang.org/x/net/context"
@@ -29,14 +32,13 @@ func NewPprofHandler(xp rpc.Transporter, g *libkb.GlobalContext) *PprofHandler {
 	}
 }
 
-func (c *PprofHandler) Trace(_ context.Context, arg keybase1.TraceArg) (err error) {
-	sessionID := arg.SessionID
-	traceFile := arg.TraceFile
-	traceDurationSeconds := arg.TraceDurationSeconds
+func durationSecToDuration(s keybase1.DurationSec) time.Duration {
+	return time.Duration(float64(s) * float64(time.Second))
+}
 
-	ctx := engine.Context{
-		LogUI:     c.getLogUI(sessionID),
-		SessionID: sessionID,
+func (c *PprofHandler) trace(ctx engine.Context, traceFile string, traceDurationSeconds keybase1.DurationSec) (err error) {
+	if !filepath.IsAbs(traceFile) {
+		return fmt.Errorf("%q is not an absolute path", traceFile)
 	}
 
 	close := func(c io.Closer) {
@@ -66,11 +68,62 @@ func (c *PprofHandler) Trace(_ context.Context, arg keybase1.TraceArg) (err erro
 	c.G().Log.Info("Tracing to %s for %.2f second(s)", traceFile, traceDurationSeconds)
 
 	go func() {
-		time.Sleep(time.Duration(float64(traceDurationSeconds) * float64(time.Second)))
+		time.Sleep(durationSecToDuration(traceDurationSeconds))
 		trace.Stop()
 		close(f)
 		c.G().Log.Info("Tracing to %s done", traceFile)
 	}()
 
 	return nil
+}
+
+func (c *PprofHandler) Trace(_ context.Context, arg keybase1.TraceArg) (err error) {
+	ctx := engine.Context{
+		LogUI:     c.getLogUI(arg.SessionID),
+		SessionID: arg.SessionID,
+	}
+	return c.trace(ctx, arg.TraceFile, arg.TraceDurationSeconds)
+}
+
+const maxTraceFileCount = 5
+
+func (c *PprofHandler) LogTrace(_ context.Context, arg keybase1.LogTraceArg) (err error) {
+	ctx := engine.Context{
+		LogUI:     c.getLogUI(arg.SessionID),
+		SessionID: arg.SessionID,
+	}
+
+	// Assume this directory already exists, i.e. we've already
+	// started logging.
+	var logDir string
+	if len(arg.LogDirForMobile) > 0 {
+		logDir = arg.LogDirForMobile
+	} else {
+		logDir = c.G().Env.GetLogDir()
+	}
+
+	pattern := filepath.Join(logDir, "trace.*.out")
+	matches, err := filepath.Glob(pattern)
+	if err != nil {
+		ctx.LogUI.Warning("Error on filepath.Glob(%q): %s", pattern, err)
+	} else {
+		if len(matches)+1 > maxTraceFileCount {
+			// Sort by approximate increasing time.
+			sort.Strings(matches)
+			toRemove := matches[:len(matches)+1-maxTraceFileCount]
+			for _, path := range toRemove {
+				c.G().Log.Info("Removing old trace file %q", path)
+				err := os.Remove(path)
+				if err != nil {
+					ctx.LogUI.Warning("Error on os.Remove(%q): %s", path, err)
+				}
+			}
+		}
+	}
+
+	// Copied from oldLogFileTimeRangeTimeLayout from logger/file.go.
+	start := time.Now().Format("20060102T150405Z0700")
+	filename := fmt.Sprintf("trace.%s.%s.out", start, durationSecToDuration(arg.TraceDurationSeconds))
+	traceFile := filepath.Join(logDir, filename)
+	return c.trace(ctx, traceFile, arg.TraceDurationSeconds)
 }

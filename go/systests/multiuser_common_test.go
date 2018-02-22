@@ -179,6 +179,7 @@ func (smc *smuContext) setupDeviceHelper(u *smuUser, puk bool) *smuDeviceWrapper
 	tctx := setupTest(smc.t, u.usernamePrefix)
 	tctx.Tp.DisableUpgradePerUserKey = !puk
 	tctx.G.SetClock(smc.fakeClock)
+	installInsecureTriplesec(tctx.G)
 	ret := &smuDeviceWrapper{ctx: smc, tctx: tctx}
 	u.devices = append(u.devices, ret)
 	if u.primary == nil {
@@ -225,6 +226,10 @@ func (u *smuUser) primaryDevice() *smuDeviceWrapper {
 
 func (d *smuDeviceWrapper) userClient() keybase1.UserClient {
 	return keybase1.UserClient{Cli: d.cli}
+}
+
+func (d *smuDeviceWrapper) loginClient() keybase1.LoginClient {
+	return keybase1.LoginClient{Cli: d.cli}
 }
 
 func (d *smuDeviceWrapper) ctlClient() keybase1.CtlClient {
@@ -279,14 +284,14 @@ func (d *smuDeviceWrapper) loadEncryptionKIDs() (devices []keybase1.KID, backups
 }
 
 func (u *smuUser) signup() {
-	u.signupHelper(true)
+	u.signupHelper(true, false)
 }
 
 func (u *smuUser) signupNoPUK() {
-	u.signupHelper(false)
+	u.signupHelper(false, false)
 }
 
-func (u *smuUser) signupHelper(puk bool) {
+func (u *smuUser) signupHelper(puk, paper bool) {
 	ctx := u.ctx
 	userInfo := randomUser(u.usernamePrefix)
 	u.userInfo = userInfo
@@ -300,7 +305,7 @@ func (u *smuUser) signupHelper(puk bool) {
 	}
 	g.SetUI(&signupUI)
 	signup := client.NewCmdSignupRunner(g)
-	signup.SetTest()
+	signup.SetTestWithPaper(paper)
 	if err := signup.Run(); err != nil {
 		ctx.t.Fatal(err)
 	}
@@ -311,13 +316,15 @@ func (u *smuUser) signupHelper(puk bool) {
 	if len(devices) != 1 {
 		ctx.t.Fatalf("Expected 1 device back; got %d", len(devices))
 	}
-	if len(backups) != 1 {
-		ctx.t.Fatalf("Expected 1 backup back; got %d", len(backups))
-	}
 	dw.deviceKey.KID = devices[0]
-	backupKey = backups[0]
-	backupKey.secret = signupUI.info.displayedPaperKey
-	u.backupKeys = append(u.backupKeys, backupKey)
+	if paper {
+		if len(backups) != 1 {
+			ctx.t.Fatalf("Expected 1 backup back; got %d", len(backups))
+		}
+		backupKey = backups[0]
+		backupKey.secret = signupUI.info.displayedPaperKey
+		u.backupKeys = append(u.backupKeys, backupKey)
+	}
 
 	// Reconfigure config subsystem in Primary Global Context and also
 	// in all clones. This has to be done after signup because the
@@ -513,7 +520,7 @@ func (u *smuUser) reset() {
 }
 
 func (u *smuUser) delete() {
-	err := u.primaryDevice().userClient().DeleteUser(context.TODO(), 0)
+	err := u.primaryDevice().loginClient().AccountDelete(context.TODO(), 0)
 	if err != nil {
 		u.ctx.t.Fatal(err)
 	}

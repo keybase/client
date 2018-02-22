@@ -147,7 +147,7 @@ func TestBasicSecretStore(t *testing.T) {
 
 	testPromptAndUnlock(t, skb)
 
-	secret, _ := tc.G.SecretStoreAll.RetrieveSecret("testusername")
+	secret, _ := tc.G.SecretStore().RetrieveSecret("testusername")
 	if !secret.Equal(expectedSecret) {
 		t.Errorf("secret doesn't match expected value")
 	}
@@ -175,12 +175,12 @@ func TestCorruptSecretStore(t *testing.T) {
 
 	skb := makeTestSKB(t, lks, tc.G)
 	fs, _ := newLKSecFullSecretFromBytes([]byte("corruptcorruptcorruptcorruptcorr"))
-	tc.G.SecretStoreAll.StoreSecret("testusername", fs)
+	tc.G.SecretStore().StoreSecret("testusername", fs)
 	testPromptAndUnlock(t, skb)
 
 	// The corrupt secret value should be overwritten by the new
 	// correct one.
-	secret, _ := tc.G.SecretStoreAll.RetrieveSecret("testusername")
+	secret, _ := tc.G.SecretStore().RetrieveSecret("testusername")
 	if !secret.Equal(expectedSecret) {
 		t.Errorf("secret doesn't match expected value")
 	}
@@ -207,7 +207,7 @@ func TestUnusedSecretStore(t *testing.T) {
 	// Since there is a non-nil passphraseStream in the login
 	// state, nothing should be stored in the secret store (since
 	// no prompt was shown).
-	secret, _ := tc.G.SecretStoreAll.RetrieveSecret("testusername")
+	secret, _ := tc.G.SecretStore().RetrieveSecret("testusername")
 	if !secret.IsNil() {
 		t.Errorf("secret unexpectedly non-empty")
 	}

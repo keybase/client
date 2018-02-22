@@ -107,10 +107,6 @@ func NewSecretStoreAll(g *GlobalContext) SecretStoreAll {
 	return KeychainSecretStore{context: g}
 }
 
-func NewTestSecretStoreAll(c SecretStoreContext, g *GlobalContext) SecretStoreAll {
-	return nil
-}
-
 func HasSecretStore() bool {
 	return true
 }
@@ -124,12 +120,4 @@ func (k KeychainSecretStore) GetUsersWithStoredSecrets() ([]string, error) {
 
 	k.context.GetLog().Debug("KeychainSecretStore.GetUsersWithStoredSecrets() -> %d users", len(users))
 	return users, nil
-}
-
-func (k KeychainSecretStore) GetApprovalPrompt() string {
-	return "Save in Keychain"
-}
-
-func (k KeychainSecretStore) GetTerminalPrompt() string {
-	return "Store your key in Apple's local keychain?"
 }

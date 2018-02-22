@@ -7,6 +7,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -179,4 +180,54 @@ func (u *testProvisionUI) ProvisioneeSuccess(_ context.Context, _ keybase1.Provi
 
 func (u *testProvisionUI) ProvisionerSuccess(_ context.Context, _ keybase1.ProvisionerSuccessArg) error {
 	return nil
+}
+
+type TeamNotifyListener struct {
+	libkb.NoopNotifyListener
+	changeByIDCh   chan keybase1.TeamChangedByIDArg
+	changeByNameCh chan keybase1.TeamChangedByNameArg
+}
+
+var _ libkb.NotifyListener = (*TeamNotifyListener)(nil)
+
+func (n *TeamNotifyListener) TeamChangedByID(teamID keybase1.TeamID, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet) {
+	n.changeByIDCh <- keybase1.TeamChangedByIDArg{
+		TeamID:       teamID,
+		LatestSeqno:  latestSeqno,
+		ImplicitTeam: implicitTeam,
+		Changes:      changes,
+	}
+}
+func (n *TeamNotifyListener) TeamChangedByName(teamName string, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet) {
+	n.changeByNameCh <- keybase1.TeamChangedByNameArg{
+		TeamName:     teamName,
+		LatestSeqno:  latestSeqno,
+		ImplicitTeam: implicitTeam,
+		Changes:      changes,
+	}
+}
+
+func NewTeamNotifyListener() *TeamNotifyListener {
+	return &TeamNotifyListener{
+		changeByIDCh:   make(chan keybase1.TeamChangedByIDArg, 1),
+		changeByNameCh: make(chan keybase1.TeamChangedByNameArg, 1),
+	}
+}
+
+func CheckTeamMiscNotifications(tc libkb.TestContext, notifications *TeamNotifyListener) {
+	changeByID := false
+	changeByName := false
+	for {
+		select {
+		case arg := <-notifications.changeByIDCh:
+			changeByID = arg.Changes.Misc
+		case arg := <-notifications.changeByNameCh:
+			changeByName = arg.Changes.Misc
+		case <-time.After(500 * time.Millisecond * libkb.CITimeMultiplier(tc.G)):
+			tc.T.Fatal("no notification on teamSetSettings")
+		}
+		if changeByID && changeByName {
+			return
+		}
+	}
 }

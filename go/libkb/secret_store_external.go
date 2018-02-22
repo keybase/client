@@ -136,14 +136,6 @@ func (s *secretStoreAccountName) GetUsersWithStoredSecrets() ([]string, error) {
 	return users, err
 }
 
-func (s *secretStoreAccountName) GetTerminalPrompt() string {
-	return "Store secret in Android's KeyStore?"
-}
-
-func (s *secretStoreAccountName) GetApprovalPrompt() string {
-	return "Store secret in Android's KeyStore?"
-}
-
 func (s *secretStoreAccountName) setup() {
 	s.setupOnce.Do(func() {
 		s.context.GetLog().Debug("+ secret_store_external:setup")
@@ -158,8 +150,4 @@ func (s *secretStoreAccountName) setup() {
 
 		s.context.GetLog().Debug("- secret_store_external:setup")
 	})
-}
-
-func NewTestSecretStoreAll(c SecretStoreContext, g *GlobalContext) SecretStoreAll {
-	return nil
 }

@@ -1618,7 +1618,13 @@ function* messageAttachmentNativeSave(action: Chat2Gen.MessageAttachmentNativeSa
       throw new Error("Couldn't download attachment")
     }
   }
-  yield Saga.call(saveAttachmentDialog, message.deviceFilePath)
+  try {
+    logger.info('Trying to save chat attachment to camera roll')
+    yield Saga.call(saveAttachmentDialog, message.deviceFilePath)
+  } catch (err) {
+    logger.info('Failed to save attachment: ' + err)
+    throw new Error('Save attachment failed. Enable photo access in privacy settings.')
+  }
 }
 
 const debugDump = (action: Chat2Gen.DebugDumpPayload, state: TypedState) => {

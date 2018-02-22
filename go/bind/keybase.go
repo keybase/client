@@ -30,6 +30,7 @@ import (
 	"github.com/keybase/kbfs/fsrpc"
 	"github.com/keybase/kbfs/libgit"
 	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/kbfs/simplefs"
 )
 
 var kbCtx *libkb.GlobalContext
@@ -177,7 +178,7 @@ type serviceCn struct {
 
 func (s serviceCn) NewKeybaseService(config libkbfs.Config, params libkbfs.InitParams, ctx libkbfs.Context, log logger.Logger) (libkbfs.KeybaseService, error) {
 	keybaseService := libkbfs.NewKeybaseDaemonRPC(
-		config, ctx, log, true, nil, nil)
+		config, ctx, log, true, simplefs.NewSimpleFS, nil)
 	// TODO: plumb the func somewhere it can be called on shutdown?
 	gitrpc, _ := libgit.NewRPCHandlerWithCtx(ctx, config, nil)
 	keybaseService.AddProtocols([]rpc.Protocol{

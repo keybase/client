@@ -1,12 +1,12 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../constants/types/fs'
-import {globalStyles, globalMargins, isMobile} from '../styles'
+import {globalStyles, globalColors, globalMargins, isMobile} from '../styles'
 import {Avatar, Box, ClickableBox, Icon, List, Text, Divider} from '../common-adapters'
 import {type IconType} from '../common-adapters/icon'
 import RowConnector from './row'
 import FolderHeader from './header/header-container'
-import SortBar from './sortbar'
+import SortBar from './sortbar/container'
 
 type FileRowProps = {
   elems: Array<string>,
@@ -21,9 +21,10 @@ type FolderProps = {
   items: Array<Types.Path>,
   path: Types.Path,
   progress: 'pending' | 'loaded',
+  sortSetting: Types._SortSetting,
 }
 
-const folderBoxStyle = {...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'stretch'}
+const folderBoxStyle = {...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'space-between'}
 
 const styleOuterContainer = {
   height: '100%',
@@ -52,7 +53,7 @@ const FileRow = RowConnector(({elems, path, name, icon, onOpen, visibility}: Fil
 
 const rowPlaceholderIcon = isMobile ? 'icon-folder-private-24' : 'icon-folder-private-24'
 const placeholderTextStyle = {
-  backgroundColor: 'lightGrey',
+  backgroundColor: globalColors.lightGrey,
   height: 16,
   marginTop: 4,
   width: 256,
@@ -73,18 +74,17 @@ class Files extends React.PureComponent<FolderProps> {
   _renderRowPlaceholder = index => <FileRowPlaceholder key={index} />
 
   render() {
-    const {path, items, progress} = this.props
     const list =
-      progress === 'pending' ? (
-        <List items={[null, null, null]} renderItem={this._renderRowPlaceholder} />
+      this.props.progress === 'pending' ? (
+        <List items={['1', '2', '3']} renderItem={this._renderRowPlaceholder} />
       ) : (
-        <List items={items} renderItem={this._renderRow} />
+        <List items={this.props.items} renderItem={this._renderRow} />
       )
     return (
       <Box style={styleOuterContainer}>
         <Box style={stylesContainer}>
-          <FolderHeader path={path} />
-          <SortBar />
+          <FolderHeader path={this.props.path} />
+          <SortBar path={this.props.path} />
           {list}
         </Box>
       </Box>

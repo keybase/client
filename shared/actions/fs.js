@@ -21,19 +21,29 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
   yield Saga.call(RPCTypes.SimpleFSSimpleFSWaitRpcPromise, {opID})
 
   const result = yield Saga.call(RPCTypes.SimpleFSSimpleFSReadListRpcPromise, {opID})
+  const entries = result.entries || []
+
+  const direntToMetadata = (d: RPCTypes.Dirent) => ({
+    name: d.name,
+    lastModifiedTimestamp: d.time,
+    size: d.size,
+  })
 
   const direntToPathAndPathItem = (d: RPCTypes.Dirent) => [
     Types.pathConcat(rootPath, d.name),
-    d.direntType === RPCTypes.simpleFSDirentType.dir ? Constants.makeFolder() : Constants.makeFile(),
+    d.direntType === RPCTypes.simpleFSDirentType.dir
+      ? Constants.makeFolder(direntToMetadata(d))
+      : Constants.makeFile(direntToMetadata(d)),
   ]
 
   const pathItems: I.Map<Types.Path, Types.PathItem> = I.Map(
-    result.entries.map(direntToPathAndPathItem).concat([
+    entries.map(direntToPathAndPathItem).concat([
       [
         rootPath,
         Constants.makeFolder({
-          children: I.List(result.entries.map(d => d.name)),
+          children: I.List(entries.map(d => d.name)),
           progress: 'loaded',
+          name: Types.getPathName(rootPath),
         }),
       ],
     ])

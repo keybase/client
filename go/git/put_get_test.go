@@ -27,6 +27,7 @@ func doPut(t *testing.T, g *libkb.GlobalContext, teamName string, repoID string,
 		RepoID: keybase1.RepoID(repoID),
 		Metadata: keybase1.GitLocalMetadata{
 			RepoName: keybase1.GitRepoName(repoName),
+			PushType: keybase1.GitPushType_CREATEREPO,
 		},
 	})
 	require.NoError(t, err)

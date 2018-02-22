@@ -115,8 +115,7 @@ func (l *TeamLoader) checkStubbed(ctx context.Context, arg load2ArgT, link *chai
 func (l *TeamLoader) loadUserAndKeyFromLinkInner(ctx context.Context,
 	inner SCChainLinkPayload) (
 	signerUV keybase1.UserVersion, key *keybase1.PublicKeyV2NaCl, linkMap linkMapT, err error) {
-
-	defer l.G().CTrace(ctx, fmt.Sprintf("TeamLoader#loadUserForSigVerification(%d)", int(inner.Seqno)), func() error { return err })()
+	defer l.G().CTraceTimed(ctx, fmt.Sprintf("TeamLoader#loadUserForSigVerification(%d)", int(inner.Seqno)), func() error { return err })()
 	keySection := inner.Body.Key
 	if keySection == nil {
 		return signerUV, nil, nil, libkb.NoUIDError{}
@@ -135,12 +134,10 @@ func (l *TeamLoader) verifySignatureAndExtractKID(ctx context.Context, outer lib
 }
 
 func (l *TeamLoader) addProofsForKeyInUserSigchain(ctx context.Context, teamID keybase1.TeamID, teamLinkMap linkMapT, link *chainLinkUnpacked, uid keybase1.UID, key *keybase1.PublicKeyV2NaCl, userLinkMap linkMapT, proofSet *proofSetT) {
-	a := newProofTerm(uid.AsUserOrTeam(), key.Base.Provisioning, userLinkMap)
-	b := newProofTerm(teamID.AsUserOrTeam(), link.SignatureMetadata(), teamLinkMap)
-	c := key.Base.Revocation
-	proofSet.AddNeededHappensBeforeProof(ctx, a, b, "user key provisioned before team link")
-	if c != nil {
-		proofSet.AddNeededHappensBeforeProof(ctx, b, newProofTerm(uid.AsUserOrTeam(), *c, userLinkMap), "team link before user key revocation")
+	event1Link := newProofTerm(teamID.AsUserOrTeam(), link.SignatureMetadata(), teamLinkMap)
+	event2Revoke := key.Base.Revocation
+	if event2Revoke != nil {
+		proofSet.AddNeededHappensBeforeProof(ctx, event1Link, newProofTerm(uid.AsUserOrTeam(), *event2Revoke, userLinkMap), "team link before user key revocation")
 	}
 }
 
@@ -286,12 +283,12 @@ func (l *TeamLoader) walkUpToAdmin(
 }
 
 func (l *TeamLoader) addProofsForAdminPermission(ctx context.Context, t keybase1.TeamSigChainState, link *chainLinkUnpacked, bookends proofTermBookends, proofSet *proofSetT) {
-	a := bookends.left
-	b := newProofTerm(t.Id.AsUserOrTeam(), link.SignatureMetadata(), t.LinkIDs)
-	c := bookends.right
-	proofSet.AddNeededHappensBeforeProof(ctx, a, b, "became admin before team link")
-	if c != nil {
-		proofSet.AddNeededHappensBeforeProof(ctx, b, *c, "team link before adminship demotion")
+	event1Promote := bookends.left
+	event2Link := newProofTerm(t.Id.AsUserOrTeam(), link.SignatureMetadata(), t.LinkIDs)
+	event3Demote := bookends.right
+	proofSet.AddNeededHappensBeforeProof(ctx, event1Promote, event2Link, "became admin before team link")
+	if event3Demote != nil {
+		proofSet.AddNeededHappensBeforeProof(ctx, event2Link, *event3Demote, "team link before adminship demotion")
 	}
 }
 
