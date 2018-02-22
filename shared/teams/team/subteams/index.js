@@ -8,13 +8,7 @@ import TeamSubteamRow from './subteam-row/container'
 import SubteamBanner from './subteam-banner'
 
 export type Props = {
-  onCreateSubteam: () => void,
-  onHideSubteamsBanner: () => void,
-  onReadMoreAboutSubteams: () => void,
-  sawSubteamsBanner: boolean,
-  subteams: I.List<Types.Teamname>,
-  teamname: Types.Teamname,
-  yourOperations: Types.TeamOperations,
+  listItems: Array<any>,
 }
 
 const SubteamsIntro = ({row}) => (
@@ -71,8 +65,8 @@ const NoSubteams = ({row}) => (
   </Box>
 )
 
-const subTeamsRow = (index, row) => {
-  switch (row.type) {
+export const renderSubteamsRow = (index: number, row: *) => {
+  switch (row.subtype) {
     case 'intro':
       return <SubteamsIntro key={row.key} row={row} />
     case 'addSubteam':
@@ -85,27 +79,12 @@ const subTeamsRow = (index, row) => {
 }
 
 export const Subteams = (props: Props) => {
-  const noSubteams = props.subteams.isEmpty()
-  const subTeamsItems = [
-    ...(!props.sawSubteamsBanner
-      ? [
-          {
-            key: 'intro',
-            onHideSubteamsBanner: props.onHideSubteamsBanner,
-            onReadMore: props.onReadMoreAboutSubteams,
-            teamname: props.teamname,
-            type: 'intro',
-          },
-        ]
-      : []),
-    ...(props.yourOperations.manageSubteams
-      ? [{key: 'addSubteam', type: 'addSubteam', onCreateSubteam: props.onCreateSubteam}]
-      : []),
-    ...props.subteams.map(subteam => ({key: subteam, teamname: subteam, type: 'subteam'})),
-    ...(noSubteams ? [{key: 'noSubteams', type: 'noSubteams'}] : []),
-  ]
-
   return (
-    <List items={subTeamsItems} keyProperty="key" renderItem={subTeamsRow} style={{alignSelf: 'stretch'}} />
+    <List
+      items={props.listItems}
+      keyProperty="key"
+      renderItem={renderSubteamsRow}
+      style={{alignSelf: 'stretch'}}
+    />
   )
 }

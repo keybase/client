@@ -5,7 +5,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import TeamHeader from './header/container'
 import TeamTabs from './tabs'
 import ConnectedMemberRow, {type OwnProps as MemberRow} from './members/member-row/container'
-import Subteams from './subteams/container'
+import {renderSubteamsRow} from './subteams/index'
 import Invites from './invites/container'
 import Settings from './settings/container'
 import RenderList from './list.render'
@@ -30,13 +30,8 @@ type TabsRow = {
   yourOperations: RPCTypes.TeamOperation,
 }
 
-type MembersRow = {
-  type: 'members',
-  teamname: Types.Teamname,
-}
-
-type SubteamsRow = {
-  type: 'subteams',
+type SubteamRow = {
+  type: 'subteam',
   teamname: Types.Teamname,
 }
 
@@ -65,8 +60,8 @@ const renderRow = (index: number, row: TeamRow) => {
     case 'member': {
       return ConnectedMemberRow(index, row)
     }
-    case 'subteams': {
-      return <Subteams key="subteams" teamname={row.teamname} />
+    case 'subteam': {
+      return renderSubteamsRow(index, row)
     }
     case 'invites': {
       return <Invites key="invites" teamname={row.teamname} />
