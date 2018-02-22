@@ -756,9 +756,6 @@ func TestConversationLockingDeadlock(t *testing.T) {
 	go func() {
 		blocked, err = hcs.lockTab.Acquire(ctx, uid, conv2.GetConvID())
 		cb <- acquireRes{blocked: blocked, err: err}
-		require.NoError(t, err)
-		require.True(t, blocked)
-		close(cb)
 	}()
 	select {
 	case <-blockCb:
@@ -771,9 +768,6 @@ func TestConversationLockingDeadlock(t *testing.T) {
 	go func() {
 		blocked, err = hcs.lockTab.Acquire(ctx2, uid, conv3.GetConvID())
 		cb2 <- acquireRes{blocked: blocked, err: err}
-		require.NoError(t, err)
-		require.True(t, blocked)
-		close(cb2)
 	}()
 	select {
 	case <-blockCb:
@@ -795,7 +789,7 @@ func TestConversationLockingDeadlock(t *testing.T) {
 	case res := <-cb3:
 		require.Error(t, res.err)
 		require.IsType(t, errConvLockTabDeadlock, res.err)
-	case <-time.After(10 * time.Second):
+	case <-time.After(20 * time.Second):
 		require.Fail(t, "never failed")
 	}
 
@@ -819,4 +813,7 @@ func TestConversationLockingDeadlock(t *testing.T) {
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "not blocked")
 	}
+
+	require.True(t, hcs.lockTab.Release(ctx, uid, conv2.GetConvID()))
+	require.True(t, hcs.lockTab.Release(ctx2, uid, conv3.GetConvID()))
 }
