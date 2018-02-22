@@ -277,6 +277,7 @@ protocol remote {
   record SweepRes {
   boolean foundTask;
     boolean deletedMessages;
+    Expunge expunge;
   }
   SweepRes retentionSweepConv(ConversationID convID);
 

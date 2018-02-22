@@ -781,41 +781,43 @@ func TestChatMessageDeletes(t *testing.T) {
 // Test a message with a deleted body
 func TestChatMessageDeleted(t *testing.T) {
 	doWithMBVersions(func(mbVersion chat1.MessageBoxedVersion) {
-		key := cryptKey(t)
-		text := "hi"
-		tc, boxer := setupChatTest(t, "unbox")
-		defer tc.Cleanup()
+		for _, supersededBy := range []chat1.MessageID{0, 4} {
+			key := cryptKey(t)
+			text := "hi"
+			tc, boxer := setupChatTest(t, "unbox")
+			defer tc.Cleanup()
 
-		// need a real user
-		u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
-		if err != nil {
-			t.Fatal(err)
+			// need a real user
+			u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
+			if err != nil {
+				t.Fatal(err)
+			}
+			msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()), mbVersion)
+
+			signKP := getSigningKeyPairForTest(t, tc, u)
+
+			boxed, err := boxer.box(context.TODO(), msg, key, signKP, mbVersion)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			// need to give it a server header...
+			boxed.ServerHeader = &chat1.MessageServerHeader{
+				Ctime:        gregor1.ToTime(time.Now()),
+				SupersededBy: supersededBy,
+			}
+
+			// Delete the body
+			boxed.BodyCiphertext = chat1.EncryptedData{}
+
+			unboxed, err := boxer.unbox(context.TODO(), *boxed, chat1.ConversationMembersType_KBFS, key)
+			require.NoError(t, err, "deleted message should still unbox")
+			body := unboxed.MessageBody
+			typ, err := body.MessageType()
+			require.NoError(t, err)
+			require.Equal(t, typ, chat1.MessageType_NONE)
+			require.Nil(t, unboxed.SenderDeviceRevokedAt, "message should not be from revoked device")
 		}
-		msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()), mbVersion)
-
-		signKP := getSigningKeyPairForTest(t, tc, u)
-
-		boxed, err := boxer.box(context.TODO(), msg, key, signKP, mbVersion)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		// need to give it a server header...
-		boxed.ServerHeader = &chat1.MessageServerHeader{
-			Ctime:        gregor1.ToTime(time.Now()),
-			SupersededBy: 4,
-		}
-
-		// Delete the body
-		boxed.BodyCiphertext = chat1.EncryptedData{}
-
-		unboxed, err := boxer.unbox(context.TODO(), *boxed, chat1.ConversationMembersType_KBFS, key)
-		require.NoError(t, err, "deleted message should still unbox")
-		body := unboxed.MessageBody
-		typ, err := body.MessageType()
-		require.NoError(t, err)
-		require.Equal(t, typ, chat1.MessageType_NONE)
-		require.Nil(t, unboxed.SenderDeviceRevokedAt, "message should not be from revoked device")
 	})
 }
 

@@ -564,6 +564,10 @@
         {
           "type": "boolean",
           "name": "deletedMessages"
+        },
+        {
+          "type": "Expunge",
+          "name": "expunge"
         }
       ]
     }

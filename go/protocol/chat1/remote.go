@@ -747,14 +747,16 @@ func (o SetRetentionRes) DeepCopy() SetRetentionRes {
 }
 
 type SweepRes struct {
-	FoundTask       bool `codec:"foundTask" json:"foundTask"`
-	DeletedMessages bool `codec:"deletedMessages" json:"deletedMessages"`
+	FoundTask       bool    `codec:"foundTask" json:"foundTask"`
+	DeletedMessages bool    `codec:"deletedMessages" json:"deletedMessages"`
+	Expunge         Expunge `codec:"expunge" json:"expunge"`
 }
 
 func (o SweepRes) DeepCopy() SweepRes {
 	return SweepRes{
 		FoundTask:       o.FoundTask,
 		DeletedMessages: o.DeletedMessages,
+		Expunge:         o.Expunge.DeepCopy(),
 	}
 }
 

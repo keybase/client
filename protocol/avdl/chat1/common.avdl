@@ -263,7 +263,9 @@
     // creator info for the conversation
     union { null, ConversationCreatorInfo } creatorInfo;
 
-    Expunge expunge; // The latest history deletion. Defaults to zeroes.
+    // The latest history deletion. Defaults to zeroes.
+    // The client keeps this synced for retention but not for delete-history messages.
+    Expunge expunge;
     union { null, RetentionPolicy } convRetention;
     union { null, RetentionPolicy } teamRetention;
   }

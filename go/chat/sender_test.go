@@ -217,11 +217,15 @@ func TestNonblockChannel(t *testing.T) {
 	// Send nonblock
 	obid, _, _, err := sender.Send(context.TODO(), conv.GetConvID(), chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
-			Conv:      conv.Metadata.IdTriple,
-			Sender:    u.User.GetUID().ToBytes(),
-			TlfName:   u.Username,
-			TlfPublic: false,
+			Conv:        conv.Metadata.IdTriple,
+			Sender:      u.User.GetUID().ToBytes(),
+			TlfName:     u.Username,
+			TlfPublic:   false,
+			MessageType: chat1.MessageType_TEXT,
 		},
+		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: "hi",
+		}),
 	}, 0, nil)
 	require.NoError(t, err)
 
@@ -233,7 +237,6 @@ func TestNonblockChannel(t *testing.T) {
 
 	require.Equal(t, 1, len(listener.obids), "wrong length")
 	require.Equal(t, obid, listener.obids[0], "wrong obid")
-
 }
 
 type sentRecord struct {
@@ -316,14 +319,18 @@ func TestNonblockTimer(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		obr, err := outbox.PushMessage(ctx, res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
-				Conv:      trip,
-				Sender:    u.User.GetUID().ToBytes(),
-				TlfName:   u.Username,
-				TlfPublic: false,
+				Conv:        trip,
+				Sender:      u.User.GetUID().ToBytes(),
+				TlfName:     u.Username,
+				TlfPublic:   false,
+				MessageType: chat1.MessageType_TEXT,
 				OutboxInfo: &chat1.OutboxInfo{
 					Prev: msgID,
 				},
 			},
+			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+				Body: "hi",
+			}),
 		}, nil, keybase1.TLFIdentifyBehavior_CHAT_CLI)
 		obid := obr.OutboxID
 		t.Logf("generated obid: %s prev: %d", hex.EncodeToString(obid), msgID)
@@ -371,7 +378,6 @@ func TestNonblockTimer(t *testing.T) {
 	tres.Messages = utils.FilterByType(tres.Messages, &chat1.GetThreadQuery{MessageTypes: typs}, true)
 	t.Logf("source size: %d", len(tres.Messages))
 	require.NoError(t, err)
-	require.NoError(t, outbox.SprinkleIntoThread(ctx, res.ConvID, &tres))
 	checkThread(t, tres, sentRef)
 	clock.Advance(5 * time.Minute)
 
@@ -495,11 +501,15 @@ func TestOutboxItemExpiration(t *testing.T) {
 	tc.ChatG.MessageDeliverer.(*Deliverer).SetSender(baseSender)
 	obid, _, _, err := sender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
-			Conv:      conv.Metadata.IdTriple,
-			Sender:    u.User.GetUID().ToBytes(),
-			TlfName:   u.Username,
-			TlfPublic: false,
+			Conv:        conv.Metadata.IdTriple,
+			Sender:      u.User.GetUID().ToBytes(),
+			TlfName:     u.Username,
+			TlfPublic:   false,
+			MessageType: chat1.MessageType_TEXT,
 		},
+		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: "hi",
+		}),
 	}, 0, nil)
 	require.NoError(t, err)
 	cl.Advance(20 * time.Minute)
@@ -539,7 +549,6 @@ func TestOutboxItemExpiration(t *testing.T) {
 }
 
 func TestDisconnectedFailure(t *testing.T) {
-
 	ctx, world, ri, sender, baseSender, listener := setupTest(t, 1)
 	defer world.Cleanup()
 
@@ -552,15 +561,23 @@ func TestDisconnectedFailure(t *testing.T) {
 	tc.ChatG.MessageDeliverer.Disconnected(ctx)
 	tc.ChatG.MessageDeliverer.(*Deliverer).SetSender(baseSender)
 
+	mkMsg := func() chat1.MessagePlaintext {
+		return chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Conv:        conv.Metadata.IdTriple,
+				Sender:      uid,
+				TlfName:     u.Username,
+				TlfPublic:   false,
+				MessageType: chat1.MessageType_TEXT,
+			},
+			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+				Body: "hi",
+			}),
+		}
+	}
+
 	// If not offline for long enough, we should be able to get a send by just reconnecting
-	obid, _, _, err := sender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
-		ClientHeader: chat1.MessageClientHeader{
-			Conv:      conv.Metadata.IdTriple,
-			Sender:    u.User.GetUID().ToBytes(),
-			TlfName:   u.Username,
-			TlfPublic: false,
-		},
-	}, 0, nil)
+	obid, _, _, err := sender.Send(ctx, conv.GetConvID(), mkMsg(), 0, nil)
 	require.NoError(t, err)
 	cl.Advance(time.Millisecond)
 	select {
@@ -587,14 +604,7 @@ func TestDisconnectedFailure(t *testing.T) {
 	// Send nonblock
 	obids := []chat1.OutboxID{}
 	for i := 0; i < 3; i++ {
-		obid, _, _, err = sender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
-			ClientHeader: chat1.MessageClientHeader{
-				Conv:      conv.Metadata.IdTriple,
-				Sender:    u.User.GetUID().ToBytes(),
-				TlfName:   u.Username,
-				TlfPublic: false,
-			},
-		}, 0, nil)
+		obid, _, _, err = sender.Send(ctx, conv.GetConvID(), mkMsg(), 0, nil)
 		require.NoError(t, err)
 		obids = append(obids, obid)
 		cl.Advance(time.Millisecond)

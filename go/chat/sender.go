@@ -355,6 +355,9 @@ func (s *BlockingSender) checkTopicNameAndGetState(ctx context.Context, msg chat
 // Returns (boxedMessage, pendingAssetDeletes, error)
 func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePlaintext,
 	membersType chat1.ConversationMembersType, conv *chat1.Conversation) (*chat1.MessageBoxed, []chat1.Asset, []gregor1.UID, chat1.ChannelMention, *chat1.TopicNameState, error) {
+	if plaintext.ClientHeader.MessageType == chat1.MessageType_NONE {
+		return nil, nil, nil, chat1.ChannelMention_NONE, nil, fmt.Errorf("cannot send message without type")
+	}
 
 	// Make sure it is a proper length
 	if err := msgchecker.CheckMessagePlaintext(plaintext); err != nil {
@@ -398,17 +401,44 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
 	}
 
+	// Function to check that the header and body types match.
+	// Call this before accessing the body.
+	// Do not call this for TLFNAME which has no body.
+	checkHeaderBodyTypeMatch := func() error {
+		bodyType, err := plaintext.MessageBody.MessageType()
+		if err != nil {
+			return err
+		}
+		if plaintext.ClientHeader.MessageType != bodyType {
+			return fmt.Errorf("cannot send message with mismatched header/body types: %v != %v",
+				plaintext.ClientHeader.MessageType, bodyType)
+		}
+		return nil
+	}
+
 	// find @ mentions
 	var atMentions []gregor1.UID
 	chanMention := chat1.ChannelMention_NONE
 	switch plaintext.ClientHeader.MessageType {
 	case chat1.MessageType_TEXT:
+		err = checkHeaderBodyTypeMatch()
+		if err != nil {
+			return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
+		}
 		atMentions, chanMention = utils.ParseAtMentionedUIDs(ctx,
 			plaintext.MessageBody.Text().Body, s.G().GetUPAKLoader(), &s.DebugLabeler)
 	case chat1.MessageType_EDIT:
+		err = checkHeaderBodyTypeMatch()
+		if err != nil {
+			return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
+		}
 		atMentions, chanMention = utils.ParseAtMentionedUIDs(ctx,
 			plaintext.MessageBody.Edit().Body, s.G().GetUPAKLoader(), &s.DebugLabeler)
 	case chat1.MessageType_SYSTEM:
+		err = checkHeaderBodyTypeMatch()
+		if err != nil {
+			return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
+		}
 		atMentions, chanMention = utils.SystemMessageMentions(ctx, plaintext.MessageBody.System(),
 			s.G().GetUPAKLoader())
 	}
