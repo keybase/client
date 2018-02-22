@@ -43,7 +43,7 @@ const FolderHeader = ({
             >
               <Icon type="iconfont-folder-private" style={styleBreadcrumbDropdownIcon} />
             </ClickableBox>
-            <Icon type="iconfont-back" style={iconStyle} />
+            <Icon type="iconfont-arrow-left" style={iconStyle} />
           </Box>
         )}
         {breadcrumbItems.map(i => (
@@ -61,7 +61,7 @@ const FolderHeader = ({
                     {i.name}
                   </Text>
                 </ClickableBox>
-                <Icon type="iconfont-back" style={iconStyle} />
+                <Icon type="iconfont-arrow-left" style={iconStyle} />
               </Box>
             )}
           </Box>

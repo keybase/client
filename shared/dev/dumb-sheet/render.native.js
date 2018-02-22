@@ -212,7 +212,7 @@ class DumbSheetRender extends Component<Props, any> {
               }}
             />
             <Icon
-              type="iconfont-import"
+              type="iconfont-download"
               onClick={() => {
                 this.props.onDebugConfigChange({dumbFullscreen: !this.props.dumbFullscreen})
               }}
