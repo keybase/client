@@ -45,7 +45,7 @@ type SettingsRow = {
   teamname: Types.Teamname,
 }
 
-type TeamRow = HeaderRow | TabsRow | MemberRow | SubteamsRow | InvitesRow | SettingsRow
+type TeamRow = HeaderRow | TabsRow | MemberRow | SubteamRow | InvitesRow | SettingsRow
 
 type TeamRows = Array<TeamRow>
 

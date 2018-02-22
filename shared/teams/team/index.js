@@ -47,7 +47,7 @@ const Team = (props: Props) => {
   if (props.selectedTab === 'members') {
     rows.push(...props.listItems)
   } else if (props.selectedTab === 'subteams') {
-    rows.push({type: 'subteams', teamname})
+    rows.push(...props.listItems)
   } else if (props.selectedTab === 'invites') {
     rows.push({type: 'invites', teamname})
   } else if (props.selectedTab === 'publicity') {

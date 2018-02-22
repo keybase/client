@@ -43,13 +43,27 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
         ]
       : []),
     ...(stateProps.yourOperations.manageSubteams
-      ? [{key: 'addSubteam', type: 'addSubteam', onCreateSubteam: dispatchProps.onCreateSubteam}]
+      ? [
+          {
+            type: 'subteam',
+            key: 'addSubteam',
+            subtype: 'addSubteam',
+            onCreateSubteam: dispatchProps.onCreateSubteam,
+          },
+        ]
       : []),
-    ...subteams.map(subteam => ({key: subteam, teamname: subteam, type: 'subteam'})),
-    ...(noSubteams ? [{key: 'noSubteams', type: 'noSubteams'}] : []),
+    ...subteams.map(subteam => ({type: 'subteam', key: subteam, teamname: subteam, subtype: 'subteam'})),
+    ...(noSubteams ? [{type: 'subteam', key: 'noSubteams', subtype: 'noSubteams'}] : []),
   ]
   return {listItems}
 }
 
-export const subteamsListItemsConnector = connect(mapStateToProps, mapDispatchToProps, mergeProps)
+export const subteamsListItemsConnector = connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (stateProps, dispatchProps, ownProps) => ({
+    listItems: mergeProps(stateProps, dispatchProps, ownProps).listItems,
+    ...ownProps,
+  })
+)
 export default subteamsListItemsConnector(Subteams)

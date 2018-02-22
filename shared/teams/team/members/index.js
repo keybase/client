@@ -5,6 +5,7 @@ import MemberRow from './member-row/container'
 
 export type Props = {
   members: Array<{
+    type: 'member',
     fullName: string,
     username: string,
     teamname: string,
