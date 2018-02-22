@@ -198,6 +198,7 @@ func (c *CmdLogSend) logFiles(status *fstatus) libkb.Logs {
 	if err != nil {
 		c.G().Log.Errorf("Error (InstallLogPath): %s", err)
 	}
+	traceDir := logDir
 	if status != nil {
 		return libkb.Logs{
 			Desktop: status.Desktop.Log,
@@ -208,7 +209,7 @@ func (c *CmdLogSend) logFiles(status *fstatus) libkb.Logs {
 			System:  install.SystemLogPath(),
 			Git:     status.Git.Log,
 			Install: installLogPath,
-			Trace:   logDir,
+			Trace:   traceDir,
 		}
 	}
 
@@ -220,7 +221,7 @@ func (c *CmdLogSend) logFiles(status *fstatus) libkb.Logs {
 		Start:   filepath.Join(logDir, libkb.StartLogFileName),
 		Git:     filepath.Join(logDir, libkb.GitLogFileName),
 		Install: installLogPath,
-		Trace:   logDir,
+		Trace:   traceDir,
 	}
 }
 
