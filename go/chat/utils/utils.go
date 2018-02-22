@@ -888,6 +888,10 @@ func PresentMessageUnboxed(ctx context.Context, rawMsg chat1.MessageUnboxed, uid
 	}
 	switch state {
 	case chat1.MessageUnboxedState_VALID:
+		if !rawMsg.IsValidFull() {
+			return miscErr(fmt.Errorf("unexpected deleted %v message",
+				strings.ToLower(rawMsg.GetMessageType().String())))
+		}
 		var strOutboxID *string
 		valid := rawMsg.Valid()
 		if valid.ClientHeader.OutboxID != nil {
