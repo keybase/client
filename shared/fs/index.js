@@ -32,7 +32,9 @@ const styleOuterContainer = {
 
 const iconStyle = {
   marginRight: globalMargins.small,
-  fontSize: 28,
+  fontSize: 30,
+  display: 'inline-block',
+  marginTop: 3,
 }
 
 const FileRow = RowConnector(({elems, path, name, itemStyles, onOpen, visibility}: FileRowProps) => (
