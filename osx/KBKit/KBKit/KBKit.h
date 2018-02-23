@@ -56,6 +56,7 @@ FOUNDATION_EXPORT const unsigned char KBKitVersionString[];
 #import <KBKit/KBUninstaller.h>
 #import <KBKit/KBAppBundle.h>
 #import <KBKit/KBMountDir.h>
+#import <KBKit/KBRedirector.h>
 
 // IO
 #import <KBKit/KBFileReader.h>

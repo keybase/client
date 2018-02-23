@@ -145,8 +145,27 @@
   return [KBPath pathInDir:servicePath path:[self kbfsBinName] options:pathOptions];
 }
 
+- (NSString *)redirectorBinPathWithPathOptions:(KBPathOptions)pathOptions servicePath:(NSString *)servicePath {
+  if (!servicePath) return [self redirectorBinName];
+  return [KBPath pathInDir:servicePath path:[self redirectorBinName] options:pathOptions];
+}
+
 - (NSString *)gitRemoteHelperName {
   return @"git-remote-keybase";
+}
+
+- (NSString *)redirectorBinName {
+  return @"keybase-redirector";
+}
+
+- (NSString *)redirectorMount {
+  switch(_runMode) {
+    // TODO: Remove ".redirect" from these names once we move the
+    // mounted directory.
+    case KBRunModeDevel: return @"/keybase.redirect.devel";
+    case KBRunModeStaging: return @"/keybase.redirect.staging";
+    case KBRunModeProd: return @"/keybase.redirect";
+  }
 }
 
 - (NSString *)kbfsBinName {
