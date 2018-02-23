@@ -41,7 +41,7 @@ function reset {
 trap reset EXIT
 
 if [ -n "$kbfs_commit" ]; then
-  cd "$client_dir"
+  cd "$kbfs_dir"
   echo "Checking out $kbfs_commit on client (will reset to $kbfs_branch)"
   git checkout "$kbfs_commit"
   # tell gobuild.sh to use our local commit

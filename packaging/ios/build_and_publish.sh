@@ -23,8 +23,6 @@ function notify_slack {
 }
 trap notify_slack ERR
 
-"$client_dir/packaging/check_status_and_pull.sh" "$client_dir"
-
 # Reset on exit
 kbfs_branch=`cd "$kbfs_dir" && git rev-parse --abbrev-ref HEAD`
 client_branch=`cd "$client_dir" && git rev-parse --abbrev-ref HEAD`
@@ -42,7 +40,7 @@ function reset {
 trap reset EXIT
 
 if [ -n "$kbfs_commit" ]; then
-  cd "$client_dir"
+  cd "$kbfs_dir"
   echo "Checking out $kbfs_commit on client (will reset to $kbfs_branch)"
   git checkout "$kbfs_commit"
   # tell gobuild.sh to use our local commit
@@ -53,6 +51,8 @@ if [ -n "$client_commit" ]; then
   cd "$client_dir"
   echo "Checking out $client_commit on client (will reset to $client_branch)"
   git checkout "$client_commit"
+else
+  "$client_dir/packaging/check_status_and_pull.sh" "$client_dir"
 fi
 
 cd "$shared_dir"
