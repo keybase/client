@@ -10,9 +10,9 @@ export default function(state: Types.State = initialState, action: FSGen.Actions
     case FSGen.resetStore:
       return initialState
     case FSGen.folderListLoaded:
-      const toMerge = action.payload.pathItems.map((item, path) => {
+      const toMerge = action.payload.pathItems.filter((item, path) => {
         if (item.type !== 'folder') {
-          return item
+          return true
         }
         const original = state.pathItems.get(path)
         if (original && original.progress === 'loaded' && item.progress === 'pending') {
@@ -21,9 +21,9 @@ export default function(state: Types.State = initialState, action: FSGen.Actions
           // override the folder into an empty one. With this, next user
           // navigates into the folder they would see the old list (instead of
           // placeholder), which then gets updated when we hear back from RPC.
-          return original
+          return false
         }
-        return item
+        return true
       })
       return state.mergeIn(['pathItems'], toMerge)
     case FSGen.folderListLoad:
