@@ -16651,6 +16651,23 @@ exports[`Storyshots Common Icon 1`] = `
           className={undefined}
           draggable="false"
           onClick={[Function]}
+          srcSet="icons/icon-team-git-16.png 1x, icons/icon-team-git-16@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
           srcSet="icons/icon-team-placeholder-avatar-16.png 1x, icons/icon-team-placeholder-avatar-16@2x.png 2x"
           style={
             Object {
@@ -18496,44 +18513,6 @@ exports[`Storyshots Common Icon 1`] = `
             
           </span>
         </div>
-      </div>
-    </div>
-    <div>
-      <span
-        className="glamor-0"
-        onClick={undefined}
-        title={undefined}
-      >
-        18
-      </span>
-      <div
-        style={
-          Object {
-            "alignItems": "flex-start",
-            "display": "flex",
-            "flexDirection": "row",
-            "flexWrap": "wrap",
-            "justifyContent": "flex-start",
-          }
-        }
-      >
-        <img
-          className={undefined}
-          draggable="false"
-          onClick={[Function]}
-          srcSet="icons/icon-team-git-16-18.png 1x, icons/icon-team-git-16-18@2x.png 2x"
-          style={
-            Object {
-              "borderColor": "rgba(0, 0, 0, 0.05)",
-              "borderStyle": "solid",
-              "borderWidth": 1,
-              "cursor": "pointer",
-              "margin": 5,
-              "userSelect": "none",
-            }
-          }
-          title="hint text"
-        />
       </div>
     </div>
     <div>
@@ -47053,12 +47032,12 @@ exports[`Storyshots Teams TeamList 1`] = `
                         "borderRadius": 10,
                         "display": "flex",
                         "flexDirection": "row",
-                        "height": 14,
+                        "height": 16,
                         "justifyContent": "center",
                         "marginLeft": 0,
                         "marginRight": 3,
                         "marginTop": 1,
-                        "minWidth": 14,
+                        "minWidth": 16,
                         "paddingLeft": 4,
                         "paddingRight": 5,
                       }
