@@ -34,13 +34,18 @@ export const renderRequestsOrInvitesRow = (index: number, row: RequestsOrInvites
   switch (row.subtype) {
     case 'none':
       return (
-        <Text
-          type="BodySmall"
-          key="noRequestsOrInvites"
-          style={{color: globalColors.black_40, marginTop: globalMargins.xlarge, textAlign: 'center'}}
-        >
-          This team has no pending invites.
-        </Text>
+        <Box style={{...globalStyles.flexBoxRow, ...globalStyles.flexBoxCenter}}>
+          <Text
+            type="BodySmall"
+            key="noRequestsOrInvites"
+            style={{
+              color: globalColors.black_40,
+              paddingTop: globalMargins.large,
+            }}
+          >
+            This team has no pending invites.
+          </Text>
+        </Box>
       )
     case 'request':
       return RequestRow(index, row)

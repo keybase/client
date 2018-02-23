@@ -72,7 +72,7 @@ const TeamHeader = (props: Props) => (
       )}
 
       {/* Actions */}
-      <ButtonBar>
+      <ButtonBar style={isMobile ? {width: 'auto'} : undefined}>
         <Button type="Primary" label="Add people" onClick={props.onAddPeople} />
         {!isMobile && <Button type="Secondary" label="Invite by email" onClick={props.onInviteByEmail} />}
         {isMobile && <Button type="Secondary" label="Invite contacts" onClick={props.onInviteByEmail} />}
@@ -144,6 +144,7 @@ const stylesTeamHeader = {
   textAlign: 'center',
   paddingLeft: isMobile ? 0 : globalMargins.medium,
   paddingRight: isMobile ? 0 : globalMargins.medium,
+  paddingTop: isMobile ? globalMargins.medium : globalMargins.tiny,
 }
 
 const stylesMeta = {

@@ -18,6 +18,7 @@ const contentContainerStyle = {
 
 export default (props: Props) => (
   <NativeSectionList
+    alwaysBounceVertical={false}
     renderItem={data => props.renderRow(0, data.item)}
     renderSectionHeader={({section}) => (section.tabs ? props.renderRow(1, section.tabs) : null)}
     sections={[
