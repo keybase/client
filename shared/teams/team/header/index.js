@@ -4,6 +4,7 @@ import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
 import {Avatar, Box, Button, ButtonBar, Icon, Meta, Text} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
+import {isLargeScreen} from '../../../constants/platform'
 
 export type Props = {
   canEditDescription: boolean,
@@ -17,6 +18,7 @@ export type Props = {
 
   onAddPeople: () => void,
   onAddSelf: () => void,
+  onChat: () => void,
   onEditDescription: () => void,
   onInviteByEmail: () => void,
 }
@@ -72,40 +74,60 @@ const TeamHeader = (props: Props) => (
       )}
 
       {/* Actions */}
-      <ButtonBar style={isMobile ? {width: 'auto'} : undefined}>
-        <Button type="Primary" label="Add people" onClick={props.onAddPeople} />
-        {!isMobile && <Button type="Secondary" label="Invite by email" onClick={props.onInviteByEmail} />}
-        {isMobile && <Button type="Secondary" label="Invite contacts" onClick={props.onInviteByEmail} />}
+      <ButtonBar direction="row" style={isMobile ? {width: 'auto', marginBottom: -8} : undefined}>
+        <Button
+          type="Primary"
+          label={'Add people'}
+          small={isMobile && !isLargeScreen}
+          onClick={props.onAddPeople}
+        />
+        <Button
+          type="Secondary"
+          label={isMobile ? 'Invite contacts' : 'Invite by email'}
+          small={isMobile && !isLargeScreen}
+          onClick={props.onInviteByEmail}
+        />
+        {!isMobile && <Button type="Secondary" label="Chat" onClick={props.onChat} />}
+        {isMobile &&
+          !props.canJoinTeam && (
+            <Icon
+              type="iconfont-chat"
+              style={{width: isLargeScreen ? 24 : 20, height: isLargeScreen ? 24 : 20}}
+              onClick={props.onChat}
+            />
+          )}
       </ButtonBar>
 
       {/* CLI hint */}
-      <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', margin: 20}}>
-        <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginBottom: globalMargins.xtiny}}>
-          <Box style={{backgroundColor: globalColors.black_05, height: 1, width: 24}} />
-          <Icon
+      {!isMobile && (
+        <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', margin: 20}}>
+          <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginBottom: globalMargins.xtiny}}>
+            <Box style={{backgroundColor: globalColors.black_05, height: 1, width: 24}} />
+            <Icon
+              style={{
+                color: globalColors.black_10,
+                paddingLeft: globalMargins.tiny,
+                paddingRight: globalMargins.tiny,
+              }}
+              type="iconfont-info"
+            />
+            <Box style={{backgroundColor: globalColors.black_05, height: 1, width: 24}} />
+          </Box>
+          <Text type="BodySmall" style={{textAlign: 'center'}}>
+            You can also manage teams from the terminal:
+          </Text>
+          <Text
+            type="TerminalInline"
+            selectable={true}
             style={{
-              color: globalColors.black_10,
-              paddingLeft: globalMargins.tiny,
-              paddingRight: globalMargins.tiny,
+              marginLeft: globalMargins.xtiny,
+              marginTop: globalMargins.xtiny,
             }}
-            type="iconfont-info"
-          />
-          <Box style={{backgroundColor: globalColors.black_05, height: 1, width: 24}} />
+          >
+            keybase team --help
+          </Text>
         </Box>
-        <Text type="BodySmall" style={{textAlign: 'center'}}>
-          You can also manage teams from the terminal:
-        </Text>
-        <Text
-          type="TerminalInline"
-          selectable={true}
-          style={{
-            marginLeft: globalMargins.xtiny,
-            marginTop: globalMargins.xtiny,
-          }}
-        >
-          keybase team --help
-        </Text>
-      </Box>
+      )}
     </Box>
   </Box>
 )

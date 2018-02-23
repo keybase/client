@@ -21,6 +21,7 @@ export default (props: Props) => (
     alwaysBounceVertical={false}
     renderItem={data => props.renderRow(0, data.item)}
     renderSectionHeader={({section}) => (section.tabs ? props.renderRow(1, section.tabs) : null)}
+    stickySectionHeadersEnabled={true}
     sections={[
       {
         data: [props.headerRow],
