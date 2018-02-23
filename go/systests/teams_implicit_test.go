@@ -263,6 +263,8 @@ func TestImplicitSBSConsolidation2(t *testing.T) {
 }
 
 func TestImplicitSBSPukless(t *testing.T) {
+	t.Skip()
+
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
