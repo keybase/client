@@ -15,7 +15,7 @@ type StateProps = {
 }
 
 type DispatchProps = {
-  _getOnOpenSortSettingPopup: (path: Types.Path) => (evt?: SyntheticEvent<>) => void,
+  _getOnOpenSortSettingPopup: (path: Types.Path) => void,
 }
 
 const mapStateToProps = (state: TypedState, {path}: OwnProps) => ({
@@ -23,7 +23,7 @@ const mapStateToProps = (state: TypedState, {path}: OwnProps) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _getOnOpenSortSettingPopup: (path: Types.Path) => () =>
+  _getOnOpenSortSettingPopup: (path: Types.Path) =>
     dispatch(
       navigateAppend([
         {
@@ -45,7 +45,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, {path}: OwnProps) => ({
   sortSetting: stateProps.sortSetting,
-  onOpenSortSettingPopup: dispatchProps._getOnOpenSortSettingPopup(path),
+  onOpenSortSettingPopup: () => dispatchProps._getOnOpenSortSettingPopup(path),
 })
 
 export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('SortBar'))(
