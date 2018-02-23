@@ -57,7 +57,7 @@ export type PathBreadcrumbItem = {
   isTlfNameItem: boolean,
   isLastItem: boolean,
   name: string,
-  path: string,
+  onOpenBreadcrumb: (evt?: SyntheticEvent<>) => void,
 }
 
 export type _State = {

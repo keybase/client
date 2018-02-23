@@ -250,6 +250,20 @@
       ]
     },
     {
+      "type": "record",
+      "name": "ChannelNameMention",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "string",
+          "name": "topicName"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "ConversationMemberStatus",
       "symbols": [

@@ -91,7 +91,7 @@ class MenubarRender extends Component<Props, State> {
     return [
       ...(this.props.loggedIn ? [{title: 'Open Keybase', onClick: () => this.props.openApp()}] : []),
       {title: 'Open folders', onClick: () => this.props.onFolderClick()},
-      {title: 'Keybase.io', onClick: this.props.showUser},
+      {title: 'Keybase.io', onClick: () => this.props.showUser()},
       {title: 'Report a bug', onClick: this.props.showBug},
       {title: 'Help/Doc', onClick: this.props.showHelp},
       {title: 'Quit', onClick: this.props.quit},

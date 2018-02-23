@@ -34,19 +34,21 @@
     return;
   }
 
-
   NSDictionary *params = @{@"directory": self.servicePath, @"name": self.config.serviceBinName, @"appName": self.config.appName};
   DDLogDebug(@"Helper: addToPath(%@)", params);
   [self.helperTool.helper sendRequest:@"addToPath" params:@[params] completion:^(NSError *error, id value) {
     DDLogDebug(@"Result: %@", value);
-    completion(error);
-  }];
+    if (error) {
+      completion(error);
+      return;
+    }
 
-  NSDictionary *gitParams = @{@"directory": self.servicePath, @"name": self.config.gitRemoteHelperName, @"appName": self.config.appName};
-  DDLogDebug(@"Helper: addToPath(%@)", gitParams);
-  [self.helperTool.helper sendRequest:@"addToPath" params:@[gitParams] completion:^(NSError *error, id value) {
-    DDLogDebug(@"Result: %@", value);
-    completion(error);
+    NSDictionary *gitParams = @{@"directory": self.servicePath, @"name": self.config.gitRemoteHelperName, @"appName": self.config.appName};
+    DDLogDebug(@"Helper: addToPath(%@)", gitParams);
+    [self.helperTool.helper sendRequest:@"addToPath" params:@[gitParams] completion:^(NSError *error, id value) {
+      DDLogDebug(@"Result: %@", value);
+      completion(error);
+    }];
   }];
 }
 
@@ -55,7 +57,17 @@
   DDLogDebug(@"Helper: removeFromPath(%@)", params);
   [self.helperTool.helper sendRequest:@"removeFromPath" params:@[params] completion:^(NSError *error, id value) {
     DDLogDebug(@"Result: %@", value);
-    completion(error);
+    if (error) {
+      completion(error);
+      return;
+    }
+
+    NSDictionary *gitParams = @{@"directory": self.servicePath, @"name": self.config.gitRemoteHelperName, @"appName": self.config.appName};
+    DDLogDebug(@"Helper: removeFromPath(%@)", gitParams);
+    [self.helperTool.helper sendRequest:@"removeFromPath" params:@[gitParams] completion:^(NSError *error, id value) {
+      DDLogDebug(@"Result: %@", value);
+      completion(error);
+    }];
   }];
 }
 

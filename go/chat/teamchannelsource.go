@@ -16,7 +16,7 @@ import (
 )
 
 type teamChannelCacheItem struct {
-	dat   []types.ConvIDAndTopicName
+	dat   []chat1.ChannelNameMention
 	entry time.Time
 }
 
@@ -50,7 +50,7 @@ func (c *CachingTeamChannelSource) key(teamID chat1.TLFID, topicType chat1.Topic
 }
 
 func (c *CachingTeamChannelSource) fetchFromCache(ctx context.Context,
-	teamID chat1.TLFID, topicType chat1.TopicType) (res []types.ConvIDAndTopicName, ok bool) {
+	teamID chat1.TLFID, topicType chat1.TopicType) (res []chat1.ChannelNameMention, ok bool) {
 	val, ok := c.cache.Get(c.key(teamID, topicType))
 	if !ok {
 		return res, false
@@ -68,7 +68,7 @@ func (c *CachingTeamChannelSource) fetchFromCache(ctx context.Context,
 }
 
 func (c *CachingTeamChannelSource) writeToCache(ctx context.Context,
-	teamID chat1.TLFID, topicType chat1.TopicType, names []types.ConvIDAndTopicName) {
+	teamID chat1.TLFID, topicType chat1.TopicType, names []chat1.ChannelNameMention) {
 	c.cache.Add(c.key(teamID, topicType), teamChannelCacheItem{
 		dat:   names,
 		entry: time.Now(),
@@ -111,7 +111,7 @@ func (c *CachingTeamChannelSource) GetChannelsFull(ctx context.Context, uid greg
 }
 
 func (c *CachingTeamChannelSource) GetChannelsTopicName(ctx context.Context, uid gregor1.UID,
-	teamID chat1.TLFID, topicType chat1.TopicType) (res []types.ConvIDAndTopicName, rl []chat1.RateLimit, err error) {
+	teamID chat1.TLFID, topicType chat1.TopicType) (res []chat1.ChannelNameMention, rl []chat1.RateLimit, err error) {
 
 	var ok bool
 	if res, ok = c.fetchFromCache(ctx, teamID, topicType); ok {
@@ -176,7 +176,7 @@ func (c *CachingTeamChannelSource) GetChannelsTopicName(ctx context.Context, uid
 				continue
 			}
 
-			res = append(res, types.ConvIDAndTopicName{
+			res = append(res, chat1.ChannelNameMention{
 				ConvID:    conv.GetConvID(),
 				TopicName: body.Metadata().ConversationTitle,
 			})
