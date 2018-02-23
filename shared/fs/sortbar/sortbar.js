@@ -28,6 +28,13 @@ const iconBoxStyle = {
   marginTop: 4,
 }
 
+const stylesLoading = {
+  ...globalStyles.flexBoxRow,
+  marginLeft: 'auto',
+  marginRight: 32,
+  alignItems: 'center',
+}
+
 export type SortBarProps = {
   sortSetting: Types._SortSetting,
   onOpenSortSettingPopup: () => void,
@@ -45,6 +52,11 @@ const SortBar = (props: SortBarProps) => {
           </Box>
           <Text type="BodySmallSemibold">{sortSettingText}</Text>
         </ClickableBox>
+        {props.folderIsPending ? (
+          <Box style={stylesLoading}>
+            <Text type="BodySmall"> Loading ... </Text>
+          </Box>
+        ) : null}
       </Box>
     </Box>
   )

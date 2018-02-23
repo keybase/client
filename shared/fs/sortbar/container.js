@@ -12,6 +12,7 @@ type OwnProps = {
 
 type StateProps = {
   sortSetting: Types.SortSetting,
+  folderIsPending: boolean,
 }
 
 type DispatchProps = {
@@ -20,6 +21,7 @@ type DispatchProps = {
 
 const mapStateToProps = (state: TypedState, {path}: OwnProps) => ({
   sortSetting: state.fs.pathUserSettings.get(path, Constants.makePathUserSetting()).get('sort'),
+  folderIsPending: state.fs.pathItems.get(path, Constants.makeFolder()).progress === 'pending',
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
@@ -45,6 +47,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, {path}: OwnProps) => ({
   sortSetting: stateProps.sortSetting,
+  folderIsPending: stateProps.folderIsPending,
   onOpenSortSettingPopup: () => dispatchProps._getOnOpenSortSettingPopup(path),
 })
 
