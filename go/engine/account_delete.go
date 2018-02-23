@@ -45,10 +45,15 @@ func (e *AccountDelete) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *AccountDelete) Run(ctx *Context) error {
+	e.G().LoginState().Account(func(a *libkb.Account) {
+		a.ClearStreamCache()
+	}, "AccountDelete - Run")
+
 	username := e.G().GetEnv().GetUsername().String()
 	if err := e.G().LoginState().LoginWithPrompt(username, ctx.LoginUI, ctx.SecretUI, true, nil); err != nil {
 		return err
 	}
+
 	if err := e.G().LoginState().DeleteAccount(username); err != nil {
 		return err
 	}

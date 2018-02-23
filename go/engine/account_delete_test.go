@@ -12,6 +12,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
 
@@ -26,37 +27,55 @@ func TestAccountDelete(t *testing.T) {
 		SecretUI: &libkb.TestSecretUI{Passphrase: fu.Passphrase},
 	}
 	eng := NewAccountDelete(tc.G)
-	if err := RunEngine(eng, ctx); err != nil {
-		t.Fatal(err)
-	}
+	err := RunEngine(eng, ctx)
+	require.NoError(t, err)
 
 	_, res, err := tc.G.Resolver.ResolveUser(context.TODO(), fu.Username)
-	if err != nil {
-		t.Fatalf("got an error, but didn't expect one: %v", err)
-	}
+	require.NoError(t, err)
+
 	err = res.GetError()
-	if err != nil {
-		t.Fatal("Did not expect a result back from the resolver")
-	}
-	if !res.GetDeleted() {
-		t.Fatal("expected to get a deleted user")
-	}
+	require.NoError(t, err)
+	require.True(t, res.GetDeleted())
+
 	tmp := res.FailOnDeleted()
 	err = tmp.GetError()
-	if err == nil {
-		t.Fatal("expected a failure on deletion")
-	}
+	require.Error(t, err)
+
 	if _, ok := err.(libkb.DeletedError); !ok {
 		t.Fatal("expected a libkb.DeletedError")
 	}
 
 	_, err = libkb.LoadUser(libkb.NewLoadUserByNameArg(tc.G, fu.Username))
-	if err == nil {
-		t.Fatal("no error loading deleted user")
-	}
+	require.Error(t, err)
+
 	if _, ok := err.(libkb.DeletedError); !ok {
 		t.Errorf("loading deleted user error type: %T, expected libkb.DeletedError", err)
 	}
+}
+
+func TestAccountDeleteBadPassphrase(t *testing.T) {
+	tc := SetupEngineTest(t, "acct")
+	defer tc.Cleanup()
+
+	fu := CreateAndSignupFakeUser(tc, "acct")
+
+	ctx := &Context{
+		LoginUI:  &libkb.TestLoginUI{},
+		SecretUI: &libkb.TestSecretUI{Passphrase: fu.Passphrase + "xxx"},
+	}
+	eng := NewAccountDelete(tc.G)
+	err := RunEngine(eng, ctx)
+	require.Error(t, err)
+
+	_, res, err := tc.G.Resolver.ResolveUser(context.TODO(), fu.Username)
+	require.NoError(t, err)
+	err = res.GetError()
+	require.NoError(t, err)
+	require.False(t, res.GetDeleted())
+
+	tmp := res.FailOnDeleted()
+	err = tmp.GetError()
+	require.NoError(t, err)
 }
 
 func TestAccountDeleteIdentify(t *testing.T) {
@@ -65,18 +84,15 @@ func TestAccountDeleteIdentify(t *testing.T) {
 
 	fu := CreateAndSignupFakeUser(tc, "acct")
 	u, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc.G, fu.Username))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	ctx := &Context{
 		LoginUI:  &libkb.TestLoginUI{},
 		SecretUI: &libkb.TestSecretUI{Passphrase: fu.Passphrase},
 	}
 	eng := NewAccountDelete(tc.G)
-	if err := RunEngine(eng, ctx); err != nil {
-		t.Fatal(err)
-	}
+	err = RunEngine(eng, ctx)
+	require.NoError(t, err)
 
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.Services = i
@@ -88,9 +104,8 @@ func TestAccountDeleteIdentify(t *testing.T) {
 	ictx := &Context{IdentifyUI: i}
 
 	err = RunEngine(ieng, ictx)
-	if err == nil {
-		t.Fatal("identify2 ran successfully on deleted user")
-	}
+	require.Error(t, err)
+
 	if _, ok := err.(libkb.DeletedError); !ok {
 		t.Errorf("identify2 error: %T, expected libkb.DeletedError", err)
 	}
