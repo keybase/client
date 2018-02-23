@@ -100,9 +100,9 @@ func (e *TrackToken) Run(ctx *Context) (err error) {
 		return err
 	}
 
-	// Make V2 Sigs default
+	// Make V1 Sigs default
 	if e.arg.Options.SigVersion == 0 {
-		e.arg.Options.SigVersion = keybase1.SigVersion(libkb.KeybaseSignatureV2)
+		e.arg.Options.SigVersion = keybase1.SigVersion(libkb.KeybaseSignatureV1)
 	}
 
 	e.trackStatement, err = e.arg.Me.TrackingProofFor(signingKeyPub, libkb.SigVersion(e.arg.Options.SigVersion), e.them, outcome)
