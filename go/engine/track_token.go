@@ -29,9 +29,8 @@ type TrackTokenArg struct {
 
 // NewTrackToken creates a TrackToken engine.
 func NewTrackToken(arg *TrackTokenArg, g *libkb.GlobalContext) *TrackToken {
-	// Make V1 Sigs default
 	if arg.Options.SigVersion == 0 {
-		arg.Options.SigVersion = keybase1.SigVersion(libkb.KeybaseSignatureV1)
+		arg.Options.SigVersion = keybase1.SigVersion(libkb.GetDefaultSigVersion(g))
 	}
 
 	return &TrackToken{

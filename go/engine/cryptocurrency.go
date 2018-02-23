@@ -17,9 +17,8 @@ type CryptocurrencyEngine struct {
 }
 
 func NewCryptocurrencyEngine(g *libkb.GlobalContext, arg keybase1.RegisterAddressArg) *CryptocurrencyEngine {
-	// Make V2 Sigs default
 	if arg.SigVersion == 0 {
-		arg.SigVersion = keybase1.SigVersion(libkb.KeybaseSignatureV2)
+		arg.SigVersion = keybase1.SigVersion(libkb.GetDefaultSigVersion(g))
 	}
 	return &CryptocurrencyEngine{
 		Contextified: libkb.NewContextified(g),

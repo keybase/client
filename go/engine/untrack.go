@@ -23,9 +23,8 @@ type UntrackEngine struct {
 
 // NewUntrackEngine creates a default UntrackEngine for tracking theirName.
 func NewUntrackEngine(arg *UntrackEngineArg, g *libkb.GlobalContext) *UntrackEngine {
-	// Make V1 Sigs default
 	if arg.SigVersion == 0 {
-		arg.SigVersion = libkb.KeybaseSignatureV1
+		arg.SigVersion = libkb.GetDefaultSigVersion(g)
 	}
 
 	return &UntrackEngine{

@@ -33,9 +33,8 @@ type Prove struct {
 
 // NewProve makes a new Prove Engine given an RPC-friendly ProveArg.
 func NewProve(arg *keybase1.StartProofArg, g *libkb.GlobalContext) *Prove {
-	// Make V2 Sigs default
 	if arg.SigVersion == 0 {
-		arg.SigVersion = keybase1.SigVersion(libkb.KeybaseSignatureV2)
+		arg.SigVersion = keybase1.SigVersion(libkb.GetDefaultSigVersion(g))
 	}
 	return &Prove{
 		arg:          arg,
