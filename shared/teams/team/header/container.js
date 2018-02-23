@@ -3,7 +3,6 @@ import {connect, type TypedState} from '../../../util/container'
 import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
 import {createAddResultsToUserInput} from '../../../actions/search-gen'
-import {createOpenTeamConversation} from '../../../actions/chat-gen'
 import {navigateAppend} from '../../../actions/route-tree'
 import {TeamHeader} from '.'
 
@@ -34,7 +33,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {teamname}: OwnProps) => ({
     dispatch(createAddResultsToUserInput({searchKey: 'addToTeamSearch', searchResults: [you]}))
   },
   onAddPeople: () => dispatch(navigateAppend([{props: {teamname}, selected: 'addPeople'}])),
-  onChat: () => dispatch(createOpenTeamConversation({teamname, channelname: 'general'})),
+  /* TODO fix this once the chat action loads the conversationc correctly */
+  // onChat: () => dispatch(createOpenTeamConversation({teamname, channelname: 'general'})),
   onEditDescription: () => dispatch(navigateAppend([{props: {teamname}, selected: 'editTeamDescription'}])),
   onInviteByEmail: () => dispatch(navigateAppend([{props: {teamname}, selected: 'inviteByEmail'}])),
 })

@@ -87,15 +87,16 @@ const TeamHeader = (props: Props) => (
           small={isMobile && !isLargeScreen}
           onClick={props.onInviteByEmail}
         />
-        {!isMobile && <Button type="Secondary" label="Chat" onClick={props.onChat} />}
-        {isMobile &&
+        {/* TODO fix this once the chat action loads the conversationc correctly */}
+        {/* {!isMobile && <Button type="Secondary" label="Chat" onClick={props.onChat} />} */}
+        {/* {isMobile &&
           !props.canJoinTeam && (
             <Icon
               type="iconfont-chat"
               style={{width: isLargeScreen ? 24 : 20, height: isLargeScreen ? 24 : 20}}
               onClick={props.onChat}
             />
-          )}
+          )} */}
       </ButtonBar>
 
       {/* CLI hint */}
