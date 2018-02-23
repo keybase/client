@@ -1,0 +1,24 @@
+version: '{build}'
+clone_folder: c:\gopath\src\github.com\danieljoos\wincred
+environment:
+  GOPATH: c:\gopath
+install:
+- cmd: >-
+    rmdir c:\go /s /q
+
+    appveyor DownloadFile https://storage.googleapis.com/golang/go1.6.1.windows-amd64.msi
+
+    msiexec /i go1.6.1.windows-amd64.msi /q
+
+    go version
+
+    go env
+
+    go get -t
+build_script:
+- cmd: go install
+test_script:
+- cmd: >-
+    cd %GOPATH%/src/github.com/danieljoos/wincred
+
+    go test -v -cover
