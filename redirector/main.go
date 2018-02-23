@@ -6,6 +6,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -13,6 +14,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"syscall"
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
@@ -142,8 +144,19 @@ func (r root) Lookup(
 }
 
 func main() {
-	// This must be run as soon (or edit /etc/fuse.conf to enable
-	// `user_allow_other`).
+	currUser, err := user.Current()
+	if err != nil {
+		panic(err)
+	}
+	if currUser.Uid != "0" {
+		runtime.LockOSThread()
+		_, _, errNo := syscall.Syscall(syscall.SYS_SETUID, 0, 0, 0)
+		if errNo != 0 {
+			fmt.Fprintf(os.Stderr, "Can't setuid: %+v\n", errNo)
+			os.Exit(1)
+		}
+	}
+
 	options := []fuse.MountOption{fuse.AllowOther()}
 	options = append(options, fuse.FSName("keybase-redirector"))
 	if runtime.GOOS == "darwin" {
