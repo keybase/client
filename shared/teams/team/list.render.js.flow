@@ -2,7 +2,10 @@
 import * as React from 'react'
 import type {TeamRow, TeamRows} from './list'
 
+// headerIndex, sectionHeaderIndex, bodyStartIndex for mobile only sectionlist
 export type Props = {
+  headerRow: TeamRow,
+  bodyRows: TeamRows, // incl. tabs row
   rows: TeamRows,
   renderRow: (index: number, row: TeamRow) => React.Node,
 }

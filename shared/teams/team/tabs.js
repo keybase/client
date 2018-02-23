@@ -128,7 +128,7 @@ const TeamTabs = (props: TeamTabsProps) => {
       tabs={tabs}
       selected={selected}
       onSelect={onSelect}
-      style={{flexBasis: '100%'}}
+      style={{flexBasis: '100%', backgroundColor: globalColors.white}}
       tabStyle={
         isMobile
           ? {

@@ -10,6 +10,7 @@ import RenderList from './list.render'
 import type {TeamRow, TeamRows} from './row-types'
 
 const renderRow = (index: number, row: TeamRow) => {
+  console.log(row)
   switch (row.type) {
     case 'header': {
       return <TeamHeader key="header" teamname={row.teamname} />
@@ -38,8 +39,16 @@ const renderRow = (index: number, row: TeamRow) => {
 }
 
 type Props = {
-  rows: TeamRows,
+  headerRow: TeamRow,
+  bodyRows: TeamRows,
 }
 
 export type {TeamRow, TeamRows}
-export default (props: Props) => <RenderList rows={props.rows} renderRow={renderRow} />
+export default (props: Props) => (
+  <RenderList
+    headerRow={props.headerRow}
+    bodyRows={props.bodyRows}
+    rows={[props.headerRow, ...props.bodyRows]}
+    renderRow={renderRow}
+  />
+)

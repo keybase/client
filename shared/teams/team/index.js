@@ -76,7 +76,7 @@ const Team = (props: Props) => {
         position: 'relative',
       }}
     >
-      <List rows={rows} />
+      <List headerRow={rows[0]} bodyRows={rows.splice(1)} />
 
       {props.showMenu &&
         popupMenuItems.length > 0 && (
