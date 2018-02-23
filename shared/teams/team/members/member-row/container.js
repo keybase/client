@@ -8,13 +8,8 @@ import {amIFollowing} from '../../../../constants/selectors'
 import {navigateAppend} from '../../../../actions/route-tree'
 import {connect, type TypedState} from '../../../../util/container'
 
-export type OwnProps = {
-  type: 'member',
-  active: boolean,
-  fullName: string,
-  username: string,
-  teamname: string,
-}
+import type {MemberRow as OwnProps} from '../../row-types'
+export type {OwnProps}
 
 type StateProps = {
   following: boolean,

@@ -1,53 +1,13 @@
 // @flow
 import * as React from 'react'
-import * as Types from '../../constants/types/teams'
-import * as RPCTypes from '../../constants/types/rpc-gen'
 import TeamHeader from './header/container'
 import TeamTabs from './tabs'
-import ConnectedMemberRow, {type OwnProps as MemberRow} from './members/member-row/container'
+import renderMemberRow from './members/member-row/container'
 import {renderSubteamsRow} from './subteams/index'
 import Invites from './invites/container'
 import Settings from './settings/container'
 import RenderList from './list.render'
-
-type HeaderRow = {
-  type: 'header',
-  teamname: Types.Teamname,
-}
-
-type TabsRow = {
-  type: 'tabs',
-  admin: boolean,
-  memberCount: number,
-  teamname: Types.Teamname,
-  newTeamRequests: Array<Types.Teamname>,
-  numInvites: number,
-  numRequests: number,
-  numSubteams: number,
-  loading?: boolean,
-  selectedTab?: string,
-  setSelectedTab: (?Types.TabKey) => void,
-  yourOperations: RPCTypes.TeamOperation,
-}
-
-type SubteamRow = {
-  type: 'subteam',
-  teamname: Types.Teamname,
-}
-
-type InvitesRow = {
-  type: 'invites',
-  teamname: Types.Teamname,
-}
-
-type SettingsRow = {
-  type: 'settings',
-  teamname: Types.Teamname,
-}
-
-type TeamRow = HeaderRow | TabsRow | MemberRow | SubteamRow | InvitesRow | SettingsRow
-
-type TeamRows = Array<TeamRow>
+import type {TeamRow, TeamRows} from './row-types'
 
 const renderRow = (index: number, row: TeamRow) => {
   switch (row.type) {
@@ -58,7 +18,7 @@ const renderRow = (index: number, row: TeamRow) => {
       return <TeamTabs key="tabs" {...row} />
     }
     case 'member': {
-      return ConnectedMemberRow(index, row)
+      return renderMemberRow(index, row)
     }
     case 'subteam': {
       return renderSubteamsRow(index, row)
