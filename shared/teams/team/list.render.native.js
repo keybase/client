@@ -10,8 +10,10 @@ export default (props: Props) => (
     sections={[
       {
         data: [props.headerRow],
+        key: 'headerSection',
       },
       {
+        key: 'bodySection',
         data: props.bodyRows.splice(1),
         tabs: props.bodyRows[0],
       },

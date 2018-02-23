@@ -28,7 +28,7 @@ export type Props = {
 const Team = (props: Props) => {
   const {teamname} = props
 
-  const rows: TeamRows = [{type: 'header', teamname}]
+  const rows: TeamRows = [{type: 'header', teamname, key: 'headerKey'}]
   rows.push({
     type: 'tabs',
     admin: props.yourOperations.manageMembers,
