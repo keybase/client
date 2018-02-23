@@ -15,7 +15,7 @@ const styleList = {
 
 export default class extends React.PureComponent<Props> {
   itemSizeEstimator = (index: number, cache: {[index: number]: number}) => {
-    if (this.props.rows.type === 'member') {
+    if (this.props.rows[index].type === 'member') {
       return 48
     }
     return cache[index]
