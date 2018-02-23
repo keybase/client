@@ -486,6 +486,7 @@ func Install(context Context, binPath string, sourcePath string, components []st
 		if cr.ExitCode == installHelperExitCodeAuthCanceled {
 			log.Debug("Auth canceled; uninstalling mountdir and fuse")
 			helperCanceled = true
+			// Unmount the user's KBFS directory.
 			mountDir, err := context.GetMountDir()
 			if err == nil {
 				err = UninstallKBFS(context, mountDir, true, log)
@@ -684,6 +685,7 @@ func InstallKBFS(context Context, binPath string, force bool, skipMountIfNotAvai
 	if err != nil {
 		return err
 	}
+	// Unmount any existing KBFS directory for the user.
 	mountDir, err := context.GetMountDir()
 	if err != nil {
 		return err
