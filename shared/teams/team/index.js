@@ -13,7 +13,7 @@ export type Props = {
   numInvites: number,
   numRequests: number,
   numSubteams: number,
-  listItems: Array<any>,
+  listItems?: Array<any>,
   loading: boolean,
   selectedTab: string,
   setSelectedTab: (?Types.TabKey) => void,
@@ -47,7 +47,7 @@ const Team = (props: Props) => {
 
   if (props.selectedTab === 'publicity') {
     rows.push({type: 'settings', teamname, key: 'settings'})
-  } else {
+  } else if (props.listItems) {
     rows.push(...props.listItems)
   }
 
