@@ -12,7 +12,7 @@ export type Props = {
   onClickAvatar?: () => void,
 }
 
-const AVATAR_SIZE = 24
+const AVATAR_SIZE = isMobile ? 32 : 24
 
 const UserNotice = ({bgColor, username, teamname, children, style, onClickAvatar}: Props) => (
   <Box style={{...styleOuterBox, ...style}}>

@@ -108,7 +108,7 @@ class FriendshipsRender extends Component<Props> {
             this.props.onSwitchTab && this.props.onSwitchTab('Followers')
           }}
         >
-          <Box style={{marginTop: globalMargins.large}}>
+          <Box style={{marginTop: globalMargins.small}}>
             {followers === 0 &&
               isYou && (
                 <Box style={friendshipEmptyStyle}>
@@ -130,7 +130,7 @@ class FriendshipsRender extends Component<Props> {
             this.props.onSwitchTab && this.props.onSwitchTab('Following')
           }}
         >
-          <Box style={{marginTop: globalMargins.large}}>
+          <Box style={{marginTop: globalMargins.small}}>
             {following === 0 &&
               isYou && (
                 <Box style={friendshipEmptyStyle}>
@@ -153,6 +153,7 @@ class FriendshipsRender extends Component<Props> {
 const friendshipEmptyStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
+  marginTop: globalMargins.medium,
 }
 
 export default FriendshipsRender

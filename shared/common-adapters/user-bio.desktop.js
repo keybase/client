@@ -229,7 +229,6 @@ const stylesContainer = {
   justifyContent: 'center',
   position: 'relative',
   width: 320,
-  marginBottom: globalMargins.tiny,
 }
 const stylesContent = {
   backgroundColor: globalColors.white,
@@ -238,6 +237,7 @@ const stylesContent = {
   justifyContent: 'center',
   width: 320,
   marginTop: -35,
+  paddingBottom: globalMargins.tiny,
   paddingTop: 35,
   zIndex: 1,
 }

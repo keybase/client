@@ -313,10 +313,7 @@ const GitPushInfoNotice = ({message, info, onClickUserAvatar, onViewGitRepo}: Gi
       bgColor={globalColors.blue4}
       onClickAvatar={() => onClickUserAvatar(info.pusher)}
     >
-      <Icon
-        type="icon-team-git-16-18"
-        style={{position: 'absolute', zIndex: 999, marginTop: -18, marginLeft: 9}}
-      />
+      {!isMobile && <Icon type="icon-team-git-16" style={{zIndex: 999, marginTop: -18, marginLeft: 20}} />}
       <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
         {formatTimeForMessages(message.timestamp)}
       </Text>
