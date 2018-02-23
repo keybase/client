@@ -56,12 +56,12 @@ export const sortPathItems = (
 
 const privateColors = {
   iconColor: globalColors.darkBlue2,
-  textColor: globalColors.darkBlue5,
+  textColor: globalColors.darkBlue,
 }
 
 const publicColors = {
-  iconColor: globalColors.yellowGreen2,
-  textColor: globalColors.yellowGreen4,
+  iconColor: globalColors.yellowGreen,
+  textColor: globalColors.yellowGreen2,
 }
 
 const folderTextType = {

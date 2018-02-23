@@ -23,7 +23,6 @@ const colors = {
   darkBlue3: '#002C52',
   darkBlue3_75: 'rgba(0, 44, 82, .75)',
   darkBlue4: '#003563',
-  darkBlue5: '#004d92',
   darkBlue: '#004481',
   green2: '#36b37c',
   green3: '#E8FAF3',
@@ -46,7 +45,6 @@ const colors = {
   yellowGreen2: '#94b52f',
   yellowGreen2_75: 'rgba(154, 180, 57, 0.75)',
   yellowGreen3: '#d2e697',
-  yellowGreen4: '#5f7f00',
   yellowGreen: '#a8cf36',
 }
 
