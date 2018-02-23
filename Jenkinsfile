@@ -268,9 +268,13 @@ def runNixTest(prefix) {
         sh 'go test -i -tags fuse'
     }
 
-    // Build out the test dependencies and binaries (in most cases) first,
-    // otherwise the we might have concurrent build issues when running in
-    // parallel.
+    // Build out the test dependencies first, otherwise the we might have
+    // concurrent build issues when running in parallel.
+    //
+    // NOTE that this assumes with the dependencies installed here, `go test
+    // -c` below will only need to build local packages and link, thus no race
+    // should happen. If the assumption is wrong then we still could have
+    // races.
     sh 'go test -i -tags fuse ./...'
 
     sh 'go install github.com/keybase/kbfs/...'
