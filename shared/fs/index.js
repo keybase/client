@@ -33,7 +33,9 @@ const styleOuterContainer = {
 const iconStyle = {
   marginRight: globalMargins.small,
   fontSize: 30,
-  display: 'inline-block',
+}
+
+const iconBoxStyle = {
   marginTop: 3,
 }
 
@@ -44,7 +46,9 @@ const FileRow = RowConnector(({elems, path, name, itemStyles, onOpen, visibility
         {elems.length === 3 && visibility === 'team' ? (
           <Avatar size={32} teamname={name} isTeam={true} style={iconStyle} />
         ) : (
-          <Icon type={itemStyles.iconType} style={{color: itemStyles.iconColor, ...iconStyle}} />
+          <Box style={iconBoxStyle}>
+            <Icon type={itemStyles.iconType} style={{color: itemStyles.iconColor, ...iconStyle}} />
+          </Box>
         )}
         <Box style={folderBoxStyle}>
           <Text type={itemStyles.textType} style={{color: itemStyles.textColor}}>

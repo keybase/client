@@ -36,8 +36,10 @@ const stylesIcon = {
   marginRight: globalMargins.tiny,
   color: globalColors.black_75,
   fontSize: 13,
+}
+
+const iconBoxStyle = {
   marginTop: 3,
-  display: 'inline-block',
 }
 
 const SortBarPopupMenu = (props: SortBarPopupMenuProps) => {
@@ -49,7 +51,9 @@ const SortBarPopupMenu = (props: SortBarPopupMenuProps) => {
       title: sortSettingText,
       view: (
         <Box style={stylesSortSetting}>
-          <Icon type={sortSettingIconType} style={stylesIcon} />
+          <Box style={iconBoxStyle}>
+            <Icon type={sortSettingIconType} style={stylesIcon} />
+          </Box>
           <Text type="Body">{sortSettingText}</Text>
         </Box>
       ),

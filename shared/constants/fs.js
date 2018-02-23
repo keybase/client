@@ -3,7 +3,6 @@ import * as I from 'immutable'
 import * as Types from './types/fs'
 import uuidv1 from 'uuid/v1'
 import {globalColors} from '../styles'
-
 export const defaultPath = '/keybase'
 
 export const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
@@ -91,7 +90,7 @@ export const getItemStyles = (
   let colors = privateColors
   let folderIconType = 'iconfont-folder-private'
   // For icon purposes, we are treating team folders as private.
-  if (Types.pathToString(path).split('/', 3)[2] === 'public') {
+  if (Types.getPathElements(path)[1] === 'public') {
     colors = publicColors
     folderIconType = 'iconfont-folder-public'
   }

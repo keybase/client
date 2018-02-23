@@ -22,8 +22,10 @@ const stylesSortSetting = {
 const stylesIcon = {
   marginRight: globalMargins.xtiny,
   fontSize: 11,
-  marginTop: 3,
-  display: 'inline-block',
+}
+
+const iconBoxStyle = {
+  marginTop: 4,
 }
 
 export type SortBarProps = {
@@ -38,7 +40,9 @@ const SortBar = (props: SortBarProps) => {
       <Divider />
       <Box style={stylesSortBar}>
         <ClickableBox onClick={props.onOpenSortSettingPopup} style={stylesSortSetting}>
-          <Icon type={sortSettingIconType} style={stylesIcon} />
+          <Box style={iconBoxStyle}>
+            <Icon type={sortSettingIconType} style={stylesIcon} />
+          </Box>
           <Text type="BodySmallSemibold">{sortSettingText}</Text>
         </ClickableBox>
       </Box>
