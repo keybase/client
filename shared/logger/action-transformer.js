@@ -42,7 +42,7 @@ const entityTransformer = (action: Entity.Actions) => ({
   type: action.type,
 })
 
-const defaultTransformer: ActionTransformer<*, *> = ({type}) => ({type})
+const defaultTransformer: ActionTransformer<*, *> = ({type}) => ''
 
 const actionTransformMap: {[key: string]: ActionTransformer<*, *>} = {
   [RouteTreeConstants.switchTo]: pathActionTransformer,
@@ -64,6 +64,8 @@ const actionTransformMap: {[key: string]: ActionTransformer<*, *>} = {
   [GregorGen.pushOOBM]: nullTransform,
   [AppGen.changedFocus]: nullTransform,
   [Chat2Gen.setLoading]: a => a,
+  [Chat2Gen.updateTypers]: nullTransform,
+  [ConfigGen.globalError]: a => a,
 }
 
 const transformActionForLog: ActionTransformer<*, *> = (action, state) =>

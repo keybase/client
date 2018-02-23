@@ -152,12 +152,12 @@ const rpcMetaRequestConversationIDKeys = (
     default:
       // eslint-disable-next-line no-unused-expressions
       ;(action: empty) // errors if we don't handle any new actions
-      throw new Error('Invalid action passed to rpcMetaRequest ')
+      throw new Error('Invalid action passed to unboxRows')
   }
   return Constants.getConversationIDKeyMetasToLoad(keys, state.chat2.metaMap)
 }
 
-const rpcMetaRequest = (
+const unboxRows = (
   action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload,
   state: TypedState
 ) => {
@@ -553,7 +553,7 @@ const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType).reduc
 // Load new messages on a thread. We call this when you select a conversation, we get a thread-is-stale notification, or when you scroll up and want more messages
 // All actions aside from loadOlderMessagesDueToScroll we load the newest N messages and pass in our idea of the last N (to skip getting dupe messages back)
 // We don't whitelist the topmost message so we can detect if we have a gap above the call we just got back. If we do we need to toss any old messages (to keep things simple)
-const rpcLoadThread = (
+const loadMoreMessages = (
   action:
     | Chat2Gen.SelectConversationPayload
     | Chat2Gen.LoadOlderMessagesDueToScrollPayload
@@ -620,21 +620,7 @@ const rpcLoadThread = (
     knownIDs = ordinals.takeLast(num).map(o => mmap.getIn([o, 'id'], 0)).filter(Boolean)
   }
 
-
-
-
-
-
-
-
-TODO new loading stuf
-
-
-
-
-
   switch (action.type) {
-
     case Chat2Gen.markConversationsStale:
       break
     case Chat2Gen.selectConversationDueToPush: // fallthrough on purpose
@@ -688,7 +674,7 @@ TODO new loading stuf
     default:
       // eslint-disable-next-line no-unused-expressions
       ;(action: empty) // errors if we don't handle any new actions
-      throw new Error('Invalid action passed to rpcLoadThread')
+      throw new Error('Invalid action passed to loadMoreMessages')
   }
 
   const onGotThread = function*({thread}: {thread: string}) {
@@ -1803,7 +1789,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.metaHandleQueue, requestMeta)
 
   // Actually try and unbox conversations
-  yield Saga.safeTakeEveryPure([Chat2Gen.metaRequestTrusted, Chat2Gen.selectConversation], rpcMetaRequest)
+  yield Saga.safeTakeEveryPure([Chat2Gen.metaRequestTrusted, Chat2Gen.selectConversation], unboxRows)
 
   // Load the selected thread
   yield Saga.safeTakeEveryPure(
@@ -1814,7 +1800,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.setPendingConversationUsers,
       Chat2Gen.markConversationsStale,
     ],
-    rpcLoadThread
+    loadMoreMessages
   )
 
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, previewConversation)
