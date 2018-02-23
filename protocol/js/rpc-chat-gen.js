@@ -286,6 +286,10 @@ export const localPostDeleteHistoryByAgeRpcChannelMap = (configKeys: Array<strin
 
 export const localPostDeleteHistoryByAgeRpcPromise = (request: LocalPostDeleteHistoryByAgeRpcParam): Promise<LocalPostDeleteHistoryByAgeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postDeleteHistoryByAge', request, (error: RPCError, result: LocalPostDeleteHistoryByAgeResult) => (error ? reject(error) : resolve(result))))
 
+export const localPostDeleteHistoryThroughRpcChannelMap = (configKeys: Array<string>, request: LocalPostDeleteHistoryThroughRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postDeleteHistoryThrough', request)
+
+export const localPostDeleteHistoryThroughRpcPromise = (request: LocalPostDeleteHistoryThroughRpcParam): Promise<LocalPostDeleteHistoryThroughResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postDeleteHistoryThrough', request, (error: RPCError, result: LocalPostDeleteHistoryThroughResult) => (error ? reject(error) : resolve(result))))
+
 export const localPostDeleteHistoryUptoRpcChannelMap = (configKeys: Array<string>, request: LocalPostDeleteHistoryUptoRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postDeleteHistoryUpto', request)
 
 export const localPostDeleteHistoryUptoRpcPromise = (request: LocalPostDeleteHistoryUptoRpcParam): Promise<LocalPostDeleteHistoryUptoResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postDeleteHistoryUpto', request, (error: RPCError, result: LocalPostDeleteHistoryUptoResult) => (error ? reject(error) : resolve(result))))
@@ -901,6 +905,8 @@ export type LocalPostAttachmentLocalRpcParam = $ReadOnly<{conversationID: Conver
 
 export type LocalPostDeleteHistoryByAgeRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior, age: Gregor1.DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
+export type LocalPostDeleteHistoryThroughRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior, through: MessageID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
 export type LocalPostDeleteHistoryUptoRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior, upto: MessageID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LocalPostDeleteNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, supersedes: MessageID, clientPrev: MessageID, outboxID?: ?OutboxID, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
@@ -1371,6 +1377,7 @@ type LocalMarkAsReadLocalResult = MarkAsReadLocalRes
 type LocalNewConversationLocalResult = NewConversationLocalRes
 type LocalPostAttachmentLocalResult = PostLocalRes
 type LocalPostDeleteHistoryByAgeResult = PostLocalRes
+type LocalPostDeleteHistoryThroughResult = PostLocalRes
 type LocalPostDeleteHistoryUptoResult = PostLocalRes
 type LocalPostDeleteNonblockResult = PostLocalNonblockRes
 type LocalPostEditNonblockResult = PostLocalNonblockRes
