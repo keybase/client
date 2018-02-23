@@ -261,3 +261,52 @@ func TestImplicitSBSConsolidation2(t *testing.T) {
 
 	trySBSConsolidation(t, "%v,%v#%v@rooter")
 }
+
+func TestImplicitSBSPukless(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+	bob := tt.addPuklessUser("bob")
+	t.Logf("Signed ann (%s) and pukless bob (%s)", ann.username, bob.username)
+
+	impteamName := fmt.Sprintf("%s,%s@rooter", ann.username, bob.username)
+	teamID, err := ann.lookupImplicitTeam(true /* create */, impteamName, false)
+	require.NoError(t, err)
+
+	t.Logf("Created team %s -> %s", impteamName, teamID)
+
+	bob.proveRooter()
+
+	teamID2, err := ann.lookupImplicitTeam(false /* create */, impteamName, false)
+	require.NoError(t, err)
+	require.Equal(t, teamID, teamID2)
+
+	// what is even going on here?
+
+	// how about a joke instead.
+
+	// so pukless user, reset user, and an unresolved SBS assertion
+	// walk into a bar
+	//   and the bartender goes
+	//      „get the hell out of here!"
+
+	// bob.kickTeamRekeyd()
+	// bob.perUserKeyUpgrade()
+
+	// expectedTeamName := fmt.Sprintf("%v,%v", ann.username, bob.username)
+	// pollForConditionWithTimeout(t, 10*time.Second, "team resolved to ann,bob", func(ctx context.Context) bool {
+	// 	team, err := teams.Load(ctx, ann.tc.G, keybase1.LoadTeamArg{
+	// 		ID:          teamID,
+	// 		ForceRepoll: true,
+	// 	})
+	// 	require.NoError(t, err)
+	// 	displayName, err := team.ImplicitTeamDisplayName(context.Background())
+	// 	t.Logf("Got team back: %s", displayName.String())
+	// 	return displayName.String() == expectedTeamName
+	// })
+
+	// teamID3, err := ann.lookupImplicitTeam(false /* create */, expectedTeamName, false)
+	// require.NoError(t, err)
+	// require.Equal(t, teamID, teamID3)
+}
