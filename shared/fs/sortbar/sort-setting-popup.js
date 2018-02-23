@@ -31,7 +31,7 @@ const stylesSortSetting = {
 const stylesPopup = {
   position: 'absolute',
   left: 88,
-  top: 64,
+  top: 80,
 }
 const stylesIcon = {
   marginRight: globalMargins.tiny,
