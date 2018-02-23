@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
-import * as I from 'immutable'
-import * as Types from '../../../constants/types/teams'
+import type {SubteamRow} from '../row-types'
 import {Box, ClickableBox, Icon, List, Text} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import TeamSubteamRow from './subteam-row/container'
@@ -19,7 +18,7 @@ const SubteamsIntro = ({row}) => (
   />
 )
 
-const SubteamRow = ({row}) => (
+const SubteamRowRender = ({row}) => (
   <Box>
     <TeamSubteamRow teamname={row.teamname} />
   </Box>
@@ -65,7 +64,7 @@ const NoSubteams = ({row}) => (
   </Box>
 )
 
-export const renderSubteamsRow = (index: number, row: *) => {
+export const renderSubteamsRow = (index: number, row: SubteamRow) => {
   switch (row.subtype) {
     case 'intro':
       return <SubteamsIntro key={row.key} row={row} />
@@ -74,7 +73,7 @@ export const renderSubteamsRow = (index: number, row: *) => {
     case 'noSubteams':
       return <NoSubteams key={row.key} row={row} />
     default:
-      return <SubteamRow key={row.key} row={row} />
+      return <SubteamRowRender key={row.key} row={row} />
   }
 }
 
