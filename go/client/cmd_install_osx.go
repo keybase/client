@@ -93,6 +93,7 @@ var defaultInstallComponents = []string{
 	install.ComponentNameMountDir.String(),
 	install.ComponentNameKBFS.String(),
 	install.ComponentNameKBNM.String(),
+	install.ComponentNameRedirector.String(),
 }
 
 func (v *CmdInstall) ParseArgv(ctx *cli.Context) error {
