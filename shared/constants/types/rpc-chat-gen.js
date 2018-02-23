@@ -766,7 +766,7 @@ export type GetInboxLocalQuery = $ReadOnly<{name?: ?NameQuery, topicName?: ?Stri
 
 export type GetInboxLocalRes = $ReadOnly<{conversationsUnverified?: ?Array<Conversation>, pagination?: ?Pagination, offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 
-export type GetInboxQuery = $ReadOnly<{convID?: ?ConversationID, topicType?: ?TopicType, tlfID?: ?TLFID, tlfVisibility?: ?Keybase1.TLFVisibility, before?: ?Gregor1.Time, after?: ?Gregor1.Time, oneChatTypePerTLF?: ?Boolean, status?: ?Array<ConversationStatus>, memberStatus?: ?Array<ConversationMemberStatus>, existences?: ?Array<ConversationExistence>, convIDs?: ?Array<ConversationID>, unreadOnly: Boolean, readOnly: Boolean, computeActiveList: Boolean, summarizeMaxMsgs: Boolean}>
+export type GetInboxQuery = $ReadOnly<{convID?: ?ConversationID, topicType?: ?TopicType, tlfID?: ?TLFID, tlfVisibility?: ?Keybase1.TLFVisibility, before?: ?Gregor1.Time, after?: ?Gregor1.Time, oneChatTypePerTLF?: ?Boolean, status?: ?Array<ConversationStatus>, memberStatus?: ?Array<ConversationMemberStatus>, existences?: ?Array<ConversationExistence>, membersTypes?: ?Array<ConversationMembersType>, convIDs?: ?Array<ConversationID>, unreadOnly: Boolean, readOnly: Boolean, computeActiveList: Boolean, summarizeMaxMsgs: Boolean}>
 
 export type GetInboxRemoteRes = $ReadOnly<{inbox: InboxView, rateLimit?: ?RateLimit}>
 
