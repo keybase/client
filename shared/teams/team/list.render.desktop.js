@@ -13,4 +13,23 @@ const styleList = {
   alignItems: 'center',
 }
 
-export default (props: Props) => <List items={props.rows} style={styleList} renderItem={props.renderRow} />
+export default class extends React.PureComponent<Props> {
+  itemSizeEstimator = (index: number, cache: {[index: number]: number}) => {
+    if (this.props.rows.type === 'member') {
+      return 48
+    }
+    return cache[index]
+  }
+
+  render() {
+    return (
+      <List
+        items={this.props.rows}
+        itemSizeEstimator={this.itemSizeEstimator}
+        style={styleList}
+        renderItem={this.props.renderRow}
+        windowsSize={10}
+      />
+    )
+  }
+}
