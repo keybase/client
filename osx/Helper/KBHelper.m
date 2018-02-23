@@ -175,8 +175,8 @@
 
 - (void)unmount:(NSString *)mount error:(NSError **)error {
   NSTask *task = [[NSTask alloc] init];
-  task.launchPath = @"/sbin/umount";
-  task.arguments = @[mount];
+  task.launchPath = @"/usr/sbin/diskutil";
+  task.arguments = @[@"unmountDisk", @"force", mount];
 
   @try {
     [task launch];
@@ -267,10 +267,7 @@
   return [NSFileManager.defaultManager destinationOfSymbolicLinkAtPath:linkPath error:nil];
 }
 
-- (BOOL)createLink:(NSString *)path linkPath:(NSString *)linkPath uid:(uid_t)uid gid:(gid_t)gid {
-  if ([NSFileManager.defaultManager fileExistsAtPath:linkPath]) {
-    [NSFileManager.defaultManager removeItemAtPath:linkPath error:nil];
-  }
+- (BOOL)createLinkIfNoLinkExists:(NSString *)path linkPath:(NSString *)linkPath uid:(uid_t)uid gid:(gid_t)gid {
   if ([NSFileManager.defaultManager createSymbolicLinkAtPath:linkPath withDestinationPath:path error:nil]) {
     // setAttributes doesn't work with symlinks, so we have to call lchown() directly
     const char *file = [NSFileManager.defaultManager fileSystemRepresentationWithPath:linkPath];
@@ -279,6 +276,13 @@
     }
   }
   return NO;
+}
+
+- (BOOL)createLink:(NSString *)path linkPath:(NSString *)linkPath uid:(uid_t)uid gid:(gid_t)gid {
+  if ([NSFileManager.defaultManager fileExistsAtPath:linkPath]) {
+    [NSFileManager.defaultManager removeItemAtPath:linkPath error:nil];
+  }
+  return [self createLinkIfNoLinkExists:path linkPath:linkPath uid:uid gid:gid];
 }
 
 - (void)addToPath:(NSString *)directory name:(NSString *)name appName:(NSString *)appName completion:(void (^)(NSError *error, id value))completion {

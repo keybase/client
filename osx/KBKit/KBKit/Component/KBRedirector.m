@@ -43,7 +43,8 @@
 }
 
 - (void)uninstall:(KBCompletion)completion {
-  NSDictionary *params = @{@"directory": @"/keybase.redirect"};
+  NSString *mount = [self.config redirectorMount];
+  NSDictionary *params = @{@"directory": mount};
   DDLogDebug(@"Stopping redirector: %@", params);
   [self.helperTool.helper sendRequest:@"stopRedirector" params:@[params] completion:^(NSError *err, id value) {
     completion(err);
