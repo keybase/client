@@ -78,7 +78,7 @@ func subTestSignupEngine(t *testing.T, upgradePerUserKey bool) {
 	mockGetPassphrase := &GetPassphraseMock{
 		Passphrase: fu.Passphrase,
 	}
-	if err = tc.G.LoginState().LoginWithPrompt(fu.Username, nil, mockGetPassphrase, false /* force */, nil); err != nil {
+	if err = tc.G.LoginState().LoginWithPrompt(fu.Username, nil, mockGetPassphrase, nil); err != nil {
 		t.Fatal(err)
 	}
 

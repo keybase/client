@@ -161,12 +161,12 @@ func NewLoginState(g *GlobalContext) *LoginState {
 	return res
 }
 
-func (s *LoginState) LoginWithPrompt(username string, loginUI LoginUI, secretUI SecretUI, force bool, after afterFn) (err error) {
+func (s *LoginState) LoginWithPrompt(username string, loginUI LoginUI, secretUI SecretUI, after afterFn) (err error) {
 	s.G().Log.Debug("+ LoginWithPrompt(%s) called", username)
 	defer func() { s.G().Log.Debug("- LoginWithPrompt -> %s", ErrToOk(err)) }()
 
 	err = s.loginHandle(func(lctx LoginContext) error {
-		return s.loginWithPromptHelper(lctx, username, loginUI, secretUI, force)
+		return s.loginWithPromptHelper(lctx, username, loginUI, secretUI, false)
 	}, after, "loginWithPromptHelper")
 	return
 }
@@ -409,14 +409,14 @@ func (s *LoginState) GetVerifiedTriplesec(ui SecretUI) (ret Triplesec, gen Passp
 // is indeed the correct passphrase for the logged in user.  This is accomplished
 // via a login request.  The side effect will be that we'll retrieve the
 // correct generation number of the current passphrase from the server.
-func (s *LoginState) VerifyPlaintextPassphrase(pp string) (ppStream *PassphraseStream, err error) {
+func (s *LoginState) VerifyPlaintextPassphrase(pp string, after afterFn) (ppStream *PassphraseStream, err error) {
 	err = s.loginHandle(func(lctx LoginContext) error {
 		ret := s.verifyPlaintextPassphraseForLoggedInUser(lctx, pp)
 		if ret == nil {
 			ppStream = lctx.PassphraseStreamCache().PassphraseStream()
 		}
 		return ret
-	}, nil, "VerifyPlaintextPassphrase")
+	}, after, "VerifyPlaintextPassphrase")
 	return
 }
 
@@ -435,39 +435,46 @@ func ComputeLoginPackage(lctx LoginContext, username string) (ret PDPKALoginPack
 	return computeLoginPackageFromEmailOrUsername(username, ps, loginSession)
 }
 
-func (s *LoginState) ResetAccount(un string) (err error) {
-	return s.resetOrDelete(un, "nuke")
+func (s *LoginState) ResetAccount(username string) (err error) {
+	return s.resetOrDelete(username, "nuke")
 }
 
-func (s *LoginState) DeleteAccount(un string) (err error) {
-	return s.resetOrDelete(un, "delete")
+func (s *LoginState) DeleteAccount(username string) (err error) {
+	return s.resetOrDelete(username, "delete")
 }
 
-func (s *LoginState) resetOrDelete(un string, which string) (err error) {
-	var aerr error
-	err = s.loginHandle(func(lctx LoginContext) error {
-		aerr = lctx.LoadLoginSession(un)
-		if aerr != nil {
-			return aerr
-		}
-		pdpka, aerr := ComputeLoginPackage(lctx, un)
-		if aerr != nil {
-			return aerr
-		}
-		arg := APIArg{
-			Endpoint:    which,
-			SessionType: APISessionTypeREQUIRED,
-			Args:        NewHTTPArgs(),
-			SessionR:    lctx.LocalSession(),
-		}
-		pdpka.PopulateArgs(&arg.Args)
-		_, aerr = s.G().API.Post(arg)
-		return aerr
-	}, nil, ("ResetAccount:" + which))
-	if aerr != nil {
-		return aerr
+func ResetAccountWithContext(g *GlobalContext, lctx LoginContext, username string) error {
+	return ResetOrDeleteWithContext(g, lctx, username, "nuke")
+}
+
+func DeleteAccountWithContext(g *GlobalContext, lctx LoginContext, username string) error {
+	return ResetOrDeleteWithContext(g, lctx, username, "delete")
+}
+
+func ResetOrDeleteWithContext(g *GlobalContext, lctx LoginContext, username string, endpoint string) (err error) {
+	err = lctx.LoadLoginSession(username)
+	if err != nil {
+		return err
 	}
+	pdpka, err := ComputeLoginPackage(lctx, username)
+	if err != nil {
+		return err
+	}
+	arg := APIArg{
+		Endpoint:    endpoint,
+		SessionType: APISessionTypeREQUIRED,
+		Args:        NewHTTPArgs(),
+		SessionR:    lctx.LocalSession(),
+	}
+	pdpka.PopulateArgs(&arg.Args)
+	_, err = g.API.Post(arg)
 	return err
+}
+
+func (s *LoginState) resetOrDelete(username string, endpoint string) (err error) {
+	return s.loginHandle(func(lctx LoginContext) error {
+		return ResetOrDeleteWithContext(s.G(), lctx, username, endpoint)
+	}, nil, ("ResetAccount: " + endpoint))
 }
 
 func (s *LoginState) postLoginToServer(lctx LoginContext, eOu string, lp PDPKALoginPackage) (*loginAPIResult, error) {

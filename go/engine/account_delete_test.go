@@ -23,7 +23,6 @@ func TestAccountDelete(t *testing.T) {
 	fu := CreateAndSignupFakeUser(tc, "acct")
 
 	ctx := &Context{
-		LoginUI:  &libkb.TestLoginUI{},
 		SecretUI: &libkb.TestSecretUI{Passphrase: fu.Passphrase},
 	}
 	eng := NewAccountDelete(tc.G)
@@ -60,7 +59,6 @@ func TestAccountDeleteBadPassphrase(t *testing.T) {
 	fu := CreateAndSignupFakeUser(tc, "acct")
 
 	ctx := &Context{
-		LoginUI:  &libkb.TestLoginUI{},
 		SecretUI: &libkb.TestSecretUI{Passphrase: fu.Passphrase + "xxx"},
 	}
 	eng := NewAccountDelete(tc.G)
@@ -87,7 +85,6 @@ func TestAccountDeleteIdentify(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx := &Context{
-		LoginUI:  &libkb.TestLoginUI{},
 		SecretUI: &libkb.TestSecretUI{Passphrase: fu.Passphrase},
 	}
 	eng := NewAccountDelete(tc.G)

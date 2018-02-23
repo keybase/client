@@ -38,7 +38,6 @@ func (c *CmdAccountDelete) ParseArgv(ctx *cli.Context) error {
 
 func (c *CmdAccountDelete) Run() error {
 	protocols := []rpc.Protocol{
-		NewLoginUIProtocol(c.G()),
 		NewSecretUIProtocol(c.G()),
 	}
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
