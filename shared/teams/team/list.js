@@ -10,7 +10,6 @@ import RenderList from './list.render'
 import type {TeamRow, TeamRows} from './row-types'
 
 const renderRow = (index: number, row: TeamRow) => {
-  console.log(row)
   switch (row.type) {
     case 'header': {
       return <TeamHeader key="header" teamname={row.teamname} />

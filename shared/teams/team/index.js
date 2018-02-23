@@ -31,6 +31,7 @@ const Team = (props: Props) => {
   const rows: TeamRows = [{type: 'header', teamname, key: 'headerKey'}]
   rows.push({
     type: 'tabs',
+    key: 'tabs',
     admin: props.yourOperations.manageMembers,
     memberCount: props.memberCount,
     teamname,

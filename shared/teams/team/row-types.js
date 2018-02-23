@@ -2,11 +2,13 @@
 import * as Types from '../../constants/types/teams'
 type HeaderRow = {
   type: 'header',
+  key: 'headerKey',
   teamname: Types.Teamname,
 }
 
 type TabsRow = {
   type: 'tabs',
+  key: 'tabs',
   admin: boolean,
   memberCount: number,
   teamname: Types.Teamname,
