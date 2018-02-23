@@ -114,12 +114,10 @@ build_one_architecture() {
   go build -tags "$go_tags" -ldflags "$ldflags_kbfs" -o \
     "$layout_dir/usr/bin/git-remote-keybase" github.com/keybase/kbfs/kbfsgit/git-remote-keybase
 
-  # Build the mount-helper binary, and add the mount readme directory.
-  echo "Building keybase-mount-helper for $GOARCH..."
+  # Build the root redirector binary.
+  echo "Building keybase-redirector for $GOARCH..."
   go build -tags "$go_tags" -ldflags "$ldflags_client" -o \
-  "$layout_dir/usr/bin/keybase-mount-helper" github.com/keybase/client/go/mounter/keybase-mount-helper
-  mkdir -p "$layout_dir/opt/keybase/mount-readme"
-  cp "$here/README.mount" "$layout_dir/opt/keybase/mount-readme/README"
+  "$layout_dir/usr/bin/keybase-redirector" github.com/keybase/kbfs/redirector
 
   # Build the kbnm binary
   echo "Building kbnm for $GOARCH..."

@@ -7,50 +7,56 @@
 
 set -u
 
-# Create the /keybase symlink to the first mountpoint, if it doesn't
-# already exist. We can't use a regular [ -e ... ] check, because
-# stat'ing /keybase fails with a permissions error when kbfsfuse is
-# mounted, so that check always returns false. Instead we check
-# whether mkdir succeeds.
-rootlink="/keybase"
-vardir="/var/lib/keybase"
-mount1="$vardir/mount1"
-sample="/opt/keybase/mount-readme"
-khuser="keybasehelper"
-khbin="/usr/bin/keybase-mount-helper"
+rootmount="/keybase"
+krbin="/usr/bin/keybase-redirector"
 
-# Create the keybasehelper system user, without login privileges.
-if useradd --system -s /bin/false -U -M $khuser &> /dev/null ; then
-    echo Created $khuser system user for managing mountpoints.
+vardirDeprecated="/var/lib/keybase"
+khuserDeprecated="keybasehelper"
+khbinDeprecated="/usr/bin/keybase-mount-helper"
+
+# Delete the keybasehelper system user, to clean up after older
+# versions.  TODO: remove this once sufficient time has passed since
+# those old releases.
+if userdel $khuserDeprecated &> /dev/null ; then
+    echo Removing $khuserDeprecated system user, as it is no longer needed.
+    rm -f "$khbinDeprecated"
+    rm -rf "$vardirDeprecated"
 fi
 
-chown "$khuser":"$khuser" "$khbin"
-chmod 4755 "$khbin"
-if mkdir $vardir &> /dev/null ; then
-    ln -s "$sample" "$mount1"
-    chown -R "$khuser":"$khuser" "$vardir"
-fi
+chown root:root "$krbin"
+chmod 4755 "$krbin"
 
-currlink=`readlink $rootlink`
-if [ -z "$currlink" ] ; then
-    if fusermount -uz "$rootlink" &> /dev/null ; then
+currlink=`readlink "$rootmount"`
+if [ -n "$currlink" ] ; then
+    # Upgrade from a rootlink-based build.
+    if rm "$rootmount" &> /dev/null ; then
+        echo Replacing old $rootmount symlink.
+    fi
+    if mountpoint "$currlink" &> /dev/null ; then
+        echo Starting root redirector at $rootmount.
+        nohup "$krbin" "$rootmount" > /dev/null 2>&1 &
+    fi
+elif [ -d "$rootmount" ] ; then
+    # Handle upgrading from old builds that don't have the rootlink.
+    currowner=`stat -c %U "$rootmount"`
+    if [ $currowner != "root" ]; then
         # Remove any existing legacy mount.
-        echo Unmounting $rootlink...
+        echo Unmounting $rootmount...
         if killall kbfsfuse &> /dev/null ; then
             echo Shutting down kbfsfuse...
         fi
+        rmdir "$rootmount"
         echo You must run run_keybase to restore file system access.
+    else
+        # TODO: restart the root redirector in case the binary has been updated?
+        pass
     fi
-    if [ -d "$rootlink" ] ; then
-        if rmdir "$rootlink" &> /dev/null ; then
-            echo Replacing old $rootlink directory.
-        else
-            echo WARNING: $rootlink access will not be available, because $rootlink is not empty.
-        fi
-    fi
-    if ln -s -T "$mount1" "$rootlink" &> /dev/null ; then
-        chown "$khuser":"$khuser" "$rootlink"
-    fi
+fi
+
+if ! mountpoint "$rootmount" &> /dev/null; then
+    mkdir -p "$rootmount"
+    chown root:root "$rootmount"
+    chmod 755 "$rootmount"
 fi
 
 # Update the GTK icon cache, if possible.
