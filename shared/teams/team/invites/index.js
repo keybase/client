@@ -34,7 +34,7 @@ export const renderRequestsOrInvitesRow = (index: number, row: RequestsOrInvites
   switch (row.subtype) {
     case 'none':
       return (
-        <Box style={{...globalStyles.flexBoxRow, ...globalStyles.flexBoxCenter}}>
+        <Box key={row.key} style={{...globalStyles.flexBoxRow, ...globalStyles.flexBoxCenter}}>
           <Text
             type="BodySmall"
             key="noRequestsOrInvites"
