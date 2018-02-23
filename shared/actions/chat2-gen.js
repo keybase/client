@@ -31,7 +31,7 @@ export const exitSearch = 'chat2:exitSearch'
 export const inboxRefresh = 'chat2:inboxRefresh'
 export const joinConversation = 'chat2:joinConversation'
 export const leaveConversation = 'chat2:leaveConversation'
-export const loadMoreMessages = 'chat2:loadMoreMessages'
+export const loadOlderMessagesDueToScroll = 'chat2:loadOlderMessagesDueToScroll'
 export const markConversationsStale = 'chat2:markConversationsStale'
 export const markInitiallyLoadedThreadAsRead = 'chat2:markInitiallyLoadedThreadAsRead'
 export const messageAttachmentNativeSave = 'chat2:messageAttachmentNativeSave'
@@ -168,7 +168,7 @@ export const createExitSearch = () => ({error: false, payload: undefined, type: 
 export const createInboxRefresh = (payload: $ReadOnly<{reason: 'bootstrap' | 'teamTypeChanged' | 'inboxSyncedClear' | 'inboxSyncedUnknown' | 'inboxStale' | 'joinedAConversation' | 'leftAConversation' | 'componentNeverLoaded'}>) => ({error: false, payload, type: inboxRefresh})
 export const createJoinConversation = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: joinConversation})
 export const createLeaveConversation = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: leaveConversation})
-export const createLoadMoreMessages = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: loadMoreMessages})
+export const createLoadOlderMessagesDueToScroll = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: loadOlderMessagesDueToScroll})
 export const createMarkConversationsStale = (payload: $ReadOnly<{conversationIDKeys: Array<Types.ConversationIDKey>}>) => ({error: false, payload, type: markConversationsStale})
 export const createMarkInitiallyLoadedThreadAsRead = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: markInitiallyLoadedThreadAsRead})
 export const createMessageAttachmentNativeSave = (
@@ -379,7 +379,7 @@ export type ExitSearchPayload = More.ReturnType<typeof createExitSearch>
 export type InboxRefreshPayload = More.ReturnType<typeof createInboxRefresh>
 export type JoinConversationPayload = More.ReturnType<typeof createJoinConversation>
 export type LeaveConversationPayload = More.ReturnType<typeof createLeaveConversation>
-export type LoadMoreMessagesPayload = More.ReturnType<typeof createLoadMoreMessages>
+export type LoadOlderMessagesDueToScrollPayload = More.ReturnType<typeof createLoadOlderMessagesDueToScroll>
 export type MarkConversationsStalePayload = More.ReturnType<typeof createMarkConversationsStale>
 export type MarkInitiallyLoadedThreadAsReadPayload = More.ReturnType<typeof createMarkInitiallyLoadedThreadAsRead>
 export type MessageAttachmentNativeSavePayload = More.ReturnType<typeof createMessageAttachmentNativeSave>
@@ -447,7 +447,7 @@ export type Actions =
   | More.ReturnType<typeof createInboxRefresh>
   | More.ReturnType<typeof createJoinConversation>
   | More.ReturnType<typeof createLeaveConversation>
-  | More.ReturnType<typeof createLoadMoreMessages>
+  | More.ReturnType<typeof createLoadOlderMessagesDueToScroll>
   | More.ReturnType<typeof createMarkConversationsStale>
   | More.ReturnType<typeof createMarkInitiallyLoadedThreadAsRead>
   | More.ReturnType<typeof createMessageAttachmentNativeSave>

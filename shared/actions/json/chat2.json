@@ -125,7 +125,7 @@
       "pendingMode": "Types.PendingMode"
     },
     // Load some more messages for a conversation
-    "loadMoreMessages": {
+    "loadOlderMessagesDueToScroll": {
       "conversationIDKey": "Types.ConversationIDKey",
     },
     // Show a desktop notification

@@ -29,10 +29,8 @@ import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import flags from '../../util/feature-flags'
 
-// If we're out of date we'll only try and fill a gap of this size, otherwise we throw old messages away
-const largestGapToFillOnSyncCall = 50
 const numMessagesOnInitialLoad = isMobile ? 20 : 50
-const numMessagesPerLoad = isMobile ? 50 : 100
+const numMessagesOnScrollback = isMobile ? 50 : 100
 
 const inboxQuery = {
   computeActiveList: true,
@@ -552,17 +550,29 @@ const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType).reduc
   return arr
 }, [])
 
+// Load new messages on a thread. We call this when you select a conversation, we get a thread-is-stale notification, or when you scroll up and want more messages
+// All actions aside from loadOlderMessagesDueToScroll we load the newest N messages and pass in our idea of the last N (to skip getting dupe messages back)
+// We don't whitelist the topmost message so we can detect if we have a gap above the call we just got back. If we do we need to toss any old messages (to keep things simple)
 const rpcLoadThread = (
   action:
     | Chat2Gen.SelectConversationPayload
-    | Chat2Gen.LoadMoreMessagesPayload
+    | Chat2Gen.LoadOlderMessagesDueToScrollPayload
     | Chat2Gen.SetPendingConversationUsersPayload
     | Chat2Gen.MarkConversationsStalePayload,
   state: TypedState
 ) => {
+  // Get the conversationIDKey
   let key = null
 
-  if (action.type === Chat2Gen.setPendingConversationUsers) {
+  // When we get a push notification the first phase is to select the conversation but its too early to actually load the data
+  // so if we're not actually in the second phase let's just ignore
+  if (action.type === Chat2Gen.selectConversationDueToPush) {
+      if (action.payload.phase !== 'loadNewContent') {
+        logger.info('Load thread bail: push but not loading phase yet')
+        return
+      }
+  }
+  else if (action.type === Chat2Gen.setPendingConversationUsers) {
     if (state.chat2.pendingSelected) {
       const toFind = I.Set(action.payload.users.concat([state.config.username]))
       key = state.chat2.metaMap.findKey(meta =>
@@ -593,24 +603,41 @@ const rpcLoadThread = (
     return
   }
 
-  let recent // if true we're loading newer content
-  let pivot // the messageid we're loading from (newer than or older than)
-  let num = numMessagesPerLoad
+  // the messageid we're loading from (newer than or older than)
+  let pivot = null
+  let numberOfMessagesToLoad
+  // We let the daemon know which ids in this window we are aware of
+  let knownIDs = []
 
   const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
+  const mmap = Constants.getMessageMap(state, conversationIDKey)
   const actions = []
+
+  if (action.type === Chat2Gen.loadOlderMessagesDueToScroll) {
+    numberOfMessagesToLoad = numMessagesOnScrollback
+  } else {
+    numberOfMessagesToLoad = numMessagesOnInitialLoad
+    knownIDs = ordinals.takeLast(num).map(o => mmap.getIn([o, 'id'], 0)).filter(Boolean)
+  }
+
+
+
+
+
+
+
+
+TODO new loading stuf
+
+
+
+
+
   switch (action.type) {
+
     case Chat2Gen.markConversationsStale:
-      // act like case 1
-      recent = false
-      pivot = null
-      num = numMessagesOnInitialLoad
       break
-    case Chat2Gen.selectConversationDueToPush:
-      if (action.payload.phase !== 'loadNewContent') {
-        return
-      }
-    // fallthrough on purpose
+    case Chat2Gen.selectConversationDueToPush: // fallthrough on purpose
     case Chat2Gen.setPendingConversationUsers: // fallthrough . basically the same as selecting
     case Chat2Gen.selectConversation:
       // When we just select a conversation we can be in the following states
@@ -622,7 +649,6 @@ const rpcLoadThread = (
       if (!hasLoaded) {
         // case 1/2
         logger.info('Load thread: case 1/2: not loaded yet')
-        recent = false
         pivot = Constants.getMessageOrdinals(state, conversationIDKey).last() // get messages older than the oldest one we know about
         num = numMessagesOnInitialLoad
       } else {
@@ -637,26 +663,22 @@ const rpcLoadThread = (
             // TEMP 50
             logger.info('Load thread: case 4: small gap, filling in')
             num = largestGapToFillOnSyncCall
-            recent = true
             pivot = secondToLast // newer than the top of the gap
           } else {
             logger.info('Load thread: case 4: big gap, acting like not loaded yet')
             // Gap is too big, treat as Case 1/2 and clear old ordinals
             actions.push(Saga.put(Chat2Gen.createClearOrdinals({conversationIDKey})))
-            recent = false
             pivot = null
           }
         } else {
           // Case 3
           logger.info('Load thread: case 3: already loaded, just load newer')
-          recent = true
           pivot = last
         }
       }
 
       break
-    case Chat2Gen.loadMoreMessages:
-      recent = false // we're always going backwards in time
+    case :
       pivot = Constants.getMessageOrdinals(state, conversationIDKey).first() // get newer messages than the oldest one we know about
       if (pivot && Constants.isOldestOrdinal(pivot)) {
         logger.info('Load thread bail: pivot is oldest')
@@ -704,7 +726,7 @@ const rpcLoadThread = (
   logger.info(
     `Load thread: calling rpc convo: ${conversationIDKey} pivot: ${
       pivot ? Types.ordinalToNumber(pivot) : ''
-    } recent: ${recent ? 'true' : 'false'} num: ${num}`
+    } num: ${num}`
   )
 
   const loadingKey = `loadingThread:${conversationIDKey}`
@@ -725,7 +747,7 @@ const rpcLoadThread = (
         messageIDControl: {
           num,
           pivot,
-          recent,
+          recent: false,
         },
         messageTypes: loadThreadMessageTypes,
       },
@@ -1788,7 +1810,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     [
       Chat2Gen.selectConversation,
       Chat2Gen.selectConversationDueToPush,
-      Chat2Gen.loadMoreMessages,
+      Chat2Gen.loadOlderMessagesDueToScroll,
       Chat2Gen.setPendingConversationUsers,
       Chat2Gen.markConversationsStale,
     ],
