@@ -45,14 +45,10 @@ const Team = (props: Props) => {
     yourOperations: props.yourOperations,
   })
 
-  if (props.selectedTab === 'members') {
-    rows.push(...props.listItems)
-  } else if (props.selectedTab === 'subteams') {
-    rows.push(...props.listItems)
-  } else if (props.selectedTab === 'invites') {
-    rows.push({type: 'invites', teamname})
-  } else if (props.selectedTab === 'publicity') {
+  if (props.selectedTab === 'publicity') {
     rows.push({type: 'settings', teamname})
+  } else {
+    rows.push(...props.listItems)
   }
 
   const popupMenuItems = []

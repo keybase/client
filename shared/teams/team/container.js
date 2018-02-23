@@ -12,6 +12,7 @@ import {anyWaiting} from '../../constants/waiting'
 
 import {membersListItemsConnector} from './members/container'
 import {subteamsListItemsConnector} from './subteams/container'
+import {requestsAndInvitesListItemsConnector} from './invites/container'
 
 /**
  * WARNING: Never add a prop here called `listItems`. That is used by the
@@ -92,5 +93,6 @@ export default compose(
   }),
   branch(props => props.selectedTab === 'members', membersListItemsConnector),
   branch(props => props.selectedTab === 'subteams', subteamsListItemsConnector),
+  branch(props => props.selectedTab === 'invites', requestsAndInvitesListItemsConnector),
   HeaderHoc
 )(Team)

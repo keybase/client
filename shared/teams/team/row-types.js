@@ -29,6 +29,7 @@ type MemberRow = {
   fullName: string,
   username: string,
   teamname: string,
+  key: string,
 }
 
 /* Subteams rows */
@@ -63,18 +64,47 @@ type SubteamNoRow = {
 
 type SubteamRow = SubteamIntroRow | SubteamAddRow | SubteamTeamRow | SubteamNoRow
 
-type InvitesRow = {
+/* Invites rows */
+type Request = {
   type: 'invites',
-  teamname: Types.Teamname,
+  subtype: 'request',
+  key: string,
+  teamname: string,
+  username: string,
 }
+
+type Invite = {
+  type: 'invites',
+  subtype: 'invite',
+  email?: string,
+  name?: string,
+  key: string,
+  id: string,
+  username: string,
+  teamname: string,
+}
+
+type Divider = {
+  type: 'invites',
+  subtype: 'divider',
+  key: 'Invites' | 'Requests',
+}
+
+type NoRequestsOrInvites = {
+  type: 'invites',
+  subtype: 'none',
+  key: 'noRequestsOrInvites',
+}
+
+type RequestsOrInvitesRow = Request | Invite | Divider | NoRequestsOrInvites
 
 type SettingsRow = {
   type: 'settings',
   teamname: Types.Teamname,
 }
 
-type TeamRow = HeaderRow | TabsRow | MemberRow | SubteamRow | InvitesRow | SettingsRow
+type TeamRow = HeaderRow | TabsRow | MemberRow | SubteamRow | RequestsOrInvitesRow | SettingsRow
 
 type TeamRows = Array<TeamRow>
 
-export type {HeaderRow, TabsRow, MemberRow, SubteamRow, InvitesRow, SettingsRow, TeamRow, TeamRows}
+export type {HeaderRow, TabsRow, MemberRow, SubteamRow, RequestsOrInvitesRow, SettingsRow, TeamRow, TeamRows}

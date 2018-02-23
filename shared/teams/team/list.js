@@ -4,7 +4,7 @@ import TeamHeader from './header/container'
 import TeamTabs from './tabs'
 import renderMemberRow from './members/member-row/container'
 import {renderSubteamsRow} from './subteams/index'
-import Invites from './invites/container'
+import {renderRequestsOrInvitesRow} from './invites/index'
 import Settings from './settings/container'
 import RenderList from './list.render'
 import type {TeamRow, TeamRows} from './row-types'
@@ -24,7 +24,7 @@ const renderRow = (index: number, row: TeamRow) => {
       return renderSubteamsRow(index, row)
     }
     case 'invites': {
-      return <Invites key="invites" teamname={row.teamname} />
+      return renderRequestsOrInvitesRow(index, row)
     }
     case 'settings': {
       return <Settings key="settings" teamname={row.teamname} />

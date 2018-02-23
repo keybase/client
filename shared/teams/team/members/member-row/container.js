@@ -90,5 +90,6 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
 const ConnectedMemberRow = connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamMemberRow)
 
 export default function(i: number, props: OwnProps) {
-  return <ConnectedMemberRow key={props.username} {...props} />
+  // $FlowIssue I have no idea but everything works
+  return <ConnectedMemberRow {...props} />
 }
