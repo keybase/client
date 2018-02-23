@@ -21,7 +21,7 @@ type DispatchProps = {
 
 const mapStateToProps = (state: TypedState, {path}: OwnProps) => ({
   sortSetting: state.fs.pathUserSettings.get(path, Constants.makePathUserSetting()).get('sort'),
-  folderIsPending: state.fs.pathItems.get(path, Constants.makeFolder()).progress === 'pending',
+  folderIsPending: state.fs.loadingPaths.has(path),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

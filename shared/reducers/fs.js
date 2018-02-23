@@ -25,9 +25,11 @@ export default function(state: Types.State = initialState, action: FSGen.Actions
         }
         return true
       })
-      return state.mergeIn(['pathItems'], toMerge)
-    case FSGen.folderListLoad:
       return state
+        .mergeIn(['pathItems'], toMerge)
+        .update('loadingPaths', loadingPaths => loadingPaths.delete(action.payload.path))
+    case FSGen.folderListLoad:
+      return state.update('loadingPaths', loadingPaths => loadingPaths.add(action.payload.path))
     case FSGen.sortSetting:
       return state.setIn(['pathUserSettings', action.payload.path, 'sort'], action.payload.sortSetting)
     default:

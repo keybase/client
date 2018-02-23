@@ -63,6 +63,7 @@ export type PathBreadcrumbItem = {
 export type _State = {
   pathItems: I.Map<Path, PathItem>,
   pathUserSettings: I.Map<Path, PathUserSetting>,
+  loadingPaths: I.Set<Path>,
 }
 export type State = I.RecordOf<_State>
 

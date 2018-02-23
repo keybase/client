@@ -42,6 +42,7 @@ export const makePathUserSetting: I.RecordFactory<Types._PathUserSetting> = I.Re
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder()]]),
   pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
+  loadingPaths: I.Set(),
 })
 
 export const makeUUID = () => uuidv1(null, Buffer.alloc(16), 0)
