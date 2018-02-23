@@ -46,7 +46,7 @@ const Team = (props: Props) => {
   })
 
   if (props.selectedTab === 'publicity') {
-    rows.push({type: 'settings', teamname})
+    rows.push({type: 'settings', teamname, key: 'settings'})
   } else {
     rows.push(...props.listItems)
   }
