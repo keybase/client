@@ -1,4 +1,5 @@
 // @flow
+import * as AppGen from '../app-gen'
 import * as Chat2Gen from '../chat2-gen'
 import * as ConfigGen from '../config-gen'
 import * as Constants from '../../constants/chat2'
@@ -15,6 +16,7 @@ import * as TeamsGen from '../teams-gen'
 import * as Types from '../../constants/types/chat2'
 import * as UsersGen from '../users-gen'
 import HiddenString from '../../util/hidden-string'
+import type {NavigateActions} from '../../constants/types/route-tree'
 import engine from '../../engine'
 import logger from '../../logger'
 import type {TypedState, Dispatch} from '../../util/container'
@@ -1486,7 +1488,9 @@ const markThreadAsRead = (
   action:
     | Chat2Gen.SelectConversationPayload
     | Chat2Gen.MessagesAddPayload
-    | Chat2Gen.MarkInitiallyLoadedThreadAsReadPayload,
+    | Chat2Gen.MarkInitiallyLoadedThreadAsReadPayload
+    | AppGen.ChangedFocusPayload
+    | NavigateActions,
   state: TypedState
 ) => {
   if (action.type === Chat2Gen.selectConversation) {
@@ -1543,6 +1547,7 @@ const markThreadAsRead = (
     lastMarkAsRead[s] = message.id
   }
 
+  logger.info(`marking read messages ${conversationIDKey} ${message.id}`)
   return Saga.call(RPCChatTypes.localMarkAsReadLocalRpcPromise, {
     conversationID: Types.keyToConversationID(conversationIDKey),
     msgID: message.id,
@@ -1839,7 +1844,12 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.resetLetThemIn, resetLetThemIn)
 
   yield Saga.safeTakeEveryPure(
-    [Chat2Gen.messagesAdd, Chat2Gen.selectConversation, Chat2Gen.markInitiallyLoadedThreadAsRead],
+    [
+      Chat2Gen.messagesAdd,
+      Chat2Gen.selectConversation,
+      Chat2Gen.markInitiallyLoadedThreadAsRead,
+      a => typeof a.type === 'string' && a.type.startsWith('routeTree:'),
+    ],
     markThreadAsRead
   )
 

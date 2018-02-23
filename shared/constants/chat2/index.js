@@ -102,7 +102,7 @@ export {
   timestampToString,
   unverifiedInboxUIItemToConversationMeta,
   updateMeta,
-  updateMetaWithNotificationSettings ,
+  updateMetaWithNotificationSettings,
 } from './meta'
 
 export {
