@@ -78,13 +78,35 @@ func (k WinCredentialStore) ClearSecret(accountName NormalizedUsername) error {
 	return err
 }
 
+// Move secrets out of files and into the windows cred store
+func (k WinCredentialStore) migrateSecretStoreFile(g *GlobalContext) error {
+	fileStore := NewSecretStoreFile(g.Env.GetDataDir())
+	fileUsers, err := fileStore.GetUsersWithStoredSecrets()
+	if err == nil && len(fileUsers) > 0 {
+		k.context.GetLog().Debug("WinCredentialStore.migrateSecretStoreFile() migrating %d file users", len(fileUsers))
+		for _, fileUser := range fileUsers {
+			fileSecret, err := fileStore.RetrieveSecret(NormalizedUsername(fileUser))
+			if err != nil {
+				continue
+			}
+			err = k.StoreSecret(NormalizedUsername(fileUser), fileSecret)
+			if err != nil {
+				continue
+			}
+			fileStore.ClearSecret(NormalizedUsername(fileUser))
+		}
+	}
+	return nil
+}
+
 func NewSecretStoreAll(g *GlobalContext) SecretStoreAll {
 	if g.Env.ForceSecretStoreFile() {
 		// Allow use of file secret store for development/testing
-		// on MacOS.
 		return NewSecretStoreFile(g.Env.GetDataDir())
 	}
-	return WinCredentialStore{context: g}
+	store := WinCredentialStore{context: g}
+	store.migrateSecretStoreFile(g)
+	return store
 }
 
 func HasSecretStore() bool {
