@@ -73,38 +73,43 @@ const fileTextType = {
   textType: 'Body',
 }
 
+const itemStylesTeamList = {iconType: 'iconfont-nav-teams', ...privateColors, ...folderTextType}
+const itemStylesPublicMe = {iconType: 'iconfont-folder-public-me', ...publicColors, ...folderTextType}
+const itemStylesPrivateMe = {iconType: 'iconfont-folder-private-me', ...privateColors, ...folderTextType}
+const itemStylesPublicFolder = {iconType: 'iconfont-folder-public', ...publicColors, ...folderTextType}
+const itemStylesPublicFile = {iconType: 'iconfont-file-note', ...publicColors, ...fileTextType}
+const itemStylesPrivateFolder = {iconType: 'iconfont-folder-private', ...privateColors, ...folderTextType}
+const itemStylesPrivateFile = {iconType: 'iconfont-file-note', ...privateColors, ...fileTextType}
+const itemStylesPublicUnknown = {iconType: 'iconfont-question-mark', ...publicColors, ...fileTextType}
+const itemStylesPrivateUnknown = {iconType: 'iconfont-question-mark', ...privateColors, ...fileTextType}
+
 export const getItemStyles = (
   path: Types.Path,
   type: Types.PathType,
   username?: string
 ): Types.ItemStyles => {
   if (path === '/keybase/team') {
-    return {iconType: 'iconfont-nav-teams', ...privateColors, ...folderTextType}
+    return itemStylesTeamList
   } else if (username) {
     if (path === `/keybase/public/${username}`) {
-      return {iconType: 'iconfont-folder-public-me', ...publicColors, ...folderTextType}
+      return itemStylesPublicMe
     } else if (path === `/keybase/private/${username}`) {
-      return {iconType: 'iconfont-folder-private-me', ...privateColors, ...folderTextType}
+      return itemStylesPrivateMe
     }
   }
 
-  let colors = privateColors
-  let folderIconType = 'iconfont-folder-private'
   // For icon purposes, we are treating team folders as private.
-  if (Types.getPathElements(path)[1] === 'public') {
-    colors = publicColors
-    folderIconType = 'iconfont-folder-public'
-  }
+  const isPublic = Types.getPathElements(path)[1] === 'public'
 
   switch (type) {
     case 'folder':
-      return {iconType: folderIconType, ...colors, ...folderTextType}
+      return isPublic ? itemStylesPublicFolder : itemStylesPrivateFolder
     case 'file':
       // TODO: different file types
-      return {iconType: 'iconfont-file-note', ...colors, ...fileTextType}
+      return isPublic ? itemStylesPublicFile : itemStylesPrivateFile
     case 'symlink':
-      return {iconType: 'iconfont-file-note', ...colors, ...fileTextType}
+      return isPublic ? itemStylesPublicFile : itemStylesPrivateFile
     default:
-      return {iconType: 'iconfont-question-mark', ...colors, ...fileTextType}
+      return isPublic ? itemStylesPublicUnknown : itemStylesPrivateUnknown
   }
 }
