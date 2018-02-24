@@ -15,7 +15,12 @@ export const sortSetting = 'fs:sortSetting'
 
 // Action Creators
 export const createFolderListLoad = (payload: $ReadOnly<{path: Types.Path}>) => ({error: false, payload, type: folderListLoad})
-export const createFolderListLoaded = (payload: $ReadOnly<{pathItems: I.Map<Types.Path, Types.PathItem>}>) => ({error: false, payload, type: folderListLoaded})
+export const createFolderListLoaded = (
+  payload: $ReadOnly<{
+    path: Types.Path,
+    pathItems: I.Map<Types.Path, Types.PathItem>,
+  }>
+) => ({error: false, payload, type: folderListLoaded})
 export const createSortSetting = (
   payload: $ReadOnly<{
     path: Types.Path,

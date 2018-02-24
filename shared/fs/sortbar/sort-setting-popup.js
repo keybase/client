@@ -31,11 +31,16 @@ const stylesSortSetting = {
 const stylesPopup = {
   position: 'absolute',
   left: 88,
-  top: 64,
+  top: 80,
 }
 const stylesIcon = {
-  marginRight: globalMargins.xtiny,
+  marginRight: globalMargins.tiny,
   color: globalColors.black_75,
+  fontSize: 13,
+}
+
+const iconBoxStyle = {
+  marginTop: 3,
 }
 
 const SortBarPopupMenu = ({routeProps}: SortBarPopupMenuProps) => {
@@ -48,7 +53,9 @@ const SortBarPopupMenu = ({routeProps}: SortBarPopupMenuProps) => {
       title: sortSettingText,
       view: (
         <Box style={stylesSortSetting}>
-          <Icon type={sortSettingIconType} style={stylesIcon} />
+          <Box style={iconBoxStyle}>
+            <Icon type={sortSettingIconType} style={stylesIcon} />
+          </Box>
           <Text type="Body">{sortSettingText}</Text>
         </Box>
       ),

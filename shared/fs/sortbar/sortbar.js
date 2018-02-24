@@ -24,6 +24,17 @@ const stylesIcon = {
   fontSize: 11,
 }
 
+const iconBoxStyle = {
+  marginTop: 4,
+}
+
+const stylesLoading = {
+  ...globalStyles.flexBoxRow,
+  marginLeft: 'auto',
+  marginRight: 32,
+  alignItems: 'center',
+}
+
 export type SortBarProps = {
   sortSetting: Types._SortSetting,
   onOpenSortSettingPopup: () => void,
@@ -36,9 +47,16 @@ const SortBar = (props: SortBarProps) => {
       <Divider />
       <Box style={stylesSortBar}>
         <ClickableBox onClick={props.onOpenSortSettingPopup} style={stylesSortSetting}>
-          <Icon type={sortSettingIconType} style={stylesIcon} />
+          <Box style={iconBoxStyle}>
+            <Icon type={sortSettingIconType} style={stylesIcon} />
+          </Box>
           <Text type="BodySmallSemibold">{sortSettingText}</Text>
         </ClickableBox>
+        {props.folderIsPending ? (
+          <Box style={stylesLoading}>
+            <Text type="BodySmall"> Loading ... </Text>
+          </Box>
+        ) : null}
       </Box>
     </Box>
   )
