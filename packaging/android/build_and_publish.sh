@@ -42,7 +42,7 @@ trap reset EXIT
 
 if [ -n "$kbfs_commit" ]; then
   cd "$kbfs_dir"
-  echo "Checking out $kbfs_commit on client (will reset to $kbfs_branch)"
+  echo "Checking out $kbfs_commit on kbfs (will reset to $kbfs_branch)"
   git checkout "$kbfs_commit"
   # tell gobuild.sh to use our local commit
   export LOCAL_KBFS=1
