@@ -3,7 +3,7 @@ import * as LoginGen from '../../../actions/login-gen'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 import SelectOtherDevice from '.'
 import {connect, type TypedState} from '../../../util/container'
-import {compose, withState} from 'recompose'
+import {compose, withStateHandlers} from 'recompose'
 import {type RouteProps} from '../../../route-tree/render-route'
 import openURL from '../../../util/open-url'
 
@@ -33,5 +33,5 @@ const mapDispatchToProps = dispatch => ({
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
-  withState('showResetLink', 'setShowResetLink', false)
+  withStateHandlers({showResetLink: false}, {setShowResetLink: () => showResetLink => ({showResetLink})})
 )(SelectOtherDevice)

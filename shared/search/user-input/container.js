@@ -10,7 +10,7 @@ import {connect} from 'react-redux'
 import {createShallowEqualSelector} from '../../util/container'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {parseUserId, serviceIdToIcon} from '../../util/platforms'
-import {withState, withHandlers, compose, lifecycle} from 'recompose'
+import {withStateHandlers, withHandlers, compose, lifecycle} from 'recompose'
 
 import type {TypedState} from '../../constants/reducer'
 
@@ -138,8 +138,13 @@ const mapDispatchToProps = (dispatch: Dispatch, {searchKey}) => ({
 
 const ConnectedUserInput: Class<React.Component<OwnProps, void>> = compose(
   connect(mapStateToProps, mapDispatchToProps),
-  withState('searchText', 'onChangeSearchText', ''),
-  withState('selectedService', '_onSelectService', 'Keybase'),
+  withStateHandlers(
+    {searchText: '', selectedService: 'Keybase'},
+    {
+      _onSelectService: () => selectedService => ({selectedService}),
+      onChangeSearchText: () => searchText => ({searchText}),
+    }
+  ),
   HocHelpers.onChangeSelectedSearchResultHoc,
   HocHelpers.clearSearchHoc,
   HocHelpers.showServiceLogicHoc,

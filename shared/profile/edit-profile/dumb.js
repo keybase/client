@@ -18,6 +18,7 @@ const propsBase: RenderProps = {
   onFullnameChange: () => console.log('onFullnameChange'),
   onLocationChange: () => console.log('onLocationChange'),
   onEditProfile: () => console.log('onEditProfile clicked'),
+  title: 'Edit profile',
   parentProps: isMobile ? {} : {style: {display: 'flex', minWidth: 640, height: 580}},
 }
 

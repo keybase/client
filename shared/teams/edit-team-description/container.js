@@ -2,7 +2,7 @@
 import * as TeamsGen from '../../actions/teams-gen'
 import EditTeamDescription from '.'
 import {connect} from 'react-redux'
-import {compose, withState, withHandlers} from 'recompose'
+import {compose, withStateHandlers, withHandlers} from 'recompose'
 
 import type {TypedState} from '../../constants/reducer'
 
@@ -36,7 +36,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 
 const ConnectedEditTeamDescription = compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  withState('description', 'onChangeDescription', props => props.origDescription),
+  withStateHandlers(({origDescription}) => ({description: origDescription}), {
+    onChangeDescription: () => description => ({description}),
+  }),
   withHandlers({
     onSetDescription: ({description, _onSetDescription}) => () => _onSetDescription(description),
   })
