@@ -15,16 +15,6 @@ khuserDeprecated="keybasehelper"
 khbinDeprecated="/usr/bin/keybase-mount-helper"
 optDeprecated="/opt/keybase/mount-readme"
 
-# Delete the keybasehelper system user, to clean up after older
-# versions.  TODO: remove this once sufficient time has passed since
-# those old releases.
-if userdel $khuserDeprecated &> /dev/null ; then
-    echo Removing $khuserDeprecated system user, as it is no longer needed.
-    rm -f "$khbinDeprecated"
-    rm -rf "$vardirDeprecated"
-    rm -rf "$optDeprecated"
-fi
-
 chown root:root "$krbin"
 chmod 4755 "$krbin"
 
@@ -66,6 +56,16 @@ if ! mountpoint "$rootmount" &> /dev/null; then
     mkdir -p "$rootmount"
     chown root:root "$rootmount"
     chmod 755 "$rootmount"
+fi
+
+# Delete the keybasehelper system user, to clean up after older
+# versions.  TODO: remove this once sufficient time has passed since
+# those old releases.
+if userdel $khuserDeprecated &> /dev/null ; then
+    echo Removing $khuserDeprecated system user, as it is no longer needed.
+    rm -f "$khbinDeprecated"
+    rm -rf "$vardirDeprecated"
+    rm -rf "$optDeprecated"
 fi
 
 # Update the GTK icon cache, if possible.
