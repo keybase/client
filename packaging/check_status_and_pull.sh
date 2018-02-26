@@ -29,6 +29,9 @@ if [ ! -d ".git" ] ; then
   exit 1
 fi
 
+# fetch upstream
+git fetch
+
 current_branch="$(git rev-parse --abbrev-ref HEAD)"
 if [ "$current_branch" != "master" ] ; then
   echo "Repo '$repo' doesn't have master checked out."
