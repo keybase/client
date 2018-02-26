@@ -179,9 +179,9 @@ helpers.rootLinuxNode(env, {
                                 // that we can have master breaks, but it
                                 // strikes a good balance between velocity and
                                 // test coverage.
-                                if (env.BRANCH_NAME == "master") {
+                                //if (env.BRANCH_NAME == "master") {
                                     build([
-                                        job: "/kbfs/master",
+                                        job: "/kbfs/PR-1492",
                                         parameters: [
                                             string(
                                                 name: 'clientProjectName',
@@ -193,7 +193,7 @@ helpers.rootLinuxNode(env, {
                                             ),
                                         ]
                                     ])
-                                }
+                                //}
                             },
                         )
                     },
