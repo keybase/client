@@ -8,10 +8,10 @@ import {makeConversationMeta} from './meta'
 import {getPath} from '../../route-tree'
 import {isMobile} from '../platform'
 
-export const DEBUGDumpChat = () => {
+export const DEBUGDumpChat = (conversationIDKey?: ?Types.ConversationIDKey) => {
   const dispatch = isMobile ? global.store.dispatch : window.DEBUGStore.dispatch
   if (!dispatch) return
-  dispatch(Chat2Gen.createDebugDump({}))
+  dispatch(Chat2Gen.createDebugDump({conversationIDKey}))
 }
 
 // TEMP
@@ -107,7 +107,7 @@ export {
 
 export {
   getClientPrev,
-  isOldestOrdinal,
+  // isOldestOrdinal,
   isSpecialMention,
   makeMessageAttachment,
   makeMessageDeleted,

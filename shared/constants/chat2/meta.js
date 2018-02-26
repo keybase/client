@@ -137,8 +137,8 @@ export const updateMeta = (
   return meta.withMutations(m => {
     m.set('channelname', meta.channelname || old.channelname)
     // m.set('hasLoadedThread', hasLoadedThread)
-    m.set('paginationKey', meta.paginationKey)
-    m.set('paginationMoreToLoad', meta.paginationMoreToLoad)
+    m.set('paginationKey', old.paginationKey)
+    m.set('paginationMoreToLoad', old.paginationMoreToLoad)
     m.set('orangeLineOrdinal', old.orangeLineOrdinal)
     m.set('participants', participants)
     m.set('rekeyers', rekeyers)

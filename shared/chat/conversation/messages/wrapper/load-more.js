@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Text, Box, Icon} from '../../../../common-adapters'
-import {globalStyles, isMobile} from '../../../../styles'
+import {globalStyles, globalMargins, isMobile} from '../../../../styles'
 import CreateTeamNotice from '../system-create-team-notice/container'
 
 type Props = {
@@ -12,12 +12,12 @@ type Props = {
 class MessageLoadingMore extends React.PureComponent<Props> {
   render() {
     return (
-      <Box>
-        <Box style={secureStyle}>
-          {this.props.type === 'noMoreToLoad' && (
+      <Box style={containerStyle}>
+        {this.props.type === 'noMoreToLoad' && (
+          <Box style={secureStyle}>
             <Icon type={isMobile ? 'icon-secure-static-266' : 'icon-secure-266'} />
-          )}
-        </Box>
+          </Box>
+        )}
         {this.props.showTeamOffer && (
           <Box style={moreStyle}>
             <CreateTeamNotice />
@@ -30,6 +30,10 @@ class MessageLoadingMore extends React.PureComponent<Props> {
       </Box>
     )
   }
+}
+
+const containerStyle = {
+  paddingTop: globalMargins.small,
 }
 
 const secureStyle = {

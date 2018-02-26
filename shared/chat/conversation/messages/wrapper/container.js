@@ -21,6 +21,11 @@ const mapStateToProps = (state: TypedState, {message, previous, innerClass, isSe
   const orangeLineAbove = !!previous && meta.orangeLineOrdinal === previous.ordinal
   const showTeamOffer = meta.teamType === 'adhoc' && meta.participants.size > 2
 
+  let loadMoreType = null
+  if (!previous) {
+    loadMoreType = meta.paginationMoreToLoad ? 'moreToLoad' : 'noMoreToLoad'
+  }
+
   return {
     hasOlderResetConversation,
     innerClass,
@@ -29,6 +34,7 @@ const mapStateToProps = (state: TypedState, {message, previous, innerClass, isSe
     isFollowing,
     isSelected,
     isYou,
+    loadMoreType,
     message,
     orangeLineAbove,
     previous,
@@ -73,15 +79,6 @@ const mergeProps = (stateProps, dispatchProps) => {
   const timestamp =
     stateProps.orangeLineAbove || !previous || oldEnough ? formatTimeForMessages(message.timestamp) : null
   const includeHeader = !previous || !continuingTextBlock || !!timestamp
-  let loadMoreType = null
-  if (!previous) {
-    if (Constants.isOldestOrdinal(message.ordinal)) {
-      loadMoreType = 'noMoreToLoad'
-    } else {
-      loadMoreType = 'moreToLoad'
-    }
-  }
-
   const failureDescription =
     message.type === 'text' || message.type === 'attachment' ? message.errorReason : null
 
@@ -99,7 +96,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     isRevoked: !!message.deviceRevokedAt,
     isSelected: stateProps.isSelected,
     isYou: stateProps.isYou,
-    loadMoreType,
+    loadMoreType: stateProps.loadMoreType,
     message,
     onAuthorClick: () => dispatchProps._onAuthorClick(message.author),
     onEdit: () => dispatchProps._onEdit(message.conversationIDKey, message.ordinal),

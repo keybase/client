@@ -571,6 +571,11 @@ const loadMoreMessages = (
       logger.info('Load thread bail: push but not loading phase yet')
       return
     }
+    key = Constants.getSelectedConversation(state)
+    // not selected still?
+    if (action.payload.conversationIDKey !== key) {
+      return
+    }
   } else if (action.type === Chat2Gen.setPendingConversationUsers) {
     if (state.chat2.pendingSelected) {
       const toFind = I.Set(action.payload.users.concat([state.config.username]))
@@ -711,8 +716,10 @@ const loadMoreMessages = (
         yield Saga.put(
           Chat2Gen.createMetaUpdatePagination({
             conversationIDKey,
-            paginationKey: Types.stringToPaginationKey(uiMessages.pagination.next),
-            paginationMoreToLoad: !uiMessages.pagination.last,
+            paginationKey: Types.stringToPaginationKey(
+              (uiMessages.pagination && uiMessages.pagination.next) || ''
+            ),
+            paginationMoreToLoad: uiMessages.pagination ? !uiMessages.pagination.last : true,
           })
         )
       }
@@ -1699,7 +1706,7 @@ const debugDump = (action: Chat2Gen.DebugDumpPayload, state: TypedState) => {
   const chat = state.chat2
   const c = action.payload.conversationIDKey
   if (c) {
-    data = {
+    data = I.Map({
       badgeMap: chat.badgeMap.get(c),
       editingMap: chat.editingMap.get(c),
       loadingMap: chat.loadingMap,
@@ -1713,15 +1720,20 @@ const debugDump = (action: Chat2Gen.DebugDumpPayload, state: TypedState) => {
       selectedConversation: chat.selectedConversation,
       typingMap: chat.typingMap.get(c),
       unreadMap: chat.unreadMap.get(c),
-    }
+    }).toJS()
   } else {
     data = chat.toJS()
   }
-  return Saga.put(
-    ConfigGen.createDebugDump({
-      items: JSON.stringify(data, null, 2).split('\n'),
-    })
-  )
+
+  if (isMobile) {
+    return Saga.put(
+      ConfigGen.createDebugDump({
+        items: JSON.stringify(data, null, 2).split('\n'),
+      })
+    )
+  } else {
+    console.log(data)
+  }
 }
 
 const joinConversation = (action: Chat2Gen.JoinConversationPayload) =>

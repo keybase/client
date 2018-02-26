@@ -157,7 +157,7 @@ export const createBlockConversation = (
 ) => ({error: false, payload, type: blockConversation})
 export const createClearOrdinals = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: clearOrdinals})
 export const createClearPendingConversation = () => ({error: false, payload: undefined, type: clearPendingConversation})
-export const createDebugDump = (payload: $ReadOnly<{conversationIDKey?: Types.ConversationIDKey}>) => ({error: false, payload, type: debugDump})
+export const createDebugDump = (payload: $ReadOnly<{conversationIDKey?: ?Types.ConversationIDKey}>) => ({error: false, payload, type: debugDump})
 export const createDesktopNotification = (
   payload: $ReadOnly<{
     conversationIDKey: Types.ConversationIDKey,

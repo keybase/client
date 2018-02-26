@@ -494,12 +494,12 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         }
       )
 
-      const metaMap =
-        context.type === 'threadLoadFull' && state.metaMap.get(context.conversationIDKey)
-          ? state.metaMap.update(context.conversationIDKey, (meta: Types.ConversationMeta) =>
-              meta.set('hasLoadedThread', true)
-            )
-          : state.metaMap
+      // const metaMap =
+      // context.type === 'threadLoadFull' && state.metaMap.get(context.conversationIDKey)
+      // ? state.metaMap.update(context.conversationIDKey, (meta: Types.ConversationMeta) =>
+      // meta.set('hasLoadedThread', true)
+      // )
+      // : state.metaMap
 
       // console.log(
       // 'aaa redu: metamap',
@@ -513,7 +513,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       // )
 
       return state.withMutations(s => {
-        s.set('metaMap', metaMap)
+        // s.set('metaMap', metaMap)
         s.set('messageMap', messageMap)
         s.set('messageOrdinals', messageOrdinals)
         s.set('pendingOutboxToOrdinal', pendingOutboxToOrdinal)
