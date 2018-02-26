@@ -1207,6 +1207,8 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 			} else {
 				if len(newMsg) > 0 {
 					newMaxMsgs = append(newMaxMsgs, newMsg[0])
+				} else {
+					newMaxMsgs = append(newMaxMsgs, mm)
 				}
 			}
 		}
