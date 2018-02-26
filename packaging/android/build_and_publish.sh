@@ -44,7 +44,7 @@ if [ -n "$kbfs_commit" ]; then
   cd "$kbfs_dir"
   echo "Checking out $kbfs_commit on kbfs (will reset to $kbfs_branch)"
   git checkout "$kbfs_commit"
-  # tell gobuild.sh to use our local commit
+  # tell gobuild.sh (called via "yarn run rn-gobuild-android" below) to use our local commit
   export LOCAL_KBFS=1
 fi
 
