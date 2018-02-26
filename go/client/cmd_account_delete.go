@@ -36,6 +36,12 @@ func (c *CmdAccountDelete) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
+func NewCmdAccountDeleteRunner(g *libkb.GlobalContext) *CmdAccountDelete {
+	return &CmdAccountDelete{
+		Contextified: libkb.NewContextified(g),
+	}
+}
+
 func (c *CmdAccountDelete) Run() error {
 	protocols := []rpc.Protocol{
 		NewSecretUIProtocol(c.G()),

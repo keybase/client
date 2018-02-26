@@ -6,10 +6,7 @@
 package engine
 
 import (
-	"fmt"
-
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 // AccountDelete is an engine.
@@ -49,11 +46,7 @@ func (e *AccountDelete) SubConsumers() []libkb.UIConsumer {
 // Run starts the engine.
 func (e *AccountDelete) Run(ctx *Context) error {
 	username := e.G().GetEnv().GetUsername().String()
-	arg := libkb.DefaultPassphraseArg(e.G())
-	arg.WindowTitle = "Keybase passphrase"
-	arg.Type = keybase1.PassphraseType_PASS_PHRASE
-	arg.Username = username
-	arg.Prompt = fmt.Sprintf("Please enter the Keybase passphrase for %s", username)
+	arg := libkb.DefaultPassphrasePromptArg(e.G(), username)
 	res, err := ctx.SecretUI.GetPassphrase(arg, nil)
 	if err != nil {
 		return err

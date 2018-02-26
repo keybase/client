@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type CmdAccountReset struct {
@@ -40,6 +41,12 @@ func (c *CmdAccountReset) ParseArgv(ctx *cli.Context) error {
 }
 
 func (c *CmdAccountReset) Run() error {
+	protocols := []rpc.Protocol{
+		NewSecretUIProtocol(c.G()),
+	}
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
+		return err
+	}
 	cli, err := GetAccountClient(c.G())
 	if err != nil {
 		return err

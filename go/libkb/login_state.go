@@ -411,11 +411,11 @@ func (s *LoginState) GetVerifiedTriplesec(ui SecretUI) (ret Triplesec, gen Passp
 // correct generation number of the current passphrase from the server.
 func (s *LoginState) VerifyPlaintextPassphrase(pp string, after afterFn) (ppStream *PassphraseStream, err error) {
 	err = s.loginHandle(func(lctx LoginContext) error {
-		ret := s.verifyPlaintextPassphraseForLoggedInUser(lctx, pp)
-		if ret == nil {
+		err := s.verifyPlaintextPassphraseForLoggedInUser(lctx, pp)
+		if err == nil {
 			ppStream = lctx.PassphraseStreamCache().PassphraseStream()
 		}
-		return ret
+		return err
 	}, after, "VerifyPlaintextPassphrase")
 	return
 }
