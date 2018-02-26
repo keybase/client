@@ -5,12 +5,12 @@
     "import HiddenString from '../util/hidden-string'"
   ],
   "actions": {
-    // Set the loading state
+    // Set the loading state. Loading true increments the value
     "setLoading": {
       "key": "string",
       "loading": "boolean"
     },
-    // Select the pending conversation conversation
+    // Select the pending conversation (building a search or a set of users from a folder)
     "setPendingSelected": {
       "selected": "boolean"
     },
@@ -20,15 +20,14 @@
       "fromUser?": "boolean", // true if this is a direct result of the user clicking
       "asAPreview?": "boolean", // true if you want to preview the conversation
     },
-    // Select an existing conversation or setup an empty one. Can either be adhoc or
-    // a tlf (adhoc or team)
-    // if forceImmediate make it even without any text
+    // Select an existing conversation or setup an empty one. Can either be adhoc or a tlf (adhoc or team)
+    // forceImmediate to make it immediately. Normally conversations are made when you actually send text
     "startConversation":{
       "participants?": "?Array<string>",
       "tlf?": "?string",
       "forceImmediate?": "boolean"
     },
-    // We got updated badges
+    // Update our badges in the nav
     "badgesUpdated": {
       "conversations": "Array<RPCTypes.BadgeConversationInfo>"
     },
@@ -38,7 +37,7 @@
     "inboxRefresh": {
       "reason": "'bootstrap' | 'teamTypeChanged' | 'inboxSyncedClear' | 'inboxSyncedUnknown' | 'inboxStale' | 'joinedAConversation' | 'leftAConversation' | 'componentNeverLoaded'", // why this happened for logging
     },
-    // Update the jump to conversation filter
+    // Update the 'jump to conversation' filter
     "setInboxFilter": {
       "filter": "string"
     },
@@ -130,6 +129,7 @@
     "clearOrdinals": {
       "conversationIDKey": "Types.ConversationIDKey"
     },
+    // Update why we have a pending conversation, either we're searching or we have a fixed set of users (you clicked a folder for example)
     "setPendingMode": {
       "pendingMode": "Types.PendingMode"
     },
@@ -166,18 +166,23 @@
     "openFolder": {
       "conversationIDKey": "Types.ConversationIDKey",
     },
+    // If an implied team chat member resets you can start a new chat w/o any reset people
     "resetChatWithoutThem": {
       "conversationIDKey": "Types.ConversationIDKey",
     },
+    // If an implied team chat member resets you can add them back in
     "resetLetThemIn": {
       "conversationIDKey": "Types.ConversationIDKey",
       "username": "string"
     },
+    // You're done searching
     "exitSearch": { },
+    // Update the pending conversation users
     "setPendingConversationUsers": {
       "users": "Array<string>",
       "fromSearch": "boolean"
     },
+    // Actually starting a conversation from a search. SendingAction is what happens after the chat is created
     "sendToPendingConversation": {
       "users": "Array<string>",
       "sendingAction": "More.ReturnType<typeof createMessageSend> | More.ReturnType<typeof createAttachmentUpload>"
@@ -193,17 +198,20 @@
     },
     // Internal action: pull more attachment previews from the queue to request
     "attachmentHandleQueue": { },
+    // Load an image attachment
     "attachmentLoad": {
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal",
       "isPreview": "boolean"
     },
+    // Update the loading bars
     "attachmentLoading": {
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal",
       "ratio": "number", // 0-1
       "isPreview": "boolean",
     },
+    // An attachment is done loading
     "attachmentLoaded": {
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal",
@@ -215,25 +223,30 @@
         "isPreview": "boolean",
       }
     },
+    // We want to save an attachment to the local disk
     "attachmentDownload": {
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal",
     },
+    // We saved an attachment to the local disk
     "attachmentDownloaded": {
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal",
       "path": "string",
     },
+    // We want to upload an attachment
     "attachmentUpload": {
       "conversationIDKey": "Types.ConversationIDKey",
       "path": "string",
       "title": "string",
     },
+    // Update progress on an upload
     "attachmentUploading": {
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal",
       "ratio": "number", // 0-1
     },
+    // We're done uploading
     "attachmentUploaded": {
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal",
@@ -244,11 +257,11 @@
       "placeholderID": "RPCChatTypes.MessageID",
       "message": "Types.MessageAttachment",
     },
-    // Incoming typers
+    // Update who's typing in a conversation
     "updateTypers": {
       "conversationToTypers": "I.Map<Types.ConversationIDKey, I.Set<string>>"
     },
-    // We are typing
+    // Tell server we're typing
     "sendTyping": {
       "conversationIDKey": "Types.ConversationIDKey",
       "typing": "boolean"
@@ -258,15 +271,19 @@
     "markInitiallyLoadedThreadAsRead": {
       "conversationIDKey": "Types.ConversationIDKey",
     },
+    // Server told us a conversation is out of date
     "markConversationsStale": {
       "conversationIDKeys": "Array<Types.ConversationIDKey>",
     },
+    // Navigation helpers. Nav is slightly different on mobile / desktop
     "navigateToInbox": {},
     "navigateToThread": {},
+    // Share to external app on mobile
     "messageAttachmentNativeShare": {
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal",
     },
+    // Save on mobile (camera roll)
     "messageAttachmentNativeSave": {
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal",
@@ -276,19 +293,23 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "phase": "'showImmediately' | 'loadNewContent'"
     },
+    // We're changing the notification settings
     "updateNotificationSettings": {
       "conversationIDKey": "Types.ConversationIDKey",
       "notificationsDesktop": "Types.NotificationsType",
       "notificationsMobile": "Types.NotificationsType",
       "notificationsGlobalIgnoreMentions": "boolean",
     },
+    // We get new notification settings
     "notificationSettingsUpdated": {
       "conversationIDKey": "Types.ConversationIDKey",
       "settings": "RPCChatTypes.ConversationNotificationInfo"
     },
+    // To help debug whats going on w/ the chat store
     "debugDump": {
       "conversationIDKey?": "?Types.ConversationIDKey",
     },
+    // Block a user
     "blockConversation": {
       "conversationIDKey": "Types.ConversationIDKey",
       "reportUser": "boolean"
