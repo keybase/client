@@ -1,7 +1,7 @@
 #! /usr/bin/env bash
 
 # This script handles distro-independent Linux post-install tasks. Currently
-# that means creating the /keybase directory and making it writable. The deb-
+# that means managing the /keybase redirector mountpoint. The deb-
 # and rpm-specific post-install scripts call into this after doing their
 # distro-specific work, which is mainly setting up package repos for updates.
 
