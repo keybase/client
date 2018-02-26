@@ -96,38 +96,6 @@ func TestSecretStoreFileStoreSecret(t *testing.T) {
 	}
 }
 
-func TestSecretStoreFileStoreSecretV2(t *testing.T) {
-	td, tdClean := testSSDir(t)
-	defer tdClean()
-
-	cases := map[string]struct {
-		username NormalizedUsername
-		secret   []byte
-	}{
-		"new entry": {"charlie", []byte("charliecharliecharliecharliechar")},
-		"upgrade":   {"alice", []byte("alice_next_secret_alice_next_sec")},
-	}
-
-	ss := NewSecretStoreFile(td)
-
-	for name, test := range cases {
-		fs, err := newLKSecFullSecretFromBytes(test.secret)
-		if err != nil {
-			t.Fatalf("failed to make new full secret: %s", err)
-		}
-		if err := ss.storeSecretV2(test.username, fs); err != nil {
-			t.Fatalf("%s: %s", name, err)
-		}
-		secret, err := ss.retrieveSecretV2(test.username)
-		if err != nil {
-			t.Fatalf("%s: %s", name, err)
-		}
-		if !bytes.Equal(secret.Bytes(), test.secret) {
-			t.Errorf("%s: secret: %x, expected %x", name, secret, test.secret)
-		}
-	}
-}
-
 func TestSecretStoreFileClearSecret(t *testing.T) {
 	td, tdClean := testSSDir(t)
 	defer tdClean()
@@ -213,4 +181,61 @@ func TestSecretStoreFileGetUsersWithStoredSecrets(t *testing.T) {
 	if users[1] != "xavier" {
 		t.Errorf("user 1: %s, expected xavier", users[1])
 	}
+}
+
+func assertExists(t *testing.T, path string) {
+	exists, err := FileExists(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !exists {
+		t.Errorf("expected %s to exist", path)
+	}
+}
+
+func assertNotExists(t *testing.T, path string) {
+	exists, err := FileExists(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if exists {
+		t.Errorf("expected %s to not exist", path)
+	}
+}
+
+func TestSecretStoreFileRetrieveUpgrade(t *testing.T) {
+	td, tdClean := testSSDir(t)
+	defer tdClean()
+
+	assertExists(t, filepath.Join(td, "alice.ss"))
+	assertNotExists(t, filepath.Join(td, "alice.ss2"))
+	assertNotExists(t, filepath.Join(td, "alice.ns2"))
+	assertExists(t, filepath.Join(td, "bob.ss"))
+	assertNotExists(t, filepath.Join(td, "bob.ss2"))
+	assertNotExists(t, filepath.Join(td, "bob.ns2"))
+
+	ss := NewSecretStoreFile(td)
+
+	// retrieve secret for alice should upgrade from alice.ss to alice.ss2
+	secret, err := ss.RetrieveSecret("alice")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assertNotExists(t, filepath.Join(td, "alice.ss"))
+	assertExists(t, filepath.Join(td, "alice.ss2"))
+	assertExists(t, filepath.Join(td, "alice.ns2"))
+
+	secretUpgraded, err := ss.RetrieveSecret("alice")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(secret.Bytes(), secretUpgraded.Bytes()) {
+		t.Errorf("alice secret changed after upgrade")
+	}
+
+	// bob v1 should be untouched
+	assertExists(t, filepath.Join(td, "bob.ss"))
+	assertNotExists(t, filepath.Join(td, "bob.ss2"))
+	assertNotExists(t, filepath.Join(td, "bob.ns2"))
 }

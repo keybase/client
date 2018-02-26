@@ -27,6 +27,32 @@ func NewSecretStoreFile(dir string) *SecretStoreFile {
 }
 
 func (s *SecretStoreFile) RetrieveSecret(username NormalizedUsername) (LKSecFullSecret, error) {
+	secret, err := s.retrieveSecretV2(username)
+	if err == nil {
+		return secret, nil
+	}
+
+	if err != ErrSecretForUserNotFound {
+		return LKSecFullSecret{}, err
+	}
+
+	// check for v1
+	secret, err = s.retrieveSecretV1(username)
+	if err != nil {
+		return LKSecFullSecret{}, err
+	}
+
+	// upgrade to v2
+	if err := s.StoreSecret(username, secret); err != nil {
+		return secret, err
+	}
+	if err := s.clearSecretV1(username); err != nil {
+		return secret, err
+	}
+	return secret, nil
+}
+
+func (s *SecretStoreFile) retrieveSecretV1(username NormalizedUsername) (LKSecFullSecret, error) {
 	secret, err := ioutil.ReadFile(s.userpath(username))
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -66,56 +92,6 @@ func (s *SecretStoreFile) retrieveSecretV2(username NormalizedUsername) (LKSecFu
 	return newLKSecFullSecretFromBytes(secret)
 }
 
-func (s *SecretStoreFile) StoreSecret(username NormalizedUsername, secret LKSecFullSecret) error {
-	if err := os.MkdirAll(s.dir, 0700); err != nil {
-		return err
-	}
-
-	f, err := ioutil.TempFile(s.dir, username.String())
-	if err != nil {
-		return err
-	}
-
-	// remove the temp file if it still exists at the end of this function
-	defer os.Remove(f.Name())
-
-	if runtime.GOOS != "windows" {
-		// os.Fchmod not supported on windows
-		if err := f.Chmod(0600); err != nil {
-			return err
-		}
-	}
-	if _, err := f.Write(secret.Bytes()); err != nil {
-		return err
-	}
-	if err := f.Close(); err != nil {
-		return err
-	}
-
-	final := s.userpath(username)
-
-	exists, err := FileExists(final)
-	if err != nil {
-		return err
-	}
-
-	if err := os.Rename(f.Name(), final); err != nil {
-		return err
-	}
-
-	if err := os.Chmod(final, 0600); err != nil {
-		return err
-	}
-
-	// if we just created the secret store file for the
-	// first time, notify anyone interested.
-	if !exists && s.notifyCreate != nil {
-		s.notifyCreate(username)
-	}
-
-	return nil
-}
-
 func (s *SecretStoreFile) noiseXOR(secret, noise []byte) ([]byte, error) {
 	sum := sha256.Sum256(noise)
 	if len(sum) != len(secret) {
@@ -130,7 +106,7 @@ func (s *SecretStoreFile) noiseXOR(secret, noise []byte) ([]byte, error) {
 	return xor, nil
 }
 
-func (s *SecretStoreFile) storeSecretV2(username NormalizedUsername, secret LKSecFullSecret) error {
+func (s *SecretStoreFile) StoreSecret(username NormalizedUsername, secret LKSecFullSecret) error {
 	noise, err := RandBytes(1024 * 1024 * 2)
 	if err != nil {
 		return err
@@ -271,7 +247,7 @@ func (s *SecretStoreFile) clearSecretV2(username NormalizedUsername) error {
 }
 
 func (s *SecretStoreFile) GetUsersWithStoredSecrets() ([]string, error) {
-	files, err := filepath.Glob(filepath.Join(s.dir, "*.ss"))
+	files, err := filepath.Glob(filepath.Join(s.dir, "*.ss*"))
 	if err != nil {
 		return nil, err
 	}
