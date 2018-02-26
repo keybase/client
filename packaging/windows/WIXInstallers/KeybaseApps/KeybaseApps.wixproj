@@ -6,7 +6,7 @@
     <ProductVersion>%25KEYBASE_VERSION%25</ProductVersion>
     <ProjectGuid>cb18799f-a8c7-4571-b80f-6c00a0cd88fd</ProjectGuid>
     <SchemaVersion>2.0</SchemaVersion>
-    <OutputName>Keybase</OutputName>
+    <OutputName>Keybase_%25KEYBASE_VERSION%25.%25GOARCH%25</OutputName>
     <OutputType>Package</OutputType>
     <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' AND '$(MSBuildExtensionsPath32)' != '' ">$(MSBuildExtensionsPath32)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
     <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' ">$(MSBuildExtensionsPath)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
@@ -40,7 +40,14 @@
     <PostBuildEvent>if /I "$(ConfigurationName)" == "Release" "%25SIGNTOOL%25" sign /v /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /i "%25CERTISSUER%25" "$(TargetDir)$(TargetFileName)"</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PreBuildEvent>"%25WIX%25bin\heat" dir %25GOPATH%25\src\github.com\keybase\client\shared\desktop\release\win32-ia32\Keybase-win32-ia32 -cg GuiComps -ag -sfrag -template fragment  -var var.GuiSourceDir  -dr INSTALLFOLDER -t $(ProjectDir)\gui.xsl -out $(ProjectDir)\gui.wxs</PreBuildEvent>
+    <PreBuildEvent>"%25WIX%25bin\heat" dir %25GOPATH%25\src\github.com\keybase\client\shared\desktop\release\win32-ia32\Keybase-win32-ia32 -cg GuiComps -ag -sfrag -template fragment  -var var.GuiSourceDir  -dr INSTALLFOLDER -t $(ProjectDir)\gui.xsl -out $(ProjectDir)\gui.wxs
+cd /d "$(ProjectDir)"
+if NOT exist Redist\dokan-dev\1.1.0.2000\DokanSetup_redist.exe (
+      if NOT exist Redist\ mkdir Redist
+      if NOT exist Redist\dokan-dev\ mkdir Redist\dokan-dev\
+      if NOT exist Redist\dokan-dev\1.1.0.200 mkdir Redist\dokan-dev\1.1.0.200
+      powershell -command "wget http://s3.amazonaws.com/prerelease.keybase.io/windows-support/dokan-dev/1.1.0.2000/DokanSetup_redist.exe -OutFile Redist\dokan-dev\1.1.0.200\DokanSetup_redist.exe"
+)</PreBuildEvent>
   </PropertyGroup>
   <!--
 	To modify your build process, add your task inside one of the targets below and uncomment it.

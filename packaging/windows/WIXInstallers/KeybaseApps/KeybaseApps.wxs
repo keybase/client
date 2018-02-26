@@ -9,14 +9,6 @@
     <Property Id="ARPURLINFOABOUT" Value="https://www.keybase.io"/>
     <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"/>
     <Property Id="EXECUTABLETARGET" Value="bin"/>
-    <!-- This seems to be the best way to detect pending reboot - MsiSystemRebootPending did NOT work -->
-    <Property Id="RESTART_PENDING">
-      <RegistrySearch Id="RestartPending"
-                      Root="HKLM"
-                      Key="SYSTEM\CurrentControlSet\Control\Session Manager"
-                      Name="PendingFileRenameOperations"
-                      Type="raw" />
-    </Property>
 
     <MajorUpgrade DowngradeErrorMessage="A newer version of Keybase is already installed." AllowSameVersionUpgrades="yes"  />	
 
@@ -60,9 +52,7 @@
   <Fragment>
 		<Directory Id="TARGETDIR" Name="SourceDir">
 			<Directory Id="LocalAppDataFolder">
-        <Directory Id="INSTALLPARENT" Name="Keybase">
-          <Directory Id="INSTALLFOLDER" Name="bin">
-          </Directory>
+        <Directory Id="INSTALLFOLDER" Name="Keybase">
         </Directory>
       </Directory>
       <Directory Id="StartupFolder" Name="Startup" />
@@ -81,7 +71,6 @@
         <RemoveFolder Id="GuiResourcesDirRemove" On="uninstall" Directory="GuiResourcesDir"/>
         <RemoveFolder Id="GuiNodeModulesDirRemove" On="uninstall" Directory="GuiNodeModulesDir"/>
         <RemoveFolder Id="GuiRegeditDirRemove" On="uninstall" Directory="GuiRegeditDir"/>
-        <RemoveFolder Id="InstallParentDirRemove" On="uninstall" Directory="INSTALLPARENT"/>
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
           <RegistryValue Name="KeybaseExe" Value="1" KeyPath="yes" Type="integer" />
         </RegistryKey>
@@ -130,16 +119,6 @@
           <RegistryValue Name="prompterexe" Value="1" KeyPath="yes" Type="integer" />
         </RegistryKey>
         <File Id="prompter.exe" Source="$(env.GOPATH)\src\github.com\keybase\go-updater\windows\WpfPrompter\WpfApplication1\bin\Release\prompter.exe" Checksum="yes"/>
-      </Component>
-      <!-- The cleaner will look at these to make sure it only scrubs the driver we installed -->
-      <Component Id="RegistryEntries" Guid="{753F8CE7-57CF-4824-865F-55B1FA520C48}">
-        <RegistryKey Root="HKCU"
-                     Key="Software\Keybase\Keybase"
-              Action="createAndRemoveOnUninstall">
-          <RegistryValue Type="string" Name="DOKANPRODUCT86" Value="[DOKANPRODUCT86]"/>
-          <RegistryValue Type="string" Name="DOKANPRODUCT64" Value="[DOKANPRODUCT64]"/>
-	        <RegistryValue Type="string" Name="BUNDLEKEY" Value="[BUNDLEKEY]"/>
-        </RegistryKey>
       </Component>
     </ComponentGroup>
   </Fragment>
@@ -272,11 +251,4 @@
       ]]>
     </CustomAction>
   </Fragment>
-  <Fragment>
-    <CustomAction Id="SetINSTALLFOLDER"
-         Directory="INSTALLFOLDER"
-         Value="upgrade_$(env.KEYBASE_VERSION)"
-    </CustomAction>
-  </Fragment>
-
 </Wix>

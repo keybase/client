@@ -190,25 +190,12 @@ function findKeybaseUninstallString(): Promise<string> {
 // or it won't be visible to the user. The service also does this to support command line
 // operations.
 function installCachedDokan(): Promise<*> {
-  return findKeybaseUninstallString().then(
-    modifyCommand =>
-      new Promise((resolve, reject) => {
-        if (modifyCommand) {
-          // use the action logger so it has a chance of making it into the upload
-          logger.action('Invoking repair to add driver: ' + modifyCommand)
-          execFile(modifyCommand, [
-            '/modify',
-            'driver=1',
-            'modifyprompt=Press "Repair" to view files in Explorer',
-          ])
-          resolve()
-        } else {
-          const err = new Error('Cannot find Keybase uninstall string')
-          logger.error('Cannot find Keybase uninstall string')
-          reject(err)
-        }
-      })
-  )
+  return new Promise((resolve, reject) => {
+    // use the action logger so it has a chance of making it into the upload
+    logger.action('Invoking dokan installer')
+    execFile('DokanSetup_redist.exe', [])
+    resolve()
+  })
 }
 
 function installDokanSaga() {
