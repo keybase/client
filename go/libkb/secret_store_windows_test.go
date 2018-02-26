@@ -4,10 +4,14 @@
 package libkb
 
 import (
+	"os"
 	"testing"
 )
 
 func TestSecretStoreWinFileMigrate(t *testing.T) {
+
+	// use of windows secret store is temporarily admin only
+	os.Setenv("KEYBASE_FEATURES", "admin")
 
 	tc := SetupTest(t, "secret store ops", 1)
 	defer tc.Cleanup()
