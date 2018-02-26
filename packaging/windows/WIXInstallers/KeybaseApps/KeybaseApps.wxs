@@ -8,6 +8,7 @@
     <Property Id="ARPHELPLINK" Value="https://www.keybase.io"/>
     <Property Id="ARPURLINFOABOUT" Value="https://www.keybase.io"/>
     <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"/>
+    <Property Id="EXECUTABLETARGET" Value="bin"/>
     <!-- This seems to be the best way to detect pending reboot - MsiSystemRebootPending did NOT work -->
     <Property Id="RESTART_PENDING">
       <RegistrySearch Id="RestartPending"
@@ -26,6 +27,7 @@
       <ComponentGroupRef Id="StartupShortcuts" />
       <ComponentGroupRef Id="GuiStartMenuTileColors" />
       <ComponentGroupRef Id="BrowserExtensionKbnm" />
+      <ComponentGroupRef Id="DokanInstallerComponents" />
     </Feature>
 
 
@@ -58,7 +60,9 @@
   <Fragment>
 		<Directory Id="TARGETDIR" Name="SourceDir">
 			<Directory Id="LocalAppDataFolder">
-        <Directory Id="INSTALLFOLDER" Name="Keybase">
+        <Directory Id="INSTALLPARENT" Name="Keybase">
+          <Directory Id="INSTALLFOLDER" Name="bin">
+          </Directory>
         </Directory>
       </Directory>
       <Directory Id="StartupFolder" Name="Startup" />
@@ -77,6 +81,7 @@
         <RemoveFolder Id="GuiResourcesDirRemove" On="uninstall" Directory="GuiResourcesDir"/>
         <RemoveFolder Id="GuiNodeModulesDirRemove" On="uninstall" Directory="GuiNodeModulesDir"/>
         <RemoveFolder Id="GuiRegeditDirRemove" On="uninstall" Directory="GuiRegeditDir"/>
+        <RemoveFolder Id="InstallParentDirRemove" On="uninstall" Directory="INSTALLPARENT"/>
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
           <RegistryValue Name="KeybaseExe" Value="1" KeyPath="yes" Type="integer" />
         </RegistryKey>
@@ -179,6 +184,20 @@
 
     </ComponentGroup>
   </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="DokanInstallerComponents" Directory="INSTALLFOLDER">
+      <Component Id="dokaninstall.exe" Guid="{EA473E0D-2F53-4055-807F-EB70EAE3109E}">
+        <CreateFolder />
+        <RemoveFolder Id="RemoveDokanInstaller" On="uninstall" />
+        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
+          <RegistryValue Name="DokanInstaller" Value="1" KeyPath="yes" Type="integer" />
+        </RegistryKey>
+        <File Id="DokanSetup_redist.exe" Source="$(env.DOKAN_PATH)\DokanSetup_redist.exe" Checksum="yes"/>
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+
   <Fragment>
     <Component Id="GUIShortCutComponent" Guid="{95AB14DC-1529-423E-A20C-C0A8C63AF94E}" Directory="ProgramMenuFolder">
       <Shortcut Id="GUIShortCut"
@@ -252,6 +271,12 @@
         oReg.DeleteValue HKCU,strKeyPath,strValueName
       ]]>
     </CustomAction>
-  </Fragment>  
+  </Fragment>
+  <Fragment>
+    <CustomAction Id="SetINSTALLFOLDER"
+         Directory="INSTALLFOLDER"
+         Value="upgrade_$(env.KEYBASE_VERSION)"
+    </CustomAction>
+  </Fragment>
 
 </Wix>
