@@ -12,7 +12,6 @@ import (
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -591,13 +590,6 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 					return chat1.ThreadView{}, rl, ierr
 				}
 
-				// Before returning the stuff, update SenderDeviceRevokedAt on each message.
-				updatedMessages, err := s.updateMessages(ctx, thread.Messages)
-				if err != nil {
-					return chat1.ThreadView{}, rl, err
-				}
-				thread.Messages = updatedMessages
-
 				// Before returning the stuff, send remote request to mark as read if
 				// requested.
 				if query != nil && query.MarkAsRead && len(thread.Messages) > 0 {
@@ -669,63 +661,6 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		return thread, rl, err
 	}
 	return thread, rl, nil
-}
-
-func (s *HybridConversationSource) updateMessages(ctx context.Context, messages []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error) {
-	updatedMessages := make([]chat1.MessageUnboxed, 0, len(messages))
-	for _, m := range messages {
-		m2, err := s.updateMessage(ctx, m)
-		if err != nil {
-			return updatedMessages, err
-		}
-		updatedMessages = append(updatedMessages, m2)
-	}
-	return updatedMessages, nil
-}
-
-func (s *HybridConversationSource) updateMessage(ctx context.Context, message chat1.MessageUnboxed) (chat1.MessageUnboxed, error) {
-	typ, err := message.State()
-	if err != nil {
-		return chat1.MessageUnboxed{}, err
-	}
-	switch typ {
-	case chat1.MessageUnboxedState_VALID:
-		m := message.Valid()
-
-		var verificationKey []byte
-
-		if m.HeaderSignature != nil {
-			verificationKey = m.HeaderSignature.K
-		}
-
-		if m.VerificationKey != nil {
-			verificationKey = *m.VerificationKey
-		}
-
-		if verificationKey == nil {
-			// Skip revocation check for messages cached before the sig/key was part of the cache.
-			s.Debug(ctx, "updateMessage skipping message (%v) with no cached HeaderSignature", m.ServerHeader.MessageID)
-			return message, nil
-		}
-
-		sender := m.ClientHeader.Sender
-		ctime := m.ServerHeader.Ctime
-		found, validAtCtime, revoked, err := s.boxer.ValidSenderKey(ctx, sender, verificationKey, ctime)
-		if err != nil {
-			return chat1.MessageUnboxed{}, err
-		}
-		if !found {
-			return chat1.MessageUnboxed{}, NewPermanentUnboxingError(libkb.NoKeyError{Msg: "sender key not found"})
-		}
-		if !validAtCtime {
-			return chat1.MessageUnboxed{}, NewPermanentUnboxingError(libkb.NoKeyError{Msg: "key invalid for sender at message ctime"})
-		}
-		m.SenderDeviceRevokedAt = revoked
-		updatedMessage := chat1.NewMessageUnboxedWithValid(m)
-		return updatedMessage, nil
-	default:
-		return message, nil
-	}
 }
 
 type pullLocalResultCollector struct {
