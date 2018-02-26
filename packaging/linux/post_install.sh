@@ -28,6 +28,7 @@ chmod 4755 "$krbin"
 
 run_redirector() {
   logdir="${XDG_CACHE_HOME:-$HOME/.cache}/keybase"
+  mkdir -p "$logdir"
   nohup "$krbin" "$rootmount" >> $logdir/keybase.redirector.log 2>&1 &
 }
 
