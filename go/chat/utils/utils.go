@@ -354,6 +354,8 @@ func VisibleChatMessageTypes() []chat1.MessageType {
 	return []chat1.MessageType{
 		chat1.MessageType_TEXT,
 		chat1.MessageType_ATTACHMENT,
+		chat1.MessageType_JOIN,
+		chat1.MessageType_LEAVE,
 		chat1.MessageType_SYSTEM,
 	}
 }
