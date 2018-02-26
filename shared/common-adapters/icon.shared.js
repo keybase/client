@@ -7,7 +7,7 @@ export function defaultColor(type: IconType): ?string {
   switch (type) {
     case 'iconfont-proof-broken':
       return globalColors.red
-    case 'iconfont-pending':
+    case 'iconfont-proof-pending':
       return globalColors.black_40
     case 'iconfont-close':
       return globalColors.black_20
@@ -19,7 +19,7 @@ export function defaultColor(type: IconType): ?string {
 export function defaultHoverColor(type: IconType): ?string {
   switch (type) {
     case 'iconfont-proof-broken':
-    case 'iconfont-pending':
+    case 'iconfont-proof-pending':
       return defaultColor(type)
     case 'iconfont-close':
       return globalColors.black_60

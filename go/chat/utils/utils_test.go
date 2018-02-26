@@ -54,9 +54,9 @@ func newTestTeamChannelSource(channels []string) *testTeamChannelSource {
 }
 
 func (t *testTeamChannelSource) GetChannelsTopicName(ctx context.Context, uid gregor1.UID,
-	teamID chat1.TLFID, topicType chat1.TopicType) (res []types.ConvIDAndTopicName, rl []chat1.RateLimit, err error) {
+	teamID chat1.TLFID, topicType chat1.TopicType) (res []chat1.ChannelNameMention, rl []chat1.RateLimit, err error) {
 	for _, c := range t.channels {
-		res = append(res, types.ConvIDAndTopicName{
+		res = append(res, chat1.ChannelNameMention{
 			TopicName: c,
 		})
 	}
@@ -89,10 +89,10 @@ func TestParseChannelNameMentions(t *testing.T) {
 	text := "#miketime is secret. #general has everyone. #random exists. #offtopic does not."
 	matches := ParseChannelNameMentions(context.TODO(), text, uid, teamID,
 		newTestTeamChannelSource(chans))
-	expected := []types.ConvIDAndTopicName{
-		types.ConvIDAndTopicName{TopicName: "miketime"},
-		types.ConvIDAndTopicName{TopicName: "general"},
-		types.ConvIDAndTopicName{TopicName: "random"},
+	expected := []chat1.ChannelNameMention{
+		chat1.ChannelNameMention{TopicName: "miketime"},
+		chat1.ChannelNameMention{TopicName: "general"},
+		chat1.ChannelNameMention{TopicName: "random"},
 	}
 	require.Equal(t, expected, matches)
 }

@@ -467,6 +467,18 @@ func (o ConversationIDMessageIDPairs) DeepCopy() ConversationIDMessageIDPairs {
 	}
 }
 
+type ChannelNameMention struct {
+	ConvID    ConversationID `codec:"convID" json:"convID"`
+	TopicName string         `codec:"topicName" json:"topicName"`
+}
+
+func (o ChannelNameMention) DeepCopy() ChannelNameMention {
+	return ChannelNameMention{
+		ConvID:    o.ConvID.DeepCopy(),
+		TopicName: o.TopicName,
+	}
+}
+
 type ConversationMemberStatus int
 
 const (
@@ -555,6 +567,7 @@ type GetInboxQuery struct {
 	Status            []ConversationStatus       `codec:"status" json:"status"`
 	MemberStatus      []ConversationMemberStatus `codec:"memberStatus" json:"memberStatus"`
 	Existences        []ConversationExistence    `codec:"existences" json:"existences"`
+	MembersTypes      []ConversationMembersType  `codec:"membersTypes" json:"membersTypes"`
 	ConvIDs           []ConversationID           `codec:"convIDs" json:"convIDs"`
 	UnreadOnly        bool                       `codec:"unreadOnly" json:"unreadOnly"`
 	ReadOnly          bool                       `codec:"readOnly" json:"readOnly"`
@@ -646,6 +659,17 @@ func (o GetInboxQuery) DeepCopy() GetInboxQuery {
 			}
 			return ret
 		})(o.Existences),
+		MembersTypes: (func(x []ConversationMembersType) []ConversationMembersType {
+			if x == nil {
+				return nil
+			}
+			var ret []ConversationMembersType
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.MembersTypes),
 		ConvIDs: (func(x []ConversationID) []ConversationID {
 			if x == nil {
 				return nil

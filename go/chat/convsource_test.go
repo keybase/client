@@ -22,6 +22,7 @@ func TestGetThreadSupersedes(t *testing.T) {
 }
 
 func testGetThreadSupersedes(t *testing.T, deleteHistory bool) {
+	t.Logf("stage deleteHistory:%v", deleteHistory)
 	ctx, world, ri, _, sender, _ := setupTest(t, 1)
 	defer world.Cleanup()
 
@@ -612,6 +613,25 @@ func TestGetThreadHoleResolution(t *testing.T) {
 	require.Error(t, err)
 }
 
+type acquireRes struct {
+	blocked bool
+	err     error
+}
+
+func timedAcquire(ctx context.Context, t *testing.T, hcs *HybridConversationSource, uid gregor1.UID, convID chat1.ConversationID) (ret bool, err error) {
+	cb := make(chan struct{})
+	go func() {
+		ret, err = hcs.lockTab.Acquire(ctx, uid, convID)
+		close(cb)
+	}()
+	select {
+	case <-cb:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "acquire timeout")
+	}
+	return ret, err
+}
+
 func TestConversationLocking(t *testing.T) {
 	ctx, world, ri2, _, sender, _ := setupTest(t, 1)
 	defer world.Cleanup()
@@ -627,19 +647,6 @@ func TestConversationLocking(t *testing.T) {
 		t.Skip()
 	}
 
-	timedAcquire := func(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (ret bool) {
-		cb := make(chan struct{})
-		go func() {
-			ret = hcs.lockTab.Acquire(ctx, uid, convID)
-			close(cb)
-		}()
-		select {
-		case <-cb:
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "acquire timeout")
-		}
-		return ret
-	}
 	conv := newConv(ctx, t, tc, uid, ri, sender, u.Username)
 
 	t.Logf("Trace 1 can get multiple locks")
@@ -648,7 +655,8 @@ func TestConversationLocking(t *testing.T) {
 		NewCachingIdentifyNotifier(tc.Context()))
 	acquires := 5
 	for i := 0; i < acquires; i++ {
-		timedAcquire(ctx, uid, conv.GetConvID())
+		_, err := timedAcquire(ctx, t, hcs, uid, conv.GetConvID())
+		require.NoError(t, err)
 	}
 	for i := 0; i < acquires; i++ {
 		hcs.lockTab.Release(ctx, uid, conv.GetConvID())
@@ -660,11 +668,13 @@ func TestConversationLocking(t *testing.T) {
 		&breaks, NewCachingIdentifyNotifier(tc.Context()))
 	blockCb := make(chan struct{})
 	hcs.lockTab.blockCb = &blockCb
-	cb := make(chan struct{})
-	require.False(t, timedAcquire(ctx, uid, conv.GetConvID()))
+	cb := make(chan acquireRes)
+	blocked, err := timedAcquire(ctx, t, hcs, uid, conv.GetConvID())
+	require.NoError(t, err)
+	require.False(t, blocked)
 	go func() {
-		require.True(t, timedAcquire(ctx2, uid, conv.GetConvID()))
-		close(cb)
+		blocked, err = timedAcquire(ctx2, t, hcs, uid, conv.GetConvID())
+		cb <- acquireRes{blocked: blocked, err: err}
 	}()
 	select {
 	case <-cb:
@@ -677,17 +687,133 @@ func TestConversationLocking(t *testing.T) {
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "not blocked")
 	}
+
 	require.True(t, hcs.lockTab.Release(ctx, uid, conv.GetConvID()))
 	select {
-	case <-cb:
+	case res := <-cb:
+		require.NoError(t, res.err)
+		require.True(t, res.blocked)
 	case <-time.After(20 * time.Second):
-		require.Fail(t, "no cb")
+		require.Fail(t, "not blocked")
 	}
 	require.True(t, hcs.lockTab.Release(ctx2, uid, conv.GetConvID()))
 	require.Zero(t, len(hcs.lockTab.convLocks))
 
 	t.Logf("No trace")
-	require.False(t, timedAcquire(context.TODO(), uid, conv.GetConvID()))
-	require.False(t, timedAcquire(context.TODO(), uid, conv.GetConvID()))
+	blocked, err = timedAcquire(context.TODO(), t, hcs, uid, conv.GetConvID())
+	require.NoError(t, err)
+	require.False(t, blocked)
+	blocked, err = timedAcquire(context.TODO(), t, hcs, uid, conv.GetConvID())
+	require.NoError(t, err)
+	require.False(t, blocked)
 	require.Zero(t, len(hcs.lockTab.convLocks))
+}
+
+func TestConversationLockingDeadlock(t *testing.T) {
+	ctx, world, ri2, _, sender, _ := setupTest(t, 3)
+	defer world.Cleanup()
+
+	ri := ri2.(*kbtest.ChatRemoteMock)
+	u := world.GetUsers()[0]
+	u2 := world.GetUsers()[1]
+	u3 := world.GetUsers()[2]
+	uid := u.User.GetUID().ToBytes()
+	tc := world.Tcs[u.Username]
+	syncer := NewSyncer(tc.Context())
+	syncer.isConnected = true
+	hcs := tc.Context().ConvSource.(*HybridConversationSource)
+	if hcs == nil {
+		t.Skip()
+	}
+	conv := newBlankConvWithMembersType(ctx, t, tc, uid, ri, sender, u.Username,
+		chat1.ConversationMembersType_KBFS)
+	conv2 := newBlankConvWithMembersType(ctx, t, tc, uid, ri, sender, u2.Username+","+u.Username,
+		chat1.ConversationMembersType_KBFS)
+	conv3 := newBlankConvWithMembersType(ctx, t, tc, uid, ri, sender, u3.Username+","+u.Username,
+		chat1.ConversationMembersType_KBFS)
+
+	var breaks []keybase1.TLFIdentifyFailure
+	ctx = Context(context.TODO(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI, &breaks,
+		NewCachingIdentifyNotifier(tc.Context()))
+	ctx2 := Context(context.TODO(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI, &breaks,
+		NewCachingIdentifyNotifier(tc.Context()))
+	ctx3 := Context(context.TODO(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI, &breaks,
+		NewCachingIdentifyNotifier(tc.Context()))
+
+	blocked, err := timedAcquire(ctx, t, hcs, uid, conv.GetConvID())
+	require.NoError(t, err)
+	require.False(t, blocked)
+	blocked, err = timedAcquire(ctx2, t, hcs, uid, conv2.GetConvID())
+	require.NoError(t, err)
+	require.False(t, blocked)
+	blocked, err = timedAcquire(ctx3, t, hcs, uid, conv3.GetConvID())
+	require.NoError(t, err)
+	require.False(t, blocked)
+
+	blockCb := make(chan struct{})
+	hcs.lockTab.blockCb = &blockCb
+	cb := make(chan acquireRes)
+	go func() {
+		blocked, err = hcs.lockTab.Acquire(ctx, uid, conv2.GetConvID())
+		cb <- acquireRes{blocked: blocked, err: err}
+	}()
+	select {
+	case <-blockCb:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "not blocked")
+	}
+
+	hcs.lockTab.maxAcquireRetries = 1
+	cb2 := make(chan acquireRes)
+	go func() {
+		blocked, err = hcs.lockTab.Acquire(ctx2, uid, conv3.GetConvID())
+		cb2 <- acquireRes{blocked: blocked, err: err}
+	}()
+	select {
+	case <-blockCb:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "not blocked")
+	}
+
+	cb3 := make(chan acquireRes)
+	go func() {
+		blocked, err = hcs.lockTab.Acquire(ctx3, uid, conv.GetConvID())
+		cb3 <- acquireRes{blocked: blocked, err: err}
+	}()
+	select {
+	case <-blockCb:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "not blocked")
+	}
+	select {
+	case res := <-cb3:
+		require.Error(t, res.err)
+		require.IsType(t, errConvLockTabDeadlock, res.err)
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "never failed")
+	}
+
+	require.True(t, hcs.lockTab.Release(ctx, uid, conv.GetConvID()))
+	blocked, err = timedAcquire(ctx3, t, hcs, uid, conv.GetConvID())
+	require.NoError(t, err)
+	require.False(t, blocked)
+	require.True(t, hcs.lockTab.Release(ctx2, uid, conv2.GetConvID()))
+	select {
+	case res := <-cb:
+		require.NoError(t, res.err)
+		require.True(t, res.blocked)
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "not blocked")
+	}
+	require.True(t, hcs.lockTab.Release(ctx3, uid, conv3.GetConvID()))
+	select {
+	case res := <-cb2:
+		require.NoError(t, res.err)
+		require.True(t, res.blocked)
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "not blocked")
+	}
+
+	require.True(t, hcs.lockTab.Release(ctx, uid, conv2.GetConvID()))
+	require.True(t, hcs.lockTab.Release(ctx2, uid, conv3.GetConvID()))
 }

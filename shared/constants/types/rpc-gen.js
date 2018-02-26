@@ -516,6 +516,7 @@ export const constantsStatusCode = {
   scteamkeymasknotfound: 2697,
   scteambanned: 2702,
   scteaminvalidban: 2703,
+  scteamshowcasepermdenied: 2711,
   scteamprovisionalcankey: 2721,
   scteamprovisionalcannotkey: 2722,
 }
@@ -1228,6 +1229,10 @@ export const pgpSignMode = {
   clear: 2,
 }
 
+export const pprofLogTraceRpcChannelMap = (configKeys: Array<string>, request: PprofLogTraceRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pprof.logTrace', request)
+
+export const pprofLogTraceRpcPromise = (request: PprofLogTraceRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pprof.logTrace', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+
 export const pprofTraceRpcChannelMap = (configKeys: Array<string>, request: PprofTraceRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pprof.trace', request)
 
 export const pprofTraceRpcPromise = (request: PprofTraceRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pprof.trace', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
@@ -1802,10 +1807,6 @@ export const uiPromptDefault = {
   yes: 1,
   no: 2,
 }
-
-export const userDeleteUserRpcChannelMap = (configKeys: Array<string>, request: UserDeleteUserRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.deleteUser', request)
-
-export const userDeleteUserRpcPromise = (request: UserDeleteUserRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.deleteUser', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const userGetUPAKRpcChannelMap = (configKeys: Array<string>, request: UserGetUPAKRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.getUPAK', request)
 
@@ -2932,6 +2933,8 @@ export type PingResponse = $ReadOnly<{timestamp: Time}>
 
 export type PlatformInfo = $ReadOnly<{os: String, osVersion: String, arch: String, goVersion: String}>
 
+export type PprofLogTraceRpcParam = $ReadOnly<{logDirForMobile: String, traceDurationSeconds: DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
 export type PprofTraceRpcParam = $ReadOnly<{traceFile: String, traceDurationSeconds: DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type ProblemSet = $ReadOnly<{user: User, kid: KID, tlfs?: ?Array<ProblemTLF>}>
@@ -3494,6 +3497,7 @@ export type StatusCode =
   | 2697 // SCTeamKeyMaskNotFound_2697
   | 2702 // SCTeamBanned_2702
   | 2703 // SCTeamInvalidBan_2703
+  | 2711 // SCTeamShowcasePermDenied_2711
   | 2721 // SCTeamProvisionalCanKey_2721
   | 2722 // SCTeamProvisionalCannotKey_2722
 
@@ -3849,8 +3853,6 @@ export type UninstallResult = $ReadOnly<{componentResults?: ?Array<ComponentResu
 export type User = $ReadOnly<{uid: UID, username: String}>
 
 export type UserCard = $ReadOnly<{following: Int, followers: Int, uid: UID, fullName: String, location: String, bio: String, website: String, twitter: String, youFollowThem: Boolean, theyFollowYou: Boolean, teamShowcase?: ?Array<UserTeamShowcase>}>
-
-export type UserDeleteUserRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type UserGetUPAKRpcParam = $ReadOnly<{uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 

@@ -6,7 +6,6 @@ import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as More from '../constants/types/more'
 import * as Types from '../constants/types/notifications'
-import {type Tab} from '../constants/tabs'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of notifications but is handled by every reducer

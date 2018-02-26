@@ -127,6 +127,11 @@
     array<ConversationIDMessageIDPair> pairs;
   }
 
+  record ChannelNameMention {
+    ConversationID convID;
+    string topicName;
+  }
+
   enum ConversationMemberStatus {
     ACTIVE_0,  // in the channel
     REMOVED_1, // removed from channel forcibly
@@ -164,6 +169,8 @@
     array<ConversationMemberStatus> memberStatus;
     // If left empty, default is active
     array<ConversationExistence> existences;
+    // If left empty, default is any type
+    array<ConversationMembersType> membersTypes;
 
     // Extended list of conversation IDs to fetch (don't need to set convID, if convID is set then
     // this it will be like appending it to this list)
@@ -263,7 +270,9 @@
     // creator info for the conversation
     union { null, ConversationCreatorInfo } creatorInfo;
 
-    Expunge expunge; // The latest history deletion. Defaults to zeroes.
+    // The latest history deletion. Defaults to zeroes.
+    // The client keeps this synced for retention but not for delete-history messages.
+    Expunge expunge;
     union { null, RetentionPolicy } convRetention;
     union { null, RetentionPolicy } teamRetention;
   }

@@ -37,7 +37,7 @@ const CreateChannel = (props: Props) => (
     {errorHeader(props.errorText)}
     <Box style={_boxStyle}>
       <Box style={_backStyle} onClick={props.onBack}>
-        <Icon style={_backIcon} type="iconfont-back" />
+        <Icon style={_backIcon} type="iconfont-arrow-left" />
         <Text type="BodyPrimaryLink" onClick={props.onBack}>
           Back
         </Text>

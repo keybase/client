@@ -77,8 +77,3 @@ type Inbox struct {
 	Convs           []chat1.ConversationLocal
 	Pagination      *chat1.Pagination
 }
-
-type ConvIDAndTopicName struct {
-	ConvID    chat1.ConversationID
-	TopicName string
-}

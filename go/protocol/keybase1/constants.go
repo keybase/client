@@ -154,6 +154,7 @@ const (
 	StatusCode_SCTeamKeyMaskNotFound       StatusCode = 2697
 	StatusCode_SCTeamBanned                StatusCode = 2702
 	StatusCode_SCTeamInvalidBan            StatusCode = 2703
+	StatusCode_SCTeamShowcasePermDenied    StatusCode = 2711
 	StatusCode_SCTeamProvisionalCanKey     StatusCode = 2721
 	StatusCode_SCTeamProvisionalCannotKey  StatusCode = 2722
 )
@@ -305,6 +306,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCTeamKeyMaskNotFound":       2697,
 	"SCTeamBanned":                2702,
 	"SCTeamInvalidBan":            2703,
+	"SCTeamShowcasePermDenied":    2711,
 	"SCTeamProvisionalCanKey":     2721,
 	"SCTeamProvisionalCannotKey":  2722,
 }
@@ -454,6 +456,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	2697: "SCTeamKeyMaskNotFound",
 	2702: "SCTeamBanned",
 	2703: "SCTeamInvalidBan",
+	2711: "SCTeamShowcasePermDenied",
 	2721: "SCTeamProvisionalCanKey",
 	2722: "SCTeamProvisionalCannotKey",
 }

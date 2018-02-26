@@ -355,6 +355,8 @@ func tailFile(log logger.Logger, which string, filename string, numBytes int) (r
 }
 
 // LogSend sends the the tails of log files to kb
+//
+// TODO: Also include trace output files.
 func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, numBytes int) (string, error) {
 	logs := l.Logs
 	var kbfsLog string

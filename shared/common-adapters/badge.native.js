@@ -23,15 +23,15 @@ const defaultBadgeStyle = {
   flex: 0,
   alignItems: 'center',
   justifyContent: 'center',
-  paddingLeft: 5,
-  paddingRight: 5,
-  paddingTop: 2,
+  paddingLeft: 6,
+  paddingRight: 6,
+  paddingTop: 4,
   paddingBottom: 2,
 }
 
 const textStyle = {
   flex: 0,
-  lineHeight: 13,
+  lineHeight: 12,
   fontSize: 11,
   color: globalColors.white,
 }

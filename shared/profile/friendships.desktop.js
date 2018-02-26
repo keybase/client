@@ -112,9 +112,7 @@ class FriendshipsRender extends Component<Props> {
             {followers === 0 &&
               isYou && (
                 <Box style={friendshipEmptyStyle}>
-                  <Text type="Body" style={{color: globalColors.black_40}}>
-                    You have no followers.
-                  </Text>
+                  <Text type="BodySmall">You have no followers.</Text>
                 </Box>
               )}
             <ReactList
@@ -136,9 +134,7 @@ class FriendshipsRender extends Component<Props> {
             {following === 0 &&
               isYou && (
                 <Box style={friendshipEmptyStyle}>
-                  <Text type="Body" style={{color: globalColors.black_40}}>
-                    You are not following anyone.
-                  </Text>
+                  <Text type="BodySmall">You are not following anyone.</Text>
                 </Box>
               )}
             <ReactList
@@ -157,6 +153,7 @@ class FriendshipsRender extends Component<Props> {
 const friendshipEmptyStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
+  marginTop: globalMargins.medium,
 }
 
 export default FriendshipsRender

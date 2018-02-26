@@ -239,9 +239,10 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 	}
 }
 
+// Verify that the user had the explicit on-chain role just before this `link`.
 func (l *TeamLoader) verifyExplicitPermission(ctx context.Context, state *keybase1.TeamData,
 	link *chainLinkUnpacked, uv keybase1.UserVersion, atOrAbove keybase1.TeamRole) error {
-	return (TeamSigChainState{state.Chain}).AssertWasRoleOrAboveAt(uv, atOrAbove, link.SigChainLocation())
+	return (TeamSigChainState{state.Chain}).AssertWasRoleOrAboveAt(uv, atOrAbove, link.SigChainLocation().Sub1())
 }
 
 // Does not return a full TeamData because it might get a subteam-reader version.
@@ -305,7 +306,7 @@ func (l *TeamLoader) verifyAdminPermissions(ctx context.Context,
 	// In the simple case, we don't ask for explicit adminship, so we have to be admins of
 	// the current chain at or before the signature in question.
 	if explicitAdmin == nil {
-		err := teamChain.AssertWasAdminAt(uv, link.SigChainLocation())
+		err := teamChain.AssertWasAdminAt(uv, link.SigChainLocation().Sub1())
 		return signer, err
 	}
 

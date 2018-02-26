@@ -1113,6 +1113,18 @@ func (h *Server) PostDeleteHistoryUpto(ctx context.Context, arg chat1.PostDelete
 	return h.PostLocal(ctx, parg)
 }
 
+func (h *Server) PostDeleteHistoryThrough(ctx context.Context, arg chat1.PostDeleteHistoryThroughArg) (res chat1.PostLocalRes, err error) {
+	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "PostDeleteHistoryThrough")()
+	return h.PostDeleteHistoryUpto(ctx, chat1.PostDeleteHistoryUptoArg{
+		ConversationID:   arg.ConversationID,
+		TlfName:          arg.TlfName,
+		TlfPublic:        arg.TlfPublic,
+		IdentifyBehavior: arg.IdentifyBehavior,
+		Upto:             arg.Through + 1,
+	})
+}
+
 func (h *Server) PostDeleteHistoryByAge(ctx context.Context, arg chat1.PostDeleteHistoryByAgeArg) (res chat1.PostLocalRes, err error) {
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostDeleteHistoryByAge")()

@@ -286,6 +286,10 @@ export const localPostDeleteHistoryByAgeRpcChannelMap = (configKeys: Array<strin
 
 export const localPostDeleteHistoryByAgeRpcPromise = (request: LocalPostDeleteHistoryByAgeRpcParam): Promise<LocalPostDeleteHistoryByAgeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postDeleteHistoryByAge', request, (error: RPCError, result: LocalPostDeleteHistoryByAgeResult) => (error ? reject(error) : resolve(result))))
 
+export const localPostDeleteHistoryThroughRpcChannelMap = (configKeys: Array<string>, request: LocalPostDeleteHistoryThroughRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postDeleteHistoryThrough', request)
+
+export const localPostDeleteHistoryThroughRpcPromise = (request: LocalPostDeleteHistoryThroughRpcParam): Promise<LocalPostDeleteHistoryThroughResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postDeleteHistoryThrough', request, (error: RPCError, result: LocalPostDeleteHistoryThroughResult) => (error ? reject(error) : resolve(result))))
+
 export const localPostDeleteHistoryUptoRpcChannelMap = (configKeys: Array<string>, request: LocalPostDeleteHistoryUptoRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postDeleteHistoryUpto', request)
 
 export const localPostDeleteHistoryUptoRpcPromise = (request: LocalPostDeleteHistoryUptoRpcParam): Promise<LocalPostDeleteHistoryUptoResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.postDeleteHistoryUpto', request, (error: RPCError, result: LocalPostDeleteHistoryUptoResult) => (error ? reject(error) : resolve(result))))
@@ -595,6 +599,8 @@ export type ChannelMention =
   | 1 // ALL_1
   | 2 // HERE_2
 
+export type ChannelNameMention = $ReadOnly<{convID: ConversationID, topicName: String}>
+
 export type ChatActivity = {activityType: 1, incomingMessage: ?IncomingMessage} | {activityType: 2, readMessage: ?ReadMessageInfo} | {activityType: 3, newConversation: ?NewConversationInfo} | {activityType: 4, setStatus: ?SetStatusInfo} | {activityType: 5, failedMessage: ?FailedMessageInfo} | {activityType: 6, membersUpdate: ?MembersUpdateInfo} | {activityType: 7, setAppNotificationSettings: ?SetAppNotificationSettingsInfo} | {activityType: 8, teamtype: ?TeamTypeInfo} | {activityType: 9, expunge: ?ExpungeInfo}
 
 export type ChatActivityType =
@@ -760,7 +766,7 @@ export type GetInboxLocalQuery = $ReadOnly<{name?: ?NameQuery, topicName?: ?Stri
 
 export type GetInboxLocalRes = $ReadOnly<{conversationsUnverified?: ?Array<Conversation>, pagination?: ?Pagination, offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 
-export type GetInboxQuery = $ReadOnly<{convID?: ?ConversationID, topicType?: ?TopicType, tlfID?: ?TLFID, tlfVisibility?: ?Keybase1.TLFVisibility, before?: ?Gregor1.Time, after?: ?Gregor1.Time, oneChatTypePerTLF?: ?Boolean, status?: ?Array<ConversationStatus>, memberStatus?: ?Array<ConversationMemberStatus>, existences?: ?Array<ConversationExistence>, convIDs?: ?Array<ConversationID>, unreadOnly: Boolean, readOnly: Boolean, computeActiveList: Boolean, summarizeMaxMsgs: Boolean}>
+export type GetInboxQuery = $ReadOnly<{convID?: ?ConversationID, topicType?: ?TopicType, tlfID?: ?TLFID, tlfVisibility?: ?Keybase1.TLFVisibility, before?: ?Gregor1.Time, after?: ?Gregor1.Time, oneChatTypePerTLF?: ?Boolean, status?: ?Array<ConversationStatus>, memberStatus?: ?Array<ConversationMemberStatus>, existences?: ?Array<ConversationExistence>, membersTypes?: ?Array<ConversationMembersType>, convIDs?: ?Array<ConversationID>, unreadOnly: Boolean, readOnly: Boolean, computeActiveList: Boolean, summarizeMaxMsgs: Boolean}>
 
 export type GetInboxRemoteRes = $ReadOnly<{inbox: InboxView, rateLimit?: ?RateLimit}>
 
@@ -898,6 +904,8 @@ export type LocalNewConversationLocalRpcParam = $ReadOnly<{tlfName: String, topi
 export type LocalPostAttachmentLocalRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, visibility: Keybase1.TLFVisibility, attachment: LocalSource, preview?: ?MakePreviewRes, title: String, metadata: Bytes, identifyBehavior: Keybase1.TLFIdentifyBehavior, outboxID?: ?OutboxID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LocalPostDeleteHistoryByAgeRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior, age: Gregor1.DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
+export type LocalPostDeleteHistoryThroughRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior, through: MessageID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LocalPostDeleteHistoryUptoRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior, upto: MessageID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -1050,7 +1058,7 @@ export type MessageUnboxedState =
   | 3 // OUTBOX_3
   | 4 // PLACEHOLDER_4
 
-export type MessageUnboxedValid = $ReadOnly<{clientHeader: MessageClientHeaderVerified, serverHeader: MessageServerHeader, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, bodyHash: Hash, headerHash: Hash, headerSignature?: ?SignatureInfo, verificationKey?: ?Bytes, senderDeviceRevokedAt?: ?Gregor1.Time, atMentionUsernames?: ?Array<String>, atMentions?: ?Array<Gregor1.UID>, channelMention: ChannelMention}>
+export type MessageUnboxedValid = $ReadOnly<{clientHeader: MessageClientHeaderVerified, serverHeader: MessageServerHeader, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, bodyHash: Hash, headerHash: Hash, headerSignature?: ?SignatureInfo, verificationKey?: ?Bytes, senderDeviceRevokedAt?: ?Gregor1.Time, atMentionUsernames?: ?Array<String>, atMentions?: ?Array<Gregor1.UID>, channelMention: ChannelMention, channelNameMentions?: ?Array<ChannelNameMention>}>
 
 export type NameQuery = $ReadOnly<{name: String, membersType: ConversationMembersType}>
 
@@ -1258,7 +1266,7 @@ export type StaleUpdateType =
   | 0 // CLEAR_0
   | 1 // NEWACTIVITY_1
 
-export type SweepRes = $ReadOnly<{foundTask: Boolean, deletedMessages: Boolean}>
+export type SweepRes = $ReadOnly<{foundTask: Boolean, deletedMessages: Boolean, expunge: Expunge}>
 
 export type SyncAllNotificationRes = {typ: 0, state: ?Gregor1.State} | {typ: 1, incremental: ?Gregor1.SyncResult}
 
@@ -1369,6 +1377,7 @@ type LocalMarkAsReadLocalResult = MarkAsReadLocalRes
 type LocalNewConversationLocalResult = NewConversationLocalRes
 type LocalPostAttachmentLocalResult = PostLocalRes
 type LocalPostDeleteHistoryByAgeResult = PostLocalRes
+type LocalPostDeleteHistoryThroughResult = PostLocalRes
 type LocalPostDeleteHistoryUptoResult = PostLocalRes
 type LocalPostDeleteNonblockResult = PostLocalNonblockRes
 type LocalPostEditNonblockResult = PostLocalNonblockRes

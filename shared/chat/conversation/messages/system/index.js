@@ -113,7 +113,11 @@ const AddedToTeamNotice = ({
           style={{color: globalColors.black_40, textAlign: 'center'}}
         >
           {adderComponent} added {addeeComponent} to{' '}
-          <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
+          <Text
+            onClick={() => onViewTeam(team)}
+            style={{color: globalColors.black_60}}
+            type="BodySmallSemiboldInlineLink"
+          >
             {team}
           </Text>
           .{' '}
@@ -313,6 +317,7 @@ const GitPushInfoNotice = ({message, info, onClickUserAvatar, onViewGitRepo}: Gi
       bgColor={globalColors.blue4}
       onClickAvatar={() => onClickUserAvatar(info.pusher)}
     >
+      {!isMobile && <Icon type="icon-team-git-16" style={{zIndex: 999, marginTop: -18, marginLeft: 20}} />}
       <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
         {formatTimeForMessages(message.timestamp)}
       </Text>
@@ -322,7 +327,7 @@ const GitPushInfoNotice = ({message, info, onClickUserAvatar, onViewGitRepo}: Gi
           {refsMap[branchName].length} {`commit${refsMap[branchName].length !== 1 ? 's' : ''}`} to{' '}
           <Text
             type="BodySmallSemibold"
-            style={info.repoID ? {color: globalColors.black_75} : undefined}
+            style={info.repoID ? {color: globalColors.black_60} : undefined}
             onClick={info.repoID ? () => onViewGitRepo(info.repoID, info.team) : undefined}
           >{`${info.repo}/${branchName}`}</Text>:
         </Text>
