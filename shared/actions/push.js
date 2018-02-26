@@ -254,7 +254,8 @@ function* mobileAppStateSaga(action: AppGen.MobileAppStatePayload) {
     const permissions = yield Saga.call(checkPermissions)
     if (permissions.alert || permissions.badge) {
       logger.info('Found push permissions ENABLED on app focus')
-      const hasPermissions = yield Saga.select((state: TypedState) => state.push.hasPermissions)
+      const state: TypedState = yield Saga.select()
+      const hasPermissions = state.push.hasPermissions
       if (!hasPermissions) {
         logger.info('Had no permissions before, requesting permissions to get token')
         yield Saga.call(requestPushPermissions)
