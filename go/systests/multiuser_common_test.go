@@ -529,8 +529,9 @@ func (u *smuUser) reset() {
 func (u *smuUser) delete() {
 	g := u.getPrimaryGlobalContext()
 	ui := genericUI{
-		g:        g,
-		SecretUI: u.secretUI(),
+		g:          g,
+		SecretUI:   u.secretUI(),
+		TerminalUI: smuTerminalUI{},
 	}
 	g.SetUI(&ui)
 	cmd := client.NewCmdAccountDeleteRunner(g)

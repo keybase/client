@@ -20,11 +20,11 @@ type CmdAccountReset struct {
 
 func NewCmdAccountReset(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:  "acctreset",
+		Name:  "reset",
 		Usage: "Reset account",
 		Action: func(c *cli.Context) {
-			cmd := &CmdAccountReset{Contextified: libkb.NewContextified(g)}
-			cl.ChooseCommand(cmd, "acctreset", c)
+			cmd := NewCmdAccountResetRunner(g)
+			cl.ChooseCommand(cmd, "reset", c)
 		},
 	}
 }
@@ -35,7 +35,7 @@ func NewCmdAccountResetRunner(g *libkb.GlobalContext) *CmdAccountReset {
 
 func (c *CmdAccountReset) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 0 {
-		return errors.New("acctdelete takes no arguments")
+		return errors.New("reset takes no arguments")
 	}
 	return nil
 }
