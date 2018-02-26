@@ -874,7 +874,7 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 	}
 	if len(merges) > 0 {
 		sort.Sort(ByMsgID(merges))
-		if err = s.mergeMaybeNotify(ctx, convID, uid, merges); err != nil {
+		if err := s.mergeMaybeNotify(ctx, convID, uid, merges); err != nil {
 			return res, err
 		}
 	}
