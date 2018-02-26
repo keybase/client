@@ -513,14 +513,29 @@ func (u *smuUser) reAddUserAfterReset(team smuImplicitTeam, w *smuUser) {
 }
 
 func (u *smuUser) reset() {
-	err := u.primaryDevice().userClient().ResetUser(context.TODO(), 0)
+	g := u.getPrimaryGlobalContext()
+	ui := genericUI{
+		g:        g,
+		SecretUI: u.secretUI(),
+	}
+	g.SetUI(&ui)
+	cmd := client.NewCmdAccountResetRunner(g)
+	err := cmd.Run()
 	if err != nil {
 		u.ctx.t.Fatal(err)
 	}
 }
 
 func (u *smuUser) delete() {
-	err := u.primaryDevice().loginClient().AccountDelete(context.TODO(), 0)
+	g := u.getPrimaryGlobalContext()
+	ui := genericUI{
+		g:          g,
+		SecretUI:   u.secretUI(),
+		TerminalUI: smuTerminalUI{},
+	}
+	g.SetUI(&ui)
+	cmd := client.NewCmdAccountDeleteRunner(g)
+	err := cmd.Run()
 	if err != nil {
 		u.ctx.t.Fatal(err)
 	}

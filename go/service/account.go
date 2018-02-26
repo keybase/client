@@ -79,9 +79,18 @@ func (h *AccountHandler) ResetAccount(ctx context.Context, sessionID int) error 
 		return errors.New("ResetAccount only supported in devel run mode")
 	}
 
-	h.G().Log.Debug("resetting account for %s", h.G().Env.GetUsername())
+	username := h.G().GetEnv().GetUsername().String()
+	h.G().Log.Debug("resetting account for %s", username)
 
-	err := h.G().LoginState().ResetAccount(h.G().Env.GetUsername().String())
+	arg := libkb.DefaultPassphrasePromptArg(h.G(), username)
+	secretUI := h.getSecretUI(sessionID, h.G())
+	res, err := secretUI.GetPassphrase(arg, nil)
+	if err != nil {
+		return err
+	}
+	_, err = h.G().LoginState().VerifyPlaintextPassphrase(res.Passphrase, func(lctx libkb.LoginContext) error {
+		return libkb.ResetAccountWithContext(h.G(), lctx, username)
+	})
 	if err != nil {
 		return err
 	}

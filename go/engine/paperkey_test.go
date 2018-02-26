@@ -90,7 +90,7 @@ func TestPaperKey(t *testing.T) {
 
 	// make sure the passphrase authentication didn't change:
 
-	_, err := tc.G.LoginState().VerifyPlaintextPassphrase(fu.Passphrase)
+	_, err := tc.G.LoginState().VerifyPlaintextPassphrase(fu.Passphrase, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
