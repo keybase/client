@@ -486,9 +486,7 @@ func (u *smuUser) addTeamMember(team smuTeam, member *smuUser, role keybase1.Tea
 		Username: member.username,
 		Role:     role,
 	})
-	if err != nil {
-		u.ctx.t.Fatal(err)
-	}
+	require.NoError(u.ctx.t, err)
 }
 
 func (u *smuUser) addWriter(team smuTeam, w *smuUser) {
@@ -697,11 +695,19 @@ func (u *smuUser) readChatsWithDevice(team smuTeam, dev *smuDeviceWrapper, nMess
 	messages, err := u.readChatsWithErrorAndDevice(team, dev, nMessages)
 	t := u.ctx.t
 	require.NoError(t, err)
-	require.Equal(t, nMessages, len(messages))
+	require.Len(t, messages, nMessages)
 	for i, msg := range messages {
 		require.Equal(t, msg.Valid().MessageBody.Text().Body, fmt.Sprintf("%d", len(messages)-i-1))
 	}
 	divDebug(u.ctx, "readChat success for %s", u.username)
+}
+
+func (u *smuUser) readLastChat(team smuTeam) string {
+	messages, err := u.readChatsWithErrorAndDevice(team, u.primaryDevice(), 1)
+	t := u.ctx.t
+	require.NoError(t, err)
+	require.Len(t, messages, 1)
+	return messages[0].Valid().MessageBody.Text().Body
 }
 
 func (u *smuUser) sendChat(t smuTeam, msg string) {
