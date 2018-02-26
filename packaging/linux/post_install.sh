@@ -26,6 +26,11 @@ fi
 chown root:root "$krbin"
 chmod 4755 "$krbin"
 
+run_redirector() {
+  logdir="${XDG_CACHE_HOME:-$HOME/.cache}/keybase"
+  nohup "$krbin" "$rootmount" >> $logdir/keybase.redirector.log 2>&1 &
+}
+
 currlink=`readlink "$rootmount"`
 if [ -n "$currlink" ] ; then
     # Upgrade from a rootlink-based build.
@@ -34,7 +39,7 @@ if [ -n "$currlink" ] ; then
     fi
     if mountpoint "$currlink" &> /dev/null ; then
         echo Starting root redirector at $rootmount.
-        nohup "$krbin" "$rootmount" > /dev/null 2>&1 &
+        run_redirector
     fi
 elif [ -d "$rootmount" ] ; then
     # Handle upgrading from old builds that don't have the rootlink.
@@ -47,9 +52,10 @@ elif [ -d "$rootmount" ] ; then
         fi
         rmdir "$rootmount"
         echo You must run run_keybase to restore file system access.
-    else
-        # TODO: restart the root redirector in case the binary has been updated?
-        pass
+    elif killall `basename "$krbin"` &> /dev/null ; then
+        # Restart the root redirector in case the binary has been updated.
+        fusermount -u "$rootmount"
+        run_redirector
     fi
 fi
 
