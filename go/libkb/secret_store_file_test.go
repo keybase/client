@@ -259,6 +259,9 @@ func TestSecretStoreFileNoise(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// flip one bit
+	noise[0] ^= 0x01
+
 	if err := ioutil.WriteFile(filepath.Join(td, "ogden.ns2"), noise, 0600); err != nil {
 		t.Fatal(err)
 	}
