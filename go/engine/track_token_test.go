@@ -46,9 +46,10 @@ func _testTrackTokenIdentify2(t *testing.T, sigVersion libkb.SigVersion) {
 	if err := RunEngine(eng, ctx); err != nil {
 		tc.T.Fatal(err)
 	}
+	sv := keybase1.SigVersion(sigVersion)
 	targ := TrackTokenArg{
 		Token:   idUI.Token,
-		Options: keybase1.TrackOptions{BypassConfirm: true, SigVersion: keybase1.SigVersion(sigVersion)},
+		Options: keybase1.TrackOptions{BypassConfirm: true, SigVersion: &sv},
 	}
 	teng := NewTrackToken(&targ, tc.G)
 	if err := RunEngine(teng, ctx); err != nil {
@@ -96,9 +97,10 @@ func _testTrackLocalThenLocalTemp(t *testing.T, sigVersion libkb.SigVersion) {
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
+	sv := keybase1.SigVersion(sigVersion)
 	targ := TrackTokenArg{
 		Token:   idUI.Token,
-		Options: keybase1.TrackOptions{BypassConfirm: true, LocalOnly: true, SigVersion: keybase1.SigVersion(sigVersion)},
+		Options: keybase1.TrackOptions{BypassConfirm: true, LocalOnly: true, SigVersion: &sv},
 	}
 
 	// Track tracy
@@ -229,9 +231,10 @@ func _testTrackRemoteThenLocalTemp(t *testing.T, sigVersion libkb.SigVersion) {
 		t.Fatal(err)
 	}
 	// Leaving LocalOnly off here will result in remote tracking
+	sv := keybase1.SigVersion(sigVersion)
 	targ := TrackTokenArg{
 		Token:   idUI.Token,
-		Options: keybase1.TrackOptions{BypassConfirm: true, SigVersion: keybase1.SigVersion(sigVersion)},
+		Options: keybase1.TrackOptions{BypassConfirm: true, SigVersion: &sv},
 	}
 
 	// Track tracy
@@ -356,9 +359,10 @@ func _testTrackFailTempRecover(t *testing.T, sigVersion libkb.SigVersion) {
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
+	sv := keybase1.SigVersion(sigVersion)
 	targ := TrackTokenArg{
 		Token:   idUI.Token,
-		Options: keybase1.TrackOptions{BypassConfirm: true, LocalOnly: true, SigVersion: keybase1.SigVersion(sigVersion)},
+		Options: keybase1.TrackOptions{BypassConfirm: true, LocalOnly: true, SigVersion: &sv},
 	}
 
 	// Track tracy
@@ -498,9 +502,10 @@ func _testTrackWithTokenDismissesGregor(t *testing.T, sigVersion libkb.SigVersio
 	if err := RunEngine(eng, ctx); err != nil {
 		tc.T.Fatal(err)
 	}
+	sv := keybase1.SigVersion(sigVersion)
 	targ := TrackTokenArg{
 		Token:   idUI.Token,
-		Options: keybase1.TrackOptions{BypassConfirm: true, SigVersion: keybase1.SigVersion(sigVersion)},
+		Options: keybase1.TrackOptions{BypassConfirm: true, SigVersion: &sv},
 	}
 	teng := NewTrackToken(&targ, tc.G)
 	if err := RunEngine(teng, ctx); err != nil {

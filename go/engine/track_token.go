@@ -29,8 +29,9 @@ type TrackTokenArg struct {
 
 // NewTrackToken creates a TrackToken engine.
 func NewTrackToken(arg *TrackTokenArg, g *libkb.GlobalContext) *TrackToken {
-	if arg.Options.SigVersion == 0 {
-		arg.Options.SigVersion = keybase1.SigVersion(libkb.GetDefaultSigVersion(g))
+	if arg.Options.SigVersion == nil || libkb.SigVersion(*arg.Options.SigVersion) == libkb.KeybaseNullSigVersion {
+		tmp := keybase1.SigVersion(libkb.GetDefaultSigVersion(g))
+		arg.Options.SigVersion = &tmp
 	}
 
 	return &TrackToken{
@@ -104,7 +105,7 @@ func (e *TrackToken) Run(ctx *Context) (err error) {
 		return err
 	}
 
-	e.trackStatement, err = e.arg.Me.TrackingProofFor(signingKeyPub, libkb.SigVersion(e.arg.Options.SigVersion), e.them, outcome)
+	e.trackStatement, err = e.arg.Me.TrackingProofFor(signingKeyPub, libkb.SigVersion(*e.arg.Options.SigVersion), e.them, outcome)
 	if err != nil {
 		e.G().Log.Debug("tracking proof err: %s", err)
 		return err
@@ -225,14 +226,14 @@ func (e *TrackToken) storeRemoteTrack(ctx *Context, pubKID keybase1.KID) (err er
 		return errors.New("unexpeceted KID mismatch between locked and unlocked signing key")
 	}
 
-	sigVersion := libkb.SigVersion(e.arg.Options.SigVersion)
+	sigVersion := libkb.SigVersion(*e.arg.Options.SigVersion)
 	sig, sigID, linkID, err := libkb.MakeSig(
 		signingKey,
 		libkb.LinkTypeTrack,
 		e.trackStatementBytes,
-		false, /* hasRevokes */
+		libkb.SigHasRevokes(false),
 		keybase1.SeqType_PUBLIC,
-		false, /* ignoreIfUnsupported */
+		libkb.SigIgnoreIfUnsupported(false),
 		me,
 		sigVersion,
 	)

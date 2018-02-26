@@ -77,7 +77,10 @@
         },
         {
           "name": "sigVersion",
-          "type": "SigVersion"
+          "type": [
+            null,
+            "SigVersion"
+          ]
         }
       ],
       "response": "StartProofResult"

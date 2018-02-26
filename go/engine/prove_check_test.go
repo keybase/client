@@ -22,12 +22,13 @@ func _testProveCheck(t *testing.T, sigVersion libkb.SigVersion) {
 	defer tc.Cleanup()
 
 	fu := CreateAndSignupFakeUser(tc, "prove")
+	sv := keybase1.SigVersion(sigVersion)
 	arg := keybase1.StartProofArg{
 		Service:      "rooter",
 		Username:     fu.Username,
 		Force:        false,
 		PromptPosted: true,
-		SigVersion:   keybase1.SigVersion(sigVersion),
+		SigVersion:   &sv,
 	}
 
 	eng := NewProve(&arg, tc.G)

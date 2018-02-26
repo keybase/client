@@ -8,5 +8,5 @@ protocol cryptocurrency {
     string family;
   }
 
-  RegisterAddressRes registerAddress(int sessionID, string address, boolean force, string wantedFamily, SigVersion sigVersion);
+  RegisterAddressRes registerAddress(int sessionID, string address, boolean force, string wantedFamily, union { null, SigVersion } sigVersion);
 }

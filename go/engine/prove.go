@@ -33,8 +33,9 @@ type Prove struct {
 
 // NewProve makes a new Prove Engine given an RPC-friendly ProveArg.
 func NewProve(arg *keybase1.StartProofArg, g *libkb.GlobalContext) *Prove {
-	if arg.SigVersion == 0 {
-		arg.SigVersion = keybase1.SigVersion(libkb.GetDefaultSigVersion(g))
+	if arg.SigVersion == nil || libkb.SigVersion(*arg.SigVersion) == libkb.KeybaseNullSigVersion {
+		tmp := keybase1.SigVersion(libkb.GetDefaultSigVersion(g))
+		arg.SigVersion = &tmp
 	}
 	return &Prove{
 		arg:          arg,
@@ -185,7 +186,7 @@ func (p *Prove) generateProof(ctx *Context) (err error) {
 		return err
 	}
 
-	sigVersion := libkb.SigVersion(p.arg.SigVersion)
+	sigVersion := libkb.SigVersion(*p.arg.SigVersion)
 
 	if p.proof, err = p.me.ServiceProof(p.signingKey, p.st, p.remoteNameNormalized, sigVersion); err != nil {
 		return
@@ -199,9 +200,9 @@ func (p *Prove) generateProof(ctx *Context) (err error) {
 		p.signingKey,
 		libkb.LinkTypeWebServiceBinding,
 		p.sigInner,
-		false, /* hasRevokes */
+		libkb.SigHasRevokes(false),
 		keybase1.SeqType_PUBLIC,
-		false, /* ignoreIfUnsupported */
+		libkb.SigIgnoreIfUnsupported(false),
 		p.me,
 		sigVersion,
 	)
@@ -219,7 +220,7 @@ func (p *Prove) postProofToServer(ctx *Context) (err error) {
 		RemoteKey:      p.st.GetAPIArgKey(),
 		SigningKey:     p.signingKey,
 	}
-	if libkb.SigVersion(p.arg.SigVersion) == libkb.KeybaseSignatureV2 {
+	if libkb.SigVersion(*p.arg.SigVersion) == libkb.KeybaseSignatureV2 {
 		arg.SigInner = p.sigInner
 	}
 	p.postRes, err = libkb.PostProof(ctx.GetNetContext(), p.G(), arg)

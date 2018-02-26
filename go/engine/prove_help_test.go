@@ -61,12 +61,13 @@ func proveRooter(g *libkb.GlobalContext, fu *FakeUser, sigVersion libkb.SigVersi
 }
 
 func proveRooterWithSecretUI(g *libkb.GlobalContext, fu *FakeUser, secretUI libkb.SecretUI, sigVersion libkb.SigVersion) (*ProveUIMock, keybase1.SigID, error) {
+	sv := keybase1.SigVersion(sigVersion)
 	arg := keybase1.StartProofArg{
 		Service:      "rooter",
 		Username:     fu.Username,
 		Force:        false,
 		PromptPosted: true,
-		SigVersion:   keybase1.SigVersion(sigVersion),
+		SigVersion:   &sv,
 	}
 
 	eng := NewProve(&arg, g)
@@ -108,12 +109,13 @@ func proveRooterWithSecretUI(g *libkb.GlobalContext, fu *FakeUser, secretUI libk
 }
 
 func proveRooterFail(g *libkb.GlobalContext, fu *FakeUser, sigVersion libkb.SigVersion) (*ProveUIMock, error) {
+	sv := keybase1.SigVersion(sigVersion)
 	arg := keybase1.StartProofArg{
 		Service:      "rooter",
 		Username:     fu.Username,
 		Force:        false,
 		PromptPosted: true,
-		SigVersion:   keybase1.SigVersion(sigVersion),
+		SigVersion:   &sv,
 	}
 
 	eng := NewProve(&arg, g)
@@ -163,12 +165,13 @@ func proveRooterRemove(g *libkb.GlobalContext, postID string) error {
 }
 
 func proveRooterOther(g *libkb.GlobalContext, fu *FakeUser, rooterUsername string, sigVersion libkb.SigVersion) (*ProveUIMock, keybase1.SigID, error) {
+	sv := keybase1.SigVersion(sigVersion)
 	arg := keybase1.StartProofArg{
 		Service:      "rooter",
 		Username:     rooterUsername,
 		Force:        false,
 		PromptPosted: true,
-		SigVersion:   keybase1.SigVersion(sigVersion),
+		SigVersion:   &sv,
 	}
 
 	eng := NewProve(&arg, g)

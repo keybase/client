@@ -17,8 +17,9 @@ type CryptocurrencyEngine struct {
 }
 
 func NewCryptocurrencyEngine(g *libkb.GlobalContext, arg keybase1.RegisterAddressArg) *CryptocurrencyEngine {
-	if arg.SigVersion == 0 {
-		arg.SigVersion = keybase1.SigVersion(libkb.GetDefaultSigVersion(g))
+	if arg.SigVersion == nil || libkb.SigVersion(*arg.SigVersion) == libkb.KeybaseNullSigVersion {
+		tmp := keybase1.SigVersion(libkb.GetDefaultSigVersion(g))
+		arg.SigVersion = &tmp
 	}
 	return &CryptocurrencyEngine{
 		Contextified: libkb.NewContextified(g),
@@ -96,7 +97,7 @@ func (e *CryptocurrencyEngine) Run(ctx *Context) (err error) {
 	if err = sigKey.CheckSecretKey(); err != nil {
 		return err
 	}
-	sigVersion := libkb.SigVersion(e.arg.SigVersion)
+	sigVersion := libkb.SigVersion(*e.arg.SigVersion)
 	claim, err := me.CryptocurrencySig(sigKey, e.arg.Address, typ, sigIDToRevoke, merkleRoot, sigVersion)
 	if err != nil {
 		return err
@@ -111,9 +112,9 @@ func (e *CryptocurrencyEngine) Run(ctx *Context) (err error) {
 		sigKey,
 		libkb.LinkTypeCryptocurrency,
 		sigInner,
-		len(sigIDToRevoke) > 0, /* hasRevokes */
+		libkb.SigHasRevokes(len(sigIDToRevoke) > 0),
 		keybase1.SeqType_PUBLIC,
-		false, /* ignoreIfUnsupported */
+		libkb.SigIgnoreIfUnsupported(false),
 		me,
 		sigVersion,
 	)

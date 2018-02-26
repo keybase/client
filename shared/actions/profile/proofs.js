@@ -110,7 +110,6 @@ function* _addServiceProof(service: ProvablePlatformsType): Saga.SagaGenerator<a
       promptPosted: false,
       service,
       username: '',
-      sigVersion: 0, // Default sigVersion will be used.
     }
   )
 
@@ -257,7 +256,6 @@ function* _submitCryptoAddress(
       address,
       force: true,
       wantedFamily,
-      sigVersion: 0, // Default sigVersion will be used.
     })
 
     yield Saga.put(ProfileGen.createWaiting({waiting: false}))

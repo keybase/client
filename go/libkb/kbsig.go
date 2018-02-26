@@ -478,9 +478,9 @@ func MakeSig(
 	signingKey GenericKey,
 	v1LinkType LinkType,
 	innerLinkJSON []byte,
-	hasRevokes bool,
+	hasRevokes SigHasRevokes,
 	seqType keybase1.SeqType,
-	ignoreIfUnsupported bool,
+	ignoreIfUnsupported SigIgnoreIfUnsupported,
 	me *User,
 	sigVersion SigVersion) (sig string, sigID keybase1.SigID, linkID LinkID, err error) {
 	switch sigVersion {
