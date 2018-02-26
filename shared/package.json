@@ -126,7 +126,7 @@
     "react-navigation": "git://github.com/keybase/react-navigation#keybase-fixes-off-beta-12",
     "react-redux": "5.0.6",
     "react-transition-group": "2.2.1",
-    "react-virtualized": "9.13.0",
+    "react-virtualized": "9.18.5",
     "recompose": "0.26.0",
     "redux": "3.7.2",
     "redux-batched-subscribe": "0.1.6",
