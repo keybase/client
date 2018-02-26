@@ -13,6 +13,7 @@ krbin="/usr/bin/keybase-redirector"
 vardirDeprecated="/var/lib/keybase"
 khuserDeprecated="keybasehelper"
 khbinDeprecated="/usr/bin/keybase-mount-helper"
+optDeprecated="/opt/keybase/mount-readme"
 
 # Delete the keybasehelper system user, to clean up after older
 # versions.  TODO: remove this once sufficient time has passed since
@@ -21,6 +22,7 @@ if userdel $khuserDeprecated &> /dev/null ; then
     echo Removing $khuserDeprecated system user, as it is no longer needed.
     rm -f "$khbinDeprecated"
     rm -rf "$vardirDeprecated"
+    rm -rf "$optDeprecated"
 fi
 
 chown root:root "$krbin"
