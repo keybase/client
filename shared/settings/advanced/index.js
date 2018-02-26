@@ -64,7 +64,25 @@ class TraceButton extends React.Component<TraceButtonProps> {
   }
 }
 
-class Developer extends React.Component<Props> {
+type DeveloperState = {
+  clickCount: number,
+}
+
+class Developer extends React.Component<Props, DeveloperState> {
+  constructor(props: Props) {
+    super(props)
+
+    this.state = {
+      clickCount: 0,
+    }
+  }
+
+  _onLabelClick = () => {
+    this.setState(state => ({
+      clickCount: state.clickCount + 1,
+    }))
+  }
+
   render() {
     const props = this.props
     return (
@@ -77,7 +95,7 @@ class Developer extends React.Component<Props> {
           flex: 1,
         }}
       >
-        <Text type="BodySmallSemibold" style={{textAlign: 'center'}}>
+        <Text type="BodySmallSemibold" onClick={this._onLabelClick} style={{textAlign: 'center'}}>
           {isMobile
             ? `Please don't do anything here unless instructed to by a developer.`
             : `Please don't do anything below here unless instructed to by a developer.`}
