@@ -297,20 +297,21 @@ type MergeResult struct {
 	DeletedHistory bool
 }
 
-// msgs must be sorted by descending message ID
+// Merge requires msgs to be sorted by descending message ID
 func (s *Storage) Merge(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed) (MergeResult, Error) {
+	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed) (res MergeResult, err Error) {
+	defer s.Trace(ctx, func() error { return err }, "Merge")()
 	return s.MergeHelper(ctx, convID, uid, msgs, nil)
 }
 
-// Delete local messages
 func (s *Storage) Expunge(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, expunge chat1.Expunge) (MergeResult, Error) {
+	convID chat1.ConversationID, uid gregor1.UID, expunge chat1.Expunge) (res MergeResult, err Error) {
+	defer s.Trace(ctx, func() error { return err }, "Expunge")()
 	// Merge with no messages, just the expunge.
 	return s.MergeHelper(ctx, convID, uid, nil, &expunge)
 }
 
-// msgs must be sorted by descending message ID
+// MergeHelper requires msgs to be sorted by descending message ID
 // expunge is optional
 func (s *Storage) MergeHelper(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed, expunge *chat1.Expunge) (MergeResult, Error) {
@@ -718,11 +719,12 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, rc ResultCollector,
 
 func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, rc ResultCollector, query *chat1.GetThreadQuery,
-	pagination *chat1.Pagination) (chat1.ThreadView, Error) {
+	pagination *chat1.Pagination) (res chat1.ThreadView, err Error) {
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functons.
 	locks.Storage.Lock()
 	defer locks.Storage.Unlock()
+	defer s.Trace(ctx, func() error { return err }, "FetchUpToLocalMaxMsgID")()
 
 	maxMsgID, err := s.idtracker.getMaxMessageID(ctx, convID, uid)
 	if err != nil {
@@ -734,18 +736,20 @@ func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context,
 }
 
 func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
-	uid gregor1.UID, rc ResultCollector, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, Error) {
+	uid gregor1.UID, rc ResultCollector, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (res chat1.ThreadView, err Error) {
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functons.
 	locks.Storage.Lock()
 	defer locks.Storage.Unlock()
+	defer s.Trace(ctx, func() error { return err }, "Fetch")()
 
 	return s.fetchUpToMsgIDLocked(ctx, rc, conv.Metadata.ConversationID, uid, conv.ReaderInfo.MaxMsgid,
 		query, pagination)
 }
 
 func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgIDs []chat1.MessageID) ([]*chat1.MessageUnboxed, error) {
+	uid gregor1.UID, msgIDs []chat1.MessageID) (res []*chat1.MessageUnboxed, err Error) {
+	defer s.Trace(ctx, func() error { return err }, "FetchMessages")()
 
 	// Fetch secret key
 	key, ierr := getSecretBoxKey(ctx, s.G().ExternalG(), DefaultSecretUI)
@@ -754,14 +758,12 @@ func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID
 	}
 
 	// Init storage engine first
-	var err Error
 	ctx, err = s.engine.Init(ctx, key, convID, uid)
 	if err != nil {
 		return nil, s.MaybeNuke(false, err, convID, uid)
 	}
 
 	// Run seek looking for each message
-	var res []*chat1.MessageUnboxed
 	for _, msgID := range msgIDs {
 		rc := NewSimpleResultCollector(1)
 		var sres []chat1.MessageUnboxed
