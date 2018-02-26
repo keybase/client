@@ -564,13 +564,7 @@ const loadMoreMessages = (
   // Get the conversationIDKey
   let key = null
 
-  // When we get a push notification the first phase is to select the conversation but its too early to actually load the data
-  // so if we're not actually in the second phase let's just ignore
   if (action.type === Chat2Gen.selectConversationDueToPush) {
-    if (action.payload.phase !== 'loadNewContent') {
-      logger.info('Load thread bail: push but not loading phase yet')
-      return
-    }
     key = Constants.getSelectedConversation(state)
     // not selected still?
     if (action.payload.conversationIDKey !== key) {

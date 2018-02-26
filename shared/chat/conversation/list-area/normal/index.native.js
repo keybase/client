@@ -7,8 +7,15 @@ import {Box, NativeVirtualizedList, ErrorBoundary} from '../../../../common-adap
 import type {Props} from '.'
 
 const blankOrdinal = Types.numberToOrdinal(0)
+type State = {
+  calledLoadMoreDueToOrdinal: ?Types.Ordinal,
+}
 
-class ConversationList extends React.PureComponent<Props> {
+class ConversationList extends React.PureComponent<Props, State> {
+  state = {
+    calledLoadMoreDueToOrdinal: null,
+  }
+
   _renderItem = ({index}) => {
     const i = this.props.hasExtraRow ? index - 1 : index
     const ordinal = i < 0 ? blankOrdinal : this.props.messageOrdinals.get(i, blankOrdinal)
@@ -22,18 +29,30 @@ class ConversationList extends React.PureComponent<Props> {
       />
     )
   }
-  _getItem = (messageOrdinals, index) => messageOrdinals.get(index)
-  _getItemCount = messageOrdinals => messageOrdinals.size + (this.props.hasExtraRow ? 1 : 0)
+  _getItem = (messageOrdinals, index) => (messageOrdinals ? messageOrdinals.get(index) : null)
+  _getItemCount = messageOrdinals =>
+    messageOrdinals ? messageOrdinals.size + (this.props.hasExtraRow ? 1 : 0) : 0
   _keyExtractor = ordinal => String(ordinal)
 
-  // Don't load if we have no messages in there. This happens a lot when we're dealing with stale messages
-  _onEndReached = ({distanceFromEnd}) => {
-    // This gets called a bunch when we're not really at the end. Instead lets do it when the distance is small
-    if (distanceFromEnd < -100) {
-      return
+  // Was using onEndReached but that was really flakey
+  _onViewableItemsChanged = ({viewableItems}) => {
+    const top = viewableItems[viewableItems.length - 1]
+    if (top) {
+      const ordinal = top.item
+      if (
+        ordinal === this.props.messageOrdinals.last() &&
+        ordinal !== this.state.calledLoadMoreDueToOrdinal
+      ) {
+        this.setState({calledLoadMoreDueToOrdinal: ordinal})
+        console.log('aaa calling load more', ordinal, top)
+        this.props.loadMoreMessages()
+      }
     }
-    if (this.props.messageOrdinals.size > 1) {
-      this.props.loadMoreMessages()
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (this.props.conversationIDKey !== nextProps.conversationIDKey) {
+      this.setState({calledLoadMoreDueToOrdinal: null})
     }
   }
 
@@ -47,8 +66,7 @@ class ConversationList extends React.PureComponent<Props> {
             getItem={this._getItem}
             getItemCount={this._getItemCount}
             renderItem={this._renderItem}
-            onEndReached={this._onEndReached}
-            onEndReachedThreshold={0}
+            onViewableItemsChanged={this._onViewableItemsChanged}
             keyExtractor={this._keyExtractor}
             // Limit the number of pages rendered ahead of time (which also limits attachment previews loaded)
             windowSize={5}
