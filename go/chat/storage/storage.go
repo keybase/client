@@ -297,7 +297,7 @@ type MergeResult struct {
 	DeletedHistory bool
 }
 
-// Merge requires msgs must be sorted by descending message ID
+// Merge requires msgs to be sorted by descending message ID
 func (s *Storage) Merge(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed) (res MergeResult, err Error) {
 	defer s.Trace(ctx, func() error { return err }, "Merge")()
@@ -311,7 +311,7 @@ func (s *Storage) Expunge(ctx context.Context,
 	return s.MergeHelper(ctx, convID, uid, nil, &expunge)
 }
 
-// MergeHelper requires msgs must be sorted by descending message ID
+// MergeHelper requires msgs to be sorted by descending message ID
 // expunge is optional
 func (s *Storage) MergeHelper(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed, expunge *chat1.Expunge) (MergeResult, Error) {
