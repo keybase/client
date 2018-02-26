@@ -50,7 +50,7 @@ class ConversationList extends React.PureComponent<Props, State> {
     }
   }
 
-  componentWillReceiveProps(nextProps) {
+  componentWillReceiveProps(nextProps: Props) {
     if (this.props.conversationIDKey !== nextProps.conversationIDKey) {
       this.setState({calledLoadMoreDueToOrdinal: null})
     }
