@@ -54,8 +54,6 @@ export const getHasBadge = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.badgeMap.get(id, 0) > 0
 export const getHasUnread = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.unreadMap.get(id, 0) > 0
-export const getIsSelected = (state: TypedState, id: Types.ConversationIDKey) =>
-  state.chat2.selectedConversation === id
 export const getSelectedConversation = (state: TypedState) => state.chat2.selectedConversation
 export const getEditingOrdinal = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.editingMap.get(id)
@@ -76,7 +74,6 @@ export const isUserActivelyLookingAtThisThread = (
 ) => {
   const selectedConversationIDKey = getSelectedConversation(state)
   const appFocused = state.config.appFocused
-  // const chatTabSelected = state.routeTree.getIn(['routeState', 'selected']) === chatTab
   const routePath = getPath(state.routeTree.routeState)
   let chatThreadSelected = false
   if (isMobile) {
@@ -107,7 +104,6 @@ export {
 
 export {
   getClientPrev,
-  // isOldestOrdinal,
   isSpecialMention,
   makeMessageAttachment,
   makeMessageDeleted,

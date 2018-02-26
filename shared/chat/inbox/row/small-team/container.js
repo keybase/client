@@ -17,7 +17,9 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
     hasBadge: Constants.getHasBadge(state, _conversationIDKey),
     hasUnread: Constants.getHasUnread(state, _conversationIDKey),
     isSelected:
-      !isMobile && !state.chat2.pendingSelected && Constants.getIsSelected(state, _conversationIDKey),
+      !isMobile &&
+      !state.chat2.pendingSelected &&
+      Constants.getSelectedConversation(state) === _conversationIDKey,
     youAreReset,
   }
 }

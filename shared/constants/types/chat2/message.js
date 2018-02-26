@@ -6,14 +6,22 @@ import * as I from 'immutable'
 import HiddenString from '../../../util/hidden-string'
 import type {DeviceType} from '../devices'
 
+// The actual ID the server uses for operations (edit, delete etc)
 export opaque type MessageID: number = number
 export const numberToMessageID = (n: number): MessageID => n
 
-// An ordinal is an id we use on the gui side to manage the ordering of messages. From the serverside the ordering is controlled
-// by the message id. When we send things we want it to be in an order that is static from our perspective so we make essentially
-// a fake messageid (usually adding .001 plus the last ordinal we've seen). We use this ordinal as the keys to most of our maps
-// This makes the thread list have a static list of ordinals
-// We do need the messageid since thats the 'real' id and a parameter to rpc calls (like edit and delete)
+// We use the ordinal as the primary ID throughout the UI. The reason we have this vs a messageID is
+// 1. We don't have messageIDs for messages we're trying to send (pending messages)
+// 2. When a message is sent we want to maintain the order of it from our perspective, even though we might have gotten newer messages before it actually went through. In order to make this work we keep the ordinal as-is even though we actually do get a real messageID.
+// The ordinals for existing messages is usually 1:1 to message ids. Ordinals for pending messages are fractional increments of the last message we've seen
+//
+// ex:
+// chris: Hi (id: 100, ordinal: 100)
+// danny: Hey (id: 101, ordinal: 101)
+// chris: this isn't sent yet (id: 0, ordinal: 101.001)
+// danny: Are you there? (id: 102, ordinal: 102)
+// (later we get an ordinal of 103, so it'll be (id: 103, ordinal: 101.001). We keep the ordinal so our list doesn't re-order itself from our perspective. On a later
+// load it will be 100, 101, 102, 103 and be chris, danny, danny, chris
 export opaque type Ordinal = number
 export const numberToOrdinal = (n: number): Ordinal => n
 export const ordinalToNumber = (o: Ordinal): number => o
@@ -80,14 +88,12 @@ export type _MessageAttachment = {
   deviceType: DeviceType,
   downloadPath: ?string, // string if downloaded
   errorReason: ?string,
-  // durationMs: number,
   fileName: string,
   fileSize: number,
   hasBeenEdited: boolean,
   id: MessageID,
   ordinal: Ordinal,
   outboxID: ?OutboxID,
-  // percentUploaded: number,
   previewHeight: number,
   previewWidth: number,
   submitState: null | 'deleting' | 'pending',

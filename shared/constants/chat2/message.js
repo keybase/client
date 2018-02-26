@@ -141,15 +141,14 @@ const uiMessageToSystemMessage = (minimum, body): ?Types.Message => {
         team,
       })
     }
+
     case RPCChatTypes.localMessageSystemType.inviteaddedtoteam: {
-      const {
-        invitee = 'someone',
-        adder = 'someone',
-        inviter = 'someone',
-        team = '???',
-        inviteType: iType = RPCTypes.teamsTeamInviteCategory.unknown,
-      } =
-        body.inviteaddedtoteam || {}
+      const inviteaddedtoteam = body.inviteaddedtoteam || {}
+      const invitee = inviteaddedtoteam.invitee || 'someone'
+      const adder = inviteaddedtoteam.adder || 'someone'
+      const inviter = inviteaddedtoteam.inviter || 'someone'
+      const team = inviteaddedtoteam.team || '???'
+      const iType = inviteaddedtoteam.inviteType || RPCTypes.teamsTeamInviteCategory.unknown
       let inviteType
       switch (iType) {
         case RPCTypes.teamsTeamInviteCategory.unknown:
@@ -171,9 +170,10 @@ const uiMessageToSystemMessage = (minimum, body): ?Types.Message => {
           inviteType = 'text'
           break
         default:
-          // $FlowIssue : Flow gets confused here for some reason, unclear
+          // $FlowIssue flow gets confused about this switch statement
           ;(iType: empty) // eslint-disable-line no-unused-expressions
-          return null
+          inviteType = 'unknown'
+          break
       }
       return makeMessageSystemInviteAccepted({
         ...minimum,
@@ -478,9 +478,8 @@ export const makePendingAttachmentMessage = (
   })
 }
 
-// export const isOldestOrdinal = (ordinal: Types.Ordinal) => Types.ordinalToNumber(ordinal) <= 2
-
-// Daemon doens't like ordinals and its not worth finding the last value value so just 'converting it' into a message id
+// We only pass message ids to the service so lets just truncate it so a messageid-like value instead of searching back for it.
+// this value is a hint to the service and how the ordinals work this is always a valid messageid
 export const getClientPrev = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
   const lastOrdinal =
     state.chat2.messageOrdinals.get(conversationIDKey, I.SortedSet()).last() || Types.numberToOrdinal(0)

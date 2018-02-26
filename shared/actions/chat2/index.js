@@ -29,9 +29,6 @@ import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import flags from '../../util/feature-flags'
 
-const numMessagesOnInitialLoad = isMobile ? 20 : 50
-const numMessagesOnScrollback = isMobile ? 50 : 100
-
 const inboxQuery = {
   computeActiveList: true,
   readOnly: false,
@@ -43,7 +40,8 @@ const inboxQuery = {
   unreadOnly: false,
 }
 
-const rpcInboxRefresh = (
+// Ask the service to refresh the inbox
+const inboxRefresh = (
   action: Chat2Gen.InboxRefreshPayload | Chat2Gen.LeaveConversationPayload,
   state: TypedState
 ) => {
@@ -71,18 +69,13 @@ const rpcInboxRefresh = (
       maxUnbox: 0,
       query: inboxQuery,
       skipUnverified: false,
-    }
+    },
+    false,
+    loading => Chat2Gen.createSetLoading({key: 'inboxRefresh', loading})
   )
 
-  return Saga.sequentially([
-    Saga.put(Chat2Gen.createSetLoading({key: 'inboxRefresh', loading: true})),
-    Saga.call(untrustedInboxRpc.run),
-  ])
+  return Saga.call(untrustedInboxRpc.run)
 }
-
-const rpcInboxRefreshSuccess = () =>
-  Saga.put(Chat2Gen.createSetLoading({key: 'inboxRefresh', loading: false}))
-const rpcInboxRefreshError = () => Saga.put(Chat2Gen.createSetLoading({key: 'inboxRefresh', loading: false}))
 
 const requestTeamsUnboxing = (action: Chat2Gen.MetasReceivedPayload) => {
   const conversationIDKeys = action.payload.metas
@@ -157,6 +150,7 @@ const rpcMetaRequestConversationIDKeys = (
   return Constants.getConversationIDKeyMetasToLoad(keys, state.chat2.metaMap)
 }
 
+// We want to unbox rows that have scroll into view
 const unboxRows = (
   action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload,
   state: TypedState
@@ -183,6 +177,7 @@ const unboxRows = (
     const state: TypedState = yield Saga.select()
     const infoMap = state.users.infoMap
     let added = false
+    // We get some info about users also so update that too
     const usernameToFullname = Object.keys(inboxUIItem.fullNames).reduce((map, username) => {
       if (!infoMap.get(username)) {
         added = true
@@ -245,7 +240,7 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
       state.config.deviceName || ''
     )
     if (message) {
-      // is attachment upload? special case , act like an edit
+      // The attachmentuploaded call is like an 'edit' of an attachment. We get the placeholder, then its replaced by the actual image
       if (
         cMsg.state === RPCChatTypes.chatUiMessageUnboxedState.valid &&
         cMsg.valid &&
@@ -261,7 +256,7 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
           })
         )
       } else {
-        // visible type
+        // A normal message
         actions.push(Chat2Gen.createMessagesAdd({context: {type: 'incoming'}, messages: [message]}))
         if (!isMobile && displayDesktopNotification && conv && conv.snippet) {
           actions.push(
@@ -348,6 +343,7 @@ const onErrorMessage = (outboxRecords: Array<RPCChatTypes.OutboxRecord>) => {
   return actions
 }
 
+// Handle calls that come from the service
 const setupChatHandlers = () => {
   engine().setIncomingActionCreators(
     'chat.1.NotifyChat.NewChatActivity',
@@ -561,6 +557,9 @@ const loadMoreMessages = (
     | Chat2Gen.MarkConversationsStalePayload,
   state: TypedState
 ) => {
+  const numMessagesOnInitialLoad = isMobile ? 20 : 50
+  const numMessagesOnScrollback = isMobile ? 50 : 100
+
   // Get the conversationIDKey
   let key = null
 
@@ -704,7 +703,7 @@ const loadMoreMessages = (
         messageTypes: loadThreadMessageTypes,
       },
     },
-    null,
+    false,
     (loading: boolean) => Chat2Gen.createSetLoading({key: loadingKey, loading})
   )
 
@@ -1154,7 +1153,7 @@ const updatePendingSelected = (
 let attachmentQueue = []
 const queueAttachmentToRequest = (action: Chat2Gen.AttachmentNeedsUpdatingPayload, state: TypedState) => {
   const {conversationIDKey, ordinal, isPreview} = action.payload
-  attachmentQueue.push({conversationIDKey, ordinal, isPreview})
+  attachmentQueue.push({conversationIDKey, isPreview, ordinal})
   return Saga.put(Chat2Gen.createAttachmentHandleQueue())
 }
 
@@ -1748,12 +1747,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   }
 
   // Refresh the inbox
-  yield Saga.safeTakeEveryPure(
-    [Chat2Gen.inboxRefresh, Chat2Gen.leaveConversation],
-    rpcInboxRefresh,
-    rpcInboxRefreshSuccess,
-    rpcInboxRefreshError
-  )
+  yield Saga.safeTakeEveryPure([Chat2Gen.inboxRefresh, Chat2Gen.leaveConversation], inboxRefresh)
   // Load teams
   yield Saga.safeTakeEveryPure(Chat2Gen.metasReceived, requestTeamsUnboxing)
   // We've scrolled some new inbox rows into view, queue them up

@@ -15,14 +15,13 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
     _username: state.config.username || '',
     hasBadge: Constants.getHasBadge(state, conversationIDKey),
     hasUnread: Constants.getHasUnread(state, conversationIDKey),
-    isSelected: Constants.getIsSelected(state, conversationIDKey),
+    isSelected: Constants.getSelectedConversation(state) === conversationIDKey,
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}) => ({
   onSelectConversation: () =>
-    dispatch(Chat2Gen.createSelectConversation({conversationIDKey, fromUser: true}))
-  ,
+    dispatch(Chat2Gen.createSelectConversation({conversationIDKey, fromUser: true})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {

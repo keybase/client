@@ -1,4 +1,4 @@
-// Metadata about a conversation. We keep the messages sep. since we update these at different times
+// Metadata about a conversation.
 // @flow
 import * as I from 'immutable'
 import * as Common from './common'
@@ -8,6 +8,7 @@ type MembershipType = 'active' | 'youArePreviewing' | 'youAreReset'
 type TeamType = 'small' | 'big' | 'adhoc'
 type Username = string
 
+// When we scroll backwards we get an opaque string back to use as a token to get the next page
 export opaque type PaginationKey: string = string
 export const stringToPaginationKey = (s: string): PaginationKey => s
 
@@ -17,7 +18,6 @@ export type NotificationsType = 'onAnyActivity' | 'onWhenAtMentioned' | 'never'
 export type _ConversationMeta = {
   channelname: string,
   conversationIDKey: Common.ConversationIDKey,
-  // hasLoadedThread: boolean,
   inboxVersion: number,
   isMuted: boolean,
   membershipType: MembershipType,
