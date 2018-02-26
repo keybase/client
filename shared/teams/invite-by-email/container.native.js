@@ -10,7 +10,7 @@ import {
   compose,
   withHandlers,
   withPropsOnChange,
-  withState,
+  withStateHandlers,
   lifecycle,
   type TypedState,
 } from '../../util/container'
@@ -90,14 +90,14 @@ export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   compose(
     // basic state setters
-    withState('role', 'onRoleChange', 'writer'),
+    withStateHandlers({role: 'writer'}, {onRoleChange: () => role => ({role})}),
     withPropsOnChange(['onExitSearch'], props => ({
       onBack: () => props.onClose(),
       title: 'Invite contacts',
       headerStyle: {borderBottomWidth: 0},
     })),
-    withState('contacts', '_setContacts', []),
-    withState('hasPermission', '_setHasPermission', true),
+    withStateHandlers({contacts: []}, {_setContacts: () => contacts => ({contacts})}),
+    withStateHandlers({hasPermission: true}, {_setHasPermission: () => hasPermission => ({hasPermission})}),
     // Go through the permission flow on mount
     lifecycle({
       componentWillMount() {
