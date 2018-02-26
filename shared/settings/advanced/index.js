@@ -83,6 +83,10 @@ class Developer extends React.Component<Props, DeveloperState> {
     }))
   }
 
+  _showTrace = () => {
+    return this.state.clickCount >= 7
+  }
+
   render() {
     const props = this.props
     return (
@@ -107,10 +111,14 @@ class Developer extends React.Component<Props, DeveloperState> {
           label="DB Nuke"
           onClick={props.onDBNuke}
         />
-        <TraceButton durationSeconds={30} onTrace={props.onTrace} traceInProgress={props.traceInProgress} />
-        <Text type="BodySmallSemibold" style={{textAlign: 'center'}}>
-          Trace files are included in logs sent with feedback.
-        </Text>
+        {this._showTrace() && (
+          <TraceButton durationSeconds={30} onTrace={props.onTrace} traceInProgress={props.traceInProgress} />
+        )}
+        {this._showTrace() && (
+          <Text type="BodySmallSemibold" style={{textAlign: 'center'}}>
+            Trace files are included in logs sent with feedback.
+          </Text>
+        )}
         <Box style={{flex: 1}} />
       </Box>
     )
