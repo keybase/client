@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import {HeaderHoc, HOCTimers} from '../common-adapters'
 import Feedback from './feedback.native'
 import logSend from '../native/log-send'
-import {compose, withState, withHandlers, connect, type TypedState} from '../util/container'
+import {compose, connect, type TypedState} from '../util/container'
 import {
   isAndroid,
   appVersionName,
@@ -16,18 +16,11 @@ import {
 import {type TimerProps} from '../common-adapters/hoc-timers'
 import {writeLogLinesToFile} from '../util/forward-logs'
 
-const FeedbackWrapped = compose(
-  withState('sendLogs', 'onChangeSendLogs', true),
-  withHandlers({
-    onSendFeedbackContained: ({sendLogs, feedback, onSendFeedback}) => () =>
-      onSendFeedback(feedback, sendLogs),
-  })
-)(Feedback)
-
 type State = {
   sentFeedback: boolean,
   feedback: ?string,
   sending: boolean,
+  sendLogs: boolean,
   sendError: ?Error,
 }
 
@@ -38,8 +31,11 @@ class FeedbackContainer extends Component<{status: string} & TimerProps, State> 
     sentFeedback: false,
     feedback: null,
     sending: false,
+    sendLogs: false,
     sendError: null,
   }
+
+  _onChangeSendLogs = (sendLogs: boolean) => this.setState({sendLogs})
 
   _onChangeFeedback = feedback => {
     this.setState(state => ({...state, feedback}))
@@ -55,17 +51,17 @@ class FeedbackContainer extends Component<{status: string} & TimerProps, State> 
     this.mounted = true
   }
 
-  _onSendFeedback = (feedback, sendLogs) => {
+  _onSendFeedback = () => {
     this.setState(state => ({...state, sending: true, sentFeedback: false}))
 
     this.props.setTimeout(() => {
-      const maybeDump = sendLogs ? this._dumpLogs() : Promise.resolve('')
+      const maybeDump = this.state.sendLogs ? this._dumpLogs() : Promise.resolve('')
 
       maybeDump
         .then(() => {
           const path = logFileName()
-          logger.info(`Sending ${sendLogs ? 'log' : 'feedback'} to daemon`)
-          return logSend(this.props.status, feedback, sendLogs, path)
+          logger.info(`Sending ${this.state.sendLogs ? 'log' : 'feedback'} to daemon`)
+          return logSend(this.props.status, this.state.feedback || '', this.state.sendLogs, path)
         })
         .then(logSendId => {
           logger.info('logSendId is', logSendId)
@@ -95,13 +91,15 @@ class FeedbackContainer extends Component<{status: string} & TimerProps, State> 
 
   render() {
     return (
-      <FeedbackWrapped
+      <Feedback
         showSuccessBanner={this.state.sentFeedback}
-        onSendFeedback={this._onSendFeedback}
+        onSendFeedbackContained={this._onSendFeedback}
         onChangeFeedback={this._onChangeFeedback}
         feedback={this.state.feedback}
         sending={this.state.sending}
         sendError={this.state.sendError}
+        sendLogs={this.state.sendLogs}
+        onChangeSendLogs={this._onChangeSendLogs}
       />
     )
   }
