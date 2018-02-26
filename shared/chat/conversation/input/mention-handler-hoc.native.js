@@ -54,7 +54,7 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
     _getWordAtCursor = (text: string) => {
       const {selectionStart} = this.state._selection
       const upToCursor = text.substring(0, selectionStart)
-      const words = upToCursor.split(' ')
+      const words = upToCursor.split(/ |\n/)
       return words[words.length - 1]
     }
 
