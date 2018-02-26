@@ -239,3 +239,36 @@ func TestSecretStoreFileRetrieveUpgrade(t *testing.T) {
 	assertNotExists(t, filepath.Join(td, "bob.ss2"))
 	assertNotExists(t, filepath.Join(td, "bob.ns2"))
 }
+
+func TestSecretStoreFileNoise(t *testing.T) {
+	td, tdClean := testSSDir(t)
+	defer tdClean()
+
+	secret, err := RandBytes(32)
+	if err != nil {
+		t.Fatal(err)
+	}
+	lksec, err := newLKSecFullSecretFromBytes(secret)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ss := NewSecretStoreFile(td)
+	ss.StoreSecret("ogden", lksec)
+	noise, err := ioutil.ReadFile(filepath.Join(td, "ogden.ns2"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := ioutil.WriteFile(filepath.Join(td, "ogden.ns2"), noise, 0600); err != nil {
+		t.Fatal(err)
+	}
+
+	corrupt, err := ss.RetrieveSecret("ogden")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if bytes.Equal(lksec.Bytes(), corrupt.Bytes()) {
+		t.Fatal("corrupted noise file did not change the secret")
+	}
+}
