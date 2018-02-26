@@ -796,6 +796,8 @@ func ShredFile(filename string) error {
 	}
 	size := int(stat.Size())
 
+	defer os.Remove(filename)
+
 	for i := 0; i < 3; i++ {
 		noise, err := RandBytes(size)
 		if err != nil {
