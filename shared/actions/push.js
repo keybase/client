@@ -108,6 +108,7 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
       } catch (err) {
         logger.info('failed to unbox silent notification', err)
       }
+      return
     } else if (payload.type === 'chat.readmessage') {
       logger.info('Push notification: read message notification received')
       const b = typeof payload.b === 'string' ? parseInt(payload.b) : payload.b
