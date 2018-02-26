@@ -32,7 +32,7 @@ const colors = {
   blue_60_on_white: 'rgb(133,198,255)',
   brown_60: 'rgba(71, 31, 17, 0.6)',
   brown_60_on_white: 'rgb(145,121,112)',
-  darkBlue: '#004481',
+  darkBlue: '#004D92',
   darkBlue2: '#0069C6',
   darkBlue3: '#002C52',
   darkBlue3_75: 'rgba(0, 44, 82, .75)',

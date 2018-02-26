@@ -142,13 +142,11 @@ func (s *SCTeamMember) MarshalJSON() (b []byte, err error) {
 // -------------------------
 
 type SCChainLink struct {
-	Seqno keybase1.Seqno `json:"seqno"`
-	Sig   string         `json:"sig"`
-	// string containing json of a SCChainLinkPayload.
-	Payload string `json:"payload_json"`
-	// uid of the signer
-	UID     keybase1.UID `json:"uid"`
-	Version int          `json:"version"`
+	Seqno   keybase1.Seqno `json:"seqno"`
+	Sig     string         `json:"sig"`
+	Payload string         `json:"payload_json"` // String containing json of a SCChainLinkPayload
+	UID     keybase1.UID   `json:"uid"`          // UID of the signer
+	Version int            `json:"version"`
 }
 
 func (link *SCChainLink) UnmarshalPayload() (res SCChainLinkPayload, err error) {

@@ -90,7 +90,6 @@ class ChatFilterRow extends React.PureComponent<Props, State> {
           type="iconfont-search"
           style={{
             color: globalColors.black_20,
-            fontSize: 12,
             marginRight: globalMargins.tiny,
           }}
         />,

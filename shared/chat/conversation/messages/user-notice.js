@@ -12,7 +12,7 @@ export type Props = {
   onClickAvatar?: () => void,
 }
 
-const AVATAR_SIZE = 24
+const AVATAR_SIZE = isMobile ? 32 : 24
 
 const UserNotice = ({bgColor, username, teamname, children, style, onClickAvatar}: Props) => (
   <Box style={{...styleOuterBox, ...style}}>
@@ -28,6 +28,7 @@ const UserNotice = ({bgColor, username, teamname, children, style, onClickAvatar
 const styleOuterBox = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
+  marginBottom: globalMargins.tiny,
 }
 
 const stylesAvatarWrapper = (avatarSize: number) => ({

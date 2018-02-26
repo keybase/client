@@ -1084,6 +1084,13 @@
         {
           "type": "ChannelMention",
           "name": "channelMention"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ChannelNameMention"
+          },
+          "name": "channelNameMentions"
         }
       ]
     },
@@ -2713,6 +2720,31 @@
         },
         {
           "name": "upto",
+          "type": "MessageID"
+        }
+      ],
+      "response": "PostLocalRes"
+    },
+    "postDeleteHistoryThrough": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "tlfPublic",
+          "type": "boolean"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        },
+        {
+          "name": "through",
           "type": "MessageID"
         }
       ],

@@ -209,14 +209,6 @@ func (r *Resolver) getFromUPAKLoader(ctx context.Context, uid keybase1.UID) (ret
 	return &ResolveResult{uid: uid, queriedByUID: true, resolvedKbUsername: nun.String(), mutable: false}
 }
 
-func (r *Resolver) getFromTeamLoader(ctx context.Context, tid keybase1.TeamID) (ret *ResolveResult) {
-	tn, err := r.G().GetTeamLoader().MapIDToName(ctx, tid)
-	if err != nil || tn.IsNil() {
-		return nil
-	}
-	return &ResolveResult{teamID: tid, resolvedTeamName: tn, mutable: false}
-}
-
 func (r *Resolver) resolveURL(ctx context.Context, au AssertionURL, input string, withBody bool, needUsername bool) (res ResolveResult) {
 	ck := au.CacheKey()
 
@@ -253,16 +245,6 @@ func (r *Resolver) resolveURL(ctx context.Context, au AssertionURL, input string
 	// We can check the UPAK loader for the username if we're just mapping a UID to a username.
 	if tmp := au.ToUID(); !withBody && tmp.Exists() {
 		if p := r.getFromUPAKLoader(ctx, tmp); p != nil {
-			trace += "l"
-			r.putToMemCache(ck, *p)
-			return *p
-		}
-	}
-
-	// Similarly, we can check the team loader for the team name if we're just mapping a TeamID
-	// to a team name
-	if tmp := au.ToTeamID(); !withBody && tmp.Exists() {
-		if p := r.getFromTeamLoader(ctx, tmp); p != nil {
 			trace += "l"
 			r.putToMemCache(ck, *p)
 			return *p

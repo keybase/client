@@ -70,9 +70,9 @@ func (e *UntrackEngine) Run(ctx *Context) (err error) {
 		return
 	}
 
-	// Make V2 Sigs default
+	// Make V1 Sigs default
 	if e.arg.SigVersion == 0 {
-		e.arg.SigVersion = libkb.KeybaseSignatureV2
+		e.arg.SigVersion = libkb.KeybaseSignatureV1
 	}
 
 	untrackStatement, err := e.arg.Me.UntrackingProofFor(e.signingKeyPub, e.arg.SigVersion, them)

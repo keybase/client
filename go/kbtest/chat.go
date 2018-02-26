@@ -503,7 +503,7 @@ func (d dummyChannelSource) GetChannelsFull(ctx context.Context, uid gregor1.UID
 }
 
 func (d dummyChannelSource) GetChannelsTopicName(ctx context.Context, uid gregor1.UID, tlfID chat1.TLFID,
-	topicType chat1.TopicType) ([]types.ConvIDAndTopicName, []chat1.RateLimit, error) {
+	topicType chat1.TopicType) ([]chat1.ChannelNameMention, []chat1.RateLimit, error) {
 	return nil, nil, nil
 }
 

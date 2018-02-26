@@ -516,6 +516,7 @@ export const constantsStatusCode = {
   scteamkeymasknotfound: 2697,
   scteambanned: 2702,
   scteaminvalidban: 2703,
+  scteamshowcasepermdenied: 2711,
   scteamprovisionalcankey: 2721,
   scteamprovisionalcannotkey: 2722,
 }
@@ -3496,6 +3497,7 @@ export type StatusCode =
   | 2697 // SCTeamKeyMaskNotFound_2697
   | 2702 // SCTeamBanned_2702
   | 2703 // SCTeamInvalidBan_2703
+  | 2711 // SCTeamShowcasePermDenied_2711
   | 2721 // SCTeamProvisionalCanKey_2721
   | 2722 // SCTeamProvisionalCannotKey_2722
 

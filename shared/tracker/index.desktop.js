@@ -106,7 +106,9 @@ export default class TrackerRender extends PureComponent<RenderProps> {
                     style={{
                       ...globalStyles.flexBoxRow,
                       alignItems: 'flex-start',
+                      cursor: 'pointer',
                       justifyContent: 'flex-start',
+                      marginBottom: globalMargins.xtiny,
                       minHeight: 24,
                     }}
                   >
@@ -132,13 +134,13 @@ export default class TrackerRender extends PureComponent<RenderProps> {
                         ...globalStyles.flexBoxRow,
                         alignItems: 'center',
                         alignSelf: 'center',
-                        height: 16,
-                        minHeight: 16,
-                        minWidth: 16,
-                        width: 16,
+                        height: 24,
+                        minHeight: 24,
+                        minWidth: 24,
+                        width: 24,
                       }}
                     >
-                      <Avatar teamname={team.fqName} size={16} />
+                      <Avatar teamname={team.fqName} size={24} />
                     </Box>
                     <Box
                       style={{
@@ -149,9 +151,7 @@ export default class TrackerRender extends PureComponent<RenderProps> {
                         paddingLeft: globalMargins.tiny,
                       }}
                     >
-                      <Text style={{color: globalColors.black_75}} type="BodySmallSemiboldInlineLink">
-                        {team.fqName}
-                      </Text>
+                      <Text type="BodySemibold">{team.fqName}</Text>
                       {team.open && <Meta title="OPEN" style={styleMeta} />}
                     </Box>
                   </Box>

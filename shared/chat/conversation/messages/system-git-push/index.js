@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import UserNotice from '../user-notice'
-import {Box, Text, ConnectedUsernames, TimelineMarker} from '../../../../common-adapters'
+import {Box, Text, ConnectedUsernames, TimelineMarker, Icon} from '../../../../common-adapters'
 import {globalStyles, globalColors, globalMargins, isMobile} from '../../../../styles'
 import {formatTimeForMessages} from '../../../../util/timestamp'
 
@@ -32,6 +32,9 @@ class GitPush extends React.PureComponent<Props> {
           bgColor={globalColors.blue4}
           onClickAvatar={() => this.props.onClickUserAvatar(pusher)}
         >
+          {!isMobile && (
+            <Icon type="icon-team-git-16" style={{marginLeft: 20, marginTop: -18, zIndex: 999}} />
+          )}
           <Text
             type="BodySmallSemibold"
             backgroundMode="Announcements"
@@ -46,7 +49,7 @@ class GitPush extends React.PureComponent<Props> {
               {`commit${!!ref.commits && ref.commits.length !== 1 ? 's' : ''}`} to
               <Text
                 type="BodySmallSemibold"
-                style={repoID ? {color: globalColors.black_75} : undefined}
+                style={repoID ? {color: globalColors.black_60} : undefined}
                 onClick={repoID ? () => this.props.onViewGitRepo(repoID, team) : undefined}
               >{`${repo}/${branchName}`}</Text>:
             </Text>
