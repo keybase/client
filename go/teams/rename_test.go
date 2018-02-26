@@ -22,7 +22,7 @@ func TestRenameSimple(t *testing.T) {
 	require.NoError(t, err)
 
 	subteamBasename := "bb1"
-	subteamID, err := CreateSubteam(context.TODO(), tc.G, subteamBasename, parentTeamName)
+	subteamID, err := CreateSubteam(context.TODO(), tc.G, subteamBasename, parentTeamName, false /* addSelf */)
 	require.NoError(t, err)
 	subteamName, err := parentTeamName.Append(subteamBasename)
 	require.NoError(t, err)
@@ -77,11 +77,11 @@ func TestRenameInflateSubteamAfterRenameParent(t *testing.T) {
 	subsubteamName2 := createTeamName(t, parentName.String(), "bb2", "cc")
 
 	t.Logf("U0 creates A.B1")
-	subteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "bb1", parentName)
+	subteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "bb1", parentName, false /* addSelf */)
 	require.NoError(t, err)
 
 	t.Logf("U0 creates A.B1.C")
-	subsubteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "cc", subteamName1)
+	subsubteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "cc", subteamName1, false /* addSelf */)
 	require.NoError(t, err)
 
 	t.Logf("U0 adds U1 to A.B1 as a writer")
@@ -136,7 +136,7 @@ func TestRenameIntoMovedSubteam(t *testing.T) {
 	subteamNameC := createTeamName(t, parentName.String(), "ccc")
 
 	t.Logf("U0 creates R.B (subteam 1)")
-	subteamID1, err := CreateSubteam(context.TODO(), tcs[0].G, "bbb", parentName)
+	subteamID1, err := CreateSubteam(context.TODO(), tcs[0].G, "bbb", parentName, false /* addSelf */)
 	require.NoError(t, err)
 	_ = subteamID1
 
@@ -160,7 +160,7 @@ func TestRenameIntoMovedSubteam(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("U0 creates R.B (subteam 2) which is the SECOND R.B to be created")
-	subteamID2, err := CreateSubteam(context.TODO(), tcs[0].G, "bbb", parentName)
+	subteamID2, err := CreateSubteam(context.TODO(), tcs[0].G, "bbb", parentName, false /* addSelf */)
 	require.NoError(t, err)
 	_ = subteamID2
 

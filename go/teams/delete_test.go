@@ -118,7 +118,7 @@ func TestRecreateSubteam(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = CreateSubteam(context.Background(), tc.G, string(name.LastPart()), parent)
+	_, err = CreateSubteam(context.Background(), tc.G, string(name.LastPart()), parent, false /* addSelf */)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -138,7 +138,7 @@ func TestDeleteTwoSubteams(t *testing.T) {
 	subteamName2 := createTeamName(t, parentName.String(), "ccc")
 
 	t.Logf("U0 creates A.B")
-	_, err := CreateSubteam(context.TODO(), tcs[0].G, "bbb", parentName)
+	_, err := CreateSubteam(context.TODO(), tcs[0].G, "bbb", parentName, false /* addSelf */)
 	require.NoError(t, err)
 
 	t.Logf("U0 deletes A.B")
@@ -146,7 +146,7 @@ func TestDeleteTwoSubteams(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("U0 creates A.C")
-	_, err = CreateSubteam(context.TODO(), tcs[0].G, "ccc", parentName)
+	_, err = CreateSubteam(context.TODO(), tcs[0].G, "ccc", parentName, false /* addSelf */)
 	require.NoError(t, err)
 
 	t.Logf("U0 deletes A.C")

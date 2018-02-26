@@ -80,7 +80,7 @@ func TestCreateSubteam(t *testing.T) {
 	require.NoError(t, err)
 
 	subteamBasename := "mysubteam"
-	_, err = CreateSubteam(context.TODO(), tc.G, subteamBasename, parentTeamName)
+	_, err = CreateSubteam(context.TODO(), tc.G, subteamBasename, parentTeamName, false /* addSelf */)
 	require.NoError(t, err)
 
 	// Fetch the subteam we just created, to make sure it's there.
@@ -94,8 +94,18 @@ func TestCreateSubteam(t *testing.T) {
 	require.Equal(t, keybase1.Seqno(1), subteam.chain().GetLatestSeqno())
 
 	// creator of subteam should *not* be a member of the subteam, they
-	// need to explicitly join it.
+	// need to explicitly ask to create it with themself in it.
 	assertRole(tc, subteamFQName.String(), u.Username, keybase1.TeamRole_NONE)
+
+	// Test joining with addSelf=true
+
+	subteamBasename = "mysubteam2"
+	_, err = CreateSubteam(context.TODO(), tc.G, subteamBasename, parentTeamName, true /* addSelf */)
+	require.NoError(t, err)
+
+	subteamFQName, err = parentTeamName.Append(subteamBasename)
+	require.NoError(t, err)
+	assertRole(tc, subteamFQName.String(), u.Username, keybase1.TeamRole_ADMIN)
 }
 
 func TestCreateSubSubteam(t *testing.T) {
@@ -111,7 +121,7 @@ func TestCreateSubSubteam(t *testing.T) {
 	require.NoError(t, err)
 
 	subteamBasename := "bbb"
-	_, err = CreateSubteam(context.TODO(), tc.G, subteamBasename, parentTeamName)
+	_, err = CreateSubteam(context.TODO(), tc.G, subteamBasename, parentTeamName, false /* addSelf */)
 	require.NoError(t, err)
 	subteamName, err := parentTeamName.Append(subteamBasename)
 	require.NoError(t, err)
@@ -119,7 +129,7 @@ func TestCreateSubSubteam(t *testing.T) {
 	assertRole(tc, subteamName.String(), u.Username, keybase1.TeamRole_NONE)
 
 	subsubteamBasename := "ccc"
-	_, err = CreateSubteam(context.TODO(), tc.G, subsubteamBasename, subteamName)
+	_, err = CreateSubteam(context.TODO(), tc.G, subsubteamBasename, subteamName, false /* addSelf */)
 	require.NoError(t, err)
 
 	subsubteamName, err := parentTeamName.Append(subteamBasename)

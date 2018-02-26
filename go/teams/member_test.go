@@ -77,7 +77,7 @@ func memberSetupSubteam(t *testing.T) (tc libkb.TestContext, owner, otherA, othe
 		t.Fatal(err)
 	}
 	subPart := "sub"
-	_, err = CreateSubteam(context.TODO(), tc.G, subPart, rootTeamName)
+	_, err = CreateSubteam(context.TODO(), tc.G, subPart, rootTeamName, false /* addSelf */)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -845,7 +845,7 @@ func TestImplicitAdminsKeyedForSubteam(t *testing.T) {
 	parentName, _ := createTeam2(*tcs[0])
 
 	t.Logf("U0 creates a subteam")
-	subteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "sub", parentName)
+	subteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "sub", parentName, false /* addSelf */)
 	require.NoError(t, err)
 
 	t.Logf("U1 and U2 can't load the subteam")
@@ -880,7 +880,7 @@ func TestImplicitAdminsKeyedForSubteamAfterUpgrade(t *testing.T) {
 	parentName, _ := createTeam2(*tcs[0])
 	t.Logf("U0 created a root team %q", parentName)
 
-	subteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "sub", parentName)
+	subteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "sub", parentName, false /* addSelf */)
 	require.NoError(t, err)
 	t.Logf("U0 created a subteam %q", subteamID)
 

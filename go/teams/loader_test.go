@@ -296,7 +296,7 @@ func TestLoaderParentEasy(t *testing.T) {
 	teamName, teamID := createTeam2(*tcs[0])
 
 	t.Logf("create a subteam")
-	subteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "mysubteam", teamName)
+	subteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "mysubteam", teamName, false /* addSelf */)
 	require.NoError(t, err)
 
 	t.Logf("load the parent")
@@ -327,7 +327,7 @@ func TestLoaderSubteamEasy(t *testing.T) {
 	parentName, parentID := createTeam2(*tcs[0])
 
 	t.Logf("create a subteam")
-	subteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "mysubteam", parentName)
+	subteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "mysubteam", parentName, false /* addSelf */)
 	require.NoError(t, err)
 
 	t.Logf("load the subteam")
@@ -354,7 +354,7 @@ func TestLoaderFillStubbed(t *testing.T) {
 	parentName, parentID := createTeam2(*tcs[0])
 
 	t.Logf("create a subteam")
-	subteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "mysubteam", parentName)
+	subteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "mysubteam", parentName, false /* addSelf */)
 	require.NoError(t, err)
 
 	t.Logf("add U1 to the parent")
@@ -390,7 +390,7 @@ func TestLoaderNotInParent(t *testing.T) {
 	parentName, _ := createTeam2(*tcs[0])
 
 	t.Logf("create a subteam")
-	subteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "mysubteam", parentName)
+	subteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "mysubteam", parentName, false /* addSelf */)
 	require.NoError(t, err)
 
 	t.Logf("add U1 to the subteam")
@@ -416,13 +416,13 @@ func TestLoaderMultilevel(t *testing.T) {
 	parentName, _ := createTeam2(*tcs[0])
 
 	t.Logf("create a subteam")
-	_, err := CreateSubteam(context.TODO(), tcs[0].G, "abc", parentName)
+	_, err := CreateSubteam(context.TODO(), tcs[0].G, "abc", parentName, false /* addSelf */)
 	require.NoError(t, err)
 
 	t.Logf("create a sub-subteam")
 	subTeamName, err := parentName.Append("abc")
 	require.NoError(t, err)
-	subsubteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "def", subTeamName)
+	subsubteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "def", subTeamName, false /* addSelf */)
 	require.NoError(t, err)
 
 	expectedSubsubTeamName, err := subTeamName.Append("def")
@@ -507,7 +507,7 @@ func TestLoaderGetImplicitAdminsList(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("U2 creates a subteam")
-	subteamID, err := CreateSubteam(context.TODO(), tcs[2].G, "sub", parentName)
+	subteamID, err := CreateSubteam(context.TODO(), tcs[2].G, "sub", parentName, false /* addSelf */)
 	require.NoError(t, err)
 	subteamName, err := parentName.Append("sub")
 	require.NoError(t, err)
@@ -558,7 +558,7 @@ func TestLoaderHiddenSubteam(t *testing.T) {
 	subteamName1 := createTeamName(t, parentName.String(), "bbb")
 
 	t.Logf("U0 creates A.B")
-	subteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "bbb", parentName)
+	subteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "bbb", parentName, false /* addSelf */)
 	require.NoError(t, err)
 
 	t.Logf("U0 adds U1 to A as a WRITER")
@@ -752,13 +752,13 @@ func TestInflateAfterPermissionsChange(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("U1 creates fennel_network.lair")
-	subteamLairID, err := CreateSubteam(context.Background(), tcs[1].G, "lair", rootName)
+	subteamLairID, err := CreateSubteam(context.Background(), tcs[1].G, "lair", rootName, false /* addSelf */)
 	require.NoError(t, err)
 	subteamLairName, err := rootName.Append("lair")
 	require.NoError(t, err)
 
 	t.Logf("U1 creates fennel_network.chitchat")
-	subteamChitchatID, err := CreateSubteam(context.Background(), tcs[1].G, "chitchat", rootName)
+	subteamChitchatID, err := CreateSubteam(context.Background(), tcs[1].G, "chitchat", rootName, false /* addSelf */)
 	require.NoError(t, err)
 	subteamChitchatName, err := rootName.Append("chitchat")
 	require.NoError(t, err)
@@ -808,7 +808,7 @@ func TestRotateSubteamByExplicitReader(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("U0 creates fennel_network.sub1")
-	subteamID, err := CreateSubteam(context.Background(), tcs[0].G, "sub1", rootName)
+	subteamID, err := CreateSubteam(context.Background(), tcs[0].G, "sub1", rootName, false /* addSelf */)
 	require.NoError(t, err)
 	subteamName, err := rootName.Append("sub1")
 	require.NoError(t, err)
