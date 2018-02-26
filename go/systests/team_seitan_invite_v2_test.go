@@ -36,7 +36,7 @@ func testTeamInviteSeitanHappy(t *testing.T, implicitAdmin bool, seitanVersion t
 	teamName := teamNameParent
 	t.Logf("Created team %v %v", teamIDParent, teamNameParent)
 	if implicitAdmin {
-		subteamID, err := teams.CreateSubteam(context.TODO(), tt.users[0].tc.G, "sub1", teamNameParent, false /* addSelf */)
+		subteamID, err := teams.CreateSubteam(context.TODO(), tt.users[0].tc.G, "sub1", teamNameParent, keybase1.TeamRole_NONE /* addSelfAs */)
 		require.NoError(t, err)
 		teamID = *subteamID
 		subteamName, err := teamNameParent.Append("sub1")

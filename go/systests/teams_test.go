@@ -807,14 +807,14 @@ func TestGetTeamRootID(t *testing.T) {
 	parentID := parentName.ToPrivateTeamID()
 
 	t.Logf("create a subteam")
-	subteamID, err := teams.CreateSubteam(context.TODO(), tt.users[0].tc.G, "mysubteam", parentName, false /* addSelf */)
+	subteamID, err := teams.CreateSubteam(context.TODO(), tt.users[0].tc.G, "mysubteam", parentName, keybase1.TeamRole_NONE /* addSelfAs */)
 	require.NoError(t, err)
 
 	subteamName, err := parentName.Append("mysubteam")
 	require.NoError(t, err)
 
 	t.Logf("create a sub-subteam")
-	subteamID2, err := teams.CreateSubteam(context.TODO(), tt.users[0].tc.G, "teamofsubs", subteamName, false /* addSelf */)
+	subteamID2, err := teams.CreateSubteam(context.TODO(), tt.users[0].tc.G, "teamofsubs", subteamName, keybase1.TeamRole_NONE /* addSelfAs */)
 	require.NoError(t, err)
 
 	getAndCompare := func(id keybase1.TeamID) {
@@ -1048,7 +1048,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	parentName, err := keybase1.TeamNameFromString(team)
 	require.NoError(t, err)
 
-	_, err = teams.CreateSubteam(context.TODO(), ann.tc.G, "mysubteam", parentName, false /* addSelf */)
+	_, err = teams.CreateSubteam(context.TODO(), ann.tc.G, "mysubteam", parentName, keybase1.TeamRole_NONE /* addSelfAs */)
 	require.NoError(t, err)
 	subteam := team + ".mysubteam"
 

@@ -271,7 +271,7 @@ func TestTeamTree(t *testing.T) {
 	}
 
 	createSubteam := func(parentName, subteamName string) string {
-		subteam, err := teams.CreateSubteam(context.Background(), ann.tc.G, subteamName, TeamNameFromString(parentName), false /* addSelf */)
+		subteam, err := teams.CreateSubteam(context.Background(), ann.tc.G, subteamName, TeamNameFromString(parentName), keybase1.TeamRole_NONE /* addSelfAs */)
 		require.NoError(t, err)
 		subteamObj, err := teams.Load(context.Background(), ann.tc.G, keybase1.LoadTeamArg{ID: *subteam})
 		require.NoError(t, err)

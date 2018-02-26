@@ -296,9 +296,9 @@ func TestTeamTxSubteamAdmins(t *testing.T) {
 
 	teamName, err := keybase1.TeamNameFromString(team)
 	require.NoError(t, err)
-	_, err = teams.CreateSubteam(context.Background(), ann.tc.G, "golfers", teamName, false /* addSelf */)
+	_, err = teams.CreateSubteam(context.Background(), ann.tc.G, "golfers", teamName, keybase1.TeamRole_NONE /* addSelfAs */)
 	require.NoError(t, err)
-	_, err = teams.CreateSubteam(context.Background(), ann.tc.G, "pokerpals", teamName, false /* addSelf */)
+	_, err = teams.CreateSubteam(context.Background(), ann.tc.G, "pokerpals", teamName, keybase1.TeamRole_NONE /* addSelfAs */)
 	require.NoError(t, err)
 
 	teamObj := ann.loadTeam(team, true /* admin */)

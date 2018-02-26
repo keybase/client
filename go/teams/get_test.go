@@ -125,7 +125,7 @@ func TestTeamDetailsAsImplicitAdmin(t *testing.T) {
 	teamName, _ := createTeam2(*tcs[0])
 
 	t.Logf("creates a subteam")
-	_, err := CreateSubteam(context.Background(), tcs[0].G, "bbb", teamName, false /* addSelf */)
+	_, err := CreateSubteam(context.Background(), tcs[0].G, "bbb", teamName, keybase1.TeamRole_NONE /* addSelfAs */)
 	require.NoError(t, err)
 
 	t.Logf("loads the subteam")
@@ -146,7 +146,7 @@ func TestGetMaybeAdminByStringName(t *testing.T) {
 	teamName, _ := createTeam2(*tcs[0])
 
 	t.Logf("U0 creates a subteam")
-	_, err := CreateSubteam(context.TODO(), tcs[0].G, "abc", teamName, false /* addSelf */)
+	_, err := CreateSubteam(context.TODO(), tcs[0].G, "abc", teamName, keybase1.TeamRole_NONE /* addSelfAs */)
 	require.NoError(t, err)
 
 	t.Logf("U0 adds U1 as a reader")
@@ -223,7 +223,7 @@ func createTeam2(tc libkb.TestContext) (keybase1.TeamName, keybase1.TeamID) {
 func createSubteam(tc *libkb.TestContext, parent keybase1.TeamName, subteamNamePart string) (keybase1.TeamName, keybase1.TeamID) {
 	subteamName, err := parent.Append(subteamNamePart)
 	require.NoError(tc.T, err)
-	subteamID, err := CreateSubteam(context.TODO(), tc.G, subteamNamePart, parent, false /* addSelf */)
+	subteamID, err := CreateSubteam(context.TODO(), tc.G, subteamNamePart, parent, keybase1.TeamRole_NONE /* addSelfAs */)
 	require.NoError(tc.T, err)
 	return subteamName, *subteamID
 }
