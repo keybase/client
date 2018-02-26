@@ -29,7 +29,8 @@ const mapStateToProps = (state: TypedState) => {
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onBack: () => dispatch(navigateUp()),
-  onEditProfile: ({bio, fullname, location}) => dispatch(createEditProfile({bio, fullname, location})),
+  onEditProfile: (bio: string, fullname: string, location: string) =>
+    dispatch(createEditProfile({bio, fullname, location})),
 })
 
 export default compose(
@@ -42,9 +43,9 @@ export default compose(
   withPropsOnChange(['bio'], props => ({
     bioLengthLeft: props.bio ? maxProfileBioChars - props.bio.length : maxProfileBioChars,
   })),
-  isMobile ? HeaderHoc : a => a,
   withHandlers({
-    onCancel: ({onBack}) => () => onBack(),
-    onSubmit: ({bio, fullname, location, onEditProfile}) => () => onEditProfile({bio, fullname, location}),
-  })
+    ...(isMobile ? {} : {onCancel: ({onBack}) => () => onBack()}),
+    onSubmit: ({bio, fullname, location, onEditProfile}) => () => onEditProfile(bio, fullname, location),
+  }),
+  isMobile ? HeaderHoc : a => a
 )(Render)
