@@ -43,6 +43,7 @@ trap reset EXIT
 if [ -n "$kbfs_commit" ]; then
   cd "$kbfs_dir"
   echo "Checking out $kbfs_commit on kbfs (will reset to $kbfs_branch)"
+  git fetch
   git checkout "$kbfs_commit"
   # tell gobuild.sh (called via "yarn run rn-gobuild-android" below) to use our local commit
   export LOCAL_KBFS=1
@@ -51,6 +52,7 @@ fi
 if [ -n "$client_commit" ]; then
   cd "$client_dir"
   echo "Checking out $client_commit on client (will reset to $client_branch)"
+  git fetch
   git checkout "$client_commit"
 fi
 
