@@ -307,7 +307,8 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, nameString stri
 	return &teamID, err
 }
 
-func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename string, parentName keybase1.TeamName) (ret *keybase1.TeamID, err error) {
+func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename string,
+	parentName keybase1.TeamName, addSelf bool) (ret *keybase1.TeamID, err error) {
 	defer g.CTrace(ctx, "CreateSubteam", func() error { return err })()
 
 	subteamName, err := parentName.Append(subteamBasename)
@@ -364,7 +365,9 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 		return nil, err
 	}
 
-	subteamHeadSig, secretboxes, err := generateHeadSigForSubteamChain(ctx, g, me, deviceSigningKey, parentTeam.chain(), subteamName, subteamID, admin, allParentAdmins)
+	subteamHeadSig, secretboxes, err := generateHeadSigForSubteamChain(ctx, g, me,
+		deviceSigningKey, parentTeam.chain(), subteamName, subteamID, admin,
+		allParentAdmins, addSelf)
 	if err != nil {
 		return nil, err
 	}
@@ -462,16 +465,32 @@ func generateNewSubteamSigForParentChain(g *libkb.GlobalContext, me *libkb.User,
 	return item, nil
 }
 
-func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext, me *libkb.User, signingKey libkb.GenericKey, parentTeam *TeamSigChainState, subteamName keybase1.TeamName, subteamID keybase1.TeamID, admin *SCTeamAdmin, allParentAdmins []keybase1.UserVersion) (item *libkb.SigMultiItem, boxes *PerTeamSharedSecretBoxes, err error) {
+func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext, me *libkb.User,
+	signingKey libkb.GenericKey, parentTeam *TeamSigChainState, subteamName keybase1.TeamName,
+	subteamID keybase1.TeamID, admin *SCTeamAdmin, allParentAdmins []keybase1.UserVersion,
+	addSelf bool) (item *libkb.SigMultiItem, boxes *PerTeamSharedSecretBoxes, err error) {
 	deviceEncryptionKey, err := g.ActiveDevice.EncryptionKey()
 	if err != nil {
 		return
+	}
+
+	members := SCTeamMembers{
+		Owners:  &[]SCTeamMember{},
+		Admins:  &[]SCTeamMember{},
+		Writers: &[]SCTeamMember{},
+		Readers: &[]SCTeamMember{},
 	}
 
 	memSet := newMemberSet()
 	_, err = memSet.loadGroup(ctx, g, allParentAdmins, true /* store recipients */, true /* force poll */)
 	if err != nil {
 		return nil, nil, err
+	}
+
+	if addSelf {
+		meUV := me.ToUserVersion()
+		members.Admins = &[]SCTeamMember{SCTeamMember(meUV)}
+		memSet.loadMember(ctx, g, meUV, true /* store recipient */, false /* force poll */)
 	}
 
 	// These boxes will get posted along with the sig below.
@@ -495,7 +514,7 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 
 	// The "team" section of a subchain head link is similar to that of a
 	// "team.root" link, with the addition of the "parent" subsection.
-	teamSection, err := makeSubteamTeamSection(subteamName, subteamID, parentTeam, me, perTeamSigningKey.GetKID(), perTeamEncryptionKey.GetKID(), admin)
+	teamSection, err := makeSubteamTeamSection(subteamName, subteamID, parentTeam, members, perTeamSigningKey.GetKID(), perTeamEncryptionKey.GetKID(), admin)
 	if err != nil {
 		return
 	}
@@ -556,7 +575,9 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 	return
 }
 
-func makeSubteamTeamSection(subteamName keybase1.TeamName, subteamID keybase1.TeamID, parentTeam *TeamSigChainState, owner *libkb.User, perTeamSigningKID keybase1.KID, perTeamEncryptionKID keybase1.KID, admin *SCTeamAdmin) (SCTeamSection, error) {
+func makeSubteamTeamSection(subteamName keybase1.TeamName, subteamID keybase1.TeamID,
+	parentTeam *TeamSigChainState, members SCTeamMembers, perTeamSigningKID keybase1.KID,
+	perTeamEncryptionKID keybase1.KID, admin *SCTeamAdmin) (SCTeamSection, error) {
 
 	subteamName2 := subteamName.String()
 	teamSection := SCTeamSection{
@@ -572,14 +593,8 @@ func makeSubteamTeamSection(subteamName keybase1.TeamName, subteamID keybase1.Te
 			SigKID:     perTeamSigningKID,
 			EncKID:     perTeamEncryptionKID,
 		},
-		Members: &SCTeamMembers{
-			// Only root teams can have owners. Do not make the current user an admin by default.
-			Owners:  &[]SCTeamMember{},
-			Admins:  &[]SCTeamMember{},
-			Writers: &[]SCTeamMember{},
-			Readers: &[]SCTeamMember{},
-		},
-		Admin: admin,
+		Members: &members,
+		Admin:   admin,
 	}
 
 	// At this point the team section has every field filled out except the
