@@ -99,7 +99,11 @@ class Developer extends React.Component<Props, DeveloperState> {
           flex: 1,
         }}
       >
-        <Text type="BodySmallSemibold" onClick={this._onLabelClick} style={{textAlign: 'center'}}>
+        <Text
+          type="BodySmallSemibold"
+          onClick={this._onLabelClick}
+          style={{textAlign: 'center', cursor: 'default'}}
+        >
           {isMobile
             ? `Please don't do anything here unless instructed to by a developer.`
             : `Please don't do anything below here unless instructed to by a developer.`}
