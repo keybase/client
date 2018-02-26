@@ -138,10 +138,12 @@ const mapDispatchToProps = (dispatch: Dispatch, {searchKey}) => ({
 
 const ConnectedUserInput: Class<React.Component<OwnProps, void>> = compose(
   connect(mapStateToProps, mapDispatchToProps),
-  withStateHandlers({searchText: ''}, {onChangeSearchText: () => searchText => ({searchText})}),
   withStateHandlers(
-    {selectedService: 'Keybase'},
-    {_onSelectService: () => selectedService => ({selectedService})}
+    {searchText: '', selectedService: 'Keybase'},
+    {
+      _onSelectService: () => selectedService => ({selectedService}),
+      onChangeSearchText: () => searchText => ({searchText}),
+    }
   ),
   HocHelpers.onChangeSelectedSearchResultHoc,
   HocHelpers.clearSearchHoc,

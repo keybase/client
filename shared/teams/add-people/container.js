@@ -67,10 +67,12 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   compose(
-    withStateHandlers({role: 'writer'}, {onRoleChange: () => role => ({role})}),
     withStateHandlers(
-      {sendNotification: true},
-      {setSendNotification: () => sendNotification => ({sendNotification})}
+      {role: 'writer', sendNotification: true},
+      {
+        setSendNotification: () => sendNotification => ({sendNotification}),
+        onRoleChange: () => role => ({role}),
+      }
     ),
     withPropsOnChange(['onExitSearch'], props => ({
       onCancel: () => props.onClose(),
