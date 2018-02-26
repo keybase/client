@@ -90,14 +90,19 @@ export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   compose(
     // basic state setters
-    withStateHandlers({role: 'writer'}, {onRoleChange: () => role => ({role})}),
+    withStateHandlers(
+      {role: 'writer', contacts: [], hasPermission: true},
+      {
+        onRoleChange: () => role => ({role}),
+        _setContacts: () => contacts => ({contacts}),
+        _setHasPermission: () => hasPermission => ({hasPermission}),
+      }
+    ),
     withPropsOnChange(['onExitSearch'], props => ({
       onBack: () => props.onClose(),
       title: 'Invite contacts',
       headerStyle: {borderBottomWidth: 0},
     })),
-    withStateHandlers({contacts: []}, {_setContacts: () => contacts => ({contacts})}),
-    withStateHandlers({hasPermission: true}, {_setHasPermission: () => hasPermission => ({hasPermission})}),
     // Go through the permission flow on mount
     lifecycle({
       componentWillMount() {

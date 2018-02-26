@@ -81,12 +81,12 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  withStateHandlers(({currentType}) => ({selectedRole: currentType}), {
-    setSelectedRole: () => selectedRole => ({selectedRole}),
-  }),
   withStateHandlers(
-    {sendNotification: false},
-    {setSendNotification: () => sendNotification => ({sendNotification})}
-  ),
-  withStateHandlers({confirm: false}, {setConfirm: () => confirm => ({confirm})})
+    ({currentType}) => ({selectedRole: currentType, sendNotification: false, confirm: false}),
+    {
+      setSelectedRole: () => selectedRole => ({selectedRole}),
+      setSendNotification: () => sendNotification => ({sendNotification}),
+      setConfirm: () => confirm => ({confirm}),
+    }
+  )
 )(RolePicker)

@@ -43,8 +43,10 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   compose(
-    withStateHandlers({invitees: undefined}, {onInviteesChange: () => invitees => ({invitees})}),
-    withStateHandlers({role: 'writer'}, {onRoleChange: () => role => ({role})}),
+    withStateHandlers(
+      {invitees: undefined, role: 'writer'},
+      {onInviteesChange: () => invitees => ({invitees}), onRoleChange: () => role => ({role})}
+    ),
     withPropsOnChange(['onExitSearch'], props => ({
       onCancel: () => props.onClose(),
       title: 'Invite by email',

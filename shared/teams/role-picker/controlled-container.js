@@ -61,12 +61,16 @@ const PopupWrapped = props => (
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
-  withStateHandlers(({currentType}) => ({selectedRole: currentType}), {
-    setSelectedRole: () => selectedRole => ({selectedRole}),
-  }),
-  withStateHandlers(({sendNotificationChecked}) => ({sendNotification: sendNotificationChecked}), {
-    setSendNotification: () => sendNotification => ({sendNotification}),
-  }),
+  withStateHandlers(
+    ({currentType, sendNotificationChecked}) => ({
+      selectedRole: currentType,
+      sendNotification: sendNotificationChecked,
+    }),
+    {
+      setSelectedRole: () => selectedRole => ({selectedRole}),
+      setSendNotification: () => sendNotification => ({sendNotification}),
+    }
+  ),
   withHandlers({
     setConfirm: ({_onComplete, onCancel, selectedRole, sendNotification}) => (confirm: boolean) => {
       _onComplete(selectedRole, sendNotification)

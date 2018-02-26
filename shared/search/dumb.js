@@ -411,8 +411,10 @@ const userInputMap: DumbComponentMap<UserInput> = {
 }
 
 const UserInputEditable = compose(
-  withStateHandlers({usernameText: ''}, {onChangeText: () => usernameText => ({usernameText})}),
-  withStateHandlers(({userItems}) => ({userItems}), {setUserItems: () => userItems => ({userItems})}),
+  withStateHandlers(props => ({usernameText: '', userItems: props.userItems}), {
+    onChangeText: () => usernameText => ({usernameText}),
+    setUserItems: () => userItems => ({userItems}),
+  }),
   withHandlers({
     onRemoveUser: ({setUserItems, userItems}) => (id: string) => {
       setUserItems(userItems.filter(i => i.id !== id))
