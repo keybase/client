@@ -308,7 +308,7 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, nameString stri
 }
 
 func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename string,
-	parentName keybase1.TeamName, addSelf bool) (ret *keybase1.TeamID, err error) {
+	parentName keybase1.TeamName, addSelfAs keybase1.TeamRole) (ret *keybase1.TeamID, err error) {
 	defer g.CTrace(ctx, "CreateSubteam", func() error { return err })()
 
 	subteamName, err := parentName.Append(subteamBasename)
@@ -367,7 +367,7 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 
 	subteamHeadSig, secretboxes, err := generateHeadSigForSubteamChain(ctx, g, me,
 		deviceSigningKey, parentTeam.chain(), subteamName, subteamID, admin,
-		allParentAdmins, addSelf)
+		allParentAdmins, addSelfAs)
 	if err != nil {
 		return nil, err
 	}
@@ -468,7 +468,7 @@ func generateNewSubteamSigForParentChain(g *libkb.GlobalContext, me *libkb.User,
 func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext, me *libkb.User,
 	signingKey libkb.GenericKey, parentTeam *TeamSigChainState, subteamName keybase1.TeamName,
 	subteamID keybase1.TeamID, admin *SCTeamAdmin, allParentAdmins []keybase1.UserVersion,
-	addSelf bool) (item *libkb.SigMultiItem, boxes *PerTeamSharedSecretBoxes, err error) {
+	addSelfAs keybase1.TeamRole) (item *libkb.SigMultiItem, boxes *PerTeamSharedSecretBoxes, err error) {
 	deviceEncryptionKey, err := g.ActiveDevice.EncryptionKey()
 	if err != nil {
 		return
@@ -487,9 +487,19 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 		return nil, nil, err
 	}
 
-	if addSelf {
+	if addSelfAs != keybase1.TeamRole_NONE {
 		meUV := me.ToUserVersion()
-		members.Admins = &[]SCTeamMember{SCTeamMember(meUV)}
+		memList := []SCTeamMember{SCTeamMember(meUV)}
+		switch addSelfAs {
+		case keybase1.TeamRole_READER:
+			members.Readers = &memList
+		case keybase1.TeamRole_WRITER:
+			members.Writers = &memList
+		case keybase1.TeamRole_ADMIN:
+			members.Admins = &memList
+		case keybase1.TeamRole_OWNER:
+			return nil, nil, errors.New("Cannot add self as owner to a subteam")
+		}
 		memSet.loadMember(ctx, g, meUV, true /* store recipient */, false /* force poll */)
 	}
 
@@ -500,7 +510,7 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 	}
 	boxes, err = m.SharedSecretBoxes(ctx, deviceEncryptionKey, memSet.recipients)
 	if err != nil {
-		return
+		return nil, nil, err
 	}
 
 	perTeamSigningKey, err := m.SigningKey()

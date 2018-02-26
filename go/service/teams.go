@@ -76,15 +76,21 @@ func (h *TeamsHandler) TeamCreateWithSettings(ctx context.Context, arg keybase1.
 		if err != nil {
 			return res, err
 		}
+		addSelfAs := keybase1.TeamRole_WRITER // writer is enough to init chat channel
+		if arg.JoinSubteam {
+			// but if user wants to stay in team, add as admin.
+			addSelfAs = keybase1.TeamRole_ADMIN
+		}
+
 		teamID, err := teams.CreateSubteam(ctx, h.G().ExternalG(), string(teamName.LastPart()),
-			parentName, true /* addSelf */)
+			parentName, addSelfAs)
 		if err != nil {
 			return res, err
 		}
 		res.TeamID = *teamID
 
 		// join the team to send the Create message
-		h.G().Log.CDebugf(ctx, "TeamCreate: created subteam %s with self in it temporarily to set it up", arg.Name)
+		h.G().Log.CDebugf(ctx, "TeamCreate: created subteam %s with self in as %v", arg.Name, addSelfAs)
 		username := h.G().Env.GetUsername().String()
 		res.ChatSent = teams.SendTeamChatCreateMessage(ctx, h.G().ExternalG(), teamName.String(), username)
 
