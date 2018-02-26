@@ -13,6 +13,11 @@ import (
 	"runtime"
 )
 
+const noiseLen = 1024 * 1024 * 2
+
+type secretBytes [LKSecLen]byte
+type noiseBytes [noiseLen]byte
+
 var ErrSecretForUserNotFound = NotFoundError{Msg: "No secret found for user"}
 
 type SecretStoreFile struct {
@@ -84,7 +89,11 @@ func (s *SecretStoreFile) retrieveSecretV2(username NormalizedUsername) (LKSecFu
 		return LKSecFullSecret{}, err
 	}
 
-	secret, err := s.noiseXOR(xor, noise)
+	var xorFixed secretBytes
+	copy(xorFixed[:], xor)
+	var noiseFixed noiseBytes
+	copy(noiseFixed[:], noise)
+	secret, err := s.noiseXOR(xorFixed, noiseFixed)
 	if err != nil {
 		return LKSecFullSecret{}, err
 	}
@@ -92,8 +101,18 @@ func (s *SecretStoreFile) retrieveSecretV2(username NormalizedUsername) (LKSecFu
 	return newLKSecFullSecretFromBytes(secret)
 }
 
-func (s *SecretStoreFile) noiseXOR(secret, noise []byte) ([]byte, error) {
-	sum := sha256.Sum256(noise)
+func (s *SecretStoreFile) makeNoise() (noiseBytes, error) {
+	var nb noiseBytes
+	noise, err := RandBytes(noiseLen)
+	if err != nil {
+		return nb, err
+	}
+	copy(nb[:], noise)
+	return nb, nil
+}
+
+func (s *SecretStoreFile) noiseXOR(secret secretBytes, noise noiseBytes) ([]byte, error) {
+	sum := sha256.Sum256(noise[:])
 	if len(sum) != len(secret) {
 		return nil, errors.New("LKSecLen or sha256.Size is no longer 32")
 	}
@@ -107,11 +126,13 @@ func (s *SecretStoreFile) noiseXOR(secret, noise []byte) ([]byte, error) {
 }
 
 func (s *SecretStoreFile) StoreSecret(username NormalizedUsername, secret LKSecFullSecret) error {
-	noise, err := RandBytes(1024 * 1024 * 2)
+	noise, err := s.makeNoise()
 	if err != nil {
 		return err
 	}
-	xor, err := s.noiseXOR(secret.Bytes(), noise)
+	var secretFixed secretBytes
+	copy(secretFixed[:], secret.Bytes())
+	xor, err := s.noiseXOR(secretFixed, noise)
 	if err != nil {
 		return err
 	}
@@ -148,7 +169,7 @@ func (s *SecretStoreFile) StoreSecret(username NormalizedUsername, secret LKSecF
 	if err := fsec.Close(); err != nil {
 		return err
 	}
-	if _, err := fnoise.Write(noise); err != nil {
+	if _, err := fnoise.Write(noise[:]); err != nil {
 		return err
 	}
 	if err := fnoise.Close(); err != nil {
@@ -228,7 +249,7 @@ func (s *SecretStoreFile) clearSecretV2(username NormalizedUsername) error {
 	}
 
 	for i := 0; i < 3; i++ {
-		noise, err := RandBytes(1024 * 1024 * 2)
+		noise, err := RandBytes(noiseLen)
 		if err != nil {
 			return err
 		}
