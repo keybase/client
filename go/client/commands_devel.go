@@ -15,8 +15,6 @@ import (
 
 func getBuildSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
 	return []cli.Command{
-		NewCmdAccountDelete(cl, g),
-		NewCmdAccountReset(cl, g),
 		NewCmdAPICall(cl, g),
 		NewCmdCheckTracking(cl, g),
 		NewCmdFakeTrackingChanged(cl, g),
@@ -42,6 +40,11 @@ func getBuildSpecificChatCommands(cl *libcmdline.CommandLine, g *libkb.GlobalCon
 		newCmdChatSetRetention(cl, g),
 		newCmdChatSetRetentionDev(cl, g),
 		newCmdChatKBFSUpgrade(cl, g),
+	}
+}
+func getBuildSpecificAccountCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
+	return []cli.Command{
+		NewCmdAccountReset(cl, g),
 	}
 }
 

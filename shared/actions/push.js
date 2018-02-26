@@ -233,9 +233,11 @@ function* checkIOSPushSaga(): Saga.SagaGenerator<any, any> {
     ])
   } else {
     // badge or alert permissions are enabled
-    logger.info('Badge or alert permissions are enabled')
-    yield Saga.put(PushGen.createSetHasPermissions({hasPermissions: true}))
-    yield Saga.call(requestPushPermissions)
+    logger.info('Badge or alert permissions are enabled. Getting token.')
+    yield Saga.all([
+      Saga.put(PushGen.createSetHasPermissions({hasPermissions: true})),
+      Saga.call(requestPushPermissions),
+    ])
   }
 }
 
@@ -271,10 +273,16 @@ function* mobileAppStateSaga(action: AppGen.MobileAppStatePayload) {
     console.log('Checking push permissions')
     const permissions = yield Saga.call(checkPermissions)
     if (permissions.alert || permissions.badge) {
-      console.log('Push permissions are ON')
+      logger.info('Found push permissions ENABLED on app focus')
+      const state: TypedState = yield Saga.select()
+      const hasPermissions = state.push.hasPermissions
+      if (!hasPermissions) {
+        logger.info('Had no permissions before, requesting permissions to get token')
+        yield Saga.call(requestPushPermissions)
+      }
       yield Saga.put(PushGen.createSetHasPermissions({hasPermissions: true}))
     } else {
-      console.log('Push permissions are OFF')
+      logger.info('Found push permissions DISABLED on app focus')
       yield Saga.put(PushGen.createSetHasPermissions({hasPermissions: false}))
     }
   }
