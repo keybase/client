@@ -151,8 +151,8 @@ func (s *SecretStoreFile) StoreSecret(username NormalizedUsername, secret LKSecF
 	}
 
 	// remove the temp file if it still exists at the end of this function
-	defer os.Remove(fsec.Name())
-	defer os.Remove(fnoise.Name())
+	defer ShredFile(fsec.Name())
+	defer ShredFile(fnoise.Name())
 
 	if runtime.GOOS != "windows" {
 		// os.Fchmod not supported on windows
@@ -229,7 +229,7 @@ func (s *SecretStoreFile) ClearSecret(username NormalizedUsername) error {
 }
 
 func (s *SecretStoreFile) clearSecretV1(username NormalizedUsername) error {
-	if err := os.Remove(s.userpath(username)); err != nil {
+	if err := ShredFile(s.userpath(username)); err != nil {
 		if os.IsNotExist(err) {
 			return nil
 		}
@@ -240,7 +240,7 @@ func (s *SecretStoreFile) clearSecretV1(username NormalizedUsername) error {
 }
 
 func (s *SecretStoreFile) clearSecretV2(username NormalizedUsername) error {
-	exists, err := FileExists(s.userpathV2(username))
+	exists, err := FileExists(s.noisepathV2(username))
 	if err != nil {
 		return err
 	}
@@ -248,21 +248,13 @@ func (s *SecretStoreFile) clearSecretV2(username NormalizedUsername) error {
 		return nil
 	}
 
-	for i := 0; i < 3; i++ {
-		noise, err := RandBytes(noiseLen)
-		if err != nil {
-			return err
-		}
-		if err := ioutil.WriteFile(s.noisepathV2(username), noise, 0600); err != nil {
-			return err
-		}
+	nerr := ShredFile(s.noisepathV2(username))
+	uerr := ShredFile(s.userpathV2(username))
+	if nerr != nil {
+		return nerr
 	}
-
-	if err := os.Remove(s.noisepathV2(username)); err != nil {
-		return err
-	}
-	if err := os.Remove(s.userpathV2(username)); err != nil {
-		return err
+	if uerr != nil {
+		return uerr
 	}
 	return nil
 }
