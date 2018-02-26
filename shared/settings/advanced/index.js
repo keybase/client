@@ -68,6 +68,8 @@ type DeveloperState = {
   clickCount: number,
 }
 
+const clickThreshold = 7
+
 class Developer extends React.Component<Props, DeveloperState> {
   constructor(props: Props) {
     super(props)
@@ -78,13 +80,19 @@ class Developer extends React.Component<Props, DeveloperState> {
   }
 
   _onLabelClick = () => {
-    this.setState(state => ({
-      clickCount: state.clickCount + 1,
-    }))
+    this.setState(state => {
+      const clickCount = state.clickCount + 1
+      if (clickCount < clickThreshold) {
+        console.log(
+          `clickCount = ${clickCount} (${clickThreshold - clickCount} away from showing developer controls)`
+        )
+      }
+      return {clickCount}
+    })
   }
 
   _showTrace = () => {
-    return this.state.clickCount >= 7
+    return this.state.clickCount >= clickThreshold
   }
 
   render() {
