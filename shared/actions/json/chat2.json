@@ -72,9 +72,18 @@
     "metaDelete": {
       "conversationIDKey": "Types.ConversationIDKey",
     },
+    // We updated our view of a thread
+    "metaUpdatePagination": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "paginationKey": "Types.PaginationKey",
+      "paginationMoreToLoad": "boolean",
+    },
     // Add a new message
     "messagesAdd": {
-      "context": "{type: 'sent'} | {type: 'incoming'} | {type: 'threadLoad', conversationIDKey: Types.ConversationIDKey}", // because we clicked on a conversation for the very first time?
+      // sent = we sent it
+      // incoming = a streaming message
+      // threadLoad = we're loading more messages on select / scroll
+      "context": "{type: 'sent'} | {type: 'incoming'} | {type: 'threadLoad', conversationIDKey: Types.ConversationIDKey}",
       "messages": "Array<Types.Message>"
     },
     // Got an error sending a message
@@ -117,7 +126,7 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal"
     },
-    // Clear our knowledge of which messages are in a thread, used when a stale gap is too big
+    // Clear our knowledge of which messages are in a thread
     "clearOrdinals": {
       "conversationIDKey": "Types.ConversationIDKey"
     },

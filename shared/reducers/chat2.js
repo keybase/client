@@ -51,6 +51,16 @@ const upgradeMessage = (old: Types.Message, m: Types.Message) => {
 
 const metaMapReducer = (metaMap, action) => {
   switch (action.type) {
+    case Chat2Gen.metaUpdatePagination:
+      return metaMap.update(
+        action.payload.conversationIDKey,
+        meta =>
+          meta
+            ? meta
+                .set('paginationKey', action.payload.paginationKey)
+                .set('paginationMoreToLoad', action.payload.paginationMoreToLoad)
+            : meta
+      )
     case Chat2Gen.metaDelete:
       return metaMap.delete(action.payload.conversationIDKey)
     case Chat2Gen.notificationSettingsUpdated:
@@ -485,7 +495,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       )
 
       const metaMap =
-        context.type === 'threadLoad' && state.metaMap.get(context.conversationIDKey)
+        context.type === 'threadLoadFull' && state.metaMap.get(context.conversationIDKey)
           ? state.metaMap.update(context.conversationIDKey, (meta: Types.ConversationMeta) =>
               meta.set('hasLoadedThread', true)
             )
@@ -596,6 +606,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.markConversationsStale:
     case Chat2Gen.notificationSettingsUpdated:
     case Chat2Gen.metaDelete:
+    case Chat2Gen.metaUpdatePagination:
       return state.withMutations(s => {
         s.set('metaMap', metaMapReducer(state.metaMap, action))
         s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))
@@ -611,7 +622,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.exitSearch:
     case Chat2Gen.joinConversation:
     case Chat2Gen.leaveConversation:
-    case Chat2Gen.loadMoreMessages:
+    case Chat2Gen.loadOlderMessagesDueToScroll:
     case Chat2Gen.markInitiallyLoadedThreadAsRead:
     case Chat2Gen.messageDeleteHistory:
     case Chat2Gen.messageSend:

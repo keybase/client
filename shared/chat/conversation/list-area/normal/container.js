@@ -24,7 +24,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _loadMoreMessages: (conversationIDKey: Types.ConversationIDKey) =>
-    dispatch(Chat2Gen.createLoadMoreMessages({conversationIDKey})),
+    dispatch(Chat2Gen.createLoadOlderMessagesDueToScroll({conversationIDKey})),
   _markInitiallyLoadedThreadAsRead: (conversationIDKey: Types.ConversationIDKey) => {
     dispatch(Chat2Gen.createMarkInitiallyLoadedThreadAsRead({conversationIDKey}))
   },

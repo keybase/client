@@ -8,13 +8,16 @@ type MembershipType = 'active' | 'youArePreviewing' | 'youAreReset'
 type TeamType = 'small' | 'big' | 'adhoc'
 type Username = string
 
+export opaque type PaginationKey: string = string
+export const stringToPaginationKey = (s: string): PaginationKey => s
+
 export type MetaTrustedState = 'untrusted' | 'requesting' | 'trusted' | 'error'
 export type NotificationsType = 'onAnyActivity' | 'onWhenAtMentioned' | 'never'
 
 export type _ConversationMeta = {
   channelname: string,
   conversationIDKey: Common.ConversationIDKey,
-  hasLoadedThread: boolean,
+  // hasLoadedThread: boolean,
   inboxVersion: number,
   isMuted: boolean,
   membershipType: MembershipType,
@@ -22,6 +25,8 @@ export type _ConversationMeta = {
   notificationsMobile: NotificationsType,
   notificationsGlobalIgnoreMentions: boolean,
   orangeLineOrdinal: ?Ordinal,
+  paginationKey: ?PaginationKey,
+  paginationMoreToLoad: boolean,
   participants: I.OrderedSet<string>,
   rekeyers: I.Set<string>,
   resetParticipants: I.Set<string>,

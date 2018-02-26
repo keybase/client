@@ -39,7 +39,7 @@ export const rpcOutboxIDToOutboxID = (outboxID: RPCChatTypes.OutboxID): Message.
 export const outboxIDToRpcOutboxID = (outboxID: Message.OutboxID): RPCChatTypes.OutboxID =>
   Buffer.from(Message.outboxIDToString(outboxID), 'hex')
 
-export type {ConversationMeta, MetaTrustedState, NotificationsType} from './meta'
+export type {ConversationMeta, MetaTrustedState, NotificationsType, PaginationKey} from './meta'
 export type {
   AttachmentType,
   MentionsAt,
@@ -67,4 +67,5 @@ export {
   numberToOrdinal,
   ordinalToNumber,
 } from './message'
+export {stringToPaginationKey} from './meta'
 export {stringToConversationIDKey, conversationIDKeyToString} from './common'

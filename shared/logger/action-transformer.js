@@ -42,7 +42,7 @@ const entityTransformer = (action: Entity.Actions) => ({
   type: action.type,
 })
 
-const defaultTransformer: ActionTransformer<*, *> = ({type}) => ''
+const defaultTransformer: ActionTransformer<*, *> = ({type}) => ({type})
 
 const actionTransformMap: {[key: string]: ActionTransformer<*, *>} = {
   [RouteTreeConstants.switchTo]: pathActionTransformer,

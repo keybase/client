@@ -567,12 +567,11 @@ const loadMoreMessages = (
   // When we get a push notification the first phase is to select the conversation but its too early to actually load the data
   // so if we're not actually in the second phase let's just ignore
   if (action.type === Chat2Gen.selectConversationDueToPush) {
-      if (action.payload.phase !== 'loadNewContent') {
-        logger.info('Load thread bail: push but not loading phase yet')
-        return
-      }
-  }
-  else if (action.type === Chat2Gen.setPendingConversationUsers) {
+    if (action.payload.phase !== 'loadNewContent') {
+      logger.info('Load thread bail: push but not loading phase yet')
+      return
+    }
+  } else if (action.type === Chat2Gen.setPendingConversationUsers) {
     if (state.chat2.pendingSelected) {
       const toFind = I.Set(action.payload.users.concat([state.config.username]))
       key = state.chat2.metaMap.findKey(meta =>
@@ -603,81 +602,93 @@ const loadMoreMessages = (
     return
   }
 
-  // the messageid we're loading from (newer than or older than)
-  let pivot = null
-  let numberOfMessagesToLoad
-  // We let the daemon know which ids in this window we are aware of
-  let knownIDs = []
+  // When we select a conversation we always load the newest N messages and keep track of the pagination information
+  // When you scroll back we use that to get the next page and update the value
+  // otherwise we always just load the newest N and get a new pagination value
 
-  const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
-  const mmap = Constants.getMessageMap(state, conversationIDKey)
-  const actions = []
+  // the messageid we're loading from (newer than or older than)
+  let numberOfMessagesToLoad
+  // let newerMessages
+  let paginationKey = null
+
+  // TODO test stale on the current conversation
+  //
+  const meta = Constants.getMeta(state, conversationIDKey)
 
   if (action.type === Chat2Gen.loadOlderMessagesDueToScroll) {
+    paginationKey = meta.paginationKey
     numberOfMessagesToLoad = numMessagesOnScrollback
   } else {
+    // } //else if (action.type === Chat2Gen.markConversationsStale) {
+    //  maybe handle this case?
+    // }
     numberOfMessagesToLoad = numMessagesOnInitialLoad
-    knownIDs = ordinals.takeLast(num).map(o => mmap.getIn([o, 'id'], 0)).filter(Boolean)
   }
 
-  switch (action.type) {
-    case Chat2Gen.markConversationsStale:
-      break
-    case Chat2Gen.selectConversationDueToPush: // fallthrough on purpose
-    case Chat2Gen.setPendingConversationUsers: // fallthrough . basically the same as selecting
-    case Chat2Gen.selectConversation:
-      // When we just select a conversation we can be in the following states
-      // 1. We have no messages at all yet (not unboxed)
-      // 2. We have some messages but we never actually did an explicit load (unboxing and some streaming)
-      // 3. We have some messages due to a load and want to make sure we're up to date so we ask for newer (aka you clicked and away and back again)
-      // 4. We have some messages from a load and then we have a gap cause we were offline or something and got a stale. Assuming [messages...] [gap] [new item]
-      const hasLoaded = Constants.getMeta(state, conversationIDKey).hasLoadedThread
-      if (!hasLoaded) {
-        // case 1/2
-        logger.info('Load thread: case 1/2: not loaded yet')
-        pivot = Constants.getMessageOrdinals(state, conversationIDKey).last() // get messages older than the oldest one we know about
-        num = numMessagesOnInitialLoad
-      } else {
-        const last = ordinals.last()
-        const secondToLast = ordinals.skipLast(1).last()
-        // Is there a gap?
-        const gap =
-          last && secondToLast ? Types.ordinalToNumber(last) - Types.ordinalToNumber(secondToLast) : 0
-        if (gap > 1) {
-          // Case 4
-          if (gap < largestGapToFillOnSyncCall) {
-            // TEMP 50
-            logger.info('Load thread: case 4: small gap, filling in')
-            num = largestGapToFillOnSyncCall
-            pivot = secondToLast // newer than the top of the gap
-          } else {
-            logger.info('Load thread: case 4: big gap, acting like not loaded yet')
-            // Gap is too big, treat as Case 1/2 and clear old ordinals
-            actions.push(Saga.put(Chat2Gen.createClearOrdinals({conversationIDKey})))
-            pivot = null
-          }
-        } else {
-          // Case 3
-          logger.info('Load thread: case 3: already loaded, just load newer')
-          pivot = last
-        }
-      }
+  // switch (action.type) {
+  // case Chat2Gen.setPendingConversationUsers: // fallthrough
+  // case Chat2Gen.selectConversationDueToPush: // fallthrough
+  // case Chat2Gen.selectConversation:
+  // // const hasLoaded = Constants.getMeta(state, conversationIDKey).hasLoadedThread
+  // // if (!hasLoaded || action.type === Chat2Gen.markConversationsStale || ordinals.size === 0) {
+  // numberOfMessagesToLoad = numMessagesOnInitialLoad
+  // newerMessages = false
+  // pivot = null
+  // // } else {
+  // // numberOfMessagesToLoad = numMessagesOnInitialLoad
+  // // pivot = ordinals.last()
+  // // newerMessages = true
+  // // }
 
-      break
-    case :
-      pivot = Constants.getMessageOrdinals(state, conversationIDKey).first() // get newer messages than the oldest one we know about
-      if (pivot && Constants.isOldestOrdinal(pivot)) {
-        logger.info('Load thread bail: pivot is oldest')
-        return
-      }
-      break
-    default:
-      // eslint-disable-next-line no-unused-expressions
-      ;(action: empty) // errors if we don't handle any new actions
-      throw new Error('Invalid action passed to loadMoreMessages')
-  }
+  // // if (!hasLoaded || action.type === Chat2Gen.markConversationsStale) {
+  // // logger.info('Load thread: not loaded yet or stale')
+  // // pivot = null
+  // // numberOfMessagesToLoad = numMessagesOnInitialLoad
+  // // } else {
+  // // const last = ordinals.last()
+  // // const secondToLast = ordinals.skipLast(1).last()
+  // // // Is there a gap?
+  // // const gap =
+  // // last && secondToLast ? Types.ordinalToNumber(last) - Types.ordinalToNumber(secondToLast) : 0
+  // // if (gap > 1) {
+  // // // Case 4
+  // // if (gap < largestGapToFillOnSyncCall) {
+  // // // TEMP 50
+  // // logger.info('Load thread: case 4: small gap, filling in')
+  // // num = largestGapToFillOnSyncCall
+  // // pivot = secondToLast // newer than the top of the gap
+  // // } else {
+  // // logger.info('Load thread: case 4: big gap, acting like not loaded yet')
+  // // // Gap is too big, treat as Case 1/2 and clear old ordinals
+  // // actions.push(Saga.put(Chat2Gen.createClearOrdinals({conversationIDKey})))
+  // // pivot = null
+  // // }
+  // // } else {
+  // // // Case 3
+  // // logger.info('Load thread: case 3: already loaded, just load newer')
+  // // pivot = last
+  // // }
+  // // }
 
-  const onGotThread = function*({thread}: {thread: string}) {
+  // break
+  // case Chat2Gen.loadOlderMessagesDueToScroll:
+  // pivot = Constants.getMessageOrdinals(state, conversationIDKey).first() // get newer messages than the oldest one we know about
+  // numberOfMessagesToLoad = numMessagesOnScrollback
+  // newerMessages = false
+  // if (pivot && Constants.isOldestOrdinal(pivot)) {
+  // logger.info('Load thread bail: pivot is oldest')
+  // return
+  // }
+  // break
+  // default:
+  // // eslint-disable-next-line no-unused-expressions
+  // ;(action: empty) // errors if we don't handle any new actions
+  // throw new Error('Invalid action passed to loadMoreMessages')
+  // }
+
+  // we clear on the first callback. we sometimes don't get a cached context
+  let calledClear = false
+  const onGotThread = function*({thread}: {thread: string}, context: 'full' | 'cached') {
     if (thread) {
       const uiMessages: RPCChatTypes.UIMessages = JSON.parse(thread)
 
@@ -696,6 +707,22 @@ const loadMoreMessages = (
         return arr
       }, [])
 
+      if (context === 'cached') {
+        yield Saga.put(
+          Chat2Gen.createMetaUpdatePagination({
+            conversationIDKey,
+            paginationKey: Types.stringToPaginationKey(uiMessages.pagination.next),
+            paginationMoreToLoad: !uiMessages.pagination.last,
+          })
+        )
+      }
+
+      // If we're loading the thread clean lets clear
+      if (!calledClear && action.type !== Chat2Gen.loadOlderMessagesDueToScroll) {
+        calledClear = true
+        yield Saga.put(Chat2Gen.createClearOrdinals({conversationIDKey}))
+      }
+
       if (messages.length) {
         yield Saga.put(
           Chat2Gen.createMessagesAdd({context: {conversationIDKey, type: 'threadLoad'}, messages})
@@ -707,19 +734,22 @@ const loadMoreMessages = (
   }
 
   // Disallow fractional ordinals in pivot
-  pivot = pivot ? Types.numberToOrdinal(Math.floor(Types.ordinalToNumber(pivot))) : null
+  // pivot = pivot ? Types.numberToOrdinal(Math.floor(Types.ordinalToNumber(pivot))) : null
 
   logger.info(
-    `Load thread: calling rpc convo: ${conversationIDKey} pivot: ${
-      pivot ? Types.ordinalToNumber(pivot) : ''
-    } num: ${num}`
+    `Load thread: calling rpc convo: ${conversationIDKey} paginationKey: ${paginationKey ||
+      ''} num: ${numberOfMessagesToLoad}`
   )
 
   const loadingKey = `loadingThread:${conversationIDKey}`
   const loadThreadChanMapRpc = new EngineRpc.EngineRpcCall(
     {
-      'chat.1.chatUi.chatThreadCached': onGotThread,
-      'chat.1.chatUi.chatThreadFull': onGotThread,
+      'chat.1.chatUi.chatThreadCached': function*(p) {
+        return yield* onGotThread(p, 'cached')
+      },
+      'chat.1.chatUi.chatThreadFull': function*(p) {
+        return yield* onGotThread(p, 'full')
+      },
     },
     RPCChatTypes.localGetThreadNonblockRpcChannelMap,
     'localGetThreadNonblock',
@@ -727,14 +757,13 @@ const loadMoreMessages = (
       cbMode: RPCChatTypes.localGetThreadNonblockCbMode.incremental,
       conversationID,
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+      pagination: {
+        next: paginationKey,
+        num: numberOfMessagesToLoad,
+      },
       query: {
         disableResolveSupersedes: false,
         markAsRead: false,
-        messageIDControl: {
-          num,
-          pivot,
-          recent: false,
-        },
         messageTypes: loadThreadMessageTypes,
       },
     },
@@ -742,12 +771,14 @@ const loadMoreMessages = (
     (loading: boolean) => Chat2Gen.createSetLoading({key: loadingKey, loading})
   )
 
-  actions.push(Saga.call(loadThreadChanMapRpc.run))
+  const actions = [
+    Saga.call(loadThreadChanMapRpc.run),
+    // we handled loading from push
+    ...(state.chat2.loadingMap.get('pushLoad')
+      ? [Saga.put(Chat2Gen.createSetLoading({key: 'pushLoad', loading: false}))]
+      : []),
+  ].filter(Boolean)
 
-  // we handled loading from push
-  if (state.chat2.loadingMap.get('pushLoad')) {
-    actions.push(Saga.put(Chat2Gen.createSetLoading({key: 'pushLoad', loading: false})))
-  }
   return Saga.sequentially(actions)
 }
 

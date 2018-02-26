@@ -53,6 +53,7 @@ export const metaNeedsUpdating = 'chat2:metaNeedsUpdating'
 export const metaReceivedError = 'chat2:metaReceivedError'
 export const metaRequestTrusted = 'chat2:metaRequestTrusted'
 export const metaRequestingTrusted = 'chat2:metaRequestingTrusted'
+export const metaUpdatePagination = 'chat2:metaUpdatePagination'
 export const metasReceived = 'chat2:metasReceived'
 export const muteConversation = 'chat2:muteConversation'
 export const navigateToInbox = 'chat2:navigateToInbox'
@@ -277,6 +278,13 @@ export const createMetaRequestTrusted = (
   }>
 ) => ({error: false, payload, type: metaRequestTrusted})
 export const createMetaRequestingTrusted = (payload: $ReadOnly<{conversationIDKeys: Array<Types.ConversationIDKey>}>) => ({error: false, payload, type: metaRequestingTrusted})
+export const createMetaUpdatePagination = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    paginationKey: Types.PaginationKey,
+    paginationMoreToLoad: boolean,
+  }>
+) => ({error: false, payload, type: metaUpdatePagination})
 export const createMetasReceived = (payload: $ReadOnly<{metas: Array<Types.ConversationMeta>}>) => ({error: false, payload, type: metasReceived})
 export const createMuteConversation = (
   payload: $ReadOnly<{
@@ -401,6 +409,7 @@ export type MetaNeedsUpdatingPayload = More.ReturnType<typeof createMetaNeedsUpd
 export type MetaReceivedErrorPayload = More.ReturnType<typeof createMetaReceivedError>
 export type MetaRequestTrustedPayload = More.ReturnType<typeof createMetaRequestTrusted>
 export type MetaRequestingTrustedPayload = More.ReturnType<typeof createMetaRequestingTrusted>
+export type MetaUpdatePaginationPayload = More.ReturnType<typeof createMetaUpdatePagination>
 export type MetasReceivedPayload = More.ReturnType<typeof createMetasReceived>
 export type MuteConversationPayload = More.ReturnType<typeof createMuteConversation>
 export type NavigateToInboxPayload = More.ReturnType<typeof createNavigateToInbox>
@@ -469,6 +478,7 @@ export type Actions =
   | More.ReturnType<typeof createMetaReceivedError>
   | More.ReturnType<typeof createMetaRequestTrusted>
   | More.ReturnType<typeof createMetaRequestingTrusted>
+  | More.ReturnType<typeof createMetaUpdatePagination>
   | More.ReturnType<typeof createMetasReceived>
   | More.ReturnType<typeof createMuteConversation>
   | More.ReturnType<typeof createNavigateToInbox>

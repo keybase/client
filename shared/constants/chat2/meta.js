@@ -127,7 +127,7 @@ export const updateMeta = (
     return old
   }
 
-  const hasLoadedThread = old.hasLoadedThread
+  // const hasLoadedThread = old.hasLoadedThread
   const participants = old.participants.equals(meta.participants) ? old.participants : meta.participants
   const rekeyers = old.rekeyers.equals(meta.rekeyers) ? old.rekeyers : meta.rekeyers
   const resetParticipants = old.resetParticipants.equals(meta.resetParticipants)
@@ -136,7 +136,9 @@ export const updateMeta = (
 
   return meta.withMutations(m => {
     m.set('channelname', meta.channelname || old.channelname)
-    m.set('hasLoadedThread', hasLoadedThread)
+    // m.set('hasLoadedThread', hasLoadedThread)
+    m.set('paginationKey', meta.paginationKey)
+    m.set('paginationMoreToLoad', meta.paginationMoreToLoad)
     m.set('orangeLineOrdinal', old.orangeLineOrdinal)
     m.set('participants', participants)
     m.set('rekeyers', rekeyers)
@@ -258,7 +260,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
 export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record({
   channelname: '',
   conversationIDKey: Types.stringToConversationIDKey(''),
-  hasLoadedThread: false,
+  // hasLoadedThread: false,
   inboxVersion: -1,
   isMuted: false,
   membershipType: 'active',
@@ -266,6 +268,8 @@ export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record
   notificationsGlobalIgnoreMentions: false,
   notificationsMobile: 'never',
   orangeLineOrdinal: null,
+  paginationKey: null,
+  paginationMoreToLoad: true,
   participants: I.OrderedSet(),
   rekeyers: I.Set(),
   resetParticipants: I.Set(),
