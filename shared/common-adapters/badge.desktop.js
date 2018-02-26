@@ -21,13 +21,13 @@ const defaultBadgeStyle = {
   backgroundColor: globalColors.orange,
   borderRadius: 10,
   alignItems: 'center',
-  height: 14,
+  height: 16,
   justifyContent: 'center',
   paddingLeft: 4,
   paddingRight: 5,
   marginLeft: 'auto',
   marginRight: 8,
-  minWidth: 14,
+  minWidth: 16,
 }
 
 const textStyle = {
