@@ -1,6 +1,6 @@
 // @noflow
 import * as I from 'immutable'
-import {compose, withHandlers, withState} from 'recompose'
+import {compose, withHandlers, withStateHandlers} from '../util/container'
 import ServicesFilter from './services-filter'
 import ResultRow from './result-row'
 import ResultsList from './results-list'
@@ -411,8 +411,8 @@ const userInputMap: DumbComponentMap<UserInput> = {
 }
 
 const UserInputEditable = compose(
-  withState('usernameText', 'onChangeText', ''),
-  withState('userItems', 'setUserItems', ({userItems}) => userItems),
+  withStateHandlers({usernameText: ''}, {onChangeText: () => usernameText => ({usernameText})}),
+  withStateHandlers(({userItems}) => ({userItems}), {setUserItems: () => userItems => ({userItems})}),
   withHandlers({
     onRemoveUser: ({setUserItems, userItems}) => (id: string) => {
       setUserItems(userItems.filter(i => i.id !== id))

@@ -8,7 +8,7 @@ import ServicesFilter from './services-filter'
 import UserInput from './user-input'
 import {Box, Text} from '../common-adapters'
 import {makeState as makeEntitiesState} from '../constants/entities'
-import {compose, withHandlers, withState} from 'recompose'
+import {compose, withHandlers, withStateHandlers} from 'recompose'
 import {isMobile} from '../constants/platform'
 import {storiesOf, action} from '../stories/storybook'
 import {Provider} from 'react-redux'
@@ -190,8 +190,8 @@ const load = () => {
     })
     .add('User Input editable', () => {
       const UserInputEditable = compose(
-        withState('usernameText', 'onChangeText', ''),
-        withState('userItems', 'setUserItems', ({userItems}) => userItems),
+        withStateHandlers({usernameText: ''}, {onChangeText: () => usernameText => ({usernameText})}),
+        withStateHandlers(({userItems}) => ({userItems}), {setUserItems: () => userItems => ({userItems})}),
         withHandlers({
           onRemoveUser: ({setUserItems, userItems}) => (id: string) => {
             setUserItems(userItems.filter(i => i.id !== id))
