@@ -87,16 +87,17 @@ const TeamHeader = (props: Props) => (
           small={isMobile && !isLargeScreen}
           onClick={props.onInviteByEmail}
         />
-        {/* TODO fix this once the chat action loads the conversationc correctly */}
-        {/* {!isMobile && <Button type="Secondary" label="Chat" onClick={props.onChat} />} */}
-        {/* {isMobile &&
+        {/* TODO this navigates, but doesn't currently load the conversation.
+            make sure it works when the chat refactor goes in. */}
+        {!isMobile && <Button type="Secondary" label="Chat" onClick={props.onChat} />}
+        {isMobile &&
           !props.canJoinTeam && (
             <Icon
               type="iconfont-chat"
               style={{width: isLargeScreen ? 24 : 20, height: isLargeScreen ? 24 : 20}}
               onClick={props.onChat}
             />
-          )} */}
+          )}
       </ButtonBar>
 
       {/* CLI hint */}
