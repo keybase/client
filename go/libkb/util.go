@@ -12,8 +12,10 @@ import (
 	"encoding/base32"
 	"encoding/base64"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"math"
 	"math/big"
 	"os"
@@ -782,4 +784,29 @@ func IsNoSpaceOnDeviceError(err error) bool {
 	}
 
 	return false
+}
+
+func ShredFile(filename string) error {
+	stat, err := os.Stat(filename)
+	if err != nil {
+		return err
+	}
+	if stat.IsDir() {
+		return errors.New("cannot shread a directory")
+	}
+	size := int(stat.Size())
+
+	defer os.Remove(filename)
+
+	for i := 0; i < 3; i++ {
+		noise, err := RandBytes(size)
+		if err != nil {
+			return err
+		}
+		if err := ioutil.WriteFile(filename, noise, stat.Mode().Perm()); err != nil {
+			return err
+		}
+	}
+
+	return os.Remove(filename)
 }
