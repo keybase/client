@@ -468,7 +468,7 @@ func SignJSON(jw *jsonw.Wrapper, key GenericKey) (out string, id keybase1.SigID,
 }
 
 func GetDefaultSigVersion(g *GlobalContext) SigVersion {
-	if g.Env.IsAdmin() {
+	if g.Env.GetFeatureFlags().Admin() {
 		return KeybaseSignatureV2
 	}
 	return KeybaseSignatureV1
