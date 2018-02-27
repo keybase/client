@@ -22,6 +22,15 @@ export function setRouteDef(routeDef: RouteDefParams): Types.SetRouteDef {
   }
 }
 
+// Switch the tree of route definitions. Dispatched when switching
+// from logged out to logged in and vice versa.
+export function switchRouteDef(routeDef: RouteDefParams): Types.SwitchRouteDef {
+  return {
+    type: Constants.switchRouteDef,
+    payload: {routeDef},
+  }
+}
+
 // Switch to a new path, restoring the subpath it was previously on. E.g.:
 //
 //   (starting on /settings/invites)

@@ -75,6 +75,9 @@ function routeDefReducer(routeDef, action) {
       }
       return action.payload.routeDef
 
+    case Constants.switchRouteDef:
+      return action.payload.routeDef
+
     default:
       return routeDef
   }
@@ -87,6 +90,10 @@ function routeStateReducer(routeDef, routeState, action) {
 
     case Constants.setRouteDef: {
       return routeNavigate(action.payload.routeDef, routeState, getPath(routeState))
+    }
+
+    case Constants.switchRouteDef: {
+      return routeNavigate(action.payload.routeDef, routeState, [])
     }
 
     case Constants.switchTo:

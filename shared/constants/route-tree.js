@@ -9,6 +9,7 @@ export const putActionIfOnPath = 'routeTree:putActionIfOnPath'
 export const resetRoute = 'routeTree:resetRoute'
 export const setRouteDef = 'routeTree:setRouteDef'
 export const setRouteState = 'routeTree:setRouteState'
+export const switchRouteDef = 'routeTree:switchRouteDef'
 export const switchTo = 'routeTree:switchTo'
 
 export const makeState: I.RecordFactory<_State> = I.Record({

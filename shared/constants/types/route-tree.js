@@ -4,6 +4,9 @@ import type {NoErrorTypedAction, TypedAction} from './flux'
 import type {RouteDefNode, RouteDefParams, Path, PropsPath, RouteStateNode} from '../../route-tree'
 
 export type SetRouteDef = NoErrorTypedAction<'routeTree:setRouteDef', {routeDef: RouteDefParams}>
+
+export type SwitchRouteDef = NoErrorTypedAction<'routeTree:switchRouteDef', {routeDef: RouteDefParams}>
+
 export type SwitchTo = NoErrorTypedAction<'routeTree:switchTo', {path: Path, parentPath: ?Path}>
 
 export type NavigationSource = 'initial-default' | 'initial-restore' | 'user'
