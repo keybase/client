@@ -404,7 +404,7 @@ const setupChatHandlers = () => {
   engine().setIncomingActionCreators(
     'chat.1.NotifyChat.ChatInboxSynced',
     ({syncRes}: RPCChatTypes.NotifyChatChatInboxSyncedRpcParam, ignore1, ignore2, getState) => {
-      const actions = [ Chat2Gen.createClearLoading({key: 'inboxSyncStarted'}) ]
+      const actions = [Chat2Gen.createClearLoading({key: 'inboxSyncStarted'})]
 
       switch (syncRes.syncType) {
         case RPCChatTypes.commonSyncInboxResType.clear:
@@ -1197,17 +1197,21 @@ function* attachmentLoad(action: Chat2Gen.AttachmentLoadPayload) {
   // Immediately show the loading
   yield Saga.put(Chat2Gen.createAttachmentLoading({conversationIDKey, isPreview, ordinal, ratio: 0.01}))
   let alreadyLoaded = false
-  try {
-    const fileStat = yield Saga.call(stat, fileName)
-    const validSize = isPreview ? fileStat.size > 0 : fileStat.size === message.fileSize
-    // We don't have the preview size so assume if it has data its good, else use the filesize
-    if (validSize) {
-      yield Saga.put(Chat2Gen.createAttachmentLoaded({conversationIDKey, isPreview, ordinal, path: fileName}))
-      alreadyLoaded = true
-    } else {
-      logger.warn('Invalid attachment size', fileStat.size)
-    }
-  } catch (_) {}
+  if (message.attachmentType === 'image') {
+    try {
+      const fileStat = yield Saga.call(stat, fileName)
+      const validSize = isPreview ? fileStat.size > 0 : fileStat.size === message.fileSize
+      // We don't have the preview size so assume if it has data its good, else use the filesize
+      if (validSize) {
+        yield Saga.put(
+          Chat2Gen.createAttachmentLoaded({conversationIDKey, isPreview, ordinal, path: fileName})
+        )
+        alreadyLoaded = true
+      } else {
+        logger.warn('Invalid attachment size', fileStat.size)
+      }
+    } catch (_) {}
+  }
 
   // If we're loading the preview lets see if we downloaded previously once so show in finder / download state is correct
   if (isPreview && !message.downloadPath) {
@@ -1223,6 +1227,12 @@ function* attachmentLoad(action: Chat2Gen.AttachmentLoadPayload) {
 
   // We already loaded this file so lets bail
   if (alreadyLoaded) {
+    return
+  }
+
+  // If its a non image and a preview lets just count it as loaded
+  if (isPreview && message.attachmentType !== 'image') {
+    yield Saga.put(Chat2Gen.createAttachmentLoaded({conversationIDKey, isPreview, ordinal, path: fileName}))
     return
   }
 
@@ -1602,7 +1612,7 @@ function* messageAttachmentNativeShare(action: Chat2Gen.MessageAttachmentNativeS
     )
     state = yield Saga.select()
     message = Constants.getMessageMap(state, conversationIDKey).get(ordinal)
-    if (!message || message.type !== 'attahcment' || !message.deviceFilePath) {
+    if (!message || message.type !== 'attachment' || !message.deviceFilePath) {
       throw new Error("Couldn't download attachment")
     }
   }

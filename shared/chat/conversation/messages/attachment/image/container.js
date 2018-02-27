@@ -65,14 +65,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     loadPreview:
       message.devicePreviewPath || !message.fileName // already have preview or is this a placeholder?
         ? undefined
-        : () => dispatchProps._loadPreview(ownProps.message.conversationIDKey, ownProps.message.ordinal),
-    message: ownProps.message,
-    onClick: () => dispatchProps._onClick(ownProps.message),
-    onShowMenu: () => dispatchProps._onShowMenu(null, ownProps.message),
+        : () => dispatchProps._loadPreview(message.conversationIDKey, message.ordinal),
+    message,
+    onClick: () => dispatchProps._onClick(message),
     onShowInFinder:
-      !isMobile && ownProps.message.downloadPath
-        ? () => dispatchProps._onShowInFinder(ownProps.message)
-        : undefined,
+      !isMobile && message.downloadPath ? () => dispatchProps._onShowInFinder(message) : undefined,
+    onShowMenu: () => dispatchProps._onShowMenu(null, message),
     path: message.devicePreviewPath,
     progress: message.transferProgress,
     progressLabel,

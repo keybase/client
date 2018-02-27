@@ -92,15 +92,11 @@ class MessageWrapper extends React.PureComponent<Props> {
         {props.hasOlderResetConversation && (
           <ProfileResetNotice conversationIDKey={props.message.conversationIDKey} />
         )}
-        {props.loadMoreType && <LoadMore type={props.loadMoreType} showTeamOffer={this.props.showTeamOffer}/>}
+        {props.loadMoreType && (
+          <LoadMore type={props.loadMoreType} showTeamOffer={this.props.showTeamOffer} />
+        )}
         {props.timestamp && <Timestamp timestamp={props.timestamp} />}
-        <Box
-          style={collapseStyles([
-            styles.flexOneRow,
-            props.isFirstNewMessage && styles.firstNewMessage,
-            props.isSelected && styles.selected,
-          ])}
-        >
+        <Box style={collapseStyles([styles.flexOneRow, props.isSelected && styles.selected])}>
           <Box style={props.includeHeader ? styles.rightSideWithHeader : styles.rightSideNoHeader}>
             <UserAvatar
               author={props.author}
@@ -153,14 +149,6 @@ const styles = styleSheetCreate({
   fail: {color: globalColors.red},
   failStyleFace: {color: globalColors.red, fontSize: 9},
   failStyleUnderline: {color: globalColors.red, ...globalStyles.textDecoration('underline')},
-  firstNewMessage: {
-    borderBottomWidth: 0,
-    borderLeftWidth: 0,
-    borderRightWidth: 0,
-    borderStyle: 'solid',
-    borderTopColor: globalColors.orange,
-    borderTopWidth: 1,
-  },
   flexOneColumn: {...globalStyles.flexBoxColumn, flex: 1},
   flexOneRow: {...globalStyles.flexBoxRow, flex: 1},
   orangeLine: {backgroundColor: globalColors.orange, height: 1, width: '100%'},

@@ -44,6 +44,7 @@ const upgradeMessage = (old: Types.Message, m: Types.Message) => {
       ret.set('ordinal', old.ordinal)
       ret.set('deviceFilePath', old.deviceFilePath)
       ret.set('devicePreviewPath', old.devicePreviewPath)
+      ret.set('downloadPath', old.downloadPath)
     })
   }
   return m
@@ -413,25 +414,24 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         return map
       }, {})
 
+      // Types we can send and have to deal with outbox ids
       const canSendType = (m: Types.Message): ?Types.MessageText | ?Types.MessageAttachment =>
         m.type === 'text' || m.type === 'attachment' ? m : null
 
+      // Update any pending messages
       const pendingOutboxToOrdinal = state.pendingOutboxToOrdinal.withMutations(
         (map: I.Map<Types.ConversationIDKey, I.Map<Types.OutboxID, Types.Ordinal>>) => {
-          if (context.type !== 'sent' && context.type !== 'threadLoad') {
-            return
+          if (context.type === 'sent' || context.type === 'threadLoad') {
+            messages.forEach(message => {
+              const m = canSendType(message)
+              if (m && !m.id && m.outboxID) {
+                map.setIn([m.conversationIDKey, m.outboxID], m.ordinal)
+              }
+            })
           }
-
-          messages.forEach(message => {
-            const m = canSendType(message)
-            if (m && !m.id && m.outboxID) {
-              map.setIn([m.conversationIDKey, m.outboxID], m.ordinal)
-            }
-          })
         }
       )
 
-      // TODO maybe move up
       const findExisting = (
         conversationIDKey: Types.ConversationIDKey,
         m: Types.MessageText | Types.MessageAttachment
@@ -496,13 +496,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         }
       )
 
-      // const metaMap =
-      // context.type === 'threadLoadFull' && state.metaMap.get(context.conversationIDKey)
-      // ? state.metaMap.update(context.conversationIDKey, (meta: Types.ConversationMeta) =>
-      // meta.set('hasLoadedThread', true)
-      // )
-      // : state.metaMap
-
       // console.log(
       // 'aaa redu: metamap',
       // metaMap.toJS(),
@@ -515,7 +508,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       // )
 
       return state.withMutations(s => {
-        // s.set('metaMap', metaMap)
         s.set('messageMap', messageMap)
         s.set('messageOrdinals', messageOrdinals)
         s.set('pendingOutboxToOrdinal', pendingOutboxToOrdinal)
