@@ -6,6 +6,10 @@ protocol Common {
   @typedef("long")
   record Time {}
 
+  // Time in seconds
+  @typedef("long")
+  record UnixTime {}
+
   // Duration in seconds
   @typedef("double")
   record DurationSec {}

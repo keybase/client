@@ -86,7 +86,10 @@ func (u *CachedUPAKLoader) ClearMemory() {
 	u.purgeMemCache()
 }
 
-const UPK2MinorVersionCurrent = keybase1.UPK2MinorVersion_V5
+// NOTE(max) 2018.02.28
+// When bumping this next, please see the fussy logic surrounding the fact that minor
+// version 5 is still OK for non-reset accounts.
+const UPK2MinorVersionCurrent = keybase1.UPK2MinorVersion_V6
 
 func (u *CachedUPAKLoader) getCachedUPAK(ctx context.Context, uid keybase1.UID, info *CachedUserLoadInfo) (*keybase1.UserPlusKeysV2AllIncarnations, bool) {
 
@@ -108,14 +111,22 @@ func (u *CachedUPAKLoader) getCachedUPAK(ctx context.Context, uid keybase1.UID, 
 	} else {
 		var tmp keybase1.UserPlusKeysV2AllIncarnations
 		found, err := u.G().LocalDb.GetInto(&tmp, culDBKeyV2(uid))
+		hit := false
 		if err != nil {
 			u.G().Log.CWarningf(ctx, "trouble accessing UserPlusKeysV2AllIncarnations cache: %s", err)
 		} else if !found {
 			u.G().VDL.CLogf(ctx, VLog0, "| missed disk cache")
-		} else if tmp.MinorVersion != UPK2MinorVersionCurrent {
-			u.G().VDL.CLogf(ctx, VLog0, "| found old minor version %d, but wanted %d; will overwrite with fresh UPAK", tmp.MinorVersion, UPK2MinorVersionCurrent)
+		} else if tmp.MinorVersion == UPK2MinorVersionCurrent {
+			u.G().VDL.CLogf(ctx, VLog0, "| hit disk cache (v%d)", tmp.MinorVersion)
+			hit = true
+		} else if UPK2MinorVersionCurrent == keybase1.UPK2MinorVersion_V6 && tmp.MinorVersion == keybase1.UPK2MinorVersion_V5 && len(tmp.PastIncarnations) == 0 {
+			u.G().VDL.CLogf(ctx, VLog0, "| hit disk cache (v%d) but no resets, so no upgrade needed", keybase1.UPK2MinorVersion_V5)
+			hit = true
 		} else {
-			u.G().VDL.CLogf(ctx, VLog0, "| hit disk cache")
+			u.G().VDL.CLogf(ctx, VLog0, "| found old minor version %d, but wanted %d; will overwrite with fresh UPAK", tmp.MinorVersion, UPK2MinorVersionCurrent)
+		}
+
+		if hit {
 			upak = &tmp
 			if info != nil {
 				info.InDiskCache = true

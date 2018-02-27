@@ -17,7 +17,8 @@ protocol UPK {
     V2_2,
     V3_3,
     V4_4,
-    V5_5
+    V5_5,
+    V6_6
   }
 
   record MerkleRootV2 {
@@ -86,6 +87,7 @@ protocol UPK {
       map<KID, PublicKeyV2NaCl> deviceKeys;
       map<KID, PublicKeyV2PGPSummary> pgpKeys;
       map<UID, RemoteTrack> remoteTracks;
+      union { null, ResetSummary } reset;
   }
 
   record UserPlusKeysV2AllIncarnations {

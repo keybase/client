@@ -1316,7 +1316,7 @@ func (p PerUserKeysList) Len() int           { return len(p) }
 func (p PerUserKeysList) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 func (p PerUserKeysList) Less(i, j int) bool { return p[i].Gen < p[j].Gen }
 
-func (cki *ComputedKeyInfos) exportUPKV2Incarnation(uid keybase1.UID, username string, eldestSeqno keybase1.Seqno, kf *KeyFamily, status keybase1.StatusCode) keybase1.UserPlusKeysV2 {
+func (cki *ComputedKeyInfos) exportUPKV2Incarnation(uid keybase1.UID, username string, eldestSeqno keybase1.Seqno, kf *KeyFamily, status keybase1.StatusCode, reset *keybase1.ResetSummary) keybase1.UserPlusKeysV2 {
 
 	var perUserKeysList PerUserKeysList
 	if cki != nil {
@@ -1346,6 +1346,7 @@ func (cki *ComputedKeyInfos) exportUPKV2Incarnation(uid keybase1.UID, username s
 		DeviceKeys:  deviceKeys,
 		PGPKeys:     pgpSummaries,
 		Status:      status,
+		Reset:       reset,
 		// Uvv and RemoteTracks are set later, and only for the current incarnation
 	}
 }
@@ -1359,6 +1360,16 @@ func (u *User) ExportToUPKV2AllIncarnations() (*keybase1.UserPlusKeysV2AllIncarn
 	name := u.GetName()
 	status := u.GetStatus()
 
+	// Make a map of EldestKID -> ResetSummary for all resets
+
+	resetMap := make(map[keybase1.Seqno](*keybase1.ResetSummary))
+	if resets := u.leaf.resets; resets != nil {
+		for _, l := range resets.chain {
+			tmp := l.Summarize()
+			resetMap[l.Prev.EldestSeqno] = &tmp
+		}
+	}
+
 	// First assemble all the past versions of this user.
 	pastIncarnations := []keybase1.UserPlusKeysV2{}
 	if u.sigChain() != nil {
@@ -1366,13 +1377,16 @@ func (u *User) ExportToUPKV2AllIncarnations() (*keybase1.UserPlusKeysV2AllIncarn
 			if len(subchain) == 0 {
 				return nil, fmt.Errorf("Tried to export empty subchain for uid %s username %s", u.GetUID(), u.GetName())
 			}
-			cki := subchain[len(subchain)-1].cki
-			pastIncarnations = append(pastIncarnations, cki.exportUPKV2Incarnation(uid, name, subchain[0].GetSeqno(), kf, status))
+			lastLink := subchain[len(subchain)-1]
+			cki := lastLink.cki
+			eldestSeqno := subchain[0].GetSeqno()
+			lastSeqno := lastLink.GetSeqno()
+			pastIncarnations = append(pastIncarnations, cki.exportUPKV2Incarnation(uid, name, eldestSeqno, kf, status, resetMap[lastSeqno]))
 		}
 	}
 
 	// Then assemble the current version. This one gets a couple extra fields, Uvv and RemoteTracks.
-	current := u.GetComputedKeyInfos().exportUPKV2Incarnation(uid, name, u.GetCurrentEldestSeqno(), kf, status)
+	current := u.GetComputedKeyInfos().exportUPKV2Incarnation(uid, name, u.GetCurrentEldestSeqno(), kf, status, nil)
 	current.RemoteTracks = make(map[keybase1.UID]keybase1.RemoteTrack)
 	if u.IDTable() != nil {
 		for _, track := range u.IDTable().GetTrackList() {
