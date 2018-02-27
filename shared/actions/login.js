@@ -102,7 +102,7 @@ function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
   // state.routeTree.loggedInUserNavigated to true; see
   // loggedInUserNavigatedReducer.
   if (justDeletedSelf) {
-    yield setRouteDef(loginRouteTree)
+    yield Saga.put(setRouteDef(loginRouteTree))
     yield Saga.put(navigateTo([loginTab]))
   } else if (loggedIn) {
     // If the user has already performed a navigation action, or if
@@ -111,7 +111,7 @@ function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
       return
     }
 
-    yield setRouteDef(appRouteTree)
+    yield Saga.put(setRouteDef(appRouteTree))
 
     if (initialState) {
       const {url, tab, conversation} = (initialState: InitialState)
@@ -140,17 +140,17 @@ function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
     }
   } else if (registered) {
     // relogging in
-    yield setRouteDef(loginRouteTree)
+    yield Saga.put(setRouteDef(loginRouteTree))
     yield Saga.put.resolve(getExtendedStatus())
     yield Saga.call(getAccounts)
     yield Saga.put(navigateTo(['login'], [loginTab]))
   } else if (loginError) {
     // show error on login screen
-    yield setRouteDef(loginRouteTree)
+    yield Saga.put(setRouteDef(loginRouteTree))
     yield Saga.put(navigateTo(['login'], [loginTab]))
   } else {
     // no idea
-    yield setRouteDef(loginRouteTree)
+    yield Saga.put(setRouteDef(loginRouteTree))
     yield Saga.put(navigateTo([loginTab]))
   }
 }
