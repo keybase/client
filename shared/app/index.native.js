@@ -3,7 +3,7 @@ import * as AppGen from '../actions/app-gen'
 import Main from './main'
 import React, {Component} from 'react'
 import configureStore from '../store/configure-store'
-import {appRouteTree} from './routes'
+import {loginRouteTree} from './routes'
 import {AppRegistry, AppState, Linking, Text} from 'react-native'
 import {Provider} from 'react-redux'
 import {makeEngine} from '../engine'
@@ -43,8 +43,8 @@ class Keybase extends Component<any> {
         global.DEBUGStore = this.store
       }
       setupLocalDebug(this.store)
-      // TODO: Figure out when to use loginRouteTree.
-      this.store.dispatch(setRouteDef(appRouteTree))
+      // TODO: Figure out when to use appRouteTree.
+      this.store.dispatch(setRouteDef(loginRouteTree))
       makeEngine(this.store.dispatch, this.store.getState)
     } else {
       this.store = global.store

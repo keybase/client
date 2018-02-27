@@ -25,7 +25,8 @@ import {chatTab, loginTab, peopleTab, isValidInitialTab} from '../constants/tabs
 import {deletePushTokenSaga} from './push'
 import {getExtendedStatus} from './config'
 import {isMobile} from '../constants/platform'
-import {pathSelector, navigateTo, navigateAppend} from './route-tree'
+import {appRouteTree, loginRouteTree} from '../app/routes'
+import {pathSelector, navigateTo, navigateAppend, setRouteDef} from './route-tree'
 import {type InitialState} from '../constants/types/config'
 import {type TypedState} from '../constants/reducer'
 
@@ -101,6 +102,7 @@ function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
   // state.routeTree.loggedInUserNavigated to true; see
   // loggedInUserNavigatedReducer.
   if (justDeletedSelf) {
+    yield setRouteDef(loginRouteTree)
     yield Saga.put(navigateTo([loginTab]))
   } else if (loggedIn) {
     // If the user has already performed a navigation action, or if
@@ -108,6 +110,8 @@ function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
     if (loggedInUserNavigated) {
       return
     }
+
+    yield setRouteDef(appRouteTree)
 
     if (initialState) {
       const {url, tab, conversation} = (initialState: InitialState)
@@ -136,14 +140,17 @@ function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
     }
   } else if (registered) {
     // relogging in
+    yield setRouteDef(loginRouteTree)
     yield Saga.put.resolve(getExtendedStatus())
     yield Saga.call(getAccounts)
     yield Saga.put(navigateTo(['login'], [loginTab]))
   } else if (loginError) {
     // show error on login screen
+    yield setRouteDef(loginRouteTree)
     yield Saga.put(navigateTo(['login'], [loginTab]))
   } else {
     // no idea
+    yield setRouteDef(loginRouteTree)
     yield Saga.put(navigateTo([loginTab]))
   }
 }
