@@ -293,6 +293,8 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
   switch (action.type) {
     case Chat2Gen.resetStore:
       return initialState
+    case Chat2Gen.clearLoading:
+      return state.update('loadingMap', loading => loading.delete(action.payload.key))
     case Chat2Gen.setLoading:
       return state.update('loadingMap', loading => {
         const count = loading.get(action.payload.key, 0) + (action.payload.loading ? 1 : -1)

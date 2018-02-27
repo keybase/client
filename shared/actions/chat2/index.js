@@ -401,17 +401,10 @@ const setupChatHandlers = () => {
     ]
   )
 
-  // It's possible we get multiple ChatInboxSynced without ChatInboxSyncStarted. So when we get a ChatInboxSyncStarted we mark it
-  // simply locally. If we get a Synced after we undo the loading flag so our count is zero
-  let receivedSyncStartCount = 0
   engine().setIncomingActionCreators(
     'chat.1.NotifyChat.ChatInboxSynced',
     ({syncRes}: RPCChatTypes.NotifyChatChatInboxSyncedRpcParam, ignore1, ignore2, getState) => {
-      const actions = []
-      if (receivedSyncStartCount > 0) {
-        receivedSyncStartCount--
-        actions.push(Chat2Gen.createSetLoading({key: 'inboxSyncStarted', loading: false}))
-      }
+      const actions = [ Chat2Gen.createClearLoading({key: 'inboxSyncStarted'}) ]
 
       switch (syncRes.syncType) {
         case RPCChatTypes.commonSyncInboxResType.clear:
@@ -461,7 +454,6 @@ const setupChatHandlers = () => {
   )
 
   engine().setIncomingActionCreators('chat.1.NotifyChat.ChatInboxSyncStarted', () => {
-    receivedSyncStartCount++
     return [Chat2Gen.createSetLoading({key: 'inboxSyncStarted', loading: true})]
   })
 
@@ -710,11 +702,9 @@ const loadMoreMessages = (
 
   const actions = [
     Saga.call(loadThreadChanMapRpc.run),
-    // we handled loading from push
-    ...(state.chat2.loadingMap.get('pushLoad')
-      ? [Saga.put(Chat2Gen.createSetLoading({key: 'pushLoad', loading: false}))]
-      : []),
-  ].filter(Boolean)
+    // clear if we loaded from a push
+    Saga.put(Chat2Gen.createClearLoading({key: 'pushLoad'})),
+  ]
 
   return Saga.sequentially(actions)
 }

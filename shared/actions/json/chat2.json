@@ -10,6 +10,10 @@
       "key": "string",
       "loading": "boolean"
     },
+    // Sometimes we just want to clear the loading state and not do a true increment/decrement
+    "clearLoading": {
+      "key": "string",
+    },
     // Select the pending conversation (building a search or a set of users from a folder)
     "setPendingSelected": {
       "selected": "boolean"

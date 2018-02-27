@@ -80,7 +80,6 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
   logger.info('Push notification:', notification)
   const payload = notification.payload.notification
   if (payload) {
-    console.log('aaa push saga', payload)
     // Handle types that are not from user interaction
     if (payload.type === 'chat.newmessageSilent_2') {
       logger.info('Push notification: silent notification received')

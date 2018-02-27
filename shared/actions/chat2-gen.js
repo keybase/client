@@ -23,6 +23,7 @@ export const attachmentUploaded = 'chat2:attachmentUploaded'
 export const attachmentUploading = 'chat2:attachmentUploading'
 export const badgesUpdated = 'chat2:badgesUpdated'
 export const blockConversation = 'chat2:blockConversation'
+export const clearLoading = 'chat2:clearLoading'
 export const clearOrdinals = 'chat2:clearOrdinals'
 export const clearPendingConversation = 'chat2:clearPendingConversation'
 export const debugDump = 'chat2:debugDump'
@@ -155,6 +156,7 @@ export const createBlockConversation = (
     reportUser: boolean,
   }>
 ) => ({error: false, payload, type: blockConversation})
+export const createClearLoading = (payload: $ReadOnly<{key: string}>) => ({error: false, payload, type: clearLoading})
 export const createClearOrdinals = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: clearOrdinals})
 export const createClearPendingConversation = () => ({error: false, payload: undefined, type: clearPendingConversation})
 export const createDebugDump = (payload: $ReadOnly<{conversationIDKey?: ?Types.ConversationIDKey}>) => ({error: false, payload, type: debugDump})
@@ -379,6 +381,7 @@ export type AttachmentUploadedPayload = More.ReturnType<typeof createAttachmentU
 export type AttachmentUploadingPayload = More.ReturnType<typeof createAttachmentUploading>
 export type BadgesUpdatedPayload = More.ReturnType<typeof createBadgesUpdated>
 export type BlockConversationPayload = More.ReturnType<typeof createBlockConversation>
+export type ClearLoadingPayload = More.ReturnType<typeof createClearLoading>
 export type ClearOrdinalsPayload = More.ReturnType<typeof createClearOrdinals>
 export type ClearPendingConversationPayload = More.ReturnType<typeof createClearPendingConversation>
 export type DebugDumpPayload = More.ReturnType<typeof createDebugDump>
@@ -448,6 +451,7 @@ export type Actions =
   | More.ReturnType<typeof createAttachmentUploading>
   | More.ReturnType<typeof createBadgesUpdated>
   | More.ReturnType<typeof createBlockConversation>
+  | More.ReturnType<typeof createClearLoading>
   | More.ReturnType<typeof createClearOrdinals>
   | More.ReturnType<typeof createClearPendingConversation>
   | More.ReturnType<typeof createDebugDump>
