@@ -616,6 +616,26 @@ const iconMeta_ = {
     extension: 'gif',
     require: require('../images/icons/icon-loader-uploading-16.gif'),
   },
+  'icon-message-status-encrypting-24': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-message-status-encrypting-24.png'),
+  },
+  'icon-message-status-error-24': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-message-status-error-24.png'),
+  },
+  'icon-message-status-sending-24': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-message-status-sending-24.png'),
+  },
+  'icon-message-status-sent-24': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-message-status-sent-24.png'),
+  },
   'icon-mutual-follow-21': {
     isFont: false,
     extension: 'png',
