@@ -61,7 +61,7 @@ const sentEditing = {
 }
 const pendingFail = {
   ...sent,
-  color: globalColors.black_40,
+  // color: globalColors.black_40,
 }
 const pendingFailEditing = {
   ...pendingFail,
