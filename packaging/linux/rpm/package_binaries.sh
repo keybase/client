@@ -113,14 +113,13 @@ export debian_arch=i386
 # OpenSUSE. This is the most compatible set of dependencies we've
 # found.  "psmisc" provides "killall", which is used in run_keybase.
 # "initscripts" provides "service", which is used to start atd in the
-# post-install. "coreutils" provides "nohup", which is used in
-# run_keybase.
-dependencies="Requires: at, fuse, libXss.so.1, initscripts, psmisc, coreutils"
+# post-install.
+dependencies="Requires: at, fuse, libXss.so.1, initscripts, psmisc"
 build_one_architecture
 
 export rpm_arch=x86_64
 export debian_arch=amd64
 # Requiring "libXss.so" here installs the 32-bit version. See
 # https://github.com/keybase/client/pull/5226.
-dependencies="Requires: at, fuse, libXss.so.1()(64bit), initscripts, psmisc, coreutils"
+dependencies="Requires: at, fuse, libXss.so.1()(64bit), initscripts, psmisc"
 build_one_architecture

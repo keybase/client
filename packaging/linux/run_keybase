@@ -120,7 +120,7 @@ forward_vars() {
 
 run_redirector() {
   logdir="${XDG_CACHE_HOME:-$HOME/.cache}/keybase"
-  nohup keybase-redirector /keybase >> $logdir/keybase.redirector.log 2>&1 &
+  nohup keybase-redirector /keybase >> "$logdir/keybase.redirector.log" 2>&1 &
 }
 
 start_systemd() {
