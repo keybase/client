@@ -29,8 +29,10 @@ export type Props = {
   name: string,
   you: ?string,
   teamname: ?string,
+  isAdmin: boolean,
   url: string,
   isNew: boolean,
+  bigTeam: boolean,
   onCopy: () => void,
   onClickDevice: () => void,
   onShowDelete: () => void,
@@ -39,6 +41,7 @@ export type Props = {
   onToggleExpand: () => void,
   setTimeout: (() => void, number) => number,
   openUserTracker: (username: string) => void,
+  onLoad: () => void,
 }
 
 type State = {
@@ -223,15 +226,23 @@ class Row extends React.Component<Props, State> {
                       onCheck={this.props.onToggleChatEnabled}
                       label=""
                       labelComponent={
-                        <Text type="BodySmall">
-                          Announce pushes in{' '}
-                          <Text
-                            type={this.props.chatDisabled ? 'BodySmall' : 'BodySmallPrimaryLink'}
-                            onClick={this.props.onChannelClick}
-                          >
-                            {this._channelNameToString(this.props.channelName)}
+                        this.props.biglTeam ? (
+                          <Text type="BodySmall">
+                            Announce pushes in{' '}
+                            <Text
+                              type={this.props.chatDisabled ? 'BodySmall' : 'BodySmallPrimaryLink'}
+                              onClick={this.props.onChannelClick}
+                            >
+                              {this._channelNameToString(this.props.channelName)}
+                            </Text>
                           </Text>
-                        </Text>
+                        ) : (
+                          <Text type="BodySmall">
+                            {this.props.isAdmin
+                              ? 'Announce pushes in the team conversation'
+                              : 'Pushes will be announced in the team conversation'}
+                          </Text>
+                        )
                       }
                     />
                   )}
@@ -239,9 +250,11 @@ class Row extends React.Component<Props, State> {
                     <Text type="BodySmall">
                       {this.props.chatDisabled
                         ? 'Pushes are not announced'
-                        : `Pushes are announced in ${this.props.teamname}${this._channelNameToString(
-                            this.props.channelName
-                          )}`}
+                        : this.props.bigTeam
+                          ? `Pushes are announced in ${this.props.teamname}${this._channelNameToString(
+                              this.props.channelName
+                            )}`
+                          : 'Pushes will be announced in the team conversation'}
                     </Text>
                   )}
                 </Box>

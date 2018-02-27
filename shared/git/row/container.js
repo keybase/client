@@ -12,15 +12,25 @@ import {copyToClipboard} from '../../util/clipboard'
 import {usernameSelector} from '../../constants/selectors'
 import openURL from '../../util/open-url'
 import {isMobile} from '../../constants/platform'
+import {getCanPerform} from '../../constants/teams'
+import * as TeamsGen from '../../actions/teams-gen'
 
-const mapStateToProps = (state: TypedState, {id, expanded}) => {
+const mapStateToProps = (state: TypedState, {id, expanded, channelName, bigTeam}) => {
   const git = state.entities.getIn(['git', 'idToInfo', id], Constants.makeGitInfo()).toObject()
+  let admin = false
+  if (git.teamname) {
+    const yourOperations = getCanPerform(state, git.teamname)
+    admin = yourOperations.renameChannel
+  }
+
   return {
     ...git,
     expanded,
     isNew: state.entities.getIn(['git', 'isNew', id], false),
     lastEditUserFollowing: state.config.following.has(git.lastEditUser),
     you: usernameSelector(state),
+    isAdmin: admin,
+    bigTeam,
   }
 }
 
@@ -35,30 +45,36 @@ const mapDispatchToProps = (dispatch: any) => ({
         isMobile ? [settingsTab, settingsGitTab] : [gitTab]
       )
     ),
+  _onLoadChannels: (teamname: string) => dispatch(TeamsGen.createGetChannels({teamname})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  ...stateProps,
-  canEdit: stateProps.canDelete && !!stateProps.teamname,
-  onClickDevice: () => {
-    stateProps.lastEditUser && openURL(`https://keybase.io/${stateProps.lastEditUser}/devices`)
-  },
-  onCopy: () => copyToClipboard(stateProps.url),
-  onShowDelete: () => ownProps.onShowDelete(stateProps.id),
-  openUserTracker: dispatchProps.openUserTracker,
-  onOpenChannelSelection: () =>
-    dispatchProps._onOpenChannelSelection(
-      stateProps.repoID,
-      stateProps.teamname,
-      stateProps.channelName || 'general'
-    ),
-  onToggleChatEnabled: () =>
-    dispatchProps._setDisableChat(!stateProps.chatDisabled, stateProps.repoID, stateProps.teamname),
-  onToggleExpand: () => ownProps.onToggleExpand(stateProps.id),
-})
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  return {
+    ...stateProps,
+    canEdit: stateProps.canDelete && !!stateProps.teamname,
+    onClickDevice: () => {
+      stateProps.lastEditUser && openURL(`https://keybase.io/${stateProps.lastEditUser}/devices`)
+    },
+    onCopy: () => copyToClipboard(stateProps.url),
+    onShowDelete: () => ownProps.onShowDelete(stateProps.id),
+    openUserTracker: dispatchProps.openUserTracker,
+    onOpenChannelSelection: () =>
+      dispatchProps._onOpenChannelSelection(
+        stateProps.repoID,
+        stateProps.teamname,
+        stateProps.channelName || 'general'
+      ),
+    onToggleChatEnabled: () =>
+      dispatchProps._setDisableChat(!stateProps.chatDisabled, stateProps.repoID, stateProps.teamname),
+    onToggleExpand: () => {
+      ownProps.onToggleExpand(stateProps.id)
+    },
+  }
+}
 
 const ConnectedRow: Class<
   React.Component<{
+    bigTeam: boolean,
     id: string,
     expanded: boolean,
     onShowDelete: (id: string) => void,

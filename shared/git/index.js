@@ -15,6 +15,7 @@ type Props = {
   onToggleExpand: (id: string) => void,
   personals: Array<string>,
   teams: Array<string>,
+  bigTeams: Array<string>,
 }
 
 type State = {
@@ -50,6 +51,7 @@ class Git extends React.Component<Props, State> {
     id,
     onShowDelete: this.props.onShowDelete,
     onToggleExpand: this.props.onToggleExpand,
+    bigTeam: this.props.bigTeams.includes(id),
   })
 
   render() {
