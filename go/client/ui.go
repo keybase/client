@@ -214,7 +214,7 @@ func (ui IdentifyTrackUI) Confirm(o *keybase1.IdentifyOutcome) (result keybase1.
 	case keybase1.TrackStatus_NEW_ZERO_PROOFS:
 		prompt = "We found an account for " + username +
 			", but they haven't proven their identity. Still follow them?"
-		promptDefault = libkb.PromptDefaultNo
+		promptDefault = libkb.PromptDefaultYes
 	case keybase1.TrackStatus_NEW_FAIL_PROOFS:
 		verb := "follow"
 		if o.TrackOptions.ForPGPPull {
