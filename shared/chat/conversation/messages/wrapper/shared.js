@@ -107,8 +107,8 @@ class MessageWrapper extends React.PureComponent<Props> {
               />
               <Box style={styles.sendIndicatorContainer}>
                 <SendIndicator
-                  sent={!props.message.submitState}
-                  failed={!!props.failureDescription}
+                  sent={props.messageSent}
+                  failed={props.messageFailed}
                   style={{marginBottom: 2}}
                 />
               </Box>

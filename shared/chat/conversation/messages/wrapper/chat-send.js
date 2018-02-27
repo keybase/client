@@ -27,7 +27,7 @@ type Props = {
 }
 
 type State = {iconStatus: IconStatus, visible: boolean}
-class SendAnimation extends React.Component<Props, State> {
+class SendIndicator extends React.Component<Props, State> {
   state = {iconStatus: 'encrypting', visible: true}
 
   encryptingTimeoutID: TimeoutID
@@ -57,8 +57,10 @@ class SendAnimation extends React.Component<Props, State> {
     if (!(this.props.sent || this.props.failed)) {
       this.encryptingTimeoutID = this.props.setTimeout(() => this._setStatus('sending'), encryptingTimeout)
     } else if (this.props.failed) {
+      // previously failed message
       this._onFailed()
     } else if (this.props.sent) {
+      // previously sent message
       this._setVisible(false)
     }
   }
@@ -71,6 +73,11 @@ class SendAnimation extends React.Component<Props, State> {
     }
   }
 
+  componentWillUnmount() {
+    this.props.clearTimeout(this.encryptingTimeoutID)
+    this.props.clearTimeout(this.sentTimeoutID)
+  }
+
   render() {
     if (!this.state.visible) {
       return null
@@ -79,6 +86,6 @@ class SendAnimation extends React.Component<Props, State> {
   }
 }
 
-const TimedSendAnimation = HOCTimers(SendAnimation)
+const TimedSendIndicator = HOCTimers(SendIndicator)
 
-export default TimedSendAnimation
+export default TimedSendIndicator

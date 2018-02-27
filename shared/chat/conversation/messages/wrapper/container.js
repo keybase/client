@@ -20,6 +20,8 @@ const mapStateToProps = (state: TypedState, {message, previous, innerClass, isSe
   const hasOlderResetConversation = previous ? false : !!meta.supersedes
   const orangeLineAbove = !!previous && meta.orangeLineOrdinal === previous.ordinal
   const showTeamOffer = meta.teamType === 'adhoc' && meta.participants.size > 2
+  const messageSent = !message.submitState
+  const messageFailed = !!message.errorReason
 
   let loadMoreType = null
   if (!previous) {
@@ -36,6 +38,8 @@ const mapStateToProps = (state: TypedState, {message, previous, innerClass, isSe
     isYou,
     loadMoreType,
     message,
+    messageFailed,
+    messageSent,
     orangeLineAbove,
     previous,
     showTeamOffer,
@@ -98,6 +102,8 @@ const mergeProps = (stateProps, dispatchProps) => {
     isYou: stateProps.isYou,
     loadMoreType: stateProps.loadMoreType,
     message,
+    messageFailed: stateProps.messageFailed,
+    messageSent: stateProps.messageSent,
     onAuthorClick: () => dispatchProps._onAuthorClick(message.author),
     onEdit: () => dispatchProps._onEdit(message.conversationIDKey, message.ordinal),
     onRetry: () => dispatchProps._onRetry(message.conversationIDKey, message.outboxID),
