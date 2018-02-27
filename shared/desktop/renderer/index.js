@@ -17,7 +17,7 @@ import electron, {ipcRenderer} from 'electron'
 import {makeEngine} from '../../engine'
 import hello from '../../util/hello'
 import loadPerf from '../../util/load-perf'
-import routeDefs from '../../app/routes'
+import {appRouteTree} from '../../app/routes'
 import {AppContainer} from 'react-hot-loader'
 import {disable as disableDragDrop} from '../../util/drag-drop'
 import merge from 'lodash/merge'
@@ -159,7 +159,8 @@ function render(store, MainComponent) {
 }
 
 function setupRoutes(store) {
-  store.dispatch(setRouteDef(routeDefs))
+  // TODO: Figure out when to use loginRouteTree.
+  store.dispatch(setRouteDef(appRouteTree))
 }
 
 function setupHMR(store) {
@@ -169,7 +170,8 @@ function setupHMR(store) {
 
   module.hot &&
     module.hot.accept(['../../app/main.desktop', '../../app/routes'], () => {
-      store.dispatch(setRouteDef(require('../../app/routes').default))
+      // TODO: Figure out when to use loginRouteTree.
+      store.dispatch(setRouteDef(require('../../app/routes').appRouteTree))
       try {
         const NewMain = require('../../app/main.desktop').default
         render(store, NewMain)

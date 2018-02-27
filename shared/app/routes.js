@@ -26,11 +26,12 @@ import {
 } from '../constants/tabs'
 import flags from '../util/feature-flags'
 
-const routeTree = makeRouteDefNode({
+const appRouteTree = makeRouteDefNode({
   children: {
     [chatTab]: chatRoutes,
     [folderTab]: foldersRoutes,
     [gitTab]: gitRoutes,
+    // TODO: Remove loginTab.
     [loginTab]: loginRoutes,
     [peopleTab]: peopleRoutes,
     [profileTab]: profileRoutes,
@@ -48,7 +49,16 @@ const routeTree = makeRouteDefNode({
         }),
   },
   containerComponent: Nav,
+  // TODO: set to peopleTab.
   defaultSelected: loginTab,
 })
 
-export default routeTree
+const loginRouteTree = makeRouteDefNode({
+  children: {
+    [loginTab]: loginRoutes,
+  },
+  containerComponent: Nav,
+  defaultSelected: loginTab,
+})
+
+export {appRouteTree, loginRouteTree}

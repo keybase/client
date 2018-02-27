@@ -3,7 +3,7 @@ import * as AppGen from '../actions/app-gen'
 import Main from './main'
 import React, {Component} from 'react'
 import configureStore from '../store/configure-store'
-import routeDefs from './routes'
+import {appRouteTree} from './routes'
 import {AppRegistry, AppState, Linking, Text} from 'react-native'
 import {Provider} from 'react-redux'
 import {makeEngine} from '../engine'
@@ -24,7 +24,8 @@ module.hot &&
       // We use global.devStore because module scope variables seem to be cleared
       // out after a hot reload. Wacky.
       console.log('updating route defs due to hot reload')
-      global.store.dispatch(setRouteDef(require('./routes').default))
+      // TODO: Figure out when to use loginRouteTree.
+      global.store.dispatch(setRouteDef(require('./routes').appRouteTree))
     }
   })
 
@@ -42,7 +43,8 @@ class Keybase extends Component<any> {
         global.DEBUGStore = this.store
       }
       setupLocalDebug(this.store)
-      this.store.dispatch(setRouteDef(routeDefs))
+      // TODO: Figure out when to use loginRouteTree.
+      this.store.dispatch(setRouteDef(appRouteTree))
       makeEngine(this.store.dispatch, this.store.getState)
     } else {
       this.store = global.store
