@@ -1637,7 +1637,7 @@ function* messageAttachmentNativeSave(action: Chat2Gen.MessageAttachmentNativeSa
     )
     state = yield Saga.select()
     message = Constants.getMessageMap(state, conversationIDKey).get(ordinal)
-    if (!message || message.type !== 'attahcment' || !message.deviceFilePath) {
+    if (!message || message.type !== 'attachment' || !message.deviceFilePath) {
       throw new Error("Couldn't download attachment")
     }
   }

@@ -1,5 +1,6 @@
 // @flow
 import logger from '../logger'
+import * as ChatConstants from '../constants/chat2'
 import * as PushTypes from '../constants/types/push'
 import * as PushConstants from '../constants/push'
 import * as AppGen from './app-gen'
@@ -9,7 +10,6 @@ import {PushNotificationIOS, CameraRoll, ActionSheetIOS, AsyncStorage, Linking} 
 import {eventChannel} from 'redux-saga'
 import {isDevApplePushToken} from '../local-debug'
 import {isIOS} from '../constants/platform'
-// import {isImageFileName} from '../constants/chat'
 
 const shownPushPrompt = 'shownPushPrompt'
 
@@ -67,8 +67,7 @@ type NextURI = string
 function saveAttachmentDialog(filePath: string): Promise<NextURI> {
   let goodPath = filePath
   logger.debug('saveAttachment: ', goodPath)
-  if (isIOS) {
-    // } || isImageFileName(goodPath)) { TODO need this?
+  if (isIOS || ChatConstants.pathToAttachmentType(goodPath) === 'image') {
     if (!isIOS) {
       goodPath = 'file://' + goodPath
     }
