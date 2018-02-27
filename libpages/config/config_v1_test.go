@@ -88,7 +88,7 @@ func TestConfigV1Invalid(t *testing.T) {
 
 func generatePasswordHashForTestOrBust(t *testing.T, password string) []byte {
 	passwordHash, err := bcrypt.GenerateFromPassword(
-		[]byte(password), bcrypt.DefaultCost)
+		[]byte(password), bcrypt.MinCost)
 	require.NoError(t, err)
 	return passwordHash
 }
