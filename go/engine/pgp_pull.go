@@ -216,9 +216,15 @@ func (e *PGPPullEngine) runLoggedIn(ctx *Context, summaries []keybase1.UserSumma
 		}
 
 		// Get user data from the server.
-		user, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(e.G(), userSummary.Username))
+		user, err := libkb.LoadUser(
+			libkb.NewLoadUserByNameArg(e.G(), userSummary.Username).
+				WithPublicKeyOptional())
 		if err != nil {
 			ctx.LogUI.Errorf("Failed to load user %s: %s", userSummary.Username, err)
+			continue
+		}
+		if user.GetStatus() == keybase1.StatusCode_SCDeleted {
+			e.G().Log.Debug("User %q is deleted, skipping", userSummary.Username)
 			continue
 		}
 

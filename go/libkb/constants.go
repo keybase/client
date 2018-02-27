@@ -154,8 +154,11 @@ var CodeSigningStagingKIDs = []string{}
 
 type SigVersion int
 
-const KeybaseSignatureV1 SigVersion = 1
-const KeybaseSignatureV2 SigVersion = 2
+const (
+	KeybaseNullSigVersion SigVersion = 0
+	KeybaseSignatureV1    SigVersion = 1
+	KeybaseSignatureV2    SigVersion = 2
+)
 
 const (
 	KeybaseKIDV1     = 1 // Uses SHA-256

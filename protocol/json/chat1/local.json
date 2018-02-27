@@ -1593,6 +1593,14 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "GetThreadNonblockReason",
+      "symbols": [
+        "GENERAL_0",
+        "PUSH_1"
+      ]
+    },
+    {
       "type": "record",
       "name": "GetInboxLocalRes",
       "fields": [
@@ -2334,6 +2342,10 @@
         {
           "name": "cbMode",
           "type": "GetThreadNonblockCbMode"
+        },
+        {
+          "name": "reason",
+          "type": "GetThreadNonblockReason"
         },
         {
           "name": "query",

@@ -141,7 +141,7 @@ func _testSaltpackDecryptBrokenTrack(t *testing.T, sigVersion libkb.SigVersion) 
 
 	// create a user with a rooter proof
 	proofUser := CreateAndSignupFakeUser(tc, "naclp")
-	ui, _, err := proveRooter(tc.G, proofUser)
+	ui, _, err := proveRooter(tc.G, proofUser, sigVersion)
 	if err != nil {
 		t.Fatal(err)
 	}

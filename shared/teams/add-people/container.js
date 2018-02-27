@@ -12,7 +12,7 @@ import {
   lifecycle,
   withHandlers,
   withPropsOnChange,
-  withState,
+  withStateHandlers,
   type TypedState,
 } from '../../util/container'
 
@@ -67,8 +67,13 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   compose(
-    withState('role', 'onRoleChange', 'writer'),
-    withState('sendNotification', 'setSendNotification', true),
+    withStateHandlers(
+      {role: 'writer', sendNotification: true},
+      {
+        setSendNotification: () => sendNotification => ({sendNotification}),
+        onRoleChange: () => role => ({role}),
+      }
+    ),
     withPropsOnChange(['onExitSearch'], props => ({
       onCancel: () => props.onClose(),
       title: 'Add people',

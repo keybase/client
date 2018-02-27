@@ -83,7 +83,6 @@ func (n NullConfiguration) GetGregorSaveInterval() (time.Duration, bool)        
 func (n NullConfiguration) GetGregorPingInterval() (time.Duration, bool)                   { return 0, false }
 func (n NullConfiguration) GetGregorPingTimeout() (time.Duration, bool)                    { return 0, false }
 func (n NullConfiguration) GetChatDelivererInterval() (time.Duration, bool)                { return 0, false }
-func (n NullConfiguration) IsAdmin() (bool, bool)                                          { return false, false }
 func (n NullConfiguration) GetGregorDisabled() (bool, bool)                                { return false, false }
 func (n NullConfiguration) GetMountDir() string                                            { return "" }
 func (n NullConfiguration) GetBGIdentifierDisabled() (bool, bool)                          { return false, false }
@@ -1253,11 +1252,6 @@ func (e *Env) GetUpdateDisabled() (bool, bool) {
 	return e.GetConfig().GetUpdateDisabled()
 }
 
-func (e *Env) IsAdmin() bool {
-	b, _ := e.GetConfig().IsAdmin()
-	return b
-}
-
 func (e *Env) GetVDebugSetting() string {
 	return e.GetString(
 		func() string { return e.cmd.GetVDebugSetting() },
@@ -1297,7 +1291,7 @@ func (e *Env) WantsSystemd() bool {
 		os.Getenv("KEYBASE_SYSTEMD") != "0")
 }
 
-func (e *Env) DarwinForceSecretStoreFile() bool {
+func (e *Env) ForceSecretStoreFile() bool {
 	return (e.GetRunMode() == DevelRunMode &&
 		os.Getenv("KEYBASE_SECRET_STORE_FILE") == "1")
 }

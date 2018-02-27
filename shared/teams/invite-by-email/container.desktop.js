@@ -1,14 +1,13 @@
 // @flow
 import * as TeamsGen from '../../actions/teams-gen'
 import InviteByEmailDesktop from '.'
-import {HeaderHoc} from '../../common-adapters'
 import {navigateAppend} from '../../actions/route-tree'
 import {
   connect,
   compose,
   withHandlers,
   withPropsOnChange,
-  withState,
+  withStateHandlers,
   type TypedState,
 } from '../../util/container'
 import {type OwnProps} from './container'
@@ -44,16 +43,16 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   compose(
-    withState('invitees', 'onInviteesChange'),
-    withState('role', 'onRoleChange', 'writer'),
+    withStateHandlers(
+      {invitees: undefined, role: 'writer'},
+      {onInviteesChange: () => invitees => ({invitees}), onRoleChange: () => role => ({role})}
+    ),
     withPropsOnChange(['onExitSearch'], props => ({
       onCancel: () => props.onClose(),
       title: 'Invite by email',
     })),
     withHandlers({
       onInvite: ({invitees, onInvite, role}) => () => invitees && role && onInvite({invitees, role}),
-    }),
-    // $FlowIssue doesn't like withState
-    HeaderHoc
+    })
   )
 )(InviteByEmailDesktop)

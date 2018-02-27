@@ -96,9 +96,10 @@ func _testSoftSnooze(t *testing.T, sigVersion libkb.SigVersion) {
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
+	sv := keybase1.SigVersion(sigVersion)
 	targ := TrackTokenArg{
 		Token:   idUI.Token,
-		Options: keybase1.TrackOptions{BypassConfirm: true, SigVersion: keybase1.SigVersion(sigVersion)},
+		Options: keybase1.TrackOptions{BypassConfirm: true, SigVersion: &sv},
 	}
 
 	// Track tracy

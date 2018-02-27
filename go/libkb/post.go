@@ -20,6 +20,7 @@ type PostProofRes struct {
 
 type PostProofArg struct {
 	Sig            string
+	SigInner       []byte
 	ID             keybase1.SigID
 	RemoteUsername string
 	ProofType      string
@@ -37,6 +38,9 @@ func PostProof(ctx context.Context, g *GlobalContext, arg PostProofArg) (*PostPr
 		"supersede":       B{arg.Supersede},
 		"signing_kid":     S{arg.SigningKey.GetKID().String()},
 		"type":            S{arg.ProofType},
+	}
+	if len(arg.SigInner) > 0 {
+		hargs["sig_inner"] = S{string(arg.SigInner)}
 	}
 	hargs.Add(arg.RemoteKey, S{arg.RemoteUsername})
 

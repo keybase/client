@@ -77,19 +77,20 @@ func _testUntrack(t *testing.T, sigVersion libkb.SigVersion) {
 	fu := CreateAndSignupFakeUser(tc, "untrk")
 
 	// Local-tracked only.
-	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: true, BypassConfirm: true, SigVersion: keybase1.SigVersion(sigVersion)}, fu.NewSecretUI())
+	sv := keybase1.SigVersion(sigVersion)
+	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: true, BypassConfirm: true, SigVersion: &sv}, fu.NewSecretUI())
 	assertTracking(tc, "t_alice")
 	untrackAlice(tc, fu, sigVersion)
 	assertUntracked(tc, "t_alice")
 
 	// Remote-tracked only.
-	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: false, BypassConfirm: true, SigVersion: keybase1.SigVersion(sigVersion)}, fu.NewSecretUI())
+	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: false, BypassConfirm: true, SigVersion: &sv}, fu.NewSecretUI())
 	untrackAlice(tc, fu, sigVersion)
 	assertUntracked(tc, "t_alice")
 
 	// Both local- and remote-tracked.
-	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: true, BypassConfirm: true, SigVersion: keybase1.SigVersion(sigVersion)}, fu.NewSecretUI())
-	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: false, BypassConfirm: true, SigVersion: keybase1.SigVersion(sigVersion)}, fu.NewSecretUI())
+	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: true, BypassConfirm: true, SigVersion: &sv}, fu.NewSecretUI())
+	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: false, BypassConfirm: true, SigVersion: &sv}, fu.NewSecretUI())
 	untrackAlice(tc, fu, sigVersion)
 	assertUntracked(tc, "t_alice")
 
@@ -120,7 +121,8 @@ func _testUntrackRemoteOnly(t *testing.T, sigVersion libkb.SigVersion) {
 	defer tc.Cleanup()
 	fu := CreateAndSignupFakeUser(tc, "untrk")
 
-	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: false, BypassConfirm: true, SigVersion: keybase1.SigVersion(sigVersion)}, fu.NewSecretUI())
+	sv := keybase1.SigVersion(sigVersion)
+	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: false, BypassConfirm: true, SigVersion: &sv}, fu.NewSecretUI())
 	untrackAlice(tc, fu, sigVersion)
 	assertUntracked(tc, "t_alice")
 }

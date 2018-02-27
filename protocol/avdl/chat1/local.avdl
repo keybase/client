@@ -350,7 +350,7 @@ protocol local {
 
     // Whether the message was sent by a device that is now revoked.
     // We aren't sure whether the device was revoked when the message was sent.
-    // Re-evaluated when unboxed or pulled from the cache.
+    // Evaluated when unboxed. Not updated thereafter.
     union {null, gregor1.Time} senderDeviceRevokedAt;
 
     array<string> atMentionUsernames;
@@ -529,7 +529,11 @@ protocol local {
     FULL_0,
     INCREMENTAL_1
   }
-  NonblockFetchRes getThreadNonblock(int sessionID, ConversationID conversationID, GetThreadNonblockCbMode cbMode, union { null, GetThreadQuery} query, union { null, UIPagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
+  enum GetThreadNonblockReason {
+    GENERAL_0,
+    PUSH_1
+  }
+  NonblockFetchRes getThreadNonblock(int sessionID, ConversationID conversationID, GetThreadNonblockCbMode cbMode, GetThreadNonblockReason reason, union { null, GetThreadQuery} query, union { null, UIPagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   record GetInboxLocalRes {
     array<Conversation> conversationsUnverified;

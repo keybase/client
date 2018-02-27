@@ -78,7 +78,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 }
 
 export default compose(
-  withStateHandlers(props => ({showMenu: false}), {setShowMenu: () => (showMenu: boolean) => ({showMenu})}),
+  withStateHandlers({showMenu: false}, {setShowMenu: () => showMenu => ({showMenu})}),
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentDidMount: function() {
