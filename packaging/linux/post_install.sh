@@ -18,7 +18,17 @@ optDeprecated="/opt/keybase/mount-readme"
 chown root:root "$krbin"
 chmod 4755 "$krbin"
 
+make_mountpoint() {
+  if ! mountpoint "$rootmount" &> /dev/null; then
+    mkdir -p "$rootmount"
+    chown root:root "$rootmount"
+    chmod 755 "$rootmount"
+  fi
+}
+
 run_redirector() {
+  make_mountpoint
+
   logdir="${XDG_CACHE_HOME:-$HOME/.cache}/keybase"
   mkdir -p "$logdir"
   nohup "$krbin" "$rootmount" >> "$logdir/keybase.redirector.log" 2>&1 &
@@ -64,11 +74,8 @@ elif [ -d "$rootmount" ] ; then
     fi
 fi
 
-if ! mountpoint "$rootmount" &> /dev/null; then
-    mkdir -p "$rootmount"
-    chown root:root "$rootmount"
-    chmod 755 "$rootmount"
-fi
+# Just in case the redirector wasn't run in any of the above cases.
+make_mountpoint
 
 # Delete the keybasehelper system user, to clean up after older
 # versions.  TODO: remove this once sufficient time has passed since
