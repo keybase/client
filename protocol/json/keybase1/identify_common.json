@@ -111,7 +111,10 @@
           "name": "forPGPPull"
         },
         {
-          "type": "SigVersion",
+          "type": [
+            null,
+            "SigVersion"
+          ],
           "name": "sigVersion"
         }
       ]

@@ -112,7 +112,8 @@ func _testListTrackingLocal(t *testing.T, sigVersion libkb.SigVersion) {
 	trackAlice(tc, fu, sigVersion)
 	defer untrackAlice(tc, fu, sigVersion)
 
-	trackBobWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: true, SigVersion: keybase1.SigVersion(sigVersion)}, fu.NewSecretUI())
+	sv := keybase1.SigVersion(sigVersion)
+	trackBobWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: true, SigVersion: &sv}, fu.NewSecretUI())
 	defer untrackBob(tc, fu, sigVersion)
 
 	arg := ListTrackingEngineArg{}
