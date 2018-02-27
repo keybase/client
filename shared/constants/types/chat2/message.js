@@ -75,7 +75,7 @@ export type _MessageText = {
 }
 export type MessageText = I.RecordOf<_MessageText>
 
-export type AttachmentType = 'image' | 'file'
+export type AttachmentType = 'image' | 'file' | 'video'
 
 export type _MessageAttachment = {
   attachmentType: AttachmentType,

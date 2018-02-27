@@ -1,12 +1,16 @@
 // @flow
 import * as React from 'react'
-import * as Types from '../../../../../constants/types/chat2'
 import {Icon, Text, ClickableBox, Box, ProgressBar} from '../../../../../common-adapters'
 import {globalStyles, globalMargins, globalColors, fileUIName} from '../../../../../styles'
 
 type Props = {
-  onClick: () => void,
-  message: Types.MessageAttachment,
+  arrowColor: ?string,
+  loadPreview: ?() => void,
+  onDownload: ?() => void,
+  onShowInFinder: ?() => void,
+  title: string,
+  progress: number,
+  progressLabel: ?string,
 }
 
 class FileAttachment extends React.PureComponent<Props> {
@@ -24,13 +28,12 @@ class FileAttachment extends React.PureComponent<Props> {
 
   render() {
     const iconType = 'icon-file-24' // TODO other states
-    const {message} = this.props
     return (
       <ClickableBox onClick={this.props.onDownload}>
         <Box style={containerStyle}>
           <Box style={titleStyle}>
             <Icon type={iconType} style={iconStyle} />
-            <Text type="BodySemibold">{message.title || message.fileName}</Text>
+            <Text type="BodySemibold">{this.props.title}</Text>
           </Box>
           {!!this.props.arrowColor && (
             <Box style={downloadedIconWrapperStyle}>

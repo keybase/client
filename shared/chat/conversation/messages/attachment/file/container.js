@@ -45,11 +45,14 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     loadPreview: message.devicePreviewPath
       ? undefined
       : () => dispatchProps._loadPreview(message.conversationIDKey, message.ordinal),
-    message,
     onDownload: !isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : null,
     onShowInFinder:
       !isMobile && message.downloadPath ? () => dispatchProps._onShowInFinder(message) : undefined,
     progressLabel,
+    progress: message.transferProgress,
+    title:
+      message.title ||
+      message.fileName /* +      ' ordinal:' +      Types.ordinalToNumber(message.ordinal) +      ' id: ' +      message.id */,
   }
 }
 
