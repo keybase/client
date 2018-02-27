@@ -22,17 +22,20 @@ const DeleteHistoryWarning = ({errorText, name, onBack, timestamp, onDeleteHisto
       padding: globalMargins.small,
     }}
   >
+    <Text style={{padding: globalMargins.small}} type="Header">
+      Delete this message + everything above?
+    </Text>
     <Text style={{padding: globalMargins.small}} type="Body">
-      Are you sure you want to delete all messages before {timestamp} for everyone?
+      You are about to delete <Text type="BodySemibold">some messages</Text>. For everyone.
     </Text>
     <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.xlarge}}>
+      <Button type="Secondary" style={{marginLeft: globalMargins.tiny}} onClick={onBack} label="Cancel" />
       <Button
         type="Danger"
         style={{marginLeft: globalMargins.tiny}}
         onClick={onDeleteHistory}
-        label="Yes, delete history"
+        label="Yes, delete some messages"
       />
-      <Button type="Secondary" style={{marginLeft: globalMargins.tiny}} onClick={onBack} label="No, cancel" />
     </Box>
   </Box>
 )
@@ -42,10 +45,10 @@ const stylePadding = isMobile
       paddingTop: globalMargins.xlarge,
     }
   : {
-      marginBottom: 80,
+      marginBottom: 40,
       marginLeft: 80,
       marginRight: 80,
-      marginTop: 90,
+      marginTop: 80,
     }
 
 export default (isMobile ? HeaderHoc(DeleteHistoryWarning) : DeleteHistoryWarning)
