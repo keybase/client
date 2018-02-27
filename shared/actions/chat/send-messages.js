@@ -24,7 +24,7 @@ function* deleteMessageHistory(action: ChatGen.DeleteMessagePayload): SagaGenera
   const attrs = Constants.splitMessageIDKey(message.key)
   const conversationIDKey: Types.ConversationIDKey = attrs.conversationIDKey
   const parsedMessageID: Types.ParsedMessageID = Constants.parseMessageID(attrs.messageID)
-  const upto = parsedMessageID.msgID
+  const through = parsedMessageID.msgID
   const state: TypedState = yield Saga.select()
   const inboxConvo = Constants.getInbox(state, conversationIDKey)
 
@@ -43,14 +43,14 @@ function* deleteMessageHistory(action: ChatGen.DeleteMessagePayload): SagaGenera
   const tlfName: string = inboxConvo.name
 
   // $FlowIssue MessageID is incorrectly typed as any, upto needs to be number.
-  const param: RPCChatTypes.LocalPostDeleteHistoryUptoRpcParam = {
+  const param: RPCChatTypes.LocalPostDeleteHistoryThroughRpcParam = {
     conversationID: Constants.keyToConversationID(conversationIDKey),
     identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+    through,
     tlfName,
     tlfPublic: false,
-    upto,
   }
-  yield Saga.call(RPCChatTypes.localPostDeleteHistoryUptoRpcPromise, param)
+  yield Saga.call(RPCChatTypes.localPostDeleteHistoryThroughRpcPromise, param)
 }
 
 function* deleteMessage(action: ChatGen.DeleteMessagePayload): SagaGenerator<any, any> {
