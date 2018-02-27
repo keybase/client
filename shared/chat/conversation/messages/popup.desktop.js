@@ -154,7 +154,7 @@ const mapDispatchToTextProps = (
     dispatch(navigateUp())
     routeProps.get('onShowEditor')()
   },
-  onHidden: () => {},
+  onHidden: () => routeProps.get('onPopupWillClose')(),
 })
 
 const ConnectedTextMessage = connect(mapStateToProps, mapDispatchToTextProps)(TextPopupMenu)
@@ -183,7 +183,7 @@ const mapDispatchToAttachmentProps = (
       dispatch(navigateUp())
       dispatch(navigateAppend([{props: {message}, selected: 'deleteHistoryWarning'}]))
     },
-    onHidden: () => {},
+    onHidden: () => routeProps.get('onPopupWillClose')(),
     localMessageState,
   }
 }
