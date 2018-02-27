@@ -14,6 +14,8 @@ const statusToIcon: {[key: IconStatus]: IconType} = {
 const encryptingTimeout = 600
 const sentTimeout = 300
 
+const shownEncryptingSet = new Set()
+
 const SendIcon = (props: {status: IconStatus, style: any}) => (
   <Icon type={statusToIcon[props.status]} style={{width: 24, height: 16, ...props.style}} />
 )
@@ -21,6 +23,7 @@ const SendIcon = (props: {status: IconStatus, style: any}) => (
 type Props = {
   sent: boolean,
   failed: boolean,
+  id?: string,
   setTimeout: typeof setTimeout,
   clearTimeout: typeof clearTimeout,
   style: any,
@@ -55,7 +58,13 @@ class SendIndicator extends React.Component<Props, State> {
 
   componentWillMount() {
     if (!(this.props.sent || this.props.failed)) {
-      this.encryptingTimeoutID = this.props.setTimeout(() => this._setStatus('sending'), encryptingTimeout)
+      // Only show the `encrypting` icon for messages once
+      if (!shownEncryptingSet.has(this.props.id)) {
+        this.encryptingTimeoutID = this.props.setTimeout(() => this._setStatus('sending'), encryptingTimeout)
+        shownEncryptingSet.add(this.props.id)
+      } else {
+        this._setStatus('sending')
+      }
     } else if (this.props.failed) {
       // previously failed message
       this._onFailed()
@@ -82,7 +91,12 @@ class SendIndicator extends React.Component<Props, State> {
     if (!this.state.visible) {
       return null
     }
-    return <SendIcon status={this.state.iconStatus} style={this.props.style} />
+    return (
+      <SendIcon
+        status={this.state.iconStatus}
+        style={{...this.props.style, opacity: this.state.visible ? 1 : 0}}
+      />
+    )
   }
 }
 

@@ -106,10 +106,12 @@ class MessageWrapper extends React.PureComponent<Props> {
                 onAuthorClick={props.onAuthorClick}
               />
               <Box style={styles.sendIndicatorContainer}>
+                {/* $FlowIssue doesn't like HOCTimers */}
                 <SendIndicator
                   sent={props.messageSent}
                   failed={props.messageFailed}
                   style={{marginBottom: 2}}
+                  id={props.message.timestamp}
                 />
               </Box>
             </Box>
