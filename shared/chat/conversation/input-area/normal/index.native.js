@@ -20,7 +20,8 @@ if (!isIOS) {
 
 class ConversationInput extends Component<Props> {
   _openFilePicker = () => {
-    showImagePicker({mediaType: isIOS ? 'mixed' : 'photo'}, response => {
+    // TODO when video works better {mediaType: isIOS ? 'mixed' : 'photo'}
+    showImagePicker({}, response => {
       if (response.didCancel) {
         return
       }
