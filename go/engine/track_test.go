@@ -11,7 +11,8 @@ import (
 )
 
 func runTrack(tc libkb.TestContext, fu *FakeUser, username string, sigVersion libkb.SigVersion) (idUI *FakeIdentifyUI, them *libkb.User, err error) {
-	return runTrackWithOptions(tc, fu, username, keybase1.TrackOptions{BypassConfirm: true, SigVersion: keybase1.SigVersion(sigVersion)}, fu.NewSecretUI(), false)
+	sv := keybase1.SigVersion(sigVersion)
+	return runTrackWithOptions(tc, fu, username, keybase1.TrackOptions{BypassConfirm: true, SigVersion: &sv}, fu.NewSecretUI(), false)
 }
 
 func runTrackWithOptions(tc libkb.TestContext, fu *FakeUser, username string, options keybase1.TrackOptions, secretUI libkb.SecretUI, forceRemoteCheck bool) (idUI *FakeIdentifyUI, them *libkb.User, err error) {
@@ -71,18 +72,21 @@ func assertNotTracking(tc libkb.TestContext, username string) {
 }
 
 func trackAlice(tc libkb.TestContext, fu *FakeUser, sigVersion libkb.SigVersion) {
-	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{BypassConfirm: true, SigVersion: keybase1.SigVersion(sigVersion)}, fu.NewSecretUI())
+	sv := keybase1.SigVersion(sigVersion)
+	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{BypassConfirm: true, SigVersion: &sv}, fu.NewSecretUI())
 }
 
 func trackUser(tc libkb.TestContext, fu *FakeUser, un libkb.NormalizedUsername, sigVersion libkb.SigVersion) {
-	_, _, err := runTrackWithOptions(tc, fu, un.String(), keybase1.TrackOptions{BypassConfirm: true, SigVersion: keybase1.SigVersion(sigVersion)}, fu.NewSecretUI(), false)
+	sv := keybase1.SigVersion(sigVersion)
+	_, _, err := runTrackWithOptions(tc, fu, un.String(), keybase1.TrackOptions{BypassConfirm: true, SigVersion: &sv}, fu.NewSecretUI(), false)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
 }
 
 func trackUserGetUI(tc libkb.TestContext, fu *FakeUser, un libkb.NormalizedUsername, sigVersion libkb.SigVersion) *FakeIdentifyUI {
-	ui, _, err := runTrackWithOptions(tc, fu, un.String(), keybase1.TrackOptions{BypassConfirm: true, SigVersion: keybase1.SigVersion(sigVersion)}, fu.NewSecretUI(), false)
+	sv := keybase1.SigVersion(sigVersion)
+	ui, _, err := runTrackWithOptions(tc, fu, un.String(), keybase1.TrackOptions{BypassConfirm: true, SigVersion: &sv}, fu.NewSecretUI(), false)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -238,9 +242,10 @@ func _testTrackRetrack(t *testing.T, sigVersion libkb.SigVersion) {
 	}
 	seqnoBefore := fu.User.GetSigChainLastKnownSeqno()
 
+	sv := keybase1.SigVersion(sigVersion)
 	arg := &TrackEngineArg{
 		UserAssertion: "t_alice",
-		Options:       keybase1.TrackOptions{BypassConfirm: true, SigVersion: keybase1.SigVersion(sigVersion)},
+		Options:       keybase1.TrackOptions{BypassConfirm: true, SigVersion: &sv},
 	}
 	ctx := &Context{
 		LogUI:      tc.G.UI.GetLogUI(),
@@ -377,13 +382,14 @@ func _testIdentifyTrackRaceDetection(t *testing.T, sigVersion libkb.SigVersion) 
 		}
 	}
 
+	sv := keybase1.SigVersion(sigVersion)
 	track := func(tc libkb.TestContext, fui *FakeIdentifyUI) error {
 		arg := TrackTokenArg{
 			Token: fui.Token,
 			Options: keybase1.TrackOptions{
 				BypassConfirm: true,
 				ForceRetrack:  true,
-				SigVersion:    keybase1.SigVersion(sigVersion),
+				SigVersion:    &sv,
 			},
 		}
 		ctx := &Context{
