@@ -1,4 +1,4 @@
-// @noflow
+// @flow
 import React from 'react'
 import * as C from '../../constants/people'
 import {action, storiesOf} from '../../stories/storybook'
