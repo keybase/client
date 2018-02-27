@@ -60,8 +60,8 @@ const TextPopupMenu = ({
         onHidden()
         onDeleteMessageHistory && onDeleteMessageHistory(message)
       },
-      subTitle: 'Deletes all messages before this one for everyone',
-      title: 'Delete up to here',
+      subTitle: 'Deletes for everyone',
+      title: 'Delete this + everything above',
     })
   }
   const header = {

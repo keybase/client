@@ -27,7 +27,7 @@ const DeleteHistoryWarning = ({errorText, name, onBack, timestamp, onDeleteHisto
       Delete this message + everything above?
     </Text>
     <Text style={{padding: globalMargins.small}} type="Body">
-      You are about to delete <Text type="BodySemibold">some messages</Text>. For everyone.
+      You are about to delete <Text type="BodySemibold">all messages up to {timestamp}</Text>. For everyone.
     </Text>
     <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.xlarge}}>
       <Button type="Secondary" style={{marginLeft: globalMargins.tiny}} onClick={onBack} label="Cancel" />
@@ -35,7 +35,7 @@ const DeleteHistoryWarning = ({errorText, name, onBack, timestamp, onDeleteHisto
         type="Danger"
         style={{marginLeft: globalMargins.tiny}}
         onClick={onDeleteHistory}
-        label="Yes, delete some messages"
+        label="Yes, delete these messages"
       />
     </Box>
   </Box>
