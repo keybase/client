@@ -46,6 +46,7 @@ class SendIndicator extends React.Component<Props, State> {
 
   _onSent() {
     this._setStatus('sent')
+    this.props.clearTimeout(this.sentTimeoutID)
     this.sentTimeoutID = this.props.setTimeout(() => this._setVisible(false), sentTimeout)
     this.props.clearTimeout(this.encryptingTimeoutID)
   }
