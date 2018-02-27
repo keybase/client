@@ -32,9 +32,8 @@ elif [ "$mode" = "prerelease" ] ; then
   repo_url="http://prerelease.keybase.io/deb"
   # * "psmisc" provides "killall", which is used in run_keybase and
   #   post_install.sh.
-  # * "util-linux" provides "mountpoint", which is used in post_install.sh.
   # * "coreutils" provides "nohup", which is used in run_keybase.
-  dependencies="Depends: libappindicator1, fuse, libgconf-2-4, psmisc, util-linux, coreutils"
+  dependencies="Depends: libappindicator1, fuse, libgconf-2-4, psmisc, coreutils"
 elif [ "$mode" = "staging" ] ; then
   # Note: This doesn't exist yet. But we need to be distinct from the
   # production URL, because we're moving to a model where we build a clean repo

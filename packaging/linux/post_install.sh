@@ -24,16 +24,24 @@ run_redirector() {
   nohup "$krbin" "$rootmount" >> $logdir/keybase.redirector.log 2>&1 &
 }
 
-currlink=`readlink "$rootmount"`
+currlink=`readlink -m "$rootmount"`
 if [ -n "$currlink" ] ; then
     # Upgrade from a rootlink-based build.
     if rm "$rootmount" &> /dev/null ; then
         echo Replacing old $rootmount symlink.
     fi
-    if mountpoint "$currlink" &> /dev/null ; then
+    mounts=`cat /proc/mounts | awk '{print $2}'`
+    # TODO: Set $IFS in case any of the mountpoints contain a space?
+    # Probably not a big deal since all this loop does is start the
+    # redirector, which would also be done by the next call to
+    # `run_keybase`.
+    for m in $mounts; do
+      if [ "$m" = "$currlink" ]; then
         echo Starting root redirector at $rootmount.
         run_redirector
-    fi
+        break
+      fi
+    done
 elif [ -d "$rootmount" ] ; then
     # Handle upgrading from old builds that don't have the rootlink.
     currowner=`stat -c %U "$rootmount"`

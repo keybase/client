@@ -12,7 +12,6 @@ pkgbase = keybase-bin
 	depends = gconf
 	depends = libxss
 	depends = gtk2
-        depends = util-linux
         depends = coreutils
         conflicts = keybase
 	conflicts = keybase-release
