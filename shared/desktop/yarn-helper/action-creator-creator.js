@@ -23,6 +23,8 @@ type FileDesc = {
 
 type CompileActionFn = (ns: ActionNS, actionName: ActionName, desc: ActionDesc) => string
 
+const reservedPayloadKeys = ['_description']
+
 function compile(ns: ActionNS, {prelude, actions}: FileDesc): string {
   return `// @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
@@ -79,7 +81,7 @@ function actionReduxTypeName(ns: ActionNS, actionName: ActionName): string {
 }
 
 function payloadKeys(p: Object) {
-  return Object.keys(p).filter(key => !['_description'].includes(key))
+  return Object.keys(p).filter(key => !reservedPayloadKeys.includes(key))
 }
 
 function printPayload(p: Object) {
