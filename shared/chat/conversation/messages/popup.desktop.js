@@ -119,6 +119,7 @@ const AttachmentPopupMenu = ({
 type ConnectedTextMessageProps = {
   routeProps: I.RecordOf<{
     message: Types.TextMessage,
+    onPopupWillClose: () => void,
     onShowEditor: () => void,
   }>,
 }
@@ -163,6 +164,7 @@ type ConnectedAttachmentMessageProps = {
   routeProps: I.RecordOf<{
     message: Types.AttachmentMessage,
     localMessageState: Types.LocalMessageState,
+    onPopupWillClose: () => void,
   }>,
 }
 
