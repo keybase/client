@@ -13,38 +13,13 @@ IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
-if NOT DEFINED DOKAN_PATH set DOKAN_PATH=%GOPATH%\bin\dokan-dev\build84
-echo DOKAN_PATH %DOKAN_PATH%
-
 if NOT DEFINED DevEnvDir call "%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat"
-
-IF [%UpdateChannel%] == [] goto:donecheckingdrivers
-
-IF [%UpdateChannel%] == [None] goto:donecheckingdrivers
-
-IF [%UpdateChannel%] == [Test] goto:donecheckingdrivers
 
 :: don't bother with ci or checking out source, etc. for smoke2 build
 IF [%UpdateChannel%] == [Smoke2] goto:done_ci
 
-:: Verify driver signing
 :: Check both the built .sys files and the msi package.
 if NOT DEFINED UNARCHIVE_COMMAND set UNARCHIVE_COMMAND="C:\Program Filess (x86)\7-Zip\7z" e -y
-
-signtool verify /all /kp /v %DOKAN_PATH%\\x64\\Win10Release\\dokan1.sys | find "Issued to: Microsoft Windows Hardware Compatibility Publisher"
-IF %ERRORLEVEL% NEQ 0 goto:build_error || EXIT /B 1
-signtool verify /all /kp /v %DOKAN_PATH%\\Win32\\Win10Release\\dokan1.sys | find "Issued to: Microsoft Windows Hardware Compatibility Publisher"
-IF %ERRORLEVEL% NEQ 0 goto:build_error || EXIT /B 1
-%UNARCHIVE_COMMAND% %DOKAN_PATH%\\dokan_wix\\bin\\x64\\release\\Dokan_x64.msi Win10_Sys
-IF %ERRORLEVEL% NEQ 0 goto:build_error || EXIT /B 1
-signtool verify /all /kp /v Win10_Sys | find "Issued to: Microsoft Windows Hardware Compatibility Publisher"
-IF %ERRORLEVEL% NEQ 0 goto:build_error || EXIT /B 1
-%UNARCHIVE_COMMAND% %DOKAN_PATH%\\dokan_wix\\bin\\x86\\release\\Dokan_x86.msi Win10_Sys
-IF %ERRORLEVEL% NEQ 0 goto:build_error || EXIT /B 1
-signtool verify /all /kp /v Win10_Sys | find "Issued to: Microsoft Windows Hardware Compatibility Publisher"
-IF %ERRORLEVEL% NEQ 0 goto:build_error || EXIT /B 1
-
-:donecheckingdrivers 
 
 :: NOTE: We depend on the bot or caller to checkout client first
 :: call:checkout_keybase client, %ClientRevision% || goto:build_error || EXIT /B 1

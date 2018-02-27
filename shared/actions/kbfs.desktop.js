@@ -10,11 +10,12 @@ import fs from 'fs'
 import path from 'path'
 import {ExitCodeFuseKextPermissionError} from '../constants/favorite'
 import {delay} from 'redux-saga'
-import {execFile} from 'child_process'
+import {execFileSync} from 'child_process'
 import {folderTab} from '../constants/tabs'
 import {isLinux, isWindows} from '../constants/platform'
 import {navigateTo, switchTo} from './route-tree'
 import type {TypedState} from '../constants/reducer'
+import startWinService from '../desktop/app/start-win-service'
 
 // pathToURL takes path and converts to (file://) url.
 // See https://github.com/sindresorhus/file-url
@@ -193,7 +194,11 @@ function installCachedDokan(): Promise<*> {
   return new Promise((resolve, reject) => {
     // use the action logger so it has a chance of making it into the upload
     logger.action('Invoking dokan installer')
-    execFile('DokanSetup_redist.exe', [])
+    execFileSync('DokanSetup_redist.exe', [])
+
+    // restart the servie, particularly kbfsdokan
+    startWinService()
+
     resolve()
   })
 }
