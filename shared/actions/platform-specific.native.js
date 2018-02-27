@@ -2,6 +2,7 @@
 import logger from '../logger'
 import * as PushTypes from '../constants/types/push'
 import * as PushConstants from '../constants/push'
+import * as AppGen from './app-gen'
 import * as PushGen from './push-gen'
 import * as PushNotifications from 'react-native-push-notification'
 import {PushNotificationIOS, CameraRoll, ActionSheetIOS, AsyncStorage, Linking} from 'react-native'
@@ -134,6 +135,11 @@ function configurePush() {
       },
       senderID: PushConstants.androidSenderID,
       onNotification: notification => {
+        // There can be a race where the notification that our app is foregrounded is very late compared to the push
+        // which makes our handling incorrect. Instead we can only ever handle this if we're in the foreground so lets
+        // just tell the app that's so
+        dispatch(AppGen.createMobileAppState({nextAppState: 'active'}))
+
         // On iOS, some fields are in notification.data. Also, the
         // userInfo field from the local notification spawned in
         // displayNewMessageNotification gets renamed to

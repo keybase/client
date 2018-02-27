@@ -20,6 +20,7 @@ import type {NavigateActions} from '../../constants/types/route-tree'
 import engine from '../../engine'
 import logger from '../../logger'
 import type {TypedState, Dispatch} from '../../util/container'
+import {getPath} from '../../route-tree'
 import {chatTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {NotifyPopup} from '../../native/notifications'
@@ -1490,7 +1491,26 @@ const markThreadAsRead = (
   }
 
   if (!Constants.isUserActivelyLookingAtThisThread(state, conversationIDKey)) {
-    logger.info('marking read bail on not looking at this thread')
+    // TEMP to help debugging, remove after push marking read is known good
+    const selectedConversationIDKey = Constants.getSelectedConversation(state)
+    const appFocused = state.config.appFocused
+    const routePath = getPath(state.routeTree.routeState)
+    let chatThreadSelected = false
+    if (isMobile) {
+      chatThreadSelected =
+        routePath.size === 2 && routePath.get(0) === chatTab && routePath.get(1) === 'conversation'
+    } else {
+      chatThreadSelected = routePath.size >= 1 && routePath.get(0) === chatTab
+    }
+
+    logger.info(
+      'marking read bail on not looking at this thread: sel: ',
+      selectedConversationIDKey,
+      'focus:',
+      appFocused,
+      'selectedthread:',
+      chatThreadSelected
+    )
     return
   }
 
@@ -1822,6 +1842,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     [
       Chat2Gen.messagesAdd,
       Chat2Gen.selectConversation,
+      Chat2Gen.selectConversationDueToPush,
       Chat2Gen.markInitiallyLoadedThreadAsRead,
       a => typeof a.type === 'string' && a.type.startsWith('routeTree:'),
     ],

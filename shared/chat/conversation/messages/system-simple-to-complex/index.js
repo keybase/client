@@ -75,7 +75,7 @@ class ComplexTeamNotice extends React.PureComponent<Props> {
               ) : (
                 <Text type="BodySmallSemibold">
                   Notifications will no longer happen for every message. {isMobile ? 'Tap' : 'Click on'} the{' '}
-                  <Box style={isMobile ? {display: 'inline-block'} : {}}>
+                  <Box style={{display: isMobile ? 'flex' : 'inline-block', height: 11, width: 11}}>
                     <Icon type="iconfont-info" style={{fontSize: 11}} />
                   </Box>{' '}
                   to configure them.

@@ -34,7 +34,7 @@ function _onShowMain() {
 
 function* appStateSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeLatestPure(AppGen.showMain, _onShowMain)
-  yield Saga.safeTakeLatestPure(AppGen.mobileAppState, _onMobileAppStateChanged)
+  yield Saga.safeTakeEveryPure(AppGen.mobileAppState, _onMobileAppStateChanged)
 }
 
 export default appStateSaga
