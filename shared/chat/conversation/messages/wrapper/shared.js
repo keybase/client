@@ -109,7 +109,7 @@ class MessageWrapper extends React.PureComponent<Props> {
                 <SendIndicator
                   sent={!props.message.submitState}
                   failed={!!props.failureDescription}
-                  style={styles.sendIndicator}
+                  style={{marginBottom: 2}}
                 />
               </Box>
             </Box>
@@ -194,7 +194,6 @@ const styles = styleSheetCreate({
     justifyContent: 'flex-end',
     width: 32,
   },
-  sendIndicator: {paddingBottom: 2},
   userAvatar: {width: 32},
   username: {
     alignSelf: 'flex-start',

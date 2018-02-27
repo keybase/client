@@ -72,7 +72,10 @@ class SendAnimation extends React.Component<Props, State> {
   }
 
   render() {
-    return this.state.visible && <SendIcon status={this.state.iconStatus} style={this.props.style} />
+    if (!this.state.visible) {
+      return null
+    }
+    return <SendIcon status={this.state.iconStatus} style={this.props.style} />
   }
 }
 
