@@ -13,8 +13,9 @@ set -e -u -o pipefail
 runtime_dir="${XDG_RUNTIME_DIR:-$HOME/.config}/keybase"
 mkdir -p "$runtime_dir"
 startup_token="$runtime_dir/startup_mode"
-if keybase config get mountdir &> /dev/null ; then
-    mountdir="$(keybase config get mountdir 2> /dev/null | sed -e s/\"//g)"
+# Use -d to avoid starting up the keybase background daemon here.
+if keybase config get -d -b mountdir &> /dev/null ; then
+    mountdir="$(keybase config get -d -b mountdir 2> /dev/null)"
 else
     # The user has no mountpoint configured yet, so pick a default one
     # and record the default setting in a separate config field, so
@@ -119,8 +120,21 @@ forward_vars() {
 }
 
 run_redirector() {
-  logdir="${XDG_CACHE_HOME:-$HOME/.cache}/keybase"
-  nohup keybase-redirector /keybase >> "$logdir/keybase.redirector.log" 2>&1 &
+  rootConfigFile="/etc/keybase/config.json"
+  disableConfigKey="disable-root-redirector"
+
+  disable="false"
+  if [ -r "$rootConfigFile" ] ; then
+    if keybase -c "$rootConfigFile" config get -d "$disableConfigKey" &> /dev/null ; then
+      disable="$(keybase -c "$rootConfigFile" config get -d "$disableConfigKey" 2> /dev/null)"
+    fi
+  fi
+
+  # Only start the root redirector if it hasn't been explicit disabled.
+  if [ "$disable" != "true" ]; then
+    logdir="${XDG_CACHE_HOME:-$HOME/.cache}/keybase"
+    nohup keybase-redirector /keybase >> "$logdir/keybase.redirector.log" 2>&1 &
+  fi
 }
 
 start_systemd() {

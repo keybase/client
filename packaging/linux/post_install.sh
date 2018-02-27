@@ -9,6 +9,8 @@ set -u
 
 rootmount="/keybase"
 krbin="/usr/bin/keybase-redirector"
+rootConfigFile="/etc/keybase/config.json"
+disableConfigKey="disable-root-redirector"
 
 vardirDeprecated="/var/lib/keybase"
 khuserDeprecated="keybasehelper"
@@ -18,20 +20,34 @@ optDeprecated="/opt/keybase/mount-readme"
 chown root:root "$krbin"
 chmod 4755 "$krbin"
 
+disableRedirector="false"
+if [ -r "$rootConfigFile" ] ; then
+  if keybase -c "$rootConfigFile" config get -d "$disableConfigKey" &> /dev/null ; then
+    disableRedirector="$(keybase -c "$rootConfigFile" config get -d "$disableConfigKey" 2> /dev/null)"
+  fi
+fi
+
 make_mountpoint() {
-  if ! mountpoint "$rootmount" &> /dev/null; then
-    mkdir -p "$rootmount"
-    chown root:root "$rootmount"
-    chmod 755 "$rootmount"
+  if [ "$disableRedirector" != "true" ]; then
+    if ! mountpoint "$rootmount" &> /dev/null; then
+      mkdir -p "$rootmount"
+      chown root:root "$rootmount"
+      chmod 755 "$rootmount"
+    fi
   fi
 }
 
 run_redirector() {
   make_mountpoint
 
-  logdir="${XDG_CACHE_HOME:-$HOME/.cache}/keybase"
-  mkdir -p "$logdir"
-  nohup "$krbin" "$rootmount" >> "$logdir/keybase.redirector.log" 2>&1 &
+  # Only start the root redirector if it hasn't been explicit disabled.
+  if [ "$disableRedirector" != "true" ]; then
+    logdir="${XDG_CACHE_HOME:-$HOME/.cache}/keybase"
+    mkdir -p "$logdir"
+    nohup "$krbin" "$rootmount" >> "$logdir/keybase.redirector.log" 2>&1 &
+  elif killall `basename "$krbin"` &> /dev/null ; then
+    echo "Killing root redirector"
+  fi
 }
 
 currlink="$(readlink -m "$rootmount")"
