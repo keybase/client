@@ -792,7 +792,7 @@ func ShredFile(filename string) error {
 		return err
 	}
 	if stat.IsDir() {
-		return errors.New("cannot shread a directory")
+		return errors.New("cannot shred a directory")
 	}
 	size := int(stat.Size())
 
