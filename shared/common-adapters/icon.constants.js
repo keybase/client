@@ -616,6 +616,16 @@ const iconMeta_ = {
     extension: 'gif',
     require: require('../images/icons/icon-loader-uploading-16.gif'),
   },
+  'icon-message-deletion-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-message-deletion-32.png'),
+  },
+  'icon-message-deletion-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-message-deletion-48.png'),
+  },
   'icon-message-deletion-64': {
     isFont: false,
     extension: 'png',

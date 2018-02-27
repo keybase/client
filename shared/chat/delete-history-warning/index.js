@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Box, Button, HeaderHoc, Text} from '../../common-adapters'
+import {Box, Button, HeaderHoc, Icon, Text} from '../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
 
 type Props = {
@@ -22,6 +22,7 @@ const DeleteHistoryWarning = ({errorText, name, onBack, timestamp, onDeleteHisto
       padding: globalMargins.small,
     }}
   >
+    <Icon type={isMobile ? 'icon-message-deletion-64' : 'icon-message-deletion-48'} />
     <Text style={{padding: globalMargins.small}} type="Header">
       Delete this message + everything above?
     </Text>
@@ -48,7 +49,7 @@ const stylePadding = isMobile
       marginBottom: 40,
       marginLeft: 80,
       marginRight: 80,
-      marginTop: 80,
+      marginTop: 40,
     }
 
 export default (isMobile ? HeaderHoc(DeleteHistoryWarning) : DeleteHistoryWarning)
