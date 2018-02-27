@@ -19,6 +19,7 @@ type CmdConfigGet struct {
 	libkb.Contextified
 	Path   string
 	Direct bool
+	Bare   bool
 }
 
 type CmdConfigSet struct {
@@ -35,6 +36,9 @@ type CmdConfigInfo struct {
 func (v *CmdConfigGet) ParseArgv(ctx *cli.Context) error {
 	if ctx.Bool("direct") {
 		v.Direct = true
+	}
+	if ctx.Bool("bare") {
+		v.Bare = true
 	}
 	if len(ctx.Args()) == 1 {
 		v.Path = ctx.Args()[0]
@@ -142,21 +146,23 @@ func (v *CmdConfigGet) Run() error {
 		if i == nil {
 			dui.Printf("null\n")
 		} else {
-			switch v := i.(type) {
+			switch val := i.(type) {
 			case int:
-				dui.Printf("%d\n", v)
+				dui.Printf("%d\n", val)
 			case string:
-				dui.Printf("%q\n", v)
+				if v.Bare {
+					dui.Printf("%s\n", val)
+				} else {
+					dui.Printf("%q\n", val)
+				}
 			case bool:
-				dui.Printf("%t\n", v)
+				dui.Printf("%t\n", val)
 			case float64:
-				dui.Printf("%d\n", int(v))
+				dui.Printf("%d\n", int(val))
 			default:
 				var b []byte
-				b, err = json.Marshal(v)
-				if err == nil {
-					dui.Printf("%q\n", string(b))
-				}
+				b, err = json.Marshal(val)
+				dui.Printf("%s\n", string(b))
 			}
 		}
 	} else {
@@ -175,7 +181,11 @@ func (v *CmdConfigGet) Run() error {
 		case val.I != nil:
 			dui.Printf("%d\n", *val.I)
 		case val.S != nil:
-			dui.Printf("%q\n", *val.S)
+			if v.Bare {
+				dui.Printf("%s\n", *val.S)
+			} else {
+				dui.Printf("%q\n", *val.S)
+			}
 		case val.B != nil:
 			dui.Printf("%t\n", *val.B)
 		case val.O != nil:
@@ -229,6 +239,10 @@ func NewCmdConfigGet(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 			cli.BoolFlag{
 				Name:  "d, direct",
 				Usage: "Read the config value directly from the config file, without consulting the service",
+			},
+			cli.BoolFlag{
+				Name:  "b, bare",
+				Usage: "Print string values without enclosing, JSON-style quotes",
 			},
 		},
 		ArgumentHelp: "<key>",
