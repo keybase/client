@@ -57,4 +57,13 @@ Mute a conversation:
 
 Search conversation with a regex:
     {"method": "searchregexp", "params": {"options": {"channel": {"name": "you,them"}, "query": "a.*", "is_regex": true}}}
+
+Read a team conversation:
+    {"method": "read", "params": {"options": {"channel": {"name": "treehouse", "members_type": "team", "topic_name": "general"}}}}
+
+Read a team conversation channel:
+    {"method": "read", "params": {"options": {"channel": {"name": "treehouse", "members_type": "team", "topic_name": "meetings"}}}}
+
+Send a message to a team conversation channel:
+    {"method": "send", "params": {"options": {"channel": {"name": "treehouse", "members_type": "team", "topic_name": "random"}, "message": {"body": "time for lunch?"}}}}
 `
