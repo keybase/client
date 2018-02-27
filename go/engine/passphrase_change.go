@@ -377,7 +377,7 @@ func (c *PassphraseChange) getVerifiedPassphraseHash(ctx *Context) (err error) {
 }
 
 func (c *PassphraseChange) verifySuppliedPassphrase(ctx *Context) (err error) {
-	c.ppStream, err = c.G().LoginState().VerifyPlaintextPassphrase(c.arg.OldPassphrase)
+	c.ppStream, err = c.G().LoginState().VerifyPlaintextPassphrase(c.arg.OldPassphrase, nil)
 	return
 }
 

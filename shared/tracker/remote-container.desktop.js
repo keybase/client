@@ -5,7 +5,15 @@ import * as ProfileGen from '../actions/profile-gen'
 import * as TeamsGen from '../actions/teams-gen'
 import * as TrackerGen from '../actions/tracker-gen'
 import Tracker from './index.desktop'
-import {branch, connect, compose, lifecycle, renderNothing, withState, type Dispatch} from '../util/container'
+import {
+  branch,
+  connect,
+  compose,
+  lifecycle,
+  renderNothing,
+  withStateHandlers,
+  type Dispatch,
+} from '../util/container'
 
 // Props are handled by remote-proxy.desktop.js
 const mapDispatchToProps = (dispatch: Dispatch, {teamname}) => ({
@@ -50,7 +58,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
     dispatchProps._onUpdateSelectedTeam(selectedTeam, stateProps.username),
 })
 export default compose(
-  withState('selectedTeamRect', 'onSetSelectedTeamRect', null),
+  withStateHandlers(
+    {selectedTeamRect: null},
+    {onSetSelectedTeamRect: () => selectedTeamRect => ({selectedTeamRect})}
+  ),
   connect(state => state, mapDispatchToProps, mergeProps),
   branch(props => !props.username, renderNothing),
   lifecycle({

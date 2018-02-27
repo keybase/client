@@ -12,12 +12,12 @@ import (
 )
 
 func verifyPassphraseChange(tc libkb.TestContext, u *FakeUser, newPassphrase string) {
-	_, err := tc.G.LoginState().VerifyPlaintextPassphrase(newPassphrase)
+	_, err := tc.G.LoginState().VerifyPlaintextPassphrase(newPassphrase, nil)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
 
-	_, err = tc.G.LoginState().VerifyPlaintextPassphrase(u.Passphrase)
+	_, err = tc.G.LoginState().VerifyPlaintextPassphrase(u.Passphrase, nil)
 	if err == nil {
 		tc.T.Fatal("old passphrase passed verification")
 	}
@@ -229,7 +229,7 @@ func TestPassphraseChangeKnownPromptRepeatOld(t *testing.T) {
 		// the bug fix that we're actually trying to test by doing multiple
 		// passphrase changes.
 		if i == numChanges-1 {
-			_, err := tc.G.LoginState().VerifyPlaintextPassphrase(newPassphrase)
+			_, err := tc.G.LoginState().VerifyPlaintextPassphrase(newPassphrase, nil)
 			if err != nil {
 				t.Fatal(err)
 			}

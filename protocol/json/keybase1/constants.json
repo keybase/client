@@ -150,6 +150,7 @@
         "SCTeamKeyMaskNotFound_2697",
         "SCTeamBanned_2702",
         "SCTeamInvalidBan_2703",
+        "SCTeamShowcasePermDenied_2711",
         "SCTeamProvisionalCanKey_2721",
         "SCTeamProvisionalCannotKey_2722"
       ]

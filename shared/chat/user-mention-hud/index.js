@@ -11,7 +11,7 @@ import {
   setDisplayName,
   type MapStateToProps,
 } from '../../util/container'
-import {Avatar, Box, ClickableBox, List, Text, Usernames} from '../../common-adapters/index'
+import {Avatar, Box, ClickableBox, List, Text, Usernames, Icon} from '../../common-adapters/index'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
 import {isSpecialMention} from '../../constants/chat'
 
@@ -53,7 +53,18 @@ const MentionRowRenderer = ({
     onClick={onClick}
     onMouseOver={onHover}
   >
-    {!isSpecialMention(username) && <Avatar username={username} size={32} />}
+    {!isSpecialMention(username) ? (
+      <Avatar username={username} size={32} />
+    ) : (
+      <Icon
+        type="iconfont-people"
+        style={{
+          color: globalColors.blue,
+          fontSize: 24,
+          padding: globalMargins.xtiny,
+        }}
+      />
+    )}
 
     <Box style={{width: globalMargins.small}} />
 
@@ -62,7 +73,7 @@ const MentionRowRenderer = ({
       colorFollowing={true}
       users={[{you: you === username, username, following: following.has(username)}]}
     />
-    <Text type="Body" style={{marginLeft: globalMargins.tiny}}>
+    <Text type="BodySmall" style={{marginLeft: globalMargins.tiny}}>
       {fullName}
     </Text>
   </ClickableBox>

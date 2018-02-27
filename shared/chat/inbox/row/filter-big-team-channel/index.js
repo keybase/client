@@ -25,7 +25,7 @@ class FilterBigTeamChannel extends PureComponent<Props> {
             type="BodySemibold"
             style={{
               ...teamnameStyle,
-              color: this.props.isSelected ? globalColors.white : globalColors.black_75,
+              color: this.props.isSelected ? globalColors.white : globalColors.darkBlue,
             }}
             title={this.props.teamname}
           >

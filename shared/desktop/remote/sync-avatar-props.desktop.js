@@ -6,7 +6,7 @@ import * as I from 'immutable'
 import * as React from 'react'
 import {ipcRenderer, remote} from 'electron'
 import pick from 'lodash/pick'
-import {compose, connect, withState, type TypedState} from '../../util/container'
+import {compose, connect, withStateHandlers, type TypedState} from '../../util/container'
 
 const BrowserWindow = remote.BrowserWindow
 
@@ -72,7 +72,7 @@ function SyncAvatarProps(ComposedComponent: any) {
   }
 
   return compose(
-    withState('usernames', 'setUsernames', I.Set()),
+    withStateHandlers({usernames: I.Set()}, {setUsernames: () => usernames => ({usernames})}),
     connect(mapStateToProps, () => ({}), mergeProps)
   )(RemoteAvatarConnected)
 }
