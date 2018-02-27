@@ -56,7 +56,10 @@ const TextPopupMenu = ({
     items.push('Divider')
     items.push({
       danger: true,
-      onClick: () => onDeleteMessageHistory && onDeleteMessageHistory(message),
+      onClick: () => {
+        onHidden()
+        onDeleteMessageHistory && onDeleteMessageHistory(message)
+      },
       subTitle: 'Deletes all messages before this one for everyone',
       title: 'Delete up to here',
     })
