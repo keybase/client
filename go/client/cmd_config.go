@@ -135,65 +135,72 @@ func (v *CmdConfigInfo) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
+func (v *CmdConfigGet) runDirect(dui libkb.DumbOutputUI) error {
+	config := v.G().Env.GetConfig()
+	i, err := config.GetInterfaceAtPath(v.Path)
+	if err != nil {
+		return err
+	}
+	if i == nil {
+		dui.Printf("null\n")
+	} else {
+		switch val := i.(type) {
+		case int:
+			dui.Printf("%d\n", val)
+		case string:
+			if v.Bare {
+				dui.Printf("%s\n", val)
+			} else {
+				dui.Printf("%q\n", val)
+			}
+		case bool:
+			dui.Printf("%t\n", val)
+		case float64:
+			dui.Printf("%d\n", int(val))
+		default:
+			var b []byte
+			b, err = json.Marshal(val)
+			dui.Printf("%s\n", string(b))
+		}
+	}
+	return nil
+}
+
+func (v *CmdConfigGet) runClient(dui libkb.DumbOutputUI) error {
+	cli, err := GetConfigClient(v.G())
+	if err != nil {
+		return err
+	}
+	var val keybase1.ConfigValue
+	val, err = cli.GetValue(context.TODO(), v.Path)
+	if err != nil {
+		return err
+	}
+	switch {
+	case val.IsNull:
+		dui.Printf("null\n")
+	case val.I != nil:
+		dui.Printf("%d\n", *val.I)
+	case val.S != nil:
+		if v.Bare {
+			dui.Printf("%s\n", *val.S)
+		} else {
+			dui.Printf("%q\n", *val.S)
+		}
+	case val.B != nil:
+		dui.Printf("%t\n", *val.B)
+	case val.O != nil:
+		dui.Printf("%s\n", *val.O)
+	}
+	return nil
+}
+
 func (v *CmdConfigGet) Run() error {
 	dui := v.G().UI.GetDumbOutputUI()
 	if v.Direct {
-		config := v.G().Env.GetConfig()
-		i, err := config.GetInterfaceAtPath(v.Path)
-		if err != nil {
-			return err
-		}
-		if i == nil {
-			dui.Printf("null\n")
-		} else {
-			switch val := i.(type) {
-			case int:
-				dui.Printf("%d\n", val)
-			case string:
-				if v.Bare {
-					dui.Printf("%s\n", val)
-				} else {
-					dui.Printf("%q\n", val)
-				}
-			case bool:
-				dui.Printf("%t\n", val)
-			case float64:
-				dui.Printf("%d\n", int(val))
-			default:
-				var b []byte
-				b, err = json.Marshal(val)
-				dui.Printf("%s\n", string(b))
-			}
-		}
-	} else {
-		cli, err := GetConfigClient(v.G())
-		if err != nil {
-			return err
-		}
-		var val keybase1.ConfigValue
-		val, err = cli.GetValue(context.TODO(), v.Path)
-		if err != nil {
-			return err
-		}
-		switch {
-		case val.IsNull:
-			dui.Printf("null\n")
-		case val.I != nil:
-			dui.Printf("%d\n", *val.I)
-		case val.S != nil:
-			if v.Bare {
-				dui.Printf("%s\n", *val.S)
-			} else {
-				dui.Printf("%q\n", *val.S)
-			}
-		case val.B != nil:
-			dui.Printf("%t\n", *val.B)
-		case val.O != nil:
-			dui.Printf("%s\n", *val.O)
-		}
+		return v.runDirect(dui)
 	}
-
-	return nil
+	return v.runClient(dui)
 }
 
 func (v *CmdConfigSet) Run() error {
