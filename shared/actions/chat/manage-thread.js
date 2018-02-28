@@ -182,7 +182,10 @@ const _openTeamConversation = function*(action: ChatGen.OpenTeamConversationPayl
   )
   if (conversation) {
     const {conversationIDKey} = conversation
-    yield Saga.put(navigateTo([chatTab, conversationIDKey]))
+    yield Saga.all([
+      Saga.put(navigateTo([chatTab, conversationIDKey])),
+      Saga.put(ChatGen.createSelectConversation({conversationIDKey})),
+    ])
   } else {
     logger.info(`Unable to find conversationID for ${teamname}#${channelname}`)
   }
