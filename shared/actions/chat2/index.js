@@ -1224,8 +1224,11 @@ function* attachmentLoad(action: Chat2Gen.AttachmentLoadPayload) {
     }
   }
 
+  const parts = message.fileName.split('.')
   const fileName = tmpFile(
-    `kbchat-${conversationIDKey}-${Types.ordinalToNumber(ordinal)}.${isPreview ? 'preview' : 'download'}`
+    `kbchat-${conversationIDKey}-${Types.ordinalToNumber(ordinal)}.${isPreview ? 'preview' : 'download'}.${
+      parts[parts.length - 1]
+    }`
   )
 
   // Immediately show the loading

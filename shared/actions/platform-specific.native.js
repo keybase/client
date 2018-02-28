@@ -1,6 +1,5 @@
 // @flow
 import logger from '../logger'
-import * as ChatConstants from '../constants/chat2'
 import * as PushTypes from '../constants/types/push'
 import * as PushConstants from '../constants/push'
 import * as AppGen from './app-gen'
@@ -67,15 +66,11 @@ type NextURI = string
 function saveAttachmentDialog(filePath: string): Promise<NextURI> {
   let goodPath = filePath
   logger.debug('saveAttachment: ', goodPath)
-  if (isIOS || ChatConstants.pathToAttachmentType(goodPath) === 'image') {
-    if (!isIOS) {
-      goodPath = 'file://' + goodPath
-    }
-    logger.debug('Saving to camera roll: ', goodPath)
-    return CameraRoll.saveToCameraRoll(goodPath)
+  if (!isIOS) {
+    goodPath = 'file://' + goodPath
   }
-  logger.debug('Android: Leaving at ', goodPath)
-  return Promise.resolve(goodPath)
+  logger.debug('Saving to camera roll: ', goodPath)
+  return CameraRoll.saveToCameraRoll(goodPath)
 }
 
 function clearAllNotifications() {

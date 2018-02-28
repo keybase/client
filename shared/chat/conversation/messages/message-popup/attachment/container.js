@@ -7,7 +7,7 @@ import * as Types from '../../../../../constants/types/chat2'
 import {getCanPerform} from '../../../../../constants/teams'
 import {connect, type TypedState, type Dispatch} from '../../../../../util/container'
 import flags from '../../../../../util/feature-flags'
-import {isMobile} from '../../../../../styles'
+import {isMobile, isIOS} from '../../../../../constants/platform'
 import Attachment from '.'
 
 type OwnProps = {
@@ -84,7 +84,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
       isMobile && message.attachmentType === 'image'
         ? () => dispatchProps._onSaveAttachment(message)
         : undefined,
-    onShareAttachment: isMobile ? () => dispatchProps._onShareAttachment(message) : undefined,
+    onShareAttachment: isIOS ? () => dispatchProps._onShareAttachment(message) : undefined,
     onShowInFinder:
       !isMobile && message.downloadPath ? () => dispatchProps._onShowInFinder(message) : undefined,
     yourMessage,
