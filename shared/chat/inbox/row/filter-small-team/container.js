@@ -3,7 +3,7 @@ import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import {FilterSmallTeam} from '.'
-import {connect, type TypedState, isMobile} from '../../../../util/container'
+import {connect, type TypedState} from '../../../../util/container'
 
 type OwnProps = {conversationIDKey: Types.ConversationIDKey}
 

@@ -12,7 +12,9 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onAttach: (conversationIDKey: Types.ConversationIDKey, paths: Array<string>) =>
-    dispatch(RouteTree.navigateAppend([{props: {conversationIDKey, paths}, selected: 'attachmentInput'}])),
+    dispatch(
+      RouteTree.navigateAppend([{props: {conversationIDKey, paths}, selected: 'attachmentGetTitles'}])
+    ),
   _onOpenInfoPanelMobile: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(RouteTree.navigateAppend([{props: {conversationIDKey}, selected: 'infoPanel'}])),
   onShowTracker: (username: string) =>

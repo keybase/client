@@ -30,7 +30,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       Route.navigateAppend([
         {
           props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
-          selected: 'attachment',
+          selected: 'attachmentFullscreen',
         },
       ])
     )

@@ -1,6 +1,6 @@
 // @flow
-import AttachmentInputPopup from './conversation/attachment-input/container'
-import AttachmentPopup from './conversation/attachment-popup/container'
+import AttachmentGetTitles from './conversation/attachment-get-titles/container'
+import AttachmentFullscreen from './conversation/attachment-fullscreen/container'
 import BlockConversationWarning from './conversation/block-conversation-warning/container'
 import Conversation from './conversation/container'
 import CreateChannel from './create-channel/container'
@@ -13,7 +13,7 @@ import MessagePopup from './conversation/messages/message-popup'
 import NewTeamDialogFromChat from './new-team-dialog-container'
 import ReallyLeaveTeam from '../teams/really-leave-team/container-chat'
 import RelativePopupHoc from '../common-adapters/relative-popup-hoc'
-import Render from './render'
+import InboxAndConversation from './inbox-and-conversation'
 import {MaybePopupHoc} from '../common-adapters'
 import {isMobile} from '../constants/platform'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
@@ -22,8 +22,8 @@ import DeleteHistoryWarning from './delete-history-warning/container'
 const conversationRoute = makeRouteDefNode({
   component: Conversation,
   children: {
-    attachment: {
-      component: AttachmentPopup,
+    attachmentFullscreen: {
+      component: AttachmentFullscreen,
       tags: makeLeafTags(isMobile ? {hideStatusBar: true, fullscreen: true} : {layerOnTop: true}),
       children: {
         messageAction: {
@@ -33,8 +33,8 @@ const conversationRoute = makeRouteDefNode({
         },
       },
     },
-    attachmentInput: {
-      component: AttachmentInputPopup,
+    attachmentGetTitles: {
+      component: AttachmentGetTitles,
       tags: makeLeafTags({layerOnTop: true}),
       children: {},
     },
@@ -138,7 +138,7 @@ const routeTree = isMobile
       tags: makeLeafTags({persistChildren: true}),
     })
   : makeRouteDefNode({
-      containerComponent: Render,
+      containerComponent: InboxAndConversation,
       defaultSelected: '0',
       children: () => conversationRoute,
       tags: makeLeafTags({persistChildren: true}),

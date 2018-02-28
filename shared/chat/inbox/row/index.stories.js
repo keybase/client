@@ -1,6 +1,5 @@
 // @flow
 import React from 'react'
-import * as I from 'immutable'
 import {Box} from '../../../common-adapters'
 import {storiesOf, action} from '../../../stories/storybook'
 import {globalColors} from '../../../styles'

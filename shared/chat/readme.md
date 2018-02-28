@@ -15,6 +15,7 @@ The primary ID of a conversation is a ConversationIDKey. Our data structures are
   messageOrdinals: id to list of ordinals
   metaMap: id to metadata
   unreadMap: id to unread count
+  etc
 
 The inbox operates in 2 modes: 'normal' and 'filtered'.
 Filtered is driven by a filter string. Each item calculates a score and is sorted by this score (exact match > prefix match > substring match). We show small items, then big items. No dividers or hierarchy of channel/team.
@@ -37,10 +38,8 @@ Messages have several IDs associated with them and they're used in different cir
 
 MessageID: is the true id of a sent message. This is used as input to rpcs (like editing/deleting)
 OutboxID: is used when sending a message (while in the grey state)
-Ordinal: is used to order / lookup messages. Ordinals are currently fractional additions to the last visible message id. aka
-if i sent a message after the already sent {MessageID: 123}  the oridinal would be 123.001
-The ordinal is only used to ensure this client is seeing messages in order from their perspective. If you reload the thread those ordinals can be
-resolved into their real sent ids (aka 123.001 -> 124)
+Ordinal: is used to order / lookup messages. Ordinals are currently fractional additions to the last visible message id.
+If i sent a message after the already sent {MessageID: 123}  the oridinal would be 123.001
+The ordinal is only used to ensure this client is seeing messages in order from their perspective. If you reload the thread those ordinals can be resolved into their real sent ids (aka 123.001 -> 124)
+We keep the original ordinal if we can so the ordering of the thread from our perspective is static, even if the 'real' order is different. This means if you reload 123.001 -> 124 but during the session it will remain 123.001
 
-Pending -> Send reconciliation.
-We keep our ordinals so we don't thrash or get things flipped out of order.
