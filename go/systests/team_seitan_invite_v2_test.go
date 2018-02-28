@@ -281,7 +281,6 @@ func TestTeamHandleMultipleSeitans(t *testing.T) {
 
 	teamID, teamName := ann.createTeam2()
 	t.Logf("Created team %s", teamName.String())
-	_ = teamID
 
 	ann.addTeamMember(teamName.String(), dan.username, keybase1.TeamRole_WRITER)
 
@@ -338,8 +337,7 @@ func TestTeamHandleMultipleSeitans(t *testing.T) {
 			Uid:         uv.Uid,
 			EldestSeqno: uv.EldestSeqno,
 			Akey:        keybase1.SeitanAKey(sig),
-			//Role:        keybase1.TeamRole_WRITER,
-			UnixCTime: int64(now),
+			UnixCTime:   int64(now),
 		}
 	}
 
@@ -354,7 +352,7 @@ func TestTeamHandleMultipleSeitans(t *testing.T) {
 	err := teams.HandleTeamSeitan(context.Background(), ann.tc.G, msg)
 	require.NoError(t, err)
 
-	teamObj = ann.loadTeam(teamName.String(), true)
+	teamObj = ann.loadTeam(teamName.String(), true /* admin */)
 	// Ann is still an owner
 	role, err := teamObj.MemberRole(context.Background(), ann.userVersion())
 	require.NoError(t, err)
@@ -437,13 +435,13 @@ func testTeamInviteSeitanPukless(t *testing.T, seitanVersion teams.SeitanVersion
 	require.NoError(t, err)
 
 	teamObj := bee.loadTeam(teamName.String(), true /* admin */)
-	var invite keybase1.TeamInvite
-	for _, invite = range teamObj.GetActiveAndObsoleteInvites() {
+	invites := teamObj.GetActiveAndObsoleteInvites()
+	require.Len(t, invites, 1)
+	for _, invite := range invites {
+		// Invite should be WAITING_FOR_PUK now and we can't cancel it anymore.
+		err := teams.CancelInviteByID(context.Background(), bee.tc.G, teamName.String(), invite.Id)
+		require.Error(t, err)
 	}
-
-	// Invite should be WAITING_FOR_PUK now and we can't cancel it anymore.
-	err = teams.CancelInviteByID(context.Background(), bee.tc.G, teamName.String(), invite.Id)
-	require.Error(t, err)
 
 	cass.kickTeamRekeyd()
 	cass.perUserKeyUpgrade()
