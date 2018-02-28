@@ -157,7 +157,8 @@ func (tx *AddMemberTx) addMemberByUPKV2(ctx context.Context, user keybase1.UserP
 	g := team.G()
 
 	uv := NewUserVersion(user.Uid, user.EldestSeqno)
-	g.Log.CDebugf(ctx, "addMemberByUPAK: adding %q %v", user.Username, uv)
+	defer g.CTrace(ctx, fmt.Sprintf("AddMemberTx.addMemberByUPKV2(name:%q uv:%v, %v) to team: %q",
+		user.Username, uv, role, team.Name()), func() error { return err })()
 
 	if user.Status == keybase1.StatusCode_SCDeleted {
 		return fmt.Errorf("User %q (%s) is deleted", user.Username, uv.Uid)
