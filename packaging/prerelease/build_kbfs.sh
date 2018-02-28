@@ -21,7 +21,7 @@ tags=${TAGS:-"prerelease production"}
 ldflags="-X github.com/keybase/kbfs/libkbfs.PrereleaseBuild=$kbfs_build"
 pkg="github.com/keybase/kbfs/kbfsfuse"
 git_remote_helper_pkg="github.com/keybase/kbfs/kbfsgit/git-remote-keybase"
-redirector_pkg="github.com/keybase/kbfs/redirector"
+redirector_pkg="github.com/keybase/kbfs/redirector/go"
 
 if [ "$PLATFORM" = "windows" ]; then
   pkg="github.com/keybase/kbfs/kbfsdokan"
