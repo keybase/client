@@ -11,6 +11,7 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -490,7 +491,9 @@ func (c *CmdSimpleFSList) createListing(dirname string, fip FileInfoPath) (Listi
 }
 
 // Comparison function used for sorting Listings by name.
-func compareName(a, b Listing) int {
+func lessListingByName(listings []Listing, i, j int) bool {
+	a := listings[i]
+	b := listings[j]
 	aNameLower := strings.ToLower(a.name)
 	bNameLower := strings.ToLower(b.name)
 
@@ -501,74 +504,63 @@ func compareName(a, b Listing) int {
 		smallerLen = len(b.name)
 	}
 
+	// Sort by lower-cased words first, so that lower-case and capital
+	// case appear next to each other in the output.
 	for i := 0; i < smallerLen; i++ {
 		if aNameLower[i] < bNameLower[i] {
-			return -1
+			return true
 		} else if aNameLower[i] > bNameLower[i] {
-			return 1
+			return false
 		}
 	}
 
-	if len(a.name) < len(b.name) {
-		return -1
-	} else if len(b.name) < len(a.name) {
-		return 1
-	} else {
-		return 0
+	// If the words have the same lower-cased prefixes but differing
+	// lengths, the shorter word is less-than.
+	if len(a.name) != len(b.name) {
+		return len(a.name) < len(b.name)
 	}
+
+	// If capitalization is the only thing different between the
+	// words, put lower-case first.
+	return a.name >= b.name
 }
 
 // Comparison function used for sorting Listings by modification time, from most
 // recent to oldest.
-func compareTime(a, b Listing) int {
-	if a.epochNano >= b.epochNano {
-		return -1
-	}
-
-	return 1
+func lessListingByTime(listings []Listing, i, j int) bool {
+	a := listings[i]
+	b := listings[j]
+	return a.epochNano >= b.epochNano
 }
 
 // Comparison function used for sorting Listings by size, from largest to
 // smallest.
-func compareSize(a, b Listing) int {
+func lessListingBySize(listings []Listing, i, j int) bool {
+	a := listings[i]
+	b := listings[j]
 	aSize, _ := strconv.Atoi(a.size)
 	bSize, _ := strconv.Atoi(b.size)
-
-	if aSize >= bSize {
-		return -1
-	}
-
-	return 1
+	return aSize >= bSize
 }
 
 // Sort the given listings, taking into account the current program options.
-func (c *CmdSimpleFSList) sortListings(listings []Listing) {
-	comparisonFunction := compareName
-	if c.options.sortTime {
-		comparisonFunction = compareTime
-	} else if c.options.sortSize {
-		comparisonFunction = compareSize
+func sortListings(listings []Listing, options ListOptions) {
+	comparisonFunction := func(i, j int) bool {
+		return lessListingByName(listings, i, j)
 	}
-
-	for {
-		done := true
-		for i := 0; i < len(listings)-1; i++ {
-			a := listings[i]
-			b := listings[i+1]
-
-			if comparisonFunction(a, b) > -1 {
-				tmp := a
-				listings[i] = listings[i+1]
-				listings[i+1] = tmp
-				done = false
-			}
+	if options.sortTime {
+		comparisonFunction = func(i, j int) bool {
+			return lessListingByTime(listings, i, j)
 		}
-		if done {
-			break
+	} else if options.sortSize {
+		comparisonFunction = func(i, j int) bool {
+			return lessListingBySize(listings, i, j)
 		}
 	}
 
-	if c.options.sortReverse {
+	sort.Slice(listings, comparisonFunction)
+
+	if options.sortReverse {
 		middleIndex := (len(listings) / 2)
 		if len(listings)%2 == 0 {
 			middleIndex--
@@ -876,8 +868,8 @@ func (c *CmdSimpleFSList) ls(outputBuffer *bytes.Buffer, listResult keybase1.Sim
 	numDirs := len(listDirs)
 
 	// sort the lists if necessary
-	c.sortListings(listFiles)
-	c.sortListings(listDirs)
+	sortListings(listFiles, c.options)
+	sortListings(listDirs, c.options)
 
 	//
 	// list the files first (unless --dirs-first)
