@@ -1,6 +1,16 @@
 // @flow
 import * as React from 'react'
-import {Box, Button, Icon, Image, Input, PopupDialog, Text, ButtonBar} from '../../../common-adapters/index'
+import {
+  Box,
+  Button,
+  Icon,
+  Image,
+  Input,
+  PopupDialog,
+  Text,
+  ButtonBar,
+  ScrollView,
+} from '../../../common-adapters/index'
 import {globalColors, globalStyles, isMobile, isIPhoneX} from '../../../styles'
 
 export type PathToInfo = {
@@ -87,40 +97,42 @@ class GetTitles extends React.Component<Props, State> {
 
     return (
       <PopupDialog onClose={this.props.onClose} styleContainer={isIPhoneX ? {marginTop: 30} : undefined}>
-        <Box style={isMobile ? stylesMobile : stylesDesktop}>
-          <Box style={{...globalStyles.flexBoxCenter, height: 150, width: 150}}>
-            {info.type === 'image' ? (
-              <Image
-                src={path}
-                style={isMobile ? {height: 150, width: 150} : {maxHeight: '100%', maxWidth: '100%'}}
-              />
-            ) : (
-              <Icon type="icon-file-uploading-48" />
+        <ScrollView style={{height: '100%', width: '100%'}}>
+          <Box style={isMobile ? stylesMobile : stylesDesktop}>
+            <Box style={{...globalStyles.flexBoxCenter, height: 150, width: 150}}>
+              {info.type === 'image' ? (
+                <Image
+                  src={path}
+                  style={isMobile ? {height: 150, width: 150} : {maxHeight: '100%', maxWidth: '100%'}}
+                />
+              ) : (
+                <Icon type="icon-file-uploading-48" />
+              )}
+            </Box>
+            {paths.length > 0 && (
+              <Text
+                type="BodySmall"
+                style={{color: globalColors.black_40, marginTop: 5, maxWidth: isMobile ? 300 : undefined}}
+              >
+                {info.filename} ({this.state.index + 1} of {paths.length})
+              </Text>
             )}
+            <Input
+              style={isMobile ? stylesInputMobile : stylesInputDesktop}
+              autoFocus={true}
+              floatingHintTextOverride="Title"
+              value={info.title}
+              onEnterKeyDown={this._onNext}
+              ref={this._setRef}
+              onChangeText={this._updateTitle}
+              selectTextOnFocus={true}
+            />
+            <ButtonBar style={{flexShrink: 0}}>
+              <Button type="Secondary" onClick={this.props.onClose} label="Cancel" />
+              <Button type="Primary" onClick={this._onNext} label="Send" />
+            </ButtonBar>
           </Box>
-          {paths.length > 0 && (
-            <Text
-              type="BodySmall"
-              style={{color: globalColors.black_40, marginTop: 5, maxWidth: isMobile ? 300 : undefined}}
-            >
-              {info.filename} ({this.state.index + 1} of {paths.length})
-            </Text>
-          )}
-          <Input
-            style={isMobile ? stylesInputMobile : stylesInputDesktop}
-            autoFocus={true}
-            floatingHintTextOverride="Title"
-            value={info.title}
-            onEnterKeyDown={this._onNext}
-            ref={this._setRef}
-            onChangeText={this._updateTitle}
-            selectTextOnFocus={true}
-          />
-          <ButtonBar style={{flexShrink: 0}}>
-            <Button type="Secondary" onClick={this.props.onClose} label="Cancel" />
-            <Button type="Primary" onClick={this._onNext} label="Send" />
-          </ButtonBar>
-        </Box>
+        </ScrollView>
       </PopupDialog>
     )
   }
