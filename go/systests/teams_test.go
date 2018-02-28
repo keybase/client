@@ -344,9 +344,29 @@ func (u *userPlusDevice) addTeamMemberEmail(team, email string, role keybase1.Te
 	}
 }
 
+func (u *userPlusDevice) reAddUserAfterReset(team keybase1.TeamID, w *userPlusDevice) {
+	err := u.teamsClient.TeamReAddMemberAfterReset(context.Background(),
+		keybase1.TeamReAddMemberAfterResetArg{
+			Id:       team,
+			Username: w.username,
+		})
+	require.NoError(u.tc.T, err)
+}
+
 func (u *userPlusDevice) loadTeam(teamname string, admin bool) *teams.Team {
 	team, err := teams.Load(context.Background(), u.tc.G, keybase1.LoadTeamArg{
 		Name:        teamname,
+		NeedAdmin:   admin,
+		ForceRepoll: true,
+	})
+	require.NoError(u.tc.T, err)
+	return team
+}
+
+func (u *userPlusDevice) loadTeamByID(teamID keybase1.TeamID, admin bool) *teams.Team {
+	team, err := teams.Load(context.Background(), u.tc.G, keybase1.LoadTeamArg{
+		ID:          teamID,
+		Public:      teamID.IsPublic(),
 		NeedAdmin:   admin,
 		ForceRepoll: true,
 	})
@@ -553,6 +573,25 @@ func (u *userPlusDevice) pollForTeamSeqnoLink(team string, toSeqno keybase1.Seqn
 	}
 
 	u.tc.T.Fatalf("timed out waiting for team rotate %s", team)
+}
+
+func (u *userPlusDevice) pollForTeamSeqnoLinkWithLoadArgs(args keybase1.LoadTeamArg, toSeqno keybase1.Seqno) {
+	args.ForceRepoll = true
+	for i := 0; i < 20; i++ {
+		details, err := teams.Load(context.Background(), u.tc.G, args)
+		if err != nil {
+			u.tc.T.Fatalf("error while loading team %v: %v", args, err)
+		}
+
+		if details.CurrentSeqno() >= toSeqno {
+			u.tc.T.Logf("Found new seqno %d at poll loop iter %d", details.CurrentSeqno(), i)
+			return
+		}
+
+		time.Sleep(500 * time.Millisecond)
+	}
+
+	u.tc.T.Fatalf("timed out waiting for team %v seqno link %d", args, toSeqno)
 }
 
 func (u *userPlusDevice) proveRooter() {

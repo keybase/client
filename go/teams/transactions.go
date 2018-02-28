@@ -152,6 +152,10 @@ func (tx *AddMemberTx) AddMemberByUsername(ctx context.Context, username string,
 	team := tx.team
 	g := team.G()
 
+	if team.IsImplicit() {
+		return errors.New("Trying to use AddMemberByUsername for implicit team.")
+	}
+
 	defer g.CTrace(ctx, fmt.Sprintf("AddMemberTx.AddMemberByUsername(%s,%v) to team %q", username, role, team.Name()), func() error { return err })()
 
 	normalizedUsername, uv, hasPUK, err := loadUserVersionAndPUKedByUsername(ctx, g, username)
@@ -209,16 +213,8 @@ func (tx *AddMemberTx) AddMemberByUsername(ctx context.Context, username string,
 
 	// No going back after this point!
 
-	// Separate logic for sweeping in implicit teams, since memberships
-	// there have to be "constant" at every signature, so we can't post e.g.
-	// one sig that removes UV and another that adds invite.
-
-	if !team.IsImplicit() || !hasPUK {
-		tx.sweepKeybaseInvites(uv.Uid)
-	}
-	if !team.IsImplicit() || hasPUK {
-		tx.sweepCryptoMembers(uv.Uid)
-	}
+	tx.sweepKeybaseInvites(uv.Uid)
+	tx.sweepCryptoMembers(uv.Uid)
 
 	if !hasPUK {
 		return tx.createInvite(uv, role)
@@ -314,6 +310,53 @@ func (tx *AddMemberTx) CompleteSocialInvitesFor(ctx context.Context, uv keybase1
 		for i, v := range completedInvites {
 			payload.CompletedInvites[i] = v
 		}
+	}
+
+	return nil
+}
+
+func (tx *AddMemberTx) completeAllKeybaseInvitesForUID(uv keybase1.UserVersion) error {
+	// Find the right payload first
+	payload := tx.findChangeReqForUV(uv)
+	if payload == nil {
+		return fmt.Errorf("could not find uv %v in transaction", uv)
+	}
+
+	team := tx.team
+	for _, invite := range team.chain().inner.ActiveInvites {
+		if inviteUv, err := invite.KeybaseUserVersion(); err == nil {
+			if inviteUv.Uid.Equal(uv.Uid) {
+				if payload.CompletedInvites == nil {
+					payload.CompletedInvites = make(map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm)
+				}
+				payload.CompletedInvites[invite.Id] = uv.PercentForm()
+			}
+		}
+	}
+
+	return nil
+}
+
+func (tx *AddMemberTx) ReAddMemberToImplicitTeam(ctx context.Context, uv keybase1.UserVersion, hasPUK bool, role keybase1.TeamRole) error {
+	if hasPUK {
+		tx.addMember(uv, role)
+		tx.sweepCryptoMembers(uv.Uid)
+		if err := tx.completeAllKeybaseInvitesForUID(uv); err != nil {
+			return err
+		}
+	} else {
+		tx.createInvite(uv, role)
+		tx.sweepKeybaseInvites(uv.Uid)
+		// We cannot sweep crypto members here because we need to
+		// ensure that we are only posting one link, and if we want to
+		// add pukless member, it has to be invite link. So old crypto
+		// members have to stay for now. However, old crypto member
+		// should be sweeped when Keybase-type invite goes through SBS
+		// handler and invited member becomes a real crypto dude.
+	}
+
+	if len(tx.payloads) != 1 {
+		return errors.New("ReAddMemberToImplicitTeam tried to create more than one link")
 	}
 
 	return nil

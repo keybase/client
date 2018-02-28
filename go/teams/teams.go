@@ -677,6 +677,10 @@ func (t *Team) HasActiveInvite(name keybase1.TeamInviteName, typ string) (bool, 
 	return t.chain().HasActiveInvite(name, it)
 }
 
+func (t *Team) FindActiveKeybaseInvite(uid keybase1.UID) (keybase1.TeamInvite, keybase1.UserVersion, bool) {
+	return t.chain().FindActiveKeybaseInvite(uid)
+}
+
 func (t *Team) GetActiveAndObsoleteInvites() (ret map[keybase1.TeamInviteID]keybase1.TeamInvite) {
 	ret = make(map[keybase1.TeamInviteID]keybase1.TeamInvite)
 	for id, invite := range t.chain().inner.ActiveInvites {
@@ -961,7 +965,7 @@ func (t *Team) postTeamInvites(ctx context.Context, invites SCTeamInvites) error
 
 	err = t.precheckLinksToPost(ctx, []libkb.SigMultiItem{sigMultiItem})
 	if err != nil {
-		return fmt.Errorf("cannot post link (precheck): %v", err)
+		return err
 	}
 
 	payload := t.sigPayload(sigMultiItem, sigPayloadArgs{})
@@ -1088,7 +1092,7 @@ func (t *Team) postChangeItem(ctx context.Context, section SCTeamSection, linkTy
 
 	err = t.precheckLinksToPost(ctx, []libkb.SigMultiItem{sigMultiItem})
 	if err != nil {
-		return fmt.Errorf("cannot post link (precheck): %v", err)
+		return err
 	}
 
 	// make the payload

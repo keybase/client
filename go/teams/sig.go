@@ -282,7 +282,7 @@ func precheckLinksToPost(ctx context.Context, g *libkb.GlobalContext,
 	for _, sigItem := range sigMultiItems {
 		outerLink, err := libkb.DecodeOuterLinkV2(sigItem.Sig)
 		if err != nil {
-			return fmt.Errorf("unpack outer: %v", err)
+			return NewPrecheckStructuralError("unpack outer", err)
 		}
 
 		link1 := SCChainLink{
@@ -294,16 +294,16 @@ func precheckLinksToPost(ctx context.Context, g *libkb.GlobalContext,
 		}
 		link2, err := unpackChainLink(&link1)
 		if err != nil {
-			return fmt.Errorf("unpack link: %v", err)
+			return NewPrecheckStructuralError("unpack link", err)
 		}
 
 		if link2.isStubbed() {
-			return fmt.Errorf("link missing inner")
+			return NewPrecheckStructuralError("link missing inner", nil)
 		}
 
 		err = player.AppendChainLink(ctx, link2, &signer)
 		if err != nil {
-			return err
+			return NewPrecheckAppendError(err)
 		}
 	}
 

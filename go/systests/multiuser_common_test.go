@@ -479,6 +479,17 @@ func (u *smuUser) lookupImplicitTeam(create bool, displayName string, public boo
 	return smuImplicitTeam{ID: res.TeamID}
 }
 
+func (u *smuUser) loadTeamByID(teamID keybase1.TeamID, admin bool) *teams.Team {
+	team, err := teams.Load(context.Background(), u.getPrimaryGlobalContext(), keybase1.LoadTeamArg{
+		ID:          teamID,
+		Public:      teamID.IsPublic(),
+		NeedAdmin:   admin,
+		ForceRepoll: true,
+	})
+	require.NoError(u.ctx.t, err)
+	return team
+}
+
 func (u *smuUser) addTeamMember(team smuTeam, member *smuUser, role keybase1.TeamRole) {
 	cli := u.getTeamsClient()
 	_, err := cli.TeamAddMember(context.TODO(), keybase1.TeamAddMemberArg{
@@ -507,9 +518,7 @@ func (u *smuUser) reAddUserAfterReset(team smuImplicitTeam, w *smuUser) {
 		Id:       team.ID,
 		Username: w.username,
 	})
-	if err != nil {
-		u.ctx.t.Fatal(err)
-	}
+	require.NoError(u.ctx.t, err)
 }
 
 func (u *smuUser) reset() {
@@ -543,9 +552,13 @@ func (u *smuUser) delete() {
 
 func (u *smuUser) dbNuke() {
 	err := u.primaryDevice().ctlClient().DbNuke(context.TODO(), 0)
-	if err != nil {
-		u.ctx.t.Fatal(err)
-	}
+	require.NoError(u.ctx.t, err)
+}
+
+func (u *smuUser) userVersion() keybase1.UserVersion {
+	uv, err := u.primaryDevice().userClient().MeUserVersion(context.Background(), keybase1.MeUserVersionArg{ForcePoll: true})
+	require.NoError(u.ctx.t, err)
+	return uv
 }
 
 func (u *smuUser) getPrimaryGlobalContext() *libkb.GlobalContext {
