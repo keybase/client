@@ -4,10 +4,10 @@ import {Box, List, Text} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import InviteRow from './invite-row/container'
 import RequestRow from './request-row/container'
-import type {RequestOrInvite} from './container'
+import type {RequestsOrInvitesRow} from '../row-types'
 
 export type Props = {
-  requestsAndInvites: RequestOrInvite[],
+  requestsAndInvites: RequestsOrInvitesRow[],
 }
 
 const DividerRow = (index, {key}) => (
@@ -30,8 +30,23 @@ const DividerRow = (index, {key}) => (
   </Box>
 )
 
-const TeamRequestOrDividerOrInviteRow = (index, row) => {
-  switch (row.type) {
+export const renderRequestsOrInvitesRow = (index: number, row: RequestsOrInvitesRow) => {
+  switch (row.subtype) {
+    case 'none':
+      return (
+        <Box key={row.key} style={{...globalStyles.flexBoxRow, ...globalStyles.flexBoxCenter}}>
+          <Text
+            type="BodySmall"
+            key="noRequestsOrInvites"
+            style={{
+              color: globalColors.black_40,
+              paddingTop: globalMargins.large,
+            }}
+          >
+            This team has no pending invites.
+          </Text>
+        </Box>
+      )
     case 'request':
       return RequestRow(index, row)
     case 'invite':
@@ -42,22 +57,12 @@ const TeamRequestOrDividerOrInviteRow = (index, row) => {
 }
 
 export const RequestsAndInvites = (props: Props) => {
-  if (props.requestsAndInvites.length === 0) {
-    return (
-      <Text
-        type="BodySmall"
-        style={{color: globalColors.black_40, marginTop: globalMargins.xlarge, textAlign: 'center'}}
-      >
-        This team has no pending invites.
-      </Text>
-    )
-  }
   return (
     <List
       items={props.requestsAndInvites}
       fixedHeight={48}
       keyProperty="key"
-      renderItem={TeamRequestOrDividerOrInviteRow}
+      renderItem={renderRequestsOrInvitesRow}
       style={{alignSelf: 'stretch'}}
     />
   )

@@ -64,6 +64,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   )
   return {
     members: _members.map(member => ({
+      type: 'member',
       fullName: member.fullName,
       username: member.username,
       teamname: ownProps.teamname,
@@ -73,4 +74,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   }
 }
 
+const listMergeProps = (stateProps, dispatchProps, ownProps) => ({
+  listItems: mergeProps(stateProps, dispatchProps, ownProps).members,
+  ...ownProps,
+})
+
 export default connect(mapStateToProps, () => ({}), mergeProps)(Members)
+export const membersListItemsConnector = connect(mapStateToProps, () => ({}), listMergeProps)
