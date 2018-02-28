@@ -21,7 +21,7 @@ import (
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
-	"github.com/strib/gomounts"
+	"github.com/keybase/gomounts"
 )
 
 var kbfusePath = fuse.OSXFUSEPaths{
