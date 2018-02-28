@@ -182,7 +182,12 @@ class Input extends React.PureComponent<Props, State> {
     }
 
     if (this.props.onEnterKeyDown && e.key === 'Enter' && !e.shiftKey && !this._isComposingIME) {
-      this.props.onEnterKeyDown(e)
+      if (e.altKey || e.ctrlKey) {
+        // inject newline
+        this.setValue(this.getValue() + '\n')
+      } else {
+        this.props.onEnterKeyDown(e)
+      }
     }
   }
 
