@@ -114,7 +114,7 @@ function MessagePopup(props: TextProps | AttachmentProps) {
     items.push({
       danger: true,
       onClick: () => onDeleteMessageHistory && onDeleteMessageHistory(message),
-      title: 'Delete all messages before this one',
+      title: 'Delete this + everything above',
     })
   }
 

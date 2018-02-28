@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Box, Button, HeaderHoc, Text} from '../../common-adapters'
+import {Box, Button, HeaderHoc, Icon, Text} from '../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
 
 type Props = {
@@ -22,17 +22,21 @@ const DeleteHistoryWarning = ({errorText, name, onBack, timestamp, onDeleteHisto
       padding: globalMargins.small,
     }}
   >
+    <Icon type={isMobile ? 'icon-message-deletion-64' : 'icon-message-deletion-48'} />
+    <Text style={{padding: globalMargins.small}} type="Header">
+      Delete this message + everything above?
+    </Text>
     <Text style={{padding: globalMargins.small}} type="Body">
-      Are you sure you want to delete all messages before {timestamp} for everyone?
+      You are about to delete <Text type="BodySemibold">all messages up to {timestamp}</Text>. For everyone.
     </Text>
     <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.xlarge}}>
+      <Button type="Secondary" style={{marginLeft: globalMargins.tiny}} onClick={onBack} label="Cancel" />
       <Button
         type="Danger"
         style={{marginLeft: globalMargins.tiny}}
         onClick={onDeleteHistory}
-        label="Yes, delete history"
+        label="Yes, delete these messages"
       />
-      <Button type="Secondary" style={{marginLeft: globalMargins.tiny}} onClick={onBack} label="No, cancel" />
     </Box>
   </Box>
 )
@@ -42,10 +46,10 @@ const stylePadding = isMobile
       paddingTop: globalMargins.xlarge,
     }
   : {
-      marginBottom: 80,
+      marginBottom: 40,
       marginLeft: 80,
       marginRight: 80,
-      marginTop: 90,
+      marginTop: 40,
     }
 
 export default (isMobile ? HeaderHoc(DeleteHistoryWarning) : DeleteHistoryWarning)
