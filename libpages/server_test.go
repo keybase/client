@@ -74,4 +74,7 @@ func TestServerDefault(t *testing.T) {
 	w = httptest.NewRecorder()
 	server.ServeHTTP(w, httptest.NewRequest("GET", "/non-existent", nil))
 	require.Equal(t, http.StatusNotFound, w.Code)
+
+	// TODO: if we ever add a test that involves bcrypt, remember to swap
+	// DefaultCost out and use MinCost.
 }

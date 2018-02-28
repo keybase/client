@@ -12,6 +12,7 @@ import (
 
 	"github.com/keybase/kbfs/libpages/config"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type fakePrompterForTest struct {
@@ -37,7 +38,8 @@ func TestEditor(t *testing.T) {
 
 	prompter := &fakePrompterForTest{}
 
-	editor, err := newKBPConfigEditorWithPrompter(configDir, prompter)
+	editor, err := newKBPConfigEditorWithPrompterAndCost(
+		configDir, prompter, bcrypt.MinCost)
 	require.NoError(t, err)
 	// The config file shouldn't exist yet.
 	_, err = os.Stat(kbpConfigPath)
@@ -51,7 +53,8 @@ func TestEditor(t *testing.T) {
 	require.NoError(t, err)
 
 	// add user
-	editor, err = newKBPConfigEditorWithPrompter(configDir, prompter)
+	editor, err = newKBPConfigEditorWithPrompterAndCost(
+		configDir, prompter, bcrypt.MinCost)
 	require.NoError(t, err)
 	// It's an empty config now so authentication should fail.
 	ok := editor.kbpConfig.Authenticate("alice", "12345")
@@ -68,7 +71,8 @@ func TestEditor(t *testing.T) {
 	err = editor.confirmAndWrite()
 	require.NoError(t, err)
 	// Re-read the config file and make sure the user is added properly.
-	editor, err = newKBPConfigEditorWithPrompter(configDir, prompter)
+	editor, err = newKBPConfigEditorWithPrompterAndCost(
+		configDir, prompter, bcrypt.MinCost)
 	require.NoError(t, err)
 	ok = editor.kbpConfig.Authenticate("alice", "12345")
 	require.True(t, ok)
@@ -76,7 +80,8 @@ func TestEditor(t *testing.T) {
 	require.True(t, ok)
 
 	// remove "bob"
-	editor, err = newKBPConfigEditorWithPrompter(configDir, prompter)
+	editor, err = newKBPConfigEditorWithPrompterAndCost(
+		configDir, prompter, bcrypt.MinCost)
 	require.NoError(t, err)
 	editor.removeUser("bob")
 	require.NoError(t, err)
@@ -85,7 +90,8 @@ func TestEditor(t *testing.T) {
 	require.NoError(t, err)
 	// Re-read the config file and make sure "bob" is gone and "alice" is still
 	// there.
-	editor, err = newKBPConfigEditorWithPrompter(configDir, prompter)
+	editor, err = newKBPConfigEditorWithPrompterAndCost(
+		configDir, prompter, bcrypt.MinCost)
 	require.NoError(t, err)
 	ok = editor.kbpConfig.Authenticate("bob", "54321")
 	require.False(t, ok)
@@ -93,7 +99,8 @@ func TestEditor(t *testing.T) {
 	require.True(t, ok)
 
 	// set anonymous permissions
-	editor, err = newKBPConfigEditorWithPrompter(configDir, prompter)
+	editor, err = newKBPConfigEditorWithPrompterAndCost(
+		configDir, prompter, bcrypt.MinCost)
 	require.NoError(t, err)
 	// We don't have any permission set, so we should get the default read,list
 	// for root.
@@ -107,7 +114,8 @@ func TestEditor(t *testing.T) {
 	err = editor.confirmAndWrite()
 	require.NoError(t, err)
 	// Re-read the config file and make sure the user is gone.
-	editor, err = newKBPConfigEditorWithPrompter(configDir, prompter)
+	editor, err = newKBPConfigEditorWithPrompterAndCost(
+		configDir, prompter, bcrypt.MinCost)
 	require.NoError(t, err)
 	read, list, _, _, _, err = editor.kbpConfig.GetPermissions("/", nil)
 	require.NoError(t, err)
@@ -116,7 +124,8 @@ func TestEditor(t *testing.T) {
 
 	alice := "alice"
 	// grant alice additional permissions
-	editor, err = newKBPConfigEditorWithPrompter(configDir, prompter)
+	editor, err = newKBPConfigEditorWithPrompterAndCost(
+		configDir, prompter, bcrypt.MinCost)
 	require.NoError(t, err)
 	read, list, _, _, _, err = editor.kbpConfig.GetPermissions(
 		"/", &alice)
@@ -129,7 +138,8 @@ func TestEditor(t *testing.T) {
 	err = editor.confirmAndWrite()
 	require.NoError(t, err)
 	// Re-read the config file and make sure the user is gone.
-	editor, err = newKBPConfigEditorWithPrompter(configDir, prompter)
+	editor, err = newKBPConfigEditorWithPrompterAndCost(
+		configDir, prompter, bcrypt.MinCost)
 	require.NoError(t, err)
 	read, list, _, _, _, err = editor.kbpConfig.GetPermissions(
 		"/", &alice)

@@ -29,6 +29,7 @@ type kbpConfigEditor struct {
 	kbpConfig         *config.V1
 	originalConfigStr string
 	prompter          prompter
+	bcryptCost        int
 }
 
 func readConfig(from io.Reader) (cfg config.Config, str string, err error) {
@@ -39,7 +40,7 @@ func readConfig(from io.Reader) (cfg config.Config, str string, err error) {
 	return cfg, buf.String(), nil
 }
 
-func newKBPConfigEditorWithPrompter(kbpConfigDir string, p prompter) (
+func newKBPConfigEditorWithPrompterAndCost(kbpConfigDir string, p prompter, bcryptCost int) (
 	*kbpConfigEditor, error) {
 	fi, err := os.Stat(kbpConfigDir)
 	if err != nil {
@@ -49,7 +50,7 @@ func newKBPConfigEditorWithPrompter(kbpConfigDir string, p prompter) (
 		return nil, fmt.Errorf("%q is not a directory", kbpConfigDir)
 	}
 	kbpConfigPath := filepath.Join(kbpConfigDir, config.DefaultConfigFilename)
-	editor := &kbpConfigEditor{kbpConfigPath: kbpConfigPath, prompter: p}
+	editor := &kbpConfigEditor{kbpConfigPath: kbpConfigPath, prompter: p, bcryptCost: bcryptCost}
 	f, err := os.Open(kbpConfigPath)
 	switch {
 	case err == nil:
@@ -79,7 +80,7 @@ func newKBPConfigEditor(kbpConfigDir string) (*kbpConfigEditor, error) {
 	if err != nil {
 		return nil, fmt.Errorf("opening terminal error: %s", err)
 	}
-	return newKBPConfigEditorWithPrompter(kbpConfigDir, term)
+	return newKBPConfigEditorWithPrompterAndCost(kbpConfigDir, term, bcrypt.DefaultCost)
 }
 
 func (e *kbpConfigEditor) confirmAndWrite() error {
@@ -143,7 +144,7 @@ func (e *kbpConfigEditor) addUser(username string) error {
 		return fmt.Errorf("empty password")
 	}
 	hashed, err := bcrypt.GenerateFromPassword(
-		[]byte(password), bcrypt.DefaultCost)
+		[]byte(password), e.bcryptCost)
 	if err != nil {
 		return fmt.Errorf("hashing password error: %v", err)
 	}
