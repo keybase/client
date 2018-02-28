@@ -498,10 +498,10 @@ func lessListingByName(listings []Listing, i, j int) bool {
 	bNameLower := strings.ToLower(b.name)
 
 	var smallerLen int
-	if len(a.name) < len(b.name) {
-		smallerLen = len(a.name)
+	if len(aNameLower) < len(bNameLower) {
+		smallerLen = len(aNameLower)
 	} else {
-		smallerLen = len(b.name)
+		smallerLen = len(bNameLower)
 	}
 
 	// Sort by lower-cased words first, so that lower-case and capital
