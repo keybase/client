@@ -10,6 +10,10 @@ function hasSpaces(s: string): boolean {
   return s.indexOf(' ') !== -1
 }
 
+function hasPeriod(s: string): boolean {
+  return s.indexOf('.') !== -1
+}
+
 function hasAtSign(s: string): boolean {
   return s.indexOf('@') !== -1
 }
@@ -32,6 +36,9 @@ function isValidUsername(username: ?string): ?Error {
   const commonError = isValidCommon(username)
   if (commonError) {
     return commonError
+  }
+  if (username && hasPeriod(username)) {
+    return new ValidationError("Usernames can't contain periods.")
   }
 }
 
