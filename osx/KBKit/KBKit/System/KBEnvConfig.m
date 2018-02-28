@@ -204,7 +204,8 @@
     if (!err) {
       id obj = [appConfig valueForKeyPath:@"disable-root-redirector"];
       if (obj) {
-        return (BOOL)obj;
+        NSNumber *val = (NSNumber *)obj;
+        return [val boolValue];
       }
     }
   }
