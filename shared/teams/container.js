@@ -7,11 +7,12 @@ import Teams from './main'
 import openURL from '../util/open-url'
 import {navigateAppend} from '../actions/route-tree'
 import {compose, lifecycle, type TypedState, pausableConnect} from '../util/container'
-import {type Teamname} from '../constants/types/teams'
+import {type Teamname, type ResetUser} from '../constants/types/teams'
 
 type StateProps = {
   _teamnames: I.Set<Teamname>,
   _teammembercounts: I.Map<Teamname, number>,
+  _teamresetusers: I.Map<Teamname, I.Set<ResetUser>>,
   sawChatBanner: boolean,
   loaded: boolean,
   _newTeams: I.Set<string>,
@@ -26,9 +27,11 @@ const mapStateToProps = (state: TypedState): StateProps => {
   const loaded = state.entities.getIn(['teams', 'loaded'], false)
   const newTeams = state.entities.getIn(['teams', 'newTeams'], I.Set())
   const newTeamRequests = state.entities.getIn(['teams', 'newTeamRequests'], I.List())
+  const teamresetusers = state.entities.getIn(['teams', 'teamNameToResetUsers'], I.Map())
   return {
     _teamnames: teamnames,
     _teammembercounts: teammembercounts,
+    _teamresetusers: teamresetusers,
     _teamNameToIsOpen: teamNameToIsOpen,
     sawChatBanner: state.entities.getIn(['teams', 'sawChatBanner'], false),
     loaded,
@@ -90,6 +93,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
     sawChatBanner: stateProps.sawChatBanner,
     teamnames,
     teammembercounts: stateProps._teammembercounts.toObject(),
+    teamresetusers: stateProps._teamresetusers.toObject(),
     teamNameToIsOpen: stateProps._teamNameToIsOpen.toObject(),
     loaded: stateProps.loaded,
     newTeams: stateProps._newTeams.toArray(),

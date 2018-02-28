@@ -33,6 +33,7 @@ export default function(state: Types.State = initialState, action: Notifications
         newGitRepoGlobalUniqueIDs,
         newTeamNames,
         newTeamAccessRequests,
+        teamsWithResetUsers,
       } = action.payload.badgeState
 
       const deviceType = isMobile ? RPCTypes.commonDeviceType.mobile : RPCTypes.commonDeviceType.desktop
@@ -41,7 +42,10 @@ export default function(state: Types.State = initialState, action: Notifications
         0
       )
       const newGit = (newGitRepoGlobalUniqueIDs || []).length
-      const newTeams = (newTeamNames || []).length + (newTeamAccessRequests || []).length
+      const newTeams =
+        (newTeamNames || []).length +
+        (newTeamAccessRequests || []).length +
+        (teamsWithResetUsers || []).length
 
       const navBadges = state.get('navBadges').withMutations(n => {
         n.set(Tabs.chatTab, totalMessages)

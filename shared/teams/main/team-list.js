@@ -1,13 +1,15 @@
 // @flow
 import * as React from 'react'
 import {ClickableBox, Icon, Avatar, Badge, Box, Divider, Text, Meta} from '../../common-adapters'
+import {Set} from 'immutable'
 import {globalMargins, globalStyles, globalColors, isMobile} from '../../styles'
 
-import type {Teamname} from '../../constants/types/teams'
+import type {Teamname, ResetUser} from '../../constants/types/teams'
 
 export type Props = {
   teamnames: Array<Teamname>,
   teammembercounts: {[string]: number},
+  teamresetusers: {[string]: Set<ResetUser>},
   teamNameToIsOpen: {[string]: boolean},
   newTeams: Array<Teamname>,
   newTeamRequests: Array<Teamname>,
@@ -24,6 +26,7 @@ type RowProps = {
   newRequests: number,
   onOpenFolder: ?() => void,
   onManageChat: ?() => void,
+  resetUserCount?: number,
   onViewTeam: () => void,
 }
 
@@ -51,6 +54,7 @@ const TeamRow = ({
   onOpenFolder,
   onManageChat,
   onViewTeam,
+  resetUserCount,
 }: RowProps) => (
   <Box style={rowStyle}>
     <Box
@@ -62,21 +66,26 @@ const TeamRow = ({
       }}
     >
       <ClickableBox style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}} onClick={onViewTeam}>
-        <Avatar
-          size={isMobile ? 48 : 32}
-          teamname={name}
-          isTeam={true}
-          style={{marginLeft: globalMargins.tiny}}
-        />
+        <Box style={{display: 'flex', position: 'relative'}}>
+          <Avatar
+            size={isMobile ? 48 : 32}
+            teamname={name}
+            isTeam={true}
+            style={{marginLeft: globalMargins.tiny}}
+          />
+          {!!(newRequests + resetUserCount) && (
+            <Badge
+              badgeNumber={newRequests + resetUserCount}
+              badgeStyle={{position: 'absolute', top: -4, right: -12}}
+            />
+          )}
+        </Box>
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: globalMargins.small}}>
           <Box style={globalStyles.flexBoxRow}>
             <Text type="BodySemibold">{name}</Text>
             {isOpen && <Meta title="OPEN" style={openCharmStyle} />}
           </Box>
           <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-            {!!newRequests && (
-              <Badge badgeNumber={newRequests} badgeStyle={{marginLeft: 0, marginRight: 3, marginTop: 1}} />
-            )}
             {isNew && <Meta title="NEW" style={newCharmStyle} />}
             <Text type="BodySmall">{membercount + ' member' + (membercount !== 1 ? 's' : '')}</Text>
           </Box>
@@ -114,6 +123,7 @@ const TeamList = (props: Props) => (
         onOpenFolder={() => props.onOpenFolder(name)}
         onManageChat={() => props.onManageChat(name)}
         onViewTeam={() => props.onViewTeam(name)}
+        resetUserCount={props.teamresetusers[name] ? props.teamresetusers[name].size : 0}
       />
     ))}
   </Box>

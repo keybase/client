@@ -69,6 +69,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   teamNameToMemberUsernames: I.Map(),
   teamNameToMembers: I.Map(),
   teamNameToRequests: I.Map(),
+  teamNameToResetUsers: I.Map(),
   teamNameToRole: I.Map(),
   teamNameToSubteams: I.Map(),
   teamNameToCanPerform: I.Map(),
@@ -136,6 +137,16 @@ const isSubteam = (maybeTeamname: string) => {
 
 // How many public admins should we display on a showcased team card at once?
 export const publicAdminsLimit = 6
+
+export const resetUserBadgeIDToKey = (id: Types.ResetUserBadgeID): Types.ResetUserBadgeIDKey =>
+  id.toString('hex')
+export const keyToResetUserBadgeID = (key: Types.ResetUserBadgeIDKey): Types.ResetUserBadgeID =>
+  Buffer.from(key, 'hex')
+
+export const makeResetUser: I.RecordFactory<Types._ResetUser> = I.Record({
+  username: '',
+  badgeIDKey: '',
+})
 
 export {
   getConvIdsFromTeamName,

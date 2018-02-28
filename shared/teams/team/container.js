@@ -18,6 +18,7 @@ import {anyWaiting} from '../../constants/waiting'
 type StateProps = {
   _invites: I.Set<Types.InviteInfo>,
   _requests: I.Set<Types.RequestInfo>,
+  resetUserCount: number,
   _subteams: I.Set<Types.Teamname>,
   _newTeamRequests: I.List<string>,
   loading: boolean,
@@ -59,6 +60,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
     you: state.config.username,
     yourRole: Constants.getRole(state, teamname),
     yourOperations: Constants.getCanPerform(state, teamname),
+    resetUserCount: state.entities.getIn(['teams', 'teamNameToResetUsers', teamname], I.Set()).size,
   }
 }
 
