@@ -23,6 +23,8 @@ type FileDesc = {
 
 type CompileActionFn = (ns: ActionNS, actionName: ActionName, desc: ActionDesc) => string
 
+const reservedPayloadKeys = ['_description']
+
 function compile(ns: ActionNS, {prelude, actions}: FileDesc): string {
   return `// @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
@@ -78,10 +80,14 @@ function actionReduxTypeName(ns: ActionNS, actionName: ActionName): string {
   return `'${ns}:${actionName}'`
 }
 
+function payloadKeys(p: Object) {
+  return Object.keys(p).filter(key => !reservedPayloadKeys.includes(key))
+}
+
 function printPayload(p: Object) {
-  return Object.keys(p).length
+  return payloadKeys(p).length
     ? '(payload: $ReadOnly<{' +
-        Object.keys(p)
+        payloadKeys(p)
           .map(key => `${key}: ${p[key]}`)
           .join(',\n') +
         '}>)'
@@ -98,13 +104,19 @@ function compileActionCreator(ns: ActionNS, actionName: ActionName, desc: Action
   const {canError, ...noErrorPayload} = desc
 
   return (
+    (noErrorPayload._description
+      ? `/**
+     * ${noErrorPayload._description}
+     */
+    `
+      : '') +
     `export const create${capitalize(actionName)} = ${printPayload(noErrorPayload)} => (
-  { error: false, payload${Object.keys(noErrorPayload).length ? '' : ': undefined'}, type: ${actionName}, }
+  { error: false, payload${payloadKeys(noErrorPayload).length ? '' : ': undefined'}, type: ${actionName}, }
 )` +
     (canError
       ? `
   export const create${capitalize(actionName)}Error = ${printPayload(canError)} => (
-    { error: true, payload${Object.keys(canError).length ? '' : ': undefined'}, type: ${actionName}, }
+    { error: true, payload${payloadKeys(canError).length ? '' : ': undefined'}, type: ${actionName}, }
   )`
       : '')
   )

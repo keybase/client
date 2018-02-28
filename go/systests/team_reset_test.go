@@ -722,6 +722,7 @@ func TestTeamResetBadgesOnAdd(t *testing.T) {
 // when a member of the team resets, and that they are dismissed
 // when the reset user is removed.
 func TestTeamResetBadgesOnRemove(t *testing.T) {
+	t.Skip()
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 

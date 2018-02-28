@@ -7,30 +7,6 @@ export type OwnProps = {
   teamname: string,
 }
 
-type Request = {
-  type: 'request',
-  key: string,
-  teamname: string,
-  username: string,
-}
-
-type Invite = {
-  type: 'invite',
-  email?: string,
-  name?: string,
-  key: string,
-  id: string,
-  username: string,
-  teamname: string,
-}
-
-type Divider = {
-  type: 'divider',
-  key: 'Invites' | 'Requests',
-}
-
-export type RequestOrInvite = Request | Invite | Divider
-
 const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => ({
   _invites: state.entities.getIn(['teams', 'teamNameToInvites', teamname], I.Set()),
   _requests: state.entities.getIn(['teams', 'teamNameToRequests', teamname], I.Set()),
@@ -42,37 +18,42 @@ const mergeProps = (stateProps, dispatchProps, {teamname}: OwnProps) => {
   const requestProps = requests.map(req => ({
     key: req.username,
     teamname,
-    type: 'request',
+    type: 'invites',
+    subtype: 'request',
     username: req.username,
   }))
   const inviteProps = invites.map(invite => {
-    let inviteInfo
-    if (invite.name) {
-      inviteInfo = {name: invite.name}
-    } else if (invite.email) {
-      inviteInfo = {email: invite.email}
-    } else if (invite.username) {
-      inviteInfo = {username: invite.username}
-    } else {
+    if (!(invite.name || invite.email || invite.username)) {
       console.warn(`Could not find name, email, or username in invite with ID ${invite.id}`)
     }
-    return ({
-      ...inviteInfo,
+    return {
+      name: invite.name || undefined,
+      email: invite.email || undefined,
       teamname,
       username: invite.username,
       id: invite.id,
-      type: 'invite',
+      type: 'invites',
+      subtype: 'invite',
       key: invite.id,
-    }: Invite)
+    }
   })
   let requestsAndInvites = []
   if (requestProps.length > 0) {
-    requestsAndInvites.push({key: 'Requests', type: 'divider'}, ...requestProps)
+    requestsAndInvites.push({key: 'Requests', type: 'invites', subtype: 'divider'}, ...requestProps)
   }
   if (inviteProps.length > 0) {
-    requestsAndInvites.push({key: 'Invites', type: 'divider'}, ...inviteProps)
+    requestsAndInvites.push({key: 'Invites', type: 'invites', subtype: 'divider'}, ...inviteProps)
+  }
+  if (requestsAndInvites.length === 0) {
+    requestsAndInvites.push({key: 'noRequestsOrInvites', type: 'invites', subtype: 'none'})
   }
   return {requestsAndInvites}
 }
 
+const listMergeProps = (stateProps, dispatchProps, ownProps) => ({
+  listItems: mergeProps(stateProps, dispatchProps, ownProps).requestsAndInvites,
+  ...ownProps,
+})
+
 export default connect(mapStateToProps, () => ({}), mergeProps)(RequestsAndInvites)
+export const requestsAndInvitesListItemsConnector = connect(mapStateToProps, () => ({}), listMergeProps)

@@ -8,12 +8,8 @@ import {amIFollowing} from '../../../../constants/selectors'
 import {navigateAppend} from '../../../../actions/route-tree'
 import {connect, type TypedState} from '../../../../util/container'
 
-type OwnProps = {
-  active: boolean,
-  fullName: string,
-  username: string,
-  teamname: string,
-}
+import type {MemberRow as OwnProps} from '../../row-types'
+export type {OwnProps}
 
 type StateProps = {
   following: boolean,
@@ -94,5 +90,6 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
 const ConnectedMemberRow = connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamMemberRow)
 
 export default function(i: number, props: OwnProps) {
-  return <ConnectedMemberRow key={props.username} {...props} />
+  // $FlowIssue I have no idea but everything works
+  return <ConnectedMemberRow {...props} />
 }
