@@ -5,6 +5,8 @@ import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as Types from '../constants/types/fs'
+import * as EngineRpc from '../constants/engine'
+import logger from '../logger'
 
 function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<any, any> {
   const opID = Constants.makeUUID()
@@ -51,8 +53,44 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
   yield Saga.put(FsGen.createFolderListLoaded({pathItems, path: rootPath}))
 }
 
+function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> {
+  const {key, path, localPath} = action.payload
+  const opID = Constants.makeUUID()
+
+  yield Saga.call(RPCTypes.SimpleFSSimpleFSCopyRpcPromise, {
+    opID,
+    src: {
+      PathType: RPCTypes.simpleFSPathType.kbfs,
+      kbfs: Constants.fsPathToRpcPathString(path),
+    },
+    dest: {
+      PathType: RPCTypes.simpleFSPathType.local,
+      local: localPath,
+    },
+  })
+
+  // Fake out progress until we have the real thing.
+  // TODO: have the real thing.
+  const total = 6
+  for (let progress = 0; progress < total-1; ++progress ) {
+    yield Saga.call(Constants.setTimeoutPromise, 500)
+    yield Saga.call(RPCTypes.SimpleFSSimpleFSCheckRpcPromise, {opID})
+    yield Saga.put(FsGen.createFileTransferProgress({ key, completePortion: progress / total, }))
+  }
+
+  let error = undefined
+  try {
+    yield Saga.call(RPCTypes.SimpleFSSimpleFSWaitRpcPromise, {opID}) || defined
+  } catch (err) {
+    error = err
+  }
+  yield Saga.put(FsGen.createFileTransferProgress({ key, completePortion: 1, }))
+  yield Saga.put(FsGen.createDownloadFinished({ key, error }))
+}
+
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.folderListLoad, folderList)
+  yield Saga.safeTakeEvery(FsGen.download, download)
 }
 
 export default fsSaga

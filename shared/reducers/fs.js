@@ -32,6 +32,28 @@ export default function(state: Types.State = initialState, action: FSGen.Actions
       return state.update('loadingPaths', loadingPaths => loadingPaths.add(action.payload.path))
     case FSGen.sortSetting:
       return state.setIn(['pathUserSettings', action.payload.path, 'sort'], action.payload.sortSetting)
+    case FSGen.download: {
+      const {key, path, localPath} = action.payload
+      const isDir = state.pathItems.get(path).type === 'folder'
+      return state.setIn(['transfers', key], Constants.makeTransferState({
+        isUpload: false,
+        isDir,
+        path,
+        localPath,
+        completePortion: 0,
+        isDone: false,
+      }))
+    }
+    case FSGen.fileTransferProgress: {
+      const {key, completePortion} = action.payload
+      return state.setIn(['transfers', key, 'completePortion'], completePortion)
+    }
+    case FSGen.downloadFinished: {
+      const {key, error} = action.payload
+      return state
+        .setIn(['transfers', key, 'isDone'], true)
+        .setIn(['transfers', key, 'error'], error)
+    }
     default:
       // eslint-disable-next-line no-unused-expressions
       ;(action: empty) // if you get a flow error here it means there's an action you claim to handle but didn't

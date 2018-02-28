@@ -39,10 +39,21 @@ export const makePathUserSetting: I.RecordFactory<Types._PathUserSetting> = I.Re
   sort: makeSortSetting(),
 })
 
+export const makeTransferState: I.RecordFactory<Types._TransferState> = I.Record({
+  isUpload: false, // true if upload; false if download
+  isDir: false,
+  path: "",
+  localPath: "",
+  completePortion: 0,
+  error: undefined,
+  isDone: false,
+})
+
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder()]]),
   pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
   loadingPaths: I.Set(),
+  transfers: I.Map(),
 })
 
 export const makeUUID = () => uuidv1(null, Buffer.alloc(16), 0)
@@ -113,3 +124,6 @@ export const getItemStyles = (
       return isPublic ? itemStylesPublicUnknown : itemStylesPrivateUnknown
   }
 }
+
+export const makeDownloadKey = (path: Types.Path, localPath: string) => `download:${Types.pathToString(path)}:${localPath}`
+export const setTimeoutPromise = (delayMs: number) => new Promise((resolve) => setTimeout(resolve, delayMs))

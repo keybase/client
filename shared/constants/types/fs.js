@@ -53,6 +53,17 @@ export type _PathUserSetting = {
 }
 export type PathUserSetting = I.RecordOf<_PathUserSetting>
 
+export type _TransferState = {
+  isUpload: boolean, // true if upload; false if download
+  isDir: boolean,
+  path: Path,
+  localPath: string,
+  completePortion: number,
+  error?: string,
+  isDone: boolean,
+}
+export type TransferState = I.RecordOf<_TransferState>
+
 export type PathBreadcrumbItem = {
   isTlfNameItem: boolean,
   isLastItem: boolean,
@@ -64,6 +75,7 @@ export type _State = {
   pathItems: I.Map<Path, PathItem>,
   pathUserSettings: I.Map<Path, PathUserSetting>,
   loadingPaths: I.Set<Path>,
+  transfers: I.Map<string, TransferState>,
 }
 export type State = I.RecordOf<_State>
 
