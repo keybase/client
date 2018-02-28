@@ -297,15 +297,20 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
 
 const chatActivityToMetasAction = (payload: ?{+conv?: ?RPCChatTypes.InboxUIItem}) => {
   const meta = payload && payload.conv && Constants.inboxUIItemToConversationMeta(payload.conv)
+  const conversationIDKey = meta
+    ? meta.conversationIDKey
+    : payload && payload.conv && Types.stringToConversationIDKey(payload.conv.convID)
   const usernameToFullname = (payload && payload.conv && payload.conv.fullNames) || {}
+  // We ignore inbox rows that are ignored/blocked/reported or have no content
   const isADelete =
     payload &&
     payload.conv &&
-    [
+    ([
       RPCChatTypes.commonConversationStatus.ignored,
       RPCChatTypes.commonConversationStatus.blocked,
       RPCChatTypes.commonConversationStatus.reported,
-    ].includes(payload.conv.status)
+    ].includes(payload.conv.status) ||
+      payload.conv.isEmpty)
   return meta
     ? [
         isADelete
@@ -313,7 +318,7 @@ const chatActivityToMetasAction = (payload: ?{+conv?: ?RPCChatTypes.InboxUIItem}
           : Chat2Gen.createMetasReceived({metas: [meta]}),
         UsersGen.createUpdateFullnames({usernameToFullname}),
       ]
-    : []
+    : conversationIDKey && isADelete ? [Chat2Gen.createMetaDelete({conversationIDKey})] : []
 }
 
 const onErrorMessage = (outboxRecords: Array<RPCChatTypes.OutboxRecord>) => {
