@@ -30,7 +30,7 @@
 }
 
 - (void)install:(KBCompletion)completion {
-  if ([self.config.redirectorDisabled]) {
+  if ([self.config redirectorDisabled]) {
     DDLogDebug(@"The redirector is disabled; ignoring");
     completion(nil);
     return;
