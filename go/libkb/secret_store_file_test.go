@@ -182,3 +182,96 @@ func TestSecretStoreFileGetUsersWithStoredSecrets(t *testing.T) {
 		t.Errorf("user 1: %s, expected xavier", users[1])
 	}
 }
+
+func assertExists(t *testing.T, path string) {
+	exists, err := FileExists(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !exists {
+		t.Errorf("expected %s to exist", path)
+	}
+}
+
+func assertNotExists(t *testing.T, path string) {
+	exists, err := FileExists(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if exists {
+		t.Errorf("expected %s to not exist", path)
+	}
+}
+
+func TestSecretStoreFileRetrieveUpgrade(t *testing.T) {
+	td, tdClean := testSSDir(t)
+	defer tdClean()
+
+	assertExists(t, filepath.Join(td, "alice.ss"))
+	assertNotExists(t, filepath.Join(td, "alice.ss2"))
+	assertNotExists(t, filepath.Join(td, "alice.ns2"))
+	assertExists(t, filepath.Join(td, "bob.ss"))
+	assertNotExists(t, filepath.Join(td, "bob.ss2"))
+	assertNotExists(t, filepath.Join(td, "bob.ns2"))
+
+	ss := NewSecretStoreFile(td)
+
+	// retrieve secret for alice should upgrade from alice.ss to alice.ss2
+	secret, err := ss.RetrieveSecret("alice")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assertNotExists(t, filepath.Join(td, "alice.ss"))
+	assertExists(t, filepath.Join(td, "alice.ss2"))
+	assertExists(t, filepath.Join(td, "alice.ns2"))
+
+	secretUpgraded, err := ss.RetrieveSecret("alice")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(secret.Bytes(), secretUpgraded.Bytes()) {
+		t.Errorf("alice secret changed after upgrade")
+	}
+
+	// bob v1 should be untouched
+	assertExists(t, filepath.Join(td, "bob.ss"))
+	assertNotExists(t, filepath.Join(td, "bob.ss2"))
+	assertNotExists(t, filepath.Join(td, "bob.ns2"))
+}
+
+func TestSecretStoreFileNoise(t *testing.T) {
+	td, tdClean := testSSDir(t)
+	defer tdClean()
+
+	secret, err := RandBytes(32)
+	if err != nil {
+		t.Fatal(err)
+	}
+	lksec, err := newLKSecFullSecretFromBytes(secret)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ss := NewSecretStoreFile(td)
+	ss.StoreSecret("ogden", lksec)
+	noise, err := ioutil.ReadFile(filepath.Join(td, "ogden.ns2"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// flip one bit
+	noise[0] ^= 0x01
+
+	if err := ioutil.WriteFile(filepath.Join(td, "ogden.ns2"), noise, 0600); err != nil {
+		t.Fatal(err)
+	}
+
+	corrupt, err := ss.RetrieveSecret("ogden")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if bytes.Equal(lksec.Bytes(), corrupt.Bytes()) {
+		t.Fatal("corrupted noise file did not change the secret")
+	}
+}

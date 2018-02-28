@@ -2914,6 +2914,32 @@ func (e GetThreadNonblockCbMode) String() string {
 	return ""
 }
 
+type GetThreadNonblockReason int
+
+const (
+	GetThreadNonblockReason_GENERAL GetThreadNonblockReason = 0
+	GetThreadNonblockReason_PUSH    GetThreadNonblockReason = 1
+)
+
+func (o GetThreadNonblockReason) DeepCopy() GetThreadNonblockReason { return o }
+
+var GetThreadNonblockReasonMap = map[string]GetThreadNonblockReason{
+	"GENERAL": 0,
+	"PUSH":    1,
+}
+
+var GetThreadNonblockReasonRevMap = map[GetThreadNonblockReason]string{
+	0: "GENERAL",
+	1: "PUSH",
+}
+
+func (e GetThreadNonblockReason) String() string {
+	if v, ok := GetThreadNonblockReasonRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type GetInboxLocalRes struct {
 	ConversationsUnverified []Conversation                `codec:"conversationsUnverified" json:"conversationsUnverified"`
 	Pagination              *Pagination                   `codec:"pagination,omitempty" json:"pagination,omitempty"`
@@ -3782,6 +3808,7 @@ type GetThreadNonblockArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	CbMode           GetThreadNonblockCbMode      `codec:"cbMode" json:"cbMode"`
+	Reason           GetThreadNonblockReason      `codec:"reason" json:"reason"`
 	Query            *GetThreadQuery              `codec:"query,omitempty" json:"query,omitempty"`
 	Pagination       *UIPagination                `codec:"pagination,omitempty" json:"pagination,omitempty"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`

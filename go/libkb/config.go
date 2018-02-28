@@ -770,10 +770,6 @@ func (f JSONConfigFile) GetUpdateDisabled() (bool, bool) {
 	return f.GetBoolAtPath("updates.disabled")
 }
 
-func (f JSONConfigFile) IsAdmin() (bool, bool) {
-	return f.GetBoolAtPath("is_admin")
-}
-
 func (f JSONConfigFile) GetTimeAtPath(path string) keybase1.Time {
 	var ret keybase1.Time
 	s, _ := f.GetStringAtPath(path)

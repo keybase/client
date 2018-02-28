@@ -104,7 +104,7 @@ helpers.rootLinuxNode(env, {
             helpers.withKbweb() {
                 parallel (
                     test_linux_deps: {
-                        //if (hasGoChanges) {
+                        if (hasGoChanges) {
                             // Build the client docker first so we can immediately kick off KBFS
                             dir('go') {
                                 sh "go install github.com/keybase/client/go/keybase"
@@ -114,7 +114,7 @@ helpers.rootLinuxNode(env, {
                                 archive("kbclient.tar.gz")
                                 sh "rm kbclient.tar.gz"
                             }
-                        //}
+                        }
                         parallel (
                             test_linux: {
                                 dir("protocol") {
@@ -179,9 +179,9 @@ helpers.rootLinuxNode(env, {
                                 // that we can have master breaks, but it
                                 // strikes a good balance between velocity and
                                 // test coverage.
-                                //if (env.BRANCH_NAME == "master") {
+                                if (env.BRANCH_NAME == "master") {
                                     build([
-                                        job: "/kbfs/PR-1492",
+                                        job: "/kbfs/master",
                                         parameters: [
                                             string(
                                                 name: 'clientProjectName',
@@ -193,7 +193,7 @@ helpers.rootLinuxNode(env, {
                                             ),
                                         ]
                                     ])
-                                //}
+                                }
                             },
                         )
                     },

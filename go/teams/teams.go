@@ -1204,9 +1204,9 @@ func (t *Team) sigTeamItemRaw(ctx context.Context, section SCTeamSection, linkTy
 		nextSeqno,
 		sigJSON,
 		latestLinkID,
-		false, /* hasRevokes */
+		libkb.SigHasRevokes(false),
 		seqType,
-		false, /* ignoreIfUnsupported */
+		libkb.SigIgnoreIfUnsupported(false),
 	)
 	if err != nil {
 		return libkb.SigMultiItem{}, "", err

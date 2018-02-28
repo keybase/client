@@ -15,7 +15,7 @@ type CmdTeamCreate struct {
 	TeamName  keybase1.TeamName
 	SessionID int
 	libkb.Contextified
-	joinSubteam bool
+	JoinSubteam bool
 }
 
 func (v *CmdTeamCreate) ParseArgv(ctx *cli.Context) error {
@@ -25,7 +25,7 @@ func (v *CmdTeamCreate) ParseArgv(ctx *cli.Context) error {
 		return err
 	}
 
-	v.joinSubteam = ctx.Bool("join-subteam")
+	v.JoinSubteam = ctx.Bool("join-subteam")
 
 	return nil
 }
@@ -41,7 +41,7 @@ func (v *CmdTeamCreate) Run() (err error) {
 	createRes, err := cli.TeamCreate(context.TODO(), keybase1.TeamCreateArg{
 		Name:        v.TeamName.String(),
 		SessionID:   v.SessionID,
-		JoinSubteam: v.joinSubteam,
+		JoinSubteam: v.JoinSubteam,
 	})
 	if err != nil {
 		return err

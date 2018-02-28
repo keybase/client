@@ -2084,7 +2084,7 @@ export type CryptoUnboxBytes32RpcParam = $ReadOnly<{encryptedBytes32: EncryptedB
 
 export type Cryptocurrency = $ReadOnly<{rowId: Int, pkhash: Bytes, address: String, sigID: SigID, type: String, family: String}>
 
-export type CryptocurrencyRegisterAddressRpcParam = $ReadOnly<{address: String, force: Boolean, wantedFamily: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type CryptocurrencyRegisterAddressRpcParam = $ReadOnly<{address: String, force: Boolean, wantedFamily: String, sigVersion?: ?SigVersion, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type CsrfToken = String
 
@@ -3032,7 +3032,7 @@ export type Proofs = $ReadOnly<{social?: ?Array<TrackProof>, web?: ?Array<WebPro
 
 export type ProveCheckProofRpcParam = $ReadOnly<{sigID: SigID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ProveStartProofRpcParam = $ReadOnly<{service: String, username: String, force: Boolean, promptPosted: Boolean, auto: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type ProveStartProofRpcParam = $ReadOnly<{service: String, username: String, force: Boolean, promptPosted: Boolean, auto: Boolean, sigVersion?: ?SigVersion, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type ProveUiDisplayRecheckWarningRpcParam = $ReadOnly<{text: Text, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -3805,7 +3805,7 @@ export type TrackDismissWithTokenRpcParam = $ReadOnly<{trackToken: TrackToken, i
 
 export type TrackFakeTrackingChangedRpcParam = $ReadOnly<{username: String, isTracking: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TrackOptions = $ReadOnly<{localOnly: Boolean, bypassConfirm: Boolean, forceRetrack: Boolean, expiringLocal: Boolean, forPGPPull: Boolean, sigVersion: SigVersion}>
+export type TrackOptions = $ReadOnly<{localOnly: Boolean, bypassConfirm: Boolean, forceRetrack: Boolean, expiringLocal: Boolean, forPGPPull: Boolean, sigVersion?: ?SigVersion}>
 
 export type TrackProof = $ReadOnly<{proofType: String, proofName: String, idString: String}>
 

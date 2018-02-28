@@ -169,7 +169,6 @@ type ConfigReader interface {
 	GetUpdateLastChecked() keybase1.Time
 	GetUpdateURL() string
 	GetUpdateDisabled() (bool, bool)
-	IsAdmin() (bool, bool)
 }
 
 type UpdaterConfigReader interface {

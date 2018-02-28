@@ -103,7 +103,7 @@ func TestOpenSubteamAdd(t *testing.T) {
 	parentName, err := keybase1.TeamNameFromString(team)
 	require.NoError(t, err)
 
-	subteam, err := teams.CreateSubteam(context.TODO(), own.tc.G, "zzz", parentName)
+	subteam, err := teams.CreateSubteam(context.TODO(), own.tc.G, "zzz", parentName, keybase1.TeamRole_NONE /* addSelfAs */)
 	require.NoError(t, err)
 
 	t.Logf("Open team name is %q, subteam is %q", team, subteam)
