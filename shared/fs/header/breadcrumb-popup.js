@@ -17,7 +17,7 @@ type PopupMenuProps = RouteProps<
 
 const itemView = (name, isTeamRoot) => (
   <Box style={stylesRow}>
-    {isTeamRoot && <Avatar size={12} teamname={name} isTeam={true} style={stylesTeamAvatar} />}
+    {isTeamRoot && <Avatar size={16} teamname={name} isTeam={true} style={stylesTeamAvatar} />}
     <Text className="title" type="Body" style={stylesMenuText}>
       {name}
     </Text>
@@ -37,7 +37,8 @@ const BreadcrumbPopupMenu = ({routeProps}: PopupMenuProps) => {
 }
 
 const stylePopup = {
-  marginLeft: -10,
+  marginLeft: -30,
+  marginTop: 24,
   overflow: 'visible',
   width: 196,
 }
@@ -52,7 +53,7 @@ const stylesRow = {
 
 const stylesTeamAvatar = {
   marginRight: globalMargins.tiny,
-  marginTop: 3,
+  marginTop: 1,
 }
 
 export default BreadcrumbPopupMenu
