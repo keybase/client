@@ -489,3 +489,22 @@ export const getClientPrev = (state: TypedState, conversationIDKey: Types.Conver
 const imageFileNameRegex = /[^/]+\.(jpg|png|gif|jpeg|bmp)$/i
 export const pathToAttachmentType = (path: string) => (imageFileNameRegex.test(path) ? 'image' : 'file')
 export const isSpecialMention = (s: string) => ['here', 'channel', 'everyone'].includes(s)
+
+export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
+  if (old.type === 'text' && m.type === 'text') {
+    // $ForceType
+    return m.withMutations((ret: Types.MessageText) => {
+      ret.set('ordinal', old.ordinal)
+    })
+  }
+  if (old.type === 'attachment' && m.type === 'attachment') {
+    // $ForceType
+    return m.withMutations((ret: Types.MessageAttachment) => {
+      ret.set('ordinal', old.ordinal)
+      ret.set('deviceFilePath', old.deviceFilePath)
+      ret.set('devicePreviewPath', old.devicePreviewPath)
+      ret.set('downloadPath', old.downloadPath)
+    })
+  }
+  return m
+}

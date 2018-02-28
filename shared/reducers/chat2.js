@@ -31,25 +31,6 @@ const messageIDToOrdinal = (messageMap, pendingOutboxToOrdinal, conversationIDKe
   return null
 }
 
-const upgradeMessage = (old: Types.Message, m: Types.Message) => {
-  if (old.type === 'text' && m.type === 'text') {
-    // $ForceType
-    return m.withMutations((ret: Types.MessageText) => {
-      ret.set('ordinal', old.ordinal)
-    })
-  }
-  if (old.type === 'attachment' && m.type === 'attachment') {
-    // $ForceType
-    return m.withMutations((ret: Types.MessageAttachment) => {
-      ret.set('ordinal', old.ordinal)
-      ret.set('deviceFilePath', old.deviceFilePath)
-      ret.set('devicePreviewPath', old.devicePreviewPath)
-      ret.set('downloadPath', old.downloadPath)
-    })
-  }
-  return m
-}
-
 const metaMapReducer = (metaMap, action) => {
   switch (action.type) {
     case Chat2Gen.metaUpdatePagination:
@@ -165,7 +146,7 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
       }
       return messageMap.updateIn(
         [conversationIDKey, ordinal],
-        old => (old ? upgradeMessage(old, message) : message)
+        old => (old ? Constants.upgradeMessage(old, message) : message)
       )
     }
     case Chat2Gen.messageWasEdited: {
@@ -305,10 +286,8 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
           return loading.delete(action.payload.key)
         } else {
           console.log('Setting negative chat loading key', action.payload.key, count)
+          // This should hopefully never happen but some flows are flakey so lets log it but not throw an error
           return loading.set(action.payload.key, count)
-          // TODO talk to mike. sync calls don't seem to always start with syncStarting so we go negative
-          // never allow negative
-          // throw new Error(`Negative loading in chat ${action.payload.key}`)
         }
       })
     case Chat2Gen.selectConversationDueToPush:
@@ -489,23 +468,12 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
             messages.forEach(message => {
               const m = canSendType(message)
               const old = m ? findExisting(conversationIDKey, m) : null
-              const toSet = old ? upgradeMessage(old, message) : message
+              const toSet = old ? Constants.upgradeMessage(old, message) : message
               map.setIn([conversationIDKey, toSet.ordinal], toSet)
             })
           })
         }
       )
-
-      // console.log(
-      // 'aaa redu: metamap',
-      // metaMap.toJS(),
-      // '\nmessagemap',
-      // messageMap.toJS(),
-      // '\nmessageOrdinals',
-      // messageOrdinals.toJS(),
-      // '\npendingoutbox',
-      // pendingOutboxToOrdinal.toJS()
-      // )
 
       return state.withMutations(s => {
         s.set('messageMap', messageMap)
@@ -570,18 +538,9 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         s.deleteIn(['messageMap', conversationIDKey])
       })
     }
-
     case Chat2Gen.updateTypers: {
       return state.set('typingMap', action.payload.conversationToTypers)
     }
-
-    // case Chat2Gen.leaveConversation: {
-    // if (state.selectedConversation === action.payload.conversationIDKey) {
-    // return state.set('selectedConversation', Types.stringToConversationIDKey(''))
-    // }
-    // return state
-    // }
-
     // metaMap/messageMap/messageOrdinalsList only actions
     case Chat2Gen.inboxRefresh:
     case Chat2Gen.messageDelete:

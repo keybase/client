@@ -112,4 +112,5 @@ export {
   pathToAttachmentType,
   rpcErrorToString,
   uiMessageToMessage,
+  upgradeMessage,
 } from './message'
