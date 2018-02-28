@@ -54,7 +54,7 @@ class TraceButton extends React.Component<TraceButtonProps> {
     const label = `Trace (${this.props.durationSeconds}s)`
     return (
       <Button
-        disabled={this.props.traceInProgress}
+        waiting={this.props.traceInProgress}
         style={{marginTop: globalMargins.small}}
         type="Danger"
         label={label}
