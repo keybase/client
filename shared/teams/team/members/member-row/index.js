@@ -21,6 +21,7 @@ export type Props = {
   youCanManageMembers: boolean,
   following: boolean,
   fullName: string,
+  onChat: () => void,
   onClick: () => void,
   onReAddToTeam: () => void,
   onRemoveFromTeam: () => void,
@@ -42,6 +43,7 @@ export const TeamMemberRow = (props: Props) => {
     youCanManageMembers,
     following,
     fullName,
+    onChat,
     onClick,
     type,
     username,
@@ -124,6 +126,13 @@ export const TeamMemberRow = (props: Props) => {
             </ButtonBar>
           </Box>
         )}
+      <Box style={{...globalStyles.flexBoxRow, flexShrink: 1}}>
+        <Icon
+          onClick={onChat}
+          style={{marginLeft: globalMargins.small, marginRight: globalMargins.tiny}}
+          type="iconfont-chat"
+        />
+      </Box>
     </Box>
   )
 }
