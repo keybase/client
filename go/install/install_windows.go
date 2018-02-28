@@ -159,7 +159,7 @@ func InstallLogPath() (string, error) {
 	msiLogFiles, err := filepath.Glob(os.ExpandEnv(filepath.Join("${TEMP}", "MSI*.log")))
 	sort.Sort(sort.Reverse(sort.StringSlice(msiLogFiles)))
 	if len(msiLogFiles) > 1 {
-		keybaseLogFiles = append(keybaseLogFiles, msiLogFiles[:1])
+		keybaseLogFiles = append(keybaseLogFiles, msiLogFiles[0])
 	}
 
 	// Get the 2 newest dokan logs - sorting by name works because timestamp
