@@ -9,7 +9,7 @@ export default function(state: Types.State = initialState, action: FSGen.Actions
   switch (action.type) {
     case FSGen.resetStore:
       return initialState
-    case FSGen.folderListLoaded:
+    case FSGen.folderListLoaded: {
       const toMerge = action.payload.pathItems.filter((item, path) => {
         if (item.type !== 'folder') {
           return true
@@ -28,31 +28,38 @@ export default function(state: Types.State = initialState, action: FSGen.Actions
       return state
         .mergeIn(['pathItems'], toMerge)
         .update('loadingPaths', loadingPaths => loadingPaths.delete(action.payload.path))
+    }
     case FSGen.folderListLoad:
       return state.update('loadingPaths', loadingPaths => loadingPaths.add(action.payload.path))
     case FSGen.sortSetting:
       return state.setIn(['pathUserSettings', action.payload.path, 'sort'], action.payload.sortSetting)
     case FSGen.download: {
       const {key, path, localPath} = action.payload
-      const isDir = state.pathItems.get(path).type === 'folder'
-      return state.setIn(['transfers', key], Constants.makeTransferState({
-        isUpload: false,
-        isDir,
-        path,
-        localPath,
-        completePortion: 0,
-        isDone: false,
-      }))
+      const item = state.pathItems.get(path)
+      const isDir = item ? item.type === 'folder' : false
+      return state.setIn(
+        ['transfers', key],
+        Constants.makeTransferState({
+          isUpload: false,
+          isDir,
+          path,
+          localPath,
+          completePortion: 0,
+          isDone: false,
+        })
+      )
     }
     case FSGen.fileTransferProgress: {
       const {key, completePortion} = action.payload
-      return state.setIn(['transfers', key, 'completePortion'], completePortion)
+      return state.updateIn(['transfers', key], (original: Types.TransferState) =>
+        original.set('completePortion', completePortion)
+      )
     }
     case FSGen.downloadFinished: {
       const {key, error} = action.payload
-      return state
-        .setIn(['transfers', key, 'isDone'], true)
-        .setIn(['transfers', key, 'error'], error)
+      return state.updateIn(['transfers', key], (original: Types.TransferState) =>
+        original.set('isDone', true).set('error', error)
+      )
     }
     default:
       // eslint-disable-next-line no-unused-expressions

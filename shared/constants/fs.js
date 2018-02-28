@@ -42,8 +42,8 @@ export const makePathUserSetting: I.RecordFactory<Types._PathUserSetting> = I.Re
 export const makeTransferState: I.RecordFactory<Types._TransferState> = I.Record({
   isUpload: false, // true if upload; false if download
   isDir: false,
-  path: "",
-  localPath: "",
+  path: Types.stringToPath(''),
+  localPath: '',
   completePortion: 0,
   error: undefined,
   isDone: false,
@@ -125,5 +125,7 @@ export const getItemStyles = (
   }
 }
 
-export const makeDownloadKey = (path: Types.Path, localPath: string) => `download:${Types.pathToString(path)}:${localPath}`
-export const setTimeoutPromise = (delayMs: number) => new Promise((resolve) => setTimeout(resolve, delayMs))
+export const makeDownloadKey = (path: Types.Path, localPath: string) =>
+  `download:${Types.pathToString(path)}:${localPath}`
+export const setTimeoutPromise = (delayMs: number): Promise<void> =>
+  new Promise(resolve => setTimeout(resolve, delayMs))
