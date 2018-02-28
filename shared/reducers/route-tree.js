@@ -66,14 +66,30 @@ function loggedInUserNavigatedReducer(loggedInUserNavigated, newSelectedTab, act
   return newLoggedInUserNavigated
 }
 
-function routeDefReducer(routeDef, action) {
+function routeDefReducer(routeDef: ?RouteDefNode, action) {
   switch (action.type) {
-    case Constants.setRouteDef:
-      if (!firstRouteDef) {
+    case Constants.setInitialRouteDef:
+      if (firstRouteDef) {
+        logger.error('setInitialRouteDef called more than once')
+      } else {
         // Store the first route def set
         firstRouteDef = action.payload.routeDef
       }
       return action.payload.routeDef
+
+    case Constants.refreshRouteDef:
+      let title = ''
+      if (routeDef && routeDef.tags && routeDef.tags.title) {
+        title = routeDef.tags.title
+      }
+      switch (title) {
+        case 'login':
+          return action.payload.loginDef
+        case 'app':
+          return action.payload.appDef
+        default:
+          throw new Error(`Current routeDef has unknown title ${title}`)
+      }
 
     case Constants.switchRouteDef:
       return action.payload.routeDef
@@ -88,7 +104,11 @@ function routeStateReducer(routeDef, routeState, action) {
     case CommonConstants.resetStore:
       return routeSetProps(routeDef, null, [])
 
-    case Constants.setRouteDef: {
+    case Constants.setInitialRouteDef: {
+      return routeNavigate(action.payload.routeDef, routeState, getPath(routeState))
+    }
+
+    case Constants.refreshRouteDef: {
       return routeNavigate(action.payload.routeDef, routeState, getPath(routeState))
     }
 
@@ -151,7 +171,7 @@ export default function routeTreeReducer(state: Types.State = initialState, acti
       action
     )
   } catch (err) {
-    if (action.type === Constants.setRouteDef && err instanceof InvalidRouteError) {
+    if (action.type === Constants.refreshRouteDef && err instanceof InvalidRouteError) {
       logger.warn('New route tree mismatches current state. Not updating (please reload manually if needed).')
     } else {
       logger.error(
