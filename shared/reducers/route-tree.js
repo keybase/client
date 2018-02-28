@@ -15,6 +15,7 @@ import {
   checkRouteState,
   type RouteDefNode,
 } from '../route-tree'
+import {loginRouteTreeTitle, appRouteTreeTitle} from '../app/routes'
 import {isValidInitialTabString} from '../constants/tabs'
 
 // This makes an empty one which isn't really allowed, we always init it before anything really happens
@@ -83,9 +84,9 @@ function routeDefReducer(routeDef: ?RouteDefNode, action) {
         title = routeDef.tags.title
       }
       switch (title) {
-        case 'login':
+        case loginRouteTreeTitle:
           return action.payload.loginDef
-        case 'app':
+        case appRouteTreeTitle:
           return action.payload.appDef
         default:
           throw new Error(`Current routeDef has unknown title ${title}`)

@@ -26,8 +26,21 @@ import {
 } from '../constants/tabs'
 import flags from '../util/feature-flags'
 
+const loginRouteTreeTitle = 'LoginRoot'
+
+const loginRouteTree = makeRouteDefNode({
+  tags: makeLeafTags({title: loginRouteTreeTitle}),
+  children: {
+    [loginTab]: loginRoutes,
+  },
+  containerComponent: Nav,
+  defaultSelected: loginTab,
+})
+
+const appRouteTreeTitle = 'AppRoot'
+
 const appRouteTree = makeRouteDefNode({
-  tags: makeLeafTags({title: 'AppRoot'}),
+  tags: makeLeafTags({title: appRouteTreeTitle}),
   children: {
     [chatTab]: chatRoutes,
     [folderTab]: foldersRoutes,
@@ -54,13 +67,4 @@ const appRouteTree = makeRouteDefNode({
   defaultSelected: loginTab,
 })
 
-const loginRouteTree = makeRouteDefNode({
-  tags: makeLeafTags({title: 'LoginRoot'}),
-  children: {
-    [loginTab]: loginRoutes,
-  },
-  containerComponent: Nav,
-  defaultSelected: loginTab,
-})
-
-export {appRouteTree, loginRouteTree}
+export {loginRouteTreeTitle, loginRouteTree, appRouteTreeTitle, appRouteTree}
