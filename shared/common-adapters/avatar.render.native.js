@@ -165,7 +165,7 @@ class AvatarRender extends React.PureComponent<Props, State> {
           {this.props.followIconType && (
             <Icon
               type={this.props.followIconType}
-              style={[styles[`icon:${size}`], this.props.followIconStyle]}
+              style={[styles[`icon:${this.props.followIconSize}`], this.props.followIconStyle]}
             />
           )}
           {this.props.children}
