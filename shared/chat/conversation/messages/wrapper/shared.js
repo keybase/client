@@ -12,6 +12,7 @@ import {
 import ProfileResetNotice from '../system-profile-reset-notice/container'
 import Timestamp from './timestamp'
 import LoadMore from './load-more'
+import SendIndicator from './chat-send'
 
 import type {Props} from '.'
 
@@ -98,11 +99,22 @@ class MessageWrapper extends React.PureComponent<Props> {
         {props.timestamp && <Timestamp timestamp={props.timestamp} />}
         <Box style={collapseStyles([styles.flexOneRow, props.isSelected && styles.selected])}>
           <Box style={props.includeHeader ? styles.rightSideWithHeader : styles.rightSideNoHeader}>
-            <UserAvatar
-              author={props.author}
-              showImage={props.includeHeader}
-              onAuthorClick={props.onAuthorClick}
-            />
+            <Box style={globalStyles.flexBoxColumn}>
+              <UserAvatar
+                author={props.author}
+                showImage={props.includeHeader}
+                onAuthorClick={props.onAuthorClick}
+              />
+              <Box style={styles.sendIndicatorContainer}>
+                {/* $FlowIssue doesn't like HOCTimers */}
+                <SendIndicator
+                  sent={props.messageSent}
+                  failed={props.messageFailed}
+                  style={{marginBottom: 2}}
+                  id={props.message.timestamp}
+                />
+              </Box>
+            </Box>
             <Box style={styles.flexOneColumn} className="message-wrapper">
               {props.includeHeader && (
                 <Username
@@ -176,6 +188,13 @@ const styles = styleSheetCreate({
     marginRight: globalMargins.xtiny,
     paddingLeft: globalMargins.xtiny,
     paddingRight: globalMargins.xtiny,
+  },
+  sendIndicatorContainer: {
+    ...globalStyles.flexBoxColumn,
+    flex: 1,
+    alignItems: 'flex-start',
+    justifyContent: 'flex-end',
+    width: 32,
   },
   userAvatar: {width: 32},
   username: {

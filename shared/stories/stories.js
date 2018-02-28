@@ -3,6 +3,7 @@ import avatar from '../common-adapters/avatar.stories'
 import buttonBar from '../common-adapters/button-bar.stories'
 import button from '../common-adapters/button.stories'
 import box from '../common-adapters/box.stories'
+import chatSendAnimation from '../chat/conversation/messages/wrapper/chat-send.stories'
 import chatInboxRow from '../chat/inbox/row/index.stories'
 import chatInfoPanel from '../chat/conversation/info-panel/index.stories'
 import chatInfoPanelNotifications from '../chat/conversation/info-panel/notifications/index.stories'
@@ -34,6 +35,7 @@ const stories = {
   buttonBar,
   chatChannelMentionHud,
   chatCreateChannel,
+  chatSendAnimation,
   chatInboxRow,
   chatInfoPanel,
   chatInfoPanelNotifications,
