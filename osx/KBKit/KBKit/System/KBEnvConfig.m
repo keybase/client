@@ -195,6 +195,22 @@
   }
 }
 
+- (BOOL)redirectorDisabled {
+  NSString *rootConfigPath = NSStringWithFormat(@"/etc/%@/config.json", [self appNameWithDot]);
+  NSData *data = [NSData dataWithContentsOfFile:rootConfigPath];
+  if (data) {
+    NSError *err = nil;
+    NSDictionary *appConfig = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&err];
+    if (!err) {
+      id obj = [appConfig valueForKeyPath:@"disable-root-redirector"];
+      if (obj) {
+        return (BOOL)obj;
+      }
+    }
+  }
+  return NO;
+}
+
 - (NSString *)kbfsBinName {
   switch(_runMode) {
     case KBRunModeDevel: return @"kbfsdev";

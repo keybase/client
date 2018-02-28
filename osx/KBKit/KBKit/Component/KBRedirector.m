@@ -30,6 +30,12 @@
 }
 
 - (void)install:(KBCompletion)completion {
+  if ([self.config.redirectorDisabled]) {
+    DDLogDebug(@"The redirector is disabled; ignoring");
+    completion(nil);
+    return;
+  }
+
   uid_t uid = 0;
   gid_t gid = 0;
   NSNumber *permissions = [NSNumber numberWithShort:0600];
