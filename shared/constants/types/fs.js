@@ -1,6 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import {type IconType} from '../../common-adapters/icon'
+import {type TextType} from '../../common-adapters/text'
 
 export opaque type Path = ?string
 
@@ -56,16 +57,24 @@ export type PathBreadcrumbItem = {
   isTlfNameItem: boolean,
   isLastItem: boolean,
   name: string,
-  path: string,
+  onOpenBreadcrumb: (evt?: SyntheticEvent<>) => void,
 }
 
 export type _State = {
   pathItems: I.Map<Path, PathItem>,
   pathUserSettings: I.Map<Path, PathUserSetting>,
+  loadingPaths: I.Set<Path>,
 }
 export type State = I.RecordOf<_State>
 
 export type Visibility = 'private' | 'public' | 'team' | null
+
+export type ItemStyles = {
+  iconType: IconType,
+  iconColor: string, // Temporary until we switch to PNG icons.
+  textColor: string,
+  textType: TextType,
+}
 
 export const stringToPath = (s: string): Path => (s.indexOf('/') === 0 ? s : null)
 export const pathToString = (p: Path): string => (!p ? '' : p)
@@ -158,21 +167,21 @@ export const sortSettingToIconTypeAndText = (s: _SortSetting): sortSettingDispla
     case 'name':
       return s.sortOrder === 'asc'
         ? {
-            sortSettingIconType: 'iconfont-new',
+            sortSettingIconType: 'iconfont-arrow-full-down',
             sortSettingText: 'Name ascending',
           }
         : {
-            sortSettingIconType: 'iconfont-new',
+            sortSettingIconType: 'iconfont-arrow-full-up',
             sortSettingText: 'Name descending',
           }
     case 'time':
       return s.sortOrder === 'asc'
         ? {
-            sortSettingIconType: 'iconfont-new',
+            sortSettingIconType: 'iconfont-time',
             sortSettingText: 'Recent first',
           }
         : {
-            sortSettingIconType: 'iconfont-new',
+            sortSettingIconType: 'iconfont-time-reversed',
             sortSettingText: 'Older first',
           }
     default:

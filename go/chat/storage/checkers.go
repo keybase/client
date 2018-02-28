@@ -26,7 +26,7 @@ func makeBodyHashIndexValue(convID chat1.ConversationID, msgID chat1.MessageID) 
 	return []byte(fmt.Sprintf("%s:%d", hex.EncodeToString(convID), msgID))
 }
 
-// Check the current message's body hash against all the body hashes we've
+// CheckAndRecordBodyHash checks the current message's body hash against all the body hashes we've
 // seen, to prevent replays. If the header hash is new, add it to the set.
 func CheckAndRecordBodyHash(ctx context.Context, g *globals.Context, bodyHash chat1.Hash, uniqueMsgID chat1.MessageID, uniqueConvID chat1.ConversationID) error {
 	bodyHashKey := makeBodyHashIndexKey(bodyHash)
@@ -35,13 +35,13 @@ func CheckAndRecordBodyHash(ctx context.Context, g *globals.Context, bodyHash ch
 	// Log errors as warnings, and skip this check. That prevents a corrupt
 	// leveldb cache from breaking chat.
 	if err != nil {
-		g.Log.CWarningf(ctx, "error getting body hash key from chat db: %s", err)
+		g.Log.CDebugf(ctx, "error getting body hash key from chat db: %s", err)
 		return nil
 	}
 	if found {
 		if !bytes.Equal(existingVal, bodyHashValue) {
 			err := fmt.Errorf("chat message body hash replay detected, %s != %s", string(existingVal), string(bodyHashValue))
-			g.Log.CErrorf(ctx, "%s", err)
+			g.Log.CDebugf(ctx, "%s", err)
 			return err
 		}
 		return nil
@@ -49,7 +49,7 @@ func CheckAndRecordBodyHash(ctx context.Context, g *globals.Context, bodyHash ch
 	err = g.LocalChatDb.PutRaw(bodyHashKey, bodyHashValue)
 	// Also suppress write errors.
 	if err != nil {
-		g.Log.CWarningf(ctx, "error writing body hash key to chat db: %s", err)
+		g.Log.CDebugf(ctx, "error writing body hash key to chat db: %s", err)
 	}
 	return nil
 }
@@ -66,7 +66,7 @@ func makePrevIndexValue(headerHash chat1.Hash) []byte {
 	return []byte(hex.EncodeToString(headerHash))
 }
 
-// Check the current message's header hash against all the prev pointers we've
+// CheckAndRecordPrevPointer checks the current message's header hash against all the prev pointers we've
 // ever seen. If the current message is new, add it to the set.
 func CheckAndRecordPrevPointer(ctx context.Context, g *globals.Context, msgID chat1.MessageID, convID chat1.ConversationID, uniqueHeaderHash chat1.Hash) error {
 	prevKey := makePrevIndexKey(convID, msgID)
@@ -80,9 +80,9 @@ func CheckAndRecordPrevPointer(ctx context.Context, g *globals.Context, msgID ch
 	}
 	if found {
 		if !bytes.Equal(existingVal, headerHashVal) {
-			g.Log.CErrorf(ctx, "chat message prev pointer inconsistency detected")
-			g.Log.CErrorf(ctx, "in conv_id %s, msg_id %s", convID.String(), msgID.String())
-			g.Log.CErrorf(ctx, "mismatch: %s (stored) != %s (new)", string(existingVal), string(headerHashVal))
+			g.Log.CDebugf(ctx, "chat message prev pointer inconsistency detected")
+			g.Log.CDebugf(ctx, "in conv_id %s, msg_id %s", convID.String(), msgID.String())
+			g.Log.CDebugf(ctx, "mismatch: %s (stored) != %s (new)", string(existingVal), string(headerHashVal))
 			err := fmt.Errorf("chat message prev pointer inconsistency detected, %s != %s", string(existingVal), string(headerHashVal))
 			return err
 		}
@@ -92,7 +92,7 @@ func CheckAndRecordPrevPointer(ctx context.Context, g *globals.Context, msgID ch
 	err = g.LocalChatDb.PutRaw(prevKey, headerHashVal)
 	// Also suppress write errors.
 	if err != nil {
-		g.Log.CWarningf(ctx, "error writing body hash key to chat db: %s", err)
+		g.Log.CDebugf(ctx, "error writing body hash key to chat db: %s", err)
 	}
 	return nil
 }

@@ -275,6 +275,7 @@ func (b *baseInboxSource) GetInboxQueryLocalToRemote(ctx context.Context,
 			return nil, info, err
 		}
 		rquery.TlfID = &info.ID
+		rquery.MembersTypes = []chat1.ConversationMembersType{lquery.Name.MembersType}
 		b.Debug(ctx, "GetInboxQueryLocalToRemote: mapped name %q to TLFID %v",
 			lquery.Name.Name, info.ID)
 	}

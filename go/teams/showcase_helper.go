@@ -63,6 +63,19 @@ func GetTeamAndMemberShowcase(ctx context.Context, g *libkb.GlobalContext, teamn
 
 		var memberRet memberShowcaseRes
 		if err := g.API.GetDecode(arg, &memberRet); err != nil {
+			if appErr, ok := err.(libkb.AppStatusError); ok &&
+				appErr.Code == int(keybase1.StatusCode_SCTeamShowcasePermDenied) {
+				// It is possible that we were still a member when
+				// GetForTeamManagement* was called, but we are not a member
+				// anymore, so `team/member_showcase` fails. Note that this
+				// endpoint does not work for implicit admins, hence the role
+				// checks before calling it - but if we have outdated team
+				// information, we might still end up here not being allowed
+				// to call it and getting this error.
+				g.Log.CDebugf(ctx, "GetTeamAndMemberShowcase hit a race with team %q", teamname)
+				return ret, nil
+			}
+
 			return ret, err
 		}
 

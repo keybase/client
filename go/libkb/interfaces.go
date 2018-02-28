@@ -169,7 +169,6 @@ type ConfigReader interface {
 	GetUpdateLastChecked() keybase1.Time
 	GetUpdateURL() string
 	GetUpdateDisabled() (bool, bool)
-	IsAdmin() (bool, bool)
 }
 
 type UpdaterConfigReader interface {
@@ -601,7 +600,6 @@ type ConnectivityMonitor interface {
 type TeamLoader interface {
 	VerifyTeamName(ctx context.Context, id keybase1.TeamID, name keybase1.TeamName) error
 	ImplicitAdmins(ctx context.Context, teamID keybase1.TeamID) (impAdmins []keybase1.UserVersion, err error)
-	MapIDToName(ctx context.Context, id keybase1.TeamID) (keybase1.TeamName, error)
 	NotifyTeamRename(ctx context.Context, id keybase1.TeamID, newName string) error
 	Load(context.Context, keybase1.LoadTeamArg) (*keybase1.TeamData, error)
 	// Delete the cache entry. Does not error if there is no cache entry.

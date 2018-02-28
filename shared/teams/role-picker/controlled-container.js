@@ -2,7 +2,7 @@
 import React from 'react'
 import {RoleOptions} from '.'
 import {connect} from 'react-redux'
-import {compose, withHandlers, withState} from 'recompose'
+import {compose, withHandlers, withStateHandlers} from '../../util/container'
 import {PopupDialog, HeaderHoc, ScrollView} from '../../common-adapters/index'
 import {isMobile} from '../../constants/platform'
 import {type TypedState} from '../../constants/reducer'
@@ -61,8 +61,16 @@ const PopupWrapped = props => (
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
-  withState('selectedRole', 'setSelectedRole', props => props.currentType),
-  withState('sendNotification', 'setSendNotification', props => props.sendNotificationChecked),
+  withStateHandlers(
+    ({currentType, sendNotificationChecked}) => ({
+      selectedRole: currentType,
+      sendNotification: sendNotificationChecked,
+    }),
+    {
+      setSelectedRole: () => selectedRole => ({selectedRole}),
+      setSendNotification: () => sendNotification => ({sendNotification}),
+    }
+  ),
   withHandlers({
     setConfirm: ({_onComplete, onCancel, selectedRole, sendNotification}) => (confirm: boolean) => {
       _onComplete(selectedRole, sendNotification)

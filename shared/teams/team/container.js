@@ -8,8 +8,7 @@ import * as KBFSGen from '../../actions/kbfs-gen'
 import * as React from 'react'
 import Team, {CustomComponent} from '.'
 import {HeaderHoc} from '../../common-adapters'
-import {compose, lifecycle, withState} from 'recompose'
-import {connect, type TypedState} from '../../util/container'
+import {connect, compose, lifecycle, withStateHandlers, type TypedState} from '../../util/container'
 import {createGetProfile} from '../../actions/tracker-gen'
 import {isMobile} from '../../constants/platform'
 import {navigateAppend} from '../../actions/route-tree'
@@ -162,7 +161,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 }
 
 export default compose(
-  withState('showMenu', 'setShowMenu', false),
+  withStateHandlers({showMenu: false}, {setShowMenu: () => showMenu => ({showMenu})}),
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentDidMount: function() {

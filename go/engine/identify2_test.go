@@ -1022,7 +1022,7 @@ func _testNoSelfHostedIdentifyInPassiveMode(t *testing.T, sigVersion libkb.SigVe
 	defer tc.Cleanup()
 
 	eve := CreateAndSignupFakeUser(tc, "e")
-	_, _, err := proveRooter(tc.G, eve)
+	_, _, err := proveRooter(tc.G, eve, sigVersion)
 	tc.G.ProofCache.DisableDisk()
 	require.NoError(t, err)
 	Logout(tc)

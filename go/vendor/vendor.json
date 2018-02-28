@@ -120,6 +120,11 @@
 			"revisionTime": "2017-09-01T14:55:54Z"
 		},
 		{
+			"path": "github.com/danieljoos/wincred",
+			"revision": "412b574fb496839b312a75fba146bd32a89001cf",
+			"revisionTime": "2017-04-09T20:24:07+02:00"
+		},
+		{
 			"checksumSHA1": "dvabztWVQX8f6oMLRyv4dLH+TGY=",
 			"path": "github.com/davecgh/go-spew/spew",
 			"revision": "346938d642f2ec3594ed81d874461961cd0faa76",

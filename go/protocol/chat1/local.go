@@ -2139,6 +2139,7 @@ type MessageUnboxedValid struct {
 	AtMentionUsernames    []string                    `codec:"atMentionUsernames" json:"atMentionUsernames"`
 	AtMentions            []gregor1.UID               `codec:"atMentions" json:"atMentions"`
 	ChannelMention        ChannelMention              `codec:"channelMention" json:"channelMention"`
+	ChannelNameMentions   []ChannelNameMention        `codec:"channelNameMentions" json:"channelNameMentions"`
 }
 
 func (o MessageUnboxedValid) DeepCopy() MessageUnboxedValid {
@@ -2200,6 +2201,17 @@ func (o MessageUnboxedValid) DeepCopy() MessageUnboxedValid {
 			return ret
 		})(o.AtMentions),
 		ChannelMention: o.ChannelMention.DeepCopy(),
+		ChannelNameMentions: (func(x []ChannelNameMention) []ChannelNameMention {
+			if x == nil {
+				return nil
+			}
+			var ret []ChannelNameMention
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.ChannelNameMentions),
 	}
 }
 
@@ -2897,6 +2909,32 @@ var GetThreadNonblockCbModeRevMap = map[GetThreadNonblockCbMode]string{
 
 func (e GetThreadNonblockCbMode) String() string {
 	if v, ok := GetThreadNonblockCbModeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type GetThreadNonblockReason int
+
+const (
+	GetThreadNonblockReason_GENERAL GetThreadNonblockReason = 0
+	GetThreadNonblockReason_PUSH    GetThreadNonblockReason = 1
+)
+
+func (o GetThreadNonblockReason) DeepCopy() GetThreadNonblockReason { return o }
+
+var GetThreadNonblockReasonMap = map[string]GetThreadNonblockReason{
+	"GENERAL": 0,
+	"PUSH":    1,
+}
+
+var GetThreadNonblockReasonRevMap = map[GetThreadNonblockReason]string{
+	0: "GENERAL",
+	1: "PUSH",
+}
+
+func (e GetThreadNonblockReason) String() string {
+	if v, ok := GetThreadNonblockReasonRevMap[e]; ok {
 		return v
 	}
 	return ""
@@ -3770,6 +3808,7 @@ type GetThreadNonblockArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	CbMode           GetThreadNonblockCbMode      `codec:"cbMode" json:"cbMode"`
+	Reason           GetThreadNonblockReason      `codec:"reason" json:"reason"`
 	Query            *GetThreadQuery              `codec:"query,omitempty" json:"query,omitempty"`
 	Pagination       *UIPagination                `codec:"pagination,omitempty" json:"pagination,omitempty"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
@@ -3880,6 +3919,14 @@ type PostDeleteHistoryUptoArg struct {
 	TlfPublic        bool                         `codec:"tlfPublic" json:"tlfPublic"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 	Upto             MessageID                    `codec:"upto" json:"upto"`
+}
+
+type PostDeleteHistoryThroughArg struct {
+	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
+	TlfName          string                       `codec:"tlfName" json:"tlfName"`
+	TlfPublic        bool                         `codec:"tlfPublic" json:"tlfPublic"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+	Through          MessageID                    `codec:"through" json:"through"`
 }
 
 type PostDeleteHistoryByAgeArg struct {
@@ -4098,6 +4145,7 @@ type LocalInterface interface {
 	PostMetadataNonblock(context.Context, PostMetadataNonblockArg) (PostLocalNonblockRes, error)
 	PostMetadata(context.Context, PostMetadataArg) (PostLocalRes, error)
 	PostDeleteHistoryUpto(context.Context, PostDeleteHistoryUptoArg) (PostLocalRes, error)
+	PostDeleteHistoryThrough(context.Context, PostDeleteHistoryThroughArg) (PostLocalRes, error)
 	PostDeleteHistoryByAge(context.Context, PostDeleteHistoryByAgeArg) (PostLocalRes, error)
 	SetConversationStatusLocal(context.Context, SetConversationStatusLocalArg) (SetConversationStatusLocalRes, error)
 	NewConversationLocal(context.Context, NewConversationLocalArg) (NewConversationLocalRes, error)
@@ -4382,6 +4430,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.PostDeleteHistoryUpto(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"postDeleteHistoryThrough": {
+				MakeArg: func() interface{} {
+					ret := make([]PostDeleteHistoryThroughArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PostDeleteHistoryThroughArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PostDeleteHistoryThroughArg)(nil), args)
+						return
+					}
+					ret, err = i.PostDeleteHistoryThrough(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4962,6 +5026,11 @@ func (c LocalClient) PostMetadata(ctx context.Context, __arg PostMetadataArg) (r
 
 func (c LocalClient) PostDeleteHistoryUpto(ctx context.Context, __arg PostDeleteHistoryUptoArg) (res PostLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.postDeleteHistoryUpto", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) PostDeleteHistoryThrough(ctx context.Context, __arg PostDeleteHistoryThroughArg) (res PostLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.postDeleteHistoryThrough", []interface{}{__arg}, &res)
 	return
 }
 

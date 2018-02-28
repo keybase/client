@@ -621,7 +621,7 @@ func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID, packed []byte) er
 	}
 
 	var payload []byte
-	if trusted {
+	if trusted && tmp.sigVersion == 1 {
 		// use payload from sig
 		payload, err = tmp.Payload()
 		if err != nil {
@@ -1074,7 +1074,7 @@ func (c *ChainLink) GetSigchainV2Type() (SigchainV2Type, error) {
 	if c.unpacked == nil || c.unpacked.typ == "" {
 		return SigchainV2TypeNone, errors.New("chain link not unpacked")
 	}
-	return SigchainV2TypeFromV1TypeAndRevocations(c.unpacked.typ, c.HasRevocations())
+	return SigchainV2TypeFromV1TypeAndRevocations(c.unpacked.typ, SigHasRevokes(c.HasRevocations()))
 }
 
 func (c *ChainLink) checkServerSignatureMetadata(ckf ComputedKeyFamily) (ret keybase1.KID, err error) {

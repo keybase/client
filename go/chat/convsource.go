@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"time"
 
 	"sync"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -201,6 +201,8 @@ func (s *RemoteConversationSource) Expunge(ctx context.Context,
 	return nil
 }
 
+var errConvLockTabDeadlock = errors.New("acquire conv lock deadlock")
+
 type conversationLock struct {
 	refs, shares int
 	trace        string
@@ -212,15 +214,19 @@ type conversationLockTab struct {
 	sync.Mutex
 	utils.DebugLabeler
 
-	convLocks map[string]*conversationLock
-	blockCb   *chan struct{} // Testing
+	maxAcquireRetries int
+	convLocks         map[string]*conversationLock
+	waits             map[string]string
+	blockCb           *chan struct{} // Testing
 }
 
 func newConversationLockTab(g *globals.Context) *conversationLockTab {
 	return &conversationLockTab{
-		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "conversationLockTab", false),
-		convLocks:    make(map[string]*conversationLock),
+		Contextified:      globals.NewContextified(g),
+		DebugLabeler:      utils.NewDebugLabeler(g.GetLog(), "conversationLockTab", false),
+		convLocks:         make(map[string]*conversationLock),
+		waits:             make(map[string]string),
+		maxAcquireRetries: 25,
 	}
 }
 
@@ -228,15 +234,31 @@ func (c *conversationLockTab) key(uid gregor1.UID, convID chat1.ConversationID) 
 	return fmt.Sprintf("%s:%s", uid, convID)
 }
 
-// Acquire obtains a per user per conversation lock on a per trace basis. That is, the lock is a
-// shared lock for the current chat trace, and serves to synchronize large chat operations. If there is
-// no chat trace, this is a no-op.
-func (c *conversationLockTab) Acquire(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (blocked bool) {
+// deadlockDetect tries to find a deadlock condition in the current set of waiting acquirers.
+func (c *conversationLockTab) deadlockDetect(ctx context.Context, trace string, waiters map[string]bool) bool {
+	// See if this trace is waiting on any other trace
+	waitingOnTrace, ok := c.waits[trace]
+	if !ok {
+		// If not, no deadlock
+		return false
+	}
+	// If we are waiting on a trace we have already encountered, then we have hit a deadlock
+	if waiters[waitingOnTrace] {
+		c.Debug(ctx, "deadlockDetect: deadlock detected: trace: %s waitingOnTrace: %s waiters: %v",
+			trace, waitingOnTrace, waiters)
+		return true
+	}
+	// Set the current trace as waiting, and then continue down the chain
+	waiters[trace] = true
+	return c.deadlockDetect(ctx, waitingOnTrace, waiters)
+}
+
+func (c *conversationLockTab) doAcquire(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (blocked bool, err error) {
 	key := c.key(uid, convID)
 	trace, ok := CtxTrace(ctx)
 	if !ok {
 		c.Debug(ctx, "Acquire: failed to find trace value, not using a lock: convID: %s", convID)
-		return false
+		return false, nil
 	}
 
 	c.Lock()
@@ -251,14 +273,23 @@ func (c *conversationLockTab) Acquire(ctx context.Context, uid gregor1.UID, conv
 		if c.blockCb != nil {
 			*c.blockCb <- struct{}{} // For testing
 		}
+		c.waits[trace] = lock.trace
+		// If we get blocked, let's make sure we aren't in a deadlock situation, and if so, we bail out
+		if c.deadlockDetect(ctx, lock.trace, map[string]bool{
+			trace: true,
+		}) {
+			c.Unlock()
+			return true, errConvLockTabDeadlock
+		}
 		lock.refs++
 		c.Unlock() // Give up map lock while we are waiting for conv lock
 		lock.lock.Lock()
 		c.Lock()
+		delete(c.waits, trace)
 		lock.trace = trace
 		lock.shares = 1
 		c.Unlock()
-		return true
+		return true, nil
 	}
 
 	lock := &conversationLock{
@@ -269,7 +300,28 @@ func (c *conversationLockTab) Acquire(ctx context.Context, uid gregor1.UID, conv
 	c.convLocks[key] = lock
 	lock.lock.Lock()
 	c.Unlock()
-	return false
+	return false, nil
+}
+
+// Acquire obtains a per user per conversation lock on a per trace basis. That is, the lock is a
+// shared lock for the current chat trace, and serves to synchronize large chat operations. If there is
+// no chat trace, this is a no-op.
+func (c *conversationLockTab) Acquire(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (blocked bool, err error) {
+	sleep := 200 * time.Millisecond
+	for i := 0; i < c.maxAcquireRetries; i++ {
+		blocked, err = c.doAcquire(ctx, uid, convID)
+		if err != nil {
+			if err != errConvLockTabDeadlock {
+				return true, err
+			}
+			c.Debug(ctx, "Acquire: deadlock condition detected, sleeping and trying again: attempt: %d", i)
+			time.Sleep(sleep)
+			continue
+		}
+		return blocked, nil
+	}
+	c.Debug(ctx, "Acquire: giving up, max attempts reached")
+	return true, errConvLockTabDeadlock
 }
 
 func (c *conversationLockTab) Release(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (released bool) {
@@ -284,7 +336,8 @@ func (c *conversationLockTab) Release(ctx context.Context, uid gregor1.UID, conv
 	key := c.key(uid, convID)
 	if lock, ok := c.convLocks[key]; ok {
 		if lock.trace != trace {
-			c.Debug(ctx, "Release: different trace trying to free lock? convID: %s lock.trace: %s trace: %s", convID, lock.trace, trace)
+			c.Debug(ctx, "Release: different trace trying to free lock? convID: %s lock.trace: %s trace: %s",
+				convID, lock.trace, trace)
 		} else {
 			lock.shares--
 			if lock.shares == 0 {
@@ -326,7 +379,9 @@ func NewHybridConversationSource(g *globals.Context, b *Boxer, storage *storage.
 func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msg chat1.MessageBoxed) (decmsg chat1.MessageUnboxed, continuousUpdate bool, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Push")()
-	s.lockTab.Acquire(ctx, uid, convID)
+	if _, err = s.lockTab.Acquire(ctx, uid, convID); err != nil {
+		return decmsg, continuousUpdate, err
+	}
 	defer s.lockTab.Release(ctx, uid, convID)
 
 	// Grab conversation information before pushing
@@ -502,7 +557,9 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	if convID.IsNil() {
 		return chat1.ThreadView{}, rl, errors.New("HybridConversationSource.Pull called with empty convID")
 	}
-	s.lockTab.Acquire(ctx, uid, convID)
+	if _, err = s.lockTab.Acquire(ctx, uid, convID); err != nil {
+		return thread, rl, err
+	}
 	defer s.lockTab.Release(ctx, uid, convID)
 
 	// Get conversation metadata
@@ -532,13 +589,6 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 					s.Debug(ctx, "Pull: identify failed: %s", ierr.Error())
 					return chat1.ThreadView{}, rl, ierr
 				}
-
-				// Before returning the stuff, update SenderDeviceRevokedAt on each message.
-				updatedMessages, err := s.updateMessages(ctx, thread.Messages)
-				if err != nil {
-					return chat1.ThreadView{}, rl, err
-				}
-				thread.Messages = updatedMessages
 
 				// Before returning the stuff, send remote request to mark as read if
 				// requested.
@@ -613,63 +663,6 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	return thread, rl, nil
 }
 
-func (s *HybridConversationSource) updateMessages(ctx context.Context, messages []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error) {
-	updatedMessages := make([]chat1.MessageUnboxed, 0, len(messages))
-	for _, m := range messages {
-		m2, err := s.updateMessage(ctx, m)
-		if err != nil {
-			return updatedMessages, err
-		}
-		updatedMessages = append(updatedMessages, m2)
-	}
-	return updatedMessages, nil
-}
-
-func (s *HybridConversationSource) updateMessage(ctx context.Context, message chat1.MessageUnboxed) (chat1.MessageUnboxed, error) {
-	typ, err := message.State()
-	if err != nil {
-		return chat1.MessageUnboxed{}, err
-	}
-	switch typ {
-	case chat1.MessageUnboxedState_VALID:
-		m := message.Valid()
-
-		var verificationKey []byte
-
-		if m.HeaderSignature != nil {
-			verificationKey = m.HeaderSignature.K
-		}
-
-		if m.VerificationKey != nil {
-			verificationKey = *m.VerificationKey
-		}
-
-		if verificationKey == nil {
-			// Skip revocation check for messages cached before the sig/key was part of the cache.
-			s.Debug(ctx, "updateMessage skipping message (%v) with no cached HeaderSignature", m.ServerHeader.MessageID)
-			return message, nil
-		}
-
-		sender := m.ClientHeader.Sender
-		ctime := m.ServerHeader.Ctime
-		found, validAtCtime, revoked, err := s.boxer.ValidSenderKey(ctx, sender, verificationKey, ctime)
-		if err != nil {
-			return chat1.MessageUnboxed{}, err
-		}
-		if !found {
-			return chat1.MessageUnboxed{}, NewPermanentUnboxingError(libkb.NoKeyError{Msg: "sender key not found"})
-		}
-		if !validAtCtime {
-			return chat1.MessageUnboxed{}, NewPermanentUnboxingError(libkb.NoKeyError{Msg: "key invalid for sender at message ctime"})
-		}
-		m.SenderDeviceRevokedAt = revoked
-		updatedMessage := chat1.NewMessageUnboxedWithValid(m)
-		return updatedMessage, nil
-	default:
-		return message, nil
-	}
-}
-
 type pullLocalResultCollector struct {
 	*storage.SimpleResultCollector
 	num int
@@ -701,7 +694,9 @@ func newPullLocalResultCollector(num int) *pullLocalResultCollector {
 func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (tv chat1.ThreadView, err error) {
 	defer s.Trace(ctx, func() error { return err }, "PullLocalOnly")()
-	s.lockTab.Acquire(ctx, uid, convID)
+	if _, err = s.lockTab.Acquire(ctx, uid, convID); err != nil {
+		return tv, err
+	}
 	defer s.lockTab.Release(ctx, uid, convID)
 
 	// Post process thread before returning
@@ -757,7 +752,9 @@ func (m ByMsgID) Less(i, j int) bool { return m[i].GetMessageID() > m[j].GetMess
 func (s *HybridConversationSource) GetMessages(ctx context.Context, conv types.UnboxConversationInfo,
 	uid gregor1.UID, msgIDs []chat1.MessageID) ([]chat1.MessageUnboxed, error) {
 	convID := conv.GetConvID()
-	s.lockTab.Acquire(ctx, uid, convID)
+	if _, err := s.lockTab.Acquire(ctx, uid, convID); err != nil {
+		return nil, err
+	}
 	defer s.lockTab.Release(ctx, uid, convID)
 
 	rmsgsTab := make(map[chat1.MessageID]chat1.MessageUnboxed)
@@ -832,7 +829,9 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, conv types.U
 func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 	conv chat1.Conversation, uid gregor1.UID, msgs []chat1.MessageBoxed) ([]chat1.MessageUnboxed, error) {
 	convID := conv.GetConvID()
-	s.lockTab.Acquire(ctx, uid, convID)
+	if _, err := s.lockTab.Acquire(ctx, uid, convID); err != nil {
+		return nil, err
+	}
 	defer s.lockTab.Release(ctx, uid, convID)
 
 	var res []chat1.MessageUnboxed
@@ -875,7 +874,7 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 	}
 	if len(merges) > 0 {
 		sort.Sort(ByMsgID(merges))
-		if err = s.mergeMaybeNotify(ctx, convID, uid, merges); err != nil {
+		if err := s.mergeMaybeNotify(ctx, convID, uid, merges); err != nil {
 			return res, err
 		}
 	}

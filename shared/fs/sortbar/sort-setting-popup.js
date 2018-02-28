@@ -2,13 +2,14 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import {type RouteProps} from '../../route-tree/render-route'
-import {ModalLessPopupMenu} from '../../common-adapters/popup-menu'
+import PopupMenu from '../../common-adapters/popup-menu'
 import {Icon, Box, Text} from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors, isMobile} from '../../styles'
 
 type SortBarPopupMenuProps = RouteProps<
   {
     sortSettingToAction: Types._SortSetting => () => void,
+    onHidden: () => void,
   },
   {}
 >
@@ -23,22 +24,28 @@ const sortSettings = [
 const stylesSortSetting = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-  justifyContent: 'start',
+  justifyContent: 'flex-start',
   minHeight: isMobile ? 24 : 24,
 }
 
 const stylesPopup = {
   position: 'absolute',
   left: 88,
-  top: 64,
+  top: 80,
 }
 const stylesIcon = {
-  marginRight: globalMargins.xtiny,
+  marginRight: globalMargins.tiny,
   color: globalColors.black_75,
+  fontSize: 13,
 }
 
-const SortBarPopupMenu = (props: SortBarPopupMenuProps) => {
-  const sortSettingToAction = props.routeProps.get('sortSettingToAction')
+const iconBoxStyle = {
+  marginTop: 3,
+}
+
+const SortBarPopupMenu = ({routeProps}: SortBarPopupMenuProps) => {
+  const sortSettingToAction = routeProps.get('sortSettingToAction')
+  const onHidden = routeProps.get('onHidden')
   const popupItems = sortSettings.map(sortSetting => {
     const {sortSettingIconType, sortSettingText} = Types.sortSettingToIconTypeAndText(sortSetting)
     return {
@@ -46,13 +53,15 @@ const SortBarPopupMenu = (props: SortBarPopupMenuProps) => {
       title: sortSettingText,
       view: (
         <Box style={stylesSortSetting}>
-          <Icon type={sortSettingIconType} style={stylesIcon} />
+          <Box style={iconBoxStyle}>
+            <Icon type={sortSettingIconType} style={stylesIcon} />
+          </Box>
           <Text type="Body">{sortSettingText}</Text>
         </Box>
       ),
     }
   })
-  return <ModalLessPopupMenu items={popupItems} style={stylesPopup} />
+  return <PopupMenu items={popupItems} style={stylesPopup} onHidden={onHidden} />
 }
 
 export default SortBarPopupMenu

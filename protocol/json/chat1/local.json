@@ -1084,6 +1084,13 @@
         {
           "type": "ChannelMention",
           "name": "channelMention"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ChannelNameMention"
+          },
+          "name": "channelNameMentions"
         }
       ]
     },
@@ -1583,6 +1590,14 @@
       "symbols": [
         "FULL_0",
         "INCREMENTAL_1"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "GetThreadNonblockReason",
+      "symbols": [
+        "GENERAL_0",
+        "PUSH_1"
       ]
     },
     {
@@ -2329,6 +2344,10 @@
           "type": "GetThreadNonblockCbMode"
         },
         {
+          "name": "reason",
+          "type": "GetThreadNonblockReason"
+        },
+        {
           "name": "query",
           "type": [
             null,
@@ -2713,6 +2732,31 @@
         },
         {
           "name": "upto",
+          "type": "MessageID"
+        }
+      ],
+      "response": "PostLocalRes"
+    },
+    "postDeleteHistoryThrough": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "tlfPublic",
+          "type": "boolean"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        },
+        {
+          "name": "through",
           "type": "MessageID"
         }
       ],

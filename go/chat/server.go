@@ -487,7 +487,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
 	defer h.Trace(ctx, func() error { return fullErr },
-		fmt.Sprintf("GetThreadNonblock(%s)", arg.ConversationID))()
+		fmt.Sprintf("GetThreadNonblock(%s,%v,%v)", arg.ConversationID, arg.CbMode, arg.Reason))()
 	defer func() {
 		fullErr = h.handleOfflineError(ctx, fullErr, &res)
 
@@ -1111,6 +1111,18 @@ func (h *Server) PostDeleteHistoryUpto(ctx context.Context, arg chat1.PostDelete
 	h.Debug(ctx, "PostDeleteHistoryUpto: deleting upto msgid:%v", delh.Upto)
 
 	return h.PostLocal(ctx, parg)
+}
+
+func (h *Server) PostDeleteHistoryThrough(ctx context.Context, arg chat1.PostDeleteHistoryThroughArg) (res chat1.PostLocalRes, err error) {
+	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "PostDeleteHistoryThrough")()
+	return h.PostDeleteHistoryUpto(ctx, chat1.PostDeleteHistoryUptoArg{
+		ConversationID:   arg.ConversationID,
+		TlfName:          arg.TlfName,
+		TlfPublic:        arg.TlfPublic,
+		IdentifyBehavior: arg.IdentifyBehavior,
+		Upto:             arg.Through + 1,
+	})
 }
 
 func (h *Server) PostDeleteHistoryByAge(ctx context.Context, arg chat1.PostDeleteHistoryByAgeArg) (res chat1.PostLocalRes, err error) {

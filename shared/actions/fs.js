@@ -48,7 +48,7 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
       ],
     ])
   )
-  yield Saga.put(FsGen.createFolderListLoaded({pathItems}))
+  yield Saga.put(FsGen.createFolderListLoaded({pathItems, path: rootPath}))
 }
 
 function* fsSaga(): Saga.SagaGenerator<any, any> {

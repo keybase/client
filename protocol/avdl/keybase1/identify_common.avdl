@@ -63,7 +63,7 @@ protocol identifyCommon {
     boolean forceRetrack;  // only used in testing
     boolean expiringLocal;
     boolean forPGPPull;
-    SigVersion sigVersion;
+    union { null, SigVersion } sigVersion;
 
   }
 
