@@ -67,7 +67,7 @@ func loadTeamForDecryption(ctx context.Context, g *libkb.GlobalContext, name str
 			}
 		}
 	}
-	team, err := LoadTeam(ctx, g, teamID, membersType, public,
+	team, err := LoadTeam(ctx, g, teamID, name, membersType, public,
 		func(teamID keybase1.TeamID) keybase1.LoadTeamArg {
 			return keybase1.LoadTeamArg{
 				ID:         teamID,
@@ -124,7 +124,7 @@ func (t *TeamsNameInfoSource) EncryptionKeys(ctx context.Context, name string, t
 	membersType chat1.ConversationMembersType, public bool) (res *types.NameInfo, err error) {
 	defer t.Trace(ctx, func() error { return err },
 		fmt.Sprintf("EncryptionKeys(%s,%s,%v)", name, teamID, public))()
-	team, err := LoadTeam(ctx, t.G().ExternalG(), teamID, membersType, public, nil)
+	team, err := LoadTeam(ctx, t.G().ExternalG(), teamID, name, membersType, public, nil)
 	if err != nil {
 		return res, err
 	}
@@ -242,7 +242,7 @@ func (t *ImplicitTeamsNameInfoSource) EncryptionKeys(ctx context.Context, name s
 	defer t.Trace(ctx, func() error { return err },
 		fmt.Sprintf("EncryptionKeys(%s,%s,%v)", name, teamID, public))()
 
-	team, err := LoadTeam(ctx, t.G().ExternalG(), teamID, membersType, public, nil)
+	team, err := LoadTeam(ctx, t.G().ExternalG(), teamID, name, membersType, public, nil)
 	if err != nil {
 		return res, err
 	}
@@ -332,7 +332,7 @@ func (t *tlfIDToTeamIDMap) Lookup(ctx context.Context, tlfID chat1.TLFID, api li
 
 var tlfIDToTeamID = newTlfIDToTeamIDMap()
 
-func LoadTeam(ctx context.Context, g *libkb.GlobalContext, tlfID chat1.TLFID,
+func LoadTeam(ctx context.Context, g *libkb.GlobalContext, tlfID chat1.TLFID, tlfName string,
 	membersType chat1.ConversationMembersType, public bool,
 	loadTeamArgOverride func(keybase1.TeamID) keybase1.LoadTeamArg) (team *teams.Team, err error) {
 
@@ -365,6 +365,14 @@ func LoadTeam(ctx context.Context, g *libkb.GlobalContext, tlfID chat1.TLFID,
 		}
 		if !tlfID.EqString(team.KBFSTLFID()) {
 			return team, fmt.Errorf("mismatch TLFID to team: %s != %s", team.KBFSTLFID(), tlfID)
+		}
+		impTeamName, err := team.ImplicitTeamDisplayNameString(ctx)
+		if err != nil {
+			return team, err
+		}
+		if impTeamName != tlfName {
+			return team, fmt.Errorf("mismatch TLF name to implicit team name: %s != %s", impTeamName,
+				tlfName)
 		}
 		return team, nil
 	}
