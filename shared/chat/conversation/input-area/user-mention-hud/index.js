@@ -12,7 +12,7 @@ import {
   type MapStateToProps,
 } from '../../../../util/container'
 import {Avatar, Box, ClickableBox, List, Text, Usernames, Icon} from '../../../../common-adapters/index'
-import {globalColors, globalMargins, globalStyles, isMobile} from '../../../../styles'
+import {globalColors, globalMargins, globalStyles, isMobile, collapseStyles} from '../../../../styles'
 import {isSpecialMention} from '../../../../constants/chat2'
 
 type Props<D: {key: string, selected: boolean}> = {
@@ -83,7 +83,7 @@ const MentionRowRenderer = ({
 // This is important if you type a filter that gives you no results and you press enter for instance
 const Hud = ({style, data, rowRenderer, selectedIndex}: Props<*>) =>
   data.length ? (
-    <Box style={{...hudStyle, ...style}}>
+    <Box style={collapseStyles([hudStyle, style])}>
       <List
         items={data}
         renderItem={rowRenderer}
