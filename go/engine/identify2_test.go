@@ -387,14 +387,9 @@ func TestIdentify2WithUIDWithBrokenTrackWithSuppressUI(t *testing.T) {
 }
 
 func TestIdentify2WithUIDWithUntrackedFastPath(t *testing.T) {
-	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		_testIdentify2WithUIDWithUntrackedFastPath(t, sigVersion)
-	})
-}
-
-func _testIdentify2WithUIDWithUntrackedFastPath(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "TestIdentify2WithUIDWithUntrackedFastPath")
 	defer tc.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 
 	fu := CreateAndSignupFakeUser(tc, "track")
 
@@ -966,15 +961,9 @@ func TestIdentify2NoSigchain(t *testing.T) {
 
 // See CORE-4310
 func TestIdentifyAfterDbNuke(t *testing.T) {
-	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		_testIdentifyAfterDbNuke(t, sigVersion)
-	})
-}
-
-func _testIdentifyAfterDbNuke(t *testing.T, sigVersion libkb.SigVersion) {
-
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 	fu := CreateAndSignupFakeUser(tc, "track")
 
 	trackAlice(tc, fu, sigVersion)
@@ -1013,13 +1002,9 @@ func _testIdentifyAfterDbNuke(t *testing.T, sigVersion libkb.SigVersion) {
 }
 
 func TestNoSelfHostedIdentifyInPassiveMode(t *testing.T) {
-	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		_testNoSelfHostedIdentifyInPassiveMode(t, sigVersion)
-	})
-}
-func _testNoSelfHostedIdentifyInPassiveMode(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "id")
 	defer tc.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 
 	eve := CreateAndSignupFakeUser(tc, "e")
 	_, _, err := proveRooter(tc.G, eve, sigVersion)

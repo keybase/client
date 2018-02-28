@@ -112,13 +112,9 @@ func _testUntrack(t *testing.T, sigVersion libkb.SigVersion) {
 }
 
 func TestUntrackRemoteOnly(t *testing.T) {
-	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		_testUntrackRemoteOnly(t, sigVersion)
-	})
-}
-func _testUntrackRemoteOnly(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "untrack")
 	defer tc.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 	fu := CreateAndSignupFakeUser(tc, "untrk")
 
 	sv := keybase1.SigVersion(sigVersion)
