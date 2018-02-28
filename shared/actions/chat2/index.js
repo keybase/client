@@ -540,8 +540,6 @@ const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType).reduc
 }, [])
 
 // Load new messages on a thread. We call this when you select a conversation, we get a thread-is-stale notification, or when you scroll up and want more messages
-// All actions aside from loadOlderMessagesDueToScroll we load the newest N messages and pass in our idea of the last N (to skip getting dupe messages back)
-// We don't whitelist the topmost message so we can detect if we have a gap above the call we just got back. If we do we need to toss any old messages (to keep things simple)
 const loadMoreMessages = (
   action:
     | Chat2Gen.SelectConversationPayload
@@ -597,13 +595,9 @@ const loadMoreMessages = (
   // When you scroll back we use that to get the next page and update the value
   // otherwise we always just load the newest N and get a new pagination value
 
-  // the messageid we're loading from (newer than or older than)
   let numberOfMessagesToLoad
-  // let newerMessages
   let paginationKey = null
 
-  // TODO test stale on the current conversation
-  //
   const meta = Constants.getMeta(state, conversationIDKey)
 
   if (action.type === Chat2Gen.loadOlderMessagesDueToScroll) {
@@ -649,7 +643,14 @@ const loadMoreMessages = (
       // If we're loading the thread clean lets clear
       if (!calledClear && action.type !== Chat2Gen.loadOlderMessagesDueToScroll) {
         calledClear = true
-        yield Saga.put(Chat2Gen.createClearOrdinals({conversationIDKey}))
+        // only clear if we've never seen the oldest message, implying there is a gap
+        if (messages.length) {
+          const oldestOrdinal = messages[messages.length - 1].ordinal
+          const state: TypedState = yield Saga.select()
+          if (!state.chat2.messageOrdinals.get(conversationIDKey, oldestOrdinal)) {
+            yield Saga.put(Chat2Gen.createClearOrdinals({conversationIDKey}))
+          }
+        }
       }
 
       if (messages.length) {
