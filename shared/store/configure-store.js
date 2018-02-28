@@ -97,8 +97,8 @@ if (__DEV__ && typeof window !== 'undefined') {
   }
 }
 
-export default function configureStore(initialState: any) {
-  const store = createStore(rootReducer, initialState, storeEnhancer(middlewares))
+export default function configureStore() {
+  const store = createStore(rootReducer, storeEnhancer(middlewares))
   theStore = store
 
   if (module.hot && !isMobile) {
