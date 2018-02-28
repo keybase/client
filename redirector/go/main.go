@@ -174,9 +174,8 @@ func (r *root) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 	if err != nil {
 		if err == fuse.ENOENT {
 			return []fuse.Dirent{}, nil
-		} else {
-			return []fuse.Dirent{}, err
 		}
+		return []fuse.Dirent{}, err
 	}
 
 	// TODO: show the `kbfs.error.txt" and "kbfs.nologin.txt" files if
