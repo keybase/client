@@ -225,7 +225,7 @@ const unboxRows = (
 
   return Saga.sequentially([
     Saga.put(Chat2Gen.createMetaRequestingTrusted({conversationIDKeys})),
-    Saga.call(loadInboxRpc.run, 30e3),
+    Saga.call(loadInboxRpc.run),
   ])
 }
 
