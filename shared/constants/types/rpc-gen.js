@@ -3344,8 +3344,6 @@ export type SimpleFSSimpleFSWaitRpcParam = $ReadOnly<{opID: OpID, incomingCallMa
 
 export type SimpleFSSimpleFSWriteRpcParam = $ReadOnly<{opID: OpID, offset: Long, content: Bytes, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SimpleFSUIFileTransferProgressRpcParam = $ReadOnly<{bytesComplete: Int, bytesTotal: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
-
 export type SocialAssertion = $ReadOnly<{user: String, service: SocialAssertionService}>
 
 export type SocialAssertionService = String
@@ -4207,7 +4205,6 @@ export type IncomingCallMapType = {
   'keybase.1.saltpackUi.saltpackVerifySuccess'?: (params: $ReadOnly<{sessionID: Int, signingKID: KID, sender: SaltpackSender}>, response: CommonResponseHandler) => void,
   'keybase.1.saltpackUi.saltpackVerifyBadSender'?: (params: $ReadOnly<{sessionID: Int, signingKID: KID, sender: SaltpackSender}>, response: CommonResponseHandler) => void,
   'keybase.1.secretUi.getPassphrase'?: (params: $ReadOnly<{sessionID: Int, pinentry: GUIEntryArg, terminal?: ?SecretEntryArg}>, response: {error: RPCErrorHandler, result: (result: SecretUiGetPassphraseResult) => void}) => void,
-  'keybase.1.SimpleFSUI.fileTransferProgress'?: (params: $ReadOnly<{bytesComplete: Int, bytesTotal: Int}>, response: CommonResponseHandler) => void,
   'keybase.1.streamUi.close'?: (params: $ReadOnly<{sessionID: Int, s: Stream}>, response: CommonResponseHandler) => void,
   'keybase.1.streamUi.read'?: (params: $ReadOnly<{sessionID: Int, s: Stream, sz: Int}>, response: {error: RPCErrorHandler, result: (result: StreamUiReadResult) => void}) => void,
   'keybase.1.streamUi.reset'?: (params: $ReadOnly<{sessionID: Int, s: Stream}>, response: CommonResponseHandler) => void,
