@@ -97,8 +97,9 @@ function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
   )
 
   // All branches except for when loggedIn is true,
-  // loggedInUserNavigated is false, and and initialState is null must
-  // finish by yielding an action which sets
+  // loggedInUserNavigated is false, and and initialState is null
+  // yield a switchRouteDef action with appRouteTree or
+  // loginRouteTree, and must finish by yielding an action which sets
   // state.routeTree.loggedInUserNavigated to true; see
   // loggedInUserNavigatedReducer.
   if (justDeletedSelf) {
