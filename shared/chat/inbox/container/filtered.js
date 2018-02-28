@@ -4,8 +4,8 @@ import {createSelector, type TypedState} from '../../../util/container'
 
 const score = (lcFilter: string, lcYou: string, names: Array<string>): number => {
   // special case, looking for yourself
-  if (lcYou === lcFilter) {
-    return names.length === 1 && names[0] === lcYou ? 1 : 0
+  if (names.length === 1 && names[0] === lcYou) {
+    return lcYou.indexOf(lcFilter) !== -1 ? 1 : 0
   }
 
   const namesMinusYou = names.filter(n => n !== lcYou)
