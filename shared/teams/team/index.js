@@ -16,9 +16,9 @@ export type Props = {
   listItems?: Array<any>,
   loading: boolean,
   selectedTab: string,
+  resetUserCount: number,
   setSelectedTab: (?Types.TabKey) => void,
   yourOperations: Types.TeamOperations,
-
   onManageChat: () => void,
   onLeaveTeam: () => void,
   onCreateSubteam: () => void,
@@ -40,6 +40,7 @@ const Team = (props: Props) => {
     numRequests: props.numRequests,
     numSubteams: props.numSubteams,
     loading: props.loading,
+    resetUserCount: props.resetUserCount,
     selectedTab: props.selectedTab,
     setSelectedTab: props.setSelectedTab,
     yourOperations: props.yourOperations,

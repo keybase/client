@@ -13,6 +13,7 @@ type TeamTabsProps = {
   numInvites: number,
   numRequests: number,
   numSubteams: number,
+  resetUserCount: number,
   loading?: boolean,
   selectedTab?: string,
   setSelectedTab: (?Types.TabKey) => void,
@@ -28,6 +29,7 @@ const TeamTabs = (props: TeamTabsProps) => {
     newTeamRequests,
     numRequests,
     numSubteams,
+    resetUserCount,
     loading = false,
     selectedTab,
     setSelectedTab,
@@ -36,15 +38,18 @@ const TeamTabs = (props: TeamTabsProps) => {
   let membersLabel = 'MEMBERS'
   membersLabel += !loading && memberCount !== 0 ? ` (${memberCount})` : ''
   const tabs = [
-    <Text
-      key="members"
-      type="BodySmallSemibold"
-      style={{
-        color: globalColors.black_75,
-      }}
-    >
-      {membersLabel}
-    </Text>,
+    <Box key="members" style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+      <Text
+        key="members"
+        type="BodySmallSemibold"
+        style={{
+          color: globalColors.black_75,
+        }}
+      >
+        {membersLabel}
+      </Text>
+      {!!resetUserCount && <Badge badgeNumber={resetUserCount} badgeStyle={{marginTop: 1, marginLeft: 2}} />}
+    </Box>,
   ]
 
   let requestsBadge = 0

@@ -17,6 +17,7 @@ type TabsRow = {
   numRequests: number,
   numSubteams: number,
   loading?: boolean,
+  resetUserCount: number,
   selectedTab?: string,
   setSelectedTab: (?Types.TabKey) => void,
   yourOperations: Types.TeamOperations,

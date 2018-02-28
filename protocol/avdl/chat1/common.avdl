@@ -23,7 +23,8 @@
   enum ConversationExistence {
     ACTIVE_0,
     ARCHIVED_1,
-    DELETED_2
+    DELETED_2,
+    ABANDONED_3
   }
 
   enum ConversationMembersType {

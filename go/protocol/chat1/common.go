@@ -126,23 +126,26 @@ func (o InboxVersInfo) DeepCopy() InboxVersInfo {
 type ConversationExistence int
 
 const (
-	ConversationExistence_ACTIVE   ConversationExistence = 0
-	ConversationExistence_ARCHIVED ConversationExistence = 1
-	ConversationExistence_DELETED  ConversationExistence = 2
+	ConversationExistence_ACTIVE    ConversationExistence = 0
+	ConversationExistence_ARCHIVED  ConversationExistence = 1
+	ConversationExistence_DELETED   ConversationExistence = 2
+	ConversationExistence_ABANDONED ConversationExistence = 3
 )
 
 func (o ConversationExistence) DeepCopy() ConversationExistence { return o }
 
 var ConversationExistenceMap = map[string]ConversationExistence{
-	"ACTIVE":   0,
-	"ARCHIVED": 1,
-	"DELETED":  2,
+	"ACTIVE":    0,
+	"ARCHIVED":  1,
+	"DELETED":   2,
+	"ABANDONED": 3,
 }
 
 var ConversationExistenceRevMap = map[ConversationExistence]string{
 	0: "ACTIVE",
 	1: "ARCHIVED",
 	2: "DELETED",
+	3: "ABANDONED",
 }
 
 func (e ConversationExistence) String() string {
