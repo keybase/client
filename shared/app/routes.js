@@ -1,5 +1,5 @@
 // @flow
-import {makeRouteDefNode} from '../route-tree'
+import {makeLeafTags, makeRouteDefNode} from '../route-tree'
 import chatRoutes from '../chat/routes'
 import loginRoutes from '../login/routes'
 import devicesRoutes from '../devices/routes'
@@ -27,6 +27,7 @@ import {
 import flags from '../util/feature-flags'
 
 const appRouteTree = makeRouteDefNode({
+  tags: makeLeafTags({title: 'AppRoot'}),
   children: {
     [chatTab]: chatRoutes,
     [folderTab]: foldersRoutes,
@@ -54,6 +55,7 @@ const appRouteTree = makeRouteDefNode({
 })
 
 const loginRouteTree = makeRouteDefNode({
+  tags: makeLeafTags({title: 'LoginRoot'}),
   children: {
     [loginTab]: loginRoutes,
   },
