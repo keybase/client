@@ -84,9 +84,10 @@ call %GOPATH%\src\github.com\keybase\client\packaging\windows\buildui.bat || got
 call %GOPATH%\src\github.com\keybase\client\packaging\windows\doinstaller_wix.cmd || goto:build_error || EXIT /B 1
 
 ::Publish to S3
+echo "Uploading %BUILD_TAG%"
+s3browser-con upload prerelease.keybase.io  %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%\Keybase_%BUILD_TAG%.386.msi prerelease.keybase.io/windows  || goto:build_error || EXIT /B 1
+
 if %UpdateChannel% NEQ "None" (
-    echo "Uploading %BUILD_TAG%"
-    s3browser-con upload prerelease.keybase.io  %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%\Keybase_%BUILD_TAG%.386.msi prerelease.keybase.io/windows  || goto:build_error || EXIT /B 1
     :: Test channel json
     s3browser-con upload prerelease.keybase.io  %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%\update-windows-prod-test-v2.json prerelease.keybase.io || goto:build_error || EXIT /B 1
 ) else (
