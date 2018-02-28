@@ -29,6 +29,14 @@ const (
 	entryValidTime = 1 * time.Minute
 )
 
+// CtxTagKey is the type used for unique context keys.
+type CtxTagKey int
+
+const (
+	// CtxHeaderUIDKey is the context key for header UIDs.
+	CtxHeaderUIDKey CtxTagKey = iota
+)
+
 // TODO: FINISH DOCS
 
 // An FS is the interface required of a file system.
@@ -905,6 +913,8 @@ func (c *Server) serve(r fuse.Request) {
 
 // handleRequest will either a) call done(s) and r.Respond(s) OR b) return an error.
 func (c *Server) handleRequest(ctx context.Context, node Node, snode *serveNode, r fuse.Request, done func(resp interface{})) error {
+	ctx = context.WithValue(ctx, CtxHeaderUIDKey, r.Hdr().Uid)
+
 	switch r := r.(type) {
 	default:
 		// Note: To FUSE, ENOSYS means "this server never implements this request."

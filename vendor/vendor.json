@@ -4,9 +4,10 @@
 	"package": [
 		{
 			"checksumSHA1": "NgV1fBpGcstO5Xc9ikwaDzvRzBQ=",
+			"origin": "github.com/keybase/fuse",
 			"path": "bazil.org/fuse",
-			"revision": "dcb23d17637ff8d5455d74ec7fcfde946d19a84b",
-			"revisionTime": "2018-02-15T18:18:15Z"
+			"revision": "3afe336dd3e3da7877742a660034c46753cf868e",
+			"revisionTime": "2018-02-28T18:57:49Z"
 		},
 		{
 			"checksumSHA1": "389JFJTJADMtZkTIfdSnsmHVOUs=",
