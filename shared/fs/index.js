@@ -11,6 +11,7 @@ type FileRowProps = {
   elems: Array<string>,
   name: string,
   path: Types.Path,
+  type: Types.PathType,
   itemStyles: Types.ItemStyles,
   onOpen: () => void,
   visibility: Types.Visibility,
@@ -23,38 +24,30 @@ type FolderProps = {
   sortSetting: Types._SortSetting,
 }
 
-const folderBoxStyle = {...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'space-between'}
-
-const styleOuterContainer = {
-  height: '100%',
-  position: 'relative',
-}
-
-const iconStyle = {
-  marginRight: globalMargins.small,
-  fontSize: 30,
-}
-
-const iconBoxStyle = {
-  marginTop: 3,
-}
-
-const FileRow = RowConnector(({elems, path, name, itemStyles, onOpen, visibility}: FileRowProps) => (
+const FileRow = RowConnector(({elems, path, name, type, itemStyles, onOpen, visibility}: FileRowProps) => (
   <Box>
     <ClickableBox onClick={onOpen} style={stylesCommonRow}>
-      <Box style={stylesRowBox}>
-        {elems.length === 3 && visibility === 'team' ? (
-          <Avatar size={32} teamname={name} isTeam={true} style={iconStyle} />
-        ) : (
-          <Box style={iconBoxStyle}>
-            <Icon type={itemStyles.iconType} style={{color: itemStyles.iconColor, ...iconStyle}} />
+      <Box style={stylesRowContainer}>
+        <Box style={stylesRowBox}>
+          {elems.length === 3 && visibility === 'team' ? (
+            <Avatar size={32} teamname={name} isTeam={true} style={iconStyle} />
+          ) : (
+            <Box style={iconBoxStyle}>
+              <Icon type={itemStyles.iconType} style={{color: itemStyles.iconColor, ...iconStyle}} />
+            </Box>
+          )}
+          <Box style={folderBoxStyle}>
+            <Text type={itemStyles.textType} style={{color: itemStyles.textColor}}>
+              {name}
+            </Text>
           </Box>
-        )}
-        <Box style={folderBoxStyle}>
-          <Text type={itemStyles.textType} style={{color: itemStyles.textColor}}>
-            {name}
-          </Text>
         </Box>
+        {!isMobile &&
+          type === 'folder' && (
+            <Box style={stylesRowRightBox}>
+              <Icon type="iconfont-finder" style={rowActionIconStyle} />
+            </Box>
+          )}
       </Box>
     </ClickableBox>
     <Divider style={stylesRowDivider} />
@@ -102,6 +95,27 @@ class Files extends React.PureComponent<FolderProps> {
   }
 }
 
+const folderBoxStyle = {...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'space-between'}
+
+const styleOuterContainer = {
+  height: '100%',
+  position: 'relative',
+}
+
+const iconStyle = {
+  marginRight: globalMargins.small,
+  fontSize: 30,
+}
+
+const rowActionIconStyle = {
+  color: globalColors.black_40,
+  fontSize: 16,
+}
+
+const iconBoxStyle = {
+  marginTop: 3,
+}
+
 const stylesRowDivider = {
   marginLeft: isMobile ? 48 : 48,
 }
@@ -111,7 +125,7 @@ const stylesCommonRow = {
   alignItems: 'center',
   justifyContent: 'center',
   minHeight: isMobile ? 64 : 40,
-  paddingLeft: 16,
+  paddingLeft: globalMargins.small,
 }
 
 const stylesContainer = {
@@ -124,6 +138,18 @@ const stylesRowBox = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   flex: 1,
+}
+
+const stylesRowContainer = {
+  ...stylesRowBox,
+  justifyContent: 'space-between',
+}
+
+const stylesRowRightBox = {
+  ...stylesRowBox,
+  justifyContent: 'flex-end',
+  flexShrink: 1,
+  paddingRight: globalMargins.small,
 }
 
 export default Files

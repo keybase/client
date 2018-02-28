@@ -102,9 +102,8 @@ const iconStyle = {
 
 const styleBreadcrumbDropdownIcon = {
   ...iconStyle,
-  fontSize: 15,
+  fontSize: 16,
   marginLeft: 0,
-  paddingLeft: globalMargins.xtiny,
 }
 
 const styleBreadcrumbDropdownIconBox = {

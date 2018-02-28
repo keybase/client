@@ -40,6 +40,7 @@ const mergeProps = ({_username, type, path}, {_onOpen}: DispatchProps) => {
     name: elems[elems.length - 1],
     onOpen: () => _onOpen(type, path),
     path,
+    type,
     visibility: Types.getVisibilityFromElems(elems),
   }
 }
