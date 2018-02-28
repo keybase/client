@@ -127,5 +127,3 @@ export const getItemStyles = (
 
 export const makeDownloadKey = (path: Types.Path, localPath: string) =>
   `download:${Types.pathToString(path)}:${localPath}`
-export const setTimeoutPromise = (delayMs: number): Promise<void> =>
-  new Promise(resolve => setTimeout(resolve, delayMs))

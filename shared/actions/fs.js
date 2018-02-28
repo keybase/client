@@ -71,7 +71,7 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
   // TODO: have the real thing.
   const total = 6
   for (let progress = 0; progress < total - 1; ++progress) {
-    yield Saga.call(Constants.setTimeoutPromise, 500)
+    yield Saga.delay(500)
     yield Saga.call(RPCTypes.SimpleFSSimpleFSCheckRpcPromise, {opID})
     yield Saga.put(FsGen.createFileTransferProgress({key, completePortion: progress / total}))
   }

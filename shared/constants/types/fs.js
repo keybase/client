@@ -53,11 +53,13 @@ export type _PathUserSetting = {
 }
 export type PathUserSetting = I.RecordOf<_PathUserSetting>
 
+export type LocalPath = string
+
 export type _TransferState = {
   isUpload: boolean, // true if upload; false if download
   isDir: boolean,
   path: Path,
-  localPath: string,
+  localPath: LocalPath,
   completePortion: number,
   error?: string,
   isDone: boolean,
