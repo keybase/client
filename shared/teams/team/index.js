@@ -81,7 +81,7 @@ const Team = (props: Props) => {
           <PopupMenu
             items={popupMenuItems}
             onHidden={() => props.setShowMenu(false)}
-            style={{position: 'absolute', right: globalMargins.tiny, top: globalMargins.large}}
+            style={{position: 'absolute', right: globalMargins.tiny, top: 0}}
           />
         )}
     </Box>

@@ -64,7 +64,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     <CustomComponent
       onOpenFolder={dispatchProps.onOpenFolder}
       onManageChat={dispatchProps.onManageChat}
-      onShowMenu={() => ownProps.setShowMenu(true)}
+      onShowMenu={() => ownProps.setShowMenu(!ownProps.showMenu)}
       canManageChat={stateProps.yourOperations.createChannel}
       canViewFolder={!stateProps.yourOperations.joinTeam}
     />
