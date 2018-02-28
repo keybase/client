@@ -710,7 +710,15 @@ func (u *userPlusDevice) reset() {
 }
 
 func (u *userPlusDevice) delete() {
-	err := u.device.userClient.DeleteUser(context.TODO(), 0)
+	g := u.tc.G
+	ui := genericUI{
+		g:          g,
+		SecretUI:   signupInfoSecretUI{u.userInfo, u.tc.G.GetLog()},
+		TerminalUI: smuTerminalUI{},
+	}
+	g.SetUI(&ui)
+	cmd := client.NewCmdAccountDeleteRunner(g)
+	err := cmd.Run()
 	require.NoError(u.tc.T, err)
 }
 
