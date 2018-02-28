@@ -4,7 +4,6 @@ import * as Constants from '../constants/notifications'
 import * as NotificationsGen from '../actions/notifications-gen'
 import * as Tabs from '../constants/tabs'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as I from 'immutable'
 import {isMobile} from '../constants/platform'
 
 const initialState: Types.State = Constants.makeState()
@@ -37,27 +36,16 @@ export default function(state: Types.State = initialState, action: Notifications
         teamsWithResetUsers,
       } = action.payload.badgeState
 
-      // teamsWithResetUsers contains duplicate usernames sometimes
-      // reduce to deduplicate them
-      const res = {}
-      const teamResetUsers = (teamsWithResetUsers || []).reduce((count, entry) => {
-        if (!res[entry.teamname]) {
-          res[entry.teamname] = I.Set()
-        }
-        if (!res[entry.teamname].contains(entry.username)) {
-          res[entry.teamname] = res[entry.teamname].add(entry.username)
-          return count + 1
-        }
-        return count
-      }, 0)
-
       const deviceType = isMobile ? RPCTypes.commonDeviceType.mobile : RPCTypes.commonDeviceType.desktop
       const totalMessages = (conversations || []).reduce(
         (total, c) => (c.badgeCounts ? total + c.badgeCounts[`${deviceType}`] : total),
         0
       )
       const newGit = (newGitRepoGlobalUniqueIDs || []).length
-      const newTeams = (newTeamNames || []).length + (newTeamAccessRequests || []).length + teamResetUsers
+      const newTeams =
+        (newTeamNames || []).length +
+        (newTeamAccessRequests || []).length +
+        (teamsWithResetUsers || []).length
 
       const navBadges = state.get('navBadges').withMutations(n => {
         n.set(Tabs.chatTab, totalMessages)
