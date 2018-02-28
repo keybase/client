@@ -151,10 +151,17 @@ func InstallLogPath() (string, error) {
 	// Get the 3 newest keybase logs - sorting by name works because timestamp
 	keybaseLogFiles, err := filepath.Glob(os.ExpandEnv(filepath.Join("${TEMP}", "Keybase*.log")))
 	sort.Sort(sort.Reverse(sort.StringSlice(keybaseLogFiles)))
-
 	if len(keybaseLogFiles) > 6 {
 		keybaseLogFiles = keybaseLogFiles[:6]
 	}
+
+	// Get the latest msi log - this is the clean install .msi log
+	msiLogFiles, err := filepath.Glob(os.ExpandEnv(filepath.Join("${TEMP}", "MSI*.log")))
+	sort.Sort(sort.Reverse(sort.StringSlice(msiLogFiles)))
+	if len(msiLogFiles) > 1 {
+		keybaseLogFiles = append(keybaseLogFiles, msiLogFiles[:1])
+	}
+
 	// Get the 2 newest dokan logs - sorting by name works because timestamp
 	dokanLogFiles, err := filepath.Glob(os.ExpandEnv(filepath.Join("${TEMP}", "Dokan*.log")))
 	sort.Strings(dokanLogFiles)
