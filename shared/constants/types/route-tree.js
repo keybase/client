@@ -10,7 +10,7 @@ export type SetInitialRouteDef = NoErrorTypedAction<
 
 export type RefreshRouteDef = NoErrorTypedAction<
   'routeTree:refreshRouteDef',
-  {loginRouteDef: RouteDefParams, appRouteDef: RouteDefParams}
+  {loginRouteTree: RouteDefParams, appRouteTree: RouteDefParams}
 >
 
 export type SwitchRouteDef = NoErrorTypedAction<'routeTree:switchRouteDef', {routeDef: RouteDefParams}>

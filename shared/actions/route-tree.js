@@ -25,12 +25,12 @@ export function setInitialRouteDef(routeDef: RouteDefParams): Types.SetInitialRo
 // Update the tree of route definitions.  Dispatched when route
 // definitions update through HMR.
 export function refreshRouteDef(
-  loginRouteDef: RouteDefParams,
-  appRouteDef: RouteDefParams
+  loginRouteTree: RouteDefParams,
+  appRouteTree: RouteDefParams
 ): Types.RefreshRouteDef {
   return {
     type: Constants.refreshRouteDef,
-    payload: {loginRouteDef, appRouteDef},
+    payload: {loginRouteTree, appRouteTree},
   }
 }
 

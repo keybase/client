@@ -28,6 +28,8 @@ import flags from '../util/feature-flags'
 
 const loginRouteTreeTitle = 'LoginRoot'
 
+// TODO: We have only a single tab, so consider making loginRoutes the
+// root.
 const loginRouteTree = makeRouteDefNode({
   tags: makeLeafTags({title: loginRouteTreeTitle}),
   children: {
@@ -45,8 +47,6 @@ const appRouteTree = makeRouteDefNode({
     [chatTab]: chatRoutes,
     [folderTab]: foldersRoutes,
     [gitTab]: gitRoutes,
-    // TODO: Remove loginTab.
-    [loginTab]: loginRoutes,
     [peopleTab]: peopleRoutes,
     [profileTab]: profileRoutes,
     [settingsTab]: settingsRoutes,
@@ -63,8 +63,7 @@ const appRouteTree = makeRouteDefNode({
         }),
   },
   containerComponent: Nav,
-  // TODO: set to peopleTab.
-  defaultSelected: loginTab,
+  defaultSelected: peopleTab,
 })
 
 export {loginRouteTreeTitle, loginRouteTree, appRouteTreeTitle, appRouteTree}
