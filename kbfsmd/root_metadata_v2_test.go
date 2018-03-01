@@ -52,6 +52,20 @@ func TestRootMetadataVersionV2(t *testing.T) {
 	require.Equal(t, PreExtraMetadataVer, rmd.Version())
 }
 
+func TestWriterMetadataV2Empty(t *testing.T) {
+	codec := kbfscodec.NewMsgpack()
+
+	wmd := WriterMetadataV2{
+		ID: tlf.FakeID(1, tlf.Public),
+	}
+	buf, err := codec.Encode(wmd)
+	require.NoError(t, err)
+	// Expected length derived by running with a known good
+	// codec. If the length is greater, something might be broken
+	// with omitempty with the Extra struct field.
+	require.Equal(t, 112, len(buf))
+}
+
 // Test that old encoded WriterMetadataV2 objects (i.e., without any
 // extra fields) can be deserialized and serialized to the same form,
 // which is important for RootMetadataV2.IsValidAndSigned().
@@ -177,6 +191,9 @@ type writerMetadataV2Future struct {
 	// Override WriterMetadata.WKeys.
 	WKeys tlfWriterKeyGenerationsV2Future
 	// Override WriterMetadata.Extra.
+	//
+	// TODO: Remove omitemptycheckstruct once we use a version of
+	// go-codec that supports omitempty for structs.
 	Extra writerMetadataExtraV2Future `codec:"x,omitempty,omitemptycheckstruct"`
 }
 
