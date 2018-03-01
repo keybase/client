@@ -3,45 +3,36 @@ import React from 'react'
 import {storiesOf, action} from '../../../../stories/storybook'
 import {Notifications} from './index'
 
+const common = {
+  channelWide: false,
+  desktop: 'onWhenAtMentioned',
+  mobile: 'never',
+  muted: false,
+  toggleChannelWide: action('onToggleChannelwide'),
+  toggleMuted: action('toggleMuted'),
+  updateDesktop: action('updateDesktop'),
+  updateMobile: action('updateMobile'),
+}
+
 const load = () => {
   storiesOf('Chat/Conversation/InfoPanelNotifications', module)
-    .add('Notifications (unsaved)', () => (
-      <Notifications
-        channelWide={false}
-        desktop="atmention"
-        mobile="never"
-        muted={false}
-        saveState="unsaved"
-        onMuteConversation={action('onMuteConversation')}
-        onSetDesktop={action('onSetDesktop')}
-        onSetMobile={action('onSetMobile')}
-        onToggleChannelWide={action('onToggleChannelwide')}
-      />
-    ))
+    .add('Notifications (unsaved)', () => <Notifications {...common} saveState="same" />)
     .add('Notifications (saving)', () => (
       <Notifications
+        {...common}
         channelWide={true}
-        desktop="generic"
-        mobile="atmention"
-        muted={false}
+        desktop="onAnyActivity"
+        mobile="onWhenAtMentioned"
         saveState="saving"
-        onMuteConversation={action('onMuteConversation')}
-        onSetDesktop={action('onSetDesktop')}
-        onSetMobile={action('onSetMobile')}
-        onToggleChannelWide={action('onToggleChannelwide')}
       />
     ))
     .add('Notifications (saved)', () => (
       <Notifications
+        {...common}
         channelWide={true}
-        desktop="generic"
-        mobile="atmention"
-        muted={false}
-        saveState="saved"
-        onMuteConversation={action('onMuteConversation')}
-        onSetDesktop={action('onSetDesktop')}
-        onSetMobile={action('onSetMobile')}
-        onToggleChannelWide={action('onToggleChannelwide')}
+        desktop="onAnyActivity"
+        mobile="onWhenAtMentioned"
+        saveState="justSaved"
       />
     ))
 }
