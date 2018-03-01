@@ -254,6 +254,8 @@
     </CustomAction>
   </Fragment>
   <Fragment>
+    <!-- Explicitly remove the last shipping bundle. People who haven't upgraded to it may see an additional "Keybase" under add/remove programs,
+    which is harmless -->
     <CustomAction Id="RemoveLegacyBundle"
               Directory="LocalAppDataFolder"
               ExeCommand="[LocalAppDataFolder]\Package Cache\{12a069da-39ed-4f62-9bd4-8f33c39bd258}\Keybase_1.0.44-20180223131449+d993081.386.exe /quiet /uninstall"
