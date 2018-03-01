@@ -309,11 +309,9 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 	if err != nil {
 		return err
 	}
-	var invitesToCancel []keybase1.TeamInviteID
 
-	var req keybase1.TeamChangeReq
 	var chats []chatSeitanRecip
-	req.CompletedInvites = make(map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm)
+	tx := CreateAddMemberTx(team)
 
 	for _, seitan := range msg.Seitans {
 		invite, found := team.chain().FindActiveInviteByID(seitan.InviteID)
@@ -338,65 +336,50 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 
 		if currentRole.IsOrAbove(invite.Role) {
 			g.Log.CDebugf(ctx, "User already has same or higher role, canceling invite.")
-			invitesToCancel = append(invitesToCancel, invite.Id)
+			tx.CancelInvite(invite.Id)
 			continue
 		}
 
-		switch invite.Role {
-		case keybase1.TeamRole_READER:
-			req.Readers = append(req.Readers, uv)
-		case keybase1.TeamRole_WRITER:
-			req.Writers = append(req.Writers, uv)
-		case keybase1.TeamRole_ADMIN:
-			req.Admins = append(req.Admins, uv)
-		case keybase1.TeamRole_OWNER:
-			req.Owners = append(req.Owners, uv)
-		default:
-			return fmt.Errorf("Unexpected role in invitation: %v", invite.Role)
+		err = tx.AddMemberByUV(ctx, uv, invite.Role)
+		if err != nil {
+			g.Log.CDebugf(ctx, "Failed to add %v to transaction: %v", uv, err)
+			continue
 		}
 
+		// Only allow adding members as cryptomembers. Server should
+		// never send us  PUKless users accepting seitan tokens. When
+		// PUKless user accepts seitan token invite status is set to
+		// WAITING_FOR_PUK and team_rekeyd hold on it till user gets a
+		// PUK and status is set to ACCEPTED.
+
 		g.Log.CDebugf(ctx, "Completing invite %s", invite.Id)
-		req.CompletedInvites[seitan.InviteID] = uv.PercentForm()
+		err = tx.CompleteInviteByID(ctx, invite.Id, uv)
+		if err != nil {
+			g.Log.CDebugf(ctx, "Failed to complete invite, member was added as keybase-invite: %v", err)
+			return err
+		}
+
 		chats = append(chats, chatSeitanRecip{
 			inviter: invite.Inviter.Uid,
 			invitee: seitan.Uid,
 		})
 	}
 
-	var needReload bool
-
-	if len(req.CompletedInvites) > 0 {
-		// Did we actually bring anyone in? (or all requests were outdated/invalid)
-		err = team.ChangeMembership(ctx, req)
-		if err != nil {
-			return err
-		}
-		needReload = true
+	if tx.IsEmpty() {
+		return nil
 	}
+
+	err = tx.Post(ctx)
+	if err != nil {
+		return err
+	}
+
 	// Send chats
 	for _, chat := range chats {
 		g.Log.CDebugf(ctx, "sending welcome message for successful Seitan handle: inviter: %s invitee: %s",
 			chat.inviter, chat.invitee)
 		SendChatInviteWelcomeMessage(ctx, g, team.Name().String(), keybase1.TeamInviteCategory_SEITAN,
 			chat.inviter, chat.invitee)
-	}
-
-	if len(invitesToCancel) > 0 {
-		if needReload {
-			// Reload the team because we posted a link, invalidating the old snapshot
-			team, err = Load(ctx, g, keybase1.LoadTeamArg{
-				ID:          msg.TeamID,
-				Public:      msg.TeamID.IsPublic(),
-				ForceRepoll: true,
-			})
-			if err != nil {
-				return err
-			}
-		}
-		err = removeMultipleInviteIDs(ctx, team, invitesToCancel)
-		if err != nil {
-			return err
-		}
 	}
 
 	return nil

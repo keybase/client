@@ -93,6 +93,8 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 
 	var hsb *homeStateBody
 
+	teamsWithResets := make(map[string]bool)
+
 	items, err := gstate.Items()
 	if err != nil {
 		return err
@@ -195,7 +197,12 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 				Username: body.ResetUser.Username,
 				Id:       msgID,
 			}
-			b.state.TeamsWithResetUsers = append(b.state.TeamsWithResetUsers, m)
+
+			key := m.Teamname + "|" + m.Username
+			if !teamsWithResets[key] {
+				b.state.TeamsWithResetUsers = append(b.state.TeamsWithResetUsers, m)
+				teamsWithResets[key] = true
+			}
 		}
 	}
 

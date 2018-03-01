@@ -36,8 +36,7 @@ const TextPopupMenu = (props: Props) => {
               {
                 danger: true,
                 onClick: props.onDeleteMessageHistory,
-                subTitle: 'Deletes all messages before this one for everyone',
-                title: 'Delete up to here',
+                title: 'Delete this + everything above',
               },
             ]
           : []),

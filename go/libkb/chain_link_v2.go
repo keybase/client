@@ -163,15 +163,18 @@ func (o OuterLinkV2) Encode() ([]byte, error) {
 	return MsgpackEncode(o)
 }
 
+type SigIgnoreIfUnsupported bool
+type SigHasRevokes bool
+
 func MakeSigchainV2OuterSig(
 	signingKey GenericKey,
 	v1LinkType LinkType,
 	seqno keybase1.Seqno,
 	innerLinkJSON []byte,
 	prevLinkID LinkID,
-	hasRevokes bool,
+	hasRevokes SigHasRevokes,
 	seqType keybase1.SeqType,
-	ignoreIfUnsupported bool,
+	ignoreIfUnsupported SigIgnoreIfUnsupported,
 ) (sig string, sigid keybase1.SigID, linkID LinkID, err error) {
 	currLinkID := ComputeLinkID(innerLinkJSON)
 
@@ -187,7 +190,7 @@ func MakeSigchainV2OuterSig(
 		Curr:                currLinkID,
 		LinkType:            v2LinkType,
 		SeqType:             seqType,
-		IgnoreIfUnsupported: ignoreIfUnsupported,
+		IgnoreIfUnsupported: bool(ignoreIfUnsupported),
 	}
 	encodedOuterLink, err := outerLink.Encode()
 	if err != nil {
@@ -260,7 +263,7 @@ func DecodeOuterLinkV2(armored string) (*OuterLinkV2WithMetadata, error) {
 	return &ret, nil
 }
 
-func SigchainV2TypeFromV1TypeAndRevocations(s string, hasRevocations bool) (ret SigchainV2Type, err error) {
+func SigchainV2TypeFromV1TypeAndRevocations(s string, hasRevocations SigHasRevokes) (ret SigchainV2Type, err error) {
 
 	switch s {
 	case "eldest":
@@ -305,7 +308,7 @@ func SigchainV2TypeFromV1TypeAndRevocations(s string, hasRevocations bool) (ret 
 		}
 	}
 
-	if !ret.NeedsSignature() && hasRevocations {
+	if !ret.NeedsSignature() && bool(hasRevocations) {
 		err = ChainLinkError{fmt.Sprintf("invalid chain link of type %d with a revocation", ret)}
 	}
 

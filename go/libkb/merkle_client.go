@@ -312,10 +312,6 @@ type MerkleRootPayloadUnpacked struct {
 				Version *int    `json:"version"`
 			} `json:"public"`
 		} `json:"kbfs"`
-		Key struct {
-			Fingerprint PGPFingerprint `json:"fingerprint"`
-			KeyID       string         `json:"key_id"`
-		} `json:"key"`
 		LegacyUIDRoot NodeHashShort  `json:"legacy_uid_root"`
 		Prev          NodeHashLong   `json:"prev"`
 		Root          NodeHashLong   `json:"root"`

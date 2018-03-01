@@ -1606,14 +1606,14 @@ const deleteMessageHistory = (action: Chat2Gen.MessageDeletePayload, state: Type
     return
   }
 
-  const param: RPCChatTypes.LocalPostDeleteHistoryUptoRpcParam = {
+  const param: RPCChatTypes.LocalPostDeleteHistoryThroughRpcParam = {
     conversationID: Types.keyToConversationID(conversationIDKey),
     identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+    through: message.id,
     tlfName: meta.tlfname,
     tlfPublic: false,
-    upto: message.id,
   }
-  return Saga.call(RPCChatTypes.localPostDeleteHistoryUptoRpcPromise, param)
+  return Saga.call(RPCChatTypes.localPostDeleteHistoryThroughRpcPromise, param)
 }
 
 // Get the rights a user has on certain actions in a team

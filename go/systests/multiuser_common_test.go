@@ -2,6 +2,7 @@ package systests
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"testing"
 	"time"
@@ -10,6 +11,7 @@ import (
 	engine "github.com/keybase/client/go/engine"
 	libkb "github.com/keybase/client/go/libkb"
 	logger "github.com/keybase/client/go/logger"
+	chat1 "github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	service "github.com/keybase/client/go/service"
 	teams "github.com/keybase/client/go/teams"
@@ -477,6 +479,17 @@ func (u *smuUser) lookupImplicitTeam(create bool, displayName string, public boo
 	return smuImplicitTeam{ID: res.TeamID}
 }
 
+func (u *smuUser) loadTeamByID(teamID keybase1.TeamID, admin bool) *teams.Team {
+	team, err := teams.Load(context.Background(), u.getPrimaryGlobalContext(), keybase1.LoadTeamArg{
+		ID:          teamID,
+		Public:      teamID.IsPublic(),
+		NeedAdmin:   admin,
+		ForceRepoll: true,
+	})
+	require.NoError(u.ctx.t, err)
+	return team
+}
+
 func (u *smuUser) addTeamMember(team smuTeam, member *smuUser, role keybase1.TeamRole) {
 	cli := u.getTeamsClient()
 	_, err := cli.TeamAddMember(context.TODO(), keybase1.TeamAddMemberArg{
@@ -484,9 +497,7 @@ func (u *smuUser) addTeamMember(team smuTeam, member *smuUser, role keybase1.Tea
 		Username: member.username,
 		Role:     role,
 	})
-	if err != nil {
-		u.ctx.t.Fatal(err)
-	}
+	require.NoError(u.ctx.t, err)
 }
 
 func (u *smuUser) addWriter(team smuTeam, w *smuUser) {
@@ -507,9 +518,7 @@ func (u *smuUser) reAddUserAfterReset(team smuImplicitTeam, w *smuUser) {
 		Id:       team.ID,
 		Username: w.username,
 	})
-	if err != nil {
-		u.ctx.t.Fatal(err)
-	}
+	require.NoError(u.ctx.t, err)
 }
 
 func (u *smuUser) reset() {
@@ -543,9 +552,13 @@ func (u *smuUser) delete() {
 
 func (u *smuUser) dbNuke() {
 	err := u.primaryDevice().ctlClient().DbNuke(context.TODO(), 0)
-	if err != nil {
-		u.ctx.t.Fatal(err)
-	}
+	require.NoError(u.ctx.t, err)
+}
+
+func (u *smuUser) userVersion() keybase1.UserVersion {
+	uv, err := u.primaryDevice().userClient().MeUserVersion(context.Background(), keybase1.MeUserVersionArg{ForcePoll: true})
+	require.NoError(u.ctx.t, err)
+	return uv
 }
 
 func (u *smuUser) getPrimaryGlobalContext() *libkb.GlobalContext {
@@ -663,6 +676,74 @@ func (u *smuUser) requestAccess(team smuTeam) {
 	_, err := cli.TeamRequestAccess(context.Background(), keybase1.TeamRequestAccessArg{
 		Name: team.name,
 	})
+	if err != nil {
+		u.ctx.t.Fatal(err)
+	}
+}
+
+func (u *smuUser) readChatsWithError(team smuTeam) (messages []chat1.MessageUnboxed, err error) {
+	return u.readChatsWithErrorAndDevice(team, u.primaryDevice(), 0)
+}
+
+func (u *smuUser) readChatsWithErrorAndDevice(team smuTeam, dev *smuDeviceWrapper, nMessages int) (messages []chat1.MessageUnboxed, err error) {
+	tctx := dev.popClone()
+
+	wait := time.Second
+	var totalWait time.Duration
+	for i := 0; i < 10; i++ {
+		runner := client.NewCmdChatReadRunner(tctx.G)
+		runner.SetTeamChatForTest(team.name)
+		_, messages, err = runner.Fetch()
+
+		if err == nil && len(messages) == nMessages {
+			if i != 0 {
+				u.ctx.t.Logf("readChatsWithErrorAndDevice success after retrying %d times, polling for %s", i, totalWait)
+			}
+			return messages, nil
+		}
+
+		if err != nil {
+			u.ctx.t.Logf("readChatsWithErrorAndDevice failure: %s", err.Error())
+		}
+
+		u.ctx.t.Logf("readChatsWithErrorAndDevice trying again")
+		time.Sleep(wait)
+		totalWait += wait
+	}
+
+	u.ctx.t.Logf("Failed to readChatsWithErrorAndDevice after polling for %s", totalWait)
+	return messages, err
+}
+
+func (u *smuUser) readChats(team smuTeam, nMessages int) {
+	u.readChatsWithDevice(team, u.primaryDevice(), nMessages)
+}
+
+func (u *smuUser) readChatsWithDevice(team smuTeam, dev *smuDeviceWrapper, nMessages int) {
+	messages, err := u.readChatsWithErrorAndDevice(team, dev, nMessages)
+	t := u.ctx.t
+	require.NoError(t, err)
+	require.Len(t, messages, nMessages)
+	for i, msg := range messages {
+		require.Equal(t, msg.Valid().MessageBody.Text().Body, fmt.Sprintf("%d", len(messages)-i-1))
+	}
+	divDebug(u.ctx, "readChat success for %s", u.username)
+}
+
+func (u *smuUser) readLastChat(team smuTeam) string {
+	messages, err := u.readChatsWithErrorAndDevice(team, u.primaryDevice(), 1)
+	t := u.ctx.t
+	require.NoError(t, err)
+	require.Len(t, messages, 1)
+	return messages[0].Valid().MessageBody.Text().Body
+}
+
+func (u *smuUser) sendChat(t smuTeam, msg string) {
+	tctx := u.primaryDevice().popClone()
+	runner := client.NewCmdChatSendRunner(tctx.G)
+	runner.SetTeamChatForTest(t.name)
+	runner.SetMessage(msg)
+	err := runner.Run()
 	if err != nil {
 		u.ctx.t.Fatal(err)
 	}

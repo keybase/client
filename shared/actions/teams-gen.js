@@ -62,6 +62,7 @@ export const createBadgeAppForTeams = (
   payload: $ReadOnly<{
     newTeamNames: Array<string>,
     newTeamAccessRequests: Array<string>,
+    teamsWithResetUsers: Array<$ReadOnly<{id: Buffer, teamname: string, username: string}>>,
   }>
 ) => ({error: false, payload, type: badgeAppForTeams})
 export const createCheckRequestedAccess = (payload: $ReadOnly<{teamname: string}>) => ({error: false, payload, type: checkRequestedAccess})

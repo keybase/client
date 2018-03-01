@@ -3,7 +3,7 @@ import * as I from 'immutable'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Types from '../../constants/types/teams'
 import {connect} from 'react-redux'
-import {compose, withState} from 'recompose'
+import {compose, withStateHandlers} from 'recompose'
 import RolePicker from '.'
 import {getRole, isOwner} from '../../constants/teams'
 
@@ -81,7 +81,12 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  withState('selectedRole', 'setSelectedRole', props => props.currentType),
-  withState('sendNotification', 'setSendNotification', false),
-  withState('confirm', 'setConfirm', false)
+  withStateHandlers(
+    ({currentType}) => ({selectedRole: currentType, sendNotification: false, confirm: false}),
+    {
+      setSelectedRole: () => selectedRole => ({selectedRole}),
+      setSendNotification: () => sendNotification => ({sendNotification}),
+      setConfirm: () => confirm => ({confirm}),
+    }
+  )
 )(RolePicker)

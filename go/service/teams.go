@@ -76,21 +76,22 @@ func (h *TeamsHandler) TeamCreateWithSettings(ctx context.Context, arg keybase1.
 		if err != nil {
 			return res, err
 		}
-		teamID, err := teams.CreateSubteam(ctx, h.G().ExternalG(), string(teamName.LastPart()), parentName)
+		addSelfAs := keybase1.TeamRole_WRITER // writer is enough to init chat channel
+		if arg.JoinSubteam {
+			// but if user wants to stay in team, add as admin.
+			addSelfAs = keybase1.TeamRole_ADMIN
+		}
+
+		teamID, err := teams.CreateSubteam(ctx, h.G().ExternalG(), string(teamName.LastPart()),
+			parentName, addSelfAs)
 		if err != nil {
 			return res, err
 		}
 		res.TeamID = *teamID
 
 		// join the team to send the Create message
-		h.G().Log.CDebugf(ctx, "TeamCreate: joining just-created subteam %s temporarily to set it up", arg.Name)
+		h.G().Log.CDebugf(ctx, "TeamCreate: created subteam %s with self in as %v", arg.Name, addSelfAs)
 		username := h.G().Env.GetUsername().String()
-		_, err = teams.AddMember(ctx, h.G().ExternalG(), teamName.String(), username, keybase1.TeamRole_ADMIN)
-		if err != nil {
-			h.G().Log.CDebugf(ctx, "TeamCreate: error adding self to new subteam %s: %s", arg.Name, err)
-			return res, err
-		}
-		res.CreatorAdded = true
 		res.ChatSent = teams.SendTeamChatCreateMessage(ctx, h.G().ExternalG(), teamName.String(), username)
 
 		if !arg.JoinSubteam {
@@ -396,8 +397,10 @@ func (h *TeamsHandler) LookupImplicitTeam(ctx context.Context, arg keybase1.Look
 	var team *teams.Team
 	team, res.Name, res.DisplayName, err =
 		teams.LookupImplicitTeam(ctx, h.G().ExternalG(), arg.Name, arg.Public)
-	res.TeamID = team.ID
-	res.TlfID = team.KBFSTLFID()
+	if err == nil {
+		res.TeamID = team.ID
+		res.TlfID = team.KBFSTLFID()
+	}
 	return res, err
 }
 
@@ -411,8 +414,10 @@ func (h *TeamsHandler) LookupOrCreateImplicitTeam(ctx context.Context, arg keyba
 	var team *teams.Team
 	team, res.Name, res.DisplayName, err = teams.LookupOrCreateImplicitTeam(ctx, h.G().ExternalG(),
 		arg.Name, arg.Public)
-	res.TeamID = team.ID
-	res.TlfID = team.KBFSTLFID()
+	if err == nil {
+		res.TeamID = team.ID
+		res.TlfID = team.KBFSTLFID()
+	}
 	return res, err
 }
 

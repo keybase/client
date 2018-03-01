@@ -5,6 +5,7 @@ import keyBy from 'lodash/keyBy'
 import last from 'lodash/last'
 import * as I from 'immutable'
 import * as TeamsGen from './teams-gen'
+import * as Types from '../constants/types/teams'
 import * as Constants from '../constants/teams'
 import * as ChatConstants from '../constants/chat2'
 import * as ChatTypes from '../constants/types/chat2'
@@ -497,11 +498,26 @@ const _getTeams = function*(action: TeamsGen.GetTeamsPayload): Saga.SagaGenerato
       teamNameToIsOpen[team.fqName] = team.isOpenTeam
     })
 
+    // Dismiss any stale badges for teams we're no longer in
+    const teamResetUsers = state.entities.getIn(['teams', 'teamNameToResetUsers'], I.Map())
+    const teamNameSet = I.Set(teamnames)
+    const dismissIDs = teamResetUsers.reduce((ids, value: I.Set<Types.ResetUser>, key: string) => {
+      if (!teamNameSet.has(key)) {
+        ids.push(...value.toArray().map(ru => ru.badgeIDKey))
+      }
+      return ids
+    }, [])
+    yield Saga.all(
+      dismissIDs.map(id =>
+        Saga.call(RPCTypes.gregorDismissItemRpcPromise, {id: Constants.keyToResetUserBadgeID(id)})
+      )
+    )
+
     yield Saga.put(
       replaceEntity(
         ['teams'],
         I.Map({
-          teamnames: I.Set(teamnames),
+          teamnames: teamNameSet,
           teammembercounts: I.Map(teammembercounts),
           teamNameToIsOpen: I.Map(teamNameToIsOpen),
           teamNameToRole: I.Map(teamNameToRole),
@@ -834,6 +850,20 @@ function _badgeAppForTeams(action: TeamsGen.BadgeAppForTeamsPayload, state: Type
   const newTeams = I.Set(action.payload.newTeamNames || [])
   const newTeamRequests = I.List(action.payload.newTeamAccessRequests || [])
 
+  const teamsWithResetUsers = I.List(action.payload.teamsWithResetUsers || [])
+  const teamsWithResetUsersMap = teamsWithResetUsers.reduce((res, entry) => {
+    if (!res[entry.teamname]) {
+      res[entry.teamname] = I.Set()
+    }
+    res[entry.teamname] = res[entry.teamname].add(
+      Constants.makeResetUser({
+        username: entry.username,
+        badgeIDKey: Constants.resetUserBadgeIDToKey(entry.id),
+      })
+    )
+    return res
+  }, {})
+
   if (_wasOnTeamsTab && (newTeams.size > 0 || newTeamRequests.size > 0)) {
     // Call getTeams if new teams come in.
     // Covers the case when we're staring at the teams page so
@@ -858,6 +888,9 @@ function _badgeAppForTeams(action: TeamsGen.BadgeAppForTeamsPayload, state: Type
   // if the user wasn't on the teams tab, loads will be triggered by navigation around the app
   actions.push(Saga.put(replaceEntity(['teams'], I.Map([['newTeams', newTeams]]))))
   actions.push(Saga.put(replaceEntity(['teams'], I.Map([['newTeamRequests', newTeamRequests]]))))
+  actions.push(
+    Saga.put(replaceEntity(['teams'], I.Map([['teamNameToResetUsers', I.Map(teamsWithResetUsersMap)]])))
+  )
   return Saga.sequentially(actions)
 }
 

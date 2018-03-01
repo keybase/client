@@ -150,12 +150,12 @@ func (e TrackStatus) String() string {
 }
 
 type TrackOptions struct {
-	LocalOnly     bool       `codec:"localOnly" json:"localOnly"`
-	BypassConfirm bool       `codec:"bypassConfirm" json:"bypassConfirm"`
-	ForceRetrack  bool       `codec:"forceRetrack" json:"forceRetrack"`
-	ExpiringLocal bool       `codec:"expiringLocal" json:"expiringLocal"`
-	ForPGPPull    bool       `codec:"forPGPPull" json:"forPGPPull"`
-	SigVersion    SigVersion `codec:"sigVersion" json:"sigVersion"`
+	LocalOnly     bool        `codec:"localOnly" json:"localOnly"`
+	BypassConfirm bool        `codec:"bypassConfirm" json:"bypassConfirm"`
+	ForceRetrack  bool        `codec:"forceRetrack" json:"forceRetrack"`
+	ExpiringLocal bool        `codec:"expiringLocal" json:"expiringLocal"`
+	ForPGPPull    bool        `codec:"forPGPPull" json:"forPGPPull"`
+	SigVersion    *SigVersion `codec:"sigVersion,omitempty" json:"sigVersion,omitempty"`
 }
 
 func (o TrackOptions) DeepCopy() TrackOptions {
@@ -165,7 +165,13 @@ func (o TrackOptions) DeepCopy() TrackOptions {
 		ForceRetrack:  o.ForceRetrack,
 		ExpiringLocal: o.ExpiringLocal,
 		ForPGPPull:    o.ForPGPPull,
-		SigVersion:    o.SigVersion.DeepCopy(),
+		SigVersion: (func(x *SigVersion) *SigVersion {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.SigVersion),
 	}
 }
 

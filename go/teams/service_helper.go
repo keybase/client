@@ -264,16 +264,34 @@ func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID k
 	if err != nil {
 		return err
 	}
-	uv := NewUserVersion(upak.Current.Uid, upak.Current.EldestSeqno)
+	uv := upak.Current.ToUserVersion()
 	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
 		t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true)
 		if err != nil {
 			return err
 		}
+
+		var existingRole keybase1.TeamRole
 		existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
-		if err != nil {
-			return libkb.NotFoundError{Msg: fmt.Sprintf("uid %s has never been a member of this team.",
-				username)}
+		if err == nil {
+			// User is existing crypto member - get their current role.
+			role, err := t.MemberRole(ctx, existingUV)
+			if err != nil {
+				return err
+			}
+			existingRole = role
+		} else {
+			// UV not found - look for invites.
+			invite, foundUV, found := t.FindActiveKeybaseInvite(uv.Uid)
+			if !found {
+				// username is neither crypto UV nor keybase invite in
+				// that team. bail out.
+				return libkb.NotFoundError{Msg: fmt.Sprintf("User %q (%s) is not a member of this team.",
+					username, uv.Uid)}
+			}
+
+			existingRole = invite.Role
+			existingUV = foundUV
 		}
 
 		if existingUV.EldestSeqno == uv.EldestSeqno {
@@ -282,16 +300,15 @@ func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID k
 					username, existingUV.EldestSeqno, uv.EldestSeqno),
 			}
 		}
-		existingRole, err := t.MemberRole(ctx, existingUV)
-		if err != nil {
+
+		hasPUK := len(upak.Current.PerUserKeys) > 0
+
+		tx := CreateAddMemberTx(t)
+		if err := tx.ReAddMemberToImplicitTeam(ctx, uv, hasPUK, existingRole); err != nil {
 			return err
 		}
 
-		_, err = AddMemberByID(ctx, g, teamID, username, existingRole)
-		if err != nil {
-			return err
-		}
-		return nil
+		return tx.Post(ctx)
 	})
 }
 
@@ -652,24 +669,35 @@ func AcceptSeitan(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKey) 
 	return err
 }
 
+func ProcessSeitanV2(ikey SeitanIKeyV2, uv keybase1.UserVersion, kbtime keybase1.Time) (sig string,
+	inviteID SCTeamInviteID, err error) {
+
+	sikey, err := ikey.GenerateSIKey()
+	if err != nil {
+		return sig, inviteID, err
+	}
+
+	inviteID, err = sikey.GenerateTeamInviteID()
+	if err != nil {
+		return sig, inviteID, err
+	}
+
+	_, encoded, err := sikey.GenerateSignature(uv.Uid, uv.EldestSeqno, inviteID, kbtime)
+	if err != nil {
+		return sig, inviteID, err
+	}
+
+	return encoded, inviteID, nil
+}
+
 func AcceptSeitanV2(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKeyV2) error {
 	uv, err := getCurrentUserUV(ctx, g)
 	if err != nil {
 		return err
 	}
 
-	sikey, err := ikey.GenerateSIKey()
-	if err != nil {
-		return err
-	}
-
-	inviteID, err := sikey.GenerateTeamInviteID()
-	if err != nil {
-		return err
-	}
-
 	now := keybase1.ToTime(time.Now())
-	_, encoded, err := sikey.GenerateSignature(uv.Uid, uv.EldestSeqno, inviteID, now)
+	encoded, inviteID, err := ProcessSeitanV2(ikey, uv, now)
 	if err != nil {
 		return err
 	}
@@ -770,7 +798,6 @@ func loadUserVersionByUIDCheckUsername(ctx context.Context, g *libkb.GlobalConte
 }
 
 func reqFromRole(uv keybase1.UserVersion, role keybase1.TeamRole) (keybase1.TeamChangeReq, error) {
-
 	var req keybase1.TeamChangeReq
 	list := []keybase1.UserVersion{uv}
 	switch role {
@@ -787,6 +814,30 @@ func reqFromRole(uv keybase1.UserVersion, role keybase1.TeamRole) (keybase1.Team
 	}
 
 	return req, nil
+}
+
+func kbInviteFromRole(uv keybase1.UserVersion, role keybase1.TeamRole) (SCTeamInvites, error) {
+	invite := SCTeamInvite{
+		Type: "keybase",
+		Name: uv.TeamInviteName(),
+		ID:   NewInviteID(),
+	}
+	var invites SCTeamInvites
+	list := []SCTeamInvite{invite}
+	switch role {
+	case keybase1.TeamRole_OWNER:
+		invites.Owners = &list
+	case keybase1.TeamRole_ADMIN:
+		invites.Admins = &list
+	case keybase1.TeamRole_WRITER:
+		invites.Writers = &list
+	case keybase1.TeamRole_READER:
+		invites.Readers = &list
+	default:
+		return SCTeamInvites{}, errors.New("invalid team role")
+	}
+
+	return invites, nil
 }
 
 func makeIdentifyLiteRes(id keybase1.TeamID, name keybase1.TeamName) keybase1.IdentifyLiteRes {

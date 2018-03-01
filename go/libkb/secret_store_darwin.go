@@ -99,7 +99,7 @@ func (k KeychainSecretStore) ClearSecret(accountName NormalizedUsername) error {
 }
 
 func NewSecretStoreAll(g *GlobalContext) SecretStoreAll {
-	if g.Env.DarwinForceSecretStoreFile() {
+	if g.Env.ForceSecretStoreFile() {
 		// Allow use of file secret store for development/testing
 		// on MacOS.
 		return NewSecretStoreFile(g.Env.GetDataDir())

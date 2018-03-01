@@ -54,7 +54,7 @@ class TraceButton extends React.Component<TraceButtonProps> {
     const label = `Trace (${this.props.durationSeconds}s)`
     return (
       <Button
-        disabled={this.props.traceInProgress}
+        waiting={this.props.traceInProgress}
         style={{marginTop: globalMargins.small}}
         type="Danger"
         label={label}
@@ -64,36 +64,77 @@ class TraceButton extends React.Component<TraceButtonProps> {
   }
 }
 
-function Developer(props: Props) {
-  return (
-    <Box
-      style={{
-        ...globalStyles.flexBoxColumn,
-        alignItems: 'center',
-        paddingTop: globalMargins.xlarge,
-        paddingBottom: globalMargins.medium,
-        flex: 1,
-      }}
-    >
-      <Text type="BodySmallSemibold" style={{textAlign: 'center'}}>
-        {isMobile
-          ? `Please don't do anything here unless instructed to by a developer.`
-          : `Please don't do anything below here unless instructed to by a developer.`}
-      </Text>
-      <Box style={{width: '100%', height: 2, backgroundColor: globalColors.grey}} />
-      <Button
-        style={{marginTop: globalMargins.small}}
-        type="Danger"
-        label="DB Nuke"
-        onClick={props.onDBNuke}
-      />
-      <TraceButton durationSeconds={30} onTrace={props.onTrace} traceInProgress={props.traceInProgress} />
-      <Text type="BodySmallSemibold" style={{textAlign: 'center'}}>
-        Trace files are included in logs sent with feedback.
-      </Text>
-      <Box style={{flex: 1}} />
-    </Box>
-  )
+type DeveloperState = {
+  clickCount: number,
+}
+
+const clickThreshold = 7
+
+class Developer extends React.Component<Props, DeveloperState> {
+  constructor(props: Props) {
+    super(props)
+
+    this.state = {
+      clickCount: 0,
+    }
+  }
+
+  _onLabelClick = () => {
+    this.setState(state => {
+      const clickCount = state.clickCount + 1
+      if (clickCount < clickThreshold) {
+        console.log(
+          `clickCount = ${clickCount} (${clickThreshold - clickCount} away from showing developer controls)`
+        )
+      }
+      return {clickCount}
+    })
+  }
+
+  _showTrace = () => {
+    return this.state.clickCount >= clickThreshold
+  }
+
+  render() {
+    const props = this.props
+    return (
+      <Box
+        style={{
+          ...globalStyles.flexBoxColumn,
+          alignItems: 'center',
+          paddingTop: globalMargins.xlarge,
+          paddingBottom: globalMargins.medium,
+          flex: 1,
+        }}
+      >
+        <Text
+          type="BodySmallSemibold"
+          onClick={this._onLabelClick}
+          style={{...(isMobile ? {} : {cursor: 'default'}), textAlign: 'center'}}
+        >
+          {isMobile
+            ? `Please don't do anything here unless instructed to by a developer.`
+            : `Please don't do anything below here unless instructed to by a developer.`}
+        </Text>
+        <Box style={{width: '100%', height: 2, backgroundColor: globalColors.grey}} />
+        <Button
+          style={{marginTop: globalMargins.small}}
+          type="Danger"
+          label="DB Nuke"
+          onClick={props.onDBNuke}
+        />
+        {this._showTrace() && (
+          <TraceButton durationSeconds={30} onTrace={props.onTrace} traceInProgress={props.traceInProgress} />
+        )}
+        {this._showTrace() && (
+          <Text type="BodySmallSemibold" style={{textAlign: 'center'}}>
+            Trace files are included in logs sent with feedback.
+          </Text>
+        )}
+        <Box style={{flex: 1}} />
+      </Box>
+    )
+  }
 }
 
 export default Advanced

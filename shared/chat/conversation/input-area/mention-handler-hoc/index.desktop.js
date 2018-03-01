@@ -176,7 +176,7 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
       const selections = this._inputRef && this._inputRef.selections()
       if (text && selections && selections.selectionStart === selections.selectionEnd) {
         const upToCursor = text.substring(0, selections.selectionStart)
-        const words = upToCursor.split(' ')
+        const words = upToCursor.split(/ |\n/)
         const lastWord = words[words.length - 1]
         if (includeWordAfterCursor) {
           const afterCursor = text.substring(selections.selectionStart)

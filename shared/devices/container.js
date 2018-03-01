@@ -8,7 +8,7 @@ import * as LoginConstants from '../constants/login'
 import {
   compose,
   lifecycle,
-  withState,
+  withStateHandlers,
   withHandlers,
   connect,
   createSelector,
@@ -88,7 +88,7 @@ export default compose(
       this.props._loadDevices()
     },
   }),
-  withState('showingMenu', '_setShowingMenu', false),
+  withStateHandlers({showingMenu: false}, {_setShowingMenu: () => showingMenu => ({showingMenu})}),
   withHandlers({
     hideMenu: props => () => props._setShowingMenu(false),
     showMenu: props => () => props._setShowingMenu(true),

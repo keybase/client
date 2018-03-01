@@ -134,9 +134,11 @@ const RemoteIdentifyUITimeout = 5 * time.Second
 
 var MerkleProdKIDs = []string{
 	"010159baae6c7d43c66adf8fb7bb2b8b4cbe408c062cfc369e693ccb18f85631dbcd0a",
+	"01209ec31411b9b287f62630c2486005af27548ba62a59bbc802e656b888991a20230a",
 }
 var MerkleTestKIDs = []string{
 	"0101be58b6c82db64f6ccabb05088db443c69f87d5d48857d709ed6f73948dabe67d0a",
+	"0120328031cf9d2a6108036408aeb3646b8985f7f8ff1a8e635e829d248a48b1014d0a",
 }
 var MerkleStagingKIDs = []string{
 	"0101bed85ce72cc315828367c28b41af585b6b7d95646a62ca829691d70f49184fa70a",
@@ -154,8 +156,11 @@ var CodeSigningStagingKIDs = []string{}
 
 type SigVersion int
 
-const KeybaseSignatureV1 SigVersion = 1
-const KeybaseSignatureV2 SigVersion = 2
+const (
+	KeybaseNullSigVersion SigVersion = 0
+	KeybaseSignatureV1    SigVersion = 1
+	KeybaseSignatureV2    SigVersion = 2
+)
 
 const (
 	KeybaseKIDV1     = 1 // Uses SHA-256

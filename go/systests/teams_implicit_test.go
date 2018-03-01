@@ -225,6 +225,7 @@ func trySBSConsolidation(t *testing.T, impteamExpr string) {
 
 	t.Logf("Created team %s -> %s", impteamName, teamID)
 
+	bob.kickTeamRekeyd()
 	bob.proveRooter()
 	t.Logf("Bob (%s) proved rooter", bob.username)
 
@@ -259,4 +260,65 @@ func TestImplicitSBSConsolidation2(t *testing.T) {
 	// "ann#bob".
 
 	trySBSConsolidation(t, "%v,%v#%v@rooter")
+}
+
+func TestImplicitSBSPukless(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+	bob := tt.addPuklessUser("bob")
+	t.Logf("Signed ann (%s) and pukless bob (%s)", ann.username, bob.username)
+
+	impteamName := fmt.Sprintf("%s,%s@rooter", ann.username, bob.username)
+	teamID, err := ann.lookupImplicitTeam(true /* create */, impteamName, false)
+	require.NoError(t, err)
+
+	t.Logf("Created team %s -> %s", impteamName, teamID)
+
+	bob.proveRooter()
+
+	// Because of a bug in team provisional status checking combined
+	// with how lookupImplicitTeam works, this load is busted right
+	// now:
+
+	// Loading "alice,bob@rooter" resolves "alice" to "alice", and
+	// "bob@rooter" to "bob", and it "redirects" the load to
+	// "alice,bob". But "alice,bob" cannot be loaded because
+	// "alice,bob" implicit team will not exist until alice completes
+	// "bob@rooter" invite. Team server blocks team load until that to
+	// prevent races.
+
+	t.Logf(":: Trying to load %q", impteamName)
+	_, err = ann.lookupImplicitTeam(false /* create */, impteamName, false)
+	require.Error(t, err)
+	//require.Equal(t, teamID, teamID2)
+	t.Logf("Loading %s failed with: %v", impteamName, err)
+
+	// The following load call will not work as well. So this team is
+	// essentially locked until bob gets PUK and alice keys him in.
+
+	expectedTeamName := fmt.Sprintf("%v,%v", ann.username, bob.username)
+	t.Logf(":: Trying to load %q", expectedTeamName)
+	_, err = ann.lookupImplicitTeam(false /* create */, expectedTeamName, false)
+	require.Error(t, err)
+	t.Logf("Loading %s failed with: %v", expectedTeamName, err)
+
+	bob.kickTeamRekeyd()
+	bob.perUserKeyUpgrade()
+
+	pollForConditionWithTimeout(t, 10*time.Second, "team resolved to ann,bob", func(ctx context.Context) bool {
+		team, err := teams.Load(ctx, ann.tc.G, keybase1.LoadTeamArg{
+			ID:          teamID,
+			ForceRepoll: true,
+		})
+		require.NoError(t, err)
+		displayName, err := team.ImplicitTeamDisplayName(context.Background())
+		t.Logf("Got team back: %s", displayName.String())
+		return displayName.String() == expectedTeamName
+	})
+
+	teamID3, err := ann.lookupImplicitTeam(false /* create */, expectedTeamName, false)
+	require.NoError(t, err)
+	require.Equal(t, teamID, teamID3)
 }

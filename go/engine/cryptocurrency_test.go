@@ -30,6 +30,12 @@ const (
 )
 
 func TestCryptocurrency(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testCryptocurrency(t, sigVersion)
+	})
+}
+
+func _testCryptocurrency(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "Cryptocurrency")
 	defer tc.Cleanup()
 
@@ -41,7 +47,8 @@ func TestCryptocurrency(t *testing.T) {
 	}
 
 	// First test setting a bad address; this should fail.
-	e := NewCryptocurrencyEngine(tc.G, keybase1.RegisterAddressArg{Address: "somejunk"})
+	sv := keybase1.SigVersion(sigVersion)
+	e := NewCryptocurrencyEngine(tc.G, keybase1.RegisterAddressArg{Address: "somejunk", SigVersion: &sv})
 	err := RunEngine(e, ctx)
 	if err == nil {
 		t.Fatalf("Bad address should have failed.")
@@ -52,7 +59,8 @@ func TestCryptocurrency(t *testing.T) {
 	}
 
 	// Now set a real address, but with the wrong family. This should fail
-	e = NewCryptocurrencyEngine(tc.G, keybase1.RegisterAddressArg{Address: firstAddress, WantedFamily: "zcash"})
+	sv = keybase1.SigVersion(sigVersion)
+	e = NewCryptocurrencyEngine(tc.G, keybase1.RegisterAddressArg{Address: firstAddress, WantedFamily: "zcash", SigVersion: &sv})
 	err = RunEngine(e, ctx)
 	if err == nil {
 		t.Fatal("Wanted an error for wrong adddress type")
@@ -62,7 +70,8 @@ func TestCryptocurrency(t *testing.T) {
 	}
 
 	// Now set a real address; this should succeed.
-	e = NewCryptocurrencyEngine(tc.G, keybase1.RegisterAddressArg{Address: firstAddress, WantedFamily: "bitcoin"})
+	sv = keybase1.SigVersion(sigVersion)
+	e = NewCryptocurrencyEngine(tc.G, keybase1.RegisterAddressArg{Address: firstAddress, WantedFamily: "bitcoin", SigVersion: &sv})
 	err = RunEngine(e, ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -73,7 +82,8 @@ func TestCryptocurrency(t *testing.T) {
 	}
 
 	// Test overwriting it without --force; should fail.
-	e = NewCryptocurrencyEngine(tc.G, keybase1.RegisterAddressArg{Address: secondAddress})
+	sv = keybase1.SigVersion(sigVersion)
+	e = NewCryptocurrencyEngine(tc.G, keybase1.RegisterAddressArg{Address: secondAddress, SigVersion: &sv})
 	err = RunEngine(e, ctx)
 	if err == nil {
 		t.Fatal("Overwriting a Cryptocurrency address should fail without --force.")
@@ -86,7 +96,8 @@ func TestCryptocurrency(t *testing.T) {
 	}
 
 	// Now test the overwrite with the --force flag; should succeed.
-	e = NewCryptocurrencyEngine(tc.G, keybase1.RegisterAddressArg{Address: secondAddress, Force: true})
+	sv = keybase1.SigVersion(sigVersion)
+	e = NewCryptocurrencyEngine(tc.G, keybase1.RegisterAddressArg{Address: secondAddress, Force: true, SigVersion: &sv})
 	err = RunEngine(e, ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -109,7 +120,8 @@ func TestCryptocurrency(t *testing.T) {
 	}
 
 	// Check that we can also add a Zcash address
-	e = NewCryptocurrencyEngine(tc.G, keybase1.RegisterAddressArg{Address: zcash1})
+	sv = keybase1.SigVersion(sigVersion)
+	e = NewCryptocurrencyEngine(tc.G, keybase1.RegisterAddressArg{Address: zcash1, SigVersion: &sv})
 	err = RunEngine(e, ctx)
 	if err != nil {
 		t.Fatal("We should be able to add a zcash in addition to a BTC address")
@@ -124,7 +136,8 @@ func TestCryptocurrency(t *testing.T) {
 	}
 
 	// Check that we can't also add a second Zcash address
-	e = NewCryptocurrencyEngine(tc.G, keybase1.RegisterAddressArg{Address: zcash2})
+	sv = keybase1.SigVersion(sigVersion)
+	e = NewCryptocurrencyEngine(tc.G, keybase1.RegisterAddressArg{Address: zcash2, SigVersion: &sv})
 	err = RunEngine(e, ctx)
 	if err == nil {
 		t.Fatal("Overwriting a second Zcash address should fail without --force.")
@@ -141,7 +154,8 @@ func TestCryptocurrency(t *testing.T) {
 	}
 
 	// Check that we can't also add a second Zcash address
-	e = NewCryptocurrencyEngine(tc.G, keybase1.RegisterAddressArg{Address: zcash2, Force: true})
+	sv = keybase1.SigVersion(sigVersion)
+	e = NewCryptocurrencyEngine(tc.G, keybase1.RegisterAddressArg{Address: zcash2, Force: true, SigVersion: &sv})
 	err = RunEngine(e, ctx)
 	if err != nil {
 		t.Fatal("Forcing zcash overwrite should have worked")
@@ -170,11 +184,18 @@ func TestCryptocurrency(t *testing.T) {
 	}
 }
 
-// Make sure the Cryptocurrency engine uses the secret store.
 func TestCryptocurrencyWithSecretStore(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testCryptocurrencyWithSecretStore(t, sigVersion)
+	})
+}
+
+// Make sure the Cryptocurrency engine uses the secret store.
+func _testCryptocurrencyWithSecretStore(t *testing.T, sigVersion libkb.SigVersion) {
 	testEngineWithSecretStore(t, func(
 		tc libkb.TestContext, fu *FakeUser, secretUI libkb.SecretUI) {
-		e := NewCryptocurrencyEngine(tc.G, keybase1.RegisterAddressArg{Address: firstAddress, Force: true})
+		sv := keybase1.SigVersion(sigVersion)
+		e := NewCryptocurrencyEngine(tc.G, keybase1.RegisterAddressArg{Address: firstAddress, Force: true, SigVersion: &sv})
 		ctx := &Context{
 			LogUI:    tc.G.UI.GetLogUI(),
 			SecretUI: secretUI,

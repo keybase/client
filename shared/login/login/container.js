@@ -2,7 +2,7 @@
 import * as LoginGen from '../../actions/login-gen'
 import HiddenString from '../../util/hidden-string'
 import Login from '.'
-import {compose, withState, withHandlers, connect, type TypedState} from '../../util/container'
+import {compose, withStateHandlers, withHandlers, connect, type TypedState} from '../../util/container'
 import {requestAutoInvite} from '../../actions/signup'
 
 const mapStateToProps = (state: TypedState) => {
@@ -42,9 +42,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  withState('selectedUser', 'setSelectedUser', props => props.lastUser),
-  withState('showTyping', 'showTypingChange', false),
-  withState('passphrase', 'passphraseChange', ''),
+  withStateHandlers(props => ({selectedUser: props.lastUser, showTyping: false, passphrase: ''}), {
+    setSelectedUser: () => selectedUser => ({selectedUser}),
+    showTypingChange: () => showTyping => ({showTyping}),
+    passphraseChange: () => passphrase => ({passphrase}),
+  }),
   withHandlers({
     onSubmit: props => () => {
       if (props.selectedUser) {

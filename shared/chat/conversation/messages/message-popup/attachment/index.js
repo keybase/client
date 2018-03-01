@@ -31,16 +31,18 @@ const AttachmentPopupMenu = (props: Props) => {
             danger: true,
             disabled: !props.onDelete,
             onClick: props.onDelete,
-            subTitle: 'Deletes for everyone',
             title: 'Delete',
           },
+        ]
+      : []),
+    ...(props.onDeleteMessageHistory
+      ? [
           'Divider',
           {
             danger: true,
             disabled: !props.onDeleteMessageHistory,
             onClick: props.onDeleteMessageHistory,
-            subTitle: 'Deletes all messages before this one for everyone',
-            title: 'Delete up to here',
+            title: 'Delete this + everything above',
           },
         ]
       : []),

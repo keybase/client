@@ -212,7 +212,7 @@ func _testTrackProofRooter(t *testing.T, sigVersion libkb.SigVersion) {
 
 	// create a user with a rooter proof
 	proofUser := CreateAndSignupFakeUser(tc, "proof")
-	_, _, err := proveRooter(tc.G, proofUser)
+	_, _, err := proveRooter(tc.G, proofUser, sigVersion)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -272,7 +272,7 @@ func _testTrackProofUpgrade(t *testing.T, sigVersion libkb.SigVersion) {
 	// proofUser adds a rooter proof:
 	Logout(tc)
 	proofUser.LoginOrBust(tc)
-	_, _, err = proveRooter(tc.G, proofUser)
+	_, _, err = proveRooter(tc.G, proofUser, sigVersion)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -310,7 +310,7 @@ func _testTrackProofChangeSinceTrack(t *testing.T, sigVersion libkb.SigVersion) 
 
 	// create a user with a rooter proof
 	proofUser := CreateAndSignupFakeUser(tc, "proof")
-	_, _, err := proveRooter(tc.G, proofUser)
+	_, _, err := proveRooter(tc.G, proofUser, sigVersion)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -337,7 +337,7 @@ func _testTrackProofChangeSinceTrack(t *testing.T, sigVersion libkb.SigVersion) 
 
 	// proof user logs in and does a new rooter proof
 	proofUser.LoginOrBust(tc)
-	_, _, err = proveRooter(tc.G, proofUser)
+	_, _, err = proveRooter(tc.G, proofUser, sigVersion)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -365,7 +365,7 @@ func _testTrackProofRooterFail(t *testing.T, sigVersion libkb.SigVersion) {
 
 	// create a user with a rooter proof
 	proofUser := CreateAndSignupFakeUser(tc, "proof")
-	_, err := proveRooterFail(tc.G, proofUser)
+	_, err := proveRooterFail(tc.G, proofUser, sigVersion)
 	if err == nil {
 		t.Fatal("should have been an error")
 	}
@@ -409,7 +409,7 @@ func _testTrackProofRooterRemove(t *testing.T, sigVersion libkb.SigVersion) {
 
 	// create a user with a rooter proof
 	proofUser := CreateAndSignupFakeUser(tc, "proof")
-	ui, _, err := proveRooter(tc.G, proofUser)
+	ui, _, err := proveRooter(tc.G, proofUser, sigVersion)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -482,7 +482,7 @@ func _testTrackProofRooterRevoke(t *testing.T, sigVersion libkb.SigVersion) {
 
 	// create a user with a rooter proof
 	proofUser := CreateAndSignupFakeUser(tc, "proof")
-	_, sigID, err := proveRooter(tc.G, proofUser)
+	_, sigID, err := proveRooter(tc.G, proofUser, sigVersion)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -554,7 +554,7 @@ func _testTrackProofRooterOther(t *testing.T, sigVersion libkb.SigVersion) {
 
 	// create a user with a rooter proof
 	proofUser := CreateAndSignupFakeUser(tc, "proof")
-	_, _, err := proveRooter(tc.G, proofUser)
+	_, _, err := proveRooter(tc.G, proofUser, sigVersion)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -564,7 +564,7 @@ func _testTrackProofRooterOther(t *testing.T, sigVersion libkb.SigVersion) {
 	proofUserOther := CreateAndSignupFakeUser(tc, "proof")
 	Logout(tc)
 	proofUser.LoginOrBust(tc)
-	_, _, err = proveRooterOther(tc.G, proofUser, proofUserOther.Username)
+	_, _, err = proveRooterOther(tc.G, proofUser, proofUserOther.Username, sigVersion)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -603,7 +603,7 @@ func _testTrackProofRooterChange(t *testing.T, sigVersion libkb.SigVersion) {
 
 	// create a user with a rooter proof
 	proofUser := CreateAndSignupFakeUser(tc, "proof")
-	_, _, err := proveRooter(tc.G, proofUser)
+	_, _, err := proveRooter(tc.G, proofUser, sigVersion)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -632,7 +632,7 @@ func _testTrackProofRooterChange(t *testing.T, sigVersion libkb.SigVersion) {
 	Logout(tc)
 
 	proofUser.LoginOrBust(tc)
-	_, _, err = proveRooterOther(tc.G, proofUser, proofUserOther.Username)
+	_, _, err = proveRooterOther(tc.G, proofUser, proofUserOther.Username, sigVersion)
 	if err != nil {
 		t.Fatal(err)
 	}
