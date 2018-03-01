@@ -5658,6 +5658,257 @@ func (mr *MockTracerMockRecorder) MaybeFinishTrace(ctx, err interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MaybeFinishTrace", reflect.TypeOf((*MockTracer)(nil).MaybeFinishTrace), ctx, err)
 }
 
+// MockInitMode is a mock of InitMode interface
+type MockInitMode struct {
+	ctrl     *gomock.Controller
+	recorder *MockInitModeMockRecorder
+}
+
+// MockInitModeMockRecorder is the mock recorder for MockInitMode
+type MockInitModeMockRecorder struct {
+	mock *MockInitMode
+}
+
+// NewMockInitMode creates a new mock instance
+func NewMockInitMode(ctrl *gomock.Controller) *MockInitMode {
+	mock := &MockInitMode{ctrl: ctrl}
+	mock.recorder = &MockInitModeMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockInitMode) EXPECT() *MockInitModeMockRecorder {
+	return m.recorder
+}
+
+// Type mocks base method
+func (m *MockInitMode) Type() InitModeType {
+	ret := m.ctrl.Call(m, "Type")
+	ret0, _ := ret[0].(InitModeType)
+	return ret0
+}
+
+// Type indicates an expected call of Type
+func (mr *MockInitModeMockRecorder) Type() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Type", reflect.TypeOf((*MockInitMode)(nil).Type))
+}
+
+// IsTestMode mocks base method
+func (m *MockInitMode) IsTestMode() bool {
+	ret := m.ctrl.Call(m, "IsTestMode")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsTestMode indicates an expected call of IsTestMode
+func (mr *MockInitModeMockRecorder) IsTestMode() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsTestMode", reflect.TypeOf((*MockInitMode)(nil).IsTestMode))
+}
+
+// BlockWorkers mocks base method
+func (m *MockInitMode) BlockWorkers() int {
+	ret := m.ctrl.Call(m, "BlockWorkers")
+	ret0, _ := ret[0].(int)
+	return ret0
+}
+
+// BlockWorkers indicates an expected call of BlockWorkers
+func (mr *MockInitModeMockRecorder) BlockWorkers() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockWorkers", reflect.TypeOf((*MockInitMode)(nil).BlockWorkers))
+}
+
+// PrefetchWorkers mocks base method
+func (m *MockInitMode) PrefetchWorkers() int {
+	ret := m.ctrl.Call(m, "PrefetchWorkers")
+	ret0, _ := ret[0].(int)
+	return ret0
+}
+
+// PrefetchWorkers indicates an expected call of PrefetchWorkers
+func (mr *MockInitModeMockRecorder) PrefetchWorkers() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrefetchWorkers", reflect.TypeOf((*MockInitMode)(nil).PrefetchWorkers))
+}
+
+// RekeyWorkers mocks base method
+func (m *MockInitMode) RekeyWorkers() int {
+	ret := m.ctrl.Call(m, "RekeyWorkers")
+	ret0, _ := ret[0].(int)
+	return ret0
+}
+
+// RekeyWorkers indicates an expected call of RekeyWorkers
+func (mr *MockInitModeMockRecorder) RekeyWorkers() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RekeyWorkers", reflect.TypeOf((*MockInitMode)(nil).RekeyWorkers))
+}
+
+// DirtyBlockCacheEnabled mocks base method
+func (m *MockInitMode) DirtyBlockCacheEnabled() bool {
+	ret := m.ctrl.Call(m, "DirtyBlockCacheEnabled")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// DirtyBlockCacheEnabled indicates an expected call of DirtyBlockCacheEnabled
+func (mr *MockInitModeMockRecorder) DirtyBlockCacheEnabled() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DirtyBlockCacheEnabled", reflect.TypeOf((*MockInitMode)(nil).DirtyBlockCacheEnabled))
+}
+
+// DoBackgroundFlushes mocks base method
+func (m *MockInitMode) DoBackgroundFlushes() bool {
+	ret := m.ctrl.Call(m, "DoBackgroundFlushes")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// DoBackgroundFlushes indicates an expected call of DoBackgroundFlushes
+func (mr *MockInitModeMockRecorder) DoBackgroundFlushes() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DoBackgroundFlushes", reflect.TypeOf((*MockInitMode)(nil).DoBackgroundFlushes))
+}
+
+// UseMetrics mocks base method
+func (m *MockInitMode) UseMetrics() bool {
+	ret := m.ctrl.Call(m, "UseMetrics")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// UseMetrics indicates an expected call of UseMetrics
+func (mr *MockInitModeMockRecorder) UseMetrics() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UseMetrics", reflect.TypeOf((*MockInitMode)(nil).UseMetrics))
+}
+
+// ConflictResolutionEnabled mocks base method
+func (m *MockInitMode) ConflictResolutionEnabled() bool {
+	ret := m.ctrl.Call(m, "ConflictResolutionEnabled")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// ConflictResolutionEnabled indicates an expected call of ConflictResolutionEnabled
+func (mr *MockInitModeMockRecorder) ConflictResolutionEnabled() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConflictResolutionEnabled", reflect.TypeOf((*MockInitMode)(nil).ConflictResolutionEnabled))
+}
+
+// BlockManagementEnabled mocks base method
+func (m *MockInitMode) BlockManagementEnabled() bool {
+	ret := m.ctrl.Call(m, "BlockManagementEnabled")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// BlockManagementEnabled indicates an expected call of BlockManagementEnabled
+func (mr *MockInitModeMockRecorder) BlockManagementEnabled() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockManagementEnabled", reflect.TypeOf((*MockInitMode)(nil).BlockManagementEnabled))
+}
+
+// QuotaReclamationEnabled mocks base method
+func (m *MockInitMode) QuotaReclamationEnabled() bool {
+	ret := m.ctrl.Call(m, "QuotaReclamationEnabled")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// QuotaReclamationEnabled indicates an expected call of QuotaReclamationEnabled
+func (mr *MockInitModeMockRecorder) QuotaReclamationEnabled() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "QuotaReclamationEnabled", reflect.TypeOf((*MockInitMode)(nil).QuotaReclamationEnabled))
+}
+
+// NodeCacheEnabled mocks base method
+func (m *MockInitMode) NodeCacheEnabled() bool {
+	ret := m.ctrl.Call(m, "NodeCacheEnabled")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// NodeCacheEnabled indicates an expected call of NodeCacheEnabled
+func (mr *MockInitModeMockRecorder) NodeCacheEnabled() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NodeCacheEnabled", reflect.TypeOf((*MockInitMode)(nil).NodeCacheEnabled))
+}
+
+// TLFUpdatesEnabled mocks base method
+func (m *MockInitMode) TLFUpdatesEnabled() bool {
+	ret := m.ctrl.Call(m, "TLFUpdatesEnabled")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// TLFUpdatesEnabled indicates an expected call of TLFUpdatesEnabled
+func (mr *MockInitModeMockRecorder) TLFUpdatesEnabled() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TLFUpdatesEnabled", reflect.TypeOf((*MockInitMode)(nil).TLFUpdatesEnabled))
+}
+
+// KBFSServiceEnabled mocks base method
+func (m *MockInitMode) KBFSServiceEnabled() bool {
+	ret := m.ctrl.Call(m, "KBFSServiceEnabled")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// KBFSServiceEnabled indicates an expected call of KBFSServiceEnabled
+func (mr *MockInitModeMockRecorder) KBFSServiceEnabled() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "KBFSServiceEnabled", reflect.TypeOf((*MockInitMode)(nil).KBFSServiceEnabled))
+}
+
+// JournalEnabled mocks base method
+func (m *MockInitMode) JournalEnabled() bool {
+	ret := m.ctrl.Call(m, "JournalEnabled")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// JournalEnabled indicates an expected call of JournalEnabled
+func (mr *MockInitModeMockRecorder) JournalEnabled() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JournalEnabled", reflect.TypeOf((*MockInitMode)(nil).JournalEnabled))
+}
+
+// UnmergedTLFsEnabled mocks base method
+func (m *MockInitMode) UnmergedTLFsEnabled() bool {
+	ret := m.ctrl.Call(m, "UnmergedTLFsEnabled")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// UnmergedTLFsEnabled indicates an expected call of UnmergedTLFsEnabled
+func (mr *MockInitModeMockRecorder) UnmergedTLFsEnabled() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnmergedTLFsEnabled", reflect.TypeOf((*MockInitMode)(nil).UnmergedTLFsEnabled))
+}
+
+// ServiceKeepaliveEnabled mocks base method
+func (m *MockInitMode) ServiceKeepaliveEnabled() bool {
+	ret := m.ctrl.Call(m, "ServiceKeepaliveEnabled")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// ServiceKeepaliveEnabled indicates an expected call of ServiceKeepaliveEnabled
+func (mr *MockInitModeMockRecorder) ServiceKeepaliveEnabled() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ServiceKeepaliveEnabled", reflect.TypeOf((*MockInitMode)(nil).ServiceKeepaliveEnabled))
+}
+
+// TLFEditHistoryEnabled mocks base method
+func (m *MockInitMode) TLFEditHistoryEnabled() bool {
+	ret := m.ctrl.Call(m, "TLFEditHistoryEnabled")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// TLFEditHistoryEnabled indicates an expected call of TLFEditHistoryEnabled
+func (mr *MockInitModeMockRecorder) TLFEditHistoryEnabled() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TLFEditHistoryEnabled", reflect.TypeOf((*MockInitMode)(nil).TLFEditHistoryEnabled))
+}
+
+// ClientType mocks base method
+func (m *MockInitMode) ClientType() keybase1.ClientType {
+	ret := m.ctrl.Call(m, "ClientType")
+	ret0, _ := ret[0].(keybase1.ClientType)
+	return ret0
+}
+
+// ClientType indicates an expected call of ClientType
+func (mr *MockInitModeMockRecorder) ClientType() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClientType", reflect.TypeOf((*MockInitMode)(nil).ClientType))
+}
+
 // MockinitModeGetter is a mock of initModeGetter interface
 type MockinitModeGetter struct {
 	ctrl     *gomock.Controller

@@ -6,7 +6,6 @@ package libkbfs
 
 import (
 	"flag"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -370,12 +369,14 @@ func getDefaultCleanBlockCacheCapacity() uint64 {
 //
 // TODO: Now that NewConfigLocal takes loggerFn, add more default
 // components.
-func NewConfigLocal(mode InitMode, loggerFn func(module string) logger.Logger,
-	storageRoot string, diskCacheMode DiskCacheMode, kbCtx Context) *ConfigLocal {
+func NewConfigLocal(modeType InitModeType,
+	loggerFn func(module string) logger.Logger,
+	storageRoot string, diskCacheMode DiskCacheMode,
+	kbCtx Context) *ConfigLocal {
 	config := &ConfigLocal{
 		loggerFn:      loggerFn,
 		storageRoot:   storageRoot,
-		mode:          mode,
+		mode:          NewInitModeFromType(modeType),
 		diskCacheMode: diskCacheMode,
 		kbCtx:         kbCtx,
 	}
@@ -401,7 +402,7 @@ func NewConfigLocal(mode InitMode, loggerFn func(module string) logger.Logger,
 
 	// Don't bother creating the registry if UseNilMetrics is set, or
 	// if we're in minimal mode.
-	if !metrics.UseNilMetrics && config.Mode() != InitMinimal {
+	if !metrics.UseNilMetrics && config.Mode().MetricsEnabled() {
 		registry := metrics.NewRegistry()
 		config.SetMetricsRegistry(registry)
 	}
@@ -413,20 +414,7 @@ func NewConfigLocal(mode InitMode, loggerFn func(module string) logger.Logger,
 	config.defaultBlockType = defaultBlockTypeDefault
 	config.quotaUsage =
 		make(map[keybase1.UserOrTeamID]*EventuallyConsistentQuotaUsage)
-
-	switch config.mode.Mode() {
-	case InitDefault:
-		// In normal desktop app, we limit to 16 routines.
-		config.rekeyFSMLimiter = NewOngoingWorkLimiter(16)
-	case InitMinimal, InitConstrained:
-		// This is likely mobile. Limit it to 4.
-		config.rekeyFSMLimiter = NewOngoingWorkLimiter(4)
-	case InitSingleOp:
-		// Just block all rekeys and don't bother cleaning up requests since the process is short lived anyway.
-		config.rekeyFSMLimiter = NewOngoingWorkLimiter(0)
-	default:
-		panic(fmt.Sprintf("😱 unknown init mode %v", config.mode))
-	}
+	config.rekeyFSMLimiter = NewOngoingWorkLimiter(config.Mode().RekeyWorkers())
 
 	return config
 }
@@ -817,9 +805,7 @@ func (c *ConfigLocal) SetDefaultBlockType(blockType keybase1.BlockType) {
 
 // DoBackgroundFlushes implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) DoBackgroundFlushes() bool {
-	if c.Mode() == InitMinimal {
-		// Don't do background flushes when in minimal mode, since
-		// there shouldn't be any data writes.
+	if !c.Mode().BackgroundFlushesEnabled() {
 		return false
 	}
 
@@ -853,13 +839,12 @@ func (c *ConfigLocal) SetRekeyWithPromptWaitTime(d time.Duration) {
 
 // Mode implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) Mode() InitMode {
-	// We return the mode with the test flag masked out.
-	return c.mode.Mode()
+	return c.mode
 }
 
 // IsTestMode implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) IsTestMode() bool {
-	return c.mode.HasFlags(InitTest)
+	return c.mode.IsTestMode()
 }
 
 // DelayedCancellationGracePeriod implements the Config interface for ConfigLocal.
@@ -927,9 +912,7 @@ func (c *ConfigLocal) resetCachesWithoutShutdown() DirtyBlockCache {
 	}
 	c.bcache = NewBlockCacheStandard(10000, capacity)
 
-	if c.Mode() == InitMinimal {
-		// No blocks will be dirtied in minimal mode, so don't bother
-		// with the dirty block cache.
+	if !c.Mode().DirtyBlockCacheEnabled() {
 		return nil
 	}
 

@@ -77,10 +77,14 @@ func (t *testSyncedTlfGetterSetter) SetTlfSyncState(tlfID tlf.ID,
 }
 
 type testInitModeGetter struct {
-	InitMode
+	mode InitModeType
 }
 
 var _ initModeGetter = (*testInitModeGetter)(nil)
+
+func (t testInitModeGetter) Mode() InitMode {
+	return NewInitModeFromType(t.mode)
+}
 
 func (t testInitModeGetter) IsTestMode() bool {
 	return true

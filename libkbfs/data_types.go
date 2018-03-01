@@ -660,18 +660,18 @@ type RekeyResult struct {
 	NeedsPaperKey bool
 }
 
-// InitMode indicates how KBFS should configure itself at runtime.
-type InitMode int
+// InitModeType indicates how KBFS should configure itself at runtime.
+type InitModeType int
 
 const (
 	// InitModeMask masks out mode flags.
-	InitModeMask InitMode = 0xffff
+	InitModeMask InitModeType = 0xffff
 	// InitTest is a mode flag that represents whether we're running in a test.
-	InitTest InitMode = 1 << 16
+	InitTest InitModeType = 1 << 16
 
 	// InitDefault is the normal mode for when KBFS data will be read
 	// and written.
-	InitDefault InitMode = iota
+	InitDefault InitModeType = iota
 	// InitMinimal is for when KBFS will only be used as a MD lookup
 	// layer (e.g., for chat on mobile).
 	InitMinimal
@@ -686,16 +686,16 @@ const (
 )
 
 // Mode returns the mode absent any mode flags.
-func (im InitMode) Mode() InitMode {
+func (im InitModeType) Mode() InitModeType {
 	return im & InitModeMask
 }
 
 // HasFlags returns whether all the specified flags are set.
-func (im InitMode) HasFlags(flags InitMode) bool {
+func (im InitModeType) HasFlags(flags InitModeType) bool {
 	return im&flags > 0
 }
 
-func (im InitMode) String() string {
+func (im InitModeType) String() string {
 	switch im.Mode() {
 	case InitDefault:
 		return InitDefaultString

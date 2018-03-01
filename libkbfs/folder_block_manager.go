@@ -138,17 +138,13 @@ func newFolderBlockManager(config Config, fb FolderBranch,
 	// doesn't do possibly-racy-in-tests access to
 	// fbm.config.BlockOps().
 
-	if config.Mode() == InitMinimal {
-		// If this device is in minimal mode and won't be doing any
-		// data writes, no need deal with block-level cleanup
-		// operations.  TODO: in the future it might still be useful
-		// to have e.g. mobile devices doing QR.
+	if !config.Mode().BlockManagementEnabled() {
 		return fbm
 	}
 
 	go fbm.archiveBlocksInBackground()
 	go fbm.deleteBlocksInBackground()
-	if fb.Branch == MasterBranch && config.Mode() != InitSingleOp {
+	if fb.Branch == MasterBranch && config.Mode().QuotaReclamationEnabled() {
 		go fbm.reclaimQuotaInBackground()
 	}
 	return fbm

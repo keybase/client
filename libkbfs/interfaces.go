@@ -1767,6 +1767,60 @@ type Tracer interface {
 	MaybeFinishTrace(ctx context.Context, err error)
 }
 
+// InitMode encapsulates mode differences.
+type InitMode interface {
+	// Type returns the InitModeType of this mode.
+	Type() InitModeType
+	// IsTestMode returns whether we are running a test.
+	IsTestMode() bool
+	// BlockWorkers returns the number of block workers to run.
+	BlockWorkers() int
+	// PrefetchWorkers returns the number of prefetch workers to run.
+	PrefetchWorkers() int
+	// RekeyWorkers returns the number of rekey workers to run.
+	RekeyWorkers() int
+	// DirtyBlockCacheEnabled indicates if we should run a dirty block
+	// cache.
+	DirtyBlockCacheEnabled() bool
+	// BackgroundFlushesEnabled indicates if we should periodically be
+	// flushing unsynced dirty writes to the server or journal.
+	BackgroundFlushesEnabled() bool
+	// MetricsEnabled indicates if we should be collecting metrics.
+	MetricsEnabled() bool
+	// ConflictResolutionEnabled indicated if we should be running
+	// the conflict resolution background process.
+	ConflictResolutionEnabled() bool
+	// BlockManagementEnabled indicates whether we should be running
+	// the block archive/delete background process, and whether we
+	// should be re-embedding block change blocks in MDs.
+	BlockManagementEnabled() bool
+	// QuotaReclamationEnabled indicates whether we should be running
+	// the quota reclamation background process.
+	QuotaReclamationEnabled() bool
+	// NodeCacheEnabled indicates whether we should be caching data nodes.
+	NodeCacheEnabled() bool
+	// TLFUpdatesEnabled indicates whether we should be registering
+	// ourselves with the mdserver for TLF updates.
+	TLFUpdatesEnabled() bool
+	// KBFSServiceEnabled indicates whether we should launch a local
+	// service for answering incoming KBFS-related RPCs.
+	KBFSServiceEnabled() bool
+	// JournalEnabled indicates whether this mode supports a journal.
+	JournalEnabled() bool
+	// UnmergedTLFsEnabled indicates whether it's possible for a
+	// device in this mode to have unmerged TLFs.
+	UnmergedTLFsEnabled() bool
+	// ServiceKeepaliveEnabled indicates whether we need to send
+	// keepalive probes to the Keybase service daemon.
+	ServiceKeepaliveEnabled() bool
+	// TLFEditHistoryEnabled indicates whether we should be running
+	// the background TLF edit history process.
+	TLFEditHistoryEnabled() bool
+	// ClientType indicates the type we should advertise to the
+	// Keybase service.
+	ClientType() keybase1.ClientType
+}
+
 type initModeGetter interface {
 	// Mode indicates how KBFS is configured to run.
 	Mode() InitMode

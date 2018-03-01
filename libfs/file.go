@@ -219,7 +219,7 @@ func (f *File) Unlock() (err error) {
 			f.fs.root.GetFolderBranch().Tlf, f.getLockID())
 	}
 
-	if f.fs.config.Mode() == libkbfs.InitSingleOp {
+	if f.fs.config.Mode().Type() == libkbfs.InitSingleOp {
 		err = jServer.FinishSingleOp(f.fs.ctx,
 			f.fs.root.GetFolderBranch().Tlf, &keybase1.LockContext{
 				RequireLockID:       f.getLockID(),

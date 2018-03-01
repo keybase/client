@@ -121,7 +121,7 @@ func NewMDServerRemote(config Config, srvRemote rpc.Remote,
 	// Check for rekey opportunities periodically.
 	rekeyCtx, rekeyCancel := context.WithCancel(context.Background())
 	mdServer.rekeyCancel = rekeyCancel
-	if config.Mode() != InitSingleOp {
+	if config.Mode().RekeyWorkers() > 0 {
 		go mdServer.backgroundRekeyChecker(rekeyCtx)
 	}
 
@@ -280,7 +280,7 @@ func (md *MDServerRemote) resetAuth(
 	isAuthenticated = true
 
 	md.authenticatedMtx.Lock()
-	if !md.isAuthenticated && md.config.Mode() != InitSingleOp {
+	if !md.isAuthenticated && md.config.Mode().RekeyWorkers() > 0 {
 		defer func() {
 			// request a list of folders needing rekey action
 			if err := md.getFoldersForRekey(ctx, c); err != nil {
@@ -942,7 +942,7 @@ func (md *MDServerRemote) CheckForRekeys(ctx context.Context) <-chan error {
 	// is using the same value.  TODO: the server should tell us what
 	// value it is using.
 	c := make(chan error, 1)
-	if md.config.Mode() == InitSingleOp {
+	if md.config.Mode().RekeyWorkers() == 0 {
 		c <- nil
 		return c
 	}

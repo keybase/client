@@ -78,7 +78,7 @@ func NewKeybaseDaemonRPC(config Config, kbCtx Context, log logger.Logger,
 	k.fillClients(conn.GetClient())
 	k.shutdownFn = conn.Shutdown
 
-	if config.Mode() != InitMinimal && config.Mode() != InitConstrained {
+	if config.Mode().ServiceKeepaliveEnabled() {
 		ctx, cancel := context.WithCancel(context.Background())
 		k.keepAliveCancel = cancel
 		go k.keepAliveLoop(ctx)
@@ -321,13 +321,9 @@ func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 	// Introduce ourselves. TODO: move this to SharedKeybaseConnection
 	// somehow?
 	configClient := keybase1.ConfigClient{Cli: rawClient}
-	ct := keybase1.ClientType_KBFS
-	if k.config.Mode() == InitSingleOp {
-		ct = keybase1.ClientType_NONE
-	}
 	err = configClient.HelloIAm(ctx, keybase1.ClientDetails{
 		Pid:        os.Getpid(),
-		ClientType: ct,
+		ClientType: k.config.Mode().ClientType(),
 		Argv:       os.Args,
 		Version:    VersionString(),
 	})

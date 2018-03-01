@@ -353,10 +353,7 @@ var _ fbmHelper = (*folderBranchOps)(nil)
 func newFolderBranchOps(ctx context.Context, config Config, fb FolderBranch,
 	bType branchType) *folderBranchOps {
 	var nodeCache NodeCache
-	if config.Mode() == InitMinimal {
-		// If we're in minimal mode, let the node cache remain nil to
-		// ensure that the user doesn't try any data reads or writes.
-	} else {
+	if config.Mode().NodeCacheEnabled() {
 		nodeCache = newNodeCacheStandard(fb)
 		for _, f := range config.RootNodeWrappers() {
 			nodeCache.AddRootWrapper(f)
@@ -789,7 +786,7 @@ func (fbo *folderBranchOps) setHeadLocked(
 
 	// Make sure that any unembedded block changes have been swapped
 	// back in.
-	if fbo.config.Mode() != InitMinimal &&
+	if fbo.config.Mode().BlockManagementEnabled() &&
 		md.data.Changes.Info.BlockPointer != zeroPtr &&
 		len(md.data.Changes.Ops) == 0 {
 		return errors.New("Must swap in block changes before setting head")
@@ -804,7 +801,8 @@ func (fbo *folderBranchOps) setHeadLocked(
 		// Start registering for updates right away, using this MD
 		// as a starting point. For now only the master branch can
 		// get updates
-		if fbo.branch() == MasterBranch && fbo.config.Mode() != InitSingleOp {
+		if fbo.branch() == MasterBranch &&
+			fbo.config.Mode().TLFUpdatesEnabled() {
 			fbo.updateDoneChan = make(chan struct{})
 			go fbo.registerAndWaitForUpdates()
 		}
@@ -1627,8 +1625,7 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 			md.Revision(), md.MergedStatus(), err)
 	}()
 
-	if md.IsReadable() && fbo.config.Mode() != InitMinimal &&
-		fbo.config.Mode() != InitConstrained {
+	if md.IsReadable() && fbo.config.Mode().PrefetchWorkers() > 0 {
 		// We `Get` the root block to ensure downstream prefetches occur.
 		_ = fbo.config.BlockOps().BlockRetriever().Request(ctx,
 			defaultOnDemandRequestPriority, md, md.data.Dir.BlockPointer,
@@ -4582,7 +4579,7 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 	fbo.mdWriterLock.AssertLocked(lState)
 	fbo.headLock.AssertLocked(lState)
 
-	if fbo.config.Mode() == InitMinimal {
+	if !fbo.config.Mode().NodeCacheEnabled() {
 		// There is no node cache in minimal mode, so there's nothing
 		// to update.
 		return nil

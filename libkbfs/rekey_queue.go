@@ -66,7 +66,7 @@ func NewRekeyQueueStandard(config Config) (rkq *RekeyQueueStandard) {
 		pendings: make(map[tlf.ID]bool),
 		cancel:   cancel,
 	}
-	if config.Mode() != InitSingleOp {
+	if config.Mode().RekeyWorkers() > 0 {
 		rkq.start(ctx)
 	}
 	return rkq

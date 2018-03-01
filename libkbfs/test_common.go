@@ -43,8 +43,7 @@ const (
 // MakeTestConfigOrBust or ConfigAsUser.
 //
 // TODO: Move more common code here.
-func newConfigForTest(mode InitMode,
-	loggerFn func(module string) logger.Logger) *ConfigLocal {
+func newConfigForTest(mode InitModeType, loggerFn func(module string) logger.Logger) *ConfigLocal {
 	config := NewConfigLocal(mode|InitTest, loggerFn, "", DiskCacheModeOff, &env.KBFSContext{})
 
 	bops := NewBlockOpsStandard(config,
@@ -117,7 +116,7 @@ func newTestRPCLogFactory(t testLogger) rpc.LogFactory {
 // being logged in.
 func MakeTestConfigOrBustLoggedInWithMode(
 	t logger.TestLogBackend, loggedInIndex int,
-	mode InitMode, users ...libkb.NormalizedUsername) *ConfigLocal {
+	mode InitModeType, users ...libkb.NormalizedUsername) *ConfigLocal {
 	log := logger.NewTestLogger(t)
 	config := newConfigForTest(mode, func(m string) logger.Logger {
 		return log
@@ -231,7 +230,7 @@ func MakeTestConfigOrBust(t logger.TestLogBackend,
 // enabled in the returned Config, regardless of the journal status in
 // `config`.
 func ConfigAsUserWithMode(config *ConfigLocal,
-	loggedInUser libkb.NormalizedUsername, mode InitMode) *ConfigLocal {
+	loggedInUser libkb.NormalizedUsername, mode InitModeType) *ConfigLocal {
 	c := newConfigForTest(mode, config.loggerFn)
 	c.SetMetadataVersion(config.MetadataVersion())
 	c.SetRekeyWithPromptWaitTime(config.RekeyWithPromptWaitTime())
@@ -320,7 +319,7 @@ func ConfigAsUserWithMode(config *ConfigLocal,
 // `config`.
 func ConfigAsUser(config *ConfigLocal,
 	loggedInUser libkb.NormalizedUsername) *ConfigLocal {
-	return ConfigAsUserWithMode(config, loggedInUser, config.Mode())
+	return ConfigAsUserWithMode(config, loggedInUser, config.Mode().Type())
 }
 
 // NewEmptyTLFWriterKeyBundle creates a new empty kbfsmd.TLFWriterKeyBundleV2

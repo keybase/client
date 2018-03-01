@@ -595,17 +595,8 @@ func doInit(
 			params.CleanBlockCacheCapacity)
 	}
 
-	workers := defaultBlockRetrievalWorkerQueueSize
-	prefetchWorkers := defaultPrefetchWorkerQueueSize
-	if config.Mode() == InitMinimal {
-		// In minimal mode, block re-embedding is not required, so we don't
-		// fetch the unembedded blocks..
-		workers = 0
-		prefetchWorkers = 0
-	} else if config.Mode() == InitConstrained {
-		workers = 1
-		prefetchWorkers = 0
-	}
+	workers := config.Mode().BlockWorkers()
+	prefetchWorkers := config.Mode().PrefetchWorkers()
 	config.SetBlockOps(NewBlockOpsStandard(config, workers, prefetchWorkers))
 
 	bsplitter, err := NewBlockSplitterSimple(MaxBlockSizeBytesDefault, 8*1024,
@@ -708,7 +699,7 @@ func doInit(
 			params.DiskCacheMode.String())
 	}
 
-	if config.Mode() == InitDefault {
+	if config.Mode().KBFSServiceEnabled() {
 		// Initialize kbfsService only when we run a full KBFS process.
 		// This requires the disk block cache to have been initialized, if it
 		// should be initialized.
@@ -731,7 +722,7 @@ func doInit(
 	defer cancel()
 	// TODO: Don't turn on journaling if either -bserver or
 	// -mdserver point to local implementations.
-	if params.EnableJournal && config.Mode() != InitMinimal {
+	if params.EnableJournal && config.Mode().JournalEnabled() {
 		journalRoot := filepath.Join(params.StorageRoot, "kbfs_journal")
 		err = config.EnableJournaling(ctx10s, journalRoot,
 			params.TLFJournalBackgroundWorkStatus)

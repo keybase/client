@@ -259,7 +259,7 @@ func (j *JournalServer) getTLFJournal(
 		j.log.CDebugf(ctx, "Enabling a new journal for %s (enableAuto=%t, set by user=%t)",
 			tlfID, enableAuto, enableAutoSetByUser)
 		bws := TLFJournalBackgroundWorkEnabled
-		if j.config.Mode() == InitSingleOp {
+		if j.config.Mode().Type() == InitSingleOp {
 			bws = TLFJournalSingleOpBackgroundWorkEnabled
 		}
 		err = j.Enable(ctx, tlfID, h, bws)
