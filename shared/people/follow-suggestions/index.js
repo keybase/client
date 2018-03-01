@@ -37,7 +37,7 @@ const Suggestion = (props: Types._FollowSuggestion & {onClickUser: () => void}) 
       inline={true}
     />
     {!!props.fullName && (
-      <Text type="BodySmall" lineClamp={1} style={{paddingLeft: 2, paddingRight: 2}}>
+      <Text type="BodySmall" lineClamp={1} style={fullnameStyle}>
         {props.fullName}
       </Text>
     )}
@@ -92,4 +92,17 @@ const scrollViewContainerStyle = {
   ...(isMobile
     ? null
     : {...globalStyles.flexBoxRow, width: '100%', height: 106, flexWrap: 'wrap', overflow: 'hidden'}),
+}
+
+const fullnameStyle = {
+  paddingLeft: 1,
+  paddingRight: 2,
+  ...(isMobile
+    ? null
+    : {
+        width: '90%',
+        whiteSpace: 'nowrap',
+        display: 'unset',
+        textAlign: 'center',
+      }),
 }
