@@ -32,6 +32,9 @@ const (
 	// InitSingleOpString is for when KBFS will only be used for a
 	// single logical operation (e.g., as a git remote helper).
 	InitSingleOpString = "singleOp"
+	// InitConstrainedString is for when KBFS will use constrained
+	// resources.
+	InitConstrainedString = "constrained"
 )
 
 // InitParams contains the initialization parameters for Init(). It is
@@ -267,8 +270,8 @@ func AddFlagsWithDefaults(
 		"Metadata version to use when creating new metadata")
 	flags.StringVar(&params.Mode, "mode", defaultParams.Mode,
 		fmt.Sprintf("Overall initialization mode for KBFS, indicating how "+
-			"heavy-weight it can be (%s, %s or %s)", InitDefaultString,
-			InitMinimalString, InitSingleOpString))
+			"heavy-weight it can be (%s, %s, %s or %s)", InitDefaultString,
+			InitMinimalString, InitSingleOpString, InitConstrainedString))
 
 	return &params
 }
@@ -562,6 +565,9 @@ func doInit(
 	case InitSingleOpString:
 		log.CDebugf(ctx, "Initializing in singleOp mode")
 		mode = InitSingleOp
+	case InitConstrainedString:
+		log.CDebugf(ctx, "Initializing in constrained mode")
+		mode = InitConstrained
 	default:
 		return nil, fmt.Errorf("Unexpected mode: %s", params.Mode)
 	}
@@ -595,6 +601,9 @@ func doInit(
 		// In minimal mode, block re-embedding is not required, so we don't
 		// fetch the unembedded blocks..
 		workers = 0
+		prefetchWorkers = 0
+	} else if config.Mode() == InitConstrained {
+		workers = 1
 		prefetchWorkers = 0
 	}
 	config.SetBlockOps(NewBlockOpsStandard(config, workers, prefetchWorkers))

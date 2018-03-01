@@ -680,6 +680,9 @@ const (
 	// needed, and some naming restrictions are lifted (e.g., `.kbfs_`
 	// filenames are allowed).
 	InitSingleOp
+	// InitConstrained is a mode where KBFS reads and writes data, but
+	// constrains itself to using fewer resources (e.g. on mobile).
+	InitConstrained
 )
 
 // Mode returns the mode absent any mode flags.
@@ -700,6 +703,8 @@ func (im InitMode) String() string {
 		return InitMinimalString
 	case InitSingleOp:
 		return InitSingleOpString
+	case InitConstrained:
+		return InitConstrainedString
 	default:
 		return "unknown"
 	}

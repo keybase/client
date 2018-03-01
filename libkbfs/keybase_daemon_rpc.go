@@ -78,7 +78,7 @@ func NewKeybaseDaemonRPC(config Config, kbCtx Context, log logger.Logger,
 	k.fillClients(conn.GetClient())
 	k.shutdownFn = conn.Shutdown
 
-	if config.Mode() != InitMinimal {
+	if config.Mode() != InitMinimal && config.Mode() != InitConstrained {
 		ctx, cancel := context.WithCancel(context.Background())
 		k.keepAliveCancel = cancel
 		go k.keepAliveLoop(ctx)

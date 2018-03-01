@@ -1627,7 +1627,8 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 			md.Revision(), md.MergedStatus(), err)
 	}()
 
-	if md.IsReadable() && fbo.config.Mode() != InitMinimal {
+	if md.IsReadable() && fbo.config.Mode() != InitMinimal &&
+		fbo.config.Mode() != InitConstrained {
 		// We `Get` the root block to ensure downstream prefetches occur.
 		_ = fbo.config.BlockOps().BlockRetriever().Request(ctx,
 			defaultOnDemandRequestPriority, md, md.data.Dir.BlockPointer,

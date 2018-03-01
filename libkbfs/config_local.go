@@ -418,7 +418,7 @@ func NewConfigLocal(mode InitMode, loggerFn func(module string) logger.Logger,
 	case InitDefault:
 		// In normal desktop app, we limit to 16 routines.
 		config.rekeyFSMLimiter = NewOngoingWorkLimiter(16)
-	case InitMinimal:
+	case InitMinimal, InitConstrained:
 		// This is likely mobile. Limit it to 4.
 		config.rekeyFSMLimiter = NewOngoingWorkLimiter(4)
 	case InitSingleOp:
