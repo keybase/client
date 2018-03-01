@@ -21,7 +21,6 @@ export const list = 'kbfs:list'
 export const listed = 'kbfs:listed'
 export const open = 'kbfs:open'
 export const openDefaultPath = 'kbfs:openDefaultPath'
-export const openInFileUI = 'kbfs:openInFileUI'
 export const uninstallKBFS = 'kbfs:uninstallKBFS'
 export const uninstallKBFSResult = 'kbfs:uninstallKBFSResult'
 
@@ -45,7 +44,6 @@ export const createListed = (payload: $ReadOnly<{result: RPCTypes.ListResult}>) 
 export const createListedError = (payload: $ReadOnly<{error: Error}>) => ({error: true, payload, type: listed})
 export const createOpen = (payload: $ReadOnly<{path?: string}>) => ({error: false, payload, type: open})
 export const createOpenDefaultPath = (payload: $ReadOnly<{opening: boolean}>) => ({error: false, payload, type: openDefaultPath})
-export const createOpenInFileUI = (payload: $ReadOnly<{path: string}>) => ({error: false, payload, type: openInFileUI})
 export const createUninstallKBFS = () => ({error: false, payload: undefined, type: uninstallKBFS})
 export const createUninstallKBFSResult = (payload: $ReadOnly<{result: RPCTypes.UninstallResult}>) => ({error: false, payload, type: uninstallKBFSResult})
 
@@ -62,7 +60,6 @@ export type InstallKBFSResultPayload = More.ReturnType<typeof createInstallKBFSR
 export type ListPayload = More.ReturnType<typeof createList>
 export type ListedPayload = More.ReturnType<typeof createListed>
 export type OpenDefaultPathPayload = More.ReturnType<typeof createOpenDefaultPath>
-export type OpenInFileUIPayload = More.ReturnType<typeof createOpenInFileUI>
 export type OpenPayload = More.ReturnType<typeof createOpen>
 export type UninstallKBFSPayload = More.ReturnType<typeof createUninstallKBFS>
 export type UninstallKBFSResultPayload = More.ReturnType<typeof createUninstallKBFSResult>
@@ -84,7 +81,6 @@ export type Actions =
   | More.ReturnType<typeof createListedError>
   | More.ReturnType<typeof createOpen>
   | More.ReturnType<typeof createOpenDefaultPath>
-  | More.ReturnType<typeof createOpenInFileUI>
   | More.ReturnType<typeof createUninstallKBFS>
   | More.ReturnType<typeof createUninstallKBFSResult>
   | {type: 'common:resetStore', payload: void}

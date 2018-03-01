@@ -311,18 +311,8 @@ function* openSaga(action: KBFSGen.OpenPayload): Saga.SagaGenerator<any, any> {
   }
 }
 
-function openInFileUISaga({payload: {path}}: KBFSGen.OpenInFileUIPayload, state: TypedState) {
-  const enabled = state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted
-  if (isLinux || enabled) {
-    return Saga.call(_open, path)
-  } else {
-    return Saga.sequentially([Saga.put(navigateTo([], [folderTab])), Saga.put(switchTo([folderTab]))])
-  }
-}
-
 function* kbfsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(KBFSGen.open, openSaga)
-  yield Saga.safeTakeEveryPure(KBFSGen.openInFileUI, openInFileUISaga)
   yield Saga.safeTakeLatest(KBFSGen.fuseStatus, fuseStatusSaga)
   yield Saga.safeTakeLatestPure(KBFSGen.fuseStatusUpdate, fuseStatusUpdateSaga)
   if (isWindows) {
