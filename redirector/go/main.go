@@ -60,6 +60,8 @@ type root struct {
 
 	lock            sync.RWMutex
 	mountpointCache map[uint32]cacheEntry
+
+	getMountsLock sync.Mutex
 }
 
 func newRoot() (*root, error) {
@@ -110,6 +112,12 @@ func (r *root) getCachedMountpoint(uid uint32) string {
 	return entry.mountpoint
 }
 
+func (r *root) getMountedVolumes() ([]gomounts.Volume, error) {
+	r.getMountsLock.Lock()
+	defer r.getMountsLock.Unlock()
+	return gomounts.GetMountedVolumes()
+}
+
 func (r *root) findKBFSMount(ctx context.Context) (
 	mountpoint string, err error) {
 	// Get the UID, and crash intentionally if it's not set, because
@@ -145,7 +153,7 @@ func (r *root) findKBFSMount(ctx context.Context) (
 		return "", err
 	}
 
-	vols, err := gomounts.GetMountedVolumes()
+	vols, err := r.getMountedVolumes()
 	if err != nil {
 		return "", err
 	}
