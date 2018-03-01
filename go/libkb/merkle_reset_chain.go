@@ -92,7 +92,7 @@ type MerkleResets struct {
 
 func (mr *MerkleResets) verifyAndLoad(ctx context.Context, g *GlobalContext, urc unverifiedResetChain) (err error) {
 
-	// Don't even both a trace if the user hasn't reset at all
+	// Don't even bother to do a CVTrace if the user hasn't reset at all
 	if mr == nil {
 		return nil
 	}
@@ -136,6 +136,11 @@ func (mr *MerkleResets) verifyAndLoad(ctx context.Context, g *GlobalContext, urc
 		}
 		curr = link.Prev.Reset
 		last = false
+	}
+
+	if curr != nil {
+		err = mkerr("expected first link in reset chain to have a null prev")
+		return err
 	}
 
 	// It all verified, now load it up, going front to back.

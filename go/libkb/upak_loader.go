@@ -111,6 +111,14 @@ func (u *CachedUPAKLoader) getCachedUPAK(ctx context.Context, uid keybase1.UID, 
 	} else {
 		var tmp keybase1.UserPlusKeysV2AllIncarnations
 		found, err := u.G().LocalDb.GetInto(&tmp, culDBKeyV2(uid))
+
+		// As a nice load-saving hack, we can upgrade V5 minor versions to V6 on load if there are no resets.
+		// We just do this in memory.
+		if found && err == nil && tmp.MinorVersion == keybase1.UPK2MinorVersion_V5 && len(tmp.PastIncarnations) == 0 {
+			u.G().VDL.CLogf(ctx, VLog0, "| upgrade disk cache v%d without resets to v%d", keybase1.UPK2MinorVersion_V5, keybase1.UPK2MinorVersion_V6)
+			tmp.MinorVersion = keybase1.UPK2MinorVersion_V6
+		}
+
 		hit := false
 		if err != nil {
 			u.G().Log.CWarningf(ctx, "trouble accessing UserPlusKeysV2AllIncarnations cache: %s", err)
@@ -118,9 +126,6 @@ func (u *CachedUPAKLoader) getCachedUPAK(ctx context.Context, uid keybase1.UID, 
 			u.G().VDL.CLogf(ctx, VLog0, "| missed disk cache")
 		} else if tmp.MinorVersion == UPK2MinorVersionCurrent {
 			u.G().VDL.CLogf(ctx, VLog0, "| hit disk cache (v%d)", tmp.MinorVersion)
-			hit = true
-		} else if UPK2MinorVersionCurrent == keybase1.UPK2MinorVersion_V6 && tmp.MinorVersion == keybase1.UPK2MinorVersion_V5 && len(tmp.PastIncarnations) == 0 {
-			u.G().VDL.CLogf(ctx, VLog0, "| hit disk cache (v%d) but no resets, so no upgrade needed", keybase1.UPK2MinorVersion_V5)
 			hit = true
 		} else {
 			u.G().VDL.CLogf(ctx, VLog0, "| found old minor version %d, but wanted %d; will overwrite with fresh UPAK", tmp.MinorVersion, UPK2MinorVersionCurrent)
