@@ -6,7 +6,7 @@ import * as TeamsGen from '../actions/teams-gen'
 import Teams from './main'
 import openURL from '../util/open-url'
 import {navigateAppend} from '../actions/route-tree'
-import {compose, lifecycle, type TypedState, pausableConnect} from '../util/container'
+import {compose, lifecycle, type TypedState, connect} from '../util/container'
 import {type Teamname, type ResetUser} from '../constants/types/teams'
 
 type StateProps = {
@@ -103,7 +103,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
 }
 
 export default compose(
-  pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentDidMount: function() {
       this.props._loadTeams()

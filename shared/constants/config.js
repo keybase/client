@@ -30,6 +30,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   daemonError: null,
   deviceID: null,
   deviceName: null,
+  debugDump: [],
   error: null,
   extendedConfig: null,
   followers: I.Set(),

@@ -7,7 +7,7 @@ import upperFirst from 'lodash/upperFirst'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   return {
-    errorText: upperFirst(state.chat.channelCreationError),
+    errorText: upperFirst(state.entities.teams.channelCreationError),
     teamname: routeProps.get('teamname'),
   }
 }

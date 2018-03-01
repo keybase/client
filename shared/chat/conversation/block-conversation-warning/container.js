@@ -1,23 +1,18 @@
 // @flow
 import RenderBlockConversationWarning from './'
-import * as ChatGen from '../../../actions/chat-gen'
+import * as Constants from '../../../constants/chat2'
+import * as Chat2Gen from '../../../actions/chat2-gen'
 import {connect, type TypedState} from '../../../util/container'
-import {navigateTo, navigateUp} from '../../../actions/route-tree'
-import {chatTab} from '../../../constants/tabs'
+import {navigateUp} from '../../../actions/route-tree'
 import {type RouteProps} from '../../../route-tree/render-route'
-import {type ConversationIDKey} from '../../../constants/types/chat'
+import {type ConversationIDKey} from '../../../constants/types/chat2'
 
-type RenderBlockConversationWarningRouteProps = RouteProps<
-  {
-    conversationIDKey: ConversationIDKey,
-    participants: string,
-  },
-  {}
->
+type RenderBlockConversationWarningRouteProps = RouteProps<{conversationIDKey: ConversationIDKey}, {}>
 type OwnProps = RenderBlockConversationWarningRouteProps
 
 const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
-  const {conversationIDKey, participants} = routeProps.toObject()
+  const conversationIDKey = routeProps.get('conversationIDKey')
+  const participants = Constants.getMeta(state, conversationIDKey).participants.join(',')
   return {
     conversationIDKey,
     participants,
@@ -25,30 +20,24 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onBlock: (conversationIDKey: ConversationIDKey, reportUser: boolean) =>
+  _onBlock: (conversationIDKey: ConversationIDKey, reportUser: boolean) => {
     dispatch(
-      ChatGen.createBlockConversation({
-        blocked: true,
+      Chat2Gen.createBlockConversation({
         conversationIDKey,
         reportUser,
       })
-    ),
+    )
+    dispatch(Chat2Gen.createNavigateToInbox())
+  },
   onBack: () => dispatch(navigateUp()),
-  navToRootChat: () => dispatch(navigateTo([chatTab])),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  ...stateProps,
-  ...dispatchProps,
-  ...ownProps,
-  onBlockAndReport: () => {
-    dispatchProps.onBlock(stateProps.conversationIDKey, true)
-    dispatchProps.navToRootChat()
-  },
-  onBlock: () => {
-    dispatchProps.onBlock(stateProps.conversationIDKey, false)
-    dispatchProps.navToRootChat()
-  },
+  conversationIDKey: stateProps.conversationIDKey,
+  onBack: dispatchProps.onBack,
+  onBlock: () => dispatchProps._onBlock(stateProps.conversationIDKey, false),
+  onBlockAndReport: () => dispatchProps._onBlock(stateProps.conversationIDKey, true),
+  participants: stateProps.participants,
 })
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(RenderBlockConversationWarning)

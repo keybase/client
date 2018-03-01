@@ -1,22 +1,22 @@
 // @flow
 import * as React from 'react'
-import * as Types from '../../../../constants/types/chat'
+import * as Types from '../../../../constants/types/chat2'
 import {Markdown} from '../../../../common-adapters'
-import {globalColors, isMobile} from '../../../../styles'
+import {globalColors, isMobile, styleSheetCreate} from '../../../../styles'
 
 export type Props = {
   text: string,
-  type: 'failed' | 'pending' | 'sent',
+  type: 'error' | 'pending' | 'sent',
   isEditing: boolean,
-  mentions: Types.Mentions,
-  channelMention: Types.ChannelMention,
-  channelNameMentions: Types.ChannelNameMentions,
+  mentionsAt: Types.MentionsAt,
+  mentionsChannel: Types.MentionsChannel,
+  mentionsChannelName: Types.MentionsChannelName,
 }
 
-const MessageText = ({text, type, isEditing, mentions, channelMention, channelNameMentions}: Props) => (
+const MessageText = ({text, type, isEditing, mentionsAt, mentionsChannel, mentionsChannelName}: Props) => (
   <Markdown
     style={getStyle(type, isEditing)}
-    meta={{mentions, channelMention, channelNameMentions}}
+    meta={{mentionsAt, mentionsChannel, mentionsChannelName}}
     allowFontScaling={true}
   >
     {text}
@@ -26,48 +26,52 @@ const MessageText = ({text, type, isEditing, mentions, channelMention, channelNa
 // Encoding all 4 states as static objects so we don't re-render
 const getStyle = (type, isEditing) => {
   if (type === 'sent') {
-    return isEditing && isMobile ? sentEditingStyle : sentStyle
+    return isEditing ? styles.sentEditing : styles.sent
   } else {
-    return isEditing && isMobile ? pendingFailEditingStyle : pendingFailStyle
+    return isEditing ? styles.pendingFailEditing : styles.pendingFail
   }
 }
 
-const editingStyle = {
+const editing = {
   borderColor: globalColors.blue,
-  borderRadius: 8,
+  borderRadius: 4,
+  borderStyle: isMobile ? 'solid' : 'dashed',
   borderWidth: 1,
-  margin: 2,
-  padding: 2,
+  paddingLeft: 2,
+  paddingRight: 2,
 }
-
-const sentStyle = {
-  flex: 1,
+const sent = {
+  width: '100%',
   ...(isMobile
     ? {
-        color: globalColors.black_75,
+        backgroundColor: globalColors.fastBlank,
+        color: globalColors.black_75_on_white,
       }
     : {
-        whiteSpace: 'pre-wrap',
-        // Make text selectable. On mobile we implement that
-        // differently.
-        userSelect: 'text',
+        // Make text selectable. On mobile we implement that differently.
         cursor: 'text',
+        userSelect: 'text',
+        whiteSpace: 'pre-wrap',
+        wordBreak: 'break-word',
       }),
 }
-
-const sentEditingStyle = {
-  ...sentStyle,
-  ...editingStyle,
+const sentEditing = {
+  ...sent,
+  ...editing,
 }
-
-const pendingFailStyle = {
-  ...sentStyle,
-  color: globalColors.black_40,
+const pendingFail = {
+  ...sent,
 }
-
-const pendingFailEditingStyle = {
-  ...pendingFailStyle,
-  ...editingStyle,
+const pendingFailEditing = {
+  ...pendingFail,
+  ...editing,
 }
+const styles = styleSheetCreate({
+  editing,
+  pendingFail,
+  pendingFailEditing,
+  sent,
+  sentEditing,
+})
 
 export default MessageText

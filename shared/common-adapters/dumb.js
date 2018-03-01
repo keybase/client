@@ -37,7 +37,7 @@ const colorMocks = {}
 Object.keys(globalColors)
   .sort()
   .forEach(c => {
-    colorMocks[`${c}: ${globalColors[c]}`] = {
+    colorMocks[`${c}: ${globalColors[c] || ''}`] = {
       parentProps: {
         height: 60,
         width: 230,

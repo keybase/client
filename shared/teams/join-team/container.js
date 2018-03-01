@@ -1,6 +1,7 @@
 // @flow
 import * as TeamsGen from '../../actions/teams-gen'
 import JoinTeamDialog from '.'
+// import upperFirst from 'lodash/upperFirst'
 import {
   connect,
   compose,
@@ -11,14 +12,13 @@ import {
   type Dispatch,
 } from '../../util/container'
 import {type RouteProps} from '../../route-tree/render-route'
-import upperFirst from 'lodash/upperFirst'
 
 type OwnProps = RouteProps<*, *>
 
-const mapStateToProps = (state: TypedState): * => ({
-  errorText: upperFirst(state.chat.teamJoinError),
-  success: state.chat.teamJoinSuccess,
-  successTeamName: state.chat.teamJoinSuccessTeamName,
+const mapStateToProps = (state: TypedState) => ({
+  errorText: null, // TODO upperFirst(state.chat.teamJoinError),
+  success: null, // TODO state.chat.teamJoinSuccess,
+  successTeamName: null, // TODO state.chat.teamJoinSuccessTeamName,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}: OwnProps) => ({

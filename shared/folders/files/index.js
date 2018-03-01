@@ -1,5 +1,5 @@
 // @flow
-import * as ChatGen from '../../actions/chat-gen'
+import * as Chat2Gen from '../../actions/chat2-gen'
 import * as KBFSGen from '../../actions/kbfs-gen'
 import * as FavoriteGen from '../../actions/favorite-gen'
 import React, {Component} from 'react'
@@ -21,7 +21,7 @@ type Props = $Shape<{
   ignoreFolder: (path: string) => void,
   favoriteFolder: (path: string) => void,
   openInKBFS: (path: string) => void,
-  openTlfInChat: (tlf: string, isTeam: boolean) => void,
+  openTlfInChat: (tlf: string) => void,
 }>
 
 type State = {
@@ -66,8 +66,8 @@ class Files extends Component<Props, State> {
       this.props.openInKBFS(this.props.path)
     }
     const openConversationFromFolder = () => {
-      const tlf = this.props && this.props.folder && this.props.folder.sortName
-      tlf && this.props.openTlfInChat(tlf, this.props.folder ? this.props.folder.isTeam : false)
+      const tlf = this.props && this.props.path
+      tlf && this.props.openTlfInChat(tlf)
     }
     const ignoreCurrentFolder = () => {
       this.props.ignoreFolder(this.props.path)
@@ -134,7 +134,7 @@ const mapDispatchToProps = (dispatch: any) => ({
   navigateAppend: route => dispatch(navigateAppend(route)),
   navigateUp: () => dispatch(navigateUp()),
   openInKBFS: path => dispatch(KBFSGen.createOpen({path})),
-  openTlfInChat: tlf => dispatch(ChatGen.createOpenTlfInChat({tlf})),
+  openTlfInChat: tlf => dispatch(Chat2Gen.createStartConversation({tlf})),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(Files)

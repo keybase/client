@@ -62,6 +62,9 @@
     "setOpenAtLogin": {
       "open": "boolean",
       "writeFile": "boolean"
+    },
+    "debugDump": {
+      "items": "Array<string>"
     }
   }
 }

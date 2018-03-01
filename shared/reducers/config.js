@@ -65,6 +65,8 @@ export default function(
       }
       return state.set('globalError', globalError)
     }
+    case ConfigGen.debugDump:
+      return state.set('debugDump', action.payload.items)
     case ConfigGen.daemonError: {
       const {daemonError} = action.payload
       if (daemonError) {

@@ -1,5 +1,6 @@
 // @flow
 import React from 'react'
+import * as Types from '../../constants/types/chat2'
 import {Box} from '../../common-adapters'
 import {storiesOf, action} from '../../stories/storybook'
 import {isMobile} from '../../constants/platform'
@@ -11,43 +12,43 @@ const channels = [
     description: 'General things on things.',
     name: 'general',
     selected: true,
-    convID: '1',
+    convID: Types.stringToConversationIDKey('1'),
   },
   {
     description: 'Random things randomly discussed.',
     name: 'random',
     selected: true,
-    convID: '2',
+    convID: Types.stringToConversationIDKey('2'),
   },
   {
     description: 'Revenue data worth checking',
     name: 'revenue',
     selected: false,
-    convID: '3',
+    convID: Types.stringToConversationIDKey('3'),
   },
   {
     description: 'Talk to the sales team',
     name: 'sales',
     selected: false,
-    convID: '4',
+    convID: Types.stringToConversationIDKey('4'),
   },
   {
     description: 'True discussions on true news.',
     name: 'truechannel',
     selected: false,
-    convID: '5',
+    convID: Types.stringToConversationIDKey('5'),
   },
   {
     description: 'Boring things not worth discussing',
     name: 'zzz',
     selected: true,
-    convID: '13',
+    convID: Types.stringToConversationIDKey('13'),
   },
   {
     description: 'This is a very long long long description to test that things flow correctly',
     name: 'superlonglonglongnameforachannel',
     selected: true,
-    convID: '21',
+    convID: Types.stringToConversationIDKey('21'),
   },
 ]
 

@@ -17,7 +17,7 @@ const searchResultSelector = ({entities: {search: {searchResults}}}: TypedState,
   return searchResults.get(username)
 }
 
-const previousConversationSelector = ({chat: {previousConversation}}: TypedState) => previousConversation
+// const previousConversationSelector = ({chat: {previousConversation}}: TypedState) => previousConversation
 
 const amIFollowing = (state: TypedState, otherUser: string) => state.config.following.has(otherUser)
 const amIBeingFollowed = (state: TypedState, otherUser: string) => state.config.followers.has(otherUser)
@@ -57,7 +57,7 @@ export {
   amIFollowing,
   cachedSearchResults,
   loggedInSelector,
-  previousConversationSelector,
+  // previousConversationSelector,
   searchResultMapSelector,
   searchResultSelector,
   teamMemberRecordSelector,

@@ -1,8 +1,0 @@
-// @flow
-import {Component} from 'react'
-
-export type Props = {
-  username: string,
-}
-
-export default class FollowNotice extends Component<Props> {}

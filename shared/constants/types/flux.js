@@ -19,6 +19,6 @@ export type NoErrorTypedAction<T, P> = TypedAction<T, P, P>
 export type Action = TypedAction<any, any, any>
 export type GetState = () => any
 export type AsyncAction = (dispatch: Dispatch, getState: GetState) => ?Promise<*> // eslint-disable-line no-use-before-define
-export type Dispatch = (action: AsyncAction | Action) => ?Promise<*> // eslint-disable-line no-use-before-define
+export type Dispatch = (action: AsyncAction | Action) => void // eslint-disable-line no-use-before-define
 
 export type TypedAsyncAction = (dispatch: Dispatch, getState: GetState) => ?Promise<*>

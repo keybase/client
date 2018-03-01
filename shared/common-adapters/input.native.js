@@ -5,7 +5,7 @@ import React, {Component} from 'react'
 import Box from './box'
 import Text, {getStyle as getTextStyle} from './text'
 import {NativeTextInput} from './native-wrappers.native'
-import {globalStyles, globalColors} from '../styles'
+import {globalStyles, globalColors, styleSheetCreate} from '../styles'
 import {isIOS} from '../constants/platform'
 
 import type {Props} from './input'
@@ -98,20 +98,17 @@ class Input extends Component<Props, State> {
     this.setState({value: text || ''}, () => this.props.onChangeText && this.props.onChangeText(text || ''))
   }
 
-  _inputNode() {
-    return this._input
-  }
-
   focus() {
-    this._input && this._inputNode().focus()
+    this._input && this._input.focus()
   }
 
   select() {
-    this._input && this._inputNode().select()
+    // Apparently this doens't work on mobile?
+    // this._input && this._input.select()
   }
 
   blur() {
-    this._input && this._inputNode().blur()
+    this._input && this._input.blur()
   }
 
   _onKeyDown = (e: SyntheticKeyboardEvent<>) => {
@@ -149,7 +146,7 @@ class Input extends Component<Props, State> {
       return globalColors.red
     }
 
-    return this.state.focused ? globalColors.blue : globalColors.black_10
+    return this.state.focused ? globalColors.blue : globalColors.black_10_on_white
   }
 
   _rowsToHeight(rows) {
@@ -161,12 +158,14 @@ class Input extends Component<Props, State> {
     return this.props.small
       ? {
           ...globalStyles.flexBoxRow,
+          backgroundColor: globalColors.fastBlank,
           borderBottomWidth: 1,
           borderBottomColor: underlineColor,
           flex: 1,
         }
       : {
           ...globalStyles.flexBoxColumn,
+          backgroundColor: globalColors.fastBlank,
           justifyContent: 'flex-start',
           maxWidth: 400,
         }
@@ -194,9 +193,9 @@ class Input extends Component<Props, State> {
     const containerStyle = this._containerStyle(underlineColor)
 
     const commonInputStyle = {
-      color: globalColors.black_75,
+      color: globalColors.black_75_on_white,
       lineHeight: lineHeight,
-      backgroundColor: globalColors.transparent,
+      backgroundColor: globalColors.fastBlank,
       flexGrow: 1,
       borderWidth: 0,
       ...(this.props.small
@@ -279,33 +278,30 @@ class Input extends Component<Props, State> {
       style: {...multilineStyle, ...this.props.inputStyle},
     }
 
-    const smallLabelStyle = {
-      ...globalStyles.fontSemibold,
-      fontSize: _headerTextStyle.fontSize,
-      lineHeight: lineHeight,
-      marginRight: 8,
-      color: globalColors.blue,
-      ...this.props.smallLabelStyle,
-    }
-
     return (
-      <Box style={{...containerStyle, ...this.props.style}}>
+      <Box style={[containerStyle, this.props.style]}>
         {!this.props.small && (
-          <Text type="BodySmall" style={_floatingStyle}>
+          <Text type="BodySmall" style={styles.floating}>
             {floatingHintText}
           </Text>
         )}
         {!!this.props.small &&
           !!this.props.smallLabel && (
-            <Text type="BodySmall" style={smallLabelStyle}>
+            <Text type="BodySmall" style={[styles.smallLabel, {lineHeight}, this.props.smallLabelStyle]}>
               {this.props.smallLabel}
             </Text>
           )}
-        <Box style={this.props.small ? {flex: 1} : {borderBottomWidth: 1, borderBottomColor: underlineColor}}>
+        <Box
+          style={
+            this.props.small
+              ? styles.inputContainerSmall
+              : [styles.inputContainer, {borderBottomColor: underlineColor}]
+          }
+        >
           <NativeTextInput {...(this.props.multiline ? multilineProps : singlelineProps)} />
         </Box>
         {!this.props.small && (
-          <Text type="BodyError" style={{..._errorStyle, ...this.props.errorStyle}}>
+          <Text type="BodyError" style={[styles.error, this.props.errorStyle]}>
             {this.props.errorText || ''}
           </Text>
         )}
@@ -319,16 +315,30 @@ const _bodyTextStyle = getTextStyle('Body')
 const _bodySmallTextStyle = getTextStyle('BodySmall')
 const _bodyErrorTextStyle = getTextStyle('BodyError')
 
-const _errorStyle = {
-  minHeight: _bodyErrorTextStyle.lineHeight,
-  textAlign: 'center',
-}
-
-const _floatingStyle = {
-  textAlign: 'center',
-  minHeight: _bodySmallTextStyle.lineHeight,
-  color: globalColors.blue,
-  marginBottom: 9,
-}
+const styles = styleSheetCreate({
+  error: {
+    minHeight: _bodyErrorTextStyle.lineHeight,
+    textAlign: 'center',
+  },
+  floating: {
+    color: globalColors.blue,
+    marginBottom: 9,
+    minHeight: _bodySmallTextStyle.lineHeight,
+    textAlign: 'center',
+  },
+  inputContainer: {
+    borderBottomWidth: 1,
+  },
+  inputContainerSmall: {
+    backgroundColor: globalColors.fastBlank,
+    flex: 1,
+  },
+  smallLabel: {
+    ...globalStyles.fontSemibold,
+    color: globalColors.blue,
+    fontSize: _headerTextStyle.fontSize,
+    marginRight: 8,
+  },
+})
 
 export default Input

@@ -2,13 +2,13 @@
 import logger from '../logger'
 import * as PushTypes from '../constants/types/push'
 import * as PushConstants from '../constants/push'
+import * as AppGen from './app-gen'
 import * as PushGen from './push-gen'
 import * as PushNotifications from 'react-native-push-notification'
 import {PushNotificationIOS, CameraRoll, ActionSheetIOS, AsyncStorage, Linking} from 'react-native'
 import {eventChannel} from 'redux-saga'
 import {isDevApplePushToken} from '../local-debug'
 import {isIOS} from '../constants/platform'
-import {isImageFileName} from '../constants/chat'
 
 const shownPushPrompt = 'shownPushPrompt'
 
@@ -66,15 +66,11 @@ type NextURI = string
 function saveAttachmentDialog(filePath: string): Promise<NextURI> {
   let goodPath = filePath
   logger.debug('saveAttachment: ', goodPath)
-  if (isIOS || isImageFileName(goodPath)) {
-    if (!isIOS) {
-      goodPath = 'file://' + goodPath
-    }
-    logger.debug('Saving to camera roll: ', goodPath)
-    return CameraRoll.saveToCameraRoll(goodPath)
+  if (!isIOS) {
+    goodPath = 'file://' + goodPath
   }
-  logger.debug('Android: Leaving at ', goodPath)
-  return Promise.resolve(goodPath)
+  logger.debug('Saving to camera roll: ', goodPath)
+  return CameraRoll.saveToCameraRoll(goodPath)
 }
 
 function clearAllNotifications() {
@@ -133,6 +129,11 @@ function configurePush() {
       },
       senderID: PushConstants.androidSenderID,
       onNotification: notification => {
+        // There can be a race where the notification that our app is foregrounded is very late compared to the push
+        // which makes our handling incorrect. Instead we can only ever handle this if we're in the foreground so lets
+        // just tell the app that's so
+        dispatch(AppGen.createMobileAppState({nextAppState: 'active'}))
+
         // On iOS, some fields are in notification.data. Also, the
         // userInfo field from the local notification spawned in
         // displayNewMessageNotification gets renamed to

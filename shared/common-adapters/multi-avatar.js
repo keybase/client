@@ -1,5 +1,6 @@
 // @flow
 // Simple control to show multiple avatars. Just used in chat but could be expanded. Keeping this simple for now
+import shallowEqual from 'shallowequal'
 import logger from '../logger'
 import Avatar from './avatar'
 import Box from './box'
@@ -17,7 +18,16 @@ export type Props = {
   multiPadding?: number,
 }
 
-class MultiAvatar extends React.PureComponent<Props> {
+class MultiAvatar extends React.Component<Props> {
+  shouldComponentUpdate(nextProps: Props) {
+    return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
+      if (key === 'avatarProps') {
+        return shallowEqual(this.props.avatarProps, nextProps.avatarProps)
+      }
+
+      return undefined
+    })
+  }
   render() {
     const {avatarProps, singleSize, multiSize, style, multiPadding} = this.props
     if (avatarProps.length <= 0) {

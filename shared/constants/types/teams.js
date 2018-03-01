@@ -1,7 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
-import type {ConversationIDKey} from './chat'
+import type {ConversationIDKey} from './chat2'
 
 export type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner'
 
@@ -89,10 +89,13 @@ export type _ResetUser = {
 export type ResetUser = I.RecordOf<_ResetUser>
 
 export type _State = {
+  channelCreationError: string,
   convIDToChannelInfo: I.Map<ConversationIDKey, ChannelInfo>,
   sawChatBanner: boolean,
   sawSubteamsBanner: boolean,
   teamAccessRequestsPending: I.Set<Teamname>,
+  teamCreationError: string,
+  teamCreationPending: boolean,
   teamNameToConvIDs: I.Map<Teamname, I.Set<ConversationIDKey>>,
   teamNameToInvites: I.Map<
     Teamname,

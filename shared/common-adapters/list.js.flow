@@ -2,6 +2,7 @@
 import * as React from 'react'
 
 export type Props<Item> = {
+  indexAsKey?: boolean,
   items: Array<Item>,
   style?: any,
   fixedHeight?: ?number,

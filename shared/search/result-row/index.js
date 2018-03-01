@@ -66,9 +66,13 @@ const Middle = ({rightService, rightIcon, rightUsername, rightFollowingState}) =
             style={{
               ...followingStateToStyle(rightFollowingState),
               overflow: 'hidden',
-              whiteSpace: 'pre-wrap',
-              wordWrap: 'break-word',
               flex: 1,
+              ...(isMobile
+                ? {}
+                : {
+                    whiteSpace: 'pre-wrap',
+                    wordWrap: 'break-word',
+                  }),
             }}
           >
             {rightUsername}

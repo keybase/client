@@ -2,6 +2,7 @@
 import {Component} from 'react'
 
 export type Props = {
+  smartAutoresize?: boolean,
   autoFocus?: boolean,
   className?: string,
   editable?: boolean,
@@ -48,6 +49,7 @@ export type Props = {
     | 'twitter'
     | 'web-search',
   returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send',
+  selectTextOnFocus?: boolean,
 }
 
 declare export default class Input extends Component<Props> {

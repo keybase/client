@@ -1,6 +1,6 @@
 // @flow
 import type {State as Billing} from '../constants/types/plan-billing'
-import type {State as Chat} from '../constants/types/chat'
+import type {State as Chat2} from '../constants/types/chat2'
 import type {State as Config} from '../constants/types/config'
 import type {State as Dev} from '../constants/types/dev'
 import type {State as Devices} from '../constants/types/devices'
@@ -19,12 +19,13 @@ import type {State as Settings} from '../constants/types/settings'
 import type {State as Signup} from '../constants/types/signup'
 import type {State as Tracker} from '../constants/types/tracker'
 import type {State as UnlockFolders} from '../constants/types/unlock-folders'
+import type {State as Users} from '../constants/types/users'
 import type {State as Waiting} from '../constants/types/waiting'
 import type {State as People} from '../constants/types/people'
 
 export type TypedState = $ReadOnly<{|
   config: Config,
-  chat: Chat,
+  chat2: Chat2,
   dev: Dev,
   devices: Devices,
   entities: Entity,
@@ -44,5 +45,6 @@ export type TypedState = $ReadOnly<{|
   signup: Signup,
   tracker: Tracker,
   unlockFolders: UnlockFolders,
+  users: Users,
   waiting: Waiting,
 |}>
