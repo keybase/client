@@ -24,8 +24,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     if (type === 'folder') {
       dispatch(navigateAppend([{props: {path}, selected: 'folder'}]))
     } else {
-      const localPath = '/tmp/' + Types.getPathName(path)
-      dispatch(FsGen.createDownload({key: Constants.makeDownloadKey(path, localPath), path, localPath}))
+      dispatch(FsGen.createDownload({path}))
       console.log('Cannot view files yet. Requested file: ' + Types.pathToString(path))
     }
   },

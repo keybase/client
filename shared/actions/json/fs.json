@@ -15,6 +15,10 @@
       "sortSetting": "Types.SortSetting"
     },
     "download": {
+      "path": "Types.Path",
+      "localPath?": "string"
+    },
+    "downloadStarted": {
       "key": "string",
       "path": "Types.Path",
       "localPath": "string"

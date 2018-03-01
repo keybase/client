@@ -52,8 +52,15 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
 }
 
 function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> {
-  const {key, path, localPath} = action.payload
+  const {path} = action.payload
   const opID = Constants.makeUUID()
+  let localPath = action.payload.localPath
+  if (!localPath) {
+    localPath = yield Saga.call(Constants.downloadFilePathFromPath, path)
+  }
+  const key = Constants.makeDownloadKey(path, localPath)
+
+  yield Saga.put(FsGen.createDownloadStarted({key, path, localPath}))
 
   yield Saga.call(RPCTypes.SimpleFSSimpleFSCopyRpcPromise, {
     opID,

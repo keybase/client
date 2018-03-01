@@ -2,6 +2,7 @@
 import * as I from 'immutable'
 import {type IconType} from '../../common-adapters/icon'
 import {type TextType} from '../../common-adapters/text'
+import {isWindows} from '../platform'
 
 export opaque type Path = ?string
 
@@ -92,6 +93,8 @@ export type ItemStyles = {
 
 export const stringToPath = (s: string): Path => (s.indexOf('/') === 0 ? s : null)
 export const pathToString = (p: Path): string => (!p ? '' : p)
+// export const stringToLocalPath = (s: string): LocalPath => s
+// export const localPathToString = (p: LocalPath): string => p
 export const getPathName = (p: Path): string => (!p ? '' : p.split('/').pop())
 export const getPathElements = (p: Path): Array<string> => (!p ? [] : p.split('/').slice(1))
 export const getVisibilityFromElems = (elems: Array<string>) => {
@@ -132,6 +135,10 @@ export const pathIsNonTeamTLFList = (p: Path): boolean => {
   const str = pathToString(p)
   return str === '/keybase/private' || str === '/keybase/public'
 }
+
+const localSep = isWindows ? '\\' : '/'
+
+export const localPathConcat = (p: LocalPath, s: string): LocalPath => p + localSep + s
 
 type PathItemComparer = (a: PathItem, b: PathItem) => number
 

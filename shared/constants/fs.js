@@ -3,6 +3,8 @@ import * as I from 'immutable'
 import * as Types from './types/fs'
 import uuidv1 from 'uuid/v1'
 import {globalColors} from '../styles'
+import {downloadFilePath} from '../util/file'
+
 export const defaultPath = '/keybase'
 
 export const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
@@ -127,3 +129,6 @@ export const getItemStyles = (
 
 export const makeDownloadKey = (path: Types.Path, localPath: string) =>
   `download:${Types.pathToString(path)}:${localPath}`
+
+export const downloadFilePathFromPath = (p: Types.Path): Promise<Types.LocalPath> =>
+  downloadFilePath(Types.getPathName(p))
