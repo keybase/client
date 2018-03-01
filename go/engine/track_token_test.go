@@ -25,6 +25,7 @@ func TestTrackTokenIdentify2(t *testing.T) {
 		_testTrackTokenIdentify2(t, sigVersion)
 	})
 }
+
 func _testTrackTokenIdentify2(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
@@ -61,13 +62,9 @@ func _testTrackTokenIdentify2(t *testing.T, sigVersion libkb.SigVersion) {
 }
 
 func TestTrackLocalThenLocalTemp(t *testing.T) {
-	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		_testTrackLocalThenLocalTemp(t, sigVersion)
-	})
-}
-func _testTrackLocalThenLocalTemp(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 	fu := CreateAndSignupFakeUser(tc, "track")
 
 	fakeClock := clockwork.NewFakeClock()
@@ -197,6 +194,7 @@ func TestTrackRemoteThenLocalTemp(t *testing.T) {
 		_testTrackRemoteThenLocalTemp(t, sigVersion)
 	})
 }
+
 func _testTrackRemoteThenLocalTemp(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
@@ -322,14 +320,9 @@ func _testTrackRemoteThenLocalTemp(t *testing.T, sigVersion libkb.SigVersion) {
 }
 
 func TestTrackFailTempRecover(t *testing.T) {
-	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		_testTrackFailTempRecover(t, sigVersion)
-	})
-}
-
-func _testTrackFailTempRecover(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 	fu := CreateAndSignupFakeUser(tc, "track")
 
 	fakeClock := clockwork.NewFakeClock()
@@ -464,14 +457,9 @@ func (d *FakeGregorDismisser) LocalDismissItem(ctx context.Context, id gregor.Ms
 }
 
 func TestTrackWithTokenDismissesGregor(t *testing.T) {
-	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		_testTrackWithTokenDismissesGregor(t, sigVersion)
-	})
-}
-
-func _testTrackWithTokenDismissesGregor(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 	fu := CreateAndSignupFakeUser(tc, "track")
 
 	dismisser := &FakeGregorDismisser{}

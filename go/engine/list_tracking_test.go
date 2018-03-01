@@ -61,14 +61,9 @@ func _testListTracking(t *testing.T, sigVersion libkb.SigVersion) {
 }
 
 func TestListTrackingJSON(t *testing.T) {
-	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		_testListTrackingJSON(t, sigVersion)
-	})
-}
-
-func _testListTrackingJSON(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 	fu := CreateAndSignupFakeUser(tc, "track")
 	fu.LoginOrBust(tc)
 
@@ -98,15 +93,10 @@ func _testListTrackingJSON(t *testing.T, sigVersion libkb.SigVersion) {
 }
 
 func TestListTrackingLocal(t *testing.T) {
-	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		_testListTrackingLocal(t, sigVersion)
-	})
-}
-
-func _testListTrackingLocal(t *testing.T, sigVersion libkb.SigVersion) {
 	t.Skip("Skipping test for local tracks in list tracking (milestone 2)")
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 	fu := CreateAndSignupFakeUser(tc, "track")
 
 	trackAlice(tc, fu, sigVersion)

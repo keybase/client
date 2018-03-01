@@ -152,14 +152,9 @@ var sbtests = []sbtest{
 }
 
 func TestTrackProofServiceBlocks(t *testing.T) {
-	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		_testTrackProofServiceBlocks(t, sigVersion)
-	})
-}
-
-func _testTrackProofServiceBlocks(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 	fu := CreateAndSignupFakeUser(tc, "track")
 
 	for _, test := range sbtests {
@@ -543,15 +538,10 @@ func _testTrackProofRooterRevoke(t *testing.T, sigVersion libkb.SigVersion) {
 // proofUser makes a user@rooter proof, then a user2@rooter proof.
 // trackUser tracks proofUser.  Verify the tracking statement.
 func TestTrackProofRooterOther(t *testing.T) {
-	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		_testTrackProofRooterOther(t, sigVersion)
-	})
-}
-
-func _testTrackProofRooterOther(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
 
+	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 	// create a user with a rooter proof
 	proofUser := CreateAndSignupFakeUser(tc, "proof")
 	_, _, err := proveRooter(tc.G, proofUser, sigVersion)
@@ -592,14 +582,9 @@ func _testTrackProofRooterOther(t *testing.T, sigVersion libkb.SigVersion) {
 // proofUser.  proofUser makes a user2@rooter proof, trackUser
 // tracks proofUser again.  Test that the change is noticed.
 func TestTrackProofRooterChange(t *testing.T) {
-	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		_testTrackProofRooterChange(t, sigVersion)
-	})
-}
-
-func _testTrackProofRooterChange(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 
 	// create a user with a rooter proof
 	proofUser := CreateAndSignupFakeUser(tc, "proof")
