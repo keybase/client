@@ -216,7 +216,7 @@ class Inbox extends React.PureComponent<Props, State> {
 
 const boxStyle = {
   ...globalStyles.flexBoxColumn,
-  backgroundColor: globalColors.white,
+  backgroundColor: globalColors.fastBlank,
   flex: 1,
   position: 'relative',
 }

@@ -91,7 +91,7 @@ const iconStyle = {
   paddingRight: isMobile ? 2 : 4,
   ...(isMobile
     ? {
-        backgroundColor: globalColors.white,
+        backgroundColor: globalColors.fastBlank,
       }
     : {
         hoverColor: globalColors.black_75,
@@ -137,7 +137,7 @@ const teamStyle = {
   marginRight: globalMargins.tiny,
   ...(isMobile
     ? {
-        backgroundColor: globalColors.white,
+        backgroundColor: globalColors.fastBlank,
       }
     : {}),
 }

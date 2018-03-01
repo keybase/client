@@ -78,7 +78,7 @@ class SmallTeam extends React.PureComponent<Props> {
 
 const conversationRowStyle = {
   ...globalStyles.flexBoxColumn,
-  backgroundColor: isMobile ? globalColors.white : globalColors.blue5,
+  backgroundColor: isMobile ? globalColors.fastBlank : globalColors.blue5,
   flexGrow: 1,
   justifyContent: 'center',
   paddingLeft: 8,
@@ -94,7 +94,7 @@ const rowHeight = isMobile ? 64 : 56
 const rowContainerStyle = {
   ...globalStyles.flexBoxRow,
   ...globalStyles.clickable,
-  backgroundColor: isMobile ? globalColors.white : globalColors.blue5,
+  backgroundColor: isMobile ? globalColors.fastBlank : globalColors.blue5,
   flexShrink: 0,
   maxHeight: rowHeight,
   minHeight: rowHeight,

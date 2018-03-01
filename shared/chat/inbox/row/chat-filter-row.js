@@ -154,7 +154,7 @@ class ChatFilterRow extends React.PureComponent<Props, State> {
 const styleContainer = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-  backgroundColor: globalColors.white,
+  backgroundColor: globalColors.fastBlank,
   justifyContent: 'space-between',
   minHeight: 48,
   paddingLeft: globalMargins.small,

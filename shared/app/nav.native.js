@@ -378,15 +378,15 @@ const styles = styleSheetCreate({
   },
   keyboard: {
     ...globalStyles.fillAbsolute,
-    backgroundColor: globalColors.white,
+    backgroundColor: globalColors.fastBlank,
   },
   sceneWrapStyleNoStatusBarPadding: {
     ...globalStyles.fullHeight,
-    backgroundColor: globalColors.white,
+    backgroundColor: globalColors.fastBlank,
   },
   sceneWrapStyleWithStatusBarPadding: {
     ...globalStyles.fullHeight,
-    backgroundColor: globalColors.white,
+    backgroundColor: globalColors.fastBlank,
     paddingTop: isIPhoneX ? 40 : statusBarHeight,
   },
   shimContainer: globalStyles.fillAbsolute,

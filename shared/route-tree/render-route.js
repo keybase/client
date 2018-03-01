@@ -213,8 +213,6 @@ export default class RenderRoute extends React.PureComponent<RenderRouteProps<*>
     // This component renders the bottom (currently visible) one.
     const viewStack = renderRouteStack({...this.props, path: I.List()})
     const last: ?RenderRouteResult = viewStack.last()
-    const TEMP = last ? last.component({shouldRender: false}) : null
-    console.log('aaa', this.props.routeState.toJS())
-    return TEMP
+    return last ? last.component({shouldRender: false}) : null
   }
 }

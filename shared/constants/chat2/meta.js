@@ -6,7 +6,8 @@ import * as RPCTypes from '../types/rpc-gen'
 import * as Types from '../types/chat2'
 import type {_ConversationMeta} from '../types/chat2/meta'
 import {formatTimeForConversationList} from '../../util/timestamp'
-import {globalColors, isMobile} from '../../styles'
+import {globalColors} from '../../styles'
+import {isMobile, isIOS, isAndroid} from '../platform'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {toByteArray} from 'base64-js'
 
@@ -283,7 +284,7 @@ export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record
   trustedState: 'untrusted',
 })
 
-const bgPlatform = isMobile ? globalColors.white : globalColors.blue5
+const bgPlatform = isIOS ? globalColors.white : isAndroid ? globalColors.transparent : globalColors.blue5
 export const getRowStyles = (meta: Types.ConversationMeta, isSelected: boolean, hasUnread: boolean) => {
   const isError = meta.trustedState === 'error'
   const backgroundColor = isSelected ? globalColors.blue : bgPlatform
