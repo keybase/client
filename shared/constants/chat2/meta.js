@@ -7,7 +7,7 @@ import * as Types from '../types/chat2'
 import type {_ConversationMeta} from '../types/chat2/meta'
 import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalColors} from '../../styles'
-import {isMobile, isIOS, isAndroid} from '../platform'
+import {isIOS, isAndroid} from '../platform'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {toByteArray} from 'base64-js'
 

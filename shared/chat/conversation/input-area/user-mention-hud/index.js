@@ -3,7 +3,7 @@ import React from 'react'
 import * as I from 'immutable'
 import {
   compose,
-  withState,
+  withStateHandlers,
   lifecycle,
   withPropsOnChange,
   type TypedState,
@@ -130,9 +130,10 @@ const mapStateToProps: MapStateToProps<*, *, *> = (state: TypedState, {users, se
     })
     .map((u, i) => ({...u, selected: i === selectedIndex})),
 })
-// $FlowIssue is confused
+
+// $FlowIssue
 const MentionHud: Class<React.Component<MentionHudProps, void>> = compose(
-  withState('selectedIndex', 'setSelectedIndex', 0),
+  withStateHandlers({selectedIndex: 0}, {setSelectedIndex: () => selectedIndex => ({selectedIndex})}),
   connect(mapStateToProps),
   setDisplayName('MentionHud'),
   lifecycle({
