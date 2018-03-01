@@ -112,6 +112,9 @@ func (r *root) getCachedMountpoint(uid uint32) string {
 
 func (r *root) findKBFSMount(ctx context.Context) (
 	mountpoint string, err error) {
+	// Get the UID, and crash intentionally if it's not set, because
+	// that means we're not compiled against the correct version of
+	// bazil.org/fuse.
 	uid := ctx.Value(fs.CtxHeaderUIDKey).(uint32)
 	// Don't let the root see anything here; we don't want a symlink
 	// loop back to this mount.
