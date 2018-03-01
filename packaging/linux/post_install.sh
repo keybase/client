@@ -16,13 +16,8 @@ rootlink="/keybase"
 vardir="/var/lib/keybase"
 mount1="$vardir/mount1"
 sample="/opt/keybase/mount-readme"
-khuser="keybasehelper"
+khuser="root"
 khbin="/usr/bin/keybase-mount-helper"
-
-# Create the keybasehelper system user, without login privileges.
-if useradd --system -s /bin/false -U -M $khuser &> /dev/null ; then
-    echo Created $khuser system user for managing mountpoints.
-fi
 
 chown "$khuser":"$khuser" "$khbin"
 chmod 4755 "$khbin"
