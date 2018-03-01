@@ -2,6 +2,7 @@
 import * as FsGen from './fs-gen'
 import * as Saga from '../util/saga'
 import fs from 'fs'
+import * as Constants from '../constants/config'
 import type {TypedState} from '../constants/reducer'
 import {shell} from 'electron'
 import {isLinux, isWindows} from '../constants/platform'
@@ -90,9 +91,10 @@ function _open(openPath: string): Promise<*> {
 }
 
 export function openInFileUISaga({payload: {path}}: FsGen.OpenInFileUIPayload, state: TypedState) {
+  const openPath = path || Constants.defaultKBFSPath
   const enabled = state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted
   if (isLinux || enabled) {
-    return Saga.call(_open, path)
+    return Saga.call(_open, openPath)
   } else {
     return Saga.sequentially([Saga.put(navigateTo([], [fsTab])), Saga.put(switchTo([fsTab]))])
   }

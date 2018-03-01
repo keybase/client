@@ -297,22 +297,7 @@ function* openWithCurrentMountDir(openPath: string): Saga.SagaGenerator<any, any
   yield Saga.call(_open, resolvedPath)
 }
 
-function* openSaga(action: KBFSGen.OpenPayload): Saga.SagaGenerator<any, any> {
-  const openPath = action.payload.path || Constants.defaultKBFSPath
-  const state: TypedState = yield Saga.select()
-  const enabled = state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted
-
-  if (isLinux || enabled) {
-    logger.info('openInKBFS:', openPath)
-    yield* openWithCurrentMountDir(openPath)
-  } else {
-    yield Saga.put(navigateTo([], [folderTab]))
-    yield Saga.put(switchTo([folderTab]))
-  }
-}
-
 function* kbfsSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeEvery(KBFSGen.open, openSaga)
   yield Saga.safeTakeLatest(KBFSGen.fuseStatus, fuseStatusSaga)
   yield Saga.safeTakeLatestPure(KBFSGen.fuseStatusUpdate, fuseStatusUpdateSaga)
   if (isWindows) {

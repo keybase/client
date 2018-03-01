@@ -3,8 +3,8 @@ import * as Constants from '../../constants/teams'
 import * as I from 'immutable'
 import * as React from 'react'
 import * as TeamsGen from '../../actions/teams-gen'
-import * as KBFSGen from '../../actions/kbfs-gen'
 import * as ChatGen from '../../actions/chat-gen'
+import * as FSGen from '../../actions/fs-gen'
 import Team, {CustomComponent} from '.'
 import {HeaderHoc} from '../../common-adapters'
 import {branch, connect, withStateHandlers, lifecycle, compose, type TypedState} from '../../util/container'
@@ -57,7 +57,7 @@ const mapDispatchToProps = (
     _loadTeam: teamname => dispatch(TeamsGen.createGetDetails({teamname})),
     onBack: () => dispatch(navigateUp()),
 
-    _onOpenFolder: () => dispatch(KBFSGen.createOpen({path: `/keybase/team/${teamname}`})),
+    _onOpenFolder: () => dispatch(FSGen.createOpenInFileUI({path: `/keybase/team/${teamname}`})),
   }
 }
 

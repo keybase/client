@@ -1,5 +1,6 @@
 // @flow
 import * as KBFSGen from '../../actions/kbfs-gen'
+import * as FSGen from '../../actions/fs-gen'
 import React, {Component} from 'react'
 import electron from 'electron'
 import {Box, ProgressIndicator, Text} from '../../common-adapters'
@@ -97,7 +98,7 @@ const mapStateToProps = (state: TypedState) => ({
 })
 
 const mapDispatchToProps = (dispatch: any) => ({
-  openInKBFS: () => dispatch(KBFSGen.createOpen({})),
+  openInKBFS: () => dispatch(FSGen.createOpenInFileUI({})),
   uninstallKBFSAndRestart: () => dispatch(KBFSGen.createUninstallKBFS()),
 })
 

@@ -32,7 +32,7 @@
       "completePortion": "number"
     },
     "openInFileUI": {
-      "path": "string"
+      "path?": "string"
     }
   }
 }

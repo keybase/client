@@ -3,6 +3,7 @@ import {isLinux} from '../constants/platform'
 import Folders, {type FolderType} from '.'
 import * as ChatGen from '../actions/chat-gen'
 import * as KBFSGen from '../actions/kbfs-gen'
+import * as FSGen from '../actions/fs-gen'
 import * as FavoriteGen from '../actions/favorite-gen'
 import {pausableConnect, compose, lifecycle, withProps, type TypedState} from '../util/container'
 import {settingsTab} from '../constants/tabs'
@@ -29,7 +30,7 @@ const mapDispatchToProps = (dispatch: any, {routePath, routeState, setRouteState
   favoriteList: () => dispatch(FavoriteGen.createFavoriteList()),
   onChat: (tlf, isTeam?) => dispatch(ChatGen.createOpenTlfInChat({tlf, isTeam})),
   onClick: path => dispatch(navigateAppend([{props: {path}, selected: 'files'}])),
-  onOpen: path => dispatch(KBFSGen.createOpen({path})),
+  onOpen: path => dispatch(FSGen.createOpenInFileUI({path})),
   onRekey: path => dispatch(navigateAppend([{props: {path}, selected: 'files'}])),
   onSwitchTab: selected => dispatch(switchTo(routePath.pop().push(selected))),
   onToggleShowIgnored: () => setRouteState({showingIgnored: !routeState.get('showingIgnored')}),

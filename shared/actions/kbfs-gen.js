@@ -19,7 +19,6 @@ export const installKBFSFinished = 'kbfs:installKBFSFinished'
 export const installKBFSResult = 'kbfs:installKBFSResult'
 export const list = 'kbfs:list'
 export const listed = 'kbfs:listed'
-export const open = 'kbfs:open'
 export const openDefaultPath = 'kbfs:openDefaultPath'
 export const uninstallKBFS = 'kbfs:uninstallKBFS'
 export const uninstallKBFSResult = 'kbfs:uninstallKBFSResult'
@@ -42,7 +41,6 @@ export const createInstallKBFSResult = (payload: $ReadOnly<{result: RPCTypes.Ins
 export const createList = (payload: $ReadOnly<{path: string}>) => ({error: false, payload, type: list})
 export const createListed = (payload: $ReadOnly<{result: RPCTypes.ListResult}>) => ({error: false, payload, type: listed})
 export const createListedError = (payload: $ReadOnly<{error: Error}>) => ({error: true, payload, type: listed})
-export const createOpen = (payload: $ReadOnly<{path?: string}>) => ({error: false, payload, type: open})
 export const createOpenDefaultPath = (payload: $ReadOnly<{opening: boolean}>) => ({error: false, payload, type: openDefaultPath})
 export const createUninstallKBFS = () => ({error: false, payload: undefined, type: uninstallKBFS})
 export const createUninstallKBFSResult = (payload: $ReadOnly<{result: RPCTypes.UninstallResult}>) => ({error: false, payload, type: uninstallKBFSResult})
@@ -60,7 +58,6 @@ export type InstallKBFSResultPayload = More.ReturnType<typeof createInstallKBFSR
 export type ListPayload = More.ReturnType<typeof createList>
 export type ListedPayload = More.ReturnType<typeof createListed>
 export type OpenDefaultPathPayload = More.ReturnType<typeof createOpenDefaultPath>
-export type OpenPayload = More.ReturnType<typeof createOpen>
 export type UninstallKBFSPayload = More.ReturnType<typeof createUninstallKBFS>
 export type UninstallKBFSResultPayload = More.ReturnType<typeof createUninstallKBFSResult>
 
@@ -79,7 +76,6 @@ export type Actions =
   | More.ReturnType<typeof createList>
   | More.ReturnType<typeof createListed>
   | More.ReturnType<typeof createListedError>
-  | More.ReturnType<typeof createOpen>
   | More.ReturnType<typeof createOpenDefaultPath>
   | More.ReturnType<typeof createUninstallKBFS>
   | More.ReturnType<typeof createUninstallKBFSResult>

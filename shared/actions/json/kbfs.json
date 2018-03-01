@@ -10,9 +10,6 @@
         "error": "Error"
       }
     },
-    "open": {
-      "path?": "string"
-    },
     "fuseStatus": {},
     "fuseStatusUpdate": {
       "prevStatus": "?RPCTypes.FuseStatus",

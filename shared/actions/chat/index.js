@@ -4,7 +4,7 @@ import * as Attachment from './attachment'
 import * as ChatTypes from '../../constants/types/rpc-chat-gen'
 import * as Constants from '../../constants/chat'
 import * as ChatGen from '../chat-gen'
-import * as KBFSGen from '../kbfs-gen'
+import * as FSGen from '../fs-gen'
 import * as Inbox from './inbox'
 import * as ManageThread from './manage-thread'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -126,7 +126,7 @@ function _openFolder(_: ChatGen.OpenFolderPayload, state: TypedState) {
           : privateFolderWithUsers
       path = helper(inbox.get('participants').toArray())
     }
-    return Saga.put(KBFSGen.createOpen({path}))
+    return Saga.put(FSGen.createOpenInFileUI({path}))
   } else {
     throw new Error(`Can't find conversation path`)
   }

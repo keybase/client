@@ -1,7 +1,7 @@
 // @flow
 import * as AppGen from '../actions/app-gen'
 import * as FavoriteGen from '../actions/favorite-gen'
-import * as KBFSGen from '../actions/kbfs-gen'
+import * as FSGen from '../actions/fs-gen'
 import Menubar from './index.desktop'
 import openUrl from '../util/open-url'
 import {connect, compose, type Dispatch} from '../util/container'
@@ -28,7 +28,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(navigateTo([loginTab]))
   },
   onFolderClick: (path: ?string) => {
-    dispatch(KBFSGen.createOpen({path: path || defaultKBFSPath}))
+    dispatch(FSGen.createOpenInFileUI({path: path || defaultKBFSPath}))
     closeWindow()
   },
   onRekey: () => {

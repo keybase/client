@@ -51,7 +51,7 @@ export const createFolderListLoaded = (
     pathItems: I.Map<Types.Path, Types.PathItem>,
   }>
 ) => ({error: false, payload, type: folderListLoaded})
-export const createOpenInFileUI = (payload: $ReadOnly<{path: string}>) => ({error: false, payload, type: openInFileUI})
+export const createOpenInFileUI = (payload: $ReadOnly<{path?: string}>) => ({error: false, payload, type: openInFileUI})
 export const createSortSetting = (
   payload: $ReadOnly<{
     path: Types.Path,
