@@ -159,12 +159,36 @@ and the [Immutable.js Object
 Formatter](https://chrome.google.com/webstore/detail/immutablejs-object-format/hgldghadipiblonfkkicmgcbbijnpeog)
 extensions in your regular Chrome browser.
 2) Set the following environment variables and make sure
-`KEYBASE_PERF` is unset (assuming you're using fish shell):
+`KEYBASE_PERF` is unset. If you're using fish shell on macOS:
 
 ```
 set -e KEYBASE_PERF
 set -x KEYBASE_LOCAL_DEBUG 1
 set -x KEYBASE_DEV_TOOL_ROOTS "$HOME/Library/Application Support/Google/Chrome/Default/Extensions/fmkadmapgofadopljbjfkapdkoienihi,$HOME/Library/Application Support/Google/Chrome/Default/Extensions/hgldghadipiblonfkkicmgcbbijnpeog"
+```
+
+If you're using fish shell on Linux:
+
+```
+set -e KEYBASE_PERF
+set -x KEYBASE_LOCAL_DEBUG 1
+set -x KEYBASE_DEV_TOOL_ROOTS "$HOME/.config/google-chrome/Default/Extensions/fmkadmapgofadopljbjfkapdkoienihi,$HOME/.config/google-chrome/Default/Extensions/hgldghadipiblonfkkicmgcbbijnpeog"
+```
+
+If you're using bash on macOS:
+
+```
+unset KEYBASE_PERF
+export KEYBASE_LOCAL_DEBUG=1
+export KEYBASE_DEV_TOOL_ROOTS="$HOME/Library/Application Support/Google/Chrome/Default/Extensions/fmkadmapgofadopljbjfkapdkoienihi,$HOME/Library/Application Support/Google/Chrome/Default/Extensions/hgldghadipiblonfkkicmgcbbijnpeog"
+```
+
+If you're using bash on Linux:
+
+```
+unset KEYBASE_PERF
+export KEYBASE_LOCAL_DEBUG=1
+export KEYBASE_DEV_TOOL_ROOTS="$HOME/.config/google-chrome/Default/Extensions/fmkadmapgofadopljbjfkapdkoienihi,$HOME/.config/google-chrome/Default/Extensions/hgldghadipiblonfkkicmgcbbijnpeog"
 ```
 
 (See [this code](https://github.com/keybase/client/blob/master/shared/desktop/yarn-helper/electron.js#L47) for details.)
