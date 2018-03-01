@@ -1,7 +1,7 @@
 // @flow
 import * as Types from '../../../../constants/types/chat'
 import * as ChatGen from '../../../../actions/chat-gen'
-import * as KBFSGen from '../../../../actions/kbfs-gen'
+import * as FSGen from '../../../../actions/fs-gen'
 import Attachment, {type Props} from '.'
 import shallowEqual from 'shallowequal'
 import {List} from 'immutable'
@@ -26,7 +26,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   },
   _onEnsurePreviewLoaded: (messageKey: Types.MessageKey) =>
     dispatch(ChatGen.createLoadAttachmentPreview({messageKey})),
-  _onOpenInFileUI: (path: string) => dispatch(KBFSGen.createOpenInFileUI({path})),
+  _onOpenInFileUI: (path: string) => dispatch(FSGen.createOpenInFileUI({path})),
   _onOpenInPopup: (message: Types.AttachmentMessage, routePath: List<string>) =>
     dispatch(ChatGen.createOpenAttachmentPopup({message, currentPath: routePath})),
 })
