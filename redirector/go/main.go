@@ -11,10 +11,10 @@ import (
 	"os/signal"
 	"os/user"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"sort"
 	"strconv"
-	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -56,14 +56,33 @@ type cacheEntry struct {
 }
 
 type root struct {
+	mpregex *regexp.Regexp
+
 	lock            sync.RWMutex
 	mountpointCache map[uint32]cacheEntry
 }
 
-func newRoot() *root {
-	return &root{
-		mountpointCache: make(map[uint32]cacheEntry),
+func newRoot() (*root, error) {
+	runmodeStr := "keybase"
+	switch os.Getenv("KEYBASE_RUN_MODE") {
+	case "staging":
+		runmodeStr = "keybase.staging"
+	case "devel":
+		runmodeStr = "keybase.devel"
 	}
+
+	// Find mountpoints like "/home/user/.local/share/keybase/fs", or
+	// "/home/user/keybase", and make sure it doesn't match mounts for
+	// another run mode, say "/home/user/keybase.staging".
+	rx, err := regexp.Compile(fmt.Sprintf("/%s/|%s$", runmodeStr, runmodeStr))
+	if err != nil {
+		return nil, err
+	}
+
+	return &root{
+		mpregex:         rx,
+		mountpointCache: make(map[uint32]cacheEntry),
+	}, nil
 }
 
 func (r *root) Root() (fs.Node, error) {
@@ -145,28 +164,21 @@ func (r *root) findKBFSMount(ctx context.Context) (
 	if len(fuseMountPoints) == 0 {
 		return "", fuse.ENOENT
 	}
-	if len(fuseMountPoints) == 1 {
-		return fuseMountPoints[0], nil
-	}
 
-	// If there is more than one, pick the first one alphabetically
-	// that has "keybase" in the path.
+	// Pick the first one alphabetically that has "keybase" in the
+	// path.
 	sort.Strings(fuseMountPoints)
 	for _, mp := range fuseMountPoints {
 		// TODO: a better regexp that will rule out keybase.staging if
 		// we're in prod mode, etc.
-		if !strings.Contains(mp, "keybase") {
-			continue
-		}
-		// Double-check that this is a real KBFS mount.
-		if _, err := os.Stat(filepath.Join(mp, ".kbfs_error")); err != nil {
+		if !r.mpregex.MatchString(mp) {
 			continue
 		}
 		return mp, nil
 	}
 
-	// Give up and return the first one.
-	return fuseMountPoints[0], nil
+	// Give up.
+	return "", fuse.ENOENT
 }
 
 func (r *root) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
@@ -262,5 +274,9 @@ func main() {
 			return context.Background()
 		},
 	})
-	srv.Serve(newRoot())
+	root, err := newRoot()
+	if err != nil {
+		panic(err)
+	}
+	srv.Serve(root)
 }
