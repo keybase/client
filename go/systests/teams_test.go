@@ -579,7 +579,7 @@ func (u *userPlusDevice) pollForTeamSeqnoLink(team string, toSeqno keybase1.Seqn
 			return
 		}
 
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(500 * time.Millisecond * libkb.CITimeMultiplier(u.tc.G))
 	}
 
 	u.tc.T.Fatalf("timed out waiting for team rotate %s", team)
@@ -598,7 +598,7 @@ func (u *userPlusDevice) pollForTeamSeqnoLinkWithLoadArgs(args keybase1.LoadTeam
 			return
 		}
 
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(500 * time.Millisecond * libkb.CITimeMultiplier(u.tc.G))
 	}
 
 	u.tc.T.Fatalf("timed out waiting for team %v seqno link %d", args, toSeqno)

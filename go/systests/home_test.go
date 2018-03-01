@@ -1,14 +1,15 @@
 package systests
 
 import (
+	"testing"
+	"time"
+
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/stretchr/testify/require"
 	context "golang.org/x/net/context"
-	"testing"
-	"time"
 )
 
 func getHome(t *testing.T, u *userPlusDevice, markViewed bool) keybase1.HomeScreen {
@@ -72,7 +73,7 @@ func assertTodoNotPresent(t *testing.T, home keybase1.HomeScreen, wanted keybase
 	}
 }
 
-func assertFollowerPresent(t *testing.T, home keybase1.HomeScreen, f string) {
+func assertFollowerPresent(t *testing.T, home keybase1.HomeScreen, f string) bool {
 	for _, item := range home.Items {
 		typ, err := item.Data.T()
 		if err != nil {
@@ -88,12 +89,12 @@ func assertFollowerPresent(t *testing.T, home keybase1.HomeScreen, f string) {
 				follow := people.Followed()
 				if follow.User.Username == f {
 					require.True(t, item.Badged, "it should be badged")
-					return
+					return true
 				}
 			}
 		}
 	}
-	t.Fatalf("Follower %q not found in home: %+v", f, home)
+	return false
 }
 
 func postBio(t *testing.T, u *userPlusDevice) {
@@ -140,7 +141,7 @@ func TestHome(t *testing.T) {
 	// Hopefully this is enough for slow CI but you never know.
 	pollForTrue := func(poller func(i int) bool) {
 		// Hopefully this is enough for slow CI but you never know.
-		wait := 10 * time.Millisecond
+		wait := 10 * time.Millisecond * libkb.CITimeMultiplier(g)
 		found := false
 		for i := 0; i < 10; i++ {
 			if poller(i) {
@@ -188,7 +189,9 @@ func TestHome(t *testing.T) {
 	iui.confirmRes = keybase1.ConfirmResult{IdentityConfirmed: true, RemoteConfirmed: true, AutoConfirmed: true}
 	bob.track(alice.username)
 	home = getHome(t, alice, true)
-	assertFollowerPresent(t, home, bob.username)
+	pollForTrue(func(i int) bool {
+		return assertFollowerPresent(t, home, bob.username)
+	})
 }
 
 func attachHomeUI(t *testing.T, g *libkb.GlobalContext, hui keybase1.HomeUIInterface) {
