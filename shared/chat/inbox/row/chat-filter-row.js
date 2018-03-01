@@ -2,9 +2,8 @@
 import * as React from 'react'
 import {Icon, Box, ClickableBox, LoadingLine, Input, Text} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins, isMobile} from '../../../styles'
-import {branch} from 'recompose'
 
-let KeyHandler
+let KeyHandler = c => c
 if (!isMobile) {
   KeyHandler = require('../../../util/key-handler.desktop').default
 }
@@ -13,6 +12,7 @@ type Props = {
   isLoading: boolean,
   filter: string,
   filterFocusCount: number,
+  onDebugDump: () => void,
   onNewChat: () => void,
   onSetFilter: (filter: string) => void,
   onSelectDown: () => void,
@@ -23,7 +23,7 @@ type State = {
   isEditing: boolean,
 }
 
-class _ChatFilterRow extends React.PureComponent<Props, State> {
+class ChatFilterRow extends React.PureComponent<Props, State> {
   state: State
   _input: any
 
@@ -136,6 +136,11 @@ class _ChatFilterRow extends React.PureComponent<Props, State> {
           style={isMobile ? styleIconComposeMobile : styleIconCompose}
           onClick={this.props.onNewChat}
         />
+        <Icon
+          type="iconfont-keybase"
+          style={isMobile ? styleIconComposeMobile : styleIconCompose}
+          onClick={this.props.onDebugDump}
+        />
         {this.props.isLoading && (
           <Box style={{bottom: 0, left: 0, position: 'absolute', height: 1, right: 0}}>
             <LoadingLine />
@@ -149,6 +154,7 @@ class _ChatFilterRow extends React.PureComponent<Props, State> {
 const styleContainer = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
+  backgroundColor: globalColors.fastBlank,
   justifyContent: 'space-between',
   minHeight: 48,
   paddingLeft: globalMargins.small,
@@ -184,7 +190,4 @@ const styleIconComposeMobile = {
   padding: globalMargins.xtiny,
 }
 
-// $FlowIssue thinks KeyHandler can be uninitialized
-const ChatFilterRow = branch(() => !isMobile && !!KeyHandler, KeyHandler)(_ChatFilterRow)
-
-export default ChatFilterRow
+export default (isMobile ? ChatFilterRow : KeyHandler(ChatFilterRow))
