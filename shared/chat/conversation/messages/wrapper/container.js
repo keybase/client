@@ -83,8 +83,10 @@ const mergeProps = (stateProps, dispatchProps) => {
   const timestamp =
     stateProps.orangeLineAbove || !previous || oldEnough ? formatTimeForMessages(message.timestamp) : null
   const includeHeader = !previous || !continuingTextBlock || !!timestamp
-  const failureDescription =
-    message.type === 'text' || message.type === 'attachment' ? message.errorReason : null
+  let failureDescription = null
+  if ((message.type === 'text' || message.type === 'attachment') && message.errorReason) {
+    failureDescription = stateProps.isYou ? `Failed to send${message.errorReason}` : message.errorReason
+  }
 
   return {
     author: message.author,
@@ -95,7 +97,6 @@ const mergeProps = (stateProps, dispatchProps) => {
     isBroken: stateProps.isBroken,
     isEdited: message.hasBeenEdited,
     isEditing: stateProps.isEditing,
-    isFirstNewMessage: false, //  TODO
     isFollowing: stateProps.isFollowing,
     isRevoked: !!message.deviceRevokedAt,
     isSelected: stateProps.isSelected,
@@ -105,8 +106,10 @@ const mergeProps = (stateProps, dispatchProps) => {
     messageFailed: stateProps.messageFailed,
     messageSent: stateProps.messageSent,
     onAuthorClick: () => dispatchProps._onAuthorClick(message.author),
-    onEdit: () => dispatchProps._onEdit(message.conversationIDKey, message.ordinal),
-    onRetry: () => dispatchProps._onRetry(message.conversationIDKey, message.outboxID),
+    onEdit: stateProps.isYou ? () => dispatchProps._onEdit(message.conversationIDKey, message.ordinal) : null,
+    onRetry: stateProps.isYou
+      ? () => dispatchProps._onRetry(message.conversationIDKey, message.outboxID)
+      : null,
     onShowMenu: (clientRect: ?ClientRect) => dispatchProps._onShowMenu(clientRect, message),
     orangeLineAbove: stateProps.orangeLineAbove,
     showTeamOffer: stateProps.showTeamOffer,
