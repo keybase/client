@@ -103,7 +103,6 @@ func CtxAddLogTags(ctx context.Context, g *globals.Context) context.Context {
 	rpcTags["user-agent"] = libkb.UserAgent
 	rpcTags["platform"] = libkb.GetPlatformString()
 	rpcTags["apptype"] = g.GetEnv().GetAppType()
-	rpcTags["slow-conn"] = g.GetEnv().GetSlowGregorConn()
 	ctx = rpc.AddRpcTagsToContext(ctx, rpcTags)
 
 	return ctx
