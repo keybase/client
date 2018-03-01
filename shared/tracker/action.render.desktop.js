@@ -85,12 +85,18 @@ export default class ActionRender extends PureComponent<ActionProps> {
             onClick={() => this.props.onClose()}
           />
         )}
-        <Button
-          style={styleChatButton}
-          type="Primary"
-          label="Start a Chat"
-          onClick={() => this.props.onChat()}
-        />
+        <Button style={styleChatButton} type="Primary" onClick={() => this.props.onChat()}>
+          <Icon
+            type="iconfont-chat"
+            style={{
+              marginRight: 8,
+              color: globalColors.white,
+            }}
+          />
+          <Text type="BodyBig" backgroundMode="Announcements">
+            Chat
+          </Text>
+        </Button>
       </div>
     )
   }
