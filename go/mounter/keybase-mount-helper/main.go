@@ -210,9 +210,9 @@ func main() {
 	// Lock the thread (because SYS_SETUID only sets the UID of the
 	// current OS thread) and switch to the helper user.
 	runtime.LockOSThread()
-	_, _, errNo := syscall.Syscall(syscall.SYS_SETUID, uintptr(khUID), 0, 0)
-	if errNo != 0 {
-		fmt.Fprintf(os.Stderr, "Can't setuid: %+v\n", errNo)
+	err = setUid(khUID)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Can't setuid: %+v\n", err)
 		os.Exit(1)
 	}
 
