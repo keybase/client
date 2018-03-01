@@ -12,14 +12,9 @@ import (
 )
 
 func TestPGPKeyfinder(t *testing.T) {
-	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		_testPGPKeyfinder(t, sigVersion)
-	})
-}
-
-func _testPGPKeyfinder(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "PGPKeyfinder")
 	defer tc.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 
 	u := CreateAndSignupFakeUser(tc, "login")
 	// track alice before starting so we have a user already tracked

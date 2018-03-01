@@ -60,14 +60,9 @@ func (e *flakeyRooterAPI) PostHTML(arg libkb.APIArg) (res *libkb.ExternalHTMLRes
 }
 
 func TestSoftSnooze(t *testing.T) {
-	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		_testSoftSnooze(t, sigVersion)
-	})
-}
-
-func _testSoftSnooze(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 	fu := CreateAndSignupFakeUser(tc, "track")
 
 	fakeClock := clockwork.NewFakeClockAt(time.Now())

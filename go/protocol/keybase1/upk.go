@@ -57,6 +57,7 @@ const (
 	UPK2MinorVersion_V3 UPK2MinorVersion = 3
 	UPK2MinorVersion_V4 UPK2MinorVersion = 4
 	UPK2MinorVersion_V5 UPK2MinorVersion = 5
+	UPK2MinorVersion_V6 UPK2MinorVersion = 6
 )
 
 func (o UPK2MinorVersion) DeepCopy() UPK2MinorVersion { return o }
@@ -68,6 +69,7 @@ var UPK2MinorVersionMap = map[string]UPK2MinorVersion{
 	"V3": 3,
 	"V4": 4,
 	"V5": 5,
+	"V6": 6,
 }
 
 var UPK2MinorVersionRevMap = map[UPK2MinorVersion]string{
@@ -77,6 +79,7 @@ var UPK2MinorVersionRevMap = map[UPK2MinorVersion]string{
 	3: "V3",
 	4: "V4",
 	5: "V5",
+	6: "V6",
 }
 
 func (e UPK2MinorVersion) String() string {
@@ -315,6 +318,7 @@ type UserPlusKeysV2 struct {
 	DeviceKeys   map[KID]PublicKeyV2NaCl       `codec:"deviceKeys" json:"deviceKeys"`
 	PGPKeys      map[KID]PublicKeyV2PGPSummary `codec:"pgpKeys" json:"pgpKeys"`
 	RemoteTracks map[UID]RemoteTrack           `codec:"remoteTracks" json:"remoteTracks"`
+	Reset        *ResetSummary                 `codec:"reset,omitempty" json:"reset,omitempty"`
 }
 
 func (o UserPlusKeysV2) DeepCopy() UserPlusKeysV2 {
@@ -370,6 +374,13 @@ func (o UserPlusKeysV2) DeepCopy() UserPlusKeysV2 {
 			}
 			return ret
 		})(o.RemoteTracks),
+		Reset: (func(x *ResetSummary) *ResetSummary {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Reset),
 	}
 }
 

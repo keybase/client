@@ -9,12 +9,6 @@ import (
 )
 
 func TestMerkleClientHistorical(t *testing.T) {
-	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		_testMerkleClientHistorical(t, sigVersion)
-	})
-}
-
-func _testMerkleClientHistorical(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
 	fu := CreateAndSignupFakeUser(tc, "track")
@@ -29,7 +23,14 @@ func _testMerkleClientHistorical(t *testing.T, sigVersion libkb.SigVersion) {
 	require.NotNil(t, leaf)
 	require.NotNil(t, root)
 
+	var sigVersion libkb.SigVersion
 	for i := 0; i < 5; i++ {
+		// Cover both v1 and v2 case
+		if i%2 == 0 {
+			sigVersion = libkb.KeybaseSignatureV2
+		} else {
+			sigVersion = libkb.KeybaseSignatureV1
+		}
 		trackAlice(tc, fu, sigVersion)
 		untrackAlice(tc, fu, sigVersion)
 	}

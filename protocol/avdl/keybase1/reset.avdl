@@ -1,0 +1,48 @@
+
+@namespace("keybase.1")
+protocol Reset {
+  import idl "common.avdl";
+
+  @typedef("bytes")
+  @lint("ignore")
+  record SHA512 {}
+
+  enum ResetType {
+    NONE_0,
+    RESET_1,
+    DELETE_2
+  }
+
+  record ResetMerkleRoot {
+    @jsonkey("hash_meta")
+    HashMeta hashMeta;
+    Seqno seqno;
+  }
+
+  record ResetPrev {
+    @jsonkey("eldest_kid")
+    KID eldestKID;
+    @jsonkey("public_seqno")
+    Seqno eldestSeqno;
+    SHA512 reset;
+  }
+
+  record ResetLink {
+    UnixTime ctime;
+    @jsonkey("merkle_root")
+    ResetMerkleRoot merkleRoot;
+    ResetPrev prev;
+    @jsonkey("reset_seqno")
+    Seqno resetSeqno;
+    ResetType type;
+    UID uid;
+  }
+
+  record ResetSummary {
+    UnixTime ctime;
+    ResetMerkleRoot merkleRoot;
+    Seqno resetSeqno;
+    ResetType type;
+  }
+
+}

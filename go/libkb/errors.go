@@ -1105,6 +1105,7 @@ const (
 	merkleErrorNoLeftBookend
 	merkleErrorNoRightBookend
 	merkleErrorHashMeta
+	merkleErrorBadResetChain
 )
 
 type MerkleClientError struct {

@@ -16,15 +16,10 @@ const (
 )
 
 func TestBackgroundIdentifier(t *testing.T) {
-	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		_testBackgroundIdentifier(t, sigVersion)
-	})
-}
-
-func _testBackgroundIdentifier(t *testing.T, sigVersion libkb.SigVersion) {
 	t.Skip()
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 	fu := CreateAndSignupFakeUser(tc, "track")
 
 	fakeClock := clockwork.NewFakeClockAt(time.Now())

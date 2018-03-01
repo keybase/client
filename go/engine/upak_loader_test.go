@@ -179,14 +179,9 @@ func TestLoadDeviceKeyRevoked(t *testing.T) {
 }
 
 func TestFullSelfCacherFlushSingleMachine(t *testing.T) {
-	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		_testFullSelfCacherFlushSingleMachine(t, sigVersion)
-	})
-}
-
-func _testFullSelfCacherFlushSingleMachine(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "fsc")
 	defer tc.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 
 	fu := CreateAndSignupFakeUser(tc, "fsc")
 
@@ -446,14 +441,9 @@ func TestLoadAfterAcctReset2(t *testing.T) {
 // logins in a row, right on top of each other, previous subchains
 // would be dropped from the self UPAK.
 func TestLoadAfterAcctResetCORE6943(t *testing.T) {
-	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		_testLoadAfterAcctResetCORE6943(t, sigVersion)
-	})
-}
-
-func _testLoadAfterAcctResetCORE6943(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "clu")
 	defer tc.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 
 	t.Logf("create new user")
 	fu := CreateAndSignupFakeUser(tc, "res")

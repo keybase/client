@@ -86,14 +86,9 @@ func runPGPPullExpectingError(tc libkb.TestContext, arg PGPPullEngineArg) {
 }
 
 func TestPGPPullAll(t *testing.T) {
-	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		_testPGPPullAll(t, sigVersion)
-	})
-}
-
-func _testPGPPullAll(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "pgp_pull")
 	defer tc.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 
 	users := []string{"t_alice", "t_bob"}
 	fu := createUserWhoTracks(tc, users, sigVersion)
@@ -108,14 +103,9 @@ func _testPGPPullAll(t *testing.T, sigVersion libkb.SigVersion) {
 }
 
 func TestPGPPullOne(t *testing.T) {
-	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		_testPGPPullOne(t, sigVersion)
-	})
-}
-
-func _testPGPPullOne(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "pgp_pull")
 	defer tc.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 
 	users := []string{"t_alice", "t_bob"}
 	fu := createUserWhoTracks(tc, users, sigVersion)
@@ -134,14 +124,9 @@ func _testPGPPullOne(t *testing.T, sigVersion libkb.SigVersion) {
 }
 
 func TestPGPPullBadIDs(t *testing.T) {
-	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		_testPGPPullBadIDs(t, sigVersion)
-	})
-}
-
-func _testPGPPullBadIDs(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "pgp_pull")
 	defer tc.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 
 	users := []string{"t_alice", "t_bob"}
 	fu := createUserWhoTracks(tc, users, sigVersion)

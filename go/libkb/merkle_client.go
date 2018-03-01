@@ -240,6 +240,7 @@ type MerkleUserLeaf struct {
 	username  string
 	uid       keybase1.UID
 	eldest    keybase1.KID // may be empty
+	resets    *MerkleResets
 }
 
 type MerkleTeamLeaf struct {
@@ -273,11 +274,12 @@ func (mul MerkleUserLeaf) MerkleGenericLeaf() *MerkleGenericLeaf {
 type PathSteps []*PathStep
 
 type merkleUserInfoT struct {
-	uid           keybase1.UID
-	uidPath       PathSteps
-	idVersion     int64
-	username      string
-	usernameCased string
+	uid                  keybase1.UID
+	uidPath              PathSteps
+	idVersion            int64
+	username             string
+	usernameCased        string
+	unverifiedResetChain unverifiedResetChain
 }
 
 type VerificationPath struct {
@@ -689,6 +691,7 @@ func (mc *MerkleClient) lookupPathAndSkipSequenceHelper(ctx context.Context, q H
 
 	q.Add("poll", I{w})
 	q.Add("load_deleted", B{true})
+	q.Add("load_reset_chain", B{true})
 
 	// Add the local db sigHints version
 	if sigHints != nil {
@@ -825,6 +828,11 @@ func (mc *MerkleClient) readPathFromAPIResUser(ctx context.Context, res *APIRes)
 		return nil, nil, err
 	}
 	userInfo.usernameCased, _ = res.Body.AtKey("username_cased").GetString()
+
+	userInfo.unverifiedResetChain, err = importResetChainFromServer(ctx, mc.G(), res.Body.AtKey("reset_chain"))
+	if err != nil {
+		return nil, nil, err
+	}
 
 	return vp, userInfo, nil
 }
@@ -1156,6 +1164,13 @@ func parseV2(jw *jsonw.Wrapper) (*MerkleUserLeaf, error) {
 		user.eldest = eldest
 	}
 
+	if l >= 5 {
+		user.resets, err = parseV2LeafResetChainTail(jw.AtIndex(4))
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return &user, nil
 }
 
@@ -1467,6 +1482,10 @@ func (mc *MerkleClient) LookupUser(ctx context.Context, q HTTPArgs, sigHints *Si
 	}
 
 	if u.username, err = path.verifyUsername(ctx, *userInfo); err != nil {
+		return nil, err
+	}
+
+	if err = u.resets.verifyAndLoad(ctx, mc.G(), userInfo.unverifiedResetChain); err != nil {
 		return nil, err
 	}
 
