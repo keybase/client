@@ -826,6 +826,10 @@ func (f JSONConfigFile) GetAppType() AppType {
 	return AppType(f.GetTopLevelString("app_type"))
 }
 
+func (f JSONConfigFile) GetSlowGregorConn() (bool, bool) {
+	return f.GetBoolAtPath("slow_gregor_conn")
+}
+
 func (f *JSONConfigFile) SetRememberPassphrase(remember bool) error {
 	return f.SetBoolAtPath("remember_passphrase", remember)
 }

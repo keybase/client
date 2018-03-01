@@ -88,6 +88,7 @@ func (n NullConfiguration) GetMountDir() string                                 
 func (n NullConfiguration) GetBGIdentifierDisabled() (bool, bool)                          { return false, false }
 func (n NullConfiguration) GetFeatureFlags() (FeatureFlags, error)                         { return FeatureFlags{}, nil }
 func (n NullConfiguration) GetAppType() AppType                                            { return NoAppType }
+func (n NullConfiguration) GetSlowGregorConn() (bool, bool)                                { return false, false }
 func (n NullConfiguration) GetRememberPassphrase() (bool, bool)                            { return false, false }
 func (n NullConfiguration) GetLevelDBNumFiles() (int, bool)                                { return 0, false }
 func (n NullConfiguration) GetChatInboxSourceLocalizeThreads() (int, bool)                 { return 1, false }
@@ -893,6 +894,14 @@ func (e *Env) GetAppType() AppType {
 	}
 }
 
+func (e *Env) GetSlowGregorConn() bool {
+	return e.GetBool(false,
+		func() (bool, bool) { return e.cmd.GetSlowGregorConn() },
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_SLOW_GREGOR_CONN") },
+		func() (bool, bool) { return e.GetConfig().GetSlowGregorConn() },
+	)
+}
+
 func (e *Env) GetFeatureFlags() FeatureFlags {
 	var ret FeatureFlags
 	pick := func(f FeatureFlags, err error) {
@@ -1191,6 +1200,10 @@ func (c AppConfig) GetSecurityAccessGroupOverride() (bool, bool) {
 
 func (c AppConfig) GetAppType() AppType {
 	return MobileAppType
+}
+
+func (c AppConfig) GetSlowGregorConn() (bool, bool) {
+	return false, false
 }
 
 func (c AppConfig) GetVDebugSetting() string {

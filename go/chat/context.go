@@ -11,10 +11,6 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
-type appTypeSource interface {
-	GetAppType() libkb.AppType
-}
-
 type keyfinderKey int
 type identifyNotifierKey int
 type chatTrace int
@@ -93,7 +89,7 @@ func CtxTrace(ctx context.Context) (string, bool) {
 	return "", false
 }
 
-func CtxAddLogTags(ctx context.Context, env appTypeSource) context.Context {
+func CtxAddLogTags(ctx context.Context, g *globals.Context) context.Context {
 
 	// Add trace context value
 	ctx = context.WithValue(ctx, chatTraceKey, libkb.RandStringB64(3))
@@ -106,7 +102,8 @@ func CtxAddLogTags(ctx context.Context, env appTypeSource) context.Context {
 	rpcTags := make(map[string]interface{})
 	rpcTags["user-agent"] = libkb.UserAgent
 	rpcTags["platform"] = libkb.GetPlatformString()
-	rpcTags["apptype"] = env.GetAppType()
+	rpcTags["apptype"] = g.GetEnv().GetAppType()
+	rpcTags["slow-conn"] = g.GetEnv().GetSlowGregorConn()
 	ctx = rpc.AddRpcTagsToContext(ctx, rpcTags)
 
 	return ctx
@@ -130,7 +127,7 @@ func Context(ctx context.Context, g *globals.Context, mode keybase1.TLFIdentifyB
 	if _, ok := val.(types.UPAKFinder); !ok {
 		res = context.WithValue(res, upKey, NewCachingUPAKFinder(g))
 	}
-	res = CtxAddLogTags(res, g.GetEnv())
+	res = CtxAddLogTags(res, g)
 	return res
 }
 
