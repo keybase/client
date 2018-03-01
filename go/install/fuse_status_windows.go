@@ -10,7 +10,6 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/go-updater/util"
 )
 
 func detectDokanDll(log Log) bool {
@@ -20,7 +19,7 @@ func detectDokanDll(log Log) bool {
 		return false
 	}
 
-	exists, _ := util.FileExists(filepath.Join(dir, "dokan1.dll"))
+	exists, _ := libkb.FileExists(filepath.Join(dir, "dokan1.dll"))
 	log.Info("detectDokanDll: returning %v", exists)
 	return exists
 }
