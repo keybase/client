@@ -372,7 +372,7 @@ func (s *Server) setCommonResponseHeaders(w http.ResponseWriter) {
 	// 1-week gap before they can use HTTP again. Note that we don't use the
 	// 'preload' directive, for the same reason we use 302 instead of 301 for
 	// HTTP->HTTPS redirection. Reference: https://hstspreload.org/#opt-in
-	w.Header().Set("Strict-Transport-Security", "max-age=604800; includeSubDomains")
+	w.Header().Set("Strict-Transport-Security", "max-age=604800")
 	// TODO: allow user to opt-in some directives of Content-Security-Policy?
 }
 
