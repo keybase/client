@@ -16,7 +16,7 @@ export type Props = {
   role: ?Types.TeamRoleType,
   teamname: string,
 
-  onAddPeople: () => void,
+  onAddPeople: (target?: any) => void,
   onAddSelf: () => void,
   onChat: () => void,
   onEditDescription: () => void,
@@ -75,11 +75,23 @@ const TeamHeader = (props: Props) => (
 
       {/* Actions */}
       <ButtonBar direction="row" style={isMobile ? {width: 'auto', marginBottom: -8} : undefined}>
+        <Button type="Primary" onClick={props.onChat}>
+          <Icon
+            type="iconfont-chat"
+            style={{
+              marginRight: 8,
+              color: globalColors.white,
+            }}
+          />
+          <Text type="BodyBig" backgroundMode="Announcements">
+            Chat
+          </Text>
+        </Button>
         <Button
           type="Primary"
           label={'Add people'}
           small={isMobile && !isLargeScreen}
-          onClick={props.onAddPeople}
+          onClick={event => props.onAddPeople(isMobile ? undefined : event.target)}
         />
         <Button
           type="Secondary"
@@ -87,15 +99,6 @@ const TeamHeader = (props: Props) => (
           small={isMobile && !isLargeScreen}
           onClick={props.onInviteByEmail}
         />
-        {!isMobile && <Button type="Secondary" label="Chat" onClick={props.onChat} />}
-        {isMobile &&
-          !props.canJoinTeam && (
-            <Icon
-              type="iconfont-chat"
-              style={{width: isLargeScreen ? 24 : 20, height: isLargeScreen ? 24 : 20}}
-              onClick={props.onChat}
-            />
-          )}
       </ButtonBar>
 
       {/* CLI hint */}

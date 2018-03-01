@@ -33,7 +33,15 @@ const mapDispatchToProps = (dispatch: Dispatch, {teamname}: OwnProps) => ({
     dispatch(navigateAppend([{props: {teamname}, selected: 'addPeople'}]))
     dispatch(createAddResultsToUserInput({searchKey: 'addToTeamSearch', searchResults: [you]}))
   },
-  onAddPeople: () => dispatch(navigateAppend([{props: {teamname}, selected: 'addPeople'}])),
+  onAddPeople: target =>
+    dispatch(
+      navigateAppend([
+        {
+          props: {teamname, position: 'bottom left', targetRect: target && target.getBoundingClientRect()},
+          selected: 'addPeopleHow',
+        },
+      ])
+    ),
   onChat: () => dispatch(createOpenTeamConversation({teamname, channelname: 'general'})),
   onEditDescription: () => dispatch(navigateAppend([{props: {teamname}, selected: 'editTeamDescription'}])),
   onInviteByEmail: () => dispatch(navigateAppend([{props: {teamname}, selected: 'inviteByEmail'}])),
