@@ -9,7 +9,7 @@
     <Property Id="ARPURLINFOABOUT" Value="https://www.keybase.io"/>
     <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"/>
     <Property Id="EXECUTABLETARGET" Value="bin"/>
-    <Property Id="MsiLogging" Value="voicewarmupx!"/>
+    <Property Id="MsiLogging" Value="*"/>
 
     <MajorUpgrade DowngradeErrorMessage="A newer version of Keybase is already installed." AllowSameVersionUpgrades="yes"  />	
 
@@ -31,7 +31,8 @@
       <Custom Action="RemoveBrowserExtension" Before="InstallValidate"><![CDATA[Installed]]></Custom>
       <Custom Action="RemoveGUIStartupShortcut" Before="InstallValidate"><![CDATA[REMOVE ~= "ALL" AND NOT (UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED)]]></Custom>
       <!-- StopGUI is legacy and to be removed after enough people are updated -->
-      <Custom Action="StopGUI" Before="InstallValidate"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
+      <Custom Action="StopGUI" Before="RemoveLegacyBundle"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
+      <Custom Action="RemoveLegacyBundle" Before="InstallValidate"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
       <Custom Action="RunMainApp" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
       <Custom Action="RunGUI" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
       <Custom Action="AddBrowserExtension" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
@@ -251,5 +252,12 @@
         oReg.DeleteValue HKCU,strKeyPath,strValueName
       ]]>
     </CustomAction>
+  </Fragment>
+  <Fragment>
+    <CustomAction Id="RemoveLegacyBundle"
+              Directory="LocalAppDataFolder"
+              ExeCommand="[LocalAppDataFolder]\Package Cache\{12a069da-39ed-4f62-9bd4-8f33c39bd258}\Keybase_1.0.44-20180223131449+d993081.386.exe /quiet /uninstall"
+              Execute="immediate"
+              Return="ignore"/>
   </Fragment>
 </Wix>

@@ -138,54 +138,6 @@ function* installFuseSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.put(KBFSGen.createInstallFuseFinished())
 }
 
-function findKeybaseUninstallString(): Promise<string> {
-  logger.info('findKeybaseUninstallString')
-  return new Promise((resolve, reject) => {
-    const regedit = require('regedit')
-    const keybaseRegPath = 'HKCU\\SOFTWARE\\Keybase\\Keybase'
-    try {
-      regedit.list(keybaseRegPath).on('data', function(entry) {
-        logger.info('findKeybaseUninstallString on data')
-        if (entry.data.values && entry.data.values.BUNDLEKEY) {
-          const uninstallRegPath =
-            'HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\' +
-            entry.data.values.BUNDLEKEY.value
-
-          regedit.list(uninstallRegPath).on('data', function(entry) {
-            logger.info('findKeybaseUninstallString on data of', uninstallRegPath)
-            if (
-              entry.data.values &&
-              entry.data.values.DisplayName &&
-              entry.data.values.DisplayName.value === 'Keybase' &&
-              entry.data.values.Publisher &&
-              entry.data.values.Publisher.value === 'Keybase, Inc.' &&
-              entry.data.values.ModifyPath &&
-              entry.data.values.BundleCachePath
-            ) {
-              if (fs.existsSync(entry.data.values.BundleCachePath.value)) {
-                var modifyPath = entry.data.values.ModifyPath.value
-                // Remove double quotes - won't work otherwise
-                modifyPath = modifyPath.replace(/"/g, '')
-                // Remove /modify and send it in with the other arguments, below
-                modifyPath = modifyPath.replace(' /modify', '')
-                resolve(modifyPath)
-              } else {
-                reject(new Error(`cached bundle not found:` + uninstallRegPath))
-              }
-            } else {
-              reject(new Error(`Keybase entry not found at` + uninstallRegPath))
-            }
-          })
-        } else {
-          reject(new Error(`BUNDLEKEY not found at` + keybaseRegPath))
-        }
-      })
-    } catch (err) {
-      logger.error('findKeybaseUninstallString caught', err)
-    }
-  })
-}
-
 // Invoking the cached installer package has to happen from the topmost process
 // or it won't be visible to the user. The service also does this to support command line
 // operations.
