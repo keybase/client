@@ -146,7 +146,7 @@ class Input extends Component<Props, State> {
       return globalColors.red
     }
 
-    return this.state.focused ? globalColors.blue : globalColors.black_10
+    return this.state.focused ? globalColors.blue : globalColors.black_10_on_white
   }
 
   _rowsToHeight(rows) {
@@ -158,12 +158,14 @@ class Input extends Component<Props, State> {
     return this.props.small
       ? {
           ...globalStyles.flexBoxRow,
+          backgroundColor: globalColors.fastBlank,
           borderBottomWidth: 1,
           borderBottomColor: underlineColor,
           flex: 1,
         }
       : {
           ...globalStyles.flexBoxColumn,
+          backgroundColor: globalColors.fastBlank,
           justifyContent: 'flex-start',
           maxWidth: 400,
         }
@@ -191,9 +193,9 @@ class Input extends Component<Props, State> {
     const containerStyle = this._containerStyle(underlineColor)
 
     const commonInputStyle = {
-      color: globalColors.black_75,
+      color: globalColors.black_75_on_white,
       lineHeight: lineHeight,
-      backgroundColor: globalColors.transparent,
+      backgroundColor: globalColors.fastBlank,
       flexGrow: 1,
       borderWidth: 0,
       ...(this.props.small
@@ -328,6 +330,7 @@ const styles = styleSheetCreate({
     borderBottomWidth: 1,
   },
   inputContainerSmall: {
+    backgroundColor: globalColors.fastBlank,
     flex: 1,
   },
   smallLabel: {

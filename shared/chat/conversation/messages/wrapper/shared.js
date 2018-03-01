@@ -199,7 +199,7 @@ const styles = styleSheetCreate({
   userAvatar: {width: 32},
   username: {
     alignSelf: 'flex-start',
-    backgroundColor: globalColors.white,
+    backgroundColor: globalColors.fastBlank,
     marginBottom: 2,
   },
   usernameYou: {

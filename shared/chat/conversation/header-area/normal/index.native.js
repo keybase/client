@@ -113,6 +113,7 @@ const UsernameHeader = (props: Props) => (
 const containerStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
+  backgroundColor: globalColors.fastBlank,
   borderBottomColor: globalColors.black_05,
   borderBottomWidth: 1,
   justifyContent: 'flex-start',

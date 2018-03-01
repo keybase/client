@@ -44,7 +44,7 @@ const sent = {
   width: '100%',
   ...(isMobile
     ? {
-        backgroundColor: globalColors.white,
+        backgroundColor: globalColors.fastBlank,
         color: globalColors.black_75_on_white,
       }
     : {

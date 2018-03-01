@@ -210,6 +210,7 @@ const styles = styleSheetCreate({
   container: {
     ...globalStyles.flexBoxRow,
     alignItems: 'center',
+    backgroundColor: globalColors.fastBlank,
     borderTopColor: globalColors.black_05,
     borderTopWidth: 1,
     flexShrink: 0,

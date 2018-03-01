@@ -86,7 +86,7 @@ class ImageAttachment extends React.PureComponent<Props> {
 const titleStyle = {
   ...(isMobile
     ? {
-        backgroundColor: globalColors.white,
+        backgroundColor: globalColors.fastBlank,
       }
     : {
         wordBreak: 'break-word',
@@ -100,7 +100,7 @@ const progressLabelStyle = {
 
 const downloadedIconWrapperStyle = {
   ...globalStyles.flexBoxCenter,
-  backgroundColor: globalColors.white,
+  backgroundColor: globalColors.fastBlank,
   borderRadius: 20,
   bottom: 0,
   padding: 3,
@@ -121,9 +121,9 @@ const imageContainerStyle = {
 }
 
 const imageStyle = {
+  backgroundColor: globalColors.fastBlank,
   maxWidth: 320,
   position: 'relative',
-  backgroundColor: globalColors.white,
 }
 
 const loadedStyle = {

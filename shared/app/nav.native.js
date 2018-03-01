@@ -64,6 +64,12 @@ class CardStackShim extends Component<CardStackShimProps, *> {
     )
   }
 
+  _transitionConfig = () => ({
+    containerStyle: {
+      backgroundColor: globalColors.fastBlank,
+    },
+  })
+
   render() {
     const stack = this.props.stack
 
@@ -92,6 +98,8 @@ class CardStackShim extends Component<CardStackShimProps, *> {
         headerMode="none"
         mode={this.props.mode}
         style={this.props.hidden ? styles.hiddenTransitioner : undefined}
+        cardStyle={{backgroundColor: globalColors.fastBlank}}
+        transitionConfig={this._transitionConfig}
       />
     )
   }

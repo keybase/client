@@ -11,7 +11,7 @@ import {
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {makeRow} from './row'
 import ChatFilterRow from './row/chat-filter-row'
-import FloatingDivider from './row/floating-divider/container'
+import BigTeamsDivider from './row/big-teams-divider/container'
 import Divider from './row/divider/container'
 import debounce from 'lodash/debounce'
 import {Owl} from './owl'
@@ -178,7 +178,7 @@ class Inbox extends React.PureComponent<Props, State> {
     const owl = !this.props.rows.length && !!this.props.filter && <Owl />
     const floatingDivider = this.state.showFloating &&
       this.props.showSmallTeamsExpandDivider && (
-        <FloatingDivider toggle={this.props.toggleSmallTeamsExpanded} />
+        <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
       )
     return (
       <ErrorBoundary>

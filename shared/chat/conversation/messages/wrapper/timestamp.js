@@ -24,7 +24,7 @@ const styleBox = {
 }
 
 const styleText = {
-  backgroundColor: globalColors.white,
+  backgroundColor: globalColors.fastBlank,
   color: globalColors.black_40_on_white,
   padding: globalMargins.tiny,
 }
