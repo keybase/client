@@ -22,16 +22,12 @@ type CmdGitSettings struct {
 func newCmdGitSettings(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "settings",
-		Usage:        "View and change repo settings",
-		ArgumentHelp: "<repo name> [--team=<team name>]",
+		Usage:        "View and change team repo settings",
+		ArgumentHelp: "<repo name> <team name>",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(newCmdGitSettingsRunner(g), "settings", c)
 		},
 		Flags: []cli.Flag{
-			cli.StringFlag{
-				Name:  "team",
-				Usage: "keybase team name",
-			},
 			cli.StringFlag{
 				Name:  "channel",
 				Usage: "chat channel where git push notifications will be sent",
@@ -51,15 +47,12 @@ func newCmdGitSettingsRunner(g *libkb.GlobalContext) *CmdGitSettings {
 }
 
 func (c *CmdGitSettings) ParseArgv(ctx *cli.Context) error {
-	if len(ctx.Args()) == 0 {
-		return errors.New("repo name argument required")
+	if len(ctx.Args()) != 2 {
+		return errors.New("repo name and team name are required")
 	}
 	c.repoName = keybase1.GitRepoName(ctx.Args()[0])
 
-	if len(ctx.String("team")) == 0 {
-		return errors.New("team name argument required")
-	}
-	teamName, err := keybase1.TeamNameFromString(ctx.String("team"))
+	teamName, err := keybase1.TeamNameFromString(ctx.Args()[1])
 	if err != nil {
 		return err
 	}
@@ -171,7 +164,7 @@ func (c *CmdGitSettings) findRepoID(ctx context.Context) (keybase1.RepoID, error
 	return "", fmt.Errorf("No repo found that matches %s", c.folder())
 }
 
-func (v *CmdGitSettings) GetUsage() libkb.Usage {
+func (c *CmdGitSettings) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:    true,
 		API:       true,
