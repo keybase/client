@@ -44,7 +44,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {teamname}: OwnProps) => ({
     ),
   onChat: () => dispatch(createOpenTeamConversation({teamname, channelname: 'general'})),
   onEditDescription: () => dispatch(navigateAppend([{props: {teamname}, selected: 'editTeamDescription'}])),
-  onInviteByEmail: () => dispatch(navigateAppend([{props: {teamname}, selected: 'inviteByEmail'}])),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({

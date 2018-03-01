@@ -66,7 +66,7 @@ const showNewTeamDialog = {
   tags: makeLeafTags({layerOnTop: !isMobile}),
 }
 
-const addPeopleOptions = {
+const makeAddPeopleOptions = {
   addPeople: {
     children: {controlledRolePicker},
     component: AddPeopleDialog,
@@ -82,6 +82,7 @@ const addPeopleOptions = {
 const teamRoute = makeRouteDefNode({
   children: {
     ...makeManageChannels,
+    ...makeAddPeopleOptions,
     controlledRolePicker,
     rolePicker,
     reallyLeaveTeam,
@@ -97,19 +98,9 @@ const teamRoute = makeRouteDefNode({
       component: Member,
     },
     addPeopleHow: {
-      children: addPeopleOptions,
+      children: {},
       component: isMobile ? AddPeopleHow : RelativePopupHoc(AddPeopleHow),
       tags: makeLeafTags({layerOnTop: true}),
-    },
-    addPeople: {
-      children: {controlledRolePicker},
-      component: AddPeopleDialog,
-      tags: makeLeafTags({layerOnTop: !isMobile}),
-    },
-    inviteByEmail: {
-      children: {controlledRolePicker},
-      component: InviteByEmailDialog,
-      tags: makeLeafTags({layerOnTop: !isMobile}),
     },
     editTeamDescription: {
       children: {},

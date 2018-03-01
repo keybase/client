@@ -4,7 +4,6 @@ import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
 import {Avatar, Box, Button, ButtonBar, Icon, Meta, Text} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
-import {isLargeScreen} from '../../../constants/platform'
 
 export type Props = {
   canEditDescription: boolean,
@@ -20,7 +19,6 @@ export type Props = {
   onAddSelf: () => void,
   onChat: () => void,
   onEditDescription: () => void,
-  onInviteByEmail: () => void,
 }
 
 const TeamHeader = (props: Props) => (
@@ -90,14 +88,7 @@ const TeamHeader = (props: Props) => (
         <Button
           type="Primary"
           label={'Add people'}
-          small={isMobile && !isLargeScreen}
           onClick={event => props.onAddPeople(isMobile ? undefined : event.target)}
-        />
-        <Button
-          type="Secondary"
-          label={isMobile ? 'Invite contacts' : 'Invite by email'}
-          small={isMobile && !isLargeScreen}
-          onClick={props.onInviteByEmail}
         />
       </ButtonBar>
 

@@ -86,6 +86,7 @@ class Button extends Component<Props> {
         <Box
           style={{
             ...globalStyles.flexBoxCenter,
+            ...globalStyles.flexBoxRow,
             position: 'relative',
             height: '100%',
           }}

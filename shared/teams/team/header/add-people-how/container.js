@@ -1,12 +1,19 @@
 // @flow
 import {connect} from '../../../../util/container'
 import {AddPeopleHow} from '.'
-import {navigateUp} from '../../../../actions/route-tree'
+import {navigateTo, navigateUp} from '../../../../actions/route-tree'
+import {teamsTab} from '../../../../constants/tabs'
 
-const mapStateToProps = () => ({})
+const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => {
+  const teamname = routeProps.get('teamname')
+  return {
+    onAddPeople: () => dispatch(navigateTo([{selected: 'addPeople', props: {teamname}}], [teamsTab, 'team'])),
+    onClose: () => {
+      dispatch(navigateUp())
+    },
+    onInvite: () =>
+      dispatch(navigateTo([{selected: 'inviteByEmail', props: {teamname}}], [teamsTab, 'team'])),
+  }
+}
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onClose: () => dispatch(navigateUp()),
-})
-
-export default connect(mapStateToProps, mapDispatchToProps)(AddPeopleHow)
+export default connect(undefined, mapDispatchToProps)(AddPeopleHow)

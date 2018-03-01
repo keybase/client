@@ -1,16 +1,19 @@
 // @flow
 import * as React from 'react'
-import {Text} from '../../../../common-adapters'
 import PopupMenu, {ModalLessPopupMenu} from '../../../../common-adapters/popup-menu'
 import {isMobile} from '../../../../styles'
 
 type Props = {
-  label: string,
+  onAddPeople: () => void,
   onClose: () => void,
+  onInvite: () => void,
 }
 
 const AddPeopleHow = (props: Props) => {
-  const items = [{title: 'thing', view: <Text type="BodySemibold">Hi!</Text>}]
+  const items = [
+    {title: 'By username', subTitle: 'Keybase, Twitter, etc.', onClick: props.onAddPeople},
+    {title: isMobile ? 'From address book' : 'By email', onClick: props.onInvite},
+  ]
 
   return isMobile ? (
     <PopupMenu onHidden={props.onClose} style={{overflow: 'visible'}} items={items} />
