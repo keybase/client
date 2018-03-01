@@ -21,9 +21,14 @@ func doWithSigChainVersions(f func(libkb.SigVersion)) {
 }
 
 func TestTrackTokenIdentify2(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testTrackTokenIdentify2(t, sigVersion)
+	})
+}
+
+func _testTrackTokenIdentify2(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
-	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 	fu := CreateAndSignupFakeUser(tc, "track")
 
 	idUI := &FakeIdentifyUI{}
@@ -185,9 +190,14 @@ func TestTrackLocalThenLocalTemp(t *testing.T) {
 }
 
 func TestTrackRemoteThenLocalTemp(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testTrackRemoteThenLocalTemp(t, sigVersion)
+	})
+}
+
+func _testTrackRemoteThenLocalTemp(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
-	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 	fu := CreateAndSignupFakeUser(tc, "track")
 
 	// Tracking remote means we have to agree what time it is

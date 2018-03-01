@@ -194,19 +194,23 @@ func TestUserEmails(t *testing.T) {
 }
 
 func TestProvisionDesktop(t *testing.T) {
-	testProvisionDesktop(t, false)
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		testProvisionDesktop(t, false, sigVersion)
+	})
 }
 
 func TestProvisionDesktopPUK(t *testing.T) {
-	testProvisionDesktop(t, true)
+	testProvisionDesktop(t, true, libkb.KeybaseNullSigVersion)
 }
 
-func testProvisionDesktop(t *testing.T, upgradePerUserKey bool) {
+func testProvisionDesktop(t *testing.T, upgradePerUserKey bool, sigVersion libkb.SigVersion) {
 	// device X (provisioner) context:
 	t.Logf("setup X")
 	tcX := SetupEngineTest(t, "kex2provision")
 	defer tcX.Cleanup()
-	sigVersion := libkb.GetDefaultSigVersion(tcX.G)
+	if sigVersion == libkb.KeybaseNullSigVersion {
+		sigVersion = libkb.GetDefaultSigVersion(tcX.G)
+	}
 	tcX.Tp.DisableUpgradePerUserKey = !upgradePerUserKey
 
 	// device Y (provisionee) context:
