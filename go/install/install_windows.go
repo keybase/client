@@ -158,7 +158,7 @@ func InstallLogPath() (string, error) {
 	// Get the latest msi log - this is the clean install .msi log
 	msiLogFiles, err := filepath.Glob(os.ExpandEnv(filepath.Join("${TEMP}", "MSI*.log")))
 	sort.Sort(sort.Reverse(sort.StringSlice(msiLogFiles)))
-	if len(msiLogFiles) > 1 {
+	if len(msiLogFiles) >= 1 {
 		keybaseLogFiles = append(keybaseLogFiles, msiLogFiles[0])
 	}
 
