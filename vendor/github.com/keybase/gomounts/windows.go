@@ -16,7 +16,7 @@ import (
 // Windows implementation
 func getMountedVolumes() ([]Volume, error) {
 	result := make([]Volume, 0)
-	var buf [256]C.char
+	var buf [261]C.char // MAX_PATH + 1
 
 	drives := uint32(C.GetLogicalDrives())
 

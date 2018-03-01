@@ -410,10 +410,10 @@
 			"revisionTime": "2016-03-16T16:25:20-04:00"
 		},
 		{
-			"checksumSHA1": "TiHeV8rgq5ZjGvLwMXRFN2uod2E=",
+			"checksumSHA1": "RemfT/X5EGstZybyYmpblbx6/Zs=",
 			"path": "github.com/keybase/gomounts",
-			"revision": "d9ea4eaa52ca666fc371ec402aa262e908e7fc40",
-			"revisionTime": "2018-02-15T00:35:23Z"
+			"revision": "349507f4d353f455c72b0c1101229ddb67c38175",
+			"revisionTime": "2018-03-01T23:53:30Z"
 		},
 		{
 			"path": "github.com/keybase/npipe",

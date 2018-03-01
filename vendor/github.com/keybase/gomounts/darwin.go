@@ -9,8 +9,7 @@ package gomounts
 */
 import "C"
 import (
-	"errors"
-	"reflect"
+	"fmt"
 	"strconv"
 	"sync"
 	"unsafe"
@@ -26,17 +25,17 @@ func getMountedVolumes() ([]Volume, error) {
 	result := make([]Volume, 0)
 
 	var mntbuf *C.struct_statfs
-	count := int(C.getmntinfo(&mntbuf, C.MNT_NOWAIT))
-	if count == -1 {
-		return result, errors.New("Failure calling getmntinfo")
+	c, err := C.getmntinfo(&mntbuf, C.MNT_NOWAIT)
+	if err != nil {
+		return result, fmt.Errorf("Failure calling getmntinfo: %+v", err)
+	}
+	count := int(c)
+	if count == 0 {
+		return nil, nil
 	}
 
 	// Convert to go slice per https://code.google.com/p/go-wiki/wiki/cgo
-	var mntSlice []C.struct_statfs
-	sliceHeader := (*reflect.SliceHeader)(unsafe.Pointer(&mntSlice))
-	sliceHeader.Cap = count
-	sliceHeader.Len = count
-	sliceHeader.Data = uintptr(unsafe.Pointer(mntbuf))
+	mntSlice := (*[1 << 30]C.struct_statfs)(unsafe.Pointer(mntbuf))[:count:count]
 
 	for _, v := range mntSlice {
 		uidstr := strconv.Itoa(int(v.f_owner))
