@@ -261,8 +261,18 @@ func main() {
 
 	interruptChan := make(chan os.Signal, 1)
 	signal.Notify(interruptChan, os.Interrupt)
+	signal.Notify(interruptChan, syscall.SIGTERM)
 	go func() {
 		_ = <-interruptChan
+
+		// This might be a different system thread than above, so we
+		// might need to setuid again.
+		runtime.LockOSThread()
+		_, _, errNo := syscall.Syscall(syscall.SYS_SETUID, 0, 0, 0)
+		if errNo != 0 {
+			fmt.Fprintf(os.Stderr, "Can't setuid: %+v\n", errNo)
+			os.Exit(1)
+		}
 		err := fuse.Unmount(os.Args[1])
 		if err != nil {
 			fmt.Printf("Couldn't unmount cleanly: %+v", err)
