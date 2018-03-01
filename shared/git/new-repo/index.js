@@ -70,8 +70,12 @@ class NewRepo extends React.Component<Props, State> {
             width: '100%',
             display: 'block',
             overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
+            ...(isMobile
+              ? {}
+              : {
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }),
           }}
         >
           {item}

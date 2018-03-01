@@ -17,7 +17,7 @@ class List extends PureComponent<Props<*>, void> {
   })
 
   _keyExtractor = (item, index: number) => {
-    if (!item) {
+    if (this.props.indexAsKey || !item) {
       return String(index)
     }
 

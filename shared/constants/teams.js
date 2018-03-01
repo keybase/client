@@ -1,6 +1,6 @@
 // @flow
 import * as I from 'immutable'
-import * as ChatTypes from './types/chat'
+import * as ChatTypes from './types/chat2'
 import * as Types from './types/teams'
 import {userIsActiveInTeam} from './selectors'
 import * as RPCTypes from './types/rpc-gen'
@@ -57,10 +57,13 @@ export const makeTeamSettings: I.RecordFactory<Types._TeamSettings> = I.Record({
 })
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
+  channelCreationError: '',
   convIDToChannelInfo: I.Map(),
   loaded: false,
   sawChatBanner: false,
   sawSubteamsBanner: false,
+  teamCreationError: '',
+  teamCreationPending: false,
   teamAccessRequestsPending: I.Set(),
   teamNameToConvIDs: I.Map(),
   teamNameToInvites: I.Map(),

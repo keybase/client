@@ -1,9 +1,10 @@
 // @flow
 import logger from '../logger'
 import * as AppGen from './app-gen'
-import * as ChatGen from './chat-gen'
+import * as Chat2Gen from './chat2-gen'
 import * as PushGen from './push-gen'
-import * as ChatTypes from '../constants/types/rpc-chat-gen'
+import * as ChatTypes from '../constants/types/chat2'
+import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import {isMobile, isIOS} from '../constants/platform'
@@ -68,6 +69,13 @@ function* permissionsRequestSaga(): Saga.SagaGenerator<any, any> {
   }
 }
 
+// we set this flag when we handle a push so additional pushes don't cause our logic to be weird
+// given a session (being in the foreground) we only want to handle one push
+let handledPushThisSession = false
+const resetHandledPush = () => {
+  handledPushThisSession = false
+}
+
 function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.SagaGenerator<any, any> {
   logger.info('Push notification:', notification)
   const payload = notification.payload.notification
@@ -77,9 +85,9 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
       logger.info('Push notification: silent notification received')
       try {
         // $ForceType
-        const membersType: ChatTypes.ConversationMembersType =
+        const membersType: RPCChatTypes.ConversationMembersType =
           typeof payload.t === 'string' ? parseInt(payload.t) : payload.t
-        const unboxRes = yield Saga.call(ChatTypes.localUnboxMobilePushNotificationRpcPromise, {
+        const unboxRes = yield Saga.call(RPCChatTypes.localUnboxMobilePushNotificationRpcPromise, {
           convID: payload.c || '',
           membersType,
           payload: payload.m || '',
@@ -99,6 +107,7 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
       } catch (err) {
         logger.info('failed to unbox silent notification', err)
       }
+      return
     } else if (payload.type === 'chat.readmessage') {
       logger.info('Push notification: read message notification received')
       const b = typeof payload.b === 'string' ? parseInt(payload.b) : payload.b
@@ -121,8 +130,19 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
         yield Saga.call(RPCTypes.appStateUpdateAppStateRpcPromise, {
           state: RPCTypes.appStateAppState.foreground,
         })
-        yield Saga.put(ChatGen.createSelectConversation({conversationIDKey: convID, fromUser: true}))
-        yield Saga.put(switchTo([chatTab]))
+        if (handledPushThisSession) {
+          return
+        }
+        handledPushThisSession = true
+        const conversationIDKey = ChatTypes.stringToConversationIDKey(convID)
+        yield Saga.put(
+          Chat2Gen.createSelectConversationDueToPush({
+            conversationIDKey,
+            phase: 'showImmediately',
+          })
+        )
+        yield Saga.put(Chat2Gen.createSetLoading({key: 'pushLoad', loading: true}))
+        yield Saga.put(switchTo([chatTab, 'conversation']))
       } else if (payload.type === 'follow') {
         const {username} = payload
         if (!username) {
@@ -276,6 +296,7 @@ function* pushSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeLatest(PushGen.configurePush, configurePushSaga)
   yield Saga.safeTakeEvery(PushGen.checkIOSPush, checkIOSPushSaga)
   yield Saga.safeTakeEvery(PushGen.notification, pushNotificationSaga)
+  yield Saga.safeTakeEveryPure(AppGen.mobileAppState, resetHandledPush)
   yield Saga.safeTakeEvery(AppGen.mobileAppState, mobileAppStateSaga)
 }
 

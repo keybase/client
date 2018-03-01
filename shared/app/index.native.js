@@ -38,6 +38,9 @@ class Keybase extends Component<any> {
       global.keybaseLoaded = true
       this.store = configureStore()
       global.store = this.store
+      if (__DEV__) {
+        global.DEBUGStore = this.store
+      }
       setupLocalDebug(this.store)
       this.store.dispatch(setRouteDef(routeDefs))
       makeEngine(this.store.dispatch, this.store.getState)

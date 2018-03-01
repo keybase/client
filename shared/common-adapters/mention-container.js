@@ -5,7 +5,7 @@ import {connect, type TypedState} from '../util/container'
 import {createGetProfile} from '../actions/tracker-gen'
 import {isMobile} from '../constants/platform'
 import {createShowUserProfile} from '../actions/profile-gen'
-import {isSpecialMention} from '../constants/chat'
+import {isSpecialMention} from '../constants/chat2'
 
 const mapStateToProps = (
   state: TypedState,

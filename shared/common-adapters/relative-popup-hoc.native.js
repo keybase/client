@@ -1,10 +1,25 @@
 // @flow
+import * as React from 'react'
+import {connect} from 'react-redux'
+import type {RelativePopupHocType, RelativePopupProps} from './relative-popup-hoc'
 
-import type {RelativePopupHocType} from './relative-popup-hoc'
-
-// Does nothing
 const RelativePopupHoc: RelativePopupHocType<*> = PopupComponent => {
-  return PopupComponent
+  const C: React.ComponentType<RelativePopupProps<*>> = connect(
+    undefined,
+    (dispatch, {navigateUp, routeProps}) => ({
+      onClosePopup: () => {
+        dispatch(navigateUp())
+        const onPopupWillClose = routeProps.get('onPopupWillClose')
+        onPopupWillClose && onPopupWillClose()
+      },
+      position: routeProps.get('position'),
+      targetRect: routeProps.get('targetRect'),
+    })
+  )((props: RelativePopupProps<*> & {onClosePopup: () => void}) => {
+    return <PopupComponent {...(props: RelativePopupProps<*>)} onClosePopup={props.onClosePopup} />
+  })
+
+  return C
 }
 
 export default RelativePopupHoc

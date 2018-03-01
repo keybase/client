@@ -19,6 +19,10 @@ indent_size = 2
 indent_style = space
 indent_size = 2
 
+[**.json]
+indent_style = space
+indent_size = 2
+
 [**.flow]
 indent_style = space
 indent_size = 2
