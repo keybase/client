@@ -2,16 +2,17 @@
 import Box from './box'
 import ClickableBox from './clickable-box'
 import ProgressIndicator from './progress-indicator'
-import React, {Component} from 'react'
+import React, {Component, type Node} from 'react'
 import Text from './text'
 import {globalColors, globalStyles, globalMargins, isMobile} from '../styles'
 
 export type Props = {
+  children?: Node,
   onClick: ?(event: SyntheticEvent<>) => void,
   onPress?: void,
   onMouseEnter?: Function,
   onMouseLeave?: Function,
-  label: ?string,
+  label?: ?string,
   style?: ?Object,
   labelStyle?: ?Object,
   type: 'Primary' | 'PrimaryPrivate' | 'Secondary' | 'Danger' | 'PrimaryGreen' | 'PrimaryGreenActive',
@@ -89,12 +90,15 @@ class Button extends Component<Props> {
             height: '100%',
           }}
         >
-          <Text
-            type={this.props.small ? 'BodySemibold' : 'BodyBig'}
-            style={{...labelStyle, ...this.props.labelStyle}}
-          >
-            {this.props.label}
-          </Text>
+          {this.props.children}
+          {!this.props.children && (
+            <Text
+              type={this.props.small ? 'BodySemibold' : 'BodyBig'}
+              style={{...labelStyle, ...this.props.labelStyle}}
+            >
+              {this.props.label}
+            </Text>
+          )}
           {this.props.waiting && <Progress small={this.props.small} />}
         </Box>
       </ClickableBox>
