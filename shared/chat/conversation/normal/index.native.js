@@ -60,15 +60,4 @@ const containerStyle = {
   ...globalStyles.fullHeight,
 }
 
-// export default branch(
-// ({inSearch}) => inSearch,
-// compose(
-// withPropsOnChange(['onExitSearch'], props => ({
-// onCancel: () => props.onExitSearch(),
-// title: 'New chat',
-// onBack: null,
-// })),
-// HeaderHoc
-// )
-// )(Conversation)
 export default Conversation
