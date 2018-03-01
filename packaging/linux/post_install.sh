@@ -40,7 +40,7 @@ make_mountpoint() {
 run_redirector() {
   make_mountpoint
 
-  # Only start the root redirector if it hasn't been explicit disabled.
+  # Only start the root redirector if it hasn't been explicitly disabled.
   if [ "$disableRedirector" != "true" ]; then
     logdir="${XDG_CACHE_HOME:-$HOME/.cache}/keybase"
     mkdir -p "$logdir"
