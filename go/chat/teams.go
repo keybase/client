@@ -364,15 +364,19 @@ func LoadTeam(ctx context.Context, g *libkb.GlobalContext, tlfID chat1.TLFID, tl
 			return team, err
 		}
 		if !tlfID.EqString(team.KBFSTLFID()) {
-			return team, fmt.Errorf("mismatch TLFID to team: %s != %s", team.KBFSTLFID(), tlfID)
+			return team, ImpteamUpgradeBadteamError{
+				Msg: fmt.Sprintf("mismatch TLFID to team: %s != %s", team.KBFSTLFID(), tlfID),
+			}
 		}
 		impTeamName, err := team.ImplicitTeamDisplayNameString(ctx)
 		if err != nil {
 			return team, err
 		}
 		if impTeamName != tlfName {
-			return team, fmt.Errorf("mismatch TLF name to implicit team name: %s != %s", impTeamName,
-				tlfName)
+			return team, ImpteamUpgradeBadteamError{
+				Msg: fmt.Sprintf("mismatch TLF name to implicit team name: %s != %s", impTeamName,
+					tlfName),
+			}
 		}
 		return team, nil
 	}
