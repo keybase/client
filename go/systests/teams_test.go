@@ -131,6 +131,16 @@ func (tt *teamTester) addPuklessUser(pre string) *userPlusDevice {
 	return tt.addUserHelper(pre, false, false)
 }
 
+func (tt *teamTester) logUserNames() {
+	for _, u := range tt.users {
+		var pukless string
+		if u.device.tctx.Tp.DisableUpgradePerUserKey {
+			pukless = "pukless "
+		}
+		tt.t.Logf("Signed up %s%q (%s)", pukless, u.username, u.uid)
+	}
+}
+
 func installInsecureTriplesec(g *libkb.GlobalContext) {
 	g.NewTriplesec = func(passphrase []byte, salt []byte) (libkb.Triplesec, error) {
 		warner := func() { g.Log.Warning("Installing insecure Triplesec with weak stretch parameters") }
@@ -697,6 +707,19 @@ func (u *userPlusDevice) reset() {
 	require.NotEqual(u.tc.T, uvBefore.EldestSeqno, uvAfter.EldestSeqno,
 		"eldest seqno should change as result of reset")
 	u.tc.T.Logf("User reset; eldest seqno %d -> %d", uvBefore.EldestSeqno, uvAfter.EldestSeqno)
+}
+
+func (u *userPlusDevice) delete() {
+	g := u.tc.G
+	ui := genericUI{
+		g:          g,
+		SecretUI:   signupInfoSecretUI{u.userInfo, u.tc.G.GetLog()},
+		TerminalUI: smuTerminalUI{},
+	}
+	g.SetUI(&ui)
+	cmd := client.NewCmdAccountDeleteRunner(g)
+	err := cmd.Run()
+	require.NoError(u.tc.T, err)
 }
 
 func (u *userPlusDevice) loginAfterReset() {

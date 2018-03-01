@@ -26,6 +26,10 @@ func (tx *AddMemberTx) DebugPayloads() []interface{} {
 	return tx.payloads
 }
 
+func (tx *AddMemberTx) IsEmpty() bool {
+	return len(tx.payloads) == 0
+}
+
 func (tx *AddMemberTx) invitePayload() *SCTeamInvites {
 	for _, v := range tx.payloads {
 		if ret, ok := v.(*SCTeamInvites); ok {
@@ -62,7 +66,7 @@ func (tx *AddMemberTx) addMember(uv keybase1.UserVersion, role keybase1.TeamRole
 	return nil
 }
 
-func (tx *AddMemberTx) cancelInvite(id keybase1.TeamInviteID) error {
+func (tx *AddMemberTx) CancelInvite(id keybase1.TeamInviteID) error {
 	payload := tx.invitePayload()
 	if payload.Cancel == nil {
 		payload.Cancel = &[]SCTeamInviteID{SCTeamInviteID(id)}
@@ -124,7 +128,7 @@ func (tx *AddMemberTx) sweepKeybaseInvites(uid keybase1.UID) {
 	for _, invite := range team.chain().inner.ActiveInvites {
 		if inviteUv, err := invite.KeybaseUserVersion(); err == nil {
 			if inviteUv.Uid.Equal(uid) {
-				tx.cancelInvite(invite.Id)
+				tx.CancelInvite(invite.Id)
 			}
 		}
 	}
@@ -144,50 +148,46 @@ func (tx *AddMemberTx) findChangeReqForUV(uv keybase1.UserVersion) *keybase1.Tea
 	return nil
 }
 
-// AddMemberByUsername will add member by username and role. It
-// checks if given username can become crypto member or a PUKless
-// member. It will also clean up old invites and memberships if
-// necessary.
-func (tx *AddMemberTx) AddMemberByUsername(ctx context.Context, username string, role keybase1.TeamRole) (err error) {
+// addMemberByUPKV2 is an internal method to add user once we have
+// current incarnation of UPAK. Public APIs are AddMemberByUV and
+// AddMemberByUsername that load UPAK and pass it to this function
+// to continue membership changes.
+func (tx *AddMemberTx) addMemberByUPKV2(ctx context.Context, user keybase1.UserPlusKeysV2, role keybase1.TeamRole) (err error) {
 	team := tx.team
 	g := team.G()
 
-	if team.IsImplicit() {
-		return errors.New("Trying to use AddMemberByUsername for implicit team.")
-	}
+	uv := NewUserVersion(user.Uid, user.EldestSeqno)
+	defer g.CTrace(ctx, fmt.Sprintf("AddMemberTx.addMemberByUPKV2(name:%q uv:%v, %v) to team: %q",
+		user.Username, uv, role, team.Name()), func() error { return err })()
 
-	defer g.CTrace(ctx, fmt.Sprintf("AddMemberTx.AddMemberByUsername(%s,%v) to team %q", username, role, team.Name()), func() error { return err })()
-
-	normalizedUsername, uv, hasPUK, err := loadUserVersionAndPUKedByUsername(ctx, g, username)
-	g.Log.CDebugf(ctx, "AddMemberByUsername: loaded user %q -> (%q, %v, %v)", username, normalizedUsername, uv, err)
-	if err != nil {
-		return err
+	if user.Status == keybase1.StatusCode_SCDeleted {
+		return fmt.Errorf("User %q (%s) is deleted", user.Username, uv.Uid)
 	}
-	if !hasPUK {
-		g.Log.CDebugf(ctx, "Invite required for %v", uv)
-	}
-
-	// Do not do partial updates here. If error is returned, it is
-	// assumed that tx is untouched, and caller can continue with
-	// other attempts. This is used in batch member adds, when even if
-	// some users can't be added, it skips them and continues with
-	// others.
 
 	if role == keybase1.TeamRole_OWNER && team.IsSubteam() {
 		return NewSubteamOwnersError()
 	}
 
+	hasPUK := len(user.PerUserKeys) > 0
+	if !hasPUK {
+		g.Log.CDebugf(ctx, "Invite required for %v", uv)
+	}
+
+	normalizedUsername := libkb.NormalizedUsername(user.Username)
+
 	if team.IsMember(ctx, uv) {
 		if !hasPUK {
-			return fmt.Errorf("user is already member they don't have a PUK")
+			return fmt.Errorf("user %s is already a member of %q, yet they don't have a PUK",
+				normalizedUsername, team.Name())
 		}
 		return libkb.ExistsError{Msg: fmt.Sprintf("user %s is already a member of team %q",
 			normalizedUsername, team.Name())}
 	}
 
 	if existingUV, err := team.UserVersionByUID(ctx, uv.Uid); err == nil {
-		// TODO: Might be able to collapse the two assertions together - the one
-		// above with team.IsMember and this one which checking Uid/Eldest.
+		// TODO: Might be able to collapse the two assertions together
+		// - the one above with team.IsMember and this one which
+		// checking Uid/Eldest.
 
 		// There is an edge case where user is in the middle of
 		// resetting (after reset, before provisioning) and has
@@ -220,6 +220,64 @@ func (tx *AddMemberTx) AddMemberByUsername(ctx context.Context, username string,
 		return tx.createInvite(uv, role)
 	}
 	return tx.addMember(uv, role)
+}
+
+// AddMemberByUsername will add member by UV and role. It checks if
+// given UV is valid (that we don't have outdated EldestSeqno), and if
+// user has PUK, and if not, it properly handles that by adding
+// Keybase-type invite. It also cleans up old invites and memberships.
+func (tx *AddMemberTx) AddMemberByUV(ctx context.Context, uv keybase1.UserVersion, role keybase1.TeamRole) (err error) {
+	team := tx.team
+	g := team.G()
+
+	defer g.CTrace(ctx, fmt.Sprintf("AddMemberTx.AddMemberByUV(%v,%v) to team %q", uv, role, team.Name()), func() error { return err })()
+	upak, err := loadUPAK2(ctx, g, uv.Uid, true /*forcePoll */)
+	if err != nil {
+		return err
+	}
+
+	current := upak.Current
+	if uv.EldestSeqno != current.EldestSeqno {
+		return fmt.Errorf("Bad eldestseqno for %s: expected %d, got %d", uv.Uid, current.EldestSeqno, uv.EldestSeqno)
+	}
+
+	return tx.addMemberByUPKV2(ctx, current, role)
+}
+
+// AddMemberByUsername will add member by username and role. It
+// checks if given username can become crypto member or a PUKless
+// member. It will also clean up old invites and memberships if
+// necessary.
+func (tx *AddMemberTx) AddMemberByUsername(ctx context.Context, username string, role keybase1.TeamRole) (err error) {
+	team := tx.team
+	g := team.G()
+
+	defer g.CTrace(ctx, fmt.Sprintf("AddMemberTx.AddMemberByUsername(%s,%v) to team %q", username, role, team.Name()), func() error { return err })()
+
+	res := g.Resolver.ResolveWithBody(username)
+	if err := res.GetError(); err != nil {
+		return err
+	}
+
+	upak, err := loadUPAK2(ctx, g, res.GetUID(), true /* forcePoll */)
+	if err != nil {
+		return err
+	}
+
+	return tx.addMemberByUPKV2(ctx, upak.Current, role)
+}
+
+func (tx *AddMemberTx) CompleteInviteByID(ctx context.Context, inviteID keybase1.TeamInviteID, uv keybase1.UserVersion) error {
+	payload := tx.findChangeReqForUV(uv)
+	if payload == nil {
+		return fmt.Errorf("could not find uv %v in transaction", uv)
+	}
+
+	if payload.CompletedInvites == nil {
+		payload.CompletedInvites = make(map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm)
+	}
+	payload.CompletedInvites[inviteID] = uv.PercentForm()
+	return nil
 }
 
 func (tx *AddMemberTx) CompleteSocialInvitesFor(ctx context.Context, uv keybase1.UserVersion, username string) (err error) {
