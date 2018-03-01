@@ -9,7 +9,7 @@
     <Property Id="ARPURLINFOABOUT" Value="https://www.keybase.io"/>
     <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"/>
     <Property Id="EXECUTABLETARGET" Value="bin"/>
-    <Property Id="MsiLogging" Value="*"/>
+    <Property Id="MsiLogging" Value="oicewarmup"/>
 
     <MajorUpgrade DowngradeErrorMessage="A newer version of Keybase is already installed." AllowSameVersionUpgrades="yes"  />	
 
