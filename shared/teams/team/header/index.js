@@ -55,15 +55,15 @@ const TeamHeader = (props: Props) => (
       </Text>
 
       {/* Description */}
-      {!props.loading && (props.canEdit || props.description) ? (
+      {!props.loading && (props.canEditDescription || props.description) ? (
         <Text
           style={{
             paddingTop: globalMargins.tiny,
             color: props.description ? globalColors.black_75 : globalColors.black_20,
             maxWidth: 560,
           }}
-          onClick={props.canEdit ? props.onEditDescription : null}
-          type={props.canEdit ? 'BodySecondaryLink' : 'Body'}
+          onClick={props.canEditDescription ? props.onEditDescription : null}
+          type={props.canEditDescription ? 'BodySecondaryLink' : 'Body'}
         >
           {props.description || (props.canEditDescription && 'Write a brief description')}
         </Text>
@@ -85,11 +85,13 @@ const TeamHeader = (props: Props) => (
             Chat
           </Text>
         </Button>
-        <Button
-          type="Primary"
-          label={'Add people'}
-          onClick={event => props.onAddPeople(isMobile ? undefined : event.target)}
-        />
+        {props.canManageMembers && (
+          <Button
+            type="Secondary"
+            label={'Add people...'}
+            onClick={event => props.onAddPeople(isMobile ? undefined : event.target)}
+          />
+        )}
       </ButtonBar>
 
       {/* CLI hint */}
