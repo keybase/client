@@ -45,7 +45,7 @@ const FileRow = RowConnector(({elems, path, name, type, itemStyles, onOpen, visi
         {!isMobile &&
           type === 'folder' && (
             <Box style={stylesRowRightBox}>
-              <Icon type="iconfont-finder" style={rowActionIconStyle} onClick={() => ({})} />
+              <Icon type="iconfont-finder" style={rowActionIconStyle} onClick={() => undefined} />
             </Box>
           )}
       </Box>
@@ -103,8 +103,8 @@ const styleOuterContainer = {
 }
 
 const iconStyle = {
-  marginRight: globalMargins.small,
   fontSize: 30,
+  marginRight: globalMargins.small,
 }
 
 const rowActionIconStyle = {
@@ -148,8 +148,8 @@ const stylesRowContainer = {
 
 const stylesRowRightBox = {
   ...stylesRowBox,
-  justifyContent: 'flex-end',
   flexShrink: 1,
+  justifyContent: 'flex-end',
   paddingRight: globalMargins.small,
 }
 
