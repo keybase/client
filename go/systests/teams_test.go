@@ -131,6 +131,16 @@ func (tt *teamTester) addPuklessUser(pre string) *userPlusDevice {
 	return tt.addUserHelper(pre, false, false)
 }
 
+func (tt *teamTester) logUserNames() {
+	for _, u := range tt.users {
+		var pukless string
+		if u.device.tctx.Tp.DisableUpgradePerUserKey {
+			pukless = "pukless "
+		}
+		tt.t.Logf("Signed up %s%q (%s)", pukless, u.username, u.uid)
+	}
+}
+
 func installInsecureTriplesec(g *libkb.GlobalContext) {
 	g.NewTriplesec = func(passphrase []byte, salt []byte) (libkb.Triplesec, error) {
 		warner := func() { g.Log.Warning("Installing insecure Triplesec with weak stretch parameters") }
@@ -344,9 +354,29 @@ func (u *userPlusDevice) addTeamMemberEmail(team, email string, role keybase1.Te
 	}
 }
 
+func (u *userPlusDevice) reAddUserAfterReset(team keybase1.TeamID, w *userPlusDevice) {
+	err := u.teamsClient.TeamReAddMemberAfterReset(context.Background(),
+		keybase1.TeamReAddMemberAfterResetArg{
+			Id:       team,
+			Username: w.username,
+		})
+	require.NoError(u.tc.T, err)
+}
+
 func (u *userPlusDevice) loadTeam(teamname string, admin bool) *teams.Team {
 	team, err := teams.Load(context.Background(), u.tc.G, keybase1.LoadTeamArg{
 		Name:        teamname,
+		NeedAdmin:   admin,
+		ForceRepoll: true,
+	})
+	require.NoError(u.tc.T, err)
+	return team
+}
+
+func (u *userPlusDevice) loadTeamByID(teamID keybase1.TeamID, admin bool) *teams.Team {
+	team, err := teams.Load(context.Background(), u.tc.G, keybase1.LoadTeamArg{
+		ID:          teamID,
+		Public:      teamID.IsPublic(),
 		NeedAdmin:   admin,
 		ForceRepoll: true,
 	})
@@ -555,6 +585,25 @@ func (u *userPlusDevice) pollForTeamSeqnoLink(team string, toSeqno keybase1.Seqn
 	u.tc.T.Fatalf("timed out waiting for team rotate %s", team)
 }
 
+func (u *userPlusDevice) pollForTeamSeqnoLinkWithLoadArgs(args keybase1.LoadTeamArg, toSeqno keybase1.Seqno) {
+	args.ForceRepoll = true
+	for i := 0; i < 20; i++ {
+		details, err := teams.Load(context.Background(), u.tc.G, args)
+		if err != nil {
+			u.tc.T.Fatalf("error while loading team %v: %v", args, err)
+		}
+
+		if details.CurrentSeqno() >= toSeqno {
+			u.tc.T.Logf("Found new seqno %d at poll loop iter %d", details.CurrentSeqno(), i)
+			return
+		}
+
+		time.Sleep(500 * time.Millisecond)
+	}
+
+	u.tc.T.Fatalf("timed out waiting for team %v seqno link %d", args, toSeqno)
+}
+
 func (u *userPlusDevice) proveRooter() {
 	cmd := client.NewCmdProveRooterRunner(u.tc.G, u.username)
 	if err := cmd.Run(); err != nil {
@@ -658,6 +707,19 @@ func (u *userPlusDevice) reset() {
 	require.NotEqual(u.tc.T, uvBefore.EldestSeqno, uvAfter.EldestSeqno,
 		"eldest seqno should change as result of reset")
 	u.tc.T.Logf("User reset; eldest seqno %d -> %d", uvBefore.EldestSeqno, uvAfter.EldestSeqno)
+}
+
+func (u *userPlusDevice) delete() {
+	g := u.tc.G
+	ui := genericUI{
+		g:          g,
+		SecretUI:   signupInfoSecretUI{u.userInfo, u.tc.G.GetLog()},
+		TerminalUI: smuTerminalUI{},
+	}
+	g.SetUI(&ui)
+	cmd := client.NewCmdAccountDeleteRunner(g)
+	err := cmd.Run()
+	require.NoError(u.tc.T, err)
 }
 
 func (u *userPlusDevice) loginAfterReset() {

@@ -18,6 +18,7 @@ export const commonConversationExistence = {
   active: 0,
   archived: 1,
   deleted: 2,
+  abandoned: 3,
 }
 
 export const commonConversationMemberStatus = {
@@ -685,6 +686,7 @@ export type ConversationExistence =
   | 0 // ACTIVE_0
   | 1 // ARCHIVED_1
   | 2 // DELETED_2
+  | 3 // ABANDONED_3
 
 export type ConversationFinalizeInfo = $ReadOnly<{resetUser: String, resetDate: String, resetFull: String, resetTimestamp: Gregor1.Time}>
 

@@ -297,6 +297,23 @@ func TestSyncerAdHocFullReload(t *testing.T) {
 		require.Fail(t, "no inbox synced received")
 	}
 
+	ri.SyncInboxFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
+		conv.Metadata.Existence = chat1.ConversationExistence_ABANDONED
+		return chat1.NewSyncInboxResWithIncremental(chat1.SyncIncrementalRes{
+			Vers:  103,
+			Convs: []chat1.Conversation{conv},
+		}), nil
+	}
+	doSync(t, syncer, ri, uid)
+	select {
+	case sres := <-list.inboxSynced:
+		typ, err := sres.SyncType()
+		require.NoError(t, err)
+		require.Equal(t, chat1.SyncInboxResType_CLEAR, typ)
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no inbox synced received")
+	}
+
 	// Make sure we don't get inbox stale
 	select {
 	case <-list.inboxStale:

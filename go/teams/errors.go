@@ -319,3 +319,29 @@ func NewUnsupportedLinkTypeError(outerType libkb.SigchainV2Type, innerType strin
 func (e UnsupportedLinkTypeError) Error() string {
 	return fmt.Sprintf("unsupported team link type: %v (%v)", e.outerType, e.innerType)
 }
+
+type PrecheckAppendError struct {
+	Inner error
+}
+
+func NewPrecheckAppendError(inner error) error { return PrecheckAppendError{Inner: inner} }
+
+func (e PrecheckAppendError) Error() string {
+	return fmt.Sprintf("Precheck append error: %v", e.Inner)
+}
+
+type PrecheckStructuralError struct {
+	Inner error
+	Msg   string
+}
+
+func NewPrecheckStructuralError(message string, inner error) error {
+	return PrecheckStructuralError{Inner: inner, Msg: message}
+}
+
+func (e PrecheckStructuralError) Error() string {
+	if e.Inner != nil {
+		return fmt.Sprintf("Precheck structural error: %s: %v", e.Msg, e.Inner)
+	}
+	return e.Msg
+}

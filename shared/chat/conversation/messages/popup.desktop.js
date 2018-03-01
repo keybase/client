@@ -56,9 +56,12 @@ const TextPopupMenu = ({
     items.push('Divider')
     items.push({
       danger: true,
-      onClick: () => onDeleteMessageHistory && onDeleteMessageHistory(message),
-      subTitle: 'Deletes all messages before this one for everyone',
-      title: 'Delete up to here',
+      onClick: () => {
+        onHidden()
+        onDeleteMessageHistory && onDeleteMessageHistory(message)
+      },
+      subTitle: 'Deletes for everyone',
+      title: 'Delete this + everything above',
     })
   }
   const header = {
@@ -119,6 +122,7 @@ const AttachmentPopupMenu = ({
 type ConnectedTextMessageProps = {
   routeProps: I.RecordOf<{
     message: Types.TextMessage,
+    onPopupWillClose: () => void,
     onShowEditor: () => void,
   }>,
 }
@@ -154,7 +158,7 @@ const mapDispatchToTextProps = (
     dispatch(navigateUp())
     routeProps.get('onShowEditor')()
   },
-  onHidden: () => {},
+  onHidden: () => routeProps.get('onPopupWillClose')(),
 })
 
 const ConnectedTextMessage = connect(mapStateToProps, mapDispatchToTextProps)(TextPopupMenu)
@@ -163,6 +167,7 @@ type ConnectedAttachmentMessageProps = {
   routeProps: I.RecordOf<{
     message: Types.AttachmentMessage,
     localMessageState: Types.LocalMessageState,
+    onPopupWillClose: () => void,
   }>,
 }
 
@@ -183,7 +188,7 @@ const mapDispatchToAttachmentProps = (
       dispatch(navigateUp())
       dispatch(navigateAppend([{props: {message}, selected: 'deleteHistoryWarning'}]))
     },
-    onHidden: () => {},
+    onHidden: () => routeProps.get('onPopupWillClose')(),
     localMessageState,
   }
 }

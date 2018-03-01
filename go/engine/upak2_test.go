@@ -101,4 +101,12 @@ func TestExportAllIncarnationsAfterReset(t *testing.T) {
 			t.Fatal("eldest key provisioning info appears uninitialized")
 		}
 	}
+
+	require.Nil(t, current.Reset)
+	reset := past.Reset
+	require.NotNil(t, reset)
+	require.Equal(t, reset.ResetSeqno, keybase1.Seqno(1))
+	require.True(t, reset.Ctime > keybase1.UnixTime(1419826703))
+	require.True(t, reset.MerkleRoot.Seqno > keybase1.Seqno(0))
+	require.Equal(t, reset.Type, keybase1.ResetType_RESET)
 }

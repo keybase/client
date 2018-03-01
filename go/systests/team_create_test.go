@@ -12,6 +12,7 @@ import (
 )
 
 func TestSubteamChats(t *testing.T) {
+	t.Skip()
 	ctx := newSMUContext(t)
 	defer ctx.cleanup()
 

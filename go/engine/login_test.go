@@ -200,9 +200,7 @@ func TestProvisionDesktop(t *testing.T) {
 }
 
 func TestProvisionDesktopPUK(t *testing.T) {
-	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		testProvisionDesktop(t, true, sigVersion)
-	})
+	testProvisionDesktop(t, true, libkb.KeybaseNullSigVersion)
 }
 
 func testProvisionDesktop(t *testing.T, upgradePerUserKey bool, sigVersion libkb.SigVersion) {
@@ -210,6 +208,9 @@ func testProvisionDesktop(t *testing.T, upgradePerUserKey bool, sigVersion libkb
 	t.Logf("setup X")
 	tcX := SetupEngineTest(t, "kex2provision")
 	defer tcX.Cleanup()
+	if sigVersion == libkb.KeybaseNullSigVersion {
+		sigVersion = libkb.GetDefaultSigVersion(tcX.G)
+	}
 	tcX.Tp.DisableUpgradePerUserKey = !upgradePerUserKey
 
 	// device Y (provisionee) context:
@@ -890,14 +891,9 @@ func testSign(t *testing.T, tc libkb.TestContext) {
 }
 
 func TestProvisionPaperOnly(t *testing.T) {
-	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		_testProvisionPaperOnly(t, sigVersion)
-	})
-}
-
-func _testProvisionPaperOnly(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 	fu := NewFakeUserOrBust(t, "paper")
 	arg := MakeTestSignupEngineRunArg(fu)
 	arg.SkipPaper = false
@@ -1990,15 +1986,10 @@ func TestProvisionPaperFailures(t *testing.T) {
 // After kex provisioning, try using a synced pgp key to sign
 // something.
 func TestProvisionKexUseSyncPGP(t *testing.T) {
-	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		_testProvisionKexUseSyncPGP(t, sigVersion)
-	})
-}
-
-func _testProvisionKexUseSyncPGP(t *testing.T, sigVersion libkb.SigVersion) {
 	// device X (provisioner) context:
 	tcX := SetupEngineTestRealTriplesec(t, "kex2provision")
 	defer tcX.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(tcX.G)
 
 	// device Y (provisionee) context:
 	tcY := SetupEngineTestRealTriplesec(t, "template")
@@ -2357,14 +2348,9 @@ func TestResetAccountPaper(t *testing.T) {
 
 // After resetting account, try kex2 provisioning.
 func TestResetAccountKexProvision(t *testing.T) {
-	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		_testResetAccountKexProvision(t, sigVersion)
-	})
-}
-
-func _testResetAccountKexProvision(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 
 	u := CreateAndSignupFakeUser(tc, "login")
 
@@ -2526,14 +2512,9 @@ func TestResetThenPGPOnlyThenProvision(t *testing.T) {
 // Try to replicate @nistur sigchain.
 // github issue: https://github.com/keybase/client/issues/2356
 func TestResetAccountLikeNistur(t *testing.T) {
-	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		_testResetAccountLikeNistur(t, sigVersion)
-	})
-}
-
-func _testResetAccountLikeNistur(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 
 	// user with synced pgp key
 	u := createFakeUserWithPGPOnly(t, tc)
@@ -2742,15 +2723,10 @@ func TestResetMultipleDevices(t *testing.T) {
 // results in provisioning again...)
 // Seems to only happen w/ kex2.
 func TestProvisionWithBadConfig(t *testing.T) {
-	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		_testProvisionWithBadConfig(t, sigVersion)
-	})
-}
-
-func _testProvisionWithBadConfig(t *testing.T, sigVersion libkb.SigVersion) {
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "kex2provision")
 	defer tcX.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(tcX.G)
 
 	// device Y (provisionee) context:
 	tcY := SetupEngineTest(t, "template")
@@ -2985,20 +2961,16 @@ func TestProvisionGPGMobile(t *testing.T) {
 }
 
 func TestProvisionEnsureNoPaperKey(t *testing.T) {
-	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		testProvisionEnsureNoPaperKey(t, false, sigVersion)
-	})
+	testProvisionEnsureNoPaperKey(t, false)
 }
 
 func TestProvisionEnsureNoPaperKeyPUK(t *testing.T) {
-	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		testProvisionEnsureNoPaperKey(t, true, sigVersion)
-	})
+	testProvisionEnsureNoPaperKey(t, true)
 }
 
 // Provisioning a new device when the user has no paper keys should work
 // and not generate a paper key.
-func testProvisionEnsureNoPaperKey(t *testing.T, upgradePerUserKey bool, sigVersion libkb.SigVersion) {
+func testProvisionEnsureNoPaperKey(t *testing.T, upgradePerUserKey bool) {
 	// This test is based on TestProvisionDesktop.
 
 	t.Logf("create 2 contexts")
@@ -3006,6 +2978,7 @@ func testProvisionEnsureNoPaperKey(t *testing.T, upgradePerUserKey bool, sigVers
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "kex2provision")
 	defer tcX.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(tcX.G)
 	tcX.Tp.DisableUpgradePerUserKey = !upgradePerUserKey
 
 	// device Y (provisionee) context:
@@ -3136,12 +3109,6 @@ func testProvisionEnsureNoPaperKey(t *testing.T, upgradePerUserKey bool, sigVers
 
 // Device X provisions device Y, then device Y revokes X.
 func TestProvisionAndRevoke(t *testing.T) {
-	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		_testProvisionAndRevoke(t, sigVersion)
-	})
-}
-
-func _testProvisionAndRevoke(t *testing.T, sigVersion libkb.SigVersion) {
 	// This test is based on TestProvisionDesktop.
 
 	t.Logf("create 2 contexts")
@@ -3149,6 +3116,7 @@ func _testProvisionAndRevoke(t *testing.T, sigVersion libkb.SigVersion) {
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "kex2provision")
 	defer tcX.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(tcX.G)
 
 	// device Y (provisionee) context:
 	tcY := SetupEngineTest(t, "template")

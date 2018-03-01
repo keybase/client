@@ -59,14 +59,9 @@ func _testProveRooterWithSecretStore(t *testing.T, sigVersion libkb.SigVersion) 
 
 // When device keys are cached, proofs shouldn't require passphrase prompt.
 func TestProveRooterCachedKeys(t *testing.T) {
-	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		_testProveRooterCachedKeys(t, sigVersion)
-	})
-}
-
-func _testProveRooterCachedKeys(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "prove")
 	defer tc.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 
 	fu := CreateAndSignupFakeUser(tc, "prove")
 	tc.G.LoginState().Account(func(a *libkb.Account) {

@@ -10,7 +10,7 @@ import (
 	"github.com/keybase/client/go/teams"
 )
 
-func TestTeamTx1(t *testing.T) {
+func testTeamTx1(t *testing.T, byUV bool) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -35,8 +35,13 @@ func TestTeamTx1(t *testing.T) {
 	teamObj := ann.loadTeam(team, true /* admin */)
 
 	tx := teams.CreateAddMemberTx(teamObj)
-	tx.AddMemberByUsername(context.Background(), bob.username, keybase1.TeamRole_WRITER)
-	tx.AddMemberByUsername(context.Background(), tracy.username, keybase1.TeamRole_READER)
+	if byUV {
+		tx.AddMemberByUV(context.Background(), bob.userVersion(), keybase1.TeamRole_WRITER)
+		tx.AddMemberByUV(context.Background(), tracy.userVersion(), keybase1.TeamRole_READER)
+	} else {
+		tx.AddMemberByUsername(context.Background(), bob.username, keybase1.TeamRole_WRITER)
+		tx.AddMemberByUsername(context.Background(), tracy.username, keybase1.TeamRole_READER)
+	}
 
 	err := tx.Post(context.Background())
 	require.NoError(t, err)
@@ -80,6 +85,14 @@ func TestTeamTx1(t *testing.T) {
 	require.Equal(t, 1, len(members.Writers))
 	require.EqualValues(t, bob.userVersion(), members.Writers[0])
 	require.Equal(t, 0, len(teamObj.GetActiveAndObsoleteInvites()))
+}
+
+func TestTeamTxAddByUsername(t *testing.T) {
+	testTeamTx1(t, false /* byUV */)
+}
+
+func TestTeamTxAddByUV(t *testing.T) {
+	testTeamTx1(t, true /* byUV */)
 }
 
 func TestTeamTxDependency(t *testing.T) {
@@ -307,4 +320,39 @@ func TestTeamTxSubteamAdmins(t *testing.T) {
 	require.NoError(t, err)
 	err = tx.Post(context.Background())
 	require.NoError(t, err)
+}
+
+func TestTeamTxBadAdds(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+	t.Logf("Signed up user ann (%s)", ann.username)
+
+	bob := tt.addUser("bob")
+	t.Logf("Signed up user bob (%s)", bob.username)
+
+	bobUV := bob.userVersion()
+	bob.reset()
+
+	team := ann.createTeam()
+	t.Logf("Team created (%s)", team)
+
+	teamObj := ann.loadTeam(team, true /* admin */)
+	tx := teams.CreateAddMemberTx(teamObj)
+
+	// Tring to add bob using old UV (from before reset)
+	err := tx.AddMemberByUV(context.Background(), bobUV, keybase1.TeamRole_WRITER)
+	require.Error(t, err)
+	require.True(t, tx.IsEmpty())
+
+	bob.loginAfterReset()
+	bobUV = bob.userVersion()
+
+	bob.delete()
+
+	// Trying to add deleted bob.
+	err = tx.AddMemberByUV(context.Background(), bobUV, keybase1.TeamRole_WRITER)
+	require.Error(t, err)
+	require.True(t, tx.IsEmpty())
 }

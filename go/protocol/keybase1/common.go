@@ -14,6 +14,12 @@ func (o Time) DeepCopy() Time {
 	return o
 }
 
+type UnixTime int64
+
+func (o UnixTime) DeepCopy() UnixTime {
+	return o
+}
+
 type DurationSec float64
 
 func (o DurationSec) DeepCopy() DurationSec {

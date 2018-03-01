@@ -10,6 +10,12 @@
     },
     {
       "type": "record",
+      "name": "UnixTime",
+      "fields": [],
+      "typedef": "long"
+    },
+    {
+      "type": "record",
       "name": "DurationSec",
       "fields": [],
       "typedef": "double"

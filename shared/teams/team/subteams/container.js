@@ -26,12 +26,44 @@ const mapDispatchToProps = (dispatch: Dispatch, {teamname}: OwnProps) => ({
   onReadMoreAboutSubteams: () => openURL('https://keybase.io/docs/teams/design'),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  ...dispatchProps,
-  ...ownProps,
-  sawSubteamsBanner: stateProps.sawSubteamsBanner,
-  subteams: stateProps._subteams.sort(),
-  yourOperations: stateProps.yourOperations,
-})
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  const subteams = stateProps._subteams.sort()
+  const noSubteams = subteams.isEmpty()
+  const listItems = [
+    ...(!stateProps.sawSubteamsBanner
+      ? [
+          {
+            type: 'subteam',
+            key: 'intro',
+            onHideSubteamsBanner: dispatchProps.onHideSubteamsBanner,
+            onReadMore: dispatchProps.onReadMoreAboutSubteams,
+            teamname: ownProps.teamname,
+            subtype: 'intro',
+          },
+        ]
+      : []),
+    ...(stateProps.yourOperations.manageSubteams
+      ? [
+          {
+            type: 'subteam',
+            key: 'addSubteam',
+            subtype: 'addSubteam',
+            onCreateSubteam: dispatchProps.onCreateSubteam,
+          },
+        ]
+      : []),
+    ...subteams.map(subteam => ({type: 'subteam', key: subteam, teamname: subteam, subtype: 'subteam'})),
+    ...(noSubteams ? [{type: 'subteam', key: 'noSubteams', subtype: 'noSubteams'}] : []),
+  ]
+  return {listItems}
+}
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Subteams)
+export const subteamsListItemsConnector = connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (stateProps, dispatchProps, ownProps) => ({
+    listItems: mergeProps(stateProps, dispatchProps, ownProps).listItems,
+    ...ownProps,
+  })
+)
+export default subteamsListItemsConnector(Subteams)

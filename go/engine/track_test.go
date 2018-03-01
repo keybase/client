@@ -160,14 +160,9 @@ func _testTrack(t *testing.T, sigVersion libkb.SigVersion) {
 
 // tests tracking a user that doesn't have a public key (#386)
 func TestTrackNoPubKey(t *testing.T) {
-	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		_testTrackNoPubKey(t, sigVersion)
-	})
-}
-
-func _testTrackNoPubKey(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 	fu := CreateAndSignupFakeUser(tc, "track")
 	Logout(tc)
 
@@ -179,14 +174,9 @@ func _testTrackNoPubKey(t *testing.T, sigVersion libkb.SigVersion) {
 }
 
 func TestTrackMultiple(t *testing.T) {
-	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		_testTrackMultiple(t, sigVersion)
-	})
-}
-
-func _testTrackMultiple(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 	fu := CreateAndSignupFakeUser(tc, "track")
 
 	trackAlice(tc, fu, sigVersion)
@@ -196,14 +186,9 @@ func _testTrackMultiple(t *testing.T, sigVersion libkb.SigVersion) {
 }
 
 func TestTrackNewUserWithPGP(t *testing.T) {
-	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		_testTrackNewUserWithPGP(t, sigVersion)
-	})
-}
-
-func _testTrackNewUserWithPGP(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 	fu := createFakeUserWithPGPSibkey(tc)
 	Logout(tc)
 
@@ -217,14 +202,9 @@ func _testTrackNewUserWithPGP(t *testing.T, sigVersion libkb.SigVersion) {
 
 // see issue #578
 func TestTrackRetrack(t *testing.T) {
-	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		_testTrackRetrack(t, sigVersion)
-	})
-}
-
-func _testTrackRetrack(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 	fu := CreateAndSignupFakeUser(tc, "track")
 
 	tc.G.LoginState().Account(func(a *libkb.Account) {
@@ -438,13 +418,9 @@ func _testIdentifyTrackRaceDetection(t *testing.T, sigVersion libkb.SigVersion) 
 }
 
 func TestTrackNoKeys(t *testing.T) {
-	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		_testTrackNoKeys(t, sigVersion)
-	})
-}
-func _testTrackNoKeys(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 	nk, pp := createFakeUserWithNoKeys(tc)
 	Logout(tc)
 

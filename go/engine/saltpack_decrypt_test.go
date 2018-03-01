@@ -125,15 +125,9 @@ func (t *testDecryptSaltpackUI) SaltpackPromptForDecrypt(_ context.Context, arg 
 }
 
 func TestSaltpackDecryptBrokenTrack(t *testing.T) {
-	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		_testSaltpackDecryptBrokenTrack(t, sigVersion)
-	})
-}
-
-func _testSaltpackDecryptBrokenTrack(t *testing.T, sigVersion libkb.SigVersion) {
-
 	tc := SetupEngineTest(t, "SaltpackDecrypt")
 	defer tc.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 
 	// create a user to track the proofUser
 	trackUser := CreateAndSignupFakeUser(tc, "naclp")

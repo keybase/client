@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
-import {Box, Button, Checkbox, ScrollView, Text} from '../../../common-adapters'
+import {Box, Button, Checkbox, Text} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 
@@ -230,14 +230,14 @@ export class Settings extends React.Component<Props, State> {
 
   render() {
     return (
-      <ScrollView
+      <Box
         style={{
           ...globalStyles.flexBoxColumn,
           alignSelf: 'stretch',
           flexBasis: 0,
           flexGrow: 1,
+          padding: globalMargins.medium,
         }}
-        contentContainerStyle={{padding: globalMargins.medium}}
       >
         <SetMemberShowcase {...this.props} {...this.state} setBoolSettings={this.setBoolSettings} />
         {(this.props.yourOperations.changeOpenTeam ||
@@ -274,7 +274,7 @@ export class Settings extends React.Component<Props, State> {
             waiting={this.props.waitingForSavePublicity}
           />
         </Box>
-      </ScrollView>
+      </Box>
     )
   }
 }

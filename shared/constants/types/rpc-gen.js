@@ -1412,6 +1412,12 @@ export const rekeyUIRekeyEventType = {
   noGregorMessages: 8,
 }
 
+export const resetResetType = {
+  none: 0,
+  reset: 1,
+  delete: 2,
+}
+
 export const revokeRevokeDeviceRpcChannelMap = (configKeys: Array<string>, request: RevokeRevokeDeviceRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.revoke.revokeDevice', request)
 
 export const revokeRevokeDeviceRpcPromise = (request: RevokeRevokeDeviceRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.revoke.revokeDevice', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
@@ -1800,6 +1806,7 @@ export const uPKUPK2MinorVersion = {
   v3: 3,
   v4: 4,
   v5: 5,
+  v6: 6,
 }
 
 export const uiPromptDefault = {
@@ -3152,6 +3159,19 @@ export type RemoveArgs = $ReadOnly<{opID: OpID, path: Path}>
 
 export type RepoID = String
 
+export type ResetLink = $ReadOnly<{ctime: UnixTime, merkleRoot: ResetMerkleRoot, prev: ResetPrev, resetSeqno: Seqno, type: ResetType, uid: UID}>
+
+export type ResetMerkleRoot = $ReadOnly<{hashMeta: HashMeta, seqno: Seqno}>
+
+export type ResetPrev = $ReadOnly<{eldestKID: KID, eldestSeqno: Seqno, reset: SHA512}>
+
+export type ResetSummary = $ReadOnly<{ctime: UnixTime, merkleRoot: ResetMerkleRoot, resetSeqno: Seqno, type: ResetType}>
+
+export type ResetType =
+  | 0 // NONE_0
+  | 1 // RESET_1
+  | 2 // DELETE_2
+
 export type ResolveIdentifyImplicitTeamRes = $ReadOnly<{displayName: String, teamID: TeamID, writers?: ?Array<UserVersion>, trackBreaks: {[key: string]: IdentifyTrackBreaks}, folderID: TLFID}>
 
 export type RevokeRevokeDeviceRpcParam = $ReadOnly<{deviceID: DeviceID, forceSelf: Boolean, forceLast: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
@@ -3165,6 +3185,8 @@ export type RevokeWarning = $ReadOnly<{endangeredTLFs?: ?Array<TLF>}>
 export type RevokedKey = $ReadOnly<{key: PublicKey, time: KeybaseTime, by: KID}>
 
 export type RevokedProof = $ReadOnly<{proof: RemoteProof, diff: TrackDiff}>
+
+export type SHA512 = Bytes
 
 export type SaltpackDecryptOptions = $ReadOnly<{interactive: Boolean, forceRemoteCheck: Boolean, usePaperKey: Boolean}>
 
@@ -3843,12 +3865,15 @@ export type UPK2MinorVersion =
   | 3 // V3_3
   | 4 // V4_4
   | 5 // V5_5
+  | 6 // V6_6
 
 export type UiPromptYesNoRpcParam = $ReadOnly<{text: Text, promptDefault: PromptDefault, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type UnboxAnyRes = $ReadOnly<{kid: KID, plaintext: Bytes32, index: Int}>
 
 export type UninstallResult = $ReadOnly<{componentResults?: ?Array<ComponentResult>, status: Status}>
+
+export type UnixTime = Long
 
 export type User = $ReadOnly<{uid: UID, username: String}>
 
@@ -3902,7 +3927,7 @@ export type UserPlusAllKeys = $ReadOnly<{base: UserPlusKeys, pgpKeys?: ?Array<Pu
 
 export type UserPlusKeys = $ReadOnly<{uid: UID, username: String, eldestSeqno: Seqno, status: StatusCode, deviceKeys?: ?Array<PublicKey>, revokedDeviceKeys?: ?Array<RevokedKey>, pgpKeyCount: Int, uvv: UserVersionVector, deletedDeviceKeys?: ?Array<PublicKey>, perUserKeys?: ?Array<PerUserKey>}>
 
-export type UserPlusKeysV2 = $ReadOnly<{uid: UID, username: String, eldestSeqno: Seqno, status: StatusCode, perUserKeys?: ?Array<PerUserKey>, deviceKeys: {[key: string]: PublicKeyV2NaCl}, pgpKeys: {[key: string]: PublicKeyV2PGPSummary}, remoteTracks: {[key: string]: RemoteTrack}}>
+export type UserPlusKeysV2 = $ReadOnly<{uid: UID, username: String, eldestSeqno: Seqno, status: StatusCode, perUserKeys?: ?Array<PerUserKey>, deviceKeys: {[key: string]: PublicKeyV2NaCl}, pgpKeys: {[key: string]: PublicKeyV2PGPSummary}, remoteTracks: {[key: string]: RemoteTrack}, reset?: ?ResetSummary}>
 
 export type UserPlusKeysV2AllIncarnations = $ReadOnly<{current: UserPlusKeysV2, pastIncarnations?: ?Array<UserPlusKeysV2>, uvv: UserVersionVector, seqnoLinkIDs: {[key: string]: LinkID}, minorVersion: UPK2MinorVersion}>
 

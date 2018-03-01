@@ -31,7 +31,8 @@
         "V2_2",
         "V3_3",
         "V4_4",
-        "V5_5"
+        "V5_5",
+        "V6_6"
       ]
     },
     {
@@ -274,6 +275,13 @@
             "keys": "UID"
           },
           "name": "remoteTracks"
+        },
+        {
+          "type": [
+            null,
+            "ResetSummary"
+          ],
+          "name": "reset"
         }
       ]
     },
