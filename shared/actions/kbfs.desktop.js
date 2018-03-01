@@ -11,9 +11,7 @@ import path from 'path'
 import {ExitCodeFuseKextPermissionError} from '../constants/favorite'
 import {delay} from 'redux-saga'
 import {execFile} from 'child_process'
-import {folderTab} from '../constants/tabs'
-import {isLinux, isWindows} from '../constants/platform'
-import {navigateTo, switchTo} from './route-tree'
+import {isWindows} from '../constants/platform'
 import type {TypedState} from '../constants/reducer'
 
 // pathToURL takes path and converts to (file://) url.
