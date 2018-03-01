@@ -465,7 +465,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				// Make a pagination object so client can use it in GetThreadLocal
 				pmsgs := []pager.Message{nm.Message}
 				pager := pager.NewThreadPager()
-				page, err := pager.MakePage(pmsgs, 1)
+				page, err := pager.MakePage(pmsgs, 1, 0)
 				if err != nil {
 					g.Debug(ctx, "chat activity: error making page: %s", err.Error())
 				}

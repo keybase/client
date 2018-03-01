@@ -1,6 +1,7 @@
 package pager
 
 import (
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/go-codec/codec"
@@ -135,7 +136,7 @@ func NewThreadPager() ThreadPager {
 	return ThreadPager{Pager: NewPager()}
 }
 
-func (p ThreadPager) MakePage(res []Message, reqed int) (*chat1.Pagination, error) {
+func (p ThreadPager) MakePage(res []Message, reqed int, maxDeletedUpto chat1.MessageID) (*chat1.Pagination, error) {
 	if len(res) == 0 {
 		return &chat1.Pagination{Num: 0, Last: true}, nil
 	}
@@ -144,7 +145,15 @@ func (p ThreadPager) MakePage(res []Message, reqed int) (*chat1.Pagination, erro
 	prevMsgID := res[0].GetMessageID()
 	nextMsgID := res[len(res)-1].GetMessageID()
 
-	return p.Pager.MakePage(len(res), reqed, nextMsgID, prevMsgID)
+	page, err := p.Pager.MakePage(len(res), reqed, nextMsgID, prevMsgID)
+	if err != nil {
+		return page, err
+	}
+	if utils.MinMsgID(0, []chat1.MessageID{prevMsgID, nextMsgID}) <= maxDeletedUpto {
+		// If any message is prior to the nukepoint, say this is the last page.
+		page.Last = true
+	}
+	return page, nil
 }
 
 func (p ThreadPager) MakeIndex(msg Message) ([]byte, error) {

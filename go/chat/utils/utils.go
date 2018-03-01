@@ -11,8 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/keybase/client/go/chat/pager"
-
 	"regexp"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -1093,31 +1091,14 @@ func UsernamePackageToParticipant(p libkb.UsernamePackage) chat1.ConversationLoc
 	}
 }
 
-type pagerMsg struct {
-	msgID chat1.MessageID
-}
-
-func (p pagerMsg) GetMessageID() chat1.MessageID {
-	return p.msgID
-}
-
-func XlateMessageIDControlToPagination(control *chat1.MessageIDControl) (res *chat1.Pagination) {
-	if control == nil {
-		return res
+func MinMsgID(deflt chat1.MessageID, ids []chat1.MessageID) (res chat1.MessageID) {
+	if len(ids) == 0 {
+		return deflt
 	}
-	pag := pager.NewThreadPager()
-	res = new(chat1.Pagination)
-	res.Num = control.Num
-	if control.Pivot != nil {
-		pm := pagerMsg{msgID: *control.Pivot}
-		var err error
-		if control.Recent {
-			res.Previous, err = pag.MakeIndex(pm)
-		} else {
-			res.Next, err = pag.MakeIndex(pm)
-		}
-		if err != nil {
-			return nil
+	res = ids[0]
+	for _, id := range ids[1:] {
+		if id < res {
+			res = id
 		}
 	}
 	return res
