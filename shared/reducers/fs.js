@@ -36,12 +36,11 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.downloadStarted: {
       const {key, path, localPath} = action.payload
       const item = state.pathItems.get(path)
-      const isDir = item ? item.type === 'folder' : false
       return state.setIn(
         ['transfers', key],
         Constants.makeTransferState({
-          isUpload: false,
-          isDir,
+          type: 'download',
+          entryType: item ? item.type : 'unknown',
           path,
           localPath,
           completePortion: 0,

@@ -42,8 +42,8 @@ export const makePathUserSetting: I.RecordFactory<Types._PathUserSetting> = I.Re
 })
 
 export const makeTransferState: I.RecordFactory<Types._TransferState> = I.Record({
-  isUpload: false, // true if upload; false if download
-  isDir: false,
+  type: 'download',
+  entryType: 'unknown',
   path: Types.stringToPath(''),
   localPath: '',
   completePortion: 0,
