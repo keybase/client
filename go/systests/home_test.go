@@ -90,6 +90,7 @@ func assertFollowerPresent(t *testing.T, home keybase1.HomeScreen, f string) boo
 				if follow.User.Username == f {
 					return item.Badged
 				}
+				return false
 			}
 		}
 	}
