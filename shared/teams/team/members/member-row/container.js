@@ -40,7 +40,7 @@ const mapStateToProps = (
 })
 
 type DispatchProps = {
-  _onChat: (string, ?string) => void,
+  _onChat: (?string) => void,
   onClick: () => void,
   _onReAddToTeam: (teamname: string, username: string, role: ?Types.TeamRoleType) => void,
   _onRemoveFromTeam: (teamname: string, username: string) => void,
