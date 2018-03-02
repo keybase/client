@@ -4,8 +4,36 @@ import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {Box, ClickableBox, Icon, Text} from '../../common-adapters'
 import Progress from './progress'
 
+export type DownloadProps = {
+  filename: string,
+  completePortion: number,
+  progressText: string,
+  isDone: boolean,
+  open: () => void,
+  dismiss: () => void,
+}
+
+const Download = (props: DownloadProps) => (
+  <Box style={stylesDownload}>
+    <Box style={stylesIconBox}>
+      <Icon type={props.isDone ? 'iconfont-success' : 'iconfont-download'} style={stylesIconLeft} />
+    </Box>
+    <ClickableBox style={stylesNameAndProgressBox} onClick={props.open}>
+      <Box style={stylesNameAndProgress}>
+        <Text type="BodySmallSemibold" style={stylesText}>
+          {props.filename}
+        </Text>
+        {!props.isDone && <Box style={stylesProgressBox}><Progress completePortion={props.completePortion} text={props.progressText} /></Box>}
+      </Box>
+    </ClickableBox>
+    <ClickableBox style={stylesIconBox} onClick={props.dismiss}>
+      <Icon type="iconfont-remove" style={stylesIconRight} />
+    </ClickableBox>
+  </Box>
+)
+
 const stylesDownload = {
-  width: 144,
+  width: 140,
   height: 32,
   borderRadius: 4,
   backgroundColor: globalColors.green,
@@ -36,47 +64,25 @@ const stylesIconRight = {
 const stylesNameAndProgressBox = {
   ...globalStyles.flexGrow,
   minWidth: 0,
+  marginTop: -1,
 }
 
 const stylesNameAndProgress = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
-  justifyContent: 'space-between',
+  justifyContent: 'center',
 }
 
 const stylesText = {
   color: globalColors.white,
-  lineHeight: 1.2,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
 }
 
-export type DownloadProps = {
-  filename: string,
-  completePortion: number,
-  progressText: string,
-  isDone: boolean,
-  open: () => void,
-  dismiss: () => void,
+const stylesProgressBox = {
+  marginTop: -2,
 }
 
-const Download = (props: DownloadProps) => (
-  <Box style={stylesDownload}>
-    <Box style={stylesIconBox}>
-      <Icon type={props.isDone ? 'iconfont-success' : 'iconfont-download'} style={stylesIconLeft} />
-    </Box>
-    <ClickableBox style={stylesNameAndProgressBox} onClick={props.open}>
-      <Box style={stylesNameAndProgress}>
-        <Text type="BodySmallSemibold" style={stylesText}>
-          {props.filename}
-        </Text>
-        {!props.isDone && <Progress completePortion={props.completePortion} text={props.progressText} />}
-      </Box>
-    </ClickableBox>
-    <ClickableBox style={stylesIconBox} onClick={props.dismiss}>
-      <Icon type="iconfont-remove" style={stylesIconRight} />
-    </ClickableBox>
-  </Box>
-)
 
 export default Download

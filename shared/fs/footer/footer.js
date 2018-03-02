@@ -4,17 +4,6 @@ import {globalStyles, globalColors} from '../../styles'
 import {Box} from '../../common-adapters'
 import Download, {type DownloadProps} from './download'
 
-const stylesBox = {
-  ...globalStyles.flexBoxRow,
-  justifyContent: 'flex-start',
-  alignItems: 'center',
-  height: 40,
-  backgroundColor: globalColors.blue5,
-  borderTopStyle: 'solid',
-  borderTopWidth: 1,
-  borderTopColor: globalColors.black_05,
-}
-
 type DownloadItem = {
   key: string,
 } & DownloadProps
@@ -29,5 +18,17 @@ const Footer = (props: FooterProps) =>
       {props.downloads.map(download => <Download {...download} key={download.key} />)}
     </Box>
   ) : null
+
+const stylesBox = {
+  ...globalStyles.flexBoxRow,
+  justifyContent: 'flex-start',
+  alignItems: 'center',
+  height: 40,
+  backgroundColor: globalColors.blue5,
+  borderTopStyle: 'solid',
+  borderTopWidth: 1,
+  borderTopColor: globalColors.black_05,
+}
+
 
 export default Footer

@@ -3,14 +3,30 @@ import * as React from 'react'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {Box, Text} from '../../common-adapters'
 
+type ProgressProps = {
+  completePortion: number,
+  text: string,
+}
+
+const Progress = ({completePortion, text}: ProgressProps) => (
+  <Box style={stylesOuter}>
+    <Box style={stylesTubeBox}>
+      <Box style={stylesTube} />
+      <Box style={{...stylesTubeStuffing, width: completePortion * 40}} />
+    </Box>
+    <Text type="BodySmallSemibold" style={stylesText}>
+      {text}
+    </Text>
+  </Box>
+)
+
 const stylesOuter = {
   ...globalStyles.flexBoxRow,
   justifyContent: 'flex-start',
 }
 
 const stylesTubeBox = {
-  ...globalStyles.flexBoxColumn,
-  justifyContent: 'center',
+  paddingTop: 2,
   marginRight: globalMargins.xtiny,
 }
 
@@ -31,21 +47,7 @@ const stylesTubeStuffing = {
 const stylesText = {
   color: globalColors.white,
   lineHeight: 1.2,
+  fontSize: 10,
 }
 
-type ProgressProps = {
-  completePortion: number,
-  text: string,
-}
-
-export default ({completePortion, text}: ProgressProps) => (
-  <Box style={stylesOuter}>
-    <Box style={stylesTubeBox}>
-      <Box style={stylesTube} />
-      <Box style={{...stylesTubeStuffing, width: completePortion * 40}} />
-    </Box>
-    <Text type="BodySmallSemibold" style={stylesText}>
-      {text}
-    </Text>
-  </Box>
-)
+export default Progress
