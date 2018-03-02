@@ -23,9 +23,14 @@ const stylesIconBox = {
   paddingTop: 4,
 }
 
-const stylesIcon = {
+const stylesIconLeft = {
   fontSize: 16,
   color: globalColors.black_20,
+}
+
+const stylesIconRight = {
+  fontSize: 16,
+  color: globalColors.white,
 }
 
 const stylesNameAndProgressBox = {
@@ -58,7 +63,7 @@ export type DownloadProps = {
 const Download = (props: DownloadProps) => (
   <Box style={stylesDownload}>
     <Box style={stylesIconBox}>
-      <Icon type={props.isDone ? 'iconfont-success' : 'iconfont-folder-downloads'} style={stylesIcon} />
+      <Icon type={props.isDone ? 'iconfont-success' : 'iconfont-download'} style={stylesIconLeft} />
     </Box>
     <ClickableBox style={stylesNameAndProgressBox} onClick={props.open}>
       <Box style={stylesNameAndProgress}>
@@ -69,7 +74,7 @@ const Download = (props: DownloadProps) => (
       </Box>
     </ClickableBox>
     <ClickableBox style={stylesIconBox} onClick={props.dismiss}>
-      <Icon type="iconfont-remove" style={stylesIcon} />
+      <Icon type="iconfont-remove" style={stylesIconRight} />
     </ClickableBox>
   </Box>
 )
