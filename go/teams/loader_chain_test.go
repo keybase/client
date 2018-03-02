@@ -72,7 +72,7 @@ type TestCaseLoad struct {
 	ThenGetKey  int    `json:"then_get_key"`
 }
 
-func getTeamchainJsonDir(t *testing.T) string {
+func getTeamchainJSONDir(t *testing.T) string {
 	cwd, err := os.Getwd()
 	require.NoError(t, err)
 	jsonDir := filepath.Join(cwd, "../vendor/github.com/keybase/keybase-test-vectors/teamchains")
@@ -84,7 +84,7 @@ func getTeamchainJsonDir(t *testing.T) string {
 
 func TestUnits(t *testing.T) {
 	t.Logf("running units")
-	jsonDir := getTeamchainJsonDir(t)
+	jsonDir := getTeamchainJSONDir(t)
 	files, err := ioutil.ReadDir(jsonDir)
 	require.NoError(t, err)
 	selectUnit := os.Getenv("KEYBASE_TEAM_TEST_SELECT")
@@ -121,7 +121,7 @@ func runUnitFile(t *testing.T, jsonPath string) *Team {
 }
 
 func runUnitFromFilename(t *testing.T, filename string) *Team {
-	jsonDir := getTeamchainJsonDir(t)
+	jsonDir := getTeamchainJSONDir(t)
 	return runUnitFile(t, filepath.Join(jsonDir, filename))
 }
 
