@@ -246,3 +246,13 @@ type DuplicateTopicNameError struct {
 func (e DuplicateTopicNameError) Error() string {
 	return fmt.Sprintf("channel name %s is already in use", e.TopicName)
 }
+
+//=============================================================================
+
+type ImpteamUpgradeBadteamError struct {
+	Msg string
+}
+
+func (e ImpteamUpgradeBadteamError) Error() string {
+	return fmt.Sprintf("bad iteam found in upgraded conv: %s", e.Msg)
+}
