@@ -616,11 +616,10 @@ func testTeamInviteSweepOldMembers(t *testing.T, startPUKless bool) {
 
 	roo.proveRooter()
 
-	if startPUKless {
-		own.pollForTeamSeqnoLink(teamName.String(), keybase1.Seqno(5))
-	} else {
-		own.pollForTeamSeqnoLink(teamName.String(), keybase1.Seqno(5))
-	}
+	// 3 links to created team, add roo, and add roo@rooter.
+	// + 2 links (rotate, change_membership) to add roo in startPUKless=false case;
+	// or +2 links (change_membersip, cancel invite) to add roo in startPUKless=true case.
+	own.pollForTeamSeqnoLink(teamName.String(), keybase1.Seqno(5))
 
 	teamObj := own.loadTeamByID(teamID, true /* admin */)
 	// 0 total invites: rooter invite was completed, and keybase invite was sweeped
@@ -637,5 +636,5 @@ func testTeamInviteSweepOldMembers(t *testing.T, startPUKless bool) {
 
 func TestTeamInviteSweepOldMembers(t *testing.T) {
 	testTeamInviteSweepOldMembers(t, false)
-	//testTeamInviteSweepOldMembers(t, true)
+	testTeamInviteSweepOldMembers(t, true)
 }
