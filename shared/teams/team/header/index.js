@@ -73,7 +73,7 @@ const TeamHeader = (props: Props) => (
 
       {/* Actions */}
       <ButtonBar direction="row" style={isMobile ? {width: 'auto', marginBottom: -8} : undefined}>
-        <Button type="Primary" onClick={props.onChat}>
+        <Button type="Primary" label="Chat" onClick={props.onChat}>
           <Icon
             type="iconfont-chat"
             style={{
@@ -81,9 +81,6 @@ const TeamHeader = (props: Props) => (
               color: globalColors.white,
             }}
           />
-          <Text type="BodyBig" backgroundMode="Announcements">
-            Chat
-          </Text>
         </Button>
         {props.canManageMembers && (
           <Button
