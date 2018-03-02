@@ -41,7 +41,7 @@ const NameWithIcon = (props: Props) => {
   return (
     <Box style={{...containerStyle, ...props.containerStyle}}>
       <Avatar size={props.size} username={props.username} teamname={props.teamname} />
-      {props.metaOne && <Text type="BodyBig">{props.metaOne}</Text>}
+      {props.metaOne && <Text type="Header">{props.metaOne}</Text>}
       {props.metaTwo && <Text type="BodySmall">{props.metaTwo}</Text>}
     </Box>
   )
@@ -50,6 +50,7 @@ const NameWithIcon = (props: Props) => {
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
   ...globalStyles.flexBoxCenter,
+  padding: 24,
 }
 
 export default NameWithIcon
