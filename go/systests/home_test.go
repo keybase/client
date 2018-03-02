@@ -189,7 +189,7 @@ func TestHome(t *testing.T) {
 	iui.confirmRes = keybase1.ConfirmResult{IdentityConfirmed: true, RemoteConfirmed: true, AutoConfirmed: true}
 	bob.track(alice.username)
 	pollForTrue(t, g, func(i int) bool {
-		home = getHome(t, alice, true)
+		home = getHome(t, alice, false)
 		return assertFollowerPresent(t, home, bob.username)
 	})
 }
