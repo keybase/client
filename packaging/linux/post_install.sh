@@ -17,6 +17,7 @@ vardir="/var/lib/keybase"
 mount1="$vardir/mount1"
 sample="/opt/keybase/mount-readme"
 khuser="root"
+khuserDeprecated="keybasehelper"
 khbin="/usr/bin/keybase-mount-helper"
 
 chown "$khuser":"$khuser" "$khbin"
@@ -46,6 +47,15 @@ if [ -z "$currlink" ] ; then
     if ln -s -T "$mount1" "$rootlink" &> /dev/null ; then
         chown "$khuser":"$khuser" "$rootlink"
     fi
+fi
+
+# Delete the keybasehelper system user, to clean up after older
+# versions.  TODO: remove this once sufficient time has passed since
+# those old releases.
+if userdel $khuserDeprecated &> /dev/null ; then
+    echo Removing $khuserDeprecated system user, as it is no longer needed.
+    # Switch /var/lib/keybase to be owned by root.
+    chown -R "$khuser":"$khuser" "$vardir"
 fi
 
 # Update the GTK icon cache, if possible.
