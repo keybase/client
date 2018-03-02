@@ -126,6 +126,17 @@ func (tx *AddMemberTx) sweepCryptoMembers(uid keybase1.UID) {
 	}
 }
 
+func (tx *AddMemberTx) sweepCryptoMembersOlderThan(uv keybase1.UserVersion) {
+	team := tx.team
+	for chainUv := range team.chain().inner.UserLog {
+		if chainUv.Uid.Equal(uv.Uid) &&
+			chainUv.EldestSeqno < uv.EldestSeqno &&
+			team.chain().getUserRole(chainUv) != keybase1.TeamRole_NONE {
+			tx.removeMember(chainUv)
+		}
+	}
+}
+
 // sweepKeybaseInvites will queue "cancels" for all keybase-type
 // invites (PUKless members) for given UID.
 func (tx *AddMemberTx) sweepKeybaseInvites(uid keybase1.UID) {
@@ -434,7 +445,7 @@ func (tx *AddMemberTx) ReAddMemberToImplicitTeam(ctx context.Context, uv keybase
 // AddMemberBySBS assumes that member role is already checked by the
 // caller, so it might generate invalid signature if invitee is
 // already a member with same role.
-func (tx *AddMemberTx) AddMemberBySBS(ctx context.Context, invitee keybase1.TeamInvitee) (err error) {
+func (tx *AddMemberTx) AddMemberBySBS(ctx context.Context, invitee keybase1.TeamInvitee, role keybase1.TeamRole) (err error) {
 	team := tx.team
 	g := team.G()
 
@@ -460,13 +471,11 @@ func (tx *AddMemberTx) AddMemberBySBS(ctx context.Context, invitee keybase1.Team
 		return fmt.Errorf("User %q (%s) is deleted", user.Username, uv.Uid)
 	}
 
-	if invitee.Role == keybase1.TeamRole_OWNER && team.IsSubteam() {
+	if role == keybase1.TeamRole_OWNER && team.IsSubteam() {
 		return NewSubteamOwnersError()
 	}
 
-	//normalizedUsername := libkb.NewNormalizedUsername(user.Username)
-
-	if err := tx.addMember(uv, invitee.Role); err != nil {
+	if err := tx.addMember(uv, role); err != nil {
 		return err
 	}
 
@@ -475,7 +484,7 @@ func (tx *AddMemberTx) AddMemberBySBS(ctx context.Context, invitee keybase1.Team
 	}
 
 	tx.sweepKeybaseInvites(uv.Uid)
-	tx.sweepCryptoMembers(uv.Uid)
+	tx.sweepCryptoMembersOlderThan(uv)
 	return nil
 }
 
