@@ -502,6 +502,8 @@ func (listings Listings) lessByName(i, j int) bool {
 	if aNameLower != bNameLower {
 		return aNameLower < bNameLower
 	}
+	// If capitalization is the only thing different between the
+	// words, put lower-case first.
 	return a.name >= b.name
 }
 
