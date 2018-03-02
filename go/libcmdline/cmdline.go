@@ -391,6 +391,7 @@ func NewCommandLine(addHelp bool, extraFlags []cli.Flag) *CommandLine {
 func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 	app := p.app
 	app.Name = "keybase"
+	app.EnableBashCompletion = true
 	app.Version = libkb.VersionString()
 	app.Usage = "Keybase command line client."
 
