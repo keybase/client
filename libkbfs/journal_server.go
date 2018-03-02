@@ -136,7 +136,7 @@ type JournalServer struct {
 	currentUID          keybase1.UID
 	currentVerifyingKey kbfscrypto.VerifyingKey
 	tlfJournals         map[tlf.ID]*tlfJournal
-	dirtyOps            uint
+	dirtyOps            map[tlf.ID]uint
 	dirtyOpsDone        *sync.Cond
 	serverConfig        journalServerConfig
 }
@@ -161,6 +161,7 @@ func makeJournalServer(
 		onBranchChange:          onBranchChange,
 		onMDFlush:               onMDFlush,
 		tlfJournals:             make(map[tlf.ID]*tlfJournal),
+		dirtyOps:                make(map[tlf.ID]uint),
 	}
 	jServer.dirtyOpsDone = sync.NewCond(&jServer.lock)
 	return &jServer
@@ -506,7 +507,7 @@ func (j *JournalServer) enableLocked(
 	}
 
 	err = func() error {
-		if j.dirtyOps > 0 {
+		if j.dirtyOps[tlfID] > 0 {
 			return errors.Errorf("Can't enable journal for %s while there "+
 				"are outstanding dirty ops", tlfID)
 		}
@@ -609,17 +610,20 @@ func (j *JournalServer) DisableAuto(ctx context.Context) error {
 func (j *JournalServer) dirtyOpStart(tlfID tlf.ID) {
 	j.lock.Lock()
 	defer j.lock.Unlock()
-	j.dirtyOps++
+	j.dirtyOps[tlfID]++
 }
 
 func (j *JournalServer) dirtyOpEnd(tlfID tlf.ID) {
 	j.lock.Lock()
 	defer j.lock.Unlock()
-	if j.dirtyOps == 0 {
+	if j.dirtyOps[tlfID] == 0 {
 		panic("Trying to end a dirty op when count is 0")
 	}
-	j.dirtyOps--
-	if j.dirtyOps == 0 {
+	j.dirtyOps[tlfID]--
+	if j.dirtyOps[tlfID] == 0 {
+		delete(j.dirtyOps, tlfID)
+	}
+	if len(j.dirtyOps) == 0 {
 		j.dirtyOpsDone.Broadcast()
 	}
 }
@@ -728,7 +732,7 @@ func (j *JournalServer) Disable(ctx context.Context, tlfID tlf.ID) (
 		return false, nil
 	}
 
-	if j.dirtyOps > 0 {
+	if j.dirtyOps[tlfID] > 0 {
 		return false, errors.Errorf("Can't disable journal for %s while there "+
 			"are outstanding dirty ops", tlfID)
 	}
@@ -886,9 +890,10 @@ func (j *JournalServer) JournalStatusWithPaths(ctx context.Context,
 // and once this is called, EnableExistingJournals may be called
 // again.
 func (j *JournalServer) shutdownExistingJournalsLocked(ctx context.Context) {
-	for j.dirtyOps > 0 {
+	for len(j.dirtyOps) > 0 {
 		j.log.CDebugf(ctx,
-			"Waiting for %d dirty ops before shutting down existing journals...", j.dirtyOps)
+			"Waiting for %d TLFS with dirty ops before shutting down "+
+				"existing journals...", len(j.dirtyOps))
 		j.dirtyOpsDone.Wait()
 	}
 

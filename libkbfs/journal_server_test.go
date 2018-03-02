@@ -529,7 +529,7 @@ func TestJournalServerLogOutDirtyOp(t *testing.T) {
 	dirtyOps := func() uint {
 		jServer.lock.RLock()
 		defer jServer.lock.RUnlock()
-		return jServer.dirtyOps
+		return jServer.dirtyOps[tlfID]
 	}
 	require.NotEqual(t, 0, dirtyOps)
 }
