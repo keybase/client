@@ -11,10 +11,10 @@ import (
 	"os/signal"
 	"os/user"
 	"path/filepath"
-	"regexp"
 	"runtime"
 	"sort"
 	"strconv"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -56,7 +56,7 @@ type cacheEntry struct {
 }
 
 type root struct {
-	mpregex *regexp.Regexp
+	runmodeStr string
 
 	lock            sync.RWMutex
 	mountpointCache map[uint32]cacheEntry
@@ -64,7 +64,7 @@ type root struct {
 	getMountsLock sync.Mutex
 }
 
-func newRoot() (*root, error) {
+func newRoot() *root {
 	runmodeStr := "keybase"
 	switch os.Getenv("KEYBASE_RUN_MODE") {
 	case "staging":
@@ -73,18 +73,10 @@ func newRoot() (*root, error) {
 		runmodeStr = "keybase.devel"
 	}
 
-	// Find mountpoints like "/home/user/.local/share/keybase/fs", or
-	// "/home/user/keybase", and make sure it doesn't match mounts for
-	// another run mode, say "/home/user/keybase.staging".
-	rx, err := regexp.Compile(fmt.Sprintf("/%s/|%s$", runmodeStr, runmodeStr))
-	if err != nil {
-		return nil, err
-	}
-
 	return &root{
-		mpregex:         rx,
+		runmodeStr:      runmodeStr,
 		mountpointCache: make(map[uint32]cacheEntry),
-	}, nil
+	}
 }
 
 func (r *root) Root() (fs.Node, error) {
@@ -180,11 +172,17 @@ func (r *root) findKBFSMount(ctx context.Context) (
 	// path.
 	sort.Strings(fuseMountPoints)
 	for _, mp := range fuseMountPoints {
-		// TODO: a better regexp that will rule out keybase.staging if
-		// we're in prod mode, etc.
-		if !r.mpregex.MatchString(mp) {
+		// Find mountpoints like "/home/user/.local/share/keybase/fs", or
+		// "/home/user/keybase", and make sure it doesn't match mounts for
+		// another run mode, say "/home/user/keybase.staging".
+		i := strings.Index(mp, r.runmodeStr)
+		if i < 0 {
 			continue
 		}
+		if len(mp) > i+len(r.runmodeStr) && mp[i+len(r.runmodeStr)] != '/' {
+			continue
+		}
+
 		return mp, nil
 	}
 
@@ -295,9 +293,5 @@ func main() {
 			return context.Background()
 		},
 	})
-	root, err := newRoot()
-	if err != nil {
-		panic(err)
-	}
-	srv.Serve(root)
+	srv.Serve(newRoot())
 }
