@@ -92,7 +92,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
     ...ownProps,
     ...stateProps,
     type,
-    onChat: () => dispatchProps._onChat(ownProps.username, stateProps.you),
+    onChat: () => dispatchProps._onChat(stateProps.you),
     onClick: dispatchProps.onClick,
     onReAddToTeam: () => dispatchProps._onReAddToTeam(ownProps.teamname, ownProps.username, type),
     onRemoveFromTeam: () => dispatchProps._onRemoveFromTeam(ownProps.teamname, ownProps.username),
