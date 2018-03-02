@@ -50,6 +50,7 @@ export type DownloadProps = {
   filename: string,
   completePortion: number,
   progressText: string,
+  isDone: boolean,
   open: () => void,
   dismiss: () => void,
 }
@@ -57,16 +58,14 @@ export type DownloadProps = {
 const Download = (props: DownloadProps) => (
   <Box style={stylesDownload}>
     <Box style={stylesIconBox}>
-      <Icon type="iconfont-folder-downloads" style={stylesIcon} />
+      <Icon type={props.isDone ? 'iconfont-success' : 'iconfont-folder-downloads'} style={stylesIcon} />
     </Box>
     <ClickableBox style={stylesNameAndProgressBox} onClick={props.open}>
       <Box style={stylesNameAndProgress}>
         <Text type="BodySmallSemibold" style={stylesText}>
           {props.filename}
         </Text>
-        {props.completePortion !== 1 && (
-          <Progress completePortion={props.completePortion} text={props.progressText} />
-        )}
+        {!props.isDone && <Progress completePortion={props.completePortion} text={props.progressText} />}
       </Box>
     </ClickableBox>
     <ClickableBox style={stylesIconBox} onClick={props.dismiss}>

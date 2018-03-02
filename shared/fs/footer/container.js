@@ -38,7 +38,8 @@ const mergeProps = (stateProps: StateProps, {opener, dismisser}: DispatchProps, 
       .map(([key, transferState]) => ({
         filename: Types.getLocalPathName(transferState.localPath),
         completePortion: transferState.completePortion,
-        progressText: Math.round(transferState.completePortion * 4).toString() + ' s', // TODO: fix this when we have real estimate
+        progressText: Math.round((1 - transferState.completePortion) * 4).toString() + ' s', // TODO: fix this when we have real estimate
+        isDone: transferState.isDone,
         open: opener(transferState.localPath),
         dismiss: dismisser(key),
         key: key,
