@@ -12,7 +12,6 @@ import {toISOTimestamp} from './types'
 import ConsoleLogger from './console-logger'
 import TeeLogger from './tee-logger'
 import RingLogger from './ring-logger'
-import NullLogger from './null-logger'
 import NativeLogger from './native-logger'
 import DumpPeriodicallyLogger from './dump-periodically-logger'
 import {writeLogLinesToFile} from '../util/forward-logs'
@@ -121,14 +120,18 @@ const devLoggers = () => ({
 
 const prodLoggers = () => ({
   action: isMobile
-    ? new NativeLogger()
-    : new DumpPeriodicallyLogger(new RingLogger(500), 10 * 60e3, writeLogLinesToFile, 'Action'),
-  debug: new NullLogger(),
+    ? new RingLogger(200)
+    : new DumpPeriodicallyLogger(new RingLogger(200), 10 * 60e3, writeLogLinesToFile, 'Action'),
+  debug: new RingLogger(500),
   error: isMobile
     ? new NativeLogger()
-    : new DumpPeriodicallyLogger(new RingLogger(100), 1 * 60e3, writeLogLinesToFile, 'Error'),
-  info: new RingLogger(100),
-  warn: new RingLogger(100),
+    : new DumpPeriodicallyLogger(new RingLogger(10000), 1 * 60e3, writeLogLinesToFile, 'Error'),
+  info: isMobile
+    ? new NativeLogger()
+    : new DumpPeriodicallyLogger(new RingLogger(1000), 1 * 60e3, writeLogLinesToFile, 'Info'),
+  warn: isMobile
+    ? new NativeLogger()
+    : new DumpPeriodicallyLogger(new RingLogger(10000), 1 * 60e3, writeLogLinesToFile, 'Warn'),
 })
 
 // Settings

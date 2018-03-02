@@ -13,6 +13,23 @@
     "sortSetting": {
       "path": "Types.Path",
       "sortSetting": "Types.SortSetting"
+    },
+    "download": {
+      "path": "Types.Path",
+      "localPath?": "string"
+    },
+    "downloadStarted": {
+      "key": "string",
+      "path": "Types.Path",
+      "localPath": "string"
+    },
+    "downloadFinished": {
+      "key": "string",
+      "error?": "string"
+    },
+    "fileTransferProgress": {
+      "key": "string",
+      "completePortion": "number"
     }
   }
 }
