@@ -23,7 +23,11 @@ const Download = (props: DownloadProps) => (
         <Text type="BodySmallSemibold" style={stylesText}>
           {props.filename}
         </Text>
-        {!props.isDone && <Box style={stylesProgressBox}><Progress completePortion={props.completePortion} text={props.progressText} /></Box>}
+        {!props.isDone && (
+          <Box style={stylesProgressBox}>
+            <Progress completePortion={props.completePortion} text={props.progressText} />
+          </Box>
+        )}
       </Box>
     </ClickableBox>
     <ClickableBox style={stylesIconBox} onClick={props.dismiss}>
@@ -83,6 +87,5 @@ const stylesText = {
 const stylesProgressBox = {
   marginTop: -2,
 }
-
 
 export default Download

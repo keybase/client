@@ -30,5 +30,4 @@ const stylesBox = {
   borderTopColor: globalColors.black_05,
 }
 
-
 export default Footer
