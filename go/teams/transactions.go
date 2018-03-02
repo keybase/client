@@ -16,10 +16,15 @@ import (
 type AddMemberTx struct {
 	team     *Team
 	payloads []interface{} // *SCTeamInvites or *keybase1.TeamChangeReq
+
+	completedInvites map[keybase1.TeamInviteID]bool
 }
 
 func CreateAddMemberTx(t *Team) *AddMemberTx {
-	return &AddMemberTx{team: t}
+	return &AddMemberTx{
+		team:             t,
+		completedInvites: make(map[keybase1.TeamInviteID]bool),
+	}
 }
 
 func (tx *AddMemberTx) DebugPayloads() []interface{} {
@@ -127,7 +132,7 @@ func (tx *AddMemberTx) sweepKeybaseInvites(uid keybase1.UID) {
 	team := tx.team
 	for _, invite := range team.chain().inner.ActiveInvites {
 		if inviteUv, err := invite.KeybaseUserVersion(); err == nil {
-			if inviteUv.Uid.Equal(uid) {
+			if inviteUv.Uid.Equal(uid) && !tx.completedInvites[invite.Id] {
 				tx.CancelInvite(invite.Id)
 			}
 		}
@@ -173,7 +178,7 @@ func (tx *AddMemberTx) addMemberByUPKV2(ctx context.Context, user keybase1.UserP
 		g.Log.CDebugf(ctx, "Invite required for %v", uv)
 	}
 
-	normalizedUsername := libkb.NormalizedUsername(user.Username)
+	normalizedUsername := libkb.NewNormalizedUsername(user.Username)
 
 	if team.IsMember(ctx, uv) {
 		if !hasPUK {
@@ -231,7 +236,7 @@ func (tx *AddMemberTx) AddMemberByUV(ctx context.Context, uv keybase1.UserVersio
 	g := team.G()
 
 	defer g.CTrace(ctx, fmt.Sprintf("AddMemberTx.AddMemberByUV(%v,%v) to team %q", uv, role, team.Name()), func() error { return err })()
-	upak, err := loadUPAK2(ctx, g, uv.Uid, true /*forcePoll */)
+	upak, err := loadUPAK2(ctx, g, uv.Uid, true /* forcePoll */)
 	if err != nil {
 		return err
 	}
@@ -277,6 +282,7 @@ func (tx *AddMemberTx) CompleteInviteByID(ctx context.Context, inviteID keybase1
 		payload.CompletedInvites = make(map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm)
 	}
 	payload.CompletedInvites[inviteID] = uv.PercentForm()
+	tx.completedInvites[inviteID] = true // mark id completed so sweeping will not cancel.
 	return nil
 }
 
@@ -417,6 +423,59 @@ func (tx *AddMemberTx) ReAddMemberToImplicitTeam(ctx context.Context, uv keybase
 		return errors.New("ReAddMemberToImplicitTeam tried to create more than one link")
 	}
 
+	return nil
+}
+
+// AddMemberBySBS is very similar in what it does to addMemberByUPAKV2
+// (or AddMemberBy* family of functions), but it has easier job
+// because it only adds cryptomembers and fails on PUKless users. It
+// also completed inviteID for given invitee.
+//
+// AddMemberBySBS assumes that member role is already checked by the
+// caller, so it might generate invalid signature if invitee is
+// already a member with same role.
+func (tx *AddMemberTx) AddMemberBySBS(ctx context.Context, invitee keybase1.TeamInvitee) (err error) {
+	team := tx.team
+	g := team.G()
+
+	defer g.CTrace(ctx, fmt.Sprintf("AddMemberTx.AddMemberBySBS(%v) to team: %q",
+		invitee, team.Name()), func() error { return err })()
+
+	uv := NewUserVersion(invitee.Uid, invitee.EldestSeqno)
+	upak, err := loadUPAK2(ctx, g, uv.Uid, true /* forcePoll */)
+	if err != nil {
+		return err
+	}
+
+	user := upak.Current
+	if uv.EldestSeqno != user.EldestSeqno {
+		return fmt.Errorf("Bad eldestseqno for %s: expected %d, got %d", uv.Uid, user.EldestSeqno, uv.EldestSeqno)
+	}
+
+	if len(user.PerUserKeys) == 0 {
+		return fmt.Errorf("Cannot add PUKless user %q (%s) for SBS", user.Username, uv.Uid)
+	}
+
+	if user.Status == keybase1.StatusCode_SCDeleted {
+		return fmt.Errorf("User %q (%s) is deleted", user.Username, uv.Uid)
+	}
+
+	if invitee.Role == keybase1.TeamRole_OWNER && team.IsSubteam() {
+		return NewSubteamOwnersError()
+	}
+
+	//normalizedUsername := libkb.NewNormalizedUsername(user.Username)
+
+	if err := tx.addMember(uv, invitee.Role); err != nil {
+		return err
+	}
+
+	if err := tx.CompleteInviteByID(ctx, invitee.InviteID, uv); err != nil {
+		return err
+	}
+
+	tx.sweepKeybaseInvites(uv.Uid)
+	tx.sweepCryptoMembers(uv.Uid)
 	return nil
 }
 
