@@ -490,44 +490,24 @@ func (c *CmdSimpleFSList) createListing(dirname string, fip FileInfoPath) (Listi
 	return currentListing, nil
 }
 
+type Listings []Listing
+
 // Comparison function used for sorting Listings by name.
-func lessListingByName(listings []Listing, i, j int) bool {
+func (listings Listings) lessByName(i, j int) bool {
 	a := listings[i]
 	b := listings[j]
 	aNameLower := strings.ToLower(a.name)
 	bNameLower := strings.ToLower(b.name)
 
-	var smallerLen int
-	if len(aNameLower) < len(bNameLower) {
-		smallerLen = len(aNameLower)
-	} else {
-		smallerLen = len(bNameLower)
+	if aNameLower != bNameLower {
+		return aNameLower < bNameLower
 	}
-
-	// Sort by lower-cased words first, so that lower-case and capital
-	// case appear next to each other in the output.
-	for i := 0; i < smallerLen; i++ {
-		if aNameLower[i] < bNameLower[i] {
-			return true
-		} else if aNameLower[i] > bNameLower[i] {
-			return false
-		}
-	}
-
-	// If the words have the same lower-cased prefixes but differing
-	// lengths, the shorter word is less-than.
-	if len(a.name) != len(b.name) {
-		return len(a.name) < len(b.name)
-	}
-
-	// If capitalization is the only thing different between the
-	// words, put lower-case first.
 	return a.name >= b.name
 }
 
 // Comparison function used for sorting Listings by modification time, from most
 // recent to oldest.
-func lessListingByTime(listings []Listing, i, j int) bool {
+func (listings Listings) lessByTime(i, j int) bool {
 	a := listings[i]
 	b := listings[j]
 	return a.epochNano >= b.epochNano
@@ -535,7 +515,7 @@ func lessListingByTime(listings []Listing, i, j int) bool {
 
 // Comparison function used for sorting Listings by size, from largest to
 // smallest.
-func lessListingBySize(listings []Listing, i, j int) bool {
+func (listings Listings) lessBySize(i, j int) bool {
 	a := listings[i]
 	b := listings[j]
 	aSize, _ := strconv.Atoi(a.size)
@@ -544,18 +524,12 @@ func lessListingBySize(listings []Listing, i, j int) bool {
 }
 
 // Sort the given listings, taking into account the current program options.
-func sortListings(listings []Listing, options ListOptions) {
-	comparisonFunction := func(i, j int) bool {
-		return lessListingByName(listings, i, j)
-	}
+func sortListings(listings Listings, options ListOptions) {
+	comparisonFunction := listings.lessByName
 	if options.sortTime {
-		comparisonFunction = func(i, j int) bool {
-			return lessListingByTime(listings, i, j)
-		}
+		comparisonFunction = listings.lessByTime
 	} else if options.sortSize {
-		comparisonFunction = func(i, j int) bool {
-			return lessListingBySize(listings, i, j)
-		}
+		comparisonFunction = listings.lessBySize
 	}
 
 	sort.Slice(listings, comparisonFunction)
