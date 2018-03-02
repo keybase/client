@@ -66,6 +66,7 @@ export type _TransferState = {
   completePortion: number,
   error?: string,
   isDone: boolean,
+  startedAt: number,
 }
 export type TransferState = I.RecordOf<_TransferState>
 
@@ -141,6 +142,8 @@ export const pathIsNonTeamTLFList = (p: Path): boolean => {
 const localSep = isWindows ? '\\' : '/'
 
 export const localPathConcat = (p: LocalPath, s: string): LocalPath => p + localSep + s
+export const getLocalPathName = (p: LocalPath): string => p.split(localSep).pop()
+export const getLocalPathDir = (p: LocalPath): string => p.slice(0, p.lastIndexOf(localSep))
 
 type PathItemComparer = (a: PathItem, b: PathItem) => number
 

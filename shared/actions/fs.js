@@ -93,9 +93,14 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
   yield Saga.put(FsGen.createDownloadFinished({key, error}))
 }
 
+function* openLocalPathInFolder(action: FsGen.OpenLocalPathInFolderPayload): Saga.SagaGenerator<any, any> {
+  yield Saga.call(Constants.openPathInFinderPromise, action.payload.localPath)
+}
+
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.folderListLoad, folderList)
   yield Saga.safeTakeEvery(FsGen.download, download)
+  yield Saga.safeTakeEvery(FsGen.openLocalPathInFolder, openLocalPathInFolder)
 }
 
 export default fsSaga

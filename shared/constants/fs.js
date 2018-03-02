@@ -4,6 +4,7 @@ import * as Types from './types/fs'
 import uuidv1 from 'uuid/v1'
 import {globalColors} from '../styles'
 import {downloadFilePath} from '../util/file'
+import {shell} from 'electron'
 
 export const defaultPath = '/keybase'
 
@@ -49,6 +50,7 @@ export const makeTransferState: I.RecordFactory<Types._TransferState> = I.Record
   completePortion: 0,
   error: undefined,
   isDone: false,
+  startedAt: 0,
 })
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
@@ -132,3 +134,8 @@ export const makeDownloadKey = (path: Types.Path, localPath: string) =>
 
 export const downloadFilePathFromPath = (p: Types.Path): Promise<Types.LocalPath> =>
   downloadFilePath(Types.getPathName(p))
+
+export const openPathInFinderPromise = (p: Types.LocalPath): Promise<void> =>
+  new Promise(
+    (resolve, reject) => (shell.showItemInFolder(p) ? resolve() : reject(new Error('showItemInFolderFailed')))
+  )

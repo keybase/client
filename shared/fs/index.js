@@ -6,6 +6,7 @@ import {Avatar, Box, ClickableBox, Icon, List, Text, Divider} from '../common-ad
 import RowConnector from './row'
 import FolderHeader from './header/header-container'
 import SortBar from './sortbar/container'
+import Footer from './footer/container'
 
 type FileRowProps = {
   elems: Array<string>,
@@ -96,6 +97,7 @@ class Files extends React.PureComponent<FolderProps> {
           <FolderHeader path={this.props.path} />
           <SortBar path={this.props.path} />
           {list}
+          <Footer />
         </Box>
       </Box>
     )
