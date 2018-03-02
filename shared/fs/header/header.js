@@ -87,12 +87,9 @@ const folderBreadcrumbStyle = {
 
 const styleParentBreadcrumb = {
   color: globalColors.black_60,
-  paddingBottom: 2,
 }
 
-const styleTailBreadcrumb = {
-  paddingBottom: 2,
-}
+const styleTailBreadcrumb = {}
 
 const iconStyle = {
   fontSize: 11,

@@ -37,9 +37,9 @@ const BreadcrumbPopupMenu = ({routeProps}: PopupMenuProps) => {
 }
 
 const stylePopup = {
-  marginLeft: -30,
-  marginTop: 24,
-  overflow: 'visible',
+  position: 'absolute',
+  left: -28,
+  top: 24,
   width: 196,
 }
 
