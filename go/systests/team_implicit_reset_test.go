@@ -216,10 +216,12 @@ func TestImplicitResetAndSBSBringback(t *testing.T) {
 	t.Logf("Bob upgraded puk, polling for seqno %d", nextSeqno)
 	ann.pollForTeamSeqnoLinkWithLoadArgs(keybase1.LoadTeamArg{ID: iteam}, nextSeqno) // (6)
 
-	teamObj = ann.loadTeamByID(iteam, true)
-	role, err := teamObj.MemberRole(context.Background(), bob.userVersion())
-	require.NoError(t, err)
-	require.Equal(t, keybase1.TeamRole_OWNER, role)
+	pollForTrue(t, ann.tc.G, func(i int) bool {
+		teamObj = ann.loadTeamByID(iteam, true)
+		role, err := teamObj.MemberRole(context.Background(), bob.userVersion())
+		require.NoError(t, err)
+		return role == keybase1.TeamRole_OWNER
+	})
 
 	invites := teamObj.GetActiveAndObsoleteInvites()
 	require.Equal(t, 0, len(invites), "leftover invite")
