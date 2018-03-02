@@ -126,13 +126,19 @@ export const TeamMemberRow = (props: Props) => {
             </ButtonBar>
           </Box>
         )}
-      <Box style={{...globalStyles.flexBoxRow, flexShrink: 1}}>
-        <Icon
-          onClick={onChat}
-          style={{marginLeft: globalMargins.small, marginRight: globalMargins.tiny}}
-          type="iconfont-chat"
-        />
-      </Box>
+      {(active || !isMobile) && (
+        <Box style={{...globalStyles.flexBoxRow, flexShrink: 1}}>
+          <Icon
+            onClick={onChat}
+            style={{
+              fontSize: isMobile ? 20 : 16,
+              marginLeft: globalMargins.small,
+              marginRight: globalMargins.tiny,
+            }}
+            type="iconfont-chat"
+          />
+        </Box>
+      )}
     </Box>
   )
 }

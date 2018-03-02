@@ -47,8 +47,10 @@ type DispatchProps = {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps): DispatchProps => ({
-  _onChat: (username, myUsername) => {
-    username && myUsername && dispatch(createStartConversation({users: [username, myUsername]}))
+  _onChat: myUsername => {
+    ownProps.username &&
+      myUsername &&
+      dispatch(createStartConversation({users: [ownProps.username, myUsername]}))
   },
   onClick: () =>
     dispatch(
