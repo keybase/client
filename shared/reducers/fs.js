@@ -62,7 +62,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     }
     case FsGen.download:
       return state
-    case FSGen.openInFileUI:
+    case FsGen.openInFileUI:
       return state
     default:
       // eslint-disable-next-line no-unused-expressions
