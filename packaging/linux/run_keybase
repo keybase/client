@@ -130,7 +130,7 @@ run_redirector() {
     fi
   fi
 
-  # Only start the root redirector if it hasn't been explicit disabled.
+  # Only start the root redirector if it hasn't been explicitly disabled.
   if [ "$disable" != "true" ]; then
     logdir="${XDG_CACHE_HOME:-$HOME/.cache}/keybase"
     nohup keybase-redirector /keybase >> "$logdir/keybase.redirector.log" 2>&1 &
