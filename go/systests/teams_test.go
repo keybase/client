@@ -507,9 +507,9 @@ func (u *userPlusDevice) waitForBadgeStateWithReset(numReset int) {
 				return
 			}
 		case <-time.After(1 * time.Second * libkb.CITimeMultiplier(u.tc.G)):
-			u.tc.T.Fatal("timed out waiting for badge state")
 		}
 	}
+	u.tc.T.Fatal("timed out waiting for badge state")
 }
 
 func (u *userPlusDevice) drainGregor() {
