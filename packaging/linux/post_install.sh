@@ -20,15 +20,18 @@ optDeprecated="/opt/keybase/mount-readme"
 chown root:root "$krbin"
 chmod 4755 "$krbin"
 
-disableRedirector="false"
-if [ -r "$rootConfigFile" ] ; then
-  if keybase -c "$rootConfigFile" config get -d "$disableConfigKey" &> /dev/null ; then
-    disableRedirector="$(keybase -c "$rootConfigFile" config get -d "$disableConfigKey" 2> /dev/null)"
+redirector_enabled() {
+  disableRedirector="false"
+  if [ -r "$rootConfigFile" ] ; then
+    if keybase -c "$rootConfigFile" config get -d "$disableConfigKey" &> /dev/null ; then
+      disableRedirector="$(keybase -c "$rootConfigFile" config get -d "$disableConfigKey" 2> /dev/null)"
+    fi
   fi
-fi
+  [ "$disableRedirector" != "true" ]
+}
 
 make_mountpoint() {
-  if [ "$disableRedirector" != "true" ]; then
+  if redirector_enabled ; then
     if ! mountpoint "$rootmount" &> /dev/null; then
       mkdir -p "$rootmount"
       chown root:root "$rootmount"
@@ -41,7 +44,7 @@ run_redirector() {
   make_mountpoint
 
   # Only start the root redirector if it hasn't been explicitly disabled.
-  if [ "$disableRedirector" != "true" ]; then
+  if redirector_enabled ; then
     logdir="${XDG_CACHE_HOME:-$HOME/.cache}/keybase"
     mkdir -p "$logdir"
     nohup "$krbin" "$rootmount" >> "$logdir/keybase.redirector.log" 2>&1 &
