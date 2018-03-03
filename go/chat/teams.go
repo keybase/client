@@ -306,6 +306,7 @@ func newTlfIDToTeamIDMap() *tlfIDToTeamIDMap {
 	}
 }
 
+// Lookup gives the server trust mapping between tlfID and teamID
 func (t *tlfIDToTeamIDMap) Lookup(ctx context.Context, tlfID chat1.TLFID, api libkb.API) (res keybase1.TeamID, err error) {
 	if iTeamID, ok := t.storage.Get(tlfID.String()); ok {
 		return iTeamID.(keybase1.TeamID), nil
@@ -373,9 +374,16 @@ func LoadTeam(ctx context.Context, g *libkb.GlobalContext, tlfID chat1.TLFID, tl
 			return team, err
 		}
 		if impTeamName != tlfName {
-			return team, ImpteamUpgradeBadteamError{
-				Msg: fmt.Sprintf("mismatch TLF name to implicit team name: %s != %s", impTeamName,
-					tlfName),
+			// Try resolving given name, maybe there has been a resolution
+			resName, err := teams.ResolveImplicitTeamDisplayName(ctx, g, tlfName, public)
+			if err != nil {
+				return team, err
+			}
+			if impTeamName != resName.String() {
+				return team, ImpteamUpgradeBadteamError{
+					Msg: fmt.Sprintf("mismatch TLF name to implicit team name: %s != %s", impTeamName,
+						tlfName),
+				}
 			}
 		}
 		return team, nil
