@@ -19273,6 +19273,91 @@ exports[`Storyshots Common Icon 1`] = `
           className={undefined}
           draggable="false"
           onClick={[Function]}
+          srcSet="icons/icon-folder-team-24.png 1x, icons/icon-folder-team-24@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-folder-zip-24.png 1x, icons/icon-folder-zip-24@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-folder-zip-downloaded-24.png 1x, icons/icon-folder-zip-downloaded-24@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-folder-zip-downloading-24.png 1x, icons/icon-folder-zip-downloading-24@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-folder-zip-uploading-24.png 1x, icons/icon-folder-zip-uploading-24@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
           srcSet="icons/icon-github-logo-24.png 1x, icons/icon-github-logo-24@2x.png 2x"
           style={
             Object {
@@ -19887,6 +19972,91 @@ exports[`Storyshots Common Icon 1`] = `
           className={undefined}
           draggable="false"
           onClick={[Function]}
+          srcSet="icons/icon-file-private-32.png 1x, icons/icon-file-private-32@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-file-public-32.png 1x, icons/icon-file-public-32@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-folder-copy-32.png 1x, icons/icon-folder-copy-32@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-folder-move-32.png 1x, icons/icon-folder-move-32@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-folder-private-32.png 1x, icons/icon-folder-private-32@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
           srcSet="icons/icon-folder-private-group-32.png 1x, icons/icon-folder-private-group-32@2x.png 2x"
           style={
             Object {
@@ -19938,6 +20108,23 @@ exports[`Storyshots Common Icon 1`] = `
           className={undefined}
           draggable="false"
           onClick={[Function]}
+          srcSet="icons/icon-folder-public-32.png 1x, icons/icon-folder-public-32@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
           srcSet="icons/icon-folder-public-group-32.png 1x, icons/icon-folder-public-group-32@2x.png 2x"
           style={
             Object {
@@ -19973,6 +20160,23 @@ exports[`Storyshots Common Icon 1`] = `
           draggable="false"
           onClick={[Function]}
           srcSet="icons/icon-folder-public-open-32.png 1x, icons/icon-folder-public-open-32@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-folder-team-32.png 1x, icons/icon-folder-team-32@2x.png 2x"
           style={
             Object {
               "borderColor": "rgba(0, 0, 0, 0.05)",
@@ -21578,6 +21782,40 @@ exports[`Storyshots Common Icon 1`] = `
           className={undefined}
           draggable="false"
           onClick={[Function]}
+          srcSet="icons/icon-file-private-48.png 1x, icons/icon-file-private-48@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-file-public-48.png 1x, icons/icon-file-public-48@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
           srcSet="icons/icon-file-txt-48.png 1x, icons/icon-file-txt-48@2x.png 2x"
           style={
             Object {
@@ -21646,6 +21884,40 @@ exports[`Storyshots Common Icon 1`] = `
           className={undefined}
           draggable="false"
           onClick={[Function]}
+          srcSet="icons/icon-folder-copy-48.png 1x, icons/icon-folder-copy-48@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-folder-move-48.png 1x, icons/icon-folder-move-48@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
           srcSet="icons/icon-folder-private-48.png 1x, icons/icon-folder-private-48@2x.png 2x"
           style={
             Object {
@@ -21698,6 +21970,40 @@ exports[`Storyshots Common Icon 1`] = `
           draggable="false"
           onClick={[Function]}
           srcSet="icons/icon-folder-public-success-negative-48.png 1x, icons/icon-folder-public-success-negative-48@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-folder-team-48.png 1x, icons/icon-folder-team-48@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-folder-zip-48.png 1x, icons/icon-folder-zip-48@2x.png 2x"
           style={
             Object {
               "borderColor": "rgba(0, 0, 0, 0.05)",
@@ -22551,6 +22857,40 @@ exports[`Storyshots Common Icon 1`] = `
           className={undefined}
           draggable="false"
           onClick={[Function]}
+          srcSet="icons/icon-file-private-64.png 1x, icons/icon-file-private-64@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-file-public-64.png 1x, icons/icon-file-public-64@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
           srcSet="icons/icon-files-private-delete-64.png 1x, icons/icon-files-private-delete-64@2x.png 2x"
           style={
             Object {
@@ -22603,6 +22943,40 @@ exports[`Storyshots Common Icon 1`] = `
           draggable="false"
           onClick={[Function]}
           srcSet="icons/icon-folder-public-64.png 1x, icons/icon-folder-public-64@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-folder-team-64.png 1x, icons/icon-folder-team-64@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-folder-zip-64.png 1x, icons/icon-folder-zip-64@2x.png 2x"
           style={
             Object {
               "borderColor": "rgba(0, 0, 0, 0.05)",

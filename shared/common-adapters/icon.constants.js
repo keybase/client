@@ -216,6 +216,36 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-file-dropping-48.png'),
   },
+  'icon-file-private-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-file-private-32.png'),
+  },
+  'icon-file-private-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-file-private-48.png'),
+  },
+  'icon-file-private-64': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-file-private-64.png'),
+  },
+  'icon-file-public-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-file-public-32.png'),
+  },
+  'icon-file-public-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-file-public-48.png'),
+  },
+  'icon-file-public-64': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-file-public-64.png'),
+  },
   'icon-file-txt-48': {
     isFont: false,
     extension: 'png',
@@ -246,10 +276,35 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-files-public-delete-64.png'),
   },
+  'icon-folder-copy-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-folder-copy-32.png'),
+  },
+  'icon-folder-copy-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-folder-copy-48.png'),
+  },
+  'icon-folder-move-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-folder-move-32.png'),
+  },
+  'icon-folder-move-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-folder-move-48.png'),
+  },
   'icon-folder-private-24': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-folder-private-24.png'),
+  },
+  'icon-folder-private-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-folder-private-32.png'),
   },
   'icon-folder-private-48': {
     isFont: false,
@@ -296,6 +351,11 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-folder-public-24.png'),
   },
+  'icon-folder-public-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-folder-public-32.png'),
+  },
   'icon-folder-public-48': {
     isFont: false,
     extension: 'png',
@@ -335,6 +395,56 @@ const iconMeta_ = {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-folder-public-success-negative-48.png'),
+  },
+  'icon-folder-team-24': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-folder-team-24.png'),
+  },
+  'icon-folder-team-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-folder-team-32.png'),
+  },
+  'icon-folder-team-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-folder-team-48.png'),
+  },
+  'icon-folder-team-64': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-folder-team-64.png'),
+  },
+  'icon-folder-zip-24': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-folder-zip-24.png'),
+  },
+  'icon-folder-zip-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-folder-zip-48.png'),
+  },
+  'icon-folder-zip-64': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-folder-zip-64.png'),
+  },
+  'icon-folder-zip-downloaded-24': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-folder-zip-downloaded-24.png'),
+  },
+  'icon-folder-zip-downloading-24': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-folder-zip-downloading-24.png'),
+  },
+  'icon-folder-zip-uploading-24': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-folder-zip-uploading-24.png'),
   },
   'icon-folders-private-success-48': {
     isFont: false,
