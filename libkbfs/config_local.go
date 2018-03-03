@@ -1285,12 +1285,8 @@ func (c *ConfigLocal) EnableJournaling(
 			return err
 		}
 
-		err = jServer.EnableExistingJournals(
+		return jServer.EnableExistingJournals(
 			ctx, session.UID, session.VerifyingKey, bws)
-		if err != nil {
-			return err
-		}
-		return nil
 	}()
 	switch {
 	case bcacheErr != nil && enableErr != nil:
