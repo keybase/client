@@ -23,16 +23,15 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
 
 const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}) => ({
   _loadMoreMessages: () => dispatch(Chat2Gen.createLoadOlderMessagesDueToScroll({conversationIDKey})),
-  _markInitiallyLoadedThreadAsRead: () => {
-    dispatch(Chat2Gen.createMarkInitiallyLoadedThreadAsRead({conversationIDKey}))
-  },
+  _markInitiallyLoadedThreadAsRead: () =>
+    dispatch(Chat2Gen.createMarkInitiallyLoadedThreadAsRead({conversationIDKey})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   conversationIDKey: stateProps.conversationIDKey,
   hasExtraRow: stateProps.hasExtraRow,
-  loadMoreMessages: dispatchProps._loadMoreMessages(),
-  markInitiallyLoadedThreadAsRead: () => dispatchProps._markInitiallyLoadedThreadAsRead(),
+  loadMoreMessages: dispatchProps._loadMoreMessages,
+  markInitiallyLoadedThreadAsRead: dispatchProps._markInitiallyLoadedThreadAsRead,
   messageOrdinals: isMobile
     ? stateProps.messageOrdinals.toList().reverse()
     : stateProps.messageOrdinals.toList(),
