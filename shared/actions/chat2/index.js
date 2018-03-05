@@ -1521,6 +1521,11 @@ const markThreadAsRead = (
 
   const conversationIDKey = Constants.getSelectedConversation(state)
 
+  if (!conversationIDKey) {
+    logger.info('marking read bail on no selected conversation')
+    return
+  }
+
   if (!state.chat2.metaMap.get(conversationIDKey)) {
     logger.info('marking read bail on not in meta list. preview?')
     return
