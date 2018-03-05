@@ -11,7 +11,7 @@ import {
   Usernames,
   ButtonBar,
 } from '../../../common-adapters'
-import {globalStyles, globalMargins, isMobile} from '../../../styles'
+import {globalColors, globalStyles, globalMargins, isMobile} from '../../../styles'
 import {roleIconMap} from '../../role-picker/index.meta'
 
 export type Props = {
@@ -102,7 +102,15 @@ export const TeamMember = (props: Props) => {
         </Text>
       </Box>
       <ButtonBar direction={isMobile ? 'column' : 'row'}>
-        <Button type="Primary" label="Chat" onClick={onChat} />
+        <Button label="Chat" type="Primary" onClick={onChat}>
+          <Icon
+            type="iconfont-chat"
+            style={{
+              marginRight: 8,
+              color: globalColors.white,
+            }}
+          />
+        </Button>
         {admin && <Button type="Secondary" label="Edit role" onClick={onEditMembership} />}
         {admin && (
           <Button

@@ -91,28 +91,21 @@ export default Team
 
 type CustomProps = {
   onOpenFolder: () => void,
-  onManageChat: () => void,
+  onChat: () => void,
   onShowMenu: () => void,
-  canManageChat: boolean,
+  canChat: boolean,
   canViewFolder: boolean,
 }
 
-const CustomComponent = ({
-  onOpenFolder,
-  onManageChat,
-  onShowMenu,
-  canManageChat,
-  canViewFolder,
-}: CustomProps) => (
-  <Box style={{...globalStyles.flexBoxRow, position: 'absolute', right: 0}}>
-    {!isMobile &&
-      canManageChat && (
-        <Icon
-          onClick={onManageChat}
-          style={{fontSize: isMobile ? 20 : 16, marginRight: globalMargins.tiny}}
-          type="iconfont-chat"
-        />
-      )}
+const CustomComponent = ({onOpenFolder, onChat, onShowMenu, canChat, canViewFolder}: CustomProps) => (
+  <Box style={{...globalStyles.flexBoxRow, position: 'absolute', alignItems: 'center', right: 0}}>
+    {canChat && (
+      <Icon
+        onClick={onChat}
+        style={{fontSize: isMobile ? 20 : 16, marginRight: globalMargins.tiny}}
+        type="iconfont-chat"
+      />
+    )}
     {!isMobile &&
       canViewFolder && (
         <Icon
@@ -126,8 +119,7 @@ const CustomComponent = ({
       type="iconfont-ellipsis"
       style={{
         fontSize: isMobile ? 20 : 16,
-        marginRight: isMobile ? globalMargins.xtiny : globalMargins.tiny,
-        padding: isMobile ? globalMargins.xtiny : 0,
+        marginRight: globalMargins.tiny,
       }}
     />
   </Box>
