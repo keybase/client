@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import Avatar, {type AvatarSize} from './avatar'
+import Avatar from './avatar'
 import Box from './box'
 import ClickableBox from './clickable-box'
 import Icon from './icon'
@@ -66,8 +66,10 @@ const NameWithIconVertical = (props: Props) => {
             colorFollowing={props.colorFollowing}
           />
         )}
-        {props.metaOne && <Text type={adapterProps.metaOneType}>{props.metaOne}</Text>}
-        {props.metaTwo && <Text type="BodySmall">{props.metaTwo}</Text>}
+        {typeof props.metaOne === 'string' && <Text type={adapterProps.metaOneType}>{props.metaOne}</Text>}
+        {typeof props.metaOne === 'object' && props.metaOne}
+        {typeof props.metaTwo === 'string' && <Text type="BodySmall">{props.metaTwo}</Text>}
+        {typeof props.metaTwo === 'object' && props.metaTwo}
       </Box>
     </BoxComponent>
   )
@@ -107,9 +109,13 @@ const NameWithIconHorizontal = (props: Props) => {
             colorFollowing={props.colorFollowing}
           />
         )}
-        <Text type="BodySmall">
-          {props.metaOne} {props.metaTwo && '·'} {props.metaTwo}
-        </Text>
+        <Box style={globalStyles.flexBoxRow}>
+          {typeof props.metaOne === 'string' && <Text type="BodySmall">{props.metaOne}</Text>}
+          {typeof props.metaOne === 'object' && props.metaOne}
+          {props.metaTwo && <Text type="BodySmall">&nbsp;·&nbsp;</Text>}
+          {typeof props.metaTwo === 'string' && <Text type="BodySmall">{props.metaTwo}</Text>}
+          {typeof props.metaTwo === 'object' && props.metaTwo}
+        </Box>
       </Box>
     </BoxComponent>
   )
@@ -149,8 +155,11 @@ const getAdapterProps = (size: Size, isAvatar: boolean) => {
           metaOneType: 'BodySemibold',
           iconSize: 112,
         }
-      } else {
-        // Non-avatar has no large case; fallthrough
+      }
+      return {
+        titleType: 'BodyBig',
+        metaOneType: isAvatar ? 'BodySemibold' : 'BodySmall',
+        iconSize: isAvatar ? 80 : 64,
       }
     default:
       return {
