@@ -49,6 +49,15 @@ run_redirector() {
     mkdir -p "$logdir"
     echo Starting root redirector at $rootmount.
     nohup "$krbin" "$rootmount" >> "$logdir/keybase.redirector.log" 2>&1 &
+    t=5
+    while ! mountpoint "$rootmount" &> /dev/null; do
+        sleep 1
+        t=$[t-1]
+        if [ $t -eq 0 ]; then
+            echo "Redirector hasn't started yet."
+            break
+        fi
+    done
   elif killall `basename "$krbin"` &> /dev/null ; then
     echo "Killing root redirector"
   fi
