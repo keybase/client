@@ -299,8 +299,6 @@ export default compose(
   withHandlers(props => {
     let fileInput
     return {
-      emojiPickerToggle: ({emojiPickerOpen, setEmojiPickerOpen}) => () =>
-        setEmojiPickerOpen(!emojiPickerOpen),
       filePickerFiles: props => () => (fileInput && fileInput.files) || [],
       filePickerOpen: props => () => {
         fileInput && fileInput.click()
