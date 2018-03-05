@@ -85,19 +85,21 @@ class Button extends React.Component<Props> {
       <ClickableBox style={containerStyle} onClick={onClick}>
         <Box
           style={{
-            ...globalStyles.flexBoxCenter,
             ...globalStyles.flexBoxRow,
+            ...globalStyles.flexBoxCenter,
             position: 'relative',
             height: '100%',
           }}
         >
-          {this.props.children}
-          <Text
-            type={this.props.small ? 'BodySemibold' : 'BodyBig'}
-            style={{...labelStyle, ...this.props.labelStyle}}
-          >
-            {this.props.label}
-          </Text>
+          {!this.props.waiting && this.props.children}
+          {!this.props.waiting && (
+            <Text
+              type={this.props.small ? 'BodySemibold' : 'BodyBig'}
+              style={{...labelStyle, ...this.props.labelStyle}}
+            >
+              {this.props.label}
+            </Text>
+          )}
           {this.props.waiting && <Progress small={this.props.small} />}
         </Box>
       </ClickableBox>
@@ -172,8 +174,6 @@ const DangerLabel = commonLabel
 const Custom = {}
 const CustomLabel = {color: globalColors.black_75, textAlign: 'center'}
 const progressStyle = small => (isMobile ? undefined : {height: small ? 20 : 20})
-const progress = isMobile
-  ? {marginTop: -regularHeight / 2}
-  : {...globalStyles.fillAbsolute, ...globalStyles.flexBoxCenter}
+const progress = isMobile ? null : {...globalStyles.fillAbsolute, ...globalStyles.flexBoxCenter}
 
 export default Button
