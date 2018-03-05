@@ -240,6 +240,22 @@ func (r *root) Lookup(
 }
 
 func main() {
+	if len(os.Args) != 2 {
+		fmt.Fprintf(os.Stderr, "Usage: %s <mountpoint>\n", os.Args[0])
+		os.Exit(1)
+	}
+
+	// Restrict the mountpoint to paths starting with "/keybase" (just
+	// check a prefix, to include things like "/keybase.staging").
+	// Since this is a suid binary, it is dangerous to allow arbitrary
+	// mountpoints.  TODO: Read a redirector mountpoint from a
+	// root-owned config file.
+	if !strings.HasPrefix(os.Args[1], "/keybase") {
+		fmt.Fprintf(os.Stderr, "ERROR: The redirector may only mount at "+
+			"/keybase; %s is an invalid mountpoint\n", os.Args[1])
+		os.Exit(1)
+	}
+
 	currUser, err := user.Current()
 	if err != nil {
 		panic(err)
