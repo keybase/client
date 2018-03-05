@@ -88,7 +88,8 @@ class Input extends React.PureComponent<Props, State> {
       return
     }
 
-    // Try and not style/render thrash
+    // Try and not style/render thrash. We bookkeep the length of the string that was used to go up a line and if we shorten our length
+    // we'll remeasure. It's very expensive to just remeasure as the user is typing. it causes a lot of actual layout thrashing
     if (this.props.smartAutoresize) {
       const rect = node.getBoundingClientRect()
       // width changed so throw out our data

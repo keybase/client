@@ -1,6 +1,5 @@
 // @flow
 import * as I from 'immutable'
-import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import * as RouteTree from '../../../../actions/route-tree'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
@@ -37,12 +36,10 @@ const mapStateToProps = (state: TypedState, {infoPanelOpen, conversationIDKey}) 
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {onToggleInfoPanel}) => ({
-  _onOpenFolder: (conversationIDKey: Types.ConversationIDKey) =>
-    dispatch(Chat2Gen.createOpenFolder({conversationIDKey})),
+const mapDispatchToProps = (dispatch: Dispatch, {onToggleInfoPanel, conversationIDKey}) => ({
+  _onOpenFolder: () => dispatch(Chat2Gen.createOpenFolder({conversationIDKey})),
   onBack: () => dispatch(RouteTree.navigateUp()),
-  onDebugDump: (conversationIDKey: Types.ConversationIDKey) =>
-    dispatch(Chat2Gen.createDebugDump({conversationIDKey})),
+  onDebugDump: () => dispatch(Chat2Gen.createDebugDump({conversationIDKey})),
   onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
   onToggleInfoPanel,
 })
@@ -54,8 +51,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   infoPanelOpen: stateProps.infoPanelOpen,
   muted: stateProps.muted,
   onBack: dispatchProps.onBack,
-  onDebugDump: () => dispatchProps.onDebugDump(stateProps._conversationIDKey),
-  onOpenFolder: () => dispatchProps._onOpenFolder(stateProps._conversationIDKey),
+  onDebugDump: dispatchProps.onDebugDump,
+  onOpenFolder: dispatchProps._onOpenFolder,
   onShowProfile: dispatchProps.onShowProfile,
   onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
   participants: stateProps._participants.toArray(),
