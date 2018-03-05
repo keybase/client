@@ -23,8 +23,8 @@ chmod 4755 "$krbin"
 redirector_enabled() {
   disableRedirector="false"
   if [ -r "$rootConfigFile" ] ; then
-    if keybase -c "$rootConfigFile" config get -d "$disableConfigKey" &> /dev/null ; then
-      disableRedirector="$(keybase -c "$rootConfigFile" config get -d "$disableConfigKey" 2> /dev/null)"
+    if keybase --standalone -c "$rootConfigFile" config get -d "$disableConfigKey" &> /dev/null ; then
+      disableRedirector="$(keybase --standalone -c "$rootConfigFile" config get -d "$disableConfigKey" 2> /dev/null)"
     fi
   fi
   [ "$disableRedirector" != "true" ]
@@ -47,14 +47,22 @@ run_redirector() {
   if redirector_enabled ; then
     logdir="${XDG_CACHE_HOME:-$HOME/.cache}/keybase"
     mkdir -p "$logdir"
+    echo Starting root redirector at $rootmount.
     nohup "$krbin" "$rootmount" >> "$logdir/keybase.redirector.log" 2>&1 &
   elif killall `basename "$krbin"` &> /dev/null ; then
     echo "Killing root redirector"
   fi
 }
 
-currlink="$(readlink -m "$rootmount")"
+currlink="$(readlink "$rootmount")"
 if [ -n "$currlink" ] ; then
+    # Follow the symlink one level deep if needed, to account for the
+    # mount1 link.
+    nextlink="$(readlink "$currlink")"
+    if [ -n "$nextlink" ]; then
+        currlink="$nextlink"
+    fi
+
     # Upgrade from a rootlink-based build.
     if rm "$rootmount" &> /dev/null ; then
         echo Replacing old $rootmount symlink.
@@ -70,7 +78,6 @@ if [ -n "$currlink" ] ; then
     # `run_keybase`.
     for m in $mounts; do
       if [ "$m" = "$currlink" ]; then
-        echo Starting root redirector at $rootmount.
         run_redirector
         break
       fi
@@ -88,7 +95,7 @@ elif [ -d "$rootmount" ] ; then
         echo You must run run_keybase to restore file system access.
     elif killall `basename "$krbin"` &> /dev/null ; then
         # Restart the root redirector in case the binary has been updated.
-        fusermount -u "$rootmount"
+        fusermount -u "$rootmount" &> /dev/null
         run_redirector
     fi
 fi
