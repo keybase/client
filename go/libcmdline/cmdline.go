@@ -172,6 +172,9 @@ func (p CommandLine) GetPinentry() string {
 func (p CommandLine) GetAppType() libkb.AppType {
 	return libkb.DesktopAppType
 }
+func (p CommandLine) GetSlowGregorConn() (bool, bool) {
+	return p.GetBool("slow-gregor-conn", true)
+}
 func (p CommandLine) GetGString(s string) string {
 	return p.ctx.GlobalString(s)
 }
@@ -575,6 +578,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.BoolFlag{
 			Name:  "remember-passphrase",
 			Usage: "Remember keybase passphrase",
+		},
+		cli.BoolFlag{
+			Name:  "slow-gregor-conn",
+			Usage: "Slow responses from gregor for testing",
 		},
 	}
 	if extraFlags != nil {

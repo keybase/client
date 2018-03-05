@@ -174,17 +174,20 @@ func TestGregorForwardToElectron(t *testing.T) {
 		t.Fatalf("never got an IBM")
 	}
 
-	select {
-	case oobm := <-em.oobmCh:
-		if oobm.System_ != "baz" {
-			t.Fatalf("Got wrong OOBM system: %s", oobm.System_)
+	pollForTrue(t, tc.G, func(i int) bool {
+		select {
+		case oobm := <-em.oobmCh:
+			if oobm.System_ != "baz" {
+				return false
+			}
+			if s := string(oobm.Body_); s != "bip" {
+				return false
+			}
+			return true
+		case <-time.After(3 * time.Second * libkb.CITimeMultiplier(tc.G)):
+			return false
 		}
-		if s := string(oobm.Body_); s != "bip" {
-			t.Fatalf("Got wrong OOBM body: %s", s)
-		}
-	case <-time.After(3 * time.Second):
-		t.Fatalf("never got an OOBM")
-	}
+	})
 
 	svc.SimulateGregorCrashForTesting()
 	select {

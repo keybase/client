@@ -36,6 +36,7 @@ const GregorRequestTimeout time.Duration = 30 * time.Second
 const GregorConnectionShortRetryInterval time.Duration = 2 * time.Second
 const GregorConnectionLongRetryInterval time.Duration = 10 * time.Second
 const GregorGetClientTimeout time.Duration = 4 * time.Second
+const slowConnSleepTime = 1 * time.Second
 
 type IdentifyUIHandler struct {
 	libkb.Contextified
@@ -852,6 +853,11 @@ func (g *gregorHandler) broadcastMessageHandler() {
 	ctx := context.Background()
 	for {
 		m := <-g.broadcastCh
+		if g.G().GetEnv().GetSlowGregorConn() {
+			g.Debug(ctx, "[slow conn]: sleeping")
+			time.Sleep(time.Duration(slowConnSleepTime))
+			g.Debug(ctx, "[slow conn]: awake")
+		}
 		err := g.broadcastMessageOnce(ctx, m)
 		if err != nil {
 			g.Debug(context.Background(), "broadcast error: %v", err)
