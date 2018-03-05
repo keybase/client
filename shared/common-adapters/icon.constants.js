@@ -276,16 +276,6 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-folder-private-has-stuff-32.png'),
   },
-  'icon-folder-private-open-24': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-folder-private-open-24.png'),
-  },
-  'icon-folder-private-open-32': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-folder-private-open-32.png'),
-  },
   'icon-folder-private-success-negative-48': {
     isFont: false,
     extension: 'png',
