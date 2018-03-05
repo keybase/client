@@ -2,6 +2,7 @@
 import * as React from 'react'
 import Avatar, {type AvatarSize} from './avatar'
 import Box from './box'
+import ClickableBox from './clickable-box'
 import Icon from './icon'
 import {type IconType} from './icon.constants'
 import Text from './text'
@@ -14,6 +15,7 @@ type Props = {
   following?: boolean,
   followsMe?: boolean,
   horizontal?: boolean,
+  colorFollowing?: boolean,
   icon?: IconType,
   title?: string, // for non-users
   metaOne?: string | React.Node,
@@ -32,9 +34,10 @@ const NameWithIconVertical = (props: Props) => {
   const isAvatar = !!(props.username || props.teamname)
   const isIcon = !isAvatar && !!props.icon
   const isUser = !!props.username
-  const adapterProps = getAdapterProps(props.size || 'default', props.horizontal, isAvatar)
+  const adapterProps = getAdapterProps(props.size || 'default', isAvatar)
+  const BoxComponent = props.onClick ? ClickableBox : Box
   return (
-    <Box style={{...containerStyle, ...props.containerStyle}}>
+    <BoxComponent onClick={props.onClick} style={{...containerStyle, ...props.containerStyle}}>
       {isAvatar && (
         <Avatar
           size={adapterProps.iconSize}
@@ -60,13 +63,13 @@ const NameWithIconVertical = (props: Props) => {
           <Usernames
             type={adapterProps.titleType}
             users={[{username: props.username, following: props.following, you: props.isYou}]}
-            colorFollowing={props.hasOwnProperty('following')}
+            colorFollowing={props.colorFollowing}
           />
         )}
         {props.metaOne && <Text type={adapterProps.metaOneType}>{props.metaOne}</Text>}
         {props.metaTwo && <Text type="BodySmall">{props.metaTwo}</Text>}
       </Box>
-    </Box>
+    </BoxComponent>
   )
 }
 
@@ -75,8 +78,12 @@ const NameWithIconHorizontal = (props: Props) => {
   const isIcon = !isAvatar && !!props.icon
   const isUser = !!props.username
   const commonHeight = isMobile ? 48 : 32
+  const BoxComponent = props.onClick ? ClickableBox : Box
   return (
-    <Box style={{...globalStyles.flexBoxRow, ...props.containerStyle}}>
+    <BoxComponent
+      onClick={props.onClick}
+      style={{...globalStyles.flexBoxRow, alignItems: 'center', ...props.containerStyle}}
+    >
       {isAvatar && (
         <Avatar
           size={commonHeight}
@@ -91,20 +98,20 @@ const NameWithIconHorizontal = (props: Props) => {
           style={{marginRight: 16, fontSize: commonHeight, width: commonHeight, height: commonHeight}}
         />
       )}
-      <Box style={{...globalStyles.flexBoxColumn, height: commonHeight, ...props.metaStyle}}>
+      <Box style={{...globalStyles.flexBoxColumn, ...props.metaStyle}}>
         {!isUser && <Text type="BodySemibold">{props.title}</Text>}
         {isUser && (
           <Usernames
             type="BodySemibold"
             users={[{username: props.username, following: props.following, you: props.isYou}]}
-            colorFollowing={props.hasOwnProperty('following')}
+            colorFollowing={props.colorFollowing}
           />
         )}
         <Text type="BodySmall">
           {props.metaOne} {props.metaTwo && '·'} {props.metaTwo}
         </Text>
       </Box>
-    </Box>
+    </BoxComponent>
   )
 }
 
@@ -117,8 +124,7 @@ const NameWithIcon = (props: Props) => {
 
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
-  ...globalStyles.flexBoxCenter,
-  padding: 24,
+  alignItems: 'center',
 }
 
 const metaStyle = {
@@ -128,14 +134,7 @@ const metaStyle = {
 }
 
 // Get props to pass to subcomponents (Text, Avatar, etc.)
-const getAdapterProps = (size: Size, horizontal: boolean, isAvatar: boolean) => {
-  if (horizontal) {
-    return {
-      titleType: 'BodySemibold',
-      metaOneType: 'BodySmall',
-      iconSize: isMobile ? 48 : 32,
-    }
-  }
+const getAdapterProps = (size: Size, isAvatar: boolean) => {
   switch (size) {
     case 'small':
       return {
