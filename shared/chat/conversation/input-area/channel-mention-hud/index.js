@@ -9,7 +9,7 @@ import {
   withStateHandlers,
 } from '../../../../util/container'
 import {Box, ClickableBox, List, Text} from '../../../../common-adapters/index'
-import {globalColors, globalMargins, globalStyles, isMobile} from '../../../../styles'
+import {globalColors, globalMargins, globalStyles, isMobile, collapseStyles} from '../../../../styles'
 
 type Props<D: {channelName: string, selected: boolean}> = {
   rowRenderer: (i: number, d: D) => React$Element<*>,
@@ -48,7 +48,7 @@ const MentionRowRenderer = ({channelName, selected, onClick, onHover}: MentionDa
 // This is important if you type a filter that gives you no results and you press enter for instance
 const Hud = ({style, data, rowRenderer, selectedIndex}: Props<*>) =>
   data.length ? (
-    <Box style={{...hudStyle, ...style}}>
+    <Box style={collapseStyles([hudStyle, style])}>
       <List
         items={data}
         renderItem={rowRenderer}

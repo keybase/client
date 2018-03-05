@@ -98,7 +98,7 @@ type MentionHudProps = {
   selectUpCounter: number,
   selectDownCounter: number,
   filter: string,
-  style?: ?Object,
+  style?: any,
 }
 
 const _withProps = ({users, filter, selectedIndex}) => ({
