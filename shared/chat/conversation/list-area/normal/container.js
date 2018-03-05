@@ -1,6 +1,5 @@
 // @flow
 import * as Constants from '../../../../constants/chat2'
-import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import ListComponent from '.'
 import {
@@ -22,10 +21,9 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _loadMoreMessages: (conversationIDKey: Types.ConversationIDKey) =>
-    dispatch(Chat2Gen.createLoadOlderMessagesDueToScroll({conversationIDKey})),
-  _markInitiallyLoadedThreadAsRead: (conversationIDKey: Types.ConversationIDKey) => {
+const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}) => ({
+  _loadMoreMessages: () => dispatch(Chat2Gen.createLoadOlderMessagesDueToScroll({conversationIDKey})),
+  _markInitiallyLoadedThreadAsRead: () => {
     dispatch(Chat2Gen.createMarkInitiallyLoadedThreadAsRead({conversationIDKey}))
   },
 })
@@ -33,11 +31,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   conversationIDKey: stateProps.conversationIDKey,
   hasExtraRow: stateProps.hasExtraRow,
-  loadMoreMessages: () => {
-    stateProps.conversationIDKey && dispatchProps._loadMoreMessages(stateProps.conversationIDKey)
-  },
-  markInitiallyLoadedThreadAsRead: () =>
-    dispatchProps._markInitiallyLoadedThreadAsRead(stateProps.conversationIDKey),
+  loadMoreMessages: dispatchProps._loadMoreMessages(),
+  markInitiallyLoadedThreadAsRead: () => dispatchProps._markInitiallyLoadedThreadAsRead(),
   messageOrdinals: isMobile
     ? stateProps.messageOrdinals.toList().reverse()
     : stateProps.messageOrdinals.toList(),
