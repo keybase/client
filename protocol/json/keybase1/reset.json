@@ -43,7 +43,10 @@
       "name": "ResetPrev",
       "fields": [
         {
-          "type": "KID",
+          "type": [
+            null,
+            "KID"
+          ],
           "name": "eldestKID",
           "jsonkey": "eldest_kid"
         },
