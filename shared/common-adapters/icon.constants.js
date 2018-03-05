@@ -91,6 +91,11 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-dns-48.png'),
   },
+  'icon-dropping-file-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-dropping-file-48.png'),
+  },
   'icon-facebook-continue': {
     isFont: false,
     extension: 'png',
@@ -211,15 +216,15 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-file-downloading-24.png'),
   },
-  'icon-file-dropping-48': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-file-dropping-48.png'),
-  },
   'icon-file-txt-48': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-file-txt-48.png'),
+  },
+  'icon-file-uploading-24': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-file-uploading-24.png'),
   },
   'icon-file-uploading-48': {
     isFont: false,

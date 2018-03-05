@@ -19171,6 +19171,23 @@ exports[`Storyshots Common Icon 1`] = `
           className={undefined}
           draggable="false"
           onClick={[Function]}
+          srcSet="icons/icon-file-uploading-24.png 1x, icons/icon-file-uploading-24@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
           srcSet="icons/icon-folder-private-24.png 1x, icons/icon-folder-private-24@2x.png 2x"
           style={
             Object {
@@ -21527,6 +21544,23 @@ exports[`Storyshots Common Icon 1`] = `
           className={undefined}
           draggable="false"
           onClick={[Function]}
+          srcSet="icons/icon-dropping-file-48.png 1x, icons/icon-dropping-file-48@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
           srcSet="icons/icon-facebook-logo-48.png 1x, icons/icon-facebook-logo-48@2x.png 2x"
           style={
             Object {
@@ -21545,23 +21579,6 @@ exports[`Storyshots Common Icon 1`] = `
           draggable="false"
           onClick={[Function]}
           srcSet="icons/icon-file-48.png 1x, icons/icon-file-48@2x.png 2x"
-          style={
-            Object {
-              "borderColor": "rgba(0, 0, 0, 0.05)",
-              "borderStyle": "solid",
-              "borderWidth": 1,
-              "cursor": "pointer",
-              "margin": 5,
-              "userSelect": "none",
-            }
-          }
-          title="hint text"
-        />
-        <img
-          className={undefined}
-          draggable="false"
-          onClick={[Function]}
-          srcSet="icons/icon-file-dropping-48.png 1x, icons/icon-file-dropping-48@2x.png 2x"
           style={
             Object {
               "borderColor": "rgba(0, 0, 0, 0.05)",
