@@ -15,11 +15,11 @@ type Props = {
   followsMe?: boolean,
   horizontal?: boolean,
   icon?: IconType,
-  title: string,
+  title?: string, // for non-users
   metaOne?: string | React.Node,
   metaTwo?: string | React.Node,
   onClick?: () => void,
-  size: Size,
+  size?: Size,
   containerStyle?: any,
   metaStyle?: any,
   iconStyle?: any,
@@ -28,11 +28,7 @@ type Props = {
   username?: string,
 }
 
-const NameWithIcon = (props: Props) => {
-  if (props.username && props.teamname) {
-    throw new Error('Can only use username or teamname in NameWithIcon')
-  }
-
+const NameWithIconVertical = (props: Props) => {
   const isAvatar = !!(props.username || props.teamname)
   const isIcon = !isAvatar && !!props.icon
   const isUser = !!props.username
@@ -74,6 +70,51 @@ const NameWithIcon = (props: Props) => {
   )
 }
 
+const NameWithIconHorizontal = (props: Props) => {
+  const isAvatar = !!(props.username || props.teamname)
+  const isIcon = !isAvatar && !!props.icon
+  const isUser = !!props.username
+  const commonHeight = isMobile ? 48 : 32
+  return (
+    <Box style={{...globalStyles.flexBoxRow, ...props.containerStyle}}>
+      {isAvatar && (
+        <Avatar
+          size={commonHeight}
+          username={props.username}
+          teamname={props.teamname}
+          style={{marginRight: 16}}
+        />
+      )}
+      {isIcon && (
+        <Icon
+          type={props.icon}
+          style={{marginRight: 16, fontSize: commonHeight, width: commonHeight, height: commonHeight}}
+        />
+      )}
+      <Box style={{...globalStyles.flexBoxColumn, height: commonHeight, ...props.metaStyle}}>
+        {!isUser && <Text type="BodySemibold">{props.title}</Text>}
+        {isUser && (
+          <Usernames
+            type="BodySemibold"
+            users={[{username: props.username, following: props.following, you: props.isYou}]}
+            colorFollowing={props.hasOwnProperty('following')}
+          />
+        )}
+        <Text type="BodySmall">
+          {props.metaOne} {props.metaTwo && '·'} {props.metaTwo}
+        </Text>
+      </Box>
+    </Box>
+  )
+}
+
+const NameWithIcon = (props: Props) => {
+  if (props.username && props.teamname) {
+    throw new Error('Can onlt use username or teamname in NameWithIcon; got both')
+  }
+  return props.horizontal ? <NameWithIconHorizontal {...props} /> : <NameWithIconVertical {...props} />
+}
+
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
   ...globalStyles.flexBoxCenter,
@@ -89,18 +130,10 @@ const metaStyle = {
 // Get props to pass to subcomponents (Text, Avatar, etc.)
 const getAdapterProps = (size: Size, horizontal: boolean, isAvatar: boolean) => {
   if (horizontal) {
-    if (isMobile) {
-      return {
-        titleType: 'BodySemibold',
-        metaOneType: 'BodySmall',
-        iconSize: 48,
-      }
-    } else {
-      return {
-        titleType: 'BodySemibold',
-        metaOneType: 'BodySmall',
-        iconSize: 32,
-      }
+    return {
+      titleType: 'BodySemibold',
+      metaOneType: 'BodySmall',
+      iconSize: isMobile ? 48 : 32,
     }
   }
   switch (size) {
@@ -122,7 +155,7 @@ const getAdapterProps = (size: Size, horizontal: boolean, isAvatar: boolean) => 
       }
     default:
       return {
-        titleType: 'Header',
+        titleType: 'BodyBig',
         metaOneType: isAvatar ? 'BodySemibold' : 'BodySmall',
         iconSize: isAvatar ? 80 : 64,
       }
