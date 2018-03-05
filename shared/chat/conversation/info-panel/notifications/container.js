@@ -64,6 +64,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  setDisplayName('LifecycleNotifications'),
   withStateHandlers(
     props => ({
       channelWide: props._storeChannelWide,
@@ -148,6 +149,5 @@ export default compose(
         )
       }
     },
-  }),
-  setDisplayName('LifecycleNotifications')
+  })
 )(Notifications)
