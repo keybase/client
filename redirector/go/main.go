@@ -245,14 +245,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Restrict the mountpoint to paths starting with "/keybase" (just
-	// check a prefix, to include things like "/keybase.staging").
+	// Restrict the mountpoint to paths starting with "/keybase".
 	// Since this is a suid binary, it is dangerous to allow arbitrary
 	// mountpoints.  TODO: Read a redirector mountpoint from a
 	// root-owned config file.
-	if !strings.HasPrefix(os.Args[1], "/keybase") {
+	r := newRoot()
+	if os.Args[1] != fmt.Sprintf("/%s", r.runmodeStr) {
 		fmt.Fprintf(os.Stderr, "ERROR: The redirector may only mount at "+
-			"/keybase; %s is an invalid mountpoint\n", os.Args[1])
+			"/%s; %s is an invalid mountpoint\n", r.runmodeStr, os.Args[1])
 		os.Exit(1)
 	}
 
@@ -309,5 +309,5 @@ func main() {
 			return context.Background()
 		},
 	})
-	srv.Serve(newRoot())
+	srv.Serve(r)
 }
