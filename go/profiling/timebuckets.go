@@ -28,7 +28,7 @@ func NewTimeBuckets(clock clockwork.Clock, log logger.Logger) *TimeBuckets {
 	}
 }
 
-func (t *TimeBuckets) Record(bucketName string) finFn {
+func (t *TimeBuckets) Record(bucketName string) FinFn {
 	start := t.clock.Now()
 	return func() {
 		duration := t.clock.Since(start)
@@ -48,7 +48,7 @@ func (t *TimeBuckets) Log(ctx context.Context, bucketName string) {
 	t.log.CDebugf(ctx, "%s [time=%s]", bucketName, t.Get(bucketName))
 }
 
-type finFn func()
+type FinFn func()
 
 func WithTimeBuckets(ctx context.Context, clock clockwork.Clock, log logger.Logger) (context.Context, *TimeBuckets) {
 	v, ok := ctx.Value(ctxKey).(*TimeBuckets)
