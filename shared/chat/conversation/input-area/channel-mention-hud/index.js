@@ -90,25 +90,21 @@ const MentionHud = compose(
         nextProps.setSelectedIndex(0)
       }
       if (nextProps.data.length && nextProps.data.length !== this.props.data.length) {
-        nextProps.setSelectedIndex(n => Math.min(n, nextProps.data.length - 1))
+        nextProps.setSelectedIndex(Math.min(nextProps.selectedIndex, nextProps.data.length - 1))
       }
 
       if (nextProps.selectUpCounter !== this.props.selectUpCounter) {
-        nextProps.setSelectedIndex(n => {
-          const next = n - 1
-          if (next < 0) {
-            return Math.max(nextProps.data.length - 1, 0)
-          }
-          return next
-        })
+        let next = nextProps.selectedIndex - 1
+        if (next < 0) {
+          next = Math.max(nextProps.data.length - 1, 0)
+        }
+        nextProps.setSelectedIndex(next)
       } else if (nextProps.selectDownCounter !== this.props.selectDownCounter) {
-        nextProps.setSelectedIndex(n => {
-          const next = n + 1
-          if (next >= nextProps.data.length) {
-            return 0
-          }
-          return next
-        })
+        let next = nextProps.selectedIndex + 1
+        if (next >= nextProps.data.length) {
+          next = 0
+        }
+        nextProps.setSelectedIndex(next)
       }
 
       if (nextProps.pickSelectedChannelCounter !== this.props.pickSelectedChannelCounter) {
