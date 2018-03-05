@@ -54,7 +54,7 @@ if (__DEV__) {
   config.userTimings = true
 
   // uncomment this to watch the RN bridge traffic: https://github.com/facebook/react-native/commit/77e48f17824870d30144a583be77ec5c9cf9f8c5
-  MessageQueue.spy(msg => console._log('queuespy: ', msg))
+  // MessageQueue.spy(msg => console._log('queuespy: ', msg))
 }
 
 if (PERF) {
