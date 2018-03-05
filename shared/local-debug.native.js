@@ -6,7 +6,7 @@
 import {NativeModules} from 'react-native'
 import * as DevGen from './actions/dev-gen'
 import noop from 'lodash/noop'
-import MessageQueue from 'react-native/Libraries/BatchedBridge/MessageQueue.js'
+// import MessageQueue from 'react-native/Libraries/BatchedBridge/MessageQueue.js'
 
 const nativeBridge = NativeModules.KeybaseEngine || {test: 'fallback'}
 
