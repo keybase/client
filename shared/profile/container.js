@@ -1,6 +1,6 @@
 // @flow
 import logger from '../logger'
-import * as FSGen from '../actions/fs-gen'
+import * as KBFSGen from '../actions/kbfs-gen'
 import * as TrackerGen from '../actions/tracker-gen'
 import * as ProfileGen from '../actions/profile-gen'
 import * as Constants from '../constants/tracker'
@@ -82,7 +82,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState}: OwnProps) => ({
     ),
   onEditAvatar: () => dispatch(navigateAppend(['editAvatar'])),
   onEditProfile: () => dispatch(navigateAppend(['editProfile'])),
-  onFolderClick: folder => dispatch(FSGen.createOpenInFileUI({path: folder.path})),
+  onFolderClick: folder => dispatch(KBFSGen.createOpen({path: folder.path})),
   onFollow: (username: string) => dispatch(TrackerGen.createFollow({localIgnore: false, username})),
   onMissingProofClick: (missingProof: MissingProof) =>
     dispatch(ProfileGen.createAddProof({platform: missingProof.type})),

@@ -1,6 +1,6 @@
 // @flow
 import * as ChatGen from '../../actions/chat-gen'
-import * as FSGen from '../../actions/fs-gen'
+import * as KBFSGen from '../../actions/kbfs-gen'
 import * as FavoriteGen from '../../actions/favorite-gen'
 import React, {Component} from 'react'
 import Render from './render'
@@ -133,7 +133,7 @@ const mapDispatchToProps = (dispatch: any) => ({
   ignoreFolder: path => dispatch(FavoriteGen.createFavoriteIgnore({path})),
   navigateAppend: route => dispatch(navigateAppend(route)),
   navigateUp: () => dispatch(navigateUp()),
-  openInKBFS: path => dispatch(FSGen.createOpenInFileUI({path})),
+  openInKBFS: path => dispatch(KBFSGen.createOpen({path})),
   openTlfInChat: tlf => dispatch(ChatGen.createOpenTlfInChat({tlf})),
 })
 

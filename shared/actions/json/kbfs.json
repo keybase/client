@@ -10,6 +10,12 @@
         "error": "Error"
       }
     },
+    "open": {
+      "path?": "string"
+    },
+    "openInFileUI": {
+      "path": "string"
+    },
     "fuseStatus": {},
     "fuseStatusUpdate": {
       "prevStatus": "?RPCTypes.FuseStatus",

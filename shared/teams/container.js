@@ -1,6 +1,6 @@
 // @flow
 import * as I from 'immutable'
-import * as FSGen from '../actions/fs-gen'
+import * as KBFSGen from '../actions/kbfs-gen'
 import * as GregorGen from '../actions/gregor-gen'
 import * as TeamsGen from '../actions/teams-gen'
 import Teams from './main'
@@ -68,8 +68,7 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   },
   onManageChat: (teamname: Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
-  onOpenFolder: (teamname: Teamname) =>
-    dispatch(FSGen.createOpenInFileUI({path: `/keybase/team/${teamname}`})),
+  onOpenFolder: (teamname: Teamname) => dispatch(KBFSGen.createOpen({path: `/keybase/team/${teamname}`})),
   onReadMore: () => {
     openURL('https://keybase.io/blog/introducing-keybase-teams')
   },

@@ -6,7 +6,7 @@ import {textMessageEditable} from '../../../constants/chat'
 import {getCanPerform} from '../../../constants/teams'
 import * as Types from '../../../constants/types/chat'
 import * as ChatGen from '../../../actions/chat-gen'
-import * as FSGen from '../../../actions/fs-gen'
+import * as KBFSGen from '../../../actions/kbfs-gen'
 import {navigateAppend} from '../../../actions/route-tree'
 import {fileUIName} from '../../../constants/platform'
 import {connect} from 'react-redux'
@@ -180,7 +180,7 @@ const mapDispatchToAttachmentProps = (
   const {savedPath} = localMessageState
   const {key: messageKey} = message
   return {
-    onOpenInFileUI: () => savedPath && dispatch(FSGen.createOpenInFileUI({path: savedPath})),
+    onOpenInFileUI: () => savedPath && dispatch(KBFSGen.createOpenInFileUI({path: savedPath})),
     onDownloadAttachment: () => dispatch(ChatGen.createSaveAttachment({messageKey})),
     onDeleteMessage: (message: Types.Message) =>
       dispatch(ChatGen.createDeleteMessage({message: routeProps.get('message')})),

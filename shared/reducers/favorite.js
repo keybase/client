@@ -139,6 +139,8 @@ export default function(
     case KBFSGen.installKBFSResult:
     case KBFSGen.list:
     case KBFSGen.listed:
+    case KBFSGen.open:
+    case KBFSGen.openInFileUI:
     case KBFSGen.uninstallKBFS:
     case KBFSGen.uninstallKBFSResult:
       return state

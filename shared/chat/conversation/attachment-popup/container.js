@@ -1,7 +1,7 @@
 // @flow
 import * as Types from '../../../constants/types/chat'
 import * as ChatGen from '../../../actions/chat-gen'
-import * as FSGen from '../../../actions/fs-gen'
+import * as KBFSGen from '../../../actions/kbfs-gen'
 import RenderAttachmentPopup from './'
 import {compose, withState, withProps, connect, type TypedState} from '../../../util/container'
 import {lookupMessageProps} from '../../shared'
@@ -42,7 +42,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, navigateAppend}) =>
     }
     dispatch(ChatGen.createSaveAttachment({messageKey: message.key}))
   },
-  onOpenInFileUI: (path: string) => dispatch(FSGen.createOpenInFileUI({path})),
+  onOpenInFileUI: (path: string) => dispatch(KBFSGen.createOpenInFileUI({path})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {

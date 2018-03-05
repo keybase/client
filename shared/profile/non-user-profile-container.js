@@ -1,5 +1,5 @@
 // @flow
-import * as FSGen from '../actions/fs-gen'
+import * as KBFSGen from '../actions/kbfs-gen'
 import {connect, type TypedState} from '../util/container'
 import {privateFolderWithUsers} from '../constants/config'
 import {createStartConversation} from '../actions/chat-gen'
@@ -16,7 +16,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   onBack: () => dispatch(navigateUp()),
   onOpenPrivateFolder: (myUsername, username) => {
     if (myUsername && username) {
-      dispatch(FSGen.createOpenInFileUI({path: privateFolderWithUsers([username, myUsername])}))
+      dispatch(KBFSGen.createOpen({path: privateFolderWithUsers([username, myUsername])}))
     }
   },
   onStartChat: (myUsername, username) => {

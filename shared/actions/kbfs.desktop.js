@@ -11,7 +11,9 @@ import path from 'path'
 import {ExitCodeFuseKextPermissionError} from '../constants/favorite'
 import {delay} from 'redux-saga'
 import {execFile} from 'child_process'
-import {isWindows} from '../constants/platform'
+import {folderTab} from '../constants/tabs'
+import {isLinux, isWindows} from '../constants/platform'
+import {navigateTo, switchTo} from './route-tree'
 import type {TypedState} from '../constants/reducer'
 
 // pathToURL takes path and converts to (file://) url.
@@ -295,7 +297,32 @@ function* openWithCurrentMountDir(openPath: string): Saga.SagaGenerator<any, any
   yield Saga.call(_open, resolvedPath)
 }
 
+function* openSaga(action: KBFSGen.OpenPayload): Saga.SagaGenerator<any, any> {
+  const openPath = action.payload.path || Constants.defaultKBFSPath
+  const state: TypedState = yield Saga.select()
+  const enabled = state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted
+
+  if (isLinux || enabled) {
+    logger.info('openInKBFS:', openPath)
+    yield* openWithCurrentMountDir(openPath)
+  } else {
+    yield Saga.put(navigateTo([], [folderTab]))
+    yield Saga.put(switchTo([folderTab]))
+  }
+}
+
+function openInFileUISaga({payload: {path}}: KBFSGen.OpenInFileUIPayload, state: TypedState) {
+  const enabled = state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted
+  if (isLinux || enabled) {
+    return Saga.call(_open, path)
+  } else {
+    return Saga.sequentially([Saga.put(navigateTo([], [folderTab])), Saga.put(switchTo([folderTab]))])
+  }
+}
+
 function* kbfsSaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.safeTakeEvery(KBFSGen.open, openSaga)
+  yield Saga.safeTakeEveryPure(KBFSGen.openInFileUI, openInFileUISaga)
   yield Saga.safeTakeLatest(KBFSGen.fuseStatus, fuseStatusSaga)
   yield Saga.safeTakeLatestPure(KBFSGen.fuseStatusUpdate, fuseStatusUpdateSaga)
   if (isWindows) {

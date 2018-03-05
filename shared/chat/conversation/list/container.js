@@ -2,7 +2,7 @@
 import * as Constants from '../../../constants/chat'
 import * as Types from '../../../constants/types/chat'
 import * as ChatGen from '../../../actions/chat-gen'
-import * as FSGen from '../../../actions/fs-gen'
+import * as KBFSGen from '../../../actions/kbfs-gen'
 import * as Selectors from '../../../constants/selectors'
 import * as I from 'immutable'
 import HiddenString from '../../../util/hidden-string'
@@ -116,7 +116,7 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   onEditMessage: (message: Types.Message, body: string) => {
     dispatch(ChatGen.createEditMessage({message, text: new HiddenString(body)}))
   },
-  onOpenInFileUI: (path: string) => dispatch(FSGen.createOpenInFileUI({path})),
+  onOpenInFileUI: (path: string) => dispatch(KBFSGen.createOpenInFileUI({path})),
   onMessageAction: (
     message: Types.Message,
     localMessageState?: Types.LocalMessageState,
