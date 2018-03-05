@@ -64,6 +64,7 @@ const actionTransformMap: {[key: string]: ActionTransformer<*, *>} = {
   [GregorGen.pushOOBM]: nullTransform,
   [AppGen.changedFocus]: nullTransform,
   [Chat2Gen.setLoading]: a => a,
+  [Chat2Gen.clearLoading]: a => a,
   [Chat2Gen.updateTypers]: nullTransform,
   [ConfigGen.globalError]: a => a,
 }
