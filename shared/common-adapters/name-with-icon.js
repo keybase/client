@@ -113,7 +113,7 @@ const getAdapterProps = (size: Size, horizontal: boolean, isAvatar: boolean) => 
     case 'large':
       if (isAvatar) {
         return {
-          titleType: 'Header',
+          titleType: 'HeaderBig',
           metaOneType: 'BodySemibold',
           iconSize: 112,
         }
