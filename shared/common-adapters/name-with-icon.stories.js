@@ -7,16 +7,23 @@ import NameWithIcon from './name-with-icon'
 const load = () => {
   storiesOf('Common', module).add('Name with icon', () => (
     <Box>
-      <NameWithIcon username="ayoubd" metaOne="ayoubd" metaTwo="Danny Ayoub" size={64} />
-      <NameWithIcon teamname="keybasefriends" metaOne="keybasefriends" metaTwo="786 members" size={64} />
+      <NameWithIcon username="ayoubd" isYou={true} title="ayoubd" metaOne="Danny Ayoub" size="default" />
+      <NameWithIcon teamname="keybasefriends" title="keybasefriends" metaOne="786 members" size="default" />
       <NameWithIcon
         username="cecileb"
-        metaOne="cecileb"
-        metaTwo="Cécile Boucheron"
-        size={64}
+        title="cecileb"
+        metaOne="Cécile Boucheron"
+        size="large"
         following={true}
         followsMe={true}
       />
+      <NameWithIcon
+        icon="iconfont-crown-admin"
+        title="Owner"
+        metaOne="Full power"
+        metaTwo="Can do everything"
+      />
+      <NameWithIcon username="chrisnojima" title="chrisnojima" metaOne="Chris Nojima" followsMe={true} />
     </Box>
   ))
 }
