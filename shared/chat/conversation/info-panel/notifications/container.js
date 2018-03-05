@@ -29,11 +29,10 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _onMuteConversation: (conversationIDKey: Types.ConversationIDKey, muted: boolean) =>
+const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}: OwnProps) => ({
+  _onMuteConversation: (muted: boolean) =>
     dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted})),
   _updateNotifications: (
-    conversationIDKey: Types.ConversationIDKey,
     desktop: Types.NotificationsType,
     mobile: Types.NotificationsType,
     channelWide: boolean
@@ -50,8 +49,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   return {
-    _muteConversation: (muted: boolean) =>
-      dispatchProps._onMuteConversation(ownProps.conversationIDKey, muted),
+    _muteConversation: (muted: boolean) => dispatchProps._onMuteConversation(muted),
     _storeChannelWide: stateProps.channelWide,
     _storeDesktop: stateProps.desktop,
     _storeMobile: stateProps.mobile,
@@ -60,7 +58,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
       desktop: Types.NotificationsType,
       mobile: Types.NotificationsType,
       channelWide: boolean
-    ) => dispatchProps._updateNotifications(ownProps.conversationIDKey, desktop, mobile, channelWide),
+    ) => dispatchProps._updateNotifications(desktop, mobile, channelWide),
   }
 }
 
