@@ -32,16 +32,16 @@ func makeProfileFilename(prefix, dir string, start time.Time, duration time.Dura
 	return filepath.Join(dir, filename)
 }
 
-// MakeTraceFilename returns a filename to use for a trace file
-// in the given directory with the given start time and duration.
-func MakeTraceFilename(dir string, start time.Time, duration time.Duration) string {
-	return makeProfileFilename(tracePrefix, dir, start, duration)
-}
-
 // MakeCPUProfileFilename returns a filename to use for a CPU profile
 // file in the given directory with the given start time and duration.
 func MakeCPUProfileFilename(dir string, start time.Time, duration time.Duration) string {
 	return makeProfileFilename(cpuProfilePrefix, dir, start, duration)
+}
+
+// MakeTraceFilename returns a filename to use for a trace file
+// in the given directory with the given start time and duration.
+func MakeTraceFilename(dir string, start time.Time, duration time.Duration) string {
+	return makeProfileFilename(tracePrefix, dir, start, duration)
 }
 
 func getSortedFiles(prefix, dir string) ([]string, error) {
