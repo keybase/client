@@ -17,12 +17,6 @@
       ]
     },
     {
-      "type": "record",
-      "name": "HashMeta",
-      "fields": [],
-      "typedef": "bytes"
-    },
-    {
       "type": "enum",
       "name": "UPK2MinorVersion",
       "symbols": [

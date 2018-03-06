@@ -62,6 +62,9 @@ protocol Common {
   @typedef("string")
   record GitRepoName {}
 
+  @typedef("bytes")
+  record HashMeta {}
+
   enum TeamType {
     NONE_0,
     LEGACY_1,
@@ -311,5 +314,4 @@ protocol Common {
     Seqno eldestSeqno;
     Time cachedAt;
   }
-
 }
