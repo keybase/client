@@ -17,9 +17,6 @@ khuserDeprecated="keybasehelper"
 khbinDeprecated="/usr/bin/keybase-mount-helper"
 optDeprecated="/opt/keybase/mount-readme"
 
-chown root:root "$krbin"
-chmod 4755 "$krbin"
-
 redirector_enabled() {
   disableRedirector="false"
   if [ -r "$rootConfigFile" ] ; then
@@ -62,6 +59,14 @@ run_redirector() {
     echo "Killing root redirector"
   fi
 }
+
+if redirector_enabled ; then
+  chown root:root "$krbin"
+  chmod 4755 "$krbin"
+else
+  # Turn off suid if root has been turned off.
+  chmod 0755 "$krbin"
+fi
 
 currlink="$(readlink "$rootmount")"
 if [ -n "$currlink" ] ; then
