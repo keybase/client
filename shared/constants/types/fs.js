@@ -86,13 +86,6 @@ export type State = I.RecordOf<_State>
 
 export type Visibility = 'private' | 'public' | 'team' | null
 
-export type ItemStyles = {
-  iconType: IconType,
-  iconColor: string, // Temporary until we switch to PNG icons.
-  textColor: string,
-  textType: TextType,
-}
-
 export const stringToPath = (s: string): Path => (s.indexOf('/') === 0 ? s : null)
 export const pathToString = (p: Path): string => (!p ? '' : p)
 // export const stringToLocalPath = (s: string): LocalPath => s
@@ -211,3 +204,49 @@ export const sortSettingToIconTypeAndText = (s: _SortSetting): sortSettingDispla
       throw new Error('invalid SortBy')
   }
 }
+
+export type PathItemIconSpec =
+  | {
+      type: 'teamAvatar',
+      teamName: string,
+    }
+  | {
+      type: 'avatar',
+      username: string,
+    }
+  | {
+      type: 'avatars',
+      usernames: Array<string>,
+    }
+  | {
+      type: 'basic',
+      iconType: IconType,
+      iconColor: string,
+    }
+
+export type ItemStyles = {
+  iconSpec: PathItemIconSpec,
+  textColor: string,
+  textType: TextType,
+}
+
+export const makeBasicPathItemIconSpec = (iconType: IconType, iconColor: string): PathItemIconSpec => ({
+  type: 'basic',
+  iconType,
+  iconColor,
+})
+
+export const makeTeamAvatarPathItemIconSpec = (teamName: string): PathItemIconSpec => ({
+  type: 'teamAvatar',
+  teamName,
+})
+
+export const makeAvatarPathItemIconSpec = (username: string): PathItemIconSpec => ({
+  type: 'avatar',
+  username,
+})
+
+export const makeAvatarsPathItemIconSpec = (usernames: Array<string>): PathItemIconSpec => ({
+  type: 'avatars',
+  usernames,
+})
