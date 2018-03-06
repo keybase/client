@@ -1023,10 +1023,10 @@ func (i *Inbox) Expunge(ctx context.Context, vers chat1.InboxVers,
 		i.Debug(ctx, "Expunge: returning fake version mismatch error because of missing maxMsgs: vers: %d",
 			vers)
 		return NewVersionMismatchError(ibox.InboxVersion, vers)
-	} else {
-		i.Debug(ctx, "Expunge: setting max messages from server payload")
-		conv.Conv.MaxMsgSummaries = maxMsgs
 	}
+
+	i.Debug(ctx, "Expunge: setting max messages from server payload")
+	conv.Conv.MaxMsgSummaries = maxMsgs
 
 	// Write out to disk
 	ibox.InboxVersion = vers

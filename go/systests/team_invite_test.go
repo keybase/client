@@ -528,3 +528,113 @@ func TestSweepObsoleteKeybaseInvites(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, keybase1.TeamRole_NONE, role)
 }
+
+func TestTeamInviteRemoveIfHigherRole(t *testing.T) {
+	// NOTE: This code path is essentially dead because server  will
+	// not send SBS requests to admin for invitees that already are
+	// team members, and internally set invite status to MOOTED. See
+	// serverside _close_raced_sbs_invites.
+
+	// We are going to make standalone user and call HandleSBSRequest
+	// manually to test this.
+
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	own := makeUserStandalone(t, "own", standaloneUserArgs{
+		disableGregor:            true,
+		suppressTeamChatAnnounce: true,
+	})
+	tt.users = append(tt.users, own)
+	roo := tt.addUser("roo")
+	tt.logUserNames()
+
+	teamID, teamName := own.createTeam2()
+	own.addTeamMember(teamName.String(), roo.username, keybase1.TeamRole_ADMIN)
+	own.addTeamMember(teamName.String(), roo.username+"@rooter", keybase1.TeamRole_WRITER)
+
+	t.Logf("Created team %s", teamName.String())
+
+	roo.proveRooter()
+
+	teamObj := own.loadTeamByID(teamID, true /* admin */)
+	var invite keybase1.TeamInvite
+	invites := teamObj.GetActiveAndObsoleteInvites()
+	require.Len(t, invites, 1)
+	for _, invite = range invites {
+		// Get (only) invite from the map to local variable
+	}
+
+	rooUv := roo.userVersion()
+
+	err := teams.HandleSBSRequest(context.Background(), own.tc.G, keybase1.TeamSBSMsg{
+		TeamID: teamID,
+		Score:  0,
+		Invitees: []keybase1.TeamInvitee{
+			keybase1.TeamInvitee{
+				InviteID:    invite.Id,
+				Uid:         rooUv.Uid,
+				EldestSeqno: rooUv.EldestSeqno,
+			},
+		},
+	})
+	require.NoError(t, err)
+
+	// SBS handler should have canceled the invite after discovering roo is
+	// already a member with higher role.
+	teamObj = own.loadTeamByID(teamID, true /* admin */)
+	require.Len(t, teamObj.GetActiveAndObsoleteInvites(), 0)
+	role, err := teamObj.MemberRole(context.Background(), roo.userVersion())
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_ADMIN, role)
+}
+
+func testTeamInviteSweepOldMembers(t *testing.T, startPUKless bool) {
+	t.Logf(":: testTeamInviteSweepOldMembers(startPUKless: %t)", startPUKless)
+
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	own := tt.addUser("own")
+	var roo *userPlusDevice
+	if startPUKless {
+		roo = tt.addPuklessUser("roo")
+	} else {
+		roo = tt.addUser("roo")
+	}
+	tt.logUserNames()
+
+	teamID, teamName := own.createTeam2()
+	own.addTeamMember(teamName.String(), roo.username, keybase1.TeamRole_WRITER)
+	own.addTeamMember(teamName.String(), roo.username+"@rooter", keybase1.TeamRole_ADMIN)
+
+	t.Logf("Created team %s", teamName.String())
+
+	roo.kickTeamRekeyd()
+	roo.reset()
+	roo.loginAfterReset()
+
+	roo.proveRooter()
+
+	// 3 links to created team, add roo, and add roo@rooter.
+	// + 2 links (rotate, change_membership) to add roo in startPUKless=false case;
+	// or +2 links (change_membersip, cancel invite) to add roo in startPUKless=true case.
+	own.pollForTeamSeqnoLink(teamName.String(), keybase1.Seqno(5))
+
+	teamObj := own.loadTeamByID(teamID, true /* admin */)
+	// 0 total invites: rooter invite was completed, and keybase invite was sweeped
+	require.Len(t, teamObj.GetActiveAndObsoleteInvites(), 0)
+	role, err := teamObj.MemberRole(context.Background(), roo.userVersion())
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_ADMIN, role)
+
+	members, err := teamObj.Members()
+	require.NoError(t, err)
+	require.Len(t, members.Owners, 1)
+	require.Len(t, members.Admins, 1)
+}
+
+func TestTeamInviteSweepOldMembers(t *testing.T) {
+	testTeamInviteSweepOldMembers(t, false)
+	testTeamInviteSweepOldMembers(t, true)
+}

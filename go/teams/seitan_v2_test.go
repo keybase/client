@@ -145,8 +145,8 @@ func TestSeitanBadSignatures(t *testing.T) {
 	badMsgs := make([]Badmsg, 4)
 
 	// Check signature verification failure for a bad uid
-	msgBadUid, errBadUid := GenerateSeitanSignatureMessage(uid+"a", eldestSeqno, inviteID1, ctime)
-	badMsgs = append(badMsgs, Badmsg{msgBadUid, errBadUid})
+	msgBadUID, errBadUID := GenerateSeitanSignatureMessage(uid+"a", eldestSeqno, inviteID1, ctime)
+	badMsgs = append(badMsgs, Badmsg{msgBadUID, errBadUID})
 
 	// Check signature verification failure for a bad EldestSeqno
 	msgBadEldest, errBadEldest := GenerateSeitanSignatureMessage(uid, eldestSeqno+1, inviteID1, ctime)

@@ -2,11 +2,12 @@
 import Box from './box'
 import ClickableBox from './clickable-box'
 import ProgressIndicator from './progress-indicator'
-import React, {Component} from 'react'
+import * as React from 'react'
 import Text from './text'
 import {globalColors, globalStyles, globalMargins, isMobile} from '../styles'
 
 export type Props = {
+  children?: React.Node,
   onClick: ?(event: SyntheticEvent<>) => void,
   onPress?: void,
   onMouseEnter?: Function,
@@ -29,7 +30,7 @@ const Progress = ({small}) => (
   </Box>
 )
 
-class Button extends Component<Props> {
+class Button extends React.Component<Props> {
   render() {
     const backgroundModeName = this.props.backgroundMode
       ? {
@@ -84,17 +85,21 @@ class Button extends Component<Props> {
       <ClickableBox style={containerStyle} onClick={onClick}>
         <Box
           style={{
+            ...globalStyles.flexBoxRow,
             ...globalStyles.flexBoxCenter,
             position: 'relative',
             height: '100%',
           }}
         >
-          <Text
-            type={this.props.small ? 'BodySemibold' : 'BodyBig'}
-            style={{...labelStyle, ...this.props.labelStyle}}
-          >
-            {this.props.label}
-          </Text>
+          {!this.props.waiting && this.props.children}
+          {!this.props.waiting && (
+            <Text
+              type={this.props.small ? 'BodySemibold' : 'BodyBig'}
+              style={{...labelStyle, ...this.props.labelStyle}}
+            >
+              {this.props.label}
+            </Text>
+          )}
           {this.props.waiting && <Progress small={this.props.small} />}
         </Box>
       </ClickableBox>
@@ -169,8 +174,6 @@ const DangerLabel = commonLabel
 const Custom = {}
 const CustomLabel = {color: globalColors.black_75, textAlign: 'center'}
 const progressStyle = small => (isMobile ? undefined : {height: small ? 20 : 20})
-const progress = isMobile
-  ? {marginTop: -regularHeight / 2}
-  : {...globalStyles.fillAbsolute, ...globalStyles.flexBoxCenter}
+const progress = isMobile ? null : {...globalStyles.fillAbsolute, ...globalStyles.flexBoxCenter}
 
 export default Button

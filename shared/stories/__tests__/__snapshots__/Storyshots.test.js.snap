@@ -148,6 +148,7 @@ exports[`Storyshots Chat/Channel Heads up Display Mention Hud 1`] = `
               Object {
                 "alignItems": "center",
                 "display": "flex",
+                "flexDirection": "row",
                 "height": "100%",
                 "justifyContent": "center",
                 "position": "relative",
@@ -204,6 +205,7 @@ exports[`Storyshots Chat/Channel Heads up Display Mention Hud 1`] = `
               Object {
                 "alignItems": "center",
                 "display": "flex",
+                "flexDirection": "row",
                 "height": "100%",
                 "justifyContent": "center",
                 "position": "relative",
@@ -2878,6 +2880,7 @@ exports[`Storyshots Chat/Heads up Display Mention Hud 1`] = `
               Object {
                 "alignItems": "center",
                 "display": "flex",
+                "flexDirection": "row",
                 "height": "100%",
                 "justifyContent": "center",
                 "position": "relative",
@@ -2934,6 +2937,7 @@ exports[`Storyshots Chat/Heads up Display Mention Hud 1`] = `
               Object {
                 "alignItems": "center",
                 "display": "flex",
+                "flexDirection": "row",
                 "height": "100%",
                 "justifyContent": "center",
                 "position": "relative",
@@ -6705,6 +6709,7 @@ exports[`Storyshots Chat/Teams CreateChannel 1`] = `
                       Object {
                         "alignItems": "center",
                         "display": "flex",
+                        "flexDirection": "row",
                         "height": "100%",
                         "justifyContent": "center",
                         "position": "relative",
@@ -6761,6 +6766,7 @@ exports[`Storyshots Chat/Teams CreateChannel 1`] = `
                       Object {
                         "alignItems": "center",
                         "display": "flex",
+                        "flexDirection": "row",
                         "height": "100%",
                         "justifyContent": "center",
                         "position": "relative",
@@ -7215,6 +7221,7 @@ exports[`Storyshots Chat/Teams EditChannel - general 1`] = `
                   Object {
                     "alignItems": "center",
                     "display": "flex",
+                    "flexDirection": "row",
                     "height": "100%",
                     "justifyContent": "center",
                     "position": "relative",
@@ -7272,6 +7279,7 @@ exports[`Storyshots Chat/Teams EditChannel - general 1`] = `
                   Object {
                     "alignItems": "center",
                     "display": "flex",
+                    "flexDirection": "row",
                     "height": "100%",
                     "justifyContent": "center",
                     "position": "relative",
@@ -7702,6 +7710,7 @@ exports[`Storyshots Chat/Teams EditChannel 1`] = `
                   Object {
                     "alignItems": "center",
                     "display": "flex",
+                    "flexDirection": "row",
                     "height": "100%",
                     "justifyContent": "center",
                     "position": "relative",
@@ -7759,6 +7768,7 @@ exports[`Storyshots Chat/Teams EditChannel 1`] = `
                   Object {
                     "alignItems": "center",
                     "display": "flex",
+                    "flexDirection": "row",
                     "height": "100%",
                     "justifyContent": "center",
                     "position": "relative",
@@ -9171,6 +9181,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                         Object {
                           "alignItems": "center",
                           "display": "flex",
+                          "flexDirection": "row",
                           "height": "100%",
                           "justifyContent": "center",
                           "position": "relative",
@@ -9228,6 +9239,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                         Object {
                           "alignItems": "center",
                           "display": "flex",
+                          "flexDirection": "row",
                           "height": "100%",
                           "justifyContent": "center",
                           "position": "relative",
@@ -10992,6 +11004,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                         Object {
                           "alignItems": "center",
                           "display": "flex",
+                          "flexDirection": "row",
                           "height": "100%",
                           "justifyContent": "center",
                           "position": "relative",
@@ -11049,6 +11062,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                         Object {
                           "alignItems": "center",
                           "display": "flex",
+                          "flexDirection": "row",
                           "height": "100%",
                           "justifyContent": "center",
                           "position": "relative",
@@ -13957,6 +13971,7 @@ exports[`Storyshots Common Button 1`] = `
                 Object {
                   "alignItems": "center",
                   "display": "flex",
+                  "flexDirection": "row",
                   "height": "100%",
                   "justifyContent": "center",
                   "position": "relative",
@@ -14013,6 +14028,7 @@ exports[`Storyshots Common Button 1`] = `
                 Object {
                   "alignItems": "center",
                   "display": "flex",
+                  "flexDirection": "row",
                   "height": "100%",
                   "justifyContent": "center",
                   "position": "relative",
@@ -14080,6 +14096,7 @@ exports[`Storyshots Common Button 1`] = `
                 Object {
                   "alignItems": "center",
                   "display": "flex",
+                  "flexDirection": "row",
                   "height": "100%",
                   "justifyContent": "center",
                   "position": "relative",
@@ -14136,6 +14153,7 @@ exports[`Storyshots Common Button 1`] = `
                 Object {
                   "alignItems": "center",
                   "display": "flex",
+                  "flexDirection": "row",
                   "height": "100%",
                   "justifyContent": "center",
                   "position": "relative",
@@ -14203,6 +14221,7 @@ exports[`Storyshots Common Button 1`] = `
                 Object {
                   "alignItems": "center",
                   "display": "flex",
+                  "flexDirection": "row",
                   "height": "100%",
                   "justifyContent": "center",
                   "position": "relative",
@@ -14259,6 +14278,7 @@ exports[`Storyshots Common Button 1`] = `
                 Object {
                   "alignItems": "center",
                   "display": "flex",
+                  "flexDirection": "row",
                   "height": "100%",
                   "justifyContent": "center",
                   "position": "relative",
@@ -14326,6 +14346,7 @@ exports[`Storyshots Common Button 1`] = `
                 Object {
                   "alignItems": "center",
                   "display": "flex",
+                  "flexDirection": "row",
                   "height": "100%",
                   "justifyContent": "center",
                   "position": "relative",
@@ -14382,6 +14403,7 @@ exports[`Storyshots Common Button 1`] = `
                 Object {
                   "alignItems": "center",
                   "display": "flex",
+                  "flexDirection": "row",
                   "height": "100%",
                   "justifyContent": "center",
                   "position": "relative",
@@ -14452,6 +14474,7 @@ exports[`Storyshots Common Button 1`] = `
                 Object {
                   "alignItems": "center",
                   "display": "flex",
+                  "flexDirection": "row",
                   "height": "100%",
                   "justifyContent": "center",
                   "position": "relative",
@@ -14511,6 +14534,7 @@ exports[`Storyshots Common Button 1`] = `
                 Object {
                   "alignItems": "center",
                   "display": "flex",
+                  "flexDirection": "row",
                   "height": "100%",
                   "justifyContent": "center",
                   "position": "relative",
@@ -14572,6 +14596,7 @@ exports[`Storyshots Common Button 1`] = `
               Object {
                 "alignItems": "center",
                 "display": "flex",
+                "flexDirection": "row",
                 "height": "100%",
                 "justifyContent": "center",
                 "position": "relative",
@@ -14627,6 +14652,7 @@ exports[`Storyshots Common Button 1`] = `
               Object {
                 "alignItems": "center",
                 "display": "flex",
+                "flexDirection": "row",
                 "height": "100%",
                 "justifyContent": "center",
                 "position": "relative",
@@ -14682,6 +14708,7 @@ exports[`Storyshots Common Button 1`] = `
               Object {
                 "alignItems": "center",
                 "display": "flex",
+                "flexDirection": "row",
                 "height": "100%",
                 "justifyContent": "center",
                 "position": "relative",
@@ -14737,6 +14764,7 @@ exports[`Storyshots Common Button 1`] = `
               Object {
                 "alignItems": "center",
                 "display": "flex",
+                "flexDirection": "row",
                 "height": "100%",
                 "justifyContent": "center",
                 "position": "relative",
@@ -14795,6 +14823,7 @@ exports[`Storyshots Common Button 1`] = `
               Object {
                 "alignItems": "center",
                 "display": "flex",
+                "flexDirection": "row",
                 "height": "100%",
                 "justifyContent": "center",
                 "position": "relative",
@@ -14944,6 +14973,7 @@ exports[`Storyshots Common ButtonBar 1`] = `
               Object {
                 "alignItems": "center",
                 "display": "flex",
+                "flexDirection": "row",
                 "height": "100%",
                 "justifyContent": "center",
                 "position": "relative",
@@ -15008,6 +15038,7 @@ exports[`Storyshots Common ButtonBar 1`] = `
               Object {
                 "alignItems": "center",
                 "display": "flex",
+                "flexDirection": "row",
                 "height": "100%",
                 "justifyContent": "center",
                 "position": "relative",
@@ -15064,6 +15095,7 @@ exports[`Storyshots Common ButtonBar 1`] = `
               Object {
                 "alignItems": "center",
                 "display": "flex",
+                "flexDirection": "row",
                 "height": "100%",
                 "justifyContent": "center",
                 "position": "relative",
@@ -15134,6 +15166,7 @@ exports[`Storyshots Common ButtonBar 1`] = `
               Object {
                 "alignItems": "center",
                 "display": "flex",
+                "flexDirection": "row",
                 "height": "100%",
                 "justifyContent": "center",
                 "position": "relative",
@@ -15212,6 +15245,7 @@ exports[`Storyshots Common ButtonBar 1`] = `
               Object {
                 "alignItems": "center",
                 "display": "flex",
+                "flexDirection": "row",
                 "height": "100%",
                 "justifyContent": "center",
                 "position": "relative",
@@ -15268,6 +15302,7 @@ exports[`Storyshots Common ButtonBar 1`] = `
               Object {
                 "alignItems": "center",
                 "display": "flex",
+                "flexDirection": "row",
                 "height": "100%",
                 "justifyContent": "center",
                 "position": "relative",
@@ -15340,6 +15375,7 @@ exports[`Storyshots Common ButtonBar 1`] = `
               Object {
                 "alignItems": "center",
                 "display": "flex",
+                "flexDirection": "row",
                 "height": "100%",
                 "justifyContent": "center",
                 "position": "relative",
@@ -15404,6 +15440,7 @@ exports[`Storyshots Common ButtonBar 1`] = `
               Object {
                 "alignItems": "center",
                 "display": "flex",
+                "flexDirection": "row",
                 "height": "100%",
                 "justifyContent": "center",
                 "position": "relative",
@@ -15468,6 +15505,7 @@ exports[`Storyshots Common ButtonBar 1`] = `
               Object {
                 "alignItems": "center",
                 "display": "flex",
+                "flexDirection": "row",
                 "height": "100%",
                 "justifyContent": "center",
                 "position": "relative",
@@ -15532,6 +15570,7 @@ exports[`Storyshots Common ButtonBar 1`] = `
               Object {
                 "alignItems": "center",
                 "display": "flex",
+                "flexDirection": "row",
                 "height": "100%",
                 "justifyContent": "center",
                 "position": "relative",
@@ -15588,6 +15627,7 @@ exports[`Storyshots Common ButtonBar 1`] = `
               Object {
                 "alignItems": "center",
                 "display": "flex",
+                "flexDirection": "row",
                 "height": "100%",
                 "justifyContent": "center",
                 "position": "relative",
@@ -15658,6 +15698,7 @@ exports[`Storyshots Common ButtonBar 1`] = `
               Object {
                 "alignItems": "center",
                 "display": "flex",
+                "flexDirection": "row",
                 "height": "100%",
                 "justifyContent": "center",
                 "position": "relative",
@@ -19171,6 +19212,23 @@ exports[`Storyshots Common Icon 1`] = `
           className={undefined}
           draggable="false"
           onClick={[Function]}
+          srcSet="icons/icon-file-uploading-24.png 1x, icons/icon-file-uploading-24@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
           srcSet="icons/icon-folder-private-24.png 1x, icons/icon-folder-private-24@2x.png 2x"
           style={
             Object {
@@ -21493,6 +21551,23 @@ exports[`Storyshots Common Icon 1`] = `
           className={undefined}
           draggable="false"
           onClick={[Function]}
+          srcSet="icons/icon-dropping-file-48.png 1x, icons/icon-dropping-file-48@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
           srcSet="icons/icon-facebook-logo-48.png 1x, icons/icon-facebook-logo-48@2x.png 2x"
           style={
             Object {
@@ -21511,23 +21586,6 @@ exports[`Storyshots Common Icon 1`] = `
           draggable="false"
           onClick={[Function]}
           srcSet="icons/icon-file-48.png 1x, icons/icon-file-48@2x.png 2x"
-          style={
-            Object {
-              "borderColor": "rgba(0, 0, 0, 0.05)",
-              "borderStyle": "solid",
-              "borderWidth": 1,
-              "cursor": "pointer",
-              "margin": 5,
-              "userSelect": "none",
-            }
-          }
-          title="hint text"
-        />
-        <img
-          className={undefined}
-          draggable="false"
-          onClick={[Function]}
-          srcSet="icons/icon-file-dropping-48.png 1x, icons/icon-file-dropping-48@2x.png 2x"
           style={
             Object {
               "borderColor": "rgba(0, 0, 0, 0.05)",
@@ -26364,6 +26422,7 @@ exports[`Storyshots Edit team description Description changed 1`] = `
                       Object {
                         "alignItems": "center",
                         "display": "flex",
+                        "flexDirection": "row",
                         "height": "100%",
                         "justifyContent": "center",
                         "position": "relative",
@@ -26420,6 +26479,7 @@ exports[`Storyshots Edit team description Description changed 1`] = `
                       Object {
                         "alignItems": "center",
                         "display": "flex",
+                        "flexDirection": "row",
                         "height": "100%",
                         "justifyContent": "center",
                         "position": "relative",
@@ -26799,6 +26859,7 @@ exports[`Storyshots Edit team description Description unchanged 1`] = `
                       Object {
                         "alignItems": "center",
                         "display": "flex",
+                        "flexDirection": "row",
                         "height": "100%",
                         "justifyContent": "center",
                         "position": "relative",
@@ -26855,6 +26916,7 @@ exports[`Storyshots Edit team description Description unchanged 1`] = `
                       Object {
                         "alignItems": "center",
                         "display": "flex",
+                        "flexDirection": "row",
                         "height": "100%",
                         "justifyContent": "center",
                         "position": "relative",
@@ -27272,6 +27334,7 @@ exports[`Storyshots Git DeleteRepo 1`] = `
                     Object {
                       "alignItems": "center",
                       "display": "flex",
+                      "flexDirection": "row",
                       "height": "100%",
                       "justifyContent": "center",
                       "position": "relative",
@@ -27320,6 +27383,7 @@ exports[`Storyshots Git DeleteRepo 1`] = `
                     Object {
                       "alignItems": "center",
                       "display": "flex",
+                      "flexDirection": "row",
                       "height": "100%",
                       "justifyContent": "center",
                       "position": "relative",
@@ -27765,6 +27829,7 @@ exports[`Storyshots Git DeleteTeamRepo 1`] = `
                     Object {
                       "alignItems": "center",
                       "display": "flex",
+                      "flexDirection": "row",
                       "height": "100%",
                       "justifyContent": "center",
                       "position": "relative",
@@ -27813,6 +27878,7 @@ exports[`Storyshots Git DeleteTeamRepo 1`] = `
                     Object {
                       "alignItems": "center",
                       "display": "flex",
+                      "flexDirection": "row",
                       "height": "100%",
                       "justifyContent": "center",
                       "position": "relative",
@@ -28081,6 +28147,7 @@ exports[`Storyshots Git NewPersonalRepo 1`] = `
                     Object {
                       "alignItems": "center",
                       "display": "flex",
+                      "flexDirection": "row",
                       "height": "100%",
                       "justifyContent": "center",
                       "position": "relative",
@@ -28129,6 +28196,7 @@ exports[`Storyshots Git NewPersonalRepo 1`] = `
                     Object {
                       "alignItems": "center",
                       "display": "flex",
+                      "flexDirection": "row",
                       "height": "100%",
                       "justifyContent": "center",
                       "position": "relative",
@@ -28590,6 +28658,7 @@ exports[`Storyshots Git NewTeamRepo 1`] = `
                     Object {
                       "alignItems": "center",
                       "display": "flex",
+                      "flexDirection": "row",
                       "height": "100%",
                       "justifyContent": "center",
                       "position": "relative",
@@ -28638,6 +28707,7 @@ exports[`Storyshots Git NewTeamRepo 1`] = `
                     Object {
                       "alignItems": "center",
                       "display": "flex",
+                      "flexDirection": "row",
                       "height": "100%",
                       "justifyContent": "center",
                       "position": "relative",
@@ -32681,6 +32751,7 @@ exports[`Storyshots People/Todos Chat 1`] = `
                 Object {
                   "alignItems": "center",
                   "display": "flex",
+                  "flexDirection": "row",
                   "height": "100%",
                   "justifyContent": "center",
                   "position": "relative",
@@ -32878,6 +32949,7 @@ exports[`Storyshots People/Todos Fill out bio 1`] = `
                 Object {
                   "alignItems": "center",
                   "display": "flex",
+                  "flexDirection": "row",
                   "height": "100%",
                   "justifyContent": "center",
                   "position": "relative",
@@ -33080,6 +33152,7 @@ exports[`Storyshots People/Todos Follow someone 1`] = `
                 Object {
                   "alignItems": "center",
                   "display": "flex",
+                  "flexDirection": "row",
                   "height": "100%",
                   "justifyContent": "center",
                   "position": "relative",
@@ -33289,6 +33362,7 @@ exports[`Storyshots People/Todos Install on phone 1`] = `
                 Object {
                   "alignItems": "center",
                   "display": "flex",
+                  "flexDirection": "row",
                   "height": "100%",
                   "justifyContent": "center",
                   "position": "relative",
@@ -33498,6 +33572,7 @@ exports[`Storyshots People/Todos Make a folder 1`] = `
                 Object {
                   "alignItems": "center",
                   "display": "flex",
+                  "flexDirection": "row",
                   "height": "100%",
                   "justifyContent": "center",
                   "position": "relative",
@@ -33707,6 +33782,7 @@ exports[`Storyshots People/Todos Make a git 1`] = `
                 Object {
                   "alignItems": "center",
                   "display": "flex",
+                  "flexDirection": "row",
                   "height": "100%",
                   "justifyContent": "center",
                   "position": "relative",
@@ -33904,6 +33980,7 @@ exports[`Storyshots People/Todos Make a paper key 1`] = `
                 Object {
                   "alignItems": "center",
                   "display": "flex",
+                  "flexDirection": "row",
                   "height": "100%",
                   "justifyContent": "center",
                   "position": "relative",
@@ -34106,6 +34183,7 @@ exports[`Storyshots People/Todos Make a team 1`] = `
                 Object {
                   "alignItems": "center",
                   "display": "flex",
+                  "flexDirection": "row",
                   "height": "100%",
                   "justifyContent": "center",
                   "position": "relative",
@@ -34315,6 +34393,7 @@ exports[`Storyshots People/Todos Prove something 1`] = `
                 Object {
                   "alignItems": "center",
                   "display": "flex",
+                  "flexDirection": "row",
                   "height": "100%",
                   "justifyContent": "center",
                   "position": "relative",
@@ -34524,6 +34603,7 @@ exports[`Storyshots People/Todos Set publicity 1`] = `
                 Object {
                   "alignItems": "center",
                   "display": "flex",
+                  "flexDirection": "row",
                   "height": "100%",
                   "justifyContent": "center",
                   "position": "relative",
@@ -43408,10 +43488,10 @@ exports[`Storyshots Team Roles ConfirmAdmin 1`] = `
         Object {
           "alignItems": "center",
           "display": "flex",
-          "flex": 1,
           "flexDirection": "column",
-          "minWidth": 480,
           "paddingBottom": 4,
+          "paddingLeft": 24,
+          "paddingRight": 24,
           "paddingTop": 4,
         }
       }
@@ -43851,6 +43931,7 @@ exports[`Storyshots Team Roles ConfirmAdmin 1`] = `
               Object {
                 "alignItems": "center",
                 "display": "flex",
+                "flexDirection": "row",
                 "height": "100%",
                 "justifyContent": "center",
                 "position": "relative",
@@ -43907,6 +43988,7 @@ exports[`Storyshots Team Roles ConfirmAdmin 1`] = `
               Object {
                 "alignItems": "center",
                 "display": "flex",
+                "flexDirection": "row",
                 "height": "100%",
                 "justifyContent": "center",
                 "position": "relative",
@@ -44068,10 +44150,10 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
         Object {
           "alignItems": "center",
           "display": "flex",
-          "flex": 1,
           "flexDirection": "column",
-          "minWidth": 480,
           "paddingBottom": 4,
+          "paddingLeft": 24,
+          "paddingRight": 24,
           "paddingTop": 4,
         }
       }
@@ -44484,6 +44566,7 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
               Object {
                 "alignItems": "center",
                 "display": "flex",
+                "flexDirection": "row",
                 "height": "100%",
                 "justifyContent": "center",
                 "position": "relative",
@@ -44540,6 +44623,7 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
               Object {
                 "alignItems": "center",
                 "display": "flex",
+                "flexDirection": "row",
                 "height": "100%",
                 "justifyContent": "center",
                 "position": "relative",
@@ -44706,10 +44790,10 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
         Object {
           "alignItems": "center",
           "display": "flex",
-          "flex": 1,
           "flexDirection": "column",
-          "minWidth": 480,
           "paddingBottom": 4,
+          "paddingLeft": 24,
+          "paddingRight": 24,
           "paddingTop": 4,
         }
       }
@@ -45193,6 +45277,7 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
               Object {
                 "alignItems": "center",
                 "display": "flex",
+                "flexDirection": "row",
                 "height": "100%",
                 "justifyContent": "center",
                 "position": "relative",
@@ -45249,6 +45334,7 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
               Object {
                 "alignItems": "center",
                 "display": "flex",
+                "flexDirection": "row",
                 "height": "100%",
                 "justifyContent": "center",
                 "position": "relative",
@@ -45415,10 +45501,10 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
         Object {
           "alignItems": "center",
           "display": "flex",
-          "flex": 1,
           "flexDirection": "column",
-          "minWidth": 480,
           "paddingBottom": 4,
+          "paddingLeft": 24,
+          "paddingRight": 24,
           "paddingTop": 4,
         }
       }
@@ -45858,6 +45944,7 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
               Object {
                 "alignItems": "center",
                 "display": "flex",
+                "flexDirection": "row",
                 "height": "100%",
                 "justifyContent": "center",
                 "position": "relative",
@@ -45914,6 +46001,7 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
               Object {
                 "alignItems": "center",
                 "display": "flex",
+                "flexDirection": "row",
                 "height": "100%",
                 "justifyContent": "center",
                 "position": "relative",
@@ -45977,7 +46065,6 @@ exports[`Storyshots Team Roles Picker 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 400;
-  width: 267px;
 }
 
 .glamor-6,
@@ -46005,7 +46092,6 @@ exports[`Storyshots Team Roles Picker 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 400;
-  width: 267px;
 }
 
 .glamor-16,
@@ -46053,7 +46139,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
           "alignItems": "center",
           "display": "flex",
           "flexDirection": "column",
-          "minWidth": 480,
+          "maxWidth": 400,
           "paddingBottom": 8,
           "paddingTop": 16,
         }
@@ -46091,7 +46177,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
             "flexDirection": "row",
             "height": undefined,
             "lineHeight": 0,
-            "minWidth": 480,
+            "minWidth": undefined,
             "padding": 8,
             "paddingLeft": 16,
             "paddingRight": 40,
@@ -46099,6 +46185,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
             "textAlign": "left",
             "transform": "none",
             "transition": "none",
+            "width": "100%",
           }
         }
       >
@@ -46202,7 +46289,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
             "flexDirection": "row",
             "height": undefined,
             "lineHeight": 0,
-            "minWidth": 480,
+            "minWidth": undefined,
             "padding": 8,
             "paddingLeft": 16,
             "paddingRight": 40,
@@ -46210,6 +46297,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
             "textAlign": "left",
             "transform": "none",
             "transition": "none",
+            "width": "100%",
           }
         }
       >
@@ -46313,7 +46401,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
             "flexDirection": "row",
             "height": undefined,
             "lineHeight": 0,
-            "minWidth": 480,
+            "minWidth": undefined,
             "padding": 8,
             "paddingLeft": 16,
             "paddingRight": 40,
@@ -46321,6 +46409,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
             "textAlign": "left",
             "transform": "none",
             "transition": "none",
+            "width": "100%",
           }
         }
       >
@@ -46399,7 +46488,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
             "flexDirection": "row",
             "height": undefined,
             "lineHeight": 0,
-            "minWidth": 480,
+            "minWidth": undefined,
             "padding": 8,
             "paddingLeft": 16,
             "paddingRight": 40,
@@ -46407,6 +46496,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
             "textAlign": "left",
             "transform": "none",
             "transition": "none",
+            "width": "100%",
           }
         }
       >
@@ -46584,6 +46674,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
               Object {
                 "alignItems": "center",
                 "display": "flex",
+                "flexDirection": "row",
                 "height": "100%",
                 "justifyContent": "center",
                 "position": "relative",

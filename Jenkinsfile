@@ -369,7 +369,11 @@ def testGo(prefix) {
             goversion = sh(returnStdout: true, script: "go version").trim()
             // Ideally, we'd do this on Windows, too, but we'd have to figure
             // out how to do it with batch files or PowerShell.
-            sh "make lint"
+            sh '''
+                lint=$(make -s lint);
+                echo 2>&1 "$lint";
+                [ -z "$lint" -o "$lint" = "Lint-free!" ]
+            '''
             sh 'test -z $(gofmt -l $(go list ./... | sed -e s/github.com.keybase.client.go.// ))'
         } else {
             shell = { params -> bat params }

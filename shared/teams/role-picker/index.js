@@ -50,7 +50,8 @@ const makeRoleOption = (
       ...globalStyles.flexBoxRow,
       alignItems: 'center',
       backgroundColor: selected === role ? globalColors.blue : globalColors.white,
-      minWidth: 480,
+      width: '100%',
+      borderRadius: 0,
       padding: globalMargins.tiny,
       paddingLeft: globalMargins.small,
       paddingRight: globalMargins.large,
@@ -74,10 +75,7 @@ const makeRoleOption = (
           {typeToLabel[role]}
         </Text>
       </Box>
-      <Text
-        style={{color: selected === role ? globalColors.white : globalColors.black_40, width: 267}}
-        type="BodySmall"
-      >
+      <Text style={{color: selected === role ? globalColors.white : globalColors.black_40}} type="BodySmall">
         {role && roleDescMap[role]}
       </Text>
     </Box>
@@ -103,7 +101,7 @@ export const RoleOptions = ({
     style={{
       ...globalStyles.flexBoxColumn,
       alignItems: 'center',
-      minWidth: 480,
+      maxWidth: 400,
       paddingTop: globalMargins.small,
       paddingBottom: globalMargins.tiny,
     }}
@@ -183,10 +181,10 @@ export const RoleConfirm = ({
       style={{
         ...globalStyles.flexBoxColumn,
         alignItems: 'center',
-        flex: 1,
-        minWidth: 480,
         paddingTop: globalMargins.xtiny,
         paddingBottom: globalMargins.xtiny,
+        paddingLeft: globalMargins.medium,
+        paddingRight: globalMargins.medium,
       }}
     >
       <Box

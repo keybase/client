@@ -491,19 +491,20 @@ func (u *userPlusDevice) waitForTeamChangedGregor(teamID keybase1.TeamID, toSeqn
 	u.tc.T.Fatalf("timed out waiting for team rotate %s", teamID)
 }
 
-func (u *userPlusDevice) waitForBadgeStateWithReset(numReset int) {
+func (u *userPlusDevice) waitForBadgeStateWithReset(numReset int) keybase1.BadgeState {
 	for i := 0; i < 10; i++ {
 		select {
 		case arg := <-u.notifications.badgeCh:
 			u.tc.T.Logf("badge state received: %+v", arg.TeamsWithResetUsers)
 			if len(arg.TeamsWithResetUsers) == numReset {
 				u.tc.T.Logf("badge state length match")
-				return
+				return arg
 			}
 		case <-time.After(1 * time.Second * libkb.CITimeMultiplier(u.tc.G)):
 		}
 	}
 	u.tc.T.Fatal("timed out waiting for badge state")
+	return keybase1.BadgeState{}
 }
 
 func (u *userPlusDevice) drainGregor() {

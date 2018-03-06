@@ -60,14 +60,20 @@ func (o ResetMerkleRoot) DeepCopy() ResetMerkleRoot {
 }
 
 type ResetPrev struct {
-	EldestKID   KID    `codec:"eldestKID" json:"eldest_kid"`
+	EldestKID   *KID   `codec:"eldestKID,omitempty" json:"eldest_kid,omitempty"`
 	EldestSeqno Seqno  `codec:"eldestSeqno" json:"public_seqno"`
 	Reset       SHA512 `codec:"reset" json:"reset"`
 }
 
 func (o ResetPrev) DeepCopy() ResetPrev {
 	return ResetPrev{
-		EldestKID:   o.EldestKID.DeepCopy(),
+		EldestKID: (func(x *KID) *KID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.EldestKID),
 		EldestSeqno: o.EldestSeqno.DeepCopy(),
 		Reset:       o.Reset.DeepCopy(),
 	}
