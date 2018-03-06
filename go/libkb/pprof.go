@@ -22,7 +22,7 @@ const cpuProfilePrefix = "cpu"
 
 const tracePrefix = "trace"
 
-func makeFilename(prefix, dir string, start time.Time, duration time.Duration) string {
+func makeProfileFilename(prefix, dir string, start time.Time, duration time.Duration) string {
 	// Copied from oldLogFileTimeRangeTimeLayout from
 	// logger/file.go. Chosen so that lexicographic sorting
 	// approximately sorts by increasing start time; time zones
@@ -35,13 +35,13 @@ func makeFilename(prefix, dir string, start time.Time, duration time.Duration) s
 // MakeTraceFilename returns a filename to use for a trace file
 // in the given directory with the given start time and duration.
 func MakeTraceFilename(dir string, start time.Time, duration time.Duration) string {
-	return makeFilename(tracePrefix, dir, start, duration)
+	return makeProfileFilename(tracePrefix, dir, start, duration)
 }
 
 // MakeCPUProfileFilename returns a filename to use for a CPU profile
 // file in the given directory with the given start time and duration.
 func MakeCPUProfileFilename(dir string, start time.Time, duration time.Duration) string {
-	return makeFilename(cpuProfilePrefix, dir, start, duration)
+	return makeProfileFilename(cpuProfilePrefix, dir, start, duration)
 }
 
 func getSortedFiles(prefix, dir string) ([]string, error) {
