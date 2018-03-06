@@ -13,18 +13,47 @@ set -e -u -o pipefail
 runtime_dir="${XDG_RUNTIME_DIR:-$HOME/.config}/keybase"
 mkdir -p "$runtime_dir"
 startup_token="$runtime_dir/startup_mode"
-# Use -d to avoid starting up the keybase background daemon here.
-if keybase config get -d -b mountdir &> /dev/null ; then
-    mountdir="$(keybase config get -d -b mountdir 2> /dev/null)"
-else
-    # The user has no mountpoint configured yet, so pick a default one
-    # and record the default setting in a separate config field, so
-    # later we can tell whether the user changed it away from the
-    # default or not.
-    mountdir="${XDG_DATA_HOME:-$HOME/.local/share}/keybase/fs"
-    keybase config set mountdir "$mountdir"
-    keybase config set mountdirdefault "$mountdir"
-fi
+
+set_empty_mountdir_to_default() {
+    # Set the mount point to a default value if a) nothing is set yet,
+    # or b) both are set to the old default.
+    default=""
+    # Use -d to avoid starting up the keybase background daemon here.
+    if keybase config get -d -b mountdirdefault &> /dev/null ; then
+        # If the current mount directory is still the old default, force
+        # an update to the new default.
+        default="$(keybase config get -d -b mountdirdefault 2> /dev/null)"
+        oldDefault="${XDG_DATA_HOME:-$HOME/.local/share}/keybase/fs"
+        # For the new default mountpoint, use
+        # /run/user/$UID/keybase/kbfs if at all possible, but if the
+        # system doesn't have $XDG_RUNTIME_DIR defined, we'll have to
+        # fall back to something in the home directory (putting the
+        # user at risk of things like du and find crawling KBFS...).
+        newDefault="${XDG_RUNTIME_DIR:-$HOME/.local/share}/keybase/kbfs"
+        if [ "$default" = "$oldDefault" ]; then
+            mountdir="$(keybase config get -d -b mountdir 2> /dev/null)"
+            if [ "$mountdir" = "$default" ]; then
+                if fusermount -uz "$mountdir" &> /dev/null ; then
+                    echo "Updating mount directory from $default to $newDefault"
+                fi
+                default=""
+            fi
+        fi
+    fi
+
+    if [ -z "$default" ]; then
+        # The user has no mountpoint configured yet, so pick a default one
+        # and record the default setting in a separate config field, so
+        # later we can tell whether the user changed it away from the
+        # default or not.
+        mountdir="$newDefault"
+        keybase config set mountdir "$mountdir"
+        keybase config set mountdirdefault "$mountdir"
+    fi
+}
+
+set_empty_mountdir_to_default
+mountdir="$(keybase config get -d -b mountdir 2> /dev/null)"
 export KEYBASE_MOUNTDIR=$mountdir
 
 # Don't make the mountpoint until after unmounting/killing the
