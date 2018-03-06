@@ -1,9 +1,9 @@
 // @flow
 import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
+import * as FSGen from '../actions/fs-gen'
 import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../util/container'
 import {navigateAppend} from '../actions/route-tree'
-import * as FsGen from '../actions/fs-gen'
 
 type OwnProps = {
   path: Types.Path,
@@ -11,6 +11,7 @@ type OwnProps = {
 
 type DispatchProps = {
   _onOpen: (type: Types.PathType, path: Types.Path) => void,
+  _openInFileUI: (path: Types.Path) => void,
 }
 
 const mapStateToProps = (state: TypedState, {path}: OwnProps) => {
@@ -24,13 +25,14 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     if (type === 'folder') {
       dispatch(navigateAppend([{props: {path}, selected: 'folder'}]))
     } else {
-      dispatch(FsGen.createDownload({path}))
+      dispatch(FSGen.createDownload({path}))
       console.log('Cannot view files yet. Requested file: ' + Types.pathToString(path))
     }
   },
+  _openInFileUI: (path: Types.Path) => dispatch(FSGen.createOpenInFileUI({path: Types.pathToString(path)})),
 })
 
-const mergeProps = ({_username, type, path}, {_onOpen}: DispatchProps) => {
+const mergeProps = ({_username, type, path}, {_onOpen, _openInFileUI}: DispatchProps) => {
   const itemStyles: Types.ItemStyles = Constants.getItemStyles(path, type, _username)
   const elems = Types.getPathElements(path)
 
@@ -39,7 +41,9 @@ const mergeProps = ({_username, type, path}, {_onOpen}: DispatchProps) => {
     itemStyles,
     name: elems[elems.length - 1],
     onOpen: () => _onOpen(type, path),
+    openInFileUI: () => _openInFileUI(path),
     path,
+    type,
     visibility: Types.getVisibilityFromElems(elems),
   }
 }

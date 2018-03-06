@@ -30,6 +30,9 @@
     "fileTransferProgress": {
       "key": "string",
       "completePortion": "number"
+    },
+    "openInFileUI": {
+      "path?": "string"
     }
   }
 }
