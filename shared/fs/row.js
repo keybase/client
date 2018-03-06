@@ -33,18 +33,13 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 })
 
 const mergeProps = ({_username, type, path}, {_onOpen, _openInFileUI}: DispatchProps) => {
-  const itemStyles: Types.ItemStyles = Constants.getItemStyles(path, type, _username)
   const elems = Types.getPathElements(path)
-
   return {
-    elems: elems,
-    itemStyles,
     name: elems[elems.length - 1],
+    type: type,
     onOpen: () => _onOpen(type, path),
     openInFileUI: () => _openInFileUI(path),
-    path,
-    type,
-    visibility: Types.getVisibilityFromElems(elems),
+    itemStyles: Constants.getItemStyles(elems, type, _username),
   }
 }
 
