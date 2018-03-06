@@ -2,6 +2,7 @@
 // An infinite scrolling chat list. Using react-virtualized which doesn't really handle this case out of the box.
 import * as Virtualized from 'react-virtualized'
 import * as React from 'react'
+import * as ReactDOM from 'react-dom'
 import Message from '../../messages'
 import {ErrorBoundary} from '../../../../common-adapters'
 import clipboard from '../../../../desktop/clipboard'
@@ -12,7 +13,7 @@ import type {Props} from '.'
 
 type State = {
   isLockedToBottom: boolean,
-  listRerender: number,
+  // listRerender: number,
 }
 
 const lockedToBottomSlop = 20
@@ -24,35 +25,53 @@ class Thread extends React.Component<Props, State> {
   })
 
   _list: any
-  _keepIdxVisible: number = -1
+  // _keepIdxVisible: number = -1
   _lastRowIdx: number = -1
+  _lastScrollHeight: number = 0
 
   state = {
     isLockedToBottom: true,
-    listRerender: 0,
-    selectedMessageKey: null,
+    // listRerender: 0,
+    // selectedMessageKey: null,
   }
 
   componentDidUpdate(prevProps: Props, prevState: State) {
     // Force a rerender if we passed a row to scroll to. If it's kept around the virutal list gets confused so we only want it to render once basically
-    if (this._keepIdxVisible !== -1) {
-      this.setState(prevState => ({listRerender: prevState.listRerender + 1})) // eslint-disable-line react/no-did-update-set-state
-      this._keepIdxVisible = -1
+    // if (this._keepIdxVisible !== -1) {
+    // this.setState(prevState => ({listRerender: prevState.listRerender + 1})) // eslint-disable-line react/no-did-update-set-state
+    // this._keepIdxVisible = -1
+    // }
+    // this._lastRowIdx = -1 // always reset this to be safe
+
+    if (this._list && this._rowCount(this.props) !== this._rowCount(prevProps)) {
+      const node = ReactDOM.findDOMNode(this._list)
+      if (node) {
+        console.log('aaa didupdate', node.scrollHeight, node.scrollTop)
+        if (this._lastScrollHeight) {
+          this._list.scrollToPosition(node.scrollHeight - this._lastScrollHeight)
+          // const newTop = node.scrollHeight - this._lastScrollHeight
+          // setImmediate(() => {
+          // console.log('aaa settings old:', this._list.scrollTop, 'new: ', newTop)
+          // this._list.scrollTop = newTop
+          // })
+        }
+        this._lastScrollHeight = node.scrollHeight
+      }
     }
-    this._lastRowIdx = -1 // always reset this to be safe
   }
 
   componentWillReceiveProps(nextProps: Props) {
     if (this.props.conversationIDKey !== nextProps.conversationIDKey) {
+      this._lastScrollHeight = 0
       this._cellCache.clearAll()
       this.setState({isLockedToBottom: true})
     }
 
     if (this.props.messageOrdinals.size !== nextProps.messageOrdinals.size) {
-      if (this.props.messageOrdinals.size > 1 && this._lastRowIdx !== -1) {
-        const toFind = this.props.messageOrdinals.get(this._lastRowIdx)
-        this._keepIdxVisible = toFind ? nextProps.messageOrdinals.indexOf(toFind) : -1
-      }
+      // if (this.props.messageOrdinals.size > 1 && this._lastRowIdx !== -1) {
+      // const toFind = this.props.messageOrdinals.get(this._lastRowIdx)
+      // this._keepIdxVisible = toFind ? nextProps.messageOrdinals.indexOf(toFind) : -1
+      // }
       // Force the grid to throw away its local index based cache. There might be a lighterway to do this but
       // this seems to fix the overlap problem. The cellCache has correct values inside it but the list itself has
       // another cache from row -> style which is out of sync
@@ -63,12 +82,12 @@ class Thread extends React.Component<Props, State> {
 
   _updateBottomLock = (clientHeight: number, scrollHeight: number, scrollTop: number) => {
     // meaningless otherwise
-    if (clientHeight) {
-      const isLockedToBottom = scrollTop + clientHeight >= scrollHeight - lockedToBottomSlop
-      if (this.state.isLockedToBottom !== isLockedToBottom) {
-        this.setState({isLockedToBottom})
-      }
-    }
+    // if (clientHeight) {
+    // const isLockedToBottom = scrollTop + clientHeight >= scrollHeight - lockedToBottomSlop
+    // if (this.state.isLockedToBottom !== isLockedToBottom) {
+    // this.setState({isLockedToBottom})
+    // }
+    // }
   }
 
   _maybeLoadMoreMessages = debounce((clientHeight: number, scrollHeight: number, scrollTop: number) => {
@@ -133,9 +152,12 @@ class Thread extends React.Component<Props, State> {
     this._list = r
   }
 
+  _rowCount = (props: Props) => props.messageOrdinals.size + (props.hasExtraRow ? 1 : 0)
+
   render() {
-    const rowCount = this.props.messageOrdinals.size + (this.props.hasExtraRow ? 1 : 0)
-    const scrollToIndex = this.state.isLockedToBottom ? rowCount - 1 : this._keepIdxVisible
+    const rowCount = this._rowCount(this.props)
+    // const scrollToIndex = this.state.isLockedToBottom ? rowCount - 1 : this._keepIdxVisible
+    // scrollToIndex={scrollToIndex}
 
     return (
       <ErrorBoundary>
@@ -156,7 +178,6 @@ class Thread extends React.Component<Props, State> {
                 rowHeight={this._cellCache.rowHeight}
                 rowRenderer={this._rowRenderer}
                 scrollToAlignment="end"
-                scrollToIndex={scrollToIndex}
                 style={listStyle}
                 width={width}
               />
