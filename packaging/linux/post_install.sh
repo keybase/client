@@ -65,7 +65,7 @@ if redirector_enabled ; then
   chmod 4755 "$krbin"
 else
   # Turn off suid if root has been turned off.
-  chmod 0755 "$krbin"
+  chmod a-s "$krbin"
 fi
 
 currlink="$(readlink "$rootmount")"
