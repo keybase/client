@@ -260,13 +260,14 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 			return fmt.Errorf("unexpected role to add to open team: %v", joinAsRole)
 		}
 
-		var uvs []keybase1.UserVersion
+		tx := CreateAddMemberTx(team)
 		for _, tar := range msg.Tars {
-			uvs = append(uvs, NewUserVersion(tar.Uid, tar.EldestSeqno))
+			uv := NewUserVersion(tar.Uid, tar.EldestSeqno)
+			err := tx.AddMemberByUV(ctx, uv, joinAsRole)
+			g.Log.CDebugf(ctx, "Open team request: adding %v, returned err: %v", uv, err)
 		}
 
-		// No need to forceRepoll here because we just loaded the team few lines above.
-		return AddMembersBestEffort(ctx, g, msg.TeamID, joinAsRole, uvs, false /* forceRepoll */)
+		return tx.Post(ctx)
 	})
 }
 
