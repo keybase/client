@@ -11,6 +11,7 @@ import {collapseStyles, globalStyles, isMobile, styleSheetCreate} from '../style
 
 type Size = 'small' | 'default' | 'large'
 
+// Exposed style props for the top-level container and box around metadata arbitrarily
 type Props = {
   following?: boolean,
   followsMe?: boolean,
@@ -24,7 +25,6 @@ type Props = {
   size?: Size,
   containerStyle?: any,
   metaStyle?: any,
-  iconStyle?: any,
   isYou?: boolean,
   teamname?: string,
   username?: string,
@@ -50,12 +50,13 @@ const NameWithIconVertical = (props: Props) => {
       )}
       {!isAvatar &&
         !!props.icon && (
+          // TODO switch this to collapseStyles when Icon is fixed
           <Icon
             type={props.icon || ''}
             style={{
               fontSize: adapterProps.iconSize,
-              width: adapterProps.iconSize,
               height: adapterProps.iconSize,
+              width: adapterProps.iconSize,
             }}
           />
         )}
@@ -64,7 +65,7 @@ const NameWithIconVertical = (props: Props) => {
         {!!props.username && (
           <Usernames
             type={adapterProps.titleType}
-            users={[{username: props.username, following: props.following, you: props.isYou}]}
+            users={[{following: props.following, username: props.username, you: props.isYou}]}
             colorFollowing={props.colorFollowing}
           />
         )}
@@ -98,7 +99,7 @@ const NameWithIconHorizontal = (props: Props) => {
         {!!props.username && (
           <Usernames
             type="BodySemibold"
-            users={[{username: props.username, following: props.following, you: props.isYou}]}
+            users={[{following: props.following, username: props.username, you: props.isYou}]}
             colorFollowing={props.colorFollowing}
           />
         )}
@@ -157,24 +158,24 @@ const getAdapterProps = (size: Size, isAvatar: boolean) => {
   switch (size) {
     case 'small':
       return {
-        titleType: 'BodySemibold',
-        metaOneType: 'BodySmall',
         iconSize: isAvatar ? 64 : 48,
+        metaOneType: 'BodySmall',
+        titleType: 'BodySemibold',
       }
     case 'large':
       if (isAvatar) {
         return {
-          titleType: 'HeaderBig',
-          metaOneType: 'BodySemibold',
           iconSize: 112,
+          metaOneType: 'BodySemibold',
+          titleType: 'HeaderBig',
         }
       }
   }
   // default
   return {
-    titleType: 'BodyBig',
-    metaOneType: isAvatar ? 'BodySemibold' : 'BodySmall',
     iconSize: isAvatar ? 80 : 64,
+    metaOneType: isAvatar ? 'BodySemibold' : 'BodySmall',
+    titleType: 'BodyBig',
   }
 }
 
