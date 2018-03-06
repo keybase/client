@@ -3,6 +3,7 @@
 import * as Virtualized from 'react-virtualized'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
+import List from 'react-list'
 import Message from '../../messages'
 import {ErrorBoundary} from '../../../../common-adapters'
 import clipboard from '../../../../desktop/clipboard'
@@ -19,15 +20,15 @@ type State = {
 const lockedToBottomSlop = 20
 
 class Thread extends React.Component<Props, State> {
-  _cellCache = new Virtualized.CellMeasurerCache({
-    fixedWidth: true,
-    keyMapper: (rowIndex: number) => this.props.messageOrdinals.get(rowIndex),
-  })
+  // _cellCache = new Virtualized.CellMeasurerCache({
+  // fixedWidth: true,
+  // keyMapper: (rowIndex: number) => this.props.messageOrdinals.get(rowIndex),
+  // })
 
   _list: any
   // _keepIdxVisible: number = -1
   _lastRowIdx: number = -1
-  _lastScrollHeight: number = 0
+  // _lastScrollHeight: number = 0
 
   state = {
     isLockedToBottom: true,
@@ -43,31 +44,42 @@ class Thread extends React.Component<Props, State> {
     // }
     // this._lastRowIdx = -1 // always reset this to be safe
 
-    if (this._list && this._rowCount(this.props) !== this._rowCount(prevProps)) {
-      const node = ReactDOM.findDOMNode(this._list)
-      if (node) {
-        console.log('aaa didupdate', node.scrollHeight, node.scrollTop)
-        if (this._lastScrollHeight) {
-          this._list.scrollToPosition(node.scrollHeight - this._lastScrollHeight)
-          // const newTop = node.scrollHeight - this._lastScrollHeight
-          // setImmediate(() => {
-          // console.log('aaa settings old:', this._list.scrollTop, 'new: ', newTop)
-          // this._list.scrollTop = newTop
-          // })
-        }
-        this._lastScrollHeight = node.scrollHeight
+    if (this._list) {
+      const oldCount = this._rowCount(prevProps)
+      const newCount = this._rowCount(this.props)
+      if (oldCount !== newCount) {
+        // const node = ReactDOM.findDOMNode(this._list)
+        // if (node) {
+        // const height = this._list.getSpaceBefore(newCount - oldCount) + 300
+        // this._listWrap.scrollTop = height
+        // this._list.setScroll(height + 100) // extra cause the loading more stuff actually goes away so the spacing is changed
+        // this._list.scrollTo(newCount - oldCount)
+        this._list.scrollAround(newCount - oldCount + this._lastRowIdx)
+
+        // console.log('aaa didupdate', node.scrollHeight, node.scrollTop)
+        // if (this._lastScrollHeight) {
+        // this._list.scrollToPosition(node.scrollHeight - this._lastScrollHeight)
+        // const newTop = node.scrollHeight - this._lastScrollHeight
+        // setImmediate(() => {
+        // console.log('aaa settings old:', this._list.scrollTop, 'new: ', newTop)
+        // this._list.scrollTop = newTop
+        // })
+        // }
+        // this._lastScrollHeight = node.scrollHeight
+        // }
       }
     }
   }
 
   componentWillReceiveProps(nextProps: Props) {
     if (this.props.conversationIDKey !== nextProps.conversationIDKey) {
-      this._lastScrollHeight = 0
-      this._cellCache.clearAll()
+      // this._lastScrollHeight = 0
+      // this._cellCache.clearAll()
       this.setState({isLockedToBottom: true})
     }
 
     if (this.props.messageOrdinals.size !== nextProps.messageOrdinals.size) {
+      this._lastRowIdx = this._list.getVisibleRange()[1]
       // if (this.props.messageOrdinals.size > 1 && this._lastRowIdx !== -1) {
       // const toFind = this.props.messageOrdinals.get(this._lastRowIdx)
       // this._keepIdxVisible = toFind ? nextProps.messageOrdinals.indexOf(toFind) : -1
@@ -75,8 +87,8 @@ class Thread extends React.Component<Props, State> {
       // Force the grid to throw away its local index based cache. There might be a lighterway to do this but
       // this seems to fix the overlap problem. The cellCache has correct values inside it but the list itself has
       // another cache from row -> style which is out of sync
-      this._cellCache.clearAll()
-      this._list && this._list.Grid && this._list.recomputeRowHeights(0)
+      // this._cellCache.clearAll()
+      // this._list && this._list.Grid && this._list.recomputeRowHeights(0)
     }
   }
 
@@ -96,39 +108,58 @@ class Thread extends React.Component<Props, State> {
     }
   }, 500)
 
-  _onScroll = ({clientHeight, scrollHeight, scrollTop}) => {
-    this._updateBottomLock(clientHeight, scrollHeight, scrollTop)
-    this._maybeLoadMoreMessages(clientHeight, scrollHeight, scrollTop)
+  _onScroll = e => {
+    const target = e.nativeEvent.target
+    this._maybeLoadMoreMessages(target.clientHeight, target.scrollHeight, target.scrollTop)
+    // console.log(e.nativeEvent)
   }
+  // _onScroll = ({clientHeight, scrollHeight, scrollTop}) => {
+  // this._updateBottomLock(clientHeight, scrollHeight, scrollTop)
+  // this._maybeLoadMoreMessages(clientHeight, scrollHeight, scrollTop)
+  // }
 
-  _onResize = ({width}) => {
-    if (this._cellCache.columnWidth({index: 0}) !== width) {
-      this._cellCache.clearAll()
-    }
-  }
+  // _onResize = ({width}) => {
+  // if (this._cellCache.columnWidth({index: 0}) !== width) {
+  // this._cellCache.clearAll()
+  // }
+  // }
 
-  _rowRenderer = ({index, isScrolling, isVisible, key, parent, style}) => {
+  // _rowRenderer = ({index, isScrolling, isVisible, key, parent, style}) => {
+  // const ordinal = this.props.messageOrdinals.get(index)
+  // const prevOrdinal = index > 0 ? this.props.messageOrdinals.get(index - 1) : null
+  // return (
+  // <Virtualized.CellMeasurer
+  // cache={this._cellCache}
+  // columnIndex={0}
+  // key={key}
+  // parent={parent}
+  // rowIndex={index}
+  // >
+  // {({measure}) => (
+  // <div style={style}>
+  // <Message
+  // ordinal={ordinal}
+  // previous={prevOrdinal}
+  // measure={measure}
+  // conversationIDKey={this.props.conversationIDKey}
+  // />
+  // </div>
+  // )}
+  // </Virtualized.CellMeasurer>
+  // )
+  // }
+
+  _renderItem = (index, key) => {
     const ordinal = this.props.messageOrdinals.get(index)
     const prevOrdinal = index > 0 ? this.props.messageOrdinals.get(index - 1) : null
     return (
-      <Virtualized.CellMeasurer
-        cache={this._cellCache}
-        columnIndex={0}
-        key={key}
-        parent={parent}
-        rowIndex={index}
-      >
-        {({measure}) => (
-          <div style={style}>
-            <Message
-              ordinal={ordinal}
-              previous={prevOrdinal}
-              measure={measure}
-              conversationIDKey={this.props.conversationIDKey}
-            />
-          </div>
-        )}
-      </Virtualized.CellMeasurer>
+      <Message
+        key={ordinal}
+        ordinal={ordinal}
+        previous={prevOrdinal}
+        measure={null}
+        conversationIDKey={this.props.conversationIDKey}
+      />
     )
   }
 
@@ -144,10 +175,13 @@ class Thread extends React.Component<Props, State> {
     }
   }
 
-  _onRowsRendered = ({stopIndex}: {stopIndex: number}) => {
-    this._lastRowIdx = stopIndex
-  }
+  // _onRowsRendered = ({stopIndex}: {stopIndex: number}) => {
+  // this._lastRowIdx = stopIndex
+  // }
 
+  _setListWrapRef = (r: any) => {
+    this._listWrap = r
+  }
   _setListRef = (r: any) => {
     this._list = r
   }
@@ -158,29 +192,42 @@ class Thread extends React.Component<Props, State> {
     const rowCount = this._rowCount(this.props)
     // const scrollToIndex = this.state.isLockedToBottom ? rowCount - 1 : this._keepIdxVisible
     // scrollToIndex={scrollToIndex}
-
+    // <Virtualized.List
+    // conversationIDKey={this.props.conversationIDKey}
+    // listRerender={this.state.listRerender}
+    // columnWidth={width}
+    // deferredMeasurementCache={this._cellCache}
+    // height={height}
+    // onScroll={this._onScroll}
+    // onRowsRendered={this._onRowsRendered}
+    // ref={this._setListRef}
+    // rowCount={rowCount}
+    // rowHeight={this._cellCache.rowHeight}
+    // rowRenderer={this._rowRenderer}
+    // scrollToAlignment="end"
+    // style={listStyle}
+    // width={width}
+    // />
     return (
       <ErrorBoundary>
         <div style={containerStyle} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>
           <style>{realCSS}</style>
-          <Virtualized.AutoSizer onResize={this._onResize}>
+          <Virtualized.AutoSizer onResize={undefined /* this._onResize */}>
             {({height, width}) => (
-              <Virtualized.List
-                conversationIDKey={this.props.conversationIDKey}
-                listRerender={this.state.listRerender}
-                columnWidth={width}
-                deferredMeasurementCache={this._cellCache}
-                height={height}
+              <div
+                style={{width, height, overflow: 'auto'}}
                 onScroll={this._onScroll}
-                onRowsRendered={this._onRowsRendered}
-                ref={this._setListRef}
-                rowCount={rowCount}
-                rowHeight={this._cellCache.rowHeight}
-                rowRenderer={this._rowRenderer}
-                scrollToAlignment="end"
-                style={listStyle}
-                width={width}
-              />
+                ref={this._setListWrapRef}
+              >
+                <List
+                  itemRenderer={this._renderItem}
+                  length={rowCount}
+                  style={listStyle}
+                  ref={this._setListRef}
+                  type="variable"
+                  useTranslate3d={true}
+                />
+              </div>
             )}
           </Virtualized.AutoSizer>
         </div>

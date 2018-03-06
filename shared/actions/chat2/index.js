@@ -572,7 +572,7 @@ const loadMoreMessages = (
   state: TypedState
 ) => {
   const numMessagesOnInitialLoad = isMobile ? 20 : 50
-  const numMessagesOnScrollback = isMobile ? 50 : 10 // TEMP 100
+  const numMessagesOnScrollback = isMobile ? 50 : 30 // TEMP 100
 
   // Get the conversationIDKey
   let key = null
