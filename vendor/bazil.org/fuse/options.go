@@ -114,6 +114,13 @@ func NoBrowse() MountOption {
 	return noBrowse
 }
 
+// NoLocalCaches makes disables all kernel caching.
+//
+// OS X only.  Others ignore this option.
+func NoLocalCaches() MountOption {
+	return noLocalCaches
+}
+
 // ExclCreate causes O_EXCL flag to be set for only "truly" exclusive creates,
 // i.e. create calls for which the initiator explicitly set the O_EXCL flag.
 //

@@ -30,3 +30,7 @@ func exclCreate(conf *mountConfig) error {
 func noBrowse(conf *mountConfig) error {
 	return nil
 }
+
+func noLocalCaches(conf *mountConfig) error {
+	return nil
+}

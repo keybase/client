@@ -276,6 +276,8 @@ func main() {
 		options = append(options, fuse.OSXFUSELocations(kbfusePath))
 		options = append(options, fuse.VolumeName("keybase-redirector"))
 		options = append(options, fuse.NoBrowse())
+		// Without NoLocalCaches(), OSX will cache symlinks for a long time.
+		options = append(options, fuse.NoLocalCaches())
 	}
 
 	c, err := fuse.Mount(os.Args[1], options...)
