@@ -199,7 +199,7 @@
   }
 
   if (![[NSFileManager defaultManager] fileExistsAtPath:symPath]) {
-    if ([[NSFileManager defaultManager] createSymbolicLinkAtPath:symPath withDestinationPath:config.mountDir error:error]) {
+    if (![[NSFileManager defaultManager] createSymbolicLinkAtPath:symPath withDestinationPath:config.mountDir error:error]) {
       return NO;
     }
   }
