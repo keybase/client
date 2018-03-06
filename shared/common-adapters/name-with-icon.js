@@ -37,7 +37,7 @@ const NameWithIconVertical = (props: Props) => {
   return (
     <BoxComponent
       onClick={props.onClick}
-      style={collapseStyles([styles.containerStyle, props.containerStyle || {}])}
+      style={collapseStyles([styles.verticalContainerStyle, props.containerStyle || {}])}
     >
       {isAvatar && (
         <Avatar
@@ -82,7 +82,7 @@ const NameWithIconHorizontal = (props: Props) => {
   return (
     <BoxComponent
       onClick={props.onClick}
-      style={{...globalStyles.flexBoxRow, alignItems: 'center', ...props.containerStyle}}
+      style={collapseStyles([styles.hContainerStyle, props.containerStyle || {}])}
     >
       {isAvatar && (
         <Avatar
@@ -92,14 +92,8 @@ const NameWithIconHorizontal = (props: Props) => {
           style={{marginRight: 16}}
         />
       )}
-      {!isAvatar &&
-        !!props.icon && (
-          <Icon
-            type={props.icon}
-            style={{marginRight: 16, fontSize: commonHeight, width: commonHeight, height: commonHeight}}
-          />
-        )}
-      <Box style={{...globalStyles.flexBoxColumn, ...props.metaStyle}}>
+      {!isAvatar && !!props.icon && <Icon type={props.icon} style={styles.hIconStyle} />}
+      <Box style={collapseStyles([globalStyles.flexBoxColumn, props.metaStyle || {}])}>
         {!props.username && <Text type="BodySemibold">{props.title}</Text>}
         {!!props.username && (
           <Usernames
@@ -136,14 +130,25 @@ const TextOrComponent = ({val, textType}: {val: string | React.Node, textType: T
 
 // TODO refactor these styles to use hybrid desktop/native stylesheets
 const styles = styleSheetCreate({
-  containerStyle: {
-    ...globalStyles.flexBoxColumn,
+  hAvatarStyle: {marginRight: 16},
+  hContainerStyle: {
+    ...globalStyles.flexBoxRow,
     alignItems: 'center',
+  },
+  hIconStyle: {
+    fontSize: isMobile ? 48 : 32,
+    height: isMobile ? 48 : 32,
+    marginRight: 16,
+    width: isMobile ? 48 : 32,
   },
   metaStyle: {
     ...globalStyles.flexBoxColumn,
     ...globalStyles.flexBoxCenter,
     marginTop: 8,
+  },
+  verticalContainerStyle: {
+    ...globalStyles.flexBoxColumn,
+    alignItems: 'center',
   },
 })
 
