@@ -163,7 +163,7 @@
   return YES;
 }
 
-- (BOOL)linkExists:(NSString *)linkPath {
++ (BOOL)linkExists:(NSString *)linkPath {
   NSDictionary *attributes = [NSFileManager.defaultManager attributesOfItemAtPath:linkPath error:nil];
   if (!attributes) {
     return NO;
@@ -171,7 +171,7 @@
   return [attributes[NSFileType] isEqual:NSFileTypeSymbolicLink];
 }
 
-- (NSString *)resolveLinkPath:(NSString *)linkPath {
++ (NSString *)resolveLinkPath:(NSString *)linkPath {
   if (![self linkExists:linkPath]) {
     return nil;
   }
@@ -193,7 +193,7 @@
   NSString *currPath = [self resolveLinkPath:symPath];
   if (currPath && ![config.mountDir isEqualToString:currPath]) {
     DDLogDebug(@"Removing old favorite: %@", currPath);
-    if ([[NSFileManager defaultManager] removeItemAtPath:symPath]) {
+    if (![[NSFileManager defaultManager] removeItemAtPath:symPath error:error]) {
       return NO;
     }
   }
