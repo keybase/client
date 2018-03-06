@@ -117,6 +117,8 @@ func TestChatSrvSBS(t *testing.T) {
 			chat1.NewMessageBodyWithText(chat1.MessageText{
 				Body: "HI",
 			}))
+		consumeNewMsg(t, listener0, chat1.MessageType_TEXT)
+		consumeNewMsg(t, listener0, chat1.MessageType_TEXT)
 
 		_, err = postLocalForTest(t, ctc, users[1], ncres.Conv.Info,
 			chat1.NewMessageBodyWithText(chat1.MessageText{
@@ -150,10 +152,16 @@ func TestChatSrvSBS(t *testing.T) {
 			chat1.NewMessageBodyWithText(chat1.MessageText{
 				Body: "HI",
 			}))
+		consumeNewMsg(t, listener0, chat1.MessageType_TEXT)
+		consumeNewMsg(t, listener0, chat1.MessageType_TEXT)
+		consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
 		mustPostLocalForTest(t, ctc, users[1], ncres.Conv.Info,
 			chat1.NewMessageBodyWithText(chat1.MessageText{
 				Body: "HI",
 			}))
+		consumeNewMsg(t, listener0, chat1.MessageType_TEXT)
+		consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
+		consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
 		tvres, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
 			ConversationID: ncres.Conv.GetConvID(),
 			Query: &chat1.GetThreadQuery{
