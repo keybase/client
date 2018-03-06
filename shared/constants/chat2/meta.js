@@ -38,7 +38,7 @@ export const unverifiedInboxUIItemToConversationMeta = (
     i.localMetadata = null
   }
 
-  // Public chats only
+  // Private chats only
   if (i.visibility !== RPCTypes.commonTLFVisibility.private) {
     return null
   }
@@ -194,7 +194,7 @@ export const updateMetaWithNotificationSettings = (
 }
 
 export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
-  // Public chats only
+  // Private chats only
   if (i.visibility !== RPCTypes.commonTLFVisibility.private) {
     return null
   }
