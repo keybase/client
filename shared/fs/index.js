@@ -91,6 +91,7 @@ class Files extends React.PureComponent<FolderProps> {
 
 const folderBoxStyle = {
   ...globalStyles.flexBoxColumn,
+  ...globalStyles.flexGrow,
   flex: 1,
   justifyContent: 'space-between',
   minWidth: 0,
@@ -135,14 +136,13 @@ const stylesRowBox = {
 const stylesRowContainer = {
   ...stylesRowBox,
   justifyContent: 'space-between',
-  paddingRight: 16,
+  paddingRight: globalMargins.small,
 }
 
 const stylesRowRightBox = {
-  ...stylesRowBox,
+  ...globalStyles.flexBoxRow,
   flexShrink: 1,
   justifyContent: 'flex-end',
-  paddingRight: globalMargins.small,
 }
 
 const iconPlaceholderIconStyle = {

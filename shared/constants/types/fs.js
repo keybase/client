@@ -229,24 +229,3 @@ export type ItemStyles = {
   textColor: string,
   textType: TextType,
 }
-
-export const makeBasicPathItemIconSpec = (iconType: IconType, iconColor: string): PathItemIconSpec => ({
-  type: 'basic',
-  iconType,
-  iconColor,
-})
-
-export const makeTeamAvatarPathItemIconSpec = (teamName: string): PathItemIconSpec => ({
-  type: 'teamAvatar',
-  teamName,
-})
-
-export const makeAvatarPathItemIconSpec = (username: string): PathItemIconSpec => ({
-  type: 'avatar',
-  username,
-})
-
-export const makeAvatarsPathItemIconSpec = (usernames: Array<string>): PathItemIconSpec => ({
-  type: 'avatars',
-  usernames,
-})

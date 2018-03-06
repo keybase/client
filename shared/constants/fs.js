@@ -59,6 +59,27 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   transfers: I.Map(),
 })
 
+const makeBasicPathItemIconSpec = (iconType: IconType, iconColor: string): PathItemIconSpec => ({
+  type: 'basic',
+  iconType,
+  iconColor,
+})
+
+const makeTeamAvatarPathItemIconSpec = (teamName: string): PathItemIconSpec => ({
+  type: 'teamAvatar',
+  teamName,
+})
+
+const makeAvatarPathItemIconSpec = (username: string): PathItemIconSpec => ({
+  type: 'avatar',
+  username,
+})
+
+const makeAvatarsPathItemIconSpec = (usernames: Array<string>): PathItemIconSpec => ({
+  type: 'avatars',
+  usernames,
+})
+
 export const makeUUID = () => uuidv1(null, Buffer.alloc(16), 0)
 export const fsPathToRpcPathString = (p: Types.Path): string =>
   Types.pathToString(p).substring('/keybase'.length) || '/'
@@ -79,48 +100,48 @@ const folderTextType = 'BodySemibold'
 const fileTextType = 'Body'
 
 const itemStylesTeamList = {
-  iconSpec: Types.makeBasicPathItemIconSpec('icon-folder-team-32', privateIconColor),
+  iconSpec: makeBasicPathItemIconSpec('icon-folder-team-32', privateIconColor),
   textColor: privateTextColor,
   textType: folderTextType,
 }
 const itemStylesPublicFolder = {
-  iconSpec: Types.makeBasicPathItemIconSpec('icon-folder-public-32', publicIconColor),
+  iconSpec: makeBasicPathItemIconSpec('icon-folder-public-32', publicIconColor),
   textColor: publicTextColor,
   textType: folderTextType,
 }
 const itemStylesPublicFile = {
-  iconSpec: Types.makeBasicPathItemIconSpec('icon-file-public-32', publicIconColor),
+  iconSpec: makeBasicPathItemIconSpec('icon-file-public-32', publicIconColor),
   textColor: publicTextColor,
   textType: fileTextType,
 }
 const itemStylesPrivateFolder = {
-  iconSpec: Types.makeBasicPathItemIconSpec('icon-folder-private-32', privateIconColor),
+  iconSpec: makeBasicPathItemIconSpec('icon-folder-private-32', privateIconColor),
   textColor: privateTextColor,
   textType: folderTextType,
 }
 const itemStylesPrivateFile = {
-  iconSpec: Types.makeBasicPathItemIconSpec('icon-file-private-32', privateIconColor),
+  iconSpec: makeBasicPathItemIconSpec('icon-file-private-32', privateIconColor),
   textColor: privateTextColor,
   textType: fileTextType,
 }
 const itemStylesPublicUnknown = {
-  iconSpec: Types.makeBasicPathItemIconSpec('iconfont-question-mark', unknownTextColor),
+  iconSpec: makeBasicPathItemIconSpec('iconfont-question-mark', unknownTextColor),
   textColor: publicTextColor,
   textType: fileTextType,
 }
 const itemStylesPrivateUnknown = {
-  iconSpec: Types.makeBasicPathItemIconSpec('iconfont-question-mark', unknownTextColor),
+  iconSpec: makeBasicPathItemIconSpec('iconfont-question-mark', unknownTextColor),
   textColor: privateTextColor,
   textType: fileTextType,
 }
 
 const getIconSpecFromUsernames = (usernames: Array<string>, me?: string) => {
   if (usernames.length === 1) {
-    return Types.makeAvatarPathItemIconSpec(usernames[0])
+    return makeAvatarPathItemIconSpec(usernames[0])
   } else if (usernames.length > 1) {
-    return Types.makeAvatarsPathItemIconSpec(usernames.filter(username => username !== me))
+    return makeAvatarsPathItemIconSpec(usernames.filter(username => username !== me))
   }
-  return Types.makeBasicPathItemIconSpec('iconfont-question-mark', unknownTextColor)
+  return makeBasicPathItemIconSpec('iconfont-question-mark', unknownTextColor)
 }
 const splitTlfIntoUsernames = (tlf: string): Array<string> =>
   tlf
@@ -139,7 +160,7 @@ const itemStylesPrivateTlf = memoize((tlf: string, me?: string) => ({
   textType: folderTextType,
 }))
 const itemStylesTeamTlf = memoize((teamName: string) => ({
-  iconSpec: Types.makeTeamAvatarPathItemIconSpec(teamName),
+  iconSpec: makeTeamAvatarPathItemIconSpec(teamName),
   textColor: privateTextColor,
   textType: folderTextType,
 }))
