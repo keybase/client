@@ -66,10 +66,8 @@ const NameWithIconVertical = (props: Props) => {
             colorFollowing={props.colorFollowing}
           />
         )}
-        {typeof props.metaOne === 'string' && <Text type={adapterProps.metaOneType}>{props.metaOne}</Text>}
-        {typeof props.metaOne === 'object' && props.metaOne}
-        {typeof props.metaTwo === 'string' && <Text type="BodySmall">{props.metaTwo}</Text>}
-        {typeof props.metaTwo === 'object' && props.metaTwo}
+        <TextOrComponent textType={adapterProps.metaOneType} val={props.metaOne} />
+        <TextOrComponent textType="BodySmall" val={props.metaTwo} />
       </Box>
     </BoxComponent>
   )
@@ -110,11 +108,9 @@ const NameWithIconHorizontal = (props: Props) => {
           />
         )}
         <Box style={globalStyles.flexBoxRow}>
-          {typeof props.metaOne === 'string' && <Text type="BodySmall">{props.metaOne}</Text>}
-          {typeof props.metaOne === 'object' && props.metaOne}
+          <TextOrComponent textType="BodySmall" val={props.metaOne} />
           {props.metaTwo && <Text type="BodySmall">&nbsp;·&nbsp;</Text>}
-          {typeof props.metaTwo === 'string' && <Text type="BodySmall">{props.metaTwo}</Text>}
-          {typeof props.metaTwo === 'object' && props.metaTwo}
+          <TextOrComponent textType="BodySmall" val={props.metaTwo} />
         </Box>
       </Box>
     </BoxComponent>
@@ -128,6 +124,14 @@ const NameWithIcon = (props: Props) => {
   return props.horizontal ? <NameWithIconHorizontal {...props} /> : <NameWithIconVertical {...props} />
 }
 
+const TextOrComponent = ({val, textType}: {val: string | React.Node, textType: TextType}) => {
+  if (typeof val === 'string') {
+    return <Text type={textType}>{val}</Text>
+  }
+  return val || null
+}
+
+// TODO refactor these styles to use hybrid desktop/native stylesheets
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',

@@ -2,6 +2,7 @@
 import * as React from 'react'
 import {action, storiesOf} from '../stories/storybook'
 import ScrollView from './scroll-view'
+import Text from './text'
 import NameWithIcon from './name-with-icon'
 
 const commonProps = {
@@ -11,8 +12,9 @@ const commonProps = {
 
 const load = () => {
   storiesOf('Common', module)
+    .addDecorator(story => <ScrollView>{story()}</ScrollView>)
     .add('Name with icon', () => (
-      <ScrollView>
+      <React.Fragment>
         <NameWithIcon {...commonProps} username="ayoubd" isYou={true} metaOne="Danny Ayoub" size="default" />
         <NameWithIcon
           {...commonProps}
@@ -51,10 +53,10 @@ const load = () => {
           size="small"
           following={true}
         />
-      </ScrollView>
+      </React.Fragment>
     ))
     .add('Name with icon horizontal', () => (
-      <ScrollView>
+      <React.Fragment>
         <NameWithIcon
           {...commonProps}
           horizontal={true}
@@ -72,7 +74,22 @@ const load = () => {
           metaTwo="the best team"
           containerStyle={{padding: 4}}
         />
-      </ScrollView>
+      </React.Fragment>
+    ))
+    .add('Name with icon subcomponents', () => (
+      <React.Fragment>
+        <NameWithIcon
+          {...commonProps}
+          teamname="keybasefriends"
+          title="keybasefriends"
+          onClick={action('Click on top level')}
+          metaOne={
+            <Text type="BodySmallPrimaryLink" onClick={action('Click within meta')}>
+              Manage members
+            </Text>
+          }
+        />
+      </React.Fragment>
     ))
 }
 
