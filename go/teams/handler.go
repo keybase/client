@@ -286,7 +286,7 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 		for _, tar := range msg.Tars {
 			uv := NewUserVersion(tar.Uid, tar.EldestSeqno)
 			err := tx.AddMemberByUV(ctx, uv, joinAsRole)
-			g.Log.CDebugf(ctx, "Open team request: adding %v, result: %v", uv, err)
+			g.Log.CDebugf(ctx, "Open team request: adding %v, returned err: %v", uv, err)
 		}
 
 		return tx.Post(ctx)
