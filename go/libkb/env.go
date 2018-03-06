@@ -6,6 +6,7 @@ package libkb
 import (
 	"fmt"
 	"os"
+	"os/user"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -229,20 +230,28 @@ func (e *Env) GetMountDir() (string, error) {
 		func() string {
 			switch runtime.GOOS {
 			case "darwin":
+				volumes := "/Volumes"
+				user, err := user.Current()
+				if err != nil {
+					panic(fmt.Sprintf("Couldn't get current user: %+v", err))
+				}
+				var runmodeName string
 				switch e.GetRunMode() {
 				case DevelRunMode:
-					return filepath.Join(e.GetHome(), "keybase.devel")
+					runmodeName = "KeybaseDevel"
 				case StagingRunMode:
-					return filepath.Join(e.GetHome(), "keybase.staging")
+					runmodeName = "KeybaseStaging"
 				case ProductionRunMode:
-					return filepath.Join(e.GetHome(), "keybase")
+					runmodeName = "Keybase"
 				default:
 					panic("Invalid run mode")
 				}
+				return filepath.Join(volumes, fmt.Sprintf(
+					"%s's %s", user.Username, runmodeName))
 			case "linux":
-				return filepath.Join(e.GetDataDir(), "fs")
+				return filepath.Join(e.GetRuntimeDir(), "kbfs")
 			default:
-				return filepath.Join(e.GetDataDir(), "fs")
+				return filepath.Join(e.GetRuntimeDir(), "kbfs")
 			}
 		},
 	), nil
