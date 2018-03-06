@@ -39,9 +39,10 @@ func durationSecToDuration(s keybase1.DurationSec) time.Duration {
 
 type timedProfiler interface {
 	Name() string
+
 	MaxFileCount() int
-	GetSortedFiles(dir string) ([]string, error)
 	MakeFilename(dir string, start time.Time, duration time.Duration) string
+	GetSortedFiles(dir string) ([]string, error)
 
 	Start(w io.Writer) error
 	Stop()
@@ -124,15 +125,15 @@ type cpuProfiler struct{}
 func (cpuProfiler) Name() string { return "CPU" }
 
 func (cpuProfiler) MaxFileCount() int {
-	panic("unimplemented")
-}
-
-func (cpuProfiler) GetSortedFiles(dir string) ([]string, error) {
-	panic("unimplemented")
+	return libkb.MaxCPUProfileFileCount
 }
 
 func (cpuProfiler) MakeFilename(dir string, start time.Time, duration time.Duration) string {
-	panic("unimplemented")
+	return libkb.MakeCPUProfileFilename(dir, start, duration)
+}
+
+func (cpuProfiler) GetSortedFiles(dir string) ([]string, error) {
+	return libkb.GetSortedCPUProfileFiles(dir)
 }
 
 func (cpuProfiler) Start(w io.Writer) error {
@@ -201,12 +202,12 @@ func (traceProfiler) Name() string { return "trace" }
 
 func (traceProfiler) MaxFileCount() int { return libkb.MaxTraceFileCount }
 
-func (traceProfiler) GetSortedFiles(dir string) ([]string, error) {
-	return libkb.GetSortedTraceFiles(dir)
-}
-
 func (traceProfiler) MakeFilename(dir string, start time.Time, duration time.Duration) string {
 	return libkb.MakeTraceFilename(dir, start, duration)
+}
+
+func (traceProfiler) GetSortedFiles(dir string) ([]string, error) {
+	return libkb.GetSortedTraceFiles(dir)
 }
 
 func (traceProfiler) Start(w io.Writer) error {
