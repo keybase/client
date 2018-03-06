@@ -4,6 +4,7 @@ import * as Types from './types/fs'
 import uuidv1 from 'uuid/v1'
 import {globalColors} from '../styles'
 import {downloadFilePath} from '../util/file'
+import {type IconType} from '../common-adapters/icon'
 import memoize from 'lodash/memoize'
 
 export const defaultPath = '/keybase'
@@ -59,23 +60,23 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   transfers: I.Map(),
 })
 
-const makeBasicPathItemIconSpec = (iconType: IconType, iconColor: string): PathItemIconSpec => ({
+const makeBasicPathItemIconSpec = (iconType: IconType, iconColor: string): Types.PathItemIconSpec => ({
   type: 'basic',
   iconType,
   iconColor,
 })
 
-const makeTeamAvatarPathItemIconSpec = (teamName: string): PathItemIconSpec => ({
+const makeTeamAvatarPathItemIconSpec = (teamName: string): Types.PathItemIconSpec => ({
   type: 'teamAvatar',
   teamName,
 })
 
-const makeAvatarPathItemIconSpec = (username: string): PathItemIconSpec => ({
+const makeAvatarPathItemIconSpec = (username: string): Types.PathItemIconSpec => ({
   type: 'avatar',
   username,
 })
 
-const makeAvatarsPathItemIconSpec = (usernames: Array<string>): PathItemIconSpec => ({
+const makeAvatarsPathItemIconSpec = (usernames: Array<string>): Types.PathItemIconSpec => ({
   type: 'avatars',
   usernames,
 })
