@@ -440,7 +440,9 @@ func (tx *AddMemberTx) ReAddMemberToImplicitTeam(ctx context.Context, uv keybase
 // AddMemberBySBS is very similar in what it does to addMemberByUPAKV2
 // (or AddMemberBy* family of functions), but it has easier job
 // because it only adds cryptomembers and fails on PUKless users. It
-// also completed inviteID for given invitee.
+// also sets invite referenced by `invitee.InviteID` as Completed by
+// UserVersion from `invitee` in the same ChangeMembership link that
+// adds the user to the team.
 //
 // AddMemberBySBS assumes that member role is already checked by the
 // caller, so it might generate invalid signature if invitee is
