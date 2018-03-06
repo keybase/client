@@ -424,7 +424,14 @@ func TestSymlink(t *testing.T) {
 	err = fs.Symlink("foo", "a/b/c/bar")
 	require.NoError(t, err)
 
-	bar, err := fs.Open("a/b/c/bar")
+	_, err = fs.Open("a/b/c/bar")
+	require.NoError(t, err)
+
+	t.Log("Make sure Symlink creates parent directories as needed")
+	err = fs.Symlink("../../foo", "a/b/c/d/e/bar")
+	require.NoError(t, err)
+
+	bar, err := fs.Open("a/b/c/d/e/bar")
 	require.NoError(t, err)
 
 	checkData := func(f billy.File) {

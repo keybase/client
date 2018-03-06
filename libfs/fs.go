@@ -388,6 +388,24 @@ func (fs *FS) mkdirAll(filename string, perm os.FileMode) (err error) {
 	return nil
 }
 
+func (fs *FS) ensureParentDir(filename string) error {
+	err := fs.mkdirAll(path.Dir(filename), 0755)
+	if err != nil && !os.IsExist(err) {
+		switch errors.Cause(err).(type) {
+		case libkbfs.WriteAccessError, libkbfs.WriteToReadonlyNodeError:
+			// We're not allowed to create any of the parent
+			// directories automatically, so give back a proper
+			// isNotExist error.
+			fs.log.CDebugf(fs.ctx, "ensureParentDir: "+
+				"can't mkdir all due to permission error %+v", err)
+			return os.ErrNotExist
+		default:
+			return err
+		}
+	}
+	return nil
+}
+
 // OpenFile implements the billy.Filesystem interface for FS.
 func (fs *FS) OpenFile(filename string, flag int, perm os.FileMode) (
 	f billy.File, err error) {
@@ -398,19 +416,9 @@ func (fs *FS) OpenFile(filename string, flag int, perm os.FileMode) (
 		err = translateErr(err)
 	}()
 
-	err = fs.mkdirAll(path.Dir(filename), 0755)
-	if err != nil && !os.IsExist(err) {
-		switch errors.Cause(err).(type) {
-		case libkbfs.WriteAccessError, libkbfs.WriteToReadonlyNodeError:
-			// We're not allowed to create any of the parent
-			// directories automatically, so give back a proper
-			// isNotExist error.
-			fs.log.CDebugf(fs.ctx,
-				"Open can't mkdir all due to permission error %+v", err)
-			return nil, os.ErrNotExist
-		default:
-			return nil, err
-		}
+	err = fs.ensureParentDir(filename)
+	if err != nil {
+		return nil, err
 	}
 
 	n, ei, err := fs.lookupOrCreateEntry(filename, flag, perm)
@@ -631,6 +639,11 @@ func (fs *FS) Symlink(target, link string) (err error) {
 		fs.deferLog.CDebugf(fs.ctx, "Symlink done: %+v", err)
 		err = translateErr(err)
 	}()
+
+	err = fs.ensureParentDir(link)
+	if err != nil {
+		return err
+	}
 
 	n, _, base, err := fs.lookupParent(link)
 	if err != nil {
