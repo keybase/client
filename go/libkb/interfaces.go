@@ -210,6 +210,7 @@ type Usage struct {
 	KbKeyring  bool
 	API        bool
 	Socket     bool
+	AllowRoot  bool
 }
 
 type Command interface {
