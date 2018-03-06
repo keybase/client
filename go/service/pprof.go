@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime/pprof"
 	"runtime/trace"
 	"time"
 
@@ -89,8 +90,20 @@ func doTimedProfile(log libkb.LogUI, delayedLog logger.Logger,
 	return nil
 }
 
-func (c *PprofHandler) cpuProfile(ctx engine.Context, traceFile string, traceDurationSeconds keybase1.DurationSec) (err error) {
-	panic("not implemented")
+type cpuProfiler struct{}
+
+func (cpuProfiler) Name() string { return "CPU" }
+
+func (cpuProfiler) Start(w io.Writer) error {
+	return pprof.StartCPUProfile(w)
+}
+
+func (cpuProfiler) Stop() {
+	pprof.StopCPUProfile()
+}
+
+func (c *PprofHandler) cpuProfile(ctx engine.Context, profileFile string, profileDurationSeconds keybase1.DurationSec) (err error) {
+	return doTimedProfile(ctx.LogUI, c.G().Log, cpuProfiler{}, profileFile, profileDurationSeconds)
 }
 
 func (c *PprofHandler) ProcessorProfile(_ context.Context, arg keybase1.ProcessorProfileArg) (err error) {
