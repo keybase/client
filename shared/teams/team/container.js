@@ -53,7 +53,7 @@ const mapDispatchToProps = (
     onChat: () => dispatch(ChatGen.createOpenTeamConversation({teamname, channelname: 'general'})),
     onLeaveTeam: () => dispatch(navigateAppend([{props: {teamname}, selected: 'reallyLeaveTeam'}])),
     onCreateSubteam: () =>
-      dispatch(navigateAppend([{props: {name: `${teamname}.`}, selected: 'showNewTeamDialog'}])),
+      dispatch(navigateAppend([{props: {makeSubteam: true, name: teamname}, selected: 'showNewTeamDialog'}])),
     _loadTeam: teamname => dispatch(TeamsGen.createGetDetails({teamname})),
     onBack: () => dispatch(navigateUp()),
 
