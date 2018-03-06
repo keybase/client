@@ -5,7 +5,6 @@ import (
 
 	"golang.org/x/net/context"
 
-	client "github.com/keybase/client/go/client"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 
 	"github.com/stretchr/testify/require"
@@ -23,13 +22,14 @@ func testSubteamCreate(t *testing.T, joinSubteam bool) {
 	parentName := ann.createTeam()
 	subteamName := parentName + ".test"
 
-	var err error
-	create := client.NewCmdTeamCreateRunner(ann.tc.G)
-	create.TeamName, err = keybase1.TeamNameFromString(subteamName)
+	cli := ann.teamsClient
+	res, err := cli.TeamCreate(context.Background(), keybase1.TeamCreateArg{
+		Name:        subteamName,
+		JoinSubteam: joinSubteam,
+	})
 	require.NoError(t, err)
-	create.JoinSubteam = joinSubteam
-	err = create.Run()
-	require.NoError(t, err)
+	require.Equal(t, joinSubteam, res.CreatorAdded)
+	require.True(t, res.ChatSent)
 
 	t.Logf("Created subteam %s", subteamName)
 
