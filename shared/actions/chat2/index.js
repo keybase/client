@@ -685,9 +685,6 @@ const loadMoreMessages = (
     return EngineRpc.rpcResult()
   }
 
-  // Disallow fractional ordinals in pivot
-  // pivot = pivot ? Types.numberToOrdinal(Math.floor(Types.ordinalToNumber(pivot))) : null
-
   logger.info(
     `Load thread: calling rpc convo: ${conversationIDKey} paginationKey: ${paginationKey ||
       ''} num: ${numberOfMessagesToLoad}`
