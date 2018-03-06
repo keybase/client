@@ -15,6 +15,7 @@ import (
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
@@ -33,6 +34,59 @@ func NewPprofHandler(xp rpc.Transporter, g *libkb.GlobalContext) *PprofHandler {
 
 func durationSecToDuration(s keybase1.DurationSec) time.Duration {
 	return time.Duration(float64(s) * float64(time.Second))
+}
+
+type timedProfiler interface {
+	Name() string
+	Start(w io.Writer) error
+	Stop()
+}
+
+// doTimedProfile asynchronously runs a profile with the given
+// timedProfiler and associated parameters.
+func doTimedProfile(log, delayedLog logger.Logger,
+	profiler timedProfiler, outputFile string,
+	durationSeconds keybase1.DurationSec) (err error) {
+	if !filepath.IsAbs(outputFile) {
+		return fmt.Errorf("%q is not an absolute path", outputFile)
+	}
+
+	close := func(c io.Closer) {
+		err := c.Close()
+		if err != nil {
+			log.Warning("Failed to close %s: %s", outputFile, err)
+		}
+	}
+
+	name := profiler.Name()
+
+	defer func() {
+		if err != nil {
+			log.Warning("Failed to do %s profile to %s for %.2f second(s): %s", name, outputFile, durationSeconds, err)
+		}
+	}()
+
+	f, err := os.Create(outputFile)
+	if err != nil {
+		return err
+	}
+
+	err = profiler.Start(f)
+	if err != nil {
+		close(f)
+		return err
+	}
+
+	log.Info("Doing %s profile to %s for %.2f second(s)", name, outputFile, durationSeconds)
+
+	go func() {
+		time.Sleep(durationSecToDuration(durationSeconds))
+		profiler.Stop()
+		close(f)
+		delayedLog.Info("%s profile to %s done", name, outputFile)
+	}()
+
+	return nil
 }
 
 func (c *PprofHandler) cpuProfile(ctx engine.Context, traceFile string, traceDurationSeconds keybase1.DurationSec) (err error) {
