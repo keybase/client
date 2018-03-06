@@ -11,45 +11,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestSubteamChats(t *testing.T) {
-	t.Skip()
-	ctx := newSMUContext(t)
-	defer ctx.cleanup()
+func testSubteamCreate(t *testing.T, joinSubteam bool) {
+	t.Logf("testSubteamCreate(joinSubteam: %t)", joinSubteam)
 
-	ann := ctx.installKeybaseForUser("ann", 3)
-	ann.signup()
-	t.Logf("Signed up ann (%s, %s)", ann.username, ann.uid())
-	bob := ctx.installKeybaseForUser("bob", 5)
-	bob.signup()
-	t.Logf("Signed up bob (%s, %s)", bob.username, bob.uid())
-
-	team := ann.createTeam([]*smuUser{})
-	t.Logf("Team created %q", team.name)
-
-	subteamName := team.name + ".subt"
-	cli := ann.getTeamsClient()
-	_, err := cli.TeamCreate(context.Background(), keybase1.TeamCreateArg{Name: subteamName})
-	require.NoError(t, err)
-
-	t.Logf("Subteam created %q", subteamName)
-
-	subteam := smuTeam{name: subteamName}
-	ann.addTeamMember(subteam, bob, keybase1.TeamRole_READER)
-
-	// Can we chat after being added to subteam as sole reader? If
-	// chats are not initialized in the subteam, sendChat will fail
-	// with: "error creating conversation: error from chat server:
-	// team readers are unable to create conversations". It's rather
-	// imperfect test, ideally we would be checking if there is any
-	// existing chat channel in the subteam instead of trying to send
-	// chat messages.
-	bob.sendChat(subteam, "0")
-	bob.readChats(subteam, 1)
-}
-
-func TestSubteamCreateAndStay(t *testing.T) {
-	// Test CreateTeam API w.r.t JoinSubteam. We should stay find
-	// ourselves in new team as admin.
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -63,7 +27,7 @@ func TestSubteamCreateAndStay(t *testing.T) {
 	create := client.NewCmdTeamCreateRunner(ann.tc.G)
 	create.TeamName, err = keybase1.TeamNameFromString(subteamName)
 	require.NoError(t, err)
-	create.JoinSubteam = true
+	create.JoinSubteam = joinSubteam
 	err = create.Run()
 	require.NoError(t, err)
 
@@ -72,6 +36,18 @@ func TestSubteamCreateAndStay(t *testing.T) {
 	teamObj := ann.loadTeam(subteamName, false /* admin */)
 	role, err := teamObj.MemberRole(context.Background(), ann.userVersion())
 	require.NoError(t, err)
-	require.Equal(t, keybase1.TeamRole_ADMIN, role, "got back wrong role")
-	require.EqualValues(t, 1, teamObj.CurrentSeqno(), "expecting just one link in team")
+
+	if joinSubteam {
+		require.Equal(t, keybase1.TeamRole_ADMIN, role, "role should be ADMIN")
+		require.EqualValues(t, 1, teamObj.CurrentSeqno(), "expecting just one link in team")
+	} else {
+		require.Equal(t, keybase1.TeamRole_NONE, role, "role should be NONE")
+		// Expecting 3 links: subteam_head, leave, rotate_key
+		ann.waitForRotateByID(teamObj.ID, keybase1.Seqno(3))
+	}
+}
+
+func TestSubteamCreate(t *testing.T) {
+	testSubteamCreate(t, false)
+	testSubteamCreate(t, true)
 }
