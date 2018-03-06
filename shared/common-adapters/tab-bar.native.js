@@ -7,7 +7,7 @@ import Badge from './badge'
 import Box from './box'
 import Icon from './icon'
 import Text from './text'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+import {globalStyles, globalColors, globalMargins, styleSheetCreate} from '../styles'
 
 class TabBarItem extends React.Component<ItemProps> {
   render() {
@@ -19,14 +19,14 @@ class SimpleTabBarButton extends React.Component<ItemProps> {
   render() {
     const selectedColor = this.props.selectedColor || globalColors.blue
     return (
-      <Box style={{...stylesTab, ...this.props.style}}>
+      <Box style={[styles.tab, this.props.style]}>
         <Text
           type="BodySmallSemibold"
-          style={{...stylesLabel, color: this.props.selected ? globalColors.black_75 : globalColors.black_40}}
+          style={[styles.label, {color: this.props.selected ? globalColors.black_75 : globalColors.black_40}]}
         >
           {!!this.props.label && this.props.label.toUpperCase()}
         </Text>
-        <Box style={this.props.selected ? stylesSelectedUnderline(selectedColor) : stylesUnselected} />
+        <Box style={this.props.selected ? stylesSelectedUnderline(selectedColor) : styles.unselected} />
       </Box>
     )
   }
@@ -71,16 +71,13 @@ const TabBarButton = (props: TabBarButtonProps) => {
   }
 
   const content = (
-    <Box style={{...stylesTabBarButtonIcon, ...props.style, flexGrow: 1}}>
+    <Box style={[styles.tabBarButtonIcon, props.style]}>
       <Icon
         type={
           // $FlowIssue
           props.source.icon
         }
-        style={{
-          width: props.isNav ? undefined : 32,
-          ...props.styleIcon,
-        }}
+        style={[props.isNav ? null : {width: 32}, props.styleIcon]}
       />
       {!!props.label && (
         <Text type="BodySemibold" style={{textAlign: 'center', ...props.styleLabel}}>
@@ -126,44 +123,18 @@ class TabBar extends React.Component<Props> {
   render() {
     const tabBarButtons = (
       <Box style={globalStyles.flexBoxColumn}>
-        <Box style={{...globalStyles.flexBoxRow, ...this.props.styleTabBar}}>{this._labels()}</Box>
-        {this.props.underlined && <Box style={stylesUnderline} />}
+        <Box style={[globalStyles.flexBoxRow, this.props.styleTabBar]}>{this._labels()}</Box>
+        {this.props.underlined && <Box style={styles.underline} />}
       </Box>
     )
     return (
-      <Box style={{...stylesContainer, ...this.props.style}}>
+      <Box style={[styles.container, this.props.style]}>
         {!this.props.tabBarOnBottom && tabBarButtons}
         {this._content()}
         {this.props.tabBarOnBottom && tabBarButtons}
       </Box>
     )
   }
-}
-
-const stylesContainer = {
-  ...globalStyles.flexBoxColumn,
-  ...globalStyles.fullHeight,
-}
-
-const stylesTab = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  flexGrow: 1,
-  justifyContent: 'flex-end',
-}
-
-const stylesTabBarButtonIcon = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  flexGrow: 1,
-  justifyContent: 'center',
-  position: 'relative',
-}
-
-const stylesLabel = {
-  marginTop: 11,
-  marginBottom: 11,
-  height: globalMargins.small,
 }
 
 const stylesSelectedUnderline = color => ({
@@ -173,15 +144,38 @@ const stylesSelectedUnderline = color => ({
   backgroundColor: color,
 })
 
-const stylesUnselected = {
-  height: 2,
-}
-
-const stylesUnderline = {
-  height: NativeStyleSheet.hairlineWidth,
-  alignSelf: 'stretch',
-  backgroundColor: globalColors.black_05,
-}
+const styles = styleSheetCreate({
+  container: {
+    ...globalStyles.flexBoxColumn,
+    ...globalStyles.fullHeight,
+  },
+  underline: {
+    height: NativeStyleSheet.hairlineWidth,
+    alignSelf: 'stretch',
+    backgroundColor: globalColors.black_05,
+  },
+  unselected: {
+    height: 2,
+  },
+  label: {
+    marginTop: 11,
+    marginBottom: 11,
+    height: globalMargins.small,
+  },
+  tabBarButtonIcon: {
+    ...globalStyles.flexBoxColumn,
+    alignItems: 'center',
+    flexGrow: 1,
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  tab: {
+    ...globalStyles.flexBoxColumn,
+    alignItems: 'center',
+    flexGrow: 1,
+    justifyContent: 'flex-end',
+  },
+})
 
 export {TabBarItem, TabBarButton}
 

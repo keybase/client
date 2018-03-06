@@ -6,7 +6,7 @@
 import {NativeModules} from 'react-native'
 import * as DevGen from './actions/dev-gen'
 import noop from 'lodash/noop'
-// import MessageQueue from 'react-native/Libraries/BatchedBridge/MessageQueue.js'
+import MessageQueue from 'react-native/Libraries/BatchedBridge/MessageQueue.js'
 
 const nativeBridge = NativeModules.KeybaseEngine || {test: 'fallback'}
 
@@ -20,7 +20,7 @@ window.console._error = window.console.error
 window.console._info = window.console.info
 
 // Set this to true if you want to turn off most console logging so you can profile easier
-const PERF = false
+const PERF = true
 
 let config = {
   enableActionLogging: true, // Log actions to the log
@@ -54,7 +54,15 @@ if (__DEV__) {
   config.userTimings = true
 
   // uncomment this to watch the RN bridge traffic: https://github.com/facebook/react-native/commit/77e48f17824870d30144a583be77ec5c9cf9f8c5
-  // MessageQueue.spy(msg => console._log('queuespy: ', msg))
+  MessageQueue.spy(msg => {
+    if (msg.module === 'UIManager' && msg.method === 'createView') {
+      const style = msg.args[3]
+      if (style) {
+        const s = JSON.stringify(style, null, 2)
+        console._log('queuespy: ', s.length, s)
+      }
+    }
+  })
 }
 
 if (PERF) {
