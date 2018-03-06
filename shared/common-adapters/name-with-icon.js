@@ -113,6 +113,7 @@ const NameWithIconHorizontal = (props: Props) => {
   )
 }
 
+// Delegator
 const NameWithIcon = (props: Props) => {
   if (props.username && props.teamname) {
     throw new Error('Can onlt use username or teamname in NameWithIcon; got both')
@@ -129,7 +130,6 @@ const TextOrComponent = ({val, textType}: {val: string | React.Node, textType: T
   return val || null
 }
 
-// TODO refactor these styles to use hybrid desktop/native stylesheets
 const styles = styleSheetCreate({
   hAvatarStyle: {marginRight: 16},
   hContainerStyle: {
