@@ -39,6 +39,10 @@ func durationSecToDuration(s keybase1.DurationSec) time.Duration {
 
 type timedProfiler interface {
 	Name() string
+	MaxFileCount() int
+	GetSortedFiles(dir string) ([]string, error)
+	MakeFilename(dir string, start time.Time, duration time.Duration) string
+
 	Start(w io.Writer) error
 	Stop()
 }
@@ -90,9 +94,46 @@ func doTimedProfile(log libkb.LogUI, delayedLog logger.Logger,
 	return nil
 }
 
+func doTimedProfileInDir(log libkb.LogUI, delayedLog logger.Logger,
+	profiler timedProfiler, dir string,
+	durationSeconds keybase1.DurationSec) (err error) {
+	name := profiler.Name()
+	maxFileCount := profiler.MaxFileCount()
+	files, err := profiler.GetSortedFiles(dir)
+	if err != nil {
+		log.Warning("Error getting %s profile files in %q: %s",
+			name, dir, err)
+	} else if len(files)+1 > maxFileCount {
+		// Remove old trace files.
+		toRemove := files[:len(files)+1-maxFileCount]
+		for _, path := range toRemove {
+			log.Info("Removing old %s profile file %q", name, path)
+			err := os.Remove(path)
+			if err != nil {
+				log.Warning("Error on os.Remove(%q): %s", path, err)
+			}
+		}
+	}
+
+	outputFile := profiler.MakeFilename(dir, time.Now(), durationSecToDuration(durationSeconds))
+	return doTimedProfile(log, delayedLog, profiler, outputFile, durationSeconds)
+}
+
 type cpuProfiler struct{}
 
 func (cpuProfiler) Name() string { return "CPU" }
+
+func (cpuProfiler) MaxFileCount() int {
+	panic("unimplemented")
+}
+
+func (cpuProfiler) GetSortedFiles(dir string) ([]string, error) {
+	panic("unimplemented")
+}
+
+func (cpuProfiler) MakeFilename(dir string, start time.Time, duration time.Duration) string {
+	panic("unimplemented")
+}
 
 func (cpuProfiler) Start(w io.Writer) error {
 	return pprof.StartCPUProfile(w)
@@ -157,6 +198,16 @@ func (c *PprofHandler) LogProcessorProfile(_ context.Context, arg keybase1.LogPr
 type traceProfiler struct{}
 
 func (traceProfiler) Name() string { return "trace" }
+
+func (traceProfiler) MaxFileCount() int { return libkb.MaxTraceFileCount }
+
+func (traceProfiler) GetSortedFiles(dir string) ([]string, error) {
+	return libkb.GetSortedTraceFiles(dir)
+}
+
+func (traceProfiler) MakeFilename(dir string, start time.Time, duration time.Duration) string {
+	return libkb.MakeTraceFilename(dir, start, duration)
+}
 
 func (traceProfiler) Start(w io.Writer) error {
 	return trace.Start(w)
