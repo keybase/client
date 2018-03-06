@@ -1,6 +1,6 @@
 // @flow
 const colors = {
-  beige: '#f7f1eb',
+  beige: '#FAF2ED',
   black: '#000000',
   black_05: 'rgba(0, 0, 0, 0.05)',
   black_10: 'rgba(0, 0, 0, 0.10)',
