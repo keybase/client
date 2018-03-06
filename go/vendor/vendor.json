@@ -319,9 +319,10 @@
 			"revisionTime": "2018-03-01T18:54:15Z"
 		},
 		{
+			"checksumSHA1": "9KGH+mjtBmc7T089X/OwDjtypao=",
 			"path": "github.com/keybase/go-keychain",
-			"revision": "bb79ad448b83a287d240e54f9fb8f0db19b3db2b",
-			"revisionTime": "2018-03-01T19:50:46Z"
+			"revision": "70b98e9c8d754db775c5bd3b2de3670cc76f1825",
+			"revisionTime": "2018-03-06T22:15:04Z"
 		},
 		{
 			"path": "github.com/keybase/go-logging",
