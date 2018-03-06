@@ -11,8 +11,19 @@ import (
 	"golang.org/x/crypto/nacl/box"
 )
 
+// EphemeralKeyCreator creates random ephemeral keys.
+type EphemeralKeyCreator struct{}
+
+// CreateEphemeralKey creates a random ephemeral key.
+func (c EphemeralKeyCreator) CreateEphemeralKey() (saltpack.BoxSecretKey, error) {
+	return generateBoxKey()
+}
+
 // PublicKey is a basic implementation of a saltpack public key
-type PublicKey saltpack.RawBoxKey
+type PublicKey struct {
+	EphemeralKeyCreator
+	saltpack.RawBoxKey
+}
 
 // SecretKey is a basic implementation of a saltpack private key
 type SecretKey struct {
@@ -28,14 +39,14 @@ type PrecomputedSharedKey saltpack.RawBoxKey
 // just the key itself in this implementation. It can be used to identify
 // the key.
 func (k PublicKey) ToKID() []byte {
-	return k[:]
+	return k.RawBoxKey[:]
 }
 
 // ToRawBoxKeyPointer returns a RawBoxKey from a given public key.
 // A RawBoxKey is just a bunch of bytes that can be used in
 // the lower-level Box libraries.
 func (k PublicKey) ToRawBoxKeyPointer() *saltpack.RawBoxKey {
-	ret := saltpack.RawBoxKey(k)
+	ret := k.RawBoxKey
 	return &ret
 }
 
@@ -49,16 +60,6 @@ func generateBoxKey() (*SecretKey, error) {
 	}
 	ret := NewSecretKey(pub, priv)
 	return &ret, nil
-}
-
-// CreateEphemeralKey takes a PublicKey and returns a new ephemeral
-// secret key of the same type.
-func (k PublicKey) CreateEphemeralKey() (saltpack.BoxSecretKey, error) {
-	ret, err := generateBoxKey()
-	if err != nil {
-		return nil, err
-	}
-	return *ret, nil
 }
 
 var _ saltpack.BoxPublicKey = PublicKey{}
@@ -96,7 +97,9 @@ func (k SecretKey) Precompute(peer saltpack.BoxPublicKey) saltpack.BoxPrecompute
 func NewSecretKey(pub, sec *[32]byte) SecretKey {
 	return SecretKey{
 		sec: saltpack.RawBoxKey(*sec),
-		pub: PublicKey(*pub),
+		pub: PublicKey{
+			RawBoxKey: *pub,
+		},
 	}
 }
 
@@ -121,6 +124,7 @@ var _ saltpack.BoxPrecomputedSharedKey = PrecomputedSharedKey{}
 
 // Keyring holds signing and box secret/public keypairs.
 type Keyring struct {
+	EphemeralKeyCreator
 	encKeys map[PublicKey]SecretKey
 	sigKeys map[SigningPublicKey]SigningSecretKey
 }
@@ -147,17 +151,6 @@ func (k *Keyring) GenerateBoxKey() (*SecretKey, error) {
 		return nil, err
 	}
 	k.encKeys[ret.pub] = *ret
-	return ret, nil
-}
-
-// CreateEmphemeralKey creates a random ephemeral key. It is not added to the
-// keyring. The BoxPublicKey and Keyring interfaces both support this method,
-// for convenience.
-func (k *Keyring) CreateEphemeralKey() (saltpack.BoxSecretKey, error) {
-	ret, err := generateBoxKey()
-	if err != nil {
-		return nil, err
-	}
 	return ret, nil
 }
 
@@ -192,7 +185,7 @@ func (k *Keyring) ImportSigningKey(pub *[ed25519.PublicKeySize]byte, sec *[ed255
 
 func kidToPublicKey(kid []byte) PublicKey {
 	var tmp PublicKey
-	copy(tmp[:], kid)
+	copy(tmp.RawBoxKey[:], kid)
 	return tmp
 }
 
