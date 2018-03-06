@@ -4,6 +4,7 @@ import * as I from 'immutable'
 import * as React from 'react'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as KBFSGen from '../../actions/kbfs-gen'
+import * as ChatGen from '../../actions/chat-gen'
 import Team, {CustomComponent} from '.'
 import {HeaderHoc} from '../../common-adapters'
 import {branch, connect, withStateHandlers, lifecycle, compose, type TypedState} from '../../util/container'
@@ -49,9 +50,10 @@ const mapDispatchToProps = (
   return {
     setSelectedTab: selectedTab => setRouteState({selectedTab}),
     onManageChat: () => dispatch(navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
+    onChat: () => dispatch(ChatGen.createOpenTeamConversation({teamname, channelname: 'general'})),
     onLeaveTeam: () => dispatch(navigateAppend([{props: {teamname}, selected: 'reallyLeaveTeam'}])),
     onCreateSubteam: () =>
-      dispatch(navigateAppend([{props: {name: teamname}, selected: 'showNewTeamDialog'}])),
+      dispatch(navigateAppend([{props: {makeSubteam: true, name: teamname}, selected: 'showNewTeamDialog'}])),
     _loadTeam: teamname => dispatch(TeamsGen.createGetDetails({teamname})),
     onBack: () => dispatch(navigateUp()),
 
@@ -63,9 +65,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const customComponent = (
     <CustomComponent
       onOpenFolder={dispatchProps.onOpenFolder}
-      onManageChat={dispatchProps.onManageChat}
+      onChat={dispatchProps.onChat}
       onShowMenu={() => ownProps.setShowMenu(!ownProps.showMenu)}
-      canManageChat={stateProps.yourOperations.createChannel}
+      canChat={!stateProps.yourOperations.joinTeam}
       canViewFolder={!stateProps.yourOperations.joinTeam}
     />
   )

@@ -84,3 +84,40 @@ func TestChatKBFSUpgradeMixed(t *testing.T) {
 		}
 	}
 }
+
+func TestChatKBFSUpgradeBadteam(t *testing.T) {
+	ctc := makeChatTestContext(t, "TestLoadTeamImpteamUpgradeSafety", 2)
+	defer ctc.cleanup()
+	users := ctc.users()
+
+	tc0 := ctc.world.Tcs[users[0].Username]
+	tc1 := ctc.world.Tcs[users[1].Username]
+	useRemoteMock = true
+	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+		chat1.ConversationMembersType_KBFS)
+	delete(ctc.userContextCache, users[0].Username)
+	useRemoteMock = false
+	listener0 := newServerChatListener()
+	ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener0)
+
+	iteam, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), tc1.Context().ExternalG(),
+		users[0].Username+","+users[1].Username, false)
+	require.NoError(t, err)
+
+	tlfID := keybase1.TLFID(conv.Triple.Tlfid.String())
+	require.NoError(t, iteam.AssociateWithTLFID(context.TODO(), tlfID))
+	team, err := teams.Load(context.TODO(), tc1.Context().ExternalG(), keybase1.LoadTeamArg{
+		ID:          iteam.ID,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+	require.NoError(t, team.AssociateWithTLFKeyset(context.TODO(), tlfID, []keybase1.CryptKey{
+		keybase1.CryptKey{},
+	}, keybase1.TeamApplication_CHAT))
+
+	// Should fail because the name of the imp team doesn't match the conversation name
+	_, err = LoadTeam(context.TODO(), tc0.Context().ExternalG(), chat1.TLFID(tlfID.ToBytes()), conv.TlfName,
+		chat1.ConversationMembersType_IMPTEAMUPGRADE, false, nil)
+	require.Error(t, err)
+	require.IsType(t, ImpteamUpgradeBadteamError{}, err)
+}

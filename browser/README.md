@@ -61,7 +61,7 @@ button appears and you can chat `joshblum` on :
 * [HN](https://news.ycombinator.com/user?id=josh_blum)
 * [GitHub](https://github.com/joshblum)
 * [Twitter](https://twitter.com/blumua)
-* [Facebook](https://www.facebook.com/josh.blum.92)
+* [Facebook](https://www.facebook.com/ccoyne77)
 
 
 ### KBNM

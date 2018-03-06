@@ -4,7 +4,6 @@ import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
 import {Avatar, Box, Button, ButtonBar, Icon, Meta, Text} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
-import {isLargeScreen} from '../../../constants/platform'
 
 export type Props = {
   canEditDescription: boolean,
@@ -16,11 +15,10 @@ export type Props = {
   role: ?Types.TeamRoleType,
   teamname: string,
 
-  onAddPeople: () => void,
+  onAddPeople: (target?: any) => void,
   onAddSelf: () => void,
   onChat: () => void,
   onEditDescription: () => void,
-  onInviteByEmail: () => void,
 }
 
 const TeamHeader = (props: Props) => (
@@ -57,15 +55,15 @@ const TeamHeader = (props: Props) => (
       </Text>
 
       {/* Description */}
-      {!props.loading && (props.canEdit || props.description) ? (
+      {!props.loading && (props.canEditDescription || props.description) ? (
         <Text
           style={{
             paddingTop: globalMargins.tiny,
             color: props.description ? globalColors.black_75 : globalColors.black_20,
             maxWidth: 560,
           }}
-          onClick={props.canEdit ? props.onEditDescription : null}
-          type={props.canEdit ? 'BodySecondaryLink' : 'Body'}
+          onClick={props.canEditDescription ? props.onEditDescription : null}
+          type={props.canEditDescription ? 'BodySecondaryLink' : 'Body'}
         >
           {props.description || (props.canEditDescription && 'Write a brief description')}
         </Text>
@@ -75,27 +73,22 @@ const TeamHeader = (props: Props) => (
 
       {/* Actions */}
       <ButtonBar direction="row" style={isMobile ? {width: 'auto', marginBottom: -8} : undefined}>
-        <Button
-          type="Primary"
-          label={'Add people'}
-          small={isMobile && !isLargeScreen}
-          onClick={props.onAddPeople}
-        />
-        <Button
-          type="Secondary"
-          label={isMobile ? 'Invite contacts' : 'Invite by email'}
-          small={isMobile && !isLargeScreen}
-          onClick={props.onInviteByEmail}
-        />
-        {!isMobile && <Button type="Secondary" label="Chat" onClick={props.onChat} />}
-        {isMobile &&
-          !props.canJoinTeam && (
-            <Icon
-              type="iconfont-chat"
-              style={{width: isLargeScreen ? 24 : 20, height: isLargeScreen ? 24 : 20}}
-              onClick={props.onChat}
-            />
-          )}
+        <Button type="Primary" label="Chat" onClick={props.onChat}>
+          <Icon
+            type="iconfont-chat"
+            style={{
+              marginRight: 8,
+              color: globalColors.white,
+            }}
+          />
+        </Button>
+        {props.canManageMembers && (
+          <Button
+            type="Secondary"
+            label={'Add people...'}
+            onClick={event => props.onAddPeople(isMobile ? undefined : event.target)}
+          />
+        )}
       </ButtonBar>
 
       {/* CLI hint */}

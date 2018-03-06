@@ -3,6 +3,8 @@ import * as I from 'immutable'
 import * as Types from './types/fs'
 import uuidv1 from 'uuid/v1'
 import {globalColors} from '../styles'
+import {downloadFilePath} from '../util/file'
+
 export const defaultPath = '/keybase'
 
 export const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
@@ -39,10 +41,21 @@ export const makePathUserSetting: I.RecordFactory<Types._PathUserSetting> = I.Re
   sort: makeSortSetting(),
 })
 
+export const makeTransferState: I.RecordFactory<Types._TransferState> = I.Record({
+  type: 'download',
+  entryType: 'unknown',
+  path: Types.stringToPath(''),
+  localPath: '',
+  completePortion: 0,
+  error: undefined,
+  isDone: false,
+})
+
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder()]]),
   pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
   loadingPaths: I.Set(),
+  transfers: I.Map(),
 })
 
 export const makeUUID = () => uuidv1(null, Buffer.alloc(16), 0)
@@ -113,3 +126,9 @@ export const getItemStyles = (
       return isPublic ? itemStylesPublicUnknown : itemStylesPrivateUnknown
   }
 }
+
+export const makeDownloadKey = (path: Types.Path, localPath: string) =>
+  `download:${Types.pathToString(path)}:${localPath}`
+
+export const downloadFilePathFromPath = (p: Types.Path): Promise<Types.LocalPath> =>
+  downloadFilePath(Types.getPathName(p))

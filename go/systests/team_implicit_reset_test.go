@@ -216,10 +216,12 @@ func TestImplicitResetAndSBSBringback(t *testing.T) {
 	t.Logf("Bob upgraded puk, polling for seqno %d", nextSeqno)
 	ann.pollForTeamSeqnoLinkWithLoadArgs(keybase1.LoadTeamArg{ID: iteam}, nextSeqno) // (6)
 
-	teamObj = ann.loadTeamByID(iteam, true)
-	role, err := teamObj.MemberRole(context.Background(), bob.userVersion())
-	require.NoError(t, err)
-	require.Equal(t, keybase1.TeamRole_OWNER, role)
+	pollForTrue(t, ann.tc.G, func(i int) bool {
+		teamObj = ann.loadTeamByID(iteam, true)
+		role, err := teamObj.MemberRole(context.Background(), bob.userVersion())
+		require.NoError(t, err)
+		return role == keybase1.TeamRole_OWNER
+	})
 
 	invites := teamObj.GetActiveAndObsoleteInvites()
 	require.Equal(t, 0, len(invites), "leftover invite")
@@ -364,8 +366,6 @@ func TestImplicitResetNoPukEncore(t *testing.T) {
 
 func TestImplicitResetBadReadds(t *testing.T) {
 	// Check if we can't ruin implicit team state by bad re-adds.
-	t.Skip()
-
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -380,18 +380,18 @@ func TestImplicitResetBadReadds(t *testing.T) {
 
 	bob.reset()
 	bob.loginAfterResetPukless()
+	t.Logf("%s reset and is now PUKless", bob.username)
 
-	// TODO: Apparently nothing stops us from re-adding bob as READER
-	// instead of OWNER.
-	_, err = teams.AddMemberByID(context.Background(), ann.tc.G, iteam, bob.username, keybase1.TeamRole_READER)
+	teamObj := ann.loadTeamByID(iteam, true /* admin */)
+	_, err = teamObj.InviteMember(context.Background(), bob.username, keybase1.TeamRole_READER, libkb.NewNormalizedUsername(bob.username), bob.userVersion())
 	require.Error(t, err)
+	t.Logf("Error of InviteMember(bob, READER) is: %v", err)
 
-	iteam2, err := ann.lookupImplicitTeam(false /* create */, displayName, false /* isPublic */)
-	require.NoError(t, err)
-	require.Equal(t, iteam, iteam2)
+	pam.reset()
+	pam.loginAfterResetPukless()
+	t.Logf("%s reset and is now PUKless again", pam.username)
 
-	// In this case, simple AddMemberByID works just as well, because all
-	// that needs to be added is a new invite.
-	_, err = teams.AddMemberByID(context.Background(), ann.tc.G, iteam, bob.username, keybase1.TeamRole_OWNER)
-	require.NoError(t, err)
+	_, err = teamObj.InviteMember(context.Background(), pam.username, keybase1.TeamRole_READER, libkb.NewNormalizedUsername(pam.username), pam.userVersion())
+	require.Error(t, err)
+	t.Logf("Error of InviteMember(pam, READER) is: %v", err)
 }
