@@ -20,7 +20,7 @@ const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch, {teamname}: OwnProps) => ({
   onCreateSubteam: () =>
-    dispatch(navigateAppend([{props: {name: `${teamname}.`}, selected: 'showNewTeamDialog'}])),
+    dispatch(navigateAppend([{props: {makeSubteam: true, name: teamname}, selected: 'showNewTeamDialog'}])),
   onHideSubteamsBanner: () =>
     dispatch(GregorGen.createInjectItem({body: 'true', category: 'sawSubteamsBanner'})),
   onReadMoreAboutSubteams: () => openURL('https://keybase.io/docs/teams/design'),

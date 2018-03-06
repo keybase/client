@@ -308,6 +308,10 @@ func MessageUnboxedDebugStrings(ms []MessageUnboxed) (res []string) {
 	return res
 }
 
+func MessageUnboxedDebugList(ms []MessageUnboxed) string {
+	return fmt.Sprintf("{ %v %v }", len(ms), strings.Join(MessageUnboxedDebugStrings(ms), ","))
+}
+
 func MessageUnboxedDebugLines(ms []MessageUnboxed) string {
 	return strings.Join(MessageUnboxedDebugStrings(ms), "\n")
 }

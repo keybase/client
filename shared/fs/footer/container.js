@@ -9,7 +9,7 @@ const mapStateToProps = (state: TypedState) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  opener: (p: Types.LocalPath) => dispatch(FsGen.createOpenLocalPathInFolder({localPath: p})),
+  opener: (p: Types.LocalPath) => dispatch(FsGen.createOpenInFileUI({path: p})),
   dismisser: (key: string) => dispatch(FsGen.createDismissTransfer({key})),
 })
 

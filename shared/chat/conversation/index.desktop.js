@@ -90,7 +90,7 @@ class Conversation extends Component<Props, State> {
   render() {
     const dropOverlay = this.state.showDropOverlay && (
       <Box style={dropOverlayStyle} onDragLeave={this._onDragLeave} onDrop={this._onDrop}>
-        <Icon type="icon-file-dropping-48" />
+        <Icon type="icon-dropping-file-48" />
       </Box>
     )
 

@@ -16,7 +16,7 @@ export const downloadStarted = 'fs:downloadStarted'
 export const fileTransferProgress = 'fs:fileTransferProgress'
 export const folderListLoad = 'fs:folderListLoad'
 export const folderListLoaded = 'fs:folderListLoaded'
-export const openLocalPathInFolder = 'fs:openLocalPathInFolder'
+export const openInFileUI = 'fs:openInFileUI'
 export const sortSetting = 'fs:sortSetting'
 
 // Action Creators
@@ -53,7 +53,7 @@ export const createFolderListLoaded = (
     pathItems: I.Map<Types.Path, Types.PathItem>,
   }>
 ) => ({error: false, payload, type: folderListLoaded})
-export const createOpenLocalPathInFolder = (payload: $ReadOnly<{localPath: Types.LocalPath}>) => ({error: false, payload, type: openLocalPathInFolder})
+export const createOpenInFileUI = (payload: $ReadOnly<{path?: string}>) => ({error: false, payload, type: openInFileUI})
 export const createSortSetting = (
   payload: $ReadOnly<{
     path: Types.Path,
@@ -69,7 +69,7 @@ export type DownloadStartedPayload = More.ReturnType<typeof createDownloadStarte
 export type FileTransferProgressPayload = More.ReturnType<typeof createFileTransferProgress>
 export type FolderListLoadPayload = More.ReturnType<typeof createFolderListLoad>
 export type FolderListLoadedPayload = More.ReturnType<typeof createFolderListLoaded>
-export type OpenLocalPathInFolderPayload = More.ReturnType<typeof createOpenLocalPathInFolder>
+export type OpenInFileUIPayload = More.ReturnType<typeof createOpenInFileUI>
 export type SortSettingPayload = More.ReturnType<typeof createSortSetting>
 
 // All Actions
@@ -82,6 +82,6 @@ export type Actions =
   | More.ReturnType<typeof createFileTransferProgress>
   | More.ReturnType<typeof createFolderListLoad>
   | More.ReturnType<typeof createFolderListLoaded>
-  | More.ReturnType<typeof createOpenLocalPathInFolder>
+  | More.ReturnType<typeof createOpenInFileUI>
   | More.ReturnType<typeof createSortSetting>
   | {type: 'common:resetStore', payload: void}

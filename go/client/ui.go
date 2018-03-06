@@ -203,6 +203,10 @@ func (ui IdentifyTrackUI) Confirm(o *keybase1.IdentifyOutcome) (result keybase1.
 	trackChanged := true
 	switch o.TrackStatus {
 	case keybase1.TrackStatus_UPDATE_BROKEN_REVOKED, keybase1.TrackStatus_UPDATE_BROKEN_FAILED_PROOFS:
+		if o.TrackOptions.BypassConfirm {
+			ui.G().Log.Error("Some proofs failed. Try again without '-y'")
+			return
+		}
 		return ui.confirmFailedTrackProofs(o)
 	case keybase1.TrackStatus_UPDATE_NEW_PROOFS:
 		prompt = "Your view of " + username +
@@ -214,7 +218,7 @@ func (ui IdentifyTrackUI) Confirm(o *keybase1.IdentifyOutcome) (result keybase1.
 	case keybase1.TrackStatus_NEW_ZERO_PROOFS:
 		prompt = "We found an account for " + username +
 			", but they haven't proven their identity. Still follow them?"
-		promptDefault = libkb.PromptDefaultNo
+		promptDefault = libkb.PromptDefaultYes
 	case keybase1.TrackStatus_NEW_FAIL_PROOFS:
 		verb := "follow"
 		if o.TrackOptions.ForPGPPull {
@@ -234,10 +238,15 @@ func (ui IdentifyTrackUI) Confirm(o *keybase1.IdentifyOutcome) (result keybase1.
 	}
 
 	// Tracking statement doesn't exist or changed, lets prompt them with the details
-	if o.TrackOptions.BypassConfirm && promptDefault == libkb.PromptDefaultYes {
-		result.IdentityConfirmed = true
-		result.AutoConfirmed = true
-		ui.G().Log.Info("Identity auto-confirmed via command-line flag")
+	if o.TrackOptions.BypassConfirm {
+		if promptDefault == libkb.PromptDefaultYes {
+			result.IdentityConfirmed = true
+			result.AutoConfirmed = true
+			ui.G().Log.Info("Identity auto-confirmed via command-line flag")
+		} else {
+			ui.G().Log.Error("Not auto-confirming. Try again without '-y'")
+			return
+		}
 	} else {
 		if result.IdentityConfirmed, err = ui.parent.PromptYesNo(PromptDescriptorTrackAction, prompt, promptDefault); err != nil {
 			return

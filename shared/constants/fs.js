@@ -4,7 +4,8 @@ import * as Types from './types/fs'
 import uuidv1 from 'uuid/v1'
 import {globalColors} from '../styles'
 import {downloadFilePath} from '../util/file'
-import {shell} from 'electron'
+import {type IconType} from '../common-adapters/icon'
+import memoize from 'lodash/memoize'
 
 export const defaultPath = '/keybase'
 
@@ -60,6 +61,27 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   transfers: I.Map(),
 })
 
+const makeBasicPathItemIconSpec = (iconType: IconType, iconColor: string): Types.PathItemIconSpec => ({
+  type: 'basic',
+  iconType,
+  iconColor,
+})
+
+const makeTeamAvatarPathItemIconSpec = (teamName: string): Types.PathItemIconSpec => ({
+  type: 'teamAvatar',
+  teamName,
+})
+
+const makeAvatarPathItemIconSpec = (username: string): Types.PathItemIconSpec => ({
+  type: 'avatar',
+  username,
+})
+
+const makeAvatarsPathItemIconSpec = (usernames: Array<string>): Types.PathItemIconSpec => ({
+  type: 'avatars',
+  usernames,
+})
+
 export const makeUUID = () => uuidv1(null, Buffer.alloc(16), 0)
 export const fsPathToRpcPathString = (p: Types.Path): string =>
   Types.pathToString(p).substring('/keybase'.length) || '/'
@@ -70,51 +92,106 @@ export const sortPathItems = (
   username?: string
 ): I.List<Types.PathItem> => items.sort(Types.sortSettingToCompareFunction(sortSetting, username))
 
-const privateColors = {
-  iconColor: globalColors.darkBlue2,
-  textColor: globalColors.darkBlue,
+const privateIconColor = globalColors.darkBlue2
+const privateTextColor = globalColors.darkBlue
+const publicIconColor = globalColors.yellowGreen
+const publicTextColor = globalColors.yellowGreen2
+const unknownTextColor = globalColors.grey
+
+const folderTextType = 'BodySemibold'
+const fileTextType = 'Body'
+
+const itemStylesTeamList = {
+  iconSpec: makeBasicPathItemIconSpec('icon-folder-team-32', privateIconColor),
+  textColor: privateTextColor,
+  textType: folderTextType,
+}
+const itemStylesPublicFolder = {
+  iconSpec: makeBasicPathItemIconSpec('icon-folder-public-32', publicIconColor),
+  textColor: publicTextColor,
+  textType: folderTextType,
+}
+const itemStylesPublicFile = {
+  iconSpec: makeBasicPathItemIconSpec('icon-file-public-32', publicIconColor),
+  textColor: publicTextColor,
+  textType: fileTextType,
+}
+const itemStylesPrivateFolder = {
+  iconSpec: makeBasicPathItemIconSpec('icon-folder-private-32', privateIconColor),
+  textColor: privateTextColor,
+  textType: folderTextType,
+}
+const itemStylesPrivateFile = {
+  iconSpec: makeBasicPathItemIconSpec('icon-file-private-32', privateIconColor),
+  textColor: privateTextColor,
+  textType: fileTextType,
+}
+const itemStylesPublicUnknown = {
+  iconSpec: makeBasicPathItemIconSpec('iconfont-question-mark', unknownTextColor),
+  textColor: publicTextColor,
+  textType: fileTextType,
+}
+const itemStylesPrivateUnknown = {
+  iconSpec: makeBasicPathItemIconSpec('iconfont-question-mark', unknownTextColor),
+  textColor: privateTextColor,
+  textType: fileTextType,
 }
 
-const publicColors = {
-  iconColor: globalColors.yellowGreen,
-  textColor: globalColors.yellowGreen2,
+const getIconSpecFromUsernames = (usernames: Array<string>, me?: string) => {
+  if (usernames.length === 1) {
+    return makeAvatarPathItemIconSpec(usernames[0])
+  } else if (usernames.length > 1) {
+    return makeAvatarsPathItemIconSpec(usernames.filter(username => username !== me))
+  }
+  return makeBasicPathItemIconSpec('iconfont-question-mark', unknownTextColor)
 }
+const splitTlfIntoUsernames = (tlf: string): Array<string> =>
+  tlf
+    .split(' ')[0]
+    .replace(/#/g, ',')
+    .split(',')
 
-const folderTextType = {
-  textType: 'BodySemibold',
-}
-
-const fileTextType = {
-  textType: 'Body',
-}
-
-const itemStylesTeamList = {iconType: 'iconfont-nav-teams', ...privateColors, ...folderTextType}
-const itemStylesPublicMe = {iconType: 'iconfont-folder-public-me', ...publicColors, ...folderTextType}
-const itemStylesPrivateMe = {iconType: 'iconfont-folder-private-me', ...privateColors, ...folderTextType}
-const itemStylesPublicFolder = {iconType: 'iconfont-folder-public', ...publicColors, ...folderTextType}
-const itemStylesPublicFile = {iconType: 'iconfont-file-note', ...publicColors, ...fileTextType}
-const itemStylesPrivateFolder = {iconType: 'iconfont-folder-private', ...privateColors, ...folderTextType}
-const itemStylesPrivateFile = {iconType: 'iconfont-file-note', ...privateColors, ...fileTextType}
-const itemStylesPublicUnknown = {iconType: 'iconfont-question-mark', ...publicColors, ...fileTextType}
-const itemStylesPrivateUnknown = {iconType: 'iconfont-question-mark', ...privateColors, ...fileTextType}
+const itemStylesPublicTlf = memoize((tlf: string, me?: string) => ({
+  iconSpec: getIconSpecFromUsernames(splitTlfIntoUsernames(tlf), me),
+  textColor: publicTextColor,
+  textType: folderTextType,
+}))
+const itemStylesPrivateTlf = memoize((tlf: string, me?: string) => ({
+  iconSpec: getIconSpecFromUsernames(splitTlfIntoUsernames(tlf), me),
+  textColor: privateTextColor,
+  textType: folderTextType,
+}))
+const itemStylesTeamTlf = memoize((teamName: string) => ({
+  iconSpec: makeTeamAvatarPathItemIconSpec(teamName),
+  textColor: privateTextColor,
+  textType: folderTextType,
+}))
 
 export const getItemStyles = (
-  path: Types.Path,
+  pathElems: Array<string>,
   type: Types.PathType,
   username?: string
 ): Types.ItemStyles => {
-  if (path === '/keybase/team') {
+  // For /keybase/team, the icon is different from directories inside a TLF.
+  if (pathElems.length === 2 && pathElems[1] === 'team') {
     return itemStylesTeamList
-  } else if (username) {
-    if (path === `/keybase/public/${username}`) {
-      return itemStylesPublicMe
-    } else if (path === `/keybase/private/${username}`) {
-      return itemStylesPrivateMe
+  }
+
+  if (pathElems.length === 3) {
+    switch (pathElems[1]) {
+      case 'public':
+        return itemStylesPublicTlf(pathElems[2], username)
+      case 'private':
+        return itemStylesPrivateTlf(pathElems[2], username)
+      case 'team':
+        return itemStylesTeamTlf(pathElems[2])
+      default:
+        return itemStylesPrivateUnknown
     }
   }
 
   // For icon purposes, we are treating team folders as private.
-  const isPublic = Types.getPathElements(path)[1] === 'public'
+  const isPublic = pathElems[1] === 'public'
 
   switch (type) {
     case 'folder':
@@ -134,8 +211,3 @@ export const makeDownloadKey = (path: Types.Path, localPath: string) =>
 
 export const downloadFilePathFromPath = (p: Types.Path): Promise<Types.LocalPath> =>
   downloadFilePath(Types.getPathName(p))
-
-export const openPathInFinderPromise = (p: Types.LocalPath): Promise<void> =>
-  new Promise(
-    (resolve, reject) => (shell.showItemInFolder(p) ? resolve() : reject(new Error('showItemInFolderFailed')))
-  )

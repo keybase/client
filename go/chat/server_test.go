@@ -1786,6 +1786,11 @@ func TestChatSrvGap(t *testing.T) {
 	})
 }
 
+type resolveRes struct {
+	convID chat1.ConversationID
+	info   chat1.ConversationResolveInfo
+}
+
 type serverChatListener struct {
 	libkb.NoopNotifyListener
 
@@ -1806,6 +1811,7 @@ type serverChatListener struct {
 	setConvRetention chan chat1.ConversationID
 	setTeamRetention chan keybase1.TeamID
 	kbfsUpgrade      chan chat1.ConversationID
+	resolveConv      chan resolveRes
 }
 
 var _ libkb.NotifyListener = (*serverChatListener)(nil)
@@ -1846,6 +1852,13 @@ func (n *serverChatListener) ChatLeftConversation(uid keybase1.UID, convID chat1
 func (n *serverChatListener) ChatResetConversation(uid keybase1.UID, convID chat1.ConversationID) {
 	n.resetConv <- convID
 }
+func (n *serverChatListener) ChatTLFResolve(uid keybase1.UID, convID chat1.ConversationID,
+	info chat1.ConversationResolveInfo) {
+	n.resolveConv <- resolveRes{
+		convID: convID,
+		info:   info,
+	}
+}
 func (n *serverChatListener) ChatSetConvRetention(uid keybase1.UID, convID chat1.ConversationID) {
 	n.setConvRetention <- convID
 }
@@ -1874,6 +1887,7 @@ func newServerChatListener() *serverChatListener {
 		setConvRetention: make(chan chat1.ConversationID, buf),
 		setTeamRetention: make(chan keybase1.TeamID, buf),
 		kbfsUpgrade:      make(chan chat1.ConversationID, buf),
+		resolveConv:      make(chan resolveRes, buf),
 	}
 }
 

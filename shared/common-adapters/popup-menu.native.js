@@ -19,8 +19,8 @@ const MenuRow = (props: MenuItemProps) => (
   <TouchableOpacity
     disabled={!props.onClick}
     onPress={() => {
+      props.onHidden() // auto hide when making a selection
       props.onClick && props.onClick()
-      props.onHidden() // auto hide after a selection
     }}
     style={{...styleRow(props), ...props.style}}
   >

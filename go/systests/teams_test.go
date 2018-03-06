@@ -47,9 +47,7 @@ func TestTeamBustCache(t *testing.T) {
 	tt.users[1].addTeamMember(team, tt.users[2].username, keybase1.TeamRole_WRITER)
 
 	// Poll for an update, we should get it as soon as gregor tells us to bust our cache.
-	backoff := 100 * time.Millisecond
-	found := false
-	for i := 0; i < 10; i++ {
+	pollForTrue(t, tt.users[0].tc.G, func(i int) bool {
 		after, err := teams.Load(context.TODO(), tt.users[0].tc.G, keybase1.LoadTeamArg{
 			Name:    team,
 			StaleOK: true,
@@ -57,14 +55,10 @@ func TestTeamBustCache(t *testing.T) {
 		require.NoError(t, err)
 		if after.CurrentSeqno() > beforeSeqno {
 			t.Logf("Found new seqno %d at poll loop iter %d", after.CurrentSeqno(), i)
-			found = true
-			break
+			return true
 		}
-		t.Logf("Still at old generation %d at poll loop iter %d", beforeSeqno, i)
-		time.Sleep(backoff)
-		backoff += backoff / 2
-	}
-	require.True(t, found)
+		return false
+	})
 }
 
 func TestTeamRotateOnRevoke(t *testing.T) {
@@ -497,19 +491,20 @@ func (u *userPlusDevice) waitForTeamChangedGregor(teamID keybase1.TeamID, toSeqn
 	u.tc.T.Fatalf("timed out waiting for team rotate %s", teamID)
 }
 
-func (u *userPlusDevice) waitForBadgeStateWithReset(numReset int) {
+func (u *userPlusDevice) waitForBadgeStateWithReset(numReset int) keybase1.BadgeState {
 	for i := 0; i < 10; i++ {
 		select {
 		case arg := <-u.notifications.badgeCh:
 			u.tc.T.Logf("badge state received: %+v", arg.TeamsWithResetUsers)
 			if len(arg.TeamsWithResetUsers) == numReset {
 				u.tc.T.Logf("badge state length match")
-				return
+				return arg
 			}
 		case <-time.After(1 * time.Second * libkb.CITimeMultiplier(u.tc.G)):
-			u.tc.T.Fatal("timed out waiting for badge state")
 		}
 	}
+	u.tc.T.Fatal("timed out waiting for badge state")
+	return keybase1.BadgeState{}
 }
 
 func (u *userPlusDevice) drainGregor() {
@@ -579,7 +574,7 @@ func (u *userPlusDevice) pollForTeamSeqnoLink(team string, toSeqno keybase1.Seqn
 			return
 		}
 
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(500 * time.Millisecond * libkb.CITimeMultiplier(u.tc.G))
 	}
 
 	u.tc.T.Fatalf("timed out waiting for team rotate %s", team)
@@ -598,7 +593,7 @@ func (u *userPlusDevice) pollForTeamSeqnoLinkWithLoadArgs(args keybase1.LoadTeam
 			return
 		}
 
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(500 * time.Millisecond * libkb.CITimeMultiplier(u.tc.G))
 	}
 
 	u.tc.T.Fatalf("timed out waiting for team %v seqno link %d", args, toSeqno)

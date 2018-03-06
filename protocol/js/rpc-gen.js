@@ -3163,7 +3163,7 @@ export type ResetLink = $ReadOnly<{ctime: UnixTime, merkleRoot: ResetMerkleRoot,
 
 export type ResetMerkleRoot = $ReadOnly<{hashMeta: HashMeta, seqno: Seqno}>
 
-export type ResetPrev = $ReadOnly<{eldestKID: KID, eldestSeqno: Seqno, reset: SHA512}>
+export type ResetPrev = $ReadOnly<{eldestKID?: ?KID, eldestSeqno: Seqno, reset: SHA512}>
 
 export type ResetSummary = $ReadOnly<{ctime: UnixTime, merkleRoot: ResetMerkleRoot, resetSeqno: Seqno, type: ResetType}>
 

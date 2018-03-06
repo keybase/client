@@ -93,6 +93,7 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 		convSummary.ActiveAt = readerInfo.Mtime.UnixSeconds()
 		convSummary.ActiveAtMs = readerInfo.Mtime.UnixMilliseconds()
 		convSummary.FinalizeInfo = conv.Info.FinalizeInfo
+		convSummary.MemberStatus = strings.ToLower(conv.Info.MemberStatus.String())
 		for _, super := range conv.Supersedes {
 			convSummary.Supersedes = append(convSummary.Supersedes,
 				super.ConversationID.String())
@@ -100,6 +101,10 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 		for _, super := range conv.SupersededBy {
 			convSummary.SupersededBy = append(convSummary.SupersededBy,
 				super.ConversationID.String())
+		}
+		switch conv.Info.MembersType {
+		case chat1.ConversationMembersType_IMPTEAMUPGRADE, chat1.ConversationMembersType_IMPTEAMNATIVE:
+			convSummary.ResetUsers = conv.Info.ResetNames
 		}
 		convSummary.Channel = ChatChannel{
 			Name:        conv.Info.TlfName,
@@ -1069,6 +1074,8 @@ type ConvSummary struct {
 	Unread       bool                            `json:"unread"`
 	ActiveAt     int64                           `json:"active_at"`
 	ActiveAtMs   int64                           `json:"active_at_ms"`
+	MemberStatus string                          `json:"member_status"`
+	ResetUsers   []string                        `json:"reset_users,omitempty"`
 	FinalizeInfo *chat1.ConversationFinalizeInfo `json:"finalize_info,omitempty"`
 	Supersedes   []string                        `json:"supersedes,omitempty"`
 	SupersededBy []string                        `json:"superseded_by,omitempty"`

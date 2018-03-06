@@ -31,11 +31,11 @@
       "key": "string",
       "completePortion": "number"
     },
-    "openLocalPathInFolder": {
-      "localPath": "Types.LocalPath"
-    },
     "dismissTransfer": {
       "key": "string"
+    },
+    "openInFileUI": {
+      "path?": "string"
     }
   }
 }

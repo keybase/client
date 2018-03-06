@@ -687,10 +687,9 @@ func TestTeamResetBadgesOnAdd(t *testing.T) {
 	tt.users[1].reset()
 	tt.users[0].waitForTeamChangedGregor(teamID, keybase1.Seqno(2))
 	// wait for badge state to have 1 team w/ reset member
-	tt.users[0].waitForBadgeStateWithReset(1)
+	badgeState := tt.users[0].waitForBadgeStateWithReset(1)
 
 	// users[0] should be badged since users[1] reset
-	badgeState := getBadgeState(t, tt.users[0])
 	if len(badgeState.TeamsWithResetUsers) == 0 {
 		t.Fatal("TeamsWithResetUsers is empty after reset")
 	}
@@ -709,10 +708,9 @@ func TestTeamResetBadgesOnAdd(t *testing.T) {
 	tt.users[0].addTeamMember(teamName.String(), tt.users[1].username, keybase1.TeamRole_WRITER)
 
 	// wait for badge state to have no teams w/ reset member
-	tt.users[0].waitForBadgeStateWithReset(0)
+	badgeState = tt.users[0].waitForBadgeStateWithReset(0)
 
 	// badge state should be cleared
-	badgeState = getBadgeState(t, tt.users[0])
 	if len(badgeState.TeamsWithResetUsers) != 0 {
 		t.Errorf("badge state for TeamsWithResetUsers not empty: %d", len(badgeState.TeamsWithResetUsers))
 	}
@@ -722,7 +720,6 @@ func TestTeamResetBadgesOnAdd(t *testing.T) {
 // when a member of the team resets, and that they are dismissed
 // when the reset user is removed.
 func TestTeamResetBadgesOnRemove(t *testing.T) {
-	t.Skip()
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -735,10 +732,9 @@ func TestTeamResetBadgesOnRemove(t *testing.T) {
 	tt.users[1].reset()
 	tt.users[0].waitForTeamChangedGregor(teamID, keybase1.Seqno(2))
 	// wait for badge state to have 1 team w/ reset member
-	tt.users[0].waitForBadgeStateWithReset(1)
+	badgeState := tt.users[0].waitForBadgeStateWithReset(1)
 
 	// users[0] should be badged since users[1] reset
-	badgeState := getBadgeState(t, tt.users[0])
 	if len(badgeState.TeamsWithResetUsers) == 0 {
 		t.Fatal("TeamsWithResetUsers is empty after reset")
 	}
@@ -754,10 +750,9 @@ func TestTeamResetBadgesOnRemove(t *testing.T) {
 	tt.users[0].removeTeamMember(teamName.String(), tt.users[1].username)
 
 	// wait for badge state to have no teams w/ reset member
-	tt.users[0].waitForBadgeStateWithReset(0)
+	badgeState = tt.users[0].waitForBadgeStateWithReset(0)
 
 	// badge state should be cleared
-	badgeState = getBadgeState(t, tt.users[0])
 	if len(badgeState.TeamsWithResetUsers) != 0 {
 		t.Errorf("badge state for TeamsWithResetUsers not empty: %d", len(badgeState.TeamsWithResetUsers))
 	}
