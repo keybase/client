@@ -10,6 +10,8 @@ import {navigateTo, switchTo} from './route-tree'
 import {fsTab} from '../constants/tabs'
 import logger from '../logger'
 
+type pathType = 'file' | 'directory'
+
 // pathToURL takes path and converts to (file://) url.
 // See https://github.com/sindresorhus/file-url
 function pathToURL(path: string): string {
@@ -53,7 +55,7 @@ function openInDefaultDirectory(openPath: string): Promise<*> {
   })
 }
 
-function isDirectory(openPath: string): Promise<boolean> {
+function getPathType(openPath: string): Promise<pathType> {
   return new Promise((resolve, reject) => {
     fs.stat(openPath, (err, stats) => {
       if (err) {
@@ -61,9 +63,9 @@ function isDirectory(openPath: string): Promise<boolean> {
         return
       }
       if (stats.isFile()) {
-        resolve(false)
+        resolve('file')
       } else if (stats.isDirectory()) {
-        resolve(true)
+        resolve('directory')
       } else {
         reject(new Error(`Unable to open: Not a file or directory`))
       }
@@ -73,8 +75,8 @@ function isDirectory(openPath: string): Promise<boolean> {
 
 function _open(openPath: string): Promise<*> {
   return new Promise((resolve, reject) => {
-    isDirectory(openPath).then(isDir => {
-      if (isDir) {
+    getPathType(openPath).then(typ => {
+      if (typ === 'directory') {
         if (isWindows) {
           if (!shell.openItem(openPath)) {
             reject(new Error(`Unable to open item: ${openPath}`))
@@ -84,11 +86,14 @@ function _open(openPath: string): Promise<*> {
           openInDefaultDirectory(openPath).then(resolve, reject)
           return
         }
-      } else {
+      } else if (typ === 'file') {
         if (!shell.showItemInFolder(openPath)) {
           reject(new Error(`Unable to open item in folder: ${openPath}`))
           return
         }
+      } else {
+        reject(new Error(`Invalid path type`))
+        return
       }
       resolve()
     })
