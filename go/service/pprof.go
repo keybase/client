@@ -44,7 +44,7 @@ type timedProfiler interface {
 
 // doTimedProfile asynchronously runs a profile with the given
 // timedProfiler and associated parameters.
-func doTimedProfile(log, delayedLog logger.Logger,
+func doTimedProfile(log libkb.LogUI, delayedLog logger.Logger,
 	profiler timedProfiler, outputFile string,
 	durationSeconds keybase1.DurationSec) (err error) {
 	if !filepath.IsAbs(outputFile) {
@@ -141,45 +141,20 @@ func (c *PprofHandler) LogProcessorProfile(_ context.Context, arg keybase1.LogPr
 	panic("not implemented")
 }
 
+type traceProfiler struct{}
+
+func (traceProfiler) Name() string { return "trace" }
+
+func (traceProfiler) Start(w io.Writer) error {
+	return trace.Start(w)
+}
+
+func (traceProfiler) Stop() {
+	trace.Stop()
+}
+
 func (c *PprofHandler) trace(ctx engine.Context, traceFile string, traceDurationSeconds keybase1.DurationSec) (err error) {
-	if !filepath.IsAbs(traceFile) {
-		return fmt.Errorf("%q is not an absolute path", traceFile)
-	}
-
-	close := func(c io.Closer) {
-		err := c.Close()
-		if err != nil {
-			ctx.LogUI.Warning("Failed to close %s: %s", traceFile, err)
-		}
-	}
-
-	defer func() {
-		if err != nil {
-			ctx.LogUI.Warning("Failed to trace to %s for %.2f second(s): %s", traceFile, traceDurationSeconds, err)
-		}
-	}()
-
-	f, err := os.Create(traceFile)
-	if err != nil {
-		return err
-	}
-
-	err = trace.Start(f)
-	if err != nil {
-		close(f)
-		return err
-	}
-
-	c.G().Log.Info("Tracing to %s for %.2f second(s)", traceFile, traceDurationSeconds)
-
-	go func() {
-		time.Sleep(durationSecToDuration(traceDurationSeconds))
-		trace.Stop()
-		close(f)
-		c.G().Log.Info("Tracing to %s done", traceFile)
-	}()
-
-	return nil
+	return doTimedProfile(ctx.LogUI, c.G().Log, traceProfiler{}, traceFile, traceDurationSeconds)
 }
 
 func (c *PprofHandler) Trace(_ context.Context, arg keybase1.TraceArg) (err error) {
