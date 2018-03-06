@@ -5,9 +5,9 @@ import Box from './box'
 import ClickableBox from './clickable-box'
 import Icon from './icon'
 import {type IconType} from './icon.constants'
-import Text from './text'
+import Text, {type TextType} from './text'
 import {Usernames} from './usernames'
-import {globalStyles, isMobile} from '../styles'
+import {collapseStyles, globalStyles, isMobile, styleSheetCreate} from '../styles'
 
 type Size = 'small' | 'default' | 'large'
 
@@ -20,7 +20,7 @@ type Props = {
   title?: string, // for non-users
   metaOne?: string | React.Node,
   metaTwo?: string | React.Node,
-  onClick?: () => void,
+  onClick?: any => void,
   size?: Size,
   containerStyle?: any,
   metaStyle?: any,
@@ -32,12 +32,13 @@ type Props = {
 
 const NameWithIconVertical = (props: Props) => {
   const isAvatar = !!(props.username || props.teamname)
-  const isIcon = !isAvatar && !!props.icon
-  const isUser = !!props.username
   const adapterProps = getAdapterProps(props.size || 'default', isAvatar)
   const BoxComponent = props.onClick ? ClickableBox : Box
   return (
-    <BoxComponent onClick={props.onClick} style={{...containerStyle, ...props.containerStyle}}>
+    <BoxComponent
+      onClick={props.onClick}
+      style={collapseStyles([styles.containerStyle, props.containerStyle || {}])}
+    >
       {isAvatar && (
         <Avatar
           size={adapterProps.iconSize}
@@ -47,19 +48,20 @@ const NameWithIconVertical = (props: Props) => {
           teamname={props.teamname}
         />
       )}
-      {isIcon && (
-        <Icon
-          type={props.icon}
-          style={{
-            fontSize: adapterProps.iconSize,
-            width: adapterProps.iconSize,
-            height: adapterProps.iconSize,
-          }}
-        />
-      )}
-      <Box style={{...metaStyle, ...props.metaStyle}}>
-        {!isUser && <Text type={adapterProps.titleType}>{props.title}</Text>}
-        {isUser && (
+      {!isAvatar &&
+        !!props.icon && (
+          <Icon
+            type={props.icon || ''}
+            style={{
+              fontSize: adapterProps.iconSize,
+              width: adapterProps.iconSize,
+              height: adapterProps.iconSize,
+            }}
+          />
+        )}
+      <Box style={collapseStyles([styles.metaStyle, props.metaStyle || {}])}>
+        {!props.username && <Text type={adapterProps.titleType}>{props.title}</Text>}
+        {!!props.username && (
           <Usernames
             type={adapterProps.titleType}
             users={[{username: props.username, following: props.following, you: props.isYou}]}
@@ -75,8 +77,6 @@ const NameWithIconVertical = (props: Props) => {
 
 const NameWithIconHorizontal = (props: Props) => {
   const isAvatar = !!(props.username || props.teamname)
-  const isIcon = !isAvatar && !!props.icon
-  const isUser = !!props.username
   const commonHeight = isMobile ? 48 : 32
   const BoxComponent = props.onClick ? ClickableBox : Box
   return (
@@ -92,15 +92,16 @@ const NameWithIconHorizontal = (props: Props) => {
           style={{marginRight: 16}}
         />
       )}
-      {isIcon && (
-        <Icon
-          type={props.icon}
-          style={{marginRight: 16, fontSize: commonHeight, width: commonHeight, height: commonHeight}}
-        />
-      )}
+      {!isAvatar &&
+        !!props.icon && (
+          <Icon
+            type={props.icon}
+            style={{marginRight: 16, fontSize: commonHeight, width: commonHeight, height: commonHeight}}
+          />
+        )}
       <Box style={{...globalStyles.flexBoxColumn, ...props.metaStyle}}>
-        {!isUser && <Text type="BodySemibold">{props.title}</Text>}
-        {isUser && (
+        {!props.username && <Text type="BodySemibold">{props.title}</Text>}
+        {!!props.username && (
           <Usernames
             type="BodySemibold"
             users={[{username: props.username, following: props.following, you: props.isYou}]}
@@ -124,24 +125,27 @@ const NameWithIcon = (props: Props) => {
   return props.horizontal ? <NameWithIconHorizontal {...props} /> : <NameWithIconVertical {...props} />
 }
 
+// Render text if it's text, or identity if otherwise
 const TextOrComponent = ({val, textType}: {val: string | React.Node, textType: TextType}) => {
   if (typeof val === 'string') {
     return <Text type={textType}>{val}</Text>
   }
+  // `return undefined` makes react barf
   return val || null
 }
 
 // TODO refactor these styles to use hybrid desktop/native stylesheets
-const containerStyle = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'center',
-}
-
-const metaStyle = {
-  ...globalStyles.flexBoxColumn,
-  ...globalStyles.flexBoxCenter,
-  marginTop: 8,
-}
+const styles = styleSheetCreate({
+  containerStyle: {
+    ...globalStyles.flexBoxColumn,
+    alignItems: 'center',
+  },
+  metaStyle: {
+    ...globalStyles.flexBoxColumn,
+    ...globalStyles.flexBoxCenter,
+    marginTop: 8,
+  },
+})
 
 // Get props to pass to subcomponents (Text, Avatar, etc.)
 const getAdapterProps = (size: Size, isAvatar: boolean) => {
@@ -160,17 +164,12 @@ const getAdapterProps = (size: Size, isAvatar: boolean) => {
           iconSize: 112,
         }
       }
-      return {
-        titleType: 'BodyBig',
-        metaOneType: isAvatar ? 'BodySemibold' : 'BodySmall',
-        iconSize: isAvatar ? 80 : 64,
-      }
-    default:
-      return {
-        titleType: 'BodyBig',
-        metaOneType: isAvatar ? 'BodySemibold' : 'BodySmall',
-        iconSize: isAvatar ? 80 : 64,
-      }
+  }
+  // default
+  return {
+    titleType: 'BodyBig',
+    metaOneType: isAvatar ? 'BodySemibold' : 'BodySmall',
+    iconSize: isAvatar ? 80 : 64,
   }
 }
 

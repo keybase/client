@@ -10,6 +10,17 @@ const commonProps = {
   containerStyle: {padding: 24},
 }
 
+const outerClick = evt => {
+  if (!evt.defaultPrevented) {
+    action('Outer click')(evt)
+  }
+}
+
+const innerClick = evt => {
+  evt.preventDefault()
+  action('Inner click')(evt)
+}
+
 const load = () => {
   storiesOf('Common', module)
     .addDecorator(story => <ScrollView>{story()}</ScrollView>)
@@ -82,9 +93,9 @@ const load = () => {
           {...commonProps}
           teamname="keybasefriends"
           title="keybasefriends"
-          onClick={action('Click on top level')}
+          onClick={outerClick}
           metaOne={
-            <Text type="BodySmallPrimaryLink" onClick={action('Click within meta')}>
+            <Text type="BodySmallPrimaryLink" onClick={innerClick}>
               Manage members
             </Text>
           }
