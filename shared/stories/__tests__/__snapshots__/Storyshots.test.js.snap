@@ -43522,10 +43522,10 @@ exports[`Storyshots Team Roles ConfirmAdmin 1`] = `
         Object {
           "alignItems": "center",
           "display": "flex",
-          "flex": 1,
           "flexDirection": "column",
-          "minWidth": 480,
           "paddingBottom": 4,
+          "paddingLeft": 24,
+          "paddingRight": 24,
           "paddingTop": 4,
         }
       }
@@ -44184,10 +44184,10 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
         Object {
           "alignItems": "center",
           "display": "flex",
-          "flex": 1,
           "flexDirection": "column",
-          "minWidth": 480,
           "paddingBottom": 4,
+          "paddingLeft": 24,
+          "paddingRight": 24,
           "paddingTop": 4,
         }
       }
@@ -44824,10 +44824,10 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
         Object {
           "alignItems": "center",
           "display": "flex",
-          "flex": 1,
           "flexDirection": "column",
-          "minWidth": 480,
           "paddingBottom": 4,
+          "paddingLeft": 24,
+          "paddingRight": 24,
           "paddingTop": 4,
         }
       }
@@ -45535,10 +45535,10 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
         Object {
           "alignItems": "center",
           "display": "flex",
-          "flex": 1,
           "flexDirection": "column",
-          "minWidth": 480,
           "paddingBottom": 4,
+          "paddingLeft": 24,
+          "paddingRight": 24,
           "paddingTop": 4,
         }
       }
@@ -46099,7 +46099,6 @@ exports[`Storyshots Team Roles Picker 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 400;
-  width: 267px;
 }
 
 .glamor-6,
@@ -46127,7 +46126,6 @@ exports[`Storyshots Team Roles Picker 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 400;
-  width: 267px;
 }
 
 .glamor-16,
@@ -46175,7 +46173,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
           "alignItems": "center",
           "display": "flex",
           "flexDirection": "column",
-          "minWidth": 480,
+          "maxWidth": 400,
           "paddingBottom": 8,
           "paddingTop": 16,
         }
@@ -46213,7 +46211,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
             "flexDirection": "row",
             "height": undefined,
             "lineHeight": 0,
-            "minWidth": 480,
+            "minWidth": undefined,
             "padding": 8,
             "paddingLeft": 16,
             "paddingRight": 40,
@@ -46221,6 +46219,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
             "textAlign": "left",
             "transform": "none",
             "transition": "none",
+            "width": "100%",
           }
         }
       >
@@ -46324,7 +46323,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
             "flexDirection": "row",
             "height": undefined,
             "lineHeight": 0,
-            "minWidth": 480,
+            "minWidth": undefined,
             "padding": 8,
             "paddingLeft": 16,
             "paddingRight": 40,
@@ -46332,6 +46331,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
             "textAlign": "left",
             "transform": "none",
             "transition": "none",
+            "width": "100%",
           }
         }
       >
@@ -46435,7 +46435,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
             "flexDirection": "row",
             "height": undefined,
             "lineHeight": 0,
-            "minWidth": 480,
+            "minWidth": undefined,
             "padding": 8,
             "paddingLeft": 16,
             "paddingRight": 40,
@@ -46443,6 +46443,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
             "textAlign": "left",
             "transform": "none",
             "transition": "none",
+            "width": "100%",
           }
         }
       >
@@ -46521,7 +46522,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
             "flexDirection": "row",
             "height": undefined,
             "lineHeight": 0,
-            "minWidth": 480,
+            "minWidth": undefined,
             "padding": 8,
             "paddingLeft": 16,
             "paddingRight": 40,
@@ -46529,6 +46530,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
             "textAlign": "left",
             "transform": "none",
             "transition": "none",
+            "width": "100%",
           }
         }
       >
