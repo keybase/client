@@ -19205,23 +19205,6 @@ exports[`Storyshots Common Icon 1`] = `
           className={undefined}
           draggable="false"
           onClick={[Function]}
-          srcSet="icons/icon-folder-private-open-24.png 1x, icons/icon-folder-private-open-24@2x.png 2x"
-          style={
-            Object {
-              "borderColor": "rgba(0, 0, 0, 0.05)",
-              "borderStyle": "solid",
-              "borderWidth": 1,
-              "cursor": "pointer",
-              "margin": 5,
-              "userSelect": "none",
-            }
-          }
-          title="hint text"
-        />
-        <img
-          className={undefined}
-          draggable="false"
-          onClick={[Function]}
           srcSet="icons/icon-folder-public-24.png 1x, icons/icon-folder-public-24@2x.png 2x"
           style={
             Object {
@@ -19905,23 +19888,6 @@ exports[`Storyshots Common Icon 1`] = `
           draggable="false"
           onClick={[Function]}
           srcSet="icons/icon-folder-private-has-stuff-32.png 1x, icons/icon-folder-private-has-stuff-32@2x.png 2x"
-          style={
-            Object {
-              "borderColor": "rgba(0, 0, 0, 0.05)",
-              "borderStyle": "solid",
-              "borderWidth": 1,
-              "cursor": "pointer",
-              "margin": 5,
-              "userSelect": "none",
-            }
-          }
-          title="hint text"
-        />
-        <img
-          className={undefined}
-          draggable="false"
-          onClick={[Function]}
-          srcSet="icons/icon-folder-private-open-32.png 1x, icons/icon-folder-private-open-32@2x.png 2x"
           style={
             Object {
               "borderColor": "rgba(0, 0, 0, 0.05)",
@@ -24582,7 +24548,7 @@ exports[`Storyshots Common Text 1`] = `
 [data-glamor-20] {
   font-size: 13px;
   line-height: 17px;
-  color: #36b37c;
+  color: #34ad79;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -24657,7 +24623,7 @@ exports[`Storyshots Common Text 1`] = `
 [data-glamor-32] {
   font-size: 11px;
   line-height: 15px;
-  color: #36b37c;
+  color: #34ad79;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -29082,7 +29048,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
 [data-glamor-9] {
   font-size: 13px;
   line-height: 17px;
-  color: #36b37c;
+  color: #34ad79;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -30479,7 +30445,7 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
 [data-glamor-9] {
   font-size: 13px;
   line-height: 17px;
-  color: #36b37c;
+  color: #34ad79;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -31233,7 +31199,7 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
 [data-glamor-1] {
   font-size: 13px;
   line-height: 17px;
-  color: #36b37c;
+  color: #34ad79;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -31665,7 +31631,7 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
 [data-glamor-1] {
   font-size: 13px;
   line-height: 17px;
-  color: #36b37c;
+  color: #34ad79;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -32388,7 +32354,7 @@ exports[`Storyshots People/Follow notification Someone you follow followed you 1
 [data-glamor-2] {
   font-size: 13px;
   line-height: 17px;
-  color: #36b37c;
+  color: #34ad79;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -37183,7 +37149,7 @@ exports[`Storyshots Search Result 1`] = `
 [data-glamor-10] {
   font-size: 13px;
   line-height: 17px;
-  color: #36b37c;
+  color: #34ad79;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -37264,7 +37230,7 @@ exports[`Storyshots Search Result 1`] = `
 [data-glamor-48] {
   font-size: 11px;
   line-height: 15px;
-  color: #36b37c;
+  color: #34ad79;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -40220,7 +40186,7 @@ exports[`Storyshots Search User Input 1`] = `
 [data-glamor-6] {
   font-size: 13px;
   line-height: 18px;
-  color: #36b37c;
+  color: #34ad79;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -42512,7 +42478,7 @@ exports[`Storyshots Search User Input editable 1`] = `
 [data-glamor-6] {
   font-size: 13px;
   line-height: 18px;
-  color: #36b37c;
+  color: #34ad79;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
