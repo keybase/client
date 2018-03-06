@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/kbfs/libgit"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/libpages"
+	"github.com/keybase/kbfs/simplefs"
 	"github.com/keybase/kbfs/stderrutils"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -118,6 +119,9 @@ func main() {
 	params.EnableJournal = true
 	params.Debug = true
 	params.LogFileConfig.Path = fKBFSLogFile
+	params.LogFileConfig.MaxKeepFiles = 32
+	// Enable simpleFS in case we need to debug.
+	params.CreateSimpleFSInstance = simplefs.NewSimpleFS
 	kbfsLog, err := libkbfs.InitLog(params, kbCtx)
 	if err != nil {
 		logger.Panic("libkbfs.InitLog", zap.Error(err))
