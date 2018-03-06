@@ -29,7 +29,7 @@ set_empty_mountdir_to_default() {
         # system doesn't have $XDG_RUNTIME_DIR defined, we'll have to
         # fall back to something in the home directory (putting the
         # user at risk of things like du and find crawling KBFS...).
-        newDefault="${XDG_RUNTIME_DIR:-$HOME/.local/share}/keybase/kbfs"
+        newDefault="${XDG_RUNTIME_DIR:-$HOME/.config}/keybase/kbfs"
         if [ "$default" = "$oldDefault" ]; then
             mountdir="$(keybase config get -d -b mountdir 2> /dev/null)"
             if [ "$mountdir" = "$default" ]; then
