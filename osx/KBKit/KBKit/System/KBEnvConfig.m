@@ -38,10 +38,8 @@
   if ((self = [super init])) {
     _runMode = runMode;
 
-    // Read the mount point from the config file if possible.  NOTE:
-    // if you change this default, you must also change the default
-    // for darwin in the `GetMountDir` function of `libkb/env.go`.
-    NSString *mountDir = [self defaultMountDir:(KBPathOptions)0];
+    // Read the mount point from the config file if possible.
+    NSString *mountDir = [self defaultMountDir];
     NSData *data = [NSData dataWithContentsOfFile:[self dataPath:@"config.json" options:0]];
     if (data) {
       NSError *err = nil;
@@ -132,11 +130,13 @@
   else return NSStringWithFormat(@"Keybase.%@", NSStringFromKBRunMode(_runMode, NO));
 }
 
-- (NSString *)defaultMountdir:(KBPathOptions)options {
+- (NSString *)defaultMountDir {
+  // NOTE: if you change this default, you must also change the default
+  // for darwin in the `GetMountDir` function of `libkb/env.go`.
   NSString *appName = [self appName];
   NSString *userName = NSUserName();
   NSString *mount = NSStringWithFormat(@"%@'s %@", userName, appName);
-  return [KBPath pathInDir:@"/Volumes" path:mount options:options];
+  return [KBPath pathInDir:@"/Volumes" path:mount options:0];
 }
 
 - (NSString *)homePath:(NSString *)filename options:(KBPathOptions)options {

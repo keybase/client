@@ -60,7 +60,6 @@ typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
 
 - (NSString *)logFile:(NSString *)label;
 
-- (NSString *)defaultMountDir:(KBPathOptions)options;
 - (NSString *)homePath:(NSString *)filename options:(KBPathOptions)options;
 - (NSString *)dataPath:(NSString *)filename options:(KBPathOptions)options;
 - (NSString *)runtimePath:(NSString *)filename options:(KBPathOptions)options;
