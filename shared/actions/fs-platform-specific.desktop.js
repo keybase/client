@@ -74,18 +74,23 @@ function isDirectory(openPath: string): Promise<boolean> {
 function _open(openPath: string): Promise<*> {
   return new Promise((resolve, reject) => {
     isDirectory(openPath).then(isDir => {
-      if (isDir && isWindows) {
-        if (!shell.openItem(openPath)) {
-          reject(new Error(`Unable to open item: ${openPath}`))
+      if (isDir) {
+        if (isWindows) {
+          if (!shell.openItem(openPath)) {
+            reject(new Error(`Unable to open item: ${openPath}`))
+            return
+          }
+        } else {
+          openInDefaultDirectory(openPath).then(resolve, reject)
+          return
         }
-      } else if (isDir) {
-        openInDefaultDirectory(openPath).then(resolve, reject)
       } else {
         if (!shell.showItemInFolder(openPath)) {
           reject(new Error(`Unable to open item in folder: ${openPath}`))
+          return
         }
-        resolve()
       }
+      resolve()
     })
   })
 }
