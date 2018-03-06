@@ -144,16 +144,21 @@ func (cpuProfiler) Stop() {
 	pprof.StopCPUProfile()
 }
 
-func (c *PprofHandler) cpuProfile(ctx engine.Context, profileFile string, profileDurationSeconds keybase1.DurationSec) (err error) {
-	return doTimedProfile(ctx.LogUI, c.G().Log, cpuProfiler{}, profileFile, profileDurationSeconds)
-}
-
 func (c *PprofHandler) ProcessorProfile(_ context.Context, arg keybase1.ProcessorProfileArg) (err error) {
 	ctx := engine.Context{
 		LogUI:     c.getLogUI(arg.SessionID),
 		SessionID: arg.SessionID,
 	}
-	return c.cpuProfile(ctx, arg.ProfileFile, arg.ProfileDurationSeconds)
+	return doTimedProfile(ctx.LogUI, c.G().Log, cpuProfiler{}, arg.ProfileFile, arg.ProfileDurationSeconds)
+}
+
+func (c *PprofHandler) logDir(logDirForMobile string) string {
+	// Assume the returned directory already exists, i.e. we've
+	// already started logging.
+	if len(logDirForMobile) > 0 {
+		return logDirForMobile
+	}
+	return c.G().Env.GetLogDir()
 }
 
 func (c *PprofHandler) LogProcessorProfile(_ context.Context, arg keybase1.LogProcessorProfileArg) (err error) {
@@ -161,39 +166,7 @@ func (c *PprofHandler) LogProcessorProfile(_ context.Context, arg keybase1.LogPr
 		LogUI:     c.getLogUI(arg.SessionID),
 		SessionID: arg.SessionID,
 	}
-
-	// Assume this directory already exists, i.e. we've already
-	// started logging.
-	var logDir string
-	if len(arg.LogDirForMobile) > 0 {
-		logDir = arg.LogDirForMobile
-	} else {
-		logDir = c.G().Env.GetLogDir()
-	}
-
-	_ = ctx
-	_ = logDir
-
-	/*
-		traceFiles, err := libkb.GetSortedCPUProfileFiles(logDir)
-		if err != nil {
-			ctx.LogUI.Warning("Error getting trace files in %q: %s", logDir, err)
-		} else if len(traceFiles)+1 > libkb.MaxCPUProfileFileCount {
-			// Remove old trace files.
-			toRemove := traceFiles[:len(traceFiles)+1-libkb.MaxCPUProfileFileCount]
-			for _, path := range toRemove {
-				c.G().Log.Info("Removing old trace file %q", path)
-				err := os.Remove(path)
-				if err != nil {
-					ctx.LogUI.Warning("Error on os.Remove(%q): %s", path, err)
-				}
-			}
-		}
-
-		traceFile := libkb.MakeCPUProfileFilename(logDir, time.Now(), durationSecToDuration(arg.CPUProfileDurationSeconds))
-		return c.trace(ctx, traceFile, arg.CPUProfileDurationSeconds)
-	*/
-	panic("not implemented")
+	return doTimedProfileInDir(ctx.LogUI, c.G().Log, cpuProfiler{}, c.logDir(arg.LogDirForMobile), arg.ProfileDurationSeconds)
 }
 
 type traceProfiler struct{}
@@ -227,7 +200,7 @@ func (c *PprofHandler) Trace(_ context.Context, arg keybase1.TraceArg) (err erro
 		LogUI:     c.getLogUI(arg.SessionID),
 		SessionID: arg.SessionID,
 	}
-	return c.trace(ctx, arg.TraceFile, arg.TraceDurationSeconds)
+	return doTimedProfile(ctx.LogUI, c.G().Log, traceProfiler{}, arg.TraceFile, arg.TraceDurationSeconds)
 }
 
 func (c *PprofHandler) LogTrace(_ context.Context, arg keybase1.LogTraceArg) (err error) {
@@ -235,31 +208,5 @@ func (c *PprofHandler) LogTrace(_ context.Context, arg keybase1.LogTraceArg) (er
 		LogUI:     c.getLogUI(arg.SessionID),
 		SessionID: arg.SessionID,
 	}
-
-	// Assume this directory already exists, i.e. we've already
-	// started logging.
-	var logDir string
-	if len(arg.LogDirForMobile) > 0 {
-		logDir = arg.LogDirForMobile
-	} else {
-		logDir = c.G().Env.GetLogDir()
-	}
-
-	traceFiles, err := libkb.GetSortedTraceFiles(logDir)
-	if err != nil {
-		ctx.LogUI.Warning("Error getting trace files in %q: %s", logDir, err)
-	} else if len(traceFiles)+1 > libkb.MaxTraceFileCount {
-		// Remove old trace files.
-		toRemove := traceFiles[:len(traceFiles)+1-libkb.MaxTraceFileCount]
-		for _, path := range toRemove {
-			c.G().Log.Info("Removing old trace file %q", path)
-			err := os.Remove(path)
-			if err != nil {
-				ctx.LogUI.Warning("Error on os.Remove(%q): %s", path, err)
-			}
-		}
-	}
-
-	traceFile := libkb.MakeTraceFilename(logDir, time.Now(), durationSecToDuration(arg.TraceDurationSeconds))
-	return c.trace(ctx, traceFile, arg.TraceDurationSeconds)
+	return doTimedProfileInDir(ctx.LogUI, c.G().Log, traceProfiler{}, c.logDir(arg.LogDirForMobile), arg.TraceDurationSeconds)
 }

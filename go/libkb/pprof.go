@@ -32,14 +32,14 @@ func makeFilename(prefix, dir string, start time.Time, duration time.Duration) s
 	return filepath.Join(dir, filename)
 }
 
-// Return a filename to use for a trace file in the given directory
-// with the given start time and duration.
-func MakeTraceProfileFilename(dir string, start time.Time, duration time.Duration) string {
+// MakeTraceFilename returns a filename to use for a trace file
+// in the given directory with the given start time and duration.
+func MakeTraceFilename(dir string, start time.Time, duration time.Duration) string {
 	return makeFilename(tracePrefix, dir, start, duration)
 }
 
-// Return a filename to use for a CPU profile file in the given directory
-// with the given start time and duration.
+// MakeCPUProfileFilename returns a filename to use for a CPU profile
+// file in the given directory with the given start time and duration.
 func MakeCPUProfileFilename(dir string, start time.Time, duration time.Duration) string {
 	return makeFilename(cpuProfilePrefix, dir, start, duration)
 }
@@ -54,14 +54,14 @@ func getSortedFiles(prefix, dir string) ([]string, error) {
 	return matches, nil
 }
 
-// Return all CPU profile files in the given directory approximately
-// sorted by increasing start time.
-func GetSortedCPUFiles(dir string) ([]string, error) {
+// GetSortedCPUProfileFiles returns all CPU profile files in the given
+// directory approximately sorted by increasing start time.
+func GetSortedCPUProfileFiles(dir string) ([]string, error) {
 	return getSortedFiles(cpuProfilePrefix, dir)
 }
 
-// Return all trace files in the given directory approximately sorted
-// by increasing start time.
+// GetSortedTraceFiles returns all trace files in the given directory
+// approximately sorted by increasing start time.
 func GetSortedTraceFiles(dir string) ([]string, error) {
 	return getSortedFiles(tracePrefix, dir)
 }
