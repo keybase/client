@@ -207,9 +207,11 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 		}
 
 		// Send chat welcome message
-		g.Log.CDebugf(ctx, "sending welcome message for successful SBS handle")
-		SendChatInviteWelcomeMessage(ctx, g, team.Name().String(), category, invite.Inviter.Uid,
-			verifiedInvitee.Uid)
+		if !team.IsImplicit() {
+			g.Log.CDebugf(ctx, "sending welcome message for successful SBS handle")
+			SendChatInviteWelcomeMessage(ctx, g, team.Name().String(), category, invite.Inviter.Uid,
+				verifiedInvitee.Uid)
+		}
 
 		return nil
 	})
