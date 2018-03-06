@@ -56,7 +56,8 @@ type cacheEntry struct {
 }
 
 type root struct {
-	runmodeStr string
+	runmodeStr      string
+	runmodeStrFancy string
 
 	lock            sync.RWMutex
 	mountpointCache map[uint32]cacheEntry
@@ -66,15 +67,19 @@ type root struct {
 
 func newRoot() *root {
 	runmodeStr := "keybase"
+	runmodeStrFancy := "Keybase"
 	switch os.Getenv("KEYBASE_RUN_MODE") {
 	case "staging":
 		runmodeStr = "keybase.staging"
+		runmodeStrFancy = "KeybaseStaging"
 	case "devel":
 		runmodeStr = "keybase.devel"
+		runmodeStrFancy = "KeybaseDevel"
 	}
 
 	return &root{
 		runmodeStr:      runmodeStr,
+		runmodeStrFancy: runmodeStrFancy,
 		mountpointCache: make(map[uint32]cacheEntry),
 	}
 }
@@ -176,10 +181,16 @@ func (r *root) findKBFSMount(ctx context.Context) (
 		// "/home/user/keybase", and make sure it doesn't match mounts for
 		// another run mode, say "/home/user/keybase.staging".
 		i := strings.Index(mp, r.runmodeStr)
+		str := r.runmodeStr
+		if i < 0 {
+			i = strings.Index(mp, r.runmodeStrFancy)
+			str = r.runmodeStrFancy
+		}
 		if i < 0 {
 			continue
 		}
-		if len(mp) > i+len(r.runmodeStr) && mp[i+len(r.runmodeStr)] != '/' {
+		if (len(mp) > i+len(str) && mp[i+len(str)] != '/') ||
+			(len(mp) > i+len(str) && mp[i+len(str)] != '/') {
 			continue
 		}
 
