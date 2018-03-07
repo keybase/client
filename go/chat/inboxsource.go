@@ -1207,6 +1207,8 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 			} else {
 				if len(newMsg) > 0 {
 					newMaxMsgs = append(newMaxMsgs, newMsg[0])
+				} else {
+					newMaxMsgs = append(newMaxMsgs, mm)
 				}
 			}
 		}
@@ -1261,6 +1263,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		var errMsg string
 		s.Debug(ctx, "localizeConversation: trying to load team for %v chat", conversationLocal.Info.Visibility)
 		iteam, err := LoadTeam(ctx, s.G().ExternalG(), conversationLocal.Info.Triple.Tlfid,
+			conversationLocal.Info.TlfName,
 			conversationRemote.GetMembersType(),
 			conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC, nil)
 		if err != nil {

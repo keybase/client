@@ -2,14 +2,27 @@
 import React from 'react'
 import * as Types from '../constants/types/fs'
 import {action, storiesOf, createPropProvider} from '../stories/storybook'
+import {globalColors} from '../styles'
 import Files from '.'
 
 const provider = createPropProvider({
   FileRow: ({path}: {path: Types.Path}) => ({
-    icon: 'icon-folder-private-24',
     name: Types.getPathName(path),
     onOpen: () => {},
-    path,
+    openInFileUI: () => {},
+    type: 'folder',
+    itemStyles: {
+      iconSpec: {
+        type: 'basic',
+        iconType: 'icon-folder-private-32',
+        iconColor: globalColors.darkBlue2,
+      },
+      textColor: globalColors.darkBlue,
+      textType: 'BodySemibold',
+    },
+  }),
+  Footer: () => ({
+    downloads: [],
   }),
   FolderHeader: () => ({
     breadcrumbItems: [
@@ -22,6 +35,14 @@ const provider = createPropProvider({
     isTeamPath: false,
     onOpenBreadcrumb: action('onOpenBreadcrumb'),
     onOpenBreadcrumbDropdown: action('onOpenBreadcrumbDropdown'),
+  }),
+  SortBar: ({path}: {path: Types.Path}) => ({
+    sortSetting: {
+      sortBy: 'name',
+      sortOrder: 'asc',
+    },
+    onOpenSortSettingPopup: () => {},
+    folderIsPending: true,
   }),
 })
 
@@ -37,10 +58,6 @@ const load = () => {
           Types.stringToPath('/keybase/public'),
           Types.stringToPath('/keybase/team'),
         ]}
-        sortSetting={{
-          sortBy: 'name',
-          sortOrder: 'asc',
-        }}
       />
     ))
 }

@@ -66,6 +66,7 @@ export type _TransferState = {
   completePortion: number,
   error?: string,
   isDone: boolean,
+  startedAt: number,
 }
 export type TransferState = I.RecordOf<_TransferState>
 
@@ -85,13 +86,6 @@ export type _State = {
 export type State = I.RecordOf<_State>
 
 export type Visibility = 'private' | 'public' | 'team' | null
-
-export type ItemStyles = {
-  iconType: IconType,
-  iconColor: string, // Temporary until we switch to PNG icons.
-  textColor: string,
-  textType: TextType,
-}
 
 export const stringToPath = (s: string): Path => (s.indexOf('/') === 0 ? s : null)
 export const pathToString = (p: Path): string => (!p ? '' : p)
@@ -141,6 +135,8 @@ export const pathIsNonTeamTLFList = (p: Path): boolean => {
 const localSep = isWindows ? '\\' : '/'
 
 export const localPathConcat = (p: LocalPath, s: string): LocalPath => p + localSep + s
+export const getLocalPathName = (p: LocalPath): string => p.split(localSep).pop()
+export const getLocalPathDir = (p: LocalPath): string => p.slice(0, p.lastIndexOf(localSep))
 
 type PathItemComparer = (a: PathItem, b: PathItem) => number
 
@@ -210,4 +206,29 @@ export const sortSettingToIconTypeAndText = (s: _SortSetting): sortSettingDispla
     default:
       throw new Error('invalid SortBy')
   }
+}
+
+export type PathItemIconSpec =
+  | {
+      type: 'teamAvatar',
+      teamName: string,
+    }
+  | {
+      type: 'avatar',
+      username: string,
+    }
+  | {
+      type: 'avatars',
+      usernames: Array<string>,
+    }
+  | {
+      type: 'basic',
+      iconType: IconType,
+      iconColor: string,
+    }
+
+export type ItemStyles = {
+  iconSpec: PathItemIconSpec,
+  textColor: string,
+  textType: TextType,
 }

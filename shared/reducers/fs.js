@@ -45,6 +45,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           localPath,
           completePortion: 0,
           isDone: false,
+          startedAt: Date.now(),
         })
       )
     }
@@ -60,7 +61,11 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         original.set('isDone', true).set('error', error)
       )
     }
+    case FsGen.dismissTransfer: {
+      return state.removeIn(['transfers', action.payload.key])
+    }
     case FsGen.download:
+    case FsGen.openInFileUI:
       return state
     default:
       // eslint-disable-next-line no-unused-expressions

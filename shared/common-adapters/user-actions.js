@@ -1,8 +1,9 @@
 // @flow
 import * as React from 'react'
 import type {Props} from './user-actions'
-import {Button, FollowButton, ButtonBar} from '../common-adapters'
+import {Button, FollowButton, ButtonBar, Icon} from '../common-adapters'
 import {normal as proofNormal} from '../constants/tracker'
+import {globalColors} from '../styles'
 
 function UserActions({
   trackerState,
@@ -19,7 +20,15 @@ function UserActions({
       return (
         <ButtonBar style={style}>
           <FollowButton following={true} onUnfollow={onUnfollow} waiting={waiting} />
-          <Button type="Primary" label="Start a Chat" onClick={onChat} style={{marginRight: 0}} />
+          <Button type="Primary" label="Chat" onClick={onChat} style={{marginRight: 0}}>
+            <Icon
+              type="iconfont-chat"
+              style={{
+                marginRight: 8,
+                color: globalColors.white,
+              }}
+            />
+          </Button>
         </ButtonBar>
       )
     } else {
@@ -34,7 +43,15 @@ function UserActions({
     return (
       <ButtonBar style={style}>
         <FollowButton following={false} onFollow={onFollow} waiting={waiting} />
-        <Button type="Primary" label="Start a Chat" onClick={onChat} style={{marginRight: 0}} />
+        <Button label="Chat" type="Primary" onClick={onChat} style={{marginRight: 0}}>
+          <Icon
+            type="iconfont-chat"
+            style={{
+              marginRight: 8,
+              color: globalColors.white,
+            }}
+          />
+        </Button>
       </ButtonBar>
     )
   }

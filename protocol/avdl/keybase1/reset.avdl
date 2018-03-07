@@ -21,7 +21,7 @@ protocol Reset {
 
   record ResetPrev {
     @jsonkey("eldest_kid")
-    KID eldestKID;
+    union { null, KID } eldestKID;
     @jsonkey("public_seqno")
     Seqno eldestSeqno;
     SHA512 reset;

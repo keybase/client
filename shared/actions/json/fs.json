@@ -21,7 +21,7 @@
     "downloadStarted": {
       "key": "string",
       "path": "Types.Path",
-      "localPath": "string"
+      "localPath": "Types.LocalPath"
     },
     "downloadFinished": {
       "key": "string",
@@ -30,6 +30,12 @@
     "fileTransferProgress": {
       "key": "string",
       "completePortion": "number"
+    },
+    "dismissTransfer": {
+      "key": "string"
+    },
+    "openInFileUI": {
+      "path?": "string"
     }
   }
 }

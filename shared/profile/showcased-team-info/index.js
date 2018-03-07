@@ -101,8 +101,8 @@ const TeamInfo = (props: Props) => (
 const styleDescription = {
   ...globalStyles.flexBoxRow,
   marginBottom: globalMargins.tiny,
-  marginLeft: globalMargins.tiny,
-  marginRight: globalMargins.tiny,
+  marginLeft: globalMargins.small,
+  marginRight: globalMargins.small,
   marginTop: globalMargins.tiny,
   textAlign: 'center',
 }

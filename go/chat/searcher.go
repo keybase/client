@@ -50,6 +50,7 @@ func (s *Searcher) SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchH
 			return hits, rlimits, err
 		}
 		pagination = thread.Pagination
+		pagination.Num = pageSize
 		pagination.Previous = nil
 		rlimitsp = append(rlimitsp, rl...)
 

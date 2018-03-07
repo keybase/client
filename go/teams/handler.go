@@ -187,51 +187,31 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 
 		if currentRole.IsOrAbove(invite.Role) {
 			if team.IsImplicit() {
-				g.Log.CDebugf(ctx, "This is implicit team SBS resolution, mooting invite.")
+				g.Log.CDebugf(ctx, "This is implicit team SBS resolution, mooting invite %s", invite.Id)
 				req := keybase1.TeamChangeReq{}
 				req.CompletedInvites = make(SCMapInviteIDToUV)
 				req.CompletedInvites[invite.Id] = uv.PercentForm()
 				return team.ChangeMembership(ctx, req)
 			}
 
-			g.Log.CDebugf(ctx, "User already has same or higher role, canceling invite.")
+			g.Log.CDebugf(ctx, "User already has same or higher role, canceling invite %s", invite.Id)
 			return removeInviteID(ctx, team, invite.Id)
 		}
 
-		req, err := reqFromRole(uv, invite.Role)
-		if err != nil {
-			g.Log.CDebugf(ctx, "Failed to compute reqForRole for %+v, role=%s", uv, invite.Role)
+		tx := CreateAddMemberTx(team)
+		if err := tx.AddMemberBySBS(ctx, verifiedInvitee, invite.Role); err != nil {
 			return err
 		}
-		req.CompletedInvites = make(SCMapInviteIDToUV)
-		req.CompletedInvites[invite.Id] = uv.PercentForm()
-
-		// Check to see if the user is already in the team with a lower eldest seqno, if so, we need
-		// to remove that entry
-		existingUV, err := team.UserVersionByUID(ctx, verifiedInvitee.Uid)
-		if err == nil {
-			if existingUV.EldestSeqno > verifiedInvitee.EldestSeqno {
-				return fmt.Errorf("newer version of user %s already exists in team %q (%v > %v)",
-					verifiedInvitee.Uid, team.Name(), existingUV.EldestSeqno,
-					verifiedInvitee.EldestSeqno)
-			} else if existingUV.EldestSeqno < verifiedInvitee.EldestSeqno {
-				g.Log.CDebugf(ctx, "removing old version of user: %s (%v -> %v)", verifiedInvitee.Uid,
-					existingUV.EldestSeqno, verifiedInvitee.EldestSeqno)
-				req.None = []keybase1.UserVersion{existingUV}
-			}
-			// If EldestSeqnos are equal - it means it's an SBS promotion.
-		}
-
-		g.Log.CDebugf(ctx, "checks passed, proceeding with team.ChangeMembership, req = %+v", req)
-
-		if err = team.ChangeMembership(ctx, req); err != nil {
+		if err := tx.Post(ctx); err != nil {
 			return err
 		}
 
 		// Send chat welcome message
-		g.Log.CDebugf(ctx, "sending welcome message for successful SBS handle")
-		SendChatInviteWelcomeMessage(ctx, g, team.Name().String(), category, invite.Inviter.Uid,
-			verifiedInvitee.Uid)
+		if !team.IsImplicit() {
+			g.Log.CDebugf(ctx, "sending welcome message for successful SBS handle")
+			SendChatInviteWelcomeMessage(ctx, g, team.Name().String(), category, invite.Inviter.Uid,
+				verifiedInvitee.Uid)
+		}
 
 		return nil
 	})
@@ -282,13 +262,14 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 			return fmt.Errorf("unexpected role to add to open team: %v", joinAsRole)
 		}
 
-		var uvs []keybase1.UserVersion
+		tx := CreateAddMemberTx(team)
 		for _, tar := range msg.Tars {
-			uvs = append(uvs, NewUserVersion(tar.Uid, tar.EldestSeqno))
+			uv := NewUserVersion(tar.Uid, tar.EldestSeqno)
+			err := tx.AddMemberByUV(ctx, uv, joinAsRole)
+			g.Log.CDebugf(ctx, "Open team request: adding %v, returned err: %v", uv, err)
 		}
 
-		// No need to forceRepoll here because we just loaded the team few lines above.
-		return AddMembersBestEffort(ctx, g, msg.TeamID, joinAsRole, uvs, false /* forceRepoll */)
+		return tx.Post(ctx)
 	})
 }
 
