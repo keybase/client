@@ -91,6 +91,7 @@ export {default as Markdown} from './markdown'
 export {MaybePopup, MaybePopupHoc}
 export {default as MultiAvatar} from './multi-avatar.js'
 export {default as Meta} from './meta'
+export {default as NameWithIcon} from './name-with-icon'
 export {default as PlatformIcon} from './platform-icon'
 export {default as PopupDialog} from './popup-dialog'
 export {default as PopupMenu} from './popup-menu'
