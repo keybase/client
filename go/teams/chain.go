@@ -1424,13 +1424,8 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		return res, nil
 	case libkb.LinkTypeInvite:
 		err = enforce(LinkRules{
-			Admin:   TristateOptional,
-			Invites: TristateRequire,
-			// TODO: CompletedInvites was historically optional but it is also not processed.
-			// We should ban or process it. In order to do this without breaking any teams
-			// we should make sure that no teams have CompletedInvites in an Invite link before
-			// making a change.
-			CompletedInvites:    TristateOptional,
+			Admin:               TristateOptional,
+			Invites:             TristateRequire,
 			AllowInImplicitTeam: true,
 		})
 		if err != nil {
