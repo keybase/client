@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import Avatar from './avatar'
+import Avatar, {type AvatarSize} from './avatar'
 import Box from './box'
 import ClickableBox from './clickable-box'
 import Icon from './icon'
@@ -13,6 +13,7 @@ type Size = 'small' | 'default' | 'large'
 
 // Exposed style props for the top-level container and box around metadata arbitrarily
 type Props = {
+  avatarSize?: AvatarSize,
   following?: boolean,
   followsMe?: boolean,
   horizontal?: boolean,
@@ -41,7 +42,7 @@ const NameWithIconVertical = (props: Props) => {
     >
       {isAvatar && (
         <Avatar
-          size={adapterProps.iconSize}
+          size={props.avatarSize || adapterProps.iconSize}
           following={props.following}
           followsYou={props.followsMe}
           username={props.username}
@@ -96,7 +97,7 @@ const NameWithIconHorizontal = (props: Props) => {
     >
       {isAvatar && (
         <Avatar
-          size={commonHeight}
+          size={props.avatarSize || commonHeight}
           username={props.username}
           teamname={props.teamname}
           style={{marginRight: 16}}
