@@ -13,11 +13,11 @@ export type FooterProps = {
 }
 
 const Footer = (props: FooterProps) =>
-  props.downloads.length ? (
+  !!props.downloads.length && (
     <Box style={stylesBox}>
       {props.downloads.map(download => <Download {...download} key={download.key} />)}
     </Box>
-  ) : null
+  )
 
 const stylesBox = {
   ...globalStyles.flexBoxRow,

@@ -6,6 +6,7 @@ import {Box, List} from '../common-adapters'
 import FolderHeader from './header/header-container'
 import SortBar from './sortbar/container'
 import {Row, Placeholder} from './row'
+import Footer from './footer/container'
 
 type FolderProps = {
   items: Array<Types.Path>,
