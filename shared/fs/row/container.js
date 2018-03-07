@@ -1,9 +1,10 @@
 // @flow
-import * as Types from '../constants/types/fs'
-import * as Constants from '../constants/fs'
-import * as FSGen from '../actions/fs-gen'
-import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../util/container'
-import {navigateAppend} from '../actions/route-tree'
+import * as Types from '../../constants/types/fs'
+import * as Constants from '../../constants/fs'
+import * as FSGen from '../../actions/fs-gen'
+import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../util/container'
+import {navigateAppend} from '../../actions/route-tree'
+import {Row} from './row'
 
 type OwnProps = {
   path: Types.Path,
@@ -43,4 +44,4 @@ const mergeProps = ({_username, type, path}, {_onOpen, _openInFileUI}: DispatchP
   }
 }
 
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('FileRow'))
+export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('Row'))(Row)
