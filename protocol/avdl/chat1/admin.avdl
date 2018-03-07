@@ -1,0 +1,16 @@
+@namespace("chat.1")
+protocol admin {
+
+  import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
+
+  // Blocking users from sending messages to anyone
+  record SendBlock {
+    gregor1.UID uid;
+    gregor1.UID admin;
+    string reason;
+    gregor1.Time ctime;
+  }
+  void blockSendUser(gregor1.UID uid, gregor1.UID admin, string reason);
+  union { null, SendBlock } isUserSendBlocked(gregor1.UID uid);
+
+}
