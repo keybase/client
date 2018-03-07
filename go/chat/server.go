@@ -24,7 +24,6 @@ import (
 	"encoding/hex"
 
 	"github.com/keybase/client/go/chat/globals"
-	"github.com/keybase/client/go/chat/pager"
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
@@ -440,7 +439,7 @@ func (h *Server) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg
 
 	// Xlate pager control into pagination if given
 	if arg.Query != nil && arg.Query.MessageIDControl != nil {
-		arg.Pagination = pager.XlateMessageIDControlToPagination(arg.Query.MessageIDControl)
+		arg.Pagination = utils.XlateMessageIDControlToPagination(arg.Query.MessageIDControl)
 	}
 
 	// Get messages from the source
@@ -519,7 +518,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 
 	// Xlate pager control into pagination if given
 	if arg.Query != nil && arg.Query.MessageIDControl != nil {
-		pagination = pager.XlateMessageIDControlToPagination(arg.Query.MessageIDControl)
+		pagination = utils.XlateMessageIDControlToPagination(arg.Query.MessageIDControl)
 	}
 
 	// Grab local copy first
