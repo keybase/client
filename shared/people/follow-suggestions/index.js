@@ -1,7 +1,15 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/people'
-import {Avatar, Box, ClickableBox, ScrollView, Text, ConnectedUsernames} from '../../common-adapters'
+import {
+  Avatar,
+  Box,
+  ClickableBox,
+  NameWithIcon,
+  ScrollView,
+  Text,
+  ConnectedUsernames,
+} from '../../common-adapters'
 import {globalStyles, globalMargins} from '../../styles'
 import {isMobile} from '../../constants/platform'
 
@@ -21,27 +29,37 @@ export type Props = {
 }
 
 const Suggestion = (props: Types._FollowSuggestion & {onClickUser: () => void}) => (
-  <ClickableBox style={suggestionContainerStyle} onClick={props.onClickUser}>
-    <Avatar
-      username={props.username}
-      size={64}
-      followsYou={props.followsMe}
-      following={props.iFollow}
-      style={{marginBottom: globalMargins.xtiny}}
-    />
-    <ConnectedUsernames
-      {...connectedUsernamesProps}
-      {...connectedUsernamesStyles}
-      usernames={[props.username]}
-      onUsernameClicked={props.onClickUser}
-      inline={true}
-    />
-    {!!props.fullName && (
-      <Text type="BodySmall" lineClamp={1} style={{paddingLeft: 2, paddingRight: 2}}>
-        {props.fullName}
-      </Text>
-    )}
-  </ClickableBox>
+  <NameWithIcon
+    username={props.username}
+    metaOne={props.fullName}
+    onClick={props.onClickUser}
+    followsMe={props.followsMe}
+    following={props.iFollow}
+    colorFollowing={true}
+    size="small"
+    containerStyle={suggestionContainerStyle}
+  />
+  //  <ClickableBox style={suggestionContainerStyle} onClick={props.onClickUser}>
+  //    <Avatar
+  //      username={props.username}
+  //      size={64}
+  //      followsYou={props.followsMe}
+  //      following={props.iFollow}
+  //      style={{marginBottom: globalMargins.xtiny}}
+  //    />
+  //    <ConnectedUsernames
+  //      {...connectedUsernamesProps}
+  //      {...connectedUsernamesStyles}
+  //      usernames={[props.username]}
+  //      onUsernameClicked={props.onClickUser}
+  //      inline={true}
+  //    />
+  //    {!!props.fullName && (
+  //      <Text type="BodySmall" lineClamp={1} style={{paddingLeft: 2, paddingRight: 2}}>
+  //        {props.fullName}
+  //      </Text>
+  //    )}
+  //  </ClickableBox>
 )
 
 export default (props: Props) => (
