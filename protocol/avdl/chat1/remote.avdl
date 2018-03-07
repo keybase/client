@@ -282,4 +282,5 @@ protocol remote {
   SweepRes retentionSweepConv(ConversationID convID);
 
   void upgradeKBFSToImpteam(TLFID tlfID);
+
 }

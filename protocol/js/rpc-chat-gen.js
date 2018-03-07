@@ -7,6 +7,14 @@ import * as Keybase1 from './rpc-gen'
 import engine, {EngineChannel} from '../../engine'
 import type {Boolean, Bool, Bytes, Double, Int, Int64, Long, String, Uint, Uint64, WaitingHandlerType, RPCErrorHandler, CommonResponseHandler, RPCError} from '../../engine/types'
 
+export const adminBlockSendUserRpcChannelMap = (configKeys: Array<string>, request: AdminBlockSendUserRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.admin.blockSendUser', request)
+
+export const adminBlockSendUserRpcPromise = (request: AdminBlockSendUserRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.admin.blockSendUser', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+
+export const adminIsUserSendBlockedRpcChannelMap = (configKeys: Array<string>, request: AdminIsUserSendBlockedRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.admin.isUserSendBlocked', request)
+
+export const adminIsUserSendBlockedRpcPromise = (request: AdminIsUserSendBlockedRpcParam): Promise<AdminIsUserSendBlockedResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.admin.isUserSendBlocked', request, (error: RPCError, result: AdminIsUserSendBlockedResult) => (error ? reject(error) : resolve(result))))
+
 export const chatUiMessageUnboxedState = {
   valid: 1,
   error: 2,
@@ -559,6 +567,10 @@ export const remoteUpdateTypingRemoteRpcPromise = (request: RemoteUpdateTypingRe
 export const remoteUpgradeKBFSToImpteamRpcChannelMap = (configKeys: Array<string>, request: RemoteUpgradeKBFSToImpteamRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.upgradeKBFSToImpteam', request)
 
 export const remoteUpgradeKBFSToImpteamRpcPromise = (request: RemoteUpgradeKBFSToImpteamRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.upgradeKBFSToImpteam', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+
+export type AdminBlockSendUserRpcParam = $ReadOnly<{uid: Gregor1.UID, admin: Gregor1.UID, reason: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
+export type AdminIsUserSendBlockedRpcParam = $ReadOnly<{uid: Gregor1.UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type AppNotificationSettingLocal = $ReadOnly<{deviceType: Keybase1.DeviceType, kind: NotificationKind, enabled: Boolean}>
 
@@ -1245,6 +1257,8 @@ export type S3Params = $ReadOnly<{bucket: String, objectKey: String, accessKey: 
 
 export type SealedData = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
 
+export type SendBlock = $ReadOnly<{uid: Gregor1.UID, admin: Gregor1.UID, reason: String, ctime: Gregor1.Time}>
+
 export type ServerCacheVers = $ReadOnly<{inboxVers: Int, bodiesVers: Int}>
 
 export type SetAppNotificationSettingsInfo = $ReadOnly<{convID: ConversationID, settings: ConversationNotificationInfo}>
@@ -1363,6 +1377,7 @@ export type UnverifiedInboxUIItemMetadata = $ReadOnly<{channelName: String, head
 export type UnverifiedInboxUIItems = $ReadOnly<{items?: ?Array<UnverifiedInboxUIItem>, pagination?: ?UIPagination, offline: Boolean}>
 
 export type UpdateConversationMembership = $ReadOnly<{inboxVers: InboxVers, joined?: ?Array<ConversationMember>, removed?: ?Array<ConversationMember>, reset?: ?Array<ConversationMember>, previewed?: ?Array<ConversationID>, unreadUpdate?: ?UnreadUpdate, unreadUpdates?: ?Array<UnreadUpdate>}>
+type AdminIsUserSendBlockedResult = ?SendBlock
 type ChatUiChatConfirmChannelDeleteResult = Boolean
 type LocalDeleteConversationLocalResult = DeleteConversationLocalRes
 type LocalDownloadAttachmentLocalResult = DownloadAttachmentLocalRes

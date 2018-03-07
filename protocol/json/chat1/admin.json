@@ -1,0 +1,66 @@
+{
+  "protocol": "admin",
+  "imports": [
+    {
+      "path": "github.com/keybase/client/go/protocol/gregor1",
+      "type": "idl",
+      "import_as": "gregor1"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "SendBlock",
+      "fields": [
+        {
+          "type": "gregor1.UID",
+          "name": "uid"
+        },
+        {
+          "type": "gregor1.UID",
+          "name": "admin"
+        },
+        {
+          "type": "string",
+          "name": "reason"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "ctime"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "blockSendUser": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "gregor1.UID"
+        },
+        {
+          "name": "admin",
+          "type": "gregor1.UID"
+        },
+        {
+          "name": "reason",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "isUserSendBlocked": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "gregor1.UID"
+        }
+      ],
+      "response": [
+        null,
+        "SendBlock"
+      ]
+    }
+  },
+  "namespace": "chat.1"
+}
