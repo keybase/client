@@ -94,30 +94,23 @@ func (s *baseConversationSource) TransformSupersedes(ctx context.Context, conv c
 // patchPaginationLast turns on page.Last if the messages are before InboxSource's view of Expunge.
 func (s *baseConversationSource) patchPaginationLast(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	page *chat1.Pagination, msgs []chat1.MessageUnboxed) {
-	if page == nil {
+	if page == nil || page.Last {
 		return
-	}
-	if page.Last {
-		return
-	}
-	ib, _, err := s.G().InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
-		ConvIDs: []chat1.ConversationID{convID},
-	}, nil)
-	if err != nil {
-		s.Debug(ctx, "patchPaginationLast: failed read: %v", err)
-		return
-	}
-	if len(ib.Convs) != 1 {
-		s.Debug(ctx, "patchPaginationLast: failed count: %v", len(ib.Convs))
 	}
 	if len(msgs) == 0 {
 		s.Debug(ctx, "patchPaginationLast: true - no msgs")
 		page.Last = true
 		return
 	}
+
+	conv, _, err := GetUnverifiedConv(ctx, s.G(), uid, convID, true)
+	if err != nil {
+		s.Debug(ctx, "patchPaginationLast: failed read: %v", err)
+		return
+	}
 	end1 := msgs[0].GetMessageID()
 	end2 := msgs[len(msgs)-1].GetMessageID()
-	if utils.MinMsgID(0, []chat1.MessageID{end1, end2}) <= ib.Convs[0].Expunge.Upto {
+	if utils.MinMsgID(0, []chat1.MessageID{end1, end2}) <= conv.Expunge.Upto {
 		s.Debug(ctx, "patchPaginationLast: true - hit upto")
 		// If any message is prior to the nukepoint, say this is the last page.
 		page.Last = true
