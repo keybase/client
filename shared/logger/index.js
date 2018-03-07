@@ -13,6 +13,7 @@ import ConsoleLogger from './console-logger'
 import TeeLogger from './tee-logger'
 import RingLogger from './ring-logger'
 import NativeLogger from './native-logger'
+import NullLogger from './null-logger'
 import DumpPeriodicallyLogger from './dump-periodically-logger'
 import {writeLogLinesToFile} from '../util/forward-logs'
 import {stat, unlink} from '../util/file'
@@ -122,7 +123,7 @@ const prodLoggers = () => ({
   action: isMobile
     ? new RingLogger(200)
     : new DumpPeriodicallyLogger(new RingLogger(200), 10 * 60e3, writeLogLinesToFile, 'Action'),
-  debug: new RingLogger(500),
+  debug: new NullLogger(),
   error: isMobile
     ? new NativeLogger()
     : new DumpPeriodicallyLogger(new RingLogger(10000), 1 * 60e3, writeLogLinesToFile, 'Error'),
