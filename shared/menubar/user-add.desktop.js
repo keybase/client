@@ -1,6 +1,5 @@
 // @flow
 import React, {Component} from 'react'
-import type {IconType} from '../common-adapters/icon'
 import {Box, Button, Input, Icon} from '../common-adapters'
 import {globalColors, globalStyles} from '../styles'
 import {defaultKBFSPath} from '../constants/config'
@@ -36,8 +35,6 @@ const UserButton = ({isPublic, onClick}: {isPublic: boolean, onClick: () => void
 )
 
 const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username, text}) => {
-  const icon: IconType = isPublic ? 'icon-folder-public-open-32' : 'icon-folder-private-open-32'
-
   return (
     <Box
       style={{
@@ -48,7 +45,7 @@ const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username, text})
       <Input
         small={true}
         smallLabel={isPublic || !username ? '' : `${username},`}
-        smallLabelStyle={{marginRight: 0}}
+        smallLabelStyle={{marginRight: 0, color: globalColors.darkBlue, fontStyle: 'italic'}}
         hideUnderline={true}
         autoFocus={true}
         hintText={isPublic ? 'user or user1,user2,user3' : 'user1,user2,user3,...'}
@@ -63,7 +60,14 @@ const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username, text})
           }
         }}
       />
-      <Icon type={icon} onClick={onSubmit} style={globalStyles.clickable} />
+      <Icon
+        type={'iconfont-folder-open'}
+        onClick={onSubmit}
+        style={{
+          ...globalStyles.clickable,
+          color: isPublic ? globalColors.yellowGreen : globalColors.darkBlue2,
+        }}
+      />
     </Box>
   )
 }
