@@ -67,7 +67,7 @@ const TeamMenu = ({items, onHidden}: {items: MenuItem[], onHidden: () => void}) 
   ) : (
     <ModalLessPopupMenu
       onHidden={() => {}}
-      style={{position: 'absolute', right: globalMargins.tiny, top: 36, overflow: 'visible'}}
+      style={{overflow: 'visible'}}
       // $FlowIssue items is compatible
       items={items}
     />
