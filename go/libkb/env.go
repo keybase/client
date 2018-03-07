@@ -6,6 +6,7 @@ package libkb
 import (
 	"fmt"
 	"os"
+	"os/user"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -223,19 +224,6 @@ func (e *Env) GetUpdaterConfig() UpdaterConfigReader {
 }
 
 func (e *Env) GetMountDir() (string, error) {
-	var darwinMountsubdir string
-	runMode := e.GetRunMode()
-	switch runMode {
-	case DevelRunMode:
-		darwinMountsubdir = "keybase.devel"
-	case StagingRunMode:
-		darwinMountsubdir = "keybase.staging"
-	case ProductionRunMode:
-		darwinMountsubdir = "keybase"
-	default:
-		return "", fmt.Errorf("Invalid run mode: %s", runMode)
-	}
-
 	return e.GetString(
 		func() string { return e.cmd.GetMountDir() },
 		func() string { return os.Getenv("KEYBASE_MOUNTDIR") },
@@ -243,12 +231,28 @@ func (e *Env) GetMountDir() (string, error) {
 		func() string {
 			switch runtime.GOOS {
 			case "darwin":
-				return filepath.Join(
-					string(filepath.Separator), darwinMountsubdir)
+				volumes := "/Volumes"
+				user, err := user.Current()
+				if err != nil {
+					panic(fmt.Sprintf("Couldn't get current user: %+v", err))
+				}
+				var runmodeName string
+				switch e.GetRunMode() {
+				case DevelRunMode:
+					runmodeName = "KeybaseDevel"
+				case StagingRunMode:
+					runmodeName = "KeybaseStaging"
+				case ProductionRunMode:
+					runmodeName = "Keybase"
+				default:
+					panic("Invalid run mode")
+				}
+				return filepath.Join(volumes, fmt.Sprintf(
+					"%s's %s", user.Username, runmodeName))
 			case "linux":
-				return filepath.Join(e.GetDataDir(), "fs")
+				return filepath.Join(e.GetRuntimeDir(), "kbfs")
 			default:
-				return ""
+				return filepath.Join(e.GetRuntimeDir(), "kbfs")
 			}
 		},
 	), nil

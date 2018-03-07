@@ -134,7 +134,9 @@ func mainInner(g *libkb.GlobalContext) error {
 		return nil
 	}
 
-	checkSystemUser(g.Log)
+	if !cmd.GetUsage().AllowRoot {
+		checkSystemUser(g.Log)
+	}
 
 	if cl.IsService() {
 		startProfile(g)
