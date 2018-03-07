@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
-import * as Types from '../constants/types/fs'
-import {globalMargins} from '../styles'
-import {Avatar, Icon} from '../common-adapters'
+import * as Types from '../../constants/types/fs'
+import {globalMargins} from '../../styles'
+import {Avatar, Icon} from '../../common-adapters'
 import memoize from 'lodash/memoize'
 
 type PathItemIconProps = {
