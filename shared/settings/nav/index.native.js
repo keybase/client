@@ -22,7 +22,7 @@ export function SettingsItem({
   return (
     <ClickableBox onClick={onClick} style={itemStyle}>
       <Box style={{...globalStyles.flexBoxRow}}>
-        <Text type={'BodySmallSemibold'} style={itemTextStyle}>
+        <Text type="BodySmallSemibold" style={itemTextStyle}>
           {text.toUpperCase()}
         </Text>
         {!!badgeNumber && badgeNumber > 0 && <Badge badgeStyle={badgeStyle} badgeNumber={badgeNumber} />}

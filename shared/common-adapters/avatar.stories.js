@@ -28,7 +28,7 @@ const load = () => {
             <Avatar {...commonProps} following={true} />
             <Avatar {...commonProps} followsYou={true} />
             <Avatar {...commonProps} following={true} followsYou={true} />
-            <Avatar {...commonProps} username={undefined} teamname={'keybase'} />
+            <Avatar {...commonProps} username={undefined} teamname="keybase" />
           </Box>
         </Box>
       )

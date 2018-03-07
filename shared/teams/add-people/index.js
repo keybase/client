@@ -105,7 +105,7 @@ const AddPeople = (props: Props) => (
           autoFocus={true}
           onExitSearch={props.onClose}
           placeholder="Add people"
-          searchKey={'addToTeamSearch'}
+          searchKey="addToTeamSearch"
         />
       </Box>
       <Box style={{...globalStyles.scrollable, flex: 1}}>
@@ -113,7 +113,7 @@ const AddPeople = (props: Props) => (
           <ProgressIndicator style={{width: 24}} />
         ) : (
           <SearchResultsList
-            searchKey={'addToTeamSearch'}
+            searchKey="addToTeamSearch"
             disableIfInTeamName={props.name}
             style={isMobile ? {position: 'absolute', top: 0, bottom: 0, right: 0, left: 0} : {height: 500}}
             keyboardDismissMode="on-drag"

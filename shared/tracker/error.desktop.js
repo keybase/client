@@ -12,7 +12,7 @@ function TrackerError({errorMessage, onRetry, onClose}: Props) {
       <Header
         reason="Error in getting identity information :'("
         onClose={onClose}
-        trackerState={'error'}
+        trackerState="error"
         currentlyFollowing={false}
         headerStyle={{position: undefined}}
         loggedIn={false}

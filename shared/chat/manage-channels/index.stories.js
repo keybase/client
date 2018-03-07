@@ -99,9 +99,9 @@ const load = () => {
       <Box style={toPlatformStyle(editChannelStyle)}>
         <EditChannel
           onBack={action('onBack')}
-          teamname={'stripe.usa'}
-          channelName={'takeover'}
-          topic={''}
+          teamname="stripe.usa"
+          channelName="takeover"
+          topic=""
           onCancel={action('onCancel')}
           onSave={action('onSave')}
           onConfirmedDelete={action('onConfirmedDelete')}
@@ -115,9 +115,9 @@ const load = () => {
       <Box style={toPlatformStyle(editChannelStyle)}>
         <EditChannel
           onBack={action('onBack')}
-          teamname={'stripe.usa'}
-          channelName={'general'}
-          topic={''}
+          teamname="stripe.usa"
+          channelName="general"
+          topic=""
           onCancel={action('onCancel')}
           onSave={action('onSave')}
           onConfirmedDelete={action('onConfirmedDelete')}

@@ -141,7 +141,7 @@ function ProgressBar({text, progress, style}: ProgressBarProps) {
 
   return (
     <Box style={containerStyle}>
-      <Text type={'BodySmall'} style={{marginRight: globalMargins.xtiny}}>
+      <Text type="BodySmall" style={{marginRight: globalMargins.xtiny}}>
         {text}
       </Text>
       <Box

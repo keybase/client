@@ -69,7 +69,7 @@ class PrivateEnterUsernameRender extends Component<Props, State> {
         </Text>
         <PlatformIcon
           platform={this.props.platform}
-          overlay={'icon-proof-unfinished'}
+          overlay="icon-proof-unfinished"
           overlayColor={globalColors.grey}
         />
         <Input

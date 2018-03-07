@@ -18,7 +18,7 @@ const SearchHeader = props => (
       <Box style={{flex: 1, minHeight: 48}}>
         <UserInput
           autoFocus={true}
-          searchKey={'chatSearch'}
+          searchKey="chatSearch"
           placeholder={props.placeholder}
           onExitSearch={props.onExitSearch}
         />
@@ -29,7 +29,7 @@ const SearchHeader = props => (
     ) : (
       <SearchResultsList
         style={{flex: 1}}
-        searchKey={'chatSearch'}
+        searchKey="chatSearch"
         onShowTracker={props.onShowTrackerInSearch}
       />
     )}

@@ -92,7 +92,7 @@ export const Notifications = ({
         style={{marginTop: globalMargins.xtiny}}
         onSelect={() => onSetDesktop('generic')}
         selected={desktop === 'generic'}
-        label={'On any activity'}
+        label="On any activity"
       />
     </Box>
     <Box style={styleRadioButton}>
@@ -100,7 +100,7 @@ export const Notifications = ({
         style={{marginTop: globalMargins.xtiny}}
         onSelect={() => onSetDesktop('atmention')}
         selected={desktop === 'atmention'}
-        label={'Only when @mentioned'}
+        label="Only when @mentioned"
       />
     </Box>
     <Box style={styleRadioButton}>
@@ -108,7 +108,7 @@ export const Notifications = ({
         style={{marginTop: globalMargins.xtiny}}
         onSelect={() => onSetDesktop('never')}
         selected={desktop === 'never'}
-        label={'Never'}
+        label="Never"
       />
     </Box>
 
@@ -125,7 +125,7 @@ export const Notifications = ({
         style={{marginTop: globalMargins.xtiny}}
         onSelect={() => onSetMobile('generic')}
         selected={mobile === 'generic'}
-        label={'On any activity'}
+        label="On any activity"
       />
     </Box>
     <Box style={styleRadioButton}>
@@ -133,7 +133,7 @@ export const Notifications = ({
         style={{marginTop: globalMargins.xtiny}}
         onSelect={() => onSetMobile('atmention')}
         selected={mobile === 'atmention'}
-        label={'Only when @mentioned'}
+        label="Only when @mentioned"
       />
     </Box>
     <Box style={styleRadioButton}>
@@ -141,7 +141,7 @@ export const Notifications = ({
         style={{marginTop: globalMargins.xtiny}}
         onSelect={() => onSetMobile('never')}
         selected={mobile === 'never'}
-        label={'Never'}
+        label="Never"
       />
     </Box>
     <Box style={styleSaveState}>{SaveStateComponents(saveState)}</Box>

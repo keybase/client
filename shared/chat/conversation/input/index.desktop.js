@@ -159,7 +159,7 @@ class ConversationInput extends Component<InputProps> {
             multiple={true}
           />
           <Input
-            className={'mousetrap' /* className needed so key handler doesn't ignore hotkeys */}
+            className="mousetrap" /* className needed so key handler doesn't ignore hotkeys */
             autoFocus={false}
             small={true}
             style={styleInput}
@@ -262,7 +262,7 @@ const EmojiPicker = ({emojiPickerToggle, onClick}) => (
     <Box style={{bottom: 0, left: 0, position: 'absolute', right: 0, top: 0}} onClick={emojiPickerToggle} />
     <Box style={{position: 'relative'}}>
       <Box style={{bottom: 0, position: 'absolute', right: 0}}>
-        <Picker onClick={onClick} emoji={'ghost'} title={'emojibase'} backgroundImageFn={backgroundImageFn} />
+        <Picker onClick={onClick} emoji="ghost" title="emojibase" backgroundImageFn={backgroundImageFn} />
       </Box>
     </Box>
   </Box>

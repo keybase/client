@@ -29,7 +29,7 @@ class ProvePgpImport extends Component<Props> {
           style={styleCancelButton}
           type="Secondary"
           onClick={() => this.props.onCancel()}
-          label={'Close'}
+          label="Close"
         />
       </StandardScreen>
     )

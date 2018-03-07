@@ -36,7 +36,7 @@ const Conversation = (props: Props) => {
 
   let list
   if (props.showSearchResults) {
-    list = <SearchResultsList searchKey={'chatSearch'} onShowTracker={props.onShowTrackerInSearch} />
+    list = <SearchResultsList searchKey="chatSearch" onShowTracker={props.onShowTrackerInSearch} />
   } else if (props.youAreReset) {
     list = <YouAreReset />
   } else {
