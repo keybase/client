@@ -313,7 +313,7 @@
     "debugDump": {
       "conversationIDKey?": "?Types.ConversationIDKey",
     },
-    // Block a user
+    // Block a conversation
     "blockConversation": {
       "conversationIDKey": "Types.ConversationIDKey",
       "reportUser": "boolean"

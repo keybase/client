@@ -7,7 +7,7 @@ import * as Types from '../types/chat2'
 import type {_ConversationMeta} from '../types/chat2/meta'
 import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalColors} from '../../styles'
-import {isMobile, isIOS, isAndroid} from '../platform'
+import {isIOS, isAndroid} from '../platform'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {toByteArray} from 'base64-js'
 
@@ -43,7 +43,7 @@ export const unverifiedInboxUIItemToConversationMeta = (
     return null
   }
 
-  // We only treat implied adhoc teams as having resetParticipants
+  // We only treat implicit adhoc teams as having resetParticipants
   const resetParticipants = I.Set(
     i.localMetadata &&
     (i.membersType === RPCChatTypes.commonConversationMembersType.impteamnative ||
