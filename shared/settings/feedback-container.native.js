@@ -118,17 +118,17 @@ const extraChatLogs = (state: TypedState) => {
       badgeMap: chat.badgeMap.get(c),
       editingMap: chat.editingMap.get(c),
       loadingMap: chat.loadingMap,
-      messageMap: chat.messageMap.get(c).map(m => ({
+      messageMap: chat.messageMap.get(c, I.Map()).map(m => ({
         a: m.author,
         i: m.id,
         o: m.ordinal,
-        out: m.outboxID,
-        s: m.submitState,
+        out: (m.type === 'text' || m.type === 'attachment') && m.outboxID,
+        s: (m.type === 'text' || m.type === 'attachment') && m.submitState,
         t: m.type,
       })),
       messageOrdinals: chat.messageOrdinals.get(c),
       metaMap: {
-        ...chat.metaMap.get(c).toJS(),
+        ...chat.metaMap.get(c, I.Map()).toJS(),
         channelname: 'X',
         snippet: 'X',
       },

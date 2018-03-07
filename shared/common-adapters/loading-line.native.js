@@ -41,7 +41,7 @@ class LoadingLine extends Component<Props, {fadeAnim: any}> {
   render() {
     return (
       <Box style={styles.container}>
-        <NativeAnimated.View style={[styles.line, this.props.styles, {opacity: this.state.fadeAnim}]} />
+        <NativeAnimated.View style={[styles.line, this.props.style, {opacity: this.state.fadeAnim}]} />
       </Box>
     )
   }
