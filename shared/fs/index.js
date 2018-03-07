@@ -6,12 +6,12 @@ import {Box, List} from '../common-adapters'
 import FolderHeader from './header/header-container'
 import SortBar from './sortbar/container'
 import {Row, Placeholder} from './row'
+import Footer from './footer/container'
 
 type FolderProps = {
   items: Array<Types.Path>,
   path: Types.Path,
   progress: 'pending' | 'loaded',
-  sortSetting: Types._SortSetting,
 }
 
 class Files extends React.PureComponent<FolderProps> {
@@ -31,6 +31,7 @@ class Files extends React.PureComponent<FolderProps> {
           <FolderHeader path={this.props.path} />
           <SortBar path={this.props.path} />
           {list}
+          <Footer />
         </Box>
       </Box>
     )

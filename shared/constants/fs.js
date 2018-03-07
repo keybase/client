@@ -51,6 +51,7 @@ export const makeTransferState: I.RecordFactory<Types._TransferState> = I.Record
   completePortion: 0,
   error: undefined,
   isDone: false,
+  startedAt: 0,
 })
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
