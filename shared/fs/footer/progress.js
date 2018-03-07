@@ -26,16 +26,16 @@ const stylesOuter = {
 }
 
 const stylesTubeBox = {
-  paddingTop: 2,
   marginRight: globalMargins.xtiny,
+  paddingTop: 2,
 }
 
 const stylesTube = {
-  height: 4,
-  width: 40,
-  borderRadius: 4.5,
   backgroundColor: globalColors.black_20,
+  borderRadius: 4.5,
+  height: 4,
   marginTop: 3,
+  width: 40,
 }
 
 const stylesTubeStuffing = {
@@ -46,8 +46,8 @@ const stylesTubeStuffing = {
 
 const stylesText = {
   color: globalColors.white,
-  lineHeight: 1.2,
   fontSize: 10,
+  lineHeight: 1.2,
 }
 
 export default Progress

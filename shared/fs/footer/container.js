@@ -24,7 +24,7 @@ const mergeProps = (stateProps, {opener, dismisser}, ownProps) =>
         isDone: transferState.isDone,
         open: () => opener(transferState.localPath),
         dismiss: () => dismisser(key),
-        key: key,
+        key,
       })),
     // TODO: add uploadsk
   }: FooterProps)

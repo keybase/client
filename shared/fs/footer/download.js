@@ -37,14 +37,14 @@ const Download = (props: DownloadProps) => (
 )
 
 const stylesDownload = {
-  width: 140,
-  height: 32,
-  borderRadius: 4,
-  backgroundColor: globalColors.green,
-  marginLeft: globalMargins.xtiny,
   ...globalStyles.flexBoxRow,
-  justifyContent: 'flex-start',
   alignItems: 'center',
+  backgroundColor: globalColors.green,
+  borderRadius: 4,
+  height: 32,
+  justifyContent: 'flex-start',
+  marginLeft: globalMargins.xtiny,
+  width: 140,
 }
 
 const stylesIconBox = {
@@ -56,19 +56,19 @@ const stylesIconBox = {
 }
 
 const stylesIconLeft = {
-  fontSize: 16,
   color: globalColors.black_20,
+  fontSize: 16,
 }
 
 const stylesIconRight = {
-  fontSize: 16,
   color: globalColors.white,
+  fontSize: 16,
 }
 
 const stylesNameAndProgressBox = {
   ...globalStyles.flexGrow,
-  minWidth: 0,
   marginTop: -1,
+  minWidth: 0,
 }
 
 const stylesNameAndProgress = {

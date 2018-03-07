@@ -148,8 +148,8 @@ const stylesRowRightBox = {
 }
 
 const iconPlaceholderIconStyle = {
-  marginRight: globalMargins.small,
   fontSize: 32,
+  marginRight: globalMargins.small,
 }
 
 const rowTextStyles = memoize(color => ({
