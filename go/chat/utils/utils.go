@@ -1090,16 +1090,3 @@ func UsernamePackageToParticipant(p libkb.UsernamePackage) chat1.ConversationLoc
 		Fullname: fullName,
 	}
 }
-
-func MinMsgID(deflt chat1.MessageID, ids []chat1.MessageID) (res chat1.MessageID) {
-	if len(ids) == 0 {
-		return deflt
-	}
-	res = ids[0]
-	for _, id := range ids[1:] {
-		if id < res {
-			res = id
-		}
-	}
-	return res
-}

@@ -110,7 +110,7 @@ func (s *baseConversationSource) patchPaginationLast(ctx context.Context, convID
 	}
 	end1 := msgs[0].GetMessageID()
 	end2 := msgs[len(msgs)-1].GetMessageID()
-	if utils.MinMsgID(0, []chat1.MessageID{end1, end2}) <= conv.Expunge.Upto {
+	if end1.Min(end2) <= conv.Expunge.Upto {
 		s.Debug(ctx, "patchPaginationLast: true - hit upto")
 		// If any message is prior to the nukepoint, say this is the last page.
 		page.Last = true

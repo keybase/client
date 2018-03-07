@@ -98,6 +98,13 @@ func (mid MessageID) String() string {
 	return strconv.FormatUint(uint64(mid), 10)
 }
 
+func (mid MessageID) Min(mid2 MessageID) MessageID {
+	if mid < mid2 {
+		return mid
+	}
+	return mid2
+}
+
 func (t MessageType) String() string {
 	s, ok := MessageTypeRevMap[t]
 	if ok {
