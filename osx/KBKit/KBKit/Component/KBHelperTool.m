@@ -85,7 +85,7 @@
   NSString *infoText = @"";
   if ([bundleVersion isOrderedSame:[KBSemVersion version:@"1.0.31"]]) {
     alertText = @"New Keybase feature: multiple users in macOS";
-    infoText = @"Previously, only one user of this computer could find their Keybase files at /keybase. With this update, /keybase will now support multiple users on the same computer by redirecting to keybase/ in your home directory, where most apps put files.\n\nYou may need to enter your password for this update.";  }
+    infoText = @"Previously, only one user of this computer could find their Keybase files at /keybase. With this update, /keybase will now support multiple users on the same computer by redirecting to user-specific Keybase directories in /Volumes.\n\nYou may need to enter your password for this update.";  }
   NSAlert *alert = [[NSAlert alloc] init];
   [alert setMessageText:alertText];
   [alert setInformativeText:infoText];
