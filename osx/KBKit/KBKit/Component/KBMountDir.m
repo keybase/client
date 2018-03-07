@@ -63,15 +63,14 @@
 }
 
 - (void)createMountDir:(KBCompletion)completion {
-  DDLogDebug(@"Creating mount directory: %@", self.config.mountDir);
-
-  NSError *err = nil;
-  if (![NSFileManager.defaultManager createDirectoryAtPath:self.config.mountDir withIntermediateDirectories:NO attributes:nil error:&err]) {
+  uid_t uid = getuid();
+  gid_t gid = getgid();
+  NSNumber *permissions = [NSNumber numberWithShort:0600];
+  NSDictionary *params = @{@"directory": self.config.mountDir, @"uid": @(uid), @"gid": @(gid), @"permissions": permissions, @"excludeFromBackup": @(YES)};
+  DDLogDebug(@"Creating mount directory: %@", params);
+  [self.helperTool.helper sendRequest:@"createDirectory" params:@[params] completion:^(NSError *err, id value) {
     completion(err);
-    return;
-  }
-
-  completion(nil);
+  }];
 }
 
 - (void)install:(KBCompletion)completion {

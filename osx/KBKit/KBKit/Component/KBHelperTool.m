@@ -85,7 +85,9 @@
   NSString *infoText = @"";
   if ([bundleVersion isOrderedSame:[KBSemVersion version:@"1.0.31"]]) {
     alertText = @"New Keybase feature: multiple users in macOS";
-    infoText = @"Previously, only one user of this computer could find their Keybase files at /keybase. With this update, /keybase will now support multiple users on the same computer by redirecting to keybase/ in your home directory, where most apps put files.\n\nYou may need to enter your password for this update.";  }
+    // Use a division slash instead of a regular / to avoid weird line breaks.
+    infoText = @"Previously, only one user of this computer could find their Keybase files at \u2215keybase. With this update, \u2215keybase will now support multiple users on the same computer by linking to user-specific Keybase directories in \u2215Volumes.\n\nYou may need to enter your password for this update.";
+  }
   NSAlert *alert = [[NSAlert alloc] init];
   [alert setMessageText:alertText];
   [alert setInformativeText:infoText];
