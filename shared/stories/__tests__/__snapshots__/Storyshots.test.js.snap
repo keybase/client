@@ -24243,6 +24243,1202 @@ exports[`Storyshots Common Icon 1`] = `
 </div>
 `;
 
+exports[`Storyshots Common Name with icon 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  bottom: 1px;
+  left: 1px;
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  background-color: #f0f0f0;
+  border-radius: 50%;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  background-size: cover;
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  background-image: -webkit-image-set(url('icons/icon-placeholder-avatar-80.png') 1x, url('icons/icon-placeholder-avatar-80@2x.png') 2x);
+  border-radius: 50%;
+  height: 80px;
+  max-width: 80px;
+  min-width: 80px;
+  opacity: 1;
+}
+
+.glamor-4,
+[data-glamor-4] {
+  font-size: 14px;
+  line-height: 18px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  text-decoration: inherit;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: row;
+  -webkit-box-lines: multiple;
+  -webkit-flex-wrap: wrap;
+}
+
+.glamor-3,
+[data-glamor-3] {
+  font-size: 14px;
+  line-height: 18px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+}
+
+.glamor-2,
+[data-glamor-2] {
+  font-size: 14px;
+  line-height: 18px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-decoration: inherit;
+  font-style: italic;
+}
+
+.glamor-5,
+[data-glamor-5] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+}
+
+.glamor-6,
+[data-glamor-6] {
+  bottom: 1px;
+  left: 1px;
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  background-color: #f0f0f0;
+  border-radius: 10px;
+}
+
+.glamor-7,
+[data-glamor-7] {
+  background-size: cover;
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  background-image: -webkit-image-set(url('icons/icon-team-placeholder-avatar-80.png') 1x, url('icons/icon-team-placeholder-avatar-80@2x.png') 2x);
+  border-radius: 10px;
+  height: 80px;
+  max-width: 80px;
+  min-width: 80px;
+  opacity: 1;
+}
+
+.glamor-11,
+[data-glamor-11] {
+  background-size: cover;
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  background-image: -webkit-image-set(url('icons/icon-placeholder-avatar-64.png') 1x, url('icons/icon-placeholder-avatar-64@2x.png') 2x);
+  border-radius: 50%;
+  height: 64px;
+  max-width: 64px;
+  min-width: 64px;
+  opacity: 1;
+}
+
+.glamor-14,
+[data-glamor-14] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  text-decoration: inherit;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: row;
+  -webkit-box-lines: multiple;
+  -webkit-flex-wrap: wrap;
+}
+
+.glamor-12,
+[data-glamor-12] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #36b37c;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-decoration: inherit;
+}
+
+.glamor-15,
+[data-glamor-15] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+}
+
+.glamor-16,
+[data-glamor-16] {
+  color: rgba(0, 0, 0, 0.40);
+}
+
+.glamor-21,
+[data-glamor-21] {
+  background-size: cover;
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  background-image: -webkit-image-set(url('icons/icon-placeholder-avatar-112.png') 1x, url('icons/icon-placeholder-avatar-112@2x.png') 2x);
+  border-radius: 50%;
+  height: 112px;
+  max-width: 112px;
+  min-width: 112px;
+  opacity: 1;
+}
+
+.glamor-24,
+[data-glamor-24] {
+  font-size: 24px;
+  line-height: 28px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 700;
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  text-decoration: inherit;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: row;
+  -webkit-box-lines: multiple;
+  -webkit-flex-wrap: wrap;
+}
+
+.glamor-23,
+[data-glamor-23] {
+  font-size: 24px;
+  line-height: 28px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 700;
+}
+
+.glamor-22,
+[data-glamor-22] {
+  font-size: 24px;
+  line-height: 28px;
+  color: #33a0ff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 700;
+  text-decoration: inherit;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "overflow": "auto",
+        }
+      }
+    >
+      <div
+        style={undefined}
+      >
+        <div
+          onClick={undefined}
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "column",
+              "padding": 24,
+            }
+          }
+        >
+          <div
+            onClick={undefined}
+            style={
+              Object {
+                "height": 80,
+                "maxWidth": 80,
+                "minHeight": 80,
+                "minWidth": 80,
+                "position": "relative",
+                "userSelect": "none",
+              }
+            }
+          >
+            <div
+              className="glamor-0"
+            />
+            <div
+              className="glamor-1"
+            />
+          </div>
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "flexDirection": "column",
+                "justifyContent": "center",
+                "marginTop": 8,
+              }
+            }
+          >
+            <span
+              className="glamor-4"
+              onClick={undefined}
+              title={undefined}
+            >
+              <span
+                className="glamor-3"
+                onClick={undefined}
+                title={undefined}
+              >
+                <span
+                  className="glamor-2"
+                  onClick={undefined}
+                  title={undefined}
+                >
+                  ayoubd
+                </span>
+              </span>
+            </span>
+            <span
+              className="glamor-5"
+              onClick={undefined}
+              title={undefined}
+            >
+              Danny Ayoub
+            </span>
+          </div>
+        </div>
+        <div
+          onClick={undefined}
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "column",
+              "padding": 24,
+            }
+          }
+        >
+          <div
+            onClick={undefined}
+            style={
+              Object {
+                "height": 80,
+                "maxWidth": 80,
+                "minHeight": 80,
+                "minWidth": 80,
+                "position": "relative",
+                "userSelect": "none",
+              }
+            }
+          >
+            <div
+              className="glamor-6"
+            />
+            <div
+              className="glamor-7"
+            />
+          </div>
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "flexDirection": "column",
+                "justifyContent": "center",
+                "marginTop": 8,
+              }
+            }
+          >
+            <span
+              className="glamor-3"
+              onClick={undefined}
+              title={undefined}
+            >
+              keybasefriends
+            </span>
+            <span
+              className="glamor-5"
+              onClick={undefined}
+              title={undefined}
+            >
+              786 members
+            </span>
+          </div>
+        </div>
+        <div
+          onClick={undefined}
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "column",
+              "padding": 24,
+            }
+          }
+        >
+          <div
+            onClick={undefined}
+            style={
+              Object {
+                "height": 64,
+                "maxWidth": 64,
+                "minHeight": 64,
+                "minWidth": 64,
+                "position": "relative",
+                "userSelect": "none",
+              }
+            }
+          >
+            <div
+              className="glamor-0"
+            />
+            <div
+              className="glamor-11"
+            />
+            <img
+              className={undefined}
+              draggable="false"
+              onClick={null}
+              srcSet="icons/icon-mutual-follow-21.png 1x, icons/icon-mutual-follow-21@2x.png 2x"
+              style={
+                Object {
+                  "bottom": 0,
+                  "left": 45,
+                  "position": "absolute",
+                  "userSelect": "none",
+                }
+              }
+              title={undefined}
+            />
+          </div>
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "flexDirection": "column",
+                "justifyContent": "center",
+                "marginTop": 4,
+              }
+            }
+          >
+            <span
+              className="glamor-14"
+              onClick={undefined}
+              title={undefined}
+            >
+              <span
+                className="glamor-5"
+                onClick={undefined}
+                title={undefined}
+              >
+                <span
+                  className="glamor-12"
+                  onClick={undefined}
+                  title={undefined}
+                >
+                  cecileb
+                </span>
+              </span>
+            </span>
+            <span
+              className="glamor-15"
+              onClick={undefined}
+              title={undefined}
+            >
+              Cécile Boucheron
+            </span>
+          </div>
+        </div>
+        <div
+          onClick={undefined}
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "column",
+              "padding": 24,
+            }
+          }
+        >
+          <div>
+            <span
+              className="glamor-16"
+              onClick={null}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "fontFamily": "kb",
+                  "fontSize": 64,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "height": 64,
+                  "lineHeight": 1,
+                  "speak": "none",
+                  "textTransform": "none",
+                  "userSelect": "none",
+                  "width": 64,
+                }
+              }
+            >
+              
+            </span>
+          </div>
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "flexDirection": "column",
+                "justifyContent": "center",
+                "marginTop": 8,
+              }
+            }
+          >
+            <span
+              className="glamor-3"
+              onClick={undefined}
+              title={undefined}
+            >
+              Owner
+            </span>
+            <span
+              className="glamor-15"
+              onClick={undefined}
+              title={undefined}
+            >
+              Full power
+            </span>
+            <span
+              className="glamor-15"
+              onClick={undefined}
+              title={undefined}
+            >
+              Can do everything
+            </span>
+          </div>
+        </div>
+        <div
+          onClick={undefined}
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "column",
+              "padding": 24,
+            }
+          }
+        >
+          <div
+            onClick={undefined}
+            style={
+              Object {
+                "height": 112,
+                "maxWidth": 112,
+                "minHeight": 112,
+                "minWidth": 112,
+                "position": "relative",
+                "userSelect": "none",
+              }
+            }
+          >
+            <div
+              className="glamor-0"
+            />
+            <div
+              className="glamor-21"
+            />
+            <img
+              className={undefined}
+              draggable="false"
+              onClick={null}
+              srcSet="icons/icon-follow-me-28.png 1x, icons/icon-follow-me-28@2x.png 2x"
+              style={
+                Object {
+                  "bottom": 0,
+                  "left": 80,
+                  "position": "absolute",
+                  "userSelect": "none",
+                }
+              }
+              title={undefined}
+            />
+          </div>
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "flexDirection": "column",
+                "justifyContent": "center",
+                "marginTop": 8,
+              }
+            }
+          >
+            <span
+              className="glamor-24"
+              onClick={undefined}
+              title={undefined}
+            >
+              <span
+                className="glamor-23"
+                onClick={undefined}
+                title={undefined}
+              >
+                <span
+                  className="glamor-22"
+                  onClick={undefined}
+                  title={undefined}
+                >
+                  chrisnojima
+                </span>
+              </span>
+            </span>
+            <span
+              className="glamor-5"
+              onClick={undefined}
+              title={undefined}
+            >
+              Chris Nojima
+            </span>
+          </div>
+        </div>
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "borderRadius": 0,
+              "cursor": "pointer",
+              "display": "flex",
+              "flexDirection": "column",
+              "height": undefined,
+              "lineHeight": 0,
+              "minWidth": undefined,
+              "padding": 24,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            onClick={undefined}
+            style={
+              Object {
+                "height": 64,
+                "maxWidth": 64,
+                "minHeight": 64,
+                "minWidth": 64,
+                "position": "relative",
+                "userSelect": "none",
+              }
+            }
+          >
+            <div
+              className="glamor-0"
+            />
+            <div
+              className="glamor-11"
+            />
+            <img
+              className={undefined}
+              draggable="false"
+              onClick={null}
+              srcSet="icons/icon-following-21.png 1x, icons/icon-following-21@2x.png 2x"
+              style={
+                Object {
+                  "bottom": 0,
+                  "left": 45,
+                  "position": "absolute",
+                  "userSelect": "none",
+                }
+              }
+              title={undefined}
+            />
+          </div>
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "flexDirection": "column",
+                "justifyContent": "center",
+                "marginTop": 4,
+              }
+            }
+          >
+            <span
+              className="glamor-14"
+              onClick={undefined}
+              title={undefined}
+            >
+              <span
+                className="glamor-5"
+                onClick={undefined}
+                title={undefined}
+              >
+                <span
+                  className="glamor-12"
+                  onClick={undefined}
+                  title={undefined}
+                >
+                  mlsteele
+                </span>
+              </span>
+            </span>
+            <span
+              className="glamor-15"
+              onClick={undefined}
+              title={undefined}
+            >
+              Miles Steele
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Common Name with icon horizontal 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  bottom: 1px;
+  left: 1px;
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  background-color: #f0f0f0;
+  border-radius: 50%;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  background-size: cover;
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  background-image: -webkit-image-set(url('icons/icon-placeholder-avatar-32.png') 1x, url('icons/icon-placeholder-avatar-32@2x.png') 2x);
+  border-radius: 50%;
+  height: 32px;
+  max-width: 32px;
+  min-width: 32px;
+  opacity: 1;
+}
+
+.glamor-4,
+[data-glamor-4] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  text-decoration: inherit;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: row;
+  -webkit-box-lines: multiple;
+  -webkit-flex-wrap: wrap;
+}
+
+.glamor-3,
+[data-glamor-3] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+}
+
+.glamor-2,
+[data-glamor-2] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #36b37c;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-decoration: inherit;
+}
+
+.glamor-5,
+[data-glamor-5] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+}
+
+.glamor-6,
+[data-glamor-6] {
+  bottom: 1px;
+  left: 1px;
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  background-color: #f0f0f0;
+  border-radius: 5px;
+}
+
+.glamor-7,
+[data-glamor-7] {
+  background-size: cover;
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  background-image: -webkit-image-set(url('icons/icon-team-placeholder-avatar-32.png') 1x, url('icons/icon-team-placeholder-avatar-32@2x.png') 2x);
+  border-radius: 5px;
+  height: 32px;
+  max-width: 32px;
+  min-width: 32px;
+  opacity: 1;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "overflow": "auto",
+        }
+      }
+    >
+      <div
+        style={undefined}
+      >
+        <div
+          onClick={undefined}
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "padding": 4,
+            }
+          }
+        >
+          <div
+            onClick={undefined}
+            style={
+              Object {
+                "height": 32,
+                "marginRight": 16,
+                "maxWidth": 32,
+                "minHeight": 32,
+                "minWidth": 32,
+                "position": "relative",
+                "userSelect": "none",
+              }
+            }
+          >
+            <div
+              className="glamor-0"
+            />
+            <div
+              className="glamor-1"
+            />
+          </div>
+          <div
+            style={
+              Object {
+                "display": "flex",
+                "flexDirection": "column",
+              }
+            }
+          >
+            <span
+              className="glamor-4"
+              onClick={undefined}
+              title={undefined}
+            >
+              <span
+                className="glamor-3"
+                onClick={undefined}
+                title={undefined}
+              >
+                <span
+                  className="glamor-2"
+                  onClick={undefined}
+                  title={undefined}
+                >
+                  cecileb
+                </span>
+              </span>
+            </span>
+            <div
+              style={
+                Object {
+                  "display": "flex",
+                  "flexDirection": "row",
+                }
+              }
+            >
+              <span
+                className="glamor-5"
+                onClick={undefined}
+                title={undefined}
+              >
+                Cécile Boucheron
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          onClick={undefined}
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "padding": 4,
+            }
+          }
+        >
+          <div
+            onClick={undefined}
+            style={
+              Object {
+                "height": 32,
+                "marginRight": 16,
+                "maxWidth": 32,
+                "minHeight": 32,
+                "minWidth": 32,
+                "position": "relative",
+                "userSelect": "none",
+              }
+            }
+          >
+            <div
+              className="glamor-6"
+            />
+            <div
+              className="glamor-7"
+            />
+          </div>
+          <div
+            style={
+              Object {
+                "display": "flex",
+                "flexDirection": "column",
+              }
+            }
+          >
+            <span
+              className="glamor-3"
+              onClick={undefined}
+              title={undefined}
+            >
+              keybase
+            </span>
+            <div
+              style={
+                Object {
+                  "display": "flex",
+                  "flexDirection": "row",
+                }
+              }
+            >
+              <span
+                className="glamor-5"
+                onClick={undefined}
+                title={undefined}
+              >
+                19 members
+              </span>
+              <span
+                className="glamor-5"
+                onClick={undefined}
+                title={undefined}
+              >
+                 · 
+              </span>
+              <span
+                className="glamor-5"
+                onClick={undefined}
+                title={undefined}
+              >
+                the best team
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Common Name with icon subcomponents 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  bottom: 1px;
+  left: 1px;
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  background-color: #f0f0f0;
+  border-radius: 10px;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  background-size: cover;
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  background-image: -webkit-image-set(url('icons/icon-team-placeholder-avatar-80.png') 1x, url('icons/icon-team-placeholder-avatar-80@2x.png') 2x);
+  border-radius: 10px;
+  height: 80px;
+  max-width: 80px;
+  min-width: 80px;
+  opacity: 1;
+}
+
+.glamor-2,
+[data-glamor-2] {
+  font-size: 14px;
+  line-height: 18px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+}
+
+.glamor-3,
+[data-glamor-3] {
+  font-size: 11px;
+  line-height: 15px;
+  color: #33a0ff;
+  cursor: pointer;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "overflow": "auto",
+        }
+      }
+    >
+      <div
+        style={undefined}
+      >
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "borderRadius": 0,
+              "cursor": "pointer",
+              "display": "flex",
+              "flexDirection": "column",
+              "height": undefined,
+              "lineHeight": 0,
+              "minWidth": undefined,
+              "padding": 24,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            onClick={undefined}
+            style={
+              Object {
+                "height": 80,
+                "maxWidth": 80,
+                "minHeight": 80,
+                "minWidth": 80,
+                "position": "relative",
+                "userSelect": "none",
+              }
+            }
+          >
+            <div
+              className="glamor-0"
+            />
+            <div
+              className="glamor-1"
+            />
+          </div>
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "flexDirection": "column",
+                "justifyContent": "center",
+                "marginTop": 8,
+              }
+            }
+          >
+            <span
+              className="glamor-2"
+              onClick={undefined}
+              title={undefined}
+            >
+              keybasefriends
+            </span>
+            <span
+              className="glamor-3"
+              onClick={[Function]}
+              title={undefined}
+            >
+              Manage members
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`Storyshots Common RadioButton 1`] = `
 .glamor-0,
 [data-glamor-0] {
