@@ -29,19 +29,6 @@ import (
 
 // Install only handles the driver part on Windows
 func Install(context Context, binPath string, sourcePath string, components []string, force bool, timeout time.Duration, log Log) keybase1.InstallResult {
-	var err error
-	componentResults := []keybase1.ComponentResult{}
-
-	log.Debug("Installing components: %s", components)
-
-	if libkb.IsIn(string(ComponentNameFuse), components, false) {
-		err = installDokan(context.GetRunMode(), log)
-		componentResults = append(componentResults, componentResult(string(ComponentNameFuse), err))
-		if err != nil {
-			log.Errorf("Error installing KBFuse: %s", err)
-		}
-	}
-
 	return keybase1.InstallResult{}
 }
 
@@ -60,31 +47,6 @@ func AutoInstall(context Context, binPath string, force bool, timeout time.Durat
 // Uninstall empty implementation for unsupported platforms
 func Uninstall(context Context, components []string, log Log) keybase1.UninstallResult {
 	return keybase1.UninstallResult{}
-}
-
-// installDokan installs the Dokan drivers. This implementation is for CLI support.
-// The GUI also supports this in order for the installer UI to be topmost.
-func installDokan(_ libkb.RunMode, log Log) error {
-	log.Info("Installing Dokan")
-	command, err := getCachedPackageModifyString(log)
-	if err != nil {
-		return err
-	}
-
-	// Remove /modify so it can be given separately to exec.Command
-	command = strings.Replace(command, " /modify", "", 1)
-	// Remove surrounding double quotes - won't work otherwise
-	command = strings.Replace(command, "\"", "", 2)
-
-	log.Info("Starting %#v", command)
-	cmd := exec.Command(command, "driver=1", "/modify", `modifyprompt=Press 'Repair' to view files in Explorer`)
-	err = cmd.Run()
-	if err != nil {
-		return err
-	}
-
-	log.Info("Program finished: %q", command)
-	return nil
 }
 
 // CheckIfValidLocation is not supported on Windows
@@ -231,7 +193,7 @@ func getVersionAndDrivers(logFile *os.File) {
 	} else {
 		if exists, err := libkb.FileExists(filepath.Join(appDataDir, "Microsoft\\Windows\\Start Menu\\Programs\\Startup\\KeybaseStartup.lnk")); err == nil && exists == false {
 			logFile.WriteString("  -- Service startup shortcut missing! --\n\n")
-		} else {
+		} else if err != nil {
 			k, err := registry.OpenKey(registry.CURRENT_USER, "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartupApproved\\StartupFolder", registry.QUERY_VALUE|registry.READ)
 			if err != nil {
 				logFile.WriteString("Error opening Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartupApproved\\StartupFolder\n")
