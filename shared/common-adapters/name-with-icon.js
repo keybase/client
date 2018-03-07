@@ -37,7 +37,7 @@ const NameWithIconVertical = (props: Props) => {
   return (
     <BoxComponent
       onClick={props.onClick}
-      style={collapseStyles([styles.verticalContainerStyle, props.containerStyle || {}])}
+      style={collapseStyles([styles.vContainerStyle, props.containerStyle || {}])}
     >
       {isAvatar && (
         <Avatar
@@ -69,8 +69,11 @@ const NameWithIconVertical = (props: Props) => {
       >
         {!props.username && <Text type={adapterProps.titleType}>{props.title}</Text>}
         {!!props.username && (
+          // TODO get lineclamping working here
           <Usernames
             type={adapterProps.titleType}
+            containerStyle={isMobile ? undefined : styles.vUsernameContainerStyle}
+            inline={true}
             users={[{following: props.following, username: props.username, you: props.isYou}]}
             colorFollowing={props.colorFollowing}
           />
@@ -130,7 +133,11 @@ const NameWithIcon = (props: Props) => {
 // Render text if it's text, or identity if otherwise
 const TextOrComponent = ({val, textType}: {val: string | React.Node, textType: TextType}) => {
   if (typeof val === 'string') {
-    return <Text type={textType}>{val}</Text>
+    return (
+      <Text lineClamp={1} type={textType}>
+        {val}
+      </Text>
+    )
   }
   // `return undefined` makes react barf
   return val || null
@@ -153,9 +160,12 @@ const styles = styleSheetCreate({
     ...globalStyles.flexBoxCenter,
     marginTop: 8,
   },
-  verticalContainerStyle: {
+  vContainerStyle: {
     ...globalStyles.flexBoxColumn,
     alignItems: 'center',
+  },
+  vUsernameContainerStyle: {
+    textAlign: 'center',
   },
 })
 

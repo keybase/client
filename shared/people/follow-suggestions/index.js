@@ -1,25 +1,9 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/people'
-import {
-  Avatar,
-  Box,
-  ClickableBox,
-  NameWithIcon,
-  ScrollView,
-  Text,
-  ConnectedUsernames,
-} from '../../common-adapters'
+import {Box, NameWithIcon, ScrollView, Text} from '../../common-adapters'
 import {globalStyles, globalMargins} from '../../styles'
 import {isMobile} from '../../constants/platform'
-
-const connectedUsernamesProps = {
-  clickable: true,
-  colorFollowing: true,
-  type: 'BodySemibold',
-  style: {marginTop: globalMargins.xtiny, display: 'flex'},
-  underline: true,
-}
 
 export type FollowSuggestion = Types._FollowSuggestion
 
@@ -27,40 +11,6 @@ export type Props = {
   suggestions: Array<FollowSuggestion>,
   onClickUser: (username: string) => void,
 }
-
-const Suggestion = (props: Types._FollowSuggestion & {onClickUser: () => void}) => (
-  <NameWithIcon
-    username={props.username}
-    metaOne={props.fullName}
-    onClick={props.onClickUser}
-    followsMe={props.followsMe}
-    following={props.iFollow}
-    colorFollowing={true}
-    size="small"
-    containerStyle={suggestionContainerStyle}
-  />
-  //  <ClickableBox style={suggestionContainerStyle} onClick={props.onClickUser}>
-  //    <Avatar
-  //      username={props.username}
-  //      size={64}
-  //      followsYou={props.followsMe}
-  //      following={props.iFollow}
-  //      style={{marginBottom: globalMargins.xtiny}}
-  //    />
-  //    <ConnectedUsernames
-  //      {...connectedUsernamesProps}
-  //      {...connectedUsernamesStyles}
-  //      usernames={[props.username]}
-  //      onUsernameClicked={props.onClickUser}
-  //      inline={true}
-  //    />
-  //    {!!props.fullName && (
-  //      <Text type="BodySmall" lineClamp={1} style={{paddingLeft: 2, paddingRight: 2}}>
-  //        {props.fullName}
-  //      </Text>
-  //    )}
-  //  </ClickableBox>
-)
 
 export default (props: Props) => (
   <Box style={containerStyle}>
@@ -72,10 +22,17 @@ export default (props: Props) => (
       contentContainerStyle={scrollViewContainerStyle}
     >
       {props.suggestions.map(suggestion => (
-        <Suggestion
+        <NameWithIcon
           key={suggestion.username}
-          {...suggestion}
-          onClickUser={() => props.onClickUser(suggestion.username)}
+          username={suggestion.username}
+          metaOne={suggestion.fullName}
+          metaStyle={{paddingLeft: 2, paddingRight: 2}}
+          onClick={() => props.onClickUser(suggestion.username)}
+          followsMe={suggestion.followsMe}
+          following={suggestion.iFollow}
+          colorFollowing={true}
+          size="small"
+          containerStyle={suggestionContainerStyle}
         />
       ))}
     </ScrollView>
@@ -83,19 +40,9 @@ export default (props: Props) => (
 )
 
 const suggestionContainerStyle = {
-  ...globalStyles.flexBoxColumn,
   flexShrink: 0,
   width: 112,
   height: 106,
-  alignItems: 'center',
-}
-
-const connectedUsernamesStyles = {
-  containerStyle: isMobile ? undefined : {textAlign: 'center'},
-  style: {
-    paddingLeft: globalMargins.tiny,
-    paddingRight: globalMargins.tiny,
-  },
 }
 
 const containerStyle = {
