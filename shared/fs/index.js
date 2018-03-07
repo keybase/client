@@ -22,7 +22,6 @@ type FolderProps = {
   items: Array<Types.Path>,
   path: Types.Path,
   progress: 'pending' | 'loaded',
-  sortSetting: Types._SortSetting,
 }
 
 const FileRow = RowConnector(({name, type, itemStyles, onOpen, openInFileUI}: FileRowProps) => (

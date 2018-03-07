@@ -29,6 +29,6 @@ const mergeProps = (stateProps, {opener, dismisser}, ownProps) =>
     // TODO: add uploadsk
   }: FooterProps)
 
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('FsFooter'))(
+export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('Footer'))(
   Footer
 )
