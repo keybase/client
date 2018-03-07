@@ -5,10 +5,6 @@ set -e -u -o pipefail
 # This is the script responsible for launching keybase on boot on Linux. A
 # .desktop file will be created by the service on first launch in
 # ~/.config/autostart/ to invoke this script.
-#
-# We're in the process of adding support for systemd. If you're running systemd
-# and you set the environment variable KEYBASE_SYSTEMD=1, we'll start as
-# systemd user-level services. At some point
 
 runtime_dir="${XDG_RUNTIME_DIR:-$HOME/.config}/keybase"
 mkdir -p "$runtime_dir"
