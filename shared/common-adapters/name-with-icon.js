@@ -60,7 +60,13 @@ const NameWithIconVertical = (props: Props) => {
             }}
           />
         )}
-      <Box style={collapseStyles([styles.metaStyle, props.metaStyle || {}])}>
+      <Box
+        style={collapseStyles([
+          styles.metaStyle,
+          {marginTop: adapterProps.metaMargin},
+          props.metaStyle || {},
+        ])}
+      >
         {!props.username && <Text type={adapterProps.titleType}>{props.title}</Text>}
         {!!props.username && (
           <Usernames
@@ -159,6 +165,7 @@ const getAdapterProps = (size: Size, isAvatar: boolean) => {
     case 'small':
       return {
         iconSize: isAvatar ? 64 : 48,
+        metaMargin: isAvatar ? 4 : 8,
         metaOneType: 'BodySmall',
         titleType: 'BodySemibold',
       }
@@ -166,6 +173,7 @@ const getAdapterProps = (size: Size, isAvatar: boolean) => {
       if (isAvatar) {
         return {
           iconSize: 112,
+          metaMargin: 8,
           metaOneType: 'BodySemibold',
           titleType: 'HeaderBig',
         }
@@ -174,6 +182,7 @@ const getAdapterProps = (size: Size, isAvatar: boolean) => {
   // default
   return {
     iconSize: isAvatar ? 80 : 64,
+    metaMargin: isMobile ? 6 : 8,
     metaOneType: isAvatar ? 'BodySemibold' : 'BodySmall',
     titleType: 'BodyBig',
   }
