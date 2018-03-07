@@ -129,7 +129,8 @@ const extraChatLogs = (state: TypedState) => {
       messageOrdinals: chat.messageOrdinals.get(c),
       metaMap: {
         ...chat.metaMap.get(c).toJS(),
-        snippet: '',
+        channelname: 'X',
+        snippet: 'X',
       },
       pendingMode: chat.pendingMode,
       pendingOutboxToOrdinal: chat.pendingOutboxToOrdinal.get(c),
