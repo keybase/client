@@ -235,10 +235,10 @@ func (brq *blockRetrievalQueue) PutInCaches(ctx context.Context,
 	case NoSuchBlockError:
 		// TODO: Add the block to the DBC. This is complicated because we
 		// need the serverHalf.
-		brq.log.CWarningf(ctx, "Block %s missing for disk block "+
+		brq.log.CDebugf(ctx, "Block %s missing for disk block "+
 			"cache metadata update", ptr.ID)
 	default:
-		brq.log.CWarningf(ctx, "Error updating metadata: %+v", err)
+		brq.log.CDebugf(ctx, "Error updating metadata: %+v", err)
 	}
 	// All disk cache errors are fatal
 	return err
