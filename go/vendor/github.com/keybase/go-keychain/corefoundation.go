@@ -1,5 +1,4 @@
-// +build darwin ios
-// +build go1.10
+// +build darwin
 
 package keychain
 
@@ -7,25 +6,6 @@ package keychain
 #cgo LDFLAGS: -framework CoreFoundation
 
 #include <CoreFoundation/CoreFoundation.h>
-
-// Can't cast a *uintptr to *unsafe.Pointer in Go, and casting
-// C.CFTypeRef to unsafe.Pointer is unsafe in Go, so have shim functions to
-// do the casting in C (where it's safe).
-
-// We add a suffix to the C functions below, because we copied this
-// file from go-kext, which means that any project that depends on this
-// package and go-kext would run into duplicate symbol errors otherwise.
-//
-// TODO: Move this file into its own package depended on by go-kext
-// and this package.
-
-CFDictionaryRef CFDictionaryCreateSafe2(CFAllocatorRef allocator, const uintptr_t *keys, const uintptr_t *values, CFIndex numValues, const CFDictionaryKeyCallBacks *keyCallBacks, const CFDictionaryValueCallBacks *valueCallBacks) {
-  return CFDictionaryCreate(allocator, (const void **)keys, (const void **)values, numValues, keyCallBacks, valueCallBacks);
-}
-
-CFArrayRef CFArrayCreateSafe2(CFAllocatorRef allocator, const uintptr_t *values, CFIndex numValues, const CFArrayCallBacks *callBacks) {
-  return CFArrayCreate(allocator, (const void **)values, numValues, callBacks);
-}
 */
 import "C"
 import (
@@ -37,7 +17,6 @@ import (
 	"unsafe"
 )
 
-// Release releases memory pointed to by a CFTypeRef.
 func Release(ref C.CFTypeRef) {
 	C.CFRelease(ref)
 }
@@ -46,15 +25,15 @@ func Release(ref C.CFTypeRef) {
 // Release(ref).
 func BytesToCFData(b []byte) (C.CFDataRef, error) {
 	if uint64(len(b)) > math.MaxUint32 {
-		return 0, errors.New("Data is too large")
+		return nil, errors.New("Data is too large")
 	}
 	var p *C.UInt8
 	if len(b) > 0 {
 		p = (*C.UInt8)(&b[0])
 	}
 	cfData := C.CFDataCreate(nil, p, C.CFIndex(len(b)))
-	if cfData == 0 {
-		return 0, fmt.Errorf("CFDataCreate failed")
+	if cfData == nil {
+		return nil, fmt.Errorf("CFDataCreate failed")
 	}
 	return cfData, nil
 }
@@ -67,20 +46,20 @@ func CFDataToBytes(cfData C.CFDataRef) ([]byte, error) {
 // MapToCFDictionary will return a CFDictionaryRef and if non-nil, must be
 // released with Release(ref).
 func MapToCFDictionary(m map[C.CFTypeRef]C.CFTypeRef) (C.CFDictionaryRef, error) {
-	var keys, values []C.uintptr_t
+	var keys, values []unsafe.Pointer
 	for key, value := range m {
-		keys = append(keys, C.uintptr_t(key))
-		values = append(values, C.uintptr_t(value))
+		keys = append(keys, unsafe.Pointer(key))
+		values = append(values, unsafe.Pointer(value))
 	}
 	numValues := len(values)
-	var keysPointer, valuesPointer *C.uintptr_t
+	var keysPointer, valuesPointer *unsafe.Pointer
 	if numValues > 0 {
 		keysPointer = &keys[0]
 		valuesPointer = &values[0]
 	}
-	cfDict := C.CFDictionaryCreateSafe2(nil, keysPointer, valuesPointer, C.CFIndex(numValues), &C.kCFTypeDictionaryKeyCallBacks, &C.kCFTypeDictionaryValueCallBacks)
-	if cfDict == 0 {
-		return 0, fmt.Errorf("CFDictionaryCreate failed")
+	cfDict := C.CFDictionaryCreate(nil, keysPointer, valuesPointer, C.CFIndex(numValues), &C.kCFTypeDictionaryKeyCallBacks, &C.kCFTypeDictionaryValueCallBacks)
+	if cfDict == nil {
+		return nil, fmt.Errorf("CFDictionaryCreate failed")
 	}
 	return cfDict, nil
 }
@@ -91,7 +70,7 @@ func CFDictionaryToMap(cfDict C.CFDictionaryRef) (m map[C.CFTypeRef]C.CFTypeRef)
 	if count > 0 {
 		keys := make([]C.CFTypeRef, count)
 		values := make([]C.CFTypeRef, count)
-		C.CFDictionaryGetKeysAndValues(cfDict, (*unsafe.Pointer)(unsafe.Pointer(&keys[0])), (*unsafe.Pointer)(unsafe.Pointer(&values[0])))
+		C.CFDictionaryGetKeysAndValues(cfDict, (*unsafe.Pointer)(&keys[0]), (*unsafe.Pointer)(&values[0]))
 		m = make(map[C.CFTypeRef]C.CFTypeRef, count)
 		for i := C.CFIndex(0); i < count; i++ {
 			m[keys[i]] = values[i]
@@ -104,10 +83,10 @@ func CFDictionaryToMap(cfDict C.CFDictionaryRef) (m map[C.CFTypeRef]C.CFTypeRef)
 // Release(ref).
 func StringToCFString(s string) (C.CFStringRef, error) {
 	if !utf8.ValidString(s) {
-		return 0, errors.New("Invalid UTF-8 string")
+		return nil, errors.New("Invalid UTF-8 string")
 	}
 	if uint64(len(s)) > math.MaxUint32 {
-		return 0, errors.New("String is too large")
+		return nil, errors.New("String is too large")
 	}
 
 	bytes := []byte(s)
@@ -141,16 +120,16 @@ func CFStringToString(s C.CFStringRef) string {
 // ArrayToCFArray will return a CFArrayRef and if non-nil, must be released with
 // Release(ref).
 func ArrayToCFArray(a []C.CFTypeRef) C.CFArrayRef {
-	var values []C.uintptr_t
+	var values []unsafe.Pointer
 	for _, value := range a {
-		values = append(values, C.uintptr_t(value))
+		values = append(values, unsafe.Pointer(value))
 	}
 	numValues := len(values)
-	var valuesPointer *C.uintptr_t
+	var valuesPointer *unsafe.Pointer
 	if numValues > 0 {
 		valuesPointer = &values[0]
 	}
-	return C.CFArrayCreateSafe2(nil, valuesPointer, C.CFIndex(numValues), &C.kCFTypeArrayCallBacks)
+	return C.CFArrayCreate(nil, valuesPointer, C.CFIndex(numValues), &C.kCFTypeArrayCallBacks)
 }
 
 // CFArrayToArray converts a CFArrayRef to an array of CFTypes.
@@ -158,7 +137,7 @@ func CFArrayToArray(cfArray C.CFArrayRef) (a []C.CFTypeRef) {
 	count := C.CFArrayGetCount(cfArray)
 	if count > 0 {
 		a = make([]C.CFTypeRef, count)
-		C.CFArrayGetValues(cfArray, C.CFRange{0, count}, (*unsafe.Pointer)(unsafe.Pointer(&a[0])))
+		C.CFArrayGetValues(cfArray, C.CFRange{0, count}, (*unsafe.Pointer)(&a[0]))
 	}
 	return
 }
@@ -174,50 +153,49 @@ func ConvertMapToCFDictionary(attr map[string]interface{}) (C.CFDictionaryRef, e
 	m := make(map[C.CFTypeRef]C.CFTypeRef)
 	for key, i := range attr {
 		var valueRef C.CFTypeRef
-		switch val := i.(type) {
+		switch i.(type) {
 		default:
-			return 0, fmt.Errorf("Unsupported value type: %v", reflect.TypeOf(i))
+			return nil, fmt.Errorf("Unsupported value type: %v", reflect.TypeOf(i))
 		case C.CFTypeRef:
-			valueRef = val
+			valueRef = i.(C.CFTypeRef)
 		case bool:
-			if val {
+			if i == true {
 				valueRef = C.CFTypeRef(C.kCFBooleanTrue)
 			} else {
 				valueRef = C.CFTypeRef(C.kCFBooleanFalse)
 			}
 		case []byte:
-			bytesRef, err := BytesToCFData(val)
+			bytesRef, err := BytesToCFData(i.([]byte))
 			if err != nil {
-				return 0, err
+				return nil, err
 			}
 			valueRef = C.CFTypeRef(bytesRef)
 			defer Release(valueRef)
 		case string:
-			stringRef, err := StringToCFString(val)
+			stringRef, err := StringToCFString(i.(string))
 			if err != nil {
-				return 0, err
+				return nil, err
 			}
 			valueRef = C.CFTypeRef(stringRef)
 			defer Release(valueRef)
 		case Convertable:
-			convertedRef, err := val.Convert()
+			convertedRef, err := (i.(Convertable)).Convert()
 			if err != nil {
-				return 0, err
+				return nil, err
 			}
 			valueRef = C.CFTypeRef(convertedRef)
 			defer Release(valueRef)
 		}
 		keyRef, err := StringToCFString(key)
 		if err != nil {
-			return 0, err
+			return nil, err
 		}
 		m[C.CFTypeRef(keyRef)] = valueRef
-		defer Release(C.CFTypeRef(keyRef))
 	}
 
 	cfDict, err := MapToCFDictionary(m)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 	return cfDict, nil
 }

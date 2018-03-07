@@ -1,17 +1,12 @@
 # Go Keychain
 
-A library for accessing the Keychain for macOS and iOS in Go (golang).
+A library for accessing the Keychain for OSX and iOS in Go (golang).
 
-Requires macOS 10.9 or greater and iOS 8 or greater.
-
-```go
-import "github.com/keybase/go-keychain"
-```
-
+Requires OS X 10.9 or greater and iOS 8 or greater.
 
 ## Usage
 
-The API is meant to mirror the macOS/iOS Keychain API and is not necessarily idiomatic go.
+The API is meant to mirror the Keychain API and is not necessarily idiomatic go.
 
 #### Add Item
 
@@ -111,31 +106,6 @@ if err == keychain.ErrorNotFound {
 
 ### OS X
 
-Creating a new keychain and add an item to it:
-
-```go
-
-// Add a new key chain into ~/Application Support/Keychains, with the provided password
-k, err := keychain.NewKeychain("mykeychain.keychain", "my keychain password")
-if err != nil {
-  // Error creating
-}
-
-// Create generic password item with service, account, label, password, access group
-item := keychain.NewGenericPassword("MyService", "gabriel", "A label", []byte("toomanysecrets"), "A123456789.group.com.mycorp")
-item.UseKeychain(k)
-err := keychain.AddItem(item)
-if err != nil {
-  // Error creating
-}
-```
-
-Using a Keychain at path:
-
-```go
-k, err := keychain.NewWithPath("mykeychain.keychain")
-```
-
 Set a trusted applications for item (OS X only):
 
 ```go
@@ -149,8 +119,8 @@ err := keychain.AddItem(item)
 
 Bindable package in `bind`. iOS project in `ios`. Run that project to test iOS.
 
-To re-generate framework:
+To re-generate framework (in bind dir):
 
 ```
-(cd bind && gomobile bind -target=ios -tags=ios -o ../ios/bind.framework)
+gomobile bind -target=ios -o ../ios/bind.framework
 ```
