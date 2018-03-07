@@ -5,6 +5,7 @@ import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as Types from '../constants/types/fs'
+import {openInFileUISaga} from './fs-platform-specific'
 
 function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<any, any> {
   const opID = Constants.makeUUID()
@@ -96,6 +97,7 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.folderListLoad, folderList)
   yield Saga.safeTakeEvery(FsGen.download, download)
+  yield Saga.safeTakeEveryPure(FsGen.openInFileUI, openInFileUISaga)
 }
 
 export default fsSaga

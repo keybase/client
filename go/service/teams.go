@@ -93,6 +93,7 @@ func (h *TeamsHandler) TeamCreateWithSettings(ctx context.Context, arg keybase1.
 		h.G().Log.CDebugf(ctx, "TeamCreate: created subteam %s with self in as %v", arg.Name, addSelfAs)
 		username := h.G().Env.GetUsername().String()
 		res.ChatSent = teams.SendTeamChatCreateMessage(ctx, h.G().ExternalG(), teamName.String(), username)
+		res.CreatorAdded = true
 
 		if !arg.JoinSubteam {
 			h.G().Log.CDebugf(ctx, "TeamCreate: leaving just-created subteam %s", arg.Name)
