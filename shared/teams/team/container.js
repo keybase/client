@@ -7,9 +7,10 @@ import * as KBFSGen from '../../actions/kbfs-gen'
 import * as ChatGen from '../../actions/chat-gen'
 import Team, {CustomComponent} from '.'
 import {HeaderHoc} from '../../common-adapters'
-import {branch, connect, withStateHandlers, lifecycle, compose, type TypedState} from '../../util/container'
+import {branch, connect, lifecycle, compose, type TypedState} from '../../util/container'
 import {navigateAppend} from '../../actions/route-tree'
 import {anyWaiting} from '../../constants/waiting'
+import {teamsTab} from '../../constants/tabs'
 
 import {membersListItemsConnector} from './members/container'
 import {subteamsListItemsConnector} from './subteams/container'
@@ -56,6 +57,22 @@ const mapDispatchToProps = (
       dispatch(navigateAppend([{props: {makeSubteam: true, name: teamname}, selected: 'showNewTeamDialog'}])),
     _loadTeam: teamname => dispatch(TeamsGen.createGetDetails({teamname})),
     onBack: () => dispatch(navigateUp()),
+    onShowMenu: target =>
+      dispatch(
+        navigateAppend(
+          [
+            {
+              props: {
+                teamname,
+                position: 'bottom left',
+                targetRect: target && target.getBoundingClientRect(),
+              },
+              selected: 'menu',
+            },
+          ],
+          [teamsTab, 'team']
+        )
+      ),
 
     _onOpenFolder: () => dispatch(KBFSGen.createOpen({path: `/keybase/team/${teamname}`})),
   }
@@ -66,7 +83,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     <CustomComponent
       onOpenFolder={dispatchProps.onOpenFolder}
       onChat={dispatchProps.onChat}
-      onShowMenu={() => ownProps.setShowMenu(!ownProps.showMenu)}
+      onShowMenu={dispatchProps.onShowMenu}
       canChat={!stateProps.yourOperations.joinTeam}
       canViewFolder={!stateProps.yourOperations.joinTeam}
     />
@@ -81,7 +98,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 }
 
 export default compose(
-  withStateHandlers({showMenu: false}, {setShowMenu: () => showMenu => ({showMenu})}),
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentDidMount: function() {
