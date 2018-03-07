@@ -21,6 +21,14 @@ func getHome(t *testing.T, u *userPlusDevice, markViewed bool) keybase1.HomeScre
 	return home
 }
 
+func markViewed(t *testing.T, u *userPlusDevice) {
+	g := u.tc.G
+	cli, err := client.GetHomeClient(g)
+	require.NoError(t, err)
+	err = cli.HomeMarkViewed(context.TODO())
+	require.NoError(t, err)
+}
+
 func getBadgeState(t *testing.T, u *userPlusDevice) keybase1.BadgeState {
 	g := u.tc.G
 	cli, err := client.GetBadgerClient(g)
@@ -73,7 +81,7 @@ func assertTodoNotPresent(t *testing.T, home keybase1.HomeScreen, wanted keybase
 	}
 }
 
-func assertFollowerPresent(t *testing.T, home keybase1.HomeScreen, f string) bool {
+func findFollowerInHome(t *testing.T, home keybase1.HomeScreen, f string) (present, badged bool) {
 	for _, item := range home.Items {
 		typ, err := item.Data.T()
 		if err != nil {
@@ -88,13 +96,13 @@ func assertFollowerPresent(t *testing.T, home keybase1.HomeScreen, f string) boo
 			if typ == keybase1.HomeScreenPeopleNotificationType_FOLLOWED {
 				follow := people.Followed()
 				if follow.User.Username == f {
-					return item.Badged
+					return true, item.Badged
 				}
-				return false
+				return false, false
 			}
 		}
 	}
-	return false
+	return false, false
 }
 
 func postBio(t *testing.T, u *userPlusDevice) {
@@ -149,7 +157,7 @@ func TestHome(t *testing.T) {
 	alice := tt.users[0]
 	g := alice.tc.G
 
-	home := getHome(t, alice, true)
+	home := getHome(t, alice, false)
 	initialVersion := home.Version
 
 	require.True(t, (initialVersion > 0), "initial version should be > 0")
@@ -169,7 +177,7 @@ func TestHome(t *testing.T) {
 	postBio(t, alice)
 
 	pollForTrue(t, g, func(i int) bool {
-		home = getHome(t, alice, true)
+		home = getHome(t, alice, false)
 		badges := getBadgeState(t, alice)
 		g.Log.Debug("Iter %d of check loop: Home is: %+v; BadgeState is: %+v", i, home, badges)
 		return (home.Version > initialVersion && badges.HomeTodoItems < countPre)
@@ -188,9 +196,24 @@ func TestHome(t *testing.T) {
 	attachIdentifyUI(t, bob.tc.G, iui)
 	iui.confirmRes = keybase1.ConfirmResult{IdentityConfirmed: true, RemoteConfirmed: true, AutoConfirmed: true}
 	bob.track(alice.username)
+
+	var badged bool
 	pollForTrue(t, g, func(i int) bool {
 		home = getHome(t, alice, false)
-		return assertFollowerPresent(t, home, bob.username)
+		var present bool
+		present, badged = findFollowerInHome(t, home, bob.username)
+		return present
+	})
+	require.True(t, badged, "when we find bob, he should be badged")
+
+	// This should clear the badge on bob in the home screen.
+	markViewed(t, alice)
+
+	pollForTrue(t, g, func(i int) bool {
+		var present bool
+		home = getHome(t, alice, false)
+		present, badged = findFollowerInHome(t, home, bob.username)
+		return present && !badged
 	})
 }
 
