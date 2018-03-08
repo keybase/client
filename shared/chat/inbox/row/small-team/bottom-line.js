@@ -141,7 +141,7 @@ class BottomLine extends PureComponent<Props> {
 }
 
 const resetStyle = {
-  ...(isMobile ? {} : {display: 'block'}),
+  ...(isMobile ? {marginTop: 6} : {display: 'block'}),
   alignSelf: 'center',
   backgroundColor: globalColors.red,
   marginRight: 6,
@@ -150,12 +150,17 @@ const resetStyle = {
 const noWrapStyle = {
   display: 'block',
   overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
   width: '100%',
+  ...(isMobile
+    ? {}
+    : {
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+      }),
 }
 
 const mobileBottomLineCommon = {
+  backgroundColor: globalColors.fastBlank,
   color: globalColors.black_40,
   fontSize: 13,
   lineHeight: lineHeight(17),

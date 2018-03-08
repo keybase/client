@@ -73,7 +73,7 @@ const TabBarRender = ({onTabClick, selectedTab, username, badgeNumbers}: Props) 
 
 const stylesTabBar = {
   ...globalStyles.flexBoxColumn,
-  backgroundColor: globalColors.darkBlue2,
+  backgroundColor: 'red', // TEMP while testing globalColors.darkBlue2,
   justifyContent: 'flex-start',
   paddingBottom: globalMargins.tiny,
   paddingTop: globalMargins.small,
@@ -81,8 +81,8 @@ const stylesTabBar = {
 }
 
 const stylesTabButton = {
-  height: 56,
   color: globalColors.blue3_40,
+  height: 56,
 }
 
 const stylesSelectedTabButton = {

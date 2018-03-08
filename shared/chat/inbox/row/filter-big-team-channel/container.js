@@ -1,26 +1,27 @@
 // @flow
 import {FilterBigTeamChannel} from '.'
-import * as ChatGen from '../../../../actions/chat-gen'
-import {pausableConnect} from '../../../../util/container'
+import * as Route from '../../../../actions/route-tree'
+import * as Chat2Gen from '../../../../actions/chat2-gen'
+import {connect, isMobile} from '../../../../util/container'
 
-const mapStateToProps = (_, {teamname, channelname, isActiveRoute}) => ({
+const mapStateToProps = (_, {teamname, channelname}) => ({
   channelname,
-  isActiveRoute,
   teamname,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}) => ({
   onSelectConversation: () => {
-    dispatch(ChatGen.createSetInboxFilter({filter: ''}))
-    dispatch(ChatGen.createSelectConversation({conversationIDKey, fromUser: true}))
+    dispatch(Chat2Gen.createSelectConversation({conversationIDKey, fromUser: true}))
+    if (isMobile) {
+      dispatch(Route.navigateAppend(['conversation']))
+    }
   },
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   channelname: stateProps.channelname || '',
-  isActiveRoute: stateProps.isActiveRoute,
   onSelectConversation: dispatchProps.onSelectConversation,
   teamname: stateProps.teamname || '',
 })
 
-export default pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps)(FilterBigTeamChannel)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(FilterBigTeamChannel)

@@ -2,12 +2,11 @@
 import React, {PureComponent} from 'react'
 import {PlaintextUsernames, Box} from '../../../../common-adapters'
 import {globalStyles, isMobile} from '../../../../styles'
-import {List} from 'immutable'
 
 const height = isMobile ? 19 : 17
 
 type Props = {
-  participants: List<string>,
+  participants: Array<string>,
   showBold: boolean,
   usernameColor: ?string,
 }
@@ -42,7 +41,7 @@ class FilteredTopLine extends PureComponent<Props> {
           <PlaintextUsernames
             type="BodySemibold"
             containerStyle={{...boldOverride, color: usernameColor, paddingRight: 7}}
-            users={participants.map(p => ({username: p})).toArray()}
+            users={participants.map(p => ({username: p}))}
             title={participants.join(', ')}
           />
         </Box>

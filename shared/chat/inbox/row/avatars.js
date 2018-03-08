@@ -1,9 +1,9 @@
 // @flow
-import React, {PureComponent} from 'react'
+import * as React from 'react'
+import shallowEqual from 'shallowequal'
 import {Avatar, MultiAvatar, Icon, Box} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins, isMobile} from '../../../styles'
 import memoize from 'lodash/memoize'
-import {List} from 'immutable'
 
 // All this complexity isn't great but the current implementation of avatar forces us to juggle all these colors and
 // forces us to explicitly choose undefined/the background/ etc. This can be cleaned up when avatar is simplified
@@ -18,22 +18,21 @@ function rowBorderColor(idx: number, isLastParticipant: boolean, backgroundColor
 }
 
 type AvatarProps = {
-  participants: List<string>,
-  youNeedToRekey: boolean,
-  participantNeedToRekey: boolean,
+  participants: Array<string>,
+  isLocked: boolean,
   isMuted: boolean,
   isSelected: boolean,
   backgroundColor: string,
 }
 
-const MutedIcon = ({isMuted, isSelected, participantNeedToRekey, youNeedToRekey}) => {
+const MutedIcon = ({isMuted, isSelected, isLocked}) => {
   let icon = null
   if (isMuted) {
     const type = isSelected
       ? isMobile ? 'icon-shh-active-24' : 'icon-shh-active-16'
       : isMobile ? 'icon-shh-24' : 'icon-shh-16'
     icon = <Icon type={type} style={avatarMutedIconStyle} />
-  } else if (participantNeedToRekey || youNeedToRekey) {
+  } else if (isLocked) {
     const type = isSelected
       ? isMobile ? 'icon-addon-lock-active-12' : 'icon-addon-lock-active-8'
       : isMobile ? 'icon-addon-lock-12' : 'icon-addon-lock-8'
@@ -42,29 +41,30 @@ const MutedIcon = ({isMuted, isSelected, participantNeedToRekey, youNeedToRekey}
   return icon
 }
 
-class Avatars extends PureComponent<AvatarProps> {
-  render() {
-    const {
-      participants,
-      youNeedToRekey,
-      participantNeedToRekey,
-      isMuted,
-      isSelected,
-      backgroundColor,
-    } = this.props
+class Avatars extends React.Component<AvatarProps> {
+  shouldComponentUpdate(nextProps: AvatarProps) {
+    return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
+      if (key === 'participants') {
+        return shallowEqual(this.props.participants, nextProps.participants)
+      }
 
-    const avatarCount = Math.min(2, participants.count())
-    const opacity = youNeedToRekey || participantNeedToRekey ? 0.4 : 1
-    const avatarProps = participants
-      .slice(0, 2)
-      .map((username, idx) => ({
-        borderColor: rowBorderColor(idx, idx === avatarCount - 1, backgroundColor),
-        loadingColor: globalColors.lightGrey,
-        size: isMobile ? 24 : 32,
-        skipBackground: isMobile,
-        username,
-      }))
-      .toArray()
+      return undefined
+    })
+  }
+
+  render() {
+    const {participants, isLocked, isMuted, isSelected, backgroundColor} = this.props
+
+    const avatarCount = Math.min(2, participants.length)
+    const opacity = isLocked ? 0.4 : 1
+    const avatarProps = participants.slice(0, 2).map((username, idx) => ({
+      borderColor: rowBorderColor(idx, idx === avatarCount - 1, backgroundColor),
+      loadingColor: globalColors.lightGrey,
+      size: isMobile ? 24 : 32,
+      skipBackground: isMobile,
+      skipBackgroundAfterLoaded: isMobile,
+      username,
+    }))
 
     return (
       <Box style={avatarBoxStyle}>
@@ -76,12 +76,7 @@ class Avatars extends PureComponent<AvatarProps> {
             multiPadding={isMobile ? 2 : 0}
             style={opacity === 1 ? multiStyle(backgroundColor) : {...multiStyle(backgroundColor), opacity}}
           />
-          <MutedIcon
-            isSelected={isSelected}
-            isMuted={isMuted}
-            participantNeedToRekey={participantNeedToRekey}
-            youNeedToRekey={youNeedToRekey}
-          />
+          <MutedIcon isSelected={isSelected} isMuted={isMuted} isLocked={isLocked} />
         </Box>
       </Box>
     )
@@ -117,7 +112,7 @@ const avatarInnerBoxStyle = {
   position: 'relative',
 }
 
-class TeamAvatar extends PureComponent<{
+class TeamAvatar extends React.Component<{
   teamname: string,
   isMuted: boolean,
   isSelected: boolean,
@@ -126,12 +121,7 @@ class TeamAvatar extends PureComponent<{
     return (
       <Box style={avatarBoxStyle}>
         <Avatar teamname={this.props.teamname} size={isMobile ? 48 : 40} />
-        <MutedIcon
-          isSelected={this.props.isSelected}
-          isMuted={this.props.isMuted}
-          participantNeedToRekey={false}
-          youNeedToRekey={false}
-        />
+        <MutedIcon isSelected={this.props.isSelected} isMuted={this.props.isMuted} isLocked={false} />
       </Box>
     )
   }

@@ -18,7 +18,6 @@ export {
   renderComponent,
   renderNothing,
   withHandlers,
-  withState,
   withStateHandlers,
   withProps,
   mapProps,
@@ -26,7 +25,6 @@ export {
   setDisplayName,
 } from 'recompose'
 export {default as createCachedSelector} from 're-reselect'
-export {default as pausableConnect} from './pausable-connect'
 export type {TypedState} from '../constants/reducer'
 export {
   createShallowEqualSelector,
@@ -36,3 +34,4 @@ export {
   defaultMemoize,
 }
 export {Dispatch} from '../constants/types/flux'
+export {isMobile} from '../constants/platform'

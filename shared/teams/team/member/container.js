@@ -2,11 +2,11 @@
 import * as Types from '../../../constants/types/teams'
 import {amIBeingFollowed, amIFollowing} from '../../../constants/selectors'
 import * as I from 'immutable'
+import * as Chat2Gen from '../../../actions/chat2-gen'
 import {connect} from 'react-redux'
 import {compose} from 'recompose'
 import {HeaderHoc} from '../../../common-adapters'
 import {createShowUserProfile} from '../../../actions/profile-gen'
-import {createStartConversation} from '../../../actions/chat-gen'
 import {TeamMember} from '.'
 import {type TypedState} from '../../../constants/reducer'
 import {getCanPerform, teamWaitingKey} from '../../../constants/teams'
@@ -67,8 +67,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateAppend, nav
   _onLeaveTeam: (teamname: string) => {
     dispatch(navigateAppend([{props: {teamname}, selected: 'reallyLeaveTeam'}]))
   },
-  _onChat: (username, myUsername) => {
-    username && myUsername && dispatch(createStartConversation({users: [username, myUsername]}))
+  _onChat: username => {
+    username && dispatch(Chat2Gen.createStartConversation({participants: [username]}))
   },
   onBack: () => dispatch(navigateUp()),
 })
@@ -95,7 +95,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
     admin,
     user,
     you,
-    onChat: () => dispatchProps._onChat(stateProps._username, stateProps._you),
+    onChat: () => dispatchProps._onChat(stateProps._username),
     onEditMembership: () => dispatchProps._onEditMembership(stateProps.teamname, stateProps._username),
     onRemoveMember: () => {
       if (stateProps._username === stateProps._you) {

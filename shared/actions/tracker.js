@@ -643,7 +643,10 @@ function* trackerSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TrackerGen.setupTrackerHandlers, _setupTrackerHandlers)
   yield Saga.safeTakeEveryPure('tracker:_userChanged', _userChanged)
 
-  yield Saga.fork(_trackerTimer)
+  // We don't have open trackers in mobile
+  if (!isMobile) {
+    yield Saga.fork(_trackerTimer)
+  }
 }
 
 export default trackerSaga

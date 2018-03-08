@@ -8,13 +8,12 @@ import SmallTeam from './small-team/container'
 import {BigTeamsLabel} from './big-teams-label'
 import {Box} from '../../../common-adapters'
 import {globalStyles, globalMargins, isMobile} from '../../../styles'
-import * as Types from '../../../constants/types/chat'
+import * as Types from '../../../constants/types/chat2'
 
 type MakeRowOptions = {
   channelname: string,
-  conversationIDKey: ?Types.ConversationIDKey,
+  conversationIDKey: Types.ConversationIDKey,
   filtered: boolean,
-  isActiveRoute: boolean,
   teamname: string,
   type: 'small' | 'bigHeader' | 'bigTeamsLabel' | 'big',
 }
@@ -32,10 +31,9 @@ const makeRow = (options: MakeRowOptions) => {
       case 'big':
         return (
           <FilterBigTeamChannel
-            key={`${options.teamname}:${options.channelname}`}
+            key={options.conversationIDKey}
             conversationIDKey={options.conversationIDKey}
             channelname={options.channelname}
-            isActiveRoute={options.isActiveRoute}
             teamname={options.teamname}
           />
         )
@@ -45,7 +43,6 @@ const makeRow = (options: MakeRowOptions) => {
             key={options.conversationIDKey}
             conversationIDKey={options.conversationIDKey}
             channelname={options.channelname}
-            isActiveRoute={options.isActiveRoute}
             teamname={options.teamname}
           />
         )
@@ -53,20 +50,13 @@ const makeRow = (options: MakeRowOptions) => {
   } else {
     switch (options.type) {
       case 'bigHeader':
-        return (
-          <BigTeamHeader
-            key={options.teamname}
-            teamname={options.teamname}
-            isActiveRoute={options.isActiveRoute}
-          />
-        )
+        return <BigTeamHeader key={options.teamname} teamname={options.teamname} />
       case 'big':
         return (
           <BigTeamChannel
-            key={`${options.teamname}:${options.channelname}`}
+            key={options.conversationIDKey}
             conversationIDKey={options.conversationIDKey}
             channelname={options.channelname}
-            isActiveRoute={options.isActiveRoute}
           />
         )
       case 'small':
@@ -75,7 +65,6 @@ const makeRow = (options: MakeRowOptions) => {
             key={options.conversationIDKey}
             conversationIDKey={options.conversationIDKey}
             channelname={options.channelname}
-            isActiveRoute={options.isActiveRoute}
             teamname={options.teamname}
           />
         )
