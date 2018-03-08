@@ -7,7 +7,6 @@ export type Props = {|
   channelName: ?string,
   muted: boolean,
   onBack: () => void,
-  onDebugDump: () => void,
   onOpenFolder: () => void,
   onShowProfile: (user: string) => void,
   onToggleInfoPanel: () => void,

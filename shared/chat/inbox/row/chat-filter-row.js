@@ -12,7 +12,6 @@ type Props = {
   isLoading: boolean,
   filter: string,
   filterFocusCount: number,
-  onDebugDump: () => void,
   onNewChat: () => void,
   onSetFilter: (filter: string) => void,
   onSelectDown: () => void,
@@ -135,11 +134,6 @@ class ChatFilterRow extends React.PureComponent<Props, State> {
           type="iconfont-compose"
           style={isMobile ? styleIconComposeMobile : styleIconCompose}
           onClick={this.props.onNewChat}
-        />
-        <Icon
-          type="iconfont-keybase"
-          style={isMobile ? styleIconComposeMobile : styleIconCompose}
-          onClick={this.props.onDebugDump}
         />
         {this.props.isLoading && (
           <Box style={loadingContainer}>

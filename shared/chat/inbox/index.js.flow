@@ -40,7 +40,6 @@ export type Props = {
   onNewChat: () => void,
   onSelectUp: () => void,
   onSelectDown: () => void,
-  onDebugDump: () => void,
   onHotkey: (cmd: string) => void,
   onSetFilter: (filter: string) => void,
   onUntrustedInboxVisible: (conversationIDKeys: Array<ConversationIDKey>) => void,

@@ -25,7 +25,6 @@ const mapStateToProps = (state: TypedState, {routeState}) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {routeState, setRouteState, navigateAppend}) => ({
-  onDebugDump: () => dispatch(Chat2Gen.createDebugDump({})),
   _onSelectNext: (
     rows: Array<Inbox.RowItem>,
     selectedConversationIDKey: ?Types.ConversationIDKey,
@@ -80,7 +79,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   isLoading: stateProps.isLoading,
   neverLoaded: stateProps.neverLoaded,
   onNewChat: dispatchProps.onNewChat,
-  onDebugDump: dispatchProps.onDebugDump,
   onSelectDown: () => dispatchProps._onSelectNext(stateProps.rows, stateProps._selectedConversationIDKey, 1),
   onSelectUp: () => dispatchProps._onSelectNext(stateProps.rows, stateProps._selectedConversationIDKey, -1),
   onSetFilter: dispatchProps.onSetFilter,

@@ -1,29 +1,11 @@
 // @flow
 import * as I from 'immutable'
-import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Types from '../types/chat2'
 import {chatTab} from '../tabs'
 import type {TypedState} from '../reducer'
 import {makeConversationMeta} from './meta'
 import {getPath} from '../../route-tree'
 import {isMobile} from '../platform'
-
-export const DEBUGDumpChat = (conversationIDKey?: ?Types.ConversationIDKey) => {
-  const dispatch = isMobile ? global.store.dispatch : window.DEBUGStore.dispatch
-  if (!dispatch) return
-  dispatch(Chat2Gen.createDebugDump({conversationIDKey}))
-}
-
-// TEMP
-if (__DEV__) {
-  console.warn('DEBUG DUMP CHAT ENABLED-\n-\n-\n-\n-\n-\n-\n-\n-\n-\n-\n-\n-\n')
-  if (isMobile) {
-    global.DEBUGDumpChat = DEBUGDumpChat
-  } else {
-    window.DEBUGDumpChat = DEBUGDumpChat
-  }
-}
-// TEMP
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   badgeMap: I.Map(),

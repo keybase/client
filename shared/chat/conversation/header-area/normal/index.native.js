@@ -57,11 +57,6 @@ const ChannelHeader = (props: Props) => (
       style={{...styleLeft, flexShrink: 0, padding: globalMargins.tiny, fontSize: 21}}
       onClick={props.onToggleInfoPanel}
     />
-    <Icon
-      type="iconfont-keybase"
-      style={{...styleLeft, flexShrink: 0, padding: globalMargins.tiny, fontSize: 21}}
-      onClick={props.onDebugDump}
-    />
   </Box>
 )
 
@@ -102,11 +97,6 @@ const UsernameHeader = (props: Props) => (
         onClick={props.onToggleInfoPanel}
       />
     )}
-    <Icon
-      type="iconfont-keybase"
-      style={{...styleLeft, flexShrink: 0, padding: globalMargins.tiny, fontSize: 21}}
-      onClick={props.onDebugDump}
-    />
   </Box>
 )
 

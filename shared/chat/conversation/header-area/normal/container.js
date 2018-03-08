@@ -39,7 +39,6 @@ const mapStateToProps = (state: TypedState, {infoPanelOpen, conversationIDKey}) 
 const mapDispatchToProps = (dispatch: Dispatch, {onToggleInfoPanel, conversationIDKey}) => ({
   _onOpenFolder: () => dispatch(Chat2Gen.createOpenFolder({conversationIDKey})),
   onBack: () => dispatch(RouteTree.navigateUp()),
-  onDebugDump: () => dispatch(Chat2Gen.createDebugDump({conversationIDKey})),
   onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
   onToggleInfoPanel,
 })
@@ -51,7 +50,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   infoPanelOpen: stateProps.infoPanelOpen,
   muted: stateProps.muted,
   onBack: dispatchProps.onBack,
-  onDebugDump: dispatchProps.onDebugDump,
   onOpenFolder: dispatchProps._onOpenFolder,
   onShowProfile: dispatchProps.onShowProfile,
   onToggleInfoPanel: dispatchProps.onToggleInfoPanel,

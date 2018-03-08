@@ -26,7 +26,6 @@ export const blockConversation = 'chat2:blockConversation'
 export const clearLoading = 'chat2:clearLoading'
 export const clearOrdinals = 'chat2:clearOrdinals'
 export const clearPendingConversation = 'chat2:clearPendingConversation'
-export const debugDump = 'chat2:debugDump'
 export const desktopNotification = 'chat2:desktopNotification'
 export const exitSearch = 'chat2:exitSearch'
 export const inboxRefresh = 'chat2:inboxRefresh'
@@ -159,7 +158,6 @@ export const createBlockConversation = (
 export const createClearLoading = (payload: $ReadOnly<{key: string}>) => ({error: false, payload, type: clearLoading})
 export const createClearOrdinals = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: clearOrdinals})
 export const createClearPendingConversation = () => ({error: false, payload: undefined, type: clearPendingConversation})
-export const createDebugDump = (payload: $ReadOnly<{conversationIDKey?: ?Types.ConversationIDKey}>) => ({error: false, payload, type: debugDump})
 export const createDesktopNotification = (
   payload: $ReadOnly<{
     conversationIDKey: Types.ConversationIDKey,
@@ -384,7 +382,6 @@ export type BlockConversationPayload = More.ReturnType<typeof createBlockConvers
 export type ClearLoadingPayload = More.ReturnType<typeof createClearLoading>
 export type ClearOrdinalsPayload = More.ReturnType<typeof createClearOrdinals>
 export type ClearPendingConversationPayload = More.ReturnType<typeof createClearPendingConversation>
-export type DebugDumpPayload = More.ReturnType<typeof createDebugDump>
 export type DesktopNotificationPayload = More.ReturnType<typeof createDesktopNotification>
 export type ExitSearchPayload = More.ReturnType<typeof createExitSearch>
 export type InboxRefreshPayload = More.ReturnType<typeof createInboxRefresh>
@@ -454,7 +451,6 @@ export type Actions =
   | More.ReturnType<typeof createClearLoading>
   | More.ReturnType<typeof createClearOrdinals>
   | More.ReturnType<typeof createClearPendingConversation>
-  | More.ReturnType<typeof createDebugDump>
   | More.ReturnType<typeof createDesktopNotification>
   | More.ReturnType<typeof createExitSearch>
   | More.ReturnType<typeof createInboxRefresh>

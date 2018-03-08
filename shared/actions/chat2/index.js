@@ -1700,42 +1700,6 @@ function* messageAttachmentNativeSave(action: Chat2Gen.MessageAttachmentNativeSa
   }
 }
 
-// Helper to get the store around a conversation
-const debugDump = (action: Chat2Gen.DebugDumpPayload, state: TypedState) => {
-  let data
-  const chat = state.chat2
-  const c = action.payload.conversationIDKey
-  if (c) {
-    data = I.Map({
-      badgeMap: chat.badgeMap.get(c),
-      editingMap: chat.editingMap.get(c),
-      loadingMap: chat.loadingMap,
-      messageMap: chat.messageMap.get(c),
-      messageOrdinals: chat.messageOrdinals.get(c),
-      metaMap: chat.metaMap.get(c),
-      pendingConversationUsers: chat.pendingConversationUsers,
-      pendingMode: chat.pendingMode,
-      pendingOutboxToOrdinal: chat.pendingOutboxToOrdinal.get(c),
-      pendingSelected: chat.pendingSelected,
-      selectedConversation: chat.selectedConversation,
-      typingMap: chat.typingMap.get(c),
-      unreadMap: chat.unreadMap.get(c),
-    }).toJS()
-  } else {
-    data = chat.toJS()
-  }
-
-  if (isMobile) {
-    return Saga.put(
-      ConfigGen.createDebugDump({
-        items: JSON.stringify(data, null, 2).split('\n'),
-      })
-    )
-  } else {
-    console.log(data)
-  }
-}
-
 const joinConversation = (action: Chat2Gen.JoinConversationPayload) =>
   Saga.call(RPCChatTypes.localJoinConversationByIDLocalRpcPromise, {
     convID: Types.keyToConversationID(action.payload.conversationIDKey),
@@ -1906,7 +1870,6 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.joinConversation, joinConversation)
   yield Saga.safeTakeEveryPure(Chat2Gen.leaveConversation, leaveConversation)
 
-  yield Saga.safeTakeEveryPure(Chat2Gen.debugDump, debugDump)
   yield Saga.safeTakeEveryPure(Chat2Gen.muteConversation, muteConversation)
   yield Saga.safeTakeEveryPure(Chat2Gen.updateNotificationSettings, updateNotificationSettings)
   yield Saga.safeTakeEveryPure(Chat2Gen.blockConversation, blockConversation)

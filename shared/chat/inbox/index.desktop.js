@@ -152,7 +152,6 @@ class Inbox extends PureComponent<Props, State> {
             filterFocusCount={this.props.filterFocusCount}
             onSelectUp={this.props.onSelectUp}
             onSelectDown={this.props.onSelectDown}
-            onDebugDump={this.props.onDebugDump}
           />
           <NewConversation />
           <div style={_scrollableStyle} onScroll={this._onScroll}>

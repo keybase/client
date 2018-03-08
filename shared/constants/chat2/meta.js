@@ -11,9 +11,6 @@ import {isIOS, isAndroid} from '../platform'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {toByteArray} from 'base64-js'
 
-const IGNORE_UNTRUSTED_CACHE = false
-IGNORE_UNTRUSTED_CACHE && console.log('aaa NOJIMA skipping locametadata')
-
 const conversationMemberStatusToMembershipType = (m: RPCChatTypes.ConversationMemberStatus) => {
   switch (m) {
     case RPCChatTypes.commonConversationMemberStatus.active:
@@ -33,11 +30,6 @@ export const unverifiedInboxUIItemToConversationMeta = (
   i: RPCChatTypes.UnverifiedInboxUIItem,
   username: string
 ) => {
-  if (IGNORE_UNTRUSTED_CACHE) {
-    // $FlowIssue flow rightfully complains
-    i.localMetadata = null
-  }
-
   // Private chats only
   if (i.visibility !== RPCTypes.commonTLFVisibility.private) {
     return null
@@ -84,7 +76,7 @@ export const unverifiedInboxUIItemToConversationMeta = (
     timestamp: i.time,
     tlfname: i.name,
     trustedState: 'untrusted',
-    wasFinalizedBy: 'nojima', // TEMP until core i.finalizeInfo ? i.finalizeInfo.resetUser : '',
+    wasFinalizedBy: i.finalizeInfo ? i.finalizeInfo.resetUser : '',
   })
 }
 
@@ -234,7 +226,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
     timestamp: i.time,
     tlfname: i.name,
     trustedState: 'trusted',
-    wasFinalizedBy: 'nojima', // TEMP until core i.finalizeInfo ? i.finalizeInfo.resetUser : '',
+    wasFinalizedBy: i.finalizeInfo ? i.finalizeInfo.resetUser : '',
   })
 }
 

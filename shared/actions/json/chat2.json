@@ -309,10 +309,6 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "settings": "RPCChatTypes.ConversationNotificationInfo"
     },
-    // To help debug whats going on w/ the chat store
-    "debugDump": {
-      "conversationIDKey?": "?Types.ConversationIDKey",
-    },
     // Block a conversation
     "blockConversation": {
       "conversationIDKey": "Types.ConversationIDKey",
