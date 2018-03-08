@@ -67,8 +67,7 @@ public class KeyStore implements UnsafeExternalKeyStore {
         NativeLogger.info("KeyStore: clearing secret for " + serviceName + ":" + key);
         try {
             prefs.edit().remove(sharedPrefKeyPrefix(serviceName) + key).commit();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             NativeLogger.error("KeyStore: error clearing secret for " + serviceName + ":" + key + ": " + Log.getStackTraceString(e));
             throw e;
         }
@@ -77,43 +76,54 @@ public class KeyStore implements UnsafeExternalKeyStore {
     @Override
     public synchronized byte[] getUsersWithStoredSecretsMsgPack(final String serviceName) throws Exception {
         NativeLogger.info("KeyStore: getting users with stored secrets for " + serviceName);
-        final Iterator<String> keyIterator = prefs.getAll().keySet().iterator();
-        final ArrayList<String> userNames = new ArrayList<>();
+        try {
+            final Iterator<String> keyIterator = prefs.getAll().keySet().iterator();
+            final ArrayList<String> userNames = new ArrayList<>();
 
-        while (keyIterator.hasNext()) {
-            final String key = keyIterator.next();
-            if (key.indexOf(sharedPrefKeyPrefix(serviceName)) == 0) {
-                userNames.add(key.substring(sharedPrefKeyPrefix(serviceName).length()));
+            while (keyIterator.hasNext()) {
+                final String key = keyIterator.next();
+                if (key.indexOf(sharedPrefKeyPrefix(serviceName)) == 0) {
+                    userNames.add(key.substring(sharedPrefKeyPrefix(serviceName).length()));
+                }
             }
-        }
 
-        MessagePack msgpack = new MessagePack();
-        return msgpack.write(userNames);
+            MessagePack msgpack = new MessagePack();
+            return msgpack.write(userNames);
+        } catch (Exception e) {
+            NativeLogger.error("KeyStore: error getting users with stored secrets for " + serviceName + ": " + Log.getStackTraceString(e));
+            throw e;
+        }
     }
 
     @Override
     public synchronized byte[] retrieveSecret(final String serviceName, final String key) throws Exception {
         NativeLogger.info("KeyStore: retrieving secret for " + serviceName + ":" + key);
-        final byte[] wrappedSecret = readWrappedSecret(prefs, sharedPrefKeyPrefix(serviceName) + key);
-        Entry entry = ks.getEntry(keyStoreAlias(serviceName), null);
-
-        if (entry == null){
-            throw new KeyStoreException("No RSA keys in the keystore");
-        }
-
-        if (!(entry instanceof PrivateKeyEntry)){
-            throw new KeyStoreException("Entry is not a PrivateKeyEntry. It is: " + entry.getClass());
-        }
 
         try {
-            return unwrapSecret((PrivateKeyEntry) entry, wrappedSecret).getEncoded();
-        } catch (InvalidKeyException e) {
-            // Invalid key, this can happen when a user changes their lock screen from something to nothing
-            // or enrolls a new finger. See https://developer.android.com/reference/android/security/keystore/KeyPermanentlyInvalidatedException.html
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && e instanceof KeyPermanentlyInvalidatedException) {
-                NativeLogger.info("KeyStore: Key no longer valid. Deleting entry: " + Log.getStackTraceString(e));
-                ks.deleteEntry((keyStoreAlias(serviceName)));
+            final byte[] wrappedSecret = readWrappedSecret(prefs, sharedPrefKeyPrefix(serviceName) + key);
+            Entry entry = ks.getEntry(keyStoreAlias(serviceName), null);
+
+            if (entry == null) {
+                throw new KeyStoreException("No RSA keys in the keystore");
             }
+
+            if (!(entry instanceof PrivateKeyEntry)) {
+                throw new KeyStoreException("Entry is not a PrivateKeyEntry. It is: " + entry.getClass());
+            }
+
+            try {
+                return unwrapSecret((PrivateKeyEntry) entry, wrappedSecret).getEncoded();
+            } catch (InvalidKeyException e) {
+                // Invalid key, this can happen when a user changes their lock screen from something to nothing
+                // or enrolls a new finger. See https://developer.android.com/reference/android/security/keystore/KeyPermanentlyInvalidatedException.html
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && e instanceof KeyPermanentlyInvalidatedException) {
+                    NativeLogger.info("KeyStore: Key no longer valid. Deleting entry: " + Log.getStackTraceString(e));
+                    ks.deleteEntry((keyStoreAlias(serviceName)));
+                }
+                throw e;
+            }
+        } catch (Exception e) {
+            NativeLogger.error("KeyStore: error retrieving secret for " + serviceName + ":" + key + ": " + Log.getStackTraceString(e));
             throw e;
         }
     }
@@ -137,10 +147,10 @@ public class KeyStore implements UnsafeExternalKeyStore {
                 ks.deleteEntry(keyStoreAlias(serviceName));
                 KeyStoreHelper.generateRSAKeyPair(context, keyStoreAlias(serviceName));
             }
-         } finally {
-          // Reload the keystore
-          ks = java.security.KeyStore.getInstance("AndroidKeyStore");
-          ks.load(null);
+        } finally {
+            // Reload the keystore
+            ks = java.security.KeyStore.getInstance("AndroidKeyStore");
+            ks.load(null);
         }
     }
 
@@ -168,7 +178,7 @@ public class KeyStore implements UnsafeExternalKeyStore {
 
 
     private static byte[] readWrappedSecret(SharedPreferences prefs, String prefsKey) throws Exception {
-        final String wrappedKey = prefs.getString(prefsKey,"");
+        final String wrappedKey = prefs.getString(prefsKey, "");
         if (wrappedKey.isEmpty()) {
             throw new KeyStoreException("No secret for " + prefsKey);
         }
