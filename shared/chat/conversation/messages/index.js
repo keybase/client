@@ -94,7 +94,7 @@ const mapStateToProps = (state: TypedState, {ordinal, previous, conversationIDKe
   if (!message) {
     const meta = Constants.getMeta(state, conversationIDKey)
     showResetParticipants = meta && !meta.resetParticipants.isEmpty() ? conversationIDKey : null
-    showSuperseded = meta && meta.supersededByCausedBy ? conversationIDKey : null
+    showSuperseded = meta && (meta.wasFinalizedBy || meta.supersededBy) ? conversationIDKey : null
   }
   return {
     isEditing:

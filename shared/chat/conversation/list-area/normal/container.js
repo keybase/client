@@ -13,7 +13,7 @@ import {
 
 const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   const meta = Constants.getMeta(state, conversationIDKey)
-  const hasExtraRow = !meta.resetParticipants.isEmpty() || !!meta.supersededByCausedBy
+  const hasExtraRow = !meta.resetParticipants.isEmpty() || !!meta.supersededBy
   return {
     conversationIDKey,
     hasExtraRow,

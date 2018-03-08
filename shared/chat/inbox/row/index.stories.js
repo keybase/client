@@ -17,7 +17,6 @@ const simpleCommon = {
   isMuted: false,
   isSelected: false,
   onSelectConversation: action('onSelectConversation'),
-  participantNeedToRekey: false,
   participants: ['chris'],
   rekeyInfo: null,
   showBold: false,
@@ -28,7 +27,7 @@ const simpleCommon = {
   unreadCount: 0,
   usernameColor: globalColors.darkBlue,
   youAreReset: false,
-  youNeedToRekey: false,
+  isLocked: false,
 }
 
 const mocks = [
@@ -72,7 +71,17 @@ const commonChannel = {
 const load = () => {
   storiesOf('Chat/Inbox', module)
     .add('Simple', () => (
-      <Box style={{width: 240}}>{mocks.map(m => <SmallTeam key={m.conversationIDKey} {...m} />)}</Box>
+      <Box style={{width: 240}}>
+        {mocks.map(m => (
+          <SmallTeam
+            key={m.conversationIDKey}
+            participantNeedToRekey={false}
+            youNeedToRekey={false}
+            isFinalized={false}
+            {...m}
+          />
+        ))}
+      </Box>
     ))
     .add('Team', () => (
       <Box style={{borderColor: 'black', borderStyle: 'solid', borderWidth: 1, width: 240}}>
@@ -148,15 +157,14 @@ const commonBigFiltered = {
 
 const commonFiltered = {
   backgroundColor: globalColors.white,
+  isLocked: false,
   isMuted: false,
   isSelected: false,
   onSelectConversation: action('onSelectConversation'),
-  participantNeedToRekey: false,
   participants: ['chris', 'mikem'],
   showBold: false,
   teamname: null,
   usernameColor: globalColors.darkBlue,
-  youNeedToRekey: false,
 }
 
 export default load
