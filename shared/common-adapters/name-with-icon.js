@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import Avatar, {type AvatarSize} from './avatar'
+import Avatar from './avatar'
 import Box from './box'
 import ClickableBox from './clickable-box'
 import Icon from './icon'
@@ -31,7 +31,7 @@ type Props = {
 }
 
 const NameWithIconVertical = (props: Props) => {
-  const isAvatar = !!(props.username || props.avatar)
+  const isAvatar = !!(props.username || props.teamname)
   const adapterProps = getAdapterProps(props.size || 'default', !!props.username)
   const BoxComponent = props.onClick ? ClickableBox : Box
   return (
@@ -170,17 +170,17 @@ const styles = styleSheetCreate({
 })
 
 // Get props to pass to subcomponents (Text, Avatar, etc.)
-const getAdapterProps = (size: Size, isAvatar: boolean) => {
+const getAdapterProps = (size: Size, isUser: boolean) => {
   switch (size) {
     case 'small':
       return {
-        iconSize: isAvatar ? 64 : 48,
-        metaMargin: isAvatar ? 4 : 8,
+        iconSize: isUser ? 64 : 48,
+        metaMargin: isUser ? 4 : 8,
         metaOneType: 'BodySmall',
         titleType: 'BodySemibold',
       }
     case 'large':
-      if (isAvatar) {
+      if (isUser) {
         return {
           iconSize: 112,
           metaMargin: 8,
@@ -191,10 +191,10 @@ const getAdapterProps = (size: Size, isAvatar: boolean) => {
   }
   // default
   return {
-    iconSize: isAvatar ? 80 : 64,
+    iconSize: isUser ? 80 : 64,
     metaMargin: isMobile ? 6 : 8,
-    metaOneType: isAvatar ? 'BodySemibold' : 'BodySmall',
-    titleType: 'BodyBig',
+    metaOneType: isUser ? 'BodySemibold' : 'BodySmall',
+    titleType: 'HeaderBig',
   }
 }
 
