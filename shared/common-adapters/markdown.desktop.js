@@ -96,13 +96,6 @@ function messageCreateComponent(type, key, children, options) {
           {children}
         </Text>
       )
-    case 'phone':
-      console.warn('in case phone', children)
-      return (
-        <Text type="BodyPrimaryLink" key={key} style={linkStyle} onClickURL={'tel:'+children}>
-          {children}
-        </Text>
-      )
     case 'link':
       return (
         <Text type="BodyPrimaryLink" key={key} style={linkStyle} onClickURL={options.href}>
@@ -110,6 +103,7 @@ function messageCreateComponent(type, key, children, options) {
         </Text>
       )
     case 'text-block':
+    case 'phone':
       return (
         <Text type="Body" key={key} style={textBlockStyle}>
           {children && children.length ? children : '\u200b'}

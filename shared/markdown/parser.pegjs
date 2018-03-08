@@ -64,13 +64,14 @@ Ticks1 = "`"
 Ticks3 = "```"
 EscapeMarker = "\\"
 StrikeMarker = "~"
-BoldMarker = "_"
-ItalicMarker = "*"
+BoldMarker = "*"
+ItalicMarker = "_"
 EmojiMarker = ":"
 QuoteBlockMarker = ">"
 MentionMarker = "@"
 ChannelMarker = "#"
 PhoneMarker = "("
+PhonePostfix = ") "
 
 // Can mark the beginning of a link
 PunctuationMarker = [()[\].,!?]
@@ -119,10 +120,12 @@ Channel
     options && options.channelNameToConvID && options.channelNameToConvID(name)
 } { return {type: 'channel', children: [name], convID: options && options.channelNameToConvID && options.channelNameToConvID(name) } }
 
+Num = [0-9]
 Phone
- = phone:($ (PhoneMarker [0-9][0-9][0-9] ") " 
-            [0-9][0-9][0-9] "-"
-            [0-9][0-9][0-9][0-9]) ) {
+ = phone:($ (
+   (PhoneMarker? Num Num Num PhonePostfix Num Num Num [- ] Num Num Num Num !NonBlank) /
+   (PhoneMarker? Num Num Num [- ] Num Num Num [- ] Num Num Num Num !NonBlank)))
+   {
     return {type: 'phone', href: 'tel:'+phone, children: [phone]} }
 
 CodeBlock
@@ -166,7 +169,6 @@ LinkChar
 Link 
   = url:( [([]* ("http"i "s"i? ":")? (LinkChar+) ) & {
     let URL = [].concat.apply([], url).join('')
-    console.warn('considering link of', URL)
     if (URL.length < 4) { // 4 chars is the shortest a URL can be (i.e. t.co)
       return null
     }

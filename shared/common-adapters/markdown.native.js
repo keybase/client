@@ -122,6 +122,19 @@ function messageCreateComponent(style, allowFontScaling) {
             {children}
           </Text>
         )
+      case 'phone':
+        return (
+          <Text
+            type="BodyPrimaryLink"
+            key={key}
+            style={linkStyle}
+            onClickURL={'tel:' + children}
+            onLongPress={() => _urlChooseOption('tel:' + children)}
+            allowFontScaling={allowFontScaling}
+          >
+            {children}
+          </Text>
+        )
       case 'text-block':
         return (
           <Text
