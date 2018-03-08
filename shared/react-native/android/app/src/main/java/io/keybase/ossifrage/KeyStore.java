@@ -65,7 +65,13 @@ public class KeyStore implements UnsafeExternalKeyStore {
     @Override
     public void clearSecret(final String serviceName, final String key) throws Exception {
         NativeLogger.info("KeyStore: clearing secret for " + serviceName + ":" + key);
-        prefs.edit().remove(sharedPrefKeyPrefix(serviceName) + key).commit();
+        try {
+            prefs.edit().remove(sharedPrefKeyPrefix(serviceName) + key).commit();
+        }
+        catch (Exception e) {
+            NativeLogger.error("KeyStore: error clearing secret for " + serviceName + ":" + key + ": " + Log.getStackTraceString(e));
+            throw e;
+        }
     }
 
     @Override
