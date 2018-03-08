@@ -120,7 +120,9 @@ Channel
 } { return {type: 'channel', children: [name], convID: options && options.channelNameToConvID && options.channelNameToConvID(name) } }
 
 Phone
- = phone:($ (PhoneMarker [0-9]+) ) {
+ = phone:($ (PhoneMarker [0-9][0-9][0-9] ") " 
+            [0-9][0-9][0-9] "-"
+            [0-9][0-9][0-9][0-9]) ) {
     return {type: 'phone', href: 'tel:'+phone, children: [phone]} }
 
 CodeBlock
