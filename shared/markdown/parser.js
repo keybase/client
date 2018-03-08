@@ -204,7 +204,8 @@ function peg$parse(input, options) {
       peg$c46 = /^[\- ]/,
       peg$c47 = peg$otherExpectation("stripped character class"),
       peg$c48 = function(phone) {
-          return {type: 'phone', href: 'tel:'+phone, children: [phone]} },
+          return {type: 'phone', href: 'tel:'+phone, children: [phone]}
+         },
       peg$c49 = function(code) { return {type: 'code-block', children: [code]} },
       peg$c50 = function(code) { return {type: 'inline-code', children: [code]} },
       peg$c51 = /^[a-zA-Z0-9+_\-]/,
@@ -2500,6 +2501,95 @@ function peg$parse(input, options) {
         peg$currPos = s2;
         s2 = peg$FAILED;
       }
+      if (s2 === peg$FAILED) {
+        s2 = peg$currPos;
+        s3 = peg$parsePhoneMarker();
+        if (s3 === peg$FAILED) {
+          s3 = null;
+        }
+        if (s3 !== peg$FAILED) {
+          s4 = peg$parseNum();
+          if (s4 !== peg$FAILED) {
+            s5 = peg$parseNum();
+            if (s5 !== peg$FAILED) {
+              s6 = peg$parseNum();
+              if (s6 !== peg$FAILED) {
+                s7 = peg$parseNum();
+                if (s7 !== peg$FAILED) {
+                  s8 = peg$parseNum();
+                  if (s8 !== peg$FAILED) {
+                    s9 = peg$parseNum();
+                    if (s9 !== peg$FAILED) {
+                      s10 = peg$parseNum();
+                      if (s10 !== peg$FAILED) {
+                        s11 = peg$parseNum();
+                        if (s11 !== peg$FAILED) {
+                          s12 = peg$parseNum();
+                          if (s12 !== peg$FAILED) {
+                            s13 = peg$parseNum();
+                            if (s13 !== peg$FAILED) {
+                              s14 = peg$currPos;
+                              peg$silentFails++;
+                              s15 = peg$parseNonBlank();
+                              peg$silentFails--;
+                              if (s15 === peg$FAILED) {
+                                s14 = void 0;
+                              } else {
+                                peg$currPos = s14;
+                                s14 = peg$FAILED;
+                              }
+                              if (s14 !== peg$FAILED) {
+                                s3 = [s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14];
+                                s2 = s3;
+                              } else {
+                                peg$currPos = s2;
+                                s2 = peg$FAILED;
+                              }
+                            } else {
+                              peg$currPos = s2;
+                              s2 = peg$FAILED;
+                            }
+                          } else {
+                            peg$currPos = s2;
+                            s2 = peg$FAILED;
+                          }
+                        } else {
+                          peg$currPos = s2;
+                          s2 = peg$FAILED;
+                        }
+                      } else {
+                        peg$currPos = s2;
+                        s2 = peg$FAILED;
+                      }
+                    } else {
+                      peg$currPos = s2;
+                      s2 = peg$FAILED;
+                    }
+                  } else {
+                    peg$currPos = s2;
+                    s2 = peg$FAILED;
+                  }
+                } else {
+                  peg$currPos = s2;
+                  s2 = peg$FAILED;
+                }
+              } else {
+                peg$currPos = s2;
+                s2 = peg$FAILED;
+              }
+            } else {
+              peg$currPos = s2;
+              s2 = peg$FAILED;
+            }
+          } else {
+            peg$currPos = s2;
+            s2 = peg$FAILED;
+          }
+        } else {
+          peg$currPos = s2;
+          s2 = peg$FAILED;
+        }
+      }
     }
     if (s2 !== peg$FAILED) {
       s1 = input.substring(s1, peg$currPos);
@@ -3296,7 +3386,7 @@ module.exports = {
 
     // phone numbers in 123 456 7890 format are plaintext, so test
     // for those explicitly and send to peg
-    const phoneExp = /[0-9]{3} [0-9]{3} [0-9]{4}/
+    const phoneExp = /[0-9]{3}\s?[0-9]{3}\s?[0-9]{4}/
 
     module.exports.isPlainText = function isPlainText(markdown) {
       return markdown && (markdown.match(plaintextExp) && !markdown.match(phoneExp)) ? markdown.trim() : null

@@ -1196,7 +1196,13 @@ Object {
   "children": Array [
     Object {
       "children": Array [
-        "123 456 78901",
+        Object {
+          "children": Array [
+            "1234567890",
+          ],
+          "href": "tel:1234567890",
+          "type": "phone",
+        },
       ],
       "type": "text-block",
     },
@@ -1210,7 +1216,7 @@ Object {
   "children": Array [
     Object {
       "children": Array [
-        "(123) 456 78901",
+        "123 456 78901",
       ],
       "type": "text-block",
     },
@@ -1224,7 +1230,35 @@ Object {
   "children": Array [
     Object {
       "children": Array [
+        "(123) 456 78901",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses phone numbers correctly 10`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
         "(123) 456 7890a",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses phone numbers correctly 11`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "12345678901",
       ],
       "type": "text-block",
     },
