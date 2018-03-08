@@ -225,7 +225,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 }
 
 export type {AvatarSize}
-const real = compose(
+const realConnector = compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   withStateHandlers(
     {_mounted: false, _stateName: '', _timeoutID: 0},
@@ -267,7 +267,53 @@ const real = compose(
       this.props.setUnmounted()
     },
   })
-)(Render)
+)
+
+const real = realConnector(Render)
+
+const autoMapStateToProps = (state: TypedState, ownProps: Props) => {
+  const me = state.config.username
+  if (ownProps.username === me || !me || !ownProps.username) {
+    return null
+  }
+  // User trackerState (more accurate) if it's available; fall back to state.config if not
+  const trackerState = state.tracker.userTrackers[me]
+  if (trackerState && trackerState.trackersLoaded) {
+    return {
+      _followers: trackerState.trackers,
+      _following: trackerState.tracking,
+    }
+  }
+  // Need to give these different names because these are sets of strings while the above are arrays of objects
+  return {
+    _cFollowers: state.config.followers,
+    _cFollowing: state.config.following,
+  }
+}
+
+const autoMergeProps = (stateProps, _, ownProps) => {
+  if (stateProps._followers && ownProps.username) {
+    const following = stateProps._following.some(user => user.username === ownProps.username)
+    const followsYou = stateProps._followers.some(user => user.username === ownProps.username)
+    return {
+      following,
+      followsYou,
+      ...ownProps,
+    }
+  } else if (stateProps.cFollowers && ownProps.username) {
+    const following = stateProps._cFollowing.has(ownProps.username)
+    const followsYou = stateProps._cFollowers.has(ownProps.username)
+    return {
+      following,
+      followsYou,
+      ...ownProps,
+    }
+  }
+  return ownProps
+}
+
+const autoConnector = compose(realConnector, connect(autoMapStateToProps, () => ({}), autoMergeProps))
+const ConnectedAvatar = autoConnector(Render)
 
 const mock = compose(
   withProps(props => {
@@ -304,4 +350,5 @@ const mock = compose(
   })
 )(Render)
 
+export {ConnectedAvatar}
 export default (isTesting ? mock : real)
