@@ -4,6 +4,8 @@
 package service
 
 import (
+	"time"
+
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/install"
@@ -31,13 +33,15 @@ func (h *InstallHandler) FuseStatus(_ context.Context, arg keybase1.FuseStatusAr
 
 func (h *InstallHandler) InstallFuse(context.Context) (keybase1.InstallResult, error) {
 	components := []string{"helper", "fuse"}
-	result := install.Install(h.G(), "", "", components, false, 120, h.G().Log)
+	result := install.Install(
+		h.G(), "", "", components, false, 120*time.Second, h.G().Log)
 	return result, nil
 }
 
 func (h *InstallHandler) InstallKBFS(context.Context) (keybase1.InstallResult, error) {
 	components := []string{"mountdir", "kbfs", "redirector"}
-	result := install.Install(h.G(), "", "", components, false, 120, h.G().Log)
+	result := install.Install(
+		h.G(), "", "", components, false, 120*time.Second, h.G().Log)
 	return result, nil
 }
 
@@ -54,6 +58,7 @@ func (h *InstallHandler) UninstallKBFS(context.Context) (keybase1.UninstallResul
 
 func (h *InstallHandler) InstallCommandLinePrivileged(context.Context) (keybase1.InstallResult, error) {
 	components := []string{"clipaths"}
-	result := install.Install(h.G(), "", "", components, false, 120, h.G().Log)
+	result := install.Install(
+		h.G(), "", "", components, false, 120*time.Second, h.G().Log)
 	return result, nil
 }
