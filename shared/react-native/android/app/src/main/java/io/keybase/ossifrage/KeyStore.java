@@ -101,7 +101,7 @@ public class KeyStore implements UnsafeExternalKeyStore {
             // Invalid key, this can happen when a user changes their lock screen from something to nothing
             // or enrolls a new finger. See https://developer.android.com/reference/android/security/keystore/KeyPermanentlyInvalidatedException.html
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && e instanceof KeyPermanentlyInvalidatedException) {
-                NativeLogger.info("Key no longer valid. Deleting entry: " + Log.getStackTraceString(e));
+                NativeLogger.info("KeyStore: Key no longer valid. Deleting entry: " + Log.getStackTraceString(e));
                 ks.deleteEntry((keyStoreAlias(serviceName)));
             }
             throw e;
