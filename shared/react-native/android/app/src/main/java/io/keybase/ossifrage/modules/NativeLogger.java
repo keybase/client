@@ -37,10 +37,10 @@ public class NativeLogger extends ReactContextBaseJavaModule {
         StringWriter sw = new StringWriter();
         JsonWriter js = new JsonWriter(sw);
         js.beginArray()
-          .value(millis)
-          .value(toLog)
-          .endArray()
-          .close();
+                .value(millis)
+                .value(toLog)
+                .endArray()
+                .close();
         return sw.toString();
     }
 
