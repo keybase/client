@@ -81,10 +81,7 @@ const load = () => {
       const Hud = UpDownFilterHoc(({upCounter, downCounter, filter}) => (
         <Box style={{height: 100, width: 240, ...globalStyles.flexBoxColumn}}>
           <MentionHud
-            channels={
-              // $FlowIssue
-              [{channelName: 'foo'}, {channelName: 'bar'}, {channelName: 'baz'}]
-            }
+            channels={['foo', 'bar', 'baz']}
             onPickChannel={action('onPickChannel')}
             onSelectChannel={action('onSelectChannel')}
             selectUpCounter={upCounter}

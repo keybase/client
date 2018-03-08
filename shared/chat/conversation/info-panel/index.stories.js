@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {storiesOf, action, createPropProvider} from '../../../stories/storybook'
+import {storiesOf, action} from '../../../stories/storybook'
 import * as Types from '../../../constants/types/chat2'
 import * as PropProviders from '../../../stories/prop-providers'
 import {Box} from '../../../common-adapters'
@@ -28,14 +28,11 @@ const notificationProps = {
   toggleChannelWide: action('onToggleChannelwide'),
 }
 
-const provider = PropProviders.compose(
-  PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
-  {
-    InfoPanel: (props: InfoPanelProps) => props,
-    OnlyValidConversations: () => onlyValidConversationsProps,
-    LifecycleNotifications: () => notificationProps,
-  }
-)
+const provider = PropProviders.compose(PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'), {
+  InfoPanel: (props: InfoPanelProps) => props,
+  OnlyValidConversations: () => onlyValidConversationsProps,
+  LifecycleNotifications: () => notificationProps,
+})
 
 const commonProps = {
   selectedConversationIDKey: Types.stringToConversationIDKey(''),
