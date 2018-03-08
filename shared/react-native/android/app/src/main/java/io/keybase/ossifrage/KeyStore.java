@@ -104,7 +104,8 @@ public class KeyStore implements UnsafeExternalKeyStore {
 
     @Override
     public synchronized byte[] retrieveSecret(final String serviceName, final String key) throws Exception {
-        NativeLogger.info("KeyStore: retrieving secret for " + serviceName + ":" + key);
+        String id = serviceName + ":" + key;
+        NativeLogger.info("KeyStore: retrieving secret for " + id);
 
         try {
             final byte[] wrappedSecret = readWrappedSecret(prefs, sharedPrefKeyPrefix(serviceName) + key);
@@ -119,18 +120,20 @@ public class KeyStore implements UnsafeExternalKeyStore {
             }
 
             try {
-                return unwrapSecret((PrivateKeyEntry) entry, wrappedSecret).getEncoded();
+                byte[] secret = unwrapSecret((PrivateKeyEntry) entry, wrappedSecret).getEncoded();
+                NativeLogger.info("KeyStore: retrieved " + secret.length + "-byte secret for " + id);
+                return secret;
             } catch (InvalidKeyException e) {
                 // Invalid key, this can happen when a user changes their lock screen from something to nothing
                 // or enrolls a new finger. See https://developer.android.com/reference/android/security/keystore/KeyPermanentlyInvalidatedException.html
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && e instanceof KeyPermanentlyInvalidatedException) {
-                    NativeLogger.info("KeyStore: Key no longer valid. Deleting entry: " + Log.getStackTraceString(e));
+                    NativeLogger.info("KeyStore: key no longer valid; deleting entry: " + Log.getStackTraceString(e));
                     ks.deleteEntry((keyStoreAlias(serviceName)));
                 }
                 throw e;
             }
         } catch (Exception e) {
-            NativeLogger.error("KeyStore: error retrieving secret for " + serviceName + ":" + key + ": " + Log.getStackTraceString(e));
+            NativeLogger.error("KeyStore: error retrieving secret for " + id + ": " + Log.getStackTraceString(e));
             throw e;
         }
     }
