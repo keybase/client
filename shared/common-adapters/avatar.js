@@ -10,6 +10,7 @@ import {
   type TypedState,
   lifecycle,
   compose,
+  setDisplayName,
   withProps,
   withHandlers,
   withStateHandlers,
@@ -227,6 +228,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 export type {AvatarSize}
 const realConnector = compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  setDisplayName('Avatar'),
   withStateHandlers(
     {_mounted: false, _stateName: '', _timeoutID: 0},
     {
@@ -313,7 +315,11 @@ const autoMergeProps = (stateProps, _, ownProps): Props => {
 }
 
 // $FlowIssue idk
-const autoConnector = compose(realConnector, connect(autoMapStateToProps, () => ({}), autoMergeProps))
+const autoConnector = compose(
+  realConnector,
+  connect(autoMapStateToProps, () => ({}), autoMergeProps),
+  setDisplayName('Avatar')
+)
 const ConnectedAvatar = autoConnector(Render)
 
 const mock = compose(

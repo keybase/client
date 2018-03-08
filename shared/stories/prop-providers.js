@@ -24,7 +24,7 @@ const compose = (...providers: any[]) => {
 const Usernames = (following: string[], you?: string) => ({
   Usernames: (props: any) => {
     const {usernames} = props
-    const users = usernames.map(username => ({
+    const users = (usernames || []).map(username => ({
       username,
       following: following.includes(username),
       you: you ? username === you : false,
@@ -37,4 +37,13 @@ const Usernames = (following: string[], you?: string) => ({
   },
 })
 
-export {compose, Usernames}
+const Avatar = (following: string[], followers: string[]) => ({
+  Avatar: (props: any) => ({
+    following: following.includes(props.username),
+    followsYou: followers.includes(props.username),
+    ...props,
+  }),
+})
+
+export {compose}
+export {Avatar, Usernames}

@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import {action, storiesOf} from '../stories/storybook'
+import {Avatar, compose, Usernames} from '../stories/prop-providers'
 import ScrollView from './scroll-view'
 import Text from './text'
 import NameWithIcon from './name-with-icon'
@@ -21,8 +22,11 @@ const innerClick = evt => {
   action('Inner click')(evt)
 }
 
+const provider = compose(Avatar(['chrisnojima'], ['chrisnojima']), Usernames(['cecileb']))
+
 const load = () => {
   storiesOf('Common', module)
+    .addDecorator(provider)
     .addDecorator(story => <ScrollView>{story()}</ScrollView>)
     .add('Name with icon', () => (
       <React.Fragment>
@@ -34,14 +38,7 @@ const load = () => {
           metaOne="786 members"
           size="default"
         />
-        <NameWithIcon
-          {...commonProps}
-          username="cecileb"
-          metaOne="Cécile Boucheron"
-          size="small"
-          following={true}
-          followsMe={true}
-        />
+        <NameWithIcon {...commonProps} username="cecileb" metaOne="Cécile Boucheron" size="small" />
         <NameWithIcon
           {...commonProps}
           icon="iconfont-crown-admin"
@@ -49,20 +46,13 @@ const load = () => {
           metaOne="Full power"
           metaTwo="Can do everything"
         />
-        <NameWithIcon
-          {...commonProps}
-          username="chrisnojima"
-          metaOne="Chris Nojima"
-          size="large"
-          followsMe={true}
-        />
+        <NameWithIcon {...commonProps} username="chrisnojima" metaOne="Chris Nojima" size="large" />
         <NameWithIcon
           {...commonProps}
           onClick={action('Clicked!')}
           username="mlsteele"
           metaOne="Miles Steele"
           size="small"
-          following={true}
         />
       </React.Fragment>
     ))
@@ -73,7 +63,6 @@ const load = () => {
           horizontal={true}
           username="cecileb"
           metaOne="Cécile Boucheron"
-          following={true}
           containerStyle={{padding: 4}}
         />
         <NameWithIcon

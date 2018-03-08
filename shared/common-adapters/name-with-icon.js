@@ -1,20 +1,18 @@
 // @flow
 import * as React from 'react'
-import Avatar from './avatar'
+import Avatar, {ConnectedAvatar} from './avatar'
 import Box from './box'
 import ClickableBox from './clickable-box'
 import Icon from './icon'
 import {type IconType} from './icon.constants'
 import Text, {type TextType} from './text'
-import {Usernames} from './usernames'
+import {ConnectedUsernames} from './usernames'
 import {collapseStyles, globalStyles, isMobile, styleSheetCreate} from '../styles'
 
 type Size = 'small' | 'default' | 'large'
 
 // Exposed style props for the top-level container and box around metadata arbitrarily
 type Props = {
-  following?: boolean,
-  followsMe?: boolean,
   horizontal?: boolean,
   colorFollowing?: boolean,
   icon?: IconType,
@@ -40,13 +38,7 @@ const NameWithIconVertical = (props: Props) => {
       style={collapseStyles([styles.vContainerStyle, props.containerStyle || {}])}
     >
       {isAvatar && (
-        <Avatar
-          size={adapterProps.iconSize}
-          following={props.following}
-          followsYou={props.followsMe}
-          username={props.username}
-          teamname={props.teamname}
-        />
+        <ConnectedAvatar size={adapterProps.iconSize} username={props.username} teamname={props.teamname} />
       )}
       {!isAvatar &&
         !!props.icon && (
@@ -70,11 +62,11 @@ const NameWithIconVertical = (props: Props) => {
         {!props.username && <Text type={adapterProps.titleType}>{props.title}</Text>}
         {!!props.username && (
           // TODO get lineclamping working here
-          <Usernames
+          <ConnectedUsernames
             type={adapterProps.titleType}
             containerStyle={isMobile ? undefined : styles.vUsernameContainerStyle}
             inline={true}
-            users={[{following: props.following, username: props.username, you: props.isYou}]}
+            usernames={[props.username]}
             colorFollowing={props.colorFollowing}
           />
         )}
@@ -106,9 +98,9 @@ const NameWithIconHorizontal = (props: Props) => {
       <Box style={collapseStyles([globalStyles.flexBoxColumn, props.metaStyle || {}])}>
         {!props.username && <Text type="BodySemibold">{props.title}</Text>}
         {!!props.username && (
-          <Usernames
+          <ConnectedUsernames
             type="BodySemibold"
-            users={[{following: props.following, username: props.username, you: props.isYou}]}
+            usernames={[props.username]}
             colorFollowing={props.colorFollowing}
           />
         )}
