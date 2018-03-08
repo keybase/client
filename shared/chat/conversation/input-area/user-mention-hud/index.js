@@ -1,17 +1,22 @@
 // @flow
 import React from 'react'
-import * as I from 'immutable'
 import {
   compose,
-  withState,
+  withStateHandlers,
   lifecycle,
   withPropsOnChange,
-  type TypedState,
-  connect,
+  withProps,
   setDisplayName,
-  type MapStateToProps,
 } from '../../../../util/container'
-import {Avatar, Box, ClickableBox, List, Text, Usernames, Icon} from '../../../../common-adapters/index'
+import {
+  Avatar,
+  Box,
+  ClickableBox,
+  List,
+  Text,
+  ConnectedUsernames,
+  Icon,
+} from '../../../../common-adapters/index'
 import {globalColors, globalMargins, globalStyles, isMobile, collapseStyles} from '../../../../styles'
 import {isSpecialMention} from '../../../../constants/chat2'
 
@@ -23,8 +28,6 @@ type Props<D: {key: string, selected: boolean}> = {
 }
 
 type MentionDatum = {
-  following: I.Set<string>,
-  you: string,
   username: string,
   fullName: string,
   selected: boolean,
@@ -32,15 +35,7 @@ type MentionDatum = {
   onHover: () => void,
 }
 
-const MentionRowRenderer = ({
-  username,
-  fullName,
-  selected,
-  onClick,
-  onHover,
-  following,
-  you,
-}: MentionDatum) => (
+const MentionRowRenderer = ({username, fullName, selected, onClick, onHover}: MentionDatum) => (
   <ClickableBox
     style={{
       ...globalStyles.flexBoxRow,
@@ -68,11 +63,7 @@ const MentionRowRenderer = ({
 
     <Box style={{width: globalMargins.small}} />
 
-    <Usernames
-      type="BodySemibold"
-      colorFollowing={true}
-      users={[{you: you === username, username, following: following.has(username)}]}
-    />
+    <ConnectedUsernames type="BodySemibold" colorFollowing={true} usernames={[username]} />
     <Text type="BodySmall" style={{marginLeft: globalMargins.tiny}}>
       {fullName}
     </Text>
@@ -99,41 +90,27 @@ const hudStyle = {
   backgroundColor: globalColors.white,
 }
 
-type MentionHudProps = {
-  users: Array<{username: string, fullName: string}>,
-  onPickUser: (user: string) => void,
-  onSelectUser: (user: string) => void,
-  pickSelectedUserCounter: number,
-  selectUpCounter: number,
-  selectDownCounter: number,
-  filter: string,
-  style?: ?Object,
-}
-
-// TODO figure typing out
-const mapStateToProps: MapStateToProps<*, *, *> = (state: TypedState, {users, selectedIndex, filter}) => ({
-  following: state.config.following,
-  you: state.config.username || '',
+const _withProps = ({users, filter, selectedIndex}) => ({
   data: users
     .map((u, i) => ({
-      username: u.username,
       fullName: u.fullName,
       key: u.username,
+      username: u.username,
     }))
     .concat({
-      username: 'channel',
       fullName: 'Everyone in this channel',
       key: 'channel',
+      username: 'channel',
     })
     .filter(u => {
       return u.username.toLowerCase().indexOf(filter) >= 0 || u.fullName.toLowerCase().indexOf(filter) >= 0
     })
     .map((u, i) => ({...u, selected: i === selectedIndex})),
 })
-// $FlowIssue is confused
-const MentionHud: Class<React.Component<MentionHudProps, void>> = compose(
-  withState('selectedIndex', 'setSelectedIndex', 0),
-  connect(mapStateToProps),
+
+const MentionHud = compose(
+  withStateHandlers({selectedIndex: 0}, {setSelectedIndex: () => selectedIndex => ({selectedIndex})}),
+  withProps(_withProps),
   setDisplayName('MentionHud'),
   lifecycle({
     componentWillReceiveProps: function(nextProps) {
@@ -141,25 +118,21 @@ const MentionHud: Class<React.Component<MentionHudProps, void>> = compose(
         nextProps.setSelectedIndex(0)
       }
       if (nextProps.data.length && nextProps.data.length !== this.props.data.length) {
-        nextProps.setSelectedIndex(n => Math.min(n, nextProps.data.length - 1))
+        nextProps.setSelectedIndex(Math.min(nextProps.selectedIndex, nextProps.data.length - 1))
       }
 
       if (nextProps.selectUpCounter !== this.props.selectUpCounter) {
-        nextProps.setSelectedIndex(n => {
-          const next = n - 1
-          if (next < 0) {
-            return Math.max(nextProps.data.length - 1, 0)
-          }
-          return next
-        })
+        let next = nextProps.selectedIndex - 1
+        if (next < 0) {
+          next = Math.max(nextProps.data.length - 1, 0)
+        }
+        nextProps.setSelectedIndex(next)
       } else if (nextProps.selectDownCounter !== this.props.selectDownCounter) {
-        nextProps.setSelectedIndex(n => {
-          const next = n + 1
-          if (next >= nextProps.data.length) {
-            return 0
-          }
-          return next
-        })
+        let next = nextProps.selectedIndex + 1
+        if (next >= nextProps.data.length) {
+          next = 0
+        }
+        nextProps.setSelectedIndex(next)
       }
 
       if (nextProps.pickSelectedUserCounter !== this.props.pickSelectedUserCounter) {
@@ -185,8 +158,6 @@ const MentionHud: Class<React.Component<MentionHudProps, void>> = compose(
           key={props.key}
           onClick={() => ownerProps.onPickUser(props.username)}
           onHover={() => ownerProps.setSelectedIndex(index)}
-          following={ownerProps.following}
-          you={ownerProps.you}
           {...props}
         />
       )

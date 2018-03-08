@@ -9,7 +9,7 @@ import {
   withStateHandlers,
 } from '../../../../util/container'
 import {Box, ClickableBox, List, Text} from '../../../../common-adapters/index'
-import {globalColors, globalMargins, globalStyles, isMobile} from '../../../../styles'
+import {globalColors, globalMargins, globalStyles, isMobile, collapseStyles} from '../../../../styles'
 
 type Props<D: {channelName: string, selected: boolean}> = {
   rowRenderer: (i: number, d: D) => React$Element<*>,
@@ -48,7 +48,7 @@ const MentionRowRenderer = ({channelName, selected, onClick, onHover}: MentionDa
 // This is important if you type a filter that gives you no results and you press enter for instance
 const Hud = ({style, data, rowRenderer, selectedIndex}: Props<*>) =>
   data.length ? (
-    <Box style={{...hudStyle, ...style}}>
+    <Box style={collapseStyles([hudStyle, style])}>
       <List
         items={data}
         renderItem={rowRenderer}
@@ -90,25 +90,21 @@ const MentionHud = compose(
         nextProps.setSelectedIndex(0)
       }
       if (nextProps.data.length && nextProps.data.length !== this.props.data.length) {
-        nextProps.setSelectedIndex(n => Math.min(n, nextProps.data.length - 1))
+        nextProps.setSelectedIndex(Math.min(nextProps.selectedIndex, nextProps.data.length - 1))
       }
 
       if (nextProps.selectUpCounter !== this.props.selectUpCounter) {
-        nextProps.setSelectedIndex(n => {
-          const next = n - 1
-          if (next < 0) {
-            return Math.max(nextProps.data.length - 1, 0)
-          }
-          return next
-        })
+        let next = nextProps.selectedIndex - 1
+        if (next < 0) {
+          next = Math.max(nextProps.data.length - 1, 0)
+        }
+        nextProps.setSelectedIndex(next)
       } else if (nextProps.selectDownCounter !== this.props.selectDownCounter) {
-        nextProps.setSelectedIndex(n => {
-          const next = n + 1
-          if (next >= nextProps.data.length) {
-            return 0
-          }
-          return next
-        })
+        let next = nextProps.selectedIndex + 1
+        if (next >= nextProps.data.length) {
+          next = 0
+        }
+        nextProps.setSelectedIndex(next)
       }
 
       if (nextProps.pickSelectedChannelCounter !== this.props.pickSelectedChannelCounter) {

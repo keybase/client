@@ -387,7 +387,13 @@ const errorUIMessagetoMessage = (
   uiMessage: RPCChatTypes.UIMessage,
   o: RPCChatTypes.MessageUnboxedError
 ) => {
-  return null
+  return makeMessageText({
+    conversationIDKey,
+    errorReason: o.errMsg,
+    id: Types.numberToMessageID(o.messageID),
+    ordinal: Types.numberToOrdinal(o.messageID),
+    timestamp: o.ctime,
+  })
 }
 
 export const uiMessageToMessage = (

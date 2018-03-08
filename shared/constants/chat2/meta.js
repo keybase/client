@@ -7,7 +7,7 @@ import * as Types from '../types/chat2'
 import type {_ConversationMeta} from '../types/chat2/meta'
 import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalColors} from '../../styles'
-import {isMobile, isIOS, isAndroid} from '../platform'
+import {isIOS, isAndroid} from '../platform'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {toByteArray} from 'base64-js'
 
@@ -64,15 +64,8 @@ export const unverifiedInboxUIItemToConversationMeta = (
       ? i.localMetadata.channelName
       : ''
 
-  const {
-    conversationIDKey: supersededBy,
-    username: supersededByCausedBy,
-  } = conversationMetadataToMetaSupersedeInfo(i.supersededBy)
-  const {
-    conversationIDKey: supersedes,
-    username: supersedesCausedBy,
-  } = conversationMetadataToMetaSupersedeInfo(i.supersedes)
-
+  const supersededBy = conversationMetadataToMetaSupersedeInfo(i.supersededBy)
+  const supersedes = conversationMetadataToMetaSupersedeInfo(i.supersedes)
   const teamname = i.membersType === RPCChatTypes.commonConversationMembersType.team ? i.name : ''
 
   return makeConversationMeta({
@@ -85,14 +78,13 @@ export const unverifiedInboxUIItemToConversationMeta = (
     resetParticipants,
     snippet: i.localMetadata ? i.localMetadata.snippet : '',
     supersededBy: supersededBy ? Types.stringToConversationIDKey(supersededBy) : null,
-    supersededByCausedBy,
     supersedes: supersedes ? Types.stringToConversationIDKey(supersedes) : null,
-    supersedesCausedBy,
     teamType: getTeamType(i),
     teamname,
     timestamp: i.time,
     tlfname: i.name,
     trustedState: 'untrusted',
+    wasFinalizedBy: 'nojima', // TEMP until core i.finalizeInfo ? i.finalizeInfo.resetUser : '',
   })
 }
 
@@ -101,10 +93,7 @@ const conversationMetadataToMetaSupersedeInfo = (metas: ?Array<RPCChatTypes.Conv
     m => m.idTriple.topicType === RPCChatTypes.commonTopicType.chat && m.finalizeInfo
   )
 
-  return {
-    conversationIDKey: meta ? supersededConversationIDToKey(meta.conversationID) : null,
-    username: meta && meta.finalizeInfo ? meta.finalizeInfo.resetUser : null,
-  }
+  return meta ? supersededConversationIDToKey(meta.conversationID) : null
 }
 
 const getTeamType = ({teamType, membersType}) => {
@@ -216,14 +205,8 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
       : []
   )
 
-  const {
-    conversationIDKey: supersededBy,
-    username: supersededByCausedBy,
-  } = conversationMetadataToMetaSupersedeInfo(i.supersededBy)
-  const {
-    conversationIDKey: supersedes,
-    username: supersedesCausedBy,
-  } = conversationMetadataToMetaSupersedeInfo(i.supersedes)
+  const supersededBy = conversationMetadataToMetaSupersedeInfo(i.supersededBy)
+  const supersedes = conversationMetadataToMetaSupersedeInfo(i.supersedes)
 
   const isTeam = i.membersType === RPCChatTypes.commonConversationMembersType.team
   const {
@@ -245,21 +228,19 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
     resetParticipants,
     snippet: i.snippet,
     supersededBy: supersededBy ? Types.stringToConversationIDKey(supersededBy) : null,
-    supersededByCausedBy,
     supersedes: supersedes ? Types.stringToConversationIDKey(supersedes) : null,
-    supersedesCausedBy,
     teamType: getTeamType(i),
     teamname: (isTeam && i.name) || '',
     timestamp: i.time,
     tlfname: i.name,
     trustedState: 'trusted',
+    wasFinalizedBy: 'nojima', // TEMP until core i.finalizeInfo ? i.finalizeInfo.resetUser : '',
   })
 }
 
 export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record({
   channelname: '',
   conversationIDKey: Types.stringToConversationIDKey(''),
-  // hasLoadedThread: false,
   inboxVersion: -1,
   isMuted: false,
   membershipType: 'active',
@@ -274,14 +255,13 @@ export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record
   resetParticipants: I.Set(),
   snippet: '',
   supersededBy: null,
-  supersededByCausedBy: null,
   supersedes: null,
-  supersedesCausedBy: null,
   teamType: 'adhoc',
   teamname: '',
   timestamp: 0,
   tlfname: '',
   trustedState: 'untrusted',
+  wasFinalizedBy: '',
 })
 
 const bgPlatform = isIOS ? globalColors.white : isAndroid ? globalColors.transparent : globalColors.blue5

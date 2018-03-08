@@ -13,7 +13,8 @@ const mapStateToProps = (state: TypedState, {filter, conversationIDKey}) => {
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const channels = stateProps._metaMap.reduce((arr, meta) => {
-    if (meta.teamname === stateProps._teamname) {
+    // only if we're in a team
+    if (stateProps._teamname && meta.teamname === stateProps._teamname) {
       arr.push(meta.channelname)
     }
     return arr

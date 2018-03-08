@@ -10,12 +10,11 @@ type Props = {
   isMuted: boolean,
   isSelected: boolean,
   onSelectConversation: () => void,
-  participantNeedToRekey: boolean,
+  isLocked: boolean,
   participants: Array<string>,
   showBold: boolean,
   teamname: ?string,
   usernameColor: string,
-  youNeedToRekey: boolean,
 }
 
 class FilterSmallTeam extends PureComponent<Props> {
@@ -35,9 +34,8 @@ class FilterSmallTeam extends PureComponent<Props> {
               backgroundColor={props.backgroundColor}
               isMuted={props.isMuted}
               isSelected={props.isSelected}
-              participantNeedToRekey={props.participantNeedToRekey}
+              isLocked={props.isLocked}
               participants={props.participants}
-              youNeedToRekey={props.youNeedToRekey}
             />
           )}
           <Box
