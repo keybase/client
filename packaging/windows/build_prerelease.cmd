@@ -1,9 +1,6 @@
 :: Build keybase.exe with prerelease options
 set GOARCH=386
 
-if NOT DEFINED DOKAN_PATH set DOKAN_PATH=%GOPATH%\bin\dokan-dev\build84
-echo DOKAN_PATH %DOKAN_PATH%
-
 echo GOPATH %GOPATH%
 
 :: CGO causes dll loading security vulnerabilities
@@ -26,14 +23,6 @@ go build -a -tags "prerelease production" -ldflags="-X github.com/keybase/client
 popd
 
 :: Then build kbfsdokan.
-:: First, sanity-check the hashes
-copy %DOKAN_PATH%\Win32\Release\dokan1.lib %GOPATH%\src\github.com\keybase\kbfs\dokan
-
-::for /f "usebackq tokens=2*" %%i in (`powershell Get-FileHash -Algorithm sha1 %GOPATH%\src\github.com\keybase\kbfs\dokan\dokan.lib`) do set DOKANLIBHASH=%%i
-::if NOT %DOKANLIBHASH%==1C9316A567B805C4A6ADAF0ABE1424FFFB36A3BD exit /B 1
-::for /f "usebackq tokens=2*" %%i in (`powershell Get-FileHash -Algorithm sha1 %GOPATH%\bin\dokan-dev\dokan-v0.8.0\Win32\Release\dokan.dll`) do set DOKANDLLHASH=%%i
-::if NOT %DOKANDLLHASH%==5C4FC6B6E3083E575EED06DE3115A6D05B30DB02 exit /B 1
-
 pushd %GOPATH%\src\github.com\keybase\kbfs\kbfsdokan
 :: Make sure the whole build fails if we can't build kbfsdokan
 del kbfsdokan.exe
