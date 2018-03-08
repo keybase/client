@@ -21,7 +21,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  channelname: stateProps._meta.trustedState === 'error' ? stateProps._meta.snippet : ownProps.channelname,
+  channelname: ownProps.channelname,
   hasBadge: stateProps.hasBadge,
   hasUnread: stateProps.hasUnread,
   isError: stateProps._meta.trustedState === 'error',

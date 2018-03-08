@@ -19,21 +19,20 @@ function rowBorderColor(idx: number, isLastParticipant: boolean, backgroundColor
 
 type AvatarProps = {
   participants: Array<string>,
-  youNeedToRekey: boolean,
-  participantNeedToRekey: boolean,
+  isLocked: boolean,
   isMuted: boolean,
   isSelected: boolean,
   backgroundColor: string,
 }
 
-const MutedIcon = ({isMuted, isSelected, participantNeedToRekey, youNeedToRekey}) => {
+const MutedIcon = ({isMuted, isSelected, isLocked}) => {
   let icon = null
   if (isMuted) {
     const type = isSelected
       ? isMobile ? 'icon-shh-active-24' : 'icon-shh-active-16'
       : isMobile ? 'icon-shh-24' : 'icon-shh-16'
     icon = <Icon type={type} style={avatarMutedIconStyle} />
-  } else if (participantNeedToRekey || youNeedToRekey) {
+  } else if (isLocked) {
     const type = isSelected
       ? isMobile ? 'icon-addon-lock-active-12' : 'icon-addon-lock-active-8'
       : isMobile ? 'icon-addon-lock-12' : 'icon-addon-lock-8'
@@ -54,17 +53,10 @@ class Avatars extends React.Component<AvatarProps> {
   }
 
   render() {
-    const {
-      participants,
-      youNeedToRekey,
-      participantNeedToRekey,
-      isMuted,
-      isSelected,
-      backgroundColor,
-    } = this.props
+    const {participants, isLocked, isMuted, isSelected, backgroundColor} = this.props
 
     const avatarCount = Math.min(2, participants.length)
-    const opacity = youNeedToRekey || participantNeedToRekey ? 0.4 : 1
+    const opacity = isLocked ? 0.4 : 1
     const avatarProps = participants.slice(0, 2).map((username, idx) => ({
       borderColor: rowBorderColor(idx, idx === avatarCount - 1, backgroundColor),
       loadingColor: globalColors.lightGrey,
@@ -84,12 +76,7 @@ class Avatars extends React.Component<AvatarProps> {
             multiPadding={isMobile ? 2 : 0}
             style={opacity === 1 ? multiStyle(backgroundColor) : {...multiStyle(backgroundColor), opacity}}
           />
-          <MutedIcon
-            isSelected={isSelected}
-            isMuted={isMuted}
-            participantNeedToRekey={participantNeedToRekey}
-            youNeedToRekey={youNeedToRekey}
-          />
+          <MutedIcon isSelected={isSelected} isMuted={isMuted} isLocked={isLocked} />
         </Box>
       </Box>
     )
@@ -134,12 +121,7 @@ class TeamAvatar extends React.Component<{
     return (
       <Box style={avatarBoxStyle}>
         <Avatar teamname={this.props.teamname} size={isMobile ? 48 : 40} />
-        <MutedIcon
-          isSelected={this.props.isSelected}
-          isMuted={this.props.isMuted}
-          participantNeedToRekey={false}
-          youNeedToRekey={false}
-        />
+        <MutedIcon isSelected={this.props.isSelected} isMuted={this.props.isMuted} isLocked={false} />
       </Box>
     )
   }

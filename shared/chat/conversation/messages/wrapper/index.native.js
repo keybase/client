@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import Wrapper from './shared'
-import {NativeTouchableHighlight, Box, NativeKeyboard} from '../../../../common-adapters/index.native'
+import {NativeTouchableHighlight, NativeKeyboard} from '../../../../common-adapters/index.native'
 import {globalColors} from '../../../../styles'
 
 import type {Props} from '.'
@@ -12,14 +12,13 @@ const dismissKeyboard = () => {
 
 const NativeWrapper = (props: Props) => (
   <NativeTouchableHighlight
-    onLongPress={props.onAction}
-    underlayColor={globalColors.black_10}
+    onLongPress={props.onShowMenu}
+    underlayColor={globalColors.white}
     onPress={dismissKeyboard}
   >
-    <Box>
-      {/* $FlowIssue */}
+    <React.Fragment>
       <Wrapper {...props} />
-    </Box>
+    </React.Fragment>
   </NativeTouchableHighlight>
 )
 
