@@ -80,7 +80,7 @@ func (nc *newConfigger) shutdown(t *testing.T, ctx context.Context) {
 }
 
 func (nc *newConfigger) getNewConfigForTestWithMode(
-	ctx context.Context, mode libkbfs.InitMode) (
+	ctx context.Context, mode libkbfs.InitModeType) (
 	newCtx context.Context, gitConfig libkbfs.Config,
 	tempDir string, err error) {
 	ctx, err = libkbfs.NewContextWithCancellationDelayer(ctx)
