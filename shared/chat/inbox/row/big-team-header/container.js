@@ -1,5 +1,5 @@
 // @flow
-import {compose, pausableConnect, withState, type TypedState} from '../../../../util/container'
+import {compose, connect, withStateHandlers, type TypedState} from '../../../../util/container'
 import * as I from 'immutable'
 import {BigTeamHeader} from '.'
 // Typically you'd use the navigateAppend from the routeable component but this is a child* of that
@@ -8,9 +8,8 @@ import {BigTeamHeader} from '.'
 import {navigateAppend, navigateTo} from '../../../../actions/route-tree'
 import {teamsTab} from '../../../../constants/tabs'
 
-const mapStateToProps = (state: TypedState, {teamname, isActiveRoute}) => ({
+const mapStateToProps = (state: TypedState, {teamname}) => ({
   _teammembercounts: state.entities.getIn(['teams', 'teammembercounts'], I.Map()),
-  isActiveRoute,
   teamname,
 })
 
@@ -21,16 +20,13 @@ const mapDispatchToProps = dispatch => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  isActiveRoute: stateProps.isActiveRoute,
-  memberCount: stateProps._teammembercounts.get(stateProps.teamname),
+  memberCount: stateProps._teammembercounts.get(stateProps.teamname, 0),
   onManageChannels: () => dispatchProps._onManageChannels(stateProps.teamname),
-  onSetShowMenu: ownProps.onSetShowMenu,
   onViewTeam: () => dispatchProps._onViewTeam(stateProps.teamname),
-  showMenu: ownProps.showMenu,
   teamname: stateProps.teamname,
 })
 
 export default compose(
-  withState('showMenu', 'onSetShowMenu', false),
-  pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps)
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  withStateHandlers({showMenu: false}, {onSetShowMenu: () => showMenu => ({showMenu})})
 )(BigTeamHeader)

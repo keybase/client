@@ -1,181 +1,88 @@
 // @flow
-import * as Constants from '../../constants/chat'
-import * as Types from '../../constants/types/chat'
-import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
-import * as SearchConstants from '../../constants/search'
-import * as Creators from '../../actions/chat/creators'
-import * as ChatGen from '../../actions/chat-gen'
-import {type List} from 'immutable'
-import HiddenString from '../../util/hidden-string'
-import Conversation from './index'
+import * as I from 'immutable'
+import * as React from 'react'
+import * as Constants from '../../constants/chat2'
+import * as Types from '../../constants/types/chat2'
+import {connect, type TypedState} from '../../util/container'
+import Normal from './normal/container'
 import NoConversation from './no-conversation'
+import Error from './error/container'
+import YouAreReset from './you-are-reset'
 import Rekey from './rekey/container'
-import {createGetProfile} from '../../actions/tracker-gen'
-import {
-  pausableConnect,
-  withState,
-  withHandlers,
-  compose,
-  branch,
-  renderComponent,
-  type TypedState,
-} from '../../util/container'
-import ConversationError from './error/conversation-error'
-import {type Props} from '.'
 
-type StateProps = {|
-  finalizeInfo: ?Types.FinalizeInfo,
-  rekeyInfo: ?Types.RekeyInfo,
-  selectedConversationIDKey: ?Types.ConversationIDKey,
-  showLoader: boolean,
-  supersededBy: ?Types.SupersedeInfo,
-  supersedes: ?Types.SupersedeInfo,
-  threadLoadedOffline: boolean,
-  inSearch: boolean,
-  conversationIsError: boolean,
-  conversationErrorText: string,
-  defaultChatText: string,
-  showTeamOffer: boolean,
-  inboxFilter: ?string,
-  showSearchResults: boolean,
-  previousPath: ?List<string>,
-  youAreReset: boolean,
-|}
+type SwitchProps = {
+  conversationIDKey: Types.ConversationIDKey,
+  type: 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal' | 'rekey',
+}
 
-type DispatchProps = {|
-  _onAttach: (conversationIDKey: Types.ConversationIDKey, inputs: Array<Types.AttachmentInput>) => void,
-  onOpenInfoPanelMobile: () => void,
-  onExitSearch: () => void,
-  onBack: () => void,
-  _onStoreInputText: (selectedConversation: Types.ConversationIDKey, inputText: string) => void,
-  onShowTrackerInSearch: (id: string) => void,
-|}
-
-const mapStateToProps = (state: TypedState, {routePath, routeProps}): StateProps => {
-  const selectedConversationIDKey = Constants.getSelectedConversation(state)
-  const routeState = Constants.getSelectedRouteState(state)
-
-  let finalizeInfo = null
-  let rekeyInfo = null
-  let supersedes = null
-  let supersededBy = null
-  let showLoader = false
-  let threadLoadedOffline = false
-  let conversationIsError = false
-  let conversationErrorText = ''
-  let youAreReset = false
-  const defaultChatText =
-    (routeState && routeState.get('inputText', new HiddenString('')).stringValue()) || ''
-
-  if (selectedConversationIDKey !== Constants.nothingSelected && !!selectedConversationIDKey) {
-    rekeyInfo = state.chat.get('rekeyInfos').get(selectedConversationIDKey)
-    finalizeInfo = state.chat.get('finalizedState').get(selectedConversationIDKey)
-    supersedes = Constants.convSupersedesInfo(selectedConversationIDKey, state.chat)
-    supersededBy = Constants.convSupersededByInfo(selectedConversationIDKey, state.chat)
-    youAreReset =
-      state.chat.getIn(
-        ['inbox', selectedConversationIDKey, 'memberStatus'],
-        RPCChatTypes.commonConversationMemberStatus.active
-      ) === RPCChatTypes.commonConversationMemberStatus.reset
-
-    const conversationState = state.chat.get('conversationStates').get(selectedConversationIDKey)
-    const untrustedState = state.chat.inboxUntrustedState.get(selectedConversationIDKey)
-    if (conversationState) {
-      const selected = Constants.getInbox(state, selectedConversationIDKey)
-      if (selected && untrustedState === 'error') {
-        conversationIsError = true
-        conversationErrorText = Constants.getSnippet(state, selectedConversationIDKey)
-      }
-      showLoader =
-        (!Constants.isPendingConversationIDKey(selectedConversationIDKey) && untrustedState !== 'unboxed') ||
-        conversationState.isRequesting
-      threadLoadedOffline = conversationState.loadedOffline
+class Conversation extends React.PureComponent<SwitchProps> {
+  render() {
+    switch (this.props.type) {
+      case 'error':
+        return this.props.conversationIDKey && <Error conversationIDKey={this.props.conversationIDKey} />
+      case 'noConvo':
+        return <NoConversation />
+      case 'normal':
+        return <Normal conversationIDKey={this.props.conversationIDKey} />
+      case 'youAreReset':
+        return <YouAreReset />
+      case 'rekey':
+        return <Rekey conversationIDKey={this.props.conversationIDKey} />
+      default:
+        // eslint-disable-next-line no-unused-expressions
+        ;(this.props.type: empty) // if you get a flow error here it means there's a missing case
+        return <NoConversation />
     }
   }
+}
 
-  const {inSearch, inboxFilter} = state.chat
-  const searchResults = SearchConstants.getSearchResultIdsArray(state, {searchKey: 'chatSearch'})
-  const userInputItemIds = SearchConstants.getUserInputItemIds(state, {searchKey: 'chatSearch'})
+const mapStateToProps = (state: TypedState): * => {
+  let _conversationIDKey
+  let _pendingConversationUsers
 
-  // If it's a multi-user chat that isn't a team, offer to make a new team.
-  const showTeamOffer = inSearch && userInputItemIds && userInputItemIds.length > 1
+  if (state.chat2.pendingSelected) {
+    _pendingConversationUsers = state.chat2.pendingConversationUsers
+  } else {
+    _conversationIDKey = Constants.getSelectedConversation(state)
+  }
 
   return {
-    showSearchResults: inSearch && !!searchResults,
-    conversationErrorText,
-    conversationIsError,
-    finalizeInfo,
-    inboxFilter,
-    rekeyInfo,
-    selectedConversationIDKey,
-    showLoader,
-    supersededBy,
-    supersedes,
-    threadLoadedOffline,
-    inSearch,
-    defaultChatText,
-    showTeamOffer,
-    previousPath: routeProps.get('previousPath'),
-    youAreReset,
+    _conversationIDKey,
+    _metaMap: state.chat2.metaMap,
+    _pendingConversationUsers,
+    _you: state.config.username || '',
   }
 }
 
-const mapDispatchToProps = (
-  dispatch: Dispatch,
-  {setRouteState, navigateUp, navigateAppend}
-): DispatchProps => ({
-  onExitSearch: () => dispatch(ChatGen.createExitSearch({skipSelectPreviousConversation: false})),
-  _onAttach: (selectedConversation, inputs: Array<Types.AttachmentInput>) => {
-    dispatch(
-      navigateAppend([
-        {props: {conversationIDKey: selectedConversation, inputs}, selected: 'attachmentInput'},
-      ])
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  let conversationIDKey = stateProps._conversationIDKey
+
+  let type = 'noConvo'
+  if (conversationIDKey) {
+    if (stateProps._metaMap.getIn([conversationIDKey, 'trustedState']) === 'error') {
+      type = 'error'
+    } else if (stateProps._metaMap.getIn([conversationIDKey, 'membershipType']) === 'youAreReset') {
+      type = 'youAreReset'
+    } else if (stateProps._metaMap.getIn([conversationIDKey, 'rekeyers'], I.Set()).size > 0) {
+      type = 'rekey'
+    } else {
+      type = 'normal'
+    }
+  } else if (stateProps._pendingConversationUsers) {
+    conversationIDKey = Constants.getExistingConversationWithUsers(
+      stateProps._pendingConversationUsers,
+      stateProps._you,
+      stateProps._metaMap
     )
-  },
-  onOpenInfoPanelMobile: () => dispatch(navigateAppend(['infoPanel'])),
-  onBack: () => dispatch(navigateUp()),
-  onShowTrackerInSearch: (username: string) =>
-    dispatch(createGetProfile({username, ignoreCache: false, forceDisplay: true})),
-  _onStoreInputText: (selectedConversation: Types.ConversationIDKey, inputText: string) =>
-    dispatch(Creators.setSelectedRouteState(selectedConversation, {inputText: new HiddenString(inputText)})),
-})
+    type = 'normal'
+  } else {
+    type = 'noConvo'
+  }
 
-const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
   return {
-    ...stateProps,
-    ...dispatchProps,
-    onStoreInputText: (chatText: string) => {
-      if (stateProps.selectedConversationIDKey) {
-        // only write if we're in a convo
-        dispatchProps._onStoreInputText(stateProps.selectedConversationIDKey, chatText)
-      }
-    },
-    onAttach: (inputs: Array<Types.AttachmentInput>) => {
-      stateProps.selectedConversationIDKey &&
-        dispatchProps._onAttach(stateProps.selectedConversationIDKey, inputs)
-    },
+    conversationIDKey: conversationIDKey || Types.stringToConversationIDKey(''), // we pass down conversationIDKey so this can be calculated once and also this lets us have chat things in other contexts so we can theoretically show multiple chats at the same time (like in a modal)
+    type,
   }
 }
 
-export default compose(
-  pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
-  branch(
-    (props: Props) =>
-      (props.selectedConversationIDKey === Constants.nothingSelected || !props.selectedConversationIDKey) &&
-      !props.inSearch,
-    // $FlowIssue gets very confused here
-    renderComponent(NoConversation)
-  ),
-  // Ordering of branch() is important here -- rekey should come before error.
-  branch((props: Props) => !props.finalizeInfo && !!props.rekeyInfo, renderComponent(Rekey)),
-  branch((props: Props) => props.conversationIsError, renderComponent(ConversationError)),
-  withState('focusInputCounter', 'setFocusInputCounter', 0),
-  withState('editLastMessageCounter', 'setEditLastMessageCounter', 0),
-  withState('listScrollDownCounter', 'setListScrollDownCounter', 0),
-  withHandlers({
-    onAddNewParticipant: props => () => props.onAddNewParticipant(true),
-    onEditLastMessage: props => () => props.setEditLastMessageCounter(props.editLastMessageCounter + 1),
-    onFocusInput: props => () => props.setFocusInputCounter(props.focusInputCounter + 1),
-    onScrollDown: props => () => props.setListScrollDownCounter(props.listScrollDownCounter + 1),
-  })
-)(Conversation)
+export default connect(mapStateToProps, () => ({}), mergeProps)(Conversation)
