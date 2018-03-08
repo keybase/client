@@ -10,7 +10,7 @@ import fs from 'fs'
 import path from 'path'
 import {ExitCodeFuseKextPermissionError} from '../constants/favorite'
 import {delay} from 'redux-saga'
-import {execFile} from 'child_process'
+import {spawn, execFileSync} from 'child_process'
 import {folderTab} from '../constants/tabs'
 import {isLinux, isWindows} from '../constants/platform'
 import {navigateTo, switchTo} from './route-tree'
@@ -138,77 +138,37 @@ function* installFuseSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.put(KBFSGen.createInstallFuseFinished())
 }
 
-function findKeybaseUninstallString(): Promise<string> {
-  logger.info('findKeybaseUninstallString')
-  return new Promise((resolve, reject) => {
-    const regedit = require('regedit')
-    const keybaseRegPath = 'HKCU\\SOFTWARE\\Keybase\\Keybase'
-    try {
-      regedit.list(keybaseRegPath).on('data', function(entry) {
-        logger.info('findKeybaseUninstallString on data')
-        if (entry.data.values && entry.data.values.BUNDLEKEY) {
-          const uninstallRegPath =
-            'HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\' +
-            entry.data.values.BUNDLEKEY.value
-
-          regedit.list(uninstallRegPath).on('data', function(entry) {
-            logger.info('findKeybaseUninstallString on data of', uninstallRegPath)
-            if (
-              entry.data.values &&
-              entry.data.values.DisplayName &&
-              entry.data.values.DisplayName.value === 'Keybase' &&
-              entry.data.values.Publisher &&
-              entry.data.values.Publisher.value === 'Keybase, Inc.' &&
-              entry.data.values.ModifyPath &&
-              entry.data.values.BundleCachePath
-            ) {
-              if (fs.existsSync(entry.data.values.BundleCachePath.value)) {
-                var modifyPath = entry.data.values.ModifyPath.value
-                // Remove double quotes - won't work otherwise
-                modifyPath = modifyPath.replace(/"/g, '')
-                // Remove /modify and send it in with the other arguments, below
-                modifyPath = modifyPath.replace(' /modify', '')
-                resolve(modifyPath)
-              } else {
-                reject(new Error(`cached bundle not found:` + uninstallRegPath))
-              }
-            } else {
-              reject(new Error(`Keybase entry not found at` + uninstallRegPath))
-            }
-          })
-        } else {
-          reject(new Error(`BUNDLEKEY not found at` + keybaseRegPath))
-        }
-      })
-    } catch (err) {
-      logger.error('findKeybaseUninstallString caught', err)
-    }
-  })
-}
-
 // Invoking the cached installer package has to happen from the topmost process
 // or it won't be visible to the user. The service also does this to support command line
 // operations.
 function installCachedDokan(): Promise<*> {
-  return findKeybaseUninstallString().then(
-    modifyCommand =>
-      new Promise((resolve, reject) => {
-        if (modifyCommand) {
-          // use the action logger so it has a chance of making it into the upload
-          logger.action('Invoking repair to add driver: ' + modifyCommand)
-          execFile(modifyCommand, [
-            '/modify',
-            'driver=1',
-            'modifyprompt=Press "Repair" to view files in Explorer',
-          ])
-          resolve()
-        } else {
-          const err = new Error('Cannot find Keybase uninstall string')
-          logger.error('Cannot find Keybase uninstall string')
-          reject(err)
-        }
-      })
-  )
+  return new Promise((resolve, reject) => {
+    // use the action logger so it has a chance of making it into the upload
+    logger.action('Invoking dokan installer')
+    const dokanPath = path.resolve(String(process.env.LOCALAPPDATA), 'Keybase', 'DokanSetup_redist.exe')
+    try {
+      execFileSync(dokanPath, [])
+    } catch (err) {
+      logger.error('installCachedDokan caught', err)
+      reject(err)
+      return
+    }
+    // restart the servie, particularly kbfsdokan
+    // based on desktop/app/start-win-service.js
+    const binPath = path.resolve(String(process.env.LOCALAPPDATA), 'Keybase', 'keybase.exe')
+    if (!binPath) {
+      return
+    }
+    const rqPath = binPath.replace('keybase.exe', 'keybaserq.exe')
+    const args = [binPath, 'ctl', 'watchdog2']
+
+    spawn(rqPath, args, {
+      detached: true,
+      stdio: 'ignore',
+    })
+
+    resolve()
+  })
 }
 
 function installDokanSaga() {

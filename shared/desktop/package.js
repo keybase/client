@@ -198,20 +198,6 @@ function postPack(plat, arch) {
         process.exit(1)
       }
     })
-    if (plat === 'win32') {
-      let packageOutDir = outDir
-      if (packageOutDir === '') packageOutDir = desktopPath(`release/${plat}-${arch}`)
-      const regeditVbsDir = `${packageOutDir}/Keybase-${plat}-${arch}/node_modules/regedit/vbs`
-      fs
-        .ensureDir(regeditVbsDir)
-        .then(() => {
-          fs.copy('node_modules/regedit/vbs', regeditVbsDir)
-        })
-        .catch(err => {
-          console.error(err)
-          process.exit(1)
-        })
-    }
     console.log(`${plat}-${arch} finished!`)
   }
 }
