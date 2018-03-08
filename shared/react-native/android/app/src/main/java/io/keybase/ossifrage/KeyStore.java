@@ -80,6 +80,7 @@ public class KeyStore implements UnsafeExternalKeyStore {
     @Override
     public synchronized byte[] getUsersWithStoredSecretsMsgPack(final String serviceName) throws Exception {
         NativeLogger.info("KeyStore: getting users with stored secrets for " + serviceName);
+
         try {
             final Iterator<String> keyIterator = prefs.getAll().keySet().iterator();
             final ArrayList<String> userNames = new ArrayList<>();
@@ -90,6 +91,8 @@ public class KeyStore implements UnsafeExternalKeyStore {
                     userNames.add(key.substring(sharedPrefKeyPrefix(serviceName).length()));
                 }
             }
+
+            NativeLogger.info("KeyStore: got " + userNames.size() + " users with stored secrets for " + serviceName);
 
             MessagePack msgpack = new MessagePack();
             return msgpack.write(userNames);
