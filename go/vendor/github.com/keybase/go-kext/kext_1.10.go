@@ -1,4 +1,5 @@
 // +build darwin,!ios
+// +build go1.10
 
 package kext
 
@@ -32,18 +33,18 @@ func LoadInfo(kextID string) (*Info, error) {
 
 func LoadInfoRaw(kextID string) (map[interface{}]interface{}, error) {
 	cfKextID, err := StringToCFString(kextID)
-	if cfKextID != nil {
+	if cfKextID != 0 {
 		defer Release(C.CFTypeRef(cfKextID))
 	}
 	if err != nil {
 		return nil, err
 	}
 	cfKextIDs := ArrayToCFArray([]C.CFTypeRef{C.CFTypeRef(cfKextID)})
-	if cfKextIDs != nil {
+	if cfKextIDs != 0 {
 		defer Release(C.CFTypeRef(cfKextIDs))
 	}
 
-	cfDict := C.KextManagerCopyLoadedKextInfo(cfKextIDs, nil)
+	cfDict := C.KextManagerCopyLoadedKextInfo(C.CFArrayRef(cfKextIDs), 0)
 
 	m, err := ConvertCFDictionary(cfDict)
 	if err != nil {
@@ -65,7 +66,7 @@ func LoadInfoRaw(kextID string) (map[interface{}]interface{}, error) {
 
 func Load(kextID string, paths []string) error {
 	cfKextID, err := StringToCFString(kextID)
-	if cfKextID != nil {
+	if cfKextID != 0 {
 		defer Release(C.CFTypeRef(cfKextID))
 	}
 	if err != nil {
@@ -75,22 +76,22 @@ func Load(kextID string, paths []string) error {
 	var urls []C.CFTypeRef
 	for _, p := range paths {
 		cfPath, err := StringToCFString(p)
-		if cfPath != nil {
+		if cfPath != 0 {
 			defer Release(C.CFTypeRef(cfPath))
 		}
 		if err != nil {
 			return err
 		}
-		cfURL := C.CFURLCreateWithFileSystemPath(nil, cfPath, 0, 1)
-		if cfURL != nil {
-			defer Release(C.CFTypeRef(cfURL))
+		cfURL := C.CFURLCreateWithFileSystemPath(nil, C.CFStringRef(cfPath), 0, 1)
+		if cfURL != 0 {
+			defer Release(C.CFTypeRef(C.CFURLRef(cfURL)))
 		}
 
-		urls = append(urls, C.CFTypeRef(cfURL))
+		urls = append(urls, C.CFTypeRef(C.CFURLRef(cfURL)))
 	}
 
 	cfURLs := ArrayToCFArray(urls)
-	if cfURLs != nil {
+	if cfURLs != 0 {
 		defer Release(C.CFTypeRef(cfURLs))
 	}
 
@@ -103,7 +104,7 @@ func Load(kextID string, paths []string) error {
 
 func Unload(kextID string) error {
 	cfKextID, err := StringToCFString(kextID)
-	if cfKextID != nil {
+	if cfKextID != 0 {
 		defer Release(C.CFTypeRef(cfKextID))
 	}
 	if err != nil {

@@ -313,15 +313,16 @@
 			"revisionTime": "2017-05-05T14:59:40Z"
 		},
 		{
-			"checksumSHA1": "Cj5doCIfMpCg3/FsPdZ7Q11Ca9w=",
+			"checksumSHA1": "rFxG1aS7SyjF/5DoiYTJ7RgbgAI=",
 			"path": "github.com/keybase/go-kext",
-			"revision": "80e53362ccab6559949d19494e306a911bae5fe4",
-			"revisionTime": "2017-09-14T21:36:11Z"
+			"revision": "4bb68aadbc52ff8c25a359f7d2a470cf5e7cd49a",
+			"revisionTime": "2018-03-01T18:54:15Z"
 		},
 		{
+			"checksumSHA1": "9KGH+mjtBmc7T089X/OwDjtypao=",
 			"path": "github.com/keybase/go-keychain",
-			"revision": "18e96b8b8ccf5706fbba9d97a82cbb009720bf02",
-			"revisionTime": "2016-02-04T10:09:49-05:00"
+			"revision": "70b98e9c8d754db775c5bd3b2de3670cc76f1825",
+			"revisionTime": "2018-03-06T22:15:04Z"
 		},
 		{
 			"path": "github.com/keybase/go-logging",
