@@ -140,7 +140,8 @@ public class KeyStore implements UnsafeExternalKeyStore {
 
     @Override
     public synchronized void setupKeyStore(final String serviceName, final String key) throws Exception {
-        NativeLogger.info("KeyStore: setting up key store for " + serviceName + ":" + key);
+        String id = serviceName + ":" + key;
+        NativeLogger.info("KeyStore: setting up key store for " + id);
 
         try {
             if (!ks.containsAlias(keyStoreAlias(serviceName))) {
@@ -165,14 +166,17 @@ public class KeyStore implements UnsafeExternalKeyStore {
                 ks.load(null);
             }
         } catch (Exception e) {
-            NativeLogger.error("KeyStore: error setting up key store for " + serviceName + ":" + key + ": " + Log.getStackTraceString(e));
+            NativeLogger.error("KeyStore: error setting up key store for " + id + ": " + Log.getStackTraceString(e));
             throw e;
         }
+
+        NativeLogger.info("KeyStore: finished setting up key store for " + id);
     }
 
     @Override
     public synchronized void storeSecret(final String serviceName, final String key, final byte[] bytes) throws Exception {
-        NativeLogger.info("KeyStore: storing secret for " + serviceName + ":" + key);
+        String id = serviceName + ":" + key;
+        NativeLogger.info("KeyStore: storing " + bytes.length + "-byte secret for " + id);
 
         try {
             Entry entry = ks.getEntry(keyStoreAlias(serviceName), null);
@@ -189,10 +193,11 @@ public class KeyStore implements UnsafeExternalKeyStore {
 
             saveWrappedSecret(prefs, sharedPrefKeyPrefix(serviceName) + key, wrappedSecret);
         } catch (Exception e) {
-            NativeLogger.error("KeyStore: error storing secret for " + serviceName + ":" + key + ": " + Log.getStackTraceString(e));
+            NativeLogger.error("KeyStore: error storing secret for " + id + ": " + Log.getStackTraceString(e));
             throw e;
         }
 
+        NativeLogger.info("KeyStore: stored " + bytes.length + " secret for " + id);
     }
 
     private static void saveWrappedSecret(SharedPreferences prefs, String prefsKey, byte[] wrappedSecret) {
