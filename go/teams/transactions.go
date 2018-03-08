@@ -59,19 +59,24 @@ func (tx *AddMemberTx) changeMembershipPayload() *keybase1.TeamChangeReq {
 	return ret
 }
 
-func (tx *AddMemberTx) removeMember(uv keybase1.UserVersion) error {
+func (tx *AddMemberTx) removeMember(uv keybase1.UserVersion) {
 	payload := tx.changeMembershipPayload()
 	payload.None = append(payload.None, uv)
-	return nil
 }
 
-func (tx *AddMemberTx) addMember(uv keybase1.UserVersion, role keybase1.TeamRole) error {
+func (tx *AddMemberTx) addMember(uv keybase1.UserVersion, role keybase1.TeamRole) {
 	payload := tx.changeMembershipPayload()
 	payload.AddUVWithRole(uv, role)
-	return nil
 }
 
-func (tx *AddMemberTx) CancelInvite(id keybase1.TeamInviteID) error {
+func (tx *AddMemberTx) addMemberAndCompleteInvite(uv keybase1.UserVersion,
+	role keybase1.TeamRole, inviteID keybase1.TeamInviteID) {
+	payload := tx.changeMembershipPayload()
+	payload.AddUVWithRole(uv, role)
+	payload.CompleteInviteID(inviteID, uv.PercentForm())
+}
+
+func (tx *AddMemberTx) CancelInvite(id keybase1.TeamInviteID) {
 	payload := tx.invitePayload()
 	if payload.Cancel == nil {
 		payload.Cancel = &[]SCTeamInviteID{SCTeamInviteID(id)}
@@ -79,7 +84,6 @@ func (tx *AddMemberTx) CancelInvite(id keybase1.TeamInviteID) error {
 		tmp := append(*payload.Cancel, SCTeamInviteID(id))
 		payload.Cancel = &tmp
 	}
-	return nil
 }
 
 func appendToInviteList(inv SCTeamInvite, list *[]SCTeamInvite) *[]SCTeamInvite {
@@ -91,7 +95,7 @@ func appendToInviteList(inv SCTeamInvite, list *[]SCTeamInvite) *[]SCTeamInvite 
 	return &tmp
 }
 
-func (tx *AddMemberTx) createInvite(uv keybase1.UserVersion, role keybase1.TeamRole) error {
+func (tx *AddMemberTx) createInvite(ctx context.Context, uv keybase1.UserVersion, role keybase1.TeamRole) {
 	payload := tx.invitePayload()
 
 	invite := SCTeamInvite{
@@ -110,9 +114,8 @@ func (tx *AddMemberTx) createInvite(uv keybase1.UserVersion, role keybase1.TeamR
 	case keybase1.TeamRole_OWNER:
 		payload.Owners = appendToInviteList(invite, payload.Owners)
 	default:
-		return fmt.Errorf("Unexpected role: %v", role)
+		tx.team.G().Log.CWarningf(ctx, "Unexpected role in tx.createInvite(%v, %v)", uv, role)
 	}
-	return nil
 }
 
 // sweepCryptoMembers will queue "removes" for all cryptomembers with given
@@ -233,9 +236,11 @@ func (tx *AddMemberTx) addMemberByUPKV2(ctx context.Context, user keybase1.UserP
 	tx.sweepCryptoMembers(uv.Uid)
 
 	if !hasPUK {
-		return tx.createInvite(uv, role)
+		tx.createInvite(ctx, uv, role)
+	} else {
+		tx.addMember(uv, role)
 	}
-	return tx.addMember(uv, role)
+	return nil
 }
 
 // AddMemberByUsername will add member by UV and role. It checks if
@@ -289,11 +294,7 @@ func (tx *AddMemberTx) CompleteInviteByID(ctx context.Context, inviteID keybase1
 		return fmt.Errorf("could not find uv %v in transaction", uv)
 	}
 
-	if payload.CompletedInvites == nil {
-		payload.CompletedInvites = make(map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm)
-	}
-	payload.CompletedInvites[inviteID] = uv.PercentForm()
-	tx.completedInvites[inviteID] = true // mark id completed so sweeping will not cancel.
+	payload.CompleteInviteID(inviteID, uv.PercentForm())
 	return nil
 }
 
@@ -420,7 +421,7 @@ func (tx *AddMemberTx) ReAddMemberToImplicitTeam(ctx context.Context, uv keybase
 			return err
 		}
 	} else {
-		tx.createInvite(uv, role)
+		tx.createInvite(ctx, uv, role)
 		tx.sweepKeybaseInvites(uv.Uid)
 		// We cannot sweep crypto members here because we need to
 		// ensure that we are only posting one link, and if we want to
@@ -477,16 +478,14 @@ func (tx *AddMemberTx) AddMemberBySBS(ctx context.Context, invitee keybase1.Team
 		return NewSubteamOwnersError()
 	}
 
-	if err := tx.addMember(uv, role); err != nil {
-		return err
-	}
-
-	if err := tx.CompleteInviteByID(ctx, invitee.InviteID, uv); err != nil {
-		return err
-	}
+	// Mark that we will be completing inviteID so sweepKeybaseInvites
+	// does not cancel it if it happens to be keybase-type.
+	tx.completedInvites[invitee.InviteID] = true
 
 	tx.sweepKeybaseInvites(uv.Uid)
 	tx.sweepCryptoMembersOlderThan(uv)
+
+	tx.addMemberAndCompleteInvite(uv, role, invitee.InviteID)
 	return nil
 }
 
