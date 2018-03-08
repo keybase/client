@@ -169,45 +169,6 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
               })
       )
     }
-    case Chat2Gen.messagesWereDeleted: {
-      const {conversationIDKey, messageIDs = [], ordinals = []} = action.payload
-
-      const updateMap = (m, ordinal) => {
-        m.update(ordinal, message => {
-          if (!message) {
-            return message
-          }
-          return Constants.makeMessageDeleted({
-            author: message.author,
-            conversationIDKey: message.conversationIDKey,
-            id: message.id,
-            ordinal: message.ordinal,
-            timestamp: message.timestamp,
-          })
-        })
-      }
-
-      return messageMap.update(conversationIDKey, I.Map(), (map: I.Map<Types.Ordinal, Types.Message>) =>
-        map.withMutations(m => {
-          ordinals.forEach(ordinal => {
-            updateMap(m, ordinal)
-          })
-          messageIDs.forEach(messageID => {
-            const ordinal = messageIDToOrdinal(
-              messageMap,
-              pendingOutboxToOrdinal,
-              conversationIDKey,
-              messageID
-            )
-            if (!ordinal) {
-              return
-            }
-
-            updateMap(m, ordinal)
-          })
-        })
-      )
-    }
     case Chat2Gen.attachmentUploading:
       return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
         if (!message || message.type !== 'attachment') {
@@ -258,7 +219,6 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
 }
 
 const messageOrdinalsReducer = (messageOrdinals, action) => {
-  // Note: on a delete we leave the ordinals in the list
   switch (action.type) {
     case Chat2Gen.inboxRefresh:
       return action.payload.reason === 'inboxSyncedClear' ? messageOrdinals.clear() : messageOrdinals
@@ -541,13 +501,50 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.updateTypers: {
       return state.set('typingMap', action.payload.conversationToTypers)
     }
+    case Chat2Gen.messagesWereDeleted: {
+      const {conversationIDKey, messageIDs = [], ordinals = []} = action.payload
+      const allOrdinals = I.Set(
+        [
+          ...ordinals,
+          ...messageIDs.map(messageID =>
+            messageIDToOrdinal(state.messageMap, state.pendingOutboxToOrdinal, conversationIDKey, messageID)
+          ),
+        ].filter(Boolean)
+      )
+
+      return state.withMutations(s => {
+        s.update('messageMap', messageMap =>
+          messageMap.update(conversationIDKey, I.Map(), (map: I.Map<Types.Ordinal, Types.Message>) =>
+            map.withMutations(m => {
+              allOrdinals.forEach(ordinal => {
+                m.update(ordinal, message => {
+                  if (!message) {
+                    return message
+                  }
+                  return Constants.makeMessageDeleted({
+                    author: message.author,
+                    conversationIDKey: message.conversationIDKey,
+                    id: message.id,
+                    ordinal: message.ordinal,
+                    timestamp: message.timestamp,
+                  })
+                })
+              })
+            })
+          )
+        )
+
+        s.update('messageOrdinals', messageOrdinals =>
+          messageOrdinals.update(conversationIDKey, ordinals => ordinals.subtract(allOrdinals))
+        )
+      })
+    }
     // metaMap/messageMap/messageOrdinalsList only actions
     case Chat2Gen.inboxRefresh:
     case Chat2Gen.messageDelete:
     case Chat2Gen.messageEdit:
     case Chat2Gen.messageWasEdited:
     case Chat2Gen.messageAttachmentUploaded:
-    case Chat2Gen.messagesWereDeleted:
     case Chat2Gen.metaReceivedError:
     case Chat2Gen.metaRequestingTrusted:
     case Chat2Gen.metasReceived:
