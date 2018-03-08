@@ -369,14 +369,14 @@ func getDefaultCleanBlockCacheCapacity() uint64 {
 //
 // TODO: Now that NewConfigLocal takes loggerFn, add more default
 // components.
-func NewConfigLocal(modeType InitModeType,
+func NewConfigLocal(mode InitMode,
 	loggerFn func(module string) logger.Logger,
 	storageRoot string, diskCacheMode DiskCacheMode,
 	kbCtx Context) *ConfigLocal {
 	config := &ConfigLocal{
 		loggerFn:      loggerFn,
 		storageRoot:   storageRoot,
-		mode:          NewInitModeFromType(modeType),
+		mode:          mode,
 		diskCacheMode: diskCacheMode,
 		kbCtx:         kbCtx,
 	}

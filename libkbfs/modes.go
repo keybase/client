@@ -13,15 +13,15 @@ import (
 // NewInitModeFromType returns an InitMode object corresponding to the
 // given type.
 func NewInitModeFromType(t InitModeType) InitMode {
-	switch t.Mode() {
+	switch t {
 	case InitDefault:
-		return modeDefault{t}
+		return modeDefault{}
 	case InitMinimal:
-		return modeMinimal{t}
+		return modeMinimal{}
 	case InitSingleOp:
-		return modeSingleOp{modeDefault{t}}
+		return modeSingleOp{modeDefault{}}
 	case InitConstrained:
-		return modeConstrained{modeDefault{t}}
+		return modeConstrained{modeDefault{}}
 	default:
 		panic(fmt.Sprintf("Unknown mode: %s", t))
 	}
@@ -30,7 +30,6 @@ func NewInitModeFromType(t InitModeType) InitMode {
 // Default mode:
 
 type modeDefault struct {
-	originalMode InitModeType
 }
 
 func (md modeDefault) Type() InitModeType {
@@ -50,7 +49,7 @@ func (md modeDefault) RekeyWorkers() int {
 }
 
 func (md modeDefault) IsTestMode() bool {
-	return md.originalMode.HasFlags(InitTest)
+	return false
 }
 
 func (md modeDefault) DirtyBlockCacheEnabled() bool {
@@ -112,7 +111,6 @@ func (md modeDefault) ClientType() keybase1.ClientType {
 // Minimal mode:
 
 type modeMinimal struct {
-	originalMode InitModeType
 }
 
 func (mm modeMinimal) Type() InitModeType {
@@ -134,7 +132,7 @@ func (mm modeMinimal) RekeyWorkers() int {
 }
 
 func (mm modeMinimal) IsTestMode() bool {
-	return mm.originalMode.HasFlags(InitTest)
+	return false
 }
 
 func (mm modeMinimal) DirtyBlockCacheEnabled() bool {
@@ -307,4 +305,14 @@ func (mc modeConstrained) ServiceKeepaliveEnabled() bool {
 
 func (mc modeConstrained) TLFEditHistoryEnabled() bool {
 	return false
+}
+
+// Wrapper for tests.
+
+type modeTest struct {
+	InitMode
+}
+
+func (mt modeTest) IsTestMode() bool {
+	return true
 }

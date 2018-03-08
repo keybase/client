@@ -43,8 +43,9 @@ const (
 // MakeTestConfigOrBust or ConfigAsUser.
 //
 // TODO: Move more common code here.
-func newConfigForTest(mode InitModeType, loggerFn func(module string) logger.Logger) *ConfigLocal {
-	config := NewConfigLocal(mode|InitTest, loggerFn, "", DiskCacheModeOff, &env.KBFSContext{})
+func newConfigForTest(modeType InitModeType, loggerFn func(module string) logger.Logger) *ConfigLocal {
+	mode := modeTest{NewInitModeFromType(modeType)}
+	config := NewConfigLocal(mode, loggerFn, "", DiskCacheModeOff, &env.KBFSContext{})
 
 	bops := NewBlockOpsStandard(config,
 		testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize)
