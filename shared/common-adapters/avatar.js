@@ -16,7 +16,7 @@ import {
 } from '../util/container'
 import {globalStyles} from '../styles'
 import * as ConfigGen from '../actions/config-gen'
-import type {Props, AvatarSize} from './avatar'
+import type {ConnectedProps, Props, AvatarSize} from './avatar'
 
 export type URLMap = {
   '200': string,
@@ -271,10 +271,10 @@ const realConnector = compose(
 
 const real = realConnector(Render)
 
-const autoMapStateToProps = (state: TypedState, ownProps: Props) => {
+const autoMapStateToProps = (state: TypedState, ownProps: ConnectedProps) => {
   const me = state.config.username
   if (ownProps.username === me || !me || !ownProps.username) {
-    return null
+    return {}
   }
   // User trackerState (more accurate) if it's available; fall back to state.config if not
   const trackerState = state.tracker.userTrackers[me]
@@ -291,7 +291,7 @@ const autoMapStateToProps = (state: TypedState, ownProps: Props) => {
   }
 }
 
-const autoMergeProps = (stateProps, _, ownProps) => {
+const autoMergeProps = (stateProps, _, ownProps): Props => {
   if (stateProps._followers && ownProps.username) {
     const following = stateProps._following.some(user => user.username === ownProps.username)
     const followsYou = stateProps._followers.some(user => user.username === ownProps.username)
@@ -312,6 +312,7 @@ const autoMergeProps = (stateProps, _, ownProps) => {
   return ownProps
 }
 
+// $FlowIssue idk
 const autoConnector = compose(realConnector, connect(autoMapStateToProps, () => ({}), autoMergeProps))
 const ConnectedAvatar = autoConnector(Render)
 

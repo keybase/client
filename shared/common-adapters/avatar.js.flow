@@ -4,7 +4,7 @@ import * as React from 'react'
 
 export type AvatarSize = 176 | 112 | 80 | 64 | 48 | 40 | 32 | 24 | 16 | 12
 
-type FollowerProps = {
+export type FollowProps = { 
   following?: ?boolean,
   followsYou?: ?boolean,
 }
@@ -25,7 +25,7 @@ export type ConnectedProps = {
   teamname?: ?string,
 }
 
-export type Props = FollowerProps & ConnectedProps
+export type Props = FollowProps & ConnectedProps
 
 export default class Avatar extends React.Component<Props> {}
 export class ConnectedAvatar extends React.Component<ConnectedProps> {}
