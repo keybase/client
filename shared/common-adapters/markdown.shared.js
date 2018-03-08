@@ -64,10 +64,11 @@ export function parseMarkdown(
   meta: ?MarkdownMeta
 ) {
   const plainText = isPlainText(markdown)
+  console.warn('plainText is', plainText)
   if (plainText) {
-    return plainText
+    //return plainText
   }
-
+  console.warn('markdown is', markdown)
   try {
     return processAST(
       parser.parse(markdown || '', {

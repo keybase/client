@@ -64,6 +64,7 @@ function previewCreateComponent(type, key, children, options) {
 }
 
 function messageCreateComponent(type, key, children, options) {
+  console.warn('in messageCreateComponent', type, children)
   switch (type) {
     case 'markup':
       return <Box key={key}>{children}</Box>
@@ -92,6 +93,13 @@ function messageCreateComponent(type, key, children, options) {
     case 'code-block':
       return (
         <Text type="Body" key={key} style={codeSnippetBlockStyle}>
+          {children}
+        </Text>
+      )
+    case 'phone':
+      console.warn('in case phone', children)
+      return (
+        <Text type="BodyPrimaryLink" key={key} style={linkStyle} onClickURL={'tel:'+children}>
           {children}
         </Text>
       )
