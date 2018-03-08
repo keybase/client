@@ -19,7 +19,6 @@ export {
   renderNothing,
   withHandlers,
   withStateHandlers,
-  withState,
   withProps,
   mapProps,
   withPropsOnChange,

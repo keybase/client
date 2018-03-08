@@ -11,6 +11,7 @@ type Props = {
   hasBadge: boolean,
   hasResetUsers: boolean,
   hasUnread: boolean,
+  isFinalized: boolean,
   isMuted: boolean,
   isSelected: boolean,
   onSelectConversation: () => void,
@@ -42,10 +43,9 @@ class SmallTeam extends React.PureComponent<Props> {
             <Avatars
               backgroundColor={props.backgroundColor}
               isMuted={props.isMuted}
+              isLocked={props.youNeedToRekey || props.participantNeedToRekey || props.isFinalized}
               isSelected={props.isSelected}
-              participantNeedToRekey={props.participantNeedToRekey}
               participants={props.participants}
-              youNeedToRekey={props.youNeedToRekey}
             />
           )}
           <Box style={props.isSelected ? conversationRowStyleSelected : conversationRowStyle}>

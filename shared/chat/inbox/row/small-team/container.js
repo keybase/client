@@ -41,6 +41,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     hasBadge: stateProps.hasBadge,
     hasResetUsers: !stateProps._meta.resetParticipants.isEmpty(),
     hasUnread,
+    isFinalized: !!stateProps._meta.wasFinalizedBy,
     isMuted: stateProps._meta.isMuted,
     isSelected,
     // Don't allow you to select yourself
