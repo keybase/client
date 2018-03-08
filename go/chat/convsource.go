@@ -44,7 +44,7 @@ func (s *baseConversationSource) SetRemoteInterface(ri func() chat1.RemoteInterf
 
 func (s *baseConversationSource) postProcessThread(ctx context.Context, uid gregor1.UID,
 	conv types.UnboxConversationInfo, thread *chat1.ThreadView, q *chat1.GetThreadQuery,
-	superXform supersedesTransform, checkPrev bool) (err error) {
+	superXform supersedesTransform, checkPrev bool, patchPagination bool) (err error) {
 
 	// Sanity check the prev pointers in this thread.
 	// TODO: We'll do this against what's in the cache once that's ready,
@@ -55,6 +55,11 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 		if err != nil {
 			return err
 		}
+	}
+
+	if patchPagination {
+		// Can mutate thread.Pagination.
+		s.patchPaginationLast(ctx, conv, uid, thread.Pagination, thread.Messages)
 	}
 
 	// Resolve supersedes
@@ -84,6 +89,31 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 func (s *baseConversationSource) TransformSupersedes(ctx context.Context, conv chat1.Conversation, uid gregor1.UID, msgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error) {
 	transform := newBasicSupersedesTransform(s.G())
 	return transform.Run(ctx, conv, uid, msgs)
+}
+
+// patchPaginationLast turns on page.Last if the messages are before InboxSource's view of Expunge.
+func (s *baseConversationSource) patchPaginationLast(ctx context.Context, conv types.UnboxConversationInfo, uid gregor1.UID,
+	page *chat1.Pagination, msgs []chat1.MessageUnboxed) {
+	if page == nil || page.Last {
+		return
+	}
+	if len(msgs) == 0 {
+		s.Debug(ctx, "patchPaginationLast: true - no msgs")
+		page.Last = true
+		return
+	}
+	expunge := conv.GetExpunge()
+	if expunge == nil {
+		s.Debug(ctx, "patchPaginationLast: no expunge info")
+		return
+	}
+	end1 := msgs[0].GetMessageID()
+	end2 := msgs[len(msgs)-1].GetMessageID()
+	if end1.Min(end2) <= expunge.Upto {
+		s.Debug(ctx, "patchPaginationLast: true - hit upto")
+		// If any message is prior to the nukepoint, say this is the last page.
+		page.Last = true
+	}
 }
 
 type RemoteConversationSource struct {
@@ -148,7 +178,7 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Post process thread before returning
-	if err = s.postProcessThread(ctx, uid, conv, &thread, query, nil, true); err != nil {
+	if err = s.postProcessThread(ctx, uid, conv, &thread, query, nil, true, false); err != nil {
 		return chat1.ThreadView{}, nil, err
 	}
 
@@ -566,7 +596,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	conv, ratelim, err := GetUnverifiedConv(ctx, s.G(), uid, convID, true)
 	rl = append(rl, ratelim)
 
-	var unboxConv unboxConversationInfo
+	var unboxConv types.UnboxConversationInfo
 	if err == nil {
 		unboxConv = conv
 		// Try locally first
@@ -610,8 +640,9 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 					s.Debug(ctx, "Pull: skipping mark as read call")
 				}
 			}
+
 			// Run post process stuff
-			if err = s.postProcessThread(ctx, uid, conv, &thread, query, nil, true); err != nil {
+			if err = s.postProcessThread(ctx, uid, conv, &thread, query, nil, true, true); err != nil {
 				return thread, rl, err
 			}
 			return thread, rl, nil
@@ -657,7 +688,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Run post process stuff
-	if err = s.postProcessThread(ctx, uid, unboxConv, &thread, query, nil, true); err != nil {
+	if err = s.postProcessThread(ctx, uid, unboxConv, &thread, query, nil, true, true); err != nil {
 		return thread, rl, err
 	}
 	return thread, rl, nil
@@ -719,7 +750,7 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 			// Form a fake version of a conversation so we don't need to hit the network ever here
 			var conv chat1.Conversation
 			conv.Metadata.ConversationID = convID
-			err = s.postProcessThread(ctx, uid, conv, &tv, query, superXform, false)
+			err = s.postProcessThread(ctx, uid, conv, &tv, query, superXform, false, true)
 		}
 	}()
 

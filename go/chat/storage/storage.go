@@ -530,8 +530,11 @@ func (s *Storage) handleDeleteHistory(ctx context.Context, convID chat1.Conversa
 		}
 	}
 
-	// Noop if there are no DeleteHistory messages
+	// Noop if there is no Expunge or DeleteHistory messages
 	if expungeActive == nil {
+		return false, nil
+	}
+	if expungeActive.Upto == 0 {
 		return false, nil
 	}
 
@@ -701,13 +704,26 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, rc ResultCollector,
 	}
 	res = rc.Result()
 
+	// Get the stored latest point upto which has been deleted.
+	// `maxDeletedUpto` can be behind the times, so the pager is patched later in ConvSource.
+	// It will be behind the times if a retention policy is the last expunger and only a full inbox sync has happened.
+	var maxDeletedUpto chat1.MessageID
+	delh, err := s.delhTracker.getEntry(ctx, convID, uid)
+	switch err.(type) {
+	case nil:
+		maxDeletedUpto = delh.MaxDeleteHistoryUpto
+	case MissError:
+	default:
+		return chat1.ThreadView{}, err
+	}
+
 	// Form paged result
 	var tres chat1.ThreadView
 	var pmsgs []pager.Message
 	for _, m := range res {
 		pmsgs = append(pmsgs, m)
 	}
-	if tres.Pagination, ierr = pager.NewThreadPager().MakePage(pmsgs, num); ierr != nil {
+	if tres.Pagination, ierr = pager.NewThreadPager().MakePage(pmsgs, num, maxDeletedUpto); ierr != nil {
 		return chat1.ThreadView{},
 			NewInternalError(ctx, s.DebugLabeler, "Fetch: failed to encode pager: %s", ierr.Error())
 	}

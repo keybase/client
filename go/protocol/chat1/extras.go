@@ -98,6 +98,13 @@ func (mid MessageID) String() string {
 	return strconv.FormatUint(uint64(mid), 10)
 }
 
+func (mid MessageID) Min(mid2 MessageID) MessageID {
+	if mid < mid2 {
+		return mid
+	}
+	return mid2
+}
+
 func (t MessageType) String() string {
 	s, ok := MessageTypeRevMap[t]
 	if ok {
@@ -597,6 +604,10 @@ func (c ConversationLocal) GetFinalizeInfo() *ConversationFinalizeInfo {
 	return c.Info.FinalizeInfo
 }
 
+func (c ConversationLocal) GetExpunge() *Expunge {
+	return &c.Expunge
+}
+
 func (c ConversationLocal) GetMaxMessage(typ MessageType) (MessageUnboxed, error) {
 	for _, msg := range c.MaxMessages {
 		if msg.GetMessageType() == typ {
@@ -631,6 +642,10 @@ func (c Conversation) GetMembersType() ConversationMembersType {
 
 func (c Conversation) GetFinalizeInfo() *ConversationFinalizeInfo {
 	return c.Metadata.FinalizeInfo
+}
+
+func (c Conversation) GetExpunge() *Expunge {
+	return &c.Expunge
 }
 
 func (c Conversation) GetMaxMessage(typ MessageType) (MessageSummary, error) {
