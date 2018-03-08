@@ -380,11 +380,6 @@
 			"revisionTime": "2018-01-10T20:05:33Z"
 		},
 		{
-			"path": "github.com/keybase/npipe",
-			"revision": "fcc44a83dcb12dae0f3f325c449bef3e1f38892b",
-			"revisionTime": "2017-04-28T11:20:20-07:00"
-		},
-		{
 			"path": "github.com/keybase/ps-go",
 			"revision": ""
 		},

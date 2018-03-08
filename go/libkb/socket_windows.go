@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/logger"
-	"github.com/keybase/npipe"
+	"github.com/Microsoft/go-winio"
 )
 
 func NewSocket(g *GlobalContext) (ret Socket, err error) {
@@ -52,11 +52,11 @@ func NewSocketWithFiles(
 
 func (s SocketInfo) BindToSocket() (ret net.Listener, err error) {
 	s.log.Info("Binding to pipe:%s", s.bindFile)
-	return npipe.Listen(s.bindFile)
+	return go-winio.PipeListen(s.bindFile, nil)
 }
 
 func (s SocketInfo) DialSocket() (ret net.Conn, err error) {
-	pipe, err := npipe.DialTimeout(s.dialFiles[0], time.Duration(1)*time.Second)
+	pipe, err := go-winio.DialPipe(s.dialFiles[0], time.Duration(1)*time.Second)
 	if err != nil {
 		// Be sure to return a nil interface, and not a nil npipe.PipeConn
 		// See https://keybase.atlassian.net/browse/CORE-2675 for when this
@@ -66,7 +66,7 @@ func (s SocketInfo) DialSocket() (ret net.Conn, err error) {
 	// This can't happen right now, but in the future it might, so protect against ourselves
 	// so we don't get vexing (*foo)(nil)/interface{}(nil) bugs.
 	if pipe == nil {
-		return nil, errors.New("bad npipe result; nil npipe.PipeConn but no error")
+		return nil, errors.New("bad npipe result; nil net.Conn but no error")
 	}
 
 	// Success case
@@ -74,5 +74,5 @@ func (s SocketInfo) DialSocket() (ret net.Conn, err error) {
 }
 
 func IsSocketClosedError(e error) bool {
-	return e == npipe.ErrClosed
+	return e == go-winio.ErrPipeListenerClosed
 }
