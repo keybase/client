@@ -131,45 +131,58 @@ public class KeyStore implements UnsafeExternalKeyStore {
     @Override
     public synchronized void setupKeyStore(final String serviceName, final String key) throws Exception {
         NativeLogger.info("KeyStore: setting up key store for " + serviceName + ":" + key);
-        if (!ks.containsAlias(keyStoreAlias(serviceName))) {
-            KeyStoreHelper.generateRSAKeyPair(context, keyStoreAlias(serviceName));
-        }
 
-        // Try to read the entry from the keystore.
-        // The entry may exists, but it may not be readable by us.
-        // (this happens when the app is uninstalled and reinstalled)
-        // In that case, lets' delete the entry and recreate it.
-        // Note we are purposely not recursing to avoid a state where we
-        // Constantly try to generate new RSA keys (which is slow)
         try {
-            final Entry entry = ks.getEntry(keyStoreAlias(serviceName), null);
-            if (entry == null) {
-                ks.deleteEntry(keyStoreAlias(serviceName));
+            if (!ks.containsAlias(keyStoreAlias(serviceName))) {
                 KeyStoreHelper.generateRSAKeyPair(context, keyStoreAlias(serviceName));
             }
-        } finally {
-            // Reload the keystore
-            ks = java.security.KeyStore.getInstance("AndroidKeyStore");
-            ks.load(null);
+
+            // Try to read the entry from the keystore.
+            // The entry may exists, but it may not be readable by us.
+            // (this happens when the app is uninstalled and reinstalled)
+            // In that case, lets' delete the entry and recreate it.
+            // Note we are purposely not recursing to avoid a state where we
+            // Constantly try to generate new RSA keys (which is slow)
+            try {
+                final Entry entry = ks.getEntry(keyStoreAlias(serviceName), null);
+                if (entry == null) {
+                    ks.deleteEntry(keyStoreAlias(serviceName));
+                    KeyStoreHelper.generateRSAKeyPair(context, keyStoreAlias(serviceName));
+                }
+            } finally {
+                // Reload the keystore
+                ks = java.security.KeyStore.getInstance("AndroidKeyStore");
+                ks.load(null);
+            }
+        } catch (Exception e) {
+            NativeLogger.error("KeyStore: error setting up key store for " + serviceName + ":" + key + ": " + Log.getStackTraceString(e));
+            throw e;
         }
     }
 
     @Override
     public synchronized void storeSecret(final String serviceName, final String key, final byte[] bytes) throws Exception {
         NativeLogger.info("KeyStore: storing secret for " + serviceName + ":" + key);
-        Entry entry = ks.getEntry(keyStoreAlias(serviceName), null);
 
-        if (entry == null) {
-            throw new KeyStoreException("No RSA keys in the keystore");
+        try {
+            Entry entry = ks.getEntry(keyStoreAlias(serviceName), null);
+
+            if (entry == null) {
+                throw new KeyStoreException("No RSA keys in the keystore");
+            }
+
+            final byte[] wrappedSecret = wrapSecret((PrivateKeyEntry) entry, new SecretKeySpec(bytes, ALGORITHM));
+
+            if (wrappedSecret == null) {
+                throw new IOException("Null return when wrapping secret");
+            }
+
+            saveWrappedSecret(prefs, sharedPrefKeyPrefix(serviceName) + key, wrappedSecret);
+        } catch (Exception e) {
+            NativeLogger.error("KeyStore: error storing secret for " + serviceName + ":" + key + ": " + Log.getStackTraceString(e));
+            throw e;
         }
 
-        final byte[] wrappedSecret = wrapSecret((PrivateKeyEntry) entry, new SecretKeySpec(bytes, ALGORITHM));
-
-        if (wrappedSecret == null) {
-            throw new IOException("Null return when wrapping secret");
-        }
-
-        saveWrappedSecret(prefs, sharedPrefKeyPrefix(serviceName) + key, wrappedSecret);
     }
 
     private static void saveWrappedSecret(SharedPreferences prefs, String prefsKey, byte[] wrappedSecret) {
