@@ -50,11 +50,7 @@ const mapDispatchToProps = (
   const teamname = routeProps.get('teamname')
   return {
     setSelectedTab: selectedTab => setRouteState({selectedTab}),
-    onManageChat: () => dispatch(navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
     onChat: () => dispatch(ChatGen.createOpenTeamConversation({teamname, channelname: 'general'})),
-    onLeaveTeam: () => dispatch(navigateAppend([{props: {teamname}, selected: 'reallyLeaveTeam'}])),
-    onCreateSubteam: () =>
-      dispatch(navigateAppend([{props: {makeSubteam: true, name: teamname}, selected: 'showNewTeamDialog'}])),
     _loadTeam: teamname => dispatch(TeamsGen.createGetDetails({teamname})),
     onBack: () => dispatch(navigateUp()),
     onShowMenu: target =>

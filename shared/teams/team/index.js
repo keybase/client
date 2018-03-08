@@ -19,10 +19,7 @@ export type Props = {
   resetUserCount: number,
   setSelectedTab: (?Types.TabKey) => void,
   yourOperations: Types.TeamOperations,
-  onManageChat: () => void,
-  onLeaveTeam: () => void,
-  onCreateSubteam: () => void,
-  onShowMenu: boolean => void,
+  onShowMenu: any => void,
 }
 
 const Team = (props: Props) => {
