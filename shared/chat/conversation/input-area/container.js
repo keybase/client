@@ -12,7 +12,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}): * => {
   return {
     conversationIDKey,
     isPreview: meta.membershipType === 'youArePreviewing',
-    isReset: !meta.resetParticipants.isEmpty(),
+    noInput: !meta.resetParticipants.isEmpty() || !!meta.wasFinalizedBy,
   }
 }
 
@@ -20,13 +20,13 @@ type Props = {
   conversationIDKey: Types.ConversationIDKey,
   focusInputCounter: number,
   isPreview: boolean,
-  isReset: boolean,
+  noInput: boolean,
   onScrollDown: () => void,
 }
 
 class InputArea extends React.PureComponent<Props> {
   render() {
-    if (this.props.isReset) {
+    if (this.props.noInput) {
       return null
     }
     if (this.props.isPreview) {
