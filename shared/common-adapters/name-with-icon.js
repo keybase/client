@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import Avatar from './avatar'
+import Avatar, {type AvatarSize} from './avatar'
 import Box from './box'
 import ClickableBox from './clickable-box'
 import Icon from './icon'
@@ -13,6 +13,7 @@ type Size = 'small' | 'default' | 'large'
 
 // Exposed style props for the top-level container and box around metadata arbitrarily
 type Props = {
+  avatarSize?: AvatarSize,
   following?: boolean,
   followsMe?: boolean,
   horizontal?: boolean,
@@ -37,11 +38,11 @@ const NameWithIconVertical = (props: Props) => {
   return (
     <BoxComponent
       onClick={props.onClick}
-      style={collapseStyles([styles.verticalContainerStyle, props.containerStyle || {}])}
+      style={collapseStyles([styles.vContainerStyle, props.containerStyle || {}])}
     >
       {isAvatar && (
         <Avatar
-          size={adapterProps.iconSize}
+          size={props.avatarSize || adapterProps.iconSize}
           following={props.following}
           followsYou={props.followsMe}
           username={props.username}
@@ -69,8 +70,11 @@ const NameWithIconVertical = (props: Props) => {
       >
         {!props.username && <Text type={adapterProps.titleType}>{props.title}</Text>}
         {!!props.username && (
+          // TODO get lineclamping working here
           <Usernames
             type={adapterProps.titleType}
+            containerStyle={isMobile ? undefined : styles.vUsernameContainerStyle}
+            inline={true}
             users={[{following: props.following, username: props.username, you: props.isYou}]}
             colorFollowing={props.colorFollowing}
           />
@@ -93,7 +97,7 @@ const NameWithIconHorizontal = (props: Props) => {
     >
       {isAvatar && (
         <Avatar
-          size={commonHeight}
+          size={props.avatarSize || commonHeight}
           username={props.username}
           teamname={props.teamname}
           style={{marginRight: 16}}
@@ -130,7 +134,11 @@ const NameWithIcon = (props: Props) => {
 // Render text if it's text, or identity if otherwise
 const TextOrComponent = ({val, textType}: {val: string | React.Node, textType: TextType}) => {
   if (typeof val === 'string') {
-    return <Text type={textType}>{val}</Text>
+    return (
+      <Text lineClamp={1} type={textType}>
+        {val}
+      </Text>
+    )
   }
   // `return undefined` makes react barf
   return val || null
@@ -153,9 +161,12 @@ const styles = styleSheetCreate({
     ...globalStyles.flexBoxCenter,
     marginTop: 8,
   },
-  verticalContainerStyle: {
+  vContainerStyle: {
     ...globalStyles.flexBoxColumn,
     alignItems: 'center',
+  },
+  vUsernameContainerStyle: {
+    textAlign: 'center',
   },
 })
 
