@@ -197,7 +197,7 @@ public class KeyStore implements UnsafeExternalKeyStore {
             throw e;
         }
 
-        NativeLogger.info("KeyStore: stored " + bytes.length + " secret for " + id);
+        NativeLogger.info("KeyStore: stored " + bytes.length + "-byte secret for " + id);
     }
 
     private static void saveWrappedSecret(SharedPreferences prefs, String prefsKey, byte[] wrappedSecret) {
