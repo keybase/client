@@ -13,7 +13,6 @@ type Size = 'small' | 'default' | 'large'
 
 // Exposed style props for the top-level container and box around metadata arbitrarily
 type Props = {
-  avatarSize?: AvatarSize,
   following?: boolean,
   followsMe?: boolean,
   horizontal?: boolean,
@@ -32,8 +31,8 @@ type Props = {
 }
 
 const NameWithIconVertical = (props: Props) => {
-  const isAvatar = !!(props.username || props.teamname)
-  const adapterProps = getAdapterProps(props.size || 'default', isAvatar)
+  const isAvatar = !!(props.username || props.avatar)
+  const adapterProps = getAdapterProps(props.size || 'default', !!props.username)
   const BoxComponent = props.onClick ? ClickableBox : Box
   return (
     <BoxComponent
@@ -42,7 +41,7 @@ const NameWithIconVertical = (props: Props) => {
     >
       {isAvatar && (
         <Avatar
-          size={props.avatarSize || adapterProps.iconSize}
+          size={adapterProps.iconSize}
           following={props.following}
           followsYou={props.followsMe}
           username={props.username}
@@ -97,7 +96,7 @@ const NameWithIconHorizontal = (props: Props) => {
     >
       {isAvatar && (
         <Avatar
-          size={props.avatarSize || commonHeight}
+          size={commonHeight}
           username={props.username}
           teamname={props.teamname}
           style={{marginRight: 16}}
