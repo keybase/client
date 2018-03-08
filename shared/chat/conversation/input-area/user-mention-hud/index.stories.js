@@ -1,13 +1,14 @@
 // @flow
 import React from 'react'
 import * as I from 'immutable'
+import * as PropProviders from '../../../../stories/prop-providers'
 import {MentionRowRenderer, MentionHud} from '.'
 import {compose, withStateHandlers} from '../../../../util/container'
 import {Box, Button, Input, ButtonBar} from '../../../../common-adapters'
 import {createPropProvider, storiesOf, action} from '../../../../stories/storybook'
 import {globalStyles} from '../../../../styles'
 
-const provider = createPropProvider({
+const provider = PropProviders.compose(PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'), {
   MentionHud: props => ({
     ...props,
     following: I.Set(),
