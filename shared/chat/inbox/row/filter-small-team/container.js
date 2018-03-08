@@ -1,50 +1,51 @@
 // @flow
-import * as Selectors from '../selectors'
-import * as ChatGen from '../../../../actions/chat-gen'
+import * as Chat2Gen from '../../../../actions/chat2-gen'
+import * as Constants from '../../../../constants/chat2'
+import * as Types from '../../../../constants/types/chat2'
 import {FilterSmallTeam} from '.'
-import {pausableConnect, type TypedState} from '../../../../util/container'
+import {connect, type TypedState} from '../../../../util/container'
 
-const mapStateToProps = (state: TypedState, {conversationIDKey, channelname, teamname, isActiveRoute}) => {
-  const p = Selectors.snippetRowSelector(state, conversationIDKey)
+type OwnProps = {conversationIDKey: Types.ConversationIDKey}
+
+const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+  const conversationIDKey = ownProps.conversationIDKey
 
   return {
-    backgroundColor: p.backgroundColor,
-    channelname,
-    hasBadge: p.hasBadge,
-    hasUnread: p.hasUnread,
-    isActiveRoute,
-    isMuted: p.isMuted,
-    isSelected: p.isSelected,
-    participantNeedToRekey: p.participantNeedToRekey,
-    participants: p.participants,
-    showBold: p.showBold,
-    teamname: p.teamname,
-    usernameColor: p.usernameColor,
-    youNeedToRekey: p.youNeedToRekey,
+    _meta: Constants.getMeta(state, conversationIDKey),
+    _username: state.config.username || '',
+    hasBadge: Constants.getHasBadge(state, conversationIDKey),
+    hasUnread: Constants.getHasUnread(state, conversationIDKey),
+    isSelected: Constants.getSelectedConversation(state) === conversationIDKey,
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}) => ({
-  onSelectConversation: () => {
-    dispatch(ChatGen.createSetInboxFilter({filter: ''}))
-    dispatch(ChatGen.createSelectConversation({conversationIDKey, fromUser: true}))
-  },
+  onSelectConversation: () =>
+    dispatch(Chat2Gen.createSelectConversation({conversationIDKey, fromUser: true})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  backgroundColor: stateProps.backgroundColor,
-  hasBadge: stateProps.hasBadge,
-  hasUnread: stateProps.hasUnread,
-  isActiveRoute: ownProps.isActiveRoute,
-  isMuted: stateProps.isMuted,
-  isSelected: stateProps.isSelected,
-  onSelectConversation: dispatchProps.onSelectConversation,
-  participantNeedToRekey: stateProps.participantNeedToRekey,
-  participants: stateProps.participants,
-  showBold: stateProps.showBold,
-  teamname: stateProps.teamname || '',
-  usernameColor: stateProps.usernameColor,
-  youNeedToRekey: stateProps.youNeedToRekey,
-})
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  const isSelected = stateProps.isSelected
+  const hasUnread = stateProps.hasUnread
+  const styles = Constants.getRowStyles(stateProps._meta, isSelected, hasUnread)
+  const participantNeedToRekey = stateProps._meta.rekeyers.size > 0
+  const youNeedToRekey = !participantNeedToRekey && stateProps._meta.rekeyers.has(stateProps._username)
+  const isLocked = participantNeedToRekey || youNeedToRekey
 
-export default pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps)(FilterSmallTeam)
+  return {
+    backgroundColor: styles.backgroundColor,
+    hasBadge: stateProps.hasBadge,
+    hasUnread,
+    isLocked,
+    isMuted: stateProps._meta.isMuted,
+    isSelected,
+    onSelectConversation: dispatchProps.onSelectConversation,
+    participants: Constants.getRowParticipants(stateProps._meta, stateProps._username).toArray(),
+    showBold: styles.showBold,
+    subColor: styles.subColor,
+    teamname: stateProps._meta.teamname,
+    usernameColor: styles.usernameColor,
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(FilterSmallTeam)
