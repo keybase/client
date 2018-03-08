@@ -110,18 +110,6 @@ function messageCreateComponent(style, allowFontScaling) {
           </Box>
         )
       case 'link':
-        return (
-          <Text
-            type="BodyPrimaryLink"
-            key={key}
-            style={linkStyle}
-            onClickURL={options.href}
-            onLongPress={() => _urlChooseOption(options.href)}
-            allowFontScaling={allowFontScaling}
-          >
-            {children}
-          </Text>
-        )
       case 'phone':
         return (
           <Text

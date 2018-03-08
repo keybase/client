@@ -67,6 +67,7 @@ export function parseMarkdown(
   if (plainText) {
     return plainText
   }
+
   try {
     return processAST(
       parser.parse(markdown || '', {

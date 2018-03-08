@@ -124,9 +124,9 @@ Num = [0-9]
 Phone
  = phone:($ (
    (PhoneMarker? Num Num Num PhonePostfix Num Num Num [- ] Num Num Num Num !NonBlank) /
-   (PhoneMarker? Num Num Num [- ] Num Num Num [- ] Num Num Num Num !NonBlank)))
-   {
-    return {type: 'phone', href: 'tel:'+phone, children: [phone]} }
+   (PhoneMarker? Num Num Num [- ] Num Num Num [- ] Num Num Num Num !NonBlank))) {
+    return {type: 'phone', href: 'tel:'+phone, children: [phone]}
+   }
 
 CodeBlock
  = Ticks3 LineTerminatorSequence? code:($ (!Ticks3 .)+) Ticks3 { return {type: 'code-block', children: [code]} }
