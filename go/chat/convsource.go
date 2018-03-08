@@ -59,7 +59,7 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 
 	if patchPagination {
 		// Can mutate thread.Pagination.
-		s.patchPaginationLast(ctx, conv.GetConvID(), uid, thread.Pagination, thread.Messages)
+		s.patchPaginationLast(ctx, conv, uid, thread.Pagination, thread.Messages)
 	}
 
 	// Resolve supersedes
@@ -92,7 +92,7 @@ func (s *baseConversationSource) TransformSupersedes(ctx context.Context, conv c
 }
 
 // patchPaginationLast turns on page.Last if the messages are before InboxSource's view of Expunge.
-func (s *baseConversationSource) patchPaginationLast(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+func (s *baseConversationSource) patchPaginationLast(ctx context.Context, conv types.UnboxConversationInfo, uid gregor1.UID,
 	page *chat1.Pagination, msgs []chat1.MessageUnboxed) {
 	if page == nil || page.Last {
 		return
@@ -102,15 +102,14 @@ func (s *baseConversationSource) patchPaginationLast(ctx context.Context, convID
 		page.Last = true
 		return
 	}
-
-	conv, _, err := GetUnverifiedConv(ctx, s.G(), uid, convID, true)
-	if err != nil {
-		s.Debug(ctx, "patchPaginationLast: failed read: %v", err)
+	expunge := conv.GetExpunge()
+	if expunge == nil {
+		s.Debug(ctx, "patchPaginationLast: no expunge info")
 		return
 	}
 	end1 := msgs[0].GetMessageID()
 	end2 := msgs[len(msgs)-1].GetMessageID()
-	if end1.Min(end2) <= conv.Expunge.Upto {
+	if end1.Min(end2) <= expunge.Upto {
 		s.Debug(ctx, "patchPaginationLast: true - hit upto")
 		// If any message is prior to the nukepoint, say this is the last page.
 		page.Last = true
@@ -597,7 +596,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	conv, ratelim, err := GetUnverifiedConv(ctx, s.G(), uid, convID, true)
 	rl = append(rl, ratelim)
 
-	var unboxConv unboxConversationInfo
+	var unboxConv types.UnboxConversationInfo
 	if err == nil {
 		unboxConv = conv
 		// Try locally first

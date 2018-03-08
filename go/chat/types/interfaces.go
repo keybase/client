@@ -42,6 +42,7 @@ type UnboxConversationInfo interface {
 	GetConvID() chat1.ConversationID
 	GetMembersType() chat1.ConversationMembersType
 	GetFinalizeInfo() *chat1.ConversationFinalizeInfo
+	GetExpunge() *chat1.Expunge
 }
 
 type ConversationSource interface {
