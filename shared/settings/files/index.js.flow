@@ -1,0 +1,6 @@
+// @flow
+import * as React from 'react'
+
+export type Props = {}
+
+declare export default function Files(props: Props): React.Component<Props>
