@@ -64,7 +64,6 @@ function previewCreateComponent(type, key, children, options) {
 }
 
 function messageCreateComponent(type, key, children, options) {
-  console.warn('in messageCreateComponent', type, children)
   switch (type) {
     case 'markup':
       return <Box key={key}>{children}</Box>
