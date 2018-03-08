@@ -26,7 +26,7 @@ export type Props = {
 
 const Progress = ({small}) => (
   <Box style={progress}>
-    <ProgressIndicator style={progressStyle(small)} white={false} />
+    <ProgressIndicator style={progressStyle(small)} white={true} />
   </Box>
 )
 
