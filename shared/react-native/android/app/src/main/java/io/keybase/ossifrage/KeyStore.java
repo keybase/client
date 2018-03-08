@@ -64,13 +64,17 @@ public class KeyStore implements UnsafeExternalKeyStore {
     @SuppressLint("CommitPrefEdits")
     @Override
     public void clearSecret(final String serviceName, final String key) throws Exception {
-        NativeLogger.info("KeyStore: clearing secret for " + serviceName + ":" + key);
+        String id = serviceName + ":" + key;
+        NativeLogger.info("KeyStore: clearing secret for " + id);
+
         try {
             prefs.edit().remove(sharedPrefKeyPrefix(serviceName) + key).commit();
         } catch (Exception e) {
-            NativeLogger.error("KeyStore: error clearing secret for " + serviceName + ":" + key + ": " + Log.getStackTraceString(e));
+            NativeLogger.error("KeyStore: error clearing secret for " + id + ": " + Log.getStackTraceString(e));
             throw e;
         }
+
+        NativeLogger.info("KeyStore: cleared secret for " + id);
     }
 
     @Override
