@@ -2,6 +2,7 @@
 import * as I from 'immutable'
 import {type IconType} from '../../common-adapters/icon'
 import {type TextType} from '../../common-adapters/text'
+import {isWindows} from '../platform'
 
 export opaque type Path = ?string
 
@@ -53,6 +54,22 @@ export type _PathUserSetting = {
 }
 export type PathUserSetting = I.RecordOf<_PathUserSetting>
 
+export type LocalPath = string
+
+export type TransferType = 'upload' | 'download'
+
+export type _TransferState = {
+  type: TransferType,
+  entryType: PathType,
+  path: Path,
+  localPath: LocalPath,
+  completePortion: number,
+  error?: string,
+  isDone: boolean,
+  startedAt: number,
+}
+export type TransferState = I.RecordOf<_TransferState>
+
 export type PathBreadcrumbItem = {
   isTlfNameItem: boolean,
   isLastItem: boolean,
@@ -64,20 +81,16 @@ export type _State = {
   pathItems: I.Map<Path, PathItem>,
   pathUserSettings: I.Map<Path, PathUserSetting>,
   loadingPaths: I.Set<Path>,
+  transfers: I.Map<string, TransferState>,
 }
 export type State = I.RecordOf<_State>
 
 export type Visibility = 'private' | 'public' | 'team' | null
 
-export type ItemStyles = {
-  iconType: IconType,
-  iconColor: string, // Temporary until we switch to PNG icons.
-  textColor: string,
-  textType: TextType,
-}
-
 export const stringToPath = (s: string): Path => (s.indexOf('/') === 0 ? s : null)
 export const pathToString = (p: Path): string => (!p ? '' : p)
+// export const stringToLocalPath = (s: string): LocalPath => s
+// export const localPathToString = (p: LocalPath): string => p
 export const getPathName = (p: Path): string => (!p ? '' : p.split('/').pop())
 export const getPathElements = (p: Path): Array<string> => (!p ? [] : p.split('/').slice(1))
 export const getVisibilityFromElems = (elems: Array<string>) => {
@@ -118,6 +131,12 @@ export const pathIsNonTeamTLFList = (p: Path): boolean => {
   const str = pathToString(p)
   return str === '/keybase/private' || str === '/keybase/public'
 }
+
+const localSep = isWindows ? '\\' : '/'
+
+export const localPathConcat = (p: LocalPath, s: string): LocalPath => p + localSep + s
+export const getLocalPathName = (p: LocalPath): string => p.split(localSep).pop()
+export const getLocalPathDir = (p: LocalPath): string => p.slice(0, p.lastIndexOf(localSep))
 
 type PathItemComparer = (a: PathItem, b: PathItem) => number
 
@@ -187,4 +206,29 @@ export const sortSettingToIconTypeAndText = (s: _SortSetting): sortSettingDispla
     default:
       throw new Error('invalid SortBy')
   }
+}
+
+export type PathItemIconSpec =
+  | {
+      type: 'teamAvatar',
+      teamName: string,
+    }
+  | {
+      type: 'avatar',
+      username: string,
+    }
+  | {
+      type: 'avatars',
+      usernames: Array<string>,
+    }
+  | {
+      type: 'basic',
+      iconType: IconType,
+      iconColor: string,
+    }
+
+export type ItemStyles = {
+  iconSpec: PathItemIconSpec,
+  textColor: string,
+  textType: TextType,
 }

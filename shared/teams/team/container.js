@@ -4,11 +4,13 @@ import * as I from 'immutable'
 import * as React from 'react'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as KBFSGen from '../../actions/kbfs-gen'
+import * as ChatGen from '../../actions/chat-gen'
 import Team, {CustomComponent} from '.'
 import {HeaderHoc} from '../../common-adapters'
-import {branch, connect, withStateHandlers, lifecycle, compose, type TypedState} from '../../util/container'
+import {branch, connect, lifecycle, compose, type TypedState} from '../../util/container'
 import {navigateAppend} from '../../actions/route-tree'
 import {anyWaiting} from '../../constants/waiting'
+import {teamsTab} from '../../constants/tabs'
 
 import {membersListItemsConnector} from './members/container'
 import {subteamsListItemsConnector} from './subteams/container'
@@ -48,12 +50,25 @@ const mapDispatchToProps = (
   const teamname = routeProps.get('teamname')
   return {
     setSelectedTab: selectedTab => setRouteState({selectedTab}),
-    onManageChat: () => dispatch(navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
-    onLeaveTeam: () => dispatch(navigateAppend([{props: {teamname}, selected: 'reallyLeaveTeam'}])),
-    onCreateSubteam: () =>
-      dispatch(navigateAppend([{props: {name: teamname}, selected: 'showNewTeamDialog'}])),
+    onChat: () => dispatch(ChatGen.createOpenTeamConversation({teamname, channelname: 'general'})),
     _loadTeam: teamname => dispatch(TeamsGen.createGetDetails({teamname})),
     onBack: () => dispatch(navigateUp()),
+    onShowMenu: target =>
+      dispatch(
+        navigateAppend(
+          [
+            {
+              props: {
+                teamname,
+                position: 'bottom left',
+                targetRect: target && target.getBoundingClientRect(),
+              },
+              selected: 'menu',
+            },
+          ],
+          [teamsTab, 'team']
+        )
+      ),
 
     _onOpenFolder: () => dispatch(KBFSGen.createOpen({path: `/keybase/team/${teamname}`})),
   }
@@ -63,9 +78,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const customComponent = (
     <CustomComponent
       onOpenFolder={dispatchProps.onOpenFolder}
-      onManageChat={dispatchProps.onManageChat}
-      onShowMenu={() => ownProps.setShowMenu(!ownProps.showMenu)}
-      canManageChat={stateProps.yourOperations.createChannel}
+      onChat={dispatchProps.onChat}
+      onShowMenu={dispatchProps.onShowMenu}
+      canChat={!stateProps.yourOperations.joinTeam}
       canViewFolder={!stateProps.yourOperations.joinTeam}
     />
   )
@@ -79,7 +94,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 }
 
 export default compose(
-  withStateHandlers({showMenu: false}, {setShowMenu: () => showMenu => ({showMenu})}),
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentDidMount: function() {

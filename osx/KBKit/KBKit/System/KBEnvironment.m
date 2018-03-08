@@ -15,6 +15,7 @@
 #import "KBCommandLine.h"
 #import "KBUpdaterService.h"
 #import "KBMountDir.h"
+#import "KBRedirector.h"
 #import "KBAppBundle.h"
 #import "KBNM.h"
 
@@ -74,6 +75,12 @@
       helperRequired = YES;
       KBMountDir *mountDir = [[KBMountDir alloc] initWithConfig:config helperTool:_helperTool];
       [_installables addObject:mountDir];
+    }
+
+    if (config.installOptions&KBInstallOptionRedirector) {
+      helperRequired = YES;
+      KBRedirector *redirector = [[KBRedirector alloc] initWithConfig:config helperTool:_helperTool servicePath:servicePath];
+      [_installables addObject:redirector];
     }
 
     _kbfs = [[KBFSService alloc] initWithConfig:config label:[config launchdKBFSLabel] servicePath:servicePath];

@@ -9,7 +9,7 @@ function parseLocationQuery(s) {
   const parts = s.split('&');
   for (let i = 0; i < parts.length; i++) {
     let p = parts[i].split('=', 2);
-    const key = p[0];
+    const key = p[0].toLowerCase();
     if (key in params) {
       throw new Error('duplicate key in query string: ' + key);
     }

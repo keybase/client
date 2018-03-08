@@ -1,14 +1,15 @@
 package systests
 
 import (
+	"testing"
+	"time"
+
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/stretchr/testify/require"
 	context "golang.org/x/net/context"
-	"testing"
-	"time"
 )
 
 func getHome(t *testing.T, u *userPlusDevice, markViewed bool) keybase1.HomeScreen {
@@ -18,6 +19,14 @@ func getHome(t *testing.T, u *userPlusDevice, markViewed bool) keybase1.HomeScre
 	home, err := cli.HomeGetScreen(context.TODO(), keybase1.HomeGetScreenArg{MarkViewed: markViewed, NumFollowSuggestionsWanted: 10})
 	require.NoError(t, err)
 	return home
+}
+
+func markViewed(t *testing.T, u *userPlusDevice) {
+	g := u.tc.G
+	cli, err := client.GetHomeClient(g)
+	require.NoError(t, err)
+	err = cli.HomeMarkViewed(context.TODO())
+	require.NoError(t, err)
 }
 
 func getBadgeState(t *testing.T, u *userPlusDevice) keybase1.BadgeState {
@@ -72,7 +81,7 @@ func assertTodoNotPresent(t *testing.T, home keybase1.HomeScreen, wanted keybase
 	}
 }
 
-func assertFollowerPresent(t *testing.T, home keybase1.HomeScreen, f string) {
+func findFollowerInHome(t *testing.T, home keybase1.HomeScreen, f string) (present, badged bool) {
 	for _, item := range home.Items {
 		typ, err := item.Data.T()
 		if err != nil {
@@ -87,13 +96,13 @@ func assertFollowerPresent(t *testing.T, home keybase1.HomeScreen, f string) {
 			if typ == keybase1.HomeScreenPeopleNotificationType_FOLLOWED {
 				follow := people.Followed()
 				if follow.User.Username == f {
-					require.True(t, item.Badged, "it should be badged")
-					return
+					return true, item.Badged
 				}
+				return false, false
 			}
 		}
 	}
-	t.Fatalf("Follower %q not found in home: %+v", f, home)
+	return false, false
 }
 
 func postBio(t *testing.T, u *userPlusDevice) {
@@ -118,6 +127,24 @@ func (h *homeUI) HomeUIRefresh(_ context.Context) (err error) {
 	return nil
 }
 
+// Wait for a gregor message to fill in the badge state, for at most ~10s.
+// Hopefully this is enough for slow CI but you never know.
+func pollForTrue(t *testing.T, g *libkb.GlobalContext, poller func(i int) bool) {
+	// Hopefully this is enough for slow CI but you never know.
+	wait := 10 * time.Millisecond * libkb.CITimeMultiplier(g)
+	found := false
+	for i := 0; i < 10; i++ {
+		if poller(i) {
+			found = true
+			break
+		}
+		g.Log.Debug("Didn't get an update; waiting %s more", wait)
+		time.Sleep(wait)
+		wait = wait * 2
+	}
+	require.True(t, found, "found result after poll")
+}
+
 func TestHome(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
@@ -130,32 +157,14 @@ func TestHome(t *testing.T) {
 	alice := tt.users[0]
 	g := alice.tc.G
 
-	home := getHome(t, alice, true)
+	home := getHome(t, alice, false)
 	initialVersion := home.Version
 
 	require.True(t, (initialVersion > 0), "initial version should be > 0")
 	assertTodoPresent(t, home, keybase1.HomeScreenTodoType_BIO, true)
 
-	// Wait for a gregor message to fill in the badge state, for at most ~10s.
-	// Hopefully this is enough for slow CI but you never know.
-	pollForTrue := func(poller func(i int) bool) {
-		// Hopefully this is enough for slow CI but you never know.
-		wait := 10 * time.Millisecond
-		found := false
-		for i := 0; i < 10; i++ {
-			if poller(i) {
-				found = true
-				break
-			}
-			g.Log.Debug("Didn't get an update; waiting %s more", wait)
-			time.Sleep(wait)
-			wait = wait * 2
-		}
-		require.True(t, found, "found result after poll")
-	}
-
 	var countPre int
-	pollForTrue(func(i int) bool {
+	pollForTrue(t, g, func(i int) bool {
 		badges := getBadgeState(t, alice)
 		g.Log.Debug("Iter loop %d badge state: %+v", i, badges)
 		countPre = badges.HomeTodoItems
@@ -167,14 +176,14 @@ func TestHome(t *testing.T) {
 
 	postBio(t, alice)
 
-	pollForTrue(func(i int) bool {
-		home = getHome(t, alice, true)
+	pollForTrue(t, g, func(i int) bool {
+		home = getHome(t, alice, false)
 		badges := getBadgeState(t, alice)
 		g.Log.Debug("Iter %d of check loop: Home is: %+v; BadgeState is: %+v", i, home, badges)
 		return (home.Version > initialVersion && badges.HomeTodoItems < countPre)
 	})
 
-	pollForTrue(func(i int) bool {
+	pollForTrue(t, g, func(i int) bool {
 		g.Log.Debug("Iter %d of check loop for home refresh; value is %v", i, hui.refreshed)
 		return hui.refreshed
 	})
@@ -187,8 +196,25 @@ func TestHome(t *testing.T) {
 	attachIdentifyUI(t, bob.tc.G, iui)
 	iui.confirmRes = keybase1.ConfirmResult{IdentityConfirmed: true, RemoteConfirmed: true, AutoConfirmed: true}
 	bob.track(alice.username)
-	home = getHome(t, alice, true)
-	assertFollowerPresent(t, home, bob.username)
+
+	var badged bool
+	pollForTrue(t, g, func(i int) bool {
+		home = getHome(t, alice, false)
+		var present bool
+		present, badged = findFollowerInHome(t, home, bob.username)
+		return present
+	})
+	require.True(t, badged, "when we find bob, he should be badged")
+
+	// This should clear the badge on bob in the home screen.
+	markViewed(t, alice)
+
+	pollForTrue(t, g, func(i int) bool {
+		var present bool
+		home = getHome(t, alice, false)
+		present, badged = findFollowerInHome(t, home, bob.username)
+		return present && !badged
+	})
 }
 
 func attachHomeUI(t *testing.T, g *libkb.GlobalContext, hui keybase1.HomeUIInterface) {

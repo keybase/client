@@ -16,12 +16,6 @@ set CERTISSUER=DigiCert
 set Folder=%GOPATH%\src\github.com\keybase\client\go\keybase\
 set PathName=%Folder%keybase.exe
 
-if NOT DEFINED DOKAN_PATH set DOKAN_PATH=c:\work\bin\dokan-dev\build84
-echo DOKAN_PATH %DOKAN_PATH%
-
-for /F delims^=^"^ tokens^=2 %%x in ('findstr ProductCodeX64 %DOKAN_PATH%\dokan_wix\version.xml') do set DokanProductCodeX64=%%x
-for /F delims^=^"^ tokens^=2 %%x in ('findstr ProductCodeX86 %DOKAN_PATH%\dokan_wix\version.xml') do set DokanProductCodeX86=%%x
-
 pushd %GOPATH%\src\github.com\keybase\client\packaging\windows
 
 :: Capture the windows style version
@@ -36,15 +30,6 @@ set KEYBASE_VERSION=%SEMVER%
 
 echo KEYBASE_VERSION %KEYBASE_VERSION%
 popd
-
-:: dokan source binaries.
-:: There are 8 (4 windows versions times 32/64 bit) but they all seem to have the same version.
-for /f %%i in ('PowerShell "(Get-Item %DOKAN_PATH%\Win32\Win10Release\dokan1.sys).VersionInfo.FileVersion"') do set DOKANVER=%%i
-echo DOKANVER %DOKANVER%
-IF %DOKANVER%=="" (
-  EXIT /B 1
-)
-
 
 :: prompter
 pushd %GOPATH%\src\github.com\keybase\go-updater\windows\WpfPrompter
@@ -113,22 +98,11 @@ set BUILD_TAG=%SEMVER%
 
 pushd %GOPATH%\src\github.com\keybase\client\packaging\windows\WIXInstallers
 
-echo ^<?xml version=^"1.0^" encoding=^"utf-8^"?^> > dokanver.xml
-echo ^<Include^> >> dokanver.xml
-echo ^<?define DokanProductCodeX86=^"%DokanProductCodeX86%^" ?^> >> dokanver.xml
-echo ^<?define DokanProductCodeX64=^"%DokanProductCodeX64%^" ?^> >> dokanver.xml
-echo ^<?define DOKAN_PATH=^"%DOKAN_PATH%^" ?^> >> dokanver.xml
-echo ^</Include^>  >> dokanver.xml
-
 msbuild WIX_Installers.sln  /p:Configuration=Release /p:Platform=x86 /t:Build
 popd
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
-
-:: Sanity check the hash of dokanclean downloaded during installer build
-for /f "usebackq tokens=2*" %%i in (`powershell Get-FileHash -Algorithm sha256 %DOKAN_PATH%\dokanclean.exe`) do set DOKANCLEANHASH=%%i
-if NOT %DOKANCLEANHASH%==8E3BAEC8CDBA77E2DC07554B6AF2632E545E89CF6BDA9ED4819FDCBF8D151C51 exit /B 1
 
 :: Here we rely on the previous steps checking out and building release.exe
 set ReleaseBin=%GOPATH%\src\github.com\keybase\release\release.exe
@@ -136,8 +110,8 @@ set ReleaseBin=%GOPATH%\src\github.com\keybase\release\release.exe
 if not EXIST %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG% mkdir %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%
 pushd %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%
 
-move %GOPATH%\src\github.com\keybase\client\packaging\windows\WIXInstallers\KeybaseBundle\bin\Release\*.exe %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%
-for /f %%i in ('dir /od /b *.exe') do set KEYBASE_INSTALLER_NAME=%%i
+move %GOPATH%\src\github.com\keybase\client\packaging\windows\WIXInstallers\KeybaseApps\bin\Release\*.msi %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%
+for /f %%i in ('dir /od /b *.msi') do set KEYBASE_INSTALLER_NAME=%%i
 
 :: Double check that the installer is codesigned
 signtool verify /pa %KEYBASE_INSTALLER_NAME%
@@ -169,7 +143,7 @@ IF %UpdateChannel% EQU Test (
 
 :: We need a test channel updater .json in all smoke cases
 IF "%UpdateChannel:~0,5%"=="Smoke" (
-  %ReleaseBin% update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://prerelease.keybase.io/windows --signature=%SigFile% --description=%GOPATH%\src\github.com\keybase\client\shared\desktop\CHANGELOG.txt --prop=DokanProductCodeX64:%DokanProductCodeX64% --prop=DokanProductCodeX86:%DokanProductCodeX86% > update-windows-prod-%KEYBASE_VERSION%.json
+  %ReleaseBin% update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://prerelease.keybase.io/windows --signature=%SigFile% --description=%GOPATH%\src\github.com\keybase\client\shared\desktop\CHANGELOG.txt > update-windows-prod-%KEYBASE_VERSION%.json
   :: All smoke builds go in the test channel too except Smoke2
   IF %UpdateChannel% NEQ Smoke2 GOTO set_test_channel
   :: Don't make a production json either for smoke2
@@ -186,7 +160,7 @@ set JSON_UPDATE_FILENAME=update-windows-prod-test-v2.json
 
 echo %JSON_UPDATE_FILENAME%
 
-%ReleaseBin% update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://prerelease.keybase.io/windows --signature=%SigFile% --description=%GOPATH%\src\github.com\keybase\client\shared\desktop\CHANGELOG.txt --prop=DokanProductCodeX64:%DokanProductCodeX64% --prop=DokanProductCodeX86:%DokanProductCodeX86% > %JSON_UPDATE_FILENAME%
+%ReleaseBin% update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://prerelease.keybase.io/windows --signature=%SigFile% --description=%GOPATH%\src\github.com\keybase\client\shared\desktop\CHANGELOG.txt > %JSON_UPDATE_FILENAME%
 
 :end_update_json
 

@@ -88,7 +88,7 @@ func (p Pager) MakePage(length, reqed int, next interface{}, prev interface{}) (
 		Num:      length,
 		Next:     nextEncoded,
 		Previous: prevEncoded,
-		Last:     (length < reqed),
+		Last:     (length < reqed) || length == 0,
 	}, nil
 }
 
@@ -137,7 +137,7 @@ func NewThreadPager() ThreadPager {
 
 func (p ThreadPager) MakePage(res []Message, reqed int) (*chat1.Pagination, error) {
 	if len(res) == 0 {
-		return &chat1.Pagination{Num: 0}, nil
+		return &chat1.Pagination{Num: 0, Last: true}, nil
 	}
 
 	// Get first and last message IDs to encode in the result

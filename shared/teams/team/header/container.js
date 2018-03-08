@@ -33,10 +33,17 @@ const mapDispatchToProps = (dispatch: Dispatch, {teamname}: OwnProps) => ({
     dispatch(navigateAppend([{props: {teamname}, selected: 'addPeople'}]))
     dispatch(createAddResultsToUserInput({searchKey: 'addToTeamSearch', searchResults: [you]}))
   },
-  onAddPeople: () => dispatch(navigateAppend([{props: {teamname}, selected: 'addPeople'}])),
+  onAddPeople: target =>
+    dispatch(
+      navigateAppend([
+        {
+          props: {position: 'bottom left', targetRect: target && target.getBoundingClientRect(), teamname},
+          selected: 'addPeopleHow',
+        },
+      ])
+    ),
   onChat: () => dispatch(Chat2Gen.createStartConversation({tlf: `/keybase/team/${teamname}`})),
   onEditDescription: () => dispatch(navigateAppend([{props: {teamname}, selected: 'editTeamDescription'}])),
-  onInviteByEmail: () => dispatch(navigateAppend([{props: {teamname}, selected: 'inviteByEmail'}])),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({

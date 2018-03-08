@@ -359,6 +359,8 @@
 		00B82BD31BE9424600C1FC72 /* KBTask.m in Sources */ = {isa = PBXBuildFile; fileRef = 00B82BD11BE9424600C1FC72 /* KBTask.m */; };
 		00E206681C4DBD170095FD56 /* KBCommandLine.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E206661C4DBD170095FD56 /* KBCommandLine.h */; };
 		00E206691C4DBD170095FD56 /* KBCommandLine.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E206671C4DBD170095FD56 /* KBCommandLine.m */; };
+		206644B0203CEF0700082D09 /* KBRedirector.h in Headers */ = {isa = PBXBuildFile; fileRef = 206644AE203CEF0700082D09 /* KBRedirector.h */; };
+		206644B3203CF59B00082D09 /* KBRedirector.m in Sources */ = {isa = PBXBuildFile; fileRef = 206644AF203CEF0700082D09 /* KBRedirector.m */; };
 		5CF627053506EA5AD0D3EC32 /* libPods-KBKit.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B74D43B87E43EC9A7B5E254 /* libPods-KBKit.a */; };
 /* End PBXBuildFile section */
 
@@ -731,6 +733,8 @@
 		00E206661C4DBD170095FD56 /* KBCommandLine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBCommandLine.h; sourceTree = "<group>"; };
 		00E206671C4DBD170095FD56 /* KBCommandLine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBCommandLine.m; sourceTree = "<group>"; };
 		09A69C34EE77C4A0563C93F3 /* Pods-KBKit.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KBKit.release.xcconfig"; path = "Pods/Target Support Files/Pods-KBKit/Pods-KBKit.release.xcconfig"; sourceTree = "<group>"; };
+		206644AE203CEF0700082D09 /* KBRedirector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBRedirector.h; sourceTree = "<group>"; };
+		206644AF203CEF0700082D09 /* KBRedirector.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBRedirector.m; sourceTree = "<group>"; };
 		479C84E44E80724FA433EBC6 /* Pods-KBKit.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KBKit.debug.xcconfig"; path = "Pods/Target Support Files/Pods-KBKit/Pods-KBKit.debug.xcconfig"; sourceTree = "<group>"; };
 		9B74D43B87E43EC9A7B5E254 /* libPods-KBKit.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-KBKit.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -840,6 +844,8 @@
 		00010B351BE19F8800A9C285 /* Component */ = {
 			isa = PBXGroup;
 			children = (
+				206644AE203CEF0700082D09 /* KBRedirector.h */,
+				206644AF203CEF0700082D09 /* KBRedirector.m */,
 				00010B381BE19F8800A9C285 /* KBComponent.h */,
 				00010B391BE19F8800A9C285 /* KBComponent.m */,
 				00010B3A1BE19F8800A9C285 /* KBComponentStatus.h */,
@@ -1402,6 +1408,7 @@
 				00010D701BE19F8900A9C285 /* KBPGPDecryptFooterView.h in Headers */,
 				00010D1A1BE19F8900A9C285 /* KBDeviceAddView.h in Headers */,
 				00010DAC1BE19F8900A9C285 /* KBProofResult.h in Headers */,
+				206644B0203CEF0700082D09 /* KBRedirector.h in Headers */,
 				00010C9B1BE19F8900A9C285 /* KBNotifications.h in Headers */,
 				00010D081BE19F8900A9C285 /* KBAppDebug.h in Headers */,
 				00010CA31BE19F8900A9C285 /* KBComponentStatus.h in Headers */,
@@ -1640,13 +1647,16 @@
 			files = (
 			);
 			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
 			);
 			name = "[CP] Check Pods Manifest.lock";
 			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-KBKit-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n";
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
 		6C23E77625FDB5CF6312A473 /* [CP] Copy Pods Resources */ = {
@@ -1671,6 +1681,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				206644B3203CF59B00082D09 /* KBRedirector.m in Sources */,
 				00010C921BE19F8900A9C285 /* KBApp.m in Sources */,
 				00010DA71BE19F8900A9C285 /* KBSecretPromptView.m in Sources */,
 				00010D531BE19F8900A9C285 /* KBKeyImportView.m in Sources */,

@@ -3,7 +3,7 @@
 import {isAndroid} from '../constants/platform'
 
 const colors = {
-  beige: '#f7f1eb',
+  beige: '#FAF2ED',
   black: '#000000',
   black_05: 'rgba(0, 0, 0, 0.05)',
   black_05_on_white: 'rgb(242,242,242)',
@@ -43,7 +43,7 @@ const colors = {
   // on ios overdraw is eliminiated if we use white, on android its eliminated if its transparent /shrug
   fastBlank: isAndroid ? undefined : '#ffffff',
   green: '#3dcc8e',
-  green2: '#36b37c',
+  green2: '#34ad79',
   green3: '#E8FAF3',
   grey: '#cccccc',
   lightGrey: '#f0f0f0',

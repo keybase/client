@@ -10,7 +10,7 @@ import {
   withHandlers,
   type TypedState,
 } from '../../util/container'
-import {validTeamname, baseTeamname} from '../../constants/teamname'
+import {baseTeamname} from '../../constants/teamname'
 
 const mapStateToProps = (state: TypedState) => ({
   errorText: upperFirst(state.entities.teams.teamCreationError),
@@ -31,9 +31,10 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath}) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const name = ownProps.routeProps.get('name')
-  const baseTeam = name && baseTeamname(name)
-  const isSubteam = baseTeam && validTeamname(baseTeam)
+  const isSubteam = ownProps.routeProps.get('makeSubteam') || false
+  const routeName = ownProps.routeProps.get('name') || ''
+  const name = routeName.concat(isSubteam ? '.' : '')
+  const baseTeam = baseTeamname(name)
   return {
     ...stateProps,
     ...dispatchProps,

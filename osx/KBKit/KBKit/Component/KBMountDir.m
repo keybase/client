@@ -8,7 +8,9 @@
 
 #import "KBMountDir.h"
 #import "KBInstaller.h"
+#import "KBWorkspace.h"
 #import "KBSharedFileList.h"
+#import "KBTask.h"
 
 @interface KBMountDir ()
 @property KBHelperTool *helperTool;
@@ -52,12 +54,12 @@
 }
 
 - (void)removeMountDir:(NSString *)mountDir completion:(KBCompletion)completion {
-  // Because the mount dir is in the root path, we need the helper tool to remove it, even if owned by the user
-  NSDictionary *params = @{@"path": mountDir};
-  DDLogDebug(@"Removing mount directory: %@", params);
-  [self.helperTool.helper sendRequest:@"remove" params:@[params] completion:^(NSError *err, id value) {
+  DDLogDebug(@"Removing mount directory: %@", mountDir);
+  NSError *err = nil;
+  if (![NSFileManager.defaultManager removeItemAtPath:mountDir error:&err]) {
     completion(err);
-  }];
+  }
+  completion(nil);
 }
 
 - (void)createMountDir:(KBCompletion)completion {
@@ -160,6 +162,22 @@
   return YES;
 }
 
++ (BOOL)linkExists:(NSString *)linkPath {
+  NSDictionary *attributes = [NSFileManager.defaultManager attributesOfItemAtPath:linkPath error:nil];
+  if (!attributes) {
+    return NO;
+  }
+  return [attributes[NSFileType] isEqual:NSFileTypeSymbolicLink];
+}
+
++ (NSString *)resolveLinkPath:(NSString *)linkPath {
+  if (![self linkExists:linkPath]) {
+    return nil;
+  }
+  return [NSFileManager.defaultManager destinationOfSymbolicLinkAtPath:linkPath error:nil];
+}
+
+
 + (BOOL)setFileListFavoriteEnabled:(BOOL)fileListFavoriteEnabled position:(NSInteger)position config:(KBEnvConfig *)config error:(NSError **)error {
   if (!config.mountDir) {
     if (error) *error = KBMakeError(0, @"No mount dir");
@@ -171,8 +189,16 @@
   // If we create a symlink though, all these problems are avoided. So we'll create a symlink to /keybase and add this
   // as the file list favorite item.
   NSString *symPath = [config dataPath:@"Keybase" options:0];
+  NSString *currPath = [self resolveLinkPath:symPath];
+  if (currPath && ![config.mountDir isEqualToString:currPath]) {
+    DDLogDebug(@"Removing old favorite: %@", currPath);
+    if (![[NSFileManager defaultManager] removeItemAtPath:symPath error:error]) {
+      return NO;
+    }
+  }
+
   if (![[NSFileManager defaultManager] fileExistsAtPath:symPath]) {
-    if ([[NSFileManager defaultManager] createSymbolicLinkAtPath:symPath withDestinationPath:config.mountDir error:error]) {
+    if (![[NSFileManager defaultManager] createSymbolicLinkAtPath:symPath withDestinationPath:config.mountDir error:error]) {
       return NO;
     }
   }

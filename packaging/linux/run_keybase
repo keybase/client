@@ -5,25 +5,51 @@ set -e -u -o pipefail
 # This is the script responsible for launching keybase on boot on Linux. A
 # .desktop file will be created by the service on first launch in
 # ~/.config/autostart/ to invoke this script.
-#
-# We're in the process of adding support for systemd. If you're running systemd
-# and you set the environment variable KEYBASE_SYSTEMD=1, we'll start as
-# systemd user-level services. At some point
 
 runtime_dir="${XDG_RUNTIME_DIR:-$HOME/.config}/keybase"
 mkdir -p "$runtime_dir"
 startup_token="$runtime_dir/startup_mode"
-if keybase config get mountdir &> /dev/null ; then
-    mountdir="$(keybase config get mountdir 2> /dev/null | sed -e s/\"//g)"
-else
-    # The user has no mountpoint configured yet, so pick a default one
-    # and record the default setting in a separate config field, so
-    # later we can tell whether the user changed it away from the
-    # default or not.
-    mountdir="${XDG_DATA_HOME:-$HOME/.local/share}/keybase/fs"
-    keybase config set mountdir "$mountdir"
-    keybase config set mountdirdefault "$mountdir"
-fi
+
+set_empty_mountdir_to_default() {
+    # Set the mount point to a default value if a) nothing is set yet,
+    # or b) both are set to the old default.
+    default=""
+    oldDefault="${XDG_DATA_HOME:-$HOME/.local/share}/keybase/fs"
+    # Use -d to avoid starting up the keybase background daemon here.
+    # For the new default mountpoint, use /run/user/$UID/keybase/kbfs
+    # if at all possible, but if the system doesn't have
+    # $XDG_RUNTIME_DIR defined, we'll have to fall back to something
+    # in the home directory (putting the user at risk of things like
+    # du and find crawling KBFS...).
+    newDefault="${XDG_RUNTIME_DIR:-$HOME/.config}/keybase/kbfs"
+    if keybase config get -d -b mountdirdefault &> /dev/null ; then
+        # If the current mount directory is still the old default, force
+        # an update to the new default.
+        default="$(keybase config get -d -b mountdirdefault 2> /dev/null)"
+        if [ "$default" = "$oldDefault" ]; then
+            mountdir="$(keybase config get -d -b mountdir 2> /dev/null)"
+            if [ "$mountdir" = "$default" ]; then
+                if fusermount -uz "$mountdir" &> /dev/null ; then
+                    echo "Updating mount directory from $default to $newDefault"
+                fi
+                default=""
+            fi
+        fi
+    fi
+
+    if [ -z "$default" ]; then
+        # The user has no mountpoint configured yet, so pick a default one
+        # and record the default setting in a separate config field, so
+        # later we can tell whether the user changed it away from the
+        # default or not.
+        mountdir="$newDefault"
+        keybase config set mountdir "$mountdir"
+        keybase config set mountdirdefault "$mountdir"
+    fi
+}
+
+set_empty_mountdir_to_default
+mountdir="$(keybase config get -d -b mountdir 2> /dev/null)"
 export KEYBASE_MOUNTDIR=$mountdir
 
 # Don't make the mountpoint until after unmounting/killing the
@@ -83,7 +109,7 @@ kill_all() {
     # Remove any existing legacy mount.  This should never happen
     # because it should have already been done by post_install.sh.
     # Just in case, let the user know how to fix it.
-    echo Unmounting /keybase.  Run `sudo rmdir /keybase; sudo ln -s /opt/keybase/mount-readme /keybase; sudo chown keybasehelper:keybasehelper /keybase` and then run this command again.
+    echo Unmounting /keybase.  Run `sudo rmdir /keybase; sudo ln -s /opt/keybase/mount-readme /keybase; sudo chown root:root /keybase` and then run this command again.
     exit -1
   fi
   if fusermount -uz $mountdir &> /dev/null ; then
@@ -118,6 +144,24 @@ forward_vars() {
   done
 }
 
+run_redirector() {
+  rootConfigFile="/etc/keybase/config.json"
+  disableConfigKey="disable-root-redirector"
+
+  disable="false"
+  if [ -r "$rootConfigFile" ] ; then
+    if keybase -c "$rootConfigFile" config get -d "$disableConfigKey" &> /dev/null ; then
+      disable="$(keybase -c "$rootConfigFile" config get -d "$disableConfigKey" 2> /dev/null)"
+    fi
+  fi
+
+  # Only start the root redirector if it hasn't been explicitly disabled.
+  if [ "$disable" != "true" ]; then
+    logdir="${XDG_CACHE_HOME:-$HOME/.cache}/keybase"
+    nohup keybase-redirector /keybase >> "$logdir/keybase.redirector.log" 2>&1 &
+  fi
+}
+
 start_systemd() {
   echo Starting via systemd.
   # This script is intended to be run after updates, so we need to reload
@@ -147,7 +191,7 @@ start_systemd() {
   )
   forward_vars "$runtime_dir/keybase.gui.env" forwarded_gui_env_vars[@]
 
-  keybase-mount-helper -user-mount "$mountdir"
+  run_redirector
 
   # The keybase.gui.service unit has keybase.service and kbfs.service as
   # dependencies, so we don't have to list them here. But including them lets
@@ -168,7 +212,7 @@ start_background() {
   # restart this service will know to re-fork it themselves. That's all it does.
   keybase -d --log-file="$logdir/keybase.service.log" service --auto-forked &>> "$logdir/keybase.start.log" &
   echo Mounting the file system...
-  keybase-mount-helper -user-mount "$mountdir"
+  run_redirector
   kbfsfuse -debug -log-to-file "$mountdir" &>> "$logdir/keybase.start.log" &
   echo Launching Keybase GUI...
   /opt/keybase/Keybase &>> "$logdir/Keybase.app.log" &

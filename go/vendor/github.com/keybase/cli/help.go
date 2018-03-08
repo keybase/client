@@ -44,14 +44,14 @@ USAGE:
    command {{.FullName}}{{if .Flags}} [command options]{{end}} [arguments...]{{if .Description}}
 
 DESCRIPTION:
-   {{.Description}}{{end}}{{if .Examples}}
-
-EXAMPLES:
-{{.ExamplesFormatted}}{{end}}{{if .Flags}}
+   {{.Description}}{{end}}{{if .Flags}}
 
 OPTIONS:
    {{range .Flags}}{{.}}
-   {{end}}{{ end }}
+   {{end}}{{ end }}{{if .Examples}}
+
+EXAMPLES:
+{{.ExamplesFormatted}}{{end}}
 `
 
 // The text template for the subcommand help topic.

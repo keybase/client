@@ -44,9 +44,11 @@
   [parser registerSwitch:@"uninstall-mountdir"];
   [parser registerSwitch:@"uninstall-helper"];
   [parser registerSwitch:@"uninstall-cli"];
+  [parser registerSwitch:@"uninstall-redirector"];
   [parser registerSwitch:@"uninstall"];
   [parser registerSwitch:@"install-fuse"];
   [parser registerSwitch:@"install-mountdir"];
+  [parser registerSwitch:@"install-redirector"];
   [parser registerSwitch:@"install-helper"];
   [parser registerSwitch:@"install-app-bundle"];
   [parser registerSwitch:@"install-cli"];
@@ -83,6 +85,9 @@
   if ([[self.settings objectForKey:@"uninstall-cli"] boolValue]) {
     self.uninstallOptions |= UninstallOptionCLI;
   }
+  if ([[self.settings objectForKey:@"uninstall-redirector"] boolValue]) {
+    self.uninstallOptions |= UninstallOptionRedirector;
+  }
   if ([[self.settings objectForKey:@"uninstall"] boolValue]) {
     self.installOptions |= UninstallOptionAll;
   }
@@ -92,6 +97,9 @@
   }
   if ([[self.settings objectForKey:@"install-mountdir"] boolValue]) {
     self.installOptions |= KBInstallOptionMountDir;
+  }
+  if ([[self.settings objectForKey:@"install-redirector"] boolValue]) {
+    self.installOptions |= KBInstallOptionRedirector;
   }
   if ([[self.settings objectForKey:@"install-helper"] boolValue]) {
     self.installOptions |= KBInstallOptionHelper;

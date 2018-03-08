@@ -668,13 +668,8 @@ func CreateTopicNameState(cmp chat1.ConversationIDMessageIDPairs) (chat1.TopicNa
 }
 
 func GetConvMtime(conv chat1.Conversation) gregor1.Time {
-	timeTyps := []chat1.MessageType{
-		chat1.MessageType_TEXT,
-		chat1.MessageType_ATTACHMENT,
-		chat1.MessageType_SYSTEM,
-	}
 	var summaries []chat1.MessageSummary
-	for _, typ := range timeTyps {
+	for _, typ := range VisibleChatMessageTypes() {
 		summary, err := conv.GetMaxMessage(typ)
 		if err == nil {
 			summaries = append(summaries, summary)
@@ -687,11 +682,13 @@ func GetConvMtime(conv chat1.Conversation) gregor1.Time {
 	return summaries[len(summaries)-1].Ctime
 }
 
+// PickLatestMessageUnboxed gets the latest message with one `typs`.
+// This method can return deleted messages which have a blank body.
 func PickLatestMessageUnboxed(conv chat1.ConversationLocal, typs []chat1.MessageType) (res chat1.MessageUnboxed, err error) {
 	var msgs []chat1.MessageUnboxed
 	for _, typ := range typs {
 		msg, err := conv.GetMaxMessage(typ)
-		if err == nil && msg.IsValidFull() {
+		if err == nil && msg.IsValid() {
 			msgs = append(msgs, msg)
 		}
 	}
@@ -703,12 +700,7 @@ func PickLatestMessageUnboxed(conv chat1.ConversationLocal, typs []chat1.Message
 }
 
 func GetConvMtimeLocal(conv chat1.ConversationLocal) gregor1.Time {
-	timeTyps := []chat1.MessageType{
-		chat1.MessageType_TEXT,
-		chat1.MessageType_ATTACHMENT,
-		chat1.MessageType_SYSTEM,
-	}
-	msg, err := PickLatestMessageUnboxed(conv, timeTyps)
+	msg, err := PickLatestMessageUnboxed(conv, VisibleChatMessageTypes())
 	if err != nil {
 		return conv.ReaderInfo.Mtime
 	}
@@ -716,12 +708,7 @@ func GetConvMtimeLocal(conv chat1.ConversationLocal) gregor1.Time {
 }
 
 func GetConvSnippet(conv chat1.ConversationLocal) string {
-	timeTyps := []chat1.MessageType{
-		chat1.MessageType_TEXT,
-		chat1.MessageType_ATTACHMENT,
-		chat1.MessageType_SYSTEM,
-	}
-	msg, err := PickLatestMessageUnboxed(conv, timeTyps)
+	msg, err := PickLatestMessageUnboxed(conv, VisibleChatMessageTypes())
 	if err != nil {
 		return ""
 	}
@@ -786,6 +773,7 @@ func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.Unverifie
 	res.MaxMsgID = rawConv.ReaderInfo.MaxMsgid
 	res.Supersedes = rawConv.Metadata.Supersedes
 	res.SupersededBy = rawConv.Metadata.SupersededBy
+	res.FinalizeInfo = rawConv.Metadata.FinalizeInfo
 	if rc.LocalMetadata != nil {
 		res.LocalMetadata = &chat1.UnverifiedInboxUIItemMetadata{
 			ChannelName:       rc.LocalMetadata.TopicName,

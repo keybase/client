@@ -199,10 +199,7 @@ USAGE:
    keybase {{.FullName}}{{ if .Subcommands }} <command>{{ end }}{{if .Flags}} [command options]{{end}} {{ .ArgumentHelp }}{{if .Description}}
 
 DESCRIPTION:
-   {{.Description}}{{end}}{{ if .Examples }}
-
-EXAMPLES:
-{{.ExamplesFormatted}}{{ end }}{{ if .Subcommands }}
+   {{.Description}}{{end}}{{ if .Subcommands }}
 
 COMMANDS:
    {{range .Subcommands}}{{if .Usage }}{{join .Names ", "}}{{ "\t" }}{{.Usage}}{{ end }}
@@ -210,7 +207,10 @@ COMMANDS:
 
 OPTIONS:
    {{range .Flags}}{{.}}
-   {{end}}{{ end }}
+   {{end}}{{ end }}{{ if .Examples }}
+EXAMPLES:
+{{.ExamplesFormatted}}{{ end }}
+
 `
 
 // SubcommandHelpTemplate is used for `keybase cmd` with no

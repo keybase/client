@@ -719,6 +719,9 @@ func (h *Server) GetInboxSummaryForCLILocal(ctx context.Context, arg chat1.GetIn
 		if arg.UnreadFirstLimit.AtMost <= 0 {
 			arg.UnreadFirstLimit.AtMost = int(^uint(0) >> 1) // maximum int
 		}
+		if arg.UnreadFirstLimit.AtMost < arg.UnreadFirstLimit.AtLeast {
+			arg.UnreadFirstLimit.AtMost = arg.UnreadFirstLimit.AtLeast
+		}
 		query := queryBase
 		query.UnreadOnly, query.ReadOnly = true, false
 		if gires, err = h.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
@@ -785,6 +788,9 @@ func (h *Server) GetConversationForCLILocal(ctx context.Context, arg chat1.GetCo
 
 	if arg.Limit.AtMost <= 0 {
 		arg.Limit.AtMost = int(^uint(0) >> 1) // maximum int
+	}
+	if arg.Limit.AtMost < arg.Limit.AtLeast {
+		arg.Limit.AtMost = arg.Limit.AtLeast
 	}
 
 	convLocal := arg.Conv

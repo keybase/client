@@ -24,6 +24,7 @@ typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
   KBInstallOptionKBFS = 1 << 4,
   KBInstallOptionUpdater = 1 << 5,
   KBInstallOptionMountDir = 1 << 6,
+  KBInstallOptionRedirector = 1 << 7,
   KBInstallOptionCLI = 1 << 10,
   KBInstallOptionAppBundle = 1 << 11,
   KBInstallOptionKBNM = 1 << 12,
@@ -59,6 +60,7 @@ typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
 
 - (NSString *)logFile:(NSString *)label;
 
+- (NSString *)homePath:(NSString *)filename options:(KBPathOptions)options;
 - (NSString *)dataPath:(NSString *)filename options:(KBPathOptions)options;
 - (NSString *)runtimePath:(NSString *)filename options:(KBPathOptions)options;
 - (NSString *)cachePath:(NSString *)filename options:(KBPathOptions)options;
@@ -67,7 +69,11 @@ typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
 - (NSString *)serviceBinName;
 - (NSString *)serviceBinPathWithPathOptions:(KBPathOptions)pathOptions servicePath:(NSString *)servicePath;
 - (NSString *)kbfsBinPathWithPathOptions:(KBPathOptions)pathOptions servicePath:(NSString *)servicePath;
+- (NSString *)redirectorBinPathWithPathOptions:(KBPathOptions)pathOptions servicePath:(NSString *)servicePath;
 - (NSString *)gitRemoteHelperName;
+- (NSString *)redirectorBinName;
+- (NSString *)redirectorMount;
+- (BOOL)redirectorDisabled;
 
 - (BOOL)validate:(NSError **)error;
 

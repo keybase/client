@@ -18,7 +18,7 @@ type State = {
 
 const DropOverlay = ({onDragLeave, onDrop}) => (
   <Box style={dropOverlayStyle} onDragLeave={onDragLeave} onDrop={onDrop}>
-    <Icon type="icon-file-dropping-48" />
+    <Icon type="icon-dropping-file-48" />
   </Box>
 )
 

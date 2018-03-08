@@ -18,8 +18,9 @@ typedef NS_OPTIONS (NSUInteger, UninstallOptions) {
   UninstallOptionMountDir = 1 << 2,
   UninstallOptionHelper = 1 << 3,
   UninstallOptionCLI = 1 << 4,
+  UninstallOptionRedirector = 1 << 5,
 
-  // Uninstall all (except for app)
+  // Uninstall all (except for app and redirector)
   UninstallOptionAll = UninstallOptionMountDir | UninstallOptionFuse | UninstallOptionCLI | UninstallOptionHelper,
 };
 
