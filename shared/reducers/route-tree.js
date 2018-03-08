@@ -15,7 +15,7 @@ import {
   checkRouteState,
   type RouteDefNode,
 } from '../route-tree'
-import {loginRouteTreeTitle, appRouteTreeTitle} from '../app/routes'
+import {loginRouteTreeTitle, appRouteTreeTitle} from '../app/route-constants'
 import {isValidInitialTabString} from '../constants/tabs'
 
 // This makes an empty one which isn't really allowed, we always init it before anything really happens

@@ -25,8 +25,7 @@ import {
   gitTab,
 } from '../constants/tabs'
 import flags from '../util/feature-flags'
-
-const loginRouteTreeTitle = 'LoginRoot'
+import {loginRouteTreeTitle, appRouteTreeTitle} from './route-constants'
 
 // TODO: We have only a single tab, so consider making loginRoutes the
 // root.
@@ -38,8 +37,6 @@ const loginRouteTree = makeRouteDefNode({
   containerComponent: Nav,
   defaultSelected: loginTab,
 })
-
-const appRouteTreeTitle = 'AppRoot'
 
 const appRouteTree = makeRouteDefNode({
   tags: makeLeafTags({title: appRouteTreeTitle}),
@@ -66,4 +63,4 @@ const appRouteTree = makeRouteDefNode({
   defaultSelected: peopleTab,
 })
 
-export {loginRouteTreeTitle, loginRouteTree, appRouteTreeTitle, appRouteTree}
+export {loginRouteTree, appRouteTree}
