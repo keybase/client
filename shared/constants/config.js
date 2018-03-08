@@ -45,6 +45,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   pushLoaded: false,
   readyForBootstrap,
   registered: false,
+  startedDueToPush: false,
   uid: null,
   userActive: true,
   username: null,

@@ -142,13 +142,20 @@ class ChatFilterRow extends React.PureComponent<Props, State> {
           onClick={this.props.onDebugDump}
         />
         {this.props.isLoading && (
-          <Box style={{bottom: 0, left: 0, position: 'absolute', height: 1, right: 0}}>
+          <Box style={loadingContainer}>
             <LoadingLine />
           </Box>
         )}
       </Box>
     )
   }
+}
+
+const loadingContainer = {
+  bottom: 0,
+  left: 0,
+  position: 'absolute',
+  right: 0,
 }
 
 const styleContainer = {

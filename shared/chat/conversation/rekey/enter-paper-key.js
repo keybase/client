@@ -1,9 +1,8 @@
 // @flow
 import EnterPaperkey from '../../../login/register/paper-key'
 import {createCheckPaperKey} from '../../../actions/unlock-folders-gen'
-import {connect} from 'react-redux'
+import {connect, compose, withStateHandlers} from '../../../util/container'
 import {navigateUp} from '../../../actions/route-tree'
-import {compose, withState, withHandlers} from 'recompose'
 
 const mapStateToProps = () => ({
   error: '',
@@ -11,18 +10,23 @@ const mapStateToProps = () => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onBack: () => dispatch(navigateUp()),
-  onEnterPaperkey: (paperKey: string) => {
+  _onEnterPaperkey: (paperKey: string) => {
     dispatch(createCheckPaperKey({paperKey}))
     dispatch(navigateUp())
     dispatch(navigateUp())
   },
+  onBack: () => dispatch(navigateUp()),
 })
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
-  withState('paperKey', 'onChangePaperKey'),
-  withHandlers({
-    onSubmit: ({paperKey, onEnterPaperkey}) => () => onEnterPaperkey(paperKey),
-  })
+  withStateHandlers(
+    {paperKey: null},
+    {
+      onChangePaperKey: () => paperKey => ({paperKey}),
+      onSubmit: (_, {paperKey, _onEnterPaperkey}) => () => {
+        _onEnterPaperkey(paperKey)
+      },
+    }
+  )
 )(EnterPaperkey)

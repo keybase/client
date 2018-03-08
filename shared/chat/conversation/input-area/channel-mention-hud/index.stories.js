@@ -2,7 +2,7 @@
 import React from 'react'
 import * as I from 'immutable'
 import {MentionRowRenderer, MentionHud} from '.'
-import {compose, withState} from 'recompose'
+import {compose, withStateHandlers} from '../../../../util/container'
 import {Box, Button, Input, ButtonBar} from '../../../../common-adapters'
 import {createPropProvider, storiesOf, action} from '../../../../stories/storybook'
 import {globalStyles} from '../../../../styles'
@@ -22,15 +22,27 @@ const provider = createPropProvider({
 })
 
 const UpDownFilterHoc = compose(
-  withState('upCounter', 'setUpCounter', 0),
-  withState('downCounter', 'setDownCounter', 0),
-  withState('filter', 'setFilter', ''),
+  withStateHandlers(
+    {
+      downCounter: 0,
+      filter: '',
+      upCounter: 0,
+    },
+    {
+      // $FlowIssue
+      setDownCounter: () => (downCounter: number) => ({downCounter}),
+      // $FlowIssue
+      setFilter: () => (filter: string) => ({filter}),
+      // $FlowIssue
+      setUpCounter: () => (upCounter: number) => ({upCounter}),
+    }
+  ),
   Component => props => (
     <Box style={globalStyles.flexBoxColumn}>
       <Component upCounter={props.upCounter} downCounter={props.downCounter} filter={props.filter} />
       <ButtonBar>
-        <Button label="Up" type="Primary" onClick={() => props.setUpCounter(n => n + 1)} />
-        <Button label="Down" type="Primary" onClick={() => props.setDownCounter(n => n + 1)} />
+        <Button label="Up" type="Primary" onClick={() => props.setUpCounter(props.upCounter + 1)} />
+        <Button label="Down" type="Primary" onClick={() => props.setDownCounter(props.downCounter + 1)} />
       </ButtonBar>
       <Input onChangeText={props.setFilter} hintText="Filter" />
     </Box>

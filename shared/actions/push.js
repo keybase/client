@@ -118,6 +118,11 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
 
     // Handle types from user interaction
     if (payload.userInteraction) {
+      // There can be a race where the notification that our app is foregrounded is very late compared to the push
+      // which makes our handling incorrect. Instead we can only ever handle this if we're in the foreground so lets
+      // just tell the app that's so
+      yield Saga.put(AppGen.createMobileAppState({nextAppState: 'active'}))
+
       if (payload.type === 'chat.newmessage') {
         const {convID} = payload
         // Check for conversation ID so we know where to navigate to

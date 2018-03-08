@@ -31,8 +31,8 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   return {
     description,
     following,
-    teamJoinError: null, // TODO state.chat.teamJoinError,
-    teamJoinSuccess: null, // TODO state.chat.teamJoinSuccess,
+    teamJoinError: state.entities.teams.teamJoinError,
+    teamJoinSuccess: state.entities.teams.teamJoinSuccess,
     memberCount,
     openTeam,
     publicAdmins,
