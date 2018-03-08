@@ -5753,28 +5753,28 @@ func (mr *MockInitModeMockRecorder) DirtyBlockCacheEnabled() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DirtyBlockCacheEnabled", reflect.TypeOf((*MockInitMode)(nil).DirtyBlockCacheEnabled))
 }
 
-// DoBackgroundFlushes mocks base method
-func (m *MockInitMode) DoBackgroundFlushes() bool {
-	ret := m.ctrl.Call(m, "DoBackgroundFlushes")
+// BackgroundFlushesEnabled mocks base method
+func (m *MockInitMode) BackgroundFlushesEnabled() bool {
+	ret := m.ctrl.Call(m, "BackgroundFlushesEnabled")
 	ret0, _ := ret[0].(bool)
 	return ret0
 }
 
-// DoBackgroundFlushes indicates an expected call of DoBackgroundFlushes
-func (mr *MockInitModeMockRecorder) DoBackgroundFlushes() *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DoBackgroundFlushes", reflect.TypeOf((*MockInitMode)(nil).DoBackgroundFlushes))
+// BackgroundFlushesEnabled indicates an expected call of BackgroundFlushesEnabled
+func (mr *MockInitModeMockRecorder) BackgroundFlushesEnabled() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BackgroundFlushesEnabled", reflect.TypeOf((*MockInitMode)(nil).BackgroundFlushesEnabled))
 }
 
-// UseMetrics mocks base method
-func (m *MockInitMode) UseMetrics() bool {
-	ret := m.ctrl.Call(m, "UseMetrics")
+// MetricsEnabled mocks base method
+func (m *MockInitMode) MetricsEnabled() bool {
+	ret := m.ctrl.Call(m, "MetricsEnabled")
 	ret0, _ := ret[0].(bool)
 	return ret0
 }
 
-// UseMetrics indicates an expected call of UseMetrics
-func (mr *MockInitModeMockRecorder) UseMetrics() *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UseMetrics", reflect.TypeOf((*MockInitMode)(nil).UseMetrics))
+// MetricsEnabled indicates an expected call of MetricsEnabled
+func (mr *MockInitModeMockRecorder) MetricsEnabled() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MetricsEnabled", reflect.TypeOf((*MockInitMode)(nil).MetricsEnabled))
 }
 
 // ConflictResolutionEnabled mocks base method
