@@ -9,7 +9,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   const meta = Constants.getMeta(state, conversationIDKey)
   return {
     prevConversationIDKey: meta.supersedes,
-    username: meta.supersedesCausedBy || '',
+    username: meta.wasFinalizedBy || '',
   }
 }
 

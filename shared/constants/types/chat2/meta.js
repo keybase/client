@@ -6,7 +6,6 @@ import type {Ordinal} from './message'
 
 type MembershipType = 'active' | 'youArePreviewing' | 'youAreReset'
 type TeamType = 'small' | 'big' | 'adhoc'
-type Username = string
 
 // When we scroll backwards we get an opaque string back to use as a token to get the next page
 export opaque type PaginationKey: string = string
@@ -20,6 +19,7 @@ export type _ConversationMeta = {
   conversationIDKey: Common.ConversationIDKey,
   inboxVersion: number,
   isMuted: boolean,
+  wasFinalizedBy: string, // a conversation can be finalized but not superseded
   membershipType: MembershipType,
   notificationsDesktop: NotificationsType,
   notificationsMobile: NotificationsType,
@@ -32,9 +32,7 @@ export type _ConversationMeta = {
   resetParticipants: I.Set<string>,
   snippet: string,
   supersededBy: ?Common.ConversationIDKey,
-  supersededByCausedBy: ?Username,
   supersedes: ?Common.ConversationIDKey,
-  supersedesCausedBy: ?Username,
   teamType: TeamType,
   teamname: string,
   timestamp: number,
