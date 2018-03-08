@@ -71,7 +71,7 @@ QuoteBlockMarker = ">"
 MentionMarker = "@"
 ChannelMarker = "#"
 PhoneMarker = "("
-PhonePostfix = ") "
+PhonePostfix = ")"
 
 // Can mark the beginning of a link
 PunctuationMarker = [()[\].,!?]
@@ -123,7 +123,7 @@ Channel
 Num = [0-9]
 Phone
  = phone:($ (
-   (PhoneMarker? Num Num Num PhonePostfix Num Num Num [- ] Num Num Num Num !NonBlank) /
+   (PhoneMarker? Num Num Num PhonePostfix Space? Num Num Num [- ] Num Num Num Num !NonBlank) /
    (PhoneMarker? Num Num Num [- ] Num Num Num [- ] Num Num Num Num !NonBlank) /
    (PhoneMarker? Num Num Num Num Num Num Num Num Num Num !NonBlank))) {
     return {type: 'phone', href: 'tel:'+phone, children: [phone]}

@@ -1118,6 +1118,46 @@ Object {
       "children": Array [
         Object {
           "children": Array [
+            "(123)456-7890",
+          ],
+          "href": "tel:(123)456-7890",
+          "type": "phone",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses phone numbers correctly 4`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "(123)456 7890",
+          ],
+          "href": "tel:(123)456 7890",
+          "type": "phone",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses phone numbers correctly 5`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
             "123-456-7890",
           ],
           "href": "tel:123-456-7890",
@@ -1131,7 +1171,7 @@ Object {
 }
 `;
 
-exports[`Markdown parser parses phone numbers correctly 4`] = `
+exports[`Markdown parser parses phone numbers correctly 6`] = `
 Object {
   "children": Array [
     Object {
@@ -1151,7 +1191,7 @@ Object {
 }
 `;
 
-exports[`Markdown parser parses phone numbers correctly 5`] = `
+exports[`Markdown parser parses phone numbers correctly 7`] = `
 Object {
   "children": Array [
     Object {
@@ -1171,7 +1211,7 @@ Object {
 }
 `;
 
-exports[`Markdown parser parses phone numbers correctly 6`] = `
+exports[`Markdown parser parses phone numbers correctly 8`] = `
 Object {
   "children": Array [
     Object {
@@ -1191,27 +1231,7 @@ Object {
 }
 `;
 
-exports[`Markdown parser parses phone numbers correctly 7`] = `
-Object {
-  "children": Array [
-    Object {
-      "children": Array [
-        Object {
-          "children": Array [
-            "1234567890",
-          ],
-          "href": "tel:1234567890",
-          "type": "phone",
-        },
-      ],
-      "type": "text-block",
-    },
-  ],
-  "type": "markup",
-}
-`;
-
-exports[`Markdown parser parses phone numbers correctly 8`] = `
+exports[`Markdown parser parses phone numbers correctly 9`] = `
 Object {
   "children": Array [
     Object {
@@ -1225,7 +1245,7 @@ Object {
 }
 `;
 
-exports[`Markdown parser parses phone numbers correctly 9`] = `
+exports[`Markdown parser parses phone numbers correctly 10`] = `
 Object {
   "children": Array [
     Object {
@@ -1239,7 +1259,7 @@ Object {
 }
 `;
 
-exports[`Markdown parser parses phone numbers correctly 10`] = `
+exports[`Markdown parser parses phone numbers correctly 11`] = `
 Object {
   "children": Array [
     Object {
@@ -1253,7 +1273,7 @@ Object {
 }
 `;
 
-exports[`Markdown parser parses phone numbers correctly 11`] = `
+exports[`Markdown parser parses phone numbers correctly 12`] = `
 Object {
   "children": Array [
     Object {

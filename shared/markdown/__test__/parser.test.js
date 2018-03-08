@@ -129,11 +129,12 @@ describe('Markdown parser', () => {
     // Should succeed
     check('(123) 456-7890')
     check('(123) 456 7890')
+    check('(123)456-7890')
+    check('(123)456 7890')
     check('123-456-7890')
     check('123-456 7890')
     check('123 456-7890')
     check('123 456 7890')
-    check('1234567890')
     // Should fail
     check('123 456 78901')
     check('(123) 456 78901')
