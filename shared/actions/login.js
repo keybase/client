@@ -80,7 +80,9 @@ function* setCodePageOtherDeviceRole(codePageOtherDeviceRole: Types.DeviceRole):
 
 function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
   const state = yield Saga.select()
-  const {loggedIn, registered, initialState} = state.config
+  const {loggedIn, registered, startedDueToPush} = state.config
+  // ignore initial state if we're here due to push
+  const initialState = startedDueToPush ? null : state.config.initialState
   const {justDeletedSelf, loginError} = state.login
   const {loggedInUserNavigated} = state.routeTree
   logger.info(

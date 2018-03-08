@@ -20,8 +20,8 @@ export type Props = {
   messageFailed: boolean,
   messageSent: boolean,
   onShowMenu: any => void, // weak typing cause we swap out how this works on mobile/desktop
-  onRetry: () => void,
-  onEdit: () => void,
+  onRetry: ?() => void,
+  onEdit: ?() => void,
   onAuthorClick: () => void,
   orangeLineAbove: boolean,
   showTeamOffer: boolean,

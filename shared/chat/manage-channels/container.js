@@ -7,8 +7,15 @@ import * as ChatTypes from '../../constants/types/chat2'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as TeamsGen from '../../actions/teams-gen'
 import ManageChannels from '.'
-import {withHandlers, withState, withPropsOnChange} from 'recompose'
-import {connect, compose, lifecycle, type TypedState} from '../../util/container'
+import {
+  connect,
+  compose,
+  lifecycle,
+  type TypedState,
+  withHandlers,
+  withStateHandlers,
+  withPropsOnChange,
+} from '../../util/container'
 import {navigateTo, navigateAppend, pathSelector, switchTo} from '../../actions/route-tree'
 import {anyWaiting} from '../../constants/waiting'
 import {chatTab} from '../../constants/tabs'
@@ -97,7 +104,14 @@ export default compose(
       return acc
     }, {}),
   })),
-  withState('nextChannelState', 'setNextChannelState', props => props.oldChannelState),
+  withStateHandlers(
+    props => ({
+      nextChannelState: props.oldChannelState,
+    }),
+    {
+      setNextChannelState: () => nextChannelState => ({nextChannelState}),
+    }
+  ),
   withHandlers({
     onToggle: props => (channelname: string) =>
       props.setNextChannelState(cs => ({

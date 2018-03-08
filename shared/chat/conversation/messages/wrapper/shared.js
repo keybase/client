@@ -59,7 +59,7 @@ const EditedMark = () => (
 )
 
 const Failure = ({failureDescription, onEdit, onRetry}) => {
-  const error = `Failed to send${failureDescription ? ` -  ${failureDescription}` : ''}. `
+  const error = `${failureDescription ? ` -  ${failureDescription}` : ''}. `
   const resolveByEdit = failureDescription === 'message is too long'
   return (
     <Text type="BodySmall">
@@ -70,16 +70,18 @@ const Failure = ({failureDescription, onEdit, onRetry}) => {
         {' '}
         {error}
       </Text>
-      {resolveByEdit && (
-        <Text type="BodySmall" style={styles.failStyleUnderline} onClick={onEdit}>
-          Edit
-        </Text>
-      )}
-      {!resolveByEdit && (
-        <Text type="BodySmall" style={styles.failStyleUnderline} onClick={onRetry}>
-          Retry
-        </Text>
-      )}
+      {!!onEdit &&
+        resolveByEdit && (
+          <Text type="BodySmall" style={styles.failStyleUnderline} onClick={onEdit}>
+            Edit
+          </Text>
+        )}
+      {!!onRetry &&
+        !resolveByEdit && (
+          <Text type="BodySmall" style={styles.failStyleUnderline} onClick={onRetry}>
+            Retry
+          </Text>
+        )}
     </Text>
   )
 }
@@ -106,13 +108,15 @@ class MessageWrapper extends React.PureComponent<Props> {
                 onAuthorClick={props.onAuthorClick}
               />
               <Box style={styles.sendIndicatorContainer}>
-                {/* $FlowIssue doesn't like HOCTimers */}
-                <SendIndicator
-                  sent={props.messageSent}
-                  failed={props.messageFailed}
-                  style={{marginBottom: 2}}
-                  id={props.message.timestamp}
-                />
+                {props.isYou && (
+                  // $FlowIssue doesn't like HOCTimers
+                  <SendIndicator
+                    sent={props.messageSent}
+                    failed={props.messageFailed}
+                    style={{marginBottom: 2}}
+                    id={props.message.timestamp}
+                  />
+                )}
               </Box>
             </Box>
             <Box style={styles.flexOneColumn} className="message-wrapper">
