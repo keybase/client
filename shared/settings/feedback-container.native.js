@@ -71,7 +71,6 @@ class FeedbackContainer extends Component<Props, State> {
           const extra = this.state.sendLogs ? {...this.props.status, ...this.props.chat} : this.props.status
           return logSend(
             JSON.stringify(extra),
-            this.props.status,
             this.state.feedback || '',
             this.state.sendLogs,
             logPath,
