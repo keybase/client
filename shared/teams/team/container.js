@@ -4,7 +4,7 @@ import * as I from 'immutable'
 import * as React from 'react'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as KBFSGen from '../../actions/kbfs-gen'
-import * as ChatGen from '../../actions/chat-gen'
+import * as Chat2Gen from '../../actions/chat2-gen'
 import Team, {CustomComponent} from '.'
 import {HeaderHoc} from '../../common-adapters'
 import {branch, connect, lifecycle, compose, type TypedState} from '../../util/container'
@@ -50,7 +50,7 @@ const mapDispatchToProps = (
   const teamname = routeProps.get('teamname')
   return {
     setSelectedTab: selectedTab => setRouteState({selectedTab}),
-    onChat: () => dispatch(ChatGen.createOpenTeamConversation({teamname, channelname: 'general'})),
+    onChat: () => dispatch(Chat2Gen.createStartConversation({tlf: `/keybase/team/${teamname}`})),
     _loadTeam: teamname => dispatch(TeamsGen.createGetDetails({teamname})),
     onBack: () => dispatch(navigateUp()),
     onShowMenu: target =>
