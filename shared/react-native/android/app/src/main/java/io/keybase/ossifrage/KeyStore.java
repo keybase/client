@@ -50,6 +50,7 @@ public class KeyStore implements UnsafeExternalKeyStore {
 
         ks = java.security.KeyStore.getInstance("AndroidKeyStore");
         ks.load(null);
+        NativeLogger.info("KeyStore: initialized");
     }
 
     private String sharedPrefKeyPrefix(final String serviceName) {
@@ -63,11 +64,13 @@ public class KeyStore implements UnsafeExternalKeyStore {
     @SuppressLint("CommitPrefEdits")
     @Override
     public void clearSecret(final String serviceName, final String key) throws Exception {
+        NativeLogger.info("KeyStore: clearing secret for " + serviceName + ":" + key);
         prefs.edit().remove(sharedPrefKeyPrefix(serviceName) + key).commit();
     }
 
     @Override
     public synchronized byte[] getUsersWithStoredSecretsMsgPack(final String serviceName) throws Exception {
+        NativeLogger.info("KeyStore: getting users with stored secrets for " + serviceName);
         final Iterator<String> keyIterator = prefs.getAll().keySet().iterator();
         final ArrayList<String> userNames = new ArrayList<>();
 
@@ -84,6 +87,7 @@ public class KeyStore implements UnsafeExternalKeyStore {
 
     @Override
     public synchronized byte[] retrieveSecret(final String serviceName, final String key) throws Exception {
+        NativeLogger.info("KeyStore: retrieving secret for " + serviceName + ":" + key);
         final byte[] wrappedSecret = readWrappedSecret(prefs, sharedPrefKeyPrefix(serviceName) + key);
         Entry entry = ks.getEntry(keyStoreAlias(serviceName), null);
 
@@ -110,6 +114,7 @@ public class KeyStore implements UnsafeExternalKeyStore {
 
     @Override
     public synchronized void setupKeyStore(final String serviceName, final String key) throws Exception {
+        NativeLogger.info("KeyStore: setting up key store for " + serviceName + ":" + key);
         if (!ks.containsAlias(keyStoreAlias(serviceName))) {
             KeyStoreHelper.generateRSAKeyPair(context, keyStoreAlias(serviceName));
         }
@@ -135,6 +140,7 @@ public class KeyStore implements UnsafeExternalKeyStore {
 
     @Override
     public synchronized void storeSecret(final String serviceName, final String key, final byte[] bytes) throws Exception {
+        NativeLogger.info("KeyStore: storing secret for " + serviceName + ":" + key);
         Entry entry = ks.getEntry(keyStoreAlias(serviceName), null);
 
         if (entry == null) {
