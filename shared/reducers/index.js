@@ -1,6 +1,6 @@
 // @flow
 import logger from '../logger'
-import chat from './chat'
+import chat2 from './chat2'
 import config from './config'
 import dev from './dev'
 import devices from './devices'
@@ -21,6 +21,7 @@ import settings from './settings'
 import signup from './signup'
 import tracker from './tracker'
 import unlockFolders from './unlock-folders'
+import users from './users'
 import waiting from './waiting'
 import {combineReducers} from 'redux'
 import {resetStore} from '../constants/common.js'
@@ -29,7 +30,7 @@ import {reducerTimer} from '../dev/user-timings'
 import type {TypedState} from '../constants/reducer'
 
 const reducers = {
-  chat,
+  chat2,
   config,
   dev,
   devices,
@@ -50,6 +51,7 @@ const reducers = {
   signup,
   tracker,
   unlockFolders,
+  users,
   waiting,
 }
 

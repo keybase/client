@@ -1,6 +1,6 @@
 // @flow
 import * as I from 'immutable'
-import {type ConversationIDKey} from './chat'
+import {type ConversationIDKey} from './chat2'
 import {type Tab} from '../tabs'
 import {type Config, type DeviceID, type ExtendedStatus} from './rpc-gen'
 
@@ -28,6 +28,7 @@ export type _State = {
   daemonError: ?Error,
   deviceID: ?DeviceID,
   deviceName: ?string,
+  debugDump: Array<string>,
   error: ?any,
   extendedConfig: ?ExtendedStatus,
   followers: I.Set<string>,
@@ -44,5 +45,6 @@ export type _State = {
   uid: ?string,
   userActive: boolean,
   username: ?string,
+  startedDueToPush: boolean,
 }
 export type State = I.RecordOf<_State>

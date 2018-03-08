@@ -1,27 +1,31 @@
 // @flow
 import * as React from 'react'
-import * as Types from '../../../../constants/types/chat'
+import * as Types from '../../../../constants/types/chat2'
 
-export type Props = {|
+export type Props = {
   author: string,
   failureDescription: ?string,
   includeHeader: boolean,
-  innerClass: React.Component<*>,
+  innerClass: React.ComponentType<*>,
   isBroken: boolean,
   isEdited: boolean,
   isEditing: boolean,
-  isFirstNewMessage: boolean,
   isFollowing: boolean,
   isRevoked: boolean,
   isSelected: boolean,
   isYou: boolean,
-  measure: ?() => void,
-  messageKey: Types.MessageKey,
-  onAction: (event: SyntheticEvent<>) => void,
-  onRetry: () => void,
-  onShowEditor: (event: SyntheticEvent<>) => void,
-  onClick: () => void,
+  loadMoreType: null | 'moreToLoad' | 'noMoreToLoad',
+  hasOlderResetConversation: boolean,
+  message: Types.Message,
+  messageFailed: boolean,
+  messageSent: boolean,
+  onShowMenu: any => void, // weak typing cause we swap out how this works on mobile/desktop
+  onRetry: ?() => void,
+  onEdit: ?() => void,
+  onAuthorClick: () => void,
+  orangeLineAbove: boolean,
+  showTeamOffer: boolean,
   timestamp: ?string,
-|}
+}
 
 export default class Wrapper extends React.Component<Props> {}

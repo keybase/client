@@ -2,20 +2,19 @@
 import logger from '../logger'
 import * as KBFSGen from '../actions/kbfs-gen'
 import * as TrackerGen from '../actions/tracker-gen'
+import * as Chat2Gen from '../actions/chat2-gen'
 import * as ProfileGen from '../actions/profile-gen'
 import * as Constants from '../constants/tracker'
 import * as Types from '../constants/types/tracker'
 import ErrorComponent from '../common-adapters/error-profile'
 import Profile from './index'
-import React, {PureComponent} from 'react'
+import * as React from 'react'
 import {createSearchSuggestions} from '../actions/search-gen'
-import pausableConnect from '../util/pausable-connect'
 import {isTesting} from '../local-debug'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
 import {peopleTab} from '../constants/tabs'
-import {createStartConversation} from '../actions/chat-gen'
+import {connect, type TypedState} from '../util/container'
 
-import type {TypedState} from '../constants/reducer'
 import type {MissingProof} from '../common-adapters/user-proofs'
 import type {RouteProps} from '../route-tree/render-route'
 import type {Props} from '.'
@@ -34,7 +33,7 @@ type EitherProps<P> =
       onBack: ?() => void,
     }
 
-class ProfileContainer extends PureComponent<EitherProps<Props>, void> {
+class ProfileContainer extends React.PureComponent<EitherProps<Props>> {
   render() {
     if (this.props.type === 'error') {
       return <ErrorComponent error={this.props.propError} onBack={this.props.onBack} />
@@ -67,7 +66,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState}: OwnProps) => ({
   onAcceptProofs: (username: string) => dispatch(TrackerGen.createFollow({localIgnore: false, username})),
   onBack: () => dispatch(navigateUp()),
   onChangeFriendshipsTab: currentFriendshipsTab => setRouteState({currentFriendshipsTab}),
-  onChat: (myUsername, username) => dispatch(createStartConversation({users: [username, myUsername]})),
+  onChat: username => dispatch(Chat2Gen.createStartConversation({participants: [username]})),
   onClickAvatar: (username: string) => dispatch(ProfileGen.createOnClickAvatar({username})),
   onClickFollowers: (username: string) => dispatch(ProfileGen.createOnClickFollowers({username})),
   onClickFollowing: (username: string) => dispatch(ProfileGen.createOnClickFollowing({username})),
@@ -148,7 +147,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     loading: Constants.isLoading(stateProps.trackerState) && !isTesting,
     onAcceptProofs: () => dispatchProps.onFollow(username),
     onBack: stateProps.profileIsRoot ? null : dispatchProps.onBack,
-    onChat: () => dispatchProps.onChat(stateProps.myUsername, username),
+    onChat: () => dispatchProps.onChat(username),
     onClickAvatar: () => dispatchProps.onClickAvatar(username),
     onClickFollowers: () => dispatchProps.onClickFollowers(username),
     onClickFollowing: () => dispatchProps.onClickFollowing(username),
@@ -160,7 +159,8 @@ const mergeProps = (stateProps, dispatchProps) => {
     username,
   }
 
+  // TODO remove this, don't do this nested thing, just make a switching component
   return {okProps, type: 'ok'}
 }
 
-export default pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps)(ProfileContainer)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(ProfileContainer)

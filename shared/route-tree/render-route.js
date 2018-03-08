@@ -11,8 +11,8 @@ import type {Tab} from '../constants/tabs'
 type _RenderRouteResult = {
   path: I.List<string>,
   tags: LeafTags,
-  component: ({isActiveRoute: boolean, shouldRender: boolean}) => React.Node,
-  leafComponent: ({isActiveRoute: boolean, shouldRender: boolean}) => React.Node,
+  component: ({shouldRender: boolean, key?: string}) => React.Node,
+  leafComponent: ({shouldRender: boolean, key?: string}) => React.Node,
 }
 
 export type RenderRouteResult = I.RecordOf<_RenderRouteResult>
@@ -28,7 +28,6 @@ export type RouteRenderStack = I.Stack<RenderRouteResult>
 // Components rendered by routes receive the following props:
 export type RouteProps<P, S> = {
   // Whether the route is the primary onscreen route.
-  isActiveRoute: boolean,
   shouldRender: boolean,
 
   // Route props (query params)
@@ -54,11 +53,10 @@ export type RouteProps<P, S> = {
 
   // Navigation if your path hasn't changed underneath you
   navigateUp: () => Action,
-  navigateAppend: () => Action,
+  navigateAppend: (...Array<any>) => Action,
 }
 
 type RenderRouteNodeProps<S> = {
-  isActiveRoute: boolean,
   shouldRender: boolean,
   isContainer: boolean,
   routeDef: RouteDefNode,
@@ -79,24 +77,13 @@ class RenderRouteNode extends React.PureComponent<RenderRouteNodeProps<*>, *> {
 
   static defaultProps: *
   render() {
-    const {
-      isActiveRoute,
-      shouldRender,
-      isContainer,
-      routeDef,
-      routeState,
-      path,
-      leafTags,
-      stack,
-      children,
-    } = this.props
+    const {shouldRender, isContainer, routeDef, routeState, path, leafTags, stack, children} = this.props
     const RouteComponent: any = isContainer ? routeDef.containerComponent : routeDef.component
     if (!RouteComponent) {
       throw new Error('Missing RouteComponent')
     }
     return (
       <RouteComponent
-        isActiveRoute={isActiveRoute}
         shouldRender={shouldRender}
         routeProps={routeState.props}
         routeState={routeState.state}
@@ -162,12 +149,11 @@ function renderRouteStack({
       // If this route specifies a container component, compose it around every
       // view in the stack.
       stack = stack.map(r =>
-        r.update('component', child => ({isActiveRoute, shouldRender}) => {
+        r.update('component', child => ({shouldRender, key}) => {
           const last = childStack.last()
           const leafTags = last ? last.tags : {}
           return (
             <RenderRouteNode
-              isActiveRoute={isActiveRoute}
               shouldRender={shouldRender}
               isContainer={true}
               routeDef={routeDef}
@@ -176,9 +162,9 @@ function renderRouteStack({
               setRouteState={setRouteState}
               leafTags={leafTags}
               stack={childStack}
-              key={path.join(':')}
+              key={key || path.join(':')}
             >
-              {child({isActiveRoute, shouldRender})}
+              {child({key: '0', shouldRender})}
             </RenderRouteNode>
           )
         })
@@ -188,17 +174,16 @@ function renderRouteStack({
 
   if (routeDef.component) {
     // If this path has a leaf component to render, add it to the stack.
-    const routeComponent = ({isActiveRoute, shouldRender}) =>
+    const routeComponent = ({shouldRender, key}) =>
       shouldRender ? (
         <RenderRouteNode
-          isActiveRoute={isActiveRoute}
           shouldRender={shouldRender}
           isContainer={false}
           routeDef={routeDef}
           routeState={routeState}
           path={path}
-          key={path.join(':')}
           setRouteState={setRouteState}
+          key={key || path.join(':')}
         />
       ) : (
         <Box />
@@ -228,6 +213,6 @@ export default class RenderRoute extends React.PureComponent<RenderRouteProps<*>
     // This component renders the bottom (currently visible) one.
     const viewStack = renderRouteStack({...this.props, path: I.List()})
     const last: ?RenderRouteResult = viewStack.last()
-    return last ? last.component({isActiveRoute: true, shouldRender: false}) : null
+    return last ? last.component({shouldRender: false}) : null
   }
 }

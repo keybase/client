@@ -5,6 +5,7 @@ export type Props = {
   error: ?Error,
   daemonError: ?Error,
   onDismiss: () => void,
+  debugDump: Array<string>,
   setTimeout: (cb: () => void, delay: number) => any,
   clearTimeout: (id: any) => void,
   setInterval: (cb: () => void, delay: number) => any,

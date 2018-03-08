@@ -1,6 +1,7 @@
 // @flow
 import React, {PureComponent} from 'react'
 import Text from './text'
+import * as Types from '../constants/types/chat2'
 import Channel from './channel-container'
 import Mention from './mention-container'
 import Box from './box'
@@ -82,7 +83,9 @@ function messageCreateComponent(type, key, children, options) {
       if (typeof convID !== 'string') {
         throw new Error('convID unexpectedly not string')
       }
-      return <Channel name={name} convID={convID} key={key} style={linkStyle} />
+      return (
+        <Channel name={name} convID={Types.stringToConversationIDKey(convID)} key={key} style={linkStyle} />
+      )
     case 'inline-code':
       return (
         <Text type="Body" key={key} style={codeSnippetStyle}>

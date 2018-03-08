@@ -3,11 +3,19 @@ import logger from '../../logger'
 import pickBy from 'lodash/pickBy'
 import isEqual from 'lodash/isEqual'
 import * as Types from '../../constants/types/teams'
-import * as ChatGen from '../../actions/chat-gen'
+import * as ChatTypes from '../../constants/types/chat2'
+import * as Chat2Gen from '../../actions/chat2-gen'
 import * as TeamsGen from '../../actions/teams-gen'
 import ManageChannels from '.'
-import {withHandlers, withState, withPropsOnChange} from 'recompose'
-import {pausableConnect, compose, lifecycle, type TypedState} from '../../util/container'
+import {
+  connect,
+  compose,
+  lifecycle,
+  type TypedState,
+  withHandlers,
+  withStateHandlers,
+  withPropsOnChange,
+} from '../../util/container'
 import {navigateTo, navigateAppend, pathSelector, switchTo} from '../../actions/route-tree'
 import {anyWaiting} from '../../constants/waiting'
 import {chatTab} from '../../constants/tabs'
@@ -69,29 +77,41 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
       )
       dispatch(TeamsGen.createSaveChannelMembership({teamname, channelState: channelsToChange}))
     },
-    _onPreview: (conversationIDKey: string, previousPath?: string[]) => {
-      dispatch(ChatGen.createPreviewChannel({conversationIDKey}))
+    _onPreview: (conversationIDKey: ChatTypes.ConversationIDKey, previousPath?: string[]) => {
+      dispatch(Chat2Gen.createSelectConversation({conversationIDKey, asAPreview: true}))
       dispatch(
-        navigateTo([chatTab, {selected: conversationIDKey, props: {previousPath: previousPath || null}}])
+        navigateTo([
+          chatTab,
+          {
+            selected: ChatTypes.conversationIDKeyToString(conversationIDKey),
+            props: {previousPath: previousPath || null},
+          },
+        ])
       )
     },
-    _onView: (conversationIDKey: string) => {
-      dispatch(ChatGen.createSetInboxFilter({filter: ''}))
-      dispatch(ChatGen.createSelectConversation({conversationIDKey, fromUser: true}))
+    _onView: (conversationIDKey: ChatTypes.ConversationIDKey) => {
+      dispatch(Chat2Gen.createSelectConversation({conversationIDKey, fromUser: true}))
       dispatch(switchTo([chatTab]))
     },
   }
 }
 
 export default compose(
-  pausableConnect(mapStateToProps, mapDispatchToProps),
+  connect(mapStateToProps, mapDispatchToProps),
   withPropsOnChange(['channels'], props => ({
     oldChannelState: props.channels.reduce((acc, c) => {
       acc[c.name] = c.selected
       return acc
     }, {}),
   })),
-  withState('nextChannelState', 'setNextChannelState', props => props.oldChannelState),
+  withStateHandlers(
+    props => ({
+      nextChannelState: props.oldChannelState,
+    }),
+    {
+      setNextChannelState: () => nextChannelState => ({nextChannelState}),
+    }
+  ),
   withHandlers({
     onToggle: props => (channelname: string) =>
       props.setNextChannelState(cs => ({

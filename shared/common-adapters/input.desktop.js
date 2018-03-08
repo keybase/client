@@ -1,5 +1,5 @@
 // @flow
-import React, {Component} from 'react'
+import * as React from 'react'
 import {findDOMNode} from 'react-dom'
 import Box from './box'
 import Text, {getStyle as getTextStyle} from './text.desktop'
@@ -12,19 +12,17 @@ type State = {
   focused: boolean,
 }
 
-class Input extends Component<Props, State> {
+class Input extends React.PureComponent<Props, State> {
   state: State
-  _input: any
-  _isComposingIME: boolean
+  _input: *
+  _isComposingIME: boolean = false
 
   constructor(props: Props) {
     super(props)
 
-    this._isComposingIME = false
-
     this.state = {
-      value: props.value || '',
       focused: false,
+      value: props.value || '',
     }
   }
 
@@ -42,26 +40,27 @@ class Input extends Component<Props, State> {
     }
   }
 
-  componentDidUpdate() {
-    this._autoResize()
+  componentDidUpdate(prevProps: Props, prevState: State) {
+    if (this.state.value !== prevState.value) {
+      this._autoResize()
+    }
   }
 
-  getValue(): string {
+  getValue = (): string => {
     return this.state.value || ''
   }
 
-  setValue(value: string) {
+  setValue = (value: string) => {
     this.setState({value: value || ''})
   }
 
-  clearValue() {
+  clearValue = () => {
     this._onChange({target: {value: ''}})
   }
 
-  selections() {
+  selections = () => {
     const node = this._input && this._inputNode()
     if (node) {
-      // $FlowIssue
       const {selectionStart, selectionEnd} = node
       return {selectionStart, selectionEnd}
     }
@@ -74,7 +73,12 @@ class Input extends Component<Props, State> {
     this.props.onChangeText && this.props.onChangeText(event.target.value || '')
   }
 
-  _autoResize() {
+  _smartAutoresize = {
+    pivotLength: -1,
+    width: -1,
+  }
+
+  _autoResize = () => {
     if (!this.props.multiline) {
       return
     }
@@ -84,35 +88,66 @@ class Input extends Component<Props, State> {
       return
     }
 
-    // $FlowIssue
-    node.style.height = '1px'
-    // $FlowIssue
-    node.style.height = `${node.scrollHeight}px`
+    // Try and not style/render thrash. We bookkeep the length of the string that was used to go up a line and if we shorten our length
+    // we'll remeasure. It's very expensive to just remeasure as the user is typing. it causes a lot of actual layout thrashing
+    if (this.props.smartAutoresize) {
+      const rect = node.getBoundingClientRect()
+      // width changed so throw out our data
+      if (rect.width !== this._smartAutoresize.width) {
+        this._smartAutoresize.width = rect.width
+        this._smartAutoresize.pivotLength = -1
+      }
+
+      // See if we've gone up in size, if so keep track of the input at that point
+      if (node.scrollHeight > rect.height) {
+        this._smartAutoresize.pivotLength = this.state.value.length
+        node.style.height = `${node.scrollHeight}px`
+      } else {
+        // see if we went back down in height
+        if (
+          this._smartAutoresize.pivotLength !== -1 &&
+          this.state.value.length <= this._smartAutoresize.pivotLength
+        ) {
+          this._smartAutoresize.pivotLength = -1
+          node.style.height = '1px'
+          node.style.height = `${node.scrollHeight}px`
+        }
+      }
+    } else {
+      node.style.height = '1px'
+      node.style.height = `${node.scrollHeight}px`
+    }
   }
 
-  _inputNode() {
-    return findDOMNode(this._input)
+  _inputNode = (): HTMLTextAreaElement | HTMLInputElement | null => {
+    const node = findDOMNode(this._input)
+
+    if (node instanceof HTMLTextAreaElement) {
+      return node
+    }
+    if (node instanceof HTMLInputElement) {
+      return node
+    }
+
+    return null
   }
 
-  focus() {
+  focus = () => {
     const n = this._input && this._inputNode()
-    // $FlowIssue
     n && n.focus()
   }
 
-  select() {
+  select = () => {
     const n = this._input && this._inputNode()
-    // $FlowIssue
     n && n.select()
   }
 
-  blur() {
+  blur = () => {
     const n = this._input && this._inputNode()
-    // $FlowIssue
     n && n.blur()
   }
 
-  insertTextAtCursor(text: string) {
+  insertTextAtCursor = (text: string) => {
     const n = this._input && this._inputNode()
     const selections = this.selections()
     if (n && selections) {
@@ -121,13 +156,11 @@ class Input extends Component<Props, State> {
     }
   }
 
-  replaceText(text: string, startIdx: number, endIdx: number) {
+  replaceText = (text: string, startIdx: number, endIdx: number) => {
     const n = this._input && this._inputNode()
     if (n) {
-      // $FlowIssue
       const v = n.value
       const nextValue = v.slice(0, startIdx) + text + v.slice(endIdx)
-      // $FlowIssue
       n.value = nextValue
       this.setState({value: nextValue})
       this._autoResize()
@@ -150,7 +183,12 @@ class Input extends Component<Props, State> {
     }
 
     if (this.props.onEnterKeyDown && e.key === 'Enter' && !e.shiftKey && !this._isComposingIME) {
-      this.props.onEnterKeyDown(e)
+      if (e.altKey || e.ctrlKey) {
+        // inject newline
+        this.setValue(this.getValue() + '\n')
+      } else {
+        this.props.onEnterKeyDown(e)
+      }
     }
   }
 
@@ -170,7 +208,7 @@ class Input extends Component<Props, State> {
     this.props.onBlur && this.props.onBlur()
   }
 
-  _underlineColor() {
+  _underlineColor = () => {
     if (this.props.hideUnderline) {
       return globalColors.transparent
     }
@@ -182,11 +220,11 @@ class Input extends Component<Props, State> {
     return this.state.focused ? globalColors.blue : globalColors.black_10
   }
 
-  _rowsToHeight(rows) {
+  _rowsToHeight = rows => {
     return rows * _lineHeight + 1 // border
   }
 
-  _containerStyle(underlineColor) {
+  _containerStyle = underlineColor => {
     return this.props.small
       ? {
           ...globalStyles.flexBoxRow,
@@ -201,7 +239,7 @@ class Input extends Component<Props, State> {
         }
   }
 
-  _propTypeToSingleLineType() {
+  _propTypeToSingleLineType = () => {
     switch (this.props.type) {
       case 'password':
         return 'password'

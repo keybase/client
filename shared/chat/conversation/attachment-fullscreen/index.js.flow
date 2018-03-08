@@ -1,0 +1,17 @@
+// @flow
+import * as React from 'react'
+
+export type Props = {
+  path: string,
+  title: string,
+  isZoomed: boolean,
+  progress: number,
+  progressLabel: ?string,
+  onClose: () => void,
+  onDownloadAttachment: ?() => void,
+  onShowInFinder: ?() => void,
+  onShowMenu: (targetRect: ?ClientRect) => void,
+  onToggleZoom: () => void,
+}
+
+export default class Fullscreen extends React.Component<Props> {}

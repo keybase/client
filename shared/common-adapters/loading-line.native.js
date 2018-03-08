@@ -2,63 +2,62 @@
 import Box from './box'
 import React, {Component} from 'react'
 import {NativeAnimated, NativeEasing} from './native-wrappers.native.js'
-import {globalColors, globalStyles} from '../styles'
+import {globalColors, styleSheetCreate} from '../styles'
 
 import type {Props} from './loading-line'
 
+const animMax = 0.9
+
 class LoadingLine extends Component<Props, {fadeAnim: any}> {
   state = {
-    fadeAnim: new NativeAnimated.Value(0),
+    fadeAnim: new NativeAnimated.Value(animMax),
   }
-  _keepAnimating: boolean = false
-  _animate = () => {
-    if (!this._keepAnimating) {
-      return
-    }
-
-    NativeAnimated.timing(this.state.fadeAnim, {
-      duration: 600,
-      easing: NativeEasing.ease,
-      toValue: 1,
-      useNativeDriver: true,
-    }).start(() => {
-      if (this._keepAnimating) {
-        NativeAnimated.timing(this.state.fadeAnim, {
-          duration: 600,
-          easing: NativeEasing.ease,
-          toValue: 0,
-          useNativeDriver: true,
-        }).start(() => this._animate())
-      }
-    })
-  }
+  _animation = NativeAnimated.loop(
+    NativeAnimated.sequence([
+      NativeAnimated.timing(this.state.fadeAnim, {
+        duration: 600,
+        easing: NativeEasing.ease,
+        isInteraction: false,
+        toValue: 0,
+        useNativeDriver: true,
+      }),
+      NativeAnimated.timing(this.state.fadeAnim, {
+        duration: 600,
+        easing: NativeEasing.ease,
+        isInteraction: false,
+        toValue: animMax,
+        useNativeDriver: true,
+      }),
+    ])
+  )
   componentDidMount() {
-    this._keepAnimating = true
-    this._animate()
+    this._animation.start()
   }
 
   componentWillUnmount() {
-    this._keepAnimating = false
+    this._animation.stop()
   }
 
   render() {
     return (
-      <Box style={{position: 'relative', height: 1}}>
-        <NativeAnimated.View
-          style={{opacity: this.state.fadeAnim, position: 'absolute', left: 0, right: 0, top: 0, bottom: 0}}
-        >
-          <Box
-            style={{
-              ...globalStyles.fillAbsolute,
-              backgroundColor: globalColors.blue,
-              height: 1,
-              ...this.props.style,
-            }}
-          />
-        </NativeAnimated.View>
+      <Box style={styles.container}>
+        <NativeAnimated.View style={[styles.line, this.props.style, {opacity: this.state.fadeAnim}]} />
       </Box>
     )
   }
 }
+
+const styles = styleSheetCreate({
+  container: {
+    backgroundColor: globalColors.blue,
+    height: 1,
+    position: 'relative',
+  },
+  line: {
+    backgroundColor: globalColors.white,
+    height: '100%',
+    width: '100%',
+  },
+})
 
 export default LoadingLine

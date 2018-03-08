@@ -6,11 +6,18 @@
 import {NativeModules} from 'react-native'
 import * as DevGen from './actions/dev-gen'
 import noop from 'lodash/noop'
+// import MessageQueue from 'react-native/Libraries/BatchedBridge/MessageQueue.js'
 
 const nativeBridge = NativeModules.KeybaseEngine || {test: 'fallback'}
 
 // Uncomment this to disable yellowboxes
 // console.disableYellowBox = true
+
+// store the vanilla console helpers
+window.console._log = window.console.log
+window.console._warn = window.console.warn
+window.console._error = window.console.error
+window.console._info = window.console.info
 
 // Set this to true if you want to turn off most console logging so you can profile easier
 const PERF = false
@@ -45,15 +52,13 @@ if (__DEV__) {
   config.printRPC = true
   config.reduxSagaLoggerMasked = false
   config.userTimings = true
+
+  // uncomment this to watch the RN bridge traffic: https://github.com/facebook/react-native/commit/77e48f17824870d30144a583be77ec5c9cf9f8c5
+  // MessageQueue.spy(msg => console._log('queuespy: ', msg))
 }
 
 if (PERF) {
   console.warn('\n\n\nlocal debug PERF is ONNNNNn!!!!!1!!!11!!!!\nAll console.logs disabled!\n\n\n')
-
-  window.console._log = window.console.log
-  window.console._warn = window.console.warn
-  window.console._error = window.console.error
-  window.console._info = window.console.info
 
   window.console.log = noop
   window.console.warn = noop
