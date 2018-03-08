@@ -10,7 +10,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   return {
     _participants: meta.participants,
     nextConversationIDKey: meta.supersededBy,
-    username: meta.supersededByCausedBy || '',
+    username: meta.wasFinalizedBy || '',
   }
 }
 

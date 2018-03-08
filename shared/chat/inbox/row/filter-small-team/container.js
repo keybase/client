@@ -30,21 +30,21 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const styles = Constants.getRowStyles(stateProps._meta, isSelected, hasUnread)
   const participantNeedToRekey = stateProps._meta.rekeyers.size > 0
   const youNeedToRekey = !participantNeedToRekey && stateProps._meta.rekeyers.has(stateProps._username)
+  const isLocked = participantNeedToRekey || youNeedToRekey
 
   return {
     backgroundColor: styles.backgroundColor,
     hasBadge: stateProps.hasBadge,
     hasUnread,
+    isLocked,
     isMuted: stateProps._meta.isMuted,
     isSelected,
     onSelectConversation: dispatchProps.onSelectConversation,
-    participantNeedToRekey,
     participants: Constants.getRowParticipants(stateProps._meta, stateProps._username).toArray(),
     showBold: styles.showBold,
     subColor: styles.subColor,
     teamname: stateProps._meta.teamname,
     usernameColor: styles.usernameColor,
-    youNeedToRekey,
   }
 }
 

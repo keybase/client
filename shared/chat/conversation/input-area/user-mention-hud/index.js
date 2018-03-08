@@ -90,17 +90,6 @@ const hudStyle = {
   backgroundColor: globalColors.white,
 }
 
-type MentionHudProps = {
-  users: Array<{username: string, fullName: string}>,
-  onPickUser: (user: string) => void,
-  onSelectUser: (user: string) => void,
-  pickSelectedUserCounter: number,
-  selectUpCounter: number,
-  selectDownCounter: number,
-  filter: string,
-  style?: any,
-}
-
 const _withProps = ({users, filter, selectedIndex}) => ({
   data: users
     .map((u, i) => ({

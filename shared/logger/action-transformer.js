@@ -66,6 +66,7 @@ const actionTransformMap: {[key: string]: ActionTransformer<*, *>} = {
   [Chat2Gen.setLoading]: a => a,
   [Chat2Gen.clearLoading]: a => a,
   [Chat2Gen.updateTypers]: nullTransform,
+  [Chat2Gen.selectConversationDueToPush]: a => a,
   [ConfigGen.globalError]: a => a,
 }
 

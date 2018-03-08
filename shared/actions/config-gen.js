@@ -32,6 +32,7 @@ export const readyForBootstrap = 'config:readyForBootstrap'
 export const retryBootstrap = 'config:retryBootstrap'
 export const setInitialState = 'config:setInitialState'
 export const setOpenAtLogin = 'config:setOpenAtLogin'
+export const setStartedDueToPush = 'config:setStartedDueToPush'
 export const updateFollowing = 'config:updateFollowing'
 
 // Action Creators
@@ -67,13 +68,14 @@ export const createPersistRouteState = () => ({error: false, payload: undefined,
 export const createPushLoaded = (payload: $ReadOnly<{pushLoaded: boolean}>) => ({error: false, payload, type: pushLoaded})
 export const createReadyForBootstrap = () => ({error: false, payload: undefined, type: readyForBootstrap})
 export const createRetryBootstrap = () => ({error: false, payload: undefined, type: retryBootstrap})
-export const createSetInitialState = (payload: $ReadOnly<{initialState: Types.InitialState}>) => ({error: false, payload, type: setInitialState})
+export const createSetInitialState = (payload: $ReadOnly<{initialState: ?Types.InitialState}>) => ({error: false, payload, type: setInitialState})
 export const createSetOpenAtLogin = (
   payload: $ReadOnly<{
     open: boolean,
     writeFile: boolean,
   }>
 ) => ({error: false, payload, type: setOpenAtLogin})
+export const createSetStartedDueToPush = () => ({error: false, payload: undefined, type: setStartedDueToPush})
 export const createUpdateFollowing = (
   payload: $ReadOnly<{
     username: string,
@@ -105,6 +107,7 @@ export type ReadyForBootstrapPayload = More.ReturnType<typeof createReadyForBoot
 export type RetryBootstrapPayload = More.ReturnType<typeof createRetryBootstrap>
 export type SetInitialStatePayload = More.ReturnType<typeof createSetInitialState>
 export type SetOpenAtLoginPayload = More.ReturnType<typeof createSetOpenAtLogin>
+export type SetStartedDueToPushPayload = More.ReturnType<typeof createSetStartedDueToPush>
 export type UpdateFollowingPayload = More.ReturnType<typeof createUpdateFollowing>
 
 // All Actions
@@ -133,5 +136,6 @@ export type Actions =
   | More.ReturnType<typeof createRetryBootstrap>
   | More.ReturnType<typeof createSetInitialState>
   | More.ReturnType<typeof createSetOpenAtLogin>
+  | More.ReturnType<typeof createSetStartedDueToPush>
   | More.ReturnType<typeof createUpdateFollowing>
   | {type: 'common:resetStore', payload: void}

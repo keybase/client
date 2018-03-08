@@ -93,6 +93,8 @@ export default function(
       return state.set('openAtLogin', action.payload.open)
     case 'remote:updateMenubarWindowID':
       return state.set('menubarWindowID', action.payload.id)
+    case ConfigGen.setStartedDueToPush:
+      return state.set('startedDueToPush', true)
     // Saga only actions
     case ConfigGen.loadTeamAvatars:
     case ConfigGen.loadAvatars:
