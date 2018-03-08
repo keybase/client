@@ -128,8 +128,8 @@ function messageCreateComponent(style, allowFontScaling) {
             type="BodyPrimaryLink"
             key={key}
             style={linkStyle}
-            onClickURL={'tel:' + children}
-            onLongPress={() => _urlChooseOption('tel:' + children)}
+            onClickURL={options.href}
+            onLongPress={() => _urlChooseOption(options.href)}
             allowFontScaling={allowFontScaling}
           >
             {children}
