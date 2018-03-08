@@ -30,6 +30,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 import keybase.UnsafeExternalKeyStore;
 import io.keybase.ossifrage.keystore.KeyStoreHelper;
+import io.keybase.ossifrage.modules.NativeLogger;
 
 public class KeyStore implements UnsafeExternalKeyStore {
     private final Context context;
@@ -100,7 +101,7 @@ public class KeyStore implements UnsafeExternalKeyStore {
             // Invalid key, this can happen when a user changes their lock screen from something to nothing
             // or enrolls a new finger. See https://developer.android.com/reference/android/security/keystore/KeyPermanentlyInvalidatedException.html
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && e instanceof KeyPermanentlyInvalidatedException) {
-                Log.d("KBKeyStore", "Key no longer valid. Deleting entry", e);
+                NativeLogger.info("Key no longer valid. Deleting entry: " + Log.getStackTraceString(e));
                 ks.deleteEntry((keyStoreAlias(serviceName)));
             }
             throw e;

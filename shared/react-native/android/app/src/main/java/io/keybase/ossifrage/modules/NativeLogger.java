@@ -44,15 +44,15 @@ public class NativeLogger extends ReactContextBaseJavaModule {
         return sw.toString();
     }
 
-    private static void error(String log) throws IOException {
+    public static void error(String log) throws IOException {
         rawLog(ERROR_TAG, dumpLine(log));
     }
 
-    private static void info(String log) throws IOException {
+    public static void info(String log) throws IOException {
         rawLog(INFO_TAG, dumpLine(log));
     }
 
-    private static void warn(String log) throws IOException {
+    public static void warn(String log) throws IOException {
         rawLog(WARN_TAG, dumpLine(log));
     }
 
