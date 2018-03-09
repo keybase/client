@@ -8,6 +8,7 @@ import {navigateAppend} from '../../actions/route-tree'
 
 const mapStateToProps = (state: TypedState, ownProps: {}) => {
   const {emails} = state.settings.email
+  const {rememberPassphrase} = state.settings.passphrase
   let accountProps
   if (emails.length > 0) {
     accountProps = {
@@ -15,6 +16,7 @@ const mapStateToProps = (state: TypedState, ownProps: {}) => {
       isVerified: emails[0].isVerified,
       onChangeEmail: () => logger.debug('todo'),
       onChangePassphrase: () => logger.debug('todo'),
+      rememberPassphrase,
     }
   }
 
@@ -53,8 +55,11 @@ const mapStateToProps = (state: TypedState, ownProps: {}) => {
 const mapDispatchToProps = (dispatch: (a: any) => void, ownProps: {}) => ({
   onBootstrap: () => {
     dispatch(SettingsGen.createLoadSettings())
+    dispatch(SettingsGen.createLoadRememberPassphrase())
   },
   onChangePassphrase: () => dispatch(navigateAppend(['changePassphrase'])),
+  onChangeRememberPassphrase: (checked: boolean) =>
+    dispatch(SettingsGen.createOnChangeRememberPassphrase({remember: checked})),
   onChangeEmail: () => dispatch(navigateAppend(['changeEmail'])),
   onInfo: selectedLevel => dispatch(navigateAppend([{selected: 'changePlan', props: {selectedLevel}}])),
 })
@@ -75,6 +80,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: {}) => {
         ...stateProps.originalProps.account,
         onChangeEmail: dispatchProps.onChangeEmail,
         onChangePassphrase: dispatchProps.onChangePassphrase,
+        onChangeRememberPassphrase: (checked: boolean) => dispatchProps.onChangeRememberPassphrase(checked),
       },
       plan: {
         ...stateProps.originalProps.plan,

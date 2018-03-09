@@ -350,6 +350,10 @@ function _deleteAccountForeverSaga(action: SettingsGen.DeleteAccountForeverPaylo
 const _loadSettings = () => Saga.call(RPCTypes.userLoadMySettingsRpcPromise)
 const _loadSettingsSuccess = emailState => Saga.put(SettingsGen.createLoadedSettings({emailState}))
 
+const _getRememberPassphrase = () => Saga.call(RPCTypes.configGetRememberPassphraseRpcPromise)
+const _getRememberPassphraseSuccess = (remember: boolean) =>
+  Saga.put(SettingsGen.createLoadedRememberPassphrase({remember}))
+
 const _traceSaga = (action: SettingsGen.TracePayload) => {
   const durationSeconds = action.payload.durationSeconds
   return Saga.sequentially([
@@ -363,6 +367,13 @@ const _traceSaga = (action: SettingsGen.TracePayload) => {
   ])
 }
 
+const _rememberPassphraseSaga = (action: SettingsGen.OnChangeRememberPassphrasePayload) => {
+  const {remember} = action.payload
+  return Saga.call(RPCTypes.configSetRememberPassphraseRpcPromise, {
+    remember,
+  })
+}
+
 function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(SettingsGen.invitesReclaim, _reclaimInviteSaga)
   yield Saga.safeTakeLatest(SettingsGen.invitesRefresh, _refreshInvitesSaga)
@@ -371,11 +382,17 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeLatest(SettingsGen.notificationsToggle, _toggleNotificationsSaga)
   yield Saga.safeTakeLatestPure(SettingsGen.dbNuke, _dbNukeSaga)
   yield Saga.safeTakeLatestPure(SettingsGen.deleteAccountForever, _deleteAccountForeverSaga)
-  yield Saga.safeTakeLatestPure(SettingsGen.loadSettings, _loadSettings, _loadSettingsSuccess)
+  yield Saga.safeTakeEveryPure(SettingsGen.loadSettings, _loadSettings, _loadSettingsSuccess)
   yield Saga.safeTakeEvery(SettingsGen.onSubmitNewEmail, _onSubmitNewEmail)
   yield Saga.safeTakeEvery(SettingsGen.onSubmitNewPassphrase, _onSubmitNewPassphrase)
   yield Saga.safeTakeEvery(SettingsGen.onUpdatePGPSettings, _onUpdatePGPSettings)
   yield Saga.safeTakeLatestPure(SettingsGen.trace, _traceSaga)
+  yield Saga.safeTakeEveryPure(
+    SettingsGen.loadRememberPassphrase,
+    _getRememberPassphrase,
+    _getRememberPassphraseSuccess
+  )
+  yield Saga.safeTakeEveryPure(SettingsGen.onChangeRememberPassphrase, _rememberPassphraseSaga)
 }
 
 export default settingsSaga

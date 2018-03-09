@@ -114,6 +114,16 @@ function reducer(state: Types.State = Constants.initialState, action: SettingsGe
         },
       }
     }
+    case SettingsGen.loadedRememberPassphrase:
+    case SettingsGen.onChangeRememberPassphrase:
+      const {remember} = action.payload
+      return {
+        ...state,
+        passphrase: {
+          ...state.passphrase,
+          rememberPassphrase: remember,
+        },
+      }
     case SettingsGen.onChangeNewPassphrase:
       const {passphrase} = action.payload
       return {
@@ -186,6 +196,7 @@ function reducer(state: Types.State = Constants.initialState, action: SettingsGe
     case SettingsGen.invitesReclaimed:
     case SettingsGen.invitesRefresh:
     case SettingsGen.invitesSend:
+    case SettingsGen.loadRememberPassphrase:
     case SettingsGen.loadSettings:
     case SettingsGen.notificationsRefresh:
     case SettingsGen.onChangeShowPassphrase:
