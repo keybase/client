@@ -7,13 +7,13 @@ import {fileUIName, isMobile} from '../../../../../styles'
 
 type Props = {
   message: Types.MessageAttachment,
-  onDelete: null | () => void,
-  onDeleteMessageHistory: null | () => void,
-  onDownload: null | () => void,
+  onDelete: null | (() => void),
+  onDeleteMessageHistory: null | (() => void),
+  onDownload: null | (() => void),
   onHidden: () => void,
-  onSaveAttachment: null | () => void,
-  onShareAttachment: null | () => void,
-  onShowInFinder: null | () => void,
+  onSaveAttachment: null | (() => void),
+  onShareAttachment: null | (() => void),
+  onShowInFinder: null | (() => void),
   style?: Object,
   yourMessage: boolean,
 }
