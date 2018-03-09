@@ -7,7 +7,7 @@ import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styl
 import {SmallTeamHeader, BigTeamHeader} from './header'
 import Notifications from './notifications/container'
 import Participant from './participant'
-import {ManageTeam} from './manage-team'
+import {ParticipantCount} from './participant-count'
 import {CaptionedButton, DangerButton} from './button-utils'
 
 const border = `1px solid ${globalColors.black_05}`
@@ -50,6 +50,7 @@ type InfoPanelProps = {
 
   // Used for small and big teams.
   onViewTeam: () => void,
+  onClickGear: () => void,
 
   // Used for big teams.
   onLeaveConversation: () => void,
@@ -90,12 +91,10 @@ type BlockThisConversationRow = {
   onShowBlockConversationDialog: () => void,
 }
 
-type ManageTeamRow = {
-  type: 'manage team',
-  canManage: boolean,
+type ParticipantCountRow = {
+  type: 'participant count',
   label: string,
   participantCount: number,
-  onViewTeam: () => void,
 }
 
 type SmallTeamHeaderRow = {
@@ -103,6 +102,7 @@ type SmallTeamHeaderRow = {
   teamname: string,
   participantCount: number,
   onViewTeam: () => void,
+  onClickGear: () => void,
 }
 
 type BigTeamHeaderRow = {
@@ -127,7 +127,7 @@ type LeaveChannelRow = {
 type TeamHeaderRow =
   | DividerRow
   | NotificationsRow
-  | ManageTeamRow
+  | ParticipantCountRow
   | SmallTeamHeaderRow
   | BigTeamHeaderRow
   | JoinChannelRow
@@ -161,7 +161,7 @@ const typeSizeEstimator = (row: Row): number => {
     case 'block this conversation':
       return 44
 
-    case 'manage team':
+    case 'participant count':
       return 15
 
     case 'small team header':
@@ -214,14 +214,12 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           />
         )
 
-      case 'manage team':
+      case 'participant count':
         return (
-          <ManageTeam
-            key="manage team"
-            canManage={row.canManage}
+          <ParticipantCount
+            key="participant count"
             label={row.label}
             participantCount={row.participantCount}
-            onClick={row.onViewTeam}
           />
         )
 
@@ -232,6 +230,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             teamname={row.teamname}
             participantCount={row.participantCount}
             onClick={row.onViewTeam}
+            onClickGear={row.onClickGear}
           />
         )
 
@@ -278,7 +277,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
     const participantCount = participants.length
 
     let rows: Array<Row>
-    const {teamname, channelname, onViewTeam} = props
+    const {teamname, channelname, onViewTeam, onClickGear} = props
     if (teamname && channelname) {
       let headerRows: Array<TeamHeaderRow>
       if (props.smallTeam) {
@@ -289,6 +288,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             teamname,
             participantCount,
             onViewTeam,
+            onClickGear,
           },
           {
             type: 'divider',
@@ -304,11 +304,9 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             key: '2',
           },
           {
-            type: 'manage team',
-            canManage: props.admin,
+            type: 'participant count',
             label: 'In this team',
             participantCount,
-            onViewTeam: onViewTeam,
           },
         ]
       } else {
@@ -319,12 +317,10 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           channelname,
           onViewTeam,
         }
-        const manageTeamRow = {
-          type: 'manage team',
-          canManage: props.admin && channelname === 'general',
+        const participantCountRow = {
+          type: 'participant count',
           label: 'In this channel',
           participantCount,
-          onViewTeam,
         }
 
         if (props.isPreview) {
@@ -344,7 +340,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
               type: 'divider',
               key: '2',
             },
-            manageTeamRow,
+            participantCountRow,
           ]
         } else {
           // Big team, no preview.
@@ -371,7 +367,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
               key: '3',
               marginTop: globalMargins.tiny,
             },
-            manageTeamRow,
+            participantCountRow,
           ]
         }
       }

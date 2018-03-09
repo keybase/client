@@ -1,15 +1,16 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, ClickableBox, Text} from '../../../common-adapters'
+import {Avatar, Box, ClickableBox, Icon, Text} from '../../../common-adapters'
 import {globalMargins, globalStyles, isMobile} from '../../../styles'
 
 type SmallProps = {
   teamname: string,
   participantCount: number,
   onClick: () => void,
+  onClickGear: () => void,
 }
 
-const SmallTeamHeader = ({teamname, participantCount, onClick}: SmallProps) => (
+const SmallTeamHeader = ({canManage, teamname, participantCount, onClick, onClickGear}: SmallProps) => (
   <ClickableBox
     style={{
       ...globalStyles.flexBoxRow,
@@ -17,7 +18,7 @@ const SmallTeamHeader = ({teamname, participantCount, onClick}: SmallProps) => (
       marginLeft: globalMargins.small,
       marginTop: globalMargins.small,
     }}
-    onClick={onClick}
+    onClick={evt => !evt.defaultPrevented && onClick()}
   >
     <Avatar size={isMobile ? 48 : 32} teamname={teamname} isTeam={true} />
     <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: globalMargins.small}}>
@@ -28,6 +29,14 @@ const SmallTeamHeader = ({teamname, participantCount, onClick}: SmallProps) => (
         </Text>
       </Box>
     </Box>
+    <Icon
+      type="iconfont-gear"
+      onClick={evt => {
+        evt.preventDefault()
+        onClickGear()
+      }}
+      style={{marginRight: 16}}
+    />
   </ClickableBox>
 )
 

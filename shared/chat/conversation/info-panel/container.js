@@ -90,6 +90,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onShowProfile: dispatchProps.onShowProfile,
   onLeaveTeam: () => dispatchProps._onLeaveTeam(stateProps.teamname),
   onViewTeam: () => dispatchProps._onViewTeam(stateProps.teamname),
+  // TEMP
+  onClickGear: () => {},
 })
 
 const ConnectedInfoPanel = connect(mapStateToProps, mapDispatchToProps, mergeProps)(InfoPanel)

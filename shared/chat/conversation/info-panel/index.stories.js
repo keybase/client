@@ -66,6 +66,7 @@ const conversationProps = {
   onShowNewTeamDialog: action('onShowNewTeamDialog'),
 
   onViewTeam: unexpected('onViewTeam'),
+  onClickGear: unexpected('onClickGear'),
 
   onLeaveConversation: unexpected('onLeaveConversation'),
   onJoinChannel: unexpected('onJoinChannel'),
@@ -80,6 +81,7 @@ const teamCommonProps = {
   onShowNewTeamDialog: unexpected('onShowNewTeamDialog'),
 
   onViewTeam: action('onViewTeam'),
+  onClickGear: action('onClickGear'),
 }
 
 const smallTeamProps = {
