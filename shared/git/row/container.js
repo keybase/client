@@ -1,5 +1,4 @@
 // @flow
-import React from 'react'
 import Row from '.'
 import * as Constants from '../../constants/git'
 import {createSetTeamRepoSettings} from '../../actions/git-gen'

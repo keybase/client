@@ -6,8 +6,8 @@ import {globalStyles, globalMargins, globalColors, fileUIName} from '../../../..
 type Props = {
   arrowColor: string,
   loadPreview: null | (() => void),
-  onDownload: null | () => void,
-  onShowInFinder: null | () => void,
+  onDownload: null | (() => void),
+  onShowInFinder: null | (() => void),
   title: string,
   progress: number,
   progressLabel: string,
