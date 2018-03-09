@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
-import {Divider, HeaderHoc, List} from '../../../common-adapters'
+import {Box, Divider, HeaderHoc, List} from '../../../common-adapters'
 import {type Props as HeaderHocProps} from '../../../common-adapters/header-hoc'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
 import {SmallTeamHeader, BigTeamHeader} from './header'
@@ -25,6 +25,8 @@ const listStyle = {
         marginTop: -1 /* Necessary fix: adds 1px at the top so we hide the gray divider */,
       }),
 }
+
+const Spacer = ({height}: {height: number}) => <Box style={{width: 1, height}} />
 
 type InfoPanelProps = {
   selectedConversationIDKey: Types.ConversationIDKey,
@@ -71,6 +73,12 @@ type DividerRow = {
   key: string,
   marginTop?: number,
   marginBottom?: number,
+}
+
+type SpacerRow = {
+  type: 'spacer',
+  key: string,
+  height: number,
 }
 
 const getDividerStyle = (row: DividerRow) => ({
@@ -128,6 +136,7 @@ type LeaveChannelRow = {
 // All the row types that can appear in a small or big team header.
 type TeamHeaderRow =
   | DividerRow
+  | SpacerRow
   | NotificationsRow
   | ParticipantCountRow
   | SmallTeamHeaderRow
@@ -137,6 +146,7 @@ type TeamHeaderRow =
 
 type Row =
   | ParticipantRow
+  | SpacerRow
   | DividerRow
   | NotificationsRow
   | TurnIntoTeamRow
@@ -153,6 +163,9 @@ const typeSizeEstimator = (row: Row): number => {
     case 'divider':
       const style = getDividerStyle(row)
       return 1 + style.marginTop + style.marginBottom
+
+    case 'spacer':
+      return row.height
 
     case 'notifications':
       return 270
@@ -193,6 +206,9 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
 
       case 'divider':
         return <Divider key={`divider ${row.key}`} style={getDividerStyle(row)} />
+
+      case 'spacer':
+        return <Spacer height={row.height} key={`spacer ${row.key}`} />
 
       case 'notifications':
         return <Notifications key="notifications" conversationIDKey={this.props.selectedConversationIDKey} />
@@ -293,6 +309,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
       if (props.smallTeam) {
         // Small team.
         headerRows = [
+          {type: 'spacer', key: '1', height: globalMargins.small},
           smallTeamHeaderRow,
           {
             type: 'divider',
@@ -335,11 +352,13 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             {
               type: 'divider',
               key: '1',
+              marginBottom: 0,
             },
             smallTeamHeaderRow,
             {
               type: 'divider',
               key: '2',
+              marginTop: 0,
             },
             {
               type: 'join channel',
@@ -359,11 +378,13 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             {
               type: 'divider',
               key: '1',
+              marginBottom: globalMargins.tiny,
             },
             smallTeamHeaderRow,
             {
               type: 'divider',
               key: '2',
+              marginTop: globalMargins.tiny,
             },
             {
               type: 'notifications',
