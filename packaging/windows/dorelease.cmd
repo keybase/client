@@ -18,9 +18,6 @@ if NOT DEFINED DevEnvDir call "%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0
 :: don't bother with ci or checking out source, etc. for smoke2 build
 IF [%UpdateChannel%] == [Smoke2] goto:done_ci
 
-:: Check both the built .sys files and the msi package.
-if NOT DEFINED UNARCHIVE_COMMAND set UNARCHIVE_COMMAND="C:\Program Filess (x86)\7-Zip\7z" e -y
-
 :: NOTE: We depend on the bot or caller to checkout client first
 :: call:checkout_keybase client, %ClientRevision% || goto:build_error || EXIT /B 1
 call:checkout_keybase kbfs, %KBFSRevision% || goto:build_error || EXIT /B 1
@@ -85,7 +82,7 @@ call %GOPATH%\src\github.com\keybase\client\packaging\windows\doinstaller_wix.cm
 
 ::Publish to S3
 echo "Uploading %BUILD_TAG%"
-s3browser-con upload prerelease.keybase.io  %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%\Keybase_%BUILD_TAG%.386.msi prerelease.keybase.io/windows  || goto:build_error || EXIT /B 1
+s3browser-con upload prerelease.keybase.io  %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%\Keybase_%BUILD_TAG%.386.exe prerelease.keybase.io/windows  || goto:build_error || EXIT /B 1
 
 if %UpdateChannel% NEQ "None" (
     :: Test channel json
