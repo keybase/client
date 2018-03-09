@@ -228,7 +228,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 export type {AvatarSize}
 const realConnector = compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  setDisplayName('Avatar'),
+  setDisplayName('URLAvatar'),
   withStateHandlers(
     {_mounted: false, _stateName: '', _timeoutID: 0},
     {
@@ -303,7 +303,7 @@ const autoMergeProps = (stateProps, _, ownProps): Props => {
       followsYou,
       ...ownProps,
     }
-  } else if (stateProps.cFollowers && ownProps.username) {
+  } else if (stateProps._cFollowers && ownProps.username) {
     const following = stateProps._cFollowing.has(ownProps.username)
     const followsYou = stateProps._cFollowers.has(ownProps.username)
     return {

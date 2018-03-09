@@ -44,6 +44,7 @@ const Avatar = (following: string[], followers: string[]) => ({
     followsYou: followers.includes(props.username),
     ...mockOwnToViewProps(props),
   }),
+  URLAvatar: (props: any) => props,
 })
 
 export {compose}
