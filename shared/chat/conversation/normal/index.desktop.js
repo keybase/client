@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import fs from 'fs'
 import Banner from '../bottom-banner/container'
 import HeaderArea from '../header-area/container'
 import InputArea from '../input-area/container'
@@ -81,6 +82,18 @@ class Conversation extends React.PureComponent<Props, State> {
     const fileList = e.dataTransfer.files
     const paths = fileList.length ? Array.prototype.map.call(fileList, f => f.path) : []
     if (paths) {
+      for (let path of paths) {
+        // Check if any file is a directory and bail out if not
+        try {
+          // We do this synchronously,
+          const stat = fs.lstatSync(path)
+          if (stat.isDirectory()) {
+            this.setState({showDropOverlay: false})
+            return
+          }
+          // delegate to handler for any errors
+        } catch (e) {}
+      }
       this.props.onAttach(paths)
     }
     this.setState({showDropOverlay: false})
