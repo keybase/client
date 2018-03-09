@@ -527,7 +527,7 @@ const userEntryFullnameStyle = {
 const styleBack = {
   left: globalMargins.tiny,
   position: 'absolute',
-  top: 30,
+  top: isIPhoneX ? 44 : 30,
 }
 
 const styleHeader = {
