@@ -159,7 +159,6 @@ function render(store, MainComponent) {
 }
 
 function setupRoutes(store) {
-  // TODO: Figure out when to use appRouteTree.
   store.dispatch(setInitialRouteDef(loginRouteTree))
 }
 
