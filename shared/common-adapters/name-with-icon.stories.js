@@ -22,7 +22,7 @@ const innerClick = evt => {
   action('Inner click')(evt)
 }
 
-const provider = compose(Avatar(['chrisnojima'], ['chrisnojima']), Usernames(['cecileb']))
+const provider = compose(Avatar(['chrisnojima'], ['chrisnojima']), Usernames(['cecileb', 'chrisnojima']))
 
 const load = () => {
   storiesOf('Common', module)

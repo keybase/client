@@ -1,5 +1,6 @@
 // @flow
 import {action, createPropProvider} from './storybook'
+import {mockOwnToViewProps} from '../common-adapters/avatar'
 
 /**
  * Compose prop factories into a single provider
@@ -41,7 +42,7 @@ const Avatar = (following: string[], followers: string[]) => ({
   Avatar: (props: any) => ({
     following: following.includes(props.username),
     followsYou: followers.includes(props.username),
-    ...props,
+    ...mockOwnToViewProps(props),
   }),
 })
 

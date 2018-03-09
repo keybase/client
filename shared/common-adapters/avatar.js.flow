@@ -22,5 +22,7 @@ export type Props = {
   teamname?: ?string,
 }
 
+export const mockOwnToViewProps = (props: Props) => {}
+
 export default class Avatar extends React.Component<Props> {}
 export class ConnectedAvatar extends React.Component<Props> {}

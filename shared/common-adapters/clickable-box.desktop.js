@@ -68,7 +68,7 @@ class ClickableBox extends React.Component<Props & {children: any}, {mouseDown: 
         onMouseLeave={needMouseEnterLeaveHandlers(this.props) ? this._onMouseLeave : undefined}
         onMouseUp={this._onMouseUp}
         onClick={onClick}
-        style={collapseStyles([_containerStyle, onClick ? globalStyles.clickable : {}, style || {}])}
+        style={collapseStyles([_containerStyle, onClick ? globalStyles.clickable : null, style])}
       >
         {underlay}
         {children}
