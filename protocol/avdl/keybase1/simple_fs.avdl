@@ -70,7 +70,7 @@ protocol SimpleFS {
     array<Dirent> entries;
     Progress progress;
   }
-  
+
   record FileContent {
     bytes data;         // Zero bytes when read is complete
     Progress progress;  // Amount of data copied so far during this and previous reads
@@ -129,6 +129,18 @@ protocol SimpleFS {
     case COPY: CopyArgs;
     case MOVE: MoveArgs;
     case REMOVE: RemoveArgs;
+  }
+
+  record OpProgress {
+    Time start;
+    Time endEstimate;
+    AsyncOps opType;
+    int64 bytesTotal;
+    int64 bytesRead;
+    int64 bytesWritten;
+    int64 filesTotal;
+    int64 filesRead;
+    int64 filesWritten;
   }
 
   /**
@@ -224,7 +236,7 @@ protocol SimpleFS {
   /**
    Check progress of pending operation
    */
-  Progress simpleFSCheck(OpID opID);
+  OpProgress simpleFSCheck(OpID opID);
 
   /**
    Get all the outstanding operations
