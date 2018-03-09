@@ -4,6 +4,13 @@ protocol pprof {
 
   import idl "common.avdl";
 
+  // Use 'processor' instead of 'CPU' to work around conflicting
+  // capitalization rules.
+
+  void processorProfile(int sessionID, string profileFile, DurationSec profileDurationSeconds);
+
+  void logProcessorProfile(int sessionID, string logDirForMobile, DurationSec profileDurationSeconds);
+
   void trace(int sessionID, string traceFile, DurationSec traceDurationSeconds);
 
   void logTrace(int sessionID, string logDirForMobile, DurationSec traceDurationSeconds);
