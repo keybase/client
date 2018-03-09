@@ -8,9 +8,6 @@ protocol UPK {
       PGP_2
   }
 
-  @typedef("bytes")
-  record HashMeta {}
-
   enum UPK2MinorVersion {
     V0_0,
     V1_1,
