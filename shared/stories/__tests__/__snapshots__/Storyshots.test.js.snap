@@ -24274,50 +24274,44 @@ exports[`Storyshots Common Name with icon 1`] = `
 
 .glamor-4,
 [data-glamor-4] {
-  font-size: 14px;
-  line-height: 18px;
+  font-size: 24px;
+  line-height: 28px;
   color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 600;
-  display: -webkit-box;
-  display: -moz-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  text-decoration: inherit;
-  -webkit-box-orient: horizontal;
-  -webkit-box-direction: normal;
-  -webkit-flex-direction: row;
-  -webkit-box-lines: multiple;
-  -webkit-flex-wrap: wrap;
+  font-weight: 700;
+  display: inline;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+  text-align: center;
 }
 
 .glamor-3,
 [data-glamor-3] {
-  font-size: 14px;
-  line-height: 18px;
+  font-size: 24px;
+  line-height: 28px;
   color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .glamor-2,
 [data-glamor-2] {
-  font-size: 14px;
-  line-height: 18px;
-  color: rgba(0, 0, 0, 0.75);
+  font-size: 24px;
+  line-height: 28px;
+  color: #33a0ff;
+  cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 600;
+  font-weight: 700;
   text-decoration: inherit;
-  font-style: italic;
+  display: inline;
 }
 
 .glamor-5,
@@ -24325,6 +24319,11 @@ exports[`Storyshots Common Name with icon 1`] = `
   font-size: 13px;
   line-height: 17px;
   color: rgba(0, 0, 0, 0.75);
+  overflow: hidden;
+  display: -webkit-box;
+  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -24339,7 +24338,7 @@ exports[`Storyshots Common Name with icon 1`] = `
   right: 1px;
   top: 1px;
   background-color: #f0f0f0;
-  border-radius: 10px;
+  border-radius: 8px;
 }
 
 .glamor-7,
@@ -24350,12 +24349,28 @@ exports[`Storyshots Common Name with icon 1`] = `
   position: absolute;
   right: 0;
   top: 0;
-  background-image: -webkit-image-set(url('icons/icon-team-placeholder-avatar-80.png') 1x, url('icons/icon-team-placeholder-avatar-80@2x.png') 2x);
-  border-radius: 10px;
-  height: 80px;
-  max-width: 80px;
-  min-width: 80px;
+  background-image: -webkit-image-set(url('icons/icon-team-placeholder-avatar-64.png') 1x, url('icons/icon-team-placeholder-avatar-64@2x.png') 2x);
+  border-radius: 8px;
+  height: 64px;
+  max-width: 64px;
+  min-width: 64px;
   opacity: 1;
+}
+
+.glamor-9,
+[data-glamor-9] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  overflow: hidden;
+  display: -webkit-box;
+  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
 }
 
 .glamor-11,
@@ -24383,42 +24398,37 @@ exports[`Storyshots Common Name with icon 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 600;
-  display: -webkit-box;
-  display: -moz-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  text-decoration: inherit;
-  -webkit-box-orient: horizontal;
-  -webkit-box-direction: normal;
-  -webkit-flex-direction: row;
-  -webkit-box-lines: multiple;
-  -webkit-flex-wrap: wrap;
+  display: inline;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+  text-align: center;
+}
+
+.glamor-13,
+[data-glamor-13] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
 }
 
 .glamor-12,
 [data-glamor-12] {
   font-size: 13px;
   line-height: 17px;
-  color: #36b37c;
+  color: #34ad79;
+  cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 600;
   text-decoration: inherit;
-}
-
-.glamor-15,
-[data-glamor-15] {
-  font-size: 11px;
-  line-height: 15px;
-  color: rgba(0, 0, 0, 0.40);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
+  display: inline;
 }
 
 .glamor-16,
@@ -24442,51 +24452,32 @@ exports[`Storyshots Common Name with icon 1`] = `
   opacity: 1;
 }
 
-.glamor-24,
-[data-glamor-24] {
-  font-size: 24px;
-  line-height: 28px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 700;
-  display: -webkit-box;
-  display: -moz-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  text-decoration: inherit;
-  -webkit-box-orient: horizontal;
-  -webkit-box-direction: normal;
-  -webkit-flex-direction: row;
-  -webkit-box-lines: multiple;
-  -webkit-flex-wrap: wrap;
-}
-
-.glamor-23,
-[data-glamor-23] {
-  font-size: 24px;
-  line-height: 28px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 700;
-}
-
 .glamor-22,
 [data-glamor-22] {
   font-size: 24px;
   line-height: 28px;
-  color: #33a0ff;
+  color: #34ad79;
+  cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 700;
   text-decoration: inherit;
+  display: inline;
+}
+
+.glamor-28,
+[data-glamor-28] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #33a0ff;
+  cursor: pointer;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-decoration: inherit;
+  display: inline;
 }
 
 <div
@@ -24568,7 +24559,7 @@ exports[`Storyshots Common Name with icon 1`] = `
               >
                 <span
                   className="glamor-2"
-                  onClick={undefined}
+                  onClick={[Function]}
                   title={undefined}
                 >
                   ayoubd
@@ -24599,10 +24590,10 @@ exports[`Storyshots Common Name with icon 1`] = `
             onClick={undefined}
             style={
               Object {
-                "height": 80,
-                "maxWidth": 80,
-                "minHeight": 80,
-                "minWidth": 80,
+                "height": 64,
+                "maxWidth": 64,
+                "minHeight": 64,
+                "minWidth": 64,
                 "position": "relative",
                 "userSelect": "none",
               }
@@ -24634,7 +24625,7 @@ exports[`Storyshots Common Name with icon 1`] = `
               keybasefriends
             </span>
             <span
-              className="glamor-5"
+              className="glamor-9"
               onClick={undefined}
               title={undefined}
             >
@@ -24672,21 +24663,6 @@ exports[`Storyshots Common Name with icon 1`] = `
             <div
               className="glamor-11"
             />
-            <img
-              className={undefined}
-              draggable="false"
-              onClick={null}
-              srcSet="icons/icon-mutual-follow-21.png 1x, icons/icon-mutual-follow-21@2x.png 2x"
-              style={
-                Object {
-                  "bottom": 0,
-                  "left": 45,
-                  "position": "absolute",
-                  "userSelect": "none",
-                }
-              }
-              title={undefined}
-            />
           </div>
           <div
             style={
@@ -24705,13 +24681,13 @@ exports[`Storyshots Common Name with icon 1`] = `
               title={undefined}
             >
               <span
-                className="glamor-5"
+                className="glamor-13"
                 onClick={undefined}
                 title={undefined}
               >
                 <span
                   className="glamor-12"
-                  onClick={undefined}
+                  onClick={[Function]}
                   title={undefined}
                 >
                   cecileb
@@ -24719,7 +24695,7 @@ exports[`Storyshots Common Name with icon 1`] = `
               </span>
             </span>
             <span
-              className="glamor-15"
+              className="glamor-9"
               onClick={undefined}
               title={undefined}
             >
@@ -24783,14 +24759,14 @@ exports[`Storyshots Common Name with icon 1`] = `
               Owner
             </span>
             <span
-              className="glamor-15"
+              className="glamor-9"
               onClick={undefined}
               title={undefined}
             >
               Full power
             </span>
             <span
-              className="glamor-15"
+              className="glamor-9"
               onClick={undefined}
               title={undefined}
             >
@@ -24832,7 +24808,7 @@ exports[`Storyshots Common Name with icon 1`] = `
               className={undefined}
               draggable="false"
               onClick={null}
-              srcSet="icons/icon-follow-me-28.png 1x, icons/icon-follow-me-28@2x.png 2x"
+              srcSet="icons/icon-mutual-follow-28.png 1x, icons/icon-mutual-follow-28@2x.png 2x"
               style={
                 Object {
                   "bottom": 0,
@@ -24856,18 +24832,18 @@ exports[`Storyshots Common Name with icon 1`] = `
             }
           >
             <span
-              className="glamor-24"
+              className="glamor-4"
               onClick={undefined}
               title={undefined}
             >
               <span
-                className="glamor-23"
+                className="glamor-3"
                 onClick={undefined}
                 title={undefined}
               >
                 <span
                   className="glamor-22"
-                  onClick={undefined}
+                  onClick={[Function]}
                   title={undefined}
                 >
                   chrisnojima
@@ -24926,21 +24902,6 @@ exports[`Storyshots Common Name with icon 1`] = `
             <div
               className="glamor-11"
             />
-            <img
-              className={undefined}
-              draggable="false"
-              onClick={null}
-              srcSet="icons/icon-following-21.png 1x, icons/icon-following-21@2x.png 2x"
-              style={
-                Object {
-                  "bottom": 0,
-                  "left": 45,
-                  "position": "absolute",
-                  "userSelect": "none",
-                }
-              }
-              title={undefined}
-            />
           </div>
           <div
             style={
@@ -24959,13 +24920,13 @@ exports[`Storyshots Common Name with icon 1`] = `
               title={undefined}
             >
               <span
-                className="glamor-5"
+                className="glamor-13"
                 onClick={undefined}
                 title={undefined}
               >
                 <span
-                  className="glamor-12"
-                  onClick={undefined}
+                  className="glamor-28"
+                  onClick={[Function]}
                   title={undefined}
                 >
                   mlsteele
@@ -24973,7 +24934,7 @@ exports[`Storyshots Common Name with icon 1`] = `
               </span>
             </span>
             <span
-              className="glamor-15"
+              className="glamor-9"
               onClick={undefined}
               title={undefined}
             >
@@ -25054,7 +25015,8 @@ exports[`Storyshots Common Name with icon horizontal 1`] = `
 [data-glamor-2] {
   font-size: 13px;
   line-height: 17px;
-  color: #36b37c;
+  color: #34ad79;
+  cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -25067,6 +25029,11 @@ exports[`Storyshots Common Name with icon horizontal 1`] = `
   font-size: 11px;
   line-height: 15px;
   color: rgba(0, 0, 0, 0.40);
+  overflow: hidden;
+  display: -webkit-box;
+  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -25098,6 +25065,17 @@ exports[`Storyshots Common Name with icon horizontal 1`] = `
   max-width: 32px;
   min-width: 32px;
   opacity: 1;
+}
+
+.glamor-10,
+[data-glamor-10] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
 }
 
 <div
@@ -25177,7 +25155,7 @@ exports[`Storyshots Common Name with icon horizontal 1`] = `
               >
                 <span
                   className="glamor-2"
-                  onClick={undefined}
+                  onClick={[Function]}
                   title={undefined}
                 >
                   cecileb
@@ -25265,7 +25243,7 @@ exports[`Storyshots Common Name with icon horizontal 1`] = `
                 19 members
               </span>
               <span
-                className="glamor-5"
+                className="glamor-10"
                 onClick={undefined}
                 title={undefined}
               >
@@ -25296,7 +25274,7 @@ exports[`Storyshots Common Name with icon subcomponents 1`] = `
   right: 1px;
   top: 1px;
   background-color: #f0f0f0;
-  border-radius: 10px;
+  border-radius: 8px;
 }
 
 .glamor-1,
@@ -25307,23 +25285,23 @@ exports[`Storyshots Common Name with icon subcomponents 1`] = `
   position: absolute;
   right: 0;
   top: 0;
-  background-image: -webkit-image-set(url('icons/icon-team-placeholder-avatar-80.png') 1x, url('icons/icon-team-placeholder-avatar-80@2x.png') 2x);
-  border-radius: 10px;
-  height: 80px;
-  max-width: 80px;
-  min-width: 80px;
+  background-image: -webkit-image-set(url('icons/icon-team-placeholder-avatar-64.png') 1x, url('icons/icon-team-placeholder-avatar-64@2x.png') 2x);
+  border-radius: 8px;
+  height: 64px;
+  max-width: 64px;
+  min-width: 64px;
   opacity: 1;
 }
 
 .glamor-2,
 [data-glamor-2] {
-  font-size: 14px;
-  line-height: 18px;
+  font-size: 24px;
+  line-height: 28px;
   color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .glamor-3,
@@ -25391,10 +25369,10 @@ exports[`Storyshots Common Name with icon subcomponents 1`] = `
             onClick={undefined}
             style={
               Object {
-                "height": 80,
-                "maxWidth": 80,
-                "minHeight": 80,
-                "minWidth": 80,
+                "height": 64,
+                "maxWidth": 64,
+                "minHeight": 64,
+                "minWidth": 64,
                 "position": "relative",
                 "userSelect": "none",
               }
@@ -30209,8 +30187,6 @@ exports[`Storyshots People/Follow Suggestions One 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 600;
-  padding-left: 8px;
-  padding-right: 8px;
   text-decoration: inherit;
   display: inline;
   font-style: italic;
@@ -30230,8 +30206,6 @@ exports[`Storyshots People/Follow Suggestions One 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 400;
-  padding-left: 2px;
-  padding-right: 2px;
 }
 
 <div
@@ -30316,7 +30290,6 @@ exports[`Storyshots People/Follow Suggestions One 1`] = `
               style={
                 Object {
                   "height": 64,
-                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -30331,48 +30304,47 @@ exports[`Storyshots People/Follow Suggestions One 1`] = `
               <div
                 className="glamor-2"
               />
-              <img
-                className={undefined}
-                draggable="false"
-                onClick={null}
-                srcSet="icons/icon-follow-me-21.png 1x, icons/icon-follow-me-21@2x.png 2x"
-                style={
-                  Object {
-                    "bottom": 0,
-                    "left": 45,
-                    "position": "absolute",
-                    "userSelect": "none",
-                  }
-                }
-                title={undefined}
-              />
             </div>
-            <span
-              className="glamor-5"
-              onClick={undefined}
-              title={undefined}
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "justifyContent": "center",
+                  "marginTop": 4,
+                  "paddingLeft": 2,
+                  "paddingRight": 2,
+                }
+              }
             >
               <span
-                className="glamor-4"
+                className="glamor-5"
                 onClick={undefined}
                 title={undefined}
               >
                 <span
-                  className="glamor-3 hover-underline"
-                  onClick={[Function]}
+                  className="glamor-4"
+                  onClick={undefined}
                   title={undefined}
                 >
-                  ayoubd
+                  <span
+                    className="glamor-3"
+                    onClick={[Function]}
+                    title={undefined}
+                  >
+                    ayoubd
+                  </span>
                 </span>
               </span>
-            </span>
-            <span
-              className="glamor-6"
-              onClick={undefined}
-              title={undefined}
-            >
-              Danny Ayoub
-            </span>
+              <span
+                className="glamor-6"
+                onClick={undefined}
+                title={undefined}
+              >
+                Danny Ayoub
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -30460,8 +30432,6 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 600;
-  padding-left: 8px;
-  padding-right: 8px;
   text-decoration: inherit;
   display: inline;
   font-style: italic;
@@ -30481,8 +30451,6 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 400;
-  padding-left: 2px;
-  padding-right: 2px;
 }
 
 .glamor-9,
@@ -30495,8 +30463,6 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 600;
-  padding-left: 8px;
-  padding-right: 8px;
   text-decoration: inherit;
   display: inline;
 }
@@ -30511,8 +30477,6 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 600;
-  padding-left: 8px;
-  padding-right: 8px;
   text-decoration: inherit;
   display: inline;
 }
@@ -30599,7 +30563,92 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
               style={
                 Object {
                   "height": 64,
-                  "marginBottom": 4,
+                  "maxWidth": 64,
+                  "minHeight": 64,
+                  "minWidth": 64,
+                  "position": "relative",
+                  "userSelect": "none",
+                }
+              }
+            >
+              <div
+                className="glamor-1"
+              />
+              <div
+                className="glamor-2"
+              />
+            </div>
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "justifyContent": "center",
+                  "marginTop": 4,
+                  "paddingLeft": 2,
+                  "paddingRight": 2,
+                }
+              }
+            >
+              <span
+                className="glamor-5"
+                onClick={undefined}
+                title={undefined}
+              >
+                <span
+                  className="glamor-4"
+                  onClick={undefined}
+                  title={undefined}
+                >
+                  <span
+                    className="glamor-3"
+                    onClick={[Function]}
+                    title={undefined}
+                  >
+                    ayoubd
+                  </span>
+                </span>
+              </span>
+              <span
+                className="glamor-6"
+                onClick={undefined}
+                title={undefined}
+              >
+                Danny Ayoub
+              </span>
+            </div>
+          </div>
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "borderRadius": 0,
+                "cursor": "pointer",
+                "display": "flex",
+                "flexDirection": "column",
+                "flexShrink": 0,
+                "height": 106,
+                "lineHeight": 0,
+                "minWidth": undefined,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+                "width": 112,
+              }
+            }
+          >
+            <div
+              onClick={undefined}
+              style={
+                Object {
+                  "height": 64,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -30618,7 +30667,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                 className={undefined}
                 draggable="false"
                 onClick={null}
-                srcSet="icons/icon-follow-me-21.png 1x, icons/icon-follow-me-21@2x.png 2x"
+                srcSet="icons/icon-following-21.png 1x, icons/icon-following-21@2x.png 2x"
                 style={
                   Object {
                     "bottom": 0,
@@ -30630,32 +30679,46 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                 title={undefined}
               />
             </div>
-            <span
-              className="glamor-5"
-              onClick={undefined}
-              title={undefined}
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "justifyContent": "center",
+                  "marginTop": 4,
+                  "paddingLeft": 2,
+                  "paddingRight": 2,
+                }
+              }
             >
               <span
-                className="glamor-4"
+                className="glamor-5"
                 onClick={undefined}
                 title={undefined}
               >
                 <span
-                  className="glamor-3 hover-underline"
-                  onClick={[Function]}
+                  className="glamor-4"
+                  onClick={undefined}
                   title={undefined}
                 >
-                  ayoubd
+                  <span
+                    className="glamor-9"
+                    onClick={[Function]}
+                    title={undefined}
+                  >
+                    max
+                  </span>
                 </span>
               </span>
-            </span>
-            <span
-              className="glamor-6"
-              onClick={undefined}
-              title={undefined}
-            >
-              Danny Ayoub
-            </span>
+              <span
+                className="glamor-6"
+                onClick={undefined}
+                title={undefined}
+              >
+                Max Krohn
+              </span>
+            </div>
           </div>
           <div
             onClick={[Function]}
@@ -30687,7 +30750,6 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
               style={
                 Object {
                   "height": 64,
-                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -30702,48 +30764,47 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
               <div
                 className="glamor-2"
               />
-              <img
-                className={undefined}
-                draggable="false"
-                onClick={null}
-                srcSet="icons/icon-follow-me-21.png 1x, icons/icon-follow-me-21@2x.png 2x"
-                style={
-                  Object {
-                    "bottom": 0,
-                    "left": 45,
-                    "position": "absolute",
-                    "userSelect": "none",
-                  }
-                }
-                title={undefined}
-              />
             </div>
-            <span
-              className="glamor-5"
-              onClick={undefined}
-              title={undefined}
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "justifyContent": "center",
+                  "marginTop": 4,
+                  "paddingLeft": 2,
+                  "paddingRight": 2,
+                }
+              }
             >
               <span
-                className="glamor-4"
+                className="glamor-5"
                 onClick={undefined}
                 title={undefined}
               >
                 <span
-                  className="glamor-9 hover-underline"
-                  onClick={[Function]}
+                  className="glamor-4"
+                  onClick={undefined}
                   title={undefined}
                 >
-                  max
+                  <span
+                    className="glamor-15"
+                    onClick={[Function]}
+                    title={undefined}
+                  >
+                    chrisnojima
+                  </span>
                 </span>
               </span>
-            </span>
-            <span
-              className="glamor-6"
-              onClick={undefined}
-              title={undefined}
-            >
-              Max Krohn
-            </span>
+              <span
+                className="glamor-6"
+                onClick={undefined}
+                title={undefined}
+              >
+                Chris Nojima
+              </span>
+            </div>
           </div>
           <div
             onClick={[Function]}
@@ -30775,7 +30836,6 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
               style={
                 Object {
                   "height": 64,
-                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -30791,32 +30851,46 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                 className="glamor-2"
               />
             </div>
-            <span
-              className="glamor-5"
-              onClick={undefined}
-              title={undefined}
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "justifyContent": "center",
+                  "marginTop": 4,
+                  "paddingLeft": 2,
+                  "paddingRight": 2,
+                }
+              }
             >
               <span
-                className="glamor-4"
+                className="glamor-5"
                 onClick={undefined}
                 title={undefined}
               >
                 <span
-                  className="glamor-15 hover-underline"
-                  onClick={[Function]}
+                  className="glamor-4"
+                  onClick={undefined}
                   title={undefined}
                 >
-                  chrisnojima
+                  <span
+                    className="glamor-15"
+                    onClick={[Function]}
+                    title={undefined}
+                  >
+                    oconnor663
+                  </span>
                 </span>
               </span>
-            </span>
-            <span
-              className="glamor-6"
-              onClick={undefined}
-              title={undefined}
-            >
-              Chris Nojima
-            </span>
+              <span
+                className="glamor-6"
+                onClick={undefined}
+                title={undefined}
+              >
+                Jack O'Connor
+              </span>
+            </div>
           </div>
           <div
             onClick={[Function]}
@@ -30848,7 +30922,6 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
               style={
                 Object {
                   "height": 64,
-                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -30863,48 +30936,47 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
               <div
                 className="glamor-2"
               />
-              <img
-                className={undefined}
-                draggable="false"
-                onClick={null}
-                srcSet="icons/icon-follow-me-21.png 1x, icons/icon-follow-me-21@2x.png 2x"
-                style={
-                  Object {
-                    "bottom": 0,
-                    "left": 45,
-                    "position": "absolute",
-                    "userSelect": "none",
-                  }
-                }
-                title={undefined}
-              />
             </div>
-            <span
-              className="glamor-5"
-              onClick={undefined}
-              title={undefined}
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "justifyContent": "center",
+                  "marginTop": 4,
+                  "paddingLeft": 2,
+                  "paddingRight": 2,
+                }
+              }
             >
               <span
-                className="glamor-4"
+                className="glamor-5"
                 onClick={undefined}
                 title={undefined}
               >
                 <span
-                  className="glamor-15 hover-underline"
-                  onClick={[Function]}
+                  className="glamor-4"
+                  onClick={undefined}
                   title={undefined}
                 >
-                  oconnor663
+                  <span
+                    className="glamor-15"
+                    onClick={[Function]}
+                    title={undefined}
+                  >
+                    mlsteele
+                  </span>
                 </span>
               </span>
-            </span>
-            <span
-              className="glamor-6"
-              onClick={undefined}
-              title={undefined}
-            >
-              Jack O'Connor
-            </span>
+              <span
+                className="glamor-6"
+                onClick={undefined}
+                title={undefined}
+              >
+                Miles Steele
+              </span>
+            </div>
           </div>
           <div
             onClick={[Function]}
@@ -30936,7 +31008,6 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
               style={
                 Object {
                   "height": 64,
-                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -30951,48 +31022,47 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
               <div
                 className="glamor-2"
               />
-              <img
-                className={undefined}
-                draggable="false"
-                onClick={null}
-                srcSet="icons/icon-follow-me-21.png 1x, icons/icon-follow-me-21@2x.png 2x"
-                style={
-                  Object {
-                    "bottom": 0,
-                    "left": 45,
-                    "position": "absolute",
-                    "userSelect": "none",
-                  }
-                }
-                title={undefined}
-              />
             </div>
-            <span
-              className="glamor-5"
-              onClick={undefined}
-              title={undefined}
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "justifyContent": "center",
+                  "marginTop": 4,
+                  "paddingLeft": 2,
+                  "paddingRight": 2,
+                }
+              }
             >
               <span
-                className="glamor-4"
+                className="glamor-5"
                 onClick={undefined}
                 title={undefined}
               >
                 <span
-                  className="glamor-15 hover-underline"
-                  onClick={[Function]}
+                  className="glamor-4"
+                  onClick={undefined}
                   title={undefined}
                 >
-                  mlsteele
+                  <span
+                    className="glamor-15"
+                    onClick={[Function]}
+                    title={undefined}
+                  >
+                    zanderz
+                  </span>
                 </span>
               </span>
-            </span>
-            <span
-              className="glamor-6"
-              onClick={undefined}
-              title={undefined}
-            >
-              Miles Steele
-            </span>
+              <span
+                className="glamor-6"
+                onClick={undefined}
+                title={undefined}
+              >
+                Steve Sanders
+              </span>
+            </div>
           </div>
           <div
             onClick={[Function]}
@@ -31024,7 +31094,6 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
               style={
                 Object {
                   "height": 64,
-                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -31039,48 +31108,47 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
               <div
                 className="glamor-2"
               />
-              <img
-                className={undefined}
-                draggable="false"
-                onClick={null}
-                srcSet="icons/icon-follow-me-21.png 1x, icons/icon-follow-me-21@2x.png 2x"
-                style={
-                  Object {
-                    "bottom": 0,
-                    "left": 45,
-                    "position": "absolute",
-                    "userSelect": "none",
-                  }
-                }
-                title={undefined}
-              />
             </div>
-            <span
-              className="glamor-5"
-              onClick={undefined}
-              title={undefined}
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "justifyContent": "center",
+                  "marginTop": 4,
+                  "paddingLeft": 2,
+                  "paddingRight": 2,
+                }
+              }
             >
               <span
-                className="glamor-4"
+                className="glamor-5"
                 onClick={undefined}
                 title={undefined}
               >
                 <span
-                  className="glamor-15 hover-underline"
-                  onClick={[Function]}
+                  className="glamor-4"
+                  onClick={undefined}
                   title={undefined}
                 >
-                  zanderz
+                  <span
+                    className="glamor-15"
+                    onClick={[Function]}
+                    title={undefined}
+                  >
+                    chris
+                  </span>
                 </span>
               </span>
-            </span>
-            <span
-              className="glamor-6"
-              onClick={undefined}
-              title={undefined}
-            >
-              Steve Sanders
-            </span>
+              <span
+                className="glamor-6"
+                onClick={undefined}
+                title={undefined}
+              >
+                Chris Coyne
+              </span>
+            </div>
           </div>
           <div
             onClick={[Function]}
@@ -31112,7 +31180,6 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
               style={
                 Object {
                   "height": 64,
-                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -31127,48 +31194,47 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
               <div
                 className="glamor-2"
               />
-              <img
-                className={undefined}
-                draggable="false"
-                onClick={null}
-                srcSet="icons/icon-follow-me-21.png 1x, icons/icon-follow-me-21@2x.png 2x"
-                style={
-                  Object {
-                    "bottom": 0,
-                    "left": 45,
-                    "position": "absolute",
-                    "userSelect": "none",
-                  }
-                }
-                title={undefined}
-              />
             </div>
-            <span
-              className="glamor-5"
-              onClick={undefined}
-              title={undefined}
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "justifyContent": "center",
+                  "marginTop": 4,
+                  "paddingLeft": 2,
+                  "paddingRight": 2,
+                }
+              }
             >
               <span
-                className="glamor-4"
+                className="glamor-5"
                 onClick={undefined}
                 title={undefined}
               >
                 <span
-                  className="glamor-15 hover-underline"
-                  onClick={[Function]}
+                  className="glamor-4"
+                  onClick={undefined}
                   title={undefined}
                 >
-                  chris
+                  <span
+                    className="glamor-15"
+                    onClick={[Function]}
+                    title={undefined}
+                  >
+                    ayoubd1
+                  </span>
                 </span>
               </span>
-            </span>
-            <span
-              className="glamor-6"
-              onClick={undefined}
-              title={undefined}
-            >
-              Chris Coyne
-            </span>
+              <span
+                className="glamor-6"
+                onClick={undefined}
+                title={undefined}
+              >
+                Danny Ayoub
+              </span>
+            </div>
           </div>
           <div
             onClick={[Function]}
@@ -31200,7 +31266,6 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
               style={
                 Object {
                   "height": 64,
-                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -31215,48 +31280,47 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
               <div
                 className="glamor-2"
               />
-              <img
-                className={undefined}
-                draggable="false"
-                onClick={null}
-                srcSet="icons/icon-follow-me-21.png 1x, icons/icon-follow-me-21@2x.png 2x"
-                style={
-                  Object {
-                    "bottom": 0,
-                    "left": 45,
-                    "position": "absolute",
-                    "userSelect": "none",
-                  }
-                }
-                title={undefined}
-              />
             </div>
-            <span
-              className="glamor-5"
-              onClick={undefined}
-              title={undefined}
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "justifyContent": "center",
+                  "marginTop": 4,
+                  "paddingLeft": 2,
+                  "paddingRight": 2,
+                }
+              }
             >
               <span
-                className="glamor-4"
+                className="glamor-5"
                 onClick={undefined}
                 title={undefined}
               >
                 <span
-                  className="glamor-15 hover-underline"
-                  onClick={[Function]}
+                  className="glamor-4"
+                  onClick={undefined}
                   title={undefined}
                 >
-                  ayoubd1
+                  <span
+                    className="glamor-15"
+                    onClick={[Function]}
+                    title={undefined}
+                  >
+                    max1
+                  </span>
                 </span>
               </span>
-            </span>
-            <span
-              className="glamor-6"
-              onClick={undefined}
-              title={undefined}
-            >
-              Danny Ayoub
-            </span>
+              <span
+                className="glamor-6"
+                onClick={undefined}
+                title={undefined}
+              >
+                Max Krohn
+              </span>
+            </div>
           </div>
           <div
             onClick={[Function]}
@@ -31288,7 +31352,6 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
               style={
                 Object {
                   "height": 64,
-                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -31303,48 +31366,47 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
               <div
                 className="glamor-2"
               />
-              <img
-                className={undefined}
-                draggable="false"
-                onClick={null}
-                srcSet="icons/icon-follow-me-21.png 1x, icons/icon-follow-me-21@2x.png 2x"
-                style={
-                  Object {
-                    "bottom": 0,
-                    "left": 45,
-                    "position": "absolute",
-                    "userSelect": "none",
-                  }
-                }
-                title={undefined}
-              />
             </div>
-            <span
-              className="glamor-5"
-              onClick={undefined}
-              title={undefined}
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "justifyContent": "center",
+                  "marginTop": 4,
+                  "paddingLeft": 2,
+                  "paddingRight": 2,
+                }
+              }
             >
               <span
-                className="glamor-4"
+                className="glamor-5"
                 onClick={undefined}
                 title={undefined}
               >
                 <span
-                  className="glamor-15 hover-underline"
-                  onClick={[Function]}
+                  className="glamor-4"
+                  onClick={undefined}
                   title={undefined}
                 >
-                  max1
+                  <span
+                    className="glamor-15"
+                    onClick={[Function]}
+                    title={undefined}
+                  >
+                    chrisnojima1
+                  </span>
                 </span>
               </span>
-            </span>
-            <span
-              className="glamor-6"
-              onClick={undefined}
-              title={undefined}
-            >
-              Max Krohn
-            </span>
+              <span
+                className="glamor-6"
+                onClick={undefined}
+                title={undefined}
+              >
+                Chris Nojima
+              </span>
+            </div>
           </div>
           <div
             onClick={[Function]}
@@ -31376,7 +31438,6 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
               style={
                 Object {
                   "height": 64,
-                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -31392,32 +31453,46 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                 className="glamor-2"
               />
             </div>
-            <span
-              className="glamor-5"
-              onClick={undefined}
-              title={undefined}
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "justifyContent": "center",
+                  "marginTop": 4,
+                  "paddingLeft": 2,
+                  "paddingRight": 2,
+                }
+              }
             >
               <span
-                className="glamor-4"
+                className="glamor-5"
                 onClick={undefined}
                 title={undefined}
               >
                 <span
-                  className="glamor-15 hover-underline"
-                  onClick={[Function]}
+                  className="glamor-4"
+                  onClick={undefined}
                   title={undefined}
                 >
-                  chrisnojima1
+                  <span
+                    className="glamor-15"
+                    onClick={[Function]}
+                    title={undefined}
+                  >
+                    oconnor6631
+                  </span>
                 </span>
               </span>
-            </span>
-            <span
-              className="glamor-6"
-              onClick={undefined}
-              title={undefined}
-            >
-              Chris Nojima
-            </span>
+              <span
+                className="glamor-6"
+                onClick={undefined}
+                title={undefined}
+              >
+                Jack O'Connor
+              </span>
+            </div>
           </div>
           <div
             onClick={[Function]}
@@ -31449,7 +31524,6 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
               style={
                 Object {
                   "height": 64,
-                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -31464,48 +31538,47 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
               <div
                 className="glamor-2"
               />
-              <img
-                className={undefined}
-                draggable="false"
-                onClick={null}
-                srcSet="icons/icon-follow-me-21.png 1x, icons/icon-follow-me-21@2x.png 2x"
-                style={
-                  Object {
-                    "bottom": 0,
-                    "left": 45,
-                    "position": "absolute",
-                    "userSelect": "none",
-                  }
-                }
-                title={undefined}
-              />
             </div>
-            <span
-              className="glamor-5"
-              onClick={undefined}
-              title={undefined}
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "justifyContent": "center",
+                  "marginTop": 4,
+                  "paddingLeft": 2,
+                  "paddingRight": 2,
+                }
+              }
             >
               <span
-                className="glamor-4"
+                className="glamor-5"
                 onClick={undefined}
                 title={undefined}
               >
                 <span
-                  className="glamor-15 hover-underline"
-                  onClick={[Function]}
+                  className="glamor-4"
+                  onClick={undefined}
                   title={undefined}
                 >
-                  oconnor6631
+                  <span
+                    className="glamor-15"
+                    onClick={[Function]}
+                    title={undefined}
+                  >
+                    mlsteele1
+                  </span>
                 </span>
               </span>
-            </span>
-            <span
-              className="glamor-6"
-              onClick={undefined}
-              title={undefined}
-            >
-              Jack O'Connor
-            </span>
+              <span
+                className="glamor-6"
+                onClick={undefined}
+                title={undefined}
+              >
+                Miles Steele
+              </span>
+            </div>
           </div>
           <div
             onClick={[Function]}
@@ -31537,7 +31610,6 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
               style={
                 Object {
                   "height": 64,
-                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -31552,48 +31624,47 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
               <div
                 className="glamor-2"
               />
-              <img
-                className={undefined}
-                draggable="false"
-                onClick={null}
-                srcSet="icons/icon-follow-me-21.png 1x, icons/icon-follow-me-21@2x.png 2x"
-                style={
-                  Object {
-                    "bottom": 0,
-                    "left": 45,
-                    "position": "absolute",
-                    "userSelect": "none",
-                  }
-                }
-                title={undefined}
-              />
             </div>
-            <span
-              className="glamor-5"
-              onClick={undefined}
-              title={undefined}
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "justifyContent": "center",
+                  "marginTop": 4,
+                  "paddingLeft": 2,
+                  "paddingRight": 2,
+                }
+              }
             >
               <span
-                className="glamor-4"
+                className="glamor-5"
                 onClick={undefined}
                 title={undefined}
               >
                 <span
-                  className="glamor-15 hover-underline"
-                  onClick={[Function]}
+                  className="glamor-4"
+                  onClick={undefined}
                   title={undefined}
                 >
-                  mlsteele1
+                  <span
+                    className="glamor-15"
+                    onClick={[Function]}
+                    title={undefined}
+                  >
+                    zanderz1
+                  </span>
                 </span>
               </span>
-            </span>
-            <span
-              className="glamor-6"
-              onClick={undefined}
-              title={undefined}
-            >
-              Miles Steele
-            </span>
+              <span
+                className="glamor-6"
+                onClick={undefined}
+                title={undefined}
+              >
+                Steve Sanders
+              </span>
+            </div>
           </div>
           <div
             onClick={[Function]}
@@ -31625,7 +31696,6 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
               style={
                 Object {
                   "height": 64,
-                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -31640,136 +31710,47 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
               <div
                 className="glamor-2"
               />
-              <img
-                className={undefined}
-                draggable="false"
-                onClick={null}
-                srcSet="icons/icon-follow-me-21.png 1x, icons/icon-follow-me-21@2x.png 2x"
-                style={
-                  Object {
-                    "bottom": 0,
-                    "left": 45,
-                    "position": "absolute",
-                    "userSelect": "none",
-                  }
-                }
-                title={undefined}
-              />
             </div>
-            <span
-              className="glamor-5"
-              onClick={undefined}
-              title={undefined}
-            >
-              <span
-                className="glamor-4"
-                onClick={undefined}
-                title={undefined}
-              >
-                <span
-                  className="glamor-15 hover-underline"
-                  onClick={[Function]}
-                  title={undefined}
-                >
-                  zanderz1
-                </span>
-              </span>
-            </span>
-            <span
-              className="glamor-6"
-              onClick={undefined}
-              title={undefined}
-            >
-              Steve Sanders
-            </span>
-          </div>
-          <div
-            onClick={[Function]}
-            onMouseDown={[Function]}
-            onMouseEnter={undefined}
-            onMouseLeave={undefined}
-            onMouseUp={[Function]}
-            style={
-              Object {
-                "alignItems": "center",
-                "borderRadius": 0,
-                "cursor": "pointer",
-                "display": "flex",
-                "flexDirection": "column",
-                "flexShrink": 0,
-                "height": 106,
-                "lineHeight": 0,
-                "minWidth": undefined,
-                "position": "relative",
-                "textAlign": "left",
-                "transform": "none",
-                "transition": "none",
-                "width": 112,
-              }
-            }
-          >
             <div
-              onClick={undefined}
               style={
                 Object {
-                  "height": 64,
-                  "marginBottom": 4,
-                  "maxWidth": 64,
-                  "minHeight": 64,
-                  "minWidth": 64,
-                  "position": "relative",
-                  "userSelect": "none",
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "justifyContent": "center",
+                  "marginTop": 4,
+                  "paddingLeft": 2,
+                  "paddingRight": 2,
                 }
               }
             >
-              <div
-                className="glamor-1"
-              />
-              <div
-                className="glamor-2"
-              />
-              <img
-                className={undefined}
-                draggable="false"
-                onClick={null}
-                srcSet="icons/icon-follow-me-21.png 1x, icons/icon-follow-me-21@2x.png 2x"
-                style={
-                  Object {
-                    "bottom": 0,
-                    "left": 45,
-                    "position": "absolute",
-                    "userSelect": "none",
-                  }
-                }
-                title={undefined}
-              />
-            </div>
-            <span
-              className="glamor-5"
-              onClick={undefined}
-              title={undefined}
-            >
               <span
-                className="glamor-4"
+                className="glamor-5"
                 onClick={undefined}
                 title={undefined}
               >
                 <span
-                  className="glamor-15 hover-underline"
-                  onClick={[Function]}
+                  className="glamor-4"
+                  onClick={undefined}
                   title={undefined}
                 >
-                  chris1
+                  <span
+                    className="glamor-15"
+                    onClick={[Function]}
+                    title={undefined}
+                  >
+                    chris1
+                  </span>
                 </span>
               </span>
-            </span>
-            <span
-              className="glamor-6"
-              onClick={undefined}
-              title={undefined}
-            >
-              Chris Coyne
-            </span>
+              <span
+                className="glamor-6"
+                onClick={undefined}
+                title={undefined}
+              >
+                Chris Coyne
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -31857,8 +31838,6 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 600;
-  padding-left: 8px;
-  padding-right: 8px;
   text-decoration: inherit;
   display: inline;
   font-style: italic;
@@ -31878,8 +31857,6 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 400;
-  padding-left: 2px;
-  padding-right: 2px;
 }
 
 .glamor-9,
@@ -31892,8 +31869,6 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 600;
-  padding-left: 8px;
-  padding-right: 8px;
   text-decoration: inherit;
   display: inline;
 }
@@ -31908,8 +31883,6 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 600;
-  padding-left: 8px;
-  padding-right: 8px;
   text-decoration: inherit;
   display: inline;
 }
@@ -31996,7 +31969,6 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
               style={
                 Object {
                   "height": 64,
-                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -32011,48 +31983,47 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
               <div
                 className="glamor-2"
               />
-              <img
-                className={undefined}
-                draggable="false"
-                onClick={null}
-                srcSet="icons/icon-follow-me-21.png 1x, icons/icon-follow-me-21@2x.png 2x"
-                style={
-                  Object {
-                    "bottom": 0,
-                    "left": 45,
-                    "position": "absolute",
-                    "userSelect": "none",
-                  }
-                }
-                title={undefined}
-              />
             </div>
-            <span
-              className="glamor-5"
-              onClick={undefined}
-              title={undefined}
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "justifyContent": "center",
+                  "marginTop": 4,
+                  "paddingLeft": 2,
+                  "paddingRight": 2,
+                }
+              }
             >
               <span
-                className="glamor-4"
+                className="glamor-5"
                 onClick={undefined}
                 title={undefined}
               >
                 <span
-                  className="glamor-3 hover-underline"
-                  onClick={[Function]}
+                  className="glamor-4"
+                  onClick={undefined}
                   title={undefined}
                 >
-                  ayoubd
+                  <span
+                    className="glamor-3"
+                    onClick={[Function]}
+                    title={undefined}
+                  >
+                    ayoubd
+                  </span>
                 </span>
               </span>
-            </span>
-            <span
-              className="glamor-6"
-              onClick={undefined}
-              title={undefined}
-            >
-              Danny Ayoub
-            </span>
+              <span
+                className="glamor-6"
+                onClick={undefined}
+                title={undefined}
+              >
+                Danny Ayoub
+              </span>
+            </div>
           </div>
           <div
             onClick={[Function]}
@@ -32084,7 +32055,6 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
               style={
                 Object {
                   "height": 64,
-                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -32103,7 +32073,7 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
                 className={undefined}
                 draggable="false"
                 onClick={null}
-                srcSet="icons/icon-follow-me-21.png 1x, icons/icon-follow-me-21@2x.png 2x"
+                srcSet="icons/icon-following-21.png 1x, icons/icon-following-21@2x.png 2x"
                 style={
                   Object {
                     "bottom": 0,
@@ -32115,32 +32085,46 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
                 title={undefined}
               />
             </div>
-            <span
-              className="glamor-5"
-              onClick={undefined}
-              title={undefined}
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "justifyContent": "center",
+                  "marginTop": 4,
+                  "paddingLeft": 2,
+                  "paddingRight": 2,
+                }
+              }
             >
               <span
-                className="glamor-4"
+                className="glamor-5"
                 onClick={undefined}
                 title={undefined}
               >
                 <span
-                  className="glamor-9 hover-underline"
-                  onClick={[Function]}
+                  className="glamor-4"
+                  onClick={undefined}
                   title={undefined}
                 >
-                  max
+                  <span
+                    className="glamor-9"
+                    onClick={[Function]}
+                    title={undefined}
+                  >
+                    max
+                  </span>
                 </span>
               </span>
-            </span>
-            <span
-              className="glamor-6"
-              onClick={undefined}
-              title={undefined}
-            >
-              Max Krohn
-            </span>
+              <span
+                className="glamor-6"
+                onClick={undefined}
+                title={undefined}
+              >
+                Max Krohn
+              </span>
+            </div>
           </div>
           <div
             onClick={[Function]}
@@ -32172,7 +32156,6 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
               style={
                 Object {
                   "height": 64,
-                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -32188,32 +32171,46 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
                 className="glamor-2"
               />
             </div>
-            <span
-              className="glamor-5"
-              onClick={undefined}
-              title={undefined}
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "justifyContent": "center",
+                  "marginTop": 4,
+                  "paddingLeft": 2,
+                  "paddingRight": 2,
+                }
+              }
             >
               <span
-                className="glamor-4"
+                className="glamor-5"
                 onClick={undefined}
                 title={undefined}
               >
                 <span
-                  className="glamor-15 hover-underline"
-                  onClick={[Function]}
+                  className="glamor-4"
+                  onClick={undefined}
                   title={undefined}
                 >
-                  chrisnojima
+                  <span
+                    className="glamor-15"
+                    onClick={[Function]}
+                    title={undefined}
+                  >
+                    chrisnojima
+                  </span>
                 </span>
               </span>
-            </span>
-            <span
-              className="glamor-6"
-              onClick={undefined}
-              title={undefined}
-            >
-              Chris Nojima
-            </span>
+              <span
+                className="glamor-6"
+                onClick={undefined}
+                title={undefined}
+              >
+                Chris Nojima
+              </span>
+            </div>
           </div>
           <div
             onClick={[Function]}
@@ -32245,7 +32242,6 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
               style={
                 Object {
                   "height": 64,
-                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -32260,48 +32256,47 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
               <div
                 className="glamor-2"
               />
-              <img
-                className={undefined}
-                draggable="false"
-                onClick={null}
-                srcSet="icons/icon-follow-me-21.png 1x, icons/icon-follow-me-21@2x.png 2x"
-                style={
-                  Object {
-                    "bottom": 0,
-                    "left": 45,
-                    "position": "absolute",
-                    "userSelect": "none",
-                  }
-                }
-                title={undefined}
-              />
             </div>
-            <span
-              className="glamor-5"
-              onClick={undefined}
-              title={undefined}
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "justifyContent": "center",
+                  "marginTop": 4,
+                  "paddingLeft": 2,
+                  "paddingRight": 2,
+                }
+              }
             >
               <span
-                className="glamor-4"
+                className="glamor-5"
                 onClick={undefined}
                 title={undefined}
               >
                 <span
-                  className="glamor-15 hover-underline"
-                  onClick={[Function]}
+                  className="glamor-4"
+                  onClick={undefined}
                   title={undefined}
                 >
-                  oconnor663
+                  <span
+                    className="glamor-15"
+                    onClick={[Function]}
+                    title={undefined}
+                  >
+                    oconnor663
+                  </span>
                 </span>
               </span>
-            </span>
-            <span
-              className="glamor-6"
-              onClick={undefined}
-              title={undefined}
-            >
-              Jack O'Connor
-            </span>
+              <span
+                className="glamor-6"
+                onClick={undefined}
+                title={undefined}
+              >
+                Jack O'Connor
+              </span>
+            </div>
           </div>
           <div
             onClick={[Function]}
@@ -32333,7 +32328,6 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
               style={
                 Object {
                   "height": 64,
-                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -32348,48 +32342,47 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
               <div
                 className="glamor-2"
               />
-              <img
-                className={undefined}
-                draggable="false"
-                onClick={null}
-                srcSet="icons/icon-follow-me-21.png 1x, icons/icon-follow-me-21@2x.png 2x"
-                style={
-                  Object {
-                    "bottom": 0,
-                    "left": 45,
-                    "position": "absolute",
-                    "userSelect": "none",
-                  }
-                }
-                title={undefined}
-              />
             </div>
-            <span
-              className="glamor-5"
-              onClick={undefined}
-              title={undefined}
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "justifyContent": "center",
+                  "marginTop": 4,
+                  "paddingLeft": 2,
+                  "paddingRight": 2,
+                }
+              }
             >
               <span
-                className="glamor-4"
+                className="glamor-5"
                 onClick={undefined}
                 title={undefined}
               >
                 <span
-                  className="glamor-15 hover-underline"
-                  onClick={[Function]}
+                  className="glamor-4"
+                  onClick={undefined}
                   title={undefined}
                 >
-                  mlsteele
+                  <span
+                    className="glamor-15"
+                    onClick={[Function]}
+                    title={undefined}
+                  >
+                    mlsteele
+                  </span>
                 </span>
               </span>
-            </span>
-            <span
-              className="glamor-6"
-              onClick={undefined}
-              title={undefined}
-            >
-              Miles Steele
-            </span>
+              <span
+                className="glamor-6"
+                onClick={undefined}
+                title={undefined}
+              >
+                Miles Steele
+              </span>
+            </div>
           </div>
           <div
             onClick={[Function]}
@@ -32421,7 +32414,6 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
               style={
                 Object {
                   "height": 64,
-                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -32436,48 +32428,47 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
               <div
                 className="glamor-2"
               />
-              <img
-                className={undefined}
-                draggable="false"
-                onClick={null}
-                srcSet="icons/icon-follow-me-21.png 1x, icons/icon-follow-me-21@2x.png 2x"
-                style={
-                  Object {
-                    "bottom": 0,
-                    "left": 45,
-                    "position": "absolute",
-                    "userSelect": "none",
-                  }
-                }
-                title={undefined}
-              />
             </div>
-            <span
-              className="glamor-5"
-              onClick={undefined}
-              title={undefined}
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "justifyContent": "center",
+                  "marginTop": 4,
+                  "paddingLeft": 2,
+                  "paddingRight": 2,
+                }
+              }
             >
               <span
-                className="glamor-4"
+                className="glamor-5"
                 onClick={undefined}
                 title={undefined}
               >
                 <span
-                  className="glamor-15 hover-underline"
-                  onClick={[Function]}
+                  className="glamor-4"
+                  onClick={undefined}
                   title={undefined}
                 >
-                  zanderz
+                  <span
+                    className="glamor-15"
+                    onClick={[Function]}
+                    title={undefined}
+                  >
+                    zanderz
+                  </span>
                 </span>
               </span>
-            </span>
-            <span
-              className="glamor-6"
-              onClick={undefined}
-              title={undefined}
-            >
-              Steve Sanders
-            </span>
+              <span
+                className="glamor-6"
+                onClick={undefined}
+                title={undefined}
+              >
+                Steve Sanders
+              </span>
+            </div>
           </div>
           <div
             onClick={[Function]}
@@ -32509,7 +32500,6 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
               style={
                 Object {
                   "height": 64,
-                  "marginBottom": 4,
                   "maxWidth": 64,
                   "minHeight": 64,
                   "minWidth": 64,
@@ -32524,48 +32514,47 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
               <div
                 className="glamor-2"
               />
-              <img
-                className={undefined}
-                draggable="false"
-                onClick={null}
-                srcSet="icons/icon-follow-me-21.png 1x, icons/icon-follow-me-21@2x.png 2x"
-                style={
-                  Object {
-                    "bottom": 0,
-                    "left": 45,
-                    "position": "absolute",
-                    "userSelect": "none",
-                  }
-                }
-                title={undefined}
-              />
             </div>
-            <span
-              className="glamor-5"
-              onClick={undefined}
-              title={undefined}
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "justifyContent": "center",
+                  "marginTop": 4,
+                  "paddingLeft": 2,
+                  "paddingRight": 2,
+                }
+              }
             >
               <span
-                className="glamor-4"
+                className="glamor-5"
                 onClick={undefined}
                 title={undefined}
               >
                 <span
-                  className="glamor-15 hover-underline"
-                  onClick={[Function]}
+                  className="glamor-4"
+                  onClick={undefined}
                   title={undefined}
                 >
-                  chris
+                  <span
+                    className="glamor-15"
+                    onClick={[Function]}
+                    title={undefined}
+                  >
+                    chris
+                  </span>
                 </span>
               </span>
-            </span>
-            <span
-              className="glamor-6"
-              onClick={undefined}
-              title={undefined}
-            >
-              Chris Coyne
-            </span>
+              <span
+                className="glamor-6"
+                onClick={undefined}
+                title={undefined}
+              >
+                Chris Coyne
+              </span>
+            </div>
           </div>
         </div>
       </div>
