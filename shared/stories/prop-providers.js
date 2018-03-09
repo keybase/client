@@ -39,11 +39,14 @@ const Usernames = (following: string[], you?: string) => ({
 })
 
 const Avatar = (following: string[], followers: string[]) => ({
-  Avatar: (props: any) => ({
-    following: following.includes(props.username),
-    followsYou: followers.includes(props.username),
-    ...mockOwnToViewProps(props),
-  }),
+  Avatar: (props: any) => {
+    const ownProps = {
+      following: following.includes(props.username),
+      followsYou: followers.includes(props.username),
+      ...props,
+    }
+    return mockOwnToViewProps(ownProps)
+  },
   URLAvatar: (props: any) => props,
 })
 
