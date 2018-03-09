@@ -83,6 +83,8 @@ dependencies:
           react-native/android
 test:
   override:
+    # Do nothing for now.
+    -
     # TODO(mm) uncomment these device tests (see todo above)
     # wait for it to have booted
     # - circle-android wait-for-boot
