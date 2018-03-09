@@ -3,14 +3,15 @@ import avatar from '../common-adapters/avatar.stories'
 import buttonBar from '../common-adapters/button-bar.stories'
 import button from '../common-adapters/button.stories'
 import box from '../common-adapters/box.stories'
+import chatSendAnimation from '../chat/conversation/messages/wrapper/chat-send.stories'
 import chatInboxRow from '../chat/inbox/row/index.stories'
 import chatInfoPanel from '../chat/conversation/info-panel/index.stories'
 import chatInfoPanelNotifications from '../chat/conversation/info-panel/notifications/index.stories'
-import chatList from '../chat/conversation/list/index.stories'
+// import chatList from '../chat/conversation/list/index.stories'
 import chatCreateChannel from '../chat/create-channel/index.stories'
 import chatManageChannels from '../chat/manage-channels/index.stories'
-import chatChannelMentionHud from '../chat/channel-mention-hud/index.stories'
-import chatUserMentionHud from '../chat/user-mention-hud/index.stories'
+import chatChannelMentionHud from '../chat/conversation/input-area/channel-mention-hud/index.stories'
+import chatUserMentionHud from '../chat/conversation/input-area/user-mention-hud/index.stories'
 import checkbox from '../common-adapters/checkbox.stories'
 import devices from '../devices/index.stories'
 import dropdown from '../common-adapters/dropdown.stories'
@@ -34,10 +35,11 @@ const stories = {
   buttonBar,
   chatChannelMentionHud,
   chatCreateChannel,
+  chatSendAnimation,
   chatInboxRow,
   chatInfoPanel,
   chatInfoPanelNotifications,
-  chatList,
+  // chatList,
   chatManageChannels,
   chatUserMentionHud,
   checkbox,

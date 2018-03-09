@@ -1,0 +1,20 @@
+// @flow
+import {Component} from 'react'
+
+export type Props = {|
+  badgeNumber?: number,
+  canOpenInfoPanel: boolean,
+  channelName: ?string,
+  muted: boolean,
+  onBack: () => void,
+  onOpenFolder: () => void,
+  onShowProfile: (user: string) => void,
+  onToggleInfoPanel: () => void,
+  infoPanelOpen: boolean,
+  teamName: ?string,
+  participants: Array<string>,
+  smallTeam: boolean,
+|}
+
+export class ChannelHeader extends Component<Props> {}
+export class UsernameHeader extends Component<Props> {}

@@ -1,0 +1,318 @@
+{
+  "prelude": [
+    "import * as RPCChatTypes from '../constants/types/rpc-chat-gen'",
+    "import * as Types from '../constants/types/chat2'",
+    "import HiddenString from '../util/hidden-string'"
+  ],
+  "actions": {
+    // Set the loading state. Loading true increments the value
+    "setLoading": {
+      "key": "string",
+      "loading": "boolean"
+    },
+    // Sometimes we just want to clear the loading state and not do a true increment/decrement
+    "clearLoading": {
+      "key": "string",
+    },
+    // Select the pending conversation (building a search or a set of users from a folder)
+    "setPendingSelected": {
+      "selected": "boolean"
+    },
+    // Select a conversation (or leave nothing selected)
+    "selectConversation": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "fromUser?": "boolean", // true if this is a direct result of the user clicking
+      "asAPreview?": "boolean", // true if you want to preview the conversation
+    },
+    // Select an existing conversation or setup an empty one. Can either be adhoc or a tlf (adhoc or team)
+    // forceImmediate to make it immediately. Normally conversations are made when you actually send text
+    "startConversation":{
+      "participants?": "?Array<string>",
+      "tlf?": "?string",
+      "forceImmediate?": "boolean"
+    },
+    // Update our badges in the nav
+    "badgesUpdated": {
+      "conversations": "Array<RPCTypes.BadgeConversationInfo>"
+    },
+    // Setup sagas
+    "setupChatHandlers": {},
+    // Refresh the inbox
+    "inboxRefresh": {
+      "reason": "'bootstrap' | 'teamTypeChanged' | 'inboxSyncedClear' | 'inboxSyncedUnknown' | 'inboxStale' | 'joinedAConversation' | 'leftAConversation' | 'componentNeverLoaded'", // why this happened for logging
+    },
+    // Update the 'jump to conversation' filter
+    "setInboxFilter": {
+      "filter": "string"
+    },
+    // We want to unbox an inbox row
+    "metaNeedsUpdating": {
+      "conversationIDKeys": "Array<Types.ConversationIDKey>",
+      "reason": "string"
+    },
+    // Internal action: pull more metas from the queue to request
+    "metaHandleQueue": {},
+    // About to try and unbox some inbox rows
+    "metaRequestingTrusted": {
+      "conversationIDKeys": "Array<Types.ConversationIDKey>"
+    },
+    // Actually unboxing
+    "metaRequestTrusted": {
+      "force?": "boolean",
+      "conversationIDKeys": "Array<Types.ConversationIDKey>"
+    },
+    // Got some new inbox rows
+    "metasReceived": {
+      "metas": "Array<Types.ConversationMeta>"
+    },
+    // Got some inbox errors
+    "metaReceivedError": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "error": "?RPCChatTypes.ConversationErrorLocal",
+      "username": "?string"
+    },
+    // We got a status update saying it was blocked or ignored
+    "metaDelete": {
+      "conversationIDKey": "Types.ConversationIDKey",
+    },
+    // We updated our view of a thread
+    "metaUpdatePagination": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "paginationKey": "Types.PaginationKey",
+      "paginationMoreToLoad": "boolean",
+    },
+    // Add a new message
+    "messagesAdd": {
+      // sent = we sent it
+      // incoming = a streaming message
+      // threadLoad = we're loading more messages on select / scroll
+      "context": "{type: 'sent'} | {type: 'incoming'} | {type: 'threadLoad', conversationIDKey: Types.ConversationIDKey}",
+      "messages": "Array<Types.Message>"
+    },
+    // Got an error sending a message
+    "messageErrored": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "reason": "string",
+      "outboxID": "Types.OutboxID",
+    },
+    // Start editing a message / or edit the last message / or clear editing
+    "messageSetEditing": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "?Types.Ordinal",
+      "editLastUser?": "string"
+    },
+    // Submit an edit to the daemon
+    "messageEdit": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal",
+      "text": "HiddenString"
+    },
+    // Update a message which changed
+    "messageWasEdited": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "RPCChatTypes.MessageID",
+      "text": "HiddenString"
+    },
+    // Mark a message as deleted
+    "messagesWereDeleted": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageIDs?": "Array<RPCChatTypes.MessageID>",
+      "ordinals?": "Array<Types.Ordinal>"
+    },
+    // Delete a message
+    "messageDelete": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
+    },
+    // Deletes a message and above
+    "messageDeleteHistory": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
+    },
+    // Clear our knowledge of which messages are in a thread
+    "clearOrdinals": {
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    // Update why we have a pending conversation, either we're searching or we have a fixed set of users (you clicked a folder for example)
+    "setPendingMode": {
+      "pendingMode": "Types.PendingMode"
+    },
+    // Load some more messages for a conversation
+    "loadOlderMessagesDueToScroll": {
+      "conversationIDKey": "Types.ConversationIDKey",
+    },
+    // Show a desktop notification
+    "desktopNotification": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "author": "string",
+      "body": "string"
+    },
+    // Send a text message
+    "messageSend": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "text": "HiddenString"
+    },
+    // Resend a message
+    "messageRetry": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "outboxID": "Types.OutboxID",
+    },
+    "joinConversation": {
+      "conversationIDKey": "Types.ConversationIDKey",
+    },
+    "leaveConversation": {
+      "conversationIDKey": "Types.ConversationIDKey",
+    },
+    "muteConversation": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "muted": "boolean"
+    },
+    "openFolder": {
+      "conversationIDKey": "Types.ConversationIDKey",
+    },
+    // If an implied team chat member resets you can start a new chat w/o any reset people
+    "resetChatWithoutThem": {
+      "conversationIDKey": "Types.ConversationIDKey",
+    },
+    // If an implied team chat member resets you can add them back in
+    "resetLetThemIn": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "username": "string"
+    },
+    // You're done searching
+    "exitSearch": { },
+    // Update the pending conversation users
+    "setPendingConversationUsers": {
+      "users": "Array<string>",
+      "fromSearch": "boolean"
+    },
+    // Actually starting a conversation from a search. SendingAction is what happens after the chat is created
+    "sendToPendingConversation": {
+      "users": "Array<string>",
+      "sendingAction": "More.ReturnType<typeof createMessageSend> | More.ReturnType<typeof createAttachmentUpload>"
+    },
+    // We've made a new conversation successfully and want to cleanup the pending info now
+    "clearPendingConversation": {
+    },
+    // We want to ensure we have an attachment preview
+    "attachmentNeedsUpdating": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal",
+      "isPreview": "boolean"
+    },
+    // Internal action: pull more attachment previews from the queue to request
+    "attachmentHandleQueue": { },
+    // Load an image attachment
+    "attachmentLoad": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal",
+      "isPreview": "boolean"
+    },
+    // Update the loading bars
+    "attachmentLoading": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal",
+      "ratio": "number", // 0-1
+      "isPreview": "boolean",
+    },
+    // An attachment is done loading
+    "attachmentLoaded": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal",
+      "path": "string",
+      "isPreview": "boolean",
+      "canError": {
+        "conversationIDKey": "Types.ConversationIDKey",
+        "ordinal": "Types.Ordinal",
+        "isPreview": "boolean",
+      }
+    },
+    // We want to save an attachment to the local disk
+    "attachmentDownload": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal",
+    },
+    // We saved an attachment to the local disk
+    "attachmentDownloaded": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal",
+      "path": "string",
+    },
+    // We want to upload an attachment
+    "attachmentUpload": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "path": "string",
+      "title": "string",
+    },
+    // Update progress on an upload
+    "attachmentUploading": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal",
+      "ratio": "number", // 0-1
+    },
+    // We're done uploading
+    "attachmentUploaded": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal",
+    },
+    // We got an uploaded attachment, while online this is like an edit of the placeholder
+    "messageAttachmentUploaded": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "placeholderID": "RPCChatTypes.MessageID",
+      "message": "Types.MessageAttachment",
+    },
+    // Update who's typing in a conversation
+    "updateTypers": {
+      "conversationToTypers": "I.Map<Types.ConversationIDKey, I.Set<string>>"
+    },
+    // Tell server we're typing
+    "sendTyping": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "typing": "boolean"
+    },
+    // On startup we're automatically loading a thread sometimes. When we first view it we should
+    // go through our marking as read logic
+    "markInitiallyLoadedThreadAsRead": {
+      "conversationIDKey": "Types.ConversationIDKey",
+    },
+    // Server told us a conversation is out of date
+    "markConversationsStale": {
+      "conversationIDKeys": "Array<Types.ConversationIDKey>",
+    },
+    // Navigation helpers. Nav is slightly different on mobile / desktop
+    "navigateToInbox": {},
+    "navigateToThread": {},
+    // Share to external app on mobile
+    "messageAttachmentNativeShare": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal",
+    },
+    // Save on mobile (camera roll)
+    "messageAttachmentNativeSave": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal",
+    },
+    // Special handling of the push actions. we want to select a conversation and load it at the right time and avoid all other work
+    "selectConversationDueToPush": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "phase": "'showImmediately' | 'loadNewContent'"
+    },
+    // We're changing the notification settings
+    "updateNotificationSettings": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "notificationsDesktop": "Types.NotificationsType",
+      "notificationsMobile": "Types.NotificationsType",
+      "notificationsGlobalIgnoreMentions": "boolean",
+    },
+    // We get new notification settings
+    "notificationSettingsUpdated": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "settings": "RPCChatTypes.ConversationNotificationInfo"
+    },
+    // Block a conversation
+    "blockConversation": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "reportUser": "boolean"
+    }
+  }
+}

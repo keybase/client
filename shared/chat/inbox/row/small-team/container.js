@@ -1,70 +1,62 @@
 // @flow
-import * as I from 'immutable'
-import * as Selectors from '../selectors'
-import * as Constants from '../../../../constants/chat'
-import * as Types from '../../../../constants/types/chat'
-import * as ChatGen from '../../../../actions/chat-gen'
+import * as Chat2Gen from '../../../../actions/chat2-gen'
+import * as Constants from '../../../../constants/chat2'
+import * as Types from '../../../../constants/types/chat2'
 import {SmallTeam} from '.'
-import {pausableConnect, type TypedState} from '../../../../util/container'
+import {connect, type TypedState, type Dispatch, isMobile} from '../../../../util/container'
 
-const getSnippet = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
-  Constants.getSnippet(state, conversationIDKey)
+type OwnProps = {conversationIDKey: Types.ConversationIDKey}
 
-const mapStateToProps = (state: TypedState, {conversationIDKey, isActiveRoute}) => {
-  const isPending = Constants.isPendingConversationIDKey(conversationIDKey || '')
-  const youAreReset = Constants.isResetConversationIDKey(state, conversationIDKey || '')
-
-  const p = isPending
-    ? Selectors.pendingSnippetRowSelector(state, conversationIDKey)
-    : Selectors.snippetRowSelector(state, conversationIDKey)
-
+const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+  const _conversationIDKey = ownProps.conversationIDKey
+  const _meta = Constants.getMeta(state, _conversationIDKey)
+  const youAreReset = _meta.membershipType === 'youAreReset'
   return {
-    backgroundColor: p.backgroundColor,
-    hasBadge: p.hasBadge,
-    hasResetUsers: state.chat.inboxResetParticipants.get(conversationIDKey || '', I.Set()).size > 0,
-    hasUnread: p.hasUnread,
-    isActiveRoute,
-    isMuted: p.isMuted,
-    isSelected: p.isSelected,
-    participantNeedToRekey: p.participantNeedToRekey,
-    participants: p.participants,
-    showBold: p.showBold,
-    snippet: getSnippet(state, conversationIDKey || ''),
-    subColor: p.subColor,
-    teamname: p.teamname,
-    timestamp: p.timestamp,
-    usernameColor: p.usernameColor,
+    _meta,
+    _username: state.config.username || '',
+    hasBadge: Constants.getHasBadge(state, _conversationIDKey),
+    hasUnread: Constants.getHasUnread(state, _conversationIDKey),
+    isSelected:
+      !isMobile &&
+      !state.chat2.pendingSelected &&
+      Constants.getSelectedConversation(state) === _conversationIDKey,
     youAreReset,
-    youNeedToRekey: p.youNeedToRekey,
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}) => ({
-  onSelectConversation: () => {
-    dispatch(ChatGen.createSetInboxFilter({filter: ''}))
-    dispatch(ChatGen.createSelectConversation({conversationIDKey, fromUser: true}))
-  },
+const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}: OwnProps) => ({
+  onSelectConversation: () =>
+    dispatch(Chat2Gen.createSelectConversation({conversationIDKey, fromUser: true})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  backgroundColor: stateProps.backgroundColor,
-  hasBadge: stateProps.hasBadge,
-  hasResetUsers: stateProps.hasResetUsers,
-  hasUnread: stateProps.hasUnread,
-  isActiveRoute: ownProps.isActiveRoute,
-  isMuted: stateProps.isMuted,
-  isSelected: stateProps.isSelected,
-  onSelectConversation: dispatchProps.onSelectConversation,
-  participantNeedToRekey: stateProps.participantNeedToRekey,
-  participants: stateProps.participants,
-  showBold: stateProps.showBold,
-  snippet: stateProps.snippet,
-  subColor: stateProps.subColor,
-  teamname: stateProps.teamname || '',
-  timestamp: stateProps.timestamp,
-  usernameColor: stateProps.usernameColor,
-  youAreReset: stateProps.youAreReset,
-  youNeedToRekey: stateProps.youNeedToRekey,
-})
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  const isSelected = stateProps.isSelected
+  const hasUnread = stateProps.hasUnread
+  const styles = Constants.getRowStyles(stateProps._meta, isSelected, hasUnread)
+  const participantNeedToRekey = stateProps._meta.rekeyers.size > 0
+  const youNeedToRekey = !participantNeedToRekey && stateProps._meta.rekeyers.has(stateProps._username)
 
-export default pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps)(SmallTeam)
+  return {
+    backgroundColor: styles.backgroundColor,
+    hasBadge: stateProps.hasBadge,
+    hasResetUsers: !stateProps._meta.resetParticipants.isEmpty(),
+    hasUnread,
+    isFinalized: !!stateProps._meta.wasFinalizedBy,
+    isMuted: stateProps._meta.isMuted,
+    isSelected,
+    // Don't allow you to select yourself
+    onSelectConversation: isSelected ? () => {} : dispatchProps.onSelectConversation,
+    participantNeedToRekey,
+    participants: Constants.getRowParticipants(stateProps._meta, stateProps._username).toArray(),
+    showBold: styles.showBold,
+    snippet: stateProps._meta.snippet,
+    subColor: styles.subColor,
+    teamname: stateProps._meta.teamname,
+    timestamp: Constants.timestampToString(stateProps._meta),
+    usernameColor: styles.usernameColor,
+    youAreReset: stateProps.youAreReset,
+    youNeedToRekey,
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(SmallTeam)

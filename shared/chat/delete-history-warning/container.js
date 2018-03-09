@@ -1,10 +1,20 @@
 // @flow
-import * as ChatGen from '../../actions/chat-gen'
+import * as Types from '../../constants/types/chat2'
+import * as Chat2Gen from '../../actions/chat2-gen'
 import DeleteHistoryWarning from '.'
+import {type RouteProps} from '../../route-tree/render-route'
 import moment from 'moment'
-import {compose, connect, type TypedState} from '../../util/container'
+import {compose, connect, type TypedState, type Dispatch} from '../../util/container'
 
-const mapStateToProps = (state: TypedState, {routeProps}) => {
+type OwnProps = RouteProps<
+  {
+    message: Types.Message,
+    teamname: string,
+  },
+  {}
+>
+
+const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
   const message = routeProps.get('message')
   const teamname = routeProps.get('teamname')
   const timestamp = moment(message.timestamp).format('dddd, MMMM Do YYYY, h:mm:ss a')
@@ -14,11 +24,18 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}: OwnProps) => ({
   onBack: () => dispatch(navigateUp()),
   onClose: () => dispatch(navigateUp()),
   onDeleteHistory: () => {
-    dispatch(ChatGen.createDeleteMessageHistory({message: routeProps.get('message')}))
+    const message = routeProps.get('message')
+    dispatch(navigateUp())
+    dispatch(
+      Chat2Gen.createMessageDeleteHistory({
+        conversationIDKey: message.conversationIDKey,
+        ordinal: message.ordinal,
+      })
+    )
   },
 })
 

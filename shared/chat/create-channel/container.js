@@ -1,13 +1,20 @@
 // @flow
 import * as TeamsGen from '../../actions/teams-gen'
 import CreateChannel from '.'
-import {compose, withHandlers, lifecycle, withState, connect, type TypedState} from '../../util/container'
+import {
+  compose,
+  withHandlers,
+  lifecycle,
+  withStateHandlers,
+  connect,
+  type TypedState,
+} from '../../util/container'
 import {navigateTo} from '../../actions/route-tree'
 import upperFirst from 'lodash/upperFirst'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   return {
-    errorText: upperFirst(state.chat.channelCreationError),
+    errorText: upperFirst(state.entities.teams.channelCreationError),
     teamname: routeProps.get('teamname'),
   }
 }
@@ -30,8 +37,16 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath}) => ({
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
-  withState('channelname', 'onChannelnameChange'),
-  withState('description', 'onDescriptionChange'),
+  withStateHandlers(
+    {
+      channelname: null,
+      description: null,
+    },
+    {
+      onChannelnameChange: () => channelname => ({channelname}),
+      onDescriptionChange: () => description => ({description}),
+    }
+  ),
   withHandlers({
     onSubmit: ({channelname, description, _onCreateChannel, teamname}) => () => {
       channelname && _onCreateChannel({channelname, description, teamname})

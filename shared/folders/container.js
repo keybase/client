@@ -1,10 +1,10 @@
 // @flow
 import {isLinux} from '../constants/platform'
 import Folders, {type FolderType} from '.'
-import * as ChatGen from '../actions/chat-gen'
+import * as Chat2Gen from '../actions/chat2-gen'
 import * as KBFSGen from '../actions/kbfs-gen'
 import * as FavoriteGen from '../actions/favorite-gen'
-import {pausableConnect, compose, lifecycle, withProps, type TypedState} from '../util/container'
+import {connect, compose, lifecycle, withProps, type TypedState} from '../util/container'
 import {settingsTab} from '../constants/tabs'
 import {switchTo, navigateAppend, navigateTo} from '../actions/route-tree'
 import {type RouteProps} from '../route-tree/render-route'
@@ -27,7 +27,7 @@ const mapStateToProps = (state: TypedState, {routeState, selected}: OwnProps) =>
 const mapDispatchToProps = (dispatch: any, {routePath, routeState, setRouteState, isTeam}: OwnProps) => ({
   fuseStatus: () => dispatch(KBFSGen.createFuseStatus()),
   favoriteList: () => dispatch(FavoriteGen.createFavoriteList()),
-  onChat: (tlf, isTeam?) => dispatch(ChatGen.createOpenTlfInChat({tlf, isTeam})),
+  onChat: tlf => dispatch(Chat2Gen.createStartConversation({tlf})),
   onClick: path => dispatch(navigateAppend([{props: {path}, selected: 'files'}])),
   onOpen: path => dispatch(KBFSGen.createOpen({path})),
   onRekey: path => dispatch(navigateAppend([{props: {path}, selected: 'files'}])),
@@ -37,7 +37,7 @@ const mapDispatchToProps = (dispatch: any, {routePath, routeState, setRouteState
 })
 
 const ConnectedFolders = compose(
-  pausableConnect(mapStateToProps, mapDispatchToProps),
+  connect(mapStateToProps, mapDispatchToProps),
   lifecycle({
     componentDidMount: function() {
       this.props.favoriteList()

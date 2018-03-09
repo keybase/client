@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import Text from './text'
-import {type ConversationIDKey} from '../constants/types/chat'
+import {type ConversationIDKey} from '../constants/types/chat2'
 
 export type OwnProps = {
   name: string,

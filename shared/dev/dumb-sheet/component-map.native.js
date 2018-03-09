@@ -1,6 +1,4 @@
 // @flow
-import pick from 'lodash/pick'
-import ChatMap from '../../chat/dumb'
 import CommonMap from '../../common-adapters/dumb'
 import RegisterMap from '../../login/register/dumb'
 import SignupMap from '../../login/signup/dumb'
@@ -11,14 +9,12 @@ import DevicePageMap from '../../devices/device-page/dumb'
 import FoldersMap from '../../folders/dumb'
 import FoldersConfirmMap from '../../folders/confirm/dumb'
 import LoginMap from '../../login/dumb'
-import MessagesMap from '../../chat/conversation/messages/dumb'
 import ProfileMap from '../../profile/dumb'
 import SearchMap from '../../search/dumb'
 import Tracker from '../../tracker/dumb.native'
 import Settings from '../../settings/dumb.native'
 
 const map: any = {
-  ...ChatMap,
   ...CommonMap,
   ...QRMap,
   ...RegisterMap,
@@ -28,7 +24,6 @@ const map: any = {
   ...DevicePageMap,
   ...FoldersMap,
   ...FoldersConfirmMap,
-  ...pick(MessagesMap, 'Text Message', 'Stacked Text Message', 'Attachment Message'),
   ...ProfileMap,
   ...SearchMap,
   ...Settings,

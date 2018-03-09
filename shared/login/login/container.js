@@ -27,7 +27,7 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend}) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const users = stateProps._accounts.map(a => a.username)
+  const users = stateProps._accounts.map(a => a.username).sort()
   const lastUser = users.contains(stateProps._defaultUsername) ? stateProps._defaultUsername : users.first()
 
   return {

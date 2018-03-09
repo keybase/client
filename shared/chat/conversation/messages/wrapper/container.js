@@ -1,140 +1,120 @@
 // @flow
-import * as Constants from '../../../../constants/chat'
-import * as Types from '../../../../constants/types/chat'
-import * as ChatGen from '../../../../actions/chat-gen'
-import Wrapper, {type Props} from '.'
-import {compose, withHandlers, lifecycle, connect, type TypedState} from '../../../../util/container'
+import * as Chat2Gen from '../../../../actions/chat2-gen'
+import * as Constants from '../../../../constants/chat2'
+import * as ProfileGen from '../../../../actions/profile-gen'
+import * as Route from '../../../../actions/route-tree'
+import * as TrackerGen from '../../../../actions/tracker-gen'
+import * as Types from '../../../../constants/types/chat2'
+import Wrapper from '.'
+import {connect, type TypedState} from '../../../../util/container'
 import {formatTimeForMessages} from '../../../../util/timestamp'
-import {lookupMessageProps} from '../../../shared'
-import {createShowUserProfile} from '../../../../actions/profile-gen'
-import {createGetProfile} from '../../../../actions/tracker-gen'
 import {isMobile} from '../../../../constants/platform'
-import {type OwnProps, type StateProps, type DispatchProps} from './container'
 
-const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey}: OwnProps): StateProps => {
-  const _conversationState = Constants.getSelectedConversationStates(state)
-  const selectedConversationIDKey = Constants.getSelectedConversation(state)
+const howLongBetweenTimestampsMs = 1000 * 60 * 15
 
-  const {message, localMessageState} = lookupMessageProps(state, messageKey)
-  if (!message) {
-    throw new Error(`Can't find message for wrapper ${messageKey}`)
+const mapStateToProps = (state: TypedState, {message, previous, innerClass, isSelected, isEditing}): * => {
+  const isYou = state.config.username === message.author
+  const isFollowing = state.config.following.has(message.author)
+  const isBroken = state.users.infoMap.getIn([message.author, 'broken'], false)
+  const meta = Constants.getMeta(state, message.conversationIDKey)
+  const hasOlderResetConversation = previous ? false : !!meta.supersedes
+  const orangeLineAbove = !!previous && meta.orangeLineOrdinal === previous.ordinal
+  const showTeamOffer = meta.teamType === 'adhoc' && meta.participants.size > 2
+  const messageSent = !message.submitState
+  const messageFailed = !!message.errorReason
+
+  let loadMoreType = null
+  if (!previous) {
+    loadMoreType = meta.paginationMoreToLoad ? 'moreToLoad' : 'noMoreToLoad'
   }
-  const author = message.author
-  const isYou = Constants.getYou(state) === author
-  const isFollowing = Constants.getFollowing(state).has(author)
-  const isBroken = Constants.getMetaDataMap(state).getIn([author, 'brokenTracker'], false)
-
-  const {message: _prevMessage} = lookupMessageProps(state, prevMessageKey)
-  const isEditing = message === Constants.getEditingMessage(state)
-  const _editedCount: number =
-    Constants.getMessageUpdateCount(state, message.type, message.key) + message.editedCount
 
   return {
-    _conversationState,
-    _localMessageState: localMessageState,
-    _message: message,
-    _prevMessage,
-    _selectedConversationIDKey: selectedConversationIDKey,
-    _editedCount,
-    author,
+    hasOlderResetConversation,
+    innerClass,
     isBroken,
     isEditing,
     isFollowing,
+    isSelected,
     isYou,
+    loadMoreType,
+    message,
+    messageFailed,
+    messageSent,
+    orangeLineAbove,
+    previous,
+    showTeamOffer,
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
-  _onRetryAttachment: (message: Types.AttachmentMessage) =>
-    dispatch(ChatGen.createRetryAttachment({message})),
-  _onRetryText: (conversationIDKey: Types.ConversationIDKey, outboxIDKey: Types.OutboxIDKey) =>
-    dispatch(ChatGen.createRetryMessage({conversationIDKey, outboxIDKey})),
-  _onUsernameClick: (username: string) => {
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  _onAuthorClick: (username: string) =>
     isMobile
-      ? dispatch(createShowUserProfile({username}))
-      : dispatch(createGetProfile({username, ignoreCache: true, forceDisplay: true}))
-  },
+      ? dispatch(ProfileGen.createShowUserProfile({username}))
+      : dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username})),
+  _onEdit: (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
+    dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal})),
+  _onRetry: (conversationIDKey: Types.ConversationIDKey, outboxID: Types.OutboxID) =>
+    dispatch(Chat2Gen.createMessageRetry({conversationIDKey, outboxID})),
+  _onShowMenu: (targetRect: ?ClientRect, message: Types.Message) =>
+    dispatch(
+      Route.navigateAppend([
+        {
+          props: {message, position: 'bottom left', targetRect},
+          selected: 'messageAction',
+        },
+      ])
+    ),
 })
 
-const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => {
-  const message = stateProps._message
-  const prevMessage = stateProps._prevMessage
-  const conversationState = stateProps._conversationState
+const mergeProps = (stateProps, dispatchProps) => {
+  const {message, previous} = stateProps
 
-  const isEdited = message.type === 'Text' && stateProps._editedCount > 0
-  const isRevoked = !!message.senderDeviceRevokedAt
-  const failureDescription = message.messageState === 'failed' ? message.failureDescription : null
-
-  const isFirstNewMessage = !!(
-    conversationState &&
-    message &&
-    message.messageID &&
-    conversationState.get('firstNewMessageID') === message.messageID
-  )
-
-  const skipMsgHeader = prevMessage && prevMessage.type === 'Text' && prevMessage.author === message.author
-
-  const firstMessageEver = !prevMessage
-  const firstVisibleMessage = prevMessage && Constants.messageKeyValue(prevMessage.key) === '1'
+  const continuingTextBlock =
+    previous &&
+    previous.author === message.author &&
+    (previous.type === 'text' || previous.type === 'deleted')
 
   const oldEnough =
-    prevMessage &&
-    prevMessage.timestamp &&
+    previous &&
+    previous.timestamp &&
     message.timestamp &&
-    message.timestamp - prevMessage.timestamp > Constants.howLongBetweenTimestampsMs
+    message.timestamp - previous.timestamp > howLongBetweenTimestampsMs
+
   const timestamp =
-    firstMessageEver || firstVisibleMessage || oldEnough ? formatTimeForMessages(message.timestamp) : null
-  const includeHeader = isFirstNewMessage || !skipMsgHeader || !!timestamp
+    stateProps.orangeLineAbove || !previous || oldEnough ? formatTimeForMessages(message.timestamp) : null
+  const includeHeader = !previous || !continuingTextBlock || !!timestamp
+  let failureDescription = null
+  if ((message.type === 'text' || message.type === 'attachment') && message.errorReason) {
+    failureDescription = stateProps.isYou ? `Failed to send${message.errorReason}` : message.errorReason
+  }
 
   return {
-    _editedCount: stateProps._editedCount,
-    _localMessageState: stateProps._localMessageState,
-    _message: stateProps._message,
-    _onAction: ownProps.onAction,
-    _onShowEditor: ownProps.onShowEditor,
-    _onUsernameClick: dispatchProps._onUsernameClick,
-    author: stateProps.author,
+    author: message.author,
     failureDescription,
+    hasOlderResetConversation: stateProps.hasOlderResetConversation,
     includeHeader,
-    innerClass: ownProps.innerClass,
+    innerClass: stateProps.innerClass,
     isBroken: stateProps.isBroken,
-    isEdited,
+    isEdited: message.hasBeenEdited,
     isEditing: stateProps.isEditing,
-    isFirstNewMessage,
     isFollowing: stateProps.isFollowing,
-    isRevoked,
-    isSelected: ownProps.isSelected,
+    isRevoked: !!message.deviceRevokedAt,
+    isSelected: stateProps.isSelected,
     isYou: stateProps.isYou,
-    measure: ownProps.measure,
-    messageKey: ownProps.messageKey,
-    onRetry: () => {
-      if (stateProps._message.type === 'Attachment') {
-        dispatchProps._onRetryAttachment(stateProps._message)
-      } else if (stateProps._selectedConversationIDKey && stateProps._message.outboxID) {
-        dispatchProps._onRetryText(stateProps._selectedConversationIDKey, stateProps._message.outboxID)
-      }
-    },
+    loadMoreType: stateProps.loadMoreType,
+    message,
+    messageFailed: stateProps.messageFailed,
+    messageSent: stateProps.messageSent,
+    onAuthorClick: () => dispatchProps._onAuthorClick(message.author),
+    onEdit: stateProps.isYou ? () => dispatchProps._onEdit(message.conversationIDKey, message.ordinal) : null,
+    onRetry: stateProps.isYou
+      ? () => dispatchProps._onRetry(message.conversationIDKey, message.outboxID)
+      : null,
+    onShowMenu: (clientRect: ?ClientRect) => dispatchProps._onShowMenu(clientRect, message),
+    orangeLineAbove: stateProps.orangeLineAbove,
+    showTeamOffer: stateProps.showTeamOffer,
     timestamp,
   }
 }
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  withHandlers({
-    onAction: props => event => props._onAction(props._message, props._localMessageState, event),
-    onShowEditor: props => event => props._onShowEditor(props._message, event),
-    onClick: props => () => props._onUsernameClick(props.author),
-  }),
-  lifecycle({
-    componentDidUpdate: function(prevProps: Props & {_editedCount: number}) {
-      if (
-        this.props._editedCount !== prevProps._editedCount ||
-        this.props.isFirstNewMessage !== prevProps.isFirstNewMessage ||
-        this.props.timestamp !== prevProps.timestamp ||
-        this.props.failureDescription !== prevProps.failureDescription
-      ) {
-        this.props.measure && this.props.measure()
-      }
-    },
-  })
-)(Wrapper)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Wrapper)

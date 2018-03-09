@@ -4,8 +4,8 @@
 
 import * as I from 'immutable'
 import * as RouteTreeConstants from '../constants/route-tree'
-import * as ChatGen from '../actions/chat-gen'
 import * as AppGen from '../actions/app-gen'
+import * as Chat2Gen from '../actions/chat2-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as GregorGen from '../actions/gregor-gen'
 import * as EngineGen from '../actions/engine-gen'
@@ -37,14 +37,6 @@ const pathActionTransformer: ActionTransformer<*, *> = (action, oldState) => {
   }
 }
 
-const safeServerMessageMap = (m: any) => ({
-  key: m.key,
-  messageID: m.messageID,
-  messageState: m.messageState,
-  outboxID: m.outboxID,
-  type: m.type,
-})
-
 const entityTransformer = (action: Entity.Actions) => ({
   payload: {keyPath: action.payload.keyPath},
   type: action.type,
@@ -59,92 +51,11 @@ const actionTransformMap: {[key: string]: ActionTransformer<*, *>} = {
   [RouteTreeConstants.setRouteState]: pathActionTransformer,
   [RouteTreeConstants.resetRoute]: pathActionTransformer,
 
-  [ChatGen.loadAttachmentPreview]: (action: ChatGen.LoadAttachmentPreviewPayload) => ({
-    payload: {
-      messageKey: action.payload.messageKey,
-    },
-    type: action.type,
-  }),
-  [ChatGen.attachmentLoaded]: (action: ChatGen.AttachmentLoadedPayload) => ({
-    payload: {
-      messageKey: action.payload.messageKey,
-      isPreview: action.payload.isPreview,
-    },
-    type: action.type,
-  }),
-
-  [ChatGen.downloadProgress]: (action: ChatGen.DownloadProgressPayload) => ({
-    payload: {
-      messageKey: action.payload.messageKey,
-      isPreview: action.payload.messageKey,
-      progress: action.payload.progress === 0 ? 'zero' : action.payload.progress === 1 ? 'one' : 'partial',
-    },
-    type: action.type,
-  }),
-
-  [ChatGen.appendMessages]: (action: ChatGen.AppendMessagesPayload) => ({
-    payload: {
-      conversationIDKey: action.payload.conversationIDKey,
-      messages: action.payload.messages.map(safeServerMessageMap),
-      svcShouldDisplayNotification: action.payload.svcShouldDisplayNotification,
-    },
-    type: action.type,
-  }),
-  [ChatGen.prependMessages]: (action: ChatGen.PrependMessagesPayload) => ({
-    payload: {
-      conversationIDKey: action.payload.conversationIDKey,
-      messages: action.payload.messages.map(safeServerMessageMap),
-      moreToLoad: action.payload.moreToLoad,
-    },
-    type: action.type,
-  }),
-
-  [ChatGen.updateTempMessage]: (action: ChatGen.UpdateTempMessagePayload) => ({
-    payload: {conversationIDKey: action.payload.conversationIDKey, outboxIDKey: action.payload.outboxIDKey},
-    type: action.type,
-  }),
-  [ChatGen.loadAttachmentPreview]: (action: ChatGen.LoadAttachmentPreviewPayload) => ({
-    payload: {
-      messageKey: action.payload.messageKey,
-    },
-    type: action.type,
-  }),
-  [ChatGen.attachmentLoaded]: (action: ChatGen.AttachmentLoadedPayload) => ({
-    payload: {
-      messageKey: action.payload.messageKey,
-      isPreview: action.payload.isPreview,
-    },
-    type: action.type,
-  }),
-  [ChatGen.downloadProgress]: (action: ChatGen.DownloadProgressPayload) => ({
-    payload: {
-      messageKey: action.payload.messageKey,
-      isPreview: action.payload.messageKey,
-      progress: action.payload.progress === 0 ? 'zero' : action.payload.progress === 1 ? 'one' : 'partial',
-    },
-    type: action.type,
-  }),
-  [ChatGen.postMessage]: (action: ChatGen.PostMessagePayload) => ({
-    payload: {conversationIDKey: action.payload.conversationIDKey},
-    type: action.type,
-  }),
-  [ChatGen.retryMessage]: (action: ChatGen.RetryMessagePayload) => ({
-    payload: {
-      conversationIDKey: action.payload.conversationIDKey,
-      outboxIDKey: action.payload.outboxIDKey,
-    },
-    type: action.type,
-  }),
-  [ChatGen.replaceEntity]: entityTransformer,
-  [ChatGen.deleteEntity]: entityTransformer,
-  [ChatGen.mergeEntity]: entityTransformer,
-  [ChatGen.subtractEntity]: entityTransformer,
   'entity:delete': entityTransformer,
   'entity:merge': entityTransformer,
   'entity:replace': entityTransformer,
   'entity:subtract': entityTransformer,
   _loadAvatarHelper: nullTransform,
-  [ChatGen.clearRekey]: nullTransform,
   [ConfigGen.loadAvatars]: nullTransform,
   [ConfigGen.loadTeamAvatars]: nullTransform,
   [ConfigGen.loadedAvatars]: nullTransform,
@@ -152,6 +63,11 @@ const actionTransformMap: {[key: string]: ActionTransformer<*, *>} = {
   [EngineGen.waitingForRpc]: nullTransform,
   [GregorGen.pushOOBM]: nullTransform,
   [AppGen.changedFocus]: nullTransform,
+  [Chat2Gen.setLoading]: a => a,
+  [Chat2Gen.clearLoading]: a => a,
+  [Chat2Gen.updateTypers]: nullTransform,
+  [Chat2Gen.selectConversationDueToPush]: a => a,
+  [ConfigGen.globalError]: a => a,
 }
 
 const transformActionForLog: ActionTransformer<*, *> = (action, state) =>

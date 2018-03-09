@@ -1,6 +1,7 @@
 // @flow
+import * as I from 'immutable'
 import * as React from 'react'
-import type {ConversationIDKey} from '../../constants/types/chat'
+import type {ConversationIDKey} from '../../constants/types/chat2'
 
 export type RowItemSmall = {|
   type: 'small',
@@ -26,34 +27,28 @@ export type RowItemDivider = {|
 
 export type RowItem = RowItemSmall | RowItemBigTeamsLabel | RowItemBigHeader | RowItemBig | RowItemDivider
 
-export type RouteState = {
+export type RouteState = I.RecordOf<{
   smallTeamsExpanded: boolean,
-}
+}>
 
 export type Props = {
-  bigTeamsBadgeCount: number,
   children?: React$Element<*>,
   filter: string,
   filterFocusCount: number,
-  isActiveRoute: boolean,
   isLoading: boolean,
-  loadInbox: () => void,
   nowOverride?: number, // just for dumb rendering
   onNewChat: () => void,
   onSelectUp: () => void,
   onSelectDown: () => void,
-  onHotkey: () => void,
+  onHotkey: (cmd: string) => void,
   onSetFilter: (filter: string) => void,
   onUntrustedInboxVisible: (conversationIDKeys: Array<ConversationIDKey>) => void,
   rows: Array<RowItem>,
-  routeState: RouteState,
-  setRouteState: RouteState => void,
   showBuildATeam: boolean,
   showNewConversation: boolean,
   showSmallTeamsExpandDivider: boolean,
+  smallTeamsExpanded: boolean,
   smallIDsHidden: Array<ConversationIDKey>,
-  smallTeamsHiddenBadgeCount: number,
-  smallTeamsHiddenRowCount: number,
   toggleSmallTeamsExpanded: () => void,
 }
 

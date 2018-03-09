@@ -1,6 +1,7 @@
 // @flow
 import logger from '../logger'
 import * as I from 'immutable'
+import * as Chat2Gen from './chat2-gen'
 import * as KBFSGen from './kbfs-gen'
 import * as ConfigGen from './config-gen'
 import * as TeamsGen from './teams-gen'
@@ -225,12 +226,10 @@ function _loadAvatarHelper(action: AvatarHelperAction) {
 }
 
 function _loadAvatarHelperError(error: Error, action: AvatarHelperAction) {
-  // Ignore api errors
-  if (error.code === RPCTypes.constantsStatusCode.scapinetworkerror) {
-    throw error // TEMP
-  } else {
+  if (error.code === RPCTypes.constantsStatusCode.scinputerror) {
     throw error
   }
+  // ignore all other errors
 }
 
 function _loadAvatarHelperSuccess([response: {body: string}, names]) {
@@ -307,6 +306,8 @@ function* _getAppState(): Generator<any, void, any> {
   }
 }
 
+const _setStartedDueToPush = () => Saga.put(ConfigGen.createSetStartedDueToPush())
+
 function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.bootstrapSuccess, _bootstrapSuccess)
   yield Saga.safeTakeEveryPure(ConfigGen.bootstrap, _bootstrap)
@@ -322,6 +323,7 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
     _loadAvatarHelperError
   )
   yield Saga.safeTakeEveryPure(ConfigGen.setOpenAtLogin, _setOpenAtLogin)
+  yield Saga.safeTakeEveryPure(Chat2Gen.selectConversationDueToPush, _setStartedDueToPush)
   yield Saga.fork(_getAppState)
 }
 

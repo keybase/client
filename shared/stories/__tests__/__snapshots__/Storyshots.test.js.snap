@@ -2732,6 +2732,95 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
 </div>
 `;
 
+exports[`Storyshots Chat/Conversation/Sending animation Encrypting 1`] = `
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <img
+      className={undefined}
+      draggable="false"
+      onClick={null}
+      srcSet="icons/icon-message-status-encrypting-24.png 1x, icons/icon-message-status-encrypting-24@2x.png 2x"
+      style={
+        Object {
+          "height": 16,
+          "opacity": 1,
+          "userSelect": "none",
+          "width": 24,
+        }
+      }
+      title={undefined}
+    />
+  </div>
+</div>
+`;
+
+exports[`Storyshots Chat/Conversation/Sending animation Failed 1`] = `
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <img
+      className={undefined}
+      draggable="false"
+      onClick={null}
+      srcSet="icons/icon-message-status-error-24.png 1x, icons/icon-message-status-error-24@2x.png 2x"
+      style={
+        Object {
+          "height": 16,
+          "opacity": 1,
+          "userSelect": "none",
+          "width": 24,
+        }
+      }
+      title={undefined}
+    />
+  </div>
+</div>
+`;
+
+exports[`Storyshots Chat/Conversation/Sending animation Sent 1`] = `
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  />
+</div>
+`;
+
 exports[`Storyshots Chat/Heads up Display Mention Hud 1`] = `
 .glamor-0,
 [data-glamor-0] {
@@ -3083,6 +3172,7 @@ exports[`Storyshots Chat/Heads up Display Mention Row 1`] = `
   font-size: 13px;
   line-height: 17px;
   color: #33a0ff;
+  cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -3190,7 +3280,7 @@ exports[`Storyshots Chat/Heads up Display Mention Row 1`] = `
           >
             <span
               className="glamor-2"
-              onClick={undefined}
+              onClick={[Function]}
               title={undefined}
             >
               trex
@@ -3271,7 +3361,7 @@ exports[`Storyshots Chat/Heads up Display Mention Row 1`] = `
           >
             <span
               className="glamor-2"
-              onClick={undefined}
+              onClick={[Function]}
               title={undefined}
             >
               marcopolo
@@ -3352,7 +3442,7 @@ exports[`Storyshots Chat/Heads up Display Mention Row 1`] = `
           >
             <span
               className="glamor-2"
-              onClick={undefined}
+              onClick={[Function]}
               title={undefined}
             >
               missingno
@@ -4404,6 +4494,7 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 400;
+  background-color: #ffffff;
 }
 
 .glamor-6,
@@ -4418,8 +4509,8 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
   white-space: nowrap;
   display: block;
   overflow: hidden;
-  text-overflow: ellipsis;
   width: 100%;
+  text-overflow: ellipsis;
   min-height: 15px;
   padding-right: 30px;
 }
@@ -4488,6 +4579,7 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 700;
+  background-color: #ffffff;
 }
 
 .glamor-13,
@@ -4502,8 +4594,8 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
   white-space: nowrap;
   display: block;
   overflow: hidden;
-  text-overflow: ellipsis;
   width: 100%;
+  text-overflow: ellipsis;
   min-height: 15px;
   padding-right: 30px;
 }
@@ -4557,7 +4649,7 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
         <div
           style={
             Object {
-              "backgroundColor": "#ffffff",
+              "backgroundColor": "#F8FAFD",
               "cursor": "pointer",
               "display": "flex",
               "flexDirection": "row",
@@ -4607,7 +4699,7 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
           <div
             style={
               Object {
-                "backgroundColor": "#ffffff",
+                "backgroundColor": "#F8FAFD",
                 "display": "flex",
                 "flexDirection": "column",
                 "flexGrow": 1,
@@ -4760,7 +4852,7 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
         <div
           style={
             Object {
-              "backgroundColor": "#ffffff",
+              "backgroundColor": "#F8FAFD",
               "cursor": "pointer",
               "display": "flex",
               "flexDirection": "row",
@@ -4836,7 +4928,7 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
           <div
             style={
               Object {
-                "backgroundColor": "#ffffff",
+                "backgroundColor": "#F8FAFD",
                 "display": "flex",
                 "flexDirection": "column",
                 "flexGrow": 1,
@@ -5000,7 +5092,7 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
         <div
           style={
             Object {
-              "backgroundColor": "#ffffff",
+              "backgroundColor": "#F8FAFD",
               "cursor": "pointer",
               "display": "flex",
               "flexDirection": "row",
@@ -5076,7 +5168,7 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
           <div
             style={
               Object {
-                "backgroundColor": "#ffffff",
+                "backgroundColor": "#F8FAFD",
                 "display": "flex",
                 "flexDirection": "column",
                 "flexGrow": 1,
@@ -5285,7 +5377,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
 [data-glamor-5] {
   font-size: 13px;
   line-height: 17px;
-  color: rgba(0, 0, 0, 0.75);
+  color: rgb(64,64,64);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -5296,7 +5388,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
 [data-glamor-7] {
   font-size: 13px;
   line-height: 17px;
-  color: rgba(0, 0, 0, 0.75);
+  color: rgb(64,64,64);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -5450,8 +5542,6 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
             style={
               Object {
                 "alignItems": "center",
-                "borderBottomLeftRadius": 2,
-                "borderTopLeftRadius": 2,
                 "display": "flex",
                 "flexDirection": "row",
                 "marginLeft": 24,
@@ -5514,8 +5604,6 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
             style={
               Object {
                 "alignItems": "center",
-                "borderBottomLeftRadius": 2,
-                "borderTopLeftRadius": 2,
                 "display": "flex",
                 "flexDirection": "row",
                 "marginLeft": 24,
@@ -5578,8 +5666,6 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
             style={
               Object {
                 "alignItems": "center",
-                "borderBottomLeftRadius": 2,
-                "borderTopLeftRadius": 2,
                 "display": "flex",
                 "flexDirection": "row",
                 "marginLeft": 24,
@@ -5642,8 +5728,6 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
             style={
               Object {
                 "alignItems": "center",
-                "borderBottomLeftRadius": 2,
-                "borderTopLeftRadius": 2,
                 "display": "flex",
                 "flexDirection": "row",
                 "marginLeft": 24,
@@ -5778,8 +5862,6 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
               Object {
                 "alignItems": "center",
                 "backgroundColor": "#33a0ff",
-                "borderBottomLeftRadius": 2,
-                "borderTopLeftRadius": 2,
                 "display": "flex",
                 "flexDirection": "row",
                 "marginLeft": 24,
@@ -5842,8 +5924,6 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
             style={
               Object {
                 "alignItems": "center",
-                "borderBottomLeftRadius": 2,
-                "borderTopLeftRadius": 2,
                 "display": "flex",
                 "flexDirection": "row",
                 "marginLeft": 24,
@@ -5907,8 +5987,6 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
               Object {
                 "alignItems": "center",
                 "backgroundColor": "#33a0ff",
-                "borderBottomLeftRadius": 2,
-                "borderTopLeftRadius": 2,
                 "display": "flex",
                 "flexDirection": "row",
                 "marginLeft": 24,
@@ -5985,8 +6063,6 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
               Object {
                 "alignItems": "center",
                 "backgroundColor": "#33a0ff",
-                "borderBottomLeftRadius": 2,
-                "borderTopLeftRadius": 2,
                 "display": "flex",
                 "flexDirection": "row",
                 "marginLeft": 24,
@@ -6005,200 +6081,6 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
               #happy-hour
             </span>
           </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Chat/List Emoji Only 1`] = `
-<div
-  style={
-    Object {
-      "flex": 1,
-      "overflow": "auto",
-    }
-  }
->
-  <div
-    style={
-      Object {
-        "height": "100%",
-      }
-    }
-  >
-    <div
-      style={
-        Object {
-          "bottom": 0,
-          "left": 0,
-          "position": "absolute",
-          "right": 0,
-          "top": 0,
-        }
-      }
-    >
-      <div
-        onClick={[Function]}
-        onCopyCapture={[Function]}
-        style={
-          Object {
-            "contain": "strict",
-            "display": "flex",
-            "flex": 1,
-            "flexDirection": "column",
-            "position": "relative",
-          }
-        }
-      >
-        <style>
-          
-.message {
-  border: 1px solid transparent;
-}
-.message .action-button {
-  visibility: hidden;
-  opacity: 0;
-}
-.message:hover {
-  border: 1px solid rgba(0, 0, 0, 0.10);
-}
-.message:hover .action-button {
-  visibility: visible;
-  opacity: 1;
-}
-
-        </style>
-        <div
-          style={
-            Object {
-              "height": 0,
-              "overflow": "visible",
-              "width": 0,
-            }
-          }
-        >
-          <div
-            aria-label="grid"
-            aria-readonly={true}
-            className="ReactVirtualized__Grid ReactVirtualized__List"
-            id={undefined}
-            onScroll={[Function]}
-            role="grid"
-            style={
-              Object {
-                "WebkitOverflowScrolling": "touch",
-                "boxSizing": "border-box",
-                "direction": "ltr",
-                "height": 0,
-                "outline": "none",
-                "overflowX": "hidden",
-                "overflowY": "auto",
-                "position": "relative",
-                "width": 0,
-                "willChange": "transform",
-              }
-            }
-            tabIndex={0}
-          />
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Chat/List Normal 1`] = `
-<div
-  style={
-    Object {
-      "flex": 1,
-      "overflow": "auto",
-    }
-  }
->
-  <div
-    style={
-      Object {
-        "height": "100%",
-      }
-    }
-  >
-    <div
-      style={
-        Object {
-          "bottom": 0,
-          "left": 0,
-          "position": "absolute",
-          "right": 0,
-          "top": 0,
-        }
-      }
-    >
-      <div
-        onClick={[Function]}
-        onCopyCapture={[Function]}
-        style={
-          Object {
-            "contain": "strict",
-            "display": "flex",
-            "flex": 1,
-            "flexDirection": "column",
-            "position": "relative",
-          }
-        }
-      >
-        <style>
-          
-.message {
-  border: 1px solid transparent;
-}
-.message .action-button {
-  visibility: hidden;
-  opacity: 0;
-}
-.message:hover {
-  border: 1px solid rgba(0, 0, 0, 0.10);
-}
-.message:hover .action-button {
-  visibility: visible;
-  opacity: 1;
-}
-
-        </style>
-        <div
-          style={
-            Object {
-              "height": 0,
-              "overflow": "visible",
-              "width": 0,
-            }
-          }
-        >
-          <div
-            aria-label="grid"
-            aria-readonly={true}
-            className="ReactVirtualized__Grid ReactVirtualized__List"
-            id={undefined}
-            onScroll={[Function]}
-            role="grid"
-            style={
-              Object {
-                "WebkitOverflowScrolling": "touch",
-                "boxSizing": "border-box",
-                "direction": "ltr",
-                "height": 0,
-                "outline": "none",
-                "overflowX": "hidden",
-                "overflowY": "auto",
-                "position": "relative",
-                "width": 0,
-                "willChange": "transform",
-              }
-            }
-            tabIndex={0}
-          />
         </div>
       </div>
     </div>
@@ -19366,6 +19248,74 @@ exports[`Storyshots Common Icon 1`] = `
           draggable="false"
           onClick={[Function]}
           srcSet="icons/icon-keybase-logo-24.png 1x, icons/icon-keybase-logo-24@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-message-status-encrypting-24.png 1x, icons/icon-message-status-encrypting-24@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-message-status-error-24.png 1x, icons/icon-message-status-error-24@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-message-status-sending-24.png 1x, icons/icon-message-status-sending-24@2x.png 2x"
+          style={
+            Object {
+              "borderColor": "rgba(0, 0, 0, 0.05)",
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "margin": 5,
+              "userSelect": "none",
+            }
+          }
+          title="hint text"
+        />
+        <img
+          className={undefined}
+          draggable="false"
+          onClick={[Function]}
+          srcSet="icons/icon-message-status-sent-24.png 1x, icons/icon-message-status-sent-24@2x.png 2x"
           style={
             Object {
               "borderColor": "rgba(0, 0, 0, 0.05)",
@@ -37509,9 +37459,9 @@ exports[`Storyshots Search Result 1`] = `
   font-family: OpenSans;
   font-weight: 600;
   overflow: hidden;
+  flex: 1;
   white-space: pre-wrap;
   word-wrap: break-word;
-  flex: 1;
   -webkit-flex: 1;
 }
 
@@ -37541,9 +37491,9 @@ exports[`Storyshots Search Result 1`] = `
   font-family: OpenSans;
   font-weight: 600;
   overflow: hidden;
+  flex: 1;
   white-space: pre-wrap;
   word-wrap: break-word;
-  flex: 1;
   -webkit-flex: 1;
 }
 
@@ -37557,9 +37507,9 @@ exports[`Storyshots Search Result 1`] = `
   font-family: OpenSans;
   font-weight: 600;
   overflow: hidden;
+  flex: 1;
   white-space: pre-wrap;
   word-wrap: break-word;
-  flex: 1;
   -webkit-flex: 1;
 }
 
@@ -37574,9 +37524,9 @@ exports[`Storyshots Search Result 1`] = `
   font-weight: 600;
   font-style: italic;
   overflow: hidden;
+  flex: 1;
   white-space: pre-wrap;
   word-wrap: break-word;
-  flex: 1;
   -webkit-flex: 1;
 }
 

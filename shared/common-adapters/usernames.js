@@ -8,7 +8,7 @@ import {connect} from 'react-redux'
 import {type TypedState} from '../constants/reducer'
 import {createShowUserProfile} from '../actions/profile-gen'
 import {createGetProfile} from '../actions/tracker-gen.js'
-import type {Props, PlaintextProps, ConnectedProps} from './usernames'
+import type {Props, PlaintextProps} from './usernames'
 
 function usernameText({
   type,
@@ -60,7 +60,7 @@ function usernameText({
                 ...style,
                 color: commaColor,
                 marginRight: 1,
-                ...(isMobile ? undefined : {textDecoration: 'none'}),
+                ...(isMobile ? {} : {textDecoration: 'none'}),
               }}
             >
               ,
@@ -170,31 +170,43 @@ class PlaintextUsernames extends Component<PlaintextProps> {
 
 // Connected username component
 // instead of username objects supply array of username strings & this will fill in the rest
-const mapStateToProps = (state: TypedState, ownProps: ConnectedProps) => {
-  const following = state.config.following
-  const you = state.config.username
-  const userData = ownProps.usernames.map(username => ({
-    following: following.has(username),
-    username,
-    you: you === username,
-  }))
+const mapStateToProps = (state: TypedState) => {
+  const _following = state.config.following
+  const _broken = state.tracker.userTrackers
+  const _you = state.config.username
   return {
-    users: userData,
+    _broken,
+    _following,
+    _you,
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, ownProps: ConnectedProps) => ({
-  onUsernameClicked:
-    ownProps.onUsernameClicked ||
-    (ownProps.clickable
-      ? (username: string) => {
-          isMobile
-            ? dispatch(createShowUserProfile({username}))
-            : dispatch(createGetProfile({username, ignoreCache: true, forceDisplay: true}))
-        }
-      : undefined),
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  _onUsernameClicked: (username: string) =>
+    isMobile
+      ? dispatch(createShowUserProfile({username}))
+      : dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username})),
 })
 
-const ConnectedUsernames = connect(mapStateToProps, mapDispatchToProps)(Usernames)
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  const userData = ownProps.usernames
+    .map(username => ({
+      broken: stateProps._broken.trackerState === 'error',
+      following: stateProps._following.has(username),
+      username,
+      you: stateProps._you === username,
+    }))
+    .filter(u => !ownProps.skipSelf || !u.you)
 
+  const onUsernameClicked =
+    ownProps.onUsernameClicked || (ownProps.clickable ? dispatchProps._onUsernameClicked : undefined)
+
+  return {
+    ...ownProps,
+    users: userData,
+    ...(onUsernameClicked ? {onUsernameClicked} : {}),
+  }
+}
+
+const ConnectedUsernames = connect(mapStateToProps, mapDispatchToProps, mergeProps)(Usernames)
 export {usernameText, Usernames, PlaintextUsernames, ConnectedUsernames}

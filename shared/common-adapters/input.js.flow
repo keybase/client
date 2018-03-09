@@ -2,6 +2,9 @@
 import {Component} from 'react'
 
 export type Props = {
+  // if true we use a smarter algorithm to decide when we need to recalculate our height
+  // might be safe to use this everywhere but i wanted to limit it to just chat short term
+  smartAutoresize?: boolean,
   autoFocus?: boolean,
   className?: string,
   editable?: boolean,
@@ -48,6 +51,7 @@ export type Props = {
     | 'twitter'
     | 'web-search',
   returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send',
+  selectTextOnFocus?: boolean,
 }
 
 declare export default class Input extends Component<Props> {
