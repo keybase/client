@@ -84,7 +84,7 @@ dependencies:
 test:
   override:
     # Do nothing for now.
-    -
+    - true
     # TODO(mm) uncomment these device tests (see todo above)
     # wait for it to have booted
     # - circle-android wait-for-boot
