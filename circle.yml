@@ -50,6 +50,7 @@ dependencies:
     - echo "d56f5187479451eabf01fb78af6dfcb131a6481e" >> /usr/local/android-sdk-linux/licenses/android-sdk-license
     # Install Yarn
   cache_directories:
+    # TODO: Add ~/.gradle/caches
     - ~/downloads
     - ~/.cache/yarn
     - /tmp/go-android/bin
