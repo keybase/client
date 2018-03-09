@@ -42,7 +42,6 @@ const TeamHeader = (props: Props) => (
     <Box style={stylesTeamHeader}>
       {/* Summary */}
       <NameWithIcon
-        avatarSize={64}
         size="large"
         teamname={props.teamname}
         title={props.teamname}

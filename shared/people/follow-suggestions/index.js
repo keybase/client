@@ -28,8 +28,6 @@ export default (props: Props) => (
           metaOne={suggestion.fullName}
           metaStyle={{paddingLeft: 2, paddingRight: 2}}
           onClick={() => props.onClickUser(suggestion.username)}
-          followsMe={suggestion.followsMe}
-          following={suggestion.iFollow}
           colorFollowing={true}
           size="small"
           containerStyle={suggestionContainerStyle}
