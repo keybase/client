@@ -16,7 +16,6 @@ const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => ({
   _newTeamRequests: state.entities.getIn(['teams', 'newTeamRequests'], I.List()),
   _teamNameToIsOpen: state.entities.getIn(['teams', 'teamNameToIsOpen'], I.Map()),
   members: state.entities.getIn(['teams', 'teammembercounts', teamname], 0),
-  yourOperations: Constants.getCanPerform(state, teamname),
   yourRole: Constants.getRole(state, teamname),
 })
 
@@ -39,10 +38,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     isOpen: stateProps._teamNameToIsOpen.toObject()[ownProps.teamname],
     newTeams: stateProps._newTeams.toArray(),
     newRequests: stateProps._newTeamRequests.toArray().filter(team => team === ownProps.teamname).length,
+    // $FlowIssue
     onOpenFolder: youAreMember ? () => dispatchProps._onOpenFolder(ownProps.teamname) : null,
+    // $FlowIssue
     onManageChat: youAreMember ? () => dispatchProps._onManageChat(ownProps.teamname) : null,
     onViewTeam: () => dispatchProps._onViewTeam(ownProps.teamname),
-    yourOperations: stateProps.yourOperations,
     yourRole: stateProps.yourRole,
   }
 }

@@ -51,7 +51,7 @@ const mapStateToProps = (state: TypedState) => {
     routeDef: state.routeTree.routeDef,
     routeState: state.routeTree.routeState,
     username: state.config.username,
-    widgetBadge: state.notifications.get('widgetBadge'),
+    widgetBadge: state.notifications.get('widgetBadge') || false,
   }
 }
 

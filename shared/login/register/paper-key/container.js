@@ -2,7 +2,7 @@
 import * as LoginGen from '../../../actions/login-gen'
 import React, {Component} from 'react'
 import PaperKey from '.'
-import {connect, type TypedState} from '../../../util/container'
+import {connect, type TypedState, type Dispatch} from '../../../util/container'
 import HiddenString from '../../../util/hidden-string'
 import {type RouteProps} from '../../../route-tree/render-route'
 
@@ -55,7 +55,7 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => ({
   error: routeProps.get('error'),
 })
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch: Dispatch) => ({
   onBack: () => dispatch(LoginGen.createOnBack()),
   onSubmit: (paperkey: string) =>
     dispatch(LoginGen.createSubmitPassphrase({passphrase: new HiddenString(paperkey), storeSecret: false})),

@@ -16,7 +16,7 @@ type Props = {
   participantNeedToRekey: boolean,
   showBold: boolean,
   snippet: ?string,
-  subColor: ?string,
+  subColor: string,
   youNeedToRekey: boolean,
   youAreReset: boolean,
   hasResetUsers: boolean,

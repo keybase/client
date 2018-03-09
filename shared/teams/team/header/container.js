@@ -48,9 +48,11 @@ const mapDispatchToProps = (dispatch: Dispatch, {teamname}: OwnProps) => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...stateProps,
-  ...dispatchProps,
-  ...ownProps,
+  onAddPeople: dispatchProps.onAddPeople,
   onAddSelf: () => dispatchProps._onAddSelf(stateProps.you),
+  onChat: dispatchProps.onChat,
+  onEditDescription: dispatchProps.onEditDescription,
+  teamname: ownProps.teamname,
 })
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamHeader)

@@ -26,7 +26,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {teamname}: OwnProps) => ({
   onReadMoreAboutSubteams: () => openURL('https://keybase.io/docs/teams/design'),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const listMergeProps = (stateProps, dispatchProps, ownProps) => {
   const subteams = stateProps._subteams.sort()
   const noSubteams = subteams.isEmpty()
   const listItems = [
@@ -58,12 +58,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   return {listItems}
 }
 
-export const subteamsListItemsConnector = connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  (stateProps, dispatchProps, ownProps) => ({
-    listItems: mergeProps(stateProps, dispatchProps, ownProps).listItems,
-    ...ownProps,
-  })
-)
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  listItems: listMergeProps(stateProps, dispatchProps, ownProps).listItems,
+  teamname: ownProps.teamname,
+})
+
+export const subteamsListItemsConnector = connect(mapStateToProps, mapDispatchToProps, mergeProps)
 export default subteamsListItemsConnector(Subteams)

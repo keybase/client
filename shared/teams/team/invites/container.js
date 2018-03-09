@@ -51,9 +51,11 @@ const mergeProps = (stateProps, dispatchProps, {teamname}: OwnProps) => {
 }
 
 const listMergeProps = (stateProps, dispatchProps, ownProps) => ({
+  // $FlowIssue
   listItems: mergeProps(stateProps, dispatchProps, ownProps).requestsAndInvites,
   ...ownProps,
 })
 
 export default connect(mapStateToProps, () => ({}), mergeProps)(RequestsAndInvites)
+// $FlowIssue really due to branch in teams/team/container
 export const requestsAndInvitesListItemsConnector = connect(mapStateToProps, () => ({}), listMergeProps)

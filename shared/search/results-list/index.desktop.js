@@ -13,6 +13,7 @@ class SearchResultsList extends Component<Props> {
     const id = this.props.items[index]
     const {onClick, onMouseOver, onShowTracker} = this.props
     return (
+      // $FlowIssue
       <Row
         id={id}
         key={id}

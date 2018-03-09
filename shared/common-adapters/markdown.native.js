@@ -179,7 +179,7 @@ class Markdown extends PureComponent<Props> {
   render() {
     const createComponent = this.props.preview
       ? previewCreateComponent(this.props.style)
-      : messageCreateComponent(this.props.style, this.props.allowFontScaling)
+      : messageCreateComponent(this.props.style, !!this.props.allowFontScaling)
     const content = parseMarkdown(this.props.children, createComponent, this.props.meta)
     if (typeof content === 'string') {
       if (this.props.preview) {

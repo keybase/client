@@ -9,11 +9,12 @@ export type Props = {
   canEditDescription: boolean,
   canJoinTeam: boolean,
   canManageMembers: boolean,
-  description: ?string,
+  description: string,
   memberCount: number,
   openTeam: boolean,
+  // $FlowIssue
   role: ?Types.TeamRoleType,
-  teamname: string,
+  teamname: Types.Teamname,
 
   onAddPeople: (target?: any) => void,
   onAddSelf: () => void,

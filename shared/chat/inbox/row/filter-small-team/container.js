@@ -13,8 +13,6 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   return {
     _meta: Constants.getMeta(state, conversationIDKey),
     _username: state.config.username || '',
-    hasBadge: Constants.getHasBadge(state, conversationIDKey),
-    hasUnread: Constants.getHasUnread(state, conversationIDKey),
     isSelected: Constants.getSelectedConversation(state) === conversationIDKey,
   }
 }
@@ -34,15 +32,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 
   return {
     backgroundColor: styles.backgroundColor,
-    hasBadge: stateProps.hasBadge,
-    hasUnread,
     isLocked,
     isMuted: stateProps._meta.isMuted,
     isSelected,
     onSelectConversation: dispatchProps.onSelectConversation,
     participants: Constants.getRowParticipants(stateProps._meta, stateProps._username).toArray(),
     showBold: styles.showBold,
-    subColor: styles.subColor,
     teamname: stateProps._meta.teamname,
     usernameColor: styles.usernameColor,
   }
