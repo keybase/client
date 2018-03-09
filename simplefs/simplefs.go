@@ -12,6 +12,7 @@ import (
 	stdpath "path"
 	"strings"
 	"sync"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -60,12 +61,25 @@ var errInvalidRemotePath = simpleFSError{"Invalid remote path"}
 var errNoSuchHandle = simpleFSError{"No such handle"}
 var errNoResult = simpleFSError{"Async result not found"}
 
+type newFSFunc func(
+	context.Context, libkbfs.Config, *libkbfs.TlfHandle, string) (
+	billy.Filesystem, error)
+
+func defaultNewFS(ctx context.Context, config libkbfs.Config,
+	tlfHandle *libkbfs.TlfHandle, subdir string) (billy.Filesystem, error) {
+	return libfs.NewFS(
+		ctx, config, tlfHandle, subdir, "", keybase1.MDPriorityNormal)
+}
+
 // SimpleFS is the simple filesystem rpc layer implementation.
 type SimpleFS struct {
 	// log for logging - constant, does not need locking.
 	log logger.Logger
 	// config for the fs - constant, does not need locking.
 	config libkbfs.Config
+	// The function to call for constructing a new KBFS file system.
+	// Overrideable for testing purposes.
+	newFS newFSFunc
 	// lock protects handles and inProgress
 	lock sync.RWMutex
 	// handles contains handles opened by SimpleFSOpen,
@@ -78,9 +92,10 @@ type SimpleFS struct {
 }
 
 type inprogress struct {
-	desc   keybase1.OpDescription
-	cancel context.CancelFunc
-	done   chan error
+	desc     keybase1.OpDescription
+	cancel   context.CancelFunc
+	done     chan error
+	progress keybase1.OpProgress
 }
 
 type handle struct {
@@ -105,6 +120,7 @@ func newSimpleFS(config libkbfs.Config) *SimpleFS {
 		handles:    map[keybase1.OpID]*handle{},
 		inProgress: map[keybase1.OpID]*inprogress{},
 		log:        log,
+		newFS:      defaultNewFS,
 	}
 }
 
@@ -163,8 +179,7 @@ func (k *SimpleFS) getFS(ctx context.Context, path keybase1.Path) (
 		if err != nil {
 			return nil, "", err
 		}
-		fs, err := libfs.NewFS(
-			ctx, k.config, tlfHandle, restOfPath, "", keybase1.MDPriorityNormal)
+		fs, err := k.newFS(ctx, k.config, tlfHandle, restOfPath)
 		if err != nil {
 			if exitEarly, _ := libfs.FilterTLFEarlyExitError(
 				ctx, err, k.log, tlfHandle.GetCanonicalName()); exitEarly {
@@ -246,11 +261,17 @@ func (k *SimpleFS) setResult(opid keybase1.OpID, val interface{}) {
 }
 
 func (k *SimpleFS) startOp(ctx context.Context, opid keybase1.OpID,
-	desc keybase1.OpDescription) (context.Context, error) {
+	opType keybase1.AsyncOps, desc keybase1.OpDescription) (
+	context.Context, error) {
 	ctx = k.makeContext(ctx)
 	ctx, cancel := context.WithCancel(ctx)
 	k.lock.Lock()
-	k.inProgress[opid] = &inprogress{desc, cancel, make(chan error, 1)}
+	k.inProgress[opid] = &inprogress{
+		desc,
+		cancel,
+		make(chan error, 1),
+		keybase1.OpProgress{OpType: opType},
+	}
 	k.lock.Unlock()
 	// ignore error, this is just for logging.
 	descBS, _ := json.Marshal(desc)
@@ -259,9 +280,13 @@ func (k *SimpleFS) startOp(ctx context.Context, opid keybase1.OpID,
 }
 
 func (k *SimpleFS) doneOp(ctx context.Context, opid keybase1.OpID, err error) {
-	k.lock.RLock()
+	k.lock.Lock()
 	w, ok := k.inProgress[opid]
-	k.lock.RUnlock()
+	if ok {
+		w.progress.EndEstimate = keybase1.ToTime(k.config.Clock().Now())
+		k.inProgress[opid] = w
+	}
+	k.lock.Unlock()
 	if ok {
 		w.done <- err
 		close(w.done)
@@ -273,9 +298,10 @@ func (k *SimpleFS) doneOp(ctx context.Context, opid keybase1.OpID, err error) {
 }
 
 func (k *SimpleFS) startAsync(
-	ctx context.Context, opid keybase1.OpID, desc keybase1.OpDescription,
+	ctx context.Context, opid keybase1.OpID, opType keybase1.AsyncOps,
+	desc keybase1.OpDescription,
 	callback func(context.Context) error) error {
-	ctxAsync, e0 := k.startOp(context.Background(), opid, desc)
+	ctxAsync, e0 := k.startOp(context.Background(), opid, opType, desc)
 	if e0 != nil {
 		return e0
 	}
@@ -289,32 +315,139 @@ func (k *SimpleFS) startAsync(
 	return nil
 }
 
+func (k *SimpleFS) setProgressTotals(
+	opid keybase1.OpID, totalBytes, totalFiles int64) {
+	k.lock.Lock()
+	defer k.lock.Unlock()
+	w, ok := k.inProgress[opid]
+	if !ok {
+		return
+	}
+	w.progress.BytesTotal = totalBytes
+	w.progress.FilesTotal = totalFiles
+	w.progress.Start = keybase1.ToTime(k.config.Clock().Now())
+	k.inProgress[opid] = w
+}
+
+func (k *SimpleFS) updateReadProgress(
+	opid keybase1.OpID, readBytes, readFiles int64) {
+	k.lock.Lock()
+	defer k.lock.Unlock()
+	w, ok := k.inProgress[opid]
+	if !ok {
+		return
+	}
+	w.progress.BytesRead += readBytes
+	if w.progress.BytesRead > w.progress.BytesTotal {
+		// Our original total was wrong or we didn't get one.
+		w.progress.BytesTotal = w.progress.BytesRead
+	}
+	w.progress.FilesRead += readFiles
+	if w.progress.FilesRead > w.progress.FilesTotal {
+		// Our original total was wrong or we didn't get one.
+		w.progress.FilesTotal = w.progress.FilesRead
+	}
+	k.inProgress[opid] = w
+}
+
+func (k *SimpleFS) updateWriteProgress(
+	opid keybase1.OpID, wroteBytes, wroteFiles int64) {
+	k.lock.Lock()
+	defer k.lock.Unlock()
+	w, ok := k.inProgress[opid]
+	if !ok {
+		return
+	}
+	w.progress.BytesWritten += wroteBytes
+	if w.progress.BytesWritten > w.progress.BytesTotal {
+		// Our original total was wrong or we didn't get one.
+		w.progress.BytesTotal = w.progress.BytesWritten
+	}
+	w.progress.FilesWritten += wroteFiles
+	if w.progress.FilesWritten > w.progress.FilesTotal {
+		// Our original total was wrong or we didn't get one.
+		w.progress.FilesTotal = w.progress.FilesWritten
+	}
+	k.inProgress[opid] = w
+}
+
 // SimpleFSList - Begin list of items in directory at path
 // Retrieve results with readList()
 // Cannot be a single file to get flags/status,
 // must be a directory.
 func (k *SimpleFS) SimpleFSList(ctx context.Context, arg keybase1.SimpleFSListArg) error {
-	return k.startAsync(ctx, arg.OpID, keybase1.NewOpDescriptionWithList(
-		keybase1.ListArgs{
-			OpID: arg.OpID, Path: arg.Path,
-		}), func(ctx context.Context) (err error) {
-		var res []keybase1.Dirent
+	return k.startAsync(ctx, arg.OpID, keybase1.AsyncOps_LIST,
+		keybase1.NewOpDescriptionWithList(
+			keybase1.ListArgs{
+				OpID: arg.OpID, Path: arg.Path,
+			}),
+		func(ctx context.Context) (err error) {
+			var res []keybase1.Dirent
 
-		rawPath := stdpath.Clean(arg.Path.Kbfs())
-		switch {
-		case rawPath == "/":
-			res = []keybase1.Dirent{
-				{Name: "private", DirentType: deTy2Ty(libkbfs.Dir)},
-				{Name: "public", DirentType: deTy2Ty(libkbfs.Dir)},
-				{Name: "team", DirentType: deTy2Ty(libkbfs.Dir)},
+			rawPath := stdpath.Clean(arg.Path.Kbfs())
+			switch {
+			case rawPath == "/":
+				res = []keybase1.Dirent{
+					{Name: "private", DirentType: deTy2Ty(libkbfs.Dir)},
+					{Name: "public", DirentType: deTy2Ty(libkbfs.Dir)},
+					{Name: "team", DirentType: deTy2Ty(libkbfs.Dir)},
+				}
+			case rawPath == `/public`:
+				res, err = k.favoriteList(ctx, arg.Path, tlf.Public)
+			case rawPath == `/private`:
+				res, err = k.favoriteList(ctx, arg.Path, tlf.Private)
+			case rawPath == `/team`:
+				res, err = k.favoriteList(ctx, arg.Path, tlf.SingleTeam)
+			default:
+				fs, finalElem, err := k.getFS(ctx, arg.Path)
+				switch err.(type) {
+				case nil:
+				case libfs.TlfDoesNotExist:
+					// TLF doesn't exist yet; just return an empty result.
+					k.setResult(arg.OpID, keybase1.SimpleFSListResult{})
+					return nil
+				default:
+					return err
+				}
+
+				// With listing, we don't know the totals ahead of time,
+				// so just start with a 0 total.
+				k.setProgressTotals(arg.OpID, 0, 0)
+				fi, err := fs.Stat(finalElem)
+				if err != nil {
+					return err
+				}
+				var fis []os.FileInfo
+				if fi.IsDir() {
+					fis, err = fs.ReadDir(finalElem)
+				} else {
+					fis = append(fis, fi)
+				}
+				for _, fi := range fis {
+					var d keybase1.Dirent
+					setStat(&d, fi)
+					d.Name = fi.Name()
+					res = append(res, d)
+				}
+				k.updateReadProgress(arg.OpID, 0, int64(len(fis)))
 			}
-		case rawPath == `/public`:
-			res, err = k.favoriteList(ctx, arg.Path, tlf.Public)
-		case rawPath == `/private`:
-			res, err = k.favoriteList(ctx, arg.Path, tlf.Private)
-		case rawPath == `/team`:
-			res, err = k.favoriteList(ctx, arg.Path, tlf.SingleTeam)
-		default:
+			k.setResult(arg.OpID, keybase1.SimpleFSListResult{Entries: res})
+			return nil
+		})
+}
+
+// SimpleFSListRecursive - Begin recursive list of items in directory at path
+func (k *SimpleFS) SimpleFSListRecursive(ctx context.Context, arg keybase1.SimpleFSListRecursiveArg) error {
+	return k.startAsync(ctx, arg.OpID, keybase1.AsyncOps_LIST_RECURSIVE,
+		keybase1.NewOpDescriptionWithListRecursive(
+			keybase1.ListArgs{
+				OpID: arg.OpID, Path: arg.Path,
+			}),
+		func(ctx context.Context) (err error) {
+			// A stack of paths to process - ordering does not matter.
+			// Here we don't walk symlinks, so no loops possible.
+			var paths []string
+
 			fs, finalElem, err := k.getFS(ctx, arg.Path)
 			switch err.(type) {
 			case nil:
@@ -326,88 +459,48 @@ func (k *SimpleFS) SimpleFSList(ctx context.Context, arg keybase1.SimpleFSListAr
 				return err
 			}
 
+			// With listing, we don't know the totals ahead of time,
+			// so just start with a 0 total.
+			k.setProgressTotals(arg.OpID, 0, 0)
 			fi, err := fs.Stat(finalElem)
 			if err != nil {
 				return err
 			}
-			var fis []os.FileInfo
-			if fi.IsDir() {
-				fis, err = fs.ReadDir(finalElem)
-			} else {
-				fis = append(fis, fi)
-			}
-			for _, fi := range fis {
+			var des []keybase1.Dirent
+			if !fi.IsDir() {
 				var d keybase1.Dirent
 				setStat(&d, fi)
 				d.Name = fi.Name()
-				res = append(res, d)
+				des = append(des, d)
+				// Leave paths empty so we can skip the loop below.
+			} else {
+				paths = append(paths, finalElem)
 			}
-		}
-		k.setResult(arg.OpID, keybase1.SimpleFSListResult{Entries: res})
-		return nil
-	})
-}
 
-// SimpleFSListRecursive - Begin recursive list of items in directory at path
-func (k *SimpleFS) SimpleFSListRecursive(ctx context.Context, arg keybase1.SimpleFSListRecursiveArg) error {
-	return k.startAsync(ctx, arg.OpID, keybase1.NewOpDescriptionWithListRecursive(
-		keybase1.ListArgs{
-			OpID: arg.OpID, Path: arg.Path,
-		}), func(ctx context.Context) (err error) {
+			for len(paths) > 0 {
+				// Take last element and shorten.
+				path := paths[len(paths)-1]
+				paths = paths[:len(paths)-1]
 
-		// A stack of paths to process - ordering does not matter.
-		// Here we don't walk symlinks, so no loops possible.
-		var paths []string
-
-		fs, finalElem, err := k.getFS(ctx, arg.Path)
-		switch err.(type) {
-		case nil:
-		case libfs.TlfDoesNotExist:
-			// TLF doesn't exist yet; just return an empty result.
-			k.setResult(arg.OpID, keybase1.SimpleFSListResult{})
-			return nil
-		default:
-			return err
-		}
-
-		fi, err := fs.Stat(finalElem)
-		if err != nil {
-			return err
-		}
-		var des []keybase1.Dirent
-		if !fi.IsDir() {
-			var d keybase1.Dirent
-			setStat(&d, fi)
-			d.Name = fi.Name()
-			des = append(des, d)
-			// Leave paths empty so we can skip the loop below.
-		} else {
-			paths = append(paths, finalElem)
-		}
-
-		for len(paths) > 0 {
-			// Take last element and shorten.
-			path := paths[len(paths)-1]
-			paths = paths[:len(paths)-1]
-
-			fis, err := fs.ReadDir(path)
-			if err != nil {
-				return err
-			}
-			for _, fi := range fis {
-				var de keybase1.Dirent
-				setStat(&de, fi)
-				de.Name = fi.Name()
-				des = append(des, de)
-				if fi.IsDir() {
-					paths = append(paths, stdpath.Join(path, fi.Name()))
+				fis, err := fs.ReadDir(path)
+				if err != nil {
+					return err
 				}
+				for _, fi := range fis {
+					var de keybase1.Dirent
+					setStat(&de, fi)
+					de.Name = fi.Name()
+					des = append(des, de)
+					if fi.IsDir() {
+						paths = append(paths, stdpath.Join(path, fi.Name()))
+					}
+				}
+				k.updateReadProgress(arg.OpID, 0, int64(len(fis)))
 			}
-		}
-		k.setResult(arg.OpID, keybase1.SimpleFSListResult{Entries: des})
+			k.setResult(arg.OpID, keybase1.SimpleFSListResult{Entries: des})
 
-		return nil
-	})
+			return nil
+		})
 }
 
 // SimpleFSReadList - Get list of Paths in progress. Can indicate status of pending
@@ -430,6 +523,37 @@ func (k *SimpleFS) SimpleFSReadList(_ context.Context, opid keybase1.OpID) (keyb
 	return lr, nil
 }
 
+func recursiveByteAndFileCount(fs billy.Filesystem) (
+	bytes, files int64, err error) {
+	fileInfos, err := fs.ReadDir("/")
+	if err != nil {
+		return 0, 0, err
+	}
+
+	for _, fi := range fileInfos {
+		if fi.IsDir() {
+			if fi.Name() == "." {
+				continue
+			}
+			chrootFS, err := fs.Chroot(fi.Name())
+			if err != nil {
+				return 0, 0, err
+			}
+			var chrootBytes int64
+			chrootBytes, chrootFiles, err := recursiveByteAndFileCount(chrootFS)
+			if err != nil {
+				return 0, 0, err
+			}
+			bytes += chrootBytes
+			files += chrootFiles
+		} else {
+			bytes += fi.Size()
+		}
+		files++
+	}
+	return bytes, files, nil
+}
+
 func copyWithCancellation(ctx context.Context, dst io.Writer, src io.Reader) error {
 	for {
 		select {
@@ -447,13 +571,57 @@ func copyWithCancellation(ctx context.Context, dst io.Writer, src io.Reader) err
 	}
 }
 
+type progressReader struct {
+	k     *SimpleFS
+	opID  keybase1.OpID
+	input io.Reader
+}
+
+var _ io.Reader = (*progressReader)(nil)
+
+func (pr *progressReader) Read(p []byte) (n int, err error) {
+	n, err = pr.input.Read(p)
+	if err != nil {
+		return n, err
+	}
+
+	pr.k.updateReadProgress(pr.opID, int64(n), 0)
+	return n, nil
+}
+
+type progressWriter struct {
+	k      *SimpleFS
+	opID   keybase1.OpID
+	output io.Writer
+}
+
+var _ io.Writer = (*progressWriter)(nil)
+
+func (pw *progressWriter) Write(p []byte) (n int, err error) {
+	n, err = pw.output.Write(p)
+	if err != nil {
+		return n, err
+	}
+
+	pw.k.updateWriteProgress(pw.opID, int64(n), 0)
+	return n, nil
+}
+
 func (k *SimpleFS) doCopyFromSource(
-	ctx context.Context, srcFS billy.Filesystem, srcFI os.FileInfo,
-	destPath keybase1.Path) error {
+	ctx context.Context, opID keybase1.OpID,
+	srcFS billy.Filesystem, srcFI os.FileInfo,
+	destPath keybase1.Path) (err error) {
 	dstFS, finalDstElem, err := k.getFS(ctx, destPath)
 	if err != nil {
 		return err
 	}
+
+	defer func() {
+		if err == nil {
+			k.updateReadProgress(opID, 0, 1)
+			k.updateWriteProgress(opID, 0, 1)
+		}
+	}()
 
 	if srcFI.IsDir() {
 		return dstFS.MkdirAll(finalDstElem, 0755)
@@ -472,10 +640,16 @@ func (k *SimpleFS) doCopyFromSource(
 	}
 	defer dst.Close()
 
-	return copyWithCancellation(ctx, dst, src)
+	return copyWithCancellation(
+		ctx,
+		&progressWriter{k, opID, dst},
+		&progressReader{k, opID, src},
+	)
 }
 
-func (k *SimpleFS) doCopy(ctx context.Context, srcPath, destPath keybase1.Path) error {
+func (k *SimpleFS) doCopy(
+	ctx context.Context, opID keybase1.OpID,
+	srcPath, destPath keybase1.Path) (err error) {
 	// Note this is also used by move, so if this changes update SimpleFSMove
 	// code also.
 	srcFS, finalSrcElem, err := k.getFS(ctx, srcPath)
@@ -486,15 +660,22 @@ func (k *SimpleFS) doCopy(ctx context.Context, srcPath, destPath keybase1.Path) 
 	if err != nil {
 		return err
 	}
-	return k.doCopyFromSource(ctx, srcFS, srcFI, destPath)
+	if srcFI.IsDir() {
+		// The byte count for making a single directory is meaningless.
+		k.setProgressTotals(opID, 0, 1)
+	} else {
+		k.setProgressTotals(opID, srcFI.Size(), 1)
+	}
+	return k.doCopyFromSource(ctx, opID, srcFS, srcFI, destPath)
 }
 
 // SimpleFSCopy - Begin copy of file or directory
 func (k *SimpleFS) SimpleFSCopy(ctx context.Context, arg keybase1.SimpleFSCopyArg) error {
-	return k.startAsync(ctx, arg.OpID, keybase1.NewOpDescriptionWithCopy(
-		keybase1.CopyArgs{OpID: arg.OpID, Src: arg.Src, Dest: arg.Dest}),
+	return k.startAsync(ctx, arg.OpID, keybase1.AsyncOps_COPY,
+		keybase1.NewOpDescriptionWithCopy(
+			keybase1.CopyArgs{OpID: arg.OpID, Src: arg.Src, Dest: arg.Dest}),
 		func(ctx context.Context) (err error) {
-			return k.doCopy(ctx, arg.Src, arg.Dest)
+			return k.doCopy(ctx, arg.OpID, arg.Src, arg.Dest)
 		})
 }
 
@@ -516,9 +697,34 @@ func pathAppend(p keybase1.Path, leaf string) keybase1.Path {
 // SimpleFSCopyRecursive - Begin recursive copy of directory
 func (k *SimpleFS) SimpleFSCopyRecursive(ctx context.Context,
 	arg keybase1.SimpleFSCopyRecursiveArg) error {
-	return k.startAsync(ctx, arg.OpID, keybase1.NewOpDescriptionWithCopy(
-		keybase1.CopyArgs{OpID: arg.OpID, Src: arg.Src, Dest: arg.Dest}),
+	return k.startAsync(ctx, arg.OpID, keybase1.AsyncOps_COPY,
+		keybase1.NewOpDescriptionWithCopy(
+			keybase1.CopyArgs{OpID: arg.OpID, Src: arg.Src, Dest: arg.Dest}),
 		func(ctx context.Context) (err error) {
+			// Get the full byte/file count.
+			srcFS, finalSrcElem, err := k.getFS(ctx, arg.Src)
+			if err != nil {
+				return err
+			}
+			srcFI, err := srcFS.Stat(finalSrcElem)
+			if err != nil {
+				return err
+			}
+			if srcFI.IsDir() {
+				chrootFS, err := srcFS.Chroot(srcFI.Name())
+				if err != nil {
+					return err
+				}
+				bytes, files, err := recursiveByteAndFileCount(chrootFS)
+				if err != nil {
+					return err
+				}
+				// Add one to files to account for the src dir itself.
+				k.setProgressTotals(arg.OpID, bytes, files+1)
+			} else {
+				// No need for recursive.
+				return k.doCopy(ctx, arg.OpID, arg.Src, arg.Dest)
+			}
 
 			var paths = []pathPair{{src: arg.Src, dest: arg.Dest}}
 			for len(paths) > 0 {
@@ -527,6 +733,7 @@ func (k *SimpleFS) SimpleFSCopyRecursive(ctx context.Context,
 					return ctx.Err()
 				default:
 				}
+
 				// wrap in a function for defers.
 				err = func() error {
 					path := paths[len(paths)-1]
@@ -540,7 +747,8 @@ func (k *SimpleFS) SimpleFSCopyRecursive(ctx context.Context,
 					if err != nil {
 						return err
 					}
-					err = k.doCopyFromSource(ctx, srcFS, srcFI, path.dest)
+					err = k.doCopyFromSource(
+						ctx, arg.OpID, srcFS, srcFI, path.dest)
 					if err != nil {
 						return err
 					}
@@ -576,28 +784,21 @@ func (k *SimpleFS) doRemove(ctx context.Context, path keybase1.Path) error {
 
 // SimpleFSMove - Begin move of file or directory, from/to KBFS only
 func (k *SimpleFS) SimpleFSMove(ctx context.Context, arg keybase1.SimpleFSMoveArg) error {
-	return k.startAsync(ctx, arg.OpID, keybase1.NewOpDescriptionWithMove(
-		keybase1.MoveArgs{
-			OpID: arg.OpID, Src: arg.Src, Dest: arg.Dest,
-		}), func(ctx context.Context) (err error) {
-
-		err = k.doCopy(ctx, arg.Src, arg.Dest)
-		if err != nil {
-			return err
-		}
-		pt, err := arg.Src.PathType()
-		if err != nil {
-			// should really not happen...
-			return err
-		}
-		switch pt {
-		case keybase1.PathType_KBFS:
-			err = k.doRemove(ctx, arg.Src)
-		case keybase1.PathType_LOCAL:
-			err = os.Remove(arg.Src.Local())
-		}
-		return err
-	})
+	return k.startAsync(ctx, arg.OpID, keybase1.AsyncOps_MOVE,
+		keybase1.NewOpDescriptionWithMove(
+			keybase1.MoveArgs{
+				OpID: arg.OpID, Src: arg.Src, Dest: arg.Dest,
+			}),
+		func(ctx context.Context) (err error) {
+			// TODO: Make this a proper rename within a single TLF.
+			// (See `SimpleFSRename` below.)  Also even copy+deletes
+			// should be resursive I think.
+			err = k.doCopy(ctx, arg.OpID, arg.Src, arg.Dest)
+			if err != nil {
+				return err
+			}
+			return k.doRemove(ctx, arg.Src)
+		})
 }
 
 func (k *SimpleFS) startSyncOp(ctx context.Context, name string, logarg interface{}) (context.Context, error) {
@@ -755,19 +956,28 @@ func (k *SimpleFS) SimpleFSSetStat(ctx context.Context, arg keybase1.SimpleFSSet
 	return changeFS.Chmod(finalElem, mode)
 }
 
-func (k *SimpleFS) startReadWriteOp(ctx context.Context, opid keybase1.OpID, desc keybase1.OpDescription) (context.Context, error) {
+func (k *SimpleFS) startReadWriteOp(
+	ctx context.Context, opid keybase1.OpID, opType keybase1.AsyncOps,
+	desc keybase1.OpDescription) (context.Context, error) {
 	ctx, err := k.startSyncOp(ctx, desc.AsyncOp__.String(), desc)
 	if err != nil {
 		return nil, err
 	}
-	k.lock.RLock()
-	k.inProgress[opid] = &inprogress{desc, func() {}, make(chan error, 1)}
-	k.lock.RUnlock()
+	k.lock.Lock()
+	k.inProgress[opid] = &inprogress{
+		desc,
+		func() {},
+		make(chan error, 1),
+		keybase1.OpProgress{OpType: opType},
+	}
+	k.lock.Unlock()
 	return ctx, err
 }
 
 func (k *SimpleFS) doneReadWriteOp(ctx context.Context, opID keybase1.OpID, err error) {
 	k.lock.Lock()
+	// Read/write ops never set the end estimate since the progress is
+	// just deleted immediately.
 	delete(k.inProgress, opID)
 	k.lock.Unlock()
 	k.log.CDebugf(ctx, "doneReadWriteOp, status=%v", err)
@@ -796,10 +1006,16 @@ func (k *SimpleFS) SimpleFSRead(ctx context.Context,
 			Offset: arg.Offset,
 			Size:   arg.Size,
 		})
-	ctx, err = k.startReadWriteOp(ctx, arg.OpID, opDesc)
+	ctx, err = k.startReadWriteOp(ctx, arg.OpID, keybase1.AsyncOps_READ, opDesc)
 	if err != nil {
 		return keybase1.FileContent{}, err
 	}
+	k.setProgressTotals(arg.OpID, int64(arg.Size), 1)
+	defer func() {
+		if err == nil {
+			k.updateReadProgress(arg.OpID, 0, 1)
+		}
+	}()
 
 	defer func() { k.doneReadWriteOp(ctx, arg.OpID, err) }()
 
@@ -813,7 +1029,9 @@ func (k *SimpleFS) SimpleFSRead(ctx context.Context,
 	}
 
 	bs := make([]byte, arg.Size)
-	n, err := h.file.Read(bs)
+	// TODO: make this a proper buffered read so we can get finer progress?
+	reader := &progressReader{k, arg.OpID, h.file}
+	n, err := reader.Read(bs)
 	if err != nil && err != io.EOF {
 		return keybase1.FileContent{}, err
 	}
@@ -839,11 +1057,19 @@ func (k *SimpleFS) SimpleFSWrite(ctx context.Context, arg keybase1.SimpleFSWrite
 			OpID: arg.OpID, Path: h.path, Offset: arg.Offset,
 		})
 
-	ctx, err := k.startReadWriteOp(ctx, arg.OpID, opDesc)
+	ctx, err := k.startReadWriteOp(
+		ctx, arg.OpID, keybase1.AsyncOps_WRITE, opDesc)
 	if err != nil {
 		return err
 	}
 	defer func() { k.doneReadWriteOp(ctx, arg.OpID, err) }()
+
+	k.setProgressTotals(arg.OpID, int64(len(arg.Content)), 1)
+	defer func() {
+		if err == nil {
+			k.updateWriteProgress(arg.OpID, 0, 1)
+		}
+	}()
 
 	k.log.CDebugf(ctx, "Starting write for OpID=%X, offset=%d, size=%d",
 		arg.OpID, arg.Offset, len(arg.Content))
@@ -853,19 +1079,22 @@ func (k *SimpleFS) SimpleFSWrite(ctx context.Context, arg keybase1.SimpleFSWrite
 		return err
 	}
 
-	_, err = h.file.Write(arg.Content)
+	writer := &progressWriter{k, arg.OpID, h.file}
+	_, err = writer.Write(arg.Content)
 	return err
 }
 
 // SimpleFSRemove - Remove file or directory from filesystem
 func (k *SimpleFS) SimpleFSRemove(ctx context.Context,
 	arg keybase1.SimpleFSRemoveArg) error {
-	return k.startAsync(ctx, arg.OpID, keybase1.NewOpDescriptionWithRemove(
-		keybase1.RemoveArgs{
-			OpID: arg.OpID, Path: arg.Path,
-		}), func(ctx context.Context) (err error) {
-		return k.doRemove(ctx, arg.Path)
-	})
+	return k.startAsync(ctx, arg.OpID, keybase1.AsyncOps_REMOVE,
+		keybase1.NewOpDescriptionWithRemove(
+			keybase1.RemoveArgs{
+				OpID: arg.OpID, Path: arg.Path,
+			}),
+		func(ctx context.Context) (err error) {
+			return k.doRemove(ctx, arg.Path)
+		})
 }
 
 func wrapStat(fi os.FileInfo, err error) (keybase1.Dirent, error) {
@@ -950,15 +1179,42 @@ func (k *SimpleFS) SimpleFSCancel(_ context.Context, opid keybase1.OpID) error {
 // SimpleFSCheck - Check progress of pending operation
 // Progress variable is still TBD.
 // Return errNoResult if no operation found.
-func (k *SimpleFS) SimpleFSCheck(_ context.Context, opid keybase1.OpID) (keybase1.Progress, error) {
+func (k *SimpleFS) SimpleFSCheck(_ context.Context, opid keybase1.OpID) (keybase1.OpProgress, error) {
 	k.lock.RLock()
 	defer k.lock.RUnlock()
-	if _, ok := k.inProgress[opid]; ok {
-		return 0, nil
+	if p, ok := k.inProgress[opid]; ok {
+		// For now, estimate the ending time purely on the read progress.
+		var n, d int64
+		progress := p.progress
+		if progress.BytesTotal > 0 {
+			n = progress.BytesRead
+			d = progress.BytesTotal
+		} else if p.progress.FilesTotal > 0 {
+			n = progress.FilesRead
+			d = progress.FilesTotal
+		}
+		if n > 0 && d > 0 && !progress.Start.IsZero() &&
+			progress.EndEstimate.IsZero() {
+			// Crudely estimate that the total time for the op is the
+			// time spent so far, divided by the fraction of the
+			// reading that's been done.
+			start := keybase1.FromTime(progress.Start)
+			timeRunning := k.config.Clock().Now().Sub(start)
+			fracDone := float64(n) / float64(d)
+			totalTimeEstimate := time.Duration(float64(timeRunning) / fracDone)
+			progress.EndEstimate =
+				keybase1.ToTime(start.Add(totalTimeEstimate))
+			k.log.CDebugf(nil, "Start=%s, n=%d, d=%d, fracDone=%f, End=%s",
+				start, n, d, fracDone, start.Add(totalTimeEstimate))
+		}
+
+		return progress, nil
 	} else if _, ok := k.handles[opid]; ok {
-		return 0, nil
+		// Return an empty progress and nil error if there's no async
+		// operation pending, but there is still an open handle.
+		return keybase1.OpProgress{}, nil
 	}
-	return 0, errNoResult
+	return keybase1.OpProgress{}, errNoResult
 }
 
 // SimpleFSGetOps - Get all the outstanding operations

@@ -13,6 +13,7 @@ import (
 	"sort"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -21,6 +22,7 @@ import (
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	billy "gopkg.in/src-d/go-billy.v4"
 )
 
 func closeSimpleFS(ctx context.Context, t *testing.T, fs *SimpleFS) {
@@ -30,7 +32,11 @@ func closeSimpleFS(ctx context.Context, t *testing.T, fs *SimpleFS) {
 	require.NoError(t, err)
 	remoteFS, _, err := fs.getFS(ctx, keybase1.NewPathWithKbfs("/private/jdoe"))
 	require.NoError(t, err)
-	err = remoteFS.(*libfs.FS).SyncAll()
+	if fs, ok := remoteFS.(*libfs.FS); ok {
+		err = fs.SyncAll()
+	} else if fs, ok := remoteFS.(*fsBlocker); ok {
+		err = fs.SyncAll()
+	}
 	require.NoError(t, err)
 	err = fs.config.Shutdown(ctx)
 	require.NoError(t, err)
@@ -422,4 +428,184 @@ func readRemoteFile(ctx context.Context, t *testing.T, sfs *SimpleFS, path keyba
 	require.Len(t, dataPastEnd.Data, 0)
 
 	return data.Data
+}
+
+type fsBlocker struct {
+	*libfs.FS
+	signalCh  chan<- struct{}
+	unblockCh <-chan struct{}
+}
+
+var _ billy.Filesystem = (*fsBlocker)(nil)
+
+func (fs *fsBlocker) OpenFile(filename string, flag int, perm os.FileMode) (
+	f billy.File, err error) {
+	fs.signalCh <- struct{}{}
+	<-fs.unblockCh
+	return fs.FS.OpenFile(filename, flag, perm)
+}
+
+func (fs *fsBlocker) Create(filename string) (billy.File, error) {
+	fs.signalCh <- struct{}{}
+	<-fs.unblockCh
+	return fs.FS.Create(filename)
+}
+
+func (fs *fsBlocker) Open(filename string) (billy.File, error) {
+	fs.signalCh <- struct{}{}
+	<-fs.unblockCh
+	return fs.FS.Open(filename)
+}
+
+func (fs *fsBlocker) MkdirAll(filename string, perm os.FileMode) (err error) {
+	fs.signalCh <- struct{}{}
+	<-fs.unblockCh
+	return fs.FS.MkdirAll(filename, perm)
+}
+
+func (fs *fsBlocker) ReadDir(p string) (fis []os.FileInfo, err error) {
+	fs.signalCh <- struct{}{}
+	<-fs.unblockCh
+	return fs.FS.ReadDir(p)
+}
+
+type fsBlockerMaker struct {
+	signalCh  chan<- struct{}
+	unblockCh <-chan struct{}
+}
+
+func (maker fsBlockerMaker) makeNewBlocker(
+	ctx context.Context, config libkbfs.Config,
+	tlfHandle *libkbfs.TlfHandle, subdir string) (billy.Filesystem, error) {
+	fs, err := libfs.NewFS(
+		ctx, config, tlfHandle, subdir, "", keybase1.MDPriorityNormal)
+	if err != nil {
+		return nil, err
+	}
+	return &fsBlocker{fs, maker.signalCh, maker.unblockCh}, nil
+}
+
+func TestCopyProgress(t *testing.T) {
+	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
+	clock := &libkbfs.TestClock{}
+	start := time.Now()
+	clock.Set(start)
+	config.SetClock(clock)
+
+	sfs := newSimpleFS(config)
+	defer closeSimpleFS(ctx, t, sfs)
+
+	waitCh := make(chan struct{})
+	unblockCh := make(chan struct{})
+	maker := fsBlockerMaker{waitCh, unblockCh}
+	sfs.newFS = maker.makeNewBlocker
+
+	// make a temp local dest directory + files we will clean up later
+	tempdir, err := ioutil.TempDir("", "simpleFstest")
+	require.NoError(t, err)
+	defer os.RemoveAll(tempdir)
+
+	// Make local starting directory.
+	err = os.Mkdir(filepath.Join(tempdir, "testdir"), 0700)
+	require.NoError(t, err)
+	err = ioutil.WriteFile(
+		filepath.Join(tempdir, "testdir", "test1.txt"), []byte("foo"), 0600)
+	require.NoError(t, err)
+	err = ioutil.WriteFile(
+		filepath.Join(tempdir, "testdir", "test2.txt"), []byte("bar"), 0600)
+	require.NoError(t, err)
+	path1 := keybase1.NewPathWithLocal(
+		filepath.ToSlash(filepath.Join(tempdir, "testdir")))
+	path2 := keybase1.NewPathWithKbfs(`/private/jdoe/testdir`)
+
+	opid, err := sfs.SimpleFSMakeOpid(ctx)
+	require.NoError(t, err)
+
+	// Copy it into KBFS.
+	err = sfs.SimpleFSCopyRecursive(ctx, keybase1.SimpleFSCopyRecursiveArg{
+		OpID: opid,
+		Src:  path1,
+		Dest: path2,
+	})
+	require.NoError(t, err)
+	checkPendingOp(
+		ctx, t, sfs, opid, keybase1.AsyncOps_COPY, path1, path2, true)
+
+	t.Log("Wait for the first mkdir")
+	select {
+	case <-waitCh:
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
+
+	// Check the progress -- there shouldn't be any yet.
+	progress, err := sfs.SimpleFSCheck(ctx, opid)
+	require.NoError(t, err)
+	expectedProgress := keybase1.OpProgress{
+		Start:      keybase1.ToTime(start),
+		OpType:     keybase1.AsyncOps_COPY,
+		BytesTotal: 6,
+		FilesTotal: 3,
+	}
+	require.Equal(t, expectedProgress, progress)
+
+	t.Log("Unblock the mkdir")
+	unblockCh <- struct{}{}
+
+	t.Log("Wait for the first file")
+	select {
+	case <-waitCh:
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
+
+	clock.Add(1 * time.Minute)
+	expectedProgress.FilesRead = 1
+	expectedProgress.FilesWritten = 1
+	// We read one directory but 0 bytes, so we still have no expected
+	// end time.
+	progress, err = sfs.SimpleFSCheck(ctx, opid)
+	require.NoError(t, err)
+	require.Equal(t, expectedProgress, progress)
+
+	t.Log("Unblock the first file")
+	unblockCh <- struct{}{}
+
+	t.Log("Wait for the second file")
+	select {
+	case <-waitCh:
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
+
+	clock.Add(1 * time.Minute)
+	expectedProgress.FilesRead = 2
+	expectedProgress.FilesWritten = 2
+	expectedProgress.BytesRead = 3
+	expectedProgress.BytesWritten = 3
+	progress, err = sfs.SimpleFSCheck(ctx, opid)
+	require.NoError(t, err)
+
+	// We read one file and two minutes have passed, so the estimated
+	// time should be two more minutes from now.  But use the float
+	// calculation adds some uncertainty, so check it within a small
+	// error range, and then set it to the received value for the
+	// exact check.
+	endEstimate := keybase1.ToTime(start.Add(4 * time.Minute))
+	require.InEpsilon(
+		t, float64(endEstimate), float64(progress.EndEstimate),
+		float64(5*time.Nanosecond))
+	expectedProgress.EndEstimate = progress.EndEstimate
+
+	require.Equal(t, expectedProgress, progress)
+
+	t.Log("Unblock the second file")
+	unblockCh <- struct{}{}
+
+	err = sfs.SimpleFSWait(ctx, opid)
+	require.NoError(t, err)
 }
