@@ -1859,6 +1859,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.selectConversation,
       Chat2Gen.selectConversationDueToPush,
       Chat2Gen.markInitiallyLoadedThreadAsRead,
+      AppGen.changedFocus,
       a => typeof a.type === 'string' && a.type.startsWith('routeTree:'),
     ],
     markThreadAsRead
