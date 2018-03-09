@@ -77,16 +77,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onDelete: yourMessage ? () => dispatchProps._onDelete(message) : null,
     onDeleteMessageHistory: stateProps._canDeleteHistory
       ? () => dispatchProps._onDeleteMessageHistory(message)
-      : undefined,
-    onDownload: !isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : undefined,
+      : null,
+    onDownload: !isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : null,
     onHidden: () => ownProps.onClosePopup(),
     onSaveAttachment:
-      isMobile && message.attachmentType === 'image'
-        ? () => dispatchProps._onSaveAttachment(message)
-        : undefined,
-    onShareAttachment: isIOS ? () => dispatchProps._onShareAttachment(message) : undefined,
-    onShowInFinder:
-      !isMobile && message.downloadPath ? () => dispatchProps._onShowInFinder(message) : undefined,
+      isMobile && message.attachmentType === 'image' ? () => dispatchProps._onSaveAttachment(message) : null,
+    onShareAttachment: isIOS ? () => dispatchProps._onShareAttachment(message) : null,
+    onShowInFinder: !isMobile && message.downloadPath ? () => dispatchProps._onShowInFinder(message) : null,
     yourMessage,
   }
 }

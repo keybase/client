@@ -12,7 +12,6 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => ({
-  _newTeams: state.entities.getIn(['teams', 'newTeams'], I.Set()),
   _newTeamRequests: state.entities.getIn(['teams', 'newTeamRequests'], I.List()),
   _teamNameToIsOpen: state.entities.getIn(['teams', 'teamNameToIsOpen'], I.Map()),
   members: state.entities.getIn(['teams', 'teammembercounts', teamname], 0),
@@ -36,7 +35,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     membercount: stateProps.members,
     isNew: false,
     isOpen: stateProps._teamNameToIsOpen.toObject()[ownProps.teamname],
-    newTeams: stateProps._newTeams.toArray(),
     newRequests: stateProps._newTeamRequests.toArray().filter(team => team === ownProps.teamname).length,
     // $FlowIssue
     onOpenFolder: youAreMember ? () => dispatchProps._onOpenFolder(ownProps.teamname) : null,
@@ -47,5 +45,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   }
 }
 
-const ConnectedTeamRow = connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamRow)
-export default ConnectedTeamRow
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamRow)

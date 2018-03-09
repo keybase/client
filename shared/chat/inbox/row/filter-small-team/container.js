@@ -11,6 +11,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const conversationIDKey = ownProps.conversationIDKey
 
   return {
+    _hasUnread: Constants.getHasUnread(state, conversationIDKey),
     _meta: Constants.getMeta(state, conversationIDKey),
     _username: state.config.username || '',
     isSelected: Constants.getSelectedConversation(state) === conversationIDKey,
@@ -24,7 +25,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}) => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const isSelected = stateProps.isSelected
-  const hasUnread = stateProps.hasUnread
+  const hasUnread = stateProps._hasUnread
   const styles = Constants.getRowStyles(stateProps._meta, isSelected, hasUnread)
   const participantNeedToRekey = stateProps._meta.rekeyers.size > 0
   const youNeedToRekey = !participantNeedToRekey && stateProps._meta.rekeyers.has(stateProps._username)

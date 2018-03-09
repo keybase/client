@@ -19,7 +19,9 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({
-  onOpenOlderConversation: () => dispatchProps._onOpenOlderConversation(stateProps.prevConversationIDKey),
+  onOpenOlderConversation: () =>
+    stateProps.prevConversationIDKey &&
+    dispatchProps._onOpenOlderConversation(stateProps.prevConversationIDKey),
   username: stateProps.username,
 })
 
