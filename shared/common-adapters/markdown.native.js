@@ -71,6 +71,7 @@ function messageCreateComponent(style, allowFontScaling) {
           </Box>
         )
       case 'link':
+      case 'phone':
         return (
           <Text
             type="BodyPrimaryLink"

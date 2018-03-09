@@ -125,6 +125,22 @@ describe('Markdown parser', () => {
   it('parses native zwj emoji correctly', () => {
     check('👩‍❤️‍💋‍👩 👩‍👩‍👧‍👧!')
   })
+  it('parses phone numbers correctly', () => {
+    // Should succeed
+    check('(123) 456-7890')
+    check('(123) 456 7890')
+    check('(123)456-7890')
+    check('(123)456 7890')
+    check('123-456-7890')
+    check('123-456 7890')
+    check('123 456-7890')
+    check('123 456 7890')
+    // Should fail
+    check('123 456 78901')
+    check('(123) 456 78901')
+    check('(123) 456 7890a')
+    check('12345678901')
+  })
   it('parses quote blocks correctly', () => {
     check(`
 > this is quoted
