@@ -85,9 +85,12 @@ class Conversation extends React.PureComponent<Props, State> {
       for (let path of paths) {
         // Check if any file is a directory and bail out if not
         try {
-          // We do this synchronously,
+          // We do this synchronously
+          // in testing, this is instantaneous
+          // even when dragging many files
           const stat = fs.lstatSync(path)
           if (stat.isDirectory()) {
+            // TODO show a red error banner on failure: https://zpl.io/2jlkMLm
             this.setState({showDropOverlay: false})
             return
           }
