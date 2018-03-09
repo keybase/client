@@ -11,8 +11,8 @@ const statusToIcon: {[key: IconStatus]: IconType} = {
   error: 'icon-message-status-error-24',
 }
 
-const encryptingTimeout = 600
-const sentTimeout = 300
+const encryptingTimeout = 2000
+const sentTimeout = 600
 
 const shownEncryptingSet = new Set()
 
@@ -75,11 +75,22 @@ class SendIndicator extends React.Component<Props, State> {
     }
   }
 
+  _restart() {
+    if (shownEncryptingSet.has(this.props.id)) {
+      shownEncryptingSet.delete(this.props.id)
+    }
+    this._setVisible(true)
+    this._setStatus('sending')
+  }
+
   componentWillReceiveProps(nextProps: Props) {
     if (nextProps.failed && !this.props.failed) {
       this._onFailed()
     } else if (nextProps.sent && !this.props.sent) {
       this._onSent()
+    }
+    if (!nextProps.failed && this.props.failed) {
+      this._restart()
     }
   }
 

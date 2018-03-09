@@ -85,7 +85,7 @@ const mergeProps = (stateProps, dispatchProps) => {
   const includeHeader = !previous || !continuingTextBlock || !!timestamp
   let failureDescription = null
   if ((message.type === 'text' || message.type === 'attachment') && message.errorReason) {
-    failureDescription = stateProps.isYou ? `Failed to send${message.errorReason}` : message.errorReason
+    failureDescription = stateProps.isYou ? `Failed to send: ${message.errorReason}` : message.errorReason
   }
 
   return {
