@@ -12,28 +12,29 @@ type RowProps = {
   itemStyles: Types.ItemStyles,
   onOpen: () => void,
   openInFileUI: () => void,
+  onAction: () => void,
 }
 
-export const Row = ({name, type, itemStyles, onOpen, openInFileUI}: RowProps) => (
+export const Row = ({name, type, itemStyles, onOpen, openInFileUI, onAction}: RowProps) => (
   <Box>
-    <ClickableBox onClick={onOpen} style={stylesCommonRow}>
+    <Box style={stylesCommonRow}>
       <Box style={stylesRowContainer}>
-        <Box style={stylesRowBox}>
+        <ClickableBox onClick={onOpen} style={stylesRowBox}>
           <PathItemIcon spec={itemStyles.iconSpec} />
           <Box style={folderBoxStyle}>
             <Text type={itemStyles.textType} style={rowTextStyles(itemStyles.textColor)}>
               {name}
             </Text>
           </Box>
-        </Box>
-        {!isMobile &&
-          type === 'folder' && (
-            <Box style={stylesRowRightBox}>
-              <Icon type="iconfont-finder" style={rowActionIconStyle} onClick={openInFileUI} />
-            </Box>
-          )}
+        </ClickableBox>
+        {!isMobile && (
+          <Box style={stylesRowRightBox}>
+            <Icon type="iconfont-finder" style={rowActionIconStyle} onClick={openInFileUI} />
+            <Icon type="iconfont-ellipsis" style={rowActionIconStyle} onClick={onAction} />
+          </Box>
+        )}
       </Box>
-    </ClickableBox>
+    </Box>
     <Divider style={stylesRowDivider} />
   </Box>
 )
@@ -67,9 +68,10 @@ const folderBoxStyle = {
 }
 
 const rowActionIconStyle = {
-  color: globalColors.white,
+  color: globalColors.black_40, // TODO: fix hover
   fontSize: 16,
-  hoverColor: globalColors.black_40,
+  marginLeft: globalMargins.small,
+  hoverColor: globalColors.black_60,
 }
 
 const stylesRowDivider = {
