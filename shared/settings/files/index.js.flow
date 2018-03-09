@@ -1,6 +1,8 @@
 // @flow
 import * as React from 'react'
 
-export type Props = {}
+export type Props = {
+  kbfsEnabled: boolean,
+}
 
 declare export default function Files(props: Props): React.Component<Props>
