@@ -26,13 +26,12 @@ const parseLine = (l: string): LogLine => {
   return [ts, matches[2]]
 }
 
-let tagPrefix = 0
 // Uses the native logging mechanism (e.g. Log.i on android)
 class NativeLogger implements Logger {
   _tagPrefix: string
 
-  constructor() {
-    this._tagPrefix = tagPrefix++ + ''
+  constructor(tagPrefix: string) {
+    this._tagPrefix = tagPrefix
   }
 
   log = (...s: Array<any>) => {
