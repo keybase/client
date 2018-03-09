@@ -12,6 +12,7 @@ type TeamChangeSet struct {
 	MembershipChanged bool `codec:"membershipChanged" json:"membershipChanged"`
 	KeyRotated        bool `codec:"keyRotated" json:"keyRotated"`
 	Renamed           bool `codec:"renamed" json:"renamed"`
+	Misc              bool `codec:"misc" json:"misc"`
 }
 
 func (o TeamChangeSet) DeepCopy() TeamChangeSet {
@@ -19,6 +20,7 @@ func (o TeamChangeSet) DeepCopy() TeamChangeSet {
 		MembershipChanged: o.MembershipChanged,
 		KeyRotated:        o.KeyRotated,
 		Renamed:           o.Renamed,
+		Misc:              o.Misc,
 	}
 }
 

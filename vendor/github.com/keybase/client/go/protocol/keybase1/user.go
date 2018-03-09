@@ -348,12 +348,9 @@ type ResetUserArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
-type DeleteUserArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
-}
-
 type MeUserVersionArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
+	SessionID int  `codec:"sessionID" json:"sessionID"`
+	ForcePoll bool `codec:"forcePoll" json:"forcePoll"`
 }
 
 type GetUPAKArg struct {
@@ -394,8 +391,7 @@ type UserInterface interface {
 	ProfileEdit(context.Context, ProfileEditArg) error
 	InterestingPeople(context.Context, int) ([]InterestingPerson, error)
 	ResetUser(context.Context, int) error
-	DeleteUser(context.Context, int) error
-	MeUserVersion(context.Context, int) (UserVersion, error)
+	MeUserVersion(context.Context, MeUserVersionArg) (UserVersion, error)
 	// getUPAK returns a UPAK. Used mainly for debugging.
 	GetUPAK(context.Context, UID) (UPAKVersioned, error)
 }
@@ -692,22 +688,6 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"deleteUser": {
-				MakeArg: func() interface{} {
-					ret := make([]DeleteUserArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]DeleteUserArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]DeleteUserArg)(nil), args)
-						return
-					}
-					err = i.DeleteUser(ctx, (*typedArgs)[0].SessionID)
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
 			"meUserVersion": {
 				MakeArg: func() interface{} {
 					ret := make([]MeUserVersionArg, 1)
@@ -719,7 +699,7 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]MeUserVersionArg)(nil), args)
 						return
 					}
-					ret, err = i.MeUserVersion(ctx, (*typedArgs)[0].SessionID)
+					ret, err = i.MeUserVersion(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -858,14 +838,7 @@ func (c UserClient) ResetUser(ctx context.Context, sessionID int) (err error) {
 	return
 }
 
-func (c UserClient) DeleteUser(ctx context.Context, sessionID int) (err error) {
-	__arg := DeleteUserArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.user.deleteUser", []interface{}{__arg}, nil)
-	return
-}
-
-func (c UserClient) MeUserVersion(ctx context.Context, sessionID int) (res UserVersion, err error) {
-	__arg := MeUserVersionArg{SessionID: sessionID}
+func (c UserClient) MeUserVersion(ctx context.Context, __arg MeUserVersionArg) (res UserVersion, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.user.meUserVersion", []interface{}{__arg}, &res)
 	return
 }

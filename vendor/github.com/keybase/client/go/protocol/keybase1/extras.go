@@ -144,6 +144,53 @@ func (h *HashMeta) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+func SHA512FromString(s string) (ret SHA512, err error) {
+	if s == "null" {
+		return nil, nil
+	}
+	b, err := hex.DecodeString(s)
+	if err != nil {
+		return ret, err
+	}
+	if len(b) != 64 {
+		return nil, fmt.Errorf("Wanted a 64-byte SHA512, but got %d bytes", len(b))
+	}
+	return SHA512(b), nil
+}
+
+func (s SHA512) String() string {
+	return hex.EncodeToString(s)
+}
+
+func (s SHA512) Eq(s2 SHA512) bool {
+	return hmac.Equal(s[:], s2[:])
+}
+
+func (s *SHA512) UnmarshalJSON(b []byte) error {
+	tmp, err := SHA512FromString(Unquote(b))
+	if err != nil {
+		return err
+	}
+	*s = tmp
+	return nil
+}
+
+func (t *ResetType) UnmarshalJSON(b []byte) error {
+	var err error
+	s := strings.TrimSpace(string(b))
+	var ret ResetType
+	switch s {
+	case "\"reset\"", "1":
+		ret = ResetType_RESET
+	case "\"delete\"", "2":
+		ret = ResetType_DELETE
+	default:
+		err = fmt.Errorf("Bad reset type: %s", s)
+	}
+	*t = ret
+	return err
+}
+
 func (l *LeaseID) UnmarshalJSON(b []byte) error {
 	decoded, err := hex.DecodeString(Unquote(b))
 	if err != nil {
@@ -658,6 +705,45 @@ func (t Time) Before(t2 Time) bool { return t < t2 }
 func FormatTime(t Time) string {
 	layout := "2006-01-02 15:04:05 MST"
 	return FromTime(t).Format(layout)
+}
+
+func FromUnixTime(u UnixTime) time.Time {
+	return FromTime(Time(u * 1000))
+}
+
+func (u UnixTime) Time() time.Time {
+	return FromUnixTime(u)
+}
+
+func (u UnixTime) UnixSeconds() int64 {
+	return int64(u)
+}
+
+func (u UnixTime) UnixMilliseconds() int64 {
+	return int64(u) * 1000
+}
+
+func (u UnixTime) UnixMicroseconds() int64 {
+	return int64(u) * 1000000
+}
+
+func ToUnixTime(t time.Time) UnixTime {
+	if t.IsZero() {
+		return 0
+	}
+	return UnixTime(t.Unix())
+}
+
+func UnixTimeFromSeconds(seconds int64) UnixTime {
+	return UnixTime(seconds)
+}
+
+func (u UnixTime) IsZero() bool            { return u == UnixTime(0) }
+func (u UnixTime) After(u2 UnixTime) bool  { return u > u2 }
+func (u UnixTime) Before(u2 UnixTime) bool { return u < u2 }
+func FormatUnixTime(u UnixTime) string {
+	layout := "2006-01-02 15:04:05 MST"
+	return FromUnixTime(u).Format(layout)
 }
 
 func (s Status) Error() string {
@@ -1666,6 +1752,24 @@ func (t TeamMember) IsReset() bool {
 	return t.EldestSeqno != t.UserEldestSeqno
 }
 
+// ActiveUsernames returns a map of username -> active status
+func (t TeamMembersDetails) ActiveUsernames() map[string]bool {
+	m := make(map[string]bool)
+	for _, u := range t.Owners {
+		m[u.Username] = m[u.Username] || u.Active
+	}
+	for _, u := range t.Admins {
+		m[u.Username] = m[u.Username] || u.Active
+	}
+	for _, u := range t.Writers {
+		m[u.Username] = m[u.Username] || u.Active
+	}
+	for _, u := range t.Readers {
+		m[u.Username] = m[u.Username] || u.Active
+	}
+	return m
+}
+
 func (t TeamName) IsNil() bool {
 	return len(t.Parts) == 0
 }
@@ -1885,6 +1989,20 @@ func (s SigChainLocation) Eq(s2 SigChainLocation) bool {
 
 func (s SigChainLocation) LessThanOrEqualTo(s2 SigChainLocation) bool {
 	return s.SeqType == s2.SeqType && s.Seqno <= s2.Seqno
+}
+
+func (s SigChainLocation) Comparable(s2 SigChainLocation) error {
+	if s.SeqType != s2.SeqType {
+		return fmt.Errorf("mismatched seqtypes: %v != %v", s.SeqType, s2.SeqType)
+	}
+	return nil
+}
+
+func (s SigChainLocation) Sub1() SigChainLocation {
+	return SigChainLocation{
+		Seqno:   s.Seqno - 1,
+		SeqType: s.SeqType,
+	}
 }
 
 func (r TeamRole) IsAdminOrAbove() bool {
@@ -2145,6 +2263,14 @@ func (req *TeamChangeReq) AddUVWithRole(uv UserVersion, role TeamRole) error {
 	return nil
 }
 
+func (req *TeamChangeReq) GetAllAdds() (ret []UserVersion) {
+	ret = append(ret, req.Readers...)
+	ret = append(ret, req.Writers...)
+	ret = append(ret, req.Admins...)
+	ret = append(ret, req.Owners...)
+	return ret
+}
+
 func TotalNumberOfCommits(refs []GitRefMetadata) (total int) {
 	for _, ref := range refs {
 		total += len(ref.Commits)
@@ -2178,4 +2304,13 @@ func (e TeamEncryptedKBFSKeysetHash) Bytes() []byte {
 
 func (e TeamEncryptedKBFSKeysetHash) SecureEqual(l TeamEncryptedKBFSKeysetHash) bool {
 	return hmac.Equal(e.Bytes(), l.Bytes())
+}
+
+func (r ResetLink) Summarize() ResetSummary {
+	return ResetSummary{
+		Ctime:      r.Ctime,
+		MerkleRoot: r.MerkleRoot,
+		ResetSeqno: r.ResetSeqno,
+		Type:       r.Type,
+	}
 }

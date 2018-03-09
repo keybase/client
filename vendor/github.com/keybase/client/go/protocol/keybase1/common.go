@@ -14,6 +14,12 @@ func (o Time) DeepCopy() Time {
 	return o
 }
 
+type UnixTime int64
+
+func (o UnixTime) DeepCopy() UnixTime {
+	return o
+}
+
 type DurationSec float64
 
 func (o DurationSec) DeepCopy() DurationSec {
@@ -127,6 +133,17 @@ type GitRepoName string
 
 func (o GitRepoName) DeepCopy() GitRepoName {
 	return o
+}
+
+type HashMeta []byte
+
+func (o HashMeta) DeepCopy() HashMeta {
+	return (func(x []byte) []byte {
+		if x == nil {
+			return nil
+		}
+		return append([]byte{}, x...)
+	})(o)
 }
 
 type TeamType int
