@@ -663,8 +663,8 @@ const iconMeta_ = {
   },
   'icon-message-status-sending-24': {
     isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-message-status-sending-24.png'),
+    extension: 'gif',
+    require: require('../images/icons/icon-message-status-sending-24.gif'),
   },
   'icon-message-status-sent-24': {
     isFont: false,
