@@ -53,6 +53,7 @@ type InfoPanelProps = {
   onClickGear: () => void,
 
   // Used for big teams.
+  description: ?string,
   onLeaveConversation: () => void,
   onJoinChannel: () => void,
 } & HeaderHocProps
@@ -107,6 +108,7 @@ type SmallTeamHeaderRow = {
 
 type BigTeamHeaderRow = {
   type: 'big team header',
+  description: ?string,
   teamname: string,
   channelname: string,
   onViewTeam: () => void,
@@ -239,6 +241,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           <BigTeamHeader
             key="big team header"
             channelname={row.channelname}
+            description={row.description}
             teamname={row.teamname}
             onClick={row.onViewTeam}
           />
@@ -280,16 +283,17 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
     const {teamname, channelname, onViewTeam, onClickGear} = props
     if (teamname && channelname) {
       let headerRows: Array<TeamHeaderRow>
+      const smallTeamHeaderRow = {
+        type: 'small team header',
+        teamname,
+        participantCount,
+        onViewTeam,
+        onClickGear,
+      }
       if (props.smallTeam) {
         // Small team.
         headerRows = [
-          {
-            type: 'small team header',
-            teamname,
-            participantCount,
-            onViewTeam,
-            onClickGear,
-          },
+          smallTeamHeaderRow,
           {
             type: 'divider',
             key: '1',
@@ -313,6 +317,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
         // Big team.
         const headerRow = {
           type: 'big team header',
+          description: props.description,
           teamname,
           channelname,
           onViewTeam,
@@ -331,6 +336,11 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
               type: 'divider',
               key: '1',
             },
+            smallTeamHeaderRow,
+            {
+              type: 'divider',
+              key: '2',
+            },
             {
               type: 'join channel',
               teamname,
@@ -338,7 +348,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             },
             {
               type: 'divider',
-              key: '2',
+              key: '3',
             },
             participantCountRow,
           ]
@@ -350,12 +360,17 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
               type: 'divider',
               key: '1',
             },
+            smallTeamHeaderRow,
+            {
+              type: 'divider',
+              key: '2',
+            },
             {
               type: 'notifications',
             },
             {
               type: 'divider',
-              key: '2',
+              key: '3',
               marginBottom: globalMargins.tiny,
             },
             {
@@ -364,7 +379,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             },
             {
               type: 'divider',
-              key: '3',
+              key: '4',
               marginTop: globalMargins.tiny,
             },
             participantCountRow,

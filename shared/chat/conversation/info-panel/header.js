@@ -42,25 +42,22 @@ const SmallTeamHeader = ({canManage, teamname, participantCount, onClick, onClic
 
 type BigProps = {
   channelname: string,
+  description: ?string,
   teamname: string,
   onClick: () => void,
 }
 
-const BigTeamHeader = ({channelname, teamname, onClick}: BigProps) => {
+const BigTeamHeader = ({channelname, description, teamname, onClick}: BigProps) => {
   return (
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'stretch'}}>
-      <Text style={{alignSelf: 'center', marginTop: globalMargins.medium}} type="BodyBig">
+      <Text style={{alignSelf: 'center', marginTop: globalMargins.medium, marginBottom: 2}} type="BodyBig">
         #{channelname}
       </Text>
-      <ClickableBox
-        style={{...globalStyles.flexBoxRow, alignSelf: 'center', alignItems: 'center'}}
-        onClick={onClick}
-      >
-        <Avatar teamname={teamname} size={12} />
-        <Text type="BodySmallSemibold" style={{marginLeft: globalMargins.xtiny}}>
-          {teamname}
+      {description && (
+        <Text style={{alignSelf: 'center'}} type="Body">
+          {description}
         </Text>
-      </ClickableBox>
+      )}
     </Box>
   )
 }

@@ -61,6 +61,7 @@ const conversationProps = {
   channelname: null,
   smallTeam: false,
   admin: false,
+  description: "You shouldn't be seeing this",
 
   onShowBlockConversationDialog: action('onShowBlockConversationDialog'),
   onShowNewTeamDialog: action('onShowNewTeamDialog'),
@@ -89,6 +90,7 @@ const smallTeamProps = {
   isPreview: false,
   smallTeam: true,
   admin: false,
+  description: "You shouldn't be seeing this",
 
   onLeaveConversation: unexpected('onLeaveConversation'),
   onJoinChannel: unexpected('onJoinChannel'),
@@ -98,6 +100,7 @@ const bigTeamCommonProps = {
   ...teamCommonProps,
   smallTeam: false,
   admin: false,
+  description: 'The best channel',
 }
 
 const bigTeamPreviewProps = {

@@ -31,6 +31,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
     _infoMap: state.users.infoMap,
     admin,
     channelname: meta.channelname,
+    description: meta.description,
     isPreview: meta.membershipType === 'youArePreviewing',
     selectedConversationIDKey: conversationIDKey,
     smallTeam: meta.teamType !== 'big',
