@@ -13,8 +13,8 @@ import (
 	"strings"
 	"time"
 
+	winio "github.com/Microsoft/go-winio"
 	"github.com/keybase/client/go/logger"
-	"github.com/Microsoft/go-winio"
 )
 
 func NewSocket(g *GlobalContext) (ret Socket, err error) {
@@ -52,11 +52,12 @@ func NewSocketWithFiles(
 
 func (s SocketInfo) BindToSocket() (ret net.Listener, err error) {
 	s.log.Info("Binding to pipe:%s", s.bindFile)
-	return go-winio.PipeListen(s.bindFile, nil)
+	return winio.ListenPipe(s.bindFile, nil)
 }
 
 func (s SocketInfo) DialSocket() (ret net.Conn, err error) {
-	pipe, err := go-winio.DialPipe(s.dialFiles[0], time.Duration(1)*time.Second)
+	duration := time.Duration(1) * time.Second
+	pipe, err := winio.DialPipe(s.dialFiles[0], &duration)
 	if err != nil {
 		// Be sure to return a nil interface, and not a nil npipe.PipeConn
 		// See https://keybase.atlassian.net/browse/CORE-2675 for when this
@@ -74,5 +75,5 @@ func (s SocketInfo) DialSocket() (ret net.Conn, err error) {
 }
 
 func IsSocketClosedError(e error) bool {
-	return e == go-winio.ErrPipeListenerClosed
+	return e == winio.ErrPipeListenerClosed
 }
