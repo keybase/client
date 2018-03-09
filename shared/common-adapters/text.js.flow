@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import type {StylesCrossPlatform} from '../styles'
 
 type Background =
   | 'Announcements'
@@ -40,20 +41,20 @@ type TextType =
   | 'TerminalInline'
 
 type Props = {
+  allowFontScaling?: boolean,
+  allowHighlightText?: boolean, // if true, highlighttext through refs works
   backgroundMode?: Background,
   children?: React.Node,
   className?: string,
   lineClamp?: number,
   onClick?: ?(e: SyntheticEvent<>) => void | ?() => void,
   onClickURL?: ?string,
-  onPress?: void,
   onLongPress?: () => void,
+  onPress?: void,
   selectable?: boolean,
-  style?: any,
-  type: TextType,
+  style?: StylesCrossPlatform,
   title?: ?string,
-  allowHighlightText?: boolean, // if true, highlighttext through refs works
-  allowFontScaling?: boolean,
+  type: TextType,
   underline?: boolean,
 }
 

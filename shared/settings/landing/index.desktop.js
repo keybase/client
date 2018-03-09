@@ -3,7 +3,7 @@ import * as React from 'react'
 import SubHeading from '../subheading'
 import {Box, Button, Divider, Text, Meta} from '../../common-adapters'
 import {Stars} from '../common.desktop.js'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {globalStyles, globalColors, globalMargins, desktopStyles} from '../../styles'
 import {priceToString, planToStars, comparePlans} from '../../constants/plan-billing'
 import flags from '../../util/feature-flags'
 
@@ -137,7 +137,7 @@ function PlanLevelRow({level, price, onInfo, variants, style, gigabytes}: PlanLe
     <Box
       style={{
         ...globalStyles.flexBoxRow,
-        ...globalStyles.clickable,
+        ...desktopStyles.clickable,
         ...planLevelRowStyle,
         backgroundColor: selected ? globalColors.blue4 : globalColors.white,
         ...style,

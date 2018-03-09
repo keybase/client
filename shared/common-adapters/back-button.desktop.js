@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import type {Props} from './back-button'
 import Text from './text'
 import Icon from './icon'
-import {globalStyles} from '../styles'
+import {globalStyles, desktopStyles} from '../styles'
 
 class BackButton extends Component<Props> {
   onClick(event: SyntheticEvent<>) {
@@ -31,7 +31,7 @@ class BackButton extends Component<Props> {
 export const styles = {
   container: {
     ...globalStyles.flexBoxRow,
-    ...globalStyles.clickable,
+    ...desktopStyles.clickable,
     alignItems: 'center',
   },
   icon: {

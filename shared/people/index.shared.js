@@ -6,7 +6,7 @@ import Todo from './task/container'
 import FollowNotification from './follow-notification'
 import FollowSuggestions from './follow-suggestions'
 import {type Props} from '.'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+import {globalStyles, globalColors, globalMargins, desktopStyles} from '../styles'
 
 export const itemToComponent: (Types._PeopleScreenItem, Props) => React.Node = (item, props) => {
   switch (item.type) {
@@ -57,7 +57,7 @@ export const PeoplePageList = (props: Props) => (
 
 const styleSearchContainer = {
   ...globalStyles.flexBoxRow,
-  ...globalStyles.clickable,
+  ...desktopStyles.clickable,
   alignItems: 'center',
   alignSelf: 'center',
   backgroundColor: globalColors.black_05,

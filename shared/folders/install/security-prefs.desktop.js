@@ -2,7 +2,7 @@
 import * as KBFSGen from '../../actions/kbfs-gen'
 import React, {Component} from 'react'
 import {BackButton, Box, Text} from '../../common-adapters'
-import {globalStyles, globalColors} from '../../styles'
+import {globalStyles, globalColors, platformStyles} from '../../styles'
 import {shell} from 'electron'
 import {connect, type TypedState} from '../../util/container'
 
@@ -65,7 +65,7 @@ class InstallSecurityPrefs extends Component<Props, State> {
             </Text>
           </Box>
           <Box style={{...globalStyles.flexBoxColumn, marginTop: 30}}>
-            <Box style={{...globalStyles.flexBoxRow}}>
+            <Box style={globalStyles.flexBoxRow}>
               <Text type="BodySemibold" style={stylesNumberList}>
                 1
               </Text>
@@ -73,7 +73,7 @@ class InstallSecurityPrefs extends Component<Props, State> {
                 Click the lock icon then enter your password
               </Text>
             </Box>
-            <Box style={{...globalStyles.flexBoxRow}}>
+            <Box style={globalStyles.flexBoxRow}>
               <Text type="BodySemibold" style={stylesNumberList}>
                 2
               </Text>
@@ -105,17 +105,19 @@ const stylesContainer = {
   position: 'relative',
 }
 
-const stylesNumberList = {
-  backgroundColor: globalColors.blue,
-  borderRadius: '50%',
-  color: globalColors.white,
-  height: 20,
-  marginRight: 13,
-  minWidth: 20,
-  paddingTop: 1,
-  textAlign: 'center',
-  width: 20,
-}
+const stylesNumberList = platformStyles({
+  isElectron: {
+    backgroundColor: globalColors.blue,
+    borderRadius: '50%',
+    color: globalColors.white,
+    height: 20,
+    marginRight: 13,
+    minWidth: 20,
+    paddingTop: 1,
+    textAlign: 'center',
+    width: 20,
+  },
+})
 
 const styleListText = {
   paddingBottom: 16,

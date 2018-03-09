@@ -164,7 +164,7 @@ const styles = styleSheetCreate({
   },
   fail: {color: globalColors.red},
   failStyleFace: {color: globalColors.red, fontSize: 9},
-  failStyleUnderline: {color: globalColors.red, ...globalStyles.textDecoration('underline')},
+  failStyleUnderline: {color: globalColors.red, textDecorationLine: 'underline'},
   flexOneColumn: {...globalStyles.flexBoxColumn, flex: 1},
   flexOneRow: {...globalStyles.flexBoxRow, flex: 1},
   orangeLine: {backgroundColor: globalColors.orange, height: 1, width: '100%'},

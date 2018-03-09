@@ -1,7 +1,14 @@
 // @flow
 import React from 'react'
 import {Avatar, Box, Text, Icon, PopupMenu} from '../../../../common-adapters'
-import {globalStyles, globalColors, globalMargins, glamorous, isMobile} from '../../../../styles'
+import {
+  globalStyles,
+  globalColors,
+  globalMargins,
+  glamorous,
+  isMobile,
+  desktopStyles,
+} from '../../../../styles'
 
 type Props = {
   memberCount: number,
@@ -107,7 +114,7 @@ const teamHeaderStyle = {
 
 const teamRowContainerStyle = {
   ...globalStyles.flexBoxRow,
-  ...globalStyles.clickable,
+  ...desktopStyles.clickable,
   alignItems: 'center',
   flexShrink: 0,
   maxHeight: isMobile ? globalMargins.large : globalMargins.medium,

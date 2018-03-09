@@ -4508,11 +4508,11 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
   font-weight: 400;
   white-space: nowrap;
   display: block;
-  overflow: hidden;
-  width: 100%;
-  text-overflow: ellipsis;
   min-height: 15px;
+  overflow: hidden;
   padding-right: 30px;
+  text-overflow: ellipsis;
+  width: 100%;
 }
 
 .glamor-4,
@@ -4593,11 +4593,11 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
   font-weight: 700;
   white-space: nowrap;
   display: block;
-  overflow: hidden;
-  width: 100%;
-  text-overflow: ellipsis;
   min-height: 15px;
+  overflow: hidden;
   padding-right: 30px;
+  text-overflow: ellipsis;
+  width: 100%;
 }
 
 <div
@@ -27240,7 +27240,8 @@ exports[`Storyshots Git DeleteRepo 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 400;
-  text-decoration: line-through;
+  text-decoration-line: line-through;
+  -webkit-text-decoration-line: line-through;
 }
 
 .glamor-2,
@@ -27632,7 +27633,8 @@ exports[`Storyshots Git DeleteTeamRepo 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 400;
-  text-decoration: line-through;
+  text-decoration-line: line-through;
+  -webkit-text-decoration-line: line-through;
 }
 
 .glamor-4,
@@ -31388,11 +31390,11 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 700;
+  align-self: center;
   border-radius: 2px;
   height: 11px;
   padding-left: 3px;
   padding-right: 3px;
-  align-self: center;
   text-transform: uppercase;
   background-color: #33a0ff;
   min-width: 16px;
@@ -31820,11 +31822,11 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 700;
+  align-self: center;
   border-radius: 2px;
   height: 11px;
   padding-left: 3px;
   padding-right: 3px;
-  align-self: center;
   text-transform: uppercase;
   background-color: #33a0ff;
   min-width: 16px;
@@ -37458,8 +37460,8 @@ exports[`Storyshots Search Result 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 600;
-  overflow: hidden;
   flex: 1;
+  overflow: hidden;
   white-space: pre-wrap;
   word-wrap: break-word;
   -webkit-flex: 1;
@@ -37490,8 +37492,8 @@ exports[`Storyshots Search Result 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 600;
-  overflow: hidden;
   flex: 1;
+  overflow: hidden;
   white-space: pre-wrap;
   word-wrap: break-word;
   -webkit-flex: 1;
@@ -37506,8 +37508,8 @@ exports[`Storyshots Search Result 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 600;
-  overflow: hidden;
   flex: 1;
+  overflow: hidden;
   white-space: pre-wrap;
   word-wrap: break-word;
   -webkit-flex: 1;
@@ -37523,8 +37525,8 @@ exports[`Storyshots Search Result 1`] = `
   font-family: OpenSans;
   font-weight: 600;
   font-style: italic;
-  overflow: hidden;
   flex: 1;
+  overflow: hidden;
   white-space: pre-wrap;
   word-wrap: break-word;
   -webkit-flex: 1;
@@ -47200,11 +47202,11 @@ exports[`Storyshots Teams TeamList 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 700;
+  align-self: center;
   border-radius: 1px;
   height: 11px;
   padding-left: 3px;
   padding-right: 3px;
-  align-self: center;
   text-transform: uppercase;
   background-color: #3dcc8e;
   margin-left: 4px;
@@ -47233,28 +47235,8 @@ exports[`Storyshots Teams TeamList 1`] = `
   color: rgba(0, 0, 0, 0.75);
 }
 
-.glamor-10,
-[data-glamor-10] {
-  font-size: 10px;
-  line-height: 11px;
-  color: #ffffff;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 700;
-  border-radius: 1px;
-  height: 11px;
-  padding-left: 3px;
-  padding-right: 3px;
-  align-self: center;
-  text-transform: uppercase;
-  background-color: #ff6f21;
-  margin-right: 4px;
-  -webkit-align-self: center;
-}
-
-.glamor-16,
-[data-glamor-16] {
+.glamor-15,
+[data-glamor-15] {
   font-size: 9px;
   line-height: 8px;
   color: #ffffff;
@@ -47600,13 +47582,6 @@ exports[`Storyshots Teams TeamList 1`] = `
                   }
                 >
                   <span
-                    className="glamor-10"
-                    onClick={undefined}
-                    title={undefined}
-                  >
-                    NEW
-                  </span>
-                  <span
                     className="glamor-4"
                     onClick={undefined}
                     title={undefined}
@@ -47777,7 +47752,7 @@ exports[`Storyshots Teams TeamList 1`] = `
                   }
                 >
                   <span
-                    className="glamor-16"
+                    className="glamor-15"
                     onClick={undefined}
                     title={undefined}
                   >

@@ -9,10 +9,10 @@
 import {userTimings} from '../local-debug'
 
 const perf = typeof performance !== 'undefined' && performance // eslint-disable-line
-const mark = perf && perf.mark.bind(perf)
-const measure = perf && perf.measure.bind(perf)
-const clearMarks = perf && perf.clearMarks.bind(perf)
-const clearMeasures = perf && perf.clearMeasures.bind(perf)
+const mark = perf && perf.mark && perf.mark.bind(perf)
+const measure = perf && perf.measure && perf.measure.bind(perf)
+const clearMarks = perf && perf.clearMarks && perf.clearMarks.bind(perf)
+const clearMeasures = perf && perf.clearMeasures && perf.clearMeasures.bind(perf)
 const allowTiming = __DEV__ && userTimings && mark && measure
 const markPrefix = '\uD83D\uDD11' // key unicode. inlining this actually screws up prettier so i had to escape it
 

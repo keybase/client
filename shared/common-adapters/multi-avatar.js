@@ -5,7 +5,7 @@ import logger from '../logger'
 import Avatar from './avatar'
 import Box from './box'
 import * as React from 'react'
-import {globalStyles} from '../styles'
+import {globalStyles, type StylesCrossPlatform} from '../styles'
 import {createSelector} from 'reselect'
 
 import type {Props as AvatarProps, AvatarSize} from './avatar'
@@ -14,7 +14,7 @@ export type Props = {
   avatarProps: Array<AvatarProps>,
   singleSize: AvatarSize,
   multiSize: AvatarSize,
-  style?: ?Object,
+  style?: StylesCrossPlatform,
   multiPadding?: number,
 }
 
@@ -41,6 +41,7 @@ class MultiAvatar extends React.Component<Props> {
     const leftProps: AvatarProps = avatarProps[1]
     const rightProps: AvatarProps = avatarProps[0]
 
+    // $FlowIssue making unsafe assumptions about style being an object, TODO fix this
     const backgroundColor = this.props.style && this.props.style.backgroundColor
     if (avatarProps.length === 1) {
       return (
@@ -51,6 +52,7 @@ class MultiAvatar extends React.Component<Props> {
     }
 
     return (
+      // $FlowIssue making unsafe assumptions about style being an object, TODO fix this
       <Box style={{height: '100%', position: 'relative', width: '100%', ...style}}>
         <Avatar {...leftProps} style={leftAvatar(multiPadding, leftProps.style)} size={multiSize} />
         <Avatar {...rightProps} style={rightAvatar(multiPadding, rightProps.style)} size={multiSize} />
@@ -59,6 +61,7 @@ class MultiAvatar extends React.Component<Props> {
   }
 }
 
+// $FlowIssue making unsafe assumptions about style being an object, TODO fix this
 const rightStyle = createSelector([a => a, (_, b) => b], (style: ?Object, backgroundColor: ?string) => ({
   ...(style || {}),
   backgroundColor,
@@ -70,16 +73,20 @@ const singleStyle = {
   width: '100%',
 }
 
+// $FlowIssue making unsafe assumptions about style being an object, TODO fix this
 const leftAvatar = createSelector([a => a, (_, b) => b], (offset = 0, style) => ({
+  // $FlowIssue making unsafe assumptions about style being an object, TODO fix this
   left: 0,
   position: 'absolute',
   top: offset,
   ...(style || {}),
 }))
 
+// $FlowIssue making unsafe assumptions about style being an object, TODO fix this
 const rightAvatar = createSelector([a => a, (_, b) => b], (offset = 0, style) => ({
   bottom: offset,
   position: 'absolute',
+  // $FlowIssue making unsafe assumptions about style being an object, TODO fix this
   right: 0,
   ...(style || {}),
 }))

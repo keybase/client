@@ -47,12 +47,12 @@ export type TabBarButtonProps = Exact<{
   badgeNumber?: ?number,
   badgePosition?: TabBadgePosition,
   style?: Object,
-  styleContainer?: Object,
-  styleBadge?: Object,
-  styleBadgeContainer?: Object,
-  styleIcon?: Object,
-  styleBadgeNumber?: Object,
-  styleLabel?: Object,
+  styleContainer?: any,
+  styleBadge?: any,
+  styleBadgeContainer?: any,
+  styleIcon?: any,
+  styleBadgeNumber?: any,
+  styleLabel?: any,
 }>
 
 export class TabBarButton extends React.Component<TabBarButtonProps> {}

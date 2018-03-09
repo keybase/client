@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Avatar, Box, ClickableBox} from '../../../common-adapters'
-import {globalStyles, globalMargins, isMobile} from '../../../styles'
+import {globalStyles, globalMargins, isMobile, desktopStyles, platformStyles} from '../../../styles'
 
 export type Props = {
   bgColor: string,
@@ -39,9 +39,11 @@ const stylesAvatarWrapper = (avatarSize: number) => ({
   top: AVATAR_SIZE / 2,
   zIndex: 10,
 })
-const stylesAvatar = {
-  ...globalStyles.clickable,
-}
+const stylesAvatar = platformStyles({
+  isElectron: {
+    ...desktopStyles.clickable,
+  },
+})
 
 const styleBox = {
   ...globalStyles.flexBoxColumn,
