@@ -77,8 +77,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onDelete: yourMessage ? () => dispatchProps._onDelete(message) : null,
     onDeleteMessageHistory: stateProps._canDeleteHistory
       ? () => dispatchProps._onDeleteMessageHistory(message)
-      : null,
-    onDownload: !isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : null,
+      : undefined,
+    onDownload: !isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : undefined,
     onHidden: () => ownProps.onClosePopup(),
     onSaveAttachment:
       isMobile && message.attachmentType === 'image'

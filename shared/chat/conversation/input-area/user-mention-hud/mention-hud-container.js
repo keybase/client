@@ -32,10 +32,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
     .toArray(),
 })
 
-const ConnectedMentionHud: Class<React.Component<ConnectedMentionHudProps, void>> = connect(
-  mapStateToProps,
-  () => ({}),
-  mergeProps
-)(MentionHud)
+const ConnectedMentionHud = connect(mapStateToProps, () => ({}), mergeProps)(MentionHud)
 
 export default ConnectedMentionHud
