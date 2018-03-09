@@ -7,7 +7,7 @@ export type Props = {
   name: string,
   convID: ConversationIDKey,
   style: any,
-  allowFontScaling: ?boolean,
+  allowFontScaling?: ?boolean,
   onClick: () => void,
 }
 

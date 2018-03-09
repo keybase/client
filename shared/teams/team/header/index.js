@@ -12,7 +12,6 @@ export type Props = {
   description: string,
   memberCount: number,
   openTeam: boolean,
-  // $FlowIssue
   role: ?Types.TeamRoleType,
   teamname: Types.Teamname,
 
