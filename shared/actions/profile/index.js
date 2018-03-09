@@ -12,7 +12,8 @@ import URL from 'url-parse'
 import keybaseUrl from '../../constants/urls'
 import openURL from '../../util/open-url'
 import {getPathProps} from '../../route-tree'
-import {navigateTo, navigateUp} from '../../actions/route-tree'
+import {loginRouteTree} from '../../app/routes'
+import {navigateTo, navigateUp, switchRouteDef} from '../../actions/route-tree'
 import {loginTab, peopleTab} from '../../constants/tabs'
 import {pgpSaga} from './pgp'
 import {proofsSaga} from './proofs'
@@ -108,7 +109,10 @@ function _onAppLink(action: AppGen.LinkPayload, state: TypedState) {
     logger.info('AppLink: not logged in')
     // TODO: Ideally, we'd then navigate to the desired link once
     // login successfully completes.
-    return Saga.put(navigateTo(['login'], [loginTab]))
+    return Saga.sequentially([
+      Saga.put(switchRouteDef(loginRouteTree)),
+      Saga.put(navigateTo(['login'], [loginTab])),
+    ])
   }
 
   const link = action.payload.link

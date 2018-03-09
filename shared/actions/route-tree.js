@@ -13,11 +13,32 @@ export function pathSelector(state: TypedState, parentPath?: Path): I.List<strin
   return getPath(state.routeTree.routeState, parentPath)
 }
 
-// Set (or update) the tree of route definitions. Dispatched at initialization
-// time and when route definitions update through HMR.
-export function setRouteDef(routeDef: RouteDefParams): Types.SetRouteDef {
+// Set the tree of route definitions. Dispatched at initialization
+// time.
+export function setInitialRouteDef(routeDef: RouteDefParams): Types.SetInitialRouteDef {
   return {
-    type: Constants.setRouteDef,
+    type: Constants.setInitialRouteDef,
+    payload: {routeDef},
+  }
+}
+
+// Update the tree of route definitions.  Dispatched when route
+// definitions update through HMR.
+export function refreshRouteDef(
+  loginRouteTree: RouteDefParams,
+  appRouteTree: RouteDefParams
+): Types.RefreshRouteDef {
+  return {
+    type: Constants.refreshRouteDef,
+    payload: {loginRouteTree, appRouteTree},
+  }
+}
+
+// Switch the tree of route definitions. Dispatched when switching
+// from logged out to logged in and vice versa.
+export function switchRouteDef(routeDef: RouteDefParams): Types.SwitchRouteDef {
+  return {
+    type: Constants.switchRouteDef,
     payload: {routeDef},
   }
 }

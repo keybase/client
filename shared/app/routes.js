@@ -1,5 +1,5 @@
 // @flow
-import {makeRouteDefNode} from '../route-tree'
+import {makeLeafTags, makeRouteDefNode} from '../route-tree'
 import chatRoutes from '../chat/routes'
 import loginRoutes from '../login/routes'
 import devicesRoutes from '../devices/routes'
@@ -25,13 +25,25 @@ import {
   gitTab,
 } from '../constants/tabs'
 import flags from '../util/feature-flags'
+import {loginRouteTreeTitle, appRouteTreeTitle} from './route-constants'
 
-const routeTree = makeRouteDefNode({
+// TODO: We have only a single tab, so consider making loginRoutes the
+// root.
+const loginRouteTree = makeRouteDefNode({
+  tags: makeLeafTags({title: loginRouteTreeTitle}),
+  children: {
+    [loginTab]: loginRoutes,
+  },
+  containerComponent: Nav,
+  defaultSelected: loginTab,
+})
+
+const appRouteTree = makeRouteDefNode({
+  tags: makeLeafTags({title: appRouteTreeTitle}),
   children: {
     [chatTab]: chatRoutes,
     [folderTab]: foldersRoutes,
     [gitTab]: gitRoutes,
-    [loginTab]: loginRoutes,
     [peopleTab]: peopleRoutes,
     [profileTab]: profileRoutes,
     [settingsTab]: settingsRoutes,
@@ -48,7 +60,7 @@ const routeTree = makeRouteDefNode({
         }),
   },
   containerComponent: Nav,
-  defaultSelected: loginTab,
+  defaultSelected: peopleTab,
 })
 
-export default routeTree
+export {loginRouteTree, appRouteTree}

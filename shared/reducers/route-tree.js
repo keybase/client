@@ -15,6 +15,7 @@ import {
   checkRouteState,
   type RouteDefNode,
 } from '../route-tree'
+import {loginRouteTreeTitle, appRouteTreeTitle} from '../app/route-constants'
 import {isValidInitialTabString} from '../constants/tabs'
 
 // This makes an empty one which isn't really allowed, we always init it before anything really happens
@@ -66,13 +67,32 @@ function loggedInUserNavigatedReducer(loggedInUserNavigated, newSelectedTab, act
   return newLoggedInUserNavigated
 }
 
-function routeDefReducer(routeDef, action) {
+function routeDefReducer(routeDef: ?RouteDefNode, action) {
   switch (action.type) {
-    case Constants.setRouteDef:
-      if (!firstRouteDef) {
+    case Constants.setInitialRouteDef:
+      if (firstRouteDef) {
+        logger.error('setInitialRouteDef called more than once')
+      } else {
         // Store the first route def set
         firstRouteDef = action.payload.routeDef
       }
+      return action.payload.routeDef
+
+    case Constants.refreshRouteDef:
+      let title = ''
+      if (routeDef && routeDef.tags && routeDef.tags.title) {
+        title = routeDef.tags.title
+      }
+      switch (title) {
+        case loginRouteTreeTitle:
+          return action.payload.loginDef
+        case appRouteTreeTitle:
+          return action.payload.appDef
+        default:
+          throw new Error(`Current routeDef has unknown title ${title}`)
+      }
+
+    case Constants.switchRouteDef:
       return action.payload.routeDef
 
     default:
@@ -85,8 +105,16 @@ function routeStateReducer(routeDef, routeState, action) {
     case CommonConstants.resetStore:
       return routeSetProps(routeDef, null, [])
 
-    case Constants.setRouteDef: {
+    case Constants.setInitialRouteDef: {
       return routeNavigate(action.payload.routeDef, routeState, getPath(routeState))
+    }
+
+    case Constants.refreshRouteDef: {
+      return routeNavigate(action.payload.routeDef, routeState, getPath(routeState))
+    }
+
+    case Constants.switchRouteDef: {
+      return routeNavigate(action.payload.routeDef, routeState, [])
     }
 
     case Constants.switchTo:
@@ -144,7 +172,7 @@ export default function routeTreeReducer(state: Types.State = initialState, acti
       action
     )
   } catch (err) {
-    if (action.type === Constants.setRouteDef && err instanceof InvalidRouteError) {
+    if (action.type === Constants.refreshRouteDef && err instanceof InvalidRouteError) {
       logger.warn('New route tree mismatches current state. Not updating (please reload manually if needed).')
     } else {
       logger.error(
